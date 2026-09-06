@@ -164,20 +164,7 @@ export class InputManager {
       padAny = false;
     let selected =
       pads.find((p) => p.index === this.activePad?.index) || pads[0];
-    // Pick the controller with fresh activity, then read actions from that single controller.
-    let freshlyActive: Gamepad | undefined;
-    for (const pad of pads) {
-      const previous = this.previousButtons.get(pad.index) || [];
-      const activity = pad.buttons.some(
-        (button, i) =>
-          (button.pressed || button.value > (i === 7 ? 0.15 : 0.5)) &&
-          !previous[i],
-      );
-      if (activity) freshlyActive = pad;
-      if (Math.abs(pad.axes[0] || 0) > 0.3 || Math.abs(pad.axes[1] || 0) > 0.3)
-        selected = pad;
-    }
-    selected = freshlyActive || selected;
+    // Selection only routes optional rumble; every controller contributes input.
     for (const pad of pads) {
       const previous = this.previousButtons.get(pad.index) || [];
       const blocked = this.blockedButtons.get(pad.index) || new Set<number>();
@@ -190,28 +177,41 @@ export class InputManager {
       this.blockedButtons.set(pad.index, blocked);
       const held = (i: number) => !!buttons[i] && !blocked.has(i);
       const edge = (i: number) => held(i) && !previous[i];
-      padAny ||= buttons.some((_, i) => edge(i));
-      if (pad === selected) {
-        padX = this.axis(pad.axes[0] || 0);
-        padY = this.axis(pad.axes[1] || 0);
-        if (held(14) || held(15)) padX = Number(held(15)) - Number(held(14));
-        if (held(12) || held(13)) padY = Number(held(13)) - Number(held(12));
-        padJump = held(0);
-        padJumpEdge = edge(0);
-        padKick = edge(2);
-        padShoot = held(7);
-        padBlock = held(1);
-        padLookX = this.axis(pad.axes[2] || 0);
-        padLookY = this.axis(pad.axes[3] || 0);
-        padPause = edge(9);
-        padInstructions = edge(8);
-        padConfirm = edge(0);
-        padBack = edge(1);
-        if (padAny || Math.abs(padX) > 0.05 || Math.abs(padY) > 0.05)
-          this.modality = 'gamepad';
+      const anyEdge = buttons.some((_, i) => edge(i));
+      let x = this.axis(pad.axes[0] || 0),
+        y = this.axis(pad.axes[1] || 0);
+      if (held(14) || held(15)) x = Number(held(15)) - Number(held(14));
+      if (held(12) || held(13)) y = Number(held(13)) - Number(held(12));
+      const lookX = this.axis(pad.axes[2] || 0),
+        lookY = this.axis(pad.axes[3] || 0);
+      padX += x;
+      padY += y;
+      padLookX += lookX;
+      padLookY += lookY;
+      padAny ||= anyEdge;
+      padJump ||= held(0);
+      padJumpEdge ||= edge(0);
+      padKick ||= edge(2);
+      padShoot ||= held(7);
+      padBlock ||= held(1);
+      padPause ||= edge(9);
+      padInstructions ||= edge(8);
+      padConfirm ||= edge(0);
+      padBack ||= edge(1);
+      if (
+        anyEdge ||
+        [x, y, lookX, lookY].some((value) => Math.abs(value) > 0.05)
+      ) {
+        this.modality = 'gamepad';
+        selected = pad;
       }
       this.previousButtons.set(pad.index, buttons);
     }
+    // Clamp after summing so opposing inputs cancel regardless of pad order.
+    padX = Math.max(-1, Math.min(1, padX));
+    padY = Math.max(-1, Math.min(1, padY));
+    padLookX = Math.max(-1, Math.min(1, padLookX));
+    padLookY = Math.max(-1, Math.min(1, padLookY));
     this.activePad = selected || null;
     const held = (...codes: string[]) =>
       codes.some((code) => this.keys.has(code) && !this.blockedKeys.has(code));
