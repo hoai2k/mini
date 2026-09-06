@@ -26,7 +26,7 @@ The first script refreshes transpiled copies from the real source before testing
 | Shield depletion | Repeated quarter-second hits break shield in ~0.992s; no damage on the breaking hit; next unblocked hit lowers HP |
 | Shield recharge | Releasing B restores energy to 1.0 |
 | Xbox B | Actual input emits `blockHeld=true`, `pausePressed=false`; actual playing UI branch ignores the menu-only `backPressed` edge |
-| Campaign reachability | **810/810** actual-engine route transitions pass |
+| Campaign reachability | **405/405** actual-engine route transitions pass |
 | Inversion gallery | Entry, ceiling landing, side exit and safe-floor recovery pass |
 | Laser targeting | All 18 species hit; all 3 bosses take intended 0.3 closed / 1.0 exposed damage |
 

@@ -324,8 +324,16 @@ export default function Home() {
     const pause = () => {
       if (screenRef.current === 'playing') actionsRef.current.change('pause');
     };
-    window.addEventListener('blur', pause);
-    document.addEventListener('visibilitychange', pause);
+    // A hidden or unfocused tab keeps no music or effects playing.
+    const background = () =>
+      a.setBackground(document.hidden || !document.hasFocus());
+    const leave = () => {
+      pause();
+      background();
+    };
+    window.addEventListener('blur', leave);
+    window.addEventListener('focus', background);
+    document.addEventListener('visibilitychange', leave);
     const loop = (now: number) => {
       const dt = Math.min(0.05, (now - previous) / 1000);
       previous = now;
@@ -407,8 +415,9 @@ export default function Home() {
       a.dispose();
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
-      window.removeEventListener('blur', pause);
-      document.removeEventListener('visibilitychange', pause);
+      window.removeEventListener('blur', leave);
+      window.removeEventListener('focus', background);
+      document.removeEventListener('visibilitychange', leave);
     };
   }, []);
   useEffect(() => {

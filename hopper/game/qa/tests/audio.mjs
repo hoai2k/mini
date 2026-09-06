@@ -26,12 +26,25 @@ class Node {
   }
 }
 let oscillatorCount = 0;
+const contexts = [];
 class Context {
   currentTime = 0;
   state = 'running';
   sampleRate = 44100;
   destination = new Node();
+  suspends = 0;
+  resumes = 0;
+  constructor() {
+    contexts.push(this);
+  }
+  suspend() {
+    this.suspends++;
+    this.state = 'suspended';
+    return Promise.resolve();
+  }
   resume() {
+    this.resumes++;
+    this.state = 'running';
     return Promise.resolve();
   }
   close() {
@@ -162,6 +175,29 @@ assert.equal(
 audio.resumeTheme();
 assert(theme.paused && !level.paused);
 assert.equal(level.currentTime, 37.5);
+// A hidden or unfocused tab silences music and effects without losing position.
+const [context] = contexts;
+level.currentTime = 51.75;
+audio.setBackground(true);
+assert(theme.paused && level.paused, 'leaving the tab pauses every track');
+assert.equal(context.suspends, 1, 'the effect context is suspended too');
+audio.effect('jump');
+assert.equal(oscillatorCount, 4, 'a suspended context plays no effects');
+const backgroundPlays = theme.plays + level.plays;
+audio.setScene('menu');
+audio.setScene('gameplay');
+audio.resumeTheme();
+assert(
+  theme.paused && level.paused,
+  'scene changes stay silent while backgrounded',
+);
+assert.equal(theme.plays + level.plays, backgroundPlays);
+audio.setBackground(true);
+assert.equal(context.suspends, 1, 'a repeated background request does nothing');
+audio.setBackground(false);
+assert(!level.paused && theme.paused, 'returning resumes the selected track');
+assert.equal(level.currentTime, 51.75, 'the track keeps its position');
+assert.equal(context.state, 'running');
 audio.pauseTheme();
 let resolveTheme;
 theme.deferred = new Promise((resolve) => {
@@ -191,5 +227,5 @@ audio.playLevel();
 await audio.unlock();
 assert.equal(theme.plays + level.plays, totalPlays);
 console.log(
-  'PASS: two-track routing, deferred scene intent, no autoplay/overlap, independent positions, pause/resume, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
+  'PASS: two-track routing, deferred scene intent, no autoplay/overlap, independent positions, pause/resume, background suspension, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
 );

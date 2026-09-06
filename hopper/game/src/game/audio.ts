@@ -28,6 +28,7 @@ export class GameAudio {
   private muted = false;
   private unlocked = false;
   private wantsMusic = false;
+  private background = false;
   private disposed = false;
   private lastEffect = new Map<SoundEffect, number>();
   private voices = 0;
@@ -56,7 +57,13 @@ export class GameAudio {
     for (const track of this.tracks()) {
       if (track !== selected && !track.paused) track.pause();
     }
-    if (!this.unlocked || !this.wantsMusic || this.disposed || !selected.paused)
+    if (
+      !this.unlocked ||
+      !this.wantsMusic ||
+      this.background ||
+      this.disposed ||
+      !selected.paused
+    )
       return Promise.resolve();
     try {
       return selected
@@ -134,6 +141,21 @@ export class GameAudio {
   pauseTheme(): void {
     this.wantsMusic = false;
     for (const track of this.tracks()) if (!track.paused) track.pause();
+  }
+  /**
+   * Silence everything while the tab is hidden or unfocused, keeping the scene
+   * intent and track positions so returning resumes exactly where it stopped.
+   */
+  setBackground(background: boolean): void {
+    if (this.disposed || this.background === background) return;
+    this.background = background;
+    if (background) {
+      for (const track of this.tracks()) if (!track.paused) track.pause();
+      void this.context?.suspend().catch(() => {});
+    } else {
+      void this.context?.resume().catch(() => {});
+      void this.playSelected();
+    }
   }
   /** Resume the currently selected scene after application suspension. */
   resumeTheme(): void {

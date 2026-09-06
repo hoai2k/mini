@@ -149,17 +149,8 @@ const REGIONS: Region[] = [
       [740, 190, 80, 'fight'],
       [650, 240, 100, 'run'],
       [850, 160, -100, 'rest'],
-      [560, 190, -150, 'climb'],
-      [590, 250, -120, 'fight'],
       [830, 300, 190, 'vista'],
-      [670, 150, 120, 'drop'],
       [740, 230, -80, 'fight'],
-      [600, 200, -140, 'climb'],
-      [900, 80, 40, 'rest'],
-      [570, 260, 130, 'fight'],
-      [660, 360, -40, 'run'],
-      [830, 180, -130, 'fight'],
-      [670, 210, 50, 'run'],
       [850, 120, -100, 'finish'],
       [950, 100, 0, 'rest'],
     ],
@@ -181,17 +172,8 @@ const REGIONS: Region[] = [
       [620, 210, -180, 'fight'],
       [580, 260, -140, 'climb'],
       [840, 150, -100, 'rest'],
-      [560, 180, -180, 'fight'],
-      [600, 210, -170, 'climb'],
       [710, 280, -120, 'vista'],
-      [570, 170, 200, 'drop'],
       [730, 260, 210, 'fight'],
-      [920, 110, -140, 'rest'],
-      [610, 220, -180, 'fight'],
-      [520, 280, -170, 'climb'],
-      [650, 320, -150, 'run'],
-      [770, 170, -160, 'fight'],
-      [580, 200, -170, 'climb'],
       [740, 150, -80, 'finish'],
       [990, 100, 0, 'rest'],
     ],
@@ -213,17 +195,8 @@ const REGIONS: Region[] = [
       [680, 300, 200, 'fight'],
       [600, 350, 200, 'drop'],
       [950, 120, -100, 'rest'],
-      [580, 200, -190, 'climb'],
-      [630, 250, -210, 'fight'],
-      [620, 200, -190, 'climb'],
       [760, 340, -140, 'vista'],
       [590, 220, -200, 'fight'],
-      [930, 130, -80, 'rest'],
-      [650, 240, -200, 'climb'],
-      [580, 260, -190, 'fight'],
-      [670, 330, -170, 'run'],
-      [710, 190, -210, 'fight'],
-      [590, 180, -200, 'climb'],
       [800, 170, -110, 'finish'],
       [1080, 100, 0, 'rest'],
     ],
@@ -245,17 +218,8 @@ const REGIONS: Region[] = [
       [720, 200, 100, 'fight'],
       [760, 140, 100, 'hazard'],
       [940, 100, 90, 'rest'],
-      [630, 230, 110, 'fight'],
-      [610, 270, 120, 'drop'],
       [740, 240, 120, 'vista'],
-      [700, 170, -120, 'hazard'],
       [680, 210, -140, 'fight'],
-      [940, 110, -90, 'rest'],
-      [650, 230, -150, 'climb'],
-      [760, 280, -100, 'fight'],
-      [720, 320, 120, 'run'],
-      [750, 150, 100, 'hazard'],
-      [700, 210, -90, 'fight'],
       [790, 140, -100, 'finish'],
       [1000, 100, 0, 'rest'],
     ],
@@ -277,17 +241,8 @@ const REGIONS: Region[] = [
       [680, 220, -190, 'fight'],
       [620, 280, -180, 'climb'],
       [960, 140, -120, 'rest'],
-      [620, 240, -180, 'fight'],
-      [650, 280, -170, 'climb'],
       [790, 350, 240, 'vista'],
-      [700, 310, 230, 'drop'],
       [790, 270, 200, 'fight'],
-      [1010, 130, -100, 'rest'],
-      [590, 200, -200, 'climb'],
-      [690, 270, -190, 'fight'],
-      [690, 320, -170, 'run'],
-      [760, 190, -180, 'fight'],
-      [630, 220, -180, 'climb'],
       [790, 150, -100, 'finish'],
       [1020, 100, 0, 'rest'],
     ],
@@ -309,17 +264,8 @@ const REGIONS: Region[] = [
       [760, 210, 180, 'fight'],
       [780, 180, -120, 'hazard'],
       [950, 130, -140, 'rest'],
-      [610, 230, -200, 'climb'],
-      [650, 270, -200, 'fight'],
-      [680, 280, -180, 'climb'],
       [810, 310, -150, 'vista'],
       [750, 180, -160, 'hazard'],
-      [970, 130, -100, 'rest'],
-      [600, 240, -200, 'climb'],
-      [690, 270, -200, 'fight'],
-      [680, 300, -180, 'run'],
-      [710, 170, -200, 'fight'],
-      [650, 200, -200, 'climb'],
       [810, 150, -120, 'finish'],
       [1090, 100, 0, 'rest'],
     ],
@@ -341,17 +287,8 @@ const REGIONS: Region[] = [
       [740, 180, 110, 'fight'],
       [620, 230, 140, 'drop'],
       [940, 100, 100, 'rest'],
-      [660, 160, -130, 'fight'],
-      [600, 180, -140, 'climb'],
       [830, 230, 110, 'vista'],
-      [700, 180, 100, 'drop'],
       [760, 200, -100, 'fight'],
-      [960, 100, -80, 'rest'],
-      [620, 180, -150, 'climb'],
-      [750, 210, -130, 'fight'],
-      [680, 250, -70, 'run'],
-      [760, 180, -130, 'fight'],
-      [680, 170, -150, 'climb'],
       [860, 120, -90, 'finish'],
       [1090, 100, 0, 'rest'],
     ],
@@ -374,17 +311,8 @@ const REGIONS: Region[] = [
       [800, 380, -330, 'fight'],
       [740, 450, -340, 'climb'],
       [1050, 200, -160, 'rest'],
-      [770, 350, -340, 'fight'],
-      [730, 450, -350, 'climb'],
       [930, 630, -200, 'vista'],
-      [820, 480, 320, 'drop'],
       [790, 400, 330, 'fight'],
-      [1090, 190, 290, 'rest'],
-      [760, 380, -320, 'climb'],
-      [840, 440, -330, 'fight'],
-      [830, 590, -230, 'run'],
-      [860, 310, -340, 'fight'],
-      [740, 380, -350, 'climb'],
       [970, 220, -150, 'finish'],
       [1140, 100, 0, 'rest'],
     ],
@@ -407,17 +335,8 @@ const REGIONS: Region[] = [
       [710, 250, -200, 'fight'],
       [680, 280, -210, 'climb'],
       [990, 150, -120, 'rest'],
-      [660, 240, 230, 'fight'],
-      [710, 330, 250, 'drop'],
       [840, 420, 250, 'vista'],
-      [710, 260, -160, 'climb'],
       [780, 300, -190, 'fight'],
-      [1010, 130, -100, 'rest'],
-      [710, 270, 220, 'drop'],
-      [780, 300, 210, 'fight'],
-      [750, 400, -120, 'run'],
-      [840, 200, -210, 'fight'],
-      [700, 240, -220, 'climb'],
       [910, 140, -110, 'finish'],
       [1150, 100, 0, 'rest'],
     ],
@@ -491,24 +410,14 @@ const CHAPTERS: [string, number][][] = [
   ],
 ];
 const RELIEF: number[][] = [
-  [
-    0, 20, -40, 20, 0, -40, -150, -80, 80, 110, 20, -10, -60, 70, 0, -80, -30,
-    0, 0,
-  ],
-  [
-    0, -20, -100, -50, 20, 0, 80, 120, 10, -80, -120, 0, 80, 20, -70, -20, 60,
-    0, 0,
-  ],
-  [
-    0, 40, 100, 30, -60, 0, -80, -140, -40, 40, 100, 0, -80, -20, 80, 20, -50,
-    0, 0,
-  ],
-  [0, -60, -90, 0, 90, 0, -70, 20, 90, 20, -60, 0, 70, 110, 20, -70, -30, 0, 0],
-  [
-    0, 50, -30, -100, -30, 0, 100, 30, -50, -90, -20, 0, -70, 30, 90, 10, -70,
-    0, 0,
-  ],
+  [0, -40, 0, -150, 80, 20, -60, 0, -30, 0],
+  [0, -100, 20, 80, 10, -120, 80, -70, 60, 0],
+  [0, 100, -60, -80, -40, 100, -80, 80, -50, 0],
+  [0, -90, 90, -70, 90, -60, 70, 20, -30, 0],
+  [0, -30, -30, 100, -50, -20, -70, 90, -70, 0],
 ];
+// One rhythm per chapter: an entrance lesson, two encounters framing a rest
+// checkpoint, the chapter's crossing, and a closing push onto the exit shelf.
 const CHAPTER_BEATS: Beat[][] = [
   [
     'learn',
@@ -516,77 +425,21 @@ const CHAPTER_BEATS: Beat[][] = [
     'fight',
     'run',
     'rest',
-    'fight',
-    'climb',
     'vista',
-    'drop',
     'fight',
-    'rest',
-    'climb',
-    'fight',
-    'run',
-    'fight',
-    'climb',
     'finish',
     'rest',
   ],
-  [
-    'learn',
-    'fight',
-    'run',
-    'climb',
-    'rest',
-    'run',
-    'fight',
-    'vista',
-    'drop',
-    'fight',
-    'rest',
-    'climb',
-    'fight',
-    'fight',
-    'run',
-    'climb',
-    'finish',
-    'rest',
-  ],
-  [
-    'learn',
-    'run',
-    'climb',
-    'fight',
-    'rest',
-    'drop',
-    'fight',
-    'vista',
-    'run',
-    'run',
-    'rest',
-    'fight',
-    'climb',
-    'fight',
-    'fight',
-    'climb',
-    'finish',
-    'rest',
-  ],
+  ['learn', 'fight', 'run', 'climb', 'rest', 'vista', 'drop', 'finish', 'rest'],
+  ['learn', 'run', 'climb', 'fight', 'rest', 'vista', 'drop', 'finish', 'rest'],
   [
     'learn',
     'fight',
     'fight',
     'run',
     'rest',
-    'climb',
+    'vista',
     'hazard',
-    'vista',
-    'fight',
-    'drop',
-    'rest',
-    'fight',
-    'run',
-    'climb',
-    'fight',
-    'run',
     'finish',
     'rest',
   ],
@@ -596,17 +449,8 @@ const CHAPTER_BEATS: Beat[][] = [
     'fight',
     'run',
     'rest',
-    'fight',
-    'climb',
     'vista',
-    'drop',
     'fight',
-    'rest',
-    'climb',
-    'fight',
-    'run',
-    'fight',
-    'climb',
     'finish',
     'rest',
   ],
@@ -673,7 +517,7 @@ export function buildLevel(mission: number): LevelData {
     out.areas.push(area);
     const regionY = y;
     // Region width remains substantial without exceeding local jump capabilities.
-    const targetWidth = skin === 7 ? 83000 : skin === 6 ? 71000 : 75000;
+    const targetWidth = skin === 7 ? 41500 : skin === 6 ? 35500 : 37500;
     const gapTotal = r.steps.reduce((n, s) => n + s[1], 0) * 5;
     const widthScale =
       (targetWidth - gapTotal) / (r.steps.reduce((n, s) => n + s[0], 0) * 5);
@@ -682,10 +526,11 @@ export function buildLevel(mission: number): LevelData {
         chapterY = y,
         chapterTarget = regionY + CHAPTERS[skin][ci][1];
       const relief = RELIEF[(ci + skin) % RELIEF.length];
-      const reliefScale = skin === 6 ? 0.7 : skin === 7 ? 1.5 : 1;
+      // Half-length chapters carry twice the elevation change per step, so local
+      // relief is damped to keep required rises inside a forgiving jump arc.
+      const reliefScale = 0.6 * (skin === 6 ? 0.7 : skin === 7 ? 1.5 : 1);
       r.steps.forEach((step, i) => {
-        const shapeIndex =
-          i === 0 || i === 17 ? i : 1 + ((i - 1 + ci * 3) % 16);
+        const shapeIndex = i === 0 || i === 8 ? i : 1 + ((i - 1 + ci * 3) % 7);
         const source = r.steps[shapeIndex];
         const w =
           skin === 8 && ci === 1 && i === 4
@@ -694,7 +539,7 @@ export function buildLevel(mission: number): LevelData {
         const gap = source[1];
         const nextY =
           chapterY +
-          ((chapterTarget - chapterY) * (i + 1)) / 18 +
+          ((chapterTarget - chapterY) * (i + 1)) / 9 +
           relief[i + 1] * reliefScale;
         const dy = Math.round(nextY - y);
         let beat = CHAPTER_BEATS[ci][i];
@@ -713,9 +558,9 @@ export function buildLevel(mission: number): LevelData {
           encounter: beat,
         };
         // The industrial moving-belt lesson changes horizontal drift, never landing geometry.
-        if (skin === 3 && (i === 1 || i === 7)) p.kind = 'conveyor';
+        if (skin === 3 && (i === 1 || i === 5)) p.kind = 'conveyor';
         out.platforms.push(p);
-        if (i === 0 || i === 10)
+        if (i === 0 || i === 4)
           out.checkpoints.push({ x: x + 170, y, area: ai });
         // Encounters each begin after an unobstructed landing/reading strip.
         if (beat === 'fight' || beat === 'finish') {
@@ -747,7 +592,7 @@ export function buildLevel(mission: number): LevelData {
             area: ai,
           });
         }
-        if (i === 5 && ci === 0) {
+        if (i === 6 && ci === 0) {
           const type = r.enemies[1];
           out.enemies = out.enemies.filter((e) => !e.id.startsWith(`${id}-`));
           out.enemies.push({
@@ -775,8 +620,8 @@ export function buildLevel(mission: number): LevelData {
         // Three genuinely optional signal shelves per region, each rejoining the next main shelf.
         if (
           (ci === 1 && i === 4) ||
-          (ci === 2 && i === 10) ||
-          (ci === 4 && i === 15)
+          (ci === 2 && i === 6) ||
+          (ci === 4 && i === 3)
         ) {
           const rise = skin === 6 ? 170 : skin === 7 ? 400 : 220;
           const opt: Platform = {
@@ -790,9 +635,9 @@ export function buildLevel(mission: number): LevelData {
             routeRole: 'optional',
             area: ai,
           };
-          if ((skin === 4 || skin === 7) && i === 10)
+          if ((skin === 4 || skin === 7) && i === 6)
             opt.moving = { axis: 'x', range: 65, speed: 35, phase: 0 };
-          if ((skin === 1 || skin === 6) && i === 15) opt.kind = 'crumble';
+          if ((skin === 1 || skin === 6) && i === 3) opt.kind = 'crumble';
           out.platforms.push(opt);
           out.collectibles.push({
             id: `signal-${mission}-${ai}-${ci}-${i}`,
@@ -802,7 +647,7 @@ export function buildLevel(mission: number): LevelData {
         }
         // Deep crossings have a low recovery shelf. It rejoins the next landing
         // through two steps; a miss costs time instead of an unseen fatal plunge.
-        if (gap >= 250 && (i === 7 || i === 13)) {
+        if (gap >= 250 && (i === 3 || i === 5)) {
           const recoveryY = Math.max(y, y + dy) + 260;
           out.platforms.push({
             id: `${id}-salvage`,

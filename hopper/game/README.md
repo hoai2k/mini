@@ -29,15 +29,15 @@ The camera prioritizes stable terrain. Ordinary jumps cause no vertical tracking
 2. **The Iron Migration:** Cinder Foundries → Tempest Docks → Skyhook Works. Casting lines, crane forests, descent shafts and launch scaffolds. Boss: Smelter Leviathan.
 3. **Beyond the Black Sun:** Vermilion Basin (1.35g) → Cobalt Drift (0.55g) → Violet Inversion (0.85g, optional reversed-gravity galleries). Boss: the Eclipse Regent.
 
-Each mission has fifteen named chapters, roughly 228–232k world units, 189 authored enemy spawns, 31 checkpoints and nine optional signal collectibles. Encounter clusters and recovery stretches vary between chapters. Checkpoints save locally, restore partial armor on arrival and restart nearby after defeat. Completing an episode unlocks the next. Bosses have three health phases, readable windups, attack patterns and exposed-core recovery windows.
+Each mission has fifteen named chapters, roughly 115–118k world units, 87 authored enemy spawns, 31 checkpoints and nine optional signal collectibles. Encounter clusters and recovery stretches vary between chapters. Checkpoints save locally, restore partial armor on arrival and restart nearby after defeat. Completing an episode unlocks the next. Bosses have three health phases, readable windups, attack patterns and exposed-core recovery windows.
 
-Music is provided by the user: **Hopper the Grasshopper** accompanies title/menu screens; **Grass March 1** loops during gameplay. Track positions are preserved when changing between menus and play. Music and effects have separate volume controls.
+Music is provided by the user: **Hopper the Grasshopper** accompanies title/menu screens; **Grass March 1** loops during gameplay. Track positions are preserved when changing between menus and play, and when the tab is hidden or unfocused: leaving the tab pauses the music and suspends the effect audio, and returning resumes the same track at the same position. Music and effects have separate volume controls.
 
 ## Implementation and verification
 
 `src/game/engine.ts` owns the fixed 120 Hz simulation, camera, shield, saves and combat integration. `levels.ts` defines the routes, `combat.ts` defines enemies/bosses, `renderer.ts` composites the artwork and effects, `hopper-animation.ts` selects registered cels and eye origins, and `input.ts` / `audio.ts` handle devices and sound. React owns the title, HUD, accessible menus and settings.
 
-Run `pnpm test`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`. The actual-engine traversal audit tests every one of the 810 required route transitions, including real head/side collisions. It also checks inversion recovery and laser targeting for every enemy/boss. Separate controller/audio/combat tests cover input quarantine, connection changes, shield input, looping/track routing, armor, stomps and boss phases. The camera/shield and animation reports are under `qa/`.
+Run `pnpm test`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`. The actual-engine traversal audit tests every one of the 405 required route transitions, including real head/side collisions. It also checks inversion recovery and laser targeting for every enemy/boss. Separate controller/audio/combat tests cover input quarantine, connection changes, shield input, looping/track routing, armor, stomps and boss phases. The camera/shield and animation reports are under `qa/`.
 
 Visual QA includes browser checks and 100 offscreen scenes made with the production renderer. Automated numerical and visual checks do not substitute for a measured full-campaign playthrough or physical Xbox latency testing; completion times are intentionally not claimed as measured.
 

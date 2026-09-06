@@ -11,7 +11,7 @@ Source inspected and executed: `/Users/hoai/Documents/Games/mini/hopper/game/src
 
 ## Results
 
-- **810 / 810 required route transitions pass the actual engine**, covering 270 per mission. Tests include head/side collisions, optional shelves and salvage geometry, with Hopper's actual 120px collider. Tested takeoffs are 100px inside each departure shelf; valid landings require 70px center clearance from destination edges. Multiple hold lengths, fast/standing starts and lateral steering policies are explored.
+- **405 / 405 required route transitions pass the actual engine**, covering 135 per mission. Tests include head/side collisions, optional shelves and salvage geometry, with Hopper's actual 120px collider. Tested takeoffs are 100px inside each departure shelf; valid landings require 70px center clearance from destination edges. Multiple hold lengths, fast/standing starts and lateral steering policies are explored.
 - Purple optional gallery: **entry, inverted ceiling landing, lateral exit, and recovery on the safe floor all pass** using actual engine gravity switching and collision resolution.
 - Laser targeting: **all 18 enemy species take valid forward eye-laser hits**. Armored variants receive the intended 0.3 damage while closed; normal variants receive 1.
 - Every boss receives **0.3 closed-core / 1 exposed-core laser damage** when Hopper reaches its eye-height firing lane. The boss spawn, raised arena tiers and floor use consistent feet coordinates.
@@ -21,7 +21,7 @@ Source inspected and executed: `/Users/hoai/Documents/Games/mini/hopper/game/src
 
 The original terrain/elevation envelopes varied, but six fight positions repeated identically in every 18-shelf chapter. The final level module changes three chapter patterns into early paired fights followed by release, quiet vista/run stretches before late pressure, and paired final encounters. Enemy totals and safe checkpoint locations are preserved. This breaks a metronomic repeated encounter cadence without adding health padding or required arena locks.
 
-Each mission retains 15 chapters, 270 route shelves, ~228–232k world pixels, 189 enemies, 31 checkpoints and 9 optional fragments. Raw maximum-speed movement is ~109–128 seconds per area; actual first-clear/campaign times are unmeasured and should not be presented as verified.
+Each mission retains 15 chapters, 135 route shelves, ~115–118k world pixels, 87 enemies, 31 checkpoints and 9 optional fragments. Raw maximum-speed movement is ~55–64 seconds per area; actual first-clear/campaign times are unmeasured and should not be presented as verified.
 
 ## Practical limits
 
