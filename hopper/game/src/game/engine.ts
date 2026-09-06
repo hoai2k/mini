@@ -97,6 +97,8 @@ export const PHYSICS = {
   lookReach: 520,
   lookRise: 340,
   lookZoom: 0.22,
+  /** Spring pads launch at this multiple of jump speed; holding A adds float. */
+  spring: 1.4,
 };
 const emptyInput: InputFrame = {
   moveX: 0,
@@ -164,6 +166,8 @@ export class Engine {
   explosions: Explosion[] = [];
   lasers: Laser[] = [];
   signals = new Set<string>();
+  /** Barriers opened by a reflected shot. */
+  broken = new Set<string>();
   checkpointIndex = 0;
   settings: GameSettings = {
     master: 0.8,
@@ -232,6 +236,15 @@ export class Engine {
       stomp: () => {
         this.player.landT = 0.18;
         this.shake = Math.max(this.shake, 6);
+      },
+      breakBarrier: (id) => {
+        if (this.broken.has(id)) return;
+        this.broken.add(id);
+        const b = this.level.barriers.find((b) => b.id === id);
+        if (b) {
+          this.effect('explosion', b.x + b.w * 0.5, b.y + b.h * 0.5, '#b6fbff');
+          this.score += 250;
+        }
       },
       bossDefeated: () => {
         this.victoryT = 2.6;
@@ -455,6 +468,7 @@ export class Engine {
     this.explosions = [];
     this.lasers = [];
     this.signals = new Set(save?.signals || []);
+    this.broken = new Set();
     this.score = save?.score || 0;
     this.checkpointIndex = clamp(
       save?.checkpoint || 0,
@@ -801,7 +815,7 @@ export class Engine {
           v.range;
         p[v.axis] += delta;
       }
-      if (base?.kind === 'conveyor') p.x += 90 * dt;
+      if (base?.kind === 'conveyor') p.x += (base.drift ?? 90) * dt;
     }
     if (f.jumpPressed && !stunned) this.jumpBuffer = PHYSICS.buffer;
     else this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
@@ -999,6 +1013,33 @@ export class Engine {
       )
         this.crumble.set(this.stood, this.time);
     }
+    // Spring pads: standing on one launches Hopper well past a full jump.
+    if (p.grounded) {
+      const pad = this.platforms.find(
+        (q) =>
+          q.kind === 'spring' &&
+          Math.abs(p.y - (sign > 0 ? q.y : q.y + q.h)) < 1 &&
+          p.x + 30 > q.x &&
+          p.x - 30 < q.x + q.w,
+      );
+      if (pad) {
+        p.vy = -PHYSICS.jump * PHYSICS.spring * sign;
+        p.grounded = false;
+        this.stood = '';
+        this.hold = 0;
+        this.coyote = 0;
+        this.jumpBuffer = 0;
+        p.launchT = 0.2;
+        p.landT = 0;
+        this.launchFacing = p.facing;
+        this.launchId++;
+        this.audio.effect('jump');
+        this.rumble(0.35, 70);
+        this.effect('stomp', p.x, p.y, '#b6fbff');
+        this.effect('spark', p.x, p.y - 20 * sign, '#eaffff');
+        this.shake = Math.max(this.shake, 3);
+      }
+    }
     if (f.kickPressed && p.kickT === 0 && !stunned && !p.blocking) {
       p.kickT = 0.5;
       this.kickId++;
@@ -1071,7 +1112,10 @@ export class Engine {
       const period = h.period || 3,
         phase = (this.time + (h.phase || 0)) % period,
         active =
-          h.type === 'lava' || h.type === 'spikes' || phase > period * 0.6;
+          h.type === 'lava' ||
+          h.type === 'spikes' ||
+          h.type === 'wind' ||
+          phase > period * 0.6;
       if (!active) continue;
       const bodyY = p.y - 55 * sign;
       if (
@@ -1080,13 +1124,16 @@ export class Engine {
         bodyY + 45 > h.y &&
         bodyY - 45 < h.y + h.h
       ) {
-        if (h.type === 'wind') p.vx += 110 * dt;
-        else this.hurt(1, -p.facing * 240, -260 * sign, false);
+        if (h.type === 'wind') {
+          p.vx += (h.push?.x ?? 110) * dt;
+          if (h.push && !p.grounded) p.vy += h.push.y * dt;
+        } else this.hurt(1, -p.facing * 240, -260 * sign, false);
       }
     }
     for (const c of this.level.collectibles) {
       if (
         !this.signals.has(c.id) &&
+        (!c.barrierId || this.broken.has(c.barrierId)) &&
         Math.hypot(c.x - p.x, c.y - (p.y - 70 * sign)) < 100
       ) {
         this.signals.add(c.id);
@@ -1247,6 +1294,18 @@ export class Engine {
         hitTarget = null;
       }
     }
+    // Unbroken barriers stop the beam; only a reflected shot opens them.
+    for (const q of this.level.barriers) {
+      if (this.broken.has(q.id)) continue;
+      const edge = p.facing > 0 ? q.x : q.x + q.w,
+        dx = (edge - eye.x) * p.facing;
+      if (dx > 0 && dx < distance && eye.y > q.y && eye.y < q.y + q.h) {
+        distance = dx;
+        end = edge;
+        endY = eye.y;
+        hitTarget = null;
+      }
+    }
     if (hitTarget) {
       const r = this.combat.hit(hitTarget.x, endY, 22, 1, 'laser', p.facing);
       this.score += r.kills * 100;
@@ -1356,6 +1415,7 @@ export class Engine {
       explosions: this.explosions,
       lasers: this.lasers,
       signals: this.signals,
+      broken: this.broken,
       checkpointIndex: this.checkpointIndex,
       shake: this.shake,
       settings: this.settings,

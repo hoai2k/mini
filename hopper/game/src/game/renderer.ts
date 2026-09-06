@@ -55,6 +55,7 @@ export interface RenderState {
     maxLife: number;
   }>;
   signals: Set<string>;
+  broken?: Set<string>;
   checkpointIndex: number;
   shake: number;
   settings: { shake: boolean };
@@ -308,7 +309,9 @@ export class Renderer {
       optional = p.kind === 'oneWay' || p.routeRole === 'optional' || p.ceiling;
     const depth = optional
       ? Math.max(p.h, 65)
-      : Math.max(p.h, this.bounds.bottom - p.y + 120);
+      : p.hollow
+        ? Math.max(p.h, p.hollow)
+        : Math.max(p.h, this.bounds.bottom - p.y + 120);
     c.save();
     if (p.ceiling) {
       c.translate(0, p.y + p.h);
@@ -418,6 +421,41 @@ export class Renderer {
     c.globalAlpha = optional ? 0.9 : 0.7;
     c.fillRect(p.x, p.y, p.w, 3);
     c.globalAlpha = 1;
+    if (p.kind === 'spring') {
+      // A coiled pad: bright chevrons that breathe so it reads as a launcher.
+      const pulse = 0.6 + Math.sin(s.time * 6 + p.x) * 0.2;
+      c.fillStyle = '#8ce6ef';
+      c.globalAlpha = 0.85;
+      c.fillRect(p.x, p.y, p.w, 10);
+      c.strokeStyle = '#eaffff';
+      c.lineWidth = 3;
+      c.shadowColor = '#76e9ff';
+      c.shadowBlur = 16 * pulse;
+      for (let x = p.x + 18; x < p.x + p.w - 18; x += 34) {
+        c.beginPath();
+        c.moveTo(x, p.y + 30);
+        c.lineTo(x + 12, p.y + 14);
+        c.lineTo(x + 24, p.y + 30);
+        c.stroke();
+      }
+      c.shadowBlur = 0;
+      c.globalAlpha = 1;
+    }
+    if (p.kind === 'conveyor' && (p.drift ?? 90) < 0) {
+      // Belts that run against Hopper show their direction plainly.
+      c.strokeStyle = '#ffbe80';
+      c.lineWidth = 2;
+      c.globalAlpha = 0.8;
+      const shift = (s.time * 70) % 40;
+      for (let x = p.x + p.w - shift; x > p.x + 10; x -= 40) {
+        c.beginPath();
+        c.moveTo(x, p.y + 12);
+        c.lineTo(x - 12, p.y + 22);
+        c.lineTo(x, p.y + 32);
+        c.stroke();
+      }
+      c.globalAlpha = 1;
+    }
     if (p.kind === 'conveyor') {
       c.strokeStyle = '#e5c68b';
       c.lineWidth = 3;
@@ -501,13 +539,25 @@ export class Renderer {
         c.fill();
       }
     } else {
+      // Wind lane: streaks drift along the push so the lean is readable.
+      const px = h.push?.x ?? 110,
+        py = h.push?.y ?? 0,
+        len = Math.max(1, Math.hypot(px, py)),
+        ux = px / len,
+        uy = py / len;
+      c.globalAlpha = 0.28;
       c.strokeStyle = '#d8eeff';
       c.lineWidth = 2;
-      for (let i = 0; i < 4; i++) {
-        const y = h.y + (i * h.h) / 4;
+      c.beginPath();
+      c.rect(h.x, h.y, h.w, h.h);
+      c.clip();
+      for (let i = 0; i < 18; i++) {
+        const t = ((time * 260 + i * 173) % (h.w + h.h)) - 120,
+          x0 = h.x + ((i * 97) % h.w) + ux * t,
+          y0 = h.y + ((i * 61) % h.h) + uy * t;
         c.beginPath();
-        c.moveTo(h.x, y);
-        c.lineTo(h.x + h.w, y - 20);
+        c.moveTo(x0, y0);
+        c.lineTo(x0 + ux * 70, y0 + uy * 70);
         c.stroke();
       }
     }
@@ -550,6 +600,34 @@ export class Renderer {
       c.fill();
       c.restore();
     });
+    for (const b of s.level.barriers || []) {
+      if (s.broken?.has(b.id) || !this.visible(b.x, b.y, b.w, b.h)) continue;
+      // Signal cage: hexagonal bars that only a reflected shot can open.
+      c.save();
+      c.strokeStyle = '#8ce6ef';
+      c.lineWidth = 3;
+      c.shadowColor = '#76e9ff';
+      c.shadowBlur = 14;
+      c.globalAlpha = 0.75 + Math.sin(s.time * 4) * 0.1;
+      const cx = b.x + b.w * 0.5,
+        cy = b.y + b.h * 0.5,
+        rx = b.w * 0.5,
+        ry = b.h * 0.5;
+      c.beginPath();
+      for (let n = 0; n < 6; n++) {
+        const a = Math.PI / 6 + (n * Math.PI) / 3;
+        const x = cx + Math.cos(a) * rx,
+          y = cy + Math.sin(a) * ry;
+        if (n === 0) c.moveTo(x, y);
+        else c.lineTo(x, y);
+      }
+      c.closePath();
+      c.stroke();
+      c.globalAlpha = 0.12;
+      c.fillStyle = '#b6fbff';
+      c.fill();
+      c.restore();
+    }
     for (const p of s.level.collectibles) {
       if (s.signals.has(p.id) || !this.visible(p.x - 30, p.y - 30, 60, 60))
         continue;

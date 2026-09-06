@@ -59,7 +59,7 @@ const input = {
 const engine = new Engine({}, { effect() {} }, () => {});
 const failures = [],
   counts = [];
-function prepare(level, a, b) {
+function prepare(level, a, b, startTime = 0) {
   const local = {
     ...level,
     platforms: level.platforms.filter(
@@ -78,7 +78,7 @@ function prepare(level, a, b) {
   engine.checkpointIndex = 0;
   engine.checkpoint = { x: a.x + 170, y: a.y, area: a.area };
   engine.areaIndex = a.area;
-  engine.time = 0;
+  engine.time = startTime;
   engine.hold = 0;
   engine.previousHold = false;
   engine.jumpBuffer = 0;
@@ -105,8 +105,13 @@ function prepare(level, a, b) {
     invuln: 100,
   });
 }
-function attempt(level, a, b, hold, mode, vx) {
-  prepare(level, a, b);
+function attempt(level, a, b, hold, mode, vx, startTime = 0) {
+  prepare(level, a, b, startTime);
+  // A swinging shelf carries its takeoff point; start from where it is now.
+  if (a.moving)
+    engine.player.x +=
+      Math.sin((startTime * a.moving.speed) / a.moving.range + a.moving.phase) *
+      a.moving.range;
   engine.player.vx = vx;
   for (let n = 0; n < 650; n++) {
     const f = {
@@ -123,13 +128,7 @@ function attempt(level, a, b, hold, mode, vx) {
     };
     engine.step(1 / 120, f);
     const p = engine.player;
-    if (
-      p.grounded &&
-      n > 10 &&
-      Math.abs(p.y - b.y) < 1 &&
-      p.x > b.x + 70 &&
-      p.x < b.x + b.w - 70
-    )
+    if (p.grounded && n > 10 && engine.stood === b.id)
       return { n, hold, mode, vx };
     if (p.y > Math.max(a.y, b.y) + 1100 || p.x > b.x + b.w + 250) return false;
   }
@@ -143,18 +142,58 @@ for (let m = 0; m < 3; m++) {
   let passed = 0;
   for (let i = 0; i < main.length - 1; i++) {
     let ok = false;
-    for (const mode of ['forward', 'aim']) {
-      for (const hold of [0.13, 0.27, 0.5, 1.8]) {
-        for (const vx of [650, 0]) {
-          if (attempt(l, main[i], main[i + 1], hold, mode, vx)) {
-            ok = true;
-            break;
-          }
+    if (main[i + 1].via === 'inversion') {
+      // Leap up into the gate from the shelf's end, ride the ceiling across,
+      // and drop out of the far side onto the next landing.
+      const a = main[i],
+        b = main[i + 1];
+      prepare(l, a, b);
+      Object.assign(engine.player, { x: a.x + a.w - 120, vx: 0 });
+      let onCeiling = false;
+      for (let n = 0; n < 1500; n++) {
+        const p = engine.player;
+        engine.step(1 / 120, {
+          ...input,
+          jumpPressed: n === 0,
+          jumpHeld: n < 60,
+          moveX: n < 8 ? 0 : 1,
+        });
+        if (p.gravitySign === -1 && p.grounded) onCeiling = true;
+        if (
+          onCeiling &&
+          p.gravitySign === 1 &&
+          p.grounded &&
+          engine.stood === b.id
+        ) {
+          ok = true;
+          break;
         }
-        if (ok) break;
+        if (p.y > Math.max(a.y, b.y) + 1100) break;
       }
-      if (ok) break;
+      if (!ok)
+        failures.push({
+          mission: m,
+          from: a.id,
+          to: b.id,
+          kind: 'inverted crossing',
+        });
+      else passed++;
+      continue;
     }
+    const moving = !!(main[i].moving || main[i + 1].moving);
+    const period = moving
+      ? (2 * Math.PI * (main[i].moving || main[i + 1].moving).range) /
+        (main[i].moving || main[i + 1].moving).speed
+      : 0;
+    const starts = moving ? [0, 0.25, 0.5, 0.75].map((f) => f * period) : [0];
+    ok = starts.every((startTime) => {
+      for (const mode of ['forward', 'aim'])
+        for (const hold of [0.13, 0.27, 0.5, 1.8])
+          for (const vx of [650, 0])
+            if (attempt(l, main[i], main[i + 1], hold, mode, vx, startTime))
+              return true;
+      return false;
+    });
     if (ok) passed++;
     else
       failures.push({

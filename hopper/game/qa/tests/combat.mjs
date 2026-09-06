@@ -231,3 +231,117 @@ assert.equal(reflectedHurt, 0, 'a reflected shot never hurts Hopper');
 console.log(
   'PASS: rear ambush stays hidden and harmless until passed, parry staggers, reflected shots return to sender.',
 );
+// Under-ambush: a buried burrower shivers the ground as Hopper nears and
+// surfaces beneath it; until then it is neither visible nor hittable.
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    {
+      id: 'buried',
+      type: 'basaltBurrower',
+      x: 500,
+      y: 800,
+      area: 0,
+      ambush: 'under',
+    },
+  ],
+});
+let tells = 0;
+const tellCb = {
+  ...cb,
+  effect(name) {
+    if (name === 'tell') tells++;
+  },
+};
+p = { ...player(900, 800), w: 110, h: 120 };
+w.update(1 / 120, 0, p, [], tellCb);
+assert.equal(w.enemies[0].visible, false, 'buried and quiet far away');
+p = { ...player(560, 800), w: 110, h: 120 };
+for (let n = 0; n < 30; n++) w.update(1 / 120, n / 120, p, [], tellCb);
+assert.ok(tells > 0, 'the ground tells before it surfaces');
+assert.equal(w.enemies[0].visible, false, 'still buried during the tell');
+for (let n = 0; n < 40; n++) w.update(1 / 120, 1 + n / 120, p, [], tellCb);
+assert.equal(w.enemies[0].dormant, false, 'then it surfaces');
+assert.equal(w.enemies[0].visible, true);
+// Mirror ambush: shadows Hopper along its shelf and drops when Hopper is beneath.
+const perch = {
+  id: 'perch',
+  x: 300,
+  y: 500,
+  w: 900,
+  h: 65,
+  skin: 8,
+  kind: 'oneWay',
+  routeRole: 'high',
+  area: 0,
+};
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    {
+      id: 'shadow',
+      type: 'mirrorStalker',
+      x: 400,
+      y: 500,
+      area: 0,
+      ambush: 'mirror',
+    },
+  ],
+});
+w.enemies[0].asleep = false;
+p = { ...player(900, 800), w: 110, h: 120 };
+for (let n = 0; n < 100; n++) w.update(1 / 120, n / 120, p, [perch], cb);
+assert.ok(
+  w.enemies[0].x > 700,
+  'mirror stalker shadows Hopper along its shelf',
+);
+assert.equal(w.enemies[0].y, 500, 'and stays on its shelf while shadowing');
+let dropped = false;
+for (let n = 0; n < 240; n++) {
+  w.update(1 / 120, 1 + n / 120, p, [perch], cb);
+  if (w.enemies[0].state === 'attack' && w.enemies[0].y > 560) dropped = true;
+}
+assert.ok(dropped, 'it pounces down when Hopper is beneath');
+// A reflected shot opens a signal cage; nothing else does.
+let opened = [];
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'warden', type: 'seedSpitter', x: 300, y: 800, area: 0 }],
+  barriers: [{ id: 'cage', x: 200, y: 600, w: 240, h: 250 }],
+});
+w.enemies[0].asleep = false;
+w.projectiles.push({
+  id: 11,
+  x: 700,
+  y: 750,
+  vx: 250,
+  vy: 0,
+  radius: 12,
+  life: 3,
+  delay: 0,
+  gravity: 0,
+  damage: 1,
+  type: 'orb',
+  color: '#fff',
+  owner: 'warden',
+  active: true,
+});
+p = { ...player(800, 800), w: 110, h: 120, facing: -1 };
+const wardenHp = w.enemies[0].hp;
+w.reflect(w.projectiles[0], p);
+for (let n = 0; n < 240 && w.projectiles.length; n++)
+  w.update(1 / 120, n / 120, p, [], {
+    ...cb,
+    breakBarrier(id) {
+      opened.push(id);
+    },
+  });
+assert.deepEqual(opened, ['cage'], 'the reflected shot breaks the cage');
+assert.equal(
+  w.enemies[0].hp,
+  wardenHp,
+  'and is spent on the bars, not the warden',
+);
+console.log(
+  'PASS: under-ambush tells then surfaces, mirror stalker shadows and pounces, reflected shots open cages.',
+);

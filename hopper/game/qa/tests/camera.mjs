@@ -391,6 +391,101 @@ for (let n = 0; n < 240; n++) {
   if (n === 239) looks.push({ ...e.look });
 }
 report.look = { held: looks[0], released: looks[1] };
+// Spring pad: standing on one launches past a full jump; a counter belt drags
+// Hopper backward while standing; a wind lane leans on an airborne jump.
+function terrain(extra, hazards = []) {
+  const eng = make();
+  eng.level.platforms = [
+    {
+      id: 'floor',
+      x: 0,
+      y: 800,
+      w: 25000,
+      h: 200,
+      skin: 0,
+      kind: 'solid',
+      routeRole: 'main',
+      area: 0,
+    },
+    ...extra,
+  ];
+  eng.level.hazards = hazards;
+  eng.platforms = eng.level.platforms;
+  eng.deathY = 5000;
+  return eng;
+}
+e = terrain([
+  {
+    id: 'pad',
+    x: 5100,
+    y: 800,
+    w: 160,
+    h: 40,
+    skin: 0,
+    kind: 'spring',
+    routeRole: 'optional',
+    area: 0,
+  },
+]);
+Object.assign(e.player, { x: 5000, y: 800, vx: 0 });
+let springApex = 0,
+  launched = false;
+for (let n = 0; n < 240; n++) {
+  step(e, { moveX: n < 40 ? 1 : 0 });
+  if (!e.player.grounded) launched = true;
+  springApex = Math.max(springApex, 800 - e.player.y);
+}
+report.spring = { launched, apex: springApex };
+e = terrain([
+  {
+    id: 'belt',
+    x: 5000,
+    y: 800,
+    w: 2000,
+    h: 130,
+    skin: 0,
+    kind: 'conveyor',
+    drift: -70,
+    routeRole: 'main',
+    area: 0,
+  },
+]);
+Object.assign(e.player, { x: 6000, y: 800, vx: 0 });
+step(e);
+const beltStart = e.player.x;
+for (let n = 0; n < 120; n++) step(e);
+report.belt = { drift: e.player.x - beltStart };
+e = terrain(
+  [],
+  [
+    {
+      id: 'gust',
+      type: 'wind',
+      x: 4000,
+      y: 0,
+      w: 3000,
+      h: 800,
+      push: { x: -150, y: 400 },
+    },
+  ],
+);
+Object.assign(e.player, { x: 5000, y: 800, vx: 650 });
+step(e, { moveX: 1, jumpPressed: true, jumpHeld: true });
+let windApex = 0;
+for (let n = 0; n < 200 && !e.player.grounded; n++) {
+  step(e, { moveX: 1, jumpHeld: n < 40 });
+  windApex = Math.max(windApex, 800 - e.player.y);
+}
+const windLanding = e.player.x;
+e = terrain([]);
+Object.assign(e.player, { x: 5000, y: 800, vx: 650 });
+step(e, { moveX: 1, jumpPressed: true, jumpHeld: true });
+let calmApex = 0;
+for (let n = 0; n < 200 && !e.player.grounded; n++) {
+  step(e, { moveX: 1, jumpHeld: n < 40 });
+  calmApex = Math.max(calmApex, 800 - e.player.y);
+}
+report.wind = { windApex, calmApex, windLanding, calmLanding: e.player.x };
 const pad = {
   index: 0,
   connected: true,
@@ -480,6 +575,11 @@ const checks = {
     report.look.held.x > 400 &&
     report.look.held.y < -250 &&
     report.look.held.zoom > 0.15,
+  springLaunches: report.spring.launched && report.spring.apex > 500,
+  counterBeltDrags: report.belt.drift < -50,
+  windLeansOnJump:
+    report.wind.windApex < report.wind.calmApex - 30 &&
+    report.wind.windLanding < report.wind.calmLanding - 40,
   lookDampsBack:
     Math.abs(report.look.released.x) < 5 &&
     Math.abs(report.look.released.y) < 5 &&

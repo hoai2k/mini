@@ -21,18 +21,48 @@ function attempt(l,a,b,hold,vx0,mode='accelerate') {
  }
  return null;
 }
-function reachable(l,a,b){
+function reachableStatic(l,a,b){
  for(const vx of [650,400,0])for(const hold of [.07,.13,.2,.27,.34,.5,1.8])for(const mode of ['accelerate','brake','aim']){
   const r=attempt(l,a,b,hold,vx,mode);if(r)return r;
  }
  return null;
+}
+// A swinging shelf is tested at its four quarter phases; the worst one must pass.
+function phases(p){
+ if(!p.moving)return [p];
+ return [0,.25,.5,.75].map(f=>({...p,[p.moving.axis]:p[p.moving.axis]+Math.sin(f*Math.PI*2)*p.moving.range}));
+}
+function reachable(l,a,b){
+ let worst=null;
+ for(const pa of phases(a))for(const pb of phases(b)){const r=reachableStatic(l,pa,pb);if(!r)return null;if(!worst||r.hold>worst.hold)worst=r;}
+ return worst;
+}
+// Unreachable by a clean landing, but the lip lies within the ledge catch's reach.
+function catchable(l,a,b){
+ return !reachableStatic(l,a,b)&&!!reachableStatic(l,a,{...b,y:b.y+80});
 }
 for(let mission=0;mission<3;mission++){
  const l=buildLevel(mission),main=l.platforms.filter(p=>p.routeRole==='main'||p.id.endsWith('arena-floor'));
  const graph=new Map(main.map(p=>[p.id,[]]));const tight=[];const arcs=[];
  // Fixed-step ballistic edges, not just gap-vs-maximum comparisons.
  for(let i=0;i<main.length-1;i++){
-  const a=main[i],b=main[i+1],res=reachable(l,a,b);
+  const a=main[i],b=main[i+1];
+  if(b.via==='inversion'){
+   // The route runs up into the gate, along the ceiling and out over b.
+   const gate=l.gravityGates.find(g=>g.required&&g.x<a.x+a.w&&g.x+g.w>b.x);
+   const ceiling=gate&&l.platforms.find(p=>p.id===gate.ceilingId);
+   const apex=(JUMP*JUMP)/(2*G*gravityAt(l,a.x)*.75);
+   if(!gate)failures.push({mission,kind:'inverted crossing lacks gate',from:a.id,to:b.id});
+   else{
+    if(a.y-(gate.y+gate.h)>apex)failures.push({mission,kind:'inverted gate out of jump reach',from:a.id,rise:a.y-(gate.y+gate.h),apex});
+    if(!ceiling?.ceiling||Math.abs(ceiling.y+ceiling.h-gate.y)>1)failures.push({mission,kind:'inverted ceiling misregistered',id:gate.id});
+    if(gate.x+gate.w<=b.x+120||gate.x+gate.w>b.x+b.w-120)failures.push({mission,kind:'inverted exit misses landing',id:gate.id,to:b.id});
+    if(reachableStatic(l,a,b))failures.push({mission,kind:'inverted crossing can be jumped',from:a.id,to:b.id});
+    graph.get(a.id).push(b.id);
+   }
+   continue;
+  }
+  const res=reachable(l,a,b);
   if(!res)failures.push({mission,kind:'required jump',from:a.id,to:b.id,gap:b.x-a.x-a.w,rise:a.y-b.y});
   else{graph.get(a.id).push(b.id);arcs.push(res);if(res.hold>=.34&&res.vx0===650)tight.push([a.id,b.id]);}
   // Optional skip edges give a directed graph with authentic route choice.
@@ -46,13 +76,43 @@ for(let mission=0;mission<3;mission++){
   if(l.enemies.some(e=>Math.abs(e.x-cp.x)<220&&Math.abs(e.y-cp.y)<150))failures.push({mission,kind:'enemy near checkpoint',cp});
   if(l.hazards.some(h=>cp.x>h.x-90&&cp.x<h.x+h.w+90&&cp.y>h.y-90&&cp.y<h.y+h.h+90))failures.push({mission,kind:'hazard near checkpoint',cp});
  }
- // All signal shelves must be reachable from their supporting main shelf.
+ // Every signal shelf rewards one verb: the catch lip is out of clean reach but
+ // inside the catch window, the cage shelf is an ordinary jump, and the high
+ // perch is reached from the second high-road shelf only.
  for(const opt of l.platforms.filter(p=>p.id.endsWith('-signal'))){
-  const base=l.platforms.find(p=>p.id===opt.id.replace('-signal',''));
-  // This upward optional route starts near shelf LEFT so the jump can arc above
-  // the shelf center; main-route takeoff positions are intentionally different.
+  const baseId=opt.id.replace('-signal','');
+  const base=l.platforms.find(p=>p.id===baseId);
   const a={...base,w:Math.max(180,opt.x-base.x+80)};
-  if(!reachable(l,a,opt))failures.push({mission,kind:'unreachable signal shelf',id:opt.id,rise:base.y-opt.y});
+  if(opt.teach==='catch'){
+   if(!catchable(l,a,opt))failures.push({mission,kind:'catch signal not catch-only',id:opt.id,rise:base.y-opt.y,clean:!!reachableStatic(l,a,opt)});
+  }else if(opt.teach==='high'){
+   const b=l.platforms.find(p=>p.id===baseId+'-high-b');
+   if(!b||!reachable(l,{...b,w:Math.max(180,opt.x-b.x+80)},opt))failures.push({mission,kind:'high signal unreachable from high road',id:opt.id});
+   if(reachableStatic(l,a,opt))failures.push({mission,kind:'high signal reachable without high road',id:opt.id});
+  }else{
+   if(!reachable(l,a,opt))failures.push({mission,kind:'unreachable signal shelf',id:opt.id,rise:base.y-opt.y});
+   if(opt.teach==='parry'){
+    const bar=l.barriers.find(b=>b.id===baseId+'-barrier');
+    if(bar&&!l.collectibles.some(c=>c.barrierId===bar.id))failures.push({mission,kind:'cage guards no signal',id:opt.id});
+    const warden=l.enemies.find(e=>e.id===baseId+'-warden');
+    if(!bar||!warden)failures.push({mission,kind:'cage signal lacks barrier or warden',id:opt.id});
+    else if(warden.x<bar.x||warden.x>bar.x+bar.w)failures.push({mission,kind:'warden outside its cage',id:opt.id});
+   }
+  }
+ }
+ // Low roads: the corridor floor is reached by a drop, its two steps climb back,
+ // and the second step rejoins the next landing.
+ for(const floor of l.platforms.filter(p=>p.id.endsWith('-low'))){
+  const baseId=floor.id.replace('-low','');
+  const idx=main.findIndex(p=>p.id===baseId),prev=main[idx-1],next=main[idx+1];
+  const a=l.platforms.find(p=>p.id===baseId+'-low-step-a'),b=l.platforms.find(p=>p.id===baseId+'-low-step-b');
+  if(!prev||floor.x>prev.x+prev.w-40)failures.push({mission,kind:'low road not under previous edge',id:floor.id});
+  if(floor.y-prev.y<150)failures.push({mission,kind:'low road too shallow to duck under',id:floor.id});
+  const corridor=main[idx];
+  if(floor.y-(corridor.y+corridor.h)<200)failures.push({mission,kind:'low road corridor too low',id:floor.id,clear:floor.y-(corridor.y+corridor.h)});
+  if(!reachable(l,{...floor,w:Math.max(180,a.x-floor.x+80)},a))failures.push({mission,kind:'low road cannot reach first step',id:floor.id});
+  if(!reachable(l,a,b))failures.push({mission,kind:'low road step break',id:floor.id});
+  if(next&&!reachable(l,b,next))failures.push({mission,kind:'low road cannot rejoin route',id:floor.id,to:next.id});
  }
  // High roads: the first shelf rises from the fight shelf, the second continues
  // from the first, and the second drops onto the next main landing.
@@ -67,9 +127,15 @@ for(let mission=0;mission<3;mission++){
  }
  // Every chapter crossing has a catch floor and a step back up to the route.
  for(const p of main.filter(p=>/-c\d-p5$/.test(p.id))){
-  const salvage=l.platforms.find(q=>q.id===p.id+'-salvage'),step=l.platforms.find(q=>q.id===p.id+'-recovery-step');
-  const idx=main.indexOf(p),next=main[idx+1];
-  if(!salvage||!step){failures.push({mission,kind:'crossing lacks catch floor',id:p.id});continue;}
+  const salvage=l.platforms.find(q=>q.id===p.id+'-salvage'),step=l.platforms.find(q=>q.id===p.id+'-recovery-step'),spring=l.platforms.find(q=>q.id===p.id+'-salvage-spring');
+  const idx=main.indexOf(p),next=main[idx+1]?.id===p.id+'-island'?main[idx+2]:main[idx+1];
+  if(!salvage||!step||!spring){failures.push({mission,kind:'crossing lacks catch floor',id:p.id});continue;}
+  const island=main[idx+1]?.id===p.id+'-island'?main[idx+1]:null;
+  if(island){
+   const lurker=l.enemies.find(e=>e.id===p.id+'-island-e');
+   if(!lurker||lurker.ambush!=='behind'||lurker.wake>60)failures.push({mission,kind:'island lacks its lurker',id:p.id});
+   if(island.w>260)failures.push({mission,kind:'island too comfortable',id:p.id});
+  }
   if(!reachable(l,salvage,step))failures.push({mission,kind:'catch floor cannot reach step',id:p.id});
   if(next&&!reachable(l,step,next))failures.push({mission,kind:'recovery step cannot rejoin route',id:p.id,to:next.id});
  }
@@ -77,6 +143,7 @@ for(let mission=0;mission<3;mission++){
  // Simulate vertical entry from its staging shelf, then a gravity-restored exit
  // at the side edge over the same broad safe floor.
  for(const gate of l.gravityGates){
+  if(gate.required)continue;
   const base=l.platforms.find(p=>p.id===gate.id.replace('-inversion',''));
   const entry=l.platforms.find(p=>p.id===gate.id.replace('-inversion','-gallery-entry'));
   const ceiling=l.platforms.find(p=>p.id===gate.ceilingId);
@@ -103,7 +170,7 @@ for(let mission=0;mission<3;mission++){
   const c=l.checkpoints.filter(c=>c.area===a.id);const maxCheckpointSpacing=Math.max(...c.slice(1).map((b,i)=>b.x-c[i].x));
   return {name:a.name,worldPixels:Math.round(a.xEnd-a.xStart),gravity:a.gravity,mainShelves:p.length,maxRequiredGap:Math.max(...gaps),maxRise:Math.max(...rises),verticalSpan:Math.max(...p.map(p=>p.y))-Math.min(...p.map(p=>p.y)),enemies:l.enemies.filter(e=>e.area===a.id).length,combatShelves:combat,quietShelves:p.length-combat,checkpoints:c.length,maxCheckpointSpacing,fullSpeedTravelSeconds:Math.round((a.xEnd-a.xStart)/650),estimatedFirstClearMinutes:'4–7 (unverified; includes combat, climbs and optional detours)'};
  });
- reports.push({mission:mission+1,name:l.name,width:l.width,reachableMainShelves:seen.size,mainShelves:main.length,simulatedDirectedEdges:[...graph.values()].reduce((n,v)=>n+v.length,0),fullHoldFastApproaches:tight.length,optionalSignals:l.collectibles.length,highRoads:l.platforms.filter(p=>p.id.endsWith('-high-a')).length,catchFloors:l.platforms.filter(p=>p.id.endsWith('-salvage')).length,ambushes:{behind:l.enemies.filter(e=>e.ambush==='behind').length,above:l.enemies.filter(e=>e.ambush==='above').length},areas});
+ reports.push({mission:mission+1,name:l.name,width:l.width,reachableMainShelves:seen.size,mainShelves:main.length,simulatedDirectedEdges:[...graph.values()].reduce((n,v)=>n+v.length,0),fullHoldFastApproaches:tight.length,optionalSignals:l.collectibles.length,highRoads:l.platforms.filter(p=>p.id.endsWith('-high-a')).length,lowRoads:l.platforms.filter(p=>p.id.endsWith('-low')).length,springs:l.platforms.filter(p=>p.kind==='spring').length,movingMainShelves:main.filter(p=>p.moving).length,counterBelts:main.filter(p=>p.kind==='conveyor'&&(p.drift??90)<0).length,windLanes:l.hazards.filter(h=>h.type==='wind').length,islands:main.filter(p=>p.id.endsWith('-island')).length,cages:l.barriers.length,requiredInversions:l.gravityGates.filter(g=>g.required).length,catchFloors:l.platforms.filter(p=>p.id.endsWith('-salvage')).length,ambushes:{behind:l.enemies.filter(e=>e.ambush==='behind').length,above:l.enemies.filter(e=>e.ambush==='above').length,under:l.enemies.filter(e=>e.ambush==='under').length,mirror:l.enemies.filter(e=>e.ambush==='mirror').length},areas});
 }
 const report={physics:{hz:120,bodyHeight:90,landingHorizontalClearance:70,speed:SPEED,gravity:G,jumpVelocity:-JUMP,heldGravityFactor:.48,holdWindow:.32,releaseVelocityFactor:.45,airAcceleration:2400},reports,failures};
 writeFileSync(new URL('./audit-results.json',import.meta.url),JSON.stringify(report,null,2));

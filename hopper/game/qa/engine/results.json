@@ -2,18 +2,18 @@
   "counts": [
     {
       "mission": 0,
-      "passed": 135,
-      "total": 135
+      "passed": 138,
+      "total": 138
     },
     {
       "mission": 1,
-      "passed": 135,
-      "total": 135
+      "passed": 138,
+      "total": 138
     },
     {
       "mission": 2,
-      "passed": 135,
-      "total": 135
+      "passed": 138,
+      "total": 138
     }
   ],
   "failures": [],
@@ -23,7 +23,7 @@
     "exited": true,
     "recovered": true,
     "final": {
-      "x": 88666,
+      "x": 89242,
       "y": -3669
     }
   }

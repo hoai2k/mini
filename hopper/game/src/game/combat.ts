@@ -23,6 +23,8 @@ export interface CombatCallbacks {
   sound: (name: string) => void;
   bossDefeated?: () => void;
   stomp?: () => void;
+  /** A reflected shot has struck a barrier. */
+  breakBarrier?: (id: string) => void;
 }
 export type CombatState = 'idle' | 'telegraph' | 'attack' | 'recover' | 'dead';
 export interface EnemyRuntime {
@@ -57,7 +59,8 @@ export interface EnemyRuntime {
   armored: boolean;
   /** Ambush from behind: hidden until Hopper has passed, then it emerges. */
   dormant: boolean;
-  ambush?: 'behind' | 'above';
+  ambush?: 'behind' | 'above' | 'under' | 'mirror';
+  wake: number;
   open: number;
   sequence: number;
   attackIds: Set<string>;
@@ -179,6 +182,7 @@ export class CombatWorld {
   private projectileId = 0;
   private deadBossReported = false;
   level: LevelData;
+  brokenBarriers = new Set<string>();
   constructor(level: LevelData) {
     this.level = level;
     this.boss = this.makeBoss();
@@ -217,8 +221,9 @@ export class CombatWorld {
         alive: true,
         asleep: true,
         armored,
-        dormant: s.ambush === 'behind',
+        dormant: s.ambush === 'behind' || s.ambush === 'under',
         ambush: s.ambush,
+        wake: s.wake ?? 230,
         open: 0,
         sequence: 0,
         attackIds: new Set<string>(),
@@ -339,9 +344,30 @@ export class CombatWorld {
       e.asleep = Math.abs(e.x - p.x) > 2200;
       if (e.asleep) continue;
       if (e.dormant) {
-        // Stay hidden until Hopper is clearly past, then burst out behind it.
         e.visible = false;
-        if (p.x - e.x > 230) {
+        if (e.ambush === 'under') {
+          // Buried: the ground shivers as Hopper nears, then it surfaces
+          // beneath whoever is still standing there.
+          if (e.timer > 0) {
+            e.timer -= dt;
+            if (Math.floor(e.timer * 10) !== Math.floor((e.timer + dt) * 10))
+              callbacks.effect('tell', e.x, e.y, '#e0b8a0');
+            if (e.timer <= 0) {
+              e.dormant = false;
+              e.visible = true;
+              e.facing = p.x - e.x < 0 ? -1 : 1;
+              e.state = 'telegraph';
+              e.timer = 0.05;
+              e.cooldown = 0;
+              callbacks.effect('emerge', e.x, e.y - e.h * 0.5, '#f6c2ff');
+              callbacks.sound('enemy');
+            } else continue;
+          } else if (Math.abs(p.x - e.x) < 210) {
+            e.timer = 0.45;
+            continue;
+          } else continue;
+        } else if (p.x - e.x > e.wake) {
+          // Stay hidden until Hopper is clearly past, then burst out behind it.
           e.dormant = false;
           e.visible = true;
           e.facing = 1;
@@ -369,11 +395,25 @@ export class CombatWorld {
         !(e.type === 'phaseSkate' && e.state === 'recover' && e.timer > 0.45);
       if (e.state === 'idle') {
         e.facing = dx < 0 ? -1 : 1;
-        if (!RANGED.has(e.type) && !flying) {
+        if (e.ambush === 'mirror') {
+          // Shadow Hopper along the parallel shelf; pounce when it walks below.
+          e.x += clamp(dx, -480 * dt, 480 * dt);
+          e.vx = 0;
+          if (
+            Math.abs(dx) < 80 &&
+            p.y > e.y + 120 &&
+            p.y < e.y + 700 &&
+            e.cooldown <= 0
+          ) {
+            e.state = 'telegraph';
+            e.timer = 0.45;
+            callbacks.effect('tell', e.x, e.y - e.h, '#ffe0a2');
+          }
+        } else if (!RANGED.has(e.type) && !flying) {
           e.vx = e.facing * 35;
           e.x += e.vx * dt;
         }
-        if (near && e.cooldown <= 0) {
+        if (e.ambush !== 'mirror' && near && e.cooldown <= 0) {
           e.state = 'telegraph';
           e.timer = 0.65 + (e.armored ? 0.2 : 0);
           e.vx = 0;
@@ -422,7 +462,8 @@ export class CombatWorld {
             support.x + e.w * 0.45,
             support.x + support.w - e.w * 0.45,
           );
-          e.y = support.y;
+          // A pouncing mirror stalker leaves its shelf and springs back after.
+          if (!(e.ambush === 'mirror' && e.state !== 'idle')) e.y = support.y;
         } else e.x = clamp(e.x, e.homeX - e.patrol, e.homeX + e.patrol);
       } else if (e.state !== 'attack') {
         e.x = clamp(e.x, e.homeX - 260, e.homeX + 260);
@@ -452,7 +493,23 @@ export class CombatWorld {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       if (b.owner === 'player') {
-        // A parried shot flies back and lands as a kick on whatever it meets.
+        // A parried shot flies back and lands as a kick on whatever it meets,
+        // and it is the one thing that opens a signal cage.
+        const bar = (this.level.barriers || []).find(
+          (q) =>
+            !this.brokenBarriers.has(q.id) &&
+            b.x > q.x - b.radius &&
+            b.x < q.x + q.w + b.radius &&
+            b.y > q.y - b.radius &&
+            b.y < q.y + q.h + b.radius,
+        );
+        if (bar) {
+          this.brokenBarriers.add(bar.id);
+          callbacks.breakBarrier?.(bar.id);
+          b.life = 0;
+          callbacks.effect('spark', b.x, b.y, '#b6fbff');
+          continue;
+        }
         const r = this.hit(b.x, b.y, b.radius + 26, 2, 'kick');
         if (r.hits) {
           b.life = 0;
@@ -502,6 +559,12 @@ export class CombatWorld {
         e.timer = 0.6;
         break;
       case 'mirrorStalker':
+        if (e.ambush === 'mirror') {
+          e.vx = 0;
+          e.vy = 640;
+          e.timer = 0.6;
+          break;
+        }
         e.vx = e.facing * 420;
         e.timer = 0.55;
         this.aimed(e, p, 180);

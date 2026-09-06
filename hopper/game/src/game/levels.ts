@@ -38,12 +38,20 @@ export interface Platform {
   w: number;
   h: number;
   skin: number;
-  kind?: 'solid' | 'oneWay' | 'conveyor' | 'crumble';
+  kind?: 'solid' | 'oneWay' | 'conveyor' | 'crumble' | 'spring';
   moving?: { axis: 'x' | 'y'; range: number; speed: number; phase: number };
-  routeRole?: 'main' | 'optional' | 'arena' | 'salvage' | 'high';
+  routeRole?: 'main' | 'optional' | 'arena' | 'salvage' | 'high' | 'low';
   ceiling?: boolean;
   area?: number;
   encounter?: Beat;
+  /** Conveyor drift in units per second; negative runs against Hopper. */
+  drift?: number;
+  /** Architectural fill stops this far below the ledge, leaving a corridor. */
+  hollow?: number;
+  /** A main shelf reached through a required inverted stretch, not a jump. */
+  via?: 'inversion';
+  /** The verb an optional signal shelf is built to reward. */
+  teach?: 'catch' | 'parry' | 'high';
 }
 export interface Area {
   id: number;
@@ -63,8 +71,12 @@ export interface EnemySpawn {
   y: number;
   patrol?: number;
   area: number;
-  /** behind: hidden until Hopper passes, then attacks its back. above: perched or hovering overhead. */
-  ambush?: 'behind' | 'above';
+  /** behind: hidden until Hopper passes, then attacks its back. above: perched
+   * or hovering overhead. under: hidden in the floor, surfaces beneath Hopper.
+   * mirror: shadows Hopper along a parallel shelf and pounces from above. */
+  ambush?: 'behind' | 'above' | 'under' | 'mirror';
+  /** behind: how far past it Hopper must be before it emerges (default 230). */
+  wake?: number;
 }
 export interface Hazard {
   id: string;
@@ -76,6 +88,8 @@ export interface Hazard {
   period?: number;
   phase?: number;
   area?: number;
+  /** Wind: constant acceleration applied inside the lane. */
+  push?: { x: number; y: number };
 }
 export interface Checkpoint {
   x: number;
@@ -86,6 +100,16 @@ export interface Collectible {
   id: string;
   x: number;
   y: number;
+  /** Cannot be taken until this barrier is broken by a reflected shot. */
+  barrierId?: string;
+}
+/** A cage that only a parried (reflected) shot can break. */
+export interface Barrier {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 export interface GravityGate {
   id: string;
@@ -96,6 +120,8 @@ export interface GravityGate {
   sign: -1;
   ceilingId: string;
   label: string;
+  /** The main route passes through this gate; there is no jump around it. */
+  required?: boolean;
 }
 export interface Chapter {
   name: string;
@@ -106,6 +132,7 @@ export interface Chapter {
 export interface LevelData {
   chapters: Chapter[];
   gravityGates: GravityGate[];
+  barriers: Barrier[];
   name: string;
   width: number;
   start: { x: number; y: number };
@@ -530,6 +557,7 @@ export function buildLevel(mission: number): LevelData {
   const out: LevelData = {
     chapters: [],
     gravityGates: [],
+    barriers: [],
     name: MISSION_NAMES[mission],
     width: 0,
     start: { x: 180, y: 800 },
@@ -577,7 +605,9 @@ export function buildLevel(mission: number): LevelData {
       const relief = RELIEF[(ci + skin) % RELIEF.length],
         signature = SIGNATURES[ci],
         profileTotal = signature.profile.reduce((n, v) => n + v, 0);
-      let profileSum = 0;
+      let profileSum = 0,
+        prevGap = 0,
+        prevY = y;
       // Half-length chapters carry twice the elevation change per step, so local
       // relief is damped to keep required rises inside a forgiving jump arc.
       const reliefScale = 0.6 * (skin === 6 ? 0.7 : skin === 7 ? 1.5 : 1);
@@ -591,7 +621,12 @@ export function buildLevel(mission: number): LevelData {
         // The chapter crossing (i === 5) is a deliberately long leap; a catch
         // floor below it turns a miss into a climb back rather than a death.
         const crossing = i === 5;
-        const gap = Math.round(source[1] * (crossing ? 1.4 : signature.gap));
+        // Violet Inversion's drop chapter crosses one gap on the ceiling: the
+        // gap is too long to jump, so the inverted stretch is the route.
+        const inverted = skin === 8 && ci === 2 && i === 6;
+        const gap = Math.round(
+          source[1] * (crossing ? 1.4 : inverted ? 2.6 : signature.gap),
+        );
         profileSum += signature.profile[i];
         const nextY =
           chapterY +
@@ -615,13 +650,67 @@ export function buildLevel(mission: number): LevelData {
         };
         // The industrial moving-belt lesson changes horizontal drift, never landing geometry.
         if (skin === 3 && (i === 1 || i === 5)) p.kind = 'conveyor';
+        // Summit chapter: one shelf on the main route swings, so the jump onto
+        // it and off it must be timed, and one fight runs on a belt that
+        // carries Hopper backward unless it keeps winning ground.
+        if (ci === 4 && i === 3)
+          p.moving = { axis: 'x', range: 90, speed: 60, phase: 0 };
+        if (ci === 4 && i === 6) {
+          p.kind = 'conveyor';
+          p.drift = -70;
+        }
+        if (inverted) p.encounter = 'drop';
+        if (ci === 2 && i === 7 && skin === 8) p.via = 'inversion';
         out.platforms.push(p);
         if (i === 0 || i === 4)
           out.checkpoints.push({ x: x + 170, y, area: ai });
         // Encounters each begin after an unobstructed landing/reading strip.
         // High road: two light shelves above a fight let Hopper go over the
         // encounter and drop onto the next landing. Overhead ambushers perch here.
-        const highRoad = beat === 'fight' && ci > 0;
+        const highRoad = beat === 'fight' && ci > 0 && ci !== 2;
+        // Low road: the glide chapter's fight can be gone under instead of over.
+        // Drop off the previous landing's far edge onto a corridor floor that
+        // runs beneath the fight shelf, then climb two steps back to the route.
+        const lowRoad = beat === 'fight' && ci === 2 && i > 0;
+        if (lowRoad) {
+          const floorY = Math.max(y, prevY) + 360;
+          p.hollow = 200;
+          out.platforms.push(
+            {
+              id: `${id}-low`,
+              x: x - prevGap - 40,
+              y: floorY,
+              w: prevGap + w + gap - 20,
+              h: 90,
+              skin,
+              kind: 'solid',
+              routeRole: 'low',
+              area: ai,
+            },
+            {
+              id: `${id}-low-step-a`,
+              x: x + w + 20,
+              y: floorY - 150,
+              w: 150,
+              h: 55,
+              skin,
+              kind: 'oneWay',
+              routeRole: 'low',
+              area: ai,
+            },
+            {
+              id: `${id}-low-step-b`,
+              x: x + w + gap - 190,
+              y: floorY - 300,
+              w: 150,
+              h: 55,
+              skin,
+              kind: 'oneWay',
+              routeRole: 'low',
+              area: ai,
+            },
+          );
+        }
         let perch: Platform | null = null;
         if (highRoad) {
           const rise = skin === 6 ? 235 : skin === 7 ? 380 : 265;
@@ -664,31 +753,50 @@ export function buildLevel(mission: number): LevelData {
               if (overhead) type = overhead;
               else if (perch)
                 type = r.enemies.find((t) => RANGED.has(t)) || type;
-              else ambush = undefined;
+              else ambush = 'behind';
             }
-            const flyer = FLYING.has(type);
+            // Species give their ambush its own shape: burrowers surface under
+            // Hopper's feet, mirror stalkers shadow it along the high road and
+            // pounce, thorn choirs form a firing line on both high shelves.
+            if (ambush === 'behind' && type === 'basaltBurrower')
+              ambush = 'under';
+            if (ambush === 'behind' && type === 'mirrorStalker' && perch)
+              ambush = 'mirror';
+            const flyer = FLYING.has(type),
+              perched = (ambush === 'above' || ambush === 'mirror') && perch;
             out.enemies.push({
               id: `${id}-e${n}`,
               type,
               x:
                 ambush === 'behind'
                   ? x + 95
-                  : ambush === 'above' && perch && !flyer
-                    ? perch.x + perch.w * 0.5
+                  : perched && !flyer
+                    ? perch!.x + perch!.w * 0.5
                     : ex,
               y:
                 ambush === 'above'
                   ? flyer
                     ? y - 400
                     : perch!.y
-                  : y - (flyer ? 120 + 30 * (n % 2) : 0),
-              patrol:
-                ambush === 'above' && perch && !flyer
-                  ? 60
-                  : Math.min(140, w * 0.19),
+                  : ambush === 'mirror'
+                    ? perch!.y
+                    : y - (flyer ? 120 + 30 * (n % 2) : 0),
+              patrol: perched && !flyer ? 60 : Math.min(140, w * 0.19),
               area: ai,
               ambush,
             });
+            if (ambush === 'above' && type === 'thornChoir' && perch) {
+              const line = out.platforms.find((q) => q.id === `${id}-high-b`)!;
+              out.enemies.push({
+                id: `${id}-e${n}-line`,
+                type,
+                x: line.x + Math.min(line.w * 0.5, 200),
+                y: line.y,
+                patrol: 40,
+                area: ai,
+                ambush: 'above',
+              });
+            }
           }
         }
         // An isolated second lesson gives every enemy its own readable introduction.
@@ -729,12 +837,33 @@ export function buildLevel(mission: number): LevelData {
             area: ai,
           });
         }
-        // Three genuinely optional signal shelves per region, each rejoining the next main shelf.
-        if (
-          (ci === 1 && i === 4) ||
-          (ci === 2 && i === 6) ||
-          (ci === 4 && i === 3)
-        ) {
+        // Three optional signal shelves per region, each built around one verb:
+        // a lip only a ledge catch reaches, a cage only a reflected shot opens,
+        // and a perch only the high road climbs to.
+        if (ci === 1 && i === 4) {
+          // Just beyond a full jump's apex (which scales with held gravity as
+          // roughly g^-0.75); the ledge catch makes up the difference.
+          const rise = Math.round(400 / Math.pow(r.gravity, 0.75)) + 45;
+          const opt: Platform = {
+            id: `${id}-signal`,
+            x: x + w * 0.35,
+            y: y - rise,
+            w: Math.min(430, w * 0.57),
+            h: 70,
+            skin,
+            kind: 'solid',
+            routeRole: 'optional',
+            area: ai,
+            teach: 'catch',
+          };
+          out.platforms.push(opt);
+          out.collectibles.push({
+            id: `signal-${mission}-${ai}-${ci}-${i}`,
+            x: opt.x + opt.w * 0.5,
+            y: opt.y - 85,
+          });
+        }
+        if (ci === 2 && i === 6) {
           const rise = skin === 6 ? 170 : skin === 7 ? 400 : 220;
           const opt: Platform = {
             id: `${id}-signal`,
@@ -746,10 +875,49 @@ export function buildLevel(mission: number): LevelData {
             kind: 'oneWay',
             routeRole: 'optional',
             area: ai,
+            teach: 'parry',
           };
-          if ((skin === 4 || skin === 7) && i === 6)
-            opt.moving = { axis: 'x', range: 65, speed: 35, phase: 0 };
-          if ((skin === 1 || skin === 6) && i === 3) opt.kind = 'crumble';
+          out.platforms.push(opt);
+          const barrierId = `${id}-barrier`;
+          out.barriers.push({
+            id: barrierId,
+            x: opt.x + opt.w * 0.5 - 120,
+            y: opt.y - 250,
+            w: 240,
+            h: 250,
+          });
+          out.collectibles.push({
+            id: `signal-${mission}-${ai}-${ci}-${i}`,
+            x: opt.x + opt.w * 0.5,
+            y: opt.y - 190,
+            barrierId,
+          });
+          // The caged shooter is the key: parry its shot back into the bars.
+          const shooter =
+            r.enemies.find((t) => RANGED.has(t)) || ('spireLeech' as EnemyType);
+          out.enemies.push({
+            id: `${id}-warden`,
+            type: shooter,
+            x: opt.x + opt.w * 0.5,
+            y: opt.y - (FLYING.has(shooter) ? 110 : 0),
+            patrol: 30,
+            area: ai,
+          });
+        }
+        if (ci === 4 && i === 6 && highRoad) {
+          const line = out.platforms.find((q) => q.id === `${id}-high-b`)!;
+          const opt: Platform = {
+            id: `${id}-signal`,
+            x: line.x + 30,
+            y: line.y - 235,
+            w: Math.min(300, line.w - 60),
+            h: 70,
+            skin,
+            kind: 'oneWay',
+            routeRole: 'optional',
+            area: ai,
+            teach: 'high',
+          };
           out.platforms.push(opt);
           out.collectibles.push({
             id: `signal-${mission}-${ai}-${ci}-${i}`,
@@ -757,15 +925,72 @@ export function buildLevel(mission: number): LevelData {
             y: opt.y - 85,
           });
         }
+        // Summit crossings are split by an island that is only a bad place to
+        // stand: a shadow surfaces behind Hopper the moment it lands, so the
+        // clean line is straight through without stopping.
+        let span = gap;
+        if (crossing && ci === 4) {
+          const half = Math.round(gap * 0.55),
+            islandY = y + Math.round(dy * 0.5);
+          span = half * 2 + 240;
+          out.platforms.push({
+            id: `${id}-island`,
+            x: x + w + half,
+            y: islandY,
+            w: 240,
+            h: 130,
+            skin,
+            kind: 'solid',
+            routeRole: 'main',
+            area: ai,
+            encounter: 'vista',
+          });
+          out.enemies.push({
+            id: `${id}-island-e`,
+            type: r.enemies[0],
+            x: x + w + half + 95,
+            y: islandY - (FLYING.has(r.enemies[0]) ? 120 : 0),
+            patrol: 50,
+            area: ai,
+            ambush: 'behind',
+            wake: 40,
+          });
+        }
+        // Glide crossings: a spring pad at the takeoff makes the long leap
+        // without a hold, and a crosswind over the gap leans on the jump so the
+        // catch floor below is the intended line for anyone who does not commit.
+        if (crossing && ci === 2) {
+          out.platforms.push({
+            id: `${id}-spring`,
+            x: x + w - 200,
+            y,
+            w: 160,
+            h: 40,
+            skin,
+            kind: 'spring',
+            routeRole: 'optional',
+            area: ai,
+          });
+          out.hazards.push({
+            id: `${id}-wind`,
+            type: 'wind',
+            x: x + w,
+            y: Math.min(y, y + dy) - 560,
+            w: span,
+            h: 700,
+            push: { x: -150, y: 400 },
+            area: ai,
+          });
+        }
         // Deep crossings have a low recovery shelf. It rejoins the next landing
         // through two steps; a miss costs time instead of an unseen fatal plunge.
-        if (crossing || (gap >= 250 && i === 3)) {
+        if (crossing || inverted || (gap >= 250 && i === 3 && !lowRoad)) {
           const recoveryY = Math.max(y, y + dy) + 260;
           out.platforms.push({
             id: `${id}-salvage`,
             x: x + w - 90,
             y: recoveryY,
-            w: gap + Math.min(360, w * 0.45),
+            w: span + Math.min(360, w * 0.45),
             h: 90,
             skin,
             kind: 'solid',
@@ -774,7 +999,7 @@ export function buildLevel(mission: number): LevelData {
           });
           out.platforms.push({
             id: `${id}-recovery-step`,
-            x: x + w + gap - 240,
+            x: x + w + span - 240,
             y: recoveryY - 145,
             w: 200,
             h: 70,
@@ -782,6 +1007,49 @@ export function buildLevel(mission: number): LevelData {
             kind: 'oneWay',
             routeRole: 'salvage',
             area: ai,
+          });
+          // A spring on the catch floor is the joyful way back up.
+          out.platforms.push({
+            id: `${id}-salvage-spring`,
+            x: x + w + span - 520,
+            y: recoveryY,
+            w: 160,
+            h: 40,
+            skin,
+            kind: 'spring',
+            routeRole: 'salvage',
+            area: ai,
+          });
+        }
+        // The required inverted crossing: leap up into the gate, land on the
+        // ceiling, walk it across the gap and drop out onto the next shelf.
+        if (inverted) {
+          const gx = x + w - 260,
+            gw = gap + 520,
+            gy = y - 820,
+            ceilingId = `${id}-invert-ceiling`;
+          out.platforms.push({
+            id: ceilingId,
+            x: gx,
+            y: gy - 70,
+            w: gw,
+            h: 70,
+            skin,
+            kind: 'solid',
+            routeRole: 'optional',
+            ceiling: true,
+            area: ai,
+          });
+          out.gravityGates.push({
+            id: `${id}-inversion`,
+            x: gx,
+            y: gy,
+            w: gw,
+            h: 480,
+            sign: -1,
+            ceilingId,
+            label: 'INVERTED CROSSING · WALK THE CEILING',
+            required: true,
           });
         }
         // Optional inversion gallery sits above a broad uninterrupted normal floor.
@@ -841,7 +1109,9 @@ export function buildLevel(mission: number): LevelData {
             area: ai,
           });
         }
-        x += w + gap;
+        prevGap = span;
+        prevY = y;
+        x += w + span;
         y += dy;
       });
       out.chapters.push({
