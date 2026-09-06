@@ -345,3 +345,126 @@ assert.equal(
 console.log(
   'PASS: under-ambush tells then surfaces, mirror stalker shadows and pounces, reflected shots open cages.',
 );
+// Agile techniques: an agile hound pounces (leaves the ground and lands back
+// on its shelf); an agile shooter vaults over Hopper and fires from behind; an
+// agile shooting flyer overflies to Hopper's far side. Non-agile spawns of the
+// same species never leave the ground.
+const flat = [
+  {
+    id: 'ground',
+    x: 0,
+    y: 800,
+    w: 4000,
+    h: 130,
+    skin: 0,
+    kind: 'solid',
+    routeRole: 'main',
+    area: 0,
+  },
+];
+function run(spawn, px, frames = 600) {
+  const world = new CombatWorld({ ...base, enemies: [spawn] });
+  world.enemies[0].asleep = false;
+  const who = {
+    ...player(px, 800),
+    w: 110,
+    h: 120,
+    facing: px < spawn.x ? 1 : -1,
+  };
+  let airborne = false,
+    maxLift = 0,
+    crossed = false,
+    shotsFromBehind = 0;
+  for (let n = 0; n < frames; n++) {
+    world.update(1 / 120, n / 120, who, flat, cb);
+    const e = world.enemies[0];
+    if (e.airborne) airborne = true;
+    maxLift = Math.max(maxLift, 800 - e.y);
+    if ((e.x - px) * (spawn.x - px) < 0) crossed = true;
+    for (const b of world.projectiles)
+      if (b.owner === e.id && (b.x - px) * (spawn.x - px) < 0 && b.delay <= 0)
+        shotsFromBehind++;
+  }
+  return { airborne, maxLift, crossed, shotsFromBehind, e: world.enemies[0] };
+}
+const pounce = run(
+  { id: 'p', type: 'shadeHound', x: 700, y: 800, area: 0, agile: true },
+  300,
+);
+assert.ok(pounce.airborne && pounce.maxLift > 80, 'agile hound pounces');
+assert.equal(pounce.e.y, 800, 'and lands back on its shelf');
+const plain = run(
+  { id: 'q', type: 'shadeHound', x: 700, y: 800, area: 0 },
+  300,
+);
+assert.ok(!plain.airborne, 'an ordinary hound never leaves the ground');
+const vault = run(
+  { id: 'v', type: 'seedSpitter', x: 650, y: 800, area: 0, agile: true },
+  400,
+  900,
+);
+assert.ok(vault.airborne && vault.crossed, 'agile shooter vaults over Hopper');
+assert.ok(vault.shotsFromBehind > 0, 'and fires from behind after landing');
+const still = run(
+  { id: 's', type: 'seedSpitter', x: 650, y: 800, area: 0 },
+  400,
+  900,
+);
+assert.ok(!still.crossed, 'an ordinary shooter holds its ground');
+const overfly = run(
+  { id: 'o', type: 'chainManta', x: 700, y: 680, area: 0, agile: true },
+  300,
+  900,
+);
+assert.ok(
+  overfly.crossed && overfly.shotsFromBehind > 0,
+  'agile shooting flyer overflies and fires from behind',
+);
+// Waves: the second wave stays hidden until the first is down.
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    {
+      id: 'w0a',
+      type: 'shadeHound',
+      x: 500,
+      y: 800,
+      area: 0,
+      wave: 0,
+      group: 'g',
+    },
+    {
+      id: 'w0b',
+      type: 'shadeHound',
+      x: 650,
+      y: 800,
+      area: 0,
+      wave: 0,
+      group: 'g',
+    },
+    {
+      id: 'w1',
+      type: 'shadeHound',
+      x: 800,
+      y: 800,
+      area: 0,
+      wave: 1,
+      group: 'g',
+    },
+  ],
+});
+p = { ...player(300, 800), w: 110, h: 120 };
+for (let n = 0; n < 60; n++) w.update(1 / 120, n / 120, p, flat, cb);
+assert.equal(w.enemies[2].visible, false, 'wave 1 waits');
+w.enemies[0].alive = false;
+w.enemies[1].alive = false;
+for (let n = 0; n < 10; n++) w.update(1 / 120, 1 + n / 120, p, flat, cb);
+assert.equal(
+  w.enemies[2].dormant,
+  false,
+  'wave 1 jumps in once wave 0 is down',
+);
+assert.ok(w.enemies[2].airborne, 'arriving by leap, not appearing in place');
+console.log(
+  'PASS: agile pounce, vault-and-shoot-from-behind, overfly; ordinary spawns stay simple; waves arrive as earlier waves fall.',
+);

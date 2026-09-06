@@ -15,15 +15,75 @@
     {
       "mission": 1,
       "name": "Earthbound Thunder",
-      "width": 115508,
+      "width": 115905,
+      "challenge": {
+        "maxJumpOnly": 4,
+        "maxCombo": 6.9,
+        "hardest": [
+          {
+            "from": "m0-a1-c4-p1",
+            "to": "m0-a1-c4-p2",
+            "jump": 1,
+            "combat": 5.9,
+            "total": 6.9,
+            "foes": 4
+          },
+          {
+            "from": "m0-a2-c2-p6",
+            "to": "m0-a2-c2-p7",
+            "jump": 1,
+            "combat": 5.9,
+            "total": 6.9,
+            "foes": 3
+          },
+          {
+            "from": "m0-a2-c4-p6",
+            "to": "m0-a2-c4-p7",
+            "jump": 1,
+            "combat": 5.9,
+            "total": 6.9,
+            "foes": 3
+          },
+          {
+            "from": "m0-a2-c4-p1",
+            "to": "m0-a2-c4-p2",
+            "jump": 0,
+            "combat": 6.7,
+            "total": 6.7,
+            "foes": 4
+          },
+          {
+            "from": "m0-a1-c2-p6",
+            "to": "m0-a1-c2-p7",
+            "jump": 1,
+            "combat": 5.4,
+            "total": 6.4,
+            "foes": 3
+          },
+          {
+            "from": "m0-a2-c3-p0",
+            "to": "m0-a2-c3-p1",
+            "jump": 0,
+            "combat": 6.2,
+            "total": 6.2,
+            "foes": 4
+          }
+        ],
+        "meanCombat": 1.38
+      },
+      "arena": {
+        "width": 3400,
+        "shelves": 9,
+        "locks": 2
+      },
       "reachableMainShelves": 139,
       "mainShelves": 139,
       "simulatedDirectedEdges": 140,
-      "fullHoldFastApproaches": 6,
+      "fullHoldFastApproaches": 5,
       "optionalSignals": 9,
       "highRoads": 15,
       "lowRoads": 3,
-      "springs": 20,
+      "springs": 22,
       "movingMainShelves": 3,
       "counterBelts": 3,
       "windLanes": 3,
@@ -40,50 +100,80 @@
       "areas": [
         {
           "name": "Sunseed Fields",
-          "worldPixels": 37575,
+          "worldPixels": 37509,
+          "encounters": {
+            "spawns": 38,
+            "agile": 6,
+            "waves": 4,
+            "ambushes": 11,
+            "guards": 3,
+            "tier": 1,
+            "biggestFight": 3,
+            "meanFight": 2.8
+          },
           "gravity": 1,
           "mainShelves": 46,
           "maxRequiredGap": 420,
           "maxRise": 149,
           "verticalSpan": 618,
-          "enemies": 31,
+          "enemies": 38,
           "combatShelves": 13,
           "quietShelves": 33,
           "checkpoints": 10,
-          "maxCheckpointSpacing": 4525,
+          "maxCheckpointSpacing": 4459,
           "fullSpeedTravelSeconds": 58,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Crownline City",
-          "worldPixels": 37561,
+          "worldPixels": 37499,
+          "encounters": {
+            "spawns": 45,
+            "agile": 12,
+            "waves": 10,
+            "ambushes": 11,
+            "guards": 4,
+            "tier": 2,
+            "biggestFight": 4,
+            "meanFight": 3.4
+          },
           "gravity": 1,
           "mainShelves": 46,
           "maxRequiredGap": 392,
           "maxRise": 256,
           "verticalSpan": 2682,
-          "enemies": 31,
+          "enemies": 45,
           "combatShelves": 13,
           "quietShelves": 33,
           "checkpoints": 10,
-          "maxCheckpointSpacing": 4611,
+          "maxCheckpointSpacing": 4549,
           "fullSpeedTravelSeconds": 58,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Thunderhead Range",
-          "worldPixels": 40372,
+          "worldPixels": 40897,
+          "encounters": {
+            "spawns": 43,
+            "agile": 12,
+            "waves": 10,
+            "ambushes": 11,
+            "guards": 2,
+            "tier": 2,
+            "biggestFight": 4,
+            "meanFight": 3.4
+          },
           "gravity": 1,
           "mainShelves": 47,
           "maxRequiredGap": 476,
           "maxRise": 238,
           "verticalSpan": 3000,
-          "enemies": 31,
+          "enemies": 43,
           "combatShelves": 14,
           "quietShelves": 33,
           "checkpoints": 11,
           "maxCheckpointSpacing": 4784,
-          "fullSpeedTravelSeconds": 62,
+          "fullSpeedTravelSeconds": 63,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         }
       ]
@@ -91,7 +181,67 @@
     {
       "mission": 2,
       "name": "The Iron Migration",
-      "width": 115552,
+      "width": 115954,
+      "challenge": {
+        "maxJumpOnly": 3,
+        "maxCombo": 8.4,
+        "hardest": [
+          {
+            "from": "m1-a1-c4-p1",
+            "to": "m1-a1-c4-p2",
+            "jump": 1,
+            "combat": 7.4,
+            "total": 8.4,
+            "foes": 5
+          },
+          {
+            "from": "m1-a1-c3-p0",
+            "to": "m1-a1-c3-p1",
+            "jump": 0,
+            "combat": 8.2,
+            "total": 8.2,
+            "foes": 5
+          },
+          {
+            "from": "m1-a2-c3-p0",
+            "to": "m1-a2-c3-p1",
+            "jump": 0,
+            "combat": 8.2,
+            "total": 8.2,
+            "foes": 5
+          },
+          {
+            "from": "m1-a1-c3-p6",
+            "to": "m1-a1-c3-p7",
+            "jump": 0,
+            "combat": 7.7,
+            "total": 7.7,
+            "foes": 4
+          },
+          {
+            "from": "m1-a1-c4-p6",
+            "to": "m1-a1-c4-p7",
+            "jump": 0,
+            "combat": 7.7,
+            "total": 7.7,
+            "foes": 4
+          },
+          {
+            "from": "m1-a2-c3-p6",
+            "to": "m1-a2-c3-p7",
+            "jump": 0,
+            "combat": 7.7,
+            "total": 7.7,
+            "foes": 4
+          }
+        ],
+        "meanCombat": 1.79
+      },
+      "arena": {
+        "width": 3400,
+        "shelves": 9,
+        "locks": 2
+      },
       "reachableMainShelves": 139,
       "mainShelves": 139,
       "simulatedDirectedEdges": 140,
@@ -99,7 +249,7 @@
       "optionalSignals": 9,
       "highRoads": 15,
       "lowRoads": 3,
-      "springs": 19,
+      "springs": 21,
       "movingMainShelves": 3,
       "counterBelts": 3,
       "windLanes": 3,
@@ -116,50 +266,80 @@
       "areas": [
         {
           "name": "Cinder Foundries",
-          "worldPixels": 37598,
+          "worldPixels": 37545,
+          "encounters": {
+            "spawns": 45,
+            "agile": 11,
+            "waves": 10,
+            "ambushes": 11,
+            "guards": 4,
+            "tier": 2,
+            "biggestFight": 4,
+            "meanFight": 3.4
+          },
           "gravity": 1,
           "mainShelves": 46,
           "maxRequiredGap": 336,
           "maxRise": 164,
           "verticalSpan": 1021,
-          "enemies": 31,
+          "enemies": 45,
           "combatShelves": 13,
           "quietShelves": 33,
           "checkpoints": 10,
-          "maxCheckpointSpacing": 4359,
+          "maxCheckpointSpacing": 4306,
           "fullSpeedTravelSeconds": 58,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Tempest Docks",
-          "worldPixels": 37558,
+          "worldPixels": 37481,
+          "encounters": {
+            "spawns": 54,
+            "agile": 22,
+            "waves": 18,
+            "ambushes": 11,
+            "guards": 5,
+            "tier": 3,
+            "biggestFight": 5,
+            "meanFight": 4.1
+          },
           "gravity": 1,
           "mainShelves": 46,
           "maxRequiredGap": 490,
           "maxRise": 249,
           "verticalSpan": 1769,
-          "enemies": 31,
+          "enemies": 54,
           "combatShelves": 13,
           "quietShelves": 33,
           "checkpoints": 10,
-          "maxCheckpointSpacing": 4671,
+          "maxCheckpointSpacing": 4594,
           "fullSpeedTravelSeconds": 58,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Skyhook Works",
-          "worldPixels": 40396,
+          "worldPixels": 40928,
+          "encounters": {
+            "spawns": 54,
+            "agile": 22,
+            "waves": 18,
+            "ambushes": 11,
+            "guards": 5,
+            "tier": 3,
+            "biggestFight": 5,
+            "meanFight": 4.1
+          },
           "gravity": 1,
           "mainShelves": 47,
           "maxRequiredGap": 434,
           "maxRise": 274,
           "verticalSpan": 3606,
-          "enemies": 31,
+          "enemies": 54,
           "combatShelves": 14,
           "quietShelves": 33,
           "checkpoints": 11,
           "maxCheckpointSpacing": 4613,
-          "fullSpeedTravelSeconds": 62,
+          "fullSpeedTravelSeconds": 63,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         }
       ]
@@ -167,7 +347,67 @@
     {
       "mission": 3,
       "name": "Beyond the Black Sun",
-      "width": 118459,
+      "width": 118869,
+      "challenge": {
+        "maxJumpOnly": 4,
+        "maxCombo": 8.2,
+        "hardest": [
+          {
+            "from": "m2-a1-c4-p1",
+            "to": "m2-a1-c4-p2",
+            "jump": 1,
+            "combat": 7.2,
+            "total": 8.2,
+            "foes": 5
+          },
+          {
+            "from": "m2-a2-c2-p6",
+            "to": "m2-a2-c2-p7",
+            "jump": 2,
+            "combat": 5.9,
+            "total": 7.9,
+            "foes": 4
+          },
+          {
+            "from": "m2-a0-c4-p6",
+            "to": "m2-a0-c4-p7",
+            "jump": 0,
+            "combat": 7.8,
+            "total": 7.8,
+            "foes": 5
+          },
+          {
+            "from": "m2-a1-c1-p6",
+            "to": "m2-a1-c1-p7",
+            "jump": 1,
+            "combat": 6.7,
+            "total": 7.7,
+            "foes": 4
+          },
+          {
+            "from": "m2-a1-c2-p2",
+            "to": "m2-a1-c2-p3",
+            "jump": 1,
+            "combat": 6.7,
+            "total": 7.7,
+            "foes": 5
+          },
+          {
+            "from": "m2-a1-c2-p6",
+            "to": "m2-a1-c2-p7",
+            "jump": 1,
+            "combat": 6.7,
+            "total": 7.7,
+            "foes": 4
+          }
+        ],
+        "meanCombat": 1.67
+      },
+      "arena": {
+        "width": 3400,
+        "shelves": 9,
+        "locks": 2
+      },
       "reachableMainShelves": 139,
       "mainShelves": 139,
       "simulatedDirectedEdges": 157,
@@ -175,7 +415,7 @@
       "optionalSignals": 9,
       "highRoads": 15,
       "lowRoads": 3,
-      "springs": 25,
+      "springs": 27,
       "movingMainShelves": 3,
       "counterBelts": 3,
       "windLanes": 3,
@@ -192,50 +432,80 @@
       "areas": [
         {
           "name": "Vermilion Basin",
-          "worldPixels": 35598,
+          "worldPixels": 35547,
+          "encounters": {
+            "spawns": 56,
+            "agile": 20,
+            "waves": 18,
+            "ambushes": 13,
+            "guards": 5,
+            "tier": 3,
+            "biggestFight": 5,
+            "meanFight": 4.1
+          },
           "gravity": 1.35,
           "mainShelves": 46,
           "maxRequiredGap": 322,
           "maxRise": 202,
           "verticalSpan": 1053,
-          "enemies": 33,
+          "enemies": 56,
           "combatShelves": 13,
           "quietShelves": 33,
           "checkpoints": 10,
-          "maxCheckpointSpacing": 4257,
+          "maxCheckpointSpacing": 4212,
           "fullSpeedTravelSeconds": 55,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Cobalt Drift",
-          "worldPixels": 41477,
+          "worldPixels": 41338,
+          "encounters": {
+            "spawns": 58,
+            "agile": 28,
+            "waves": 22,
+            "ambushes": 11,
+            "guards": 5,
+            "tier": 3,
+            "biggestFight": 5,
+            "meanFight": 4.5
+          },
           "gravity": 0.55,
           "mainShelves": 46,
           "maxRequiredGap": 882,
           "maxRise": 369,
           "verticalSpan": 3247,
-          "enemies": 31,
+          "enemies": 58,
           "combatShelves": 13,
           "quietShelves": 33,
           "checkpoints": 10,
-          "maxCheckpointSpacing": 5211,
+          "maxCheckpointSpacing": 5072,
           "fullSpeedTravelSeconds": 64,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Violet Inversion",
-          "worldPixels": 41384,
+          "worldPixels": 41984,
+          "encounters": {
+            "spawns": 58,
+            "agile": 28,
+            "waves": 22,
+            "ambushes": 11,
+            "guards": 5,
+            "tier": 3,
+            "biggestFight": 5,
+            "meanFight": 4.5
+          },
           "gravity": 0.85,
           "mainShelves": 47,
           "maxRequiredGap": 1092,
           "maxRise": 221,
           "verticalSpan": 1600,
-          "enemies": 31,
+          "enemies": 58,
           "combatShelves": 14,
           "quietShelves": 33,
           "checkpoints": 11,
           "maxCheckpointSpacing": 5259,
-          "fullSpeedTravelSeconds": 64,
+          "fullSpeedTravelSeconds": 65,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         }
       ]

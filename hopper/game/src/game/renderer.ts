@@ -56,6 +56,7 @@ export interface RenderState {
   }>;
   signals: Set<string>;
   broken?: Set<string>;
+  lockT?: number;
   checkpointIndex: number;
   shake: number;
   settings: { shake: boolean };
@@ -163,6 +164,10 @@ export class Renderer {
     // Architectural bodies extend beneath the collision ledge; optional shelves stay light.
     for (const p of s.platforms)
       if (this.visible(p.x, p.y, p.w, Math.max(p.h, 950))) this.platform(p, s);
+    // Lockdown walls animate from the level list so they are seen closing and
+    // opening, not only while they are solid.
+    for (const p of s.level.platforms)
+      if (p.lock && this.visible(p.x, p.y, p.w, p.h)) this.lockWall(p, s);
     for (const h of s.level.hazards)
       if (this.visible(h.x, h.y, h.w, h.h)) this.hazard(h, s.time);
     this.markers(s);
@@ -302,7 +307,42 @@ export class Renderer {
     }
     c.globalAlpha = 1;
   }
+  private lockWall(p: Platform, s: RenderState) {
+    // Lockdown wall: energy bars that drop from above as the boss wakes and
+    // lift again when it falls. Drawn from the arena floor upward.
+    const c = this.ctx,
+      t = s.lockT || 0;
+    if (t <= 0) return;
+    const bottom = p.y + p.h,
+      height = (p.h - 190) * t,
+      top = bottom - 190 - height,
+      pulse = 0.5 + Math.sin(s.time * 7) * 0.2;
+    c.save();
+    c.globalAlpha = 0.55 + t * 0.35;
+    const g = c.createLinearGradient(p.x, 0, p.x + p.w, 0);
+    g.addColorStop(0, '#ff9a6a22');
+    g.addColorStop(0.5, '#ffd9a8cc');
+    g.addColorStop(1, '#ff9a6a22');
+    c.fillStyle = g;
+    c.fillRect(p.x, top, p.w, height);
+    c.strokeStyle = '#ffe1b8';
+    c.lineWidth = 3;
+    c.shadowColor = '#ffb070';
+    c.shadowBlur = 24 * pulse;
+    for (let y = top + 24; y < bottom - 190; y += 56) {
+      c.beginPath();
+      c.moveTo(p.x, y);
+      c.lineTo(p.x + p.w, y - 14);
+      c.stroke();
+    }
+    c.strokeRect(p.x, top, p.w, height);
+    c.restore();
+  }
   private platform(p: Platform, s: RenderState) {
+    if (p.lock) {
+      this.lockWall(p, s);
+      return;
+    }
     const c = this.ctx,
       img = this.image('platform' + p.skin),
       area = s.level.areas[p.area ?? 0],

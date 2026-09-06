@@ -486,6 +486,42 @@ for (let n = 0; n < 200 && !e.player.grounded; n++) {
   calmApex = Math.max(calmApex, 800 - e.player.y);
 }
 report.wind = { windApex, calmApex, windLanding, calmLanding: e.player.x };
+// Boss lockdown: entering the arena seals both walls over ~0.6 s and they
+// become solid; the boss's death lifts them again.
+e = new Engine({}, { effect() {} }, () => {});
+{
+  const l = buildLevel(0);
+  e.level = l;
+  e.combat = new CombatWorld(l);
+  e.platforms = l.platforms.filter((p) => !p.lock);
+  e.checkpoint = { x: l.boss.arena.x + 160, y: l.boss.arena.y, area: 2 };
+  e.resetPlayer();
+  e.player.invuln = 100;
+  e.paused = false;
+  e.player.x = l.boss.arena.x + 200;
+  const lockBefore = e.lockT;
+  for (let n = 0; n < 120; n++) step(e);
+  const sealed = e.lockT,
+    wallsSolid = e.platforms.filter((p) => p.lock).length;
+  // Walking back into the left wall is stopped by it.
+  e.player.x = l.boss.arena.x + 140;
+  for (let n = 0; n < 90; n++) step(e, { moveX: -1 });
+  const heldIn = e.player.x >= l.boss.arena.x - 1;
+  e.combat.boss.hp = 0;
+  e.combat.boss.alive = false;
+  for (let n = 0; n < 150; n++) step(e);
+  report.lockdown = {
+    lockBefore,
+    sealed,
+    wallsSolid,
+    heldIn,
+    released: e.lockT,
+    wallsAfter: e.platforms.filter((p) => p.lock).length,
+    arenaShelves: l.platforms.filter(
+      (p) => p.routeRole === 'arena' && !p.lock && p.id !== 'm0-arena-floor',
+    ).length,
+  };
+}
 const pad = {
   index: 0,
   connected: true,
@@ -580,6 +616,14 @@ const checks = {
   windLeansOnJump:
     report.wind.windApex < report.wind.calmApex - 30 &&
     report.wind.windLanding < report.wind.calmLanding - 40,
+  lockdownSeals:
+    report.lockdown.lockBefore === 0 &&
+    report.lockdown.sealed === 1 &&
+    report.lockdown.wallsSolid === 2 &&
+    report.lockdown.heldIn,
+  lockdownReleases:
+    report.lockdown.released === 0 && report.lockdown.wallsAfter === 0,
+  arenaHasShelves: report.lockdown.arenaShelves >= 8,
   lookDampsBack:
     Math.abs(report.look.released.x) < 5 &&
     Math.abs(report.look.released.y) < 5 &&

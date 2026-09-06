@@ -50,6 +50,8 @@ export interface Platform {
   hollow?: number;
   /** A main shelf reached through a required inverted stretch, not a jump. */
   via?: 'inversion';
+  /** Boss lockdown wall: solid only while the boss is active and alive. */
+  lock?: boolean;
   /** The verb an optional signal shelf is built to reward. */
   teach?: 'catch' | 'parry' | 'high';
 }
@@ -77,6 +79,14 @@ export interface EnemySpawn {
   ambush?: 'behind' | 'above' | 'under' | 'mirror';
   /** behind: how far past it Hopper must be before it emerges (default 230). */
   wake?: number;
+  /** Pacing tier 0–3: quicker tells and cooldowns as the campaign goes on. */
+  tier?: number;
+  /** The few that leap, vault, overfly or double-dive. Most spawns are not. */
+  agile?: boolean;
+  /** Encounter wave; wave 0 is present, later waves jump in as earlier ones fall. */
+  wave?: number;
+  /** Encounter group for waves (the shelf id). */
+  group?: string;
 }
 export interface Hazard {
   id: string;
@@ -624,8 +634,17 @@ export function buildLevel(mission: number): LevelData {
         // Violet Inversion's drop chapter crosses one gap on the ceiling: the
         // gap is too long to jump, so the inverted stretch is the route.
         const inverted = skin === 8 && ci === 2 && i === 6;
+        // The gap onto a finish shelf is never stretched: the finish is a fight
+        // fought on arrival, and the jump into it should not be the hard part.
         const gap = Math.round(
-          source[1] * (crossing ? 1.4 : inverted ? 2.6 : signature.gap),
+          source[1] *
+            (crossing
+              ? 1.4
+              : inverted
+                ? 2.6
+                : i === 6
+                  ? Math.min(1, signature.gap)
+                  : signature.gap),
         );
         profileSum += signature.profile[i];
         const nextY =
@@ -737,16 +756,35 @@ export function buildLevel(mission: number): LevelData {
             area: ai,
           });
         }
+        // Pacing tier rises with mission, region and the back half of a region.
+        // Encounters grow by waves rather than by tougher individuals: the
+        // first wave is the ordinary pair, later waves leap in as it falls.
+        const tier = Math.min(
+          3,
+          mission + (ai >= 1 ? 1 : 0) + (ci >= 3 ? 1 : 0) - (ci === 0 ? 1 : 0),
+        );
         if (beat === 'fight' || beat === 'finish') {
           const pair = i % 2 === 0 ? r.enemies : [r.enemies[1], r.enemies[0]];
-          const count = beat === 'finish' ? 3 : 2;
+          // Two to five foes a shelf; finishes start at three and grow slower,
+          // since the crossing guard and the next landing add to the same fight.
+          const count = Math.min(
+            5,
+            beat === 'finish'
+              ? 3 + Math.floor(Math.max(0, tier - 1) / 2)
+              : 2 + Math.max(0, tier),
+          );
+          // Roughly a third of spawns are agile at tier 1, half from tier 3 on.
+          const agileEvery = tier >= 3 ? 2 : tier >= 1 ? 3 : 0;
           for (let n = 0; n < count; n++) {
             let type = pair[n % 2] as EnemyType;
-            const ex = x + Math.min(w - 145, 250 + n * 185);
+            const wave = n < (beat === 'finish' ? 3 : 2) ? 0 : n < 4 ? 1 : 2;
+            // Later waves leap in deeper along the shelf, past the landing fight.
+            const ex = x + Math.min(w - 145, 250 + (n % 3) * 185 + wave * 240);
+            const agile = agileEvery > 0 && (n + i + ci) % agileEvery === 0;
             // Later chapters vary the approach: one foe lies in wait behind
             // the landing, or comes at Hopper from overhead.
             let ambush: EnemySpawn['ambush'];
-            if (ci > 0 && n === count - 1)
+            if (ci > 0 && n === (beat === 'finish' ? 2 : 1))
               ambush = ci % 2 === 1 || beat === 'finish' ? 'behind' : 'above';
             if (ambush === 'above') {
               const overhead = r.enemies.find((t) => FLYING.has(t));
@@ -784,6 +822,10 @@ export function buildLevel(mission: number): LevelData {
               patrol: perched && !flyer ? 60 : Math.min(140, w * 0.19),
               area: ai,
               ambush,
+              tier: Math.max(0, tier),
+              agile,
+              wave: ambush ? 0 : wave,
+              group: id,
             });
             if (ambush === 'above' && type === 'thornChoir' && perch) {
               const line = out.platforms.find((q) => q.id === `${id}-high-b`)!;
@@ -956,6 +998,34 @@ export function buildLevel(mission: number): LevelData {
             wake: 40,
           });
         }
+        // Crossing guards: the long leap is contested from the far side. A
+        // flyer hangs over the gap where a stomp or parry mid-arc clears it,
+        // or the region's shooter waits at the far landing firing back across.
+        if (crossing && (ci >= 2 || tier >= 1)) {
+          const overhead = r.enemies.find((t) => FLYING.has(t)),
+            shooter = r.enemies.find((t) => RANGED.has(t));
+          if (overhead && ci % 2 === 0)
+            out.enemies.push({
+              id: `${id}-guard`,
+              type: overhead,
+              x: x + w + span * 0.5,
+              y: Math.min(y, y + dy) - 300,
+              patrol: 120,
+              area: ai,
+              tier: Math.max(0, tier),
+              agile: tier >= 2,
+            });
+          else if (shooter)
+            out.enemies.push({
+              id: `${id}-guard`,
+              type: shooter,
+              x: x + w + span + 140,
+              y: y + dy - (FLYING.has(shooter) ? 120 : 0),
+              patrol: 60,
+              area: ai,
+              tier: Math.max(0, tier),
+            });
+        }
         // Glide crossings: a spring pad at the takeoff makes the long leap
         // without a hold, and a crosswind over the gap leans on the jump so the
         // catch floor below is the intended line for anyone who does not commit.
@@ -1124,42 +1194,76 @@ export function buildLevel(mission: number): LevelData {
     area.xEnd = x;
     if (x - start < 10000) throw new Error('Region unexpectedly short');
   }
-  // Dedicated refill/checkpoint and a complete lower recovery floor for every boss.
+  // Boss enclosure: wider than the screen, sealed by lockdown walls while the
+  // boss lives, with pillars to wall-kick, staggered shelves at three heights,
+  // a swinging shelf and two spring pads so the fight moves through the air.
   const ax = x,
-    ay = y;
+    ay = y,
+    aw = 3400,
+    skinB = mission * 3 + 2;
   out.platforms.push({
     id: `m${mission}-arena-floor`,
     x: ax,
     y: ay,
-    w: 2800,
+    w: aw,
     h: 190,
-    skin: mission * 3 + 2,
+    skin: skinB,
     kind: 'solid',
     routeRole: 'arena',
     area: 2,
     encounter: 'finish',
   });
   out.checkpoints.push({ x: ax + 160, y: ay, area: 2 });
-  [500, 1180, 1910].forEach((offset, i) =>
-    out.platforms.push({
-      id: `m${mission}-arena-tier${i}`,
-      x: ax + offset,
-      y: ay - (i === 1 ? 340 : 180),
-      w: 500,
-      h: 65,
-      skin: mission * 3 + 2,
-      kind: 'oneWay',
-      routeRole: 'arena',
-      area: 2,
+  const shelf = (
+    id: string,
+    dx: number,
+    rise: number,
+    w: number,
+    extra: Partial<Platform> = {},
+  ): Platform => ({
+    id: `m${mission}-arena-${id}`,
+    x: ax + dx,
+    y: ay - rise,
+    w,
+    h: 65,
+    skin: skinB,
+    kind: 'oneWay',
+    routeRole: 'arena',
+    area: 2,
+    ...extra,
+  });
+  out.platforms.push(
+    { ...shelf('pillar-l', 360, 430, 140), h: 430, kind: 'solid' },
+    { ...shelf('pillar-r', aw - 500, 430, 140), h: 430, kind: 'solid' },
+    shelf('tier0', 620, 200, 420),
+    shelf('tier1', 1180, 390, 380, {
+      moving: { axis: 'x', range: 80, speed: 55, phase: 0 },
     }),
+    shelf('tier2', 1720, 230, 460),
+    shelf('tier3', 2300, 430, 360),
+    shelf('tier4', 2780, 210, 420),
+    { ...shelf('spring-l', 1040, 0, 160), h: 40, kind: 'spring' },
+    { ...shelf('spring-r', 2450, 0, 160), h: 40, kind: 'spring' },
+    {
+      ...shelf('lock-left', -80, 1500, 80),
+      h: 1690,
+      kind: 'solid',
+      lock: true,
+    },
+    {
+      ...shelf('lock-right', aw, 1500, 80),
+      h: 1690,
+      kind: 'solid',
+      lock: true,
+    },
   );
   out.boss = {
     type: BOSS_TYPES[mission],
-    x: ax + 1810,
+    x: ax + 2150,
     y: ay - 260,
-    arena: { x: ax, y: ay, w: 2800, h: 1200 },
+    arena: { x: ax, y: ay, w: aw, h: 1300 },
   };
-  out.width = ax + 2800;
+  out.width = ax + aw;
   out.areas[2].xEnd = out.width;
   return out;
 }

@@ -61,6 +61,17 @@ export interface EnemyRuntime {
   dormant: boolean;
   ambush?: 'behind' | 'above' | 'under' | 'mirror';
   wake: number;
+  /** 0 = lesson pacing; higher tiers quicken tells and cooldowns. */
+  tier: number;
+  /** Only the agile few leap, vault, overfly or double-dive; most keep it simple. */
+  agile: boolean;
+  /** Encounter waves: wave n stays hidden until wave n-1 of its group is down. */
+  wave: number;
+  group: string;
+  /** Ground enemies leave their shelf for a pounce or a vault. */
+  airborne: boolean;
+  /** After landing a vault the next attack is always the volley from behind. */
+  vaulted: boolean;
   open: number;
   sequence: number;
   attackIds: Set<string>;
@@ -183,6 +194,7 @@ export class CombatWorld {
   private deadBossReported = false;
   level: LevelData;
   brokenBarriers = new Set<string>();
+  private groupTime = new Map<string, number>();
   constructor(level: LevelData) {
     this.level = level;
     this.boss = this.makeBoss();
@@ -221,9 +233,16 @@ export class CombatWorld {
         alive: true,
         asleep: true,
         armored,
-        dormant: s.ambush === 'behind' || s.ambush === 'under',
+        dormant:
+          s.ambush === 'behind' || s.ambush === 'under' || (s.wave ?? 0) > 0,
         ambush: s.ambush,
         wake: s.wake ?? 230,
+        tier: s.tier ?? 0,
+        agile: !!s.agile,
+        wave: s.wave ?? 0,
+        group: s.group ?? s.id,
+        airborne: false,
+        vaulted: false,
         open: 0,
         sequence: 0,
         attackIds: new Set<string>(),
@@ -274,6 +293,7 @@ export class CombatWorld {
   }
   /** Preserve already-cleared foes behind checkpoint, restore its challenge ahead. */
   resetToCheckpoint(x: number) {
+    this.groupTime = new Map();
     const fresh = this.makeEnemies();
     this.enemies = fresh.map((e) =>
       e.x < x - 350
@@ -345,7 +365,37 @@ export class CombatWorld {
       if (e.asleep) continue;
       if (e.dormant) {
         e.visible = false;
-        if (e.ambush === 'under') {
+        if (e.wave > 0) {
+          // The next wave jumps in once the previous wave of its group is down,
+          // or after the group has held Hopper for a while.
+          const earlier = this.enemies.filter(
+            (o) => o.group === e.group && o.wave < e.wave && o.alive,
+          );
+          const engaged = this.enemies.some(
+            (o) => o.group === e.group && o.wave === 0 && !o.dormant,
+          );
+          if (engaged && this.groupTime.get(e.group) === undefined)
+            this.groupTime.set(e.group, time);
+          const held = time - (this.groupTime.get(e.group) ?? time);
+          if (
+            earlier.every((o) => !o.alive || o.dormant) ||
+            held > 7 * e.wave
+          ) {
+            e.dormant = false;
+            e.visible = true;
+            e.facing = p.x - e.x < 0 ? -1 : 1;
+            e.state = 'idle';
+            e.cooldown = 0.35;
+            if (!FLYERS.has(e.type)) {
+              // Leap in from the wings rather than appearing in place.
+              e.airborne = true;
+              e.vy = -560;
+              e.vx = e.facing * 220;
+            }
+            callbacks.effect('emerge', e.x, e.y - e.h * 0.5, '#f6c2ff');
+            callbacks.sound('enemy');
+          } else continue;
+        } else if (e.ambush === 'under') {
           // Buried: the ground shivers as Hopper nears, then it surfaces
           // beneath whoever is still standing there.
           if (e.timer > 0) {
@@ -415,13 +465,13 @@ export class CombatWorld {
         }
         if (e.ambush !== 'mirror' && near && e.cooldown <= 0) {
           e.state = 'telegraph';
-          e.timer = 0.65 + (e.armored ? 0.2 : 0);
+          e.timer = this.tellTime(e);
           e.vx = 0;
           callbacks.effect('tell', e.x, e.y - e.h, '#ffe0a2');
         }
       } else if (e.state === 'telegraph') {
         e.timer -= dt;
-        e.telegraph = 1 - e.timer / (0.65 + (e.armored ? 0.2 : 0));
+        e.telegraph = 1 - e.timer / this.tellTime(e);
         e.scaleY = 0.84;
         e.scaleX = 1.1;
         if (e.timer <= 0) {
@@ -430,21 +480,59 @@ export class CombatWorld {
         }
       } else if (e.state === 'attack') {
         e.timer -= dt;
-        e.x += e.vx * dt;
-        e.y += e.vy * dt;
-        if (e.timer <= 0) {
-          e.state = 'recover';
-          e.timer = e.armored ? 1.35 : 0.8;
-          e.open = e.timer;
+        if (!e.airborne) {
+          e.x += e.vx * dt;
+          e.y += e.vy * dt;
+        }
+        if (e.timer <= 0 && !e.airborne) {
           e.vx = 0;
           e.vy = 0;
+          if (e.vaulted && FLYERS.has(e.type)) {
+            e.facing = dx < 0 ? -1 : 1;
+            e.state = 'telegraph';
+            e.timer = 0.28;
+            callbacks.effect('tell', e.x, e.y - e.h, '#ffe0a2');
+          } else {
+            e.state = 'recover';
+            e.timer = e.armored ? 1.35 : 0.8;
+            e.open = e.timer;
+          }
         }
       } else if (e.state === 'recover') {
         e.timer -= dt;
-        e.y += (e.homeY - e.y) * Math.min(1, dt * 5);
+        if (!e.airborne) e.y += (e.homeY - e.y) * Math.min(1, dt * 5);
         if (e.timer <= 0) {
           e.state = 'idle';
-          e.cooldown = 0.7 + (e.sequence % 3) * 0.25;
+          e.cooldown =
+            (0.7 + (e.sequence % 3) * 0.25) * (e.tier >= 3 ? 0.6 : 1);
+          // Agile divers come straight back around for a second pass.
+          if (flying && !RANGED.has(e.type) && e.agile && e.sequence % 2 === 1)
+            e.cooldown = 0.2;
+        }
+      }
+      if (e.airborne) {
+        // A leaping ground enemy is a real body in the air: it arcs under
+        // gravity and lands back on its own shelf, where a vault turns into a
+        // volley at Hopper's back.
+        e.vy += 1900 * dt;
+        e.x += e.vx * dt;
+        e.y += e.vy * dt;
+        if (e.vy > 0 && e.y >= e.homeY) {
+          e.y = e.homeY;
+          e.airborne = false;
+          e.vy = 0;
+          e.vx = 0;
+          callbacks.effect('stomp', e.x, e.y, '#d8c3ff');
+          if (e.vaulted) {
+            e.facing = p.x - e.x < 0 ? -1 : 1;
+            e.state = 'telegraph';
+            e.timer = 0.28;
+            callbacks.effect('tell', e.x, e.y - e.h, '#ffe0a2');
+          } else {
+            e.state = 'recover';
+            e.timer = 0.55;
+            e.open = 0.55;
+          }
         }
       }
       if (!flying) {
@@ -462,11 +550,17 @@ export class CombatWorld {
             support.x + e.w * 0.45,
             support.x + support.w - e.w * 0.45,
           );
-          // A pouncing mirror stalker leaves its shelf and springs back after.
-          if (!(e.ambush === 'mirror' && e.state !== 'idle')) e.y = support.y;
-        } else e.x = clamp(e.x, e.homeX - e.patrol, e.homeX + e.patrol);
-      } else if (e.state !== 'attack') {
-        e.x = clamp(e.x, e.homeX - 260, e.homeX + 260);
+          // A pouncing mirror stalker or a leaping enemy leaves its shelf.
+          if (!(e.ambush === 'mirror' && e.state !== 'idle') && !e.airborne)
+            e.y = support.y;
+        } else if (!e.airborne)
+          e.x = clamp(e.x, e.homeX - e.patrol, e.homeX + e.patrol);
+      } else if (e.state !== 'attack' && !e.vaulted) {
+        // Flyers drift back toward home rather than snapping, so an overfly
+        // that ends on Hopper's far side is allowed to fire from there first.
+        e.x +=
+          (clamp(e.x, e.homeX - 260, e.homeX + 260) - e.x) *
+          Math.min(1, dt * 3);
       }
       if (
         e.visible &&
@@ -542,6 +636,33 @@ export class CombatWorld {
       (b) => b.life > 0 && Math.abs(b.x - p.x) < 2500,
     );
   }
+  private tellTime(e: EnemyRuntime) {
+    return (
+      (e.state === 'telegraph' && e.timer < 0.3 && e.vaulted ? 0.28 : 0.65) *
+        (e.tier >= 3 ? 0.78 : e.tier >= 2 ? 0.9 : 1) +
+      (e.armored ? 0.2 : 0)
+    );
+  }
+  /** Ground leap: a pounce onto Hopper, or a vault clean over it to land behind. */
+  private leap(e: EnemyRuntime, p: CombatPlayer, over: boolean) {
+    const dx = p.x - e.x,
+      dir = dx < 0 ? -1 : 1;
+    e.airborne = true;
+    e.facing = dir;
+    if (over) {
+      // Land about 220 units past Hopper on an 0.8 s arc.
+      const air = 0.8,
+        landing = clamp(Math.abs(dx) + 220, 260, 900);
+      e.vx = (dir * landing) / air;
+      e.vy = -1900 * air * 0.5;
+      e.vaulted = true;
+    } else {
+      e.vx = dir * clamp(Math.abs(dx) * 1.3, 260, 520);
+      e.vy = -640;
+      e.vaulted = false;
+    }
+    e.timer = 2;
+  }
   private startEnemyAttack(e: EnemyRuntime, p: CombatPlayer) {
     e.state = 'attack';
     e.timer = 0.48;
@@ -549,6 +670,62 @@ export class CombatWorld {
     e.vx = 0;
     e.vy = 0;
     this.callbacks.sound('enemy');
+    const dx = p.x - e.x,
+      flying = FLYERS.has(e.type);
+    // Only agile spawns use the movement techniques, every other attack:
+    // hounds pounce, ground shooters vault over Hopper and fire from behind,
+    // shooting flyers overfly to Hopper's blind side, armored shells hop.
+    if (e.agile && !e.vaulted && e.ambush !== 'mirror') {
+      const alternate = e.sequence % 2 === 1;
+      if (
+        !flying &&
+        !RANGED.has(e.type) &&
+        !e.armored &&
+        e.type !== 'basaltBurrower' &&
+        alternate
+      ) {
+        this.leap(e, p, false);
+        return;
+      }
+      if (
+        !flying &&
+        RANGED.has(e.type) &&
+        alternate &&
+        Math.abs(dx) < 420 &&
+        Math.abs(p.y - e.y) < 60
+      ) {
+        this.leap(e, p, true);
+        return;
+      }
+      if (e.armored && !flying && alternate) {
+        e.airborne = true;
+        e.vx = (dx < 0 ? -1 : 1) * 210;
+        e.vy = -470;
+        e.timer = 2;
+        e.open = 0;
+        return;
+      }
+      if (flying && RANGED.has(e.type) && alternate) {
+        // Overfly: cross to Hopper's far side, then the volley comes next.
+        const side = e.x < p.x ? 1 : -1,
+          tx = p.x + side * 300,
+          ty = p.y - (p.h || 90) * 0.5 * p.gravitySign - 240,
+          ddx = tx - e.x,
+          ddy = ty - e.y,
+          len = Math.max(1, dist(ddx, ddy)),
+          speed = 560;
+        e.vx = (ddx / len) * speed;
+        e.vy = (ddy / len) * speed;
+        e.timer = Math.min(0.9, len / speed);
+        e.vaulted = true;
+        return;
+      }
+    }
+    if (e.vaulted) {
+      // The shot from behind: same volley as the species' ordinary attack.
+      e.vaulted = false;
+      e.open = 0;
+    }
     switch (e.type) {
       case 'shadeHound':
         e.vx = e.facing * 380;

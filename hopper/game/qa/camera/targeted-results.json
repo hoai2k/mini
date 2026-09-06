@@ -141,6 +141,15 @@
     "windLanding": 5606.666666666701,
     "calmLanding": 5693.333333333372
   },
+  "lockdown": {
+    "lockBefore": 0,
+    "sealed": 1,
+    "wallsSolid": 2,
+    "heldIn": true,
+    "released": 0,
+    "wallsAfter": 0,
+    "arenaShelves": 9
+  },
   "controllerB": {
     "blockHeld": true,
     "backPressed": true,
@@ -177,6 +186,9 @@
     "springLaunches": true,
     "counterBeltDrags": true,
     "windLeansOnJump": true,
+    "lockdownSeals": true,
+    "lockdownReleases": true,
+    "arenaHasShelves": true,
     "lookDampsBack": true
   },
   "failures": []

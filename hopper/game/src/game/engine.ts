@@ -159,6 +159,8 @@ export class Engine {
   camera = { x: 520, y: 490, zoom: 0.95 };
   /** Right-stick look: a damped offset layered over the tracking camera. */
   look = { x: 0, y: 0, zoom: 0 };
+  /** Boss lockdown walls: 0 open, 1 sealed. Solid once mostly closed. */
+  lockT = 0;
   images: Record<string, HTMLImageElement> = {};
   renderer: Renderer;
   platforms: Platform[] = [];
@@ -469,6 +471,7 @@ export class Engine {
     this.lasers = [];
     this.signals = new Set(save?.signals || []);
     this.broken = new Set();
+    this.lockT = 0;
     this.score = save?.score || 0;
     this.checkpointIndex = clamp(
       save?.checkpoint || 0,
@@ -484,7 +487,9 @@ export class Engine {
     this.areaIndex = -1;
     this.crumble.clear();
     this.resetPlayer();
-    this.platforms = this.level.platforms.map((p) => ({ ...p }));
+    this.platforms = this.level.platforms
+      .filter((p) => !p.lock)
+      .map((p) => ({ ...p }));
     this.combat.resetToCheckpoint(this.player.x);
     this.emit();
   }
@@ -791,7 +796,14 @@ export class Engine {
           : 'NORMAL GRAVITY RESTORED';
       this.bannerT = 2.4;
     }
+    const sealed = this.combat.boss.active && this.combat.boss.alive;
+    if (sealed && this.lockT === 0) {
+      this.audio.effect('boss');
+      this.shake = Math.max(this.shake, 6);
+    }
+    this.lockT = clamp(this.lockT + dt * (sealed ? 1.8 : -1.4), 0, 1);
     this.platforms = this.level.platforms
+      .filter((q) => !q.lock || this.lockT >= 0.6)
       .map((q) => {
         const b = { ...q };
         if (q.moving)
@@ -1416,6 +1428,7 @@ export class Engine {
       lasers: this.lasers,
       signals: this.signals,
       broken: this.broken,
+      lockT: this.lockT,
       checkpointIndex: this.checkpointIndex,
       shake: this.shake,
       settings: this.settings,
