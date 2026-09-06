@@ -18,8 +18,8 @@ export interface RenderState {
     landT: number;
     invuln: number;
     shooting: boolean;
-    blocking?: boolean;
-    shieldFlash?: number;
+    parryT?: number;
+    catchT?: number;
     landingDistance?: number;
     reducedMotion: boolean;
     w?: number;
@@ -173,39 +173,33 @@ export class Renderer {
       this.creature(s.combat.boss, s.time, true);
     this.projectiles(s);
     this.player(s);
-    if (s.player.blocking) {
+    if ((s.player.parryT || 0) > 0) {
+      // Parry flash: a bright ring that snaps outward from the spin.
+      const p = s.player,
+        t = 1 - (p.parryT || 0) / 0.36;
+      c.save();
+      c.translate(p.x, p.y - 70 * p.gravitySign);
+      c.globalAlpha = Math.max(0, 1 - t) * 0.9;
+      c.strokeStyle = '#d6ffff';
+      c.lineWidth = 5 - t * 3;
+      c.shadowColor = '#76e9ff';
+      c.shadowBlur = 26;
+      c.beginPath();
+      c.ellipse(0, 0, 90 + t * 110, 78 + t * 96, 0, 0, Math.PI * 2);
+      c.stroke();
+      c.restore();
+    }
+    if ((s.player.catchT || 0) > 0) {
+      // Ledge catch: a short ivory tick at the lip Hopper hauled onto.
       const p = s.player;
       c.save();
-      c.translate(p.x, p.y - 75 * p.gravitySign);
-      const flash = p.shieldFlash || 0,
-        pulse = 1 + Math.sin(s.time * 7) * 0.012;
-      c.scale(pulse, pulse);
-      const g = c.createRadialGradient(0, 0, 55, 0, 0, 145);
-      g.addColorStop(0, '#74e8ff04');
-      g.addColorStop(0.72, '#80ecff12');
-      g.addColorStop(1, flash > 0 ? '#ceffff88' : '#83edff38');
-      c.fillStyle = g;
-      c.strokeStyle = flash > 0 ? '#efffff' : '#a2f6ff';
-      c.lineWidth = flash > 0 ? 4 : 2;
-      c.shadowColor = '#76e9ff';
-      c.shadowBlur = 22;
+      c.globalAlpha = Math.min(1, (p.catchT || 0) / 0.3) * 0.85;
+      c.strokeStyle = '#fff2bc';
+      c.lineWidth = 3;
       c.beginPath();
-      c.ellipse(0, 0, 142, 122, 0, 0, Math.PI * 2);
-      c.fill();
+      c.moveTo(p.x - 40, p.y);
+      c.lineTo(p.x + 40, p.y);
       c.stroke();
-      c.shadowBlur = 0;
-      c.strokeStyle = '#c8ffff70';
-      c.lineWidth = 1;
-      c.beginPath();
-      c.ellipse(0, 0, 133, 114, 0, 0, Math.PI * 2);
-      c.stroke();
-      for (let n = 0; n < 12; n++) {
-        const a = (n * Math.PI) / 6 + s.time * 0.13;
-        c.fillStyle = '#e5ffff';
-        c.beginPath();
-        c.arc(Math.cos(a) * 140, Math.sin(a) * 120, 2, 0, Math.PI * 2);
-        c.fill();
-      }
       c.restore();
     }
     this.effects(s);

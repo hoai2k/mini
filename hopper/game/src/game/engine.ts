@@ -22,8 +22,6 @@ export interface GameSnapshot {
   progress: number;
   signals: number;
   score: number;
-  shield: number;
-  shieldBroken: boolean;
   gravity: number;
   banner: string;
   bannerSmall: string;
@@ -82,6 +80,13 @@ export const PHYSICS = {
   releaseCut: 0.45,
   coyote: 0.11,
   buffer: 0.13,
+  /** Seconds after a hit during which steering is lost and knockback carries. */
+  hitstun: 0.3,
+  /** The spin kick parries frontal attacks while kickT is above this value. */
+  parryUntil: 0.14,
+  /** Ledge catch: reach beyond the edge and how far below it the feet may be. */
+  catchReach: 112,
+  catchDrop: 85,
 };
 const emptyInput: InputFrame = {
   moveX: 0,
@@ -90,7 +95,6 @@ const emptyInput: InputFrame = {
   jumpPressed: false,
   kickPressed: false,
   shootHeld: false,
-  blockHeld: false,
   pausePressed: false,
   instructionsPressed: false,
   confirmPressed: false,
@@ -125,9 +129,10 @@ export class Engine {
     launchT: 0,
     landT: 0,
     invuln: 0,
+    hitstun: 0,
+    parryT: 0,
+    catchT: 0,
     shooting: false,
-    blocking: false,
-    shieldFlash: 0,
     landingDistance: Infinity,
     reducedMotion: false,
   };
@@ -153,10 +158,6 @@ export class Engine {
   overheated = false;
   score = 0;
   shake = 0;
-  shield = 1;
-  private shieldBrokenT = 0;
-  private shieldHitT = 0;
-  private shieldRestT = 0;
   private groundAnchorY = 800;
   private groundAnchorSign = 1;
   private cameraLead = 330;
@@ -197,7 +198,7 @@ export class Engine {
     this.renderer = new Renderer(canvas, this.images);
     this.platforms = this.level.platforms;
     this.callbacks = {
-      hurt: (d, kx, ky) => this.hurt(d, kx, ky),
+      hurt: (d, kx, ky, parryable) => this.hurt(d, kx, ky, parryable),
       effect: (name, x, y, color) => this.effect(name, x, y, color),
       sound: (n) =>
         this.audio.effect(
@@ -370,9 +371,9 @@ export class Engine {
       y: this.player.y - 270,
       zoom: 0.95,
     };
-    if (pose === 'shield') {
-      this.player.blocking = true;
-      this.player.shieldFlash = 0.18;
+    if (pose === 'parry') {
+      this.player.kickT = 0.4;
+      this.player.parryT = 0.3;
     }
     if (pose === 'laser') {
       this.player.shooting = true;
@@ -419,8 +420,6 @@ export class Engine {
     this.victoryT = 0;
     this.hp = this.maxHp;
     this.heat = 0;
-    this.shield = 1;
-    this.shieldBrokenT = 0;
     this.overheated = false;
     this.particles = [];
     this.explosions = [];
@@ -500,9 +499,10 @@ export class Engine {
       launchT: 0,
       landT: 0,
       invuln: 1.7,
+      hitstun: 0,
+      parryT: 0,
+      catchT: 0,
       shooting: false,
-      blocking: false,
-      shieldFlash: 0,
       landingDistance: 0,
     });
     this.camera = {
@@ -529,8 +529,6 @@ export class Engine {
   respawn() {
     this.hp = this.maxHp;
     this.heat = 0;
-    this.shield = 1;
-    this.shieldBrokenT = 0;
     this.overheated = false;
     this.resetPlayer();
     this.combat.resetToCheckpoint(this.checkpoint.x);
@@ -555,35 +553,39 @@ export class Engine {
       );
     } catch {}
   }
-  private hurt(d: number, kx: number, ky: number) {
-    if (this.respawnT > 0 || this.victoryT > 0) return;
-    if (this.player.blocking) {
-      if (this.shieldHitT <= 0) {
-        this.shield = Math.max(0, this.shield - 0.2);
-        this.shieldHitT = 0.22;
-        this.player.shieldFlash = 0.3;
-        this.shieldRestT = 0.8;
-        this.effect(
-          'spark',
-          this.player.x - Math.sign(kx) * 105,
-          this.player.y - 65 * this.player.gravitySign,
-          '#b6fbff',
-        );
-        this.audio.effect('shield');
-        this.rumble(0.22, 55);
-        if (this.shield <= 0) {
-          this.shieldBrokenT = 1.4;
-          this.player.blocking = false;
-        }
-      }
-      return;
+  /** Returns true when the spin kick parried the blow. kx points away from the attacker. */
+  private hurt(d: number, kx: number, ky: number, parryable = true): boolean {
+    if (this.respawnT > 0 || this.victoryT > 0) return false;
+    const p = this.player;
+    // A spinning kick parries anything arriving from the front or straight down.
+    if (
+      parryable &&
+      p.kickT > PHYSICS.parryUntil &&
+      (kx === 0 || -Math.sign(kx) === p.facing)
+    ) {
+      p.invuln = Math.max(p.invuln, 0.35);
+      p.parryT = 0.36;
+      p.vx = kx * 0.35;
+      this.score += 50;
+      this.effect(
+        'spark',
+        p.x - Math.sign(kx) * 95,
+        p.y - 65 * p.gravitySign,
+        '#b6fbff',
+      );
+      this.audio.effect('shield');
+      this.rumble(0.25, 60);
+      return true;
     }
-    if (this.player.invuln > 0) return;
+    if (p.invuln > 0) return false;
     this.hp = Math.max(0, this.hp - d);
-    this.player.invuln = this.settings.assist ? 2.8 : 1.25;
-    this.player.vx = kx;
-    this.player.vy = ky;
-    this.player.grounded = false;
+    p.invuln = this.settings.assist ? 2.8 : 1.25;
+    // Knockback carries for a moment; near an edge that is the real cost of a hit.
+    p.hitstun = this.settings.assist ? PHYSICS.hitstun * 0.6 : PHYSICS.hitstun;
+    p.vx = kx;
+    p.vy = ky;
+    p.grounded = false;
+    this.stood = '';
     this.shake = Math.max(this.shake, 8);
     this.audio.effect('hurt');
     this.rumble(0.6, 120);
@@ -595,34 +597,25 @@ export class Engine {
       this.bannerSmall = 'RETURNING TO CHECKPOINT';
       this.bannerT = 1.2;
     }
+    return false;
   }
   private step(dt: number, f: InputFrame) {
     this.time += dt;
     this.bannerT = Math.max(0, this.bannerT - dt);
     this.shake = Math.max(0, this.shake - dt * 25);
     const p = this.player;
-    for (const n of ['kickT', 'launchT', 'landT', 'invuln'] as const)
+    for (const n of [
+      'kickT',
+      'launchT',
+      'landT',
+      'invuln',
+      'hitstun',
+      'parryT',
+      'catchT',
+    ] as const)
       p[n] = Math.max(0, p[n] - dt);
     this.shotCooldown = Math.max(0, this.shotCooldown - dt);
-    this.shieldBrokenT = Math.max(0, this.shieldBrokenT - dt);
-    this.shieldHitT = Math.max(0, this.shieldHitT - dt);
-    this.shieldRestT = Math.max(0, this.shieldRestT - dt);
-    p.shieldFlash = Math.max(0, p.shieldFlash - dt);
-    const wasBlocking = p.blocking;
-    p.blocking = !!f.blockHeld && this.shield > 0.03 && this.shieldBrokenT <= 0;
-    if (p.blocking) {
-      this.shield = Math.max(0, this.shield - dt * 0.13);
-      this.shieldRestT = 0.65;
-      if (!wasBlocking) {
-        this.audio.effect('shield');
-        p.kickT = 0;
-      }
-      if (this.shield <= 0.03) {
-        this.shieldBrokenT = 1.4;
-        p.blocking = false;
-      }
-    } else if (this.shieldRestT <= 0)
-      this.shield = Math.min(1, this.shield + dt * 0.27);
+    const stunned = p.hitstun > 0;
     for (const b of this.particles) {
       b.life -= dt;
       b.x += b.vx * dt;
@@ -719,18 +712,23 @@ export class Engine {
       }
       if (base?.kind === 'conveyor') p.x += 90 * dt;
     }
-    if (f.jumpPressed) this.jumpBuffer = PHYSICS.buffer;
+    if (f.jumpPressed && !stunned) this.jumpBuffer = PHYSICS.buffer;
     else this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
     if (p.grounded) this.coyote = PHYSICS.coyote;
     else this.coyote = Math.max(0, this.coyote - dt);
-    p.vx = approach(
-      p.vx,
-      f.moveX * PHYSICS.speed,
-      (p.grounded ? PHYSICS.groundAcceleration : PHYSICS.airAcceleration) * dt,
-    );
-    if (p.grounded && Math.abs(f.moveX) > 0.12 && p.kickT < 0.12)
+    if (stunned) {
+      // Knockback is not steerable; it only bleeds off against the ground.
+      p.vx = approach(p.vx, 0, (p.grounded ? 1500 : 250) * dt);
+    } else
+      p.vx = approach(
+        p.vx,
+        f.moveX * PHYSICS.speed,
+        (p.grounded ? PHYSICS.groundAcceleration : PHYSICS.airAcceleration) *
+          dt,
+      );
+    if (p.grounded && !stunned && Math.abs(f.moveX) > 0.12 && p.kickT < 0.12)
       p.facing = f.moveX < 0 ? -1 : 1;
-    if (this.jumpBuffer > 0 && this.coyote > 0) {
+    if (this.jumpBuffer > 0 && this.coyote > 0 && !stunned) {
       p.vy = -PHYSICS.jump * sign;
       p.grounded = false;
       this.stood = '';
@@ -823,6 +821,50 @@ export class Engine {
         p.vy = 0;
       }
     }
+    // Ledge catch: falling just short of (or just past) an edge while moving toward
+    // it pulls Hopper up onto the lip instead of sliding down the face.
+    if (!p.grounded && p.vy * sign > 0 && !stunned) {
+      for (const q of this.platforms) {
+        if (sign > 0 ? q.ceiling : !q.ceiling) continue;
+        const surface = sign > 0 ? q.y : q.y + q.h,
+          drop = (p.y - surface) * sign;
+        // A solid face can be climbed from well below the lip; a thin one-way
+        // shelf is only caught in the moment the feet pass its edge.
+        const reach =
+          q.kind === 'oneWay' || q.routeRole === 'optional'
+            ? 12
+            : PHYSICS.catchDrop;
+        if (drop < 0 || drop > reach) continue;
+        const left = q.x - p.x,
+          right = p.x - (q.x + q.w);
+        let edge = 0;
+        if (
+          left > 43 &&
+          left <= PHYSICS.catchReach &&
+          p.vx > -60 &&
+          f.moveX >= 0
+        )
+          edge = q.x - 36;
+        else if (
+          right > 43 &&
+          right <= PHYSICS.catchReach &&
+          p.vx < 60 &&
+          f.moveX <= 0
+        )
+          edge = q.x + q.w + 36;
+        else continue;
+        p.x = edge;
+        p.y = surface;
+        p.vy = 0;
+        p.vx = clamp(p.vx, -140, 140);
+        p.grounded = true;
+        p.catchT = 0.3;
+        this.stood = q.id;
+        this.effect('stomp', p.x, p.y, '#fff2bc');
+        this.score += 25;
+        break;
+      }
+    }
     if (p.grounded && !wasGrounded) {
       p.landT = 0.18;
       this.hold = 0;
@@ -837,7 +879,7 @@ export class Engine {
       )
         this.crumble.set(this.stood, this.time);
     }
-    if (f.kickPressed && p.kickT === 0 && !p.blocking) {
+    if (f.kickPressed && p.kickT === 0 && !stunned) {
       p.kickT = 0.5;
       this.kickId++;
       this.audio.effect('kick');
@@ -855,9 +897,16 @@ export class Engine {
       );
       this.score += result.kills * 150;
       for (const b of this.combat.projectiles) {
-        if (Math.hypot(b.x - p.x, b.y - (p.y - 55 * sign)) < 195) {
-          b.life = 0;
+        if (
+          b.owner !== 'player' &&
+          b.active &&
+          Math.hypot(b.x - p.x, b.y - (p.y - 55 * sign)) < 195
+        ) {
+          this.combat.reflect(b, p);
+          p.parryT = Math.max(p.parryT, 0.3);
+          this.score += 25;
           this.effect('spark', b.x, b.y, '#c9ffe5');
+          this.audio.effect('shield');
         }
       }
     }
@@ -881,10 +930,10 @@ export class Engine {
     this.heat = Math.max(
       0,
       this.heat -
-        dt * (f.shootHeld && !this.overheated && !p.blocking ? 0.06 : 0.34),
+        dt * (f.shootHeld && !this.overheated && !stunned ? 0.06 : 0.34),
     );
     if (this.overheated && this.heat < 0.15) this.overheated = false;
-    p.shooting = f.shootHeld && !this.overheated && !p.blocking;
+    p.shooting = f.shootHeld && !this.overheated && !stunned;
     if (p.shooting && this.shotCooldown === 0) {
       this.shoot();
       this.shotCooldown = 0.11;
@@ -909,7 +958,7 @@ export class Engine {
         bodyY - 45 < h.y + h.h
       ) {
         if (h.type === 'wind') p.vx += 110 * dt;
-        else this.hurt(1, -p.facing * 160, -240 * sign);
+        else this.hurt(1, -p.facing * 240, -260 * sign, false);
       }
     }
     for (const c of this.level.collectibles) {
@@ -1143,8 +1192,6 @@ export class Engine {
       progress: clamp(this.player.x / this.level.width, 0, 1),
       signals: this.signals.size,
       score: this.score,
-      shield: this.shield,
-      shieldBroken: this.shieldBrokenT > 0,
       gravity: (area?.gravity || 1) * this.player.gravitySign,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,

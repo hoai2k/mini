@@ -12,7 +12,13 @@ export interface CombatPlayer {
   w?: number;
 }
 export interface CombatCallbacks {
-  hurt: (damage: number, kx: number, ky: number) => void;
+  /** kx points away from the attacker. Returns true when the blow was parried. */
+  hurt: (
+    damage: number,
+    kx: number,
+    ky: number,
+    parryable?: boolean,
+  ) => boolean | void;
   effect: (name: string, x: number, y: number, color?: string) => void;
   sound: (name: string) => void;
   bossDefeated?: () => void;
@@ -49,6 +55,9 @@ export interface EnemyRuntime {
   alive: boolean;
   asleep: boolean;
   armored: boolean;
+  /** Ambush from behind: hidden until Hopper has passed, then it emerges. */
+  dormant: boolean;
+  ambush?: 'behind' | 'above';
   open: number;
   sequence: number;
   attackIds: Set<string>;
@@ -208,6 +217,8 @@ export class CombatWorld {
         alive: true,
         asleep: true,
         armored,
+        dormant: s.ambush === 'behind',
+        ambush: s.ambush,
         open: 0,
         sequence: 0,
         attackIds: new Set<string>(),
@@ -327,6 +338,20 @@ export class CombatWorld {
       if (!e.alive) continue;
       e.asleep = Math.abs(e.x - p.x) > 2200;
       if (e.asleep) continue;
+      if (e.dormant) {
+        // Stay hidden until Hopper is clearly past, then burst out behind it.
+        e.visible = false;
+        if (p.x - e.x > 230) {
+          e.dormant = false;
+          e.visible = true;
+          e.facing = 1;
+          e.state = 'telegraph';
+          e.timer = 0.55;
+          e.cooldown = 0;
+          callbacks.effect('emerge', e.x, e.y - e.h * 0.5, '#f6c2ff');
+          callbacks.sound('enemy');
+        } else continue;
+      }
       e.invulnerable = Math.max(0, e.invulnerable - dt);
       e.open = Math.max(0, e.open - dt);
       e.glow = Math.max(0, e.glow - dt * 3);
@@ -339,11 +364,9 @@ export class CombatWorld {
         : Math.sin(time * 9 + e.sequence) * 2;
       e.scaleX = 1;
       e.scaleY = 1;
-      e.visible = !(
-        e.type === 'phaseSkate' &&
-        e.state === 'recover' &&
-        e.timer > 0.45
-      );
+      e.visible =
+        !e.dormant &&
+        !(e.type === 'phaseSkate' && e.state === 'recover' && e.timer > 0.45);
       if (e.state === 'idle') {
         e.facing = dx < 0 ? -1 : 1;
         if (!RANGED.has(e.type) && !flying) {
@@ -411,7 +434,10 @@ export class CombatWorld {
         Math.abs(p.y - (p.h || 90) * 0.5 * p.gravitySign - (e.y - e.h * 0.5)) <
           ((p.h || 90) + e.h) * 0.4
       ) {
-        callbacks.hurt(1, e.facing * 230, -220 * p.gravitySign);
+        if (callbacks.hurt(1, e.facing * 360, -240 * p.gravitySign)) {
+          this.stagger(e, 1.3);
+          e.x -= e.facing * 60;
+        }
       }
     }
     this.updateBoss(dt, time, p, callbacks);
@@ -425,12 +451,19 @@ export class CombatWorld {
       b.vy += b.gravity * dt;
       b.x += b.vx * dt;
       b.y += b.vy * dt;
-      if (
+      if (b.owner === 'player') {
+        // A parried shot flies back and lands as a kick on whatever it meets.
+        const r = this.hit(b.x, b.y, b.radius + 26, 2, 'kick');
+        if (r.hits) {
+          b.life = 0;
+          callbacks.effect('spark', b.x, b.y, b.color);
+        }
+      } else if (
         Math.abs(b.x - p.x) < (p.w || 110) * 0.5 + b.radius &&
         Math.abs(b.y - (p.y - (p.h || 90) * 0.5 * p.gravitySign)) <
           (p.h || 90) * 0.5 + b.radius
       ) {
-        callbacks.hurt(b.damage, Math.sign(b.vx) * 180, -160 * p.gravitySign);
+        callbacks.hurt(b.damage, Math.sign(b.vx) * 270, -180 * p.gravitySign);
         b.life = 0;
         callbacks.effect('spark', b.x, b.y, b.color);
       }
@@ -644,7 +677,48 @@ export class CombatWorld {
       Math.abs(p.y - (p.h || 90) * 0.5 * p.gravitySign - (b.y - b.h * 0.5)) <
         (b.h + (p.h || 90)) * 0.35
     )
-      cb.hurt(2, b.facing * 280, -260 * p.gravitySign);
+      if (cb.hurt(2, b.facing * 420, -280 * p.gravitySign)) {
+        b.state = 'recover';
+        b.timer = 1.6;
+        b.open = 1.6;
+        b.vx = 0;
+        b.vy = 0;
+        cb.effect('core', b.x, b.y - b.h * 0.55, '#fff1c5');
+      }
+  }
+  /** A parried enemy drops its guard and stands open for a moment. */
+  private stagger(e: EnemyRuntime, seconds: number) {
+    e.state = 'recover';
+    e.timer = seconds;
+    e.open = seconds;
+    e.vx = 0;
+    e.vy = 0;
+    e.invulnerable = 0;
+    e.glow = 1;
+    this.callbacks.effect('guard', e.x, e.y - e.h, '#b6fbff');
+  }
+  /** Turn an incoming shot into Hopper's own, aimed back at whoever fired it. */
+  reflect(b: EnemyProjectile, p: CombatPlayer) {
+    const owner =
+      this.enemies.find((e) => e.id === b.owner && e.alive) ||
+      (b.owner === 'boss' && this.boss.alive ? this.boss : null);
+    const speed = Math.max(560, dist(b.vx, b.vy) * 1.4);
+    if (owner) {
+      const dx = owner.x - b.x,
+        dy = owner.y - owner.h * 0.5 - b.y,
+        len = Math.max(1, dist(dx, dy));
+      b.vx = (dx / len) * speed;
+      b.vy = (dy / len) * speed;
+    } else {
+      b.vx = p.facing * speed;
+      b.vy = -90;
+    }
+    b.owner = 'player';
+    b.gravity = 0;
+    b.delay = 0;
+    b.active = true;
+    b.life = 2.2;
+    b.color = '#c9ffe5';
   }
   private startBossAttack(p: CombatPlayer) {
     const b = this.boss,

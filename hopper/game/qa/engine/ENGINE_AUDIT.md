@@ -21,7 +21,7 @@ Source inspected and executed: `/Users/hoai/Documents/Games/mini/hopper/game/src
 
 The original terrain/elevation envelopes varied, but six fight positions repeated identically in every 18-shelf chapter. The final level module changes three chapter patterns into early paired fights followed by release, quiet vista/run stretches before late pressure, and paired final encounters. Enemy totals and safe checkpoint locations are preserved. This breaks a metronomic repeated encounter cadence without adding health padding or required arena locks.
 
-Each mission retains 15 chapters, 135 route shelves, ~115–118k world pixels, 87 enemies, 31 checkpoints and 9 optional fragments. Raw maximum-speed movement is ~55–64 seconds per area; actual first-clear/campaign times are unmeasured and should not be presented as verified.
+Each mission retains 15 chapters, 135 route shelves, ~116–119k world pixels, 87 enemies (30 ambushes), 31 checkpoints, 9 optional fragments, 18 high roads and 19–24 catch floors. Raw maximum-speed movement is ~55–64 seconds per area; actual first-clear/campaign times are unmeasured and should not be presented as verified.
 
 ## Practical limits
 

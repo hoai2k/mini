@@ -56,7 +56,6 @@ const blank = {
   jumpPressed: false,
   kickPressed: false,
   shootHeld: false,
-  blockHeld: false,
   pausePressed: false,
   instructionsPressed: false,
   confirmPressed: false,
@@ -190,40 +189,88 @@ report.airBrake = {
   facingOnLanding,
   facingNextGroundTick: e.player.facing,
 };
+// Parry: a spin kick meets a frontal blow with no damage and a flash; the same
+// blow from behind, or outside the kick window, lands and knocks Hopper back.
 e = make();
-step(e, { blockHeld: true });
-const shieldStart = e.shield,
-  hpStart = e.hp;
-e.hurt(2, 300, -200);
-const afterHit = e.shield;
-const hitHp = e.hp;
-let breakAt = null;
-for (let n = 0; n < 600; n++) {
-  step(e, { blockHeld: true });
-  if (n % 30 === 29) e.hurt(1, 300, -200);
-  if (e.shieldBrokenT > 0) {
-    breakAt = n / 120;
-    break;
-  }
-}
-const shieldWhenBroken = e.shield,
-  blockingWhenBroken = e.player.blocking,
-  hpAtBreak = e.hp;
-e.player.invuln = 0;
-e.hurt(1, 300, -200);
-const afterBreakHp = e.hp;
-for (let n = 0; n < 800; n++) step(e, { blockHeld: false });
-report.shield = {
-  shieldStart,
-  afterHit,
+const hpStart = e.hp;
+step(e, { kickPressed: true });
+const parried = e.hurt(2, -300, -200);
+const hitHp = e.hp,
+  parryFlash = e.player.parryT;
+e = make();
+const rearParried = e.hurt(2, 300, -200);
+const rearHp = e.hp;
+e = make();
+step(e, { kickPressed: true });
+const hazardParried = e.hurt(1, -300, -200, false);
+const hazardHp = e.hp;
+e = make();
+for (let n = 0; n < 60; n++) step(e);
+const lateParried = e.hurt(2, -300, -200);
+report.parry = {
   hpStart,
+  parried,
   hitHp,
-  breakAt,
-  shieldWhenBroken,
-  blockingWhenBroken,
-  hpAtBreak,
-  afterBreakHp,
-  recharged: e.shield,
+  parryFlash,
+  rearParried,
+  rearHp,
+  hazardParried,
+  hazardHp,
+  lateParried,
+};
+// Knockback: after a hit, steering is ignored for the stun window and Hopper
+// travels backward a real distance before regaining control.
+e = make();
+const xBefore = e.player.x;
+e.hurt(1, -360, -240);
+const stunStart = e.player.hitstun;
+let xAtStunEnd = null;
+for (let n = 0; n < 120; n++) {
+  step(e, { moveX: 1 });
+  if (xAtStunEnd === null && e.player.hitstun <= 0) xAtStunEnd = e.player.x;
+}
+report.knockback = {
+  stunStart,
+  travel: xBefore - xAtStunEnd,
+  recoveredForward: e.player.x > xAtStunEnd,
+};
+// Ledge catch: falling just short of a shelf while pressing toward it hauls
+// Hopper onto the lip; falling away from it, or too far below, does not.
+function ledge(dx, drop, moveX = 1, kind = 'solid') {
+  const eng = make();
+  eng.level.platforms = [
+    {
+      id: 'ledge',
+      x: 6000,
+      y: 800,
+      w: 900,
+      h: 200,
+      skin: 0,
+      kind,
+      routeRole: kind === 'solid' ? 'main' : 'optional',
+      area: 0,
+    },
+  ];
+  eng.platforms = eng.level.platforms;
+  eng.deathY = 5000;
+  Object.assign(eng.player, {
+    x: 6000 - dx,
+    y: 800 + drop,
+    vx: 0,
+    vy: 400,
+    grounded: false,
+  });
+  step(eng, { moveX });
+  return { grounded: eng.player.grounded, stood: eng.stood, x: eng.player.x };
+}
+report.ledgeCatch = {
+  reach: ledge(80, 40),
+  edge: ledge(60, 5),
+  tooFar: ledge(140, 40),
+  tooLow: ledge(80, 140),
+  pullingAway: ledge(80, 40, -1),
+  thinShelfAtLip: ledge(80, 6, 1, 'oneWay'),
+  thinShelfBelowLip: ledge(80, 40, 1, 'oneWay'),
 };
 const pad = {
   index: 0,
@@ -240,7 +287,7 @@ inputs.update(1 / 60);
 pad.buttons[1] = { pressed: true, value: 1 };
 const bFrame = inputs.update(1 / 60);
 report.controllerB = {
-  blockHeld: bFrame.blockHeld,
+  blockHeld: 'blockHeld' in bFrame,
   backPressed: bFrame.backPressed,
   pausePressed: bFrame.pausePressed,
 };
@@ -276,12 +323,30 @@ const checks = {
   noRapidLeadFlip: directionFlips === 0,
   airFacingStable: !report.airBrake.changedInAir,
   facingTurnsAfterLanding: report.airBrake.facingNextGroundTick === -1,
-  blockProtects: hitHp === hpStart,
-  shieldBreaks: breakAt !== null && !blockingWhenBroken,
-  brokenAllowsDamage: afterBreakHp < hpAtBreak,
-  shieldRecharges: e.shield === 1,
-  BMapsToBlock:
-    report.controllerB.blockHeld && !report.controllerB.pausePressed,
+  parryStopsFrontalBlow:
+    parried === true && hitHp === hpStart && parryFlash > 0,
+  rearBlowLands: rearParried === false && rearHp < hpStart,
+  hazardsCannotBeParried: hazardParried === false && hazardHp < hpStart,
+  parryWindowCloses: lateParried === false,
+  knockbackCarries:
+    stunStart > 0 &&
+    report.knockback.travel > 60 &&
+    report.knockback.recoveredForward,
+  ledgeCatchOnReach:
+    report.ledgeCatch.reach.grounded &&
+    report.ledgeCatch.reach.stood === 'ledge',
+  ledgeCatchAtEdge: report.ledgeCatch.edge.grounded,
+  ledgeCatchLimits:
+    !report.ledgeCatch.tooFar.grounded &&
+    !report.ledgeCatch.tooLow.grounded &&
+    !report.ledgeCatch.pullingAway.grounded,
+  thinShelfOnlyAtLip:
+    report.ledgeCatch.thinShelfAtLip.grounded &&
+    !report.ledgeCatch.thinShelfBelowLip.grounded,
+  BIsMenuBackOnly:
+    !report.controllerB.blockHeld &&
+    report.controllerB.backPressed &&
+    !report.controllerB.pausePressed,
 };
 report.checks = checks;
 report.failures = Object.entries(checks)

@@ -40,7 +40,7 @@ export interface Platform {
   skin: number;
   kind?: 'solid' | 'oneWay' | 'conveyor' | 'crumble';
   moving?: { axis: 'x' | 'y'; range: number; speed: number; phase: number };
-  routeRole?: 'main' | 'optional' | 'arena' | 'salvage';
+  routeRole?: 'main' | 'optional' | 'arena' | 'salvage' | 'high';
   ceiling?: boolean;
   area?: number;
   encounter?: Beat;
@@ -63,6 +63,8 @@ export interface EnemySpawn {
   y: number;
   patrol?: number;
   area: number;
+  /** behind: hidden until Hopper passes, then attacks its back. above: perched or hovering overhead. */
+  ambush?: 'behind' | 'above';
 }
 export interface Hazard {
   id: string;
@@ -475,6 +477,17 @@ const FLYING = new Set<EnemyType>([
   'phaseSkate',
   'gravityCantor',
 ]);
+/** Ranged types that can hold a high perch and fire down on the route. */
+const RANGED = new Set<EnemyType>([
+  'seedSpitter',
+  'spireLeech',
+  'slagCaster',
+  'chainManta',
+  'coilWraith',
+  'thornChoir',
+  'veilMedusa',
+  'gravityCantor',
+]);
 /** Mission is zero-based (0,1,2). No randomness: checkpoint retries preserve tells. */
 export function buildLevel(mission: number): LevelData {
   mission = Math.max(0, Math.min(2, Math.floor(mission)));
@@ -536,7 +549,10 @@ export function buildLevel(mission: number): LevelData {
           skin === 8 && ci === 1 && i === 4
             ? 1100
             : Math.round(source[0] * widthScale);
-        const gap = source[1];
+        // The chapter crossing (i === 5) is a deliberately long leap; a catch
+        // floor below it turns a miss into a climb back rather than a death.
+        const crossing = i === 5;
+        const gap = crossing ? Math.round(source[1] * 1.4) : source[1];
         const nextY =
           chapterY +
           ((chapterTarget - chapterY) * (i + 1)) / 9 +
@@ -563,19 +579,75 @@ export function buildLevel(mission: number): LevelData {
         if (i === 0 || i === 4)
           out.checkpoints.push({ x: x + 170, y, area: ai });
         // Encounters each begin after an unobstructed landing/reading strip.
+        // High road: two light shelves above a fight let Hopper go over the
+        // encounter and drop onto the next landing. Overhead ambushers perch here.
+        const highRoad = beat === 'fight' && ci > 0;
+        let perch: Platform | null = null;
+        if (highRoad) {
+          const rise = skin === 6 ? 235 : skin === 7 ? 380 : 265;
+          perch = {
+            id: `${id}-high-a`,
+            x: x + w * 0.3,
+            y: y - rise,
+            w: Math.max(240, w * 0.42),
+            h: 65,
+            skin,
+            kind: 'oneWay',
+            routeRole: 'high',
+            area: ai,
+          };
+          out.platforms.push(perch, {
+            id: `${id}-high-b`,
+            x: x + w * 0.78,
+            y: y - rise - 70,
+            w: w * 0.22 + gap * 0.6,
+            h: 65,
+            skin,
+            kind: 'oneWay',
+            routeRole: 'high',
+            area: ai,
+          });
+        }
         if (beat === 'fight' || beat === 'finish') {
           const pair = i % 2 === 0 ? r.enemies : [r.enemies[1], r.enemies[0]];
           const count = beat === 'finish' ? 3 : 2;
           for (let n = 0; n < count; n++) {
-            const type = pair[n % 2] as EnemyType;
+            let type = pair[n % 2] as EnemyType;
             const ex = x + Math.min(w - 145, 250 + n * 185);
+            // Later chapters vary the approach: one foe lies in wait behind
+            // the landing, or comes at Hopper from overhead.
+            let ambush: EnemySpawn['ambush'];
+            if (ci > 0 && n === count - 1)
+              ambush = ci % 2 === 1 || beat === 'finish' ? 'behind' : 'above';
+            if (ambush === 'above') {
+              const overhead = r.enemies.find((t) => FLYING.has(t));
+              if (overhead) type = overhead;
+              else if (perch)
+                type = r.enemies.find((t) => RANGED.has(t)) || type;
+              else ambush = undefined;
+            }
+            const flyer = FLYING.has(type);
             out.enemies.push({
               id: `${id}-e${n}`,
               type,
-              x: ex,
-              y: y - (FLYING.has(type) ? 120 + 30 * (n % 2) : 0),
-              patrol: Math.min(140, w * 0.19),
+              x:
+                ambush === 'behind'
+                  ? x + 95
+                  : ambush === 'above' && perch && !flyer
+                    ? perch.x + perch.w * 0.5
+                    : ex,
+              y:
+                ambush === 'above'
+                  ? flyer
+                    ? y - 400
+                    : perch!.y
+                  : y - (flyer ? 120 + 30 * (n % 2) : 0),
+              patrol:
+                ambush === 'above' && perch && !flyer
+                  ? 60
+                  : Math.min(140, w * 0.19),
               area: ai,
+              ambush,
             });
           }
         }
@@ -647,7 +719,7 @@ export function buildLevel(mission: number): LevelData {
         }
         // Deep crossings have a low recovery shelf. It rejoins the next landing
         // through two steps; a miss costs time instead of an unseen fatal plunge.
-        if (gap >= 250 && (i === 3 || i === 5)) {
+        if (crossing || (gap >= 250 && i === 3)) {
           const recoveryY = Math.max(y, y + dy) + 260;
           out.platforms.push({
             id: `${id}-salvage`,

@@ -5,7 +5,6 @@ export interface InputFrame {
   jumpPressed: boolean;
   kickPressed: boolean;
   shootHeld: boolean;
-  blockHeld: boolean;
   pausePressed: boolean;
   instructionsPressed: boolean;
   confirmPressed: boolean;
@@ -53,7 +52,6 @@ export class InputManager {
     'Space',
     'KeyJ',
     'KeyK',
-    'KeyL',
     'Escape',
     'KeyI',
     'Enter',
@@ -150,8 +148,7 @@ export class InputManager {
     let padJump = false,
       padJumpEdge = false,
       padKick = false,
-      padShoot = false,
-      padBlock = false;
+      padShoot = false;
     let padPause = false,
       padInstructions = false,
       padConfirm = false,
@@ -195,7 +192,6 @@ export class InputManager {
         padJumpEdge = edge(0);
         padKick = edge(2);
         padShoot = held(7);
-        padBlock = held(1);
         padPause = edge(9);
         padInstructions = edge(8);
         padConfirm = edge(0);
@@ -229,7 +225,6 @@ export class InputManager {
         edge('KeyK') ||
         padShoot ||
         ((this.mouseHeld || this.mousePressed) && !this.mouseBlocked),
-      blockHeld: held('KeyL') || padBlock,
       pausePressed: edge('Escape') || padPause,
       instructionsPressed: edge('KeyI') || padInstructions,
       confirmPressed: edge('Enter', 'Space') || padConfirm,

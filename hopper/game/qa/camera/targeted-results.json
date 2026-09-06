@@ -36,20 +36,61 @@
     "facingOnLanding": 1,
     "facingNextGroundTick": -1
   },
-  "shield": {
-    "shieldStart": 0.9989166666666667,
-    "afterHit": 0.7989166666666667,
+  "parry": {
     "hpStart": 7,
+    "parried": true,
     "hitHp": 7,
-    "breakAt": 0.9916666666666667,
-    "shieldWhenBroken": 0,
-    "blockingWhenBroken": false,
-    "hpAtBreak": 7,
-    "afterBreakHp": 6,
-    "recharged": 1
+    "parryFlash": 0.36,
+    "rearParried": false,
+    "rearHp": 5,
+    "hazardParried": false,
+    "hazardHp": 6,
+    "lateParried": false
+  },
+  "knockback": {
+    "stunStart": 0.3,
+    "travel": 94.48263888888869,
+    "recoveredForward": true
+  },
+  "ledgeCatch": {
+    "reach": {
+      "grounded": true,
+      "stood": "ledge",
+      "x": 5964
+    },
+    "edge": {
+      "grounded": true,
+      "stood": "ledge",
+      "x": 5964
+    },
+    "tooFar": {
+      "grounded": false,
+      "stood": "",
+      "x": 5860.166666666667
+    },
+    "tooLow": {
+      "grounded": false,
+      "stood": "",
+      "x": 5920.166666666667
+    },
+    "pullingAway": {
+      "grounded": false,
+      "stood": "",
+      "x": 5919.833333333333
+    },
+    "thinShelfAtLip": {
+      "grounded": true,
+      "stood": "ledge",
+      "x": 5964
+    },
+    "thinShelfBelowLip": {
+      "grounded": false,
+      "stood": "",
+      "x": 5920.166666666667
+    }
   },
   "controllerB": {
-    "blockHeld": true,
+    "blockHeld": false,
     "backPressed": true,
     "pausePressed": false
   },
@@ -64,11 +105,16 @@
     "noRapidLeadFlip": true,
     "airFacingStable": true,
     "facingTurnsAfterLanding": true,
-    "blockProtects": true,
-    "shieldBreaks": true,
-    "brokenAllowsDamage": true,
-    "shieldRecharges": true,
-    "BMapsToBlock": true
+    "parryStopsFrontalBlow": true,
+    "rearBlowLands": true,
+    "hazardsCannotBeParried": true,
+    "parryWindowCloses": true,
+    "knockbackCarries": true,
+    "ledgeCatchOnReach": true,
+    "ledgeCatchAtEdge": true,
+    "ledgeCatchLimits": true,
+    "thinShelfOnlyAtLip": true,
+    "BIsMenuBackOnly": true
   },
   "failures": []
 }

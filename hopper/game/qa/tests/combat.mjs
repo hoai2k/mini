@@ -148,3 +148,86 @@ assert.equal(
 console.log(
   'PASS: inverted 120px player collider is below feet; former ghost hitbox is clear.',
 );
+// Ambush from behind: hidden and harmless until Hopper is past, then it emerges
+// facing Hopper's back and moves straight into its telegraph.
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    {
+      id: 'lurker',
+      type: 'shadeHound',
+      x: 500,
+      y: 800,
+      area: 0,
+      ambush: 'behind',
+    },
+  ],
+});
+let contact = 0;
+const contactCb = {
+  ...cb,
+  hurt() {
+    contact++;
+  },
+};
+p = { ...player(520, 800), w: 110, h: 120 };
+for (let n = 0; n < 30; n++) w.update(1 / 120, n / 120, p, [], contactCb);
+assert.equal(contact, 0, 'a dormant ambusher cannot touch Hopper');
+assert.equal(w.enemies[0].visible, false, 'dormant ambusher stays hidden');
+assert.equal(w.hit(500, 760, 200, 5, 'kick').hits, 0, 'and cannot be hit');
+p = { ...player(800, 800), w: 110, h: 120 };
+w.update(1 / 120, 1, p, [], contactCb);
+assert.equal(w.enemies[0].dormant, false, 'passing it wakes the ambusher');
+assert.equal(w.enemies[0].visible, true);
+assert.equal(w.enemies[0].state, 'telegraph');
+assert.equal(w.enemies[0].facing, 1, 'it comes at Hopper from behind');
+// Parry: a frontal blow the engine reports as parried leaves the attacker open.
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'biter', type: 'shadeHound', x: 500, y: 800, area: 0 }],
+});
+w.enemies[0].asleep = false;
+p = { ...player(560, 800), w: 110, h: 120, facing: -1 };
+w.update(1 / 120, 0, p, [], { ...cb, hurt: () => true });
+assert.equal(w.enemies[0].state, 'recover', 'parried enemy staggers');
+assert.ok(w.enemies[0].open > 1, 'and stands open');
+// Reflect: a parried shot becomes Hopper's, flies back at its shooter and lands as a kick.
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'spitter', type: 'seedSpitter', x: 300, y: 800, area: 0 }],
+});
+w.enemies[0].asleep = false;
+w.projectiles.push({
+  id: 9,
+  x: 600,
+  y: 750,
+  vx: 250,
+  vy: 0,
+  radius: 12,
+  life: 3,
+  delay: 0,
+  gravity: 0,
+  damage: 1,
+  type: 'orb',
+  color: '#fff',
+  owner: 'spitter',
+  active: true,
+});
+p = { ...player(700, 800), w: 110, h: 120, facing: -1 };
+w.reflect(w.projectiles[0], p);
+assert.equal(w.projectiles[0].owner, 'player');
+assert.ok(w.projectiles[0].vx < 0, 'reflected shot heads back to the shooter');
+const spitterHp = w.enemies[0].hp;
+let reflectedHurt = 0;
+for (let n = 0; n < 240 && w.projectiles.length; n++)
+  w.update(1 / 120, n / 120, p, [], {
+    ...cb,
+    hurt() {
+      reflectedHurt++;
+    },
+  });
+assert.ok(w.enemies[0].hp < spitterHp, 'reflected shot damages its shooter');
+assert.equal(reflectedHurt, 0, 'a reflected shot never hurts Hopper');
+console.log(
+  'PASS: rear ambush stays hidden and harmless until passed, parry staggers, reflected shots return to sender.',
+);

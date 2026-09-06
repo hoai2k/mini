@@ -65,39 +65,23 @@ assert(frame.shootHeld, 'analog RT uses soft threshold');
 button(1, true);
 frame = input.update(0.016);
 assert(
-  frame.blockHeld && frame.backPressed,
-  'B holds shield and retains menu back edge',
+  !('blockHeld' in frame) && frame.backPressed,
+  'B is a menu back edge only; there is no shield input',
 );
 frame = input.update(0.016);
-assert(
-  frame.blockHeld && !frame.backPressed,
-  'shield remains held while menu back does not repeat',
-);
+assert(!frame.backPressed, 'menu back does not repeat while held');
 input.resetEdges();
 frame = input.update(0.016);
-assert(
-  !frame.blockHeld && !frame.backPressed,
-  'screen transition quarantines held B',
-);
+assert(!frame.backPressed, 'screen transition quarantines held B');
 button(1, false);
-frame = input.update(0.016);
-assert(!frame.blockHeld);
+input.update(0.016);
 button(1, true);
-assert(
-  input.update(0.016).blockHeld,
-  'fresh B works after releasing quarantine',
-);
+assert(input.update(0.016).backPressed, 'fresh B works after releasing');
 button(1, false);
-assert(!input.update(0.016).blockHeld);
 key('keydown', 'KeyL');
-assert(input.update(0.016).blockHeld, 'L is keyboard shield');
-input.resetEdges();
-assert(!input.update(0.016).blockHeld);
+frame = input.update(0.016);
+assert(!frame.anyPressed, 'L is no longer a game key');
 key('keyup', 'KeyL');
-key('keydown', 'KeyL');
-assert(input.update(0.016).blockHeld);
-key('keyup', 'KeyL');
-assert(!input.update(0.016).blockHeld);
 button(7, false, 0);
 pad.axes = [0.17, 0];
 assert.equal(input.update(1 / 60).moveX, 0);

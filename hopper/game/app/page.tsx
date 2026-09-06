@@ -278,7 +278,7 @@ export default function Home() {
                 'boss',
                 'inverted',
                 'explosion',
-                'shield',
+                'parry',
               ],
             },
           },
@@ -299,7 +299,6 @@ export default function Home() {
             jumpHeld: !!v.jump,
             kickPressed: !!v.kick,
             shootHeld: !!v.shoot,
-            blockHeld: !!v.block,
           });
           return { ...e.snapshot(), player: { ...e.player } };
         },
@@ -311,7 +310,6 @@ export default function Home() {
             jump: { type: 'boolean' },
             kick: { type: 'boolean' },
             shoot: { type: 'boolean' },
-            block: { type: 'boolean' },
           },
           required: ['frames'],
           additionalProperties: false,
@@ -561,18 +559,8 @@ export default function Home() {
                 <div className="heat">
                   <i style={{ width: `${hud.heat * 100}%` }} />
                 </div>
-                <div
-                  className="shield-meter"
-                  aria-label={`Shield ${Math.round(hud.shield * 100)} percent`}
-                >
-                  <i style={{ width: `${hud.shield * 100}%` }} />
-                </div>
                 <span className="heat-label">
-                  {hud.shieldBroken
-                    ? 'SHIELD RECHARGING'
-                    : hud.overheated
-                      ? 'EYES COOLING'
-                      : 'EYE REACTOR'}
+                  {hud.overheated ? 'EYES COOLING' : 'EYE REACTOR'}
                 </span>
               </div>
             </div>
@@ -604,9 +592,8 @@ export default function Home() {
           </div>
           <div className="game-bottom">
             <span>
-              <b className="pad a">A</b> JUMP <b className="pad x">X</b>{' '}
-              HIND-LEG KICK <b className="trigger">RT</b> EYE LASERS{' '}
-              <b className="pad b">B</b> FORCE SHIELD
+              <b className="pad a">A</b> JUMP <b className="pad x">X</b> KICK ·
+              PARRY <b className="trigger">RT</b> EYE LASERS
             </span>
             <span>
               {hud.gravity < 0
@@ -710,7 +697,7 @@ export default function Home() {
                     height={580}
                     unoptimized
                     src="./assets/controller-diagram.png"
-                    alt="Xbox controller: left stick or D-pad move, A jump, X spin kick, B force shield, RT shoot, Menu pause, View instructions."
+                    alt="Xbox controller: left stick or D-pad move, A jump, X spin kick and parry, RT shoot, B back in menus, Menu pause, View instructions."
                   />
                   <div className="control-notes">
                     <p>
@@ -722,8 +709,11 @@ export default function Home() {
                     </p>
                     <p>
                       <b className="pad x">X</b>
-                      <strong>Spin kick</strong> Sweep your powerful hind legs
-                      around your body. Break armor and deflect projectiles.
+                      <strong>Spin kick · parry</strong> Sweep your powerful
+                      hind legs around your body. Break armor, and time it as a
+                      blow lands from the front: a parried shadow staggers wide
+                      open, and a parried shot flies straight back at its
+                      shooter.
                     </p>
                     <p>
                       <b className="trigger">RT</b>
@@ -731,10 +721,10 @@ export default function Home() {
                       bursts keep the reactor cool. Turn with the stick to aim.
                     </p>
                     <p>
-                      <b className="pad b">B</b>
-                      <strong>Force shield</strong> Hold to block attacks from
-                      every direction. Release to recharge. The shield replaces
-                      shooting and kicking while held. Keyboard: L.
+                      <strong>Take a hit</strong> Shadows knock Hopper back a
+                      real distance, so fight with your back away from the edge.
+                      Fall just short of a ledge while reaching for it and
+                      Hopper hauls up onto the lip.
                     </p>
                     <p>
                       <strong>Move & explore</strong> Left stick / D-pad. Follow
@@ -745,8 +735,8 @@ export default function Home() {
                 </div>
                 <div className="keyboard-line">
                   KEYBOARD <span>← → / A D</span> move <span>SPACE</span> jump{' '}
-                  <span>J</span> kick <span>K</span> lasers <span>L</span>{' '}
-                  shield <span>ESC</span> pause
+                  <span>J</span> kick / parry <span>K</span> lasers{' '}
+                  <span>ESC</span> pause
                 </div>
                 <p className="menu-footnote">
                   Menu: D-pad / stick to select · A to confirm · B to go back.

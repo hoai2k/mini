@@ -54,6 +54,25 @@ for(let mission=0;mission<3;mission++){
   const a={...base,w:Math.max(180,opt.x-base.x+80)};
   if(!reachable(l,a,opt))failures.push({mission,kind:'unreachable signal shelf',id:opt.id,rise:base.y-opt.y});
  }
+ // High roads: the first shelf rises from the fight shelf, the second continues
+ // from the first, and the second drops onto the next main landing.
+ for(const a of l.platforms.filter(p=>p.id.endsWith('-high-a'))){
+  const baseId=a.id.replace('-high-a','');
+  const base=l.platforms.find(p=>p.id===baseId),b=l.platforms.find(p=>p.id===baseId+'-high-b');
+  const idx=main.findIndex(p=>p.id===baseId),next=main[idx+1];
+  const from={...base,w:Math.max(180,a.x-base.x+80)};
+  if(!reachable(l,from,a))failures.push({mission,kind:'unreachable high road',id:a.id,rise:base.y-a.y});
+  if(!reachable(l,a,b))failures.push({mission,kind:'high road break',id:b.id});
+  if(next&&!reachable(l,b,next))failures.push({mission,kind:'high road cannot rejoin',id:b.id,to:next.id});
+ }
+ // Every chapter crossing has a catch floor and a step back up to the route.
+ for(const p of main.filter(p=>/-c\d-p5$/.test(p.id))){
+  const salvage=l.platforms.find(q=>q.id===p.id+'-salvage'),step=l.platforms.find(q=>q.id===p.id+'-recovery-step');
+  const idx=main.indexOf(p),next=main[idx+1];
+  if(!salvage||!step){failures.push({mission,kind:'crossing lacks catch floor',id:p.id});continue;}
+  if(!reachable(l,salvage,step))failures.push({mission,kind:'catch floor cannot reach step',id:p.id});
+  if(next&&!reachable(l,step,next))failures.push({mission,kind:'recovery step cannot rejoin route',id:p.id,to:next.id});
+ }
  // The inversion gallery is optional and cannot capture an ordinary route jump.
  // Simulate vertical entry from its staging shelf, then a gravity-restored exit
  // at the side edge over the same broad safe floor.
@@ -84,7 +103,7 @@ for(let mission=0;mission<3;mission++){
   const c=l.checkpoints.filter(c=>c.area===a.id);const maxCheckpointSpacing=Math.max(...c.slice(1).map((b,i)=>b.x-c[i].x));
   return {name:a.name,worldPixels:Math.round(a.xEnd-a.xStart),gravity:a.gravity,mainShelves:p.length,maxRequiredGap:Math.max(...gaps),maxRise:Math.max(...rises),verticalSpan:Math.max(...p.map(p=>p.y))-Math.min(...p.map(p=>p.y)),enemies:l.enemies.filter(e=>e.area===a.id).length,combatShelves:combat,quietShelves:p.length-combat,checkpoints:c.length,maxCheckpointSpacing,fullSpeedTravelSeconds:Math.round((a.xEnd-a.xStart)/650),estimatedFirstClearMinutes:'4–7 (unverified; includes combat, climbs and optional detours)'};
  });
- reports.push({mission:mission+1,name:l.name,width:l.width,reachableMainShelves:seen.size,mainShelves:main.length,simulatedDirectedEdges:[...graph.values()].reduce((n,v)=>n+v.length,0),fullHoldFastApproaches:tight.length,optionalSignals:l.collectibles.length,areas});
+ reports.push({mission:mission+1,name:l.name,width:l.width,reachableMainShelves:seen.size,mainShelves:main.length,simulatedDirectedEdges:[...graph.values()].reduce((n,v)=>n+v.length,0),fullHoldFastApproaches:tight.length,optionalSignals:l.collectibles.length,highRoads:l.platforms.filter(p=>p.id.endsWith('-high-a')).length,catchFloors:l.platforms.filter(p=>p.id.endsWith('-salvage')).length,ambushes:{behind:l.enemies.filter(e=>e.ambush==='behind').length,above:l.enemies.filter(e=>e.ambush==='above').length},areas});
 }
 const report={physics:{hz:120,bodyHeight:90,landingHorizontalClearance:70,speed:SPEED,gravity:G,jumpVelocity:-JUMP,heldGravityFactor:.48,holdWindow:.32,releaseVelocityFactor:.45,airAcceleration:2400},reports,failures};
 writeFileSync(new URL('./audit-results.json',import.meta.url),JSON.stringify(report,null,2));
