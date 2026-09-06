@@ -131,7 +131,7 @@ export default function Home() {
       raf = 0,
       previous = performance.now(),
       uiClock = 0;
-    const a = new GameAudio('/audio/theme.mp3', '/audio/grass-march.mp3'),
+    const a = new GameAudio('./audio/theme.mp3', './audio/grass-march.mp3'),
       i = new InputManager(canvas.current!);
     audio.current = a;
     a.setScene('menu');
@@ -454,7 +454,7 @@ export default function Home() {
               height={941}
               unoptimized
               className="game-logo"
-              src="/assets/hopper-logo.png"
+              src="./assets/hopper-logo.png"
               alt="Hopper the Grasshopper"
             />
             <p className="title-tagline">
@@ -533,7 +533,7 @@ export default function Home() {
           <div className="hud" inert={screen !== 'playing'}>
             <div className="pilot-badge">
               <Image
-                src="/assets/hopper-icon-192.png"
+                src="./assets/hopper-icon-192.png"
                 alt=""
                 width={192}
                 height={192}
@@ -700,7 +700,7 @@ export default function Home() {
                     width={1440}
                     height={580}
                     unoptimized
-                    src="/assets/controller-diagram.png"
+                    src="./assets/controller-diagram.png"
                     alt="Xbox controller: left stick or D-pad move, A jump, X spin kick, B force shield, RT shoot, Menu pause, View instructions."
                   />
                   <div className="control-notes">

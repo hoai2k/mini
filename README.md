@@ -2,6 +2,14 @@
 
 Controller-first browser games. Start with [Hopper the Grasshopper](hopper/game/README.md); shared requirements are in [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
 
+Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)**.
+
+## GitHub Pages
+
+Pushes to `main` run `.github/workflows/pages.yml`, which builds the game and deploys only `local/pages/` as the Pages artifact. The source entry is `hopper/index.html`; its compiled version is published at `/mini/hopper/index.html`. GitHub redirects `/mini/hopper` to `/mini/hopper/`.
+
+To build locally, run `pnpm build:pages` in `hopper/game`. This uses the same game components and engine as the existing development setup, with a static entry and `/mini/hopper/` asset base. Generated files stay under `local/pages/hopper/` and are not committed. Repository Settings → Pages must use **GitHub Actions** (already configured for this repository).
+
 ## GitHub contents
 
 Keep the source, runtime art and music, design documents and their source artwork, QA reports and tests, configuration, `package.json`, and `pnpm-lock.yaml`. The illustrated Hopper design is available as [Word](hopper/design/Hopper_Game_Design.docx) and [PDF](hopper/design/Hopper_Game_Design.pdf).

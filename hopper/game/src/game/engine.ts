@@ -285,30 +285,30 @@ export class Engine {
   }
   async load(progress: (v: number) => void) {
     const list: [string, string][] = [
-      ['hopperAtlas', '/assets/hopper-atlas.png'],
-      ['explosionAtlas', '/assets/explosion-atlas.png'],
+      ['hopperAtlas', './assets/hopper-atlas.png'],
+      ['explosionAtlas', './assets/explosion-atlas.png'],
       ...BG.map(
         (k) =>
-          ['background-' + k, `/assets/backgrounds/${k}.webp`] as [
+          ['background-' + k, `./assets/backgrounds/${k}.webp`] as [
             string,
             string,
           ],
       ),
       ...ENEMY_ORDER.map(
-        (k) => [k, `/assets/enemies/${k}.png`] as [string, string],
+        (k) => [k, `./assets/enemies/${k}.png`] as [string, string],
       ),
-      ...BOSSES.map((k) => [k, `/assets/bosses/${k}.png`] as [string, string]),
+      ...BOSSES.map((k) => [k, `./assets/bosses/${k}.png`] as [string, string]),
       ...Array.from(
         { length: 9 },
         (_, n) =>
-          ['platform' + n, `/assets/platforms/platform${n}.png`] as [
+          ['platform' + n, `./assets/platforms/platform${n}.png`] as [
             string,
             string,
           ],
       ),
       ...[0, 1, 4, 5].map(
         (n) =>
-          ['decor' + n, `/assets/platforms/decor${n}.png`] as [string, string],
+          ['decor' + n, `./assets/platforms/decor${n}.png`] as [string, string],
       ),
     ];
     let done = 0;
