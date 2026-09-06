@@ -2,6 +2,18 @@
 
 Delivered art, and where it ended up in the game. Open asks live in `image-requests.md`.
 
+## Delivered September 6, 2026 — empty cages, regional pads and diving cels
+
+The remaining three requests (including both optional groups) were generated with the built-in imagegen tool from the existing sprites. All 15 PNGs are in `game/public/assets/upgrades/`; `followup-manifest.json` records the final prompts and export dimensions.
+
+| Request | Files | Integration |
+| --- | --- | --- |
+| Empty cages | `props/signal-cage-{intact,broken}-empty.png` | Replaces the erased frame derivatives in the renderer; keeps the floor pedestal and leaves the live warden and collectible to the game |
+| Regional spring pads | `props/spring-pad-{fields,city,mountains,foundry,harbor,launchworks,red,blue,violet}.png` | Uses platform skin to select one of nine 160×40 pads, with the neutral pad as fallback |
+| Diving attack cels | `enemies/{windowRay,riftCondor,turbineWasp,phaseSkate}-dive.png` | Uses the committed pose during each attack, including the agile second pass; original per-species canvas dimensions and facing rules are retained |
+
+Original art and the previous cage derivatives remain available. These changes only affect rendering, not collision or combat timing. Verified the full contact sheet, all 15 canvas sizes and alpha channels, and all built asset copies. Typecheck, lint, the existing gameplay test suite and the Pages production build pass. No manual gameplay playthrough was performed.
+
 ## Delivered September 6, 2026 — the generated upgrade pack
 
 Nine request groups, generated with the built-in imagegen tool from each existing sprite as its identity reference. The pack, its prompts and its export notes are in [`../game/public/assets/upgrades/`](../game/public/assets/upgrades/README.md); `manifest.json` there records the prompt and dimensions of every file. All nine groups are now wired into the renderer.
