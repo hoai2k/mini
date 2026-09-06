@@ -619,7 +619,7 @@ export default function Home() {
                 height={580}
                 unoptimized
                 className="select-diagram"
-                src="./assets/controller-diagram.png"
+                src="./assets/controller.svg"
                 alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions."
               />
               <ul className="control-key">
