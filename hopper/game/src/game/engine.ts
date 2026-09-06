@@ -383,10 +383,24 @@ export class Engine {
       // The generated upgrade pack: props, effects and painted terrain that
       // replace what the renderer used to draw by hand.
       ['springPad', './assets/upgrades/props/spring-pad.png'],
+      ...LOW_ROAD.map(
+        (name, n) =>
+          [
+            'springPad' + n,
+            `./assets/upgrades/props/spring-pad-${name}.png`,
+          ] as [string, string],
+      ),
+      ...['windowRay', 'riftCondor', 'turbineWasp', 'phaseSkate'].map(
+        (type) =>
+          ['dive-' + type, `./assets/upgrades/enemies/${type}-dive.png`] as [
+            string,
+            string,
+          ],
+      ),
       ['lockSegment', './assets/upgrades/props/lockdown-wall-segment.png'],
       ['lockCap', './assets/upgrades/props/lockdown-wall-cap.png'],
-      ['cageIntact', './assets/upgrades/props/signal-cage-intact-frame.png'],
-      ['cageBroken', './assets/upgrades/props/signal-cage-broken-frame.png'],
+      ['cageIntact', './assets/upgrades/props/signal-cage-intact-empty.png'],
+      ['cageBroken', './assets/upgrades/props/signal-cage-broken-empty.png'],
       ['windLane', './assets/upgrades/effects/wind-lane-atlas.png'],
       ['emergence', './assets/upgrades/effects/emergence-burst-atlas.png'],
       ...LOW_ROAD.map(

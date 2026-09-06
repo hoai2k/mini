@@ -1,0 +1,143 @@
+{
+  "generator": "Built-in imagegen",
+  "export": "Transparent bounds cropped, proportionally downscaled and centered on the requested canvas; generated alpha preserved.",
+  "assets": [
+    {
+      "file": "props/signal-cage-intact-empty.png",
+      "width": 240,
+      "height": 250,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Create a new empty intact signal cage sprite matching the attached reference exactly in style, palette, hexagonal perspective and footprint. Remove the creature, cannon and floating golden diamond entirely. Keep the glowing cyan floor pedestal including its concentric rings, hexagonal upper and lower frame and nodes. All SIX vertical cyan bars must be complete and undamaged. Interior entirely empty. 1970s hand-painted anime cel, hard ink outlines, flat shading. Full object with small clear margins, canvas aspect 240:250. Actual transparent PNG background and transparent empty interior, no checkerboard, no backdrop, no text.",
+      "reference": "upgrades/props/signal-cage-intact.png",
+      "generatedMaster": "exec-7de1ecfd-f531-4865-8c6c-32a32b923995.png",
+      "correctionPrompt": "Create a transparent background cutout of this game sprite. The surrounding background and all empty gaps inside the object must be fully transparent (alpha 0). Keep only the colored game object, preserve its current geometry and artwork, remove the entire light gray and white checkerboard. This is a transparent PNG sprite asset, not a preview of transparency. Preserve full silhouette, no cropping."
+    },
+    {
+      "file": "props/signal-cage-broken-empty.png",
+      "width": 240,
+      "height": 250,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Create a new empty shattered signal cage sprite matching the attached reference exactly in style, palette, hexagonal perspective and footprint. Remove the creature, cannon and floating golden diamond entirely. Keep the glowing cyan floor pedestal including its concentric rings, hexagonal upper and lower frame and nodes. Bars shattered outward with scattered debris; retain the floor pedestal and frame. Interior entirely empty. 1970s hand-painted anime cel, hard ink outlines, flat shading. Full object with small clear margins, canvas aspect 240:250. Actual transparent PNG background and transparent empty interior, no checkerboard, no backdrop, no text.",
+      "reference": "upgrades/props/signal-cage-broken.png",
+      "generatedMaster": "exec-06fdb0fc-a774-416a-92e3-c261acb8f5ba.png"
+    },
+    {
+      "file": "props/spring-pad-fields.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the fields region. Change the cyan coil and cyan accents to green. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-cc67b5e9-c05b-49c5-8a13-822f94546d5b.png",
+      "correctionPrompt": "Create a transparent background cutout of this game sprite. The surrounding background and all empty gaps inside the object must be fully transparent (alpha 0). Keep only the colored game object, preserve its current geometry and artwork, remove the entire light gray and white checkerboard. This is a transparent PNG sprite asset, not a preview of transparency. Preserve full silhouette, no cropping."
+    },
+    {
+      "file": "props/spring-pad-city.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the city region. Change the cyan coil and cyan accents to ivory. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-c62bb6cf-ff3e-41ba-8ed8-cb86f3fe1a45.png"
+    },
+    {
+      "file": "props/spring-pad-mountains.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the mountains region. Change the cyan coil and cyan accents to slate. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-cd485d89-99e4-44d4-ba39-a4c1aac8e7df.png"
+    },
+    {
+      "file": "props/spring-pad-foundry.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the foundry region. Change the cyan coil and cyan accents to orange. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-d36ac51c-9089-4458-b0be-832ba61d124a.png"
+    },
+    {
+      "file": "props/spring-pad-harbor.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the harbor region. Change the cyan coil and cyan accents to teal. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-5d1dfeb1-35f7-471b-9b4b-ac3206afd5a4.png"
+    },
+    {
+      "file": "props/spring-pad-launchworks.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the launchworks region. Change the cyan coil and cyan accents to amber. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-14ceb734-515c-4814-a0f2-2cf7be871ac5.png"
+    },
+    {
+      "file": "props/spring-pad-red.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the red region. Change the cyan coil and cyan accents to basalt red. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-e31c4b30-18c3-47c4-aeb1-47b3a0cc5ffb.png"
+    },
+    {
+      "file": "props/spring-pad-blue.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the blue region. Change the cyan coil and cyan accents to reef blue. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-b4c11477-0745-4f77-8c15-5471b8f24f20.png"
+    },
+    {
+      "file": "props/spring-pad-violet.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Recolor this exact spring pad sprite for the violet region. Change the cyan coil and cyan accents to violet. Preserve its exact design, silhouette, squat horizontal shape, ivory metal ends, dark base, warm hardware, front arrow marking, hard ink outlines, flat hand-painted 1970s anime cel shading. One pad only. Canvas aspect 160:40, full object uncropped, minimal transparent margins. Actual transparent PNG background, no checkerboard, no scenery, no new text.",
+      "reference": "upgrades/props/spring-pad.png",
+      "generatedMaster": "exec-d1ec8c0e-4c03-4158-a099-4ce3936874e3.png"
+    },
+    {
+      "file": "enemies/windowRay-dive.png",
+      "width": 475,
+      "height": 228,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Generate ONE committed diving attack animation cel of the attached windowRay, a angular black ray with violet edges, one ivory eye, long thin tail. Preserve species anatomy, identifying details, materials and colors. Wings swept BACK, body and head angled diagonally DOWN LEFT, aggressive forward dive, all body parts and tail uncropped. Match 1970s hand-painted anime cel style, hard ink outlines, flat shading. Canvas aspect 475:228; full silhouette within a small transparent margin. Actual transparent PNG alpha, no checkerboard, no paper backdrop, no ground shadow, no text.",
+      "reference": "enemies/windowRay.png",
+      "generatedMaster": "exec-03c89ca5-6be8-408a-894c-2d76cc6695d2.png"
+    },
+    {
+      "file": "enemies/riftCondor-dive.png",
+      "width": 561,
+      "height": 296,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Generate ONE committed diving attack animation cel of the attached riftCondor, a black armored skeletal condor, ivory ribs and hooked beak, purple feather edges. Preserve species anatomy, identifying details, materials and colors. Wings swept BACK, body and head angled diagonally DOWN LEFT, aggressive forward dive, all body parts and tail uncropped. Match 1970s hand-painted anime cel style, hard ink outlines, flat shading. Canvas aspect 561:296; full silhouette within a small transparent margin. Actual transparent PNG alpha, no checkerboard, no paper backdrop, no ground shadow, no text.",
+      "reference": "enemies/riftCondor.png",
+      "generatedMaster": "exec-58e39ace-c62e-4dbf-8d51-7ec9356731fb.png"
+    },
+    {
+      "file": "enemies/turbineWasp-dive.png",
+      "width": 404,
+      "height": 235,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Generate ONE committed diving attack animation cel of the attached turbineWasp, a black mechanical wasp, three round ivory turbine fans, ivory eyes, violet edges. Preserve species anatomy, identifying details, materials and colors. Wings swept BACK, body and head angled diagonally DOWN LEFT, aggressive forward dive, all body parts and tail uncropped. Match 1970s hand-painted anime cel style, hard ink outlines, flat shading. Canvas aspect 404:235; full silhouette within a small transparent margin. Actual transparent PNG alpha, no checkerboard, no paper backdrop, no ground shadow, no text.",
+      "reference": "enemies/turbineWasp.png",
+      "generatedMaster": "exec-ca390765-6f3b-40b8-ba81-05e69a6d1958.png"
+    },
+    {
+      "file": "enemies/phaseSkate-dive.png",
+      "width": 511,
+      "height": 249,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Generate ONE committed diving attack animation cel of the attached phaseSkate, a black angular skate, blue edges, single blue ivory eye, three long trailing tendrils. Preserve species anatomy, identifying details, materials and colors. Wings swept BACK, body and head angled diagonally DOWN LEFT, aggressive forward dive, all body parts and tail uncropped. Match 1970s hand-painted anime cel style, hard ink outlines, flat shading. Canvas aspect 511:249; full silhouette within a small transparent margin. Actual transparent PNG alpha, no checkerboard, no paper backdrop, no ground shadow, no text.",
+      "reference": "enemies/phaseSkate.png",
+      "generatedMaster": "exec-9aacddf9-e17c-4863-b40c-3515822c893f.png"
+    }
+  ]
+}

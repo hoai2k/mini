@@ -527,7 +527,7 @@ export class Renderer {
     c.fillRect(p.x, p.y, p.w, 3);
     c.globalAlpha = 1;
     if (p.kind === 'spring') {
-      const pad = this.image('springPad'),
+      const pad = this.image('springPad' + p.skin) || this.image('springPad'),
         pulse = 0.6 + Math.sin(s.time * 6 + p.x) * 0.2;
       if (pad) {
         // The painted coil, tiled at its own width so it never stretches.
@@ -757,8 +757,7 @@ export class Renderer {
       const shattered = !!s.broken?.has(b.id),
         cage = this.image(shattered ? 'cageBroken' : 'cageIntact');
       if (cage) {
-        // Painted cage. Its occupants were cleared from the art so the live
-        // warden and the live signal show through the bars.
+        // The painted empty cage lets the live warden and signal show through.
         c.save();
         c.globalAlpha = shattered ? 0.85 : 1;
         c.drawImage(cage, b.x, b.y, b.w, b.h);
@@ -816,8 +815,9 @@ export class Renderer {
     reducedMotion: boolean,
   ) {
     const c = this.ctx,
-      // An airborne shadow uses its painted leap cel where one exists.
+      // Committed dives and airborne leaps use their painted attack cels.
       img =
+        (!boss && e.state === 'attack' ? this.image('dive-' + e.type) : null) ||
         ('airborne' in e && e.airborne ? this.image('leap-' + e.type) : null) ||
         this.image(e.type);
     if (!img) return;
