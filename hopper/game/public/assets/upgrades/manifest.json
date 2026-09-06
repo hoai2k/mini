@@ -1,0 +1,420 @@
+{
+  "generator": "Built-in imagegen; controller authored from existing SVG",
+  "assets": [
+    {
+      "file": "enemies/shadeHound-leap.png",
+      "width": 429,
+      "height": 251,
+      "alpha": true,
+      "prompt": "Use case: background-extraction. Preserve this exact Shade Hound pounce sprite, silhouette, open mouth, pose, ivory ribs and claws, black armor and violet edging UNCHANGED. Remove ONLY the checkerboard background. Return actual transparent PNG alpha. If transparent output unavailable use ONLY perfectly uniform pure vivid green #00FF00 background so it can be keyed, never a checkerboard. No redesign, no additional limbs, no scenery, no ground shadow.",
+      "generatedMaster": "exec-df3e1a37-3310-48fb-ab31-4f49beada12e.png"
+    },
+    {
+      "file": "enemies/furnaceHound-leap.png",
+      "width": 401,
+      "height": 230,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical furnaceHound; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: mid-air pounce, jaws wide open, all four legs clearly off the ground, hind legs tucked, front legs reaching left. Preserve fiery orange ribs and mouth, jagged black armored hound identity. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 401:230. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-2bbc4cc9-3098-441d-8175-9439dec8f6eb.png"
+    },
+    {
+      "file": "enemies/mirrorStalker-leap.png",
+      "width": 440,
+      "height": 294,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical mirrorStalker; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: mid-air pounce, body stretched forward, hooked foreclaws reaching left, long rear legs folded tightly under body; preserve twin horned faceless ivory mask, crescent tail and exposed ivory ribcage. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 440:294. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-3bd0a106-144d-499b-9cc6-61de7d8aa867.png"
+    },
+    {
+      "file": "enemies/seedSpitter-leap.png",
+      "width": 305,
+      "height": 267,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical seedSpitter; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: upward forward vault cel, underside visible, little legs lifted, round spiny seed-shaped armored body slightly elongated upward, ivory cannon mouth pointing left. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 305:267. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-72b69307-e870-4821-84f5-a6a23d199fef.png"
+    },
+    {
+      "file": "enemies/spireLeech-leap.png",
+      "width": 470,
+      "height": 241,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical spireLeech; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: forward vault cel, segmented body stretched in a broad upward arch, underside exposed, open toothy mouth at left, tail curling at right. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 470:241. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-06cc39e5-f9f4-4ee6-b203-dfc315efe99d.png"
+    },
+    {
+      "file": "enemies/slagCaster-leap.png",
+      "width": 422,
+      "height": 262,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical slagCaster; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: vault cel, rotund furnace body stretched upward, seen slightly from below, feet lifted and tucked, two ladle arms flared outward, orange furnace mouth, preserve silhouette. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 422:262. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.\n\nBackground correction: Use case: background-extraction. Remove ONLY the background from this provided game sprite and return a genuinely transparent PNG with an alpha channel. The checkerboard or green backdrop is unwanted. All empty areas between limbs, chain links, fragments and rails must also be transparent. Preserve every part of the character/object, pose, colors, outline, silhouette, dimensions and painted detail exactly. No new background or ground shadow. Do not draw a checkerboard. Actual transparent output required.",
+      "generatedMaster": "enemies--slagCaster-leap.png"
+    },
+    {
+      "file": "enemies/thornChoir-leap.png",
+      "width": 312,
+      "height": 297,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical thornChoir; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: upward vault cel, three thorn flower mouths on stretched stems, claw legs tucked upward, underside visible; preserve exactly three heads and black thorny armor. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 312:297. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-f810e21f-9580-4c56-a998-68aa476f8779.png"
+    },
+    {
+      "file": "enemies/chainManta-leap.png",
+      "width": 529,
+      "height": 240,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical chainManta; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: banking overfly cel, manta head aiming left, one wing tilted up and other down, ivory single eye, exactly two chain tails with crescent blades trailing right, no redesign. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 529:240. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.\n\nBackground correction: Use case: background-extraction. Remove ONLY the background from this provided game sprite and return a genuinely transparent PNG with an alpha channel. The checkerboard or green backdrop is unwanted. All empty areas between limbs, chain links, fragments and rails must also be transparent. Preserve every part of the character/object, pose, colors, outline, silhouette, dimensions and painted detail exactly. No new background or ground shadow. Do not draw a checkerboard. Actual transparent output required.",
+      "generatedMaster": "enemies--chainManta-leap.png"
+    },
+    {
+      "file": "enemies/coilWraith-leap.png",
+      "width": 262,
+      "height": 267,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical coilWraith; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: banking overfly cel, long serpentine coil arcing into a diagonal S, horned head turned left/down, two claw hands spread, violet energy core preserved, no legs. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 262:267. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.\n\nBackground correction: Use case: background-extraction. Remove ONLY the background from this provided game sprite and return a genuinely transparent PNG with an alpha channel. The checkerboard or green backdrop is unwanted. All empty areas between limbs, chain links, fragments and rails must also be transparent. Preserve every part of the character/object, pose, colors, outline, silhouette, dimensions and painted detail exactly. No new background or ground shadow. Do not draw a checkerboard. Actual transparent output required.",
+      "generatedMaster": "enemies--coilWraith-leap.png"
+    },
+    {
+      "file": "enemies/veilMedusa-leap.png",
+      "width": 408,
+      "height": 296,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical veilMedusa; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: banking overfly cel, jellyfish bell tilted sharply left, ivory glowing heart, long delicate tentacles streaming to right in an arc, black violet canopy. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 408:296. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-3dd122ec-0b9f-4aa0-a9ef-2bc48e94a686.png"
+    },
+    {
+      "file": "enemies/gravityCantor-leap.png",
+      "width": 324,
+      "height": 352,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical gravityCantor; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: banking overfly cel, exact horn-crowned floating cloaked sorcerer tilted diagonally 25 degrees left, claw arms counterbalancing, ragged skirts trailing right, central ivory circular chest core preserved. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 324:352. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-c7967ba4-1649-45ee-94f5-aa4f457a2587.png"
+    },
+    {
+      "file": "enemies/cragTortoise-leap.png",
+      "width": 418,
+      "height": 275,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical cragTortoise; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: short hop airborne cel, heavy spiked shell lifted up, four short clawed legs dangling distinctly underneath, head aiming left, ivory segmented underside visible. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 418:275. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-45f6227a-4433-412c-b0de-de7a60cb9d44.png"
+    },
+    {
+      "file": "enemies/ballastCrab-leap.png",
+      "width": 464,
+      "height": 234,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical ballastCrab; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: short hop airborne cel, heavy riveted shell raised, small legs dangling below, crescent pincers raised and spread, ivory vertical barred mouth preserved. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 464:234. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-df5ed8b5-d5b3-4806-9e96-5fcb40cd9d99.png"
+    },
+    {
+      "file": "enemies/basaltBurrower-leap.png",
+      "width": 477,
+      "height": 260,
+      "alpha": true,
+      "prompt": "Use case: identity-preserve. Make ONE transparent-background animation sprite cel for a 2D 1970s hand-painted anime game. The attached existing sprite is the canonical basaltBurrower; preserve its anatomy, armor patterns, colors, proportions, materials and ink style. Pose: burst-from-ground cel, drill snout pointed up-left, body angled 20 degrees up, claw feet lifted, jagged basalt shell and ivory ribs preserved; small dark brown dirt chunks spraying below and behind, no ground plane. Full silhouette uncropped, facing LEFT where applicable. Obsidian black armor, restrained purple edge highlights, hard ink outlines and flat cel shading. Canvas aspect 477:260. No text, no labels, no scenery, no ground shadow. Request actual transparent PNG alpha; if alpha is unavailable, use ONLY a perfectly uniform pure vivid green #00FF00 backdrop instead (never checkerboard). Keep entire character within a 5% empty margin.",
+      "generatedMaster": "exec-95cf01e4-29ef-4758-9bf1-f8b7757cd784.png"
+    },
+    {
+      "file": "props/spring-pad.png",
+      "width": 160,
+      "height": 40,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. One low wide mechanical spring launcher set into a ledge, front orthographic elevation, aspect 4:1. Cyan glowing leaf-spring and coil in a dark riveted steel cassette, exactly three bold UPWARD chevrons on its face, cream highlights, crisp thick silhouette readable at 160x40. Flat level top, no surrounding platform. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.",
+      "generatedMaster": "exec-c2ed5344-06d8-40f0-83d1-b872830c850d.png"
+    },
+    {
+      "file": "props/lockdown-wall-cap.png",
+      "width": 80,
+      "height": 120,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. One TOP CAP for a narrow 80-pixel-wide boss forcefield gate, aspect 2:3. Dark gunmetal mechanism with warm amber energy aperture below and amber/black diagonal hazard-striped armor above. Symmetric frontal elevation. Two narrow side rails descend to the flat bottom edge. No floor/base, no long wall. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.",
+      "generatedMaster": "exec-e1ac3cac-8356-4964-8bf2-14f1ad8b6a3d.png"
+    },
+    {
+      "file": "props/lockdown-wall-segment.png",
+      "width": 80,
+      "height": 256,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. One narrow vertical repeatable boss forcefield gate segment, aspect 80:256. Two slim dark steel side rails with amber-and-black diagonal hazard stripes, warm amber horizontal energy bars between them at regular pitch. Rails and bar cadence must continue seamlessly at top and bottom; no cap, foot or header, flat top/bottom crop edges, front orthographic elevation. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.",
+      "generatedMaster": "exec-47fe9dd0-8769-44d4-a2e0-3001aa3690e1.png",
+      "tileAxes": [
+        "y"
+      ]
+    },
+    {
+      "file": "effects/wind-lane-atlas.png",
+      "width": 768,
+      "height": 256,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. A game VFX sprite sheet with EXACTLY THREE square 256x256 animation frames in ONE horizontal row, aspect 3:1. Sparse thin PALE CYAN-WHITE diagonal wind streaks flowing from upper-right to lower-left (down and back). Frame 1,2,3 advance a coherent looping wind pattern by equal amounts, each frame is seamlessly tileable in X and Y. No clouds or swirls, no border or lettering. Just 6 to 9 hand-inked tapered streaks per frame. All equal square cells without gutters, same sparse density. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.",
+      "generatedMaster": "exec-4b3762a4-8159-42c0-8fa9-2cbeead85fd0.png",
+      "frames": 3,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "columns": 3,
+      "fps": 12,
+      "loop": true
+    },
+    {
+      "file": "reference/effects/wind-lane-0.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "frame": 0
+    },
+    {
+      "file": "reference/effects/wind-lane-1.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "frame": 1
+    },
+    {
+      "file": "reference/effects/wind-lane-2.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "frame": 2
+    },
+    {
+      "file": "reference/props/signal-cage-intact.png",
+      "width": 240,
+      "height": 250,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. One intact hexagonal cage, cyan glowing thick bars and gunmetal corner joints, perspective almost frontal for a side-scroller. Inside stands one SMALL black violet shadow sentry with ivory eye and ranged cannon arm, at most one third cage height, guarding a small golden diamond signal. Clear gaps between cyan bars, no scenery. Six-sided outline fills frame, all inside centered, readable at 240x250. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.",
+      "generatedMaster": "exec-10d18cde-974e-4993-b5a4-405d198a11ea.png"
+    },
+    {
+      "file": "terrain/low-road-fields.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. Side-on cutaway of a low-road corridor beneath a grassy fight shelf, wide aspect 470:210. Earth and grass form thin ceiling at very top and low floor at very bottom; dark recessed passage runs open left-to-right across middle 70%, dangling roots and small stones along ceiling, green moss and ochre soil. No closed end walls, no doors, no arches blocking passage, a clearly intentional traversable underpass. Seamless repeating left/right boundaries. Match grassy fields in reference. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.\n\nCorrection: Use case: precise-object-edit. Keep the provided 2D game corridor's exact materials, colors, architecture and framing. Replace ALL white/gray checkerboard areas with a very dark recessed passage backing in this region's palette, near-black, subtle painted texture. Make it an opaque full-bleed horizontal background tile, the center must be dark enough for bright characters to read against it. No grid or checkerboard anywhere. Preserve the clearly open walkable corridor, thin ceiling and floor and open left/right edges, no added obstacles. No text. Hand-painted 1970s anime.",
+      "generatedMaster": "exec-bb528d33-d763-4074-a804-bd4d9d6857f6.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/low-road-violet.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. Side-on cutaway of a low-road corridor beneath a violet alien cathedral shelf, wide aspect 470:210. Thin obsidian ceiling and low floor framing dark passage through middle 70%, tiny amethyst shards and violet crystal ribs hugging ceiling, purple rim light. No closed sidewalls, no center obstacles, clearly intended traversable path. Seamless repeating left/right boundaries. Match violet environment, third panel of reference. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.\n\nCorrection: Use case: precise-object-edit. Keep the provided 2D game corridor's exact materials, colors, architecture and framing. Replace ALL white/gray checkerboard areas with a very dark recessed passage backing in this region's palette, near-black, subtle painted texture. Make it an opaque full-bleed horizontal background tile, the center must be dark enough for bright characters to read against it. No grid or checkerboard anywhere. Preserve the clearly open walkable corridor, thin ceiling and floor and open left/right edges, no added obstacles. No text. Hand-painted 1970s anime.",
+      "generatedMaster": "exec-b096aae8-7653-4679-9605-e03fbc59b508.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/arena-pillar-mountains.png",
+      "width": 140,
+      "height": 430,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. ONE solid tall narrow wall-kick pillar, aspect 140:430, frontal side-scrolling elevation with flat vertical climbable sides and flat top. Weathered stacked blue-gray mountain stone, rough cracks and subtle ochre ledges, small snowy cap, monumental but readable. No arch or scenery, full pillar uncropped. Matches mountain region at bottom of reference. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.\n\nBackground correction: Use case: background-extraction. Remove ONLY the background from this provided game sprite and return a genuinely transparent PNG with an alpha channel. The checkerboard or green backdrop is unwanted. All empty areas between limbs, chain links, fragments and rails must also be transparent. Preserve every part of the character/object, pose, colors, outline, silhouette, dimensions and painted detail exactly. No new background or ground shadow. Do not draw a checkerboard. Actual transparent output required.",
+      "generatedMaster": "terrain--arena-pillar-mountains.png"
+    },
+    {
+      "file": "terrain/low-road-foundry.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. Side-on cutaway of a low-road corridor beneath an industrial fight shelf, wide aspect 470:210. Thin rusty steel ceiling and floor at top/bottom, dark recessed open passage across middle 70%, pipes and riveted braces hugging ceiling, ember-orange tiny lights. No closed sidewalls, no doors or central obstacles, clearly traversable horizontally. Seamless repeating left/right boundaries. Match foundry in reference. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.\n\nCorrection: Use case: precise-object-edit. Keep the provided 2D game corridor's exact materials, colors, architecture and framing. Replace ALL white/gray checkerboard areas with a very dark recessed passage backing in this region's palette, near-black, subtle painted texture. Make it an opaque full-bleed horizontal background tile, the center must be dark enough for bright characters to read against it. No grid or checkerboard anywhere. Preserve the clearly open walkable corridor, thin ceiling and floor and open left/right edges, no added obstacles. No text. Hand-painted 1970s anime.",
+      "generatedMaster": "exec-ade3d49f-23e1-48b5-bfe8-5be0149c8a0f.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/arena-pillar-violet.png",
+      "width": 140,
+      "height": 430,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. ONE solid tall narrow wall-kick pillar, aspect 140:430, frontal side-scrolling elevation with flat vertical climbable sides and flat top. Obsidian violet cathedral buttress, small embedded amethyst veins, alien gothic fluting, sharp carved facets, purple highlights; solid central mass. No arch or scenery, full pillar uncropped. Match violet region at bottom of reference. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.",
+      "generatedMaster": "exec-ae1ceda6-eb1a-44ff-9f77-8f359a15dc5b.png"
+    },
+    {
+      "file": "terrain/arena-pillar-launchworks.png",
+      "width": 140,
+      "height": 430,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. ONE solid tall narrow wall-kick pillar, aspect 140:430, frontal side-scrolling elevation with flat vertical climbable sides and flat top. Industrial launch gantry support, solid riveted iron column, cream/yellow hazard bands and small orange conduit indicators; structurally solid core not a hollow lattice. No arch or scenery, full pillar uncropped. Matches launchworks region bottom of reference. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.\n\nBackground correction: Use case: background-extraction. Remove ONLY the background from this provided game sprite and return a genuinely transparent PNG with an alpha channel. The checkerboard or green backdrop is unwanted. All empty areas between limbs, chain links, fragments and rails must also be transparent. Preserve every part of the character/object, pose, colors, outline, silhouette, dimensions and painted detail exactly. No new background or ground shadow. Do not draw a checkerboard. Actual transparent output required.",
+      "generatedMaster": "terrain--arena-pillar-launchworks.png"
+    },
+    {
+      "file": "reference/effects/emergence-0.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 0
+    },
+    {
+      "file": "reference/effects/emergence-1.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 1
+    },
+    {
+      "file": "reference/effects/emergence-2.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 2
+    },
+    {
+      "file": "reference/effects/emergence-3.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 3
+    },
+    {
+      "file": "reference/effects/emergence-4.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 4
+    },
+    {
+      "file": "reference/effects/emergence-5.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 5
+    },
+    {
+      "file": "reference/effects/emergence-6.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 6
+    },
+    {
+      "file": "reference/effects/emergence-7.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "frame": 7
+    },
+    {
+      "file": "effects/emergence-burst-atlas.png",
+      "width": 1024,
+      "height": 128,
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: game-ready hand-painted 1970s anime cel sprite, hard ink outlines, flat shading, crisp readable silhouette. Game animation atlas, EXACTLY EIGHT frames arranged as a regular FOUR-column TWO-row grid (4x2); each frame is square, equal size, NO gutters. A violet-pink dust and sparks emergence burst rising from ground level: row-major timeline frame1 tiny magenta glint, frame2 compact violet puff, frame3 energetic spreading pink dust, frame4 peak broad rolling dust plumes with sharp sparks, frame5 expanding violet cloud, frame6 thinning wisps, frame7 sparse fading pink flecks, frame8 almost vanished. Keep effect centered around identical ground baseline at 85% down EACH cell, never crossing cell boundaries. Hand-painted 1970s anime effects cels with bold outlines and flat shade planes. No character, no floor, no text, no frame borders. Transparent PNG alpha background outside artwork. If alpha unavailable use perfectly uniform pure vivid green #00FF00 backdrop only, never checkerboard. No lettering, no watermark. Reference is ONLY for regional material and palette, not composition.",
+      "generatedMaster": "exec-bf2679a6-85d2-4842-916d-a9d94c9b416f.png",
+      "frames": 8,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "fps": 16,
+      "loop": false
+    },
+    {
+      "file": "reference/props/signal-cage-broken.png",
+      "width": 240,
+      "height": 250,
+      "alpha": true,
+      "prompt": "Use case: precise-object-edit. Create the BROKEN STATE of the exact attached cyan hexagonal signal cage sprite. Preserve the cage identity, gunmetal joints, cyan bars, tiny ranged shadow sentry and golden diamond signal. Break the front and side bars outward into clearly separated jagged fragments, bent rails and displaced corner joints, leaving a large obvious central opening. The sentry and collectible remain visible. Full fragments remain inside frame, front view, same proportions and hand-painted 1970s anime ink and cel shading. Background actual transparent PNG alpha; if unavailable perfectly uniform pure vivid green #00FF00 only, never checkerboard. No labels, no scenery.\n\nBackground correction: Use case: background-extraction. Remove ONLY the background from this provided game sprite and return a genuinely transparent PNG with an alpha channel. The checkerboard or green backdrop is unwanted. All empty areas between limbs, chain links, fragments and rails must also be transparent. Preserve every part of the character/object, pose, colors, outline, silhouette, dimensions and painted detail exactly. No new background or ground shadow. Do not draw a checkerboard. Actual transparent output required.",
+      "generatedMaster": "props--signal-cage-broken.png"
+    },
+    {
+      "file": "terrain/low-road-mountains.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. ONE wide horizontal 470:210 side-view tile of an intentional low-road corridor below a fight shelf, hand-painted 1970s anime backgrounds with clear black ink and cel shade planes. Mountain underpass: thick dark blue-gray rock ceiling with stone strata, short roots and tiny icicles at the margins, slate shelf floor, cool desaturated rocky gloom. Thin ceiling at top and low floor at bottom frame a continuous very dark recessed EMPTY walkway through middle 70%. Open left and right ends for seamless horizontal repetition. No sidewalls, doors, central supports or creatures. Full-bleed opaque rectangular corridor background, not a landscape; no text. Reference sheet is regional material and palette only.",
+      "generatedMaster": "exec-3971a83e-c10f-4bed-95f1-2325587e59a0.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/low-road-city.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. ONE wide horizontal 470:210 side-view tile of an intentional low-road corridor below a fight shelf, hand-painted 1970s anime backgrounds with clear black ink and cel shade planes. Crownline city underpass: aged cream concrete ceiling, recessed steel conduits, cool shadowed urban corridor, a few warm amber fixtures, architectural lower floor. Thin ceiling at top and low floor at bottom frame a continuous very dark recessed EMPTY walkway through middle 70%. Open left and right ends for seamless horizontal repetition. No sidewalls, doors, central supports or creatures. Full-bleed opaque rectangular corridor background, not a landscape; no text. Reference sheet is regional material and palette only.",
+      "generatedMaster": "exec-3b0f4419-8713-405b-9c53-3d09f7c079a3.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/low-road-harbor.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. ONE wide horizontal 470:210 side-view tile of an intentional low-road corridor below a fight shelf, hand-painted 1970s anime backgrounds with clear black ink and cel shade planes. Storm harbor underpass: salt-weathered teal steel, thick overhead cable conduits, corroded hull plates, small cold green lamps, damp metal floor. Thin ceiling at top and low floor at bottom frame a continuous very dark recessed EMPTY walkway through middle 70%. Open left and right ends for seamless horizontal repetition. No sidewalls, doors, central supports or creatures. Full-bleed opaque rectangular corridor background, not a landscape; no text. Reference sheet is regional material and palette only.",
+      "generatedMaster": "exec-9adbcefa-eb6d-4988-aeab-02f5d0de932f.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/low-road-launchworks.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. ONE wide horizontal 470:210 side-view tile of an intentional low-road corridor below a fight shelf, hand-painted 1970s anime backgrounds with clear black ink and cel shade planes. Launchworks underpass: cream and charcoal rocket gantry panels, ceiling fuel pipes, sparse yellow hazard brackets, a few orange indicator lamps, industrial steel floor. Thin ceiling at top and low floor at bottom frame a continuous very dark recessed EMPTY walkway through middle 70%. Open left and right ends for seamless horizontal repetition. No sidewalls, doors, central supports or creatures. Full-bleed opaque rectangular corridor background, not a landscape; no text. Reference sheet is regional material and palette only.",
+      "generatedMaster": "exec-02711d35-7a7c-44c5-b02c-f2ee12961944.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/low-road-blue.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. ONE wide horizontal 470:210 side-view tile of an intentional low-road corridor below a fight shelf, hand-painted 1970s anime backgrounds with clear black ink and cel shade planes. Cobalt alien underpass: indigo reef rock ceiling with small cyan crystal veins and fine exotic coral along edges, dark blue recess, cold blue crystal floor. Thin ceiling at top and low floor at bottom frame a continuous very dark recessed EMPTY walkway through middle 70%. Open left and right ends for seamless horizontal repetition. No sidewalls, doors, central supports or creatures. Full-bleed opaque rectangular corridor background, not a landscape; no text. Reference sheet is regional material and palette only.",
+      "generatedMaster": "exec-1678e6e7-38a6-43ed-8f67-cad513eacae8.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "terrain/low-road-red.png",
+      "width": 470,
+      "height": 210,
+      "alpha": false,
+      "prompt": "Use case: stylized-concept. ONE wide horizontal 470:210 side-view tile of an intentional low-road corridor below a fight shelf, hand-painted 1970s anime backgrounds with clear black ink and cel shade planes. Vermilion alien underpass: dark crimson basalt ceiling with small bone-colored structural ribs, exotic ochre growths restricted to margins, dim red stone floor. Thin ceiling at top and low floor at bottom frame a continuous very dark recessed EMPTY walkway through middle 70%. Open left and right ends for seamless horizontal repetition. No sidewalls, doors, central supports or creatures. Full-bleed opaque rectangular corridor background, not a landscape; no text. Reference sheet is regional material and palette only.",
+      "generatedMaster": "exec-63562b05-4458-4119-a9aa-126b29158bc9.png",
+      "tileAxes": [
+        "x"
+      ],
+      "opaqueBackdrop": true
+    },
+    {
+      "file": "reference/props/lockdown-wall.png",
+      "width": 80,
+      "height": 1690,
+      "alpha": true,
+      "derivedFrom": [
+        "props/lockdown-wall-cap.png",
+        "props/lockdown-wall-segment.png"
+      ]
+    },
+    {
+      "file": "reference/controller-diagram.png",
+      "width": 1440,
+      "height": 580,
+      "alpha": false,
+      "source": "controller.svg"
+    }
+  ],
+  "productionNotes": [
+    "Generated with built-in imagegen using existing canonical sprites and regional concept sheets.",
+    "User-authorized matte removal on six assets; exact-size exports preserve foreground proportions for character cels.",
+    "Periodic edge blending on corridor X, gate Y, and wind X/Y; frame layouts normalized for integer source rectangles.",
+    "Corridor backplates and controller diagram intentionally opaque; sprites and effects use PNG alpha."
+  ]
+}

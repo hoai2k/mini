@@ -46,6 +46,8 @@ interface Explosion {
   life: number;
   maxLife: number;
   size: number;
+  /** 'emerge' plays the eight-frame emergence burst instead of the explosion. */
+  kind?: 'emerge';
 }
 interface Laser {
   x: number;
@@ -70,6 +72,31 @@ const BG = [
   'purple',
 ];
 const BOSSES = ['nightRook', 'smelterLeviathan', 'eclipseRegent'];
+/** Corridor plates are named by region; skin 8's file is "violet", not "purple". */
+const LOW_ROAD = BG.map((k) => (k === 'purple' ? 'violet' : k));
+/** The three boss regions with painted wall-kick pillars. */
+export const ARENA_PILLARS: Record<number, string> = {
+  2: 'mountains',
+  5: 'launchworks',
+  8: 'violet',
+};
+/** Species with a painted airborne cel for their leap, vault, hop or overfly. */
+export const LEAP_CELS = [
+  'shadeHound',
+  'furnaceHound',
+  'mirrorStalker',
+  'seedSpitter',
+  'spireLeech',
+  'slagCaster',
+  'thornChoir',
+  'chainManta',
+  'coilWraith',
+  'veilMedusa',
+  'gravityCantor',
+  'cragTortoise',
+  'ballastCrab',
+  'basaltBurrower',
+] as const;
 const BOSS_NAMES = ['Night Rook', 'Smelter Leviathan', 'The Eclipse Regent'];
 export const PHYSICS = {
   speed: 650,
@@ -352,6 +379,50 @@ export class Engine {
       ...[0, 1, 4, 5].map(
         (n) =>
           ['decor' + n, `./assets/platforms/decor${n}.png`] as [string, string],
+      ),
+      // The generated upgrade pack: props, effects and painted terrain that
+      // replace what the renderer used to draw by hand.
+      ['springPad', './assets/upgrades/props/spring-pad.png'],
+      ...LOW_ROAD.map(
+        (name, n) =>
+          [
+            'springPad' + n,
+            `./assets/upgrades/props/spring-pad-${name}.png`,
+          ] as [string, string],
+      ),
+      ...['windowRay', 'riftCondor', 'turbineWasp', 'phaseSkate'].map(
+        (type) =>
+          ['dive-' + type, `./assets/upgrades/enemies/${type}-dive.png`] as [
+            string,
+            string,
+          ],
+      ),
+      ['lockSegment', './assets/upgrades/props/lockdown-wall-segment.png'],
+      ['lockCap', './assets/upgrades/props/lockdown-wall-cap.png'],
+      ['cageIntact', './assets/upgrades/props/signal-cage-intact-empty.png'],
+      ['cageBroken', './assets/upgrades/props/signal-cage-broken-empty.png'],
+      ['windLane', './assets/upgrades/effects/wind-lane-atlas.png'],
+      ['emergence', './assets/upgrades/effects/emergence-burst-atlas.png'],
+      ...LOW_ROAD.map(
+        (name, n) =>
+          ['lowRoad' + n, `./assets/upgrades/terrain/low-road-${name}.png`] as [
+            string,
+            string,
+          ],
+      ),
+      ...Object.entries(ARENA_PILLARS).map(
+        ([skin, name]) =>
+          [
+            'arenaPillar' + skin,
+            `./assets/upgrades/terrain/arena-pillar-${name}.png`,
+          ] as [string, string],
+      ),
+      ...LEAP_CELS.map(
+        (type) =>
+          ['leap-' + type, `./assets/upgrades/enemies/${type}-leap.png`] as [
+            string,
+            string,
+          ],
       ),
     ];
     let done = 0;
@@ -1372,6 +1443,18 @@ export class Engine {
   }
   private effect(name: string, x: number, y: number, color = '#efd6a4') {
     const explosion = name === 'explosion' || name === 'bossExplosion';
+    if (name === 'emerge') {
+      // Eight frames at 16 fps, played once as the shadow breaks cover.
+      this.explosions.push({
+        x,
+        y,
+        life: 0.5,
+        maxLife: 0.5,
+        size: 260,
+        kind: 'emerge',
+      });
+      this.shake = Math.max(this.shake, 3);
+    }
     if (explosion) {
       this.explosions.push({
         x,

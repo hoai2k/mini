@@ -303,7 +303,7 @@ for (let n = 0; n < 240; n++) {
 }
 assert.ok(dropped, 'it pounces down when Hopper is beneath');
 // A reflected shot opens a signal cage; nothing else does.
-let opened = [];
+const opened = [];
 w = new CombatWorld({
   ...base,
   enemies: [{ id: 'warden', type: 'seedSpitter', x: 300, y: 800, area: 0 }],

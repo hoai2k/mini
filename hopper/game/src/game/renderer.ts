@@ -40,6 +40,7 @@ export interface RenderState {
     color: string;
   }>;
   explosions: Array<{
+    kind?: 'emerge';
     x: number;
     y: number;
     life: number;
@@ -179,6 +180,7 @@ export class Renderer {
       this.visible(s.combat.boss.x - 650, s.combat.boss.y - 700, 1300, 1000)
     )
       this.creature(s.combat.boss, s.time, true, s.player.reducedMotion);
+    this.cages(s);
     this.projectiles(s);
     this.player(s);
     if (s.player.blocking) {
@@ -331,30 +333,59 @@ export class Renderer {
       height = (p.h - 190) * t,
       top = bottom - 190 - height,
       pulse = 0.5 + Math.sin(s.time * 7) * 0.2;
+    const segment = this.image('lockSegment'),
+      cap = this.image('lockCap');
     c.save();
     c.globalAlpha = 0.55 + t * 0.35;
-    const g = c.createLinearGradient(p.x, 0, p.x + p.w, 0);
-    g.addColorStop(0, '#ff9a6a22');
-    g.addColorStop(0.5, '#ffd9a8cc');
-    g.addColorStop(1, '#ff9a6a22');
-    c.fillStyle = g;
-    c.fillRect(p.x, top, p.w, height);
-    c.strokeStyle = '#ffe1b8';
-    c.lineWidth = 3;
-    c.shadowColor = '#ffb070';
-    c.shadowBlur = 24 * pulse;
-    for (let y = top + 24; y < bottom - 190; y += 56) {
+    if (segment && cap) {
+      // The painted gate: segments repeat down the shaft, cap at the leading
+      // edge that meets the floor.
+      const capH = cap.naturalHeight * (p.w / cap.naturalWidth),
+        segH = segment.naturalHeight * (p.w / segment.naturalWidth),
+        shaft = Math.max(0, height - capH);
+      c.save();
       c.beginPath();
-      c.moveTo(p.x, y);
-      c.lineTo(p.x + p.w, y - 14);
-      c.stroke();
+      c.rect(p.x, top, p.w, height);
+      c.clip();
+      for (let y = top; y < top + shaft; y += segH)
+        c.drawImage(segment, p.x, y, p.w, segH);
+      c.drawImage(cap, p.x, top + shaft, p.w, capH);
+      c.restore();
+      c.globalAlpha = 0.28 * pulse;
+      c.fillStyle = '#ffb070';
+      c.fillRect(p.x, top, p.w, height);
+    } else {
+      const g = c.createLinearGradient(p.x, 0, p.x + p.w, 0);
+      g.addColorStop(0, '#ff9a6a22');
+      g.addColorStop(0.5, '#ffd9a8cc');
+      g.addColorStop(1, '#ff9a6a22');
+      c.fillStyle = g;
+      c.fillRect(p.x, top, p.w, height);
+      c.strokeStyle = '#ffe1b8';
+      c.lineWidth = 3;
+      c.shadowColor = '#ffb070';
+      c.shadowBlur = 24 * pulse;
+      for (let y = top + 24; y < bottom - 190; y += 56) {
+        c.beginPath();
+        c.moveTo(p.x, y);
+        c.lineTo(p.x + p.w, y - 14);
+        c.stroke();
+      }
+      c.strokeRect(p.x, top, p.w, height);
     }
-    c.strokeRect(p.x, top, p.w, height);
     c.restore();
   }
   private platform(p: Platform, s: RenderState) {
     if (p.lock) {
       this.lockWall(p, s);
+      return;
+    }
+    const pillar = p.id.includes('-arena-pillar')
+      ? this.image('arenaPillar' + p.skin)
+      : undefined;
+    if (pillar) {
+      // Painted wall-kick pillars stand in for the tiled platform art.
+      this.ctx.drawImage(pillar, p.x, p.y, p.w, p.h);
       return;
     }
     const c = this.ctx,
@@ -366,6 +397,27 @@ export class Renderer {
       : p.hollow
         ? Math.max(p.h, p.hollow)
         : Math.max(p.h, this.bounds.bottom - p.y + 120);
+    if (p.hollow) {
+      // The corridor plate paints the recess under a hollowed fight shelf: its
+      // painted ceiling meets the underside of the shelf and its painted floor
+      // meets the low road, so the underpass reads as a place to walk.
+      const plate = this.image('lowRoad' + p.skin),
+        floor = s.level.platforms.find((q) => q.id === p.id + '-low');
+      if (plate && floor) {
+        const top = p.y + p.hollow,
+          height = floor.y + floor.h - top;
+        if (height > 20) {
+          const tile = plate.naturalWidth * (height / plate.naturalHeight);
+          c.save();
+          c.beginPath();
+          c.rect(p.x, top, p.w, height);
+          c.clip();
+          for (let x = p.x; x < p.x + p.w; x += tile)
+            c.drawImage(plate, x, top, tile, height);
+          c.restore();
+        }
+      }
+    }
     c.save();
     if (p.ceiling) {
       c.translate(0, p.y + p.h);
@@ -476,24 +528,38 @@ export class Renderer {
     c.fillRect(p.x, p.y, p.w, 3);
     c.globalAlpha = 1;
     if (p.kind === 'spring') {
-      // A coiled pad: bright chevrons that breathe so it reads as a launcher.
-      const pulse = 0.6 + Math.sin(s.time * 6 + p.x) * 0.2;
-      c.fillStyle = '#8ce6ef';
-      c.globalAlpha = 0.85;
-      c.fillRect(p.x, p.y, p.w, 10);
-      c.strokeStyle = '#eaffff';
-      c.lineWidth = 3;
-      c.shadowColor = '#76e9ff';
-      c.shadowBlur = 16 * pulse;
-      for (let x = p.x + 18; x < p.x + p.w - 18; x += 34) {
+      const pad = this.image('springPad' + p.skin) || this.image('springPad'),
+        pulse = 0.6 + Math.sin(s.time * 6 + p.x) * 0.2;
+      if (pad) {
+        // The painted coil, tiled at its own width so it never stretches.
+        const tile = pad.naturalWidth * (48 / pad.naturalHeight);
+        c.save();
+        c.shadowColor = '#76e9ff';
+        c.shadowBlur = 14 * pulse;
         c.beginPath();
-        c.moveTo(x, p.y + 30);
-        c.lineTo(x + 12, p.y + 14);
-        c.lineTo(x + 24, p.y + 30);
-        c.stroke();
+        c.rect(p.x, p.y - 4, p.w, 56);
+        c.clip();
+        for (let x = p.x; x < p.x + p.w; x += tile)
+          c.drawImage(pad, x, p.y - 4, tile, 48);
+        c.restore();
+      } else {
+        c.fillStyle = '#8ce6ef';
+        c.globalAlpha = 0.85;
+        c.fillRect(p.x, p.y, p.w, 10);
+        c.strokeStyle = '#eaffff';
+        c.lineWidth = 3;
+        c.shadowColor = '#76e9ff';
+        c.shadowBlur = 16 * pulse;
+        for (let x = p.x + 18; x < p.x + p.w - 18; x += 34) {
+          c.beginPath();
+          c.moveTo(x, p.y + 30);
+          c.lineTo(x + 12, p.y + 14);
+          c.lineTo(x + 24, p.y + 30);
+          c.stroke();
+        }
+        c.shadowBlur = 0;
+        c.globalAlpha = 1;
       }
-      c.shadowBlur = 0;
-      c.globalAlpha = 1;
     }
     if (p.kind === 'conveyor' && (p.drift ?? 90) < 0) {
       // Belts that run against Hopper show their direction plainly.
@@ -592,6 +658,39 @@ export class Renderer {
         c.lineTo(x + 25, h.y + h.h);
         c.fill();
       }
+    } else if (this.image('windLane')) {
+      // Painted wind: three frames at 12 fps, tiled across the lane and drifting
+      // along the push so the direction of the lean is readable.
+      const lane = this.image('windLane')!,
+        frames = Math.max(
+          1,
+          Math.round(lane.naturalWidth / lane.naturalHeight),
+        ),
+        size = lane.naturalHeight,
+        frame = Math.floor(time * 12) % frames,
+        px = h.push?.x ?? 110,
+        py = h.push?.y ?? 0,
+        len = Math.max(1, Math.hypot(px, py)),
+        drift = (time * 190) % size;
+      c.globalAlpha = 0.5;
+      c.beginPath();
+      c.rect(h.x, h.y, h.w, h.h);
+      c.clip();
+      const ox = ((px / len) * drift) % size,
+        oy = ((py / len) * drift) % size;
+      for (let x = h.x - size; x < h.x + h.w + size; x += size)
+        for (let y = h.y - size; y < h.y + h.h + size; y += size)
+          c.drawImage(
+            lane,
+            frame * size,
+            0,
+            size,
+            size,
+            x + ox,
+            y + oy,
+            size,
+            size,
+          );
     } else {
       // Wind lane: streaks drift along the push so the lean is readable.
       const px = h.push?.x ?? 110,
@@ -617,46 +716,25 @@ export class Renderer {
     }
     c.restore();
   }
-  private markers(s: RenderState) {
+  /** Signal cages draw after the creatures inside them, so the bars occlude the
+   * warden the way a cage should. The signals themselves come last, so a caged
+   * prize stays visible through its own bars. */
+  private cages(s: RenderState) {
     const c = this.ctx;
-    for (const gate of s.level.gravityGates || []) {
-      if (!this.visible(gate.x, gate.y, gate.w, gate.h)) continue;
-      c.save();
-      const g = c.createLinearGradient(gate.x, 0, gate.x + gate.w, 0);
-      g.addColorStop(0, '#c387ff44');
-      g.addColorStop(0.5, '#663d9910');
-      g.addColorStop(1, '#c387ff44');
-      c.fillStyle = g;
-      c.fillRect(gate.x, gate.y, gate.w, gate.h);
-      c.strokeStyle = '#d4a4ff';
-      c.lineWidth = 3;
-      c.setLineDash([12, 10]);
-      c.strokeRect(gate.x, gate.y, gate.w, gate.h);
-      c.restore();
-    }
-    s.level.checkpoints.forEach((p, i) => {
-      if (!this.visible(p.x - 30, p.y - 110, 60, 120)) return;
-      const active = i <= s.checkpointIndex;
-      c.save();
-      c.strokeStyle = active ? '#97ffe1' : '#eed7ac';
-      c.lineWidth = 3;
-      c.beginPath();
-      c.moveTo(p.x, p.y);
-      c.lineTo(p.x, p.y - 100);
-      c.stroke();
-      c.shadowBlur = active ? 18 : 5;
-      c.shadowColor = c.strokeStyle;
-      c.fillStyle = c.strokeStyle;
-      c.beginPath();
-      c.moveTo(p.x, p.y - 102);
-      c.lineTo(p.x + 28, p.y - 87);
-      c.lineTo(p.x, p.y - 72);
-      c.fill();
-      c.restore();
-    });
     for (const b of s.level.barriers || []) {
-      if (s.broken?.has(b.id) || !this.visible(b.x, b.y, b.w, b.h)) continue;
-      // Signal cage: hexagonal bars that only a reflected shot can open.
+      if (!this.visible(b.x, b.y, b.w, b.h)) continue;
+      const shattered = !!s.broken?.has(b.id),
+        cage = this.image(shattered ? 'cageBroken' : 'cageIntact');
+      if (cage) {
+        // The painted empty cage lets the live warden and signal show through.
+        c.save();
+        c.globalAlpha = shattered ? 0.85 : 1;
+        c.drawImage(cage, b.x, b.y, b.w, b.h);
+        c.restore();
+        continue;
+      }
+      if (shattered) continue;
+      // Fallback: hexagonal bars that only a reflected shot can open.
       c.save();
       c.strokeStyle = '#8ce6ef';
       c.lineWidth = 3;
@@ -699,6 +777,44 @@ export class Renderer {
       c.restore();
     }
   }
+  private markers(s: RenderState) {
+    const c = this.ctx;
+    for (const gate of s.level.gravityGates || []) {
+      if (!this.visible(gate.x, gate.y, gate.w, gate.h)) continue;
+      c.save();
+      const g = c.createLinearGradient(gate.x, 0, gate.x + gate.w, 0);
+      g.addColorStop(0, '#c387ff44');
+      g.addColorStop(0.5, '#663d9910');
+      g.addColorStop(1, '#c387ff44');
+      c.fillStyle = g;
+      c.fillRect(gate.x, gate.y, gate.w, gate.h);
+      c.strokeStyle = '#d4a4ff';
+      c.lineWidth = 3;
+      c.setLineDash([12, 10]);
+      c.strokeRect(gate.x, gate.y, gate.w, gate.h);
+      c.restore();
+    }
+    s.level.checkpoints.forEach((p, i) => {
+      if (!this.visible(p.x - 30, p.y - 110, 60, 120)) return;
+      const active = i <= s.checkpointIndex;
+      c.save();
+      c.strokeStyle = active ? '#97ffe1' : '#eed7ac';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.moveTo(p.x, p.y);
+      c.lineTo(p.x, p.y - 100);
+      c.stroke();
+      c.shadowBlur = active ? 18 : 5;
+      c.shadowColor = c.strokeStyle;
+      c.fillStyle = c.strokeStyle;
+      c.beginPath();
+      c.moveTo(p.x, p.y - 102);
+      c.lineTo(p.x + 28, p.y - 87);
+      c.lineTo(p.x, p.y - 72);
+      c.fill();
+      c.restore();
+    });
+  }
   private creature(
     e: EnemyRuntime | BossRuntime,
     time: number,
@@ -706,7 +822,11 @@ export class Renderer {
     reducedMotion: boolean,
   ) {
     const c = this.ctx,
-      img = this.image(e.type);
+      // Committed dives and airborne leaps use their painted attack cels.
+      img =
+        (!boss && e.state === 'attack' ? this.image('dive-' + e.type) : null) ||
+        ('airborne' in e && e.airborne ? this.image('leap-' + e.type) : null) ||
+        this.image(e.type);
     if (!img) return;
     const visible = 'visible' in e ? e.visible : true;
     if (!visible) return;
@@ -926,12 +1046,28 @@ export class Renderer {
       c.fill();
     }
     c.restore();
-    const atlas = this.image('explosionAtlas');
+    const atlas = this.image('explosionAtlas'),
+      burst = this.image('emergence');
     for (const e of s.explosions) {
       const progress = clamp(1 - e.life / e.maxLife);
       c.save();
       c.globalAlpha = Math.min(1, (e.life / e.maxLife) * 3);
-      if (atlas) {
+      if (e.kind === 'emerge' && burst) {
+        const size = burst.naturalHeight,
+          frames = Math.max(1, Math.round(burst.naturalWidth / size)),
+          frame = Math.min(frames - 1, Math.floor(progress * frames));
+        c.drawImage(
+          burst,
+          frame * size,
+          0,
+          size,
+          size,
+          e.x - e.size / 2,
+          e.y - e.size / 2,
+          e.size,
+          e.size,
+        );
+      } else if (atlas) {
         const frame = Math.min(7, Math.floor(progress * 8));
         c.drawImage(
           atlas,

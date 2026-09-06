@@ -855,7 +855,7 @@ export default function Home() {
                     width={1440}
                     height={580}
                     unoptimized
-                    src="./assets/controller-diagram.png"
+                    src="./assets/controller.svg"
                     alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions."
                   />
                   <div className="control-notes">
