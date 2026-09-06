@@ -4,21 +4,21 @@ Generated from `hopper/design/image-requests.md` with the built-in imagegen tool
 
 ## Contents
 
-| Request | Files | Export |
-| --- | --- | --- |
-| Updated controls | `controller.svg`, `controller-diagram.png` | Editable vector + 1440×580 PNG |
-| Spring pad | `props/spring-pad.png` | 160×40; neutral cyan version |
-| Lockdown gate | `props/lockdown-wall-segment.png`, `lockdown-wall-cap.png`, `lockdown-wall.png` | 80×256 repeat, 80×120 cap, assembled 80×1690 wall |
-| Signal cage | `props/signal-cage-intact.png`, `signal-cage-broken.png` | 240×250 each; sentry and signal included |
-| Wind | `effects/wind-lane-atlas.png`, `wind-lane-0.png` through `wind-lane-2.png` | 768×256 strip; three 256×256 frames |
-| Low road | `terrain/low-road-{fields,city,mountains,foundry,harbor,launchworks,red,blue,violet}.png` | All nine regions, 470×210 each |
-| Enemy leap cels | `enemies/*-leap.png` | All 14 requested species, original per-species canvas dimensions |
-| Arena pillars | `terrain/arena-pillar-{mountains,launchworks,violet}.png` | 140×430 each |
-| Emergence burst | `effects/emergence-burst-atlas.png`, `emergence-0.png` through `emergence-7.png` | 1024×128 strip; eight 128×128 frames |
+| Request          | Files                                                                                     | Export                                                           |
+| ---------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Updated controls | `controller.svg`, `controller-diagram.png`                                                | Editable vector + 1440×580 PNG                                   |
+| Spring pad       | `props/spring-pad.png`                                                                    | 160×40; neutral cyan version                                     |
+| Lockdown gate    | `props/lockdown-wall-segment.png`, `lockdown-wall-cap.png`, `lockdown-wall.png`           | 80×256 repeat, 80×120 cap, assembled 80×1690 wall                |
+| Signal cage      | `props/signal-cage-intact.png`, `signal-cage-broken.png`                                  | 240×250 each; sentry and signal included                         |
+| Wind             | `effects/wind-lane-atlas.png`, `wind-lane-0.png` through `wind-lane-2.png`                | 768×256 strip; three 256×256 frames                              |
+| Low road         | `terrain/low-road-{fields,city,mountains,foundry,harbor,launchworks,red,blue,violet}.png` | All nine regions, 470×210 each                                   |
+| Enemy leap cels  | `enemies/*-leap.png`                                                                      | All 14 requested species, original per-species canvas dimensions |
+| Arena pillars    | `terrain/arena-pillar-{mountains,launchworks,violet}.png`                                 | 140×430 each                                                     |
+| Emergence burst  | `effects/emergence-burst-atlas.png`, `emergence-0.png` through `emergence-7.png`          | 1024×128 strip; eight 128×128 frames                             |
 
 ## Integration
 
-The live instructions diagram at `../controller-diagram.png` and its editable reference `../controller.svg` have been replaced with the updated controls. The other images are delivered assets; this change does **not** wire new animation states, props, or effects into the renderer.
+**All nine groups are now wired into the renderer.** See [`design/image-history.md`](../../../design/image-history.md) for where each one is drawn and what changed during integration. The instructions dialog draws `../controller.svg` directly; the PNG diagram is kept for the printed design document. The cage art shipped with a painted sentry and signal inside it, which the game already places live, so occupant-free derivatives (`props/signal-cage-{intact,broken}-frame.png`) were produced from these originals and are what the renderer uses.
 
 Load new assets relative to `./assets/upgrades/` to preserve GitHub Pages subpath support. Enemy cels face left where directional; use the same world anchor as the existing cel and reflect for opposite travel. They are single airborne poses, not complete animation cycles. Blend pose changes through the existing animation timing rather than scaling collision boxes to the artwork.
 
