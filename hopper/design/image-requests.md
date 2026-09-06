@@ -1,5 +1,7 @@
 # Image requests
 
+**Delivered September 6, 2026:** see [the generated image pack](../game/public/assets/upgrades/README.md) for all nine request groups, exact filenames, prompts, and integration notes. The controller PNG and [editable SVG reference](../game/public/assets/controller.svg) are updated in the live asset directory. Other sprites are supplied for renderer integration; all nine low-road regions are included. Optional regional spring recolors are not included.
+
 Assets that would replace procedural drawing or stale art. Everything listed here currently works without the image (the renderer draws a placeholder in code), so each one is a visual upgrade, not a blocker. Match the existing look: hand-painted 1970s anime cel style, hard ink outlines, flat shading, transparent PNG unless noted. Existing references: `assets/hopper-canonical-v1.png`, `assets/enemy-silhouettes.png`, `assets/boss-canonical-lineup.png`.
 
 ## 1. Controller diagram (replaces `assets/controller-diagram.png`)

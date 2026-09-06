@@ -76,7 +76,7 @@ for(let mission=0;mission<3;mission++){
  const ARM=new Set(['cragTortoise','slagCaster','ballastCrab','turbineWasp']);
  const challenge=[];
  for(let i=0;i<main.length-1;i++){
-  const a=main[i],b=main[i+1],res=arcs.find(r=>r&&r.time!==undefined&&false)||null;
+  const a=main[i],b=main[i+1];
   const arc=reachable(l,a,b);
   const gap=b.x-a.x-a.w;
   const jump=b.via==='inversion'?2:(arc?(arc.hold>=.34?2:arc.hold>=.2?1:0)+(arc.vx0===650&&arc.hold>=.34?1:0):3)+(gap>350?1:0);
