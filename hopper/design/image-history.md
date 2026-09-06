@@ -12,7 +12,12 @@ The remaining three requests (including both optional groups) were generated wit
 | Regional spring pads | `props/spring-pad-{fields,city,mountains,foundry,harbor,launchworks,red,blue,violet}.png` | Uses platform skin to select one of nine 160×40 pads, with the neutral pad as fallback |
 | Diving attack cels | `enemies/{windowRay,riftCondor,turbineWasp,phaseSkate}-dive.png` | Uses the committed pose during each attack, including the agile second pass; original per-species canvas dimensions and facing rules are retained |
 
-Original art and the previous cage derivatives remain available. These changes only affect rendering, not collision or combat timing. Verified the full contact sheet, all 15 canvas sizes and alpha channels, and all built asset copies. Typecheck, lint, the existing gameplay test suite and the Pages production build pass. No manual gameplay playthrough was performed.
+Original art remains available; the interim erased-frame cage derivatives were deleted once the painted empty pair replaced them. These changes only affect rendering, not collision or combat timing.
+
+Checked on integration: all 15 canvas sizes and alpha channels are as specified, the four dive cels match their idle sprites' canvases exactly, and each dive cel was confirmed to swap in on attack by hashing the rendered pixels in both states. All 91 images load with no failed requests or console errors. Two rendering problems surfaced and were fixed here:
+
+- **Cages drew under their occupants.** Barriers were painted in the marker pass, before creatures, so the live warden covered the bars that were meant to hold it. Cage drawing moved to its own pass after the creatures.
+- **The restored floor pedestal hid the caged signal.** The empty cages keep the pedestal the erased derivatives had lost, and its hub sat exactly where the collectible floats. Signals now draw last, after the cage, so a caged prize reads through its own bars.
 
 ## Delivered September 6, 2026 — the generated upgrade pack
 
@@ -32,10 +37,10 @@ Nine request groups, generated with the built-in imagegen tool from each existin
 
 ### Changes made during integration
 
-- **The cage art contained its own occupants.** Both `signal-cage-intact.png` and `signal-cage-broken.png` paint a sentry and a signal inside the bars, but the game already puts a live warden and a live collectible there, so using them as delivered showed two of each. The occupants were cleared programmatically from the interior of both, keeping every bar and node, and saved beside the originals as `signal-cage-intact-frame.png` and `signal-cage-broken-frame.png`. The originals are untouched. A painted occupant-free pair is the one open ask in `image-requests.md`.
+- **The cage art contained its own occupants.** Both `signal-cage-intact.png` and `signal-cage-broken.png` paint a sentry and a signal inside the bars, but the game already puts a live warden and a live collectible there, so using them as delivered showed two of each. The occupants were cleared programmatically into interim `-frame.png` derivatives, which the renderer used until the painted empty pair arrived in the follow-up delivery. Those derivatives have since been deleted; the originals are untouched.
 - **The design folder's controller art was stale.** `design/assets/controller-diagram.png` and `design/source/controller.svg` were still the pre-parry versions, so the built Word and PDF design documents showed "B · FORCE SHIELD". Both were replaced with the delivered files.
 - **The live PNG diagram was retired.** `game/public/assets/controller-diagram.png` is gone; the game uses the 4 KB SVG, which is sharper at television sizes than the 110 KB raster it replaced. The PNG survives in `design/assets/` for the document build and in the delivery pack.
-- **Unused variants were left in place.** The pack also ships single frames beside each atlas, an assembled `lockdown-wall.png`, and its own copies of the controller files. The renderer uses the atlases and the segment/cap pair; the rest stay as the delivery record.
+- **Unused variants were left in place.** The pack also ships single frames beside each atlas, an assembled `lockdown-wall.png`, the unsuffixed cages with their painted occupants, and its own copies of the controller files. The renderer uses the atlases, the segment/cap pair and the `-empty` cages; the rest stay as the delivery record and add roughly a megabyte to what GitHub Pages serves without being fetched by the game.
 
 ### Verified
 

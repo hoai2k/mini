@@ -180,6 +180,7 @@ export class Renderer {
       this.visible(s.combat.boss.x - 650, s.combat.boss.y - 700, 1300, 1000)
     )
       this.creature(s.combat.boss, s.time, true, s.player.reducedMotion);
+    this.cages(s);
     this.projectiles(s);
     this.player(s);
     if (s.player.blocking) {
@@ -715,43 +716,11 @@ export class Renderer {
     }
     c.restore();
   }
-  private markers(s: RenderState) {
+  /** Signal cages draw after the creatures inside them, so the bars occlude the
+   * warden the way a cage should. The signals themselves come last, so a caged
+   * prize stays visible through its own bars. */
+  private cages(s: RenderState) {
     const c = this.ctx;
-    for (const gate of s.level.gravityGates || []) {
-      if (!this.visible(gate.x, gate.y, gate.w, gate.h)) continue;
-      c.save();
-      const g = c.createLinearGradient(gate.x, 0, gate.x + gate.w, 0);
-      g.addColorStop(0, '#c387ff44');
-      g.addColorStop(0.5, '#663d9910');
-      g.addColorStop(1, '#c387ff44');
-      c.fillStyle = g;
-      c.fillRect(gate.x, gate.y, gate.w, gate.h);
-      c.strokeStyle = '#d4a4ff';
-      c.lineWidth = 3;
-      c.setLineDash([12, 10]);
-      c.strokeRect(gate.x, gate.y, gate.w, gate.h);
-      c.restore();
-    }
-    s.level.checkpoints.forEach((p, i) => {
-      if (!this.visible(p.x - 30, p.y - 110, 60, 120)) return;
-      const active = i <= s.checkpointIndex;
-      c.save();
-      c.strokeStyle = active ? '#97ffe1' : '#eed7ac';
-      c.lineWidth = 3;
-      c.beginPath();
-      c.moveTo(p.x, p.y);
-      c.lineTo(p.x, p.y - 100);
-      c.stroke();
-      c.shadowBlur = active ? 18 : 5;
-      c.shadowColor = c.strokeStyle;
-      c.fillStyle = c.strokeStyle;
-      c.beginPath();
-      c.moveTo(p.x, p.y - 102);
-      c.lineTo(p.x + 28, p.y - 87);
-      c.lineTo(p.x, p.y - 72);
-      c.fill();
-      c.restore();
-    });
     for (const b of s.level.barriers || []) {
       if (!this.visible(b.x, b.y, b.w, b.h)) continue;
       const shattered = !!s.broken?.has(b.id),
@@ -765,7 +734,7 @@ export class Renderer {
         continue;
       }
       if (shattered) continue;
-      // Signal cage: hexagonal bars that only a reflected shot can open.
+      // Fallback: hexagonal bars that only a reflected shot can open.
       c.save();
       c.strokeStyle = '#8ce6ef';
       c.lineWidth = 3;
@@ -807,6 +776,44 @@ export class Renderer {
       c.strokeRect(-15, -15, 30, 30);
       c.restore();
     }
+  }
+  private markers(s: RenderState) {
+    const c = this.ctx;
+    for (const gate of s.level.gravityGates || []) {
+      if (!this.visible(gate.x, gate.y, gate.w, gate.h)) continue;
+      c.save();
+      const g = c.createLinearGradient(gate.x, 0, gate.x + gate.w, 0);
+      g.addColorStop(0, '#c387ff44');
+      g.addColorStop(0.5, '#663d9910');
+      g.addColorStop(1, '#c387ff44');
+      c.fillStyle = g;
+      c.fillRect(gate.x, gate.y, gate.w, gate.h);
+      c.strokeStyle = '#d4a4ff';
+      c.lineWidth = 3;
+      c.setLineDash([12, 10]);
+      c.strokeRect(gate.x, gate.y, gate.w, gate.h);
+      c.restore();
+    }
+    s.level.checkpoints.forEach((p, i) => {
+      if (!this.visible(p.x - 30, p.y - 110, 60, 120)) return;
+      const active = i <= s.checkpointIndex;
+      c.save();
+      c.strokeStyle = active ? '#97ffe1' : '#eed7ac';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.moveTo(p.x, p.y);
+      c.lineTo(p.x, p.y - 100);
+      c.stroke();
+      c.shadowBlur = active ? 18 : 5;
+      c.shadowColor = c.strokeStyle;
+      c.fillStyle = c.strokeStyle;
+      c.beginPath();
+      c.moveTo(p.x, p.y - 102);
+      c.lineTo(p.x + 28, p.y - 87);
+      c.lineTo(p.x, p.y - 72);
+      c.fill();
+      c.restore();
+    });
   }
   private creature(
     e: EnemyRuntime | BossRuntime,

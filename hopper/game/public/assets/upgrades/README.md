@@ -4,7 +4,7 @@ Generated from `hopper/design/image-requests.md` with the built-in imagegen tool
 
 ## Follow-up delivery
 
-The 15 follow-up assets are recorded in [`followup-manifest.json`](followup-manifest.json): two empty cages with intact floor pedestals, nine regional spring pad colors, and four committed diving attack cels. They are wired into the renderer. Empty cages use the `-empty.png` suffix; the older originals and erased frame derivatives remain as history.
+The 15 follow-up assets are recorded in [`followup-manifest.json`](followup-manifest.json): two empty cages with intact floor pedestals, nine regional spring pad colors, and four committed diving attack cels. They are wired into the renderer. Empty cages use the `-empty.png` suffix; the unsuffixed originals with their painted occupants remain as history, and the interim erased `-frame` derivatives have been deleted now that they are superseded.
 
 ## Contents
 
@@ -22,7 +22,7 @@ The 15 follow-up assets are recorded in [`followup-manifest.json`](followup-mani
 
 ## Integration
 
-**All nine groups are now wired into the renderer.** See [`design/image-history.md`](../../../design/image-history.md) for where each one is drawn and what changed during integration. The instructions dialog draws `../controller.svg` directly; the PNG diagram is kept for the printed design document. The cage art shipped with a painted sentry and signal inside it, which the game already places live, so occupant-free derivatives (`props/signal-cage-{intact,broken}-frame.png`) were produced from these originals and were used until the painted empty pair arrived. The renderer now uses `props/signal-cage-{intact,broken}-empty.png`.
+**All nine groups are now wired into the renderer.** See [`design/image-history.md`](../../../design/image-history.md) for where each one is drawn and what changed during integration. The instructions dialog draws `../controller.svg` directly; the PNG diagram is kept for the printed design document. The cage art shipped with a painted sentry and signal inside it, which the game already places live, so occupant-free derivatives were produced from these originals and used until the painted empty pair arrived. The renderer now uses `props/signal-cage-{intact,broken}-empty.png`, drawn after the creatures inside them so the bars occlude the warden, with the signal drawn last so a caged prize stays visible.
 
 Load new assets relative to `./assets/upgrades/` to preserve GitHub Pages subpath support. Enemy cels face left where directional; use the same world anchor as the existing cel and reflect for opposite travel. They are single airborne poses, not complete animation cycles. Blend pose changes through the existing animation timing rather than scaling collision boxes to the artwork.
 
