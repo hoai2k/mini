@@ -4,21 +4,25 @@ Generated from `hopper/design/image-requests.md` with the built-in imagegen tool
 
 ## Follow-up delivery
 
-The 15 follow-up assets are recorded in [`followup-manifest.json`](followup-manifest.json): two empty cages with intact floor pedestals, nine regional spring pad colors, and four committed diving attack cels. They are wired into the renderer. Empty cages use the `-empty.png` suffix; the unsuffixed originals with their painted occupants remain as history, and the interim erased `-frame` derivatives have been deleted now that they are superseded.
+The 15 follow-up assets are recorded in [`followup-manifest.json`](followup-manifest.json): two empty cages with intact floor pedestals, nine regional spring pad colors, and four committed diving attack cels. They are wired into the renderer. Empty cages use the `-empty.png` suffix; the unsuffixed originals with their painted occupants now sit in `reference/props/`, and the interim erased `-frame` derivatives have been deleted now that they are superseded.
+
+## What the game loads, and what is reference
+
+Everything outside `reference/` is loaded by the renderer at runtime. `reference/` holds the 16 images the game never fetches: the pack's own copies of the controller diagram and vector, the assembled full-height lockdown wall, the original cages with their painted occupants, and the single frames that sit beside each atlas. They are kept as the delivery record and as the source for future edits.
 
 ## Contents
 
-| Request          | Files                                                                                     | Export                                                           |
-| ---------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Updated controls | `controller.svg`, `controller-diagram.png`                                                | Editable vector + 1440×580 PNG                                   |
-| Spring pad       | `props/spring-pad.png`                                                                    | 160×40; neutral cyan version                                     |
-| Lockdown gate    | `props/lockdown-wall-segment.png`, `lockdown-wall-cap.png`, `lockdown-wall.png`           | 80×256 repeat, 80×120 cap, assembled 80×1690 wall                |
-| Signal cage      | `props/signal-cage-intact.png`, `signal-cage-broken.png`                                  | 240×250 each; sentry and signal included                         |
-| Wind             | `effects/wind-lane-atlas.png`, `wind-lane-0.png` through `wind-lane-2.png`                | 768×256 strip; three 256×256 frames                              |
-| Low road         | `terrain/low-road-{fields,city,mountains,foundry,harbor,launchworks,red,blue,violet}.png` | All nine regions, 470×210 each                                   |
-| Enemy leap cels  | `enemies/*-leap.png`                                                                      | All 14 requested species, original per-species canvas dimensions |
-| Arena pillars    | `terrain/arena-pillar-{mountains,launchworks,violet}.png`                                 | 140×430 each                                                     |
-| Emergence burst  | `effects/emergence-burst-atlas.png`, `emergence-0.png` through `emergence-7.png`          | 1024×128 strip; eight 128×128 frames                             |
+| Request          | Files                                                                                            | Export                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Updated controls | `reference/controller.svg`, `reference/controller-diagram.png`                                   | Editable vector + 1440×580 PNG; the live copies are in `assets/`                                  |
+| Spring pad       | `props/spring-pad.png`                                                                           | 160×40; neutral cyan version                                                                      |
+| Lockdown gate    | `props/lockdown-wall-segment.png`, `lockdown-wall-cap.png`, `reference/props/lockdown-wall.png`  | 80×256 repeat, 80×120 cap, assembled 80×1690 wall                                                 |
+| Signal cage      | `reference/props/signal-cage-{intact,broken}.png`, `props/signal-cage-{intact,broken}-empty.png` | 240×250 each; the originals include a sentry and signal, the `-empty` pair is what the game draws |
+| Wind             | `effects/wind-lane-atlas.png`, `reference/effects/wind-lane-0.png` through `-2.png`              | 768×256 strip; three 256×256 frames                                                               |
+| Low road         | `terrain/low-road-{fields,city,mountains,foundry,harbor,launchworks,red,blue,violet}.png`        | All nine regions, 470×210 each                                                                    |
+| Enemy leap cels  | `enemies/*-leap.png`                                                                             | All 14 requested species, original per-species canvas dimensions                                  |
+| Arena pillars    | `terrain/arena-pillar-{mountains,launchworks,violet}.png`                                        | 140×430 each                                                                                      |
+| Emergence burst  | `effects/emergence-burst-atlas.png`, `reference/effects/emergence-0.png` through `-7.png`        | 1024×128 strip; eight 128×128 frames                                                              |
 
 ## Integration
 

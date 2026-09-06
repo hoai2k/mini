@@ -8,7 +8,7 @@
       "height": 250,
       "alpha": true,
       "prompt": "Use case: precise-object-edit. Create a new empty intact signal cage sprite matching the attached reference exactly in style, palette, hexagonal perspective and footprint. Remove the creature, cannon and floating golden diamond entirely. Keep the glowing cyan floor pedestal including its concentric rings, hexagonal upper and lower frame and nodes. All SIX vertical cyan bars must be complete and undamaged. Interior entirely empty. 1970s hand-painted anime cel, hard ink outlines, flat shading. Full object with small clear margins, canvas aspect 240:250. Actual transparent PNG background and transparent empty interior, no checkerboard, no backdrop, no text.",
-      "reference": "upgrades/props/signal-cage-intact.png",
+      "reference": "upgrades/reference/props/signal-cage-intact.png",
       "generatedMaster": "exec-7de1ecfd-f531-4865-8c6c-32a32b923995.png",
       "correctionPrompt": "Create a transparent background cutout of this game sprite. The surrounding background and all empty gaps inside the object must be fully transparent (alpha 0). Keep only the colored game object, preserve its current geometry and artwork, remove the entire light gray and white checkerboard. This is a transparent PNG sprite asset, not a preview of transparency. Preserve full silhouette, no cropping."
     },
@@ -18,7 +18,7 @@
       "height": 250,
       "alpha": true,
       "prompt": "Use case: precise-object-edit. Create a new empty shattered signal cage sprite matching the attached reference exactly in style, palette, hexagonal perspective and footprint. Remove the creature, cannon and floating golden diamond entirely. Keep the glowing cyan floor pedestal including its concentric rings, hexagonal upper and lower frame and nodes. Bars shattered outward with scattered debris; retain the floor pedestal and frame. Interior entirely empty. 1970s hand-painted anime cel, hard ink outlines, flat shading. Full object with small clear margins, canvas aspect 240:250. Actual transparent PNG background and transparent empty interior, no checkerboard, no backdrop, no text.",
-      "reference": "upgrades/props/signal-cage-broken.png",
+      "reference": "upgrades/reference/props/signal-cage-broken.png",
       "generatedMaster": "exec-06fdb0fc-a774-416a-92e3-c261acb8f5ba.png"
     },
     {

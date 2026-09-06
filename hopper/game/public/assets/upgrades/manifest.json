@@ -155,28 +155,28 @@
       "loop": true
     },
     {
-      "file": "effects/wind-lane-0.png",
+      "file": "reference/effects/wind-lane-0.png",
       "width": 256,
       "height": 256,
       "alpha": true,
       "frame": 0
     },
     {
-      "file": "effects/wind-lane-1.png",
+      "file": "reference/effects/wind-lane-1.png",
       "width": 256,
       "height": 256,
       "alpha": true,
       "frame": 1
     },
     {
-      "file": "effects/wind-lane-2.png",
+      "file": "reference/effects/wind-lane-2.png",
       "width": 256,
       "height": 256,
       "alpha": true,
       "frame": 2
     },
     {
-      "file": "props/signal-cage-intact.png",
+      "file": "reference/props/signal-cage-intact.png",
       "width": 240,
       "height": 250,
       "alpha": true,
@@ -244,56 +244,56 @@
       "generatedMaster": "terrain--arena-pillar-launchworks.png"
     },
     {
-      "file": "effects/emergence-0.png",
+      "file": "reference/effects/emergence-0.png",
       "width": 128,
       "height": 128,
       "alpha": true,
       "frame": 0
     },
     {
-      "file": "effects/emergence-1.png",
+      "file": "reference/effects/emergence-1.png",
       "width": 128,
       "height": 128,
       "alpha": true,
       "frame": 1
     },
     {
-      "file": "effects/emergence-2.png",
+      "file": "reference/effects/emergence-2.png",
       "width": 128,
       "height": 128,
       "alpha": true,
       "frame": 2
     },
     {
-      "file": "effects/emergence-3.png",
+      "file": "reference/effects/emergence-3.png",
       "width": 128,
       "height": 128,
       "alpha": true,
       "frame": 3
     },
     {
-      "file": "effects/emergence-4.png",
+      "file": "reference/effects/emergence-4.png",
       "width": 128,
       "height": 128,
       "alpha": true,
       "frame": 4
     },
     {
-      "file": "effects/emergence-5.png",
+      "file": "reference/effects/emergence-5.png",
       "width": 128,
       "height": 128,
       "alpha": true,
       "frame": 5
     },
     {
-      "file": "effects/emergence-6.png",
+      "file": "reference/effects/emergence-6.png",
       "width": 128,
       "height": 128,
       "alpha": true,
       "frame": 6
     },
     {
-      "file": "effects/emergence-7.png",
+      "file": "reference/effects/emergence-7.png",
       "width": 128,
       "height": 128,
       "alpha": true,
@@ -314,7 +314,7 @@
       "loop": false
     },
     {
-      "file": "props/signal-cage-broken.png",
+      "file": "reference/props/signal-cage-broken.png",
       "width": 240,
       "height": 250,
       "alpha": true,
@@ -394,7 +394,7 @@
       "opaqueBackdrop": true
     },
     {
-      "file": "props/lockdown-wall.png",
+      "file": "reference/props/lockdown-wall.png",
       "width": 80,
       "height": 1690,
       "alpha": true,
@@ -404,7 +404,7 @@
       ]
     },
     {
-      "file": "controller-diagram.png",
+      "file": "reference/controller-diagram.png",
       "width": 1440,
       "height": 580,
       "alpha": false,
