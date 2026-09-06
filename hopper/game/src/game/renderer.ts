@@ -173,12 +173,12 @@ export class Renderer {
     this.markers(s);
     for (const e of s.combat.enemies)
       if (e.alive && this.visible(e.x - e.w, e.y - e.h, e.w * 2, e.h * 2))
-        this.creature(e, s.time, false);
+        this.creature(e, s.time, false, s.player.reducedMotion);
     if (
       s.combat.boss.alive &&
       this.visible(s.combat.boss.x - 650, s.combat.boss.y - 700, 1300, 1000)
     )
-      this.creature(s.combat.boss, s.time, true);
+      this.creature(s.combat.boss, s.time, true, s.player.reducedMotion);
     this.projectiles(s);
     this.player(s);
     if (s.player.blocking) {
@@ -699,7 +699,12 @@ export class Renderer {
       c.restore();
     }
   }
-  private creature(e: EnemyRuntime | BossRuntime, time: number, boss: boolean) {
+  private creature(
+    e: EnemyRuntime | BossRuntime,
+    time: number,
+    boss: boolean,
+    reducedMotion: boolean,
+  ) {
     const c = this.ctx,
       img = this.image(e.type);
     if (!img) return;
@@ -721,11 +726,31 @@ export class Renderer {
               ? 380
               : 460,
         )
-      : Math.max(e.h, FLYING.has(e.type) ? 105 : 100);
-    const maxW = boss ? Math.max(e.w, 330) : Math.max(e.w, 125),
+      : Math.max(e.h, FLYING.has(e.type) ? 138 : 132);
+    const maxW = boss ? Math.max(e.w, 360) : Math.max(e.w, 165),
       fit = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight),
       w = img.naturalWidth * fit,
       h = img.naturalHeight * fit;
+    // Most hostiles are near-black silhouettes and the stages are dark, so each
+    // one sits on a soft red aura that separates it from the background.
+    const cx = e.x,
+      cy = e.y + e.bob - h * 0.46,
+      auraR = Math.max(w, h) * (boss ? 0.78 : 0.72),
+      pulse = reducedMotion
+        ? 0.5
+        : 0.5 + Math.sin(time * 3.1 + e.sequence) * 0.5;
+    c.save();
+    c.globalCompositeOperation = 'lighter';
+    c.globalAlpha = (boss ? 0.34 : 0.28) + pulse * 0.12;
+    const aura = c.createRadialGradient(cx, cy, auraR * 0.12, cx, cy, auraR);
+    aura.addColorStop(0, 'rgba(255,92,86,0.55)');
+    aura.addColorStop(0.45, 'rgba(214,42,52,0.28)');
+    aura.addColorStop(1, 'rgba(120,12,26,0)');
+    c.fillStyle = aura;
+    c.beginPath();
+    c.arc(cx, cy, auraR, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
     c.save();
     c.translate(e.x, e.y + e.bob);
     c.scale(facing * e.scaleX, e.scaleY);
@@ -733,6 +758,11 @@ export class Renderer {
     if (e.glow > 0) {
       c.shadowColor = e.open > 0 ? '#ffe7a4' : '#db8dff';
       c.shadowBlur = 12 + e.glow * 25;
+    } else {
+      // A red rim traces the silhouette itself, so the outline stays readable
+      // even where the aura falls on a bright piece of background.
+      c.shadowColor = 'rgba(255,74,74,0.85)';
+      c.shadowBlur = 14 + pulse * 6;
     }
     c.drawImage(img, -w / 2, -h, w, h);
     c.restore();

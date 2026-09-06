@@ -476,9 +476,11 @@ export class CombatWorld {
       const flying = FLYERS.has(e.type),
         dx = p.x - e.x,
         near = Math.abs(dx) < 820;
+      // Idle motion is a readability aid as much as a flourish: a still black
+      // silhouette disappears into a dark stage, a drifting one does not.
       e.bob = flying
-        ? Math.sin(time * 2.5 + e.spriteIndex) * 9
-        : Math.sin(time * 9 + e.sequence) * 2;
+        ? Math.sin(time * 2.5 + e.spriteIndex) * 13
+        : Math.sin(time * 4 + e.sequence) * 5;
       e.scaleX = 1;
       e.scaleY = 1;
       e.visible =
