@@ -187,6 +187,17 @@ button {
   width: 19px;
   height: 19px;
 }
+/* Sound off is a state to fix, not a neutral toggle: it stays lit so a player
+   whose browser refused music can see which button to press. */
+.corner-controls button.sound-off,
+.hud-right button.sound-off {
+  border-color: #f0c07d;
+  color: #ffdda4;
+  background: #4a2f1a8c;
+}
+.corner-controls button.sound-off {
+  animation: breathe 2.4s ease-in-out infinite;
+}
 /* Play-select: the same poster, split into episodes on the left and the
    controller reference on the right. */
 .select-shade {

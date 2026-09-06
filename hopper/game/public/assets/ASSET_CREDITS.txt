@@ -1,7 +1,8 @@
 HOPPER THE GRASSHOPPER — ASSET RECORD
-Original inspiration and both music recordings supplied by the user.
+Original inspiration and all three music recordings supplied by the user.
 Title/menu recording: Hopper the Grasshopper.mp3
-Gameplay recording: Grass March 1.mp3
+Gameplay recording, episodes one and two: Grass March 1.mp3
+Gameplay recording, episode three (alien world): Dark Moon.mp3
 Character, logo, icon, environment, monster, boss, platform and explosion raster artwork generated with ImageGen for this project.
 Hopper animation derivatives use the approved canonical model reference and registered foot/eye anchors.
 Individual scenery and monster images were extracted from generated production sheets; transparency and edge colors were cleaned during export.

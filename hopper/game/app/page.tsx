@@ -13,6 +13,8 @@ import {
   RotateCcw,
   ChevronRight,
   Gamepad2,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { InputManager } from '@/src/game/input';
 import { GameAudio } from '@/src/game/audio';
@@ -67,6 +69,9 @@ export default function Home() {
     settingsRef = useRef(initial),
     [focus, setFocus] = useState(0),
     focusRef = useRef(0);
+  // Sound reads off when the player muted it or when the browser is still
+  // refusing music: either way the button is the thing to press.
+  const [soundOff, setSoundOff] = useState(false);
   const [hud, setHud] = useState<GameSnapshot | null>(null),
     [saved, setSaved] = useState(false),
     [unlocked, setUnlocked] = useState(0);
@@ -121,6 +126,7 @@ export default function Home() {
   }
   function begin(mission = 0, resume = false) {
     if (!ready) return;
+    audio.current?.setLevelTrack(mission);
     audio.current?.setScene('gameplay');
     audio.current?.setDucked(false);
     void audio.current?.unlock();
@@ -131,6 +137,25 @@ export default function Home() {
     engine.current?.start(mission, resume);
     change('playing');
     setNotice('');
+  }
+  /**
+   * The button does what its icon promises. Deriving that from the audio at
+   * click time would race the pointerdown unlock, which has already started
+   * the music by then and would turn a "sound on" press into a mute.
+   */
+  function toggleSound() {
+    const a = audio.current;
+    if (!a) return;
+    const turningOn = soundOff;
+    a.setMuted(!turningOn);
+    if (turningOn) {
+      void a.unlock();
+      a.retryMusic();
+    }
+    setSoundOff(!turningOn);
+    try {
+      localStorage.setItem('hopper.muted', turningOn ? '' : '1');
+    } catch {}
   }
   function open(next: Screen) {
     returnTo.current =
@@ -158,6 +183,7 @@ export default function Home() {
     fullscreen,
     setting,
     enterSelect,
+    toggleSound,
   });
   useLayoutEffect(() => {
     actionsRef.current = {
@@ -168,6 +194,7 @@ export default function Home() {
       fullscreen,
       setting,
       enterSelect,
+      toggleSound,
     };
   });
   useEffect(() => {
@@ -175,9 +202,23 @@ export default function Home() {
       raf = 0,
       previous = performance.now(),
       uiClock = 0;
-    const a = new GameAudio('./audio/theme.mp3', './audio/grass-march.mp3'),
+    const a = new GameAudio('./audio/theme.mp3', [
+        './audio/grass-march.mp3',
+        './audio/grass-march.mp3',
+        './audio/dark-moon.mp3',
+      ]),
       i = new InputManager(canvas.current!);
     audio.current = a;
+    // Restore a saved mute before the theme is asked to play, so a muted
+    // player never hears the opening bar.
+    let startMuted = false;
+    try {
+      startMuted = !!localStorage.getItem('hopper.muted');
+    } catch {}
+    if (startMuted) a.setMuted(true);
+    queueMicrotask(() => {
+      if (alive) setSoundOff(startMuted);
+    });
     a.setScene('menu');
     input.current = i;
     let s = initial;
@@ -389,6 +430,7 @@ export default function Home() {
       uiClock += dt;
       if (uiClock > 0.2) {
         setConnected(f.connected);
+        setSoundOff(a.isMuted() || a.musicBlocked());
         uiClock = 0;
       }
       if (f.disconnected && screenRef.current === 'playing') {
@@ -667,13 +709,23 @@ export default function Home() {
             <Button
               {...nav(episodeBase + 5)}
               size="icon"
+              className={soundOff ? 'sound-off' : ''}
+              onClick={toggleSound}
+              aria-label={soundOff ? 'Turn sound on' : 'Turn sound off'}
+              aria-pressed={soundOff}
+            >
+              {soundOff ? <VolumeX /> : <Volume2 />}
+            </Button>
+            <Button
+              {...nav(episodeBase + 6)}
+              size="icon"
               onClick={() => open('settings')}
               aria-label="Settings"
             >
               <Settings />
             </Button>
             <Button
-              {...nav(episodeBase + 6)}
+              {...nav(episodeBase + 7)}
               size="icon"
               onClick={fullscreen}
               aria-label="Fullscreen"
@@ -736,6 +788,15 @@ export default function Home() {
               <span className="signal-count">
                 ✧ {hud.signals} <small>/ 9</small>
               </span>
+              <Button
+                size="icon"
+                className={soundOff ? 'sound-off' : ''}
+                onClick={toggleSound}
+                aria-label={soundOff ? 'Turn sound on' : 'Turn sound off'}
+                aria-pressed={soundOff}
+              >
+                {soundOff ? <VolumeX /> : <Volume2 />}
+              </Button>
               <Button size="icon" onClick={fullscreen} aria-label="Fullscreen">
                 <Maximize />
               </Button>

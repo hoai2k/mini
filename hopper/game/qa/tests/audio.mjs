@@ -281,6 +281,34 @@ const settledPlays = refusedTheme.plays;
 refused.retryMusic();
 assert.equal(refusedTheme.plays, settledPlays, 'playing music is left alone');
 refused.dispose();
+// Episodes pick their own level track, and a repeated URL is one element, so
+// two episodes sharing a march also share its position.
+const campaign = new GameAudio('/theme.mp3', [
+    '/grass-march.mp3',
+    '/grass-march.mp3',
+    '/dark-moon.mp3',
+  ]),
+  [campaignTheme, march, darkMoon] = tracks.slice(-3);
+assert.equal(march.url, '/grass-march.mp3');
+assert.equal(darkMoon.url, '/dark-moon.mp3', 'a shared URL is not duplicated');
+assert(darkMoon.loop && darkMoon.preload === 'metadata');
+campaign.setLevelTrack(1);
+campaign.playLevel();
+assert(!march.paused && darkMoon.paused, 'episode two keeps the march');
+march.currentTime = 12.5;
+campaign.setLevelTrack(2);
+assert(march.paused && !darkMoon.paused, 'episode three switches to dark moon');
+assert.equal(march.currentTime, 12.5, 'and the march keeps its position');
+campaign.setLevelTrack(0);
+assert(!march.paused && darkMoon.paused, 'episode one shares the march');
+campaign.setLevelTrack(9);
+assert(!march.paused, 'an unknown episode falls back to the first track');
+campaign.playTheme();
+assert(!campaignTheme.paused && march.paused && darkMoon.paused);
+assert(!campaign.isMuted());
+campaign.setMuted(true);
+assert(campaign.isMuted(), 'the mute state is readable for the UI toggle');
+campaign.dispose();
 console.log(
-  'PASS: two-track routing, immediate autoplay attempt with refusal retry, no overlap, independent positions, pause/resume, pause ducking, background suspension, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
+  'PASS: per-episode track routing, immediate autoplay attempt with refusal retry, no overlap, independent positions, pause/resume, pause ducking, background suspension, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
 );

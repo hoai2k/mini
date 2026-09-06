@@ -16,7 +16,9 @@ export type MusicScene = 'menu' | 'gameplay';
 /** Music uses the supplied recording; Web Audio supplies short, rate-limited arcade effects. */
 export class GameAudio {
   private theme: HTMLAudioElement;
-  private level: HTMLAudioElement;
+  /** One entry per episode; entries may share an element when they share a track. */
+  private levels: HTMLAudioElement[];
+  private levelIndex = 0;
   private scene: MusicScene = 'menu';
   private context: AudioContext | null = null;
   private output: GainNode | null = null;
@@ -36,9 +38,22 @@ export class GameAudio {
   private lastEffect = new Map<SoundEffect, number>();
   private voices = 0;
 
-  constructor(themeUrl: string, levelUrl?: string) {
+  /**
+   * One menu theme and a level track per episode. Repeating a URL reuses the
+   * same element, so episodes sharing a track also share its position.
+   */
+  constructor(themeUrl: string, levelUrls: string | string[] = []) {
     this.theme = new Audio(themeUrl);
-    this.level = levelUrl ? new Audio(levelUrl) : this.theme;
+    const byUrl = new Map<string, HTMLAudioElement>();
+    this.levels = (Array.isArray(levelUrls) ? levelUrls : [levelUrls]).map(
+      (url) => {
+        const existing = byUrl.get(url);
+        if (existing) return existing;
+        const track = new Audio(url);
+        byUrl.set(url, track);
+        return track;
+      },
+    );
     for (const track of this.tracks()) {
       track.loop = true;
       track.preload = 'metadata';
@@ -47,11 +62,29 @@ export class GameAudio {
   }
 
   private tracks(): HTMLAudioElement[] {
-    return this.level === this.theme ? [this.theme] : [this.theme, this.level];
+    const unique: HTMLAudioElement[] = [this.theme];
+    for (const track of this.levels)
+      if (!unique.includes(track)) unique.push(track);
+    return unique;
   }
 
   private selectedTrack(): HTMLAudioElement {
-    return this.scene === 'gameplay' ? this.level : this.theme;
+    return (
+      (this.scene === 'gameplay' ? this.levels[this.levelIndex] : null) ||
+      this.theme
+    );
+  }
+
+  /** Choose the episode's track. Out-of-range falls back to the first one. */
+  setLevelTrack(index: number): void {
+    if (this.disposed) return;
+    const next =
+      Number.isInteger(index) && index >= 0 && index < this.levels.length
+        ? index
+        : 0;
+    if (next === this.levelIndex) return;
+    this.levelIndex = next;
+    if (this.scene === 'gameplay') void this.playSelected();
   }
 
   /** Stop the outgoing track before starting another; never reset either position. */
@@ -194,6 +227,9 @@ export class GameAudio {
   setMuted(muted: boolean): void {
     this.muted = muted;
     this.applyVolumes();
+  }
+  isMuted(): boolean {
+    return this.muted;
   }
   /** Pause and its sub-menus lower the playing track instead of switching it. */
   setDucked(ducked: boolean): void {
