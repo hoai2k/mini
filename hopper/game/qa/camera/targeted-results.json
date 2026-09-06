@@ -1,0 +1,74 @@
+{
+  "tap": {
+    "cameraYSpan": 0,
+    "minLogicalHeadMargin": 409.4768333333333,
+    "minFullAtlasMargin": 369.1643333333333,
+    "maxRise": 130.52316666666673,
+    "landed": true
+  },
+  "fullNormal": {
+    "cameraYSpan": 0,
+    "minLogicalHeadMargin": 140.11500000000046,
+    "minFullAtlasMargin": 99.80250000000046,
+    "maxRise": 399.88499999999954,
+    "landed": true
+  },
+  "fullBlue": {
+    "cameraYSpan": 178.28559373814716,
+    "minLogicalHeadMargin": 65.21491754467053,
+    "minFullAtlasMargin": 24.902417544670527,
+    "maxRise": 625.8998333333343,
+    "landed": true
+  },
+  "fastGroundReversals": {
+    "cameraLeadMin": 330,
+    "cameraLeadMax": 330,
+    "leadDirectionFlips": 0
+  },
+  "sustainedReversal": {
+    "earliestFlipSeconds": 0.425,
+    "finalLead": -207.69846302342057
+  },
+  "airBrake": {
+    "changedInAir": false,
+    "brakeVelocity": -270,
+    "landed": true,
+    "facingOnLanding": 1,
+    "facingNextGroundTick": -1
+  },
+  "shield": {
+    "shieldStart": 0.9989166666666667,
+    "afterHit": 0.7989166666666667,
+    "hpStart": 7,
+    "hitHp": 7,
+    "breakAt": 0.9916666666666667,
+    "shieldWhenBroken": 0,
+    "blockingWhenBroken": false,
+    "hpAtBreak": 7,
+    "afterBreakHp": 6,
+    "recharged": 1
+  },
+  "controllerB": {
+    "blockHeld": true,
+    "backPressed": true,
+    "pausePressed": false
+  },
+  "landingPose": {
+    "far": "rise",
+    "near": "fall"
+  },
+  "checks": {
+    "flatTapStable": true,
+    "flatFullJumpStable": true,
+    "blueHeadVisible": true,
+    "noRapidLeadFlip": true,
+    "airFacingStable": true,
+    "facingTurnsAfterLanding": true,
+    "blockProtects": true,
+    "shieldBreaks": true,
+    "brokenAllowsDamage": true,
+    "shieldRecharges": true,
+    "BMapsToBlock": true
+  },
+  "failures": []
+}

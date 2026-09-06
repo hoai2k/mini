@@ -1,0 +1,22 @@
+# Local dependencies, caches, previews, and preserved pre-upload Git history.
+/local/
+
+# Also ignore compatibility symlinks and anything tools regenerate in place.
+**/node_modules
+**/.pnpm-store
+**/.next
+**/.vinext
+**/.wrangler
+**/dist
+**/out
+**/coverage
+**/next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+*.log
+.env*
+!.env.example
+!.env.template
+**/.vercel
+**/qa/screens
+/hopper/design/qa

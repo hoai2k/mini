@@ -1,0 +1,8 @@
+HOPPER THE GRASSHOPPER — ASSET RECORD
+Original inspiration and both music recordings supplied by the user.
+Title/menu recording: Hopper the Grasshopper.mp3
+Gameplay recording: Grass March 1.mp3
+Character, logo, icon, environment, monster, boss, platform and explosion raster artwork generated with ImageGen for this project.
+Hopper animation derivatives use the approved canonical model reference and registered foot/eye anchors.
+Individual scenery and monster images were extracted from generated production sheets; transparency and edge colors were cleaned during export.
+Xbox controller diagram is an authored instructional SVG. Xbox is a trademark of Microsoft; this independent game is not affiliated with Microsoft.

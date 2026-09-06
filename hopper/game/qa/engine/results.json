@@ -1,0 +1,30 @@
+{
+  "counts": [
+    {
+      "mission": 0,
+      "passed": 270,
+      "total": 270
+    },
+    {
+      "mission": 1,
+      "passed": 270,
+      "total": 270
+    },
+    {
+      "mission": 2,
+      "passed": 270,
+      "total": 270
+    }
+  ],
+  "failures": [],
+  "gravityGallery": {
+    "inverted": true,
+    "ceiling": true,
+    "exited": true,
+    "recovered": true,
+    "final": {
+      "x": 173489.98611111002,
+      "y": -3463
+    }
+  }
+}

@@ -1,0 +1,2724 @@
+{
+  "method": "Offscreen native Canvas execution of unchanged production renderer/animation/level/combat modules. Not browser UI or physical-controller testing.",
+  "count": 100,
+  "records": [
+    {
+      "name": "world0-area0-idle",
+      "mission": 0,
+      "area": 0,
+      "pose": "idle",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world0-area0-run",
+      "mission": 0,
+      "area": 0,
+      "pose": "run",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.6328398604487
+      }
+    },
+    {
+      "name": "world0-area0-rise",
+      "mission": 0,
+      "area": 0,
+      "pose": "rise",
+      "player": {
+        "x": 240,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 313.0785288585304,
+        "y": 507.50612369526544
+      }
+    },
+    {
+      "name": "world0-area0-fall",
+      "mission": 0,
+      "area": 0,
+      "pose": "fall",
+      "player": {
+        "x": 240,
+        "y": 670,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 315.9139531560588,
+        "y": 565.3354234923117
+      }
+    },
+    {
+      "name": "world0-area0-kick",
+      "mission": 0,
+      "area": 0,
+      "pose": "kick",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 313.53514267149546,
+        "y": 698.25709711143
+      }
+    },
+    {
+      "name": "world0-area0-laser",
+      "mission": 0,
+      "area": 0,
+      "pose": "laser",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world0-area0-landing",
+      "mission": 0,
+      "area": 0,
+      "pose": "landing",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 317.4358180144114,
+        "y": 713.9614999107556
+      }
+    },
+    {
+      "name": "world0-area0-explosion",
+      "mission": 0,
+      "area": 0,
+      "pose": "explosion",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world0-area1-idle",
+      "mission": 0,
+      "area": 1,
+      "pose": "idle",
+      "player": {
+        "x": 75230,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75304.53125,
+        "y": 518.9315121599091
+      }
+    },
+    {
+      "name": "world0-area1-run",
+      "mission": 0,
+      "area": 1,
+      "pose": "run",
+      "player": {
+        "x": 75230,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75304.53125,
+        "y": 518.6328398604487
+      }
+    },
+    {
+      "name": "world0-area1-rise",
+      "mission": 0,
+      "area": 1,
+      "pose": "rise",
+      "player": {
+        "x": 75230,
+        "y": 440,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75303.07852885853,
+        "y": 327.50612369526544
+      }
+    },
+    {
+      "name": "world0-area1-fall",
+      "mission": 0,
+      "area": 1,
+      "pose": "fall",
+      "player": {
+        "x": 75230,
+        "y": 490,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 75305.91395315606,
+        "y": 385.33542349231175
+      }
+    },
+    {
+      "name": "world0-area1-kick",
+      "mission": 0,
+      "area": 1,
+      "pose": "kick",
+      "player": {
+        "x": 75230,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75303.53514267149,
+        "y": 518.25709711143
+      }
+    },
+    {
+      "name": "world0-area1-laser",
+      "mission": 0,
+      "area": 1,
+      "pose": "laser",
+      "player": {
+        "x": 75230,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75304.53125,
+        "y": 518.9315121599091
+      }
+    },
+    {
+      "name": "world0-area1-landing",
+      "mission": 0,
+      "area": 1,
+      "pose": "landing",
+      "player": {
+        "x": 75230,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75307.4358180144,
+        "y": 533.9614999107556
+      }
+    },
+    {
+      "name": "world0-area1-explosion",
+      "mission": 0,
+      "area": 1,
+      "pose": "explosion",
+      "player": {
+        "x": 75230,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75304.53125,
+        "y": 518.9315121599091
+      }
+    },
+    {
+      "name": "world0-area2-idle",
+      "mission": 0,
+      "area": 2,
+      "pose": "idle",
+      "player": {
+        "x": 150220,
+        "y": -2080,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150294.53125,
+        "y": -2181.0684878400907
+      }
+    },
+    {
+      "name": "world0-area2-run",
+      "mission": 0,
+      "area": 2,
+      "pose": "run",
+      "player": {
+        "x": 150220,
+        "y": -2080,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150294.53125,
+        "y": -2181.3671601395513
+      }
+    },
+    {
+      "name": "world0-area2-rise",
+      "mission": 0,
+      "area": 2,
+      "pose": "rise",
+      "player": {
+        "x": 150220,
+        "y": -2260,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150293.07852885852,
+        "y": -2372.4938763047344
+      }
+    },
+    {
+      "name": "world0-area2-fall",
+      "mission": 0,
+      "area": 2,
+      "pose": "fall",
+      "player": {
+        "x": 150220,
+        "y": -2210,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 150295.91395315606,
+        "y": -2314.6645765076883
+      }
+    },
+    {
+      "name": "world0-area2-kick",
+      "mission": 0,
+      "area": 2,
+      "pose": "kick",
+      "player": {
+        "x": 150220,
+        "y": -2080,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150293.5351426715,
+        "y": -2181.74290288857
+      }
+    },
+    {
+      "name": "world0-area2-laser",
+      "mission": 0,
+      "area": 2,
+      "pose": "laser",
+      "player": {
+        "x": 150220,
+        "y": -2080,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150294.53125,
+        "y": -2181.0684878400907
+      }
+    },
+    {
+      "name": "world0-area2-landing",
+      "mission": 0,
+      "area": 2,
+      "pose": "landing",
+      "player": {
+        "x": 150220,
+        "y": -2080,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150297.4358180144,
+        "y": -2166.0385000892443
+      }
+    },
+    {
+      "name": "world0-area2-explosion",
+      "mission": 0,
+      "area": 2,
+      "pose": "explosion",
+      "player": {
+        "x": 150220,
+        "y": -2080,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150294.53125,
+        "y": -2181.0684878400907
+      }
+    },
+    {
+      "name": "world1-area0-idle",
+      "mission": 1,
+      "area": 0,
+      "pose": "idle",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world1-area0-run",
+      "mission": 1,
+      "area": 0,
+      "pose": "run",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.6328398604487
+      }
+    },
+    {
+      "name": "world1-area0-rise",
+      "mission": 1,
+      "area": 0,
+      "pose": "rise",
+      "player": {
+        "x": 240,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 313.0785288585304,
+        "y": 507.50612369526544
+      }
+    },
+    {
+      "name": "world1-area0-fall",
+      "mission": 1,
+      "area": 0,
+      "pose": "fall",
+      "player": {
+        "x": 240,
+        "y": 670,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 315.9139531560588,
+        "y": 565.3354234923117
+      }
+    },
+    {
+      "name": "world1-area0-kick",
+      "mission": 1,
+      "area": 0,
+      "pose": "kick",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 313.53514267149546,
+        "y": 698.25709711143
+      }
+    },
+    {
+      "name": "world1-area0-laser",
+      "mission": 1,
+      "area": 0,
+      "pose": "laser",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world1-area0-landing",
+      "mission": 1,
+      "area": 0,
+      "pose": "landing",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 317.4358180144114,
+        "y": 713.9614999107556
+      }
+    },
+    {
+      "name": "world1-area0-explosion",
+      "mission": 1,
+      "area": 0,
+      "pose": "explosion",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world1-area1-idle",
+      "mission": 1,
+      "area": 1,
+      "pose": "idle",
+      "player": {
+        "x": 75240,
+        "y": 1300,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75314.53125,
+        "y": 1198.931512159909
+      }
+    },
+    {
+      "name": "world1-area1-run",
+      "mission": 1,
+      "area": 1,
+      "pose": "run",
+      "player": {
+        "x": 75240,
+        "y": 1300,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75314.53125,
+        "y": 1198.6328398604487
+      }
+    },
+    {
+      "name": "world1-area1-rise",
+      "mission": 1,
+      "area": 1,
+      "pose": "rise",
+      "player": {
+        "x": 75240,
+        "y": 1120,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75313.07852885853,
+        "y": 1007.5061236952654
+      }
+    },
+    {
+      "name": "world1-area1-fall",
+      "mission": 1,
+      "area": 1,
+      "pose": "fall",
+      "player": {
+        "x": 75240,
+        "y": 1170,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 75315.91395315606,
+        "y": 1065.3354234923117
+      }
+    },
+    {
+      "name": "world1-area1-kick",
+      "mission": 1,
+      "area": 1,
+      "pose": "kick",
+      "player": {
+        "x": 75240,
+        "y": 1300,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75313.53514267149,
+        "y": 1198.2570971114299
+      }
+    },
+    {
+      "name": "world1-area1-laser",
+      "mission": 1,
+      "area": 1,
+      "pose": "laser",
+      "player": {
+        "x": 75240,
+        "y": 1300,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75314.53125,
+        "y": 1198.931512159909
+      }
+    },
+    {
+      "name": "world1-area1-landing",
+      "mission": 1,
+      "area": 1,
+      "pose": "landing",
+      "player": {
+        "x": 75240,
+        "y": 1300,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75317.4358180144,
+        "y": 1213.9614999107555
+      }
+    },
+    {
+      "name": "world1-area1-explosion",
+      "mission": 1,
+      "area": 1,
+      "pose": "explosion",
+      "player": {
+        "x": 75240,
+        "y": 1300,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75314.53125,
+        "y": 1198.931512159909
+      }
+    },
+    {
+      "name": "world1-area2-idle",
+      "mission": 1,
+      "area": 2,
+      "pose": "idle",
+      "player": {
+        "x": 150245,
+        "y": -500,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150319.53125,
+        "y": -601.0684878400909
+      }
+    },
+    {
+      "name": "world1-area2-run",
+      "mission": 1,
+      "area": 2,
+      "pose": "run",
+      "player": {
+        "x": 150245,
+        "y": -500,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150319.53125,
+        "y": -601.3671601395513
+      }
+    },
+    {
+      "name": "world1-area2-rise",
+      "mission": 1,
+      "area": 2,
+      "pose": "rise",
+      "player": {
+        "x": 150245,
+        "y": -680,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150318.07852885852,
+        "y": -792.4938763047346
+      }
+    },
+    {
+      "name": "world1-area2-fall",
+      "mission": 1,
+      "area": 2,
+      "pose": "fall",
+      "player": {
+        "x": 150245,
+        "y": -630,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 150320.91395315606,
+        "y": -734.6645765076883
+      }
+    },
+    {
+      "name": "world1-area2-kick",
+      "mission": 1,
+      "area": 2,
+      "pose": "kick",
+      "player": {
+        "x": 150245,
+        "y": -500,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150318.5351426715,
+        "y": -601.74290288857
+      }
+    },
+    {
+      "name": "world1-area2-laser",
+      "mission": 1,
+      "area": 2,
+      "pose": "laser",
+      "player": {
+        "x": 150245,
+        "y": -500,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150319.53125,
+        "y": -601.0684878400909
+      }
+    },
+    {
+      "name": "world1-area2-landing",
+      "mission": 1,
+      "area": 2,
+      "pose": "landing",
+      "player": {
+        "x": 150245,
+        "y": -500,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150322.4358180144,
+        "y": -586.0385000892444
+      }
+    },
+    {
+      "name": "world1-area2-explosion",
+      "mission": 1,
+      "area": 2,
+      "pose": "explosion",
+      "player": {
+        "x": 150245,
+        "y": -500,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150319.53125,
+        "y": -601.0684878400909
+      }
+    },
+    {
+      "name": "world2-area0-idle",
+      "mission": 2,
+      "area": 0,
+      "pose": "idle",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world2-area0-run",
+      "mission": 2,
+      "area": 0,
+      "pose": "run",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.6328398604487
+      }
+    },
+    {
+      "name": "world2-area0-rise",
+      "mission": 2,
+      "area": 0,
+      "pose": "rise",
+      "player": {
+        "x": 240,
+        "y": 620,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 313.0785288585304,
+        "y": 507.50612369526544
+      }
+    },
+    {
+      "name": "world2-area0-fall",
+      "mission": 2,
+      "area": 0,
+      "pose": "fall",
+      "player": {
+        "x": 240,
+        "y": 670,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 315.9139531560588,
+        "y": 565.3354234923117
+      }
+    },
+    {
+      "name": "world2-area0-kick",
+      "mission": 2,
+      "area": 0,
+      "pose": "kick",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 313.53514267149546,
+        "y": 698.25709711143
+      }
+    },
+    {
+      "name": "world2-area0-laser",
+      "mission": 2,
+      "area": 0,
+      "pose": "laser",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world2-area0-landing",
+      "mission": 2,
+      "area": 0,
+      "pose": "landing",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 317.4358180144114,
+        "y": 713.9614999107556
+      }
+    },
+    {
+      "name": "world2-area0-explosion",
+      "mission": 2,
+      "area": 0,
+      "pose": "explosion",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 314.53125,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world2-area1-idle",
+      "mission": 2,
+      "area": 1,
+      "pose": "idle",
+      "player": {
+        "x": 71250,
+        "y": 400,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71324.53125,
+        "y": 298.9315121599091
+      }
+    },
+    {
+      "name": "world2-area1-run",
+      "mission": 2,
+      "area": 1,
+      "pose": "run",
+      "player": {
+        "x": 71250,
+        "y": 400,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71324.53125,
+        "y": 298.6328398604487
+      }
+    },
+    {
+      "name": "world2-area1-rise",
+      "mission": 2,
+      "area": 1,
+      "pose": "rise",
+      "player": {
+        "x": 71250,
+        "y": 220,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71323.07852885853,
+        "y": 107.50612369526543
+      }
+    },
+    {
+      "name": "world2-area1-fall",
+      "mission": 2,
+      "area": 1,
+      "pose": "fall",
+      "player": {
+        "x": 71250,
+        "y": 270,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 71325.91395315606,
+        "y": 165.33542349231178
+      }
+    },
+    {
+      "name": "world2-area1-kick",
+      "mission": 2,
+      "area": 1,
+      "pose": "kick",
+      "player": {
+        "x": 71250,
+        "y": 400,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71323.53514267149,
+        "y": 298.25709711142997
+      }
+    },
+    {
+      "name": "world2-area1-laser",
+      "mission": 2,
+      "area": 1,
+      "pose": "laser",
+      "player": {
+        "x": 71250,
+        "y": 400,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71324.53125,
+        "y": 298.9315121599091
+      }
+    },
+    {
+      "name": "world2-area1-landing",
+      "mission": 2,
+      "area": 1,
+      "pose": "landing",
+      "player": {
+        "x": 71250,
+        "y": 400,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71327.4358180144,
+        "y": 313.9614999107556
+      }
+    },
+    {
+      "name": "world2-area1-explosion",
+      "mission": 2,
+      "area": 1,
+      "pose": "explosion",
+      "player": {
+        "x": 71250,
+        "y": 400,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71324.53125,
+        "y": 298.9315121599091
+      }
+    },
+    {
+      "name": "world2-area2-idle",
+      "mission": 2,
+      "area": 2,
+      "pose": "idle",
+      "player": {
+        "x": 154245,
+        "y": -2900,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154319.53125,
+        "y": -3001.0684878400907
+      }
+    },
+    {
+      "name": "world2-area2-run",
+      "mission": 2,
+      "area": 2,
+      "pose": "run",
+      "player": {
+        "x": 154245,
+        "y": -2900,
+        "w": 110,
+        "h": 120,
+        "vx": 520,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154319.53125,
+        "y": -3001.3671601395513
+      }
+    },
+    {
+      "name": "world2-area2-rise",
+      "mission": 2,
+      "area": 2,
+      "pose": "rise",
+      "player": {
+        "x": 154245,
+        "y": -3080,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -420,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154318.07852885852,
+        "y": -3192.4938763047344
+      }
+    },
+    {
+      "name": "world2-area2-fall",
+      "mission": 2,
+      "area": 2,
+      "pose": "fall",
+      "player": {
+        "x": 154245,
+        "y": -3030,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 130
+      },
+      "eye": {
+        "x": 154320.91395315606,
+        "y": -3134.6645765076883
+      }
+    },
+    {
+      "name": "world2-area2-kick",
+      "mission": 2,
+      "area": 2,
+      "pose": "kick",
+      "player": {
+        "x": 154245,
+        "y": -2900,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154318.5351426715,
+        "y": -3001.74290288857
+      }
+    },
+    {
+      "name": "world2-area2-laser",
+      "mission": 2,
+      "area": 2,
+      "pose": "laser",
+      "player": {
+        "x": 154245,
+        "y": -2900,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154319.53125,
+        "y": -3001.0684878400907
+      }
+    },
+    {
+      "name": "world2-area2-landing",
+      "mission": 2,
+      "area": 2,
+      "pose": "landing",
+      "player": {
+        "x": 154245,
+        "y": -2900,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0.12,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154322.4358180144,
+        "y": -2986.0385000892443
+      }
+    },
+    {
+      "name": "world2-area2-explosion",
+      "mission": 2,
+      "area": 2,
+      "pose": "explosion",
+      "player": {
+        "x": 154245,
+        "y": -2900,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154319.53125,
+        "y": -3001.0684878400907
+      }
+    },
+    {
+      "name": "world0-area0-launch",
+      "mission": 0,
+      "area": 0,
+      "pose": "launch",
+      "player": {
+        "x": 240,
+        "y": 750,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 311.92265625,
+        "y": 644.2475760230059
+      }
+    },
+    {
+      "name": "world0-area0-landing-prep",
+      "mission": 0,
+      "area": 0,
+      "pose": "landing-prep",
+      "player": {
+        "x": 240,
+        "y": 760,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 315.1409055384907,
+        "y": 669.3766593222156
+      }
+    },
+    {
+      "name": "world0-area1-launch",
+      "mission": 0,
+      "area": 1,
+      "pose": "launch",
+      "player": {
+        "x": 75230,
+        "y": 570,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75301.92265625,
+        "y": 464.24757602300593
+      }
+    },
+    {
+      "name": "world0-area1-landing-prep",
+      "mission": 0,
+      "area": 1,
+      "pose": "landing-prep",
+      "player": {
+        "x": 75230,
+        "y": 580,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 75305.14090553849,
+        "y": 489.3766593222155
+      }
+    },
+    {
+      "name": "world0-area2-launch",
+      "mission": 0,
+      "area": 2,
+      "pose": "launch",
+      "player": {
+        "x": 150220,
+        "y": -2130,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150291.92265625,
+        "y": -2235.752423976994
+      }
+    },
+    {
+      "name": "world0-area2-landing-prep",
+      "mission": 0,
+      "area": 2,
+      "pose": "landing-prep",
+      "player": {
+        "x": 150220,
+        "y": -2120,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 150295.1409055385,
+        "y": -2210.6233406777847
+      }
+    },
+    {
+      "name": "world0-area2-boss",
+      "mission": 0,
+      "area": 2,
+      "pose": "boss",
+      "player": {
+        "x": 226265,
+        "y": -4320,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 226339.53125,
+        "y": -4421.068487840091
+      }
+    },
+    {
+      "name": "world0-area0-left-kick",
+      "mission": 0,
+      "area": 0,
+      "pose": "left-kick",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": -1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 166.46485732850454,
+        "y": 698.25709711143
+      }
+    },
+    {
+      "name": "world0-area0-left-laser",
+      "mission": 0,
+      "area": 0,
+      "pose": "left-laser",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": -1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 165.46875,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world1-area0-launch",
+      "mission": 1,
+      "area": 0,
+      "pose": "launch",
+      "player": {
+        "x": 240,
+        "y": 750,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 311.92265625,
+        "y": 644.2475760230059
+      }
+    },
+    {
+      "name": "world1-area0-landing-prep",
+      "mission": 1,
+      "area": 0,
+      "pose": "landing-prep",
+      "player": {
+        "x": 240,
+        "y": 760,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 315.1409055384907,
+        "y": 669.3766593222156
+      }
+    },
+    {
+      "name": "world1-area1-launch",
+      "mission": 1,
+      "area": 1,
+      "pose": "launch",
+      "player": {
+        "x": 75240,
+        "y": 1250,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 75311.92265625,
+        "y": 1144.2475760230059
+      }
+    },
+    {
+      "name": "world1-area1-landing-prep",
+      "mission": 1,
+      "area": 1,
+      "pose": "landing-prep",
+      "player": {
+        "x": 75240,
+        "y": 1260,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 75315.14090553849,
+        "y": 1169.3766593222156
+      }
+    },
+    {
+      "name": "world1-area2-launch",
+      "mission": 1,
+      "area": 2,
+      "pose": "launch",
+      "player": {
+        "x": 150245,
+        "y": -550,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 150316.92265625,
+        "y": -655.7524239769941
+      }
+    },
+    {
+      "name": "world1-area2-landing-prep",
+      "mission": 1,
+      "area": 2,
+      "pose": "landing-prep",
+      "player": {
+        "x": 150245,
+        "y": -540,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 150320.1409055385,
+        "y": -630.6233406777844
+      }
+    },
+    {
+      "name": "world1-area2-boss",
+      "mission": 1,
+      "area": 2,
+      "pose": "boss",
+      "player": {
+        "x": 226310,
+        "y": -3840,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 226384.53125,
+        "y": -3941.0684878400907
+      }
+    },
+    {
+      "name": "world1-area0-left-kick",
+      "mission": 1,
+      "area": 0,
+      "pose": "left-kick",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": -1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 166.46485732850454,
+        "y": 698.25709711143
+      }
+    },
+    {
+      "name": "world1-area0-left-laser",
+      "mission": 1,
+      "area": 0,
+      "pose": "left-laser",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": -1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 165.46875,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world2-area0-launch",
+      "mission": 2,
+      "area": 0,
+      "pose": "launch",
+      "player": {
+        "x": 240,
+        "y": 750,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 311.92265625,
+        "y": 644.2475760230059
+      }
+    },
+    {
+      "name": "world2-area0-landing-prep",
+      "mission": 2,
+      "area": 0,
+      "pose": "landing-prep",
+      "player": {
+        "x": 240,
+        "y": 760,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 315.1409055384907,
+        "y": 669.3766593222156
+      }
+    },
+    {
+      "name": "world2-area1-launch",
+      "mission": 2,
+      "area": 1,
+      "pose": "launch",
+      "player": {
+        "x": 71250,
+        "y": 350,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 71321.92265625,
+        "y": 244.24757602300593
+      }
+    },
+    {
+      "name": "world2-area1-landing-prep",
+      "mission": 2,
+      "area": 1,
+      "pose": "landing-prep",
+      "player": {
+        "x": 71250,
+        "y": 360,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 71325.14090553849,
+        "y": 269.3766593222155
+      }
+    },
+    {
+      "name": "world2-area2-launch",
+      "mission": 2,
+      "area": 2,
+      "pose": "launch",
+      "player": {
+        "x": 154245,
+        "y": -2950,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": -800,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0.15,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 154316.92265625,
+        "y": -3055.752423976994
+      }
+    },
+    {
+      "name": "world2-area2-landing-prep",
+      "mission": 2,
+      "area": 2,
+      "pose": "landing-prep",
+      "player": {
+        "x": 154245,
+        "y": -2940,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 450,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": false,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false,
+        "landingDistance": 40
+      },
+      "eye": {
+        "x": 154320.1409055385,
+        "y": -3030.6233406777847
+      }
+    },
+    {
+      "name": "world2-area2-boss",
+      "mission": 2,
+      "area": 2,
+      "pose": "boss",
+      "player": {
+        "x": 230782,
+        "y": -4840,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": 1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 230856.53125,
+        "y": -4941.068487840091
+      }
+    },
+    {
+      "name": "world2-area0-left-kick",
+      "mission": 2,
+      "area": 0,
+      "pose": "left-kick",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": -1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0.25,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 166.46485732850454,
+        "y": 698.25709711143
+      }
+    },
+    {
+      "name": "world2-area0-left-laser",
+      "mission": 2,
+      "area": 0,
+      "pose": "left-laser",
+      "player": {
+        "x": 240,
+        "y": 800,
+        "w": 110,
+        "h": 120,
+        "vx": 0,
+        "vy": 0,
+        "facing": -1,
+        "gravitySign": 1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": true,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 165.46875,
+        "y": 698.9315121599091
+      }
+    },
+    {
+      "name": "world2-area2-inverted",
+      "mission": 2,
+      "area": 2,
+      "pose": "inverted",
+      "player": {
+        "x": 172712,
+        "y": -4413,
+        "w": 110,
+        "h": 120,
+        "vx": -380,
+        "vy": 0,
+        "facing": -1,
+        "gravitySign": -1,
+        "grounded": true,
+        "kickT": 0,
+        "launchT": 0,
+        "landT": 0,
+        "invuln": 0,
+        "shooting": false,
+        "reducedMotion": false
+      },
+      "eye": {
+        "x": 172637.46875,
+        "y": -4311.75
+      }
+    }
+  ]
+}

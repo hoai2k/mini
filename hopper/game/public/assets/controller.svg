@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="580" viewBox="0 0 1440 580">
+<rect width="1440" height="580" fill="#f8f5ec"/>
+<g font-family="Arial,sans-serif" fill="#182922">
+<text x="45" y="48" font-size="22" font-weight="bold">XBOX CONTROLLER</text>
+<path d="M520 147 Q470 133 443 183 L374 430 Q358 498 410 513 Q454 526 502 448 L542 395 L887 395 L934 463 Q977 528 1028 502 Q1062 482 1044 421 L984 187 Q969 137 921 146 Z" fill="#d5d9d3" stroke="#283b32" stroke-width="8"/>
+<path d="M485 145 Q498 106 583 121 L596 149 M840 149 L850 121 Q945 106 962 148" fill="#42564b" stroke="#283b32" stroke-width="7"/>
+<rect x="861" y="82" width="84" height="38" rx="10" fill="#263b2f"/>
+<text x="903" y="108" text-anchor="middle" font-size="22" fill="white">RT</text>
+<circle cx="539" cy="240" r="55" fill="#32483b"/><circle cx="539" cy="240" r="38" fill="#5c7465"/>
+<circle cx="814" cy="356" r="48" fill="#32483b"/><circle cx="814" cy="356" r="32" fill="#5c7465"/>
+<path d="M588 309 H618 V340 H649 V370 H618 V401 H588 V370 H557 V340 H588Z" fill="#32483b"/>
+<circle cx="718" cy="183" r="25" fill="#32483b"/><text x="718" y="192" text-anchor="middle" font-size="26" fill="white">X</text>
+<circle cx="672" cy="251" r="19" fill="#738276"/><rect x="661" y="244" width="15" height="12" fill="none" stroke="white" stroke-width="2"/><rect x="668" y="249" width="14" height="11" fill="none" stroke="white" stroke-width="2"/>
+<circle cx="759" cy="251" r="19" fill="#738276"/><path d="M751 245 H768 M751 251 H768 M751 257 H768" stroke="white" stroke-width="2"/>
+<circle cx="905" cy="210" r="24" fill="#33473b"/><text x="905" y="218" text-anchor="middle" font-size="24" fill="#edcc56">Y</text>
+<circle cx="860" cy="255" r="24" fill="#33473b"/><text x="860" y="263" text-anchor="middle" font-size="24" fill="#80c9ff">X</text>
+<circle cx="950" cy="255" r="24" fill="#33473b"/><text x="950" y="263" text-anchor="middle" font-size="24" fill="#ff9680">B</text>
+<circle cx="905" cy="300" r="24" fill="#33473b"/><text x="905" y="308" text-anchor="middle" font-size="24" fill="#aee575">A</text>
+<g fill="none" stroke="#4b6251" stroke-width="3">
+<path d="M539 240 H334 L302 205 H45"/><path d="M603 357 H322 L300 335 H45"/>
+<path d="M672 251 L648 92 H370"/><path d="M759 251 L790 58 H1093"/>
+<path d="M903 82 H1045 L1070 115 H1390"/><path d="M860 255 L1046 226 H1390"/>
+<path d="M905 300 L1065 338 H1390"/><path d="M950 255 L1055 416 H1390"/>
+</g>
+<text x="45" y="185" font-size="24" font-weight="bold">LEFT STICK</text><text x="45" y="236" font-size="22">Move and steer</text>
+<text x="45" y="315" font-size="24" font-weight="bold">D-PAD</text><text x="45" y="369" font-size="22">Move and navigate menus</text>
+<text x="370" y="77" font-size="20">View · Instructions</text><text x="880" y="42" font-size="20">Menu · Pause</text>
+<text x="1090" y="103" font-size="23" font-weight="bold">RT · EYE LASERS</text><text x="1090" y="145" font-size="21">Hold to fire forward</text>
+<text x="1090" y="215" font-size="23" font-weight="bold">X · SPIN KICK</text><text x="1090" y="259" font-size="21">Large back legs attack</text>
+<text x="1090" y="327" font-size="23" font-weight="bold">A · JUMP</text><text x="1090" y="370" font-size="21">Hold for a higher leap</text>
+<text x="1090" y="435" font-size="23" font-weight="bold">B · FORCE SHIELD</text><text x="1090" y="475" font-size="21">Hold to block attacks</text>
+<text x="720" y="555" text-anchor="middle" font-size="21">Menus: A confirm · B back     |     Automatic: rear strike on takeoff · stomp on landing</text>
+</g></svg>

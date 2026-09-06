@@ -1,0 +1,94 @@
+{
+  "allSpeciesHit": true,
+  "species": [
+    {
+      "type": "shadeHound",
+      "damage": 1
+    },
+    {
+      "type": "seedSpitter",
+      "damage": 1
+    },
+    {
+      "type": "windowRay",
+      "damage": 1
+    },
+    {
+      "type": "spireLeech",
+      "damage": 1
+    },
+    {
+      "type": "cragTortoise",
+      "damage": 0.2999999999999998
+    },
+    {
+      "type": "riftCondor",
+      "damage": 1
+    },
+    {
+      "type": "furnaceHound",
+      "damage": 1
+    },
+    {
+      "type": "slagCaster",
+      "damage": 0.2999999999999998
+    },
+    {
+      "type": "chainManta",
+      "damage": 1
+    },
+    {
+      "type": "ballastCrab",
+      "damage": 0.2999999999999998
+    },
+    {
+      "type": "coilWraith",
+      "damage": 1
+    },
+    {
+      "type": "turbineWasp",
+      "damage": 0.2999999999999998
+    },
+    {
+      "type": "basaltBurrower",
+      "damage": 1
+    },
+    {
+      "type": "thornChoir",
+      "damage": 1
+    },
+    {
+      "type": "veilMedusa",
+      "damage": 1
+    },
+    {
+      "type": "phaseSkate",
+      "damage": 1
+    },
+    {
+      "type": "mirrorStalker",
+      "damage": 1
+    },
+    {
+      "type": "gravityCantor",
+      "damage": 1
+    }
+  ],
+  "bossLaserTests": [
+    {
+      "type": "nightRook",
+      "closedDamage": 0.29999999999999716,
+      "openDamage": 1
+    },
+    {
+      "type": "smelterLeviathan",
+      "closedDamage": 0.29999999999999716,
+      "openDamage": 1
+    },
+    {
+      "type": "eclipseRegent",
+      "closedDamage": 0.29999999999999716,
+      "openDamage": 1
+    }
+  ]
+}

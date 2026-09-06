@@ -1,0 +1,94 @@
+{
+  "generation_mode": "Built-in imagegen; exact prompt set retained below",
+  "assets": [
+    {
+      "id": "canonical",
+      "file": "assets/hopper-canonical-v1.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-d1ed3ee1-4d84-4ef6-b8a3-79df0defea55.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Create a premium canonical character model sheet for the 2D side-scrolling game HOPPER THE GRASSHOPPER, 1536x1024 landscape. Input image is the inspiration and identity reference. Preserve its brave giant green insect mecha with enormous powerful folded hind legs, red oval compound eyes, cream mandible faceplate, blue chest, red trim, gold joints and two gold antennae; small black-haired boy in cream shirt, navy shorts, red scarf in a protected saddle on its upper back. 1970s Japanese super robot anime: confident ink contours, flat cel shadow shapes and restrained gouache texture, animation-ready simplified forms rather than painterly noise. Anatomically coherent SIX legs: two massive jumping hind legs, four slender supporting legs. Quadruped-looking insect posture, never humanoid, never arm punches. Pale ivory background. Main large strict RIGHT-facing side profile at left filling 60 percent; smaller frontal and rear three-quarter views at right; small boy costume study. Same design and colors in all views. Oversized hind femurs and long serrated hind tibiae define silhouette. Boy remains small, roughly 1/9 body height. Carefully separate limbs for readable silhouettes. Minimal labels 'HOPPER', 'SIDE', 'FRONT', 'REAR', 'PILOT'. No alternate designs, no scenery, no UI. A production model reference, not a gameplay sprite atlas.",
+      "reference_images": [
+        "assets/inspiration.png"
+      ],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "earth",
+      "file": "assets/level-1-earth.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-1fa5d333-a356-4f20-b1d8-d207f87d0c27.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Premium illustrated environment art direction board for HOPPER THE GRASSHOPPER, a 2D side-scrolling giant insect robot game. Landscape 1536x1024 image arranged in THREE equal WIDE HORIZONTAL PANELS stacked vertically, no gutters except fine ivory separators. Each panel a different broad playable panorama. 1970s Japanese science fiction anime background painting, exquisite hand-painted gouache, bold graphic silhouettes, dramatic clouds, atmospheric distance, warm film texture, absolutely not 3D render, no photorealism, no pixel art, no user interface. Clearly readable playable ledges in foreground, gorgeous far backgrounds. Avoid any text. Human buildings and trees establish colossal scale. Level 1 EARTH. Top panel: amber morning across lush green terraced farming fields, giant rolling hills, irrigation channels, windbreak trees, dark alien pods in distant sky, tiny shadow hounds along an earthen ridge; land stretches horizontally over huge gaps. Middle panel: immense ivory retrofuturist metropolis at golden sunset, teal windows, elevated trains, enormous climbable stepped skyscrapers, small black ray monsters between towers; camera composition follows rooftop staircase UP to right. Bottom panel: rocky alpine mountains in blue dusk and apricot sky, jagged ridges, high plateaus, waterfall chasm and a descending zigzag then huge ascending slope to summit; ominous eclipse-winged cosmic monster silhouette very distant. Each panorama beautiful, distinct and traversable.",
+      "reference_images": [],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "industry",
+      "file": "assets/level-2-industry.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-a5bdc798-3730-4438-81ed-d0f6bfc6bd9b.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Premium illustrated environment art direction board for HOPPER THE GRASSHOPPER, a 2D side-scrolling giant insect robot game. Landscape 1536x1024 image arranged in THREE equal WIDE HORIZONTAL PANELS stacked vertically, no gutters except fine ivory separators. Each panel a different broad playable panorama. 1970s Japanese science fiction anime background painting, exquisite hand-painted gouache, bold graphic silhouettes, dramatic clouds, atmospheric distance, warm film texture, absolutely not 3D render, no photorealism, no pixel art, no user interface. Clearly readable playable ledges in foreground, gorgeous far backgrounds. Avoid any text. Human buildings and trees establish colossal scale. Level 2 INDUSTRIAL FRONT. Top panel: ochre iron foundry district under orange smoke, furnaces and slag rivers with safe black gantries and huge stamping machines, chained quadruped shadow beasts, route right then down. Middle panel: cold sea-green storm port in rain, towering cranes, suspended cargo decks, water far below, gigantic wrecked ships, hook-winged black manta creatures, clear vertical ascent. Bottom panel: pale gold and rust orbital launchworks at sunrise above clouds, giant rocket silos and exposed elevator spine descending through structural rings before rising to launch gantry, black turbine-armored cosmic guardian shape in far distance. Each panoramic environment coherent and different; restrained orange warning lights and bold white platform edges.",
+      "reference_images": [],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "alien",
+      "file": "assets/level-3-alien.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-124df1e2-1add-42e5-8008-8fa6d98e9466.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Premium illustrated environment art direction board for HOPPER THE GRASSHOPPER, a 2D side-scrolling giant insect robot game. Landscape 1536x1024 image arranged in THREE equal WIDE HORIZONTAL PANELS stacked vertically, no gutters except fine ivory separators. Each panel a different broad playable panorama. 1970s Japanese science fiction anime background painting, exquisite hand-painted gouache, bold graphic silhouettes, dramatic clouds, atmospheric distance, warm film texture, absolutely not 3D render, no photorealism, no pixel art, no user interface. Clearly readable playable ledges in foreground, gorgeous far backgrounds. Avoid any text. Human buildings and trees establish colossal scale. Level 3 SHADOW HOME PLANET. Top panel: exotic RED environment, vermilion desert with gigantic coral ribs, crimson mesas, black sun, pale ivory bone bridges, dense heavy atmosphere, spiked low black crawlers, compressed short jumps implied by close raised ledges. Middle panel: exotic BLUE environment, electric ultramarine abyss, floating cyan reef islands, glowing sapphire roots, stars and huge moon, thin crystalline platforms scattered across a tall void, spectral umbrella jellyfish, low gravity wonder. Bottom panel: DARK PURPLE environment, violet obsidian cathedral inside planetary ring ruins, massive inverted arches and bridges on floor AND ceiling, luminous lavender seams marking gravity boundaries, magenta nebula and black eclipse throne, small wraith silhouettes. Routes right, up and down with comprehensible landings, both awe and cosmic menace. Make colors unmistakably red, blue, purple respectively.",
+      "reference_images": [],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "boss",
+      "file": "assets/boss-canonical-lineup.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-260c069a-c91c-49b5-8a12-a9107b4e98c5.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Premium canonical boss design sheet for HOPPER THE GRASSHOPPER, 1536x1024 landscape. THREE distinct full-body cosmic shadow monsters side by side on clean warm ivory paper, comfortably separated. 1970s Japanese super robot anime villain production art, bold dark ink contours, black and deep purple cel shadows, fine hand painted detail. Left NIGHT ROOK: terrifying skeletal raven with blade-shaped folded wings opening halfway, long talons, sharp beaked mask, exposed ivory sternum; purple edge glow. Middle SMELTER LEVIATHAN: long many-segmented shadow centipede coiled into tall readable S, wearing stolen rust-red foundry rings, clawed little legs, huge furnace-mouth and orange-white exposed belly core; mechanically parasitic not a humanoid. Right ECLIPSE REGENT: tall terrifying four-limbed cosmic entity with slender curved arms, two long digitigrade legs, pointed crowned mask inside a black eclipse halo, violet cape-like smoke, small ivory heart, obsidian armor, regal and alien. All monochrome night bodies with clear luminous weak points, no gore. Grounding shadow only, no scenery, no other characters. Small precise labels below each: 'NIGHT ROOK', 'SMELTER LEVIATHAN', 'ECLIPSE REGENT'. Sophisticated fearsome silhouettes, complete unclipped figures and generous margins. These are identity references for later animation.",
+      "reference_images": [],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "enemy",
+      "file": "assets/enemy-silhouettes.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-73439cdd-f912-4852-bd10-a27ce97e4edd.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. A premium 3 by 3 creature model reference sheet for a 1970s anime 2D giant robot game, 1536x1024 landscape, warm ivory paper and nine isolated complete side-view shadow creatures, comfortable spacing, thin grid. Confident ink and restrained cel paint, black charcoal bodies, purple edge highlights, small pale exposed core. Unique silhouettes not generic blobs. Top row: SHADE HOUND angular crouching quadruped with luminous ribs; WINDOW RAY flat manta with long blade wings and bright single eye; CRAG TORTOISE broad spiked armored shell and pale belly. Middle row: SLAG CASTER pot-bellied soot creature with ladle-like forelimbs and orange throat; BALLAST CRAB wide anchor-clawed black crustacean; TURBINE WASP flying creature with three blunt circular fan lobes and pointed tail. Bottom row: BASALT BURROWER squat drilling snout beast with broken dorsal plates; VEIL MEDUSA floating umbrella jellyfish with soft long tendrils and luminous bell; MIRROR STALKER lean four-limbed crescent creature with forked mask and exaggerated crescent back legs. Small legible uppercase name label under each, exact names above. No humans, no mech hero, no scenery, no gore. Clear animation-ready silhouettes and every creature fully inside its own cell.",
+      "reference_images": [],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "action",
+      "file": "assets/hopper-action-study.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-8831b728-6d1b-4d04-9d1f-041b7c927699.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Create a premium four-panel animation KEY POSE study for HOPPER THE GRASSHOPPER, landscape 1536x1024, four equal panels in a 2x2 layout on pale ivory. Input image is the canonical character identity. Keep EXACT green insect mecha anatomy, six legs including enormous hind legs, blue chest, cream mandible, red oval eyes and armor trim, gold joints and antennae, tiny black-haired boy with cream shirt navy shorts red scarf secured atop saddle. Same character proportions and scale across panels. 1970s anime cel animation ink style, clean broad shadows. Top left 'LAUNCH': right-facing profile rising diagonally right, enormous HIND legs snap straight BEHIND to left, four slender front support legs tuck, boy braced. Top right 'SPIN KICK': the body twists in midair, two gigantic serrated HIND tibiae sweep in a circular arc, supporting legs tucked, back legs clearly do the attack; no hand punches. Bottom left 'EYE LASERS': stable right-facing leap, two narrow red-white lasers originate directly in eyes and travel horizontally RIGHT. Bottom right 'STOMP': right-facing descending body, hind feet planted on a pale ground line with short impact burst, suspension compresses, boy safe. No other characters or enemies. Full figures, antennae contained, minimal speed lines. This is a pose-direction sheet, not a numbered sprite atlas. Do not redesign Hopper or his rider.",
+      "reference_images": [
+        "/Users/hoai/Documents/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
+      ],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "logo",
+      "file": "assets/hopper-logo.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-8d5a3dad-412e-427e-a7bb-fd81d7fc835e.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: logo-brand. Generate a finished isolated raster title logo for a premium 1970s anime robot adventure game. Text VERBATIM: 'HOPPER' enormous on first line, 'THE GRASSHOPPER' smaller on second line. Spell every letter correctly. Bold custom forward-slanted mechanical display lettering, broad readable shapes, emerald-green enamel faces, warm cream bevel highlights, narrow gold outline and deep navy extrusion, small red accent. Integrate two elegant gold grasshopper antennae above the H and a subtle red oval eye motif into the O, maintaining legibility. Compact strong silhouette, no full character, no slogan, no Japanese text, no watermarks. Transparent background with real alpha, no painted backdrop or checkerboard pattern. Landscape wide logo composition with generous safe margins, centered, polished crisp edges and a tiny amount of period cel texture, not a glossy modern 3D render. The reference is solely character color and shape identity; do not reproduce the reference sheet.",
+      "reference_images": [
+        "/Users/hoai/Documents/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
+      ],
+      "status": "concept for user review; not a production sprite atlas"
+    },
+    {
+      "id": "favicon",
+      "file": "assets/hopper-icon-master.png",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-0a30ab87-699a-42a9-91a5-c04c892457a7.png",
+      "mode": "built-in imagegen",
+      "prompt": "Use case: logo-brand. Generate ONE square favicon/app icon master for HOPPER THE GRASSHOPPER using input image as character identity reference. 1024x1024. Extremely simplified symmetrical FRONT VIEW of the green mecha grasshopper head only, huge two RED oval eyes, small cream mandible, two SHORT gold antennae contained within frame. Thick navy contour, broad flat 1970s anime cel color shapes, no grain, no fine detail, no text or letters, no boy or body, no badge border. Dark navy solid square background; head fills about 80 percent width with comfortable safe margins. The silhouette must still read at 16 and 32 pixels. Emerald green, scarlet red, warm cream, gold and deep navy only. Precisely balanced and bold, derived from canonical head rather than a generic insect.",
+      "reference_images": [
+        "/Users/hoai/Documents/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
+      ],
+      "status": "generated master for favicon and app icon exports"
+    }
+  ]
+}
