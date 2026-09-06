@@ -6,7 +6,7 @@ A complete browser adventure in three episodes, built around Xbox controllers an
 
 Play the published game at **https://hoai2k.github.io/mini/hopper/**. `pnpm build:pages` produces the static GitHub Pages edition; pushes to `main` deploy it automatically.
 
-Run `pnpm install`, then `pnpm dev`. Open the displayed local address. Press Start or a fresh controller button to enter the adventure and request fullscreen. Browsers that decline a fullscreen or audio request from controller polling can be activated with the on-screen fullscreen button.
+Run `pnpm install`, then `pnpm dev`. Open the displayed local address. The title screen carries a single action: Press Start, Enter, or any controller button opens the play-select screen, requests fullscreen and starts the music where autoplay was refused. Play-select lists Continue (once there is a save) and the unlocked episodes, with the controller diagram alongside. Browsers that decline a fullscreen or audio request from controller polling can be activated with the on-screen fullscreen button.
 
 | Action                 | Xbox                             | Keyboard        |
 | ---------------------- | -------------------------------- | --------------- |

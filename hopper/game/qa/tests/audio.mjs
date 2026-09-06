@@ -90,6 +90,8 @@ globalThis.Audio = class {
       'music tracks must never overlap',
     );
     this.plays++;
+    // A browser refusing autoplay rejects and leaves the element paused.
+    if (this.refuse) return Promise.reject(new Error('NotAllowedError'));
     this.paused = false;
     return this.deferred || Promise.resolve();
   }
@@ -114,14 +116,22 @@ for (const track of tracks) {
   assert.equal(track.preload, 'metadata');
   assert.equal(track.plays, 0);
 }
+// The title theme is attempted straight away: where the browser permits
+// autoplay there is music before any gesture, and where it refuses the block
+// is remembered and retried on the first interaction (covered at the end).
 audio.setScene('menu');
+assert.equal(theme.plays, 1, 'the menu theme starts without a gesture');
+assert(!theme.paused);
 audio.playLevel();
-assert.equal(theme.plays + level.plays, 0, 'scene intent cannot autoplay');
+assert.equal(level.plays, 1, 'a scene switch follows immediately');
+assert(theme.paused && !level.paused);
+assert(!audio.musicBlocked(), 'a permitted track is not blocked');
+// Effects still wait for the gesture that builds the audio context.
 audio.effect('shield');
 assert.equal(oscillatorCount, 0);
 await audio.unlock();
-assert.equal(theme.plays, 0);
-assert.equal(level.plays, 1, 'unlock follows latest queued scene');
+assert.equal(theme.plays, 1);
+assert.equal(level.plays, 1, 'unlock does not restart a playing track');
 level.currentTime = 37.5;
 audio.setScene('menu');
 assert(level.paused);
@@ -245,6 +255,32 @@ audio.playTheme();
 audio.playLevel();
 await audio.unlock();
 assert.equal(theme.plays + level.plays, totalPlays);
+// A browser that refuses autoplay: the attempt is made, the refusal recorded,
+// and the first interaction retries it. Disposal above paused every track, so
+// this fresh pair is the only music in flight.
+const refused = new GameAudio('/theme.mp3', '/grass-march.mp3'),
+  [refusedTheme] = tracks.slice(-2);
+refusedTheme.refuse = true;
+refused.setScene('menu');
+await Promise.resolve();
+await Promise.resolve();
+assert.equal(refusedTheme.plays, 1, 'a refused browser is still asked once');
+assert(refusedTheme.paused);
+assert(refused.musicBlocked(), 'the refusal is remembered');
+refused.retryMusic();
+assert.equal(refusedTheme.plays, 2, 'an interaction retries the refused track');
+assert(refusedTheme.paused, 'and a second refusal keeps it blocked');
+await Promise.resolve();
+await Promise.resolve();
+refusedTheme.refuse = false;
+refused.retryMusic();
+assert(!refusedTheme.paused, 'once allowed, the retry starts the theme');
+await Promise.resolve();
+assert(!refused.musicBlocked(), 'and the block clears');
+const settledPlays = refusedTheme.plays;
+refused.retryMusic();
+assert.equal(refusedTheme.plays, settledPlays, 'playing music is left alone');
+refused.dispose();
 console.log(
-  'PASS: two-track routing, deferred scene intent, no autoplay/overlap, independent positions, pause/resume, pause ducking, background suspension, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
+  'PASS: two-track routing, immediate autoplay attempt with refusal retry, no overlap, independent positions, pause/resume, pause ducking, background suspension, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
 );

@@ -29,6 +29,8 @@ export class GameAudio {
   private ducked = false;
   private unlocked = false;
   private wantsMusic = false;
+  /** The browser refused the last music request; the next gesture retries. */
+  private blocked = false;
   private background = false;
   private disposed = false;
   private lastEffect = new Map<SoundEffect, number>();
@@ -58,8 +60,10 @@ export class GameAudio {
     for (const track of this.tracks()) {
       if (track !== selected && !track.paused) track.pause();
     }
+    // Music is attempted before any gesture: where autoplay is permitted the
+    // theme is already playing when the title screen appears, and where it is
+    // not the rejection is remembered so the first interaction can retry.
     if (
-      !this.unlocked ||
       !this.wantsMusic ||
       this.background ||
       this.disposed ||
@@ -70,6 +74,7 @@ export class GameAudio {
       return selected
         .play()
         .then(() => {
+          this.blocked = false;
           // A pending browser play request may settle after a later scene switch.
           if (
             this.disposed ||
@@ -79,10 +84,24 @@ export class GameAudio {
             if (!selected.paused) selected.pause();
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          this.blocked = true;
+        });
     } catch {
+      this.blocked = true;
       return Promise.resolve();
     }
+  }
+
+  /** True once a play request has been refused and no track is playing. */
+  musicBlocked(): boolean {
+    return this.blocked && this.tracks().every((track) => track.paused);
+  }
+  /** Retry after a refusal — cheap enough to call on any interaction. */
+  retryMusic(): void {
+    if (this.disposed || !this.musicBlocked()) return;
+    this.wantsMusic = true;
+    void this.playSelected();
   }
 
   /** Title/pause/settings/instructions use menu; active play uses gameplay. */

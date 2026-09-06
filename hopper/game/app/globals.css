@@ -187,6 +187,140 @@ button {
   width: 19px;
   height: 19px;
 }
+/* Play-select: the same poster, split into episodes on the left and the
+   controller reference on the right. */
+.select-shade {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(6, 20, 26, 0.9) 0%,
+      rgba(8, 24, 27, 0.78) 45%,
+      rgba(8, 22, 28, 0.62) 100%
+    ),
+    linear-gradient(0deg, rgba(6, 19, 23, 0.86), transparent 45%);
+}
+.select-layout {
+  position: absolute;
+  inset: 11% 5% 7%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: min(6vw, 74px);
+  align-content: center;
+  align-items: center;
+}
+.select-logo {
+  width: min(280px, 60%);
+  filter: drop-shadow(0 6px 12px #0d1c1dcc);
+  margin-bottom: 4px;
+}
+.select-heading {
+  font-family: Georgia, serif;
+  font-weight: normal;
+  font-size: clamp(20px, 2.4vw, 31px);
+  margin: 0 0 18px;
+  text-shadow: 0 2px 8px #071417;
+}
+.select-play .episode-list {
+  margin: 12px 0 0;
+}
+.select-play .episode-list button,
+.continue-button {
+  background: #0b1f2394 !important;
+  backdrop-filter: blur(7px);
+}
+.continue-button {
+  height: auto !important;
+  min-height: 78px;
+  padding: 18px 20px !important;
+  justify-content: flex-start !important;
+  gap: 18px !important;
+  color: #f6ecc6 !important;
+  border: 1px solid #e9d9a266 !important;
+}
+.continue-button > div {
+  flex: 1;
+  text-align: left;
+}
+.continue-button strong {
+  font-weight: normal;
+  font-size: 15px;
+  display: block;
+}
+.continue-button small {
+  font-size: 9px;
+  display: block;
+  margin-top: 7px;
+  opacity: 0.65;
+}
+.continue-button[data-selected='true'],
+.select-play .episode-list button[data-selected='true'] {
+  border-color: #ffeab2 !important;
+}
+.select-controls {
+  border: 1px solid #efe3bb26;
+  border-radius: 7px;
+  background: #08191d8f;
+  backdrop-filter: blur(9px);
+  padding: 22px 24px 18px;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+.select-controls-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #e9e2cfb5;
+}
+.select-diagram {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+.control-key {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px 16px;
+  font-size: 11px;
+  color: #dfe3ce;
+}
+.control-key li {
+  display: flex;
+  align-items: center;
+}
+.control-key .pad,
+.control-key .trigger {
+  margin: 0 9px 0 0;
+  flex: none;
+}
+.control-key .trigger {
+  min-width: 27px;
+  text-align: center;
+}
+.control-key-keyboard {
+  margin: 2px 0 0;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #c3cbb9;
+  text-align: center;
+  line-height: 2.2;
+}
+.control-key-keyboard span {
+  color: #f5e7b6;
+  border: 1px solid #f5e7b636;
+  border-radius: 3px;
+  padding: 3px 6px;
+  margin: 0 4px;
+}
+.select-controls .quiet-button {
+  font-size: 11px !important;
+}
 .hud {
   position: absolute;
   top: 25px;
@@ -715,6 +849,31 @@ button:focus-visible,
   .start-button {
     letter-spacing: 3px !important;
   }
+  /* Stacked and scrollable, clearing the corner controls at the foot. */
+  .select-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    inset: 4% 4% 0;
+    padding-bottom: 96px;
+    align-content: start;
+    overflow-y: auto;
+  }
+  .select-screen .edition {
+    display: none;
+  }
+  .select-logo {
+    display: none;
+  }
+  .select-heading {
+    margin-bottom: 6px;
+  }
+  .select-controls {
+    padding: 16px;
+  }
+  .control-key {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
   .area-banner h2 {
     font-size: 30px;
   }
@@ -737,6 +896,32 @@ button:focus-visible,
   .title-footer,
   .corner-controls {
     bottom: 5%;
+  }
+  .select-layout {
+    inset: 8% 5% 12%;
+    gap: 30px;
+  }
+  .select-logo {
+    display: none;
+  }
+  .select-heading {
+    margin-bottom: 10px;
+  }
+  .select-play .episode-list button {
+    min-height: 62px;
+    padding: 12px 16px;
+  }
+  .continue-button {
+    min-height: 58px;
+    padding: 12px 16px !important;
+  }
+  .select-controls {
+    padding: 14px 16px 12px;
+    gap: 10px;
+  }
+  .control-key {
+    font-size: 10px;
+    gap: 5px 14px;
   }
   .menu-panel {
     padding: 24px;

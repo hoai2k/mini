@@ -24,6 +24,7 @@ import {
 
 type Screen =
   | 'title'
+  | 'select'
   | 'playing'
   | 'pause'
   | 'instructions'
@@ -41,6 +42,11 @@ const missions = [
   'Earthbound Thunder',
   'The Iron Migration',
   'Beyond the Black Sun',
+];
+const episodeBlurbs = [
+  'Fields · metropolis · mountains',
+  'Foundries · storm docks · launchworks',
+  'Red basin · blue drift · violet cathedral',
 ];
 export default function Home() {
   'use no memo'; // The real-time canvas loop intentionally owns mutable control state.
@@ -65,7 +71,7 @@ export default function Home() {
     [saved, setSaved] = useState(false),
     [unlocked, setUnlocked] = useState(0);
   function change(next: Screen) {
-    if (next === 'title') {
+    if (next === 'title' || next === 'select') {
       try {
         setSaved(!!localStorage.getItem('hopper.save'));
         setUnlocked(
@@ -79,11 +85,14 @@ export default function Home() {
     setFocus(0);
     input.current?.resetEdges();
     engine.current?.setPaused(next !== 'playing');
-    // The title screen owns the menu theme. Pausing keeps whatever is playing
-    // and simply lowers it, so the level track resumes where it left off.
-    if (next === 'title') audio.current?.setScene('menu');
+    // The title and play-select screens own the menu theme. Pausing keeps
+    // whatever is playing and simply lowers it, so the level track resumes
+    // where it left off.
+    if (next === 'title' || next === 'select') audio.current?.setScene('menu');
     else if (next === 'playing') audio.current?.setScene('gameplay');
-    audio.current?.setDucked(next !== 'playing' && next !== 'title');
+    audio.current?.setDucked(
+      next !== 'playing' && next !== 'title' && next !== 'select',
+    );
   }
   function fullscreen() {
     if (document.fullscreenElement) {
@@ -95,6 +104,20 @@ export default function Home() {
         'Fullscreen is available with the ⛶ button or your browser’s fullscreen shortcut.',
       );
     });
+  }
+  /**
+   * The title screen carries one action. Taking it is the gesture that starts
+   * the music where autoplay was refused and asks for fullscreen, and it opens
+   * the play-select screen rather than dropping straight into an episode.
+   */
+  function enterSelect() {
+    void audio.current?.unlock();
+    if (!document.fullscreenElement)
+      void root.current
+        ?.requestFullscreen?.()
+        .catch(() => setNotice('Press ⛶ for fullscreen.'));
+    change('select');
+    setNotice('');
   }
   function begin(mission = 0, resume = false) {
     if (!ready) return;
@@ -127,9 +150,25 @@ export default function Home() {
       localStorage.setItem('hopper.settings', JSON.stringify(s));
     } catch {}
   }
-  const actionsRef = useRef({ begin, change, open, back, fullscreen, setting });
+  const actionsRef = useRef({
+    begin,
+    change,
+    open,
+    back,
+    fullscreen,
+    setting,
+    enterSelect,
+  });
   useLayoutEffect(() => {
-    actionsRef.current = { begin, change, open, back, fullscreen, setting };
+    actionsRef.current = {
+      begin,
+      change,
+      open,
+      back,
+      fullscreen,
+      setting,
+      enterSelect,
+    };
   });
   useEffect(() => {
     let alive = true,
@@ -356,14 +395,18 @@ export default function Home() {
         setNotice('Controller disconnected · reconnect or use the keyboard.');
         action.change('pause');
       }
+      if (f.anyPressed) a.retryMusic();
       const mode = screenRef.current;
       if (mode === 'playing') {
         if (f.pausePressed) action.change('pause');
         else if (f.instructionsPressed) action.open('instructions');
-      } else if (mode === 'title' && f.anyPressed && f.active === 'gamepad') {
-        action.begin(0, !!localStorage.getItem('hopper.save'));
-      } else if (mode === 'title' && (f.confirmPressed || f.jumpPressed)) {
-        action.begin(0, !!localStorage.getItem('hopper.save'));
+      } else if (
+        mode === 'title' &&
+        (f.confirmPressed ||
+          f.jumpPressed ||
+          (f.anyPressed && f.active === 'gamepad'))
+      ) {
+        action.enterSelect();
       } else {
         const list = Array.from(
           root.current?.querySelectorAll<HTMLElement>('[data-nav]') || [],
@@ -403,7 +446,8 @@ export default function Home() {
           list[focusRef.current]?.click();
         if (f.backPressed || f.pausePressed) {
           if (mode === 'pause') action.change('playing');
-          else if (mode === 'complete') action.change('title');
+          else if (mode === 'complete' || mode === 'select')
+            action.change('title');
           else if (mode !== 'title') action.back();
         }
       }
@@ -440,6 +484,9 @@ export default function Home() {
   useLayoutEffect(() => {
     focusRef.current = focus;
   }, [focus]);
+  // Continue takes the first focus slot when there is a save, so every later
+  // control on the play-select screen shifts down by one.
+  const episodeBase = saved ? 1 : 0;
   const nav = (index: number) => ({
     'data-nav': true,
     'data-selected': focus === index,
@@ -450,7 +497,7 @@ export default function Home() {
   return (
     <main
       ref={root}
-      className={`game-shell ${screen === 'title' ? 'at-title' : ''}`}
+      className={`game-shell ${screen === 'title' || screen === 'select' ? 'at-title' : ''}`}
     >
       <canvas
         ref={canvas}
@@ -481,7 +528,7 @@ export default function Home() {
               {...nav(0)}
               className="start-button"
               disabled={!ready}
-              onClick={() => begin(0, saved)}
+              onClick={enterSelect}
             >
               {ready ? (
                 <>
@@ -495,20 +542,8 @@ export default function Home() {
               )}
             </Button>
             <p className="start-hint">
-              {saved
-                ? 'Continue your adventure'
-                : 'Press any controller button'}{' '}
-              <span> / </span> ENTER
+              Press any controller button <span> / </span> ENTER
             </p>
-            {saved && (
-              <Button
-                {...nav(1)}
-                className="quiet-button"
-                onClick={() => open('missions')}
-              >
-                Choose an episode <ChevronRight />
-              </Button>
-            )}
           </div>
           <div className="title-footer">
             <p>THREE WORLDS. ONE EXTRAORDINARY FRIEND.</p>
@@ -517,17 +552,120 @@ export default function Home() {
               {connected ? 'CONTROLLER CONNECTED' : 'XBOX CONTROLLER READY'}
             </span>
           </div>
+        </div>
+      )}
+      {screen === 'select' && (
+        <div className="title-screen select-screen">
+          <div className="poster" />
+          <div className="poster-shade select-shade" />
+          <div className="edition">
+            <span className="tiny-star">✦</span> A MECHA ADVENTURE{' '}
+            <span className="edition-line" /> ORIGINAL SERIES · 01
+          </div>
+          <div className="select-layout">
+            <div className="select-play">
+              <Image
+                width={1672}
+                height={941}
+                unoptimized
+                className="select-logo"
+                src="./assets/hopper-logo.png"
+                alt="Hopper the Grasshopper"
+              />
+              <h2 className="select-heading">Choose your horizon.</h2>
+              {saved && (
+                <Button
+                  {...nav(0)}
+                  className="continue-button"
+                  onClick={() => begin(0, true)}
+                >
+                  <Play />
+                  <div>
+                    <strong>Continue</strong>
+                    <small>Pick up from your last checkpoint</small>
+                  </div>
+                  <ChevronRight />
+                </Button>
+              )}
+              <div className="episode-list">
+                {missions.map((name, n) => (
+                  <Button
+                    {...nav(episodeBase + n)}
+                    key={name}
+                    disabled={n > unlocked}
+                    onClick={() => begin(n)}
+                  >
+                    <span>0{n + 1}</span>
+                    <div>
+                      <strong>{name}</strong>
+                      <small>
+                        {n > unlocked
+                          ? 'Complete the previous episode'
+                          : episodeBlurbs[n]}
+                      </small>
+                    </div>
+                    <ChevronRight />
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="select-controls">
+              <span className="select-controls-label">
+                <Gamepad2 size={15} />
+                {connected ? 'CONTROLLER CONNECTED' : 'XBOX CONTROLLER READY'}
+              </span>
+              <Image
+                width={1440}
+                height={580}
+                unoptimized
+                className="select-diagram"
+                src="./assets/controller-diagram.png"
+                alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions."
+              />
+              <ul className="control-key">
+                <li>
+                  <b className="pad a">A</b> Jump
+                </li>
+                <li>
+                  <b className="pad x">X</b> Rear kick · parry
+                </li>
+                <li>
+                  <b className="pad b">B</b> Guard front
+                </li>
+                <li>
+                  <b className="trigger">RT</b> Eye lasers
+                </li>
+                <li>
+                  <b className="trigger">LS</b> Move
+                </li>
+                <li>
+                  <b className="trigger">RS</b> Look around
+                </li>
+              </ul>
+              <p className="control-key-keyboard">
+                KEYBOARD <span>← →</span> move <span>SPACE</span> jump{' '}
+                <span>J</span> kick <span>K</span> lasers <span>L</span> guard
+              </p>
+              <Button
+                {...nav(episodeBase + 3)}
+                className="quiet-button"
+                onClick={() => open('instructions')}
+              >
+                <BookOpen /> Full controls
+              </Button>
+            </div>
+          </div>
           <div className="corner-controls">
             <Button
-              {...nav(2)}
+              {...nav(episodeBase + 4)}
               size="icon"
-              onClick={() => open('instructions')}
-              aria-label="Instructions"
+              onClick={() => change('title')}
+              aria-label="Back to title"
             >
-              <BookOpen />
+              <ArrowLeft />
             </Button>
             <Button
-              {...nav(3)}
+              {...nav(episodeBase + 5)}
               size="icon"
               onClick={() => open('settings')}
               aria-label="Settings"
@@ -535,7 +673,7 @@ export default function Home() {
               <Settings />
             </Button>
             <Button
-              {...nav(4)}
+              {...nav(episodeBase + 6)}
               size="icon"
               onClick={fullscreen}
               aria-label="Fullscreen"
@@ -545,7 +683,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      {screen !== 'title' && hud && (
+      {screen !== 'title' && screen !== 'select' && hud && (
         <>
           <div className="hud" inert={screen !== 'playing'}>
             <div className="pilot-badge">
@@ -643,7 +781,7 @@ export default function Home() {
           )}
         </>
       )}
-      {screen !== 'title' && screen !== 'playing' && (
+      {screen !== 'title' && screen !== 'select' && screen !== 'playing' && (
         <div className="menu-scrim">
           <dialog
             open
@@ -858,11 +996,7 @@ export default function Home() {
                         <small>
                           {n > unlocked
                             ? 'Complete the previous episode'
-                            : n === 0
-                              ? 'Fields · metropolis · mountains'
-                              : n === 1
-                                ? 'Foundries · storm docks · launchworks'
-                                : 'Red basin · blue drift · violet cathedral'}
+                            : episodeBlurbs[n]}
                         </small>
                       </div>
                       <ChevronRight />
