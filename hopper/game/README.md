@@ -24,6 +24,8 @@ Spring pads launch at 1.4× jump speed (hold A to float higher). Takeoff strikes
 
 The camera prioritizes stable terrain. Ordinary jumps cause no vertical tracking. Very high leaps and deep drops receive screen-edge protection. Horizontal look-ahead reverses after sustained travel (at least 0.38 seconds and 150 units), so short aiming inputs do not whip the view around. The primary logical composition is 1600×900; fullscreen HUD and menu typography adapt to standard monitor/TV sizes.
 
+All connected browser-recognized gamepads control the same character and menus. Buttons combine across controllers; movement and look axes add together, capped at normal speed, with equal opposite directions cancelling. Keyboard controls remain available. Disconnecting one controller does not interrupt play while another remains connected.
+
 ## Campaign
 
 1. **Earthbound Thunder:** Sunseed Fields → Crownline City → Thunderhead Range. Agricultural terraces, a metropolis with tall roof climbs, then storm gorges and summits. Boss: Night Rook.
