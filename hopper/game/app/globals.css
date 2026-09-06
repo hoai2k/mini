@@ -847,6 +847,23 @@ button:focus-visible,
 .pad.b {
   background: #eaa190;
 }
+.shield-meter {
+  width: 151px;
+  height: 3px;
+  margin-top: 3px;
+  background: #e4dbc52b;
+}
+.shield-meter i {
+  display: block;
+  height: 100%;
+  background: #8ce6ef;
+  transition: width 0.1s;
+}
+@media (max-width: 800px) {
+  .shield-meter {
+    width: 110px;
+  }
+}
 /* Fullscreen television and desktop presentation is the primary layout. */
 @media (min-width: 1400px) and (min-height: 800px) {
   .hud {

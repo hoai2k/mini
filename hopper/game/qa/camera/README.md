@@ -1,4 +1,4 @@
-# Camera, facing, parry, knockback and ledge-catch regression audit
+# Camera, look, facing, parry, shield, knockback, ledge-catch and wall-kick regression audit
 
 Executed the current real `engine.ts`, `levels.ts`, `combat.ts`, `hopper-animation.ts` and `input.ts` from `/Users/hoai/Documents/Games/mini/hopper/game`. TypeScript is transpiled into this temporary audit directory. Renderer/DOM/audio/storage are mocked; Renderer supplies a conservative 1600×900 world viewport. Tests invoke the actual fixed-step engine, actual registered animation function, and actual Xbox input polling.
 
@@ -13,22 +13,25 @@ The first script refreshes transpiled copies from the real source before testing
 
 ## Results
 
-| Regression | Measured outcome |
-|---|---|
-| Normal tap jump | Camera Y span **0px**; jump rise 130.52px |
-| Full normal jump | Camera Y span **0px**; jump rise 399.88px |
-| Full blue jump | Camera follows 178.29px only for edge protection; rise 625.90px; entire 240px atlas retains ≥24.90px top clearance |
-| Rapid left/right on ground | Camera lead remains +330px; **zero direction flips** |
-| Sustained reversal | New lead direction accepted after 0.425s |
-| Air braking | vx reaches −270px/s while facing stays right; facing changes left on first subsequent grounded tick |
-| Landing anticipation | 120px away uses tucked airborne pose; 60px away uses landing/fall pose |
-| Parry | A frontal blow during the spin kick does no damage and flashes; the same blow from behind, a hazard, or a blow after the kick window lands |
-| Knockback | A hit sets a 0.3s stun; steering is ignored and Hopper travels ~94px backward before control returns |
-| Ledge catch | Falling 40px below a lip, 80px short of it, pressing toward it: caught and standing. 140px short, 140px low, or pulling away: not caught. Thin one-way shelves are caught only as the feet pass the lip |
-| Xbox B | Actual input emits `backPressed` only; there is no shield input; `pausePressed=false` |
-| Campaign reachability | **405/405** actual-engine route transitions pass |
-| Inversion gallery | Entry, ceiling landing, side exit and safe-floor recovery pass |
-| Laser targeting | All 18 species hit; all 3 bosses take intended 0.3 closed / 1.0 exposed damage |
+| Regression                 | Measured outcome                                                                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Normal tap jump            | Camera Y span **0px**; jump rise 130.52px                                                                                                                                                               |
+| Full normal jump           | Camera Y span **0px**; jump rise 399.88px                                                                                                                                                               |
+| Full blue jump             | Camera follows 178.29px only for edge protection; rise 625.90px; entire 240px atlas retains ≥24.90px top clearance                                                                                      |
+| Rapid left/right on ground | Camera lead remains +330px; **zero direction flips**                                                                                                                                                    |
+| Sustained reversal         | New lead direction accepted after 0.425s                                                                                                                                                                |
+| Air braking                | vx reaches −270px/s while facing stays right; facing changes left on first subsequent grounded tick                                                                                                     |
+| Landing anticipation       | 120px away uses tucked airborne pose; 60px away uses landing/fall pose                                                                                                                                  |
+| Parry                      | A frontal blow during the spin kick does no damage and flashes; the same blow from behind, a hazard, or a blow after the kick window lands                                                              |
+| Knockback                  | A hit sets a 0.3s stun; steering is ignored and Hopper travels ~94px backward before control returns                                                                                                    |
+| Ledge catch                | Falling 40px below a lip, 80px short of it, pressing toward it: caught and standing. 140px short, 140px low, or pulling away: not caught. Thin one-way shelves are caught only as the feet pass the lip |
+| Shield                     | Held B absorbs a 2-damage blow (HP 7/7, energy −0.2); quarter-second hits break it in under a second with no damage on the breaking hit; the next unblocked hit lowers HP; releasing recharges to 1.0   |
+| Wall kick                  | A jump pressed while touching a solid face launches at vy < −800, vx < −400 away from the wall, facing away; 24 frames after leaving the face the kick is gone                                          |
+| Right-stick look           | Full deflection ahead and up drifts the rendered camera > 400 units ahead and > 250 up and widens zoom by > 0.15; 2 s after release it is back within 5 units and 0.01 zoom                             |
+| Xbox B                     | Actual input emits `blockHeld=true` and the menu `backPressed` edge, `pausePressed=false`; the playing branch ignores the menu edge                                                                     |
+| Campaign reachability      | **405/405** actual-engine route transitions pass                                                                                                                                                        |
+| Inversion gallery          | Entry, ceiling landing, side exit and safe-floor recovery pass                                                                                                                                          |
+| Laser targeting            | All 18 species hit; all 3 bosses take intended 0.3 closed / 1.0 exposed damage                                                                                                                          |
 
 ## Recommendations and limits
 

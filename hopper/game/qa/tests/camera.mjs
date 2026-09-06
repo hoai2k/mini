@@ -56,6 +56,9 @@ const blank = {
   jumpPressed: false,
   kickPressed: false,
   shootHeld: false,
+  blockHeld: false,
+  lookX: 0,
+  lookY: 0,
   pausePressed: false,
   instructionsPressed: false,
   confirmPressed: false,
@@ -272,6 +275,122 @@ report.ledgeCatch = {
   thinShelfAtLip: ledge(80, 6, 1, 'oneWay'),
   thinShelfBelowLip: ledge(80, 40, 1, 'oneWay'),
 };
+// Shield: held B absorbs from every direction at an energy cost, breaks when
+// drained, and recharges once released. It sits beside the parry, not instead.
+e = make();
+step(e, { blockHeld: true });
+const shieldStart = e.shield,
+  shieldHpStart = e.hp;
+e.hurt(2, 300, -200);
+const afterHit = e.shield,
+  shieldHitHp = e.hp;
+let breakAt = null;
+for (let n = 0; n < 600; n++) {
+  step(e, { blockHeld: true });
+  if (n % 30 === 29) e.hurt(1, 300, -200);
+  if (e.shieldBrokenT > 0) {
+    breakAt = n / 120;
+    break;
+  }
+}
+const blockingWhenBroken = e.player.blocking,
+  hpAtBreak = e.hp;
+e.player.invuln = 0;
+e.hurt(1, 300, -200);
+const afterBreakHp = e.hp;
+for (let n = 0; n < 800; n++) step(e, { blockHeld: false });
+report.shield = {
+  shieldStart,
+  afterHit,
+  shieldHpStart,
+  shieldHitHp,
+  breakAt,
+  blockingWhenBroken,
+  hpAtBreak,
+  afterBreakHp,
+  recharged: e.shield,
+};
+// Wall kick: a jump pressed just after meeting a solid face pushes off it.
+function wall(pressAfterFrames) {
+  const eng = make();
+  eng.level.platforms = [
+    {
+      id: 'floor',
+      x: 0,
+      y: 800,
+      w: 6000,
+      h: 200,
+      skin: 0,
+      kind: 'solid',
+      routeRole: 'main',
+      area: 0,
+    },
+    {
+      id: 'tower',
+      x: 6000,
+      y: 200,
+      w: 900,
+      h: 800,
+      skin: 0,
+      kind: 'solid',
+      routeRole: 'main',
+      area: 0,
+    },
+  ];
+  eng.platforms = eng.level.platforms;
+  eng.deathY = 5000;
+  Object.assign(eng.player, {
+    x: 5800,
+    y: 800,
+    vx: 650,
+    vy: 0,
+    grounded: true,
+    facing: 1,
+  });
+  step(eng, { moveX: 1, jumpPressed: true, jumpHeld: true });
+  let touched = null;
+  for (let n = 0; n < 240; n++) {
+    step(eng, { moveX: 1, jumpHeld: n < 30 });
+    if (touched === null && eng.player.wallT > 0) touched = n;
+    if (touched !== null && pressAfterFrames === 0) {
+      step(eng, { moveX: 1, jumpPressed: true, jumpHeld: true });
+      return {
+        touched,
+        vy: eng.player.vy,
+        vx: eng.player.vx,
+        facing: eng.player.facing,
+        kicking: eng.player.wallKickT > 0,
+      };
+    }
+    if (touched !== null && n === touched + pressAfterFrames) {
+      // Leaving the face for longer than the grace window loses the kick.
+      for (let k = 0; k < pressAfterFrames; k++) step(eng, { moveX: -1 });
+      step(eng, { moveX: 1, jumpPressed: true, jumpHeld: true });
+      return {
+        touched,
+        vy: eng.player.vy,
+        vx: eng.player.vx,
+        facing: eng.player.facing,
+        kicking: eng.player.wallKickT > 0,
+      };
+    }
+  }
+  return { touched, vy: 0, vx: 0, facing: 1, kicking: false };
+}
+report.wallKick = { prompt: wall(0), late: wall(24) };
+// Right-stick look: the rendered camera drifts toward the stick and widens,
+// then damps back to the tracking camera once the stick is released.
+e = make();
+const looks = [];
+for (let n = 0; n < 120; n++) {
+  step(e, { lookX: 1, lookY: -1 });
+  if (n === 119) looks.push({ ...e.look });
+}
+for (let n = 0; n < 240; n++) {
+  step(e);
+  if (n === 239) looks.push({ ...e.look });
+}
+report.look = { held: looks[0], released: looks[1] };
 const pad = {
   index: 0,
   connected: true,
@@ -287,7 +406,7 @@ inputs.update(1 / 60);
 pad.buttons[1] = { pressed: true, value: 1 };
 const bFrame = inputs.update(1 / 60);
 report.controllerB = {
-  blockHeld: 'blockHeld' in bFrame,
+  blockHeld: bFrame.blockHeld,
   backPressed: bFrame.backPressed,
   pausePressed: bFrame.pausePressed,
 };
@@ -343,10 +462,28 @@ const checks = {
   thinShelfOnlyAtLip:
     report.ledgeCatch.thinShelfAtLip.grounded &&
     !report.ledgeCatch.thinShelfBelowLip.grounded,
-  BIsMenuBackOnly:
-    !report.controllerB.blockHeld &&
+  blockProtects: shieldHitHp === shieldHpStart && afterHit < shieldStart,
+  shieldBreaks: breakAt !== null && !blockingWhenBroken,
+  brokenAllowsDamage: afterBreakHp < hpAtBreak,
+  shieldRecharges: e.shield === 1,
+  BHoldsShield:
+    report.controllerB.blockHeld &&
     report.controllerB.backPressed &&
     !report.controllerB.pausePressed,
+  wallKickPromptLaunches:
+    report.wallKick.prompt.kicking &&
+    report.wallKick.prompt.vy < -800 &&
+    report.wallKick.prompt.vx < -400 &&
+    report.wallKick.prompt.facing === -1,
+  wallKickWindowCloses: !report.wallKick.late.kicking,
+  lookPushesAndWidens:
+    report.look.held.x > 400 &&
+    report.look.held.y < -250 &&
+    report.look.held.zoom > 0.15,
+  lookDampsBack:
+    Math.abs(report.look.released.x) < 5 &&
+    Math.abs(report.look.released.y) < 5 &&
+    report.look.released.zoom < 0.01,
 };
 report.checks = checks;
 report.failures = Object.entries(checks)

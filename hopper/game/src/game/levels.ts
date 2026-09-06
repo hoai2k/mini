@@ -457,6 +457,42 @@ const CHAPTER_BEATS: Beat[][] = [
     'rest',
   ],
 ];
+/** Each chapter asks for a different jump. The signature sets how gaps scale
+ * and how the chapter's elevation change is spread across its nine shelves. */
+interface Signature {
+  name: string;
+  gap: number;
+  /** Relative share of the chapter's elevation change taken by each step. */
+  profile: number[];
+}
+const SIGNATURES: Signature[] = [
+  // Lesson: even steps, plain gaps.
+  { name: 'lesson', gap: 1, profile: [1, 1, 1, 1, 1, 1, 1, 1, 1] },
+  // Ladder: short gaps, the climb taken in tall chunks between flat landings.
+  {
+    name: 'ladder',
+    gap: 0.72,
+    profile: [1.4, 1.4, 0.4, 0.4, 1.4, 1.4, 1.3, 0.4, 0.3],
+  },
+  // Glide: long gaps from height; hold, then release to brake onto the landing.
+  {
+    name: 'glide',
+    gap: 1.22,
+    profile: [1.4, 1.3, 1.2, 0.6, 0.9, 1, 1.1, 1.1, 0.4],
+  },
+  // Sprint: tight gaps and near-flat shelves reward low, fast hops.
+  {
+    name: 'sprint',
+    gap: 0.66,
+    profile: [0.5, 0.5, 0.6, 2, 0.5, 0.6, 0.5, 2.2, 1.6],
+  },
+  // Summit: a mixed run that keeps every technique in play before the finish.
+  {
+    name: 'summit',
+    gap: 1,
+    profile: [0.8, 1.4, 1, 0.6, 1.3, 1.5, 0.9, 1.1, 0.4],
+  },
+];
 const MISSION_NAMES = [
   'Earthbound Thunder',
   'The Iron Migration',
@@ -538,7 +574,10 @@ export function buildLevel(mission: number): LevelData {
       const chapterStart = x,
         chapterY = y,
         chapterTarget = regionY + CHAPTERS[skin][ci][1];
-      const relief = RELIEF[(ci + skin) % RELIEF.length];
+      const relief = RELIEF[(ci + skin) % RELIEF.length],
+        signature = SIGNATURES[ci],
+        profileTotal = signature.profile.reduce((n, v) => n + v, 0);
+      let profileSum = 0;
       // Half-length chapters carry twice the elevation change per step, so local
       // relief is damped to keep required rises inside a forgiving jump arc.
       const reliefScale = 0.6 * (skin === 6 ? 0.7 : skin === 7 ? 1.5 : 1);
@@ -552,10 +591,11 @@ export function buildLevel(mission: number): LevelData {
         // The chapter crossing (i === 5) is a deliberately long leap; a catch
         // floor below it turns a miss into a climb back rather than a death.
         const crossing = i === 5;
-        const gap = crossing ? Math.round(source[1] * 1.4) : source[1];
+        const gap = Math.round(source[1] * (crossing ? 1.4 : signature.gap));
+        profileSum += signature.profile[i];
         const nextY =
           chapterY +
-          ((chapterTarget - chapterY) * (i + 1)) / 9 +
+          ((chapterTarget - chapterY) * profileSum) / profileTotal +
           relief[i + 1] * reliefScale;
         const dy = Math.round(nextY - y);
         let beat = CHAPTER_BEATS[ci][i];

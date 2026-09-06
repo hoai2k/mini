@@ -89,8 +89,47 @@
       "x": 5920.166666666667
     }
   },
+  "shield": {
+    "shieldStart": 0.9989166666666667,
+    "afterHit": 0.7989166666666667,
+    "shieldHpStart": 7,
+    "shieldHitHp": 7,
+    "breakAt": 0.9916666666666667,
+    "blockingWhenBroken": false,
+    "hpAtBreak": 7,
+    "afterBreakHp": 6,
+    "recharged": 1
+  },
+  "wallKick": {
+    "prompt": {
+      "touched": 27,
+      "vy": -912.4,
+      "vx": -507,
+      "facing": -1,
+      "kicking": true
+    },
+    "late": {
+      "touched": 27,
+      "vy": 400.18666666666684,
+      "vx": -460,
+      "facing": 1,
+      "kicking": false
+    }
+  },
+  "look": {
+    "held": {
+      "x": 516.8522903871984,
+      "y": -337.94188217624503,
+      "zoom": 0.2186682767022762
+    },
+    "released": {
+      "x": 0.42470706018350474,
+      "y": -0.2776930778122917,
+      "zoom": 0.00017968375623148263
+    }
+  },
   "controllerB": {
-    "blockHeld": false,
+    "blockHeld": true,
     "backPressed": true,
     "pausePressed": false
   },
@@ -114,7 +153,15 @@
     "ledgeCatchAtEdge": true,
     "ledgeCatchLimits": true,
     "thinShelfOnlyAtLip": true,
-    "BIsMenuBackOnly": true
+    "blockProtects": true,
+    "shieldBreaks": true,
+    "brokenAllowsDamage": true,
+    "shieldRecharges": true,
+    "BHoldsShield": true,
+    "wallKickPromptLaunches": true,
+    "wallKickWindowCloses": true,
+    "lookPushesAndWidens": true,
+    "lookDampsBack": true
   },
   "failures": []
 }

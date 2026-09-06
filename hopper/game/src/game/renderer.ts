@@ -20,6 +20,8 @@ export interface RenderState {
     shooting: boolean;
     parryT?: number;
     catchT?: number;
+    blocking?: boolean;
+    shieldFlash?: number;
     landingDistance?: number;
     reducedMotion: boolean;
     w?: number;
@@ -173,6 +175,25 @@ export class Renderer {
       this.creature(s.combat.boss, s.time, true);
     this.projectiles(s);
     this.player(s);
+    if (s.player.blocking) {
+      const p = s.player,
+        flash = p.shieldFlash || 0,
+        pulse = 0.5 + Math.sin(s.time * 11) * 0.12;
+      c.save();
+      c.translate(p.x, p.y - 70 * p.gravitySign);
+      c.globalAlpha = 0.55 + flash * 1.4;
+      c.strokeStyle = flash > 0 ? '#eaffff' : '#8ce6ef';
+      c.lineWidth = 4 + flash * 8;
+      c.shadowColor = '#76e9ff';
+      c.shadowBlur = 22 + flash * 40;
+      c.beginPath();
+      c.ellipse(0, 0, 118 + pulse * 8, 104 + pulse * 8, 0, 0, Math.PI * 2);
+      c.stroke();
+      c.globalAlpha = 0.14 + flash * 0.3;
+      c.fillStyle = '#b6fbff';
+      c.fill();
+      c.restore();
+    }
     if ((s.player.parryT || 0) > 0) {
       // Parry flash: a bright ring that snaps outward from the spin.
       const p = s.player,

@@ -22,6 +22,8 @@ export interface GameSnapshot {
   progress: number;
   signals: number;
   score: number;
+  shield: number;
+  shieldBroken: boolean;
   gravity: number;
   banner: string;
   bannerSmall: string;
@@ -87,6 +89,14 @@ export const PHYSICS = {
   /** Ledge catch: reach beyond the edge and how far below it the feet may be. */
   catchReach: 112,
   catchDrop: 85,
+  /** Wall kick: how long a wall touch stays usable and the launch it gives. */
+  wallGrace: 0.12,
+  wallJump: 0.92,
+  wallPush: 0.78,
+  /** Right-stick look: world offset and zoom-out at full deflection. */
+  lookReach: 520,
+  lookRise: 340,
+  lookZoom: 0.22,
 };
 const emptyInput: InputFrame = {
   moveX: 0,
@@ -95,6 +105,9 @@ const emptyInput: InputFrame = {
   jumpPressed: false,
   kickPressed: false,
   shootHeld: false,
+  blockHeld: false,
+  lookX: 0,
+  lookY: 0,
   pausePressed: false,
   instructionsPressed: false,
   confirmPressed: false,
@@ -132,11 +145,18 @@ export class Engine {
     hitstun: 0,
     parryT: 0,
     catchT: 0,
+    wallT: 0,
+    wallSide: 0,
+    wallKickT: 0,
     shooting: false,
+    blocking: false,
+    shieldFlash: 0,
     landingDistance: Infinity,
     reducedMotion: false,
   };
   camera = { x: 520, y: 490, zoom: 0.95 };
+  /** Right-stick look: a damped offset layered over the tracking camera. */
+  look = { x: 0, y: 0, zoom: 0 };
   images: Record<string, HTMLImageElement> = {};
   renderer: Renderer;
   platforms: Platform[] = [];
@@ -158,6 +178,10 @@ export class Engine {
   overheated = false;
   score = 0;
   shake = 0;
+  shield = 1;
+  private shieldBrokenT = 0;
+  private shieldHitT = 0;
+  private shieldRestT = 0;
   private groundAnchorY = 800;
   private groundAnchorSign = 1;
   private cameraLead = 330;
@@ -375,6 +399,10 @@ export class Engine {
       this.player.kickT = 0.4;
       this.player.parryT = 0.3;
     }
+    if (pose === 'shield') {
+      this.player.blocking = true;
+      this.player.shieldFlash = 0.18;
+    }
     if (pose === 'laser') {
       this.player.shooting = true;
       this.shoot();
@@ -420,6 +448,8 @@ export class Engine {
     this.victoryT = 0;
     this.hp = this.maxHp;
     this.heat = 0;
+    this.shield = 1;
+    this.shieldBrokenT = 0;
     this.overheated = false;
     this.particles = [];
     this.explosions = [];
@@ -502,7 +532,12 @@ export class Engine {
       hitstun: 0,
       parryT: 0,
       catchT: 0,
+      wallT: 0,
+      wallSide: 0,
+      wallKickT: 0,
       shooting: false,
+      blocking: false,
+      shieldFlash: 0,
       landingDistance: 0,
     });
     this.camera = {
@@ -510,6 +545,7 @@ export class Engine {
       y: this.player.y - 270,
       zoom: 0.95,
     };
+    this.look = { x: 0, y: 0, zoom: 0 };
     this.groundAnchorY = this.player.y;
     this.groundAnchorSign = this.player.gravitySign;
     this.cameraLead = 330;
@@ -529,6 +565,8 @@ export class Engine {
   respawn() {
     this.hp = this.maxHp;
     this.heat = 0;
+    this.shield = 1;
+    this.shieldBrokenT = 0;
     this.overheated = false;
     this.resetPlayer();
     this.combat.resetToCheckpoint(this.checkpoint.x);
@@ -577,6 +615,28 @@ export class Engine {
       this.rumble(0.25, 60);
       return true;
     }
+    // The held force shield absorbs from every direction at an energy cost.
+    if (p.blocking) {
+      if (this.shieldHitT <= 0) {
+        this.shield = Math.max(0, this.shield - 0.2);
+        this.shieldHitT = 0.22;
+        p.shieldFlash = 0.3;
+        this.shieldRestT = 0.8;
+        this.effect(
+          'spark',
+          p.x - Math.sign(kx) * 105,
+          p.y - 65 * p.gravitySign,
+          '#b6fbff',
+        );
+        this.audio.effect('shield');
+        this.rumble(0.22, 55);
+        if (this.shield <= 0) {
+          this.shieldBrokenT = 1.4;
+          p.blocking = false;
+        }
+      }
+      return false;
+    }
     if (p.invuln > 0) return false;
     this.hp = Math.max(0, this.hp - d);
     p.invuln = this.settings.assist ? 2.8 : 1.25;
@@ -612,10 +672,41 @@ export class Engine {
       'hitstun',
       'parryT',
       'catchT',
+      'wallT',
+      'wallKickT',
+      'shieldFlash',
     ] as const)
       p[n] = Math.max(0, p[n] - dt);
     this.shotCooldown = Math.max(0, this.shotCooldown - dt);
+    this.shieldBrokenT = Math.max(0, this.shieldBrokenT - dt);
+    this.shieldHitT = Math.max(0, this.shieldHitT - dt);
+    this.shieldRestT = Math.max(0, this.shieldRestT - dt);
     const stunned = p.hitstun > 0;
+    const wasBlocking = p.blocking;
+    p.blocking =
+      !!f.blockHeld &&
+      !stunned &&
+      this.shield > 0.03 &&
+      this.shieldBrokenT <= 0;
+    if (p.blocking) {
+      this.shield = Math.max(0, this.shield - dt * 0.13);
+      this.shieldRestT = 0.65;
+      if (!wasBlocking) {
+        this.audio.effect('shield');
+        p.kickT = 0;
+      }
+      if (this.shield <= 0.03) {
+        this.shieldBrokenT = 1.4;
+        p.blocking = false;
+      }
+    } else if (this.shieldRestT <= 0)
+      this.shield = Math.min(1, this.shield + dt * 0.27);
+    // Right-stick look eases out toward the stick and eases back when released.
+    const lookMag = Math.min(1, Math.hypot(f.lookX, f.lookY)),
+      ease = Math.min(1, dt * (lookMag > 0.05 ? 5 : 3.5));
+    this.look.x += (f.lookX * PHYSICS.lookReach - this.look.x) * ease;
+    this.look.y += (f.lookY * PHYSICS.lookRise - this.look.y) * ease;
+    this.look.zoom += (lookMag * PHYSICS.lookZoom - this.look.zoom) * ease;
     for (const b of this.particles) {
       b.life -= dt;
       b.x += b.vx * dt;
@@ -719,6 +810,8 @@ export class Engine {
     if (stunned) {
       // Knockback is not steerable; it only bleeds off against the ground.
       p.vx = approach(p.vx, 0, (p.grounded ? 1500 : 250) * dt);
+    } else if (p.wallKickT > 0) {
+      // A wall kick's push-off is committed; steering resumes a moment later.
     } else
       p.vx = approach(
         p.vx,
@@ -728,6 +821,29 @@ export class Engine {
       );
     if (p.grounded && !stunned && Math.abs(f.moveX) > 0.12 && p.kickT < 0.12)
       p.facing = f.moveX < 0 ? -1 : 1;
+    if (
+      this.jumpBuffer > 0 &&
+      this.coyote <= 0 &&
+      !p.grounded &&
+      p.wallT > 0 &&
+      !stunned
+    ) {
+      // Wall kick: a jump pressed just after touching a solid face pushes off it.
+      p.vy = -PHYSICS.jump * PHYSICS.wallJump * sign;
+      p.vx = -p.wallSide * PHYSICS.speed * PHYSICS.wallPush;
+      p.facing = -p.wallSide;
+      p.wallT = 0;
+      p.wallKickT = 0.16;
+      this.hold = 0;
+      this.jumpBuffer = 0;
+      this.coyote = 0;
+      p.launchT = 0.2;
+      this.launchFacing = p.facing;
+      this.launchId++;
+      this.audio.effect('jump');
+      this.effect('stomp', p.x + p.wallSide * 40, p.y - 60 * sign, '#d7dd9f');
+      this.score += 10;
+    }
     if (this.jumpBuffer > 0 && this.coyote > 0 && !stunned) {
       p.vy = -PHYSICS.jump * sign;
       p.grounded = false;
@@ -775,9 +891,13 @@ export class Engine {
       if (oldX + 45 <= q.x && p.x + 45 > q.x) {
         p.x = q.x - 45;
         p.vx = 0;
+        p.wallT = PHYSICS.wallGrace;
+        p.wallSide = 1;
       } else if (oldX - 45 >= q.x + q.w && p.x - 45 < q.x + q.w) {
         p.x = q.x + q.w + 45;
         p.vx = 0;
+        p.wallT = PHYSICS.wallGrace;
+        p.wallSide = -1;
       }
     }
     p.y += p.vy * dt;
@@ -879,7 +999,7 @@ export class Engine {
       )
         this.crumble.set(this.stood, this.time);
     }
-    if (f.kickPressed && p.kickT === 0 && !stunned) {
+    if (f.kickPressed && p.kickT === 0 && !stunned && !p.blocking) {
       p.kickT = 0.5;
       this.kickId++;
       this.audio.effect('kick');
@@ -930,10 +1050,13 @@ export class Engine {
     this.heat = Math.max(
       0,
       this.heat -
-        dt * (f.shootHeld && !this.overheated && !stunned ? 0.06 : 0.34),
+        dt *
+          (f.shootHeld && !this.overheated && !stunned && !p.blocking
+            ? 0.06
+            : 0.34),
     );
     if (this.overheated && this.heat < 0.15) this.overheated = false;
-    p.shooting = f.shootHeld && !this.overheated && !stunned;
+    p.shooting = f.shootHeld && !this.overheated && !stunned && !p.blocking;
     if (p.shooting && this.shotCooldown === 0) {
       this.shoot();
       this.shotCooldown = 0.11;
@@ -1192,6 +1315,8 @@ export class Engine {
       progress: clamp(this.player.x / this.level.width, 0, 1),
       signals: this.signals.size,
       score: this.score,
+      shield: this.shield,
+      shieldBroken: this.shieldBrokenT > 0,
       gravity: (area?.gravity || 1) * this.player.gravitySign,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,
@@ -1221,7 +1346,11 @@ export class Engine {
       level: this.level,
       combat: this.combat,
       player: this.player,
-      camera: this.camera,
+      camera: {
+        x: this.camera.x + this.look.x,
+        y: this.camera.y + this.look.y,
+        zoom: this.camera.zoom - this.look.zoom,
+      },
       time: this.time,
       particles: this.particles,
       explosions: this.explosions,

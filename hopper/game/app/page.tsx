@@ -279,6 +279,7 @@ export default function Home() {
                 'inverted',
                 'explosion',
                 'parry',
+                'shield',
               ],
             },
           },
@@ -299,6 +300,9 @@ export default function Home() {
             jumpHeld: !!v.jump,
             kickPressed: !!v.kick,
             shootHeld: !!v.shoot,
+            blockHeld: !!v.block,
+            lookX: 0,
+            lookY: 0,
           });
           return { ...e.snapshot(), player: { ...e.player } };
         },
@@ -310,6 +314,7 @@ export default function Home() {
             jump: { type: 'boolean' },
             kick: { type: 'boolean' },
             shoot: { type: 'boolean' },
+            block: { type: 'boolean' },
           },
           required: ['frames'],
           additionalProperties: false,
@@ -559,8 +564,18 @@ export default function Home() {
                 <div className="heat">
                   <i style={{ width: `${hud.heat * 100}%` }} />
                 </div>
+                <div
+                  className="shield-meter"
+                  aria-label={`Shield ${Math.round(hud.shield * 100)} percent`}
+                >
+                  <i style={{ width: `${hud.shield * 100}%` }} />
+                </div>
                 <span className="heat-label">
-                  {hud.overheated ? 'EYES COOLING' : 'EYE REACTOR'}
+                  {hud.shieldBroken
+                    ? 'SHIELD RECHARGING'
+                    : hud.overheated
+                      ? 'EYES COOLING'
+                      : 'EYE REACTOR'}
                 </span>
               </div>
             </div>
@@ -593,7 +608,8 @@ export default function Home() {
           <div className="game-bottom">
             <span>
               <b className="pad a">A</b> JUMP <b className="pad x">X</b> KICK ·
-              PARRY <b className="trigger">RT</b> EYE LASERS
+              PARRY <b className="trigger">RT</b> EYE LASERS{' '}
+              <b className="pad b">B</b> SHIELD
             </span>
             <span>
               {hud.gravity < 0
@@ -697,7 +713,7 @@ export default function Home() {
                     height={580}
                     unoptimized
                     src="./assets/controller-diagram.png"
-                    alt="Xbox controller: left stick or D-pad move, A jump, X spin kick and parry, RT shoot, B back in menus, Menu pause, View instructions."
+                    alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X spin kick and parry, B force shield, RT shoot, Menu pause, View instructions."
                   />
                   <div className="control-notes">
                     <p>
@@ -721,10 +737,23 @@ export default function Home() {
                       bursts keep the reactor cool. Turn with the stick to aim.
                     </p>
                     <p>
+                      <b className="pad b">B</b>
+                      <strong>Force shield</strong> Hold to block from every
+                      direction when a parry is too risky. It spends energy
+                      while held and when struck, and breaks briefly if drained.
+                      Release to recharge. Keyboard: L.
+                    </p>
+                    <p>
                       <strong>Take a hit</strong> Shadows knock Hopper back a
                       real distance, so fight with your back away from the edge.
                       Fall just short of a ledge while reaching for it and
-                      Hopper hauls up onto the lip.
+                      Hopper hauls up onto the lip. Jump the instant you touch a
+                      wall to kick off it.
+                    </p>
+                    <p>
+                      <strong>Look around</strong> Right stick pushes the camera
+                      ahead, behind, up or down and widens the view; let go and
+                      it settles back.
                     </p>
                     <p>
                       <strong>Move & explore</strong> Left stick / D-pad. Follow
@@ -736,7 +765,7 @@ export default function Home() {
                 <div className="keyboard-line">
                   KEYBOARD <span>← → / A D</span> move <span>SPACE</span> jump{' '}
                   <span>J</span> kick / parry <span>K</span> lasers{' '}
-                  <span>ESC</span> pause
+                  <span>L</span> shield <span>ESC</span> pause
                 </div>
                 <p className="menu-footnote">
                   Menu: D-pad / stick to select · A to confirm · B to go back.

@@ -168,6 +168,7 @@ for (let m = 0; m < 3; m++) {
   counts.push({ mission: m, passed, total: main.length - 1 });
 }
 const l = buildLevel(2),
+  main = l.platforms.filter((p) => p.routeRole === 'main'),
   gate = l.gravityGates[0],
   entry = l.platforms.find(
     (p) => p.id === gate.id.replace('-inversion', '-gallery-entry'),
@@ -200,10 +201,13 @@ for (let n = 0; n < 900; n++) {
     jumpHeld: false,
   });
   exited ||= engine.player.gravitySign === 1;
+  // Restored gravity must put Hopper back on the route: the safe floor, or the
+  // next landing when momentum (and the ledge catch) carries it across the gap.
   if (
     exited &&
     engine.player.grounded &&
-    Math.abs(engine.player.y - base.y) < 1
+    (Math.abs(engine.player.y - base.y) < 1 ||
+      main.some((q) => q.id === engine.stood))
   ) {
     recovered = true;
     break;

@@ -65,23 +65,53 @@ assert(frame.shootHeld, 'analog RT uses soft threshold');
 button(1, true);
 frame = input.update(0.016);
 assert(
-  !('blockHeld' in frame) && frame.backPressed,
-  'B is a menu back edge only; there is no shield input',
+  frame.blockHeld && frame.backPressed,
+  'B holds shield and retains menu back edge',
 );
 frame = input.update(0.016);
-assert(!frame.backPressed, 'menu back does not repeat while held');
+assert(
+  frame.blockHeld && !frame.backPressed,
+  'shield remains held while menu back does not repeat',
+);
 input.resetEdges();
 frame = input.update(0.016);
-assert(!frame.backPressed, 'screen transition quarantines held B');
+assert(
+  !frame.blockHeld && !frame.backPressed,
+  'screen transition quarantines held B',
+);
 button(1, false);
-input.update(0.016);
-button(1, true);
-assert(input.update(0.016).backPressed, 'fresh B works after releasing');
-button(1, false);
-key('keydown', 'KeyL');
 frame = input.update(0.016);
-assert(!frame.anyPressed, 'L is no longer a game key');
+assert(!frame.blockHeld);
+button(1, true);
+assert(
+  input.update(0.016).blockHeld,
+  'fresh B works after releasing quarantine',
+);
+button(1, false);
+assert(!input.update(0.016).blockHeld);
+key('keydown', 'KeyL');
+assert(input.update(0.016).blockHeld, 'L is keyboard shield');
+input.resetEdges();
+assert(!input.update(0.016).blockHeld);
 key('keyup', 'KeyL');
+key('keydown', 'KeyL');
+assert(input.update(0.016).blockHeld);
+key('keyup', 'KeyL');
+assert(!input.update(0.016).blockHeld);
+pad.axes = [0, 0, 0.1, -0.1];
+frame = input.update(0.016);
+assert.equal(frame.lookX, 0, 'right stick deadzone');
+assert.equal(frame.lookY, 0);
+pad.axes = [0, 0, 1, -0.59];
+frame = input.update(0.016);
+assert.equal(frame.lookX, 1, 'right stick look ahead');
+assert.equal(
+  frame.lookY,
+  -0.5,
+  'right stick look up is scaled past the deadzone',
+);
+assert.equal(frame.moveX, 0, 'right stick never moves Hopper');
+pad.axes = [0, 0];
 button(7, false, 0);
 pad.axes = [0.17, 0];
 assert.equal(input.update(1 / 60).moveX, 0);
