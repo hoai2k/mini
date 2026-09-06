@@ -8,19 +8,19 @@ Play the published game at **https://hoai2k.github.io/mini/hopper/**. `pnpm buil
 
 Run `pnpm install`, then `pnpm dev`. Open the displayed local address. Press Start or a fresh controller button to enter the adventure and request fullscreen. Browsers that decline a fullscreen or audio request from controller polling can be activated with the on-screen fullscreen button.
 
-| Action                     | Xbox                             | Keyboard        |
-| -------------------------- | -------------------------------- | --------------- |
-| Move / steer               | Left stick or D-pad              | A/D or arrows   |
-| Variable jump              | Hold A; release for a short jump | Space           |
-| Hind-leg spin kick · parry | X                                | J               |
-| Force shield               | Hold B                           | L               |
-| Look around                | Right stick                      | —               |
-| Eye lasers                 | Hold RT                          | K or left mouse |
-| Pause                      | Menu                             | Escape          |
-| Instructions               | View                             | I               |
-| Menu confirm / back        | A / B                            | Enter / Escape  |
+| Action                 | Xbox                             | Keyboard        |
+| ---------------------- | -------------------------------- | --------------- |
+| Move / steer           | Left stick or D-pad              | A/D or arrows   |
+| Variable jump          | Hold A; release for a short jump | Space           |
+| Rear spin kick · parry | X                                | J               |
+| Forward guard          | Hold B                           | L               |
+| Look around            | Right stick                      | —               |
+| Eye lasers             | Hold RT                          | K or left mouse |
+| Pause                  | Menu                             | Escape          |
+| Instructions           | View                             | I               |
+| Menu confirm / back    | A / B                            | Enter / Escape  |
 
-Spring pads launch at 1.4× jump speed (hold A to float higher). Takeoff strikes behind Hopper. Descending onto vulnerable monsters produces a stomp rebound. Airborne steering changes the trajectory without turning Hopper; facing can change once grounded. The compact flight cel remains active until descending within 80 world units of a platform or monster. The spin kick is also the parry: while it is spinning, a blow or shot arriving from the front (or straight down) does no damage, a parried shadow staggers open, and a parried shot flies back at its shooter as a kick. Hazards cannot be parried. The held force shield remains for blows you would rather absorb: it blocks from every direction, spends energy while held and when struck, breaks briefly if drained, and recharges once released; shooting and kicking are suspended while shielding. A jump pressed while touching a solid face (or within 0.12 s of leaving it) is a wall kick: Hopper launches away from the wall at 92% jump speed and 78% run speed, with steering committed for the first 0.16 s. The right stick pushes the camera up to 520 units ahead or behind and 340 up or down while widening the view by up to 0.22 zoom; it eases out toward the stick and eases back when released, layered over the tracking camera so nothing about the ground-anchored framing changes. A hit that lands knocks Hopper back a real distance with a short stun, so edges are the true cost of a mistake. Falling just short of a ledge while pressing toward it makes Hopper catch the lip and haul up (solid faces from up to 85 units below; thin shelves only as the feet pass the edge).
+Spring pads launch at 1.4× jump speed (hold A to float higher). Takeoff strikes behind Hopper. Descending onto vulnerable monsters produces a stomp rebound. Airborne steering changes the trajectory without turning Hopper; facing can change once grounded. The compact flight cel remains active until descending within 80 world units of a platform or monster. Defence is directional, and the two guards face opposite ways. The spin kick sweeps Hopper's back and the space overhead: it is the only attack that damages, it reaches nothing in front, and timed as a blow arrives from behind or straight down it parries. The held forward guard (B) covers only the front: it turns frontal blows and shots at an energy cost but deals no damage of its own and leaves the back open. Either parry staggers a shadow wide open and sends a shot back at its shooter as a kick. Hazards cannot be parried. The guard spends energy while held and when struck, breaks briefly if drained, recharges once released, and suspends shooting and kicking while held. Eye lasers lock onto the nearest shadow ahead within a wide cone that reaches well below Hopper, so a shelf below can be cleared from above; solid terrain and unbroken cages stop the beam where it meets them. A jump pressed while touching a solid face (or within 0.12 s of leaving it) is a wall kick: Hopper launches away from the wall at 92% jump speed and 78% run speed, with steering committed for the first 0.16 s. The right stick pushes the camera up to 520 units ahead or behind and 340 up or down while widening the view by up to 0.22 zoom; it eases out toward the stick and eases back when released, layered over the tracking camera so nothing about the ground-anchored framing changes. A hit that lands knocks Hopper back a real distance with a short stun, so edges are the true cost of a mistake. Falling just short of a ledge while pressing toward it makes Hopper catch the lip and haul up (solid faces from up to 85 units below; thin shelves only as the feet pass the edge).
 
 The camera prioritizes stable terrain. Ordinary jumps cause no vertical tracking. Very high leaps and deep drops receive screen-edge protection. Horizontal look-ahead reverses after sustained travel (at least 0.38 seconds and 150 units), so short aiming inputs do not whip the view around. The primary logical composition is 1600×900; fullscreen HUD and menu typography adapt to standard monitor/TV sizes.
 

@@ -26,6 +26,7 @@ export class GameAudio {
   private music = 0.55;
   private sfx = 0.65;
   private muted = false;
+  private ducked = false;
   private unlocked = false;
   private wantsMusic = false;
   private background = false;
@@ -175,9 +176,17 @@ export class GameAudio {
     this.muted = muted;
     this.applyVolumes();
   }
+  /** Pause and its sub-menus lower the playing track instead of switching it. */
+  setDucked(ducked: boolean): void {
+    if (this.ducked === ducked) return;
+    this.ducked = ducked;
+    this.applyVolumes();
+  }
   private applyVolumes(): void {
     for (const track of this.tracks())
-      track.volume = this.muted ? 0 : this.master * this.music;
+      track.volume = this.muted
+        ? 0
+        : this.master * this.music * (this.ducked ? 0.32 : 1);
     if (this.output && this.context)
       this.output.gain.setTargetAtTime(
         this.muted ? 0 : this.master * this.sfx,

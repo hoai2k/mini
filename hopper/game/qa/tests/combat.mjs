@@ -468,3 +468,87 @@ assert.ok(w.enemies[2].airborne, 'arriving by leap, not appearing in place');
 console.log(
   'PASS: agile pounce, vault-and-shoot-from-behind, overfly; ordinary spawns stay simple; waves arrive as earlier waves fall.',
 );
+// A parried shot is turned rather than swallowed: hurt() reporting a parry
+// sends the projectile back at its shooter instead of ending it.
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'gunner', type: 'seedSpitter', x: 300, y: 800, area: 0 }],
+});
+w.enemies[0].asleep = false;
+const incoming = {
+  id: 21,
+  x: 640,
+  y: 750,
+  vx: 260,
+  vy: 0,
+  radius: 12,
+  life: 3,
+  delay: 0,
+  gravity: 0,
+  damage: 1,
+  type: 'orb',
+  color: '#fff',
+  owner: 'gunner',
+  active: true,
+};
+w.projectiles.push({ ...incoming });
+p = { ...player(700, 800), w: 110, h: 120, facing: -1 };
+w.update(1 / 120, 0, p, [], { ...cb, hurt: () => true });
+assert.equal(w.projectiles.length, 1, 'a parried shot stays alive');
+assert.equal(w.projectiles[0].owner, 'player', 'and becomes Hopper’s');
+assert.ok(w.projectiles[0].vx < 0, 'flying back toward its shooter');
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'gunner', type: 'seedSpitter', x: 300, y: 800, area: 0 }],
+});
+w.enemies[0].asleep = false;
+w.projectiles.push({ ...incoming, id: 22 });
+w.update(1 / 120, 0, p, [], { ...cb, hurt: () => false });
+assert.equal(w.projectiles.length, 0, 'an unparried shot is spent on Hopper');
+// The rear-only kick reaches behind Hopper and never in front of it.
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    { id: 'front', type: 'shadeHound', x: 620, y: 800, area: 0 },
+    { id: 'back', type: 'shadeHound', x: 380, y: 800, area: 0 },
+  ],
+});
+for (const e of w.enemies) e.asleep = false;
+w.hit(500 - 55, 740, 175, 4, 'kick', 1, 'sweep');
+assert.equal(w.enemies[0].hp, w.enemies[0].maxHp, 'the kick misses the front');
+assert.ok(w.enemies[1].hp < w.enemies[1].maxHp, 'and lands behind');
+// A shadow that has just fallen stays down for the respawn delay even when
+// Hopper dies, and returns only once Hopper is far away.
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    { id: 'near', type: 'shadeHound', x: 5000, y: 800, area: 0 },
+    { id: 'far', type: 'shadeHound', x: 5400, y: 800, area: 0 },
+  ],
+});
+for (const e of w.enemies) e.asleep = false;
+p = { ...player(5000, 800), w: 110, h: 120 };
+w.update(1 / 120, 20, p, [], cb);
+w.hit(5000, 760, 200, 9, 'stomp');
+w.hit(5400, 760, 200, 9, 'stomp');
+assert.ok(!w.enemies[0].alive && !w.enemies[1].alive, 'both fall');
+w.enemies[1].deadAt = 0; // the far one fell long ago
+w.resetToCheckpoint(4800);
+assert.equal(
+  w.enemies[0].alive,
+  false,
+  'a fresh kill does not come straight back',
+);
+assert.equal(
+  w.enemies[1].alive,
+  true,
+  'an old kill is restored by the checkpoint',
+);
+assert.equal(w.enemies[0].reviveAt, 20 + CombatWorld.respawnDelay);
+w.update(1 / 120, 40, p, [], cb);
+assert.equal(w.enemies[0].alive, false, 'and never returns in front of Hopper');
+w.update(1 / 120, 40, { ...p, x: 3000 }, [], cb);
+assert.equal(w.enemies[0].alive, true, 'it returns once Hopper is away');
+console.log(
+  'PASS: parried shots are turned not spent, the kick reaches only behind, and a fresh kill waits out its respawn delay offscreen.',
+);

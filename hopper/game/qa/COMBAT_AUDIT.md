@@ -75,6 +75,19 @@ All three checks pass in every mission. Two things the checks made me change: th
 
 Full-hold-at-speed jumps are 5 per mission; the hardest combined moments are landings with a jump score of 0–1. The challenge is where it was asked to be.
 
+## Directional defence and the respawn delay
+
+A later pass changed what the two guard buttons cover, to make the answer to "something is attacking me" depend on where it is:
+
+- **X sweeps behind and overhead only.** The kick's damage arc is centred 55 units behind Hopper and uses the same rear filter as the takeoff strike, so it reaches nothing in front. It parries a blow arriving from behind or straight down. Deflecting shots with it also only works behind.
+- **B guards the front and does no damage.** Held, it parries frontal blows and shots at 0.2 energy each, staggering the attacker and turning shots back at their shooter, and leaves the back open. It still drains while held, breaks when empty, recharges on release, and suspends kicking and shooting.
+- **A parried shot is turned, not swallowed.** Whichever guard catches it, the projectile becomes Hopper's and flies back as a `reflect` hit (armor-opening like a kick, but with no rear filter).
+- **Eye lasers auto-aim downward.** Targets are chosen in a cone reaching 1.9× the horizontal distance below and 0.45× above, measured from Hopper's body so a shadow pressed against it still counts, and the beam is clipped against solid terrain and unbroken cages by a slab test rather than the old horizontal-band check.
+
+Together these mean a shadow directly in front is answered with lasers, a jump attack or the guard, never a kick, and one at your back is answered with the kick. The trade is deliberate: holding either guard is choosing a side.
+
+The other fix in that pass: a shadow killed within 15 seconds no longer returns when Hopper dies and restarts from a checkpoint. `resetToCheckpoint` keeps it down with a `reviveAt` stamp, and it comes back only once the delay is up **and** Hopper is more than 1,100 units away, so it is never seen appearing.
+
 ## What still needs a human
 
 The numbers say a five-foe wave with two agile spawns is clearable because each dies to one stomp; they cannot say whether the vault-and-shoot from behind reads clearly enough at tier 3 tell speeds, or whether the crossing guard's double dive over a low-gravity 882-unit gap feels fair. Those are controller-in-hand checks. The arena also wants a playtest for whether the swinging shelf and the pillars actually get used against each boss's patterns or are ignored for the floor.

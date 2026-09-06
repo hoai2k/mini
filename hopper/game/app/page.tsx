@@ -79,7 +79,11 @@ export default function Home() {
     setFocus(0);
     input.current?.resetEdges();
     engine.current?.setPaused(next !== 'playing');
-    audio.current?.setScene(next === 'playing' ? 'gameplay' : 'menu');
+    // The title screen owns the menu theme. Pausing keeps whatever is playing
+    // and simply lowers it, so the level track resumes where it left off.
+    if (next === 'title') audio.current?.setScene('menu');
+    else if (next === 'playing') audio.current?.setScene('gameplay');
+    audio.current?.setDucked(next !== 'playing' && next !== 'title');
   }
   function fullscreen() {
     if (document.fullscreenElement) {
@@ -95,6 +99,7 @@ export default function Home() {
   function begin(mission = 0, resume = false) {
     if (!ready) return;
     audio.current?.setScene('gameplay');
+    audio.current?.setDucked(false);
     void audio.current?.unlock();
     if (!document.fullscreenElement)
       void root.current
@@ -449,7 +454,7 @@ export default function Home() {
     >
       <canvas
         ref={canvas}
-        aria-label="Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick, RT or K to fire."
+        aria-label="Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick behind, B or L to guard the front, RT or K to fire."
         tabIndex={-1}
       />
       {screen === 'title' && (
@@ -607,9 +612,9 @@ export default function Home() {
           </div>
           <div className="game-bottom">
             <span>
-              <b className="pad a">A</b> JUMP <b className="pad x">X</b> KICK ·
-              PARRY <b className="trigger">RT</b> EYE LASERS{' '}
-              <b className="pad b">B</b> SHIELD
+              <b className="pad a">A</b> JUMP <b className="pad x">X</b> KICK
+              BEHIND <b className="trigger">RT</b> EYE LASERS{' '}
+              <b className="pad b">B</b> GUARD FRONT
             </span>
             <span>
               {hud.gravity < 0
@@ -713,7 +718,7 @@ export default function Home() {
                     height={580}
                     unoptimized
                     src="./assets/controller-diagram.png"
-                    alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X spin kick and parry, B force shield, RT shoot, Menu pause, View instructions."
+                    alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions."
                   />
                   <div className="control-notes">
                     <p>
@@ -725,23 +730,27 @@ export default function Home() {
                     </p>
                     <p>
                       <b className="pad x">X</b>
-                      <strong>Spin kick · parry</strong> Sweep your powerful
-                      hind legs around your body. Break armor, and time it as a
-                      blow lands from the front: a parried shadow staggers wide
-                      open, and a parried shot flies straight back at its
-                      shooter.
+                      <strong>Rear spin kick · parry</strong> Sweep your
+                      powerful hind legs behind you and overhead. It breaks
+                      armor, and timed as a blow lands from behind or straight
+                      down it parries: the shadow staggers wide open and a
+                      parried shot flies back at its shooter. It reaches nothing
+                      in front of you.
                     </p>
                     <p>
                       <b className="trigger">RT</b>
-                      <strong>Eye lasers</strong> Fire straight ahead. Brief
-                      bursts keep the reactor cool. Turn with the stick to aim.
+                      <strong>Eye lasers</strong> Lock onto the nearest shadow
+                      ahead, including one on a shelf below you. Brief bursts
+                      keep the reactor cool. Turn with the stick to choose a
+                      side.
                     </p>
                     <p>
                       <b className="pad b">B</b>
-                      <strong>Force shield</strong> Hold to block from every
-                      direction when a parry is too risky. It spends energy
-                      while held and when struck, and breaks briefly if drained.
-                      Release to recharge. Keyboard: L.
+                      <strong>Forward guard</strong> Hold to parry everything
+                      arriving from the front, turning shots back at their
+                      shooter. It leaves your back open, does no damage of its
+                      own, spends energy while held and when struck, and breaks
+                      briefly if drained. Release to recharge. Keyboard: L.
                     </p>
                     <p>
                       <strong>Take a hit</strong> Shadows knock Hopper back a
@@ -764,8 +773,8 @@ export default function Home() {
                 </div>
                 <div className="keyboard-line">
                   KEYBOARD <span>← → / A D</span> move <span>SPACE</span> jump{' '}
-                  <span>J</span> kick / parry <span>K</span> lasers{' '}
-                  <span>L</span> shield <span>ESC</span> pause
+                  <span>J</span> rear kick <span>K</span> lasers <span>L</span>{' '}
+                  forward guard <span>ESC</span> pause
                 </div>
                 <p className="menu-footnote">
                   Menu: D-pad / stick to select · A to confirm · B to go back.

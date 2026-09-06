@@ -38,14 +38,20 @@
   },
   "parry": {
     "hpStart": 7,
-    "parried": true,
-    "hitHp": 7,
+    "kickRear": true,
+    "kickRearHp": 7,
     "parryFlash": 0.36,
-    "rearParried": false,
-    "rearHp": 5,
+    "kickFront": false,
+    "kickFrontHp": 5,
+    "kickOverhead": true,
     "hazardParried": false,
     "hazardHp": 6,
-    "lateParried": false
+    "lateParried": false,
+    "guardFront": true,
+    "guardFrontHp": 7,
+    "guardCost": 0.7989166666666667,
+    "guardRear": false,
+    "guardRearHp": 5
   },
   "knockback": {
     "stunStart": 0.3,
@@ -150,6 +156,22 @@
     "wallsAfter": 0,
     "arenaShelves": 9
   },
+  "aim": {
+    "below": {
+      "hit": [
+        "below"
+      ],
+      "drop": 519
+    },
+    "ahead": {
+      "hit": [
+        "ahead"
+      ],
+      "drop": 69
+    },
+    "behind": [],
+    "blocked": []
+  },
   "controllerB": {
     "blockHeld": true,
     "backPressed": true,
@@ -166,8 +188,11 @@
     "noRapidLeadFlip": true,
     "airFacingStable": true,
     "facingTurnsAfterLanding": true,
-    "parryStopsFrontalBlow": true,
-    "rearBlowLands": true,
+    "kickParriesTheBack": true,
+    "kickParriesOverhead": true,
+    "kickLeavesTheFrontOpen": true,
+    "guardParriesTheFront": true,
+    "guardLeavesTheBackOpen": true,
     "hazardsCannotBeParried": true,
     "parryWindowCloses": true,
     "knockbackCarries": true,
@@ -183,6 +208,10 @@
     "wallKickPromptLaunches": true,
     "wallKickWindowCloses": true,
     "lookPushesAndWidens": true,
+    "laserAimsDown": true,
+    "laserStillAimsAhead": true,
+    "laserIgnoresBehind": true,
+    "laserStopsAtTerrain": true,
     "springLaunches": true,
     "counterBeltDrags": true,
     "windLeansOnJump": true,

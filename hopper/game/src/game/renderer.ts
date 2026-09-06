@@ -185,27 +185,41 @@ export class Renderer {
       const p = s.player,
         flash = p.shieldFlash || 0,
         pulse = 0.5 + Math.sin(s.time * 11) * 0.12;
+      // A forward-facing guard, not a bubble: the back is deliberately open.
       c.save();
       c.translate(p.x, p.y - 70 * p.gravitySign);
+      c.scale(p.facing, 1);
       c.globalAlpha = 0.55 + flash * 1.4;
       c.strokeStyle = flash > 0 ? '#eaffff' : '#8ce6ef';
-      c.lineWidth = 4 + flash * 8;
+      c.lineWidth = 5 + flash * 8;
       c.shadowColor = '#76e9ff';
       c.shadowBlur = 22 + flash * 40;
       c.beginPath();
-      c.ellipse(0, 0, 118 + pulse * 8, 104 + pulse * 8, 0, 0, Math.PI * 2);
+      c.ellipse(
+        18,
+        0,
+        104 + pulse * 8,
+        96 + pulse * 8,
+        0,
+        -Math.PI * 0.44,
+        Math.PI * 0.44,
+      );
       c.stroke();
-      c.globalAlpha = 0.14 + flash * 0.3;
+      c.globalAlpha = 0.13 + flash * 0.3;
       c.fillStyle = '#b6fbff';
       c.fill();
       c.restore();
     }
     if ((s.player.parryT || 0) > 0) {
-      // Parry flash: a bright ring that snaps outward from the spin.
+      // Parry flash: a bright ring that snaps outward from the spin. The kick
+      // sweeps behind, so the ring is centred on Hopper's back.
       const p = s.player,
         t = 1 - (p.parryT || 0) / 0.36;
       c.save();
-      c.translate(p.x, p.y - 70 * p.gravitySign);
+      c.translate(
+        p.x - (p.blocking ? 0 : p.facing * 45),
+        p.y - 70 * p.gravitySign,
+      );
       c.globalAlpha = Math.max(0, 1 - t) * 0.9;
       c.strokeStyle = '#d6ffff';
       c.lineWidth = 5 - t * 3;

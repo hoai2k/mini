@@ -4,14 +4,14 @@ Assets that would replace procedural drawing or stale art. Everything listed her
 
 ## 1. Controller diagram (replaces `assets/controller-diagram.png`)
 
-The current diagram still labels B as "force shield" only and has no right stick label. Same composition as the existing image (Xbox controller, callouts on a 1440×580 canvas), with these callouts:
+The current diagram still labels B as "force shield" and X as an all-round spin, and has no right stick label. Same composition as the existing image (Xbox controller, callouts on a 1440×580 canvas), with these callouts:
 
 - Left stick / D-pad: move
 - Right stick: look around (ahead, behind, up, down)
 - A: jump (hold to soar; jump at a wall to kick off it)
-- X: spin kick · parry
-- B: force shield (hold)
-- RT: eye lasers
+- X: rear spin kick · parry (sweeps behind and overhead only)
+- B: forward guard (hold; parries the front only)
+- RT: eye lasers (auto-aim ahead and downward)
 - Menu: pause · View: instructions
 
 ## 2. Spring pad (new, 160×40 tile, 9 regional variants optional)

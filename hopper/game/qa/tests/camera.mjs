@@ -192,34 +192,54 @@ report.airBrake = {
   facingOnLanding,
   facingNextGroundTick: e.player.facing,
 };
-// Parry: a spin kick meets a frontal blow with no damage and a flash; the same
-// blow from behind, or outside the kick window, lands and knocks Hopper back.
+// Parry directions: the spin kick guards Hopper's back and overhead, the held
+// guard covers only the front, and neither turns a hazard. kx points away from
+// the attacker, so kx > 0 while facing right means a blow from behind.
 e = make();
 const hpStart = e.hp;
 step(e, { kickPressed: true });
-const parried = e.hurt(2, -300, -200);
-const hitHp = e.hp,
+const kickRear = e.hurt(2, 300, -200);
+const kickRearHp = e.hp,
   parryFlash = e.player.parryT;
 e = make();
-const rearParried = e.hurt(2, 300, -200);
-const rearHp = e.hp;
+step(e, { kickPressed: true });
+const kickFront = e.hurt(2, -300, -200);
+const kickFrontHp = e.hp;
 e = make();
 step(e, { kickPressed: true });
-const hazardParried = e.hurt(1, -300, -200, false);
+const kickOverhead = e.hurt(2, 0, -200);
+e = make();
+step(e, { kickPressed: true });
+const hazardParried = e.hurt(1, 300, -200, false);
 const hazardHp = e.hp;
 e = make();
 for (let n = 0; n < 60; n++) step(e);
-const lateParried = e.hurt(2, -300, -200);
+const lateParried = e.hurt(2, 300, -200);
+e = make();
+step(e, { blockHeld: true });
+const guardFront = e.hurt(2, -300, -200);
+const guardFrontHp = e.hp,
+  guardCost = e.shield;
+e = make();
+step(e, { blockHeld: true });
+const guardRear = e.hurt(2, 300, -200);
+const guardRearHp = e.hp;
 report.parry = {
   hpStart,
-  parried,
-  hitHp,
+  kickRear,
+  kickRearHp,
   parryFlash,
-  rearParried,
-  rearHp,
+  kickFront,
+  kickFrontHp,
+  kickOverhead,
   hazardParried,
   hazardHp,
   lateParried,
+  guardFront,
+  guardFrontHp,
+  guardCost,
+  guardRear,
+  guardRearHp,
 };
 // Knockback: after a hit, steering is ignored for the stun window and Hopper
 // travels backward a real distance before regaining control.
@@ -281,13 +301,13 @@ e = make();
 step(e, { blockHeld: true });
 const shieldStart = e.shield,
   shieldHpStart = e.hp;
-e.hurt(2, 300, -200);
+e.hurt(2, -300, -200);
 const afterHit = e.shield,
   shieldHitHp = e.hp;
 let breakAt = null;
 for (let n = 0; n < 600; n++) {
   step(e, { blockHeld: true });
-  if (n % 30 === 29) e.hurt(1, 300, -200);
+  if (n % 30 === 29) e.hurt(1, -300, -200);
   if (e.shieldBrokenT > 0) {
     breakAt = n / 120;
     break;
@@ -296,7 +316,7 @@ for (let n = 0; n < 600; n++) {
 const blockingWhenBroken = e.player.blocking,
   hpAtBreak = e.hp;
 e.player.invuln = 0;
-e.hurt(1, 300, -200);
+e.hurt(1, -300, -200);
 const afterBreakHp = e.hp;
 for (let n = 0; n < 800; n++) step(e, { blockHeld: false });
 report.shield = {
@@ -522,6 +542,64 @@ e = new Engine({}, { effect() {} }, () => {});
     ).length,
   };
 }
+// Eye lasers lock downward as well as ahead: a shadow on the shelf below is a
+// target, one directly behind is not, and solid terrain in between blocks.
+{
+  const eng = make();
+  const shelf = (id, x, y, w) => ({
+    id,
+    x,
+    y,
+    w,
+    h: 130,
+    skin: 0,
+    kind: 'solid',
+    routeRole: 'main',
+    area: 0,
+  });
+  eng.level.platforms = [
+    shelf('high', 4600, 800, 700),
+    shelf('low', 5600, 1250, 900),
+  ];
+  eng.platforms = eng.level.platforms;
+  eng.deathY = 9000;
+  const foe = (id, x, y) => ({ id, type: 'shadeHound', x, y, area: 0 });
+  const aim = (enemies, facing = 1) => {
+    eng.level.enemies = enemies;
+    eng.combat = new CombatWorld(eng.level);
+    eng.combat.boss.alive = false;
+    for (const t of eng.combat.enemies) {
+      t.asleep = false;
+      t.visible = true;
+    }
+    Object.assign(eng.player, {
+      x: 5200,
+      y: 800,
+      vx: 0,
+      vy: 0,
+      grounded: true,
+      facing,
+      invuln: 100,
+    });
+    eng.lasers = [];
+    eng.shoot();
+    const beam = eng.lasers.at(-1);
+    return {
+      beam,
+      hit: eng.combat.enemies.filter((t) => t.hp < t.maxHp).map((t) => t.id),
+    };
+  };
+  const below = aim([foe('below', 5900, 1250)]);
+  const ahead = aim([foe('ahead', 5240, 800)]);
+  const behind = aim([foe('behind', 4700, 800)]);
+  const blocked = aim([foe('under', 5000, 1250)]);
+  report.aim = {
+    below: { hit: below.hit, drop: Math.round(below.beam.y2 - below.beam.y) },
+    ahead: { hit: ahead.hit, drop: Math.round(ahead.beam.y2 - ahead.beam.y) },
+    behind: behind.hit,
+    blocked: blocked.hit,
+  };
+}
 const pad = {
   index: 0,
   connected: true,
@@ -573,9 +651,13 @@ const checks = {
   noRapidLeadFlip: directionFlips === 0,
   airFacingStable: !report.airBrake.changedInAir,
   facingTurnsAfterLanding: report.airBrake.facingNextGroundTick === -1,
-  parryStopsFrontalBlow:
-    parried === true && hitHp === hpStart && parryFlash > 0,
-  rearBlowLands: rearParried === false && rearHp < hpStart,
+  kickParriesTheBack:
+    kickRear === true && kickRearHp === hpStart && parryFlash > 0,
+  kickParriesOverhead: kickOverhead === true,
+  kickLeavesTheFrontOpen: kickFront === false && kickFrontHp < hpStart,
+  guardParriesTheFront:
+    guardFront === true && guardFrontHp === hpStart && guardCost < 1,
+  guardLeavesTheBackOpen: guardRear === false && guardRearHp < hpStart,
   hazardsCannotBeParried: hazardParried === false && hazardHp < hpStart,
   parryWindowCloses: lateParried === false,
   knockbackCarries:
@@ -611,6 +693,12 @@ const checks = {
     report.look.held.x > 400 &&
     report.look.held.y < -250 &&
     report.look.held.zoom > 0.15,
+  laserAimsDown:
+    report.aim.below.hit.length === 1 && report.aim.below.drop > 200,
+  laserStillAimsAhead:
+    report.aim.ahead.hit.length === 1 && report.aim.ahead.drop < 150,
+  laserIgnoresBehind: report.aim.behind.length === 0,
+  laserStopsAtTerrain: report.aim.blocked.length === 0,
   springLaunches: report.spring.launched && report.spring.apex > 500,
   counterBeltDrags: report.belt.drift < -50,
   windLeansOnJump:

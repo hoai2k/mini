@@ -84,8 +84,11 @@ export const PHYSICS = {
   buffer: 0.13,
   /** Seconds after a hit during which steering is lost and knockback carries. */
   hitstun: 0.3,
-  /** The spin kick parries frontal attacks while kickT is above this value. */
+  /** The spin kick parries rear attacks while kickT is above this value. */
   parryUntil: 0.14,
+  /** Laser aim cone in front: how far down and up it will follow a target. */
+  aimDown: 1.9,
+  aimUp: 0.45,
   /** Ledge catch: reach beyond the edge and how far below it the feet may be. */
   catchReach: 112,
   catchDrop: 85,
@@ -614,11 +617,12 @@ export class Engine {
   private hurt(d: number, kx: number, ky: number, parryable = true): boolean {
     if (this.respawnT > 0 || this.victoryT > 0) return false;
     const p = this.player;
-    // A spinning kick parries anything arriving from the front or straight down.
+    // The spin kick sweeps behind and overhead: it parries a blow arriving from
+    // Hopper's back or straight down. kx points away from the attacker.
     if (
       parryable &&
       p.kickT > PHYSICS.parryUntil &&
-      (kx === 0 || -Math.sign(kx) === p.facing)
+      (kx === 0 || Math.sign(kx) === p.facing)
     ) {
       p.invuln = Math.max(p.invuln, 0.35);
       p.parryT = 0.36;
@@ -634,8 +638,9 @@ export class Engine {
       this.rumble(0.25, 60);
       return true;
     }
-    // The held force shield absorbs from every direction at an energy cost.
-    if (p.blocking) {
+    // The held shield is a parry facing forward: it turns a frontal blow at an
+    // energy cost, and leaves Hopper's back open.
+    if (parryable && p.blocking && -Math.sign(kx) === p.facing) {
       if (this.shieldHitT <= 0) {
         this.shield = Math.max(0, this.shield - 0.2);
         this.shieldHitT = 0.22;
@@ -643,7 +648,7 @@ export class Engine {
         this.shieldRestT = 0.8;
         this.effect(
           'spark',
-          p.x - Math.sign(kx) * 105,
+          p.x + p.facing * 105,
           p.y - 65 * p.gravitySign,
           '#b6fbff',
         );
@@ -654,7 +659,9 @@ export class Engine {
           p.blocking = false;
         }
       }
-      return false;
+      p.invuln = Math.max(p.invuln, 0.2);
+      p.vx = kx * 0.35;
+      return true;
     }
     if (p.invuln > 0) return false;
     this.hp = Math.max(0, this.hp - d);
@@ -1059,8 +1066,9 @@ export class Engine {
       this.rumble(0.3, 65);
     }
     if (p.kickT > 0.1 && p.kickT < 0.44) {
+      // The sweep covers Hopper's back and the space above it, never ahead.
       const result = this.combat.hit(
-        p.x,
+        p.x - p.facing * 55,
         p.y - 60 * sign,
         175,
         4,
@@ -1073,6 +1081,7 @@ export class Engine {
         if (
           b.owner !== 'player' &&
           b.active &&
+          (b.x - p.x) * p.facing < 40 &&
           Math.hypot(b.x - p.x, b.y - (p.y - 55 * sign)) < 195
         ) {
           this.combat.reflect(b, p);
@@ -1268,58 +1277,86 @@ export class Engine {
     this.camera.y +=
       (desiredY - this.camera.y) * Math.min(1, dt * (urgent ? 9 : 3));
   }
+  /** Fraction of the beam travelled before it meets this box, or 1 for a clear
+   * line. Slab method against an axis-aligned rectangle. */
+  private beamClip(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    r: { x: number; y: number; w: number; h: number },
+  ): number {
+    const dx = x2 - x1,
+      dy = y2 - y1;
+    let near = 0,
+      far = 1;
+    for (const [p0, d, lo, hi] of [
+      [x1, dx, r.x, r.x + r.w],
+      [y1, dy, r.y, r.y + r.h],
+    ] as const) {
+      if (Math.abs(d) < 1e-6) {
+        if (p0 < lo || p0 > hi) return 1;
+        continue;
+      }
+      const t0 = (lo - p0) / d,
+        t1 = (hi - p0) / d;
+      near = Math.max(near, Math.min(t0, t1));
+      far = Math.min(far, Math.max(t0, t1));
+    }
+    return near <= far && near >= 0 && near <= 1 ? near : 1;
+  }
   private shoot() {
     const p = this.player,
       eye = hopperEye(p, p.x, p.y, 240, 240, this.time),
       max = 1050;
-    let end = eye.x + p.facing * max,
-      endY = eye.y;
     const targets = [
       ...this.combat.enemies.filter((e) => e.alive && e.visible && !e.asleep),
       ...(this.combat.boss.active && this.combat.boss.alive
         ? [this.combat.boss]
         : []),
     ];
+    // The eyes track downward as well as ahead, so a shadow on the shelf below
+    // can be picked off from up here. Straight up is barely covered.
     let hitTarget: (typeof targets)[number] | null = null;
-    let distance = max;
+    let best = max,
+      aimX = eye.x + p.facing * max,
+      aimY = eye.y;
     for (const e of targets) {
-      const dx = (e.x - eye.x) * p.facing;
-      if (
-        dx > 0 &&
-        dx < distance &&
-        eye.y > e.y - e.h - 60 &&
-        eye.y < e.y + 35
-      ) {
-        distance = dx;
-        end = e.x;
-        endY = clamp(eye.y, e.y - e.h * 0.8, e.y - e.h * 0.2);
-        hitTarget = e;
-      }
+      // Candidates are chosen from the body, not the eye, so a shadow pressed
+      // right up against Hopper is still a target.
+      const cy = e.y - e.h * 0.5,
+        dx = (e.x - p.x) * p.facing,
+        dy = (cy - eye.y) * p.gravitySign,
+        reach = Math.max(120, dx);
+      if (dx <= -e.w * 0.4 || dx > max) continue;
+      if (dy > PHYSICS.aimDown * reach + 60) continue;
+      if (dy < -PHYSICS.aimUp * reach - 60) continue;
+      const range = Math.hypot(dx, dy);
+      if (range >= best) continue;
+      best = range;
+      hitTarget = e;
+      aimX = e.x;
+      aimY = cy;
     }
+    // Solid terrain and unbroken cages stop the beam wherever it meets them.
+    let end = aimX,
+      endY = aimY,
+      clip = 1;
     for (const q of this.platforms) {
-      const edge = p.facing > 0 ? q.x : q.x + q.w,
-        dx = (edge - eye.x) * p.facing;
-      if (dx > 0 && dx < distance && eye.y > q.y + 4 && eye.y < q.y + q.h) {
-        distance = dx;
-        end = edge;
-        endY = eye.y;
-        hitTarget = null;
-      }
+      if (q.kind === 'oneWay' || q.routeRole === 'optional') continue;
+      clip = Math.min(clip, this.beamClip(eye.x, eye.y, aimX, aimY, q));
     }
-    // Unbroken barriers stop the beam; only a reflected shot opens them.
     for (const q of this.level.barriers) {
       if (this.broken.has(q.id)) continue;
-      const edge = p.facing > 0 ? q.x : q.x + q.w,
-        dx = (edge - eye.x) * p.facing;
-      if (dx > 0 && dx < distance && eye.y > q.y && eye.y < q.y + q.h) {
-        distance = dx;
-        end = edge;
-        endY = eye.y;
-        hitTarget = null;
-      }
+      clip = Math.min(clip, this.beamClip(eye.x, eye.y, aimX, aimY, q));
+    }
+    if (clip < 1) {
+      end = eye.x + (aimX - eye.x) * clip;
+      endY = eye.y + (aimY - eye.y) * clip;
+      hitTarget = null;
     }
     if (hitTarget) {
-      const r = this.combat.hit(hitTarget.x, endY, 22, 1, 'laser', p.facing);
+      const r = this.combat.hit(end, endY, 26, 1, 'laser', p.facing);
       this.score += r.kills * 100;
       this.effect('spark', end, endY, '#ffe7bb');
     }

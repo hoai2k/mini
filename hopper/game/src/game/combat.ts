@@ -1,5 +1,10 @@
 import type { LevelData, Platform, EnemyType } from './levels';
-export type AttackKind = 'laser' | 'kick' | 'stomp' | 'launch';
+export type AttackKind =
+  | 'laser'
+  | 'kick'
+  | 'stomp'
+  | 'launch'
+  | /** A shot Hopper parried back; opens armor like a kick but has no arc. */ 'reflect';
 export interface CombatPlayer {
   x: number;
   y: number;
@@ -68,6 +73,9 @@ export interface EnemyRuntime {
   /** Encounter waves: wave n stays hidden until wave n-1 of its group is down. */
   wave: number;
   group: string;
+  /** Game time this one fell, and the earliest it may return to the route. */
+  deadAt: number;
+  reviveAt: number;
   /** Ground enemies leave their shelf for a pounce or a vault. */
   airborne: boolean;
   /** After landing a vault the next attack is always the volley from behind. */
@@ -195,6 +203,10 @@ export class CombatWorld {
   level: LevelData;
   brokenBarriers = new Set<string>();
   private groupTime = new Map<string, number>();
+  /** Elapsed game seconds, tracked so kills can be timestamped. */
+  private time = 0;
+  /** A shadow that has just fallen stays down this long, even past a death. */
+  static readonly respawnDelay = 15;
   constructor(level: LevelData) {
     this.level = level;
     this.boss = this.makeBoss();
@@ -243,6 +255,8 @@ export class CombatWorld {
         group: s.group ?? s.id,
         airborne: false,
         vaulted: false,
+        deadAt: -1e9,
+        reviveAt: 0,
         open: 0,
         sequence: 0,
         attackIds: new Set<string>(),
@@ -292,14 +306,32 @@ export class CombatWorld {
     this.deadBossReported = false;
   }
   /** Preserve already-cleared foes behind checkpoint, restore its challenge ahead. */
+  /** Returning to a checkpoint restores the route, but a shadow killed moments
+   * ago stays down until its delay is up; it then returns offscreen. */
   resetToCheckpoint(x: number) {
     this.groupTime = new Map();
+    const previous = new Map(this.enemies.map((e) => [e.id, e]));
     const fresh = this.makeEnemies();
-    this.enemies = fresh.map((e) =>
-      e.x < x - 350
-        ? { ...e, hp: 0, alive: false, state: 'dead' as CombatState }
-        : e,
-    );
+    this.enemies = fresh.map((e) => {
+      if (e.x < x - 350)
+        return { ...e, hp: 0, alive: false, state: 'dead' as CombatState };
+      const was = previous.get(e.id);
+      if (
+        was &&
+        !was.alive &&
+        this.time - was.deadAt < CombatWorld.respawnDelay
+      )
+        return {
+          ...e,
+          hp: 0,
+          alive: false,
+          state: 'dead' as CombatState,
+          visible: false,
+          deadAt: was.deadAt,
+          reviveAt: was.deadAt + CombatWorld.respawnDelay,
+        };
+      return e;
+    });
     this.projectiles = [];
     this.boss = this.makeBoss();
     this.deadBossReported = false;
@@ -358,9 +390,18 @@ export class CombatWorld {
     callbacks: CombatCallbacks,
   ) {
     this.callbacks = callbacks;
+    this.time = time;
     dt = Math.min(dt, 0.05);
     for (const e of this.enemies) {
-      if (!e.alive) continue;
+      if (!e.alive) {
+        // A held-back shadow returns only once its delay is up and Hopper is
+        // far enough away that it is never seen appearing.
+        if (e.reviveAt && time >= e.reviveAt && Math.abs(e.x - p.x) > 1100) {
+          const fresh = this.makeEnemies().find((o) => o.id === e.id);
+          if (fresh) Object.assign(e, fresh, { asleep: true });
+        }
+        continue;
+      }
       e.asleep = Math.abs(e.x - p.x) > 2200;
       if (e.asleep) continue;
       if (e.dormant) {
@@ -604,7 +645,7 @@ export class CombatWorld {
           callbacks.effect('spark', b.x, b.y, '#b6fbff');
           continue;
         }
-        const r = this.hit(b.x, b.y, b.radius + 26, 2, 'kick');
+        const r = this.hit(b.x, b.y, b.radius + 26, 2, 'reflect');
         if (r.hits) {
           b.life = 0;
           callbacks.effect('spark', b.x, b.y, b.color);
@@ -614,9 +655,15 @@ export class CombatWorld {
         Math.abs(b.y - (p.y - (p.h || 90) * 0.5 * p.gravitySign)) <
           (p.h || 90) * 0.5 + b.radius
       ) {
-        callbacks.hurt(b.damage, Math.sign(b.vx) * 270, -180 * p.gravitySign);
-        b.life = 0;
-        callbacks.effect('spark', b.x, b.y, b.color);
+        // A parried shot is turned rather than absorbed.
+        if (
+          callbacks.hurt(b.damage, Math.sign(b.vx) * 270, -180 * p.gravitySign)
+        ) {
+          this.reflect(b, p);
+        } else {
+          b.life = 0;
+          callbacks.effect('spark', b.x, b.y, b.color);
+        }
       }
       // Low waves travel along their lane; ordinary projectiles stop at solid art.
       if (
@@ -1090,7 +1137,12 @@ export class CombatWorld {
         (attackId && e.attackIds.has(attackId))
       )
         continue;
-      if (kind === 'launch' && (e.x - x) * facing > e.w * 0.2) continue;
+      // The takeoff strike and the spin kick both reach behind Hopper only.
+      if (
+        (kind === 'launch' || kind === 'kick') &&
+        (e.x - x) * facing > e.w * 0.2
+      )
+        continue;
       if (
         dist(e.x - x, e.y - e.h * 0.5 - y) >
         radius + Math.min(e.w, e.h) * 0.42
@@ -1105,7 +1157,7 @@ export class CombatWorld {
       }
       const guarded = e.armored && e.open <= 0 && kind === 'laser';
       const dealt = guarded ? Math.max(0.25, damage * 0.3) : damage;
-      if (kind === 'kick') e.open = 1.5;
+      if (kind === 'kick' || kind === 'reflect') e.open = 1.5;
       e.hp -= dealt;
       e.invulnerable = 0.15;
       e.glow = 1;
@@ -1120,6 +1172,7 @@ export class CombatWorld {
       if (e.hp <= 0) {
         e.alive = false;
         e.state = 'dead';
+        e.deadAt = this.time;
         result.kills++;
         this.callbacks.effect('explosion', e.x, e.y - e.h * 0.5, '#dab9ff');
         this.callbacks.sound('burst');
@@ -1142,7 +1195,8 @@ export class CombatWorld {
       b.hp -= damage * (b.open > 0 ? 1 : kind === 'laser' ? 0.3 : 0.65);
       b.invulnerable = 0.15;
       b.glow = 1;
-      if (kind === 'kick' || kind === 'stomp') b.open = Math.max(b.open, 1.2);
+      if (kind === 'kick' || kind === 'reflect' || kind === 'stomp')
+        b.open = Math.max(b.open, 1.2);
       if (attackId) b.attackIds.add(attackId);
       result.hits++;
       result.bossHit = true;

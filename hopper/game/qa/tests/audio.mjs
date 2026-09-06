@@ -198,6 +198,25 @@ audio.setBackground(false);
 assert(!level.paused && theme.paused, 'returning resumes the selected track');
 assert.equal(level.currentTime, 51.75, 'the track keeps its position');
 assert.equal(context.state, 'running');
+// Pausing ducks the playing track instead of switching scenes: the same track
+// keeps running, quieter, and returns to full volume on resume.
+audio.setVolumes(0.8, 0.5, 0.65);
+const fullVolume = level.volume;
+audio.setDucked(true);
+assert.ok(level.volume < fullVolume, 'the playing track is lowered');
+assert.equal(level.volume, +(fullVolume * 0.32).toFixed(10));
+assert(!level.paused, 'and keeps playing');
+const duckedPlays = theme.plays + level.plays;
+audio.setDucked(true);
+assert.equal(
+  theme.plays + level.plays,
+  duckedPlays,
+  'ducking twice is a no-op',
+);
+audio.setVolumes(0.8, 0.5, 0.65);
+assert.ok(level.volume < fullVolume, 'a volume change keeps the duck');
+audio.setDucked(false);
+assert.equal(level.volume, fullVolume, 'resuming restores it');
 audio.pauseTheme();
 let resolveTheme;
 theme.deferred = new Promise((resolve) => {
@@ -227,5 +246,5 @@ audio.playLevel();
 await audio.unlock();
 assert.equal(theme.plays + level.plays, totalPlays);
 console.log(
-  'PASS: two-track routing, deferred scene intent, no autoplay/overlap, independent positions, pause/resume, background suspension, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
+  'PASS: two-track routing, deferred scene intent, no autoplay/overlap, independent positions, pause/resume, pause ducking, background suspension, volume/mute/clamping, shield/laser limits, stale play promises, and disposal.',
 );
