@@ -59,7 +59,9 @@ button {
   inset: 0;
 }
 .poster {
-  background: url('/assets/inspiration.png') center 51%/cover;
+  /* Anchored to the top: the boy riding Hopper sits near the painting's upper
+     edge, so a wide viewport must crop from the bottom, never off his head. */
+  background: url('/assets/inspiration.png') center top/cover;
 }
 .poster-shade {
   background:
