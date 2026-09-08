@@ -40,7 +40,7 @@ The 3D edition's controls:
 | Lock-on                | Hold LT                          | Q                          |
 | Crouch charge          | Hold RB                          | Shift                     |
 | Horizon View           | Hold LB                          | Tab                       |
-| Reset camera           | C or right-stick click           | —                         |
+| Reset camera           | Right-stick click                | C                         |
 | Pause                  | Menu                             | Escape                    |
 | Instructions           | View                             | I                         |
 | Menu confirm / back    | A / B                            | Enter / Escape            |
