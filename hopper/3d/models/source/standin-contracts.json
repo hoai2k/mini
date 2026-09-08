@@ -1,0 +1,1709 @@
+{
+  "structure.fields.farmhouse": {
+    "bounds": [
+      19.760099000258073,
+      12.21,
+      19.760099000258073
+    ],
+    "landings": [
+      {
+        "y": 12,
+        "halfX": 2.1,
+        "halfZ": 2.6999999999999997,
+        "x": 0,
+        "z": 0,
+        "label": "ridge"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          12,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.fields.silo": {
+    "bounds": [
+      10.897744288444517,
+      31.542499999999997,
+      11.178000197410583
+    ],
+    "landings": [
+      {
+        "y": 26,
+        "halfX": 2.5,
+        "halfZ": 2.5,
+        "x": 0,
+        "z": 0,
+        "label": "cap"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          26,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.fields.seedPod": {
+    "bounds": [
+      21.97338865306515,
+      22.843394535133022,
+      22.82597188328681
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Spawn",
+        "position": [
+          0,
+          10.799999999999999,
+          6.3
+        ]
+      }
+    ]
+  },
+  "structure.city.ivoryTower": {
+    "bounds": [
+      31.049999999999997,
+      132.46899960517885,
+      31.049999999999997
+    ],
+    "landings": [
+      {
+        "y": 122,
+        "halfX": 6.3,
+        "halfZ": 6.3,
+        "x": 0,
+        "z": 0,
+        "label": "roof"
+      },
+      {
+        "y": 16.799999999999997,
+        "halfX": 15,
+        "halfZ": 14.7,
+        "x": 0,
+        "z": 0,
+        "label": "ledge0"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          122,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          0,
+          16.799999999999997,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.city.roofDeck": {
+    "bounds": [
+      43.47,
+      44.39375,
+      28.255499210357662
+    ],
+    "landings": [
+      {
+        "y": 41.2,
+        "halfX": 20,
+        "halfZ": 13,
+        "x": 0,
+        "z": 0,
+        "label": "roof"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          41.2,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.city.railSpan": {
+    "bounds": [
+      165.6,
+      32.07500000596046,
+      10.35
+    ],
+    "landings": [
+      {
+        "y": 31.2,
+        "halfX": 80,
+        "halfZ": 5,
+        "x": 0,
+        "z": 0,
+        "label": "deck"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "TrackStart",
+        "position": [
+          -80,
+          31.2,
+          0
+        ]
+      },
+      {
+        "name": "TrackEnd",
+        "position": [
+          80,
+          31.2,
+          0
+        ]
+      },
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          31.2,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.city.trainCar": {
+    "bounds": [
+      22.77,
+      4.968000197410586,
+      5.199999809265137
+    ],
+    "landings": [
+      {
+        "y": 5.4,
+        "halfX": 8.8,
+        "halfZ": 1.6,
+        "x": 0,
+        "z": 0,
+        "label": "roof"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          5.4,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.city.constructionCrown": {
+    "bounds": [
+      62.099999999999994,
+      131.55624999999998,
+      35.19
+    ],
+    "landings": [
+      {
+        "y": 15.6,
+        "halfX": 17,
+        "halfZ": 17,
+        "x": 0,
+        "z": 0,
+        "label": "floor0"
+      },
+      {
+        "y": 30.6,
+        "halfX": 17,
+        "halfZ": 17,
+        "x": 0,
+        "z": 0,
+        "label": "floor1"
+      },
+      {
+        "y": 45.6,
+        "halfX": 17,
+        "halfZ": 17,
+        "x": 0,
+        "z": 0,
+        "label": "floor2"
+      },
+      {
+        "y": 60.6,
+        "halfX": 17,
+        "halfZ": 17,
+        "x": 0,
+        "z": 0,
+        "label": "floor3"
+      },
+      {
+        "y": 75.6,
+        "halfX": 17,
+        "halfZ": 17,
+        "x": 0,
+        "z": 0,
+        "label": "floor4"
+      },
+      {
+        "y": 90.6,
+        "halfX": 17,
+        "halfZ": 17,
+        "x": 0,
+        "z": 0,
+        "label": "floor5"
+      },
+      {
+        "y": 131.5,
+        "halfX": 30,
+        "halfZ": 1.2,
+        "x": 0.3999999999999986,
+        "z": 0,
+        "label": "jib"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          15.6,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          0,
+          30.6,
+          0
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          0,
+          45.6,
+          0
+        ]
+      },
+      {
+        "name": "Landing.3",
+        "position": [
+          0,
+          60.6,
+          0
+        ]
+      },
+      {
+        "name": "Landing.4",
+        "position": [
+          0,
+          75.6,
+          0
+        ]
+      },
+      {
+        "name": "Landing.5",
+        "position": [
+          0,
+          90.6,
+          0
+        ]
+      },
+      {
+        "name": "Crane",
+        "position": [
+          20.4,
+          90,
+          0
+        ]
+      },
+      {
+        "name": "Landing.6",
+        "position": [
+          0.3999999999999986,
+          131.5,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.city.billboard": {
+    "bounds": [
+      24.839999999999996,
+      42.735,
+      2.07
+    ],
+    "landings": [
+      {
+        "y": 42,
+        "halfX": 12,
+        "halfZ": 0.5,
+        "x": 0,
+        "z": 0,
+        "label": "boardTop"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          42,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.city.observatoryDome": {
+    "bounds": [
+      54.64799921035766,
+      53.294999999999995,
+      54.64799921035766
+    ],
+    "landings": [
+      {
+        "y": 50.9,
+        "halfX": 5.5,
+        "halfZ": 5.5,
+        "x": 0,
+        "z": 0,
+        "label": "crown"
+      },
+      {
+        "y": 30,
+        "halfX": 24.200000000000003,
+        "halfZ": 24.200000000000003,
+        "x": 0,
+        "z": 0,
+        "label": "ring"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          50.9,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          0,
+          30,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.mountains.ravineBridge": {
+    "bounds": [
+      124.19999999999999,
+      42.252500000000005,
+      10.35
+    ],
+    "landings": [
+      {
+        "y": 1.5,
+        "halfX": 60,
+        "halfZ": 5,
+        "x": 0,
+        "z": 0,
+        "label": "deck"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          1.5,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.mountains.transmitterMast": {
+    "bounds": [
+      49.67999999999999,
+      216.525,
+      49.67999999999999
+    ],
+    "landings": [
+      {
+        "y": 30,
+        "halfX": 14,
+        "halfZ": 14,
+        "x": 0,
+        "z": 0,
+        "label": "plinth"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Beacon",
+        "position": [
+          0,
+          212,
+          0
+        ]
+      },
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          30,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.mountains.windsock": {
+    "bounds": [
+      6.969121298215227,
+      13.544111010166365,
+      2.4840000987052915
+    ],
+    "landings": [],
+    "sockets": []
+  },
+  "structure.foundry.furnaceTower": {
+    "bounds": [
+      39.36000061035156,
+      111.92500000000001,
+      39.36000061035156
+    ],
+    "landings": [
+      {
+        "y": 80,
+        "halfX": 8.8,
+        "halfZ": 8.8,
+        "x": -4.8,
+        "z": 0,
+        "label": "roof"
+      },
+      {
+        "y": 44.8,
+        "halfX": 19.2,
+        "halfZ": 2,
+        "x": 0,
+        "z": 17.6,
+        "label": "catwalk"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          -4.8,
+          80,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          0,
+          44.8,
+          17.6
+        ]
+      }
+    ]
+  },
+  "structure.foundry.conveyorSpan": {
+    "bounds": [
+      93.14999999999999,
+      22.450000047683716,
+      8.28
+    ],
+    "landings": [
+      {
+        "y": 21.6,
+        "halfX": 45,
+        "halfZ": 4,
+        "x": 0,
+        "z": 0,
+        "label": "belt"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "BeltStart",
+        "position": [
+          -45,
+          21,
+          0
+        ]
+      },
+      {
+        "name": "BeltEnd",
+        "position": [
+          45,
+          21,
+          0
+        ]
+      },
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          21.6,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.foundry.chimney": {
+    "bounds": [
+      12.419999999999998,
+      113.85,
+      12.419999999999998
+    ],
+    "landings": [
+      {
+        "y": 110,
+        "halfX": 3.5,
+        "halfZ": 3.5,
+        "x": 0,
+        "z": 0,
+        "label": "lip"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          110,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.foundry.slagBarge": {
+    "bounds": [
+      41.4,
+      5.787500002980233,
+      16.56
+    ],
+    "landings": [
+      {
+        "y": 5.7,
+        "halfX": 18,
+        "halfZ": 1,
+        "x": 0,
+        "z": 7.2,
+        "label": "gunwale"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          5.7,
+          7.2
+        ]
+      }
+    ]
+  },
+  "structure.foundry.stampingPress": {
+    "bounds": [
+      31.049999999999997,
+      43.7525,
+      20.7
+    ],
+    "landings": [
+      {
+        "y": 4,
+        "halfX": 14,
+        "halfZ": 10,
+        "x": 0,
+        "z": 0,
+        "label": "anvil"
+      },
+      {
+        "y": 43,
+        "halfX": 15,
+        "halfZ": 2,
+        "x": 0,
+        "z": 0,
+        "label": "head"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Strike",
+        "position": [
+          0,
+          -3,
+          0
+        ]
+      },
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          4,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          0,
+          43,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.harbor.craneBoom": {
+    "bounds": [
+      84.64500000000001,
+      95.64499999999998,
+      10.35
+    ],
+    "landings": [
+      {
+        "y": 94,
+        "halfX": 40,
+        "halfZ": 2.5,
+        "x": 36,
+        "z": 0,
+        "label": "boom"
+      },
+      {
+        "y": 60,
+        "halfX": 7,
+        "halfZ": 5,
+        "x": 72,
+        "z": 0,
+        "label": "hookedContainer"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "BoomPivot",
+        "position": [
+          0,
+          90,
+          0
+        ]
+      },
+      {
+        "name": "Landing.Hook",
+        "position": [
+          0,
+          4,
+          0
+        ]
+      },
+      {
+        "name": "Landing.0",
+        "position": [
+          36,
+          94,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          72,
+          60,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.harbor.containerStack": {
+    "bounds": [
+      48.006000394821164,
+      17.899499802589418,
+      9.936000394821166
+    ],
+    "landings": [
+      {
+        "y": 5.85,
+        "halfX": 24,
+        "halfZ": 5,
+        "x": 0,
+        "z": 0,
+        "label": "row0"
+      },
+      {
+        "y": 11.85,
+        "halfX": 18,
+        "halfZ": 5,
+        "x": 0,
+        "z": 0,
+        "label": "row1"
+      },
+      {
+        "y": 17.85,
+        "halfX": 24,
+        "halfZ": 5,
+        "x": 0,
+        "z": 0,
+        "label": "row2"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          5.85,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          0,
+          11.85,
+          0
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          0,
+          17.85,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.harbor.freighter": {
+    "bounds": [
+      227.7,
+      64.595,
+      41.4
+    ],
+    "landings": [
+      {
+        "y": 20,
+        "halfX": 110,
+        "halfZ": 20,
+        "x": 0,
+        "z": 0,
+        "label": "deck"
+      },
+      {
+        "y": 50,
+        "halfX": 22,
+        "halfZ": 16,
+        "x": -77,
+        "z": 0,
+        "label": "bridgeRoof"
+      },
+      {
+        "y": 32,
+        "halfX": 13.2,
+        "halfZ": 14,
+        "x": -22,
+        "z": 0,
+        "label": "cargo0"
+      },
+      {
+        "y": 32,
+        "halfX": 13.2,
+        "halfZ": 14,
+        "x": 11,
+        "z": 0,
+        "label": "cargo1"
+      },
+      {
+        "y": 32,
+        "halfX": 13.2,
+        "halfZ": 14,
+        "x": 44,
+        "z": 0,
+        "label": "cargo2"
+      },
+      {
+        "y": 32,
+        "halfX": 13.2,
+        "halfZ": 14,
+        "x": 77,
+        "z": 0,
+        "label": "cargo3"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          20,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          -77,
+          50,
+          0
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          -22,
+          32,
+          0
+        ]
+      },
+      {
+        "name": "Landing.3",
+        "position": [
+          11,
+          32,
+          0
+        ]
+      },
+      {
+        "name": "Landing.4",
+        "position": [
+          44,
+          32,
+          0
+        ]
+      },
+      {
+        "name": "Landing.5",
+        "position": [
+          77,
+          32,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.harbor.gantryTower": {
+    "bounds": [
+      62.099999999999994,
+      135.3275,
+      24.839999999999996
+    ],
+    "landings": [
+      {
+        "y": 33,
+        "halfX": 12,
+        "halfZ": 12,
+        "x": 0,
+        "z": 0,
+        "label": "deck1"
+      },
+      {
+        "y": 65.5,
+        "halfX": 12,
+        "halfZ": 12,
+        "x": 0,
+        "z": 0,
+        "label": "deck2"
+      },
+      {
+        "y": 98,
+        "halfX": 12,
+        "halfZ": 12,
+        "x": 0,
+        "z": 0,
+        "label": "deck3"
+      },
+      {
+        "y": 130.5,
+        "halfX": 12,
+        "halfZ": 12,
+        "x": 0,
+        "z": 0,
+        "label": "deck4"
+      },
+      {
+        "y": 133,
+        "halfX": 30,
+        "halfZ": 3,
+        "x": 0,
+        "z": 0,
+        "label": "bridge"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          33,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          0,
+          65.5,
+          0
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          0,
+          98,
+          0
+        ]
+      },
+      {
+        "name": "Landing.3",
+        "position": [
+          0,
+          130.5,
+          0
+        ]
+      },
+      {
+        "name": "Landing.4",
+        "position": [
+          0,
+          133,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.harbor.breakwater": {
+    "bounds": [
+      206.99999999999997,
+      14.245000000000001,
+      24.839999999999996
+    ],
+    "landings": [
+      {
+        "y": 10,
+        "halfX": 100,
+        "halfZ": 12,
+        "x": 0,
+        "z": 0,
+        "label": "top"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          10,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.launchworks.launchRing": {
+    "bounds": [
+      136.61999999999998,
+      211,
+      136.61999999999998
+    ],
+    "landings": [
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": 60,
+        "z": 0,
+        "label": "ring0"
+      },
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": 42.42640687119285,
+        "z": 42.426406871192846,
+        "label": "ring1"
+      },
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": 3.67394039744206e-15,
+        "z": 60,
+        "label": "ring2"
+      },
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": -42.426406871192846,
+        "z": 42.42640687119285,
+        "label": "ring3"
+      },
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": -60,
+        "z": 7.34788079488412e-15,
+        "label": "ring4"
+      },
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": -42.42640687119286,
+        "z": -42.426406871192846,
+        "label": "ring5"
+      },
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": -1.1021821192326178e-14,
+        "z": -60,
+        "label": "ring6"
+      },
+      {
+        "y": 206,
+        "halfX": 4,
+        "halfZ": 4,
+        "x": 42.42640687119284,
+        "z": -42.42640687119286,
+        "label": "ring7"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          60,
+          206,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          42.42640687119285,
+          206,
+          42.426406871192846
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          3.67394039744206e-15,
+          206,
+          60
+        ]
+      },
+      {
+        "name": "Landing.3",
+        "position": [
+          -42.426406871192846,
+          206,
+          42.42640687119285
+        ]
+      },
+      {
+        "name": "Landing.4",
+        "position": [
+          -60,
+          206,
+          7.34788079488412e-15
+        ]
+      },
+      {
+        "name": "Landing.5",
+        "position": [
+          -42.42640687119286,
+          206,
+          -42.426406871192846
+        ]
+      },
+      {
+        "name": "Landing.6",
+        "position": [
+          -1.1021821192326178e-14,
+          206,
+          -60
+        ]
+      },
+      {
+        "name": "Landing.7",
+        "position": [
+          42.42640687119284,
+          206,
+          -42.42640687119286
+        ]
+      }
+    ]
+  },
+  "structure.launchworks.rocket": {
+    "bounds": [
+      30.77625,
+      162.8,
+      19.552500000000002
+    ],
+    "landings": [
+      {
+        "y": 26,
+        "halfX": 6,
+        "halfZ": 4,
+        "x": 15,
+        "z": 0,
+        "label": "arm1"
+      },
+      {
+        "y": 51.6,
+        "halfX": 6,
+        "halfZ": 4,
+        "x": 15,
+        "z": 0,
+        "label": "arm2"
+      },
+      {
+        "y": 77.20000000000002,
+        "halfX": 6,
+        "halfZ": 4,
+        "x": 15,
+        "z": 0,
+        "label": "arm3"
+      },
+      {
+        "y": 102.80000000000001,
+        "halfX": 6,
+        "halfZ": 4,
+        "x": 15,
+        "z": 0,
+        "label": "arm4"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          15,
+          26,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          15,
+          51.6,
+          0
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          15,
+          77.20000000000002,
+          0
+        ]
+      },
+      {
+        "name": "Landing.3",
+        "position": [
+          15,
+          102.80000000000001,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.launchworks.pistonStair": {
+    "bounds": [
+      57.92218264102936,
+      76.25999999999999,
+      10.432799921035766
+    ],
+    "landings": [
+      {
+        "y": 15,
+        "halfX": 4.800000000000001,
+        "halfZ": 4.800000000000001,
+        "x": -24,
+        "z": 0,
+        "label": "piston0"
+      },
+      {
+        "y": 29,
+        "halfX": 4.800000000000001,
+        "halfZ": 4.800000000000001,
+        "x": -12,
+        "z": 0,
+        "label": "piston1"
+      },
+      {
+        "y": 43,
+        "halfX": 4.800000000000001,
+        "halfZ": 4.800000000000001,
+        "x": 0,
+        "z": 0,
+        "label": "piston2"
+      },
+      {
+        "y": 57,
+        "halfX": 4.800000000000001,
+        "halfZ": 4.800000000000001,
+        "x": 12,
+        "z": 0,
+        "label": "piston3"
+      },
+      {
+        "y": 71,
+        "halfX": 4.800000000000001,
+        "halfZ": 4.800000000000001,
+        "x": 24,
+        "z": 0,
+        "label": "piston4"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          -24,
+          15,
+          0
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          -12,
+          29,
+          0
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          0,
+          43,
+          0
+        ]
+      },
+      {
+        "name": "Landing.3",
+        "position": [
+          12,
+          57,
+          0
+        ]
+      },
+      {
+        "name": "Landing.4",
+        "position": [
+          24,
+          71,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.launchworks.exhaustShaft": {
+    "bounds": [
+      74.52,
+      124.19999999999999,
+      74.52
+    ],
+    "landings": [
+      {
+        "y": -23.4,
+        "halfX": 12,
+        "halfZ": 5,
+        "x": -2.899001121649304,
+        "z": 22.312458235180543,
+        "label": "baffle1"
+      },
+      {
+        "y": -47.4,
+        "halfX": 12,
+        "halfZ": 5,
+        "x": -21.752959333037875,
+        "z": -5.749674795603703,
+        "label": "baffle2"
+      },
+      {
+        "y": -71.4,
+        "halfX": 12,
+        "halfZ": 5,
+        "x": 8.504499211042056,
+        "z": -20.83083035237398,
+        "label": "baffle3"
+      },
+      {
+        "y": -95.4,
+        "halfX": 12,
+        "halfZ": 5,
+        "x": 19.561443532871067,
+        "z": 11.117550400618683,
+        "label": "baffle4"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "Landing.0",
+        "position": [
+          -2.899001121649304,
+          -23.4,
+          22.312458235180543
+        ]
+      },
+      {
+        "name": "Landing.1",
+        "position": [
+          -21.752959333037875,
+          -47.4,
+          -5.749674795603703
+        ]
+      },
+      {
+        "name": "Landing.2",
+        "position": [
+          8.504499211042056,
+          -71.4,
+          -20.83083035237398
+        ]
+      },
+      {
+        "name": "Landing.3",
+        "position": [
+          19.561443532871067,
+          -95.4,
+          11.117550400618683
+        ]
+      },
+      {
+        "name": "Updraft",
+        "position": [
+          0,
+          -118,
+          0
+        ]
+      }
+    ]
+  },
+  "structure.launchworks.gantryElevator": {
+    "bounds": [
+      20.14,
+      155.25,
+      16.56
+    ],
+    "landings": [
+      {
+        "y": 11,
+        "halfX": 8,
+        "halfZ": 8,
+        "x": 0,
+        "z": 0,
+        "label": "cage"
+      }
+    ],
+    "sockets": [
+      {
+        "name": "LiftBottom",
+        "position": [
+          0,
+          10,
+          0
+        ]
+      },
+      {
+        "name": "LiftTop",
+        "position": [
+          0,
+          145,
+          0
+        ]
+      },
+      {
+        "name": "Landing.0",
+        "position": [
+          0,
+          11,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.springPad": {
+    "bounds": [
+      11.385,
+      3.2210000365972515,
+      11.385
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Launch",
+        "position": [
+          0,
+          2,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.signalBeacon": {
+    "bounds": [
+      3.240000009536743,
+      4.800000095367432,
+      3.240000009536743
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Pickup",
+        "position": [
+          0,
+          1.8,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.signalCage": {
+    "bounds": [
+      13.661999802589415,
+      9.458764159679413,
+      13.661999802589415
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Prize",
+        "position": [
+          0,
+          3,
+          0
+        ]
+      },
+      {
+        "name": "Lock",
+        "position": [
+          0,
+          9.2,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.lockdownEmitter": {
+    "bounds": [
+      10.35,
+      18.244999999999997,
+      10.35
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "FieldAnchor",
+        "position": [
+          0,
+          15.5,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.lockdownDome": {
+    "bounds": [
+      520,
+      520,
+      520
+    ],
+    "landings": [],
+    "sockets": []
+  },
+  "prop.checkpointTotem": {
+    "bounds": [
+      2.5999999046325684,
+      14.509999952316283,
+      2.5999999046325684
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Respawn",
+        "position": [
+          0,
+          0,
+          6
+        ]
+      }
+    ]
+  },
+  "prop.recoveryCapsule": {
+    "bounds": [
+      1.899999976158142,
+      3.519000098705291,
+      2.0499999940395357
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Pickup",
+        "position": [
+          0,
+          2,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.thermalVent": {
+    "bounds": [
+      19.872000789642332,
+      162.035,
+      19.872000789642332
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "LiftBase",
+        "position": [
+          0,
+          2,
+          0
+        ]
+      },
+      {
+        "name": "LiftTop",
+        "position": [
+          0,
+          160,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.windLane": {
+    "bounds": [
+      202,
+      40,
+      40
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "FlowStart",
+        "position": [
+          -100,
+          0,
+          0
+        ]
+      },
+      {
+        "name": "FlowEnd",
+        "position": [
+          100,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.gravityGate": {
+    "bounds": [
+      62.099999999999994,
+      40.06999999999999,
+      4.469999976158142
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "FlipPlane",
+        "position": [
+          0,
+          20,
+          0
+        ]
+      }
+    ]
+  },
+  "prop.launchGate": {
+    "bounds": [
+      203.06699684143064,
+      203.06699684143064,
+      15.946364994049071
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Entry",
+        "position": [
+          0,
+          99.00000000000001,
+          10
+        ]
+      }
+    ]
+  },
+  "prop.laserBolt": {
+    "bounds": [
+      0.6000000238418579,
+      0.57063388824463,
+      5.599999904632568
+    ],
+    "landings": [],
+    "sockets": []
+  },
+  "prop.kickArc": {
+    "bounds": [
+      15.17916846202915,
+      1.0392304658889786,
+      15.17916889325014
+    ],
+    "landings": [],
+    "sockets": []
+  },
+  "prop.shieldDome": {
+    "bounds": [
+      18.139999389648438,
+      18.139999389648438,
+      8.1
+    ],
+    "landings": [],
+    "sockets": [
+      {
+        "name": "Anchor",
+        "position": [
+          0,
+          0,
+          -1.8
+        ]
+      }
+    ]
+  },
+  "prop.dissolveBurst": {
+    "bounds": [
+      9.966182634794741,
+      12.115931537855111,
+      10.115779941648345
+    ],
+    "landings": [],
+    "sockets": []
+  }
+}

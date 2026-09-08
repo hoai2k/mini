@@ -350,6 +350,12 @@ for texture in T:
         texture['status'] = 'delivered'
         texture['approval'] = 'pending-user-review'
 
+# Authored high-confidence batch; source, exports and QA live in ../models/.
+DELIVERED_HIGH_MODELS = {f'M-{n:03d}' for n in [25, 26, 28, *range(29, 36), 38, 39, 40, *range(41, 56), *range(68, 83)]}
+for asset in M:
+    if asset['request'] in DELIVERED_HIGH_MODELS:
+        asset['status'] = 'delivered'
+
 manifest = {
     'generated_by': 'hopper/3d/design/source/build_requests.py',
     'notes': 'standIn ids resolve through hopper/3d/standins/src/index.js (createStandIn). texture.* ids name procedural painters in textures.js. status: delivered | stand-in | open | procedural-final.',

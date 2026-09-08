@@ -1,0 +1,101 @@
++PASS hopper/3d/models/structures/fields/farmhouse.glb
+  260 nodes · 40 meshes · 7 materials · 1344/408 tris
+PASS hopper/3d/models/structures/fields/silo.glb
+  216 nodes · 24 meshes · 4 materials · 1480/530 tris
+PASS hopper/3d/models/structures/fields/seedPod.glb
+  438 nodes · 54 meshes · 8 materials · 2766/922 tris
+PASS hopper/3d/models/structures/city/ivoryTower.glb
+  678 nodes · 66 meshes · 5 materials · 4308/1198 tris
+PASS hopper/3d/models/structures/city/roofDeck.glb
+  60 nodes · 14 meshes · 5 materials · 592/172 tris
+PASS hopper/3d/models/structures/city/railSpan.glb
+  908 nodes · 87 meshes · 6 materials · 2716/754 tris
+PASS hopper/3d/models/structures/city/trainCar.glb
+  78 nodes · 10 meshes · 5 materials · 636/194 tris
+PASS hopper/3d/models/structures/city/constructionCrown.glb
+  1130 nodes · 50 meshes · 7 materials · 4092/1240 tris
+PASS hopper/3d/models/structures/city/billboard.glb
+  38 nodes · 14 meshes · 5 materials · 256/80 tris
+PASS hopper/3d/models/structures/city/observatoryDome.glb
+  942 nodes · 59 meshes · 4 materials · 4204/1452 tris
+PASS hopper/3d/models/structures/mountains/ravineBridge.glb
+  368 nodes · 16 meshes · 3 materials · 1152/292 tris
+PASS hopper/3d/models/structures/mountains/transmitterMast.glb
+  160 nodes · 32 meshes · 6 materials · 1140/384 tris
+PASS hopper/3d/models/structures/mountains/windsock.glb
+  52 nodes · 18 meshes · 4 materials · 364/108 tris
+PASS hopper/3d/models/structures/foundry/furnaceTower.glb
+  514 nodes · 72 meshes · 6 materials · 3564/1405 tris
+PASS hopper/3d/models/structures/foundry/conveyorSpan.glb
+  260 nodes · 14 meshes · 4 materials · 1428/442 tris
+PASS hopper/3d/models/structures/foundry/chimney.glb
+  48 nodes · 16 meshes · 4 materials · 892/302 tris
+PASS hopper/3d/models/structures/foundry/slagBarge.glb
+  62 nodes · 8 meshes · 3 materials · 1428/486 tris
+PASS hopper/3d/models/structures/foundry/stampingPress.glb
+  58 nodes · 16 meshes · 4 materials · 600/196 tris
+PASS hopper/3d/models/structures/harbor/craneBoom.glb
+  868 nodes · 52 meshes · 7 materials · 2940/928 tris
+PASS hopper/3d/models/structures/harbor/containerStack.glb
+  184 nodes · 12 meshes · 5 materials · 1232/352 tris
+PASS hopper/3d/models/structures/harbor/freighter.glb
+  226 nodes · 30 meshes · 8 materials · 928/278 tris
+PASS hopper/3d/models/structures/harbor/gantryTower.glb
+  328 nodes · 18 meshes · 5 materials · 1380/450 tris
+PASS hopper/3d/models/structures/harbor/breakwater.glb
+  60 nodes · 8 meshes · 4 materials · 1040/354 tris
+PASS hopper/3d/models/structures/launchworks/launchRing.glb
+  1390 nodes · 41 meshes · 5 materials · 5552/1776 tris
+PASS hopper/3d/models/structures/launchworks/rocket.glb
+  630 nodes · 62 meshes · 7 materials · 2992/1250 tris
+PASS hopper/3d/models/structures/launchworks/pistonStair.glb
+  114 nodes · 12 meshes · 5 materials · 1304/436 tris
+PASS hopper/3d/models/structures/launchworks/exhaustShaft.glb
+  816 nodes · 64 meshes · 6 materials · 3020/1024 tris
+PASS hopper/3d/models/structures/launchworks/gantryElevator.glb
+  138 nodes · 14 meshes · 4 materials · 576/188 tris
+PASS hopper/3d/models/props/springPad.glb
+  162 nodes · 34 meshes · 8 materials · 952/266 tris
+PASS hopper/3d/models/props/signalBeacon.glb
+  30 nodes · 12 meshes · 4 materials · 344/114 tris
+PASS hopper/3d/models/props/signalCage.glb
+  126 nodes · 16 meshes · 4 materials · 1162/355 tris
+PASS hopper/3d/models/props/lockdownEmitter.glb
+  72 nodes · 18 meshes · 4 materials · 644/200 tris
+PASS hopper/3d/models/props/lockdownDome.glb
+  82 nodes · 12 meshes · 3 materials · 776/298 tris
+PASS hopper/3d/models/props/checkpointTotem.glb
+  88 nodes · 18 meshes · 5 materials · 800/258 tris
+PASS hopper/3d/models/props/recoveryCapsule.glb
+  46 nodes · 14 meshes · 6 materials · 500/164 tris
+PASS hopper/3d/models/props/thermalVent.glb
+  134 nodes · 18 meshes · 5 materials · 768/232 tris
+PASS hopper/3d/models/props/windLane.glb
+  66 nodes · 22 meshes · 5 materials · 490/148 tris
+PASS hopper/3d/models/props/gravityGate.glb
+  112 nodes · 24 meshes · 5 materials · 1156/374 tris
+PASS hopper/3d/models/props/launchGate.glb
+  188 nodes · 20 meshes · 5 materials · 1912/712 tris
+PASS hopper/3d/models/props/laserBolt.glb
+  10 nodes · 4 meshes · 2 materials · 52/44 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/props/kickArc.glb
+  10 nodes · 4 meshes · 2 materials · 184/62 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/props/shieldDome.glb
+  52 nodes · 10 meshes · 2 materials · 464/156 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/props/dissolveBurst.glb
+  62 nodes · 30 meshes · 3 materials · 212/48 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+
+43/43 GLBs passed.
+
+INDEPENDENT AUDIT PASS
+  43/43 manifest models compared with source request LOD0 budgets
+  92 required socket names checked from standin contracts
+
+ALPHA MATERIAL AUDIT
+PASS M-072 field_violet: used=true alphaMode=BLEND alpha=0.140000001
+PASS M-077 gravity_violet: used=true alphaMode=BLEND alpha=0.200000003
+PASS M-081 shield_teal: used=true alphaMode=BLEND alpha=0.180000007

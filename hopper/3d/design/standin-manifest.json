@@ -595,7 +595,7 @@
       ],
       "standIn": "structure.fields.farmhouse",
       "final": "models/structures/fields/farmhouse.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/fields.webp"
@@ -618,7 +618,7 @@
       ],
       "standIn": "structure.fields.silo",
       "final": "models/structures/fields/silo.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/fields.webp"
@@ -664,7 +664,7 @@
       ],
       "standIn": "structure.fields.seedPod",
       "final": "models/structures/fields/seedPod.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/fields.webp"
@@ -687,7 +687,7 @@
       ],
       "standIn": "structure.city.ivoryTower",
       "final": "models/structures/city/ivoryTower.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/city.webp"
@@ -710,7 +710,7 @@
       ],
       "standIn": "structure.city.roofDeck",
       "final": "models/structures/city/roofDeck.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/city.webp"
@@ -733,7 +733,7 @@
       ],
       "standIn": "structure.city.railSpan",
       "final": "models/structures/city/railSpan.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/city.webp"
@@ -756,7 +756,7 @@
       ],
       "standIn": "structure.city.trainCar",
       "final": "models/structures/city/trainCar.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/city.webp"
@@ -779,7 +779,7 @@
       ],
       "standIn": "structure.city.constructionCrown",
       "final": "models/structures/city/constructionCrown.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/city.webp"
@@ -802,7 +802,7 @@
       ],
       "standIn": "structure.city.billboard",
       "final": "models/structures/city/billboard.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/city.webp"
@@ -825,7 +825,7 @@
       ],
       "standIn": "structure.city.observatoryDome",
       "final": "models/structures/city/observatoryDome.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/city.webp"
@@ -894,7 +894,7 @@
       ],
       "standIn": "structure.mountains.ravineBridge",
       "final": "models/structures/mountains/ravineBridge.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/mountains.webp"
@@ -917,7 +917,7 @@
       ],
       "standIn": "structure.mountains.transmitterMast",
       "final": "models/structures/mountains/transmitterMast.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/mountains.webp"
@@ -940,7 +940,7 @@
       ],
       "standIn": "structure.mountains.windsock",
       "final": "models/structures/mountains/windsock.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/mountains.webp"
@@ -963,7 +963,7 @@
       ],
       "standIn": "structure.foundry.furnaceTower",
       "final": "models/structures/foundry/furnaceTower.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/foundry.webp"
@@ -986,7 +986,7 @@
       ],
       "standIn": "structure.foundry.conveyorSpan",
       "final": "models/structures/foundry/conveyorSpan.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/foundry.webp"
@@ -1009,7 +1009,7 @@
       ],
       "standIn": "structure.foundry.chimney",
       "final": "models/structures/foundry/chimney.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/foundry.webp"
@@ -1032,7 +1032,7 @@
       ],
       "standIn": "structure.foundry.slagBarge",
       "final": "models/structures/foundry/slagBarge.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/foundry.webp"
@@ -1055,7 +1055,7 @@
       ],
       "standIn": "structure.foundry.stampingPress",
       "final": "models/structures/foundry/stampingPress.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/foundry.webp"
@@ -1078,7 +1078,7 @@
       ],
       "standIn": "structure.harbor.craneBoom",
       "final": "models/structures/harbor/craneBoom.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/harbor.webp"
@@ -1101,7 +1101,7 @@
       ],
       "standIn": "structure.harbor.containerStack",
       "final": "models/structures/harbor/containerStack.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/harbor.webp"
@@ -1124,7 +1124,7 @@
       ],
       "standIn": "structure.harbor.freighter",
       "final": "models/structures/harbor/freighter.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/harbor.webp"
@@ -1147,7 +1147,7 @@
       ],
       "standIn": "structure.harbor.gantryTower",
       "final": "models/structures/harbor/gantryTower.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/harbor.webp"
@@ -1170,7 +1170,7 @@
       ],
       "standIn": "structure.harbor.breakwater",
       "final": "models/structures/harbor/breakwater.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/harbor.webp"
@@ -1193,7 +1193,7 @@
       ],
       "standIn": "structure.launchworks.launchRing",
       "final": "models/structures/launchworks/launchRing.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/launchworks.webp"
@@ -1216,7 +1216,7 @@
       ],
       "standIn": "structure.launchworks.rocket",
       "final": "models/structures/launchworks/rocket.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/launchworks.webp"
@@ -1239,7 +1239,7 @@
       ],
       "standIn": "structure.launchworks.pistonStair",
       "final": "models/structures/launchworks/pistonStair.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/launchworks.webp"
@@ -1262,7 +1262,7 @@
       ],
       "standIn": "structure.launchworks.exhaustShaft",
       "final": "models/structures/launchworks/exhaustShaft.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/launchworks.webp"
@@ -1285,7 +1285,7 @@
       ],
       "standIn": "structure.launchworks.gantryElevator",
       "final": "models/structures/launchworks/gantryElevator.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "design/assets/level-2-industry.png",
         "game/public/assets/backgrounds/launchworks.webp"
@@ -1583,7 +1583,7 @@
       ],
       "standIn": "prop.springPad",
       "final": "models/props/springPad.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1606,7 +1606,7 @@
       ],
       "standIn": "prop.signalBeacon",
       "final": "models/props/signalBeacon.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1629,7 +1629,7 @@
       ],
       "standIn": "prop.signalCage",
       "final": "models/props/signalCage.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1652,7 +1652,7 @@
       ],
       "standIn": "prop.lockdownEmitter",
       "final": "models/props/lockdownEmitter.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1675,7 +1675,7 @@
       ],
       "standIn": "prop.lockdownDome",
       "final": "models/props/lockdownDome.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1698,7 +1698,7 @@
       ],
       "standIn": "prop.checkpointTotem",
       "final": "models/props/checkpointTotem.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1721,7 +1721,7 @@
       ],
       "standIn": "prop.recoveryCapsule",
       "final": "models/props/recoveryCapsule.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1744,7 +1744,7 @@
       ],
       "standIn": "prop.thermalVent",
       "final": "models/props/thermalVent.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1767,7 +1767,7 @@
       ],
       "standIn": "prop.windLane",
       "final": "models/props/windLane.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1790,7 +1790,7 @@
       ],
       "standIn": "prop.gravityGate",
       "final": "models/props/gravityGate.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1813,7 +1813,7 @@
       ],
       "standIn": "prop.launchGate",
       "final": "models/props/launchGate.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1836,7 +1836,7 @@
       ],
       "standIn": "prop.laserBolt",
       "final": "models/props/laserBolt.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1859,7 +1859,7 @@
       ],
       "standIn": "prop.kickArc",
       "final": "models/props/kickArc.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1882,7 +1882,7 @@
       ],
       "standIn": "prop.shieldDome",
       "final": "models/props/shieldDome.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
@@ -1905,7 +1905,7 @@
       ],
       "standIn": "prop.dissolveBurst",
       "final": "models/props/dissolveBurst.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/upgrades/props/spring-pad.png",
         "game/public/assets/upgrades/reference/props/signal-cage-intact.png",

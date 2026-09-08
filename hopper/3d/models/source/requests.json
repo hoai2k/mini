@@ -1,0 +1,1307 @@
+[
+  {
+    "request": "M-025",
+    "name": "Farmhouse",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      35,
+      12,
+      35
+    ],
+    "tris": "2k",
+    "standIn": "structure.fields.farmhouse",
+    "final": "models/structures/fields/farmhouse.glb",
+    "status": "stand-in",
+    "summary": "Ivory farmhouse with a red tile roof and chimney. Barely reaches Hopper's knees; a scale prop first, a ridge landing second.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "fields",
+    "landings": "ridge",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/fields.webp"
+    ],
+    "needs": [
+      "T-069"
+    ]
+  },
+  {
+    "request": "M-026",
+    "name": "Grain silo",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      11,
+      32,
+      11
+    ],
+    "tris": "1.5k",
+    "standIn": "structure.fields.silo",
+    "final": "models/structures/fields/silo.glb",
+    "status": "stand-in",
+    "summary": "Concrete drum with a conical cap. The first tall thing in the fields; the cap is a one-Hopper landing.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "fields",
+    "landings": "cap",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/fields.webp"
+    ],
+    "needs": [
+      "T-069"
+    ]
+  },
+  {
+    "request": "M-028",
+    "name": "Fallen seed vessel",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      25,
+      34,
+      29
+    ],
+    "tris": "4k",
+    "standIn": "structure.fields.seedPod",
+    "final": "models/structures/fields/seedPod.glb",
+    "status": "stand-in",
+    "summary": "Crashed shadow vessel, half-buried, spines glowing violet. Spawns hounds when Hopper passes; the pod cracks open (rigid lid pivot).",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "fields",
+    "landings": "none",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/fields.webp"
+    ],
+    "needs": [
+      "T-069"
+    ]
+  },
+  {
+    "request": "M-029",
+    "name": "Ivory tower",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      31,
+      133,
+      31
+    ],
+    "tris": "6k",
+    "standIn": "structure.city.ivoryTower",
+    "final": "models/structures/city/ivoryTower.glb",
+    "status": "stand-in",
+    "summary": "Stepped ivory tower with teal glass bands, 90\u2013150 m. The roof is the prize; each band ledge is a wall-kick rest.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "city",
+    "landings": "roof + ledge per band",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/city.webp"
+    ],
+    "needs": [
+      "T-070"
+    ]
+  },
+  {
+    "request": "M-030",
+    "name": "Roof deck block",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      44,
+      44,
+      28
+    ],
+    "tris": "3k",
+    "standIn": "structure.city.roofDeck",
+    "final": "models/structures/city/roofDeck.glb",
+    "status": "stand-in",
+    "summary": "Low mid-rise with a parapet and vents. The rooftop-run floor of Crownline City; decks sit a tap-jump apart.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "city",
+    "landings": "roof",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/city.webp"
+    ],
+    "needs": [
+      "T-070"
+    ]
+  },
+  {
+    "request": "M-031",
+    "name": "Elevated rail span",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      166,
+      32,
+      10
+    ],
+    "tris": "4k",
+    "standIn": "structure.city.railSpan",
+    "final": "models/structures/city/railSpan.glb",
+    "status": "stand-in",
+    "summary": "Elevated line on ivory piers. The train runs along it (M-036 moves on TrackStart\u2192TrackEnd). Landing on the deck is safe; the train pushes, never hurts.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "city",
+    "landings": "deck",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/city.webp"
+    ],
+    "needs": [
+      "T-070"
+    ]
+  },
+  {
+    "request": "M-032",
+    "name": "Train car",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      23,
+      5,
+      5
+    ],
+    "tris": "2k",
+    "standIn": "structure.city.trainCar",
+    "final": "models/structures/city/trainCar.glb",
+    "status": "stand-in",
+    "summary": "Cream and red carriage, teal windows. A moving platform whose roof carries Hopper along the span.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "city",
+    "landings": "roof",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/city.webp"
+    ],
+    "needs": [
+      "T-070"
+    ]
+  },
+  {
+    "request": "M-033",
+    "name": "Construction crown",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      62,
+      132,
+      35
+    ],
+    "tris": "8k",
+    "standIn": "structure.city.constructionCrown",
+    "final": "models/structures/city/constructionCrown.glb",
+    "status": "stand-in",
+    "summary": "Open-frame tower under construction, six slabs and a tower crane. The jib is a rigid pivot that slews slowly; the classic ladder climb.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "city",
+    "landings": "one per floor + jib",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/city.webp"
+    ],
+    "needs": [
+      "T-070"
+    ]
+  },
+  {
+    "request": "M-034",
+    "name": "Rooftop billboard",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      25,
+      43,
+      2
+    ],
+    "tris": "1.5k",
+    "standIn": "structure.city.billboard",
+    "final": "models/structures/city/billboard.glb",
+    "status": "stand-in",
+    "summary": "Painted billboard on a post. Its top is a thin landing; it tilts (rigid pivot) when landed on, dropping Hopper onto the deck below. Never hurts.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "city",
+    "landings": "board top",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/city.webp"
+    ],
+    "needs": [
+      "T-070"
+    ]
+  },
+  {
+    "request": "M-035",
+    "name": "Highline observatory",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      55,
+      53,
+      55
+    ],
+    "tris": "5k",
+    "standIn": "structure.city.observatoryDome",
+    "final": "models/structures/city/observatoryDome.glb",
+    "status": "stand-in",
+    "summary": "Ivory drum and teal glass dome at the top of the city. The region's exit landmark; the crown is the checkpoint.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "city",
+    "landings": "crown, ring",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/city.webp"
+    ],
+    "needs": [
+      "T-070"
+    ]
+  },
+  {
+    "request": "M-038",
+    "name": "Ravine bridge",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      124,
+      42,
+      10
+    ],
+    "tris": "3k",
+    "standIn": "structure.mountains.ravineBridge",
+    "final": "models/structures/mountains/ravineBridge.glb",
+    "status": "stand-in",
+    "summary": "Timber deck on slate pylons across a gorge. Wide enough to fight on, narrow enough to be knocked off.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "mountains",
+    "landings": "deck",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/mountains.webp"
+    ],
+    "needs": [
+      "T-071"
+    ]
+  },
+  {
+    "request": "M-039",
+    "name": "Summit transmitter",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      50,
+      217,
+      50
+    ],
+    "tris": "8k",
+    "standIn": "structure.mountains.transmitterMast",
+    "final": "models/structures/mountains/transmitterMast.glb",
+    "status": "stand-in",
+    "summary": "The mast on the summit: plinth, three mast sections, red rings, beacon. Region and mission landmark; the Night Rook's perch. Rings rotate (rigid).",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "mountains",
+    "landings": "plinth",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/mountains.webp"
+    ],
+    "needs": [
+      "T-071"
+    ]
+  },
+  {
+    "request": "M-040",
+    "name": "Windsock",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      7,
+      14,
+      3
+    ],
+    "tris": "0.5k",
+    "standIn": "structure.mountains.windsock",
+    "final": "models/structures/mountains/windsock.glb",
+    "status": "stand-in",
+    "summary": "Orange sock on a pole, aligned to the nearest wind lane. Rigid pivot; a wind signal, not a platform.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "mountains",
+    "landings": "none",
+    "notes": "",
+    "existing": [
+      "design/assets/level-1-earth.png",
+      "game/public/assets/backgrounds/mountains.webp"
+    ],
+    "needs": [
+      "T-071"
+    ]
+  },
+  {
+    "request": "M-041",
+    "name": "Furnace tower",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      39,
+      112,
+      39
+    ],
+    "tris": "6k",
+    "standIn": "structure.foundry.furnaceTower",
+    "final": "models/structures/foundry/furnaceTower.glb",
+    "status": "stand-in",
+    "summary": "Iron drum with rust bands, a stack and a glowing furnace door. The door is a thermal source: heat lifts Hopper.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "foundry",
+    "landings": "roof, catwalk",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/foundry.webp"
+    ],
+    "needs": [
+      "T-072"
+    ]
+  },
+  {
+    "request": "M-042",
+    "name": "Conveyor span",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      93,
+      23,
+      8
+    ],
+    "tris": "3k",
+    "standIn": "structure.foundry.conveyorSpan",
+    "final": "models/structures/foundry/conveyorSpan.glb",
+    "status": "stand-in",
+    "summary": "Rollered belt on legs, UV-scrolled. Adds its velocity to Hopper; belts running against the route are the foundry's treadmill fights.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "foundry",
+    "landings": "belt",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/foundry.webp"
+    ],
+    "needs": [
+      "T-072"
+    ]
+  },
+  {
+    "request": "M-043",
+    "name": "Chimney",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      12,
+      114,
+      12
+    ],
+    "tris": "1.5k",
+    "standIn": "structure.foundry.chimney",
+    "final": "models/structures/foundry/chimney.glb",
+    "status": "stand-in",
+    "summary": "Tall rust stack. A one-Hopper lip 110 m up and a thermal above it.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "foundry",
+    "landings": "lip",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/foundry.webp"
+    ],
+    "needs": [
+      "T-072"
+    ]
+  },
+  {
+    "request": "M-044",
+    "name": "Slag barge",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      41,
+      6,
+      17
+    ],
+    "tris": "2k",
+    "standIn": "structure.foundry.slagBarge",
+    "final": "models/structures/foundry/slagBarge.glb",
+    "status": "stand-in",
+    "summary": "Iron barge of glowing slag on the casting channel. Moves along a path; the slag surface is a hot updraft, the gunwales are the walkway.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "foundry",
+    "landings": "gunwales",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/foundry.webp"
+    ],
+    "needs": [
+      "T-072"
+    ]
+  },
+  {
+    "request": "M-045",
+    "name": "Stamping press",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      31,
+      44,
+      21
+    ],
+    "tris": "4k",
+    "standIn": "structure.foundry.stampingPress",
+    "final": "models/structures/foundry/stampingPress.glb",
+    "status": "stand-in",
+    "summary": "Two columns, a ram and an anvil. The ram (rigid) cycles with a long warning stroke; it flings Hopper aside, it never crushes.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "foundry",
+    "landings": "anvil, head",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/foundry.webp"
+    ],
+    "needs": [
+      "T-072"
+    ]
+  },
+  {
+    "request": "M-046",
+    "name": "Crane boom",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      85,
+      96,
+      10
+    ],
+    "tris": "5k",
+    "standIn": "structure.harbor.craneBoom",
+    "final": "models/structures/harbor/craneBoom.glb",
+    "status": "stand-in",
+    "summary": "Dock crane on a green-steel mast. The boom slews (rigid pivot) and carries a container on a cable; both are landings that move.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "harbor",
+    "landings": "boom, hooked container",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/harbor.webp"
+    ],
+    "needs": [
+      "T-073"
+    ]
+  },
+  {
+    "request": "M-047",
+    "name": "Container stack",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      48,
+      18,
+      10
+    ],
+    "tris": "3k",
+    "standIn": "structure.harbor.containerStack",
+    "final": "models/structures/harbor/containerStack.glb",
+    "status": "stand-in",
+    "summary": "Stepped stack of coloured containers. The dock's stairs; the top row is a tap-jump above the quay.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "harbor",
+    "landings": "one per row",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/harbor.webp"
+    ],
+    "needs": [
+      "T-073"
+    ]
+  },
+  {
+    "request": "M-048",
+    "name": "Freighter",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      228,
+      65,
+      41
+    ],
+    "tris": "10k",
+    "standIn": "structure.harbor.freighter",
+    "final": "models/structures/harbor/freighter.glb",
+    "status": "stand-in",
+    "summary": "Green-steel freighter on the storm channel: deck, four cargo blocks, bridge and funnel. The chapter's long crossing lands on it.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "harbor",
+    "landings": "deck, cargo tops, bridge roof",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/harbor.webp"
+    ],
+    "needs": [
+      "T-073"
+    ]
+  },
+  {
+    "request": "M-049",
+    "name": "Gantry tower",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      62,
+      135,
+      25
+    ],
+    "tris": "6k",
+    "standIn": "structure.harbor.gantryTower",
+    "final": "models/structures/harbor/gantryTower.glb",
+    "status": "stand-in",
+    "summary": "Four-legged steel tower with decks every 32 m and a bridge on top. The upper gantry the crane forest climbs to.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "harbor",
+    "landings": "four decks + bridge",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/harbor.webp"
+    ],
+    "needs": [
+      "T-073"
+    ]
+  },
+  {
+    "request": "M-050",
+    "name": "Breakwater",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      207,
+      14,
+      25
+    ],
+    "tris": "2k",
+    "standIn": "structure.harbor.breakwater",
+    "final": "models/structures/harbor/breakwater.glb",
+    "status": "stand-in",
+    "summary": "Concrete breakwater with bollards. The region floor at the water's edge; the sea beside it is a soft landing that pushes Hopper back ashore.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "harbor",
+    "landings": "top",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/harbor.webp"
+    ],
+    "needs": [
+      "T-073"
+    ]
+  },
+  {
+    "request": "M-051",
+    "name": "Launch ring",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      137,
+      211,
+      137
+    ],
+    "tris": "8k",
+    "standIn": "structure.launchworks.launchRing",
+    "final": "models/structures/launchworks/launchRing.glb",
+    "status": "stand-in",
+    "summary": "Rust ring on four struts, 200 m up, eight lit pads. The launch spine's crown and the Leviathan arena's upper tier.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "launchworks",
+    "landings": "eight ring pads",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/launchworks.webp"
+    ],
+    "needs": [
+      "T-074"
+    ]
+  },
+  {
+    "request": "M-052",
+    "name": "Rocket on the pad",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      31,
+      163,
+      20
+    ],
+    "tris": "5k",
+    "standIn": "structure.launchworks.rocket",
+    "final": "models/structures/launchworks/rocket.glb",
+    "status": "stand-in",
+    "summary": "Ivory rocket with red fins beside an umbilical mast. Its arms are the climb; the nose is a vista point.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "launchworks",
+    "landings": "four umbilical arms",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/launchworks.webp"
+    ],
+    "needs": [
+      "T-074"
+    ]
+  },
+  {
+    "request": "M-053",
+    "name": "Piston stair",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      58,
+      76,
+      10
+    ],
+    "tris": "3k",
+    "standIn": "structure.launchworks.pistonStair",
+    "final": "models/structures/launchworks/pistonStair.glb",
+    "status": "stand-in",
+    "summary": "Five pistons whose heads rise and fall out of phase (rigid). A stair that changes shape; dwell times are generous.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "launchworks",
+    "landings": "one per piston head",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/launchworks.webp"
+    ],
+    "needs": [
+      "T-074"
+    ]
+  },
+  {
+    "request": "M-054",
+    "name": "Exhaust shaft",
+    "category": "structure",
+    "rig": "static",
+    "size": [
+      75,
+      124,
+      75
+    ],
+    "tris": "5k",
+    "standIn": "structure.launchworks.exhaustShaft",
+    "final": "models/structures/launchworks/exhaustShaft.glb",
+    "status": "stand-in",
+    "summary": "Open iron shaft 120 m deep with staggered baffles. The descent chapter; the vent at the bottom is a thermal back to the top.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "launchworks",
+    "landings": "four baffles",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/launchworks.webp"
+    ],
+    "needs": [
+      "T-074"
+    ]
+  },
+  {
+    "request": "M-055",
+    "name": "Gantry elevator",
+    "category": "structure",
+    "rig": "rigid",
+    "size": [
+      20,
+      155,
+      17
+    ],
+    "tris": "3k",
+    "standIn": "structure.launchworks.gantryElevator",
+    "final": "models/structures/launchworks/gantryElevator.glb",
+    "status": "stand-in",
+    "summary": "Two rails and a cage (rigid) that rides 140 m. The Leviathan coils around this tower.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+    "region": "launchworks",
+    "landings": "cage",
+    "notes": "",
+    "existing": [
+      "design/assets/level-2-industry.png",
+      "game/public/assets/backgrounds/launchworks.webp"
+    ],
+    "needs": [
+      "T-074"
+    ]
+  },
+  {
+    "request": "M-068",
+    "name": "Spring pad",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      11,
+      3,
+      11
+    ],
+    "tris": "1k",
+    "standIn": "prop.springPad",
+    "final": "models/props/springPad.glb",
+    "status": "stand-in",
+    "summary": "Cyan plate on an iron base with four chevrons. Plate compresses (rigid) and launches Hopper to 12 H. Regional recolours as in the 2D game.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-069",
+    "name": "Signal",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      3,
+      5,
+      3
+    ],
+    "tris": "0.5k",
+    "standIn": "prop.signalBeacon",
+    "final": "models/props/signalBeacon.glb",
+    "status": "stand-in",
+    "summary": "Twin gold crystals and a halo, spinning. The optional collectible; nine per region.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-070",
+    "name": "Signal cage",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      14,
+      10,
+      14
+    ],
+    "tris": "1.5k",
+    "standIn": "prop.signalCage",
+    "final": "models/props/signalCage.glb",
+    "status": "stand-in",
+    "summary": "Ten shadow bars on a pedestal with a violet crown. Only a reflected shot opens it (crown breaks, bars drop: rigid).",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-071",
+    "name": "Lockdown emitter",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      10,
+      18,
+      10
+    ],
+    "tris": "1k",
+    "standIn": "prop.lockdownEmitter",
+    "final": "models/props/lockdownEmitter.glb",
+    "status": "stand-in",
+    "summary": "Obsidian pylon with a violet emitter. Pairs raise the lockdown dome around a knot or boss arena.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-072",
+    "name": "Lockdown dome",
+    "category": "prop",
+    "rig": "static",
+    "size": [
+      520,
+      260,
+      520
+    ],
+    "tris": "1k",
+    "standIn": "prop.lockdownDome",
+    "final": "models/props/lockdownDome.glb",
+    "status": "stand-in",
+    "summary": "Translucent violet field (shader). Blocks Hopper, never hurts; drops when the arena is cleared.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-073",
+    "name": "Checkpoint totem",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      3,
+      15,
+      3
+    ],
+    "tris": "0.8k",
+    "standIn": "prop.checkpointTotem",
+    "final": "models/props/checkpointTotem.glb",
+    "status": "stand-in",
+    "summary": "Ivory post with red bands and a lamp. Lights when reached (emissive swap); Hopper respawns beside it.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-074",
+    "name": "Recovery capsule",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      2,
+      4,
+      2
+    ],
+    "tris": "0.5k",
+    "standIn": "prop.recoveryCapsule",
+    "final": "models/props/recoveryCapsule.glb",
+    "status": "stand-in",
+    "summary": "Cream capsule with a red band and white cross, spinning. Restores two armour pips.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-075",
+    "name": "Thermal vent",
+    "category": "prop",
+    "rig": "static",
+    "size": [
+      20,
+      162,
+      20
+    ],
+    "tris": "1k",
+    "standIn": "prop.thermalVent",
+    "final": "models/props/thermalVent.glb",
+    "status": "stand-in",
+    "summary": "Grate with a translucent rising column. An updraft volume that carries a gliding Hopper up to 160 m.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-076",
+    "name": "Wind lane",
+    "category": "prop",
+    "rig": "static",
+    "size": [
+      202,
+      40,
+      40
+    ],
+    "tris": "0.5k",
+    "standIn": "prop.windLane",
+    "final": "models/props/windLane.glb",
+    "status": "stand-in",
+    "summary": "Translucent crosswind volume with streaks. Pushes airborne Hopper sideways; never carries a committed jump past its landing.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-077",
+    "name": "Gravity gate",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      62,
+      40,
+      5
+    ],
+    "tris": "1.5k",
+    "standIn": "prop.gravityGate",
+    "final": "models/props/gravityGate.glb",
+    "status": "stand-in",
+    "summary": "Obsidian sill and lintel with a violet curtain and five arrows (animated). Flips local gravity for whatever passes through.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-078",
+    "name": "Launch gate",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      203,
+      203,
+      16
+    ],
+    "tris": "4k",
+    "standIn": "prop.launchGate",
+    "final": "models/props/launchGate.glb",
+    "status": "stand-in",
+    "summary": "Rust ring on struts with a glowing portal. The mission-two exit; the star tunnel transition begins at Entry.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-079",
+    "name": "Eye laser bolt",
+    "category": "prop",
+    "rig": "static",
+    "size": [
+      0.6,
+      0.6,
+      6
+    ],
+    "tris": "0.1k",
+    "standIn": "prop.laserBolt",
+    "final": "models/props/laserBolt.glb",
+    "status": "stand-in",
+    "summary": "Red-white capsule with a bright core. Spawned in pairs from Hopper.Laser.L/R.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-080",
+    "name": "Kick arc",
+    "category": "prop",
+    "rig": "static",
+    "size": [
+      20,
+      1,
+      20
+    ],
+    "tris": "0.2k",
+    "standIn": "prop.kickArc",
+    "final": "models/props/kickArc.glb",
+    "status": "stand-in",
+    "summary": "Translucent gold arc that sweeps with the spin kick. Reads the kick radius (7 m) on screen.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-081",
+    "name": "Guard shield",
+    "category": "prop",
+    "rig": "static",
+    "size": [
+      18,
+      18,
+      9
+    ],
+    "tris": "0.5k",
+    "standIn": "prop.shieldDome",
+    "final": "models/props/shieldDome.glb",
+    "status": "stand-in",
+    "summary": "Translucent teal half-dome at Hopper.Shield with a white rim. Shown while B is held.",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  },
+  {
+    "request": "M-082",
+    "name": "Shadow dissolve",
+    "category": "prop",
+    "rig": "rigid",
+    "size": [
+      12,
+      12,
+      12
+    ],
+    "tris": "0.5k",
+    "standIn": "prop.dissolveBurst",
+    "final": "models/props/dissolveBurst.glb",
+    "status": "stand-in",
+    "summary": "Fourteen charcoal and violet shards around a pale flash. Every shadow dies into this (scale-up over 0.5 s).",
+    "joints": "",
+    "clips": "",
+    "sockets": "",
+    "textures": "1K hand-painted albedo, emissive mask",
+    "region": null,
+    "landings": null,
+    "notes": "",
+    "existing": [
+      "game/public/assets/upgrades/props/spring-pad.png",
+      "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+      "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+    ],
+    "needs": [
+      "T-078"
+    ]
+  }
+]

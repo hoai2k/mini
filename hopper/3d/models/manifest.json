@@ -1,0 +1,1945 @@
+{
+  "version": 1,
+  "status": "delivered",
+  "models": [
+    {
+      "request": "M-025",
+      "name": "Farmhouse",
+      "file": "structures/fields/farmhouse.glb",
+      "preview": "previews/fields.farmhouse.png",
+      "category": "structure",
+      "region": "fields",
+      "source": "source/rural.py",
+      "bounds": [
+        35.0,
+        12.11939525604248,
+        35.0
+      ],
+      "targetBounds": [
+        35,
+        12,
+        35
+      ],
+      "triangles": [
+        1344,
+        408
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 12,
+          "halfX": 2.1,
+          "halfZ": 2.6999999999999997,
+          "x": 0,
+          "z": 0,
+          "label": "ridge"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/fields.png"
+    },
+    {
+      "request": "M-026",
+      "name": "Grain silo",
+      "file": "structures/fields/silo.glb",
+      "preview": "previews/fields.silo.png",
+      "category": "structure",
+      "region": "fields",
+      "source": "source/rural.py",
+      "bounds": [
+        10.729879379272461,
+        32.0,
+        10.699999809265137
+      ],
+      "targetBounds": [
+        11,
+        32,
+        11
+      ],
+      "triangles": [
+        1480,
+        530
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 26,
+          "halfX": 2.5,
+          "halfZ": 2.5,
+          "x": 0,
+          "z": 0,
+          "label": "cap"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/fields.png"
+    },
+    {
+      "request": "M-028",
+      "name": "Fallen seed vessel",
+      "file": "structures/fields/seedPod.glb",
+      "preview": "previews/fields.seedPod.png",
+      "category": "structure",
+      "region": "fields",
+      "source": "source/rural.py",
+      "bounds": [
+        22.635644912719727,
+        35.0,
+        26.200000762939453
+      ],
+      "targetBounds": [
+        25,
+        34,
+        29
+      ],
+      "triangles": [
+        2766,
+        922
+      ],
+      "clips": [
+        "Close",
+        "Open"
+      ],
+      "sockets": [
+        "Spawn"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/fields.png"
+    },
+    {
+      "request": "M-029",
+      "name": "Ivory tower",
+      "file": "structures/city/ivoryTower.glb",
+      "preview": "previews/city.ivoryTower.png",
+      "category": "structure",
+      "region": "city",
+      "source": "source/architecture.py",
+      "bounds": [
+        31.600000381469727,
+        133.0,
+        31.600000381469727
+      ],
+      "targetBounds": [
+        31,
+        133,
+        31
+      ],
+      "triangles": [
+        4308,
+        1198
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1"
+      ],
+      "landings": [
+        {
+          "y": 122,
+          "halfX": 6.3,
+          "halfZ": 6.3,
+          "x": 0,
+          "z": 0,
+          "label": "roof"
+        },
+        {
+          "y": 16.799999999999997,
+          "halfX": 15,
+          "halfZ": 14.7,
+          "x": 0,
+          "z": 0,
+          "label": "ledge0"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/city.png"
+    },
+    {
+      "request": "M-030",
+      "name": "Roof deck block",
+      "file": "structures/city/roofDeck.glb",
+      "preview": "previews/city.roofDeck.png",
+      "category": "structure",
+      "region": "city",
+      "source": "source/architecture.py",
+      "bounds": [
+        44.0,
+        44.099998474121094,
+        28.0
+      ],
+      "targetBounds": [
+        44,
+        44,
+        28
+      ],
+      "triangles": [
+        592,
+        172
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 41.2,
+          "halfX": 20,
+          "halfZ": 13,
+          "x": 0,
+          "z": 0,
+          "label": "roof"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/city.png"
+    },
+    {
+      "request": "M-031",
+      "name": "Elevated rail span",
+      "file": "structures/city/railSpan.glb",
+      "preview": "previews/city.railSpan.png",
+      "category": "structure",
+      "region": "city",
+      "source": "source/architecture.py",
+      "bounds": [
+        166.0,
+        32.0,
+        10.0
+      ],
+      "targetBounds": [
+        166,
+        32,
+        10
+      ],
+      "triangles": [
+        2716,
+        754
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "TrackEnd",
+        "TrackStart"
+      ],
+      "landings": [
+        {
+          "y": 31.2,
+          "halfX": 80,
+          "halfZ": 5,
+          "x": 0,
+          "z": 0,
+          "label": "deck"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/city.png"
+    },
+    {
+      "request": "M-032",
+      "name": "Train car",
+      "file": "structures/city/trainCar.glb",
+      "preview": "previews/city.trainCar.png",
+      "category": "structure",
+      "region": "city",
+      "source": "source/architecture.py",
+      "bounds": [
+        23.0,
+        5.0,
+        5.21999979019165
+      ],
+      "targetBounds": [
+        23,
+        5,
+        5
+      ],
+      "triangles": [
+        636,
+        194
+      ],
+      "clips": [
+        "Ride_Loop"
+      ],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 5.4,
+          "halfX": 8.8,
+          "halfZ": 1.6,
+          "x": 0,
+          "z": 0,
+          "label": "roof"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/city.png"
+    },
+    {
+      "request": "M-033",
+      "name": "Construction crown",
+      "file": "structures/city/constructionCrown.glb",
+      "preview": "previews/city.constructionCrown.png",
+      "category": "structure",
+      "region": "city",
+      "source": "source/architecture.py",
+      "bounds": [
+        62.099998474121094,
+        131.67958068847656,
+        34.0
+      ],
+      "targetBounds": [
+        62,
+        132,
+        35
+      ],
+      "triangles": [
+        4092,
+        1240
+      ],
+      "clips": [
+        "Jib_Slew"
+      ],
+      "sockets": [
+        "Crane",
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3",
+        "Landing.4",
+        "Landing.5",
+        "Landing.6"
+      ],
+      "landings": [
+        {
+          "y": 15.6,
+          "halfX": 17,
+          "halfZ": 17,
+          "x": 0,
+          "z": 0,
+          "label": "floor0"
+        },
+        {
+          "y": 30.6,
+          "halfX": 17,
+          "halfZ": 17,
+          "x": 0,
+          "z": 0,
+          "label": "floor1"
+        },
+        {
+          "y": 45.6,
+          "halfX": 17,
+          "halfZ": 17,
+          "x": 0,
+          "z": 0,
+          "label": "floor2"
+        },
+        {
+          "y": 60.6,
+          "halfX": 17,
+          "halfZ": 17,
+          "x": 0,
+          "z": 0,
+          "label": "floor3"
+        },
+        {
+          "y": 75.6,
+          "halfX": 17,
+          "halfZ": 17,
+          "x": 0,
+          "z": 0,
+          "label": "floor4"
+        },
+        {
+          "y": 90.6,
+          "halfX": 17,
+          "halfZ": 17,
+          "x": 0,
+          "z": 0,
+          "label": "floor5"
+        },
+        {
+          "y": 131.5,
+          "halfX": 30,
+          "halfZ": 1.2,
+          "x": 0.3999999999999986,
+          "z": 0,
+          "label": "jib"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/city.png"
+    },
+    {
+      "request": "M-034",
+      "name": "Rooftop billboard",
+      "file": "structures/city/billboard.glb",
+      "preview": "previews/city.billboard.png",
+      "category": "structure",
+      "region": "city",
+      "source": "source/architecture.py",
+      "bounds": [
+        25.0,
+        43.0,
+        2.0
+      ],
+      "targetBounds": [
+        25,
+        43,
+        2
+      ],
+      "triangles": [
+        256,
+        80
+      ],
+      "clips": [
+        "Landing_Tip"
+      ],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 42,
+          "halfX": 12,
+          "halfZ": 0.5,
+          "x": 0,
+          "z": 0,
+          "label": "boardTop"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/city.png"
+    },
+    {
+      "request": "M-035",
+      "name": "Highline observatory",
+      "file": "structures/city/observatoryDome.glb",
+      "preview": "previews/city.observatoryDome.png",
+      "category": "structure",
+      "region": "city",
+      "source": "source/architecture.py",
+      "bounds": [
+        55.0,
+        53.0,
+        55.0
+      ],
+      "targetBounds": [
+        55,
+        53,
+        55
+      ],
+      "triangles": [
+        4204,
+        1452
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1"
+      ],
+      "landings": [
+        {
+          "y": 50.9,
+          "halfX": 5.5,
+          "halfZ": 5.5,
+          "x": 0,
+          "z": 0,
+          "label": "crown"
+        },
+        {
+          "y": 30,
+          "halfX": 24.200000000000003,
+          "halfZ": 24.200000000000003,
+          "x": 0,
+          "z": 0,
+          "label": "ring"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/city.png"
+    },
+    {
+      "request": "M-038",
+      "name": "Ravine bridge",
+      "file": "structures/mountains/ravineBridge.glb",
+      "preview": "previews/mountains.ravineBridge.png",
+      "category": "structure",
+      "region": "mountains",
+      "source": "source/rural.py",
+      "bounds": [
+        120.5250015258789,
+        43.11000061035156,
+        10.0
+      ],
+      "targetBounds": [
+        124,
+        42,
+        10
+      ],
+      "triangles": [
+        1152,
+        292
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 1.5,
+          "halfX": 60,
+          "halfZ": 5,
+          "x": 0,
+          "z": 0,
+          "label": "deck"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/mountains.png"
+    },
+    {
+      "request": "M-039",
+      "name": "Summit transmitter",
+      "file": "structures/mountains/transmitterMast.glb",
+      "preview": "previews/mountains.transmitterMast.png",
+      "category": "structure",
+      "region": "mountains",
+      "source": "source/rural.py",
+      "bounds": [
+        48.0,
+        216.0,
+        48.0
+      ],
+      "targetBounds": [
+        50,
+        217,
+        50
+      ],
+      "triangles": [
+        1140,
+        384
+      ],
+      "clips": [
+        "Signal_Scan"
+      ],
+      "sockets": [
+        "Beacon",
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 30,
+          "halfX": 14,
+          "halfZ": 14,
+          "x": 0,
+          "z": 0,
+          "label": "plinth"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/mountains.png"
+    },
+    {
+      "request": "M-040",
+      "name": "Windsock",
+      "file": "structures/mountains/windsock.glb",
+      "preview": "previews/mountains.windsock.png",
+      "category": "structure",
+      "region": "mountains",
+      "source": "source/rural.py",
+      "bounds": [
+        7.150000095367432,
+        13.139999389648438,
+        2.9800000190734863
+      ],
+      "targetBounds": [
+        7,
+        14,
+        3
+      ],
+      "triangles": [
+        364,
+        108
+      ],
+      "clips": [
+        "Wind_Flutter"
+      ],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/mountains.png"
+    },
+    {
+      "request": "M-041",
+      "name": "Furnace tower",
+      "file": "structures/foundry/furnaceTower.glb",
+      "preview": "previews/foundry.furnaceTower.png",
+      "category": "structure",
+      "region": "foundry",
+      "source": "source/architecture.py",
+      "bounds": [
+        38.599998474121094,
+        112.0,
+        38.01000213623047
+      ],
+      "targetBounds": [
+        39,
+        112,
+        39
+      ],
+      "triangles": [
+        3564,
+        1405
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1"
+      ],
+      "landings": [
+        {
+          "y": 80,
+          "halfX": 8.8,
+          "halfZ": 8.8,
+          "x": -4.8,
+          "z": 0,
+          "label": "roof"
+        },
+        {
+          "y": 44.8,
+          "halfX": 19.2,
+          "halfZ": 2,
+          "x": 0,
+          "z": 17.6,
+          "label": "catwalk"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/foundry.png"
+    },
+    {
+      "request": "M-042",
+      "name": "Conveyor span",
+      "file": "structures/foundry/conveyorSpan.glb",
+      "preview": "previews/foundry.conveyorSpan.png",
+      "category": "structure",
+      "region": "foundry",
+      "source": "source/architecture.py",
+      "bounds": [
+        93.0,
+        22.910001754760742,
+        8.699999809265137
+      ],
+      "targetBounds": [
+        93,
+        23,
+        8
+      ],
+      "triangles": [
+        1428,
+        442
+      ],
+      "clips": [],
+      "sockets": [
+        "BeltEnd",
+        "BeltStart",
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 21.6,
+          "halfX": 45,
+          "halfZ": 4,
+          "x": 0,
+          "z": 0,
+          "label": "belt"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/foundry.png"
+    },
+    {
+      "request": "M-043",
+      "name": "Chimney",
+      "file": "structures/foundry/chimney.glb",
+      "preview": "previews/foundry.chimney.png",
+      "category": "structure",
+      "region": "foundry",
+      "source": "source/architecture.py",
+      "bounds": [
+        12.0,
+        114.0,
+        12.0
+      ],
+      "targetBounds": [
+        12,
+        114,
+        12
+      ],
+      "triangles": [
+        892,
+        302
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 110,
+          "halfX": 3.5,
+          "halfZ": 3.5,
+          "x": 0,
+          "z": 0,
+          "label": "lip"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/foundry.png"
+    },
+    {
+      "request": "M-044",
+      "name": "Slag barge",
+      "file": "structures/foundry/slagBarge.glb",
+      "preview": "previews/foundry.slagBarge.png",
+      "category": "structure",
+      "region": "foundry",
+      "source": "source/architecture.py",
+      "bounds": [
+        41.0,
+        5.699999809265137,
+        17.0
+      ],
+      "targetBounds": [
+        41,
+        6,
+        17
+      ],
+      "triangles": [
+        1428,
+        486
+      ],
+      "clips": [
+        "Barge_Rock"
+      ],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 5.7,
+          "halfX": 18,
+          "halfZ": 1,
+          "x": 0,
+          "z": 7.2,
+          "label": "gunwale"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/foundry.png"
+    },
+    {
+      "request": "M-045",
+      "name": "Stamping press",
+      "file": "structures/foundry/stampingPress.glb",
+      "preview": "previews/foundry.stampingPress.png",
+      "category": "structure",
+      "region": "foundry",
+      "source": "source/architecture.py",
+      "bounds": [
+        30.0,
+        44.0,
+        20.0
+      ],
+      "targetBounds": [
+        31,
+        44,
+        21
+      ],
+      "triangles": [
+        600,
+        196
+      ],
+      "clips": [
+        "Press_Cycle"
+      ],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Strike"
+      ],
+      "landings": [
+        {
+          "y": 4,
+          "halfX": 14,
+          "halfZ": 10,
+          "x": 0,
+          "z": 0,
+          "label": "anvil"
+        },
+        {
+          "y": 43,
+          "halfX": 15,
+          "halfZ": 2,
+          "x": 0,
+          "z": 0,
+          "label": "head"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/foundry.png"
+    },
+    {
+      "request": "M-046",
+      "name": "Crane boom",
+      "file": "structures/harbor/craneBoom.glb",
+      "preview": "previews/harbor.craneBoom.png",
+      "category": "structure",
+      "region": "harbor",
+      "source": "source/architecture.py",
+      "bounds": [
+        88.0,
+        95.30999755859375,
+        10.260000228881836
+      ],
+      "targetBounds": [
+        85,
+        96,
+        10
+      ],
+      "triangles": [
+        2940,
+        928
+      ],
+      "clips": [
+        "Boom_Slew",
+        "Container_Hoist"
+      ],
+      "sockets": [
+        "BoomPivot",
+        "Landing.0",
+        "Landing.1",
+        "Landing.Hook"
+      ],
+      "landings": [
+        {
+          "y": 94,
+          "halfX": 40,
+          "halfZ": 2.5,
+          "x": 36,
+          "z": 0,
+          "label": "boom"
+        },
+        {
+          "y": 60,
+          "halfX": 7,
+          "halfZ": 5,
+          "x": 72,
+          "z": 0,
+          "label": "hookedContainer"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/harbor.png"
+    },
+    {
+      "request": "M-047",
+      "name": "Container stack",
+      "file": "structures/harbor/containerStack.glb",
+      "preview": "previews/harbor.containerStack.png",
+      "category": "structure",
+      "region": "harbor",
+      "source": "source/architecture.py",
+      "bounds": [
+        47.599998474121094,
+        17.700000762939453,
+        9.710000038146973
+      ],
+      "targetBounds": [
+        48,
+        18,
+        10
+      ],
+      "triangles": [
+        1232,
+        352
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2"
+      ],
+      "landings": [
+        {
+          "y": 5.85,
+          "halfX": 24,
+          "halfZ": 5,
+          "x": 0,
+          "z": 0,
+          "label": "row0"
+        },
+        {
+          "y": 11.85,
+          "halfX": 18,
+          "halfZ": 5,
+          "x": 0,
+          "z": 0,
+          "label": "row1"
+        },
+        {
+          "y": 17.85,
+          "halfX": 24,
+          "halfZ": 5,
+          "x": 0,
+          "z": 0,
+          "label": "row2"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/harbor.png"
+    },
+    {
+      "request": "M-048",
+      "name": "Freighter",
+      "file": "structures/harbor/freighter.glb",
+      "preview": "previews/harbor.freighter.png",
+      "category": "structure",
+      "region": "harbor",
+      "source": "source/architecture.py",
+      "bounds": [
+        228.0,
+        65.0,
+        41.0
+      ],
+      "targetBounds": [
+        228,
+        65,
+        41
+      ],
+      "triangles": [
+        928,
+        278
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3",
+        "Landing.4",
+        "Landing.5"
+      ],
+      "landings": [
+        {
+          "y": 20,
+          "halfX": 110,
+          "halfZ": 20,
+          "x": 0,
+          "z": 0,
+          "label": "deck"
+        },
+        {
+          "y": 50,
+          "halfX": 22,
+          "halfZ": 16,
+          "x": -77,
+          "z": 0,
+          "label": "bridgeRoof"
+        },
+        {
+          "y": 32,
+          "halfX": 13.2,
+          "halfZ": 14,
+          "x": -22,
+          "z": 0,
+          "label": "cargo0"
+        },
+        {
+          "y": 32,
+          "halfX": 13.2,
+          "halfZ": 14,
+          "x": 11,
+          "z": 0,
+          "label": "cargo1"
+        },
+        {
+          "y": 32,
+          "halfX": 13.2,
+          "halfZ": 14,
+          "x": 44,
+          "z": 0,
+          "label": "cargo2"
+        },
+        {
+          "y": 32,
+          "halfX": 13.2,
+          "halfZ": 14,
+          "x": 77,
+          "z": 0,
+          "label": "cargo3"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/harbor.png"
+    },
+    {
+      "request": "M-049",
+      "name": "Gantry tower",
+      "file": "structures/harbor/gantryTower.glb",
+      "preview": "previews/harbor.gantryTower.png",
+      "category": "structure",
+      "region": "harbor",
+      "source": "source/architecture.py",
+      "bounds": [
+        61.779422760009766,
+        135.1383819580078,
+        25.100000381469727
+      ],
+      "targetBounds": [
+        62,
+        135,
+        25
+      ],
+      "triangles": [
+        1380,
+        450
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3",
+        "Landing.4"
+      ],
+      "landings": [
+        {
+          "y": 33,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": 0,
+          "z": 0,
+          "label": "deck1"
+        },
+        {
+          "y": 65.5,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": 0,
+          "z": 0,
+          "label": "deck2"
+        },
+        {
+          "y": 98,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": 0,
+          "z": 0,
+          "label": "deck3"
+        },
+        {
+          "y": 130.5,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": 0,
+          "z": 0,
+          "label": "deck4"
+        },
+        {
+          "y": 133,
+          "halfX": 30,
+          "halfZ": 3,
+          "x": 0,
+          "z": 0,
+          "label": "bridge"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/harbor.png"
+    },
+    {
+      "request": "M-050",
+      "name": "Breakwater",
+      "file": "structures/harbor/breakwater.glb",
+      "preview": "previews/harbor.breakwater.png",
+      "category": "structure",
+      "region": "harbor",
+      "source": "source/architecture.py",
+      "bounds": [
+        207.0,
+        13.399999618530273,
+        25.0
+      ],
+      "targetBounds": [
+        207,
+        14,
+        25
+      ],
+      "triangles": [
+        1040,
+        354
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 10,
+          "halfX": 100,
+          "halfZ": 12,
+          "x": 0,
+          "z": 0,
+          "label": "top"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/harbor.png"
+    },
+    {
+      "request": "M-051",
+      "name": "Launch ring",
+      "file": "structures/launchworks/launchRing.glb",
+      "preview": "previews/launchworks.launchRing.png",
+      "category": "structure",
+      "region": "launchworks",
+      "source": "source/architecture.py",
+      "bounds": [
+        134.17999267578125,
+        211.0,
+        134.17999267578125
+      ],
+      "targetBounds": [
+        137,
+        211,
+        137
+      ],
+      "triangles": [
+        5552,
+        1776
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3",
+        "Landing.4",
+        "Landing.5",
+        "Landing.6",
+        "Landing.7"
+      ],
+      "landings": [
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": 60,
+          "z": 0,
+          "label": "ring0"
+        },
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": 42.42640687119285,
+          "z": 42.426406871192846,
+          "label": "ring1"
+        },
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": 3.67394039744206e-15,
+          "z": 60,
+          "label": "ring2"
+        },
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": -42.426406871192846,
+          "z": 42.42640687119285,
+          "label": "ring3"
+        },
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": -60,
+          "z": 7.34788079488412e-15,
+          "label": "ring4"
+        },
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": -42.42640687119286,
+          "z": -42.426406871192846,
+          "label": "ring5"
+        },
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": -1.1021821192326178e-14,
+          "z": -60,
+          "label": "ring6"
+        },
+        {
+          "y": 206,
+          "halfX": 4,
+          "halfZ": 4,
+          "x": 42.42640687119284,
+          "z": -42.42640687119286,
+          "label": "ring7"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/launchworks.png"
+    },
+    {
+      "request": "M-052",
+      "name": "Rocket on the pad",
+      "file": "structures/launchworks/rocket.glb",
+      "preview": "previews/launchworks.rocket.png",
+      "category": "structure",
+      "region": "launchworks",
+      "source": "source/architecture.py",
+      "bounds": [
+        30.989999771118164,
+        163.1750030517578,
+        19.799999237060547
+      ],
+      "targetBounds": [
+        31,
+        163,
+        20
+      ],
+      "triangles": [
+        2992,
+        1250
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3"
+      ],
+      "landings": [
+        {
+          "y": 26,
+          "halfX": 6,
+          "halfZ": 4,
+          "x": 15,
+          "z": 0,
+          "label": "arm1"
+        },
+        {
+          "y": 51.6,
+          "halfX": 6,
+          "halfZ": 4,
+          "x": 15,
+          "z": 0,
+          "label": "arm2"
+        },
+        {
+          "y": 77.20000000000002,
+          "halfX": 6,
+          "halfZ": 4,
+          "x": 15,
+          "z": 0,
+          "label": "arm3"
+        },
+        {
+          "y": 102.80000000000001,
+          "halfX": 6,
+          "halfZ": 4,
+          "x": 15,
+          "z": 0,
+          "label": "arm4"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/launchworks.png"
+    },
+    {
+      "request": "M-053",
+      "name": "Piston stair",
+      "file": "structures/launchworks/pistonStair.glb",
+      "preview": "previews/launchworks.pistonStair.png",
+      "category": "structure",
+      "region": "launchworks",
+      "source": "source/architecture.py",
+      "bounds": [
+        58.0,
+        76.0,
+        10.079999923706055
+      ],
+      "targetBounds": [
+        58,
+        76,
+        10
+      ],
+      "triangles": [
+        1304,
+        436
+      ],
+      "clips": [
+        "Piston_Cycle"
+      ],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3",
+        "Landing.4"
+      ],
+      "landings": [
+        {
+          "y": 15,
+          "halfX": 4.800000000000001,
+          "halfZ": 4.800000000000001,
+          "x": -24,
+          "z": 0,
+          "label": "piston0"
+        },
+        {
+          "y": 29,
+          "halfX": 4.800000000000001,
+          "halfZ": 4.800000000000001,
+          "x": -12,
+          "z": 0,
+          "label": "piston1"
+        },
+        {
+          "y": 43,
+          "halfX": 4.800000000000001,
+          "halfZ": 4.800000000000001,
+          "x": 0,
+          "z": 0,
+          "label": "piston2"
+        },
+        {
+          "y": 57,
+          "halfX": 4.800000000000001,
+          "halfZ": 4.800000000000001,
+          "x": 12,
+          "z": 0,
+          "label": "piston3"
+        },
+        {
+          "y": 71,
+          "halfX": 4.800000000000001,
+          "halfZ": 4.800000000000001,
+          "x": 24,
+          "z": 0,
+          "label": "piston4"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/launchworks.png"
+    },
+    {
+      "request": "M-054",
+      "name": "Exhaust shaft",
+      "file": "structures/launchworks/exhaustShaft.glb",
+      "preview": "previews/launchworks.exhaustShaft.png",
+      "category": "structure",
+      "region": "launchworks",
+      "source": "source/architecture.py",
+      "bounds": [
+        75.05000305175781,
+        124.0,
+        75.10000610351562
+      ],
+      "targetBounds": [
+        75,
+        124,
+        75
+      ],
+      "triangles": [
+        3052,
+        1056
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3",
+        "Updraft"
+      ],
+      "landings": [
+        {
+          "y": -23.4,
+          "halfX": 12,
+          "halfZ": 5,
+          "x": -2.899001121649304,
+          "z": 22.312458235180543,
+          "label": "baffle1"
+        },
+        {
+          "y": -47.4,
+          "halfX": 12,
+          "halfZ": 5,
+          "x": -21.752959333037875,
+          "z": -5.749674795603703,
+          "label": "baffle2"
+        },
+        {
+          "y": -71.4,
+          "halfX": 12,
+          "halfZ": 5,
+          "x": 8.504499211042056,
+          "z": -20.83083035237398,
+          "label": "baffle3"
+        },
+        {
+          "y": -95.4,
+          "halfX": 12,
+          "halfZ": 5,
+          "x": 19.561443532871067,
+          "z": 11.117550400618683,
+          "label": "baffle4"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/launchworks.png"
+    },
+    {
+      "request": "M-055",
+      "name": "Gantry elevator",
+      "file": "structures/launchworks/gantryElevator.glb",
+      "preview": "previews/launchworks.gantryElevator.png",
+      "category": "structure",
+      "region": "launchworks",
+      "source": "source/architecture.py",
+      "bounds": [
+        20.0,
+        155.12767028808594,
+        17.0
+      ],
+      "targetBounds": [
+        20,
+        155,
+        17
+      ],
+      "triangles": [
+        576,
+        188
+      ],
+      "clips": [
+        "Lift_Cycle"
+      ],
+      "sockets": [
+        "Landing.0",
+        "LiftBottom",
+        "LiftTop"
+      ],
+      "landings": [
+        {
+          "y": 11,
+          "halfX": 8,
+          "halfZ": 8,
+          "x": 0,
+          "z": 0,
+          "label": "cage"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/launchworks.png"
+    },
+    {
+      "request": "M-068",
+      "name": "Spring pad",
+      "file": "props/springPad.glb",
+      "preview": "previews/springPad.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        11.0,
+        2.952500104904175,
+        11.0
+      ],
+      "targetBounds": [
+        11,
+        3,
+        11
+      ],
+      "triangles": [
+        952,
+        266
+      ],
+      "clips": [
+        "Active",
+        "Idle"
+      ],
+      "sockets": [
+        "Launch"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-069",
+      "name": "Signal",
+      "file": "props/signalBeacon.glb",
+      "preview": "previews/signalBeacon.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        3.0,
+        4.525000095367432,
+        3.0
+      ],
+      "targetBounds": [
+        3,
+        5,
+        3
+      ],
+      "triangles": [
+        344,
+        116
+      ],
+      "clips": [
+        "Spin"
+      ],
+      "sockets": [
+        "Pickup"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-070",
+      "name": "Signal cage",
+      "file": "props/signalCage.glb",
+      "preview": "previews/signalCage.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        13.314791679382324,
+        10.0,
+        14.0
+      ],
+      "targetBounds": [
+        14,
+        10,
+        14
+      ],
+      "triangles": [
+        1162,
+        356
+      ],
+      "clips": [
+        "Open"
+      ],
+      "sockets": [
+        "Lock",
+        "Prize"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-071",
+      "name": "Lockdown emitter",
+      "file": "props/lockdownEmitter.glb",
+      "preview": "previews/lockdownEmitter.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        10.0,
+        18.0,
+        10.0
+      ],
+      "targetBounds": [
+        10,
+        18,
+        10
+      ],
+      "triangles": [
+        644,
+        200
+      ],
+      "clips": [
+        "Active"
+      ],
+      "sockets": [
+        "FieldAnchor"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-072",
+      "name": "Lockdown dome",
+      "file": "props/lockdownDome.glb",
+      "preview": "previews/lockdownDome.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        520.0,
+        260.0,
+        520.0
+      ],
+      "targetBounds": [
+        520,
+        260,
+        520
+      ],
+      "triangles": [
+        776,
+        298
+      ],
+      "clips": [
+        "Active",
+        "Open"
+      ],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-073",
+      "name": "Checkpoint totem",
+      "file": "props/checkpointTotem.glb",
+      "preview": "previews/checkpointTotem.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        3.0,
+        15.0,
+        3.0
+      ],
+      "targetBounds": [
+        3,
+        15,
+        3
+      ],
+      "triangles": [
+        800,
+        258
+      ],
+      "clips": [
+        "Active",
+        "Idle"
+      ],
+      "sockets": [
+        "Respawn"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-074",
+      "name": "Recovery capsule",
+      "file": "props/recoveryCapsule.glb",
+      "preview": "previews/recoveryCapsule.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        2.0,
+        4.0,
+        2.0
+      ],
+      "targetBounds": [
+        2,
+        4,
+        2
+      ],
+      "triangles": [
+        500,
+        164
+      ],
+      "clips": [
+        "Spin"
+      ],
+      "sockets": [
+        "Pickup"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-075",
+      "name": "Thermal vent",
+      "file": "props/thermalVent.glb",
+      "preview": "previews/thermalVent.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        20.0,
+        162.0,
+        20.0
+      ],
+      "targetBounds": [
+        20,
+        162,
+        20
+      ],
+      "triangles": [
+        768,
+        232
+      ],
+      "clips": [
+        "Flow"
+      ],
+      "sockets": [
+        "LiftBase",
+        "LiftTop"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-076",
+      "name": "Wind lane",
+      "file": "props/windLane.glb",
+      "preview": "previews/windLane.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        202.81051635742188,
+        40.0,
+        40.0
+      ],
+      "targetBounds": [
+        202,
+        40,
+        40
+      ],
+      "triangles": [
+        490,
+        148
+      ],
+      "clips": [
+        "Flow"
+      ],
+      "sockets": [
+        "FlowEnd",
+        "FlowStart"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-077",
+      "name": "Gravity gate",
+      "file": "props/gravityGate.glb",
+      "preview": "previews/gravityGate.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        62.0,
+        40.720001220703125,
+        5.220000267028809
+      ],
+      "targetBounds": [
+        62,
+        40,
+        5
+      ],
+      "triangles": [
+        1156,
+        374
+      ],
+      "clips": [
+        "Active"
+      ],
+      "sockets": [
+        "FlipPlane"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-078",
+      "name": "Launch gate",
+      "file": "props/launchGate.glb",
+      "preview": "previews/launchGate.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        203.0,
+        203.0,
+        16.000009536743164
+      ],
+      "targetBounds": [
+        203,
+        203,
+        16
+      ],
+      "triangles": [
+        1912,
+        712
+      ],
+      "clips": [
+        "Active"
+      ],
+      "sockets": [
+        "Entry"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-079",
+      "name": "Eye laser bolt",
+      "file": "props/laserBolt.glb",
+      "preview": "previews/laserBolt.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        0.6000000238418579,
+        0.6000000238418579,
+        6.0
+      ],
+      "targetBounds": [
+        0.6,
+        0.6,
+        6
+      ],
+      "triangles": [
+        60,
+        52
+      ],
+      "clips": [
+        "Pulse"
+      ],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-080",
+      "name": "Kick arc",
+      "file": "props/kickArc.glb",
+      "preview": "previews/kickArc.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        20.0,
+        1.0,
+        20.0
+      ],
+      "targetBounds": [
+        20,
+        1,
+        20
+      ],
+      "triangles": [
+        184,
+        62
+      ],
+      "clips": [
+        "Active"
+      ],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-081",
+      "name": "Guard shield",
+      "file": "props/shieldDome.glb",
+      "preview": "previews/shieldDome.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        18.0,
+        18.0,
+        9.130000114440918
+      ],
+      "targetBounds": [
+        18,
+        18,
+        9
+      ],
+      "triangles": [
+        464,
+        156
+      ],
+      "clips": [
+        "Active"
+      ],
+      "sockets": [
+        "Anchor"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-082",
+      "name": "Shadow dissolve",
+      "file": "props/dissolveBurst.glb",
+      "preview": "previews/dissolveBurst.png",
+      "category": "prop",
+      "region": null,
+      "source": "source/props.py",
+      "bounds": [
+        12.0,
+        12.0,
+        12.024999618530273
+      ],
+      "targetBounds": [
+        12,
+        12,
+        12
+      ],
+      "triangles": [
+        212,
+        62
+      ],
+      "clips": [
+        "Dissolve"
+      ],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/props.png"
+    }
+  ],
+  "deliveredAt": "2026-09-08",
+  "validation": "validation.txt"
+}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Hopper final 3D model review viewer" />
+    <title>Hopper 3D — final model review</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #151b1b; color: #f5efd9; }
+      canvas { display: block; }
+      button, input, select { font: inherit; }
+      #sidebar { position: absolute; inset: 0 auto 0 0; z-index: 3; width: min(350px, 88vw); display: flex; flex-direction: column; padding: 15px; background: #111918ee; border-right: 1px solid #ffffff22; backdrop-filter: blur(9px); }
+      h1 { margin: 0; color: #ead697; font-size: 15px; letter-spacing: .13em; }
+      .lede { margin: 5px 0 12px; color: #bfc6ba; font-size: 12px; line-height: 1.4; }
+      .row { display: flex; gap: 7px; }
+      input, select, button { min-height: 34px; border: 1px solid #ffffff28; border-radius: 5px; background: #202b29; color: inherit; }
+      input { width: 100%; padding: 0 9px; }
+      select, button { padding: 0 9px; cursor: pointer; }
+      button:hover, button:focus-visible, select:focus-visible, input:focus-visible { border-color: #ead697; outline: none; }
+      button.active { background: #ead697; color: #17201e; font-weight: 700; }
+      #filters { margin-bottom: 9px; }
+      #category { max-width: 124px; }
+      #list { min-height: 100px; overflow: auto; padding-right: 3px; }
+      .asset { width: 100%; height: auto; min-height: 48px; display: grid; grid-template-columns: 48px 1fr; gap: 9px; align-items: center; padding: 6px; margin: 0 0 5px; text-align: left; }
+      .asset img, .thumb-placeholder { width: 48px; height: 42px; border-radius: 3px; object-fit: cover; background: #0b1110; }
+      .asset strong, .asset small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .asset strong { font-size: 12px; }
+      .asset small { margin-top: 2px; color: #aeb7ad; font-size: 10px; }
+      .asset.active small { color: #33403d; }
+      #review { margin-top: 12px; border-top: 1px solid #ffffff1c; padding-top: 11px; }
+      #review h2 { margin: 0 0 7px; color: #ead697; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+      #lods, #clips { display: flex; flex-wrap: wrap; gap: 5px; }
+      #lods button, #clips button { min-height: 29px; padding: 0 7px; font-size: 11px; }
+      #socket-toggle { margin-top: 8px; width: 100%; }
+      #status { position: absolute; z-index: 2; right: 14px; bottom: 14px; max-width: min(620px, calc(100vw - 390px)); padding: 9px 12px; border-radius: 6px; background: #101716dd; color: #d6ddce; font-size: 12px; line-height: 1.45; pointer-events: none; }
+      #status strong { color: #ead697; }
+      #status.error { border: 1px solid #d36d67; color: #ffd6d1; pointer-events: auto; }
+      #hint { position: absolute; z-index: 2; top: 13px; left: 366px; color: #b9c1b6; font-size: 10px; letter-spacing: .12em; }
+      #panel-toggle { position:absolute; right:14px; top:12px; z-index:5; }
+      body.panel-hidden #sidebar { display:none; }
+      body.panel-hidden #status { max-width:calc(100vw - 28px); }
+      @media (max-width: 700px) { #sidebar { width: 260px; } #hint { display: none; } #status { max-width: calc(100vw - 280px); } }
+    </style>
+    <script type="importmap">
+      { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+      } }
+    </script>
+  </head>
+  <body>
+    <button id="panel-toggle" type="button" aria-expanded="true">Hide controls</button>
+    <aside id="sidebar">
+      <h1>HOPPER · FINAL MODEL REVIEW</h1>
+      <p class="lede">Manifest models at production scale. Drag to orbit, scroll to zoom, and use the controls below to inspect exported clips, LOD roots, and sockets.</p>
+      <div id="filters" class="row">
+        <input id="search" type="search" placeholder="Filter name, request, region…" aria-label="Filter models" />
+        <select id="category" aria-label="Filter category"><option value="">All</option></select>
+      </div>
+      <div id="list" aria-label="Models"></div>
+      <section id="review" hidden>
+        <h2>Level of detail</h2><div id="lods"></div>
+        <h2>Animation clips</h2><div id="clips"></div>
+        <button id="socket-toggle" type="button">Show sockets</button>
+      </section>
+    </aside>
+    <div id="hint">NEUTRAL LIGHT · PAINTED TEXTURE REVIEW</div>
+    <div id="status">Loading model manifest…</div>
+    <script type="module" src="./viewer.js"></script>
+  </body>
+</html>

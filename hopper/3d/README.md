@@ -14,6 +14,7 @@ The 3D reinterpretation of Hopper: same title screen, music, characters, mission
 | Procedural stand-ins (models, textures, terrain) | [standins/](standins/) |
 | Stand-in review viewer | [viewer/](viewer/) · published at https://hoai2k.github.io/mini/hopper/3d/viewer/ |
 | 3D controller diagram | [design/source/controller-3d.svg](design/source/controller-3d.svg) |
+| Delivered architecture and props (43 models) | [models/README.md](models/README.md) · [model viewer](models/viewer.html) |
 | Delivered Hopper and rider GLBs | [../models/](../models/) |
 
 ## Stand-ins
