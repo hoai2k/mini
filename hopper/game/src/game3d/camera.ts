@@ -15,6 +15,9 @@ export interface CameraState {
   /** Seconds since the player last moved the camera. */
   idle: number;
   mode: 'follow' | 'lock' | 'horizon';
+  /** Eased state offsets (glide, dive, height) so state changes never pop. */
+  tilt: number;
+  pull: number;
 }
 export interface CameraInput {
   lookX: number;
@@ -53,7 +56,7 @@ export const CAMERA = {
 };
 
 export function createCamera(yaw: number, at: [number, number, number]): CameraState {
-  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow' };
+  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0 };
 }
 
 const ease = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -115,10 +118,10 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
       dz = input.lock[2] - h.z,
       d = Math.hypot(dx, dz);
     wantYaw = Math.atan2(dx, dz);
-    // Frame both: the target sits between Hopper and the shadow.
-    target = [com[0] + dx * 0.35, com[1] + (input.lock[1] - com[1]) * 0.35, com[2] + dz * 0.35];
-    wantDistance = Math.min(70, 30 + d * 0.5);
-    wantPitch = CAMERA.pitch + Math.max(-0.2, Math.min(0.3, -(input.lock[1] - com[1]) * 0.004));
+    // Aiming view: over Hopper's shoulder, the shadow held near the centre.
+    target = [input.lock[0], input.lock[1], input.lock[2]];
+    wantDistance = Math.min(60, 26 + d * 0.35);
+    wantPitch = Math.max(-0.25, Math.min(0.45, Math.atan2(com[1] + 6 - input.lock[1], Math.max(10, d)) + 0.12));
   } else {
     cam.mode = 'follow';
     // Orbit from the stick or the mouse.
@@ -138,18 +141,24 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
       if (Math.abs(d) < Math.PI * 0.75) cam.yaw += d * Math.min(1, CAMERA.returnRate * dt * Math.min(1, speed / 20));
     }
     wantYaw = cam.yaw;
-    // Height above the ground pulls back and tilts down; gliding flattens and widens.
+    // Height above the ground pulls back and tilts down; gliding flattens and
+    // widens; diving looks down. All of it eased, so a tap never pops the view.
     const pull = settings.reducedMotion ? 0.5 : 1;
-    wantDistance = CAMERA.distance + Math.min(CAMERA.maxPullBack, h.height * CAMERA.pullBackPerMetre) * pull;
-    wantPitch = cam.pitch + Math.min(CAMERA.maxTilt, h.height * CAMERA.tiltPerMetre) * pull;
+    let wantPull = Math.min(CAMERA.maxPullBack, h.height * CAMERA.pullBackPerMetre) * pull,
+      wantTilt = Math.min(CAMERA.maxTilt, h.height * CAMERA.tiltPerMetre) * pull;
     if (h.gliding) {
-      wantDistance -= 6;
-      wantPitch -= 0.12;
+      wantPull -= 6;
+      wantTilt -= 0.12;
       if (!settings.reducedMotion) wantFov = CAMERA.glideFov;
     } else if (h.diving) {
-      wantPitch += 0.35;
-      wantDistance += 4;
+      wantTilt += 0.35;
+      wantPull += 4;
     }
+    const ks = 1 - Math.exp(-3.5 * dt);
+    cam.pull = ease(cam.pull, wantPull, ks);
+    cam.tilt = ease(cam.tilt, wantTilt, ks);
+    wantDistance = CAMERA.distance + cam.pull;
+    wantPitch = cam.pitch + cam.tilt;
   }
   const k = 1 - Math.exp(-CAMERA.smoothing * dt);
   if (cam.mode !== 'follow') {
@@ -158,11 +167,18 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   }
   const usePitch = cam.mode === 'follow' ? wantPitch : cam.pitch;
   cam.distance = ease(cam.distance, wantDistance, k * 0.6);
-  cam.fov = ease(cam.fov, wantFov, k * 0.5);
+  cam.fov = ease(cam.fov, wantFov, Math.min(1, 3 * dt));
   cam.target = [ease(cam.target[0], target[0], k), ease(cam.target[1], target[1], k), ease(cam.target[2], target[2], k)];
   const cp = Math.cos(usePitch),
     sp = Math.sin(usePitch);
-  const eye: [number, number, number] = [cam.target[0] - Math.sin(cam.yaw) * cp * cam.distance, cam.target[1] + sp * cam.distance, cam.target[2] - Math.cos(cam.yaw) * cp * cam.distance];
+  // In lock mode the eye hangs behind Hopper, not behind the target.
+  const anchor = cam.mode === 'lock' ? com : cam.target;
+  const shoulder = cam.mode === 'lock' ? 9 : 0;
+  const eye: [number, number, number] = [
+    anchor[0] - Math.sin(cam.yaw) * cp * cam.distance - Math.cos(cam.yaw) * shoulder,
+    anchor[1] + sp * cam.distance + (cam.mode === 'lock' ? 5 : 0),
+    anchor[2] - Math.cos(cam.yaw) * cp * cam.distance + Math.sin(cam.yaw) * shoulder,
+  ];
   const clear = unblock(world, cam.target, eye);
   cam.eye = [ease(cam.eye[0], clear[0], k), ease(cam.eye[1], clear[1], k), ease(cam.eye[2], clear[2], k)];
 }

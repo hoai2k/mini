@@ -286,6 +286,7 @@ image(tid, 'Hopper pose sheet for the new clips', 'reference', '8192×4096 sheet
       'Animation reference for M-001 and M-002: wings open in a glide, dive with legs tucked, the stomp landing, air kick, wall kick plant, ledge mantle, hop back, the crouch charge at three compression levels, the super-leap launch, lock-on strafe, and the rider\'s glide lean, dive tuck, brace and point. Generated from design/assets/hopper-canonical-v1.png and the action study design/assets/hopper-action-study.png. Must exist before the clips are animated.',
       prompt='Use case: identity-preserve animation key poses. The attached sheets are the canonical Hopper the Grasshopper and rider; preserve them exactly. Draw key poses, side and three-quarter views: wings spread wide in a glide with hind legs trailing; a head-down dive with all legs tucked; a deep stomp landing with the suspension compressed; a mid-air spin kick with the body level; planting the hind legs against a wall to kick off; front legs hooking a ledge to haul up; a short hop backward; the crouch charge at three compression levels; the super-leap launch; sidestepping while facing forward; and the boy leaning back in a glide, tucked in a dive, braced for a stomp, and pointing ahead. 1970s cel anime style, ink outlines, flat shading, no text.')
 ref_by_model['hopper.proxy'] = tid
+t += 1
 for m in M:
     key = m['standIn']
     if m['category'] in ('hopper', 'rider'):
@@ -311,6 +312,29 @@ for m in M:
         m['needs'] = [ref_by_model.get(f'structure.{m["region"]}.' + {'fields': 'silo', 'city': 'ivoryTower', 'mountains': 'transmitterMast', 'foundry': 'furnaceTower', 'harbor': 'craneBoom', 'launchworks': 'launchRing', 'red': 'coralSpire', 'blue': 'floatingReef', 'violet': 'cathedralFacade'}[m['region']], '')]
     elif m['category'] == 'terrain':
         m['existing'] = ['design/assets/level-1-earth.png', 'design/assets/level-2-industry.png', 'design/assets/level-3-alien.png']
+
+# ---------------------------------------------------------------------------
+# Round three: found while integrating the round-one pack into the game.
+# ---------------------------------------------------------------------------
+ROUND3_START = t
+image(f'T-{t:03d}', 'Soft-landing surfaces: sea, drift dust, slag', 'surface', 'three 2048² tileable albedos with matching 512² flow/normal-free detail maps: storm-channel sea (Tempest Docks), luminous blue dust (Cobalt Drift), glowing slag (Cinder Foundries); plus a 1024×256 shoreline foam strip with alpha', None, 'textures/surface/{sea,dust,slag}.png', 'open',
+      'The design makes every district floor a return to play: water and dust push Hopper back ashore, slag lifts him out. Round one has no painted surface for any of them, so the game draws flat colour. Needed before the docks, drift and foundry districts are built.',
+      prompt='Use case: texture. Seamless tileable hand-painted gouache surface, 1970s anime background style, three flat cel tones with brushed edges: (1) storm-grey sea with white spray streaks, (2) luminous ultramarine dust with cyan motes, (3) black slag crust with glowing orange seams. No lighting baked in, no text.'); t += 1
+image(f'T-{t:03d}', 'Landing guide, light variant', 'ui', '512² alpha ring and centre mark in ivory with a dark rim, same geometry as ui/landing-guide.png', None, 'textures/ui/landing-guide-light.png', 'open',
+      'The delivered guide is dark navy, right for the fields and the city; on the obsidian, slag and reef floors of later regions it disappears. The game picks the variant by region floor luminance.',
+      prompt='Use case: interface decal. The attached landing guide, redrawn in ivory #f6edcc lines with a thin dark rim, identical geometry and transparent background, no text.'); t += 1
+image(f'T-{t:03d}', 'Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail', 'effects', 'one 2048² sheet, four 512² alpha elements plus an 8-frame 512² strip for the muzzle glow', None, 'textures/effects/hopper.png', 'open',
+      'Round one covered impacts and sparks; Hopper\'s own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. This sheet gives them paint in the same style as the delivered atlases.',
+      prompt='Use case: effect sprites. 1970s anime cel effects on transparent background: a red-white eye laser bolt with a bright core and ink edge, an eight-frame eye muzzle glow, a teal hexagon-patterned shield face with a white rim, and a soft cream glide wing trail. Flat tones, no text.'); t += 1
+for region, notes in [('fields', SKY_NOTES['fields']), ('city', SKY_NOTES['city']), ('mountains', SKY_NOTES['mountains'])]:
+    image(f'T-{t:03d}', f'Sky repaint at native 4K: {REGION_NAMES[region]}', 'sky-hd', '4096×2048 native (not upscaled) equirectangular painting, same composition and sun position as the delivered sky', None, f'textures/sky/{region}-hd.jpg', 'open',
+          f'Optional. The delivered {REGION_NAMES[region]} sky is painted at 1774×887 and upscaled; it reads well at 1080p but softens when the camera looks up at 4K. Only worth doing for the three mission-one skies the player sees most, and only if the softness shows in review.',
+          prompt=f'Use case: environment. Repaint the attached sky at the highest native resolution available, keeping its composition, cloud shapes and sun position exactly: {notes}. 1970s anime gouache, brushed clouds, flat colour fields, no text.', region=region); t += 1
+image(f'T-{t:03d}', 'Checkpoint totem and spring pad decals', 'ui', '512² alpha sheet: lit and unlit totem lamp faces, a chevron ring for the spring pad plate, a signal-cage crown glyph', None, 'textures/ui/props.png', 'open',
+      'Small painted faces for the props the player reads at a glance. The stand-ins draw them as flat emissive shapes; the delivered models (M-071 onward) will carry these as decals.',
+      prompt='Use case: prop decals. Hand-painted anime cel decals on transparent background: a glowing ivory lamp face and its dark unlit twin, a ring of four white chevrons on cyan, a violet crown glyph. Flat tones with ink edges, no text.'); t += 1
+for x in T:
+    if int(x['request'][2:]) >= ROUND3_START: x['round'] = 3
 
 # ---------------------------------------------------------------------------
 # Output
@@ -484,4 +508,21 @@ for x in [x for x in T if x['round'] == 2]:
     r2.append(f"- **Prompt:** {x['prompt']}")
     r2.append('')
 (ROOT / 'image-requests-round-2.md').write_text('\n'.join(r2) + '\n')
-print(f'{len(M)} model requests, {len([x for x in T if x["round"]==1])} round-one images, {len([x for x in T if x["round"]==2])} round-two reference sheets, manifest {len(manifest["requests"])} entries')
+
+r3 = []
+r3.append('# Image requests · round three: after integrating round one\n')
+r3.append('Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one optional quality pass. Nothing here replaces a delivered file except the optional sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.\n')
+r3.append('| Request | Why | Priority |\n| --- | --- | --- |')
+for x in [x for x in T if x['round'] == 3]:
+    pri = 'optional' if x['category'] == 'sky-hd' else 'before the region that needs it' if x['category'] == 'surface' else 'any time'
+    r3.append(f"| {x['request']} {x['name']} | {x['summary'].split('.')[0]}. | {pri} |")
+r3.append('\n## The requests\n')
+for x in [x for x in T if x['round'] == 3]:
+    r3.append(f"### {x['request']} · {x['name']}\n")
+    r3.append(f"{x['summary']}\n")
+    r3.append(f"- **Spec:** {x['spec']}")
+    r3.append(f"- **Status:** {x['status']} · **Final:** `{x['final']}`")
+    r3.append(f"- **Prompt:** {x['prompt']}")
+    r3.append('')
+(ROOT / 'image-requests-round-3.md').write_text('\n'.join(r3) + '\n')
+print(f'{len(M)} model requests, {len([x for x in T if x["round"]==1])} round-one images, {len([x for x in T if x["round"]==2])} round-two reference sheets, {len([x for x in T if x["round"]==3])} round-three images, manifest {len(manifest["requests"])} entries')

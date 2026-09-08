@@ -2946,6 +2946,72 @@
       "final": "design/references/hopper-new-clips.png",
       "status": "delivered",
       "round": 2
+    },
+    {
+      "request": "T-080",
+      "kind": "image",
+      "name": "Soft-landing surfaces: sea, drift dust, slag",
+      "category": "surface",
+      "final": "textures/surface/{sea,dust,slag}.png",
+      "status": "open",
+      "round": 3
+    },
+    {
+      "request": "T-081",
+      "kind": "image",
+      "name": "Landing guide, light variant",
+      "category": "ui",
+      "final": "textures/ui/landing-guide-light.png",
+      "status": "open",
+      "round": 3
+    },
+    {
+      "request": "T-082",
+      "kind": "image",
+      "name": "Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail",
+      "category": "effects",
+      "final": "textures/effects/hopper.png",
+      "status": "open",
+      "round": 3
+    },
+    {
+      "request": "T-083",
+      "kind": "image",
+      "name": "Sky repaint at native 4K: Sunseed Fields",
+      "category": "sky-hd",
+      "region": "fields",
+      "final": "textures/sky/fields-hd.jpg",
+      "status": "open",
+      "round": 3
+    },
+    {
+      "request": "T-084",
+      "kind": "image",
+      "name": "Sky repaint at native 4K: Crownline City",
+      "category": "sky-hd",
+      "region": "city",
+      "final": "textures/sky/city-hd.jpg",
+      "status": "open",
+      "round": 3
+    },
+    {
+      "request": "T-085",
+      "kind": "image",
+      "name": "Sky repaint at native 4K: Thunderhead Range",
+      "category": "sky-hd",
+      "region": "mountains",
+      "final": "textures/sky/mountains-hd.jpg",
+      "status": "open",
+      "round": 3
+    },
+    {
+      "request": "T-086",
+      "kind": "image",
+      "name": "Checkpoint totem and spring pad decals",
+      "category": "ui",
+      "final": "textures/ui/props.png",
+      "status": "open",
+      "round": 3
     }
   ]
 }

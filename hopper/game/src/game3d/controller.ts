@@ -9,37 +9,37 @@ import { World, type Collider } from './world';
 export const MOVE = {
   height: 14,
   radius: 5,
-  gravity: 30,
-  run: 32,
-  groundAccel: 160,
-  airAccel: 96,
-  turnRate: Math.PI * 4,
-  tapJump: 35.5,
+  gravity: 45,
+  run: 52,
+  groundAccel: 320,
+  airAccel: 170,
+  turnRate: Math.PI * 5,
+  tapJump: 43.5,
   holdWindow: 0.5,
-  holdThrust: 50,
-  glideSink: 6,
-  glideSpeed: 40,
-  glideTurn: Math.PI * 0.5,
+  holdThrust: 55,
+  glideSink: 7,
+  glideSpeed: 62,
+  glideTurn: Math.PI * 0.6,
   chargeTime: 0.8,
   chargeApexMin: 21,
   chargeApexMax: 140,
   springApex: 168,
   diveGravity: 2.5,
-  diveTerminal: 90,
-  wallKickUp: 30,
-  wallKickAway: 20,
+  diveTerminal: 110,
+  wallKickUp: 38,
+  wallKickAway: 26,
   wallGrace: 0.12,
   wallCommit: 0.16,
   mantleReach: 6,
   mantleTime: 0.5,
   bounceApex: 56,
   bounceApexHeld: 84,
-  hopBack: 48,
-  hopBackTime: 0.25,
+  hopBack: 64,
+  hopBackTime: 0.22,
   coyote: 0.12,
   buffer: 0.14,
   stompLag: 0.35,
-  brake: 80,
+  brake: 120,
 };
 
 export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack';
@@ -83,6 +83,8 @@ export interface HopperState {
   gravityScale: number;
   invuln: number;
   hitstun: number;
+  /** Seconds A has been held while airborne; a glide needs a moment of it. */
+  glideHold: number;
 }
 export type MoveEvent =
   | { kind: 'jump'; charged: boolean }
@@ -97,7 +99,7 @@ export type MoveEvent =
 
 export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
   return {
-    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0,
+    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0,
   };
 }
 
@@ -123,8 +125,8 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
     cos = Math.cos(cameraYaw);
   const forwardX = sin,
     forwardZ = cos,
-    rightX = cos,
-    rightZ = -sin;
+    rightX = -cos,
+    rightZ = sin;
   const dx = forwardX * -f.moveY + rightX * f.moveX,
     dz = forwardZ * -f.moveY + rightZ * f.moveX;
   const len = Math.hypot(dx, dz);
@@ -318,7 +320,8 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     } else {
       s.holding = false;
       // Gliding: A held past the thrust window (or pressed again) while falling.
-      const wantGlide = intent.jumpHeld && control && !s.diving && (s.vy < 10 || s.hold >= MOVE.holdWindow);
+      s.glideHold = intent.jumpHeld ? s.glideHold + dt : 0;
+      const wantGlide = intent.jumpHeld && control && !s.diving && (s.vy < 10 || s.hold >= MOVE.holdWindow) && (s.gliding || s.glideHold > 0.12);
       if (wantGlide && !s.gliding && s.vy < 12) {
         s.gliding = true;
         s.events.push({ kind: 'glideStart' });
@@ -331,7 +334,11 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.gliding = false;
         s.events.push({ kind: 'glideEnd' });
       }
-      if (s.gliding) {
+      const thermal = world.volumesAt(s.x, s.y, s.z).find((v) => v.kind === 'thermal');
+      if (s.gliding && thermal) {
+        // Riding a thermal: the wings turn the updraft into climb.
+        s.vy = s.vy < thermal.lift! ? Math.min(thermal.lift!, s.vy + 60 * dt) : Math.max(thermal.lift!, s.vy - 30 * dt);
+      } else if (s.gliding) {
         s.vy = Math.max(s.vy - 60 * dt, -MOVE.glideSink);
         if (s.vy > -MOVE.glideSink) s.vy = Math.max(-MOVE.glideSink, s.vy - g * dt);
       } else if (s.diving) {
@@ -351,11 +358,10 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
       s.move = 'dive';
       s.events.push({ kind: 'dive' });
     }
-    // Volumes: thermals lift, wind pushes.
+    // Volumes: thermals slow a fall and lift a little without wings; wind pushes.
     for (const v of world.volumesAt(s.x, s.y, s.z)) {
       if (v.kind === 'thermal') {
-        const lift = s.gliding ? v.lift! : v.lift! * 0.5;
-        if (s.vy < lift) s.vy = Math.min(lift, s.vy + 40 * dt);
+        if (!s.gliding && !s.diving && s.vy < v.lift! * 0.5) s.vy = Math.min(v.lift! * 0.5, s.vy + (g + 20) * dt);
       } else if (v.kind === 'wind') {
         s.vx += v.dx! * v.push! * dt * 2;
         s.vz += v.dz! * v.push! * dt * 2;
@@ -365,6 +371,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.vy = 0;
     s.gliding = false;
     s.diving = false;
+    s.glideHold = 0;
     s.coyote = MOVE.coyote;
   }
   if (!s.grounded && s.coyote > 0) s.coyote -= dt;

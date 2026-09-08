@@ -1242,3 +1242,21 @@ dialog.menu-panel {
   color: inherit;
   max-width: none;
 }
+
+/* 3D lock-on: a centre crosshair while LT is held; brackets close when locked. */
+.crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  pointer-events: none;
+  background: center / contain no-repeat;
+  opacity: 0.8;
+  transition: transform 0.15s ease-out, opacity 0.15s;
+}
+.crosshair.locked {
+  transform: scale(0.8);
+  opacity: 1;
+}
