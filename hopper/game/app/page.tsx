@@ -217,8 +217,10 @@ export default function Home() {
       raf = 0,
       previous = performance.now(),
       uiClock = 0;
+    // The title theme carries on into the first episode; the later episodes
+    // have their own recordings.
     const a = new GameAudio('./audio/theme.mp3', [
-        './audio/grass-march.mp3',
+        './audio/theme.mp3',
         './audio/grass-march.mp3',
         './audio/dark-moon.mp3',
       ]),
@@ -915,6 +917,15 @@ export default function Home() {
             <div className="compass">
               ▲ {hud.landmark.name} · {Math.round(hud.landmark.distance)} m
             </div>
+          )}
+          {hud.lock && (
+            <div
+              className={`crosshair ${hud.lock}`}
+              aria-hidden="true"
+              style={{
+                backgroundImage: `url(./3d/textures/ui/${hud.lock === 'locked' ? 'lock-on-locked' : 'lock-on'}.png)`,
+              }}
+            />
           )}
           {hud.height !== undefined && hud.height > 4 && (
             <div className="height-ticks">{Math.round(hud.height)} m</div>

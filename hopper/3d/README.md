@@ -8,6 +8,8 @@ The 3D reinterpretation of Hopper: same title screen, music, characters, mission
 | 3D model requests, with the rig each one needs | [design/model-requests.md](design/model-requests.md) |
 | Image and texture requests, round one | [design/image-requests.md](design/image-requests.md) |
 | Round two: model reference sheets (generate before modelling) | [design/image-requests-round-2.md](design/image-requests-round-2.md) |
+| Round three: surfaces, Hopper effect sprites, decals, optional sky repaints | [design/image-requests-round-3.md](design/image-requests-round-3.md) |
+| Delivered painted pack (round one) and its review page | [textures/](textures/) · [viewer/textures.html](viewer/textures.html) |
 | Stand-in manifest (request ↔ stand-in ↔ final file ↔ status) | [design/standin-manifest.json](design/standin-manifest.json) |
 | Procedural stand-ins (models, textures, terrain) | [standins/](standins/) |
 | Stand-in review viewer | [viewer/](viewer/) · published at https://hoai2k.github.io/mini/hopper/3d/viewer/ |

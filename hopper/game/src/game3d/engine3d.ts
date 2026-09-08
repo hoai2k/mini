@@ -395,6 +395,7 @@ export class Engine3D implements GameEngine {
       height: h.grounded ? undefined : h.height,
       landmark: d ? { name: d.landmark.name, distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z) } : undefined,
       hint: this.hintT > 0 ? this.hint : undefined,
+      lock: c?.lock ? 'locked' : this.lockHeldPrev ? 'open' : undefined,
     };
   }
   private emit() {

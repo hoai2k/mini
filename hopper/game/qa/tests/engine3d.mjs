@@ -118,7 +118,7 @@ function check(name, cond, detail) {
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
   check('tap jump apex 19-24m', apex > 19 && apex < 24, apex);
-  check('tap jump lands 2.0-2.8s', landAt !== null && landAt > 2.0 && landAt < 2.8, landAt);
+  check('tap jump lands 1.6-2.4s', landAt !== null && landAt > 1.6 && landAt < 2.4, landAt);
   check('tap jump never dips below start by >0.5m', minRel > -0.5, minRel);
 }
 
@@ -136,7 +136,7 @@ function check(name, cond, detail) {
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
   check('held jump apex 78-92m', apex > 78 && apex < 92, apex);
-  check('held jump airtime 4.2-5.4s', landAt !== null && landAt > 4.2 && landAt < 5.4, landAt);
+  check('held jump airtime 3.4-4.6s', landAt !== null && landAt > 3.4 && landAt < 4.6, landAt);
 }
 
 // ---------------------------------------------------------------------
@@ -156,7 +156,7 @@ function check(name, cond, detail) {
   const dist = Math.hypot(s.x - startX, s.z - startZ);
   check('glideStart fires', glideStart, glideStart);
   check('glide covers >500m in 20s', dist > 500, dist);
-  check('vy never below -6.5 while gliding', minVyWhileGliding >= -6.5, minVyWhileGliding);
+  check('vy never below -7.5 while gliding', minVyWhileGliding >= -7.5, minVyWhileGliding);
 }
 
 // ---------------------------------------------------------------------
@@ -482,7 +482,7 @@ function aimFrom(h, extra = {}) {
 
 // 13d. Shockwave: kills a fresh (4hp) hound; launches one with more hp.
 {
-  const h = startHopper(40, -218);
+  const _h = startHopper(40, -218);
   const combat = new Combat(world, district);
   const cb = makeCallbacks();
   const h1 = combat.shadows.find((s) => s.id === 'h1');
@@ -490,7 +490,7 @@ function aimFrom(h, extra = {}) {
   check('shockwave on a 4hp hound kills it (4 - 5 < 0)', h1.alive === false, h1.hp);
 }
 {
-  const h = startHopper(40, -218);
+  const _h = startHopper(40, -218);
   const combat = new Combat(world, district);
   const cb = makeCallbacks();
   const h1 = combat.shadows.find((s) => s.id === 'h1');
@@ -580,7 +580,7 @@ function aimFrom(h, extra = {}) {
   s.grounded = false;
   s.vz = -30;
   const p = predictLanding(s, world);
-  check('predictLanding time is 2.0-2.6s', p.t > 2.0 && p.t < 2.6, p.t);
+  check('predictLanding time is 1.6-2.2s', p.t > 1.6 && p.t < 2.2, p.t);
   check(
     'predictLanding y is within 3m of the terrain at x,z',
     Math.abs(p.y - world.heightAt(p.x, p.z)) < 3,

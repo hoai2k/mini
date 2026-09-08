@@ -41,6 +41,8 @@ export interface GameSnapshot {
   landmark?: { name: string; distance: number };
   /** 3D edition only: a short contextual hint shown in the HUD. */
   hint?: string;
+  /** 3D lock-on state while LT is held: aiming, or locked onto a shadow. */
+  lock?: 'open' | 'locked';
 }
 interface Particle {
   x: number;

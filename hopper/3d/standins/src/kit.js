@@ -37,6 +37,7 @@ export function toon(color, { emissive = null, texture = null, repeat = 1, emiss
     m.emissiveIntensity = emissiveIntensity;
   }
   if (texture) m.map = makeTexture(texture, { base: color, repeat });
+  m.userData.standIn = { color, texture, emissive };
   materials.set(key, m);
   return m;
 }
