@@ -457,7 +457,7 @@ The 3D edition is a second entry in the same repository, sharing the shell, inpu
 <!-- page -->
 ## Asset plan
 
-The asset requests are separate documents so they can be worked and updated independently: `model-requests.md` (93 models) and `image-requests.md` (47 images and textures), both generated from `source/build_requests.py` together with `standin-manifest.json`.
+The asset requests are separate documents so they can be worked and updated independently: `model-requests.md` (93 models) and `image-requests.md` (47 images and textures, round one) and `image-requests-round-2.md` (32 model reference sheets, round two), both generated from `source/build_requests.py` together with `standin-manifest.json`.
 
 | Family | Requests | State |
 | --- | --- | --- |
@@ -468,15 +468,20 @@ The asset requests are separate documents so they can be worked and updated inde
 | Props and effects | 15 | Stand-ins in place |
 | Landmarks and terrain | 9 landmarks; 9 terrain sculpts | Stand-ins in place |
 | Skies, horizons, terrain sets, trim sheets | 9 of each | Procedural placeholders in place |
+| Reference sheets (turnarounds, kit sheets, props, Hopper poses) | 32 | Open; generated before the models they describe |
 | Interface and effects images | 11 | 3 delivered (poster, cards, 3D diagram); ramps procedural; 7 open |
 
 ### Rigging in one page
 
 Every model request names one of five rig types. **Skeletal** rigs (hounds, tortoises, crabs, casters, stalkers, the Rook and the Regent) are skinned skeletons with listed joints, clips and sockets. **Blend shapes** on skeletal rigs give the organic tells: a spitter's throat, a choir's heads, a medusa's bell. **Spline chains** (leech, wraith, the Leviathan) are bone chains the game drives along curves. **Rigid hierarchies** (wasp, cantor, skate, cranes, pistons, gates) are parts on named pivots moved by transforms. **Static** meshes (most structures) have no rig; belts scroll their UVs. Every creature has `Core`, `Hitbox.Body` and a `Mouth` or `Emitter`, and everything stompable has a `Landing` socket. The Hopper rig already exists; its requests are clips only.
 
+### References before models
+
+No model is started from a single side-view sprite. Every model request names the art it must match and a reference sheet that is generated and approved first: a turnaround for each species and commander, a kit sheet per region drawn at a shared scale with Hopper, a props sheet, and a pose sheet for Hopper's new clips. These are the second round of image requests, `image-requests-round-2.md`, added after the first round had begun; it maps every sheet to the models that wait on it.
+
 ### Order of arrival
 
-Art can arrive in any order because the stand-ins hold every slot, but the order that helps most is: the Hopper clips (glide and dive change how the game feels), the four mission-one species, the Sunseed and Crownline kits and skies, the Night Rook, then the rest by mission. Paintings should be checked in the viewer against the stand-in they replace before they are committed.
+Art can arrive in any order because the stand-ins hold every slot, but the order that helps most is: the reference sheets for mission one, the Hopper clips (glide and dive change how the game feels), the four mission-one species, the Sunseed and Crownline kits and skies, the Night Rook, then the rest by mission. Paintings should be checked in the viewer against the stand-in they replace before they are committed.
 
 <!-- page -->
 ## Production plan

@@ -19,6 +19,21 @@ export interface InputFrame {
   connected: boolean;
   active: 'gamepad' | 'keyboard';
   disconnected: boolean;
+  /** Xbox Y / keyboard F. */
+  diveHeld: boolean;
+  divePressed: boolean;
+  /** LT / keyboard Q. */
+  lockHeld: boolean;
+  lockPressed: boolean;
+  /** RB / left Shift. */
+  chargeHeld: boolean;
+  /** LB / Tab. */
+  horizonHeld: boolean;
+  /** Right-stick click / keyboard C. */
+  cameraResetPressed: boolean;
+  /** Summed pointer-locked mouse movement (CSS px) since the previous update. */
+  mouseLookX: number;
+  mouseLookY: number;
 }
 
 /** Poll once per animation frame, with dt in seconds. Call resetEdges when changing screens. */
@@ -37,12 +52,15 @@ export class InputManager {
   private menuDir = [0, 0];
   private menuTime = [0, 0];
   private canvas?: HTMLElement;
+  private mouseDX = 0;
+  private mouseDY = 0;
   private readonly preventKeys = new Set([
     'ArrowLeft',
     'ArrowRight',
     'ArrowUp',
     'ArrowDown',
     'Space',
+    'Tab',
   ]);
   private readonly gameKeys = new Set([
     'KeyA',
@@ -61,6 +79,12 @@ export class InputManager {
     'KeyI',
     'Enter',
     'Backspace',
+    'KeyF',
+    'KeyQ',
+    'ShiftLeft',
+    'ShiftRight',
+    'Tab',
+    'KeyC',
   ]);
   private onKeyDown = (event: KeyboardEvent) => {
     if (
@@ -99,6 +123,16 @@ export class InputManager {
     this.mouseBlocked = false;
     this.resetEdges();
   };
+  private onMouseMove = (event: MouseEvent) => {
+    if (
+      this.canvas &&
+      typeof document !== 'undefined' &&
+      document.pointerLockElement === this.canvas
+    ) {
+      this.mouseDX += event.movementX || 0;
+      this.mouseDY += event.movementY || 0;
+    }
+  };
 
   constructor(canvas?: HTMLElement) {
     this.canvas = canvas;
@@ -106,6 +140,7 @@ export class InputManager {
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.onBlur);
     window.addEventListener('pointerup', this.onPointerUp);
+    window.addEventListener('mousemove', this.onMouseMove);
     canvas?.addEventListener('pointerdown', this.onPointerDown);
   }
 
@@ -162,6 +197,13 @@ export class InputManager {
       padConfirm = false,
       padBack = false,
       padAny = false;
+    let padDive = false,
+      padDiveEdge = false,
+      padLock = false,
+      padLockEdge = false,
+      padCharge = false,
+      padHorizon = false,
+      padCameraReset = false;
     let selected =
       pads.find((p) => p.index === this.activePad?.index) || pads[0];
     // Selection only routes optional rumble; every controller contributes input.
@@ -169,7 +211,8 @@ export class InputManager {
       const previous = this.previousButtons.get(pad.index) || [];
       const blocked = this.blockedButtons.get(pad.index) || new Set<number>();
       const buttons = pad.buttons.map(
-        (button, i) => button.pressed || button.value > (i === 7 ? 0.15 : 0.5),
+        (button, i) =>
+          button.pressed || button.value > (i === 7 || i === 6 ? 0.15 : 0.5),
       );
       buttons.forEach((pressed, i) => {
         if (!pressed) blocked.delete(i);
@@ -198,6 +241,13 @@ export class InputManager {
       padInstructions ||= edge(8);
       padConfirm ||= edge(0);
       padBack ||= edge(1);
+      padDive ||= held(3);
+      padDiveEdge ||= edge(3);
+      padLock ||= held(6);
+      padLockEdge ||= edge(6);
+      padCharge ||= held(5);
+      padHorizon ||= held(4);
+      padCameraReset ||= edge(11);
       if (
         anyEdge ||
         [x, y, lookX, lookY].some((value) => Math.abs(value) > 0.05)
@@ -252,9 +302,20 @@ export class InputManager {
       connected,
       disconnected,
       active: this.modality,
+      diveHeld: held('KeyF') || padDive,
+      divePressed: edge('KeyF') || padDiveEdge,
+      lockHeld: held('KeyQ') || padLock,
+      lockPressed: edge('KeyQ') || padLockEdge,
+      chargeHeld: held('ShiftLeft', 'ShiftRight') || padCharge,
+      horizonHeld: held('Tab') || padHorizon,
+      cameraResetPressed: edge('KeyC') || padCameraReset,
+      mouseLookX: this.mouseDX,
+      mouseLookY: this.mouseDY,
     };
     this.newKeys.clear();
     this.mousePressed = false;
+    this.mouseDX = 0;
+    this.mouseDY = 0;
     return frame;
   }
 
@@ -262,6 +323,8 @@ export class InputManager {
   resetEdges(): void {
     this.newKeys.clear();
     this.mousePressed = false;
+    this.mouseDX = 0;
+    this.mouseDY = 0;
     this.blockedKeys = new Set(this.keys);
     this.mouseBlocked = this.mouseHeld;
     const pads =
@@ -271,7 +334,8 @@ export class InputManager {
     for (const pad of pads) {
       if (!pad) continue;
       const buttons = pad.buttons.map(
-        (button, i) => button.pressed || button.value > (i === 7 ? 0.15 : 0.5),
+        (button, i) =>
+          button.pressed || button.value > (i === 7 || i === 6 ? 0.15 : 0.5),
       );
       this.previousButtons.set(pad.index, buttons);
       this.blockedButtons.set(
@@ -315,6 +379,7 @@ export class InputManager {
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.onBlur);
     window.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('mousemove', this.onMouseMove);
     this.canvas?.removeEventListener('pointerdown', this.onPointerDown);
   }
 }

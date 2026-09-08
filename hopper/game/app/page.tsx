@@ -23,6 +23,15 @@ import {
   type GameSnapshot,
   type GameSettings,
 } from '@/src/game/engine';
+import {
+  editionFromLocation,
+  saveKey,
+  type GameEngine,
+} from '@/src/game/game-engine';
+import { Engine3D } from '@/src/game3d/engine3d';
+
+const edition =
+  typeof location !== 'undefined' ? editionFromLocation() : '3d';
 
 type Screen =
   | 'title'
@@ -39,6 +48,9 @@ const initial: GameSettings = {
   sfx: 0.65,
   shake: true,
   assist: false,
+  cameraSensitivity: 0.5,
+  invertY: false,
+  landingGuide: true,
 };
 const missions = [
   'Earthbound Thunder',
@@ -54,7 +66,7 @@ export default function Home() {
   'use no memo'; // The real-time canvas loop intentionally owns mutable control state.
   const canvas = useRef<HTMLCanvasElement>(null),
     root = useRef<HTMLElement>(null),
-    engine = useRef<Engine | null>(null),
+    engine = useRef<GameEngine | null>(null),
     input = useRef<InputManager | null>(null),
     audio = useRef<GameAudio | null>(null);
   const [screen, setScreen] = useState<Screen>('title'),
@@ -78,9 +90,12 @@ export default function Home() {
   function change(next: Screen) {
     if (next === 'title' || next === 'select') {
       try {
-        setSaved(!!localStorage.getItem('hopper.save'));
+        setSaved(!!localStorage.getItem(saveKey(edition, 'save')));
         setUnlocked(
-          Math.min(2, Number(localStorage.getItem('hopper.unlocked') || 0)),
+          Math.min(
+            2,
+            Number(localStorage.getItem(saveKey(edition, 'unlocked')) || 0),
+          ),
         );
       } catch {}
     }
@@ -229,8 +244,10 @@ export default function Home() {
       };
       queueMicrotask(() => {
         if (alive) {
-          setSaved(!!localStorage.getItem('hopper.save'));
-          setUnlocked(Number(localStorage.getItem('hopper.unlocked') || 0));
+          setSaved(!!localStorage.getItem(saveKey(edition, 'save')));
+          setUnlocked(
+            Number(localStorage.getItem(saveKey(edition, 'unlocked')) || 0),
+          );
         }
       });
     } catch {}
@@ -239,7 +256,7 @@ export default function Home() {
       if (alive) setSettings(s);
     });
     a.setVolumes(s.master, s.music, s.sfx);
-    const e = new Engine(canvas.current!, a, (snapshot) => {
+    const onSnapshot = (snapshot: GameSnapshot) => {
       if (alive) {
         setHud(snapshot);
         if (snapshot.completed) {
@@ -247,7 +264,11 @@ export default function Home() {
           actionsRef.current.change('complete');
         }
       }
-    });
+    };
+    const e: GameEngine =
+      edition === '3d'
+        ? new Engine3D(canvas.current!, a, onSnapshot)
+        : new Engine(canvas.current!, a, onSnapshot);
     engine.current = e;
     e.rumble = (strength, duration) => i.vibrate(strength, duration);
     e.configure(s);
@@ -322,7 +343,11 @@ export default function Home() {
         return { screen: 'instructions' };
       },
     );
-    if (['localhost', '127.0.0.1'].includes(location.hostname)) {
+    if (
+      ['localhost', '127.0.0.1'].includes(location.hostname) &&
+      e instanceof Engine
+    ) {
+      const e2d = e;
       register(
         'qa_preview_scene',
         'Local development only. Preview a campaign environment, boss, or animation pose with the real renderer.',
@@ -339,12 +364,12 @@ export default function Home() {
           )
             throw new Error('Mission and area must be integers 0–2');
           actionsRef.current.change('playing');
-          e.preview(
+          e2d.preview(
             mission,
             area,
             typeof v.pose === 'string' ? v.pose : 'idle',
           );
-          return e.snapshot();
+          return e2d.snapshot();
         },
         {
           type: 'object',
@@ -379,7 +404,7 @@ export default function Home() {
           const frames = Number(v.frames);
           if (!Number.isInteger(frames) || frames < 1 || frames > 600)
             throw new Error('Frames must be 1–600');
-          e.auditStep(frames, {
+          e2d.auditStep(frames, {
             moveX: Number(v.moveX) || 0,
             jumpPressed: !!v.jump,
             jumpHeld: !!v.jump,
@@ -389,7 +414,7 @@ export default function Home() {
             lookX: 0,
             lookY: 0,
           });
-          return { ...e.snapshot(), player: { ...e.player } };
+          return { ...e2d.snapshot(), player: { ...e2d.player } };
         },
         {
           type: 'object',
@@ -472,6 +497,9 @@ export default function Home() {
             'sfx',
             'shake',
             'assist',
+            ...(edition === '3d'
+              ? (['cameraSensitivity', 'invertY', 'landingGuide'] as const)
+              : []),
           ];
           const k = keys[focusRef.current];
           if (k) {
@@ -543,7 +571,11 @@ export default function Home() {
     >
       <canvas
         ref={canvas}
-        aria-label="Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick behind, B or L to guard the front, RT or K to fire."
+        aria-label={
+          edition === '3d'
+            ? 'Hopper the Grasshopper 3D world. A jumps and soars, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
+            : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick behind, B or L to guard the front, RT or K to fire.'
+        }
         tabIndex={-1}
       />
       {screen === 'title' && (
@@ -602,7 +634,8 @@ export default function Home() {
           <div className="poster-shade select-shade" />
           <div className="edition">
             <span className="tiny-star">✦</span> A MECHA ADVENTURE{' '}
-            <span className="edition-line" /> ORIGINAL SERIES · 01
+            <span className="edition-line" />{' '}
+            {edition === '3d' ? '3D EDITION' : 'ORIGINAL SERIES · 01'}
           </div>
           <div className="select-layout">
             <div className="select-play">
@@ -661,32 +694,80 @@ export default function Home() {
                 height={580}
                 unoptimized
                 className="select-diagram"
-                src="./assets/controller.svg"
-                alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions."
+                src={
+                  edition === '3d'
+                    ? './assets/controller-3d.svg'
+                    : './assets/controller.svg'
+                }
+                alt={
+                  edition === '3d'
+                    ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB crouch charge, LB horizon view, Menu pause, View instructions.'
+                    : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
+                }
               />
-              <ul className="control-key">
-                <li>
-                  <b className="pad a">A</b> Jump
-                </li>
-                <li>
-                  <b className="pad x">X</b> Rear kick · parry
-                </li>
-                <li>
-                  <b className="pad b">B</b> Guard front
-                </li>
-                <li>
-                  <b className="trigger">RT</b> Eye lasers
-                </li>
-                <li>
-                  <b className="trigger">LS</b> Move
-                </li>
-                <li>
-                  <b className="trigger">RS</b> Look around
-                </li>
-              </ul>
+              {edition === '3d' ? (
+                <ul className="control-key">
+                  <li>
+                    <b className="pad a">A</b> Jump · soar · glide
+                  </li>
+                  <li>
+                    <b className="pad x">X</b> Spin kick
+                  </li>
+                  <li>
+                    <b className="pad y">Y</b> Dive stomp
+                  </li>
+                  <li>
+                    <b className="pad b">B</b> Guard
+                  </li>
+                  <li>
+                    <b className="trigger">RT</b> Eye lasers
+                  </li>
+                  <li>
+                    <b className="trigger">LT</b> Lock-on
+                  </li>
+                  <li>
+                    <b className="trigger">LS</b> Move
+                  </li>
+                  <li>
+                    <b className="trigger">RS</b> Camera
+                  </li>
+                </ul>
+              ) : (
+                <ul className="control-key">
+                  <li>
+                    <b className="pad a">A</b> Jump
+                  </li>
+                  <li>
+                    <b className="pad x">X</b> Rear kick · parry
+                  </li>
+                  <li>
+                    <b className="pad b">B</b> Guard front
+                  </li>
+                  <li>
+                    <b className="trigger">RT</b> Eye lasers
+                  </li>
+                  <li>
+                    <b className="trigger">LS</b> Move
+                  </li>
+                  <li>
+                    <b className="trigger">RS</b> Look around
+                  </li>
+                </ul>
+              )}
               <p className="control-key-keyboard">
-                KEYBOARD <span>← →</span> move <span>SPACE</span> jump{' '}
-                <span>J</span> kick <span>K</span> lasers <span>L</span> guard
+                {edition === '3d' ? (
+                  <>
+                    KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
+                    <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
+                    lasers <span>L</span> guard <span>Q</span> lock-on
+                  </>
+                ) : (
+                  <>
+                    KEYBOARD <span>← →</span> move <span>SPACE</span> jump{' '}
+                    <span>J</span> kick <span>K</span> lasers <span>L</span>{' '}
+                    guard
+                  </>
+                )}
               </p>
               <Button
                 {...nav(episodeBase + 3)}
@@ -695,11 +776,32 @@ export default function Home() {
               >
                 <BookOpen /> Full controls
               </Button>
+              {/* A full navigation (not next/link) so the module-level
+                  `edition` re-reads location.search on a fresh load. */}
+              {edition === '3d' ? (
+                // oxlint-disable-next-line no-html-link-for-pages
+                <a
+                  {...nav(episodeBase + 4)}
+                  className="quiet-button edition-link"
+                  href="?render=2d"
+                >
+                  Play the original 2D edition
+                </a>
+              ) : (
+                // oxlint-disable-next-line no-html-link-for-pages
+                <a
+                  {...nav(episodeBase + 4)}
+                  className="quiet-button edition-link"
+                  href="?render=3d"
+                >
+                  Play the 3D edition
+                </a>
+              )}
             </div>
           </div>
           <div className="corner-controls">
             <Button
-              {...nav(episodeBase + 4)}
+              {...nav(episodeBase + 5)}
               size="icon"
               onClick={() => change('title')}
               aria-label="Back to title"
@@ -707,7 +809,7 @@ export default function Home() {
               <ArrowLeft />
             </Button>
             <Button
-              {...nav(episodeBase + 5)}
+              {...nav(episodeBase + 6)}
               size="icon"
               className={soundOff ? 'sound-off' : ''}
               onClick={toggleSound}
@@ -717,7 +819,7 @@ export default function Home() {
               {soundOff ? <VolumeX /> : <Volume2 />}
             </Button>
             <Button
-              {...nav(episodeBase + 6)}
+              {...nav(episodeBase + 7)}
               size="icon"
               onClick={() => open('settings')}
               aria-label="Settings"
@@ -725,7 +827,7 @@ export default function Home() {
               <Settings />
             </Button>
             <Button
-              {...nav(episodeBase + 7)}
+              {...nav(episodeBase + 8)}
               size="icon"
               onClick={fullscreen}
               aria-label="Fullscreen"
@@ -809,19 +911,39 @@ export default function Home() {
               </Button>
             </div>
           </div>
+          {hud.landmark && (
+            <div className="compass">
+              ▲ {hud.landmark.name} · {Math.round(hud.landmark.distance)} m
+            </div>
+          )}
+          {hud.height !== undefined && hud.height > 4 && (
+            <div className="height-ticks">{Math.round(hud.height)} m</div>
+          )}
           <div className="game-bottom">
-            <span>
-              <b className="pad a">A</b> JUMP <b className="pad x">X</b> KICK
-              BEHIND <b className="trigger">RT</b> EYE LASERS{' '}
-              <b className="pad b">B</b> GUARD FRONT
-            </span>
-            <span>
-              {hud.gravity < 0
-                ? '↑ INVERTED GRAVITY'
-                : hud.gravity === 1
-                  ? ''
-                  : `${hud.gravity.toFixed(2)}g GRAVITY`}
-            </span>
+            <div className="game-bottom-row">
+              {edition === '3d' ? (
+                <span>
+                  <b className="pad a">A</b> JUMP <b className="pad x">X</b>{' '}
+                  KICK <b className="pad y">Y</b> DIVE{' '}
+                  <b className="trigger">RT</b> LASERS{' '}
+                  <b className="pad b">B</b> GUARD
+                </span>
+              ) : (
+                <span>
+                  <b className="pad a">A</b> JUMP <b className="pad x">X</b>{' '}
+                  KICK BEHIND <b className="trigger">RT</b> EYE LASERS{' '}
+                  <b className="pad b">B</b> GUARD FRONT
+                </span>
+              )}
+              <span>
+                {hud.gravity < 0
+                  ? '↑ INVERTED GRAVITY'
+                  : hud.gravity === 1
+                    ? ''
+                    : `${hud.gravity.toFixed(2)}g GRAVITY`}
+              </span>
+            </div>
+            {hud.hint && <div className="game-bottom-hint">{hud.hint}</div>}
           </div>
           {hud.banner && screen === 'playing' && (
             <div className="area-banner">
@@ -916,64 +1038,143 @@ export default function Home() {
                     width={1440}
                     height={580}
                     unoptimized
-                    src="./assets/controller.svg"
-                    alt="Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions."
+                    src={
+                      edition === '3d'
+                        ? './assets/controller-3d.svg'
+                        : './assets/controller.svg'
+                    }
+                    alt={
+                      edition === '3d'
+                        ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB crouch charge, LB horizon view, Menu pause, View instructions.'
+                        : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
+                    }
                   />
-                  <div className="control-notes">
-                    <p>
-                      <b className="pad a">A</b>
-                      <strong>Jump</strong> Hold to soar; release for a precise
-                      landing. Your back legs strike behind you at takeoff. Land
-                      on shadows to crush them. Pull back in the air to brake
-                      without turning; facing changes after landing.
-                    </p>
-                    <p>
-                      <b className="pad x">X</b>
-                      <strong>Rear spin kick · parry</strong> Sweep your
-                      powerful hind legs behind you and overhead. It breaks
-                      armor, and timed as a blow lands from behind or straight
-                      down it parries: the shadow staggers wide open and a
-                      parried shot flies back at its shooter. It reaches nothing
-                      in front of you.
-                    </p>
-                    <p>
-                      <b className="trigger">RT</b>
-                      <strong>Eye lasers</strong> Lock onto the nearest shadow
-                      ahead, including one on a shelf below you. Brief bursts
-                      keep the reactor cool. Turn with the stick to choose a
-                      side.
-                    </p>
-                    <p>
-                      <b className="pad b">B</b>
-                      <strong>Forward guard</strong> Hold to parry everything
-                      arriving from the front, turning shots back at their
-                      shooter. It leaves your back open, does no damage of its
-                      own, spends energy while held and when struck, and breaks
-                      briefly if drained. Release to recharge. Keyboard: L.
-                    </p>
-                    <p>
-                      <strong>Take a hit</strong> Shadows knock Hopper back a
-                      real distance, so fight with your back away from the edge.
-                      Fall just short of a ledge while reaching for it and
-                      Hopper hauls up onto the lip. Jump the instant you touch a
-                      wall to kick off it.
-                    </p>
-                    <p>
-                      <strong>Look around</strong> Right stick pushes the camera
-                      ahead, behind, up or down and widens the view; let go and
-                      it settles back.
-                    </p>
-                    <p>
-                      <strong>Move & explore</strong> Left stick / D-pad. Follow
-                      the ivory landing edges. Seek nine ✧ signals in each
-                      episode. Orange seams warn of hazards.
-                    </p>
-                  </div>
+                  {edition === '3d' ? (
+                    <div className="control-notes">
+                      <p>
+                        <b className="pad a">A</b>
+                        <strong>Jump</strong> Hold to soar; keep holding past
+                        the top and the wings open into a glide. Release to
+                        drop. Jump at a wall to kick off it; the front legs
+                        haul up over a ledge on their own.
+                      </p>
+                      <p>
+                        <b className="pad x">X</b>
+                        <strong>Spin kick</strong> The hind legs sweep all the
+                        way round, on the ground or in the air. Timed as a
+                        shot arrives, it parries and sends the shot back.
+                      </p>
+                      <p>
+                        <b className="pad y">Y</b>
+                        <strong>Dive stomp</strong> In the air, dive straight
+                        down and stomp on landing; a shockwave knocks shadows
+                        into the air. On the ground, a quick hop back.
+                      </p>
+                      <p>
+                        <b className="pad b">B</b>
+                        <strong>Guard</strong> A shield in front of Hopper. In
+                        the air it brakes.
+                      </p>
+                      <p>
+                        <b className="trigger">RT</b>
+                        <strong>Eye lasers</strong> They lock onto the nearest
+                        shadow in view; heat builds while held and cools when
+                        released.
+                      </p>
+                      <p>
+                        <b className="trigger">LT</b>
+                        <strong>Lock-on</strong> Hold to keep a shadow framed
+                        and strafe around it; tap to switch.
+                      </p>
+                      <p>
+                        <b className="trigger">RB</b>
+                        <strong>Crouch charge</strong> Hold to compress the
+                        hind legs, release for a super leap.
+                      </p>
+                      <p>
+                        <b className="trigger">LB</b>
+                        <strong>Horizon view</strong> Hold to frame the far
+                        landmark and the next checkpoint.
+                      </p>
+                      <p>
+                        <strong>Falling never hurts</strong> Every drop has a
+                        way back up; only shadows can hurt Hopper. Land on a
+                        flyer to bounce off it.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="control-notes">
+                      <p>
+                        <b className="pad a">A</b>
+                        <strong>Jump</strong> Hold to soar; release for a
+                        precise landing. Your back legs strike behind you at
+                        takeoff. Land on shadows to crush them. Pull back in
+                        the air to brake without turning; facing changes after
+                        landing.
+                      </p>
+                      <p>
+                        <b className="pad x">X</b>
+                        <strong>Rear spin kick · parry</strong> Sweep your
+                        powerful hind legs behind you and overhead. It breaks
+                        armor, and timed as a blow lands from behind or
+                        straight down it parries: the shadow staggers wide
+                        open and a parried shot flies back at its shooter. It
+                        reaches nothing in front of you.
+                      </p>
+                      <p>
+                        <b className="trigger">RT</b>
+                        <strong>Eye lasers</strong> Lock onto the nearest
+                        shadow ahead, including one on a shelf below you.
+                        Brief bursts keep the reactor cool. Turn with the
+                        stick to choose a side.
+                      </p>
+                      <p>
+                        <b className="pad b">B</b>
+                        <strong>Forward guard</strong> Hold to parry
+                        everything arriving from the front, turning shots back
+                        at their shooter. It leaves your back open, does no
+                        damage of its own, spends energy while held and when
+                        struck, and breaks briefly if drained. Release to
+                        recharge. Keyboard: L.
+                      </p>
+                      <p>
+                        <strong>Take a hit</strong> Shadows knock Hopper back a
+                        real distance, so fight with your back away from the
+                        edge. Fall just short of a ledge while reaching for it
+                        and Hopper hauls up onto the lip. Jump the instant you
+                        touch a wall to kick off it.
+                      </p>
+                      <p>
+                        <strong>Look around</strong> Right stick pushes the
+                        camera ahead, behind, up or down and widens the view;
+                        let go and it settles back.
+                      </p>
+                      <p>
+                        <strong>Move & explore</strong> Left stick / D-pad.
+                        Follow the ivory landing edges. Seek nine ✧ signals in
+                        each episode. Orange seams warn of hazards.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="keyboard-line">
-                  KEYBOARD <span>← → / A D</span> move <span>SPACE</span> jump{' '}
-                  <span>J</span> rear kick <span>K</span> lasers <span>L</span>{' '}
-                  forward guard <span>ESC</span> pause
+                  {edition === '3d' ? (
+                    <>
+                      KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
+                      <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
+                      lasers <span>L</span> guard <span>Q</span> lock-on{' '}
+                      <span>SHIFT</span> charge <span>TAB</span> horizon{' '}
+                      <span>C</span> reset camera · click the game to steer the
+                      camera with the mouse
+                    </>
+                  ) : (
+                    <>
+                      KEYBOARD <span>← → / A D</span> move{' '}
+                      <span>SPACE</span> jump <span>J</span> rear kick{' '}
+                      <span>K</span> lasers <span>L</span> forward guard{' '}
+                      <span>ESC</span> pause
+                    </>
+                  )}
                 </div>
                 <p className="menu-footnote">
                   Menu: D-pad / stick to select · A to confirm · B to go back.
@@ -1031,8 +1232,50 @@ export default function Home() {
                       onCheckedChange={(v) => setting('assist', v)}
                     />
                   </div>
+                  {edition === '3d' && (
+                    <>
+                      <div className="setting-row">
+                        <label htmlFor="cameraSensitivity">
+                          Camera sensitivity
+                        </label>
+                        <input
+                          {...nav(5)}
+                          id="cameraSensitivity"
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={settings.cameraSensitivity}
+                          onChange={(e) =>
+                            setting('cameraSensitivity', Number(e.target.value))
+                          }
+                        />
+                        <output>
+                          {Math.round(settings.cameraSensitivity * 100)}%
+                        </output>
+                      </div>
+                      <div className="setting-row">
+                        <label htmlFor="invertY">Invert camera Y</label>
+                        <Switch
+                          {...nav(6)}
+                          id="invertY"
+                          checked={settings.invertY}
+                          onCheckedChange={(v) => setting('invertY', v)}
+                        />
+                      </div>
+                      <div className="setting-row">
+                        <label htmlFor="landingGuide">Landing guide</label>
+                        <Switch
+                          {...nav(7)}
+                          id="landingGuide"
+                          checked={settings.landingGuide}
+                          onCheckedChange={(v) => setting('landingGuide', v)}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
-                <Button {...nav(5)} onClick={back}>
+                <Button {...nav(edition === '3d' ? 8 : 5)} onClick={back}>
                   <ArrowLeft /> Back
                 </Button>
                 <p className="menu-footnote">

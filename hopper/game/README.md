@@ -2,11 +2,17 @@
 
 A complete browser adventure in three episodes, built around Xbox controllers and fullscreen television/monitor play. The presentation uses generated, hand-painted 1970s anime artwork: a canonical Hopper model, twelve registered animation cels, eighteen shadow species, three bosses, nine environments, separate terrain/decor sprites, and an eight-cel explosion atlas.
 
+## Two editions
+
+The published page at https://hoai2k.github.io/mini/hopper/ ships the 3D edition by default, powered by three.js and built around high-speed movement, mantling, wall-kicks, soaring and gliding. The original 2D edition is available at the same address with the query parameter `?render=2d`. Both editions share the title screen, play-select, menus, settings, and audio, but maintain separate save files: the 3D edition uses localStorage keys prefixed `hopper3d.*`, while the 2D edition uses `hopper.*`. The 3D code lives in `src/game3d/` with world colliders loaded from stand-ins (world.ts), movement and jumping (controller.ts), camera control and framing (camera.ts), combat (combat3d.ts), the Sunseed Fields district (district.ts), three.js rendering (scene.ts), and the main loop (engine3d.ts).
+
 ## Play
 
 Play the published game at **https://hoai2k.github.io/mini/hopper/**. `pnpm build:pages` produces the static GitHub Pages edition; pushes to `main` deploy it automatically.
 
 Run `pnpm install`, then `pnpm dev`. Open the displayed local address. The title screen carries a single action: Press Start, Enter, or any controller button opens the play-select screen, requests fullscreen and starts the music where autoplay was refused. Play-select lists Continue (once there is a save) and the unlocked episodes, with the controller diagram alongside. Browsers that decline a fullscreen or audio request from controller polling can be activated with the on-screen fullscreen and sound buttons.
+
+The original 2D edition's controls:
 
 | Action                 | Xbox                             | Keyboard        |
 | ---------------------- | -------------------------------- | --------------- |
@@ -19,6 +25,25 @@ Run `pnpm install`, then `pnpm dev`. Open the displayed local address. The title
 | Pause                  | Menu                             | Escape          |
 | Instructions           | View                             | I               |
 | Menu confirm / back    | A / B                            | Enter / Escape  |
+
+The 3D edition's controls:
+
+| Action                 | Xbox                             | Keyboard                  |
+| ---------------------- | -------------------------------- | ------------------------- |
+| Move                   | Left stick or D-pad              | W/A/S/D                  |
+| Camera                 | Right stick                      | Mouse (after click)       |
+| Jump / hold to soar    | A                                | Space                     |
+| Spin kick · parry      | X                                | J                         |
+| Guard                  | Hold B                           | L                         |
+| Dive stomp             | Y in air                         | F in air                  |
+| Eye lasers             | Hold RT                          | K or left mouse           |
+| Lock-on                | Hold LT                          | Q                          |
+| Crouch charge          | Hold RB                          | Shift                     |
+| Horizon View           | Hold LB                          | Tab                       |
+| Reset camera           | Right-stick click                | C                         |
+| Pause                  | Menu                             | Escape                    |
+| Instructions           | View                             | I                         |
+| Menu confirm / back    | A / B                            | Enter / Escape            |
 
 Spring pads launch at 1.4× jump speed (hold A to float higher). Takeoff strikes behind Hopper. Descending onto vulnerable monsters produces a stomp rebound. Airborne steering changes the trajectory without turning Hopper; facing can change once grounded. The compact flight cel remains active until descending within 80 world units of a platform or monster. Defence is directional, and the two guards face opposite ways. The spin kick sweeps Hopper's back and the space overhead: it is the only attack that damages, it reaches nothing in front, and timed as a blow arrives from behind or straight down it parries. The held forward guard (B) covers only the front: it turns frontal blows and shots at an energy cost but deals no damage of its own and leaves the back open. Either parry staggers a shadow wide open and sends a shot back at its shooter as a kick. Hazards cannot be parried. The guard spends energy while held and when struck, breaks briefly if drained, recharges once released, and suspends shooting and kicking while held. Eye lasers lock onto the nearest shadow ahead within a wide cone that reaches well below Hopper, so a shelf below can be cleared from above; solid terrain and unbroken cages stop the beam where it meets them. A jump pressed while touching a solid face (or within 0.12 s of leaving it) is a wall kick: Hopper launches away from the wall at 92% jump speed and 78% run speed, with steering committed for the first 0.16 s. The right stick pushes the camera up to 520 units ahead or behind and 340 up or down while widening the view by up to 0.22 zoom; it eases out toward the stick and eases back when released, layered over the tracking camera so nothing about the ground-anchored framing changes. A hit that lands knocks Hopper back a real distance with a short stun, so edges are the true cost of a mistake. Falling just short of a ledge while pressing toward it makes Hopper catch the lip and haul up (solid faces from up to 85 units below; thin shelves only as the feet pass the edge).
 
@@ -38,7 +63,7 @@ Music is provided by the user: **Hopper the Grasshopper** accompanies title/menu
 
 ## Implementation and verification
 
-`src/game/engine.ts` owns the fixed 120 Hz simulation, camera and right-stick look, parry, shield, knockback, ledge catch, wall kick, saves and combat integration. `levels.ts` defines the routes, `combat.ts` defines enemies/bosses, `renderer.ts` composites the artwork and effects (including the generated upgrade pack under `public/assets/upgrades/`: spring pads, boss lockdown gates, signal cages, wind lanes, low-road corridors, airborne enemy cels, arena pillars and the emergence burst), `hopper-animation.ts` selects registered cels and eye origins, and `input.ts` / `audio.ts` handle devices and sound. React owns the title, HUD, accessible menus and settings.
+`src/game/engine.ts` owns the fixed 120 Hz simulation, camera and right-stick look, parry, shield, knockback, ledge catch, wall kick, saves and combat integration. `levels.ts` defines the routes, `combat.ts` defines enemies/bosses, `renderer.ts` composites the artwork and effects (including the generated upgrade pack under `public/assets/upgrades/`: spring pads, boss lockdown gates, signal cages, wind lanes, low-road corridors, airborne enemy cels, arena pillars and the emergence burst), `hopper-animation.ts` selects registered cels and eye origins, and `input.ts` / `audio.ts` handle devices and sound. React owns the title, HUD, accessible menus and settings. The 3D edition uses `src/game3d/engine3d.ts`, `controller.ts`, `camera.ts`, `combat3d.ts`, `district.ts`, `world.ts`, and `scene.ts` for movement, camera control, combat, world loading, and three.js rendering; `qa/tests/engine3d.mjs` covers the 3D movement, camera, and combat simulation.
 
 Run `pnpm test`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`. The actual-engine traversal audit tests every one of the 405 required route transitions, including real head/side collisions. It also checks inversion recovery and laser targeting for every enemy/boss. Separate controller/audio/combat tests cover input quarantine, connection changes, right-stick deadzone, shield input, looping/track routing, armor, stomps, boss phases, rear ambushes, parry staggers and reflected shots. The camera/look/parry/shield/ledge-catch/wall-kick, level-design and animation reports are under `qa/`.
 

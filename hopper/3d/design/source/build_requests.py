@@ -24,8 +24,8 @@ RIGS = {
 # Models (M-###). size is metres [x, y, z]. tris are LOD0 / LOD1 budgets.
 # ---------------------------------------------------------------------------
 M = []
-def model(id, name, category, rig, size, tris, standIn, final, status, summary, joints='', clips='', sockets='', textures='2K hand-painted albedo, 1K emissive mask', region=None, landings=None, notes=''):
-    M.append(dict(request=id, name=name, category=category, rig=rig, size=size, tris=tris, standIn=standIn, final=final, status=status, summary=summary, joints=joints, clips=clips, sockets=sockets, textures=textures, region=region, landings=landings, notes=notes))
+def model(id, name, category, rig, size, tris, standIn, final, status, summary, joints='', clips='', sockets='', textures='2K hand-painted albedo, 1K emissive mask', region=None, landings=None, notes='', existing=None, needs=None):
+    M.append(dict(request=id, name=name, category=category, rig=rig, size=size, tris=tris, standIn=standIn, final=final, status=status, summary=summary, joints=joints, clips=clips, sockets=sockets, textures=textures, region=region, landings=landings, notes=notes, existing=existing or [], needs=needs or []))
 
 model('M-000', 'Hopper and rider (combined GLB)', 'hopper', 'skeletal', [23, 19, 29], '94,925 delivered', 'hopper.proxy', 'models/hopper-rider.glb', 'delivered',
       'The delivered insect rig (51 joints) with the boy parented under Hopper.Seat. The 3D game loads this file as-is; the proxy exists for engine tests and for scale in stand-in scenes.',
@@ -186,7 +186,7 @@ model(f'M-{n:03d}', 'Region terrain sculpts (×9)', 'terrain', 'static', [2400, 
 # ---------------------------------------------------------------------------
 T = []
 def image(id, name, category, spec, standIn, final, status, summary, prompt='', region=None):
-    T.append(dict(request=id, name=name, category=category, spec=spec, standIn=standIn, final=final, status=status, summary=summary, prompt=prompt, region=region))
+    T.append(dict(request=id, name=name, category=category, spec=spec, standIn=standIn, final=final, status=status, summary=summary, prompt=prompt, region=region, round=2 if category == 'reference' else 1))
 
 REGION_NAMES = {'fields': 'Sunseed Fields', 'city': 'Crownline City', 'mountains': 'Thunderhead Range', 'foundry': 'Cinder Foundries', 'harbor': 'Tempest Docks', 'launchworks': 'Skyhook Works', 'red': 'Vermilion Basin', 'blue': 'Cobalt Drift', 'violet': 'Violet Inversion'}
 SKY_NOTES = {
@@ -236,6 +236,83 @@ image(f'T-{t:03d}', 'Gravity seam and gate arrows', 'effects', '256² alpha arro
 image(f'T-{t:03d}', 'Signal glyphs', 'ui', '9 glyphs, 256² alpha, one per region', None, 'textures/ui/signals.png', 'open', 'Shown on the results screen and the gallery; reused from the 2D signals where they exist.'); t += 1
 
 # ---------------------------------------------------------------------------
+# Reference sheets: generated BEFORE the models they describe. A modeller
+# works from a turnaround or a kit sheet, not from a single side-view sprite.
+# ---------------------------------------------------------------------------
+REF_STYLE = 'Same canonical identity as the attached reference. 1970s hand-painted anime cel style, hard ink outlines, flat cel shading, obsidian black armour with restrained violet edge highlights and pale ivory cores where the reference has them. Neutral pose, no scenery, no text, cream paper background.'
+ref_by_model = {}
+for key, name, region, rig, size, tris, joints, clips, sockets, summary in ENEMY_DATA:
+    tid = f'T-{t:03d}'
+    image(tid, f'Turnaround: {name}', 'reference', '4096×2048 sheet: side, front, back, top and three-quarter views on one row, plus the open-core pose and the attack tell pose beneath; consistent scale bar', None, f'design/references/enemies/{key}-turnaround.png', 'open',
+          f'Model reference for {name} (M-{3 + ENEMY_DATA.index((key, name, region, rig, size, tris, joints, clips, sockets, summary)):03d}). Generated from the existing canonical sprite game/public/assets/enemies/{key}.png (and the -leap or -dive cel where one exists). Must exist before modelling starts.',
+          prompt=f'Use case: identity-preserve turnaround. The attached sprite is the canonical {name}; preserve its anatomy, limb count, armour pattern, colours and proportions exactly. Draw a model turnaround sheet: side, front, back, top and three-quarter views in a row at one scale, then the core-exposed pose and the attack tell ({next((c.strip() for c in clips.split(",") if "Tell" in c), "attack tell")}) beneath. {REF_STYLE}', region=region)
+    ref_by_model[f'enemy.{key}'] = tid
+    t += 1
+for key, name, region, rig, size, tris, joints, clips, sockets, summary in BOSS_DATA:
+    tid = f'T-{t:03d}'
+    image(tid, f'Turnaround: {name}', 'reference', '8192×4096 sheet: side, front, back, top and three-quarter views, the exposed-core state, and one pose per major attack listed in the model request', None, f'design/references/bosses/{key}-turnaround.png', 'open',
+          f'Model reference for {name}. Generated from game/public/assets/bosses/{key}.png and design/assets/boss-canonical-lineup.png. Must exist before modelling starts.',
+          prompt=f'Use case: identity-preserve turnaround. The attached art is the canonical {name}; preserve silhouette, appendage count, core placement and colours. Draw a boss turnaround sheet: side, front, back, top and three-quarter views at one scale, the core-exposed state, and one pose for each attack: {clips}. {REF_STYLE}', region=region)
+    ref_by_model[f'boss.{key}'] = tid
+    t += 1
+KIT_SHEET_NOTES = {
+    'fields': 'planted terraces with irrigation lips, ivory farmhouse with red tile roof, concrete grain silo, poplar windbreak row, half-buried shadow seed vessel with violet spines',
+    'city': 'stepped ivory tower with teal glass bands, low roof-deck block with parapet, elevated rail on ivory piers with a cream and red train car, open-frame construction crown with a tower crane, rooftop billboard, ivory observatory with a teal glass dome',
+    'mountains': 'tilted slate crag column with a turf cap, turf-topped ledge shelf, timber ravine bridge on slate pylons, summit transmitter mast with red rings and a beacon, orange windsock',
+    'foundry': 'iron furnace tower with a glowing door and stack, rollered conveyor span, tall rust chimney, iron slag barge with glowing slag, two-column stamping press',
+    'harbor': 'green-steel dock crane with a container on a cable, stepped container stack in five colours, green-steel freighter with an ivory bridge, four-legged gantry tower, concrete breakwater with bollards',
+    'launchworks': 'rust launch ring on four struts with lit pads, ivory rocket with red fins beside an umbilical mast, five-piston stair, open iron exhaust shaft with baffles, two-rail gantry elevator cage',
+    'red': 'ivory bone rib arch, stacked red coral spire with glowing fronds, coral block with an ivory top, three-stage coral bridge on bone piers',
+    'blue': 'floating reef island with glowing roots and crystals, three-strand root pillar with shelves, luminous dust current',
+    'violet': 'obsidian arch with a glowing ceiling seam, orbiting planetary ring shard, obsidian cathedral facade with a black sun and twin spires, glowing gravity seam with arrows, obsidian eclipse dais with mirrored shelves',
+}
+for region, notes in KIT_SHEET_NOTES.items():
+    tid = f'T-{t:03d}'
+    image(tid, f'Kit sheet: {REGION_NAMES[region]}', 'reference', '8192×4096 sheet: every kit piece drawn in the same painted style at a shared scale with Hopper (14 m) beside one of them, front and three-quarter views, callouts for the flat landing tops', None, f'design/references/kits/{region}.png', 'open',
+          f'Model reference for the {REGION_NAMES[region]} structure kit ({", ".join(m["request"] for m in M if m["category"] == "structure" and m["region"] == region)}). Based on the region board design/assets/level-{"1-earth" if region in ("fields","city","mountains") else "2-industry" if region in ("foundry","harbor","launchworks") else "3-alien"}.png and the stand-in contact sheets in hopper/3d/design/assets. Must exist before the kit is modelled.',
+          prompt=f'Use case: environment concept sheet. Draw a structure kit sheet for {REGION_NAMES[region]} in the attached region board\'s painted 1970s anime style: {notes}. Every piece at one shared scale with Hopper the Grasshopper (14 m tall, from the attached canonical sheet) standing beside one piece, each piece in front and three-quarter views, flat landing tops clearly readable as lighter planes with dark lips. Flat gouache colour fields, ink edges, no text.', region=region)
+    for m in M:
+        if m['category'] == 'structure' and m['region'] == region: ref_by_model[m['standIn']] = tid
+    t += 1
+tid = f'T-{t:03d}'
+image(tid, 'Props sheet', 'reference', '8192×4096 sheet: every prop in front and three-quarter views at a shared scale, with the active state beside the idle state', None, 'design/references/props.png', 'open',
+      'Model reference for the fifteen props and effects (' + ', '.join(m['request'] for m in M if m['category'] == 'prop') + '). Spring pad, lockdown gate, signal cage and signal keep the identity of the 2D art in game/public/assets/upgrades/props and game/public/assets/upgrades/reference/props; the rest are new. Must exist before the props are modelled.',
+      prompt='Use case: prop concept sheet. Draw a prop sheet in the 1970s hand-painted anime cel style of the attached 2D props: cyan spring pad with chevrons, twin-crystal gold signal with a halo, shadow-bar signal cage on a pedestal with a violet crown, obsidian lockdown pylon with a violet emitter and the translucent dome it raises, ivory checkpoint totem with red bands and a lamp, cream recovery capsule with a red band and white cross, grated thermal vent with a rising translucent column, translucent crosswind lane with streaks, obsidian gravity gate with a violet curtain and arrows, rust launch gate ring with a glowing portal, red-white eye laser bolt, gold kick arc, teal guard half-dome, shadow dissolve shards. Each in idle and active state, front and three-quarter views, shared scale with a 14 m Hopper silhouette. No text.')
+for m in M:
+    if m['category'] == 'prop': ref_by_model[m['standIn']] = tid
+t += 1
+tid = f'T-{t:03d}'
+image(tid, 'Hopper pose sheet for the new clips', 'reference', '8192×4096 sheet: key poses for each requested clip, side and three-quarter views, on the canonical model', None, 'design/references/hopper-new-clips.png', 'open',
+      'Animation reference for M-001 and M-002: wings open in a glide, dive with legs tucked, the stomp landing, air kick, wall kick plant, ledge mantle, hop back, the crouch charge at three compression levels, the super-leap launch, lock-on strafe, and the rider\'s glide lean, dive tuck, brace and point. Generated from design/assets/hopper-canonical-v1.png and the action study design/assets/hopper-action-study.png. Must exist before the clips are animated.',
+      prompt='Use case: identity-preserve animation key poses. The attached sheets are the canonical Hopper the Grasshopper and rider; preserve them exactly. Draw key poses, side and three-quarter views: wings spread wide in a glide with hind legs trailing; a head-down dive with all legs tucked; a deep stomp landing with the suspension compressed; a mid-air spin kick with the body level; planting the hind legs against a wall to kick off; front legs hooking a ledge to haul up; a short hop backward; the crouch charge at three compression levels; the super-leap launch; sidestepping while facing forward; and the boy leaning back in a glide, tucked in a dive, braced for a stomp, and pointing ahead. 1970s cel anime style, ink outlines, flat shading, no text.')
+ref_by_model['hopper.proxy'] = tid
+for m in M:
+    key = m['standIn']
+    if m['category'] in ('hopper', 'rider'):
+        m['existing'] = ['design/assets/hopper-canonical-v1.png', 'design/assets/hopper-action-study.png', 'models/hopper-rider.glb']
+        if m['status'] != 'delivered': m['needs'] = [ref_by_model['hopper.proxy']]
+    elif m['category'] == 'enemy':
+        k = key.split('.')[1]
+        m['existing'] = [f'game/public/assets/enemies/{k}.png', 'design/assets/enemy-silhouettes.png']
+        m['needs'] = [ref_by_model[key]]
+    elif m['category'] == 'boss':
+        k = key.split('.')[1]
+        m['existing'] = [f'game/public/assets/bosses/{k}.png', 'design/assets/boss-canonical-lineup.png']
+        m['needs'] = [ref_by_model[key]]
+    elif m['category'] == 'structure':
+        board = 'level-1-earth' if m['region'] in ('fields', 'city', 'mountains') else 'level-2-industry' if m['region'] in ('foundry', 'harbor', 'launchworks') else 'level-3-alien'
+        m['existing'] = [f'design/assets/{board}.png', f'game/public/assets/backgrounds/{ {"fields":"fields","city":"city","mountains":"mountains","foundry":"foundry","harbor":"harbor","launchworks":"launchworks","red":"red","blue":"blue","violet":"purple"}[m["region"]] }.webp']
+        m['needs'] = [ref_by_model[key]]
+    elif m['category'] == 'prop':
+        m['existing'] = ['game/public/assets/upgrades/props/spring-pad.png', 'game/public/assets/upgrades/reference/props/signal-cage-intact.png', 'game/public/assets/upgrades/reference/props/lockdown-wall.png']
+        m['needs'] = [ref_by_model[key]]
+    elif m['category'] == 'landmark':
+        m['existing'] = ['the region board and horizon cards (T-010..T-018)']
+        m['needs'] = [ref_by_model.get(f'structure.{m["region"]}.' + {'fields': 'silo', 'city': 'ivoryTower', 'mountains': 'transmitterMast', 'foundry': 'furnaceTower', 'harbor': 'craneBoom', 'launchworks': 'launchRing', 'red': 'coralSpire', 'blue': 'floatingReef', 'violet': 'cathedralFacade'}[m['region']], '')]
+    elif m['category'] == 'terrain':
+        m['existing'] = ['design/assets/level-1-earth.png', 'design/assets/level-2-industry.png', 'design/assets/level-3-alien.png']
+
+# ---------------------------------------------------------------------------
 # Output
 # ---------------------------------------------------------------------------
 # Painted pack delivered September 2026; see image-history.md for provenance.
@@ -248,10 +325,10 @@ manifest = {
     'notes': 'standIn ids resolve through hopper/3d/standins/src/index.js (createStandIn). texture.* ids name procedural painters in textures.js. status: delivered | stand-in | open | procedural-final.',
     'rigs': RIGS,
     'requests': [
-        {k: v for k, v in dict(request=m['request'], kind='model', name=m['name'], category=m['category'], region=m['region'], rig=m['rig'], size_m=m['size'], standIn=m['standIn'], final=m['final'], status=m['status']).items() if v is not None}
+        {k: v for k, v in dict(request=m['request'], kind='model', name=m['name'], category=m['category'], region=m['region'], rig=m['rig'], size_m=m['size'], standIn=m['standIn'], final=m['final'], status=m['status'], references=m['existing'] or None, needs=m['needs'] or None).items() if v is not None}
         for m in M
     ] + [
-        {k: v for k, v in dict(request=i['request'], kind='image', name=i['name'], category=i['category'], region=i['region'], standIn=i['standIn'], final=i['final'], status=i['status']).items() if v is not None}
+        {k: v for k, v in dict(request=i['request'], kind='image', name=i['name'], category=i['category'], region=i['region'], standIn=i['standIn'], final=i['final'], status=i['status'], round=i['round']).items() if v is not None}
         for i in T
     ],
 }
@@ -263,6 +340,7 @@ def size(s):
 md = []
 md.append('# 3D model requests\n')
 md.append('Every model the 3D edition needs, with the rig it must have. Ids are stable: the stand-in manifest, the stand-in registry and the game code use them. `Stand-in` names the procedural placeholder from `hopper/3d/standins/` that is in use until the model arrives; `Final` is where the delivered GLB goes. Generated from `source/build_requests.py`; edit the data there, not this file.\n')
+md.append('**Round two references.** Before any model here is started, its reference sheet from `image-requests-round-2.md` is generated and approved: a turnaround per species and commander, a kit sheet per region, a props sheet and a Hopper pose sheet for the new clips. That document maps every sheet to the models that wait on it. A single side-view sprite is not enough to model from; a turnaround is.\n')
 md.append('Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mesh_quantization` and `EXT_meshopt_compression` like the delivered Hopper GLBs, hand-painted albedo (no photographic PBR), emissive masks for cores and lights, LOD0 and LOD1 in the same file, and named sockets as empties. Root motion only where a clip says so.\n')
 md.append('## Rig types\n')
 for k, v in RIGS.items():
@@ -334,20 +412,23 @@ for m in [x for x in M if x['category'] == 'landmark']:
     md.append(f"- **{m['request']} {m['name'].replace('Landmark: ', '')}.** {m['summary']}")
 tm = [x for x in M if x['category'] == 'terrain'][0]
 md.append(f"\n### {tm['request']} · {tm['name']}\n\n{tm['summary']}\n\n- **Rig:** {tm['rig']} · **Size:** {size(tm['size'])} per region · **Triangles:** {tm['tris']} · **Stand-in:** `{tm['standIn']}` · **Final:** `{tm['final']}`\n")
+md.append('## Generation order\n')
+md.append('1. Round one images (`image-requests.md`): skies, horizon cards, terrain sets and trim sheets for the region being built, UI and effects at any time.\n2. Round two reference sheets (`image-requests-round-2.md`): the Hopper pose sheet, the four mission-one species turnarounds, the Sunseed and Crownline kit sheets, the props sheet; then the rest by mission.\n3. Models, each only after its reference sheet is approved: Hopper clips, mission-one species, mission-one kits, props, the Night Rook; then missions two and three.\n')
 md.append('## Delivery checks\n')
 md.append('- Load through the same glTF loader and meshopt decoder as the Hopper GLBs; `hopper/3d/standins/test` has the socket and size checks each model must pass when its manifest entry flips from `stand-in` to `delivered`.\n- Sockets and clip names exactly as listed; the game code binds by name.\n- Check silhouettes at gameplay distance (35 m camera) against the darkest and brightest region sky.\n- Keep the painted style: flat tones, ink edges, no specular, no normal-map micro detail.\n')
 (ROOT / 'model-requests.md').write_text('\n'.join(md) + '\n')
 
 im = []
 im.append('# Image and texture requests (3D edition)\n')
-im.append('Skies, horizon cards, terrain sets, trim sheets, creature hide, UI and effects for the 3D game. Everything marked `stand-in` has a procedural placeholder in `hopper/3d/standins/src/textures.js` or `terrain.js` that the game renders until the painting arrives. Generated from `source/build_requests.py`; edit the data there.\n')
+im.append('Round one: skies, horizon cards, terrain sets, trim sheets, creature hide, UI and effects for the 3D game. Round two, the model reference sheets, is in [image-requests-round-2.md](image-requests-round-2.md) and was added after round one had begun, so this file is unchanged apart from this note. Everything marked `stand-in` has a procedural placeholder in `hopper/3d/standins/src/textures.js` or `terrain.js` that the game renders until the painting arrives. Generated from `source/build_requests.py`; edit the data there.\n')
 im.append('Style for every painted request: the 2D game\'s 1970s cel-and-gouache look. Flat colour fields, two or three tones per surface, visible brush direction, dark ink edges where the 2D sprites have them, no photographic gradients, no lens flare, no text. Region palettes are the exact hex values in `hopper/3d/standins/src/palette.js` (the same ones the 2D game uses).\n')
 im.append('## Summary\n')
 im.append('| Category | Requests | Delivered | Stand-in | Open | Procedural final |\n| --- | ---: | ---: | ---: | ---: | ---: |')
 for cat in ['sky', 'horizon', 'terrain', 'trim', 'creature', 'shading', 'ui', 'effects']:
     rows = [x for x in T if x['category'] == cat]
     im.append(f"| {cat} | {len(rows)} | {sum(r['status']=='delivered' for r in rows)} | {sum(r['status']=='stand-in' for r in rows)} | {sum(r['status']=='open' for r in rows)} | {sum(r['status']=='procedural-final' for r in rows)} |")
-im.append(f"| **total** | **{len(T)}** | **{sum(x['status']=='delivered' for x in T)}** | **{sum(x['status']=='stand-in' for x in T)}** | **{sum(x['status']=='open' for x in T)}** | **{sum(x['status']=='procedural-final' for x in T)}** |")
+R1 = [x for x in T if x['round'] == 1]
+im.append(f"| **total** | **{len(R1)}** | **{sum(x['status']=='delivered' for x in R1)}** | **{sum(x['status']=='stand-in' for x in R1)}** | **{sum(x['status']=='open' for x in R1)}** | **{sum(x['status']=='procedural-final' for x in R1)}** |")
 for cat, title, intro in [
     ('sky', 'Painted skies (9)', 'One equirectangular dome per region, drawn from inside a 9 km sphere. The stand-in is the procedural gradient-plus-sun in `paintSky`.'),
     ('horizon', 'Horizon cards (9 sets)', 'Two rings of painted silhouettes 5 km and 6.75 km out, in the region\'s haze colours. The stand-in is the cone ring in `makeHorizon`. Each set leaves a gap where the region\'s exit landmark stands.'),
@@ -369,4 +450,31 @@ im.append('## Delivery history\n\nSee [image-history.md](image-history.md) and [
 im.append('## Acceptance\n')
 im.append('- Inspect every painting at gameplay distance in the viewer (`hopper/3d/viewer/`) against the stand-in it replaces before it is committed.\n- Skies must tile at the seam and keep the sun where `paintSky` puts it, because the directional light is aimed there.\n- Terrain and trim textures must tile; check repeated features at 6× repeat over a 200 m surface.\n- Record prompts, references and acceptance notes in this file\'s history, as the 2D `image-history.md` does.\n')
 (ROOT / 'image-requests.md').write_text('\n'.join(im) + '\n')
-print(f'{len(M)} model requests, {len(T)} image requests, manifest {len(manifest["requests"])} entries')
+
+# Round two: reference sheets, each with the models that wait on it.
+r2 = []
+r2.append('# Image requests · round two: model reference sheets\n')
+r2.append('Added after round one (`image-requests.md`) had begun; nothing in round one changed. These are the references a modeller works from: a turnaround per shadow species and commander, a kit sheet per region drawn at a shared scale with Hopper, a props sheet, and a pose sheet for Hopper\'s new clips. No model in `model-requests.md` should be started before its sheet here is generated and approved. Generated from `source/build_requests.py`.\n')
+r2.append('Every prompt attaches the existing canonical art named in its description so identity is preserved. Accept a sheet only after checking limb counts, core placement, colours and scale against that art. Same style as round one: 1970s hand-painted anime cel, ink outlines, flat tones, no text on the sheets.\n')
+r2.append('## Which models wait on which sheet\n')
+r2.append('| Sheet | Models |\n| --- | --- |')
+for x in [x for x in T if x['round'] == 2]:
+    waiting = [m['request'] for m in M if x['request'] in m['needs']]
+    r2.append(f"| {x['request']} {x['name']} | {', '.join(waiting) if waiting else '(reference for animation)'} |")
+r2.append('\n## Order\n')
+r2.append('Hopper pose sheet first, then the four mission-one species (Shade Hound, Seed Spitter, Window Ray, Spire Leech), the Sunseed Fields and Crownline City kit sheets and the props sheet; then the remaining species, kits and commanders by mission.\n')
+r2.append('## Existing art each sheet starts from\n')
+r2.append('| Sheet | Attach as identity reference |\n| --- | --- |')
+for x in [x for x in T if x['round'] == 2]:
+    owner = next((m for m in M if x['request'] in m['needs']), None)
+    r2.append(f"| {x['request']} | {', '.join('`' + e + '`' for e in (owner['existing'] if owner else ['design/assets/hopper-canonical-v1.png', 'design/assets/hopper-action-study.png']))} |")
+r2.append('\n## The sheets\n')
+for x in [x for x in T if x['round'] == 2]:
+    r2.append(f"### {x['request']} · {x['name']}\n")
+    r2.append(f"{x['summary']}\n")
+    r2.append(f"- **Spec:** {x['spec']}")
+    r2.append(f"- **Status:** {x['status']} · **Final:** `{x['final']}`")
+    r2.append(f"- **Prompt:** {x['prompt']}")
+    r2.append('')
+(ROOT / 'image-requests-round-2.md').write_text('\n'.join(r2) + '\n')
+print(f'{len(M)} model requests, {len([x for x in T if x["round"]==1])} round-one images, {len([x for x in T if x["round"]==2])} round-two reference sheets, manifest {len(manifest["requests"])} entries')
