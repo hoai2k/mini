@@ -85,8 +85,9 @@ function collidersOf(object: Group, id: string): Collider[] {
     }
     const size = new Vector3();
     box.getSize(size);
-    // Thin decorations (stripes, seams, halos) are not worth a collider.
+    // Thin decorations (stripes, seams, halos, pad chevrons) are not worth a collider.
     if (size.x < 0.6 || size.z < 0.6 || size.y < 0.3) return;
+    if (/^(Chevron|Halo|Corona|Arrow|Streak|Frond|Rib\d)/.test(mesh.name)) return;
     const centre = new Vector3();
     box.getCenter(centre);
     out.push({
