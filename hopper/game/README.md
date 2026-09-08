@@ -35,11 +35,12 @@ The 3D edition's controls:
 | Jump / hold to soar    | A                                | Space                     |
 | Spin kick · parry      | X                                | J                         |
 | Guard                  | Hold B                           | L                         |
-| Dive stomp             | Y in air                         | F in air                  |
+| Dive stomp · hop back · charge | Y in air · tap Y · hold Y on the ground | F                       |
 | Eye lasers             | Hold RT                          | K or left mouse           |
 | Lock-on                | Hold LT                          | Q                          |
-| Crouch charge          | Hold RB                          | Shift                     |
-| Horizon View           | Hold LB                          | Tab                       |
+| Sprint                 | Hold RB                          | Shift                     |
+| Dash                   | LB (in the stick direction)      | E                         |
+| Horizon View           | Hold right-stick click           | Tab                       |
 | Reset camera           | Right-stick click                | C                         |
 | Pause                  | Menu                             | Escape                    |
 | Instructions           | View                             | I                         |

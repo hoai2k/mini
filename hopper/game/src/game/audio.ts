@@ -44,7 +44,9 @@ export class GameAudio {
    */
   constructor(themeUrl: string, levelUrls: string | string[] = []) {
     this.theme = new Audio(themeUrl);
-    const byUrl = new Map<string, HTMLAudioElement>();
+    // A level that repeats the theme's URL shares the theme's element, so the
+    // recording carries on from the title screen instead of starting over.
+    const byUrl = new Map<string, HTMLAudioElement>([[themeUrl, this.theme]]);
     this.levels = (Array.isArray(levelUrls) ? levelUrls : [levelUrls]).map(
       (url) => {
         const existing = byUrl.get(url);

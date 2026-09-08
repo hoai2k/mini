@@ -18,6 +18,9 @@ export interface CameraState {
   /** Eased state offsets (glide, dive, height) so state changes never pop. */
   tilt: number;
   pull: number;
+  /** Forward direction of the route and the player's manual turn from it. */
+  forward: number;
+  turn: number;
 }
 export interface CameraInput {
   lookX: number;
@@ -29,6 +32,8 @@ export interface CameraInput {
   /** World position of the locked shadow, if any. */
   lock?: [number, number, number] | null;
   landmark?: [number, number, number];
+  /** Where the route goes next (the next totem or the exit): the camera faces it. */
+  waypoint?: [number, number, number];
 }
 export interface CameraSettings {
   sensitivity: number;
@@ -37,11 +42,15 @@ export interface CameraSettings {
 }
 
 export const CAMERA = {
-  distance: 35,
-  height: 12,
-  pitch: 0.33,
-  fov: 60,
-  glideFov: 68,
+  distance: 48,
+  height: 18,
+  pitch: 0.36,
+  fov: 64,
+  glideFov: 71,
+  /** Manual turn from the forward direction, either way. */
+  maxTurn: Math.PI / 4,
+  turnReturn: 1.2,
+  forwardRate: 1.5,
   pullBackPerMetre: 0.25,
   maxPullBack: 20,
   tiltPerMetre: 0.004,
@@ -56,7 +65,7 @@ export const CAMERA = {
 };
 
 export function createCamera(yaw: number, at: [number, number, number]): CameraState {
-  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0 };
+  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0, forward: yaw, turn: 0 };
 }
 
 const ease = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -124,22 +133,25 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     wantPitch = Math.max(-0.25, Math.min(0.45, Math.atan2(com[1] + 6 - input.lock[1], Math.max(10, d)) + 0.12));
   } else {
     cam.mode = 'follow';
-    // Orbit from the stick or the mouse.
-    cam.yaw -= stickX * CAMERA.stickRate * sens * dt + input.mouseLookX * CAMERA.mouseRate * sens;
+    // The camera faces the way forward: toward the next waypoint. Hopper is
+    // free to turn round and run back toward it; the view does not follow him.
+    if (input.waypoint) {
+      const want = Math.atan2(input.waypoint[0] - h.x, input.waypoint[2] - h.z);
+      cam.forward += wrap(want - cam.forward) * Math.min(1, CAMERA.forwardRate * dt);
+    }
+    // A limited manual turn either way, springing back when released.
+    cam.turn -= stickX * CAMERA.stickRate * sens * dt + input.mouseLookX * CAMERA.mouseRate * sens;
+    cam.turn = Math.max(-CAMERA.maxTurn, Math.min(CAMERA.maxTurn, cam.turn));
+    if (!looking) cam.turn -= cam.turn * Math.min(1, CAMERA.turnReturn * dt);
     cam.pitch += (stickY * CAMERA.stickRate * 0.6 * sens * dt + input.mouseLookY * CAMERA.mouseRate * 0.6 * sens) * invert;
     cam.pitch = Math.max(CAMERA.minPitch, Math.min(CAMERA.maxPitch, cam.pitch));
+    if (!looking && cam.idle > CAMERA.returnDelay) cam.pitch += (CAMERA.pitch - cam.pitch) * Math.min(1, 0.8 * dt);
     if (input.resetPressed) {
-      cam.yaw = h.yaw;
+      cam.turn = 0;
       cam.pitch = CAMERA.pitch;
       cam.idle = 10;
     }
-    // Ease behind the direction of travel once the player lets the camera be.
-    const speed = Math.hypot(h.vx, h.vz);
-    if (cam.idle > CAMERA.returnDelay && speed > 6) {
-      const heading = Math.atan2(h.vx, h.vz);
-      const d = wrap(heading - cam.yaw);
-      if (Math.abs(d) < Math.PI * 0.75) cam.yaw += d * Math.min(1, CAMERA.returnRate * dt * Math.min(1, speed / 20));
-    }
+    cam.yaw = cam.forward + cam.turn;
     wantYaw = cam.yaw;
     // Height above the ground pulls back and tilts down; gliding flattens and
     // widens; diving looks down. All of it eased, so a tap never pops the view.
