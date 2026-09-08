@@ -24,6 +24,7 @@ import {
   TorusGeometry,
   CapsuleGeometry,
   RingGeometry,
+  Sprite,
   Vector3,
   WebGLRenderer,
   DoubleSide,
@@ -43,6 +44,7 @@ import type { World } from './world';
 import type { HopperState } from './controller';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
+import { atlasSprite, decal, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, reticle, stepAtlas, type AtlasSprite } from './textures3d';
 
 interface Effect {
   object: Object3D;
@@ -77,6 +79,11 @@ export class Scene3D {
   private guide: Mesh;
   private guidePredicted: Mesh;
   private lockRing: Mesh;
+  private reticles: { open: Sprite | null; locked: Sprite | null } = { open: null, locked: null };
+  private guideDecal: Mesh | null = null;
+  private atlases: AtlasSprite[] = [];
+  private buildVersion = 0;
+  private kickSparked = false;
   private sun: DirectionalLight;
   private laserMaterial = new MeshBasicMaterial({ color: '#ff5a4a' });
   private laserCore = new MeshBasicMaterial({ color: '#ffffff' });
@@ -156,19 +163,41 @@ export class Scene3D {
       d = world.district;
     this.scene.background = new Color(region.sky);
     this.scene.fog = makeFog(region, 0.00016);
-    this.worldGroup.add(makeSkyDome(region));
-    this.worldGroup.add(makeHorizon(region, d.horizon || {}));
+    const version = ++this.buildVersion;
+    const dome = makeSkyDome(region);
+    this.worldGroup.add(dome);
+    const horizon = makeHorizon(region, d.horizon || {});
+    this.worldGroup.add(horizon);
+    const landmarkAngle = Math.atan2(d.landmark.z, d.landmark.x);
+    void paintSky(dome, region.id);
+    void paintHorizon(region.id, landmarkAngle).then((cards) => {
+      if (!cards || version !== this.buildVersion) return;
+      this.worldGroup.remove(horizon);
+      this.worldGroup.add(cards);
+    });
     const landmark = makeLandmark(region);
     landmark.position.set(d.landmark.x, 0, d.landmark.z);
     this.worldGroup.add(landmark);
     const hemi = new HemisphereLight(new Color(region.sky).lerp(new Color('#ffffff'), 0.3), new Color(region.ground), 0.5);
     this.sun.color = new Color(region.sun || '#fff1c2').lerp(new Color('#ffffff'), 0.5);
     this.worldGroup.add(hemi, this.sun, new AmbientLight(region.haze, 0.12));
-    this.worldGroup.add(makeTerrain(region, { size: d.size, segments: 160, ...d.terrain }));
+    const terrain = makeTerrain(region, { size: d.size, segments: 160, ...d.terrain });
+    this.worldGroup.add(terrain);
+    void paintTerrain(terrain, region.id, d);
     for (const inst of world.instances) {
       this.worldGroup.add(inst.object);
       if (inst.object.userData.animate) this.animated.push(inst.object as StandInObject);
     }
+    void paintKit(this.worldGroup, region.id);
+    // Delivered decals and reticles replace the placeholder rings once loaded.
+    void decal('landing-guide.png', 12, '#f6edcc').then((m) => {
+      if (!m || version !== this.buildVersion) return;
+      this.guideDecal = m;
+      m.visible = false;
+      this.scene.add(m);
+    });
+    void reticle(false, 14).then((r) => (this.reticles.open = r));
+    void reticle(true, 14).then((r) => (this.reticles.locked = r));
     for (const s of shadows) {
       const o = createStandIn(`enemy.${s.kind}`);
       // A small flash sphere and an amber tell ring, shown by state.
@@ -185,6 +214,7 @@ export class Scene3D {
       this.worldGroup.add(o);
       this.shadowObjects.set(s.id, o);
     }
+    void paintShadows(this.shadowObjects.values());
   }
   private syncHopper(h: HopperState, combat: Combat, dt: number) {
     const root = this.hopper;
@@ -197,6 +227,10 @@ export class Scene3D {
       loop = true,
       scale = 1;
     if (combat.kick > 0.05) {
+      if (combat.kick > 0.46 && !this.kickSparked) {
+        this.kickSparked = true;
+        this.effect('kick', h.x, h.y + 6, h.z);
+      }
       clip = 'Spin_Kick';
       loop = false;
       scale = 2;
@@ -230,6 +264,7 @@ export class Scene3D {
         default:
           clip = combat.guarding ? 'Block_Loop' : combat.heat > 0 && combat.shotClock > 0 ? 'Fire_Loop' : 'Idle';
       }
+    if (combat.kick <= 0.05) this.kickSparked = false;
     if (h.hitstun > 0) {
       clip = 'Hit_Reaction';
       loop = false;
@@ -279,9 +314,18 @@ export class Scene3D {
       o.scale.set(squash, 1 / Math.sqrt(squash), squash);
       o.userData.animate?.(this.time + s.phase);
       if (combat.lock === s.id) {
-        this.lockRing.visible = true;
-        this.lockRing.position.set(s.x, s.y + s.height * 0.5, s.z);
-        this.lockRing.lookAt(this.camera.position);
+        const r = s.open > 0 || s.state === 'tell' ? this.reticles.locked : this.reticles.locked || this.reticles.open;
+        if (r) {
+          if (!r.parent) this.scene.add(r);
+          r.visible = true;
+          r.position.set(s.x, s.y + s.height * 0.5, s.z);
+          const d = this.camera.position.distanceTo(r.position);
+          r.scale.setScalar(Math.max(8, d * 0.07));
+        } else {
+          this.lockRing.visible = true;
+          this.lockRing.position.set(s.x, s.y + s.height * 0.5, s.z);
+          this.lockRing.lookAt(this.camera.position);
+        }
       }
     }
   }
@@ -313,6 +357,16 @@ export class Scene3D {
   }
   /** Spawn a visual effect. */
   effect(name: string, x: number, y: number, z: number) {
+    const atlas = name === 'shockwave' ? ['stomp-shockwave', 26, false] : name === 'spark' || name === 'hit' ? ['laser-impact', 7, true] : name === 'kick' ? ['kick-spark', 16, true] : null;
+    if (atlas) {
+      void atlasSprite(atlas[0] as string, atlas[1] as number, { additive: atlas[2] as boolean }).then((a) => {
+        if (!a) return;
+        a.sprite.position.set(x, y + (name === 'shockwave' ? 1.5 : 0), z);
+        this.worldGroup.add(a.sprite);
+        this.atlases.push(a);
+      });
+      if (name !== 'hit') return;
+    }
     let object: Object3D,
       life = 0.5;
     if (name === 'dissolve') {
@@ -334,6 +388,8 @@ export class Scene3D {
     this.effects.push({ object, life, maxLife: life, kind: name });
   }
   private syncEffects(dt: number) {
+    for (const a of this.atlases) if (!stepAtlas(a, dt)) this.worldGroup.remove(a.sprite);
+    this.atlases = this.atlases.filter((a) => a.sprite.parent);
     for (const e of this.effects) {
       e.life -= dt;
       const t = 1 - Math.max(0, e.life) / e.maxLife;
@@ -348,14 +404,16 @@ export class Scene3D {
   }
   private syncGuide(h: HopperState, world: World, predicted: { x: number; y: number; z: number } | null, enabled: boolean) {
     const show = enabled && !h.grounded && h.height > 3;
-    this.guide.visible = show;
+    const guide = this.guideDecal || this.guide;
+    this.guide.visible = show && !this.guideDecal;
+    if (this.guideDecal) this.guideDecal.visible = show;
     this.guidePredicted.visible = show && !!predicted;
     if (!show) return;
     const below = world.groundAt(h.x, h.z, h.y).y;
-    this.guide.position.set(h.x, below + 0.3, h.z);
+    guide.position.set(h.x, below + 0.3, h.z);
     const k = 1 + Math.min(3, h.height * 0.04);
-    this.guide.scale.setScalar(k);
-    (this.guide.material as MeshBasicMaterial).opacity = 0.35 + Math.min(0.5, 12 / Math.max(6, h.height));
+    guide.scale.setScalar(k);
+    (guide.material as MeshBasicMaterial).opacity = 0.35 + Math.min(0.5, 12 / Math.max(6, h.height));
     if (predicted) {
       this.guidePredicted.position.set(predicted.x, predicted.y + 0.35, predicted.z);
       this.guidePredicted.scale.setScalar(k);
@@ -366,6 +424,8 @@ export class Scene3D {
     this.time += dt;
     this.resize();
     this.lockRing.visible = false;
+    if (this.reticles.open) this.reticles.open.visible = false;
+    if (this.reticles.locked) this.reticles.locked.visible = false;
     this.syncHopper(h, combat, dt);
     this.syncShadows(combat.shadows, combat);
     this.syncProjectiles(combat.projectiles);
@@ -378,7 +438,7 @@ export class Scene3D {
       this.camera.fov = cam.fov;
       this.camera.updateProjectionMatrix();
     }
-    this.sun.position.set(cam.target[0] - 600, cam.target[1] + 900, cam.target[2] + 500);
+    this.sun.position.set(cam.target[0] + 190, cam.target[1] + 760, cam.target[2] + 980);
     this.renderer.render(this.scene, this.camera);
   }
   /** Draw once with no simulation (title screen behind the poster). */
