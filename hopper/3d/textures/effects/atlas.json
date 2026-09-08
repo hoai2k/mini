@@ -1,0 +1,42 @@
+{
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "columns": 4,
+  "rows": 2,
+  "frameCount": 8,
+  "order": "row-major",
+  "alpha": "straight",
+  "note": "Four generated key drawings, with scaled anticipation and opacity-tail frames authored during export.",
+  "atlases": {
+    "laser-impact": {
+      "file": "laser-impact.png",
+      "fps": 20,
+      "loop": false,
+      "durationSeconds": 0.4
+    },
+    "kick-spark": {
+      "file": "kick-spark.png",
+      "fps": 20,
+      "loop": false,
+      "durationSeconds": 0.4
+    },
+    "stomp-shockwave": {
+      "file": "stomp-shockwave.png",
+      "fps": 20,
+      "loop": false,
+      "durationSeconds": 0.4
+    },
+    "thermal-motes": {
+      "file": "thermal-motes.png",
+      "fps": 10,
+      "loop": true,
+      "durationSeconds": 0.8
+    },
+    "wind-streaks": {
+      "file": "wind-streaks.png",
+      "fps": 20,
+      "loop": true,
+      "durationSeconds": 0.4
+    }
+  }
+}

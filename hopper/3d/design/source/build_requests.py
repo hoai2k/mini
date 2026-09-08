@@ -238,6 +238,11 @@ image(f'T-{t:03d}', 'Signal glyphs', 'ui', '9 glyphs, 256² alpha, one per regio
 # ---------------------------------------------------------------------------
 # Output
 # ---------------------------------------------------------------------------
+# Painted pack delivered September 2026; see image-history.md for provenance.
+for texture in T:
+    if texture['request'] in {f'T-{n:03}' for n in [*range(1, 38), 39, 40, 41, 45, 46, 47]}:
+        texture['status'] = 'delivered'
+
 manifest = {
     'generated_by': 'hopper/3d/design/source/build_requests.py',
     'notes': 'standIn ids resolve through hopper/3d/standins/src/index.js (createStandIn). texture.* ids name procedural painters in textures.js. status: delivered | stand-in | open | procedural-final.',
@@ -360,6 +365,7 @@ for cat, title, intro in [
         im.append(f"- **Status:** {x['status']} · **Stand-in:** `{x['standIn'] or 'none'}` · **Final:** `{x['final']}`")
         if x['prompt']: im.append(f"- **Prompt:** {x['prompt']}")
         im.append('')
+im.append('## Delivery history\n\nSee [image-history.md](image-history.md) and [texture pack notes](../textures/README.md) for delivered files, native resolutions, processing and review.\n')
 im.append('## Acceptance\n')
 im.append('- Inspect every painting at gameplay distance in the viewer (`hopper/3d/viewer/`) against the stand-in it replaces before it is committed.\n- Skies must tile at the seam and keep the sun where `paintSky` puts it, because the directional light is aimed there.\n- Terrain and trim textures must tile; check repeated features at 6× repeat over a 200 m surface.\n- Record prompts, references and acceptance notes in this file\'s history, as the 2D `image-history.md` does.\n')
 (ROOT / 'image-requests.md').write_text('\n'.join(im) + '\n')

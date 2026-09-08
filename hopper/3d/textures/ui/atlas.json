@@ -1,0 +1,40 @@
+{
+  "icons": {
+    "file": "icons-3d.png",
+    "frame": [
+      128,
+      128
+    ],
+    "order": [
+      "dive",
+      "glide",
+      "lock-on",
+      "horizon-view",
+      "crouch-charge"
+    ]
+  },
+  "signals": {
+    "file": "signals.png",
+    "frame": [
+      256,
+      256
+    ],
+    "columns": 3,
+    "order": [
+      "fields",
+      "city",
+      "mountains",
+      "foundry",
+      "harbor",
+      "launchworks",
+      "red",
+      "blue",
+      "violet"
+    ]
+  },
+  "lockOn": {
+    "open": "lock-on.png",
+    "locked": "lock-on-locked.png",
+    "transition": "Interpolate bracket inset from 40 to 66 pixels; crossfade supplied states if drawing as sprites."
+  }
+}

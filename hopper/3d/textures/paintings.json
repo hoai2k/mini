@@ -1,0 +1,816 @@
+[
+  {
+    "id": "sky-fields",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Sunseed Fields: honey morning light, huge cumulus, low sun, apricot haze. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #739cae, haze #f8c479, accent #ffdf7a, ground #456747, sun #fff1c2. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/fields-preview.jpg",
+      "sky/fields.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-fields-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: meadow grass for Sunseed Fields. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #739cae, haze #f8c479, accent #ffdf7a, ground #456747, sun #fff1c2. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/fields/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-fields-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: ploughed terrace soil for Sunseed Fields. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #739cae, haze #f8c479, accent #ffdf7a, ground #456747, sun #fff1c2. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/fields/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-fields-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: dirt road for Sunseed Fields. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #739cae, haze #f8c479, accent #ffdf7a, ground #456747, sun #fff1c2. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/fields/path.png"
+    ]
+  },
+  {
+    "id": "trim-fields",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Sunseed Fields, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: ivory plaster, red roof tile, timber beams, concrete. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #739cae, haze #f8c479, accent #ffdf7a, ground #456747, sun #fff1c2. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/fields.png",
+      "trim/fields-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-city",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Crownline City: golden sunset, long cloud streaks, warm pink haze. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #b98687, haze #f6bd86, accent #a1efe3, ground #465663, sun #ffd9a0. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/city-preview.jpg",
+      "sky/city.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-city-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: ivory paving for Crownline City. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #b98687, haze #f6bd86, accent #a1efe3, ground #465663, sun #ffd9a0. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/city/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-city-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: teal glass facade for Crownline City. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #b98687, haze #f6bd86, accent #a1efe3, ground #465663, sun #ffd9a0. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/city/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-city-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: rooftop gravel for Crownline City. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #b98687, haze #f6bd86, accent #a1efe3, ground #465663, sun #ffd9a0. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/city/path.png"
+    ]
+  },
+  {
+    "id": "trim-city",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Crownline City, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: ivory panels, teal glass bands, rail concrete, blank billboard paper. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #b98687, haze #f6bd86, accent #a1efe3, ground #465663, sun #ffd9a0. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/city.png",
+      "trim/city-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-mountains",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Thunderhead Range: slate storm sky, apricot clouds, beginning solar eclipse. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #7c8d9c, haze #d5ad8d, accent #e9d09b, ground #535963, sun #f4e2c4. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/mountains-preview.jpg",
+      "sky/mountains.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-mountains-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: alpine turf for Thunderhead Range. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #7c8d9c, haze #d5ad8d, accent #e9d09b, ground #535963, sun #f4e2c4. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/mountains/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-mountains-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: slate cliff rock for Thunderhead Range. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #7c8d9c, haze #d5ad8d, accent #e9d09b, ground #535963, sun #f4e2c4. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/mountains/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-mountains-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: scree for Thunderhead Range. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #7c8d9c, haze #d5ad8d, accent #e9d09b, ground #535963, sun #f4e2c4. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/mountains/path.png"
+    ]
+  },
+  {
+    "id": "trim-mountains",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Thunderhead Range, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: slate blocks, timber deck, iron mast. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #7c8d9c, haze #d5ad8d, accent #e9d09b, ground #535963, sun #f4e2c4. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/mountains.png",
+      "trim/mountains-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-foundry",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Cinder Foundries: ochre smoke sky with orange furnace underglow on the clouds. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #644d45, haze #c28754, accent #ffb454, ground #4d4345, sun #ffb070. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/foundry-preview.jpg",
+      "sky/foundry.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-foundry-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: iron plate for Cinder Foundries. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #644d45, haze #c28754, accent #ffb454, ground #4d4345, sun #ffb070. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/foundry/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-foundry-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: slag crust for Cinder Foundries. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #644d45, haze #c28754, accent #ffb454, ground #4d4345, sun #ffb070. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/foundry/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-foundry-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: soot ground for Cinder Foundries. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #644d45, haze #c28754, accent #ffb454, ground #4d4345, sun #ffb070. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/foundry/path.png"
+    ]
+  },
+  {
+    "id": "trim-foundry",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Cinder Foundries, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: iron plate with rivets, rust bands, furnace brick. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #644d45, haze #c28754, accent #ffb454, ground #4d4345, sun #ffb070. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/foundry.png",
+      "trim/foundry-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-harbor",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Tempest Docks: rainy sea-green overcast, white spray haze. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #667d84, haze #b1c0b5, accent #b4f2df, ground #3e5d61, sun #d9e6dc. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/harbor-preview.jpg",
+      "sky/harbor.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-harbor-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: wet green steel for Tempest Docks. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #667d84, haze #b1c0b5, accent #b4f2df, ground #3e5d61, sun #d9e6dc. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/harbor/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-harbor-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: concrete quay for Tempest Docks. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #667d84, haze #b1c0b5, accent #b4f2df, ground #3e5d61, sun #d9e6dc. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/harbor/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-harbor-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: rain-dark timber for Tempest Docks. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #667d84, haze #b1c0b5, accent #b4f2df, ground #3e5d61, sun #d9e6dc. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/harbor/path.png"
+    ]
+  },
+  {
+    "id": "trim-harbor",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Tempest Docks, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: wet green steel, container ribs, crane yellow. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #667d84, haze #b1c0b5, accent #b4f2df, ground #3e5d61, sun #d9e6dc. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/harbor.png",
+      "trim/harbor-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-launchworks",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Skyhook Works: pale gold above the clouds, rust-red orbital rings, cloud sea below horizon. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #a5a9a5, haze #efe0bd, accent #ffd38c, ground #716566, sun #fff3d2. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/launchworks-preview.jpg",
+      "sky/launchworks.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-launchworks-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: rust plate for Skyhook Works. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #a5a9a5, haze #efe0bd, accent #ffd38c, ground #716566, sun #fff3d2. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/launchworks/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-launchworks-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: pale concrete for Skyhook Works. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #a5a9a5, haze #efe0bd, accent #ffd38c, ground #716566, sun #fff3d2. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/launchworks/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-launchworks-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: cloud-lit steel for Skyhook Works. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #a5a9a5, haze #efe0bd, accent #ffd38c, ground #716566, sun #fff3d2. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/launchworks/path.png"
+    ]
+  },
+  {
+    "id": "trim-launchworks",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Skyhook Works, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: rust plate, pale rocket skin, piston brass. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #a5a9a5, haze #efe0bd, accent #ffd38c, ground #716566, sun #fff3d2. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/launchworks.png",
+      "trim/launchworks-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-red",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Vermilion Basin: red sky, black sun with thin ivory corona, dense heat haze. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #6c2533, haze #de765d, accent #fff0bc, ground #9a4348, sun #1a0a10. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/red-preview.jpg",
+      "sky/red.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-red-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: red coral for Vermilion Basin. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #6c2533, haze #de765d, accent #fff0bc, ground #9a4348, sun #1a0a10. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/red/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-red-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: ivory bone for Vermilion Basin. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #6c2533, haze #de765d, accent #fff0bc, ground #9a4348, sun #1a0a10. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/red/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-red-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: hot sand for Vermilion Basin. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #6c2533, haze #de765d, accent #fff0bc, ground #9a4348, sun #1a0a10. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/red/path.png"
+    ]
+  },
+  {
+    "id": "trim-red",
+    "sourceSize": [
+      1230,
+      1278
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Vermilion Basin, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: red coral, ivory bone. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #6c2533, haze #de765d, accent #fff0bc, ground #9a4348, sun #1a0a10. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/red.png",
+      "trim/red-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-blue",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Cobalt Drift: ultramarine void, stars, huge pale moon and luminous dust. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #193d77, haze #478bab, accent #b9fff1, ground #355d91, sun #cfe9ff. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/blue-preview.jpg",
+      "sky/blue.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-blue-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: luminous reef rock for Cobalt Drift. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #193d77, haze #478bab, accent #b9fff1, ground #355d91, sun #cfe9ff. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/blue/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-blue-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: cyan root for Cobalt Drift. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #193d77, haze #478bab, accent #b9fff1, ground #355d91, sun #cfe9ff. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/blue/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-blue-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: blue dust for Cobalt Drift. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #193d77, haze #478bab, accent #b9fff1, ground #355d91, sun #cfe9ff. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/blue/path.png"
+    ]
+  },
+  {
+    "id": "trim-blue",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Cobalt Drift, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: reef rock, cyan crystal. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #193d77, haze #478bab, accent #b9fff1, ground #355d91, sun #cfe9ff. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/blue.png",
+      "trim/blue-emissive.png"
+    ]
+  },
+  {
+    "id": "sky-violet",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game texture, 360-degree equirectangular sky panorama, 2:1 landscape aspect at highest supported resolution. Violet Inversion: dark purple nebula sky, broken planetary rings, luminous gravity seams. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #251633, haze #60436c, accent #e5b8ff, ground #503653, sun #100616. Horizon exactly halfway down. Upper half sky; lower half only matching ground haze, no terrain or objects. Small sun/eclipse/moon centred at 78% width and 43% height. Left/right borders join seamlessly; top and bottom edges nearly uniform. Full-bleed panorama, no framing.",
+    "outputs": [
+      "sky/violet-preview.jpg",
+      "sky/violet.ktx2"
+    ]
+  },
+  {
+    "id": "terrain-violet-cliff",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: violet seam glass for Violet Inversion. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #251633, haze #60436c, accent #e5b8ff, ground #503653, sun #100616. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/violet/cliff.png"
+    ]
+  },
+  {
+    "id": "terrain-violet-ground",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: obsidian for Violet Inversion. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #251633, haze #60436c, accent #e5b8ff, ground #503653, sun #100616. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/violet/ground.png"
+    ]
+  },
+  {
+    "id": "terrain-violet-path",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production game albedo material texture: ring stone for Violet Inversion. Square, highest supported resolution. Seamlessly tileable on ALL FOUR edges; uniform flat orthographic surface viewed straight on, no scene or objects, no vignette, no lighting/shadows baked in. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #251633, haze #60436c, accent #e5b8ff, ground #503653, sun #100616. Shared material palette {\"ivory\":\"#e8e0c8\",\"ivoryShade\":\"#c9bfa3\",\"tealGlass\":\"#5fb7a6\",\"slate\":\"#5c626d\",\"basalt\":\"#3d3b44\",\"iron\":\"#3c3b3f\",\"ironWarm\":\"#5a4d47\",\"rust\":\"#9a5a33\",\"wetSteel\":\"#4f6b6c\",\"concrete\":\"#b8b3a4\",\"soil\":\"#7a5a3c\",\"grass\":\"#5f8f3f\",\"grassDeep\":\"#3f6b33\",\"wood\":\"#8c6a3f\",\"coral\":\"#b7322c\",\"bone\":\"#efe5cf\",\"reef\":\"#3f7fb5\",\"reefGlow\":\"#8fe8ff\",\"obsidian\":\"#2a1e34\",\"obsidianEdge\":\"#a56cff\",\"water\":\"#2f5f7a\",\"lava\":\"#ff7a22\"}. Use only relevant material colours, not every colour. Small-to-medium irregular painted motifs evenly distributed; keep repeat unobtrusive over a 200-metre surface tiled six times.",
+    "outputs": [
+      "terrain/violet/path.png"
+    ]
+  },
+  {
+    "id": "trim-violet",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "prompt": "Production square albedo TRIM SHEET for Violet Inversion, highest supported resolution. EXACTLY EIGHT equal-height HORIZONTAL strips, each runs full canvas width edge to edge; no gaps, labels or perspective. The 8 bands cycle through these materials: obsidian, violet seams, ring stone. Each strip repeats seamlessly LEFT to RIGHT, with consistent band boundaries and straight technical trim edges. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #251633, haze #60436c, accent #e5b8ff, ground #503653, sun #100616. Flat orthographic material surface, no lighting baked in, no ambient shadows, no isolated objects. One brush style and coherent region palette. If luminous windows/crystal/furnace details occur keep them clearly distinguishable for an emissive mask; otherwise ordinary nonluminous materials.",
+    "outputs": [
+      "trim/violet.png",
+      "trim/violet-emissive.png"
+    ]
+  },
+  {
+    "id": "shadow-hide",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "prompt": "Production square seamless tileable creature-hide albedo texture. Charcoal interior #1a1520 with deep ink #0e0b12 and sparse violet contour flecks #8a4bd8. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Organic hide, broad cel-painted shapes and sparse narrow flecks, no eyes, no faces, no other recognisable body parts, no lighting baked in. Seamless on four edges, full-bleed texture.",
+    "outputs": [
+      "creatures/shadow-hide.png",
+      "creatures/shadow-hide-emissive.png"
+    ]
+  },
+  {
+    "id": "effect-laser-impact",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game effect sprite atlas: EXACTLY EIGHT square animation frames in a strict FOUR columns by TWO rows grid, 2:1 landscape canvas. Read left to right then next row. Each frame's effect stays wholly inside its square with at least 10% transparent padding, centred consistently. An eye-laser strikes: initial tiny ivory spark, sharp expanding red-gold starburst, peak flash, fragment spray, then sparse fading embers. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Genuine transparent background behind every effect; no dark backplate, no grid lines, no numerals. Eight clearly separate frames of ONE coherent action, drawn animation keyframes, cel-painted opaque cores and sparse translucent edges. Requested exported frames are 512 square, so use maximum available source detail.",
+    "outputs": [
+      "effects/laser-impact.png"
+    ]
+  },
+  {
+    "id": "effect-kick-spark",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game effect sprite atlas: EXACTLY EIGHT square animation frames in a strict FOUR columns by TWO rows grid, 2:1 landscape canvas. Read left to right then next row. Each frame's effect stays wholly inside its square with at least 10% transparent padding, centred consistently. A giant mechanical insect kick strikes: ivory and gold jagged mechanical impact sparks, quick expanding slash burst then scattered shards fading. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Genuine transparent background behind every effect; no dark backplate, no grid lines, no numerals. Eight clearly separate frames of ONE coherent action, drawn animation keyframes, cel-painted opaque cores and sparse translucent edges. Requested exported frames are 512 square, so use maximum available source detail.",
+    "outputs": [
+      "effects/kick-spark.png"
+    ]
+  },
+  {
+    "id": "effect-stomp-shockwave",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game effect sprite atlas: EXACTLY EIGHT square animation frames in a strict FOUR columns by TWO rows grid, 2:1 landscape canvas. Read left to right then next row. Each frame's effect stays wholly inside its square with at least 10% transparent padding, centred consistently. A ground stomp shockwave seen from ABOVE: circular ivory dust ring starts compact, expands evenly into a broad broken circular ring, breaks into dusty fragments and dissipates. Keep circular, not perspective elliptical. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Genuine transparent background behind every effect; no dark backplate, no grid lines, no numerals. Eight clearly separate frames of ONE coherent action, drawn animation keyframes, cel-painted opaque cores and sparse translucent edges. Requested exported frames are 512 square, so use maximum available source detail.",
+    "outputs": [
+      "effects/stomp-shockwave.png"
+    ]
+  },
+  {
+    "id": "effect-thermal-motes",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game effect sprite atlas: EXACTLY EIGHT square animation frames in a strict FOUR columns by TWO rows grid, 2:1 landscape canvas. Read left to right then next row. Each frame's effect stays wholly inside its square with at least 10% transparent padding, centred consistently. A looping cluster of painted warm orange-gold thermal embers rising slowly; eight frames showing coherent drifting positions, no large explosion. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Genuine transparent background behind every effect; no dark backplate, no grid lines, no numerals. Eight clearly separate frames of ONE coherent action, drawn animation keyframes, cel-painted opaque cores and sparse translucent edges. Requested exported frames are 512 square, so use maximum available source detail.",
+    "outputs": [
+      "effects/thermal-motes.png"
+    ]
+  },
+  {
+    "id": "effect-wind-streaks",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "prompt": "Production game effect sprite atlas: EXACTLY EIGHT square animation frames in a strict FOUR columns by TWO rows grid, 2:1 landscape canvas. Read left to right then next row. Each frame's effect stays wholly inside its square with at least 10% transparent padding, centred consistently. A looping group of pale ivory-cyan curved wind streaks travelling sideways; eight coherent frames, aerodynamic clean tapered arcs, no scene. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Genuine transparent background behind every effect; no dark backplate, no grid lines, no numerals. Eight clearly separate frames of ONE coherent action, drawn animation keyframes, cel-painted opaque cores and sparse translucent edges. Requested exported frames are 512 square, so use maximum available source detail.",
+    "outputs": [
+      "effects/wind-streaks.png"
+    ]
+  },
+  {
+    "id": "horizon-fields",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Sunseed Fields distant mountain ranges and low rolling hills. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #739cae, haze #f8c479, accent #ffdf7a, ground #456747, sun #fff1c2. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/fields-0-0.png",
+      "horizon/fields-1-0.png",
+      "horizon/fields-0-1.png",
+      "horizon/fields-1-1.png",
+      "horizon/fields-0-2.png",
+      "horizon/fields-1-2.png",
+      "horizon/fields-0-3.png",
+      "horizon/fields-1-3.png",
+      "horizon/fields-0-4.png",
+      "horizon/fields-1-4.png",
+      "horizon/fields-0-5.png",
+      "horizon/fields-1-5.png",
+      "horizon/fields-0-6.png",
+      "horizon/fields-1-6.png",
+      "horizon/fields-0-7.png",
+      "horizon/fields-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-city",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Crownline City distant retro-futuristic metropolis skylines. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #b98687, haze #f6bd86, accent #a1efe3, ground #465663, sun #ffd9a0. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/city-0-0.png",
+      "horizon/city-1-0.png",
+      "horizon/city-0-1.png",
+      "horizon/city-1-1.png",
+      "horizon/city-0-2.png",
+      "horizon/city-1-2.png",
+      "horizon/city-0-3.png",
+      "horizon/city-1-3.png",
+      "horizon/city-0-4.png",
+      "horizon/city-1-4.png",
+      "horizon/city-0-5.png",
+      "horizon/city-1-5.png",
+      "horizon/city-0-6.png",
+      "horizon/city-1-6.png",
+      "horizon/city-0-7.png",
+      "horizon/city-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-mountains",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Thunderhead Range distant jagged alpine mountain ranges. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #7c8d9c, haze #d5ad8d, accent #e9d09b, ground #535963, sun #f4e2c4. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/mountains-0-0.png",
+      "horizon/mountains-1-0.png",
+      "horizon/mountains-0-1.png",
+      "horizon/mountains-1-1.png",
+      "horizon/mountains-0-2.png",
+      "horizon/mountains-1-2.png",
+      "horizon/mountains-0-3.png",
+      "horizon/mountains-1-3.png",
+      "horizon/mountains-0-4.png",
+      "horizon/mountains-1-4.png",
+      "horizon/mountains-0-5.png",
+      "horizon/mountains-1-5.png",
+      "horizon/mountains-0-6.png",
+      "horizon/mountains-1-6.png",
+      "horizon/mountains-0-7.png",
+      "horizon/mountains-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-foundry",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Cinder Foundries distant foundry skylines with smokestacks. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #644d45, haze #c28754, accent #ffb454, ground #4d4345, sun #ffb070. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/foundry-0-0.png",
+      "horizon/foundry-1-0.png",
+      "horizon/foundry-0-1.png",
+      "horizon/foundry-1-1.png",
+      "horizon/foundry-0-2.png",
+      "horizon/foundry-1-2.png",
+      "horizon/foundry-0-3.png",
+      "horizon/foundry-1-3.png",
+      "horizon/foundry-0-4.png",
+      "horizon/foundry-1-4.png",
+      "horizon/foundry-0-5.png",
+      "horizon/foundry-1-5.png",
+      "horizon/foundry-0-6.png",
+      "horizon/foundry-1-6.png",
+      "horizon/foundry-0-7.png",
+      "horizon/foundry-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-harbor",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Tempest Docks distant port cranes and industrial dock skylines. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #667d84, haze #b1c0b5, accent #b4f2df, ground #3e5d61, sun #d9e6dc. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/harbor-0-0.png",
+      "horizon/harbor-1-0.png",
+      "horizon/harbor-0-1.png",
+      "horizon/harbor-1-1.png",
+      "horizon/harbor-0-2.png",
+      "horizon/harbor-1-2.png",
+      "horizon/harbor-0-3.png",
+      "horizon/harbor-1-3.png",
+      "horizon/harbor-0-4.png",
+      "horizon/harbor-1-4.png",
+      "horizon/harbor-0-5.png",
+      "horizon/harbor-1-5.png",
+      "horizon/harbor-0-6.png",
+      "horizon/harbor-1-6.png",
+      "horizon/harbor-0-7.png",
+      "horizon/harbor-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-launchworks",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Skyhook Works distant launch towers and orbital elevator works. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #a5a9a5, haze #efe0bd, accent #ffd38c, ground #716566, sun #fff3d2. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/launchworks-0-0.png",
+      "horizon/launchworks-1-0.png",
+      "horizon/launchworks-0-1.png",
+      "horizon/launchworks-1-1.png",
+      "horizon/launchworks-0-2.png",
+      "horizon/launchworks-1-2.png",
+      "horizon/launchworks-0-3.png",
+      "horizon/launchworks-1-3.png",
+      "horizon/launchworks-0-4.png",
+      "horizon/launchworks-1-4.png",
+      "horizon/launchworks-0-5.png",
+      "horizon/launchworks-1-5.png",
+      "horizon/launchworks-0-6.png",
+      "horizon/launchworks-1-6.png",
+      "horizon/launchworks-0-7.png",
+      "horizon/launchworks-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-red",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Vermilion Basin distant alien coral mountains and spires. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #6c2533, haze #de765d, accent #fff0bc, ground #9a4348, sun #1a0a10. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/red-0-0.png",
+      "horizon/red-1-0.png",
+      "horizon/red-0-1.png",
+      "horizon/red-1-1.png",
+      "horizon/red-0-2.png",
+      "horizon/red-1-2.png",
+      "horizon/red-0-3.png",
+      "horizon/red-1-3.png",
+      "horizon/red-0-4.png",
+      "horizon/red-1-4.png",
+      "horizon/red-0-5.png",
+      "horizon/red-1-5.png",
+      "horizon/red-0-6.png",
+      "horizon/red-1-6.png",
+      "horizon/red-0-7.png",
+      "horizon/red-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-blue",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Cobalt Drift distant floating reef mountains and rooted islands. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #193d77, haze #478bab, accent #b9fff1, ground #355d91, sun #cfe9ff. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/blue-0-0.png",
+      "horizon/blue-1-0.png",
+      "horizon/blue-0-1.png",
+      "horizon/blue-1-1.png",
+      "horizon/blue-0-2.png",
+      "horizon/blue-1-2.png",
+      "horizon/blue-0-3.png",
+      "horizon/blue-1-3.png",
+      "horizon/blue-0-4.png",
+      "horizon/blue-1-4.png",
+      "horizon/blue-0-5.png",
+      "horizon/blue-1-5.png",
+      "horizon/blue-0-6.png",
+      "horizon/blue-1-6.png",
+      "horizon/blue-0-7.png",
+      "horizon/blue-1-7.png"
+    ]
+  },
+  {
+    "id": "horizon-violet",
+    "sourceSize": [
+      1536,
+      1536
+    ],
+    "prompt": "Production transparent game sprite atlas: FOUR wide horizontal landscape silhouette strips stacked in FOUR EXACT equal-height rows, a square canvas. Each row is a separate 4:1 horizon card. No dividing lines, labels or margins between rows. Violet Inversion distant alien ring-stone ridges and cathedral spires. Each row has a distinct skyline; feet touch its row bottom, silhouette fills the lower half of that row with TRANSPARENT pixels above the ridge. Entire outside background MUST be genuine alpha transparency. Two flat haze tones, no foreground details, no ground perspective. 1970s anime cel-and-gouache painting. Visible brush direction, flat colour fields, two or three tones per surface, restrained dark ink edges. No photographs, photographic gradients, lens effects, labels, lettering, watermark or borders. Use this exact palette as colour anchors: sky #251633, haze #60436c, accent #e5b8ff, ground #503653, sun #100616. Four distinct silhouettes, readable at a far distance.",
+    "outputs": [
+      "horizon/violet-0-0.png",
+      "horizon/violet-1-0.png",
+      "horizon/violet-0-1.png",
+      "horizon/violet-1-1.png",
+      "horizon/violet-0-2.png",
+      "horizon/violet-1-2.png",
+      "horizon/violet-0-3.png",
+      "horizon/violet-1-3.png",
+      "horizon/violet-0-4.png",
+      "horizon/violet-1-4.png",
+      "horizon/violet-0-5.png",
+      "horizon/violet-1-5.png",
+      "horizon/violet-0-6.png",
+      "horizon/violet-1-6.png",
+      "horizon/violet-0-7.png",
+      "horizon/violet-1-7.png"
+    ]
+  }
+]

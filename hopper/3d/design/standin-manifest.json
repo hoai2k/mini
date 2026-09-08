@@ -1486,7 +1486,7 @@
       "region": "fields",
       "standIn": "terrain.sky",
       "final": "textures/sky/fields.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-002",
@@ -1496,7 +1496,7 @@
       "region": "city",
       "standIn": "terrain.sky",
       "final": "textures/sky/city.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-003",
@@ -1506,7 +1506,7 @@
       "region": "mountains",
       "standIn": "terrain.sky",
       "final": "textures/sky/mountains.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-004",
@@ -1516,7 +1516,7 @@
       "region": "foundry",
       "standIn": "terrain.sky",
       "final": "textures/sky/foundry.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-005",
@@ -1526,7 +1526,7 @@
       "region": "harbor",
       "standIn": "terrain.sky",
       "final": "textures/sky/harbor.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-006",
@@ -1536,7 +1536,7 @@
       "region": "launchworks",
       "standIn": "terrain.sky",
       "final": "textures/sky/launchworks.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-007",
@@ -1546,7 +1546,7 @@
       "region": "red",
       "standIn": "terrain.sky",
       "final": "textures/sky/red.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-008",
@@ -1556,7 +1556,7 @@
       "region": "blue",
       "standIn": "terrain.sky",
       "final": "textures/sky/blue.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-009",
@@ -1566,7 +1566,7 @@
       "region": "violet",
       "standIn": "terrain.sky",
       "final": "textures/sky/violet.ktx2",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-010",
@@ -1576,7 +1576,7 @@
       "region": "fields",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/fields-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-011",
@@ -1586,7 +1586,7 @@
       "region": "city",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/city-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-012",
@@ -1596,7 +1596,7 @@
       "region": "mountains",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/mountains-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-013",
@@ -1606,7 +1606,7 @@
       "region": "foundry",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/foundry-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-014",
@@ -1616,7 +1616,7 @@
       "region": "harbor",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/harbor-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-015",
@@ -1626,7 +1626,7 @@
       "region": "launchworks",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/launchworks-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-016",
@@ -1636,7 +1636,7 @@
       "region": "red",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/red-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-017",
@@ -1646,7 +1646,7 @@
       "region": "blue",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/blue-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-018",
@@ -1656,7 +1656,7 @@
       "region": "violet",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/violet-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-019",
@@ -1666,7 +1666,7 @@
       "region": "fields",
       "standIn": "texture.grass",
       "final": "textures/terrain/fields/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-020",
@@ -1676,7 +1676,7 @@
       "region": "city",
       "standIn": "texture.ivory",
       "final": "textures/terrain/city/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-021",
@@ -1686,7 +1686,7 @@
       "region": "mountains",
       "standIn": "texture.rock",
       "final": "textures/terrain/mountains/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-022",
@@ -1696,7 +1696,7 @@
       "region": "foundry",
       "standIn": "texture.iron",
       "final": "textures/terrain/foundry/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-023",
@@ -1706,7 +1706,7 @@
       "region": "harbor",
       "standIn": "texture.wetSteel",
       "final": "textures/terrain/harbor/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-024",
@@ -1716,7 +1716,7 @@
       "region": "launchworks",
       "standIn": "texture.rust",
       "final": "textures/terrain/launchworks/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-025",
@@ -1726,7 +1726,7 @@
       "region": "red",
       "standIn": "texture.coral",
       "final": "textures/terrain/red/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-026",
@@ -1736,7 +1736,7 @@
       "region": "blue",
       "standIn": "texture.reef",
       "final": "textures/terrain/blue/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-027",
@@ -1746,7 +1746,7 @@
       "region": "violet",
       "standIn": "texture.obsidian",
       "final": "textures/terrain/violet/",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-028",
@@ -1756,7 +1756,7 @@
       "region": "fields",
       "standIn": "texture.grass",
       "final": "textures/trim/fields.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-029",
@@ -1766,7 +1766,7 @@
       "region": "city",
       "standIn": "texture.ivory",
       "final": "textures/trim/city.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-030",
@@ -1776,7 +1776,7 @@
       "region": "mountains",
       "standIn": "texture.rock",
       "final": "textures/trim/mountains.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-031",
@@ -1786,7 +1786,7 @@
       "region": "foundry",
       "standIn": "texture.iron",
       "final": "textures/trim/foundry.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-032",
@@ -1796,7 +1796,7 @@
       "region": "harbor",
       "standIn": "texture.wetSteel",
       "final": "textures/trim/harbor.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-033",
@@ -1806,7 +1806,7 @@
       "region": "launchworks",
       "standIn": "texture.rust",
       "final": "textures/trim/launchworks.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-034",
@@ -1816,7 +1816,7 @@
       "region": "red",
       "standIn": "texture.coral",
       "final": "textures/trim/red.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-035",
@@ -1826,7 +1826,7 @@
       "region": "blue",
       "standIn": "texture.reef",
       "final": "textures/trim/blue.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-036",
@@ -1836,7 +1836,7 @@
       "region": "violet",
       "standIn": "texture.obsidian",
       "final": "textures/trim/violet.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-037",
@@ -1845,7 +1845,7 @@
       "category": "creature",
       "standIn": "texture.shadow",
       "final": "textures/creatures/shadow-hide.png",
-      "status": "stand-in"
+      "status": "delivered"
     },
     {
       "request": "T-038",
@@ -1861,7 +1861,7 @@
       "name": "Landing guide decal",
       "category": "ui",
       "final": "textures/ui/landing-guide.png",
-      "status": "open"
+      "status": "delivered"
     },
     {
       "request": "T-040",
@@ -1869,7 +1869,7 @@
       "name": "Lock-on reticle",
       "category": "ui",
       "final": "textures/ui/lock-on.png",
-      "status": "open"
+      "status": "delivered"
     },
     {
       "request": "T-041",
@@ -1877,7 +1877,7 @@
       "name": "HUD icons: dive, glide, lock-on, horizon view, crouch charge",
       "category": "ui",
       "final": "textures/ui/icons-3d.png",
-      "status": "open"
+      "status": "delivered"
     },
     {
       "request": "T-042",
@@ -1909,7 +1909,7 @@
       "name": "Effect sprites: laser impact, kick spark, stomp shockwave ring, thermal motes, wind streaks",
       "category": "effects",
       "final": "textures/effects/",
-      "status": "open"
+      "status": "delivered"
     },
     {
       "request": "T-046",
@@ -1917,7 +1917,7 @@
       "name": "Gravity seam and gate arrows",
       "category": "effects",
       "final": "textures/effects/gravity.png",
-      "status": "open"
+      "status": "delivered"
     },
     {
       "request": "T-047",
@@ -1925,7 +1925,7 @@
       "name": "Signal glyphs",
       "category": "ui",
       "final": "textures/ui/signals.png",
-      "status": "open"
+      "status": "delivered"
     }
   ]
 }

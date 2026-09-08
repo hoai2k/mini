@@ -1,0 +1,2086 @@
+{
+  "checkedAt": "2026-09-08",
+  "files": 235,
+  "failures": [],
+  "results": [
+    {
+      "file": "creatures/shadow-hide-emissive.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 549354,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "creatures/shadow-hide.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3198694,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "effects/gravity-seam.png",
+      "width": 1024,
+      "height": 128,
+      "alpha": true,
+      "bytes": 2331,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "effects/gravity.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 3752,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "effects/kick-spark.png",
+      "width": 2048,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 308750,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "effects/laser-impact.png",
+      "width": 2048,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 130758,
+      "alphaMin": 0,
+      "alphaMax": 253
+    },
+    {
+      "file": "effects/stomp-shockwave.png",
+      "width": 2048,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 249515,
+      "alphaMin": 0,
+      "alphaMax": 251
+    },
+    {
+      "file": "effects/thermal-motes.png",
+      "width": 2048,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 158375,
+      "alphaMin": 0,
+      "alphaMax": 252
+    },
+    {
+      "file": "effects/wind-streaks.png",
+      "width": 2048,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 110741,
+      "alphaMin": 0,
+      "alphaMax": 253
+    },
+    {
+      "file": "horizon/blue-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 133444,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 208455,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 176177,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 159643,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 133390,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 208475,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 176107,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 159685,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 131976,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 209525,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 176233,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 160294,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 131897,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 209520,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 176144,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/blue-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 160374,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 57120,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 67904,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 66316,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 69648,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 57036,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 67738,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 66466,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 69495,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 57428,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 68283,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 66651,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 69613,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 57336,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 68449,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 66467,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/city-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 69400,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 43895,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 55076,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 56816,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 36696,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 43845,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 55081,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 56781,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 36672,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 44230,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 55097,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 56701,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 36780,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 44295,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 55053,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 56670,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/fields-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 36720,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 68807,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 77730,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 69871,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 79990,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 68648,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 77916,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 70181,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 79654,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 68977,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 77907,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 69984,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 79514,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 68371,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 77950,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 70301,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/foundry-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 79345,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 249514,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 197228,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 256776,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 209284,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 249496,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 197345,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 256647,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 209368,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 250732,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 197229,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 256511,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 209284,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 250693,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 197346,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 256423,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/harbor-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 209368,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46879,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 49477,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46986,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 38761,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46887,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 49332,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46935,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 38784,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46692,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 49835,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46779,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 38614,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46711,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 49508,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 46982,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/launchworks-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 38667,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 102544,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95257,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 108757,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 96088,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 102490,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95421,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 108713,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95958,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 102460,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95332,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 109176,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 96113,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 102483,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95024,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 109129,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/mountains-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 96016,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 70871,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 93682,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 102023,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 98360,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 70890,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 93289,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 102258,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 98278,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 70850,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 93106,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 101774,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 97969,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 70865,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 93140,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 102544,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/red-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 98171,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 92814,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95089,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 92562,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 89610,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 92783,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95142,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 92564,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-0-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 89521,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-0.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 92957,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-1.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95170,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-2.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 93106,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-3.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 89696,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-4.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 92901,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-5.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 95271,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-6.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 93103,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "horizon/violet-1-7.png",
+      "width": 4096,
+      "height": 1024,
+      "alpha": true,
+      "bytes": 89797,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "sky/blue.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 3158792
+    },
+    {
+      "file": "sky/city.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 2524233
+    },
+    {
+      "file": "sky/fields.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 2595142
+    },
+    {
+      "file": "sky/foundry.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 2074278
+    },
+    {
+      "file": "sky/harbor.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 3136028
+    },
+    {
+      "file": "sky/launchworks.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 2885049
+    },
+    {
+      "file": "sky/mountains.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 2740002
+    },
+    {
+      "file": "sky/red.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 2280696
+    },
+    {
+      "file": "sky/violet.ktx2",
+      "width": 8192,
+      "height": 4096,
+      "mips": 14,
+      "bytes": 2699522
+    },
+    {
+      "file": "terrain/blue/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2878453,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/blue/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2847561,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/blue/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3193268,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/blue/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/city/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2417955,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/city/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2976122,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/city/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3204409,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/city/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/fields/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3185288,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/fields/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2920292,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/fields/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3001238,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/fields/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/foundry/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3104016,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/foundry/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3253242,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/foundry/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3263412,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/foundry/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/harbor/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3467716,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/harbor/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3232779,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/harbor/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3308390,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/harbor/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/launchworks/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3429498,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/launchworks/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3279759,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/launchworks/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2999480,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/launchworks/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/mountains/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3318883,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/mountains/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2758040,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/mountains/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3168873,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/mountains/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/red/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3326799,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/red/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3083563,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/red/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3030391,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/red/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "terrain/violet/cliff.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 2613392,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/violet/ground.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3175645,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/violet/path.png",
+      "width": 2048,
+      "height": 2048,
+      "alpha": false,
+      "bytes": 3094545,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "terrain/violet/splat.png",
+      "width": 512,
+      "height": 512,
+      "alpha": false,
+      "bytes": 7892
+    },
+    {
+      "file": "trim/blue-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 5879906,
+      "seamMeanX": 0,
+      "seamMeanY": 29.11669921875
+    },
+    {
+      "file": "trim/blue.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 5906681,
+      "seamMeanX": 0,
+      "seamMeanY": 32.236979166666664
+    },
+    {
+      "file": "trim/city-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 16426,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "trim/city.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 5615408,
+      "seamMeanX": 0,
+      "seamMeanY": 29.404134114583332
+    },
+    {
+      "file": "trim/fields-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 16426,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "trim/fields.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 5917871,
+      "seamMeanX": 0,
+      "seamMeanY": 138.68904622395834
+    },
+    {
+      "file": "trim/foundry-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 1104156,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "trim/foundry.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 6857829,
+      "seamMeanX": 0,
+      "seamMeanY": 33.954752604166664
+    },
+    {
+      "file": "trim/harbor-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 16426,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "trim/harbor.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 5299139,
+      "seamMeanX": 0,
+      "seamMeanY": 32.646484375
+    },
+    {
+      "file": "trim/launchworks-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 16426,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "trim/launchworks.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 5668587,
+      "seamMeanX": 0,
+      "seamMeanY": 29.829182942708332
+    },
+    {
+      "file": "trim/mountains-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 16426,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "trim/mountains.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 6126123,
+      "seamMeanX": 0,
+      "seamMeanY": 34.463216145833336
+    },
+    {
+      "file": "trim/red-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 16426,
+      "seamMeanX": 0,
+      "seamMeanY": 0
+    },
+    {
+      "file": "trim/red.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 5454752,
+      "seamMeanX": 0,
+      "seamMeanY": 29.766194661458332
+    },
+    {
+      "file": "trim/violet-emissive.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 4161757,
+      "seamMeanX": 0,
+      "seamMeanY": 28.3154296875
+    },
+    {
+      "file": "trim/violet.png",
+      "width": 4096,
+      "height": 4096,
+      "alpha": false,
+      "bytes": 6252985,
+      "seamMeanX": 0,
+      "seamMeanY": 26.90673828125
+    },
+    {
+      "file": "ui/icons/crouch-charge.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "bytes": 1786,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/icons/dive.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "bytes": 1429,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/icons/glide.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "bytes": 1899,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/icons/horizon-view.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "bytes": 1663,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/icons/lock-on.png",
+      "width": 128,
+      "height": 128,
+      "alpha": true,
+      "bytes": 1547,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/icons-3d.png",
+      "width": 640,
+      "height": 128,
+      "alpha": true,
+      "bytes": 7773,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/landing-guide.png",
+      "width": 512,
+      "height": 512,
+      "alpha": true,
+      "bytes": 26249,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/lock-on-locked.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 1058,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/lock-on.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 1085,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/blue.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 4027,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/city.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 2605,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/fields.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 3131,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/foundry.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 2882,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/harbor.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 3242,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/launchworks.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 2859,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/mountains.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 3406,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/red.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 4366,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals/violet.png",
+      "width": 256,
+      "height": 256,
+      "alpha": true,
+      "bytes": 2522,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "file": "ui/signals.png",
+      "width": 768,
+      "height": 768,
+      "alpha": true,
+      "bytes": 28581,
+      "alphaMin": 0,
+      "alphaMax": 255
+    }
+  ]
+}

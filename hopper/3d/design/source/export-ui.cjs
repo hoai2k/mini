@@ -1,0 +1,18 @@
+const fs=require('node:fs/promises'),path=require('node:path'),sharp=require(process.env.SHARP_MODULE||'sharp');
+const out=path.resolve(__dirname,'../../textures');
+const svg=(body,w=128,h=w)=>`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><g fill="none" stroke="#e8e0c8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">${body}</g></svg>`;
+async function write(name,body,w=128,h=w){const str=svg(body,w,h),file=path.join(out,name);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file+'.svg',str);await sharp(Buffer.from(str)).png().toFile(file+'.png');}
+(async()=>{
+await write('ui/landing-guide','<g stroke="#18232b" stroke-width="22"><circle cx="256" cy="256" r="192"/><path d="M224 256h64M256 224v64"/></g><g stroke="#fff" stroke-width="10"><circle cx="256" cy="256" r="192"/><path d="M224 256h64M256 224v64"/></g>',512);
+for(const [name,m] of [['lock-on',40],['lock-on-locked',66]]){let p='';for(const [x,y,dx,dy]of[[m,m,1,1],[256-m,m,-1,1],[m,256-m,1,-1],[256-m,256-m,-1,-1]])p+=`<path d="M${x} ${y+dy*38}v${-dy*38}h${dx*38}"/>`;await write('ui/'+name,p,256);}
+const icons={dive:'<path d="M42 20l22 58 22-58M40 86l24 24 24-24M28 28v24M100 28v24"/>',glide:'<path d="M64 74L14 38l14 40 36 12 36-12 14-40-50 36ZM64 74v32"/>','lock-on':'<path d="M20 46V20h26M82 20h26v26M20 82v26h26M82 108h26V82"/><circle cx="64" cy="64" r="15"/>','horizon-view':'<path d="M12 84h104M20 72l26-26 18 18 22-34 24 42"/><circle cx="30" cy="30" r="10"/>','crouch-charge':'<path d="M28 66q36-38 72 0M28 66l-12 30h28M100 66l12 30H84M58 16l-6 23h21l-9 23"/>'};
+let atlas=[];for(const [i,[name,body]]of Object.entries(icons).entries()){await write('ui/icons/'+name,body);atlas.push({input:await sharp(Buffer.from(svg(body))).png().toBuffer(),left:i*128,top:0});}
+await sharp({create:{width:640,height:128,channels:4,background:'#0000'}}).composite(atlas).png().toFile(path.join(out,'ui/icons-3d.png'));
+const regions=['fields','city','mountains','foundry','harbor','launchworks','red','blue','violet'];
+const marks=['<path d="M64 86V42m0 18L46 44m18 25 20-21"/>','<path d="M44 84V58h14V38h14v46h14V54"/>','<path d="M34 84l28-44 32 44M52 56l10 9 9-10"/>','<path d="M44 82V62l14 6V46l26 16v20Z"/>','<path d="M64 40v44M44 70q20 30 40 0M54 54h20"/>','<path d="M56 78V54l8-18 8 18v24M54 86l10 10 10-10"/>','<circle cx="64" cy="64" r="20"/><path d="M64 32v6M64 90v6M32 64h6M90 64h6"/>','<path d="M68 36q-34 28 0 56-4-28 0-56Z"/>','<path d="M46 84V46l-10 10M82 44v38l10-10M48 64h32"/>'];
+let signals=[];for(let i=0;i<9;i++){const body=`<path d="M64 12l52 52-52 52L12 64Z"/>${marks[i]}`;await write('ui/signals/'+regions[i],`<g transform="scale(2)">${body}</g>`,256);signals.push({input:await fs.readFile(path.join(out,'ui/signals/'+regions[i]+'.png')),left:i%3*256,top:Math.floor(i/3)*256});}
+await sharp({create:{width:768,height:768,channels:4,background:'#0000'}}).composite(signals).png().toFile(path.join(out,'ui/signals.png'));
+await write('effects/gravity','<g stroke="#251633" stroke-width="20"><path d="M128 216V40M64 106l64-66 64 66"/></g><g stroke="#e5b8ff" stroke-width="12"><path d="M128 216V40M64 106l64-66 64 66"/></g>',256);
+let seam='';for(let i=0;i<8;i++)seam+=`<path d="M${i*128+30} 24l40 40-40 40"/>`;await write('effects/gravity-seam',`<g stroke="#a56cff" stroke-width="14">${seam}</g>`,1024,128);
+await fs.writeFile(path.join(out,'ui/atlas.json'),JSON.stringify({icons:{file:'icons-3d.png',frame:[128,128],order:Object.keys(icons)},signals:{file:'signals.png',frame:[256,256],columns:3,order:regions},lockOn:{open:'lock-on.png',locked:'lock-on-locked.png',transition:'Interpolate bracket inset from 40 to 66 pixels; crossfade supplied states if drawing as sprites.'}},null,2));
+})();
