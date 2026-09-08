@@ -10,6 +10,12 @@ export interface GameSettings {
   sfx: number;
   shake: boolean;
   assist: boolean;
+  /** 3D edition only: 0..1 right-stick/mouse look sensitivity. */
+  cameraSensitivity: number;
+  /** 3D edition only: flip the vertical look axis. */
+  invertY: boolean;
+  /** 3D edition only: show the landing-guide reticle while airborne. */
+  landingGuide: boolean;
 }
 export interface GameSnapshot {
   mission: number;
@@ -29,6 +35,12 @@ export interface GameSnapshot {
   bannerSmall: string;
   boss: null | { name: string; health: number; phase: number; tell: string };
   completed: boolean;
+  /** 3D edition only: metres above the surface below Hopper while airborne. */
+  height?: number;
+  /** 3D edition only: metres to the region's exit landmark. */
+  landmark?: { name: string; distance: number };
+  /** 3D edition only: a short contextual hint shown in the HUD. */
+  hint?: string;
 }
 interface Particle {
   x: number;
@@ -150,6 +162,15 @@ const emptyInput: InputFrame = {
   connected: false,
   active: 'keyboard',
   disconnected: false,
+  diveHeld: false,
+  divePressed: false,
+  lockHeld: false,
+  lockPressed: false,
+  chargeHeld: false,
+  horizonHeld: false,
+  cameraResetPressed: false,
+  mouseLookX: 0,
+  mouseLookY: 0,
 };
 export class Engine {
   rumble: (strength: number, duration: number) => void = () => {};
@@ -207,6 +228,9 @@ export class Engine {
     sfx: 0.65,
     shake: true,
     assist: false,
+    cameraSensitivity: 0.5,
+    invertY: false,
+    landingGuide: true,
   };
   hp = 7;
   maxHp = 7;
