@@ -22,7 +22,12 @@
       ],
       "standIn": "hopper.proxy",
       "final": "models/hopper-rider.glb",
-      "status": "delivered"
+      "status": "delivered",
+      "references": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ]
     },
     {
       "request": "M-001",
@@ -37,7 +42,15 @@
       ],
       "standIn": "hopper.proxy",
       "final": "models/hopper-rider.glb (new clips)",
-      "status": "open"
+      "status": "open",
+      "references": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ],
+      "needs": [
+        "T-079"
+      ]
     },
     {
       "request": "M-002",
@@ -52,7 +65,15 @@
       ],
       "standIn": "hopper.proxy",
       "final": "models/hopper-rider.glb (new rider clips)",
-      "status": "open"
+      "status": "open",
+      "references": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ],
+      "needs": [
+        "T-079"
+      ]
     },
     {
       "request": "M-003",
@@ -68,7 +89,14 @@
       ],
       "standIn": "enemy.shadeHound",
       "final": "models/enemies/shadeHound.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/shadeHound.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-048"
+      ]
     },
     {
       "request": "M-004",
@@ -84,7 +112,14 @@
       ],
       "standIn": "enemy.seedSpitter",
       "final": "models/enemies/seedSpitter.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/seedSpitter.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-049"
+      ]
     },
     {
       "request": "M-005",
@@ -100,7 +135,14 @@
       ],
       "standIn": "enemy.windowRay",
       "final": "models/enemies/windowRay.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/windowRay.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-050"
+      ]
     },
     {
       "request": "M-006",
@@ -116,7 +158,14 @@
       ],
       "standIn": "enemy.spireLeech",
       "final": "models/enemies/spireLeech.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/spireLeech.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-051"
+      ]
     },
     {
       "request": "M-007",
@@ -132,7 +181,14 @@
       ],
       "standIn": "enemy.cragTortoise",
       "final": "models/enemies/cragTortoise.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/cragTortoise.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-052"
+      ]
     },
     {
       "request": "M-008",
@@ -148,7 +204,14 @@
       ],
       "standIn": "enemy.riftCondor",
       "final": "models/enemies/riftCondor.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/riftCondor.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-053"
+      ]
     },
     {
       "request": "M-009",
@@ -164,7 +227,14 @@
       ],
       "standIn": "enemy.furnaceHound",
       "final": "models/enemies/furnaceHound.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/furnaceHound.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-054"
+      ]
     },
     {
       "request": "M-010",
@@ -180,7 +250,14 @@
       ],
       "standIn": "enemy.slagCaster",
       "final": "models/enemies/slagCaster.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/slagCaster.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-055"
+      ]
     },
     {
       "request": "M-011",
@@ -196,7 +273,14 @@
       ],
       "standIn": "enemy.chainManta",
       "final": "models/enemies/chainManta.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/chainManta.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-056"
+      ]
     },
     {
       "request": "M-012",
@@ -212,7 +296,14 @@
       ],
       "standIn": "enemy.ballastCrab",
       "final": "models/enemies/ballastCrab.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/ballastCrab.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-057"
+      ]
     },
     {
       "request": "M-013",
@@ -228,7 +319,14 @@
       ],
       "standIn": "enemy.coilWraith",
       "final": "models/enemies/coilWraith.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/coilWraith.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-058"
+      ]
     },
     {
       "request": "M-014",
@@ -244,7 +342,14 @@
       ],
       "standIn": "enemy.turbineWasp",
       "final": "models/enemies/turbineWasp.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/turbineWasp.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-059"
+      ]
     },
     {
       "request": "M-015",
@@ -260,7 +365,14 @@
       ],
       "standIn": "enemy.basaltBurrower",
       "final": "models/enemies/basaltBurrower.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/basaltBurrower.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-060"
+      ]
     },
     {
       "request": "M-016",
@@ -276,7 +388,14 @@
       ],
       "standIn": "enemy.thornChoir",
       "final": "models/enemies/thornChoir.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/thornChoir.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-061"
+      ]
     },
     {
       "request": "M-017",
@@ -292,7 +411,14 @@
       ],
       "standIn": "enemy.veilMedusa",
       "final": "models/enemies/veilMedusa.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/veilMedusa.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-062"
+      ]
     },
     {
       "request": "M-018",
@@ -308,7 +434,14 @@
       ],
       "standIn": "enemy.phaseSkate",
       "final": "models/enemies/phaseSkate.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/phaseSkate.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-063"
+      ]
     },
     {
       "request": "M-019",
@@ -324,7 +457,14 @@
       ],
       "standIn": "enemy.mirrorStalker",
       "final": "models/enemies/mirrorStalker.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/mirrorStalker.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-064"
+      ]
     },
     {
       "request": "M-020",
@@ -340,7 +480,14 @@
       ],
       "standIn": "enemy.gravityCantor",
       "final": "models/enemies/gravityCantor.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/enemies/gravityCantor.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-065"
+      ]
     },
     {
       "request": "M-021",
@@ -356,7 +503,14 @@
       ],
       "standIn": "boss.nightRook",
       "final": "models/bosses/nightRook.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/bosses/nightRook.png",
+        "design/assets/boss-canonical-lineup.png"
+      ],
+      "needs": [
+        "T-066"
+      ]
     },
     {
       "request": "M-022",
@@ -372,7 +526,14 @@
       ],
       "standIn": "boss.smelterLeviathan",
       "final": "models/bosses/smelterLeviathan.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/bosses/smelterLeviathan.png",
+        "design/assets/boss-canonical-lineup.png"
+      ],
+      "needs": [
+        "T-067"
+      ]
     },
     {
       "request": "M-023",
@@ -388,7 +549,14 @@
       ],
       "standIn": "boss.eclipseRegent",
       "final": "models/bosses/eclipseRegent.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/bosses/eclipseRegent.png",
+        "design/assets/boss-canonical-lineup.png"
+      ],
+      "needs": [
+        "T-068"
+      ]
     },
     {
       "request": "M-024",
@@ -404,7 +572,14 @@
       ],
       "standIn": "structure.fields.terraceStep",
       "final": "models/structures/fields/terraceStep.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
     },
     {
       "request": "M-025",
@@ -420,7 +595,14 @@
       ],
       "standIn": "structure.fields.farmhouse",
       "final": "models/structures/fields/farmhouse.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
     },
     {
       "request": "M-026",
@@ -436,7 +618,14 @@
       ],
       "standIn": "structure.fields.silo",
       "final": "models/structures/fields/silo.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
     },
     {
       "request": "M-027",
@@ -452,7 +641,14 @@
       ],
       "standIn": "structure.fields.windbreak",
       "final": "models/structures/fields/windbreak.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
     },
     {
       "request": "M-028",
@@ -468,7 +664,14 @@
       ],
       "standIn": "structure.fields.seedPod",
       "final": "models/structures/fields/seedPod.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
     },
     {
       "request": "M-029",
@@ -484,7 +687,14 @@
       ],
       "standIn": "structure.city.ivoryTower",
       "final": "models/structures/city/ivoryTower.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-030",
@@ -500,7 +710,14 @@
       ],
       "standIn": "structure.city.roofDeck",
       "final": "models/structures/city/roofDeck.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-031",
@@ -516,7 +733,14 @@
       ],
       "standIn": "structure.city.railSpan",
       "final": "models/structures/city/railSpan.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-032",
@@ -532,7 +756,14 @@
       ],
       "standIn": "structure.city.trainCar",
       "final": "models/structures/city/trainCar.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-033",
@@ -548,7 +779,14 @@
       ],
       "standIn": "structure.city.constructionCrown",
       "final": "models/structures/city/constructionCrown.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-034",
@@ -564,7 +802,14 @@
       ],
       "standIn": "structure.city.billboard",
       "final": "models/structures/city/billboard.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-035",
@@ -580,7 +825,14 @@
       ],
       "standIn": "structure.city.observatoryDome",
       "final": "models/structures/city/observatoryDome.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-036",
@@ -596,7 +848,14 @@
       ],
       "standIn": "structure.mountains.cragColumn",
       "final": "models/structures/mountains/cragColumn.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
     },
     {
       "request": "M-037",
@@ -612,7 +871,14 @@
       ],
       "standIn": "structure.mountains.ledgeShelf",
       "final": "models/structures/mountains/ledgeShelf.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
     },
     {
       "request": "M-038",
@@ -628,7 +894,14 @@
       ],
       "standIn": "structure.mountains.ravineBridge",
       "final": "models/structures/mountains/ravineBridge.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
     },
     {
       "request": "M-039",
@@ -644,7 +917,14 @@
       ],
       "standIn": "structure.mountains.transmitterMast",
       "final": "models/structures/mountains/transmitterMast.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
     },
     {
       "request": "M-040",
@@ -660,7 +940,14 @@
       ],
       "standIn": "structure.mountains.windsock",
       "final": "models/structures/mountains/windsock.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
     },
     {
       "request": "M-041",
@@ -676,7 +963,14 @@
       ],
       "standIn": "structure.foundry.furnaceTower",
       "final": "models/structures/foundry/furnaceTower.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
     },
     {
       "request": "M-042",
@@ -692,7 +986,14 @@
       ],
       "standIn": "structure.foundry.conveyorSpan",
       "final": "models/structures/foundry/conveyorSpan.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
     },
     {
       "request": "M-043",
@@ -708,7 +1009,14 @@
       ],
       "standIn": "structure.foundry.chimney",
       "final": "models/structures/foundry/chimney.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
     },
     {
       "request": "M-044",
@@ -724,7 +1032,14 @@
       ],
       "standIn": "structure.foundry.slagBarge",
       "final": "models/structures/foundry/slagBarge.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
     },
     {
       "request": "M-045",
@@ -740,7 +1055,14 @@
       ],
       "standIn": "structure.foundry.stampingPress",
       "final": "models/structures/foundry/stampingPress.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
     },
     {
       "request": "M-046",
@@ -756,7 +1078,14 @@
       ],
       "standIn": "structure.harbor.craneBoom",
       "final": "models/structures/harbor/craneBoom.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
     },
     {
       "request": "M-047",
@@ -772,7 +1101,14 @@
       ],
       "standIn": "structure.harbor.containerStack",
       "final": "models/structures/harbor/containerStack.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
     },
     {
       "request": "M-048",
@@ -788,7 +1124,14 @@
       ],
       "standIn": "structure.harbor.freighter",
       "final": "models/structures/harbor/freighter.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
     },
     {
       "request": "M-049",
@@ -804,7 +1147,14 @@
       ],
       "standIn": "structure.harbor.gantryTower",
       "final": "models/structures/harbor/gantryTower.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
     },
     {
       "request": "M-050",
@@ -820,7 +1170,14 @@
       ],
       "standIn": "structure.harbor.breakwater",
       "final": "models/structures/harbor/breakwater.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
     },
     {
       "request": "M-051",
@@ -836,7 +1193,14 @@
       ],
       "standIn": "structure.launchworks.launchRing",
       "final": "models/structures/launchworks/launchRing.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
     },
     {
       "request": "M-052",
@@ -852,7 +1216,14 @@
       ],
       "standIn": "structure.launchworks.rocket",
       "final": "models/structures/launchworks/rocket.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
     },
     {
       "request": "M-053",
@@ -868,7 +1239,14 @@
       ],
       "standIn": "structure.launchworks.pistonStair",
       "final": "models/structures/launchworks/pistonStair.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
     },
     {
       "request": "M-054",
@@ -884,7 +1262,14 @@
       ],
       "standIn": "structure.launchworks.exhaustShaft",
       "final": "models/structures/launchworks/exhaustShaft.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
     },
     {
       "request": "M-055",
@@ -900,7 +1285,14 @@
       ],
       "standIn": "structure.launchworks.gantryElevator",
       "final": "models/structures/launchworks/gantryElevator.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
     },
     {
       "request": "M-056",
@@ -916,7 +1308,14 @@
       ],
       "standIn": "structure.red.ivoryRibArch",
       "final": "models/structures/red/ivoryRibArch.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
     },
     {
       "request": "M-057",
@@ -932,7 +1331,14 @@
       ],
       "standIn": "structure.red.coralSpire",
       "final": "models/structures/red/coralSpire.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
     },
     {
       "request": "M-058",
@@ -948,7 +1354,14 @@
       ],
       "standIn": "structure.red.basinTerrace",
       "final": "models/structures/red/basinTerrace.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
     },
     {
       "request": "M-059",
@@ -964,7 +1377,14 @@
       ],
       "standIn": "structure.red.coralBridge",
       "final": "models/structures/red/coralBridge.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
     },
     {
       "request": "M-060",
@@ -980,7 +1400,14 @@
       ],
       "standIn": "structure.blue.floatingReef",
       "final": "models/structures/blue/floatingReef.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/blue.webp"
+      ],
+      "needs": [
+        "T-076"
+      ]
     },
     {
       "request": "M-061",
@@ -996,7 +1423,14 @@
       ],
       "standIn": "structure.blue.rootPillar",
       "final": "models/structures/blue/rootPillar.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/blue.webp"
+      ],
+      "needs": [
+        "T-076"
+      ]
     },
     {
       "request": "M-062",
@@ -1012,7 +1446,14 @@
       ],
       "standIn": "structure.blue.dustCurrent",
       "final": "models/structures/blue/dustCurrent.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/blue.webp"
+      ],
+      "needs": [
+        "T-076"
+      ]
     },
     {
       "request": "M-063",
@@ -1028,7 +1469,14 @@
       ],
       "standIn": "structure.violet.obsidianArch",
       "final": "models/structures/violet/obsidianArch.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
     },
     {
       "request": "M-064",
@@ -1044,7 +1492,14 @@
       ],
       "standIn": "structure.violet.ringShard",
       "final": "models/structures/violet/ringShard.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
     },
     {
       "request": "M-065",
@@ -1060,7 +1515,14 @@
       ],
       "standIn": "structure.violet.cathedralFacade",
       "final": "models/structures/violet/cathedralFacade.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
     },
     {
       "request": "M-066",
@@ -1076,7 +1538,14 @@
       ],
       "standIn": "structure.violet.gravitySeam",
       "final": "models/structures/violet/gravitySeam.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
     },
     {
       "request": "M-067",
@@ -1092,7 +1561,14 @@
       ],
       "standIn": "structure.violet.eclipseDais",
       "final": "models/structures/violet/eclipseDais.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
     },
     {
       "request": "M-068",
@@ -1107,7 +1583,15 @@
       ],
       "standIn": "prop.springPad",
       "final": "models/props/springPad.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-069",
@@ -1122,7 +1606,15 @@
       ],
       "standIn": "prop.signalBeacon",
       "final": "models/props/signalBeacon.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-070",
@@ -1137,7 +1629,15 @@
       ],
       "standIn": "prop.signalCage",
       "final": "models/props/signalCage.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-071",
@@ -1152,7 +1652,15 @@
       ],
       "standIn": "prop.lockdownEmitter",
       "final": "models/props/lockdownEmitter.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-072",
@@ -1167,7 +1675,15 @@
       ],
       "standIn": "prop.lockdownDome",
       "final": "models/props/lockdownDome.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-073",
@@ -1182,7 +1698,15 @@
       ],
       "standIn": "prop.checkpointTotem",
       "final": "models/props/checkpointTotem.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-074",
@@ -1197,7 +1721,15 @@
       ],
       "standIn": "prop.recoveryCapsule",
       "final": "models/props/recoveryCapsule.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-075",
@@ -1212,7 +1744,15 @@
       ],
       "standIn": "prop.thermalVent",
       "final": "models/props/thermalVent.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-076",
@@ -1227,7 +1767,15 @@
       ],
       "standIn": "prop.windLane",
       "final": "models/props/windLane.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-077",
@@ -1242,7 +1790,15 @@
       ],
       "standIn": "prop.gravityGate",
       "final": "models/props/gravityGate.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-078",
@@ -1257,7 +1813,15 @@
       ],
       "standIn": "prop.launchGate",
       "final": "models/props/launchGate.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-079",
@@ -1272,7 +1836,15 @@
       ],
       "standIn": "prop.laserBolt",
       "final": "models/props/laserBolt.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-080",
@@ -1287,7 +1859,15 @@
       ],
       "standIn": "prop.kickArc",
       "final": "models/props/kickArc.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-081",
@@ -1302,7 +1882,15 @@
       ],
       "standIn": "prop.shieldDome",
       "final": "models/props/shieldDome.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-082",
@@ -1317,7 +1905,15 @@
       ],
       "standIn": "prop.dissolveBurst",
       "final": "models/props/dissolveBurst.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
     },
     {
       "request": "M-083",
@@ -1333,7 +1929,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/fields.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-069"
+      ]
     },
     {
       "request": "M-084",
@@ -1349,7 +1951,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/city.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-070"
+      ]
     },
     {
       "request": "M-085",
@@ -1365,7 +1973,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/mountains.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-071"
+      ]
     },
     {
       "request": "M-086",
@@ -1381,7 +1995,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/foundry.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-072"
+      ]
     },
     {
       "request": "M-087",
@@ -1397,7 +2017,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/harbor.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-073"
+      ]
     },
     {
       "request": "M-088",
@@ -1413,7 +2039,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/launchworks.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-074"
+      ]
     },
     {
       "request": "M-089",
@@ -1429,7 +2061,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/red.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-075"
+      ]
     },
     {
       "request": "M-090",
@@ -1445,7 +2083,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/blue.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-076"
+      ]
     },
     {
       "request": "M-091",
@@ -1461,7 +2105,13 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/violet.glb",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "the region board and horizon cards (T-010..T-018)"
+      ],
+      "needs": [
+        "T-077"
+      ]
     },
     {
       "request": "M-092",
@@ -1476,7 +2126,12 @@
       ],
       "standIn": "terrain.heightfield",
       "final": "models/terrain/<region>.glb + heightmap PNG",
-      "status": "stand-in"
+      "status": "stand-in",
+      "references": [
+        "design/assets/level-1-earth.png",
+        "design/assets/level-2-industry.png",
+        "design/assets/level-3-alien.png"
+      ]
     },
     {
       "request": "T-001",
@@ -1486,7 +2141,8 @@
       "region": "fields",
       "standIn": "terrain.sky",
       "final": "textures/sky/fields.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-002",
@@ -1496,7 +2152,8 @@
       "region": "city",
       "standIn": "terrain.sky",
       "final": "textures/sky/city.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-003",
@@ -1506,7 +2163,8 @@
       "region": "mountains",
       "standIn": "terrain.sky",
       "final": "textures/sky/mountains.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-004",
@@ -1516,7 +2174,8 @@
       "region": "foundry",
       "standIn": "terrain.sky",
       "final": "textures/sky/foundry.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-005",
@@ -1526,7 +2185,8 @@
       "region": "harbor",
       "standIn": "terrain.sky",
       "final": "textures/sky/harbor.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-006",
@@ -1536,7 +2196,8 @@
       "region": "launchworks",
       "standIn": "terrain.sky",
       "final": "textures/sky/launchworks.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-007",
@@ -1546,7 +2207,8 @@
       "region": "red",
       "standIn": "terrain.sky",
       "final": "textures/sky/red.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-008",
@@ -1556,7 +2218,8 @@
       "region": "blue",
       "standIn": "terrain.sky",
       "final": "textures/sky/blue.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-009",
@@ -1566,7 +2229,8 @@
       "region": "violet",
       "standIn": "terrain.sky",
       "final": "textures/sky/violet.ktx2",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-010",
@@ -1576,7 +2240,8 @@
       "region": "fields",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/fields-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-011",
@@ -1586,7 +2251,8 @@
       "region": "city",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/city-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-012",
@@ -1596,7 +2262,8 @@
       "region": "mountains",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/mountains-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-013",
@@ -1606,7 +2273,8 @@
       "region": "foundry",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/foundry-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-014",
@@ -1616,7 +2284,8 @@
       "region": "harbor",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/harbor-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-015",
@@ -1626,7 +2295,8 @@
       "region": "launchworks",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/launchworks-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-016",
@@ -1636,7 +2306,8 @@
       "region": "red",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/red-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-017",
@@ -1646,7 +2317,8 @@
       "region": "blue",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/blue-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-018",
@@ -1656,7 +2328,8 @@
       "region": "violet",
       "standIn": "terrain.horizon",
       "final": "textures/horizon/violet-<ring>-<n>.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-019",
@@ -1666,7 +2339,8 @@
       "region": "fields",
       "standIn": "texture.grass",
       "final": "textures/terrain/fields/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-020",
@@ -1676,7 +2350,8 @@
       "region": "city",
       "standIn": "texture.ivory",
       "final": "textures/terrain/city/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-021",
@@ -1686,7 +2361,8 @@
       "region": "mountains",
       "standIn": "texture.rock",
       "final": "textures/terrain/mountains/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-022",
@@ -1696,7 +2372,8 @@
       "region": "foundry",
       "standIn": "texture.iron",
       "final": "textures/terrain/foundry/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-023",
@@ -1706,7 +2383,8 @@
       "region": "harbor",
       "standIn": "texture.wetSteel",
       "final": "textures/terrain/harbor/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-024",
@@ -1716,7 +2394,8 @@
       "region": "launchworks",
       "standIn": "texture.rust",
       "final": "textures/terrain/launchworks/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-025",
@@ -1726,7 +2405,8 @@
       "region": "red",
       "standIn": "texture.coral",
       "final": "textures/terrain/red/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-026",
@@ -1736,7 +2416,8 @@
       "region": "blue",
       "standIn": "texture.reef",
       "final": "textures/terrain/blue/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-027",
@@ -1746,7 +2427,8 @@
       "region": "violet",
       "standIn": "texture.obsidian",
       "final": "textures/terrain/violet/",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-028",
@@ -1756,7 +2438,8 @@
       "region": "fields",
       "standIn": "texture.grass",
       "final": "textures/trim/fields.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-029",
@@ -1766,7 +2449,8 @@
       "region": "city",
       "standIn": "texture.ivory",
       "final": "textures/trim/city.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-030",
@@ -1776,7 +2460,8 @@
       "region": "mountains",
       "standIn": "texture.rock",
       "final": "textures/trim/mountains.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-031",
@@ -1786,7 +2471,8 @@
       "region": "foundry",
       "standIn": "texture.iron",
       "final": "textures/trim/foundry.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-032",
@@ -1796,7 +2482,8 @@
       "region": "harbor",
       "standIn": "texture.wetSteel",
       "final": "textures/trim/harbor.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-033",
@@ -1806,7 +2493,8 @@
       "region": "launchworks",
       "standIn": "texture.rust",
       "final": "textures/trim/launchworks.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-034",
@@ -1816,7 +2504,8 @@
       "region": "red",
       "standIn": "texture.coral",
       "final": "textures/trim/red.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-035",
@@ -1826,7 +2515,8 @@
       "region": "blue",
       "standIn": "texture.reef",
       "final": "textures/trim/blue.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-036",
@@ -1836,7 +2526,8 @@
       "region": "violet",
       "standIn": "texture.obsidian",
       "final": "textures/trim/violet.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-037",
@@ -1845,7 +2536,8 @@
       "category": "creature",
       "standIn": "texture.shadow",
       "final": "textures/creatures/shadow-hide.png",
-      "status": "stand-in"
+      "status": "stand-in",
+      "round": 1
     },
     {
       "request": "T-038",
@@ -1853,7 +2545,8 @@
       "name": "Toon ramps",
       "category": "shading",
       "final": "procedural (final)",
-      "status": "procedural-final"
+      "status": "procedural-final",
+      "round": 1
     },
     {
       "request": "T-039",
@@ -1861,7 +2554,8 @@
       "name": "Landing guide decal",
       "category": "ui",
       "final": "textures/ui/landing-guide.png",
-      "status": "open"
+      "status": "open",
+      "round": 1
     },
     {
       "request": "T-040",
@@ -1869,7 +2563,8 @@
       "name": "Lock-on reticle",
       "category": "ui",
       "final": "textures/ui/lock-on.png",
-      "status": "open"
+      "status": "open",
+      "round": 1
     },
     {
       "request": "T-041",
@@ -1877,7 +2572,8 @@
       "name": "HUD icons: dive, glide, lock-on, horizon view, crouch charge",
       "category": "ui",
       "final": "textures/ui/icons-3d.png",
-      "status": "open"
+      "status": "open",
+      "round": 1
     },
     {
       "request": "T-042",
@@ -1885,7 +2581,8 @@
       "name": "Controller diagram (3D controls)",
       "category": "ui",
       "final": "design/source/controller-3d.svg",
-      "status": "delivered"
+      "status": "delivered",
+      "round": 1
     },
     {
       "request": "T-043",
@@ -1893,7 +2590,8 @@
       "name": "Title poster and logo",
       "category": "ui",
       "final": "game/public/assets/inspiration.png, hopper-logo.png",
-      "status": "delivered"
+      "status": "delivered",
+      "round": 1
     },
     {
       "request": "T-044",
@@ -1901,7 +2599,8 @@
       "name": "Episode cards and transitions",
       "category": "ui",
       "final": "design/assets/level-*.png",
-      "status": "delivered"
+      "status": "delivered",
+      "round": 1
     },
     {
       "request": "T-045",
@@ -1909,7 +2608,8 @@
       "name": "Effect sprites: laser impact, kick spark, stomp shockwave ring, thermal motes, wind streaks",
       "category": "effects",
       "final": "textures/effects/",
-      "status": "open"
+      "status": "open",
+      "round": 1
     },
     {
       "request": "T-046",
@@ -1917,7 +2617,8 @@
       "name": "Gravity seam and gate arrows",
       "category": "effects",
       "final": "textures/effects/gravity.png",
-      "status": "open"
+      "status": "open",
+      "round": 1
     },
     {
       "request": "T-047",
@@ -1925,7 +2626,326 @@
       "name": "Signal glyphs",
       "category": "ui",
       "final": "textures/ui/signals.png",
-      "status": "open"
+      "status": "open",
+      "round": 1
+    },
+    {
+      "request": "T-048",
+      "kind": "image",
+      "name": "Turnaround: Shade Hound",
+      "category": "reference",
+      "region": "fields",
+      "final": "design/references/enemies/shadeHound-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-049",
+      "kind": "image",
+      "name": "Turnaround: Seed Spitter",
+      "category": "reference",
+      "region": "fields",
+      "final": "design/references/enemies/seedSpitter-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-050",
+      "kind": "image",
+      "name": "Turnaround: Window Ray",
+      "category": "reference",
+      "region": "city",
+      "final": "design/references/enemies/windowRay-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-051",
+      "kind": "image",
+      "name": "Turnaround: Spire Leech",
+      "category": "reference",
+      "region": "city",
+      "final": "design/references/enemies/spireLeech-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-052",
+      "kind": "image",
+      "name": "Turnaround: Crag Tortoise",
+      "category": "reference",
+      "region": "mountains",
+      "final": "design/references/enemies/cragTortoise-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-053",
+      "kind": "image",
+      "name": "Turnaround: Rift Condor",
+      "category": "reference",
+      "region": "mountains",
+      "final": "design/references/enemies/riftCondor-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-054",
+      "kind": "image",
+      "name": "Turnaround: Furnace Hound",
+      "category": "reference",
+      "region": "foundry",
+      "final": "design/references/enemies/furnaceHound-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-055",
+      "kind": "image",
+      "name": "Turnaround: Slag Caster",
+      "category": "reference",
+      "region": "foundry",
+      "final": "design/references/enemies/slagCaster-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-056",
+      "kind": "image",
+      "name": "Turnaround: Chain Manta",
+      "category": "reference",
+      "region": "harbor",
+      "final": "design/references/enemies/chainManta-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-057",
+      "kind": "image",
+      "name": "Turnaround: Ballast Crab",
+      "category": "reference",
+      "region": "harbor",
+      "final": "design/references/enemies/ballastCrab-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-058",
+      "kind": "image",
+      "name": "Turnaround: Coil Wraith",
+      "category": "reference",
+      "region": "launchworks",
+      "final": "design/references/enemies/coilWraith-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-059",
+      "kind": "image",
+      "name": "Turnaround: Turbine Wasp",
+      "category": "reference",
+      "region": "launchworks",
+      "final": "design/references/enemies/turbineWasp-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-060",
+      "kind": "image",
+      "name": "Turnaround: Basalt Burrower",
+      "category": "reference",
+      "region": "red",
+      "final": "design/references/enemies/basaltBurrower-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-061",
+      "kind": "image",
+      "name": "Turnaround: Thorn Choir",
+      "category": "reference",
+      "region": "red",
+      "final": "design/references/enemies/thornChoir-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-062",
+      "kind": "image",
+      "name": "Turnaround: Veil Medusa",
+      "category": "reference",
+      "region": "blue",
+      "final": "design/references/enemies/veilMedusa-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-063",
+      "kind": "image",
+      "name": "Turnaround: Phase Skate",
+      "category": "reference",
+      "region": "blue",
+      "final": "design/references/enemies/phaseSkate-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-064",
+      "kind": "image",
+      "name": "Turnaround: Mirror Stalker",
+      "category": "reference",
+      "region": "violet",
+      "final": "design/references/enemies/mirrorStalker-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-065",
+      "kind": "image",
+      "name": "Turnaround: Gravity Cantor",
+      "category": "reference",
+      "region": "violet",
+      "final": "design/references/enemies/gravityCantor-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-066",
+      "kind": "image",
+      "name": "Turnaround: Night Rook",
+      "category": "reference",
+      "region": "mountains",
+      "final": "design/references/bosses/nightRook-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-067",
+      "kind": "image",
+      "name": "Turnaround: Smelter Leviathan",
+      "category": "reference",
+      "region": "launchworks",
+      "final": "design/references/bosses/smelterLeviathan-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-068",
+      "kind": "image",
+      "name": "Turnaround: Eclipse Regent",
+      "category": "reference",
+      "region": "violet",
+      "final": "design/references/bosses/eclipseRegent-turnaround.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-069",
+      "kind": "image",
+      "name": "Kit sheet: Sunseed Fields",
+      "category": "reference",
+      "region": "fields",
+      "final": "design/references/kits/fields.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-070",
+      "kind": "image",
+      "name": "Kit sheet: Crownline City",
+      "category": "reference",
+      "region": "city",
+      "final": "design/references/kits/city.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-071",
+      "kind": "image",
+      "name": "Kit sheet: Thunderhead Range",
+      "category": "reference",
+      "region": "mountains",
+      "final": "design/references/kits/mountains.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-072",
+      "kind": "image",
+      "name": "Kit sheet: Cinder Foundries",
+      "category": "reference",
+      "region": "foundry",
+      "final": "design/references/kits/foundry.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-073",
+      "kind": "image",
+      "name": "Kit sheet: Tempest Docks",
+      "category": "reference",
+      "region": "harbor",
+      "final": "design/references/kits/harbor.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-074",
+      "kind": "image",
+      "name": "Kit sheet: Skyhook Works",
+      "category": "reference",
+      "region": "launchworks",
+      "final": "design/references/kits/launchworks.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-075",
+      "kind": "image",
+      "name": "Kit sheet: Vermilion Basin",
+      "category": "reference",
+      "region": "red",
+      "final": "design/references/kits/red.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-076",
+      "kind": "image",
+      "name": "Kit sheet: Cobalt Drift",
+      "category": "reference",
+      "region": "blue",
+      "final": "design/references/kits/blue.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-077",
+      "kind": "image",
+      "name": "Kit sheet: Violet Inversion",
+      "category": "reference",
+      "region": "violet",
+      "final": "design/references/kits/violet.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-078",
+      "kind": "image",
+      "name": "Props sheet",
+      "category": "reference",
+      "final": "design/references/props.png",
+      "status": "open",
+      "round": 2
+    },
+    {
+      "request": "T-079",
+      "kind": "image",
+      "name": "Hopper pose sheet for the new clips",
+      "category": "reference",
+      "final": "design/references/hopper-new-clips.png",
+      "status": "open",
+      "round": 2
     }
   ]
 }

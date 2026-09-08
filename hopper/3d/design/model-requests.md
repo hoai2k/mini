@@ -2,6 +2,8 @@
 
 Every model the 3D edition needs, with the rig it must have. Ids are stable: the stand-in manifest, the stand-in registry and the game code use them. `Stand-in` names the procedural placeholder from `hopper/3d/standins/` that is in use until the model arrives; `Final` is where the delivered GLB goes. Generated from `source/build_requests.py`; edit the data there, not this file.
 
+**Round two references.** Before any model here is started, its reference sheet from `image-requests-round-2.md` is generated and approved: a turnaround per species and commander, a kit sheet per region, a props sheet and a Hopper pose sheet for the new clips. That document maps every sheet to the models that wait on it. A single side-view sprite is not enough to model from; a turnaround is.
+
 Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mesh_quantization` and `EXT_meshopt_compression` like the delivered Hopper GLBs, hand-painted albedo (no photographic PBR), emissive masks for cores and lights, LOD0 and LOD1 in the same file, and named sockets as empties. Root motion only where a clip says so.
 
 ## Rig types
@@ -466,6 +468,12 @@ Landmarks are the far things: each region shows its exit from its entrance, so e
 One sculpted heightfield per region with the route's plateaus, valleys and floor levels authored in, plus separate cliff meshes where slopes exceed 60°. The game keeps sampling the heightmap for collision, so the sculpt and the heightmap are delivered together. Vertex-painted four-tone colour bands.
 
 - **Rig:** static · **Size:** 2400 × 300 × 2400 m per region · **Triangles:** 60k per region (heightfield + cliff meshes) · **Stand-in:** `terrain.heightfield` · **Final:** `models/terrain/<region>.glb + heightmap PNG`
+
+## Generation order
+
+1. Round one images (`image-requests.md`): skies, horizon cards, terrain sets and trim sheets for the region being built, UI and effects at any time.
+2. Round two reference sheets (`image-requests-round-2.md`): the Hopper pose sheet, the four mission-one species turnarounds, the Sunseed and Crownline kit sheets, the props sheet; then the rest by mission.
+3. Models, each only after its reference sheet is approved: Hopper clips, mission-one species, mission-one kits, props, the Night Rook; then missions two and three.
 
 ## Delivery checks
 

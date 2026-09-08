@@ -1,6 +1,6 @@
 # Image and texture requests (3D edition)
 
-Skies, horizon cards, terrain sets, trim sheets, creature hide, UI and effects for the 3D game. Everything marked `stand-in` has a procedural placeholder in `hopper/3d/standins/src/textures.js` or `terrain.js` that the game renders until the painting arrives. Generated from `source/build_requests.py`; edit the data there.
+Round one: skies, horizon cards, terrain sets, trim sheets, creature hide, UI and effects for the 3D game. Round two, the model reference sheets, is in [image-requests-round-2.md](image-requests-round-2.md) and was added after round one had begun, so this file is unchanged apart from this note. Everything marked `stand-in` has a procedural placeholder in `hopper/3d/standins/src/textures.js` or `terrain.js` that the game renders until the painting arrives. Generated from `source/build_requests.py`; edit the data there.
 
 Style for every painted request: the 2D game's 1970s cel-and-gouache look. Flat colour fields, two or three tones per surface, visible brush direction, dark ink edges where the 2D sprites have them, no photographic gradients, no lens flare, no text. Region palettes are the exact hex values in `hopper/3d/standins/src/palette.js` (the same ones the 2D game uses).
 
