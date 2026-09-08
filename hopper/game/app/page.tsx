@@ -703,7 +703,7 @@ export default function Home() {
                 }
                 alt={
                   edition === '3d'
-                    ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB crouch charge, LB horizon view, Menu pause, View instructions.'
+                    ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
                     : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
                 }
               />
@@ -761,7 +761,7 @@ export default function Home() {
                   <>
                     KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
                     <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
-                    lasers <span>L</span> guard <span>Q</span> lock-on
+                    lasers <span>L</span> guard <span>Q</span> lock-on <span>SHIFT</span> sprint <span>E</span> dash
                   </>
                 ) : (
                   <>
@@ -1056,7 +1056,7 @@ export default function Home() {
                     }
                     alt={
                       edition === '3d'
-                        ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB crouch charge, LB horizon view, Menu pause, View instructions.'
+                        ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
                         : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
                     }
                   />
@@ -1077,9 +1077,10 @@ export default function Home() {
                       </p>
                       <p>
                         <b className="pad y">Y</b>
-                        <strong>Dive stomp</strong> In the air, dive straight
-                        down and stomp on landing; a shockwave knocks shadows
-                        into the air. On the ground, a quick hop back.
+                        <strong>Dive stomp · charge</strong> In the air, dive
+                        straight down and stomp on landing; a shockwave knocks
+                        shadows into the air. On the ground, tap for a quick
+                        hop back, or hold to crouch and charge a super leap.
                       </p>
                       <p>
                         <b className="pad b">B</b>
@@ -1094,18 +1095,26 @@ export default function Home() {
                       </p>
                       <p>
                         <b className="trigger">LT</b>
-                        <strong>Lock-on</strong> Hold to keep a shadow framed
-                        and strafe around it; tap to switch.
+                        <strong>Lock-on</strong> Hold to aim over Hopper&apos;s
+                        shoulder with the shadow in the crosshair; tap to
+                        switch.
                       </p>
                       <p>
                         <b className="trigger">RB</b>
-                        <strong>Crouch charge</strong> Hold to compress the
-                        hind legs, release for a super leap.
+                        <strong>Sprint</strong> Hold to run flat out; the
+                        speed carries into a jump.
                       </p>
                       <p>
                         <b className="trigger">LB</b>
-                        <strong>Horizon view</strong> Hold to frame the far
-                        landmark and the next checkpoint.
+                        <strong>Dash</strong> A fast burst the way the stick
+                        points, on the ground or in the air. Held with the
+                        stick centred, it fires the moment you move.
+                      </p>
+                      <p>
+                        <strong>The view faces the way forward</strong> Turn
+                        it up to 45° with the right stick; click the stick for
+                        Horizon View. Hopper can turn round and run toward the
+                        camera whenever he needs to.
                       </p>
                       <p>
                         <strong>Falling never hurts</strong> Every drop has a
@@ -1174,9 +1183,9 @@ export default function Home() {
                       KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
                       <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
                       lasers <span>L</span> guard <span>Q</span> lock-on{' '}
-                      <span>SHIFT</span> charge <span>TAB</span> horizon{' '}
-                      <span>C</span> reset camera · click the game to steer the
-                      camera with the mouse
+                      <span>SHIFT</span> sprint <span>E</span> dash{' '}
+                      <span>TAB</span> horizon view · click the game to turn
+                      the view with the mouse
                     </>
                   ) : (
                     <>

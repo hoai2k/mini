@@ -57,6 +57,8 @@ export class Engine3D implements GameEngine {
   private hintT = 0;
   private pending = { jump: false, kick: false, dive: false, lock: false, reset: false };
   private lockHeldPrev = false;
+  /** Seconds Y has been held on the ground: a tap hops back, a hold charges. */
+  private yHold = -1;
   private predicted: { x: number; y: number; z: number } | null = null;
   private onClick = () => {
     if (!this.paused && document.pointerLockElement !== this.canvas) void this.canvas.requestPointerLock?.()?.catch?.(() => {});
@@ -111,7 +113,7 @@ export class Engine3D implements GameEngine {
     this.resetPlayer();
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
-    this.setHint('Hold A to soar. Keep holding to glide.', 6);
+    this.setHint('Hold A to soar. Keep holding to glide. RB sprints, LB dashes.', 7);
     this.emit();
   }
   private resetPlayer() {
@@ -194,8 +196,21 @@ export class Engine3D implements GameEngine {
     const locked = combat.lock ? combat.shadows.find((s) => s.id === combat.lock && s.alive) || null : null;
     if (!locked) combat.lock = null;
 
-    // Movement.
+    // Movement. Y on the ground: tap to hop back, hold to crouch and charge.
     const intent = intentFromInput(f, this.camera.yaw);
+    if (h.grounded) {
+      if (f.divePressed) this.yHold = 0;
+      else if (this.yHold >= 0 && f.diveHeld) this.yHold += dt;
+      if (this.yHold >= 0 && !f.diveHeld) {
+        if (this.yHold < 0.18) intent.hopBackPressed = true;
+        this.yHold = -1;
+      }
+      intent.chargeHeld = this.yHold >= 0.18 && f.diveHeld;
+      intent.divePressed = false;
+    } else {
+      this.yHold = -1;
+      intent.chargeHeld = false;
+    }
     if (locked) {
       intent.faceX = locked.x - h.x;
       intent.faceZ = locked.z - h.z;
@@ -214,6 +229,10 @@ export class Engine3D implements GameEngine {
       } else if (e.kind === 'wallKick' || e.kind === 'spring') this.sound('jump');
       else if (e.kind === 'glideStart') this.sound('shield');
       else if (e.kind === 'dive') this.sound('kick');
+      else if (e.kind === 'dash') {
+        this.sound('shield');
+        this.rumble(0.3, 60);
+      }
     }
     // Combat: aim from the eye sockets along the facing, tilted with the camera.
     const aim = this.aimDirection();
@@ -265,11 +284,18 @@ export class Engine3D implements GameEngine {
       } catch {}
     }
     // Camera and the landing prediction.
-    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z] }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
+    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], waypoint: this.waypoint() }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
     this.predicted = !h.grounded && h.height > 3 && !h.gliding ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
     if (this.time > 20 && this.time < 20.1) this.setHint('LB: Horizon View shows the way to Crownline.', 6);
+  }
+  /** The route's next stop: the first unlit totem ahead, else the exit. */
+  private waypoint(): [number, number, number] {
+    const d = this.district!,
+      h = this.player;
+    const next = this.checkpoints.find((t, i) => i > this.checkpointIndex && Math.hypot(t.x - h.x, t.z - h.z) > 25);
+    return next ? [next.x, next.y, next.z] : [d.exit.x, 0, d.exit.z];
   }
   private lockScore(s: Shadow, forward: [number, number, number]) {
     const h = this.player;

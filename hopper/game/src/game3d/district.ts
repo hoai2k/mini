@@ -127,7 +127,7 @@ export function sunseedFields(): District {
     mission: 0,
     name: 'Sunseed Fields',
     subtitle: 'Eyes forward. Wings open. Feet downward.',
-    size: 2400,
+    size: 4800,
     terrain: {
       seed: 11,
       relief: 34,

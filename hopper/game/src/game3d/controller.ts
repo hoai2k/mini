@@ -40,9 +40,13 @@ export const MOVE = {
   buffer: 0.14,
   stompLag: 0.35,
   brake: 120,
+  sprint: 1.6,
+  dashSpeed: 130,
+  dashTime: 0.28,
+  dashCooldown: 0.55,
 };
 
-export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack';
+export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack' | 'dash';
 
 export interface HopperState {
   x: number;
@@ -85,6 +89,13 @@ export interface HopperState {
   hitstun: number;
   /** Seconds A has been held while airborne; a glide needs a moment of it. */
   glideHold: number;
+  dashTimer: number;
+  dashCooldown: number;
+  /** LB held with no direction: the dash fires when the stick moves. */
+  dashArmed: boolean;
+  dashX: number;
+  dashZ: number;
+  sprinting: boolean;
 }
 export type MoveEvent =
   | { kind: 'jump'; charged: boolean }
@@ -95,11 +106,12 @@ export type MoveEvent =
   | { kind: 'glideStart' }
   | { kind: 'glideEnd' }
   | { kind: 'dive' }
-  | { kind: 'hopBack' };
+  | { kind: 'hopBack' }
+  | { kind: 'dash' };
 
 export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
   return {
-    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0,
+    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false,
   };
 }
 
@@ -114,6 +126,11 @@ export interface MoveIntent {
   diveHeld: boolean;
   chargeHeld: boolean;
   guardHeld: boolean;
+  /** Y tapped on the ground: a quick hop backward. */
+  hopBackPressed?: boolean;
+  dashPressed?: boolean;
+  dashHeld?: boolean;
+  sprintHeld?: boolean;
   /** Strafe: keep facing while moving (lock-on). */
   faceX?: number;
   faceZ?: number;
@@ -131,7 +148,7 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
     dz = forwardZ * -f.moveY + rightZ * f.moveX;
   const len = Math.hypot(dx, dz);
   const k = len > 1 ? 1 / len : 1;
-  return { dx: dx * k, dz: dz * k, jumpPressed: f.jumpPressed, jumpHeld: f.jumpHeld, divePressed: f.divePressed, diveHeld: f.diveHeld, chargeHeld: f.chargeHeld, guardHeld: f.blockHeld };
+  return { dx: dx * k, dz: dz * k, jumpPressed: f.jumpPressed, jumpHeld: f.jumpHeld, divePressed: f.divePressed, diveHeld: f.diveHeld, chargeHeld: f.chargeHeld, guardHeld: f.blockHeld, dashPressed: f.dashPressed, dashHeld: f.dashHeld, sprintHeld: f.sprintHeld };
 }
 
 const apexSpeed = (apex: number, g: number) => Math.sqrt(2 * g * apex);
@@ -215,6 +232,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   if (s.landTimer > 0) s.landTimer -= dt;
   if (s.stompTimer > 0) s.stompTimer -= dt;
   if (s.hopBackTimer > 0) s.hopBackTimer -= dt;
+  if (s.dashCooldown > 0) s.dashCooldown -= dt;
   if (s.wallTimer > 0) s.wallTimer -= dt;
   if (s.commit > 0) s.commit -= dt;
   if (s.buffer > 0) s.buffer -= dt;
@@ -223,8 +241,33 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
 
   // Horizontal intent.
   const wantLen = Math.hypot(intent.dx, intent.dz);
-  const canSteer = control && !busy && s.commit <= 0 && s.charge <= 0 && !(s.grounded && intent.chargeHeld);
-  if (s.hopBackTimer > 0) {
+  // Dash (LB): a burst in the stick direction, on the ground or in the air.
+  // Held with no direction, it arms and fires the moment the stick moves.
+  if (control && !busy && s.mantle <= 0 && s.dashCooldown <= 0 && s.dashTimer <= 0) {
+    if (intent.dashPressed && wantLen < 0.2) s.dashArmed = true;
+    if ((intent.dashPressed || (s.dashArmed && intent.dashHeld)) && wantLen >= 0.2) {
+      s.dashArmed = false;
+      s.dashTimer = MOVE.dashTime;
+      s.dashCooldown = MOVE.dashCooldown + MOVE.dashTime;
+      s.dashX = intent.dx / wantLen;
+      s.dashZ = intent.dz / wantLen;
+      s.gliding = false;
+      s.holding = false;
+      s.charge = 0;
+      s.yaw = Math.atan2(s.dashX, s.dashZ);
+      s.events.push({ kind: 'dash' });
+    }
+  }
+  if (!intent.dashHeld) s.dashArmed = false;
+  s.sprinting = !!intent.sprintHeld && s.grounded && s.charge <= 0 && !busy;
+  const canSteer = control && !busy && s.commit <= 0 && s.charge <= 0 && !(s.grounded && intent.chargeHeld) && s.dashTimer <= 0;
+  if (s.dashTimer > 0) {
+    s.dashTimer -= dt;
+    s.vx = s.dashX * MOVE.dashSpeed;
+    s.vz = s.dashZ * MOVE.dashSpeed;
+    if (!s.grounded && s.vy < 0) s.vy = 0;
+    s.move = 'dash';
+  } else if (s.hopBackTimer > 0) {
     // A committed step backward; velocity was set when it started.
   } else if (s.gliding) {
     // Glide: hold speed, steer the heading with the stick, sink slowly.
@@ -236,8 +279,9 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.yaw = turnToward(s.yaw, heading, MOVE.turnRate * dt);
   } else if (canSteer) {
     const accel = (s.grounded ? MOVE.groundAccel : MOVE.airAccel) * dt;
-    const tx = intent.dx * MOVE.run,
-      tz = intent.dz * MOVE.run;
+    const top = MOVE.run * (s.sprinting ? MOVE.sprint : 1);
+    const tx = intent.dx * top,
+      tz = intent.dz * top;
     if (s.grounded || wantLen > 0.05) {
       const ex = tx - s.vx,
         ez = tz - s.vz,
@@ -301,8 +345,8 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.move = 'jump';
     s.events.push({ kind: 'jump', charged: false });
   }
-  // Hop back on the ground (Y).
-  if (control && s.grounded && !busy && intent.divePressed && s.charge <= 0) {
+  // Hop back on the ground (a tap of Y).
+  if (control && s.grounded && !busy && intent.hopBackPressed && s.charge <= 0 && s.dashTimer <= 0) {
     s.hopBackTimer = MOVE.hopBackTime;
     s.invuln = Math.max(s.invuln, 0.2);
     s.vx = -Math.sin(s.yaw) * MOVE.hopBack;
@@ -505,9 +549,11 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     else if (s.landTimer > 0) s.move = 'land';
     else if (s.charge > 0 || (intent.chargeHeld && control)) s.move = 'crouch';
     else s.move = Math.hypot(s.vx, s.vz) > 2 ? 'run' : 'idle';
-  } else if (s.gliding) s.move = 'glide';
+  } else if (s.dashTimer > 0) s.move = 'dash';
+  else if (s.gliding) s.move = 'glide';
   else if (s.diving) s.move = 'dive';
   else s.move = s.vy > 0 ? 'jump' : 'fall';
+  if (s.grounded && s.dashTimer > 0) s.move = 'dash';
   return s.events;
 }
 

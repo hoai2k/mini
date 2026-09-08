@@ -27,6 +27,11 @@ export interface InputFrame {
   lockPressed: boolean;
   /** RB / left Shift. */
   chargeHeld: boolean;
+  /** LB / KeyE: a dash in the stick direction. */
+  dashPressed: boolean;
+  dashHeld: boolean;
+  /** RB / Shift: sprint while held. */
+  sprintHeld: boolean;
   /** LB / Tab. */
   horizonHeld: boolean;
   /** Right-stick click / keyboard C. */
@@ -85,6 +90,7 @@ export class InputManager {
     'ShiftRight',
     'Tab',
     'KeyC',
+    'KeyE',
   ]);
   private onKeyDown = (event: KeyboardEvent) => {
     if (
@@ -201,7 +207,9 @@ export class InputManager {
       padDiveEdge = false,
       padLock = false,
       padLockEdge = false,
-      padCharge = false,
+      padSprint = false,
+      padDash = false,
+      padDashEdge = false,
       padHorizon = false,
       padCameraReset = false;
     let selected =
@@ -245,8 +253,10 @@ export class InputManager {
       padDiveEdge ||= edge(3);
       padLock ||= held(6);
       padLockEdge ||= edge(6);
-      padCharge ||= held(5);
-      padHorizon ||= held(4);
+      padSprint ||= held(5);
+      padDash ||= held(4);
+      padDashEdge ||= edge(4);
+      padHorizon ||= held(11);
       padCameraReset ||= edge(11);
       if (
         anyEdge ||
@@ -306,7 +316,11 @@ export class InputManager {
       divePressed: edge('KeyF') || padDiveEdge,
       lockHeld: held('KeyQ') || padLock,
       lockPressed: edge('KeyQ') || padLockEdge,
-      chargeHeld: held('ShiftLeft', 'ShiftRight') || padCharge,
+      // The crouch charge is a held Y on the ground; the engine derives it.
+      chargeHeld: false,
+      dashPressed: edge('KeyE') || padDashEdge,
+      dashHeld: held('KeyE') || padDash,
+      sprintHeld: held('ShiftLeft', 'ShiftRight') || padSprint,
       horizonHeld: held('Tab') || padHorizon,
       cameraResetPressed: edge('KeyC') || padCameraReset,
       mouseLookX: this.mouseDX,
