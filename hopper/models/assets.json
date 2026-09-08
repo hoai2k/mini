@@ -1,0 +1,38 @@
+{
+  "status": "review snapshot for future game integration",
+  "assets": {
+    "hopper": {
+      "file": "hopper.glb",
+      "bytes": 2890228,
+      "sha256": "e7462deb990f75740dbf0781dbfadccf299d26f4b2d40b87b379600b576f2ec1",
+      "animation_count": 20,
+      "skins": 1,
+      "required_extensions": [
+        "KHR_mesh_quantization",
+        "EXT_meshopt_compression"
+      ]
+    },
+    "rider": {
+      "file": "rider.glb",
+      "bytes": 2369560,
+      "sha256": "b7efc466bc0dd36c51a339e43474ee87ea83c050a4e10d0b28e408161e152627",
+      "animation_count": 13,
+      "skins": 1,
+      "required_extensions": [
+        "KHR_mesh_quantization",
+        "EXT_meshopt_compression"
+      ]
+    },
+    "hopper-rider": {
+      "file": "hopper-rider.glb",
+      "bytes": 5376164,
+      "sha256": "3fe62cd8533f58b73e97076dd318f5fcaa577350e34bfce0248e39310b0cc1a1",
+      "animation_count": 25,
+      "skins": 2,
+      "required_extensions": [
+        "KHR_mesh_quantization",
+        "EXT_meshopt_compression"
+      ]
+    }
+  }
+}
