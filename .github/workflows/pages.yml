@@ -29,6 +29,9 @@ jobs:
         working-directory: hopper/game
       - run: pnpm typecheck && pnpm build:pages
         working-directory: hopper/game
+      - run: pnpm install --frozen-lockfile && pnpm test
+        working-directory: hopper/3d/standins
+      - run: hopper/3d/publish.sh local/pages/hopper
       - uses: actions/upload-pages-artifact@v3
         with:
           path: local/pages
