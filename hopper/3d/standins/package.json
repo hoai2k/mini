@@ -1,0 +1,16 @@
+{
+  "name": "hopper-3d-standins",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Procedural stand-in models, textures and terrain for the 3D Hopper design, used until the requested assets arrive.",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node test/standins.test.mjs"
+  },
+  "dependencies": {
+    "three": "0.185.1"
+  }
+}

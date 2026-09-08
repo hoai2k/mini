@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hopper 3D — stand-in viewer</title>
+    <link rel="icon" href="../../favicon.ico" />
+    <style>
+      :root { color-scheme: dark; font-family: 'Trebuchet MS', Arial, sans-serif; }
+      html, body { margin: 0; height: 100%; background: #152b2b; color: #f6edcc; overflow: hidden; }
+      canvas { display: block; }
+      #panel { position: absolute; top: 0; left: 0; bottom: 0; width: 280px; background: #0f1f1fdd; backdrop-filter: blur(6px); padding: 14px 16px; box-sizing: border-box; overflow-y: auto; font-size: 13px; border-right: 1px solid #ffffff22; }
+      #panel h1 { font-size: 15px; letter-spacing: 2px; margin: 0 0 4px; color: #ecd89b; }
+      #panel p { margin: 0 0 12px; color: #c9c2a8; line-height: 1.35; }
+      #panel h2 { font-size: 11px; letter-spacing: 2px; color: #ecd89b; margin: 14px 0 6px; text-transform: uppercase; }
+      #panel button { display: block; width: 100%; text-align: left; background: transparent; border: 1px solid #ffffff18; color: #f6edcc; padding: 5px 8px; margin: 2px 0; border-radius: 4px; cursor: pointer; font: inherit; }
+      #panel button:hover, #panel button:focus-visible { background: #fae5b522; border-color: #ecd89b; outline: none; }
+      #panel button.active { background: #ecd89b; color: #182f2b; font-weight: bold; }
+      #info { position: absolute; right: 14px; bottom: 12px; background: #0f1f1fcc; padding: 8px 12px; border-radius: 6px; font-size: 12px; max-width: 46vw; line-height: 1.4; }
+      #info b { color: #ecd89b; }
+      body.shot #panel, body.shot #info { display: none; }
+      #hint { position: absolute; left: 296px; top: 12px; font-size: 11px; color: #c9c2a8; letter-spacing: 1px; }
+      body.shot #hint { display: none; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="panel">
+      <h1>HOPPER 3D · STAND-INS</h1>
+      <p>Procedural placeholders for the 3D design. Every item here is waiting for the model or texture named in the request documents. Drag to orbit, scroll to zoom.</p>
+      <div id="groups"></div>
+    </div>
+    <div id="hint">STAND-IN ART · NOT FINAL</div>
+    <div id="info"></div>
+    <script type="module" src="./viewer.js"></script>
+  </body>
+</html>
