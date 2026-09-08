@@ -6,7 +6,8 @@ The 3D reinterpretation of Hopper: same title screen, music, characters, mission
 | --- | --- |
 | Design and production plan | [design/source/design.md](design/source/design.md) · [Word](design/Hopper_3D_Design.docx) · [PDF](design/Hopper_3D_Design.pdf) · [HTML](design/Hopper_3D_Design.html) (also published at https://hoai2k.github.io/mini/hopper/3d/design/Hopper_3D_Design.html) |
 | 3D model requests, with the rig each one needs | [design/model-requests.md](design/model-requests.md) |
-| Image and texture requests | [design/image-requests.md](design/image-requests.md) |
+| Image and texture requests, round one | [design/image-requests.md](design/image-requests.md) |
+| Round two: model reference sheets (generate before modelling) | [design/image-requests-round-2.md](design/image-requests-round-2.md) |
 | Stand-in manifest (request ↔ stand-in ↔ final file ↔ status) | [design/standin-manifest.json](design/standin-manifest.json) |
 | Procedural stand-ins (models, textures, terrain) | [standins/](standins/) |
 | Stand-in review viewer | [viewer/](viewer/) · published at https://hoai2k.github.io/mini/hopper/3d/viewer/ |
