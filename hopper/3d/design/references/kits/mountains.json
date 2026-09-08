@@ -1,0 +1,182 @@
+{
+  "correction": null,
+  "request": "T-071",
+  "name": "Kit sheet: Thunderhead Range",
+  "file": "kits/mountains.png",
+  "preview": "kits/mountains-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Thunderhead Range. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 5 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Crag column (57 x 94 x 57 metres X,Y,Z): Tilted stack of slate blocks with a turf cap. The gorge's stepping stones, 60–130 m tall. Movable parts: . Landable: top; Ledge shelf (52 x 9 x 19 metres X,Y,Z): Turf-topped rock shelf that bolts onto a cliff face. The unit every climbing route is built from. Movable parts: . Landable: shelf; Ravine bridge (124 x 42 x 10 metres X,Y,Z): Timber deck on slate pylons across a gorge. Wide enough to fight on, narrow enough to be knocked off. Movable parts: . Landable: deck; Summit transmitter (50 x 217 x 50 metres X,Y,Z): The mast on the summit: plinth, three mast sections, red rings, beacon. Region and mission landmark; the Night Rook's perch. Rings rotate (rigid). Movable parts: . Landable: plinth; Windsock (7 x 14 x 3 metres X,Y,Z): Orange sock on a pole, aligned to the nearest wind lane. Rigid pivot; a wind signal, not a platform. Movable parts: . Landable: none. Use mountains region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-1-earth.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-036",
+    "M-037",
+    "M-038",
+    "M-039",
+    "M-040"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-036",
+      "name": "Crag column",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        57,
+        94,
+        57
+      ],
+      "tris": "4k",
+      "standIn": "structure.mountains.cragColumn",
+      "final": "models/structures/mountains/cragColumn.glb",
+      "status": "stand-in",
+      "summary": "Tilted stack of slate blocks with a turf cap. The gorge's stepping stones, 60–130 m tall.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "mountains",
+      "landings": "top",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
+    },
+    {
+      "request": "M-037",
+      "name": "Ledge shelf",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        52,
+        9,
+        19
+      ],
+      "tris": "1.5k",
+      "standIn": "structure.mountains.ledgeShelf",
+      "final": "models/structures/mountains/ledgeShelf.glb",
+      "status": "stand-in",
+      "summary": "Turf-topped rock shelf that bolts onto a cliff face. The unit every climbing route is built from.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "mountains",
+      "landings": "shelf",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
+    },
+    {
+      "request": "M-038",
+      "name": "Ravine bridge",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        124,
+        42,
+        10
+      ],
+      "tris": "3k",
+      "standIn": "structure.mountains.ravineBridge",
+      "final": "models/structures/mountains/ravineBridge.glb",
+      "status": "stand-in",
+      "summary": "Timber deck on slate pylons across a gorge. Wide enough to fight on, narrow enough to be knocked off.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "mountains",
+      "landings": "deck",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
+    },
+    {
+      "request": "M-039",
+      "name": "Summit transmitter",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        50,
+        217,
+        50
+      ],
+      "tris": "8k",
+      "standIn": "structure.mountains.transmitterMast",
+      "final": "models/structures/mountains/transmitterMast.glb",
+      "status": "stand-in",
+      "summary": "The mast on the summit: plinth, three mast sections, red rings, beacon. Region and mission landmark; the Night Rook's perch. Rings rotate (rigid).",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "mountains",
+      "landings": "plinth",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
+    },
+    {
+      "request": "M-040",
+      "name": "Windsock",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        7,
+        14,
+        3
+      ],
+      "tris": "0.5k",
+      "standIn": "structure.mountains.windsock",
+      "final": "models/structures/mountains/windsock.glb",
+      "status": "stand-in",
+      "summary": "Orange sock on a pole, aligned to the nearest wind lane. Rigid pivot; a wind signal, not a platform.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "mountains",
+      "landings": "none",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/mountains.webp"
+      ],
+      "needs": [
+        "T-071"
+      ]
+    }
+  ]
+}

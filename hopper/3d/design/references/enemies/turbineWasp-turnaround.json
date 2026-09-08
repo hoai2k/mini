@@ -1,0 +1,61 @@
+{
+  "correction": {
+    "id": "T-059",
+    "prompt": "Correct Turbine Wasp anatomy consistently across this seven-view sheet. Exactly THREE ducted fans TOTAL: left and right shoulder fans, and ONE midline rear fan below/behind body. The back view (third top figure) currently incorrectly has two lower fans: replace them with a SINGLE central lower fan between the two legs. Top view already correctly has three fans. Front view should reveal the edge of ONE central third fan below body if visible. Exactly TWO dangling claw legs, ONE tail stinger. Preserve remaining art/palette/cream background and layout, no extra appendages.",
+    "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-0c32cf1d-b106-431b-a479-7c42edcc4153.png"
+  },
+  "request": "T-059",
+  "name": "Turnaround: Turbine Wasp",
+  "file": "enemies/turbineWasp-turnaround.png",
+  "preview": "enemies/turbineWasp-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Turbine Wasp. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Exactly THREE ducted fan pods and TWO dangling legs, one pointed head with ivory eye, one stinger tail. Fans have separate blades inside unchanged housings. Model target bounds X,Y,Z metres: [7.7, 3.4, 6.1]. Rig/sockets to make visually possible: Core (intake ring), Fan.L/R/Tail, Hitbox.Body, Landing (after guard break). Attack behaviour: Hover, Intake_Tell (ring contracts), Dash (root motion), Guard_Break (fans stall), Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/turbineWasp.png"
+  ],
+  "modelRequests": [
+    "M-014"
+  ],
+  "anatomy": "Exactly THREE ducted fan pods and TWO dangling legs, one pointed head with ivory eye, one stinger tail. Fans have separate blades inside unchanged housings.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-014",
+      "name": "Turbine Wasp",
+      "category": "enemy",
+      "rig": "rigid",
+      "size": [
+        7.7,
+        3.4,
+        6.1
+      ],
+      "tris": "6k / 2k",
+      "standIn": "enemy.turbineWasp",
+      "final": "models/enemies/turbineWasp.glb",
+      "status": "stand-in",
+      "summary": "Three blunt fan lobes and a pointed tail. Contracts its intake ring, then dashes. Kicking it stalls the fans and turns it into a platform for a follow-up stomp.",
+      "joints": "body, 3 fan pivots (spin), intake ring, stinger, 2 legs",
+      "clips": "Hover, Intake_Tell (ring contracts), Dash (root motion), Guard_Break (fans stall), Hit, Dissolve",
+      "sockets": "Core (intake ring), Fan.L/R/Tail, Hitbox.Body, Landing (after guard break)",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "launchworks",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/turbineWasp.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-059"
+      ]
+    }
+  ]
+}

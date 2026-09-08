@@ -1,0 +1,122 @@
+{
+  "correction": null,
+  "request": "T-078-1",
+  "name": "Props plate 2",
+  "file": "plates/props-2.png",
+  "preview": "plates/props-2-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. 3D game prop modelling reference sheet. Draw 3 object groups. Each group contains FOUR views: front idle, three-quarter idle, front active, three-quarter active. Do not merge different objects. Lockdown emitter: Obsidian pylon with a violet emitter. Pairs raise the lockdown dome around a knot or boss arena. Target X,Y,Z: [10, 18, 10] metres. Rig: rigid, moving parts , sockets .; Lockdown dome: Translucent violet field (shader). Blocks Hopper, never hurts; drops when the arena is cleared. Target X,Y,Z: [520, 260, 520] metres. Rig: static, moving parts , sockets .; Checkpoint totem: Ivory post with red bands and a lamp. Lights when reached (emissive swap); Hopper respawns beside it. Target X,Y,Z: [3, 15, 3] metres. Rig: rigid, moving parts , sockets .  Maintain shared scale within each group; show a 14m Hopper silhouette beside one object for context. For enormous shader volumes add a small separate volume outline, with a readable enlarged hardware detail; do not make physical solids from energy effects. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. Request 3840x1920 wide. No text or numbers. Operational differences must be visible. Active state uses painted coloured emission, not photographic bloom.",
+  "references": [
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-071",
+    "M-072",
+    "M-073"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-071",
+      "name": "Lockdown emitter",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        10,
+        18,
+        10
+      ],
+      "tris": "1k",
+      "standIn": "prop.lockdownEmitter",
+      "final": "models/props/lockdownEmitter.glb",
+      "status": "stand-in",
+      "summary": "Obsidian pylon with a violet emitter. Pairs raise the lockdown dome around a knot or boss arena.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-072",
+      "name": "Lockdown dome",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        520,
+        260,
+        520
+      ],
+      "tris": "1k",
+      "standIn": "prop.lockdownDome",
+      "final": "models/props/lockdownDome.glb",
+      "status": "stand-in",
+      "summary": "Translucent violet field (shader). Blocks Hopper, never hurts; drops when the arena is cleared.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-073",
+      "name": "Checkpoint totem",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        3,
+        15,
+        3
+      ],
+      "tris": "0.8k",
+      "standIn": "prop.checkpointTotem",
+      "final": "models/props/checkpointTotem.glb",
+      "status": "stand-in",
+      "summary": "Ivory post with red bands and a lamp. Lights when reached (emissive swap); Hopper respawns beside it.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    }
+  ]
+}

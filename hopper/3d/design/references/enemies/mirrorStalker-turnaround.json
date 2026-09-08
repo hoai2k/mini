@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-064",
+  "name": "Turnaround: Mirror Stalker",
+  "file": "enemies/mirrorStalker-turnaround.png",
+  "preview": "enemies/mirrorStalker-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Mirror Stalker. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Four digitigrade legs, long low body, forked ivory head mask, exposed ivory side ribs and ONE large crescent tail. No humanoid torso. Model target bounds X,Y,Z metres: [4.1, 6.2, 12.6]. Rig/sockets to make visually possible: Core (exposed ribs), Mouth, Hitbox.Body, SurfaceNormal (which way is down for it). Attack behaviour: Stance_Floor, Stance_Ceiling, Stalk, Lunge_Tell (mask tilts), Lunge (root motion), Land, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/mirrorStalker.png"
+  ],
+  "modelRequests": [
+    "M-019"
+  ],
+  "anatomy": "Four digitigrade legs, long low body, forked ivory head mask, exposed ivory side ribs and ONE large crescent tail. No humanoid torso.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-019",
+      "name": "Mirror Stalker",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        4.1,
+        6.2,
+        12.6
+      ],
+      "tris": "8k / 2.5k",
+      "standIn": "enemy.mirrorStalker",
+      "final": "models/enemies/mirrorStalker.glb",
+      "status": "stand-in",
+      "summary": "Forked ivory mask and long crescent limbs. Walks floors and ceilings and lunges at a mirrored angle. Its stance always shows which surface it stands on.",
+      "joints": "spine ×3, neck, mask head, 2 horns, 4 legs × 3 (digitigrade), crescent tail",
+      "clips": "Stance_Floor, Stance_Ceiling, Stalk, Lunge_Tell (mask tilts), Lunge (root motion), Land, Hit, Dissolve",
+      "sockets": "Core (exposed ribs), Mouth, Hitbox.Body, SurfaceNormal (which way is down for it)",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "violet",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/mirrorStalker.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-064"
+      ]
+    }
+  ]
+}

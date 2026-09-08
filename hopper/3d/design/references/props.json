@@ -1,0 +1,505 @@
+{
+  "request": "T-078",
+  "name": "Props overview",
+  "file": "props.png",
+  "preview": "props-preview.jpg",
+  "sourceSize": null,
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "composite of generated supporting plates",
+  "approval": "pending-user-review",
+  "modelRequests": [
+    "M-068",
+    "M-069",
+    "M-070",
+    "M-071",
+    "M-072",
+    "M-073",
+    "M-074",
+    "M-075",
+    "M-076",
+    "M-077",
+    "M-078",
+    "M-079",
+    "M-080",
+    "M-081",
+    "M-082"
+  ],
+  "contract": [
+    {
+      "request": "M-068",
+      "name": "Spring pad",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        11,
+        3,
+        11
+      ],
+      "tris": "1k",
+      "standIn": "prop.springPad",
+      "final": "models/props/springPad.glb",
+      "status": "stand-in",
+      "summary": "Cyan plate on an iron base with four chevrons. Plate compresses (rigid) and launches Hopper to 12 H. Regional recolours as in the 2D game.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-069",
+      "name": "Signal",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        3,
+        5,
+        3
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.signalBeacon",
+      "final": "models/props/signalBeacon.glb",
+      "status": "stand-in",
+      "summary": "Twin gold crystals and a halo, spinning. The optional collectible; nine per region.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-070",
+      "name": "Signal cage",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        14,
+        10,
+        14
+      ],
+      "tris": "1.5k",
+      "standIn": "prop.signalCage",
+      "final": "models/props/signalCage.glb",
+      "status": "stand-in",
+      "summary": "Ten shadow bars on a pedestal with a violet crown. Only a reflected shot opens it (crown breaks, bars drop: rigid).",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-071",
+      "name": "Lockdown emitter",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        10,
+        18,
+        10
+      ],
+      "tris": "1k",
+      "standIn": "prop.lockdownEmitter",
+      "final": "models/props/lockdownEmitter.glb",
+      "status": "stand-in",
+      "summary": "Obsidian pylon with a violet emitter. Pairs raise the lockdown dome around a knot or boss arena.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-072",
+      "name": "Lockdown dome",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        520,
+        260,
+        520
+      ],
+      "tris": "1k",
+      "standIn": "prop.lockdownDome",
+      "final": "models/props/lockdownDome.glb",
+      "status": "stand-in",
+      "summary": "Translucent violet field (shader). Blocks Hopper, never hurts; drops when the arena is cleared.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-073",
+      "name": "Checkpoint totem",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        3,
+        15,
+        3
+      ],
+      "tris": "0.8k",
+      "standIn": "prop.checkpointTotem",
+      "final": "models/props/checkpointTotem.glb",
+      "status": "stand-in",
+      "summary": "Ivory post with red bands and a lamp. Lights when reached (emissive swap); Hopper respawns beside it.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-074",
+      "name": "Recovery capsule",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        2,
+        4,
+        2
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.recoveryCapsule",
+      "final": "models/props/recoveryCapsule.glb",
+      "status": "stand-in",
+      "summary": "Cream capsule with a red band and white cross, spinning. Restores two armour pips.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-075",
+      "name": "Thermal vent",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        20,
+        162,
+        20
+      ],
+      "tris": "1k",
+      "standIn": "prop.thermalVent",
+      "final": "models/props/thermalVent.glb",
+      "status": "stand-in",
+      "summary": "Grate with a translucent rising column. An updraft volume that carries a gliding Hopper up to 160 m.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-076",
+      "name": "Wind lane",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        202,
+        40,
+        40
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.windLane",
+      "final": "models/props/windLane.glb",
+      "status": "stand-in",
+      "summary": "Translucent crosswind volume with streaks. Pushes airborne Hopper sideways; never carries a committed jump past its landing.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-077",
+      "name": "Gravity gate",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        62,
+        40,
+        5
+      ],
+      "tris": "1.5k",
+      "standIn": "prop.gravityGate",
+      "final": "models/props/gravityGate.glb",
+      "status": "stand-in",
+      "summary": "Obsidian sill and lintel with a violet curtain and five arrows (animated). Flips local gravity for whatever passes through.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-078",
+      "name": "Launch gate",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        203,
+        203,
+        16
+      ],
+      "tris": "4k",
+      "standIn": "prop.launchGate",
+      "final": "models/props/launchGate.glb",
+      "status": "stand-in",
+      "summary": "Rust ring on struts with a glowing portal. The mission-two exit; the star tunnel transition begins at Entry.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-079",
+      "name": "Eye laser bolt",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        0.6,
+        0.6,
+        6
+      ],
+      "tris": "0.1k",
+      "standIn": "prop.laserBolt",
+      "final": "models/props/laserBolt.glb",
+      "status": "stand-in",
+      "summary": "Red-white capsule with a bright core. Spawned in pairs from Hopper.Laser.L/R.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-080",
+      "name": "Kick arc",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        20,
+        1,
+        20
+      ],
+      "tris": "0.2k",
+      "standIn": "prop.kickArc",
+      "final": "models/props/kickArc.glb",
+      "status": "stand-in",
+      "summary": "Translucent gold arc that sweeps with the spin kick. Reads the kick radius (7 m) on screen.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-081",
+      "name": "Guard shield",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        18,
+        18,
+        9
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.shieldDome",
+      "final": "models/props/shieldDome.glb",
+      "status": "stand-in",
+      "summary": "Translucent teal half-dome at Hopper.Shield with a white rim. Shown while B is held.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-082",
+      "name": "Shadow dissolve",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        12,
+        12,
+        12
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.dissolveBurst",
+      "final": "models/props/dissolveBurst.glb",
+      "status": "stand-in",
+      "summary": "Fourteen charcoal and violet shards around a pale flash. Every shadow dies into this (scale-up over 0.5 s).",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    }
+  ],
+  "prompt": "Overview of five supporting plates. See their JSON files for exact prompts.",
+  "plates": [
+    "plates/props-1.png",
+    "plates/props-2.png",
+    "plates/props-3.png",
+    "plates/props-4.png",
+    "plates/props-5.png"
+  ]
+}

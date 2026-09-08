@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-061",
+  "name": "Turnaround: Thorn Choir",
+  "file": "enemies/thornChoir-turnaround.png",
+  "preview": "enemies/thornChoir-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Thorn Choir. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Exactly THREE stalk necks, each ending in a circular tooth-ring flower mouth, one rooted claw-like base. Do not add humanoid heads or fourth flower. Model target bounds X,Y,Z metres: [6.6, 7.2, 6.9]. Rig/sockets to make visually possible: Core (base), Mouth0..2, Hitbox.Body. Attack behaviour: Idle, Sing_Tell (heads open in sequence), Fan_Volley, Stagger (kicked), Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/thornChoir.png"
+  ],
+  "modelRequests": [
+    "M-016"
+  ],
+  "anatomy": "Exactly THREE stalk necks, each ending in a circular tooth-ring flower mouth, one rooted claw-like base. Do not add humanoid heads or fourth flower.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-016",
+      "name": "Thorn Choir",
+      "category": "enemy",
+      "rig": "blend",
+      "size": [
+        6.6,
+        7.2,
+        6.9
+      ],
+      "tris": "6k / 2k",
+      "standIn": "enemy.thornChoir",
+      "final": "models/enemies/thornChoir.glb",
+      "status": "stand-in",
+      "summary": "Stationary fan of three pointed masks that sing a spreading projectile fan. Kicking one head staggers the whole choir; lasers between pulses.",
+      "joints": "base, 3 stems × 3, 3 heads; blend: Sing_Open per head",
+      "clips": "Idle, Sing_Tell (heads open in sequence), Fan_Volley, Stagger (kicked), Dissolve",
+      "sockets": "Core (base), Mouth0..2, Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "red",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/thornChoir.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-061"
+      ]
+    }
+  ]
+}

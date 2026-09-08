@@ -1,0 +1,122 @@
+{
+  "correction": null,
+  "request": "T-078-2",
+  "name": "Props plate 3",
+  "file": "plates/props-3.png",
+  "preview": "plates/props-3-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. 3D game prop modelling reference sheet. Draw 3 object groups. Each group contains FOUR views: front idle, three-quarter idle, front active, three-quarter active. Do not merge different objects. Recovery capsule: Cream capsule with a red band and white cross, spinning. Restores two armour pips. Target X,Y,Z: [2, 4, 2] metres. Rig: rigid, moving parts , sockets .; Thermal vent: Grate with a translucent rising column. An updraft volume that carries a gliding Hopper up to 160 m. Target X,Y,Z: [20, 162, 20] metres. Rig: static, moving parts , sockets .; Wind lane: Translucent crosswind volume with streaks. Pushes airborne Hopper sideways; never carries a committed jump past its landing. Target X,Y,Z: [202, 40, 40] metres. Rig: static, moving parts , sockets .  Maintain shared scale within each group; show a 14m Hopper silhouette beside one object for context. For enormous shader volumes add a small separate volume outline, with a readable enlarged hardware detail; do not make physical solids from energy effects. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. Request 3840x1920 wide. No text or numbers. Operational differences must be visible. Active state uses painted coloured emission, not photographic bloom.",
+  "references": [
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-074",
+    "M-075",
+    "M-076"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-074",
+      "name": "Recovery capsule",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        2,
+        4,
+        2
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.recoveryCapsule",
+      "final": "models/props/recoveryCapsule.glb",
+      "status": "stand-in",
+      "summary": "Cream capsule with a red band and white cross, spinning. Restores two armour pips.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-075",
+      "name": "Thermal vent",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        20,
+        162,
+        20
+      ],
+      "tris": "1k",
+      "standIn": "prop.thermalVent",
+      "final": "models/props/thermalVent.glb",
+      "status": "stand-in",
+      "summary": "Grate with a translucent rising column. An updraft volume that carries a gliding Hopper up to 160 m.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-076",
+      "name": "Wind lane",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        202,
+        40,
+        40
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.windLane",
+      "final": "models/props/windLane.glb",
+      "status": "stand-in",
+      "summary": "Translucent crosswind volume with streaks. Pushes airborne Hopper sideways; never carries a committed jump past its landing.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    }
+  ]
+}

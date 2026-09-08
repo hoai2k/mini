@@ -1,0 +1,67 @@
+{
+  "correction": {
+    "id": "T-079-rider",
+    "prompt": "Refine this rider animation sheet into SIX CLOSE-UP studies of ONLY the SAME BOY and his red couch seat, yellow safety frame, forward handlebars and small blue deck patch. Do NOT show entire robot: no grasshopper head, wings or legs. Fill each cell with boy and seat at large readable size. Preserve black hair, white short-sleeve shirt, blue shorts, brown boots, red scarf, young face. Pelvis ALWAYS planted on red cushion behind handlebars, legs bent feet on supports. Top row left Glide_Lean = torso leans FORWARD ~25 degrees BOTH hands gripping handlebars (not hands behind head); middle Dive_Tuck = crouch deeply forward head near hands; right Stomp_Brace = pelvis seated, bent elbows grip bar, shoulders compressed, firm braced expression. Bottom row left Point_Forward = one hand points ahead, other grips bar; middle Look_Up_Long = seated tilts head upward; right Cheer_Short = seated raises both fists. Exactly same couch geometry/pelvis position all six panels. 1970s cel anime ink colour cream background, no words, no panel lines, no additional characters. Wide 2:1 sheet.",
+    "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-904fac88-2f5a-4933-9948-d359dad2e7ab.png",
+    "secondPass": {
+      "prompt": "Make one precise correction in this six close-up rider animation sheet: TOP LEFT Glide_Lean boy must lean BACK slightly against couch backrest, chest open and shoulders behind hips, both hands still reach forward gripping yellow handlebar. Pelvis remains planted on red seat cushion, feet stay on supports. A gentle braced backward lean during glide, not relaxed hands behind head and not forward dive posture. Preserve exact boy, face, costume, couch geometry, scale, cream background and all OTHER FIVE PANELS unchanged. No text.",
+      "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-6c379284-dc38-4830-97a4-8e658365f7ef.png"
+    }
+  },
+  "request": "T-079-rider",
+  "name": "Hopper poses: rider",
+  "file": "plates/hopper-rider.png",
+  "preview": "plates/hopper-rider-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Animation production key-pose sheet. The first reference is canonical anatomy; the second illustrates action language only. Six close-up seated boy reactions in a 3 by 2 grid: Glide_Lean (arms back), Dive_Tuck, Stomp_Brace, Point_Forward, Look_Up_Long, Cheer_Short. Show only the canonical boy and the same red couch/yellow frame from Hopper in every cell, enough of the green robot back to locate the seat. Boy pelvis stays in the couch, boots on footrests; no standing, no floating. Preserve shirt, blue shorts, red scarf and black hair. Preserve six legs in three bilateral pairs, green armour, blue body accents, red compound eyes, gold antennae, and paired wings. Same boy seated in the red COUCH BEHIND and BELOW handlebars; do not put him on the handlebars. No redesign or detached body parts. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. Request 3840x1920, wide 2:1. No text. Poses only; no lasers, particle effects or motion blur obscuring anatomy.",
+  "references": [
+    "hopper/design/assets/hopper-canonical-v1.png",
+    "hopper/design/assets/hopper-action-study.png"
+  ],
+  "modelRequests": [
+    "M-002"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-002",
+      "name": "Rider: reaction clips",
+      "category": "rider",
+      "rig": "skeletal",
+      "size": [
+        2.6,
+        5.6,
+        1.4
+      ],
+      "tris": "existing mesh",
+      "standIn": "hopper.proxy",
+      "final": "models/hopper-rider.glb (new rider clips)",
+      "status": "open",
+      "summary": "Additional seated reactions layered over Riding_Idle: Glide_Lean (arms back, scarf streaming), Dive_Tuck, Stomp_Brace, Point_Forward (used by Horizon View), Look_Up_Long (watching a flyer), Cheer_Short. All local to the seat; never leave the couch.",
+      "joints": "",
+      "clips": "6 listed",
+      "sockets": "existing",
+      "textures": "existing",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ],
+      "needs": [
+        "T-079"
+      ]
+    }
+  ]
+}

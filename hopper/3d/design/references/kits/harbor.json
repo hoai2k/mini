@@ -1,0 +1,182 @@
+{
+  "correction": null,
+  "request": "T-073",
+  "name": "Kit sheet: Tempest Docks",
+  "file": "kits/harbor.png",
+  "preview": "kits/harbor-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Tempest Docks. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 5 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Crane boom (85 x 96 x 10 metres X,Y,Z): Dock crane on a green-steel mast. The boom slews (rigid pivot) and carries a container on a cable; both are landings that move. Movable parts: . Landable: boom, hooked container; Container stack (48 x 18 x 10 metres X,Y,Z): Stepped stack of coloured containers. The dock's stairs; the top row is a tap-jump above the quay. Movable parts: . Landable: one per row; Freighter (228 x 65 x 41 metres X,Y,Z): Green-steel freighter on the storm channel: deck, four cargo blocks, bridge and funnel. The chapter's long crossing lands on it. Movable parts: . Landable: deck, cargo tops, bridge roof; Gantry tower (62 x 135 x 25 metres X,Y,Z): Four-legged steel tower with decks every 32 m and a bridge on top. The upper gantry the crane forest climbs to. Movable parts: . Landable: four decks + bridge; Breakwater (207 x 14 x 25 metres X,Y,Z): Concrete breakwater with bollards. The region floor at the water's edge; the sea beside it is a soft landing that pushes Hopper back ashore. Movable parts: . Landable: top. Use harbor region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-2-industry.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-046",
+    "M-047",
+    "M-048",
+    "M-049",
+    "M-050"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-046",
+      "name": "Crane boom",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        85,
+        96,
+        10
+      ],
+      "tris": "5k",
+      "standIn": "structure.harbor.craneBoom",
+      "final": "models/structures/harbor/craneBoom.glb",
+      "status": "stand-in",
+      "summary": "Dock crane on a green-steel mast. The boom slews (rigid pivot) and carries a container on a cable; both are landings that move.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "harbor",
+      "landings": "boom, hooked container",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
+    },
+    {
+      "request": "M-047",
+      "name": "Container stack",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        48,
+        18,
+        10
+      ],
+      "tris": "3k",
+      "standIn": "structure.harbor.containerStack",
+      "final": "models/structures/harbor/containerStack.glb",
+      "status": "stand-in",
+      "summary": "Stepped stack of coloured containers. The dock's stairs; the top row is a tap-jump above the quay.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "harbor",
+      "landings": "one per row",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
+    },
+    {
+      "request": "M-048",
+      "name": "Freighter",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        228,
+        65,
+        41
+      ],
+      "tris": "10k",
+      "standIn": "structure.harbor.freighter",
+      "final": "models/structures/harbor/freighter.glb",
+      "status": "stand-in",
+      "summary": "Green-steel freighter on the storm channel: deck, four cargo blocks, bridge and funnel. The chapter's long crossing lands on it.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "harbor",
+      "landings": "deck, cargo tops, bridge roof",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
+    },
+    {
+      "request": "M-049",
+      "name": "Gantry tower",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        62,
+        135,
+        25
+      ],
+      "tris": "6k",
+      "standIn": "structure.harbor.gantryTower",
+      "final": "models/structures/harbor/gantryTower.glb",
+      "status": "stand-in",
+      "summary": "Four-legged steel tower with decks every 32 m and a bridge on top. The upper gantry the crane forest climbs to.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "harbor",
+      "landings": "four decks + bridge",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
+    },
+    {
+      "request": "M-050",
+      "name": "Breakwater",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        207,
+        14,
+        25
+      ],
+      "tris": "2k",
+      "standIn": "structure.harbor.breakwater",
+      "final": "models/structures/harbor/breakwater.glb",
+      "status": "stand-in",
+      "summary": "Concrete breakwater with bollards. The region floor at the water's edge; the sea beside it is a soft landing that pushes Hopper back ashore.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "harbor",
+      "landings": "top",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/harbor.webp"
+      ],
+      "needs": [
+        "T-073"
+      ]
+    }
+  ]
+}

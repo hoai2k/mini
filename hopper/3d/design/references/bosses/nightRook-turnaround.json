@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-066",
+  "name": "Turnaround: Night Rook",
+  "file": "bosses/nightRook-turnaround.png",
+  "preview": "bosses/nightRook-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Night Rook. Image 1 is the authoritative canonical identity. Exactly FIVE neutral turnaround drawings in the TOP row: SIDE, FRONT, BACK, TOP, front THREE-QUARTER. Below them a core-exposed drawing and separate representative major-attack key poses: Perch_Idle, Take_Off, Soar, Mark_Corridor, Sweep (root motion), Land, Feather_Fan, Channel_Tell, Channel_Hold, Wing_Guard_Break, Core_Open, Stagger, Defeat_Dissolve. No duplicate idle poses. Keep every complete figure visible. Wide 2:1 landscape sheet. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Exactly TWO blade-feather wings, TWO separate taloned arms and TWO legs, raven head, ivory exposed sternum. Wings attach behind shoulders; arms must not replace wings. Model target bounds X,Y,Z metres: [65, 41, 16]. Rig/sockets to make visually possible: Core (sternum), WingJoint.L/R (kick targets), Mouth, Hitbox.Body, Landing (back, after wings fold). Attack behaviour: Perch_Idle, Take_Off, Soar, Mark_Corridor, Sweep (root motion), Land, Feather_Fan, Channel_Tell, Channel_Hold, Wing_Guard_Break, Core_Open, Stagger, Defeat_Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/bosses/nightRook.png"
+  ],
+  "modelRequests": [
+    "M-021"
+  ],
+  "anatomy": "Exactly TWO blade-feather wings, TWO separate taloned arms and TWO legs, raven head, ivory exposed sternum. Wings attach behind shoulders; arms must not replace wings.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-021",
+      "name": "Night Rook",
+      "category": "boss",
+      "rig": "skeletal",
+      "size": [
+        65,
+        41,
+        16
+      ],
+      "tris": "40k / 12k",
+      "standIn": "boss.nightRook",
+      "final": "models/bosses/nightRook.glb",
+      "status": "stand-in",
+      "summary": "Skeletal raven of folded night, 3 H tall with a 6 H span. Fights around the transmitter mast: dives past the summit shelves, fans feathers from the mast top, lands to channel through its wing joints.",
+      "joints": "spine ×4, neck ×2, head, beak, 2 wings × 5 (blade feathers as rigid children), 2 arms × 3 with talons, 2 legs × 3",
+      "clips": "Perch_Idle, Take_Off, Soar, Mark_Corridor, Sweep (root motion), Land, Feather_Fan, Channel_Tell, Channel_Hold, Wing_Guard_Break, Core_Open, Stagger, Defeat_Dissolve",
+      "sockets": "Core (sternum), WingJoint.L/R (kick targets), Mouth, Hitbox.Body, Landing (back, after wings fold)",
+      "textures": "4K hand-painted albedo, 2K emissive mask",
+      "region": "mountains",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/bosses/nightRook.png",
+        "design/assets/boss-canonical-lineup.png"
+      ],
+      "needs": [
+        "T-066"
+      ]
+    }
+  ]
+}

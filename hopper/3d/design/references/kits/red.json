@@ -1,0 +1,151 @@
+{
+  "correction": null,
+  "request": "T-075",
+  "name": "Kit sheet: Vermilion Basin",
+  "file": "kits/red.png",
+  "preview": "kits/red-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Vermilion Basin. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 4 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Ivory rib arch (93 x 89 x 5 metres X,Y,Z): Bone ribs in a half ring, 45 m high. The basin's bridges and the choir's perches. Movable parts: . Landable: crown; Coral spire (23 x 71 x 25 metres X,Y,Z): Stacked red coral cones with glowing fronds. Vertical cover in heavy gravity. Movable parts: . Landable: tier; Ivory-topped terrace (72 x 13 x 41 metres X,Y,Z): Coral block with an ivory top. Wide landing shelves that make the short heavy-gravity arcs readable. Movable parts: . Landable: ivory top; Staged coral bridge (140 x 31 x 12 metres X,Y,Z): Three-stage bridge on bone piers that breaks in sequence (rigid stages drop) after Hopper crosses each. Falling lands on the basin floor. Movable parts: . Landable: three stages. Use red region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-3-alien.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-056",
+    "M-057",
+    "M-058",
+    "M-059"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-056",
+      "name": "Ivory rib arch",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        93,
+        89,
+        5
+      ],
+      "tris": "4k",
+      "standIn": "structure.red.ivoryRibArch",
+      "final": "models/structures/red/ivoryRibArch.glb",
+      "status": "stand-in",
+      "summary": "Bone ribs in a half ring, 45 m high. The basin's bridges and the choir's perches.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "red",
+      "landings": "crown",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
+    },
+    {
+      "request": "M-057",
+      "name": "Coral spire",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        23,
+        71,
+        25
+      ],
+      "tris": "3k",
+      "standIn": "structure.red.coralSpire",
+      "final": "models/structures/red/coralSpire.glb",
+      "status": "stand-in",
+      "summary": "Stacked red coral cones with glowing fronds. Vertical cover in heavy gravity.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "red",
+      "landings": "tier",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
+    },
+    {
+      "request": "M-058",
+      "name": "Ivory-topped terrace",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        72,
+        13,
+        41
+      ],
+      "tris": "1.5k",
+      "standIn": "structure.red.basinTerrace",
+      "final": "models/structures/red/basinTerrace.glb",
+      "status": "stand-in",
+      "summary": "Coral block with an ivory top. Wide landing shelves that make the short heavy-gravity arcs readable.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "red",
+      "landings": "ivory top",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
+    },
+    {
+      "request": "M-059",
+      "name": "Staged coral bridge",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        140,
+        31,
+        12
+      ],
+      "tris": "3k",
+      "standIn": "structure.red.coralBridge",
+      "final": "models/structures/red/coralBridge.glb",
+      "status": "stand-in",
+      "summary": "Three-stage bridge on bone piers that breaks in sequence (rigid stages drop) after Hopper crosses each. Falling lands on the basin floor.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "red",
+      "landings": "three stages",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/red.webp"
+      ],
+      "needs": [
+        "T-075"
+      ]
+    }
+  ]
+}

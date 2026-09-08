@@ -1,0 +1,63 @@
+{
+  "correction": {
+    "id": "T-079-impact",
+    "prompt": "Edit only the left column's two dive poses in this six-panel animation sheet. Preserve middle landing compression and right recovery panels exactly. In BOTH left panels, bend BOTH huge rear knees fully: bring the long spiked lower hind legs forward tight along the underside of the huge green femurs, the pointed rear feet near the hip/body, making a compact folded W silhouette. No straight rear legs trailing backward; no extended feet. All SIX legs folded tightly against belly, head pitched down, boy crouched firmly seated on red couch. No alteration of canonical green/blue/red mecha anatomy, paired wings or six legs. Cream backdrop, no text. This is a compact Dive_Loop pose, not a launch extension.",
+    "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-49bf1180-1def-490e-a8d9-c92ba578ea03.png"
+  },
+  "request": "T-079-impact",
+  "name": "Hopper poses: impact",
+  "file": "plates/hopper-impact.png",
+  "preview": "plates/hopper-impact-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Animation production key-pose sheet. The first reference is canonical anatomy; the second illustrates action language only. Dive_Loop with ALL legs tucked and head down; Stomp_Land deeply compressed AFTER contact; Land_Heavy recovery. Three poses side view top, matching three-quarter bottom. Exactly six legs, paired large hind femurs. Feet extend only very close to contact. Rider Dive_Tuck then Stomp_Brace stays on the red couch. Preserve six legs in three bilateral pairs, green armour, blue body accents, red compound eyes, gold antennae, and paired wings. Same boy seated in the red COUCH BEHIND and BELOW handlebars; do not put him on the handlebars. No redesign or detached body parts. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. Request 3840x1920, wide 2:1. No text. Poses only; no lasers, particle effects or motion blur obscuring anatomy.",
+  "references": [
+    "hopper/design/assets/hopper-canonical-v1.png",
+    "hopper/design/assets/hopper-action-study.png"
+  ],
+  "modelRequests": [
+    "M-001"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-001",
+      "name": "Hopper: traversal and air-combat clips",
+      "category": "hopper",
+      "rig": "skeletal",
+      "size": [
+        23,
+        19,
+        29
+      ],
+      "tris": "existing mesh",
+      "standIn": "hopper.proxy",
+      "final": "models/hopper-rider.glb (new clips)",
+      "status": "open",
+      "summary": "New clips on the existing HopperRig. No mesh or joint changes. Walk/Run stay in place; every airborne clip is physics-driven (no root motion). Wings open from the folded rest pose.",
+      "joints": "",
+      "clips": "Wing_Open (0.25 s), Glide_Loop (wings spread, hind legs trailing), Wing_Close (0.2 s), Dive_Loop (legs tucked, head down), Stomp_Land (deep compression + shockwave pose, 0.6 s), Air_Kick (Spin_Kick timed for 0.6 s with the body level), Wall_Kick (plant + push, 0.35 s), Ledge_Mantle (front legs hook, haul, 0.7 s), Hop_Back (0.45 s), Crouch_Charge_Loop (femurs compressing progressively, 0.8 s, sampled by charge), Super_Leap_Start (0.3 s), Lock_Strafe_L/R (sidestep loops), Hit_Air (0.5 s), Land_Heavy (from a dive, 0.8 s)",
+      "sockets": "existing; add Hopper.Wing.L/R tip sockets for glide trails",
+      "textures": "existing",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ],
+      "needs": [
+        "T-079"
+      ]
+    }
+  ]
+}

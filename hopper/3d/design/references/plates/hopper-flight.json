@@ -1,0 +1,64 @@
+{
+  "correction": {
+    "mode": "edit",
+    "input": "T-079-flight initial sheet",
+    "changes": "Fold four small legs under body; trail hind pair; remove extra wings; open exactly two existing wings laterally; retain canonical robot and seated boy.",
+    "source": "exec-28f60709-080b-410b-afc6-42659bf5e29f.png"
+  },
+  "request": "T-079-flight",
+  "name": "Hopper poses: flight",
+  "file": "plates/hopper-flight.png",
+  "preview": "plates/hopper-flight-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Animation production key-pose sheet. The first reference is canonical anatomy; the second illustrates action language only. Wing_Open, Glide_Loop, Wing_Close: three key poses (folded, half-open, spread) in side view across top; same three in three-quarter across bottom. Wings open laterally from existing hinges. Exactly TWO wings; SIX legs, the massive hind pair trails behind while airborne. Rider Glide_Lean remains seated. Preserve six legs in three bilateral pairs, green armour, blue body accents, red compound eyes, gold antennae, and paired wings. Same boy seated in the red COUCH BEHIND and BELOW handlebars; do not put him on the handlebars. No redesign or detached body parts. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. Request 3840x1920, wide 2:1. No text. Poses only; no lasers, particle effects or motion blur obscuring anatomy.",
+  "references": [
+    "hopper/design/assets/hopper-canonical-v1.png",
+    "hopper/design/assets/hopper-action-study.png"
+  ],
+  "modelRequests": [
+    "M-001"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-001",
+      "name": "Hopper: traversal and air-combat clips",
+      "category": "hopper",
+      "rig": "skeletal",
+      "size": [
+        23,
+        19,
+        29
+      ],
+      "tris": "existing mesh",
+      "standIn": "hopper.proxy",
+      "final": "models/hopper-rider.glb (new clips)",
+      "status": "open",
+      "summary": "New clips on the existing HopperRig. No mesh or joint changes. Walk/Run stay in place; every airborne clip is physics-driven (no root motion). Wings open from the folded rest pose.",
+      "joints": "",
+      "clips": "Wing_Open (0.25 s), Glide_Loop (wings spread, hind legs trailing), Wing_Close (0.2 s), Dive_Loop (legs tucked, head down), Stomp_Land (deep compression + shockwave pose, 0.6 s), Air_Kick (Spin_Kick timed for 0.6 s with the body level), Wall_Kick (plant + push, 0.35 s), Ledge_Mantle (front legs hook, haul, 0.7 s), Hop_Back (0.45 s), Crouch_Charge_Loop (femurs compressing progressively, 0.8 s, sampled by charge), Super_Leap_Start (0.3 s), Lock_Strafe_L/R (sidestep loops), Hit_Air (0.5 s), Land_Heavy (from a dive, 0.8 s)",
+      "sockets": "existing; add Hopper.Wing.L/R tip sockets for glide trails",
+      "textures": "existing",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ],
+      "needs": [
+        "T-079"
+      ]
+    }
+  ]
+}

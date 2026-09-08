@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-062",
+  "name": "Turnaround: Veil Medusa",
+  "file": "enemies/veilMedusa-turnaround.png",
+  "preview": "enemies/veilMedusa-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Veil Medusa. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: One wide dark umbrella bell, luminous ivory core suspended underneath, TEN major long tendril chains with finer decorative filaments. Same bell and tendril attachments in every view. Model target bounds X,Y,Z metres: [7, 8.4, 7]. Rig/sockets to make visually possible: Core (bell core), Hitbox.Bell (stomp target: high rebound), Hitbox.Tendrils. Attack behaviour: Drift, Flash_Tell, Radial_Pulse, Stomped_Rebound (bell compresses), Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/veilMedusa.png"
+  ],
+  "modelRequests": [
+    "M-017"
+  ],
+  "anatomy": "One wide dark umbrella bell, luminous ivory core suspended underneath, TEN major long tendril chains with finer decorative filaments. Same bell and tendril attachments in every view.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-017",
+      "name": "Veil Medusa",
+      "category": "enemy",
+      "rig": "blend",
+      "size": [
+        7,
+        8.4,
+        7
+      ],
+      "tris": "6k / 2k",
+      "standIn": "enemy.veilMedusa",
+      "final": "models/enemies/veilMedusa.glb",
+      "status": "stand-in",
+      "summary": "Umbrella of shadow with long soft tendrils, drifting in low gravity. Flashes, then pulses radially. Its bell is the springiest stomp in the game and the way up through the reef towers.",
+      "joints": "bell (blend: Pulse), 10 tendril chains × 4",
+      "clips": "Drift, Flash_Tell, Radial_Pulse, Stomped_Rebound (bell compresses), Hit, Dissolve",
+      "sockets": "Core (bell core), Hitbox.Bell (stomp target: high rebound), Hitbox.Tendrils",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "blue",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/veilMedusa.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-062"
+      ]
+    }
+  ]
+}

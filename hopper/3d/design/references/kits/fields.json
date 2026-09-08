@@ -1,0 +1,182 @@
+{
+  "correction": null,
+  "request": "T-069",
+  "name": "Kit sheet: Sunseed Fields",
+  "file": "kits/fields.png",
+  "preview": "kits/fields-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Sunseed Fields. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 5 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Terrace step (62 x 19 x 41 metres X,Y,Z): Three-tier planted terrace with irrigation lips. The first thing Hopper climbs; the tiers are one hop apart. Movable parts: . Landable: one per tier; Farmhouse (35 x 12 x 35 metres X,Y,Z): Ivory farmhouse with a red tile roof and chimney. Barely reaches Hopper's knees; a scale prop first, a ridge landing second. Movable parts: . Landable: ridge; Grain silo (11 x 32 x 11 metres X,Y,Z): Concrete drum with a conical cap. The first tall thing in the fields; the cap is a one-Hopper landing. Movable parts: . Landable: cap; Windbreak row (52 x 24 x 6 metres X,Y,Z): Row of six poplars. Lines the routes and shows wind direction; not landable (canopy is soft collision that slows a fall). Movable parts: . Landable: none; Fallen seed vessel (25 x 34 x 29 metres X,Y,Z): Crashed shadow vessel, half-buried, spines glowing violet. Spawns hounds when Hopper passes; the pod cracks open (rigid lid pivot). Movable parts: . Landable: none. Use fields region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-1-earth.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-024",
+    "M-025",
+    "M-026",
+    "M-027",
+    "M-028"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-024",
+      "name": "Terrace step",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        62,
+        19,
+        41
+      ],
+      "tris": "3k",
+      "standIn": "structure.fields.terraceStep",
+      "final": "models/structures/fields/terraceStep.glb",
+      "status": "stand-in",
+      "summary": "Three-tier planted terrace with irrigation lips. The first thing Hopper climbs; the tiers are one hop apart.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "fields",
+      "landings": "one per tier",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
+    },
+    {
+      "request": "M-025",
+      "name": "Farmhouse",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        35,
+        12,
+        35
+      ],
+      "tris": "2k",
+      "standIn": "structure.fields.farmhouse",
+      "final": "models/structures/fields/farmhouse.glb",
+      "status": "stand-in",
+      "summary": "Ivory farmhouse with a red tile roof and chimney. Barely reaches Hopper's knees; a scale prop first, a ridge landing second.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "fields",
+      "landings": "ridge",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
+    },
+    {
+      "request": "M-026",
+      "name": "Grain silo",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        11,
+        32,
+        11
+      ],
+      "tris": "1.5k",
+      "standIn": "structure.fields.silo",
+      "final": "models/structures/fields/silo.glb",
+      "status": "stand-in",
+      "summary": "Concrete drum with a conical cap. The first tall thing in the fields; the cap is a one-Hopper landing.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "fields",
+      "landings": "cap",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
+    },
+    {
+      "request": "M-027",
+      "name": "Windbreak row",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        52,
+        24,
+        6
+      ],
+      "tris": "3k",
+      "standIn": "structure.fields.windbreak",
+      "final": "models/structures/fields/windbreak.glb",
+      "status": "stand-in",
+      "summary": "Row of six poplars. Lines the routes and shows wind direction; not landable (canopy is soft collision that slows a fall).",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "fields",
+      "landings": "none",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
+    },
+    {
+      "request": "M-028",
+      "name": "Fallen seed vessel",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        25,
+        34,
+        29
+      ],
+      "tris": "4k",
+      "standIn": "structure.fields.seedPod",
+      "final": "models/structures/fields/seedPod.glb",
+      "status": "stand-in",
+      "summary": "Crashed shadow vessel, half-buried, spines glowing violet. Spawns hounds when Hopper passes; the pod cracks open (rigid lid pivot).",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "fields",
+      "landings": "none",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/fields.webp"
+      ],
+      "needs": [
+        "T-069"
+      ]
+    }
+  ]
+}

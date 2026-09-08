@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-067",
+  "name": "Turnaround: Smelter Leviathan",
+  "file": "bosses/smelterLeviathan-turnaround.png",
+  "preview": "bosses/smelterLeviathan-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Smelter Leviathan. Image 1 is the authoritative canonical identity. Exactly FIVE neutral turnaround drawings in the TOP row: SIDE, FRONT, BACK, TOP, front THREE-QUARTER. Below them a core-exposed drawing and separate representative major-attack key poses: Coil_Idle, Climb_Gantry, Tail_Sweep, Breath_Tell, Breath_Hold, Core_Crack (segment), Uncoil, Defeat_Dissolve. No duplicate idle poses. Keep every complete figure visible. Wide 2:1 landscape sheet. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: 16 major modular armoured ring segments along one centipede body, each with a left/right leg pair; one round furnace maw at head, TWO terminal tail blades. Five glowing weak-point seams every third major segment. Preserve canonical black iron and copper/orange metal, not violet recolouring. Model target bounds X,Y,Z metres: [17, 12, 149]. Rig/sockets to make visually possible: Core0..4 (every third segment), Mouth (furnace maw), Hitbox.Segment0..15, Landing.Segment (cracked segments). Attack behaviour: Coil_Idle, Climb_Gantry, Tail_Sweep, Breath_Tell, Breath_Hold, Core_Crack (segment), Uncoil, Defeat_Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/bosses/smelterLeviathan.png"
+  ],
+  "modelRequests": [
+    "M-022"
+  ],
+  "anatomy": "16 major modular armoured ring segments along one centipede body, each with a left/right leg pair; one round furnace maw at head, TWO terminal tail blades. Five glowing weak-point seams every third major segment. Preserve canonical black iron and copper/orange metal, not violet recolouring.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-022",
+      "name": "Smelter Leviathan",
+      "category": "boss",
+      "rig": "spline",
+      "size": [
+        17,
+        12,
+        149
+      ],
+      "tris": "60k / 18k",
+      "standIn": "boss.smelterLeviathan",
+      "final": "models/bosses/smelterLeviathan.glb",
+      "status": "stand-in",
+      "summary": "Segmented shadow centipede in stolen foundry rings, 8–10 H long, coiled around the gantry elevator tower. The fight climbs the tower while its cores open in sequence.",
+      "joints": "16-segment spline chain, head with maw, 2 tail blades; each segment has a rigid ring and 2 leg pivots",
+      "clips": "Coil_Idle, Climb_Gantry, Tail_Sweep, Breath_Tell, Breath_Hold, Core_Crack (segment), Uncoil, Defeat_Dissolve",
+      "sockets": "Core0..4 (every third segment), Mouth (furnace maw), Hitbox.Segment0..15, Landing.Segment (cracked segments)",
+      "textures": "4K hand-painted albedo, 2K emissive mask",
+      "region": "launchworks",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/bosses/smelterLeviathan.png",
+        "design/assets/boss-canonical-lineup.png"
+      ],
+      "needs": [
+        "T-067"
+      ]
+    }
+  ]
+}

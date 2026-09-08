@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-065",
+  "name": "Turnaround: Gravity Cantor",
+  "file": "enemies/gravityCantor-turnaround.png",
+  "preview": "enemies/gravityCantor-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Gravity Cantor. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Preserve canonical floating horn-crowned robed figure with TWO clawed arms, central pale circular chest core, hanging mantle and upward crown prongs. NOT an abstract ring with four legs. Four crown/hem emitter tips can serve the gameplay prong sockets. Model target bounds X,Y,Z metres: [8.9, 4.7, 8.9]. Rig/sockets to make visually possible: Core (ring centre), Emitter0..3 (prong tips), Hitbox.Ring. Attack behaviour: Ring_Idle, Count_In (prongs rise ×3), Gate_Activate, Gate_Hold, Core_Exposed, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/gravityCantor.png"
+  ],
+  "modelRequests": [
+    "M-020"
+  ],
+  "anatomy": "Preserve canonical floating horn-crowned robed figure with TWO clawed arms, central pale circular chest core, hanging mantle and upward crown prongs. NOT an abstract ring with four legs. Four crown/hem emitter tips can serve the gameplay prong sockets.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-020",
+      "name": "Gravity Cantor",
+      "category": "enemy",
+      "rig": "rigid",
+      "size": [
+        8.9,
+        4.7,
+        8.9
+      ],
+      "tris": "5k / 1.5k",
+      "standIn": "enemy.gravityCantor",
+      "final": "models/enemies/gravityCantor.glb",
+      "status": "stand-in",
+      "summary": "Floating ring organ with four hanging prongs. Counts in, then flips local gravity in a marked volume beneath it. Shot in the core, or simply flown around.",
+      "joints": "ring (spin), core, 4 prong pivots",
+      "clips": "Ring_Idle, Count_In (prongs rise ×3), Gate_Activate, Gate_Hold, Core_Exposed, Dissolve",
+      "sockets": "Core (ring centre), Emitter0..3 (prong tips), Hitbox.Ring",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "violet",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/gravityCantor.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-065"
+      ]
+    }
+  ]
+}

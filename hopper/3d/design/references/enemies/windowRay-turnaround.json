@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-050",
+  "name": "Turnaround: Window Ray",
+  "file": "enemies/windowRay-turnaround.png",
+  "preview": "enemies/windowRay-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Window Ray. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: One flat diamond body, two broad continuous wings and one thin tail. A single ivory eye. No walking legs. Back core inset behind eye, top surface broad enough for a stomp. Model target bounds X,Y,Z metres: [11, 0.9, 6.3]. Rig/sockets to make visually possible: Core (back), Mouth (eye), Hitbox.Body, Landing (stomp target). Attack behaviour: Hover, Bank_L/R, Dive_Tell (pause, wings fold), Dive (root motion), Recover, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/windowRay.png"
+  ],
+  "modelRequests": [
+    "M-005"
+  ],
+  "anatomy": "One flat diamond body, two broad continuous wings and one thin tail. A single ivory eye. No walking legs. Back core inset behind eye, top surface broad enough for a stomp.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-005",
+      "name": "Window Ray",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        11,
+        0.9,
+        6.3
+      ],
+      "tris": "4k / 1.2k",
+      "standIn": "enemy.windowRay",
+      "final": "models/enemies/windowRay.glb",
+      "status": "stand-in",
+      "summary": "Flat winged silhouette that hangs between towers, pauses, then dives in a straight line. Its back is a stomp platform: the first flyer the player learns to bounce off.",
+      "joints": "body, wing.L/R ×2, tail ×2, eye",
+      "clips": "Hover, Bank_L/R, Dive_Tell (pause, wings fold), Dive (root motion), Recover, Hit, Dissolve",
+      "sockets": "Core (back), Mouth (eye), Hitbox.Body, Landing (stomp target)",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "city",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/windowRay.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-050"
+      ]
+    }
+  ]
+}

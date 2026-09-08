@@ -1,0 +1,61 @@
+{
+  "correction": {
+    "id": "T-049",
+    "prompt": "Edit only lower-left study of this Seed Spitter model sheet to show its BASE weak-point core, retaining all other views unchanged. Lower-left creature has SAME spiked spherical black-violet shell, exactly four short legs and ivory nozzle. Close its mouth nozzle normally. Its lowest ventral belly shell plates between the legs hinge aside, exposing a small glowing violet round energy Core close to ground, clearly separated from mouth. Tip the body slightly backward for visibility while four legs remain attached. Lower-right inflated throat attack remains unchanged. Maintain canonical silhouette, cream background, seven-view layout, no text.",
+    "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-c45fa9c7-ebad-4424-a724-a5624ef95d70.png"
+  },
+  "request": "T-049",
+  "name": "Turnaround: Seed Spitter",
+  "file": "enemies/seedSpitter-turnaround.png",
+  "preview": "enemies/seedSpitter-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Seed Spitter. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Preserve the canonical squat spherical spiked armour shell on FOUR short braced legs, with a circular ivory petal-like mouth ring. It is NOT a flower on a stalk. Six mouth plates can flare open, throat inflates inside shell. Core is a small protected lower-body/base weak point; stance remains rooted. Model target bounds X,Y,Z metres: [5.3, 5.8, 5.5]. Rig/sockets to make visually possible: Core (stalk base), Mouth, Hitbox.Body. Attack behaviour: Idle, Root_Sway, Inflate_Tell, Spit ×3, Stagger, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/seedSpitter.png"
+  ],
+  "modelRequests": [
+    "M-004"
+  ],
+  "anatomy": "Preserve the canonical squat spherical spiked armour shell on FOUR short braced legs, with a circular ivory petal-like mouth ring. It is NOT a flower on a stalk. Six mouth plates can flare open, throat inflates inside shell. Core is a small protected lower-body/base weak point; stance remains rooted.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-004",
+      "name": "Seed Spitter",
+      "category": "enemy",
+      "rig": "blend",
+      "size": [
+        5.3,
+        5.8,
+        5.5
+      ],
+      "tris": "5k / 1.5k",
+      "standIn": "enemy.seedSpitter",
+      "final": "models/enemies/seedSpitter.glb",
+      "status": "stand-in",
+      "summary": "Rooted ink flower. Inflates its throat, then lobs three arcing seeds. Rooted on terraces and roof gardens; cannot move, so it is the sniper the route bends around.",
+      "joints": "stalk ×3, bulb, 6 petals, throat; blend: ThroatInflate",
+      "clips": "Idle, Root_Sway, Inflate_Tell, Spit ×3, Stagger, Dissolve",
+      "sockets": "Core (stalk base), Mouth, Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "fields",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/seedSpitter.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-049"
+      ]
+    }
+  ]
+}

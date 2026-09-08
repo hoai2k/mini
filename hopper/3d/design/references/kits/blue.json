@@ -1,0 +1,120 @@
+{
+  "correction": null,
+  "request": "T-076",
+  "name": "Kit sheet: Cobalt Drift",
+  "file": "kits/blue.png",
+  "preview": "kits/blue-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Cobalt Drift. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 3 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Floating reef (61 x 44 x 60 metres X,Y,Z): Reef island with glowing roots and crystals. Drifts slowly on a path (rigid root); the archipelago the whole region is made of. Movable parts: . Landable: top; Root pillar (50 x 166 x 50 metres X,Y,Z): Three twisted reef strands rising 160 m with shelves. The way up when a reef drifts out of reach. Movable parts: . Landable: four shelves; Dust current (120 x 23 x 24 metres X,Y,Z): Luminous dust flow volume (translucent). Marks a moving-island path and lifts a gliding Hopper. Movable parts: . Landable: none. Use blue region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-3-alien.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-060",
+    "M-061",
+    "M-062"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-060",
+      "name": "Floating reef",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        61,
+        44,
+        60
+      ],
+      "tris": "4k",
+      "standIn": "structure.blue.floatingReef",
+      "final": "models/structures/blue/floatingReef.glb",
+      "status": "stand-in",
+      "summary": "Reef island with glowing roots and crystals. Drifts slowly on a path (rigid root); the archipelago the whole region is made of.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "blue",
+      "landings": "top",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/blue.webp"
+      ],
+      "needs": [
+        "T-076"
+      ]
+    },
+    {
+      "request": "M-061",
+      "name": "Root pillar",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        50,
+        166,
+        50
+      ],
+      "tris": "4k",
+      "standIn": "structure.blue.rootPillar",
+      "final": "models/structures/blue/rootPillar.glb",
+      "status": "stand-in",
+      "summary": "Three twisted reef strands rising 160 m with shelves. The way up when a reef drifts out of reach.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "blue",
+      "landings": "four shelves",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/blue.webp"
+      ],
+      "needs": [
+        "T-076"
+      ]
+    },
+    {
+      "request": "M-062",
+      "name": "Dust current",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        120,
+        23,
+        24
+      ],
+      "tris": "0.5k",
+      "standIn": "structure.blue.dustCurrent",
+      "final": "models/structures/blue/dustCurrent.glb",
+      "status": "stand-in",
+      "summary": "Luminous dust flow volume (translucent). Marks a moving-island path and lifts a gliding Hopper.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "blue",
+      "landings": "none",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/blue.webp"
+      ],
+      "needs": [
+        "T-076"
+      ]
+    }
+  ]
+}

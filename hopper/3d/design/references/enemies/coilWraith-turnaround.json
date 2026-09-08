@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-058",
+  "name": "Turnaround: Coil Wraith",
+  "file": "enemies/coilWraith-turnaround.png",
+  "preview": "enemies/coilWraith-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Coil Wraith. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Preserve canonical hooded serpentine upper torso, TWO clawed arms, long coiled limbless tail and violet energy gap at belly. NOT a featureless ribbon between poles. Show energy nodes at upper body and tail tip so the lane-beam gameplay is possible while retaining its identity. Model target bounds X,Y,Z metres: [1.6, 13.8, 1.5]. Rig/sockets to make visually possible: Node.Top.Core, Node.Bottom.Core, Hitbox.Body. Attack behaviour: Ribbon_Idle, Charge_Tell (nodes brighten), Beam_Hold (lane beam), Break (a node destroyed), Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/coilWraith.png"
+  ],
+  "modelRequests": [
+    "M-013"
+  ],
+  "anatomy": "Preserve canonical hooded serpentine upper torso, TWO clawed arms, long coiled limbless tail and violet energy gap at belly. NOT a featureless ribbon between poles. Show energy nodes at upper body and tail tip so the lane-beam gameplay is possible while retaining its identity.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-013",
+      "name": "Coil Wraith",
+      "category": "enemy",
+      "rig": "spline",
+      "size": [
+        1.6,
+        13.8,
+        1.5
+      ],
+      "tris": "4k / 1k",
+      "standIn": "enemy.coilWraith",
+      "final": "models/enemies/coilWraith.glb",
+      "status": "stand-in",
+      "summary": "Tall ribbon of shadow strung between two electrical nodes. Fills a lane between scaffolds with a beam until a node is shot out. A gate, not a chaser.",
+      "joints": "9 ribbon bones between two node anchors",
+      "clips": "Ribbon_Idle, Charge_Tell (nodes brighten), Beam_Hold (lane beam), Break (a node destroyed), Dissolve",
+      "sockets": "Node.Top.Core, Node.Bottom.Core, Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "launchworks",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/coilWraith.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-058"
+      ]
+    }
+  ]
+}

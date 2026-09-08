@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-051",
+  "name": "Turnaround: Spire Leech",
+  "file": "enemies/spireLeech-turnaround.png",
+  "preview": "enemies/spireLeech-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Spire Leech. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: One segmented serpent/wall-leech body, one head with radial hooked mouth appendages and a curled terminal hook. No new quadruped legs. Show seven major deforming chain regions under many small armour plates. Core at middle segment; emitter inside mouth. Model target bounds X,Y,Z metres: [1.3, 1.3, 8.2]. Rig/sockets to make visually possible: Core (mid segment), Emitter (mouth), Hitbox.Body. Attack behaviour: Cling_Idle, Crawl (surface-relative), Charge_Tell (eye glow), Beam_Hold, Retract, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/spireLeech.png"
+  ],
+  "modelRequests": [
+    "M-006"
+  ],
+  "anatomy": "One segmented serpent/wall-leech body, one head with radial hooked mouth appendages and a curled terminal hook. No new quadruped legs. Show seven major deforming chain regions under many small armour plates. Core at middle segment; emitter inside mouth.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-006",
+      "name": "Spire Leech",
+      "category": "enemy",
+      "rig": "spline",
+      "size": [
+        1.3,
+        1.3,
+        8.2
+      ],
+      "tris": "5k / 1.5k",
+      "standIn": "enemy.spireLeech",
+      "final": "models/enemies/spireLeech.glb",
+      "status": "stand-in",
+      "summary": "Segmented wall-clinger. Crawls on any tower face, charges a visible eye, then projects a horizontal beam across a gap. Killed from the flank or with a reflected shot.",
+      "joints": "7 chain bones, head, jaw",
+      "clips": "Cling_Idle, Crawl (surface-relative), Charge_Tell (eye glow), Beam_Hold, Retract, Hit, Dissolve",
+      "sockets": "Core (mid segment), Emitter (mouth), Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "city",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/spireLeech.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-051"
+      ]
+    }
+  ]
+}

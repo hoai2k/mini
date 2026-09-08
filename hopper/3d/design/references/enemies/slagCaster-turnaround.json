@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-055",
+  "name": "Turnaround: Slag Caster",
+  "file": "enemies/slagCaster-turnaround.png",
+  "preview": "enemies/slagCaster-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Slag Caster. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Two legs and exactly two very long arms ending in integral ladle bowls; broad soot-black pot belly, furnace mouth. Show belly panel opening without adding a second mouth. Model target bounds X,Y,Z metres: [9.9, 6.8, 5.4]. Rig/sockets to make visually possible: Core (furnace belly), Emitter.L/R (ladles), Mouth, Hitbox.Body. Attack behaviour: Idle, Waddle, Scoop_Tell, Lob (both arms), Core_Open_Hold, Close, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/slagCaster.png"
+  ],
+  "modelRequests": [
+    "M-010"
+  ],
+  "anatomy": "Two legs and exactly two very long arms ending in integral ladle bowls; broad soot-black pot belly, furnace mouth. Show belly panel opening without adding a second mouth.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-010",
+      "name": "Slag Caster",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        9.9,
+        6.8,
+        5.4
+      ],
+      "tris": "8k / 2.5k",
+      "standIn": "enemy.slagCaster",
+      "final": "models/enemies/slagCaster.glb",
+      "status": "stand-in",
+      "summary": "Pot-bellied soot silhouette with ladle forelimbs. Lobs slag that cools into temporary stepping stones; its core opens briefly after each throw.",
+      "joints": "spine ×2, head, 2 arms × 3 with ladles, 2 legs × 2",
+      "clips": "Idle, Waddle, Scoop_Tell, Lob (both arms), Core_Open_Hold, Close, Hit, Dissolve",
+      "sockets": "Core (furnace belly), Emitter.L/R (ladles), Mouth, Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "foundry",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/slagCaster.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-055"
+      ]
+    }
+  ]
+}

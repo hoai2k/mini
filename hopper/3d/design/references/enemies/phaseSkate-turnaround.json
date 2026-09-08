@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-063",
+  "name": "Turnaround: Phase Skate",
+  "file": "enemies/phaseSkate-turnaround.png",
+  "preview": "enemies/phaseSkate-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Phase Skate. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Canonical thin blue-black diamond ray, two wing panels and THREE trailing tails. Preserve its blue emission and flowing tail silhouette; indicate three articulated tail roots rather than replacing them with disconnected debris. Model target bounds X,Y,Z metres: [8.7, 0.9, 6.1]. Rig/sockets to make visually possible: Core (eye), Hitbox.Body (inactive while faded). Attack behaviour: Glide, Fade_Out, Silhouette_Hold (destination ghost), Fade_In, Dash (root motion), Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/phaseSkate.png"
+  ],
+  "modelRequests": [
+    "M-018"
+  ],
+  "anatomy": "Canonical thin blue-black diamond ray, two wing panels and THREE trailing tails. Preserve its blue emission and flowing tail silhouette; indicate three articulated tail roots rather than replacing them with disconnected debris.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-018",
+      "name": "Phase Skate",
+      "category": "enemy",
+      "rig": "rigid",
+      "size": [
+        8.7,
+        0.9,
+        6.1
+      ],
+      "tris": "3k / 1k",
+      "standIn": "enemy.phaseSkate",
+      "final": "models/enemies/phaseSkate.glb",
+      "status": "stand-in",
+      "summary": "Thin diamond ray with a broken tail. Fades, leaves a destination silhouette, becomes solid, dashes. Untouchable while faded; a free stomp for the 0.4 s after it solidifies.",
+      "joints": "body, 2 wing pivots, 3 tail shards",
+      "clips": "Glide, Fade_Out, Silhouette_Hold (destination ghost), Fade_In, Dash (root motion), Hit, Dissolve",
+      "sockets": "Core (eye), Hitbox.Body (inactive while faded)",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "blue",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/phaseSkate.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-063"
+      ]
+    }
+  ]
+}

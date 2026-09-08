@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-053",
+  "name": "Turnaround: Rift Condor",
+  "file": "enemies/riftCondor-turnaround.png",
+  "preview": "enemies/riftCondor-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Rift Condor. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Two broad blade-feather wings, two taloned legs, one beaked head, one feathered tail, sternum ivory ribs. No extra arms. Model target bounds X,Y,Z metres: [18, 0.9, 5.1]. Rig/sockets to make visually possible: Core (sternum), Mouth, Hitbox.Body, Landing. Attack behaviour: Soar, Mark_Corridor (feather trail), Swoop (root motion), Climb_Out, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/riftCondor.png"
+  ],
+  "modelRequests": [
+    "M-008"
+  ],
+  "anatomy": "Two broad blade-feather wings, two taloned legs, one beaked head, one feathered tail, sternum ivory ribs. No extra arms.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-008",
+      "name": "Rift Condor",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        18,
+        0.9,
+        5.1
+      ],
+      "tris": "5k / 1.5k",
+      "standIn": "enemy.riftCondor",
+      "final": "models/enemies/riftCondor.glb",
+      "status": "stand-in",
+      "summary": "Skeletal crescent-winged soarer that rides the same thermals Hopper does. Marks a dive corridor, swoops, climbs out. Sharing thermals makes it a mid-air duel.",
+      "joints": "body, wing.L/R ×3 (crescent), tail, head",
+      "clips": "Soar, Mark_Corridor (feather trail), Swoop (root motion), Climb_Out, Hit, Dissolve",
+      "sockets": "Core (sternum), Mouth, Hitbox.Body, Landing",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "mountains",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/riftCondor.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-053"
+      ]
+    }
+  ]
+}

@@ -320,6 +320,12 @@ for texture in T:
     if texture['request'] in {f'T-{n:03}' for n in [*range(1, 38), 39, 40, 41, 45, 46, 47]}:
         texture['status'] = 'delivered'
 
+# Round-two artwork is delivered for review; model approval remains pending.
+for texture in T:
+    if texture['round'] == 2:
+        texture['status'] = 'delivered'
+        texture['approval'] = 'pending-user-review'
+
 manifest = {
     'generated_by': 'hopper/3d/design/source/build_requests.py',
     'notes': 'standIn ids resolve through hopper/3d/standins/src/index.js (createStandIn). texture.* ids name procedural painters in textures.js. status: delivered | stand-in | open | procedural-final.',
@@ -456,6 +462,7 @@ r2 = []
 r2.append('# Image requests · round two: model reference sheets\n')
 r2.append('Added after round one (`image-requests.md`) had begun; nothing in round one changed. These are the references a modeller works from: a turnaround per shadow species and commander, a kit sheet per region drawn at a shared scale with Hopper, a props sheet, and a pose sheet for Hopper\'s new clips. No model in `model-requests.md` should be started before its sheet here is generated and approved. Generated from `source/build_requests.py`.\n')
 r2.append('Every prompt attaches the existing canonical art named in its description so identity is preserved. Accept a sheet only after checking limb counts, core placement, colours and scale against that art. Same style as round one: 1970s hand-painted anime cel, ink outlines, flat tones, no text on the sheets.\n')
+r2.append('## Delivery and review\n\nAll 32 requested sheets are delivered, with ten larger supporting plates. [Open the review gallery](references/index.html) and read the [modelling notes](references/MODELLING-NOTES.md). Artwork approval is pending; delivered does not mean approved for modelling. Prompts, native resolutions and model contracts accompany each PNG as JSON.\n')
 r2.append('## Which models wait on which sheet\n')
 r2.append('| Sheet | Models |\n| --- | --- |')
 for x in [x for x in T if x['round'] == 2]:

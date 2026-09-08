@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-068",
+  "name": "Turnaround: Eclipse Regent",
+  "file": "bosses/eclipseRegent-turnaround.png",
+  "preview": "bosses/eclipseRegent-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Eclipse Regent. Image 1 is the authoritative canonical identity. Exactly FIVE neutral turnaround drawings in the TOP row: SIDE, FRONT, BACK, TOP, front THREE-QUARTER. Below them a core-exposed drawing and separate representative major-attack key poses: Idle_Hover, Descend, Ring_Crawl_Summon, Hands_Lower_Tell, Hands_Slam, Heart_Open_Hold, Lance_Call, Inversion_Count_In (1.5 s), Phase_Shift ×2, Stagger, Defeat_Dissolve. No duplicate idle poses. Keep every complete figure visible. Wide 2:1 landscape sheet. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Exactly FOUR arms, TWO legs, one crowned head and one black circular halo behind it. Heart-shaped ivory chest core; long split mantle. Keep all four shoulder roots visible in front/back views. Model target bounds X,Y,Z metres: [45, 69, 21]. Rig/sockets to make visually possible: Core (heart), Hand0..3 (kick targets when lowered), Mouth, Hitbox.Body, Halo. Attack behaviour: Idle_Hover, Descend, Ring_Crawl_Summon, Hands_Lower_Tell, Hands_Slam, Heart_Open_Hold, Lance_Call, Inversion_Count_In (1.5 s), Phase_Shift ×2, Stagger, Defeat_Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/bosses/eclipseRegent.png"
+  ],
+  "modelRequests": [
+    "M-023"
+  ],
+  "anatomy": "Exactly FOUR arms, TWO legs, one crowned head and one black circular halo behind it. Heart-shaped ivory chest core; long split mantle. Keep all four shoulder roots visible in front/back views.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-023",
+      "name": "Eclipse Regent",
+      "category": "boss",
+      "rig": "skeletal",
+      "size": [
+        45,
+        69,
+        21
+      ],
+      "tris": "45k / 14k",
+      "standIn": "boss.eclipseRegent",
+      "final": "models/bosses/eclipseRegent.glb",
+      "status": "stand-in",
+      "summary": "Crowned ring of black space over a four-armed body, 5 H tall. Three phases over the eclipse dais: heavy gravity crawling rings, low gravity lances, then alternating floor and ceiling gravity.",
+      "joints": "spine ×5, neck, head, crown (rigid), 4 arms × 3 with claws, 2 legs × 3, mantle (cloth sim or 6 chain bones), black sun halo (rigid spin)",
+      "clips": "Idle_Hover, Descend, Ring_Crawl_Summon, Hands_Lower_Tell, Hands_Slam, Heart_Open_Hold, Lance_Call, Inversion_Count_In (1.5 s), Phase_Shift ×2, Stagger, Defeat_Dissolve",
+      "sockets": "Core (heart), Hand0..3 (kick targets when lowered), Mouth, Hitbox.Body, Halo",
+      "textures": "4K hand-painted albedo, 2K emissive mask",
+      "region": "violet",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/bosses/eclipseRegent.png",
+        "design/assets/boss-canonical-lineup.png"
+      ],
+      "needs": [
+        "T-068"
+      ]
+    }
+  ]
+}

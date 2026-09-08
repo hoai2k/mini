@@ -1,0 +1,182 @@
+{
+  "correction": null,
+  "request": "T-072",
+  "name": "Kit sheet: Cinder Foundries",
+  "file": "kits/foundry.png",
+  "preview": "kits/foundry-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Cinder Foundries. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 5 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Furnace tower (39 x 112 x 39 metres X,Y,Z): Iron drum with rust bands, a stack and a glowing furnace door. The door is a thermal source: heat lifts Hopper. Movable parts: . Landable: roof, catwalk; Conveyor span (93 x 23 x 8 metres X,Y,Z): Rollered belt on legs, UV-scrolled. Adds its velocity to Hopper; belts running against the route are the foundry's treadmill fights. Movable parts: . Landable: belt; Chimney (12 x 114 x 12 metres X,Y,Z): Tall rust stack. A one-Hopper lip 110 m up and a thermal above it. Movable parts: . Landable: lip; Slag barge (41 x 6 x 17 metres X,Y,Z): Iron barge of glowing slag on the casting channel. Moves along a path; the slag surface is a hot updraft, the gunwales are the walkway. Movable parts: . Landable: gunwales; Stamping press (31 x 44 x 21 metres X,Y,Z): Two columns, a ram and an anvil. The ram (rigid) cycles with a long warning stroke; it flings Hopper aside, it never crushes. Movable parts: . Landable: anvil, head. Use foundry region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-2-industry.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-041",
+    "M-042",
+    "M-043",
+    "M-044",
+    "M-045"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-041",
+      "name": "Furnace tower",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        39,
+        112,
+        39
+      ],
+      "tris": "6k",
+      "standIn": "structure.foundry.furnaceTower",
+      "final": "models/structures/foundry/furnaceTower.glb",
+      "status": "stand-in",
+      "summary": "Iron drum with rust bands, a stack and a glowing furnace door. The door is a thermal source: heat lifts Hopper.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "foundry",
+      "landings": "roof, catwalk",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
+    },
+    {
+      "request": "M-042",
+      "name": "Conveyor span",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        93,
+        23,
+        8
+      ],
+      "tris": "3k",
+      "standIn": "structure.foundry.conveyorSpan",
+      "final": "models/structures/foundry/conveyorSpan.glb",
+      "status": "stand-in",
+      "summary": "Rollered belt on legs, UV-scrolled. Adds its velocity to Hopper; belts running against the route are the foundry's treadmill fights.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "foundry",
+      "landings": "belt",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
+    },
+    {
+      "request": "M-043",
+      "name": "Chimney",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        12,
+        114,
+        12
+      ],
+      "tris": "1.5k",
+      "standIn": "structure.foundry.chimney",
+      "final": "models/structures/foundry/chimney.glb",
+      "status": "stand-in",
+      "summary": "Tall rust stack. A one-Hopper lip 110 m up and a thermal above it.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "foundry",
+      "landings": "lip",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
+    },
+    {
+      "request": "M-044",
+      "name": "Slag barge",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        41,
+        6,
+        17
+      ],
+      "tris": "2k",
+      "standIn": "structure.foundry.slagBarge",
+      "final": "models/structures/foundry/slagBarge.glb",
+      "status": "stand-in",
+      "summary": "Iron barge of glowing slag on the casting channel. Moves along a path; the slag surface is a hot updraft, the gunwales are the walkway.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "foundry",
+      "landings": "gunwales",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
+    },
+    {
+      "request": "M-045",
+      "name": "Stamping press",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        31,
+        44,
+        21
+      ],
+      "tris": "4k",
+      "standIn": "structure.foundry.stampingPress",
+      "final": "models/structures/foundry/stampingPress.glb",
+      "status": "stand-in",
+      "summary": "Two columns, a ram and an anvil. The ram (rigid) cycles with a long warning stroke; it flings Hopper aside, it never crushes.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "foundry",
+      "landings": "anvil, head",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/foundry.webp"
+      ],
+      "needs": [
+        "T-072"
+      ]
+    }
+  ]
+}

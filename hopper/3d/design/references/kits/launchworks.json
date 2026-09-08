@@ -1,0 +1,182 @@
+{
+  "correction": null,
+  "request": "T-074",
+  "name": "Kit sheet: Skyhook Works",
+  "file": "kits/launchworks.png",
+  "preview": "kits/launchworks-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Skyhook Works. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 5 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Launch ring (137 x 211 x 137 metres X,Y,Z): Rust ring on four struts, 200 m up, eight lit pads. The launch spine's crown and the Leviathan arena's upper tier. Movable parts: . Landable: eight ring pads; Rocket on the pad (31 x 163 x 20 metres X,Y,Z): Ivory rocket with red fins beside an umbilical mast. Its arms are the climb; the nose is a vista point. Movable parts: . Landable: four umbilical arms; Piston stair (58 x 76 x 10 metres X,Y,Z): Five pistons whose heads rise and fall out of phase (rigid). A stair that changes shape; dwell times are generous. Movable parts: . Landable: one per piston head; Exhaust shaft (75 x 124 x 75 metres X,Y,Z): Open iron shaft 120 m deep with staggered baffles. The descent chapter; the vent at the bottom is a thermal back to the top. Movable parts: . Landable: four baffles; Gantry elevator (20 x 155 x 17 metres X,Y,Z): Two rails and a cage (rigid) that rides 140 m. The Leviathan coils around this tower. Movable parts: . Landable: cage. Use launchworks region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-2-industry.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-051",
+    "M-052",
+    "M-053",
+    "M-054",
+    "M-055"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-051",
+      "name": "Launch ring",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        137,
+        211,
+        137
+      ],
+      "tris": "8k",
+      "standIn": "structure.launchworks.launchRing",
+      "final": "models/structures/launchworks/launchRing.glb",
+      "status": "stand-in",
+      "summary": "Rust ring on four struts, 200 m up, eight lit pads. The launch spine's crown and the Leviathan arena's upper tier.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "launchworks",
+      "landings": "eight ring pads",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
+    },
+    {
+      "request": "M-052",
+      "name": "Rocket on the pad",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        31,
+        163,
+        20
+      ],
+      "tris": "5k",
+      "standIn": "structure.launchworks.rocket",
+      "final": "models/structures/launchworks/rocket.glb",
+      "status": "stand-in",
+      "summary": "Ivory rocket with red fins beside an umbilical mast. Its arms are the climb; the nose is a vista point.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "launchworks",
+      "landings": "four umbilical arms",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
+    },
+    {
+      "request": "M-053",
+      "name": "Piston stair",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        58,
+        76,
+        10
+      ],
+      "tris": "3k",
+      "standIn": "structure.launchworks.pistonStair",
+      "final": "models/structures/launchworks/pistonStair.glb",
+      "status": "stand-in",
+      "summary": "Five pistons whose heads rise and fall out of phase (rigid). A stair that changes shape; dwell times are generous.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "launchworks",
+      "landings": "one per piston head",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
+    },
+    {
+      "request": "M-054",
+      "name": "Exhaust shaft",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        75,
+        124,
+        75
+      ],
+      "tris": "5k",
+      "standIn": "structure.launchworks.exhaustShaft",
+      "final": "models/structures/launchworks/exhaustShaft.glb",
+      "status": "stand-in",
+      "summary": "Open iron shaft 120 m deep with staggered baffles. The descent chapter; the vent at the bottom is a thermal back to the top.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "launchworks",
+      "landings": "four baffles",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
+    },
+    {
+      "request": "M-055",
+      "name": "Gantry elevator",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        20,
+        155,
+        17
+      ],
+      "tris": "3k",
+      "standIn": "structure.launchworks.gantryElevator",
+      "final": "models/structures/launchworks/gantryElevator.glb",
+      "status": "stand-in",
+      "summary": "Two rails and a cage (rigid) that rides 140 m. The Leviathan coils around this tower.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "launchworks",
+      "landings": "cage",
+      "notes": "",
+      "existing": [
+        "design/assets/level-2-industry.png",
+        "game/public/assets/backgrounds/launchworks.webp"
+      ],
+      "needs": [
+        "T-074"
+      ]
+    }
+  ]
+}

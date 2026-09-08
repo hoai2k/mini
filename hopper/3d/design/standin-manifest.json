@@ -2636,7 +2636,7 @@
       "category": "reference",
       "region": "fields",
       "final": "design/references/enemies/shadeHound-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2646,7 +2646,7 @@
       "category": "reference",
       "region": "fields",
       "final": "design/references/enemies/seedSpitter-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2656,7 +2656,7 @@
       "category": "reference",
       "region": "city",
       "final": "design/references/enemies/windowRay-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2666,7 +2666,7 @@
       "category": "reference",
       "region": "city",
       "final": "design/references/enemies/spireLeech-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2676,7 +2676,7 @@
       "category": "reference",
       "region": "mountains",
       "final": "design/references/enemies/cragTortoise-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2686,7 +2686,7 @@
       "category": "reference",
       "region": "mountains",
       "final": "design/references/enemies/riftCondor-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2696,7 +2696,7 @@
       "category": "reference",
       "region": "foundry",
       "final": "design/references/enemies/furnaceHound-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2706,7 +2706,7 @@
       "category": "reference",
       "region": "foundry",
       "final": "design/references/enemies/slagCaster-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2716,7 +2716,7 @@
       "category": "reference",
       "region": "harbor",
       "final": "design/references/enemies/chainManta-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2726,7 +2726,7 @@
       "category": "reference",
       "region": "harbor",
       "final": "design/references/enemies/ballastCrab-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2736,7 +2736,7 @@
       "category": "reference",
       "region": "launchworks",
       "final": "design/references/enemies/coilWraith-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2746,7 +2746,7 @@
       "category": "reference",
       "region": "launchworks",
       "final": "design/references/enemies/turbineWasp-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2756,7 +2756,7 @@
       "category": "reference",
       "region": "red",
       "final": "design/references/enemies/basaltBurrower-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2766,7 +2766,7 @@
       "category": "reference",
       "region": "red",
       "final": "design/references/enemies/thornChoir-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2776,7 +2776,7 @@
       "category": "reference",
       "region": "blue",
       "final": "design/references/enemies/veilMedusa-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2786,7 +2786,7 @@
       "category": "reference",
       "region": "blue",
       "final": "design/references/enemies/phaseSkate-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2796,7 +2796,7 @@
       "category": "reference",
       "region": "violet",
       "final": "design/references/enemies/mirrorStalker-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2806,7 +2806,7 @@
       "category": "reference",
       "region": "violet",
       "final": "design/references/enemies/gravityCantor-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2816,7 +2816,7 @@
       "category": "reference",
       "region": "mountains",
       "final": "design/references/bosses/nightRook-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2826,7 +2826,7 @@
       "category": "reference",
       "region": "launchworks",
       "final": "design/references/bosses/smelterLeviathan-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2836,7 +2836,7 @@
       "category": "reference",
       "region": "violet",
       "final": "design/references/bosses/eclipseRegent-turnaround.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2846,7 +2846,7 @@
       "category": "reference",
       "region": "fields",
       "final": "design/references/kits/fields.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2856,7 +2856,7 @@
       "category": "reference",
       "region": "city",
       "final": "design/references/kits/city.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2866,7 +2866,7 @@
       "category": "reference",
       "region": "mountains",
       "final": "design/references/kits/mountains.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2876,7 +2876,7 @@
       "category": "reference",
       "region": "foundry",
       "final": "design/references/kits/foundry.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2886,7 +2886,7 @@
       "category": "reference",
       "region": "harbor",
       "final": "design/references/kits/harbor.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2896,7 +2896,7 @@
       "category": "reference",
       "region": "launchworks",
       "final": "design/references/kits/launchworks.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2906,7 +2906,7 @@
       "category": "reference",
       "region": "red",
       "final": "design/references/kits/red.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2916,7 +2916,7 @@
       "category": "reference",
       "region": "blue",
       "final": "design/references/kits/blue.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2926,7 +2926,7 @@
       "category": "reference",
       "region": "violet",
       "final": "design/references/kits/violet.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2935,7 +2935,7 @@
       "name": "Props sheet",
       "category": "reference",
       "final": "design/references/props.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     },
     {
@@ -2944,7 +2944,7 @@
       "name": "Hopper pose sheet for the new clips",
       "category": "reference",
       "final": "design/references/hopper-new-clips.png",
-      "status": "open",
+      "status": "delivered",
       "round": 2
     }
   ]

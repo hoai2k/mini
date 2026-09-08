@@ -1,0 +1,182 @@
+{
+  "correction": null,
+  "request": "T-077",
+  "name": "Kit sheet: Violet Inversion",
+  "file": "kits/violet.png",
+  "preview": "kits/violet-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Violet Inversion. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 5 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Obsidian arch (93 x 72 x 17 metres X,Y,Z): Obsidian piers and lintel with a glowing ceiling seam underneath: an inverted lane runs along the seam. Movable parts: . Landable: lintel top; Ring shard (124 x 13 x 21 metres X,Y,Z): Fragment of a broken planetary ring, orbiting slowly (rigid). Landings that rotate through the sky. Movable parts: . Landable: face; Gravity cathedral facade (166 x 193 x 124 metres X,Y,Z): Obsidian facade with the black sun above the door, twin spires and steps. The final landmark; the Regent's arena sits before it. Movable parts: . Landable: roof, steps; Gravity seam (100 x 4 x 2 metres X,Y,Z): Glowing seam with animated arrows marking where local gravity changes. Purely a signal; attached to arches and gates. Movable parts: . Landable: none; Eclipse dais (100 x 23 x 99 metres X,Y,Z): Obsidian dais with a glowing circle and six mirrored shelves at two heights. The Regent arena. Movable parts: . Landable: dais + six shelves. Use violet region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-3-alien.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-063",
+    "M-064",
+    "M-065",
+    "M-066",
+    "M-067"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-063",
+      "name": "Obsidian arch",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        93,
+        72,
+        17
+      ],
+      "tris": "3k",
+      "standIn": "structure.violet.obsidianArch",
+      "final": "models/structures/violet/obsidianArch.glb",
+      "status": "stand-in",
+      "summary": "Obsidian piers and lintel with a glowing ceiling seam underneath: an inverted lane runs along the seam.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "violet",
+      "landings": "lintel top",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
+    },
+    {
+      "request": "M-064",
+      "name": "Ring shard",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        124,
+        13,
+        21
+      ],
+      "tris": "2k",
+      "standIn": "structure.violet.ringShard",
+      "final": "models/structures/violet/ringShard.glb",
+      "status": "stand-in",
+      "summary": "Fragment of a broken planetary ring, orbiting slowly (rigid). Landings that rotate through the sky.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "violet",
+      "landings": "face",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
+    },
+    {
+      "request": "M-065",
+      "name": "Gravity cathedral facade",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        166,
+        193,
+        124
+      ],
+      "tris": "12k",
+      "standIn": "structure.violet.cathedralFacade",
+      "final": "models/structures/violet/cathedralFacade.glb",
+      "status": "stand-in",
+      "summary": "Obsidian facade with the black sun above the door, twin spires and steps. The final landmark; the Regent's arena sits before it.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "violet",
+      "landings": "roof, steps",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
+    },
+    {
+      "request": "M-066",
+      "name": "Gravity seam",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        100,
+        4,
+        2
+      ],
+      "tris": "0.5k",
+      "standIn": "structure.violet.gravitySeam",
+      "final": "models/structures/violet/gravitySeam.glb",
+      "status": "stand-in",
+      "summary": "Glowing seam with animated arrows marking where local gravity changes. Purely a signal; attached to arches and gates.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "violet",
+      "landings": "none",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
+    },
+    {
+      "request": "M-067",
+      "name": "Eclipse dais",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        100,
+        23,
+        99
+      ],
+      "tris": "5k",
+      "standIn": "structure.violet.eclipseDais",
+      "final": "models/structures/violet/eclipseDais.glb",
+      "status": "stand-in",
+      "summary": "Obsidian dais with a glowing circle and six mirrored shelves at two heights. The Regent arena.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "violet",
+      "landings": "dais + six shelves",
+      "notes": "",
+      "existing": [
+        "design/assets/level-3-alien.png",
+        "game/public/assets/backgrounds/purple.webp"
+      ],
+      "needs": [
+        "T-077"
+      ]
+    }
+  ]
+}

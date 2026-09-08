@@ -1,0 +1,154 @@
+{
+  "correction": null,
+  "request": "T-078-4",
+  "name": "Props plate 5",
+  "file": "plates/props-5.png",
+  "preview": "plates/props-5-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. 3D game prop modelling reference sheet. Draw 4 object groups. Each group contains FOUR views: front idle, three-quarter idle, front active, three-quarter active. Do not merge different objects. Eye laser bolt: Red-white capsule with a bright core. Spawned in pairs from Hopper.Laser.L/R. Target X,Y,Z: [0.6, 0.6, 6] metres. Rig: static, moving parts , sockets .; Kick arc: Translucent gold arc that sweeps with the spin kick. Reads the kick radius (7 m) on screen. Target X,Y,Z: [20, 1, 20] metres. Rig: static, moving parts , sockets .; Guard shield: Translucent teal half-dome at Hopper.Shield with a white rim. Shown while B is held. Target X,Y,Z: [18, 18, 9] metres. Rig: static, moving parts , sockets .; Shadow dissolve: Fourteen charcoal and violet shards around a pale flash. Every shadow dies into this (scale-up over 0.5 s). Target X,Y,Z: [12, 12, 12] metres. Rig: rigid, moving parts , sockets .  Maintain shared scale within each group; show a 14m Hopper silhouette beside one object for context. For enormous shader volumes add a small separate volume outline, with a readable enlarged hardware detail; do not make physical solids from energy effects. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. Request 3840x1920 wide. No text or numbers. Operational differences must be visible. Active state uses painted coloured emission, not photographic bloom.",
+  "references": [
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-079",
+    "M-080",
+    "M-081",
+    "M-082"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-079",
+      "name": "Eye laser bolt",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        0.6,
+        0.6,
+        6
+      ],
+      "tris": "0.1k",
+      "standIn": "prop.laserBolt",
+      "final": "models/props/laserBolt.glb",
+      "status": "stand-in",
+      "summary": "Red-white capsule with a bright core. Spawned in pairs from Hopper.Laser.L/R.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-080",
+      "name": "Kick arc",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        20,
+        1,
+        20
+      ],
+      "tris": "0.2k",
+      "standIn": "prop.kickArc",
+      "final": "models/props/kickArc.glb",
+      "status": "stand-in",
+      "summary": "Translucent gold arc that sweeps with the spin kick. Reads the kick radius (7 m) on screen.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-081",
+      "name": "Guard shield",
+      "category": "prop",
+      "rig": "static",
+      "size": [
+        18,
+        18,
+        9
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.shieldDome",
+      "final": "models/props/shieldDome.glb",
+      "status": "stand-in",
+      "summary": "Translucent teal half-dome at Hopper.Shield with a white rim. Shown while B is held.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-082",
+      "name": "Shadow dissolve",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        12,
+        12,
+        12
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.dissolveBurst",
+      "final": "models/props/dissolveBurst.glb",
+      "status": "stand-in",
+      "summary": "Fourteen charcoal and violet shards around a pale flash. Every shadow dies into this (scale-up over 0.5 s).",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    }
+  ]
+}

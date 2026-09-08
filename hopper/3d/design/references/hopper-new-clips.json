@@ -1,0 +1,89 @@
+{
+  "request": "T-079",
+  "name": "Hopper New Clips overview",
+  "file": "hopper-new-clips.png",
+  "preview": "hopper-new-clips-preview.jpg",
+  "sourceSize": null,
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "composite of generated supporting plates",
+  "approval": "pending-user-review",
+  "modelRequests": [
+    "M-001",
+    "M-002"
+  ],
+  "contract": [
+    {
+      "request": "M-001",
+      "name": "Hopper: traversal and air-combat clips",
+      "category": "hopper",
+      "rig": "skeletal",
+      "size": [
+        23,
+        19,
+        29
+      ],
+      "tris": "existing mesh",
+      "standIn": "hopper.proxy",
+      "final": "models/hopper-rider.glb (new clips)",
+      "status": "open",
+      "summary": "New clips on the existing HopperRig. No mesh or joint changes. Walk/Run stay in place; every airborne clip is physics-driven (no root motion). Wings open from the folded rest pose.",
+      "joints": "",
+      "clips": "Wing_Open (0.25 s), Glide_Loop (wings spread, hind legs trailing), Wing_Close (0.2 s), Dive_Loop (legs tucked, head down), Stomp_Land (deep compression + shockwave pose, 0.6 s), Air_Kick (Spin_Kick timed for 0.6 s with the body level), Wall_Kick (plant + push, 0.35 s), Ledge_Mantle (front legs hook, haul, 0.7 s), Hop_Back (0.45 s), Crouch_Charge_Loop (femurs compressing progressively, 0.8 s, sampled by charge), Super_Leap_Start (0.3 s), Lock_Strafe_L/R (sidestep loops), Hit_Air (0.5 s), Land_Heavy (from a dive, 0.8 s)",
+      "sockets": "existing; add Hopper.Wing.L/R tip sockets for glide trails",
+      "textures": "existing",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ],
+      "needs": [
+        "T-079"
+      ]
+    },
+    {
+      "request": "M-002",
+      "name": "Rider: reaction clips",
+      "category": "rider",
+      "rig": "skeletal",
+      "size": [
+        2.6,
+        5.6,
+        1.4
+      ],
+      "tris": "existing mesh",
+      "standIn": "hopper.proxy",
+      "final": "models/hopper-rider.glb (new rider clips)",
+      "status": "open",
+      "summary": "Additional seated reactions layered over Riding_Idle: Glide_Lean (arms back, scarf streaming), Dive_Tuck, Stomp_Brace, Point_Forward (used by Horizon View), Look_Up_Long (watching a flyer), Cheer_Short. All local to the seat; never leave the couch.",
+      "joints": "",
+      "clips": "6 listed",
+      "sockets": "existing",
+      "textures": "existing",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "design/assets/hopper-canonical-v1.png",
+        "design/assets/hopper-action-study.png",
+        "models/hopper-rider.glb"
+      ],
+      "needs": [
+        "T-079"
+      ]
+    }
+  ],
+  "prompt": "Overview of five supporting plates. See their JSON files for exact prompts.",
+  "plates": [
+    "plates/hopper-flight.png",
+    "plates/hopper-impact.png",
+    "plates/hopper-kick-mantle.png",
+    "plates/hopper-charge.png",
+    "plates/hopper-rider.png"
+  ]
+}

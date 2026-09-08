@@ -1,0 +1,124 @@
+{
+  "correction": null,
+  "request": "T-078-0",
+  "name": "Props plate 1",
+  "file": "plates/props-1.png",
+  "preview": "plates/props-1-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. 3D game prop modelling reference sheet. Draw 3 object groups. Each group contains FOUR views: front idle, three-quarter idle, front active, three-quarter active. Do not merge different objects. Spring pad: Cyan plate on an iron base with four chevrons. Plate compresses (rigid) and launches Hopper to 12 H. Regional recolours as in the 2D game. Target X,Y,Z: [11, 3, 11] metres. Rig: rigid, moving parts , sockets .; Signal: Twin gold crystals and a halo, spinning. The optional collectible; nine per region. Target X,Y,Z: [3, 5, 3] metres. Rig: rigid, moving parts , sockets .; Signal cage: Ten shadow bars on a pedestal with a violet crown. Only a reflected shot opens it (crown breaks, bars drop: rigid). Target X,Y,Z: [14, 10, 14] metres. Rig: rigid, moving parts , sockets . The cyan/ivory/gold mechanical cage in the reference is authoritative; draw it EMPTY (remove the captive creature), closed and opened, with cyan energy bars retracting and violet lock crown. Spring-pad chevrons are paint, NOT collision ridges. Maintain shared scale within each group; show a 14m Hopper silhouette beside one object for context. For enormous shader volumes add a small separate volume outline, with a readable enlarged hardware detail; do not make physical solids from energy effects. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. Request 3840x1920 wide. No text or numbers. Operational differences must be visible. Active state uses painted coloured emission, not photographic bloom.",
+  "references": [
+    "hopper/game/public/assets/upgrades/props/spring-pad.png",
+    "hopper/game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-068",
+    "M-069",
+    "M-070"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-068",
+      "name": "Spring pad",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        11,
+        3,
+        11
+      ],
+      "tris": "1k",
+      "standIn": "prop.springPad",
+      "final": "models/props/springPad.glb",
+      "status": "stand-in",
+      "summary": "Cyan plate on an iron base with four chevrons. Plate compresses (rigid) and launches Hopper to 12 H. Regional recolours as in the 2D game.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-069",
+      "name": "Signal",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        3,
+        5,
+        3
+      ],
+      "tris": "0.5k",
+      "standIn": "prop.signalBeacon",
+      "final": "models/props/signalBeacon.glb",
+      "status": "stand-in",
+      "summary": "Twin gold crystals and a halo, spinning. The optional collectible; nine per region.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    },
+    {
+      "request": "M-070",
+      "name": "Signal cage",
+      "category": "prop",
+      "rig": "rigid",
+      "size": [
+        14,
+        10,
+        14
+      ],
+      "tris": "1.5k",
+      "standIn": "prop.signalCage",
+      "final": "models/props/signalCage.glb",
+      "status": "stand-in",
+      "summary": "Ten shadow bars on a pedestal with a violet crown. Only a reflected shot opens it (crown breaks, bars drop: rigid).",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "1K hand-painted albedo, emissive mask",
+      "region": null,
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/upgrades/props/spring-pad.png",
+        "game/public/assets/upgrades/reference/props/signal-cage-intact.png",
+        "game/public/assets/upgrades/reference/props/lockdown-wall.png"
+      ],
+      "needs": [
+        "T-078"
+      ]
+    }
+  ]
+}

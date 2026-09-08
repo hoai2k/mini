@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-052",
+  "name": "Turnaround: Crag Tortoise",
+  "file": "enemies/cragTortoise-turnaround.png",
+  "preview": "enemies/cragTortoise-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Crag Tortoise. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Four stout legs, one head, one domed spiked shell; ivory underside opens during rearing. Spikes remain rigid shell children. Model target bounds X,Y,Z metres: [7.1, 4.7, 8.6]. Rig/sockets to make visually possible: Core (belly), Mouth, Hitbox.Shell (rejects stomps), Hitbox.Body. Attack behaviour: Idle, Walk, Lunge_Tell (rear up), Lunge (root motion), Belly_Open_Hold, Withdraw, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/cragTortoise.png"
+  ],
+  "modelRequests": [
+    "M-007"
+  ],
+  "anatomy": "Four stout legs, one head, one domed spiked shell; ivory underside opens during rearing. Spikes remain rigid shell children.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-007",
+      "name": "Crag Tortoise",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        7.1,
+        4.7,
+        8.6
+      ],
+      "tris": "7k / 2k",
+      "standIn": "enemy.cragTortoise",
+      "final": "models/enemies/cragTortoise.glb",
+      "status": "stand-in",
+      "summary": "Armoured dome with a pale belly shown only during its uphill lunge. Stomping the spikes bounces Hopper off harmlessly; the belly is the only target.",
+      "joints": "spine ×2, shell (rigid child), head, jaw, 4 legs × 3",
+      "clips": "Idle, Walk, Lunge_Tell (rear up), Lunge (root motion), Belly_Open_Hold, Withdraw, Hit, Dissolve",
+      "sockets": "Core (belly), Mouth, Hitbox.Shell (rejects stomps), Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "mountains",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/cragTortoise.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-052"
+      ]
+    }
+  ]
+}

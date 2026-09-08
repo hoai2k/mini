@@ -1,0 +1,61 @@
+{
+  "correction": {
+    "id": "T-060",
+    "prompt": "Only correct the TOP VIEW (fourth small figure across top row) of this Basalt Burrower sheet. It incorrectly has six feet. This animal has exactly FOUR legs, one front pair near drill head and one rear pair near tail, matching every other view. REMOVE the middle pair of feet from that top view, fill with cream background. Preserve four corner feet, shell silhouette, drill nose, all other six panels exactly. No other changes.",
+    "source": "/Users/hoai/.codex/generated_images/01a07373-1b20-7620-b916-5e3fcb2a3a4a/exec-ad9fb444-a0fc-48cf-8195-bc233044d777.png"
+  },
+  "request": "T-060",
+  "name": "Turnaround: Basalt Burrower",
+  "file": "enemies/basaltBurrower-turnaround.png",
+  "preview": "enemies/basaltBurrower-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Basalt Burrower. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Four stout digging legs, rotating cone drill snout, layered broken dorsal armour slabs; exposed pale back core only when the plates spread. Model target bounds X,Y,Z metres: [7.7, 4.1, 11.4]. Rig/sockets to make visually possible: Core (unarmoured back), Drill, Hitbox.Body. Attack behaviour: Buried_Idle, Tunnel (surface crack trail), Erupt_Tell, Erupt (root motion up), Land, Withdraw, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/basaltBurrower.png"
+  ],
+  "modelRequests": [
+    "M-015"
+  ],
+  "anatomy": "Four stout digging legs, rotating cone drill snout, layered broken dorsal armour slabs; exposed pale back core only when the plates spread.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-015",
+      "name": "Basalt Burrower",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        7.7,
+        4.1,
+        11.4
+      ],
+      "tris": "7k / 2k",
+      "standIn": "enemy.basaltBurrower",
+      "final": "models/enemies/basaltBurrower.glb",
+      "status": "stand-in",
+      "summary": "Drilling snout and broken dorsal plates. Tunnels under the ground Hopper is about to land on, cracks trace its path, then it erupts. The back is soft as it emerges.",
+      "joints": "spine ×3, drill (spin pivot), 4 legs × 3",
+      "clips": "Buried_Idle, Tunnel (surface crack trail), Erupt_Tell, Erupt (root motion up), Land, Withdraw, Hit, Dissolve",
+      "sockets": "Core (unarmoured back), Drill, Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "red",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/basaltBurrower.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-060"
+      ]
+    }
+  ]
+}

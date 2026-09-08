@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-048",
+  "name": "Turnaround: Shade Hound",
+  "file": "enemies/shadeHound-turnaround.png",
+  "preview": "enemies/shadeHound-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Shade Hound. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Exactly four digitigrade legs, one angular long head, one segmented tapering tail, ivory rib cage on underside. Spines are armour, not extra limbs. Model target bounds X,Y,Z metres: [3, 3, 9]. Rig/sockets to make visually possible: Core (belly ribs), Mouth, Hitbox.Body. Attack behaviour: Idle, Prowl, Run, Crouch_Tell, Pounce (root motion), Land, Bite, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/shadeHound.png"
+  ],
+  "modelRequests": [
+    "M-003"
+  ],
+  "anatomy": "Exactly four digitigrade legs, one angular long head, one segmented tapering tail, ivory rib cage on underside. Spines are armour, not extra limbs.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-003",
+      "name": "Shade Hound",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        3,
+        3,
+        9
+      ],
+      "tris": "6k / 2k",
+      "standIn": "enemy.shadeHound",
+      "final": "models/enemies/shadeHound.glb",
+      "status": "stand-in",
+      "summary": "Low angular quadruped with luminous ivory ribs. Pounces at Hopper from cover and from rooftops; the ribs open when it lands.",
+      "joints": "spine ×3, neck, head, jaw, tail ×3, 4 legs × 3",
+      "clips": "Idle, Prowl, Run, Crouch_Tell, Pounce (root motion), Land, Bite, Hit, Dissolve",
+      "sockets": "Core (belly ribs), Mouth, Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "fields",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/shadeHound.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-048"
+      ]
+    }
+  ]
+}

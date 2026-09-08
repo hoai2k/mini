@@ -1,0 +1,57 @@
+{
+  "correction": null,
+  "request": "T-054",
+  "name": "Turnaround: Furnace Hound",
+  "file": "enemies/furnaceHound-turnaround.png",
+  "preview": "enemies/furnaceHound-turnaround-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    4096,
+    2048
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: identity-preserve. Generate a production 3D modelling reference sheet for Furnace Hound. Image 1 is the authoritative canonical identity. Exactly SEVEN drawings in two rows. Top row five equal-scale neutral views LEFT TO RIGHT: left SIDE profile facing left, FRONT looking at camera, BACK facing away, TOP looking straight down, front THREE-QUARTER. Bottom row: core-exposed pose and attack anticipation pose. Use the full width; keep all seven subjects separate. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. CRITICAL ANATOMY: Four strong digitigrade legs, one long head, one tail, amber-orange furnace ribs and mouth; two shoulder exhaust vents. Keep orange emission rather than changing it to violet. Model target bounds X,Y,Z metres: [3.8, 4.1, 11.2]. Rig/sockets to make visually possible: Core (ribs, hot), Mouth, Vent.L/R (emitters), Hitbox.Body. Attack behaviour: Idle, Vent_Tell, Charge (root motion, straight line), Skid, Bite, Hit, Dissolve. The core-exposed and tell poses should reveal the mechanism without changing anatomy. New back/top surfaces should be the simplest continuation of existing armour. Blank unnumbered ruler ticks below neutral row. Request 3840x1920 pixels, 2:1 aspect. No text.",
+  "references": [
+    "hopper/game/public/assets/enemies/furnaceHound.png"
+  ],
+  "modelRequests": [
+    "M-009"
+  ],
+  "anatomy": "Four strong digitigrade legs, one long head, one tail, amber-orange furnace ribs and mouth; two shoulder exhaust vents. Keep orange emission rather than changing it to violet.",
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-009",
+      "name": "Furnace Hound",
+      "category": "enemy",
+      "rig": "skeletal",
+      "size": [
+        3.8,
+        4.1,
+        11.2
+      ],
+      "tris": "7k / 2k",
+      "standIn": "enemy.furnaceHound",
+      "final": "models/enemies/furnaceHound.glb",
+      "status": "stand-in",
+      "summary": "Broad-shouldered hound with ember seams. Vents, then charges in a straight line along conveyors and decks. Jumped over and struck from behind, or stomped mid-skid.",
+      "joints": "as Shade Hound + 2 shoulder vents",
+      "clips": "Idle, Vent_Tell, Charge (root motion, straight line), Skid, Bite, Hit, Dissolve",
+      "sockets": "Core (ribs, hot), Mouth, Vent.L/R (emitters), Hitbox.Body",
+      "textures": "2K hand-painted albedo, 1K emissive mask",
+      "region": "foundry",
+      "landings": null,
+      "notes": "",
+      "existing": [
+        "game/public/assets/enemies/furnaceHound.png",
+        "design/assets/enemy-silhouettes.png"
+      ],
+      "needs": [
+        "T-054"
+      ]
+    }
+  ]
+}

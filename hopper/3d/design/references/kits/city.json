@@ -1,0 +1,244 @@
+{
+  "correction": null,
+  "request": "T-070",
+  "name": "Kit sheet: Crownline City",
+  "file": "kits/city.png",
+  "preview": "kits/city-preview.jpg",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "exportSize": [
+    8192,
+    4096
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production structure-kit modelling sheet for Kit sheet: Crownline City. Reference image 1 supplies the region's visual design; image 2 supplies Hopper's identity and scale only. Draw exactly 7 separated object groups. Each object has a straight FRONT elevation and front THREE-QUARTER view beside it, with identical geometry in the two views. All main objects share one physical scale; add a small simplified canonical Hopper at 14m tall beside one structure. Readable landing tops in a lighter tone, dark safe landing lips, mechanical separation at moving pivots. Keep silhouettes simple enough for low-poly 3D geometry and the paired views consistent. Ivory tower (31 x 133 x 31 metres X,Y,Z): Stepped ivory tower with teal glass bands, 90–150 m. The roof is the prize; each band ledge is a wall-kick rest. Movable parts: . Landable: roof + ledge per band; Roof deck block (44 x 44 x 28 metres X,Y,Z): Low mid-rise with a parapet and vents. The rooftop-run floor of Crownline City; decks sit a tap-jump apart. Movable parts: . Landable: roof; Elevated rail span (166 x 32 x 10 metres X,Y,Z): Elevated line on ivory piers. The train runs along it (M-036 moves on TrackStart→TrackEnd). Landing on the deck is safe; the train pushes, never hurts. Movable parts: . Landable: deck; Train car (23 x 5 x 5 metres X,Y,Z): Cream and red carriage, teal windows. A moving platform whose roof carries Hopper along the span. Movable parts: . Landable: roof; Construction crown (62 x 132 x 35 metres X,Y,Z): Open-frame tower under construction, six slabs and a tower crane. The jib is a rigid pivot that slews slowly; the classic ladder climb. Movable parts: . Landable: one per floor + jib; Rooftop billboard (25 x 43 x 2 metres X,Y,Z): Painted billboard on a post. Its top is a thin landing; it tilts (rigid pivot) when landed on, dropping Hopper onto the deck below. Never hurts. Movable parts: . Landable: board top; Highline observatory (55 x 53 x 55 metres X,Y,Z): Ivory drum and teal glass dome at the top of the city. The region's exit landmark; the crown is the checkpoint. Movable parts: . Landable: crown, ring. Use city region only from the environment board. 1970s anime production model sheet, confident dark ink contours, readable flat cel colour masses, very restrained gouache brush detail. Uniform warm cream background. Even neutral lighting, no cast shadows, no scenery, no captions, no words, no logos, no panel borders. Full subject in every panel, ample margins, never crop feet, tails or wing tips. Orthographic views must show the SAME character, not variants. No enemies, no battle, no text or numerals. Request 3840x1920, 2:1 wide. Draw narrow arrows without labels pointing to usable landing surfaces. Large pieces may dominate; companion notes give exact dimensions.",
+  "references": [
+    "hopper/design/assets/level-1-earth.png",
+    "hopper/design/assets/hopper-canonical-v1.png"
+  ],
+  "modelRequests": [
+    "M-029",
+    "M-030",
+    "M-031",
+    "M-032",
+    "M-033",
+    "M-034",
+    "M-035"
+  ],
+  "anatomy": null,
+  "approval": "pending-user-review",
+  "contract": [
+    {
+      "request": "M-029",
+      "name": "Ivory tower",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        31,
+        133,
+        31
+      ],
+      "tris": "6k",
+      "standIn": "structure.city.ivoryTower",
+      "final": "models/structures/city/ivoryTower.glb",
+      "status": "stand-in",
+      "summary": "Stepped ivory tower with teal glass bands, 90–150 m. The roof is the prize; each band ledge is a wall-kick rest.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "city",
+      "landings": "roof + ledge per band",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
+    },
+    {
+      "request": "M-030",
+      "name": "Roof deck block",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        44,
+        44,
+        28
+      ],
+      "tris": "3k",
+      "standIn": "structure.city.roofDeck",
+      "final": "models/structures/city/roofDeck.glb",
+      "status": "stand-in",
+      "summary": "Low mid-rise with a parapet and vents. The rooftop-run floor of Crownline City; decks sit a tap-jump apart.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "city",
+      "landings": "roof",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
+    },
+    {
+      "request": "M-031",
+      "name": "Elevated rail span",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        166,
+        32,
+        10
+      ],
+      "tris": "4k",
+      "standIn": "structure.city.railSpan",
+      "final": "models/structures/city/railSpan.glb",
+      "status": "stand-in",
+      "summary": "Elevated line on ivory piers. The train runs along it (M-036 moves on TrackStart→TrackEnd). Landing on the deck is safe; the train pushes, never hurts.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "city",
+      "landings": "deck",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
+    },
+    {
+      "request": "M-032",
+      "name": "Train car",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        23,
+        5,
+        5
+      ],
+      "tris": "2k",
+      "standIn": "structure.city.trainCar",
+      "final": "models/structures/city/trainCar.glb",
+      "status": "stand-in",
+      "summary": "Cream and red carriage, teal windows. A moving platform whose roof carries Hopper along the span.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "city",
+      "landings": "roof",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
+    },
+    {
+      "request": "M-033",
+      "name": "Construction crown",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        62,
+        132,
+        35
+      ],
+      "tris": "8k",
+      "standIn": "structure.city.constructionCrown",
+      "final": "models/structures/city/constructionCrown.glb",
+      "status": "stand-in",
+      "summary": "Open-frame tower under construction, six slabs and a tower crane. The jib is a rigid pivot that slews slowly; the classic ladder climb.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "city",
+      "landings": "one per floor + jib",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
+    },
+    {
+      "request": "M-034",
+      "name": "Rooftop billboard",
+      "category": "structure",
+      "rig": "rigid",
+      "size": [
+        25,
+        43,
+        2
+      ],
+      "tris": "1.5k",
+      "standIn": "structure.city.billboard",
+      "final": "models/structures/city/billboard.glb",
+      "status": "stand-in",
+      "summary": "Painted billboard on a post. Its top is a thin landing; it tilts (rigid pivot) when landed on, dropping Hopper onto the deck below. Never hurts.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "city",
+      "landings": "board top",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
+    },
+    {
+      "request": "M-035",
+      "name": "Highline observatory",
+      "category": "structure",
+      "rig": "static",
+      "size": [
+        55,
+        53,
+        55
+      ],
+      "tris": "5k",
+      "standIn": "structure.city.observatoryDome",
+      "final": "models/structures/city/observatoryDome.glb",
+      "status": "stand-in",
+      "summary": "Ivory drum and teal glass dome at the top of the city. The region's exit landmark; the crown is the checkpoint.",
+      "joints": "",
+      "clips": "",
+      "sockets": "",
+      "textures": "trim sheet (see T-028..T-036) + 1K unique details",
+      "region": "city",
+      "landings": "crown, ring",
+      "notes": "",
+      "existing": [
+        "design/assets/level-1-earth.png",
+        "game/public/assets/backgrounds/city.webp"
+      ],
+      "needs": [
+        "T-070"
+      ]
+    }
+  ]
+}
