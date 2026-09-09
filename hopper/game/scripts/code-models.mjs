@@ -399,6 +399,8 @@ async function main() {
       region: item.region,
       source: 'game/scripts/code-models.mjs',
       authoring: item.authoring,
+      processing: 'needs-cleanup',
+      cleanup: 'CODE-BUILT-CLEANUP.md',
       bounds: bounds.map((v) => Number(v.toFixed(3))),
       targetBounds: item.targetBounds || bounds.map((v) => Number(v.toFixed(3))),
       triangles: [t0n, t1n],

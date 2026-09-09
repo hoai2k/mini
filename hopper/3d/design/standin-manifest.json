@@ -2979,7 +2979,7 @@
       "name": "Soft-landing surfaces: sea, drift dust, slag",
       "category": "surface",
       "final": "textures/surface/{sea,dust,slag}.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     },
     {
@@ -2988,7 +2988,7 @@
       "name": "Landing guide, light variant",
       "category": "ui",
       "final": "textures/ui/landing-guide-light.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     },
     {
@@ -2997,7 +2997,7 @@
       "name": "Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail",
       "category": "effects",
       "final": "textures/effects/hopper.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     },
     {
@@ -3036,7 +3036,7 @@
       "name": "Checkpoint totem and spring pad decals",
       "category": "ui",
       "final": "textures/ui/props.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     }
   ]

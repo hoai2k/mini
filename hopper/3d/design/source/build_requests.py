@@ -350,6 +350,20 @@ for texture in T:
         texture['status'] = 'delivered'
         texture['approval'] = 'pending-user-review'
 
+# Round-three artwork (initial delivery, textures/round3/manifest.json): the
+# surfaces, the light landing guide, the Hopper effect sheet and the prop decals
+# are in the game; the optional 4K sky repaints stay open (native 4K was not met).
+ROUND3_DELIVERED = {'surface', 'effects', 'ui'}
+for texture in T:
+    if texture['round'] == 3 and texture['category'] in ROUND3_DELIVERED:
+        texture['status'] = 'delivered'
+        texture['approval'] = 'awaiting-verification'
+        texture['integration'] = {
+            'surface': 'paintTerrain paints the low floor of the harbor (sea), blue (dust) and foundry (slag) districts with the surface and scrolls its detail mask; paintKit puts slag on the barge deck and dust on the drift volumes. The foam strip waits for a district with a shoreline.',
+            'ui': 'guideVariant picks the ivory guide on dark floors; the prop decals sit on every totem lamp (lit/unlit), spring pad plate and cage crown.',
+            'effects': 'Hopper\'s laser bolts, eye muzzle glow (8 frames), guard shield face and glide wing trails come from the sheet; the flat shapes remain as fallbacks.',
+        }[texture['category']]
+
 # Authored high-confidence batch; source, exports and QA live in ../models/.
 DELIVERED_HIGH_MODELS = {f'M-{n:03d}' for n in [25, 26, 28, *range(29, 36), 38, 39, 40, *range(41, 56), *range(68, 83)]}
 for asset in M:
@@ -395,6 +409,7 @@ md = []
 md.append('# 3D model requests\n')
 md.append('Every model the 3D edition needs, with the rig it must have. Ids are stable: the stand-in manifest, the stand-in registry and the game code use them. `Stand-in` names the procedural placeholder from `hopper/3d/standins/` that is in use until the model arrives; `Final` is where the delivered GLB goes. Generated from `source/build_requests.py`; edit the data there, not this file.\n')
 md.append('**Round two references.** Before any model here is started, its reference sheet from `image-requests-round-2.md` is generated and approved: a turnaround per species and commander, a kit sheet per region, a props sheet and a Hopper pose sheet for the new clips. That document maps every sheet to the models that wait on it. A single side-view sprite is not enough to model from; a turnaround is.\n')
+md.append('**Code-built entries need a clean-up pass.** They are exported straight from three.js primitives: one mesh per part, no welding between parts, faceted duplicates, full 1024² trim and terrain sheets embedded in every file. `models/CODE-BUILT-CLEANUP.md` lists the Blender processing that turns them into shippable meshes (merge by material, weld and remove hidden faces, retopologise the rock and canopy shells, unwrap to one atlas per model, bake the trim and terrain paint into it, author LOD1 by hand, re-export through the same validator). Until then they cost about 4 MB each, mostly texture.\n')
 md.append('**Code-built entries.** Requests marked `delivered` with the note *Code-built* were exported by `hopper/game/scripts/code-models.mjs` (three.js geometry painted with the delivered trim and terrain sheets, same GLB contract, `authoring: code-built` in `models/manifest.json`). They are in the game so episode one plays end to end, and they remain replaceable by painted models without any code change: drop the new GLB at the same path and rerun the validator.\n')
 md.append('Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mesh_quantization` and `EXT_meshopt_compression` like the delivered Hopper GLBs, hand-painted albedo (no photographic PBR), emissive masks for cores and lights, LOD0 and LOD1 in the same file, and named sockets as empties. Root motion only where a clip says so.\n')
 md.append('## Rig types\n')
@@ -537,6 +552,7 @@ for x in [x for x in T if x['round'] == 2]:
 r3 = []
 r3.append('# Image requests · round three: after integrating round one\n')
 r3.append('Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one optional quality pass. Nothing here replaces a delivered file except the optional sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.\n')
+r3.append('**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` (see `textures/round3/manifest.json`, status awaiting-verification: tiling, atlas padding and alpha checks are still due) and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.\n')
 r3.append('| Request | Why | Priority |\n| --- | --- | --- |')
 for x in [x for x in T if x['round'] == 3]:
     pri = 'optional' if x['category'] == 'sky-hd' else 'before the region that needs it' if x['category'] == 'surface' else 'any time'
@@ -546,7 +562,8 @@ for x in [x for x in T if x['round'] == 3]:
     r3.append(f"### {x['request']} · {x['name']}\n")
     r3.append(f"{x['summary']}\n")
     r3.append(f"- **Spec:** {x['spec']}")
-    r3.append(f"- **Status:** {x['status']} · **Final:** `{x['final']}`")
+    r3.append(f"- **Status:** {x['status']}{' (' + x['approval'] + ')' if x.get('approval') else ''} · **Final:** `{x['final']}`")
+    if x.get('integration'): r3.append(f"- **In the game:** {x['integration']}")
     r3.append(f"- **Prompt:** {x['prompt']}")
     r3.append('')
 (ROOT / 'image-requests-round-3.md').write_text('\n'.join(r3) + '\n')
