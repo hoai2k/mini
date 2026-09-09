@@ -17,6 +17,10 @@ The 3D reinterpretation of Hopper: same title screen, music, characters, mission
 | Delivered architecture and props (43 models) | [models/README.md](models/README.md) · [model viewer](models/viewer.html) |
 | Delivered Hopper and rider GLBs | [../models/](../models/) |
 
+## Delivered models in the game
+
+`hopper/3d/models/` holds the authored structures and props (43 so far, with LOD0/LOD1, sockets and machinery clips). The game swaps each one in over its stand-in at runtime: `hopper/game/src/game3d/models3d.ts` reads both manifests, loads the GLB as a child of the stand-in group, hides the stand-in's meshes and plays the idle clip. Position, visibility and the colliders derived from the stand-in stay as they are, so a delivered model needs no level change; it only has to keep the numeric landings the request lists. Flip a request to `delivered` in both manifests and it appears.
+
 ## Stand-ins
 
 Every model, texture and sky the design asks for has a procedural placeholder so the game can be built before the art arrives. `standins/src/index.js` exposes `createStandIn(id)` for every id in the manifest; the viewer shows them all, and `design/assets/` holds rendered contact sheets and one diorama per region made from them. When a real asset lands, its manifest entry flips from `stand-in` to `delivered` and the loader takes the GLB instead; nothing in gameplay code changes.

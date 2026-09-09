@@ -5,6 +5,7 @@ import type { Plugin } from 'vite';
 
 const modelsDir = fileURLToPath(new URL('../models/', import.meta.url));
 const texturesDir = fileURLToPath(new URL('../3d/textures/', import.meta.url));
+const deliveredDir = fileURLToPath(new URL('../3d/models/', import.meta.url));
 
 /** Serve hopper/models/*.glb at ./models/ in development and emit them in a
  * build, so both editions' entries reach the delivered Hopper models without
@@ -16,11 +17,11 @@ export function hopperModels(): Plugin {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         // The painted texture pack: /3d/textures/<path> in development.
-        const t = /\/3d\/textures\/([\w./-]+\.(?:png|jpg|ktx2|json))(?:\?|$)/.exec(req.url || '');
-        if (t && !t[1].includes('..')) {
-          const file = path.join(texturesDir, t[1]);
+        const t = /\/3d\/(textures|models)\/([\w./-]+\.(?:png|jpg|ktx2|json|glb))(?:\?|$)/.exec(req.url || '');
+        if (t && !t[2].includes('..')) {
+          const file = path.join(t[1] === 'models' ? deliveredDir : texturesDir, t[2]);
           if (!fs.existsSync(file)) return next();
-          res.setHeader('content-type', file.endsWith('.png') ? 'image/png' : file.endsWith('.jpg') ? 'image/jpeg' : file.endsWith('.json') ? 'application/json' : 'application/octet-stream');
+          res.setHeader('content-type', file.endsWith('.png') ? 'image/png' : file.endsWith('.jpg') ? 'image/jpeg' : file.endsWith('.json') ? 'application/json' : file.endsWith('.glb') ? 'model/gltf-binary' : 'application/octet-stream');
           res.setHeader('cache-control', 'public, max-age=3600');
           fs.createReadStream(file).pipe(res);
           return;

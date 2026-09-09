@@ -45,6 +45,7 @@ import type { HopperState } from './controller';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, decal, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, reticle, stepAtlas, type AtlasSprite } from './textures3d';
+import { swapDelivered, type Swapped } from './models3d';
 
 interface Effect {
   object: Object3D;
@@ -82,6 +83,7 @@ export class Scene3D {
   private reticles: { open: Sprite | null; locked: Sprite | null } = { open: null, locked: null };
   private guideDecal: Mesh | null = null;
   private atlases: AtlasSprite[] = [];
+  private delivered: Swapped[] = [];
   private buildVersion = 0;
   private kickSparked = false;
   private sun: DirectionalLight;
@@ -184,9 +186,13 @@ export class Scene3D {
     const terrain = makeTerrain(region, { size: d.size, segments: 160, ...d.terrain });
     this.worldGroup.add(terrain);
     void paintTerrain(terrain, region.id, d);
+    this.delivered = [];
     for (const inst of world.instances) {
       this.worldGroup.add(inst.object);
       if (inst.object.userData.animate) this.animated.push(inst.object as StandInObject);
+      void swapDelivered(inst.object, inst.standIn).then((swapped) => {
+        if (swapped && version === this.buildVersion) this.delivered.push(swapped);
+      });
     }
     void paintKit(this.worldGroup, region.id);
     // Delivered decals and reticles replace the placeholder rings once loaded.
@@ -432,6 +438,7 @@ export class Scene3D {
     this.syncEffects(dt);
     this.syncGuide(h, world, predicted, guideEnabled);
     for (const o of this.animated) o.userData.animate?.(this.time);
+    for (const d of this.delivered) d.mixer?.update(dt);
     this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);
     this.camera.lookAt(new Vector3(cam.target[0], cam.target[1], cam.target[2]));
     if (Math.abs(this.camera.fov - cam.fov) > 0.05) {
