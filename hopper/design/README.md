@@ -24,8 +24,6 @@ The illustrated proposal is `Hopper_Game_Design.docx`. It contains 21 pages and 
 
 ## 3D source generation
 
-`tripo/` is the generation kit and provenance record for the 3D characters: the master and multiview images the models were generated from, the prompts, and the generation, processing, animation and skinning-repair reports. See [tripo/README.md](tripo/README.md).
-
-The models those reports produced are delivered in [`../models/`](../models/README.md) and are loaded by the 3D edition; `tripo/` holds no runtime files and no second copy of the model metadata.
+`tripo/` holds the reference images the 3D characters were generated from and the prompts that made them. The models they produced are in [`../models/`](../models/README.md). See [tripo/README.md](tripo/README.md).
 
 This proposal records the original design. The implemented game and its current controls are documented in `../game/README.md`.

@@ -507,14 +507,10 @@ im.append('Round one: skies, horizon cards, terrain sets, trim sheets, creature 
 im.append('Style for every painted request: the 2D game\'s 1970s cel-and-gouache look. Flat colour fields, two or three tones per surface, visible brush direction, dark ink edges where the 2D sprites have them, no photographic gradients, no lens flare, no text. Region palettes are the exact hex values in `hopper/3d/standins/src/palette.js` (the same ones the 2D game uses).\n')
 im.append('## Summary\n')
 im.append('| Category | Requests | Delivered | Stand-in | Open | Procedural final |\n| --- | ---: | ---: | ---: | ---: | ---: |')
-# The ui and effects rows already carry the round-three requests in those
-# categories (T-081, T-082, T-086), so the total below sums these same rows
-# rather than round one alone, which disagreed with the columns above it.
-SUMMARY_CATEGORIES = ['sky', 'horizon', 'terrain', 'trim', 'creature', 'shading', 'ui', 'effects']
-for cat in SUMMARY_CATEGORIES:
+for cat in ['sky', 'horizon', 'terrain', 'trim', 'creature', 'shading', 'ui', 'effects']:
     rows = [x for x in T if x['category'] == cat]
     im.append(f"| {cat} | {len(rows)} | {sum(r['status']=='delivered' for r in rows)} | {sum(r['status']=='stand-in' for r in rows)} | {sum(r['status']=='open' for r in rows)} | {sum(r['status']=='procedural-final' for r in rows)} |")
-R1 = [x for x in T if x['category'] in SUMMARY_CATEGORIES]
+R1 = [x for x in T if x['round'] == 1]
 im.append(f"| **total** | **{len(R1)}** | **{sum(x['status']=='delivered' for x in R1)}** | **{sum(x['status']=='stand-in' for x in R1)}** | **{sum(x['status']=='open' for x in R1)}** | **{sum(x['status']=='procedural-final' for x in R1)}** |")
 for cat, title, intro in [
     ('sky', 'Painted skies (9)', 'One equirectangular dome per region, drawn from inside a 9 km sphere. The stand-in is the procedural gradient-plus-sun in `paintSky`.'),
