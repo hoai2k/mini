@@ -78,6 +78,15 @@ function templates(region: string): { big: Template[]; small: Template[] } {
   }
 }
 
+/** The ink hull that every stand-in part carries, for one-off meshes. */
+function outlineOf(mesh: Mesh): Mesh {
+  const shell = new Mesh(mesh.geometry, ink);
+  shell.position.copy(mesh.position);
+  shell.rotation.copy(mesh.rotation);
+  shell.scale.copy(mesh.scale).multiplyScalar(1.035);
+  return shell;
+}
+
 /** Every instance of a template, drawn as one InstancedMesh per part. */
 class Batch {
   private matrices: Matrix4[][] = [];
@@ -251,6 +260,46 @@ export function buildTrail(world: World): Group {
       }
     }
   }
+  // --- The threshold: the way on, marked where the district ends. Two pylons
+  // and a lintel across the trail with a warm curtain between them, so leaving
+  // is something Hopper jumps through rather than a line he trips over.
+  {
+    const exit = d.exit;
+    const hit = route.nearest(exit.x, exit.z);
+    const yaw = route.yawAt(hit.s);
+    const ground = surface(exit.x, exit.z);
+    const halfW = 24,
+      height = 46;
+    const post = toon(region.id === 'city' ? SURFACE.ivory : region.id === 'mountains' ? SURFACE.slate : SURFACE.wood);
+    const trim = toon(region.accent, region.accent);
+    const gate = new Group();
+    gate.position.set(exit.x, ground, exit.z);
+    gate.rotation.y = yaw;
+    for (const side of [-1, 1]) {
+      const leg = new Mesh(new CylinderGeometry(2.4, 4.2, height, 8), post);
+      leg.position.set(side * halfW, height / 2, 0);
+      gate.add(leg, outlineOf(leg));
+      const lamp = new Mesh(new SphereGeometry(2.6, 12, 8), trim);
+      lamp.position.set(side * halfW, height + 2, 0);
+      gate.add(lamp);
+    }
+    const lintel = new Mesh(new BoxGeometry(halfW * 2 + 8, 3.4, 3.4), post);
+    lintel.position.set(0, height, 0);
+    gate.add(lintel, outlineOf(lintel));
+    // The sign over the road: the way on, in the region's own colour.
+    const sign = new Mesh(new BoxGeometry(halfW * 1.3, 7, 0.8), trim);
+    sign.position.set(0, height - 6, 0);
+    gate.add(sign);
+    const curtain = new Mesh(new BoxGeometry(halfW * 2, height - 4, 0.4), new MeshBasicMaterial({ color: region.accent, transparent: true, opacity: 0.22, side: DoubleSide, depthWrite: false }));
+    curtain.position.set(0, (height - 4) / 2, 0);
+    gate.add(curtain);
+    // The way on is lit from the ground up.
+    const glow = new Mesh(new BoxGeometry(halfW * 2, 1.2, TRAIL_HALF_WIDTH * 2), new MeshBasicMaterial({ color: region.accent, transparent: true, opacity: 0.5, depthWrite: false }));
+    glow.position.set(0, 0.7, 0);
+    gate.add(glow);
+    group.add(gate);
+  }
+
   // --- The middle distance: clumps of the same things, 120-430 m out, taller,
   // so the country carries on past the props at the trail's shoulder instead
   // of ending in bare ground.

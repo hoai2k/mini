@@ -146,7 +146,9 @@ export class Scene3D {
   private height = 1;
   time = 0;
   constructor(readonly canvas: HTMLCanvasElement) {
-    this.renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    // preserveDrawingBuffer: the district hand-over reads the last frame back
+    // to dissolve from it.
+    this.renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     this.scene.add(this.worldGroup);
@@ -241,7 +243,7 @@ export class Scene3D {
     this.actionName = name;
   }
   /** Build the picture of a district: atmosphere, terrain, structures, shadows. */
-  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null) {
+  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }) {
     this.scene.remove(this.worldGroup);
     this.worldGroup = new Group();
     this.scene.add(this.worldGroup);
@@ -267,7 +269,9 @@ export class Scene3D {
       this.worldGroup.remove(horizon);
       this.worldGroup.add(cards);
     });
-    const landmark = makeLandmark(region);
+    // The landmark is the next district seen from here, so it is painted in
+    // that district's colours: the place ahead looks like the place ahead.
+    const landmark = makeLandmark(ahead ? { ...region, haze: ahead.haze, ground: ahead.ground, sky: ahead.sky } : region);
     landmark.position.set(d.landmark.x, 0, d.landmark.z);
     this.worldGroup.add(landmark);
     void swapDelivered(landmark, standInKey('terrain.landmark', region.id));
@@ -746,6 +750,14 @@ export class Scene3D {
     }
     this.sun.position.set(cam.target[0] + 190, cam.target[1] + 760, cam.target[2] + 980);
     this.renderer.render(this.scene, this.camera);
+  }
+  /** The frame on screen, as an image the shell can hold over the next one. */
+  capture(): string {
+    try {
+      return this.canvas.toDataURL('image/jpeg', 0.72);
+    } catch {
+      return '';
+    }
   }
   /** Draw once with no simulation (title screen behind the poster). */
   renderIdle() {

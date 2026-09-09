@@ -9,6 +9,7 @@ import type { InputFrame } from '../game/input';
 import type { GameEngine } from '../game/game-engine';
 import { saveKey } from '../game/game-engine';
 import { World, type Trigger } from './world';
+import { regionById } from '../../../3d/standins/src/index.js';
 import { MISSIONS, type District } from './district';
 import { NightRook } from './boss3d';
 import { createHopperState, intentFromInput, predictLanding, stepHopper, MOVE, type HopperState } from './controller';
@@ -28,6 +29,16 @@ const SHADOW_NAMES: Record<string, string> = {
 };
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+/** What crosses the threshold with Hopper when a district hands over. */
+interface Carry {
+  turn: number;
+  camTurn: number;
+  pitch: number;
+  speed: number;
+  vy: number;
+  airborne: boolean;
+  gliding: boolean;
+}
 interface Save {
   mission: number;
   district: number;
@@ -47,6 +58,11 @@ export class Engine3D implements GameEngine {
   private districtIndex = 0;
   private clearedGates = new Set<string>();
   private transitionT = 0;
+  /** The hand-over: the frame captured as the threshold is crossed, and how
+   * much of it is still showing. */
+  private transitionImage = '';
+  private transitionFade = 0;
+  private captureNext = false;
   private camera: CameraState = createCamera(0, [0, 0, 0]);
   private settings: GameSettings = { master: 0.8, music: 0.55, sfx: 0.65, shake: true, assist: false, cameraSensitivity: 0.5, invertY: false, landingGuide: true };
   private loaded = false;
@@ -120,7 +136,7 @@ export class Engine3D implements GameEngine {
     this.emit();
   }
   /** Build the current district of the episode and place Hopper at a checkpoint. */
-  private loadDistrict(checkpoint: number) {
+  private loadDistrict(checkpoint: number, carry?: Carry) {
     const district = MISSIONS[this.mission][this.districtIndex]();
     this.district = district;
     this.world = new World(district);
@@ -139,26 +155,46 @@ export class Engine3D implements GameEngine {
     this.victoryT = 0;
     this.respawnT = 0;
     this.hp = this.maxHp;
-    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null);
+    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null, this.aheadColours());
     for (let i = 0; i <= this.checkpointIndex; i++) this.checkpoints[i]?.object?.userData.lit?.(true);
-    this.resetPlayer();
+    this.resetPlayer(carry);
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
     this.setHint('Hold A to soar. Keep holding to glide. RB sprints, LB dashes.', 7);
     this.emit();
   }
-  private resetPlayer() {
+  private resetPlayer(carry?: Carry) {
     const d = this.district!,
       world = this.world!;
     const cp = this.checkpoints[this.checkpointIndex];
     const x = cp ? cp.x + 6 : d.start.x,
       z = cp ? cp.z + 8 : d.start.z;
     // Face along the trail from here, as the camera will.
-    const yaw = cp ? world.route.yawAt(world.route.nearest(x, z).s + 40) : d.start.yaw;
+    const forward = cp ? world.route.yawAt(world.route.nearest(x, z).s + 40) : d.start.yaw;
+    // Crossing a threshold keeps the heading he had, as an angle from the way
+    // on, so a run continues as a run instead of being turned around.
+    const yaw = forward + (carry?.turn ?? 0);
     this.player = createHopperState(x, world.groundAt(x, z, 1e6).y, z, yaw);
     this.player.groundY = this.player.y;
     this.player.invuln = 1.7;
+    if (carry) {
+      this.player.vx = Math.sin(yaw) * carry.speed;
+      this.player.vz = Math.cos(yaw) * carry.speed;
+      if (carry.airborne) {
+        this.player.y += 24;
+        this.player.vy = carry.vy;
+        this.player.grounded = false;
+        this.player.gliding = carry.gliding;
+        this.player.move = carry.vy > 0 ? 'jump' : 'fall';
+      } else this.player.move = carry.speed > 4 ? 'run' : 'idle';
+    }
     this.camera = createCamera(yaw, [x, this.player.y + 8, z]);
+    if (carry) {
+      this.camera.forward = forward;
+      this.camera.turn = carry.camTurn;
+      this.camera.pitch = carry.pitch;
+      this.camera.yaw = forward + carry.camTurn;
+    }
     this.predicted = null;
     this.routeS = world.route.nearest(x, z).s;
   }
@@ -195,6 +231,15 @@ export class Engine3D implements GameEngine {
       }
     }
     this.scene.render(this.player, this.world, this.combat, this.camera, this.paused ? 0 : dt, this.predicted, this.settings.landingGuide !== false);
+    // The hand-over: keep the frame just drawn, swap districts behind it, and
+    // let the shell dissolve it away over the new one.
+    if (this.captureNext) {
+      this.captureNext = false;
+      this.transitionImage = this.scene.capture();
+      this.transitionFade = 1;
+      this.nextDistrict();
+      this.emit();
+    }
   }
   private step(dt: number, f: InputFrame) {
     const world = this.world!,
@@ -206,7 +251,12 @@ export class Engine3D implements GameEngine {
     if (this.hintT > 0) this.hintT -= dt;
     if (this.victoryT > 0) {
       this.victoryT -= dt;
-      if (this.victoryT <= 0) this.completed = true;
+      if (this.victoryT <= 0) {
+        // Completion stops the tick loop, so it has to be announced here: the
+        // next scheduled snapshot never comes.
+        this.completed = true;
+        this.emit();
+      }
     }
     if (this.respawnT > 0) {
       this.respawnT -= dt;
@@ -388,9 +438,12 @@ export class Engine3D implements GameEngine {
       this.chapterName = chapter.name;
       if (this.time > 1) this.showBanner(chapter.name, d.name.toUpperCase(), 2.2);
     }
+    if (this.transitionFade > 0) this.transitionFade = Math.max(0, this.transitionFade - dt / 1.15);
     if (this.transitionT > 0) {
       this.transitionT -= dt;
-      if (this.transitionT <= 0) this.nextDistrict();
+      // The swap happens in tick(), right after the last frame of this
+      // district has been drawn, so it can be kept and dissolved from.
+      if (this.transitionT <= 0) this.captureNext = true;
     } else if (this.victoryT <= 0 && !this.completed && Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r) {
       const gatesOpen = world.fields.every((fl) => fl.cleared || (!fl.active && fl.group === 'boss' && !this.boss?.rook.active));
       const bossDown = !this.boss || !this.boss.rook.alive;
@@ -406,8 +459,8 @@ export class Engine3D implements GameEngine {
             localStorage.removeItem(saveKey('3d', 'save'));
           } catch {}
         } else {
-          this.transitionT = 2.2;
-          this.showBanner(d.exit.name, 'REGION COMPLETE', 2.2);
+          this.transitionT = 1.2;
+          this.showBanner(d.exit.name, 'REGION COMPLETE', 3.4);
         }
       } else if (this.hintT <= 0) {
         const sealed = world.fields.filter((fl) => !fl.cleared && fl.group !== 'boss');
@@ -425,6 +478,14 @@ export class Engine3D implements GameEngine {
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
     if (this.time > 20 && this.time < 20.1) this.setHint(`Click the right stick: Horizon View shows the way to ${d.landmark.name}.`, 6);
   }
+  /** The palette of the district this one leads to, for the landmark on the
+   * horizon: what is ahead should look like what is ahead. */
+  private aheadColours(): { sky: string; haze: string; ground: string } | undefined {
+    const next = MISSIONS[this.mission]?.[this.districtIndex + 1];
+    if (!next) return undefined;
+    const region = regionById(next().region);
+    return { sky: region.sky, haze: region.haze, ground: region.ground };
+  }
   /** The way onward: the trail's tangent 80 m ahead of Hopper's place on it.
    * A direction along the route, so it turns only as the trail bends. */
   private forward(): number {
@@ -433,10 +494,26 @@ export class Engine3D implements GameEngine {
     this.routeS = route.nearest(h.x, h.z, this.routeS).s;
     return route.yawAt(this.routeS + 80);
   }
-  /** The episode continues in its next district. */
+  /** The episode continues in its next district. Hopper crosses a threshold:
+   * he keeps the way he was facing relative to the trail, the speed he had
+   * and whether he was in the air, and the picture dissolves from the frame
+   * he crossed on rather than cutting. */
   private nextDistrict() {
+    const h = this.player,
+      old = this.world!;
+    const forward = old.route.yawAt(old.route.nearest(h.x, h.z).s + 80);
+    const carry: Carry = {
+      // How he was going, as an angle from the way on: kept across the seam.
+      turn: h.yaw - forward,
+      camTurn: this.camera.turn,
+      pitch: this.camera.pitch,
+      speed: Math.hypot(h.vx, h.vz),
+      vy: h.vy,
+      airborne: !h.grounded,
+      gliding: h.gliding,
+    };
     this.districtIndex++;
-    this.loadDistrict(0);
+    this.loadDistrict(0, carry);
     this.save();
     const d = this.district!;
     this.showBanner(d.name, d.subtitle, 3.2);
@@ -574,6 +651,8 @@ export class Engine3D implements GameEngine {
       lock: c?.lock ? 'locked' : this.lockHeldPrev ? 'open' : undefined,
       target: this.targetInfo(),
       standIns: this.standInsOnScreen(),
+      transitionImage: this.transitionFade > 0 ? this.transitionImage : undefined,
+      transitionFade: this.transitionFade > 0 ? this.transitionFade : undefined,
     };
   }
   /** The shadow the HUD shows a health bar for: whatever is locked, else

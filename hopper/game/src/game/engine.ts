@@ -48,6 +48,11 @@ export interface GameSnapshot {
   target?: { name: string; health: number; locked: boolean };
   /** 3D edition: which visible art is still a procedural stand-in. */
   standIns?: string;
+  /** 3D district hand-over: the last frame of the district just left, held
+   * over the new one and faded out, so crossing the threshold dissolves
+   * instead of cutting. `transitionFade` is its opacity, 1 down to 0. */
+  transitionImage?: string;
+  transitionFade?: number;
 }
 interface Particle {
   x: number;

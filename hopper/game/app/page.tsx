@@ -961,6 +961,18 @@ export default function Home() {
             </div>
             {hud.hint && <div className="game-bottom-hint">{hud.hint}</div>}
           </div>
+          {hud.transitionImage && (hud.transitionFade ?? 0) > 0 && (
+            // A data URL of the frame just left, held for a second: an
+            // optimising image loader has nothing to do here.
+            // oxlint-disable-next-line no-img-element
+            <img
+              className="district-dissolve"
+              src={hud.transitionImage}
+              alt=""
+              aria-hidden="true"
+              style={{ opacity: hud.transitionFade }}
+            />
+          )}
           {hud.banner && screen === 'playing' && (
             <div className="area-banner">
               <span>{hud.bannerSmall}</span>
