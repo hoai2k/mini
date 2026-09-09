@@ -26,9 +26,12 @@ import {
   CylinderGeometry,
   RingGeometry,
   Sprite,
+  SpriteMaterial,
+  Texture,
   Vector3,
   WebGLRenderer,
   DoubleSide,
+  PlaneGeometry,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -45,7 +48,7 @@ import type { World } from './world';
 import type { HopperState } from './controller';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
-import { atlasSprite, decal, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, reticle, stepAtlas, type AtlasSprite } from './textures3d';
+import { atlasSprite, cell, cellPlane, cellSprite, decal, guideVariant, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
 import { standInKey, swapDelivered, type Swapped } from './models3d';
 import type { RookRuntime } from './boss3d';
 
@@ -74,6 +77,11 @@ export class Scene3D {
   private actionName = '';
   private wings: Object3D[] = [];
   private wingSpread = 0;
+  // Round-three effect sheet: muzzle glow, shield face, glide trails, laser bolts.
+  private muzzle: Sprite | null = null;
+  private shieldSprite: Sprite | null = null;
+  private trails: Mesh[] = [];
+  private laserTex: Texture | null = null;
   private worldGroup = new Group();
   private shadowObjects = new Map<string, StandInObject>();
   private animated: StandInObject[] = [];
@@ -143,6 +151,42 @@ export class Scene3D {
     this.scene.add(gltf.scene);
     this.play('Idle', true);
     progress(1);
+    this.attachEffects(gltf.scene);
+  }
+  /** Hopper's painted effects (T-082) ride on the model: the eye muzzle glow,
+   * the guard's shield face and a glide trail off each wing. Lasers use the
+   * same sheet when they are spawned. Missing paint leaves the flat shapes. */
+  private attachEffects(root: Object3D) {
+    void cellSprite(HOPPER_SHEET, 4, 4, HOPPER_CELLS.muzzle[0], HOPPER_CELLS.muzzle[1], 9, { additive: true }).then((s) => {
+      if (!s) return;
+      s.position.set(0, 12.5, 10);
+      s.visible = false;
+      root.add(s);
+      this.muzzle = s;
+    });
+    void cellSprite(HOPPER_SHEET, 4, 4, HOPPER_CELLS.shield[0], HOPPER_CELLS.shield[1], 19).then((s) => {
+      if (!s) return;
+      s.position.set(0, 11.6, 13);
+      s.visible = false;
+      (s.material as SpriteMaterial).opacity = 0.9;
+      root.add(s);
+      this.shieldSprite = s;
+    });
+    for (const side of [-1, 1])
+      void cellPlane(HOPPER_SHEET, 4, 4, HOPPER_CELLS.trail[0], HOPPER_CELLS.trail[1], 28, 7, { color: '#fff3d2' }).then((m) => {
+        if (!m) return;
+        // The ribbon's curl sits at the wing tip and sweeps back along -Z.
+        m.geometry.rotateX(-Math.PI / 2);
+        m.geometry.rotateY(Math.PI / 2);
+        m.geometry.translate(0, 0, -12);
+        m.position.set(side * 9.5, 12.5, -3);
+        m.scale.x = side;
+        m.renderOrder = 5;
+        (m.material as MeshBasicMaterial).opacity = 0;
+        root.add(m);
+        this.trails.push(m);
+      });
+    void cell(HOPPER_SHEET, 4, 4, HOPPER_CELLS.laser[0], HOPPER_CELLS.laser[1]).then((t) => (this.laserTex = t));
   }
   /** Crossfade to a clip. One-shots clamp at their last frame. */
   play(name: string, loop: boolean, fade = 0.12, timeScale = 1) {
@@ -207,8 +251,9 @@ export class Scene3D {
       });
     }
     void paintKit(this.worldGroup, region.id);
+    for (const inst of world.instances) this.decorate(inst.object, inst.standIn);
     // Delivered decals and reticles replace the placeholder rings once loaded.
-    void decal('landing-guide.png', 12, '#f6edcc').then((m) => {
+    void decal(guideVariant(region.id, region.ground), 12, '#f6edcc').then((m) => {
       if (!m || version !== this.buildVersion) return;
       this.guideDecal = m;
       m.visible = false;
@@ -246,6 +291,57 @@ export class Scene3D {
       this.fieldDomes.set(f.id, mesh);
     }
     this.setBoss(rook);
+  }
+  /** Painted prop decals (T-086): the totem's lamp face, the spring pad's
+   * chevrons and the cage's crown glyph, laid over stand-in and delivered
+   * models alike. */
+  private decorate(object: Object3D, standIn: string) {
+    if (standIn === 'prop.checkpointTotem') {
+      const lamp = object.getObjectByName('Lamp');
+      const at = lamp ? lamp.position.clone() : new Vector3(0, 13, 0);
+      let lit = false;
+      let face: Sprite | null = null;
+      const prev = object.userData.lit as ((on: boolean) => void) | undefined;
+      object.userData.lit = (on: boolean) => {
+        lit = on;
+        prev?.(on);
+        if (face) setCell((face.material as SpriteMaterial).map!, 2, 2, on ? PROP_CELLS.lampLit[0] : PROP_CELLS.lampUnlit[0], 0);
+      };
+      void cellSprite(PROP_SHEET, 2, 2, PROP_CELLS.lampUnlit[0], PROP_CELLS.lampUnlit[1], 3.6).then((s) => {
+        if (!s) return;
+        s.name = 'LampFace';
+        s.position.copy(at);
+        s.renderOrder = 3;
+        object.add(s);
+        face = s;
+        if (lit) setCell((s.material as SpriteMaterial).map!, 2, 2, PROP_CELLS.lampLit[0], 0);
+      });
+    } else if (standIn === 'prop.springPad') {
+      const plate = object.getObjectByName('Plate') as Mesh | undefined;
+      if (!plate) return;
+      plate.geometry.computeBoundingBox();
+      const bb = plate.geometry.boundingBox!;
+      const size = (bb.max.x - bb.min.x) * 0.92;
+      void cellPlane(PROP_SHEET, 2, 2, PROP_CELLS.chevrons[0], PROP_CELLS.chevrons[1], size, size).then((m) => {
+        if (!m) return;
+        m.name = 'Chevrons';
+        m.rotation.x = -Math.PI / 2;
+        m.position.set(plate.position.x, plate.position.y + bb.max.y + 0.06, plate.position.z);
+        m.renderOrder = 2;
+        object.add(m);
+      });
+    } else if (standIn === 'prop.signalCage') {
+      const crown = object.getObjectByName('Crown');
+      const y = crown ? crown.position.y : 9.2;
+      void cellSprite(PROP_SHEET, 2, 2, PROP_CELLS.crown[0], PROP_CELLS.crown[1], 5.5).then((s) => {
+        if (!s) return;
+        // Named Crown so the engine hides it with the bars when the cage opens.
+        s.name = 'Crown';
+        s.position.set(0, y + 2.8, 0);
+        s.visible = crown ? crown.visible : true;
+        object.add(s);
+      });
+    }
   }
   /** Attach (or drop) the Night Rook's stand-in body. Stand-in art: the boss has no delivered model yet. */
   setBoss(rook: RookRuntime | null) {
@@ -397,9 +493,13 @@ export class Scene3D {
     const pitch = h.diving ? -0.7 : h.gliding ? Math.max(-0.35, Math.min(0.2, -h.vy * 0.015)) : h.grounded ? 0 : Math.max(-0.25, Math.min(0.25, -h.vy * 0.006));
     root.rotation.x += (pitch - root.rotation.x) * Math.min(1, dt * 6);
     this.mixer?.update(dt);
-    // Guard dome.
+    // Guard: the painted shield face, or the stand-in dome until it loads.
     const shield = root.getObjectByName('GuardDome');
-    if (combat.guarding) {
+    if (this.shieldSprite) {
+      this.shieldSprite.visible = combat.guarding;
+      if (combat.guarding) this.shieldSprite.scale.setScalar(19 + Math.sin(this.time * 9) * 0.6);
+      if (shield) root.remove(shield);
+    } else if (combat.guarding) {
       if (!shield) {
         const dome = createStandIn('prop.shieldDome');
         dome.name = 'GuardDome';
@@ -408,6 +508,15 @@ export class Scene3D {
         root.add(dome);
       }
     } else if (shield) root.remove(shield);
+    // Eye muzzle glow while the lasers run: eight painted frames.
+    if (this.muzzle) {
+      const firing = combat.heat > 0 && combat.shotClock > 0 && !combat.guarding;
+      this.muzzle.visible = firing;
+      if (firing) muzzleCell((this.muzzle.material as SpriteMaterial).map!, Math.floor(this.time * 24) % 8);
+    }
+    // Glide trails fade in with the wings and the airspeed.
+    const trail = this.wingSpread * Math.min(1, speed / 45) * (h.gliding ? 1 : 0.4);
+    for (const t of this.trails) (t.material as MeshBasicMaterial).opacity += (trail * 0.85 - (t.material as MeshBasicMaterial).opacity) * Math.min(1, dt * 6);
   }
   private syncShadows(shadows: Shadow[], combat: Combat) {
     for (const s of shadows) {
@@ -451,7 +560,16 @@ export class Scene3D {
       live.add(p.id);
       let m = this.projectileObjects.get(p.id);
       if (!m) {
-        if (p.kind === 'laser') {
+        if (p.kind === 'laser' && this.laserTex) {
+          // The painted bolt on two crossed quads, its tip along the flight.
+          const mat = new MeshBasicMaterial({ map: this.laserTex, transparent: true, depthWrite: false, side: DoubleSide, fog: false });
+          const along = new PlaneGeometry(11, 3.4);
+          along.rotateY(-Math.PI / 2);
+          m = new Mesh(along, mat);
+          const across = along.clone();
+          across.rotateZ(Math.PI / 2);
+          m.add(new Mesh(across, mat));
+        } else if (p.kind === 'laser') {
           m = new Mesh(new CapsuleGeometry(0.35, 5, 3, 6), this.laserMaterial);
           const core = new Mesh(new CapsuleGeometry(0.15, 5.2, 3, 6), this.laserCore);
           m.add(core);
@@ -462,7 +580,7 @@ export class Scene3D {
       m.position.set(p.x, p.y, p.z);
       if (p.kind === 'laser') {
         m.lookAt(p.x + p.vx, p.y + p.vy, p.z + p.vz);
-        m.rotateX(Math.PI / 2);
+        if (!m.geometry || m.geometry.type === 'CapsuleGeometry') m.rotateX(Math.PI / 2);
       }
     }
     for (const [id, m] of this.projectileObjects) {
@@ -538,6 +656,7 @@ export class Scene3D {
   /** Sync everything to the simulation and draw. */
   render(h: HopperState, world: World, combat: Combat, cam: CameraState, dt: number, predicted: { x: number; y: number; z: number } | null, guideEnabled: boolean) {
     this.time += dt;
+    terrainClock.value = this.time;
     this.resize();
     this.lockRing.visible = false;
     if (this.reticles.open) this.reticles.open.visible = false;

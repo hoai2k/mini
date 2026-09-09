@@ -19,7 +19,7 @@ The paint comes from the previously generated trim/terrain/shadow images. Meshes
 
 ## Code-built entries
 
-Beyond the 43 Blender deliveries, the manifest carries 28 entries with `"authoring": "code-built"`: the four remaining episode-one structures (terrace step, windbreak row, crag column, ledge shelf), the twelve alien-region kit pieces, the nine landmark silhouettes and three terrain sculpts with 16-bit heightmaps. They come from `hopper/game/scripts/code-models.mjs` (three.js geometry painted with the delivered trim and terrain sheets), pass the same validator, and have previews from `source/previews.mjs`. They keep episode one playable end to end and are meant to be replaced by painted models at the same paths.
+Beyond the 43 Blender deliveries, the manifest carries 28 entries with `"authoring": "code-built"`: the four remaining episode-one structures (terrace step, windbreak row, crag column, ledge shelf), the twelve alien-region kit pieces, the nine landmark silhouettes and three terrain sculpts with 16-bit heightmaps. They come from `hopper/game/scripts/code-models.mjs` (three.js geometry painted with the delivered trim and terrain sheets), pass the same validator, and have previews from `source/previews.mjs`. They keep episode one playable end to end and are meant to be replaced by painted models at the same paths. Each is flagged `processing: needs-cleanup`; [CODE-BUILT-CLEANUP.md](CODE-BUILT-CLEANUP.md) is the Blender pass they need (merge, weld, retopology, one baked atlas per model, authored LOD1) before they are shippable meshes.
 
 ## Rebuild
 

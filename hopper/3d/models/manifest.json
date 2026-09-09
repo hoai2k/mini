@@ -58,7 +58,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/fields.png"
+      "sourceReference": "design/references/kits/fields.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-025",
@@ -165,7 +167,9 @@
       "sockets": [],
       "landings": [],
       "status": "delivered",
-      "sourceReference": "design/references/kits/fields.png"
+      "sourceReference": "design/references/kits/fields.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-028",
@@ -592,7 +596,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/mountains.png"
+      "sourceReference": "design/references/kits/mountains.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-037",
@@ -632,7 +638,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/mountains.png"
+      "sourceReference": "design/references/kits/mountains.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-038",
@@ -1666,7 +1674,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/red.png"
+      "sourceReference": "design/references/kits/red.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-057",
@@ -1706,7 +1716,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/red.png"
+      "sourceReference": "design/references/kits/red.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-058",
@@ -1746,7 +1758,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/red.png"
+      "sourceReference": "design/references/kits/red.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-059",
@@ -1804,7 +1818,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/red.png"
+      "sourceReference": "design/references/kits/red.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-060",
@@ -1844,7 +1860,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/blue.png"
+      "sourceReference": "design/references/kits/blue.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-061",
@@ -1911,7 +1929,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/blue.png"
+      "sourceReference": "design/references/kits/blue.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-062",
@@ -1943,7 +1963,9 @@
       ],
       "landings": [],
       "status": "delivered",
-      "sourceReference": "design/references/kits/blue.png"
+      "sourceReference": "design/references/kits/blue.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-063",
@@ -1984,7 +2006,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/violet.png"
+      "sourceReference": "design/references/kits/violet.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-064",
@@ -2024,7 +2048,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/violet.png"
+      "sourceReference": "design/references/kits/violet.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-065",
@@ -2074,7 +2100,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/violet.png"
+      "sourceReference": "design/references/kits/violet.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-066",
@@ -2103,7 +2131,9 @@
       "sockets": [],
       "landings": [],
       "status": "delivered",
-      "sourceReference": "design/references/kits/violet.png"
+      "sourceReference": "design/references/kits/violet.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-067",
@@ -2197,7 +2227,9 @@
         }
       ],
       "status": "delivered",
-      "sourceReference": "design/references/kits/violet.png"
+      "sourceReference": "design/references/kits/violet.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-068",
@@ -2705,7 +2737,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-084",
@@ -2735,7 +2769,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-085",
@@ -2765,7 +2801,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-086",
@@ -2795,7 +2833,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-2-industry.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-087",
@@ -2825,7 +2865,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-2-industry.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-088",
@@ -2855,7 +2897,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-2-industry.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-089",
@@ -2885,7 +2929,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-3-alien.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-090",
@@ -2915,7 +2961,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-3-alien.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-091",
@@ -2945,7 +2993,9 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-3-alien.png",
-      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+      "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-092",
@@ -2975,7 +3025,7 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
-      "notes": "Heightfield of the sunseedFields district (4800 m, 60 000 triangles at LOD0). terrain/fields-height.png is the 16-bit heightmap (513², metres = value / 65535 × range + min, see heightRange). The runtime samples the generator, not this file.",
+      "notes": "Heightfield of the sunseedFields district (4800 m, 60 000 triangles at LOD0). terrain/fields-height.png is the 16-bit heightmap (513\u00b2, metres = value / 65535 \u00d7 range + min, see heightRange). The runtime samples the generator, not this file.",
       "extraFiles": [
         "terrain/fields-height.png"
       ],
@@ -2983,7 +3033,9 @@
         -62.37,
         60
       ],
-      "heightmap": "terrain/fields-height.png"
+      "heightmap": "terrain/fields-height.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-092",
@@ -3013,7 +3065,7 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
-      "notes": "Heightfield of the crownlineCity district (4800 m, 60 000 triangles at LOD0). terrain/city-height.png is the 16-bit heightmap (513², metres = value / 65535 × range + min, see heightRange). The runtime samples the generator, not this file.",
+      "notes": "Heightfield of the crownlineCity district (4800 m, 60 000 triangles at LOD0). terrain/city-height.png is the 16-bit heightmap (513\u00b2, metres = value / 65535 \u00d7 range + min, see heightRange). The runtime samples the generator, not this file.",
       "extraFiles": [
         "terrain/city-height.png"
       ],
@@ -3021,7 +3073,9 @@
         -20,
         270
       ],
-      "heightmap": "terrain/city-height.png"
+      "heightmap": "terrain/city-height.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {
       "request": "M-092",
@@ -3051,7 +3105,7 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
-      "notes": "Heightfield of the thunderheadRange district (4800 m, 60 000 triangles at LOD0). terrain/mountains-height.png is the 16-bit heightmap (513², metres = value / 65535 × range + min, see heightRange). The runtime samples the generator, not this file.",
+      "notes": "Heightfield of the thunderheadRange district (4800 m, 60 000 triangles at LOD0). terrain/mountains-height.png is the 16-bit heightmap (513\u00b2, metres = value / 65535 \u00d7 range + min, see heightRange). The runtime samples the generator, not this file.",
       "extraFiles": [
         "terrain/mountains-height.png"
       ],
@@ -3059,7 +3113,9 @@
         -162.19,
         190
       ],
-      "heightmap": "terrain/mountains-height.png"
+      "heightmap": "terrain/mountains-height.png",
+      "processing": "needs-cleanup",
+      "cleanup": "CODE-BUILT-CLEANUP.md"
     }
   ],
   "deliveredAt": "2026-09-08",

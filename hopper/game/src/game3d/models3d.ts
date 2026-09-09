@@ -118,6 +118,12 @@ export async function swapDelivered(standIn: Object3D, standInId: string): Promi
   standIn.userData.delivered = swapped;
   standIn.userData.animate = undefined;
   // A totem's lit state plays its Active clip when the model has one.
-  if (standInId === 'prop.checkpointTotem') standIn.userData.lit = (on: boolean) => swapped.play(on ? 'Active' : 'Idle');
+  if (standInId === 'prop.checkpointTotem') {
+    const prev = standIn.userData.lit as ((on: boolean) => void) | undefined;
+    standIn.userData.lit = (on: boolean) => {
+      swapped.play(on ? 'Active' : 'Idle');
+      prev?.(on);
+    };
+  }
   return swapped;
 }

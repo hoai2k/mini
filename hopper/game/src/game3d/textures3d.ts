@@ -73,8 +73,11 @@ const TRIM_BANDS: Record<string, string[]> = {
 
 /** Which trim band (or terrain painting) a stand-in material maps to, by the
  * colour and procedural texture it was painted with. Region kits only. */
-function bandFor(region: string, meta: { color: string; texture: string | null }): { kind: 'trim'; band: string } | { kind: 'terrain'; file: string; repeat: number } | null {
+function bandFor(region: string, meta: { color: string; texture: string | null }): { kind: 'trim'; band: string } | { kind: 'terrain'; file: string; repeat: number } | { kind: 'surface'; file: string; repeat: number } | null {
   const { color, texture } = meta;
+  // Round-three surfaces: the slag barge's glowing deck, the drift's dust volumes.
+  if (region === 'foundry' && color === '#ff7a22') return { kind: 'surface', file: 'slag.png', repeat: 2 };
+  if (region === 'blue' && color === '#8fe8ff' && !texture) return { kind: 'surface', file: 'dust.png', repeat: 3 };
   if (region === 'fields') {
     if (texture === 'grass') return { kind: 'terrain', file: 'ground.png', repeat: 3 };
     if (texture === 'terrace') return { kind: 'terrain', file: 'path.png', repeat: 2 };
@@ -106,7 +109,7 @@ export async function paintKit(root: Object3D, region: string): Promise<number> 
     const target = bandFor(region, meta);
     if (!target) return;
     swapped.set(mesh, true);
-    const key = target.kind === 'trim' ? `trim:${target.band}` : `terrain:${target.file}`;
+    const key = target.kind === 'trim' ? `trim:${target.band}` : `${target.kind}:${target.file}`;
     let m = materials.get(key);
     if (!m) {
       m = new MeshToonMaterial({ color: new Color('#ffffff'), gradientMap: ramp });
@@ -134,12 +137,21 @@ export async function paintKit(root: Object3D, region: string): Promise<number> 
             m.emissiveIntensity = 0.8;
           }
         }
-      } else if (target.kind === 'terrain') {
+      } else if (target.kind === 'terrain' || target.kind === 'surface') {
         const mm = m;
+        const source = mesh.material as MeshToonMaterial;
+        if (target.kind === 'surface') {
+          // Surfaces keep the stand-in's glow and translucency (slag glows, dust is a volume).
+          mm.transparent = source.transparent;
+          mm.opacity = source.opacity;
+          mm.emissive = source.emissive?.clone() ?? new Color('#000000');
+          mm.emissiveIntensity = source.emissiveIntensity * 0.5;
+        }
         jobs.push(
-          painting(`terrain/${region}/${target.file}`, { repeat: target.repeat }).then((t) => {
+          painting(`${target.kind}/${target.kind === 'terrain' ? `${region}/` : ''}${target.file}`, { repeat: target.repeat }).then((t) => {
             if (t) {
               mm.map = t;
+              if (target.kind === 'surface' && mm.emissiveIntensity > 0) mm.emissiveMap = t;
               mm.needsUpdate = true;
             }
           }),
@@ -207,9 +219,18 @@ export async function paintHorizon(region: string, landmarkAngle: number): Promi
 }
 
 /** Terrain: three painted tiles blended by a per-vertex splat (ground, cliff, path). */
+/** Regions whose floor is a soft-landing surface (T-080): what the low ground is painted with. */
+export const FLOOR_SURFACE: Record<string, string> = { harbor: 'sea', blue: 'dust', foundry: 'slag' };
+/** Uniform shared by every terrain material: seconds, for the surface flow. */
+export const terrainClock = { value: 0 };
+
 export async function paintTerrain(terrain: Mesh, region: string, district: District): Promise<boolean> {
   const [ground, cliff, path] = await Promise.all(['ground', 'cliff', 'path'].map((f) => painting(`terrain/${region}/${f}.png`, { repeat: 1 })));
   if (!ground || !cliff || !path) return false;
+  const surfaceName = FLOOR_SURFACE[region];
+  const [surface, detail] = surfaceName ? await Promise.all([painting(`surface/${surfaceName}.png`, { repeat: 1 }), painting(`surface/${surfaceName}-detail.png`, { repeat: 1, srgb: false })]) : [null, null];
+  // The floor: the district's low ground, where water, dust or slag returns Hopper to play.
+  const floorY = -district.terrain.relief * 0.55;
   const geo = terrain.geometry;
   const pos = geo.attributes.position,
     nor = geo.attributes.normal;
@@ -246,11 +267,15 @@ export async function paintTerrain(terrain: Mesh, region: string, district: Dist
     shader.uniforms.tGround = { value: ground };
     shader.uniforms.tCliff = { value: cliff };
     shader.uniforms.tPath = { value: path };
+    shader.uniforms.tFloor = { value: surface };
+    shader.uniforms.tFloorDetail = { value: detail };
+    shader.uniforms.uFloor = { value: surface ? floorY : -1e9 };
+    shader.uniforms.uClock = terrainClock;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec3 splat;\nvarying vec3 vSplat;\nvarying vec3 vWorld;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSplat = splat;\nvWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform sampler2D tGround;\nuniform sampler2D tCliff;\nuniform sampler2D tPath;\nvarying vec3 vSplat;\nvarying vec3 vWorld;')
+      .replace('#include <common>', '#include <common>\nuniform sampler2D tGround;\nuniform sampler2D tCliff;\nuniform sampler2D tPath;\nuniform sampler2D tFloor;\nuniform sampler2D tFloorDetail;\nuniform float uFloor;\nuniform float uClock;\nvarying vec3 vSplat;\nvarying vec3 vWorld;')
       .replace(
         '#include <map_fragment>',
         `vec2 uvG = vWorld.xz / 34.0;\n` +
@@ -259,10 +284,19 @@ export async function paintTerrain(terrain: Mesh, region: string, district: Dist
           `vec4 cC = texture2D(tCliff, uvC);\n` +
           `vec4 cP = texture2D(tPath, uvG * 1.3);\n` +
           `vec3 w = vSplat / max(0.001, vSplat.x + vSplat.y + vSplat.z);\n` +
-          `diffuseColor *= cG * w.x + cC * w.y + cP * w.z;`,
+          `vec4 painted = cG * w.x + cC * w.y + cP * w.z;\n` +
+          `float floorW = 1.0 - smoothstep(uFloor, uFloor + 8.0, vWorld.y);\n` +
+          `if (floorW > 0.0) {\n` +
+          `  vec2 uvF = vWorld.xz / 60.0 + vec2(uClock * 0.006, uClock * 0.004);\n` +
+          `  float flow = texture2D(tFloorDetail, uvF * 2.0 + vec2(-uClock * 0.02, uClock * 0.011)).r;\n` +
+          `  vec4 cF = texture2D(tFloor, uvF) * (0.82 + flow * 0.36);\n` +
+          `  painted = mix(painted, cF, floorW);\n` +
+          `}\n` +
+          `diffuseColor *= painted;`,
       );
   };
   material.customProgramCacheKey = () => 'hopper-splat';
+  material.userData.floor = surface ? { y: floorY, surface: surfaceName } : null;
   terrain.material = material;
   return true;
 }
@@ -298,6 +332,51 @@ export function stepAtlas(a: AtlasSprite, dt: number): boolean {
   const t = (a.sprite.material as SpriteMaterial).map!;
   t.offset.set((frame % 4) / 4, 1 - (Math.floor(frame / 4) + 1) / 2);
   return true;
+}
+
+/** One cell of a delivered sheet laid out on a cols × rows grid, as its own texture. */
+export async function cell(path: string, cols: number, rows: number, col: number, row: number): Promise<Texture | null> {
+  const sheet = await painting(path, { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping });
+  if (!sheet) return null;
+  const t = sheet.clone();
+  setCell(t, cols, rows, col, row);
+  return t;
+}
+export function setCell(t: Texture, cols: number, rows: number, col: number, row: number) {
+  t.repeat.set(1 / cols, 1 / rows);
+  t.offset.set(col / cols, 1 - (row + 1) / rows);
+  t.needsUpdate = true;
+}
+/** Hopper's effect sheet (round three, T-082): 4 × 4 cells of 512 px. */
+export const HOPPER_SHEET = 'effects/hopper.png';
+export const HOPPER_CELLS = { laser: [0, 0], muzzle: [1, 0], shield: [2, 0], trail: [3, 0] } as const;
+/** Muzzle frame n (0..7) lives on rows two and three. */
+export function muzzleCell(t: Texture, frame: number) {
+  setCell(t, 4, 4, frame % 4, 1 + Math.floor(frame / 4));
+}
+/** A camera-facing sprite from a sheet cell. */
+export async function cellSprite(path: string, cols: number, rows: number, col: number, row: number, size: number, { additive = false, depthTest = true } = {}): Promise<Sprite | null> {
+  const t = await cell(path, cols, rows, col, row);
+  if (!t) return null;
+  const s = new Sprite(new SpriteMaterial({ map: t, transparent: true, depthWrite: false, depthTest, blending: additive ? 2 : 1 }));
+  s.scale.set(size, size, 1);
+  return s;
+}
+/** A flat quad from a sheet cell, for things that lie along a direction (bolts, trails, decals). */
+export async function cellPlane(path: string, cols: number, rows: number, col: number, row: number, w: number, h: number, { additive = false, color = '#ffffff' } = {}): Promise<Mesh | null> {
+  const t = await cell(path, cols, rows, col, row);
+  if (!t) return null;
+  return new Mesh(new PlaneGeometry(w, h), new MeshBasicMaterial({ map: t, color: new Color(color), transparent: true, depthWrite: false, side: DoubleSide, blending: additive ? 2 : 1, fog: false }));
+}
+/** Prop decals (round three, T-086): lit and unlit totem lamp faces, spring chevrons, the cage crown. */
+export const PROP_SHEET = 'ui/props.png';
+export const PROP_CELLS = { lampLit: [0, 0], lampUnlit: [1, 0], chevrons: [0, 1], crown: [1, 1] } as const;
+
+/** The landing guide variant for a region: the ivory one on dark floors (T-081). */
+export function guideVariant(region: string, groundColor: string): string {
+  const c = new Color(groundColor);
+  const luminance = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  return FLOOR_SURFACE[region] || luminance < 0.07 ? 'landing-guide-light.png' : 'landing-guide.png';
 }
 
 /** A flat painted decal (landing guide) on the ground. */

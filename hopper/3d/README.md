@@ -8,7 +8,7 @@ The 3D reinterpretation of Hopper: same title screen, music, characters, mission
 | 3D model requests, with the rig each one needs | [design/model-requests.md](design/model-requests.md) |
 | Image and texture requests, round one | [design/image-requests.md](design/image-requests.md) |
 | Round two: model reference sheets (generate before modelling) | [design/image-requests-round-2.md](design/image-requests-round-2.md) |
-| Round three: surfaces, Hopper effect sprites, decals, optional sky repaints | [design/image-requests-round-3.md](design/image-requests-round-3.md) |
+| Round three: surfaces, Hopper effect sprites, decals, optional sky repaints (initial delivery integrated) | [design/image-requests-round-3.md](design/image-requests-round-3.md) · [textures/round3/](textures/round3/) |
 | Delivered painted pack (round one) and its review page | [textures/](textures/) · [viewer/textures.html](viewer/textures.html) |
 | Stand-in manifest (request ↔ stand-in ↔ final file ↔ status) | [design/standin-manifest.json](design/standin-manifest.json) |
 | Procedural stand-ins (models, textures, terrain) | [standins/](standins/) |
@@ -23,7 +23,7 @@ The 3D reinterpretation of Hopper: same title screen, music, characters, mission
 
 ## Code-built models
 
-The requests no painter has reached yet, but the game needs now, are exported by `hopper/game/scripts/code-models.mjs`: three.js geometry (hand-authored for the episode-one pieces M-024, M-027, M-036 and M-037; the stand-in library for the alien kits and the landmarks; the game's own heightfield for the terrain sculpts) painted with the delivered trim and terrain sheets and written to the same GLB contract as the Blender deliveries (LOD0/LOD1, sockets, landing extras, quantised and meshopt-compressed). They pass `models/source/validate.mjs`, carry `authoring: "code-built"` in `models/manifest.json`, and are marked *Code-built* in `design/model-requests.md`. They are placeholders with better clothes: a painted model at the same path replaces one with no code change.
+The requests no painter has reached yet, but the game needs now, are exported by `hopper/game/scripts/code-models.mjs`: three.js geometry (hand-authored for the episode-one pieces M-024, M-027, M-036 and M-037; the stand-in library for the alien kits and the landmarks; the game's own heightfield for the terrain sculpts) painted with the delivered trim and terrain sheets and written to the same GLB contract as the Blender deliveries (LOD0/LOD1, sockets, landing extras, quantised and meshopt-compressed). They pass `models/source/validate.mjs`, carry `authoring: "code-built"` in `models/manifest.json`, and are marked *Code-built* in `design/model-requests.md`. They are placeholders with better clothes: a painted model at the same path replaces one with no code change. They also need a Blender clean-up pass before they count as shippable meshes (merge by material, weld, retopologise the rock and canopy shells, bake one atlas per model instead of the embedded sheets, hand-made LOD1); [models/CODE-BUILT-CLEANUP.md](models/CODE-BUILT-CLEANUP.md) is the checklist, and the manifest flags each entry with `processing: needs-cleanup`.
 
 ```sh
 cd hopper/game
