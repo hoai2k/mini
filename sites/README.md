@@ -12,13 +12,11 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   three recordings from the deployed game (`/mini/hopper/audio/`) rather than
   carrying a second copy.
 - [`charlies-girl-dolls/`](charlies-girl-dolls/) — artist page for Charlie's
-  Girl Dolls, the girl group that sings the American Girl Doll Race soundtrack.
-  Published at https://hoai2k.github.io/mini/sites/charlies-girl-dolls/. World
-  backdrops and power-up icons are web-sized copies of the race game's art; the
-  five songs stream from the game. The hero has a slot for the group poster:
-  drop it in `sites/images/` as `charlies_girl_dolls.png` and export it to
-  `charlies-girl-dolls/assets/charlies-girl-dolls.webp` (plus member crops) and
-  the page picks it up.
+  Girl Dolls, the girl group behind Bubblegum Radar and the songs of a
+  doll-racing game. Published at
+  https://hoai2k.github.io/mini/sites/charlies-girl-dolls/. Uses the group
+  poster and the single cover from `images/`; the five songs stream from the
+  game rather than being copied here.
 - [`images/`](images/) — source images dropped by the user for use in sites.
   Sites keep their own web-sized copies under `assets/`; the originals stay
   here.

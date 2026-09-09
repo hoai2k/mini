@@ -6,3 +6,8 @@ its own `assets/` folder.
 
 - `space_tiber.png` — the band portrait of Space Tiber, 1448 × 1086, used by
   `sites/space-tiber/`.
+- `charlies_girl_dolls.png` — group poster of Charlie's Girl Dolls,
+  1254 × 1254, used by `sites/charlies-girl-dolls/` (hero and member crops).
+- `bubblegum_radar_2.png` — the Bubblegum Radar single cover, 1254 × 1254,
+  used by `sites/charlies-girl-dolls/`.
+- `jungle_temple.png` — 1672 × 940, delivered; not yet used by a site.
