@@ -32,6 +32,9 @@ export interface Shadow {
   homeZ: number;
   flying: boolean;
   rooted: boolean;
+  /** Takes only 1 damage from lasers/kicks (and none from a stomp) while its
+   * core isn't open (open <= 0). */
+  armored: boolean;
   /** Body: a vertical cylinder of this radius and height, feet at y. */
   radius: number;
   height: number;
@@ -46,6 +49,11 @@ export interface Shadow {
   scale: number;
   grounded: boolean;
   spawnFlash: number;
+  /** Spire Leech: the beam's locked-in aim point, set once at the start of
+   * 'attack' and held through it (the beam doesn't re-track). */
+  beamX: number;
+  beamY: number;
+  beamZ: number;
 }
 export interface Projectile {
   id: number;
@@ -61,7 +69,7 @@ export interface Projectile {
   gravity: number;
   /** 'shadow' hurts Hopper; 'hopper' hurts shadows (lasers and reflected shots). */
   owner: 'shadow' | 'hopper';
-  kind: 'seed' | 'laser';
+  kind: 'seed' | 'laser' | 'beam';
   ownerId?: string;
 }
 export interface CombatCallbacks {
@@ -73,10 +81,13 @@ export interface CombatCallbacks {
   bounce: (shadow: Shadow) => void;
 }
 
-const SPECS: Record<ShadowKind, { hp: number; radius: number; height: number; flying: boolean; rooted: boolean; notice: number; range: number; tell: number; recover: number; cooldown: number }> = {
-  shadeHound: { hp: 4, radius: 2.6, height: 3.2, flying: false, rooted: false, notice: 110, range: 30, tell: 0.55, recover: 0.9, cooldown: 1.6 },
-  seedSpitter: { hp: 6, radius: 2.6, height: 5.5, flying: false, rooted: true, notice: 170, range: 170, tell: 0.7, recover: 1.2, cooldown: 2.4 },
-  windowRay: { hp: 4, radius: 4.5, height: 1.6, flying: true, rooted: false, notice: 140, range: 140, tell: 0.75, recover: 1.6, cooldown: 2.2 },
+const SPECS: Record<ShadowKind, { hp: number; radius: number; height: number; flying: boolean; rooted: boolean; armored: boolean; notice: number; range: number; tell: number; recover: number; cooldown: number }> = {
+  shadeHound: { hp: 4, radius: 2.6, height: 3.2, flying: false, rooted: false, armored: false, notice: 110, range: 30, tell: 0.55, recover: 0.9, cooldown: 1.6 },
+  seedSpitter: { hp: 6, radius: 2.6, height: 5.5, flying: false, rooted: true, armored: false, notice: 170, range: 170, tell: 0.7, recover: 1.2, cooldown: 2.4 },
+  windowRay: { hp: 4, radius: 4.5, height: 1.6, flying: true, rooted: false, armored: false, notice: 140, range: 140, tell: 0.75, recover: 1.6, cooldown: 2.2 },
+  spireLeech: { hp: 6, radius: 1.4, height: 1.6, flying: false, rooted: true, armored: false, notice: 200, range: 200, tell: 0.9, recover: 1.4, cooldown: 2.6 },
+  cragTortoise: { hp: 10, radius: 3.4, height: 4.7, flying: false, rooted: false, armored: true, notice: 120, range: 34, tell: 0.8, recover: 1.3, cooldown: 2.2 },
+  riftCondor: { hp: 5, radius: 4.5, height: 1.6, flying: true, rooted: false, armored: false, notice: 170, range: 170, tell: 0.9, recover: 2.0, cooldown: 3.0 },
 };
 
 const dist3 = (ax: number, ay: number, az: number, bx: number, by: number, bz: number) => Math.hypot(ax - bx, ay - by, az - bz);
@@ -105,10 +116,23 @@ export class Combat {
   private make(s: ShadowSpawn): Shadow {
     const spec = SPECS[s.kind];
     const y = s.mode === 'a' ? (s.y ?? 0) : this.world.heightAt(s.x, s.z) + (s.y ?? 0);
-    const base = this.world.groundAt(s.x, s.z, y + 0.5).y;
+    // Rooted shadows (wall-clingers, casters) keep their spawn y exactly --
+    // it may sit on a structure face groundAt has no business snapping to.
+    // Everything else rests on whatever is solid at or above the terrain.
+    const gy = spec.rooted ? y : Math.max(this.world.groundAt(s.x, s.z, y + 0.5).y, y);
     return {
-      id: s.id, kind: s.kind, x: s.x, y: s.mode === 'a' ? y : Math.max(base, y), z: s.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: spec.hp, maxHp: spec.hp, state: 'idle', timer: 0, cooldown: 0.8 + (s.id.length % 4) * 0.3, alive: true, dormant: (s.wave ?? 0) > 0, group: s.group || s.id, wave: s.wave ?? 0, homeX: s.x, homeY: s.mode === 'a' ? y : Math.max(base, y), homeZ: s.z, flying: spec.flying, rooted: spec.rooted, radius: spec.radius, height: spec.height, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: s.patrol ?? 40, phase: Math.random() * Math.PI * 2, scale: 1, grounded: !spec.flying, spawnFlash: 0,
+      id: s.id, kind: s.kind, x: s.x, y: gy, z: s.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: spec.hp, maxHp: spec.hp, state: 'idle', timer: 0, cooldown: 0.8 + (s.id.length % 4) * 0.3, alive: true, dormant: (s.wave ?? 0) > 0, group: s.group || s.id, wave: s.wave ?? 0, homeX: s.x, homeY: gy, homeZ: s.z, flying: spec.flying, rooted: spec.rooted, armored: spec.armored, radius: spec.radius, height: spec.height, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: s.patrol ?? 40, phase: Math.random() * Math.PI * 2, scale: 1, grounded: !spec.flying, spawnFlash: 0, beamX: s.x, beamY: gy, beamZ: s.z,
     };
+  }
+  /** Summon a shadow at runtime (bosses summoning adds) -- built the same way
+   * a district's own spawns are, but not tracked in district.shadows, so it
+   * appears awake and armed immediately. */
+  spawn(s: ShadowSpawn): Shadow {
+    const shadow = this.make(s);
+    shadow.dormant = false;
+    shadow.spawnFlash = 0.6;
+    this.shadows.push(shadow);
+    return shadow;
   }
   /** Later waves wake when every earlier wave of their group is down. */
   private wake() {
@@ -124,11 +148,16 @@ export class Combat {
   /** Reset for a respawn: shadows ahead of the checkpoint return, the ones behind stay down. */
   resetToCheckpoint(z: number) {
     this.projectiles = [];
-    this.shadows = this.shadows.map((s) => {
-      const spawn = this.district.shadows.find((d) => d.id === s.id)!;
-      if (s.homeZ < z - 60) return { ...this.make(spawn), cooldown: 1.2 };
-      return s;
-    });
+    this.shadows = this.shadows
+      // Summoned shadows (e.g. a boss's condors, added via spawn()) have no
+      // entry in the district's own spawn list -- they just don't survive
+      // the reset rather than crashing on a lookup that can't find them.
+      .filter((s) => !!this.district.shadows.find((d) => d.id === s.id))
+      .map((s) => {
+        const spawn = this.district.shadows.find((d) => d.id === s.id)!;
+        if (s.homeZ < z - 60) return { ...this.make(spawn), cooldown: 1.2 };
+        return s;
+      });
     this.wake();
     this.kick = 0;
     this.heat = 0;
@@ -201,6 +230,9 @@ export class Combat {
   }
   damage(s: Shadow, amount: number, cb: CombatCallbacks, kx = 0, kz = 0) {
     if (!s.alive) return;
+    // Armour plate: lasers, kicks and shockwaves chip only 1 while the core
+    // is closed. A stomp is blocked entirely -- see the caller in update().
+    if (s.armored && s.open <= 0) amount = Math.min(amount, 1);
     s.hp -= amount;
     s.hitFlash = 0.18;
     if (!s.rooted && !s.flying) {
@@ -324,7 +356,7 @@ export class Combat {
       if (p.life <= 0) continue;
       if (p.y < world.groundAt(p.x, p.z, p.y + 1).y) {
         p.life = 0;
-        cb.effect(p.kind === 'laser' ? 'spark' : 'splat', p.x, p.y, p.z);
+        cb.effect(p.kind === 'laser' || p.kind === 'beam' ? 'spark' : 'splat', p.x, p.y, p.z);
         continue;
       }
       if (p.owner === 'shadow') {
@@ -538,6 +570,182 @@ export class Combat {
           }
           break;
         }
+        case 'spireLeech': {
+          // A wall-clinger: never moves, faces Hopper, fires a locked-in beam.
+          s.vx = s.vy = s.vz = 0;
+          s.yaw = Math.atan2(dx, dz);
+          if (s.state === 'idle') {
+            if (d3 < spec.range && Math.abs(dy) < 60 && s.cooldown <= 0) {
+              s.state = 'tell';
+              s.timer = spec.tell * tellScale;
+              cb.sound('boss');
+            }
+          } else if (s.state === 'tell') {
+            s.timer -= dt;
+            if (s.timer <= 0) {
+              // Lock the aim point now -- the beam doesn't re-track, so a
+              // jump taken after the tell clears it.
+              s.beamX = h.x;
+              s.beamY = h.y + 4;
+              s.beamZ = h.z;
+              s.state = 'attack';
+              s.timer = 0.8;
+              s.phase = 0.1;
+              cb.sound('laser');
+            }
+          } else if (s.state === 'attack') {
+            s.timer -= dt;
+            s.phase += dt;
+            while (s.phase >= 0.1 && s.timer > -0.1) {
+              s.phase -= 0.1;
+              const ox = s.x,
+                oy = s.y + 0.8,
+                oz = s.z;
+              const tx = s.beamX - ox,
+                ty = s.beamY - oy,
+                tz = s.beamZ - oz,
+                tl = Math.hypot(tx, ty, tz) || 1;
+              this.projectiles.push({ id: this.nextProjectile++, x: ox, y: oy, z: oz, vx: (tx / tl) * 220, vy: (ty / tl) * 220, vz: (tz / tl) * 220, life: 1.2, radius: 1.6, damage: 1, gravity: 0, owner: 'shadow', kind: 'beam', ownerId: s.id });
+            }
+            if (s.timer <= 0) {
+              s.state = 'recover';
+              s.timer = spec.recover;
+              s.open = spec.recover;
+              s.cooldown = spec.cooldown;
+            }
+          } else if (s.state === 'recover') {
+            s.timer -= dt;
+            if (s.timer <= 0) s.state = 'idle';
+          } else if (s.state === 'launched') {
+            // Rooted, so the shockwave never actually launches it -- guard anyway.
+            s.state = 'recover';
+            s.timer = 0.5;
+          }
+          break;
+        }
+        case 'cragTortoise': {
+          s.scale = 1 + (s.state === 'tell' ? s.telegraph * 0.15 : 0);
+          if (s.state === 'launched') {
+            s.timer -= dt;
+            if (s.grounded && s.timer <= 0) {
+              s.state = 'recover';
+              s.timer = 0.6;
+              s.open = 0.6;
+            }
+          } else if (s.state === 'idle') {
+            s.phase += dt * 0.4;
+            const px = s.homeX + Math.cos(s.phase) * s.patrol * 0.5,
+              pz = s.homeZ + Math.sin(s.phase) * s.patrol * 0.5;
+            this.walkToward(s, px, pz, 4);
+            if (d3 < spec.notice) s.state = 'approach';
+          } else if (s.state === 'approach') {
+            this.walkToward(s, h.x, h.z, 7);
+            if (d3 > spec.notice * 1.5) s.state = 'idle';
+            else if (dh < spec.range && Math.abs(dy) < 12 && s.cooldown <= 0 && s.grounded) {
+              s.state = 'tell';
+              s.timer = spec.tell * tellScale;
+              s.vx = s.vz = 0;
+              s.yaw = Math.atan2(dx, dz);
+              cb.sound('boss');
+            }
+          } else if (s.state === 'tell') {
+            s.timer -= dt;
+            s.yaw = Math.atan2(dx, dz);
+            if (s.timer <= 0) {
+              // Lunge along the ground toward Hopper.
+              const tx = h.x - s.x,
+                tz = h.z - s.z,
+                tl = Math.hypot(tx, tz) || 1;
+              s.vx = (tx / tl) * 26;
+              s.vz = (tz / tl) * 26;
+              s.state = 'attack';
+              s.timer = 0.7;
+              s.cooldown = spec.cooldown;
+            }
+          } else if (s.state === 'attack') {
+            s.timer -= dt;
+            if (dh <= MOVE.radius + s.radius && h.y + MOVE.height > s.y && h.y < s.y + s.height + 1) {
+              const nx = dx / (dh || 1),
+                nz = dz / (dh || 1);
+              const blocked = cb.hurt(1, nx * 22, 9, nz * 22, s.x, s.z);
+              s.state = 'recover';
+              s.timer = blocked ? spec.recover + 0.4 : spec.recover;
+              s.open = spec.recover;
+              s.vx = -nx * 6;
+              s.vz = -nz * 6;
+            } else if (s.timer <= 0) {
+              s.state = 'recover';
+              s.timer = spec.recover;
+              s.open = spec.recover;
+            }
+          } else if (s.state === 'recover') {
+            s.timer -= dt;
+            const k = Math.max(0, 1 - 6 * dt);
+            s.vx *= k;
+            s.vz *= k;
+            if (s.timer <= 0) s.state = 'approach';
+          }
+          this.fall(s, dt);
+          break;
+        }
+        case 'riftCondor': {
+          if (s.state === 'idle' || s.state === 'approach') {
+            // Soar a wide, slow circle around home.
+            s.phase += dt * 0.25;
+            const px = s.homeX + Math.cos(s.phase) * 60,
+              pz = s.homeZ + Math.sin(s.phase) * 60;
+            this.flyToward(s, px, s.homeY, pz, 26, dt);
+            if (d3 < spec.notice && s.cooldown <= 0 && dy < 40) {
+              s.state = 'tell';
+              s.timer = spec.tell * tellScale;
+              s.vx = s.vy = s.vz = 0;
+              cb.sound('boss');
+            }
+          } else if (s.state === 'tell') {
+            s.timer -= dt;
+            s.yaw = Math.atan2(dx, dz);
+            if (s.timer <= 0) {
+              // Swoop toward Hopper's predicted position.
+              const lead = 0.5,
+                tx = h.x + h.vx * lead - s.x,
+                ty = h.y + 6 + h.vy * lead - s.y,
+                tz = h.z + h.vz * lead - s.z,
+                tl = Math.hypot(tx, ty, tz) || 1;
+              s.vx = (tx / tl) * 60;
+              s.vy = (ty / tl) * 60;
+              s.vz = (tz / tl) * 60;
+              s.state = 'attack';
+              s.timer = 1.4;
+              s.cooldown = spec.cooldown;
+            }
+          } else if (s.state === 'attack') {
+            s.timer -= dt;
+            s.x += s.vx * dt;
+            s.y += s.vy * dt;
+            s.z += s.vz * dt;
+            const floor = world.groundAt(s.x, s.z, s.y + 1).y + 3;
+            if (s.y < floor) s.y = floor;
+            if (dh <= MOVE.radius + s.radius && h.y + MOVE.height > s.y - 1 && h.y < s.y + s.height + 1 && h.y + 2 < s.y + s.height) {
+              const nx = dx / (dh || 1),
+                nz = dz / (dh || 1);
+              cb.hurt(1, nx * 20, 6, nz * 20, s.x, s.z);
+              s.state = 'recover';
+              s.timer = spec.recover;
+            } else if (s.timer <= 0) {
+              s.state = 'recover';
+              s.timer = spec.recover;
+            }
+          } else if (s.state === 'recover') {
+            s.timer -= dt;
+            // Climb back toward home.
+            this.flyToward(s, s.homeX, s.homeY, s.homeZ, 30, dt);
+            if (s.timer <= 0) s.state = 'idle';
+          } else if (s.state === 'launched') {
+            s.state = 'recover';
+            s.timer = 1;
+          }
+          break;
+        }
       }
     }
     // Stomp bounce: Hopper's feet land on a shadow's back from above.
@@ -546,7 +754,9 @@ export class Combat {
         const top = s.y + s.height;
         const dh = Math.hypot(s.x - h.x, s.z - h.z);
         if (dh <= s.radius + MOVE.radius * 0.7 && h.y <= top + 1.2 && h.y >= top - Math.max(1.5, -h.vy * dt * 1.5)) {
-          this.damage(s, 5, cb);
+          // Stomping an armoured back while the core is closed still bounces
+          // Hopper -- it's just harmless.
+          if (!(s.armored && s.open <= 0)) this.damage(s, 5, cb);
           cb.bounce(s);
           if (s.alive && s.flying) {
             s.state = 'recover';

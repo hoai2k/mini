@@ -588,4 +588,157 @@ function aimFrom(h, extra = {}) {
   );
 }
 
-console.log(`engine3d: ${checks} checks passed across 14 scenarios (world, controller, camera, combat3d, district)`);
+// ---------------------------------------------------------------------
+// 15. New shadow species: Spire Leech, Crag Tortoise, Rift Condor.
+// Sunseed Fields has none of these, so each scenario builds combat from a
+// copy of sunseedFields() with a tiny synthetic `shadows` list instead.
+// ---------------------------------------------------------------------
+
+// 15a. Spire Leech: idle -> tell -> attack (locked-in beam) -> recover; a
+// wall-clinger, it never moves through any of it.
+{
+  const districtL = { ...sunseedFields(), shadows: [{ id: 'l1', kind: 'spireLeech', x: 60, z: -200, y: 30, mode: 'a' }] };
+  const combat = new Combat(world, districtL);
+  const cb = makeCallbacks();
+  const l1 = combat.shadows.find((s) => s.id === 'l1');
+  const startX = l1.x,
+    startY = l1.y,
+    startZ = l1.z;
+  // Roughly level with the leech (dy = 0) and 50m away horizontally --
+  // inside its 200m range.
+  const h = createHopperState(60, l1.y + l1.height * 0.5 - 7, -150, Math.PI);
+  h.groundY = h.y;
+  const states = [];
+  let beamSeen = false,
+    recoverOpen = false,
+    moved = false;
+  for (let i = 0; i < 600; i++) {
+    combat.update(dt, h, cb, aimFrom(h));
+    if (states.at(-1) !== l1.state) states.push(l1.state);
+    if (combat.projectiles.some((p) => p.kind === 'beam' && p.owner === 'shadow' && p.ownerId === 'l1')) beamSeen = true;
+    if (l1.state === 'recover' && l1.open > 0) recoverOpen = true;
+    if (Math.hypot(l1.x - startX, l1.y - startY, l1.z - startZ) > 0.01) moved = true;
+  }
+  check('leech reaches tell', states.includes('tell'), states);
+  check('leech reaches attack', states.includes('attack'), states);
+  check('leech spawns beam projectiles owned by shadow with its id', beamSeen, beamSeen);
+  check('leech reaches recover with open > 0', recoverOpen, recoverOpen);
+  check('leech never moves', !moved, moved);
+}
+
+// 15b. Crag Tortoise: approach -> tell (rear) -> lunge -> hurt on contact.
+{
+  const districtT = { ...sunseedFields(), shadows: [{ id: 't1', kind: 'cragTortoise', x: 40, z: -230 }] };
+  const combat = new Combat(world, districtT);
+  const cb = makeCallbacks();
+  const t1 = combat.shadows.find((s) => s.id === 't1');
+  // 15m out and exactly level, comfortably inside the 34m tell range so the
+  // lunge (0.7s at 26 m/s) can actually close the gap and land contact.
+  const h = createHopperState(t1.x, t1.y + t1.height * 0.5 - 7, t1.z - 15, Math.PI);
+  h.groundY = h.y;
+  const states = [];
+  let hurtAt = null,
+    lungeSpeedSeen = false;
+  for (let i = 0; i < 900; i++) {
+    combat.update(dt, h, cb, aimFrom(h));
+    if (states.at(-1) !== t1.state) states.push(t1.state);
+    if (t1.state === 'attack' && Math.hypot(t1.vx, t1.vz) > 15) lungeSpeedSeen = true;
+    if (hurtAt === null && cb.record.hurt > 0) hurtAt = i / 120;
+  }
+  check('tortoise reaches tell', states.includes('tell'), states);
+  check('tortoise reaches attack', states.includes('attack'), states);
+  check('tortoise lunges with horizontal speed > 15', lungeSpeedSeen, lungeSpeedSeen);
+  check('hurt is called on contact', hurtAt !== null, hurtAt);
+}
+
+// 15c. Crag Tortoise armour: a stomp on the closed spikes bounces Hopper but
+// leaves hp unchanged.
+{
+  const districtT = { ...sunseedFields(), shadows: [{ id: 't1', kind: 'cragTortoise', x: 40, z: -230 }] };
+  const combat = new Combat(world, districtT);
+  const cb = makeCallbacks();
+  const t1 = combat.shadows.find((s) => s.id === 't1');
+  check('tortoise starts armoured and closed', t1.armored === true && t1.open <= 0, `${t1.armored} ${t1.open}`);
+  const h = createHopperState(t1.x, t1.y + t1.height + 0.5, t1.z, Math.PI);
+  h.groundY = h.y;
+  h.vy = -20;
+  h.grounded = false;
+  const hpBefore = t1.hp;
+  combat.update(dt, h, cb, aimFrom(h));
+  check('stomping the closed spikes still bounces Hopper', cb.record.bounce === 1, cb.record.bounce);
+  check('stomping the closed spikes leaves hp unchanged', t1.hp === hpBefore, `${hpBefore} -> ${t1.hp}`);
+}
+
+// 15d. Crag Tortoise armour: a kick does only 1 damage while closed, 4 once
+// the core is open.
+{
+  const districtT = { ...sunseedFields(), shadows: [{ id: 't1', kind: 'cragTortoise', x: 40, z: -230 }] };
+  const combat = new Combat(world, districtT);
+  const cb = makeCallbacks();
+  const t1 = combat.shadows.find((s) => s.id === 't1');
+  const h = createHopperState(t1.x, t1.y, t1.z - 6, Math.PI);
+  h.groundY = h.y;
+  const hpBefore = t1.hp;
+  for (let i = 0; i < 60; i++) combat.update(dt, h, cb, aimFrom(h, { kickPressed: i === 0 }));
+  check('kick on the closed armour does 1 damage', hpBefore - t1.hp === 1, `${hpBefore} -> ${t1.hp}`);
+}
+{
+  const districtT = { ...sunseedFields(), shadows: [{ id: 't1', kind: 'cragTortoise', x: 40, z: -230 }] };
+  const combat = new Combat(world, districtT);
+  const cb = makeCallbacks();
+  const t1 = combat.shadows.find((s) => s.id === 't1');
+  t1.open = 1;
+  const h = createHopperState(t1.x, t1.y, t1.z - 6, Math.PI);
+  h.groundY = h.y;
+  const hpBefore = t1.hp;
+  for (let i = 0; i < 60; i++) combat.update(dt, h, cb, aimFrom(h, { kickPressed: i === 0 }));
+  check('kick on the open core does 4 damage', hpBefore - t1.hp === 4, `${hpBefore} -> ${t1.hp}`);
+}
+
+// 15e. Rift Condor: tell -> swoop (>40 m/s) -> recover, climbing back home.
+{
+  const districtC = { ...sunseedFields(), shadows: [{ id: 'c1', kind: 'riftCondor', x: 0, z: -300, y: 90, mode: 'a' }] };
+  const combat = new Combat(world, districtC);
+  const cb = makeCallbacks();
+  const c1 = combat.shadows.find((s) => s.id === 'c1');
+  // 40m out horizontally, 10m below the condor's line -- inside notice and
+  // "not far above it".
+  const h = createHopperState(0, c1.y + c1.height * 0.5 + 3, -260, Math.PI);
+  h.groundY = h.y;
+  const states = [];
+  let attackSpeedSeen = false,
+    recoverStartY = null,
+    recoverYRose = false;
+  for (let i = 0; i < 900; i++) {
+    combat.update(dt, h, cb, aimFrom(h));
+    if (states.at(-1) !== c1.state) states.push(c1.state);
+    if (c1.state === 'attack' && Math.hypot(c1.vx, c1.vy, c1.vz) > 40) attackSpeedSeen = true;
+    if (c1.state === 'recover') {
+      if (recoverStartY === null) recoverStartY = c1.y;
+      else if (c1.y > recoverStartY + 1) recoverYRose = true;
+    }
+  }
+  check('condor reaches tell', states.includes('tell'), states);
+  check('condor reaches attack', states.includes('attack'), states);
+  check('condor swoop speed > 40', attackSpeedSeen, attackSpeedSeen);
+  check('condor climbs back toward home during recover (y rises)', recoverYRose, recoverYRose);
+}
+
+// 15f. spawn(): summons a shadow at runtime, awake immediately, and
+// resetToCheckpoint drops it instead of crashing on the missing district entry.
+{
+  const combat = new Combat(world, district);
+  const summoned = combat.spawn({ id: 'summoned-condor', kind: 'riftCondor', x: 0, z: -300, y: 90, mode: 'a' });
+  check('spawn() returns the new shadow', combat.shadows.includes(summoned), combat.shadows.length);
+  check('spawned shadow is not dormant', summoned.dormant === false, summoned.dormant);
+  check('spawned shadow is alive', summoned.alive === true, summoned.alive);
+  combat.resetToCheckpoint(0);
+  check(
+    'resetToCheckpoint drops a summoned shadow with no district entry instead of crashing',
+    combat.shadows.every((s) => s.id !== 'summoned-condor'),
+    combat.shadows.map((s) => s.id),
+  );
+  check('resetToCheckpoint keeps district shadows', combat.shadows.some((s) => s.id === 'h1'), combat.shadows.map((s) => s.id));
+}
+
+console.log(`engine3d: ${checks} checks passed across 15 scenarios (world, controller, camera, combat3d, district)`);

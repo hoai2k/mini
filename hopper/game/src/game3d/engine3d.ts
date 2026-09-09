@@ -9,7 +9,8 @@ import type { InputFrame } from '../game/input';
 import type { GameEngine } from '../game/game-engine';
 import { saveKey } from '../game/game-engine';
 import { World, type Trigger } from './world';
-import { DISTRICTS, type District } from './district';
+import { MISSIONS, type District } from './district';
+import { NightRook } from './boss3d';
 import { createHopperState, intentFromInput, predictLanding, stepHopper, MOVE, type HopperState } from './controller';
 import { createCamera, updateCamera, type CameraState } from './camera';
 import { Combat, type Shadow } from './combat3d';
@@ -20,6 +21,7 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 interface Save {
   mission: number;
+  district: number;
   checkpoint: number;
   signals: string[];
   score: number;
@@ -32,6 +34,10 @@ export class Engine3D implements GameEngine {
   private world: World | null = null;
   private district: District | null = null;
   private combat: Combat | null = null;
+  private boss: NightRook | null = null;
+  private districtIndex = 0;
+  private clearedGates = new Set<string>();
+  private transitionT = 0;
   private camera: CameraState = createCamera(0, [0, 0, 0]);
   private settings: GameSettings = { master: 0.8, music: 0.55, sfx: 0.65, shake: true, assist: false, cameraSensitivity: 0.5, invertY: false, landingGuide: true };
   private loaded = false;
@@ -88,27 +94,41 @@ export class Engine3D implements GameEngine {
     try {
       if (resume) save = JSON.parse(localStorage.getItem(saveKey('3d', 'save')) || 'null');
     } catch {}
-    this.mission = clamp(save?.mission ?? mission, 0, DISTRICTS.length - 1);
-    const district = DISTRICTS[this.mission]();
+    this.mission = clamp(save?.mission ?? mission, 0, MISSIONS.length - 1);
+    this.districtIndex = clamp(save?.district ?? 0, 0, MISSIONS[this.mission].length - 1);
+    this.hp = this.maxHp;
+    this.score = save?.score || 0;
+    this.signals = new Set(save?.signals || []);
+    this.loadDistrict(save?.checkpoint || 0);
+    this.time = 0;
+    this.completed = false;
+    this.victoryT = 0;
+    this.respawnT = 0;
+    this.showBanner(this.district!.name, this.district!.subtitle, 3.2);
+    this.setHint('Hold A to soar. Keep holding to glide. RB sprints, LB dashes.', 7);
+    this.emit();
+  }
+  /** Build the current district of the episode and place Hopper at a checkpoint. */
+  private loadDistrict(checkpoint: number) {
+    const district = MISSIONS[this.mission][this.districtIndex]();
     this.district = district;
     this.world = new World(district);
     this.combat = new Combat(this.world, district, this.settings.assist);
+    this.boss = district.boss ? new NightRook(district.boss, this.world) : null;
+    this.clearedGates = new Set();
+    this.chapterName = '';
     // Checkpoints in spine order (toward the exit).
     this.checkpoints = this.world.triggers.filter((t) => t.kind === 'checkpoint').sort((a, b) => Math.hypot(a.x - district.start.x, a.z - district.start.z) - Math.hypot(b.x - district.start.x, b.z - district.start.z));
-    this.checkpointIndex = clamp(save?.checkpoint || 0, 0, this.checkpoints.length - 1);
-    this.signals = new Set(save?.signals || []);
+    this.checkpointIndex = clamp(checkpoint, 0, this.checkpoints.length - 1);
     for (const t of this.world.triggers)
       if (t.kind === 'signal' && this.signals.has(t.id)) {
         t.taken = true;
         if (t.object) t.object.visible = false;
       }
-    this.score = save?.score || 0;
-    this.time = 0;
-    this.completed = false;
     this.victoryT = 0;
     this.respawnT = 0;
     this.hp = this.maxHp;
-    this.scene.buildWorld(this.world, this.combat.shadows);
+    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null);
     for (let i = 0; i <= this.checkpointIndex; i++) this.checkpoints[i]?.object?.userData.lit?.(true);
     this.resetPlayer();
     this.combat.resetToCheckpoint(this.player.z);
@@ -196,6 +216,17 @@ export class Engine3D implements GameEngine {
     const locked = combat.lock ? combat.shadows.find((s) => s.id === combat.lock && s.alive) || null : null;
     if (!locked) combat.lock = null;
 
+    // Moving structures carry whatever stands on them.
+    world.update(dt);
+    if (h.grounded) {
+      const under = world.groundAt(h.x, h.z, h.y + 0.5).collider;
+      const m = under?.instance?.moving;
+      if (m && Math.abs(under!.y1 - h.y) < 1) {
+        h.x += m.dx;
+        h.y += m.dy;
+        h.z += m.dz;
+      }
+    }
     // Movement. Y on the ground: tap to hop back, hold to crouch and charge.
     const intent = intentFromInput(f, this.camera.yaw);
     if (h.grounded) {
@@ -234,9 +265,63 @@ export class Engine3D implements GameEngine {
         this.rumble(0.3, 60);
       }
     }
+    // Caged signals open when a reflected shot reaches the cage's lock. Checked
+    // before combat moves the shots, so one arriving at the crown counts before
+    // the crown's collider stops it.
+    for (const t of world.triggers) {
+      if (!t.locked || !t.cage) continue;
+      for (const p of combat.projectiles) {
+        if (p.owner !== 'hopper' || p.kind === 'laser' || p.life <= 0) continue;
+        if (Math.hypot(p.x - t.x, p.y - (t.lockY ?? t.y), p.z - t.z) < 7) {
+          p.life = 0;
+          t.locked = false;
+          t.cage.traverse((o) => {
+            if (o.name.startsWith('Bar') || o.name === 'Crown') o.visible = false;
+          });
+          this.scene?.effect('parry', t.x, t.lockY ?? t.y, t.z);
+          this.sound('explode');
+          this.showBanner('Cage broken', 'A REFLECTED SHOT OPENS IT', 1.6);
+        }
+      }
+    }
     // Combat: aim from the eye sockets along the facing, tilted with the camera.
     const aim = this.aimDirection();
     combat.update(dt, h, this.callbacks(), { x: h.x + Math.sin(h.yaw) * 9, y: h.y + 12, z: h.z + Math.cos(h.yaw) * 9, dx: aim[0], dy: aim[1], dz: aim[2], firing: f.shootHeld && h.hitstun <= 0, guarding: f.blockHeld && h.hitstun <= 0, kickPressed: f.kickPressed });
+    // Gate domes: sealed once entered, open when their shadows are down.
+    for (const field of world.fields) {
+      const dist = Math.hypot(field.x - h.x, field.z - h.z);
+      if (!field.active && !field.cleared && dist < field.r * 0.75 && Math.abs(h.y - field.y) < field.r) {
+        field.active = true;
+        if (field.group === 'boss') {
+          this.boss?.wake(this.callbacks());
+          this.showBanner('The Night Rook', 'LOCKDOWN · defeat the commander', 3);
+        } else this.showBanner('Lockdown', 'CLEAR THE SHADOWS TO OPEN THE GATE', 2.4);
+        this.sound('boss');
+      }
+      if (field.active) {
+        const done = field.group === 'boss' ? !!this.boss && !this.boss.rook.alive : combat.shadows.filter((s) => s.group === field.group).every((s) => !s.alive);
+        if (done) {
+          field.active = false;
+          field.cleared = true;
+          this.clearedGates.add(field.id);
+          this.hp = Math.min(this.maxHp, this.hp + 2);
+          this.showBanner(field.group === 'boss' ? 'The shadow falls' : 'Gate open', field.group === 'boss' ? 'THE TRANSMITTER IS YOURS' : 'THE WAY IS CLEAR', 2.4);
+          this.sound('checkpoint');
+        } else if (dist > field.r - 2) {
+          // Keep Hopper inside the arena.
+          const k = (field.r - 2) / (dist || 1);
+          h.x = field.x + (h.x - field.x) * k;
+          h.z = field.z + (h.z - field.z) * k;
+          const out = ((h.x - field.x) * h.vx + (h.z - field.z) * h.vz) / (dist || 1);
+          if (out > 0) {
+            h.vx -= ((h.x - field.x) / (dist || 1)) * out;
+            h.vz -= ((h.z - field.z) / (dist || 1)) * out;
+          }
+        }
+      }
+    }
+    // The commander.
+    this.boss?.update(dt, h, combat, this.callbacks());
     // Triggers.
     for (const t of world.triggers) {
       if (t.taken) continue;
@@ -254,6 +339,7 @@ export class Engine3D implements GameEngine {
         }
         t.taken = true;
       } else if (t.kind === 'signal') {
+        if (t.locked) continue;
         t.taken = true;
         if (t.object) t.object.visible = false;
         this.signals.add(t.id);
@@ -273,22 +359,35 @@ export class Engine3D implements GameEngine {
       this.chapterName = chapter.name;
       if (this.time > 1) this.showBanner(chapter.name, d.name.toUpperCase(), 2.2);
     }
-    if (this.victoryT <= 0 && !this.completed && Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r) {
-      this.victoryT = 2.5;
-      this.score += 2000;
-      this.showBanner(d.exit.name, 'REGION COMPLETE', 2.5);
-      this.sound('checkpoint');
-      try {
-        localStorage.setItem(saveKey('3d', 'unlocked'), String(Math.max(Number(localStorage.getItem(saveKey('3d', 'unlocked')) || 0), Math.min(DISTRICTS.length - 1, this.mission + 1))));
-        localStorage.removeItem(saveKey('3d', 'save'));
-      } catch {}
+    if (this.transitionT > 0) {
+      this.transitionT -= dt;
+      if (this.transitionT <= 0) this.nextDistrict();
+    } else if (this.victoryT <= 0 && !this.completed && Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r) {
+      const gatesOpen = world.fields.every((fl) => fl.cleared || (!fl.active && fl.group === 'boss' && !this.boss?.rook.active));
+      const bossDown = !this.boss || !this.boss.rook.alive;
+      if (gatesOpen && bossDown) {
+        const last = this.districtIndex >= MISSIONS[this.mission].length - 1;
+        this.score += last ? 5000 : 2000;
+        this.sound('checkpoint');
+        if (last) {
+          this.victoryT = 2.5;
+          this.showBanner(d.exit.name, 'EPISODE COMPLETE', 2.5);
+          try {
+            localStorage.setItem(saveKey('3d', 'unlocked'), String(Math.max(Number(localStorage.getItem(saveKey('3d', 'unlocked')) || 0), Math.min(MISSIONS.length - 1, this.mission + 1))));
+            localStorage.removeItem(saveKey('3d', 'save'));
+          } catch {}
+        } else {
+          this.transitionT = 2.2;
+          this.showBanner(d.exit.name, 'REGION COMPLETE', 2.2);
+        }
+      } else if (this.hintT <= 0) this.setHint(bossDown ? 'The gate is sealed: clear its shadows first.' : 'The commander guards the summit.', 3);
     }
     // Camera and the landing prediction.
     updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], waypoint: this.waypoint() }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
     this.predicted = !h.grounded && h.height > 3 && !h.gliding ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
-    if (this.time > 20 && this.time < 20.1) this.setHint('LB: Horizon View shows the way to Crownline.', 6);
+    if (this.time > 20 && this.time < 20.1) this.setHint(`Click the right stick: Horizon View shows the way to ${d.landmark.name}.`, 6);
   }
   /** The route's next stop: the first unlit totem ahead, else the exit. */
   private waypoint(): [number, number, number] {
@@ -296,6 +395,15 @@ export class Engine3D implements GameEngine {
       h = this.player;
     const next = this.checkpoints.find((t, i) => i > this.checkpointIndex && Math.hypot(t.x - h.x, t.z - h.z) > 25);
     return next ? [next.x, next.y, next.z] : [d.exit.x, 0, d.exit.z];
+  }
+  /** The episode continues in its next district. */
+  private nextDistrict() {
+    this.districtIndex++;
+    this.loadDistrict(0);
+    this.save();
+    const d = this.district!;
+    this.showBanner(d.name, d.subtitle, 3.2);
+    this.emit();
   }
   private lockScore(s: Shadow, forward: [number, number, number]) {
     const h = this.player;
@@ -377,12 +485,15 @@ export class Engine3D implements GameEngine {
     this.resetPlayer();
     this.combat.resetToCheckpoint(this.player.z);
     for (const t of this.world.triggers) if (t.kind === 'checkpoint') t.taken = this.checkpoints.indexOf(t) <= this.checkpointIndex;
+    for (const field of this.world.fields) if (field.active) field.active = false;
+    if (this.boss && this.boss.rook.alive && this.boss.rook.active) this.boss = new NightRook(this.district!.boss!, this.world);
+    this.scene?.setBoss(this.boss?.rook ?? null);
     this.showBanner('Back in the saddle', 'CHECKPOINT RESTORED', 2);
     this.emit();
   }
   private save() {
     try {
-      localStorage.setItem(saveKey('3d', 'save'), JSON.stringify({ mission: this.mission, checkpoint: this.checkpointIndex, signals: [...this.signals], score: this.score } satisfies Save));
+      localStorage.setItem(saveKey('3d', 'save'), JSON.stringify({ mission: this.mission, district: this.districtIndex, checkpoint: this.checkpointIndex, signals: [...this.signals], score: this.score } satisfies Save));
     } catch {}
   }
   private showBanner(text: string, small: string, seconds: number) {
@@ -400,6 +511,8 @@ export class Engine3D implements GameEngine {
       c = this.combat;
     const total = d ? Math.hypot(d.exit.x - d.start.x, d.exit.z - d.start.z) : 1;
     const remaining = d ? Math.hypot(d.exit.x - h.x, d.exit.z - h.z) : 1;
+    const districts = MISSIONS[this.mission]?.length || 1;
+    const rook = this.boss?.rook;
     return {
       mission: this.mission,
       hp: this.hp,
@@ -408,7 +521,7 @@ export class Engine3D implements GameEngine {
       overheated: (c?.overheated ?? 0) > 0,
       area: d?.name || '',
       chapter: this.chapterName || d?.chapters[0]?.name || '',
-      progress: clamp(1 - remaining / total, 0, 1),
+      progress: clamp((this.districtIndex + clamp(1 - remaining / total, 0, 1)) / districts, 0, 1),
       signals: this.signals.size,
       score: this.score,
       shield: c?.shield ?? 1,
@@ -416,13 +529,22 @@ export class Engine3D implements GameEngine {
       gravity: h.gravityScale,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,
-      boss: null,
+      boss: rook && rook.active && rook.alive ? { name: 'Night Rook', health: rook.hp / rook.maxHp, phase: rook.phase, tell: this.boss!.tell() } : null,
       completed: this.completed,
       height: h.grounded ? undefined : h.height,
       landmark: d ? { name: d.landmark.name, distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z) } : undefined,
       hint: this.hintT > 0 ? this.hint : undefined,
       lock: c?.lock ? 'locked' : this.lockHeldPrev ? 'open' : undefined,
+      standIns: this.standInsOnScreen(),
     };
+  }
+  /** Which placeholder art is in play right now, for the HUD's stand-in tag. */
+  private standInsOnScreen(): string | undefined {
+    const h = this.player,
+      parts: string[] = [];
+    if (this.combat?.shadows.some((s) => s.alive && !s.dormant && Math.hypot(s.x - h.x, s.z - h.z) < 400)) parts.push('shadows');
+    if (this.boss?.rook.active && this.boss.rook.alive) parts.push('commander');
+    return parts.length ? parts.join(', ') : undefined;
   }
   private emit() {
     this.onSnapshot(this.snapshot());

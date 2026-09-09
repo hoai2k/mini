@@ -12,8 +12,11 @@ export interface Placement {
   yaw?: number;
   opts?: Record<string, unknown>;
   mode?: 'r' | 'a';
+  /** A moving structure: it shuttles between its placement and `to` and back,
+   * carrying whatever stands on it. Speed in m/s, dwell in seconds at each end. */
+  moving?: { to: { x: number; z: number; y?: number }; speed: number; dwell?: number };
 }
-export type ShadowKind = 'shadeHound' | 'seedSpitter' | 'windowRay';
+export type ShadowKind = 'shadeHound' | 'seedSpitter' | 'windowRay' | 'spireLeech' | 'cragTortoise' | 'riftCondor';
 export interface ShadowSpawn {
   id: string;
   kind: ShadowKind;
@@ -33,6 +36,33 @@ export interface Chapter {
   z1: number;
   beat: string;
 }
+/** A gate knot: lockdown emitters raise a dome around it when Hopper enters;
+ * it drops when every shadow of `group` is down. The exit needs it cleared. */
+export interface Gate {
+  id: string;
+  x: number;
+  z: number;
+  r: number;
+  group: string;
+  /** Height offset of the dome centre above the terrain. */
+  y?: number;
+}
+/** A caged signal: only a reflected shot at its lock opens the bars. */
+export interface Cage {
+  id: string;
+  x: number;
+  z: number;
+  y?: number;
+  mode?: 'r' | 'a';
+}
+export interface BossSpec {
+  kind: 'nightRook';
+  x: number;
+  z: number;
+  /** Arena centre height above terrain and radius of its lockdown dome. */
+  y: number;
+  r: number;
+}
 export interface District {
   region: string;
   mission: number;
@@ -49,6 +79,9 @@ export interface District {
   placements: Placement[];
   shadows: ShadowSpawn[];
   chapters: Chapter[];
+  gates?: Gate[];
+  cages?: Cage[];
+  boss?: BossSpec;
   start: { x: number; z: number; yaw: number };
   /** Reaching this ends the district. */
   exit: { x: number; z: number; r: number; name: string };
@@ -156,4 +189,237 @@ export function sunseedFields(): District {
   };
 }
 
-export const DISTRICTS: Array<() => District> = [sunseedFields];
+/** Crownline City: the second district. Five chapters along −z climbing 270 m
+ * from the street to the observatory, the Thunderhead summit on the horizon
+ * the whole way. Elevated structures that don't rest on the terrain (the
+ * train car riding its rail span) use mode 'a' with an absolute height
+ * computed from the structure they stand on, rather than a relative offset
+ * from the ground below. */
+export function crownlineCity(): District {
+  const placements: Placement[] = [
+    // Chapter 1 · Ivory roof ladder: roof decks a tap-jump apart, then the first tower to wall-kick.
+    P('prop.checkpointTotem', 0, 10),
+    P('structure.city.roofDeck', 70, -60, 0, 0.3, { w: 36, d: 24, h: 30 }),
+    P('structure.city.roofDeck', -60, -110, 0, -0.2, { w: 38, d: 24, h: 42 }),
+    P('prop.springPad', 40, -70, 0, 0, { w: 10 }),
+    P('structure.city.roofDeck', 90, -170, 0, 0.1, { w: 40, d: 26, h: 55 }),
+    P('structure.city.roofDeck', -40, -230, 0, 0.4, { w: 42, d: 28, h: 65 }),
+    P('prop.recoveryCapsule', 100, -40, 3),
+    P('prop.signalBeacon', 150, -40, 2, 0),
+    P('structure.city.ivoryTower', 30, -330, 0, 0.15, { h: 95 }),
+    P('prop.signalBeacon', 30, -330, 97, 0),
+    P('prop.checkpointTotem', 0, -300),
+    // Chapter 2 · Transit canyon: the elevated rail span with a shuttling train car.
+    P('structure.city.railSpan', 0, -650, 0, 0, { length: 200, height: 34, piers: 5 }),
+    { ...P('structure.city.trainCar', -70, -650, 13.7, 0, { length: 22 }, 'a'), moving: { to: { x: 70, z: -650 }, speed: 18, dwell: 2 } },
+    P('structure.city.roofDeck', 140, -560, 0, -0.3, { w: 36, d: 24, h: 36 }),
+    P('prop.signalBeacon', -150, -700, 2, 0),
+    P('prop.springPad', 0, -680, 0, 0, { w: 10 }),
+    P('prop.checkpointTotem', 0, -460),
+    P('prop.checkpointTotem', 0, -700),
+    // Chapter 3 · Construction crown: the crown's floors and jib lift Hopper toward the sky bridges.
+    P('structure.city.constructionCrown', 0, -1000, 0, 0, { w: 36, h: 100, floors: 6 }),
+    P('structure.city.roofDeck', -90, -900, 0, 0.25, { w: 38, d: 26, h: 50 }),
+    P('prop.signalBeacon', 150, -1050, 2, 0),
+    P('prop.thermalVent', 40, -1170, 0, 0, { height: 220 }),
+    P('prop.recoveryCapsule', 0, -1050, 5),
+    P('prop.checkpointTotem', 0, -850),
+    P('prop.checkpointTotem', 0, -1050),
+    // Chapter 4 · The sky bridges: tower roofs 100 m up, a wind lane across the gap, rays and leeches between them.
+    P('structure.city.ivoryTower', -30, -1350, 0, 0.1, { h: 100 }),
+    P('structure.city.ivoryTower', 60, -1420, 0, -0.15, { h: 95 }),
+    P('structure.city.billboard', -80, -1470, 0, 0.2, { height: 35, h: 14, w: 26 }),
+    P('prop.windLane', 15, -1390, 95, 0, { length: 140, r: 20 }),
+    P('prop.signalBeacon', -30, -1350, 102, 0),
+    P('prop.signalBeacon', 60, -1420, 97, 0),
+    P('prop.recoveryCapsule', 0, -1400, 5),
+    P('prop.checkpointTotem', 0, -1150),
+    P('prop.checkpointTotem', 0, -1350),
+    // Chapter 5 · Highline observatory: the gate knot, then the dome on the highest plateau.
+    P('prop.checkpointTotem', 0, -1500),
+    P('prop.springPad', 30, -1560, 0, 0, { w: 10 }),
+    P('structure.city.observatoryDome', 0, -1830, 0, 0, { r: 24, base: 32 }),
+    // The last totem stands on the plateau in front of the dome, not inside its drum.
+    P('prop.checkpointTotem', 0, -1790),
+  ];
+  const shadows: ShadowSpawn[] = [
+    S('h1', 'shadeHound', 60, -50, { group: 'street' }),
+    S('h2', 'shadeHound', -50, -90, { group: 'street' }),
+    S('h3', 'shadeHound', 80, -150, { group: 'street', wave: 1 }),
+    S('h4', 'shadeHound', -70, -190, { group: 'street', wave: 1 }),
+    S('r1', 'windowRay', 0, -200, { y: 100, mode: 'a' }),
+    S('r2', 'windowRay', 100, -350, { y: 140, mode: 'a' }),
+    S('r3', 'windowRay', -80, -550, { y: 60, mode: 'a' }),
+    S('r4', 'windowRay', 60, -1000, { y: 220, mode: 'a' }),
+    S('r5', 'windowRay', -60, -1200, { y: 240, mode: 'a' }),
+    S('r6', 'windowRay', 0, -1650, { y: 330, mode: 'a', group: 'gate' }),
+    S('r7', 'windowRay', 40, -1680, { y: 310, mode: 'a', group: 'gate' }),
+    S('r8', 'windowRay', -40, -1620, { y: 350, mode: 'a', group: 'gate' }),
+    S('l1', 'spireLeech', 47, -330, { y: 98.5, mode: 'a' }),
+    S('l2', 'spireLeech', 13, -330, { y: 113.5, mode: 'a' }),
+    S('l3', 'spireLeech', -47, -1350, { y: 268.5, mode: 'a' }),
+    S('l4', 'spireLeech', 77, -1420, { y: 253.5, mode: 'a' }),
+    S('l5', 'spireLeech', 20, -1650, { y: 290, mode: 'a', group: 'gate' }),
+    S('l6', 'spireLeech', -20, -1660, { y: 300, mode: 'a', group: 'gate' }),
+  ];
+  return {
+    region: 'city',
+    mission: 0,
+    name: 'Crownline City',
+    subtitle: 'Climb the skyline. Read the next roof before you leap.',
+    size: 4800,
+    terrain: {
+      seed: 21,
+      relief: 12,
+      plateaus: [
+        { x: 0, z: 0, r: 160, y: 0 },
+        { x: 0, z: -300, r: 150, y: 40 },
+        { x: 0, z: -650, r: 150, y: -20 },
+        { x: 0, z: -1000, r: 150, y: 120 },
+        { x: 0, z: -1350, r: 150, y: 200 },
+        { x: 0, z: -1750, r: 160, y: 270 },
+      ],
+      valley: null,
+    },
+    horizon: { gap: { angle: Math.PI / 2, width: 0.5 } },
+    placements,
+    shadows,
+    chapters: [
+      { name: 'Ivory roof ladder', z0: 20, z1: -380, beat: 'learn' },
+      { name: 'Transit canyon', z0: -380, z1: -780, beat: 'run' },
+      { name: 'Construction crown', z0: -780, z1: -1150, beat: 'climb' },
+      { name: 'The sky bridges', z0: -1150, z1: -1500, beat: 'fight' },
+      { name: 'Highline observatory', z0: -1500, z1: -1950, beat: 'finish' },
+    ],
+    gates: [{ id: 'gate-observatory', x: 0, z: -1650, r: 120, group: 'gate', y: 40 }],
+    cages: [
+      { id: 'cage-city-1', x: -120, z: -160, y: 2, mode: 'r' },
+      { id: 'cage-city-2', x: 120, z: -950, y: 2, mode: 'r' },
+      { id: 'cage-city-3', x: -100, z: -1500, y: 95, mode: 'r' },
+    ],
+    start: { x: 0, z: 40, yaw: Math.PI },
+    exit: { x: 0, z: -1830, r: 40, name: 'The observatory crown' },
+    landmark: { name: 'Thunderhead Range', x: 0, z: -3400 },
+  };
+}
+
+/** Thunderhead Range: the third district and mission-one boss. Chapters drop
+ * 110 m into the storm gorge on crag columns, then climb 300 m back out to
+ * the summit transmitter, where the Night Rook waits. */
+export function thunderheadRange(): District {
+  const placements: Placement[] = [
+    // Chapter 1 · Slate descent: crag columns step down 110 m into the gorge.
+    P('prop.checkpointTotem', 0, 10),
+    P('structure.mountains.cragColumn', 40, -80, 0, 0.2, { h: 60, r: 14 }),
+    P('structure.mountains.cragColumn', -60, -150, 0, -0.1, { h: 75, r: 15 }),
+    P('prop.signalBeacon', -60, -150, 76, 0),
+    P('structure.mountains.cragColumn', 80, -220, 0, 0.35, { h: 90, r: 16 }),
+    P('prop.checkpointTotem', 0, -180),
+    P('structure.mountains.cragColumn', -40, -290, 0, -0.2, { h: 105, r: 16 }),
+    P('structure.mountains.cragColumn', 30, -350, 0, 0.1, { h: 120, r: 18 }),
+    P('prop.signalBeacon', 30, -350, 121, 0),
+    // Chapter 2 · The storm gorge: ravine bridges and wind lanes across the floor.
+    P('structure.mountains.ravineBridge', -20, -600, 0, 0.05, { length: 130, width: 12, drop: 45 }),
+    P('structure.mountains.ledgeShelf', 90, -560, 0, 0.1, { w: 46, d: 18 }),
+    P('structure.mountains.ledgeShelf', -110, -640, 0, -0.15, { w: 46, d: 18 }),
+    P('prop.windLane', 0, -700, 14, 0, { length: 180, r: 18 }),
+    P('structure.mountains.windsock', -100, -700, 0, 0),
+    P('prop.windLane', -140, -760, 12, 0.4, { length: 120, r: 16 }),
+    P('structure.mountains.windsock', -80, -760, 0, 0.4),
+    P('prop.windLane', 140, -780, 12, -0.4, { length: 120, r: 16 }),
+    P('structure.mountains.windsock', 60, -780, 0, -0.4),
+    P('prop.signalBeacon', 0, -760, 2, 0),
+    P('prop.springPad', 60, -750, 0, 0, { w: 10 }),
+    P('prop.checkpointTotem', 0, -380),
+    P('prop.checkpointTotem', 0, -580),
+    // Chapter 3 · Broken ridge: ledge shelves and crag columns up the far wall, a thermal to the top.
+    P('structure.mountains.ledgeShelf', 40, -840, 0, 0.1, { w: 50, d: 18 }),
+    P('structure.mountains.cragColumn', -70, -900, 0, -0.25, { h: 70, r: 15 }),
+    P('prop.thermalVent', 30, -800, 0, 0, { height: 200 }),
+    P('structure.mountains.ledgeShelf', -30, -950, 0, -0.1, { w: 50, d: 18 }),
+    P('structure.mountains.ledgeShelf', 80, -1050, 0, 0.2, { w: 50, d: 18 }),
+    P('prop.signalBeacon', 80, -1050, 9, 0),
+    P('prop.recoveryCapsule', 0, -900, 5),
+    P('prop.checkpointTotem', 0, -780),
+    P('prop.checkpointTotem', 0, -980),
+    // Chapter 4 · Cloudstep traverse: condors over a chain of crag columns 150 m up.
+    P('structure.mountains.cragColumn', -30, -1220, 0, 0.15, { h: 55, r: 14 }),
+    P('prop.thermalVent', -30, -1200, 0, 0, { height: 200 }),
+    P('structure.mountains.cragColumn', 50, -1280, 0, -0.1, { h: 65, r: 14 }),
+    P('structure.mountains.cragColumn', -60, -1340, 0, 0.3, { h: 70, r: 15 }),
+    P('prop.springPad', -60, -1350, 0, 0, { w: 10 }),
+    P('structure.mountains.cragColumn', 40, -1400, 0, -0.2, { h: 60, r: 14 }),
+    P('prop.signalBeacon', 40, -1400, 61, 0),
+    P('prop.recoveryCapsule', 0, -1300, 5),
+    P('prop.checkpointTotem', 0, -1180),
+    P('prop.checkpointTotem', 0, -1365),
+    // Chapter 5 · Summit transmitter: the gate knot, then the mast and the Night Rook's arena.
+    P('prop.checkpointTotem', 0, -1550),
+    P('structure.mountains.transmitterMast', 0, -1750, 0, 0),
+    P('structure.mountains.ledgeShelf', 90, -1720, 0, 0.3, { w: 20, d: 14 }),
+    P('structure.mountains.ledgeShelf', -95, -1780, 215, -0.5, { w: 20, d: 14 }, 'a'),
+    P('structure.mountains.ledgeShelf', 0, -1840, 240, 0, { w: 20, d: 14 }, 'a'),
+    P('prop.recoveryCapsule', 0, -1600, 5),
+    P('prop.checkpointTotem', 0, -1700),
+  ];
+  const shadows: ShadowSpawn[] = [
+    S('h1', 'shadeHound', 40, -40, { group: 'entrance' }),
+    S('h2', 'shadeHound', -40, -80, { group: 'entrance' }),
+    S('t1', 'cragTortoise', 90, -560, { y: 4.2 }),
+    S('t2', 'cragTortoise', -110, -640, { y: 4.2 }),
+    S('t3', 'cragTortoise', 40, -840, { y: 4.2 }),
+    S('t4', 'cragTortoise', -30, -950, { y: 4.2 }),
+    S('t5', 'cragTortoise', 0, -1520, { y: 3, group: 'gate' }),
+    S('t6', 'cragTortoise', 30, -1560, { y: 3, group: 'gate' }),
+    S('c1', 'riftCondor', 0, -700, { y: -60, mode: 'a' }),
+    S('c2', 'riftCondor', -80, -780, { y: -30, mode: 'a' }),
+    S('c3', 'riftCondor', 60, -900, { y: 140, mode: 'a' }),
+    S('c4', 'riftCondor', -60, -1050, { y: 160, mode: 'a' }),
+    S('c5', 'riftCondor', -30, -1280, { y: 200, mode: 'a' }),
+    S('c6', 'riftCondor', 0, -1530, { y: 260, mode: 'a', group: 'gate' }),
+    S('c7', 'riftCondor', 40, -1560, { y: 250, mode: 'a', group: 'gate' }),
+  ];
+  return {
+    region: 'mountains',
+    mission: 0,
+    name: 'Thunderhead Range',
+    subtitle: 'Descend into the gorge, then rise above the storm.',
+    size: 4800,
+    terrain: {
+      seed: 33,
+      relief: 110,
+      plateaus: [
+        { x: 0, z: 0, r: 180, y: 0 },
+        { x: 0, z: -500, r: 200, y: 0 },
+        { x: 0, z: -1100, r: 200, y: 80 },
+        { x: 0, z: -1450, r: 180, y: 150 },
+        { x: 0, z: -1750, r: 260, y: 190 },
+      ],
+      valley: { axis: 'x', at: -700, width: 220, depth: 110 },
+    },
+    horizon: { gap: { angle: Math.PI / 2, width: 0.5 } },
+    placements,
+    shadows,
+    chapters: [
+      { name: 'Slate descent', z0: 20, z1: -380, beat: 'drop' },
+      { name: 'The storm gorge', z0: -380, z1: -780, beat: 'run' },
+      { name: 'Broken ridge', z0: -780, z1: -1180, beat: 'climb' },
+      { name: 'Cloudstep traverse', z0: -1180, z1: -1550, beat: 'fight' },
+      { name: 'Summit transmitter', z0: -1550, z1: -1950, beat: 'finish' },
+    ],
+    gates: [{ id: 'gate-summit', x: 0, z: -1500, r: 130, group: 'gate', y: 20 }],
+    cages: [
+      { id: 'cage-mountains-1', x: 20, z: -240, y: 2, mode: 'r' },
+      { id: 'cage-mountains-2', x: -90, z: -1050, y: 12, mode: 'r' },
+      { id: 'cage-mountains-3', x: 120, z: -1560, y: 4, mode: 'r' },
+    ],
+    boss: { kind: 'nightRook', x: 0, z: -1750, y: 40, r: 260 },
+    start: { x: 0, z: 20, yaw: Math.PI },
+    exit: { x: 0, z: -1750, r: 40, name: 'The summit transmitter' },
+    landmark: { name: 'The transmitter', x: 0, z: -1750 },
+  };
+}
+
+/** Episodes are lists of districts played in order; the last carries the boss. */
+export const MISSIONS: Array<Array<() => District>> = [[sunseedFields, crownlineCity, thunderheadRange]];
+export const DISTRICTS: Array<() => District> = [sunseedFields, crownlineCity, thunderheadRange];

@@ -12,7 +12,7 @@
     "lint": "oxlint",
     "format": "oxfmt",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types qa/tests/input.mjs && node --experimental-strip-types qa/tests/audio.mjs && node --experimental-strip-types qa/tests/combat.mjs && node qa/tests/engine.mjs && node qa/tests/camera.mjs && node qa/tests/engine3d.mjs",
+    "test": "node --experimental-strip-types qa/tests/input.mjs && node --experimental-strip-types qa/tests/audio.mjs && node --experimental-strip-types qa/tests/combat.mjs && node qa/tests/engine.mjs && node qa/tests/camera.mjs && node qa/tests/engine3d.mjs && node qa/tests/episode3d.mjs && node qa/audit-districts.mjs",
     "build:pages": "vite build --config vite.pages.config.ts"
   },
   "dependencies": {
@@ -40,6 +40,9 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
     "@cloudflare/workers-types": "4.20260515.1",
+    "@gltf-transform/core": "4.5.0",
+    "@gltf-transform/extensions": "4.5.0",
+    "@gltf-transform/functions": "4.5.0",
     "@openai/sites-vite-plugin": "0.2.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
@@ -48,9 +51,12 @@
     "@types/three": "0.185.0",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
+    "meshoptimizer": "1.2.0",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",
+    "playwright-core": "1.63.0",
+    "pngjs": "7.0.0",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vite": "8.0.13",

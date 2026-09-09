@@ -1,6 +1,6 @@
 # Hopper architecture and props
 
-43 reference-authored models for the future 3D game: 28 buildings / civil or industrial structures and 15 interactive props / effects. These are separate from the existing Hopper and rider rigs in `hopper/models`.
+43 reference-authored models (plus 28 code-built entries, see below) for the future 3D game: 28 buildings / civil or industrial structures and 15 interactive props / effects. These are separate from the existing Hopper and rider rigs in `hopper/models`.
 
 [Open the model review viewer](viewer.html). Select a model, switch LOD0 / LOD1, show sockets, and play its individual animation clips. A direct link accepts a request ID, for example `viewer.html?model=M-025`. The viewer loads Three.js from its pinned CDN import map and needs an HTTP server.
 
@@ -16,6 +16,10 @@
 Models use metres, +Y up, +Z forward. A runtime must show **one LOD hierarchy at a time** and decode `EXT_meshopt_compression` / `KHR_mesh_quantization`. The viewer demonstrates this. Machinery clips animate rigid parts; these assets do not add new character animation. Existing gameplay landings are carried as metadata and named sockets; the model meshes themselves are not a new collision implementation. This delivery does not switch the live game from stand-ins to these models.
 
 The paint comes from the previously generated trim/terrain/shadow images. Meshes were authored in Blender against the approved reference sheets; these are intentionally economical game meshes, not image-to-3D reconstructions of every painted detail. The exhaust shaft uses an open cutaway for visibility. Transparent shields need the runtime's usual transparency sorting; emitted light, damage, particles, collision and spawning remain runtime responsibilities.
+
+## Code-built entries
+
+Beyond the 43 Blender deliveries, the manifest carries 28 entries with `"authoring": "code-built"`: the four remaining episode-one structures (terrace step, windbreak row, crag column, ledge shelf), the twelve alien-region kit pieces, the nine landmark silhouettes and three terrain sculpts with 16-bit heightmaps. They come from `hopper/game/scripts/code-models.mjs` (three.js geometry painted with the delivered trim and terrain sheets), pass the same validator, and have previews from `source/previews.mjs`. They keep episode one playable end to end and are meant to be replaced by painted models at the same paths.
 
 ## Rebuild
 
