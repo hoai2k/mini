@@ -34,7 +34,7 @@ const standIns = new URL('../../3d/standins/src/index.js', import.meta.url).path
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-audit-districts-'));
-const names = ['world', 'controller', 'district', 'route'];
+const names = ['world', 'controller', 'district', 'route', 'scenery'];
 for (const name of names) {
   const raw = fs
     .readFileSync(source + name + '.ts', 'utf8')

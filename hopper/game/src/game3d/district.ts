@@ -338,8 +338,9 @@ export function thunderheadRange(): District {
     P('structure.mountains.cragColumn', -40, -290, 0, -0.2, { h: 105, r: 16 }),
     P('structure.mountains.cragColumn', 30, -350, 0, 0.1, { h: 120, r: 18 }),
     P('prop.signalBeacon', 30, -350, 121, 0),
-    // Chapter 2 · The storm gorge: ravine bridges and wind lanes across the floor.
-    P('structure.mountains.ravineBridge', -20, -600, 0, 0.05, { length: 130, width: 12, drop: 45 }),
+    // Chapter 2 · The storm gorge: a viaduct over it at rim height (the trail
+    // runs along the floor beneath), ledges and wind lanes down in the cut.
+    P('structure.mountains.ravineBridge', 120, -720, -20, Math.PI / 2, { length: 130, width: 14, drop: 88 }, 'a'),
     P('structure.mountains.ledgeShelf', 90, -560, 0, 0.1, { w: 46, d: 18 }),
     P('structure.mountains.ledgeShelf', -110, -640, 0, -0.15, { w: 46, d: 18 }),
     P('prop.windLane', 0, -700, 14, 0, { length: 180, r: 18 }),

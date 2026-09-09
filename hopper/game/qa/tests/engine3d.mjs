@@ -21,7 +21,7 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-engine3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'route'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'route', 'scenery', 'boss3d'];
 for (const name of names) {
   const raw = fs
     .readFileSync(source + name + '.ts', 'utf8')
@@ -44,6 +44,7 @@ const { World } = await import(path.join(temp, 'world.mjs'));
 const { stepHopper, createHopperState, predictLanding, MOVE } = await import(path.join(temp, 'controller.mjs'));
 const { createCamera, updateCamera } = await import(path.join(temp, 'camera.mjs'));
 const { Combat } = await import(path.join(temp, 'combat3d.mjs'));
+const { NightRook } = await import(path.join(temp, 'boss3d.mjs'));
 const { sunseedFields, MISSIONS } = await import(path.join(temp, 'district.mjs'));
 const { buildRoute } = await import(path.join(temp, 'route.mjs'));
 const { shadowBody } = await import(path.join(temp, 'combat3d.mjs'));
@@ -928,4 +929,81 @@ function aimFrom(h, extra = {}) {
   check('a window ray circling overhead can be shot', ray.hp < hp0, `${hp0} -> ${ray.hp}`);
 }
 
-console.log(`engine3d: ${checks} checks passed across 18 scenarios (world, controller, camera, combat3d, district, route)`);
+// ---------------------------------------------------------------------
+// 19. Scenery: spans that land somewhere, and a filled-in middle distance
+// ---------------------------------------------------------------------
+{
+  for (const make of MISSIONS[0]) {
+    const d = make();
+    const w = new World(d);
+    const scenery = w.scenery;
+    check(`${d.name}: the middle distance is filled in (>=10 structures off the trail)`, scenery.length >= 10, scenery.length);
+    // Nothing generated stands on the trail itself, other than a span's own supports.
+    const onTrail = scenery.filter((p) => w.route.distance(p.x, p.z) < 60 && !/cragColumn|roofDeck|ravineBridge|railSpan/.test(p.id));
+    check(`${d.name}: generated scenery keeps off the trail`, onTrail.length === 0, onTrail.map((p) => p.id));
+    // No support buries a totem, signal, capsule or pad.
+    const props = d.placements.filter((p) => !p.id.startsWith('structure.') && p.id !== 'prop.windLane' && p.id !== 'prop.thermalVent');
+    const buried = props.filter((p) => scenery.some((s) => Math.hypot(s.x - p.x, s.z - p.z) < 20));
+    check(`${d.name}: no prop is buried under generated scenery`, buried.length === 0, buried.map((p) => `${p.id} (${p.x},${p.z})`));
+    // Every span's deck ends over something solid: a pier, a building, or ground.
+    for (const p of d.placements.filter((s) => /ravineBridge|railSpan/.test(s.id))) {
+      const length = p.opts?.length ?? 130;
+      const deck = p.id.includes('railSpan') ? 34 : 1.5;
+      const base = p.mode === 'a' ? p.y || 0 : w.heightAt(p.x, p.z) + (p.y || 0) - (p.y ? 0 : 1.5);
+      const yaw = p.yaw || 0;
+      for (const side of [-1, 1]) {
+        const ex = p.x + Math.cos(yaw) * side * (length / 2),
+          ez = p.z - Math.sin(yaw) * side * (length / 2);
+        const gap = base + deck - w.heightAt(ex, ez);
+        const support = w.groundAt(ex, ez, base + deck).y;
+        check(
+          `${d.name}: the ${p.id.split('.').pop()} deck lands on something at (${ex.toFixed(0)},${ez.toFixed(0)})`,
+          gap < 8 || support > w.heightAt(ex, ez) + 4,
+          `gap ${gap.toFixed(1)} m, support at ${support.toFixed(1)} vs terrain ${w.heightAt(ex, ez).toFixed(1)}`,
+        );
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------
+// 20. The commander: reachable, targetable and framed
+// ---------------------------------------------------------------------
+{
+  const d = MISSIONS[0][2]();
+  const bossWorld = new World(d);
+  const rook = new NightRook(d.boss, bossWorld);
+  const ground = bossWorld.heightAt(d.boss.x, d.boss.z);
+  const perches = rook.perches ?? [];
+  // A held jump peaks at 88 m: every perch has to sit inside a leap of the floor.
+  const highest = Math.max(rook.rook.y, ...perches.map((p) => p[1]));
+  check('the commander perches within a leap of the arena floor (<=110 m)', highest - ground <= 110, `${(highest - ground).toFixed(0)} m above ${ground.toFixed(0)}`);
+  // Awake, it is an aim target: the lasers pick it and the lock-on can hold it.
+  const combat = new Combat(bossWorld, { ...d, shadows: [] });
+  rook.wake({ hurt: () => false, effect: () => {}, sound: () => {}, bounce: () => {} });
+  combat.bossTarget = rook.target();
+  const r = rook.rook;
+  check('the commander is among the aim targets', combat.targets().some((t) => t.id === 'boss'), combat.targets().length);
+  // The same upward cone the lasers use when nothing is ahead or below.
+  const picked = combat.pickTarget(r.x, r.y - 60, r.z + 20, 0, 0.9, -1, 220, Math.PI / 3);
+  check('the lasers can pick the commander from below', picked?.id === 'boss', picked?.id);
+  combat.lock = 'boss';
+  check('the lock-on can hold the commander', combat.targetById('boss')?.id === 'boss', combat.targetById('boss')?.id);
+  // The camera lifts its look toward the commander and stands further back.
+  {
+    const settings = { sensitivity: 0.5, invertY: false, reducedMotion: false };
+    const blankCam = { lookX: 0, lookY: 0, mouseLookX: 0, mouseLookY: 0, resetPressed: false, horizonHeld: false };
+    const h = startHopper(d.boss.x, d.boss.z + 40, bossWorld.heightAt(d.boss.x, d.boss.z + 40));
+    const plain = createCamera(h.yaw, [h.x, h.y + 8, h.z]),
+      framed = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
+    const boss = [r.x, r.y + r.height * 0.5, r.z];
+    for (let i = 0; i < 240; i++) {
+      updateCamera(plain, h, bossWorld, blankCam, settings, dt);
+      updateCamera(framed, h, bossWorld, { ...blankCam, boss }, settings, dt);
+    }
+    check('framing the commander lifts the camera look', framed.target[1] > plain.target[1] + 4, `${framed.target[1].toFixed(1)} vs ${plain.target[1].toFixed(1)}`);
+    check('framing the commander pulls the camera back', framed.distance > plain.distance + 8, `${framed.distance.toFixed(1)} vs ${plain.distance.toFixed(1)}`);
+  }
+}
+
+console.log(`engine3d: ${checks} checks passed across 20 scenarios (world, controller, camera, combat3d, district, route, scenery, boss3d)`);

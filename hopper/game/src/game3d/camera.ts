@@ -32,6 +32,9 @@ export interface CameraInput {
   /** World position of the locked shadow, if any. */
   lock?: [number, number, number] | null;
   landmark?: [number, number, number];
+  /** The commander's centre while one is awake: the follow camera lifts its
+   * look and pulls back so a boss overhead stays in frame. */
+  boss?: [number, number, number] | null;
   /** The route's forward yaw where Hopper stands (its tangent a little way
    * ahead): the follow camera faces this, and only this. It is a direction,
    * not a point, so it never swings round as Hopper passes something. */
@@ -62,6 +65,11 @@ export const CAMERA = {
   pullBackPerSpeed: 0.28,
   maxSpeedPull: 16,
   speedPullFrom: 58,
+  /** Framing a commander: how much of the height between Hopper and the boss
+   * the look rises by, how far that can go, and the extra pull-back. */
+  bossLift: 0.42,
+  maxBossLift: 34,
+  bossPull: 22,
   tiltPerMetre: 0.004,
   maxTilt: 0.5,
   minPitch: -0.6,
@@ -177,6 +185,14 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     } else if (h.diving) {
       wantTilt += 0.35;
       wantPull += 4;
+    }
+    // A commander in the air: lift the look toward it and stand further back,
+    // so it is on screen while Hopper is fought around the arena floor.
+    if (input.boss) {
+      const above = input.boss[1] - com[1];
+      const near = Math.max(0, 1 - Math.hypot(input.boss[0] - h.x, input.boss[2] - h.z) / 420);
+      target[1] += Math.max(0, Math.min(CAMERA.maxBossLift, above * CAMERA.bossLift)) * near;
+      wantPull += CAMERA.bossPull * near;
     }
     const ks = 1 - Math.exp(-3.5 * dt);
     cam.pull = ease(cam.pull, wantPull, ks);

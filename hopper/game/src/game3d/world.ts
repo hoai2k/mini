@@ -12,6 +12,7 @@ import {
 } from '../../../3d/standins/src/index.js';
 import type { District, Placement } from './district';
 import { buildRoute, type Route } from './route';
+import { sceneryFor } from './scenery';
 
 export interface Collider {
   /** Structure instance that owns this box. */
@@ -46,6 +47,8 @@ export interface Field {
   cleared: boolean;
   group: string;
   object?: Object3D;
+  /** Seconds of bright flare left after Hopper pushed against the barrier. */
+  flare?: number;
 }
 export interface Volume {
   kind: 'thermal' | 'wind';
@@ -143,6 +146,8 @@ export class World {
   readonly fields: Field[] = [];
   /** The trail from the start to the exit; the camera faces along it. */
   readonly route: Route;
+  /** Generated scenery: span continuations and the middle-distance structures. */
+  readonly scenery: Placement[] = [];
   private grid = new Map<string, Collider[]>();
   readonly region;
   constructor(district: District) {
@@ -151,6 +156,10 @@ export class World {
     this.route = buildRoute(district);
     this.heightAt = makeHeightField({ size: district.size, ...district.terrain });
     for (const p of district.placements) this.place(p);
+    // The world either side of the trail: spans that land somewhere, and
+    // structures standing well back from the path.
+    this.scenery = sceneryFor(district, this.route, this.heightAt);
+    for (const p of this.scenery) this.place(p);
     for (const c of district.cages || []) this.placeCage(c);
     for (const g of district.gates || []) this.placeGate(g);
     if (district.boss) {

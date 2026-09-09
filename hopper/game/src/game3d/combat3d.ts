@@ -121,6 +121,14 @@ export class Combat {
   guarding = false;
   /** Locked target id, if any. */
   lock: string | null = null;
+  /** The commander, while one is awake: an aim target only. It never joins
+   * `shadows`, so waves, gates, kicks and stomps are untouched (the boss runs
+   * its own hit tests) -- but the lasers and the lock-on can find it. */
+  bossTarget: Shadow | null = null;
+  /** What the lasers last chose, and when: the HUD shows its health so the
+   * player can see whether the shots are landing. */
+  lastTarget: Shadow | null = null;
+  lastTargetAt = -1e9;
   constructor(readonly world: World, readonly district: District, private assist = false) {
     this.shadows = district.shadows.map((s) => this.make(s));
     this.wake();
@@ -180,12 +188,22 @@ export class Combat {
   aliveShadows(): Shadow[] {
     return this.shadows.filter((s) => s.alive && !s.dormant);
   }
+  /** Everything the auto-aim and the lock-on may choose: the live shadows and
+   * the commander. */
+  targets(): Shadow[] {
+    return this.bossTarget && this.bossTarget.alive ? [...this.aliveShadows(), this.bossTarget] : this.aliveShadows();
+  }
+  /** A target by id, boss included. */
+  targetById(id: string | null): Shadow | null {
+    if (!id) return null;
+    return this.targets().find((s) => s.id === id) || null;
+  }
   /** Nearest live shadow inside a cone from an origin along a direction. */
   pickTarget(x: number, y: number, z: number, dx: number, dy: number, dz: number, range: number, cone: number): Shadow | null {
     let best: Shadow | null = null,
       bestScore = Infinity;
     const dl = Math.hypot(dx, dy, dz) || 1;
-    for (const s of this.aliveShadows()) {
+    for (const s of this.targets()) {
       const cx = s.x - x,
         cy = s.y + s.height * 0.5 - y,
         cz = s.z - z,
@@ -320,7 +338,7 @@ export class Combat {
       this.shotClock -= dt;
       if (this.shotClock <= 0) {
         this.shotClock = 1 / 8;
-        const locked = this.lock ? this.shadows.find((s) => s.id === this.lock && s.alive) || null : null;
+        const locked = this.targetById(this.lock);
         const target =
           locked ||
           this.pickTarget(aim.x, aim.y, aim.z, aim.dx, aim.dy, aim.dz, 250, Math.PI / 6) ||
@@ -328,6 +346,10 @@ export class Combat {
           // Straight overhead: a ray circling above is a target, not scenery.
           this.pickTarget(aim.x, aim.y, aim.z, aim.dx, 0.9, aim.dz, 220, Math.PI / 3);
         this.fire(aim.x, aim.y, aim.z, aim.dx, aim.dy, aim.dz, target);
+        if (target) {
+          this.lastTarget = target;
+          this.lastTargetAt = this.time;
+        }
         cb.sound('laser');
       }
       if (this.heat >= 1) {

@@ -32,6 +32,9 @@ import {
   WebGLRenderer,
   DoubleSide,
   PlaneGeometry,
+  CanvasTexture,
+  RepeatWrapping,
+  ClampToEdgeWrapping,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -58,6 +61,34 @@ interface Effect {
   life: number;
   maxLife: number;
   kind: string;
+}
+
+/** The lockdown barrier's surface: bright along the ground, ribbed, and clear
+ * through the middle so a sealed arena reads as a wall rather than a fog the
+ * whole view is seen through. */
+function barrierTexture(): Texture {
+  const c = document.createElement('canvas');
+  c.width = 64;
+  c.height = 256;
+  const g = c.getContext('2d')!;
+  const grad = g.createLinearGradient(0, 256, 0, 0);
+  grad.addColorStop(0, 'rgba(226,196,255,0.95)');
+  grad.addColorStop(0.1, 'rgba(198,158,255,0.5)');
+  grad.addColorStop(0.35, 'rgba(186,146,255,0.14)');
+  grad.addColorStop(0.75, 'rgba(186,146,255,0.05)');
+  grad.addColorStop(1, 'rgba(186,146,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 256);
+  // Ribs down the seams, and a bright line where the barrier meets the ground.
+  g.fillStyle = 'rgba(240,222,255,0.55)';
+  g.fillRect(0, 0, 3, 256);
+  g.fillRect(61, 0, 3, 256);
+  g.fillStyle = 'rgba(255,244,255,0.9)';
+  g.fillRect(0, 246, 64, 10);
+  const tex = new CanvasTexture(c);
+  tex.wrapS = RepeatWrapping;
+  tex.wrapT = ClampToEdgeWrapping;
+  return tex;
 }
 
 /** Find a node by its glTF name, before or after three's name sanitising. */
@@ -100,6 +131,8 @@ export class Scene3D {
   private bossWings: Object3D[] = [];
   private corridor: Mesh | null = null;
   private fieldDomes = new Map<string, Mesh>();
+  /** The barrier itself: a wall of light at the radius Hopper cannot pass. */
+  private fieldWalls = new Map<string, Mesh>();
   private buildVersion = 0;
   private kickSparked = false;
   private sun: DirectionalLight;
@@ -214,6 +247,7 @@ export class Scene3D {
     this.scene.add(this.worldGroup);
     this.shadowObjects.clear();
     this.fieldDomes.clear();
+    this.fieldWalls.clear();
     this.bossObject = null;
     this.corridor = null;
     this.animated = [];
@@ -286,7 +320,9 @@ export class Scene3D {
       this.shadowObjects.set(s.id, o);
     }
     void paintShadows(this.shadowObjects.values());
-    // Lockdown fields: a translucent dome per gate or boss arena, shown while active.
+    // Lockdown fields: a dome overhead and, at the radius Hopper is actually
+    // held inside, a wall of violet light. The clamp is a cylinder, so the
+    // wall is one too -- what you see is exactly what stops you.
     for (const f of world.fields) {
       const dome = createStandIn('prop.lockdownDome', { r: 1 });
       const mesh = dome.getObjectByName('Field') as Mesh | undefined;
@@ -297,6 +333,13 @@ export class Scene3D {
       mesh.visible = false;
       this.worldGroup.add(mesh);
       this.fieldDomes.set(f.id, mesh);
+      const tex = barrierTexture();
+      tex.repeat.set(Math.max(8, Math.round((Math.PI * 2 * f.r) / 45)), 1);
+      const wall = new Mesh(new CylinderGeometry(f.r - 2, f.r - 2, 300, 72, 1, true), new MeshBasicMaterial({ color: '#e0c6ff', map: tex, transparent: true, opacity: 0.85, side: DoubleSide, depthWrite: false, fog: false }));
+      wall.position.set(f.x, world.heightAt(f.x, f.z) + 132, f.z);
+      wall.visible = false;
+      this.worldGroup.add(wall);
+      this.fieldWalls.set(f.id, wall);
     }
     this.setBoss(rook);
   }
@@ -430,10 +473,23 @@ export class Scene3D {
   }
   private syncFields(world: World) {
     for (const f of world.fields) {
+      const on = f.active && !f.cleared;
+      const flare = f.flare || 0;
       const dome = this.fieldDomes.get(f.id);
-      if (!dome) continue;
-      dome.visible = f.active && !f.cleared;
-      if (dome.visible) (dome.material as MeshToonMaterial).opacity = 0.14 + Math.sin(this.time * 3) * 0.05;
+      if (dome) {
+        dome.visible = on;
+        if (on) (dome.material as MeshToonMaterial).opacity = 0.2 + Math.sin(this.time * 3) * 0.05 + flare * 0.25;
+      }
+      const wall = this.fieldWalls.get(f.id);
+      if (wall) {
+        wall.visible = on;
+        // The wall brightens where Hopper has just pushed against it.
+        if (on) {
+          const m = wall.material as MeshBasicMaterial;
+          m.opacity = 0.8 + Math.sin(this.time * 2.4) * 0.08 + flare * 0.2;
+          if (m.map) m.map.offset.y = -0.02 + Math.sin(this.time * 0.7) * 0.01;
+        }
+      }
     }
   }
   private syncHopper(h: HopperState, combat: Combat, dt: number) {
@@ -618,6 +674,10 @@ export class Scene3D {
       object = new Mesh(new TorusGeometry(4, 0.8, 6, 40), new MeshBasicMaterial({ color: '#ffe8a0', transparent: true, opacity: 0.8 }));
       object.rotation.x = Math.PI / 2;
       life = 0.45;
+    } else if (name === 'barrier') {
+      object = new Mesh(new RingGeometry(2, 9, 28), new MeshBasicMaterial({ color: '#d9b6ff', transparent: true, opacity: 0.9, side: DoubleSide, depthWrite: false }));
+      object.lookAt(this.camera.position);
+      life = 0.4;
     } else if (name === 'parry') {
       object = new Mesh(new SphereGeometry(2.5, 10, 8), new MeshBasicMaterial({ color: '#b9fff1', transparent: true, opacity: 0.8 }));
       life = 0.25;

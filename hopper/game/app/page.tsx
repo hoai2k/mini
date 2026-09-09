@@ -967,6 +967,17 @@ export default function Home() {
               <h2>{hud.banner}</h2>
             </div>
           )}
+          {hud.target && !hud.boss && (
+            <div className={`target-hud ${hud.target.locked ? 'locked' : ''}`}>
+              <span>
+                {hud.target.name}
+                {hud.target.locked && <small>LOCKED</small>}
+              </span>
+              <div>
+                <i style={{ width: `${hud.target.health * 100}%` }} />
+              </div>
+            </div>
+          )}
           {hud.boss && (
             <div className="boss-hud">
               <span>

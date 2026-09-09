@@ -251,6 +251,32 @@ export function buildTrail(world: World): Group {
       }
     }
   }
+  // --- The middle distance: clumps of the same things, 120-430 m out, taller,
+  // so the country carries on past the props at the trail's shoulder instead
+  // of ending in bare ground.
+  for (let s = 30, i = 0; s < route.length; s += 34, i++) {
+    const p = route.pointAt(s + random() * 30);
+    for (const side of [-1, 1]) {
+      if (random() < 0.2) continue;
+      const off = (120 + random() * 310) * side;
+      const cx = p.x + Math.cos(p.yaw) * off,
+        cz = p.z - Math.sin(p.yaw) * off;
+      if (!clear(cx, cz, 20)) continue;
+      // A clump, not a lone thing: two to five of a kind around the point.
+      const batch = bigBatches[Math.floor(random() * bigBatches.length)];
+      const count = 2 + Math.floor(random() * 4);
+      for (let k = 0; k < count; k++) {
+        const a = random() * Math.PI * 2,
+          rad = random() * 60;
+        const x = cx + Math.cos(a) * rad,
+          z = cz + Math.sin(a) * rad;
+        if (!clear(x, z, 8) || slopeAt(x, z) > 9) continue;
+        const h = bigHeight[0] * (0.9 + random() * 0.8) + random() * (bigHeight[1] - bigHeight[0]);
+        const w = h * (0.6 + random() * 0.5);
+        batch.add(x, surface(x, z) - 0.4, z, random() * Math.PI * 2, w, h, w);
+      }
+    }
+  }
   for (const b of [stone, marker, ...bigBatches, ...smallBatches]) b.build(group);
   return group;
 }

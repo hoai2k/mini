@@ -17,6 +17,15 @@ import { Combat, type Shadow } from './combat3d';
 import { Scene3D } from './scene';
 
 const STEP = 1 / 120;
+/** What the HUD calls each shadow when it is the target. */
+const SHADOW_NAMES: Record<string, string> = {
+  shadeHound: 'Shade Hound',
+  seedSpitter: 'Seed Spitter',
+  windowRay: 'Window Ray',
+  spireLeech: 'Spire Leech',
+  cragTortoise: 'Crag Tortoise',
+  riftCondor: 'Rift Condor',
+};
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 interface Save {
@@ -204,12 +213,16 @@ export class Engine3D implements GameEngine {
       if (this.respawnT <= 0) this.respawn();
       return;
     }
+    // The commander is an aim target while it is awake, so the lasers find it
+    // and the lock-on can hold it: a shadow this big, this high, is otherwise
+    // shot at only by luck.
+    combat.bossTarget = this.boss && this.boss.rook.active && this.boss.rook.alive ? this.boss.target() : null;
     // Lock-on: hold LT to lock the nearest shadow in view; tap to cycle.
     const lockTapped = f.lockPressed && this.lockHeldPrev;
     if (f.lockHeld) {
       if (!combat.lock || lockTapped) {
         const forward = this.aimDirection();
-        const candidates = combat.aliveShadows().filter((s) => Math.hypot(s.x - h.x, s.z - h.z) < 220).sort((a, b) => this.lockScore(a, forward) - this.lockScore(b, forward));
+        const candidates = combat.targets().filter((s) => Math.hypot(s.x - h.x, s.z - h.z) < 260).sort((a, b) => this.lockScore(a, forward) - this.lockScore(b, forward));
         if (candidates.length) {
           const i = combat.lock ? candidates.findIndex((s) => s.id === combat.lock) : -1;
           combat.lock = candidates[(i + 1) % candidates.length].id;
@@ -217,7 +230,7 @@ export class Engine3D implements GameEngine {
       }
     } else combat.lock = null;
     this.lockHeldPrev = f.lockHeld;
-    const locked = combat.lock ? combat.shadows.find((s) => s.id === combat.lock && s.alive) || null : null;
+    const locked = combat.targetById(combat.lock);
     if (!locked) combat.lock = null;
 
     // Moving structures carry whatever stands on them.
@@ -303,7 +316,9 @@ export class Engine3D implements GameEngine {
         this.sound('boss');
       }
       if (field.active) {
-        const done = field.group === 'boss' ? !!this.boss && !this.boss.rook.alive : combat.shadows.filter((s) => s.group === field.group).every((s) => !s.alive);
+        if (field.flare) field.flare = Math.max(0, field.flare - dt);
+        const left = field.group === 'boss' ? (this.boss && this.boss.rook.alive ? 1 : 0) : combat.shadows.filter((s) => s.group === field.group && s.alive).length;
+        const done = field.group === 'boss' ? !!this.boss && !this.boss.rook.alive : left === 0;
         if (done) {
           field.active = false;
           field.cleared = true;
@@ -311,15 +326,25 @@ export class Engine3D implements GameEngine {
           this.hp = Math.min(this.maxHp, this.hp + 2);
           this.showBanner(field.group === 'boss' ? 'The shadow falls' : 'Gate open', field.group === 'boss' ? 'THE TRANSMITTER IS YOURS' : 'THE WAY IS CLEAR', 2.4);
           this.sound('checkpoint');
-        } else if (dist > field.r - 2) {
-          // Keep Hopper inside the arena.
-          const k = (field.r - 2) / (dist || 1);
-          h.x = field.x + (h.x - field.x) * k;
-          h.z = field.z + (h.z - field.z) * k;
-          const out = ((h.x - field.x) * h.vx + (h.z - field.z) * h.vz) / (dist || 1);
-          if (out > 0) {
-            h.vx -= ((h.x - field.x) / (dist || 1)) * out;
-            h.vz -= ((h.z - field.z) / (dist || 1)) * out;
+        } else {
+          // Say what is holding the way, and keep saying it: an arena the
+          // player cannot leave has to explain itself.
+          const task = field.group === 'boss' ? 'The commander holds the gate — defeat it to lift the lockdown.' : `Lockdown: ${left} shadow${left === 1 ? '' : 's'} left inside the barrier.`;
+          if (this.hintT <= 0.25) this.setHint(task, 1.5);
+          if (dist > field.r - 2) {
+            // The barrier: keep Hopper inside, and light up where he met it.
+            const k = (field.r - 2) / (dist || 1);
+            h.x = field.x + (h.x - field.x) * k;
+            h.z = field.z + (h.z - field.z) * k;
+            const out = ((h.x - field.x) * h.vx + (h.z - field.z) * h.vz) / (dist || 1);
+            if (out > 0) {
+              h.vx -= ((h.x - field.x) / (dist || 1)) * out;
+              h.vz -= ((h.z - field.z) / (dist || 1)) * out;
+              if (!field.flare) this.sound('shield');
+            }
+            field.flare = 0.8;
+            this.scene?.effect('barrier', h.x, h.y + 8, h.z);
+            this.setHint(task, 1.5);
           }
         }
       }
@@ -384,10 +409,17 @@ export class Engine3D implements GameEngine {
           this.transitionT = 2.2;
           this.showBanner(d.exit.name, 'REGION COMPLETE', 2.2);
         }
-      } else if (this.hintT <= 0) this.setHint(bossDown ? 'The gate is sealed: clear its shadows first.' : 'The commander guards the summit.', 3);
+      } else if (this.hintT <= 0) {
+        const sealed = world.fields.filter((fl) => !fl.cleared && fl.group !== 'boss');
+        const left = sealed.reduce((n, fl) => n + combat.shadows.filter((s) => s.group === fl.group && s.alive).length, 0);
+        this.setHint(bossDown ? `The way on is sealed by a lockdown gate: ${left} shadow${left === 1 ? '' : 's'} still hold it. Follow the trail back to the violet dome.` : 'The commander guards the summit: defeat it to open the way.', 3.5);
+      }
     }
-    // Camera and the landing prediction.
-    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward() }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
+    // Camera and the landing prediction. While the commander is awake the
+    // camera lifts and pulls back to hold it in frame.
+    const rook = this.boss?.rook;
+    const rookInFrame = rook && rook.active && rook.alive ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [number, number, number]) : null;
+    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
     this.predicted = !h.grounded && h.height > 3 && !h.gliding ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
@@ -540,8 +572,22 @@ export class Engine3D implements GameEngine {
       landmark: d ? { name: d.landmark.name, distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z) } : undefined,
       hint: this.hintT > 0 ? this.hint : undefined,
       lock: c?.lock ? 'locked' : this.lockHeldPrev ? 'open' : undefined,
+      target: this.targetInfo(),
       standIns: this.standInsOnScreen(),
     };
+  }
+  /** The shadow the HUD shows a health bar for: whatever is locked, else
+   * whatever the lasers last chose, for a few seconds after the last shot.
+   * The commander has its own bar, so it is not repeated here. */
+  private targetInfo(): { name: string; health: number; locked: boolean } | undefined {
+    const c = this.combat;
+    if (!c) return undefined;
+    const locked = c.targetById(c.lock);
+    const recent = c.time - c.lastTargetAt < 3.5 ? c.lastTarget : null;
+    const s = locked || (recent && recent.alive ? recent : null);
+    if (!s || !s.alive) return undefined;
+    if (s.id === 'boss') return undefined;
+    return { name: SHADOW_NAMES[s.kind] || 'Shadow', health: Math.max(0, s.hp / s.maxHp), locked: !!locked };
   }
   /** Which placeholder art is in play right now, for the HUD's stand-in tag. */
   private standInsOnScreen(): string | undefined {
