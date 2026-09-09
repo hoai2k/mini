@@ -17,6 +17,12 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/charlies-girl-dolls/. Uses the group
   poster and the single cover from `images/`; the five songs stream from the
   game rather than being copied here.
+- [`canadensis/`](canadensis/) — artist page for Canadensis, a Cape Breton
+  folk band of the 1880s moored in present-day Toronto harbour, styled after
+  late-Victorian nautical print. Published at
+  https://hoai2k.github.io/mini/sites/canadensis/. Uses the deck photograph
+  from `images/`; `canadensis/image-requests.md` lists further art the page
+  could take.
 - [`images/`](images/) — source images dropped by the user for use in sites.
   Sites keep their own web-sized copies under `assets/`; the originals stay
   here.
