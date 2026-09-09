@@ -12,15 +12,18 @@ export const MOVE = {
   gravity: 120,
   /** Falling pulls harder than rising: the arc peaks and comes down sharp. */
   fallGravity: 1.25,
-  run: 52,
-  groundAccel: 320,
-  airAccel: 170,
+  run: 66,
+  groundAccel: 420,
+  airAccel: 215,
   turnRate: Math.PI * 5,
   tapJump: 72,
   holdWindow: 0.32,
   holdThrust: 140,
+  /** Forward lunge added at takeoff, along the way Hopper is already going
+   * (or the stick, from standing). A leap travels; it does not just rise. */
+  leap: 24,
   glideSink: 7,
-  glideSpeed: 62,
+  glideSpeed: 80,
   glideTurn: Math.PI * 0.6,
   chargeTime: 0.8,
   chargeApexMin: 21,
@@ -43,7 +46,7 @@ export const MOVE = {
   stompLag: 0.35,
   brake: 120,
   sprint: 1.6,
-  dashSpeed: 130,
+  dashSpeed: 170,
   dashTime: 0.28,
   dashCooldown: 0.55,
 };
@@ -281,7 +284,11 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.yaw = turnToward(s.yaw, heading, MOVE.turnRate * dt);
   } else if (canSteer) {
     const accel = (s.grounded ? MOVE.groundAccel : MOVE.airAccel) * dt;
-    const top = MOVE.run * (s.sprinting ? MOVE.sprint : 1);
+    // Airborne steering turns the leap; it never slows it. Without this a jump
+    // taken at a sprint is dragged back to running speed in the air, which is
+    // what makes an arc feel like a hop straight up.
+    const carried = Math.hypot(s.vx, s.vz);
+    const top = s.grounded ? MOVE.run * (s.sprinting ? MOVE.sprint : 1) : Math.max(MOVE.run * (intent.sprintHeld ? MOVE.sprint : 1), carried);
     const tx = intent.dx * top,
       tz = intent.dz * top;
     if (s.grounded || wantLen > 0.05) {
@@ -324,8 +331,8 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     } else if (s.charge > 0) {
       const apex = MOVE.chargeApexMin + (MOVE.chargeApexMax - MOVE.chargeApexMin) * s.charge;
       s.vy = apexSpeed(apex, g);
-      s.vx += intent.dx * 12 * s.charge;
-      s.vz += intent.dz * 12 * s.charge;
+      s.vx += intent.dx * 26 * s.charge;
+      s.vz += intent.dz * 26 * s.charge;
       s.grounded = false;
       s.coyote = 0;
       s.hold = MOVE.holdWindow; // no extra thrust on a charged leap
@@ -340,6 +347,15 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   if (control && !busy && s.buffer > 0 && (s.grounded || s.coyote > 0) && s.charge <= 0 && !intent.chargeHeld) {
     s.buffer = 0;
     s.vy = MOVE.tapJump;
+    // The lunge: a grasshopper's leap goes forward. It follows the stick when
+    // one is pushed, otherwise the way Hopper is already running, and a jump
+    // taken from a standstill with no stick is still straight up.
+    const speed = Math.hypot(s.vx, s.vz);
+    const lx = wantLen > 0.1 ? intent.dx / wantLen : speed > 6 ? s.vx / speed : 0,
+      lz = wantLen > 0.1 ? intent.dz / wantLen : speed > 6 ? s.vz / speed : 0;
+    const lunge = MOVE.leap * (wantLen > 0.1 ? 1 : Math.min(1, speed / MOVE.run));
+    s.vx += lx * lunge;
+    s.vz += lz * lunge;
     s.grounded = false;
     s.coyote = 0;
     s.hold = 0;

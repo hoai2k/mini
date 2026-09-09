@@ -57,6 +57,11 @@ export const CAMERA = {
   forwardTurnRate: 0.9,
   pullBackPerMetre: 0.25,
   maxPullBack: 20,
+  /** Speed also opens the shot, so a sprint or a long leap keeps its landing
+   * in frame: metres of pull-back per m/s over the walking pace, and its cap. */
+  pullBackPerSpeed: 0.28,
+  maxSpeedPull: 16,
+  speedPullFrom: 58,
   tiltPerMetre: 0.004,
   maxTilt: 0.5,
   minPitch: -0.6,
@@ -161,7 +166,9 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     // Height above the ground pulls back and tilts down; gliding flattens and
     // widens; diving looks down. All of it eased, so a tap never pops the view.
     const pull = settings.reducedMotion ? 0.5 : 1;
-    let wantPull = Math.min(CAMERA.maxPullBack, h.height * CAMERA.pullBackPerMetre) * pull,
+    const speed = Math.hypot(h.vx, h.vz);
+    let wantPull =
+      (Math.min(CAMERA.maxPullBack, h.height * CAMERA.pullBackPerMetre) + Math.min(CAMERA.maxSpeedPull, Math.max(0, speed - CAMERA.speedPullFrom) * CAMERA.pullBackPerSpeed)) * pull,
       wantTilt = Math.min(CAMERA.maxTilt, h.height * CAMERA.tiltPerMetre) * pull;
     if (h.gliding) {
       wantPull -= 6;

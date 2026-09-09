@@ -321,7 +321,12 @@ export class Combat {
       if (this.shotClock <= 0) {
         this.shotClock = 1 / 8;
         const locked = this.lock ? this.shadows.find((s) => s.id === this.lock && s.alive) || null : null;
-        const target = locked || this.pickTarget(aim.x, aim.y, aim.z, aim.dx, aim.dy, aim.dz, 250, Math.PI / 6) || this.pickTarget(aim.x, aim.y, aim.z, aim.dx, -0.6, aim.dz, 160, Math.PI / 4);
+        const target =
+          locked ||
+          this.pickTarget(aim.x, aim.y, aim.z, aim.dx, aim.dy, aim.dz, 250, Math.PI / 6) ||
+          this.pickTarget(aim.x, aim.y, aim.z, aim.dx, -0.6, aim.dz, 160, Math.PI / 4) ||
+          // Straight overhead: a ray circling above is a target, not scenery.
+          this.pickTarget(aim.x, aim.y, aim.z, aim.dx, 0.9, aim.dz, 220, Math.PI / 3);
         this.fire(aim.x, aim.y, aim.z, aim.dx, aim.dy, aim.dz, target);
         cb.sound('laser');
       }
@@ -445,7 +450,7 @@ export class Combat {
             this.walkToward(s, px, pz, 8);
             if (d3 < spec.notice) s.state = 'approach';
           } else if (s.state === 'approach') {
-            this.walkToward(s, h.x, h.z, 20);
+            this.walkToward(s, h.x, h.z, 27);
             if (d3 > spec.notice * 1.5) s.state = 'idle';
             else if (dh < spec.range && Math.abs(dy) < 30 && s.cooldown <= 0 && s.grounded) {
               s.state = 'tell';
@@ -462,7 +467,7 @@ export class Combat {
                 tx = h.x + h.vx * lead - s.x,
                 tz = h.z + h.vz * lead - s.z,
                 tl = Math.hypot(tx, tz) || 1;
-              const speed = Math.min(36, Math.max(18, tl / 1.0));
+              const speed = Math.min(48, Math.max(22, tl / 0.9));
               s.vx = (tx / tl) * speed;
               s.vz = (tz / tl) * speed;
               s.vy = 15 + Math.max(0, Math.min(14, dy * 0.6));
@@ -651,7 +656,7 @@ export class Combat {
             this.walkToward(s, px, pz, 4);
             if (d3 < spec.notice) s.state = 'approach';
           } else if (s.state === 'approach') {
-            this.walkToward(s, h.x, h.z, 7);
+            this.walkToward(s, h.x, h.z, 10);
             if (d3 > spec.notice * 1.5) s.state = 'idle';
             else if (dh < spec.range && Math.abs(dy) < 12 && s.cooldown <= 0 && s.grounded) {
               s.state = 'tell';
@@ -668,8 +673,8 @@ export class Combat {
               const tx = h.x - s.x,
                 tz = h.z - s.z,
                 tl = Math.hypot(tx, tz) || 1;
-              s.vx = (tx / tl) * 26;
-              s.vz = (tz / tl) * 26;
+              s.vx = (tx / tl) * 32;
+              s.vz = (tz / tl) * 32;
               s.state = 'attack';
               s.timer = 0.7;
               s.cooldown = spec.cooldown;

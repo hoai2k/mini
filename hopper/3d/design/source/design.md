@@ -126,10 +126,11 @@ The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation tim
 
 | Parameter | Value | Result |
 | --- | --- | --- |
-| Run speed | 32 m/s (2.3 H/s) | Crosses a 100 m roof in three seconds |
+| Run speed | 66 m/s (4.7 H/s), 106 sprinting | Crosses a 100 m roof in a second and a half |
 | Acceleration, stop, turn | 0.2 s · 0.15 s · 180° in 0.25 s | Heavy pose changes, quick control |
-| Tap jump | 21 m apex (1.5 H) in 0.6 s, 1.15 s airtime | A quick launch between roof decks |
-| Held jump | 87 m apex (6 H) in 1.3 s, 2.4 s airtime, 0.32 s thrust window | Clears a tower band, crosses 120 m |
+| Tap jump | 23 m apex (1.6 H) in 0.6 s, 1.15 s airtime; 108 m running, 162 sprinting | A quick launch between roof decks |
+| Held jump | 88 m apex (6 H) in 1.3 s, 2.4 s airtime, 0.32 s thrust window; 219 m running, 309 sprinting | Clears a tower band and the gap after it |
+| Takeoff lunge | +24 m/s along the run (or the stick) | The leap goes forward, not merely up |
 | Glide | Sink 6 m/s, forward 40 m/s, from any apex | 84 m of height becomes 560 m of distance |
 | Crouch charge | 0.8 s to full; super leap to 140 m (10 H), 6.1 s | Reaches a tower roof from the street |
 | Spring pad | Launch to 168 m (12 H); hold A to float | The tallest single climb |
@@ -139,12 +140,12 @@ The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation tim
 | Dive | 2.5× gravity, terminal 190 m/s; 100 m in 1 s | Fast return to the ground, stomp on landing |
 | Wall kick | 62 m/s up (16 m), 26 m/s away, unlimited chain | Tower corners are ladders |
 | Ledge mantle | Reach 6 m over the lip, 0.7 s | Forgives a short leap |
-| Air control | 60% of ground acceleration | Real corrections, legible arcs |
+| Air control | Half of ground acceleration; steering turns the arc, never slows it | Momentum is kept; pushing back still brakes |
 | Coyote time, input buffer | 0.12 s · 0.14 s | Forgiving edges and landings |
 
 ### The jump family
 
-A tap is a hop; holding A sustains the launch impulse for half a second and cuts it on release, as in the 2D game. Keep holding after the thrust window and the wings open into a glide that lasts until Hopper lands, presses Y to dive, or releases A to drop. Releasing and pressing A again in the air re-opens the wings; there is no second jump. Steering in the air is strong enough to correct a line, never so strong that arcs stop reading.
+A tap is a leap, not a hop: takeoff adds a forward lunge along the way Hopper is already running, and the air steering redirects that speed without bleeding it, so a jump goes four to seven times further than it goes up. Holding A sustains the launch impulse and cuts it on release, as in the 2D game. Keep holding after the thrust window and the wings open into a glide that lasts until Hopper lands, presses Y to dive, or releases A to drop. Releasing and pressing A again in the air re-opens the wings; there is no second jump. Steering in the air is strong enough to correct a line, never so strong that arcs stop reading.
 
 The crouch charge is the deliberate big jump. Holding RB compresses the hind legs over 0.8 s; releasing launches straight up by charge, and the stick during the charge sets the direction. It is slow to start and enormous, so it is the way onto the tall things and rarely a combat move.
 

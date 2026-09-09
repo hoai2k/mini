@@ -41,7 +41,7 @@ for (const name of names) {
 }
 
 const { World } = await import(path.join(temp, 'world.mjs'));
-const { stepHopper, createHopperState, predictLanding } = await import(path.join(temp, 'controller.mjs'));
+const { stepHopper, createHopperState, predictLanding, MOVE } = await import(path.join(temp, 'controller.mjs'));
 const { createCamera, updateCamera } = await import(path.join(temp, 'camera.mjs'));
 const { Combat } = await import(path.join(temp, 'combat3d.mjs'));
 const { sunseedFields, MISSIONS } = await import(path.join(temp, 'district.mjs'));
@@ -861,4 +861,71 @@ function aimFrom(h, extra = {}) {
   }
 }
 
-console.log(`engine3d: ${checks} checks passed across 16 scenarios (world, controller, camera, combat3d, district, route)`);
+// ---------------------------------------------------------------------
+// 17. The leap travels: speed, the takeoff lunge and carried momentum
+// ---------------------------------------------------------------------
+{
+  // Run up to speed, jump, and report the arc.
+  const arc = ({ runUp = 0, sprint = false, hold = 0, steer = true }) => {
+    const s = startHopper(0, 40);
+    for (let i = 0; i < Math.round(runUp / dt); i++) stepHopper(s, world, { ...blank, dz: -1, sprintHeld: sprint }, dt);
+    const z0 = s.z,
+      y0 = s.y,
+      takeoff = Math.hypot(s.vx, s.vz);
+    let apex = 0,
+      air = 0,
+      slowest = Infinity;
+    for (let i = 0; i < 900; i++) {
+      const ev = stepHopper(s, world, { ...blank, dz: steer ? -1 : 0, sprintHeld: sprint, jumpPressed: i === 0, jumpHeld: i === 0 || i * dt < hold }, dt);
+      if (i > 0 && !s.grounded) slowest = Math.min(slowest, Math.hypot(s.vx, s.vz));
+      apex = Math.max(apex, s.y - y0);
+      if (i > 4 && ev.some((e) => e.kind === 'land')) {
+        air = i * dt;
+        break;
+      }
+    }
+    return { takeoff, apex, air, range: Math.abs(s.z - z0), slowest };
+  };
+  check('run speed is at least 66 m/s', MOVE.run >= 66, MOVE.run);
+  const standing = arc({ runUp: 0, steer: false });
+  check('a standing jump with no stick still goes straight up', standing.range < 1, standing.range);
+  const stick = arc({ runUp: 0 });
+  check('a standing jump with the stick pushed lunges forward (>55 m)', stick.range > 55, stick.range);
+  const running = arc({ runUp: 1.5 });
+  check('a running tap jump crosses 90 m', running.range > 90, running.range);
+  check('a running tap jump travels at least 4x its apex (forward, not upward)', running.range > running.apex * 4, `${running.range.toFixed(0)} vs ${running.apex.toFixed(0)}`);
+  check('the takeoff lunge adds speed rather than losing it', running.slowest > running.takeoff, `${running.slowest.toFixed(0)} from ${running.takeoff.toFixed(0)}`);
+  const sprinting = arc({ runUp: 1.5, sprint: true });
+  check('sprinting takes off faster than running', sprinting.takeoff > running.takeoff + 20, `${sprinting.takeoff.toFixed(0)} vs ${running.takeoff.toFixed(0)}`);
+  check('a sprint jump keeps its speed in the air (never dragged back to running pace)', sprinting.slowest >= sprinting.takeoff, `${sprinting.slowest.toFixed(0)} from ${sprinting.takeoff.toFixed(0)}`);
+  check('a sprint jump carries much further than a running one', sprinting.range > running.range * 1.35, `${sprinting.range.toFixed(0)} vs ${running.range.toFixed(0)}`);
+  const held = arc({ runUp: 1.5, sprint: true, hold: 0.5 });
+  check('a sprinting held jump crosses 250 m', held.range > 250, held.range);
+  check('holding still buys height, not just distance', held.apex > sprinting.apex * 3, `${held.apex.toFixed(0)} vs ${sprinting.apex.toFixed(0)}`);
+  // Pushing back against the flight still slows Hopper down: control is kept.
+  {
+    const s = startHopper(0, 40);
+    for (let i = 0; i < 180; i++) stepHopper(s, world, { ...blank, dz: -1, sprintHeld: true }, dt);
+    stepHopper(s, world, { ...blank, dz: -1, sprintHeld: true, jumpPressed: true, jumpHeld: true }, dt);
+    const launched = Math.hypot(s.vx, s.vz);
+    for (let i = 0; i < 60; i++) stepHopper(s, world, { ...blank, dz: 1 }, dt);
+    check('pushing back in the air brakes the leap', Math.hypot(s.vx, s.vz) < launched - 40, `${launched.toFixed(0)} -> ${Math.hypot(s.vx, s.vz).toFixed(0)}`);
+  }
+}
+
+// ---------------------------------------------------------------------
+// 18. Lasers reach a flyer overhead
+// ---------------------------------------------------------------------
+{
+  const h = startHopper(0, -300);
+  const overhead = { ...sunseedFields(), shadows: [{ id: 'ray', kind: 'windowRay', x: h.x + 8, z: h.z - 6, y: h.y + 70, mode: 'a' }] };
+  const combat = new Combat(world, overhead);
+  const cb = makeCallbacks();
+  const ray = combat.shadows.find((s) => s.id === 'ray');
+  const hp0 = ray.hp;
+  // Firing straight ahead, with the aim tilted slightly down as the camera has it.
+  for (let i = 0; i < 120; i++) combat.update(dt, h, cb, { x: h.x, y: h.y + 12, z: h.z, dx: 0, dy: -0.18, dz: -1, firing: true, guarding: false, kickPressed: false });
+  check('a window ray circling overhead can be shot', ray.hp < hp0, `${hp0} -> ${ray.hp}`);
+}
+
+console.log(`engine3d: ${checks} checks passed across 18 scenarios (world, controller, camera, combat3d, district, route)`);
