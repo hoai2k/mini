@@ -1,7 +1,11 @@
-+PASS hopper/3d/models/structures/fields/farmhouse.glb
+PASS hopper/3d/models/structures/fields/terraceStep.glb
+  178 nodes · 50 meshes · 4 materials · 1536/216 tris
+PASS hopper/3d/models/structures/fields/farmhouse.glb
   260 nodes · 40 meshes · 7 materials · 1344/408 tris
 PASS hopper/3d/models/structures/fields/silo.glb
   216 nodes · 24 meshes · 4 materials · 1480/530 tris
+PASS hopper/3d/models/structures/fields/windbreak.glb
+  184 nodes · 65 meshes · 4 materials · 1416/348 tris
 PASS hopper/3d/models/structures/fields/seedPod.glb
   438 nodes · 54 meshes · 8 materials · 2766/922 tris
 PASS hopper/3d/models/structures/city/ivoryTower.glb
@@ -18,6 +22,10 @@ PASS hopper/3d/models/structures/city/billboard.glb
   38 nodes · 14 meshes · 5 materials · 256/80 tris
 PASS hopper/3d/models/structures/city/observatoryDome.glb
   942 nodes · 59 meshes · 4 materials · 4204/1452 tris
+PASS hopper/3d/models/structures/mountains/cragColumn.glb
+  90 nodes · 38 meshes · 4 materials · 1364/304 tris
+PASS hopper/3d/models/structures/mountains/ledgeShelf.glb
+  72 nodes · 27 meshes · 4 materials · 1052/312 tris
 PASS hopper/3d/models/structures/mountains/ravineBridge.glb
   368 nodes · 16 meshes · 3 materials · 1152/292 tris
 PASS hopper/3d/models/structures/mountains/transmitterMast.glb
@@ -54,6 +62,37 @@ PASS hopper/3d/models/structures/launchworks/exhaustShaft.glb
   816 nodes · 64 meshes · 6 materials · 3020/1024 tris
 PASS hopper/3d/models/structures/launchworks/gantryElevator.glb
   138 nodes · 14 meshes · 4 materials · 576/188 tris
+PASS hopper/3d/models/structures/red/ivoryRibArch.glb
+  22 nodes · 3 meshes · 1 materials · 2268/112 tris
+  WARN  only one named material; painted colour separation may be missing
+PASS hopper/3d/models/structures/red/coralSpire.glb
+  30 nodes · 9 meshes · 2 materials · 148/32 tris
+PASS hopper/3d/models/structures/red/basinTerrace.glb
+  10 nodes · 3 meshes · 1 materials · 24/12 tris
+  WARN  only one named material; painted colour separation may be missing
+PASS hopper/3d/models/structures/red/coralBridge.glb
+  36 nodes · 5 meshes · 1 materials · 132/100 tris
+  WARN  only one named material; painted colour separation may be missing
+PASS hopper/3d/models/structures/blue/floatingReef.glb
+  30 nodes · 6 meshes · 3 materials · 156/40 tris
+PASS hopper/3d/models/structures/blue/rootPillar.glb
+  30 nodes · 7 meshes · 1 materials · 212/48 tris
+  WARN  only one named material; painted colour separation may be missing
+PASS hopper/3d/models/structures/blue/dustCurrent.glb
+  10 nodes · 2 meshes · 1 materials · 40/20 tris
+  WARN  only one named material; painted colour separation may be missing
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/structures/violet/obsidianArch.glb
+  20 nodes · 6 meshes · 2 materials · 48/36 tris
+PASS hopper/3d/models/structures/violet/ringShard.glb
+  10 nodes · 3 meshes · 2 materials · 24/12 tris
+PASS hopper/3d/models/structures/violet/cathedralFacade.glb
+  44 nodes · 14 meshes · 5 materials · 784/12 tris
+PASS hopper/3d/models/structures/violet/gravitySeam.glb
+  36 nodes · 4 meshes · 2 materials · 76/68 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/structures/violet/eclipseDais.glb
+  36 nodes · 5 meshes · 2 materials · 648/124 tris
 PASS hopper/3d/models/props/springPad.glb
   162 nodes · 34 meshes · 8 materials · 952/266 tris
 PASS hopper/3d/models/props/signalBeacon.glb
@@ -88,14 +127,46 @@ PASS hopper/3d/models/props/shieldDome.glb
 PASS hopper/3d/models/props/dissolveBurst.glb
   62 nodes · 30 meshes · 3 materials · 212/48 tris
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/fields.glb
+  36 nodes · 17 meshes · 1 materials · 108/96 tris
+  WARN  only one named material; painted colour separation may be missing
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/city.glb
+  8 nodes · 3 meshes · 1 materials · 34/8 tris
+  WARN  only one named material; painted colour separation may be missing
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/mountains.glb
+  10 nodes · 4 meshes · 2 materials · 124/36 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/foundry.glb
+  28 nodes · 5 meshes · 1 materials · 84/72 tris
+  WARN  only one named material; painted colour separation may be missing
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/harbor.glb
+  10 nodes · 4 meshes · 1 materials · 416/112 tris
+  WARN  only one named material; painted colour separation may be missing
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/launchworks.glb
+  10 nodes · 4 meshes · 2 materials · 640/192 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/red.glb
+  10 nodes · 4 meshes · 2 materials · 928/118 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/blue.glb
+  6 nodes · 2 meshes · 1 materials · 360/80 tris
+  WARN  only one named material; painted colour separation may be missing
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/landmarks/violet.glb
+  16 nodes · 5 meshes · 2 materials · 512/28 tris
+  WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
+PASS hopper/3d/models/terrain/fields.glb
+  6 nodes · 2 meshes · 1 materials · 59858/2518 tris
+  WARN  only one named material; painted colour separation may be missing
+PASS hopper/3d/models/terrain/city.glb
+  6 nodes · 2 meshes · 1 materials · 59858/2518 tris
+  WARN  only one named material; painted colour separation may be missing
+PASS hopper/3d/models/terrain/mountains.glb
+  6 nodes · 2 meshes · 1 materials · 59858/2519 tris
+  WARN  only one named material; painted colour separation may be missing
 
-43/43 GLBs passed.
-
-INDEPENDENT AUDIT PASS
-  43/43 manifest models compared with source request LOD0 budgets
-  92 required socket names checked from standin contracts
-
-ALPHA MATERIAL AUDIT
-PASS M-072 field_violet: used=true alphaMode=BLEND alpha=0.140000001
-PASS M-077 gravity_violet: used=true alphaMode=BLEND alpha=0.200000003
-PASS M-081 shield_teal: used=true alphaMode=BLEND alpha=0.180000007
+71/71 GLBs passed.

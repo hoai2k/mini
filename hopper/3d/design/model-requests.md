@@ -4,6 +4,8 @@ Every model the 3D edition needs, with the rig it must have. Ids are stable: the
 
 **Round two references.** Before any model here is started, its reference sheet from `image-requests-round-2.md` is generated and approved: a turnaround per species and commander, a kit sheet per region, a props sheet and a Hopper pose sheet for the new clips. That document maps every sheet to the models that wait on it. A single side-view sprite is not enough to model from; a turnaround is.
 
+**Code-built entries.** Requests marked `delivered` with the note *Code-built* were exported by `hopper/game/scripts/code-models.mjs` (three.js geometry painted with the delivered trim and terrain sheets, same GLB contract, `authoring: code-built` in `models/manifest.json`). They are in the game so episode one plays end to end, and they remain replaceable by painted models without any code change: drop the new GLB at the same path and rerun the validator.
+
 Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mesh_quantization` and `EXT_meshopt_compression` like the delivered Hopper GLBs, hand-painted albedo (no photographic PBR), emissive masks for cores and lights, LOD0 and LOD1 in the same file, and named sockets as empties. Root motion only where a clip says so.
 
 ## Rig types
@@ -22,11 +24,11 @@ Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mes
 | rider | 1 | 0 | 0 | 1 |
 | enemy | 18 | 0 | 18 | 0 |
 | boss | 3 | 0 | 3 | 0 |
-| structure | 44 | 28 | 16 | 0 |
+| structure | 44 | 44 | 0 | 0 |
 | prop | 15 | 15 | 0 | 0 |
-| landmark | 9 | 0 | 9 | 0 |
-| terrain | 1 | 0 | 1 | 0 |
-| **total** | **93** | **44** | **47** | **2** |
+| landmark | 9 | 9 | 0 | 0 |
+| terrain | 1 | 1 | 0 | 0 |
+| **total** | **93** | **70** | **21** | **2** |
 
 ## Hopper and the rider
 

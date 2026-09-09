@@ -3,6 +3,64 @@
   "status": "delivered",
   "models": [
     {
+      "request": "M-024",
+      "name": "Terrace step",
+      "file": "structures/fields/terraceStep.glb",
+      "preview": "previews/fields.terraceStep.png",
+      "category": "structure",
+      "region": "fields",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (authored three.js geometry, painted trim and terrain sheets)",
+      "bounds": [
+        64.2,
+        20.265,
+        42.505
+      ],
+      "targetBounds": [
+        62,
+        19,
+        41
+      ],
+      "triangles": [
+        1536,
+        216
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2"
+      ],
+      "landings": [
+        {
+          "y": 6.6,
+          "halfX": 30,
+          "halfZ": 20,
+          "x": 0,
+          "z": 0,
+          "label": "tier0"
+        },
+        {
+          "y": 12.6,
+          "halfX": 24,
+          "halfZ": 17.333333333333332,
+          "x": 0,
+          "z": 0,
+          "label": "tier1"
+        },
+        {
+          "y": 18.6,
+          "halfX": 18,
+          "halfZ": 14.666666666666666,
+          "x": 0,
+          "z": 0,
+          "label": "tier2"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/fields.png"
+    },
+    {
       "request": "M-025",
       "name": "Farmhouse",
       "file": "structures/fields/farmhouse.glb",
@@ -11,9 +69,9 @@
       "region": "fields",
       "source": "source/rural.py",
       "bounds": [
-        35.0,
+        35,
         12.11939525604248,
-        35.0
+        35
       ],
       "targetBounds": [
         35,
@@ -51,7 +109,7 @@
       "source": "source/rural.py",
       "bounds": [
         10.729879379272461,
-        32.0,
+        32,
         10.699999809265137
       ],
       "targetBounds": [
@@ -81,6 +139,35 @@
       "sourceReference": "design/references/kits/fields.png"
     },
     {
+      "request": "M-027",
+      "name": "Windbreak row",
+      "file": "structures/fields/windbreak.glb",
+      "preview": "previews/fields.windbreak.png",
+      "category": "structure",
+      "region": "fields",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (authored three.js geometry, painted trim and terrain sheets)",
+      "bounds": [
+        52,
+        24.489,
+        5.929
+      ],
+      "targetBounds": [
+        52,
+        24,
+        6
+      ],
+      "triangles": [
+        1416,
+        348
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/fields.png"
+    },
+    {
       "request": "M-028",
       "name": "Fallen seed vessel",
       "file": "structures/fields/seedPod.glb",
@@ -90,7 +177,7 @@
       "source": "source/rural.py",
       "bounds": [
         22.635644912719727,
-        35.0,
+        35,
         26.200000762939453
       ],
       "targetBounds": [
@@ -123,7 +210,7 @@
       "source": "source/architecture.py",
       "bounds": [
         31.600000381469727,
-        133.0,
+        133,
         31.600000381469727
       ],
       "targetBounds": [
@@ -170,9 +257,9 @@
       "region": "city",
       "source": "source/architecture.py",
       "bounds": [
-        44.0,
+        44,
         44.099998474121094,
-        28.0
+        28
       ],
       "targetBounds": [
         44,
@@ -209,9 +296,9 @@
       "region": "city",
       "source": "source/architecture.py",
       "bounds": [
-        166.0,
-        32.0,
-        10.0
+        166,
+        32,
+        10
       ],
       "targetBounds": [
         166,
@@ -250,8 +337,8 @@
       "region": "city",
       "source": "source/architecture.py",
       "bounds": [
-        23.0,
-        5.0,
+        23,
+        5,
         5.21999979019165
       ],
       "targetBounds": [
@@ -293,7 +380,7 @@
       "bounds": [
         62.099998474121094,
         131.67958068847656,
-        34.0
+        34
       ],
       "targetBounds": [
         62,
@@ -387,9 +474,9 @@
       "region": "city",
       "source": "source/architecture.py",
       "bounds": [
-        25.0,
-        43.0,
-        2.0
+        25,
+        43,
+        2
       ],
       "targetBounds": [
         25,
@@ -428,9 +515,9 @@
       "region": "city",
       "source": "source/architecture.py",
       "bounds": [
-        55.0,
-        53.0,
-        55.0
+        55,
+        53,
+        55
       ],
       "targetBounds": [
         55,
@@ -468,6 +555,86 @@
       "sourceReference": "design/references/kits/city.png"
     },
     {
+      "request": "M-036",
+      "name": "Crag column",
+      "file": "structures/mountains/cragColumn.glb",
+      "preview": "previews/mountains.cragColumn.png",
+      "category": "structure",
+      "region": "mountains",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (authored three.js geometry, painted trim and terrain sheets)",
+      "bounds": [
+        59.357,
+        98.318,
+        55.545
+      ],
+      "targetBounds": [
+        57,
+        94,
+        57
+      ],
+      "triangles": [
+        1364,
+        304
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 91,
+          "halfX": 7.700000000000001,
+          "halfZ": 7.700000000000001,
+          "x": 0,
+          "z": 0,
+          "label": "top"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/mountains.png"
+    },
+    {
+      "request": "M-037",
+      "name": "Ledge shelf",
+      "file": "structures/mountains/ledgeShelf.glb",
+      "preview": "previews/mountains.ledgeShelf.png",
+      "category": "structure",
+      "region": "mountains",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (authored three.js geometry, painted trim and terrain sheets)",
+      "bounds": [
+        52.677,
+        9.786,
+        19.526
+      ],
+      "targetBounds": [
+        52,
+        9,
+        19
+      ],
+      "triangles": [
+        1052,
+        312
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 0.5,
+          "halfX": 25,
+          "halfZ": 9,
+          "x": 0,
+          "z": 0,
+          "label": "shelf"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/mountains.png"
+    },
+    {
       "request": "M-038",
       "name": "Ravine bridge",
       "file": "structures/mountains/ravineBridge.glb",
@@ -478,7 +645,7 @@
       "bounds": [
         120.5250015258789,
         43.11000061035156,
-        10.0
+        10
       ],
       "targetBounds": [
         124,
@@ -515,9 +682,9 @@
       "region": "mountains",
       "source": "source/rural.py",
       "bounds": [
-        48.0,
-        216.0,
-        48.0
+        48,
+        216,
+        48
       ],
       "targetBounds": [
         50,
@@ -588,7 +755,7 @@
       "source": "source/architecture.py",
       "bounds": [
         38.599998474121094,
-        112.0,
+        112,
         38.01000213623047
       ],
       "targetBounds": [
@@ -635,7 +802,7 @@
       "region": "foundry",
       "source": "source/architecture.py",
       "bounds": [
-        93.0,
+        93,
         22.910001754760742,
         8.699999809265137
       ],
@@ -676,9 +843,9 @@
       "region": "foundry",
       "source": "source/architecture.py",
       "bounds": [
-        12.0,
-        114.0,
-        12.0
+        12,
+        114,
+        12
       ],
       "targetBounds": [
         12,
@@ -715,9 +882,9 @@
       "region": "foundry",
       "source": "source/architecture.py",
       "bounds": [
-        41.0,
+        41,
         5.699999809265137,
-        17.0
+        17
       ],
       "targetBounds": [
         41,
@@ -756,9 +923,9 @@
       "region": "foundry",
       "source": "source/architecture.py",
       "bounds": [
-        30.0,
-        44.0,
-        20.0
+        30,
+        44,
+        20
       ],
       "targetBounds": [
         31,
@@ -807,7 +974,7 @@
       "region": "harbor",
       "source": "source/architecture.py",
       "bounds": [
-        88.0,
+        88,
         95.30999755859375,
         10.260000228881836
       ],
@@ -917,9 +1084,9 @@
       "region": "harbor",
       "source": "source/architecture.py",
       "bounds": [
-        228.0,
-        65.0,
-        41.0
+        228,
+        65,
+        41
       ],
       "targetBounds": [
         228,
@@ -1076,9 +1243,9 @@
       "region": "harbor",
       "source": "source/architecture.py",
       "bounds": [
-        207.0,
+        207,
         13.399999618530273,
-        25.0
+        25
       ],
       "targetBounds": [
         207,
@@ -1116,7 +1283,7 @@
       "source": "source/architecture.py",
       "bounds": [
         134.17999267578125,
-        211.0,
+        211,
         134.17999267578125
       ],
       "targetBounds": [
@@ -1283,8 +1450,8 @@
       "region": "launchworks",
       "source": "source/architecture.py",
       "bounds": [
-        58.0,
-        76.0,
+        58,
+        76,
         10.079999923706055
       ],
       "targetBounds": [
@@ -1361,7 +1528,7 @@
       "source": "source/architecture.py",
       "bounds": [
         75.05000305175781,
-        124.0,
+        124,
         75.10000610351562
       ],
       "targetBounds": [
@@ -1427,9 +1594,9 @@
       "region": "launchworks",
       "source": "source/architecture.py",
       "bounds": [
-        20.0,
+        20,
         155.12767028808594,
-        17.0
+        17
       ],
       "targetBounds": [
         20,
@@ -1462,6 +1629,577 @@
       "sourceReference": "design/references/kits/launchworks.png"
     },
     {
+      "request": "M-056",
+      "name": "Ivory rib arch",
+      "file": "structures/red/ivoryRibArch.glb",
+      "preview": "previews/red.ivoryRibArch.png",
+      "category": "structure",
+      "region": "red",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        92.264,
+        87.25,
+        4.4
+      ],
+      "targetBounds": [
+        93,
+        89,
+        5
+      ],
+      "triangles": [
+        2268,
+        112
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 26.5,
+          "halfX": 8,
+          "halfZ": 2,
+          "x": 0,
+          "z": 0,
+          "label": "crown"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/red.png"
+    },
+    {
+      "request": "M-057",
+      "name": "Coral spire",
+      "file": "structures/red/coralSpire.glb",
+      "preview": "previews/red.coralSpire.png",
+      "category": "structure",
+      "region": "red",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        22.93,
+        70,
+        24.381
+      ],
+      "targetBounds": [
+        23,
+        71,
+        25
+      ],
+      "triangles": [
+        148,
+        32
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 42,
+          "halfX": 5,
+          "halfZ": 5,
+          "x": 2.7278922804770454,
+          "z": -1.248440509641427,
+          "label": "tier2"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/red.png"
+    },
+    {
+      "request": "M-058",
+      "name": "Ivory-topped terrace",
+      "file": "structures/red/basinTerrace.glb",
+      "preview": "previews/red.basinTerrace.png",
+      "category": "structure",
+      "region": "red",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        70,
+        12.8,
+        40
+      ],
+      "targetBounds": [
+        72,
+        13,
+        41
+      ],
+      "triangles": [
+        24,
+        12
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 12.8,
+          "halfX": 35,
+          "halfZ": 20,
+          "x": 0,
+          "z": 0,
+          "label": "ivory"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/red.png"
+    },
+    {
+      "request": "M-059",
+      "name": "Staged coral bridge",
+      "file": "structures/red/coralBridge.glb",
+      "preview": "previews/red.coralBridge.png",
+      "category": "structure",
+      "region": "red",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        138,
+        30,
+        12
+      ],
+      "targetBounds": [
+        140,
+        31,
+        12
+      ],
+      "triangles": [
+        132,
+        100
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2"
+      ],
+      "landings": [
+        {
+          "y": 2,
+          "halfX": 22.333333333333332,
+          "halfZ": 6,
+          "x": -46.666666666666664,
+          "z": 0,
+          "label": "stage0"
+        },
+        {
+          "y": 2,
+          "halfX": 22.333333333333332,
+          "halfZ": 6,
+          "x": 0,
+          "z": 0,
+          "label": "stage1"
+        },
+        {
+          "y": 2,
+          "halfX": 22.333333333333332,
+          "halfZ": 6,
+          "x": 46.666666666666664,
+          "z": 0,
+          "label": "stage2"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/red.png"
+    },
+    {
+      "request": "M-060",
+      "name": "Floating reef",
+      "file": "structures/blue/floatingReef.glb",
+      "preview": "previews/blue.floatingReef.png",
+      "category": "structure",
+      "region": "blue",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        59.088,
+        43.94,
+        58.191
+      ],
+      "targetBounds": [
+        61,
+        44,
+        60
+      ],
+      "triangles": [
+        156,
+        40
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 0.8,
+          "halfX": 25.5,
+          "halfZ": 25.5,
+          "x": 0,
+          "z": 0,
+          "label": "top"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/blue.png"
+    },
+    {
+      "request": "M-061",
+      "name": "Root pillar",
+      "file": "structures/blue/rootPillar.glb",
+      "preview": "previews/blue.rootPillar.png",
+      "category": "structure",
+      "region": "blue",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        50.28,
+        160.433,
+        50.1
+      ],
+      "targetBounds": [
+        50,
+        166,
+        50
+      ],
+      "triangles": [
+        212,
+        48
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3"
+      ],
+      "landings": [
+        {
+          "y": 40.6,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": 12,
+          "z": 0,
+          "label": "shelf0"
+        },
+        {
+          "y": 72.6,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": 0.8488464200124348,
+          "z": 11.969939839248653,
+          "label": "shelf1"
+        },
+        {
+          "y": 104.6,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": -11.879909959205346,
+          "z": 1.6934400967184065,
+          "label": "shelf2"
+        },
+        {
+          "y": 136.6,
+          "halfX": 12,
+          "halfZ": 12,
+          "x": -2.5295495931693566,
+          "z": -11.730361411981164,
+          "label": "shelf3"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/blue.png"
+    },
+    {
+      "request": "M-062",
+      "name": "Dust current",
+      "file": "structures/blue/dustCurrent.glb",
+      "preview": "previews/blue.dustCurrent.png",
+      "category": "structure",
+      "region": "blue",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        120,
+        22.825,
+        24
+      ],
+      "targetBounds": [
+        120,
+        23,
+        24
+      ],
+      "triangles": [
+        40,
+        20
+      ],
+      "clips": [],
+      "sockets": [
+        "FlowEnd",
+        "FlowStart"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/blue.png"
+    },
+    {
+      "request": "M-063",
+      "name": "Obsidian arch",
+      "file": "structures/violet/obsidianArch.glb",
+      "preview": "previews/violet.obsidianArch.png",
+      "category": "structure",
+      "region": "violet",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        90,
+        70,
+        16
+      ],
+      "targetBounds": [
+        93,
+        72,
+        17
+      ],
+      "triangles": [
+        48,
+        36
+      ],
+      "clips": [],
+      "sockets": [
+        "CeilingLane",
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 70,
+          "halfX": 45,
+          "halfZ": 8,
+          "x": 0,
+          "z": 0,
+          "label": "lintelTop"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/violet.png"
+    },
+    {
+      "request": "M-064",
+      "name": "Ring shard",
+      "file": "structures/violet/ringShard.glb",
+      "preview": "previews/violet.ringShard.png",
+      "category": "structure",
+      "region": "violet",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        120.15,
+        12.294,
+        20
+      ],
+      "targetBounds": [
+        124,
+        13,
+        21
+      ],
+      "triangles": [
+        24,
+        12
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0"
+      ],
+      "landings": [
+        {
+          "y": 3.5,
+          "halfX": 54,
+          "halfZ": 9,
+          "x": 0,
+          "z": 0,
+          "label": "face"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/violet.png"
+    },
+    {
+      "request": "M-065",
+      "name": "Gravity cathedral facade",
+      "file": "structures/violet/cathedralFacade.glb",
+      "preview": "previews/violet.cathedralFacade.png",
+      "category": "structure",
+      "region": "violet",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        160,
+        190,
+        123
+      ],
+      "targetBounds": [
+        166,
+        193,
+        124
+      ],
+      "triangles": [
+        784,
+        12
+      ],
+      "clips": [],
+      "sockets": [
+        "ArenaCenter",
+        "Landing.0",
+        "Landing.1"
+      ],
+      "landings": [
+        {
+          "y": 140,
+          "halfX": 80,
+          "halfZ": 18,
+          "x": 0,
+          "z": -20,
+          "label": "roof"
+        },
+        {
+          "y": 4,
+          "halfX": 6,
+          "halfZ": 8,
+          "x": 0,
+          "z": 30,
+          "label": "steps"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/violet.png"
+    },
+    {
+      "request": "M-066",
+      "name": "Gravity seam",
+      "file": "structures/violet/gravitySeam.glb",
+      "preview": "previews/violet.gravitySeam.png",
+      "category": "structure",
+      "region": "violet",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        100,
+        4.35,
+        2
+      ],
+      "targetBounds": [
+        100,
+        4,
+        2
+      ],
+      "triangles": [
+        76,
+        68
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/violet.png"
+    },
+    {
+      "request": "M-067",
+      "name": "Eclipse dais",
+      "file": "structures/violet/eclipseDais.glb",
+      "preview": "previews/violet.eclipseDais.png",
+      "category": "structure",
+      "region": "violet",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built (stand-in geometry, painted trim and terrain sheets)",
+      "bounds": [
+        100,
+        22.75,
+        96
+      ],
+      "targetBounds": [
+        100,
+        23,
+        99
+      ],
+      "triangles": [
+        648,
+        124
+      ],
+      "clips": [],
+      "sockets": [
+        "Landing.0",
+        "Landing.1",
+        "Landing.2",
+        "Landing.3",
+        "Landing.4",
+        "Landing.5",
+        "Landing.6"
+      ],
+      "landings": [
+        {
+          "y": 14.8,
+          "halfX": 6,
+          "halfZ": 6,
+          "x": 44,
+          "z": 0,
+          "label": "shelf0"
+        },
+        {
+          "y": 22.8,
+          "halfX": 6,
+          "halfZ": 6,
+          "x": 22.000000000000007,
+          "z": 38.1051177665153,
+          "label": "shelf1"
+        },
+        {
+          "y": 14.8,
+          "halfX": 6,
+          "halfZ": 6,
+          "x": -21.999999999999993,
+          "z": 38.105117766515306,
+          "label": "shelf2"
+        },
+        {
+          "y": 22.8,
+          "halfX": 6,
+          "halfZ": 6,
+          "x": -44,
+          "z": 5.3884459162483544e-15,
+          "label": "shelf3"
+        },
+        {
+          "y": 14.8,
+          "halfX": 6,
+          "halfZ": 6,
+          "x": -22.00000000000002,
+          "z": -38.1051177665153,
+          "label": "shelf4"
+        },
+        {
+          "y": 22.8,
+          "halfX": 6,
+          "halfZ": 6,
+          "x": 22.000000000000007,
+          "z": -38.1051177665153,
+          "label": "shelf5"
+        },
+        {
+          "y": 6.5,
+          "halfX": 36,
+          "halfZ": 36,
+          "x": 0,
+          "z": 0,
+          "label": "dais"
+        }
+      ],
+      "status": "delivered",
+      "sourceReference": "design/references/kits/violet.png"
+    },
+    {
       "request": "M-068",
       "name": "Spring pad",
       "file": "props/springPad.glb",
@@ -1470,9 +2208,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        11.0,
+        11,
         2.952500104904175,
-        11.0
+        11
       ],
       "targetBounds": [
         11,
@@ -1503,9 +2241,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        3.0,
+        3,
         4.525000095367432,
-        3.0
+        3
       ],
       "targetBounds": [
         3,
@@ -1536,8 +2274,8 @@
       "source": "source/props.py",
       "bounds": [
         13.314791679382324,
-        10.0,
-        14.0
+        10,
+        14
       ],
       "targetBounds": [
         14,
@@ -1568,9 +2306,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        10.0,
-        18.0,
-        10.0
+        10,
+        18,
+        10
       ],
       "targetBounds": [
         10,
@@ -1600,9 +2338,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        520.0,
-        260.0,
-        520.0
+        520,
+        260,
+        520
       ],
       "targetBounds": [
         520,
@@ -1631,9 +2369,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        3.0,
-        15.0,
-        3.0
+        3,
+        15,
+        3
       ],
       "targetBounds": [
         3,
@@ -1664,9 +2402,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        2.0,
-        4.0,
-        2.0
+        2,
+        4,
+        2
       ],
       "targetBounds": [
         2,
@@ -1696,9 +2434,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        20.0,
-        162.0,
-        20.0
+        20,
+        162,
+        20
       ],
       "targetBounds": [
         20,
@@ -1730,8 +2468,8 @@
       "source": "source/props.py",
       "bounds": [
         202.81051635742188,
-        40.0,
-        40.0
+        40,
+        40
       ],
       "targetBounds": [
         202,
@@ -1762,7 +2500,7 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        62.0,
+        62,
         40.720001220703125,
         5.220000267028809
       ],
@@ -1794,8 +2532,8 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        203.0,
-        203.0,
+        203,
+        203,
         16.000009536743164
       ],
       "targetBounds": [
@@ -1828,7 +2566,7 @@
       "bounds": [
         0.6000000238418579,
         0.6000000238418579,
-        6.0
+        6
       ],
       "targetBounds": [
         0.6,
@@ -1856,9 +2594,9 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        20.0,
-        1.0,
-        20.0
+        20,
+        1,
+        20
       ],
       "targetBounds": [
         20,
@@ -1886,8 +2624,8 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        18.0,
-        18.0,
+        18,
+        18,
         9.130000114440918
       ],
       "targetBounds": [
@@ -1918,8 +2656,8 @@
       "region": null,
       "source": "source/props.py",
       "bounds": [
-        12.0,
-        12.0,
+        12,
+        12,
         12.024999618530273
       ],
       "targetBounds": [
@@ -1938,6 +2676,390 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/references/props.png"
+    },
+    {
+      "request": "M-083",
+      "name": "Landmark: Crownline skyline",
+      "file": "landmarks/fields.glb",
+      "preview": "previews/landmarks.fields.png",
+      "category": "landmark",
+      "region": "fields",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        790,
+        500.546,
+        50
+      ],
+      "targetBounds": [
+        790,
+        500.546,
+        50
+      ],
+      "triangles": [
+        108,
+        96
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-1-earth.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-084",
+      "name": "Landmark: Thunderhead summit",
+      "file": "landmarks/city.glb",
+      "preview": "previews/landmarks.city.png",
+      "category": "landmark",
+      "region": "city",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        951.057,
+        1130,
+        904.508
+      ],
+      "targetBounds": [
+        951.057,
+        1130,
+        904.508
+      ],
+      "triangles": [
+        34,
+        8
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-1-earth.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-085",
+      "name": "Landmark: Transmitter mast",
+      "file": "landmarks/mountains.glb",
+      "preview": "previews/landmarks.mountains.png",
+      "category": "landmark",
+      "region": "mountains",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        32,
+        426,
+        32
+      ],
+      "targetBounds": [
+        32,
+        426,
+        32
+      ],
+      "triangles": [
+        124,
+        36
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-1-earth.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-086",
+      "name": "Landmark: Crane forest",
+      "file": "landmarks/foundry.glb",
+      "preview": "previews/landmarks.foundry.png",
+      "category": "landmark",
+      "region": "foundry",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        674,
+        380,
+        134
+      ],
+      "targetBounds": [
+        674,
+        380,
+        134
+      ],
+      "triangles": [
+        84,
+        72
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-2-industry.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-087",
+      "name": "Landmark: Launch spine",
+      "file": "landmarks/harbor.glb",
+      "preview": "previews/landmarks.harbor.png",
+      "category": "landmark",
+      "region": "harbor",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        328,
+        700,
+        328
+      ],
+      "targetBounds": [
+        328,
+        700,
+        328
+      ],
+      "triangles": [
+        416,
+        112
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-2-industry.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-088",
+      "name": "Landmark: Star gate",
+      "file": "landmarks/launchworks.glb",
+      "preview": "previews/landmarks.launchworks.png",
+      "category": "landmark",
+      "region": "launchworks",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        488,
+        488,
+        48
+      ],
+      "targetBounds": [
+        488,
+        488,
+        48
+      ],
+      "triangles": [
+        640,
+        192
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-2-industry.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-089",
+      "name": "Landmark: Black sun",
+      "file": "landmarks/red.glb",
+      "preview": "previews/landmarks.red.png",
+      "category": "landmark",
+      "region": "red",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        396,
+        396,
+        16
+      ],
+      "targetBounds": [
+        396,
+        396,
+        16
+      ],
+      "triangles": [
+        928,
+        118
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-3-alien.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-090",
+      "name": "Landmark: Drift moon",
+      "file": "landmarks/blue.glb",
+      "preview": "previews/landmarks.blue.png",
+      "category": "landmark",
+      "region": "blue",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        840,
+        840,
+        840
+      ],
+      "targetBounds": [
+        840,
+        840,
+        840
+      ],
+      "triangles": [
+        360,
+        80
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-3-alien.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-091",
+      "name": "Landmark: Eclipse cathedral",
+      "file": "landmarks/violet.glb",
+      "preview": "previews/landmarks.violet.png",
+      "category": "landmark",
+      "region": "violet",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built silhouette (stand-in geometry in the region haze colour); the kit model replaces it at approach",
+      "bounds": [
+        360,
+        515,
+        120
+      ],
+      "targetBounds": [
+        360,
+        515,
+        120
+      ],
+      "triangles": [
+        512,
+        28
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-3-alien.png",
+      "notes": "The request envelope of 400 × 600 × 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged."
+    },
+    {
+      "request": "M-092",
+      "name": "Terrain sculpt: fields",
+      "file": "terrain/fields.glb",
+      "preview": "previews/terrain.fields.png",
+      "category": "terrain",
+      "region": "fields",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built heightfield (the same generator the game samples for collision), painted with the terrain set",
+      "bounds": [
+        4800,
+        115.164,
+        4800
+      ],
+      "targetBounds": [
+        4800,
+        115.164,
+        4800
+      ],
+      "triangles": [
+        59858,
+        2518
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-1-earth.png",
+      "notes": "Heightfield of the sunseedFields district (4800 m, 60 000 triangles at LOD0). terrain/fields-height.png is the 16-bit heightmap (513², metres = value / 65535 × range + min, see heightRange). The runtime samples the generator, not this file.",
+      "extraFiles": [
+        "terrain/fields-height.png"
+      ],
+      "heightRange": [
+        -62.37,
+        60
+      ],
+      "heightmap": "terrain/fields-height.png"
+    },
+    {
+      "request": "M-092",
+      "name": "Terrain sculpt: city",
+      "file": "terrain/city.glb",
+      "preview": "previews/terrain.city.png",
+      "category": "terrain",
+      "region": "city",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built heightfield (the same generator the game samples for collision), painted with the terrain set",
+      "bounds": [
+        4800,
+        290,
+        4800
+      ],
+      "targetBounds": [
+        4800,
+        290,
+        4800
+      ],
+      "triangles": [
+        59858,
+        2518
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-1-earth.png",
+      "notes": "Heightfield of the crownlineCity district (4800 m, 60 000 triangles at LOD0). terrain/city-height.png is the 16-bit heightmap (513², metres = value / 65535 × range + min, see heightRange). The runtime samples the generator, not this file.",
+      "extraFiles": [
+        "terrain/city-height.png"
+      ],
+      "heightRange": [
+        -20,
+        270
+      ],
+      "heightmap": "terrain/city-height.png"
+    },
+    {
+      "request": "M-092",
+      "name": "Terrain sculpt: mountains",
+      "file": "terrain/mountains.glb",
+      "preview": "previews/terrain.mountains.png",
+      "category": "terrain",
+      "region": "mountains",
+      "source": "game/scripts/code-models.mjs",
+      "authoring": "code-built heightfield (the same generator the game samples for collision), painted with the terrain set",
+      "bounds": [
+        4800,
+        347.568,
+        4800
+      ],
+      "targetBounds": [
+        4800,
+        347.568,
+        4800
+      ],
+      "triangles": [
+        59858,
+        2519
+      ],
+      "clips": [],
+      "sockets": [],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/assets/level-1-earth.png",
+      "notes": "Heightfield of the thunderheadRange district (4800 m, 60 000 triangles at LOD0). terrain/mountains-height.png is the 16-bit heightmap (513², metres = value / 65535 × range + min, see heightRange). The runtime samples the generator, not this file.",
+      "extraFiles": [
+        "terrain/mountains-height.png"
+      ],
+      "heightRange": [
+        -162.19,
+        190
+      ],
+      "heightmap": "terrain/mountains-height.png"
     }
   ],
   "deliveredAt": "2026-09-08",

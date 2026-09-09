@@ -930,6 +930,11 @@ export default function Home() {
           {hud.height !== undefined && hud.height > 4 && (
             <div className="height-ticks">{Math.round(hud.height)} m</div>
           )}
+          {hud.standIns && (
+            <div className="stand-in-tag" title={`Placeholder art on screen: ${hud.standIns}`}>
+              STAND-IN ART · {hud.standIns}
+            </div>
+          )}
           <div className="game-bottom">
             <div className="game-bottom-row">
               {edition === '3d' ? (

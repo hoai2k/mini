@@ -18,6 +18,7 @@ interface DesignRequest {
   kind: string;
   standIn?: string;
   status: string;
+  region?: string;
 }
 interface Delivered {
   request: string;
@@ -27,13 +28,17 @@ interface Delivered {
   status: string;
 }
 
+/** Landmarks share one stand-in id across regions, so the region joins the key. */
+export function standInKey(standIn: string, region?: string): string {
+  return standIn === 'terrain.landmark' && region ? `${standIn}@${region}` : standIn;
+}
 /** stand-in id → delivered GLB entry, for requests both sides call delivered. */
 const byStandIn = new Map<string, Delivered>();
 {
   const files = new Map<string, Delivered>();
   for (const d of (delivery as { models: Delivered[] }).models) if (d.status === 'delivered') files.set(d.request, d);
   for (const r of (design as { requests: DesignRequest[] }).requests)
-    if (r.kind === 'model' && r.standIn && r.status === 'delivered' && files.has(r.request)) byStandIn.set(r.standIn, files.get(r.request)!);
+    if (r.kind === 'model' && r.standIn && r.status === 'delivered' && files.has(r.request)) byStandIn.set(standInKey(r.standIn, r.region), files.get(r.request)!);
 }
 export function hasDeliveredModel(standIn: string): boolean {
   return byStandIn.has(standIn);

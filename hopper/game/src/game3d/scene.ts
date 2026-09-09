@@ -23,6 +23,7 @@ import {
   SRGBColorSpace,
   TorusGeometry,
   CapsuleGeometry,
+  CylinderGeometry,
   RingGeometry,
   Sprite,
   Vector3,
@@ -45,7 +46,8 @@ import type { HopperState } from './controller';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, decal, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, reticle, stepAtlas, type AtlasSprite } from './textures3d';
-import { swapDelivered, type Swapped } from './models3d';
+import { standInKey, swapDelivered, type Swapped } from './models3d';
+import type { RookRuntime } from './boss3d';
 
 interface Effect {
   object: Object3D;
@@ -84,6 +86,11 @@ export class Scene3D {
   private guideDecal: Mesh | null = null;
   private atlases: AtlasSprite[] = [];
   private delivered: Swapped[] = [];
+  private bossObject: Object3D | null = null;
+  private bossRook: RookRuntime | null = null;
+  private bossWings: Object3D[] = [];
+  private corridor: Mesh | null = null;
+  private fieldDomes = new Map<string, Mesh>();
   private buildVersion = 0;
   private kickSparked = false;
   private sun: DirectionalLight;
@@ -92,6 +99,7 @@ export class Scene3D {
   private seedMaterial = new MeshToonMaterial({ color: '#1a1520', emissive: new Color('#8a4bd8'), emissiveIntensity: 0.5 });
   private flashMaterial = new MeshBasicMaterial({ color: '#fff3d2', transparent: true, opacity: 0.9 });
   private tellMaterial = new MeshBasicMaterial({ color: '#ffb454', transparent: true, opacity: 0.85 });
+  private corridorMaterial = new MeshBasicMaterial({ color: '#ff5a4a', transparent: true, opacity: 0.35, depthWrite: false, side: DoubleSide });
   private width = 1;
   private height = 1;
   time = 0;
@@ -155,11 +163,14 @@ export class Scene3D {
     this.actionName = name;
   }
   /** Build the picture of a district: atmosphere, terrain, structures, shadows. */
-  buildWorld(world: World, shadows: Shadow[]) {
+  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null) {
     this.scene.remove(this.worldGroup);
     this.worldGroup = new Group();
     this.scene.add(this.worldGroup);
     this.shadowObjects.clear();
+    this.fieldDomes.clear();
+    this.bossObject = null;
+    this.corridor = null;
     this.animated = [];
     const region = world.region,
       d = world.district;
@@ -180,6 +191,7 @@ export class Scene3D {
     const landmark = makeLandmark(region);
     landmark.position.set(d.landmark.x, 0, d.landmark.z);
     this.worldGroup.add(landmark);
+    void swapDelivered(landmark, standInKey('terrain.landmark', region.id));
     const hemi = new HemisphereLight(new Color(region.sky).lerp(new Color('#ffffff'), 0.3), new Color(region.ground), 0.5);
     this.sun.color = new Color(region.sun || '#fff1c2').lerp(new Color('#ffffff'), 0.5);
     this.worldGroup.add(hemi, this.sun, new AmbientLight(region.haze, 0.12));
@@ -221,6 +233,104 @@ export class Scene3D {
       this.shadowObjects.set(s.id, o);
     }
     void paintShadows(this.shadowObjects.values());
+    // Lockdown fields: a translucent dome per gate or boss arena, shown while active.
+    for (const f of world.fields) {
+      const dome = createStandIn('prop.lockdownDome', { r: 1 });
+      const mesh = dome.getObjectByName('Field') as Mesh | undefined;
+      if (!mesh) continue;
+      mesh.removeFromParent();
+      mesh.scale.setScalar(f.r);
+      mesh.position.set(f.x, f.y, f.z);
+      mesh.visible = false;
+      this.worldGroup.add(mesh);
+      this.fieldDomes.set(f.id, mesh);
+    }
+    this.setBoss(rook);
+  }
+  /** Attach (or drop) the Night Rook's stand-in body. Stand-in art: the boss has no delivered model yet. */
+  setBoss(rook: RookRuntime | null) {
+    if (this.bossObject) {
+      this.worldGroup.remove(this.bossObject);
+      this.bossObject = null;
+    }
+    if (this.corridor) {
+      this.worldGroup.remove(this.corridor);
+      this.corridor = null;
+    }
+    this.bossRook = rook;
+    this.bossWings = [];
+    if (!rook) return;
+    const o = createStandIn('boss.nightRook');
+    delete o.userData.animate;
+    for (const side of ['L', 'R']) {
+      const w = node(o, `Wing.${side}`);
+      if (w) this.bossWings.push(w);
+    }
+    const flash = new Mesh(new SphereGeometry(rook.radius * 1.6, 14, 10), this.flashMaterial);
+    flash.name = 'Flash';
+    flash.visible = false;
+    flash.position.y = rook.height * 0.9;
+    const tell = new Mesh(new TorusGeometry(rook.radius * 2.2, 0.5, 6, 32), this.tellMaterial);
+    tell.name = 'Tell';
+    tell.visible = false;
+    tell.rotation.x = Math.PI / 2;
+    tell.position.y = rook.height * 1.9;
+    o.add(flash, tell);
+    o.position.set(rook.x, rook.y, rook.z);
+    o.rotation.y = rook.yaw;
+    this.worldGroup.add(o);
+    this.bossObject = o;
+    this.corridor = new Mesh(new CylinderGeometry(6, 6, 1, 10, 1, true), this.corridorMaterial);
+    this.corridor.visible = false;
+    this.worldGroup.add(this.corridor);
+    void paintShadows([o]);
+  }
+  private syncBoss(dt: number) {
+    const r = this.bossRook,
+      o = this.bossObject;
+    if (!r || !o) return;
+    o.visible = r.alive || r.hitFlash > 0;
+    if (!o.visible) {
+      if (this.corridor) this.corridor.visible = false;
+      return;
+    }
+    o.position.set(r.x, r.y, r.z);
+    o.rotation.set(0, r.yaw, 0);
+    const flash = o.getObjectByName('Flash') as Mesh,
+      tell = o.getObjectByName('Tell') as Mesh;
+    flash.visible = r.hitFlash > 0;
+    tell.visible = r.state === 'mark' || r.state === 'fan' || r.state === 'channel' || r.open > 0;
+    if (tell.visible) {
+      (tell.material as MeshBasicMaterial).color.set(r.open > 0 ? '#f3e7c8' : r.state === 'channel' ? '#8a4bd8' : '#ffb454');
+      tell.scale.setScalar(r.state === 'mark' || r.state === 'fan' ? 1.6 - r.telegraph * 0.6 : 0.9 + Math.sin(this.time * 12) * 0.1);
+    }
+    // Wings: the runtime's spread plus a slow beat while airborne.
+    const beat = r.state === 'sweep' || r.state === 'climb' ? Math.sin(this.time * 9) * 0.35 : Math.sin(this.time * 1.6) * 0.12;
+    for (const [i, w] of this.bossWings.entries()) w.rotation.z = (i ? -1 : 1) * (0.15 + r.wingSpread * 0.9 + beat);
+    const pitch = r.state === 'sweep' ? -0.35 : r.state === 'climb' ? 0.4 : 0;
+    o.rotation.x += (pitch - o.rotation.x) * Math.min(1, dt * 5);
+    // The marked sweep corridor: a red tube from the perch to the far rim.
+    if (this.corridor) {
+      const show = r.state === 'mark';
+      this.corridor.visible = show;
+      if (show) {
+        const a = new Vector3(...r.markFrom),
+          b = new Vector3(...r.markTo);
+        const len = Math.max(1, a.distanceTo(b));
+        this.corridor.position.copy(a).lerp(b, 0.5);
+        this.corridor.scale.set(1, len, 1);
+        this.corridor.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), b.clone().sub(a).normalize());
+        this.corridorMaterial.opacity = 0.2 + r.telegraph * 0.3;
+      }
+    }
+  }
+  private syncFields(world: World) {
+    for (const f of world.fields) {
+      const dome = this.fieldDomes.get(f.id);
+      if (!dome) continue;
+      dome.visible = f.active && !f.cleared;
+      if (dome.visible) (dome.material as MeshToonMaterial).opacity = 0.14 + Math.sin(this.time * 3) * 0.05;
+    }
   }
   private syncHopper(h: HopperState, combat: Combat, dt: number) {
     const root = this.hopper;
@@ -434,6 +544,8 @@ export class Scene3D {
     if (this.reticles.locked) this.reticles.locked.visible = false;
     this.syncHopper(h, combat, dt);
     this.syncShadows(combat.shadows, combat);
+    this.syncBoss(dt);
+    this.syncFields(world);
     this.syncProjectiles(combat.projectiles);
     this.syncEffects(dt);
     this.syncGuide(h, world, predicted, guideEnabled);

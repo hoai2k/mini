@@ -14,12 +14,26 @@ The 3D reinterpretation of Hopper: same title screen, music, characters, mission
 | Procedural stand-ins (models, textures, terrain) | [standins/](standins/) |
 | Stand-in review viewer | [viewer/](viewer/) · published at https://hoai2k.github.io/mini/hopper/3d/viewer/ |
 | 3D controller diagram | [design/source/controller-3d.svg](design/source/controller-3d.svg) |
-| Delivered architecture and props (43 models) | [models/README.md](models/README.md) · [model viewer](models/viewer.html) |
+| Delivered architecture and props (43 painted, 28 code-built) | [models/README.md](models/README.md) · [model viewer](models/viewer.html) |
 | Delivered Hopper and rider GLBs | [../models/](../models/) |
 
 ## Delivered models in the game
 
 `hopper/3d/models/` holds the authored structures and props (43 so far, with LOD0/LOD1, sockets and machinery clips). The game swaps each one in over its stand-in at runtime: `hopper/game/src/game3d/models3d.ts` reads both manifests, loads the GLB as a child of the stand-in group, hides the stand-in's meshes and plays the idle clip. Position, visibility and the colliders derived from the stand-in stay as they are, so a delivered model needs no level change; it only has to keep the numeric landings the request lists. Flip a request to `delivered` in both manifests and it appears.
+
+## Code-built models
+
+The requests no painter has reached yet, but the game needs now, are exported by `hopper/game/scripts/code-models.mjs`: three.js geometry (hand-authored for the episode-one pieces M-024, M-027, M-036 and M-037; the stand-in library for the alien kits and the landmarks; the game's own heightfield for the terrain sculpts) painted with the delivered trim and terrain sheets and written to the same GLB contract as the Blender deliveries (LOD0/LOD1, sockets, landing extras, quantised and meshopt-compressed). They pass `models/source/validate.mjs`, carry `authoring: "code-built"` in `models/manifest.json`, and are marked *Code-built* in `design/model-requests.md`. They are placeholders with better clothes: a painted model at the same path replaces one with no code change.
+
+```sh
+cd hopper/game
+node scripts/code-models.mjs            # rebuild every code-built entry
+node scripts/code-models.mjs M-024      # one request
+node ../3d/models/source/validate.mjs   # the delivery contract
+node ../3d/models/source/previews.mjs   # studio previews with headless Chromium
+```
+
+The shadows, the Night Rook and Hopper's new clips have no code-built version: skeletal creatures need a modeller. The game shows a **STAND-IN ART** tag in the HUD while any of them is on screen.
 
 ## Stand-ins
 

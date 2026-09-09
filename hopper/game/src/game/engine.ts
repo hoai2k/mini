@@ -43,6 +43,8 @@ export interface GameSnapshot {
   hint?: string;
   /** 3D lock-on state while LT is held: aiming, or locked onto a shadow. */
   lock?: 'open' | 'locked';
+  /** 3D edition: which visible art is still a procedural stand-in. */
+  standIns?: string;
 }
 interface Particle {
   x: number;

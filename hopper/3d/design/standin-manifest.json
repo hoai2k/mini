@@ -572,7 +572,8 @@
       ],
       "standIn": "structure.fields.terraceStep",
       "final": "models/structures/fields/terraceStep.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/fields.webp"
@@ -641,7 +642,8 @@
       ],
       "standIn": "structure.fields.windbreak",
       "final": "models/structures/fields/windbreak.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/fields.webp"
@@ -848,7 +850,8 @@
       ],
       "standIn": "structure.mountains.cragColumn",
       "final": "models/structures/mountains/cragColumn.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/mountains.webp"
@@ -871,7 +874,8 @@
       ],
       "standIn": "structure.mountains.ledgeShelf",
       "final": "models/structures/mountains/ledgeShelf.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-1-earth.png",
         "game/public/assets/backgrounds/mountains.webp"
@@ -1308,7 +1312,8 @@
       ],
       "standIn": "structure.red.ivoryRibArch",
       "final": "models/structures/red/ivoryRibArch.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/red.webp"
@@ -1331,7 +1336,8 @@
       ],
       "standIn": "structure.red.coralSpire",
       "final": "models/structures/red/coralSpire.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/red.webp"
@@ -1354,7 +1360,8 @@
       ],
       "standIn": "structure.red.basinTerrace",
       "final": "models/structures/red/basinTerrace.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/red.webp"
@@ -1377,7 +1384,8 @@
       ],
       "standIn": "structure.red.coralBridge",
       "final": "models/structures/red/coralBridge.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/red.webp"
@@ -1400,7 +1408,8 @@
       ],
       "standIn": "structure.blue.floatingReef",
       "final": "models/structures/blue/floatingReef.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/blue.webp"
@@ -1423,7 +1432,8 @@
       ],
       "standIn": "structure.blue.rootPillar",
       "final": "models/structures/blue/rootPillar.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/blue.webp"
@@ -1446,7 +1456,8 @@
       ],
       "standIn": "structure.blue.dustCurrent",
       "final": "models/structures/blue/dustCurrent.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/blue.webp"
@@ -1469,7 +1480,8 @@
       ],
       "standIn": "structure.violet.obsidianArch",
       "final": "models/structures/violet/obsidianArch.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/purple.webp"
@@ -1492,7 +1504,8 @@
       ],
       "standIn": "structure.violet.ringShard",
       "final": "models/structures/violet/ringShard.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/purple.webp"
@@ -1515,7 +1528,8 @@
       ],
       "standIn": "structure.violet.cathedralFacade",
       "final": "models/structures/violet/cathedralFacade.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/purple.webp"
@@ -1538,7 +1552,8 @@
       ],
       "standIn": "structure.violet.gravitySeam",
       "final": "models/structures/violet/gravitySeam.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/purple.webp"
@@ -1561,7 +1576,8 @@
       ],
       "standIn": "structure.violet.eclipseDais",
       "final": "models/structures/violet/eclipseDais.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-3-alien.png",
         "game/public/assets/backgrounds/purple.webp"
@@ -1929,7 +1945,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/fields.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -1951,7 +1968,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/city.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -1973,7 +1991,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/mountains.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -1995,7 +2014,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/foundry.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -2017,7 +2037,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/harbor.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -2039,7 +2060,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/launchworks.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -2061,7 +2083,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/red.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -2083,7 +2106,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/blue.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -2105,7 +2129,8 @@
       ],
       "standIn": "terrain.landmark",
       "final": "models/landmarks/violet.glb",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "the region board and horizon cards (T-010..T-018)"
       ],
@@ -2126,7 +2151,8 @@
       ],
       "standIn": "terrain.heightfield",
       "final": "models/terrain/<region>.glb + heightmap PNG",
-      "status": "stand-in",
+      "status": "delivered",
+      "authoring": "code-built",
       "references": [
         "design/assets/level-1-earth.png",
         "design/assets/level-2-industry.png",

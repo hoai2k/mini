@@ -356,12 +356,30 @@ for asset in M:
     if asset['request'] in DELIVERED_HIGH_MODELS:
         asset['status'] = 'delivered'
 
+# Code-built models: three.js geometry painted with the delivered trim and terrain
+# sheets, exported by hopper/game/scripts/code-models.mjs to the same GLB contract
+# (LOD0/LOD1, sockets, landings, meshopt). The game loads them as delivered; each
+# manifest entry says authoring: 'code-built', so painted art can still replace them.
+CODE_BUILT_MODELS = {'M-024', 'M-027', 'M-036', 'M-037', *(f'M-{n:03d}' for n in range(56, 68)), *(f'M-{n:03d}' for n in range(83, 93))}
+CODE_BUILT_NOTE = {
+    'authored': 'Code-built: authored three.js geometry (terrace lips, poplar canopies, slate courses, turf, bolts) painted with the region trim and terrain sheets. In the game; a painted model may still replace it.',
+    'standin': 'Code-built from the stand-in geometry, painted with the region trim and terrain sheets and exported with LOD1, sockets and landings. In the game; a painted model may still replace it.',
+    'landmark': 'Code-built silhouette from the stand-in, in the region haze colour; keeps the size it is placed at. The region kit model replaces it at approach.',
+    'terrain': 'Code-built for the three episode-one districts: the game\'s heightfield generator exported as a 60k-triangle mesh plus a 16-bit heightmap PNG per region (models/terrain/<region>.glb, <region>-height.png). The runtime still samples the generator.',
+}
+for asset in M:
+    if asset['request'] in CODE_BUILT_MODELS:
+        asset['status'] = 'delivered'
+        asset['authoring'] = 'code-built'
+        kind = 'authored' if asset['request'] in ('M-024', 'M-027', 'M-036', 'M-037') else 'landmark' if asset['category'] == 'landmark' else 'terrain' if asset['category'] == 'terrain' else 'standin'
+        asset['notes'] = (asset['notes'] + ' ' if asset['notes'] else '') + CODE_BUILT_NOTE[kind]
+
 manifest = {
     'generated_by': 'hopper/3d/design/source/build_requests.py',
     'notes': 'standIn ids resolve through hopper/3d/standins/src/index.js (createStandIn). texture.* ids name procedural painters in textures.js. status: delivered | stand-in | open | procedural-final.',
     'rigs': RIGS,
     'requests': [
-        {k: v for k, v in dict(request=m['request'], kind='model', name=m['name'], category=m['category'], region=m['region'], rig=m['rig'], size_m=m['size'], standIn=m['standIn'], final=m['final'], status=m['status'], references=m['existing'] or None, needs=m['needs'] or None).items() if v is not None}
+        {k: v for k, v in dict(request=m['request'], kind='model', name=m['name'], category=m['category'], region=m['region'], rig=m['rig'], size_m=m['size'], standIn=m['standIn'], final=m['final'], status=m['status'], authoring=m.get('authoring'), references=m['existing'] or None, needs=m['needs'] or None).items() if v is not None}
         for m in M
     ] + [
         {k: v for k, v in dict(request=i['request'], kind='image', name=i['name'], category=i['category'], region=i['region'], standIn=i['standIn'], final=i['final'], status=i['status'], round=i['round']).items() if v is not None}
@@ -377,6 +395,7 @@ md = []
 md.append('# 3D model requests\n')
 md.append('Every model the 3D edition needs, with the rig it must have. Ids are stable: the stand-in manifest, the stand-in registry and the game code use them. `Stand-in` names the procedural placeholder from `hopper/3d/standins/` that is in use until the model arrives; `Final` is where the delivered GLB goes. Generated from `source/build_requests.py`; edit the data there, not this file.\n')
 md.append('**Round two references.** Before any model here is started, its reference sheet from `image-requests-round-2.md` is generated and approved: a turnaround per species and commander, a kit sheet per region, a props sheet and a Hopper pose sheet for the new clips. That document maps every sheet to the models that wait on it. A single side-view sprite is not enough to model from; a turnaround is.\n')
+md.append('**Code-built entries.** Requests marked `delivered` with the note *Code-built* were exported by `hopper/game/scripts/code-models.mjs` (three.js geometry painted with the delivered trim and terrain sheets, same GLB contract, `authoring: code-built` in `models/manifest.json`). They are in the game so episode one plays end to end, and they remain replaceable by painted models without any code change: drop the new GLB at the same path and rerun the validator.\n')
 md.append('Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mesh_quantization` and `EXT_meshopt_compression` like the delivered Hopper GLBs, hand-painted albedo (no photographic PBR), emissive masks for cores and lights, LOD0 and LOD1 in the same file, and named sockets as empties. Root motion only where a clip says so.\n')
 md.append('## Rig types\n')
 for k, v in RIGS.items():
