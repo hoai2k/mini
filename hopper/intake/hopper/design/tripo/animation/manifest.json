@@ -1,0 +1,406 @@
+{
+  "version": 1,
+  "units": "metres",
+  "up": "+Y",
+  "forward": "+Z",
+  "socket_forward_axis": "+Z",
+  "clips": {
+    "hopper": [
+      {
+        "name": "Idle",
+        "duration": 2.433333396911621,
+        "loop": true
+      },
+      {
+        "name": "Walk",
+        "duration": 1.2333333492279053,
+        "loop": true
+      },
+      {
+        "name": "Run",
+        "duration": 0.8333333134651184,
+        "loop": true
+      },
+      {
+        "name": "Crouch",
+        "duration": 0.5333333611488342,
+        "loop": false
+      },
+      {
+        "name": "Crouch_Hold",
+        "duration": 1.2333333492279053,
+        "loop": true
+      },
+      {
+        "name": "Jump_Start",
+        "duration": 0.5666666626930237,
+        "loop": false
+      },
+      {
+        "name": "Jump_Loop",
+        "duration": 1.0333333015441895,
+        "loop": true
+      },
+      {
+        "name": "Land",
+        "duration": 0.699999988079071,
+        "loop": false
+      },
+      {
+        "name": "Jump_Preview",
+        "duration": 2.2333333492279053,
+        "loop": false
+      },
+      {
+        "name": "Back_Kick",
+        "duration": 0.8999999761581421,
+        "loop": false
+      },
+      {
+        "name": "Spin_Kick",
+        "duration": 1.0333333015441895,
+        "loop": false
+      },
+      {
+        "name": "Fire_Start",
+        "duration": 0.30000001192092896,
+        "loop": false
+      },
+      {
+        "name": "Fire_Loop",
+        "duration": 0.8333333134651184,
+        "loop": true
+      },
+      {
+        "name": "Fire_End",
+        "duration": 0.3333333432674408,
+        "loop": false
+      },
+      {
+        "name": "Block_Start",
+        "duration": 0.36666667461395264,
+        "loop": false
+      },
+      {
+        "name": "Block_Loop",
+        "duration": 1.2333333492279053,
+        "loop": true
+      },
+      {
+        "name": "Block_End",
+        "duration": 0.36666667461395264,
+        "loop": false
+      },
+      {
+        "name": "Hit_Reaction",
+        "duration": 0.5333333611488342,
+        "loop": false
+      },
+      {
+        "name": "Defeat",
+        "duration": 1.5333333015441895,
+        "loop": false
+      },
+      {
+        "name": "Victory",
+        "duration": 2.0333333015441895,
+        "loop": false
+      }
+    ],
+    "rider": [
+      {
+        "name": "Standing_Idle",
+        "duration": 2.433333396911621,
+        "loop": true
+      },
+      {
+        "name": "Mount_Seat",
+        "duration": 1.8333333730697632,
+        "loop": false
+      },
+      {
+        "name": "Riding_Idle",
+        "duration": 2.433333396911621,
+        "loop": true
+      },
+      {
+        "name": "Lean_Forward",
+        "duration": 0.5,
+        "loop": false
+      },
+      {
+        "name": "Lean_Back",
+        "duration": 0.5,
+        "loop": false
+      },
+      {
+        "name": "Brace",
+        "duration": 0.5666666626930237,
+        "loop": false
+      },
+      {
+        "name": "Look_Left",
+        "duration": 1.2333333492279053,
+        "loop": false
+      },
+      {
+        "name": "Look_Right",
+        "duration": 1.2333333492279053,
+        "loop": false
+      },
+      {
+        "name": "Cheer",
+        "duration": 2.0333333015441895,
+        "loop": false
+      },
+      {
+        "name": "Cheer_Loop",
+        "duration": 1.2333333492279053,
+        "loop": true
+      },
+      {
+        "name": "Landing_React",
+        "duration": 0.699999988079071,
+        "loop": false
+      },
+      {
+        "name": "Hit_Reaction",
+        "duration": 0.5333333611488342,
+        "loop": false
+      },
+      {
+        "name": "Dismount_Seat",
+        "duration": 1.8333333730697632,
+        "loop": false
+      }
+    ],
+    "hopper-rider": [
+      {
+        "name": "Idle",
+        "duration": 2.433333396911621,
+        "loop": true
+      },
+      {
+        "name": "Walk",
+        "duration": 1.2333333492279053,
+        "loop": true
+      },
+      {
+        "name": "Run",
+        "duration": 0.8333333134651184,
+        "loop": true
+      },
+      {
+        "name": "Crouch",
+        "duration": 0.5333333611488342,
+        "loop": false
+      },
+      {
+        "name": "Crouch_Hold",
+        "duration": 1.2333333492279053,
+        "loop": true
+      },
+      {
+        "name": "Jump_Start",
+        "duration": 0.5666666626930237,
+        "loop": false
+      },
+      {
+        "name": "Jump_Loop",
+        "duration": 1.0333333015441895,
+        "loop": true
+      },
+      {
+        "name": "Land",
+        "duration": 0.699999988079071,
+        "loop": false
+      },
+      {
+        "name": "Jump_Preview",
+        "duration": 2.2333333492279053,
+        "loop": false
+      },
+      {
+        "name": "Back_Kick",
+        "duration": 0.8999999761581421,
+        "loop": false
+      },
+      {
+        "name": "Spin_Kick",
+        "duration": 1.0333333015441895,
+        "loop": false
+      },
+      {
+        "name": "Fire_Start",
+        "duration": 0.30000001192092896,
+        "loop": false
+      },
+      {
+        "name": "Fire_Loop",
+        "duration": 0.8333333134651184,
+        "loop": true
+      },
+      {
+        "name": "Fire_End",
+        "duration": 0.3333333432674408,
+        "loop": false
+      },
+      {
+        "name": "Block_Start",
+        "duration": 0.36666667461395264,
+        "loop": false
+      },
+      {
+        "name": "Block_Loop",
+        "duration": 1.2333333492279053,
+        "loop": true
+      },
+      {
+        "name": "Block_End",
+        "duration": 0.36666667461395264,
+        "loop": false
+      },
+      {
+        "name": "Hit_Reaction",
+        "duration": 0.5333333611488342,
+        "loop": false
+      },
+      {
+        "name": "Defeat",
+        "duration": 1.5333333015441895,
+        "loop": false
+      },
+      {
+        "name": "Victory",
+        "duration": 2.0333333015441895,
+        "loop": false
+      },
+      {
+        "name": "Rider_Cheer",
+        "duration": 2.0333333015441895,
+        "loop": false
+      },
+      {
+        "name": "Rider_Lean_Forward",
+        "duration": 0.5,
+        "loop": false
+      },
+      {
+        "name": "Rider_Lean_Back",
+        "duration": 0.5,
+        "loop": false
+      },
+      {
+        "name": "Mount_Seat",
+        "duration": 1.8333333730697632,
+        "loop": false
+      },
+      {
+        "name": "Dismount_Seat",
+        "duration": 1.8333333730697632,
+        "loop": false
+      }
+    ]
+  },
+  "events": {
+    "Jump_Start": {
+      "takeoff": 0.22,
+      "rear_attack": [
+        0.22,
+        0.6
+      ]
+    },
+    "Land": {
+      "ground_contact": 0.16,
+      "stomp": [
+        0.12,
+        0.3
+      ]
+    },
+    "Back_Kick": {
+      "rear_attack": [
+        0.22,
+        0.6
+      ]
+    },
+    "Spin_Kick": {
+      "rear_attack": [
+        0.2,
+        0.7
+      ]
+    },
+    "Fire_Start": {
+      "laser_ready": 0.85
+    },
+    "Fire_Loop": {
+      "laser_allowed": [
+        0,
+        1
+      ]
+    },
+    "Block_Start": {
+      "shield_on": 0.65
+    },
+    "Block_Loop": {
+      "shield_active": [
+        0,
+        1
+      ]
+    },
+    "Block_End": {
+      "shield_off": 0.25
+    },
+    "Mount_Seat": {
+      "seated": 0.8
+    },
+    "Dismount_Seat": {
+      "release": 0.15
+    }
+  },
+  "event_time_units": "normalized clip time; proposed gameplay hooks, not embedded damage or effects",
+  "combined_attachment": "RiderRig is parented to Hopper.Seat; never run the external binding helper on the combined GLB",
+  "physics": "Walk/Run are in-place. Jump_Start/Jump_Loop/Land are physics-driven. Jump_Preview has a demonstration vertical body arc. Spin_Kick spins the body locally; preserve the gameplay actor facing.",
+  "sockets": {
+    "hopper": [
+      "Hopper.Foot.Front.L",
+      "Hopper.Foot.Front.R",
+      "Hopper.Laser.L",
+      "Hopper.Laser.R",
+      "Hopper.Shield",
+      "Hopper.Camera",
+      "Hopper.CenterOfMass",
+      "Hopper.Foot.Middle.L",
+      "Hopper.Foot.Middle.R",
+      "Hopper.Foot.Rear.L",
+      "Hopper.Hitbox.RearKick.L",
+      "Hopper.Foot.Rear.R",
+      "Hopper.Hitbox.RearKick.R",
+      "Hopper.Footrest.L",
+      "Hopper.Footrest.R",
+      "Hopper.Grip.L",
+      "Hopper.Grip.R",
+      "Hopper.Seat"
+    ],
+    "rider": [
+      "Rider.Foot.L",
+      "Rider.Foot.R",
+      "Rider.Hand.L",
+      "Rider.Hand.R",
+      "Rider.Camera",
+      "Rider.Head",
+      "Rider.Chest",
+      "Rider.Mount"
+    ]
+  },
+  "rider_fit": {
+    "scale_vs_first_animation_delivery": 4,
+    "authoring_scale": 5.72,
+    "seat_in_hopper_blender_coordinates": [
+      0,
+      0.005,
+      0.105
+    ],
+    "description": "Seated on original central red couch cushion inside yellow frame; no booster geometry. Grip and footrest sockets are neutral-pose references for optional future controls."
+  },
+  "skinning_revision": "surface-connected wing segmentation; fitted symmetric limb chains; preserved couch rider fit"
+}

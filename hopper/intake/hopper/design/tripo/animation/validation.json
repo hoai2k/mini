@@ -1,0 +1,550 @@
+{
+  "compressed": [
+    {
+      "model": "hopper",
+      "clips": 20,
+      "rigs": 1,
+      "meshes": 1,
+      "triangles": 64925,
+      "max_weight_sum_error": 0,
+      "bytes": 2890228
+    },
+    {
+      "model": "rider",
+      "clips": 13,
+      "rigs": 1,
+      "meshes": 1,
+      "triangles": 30000,
+      "max_weight_sum_error": 5.21540641784668e-08,
+      "bytes": 2369560
+    },
+    {
+      "model": "hopper-rider",
+      "clips": 25,
+      "rigs": 2,
+      "meshes": 2,
+      "triangles": 94925,
+      "max_weight_sum_error": 5.21540641784668e-08,
+      "bytes": 5376164
+    }
+  ],
+  "raw_animation_checks": [
+    {
+      "model": "hopper",
+      "clips": 20,
+      "sockets": [
+        "Hopper.Foot.Front.L",
+        "Hopper.Foot.Front.R",
+        "Hopper.Laser.L",
+        "Hopper.Laser.R",
+        "Hopper.Shield",
+        "Hopper.Camera",
+        "Hopper.CenterOfMass",
+        "Hopper.Foot.Middle.L",
+        "Hopper.Foot.Middle.R",
+        "Hopper.Foot.Rear.L",
+        "Hopper.Hitbox.RearKick.L",
+        "Hopper.Foot.Rear.R",
+        "Hopper.Hitbox.RearKick.R",
+        "Hopper.Footrest.L",
+        "Hopper.Footrest.R",
+        "Hopper.Grip.L",
+        "Hopper.Grip.R",
+        "Hopper.Seat"
+      ],
+      "animations": [
+        {
+          "name": "Idle",
+          "duration": 2.433333396911621,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Walk",
+          "duration": 1.2333333492279053,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Run",
+          "duration": 0.8333333134651184,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Crouch",
+          "duration": 0.5333333611488342,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Crouch_Hold",
+          "duration": 1.2333333492279053,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Jump_Start",
+          "duration": 0.5666666626930237,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Jump_Loop",
+          "duration": 1.0333333015441895,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Land",
+          "duration": 0.699999988079071,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Jump_Preview",
+          "duration": 2.2333333492279053,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Back_Kick",
+          "duration": 0.8999999761581421,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Spin_Kick",
+          "duration": 1.0333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Fire_Start",
+          "duration": 0.30000001192092896,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Fire_Loop",
+          "duration": 0.8333333134651184,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Fire_End",
+          "duration": 0.3333333432674408,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Block_Start",
+          "duration": 0.36666667461395264,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Block_Loop",
+          "duration": 1.2333333492279053,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Block_End",
+          "duration": 0.36666667461395264,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Hit_Reaction",
+          "duration": 0.5333333611488342,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Defeat",
+          "duration": 1.5333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Victory",
+          "duration": 2.0333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        }
+      ]
+    },
+    {
+      "model": "rider",
+      "clips": 13,
+      "sockets": [
+        "Rider.Foot.L",
+        "Rider.Foot.R",
+        "Rider.Hand.L",
+        "Rider.Hand.R",
+        "Rider.Camera",
+        "Rider.Head",
+        "Rider.Chest",
+        "Rider.Mount"
+      ],
+      "animations": [
+        {
+          "name": "Standing_Idle",
+          "duration": 2.433333396911621,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Mount_Seat",
+          "duration": 1.8333333730697632,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Riding_Idle",
+          "duration": 2.433333396911621,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Lean_Forward",
+          "duration": 0.5,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Lean_Back",
+          "duration": 0.5,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Brace",
+          "duration": 0.5666666626930237,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Look_Left",
+          "duration": 1.2333333492279053,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Look_Right",
+          "duration": 1.2333333492279053,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Cheer",
+          "duration": 2.0333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Cheer_Loop",
+          "duration": 1.2333333492279053,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Landing_React",
+          "duration": 0.699999988079071,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Hit_Reaction",
+          "duration": 0.5333333611488342,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Dismount_Seat",
+          "duration": 1.8333333730697632,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        }
+      ]
+    },
+    {
+      "model": "hopper-rider",
+      "clips": 25,
+      "sockets": [
+        "Hopper.Foot.Front.L",
+        "Hopper.Foot.Front.R",
+        "Hopper.Laser.L",
+        "Hopper.Laser.R",
+        "Hopper.Shield",
+        "Hopper.Camera",
+        "Hopper.CenterOfMass",
+        "Hopper.Foot.Middle.L",
+        "Hopper.Foot.Middle.R",
+        "Hopper.Foot.Rear.L",
+        "Hopper.Hitbox.RearKick.L",
+        "Hopper.Foot.Rear.R",
+        "Hopper.Hitbox.RearKick.R",
+        "Hopper.Footrest.L",
+        "Hopper.Footrest.R",
+        "Hopper.Grip.L",
+        "Hopper.Grip.R",
+        "Hopper.Seat",
+        "Rider.Foot.L",
+        "Rider.Foot.R",
+        "Rider.Hand.L",
+        "Rider.Hand.R",
+        "Rider.Camera",
+        "Rider.Head",
+        "Rider.Chest",
+        "Rider.Mount"
+      ],
+      "animations": [
+        {
+          "name": "Idle",
+          "duration": 2.433333396911621,
+          "loop": true,
+          "loop_component_error": 8.940696716308594e-07,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Walk",
+          "duration": 1.2333333492279053,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Run",
+          "duration": 0.8333333134651184,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 2.8765031127962243e-06
+        },
+        {
+          "name": "Crouch",
+          "duration": 0.5333333611488342,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9236101987047666e-06
+        },
+        {
+          "name": "Crouch_Hold",
+          "duration": 1.2333333492279053,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9236101987047666e-06
+        },
+        {
+          "name": "Jump_Start",
+          "duration": 0.5666666626930237,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.946299298674547e-06
+        },
+        {
+          "name": "Jump_Loop",
+          "duration": 1.0333333015441895,
+          "loop": true,
+          "loop_component_error": 1.8924474716186523e-06,
+          "seat_drift_m": 1.946299298674547e-06
+        },
+        {
+          "name": "Land",
+          "duration": 0.699999988079071,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 2.8765031127962243e-06
+        },
+        {
+          "name": "Jump_Preview",
+          "duration": 2.2333333492279053,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.946299298674547e-06
+        },
+        {
+          "name": "Back_Kick",
+          "duration": 0.8999999761581421,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.946299298674547e-06
+        },
+        {
+          "name": "Spin_Kick",
+          "duration": 1.0333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9560860492494032e-06
+        },
+        {
+          "name": "Fire_Start",
+          "duration": 0.30000001192092896,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9353160971467757e-06
+        },
+        {
+          "name": "Fire_Loop",
+          "duration": 0.8333333134651184,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9353160971467757e-06
+        },
+        {
+          "name": "Fire_End",
+          "duration": 0.3333333432674408,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9353160971467757e-06
+        },
+        {
+          "name": "Block_Start",
+          "duration": 0.36666667461395264,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Block_Loop",
+          "duration": 1.2333333492279053,
+          "loop": true,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Block_End",
+          "duration": 0.36666667461395264,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Hit_Reaction",
+          "duration": 0.5333333611488342,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304993846371186e-06
+        },
+        {
+          "name": "Defeat",
+          "duration": 1.5333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Victory",
+          "duration": 2.0333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Rider_Cheer",
+          "duration": 2.0333333015441895,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Rider_Lean_Forward",
+          "duration": 0.5,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Rider_Lean_Back",
+          "duration": 0.5,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 1.9304912973286683e-06
+        },
+        {
+          "name": "Mount_Seat",
+          "duration": 1.8333333730697632,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        },
+        {
+          "name": "Dismount_Seat",
+          "duration": 1.8333333730697632,
+          "loop": false,
+          "loop_component_error": 0,
+          "seat_drift_m": 0
+        }
+      ],
+      "contact_error_m": {
+        "Grip.L": 2.9010995682806866e-06,
+        "Footrest.L": 3.0345730927843702e-06,
+        "Grip.R": 4.819137818979539e-06,
+        "Footrest.R": 2.0801935632962164e-06
+      }
+    }
+  ],
+  "skinning_repair": {
+    "triangles": 64925,
+    "vertices": 33759,
+    "single_rigid_weight_per_vertex": true,
+    "no_triangle_crosses_rigid_parts": true,
+    "landmark_probe_vertices": {
+      "wing.L": 46,
+      "wing.R": 46,
+      "front_lower.L": 26,
+      "front_lower.R": 26,
+      "middle_lower.L": 29,
+      "middle_lower.R": 29,
+      "rear_lower.L": 14,
+      "rear_lower.R": 14
+    },
+    "motion_steps": {
+      "Walk": {
+        "max_step_degrees": 6.367291455148531,
+        "bone": "middle_upper.R",
+        "sample": 5
+      },
+      "Run": {
+        "max_step_degrees": 10.767081179304128,
+        "bone": "middle_upper.R",
+        "sample": 51
+      }
+    }
+  },
+  "attachment_helper": "Passed 30 placements; max error 1.8e-15 m"
+}

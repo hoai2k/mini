@@ -1,0 +1,163 @@
+{
+  "status": "delivered",
+  "assets": [
+    {
+      "key": "sea",
+      "file": "surface/sea.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Production game albedo texture, T-080 storm-channel sea for Hopper's Tempest Docks. Create one seamless tileable square 2048x2048 image, filling the whole canvas edge to edge. Orthographic directly overhead painted water surface, 1970s Japanese anime gouache background craft. Three restrained flat cel tones: storm slate grey, deep desaturated teal, cold pale foam. Long broken white spray streaks and short brush-shaped ripples distribute evenly, moderate density; no horizon, no perspective, no boats, no land, no labels or border. No baked directional lighting, shadows, specular sun glare or photoreal normal-map detail. Opposite edges must match for seamless repeating water; avoid isolated focal shapes. Brushed pigment edges, confident hand-painted broad shapes. Actual game texture, not a presentation sheet.",
+      "sourceFile": "exec-48b4c968-ce05-4918-8691-3b48f87e9b01.png",
+      "status": "delivered"
+    },
+    {
+      "key": "dust",
+      "file": "surface/dust.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Production game albedo texture, T-080 luminous blue dust for Hopper's Cobalt Drift alien floor. Create one seamless tileable square 2048x2048 image, entire canvas edge to edge. Orthographic directly overhead broad swirling ultramarine dust with sparse luminous cyan motes and flowing cobalt sediment streaks. 1970s Japanese anime gouache background style, three flat cel tones, brushed edges. No rocks, objects, horizon, text or border. No baked directional lighting, shadows or photoreal PBR. Balanced even visual density and low contrast broad flows with small cyan punctuation. All opposite edges match seamlessly. An actual repeating floor texture, not concept-art scenery.",
+      "sourceFile": "exec-e16a8446-1248-4138-9339-346975a20ab9.png",
+      "status": "delivered"
+    },
+    {
+      "key": "slag",
+      "file": "surface/slag.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Production game albedo texture, T-080 glowing slag for Hopper's Cinder Foundries floor. Create one seamless tileable square 2048x2048 image, entire canvas edge to edge. Orthographic directly overhead black charcoal slag crust broken into large irregular flat plates, with glowing orange seams and occasional brighter amber cores. 1970s anime gouache background craft, three flat cel tones, brushed ink-like edges. Broad readable game-scale crust shapes, orange covers about twenty percent, no particles obscuring crust. No horizon, perspective, objects, text or border. No baked directional lighting or specular reflections, no photographic microdetail. All opposite edges match for a seamless tiled floor.",
+      "sourceFile": "exec-9762a23f-63c3-4f6e-b89c-0901c6a809cc.png",
+      "status": "delivered"
+    },
+    {
+      "key": "hopper",
+      "file": "effects/hopper.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Generate a production 2048x2048 RGBA SPRITE ATLAS, genuinely transparent background with no checkerboard painted in. 1970s anime hand-painted cel effects, precise FOUR COLUMNS and FOUR ROWS of equal 512x512 cells. Invisible grid; no borders, labels, text, no panel backgrounds. Place each element at its cell center with at least 48 pixels clear padding. ROW ONE from left to right: 1 red-white horizontal eye LASER bolt pointing right, long bright ivory core with crimson ink edge; 2 single ivory-and-red four-point eye MUZZLE flash; 3 teal translucent circular SHIELD FACE with delicate hexagonal cells and clean ivory rim, circle fully contained; 4 soft cream GLIDE wing TRAIL, a graceful tapered ribbon sweeping horizontally rightward. ROW TWO four muzzle flash animation frames 1–4; ROW THREE four muzzle flash animation frames 5–8. Eight distinct hand-drawn frames, same center anchor, charge pinprick→small star→growing sharp flare→full burst→slightly contracting burst→fragmented small star→two embers→tiny fading speck. Red edge, ivory center. ROW FOUR entirely transparent empty. All isolated sprites, flat cel tones and brush edges, no robot or environment. Strict 4x4 aligned uniform grid.",
+      "sourceFile": "exec-7526b3c5-644e-4fed-af09-3a6398cdfd6c.png",
+      "status": "delivered"
+    },
+    {
+      "key": "foam",
+      "file": "surface/shoreline-foam.png",
+      "nativeSize": [
+        1983,
+        793
+      ],
+      "exportSize": [
+        1024,
+        256
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Production shoreline FOAM STRIP texture for a 1970s anime painted game. Wide horizontal RGBA image 1024x256, genuinely transparent background (no checkerboard or solid backdrop). A single continuous irregular white/ivory foamy wave lace runs horizontally left edge to right edge through the middle; foam dissolves to isolated little flecks toward top and bottom, transparent outside foam. Orthographic overhead flat gouache shapes with ink-grey restrained accents, matching storm-grey sea. Left and right boundaries join seamlessly when repeated horizontally. No water background, sand, scenery, horizon, letters, border, or perspective. Foam strand occupies middle sixty percent of height, generous clear transparent vertical margins.",
+      "sourceFile": "exec-ad47cc78-eae2-4168-851f-96f3dfb662fd.png",
+      "status": "delivered"
+    },
+    {
+      "key": "props",
+      "file": "ui/props.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        512,
+        512
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: stylized-concept. Production square 512x512 RGBA DECAL ATLAS with genuinely transparent background, not painted checkerboard. Exactly FOUR equally sized 256x256 cells arranged 2x2, invisible grid, centered isolated decal in each with 24px clear padding, no borders, labels or text. Top left: glowing ivory round checkpoint lamp face with warm honey centre, ink-dark thin rim and hand-painted concentric lens grooves. Top right: exactly matching same-sized same-geometry lamp face UNLIT, dark slate navy glass with muted ivory rim and faint lens grooves. Bottom left: spring-pad decal, circular cyan plate bearing exactly four ivory chevrons in a ring, facing inward at north/east/south/west, thin dark rim. Bottom right: a distinctive violet three-point signal-cage crown glyph outlined in dark ink, isolated no backing plate. 1970s anime cel-painted prop details, flat tones with subtle brush edges. Consistent functional game decals, no bloom outside the padding.",
+      "sourceFile": "exec-9af6c308-3bcc-4ccd-b224-82751193f202.png",
+      "status": "delivered"
+    },
+    {
+      "key": "sea-detail",
+      "file": "surface/sea-detail.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        512,
+        512
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: precise-object-edit. Supporting grayscale detail mask for the supplied sea albedo texture. Produce a square 512x512 seamless tileable grayscale-only image, no colored normal-map encoding, no text or border. Preserve the original exact feature positions and UV registration, only convert the image into a soft scalar animation/detail mask. Foam white, ripple bodies medium gray, deep water dark gray. Do not invent new shapes or directional light. Edges must remain seamless. This is data for modulating flow/detail, not a shaded illustration, not a normal map or a vector-flow field.",
+      "sourceFile": "exec-0fd0ceb7-9291-42c5-8089-bb256ae5d96c.png",
+      "status": "delivered"
+    },
+    {
+      "key": "dust-detail",
+      "file": "surface/dust-detail.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        512,
+        512
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: precise-object-edit. Supporting grayscale detail mask for the supplied dust albedo texture. Produce a square 512x512 seamless tileable grayscale-only image, no colored normal-map encoding, no text or border. Preserve the original exact feature positions and UV registration, only convert the image into a soft scalar animation/detail mask. Cyan motes white, dust ribbons mid gray, deep blue dark gray. Do not invent new shapes or directional light. Edges must remain seamless. This is data for modulating flow/detail, not a shaded illustration, not a normal map or a vector-flow field.",
+      "sourceFile": "exec-f63bd82b-0b70-466d-89fe-ab5804580932.png",
+      "status": "delivered"
+    },
+    {
+      "key": "slag-detail",
+      "file": "surface/slag-detail.png",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        512,
+        512
+      ],
+      "generator": "built-in imagegen",
+      "prompt": "Use case: precise-object-edit. Supporting grayscale detail mask for the supplied slag albedo texture. Produce a square 512x512 seamless tileable grayscale-only image, no colored normal-map encoding, no text or border. Preserve the original exact feature positions and UV registration, only convert the image into a soft scalar animation/detail mask. Molten orange seams white and gray according to heat, charcoal crust very dark gray. Do not invent new shapes or directional light. Edges must remain seamless. This is data for modulating flow/detail, not a shaded illustration, not a normal map or a vector-flow field.",
+      "sourceFile": "exec-d52d30b0-fd1d-4441-a8bb-3a0beb96e03c.png",
+      "status": "delivered"
+    },
+    {
+      "key": "landing-guide-light",
+      "file": "ui/landing-guide-light.png",
+      "exportSize": [
+        512,
+        512
+      ],
+      "generator": "existing SVG geometry recoloured to requested ivory",
+      "status": "delivered"
+    }
+  ],
+  "optionalSkies": {
+    "status": "open",
+    "reason": "Native 4K request test returned 1774x887; no HD replacements published."
+  }
+}
