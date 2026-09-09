@@ -357,7 +357,17 @@ ROUND3_DELIVERED = {'surface', 'effects', 'ui'}
 for texture in T:
     if texture['round'] == 3 and texture['category'] in ROUND3_DELIVERED:
         texture['status'] = 'delivered'
-        texture['approval'] = 'awaiting-verification'
+        # design/source/verify_round3.py measured the checks that were due at
+        # delivery. Only the light landing guide passed; see
+        # ../textures/round3/verification.json.
+        texture['approval'] = ('verified' if texture['request'] == 'T-081'
+                               else 'verification-failed')
+        texture['verification'] = {
+            'T-080': 'The three albedos and their detail masks do not tile: opposite edges differ by 5-17 per channel against a limit of 2. The foam strip does not tile horizontally (22.3) and runs into both vertical margins. Needs an offset-and-repaint pass, not a new prompt.',
+            'T-081': 'Passes: alpha 0-255, geometry identical to the dark guide (coverage ratio 1.000).',
+            'T-082': 'Four of the twelve sprite cells sit inside the 48px padding, the tightest at 11px, so neighbours bleed at small mip levels. Row four is intentionally empty. Needs a re-export on the grid.',
+            'T-086': 'All four decals touch their cell edges (smallest margin 0px) against the 24px requested, so they bleed into each other under filtering. Needs a re-export on the grid.',
+        }[texture['request']]
         texture['integration'] = {
             'surface': 'paintTerrain paints the low floor of the harbor (sea), blue (dust) and foundry (slag) districts with the surface and scrolls its detail mask; paintKit puts slag on the barge deck and dust on the drift volumes. The foam strip waits for a district with a shoreline.',
             'ui': 'guideVariant picks the ivory guide on dark floors; the prop decals sit on every totem lamp (lit/unlit), spring pad plate and cage crown.',
@@ -494,10 +504,14 @@ im.append('Round one: skies, horizon cards, terrain sets, trim sheets, creature 
 im.append('Style for every painted request: the 2D game\'s 1970s cel-and-gouache look. Flat colour fields, two or three tones per surface, visible brush direction, dark ink edges where the 2D sprites have them, no photographic gradients, no lens flare, no text. Region palettes are the exact hex values in `hopper/3d/standins/src/palette.js` (the same ones the 2D game uses).\n')
 im.append('## Summary\n')
 im.append('| Category | Requests | Delivered | Stand-in | Open | Procedural final |\n| --- | ---: | ---: | ---: | ---: | ---: |')
-for cat in ['sky', 'horizon', 'terrain', 'trim', 'creature', 'shading', 'ui', 'effects']:
+# The ui and effects rows already carry the round-three requests in those
+# categories (T-081, T-082, T-086), so the total below sums these same rows
+# rather than round one alone, which disagreed with the columns above it.
+SUMMARY_CATEGORIES = ['sky', 'horizon', 'terrain', 'trim', 'creature', 'shading', 'ui', 'effects']
+for cat in SUMMARY_CATEGORIES:
     rows = [x for x in T if x['category'] == cat]
     im.append(f"| {cat} | {len(rows)} | {sum(r['status']=='delivered' for r in rows)} | {sum(r['status']=='stand-in' for r in rows)} | {sum(r['status']=='open' for r in rows)} | {sum(r['status']=='procedural-final' for r in rows)} |")
-R1 = [x for x in T if x['round'] == 1]
+R1 = [x for x in T if x['category'] in SUMMARY_CATEGORIES]
 im.append(f"| **total** | **{len(R1)}** | **{sum(x['status']=='delivered' for x in R1)}** | **{sum(x['status']=='stand-in' for x in R1)}** | **{sum(x['status']=='open' for x in R1)}** | **{sum(x['status']=='procedural-final' for x in R1)}** |")
 for cat, title, intro in [
     ('sky', 'Painted skies (9)', 'One equirectangular dome per region, drawn from inside a 9 km sphere. The stand-in is the procedural gradient-plus-sun in `paintSky`.'),
@@ -552,7 +566,8 @@ for x in [x for x in T if x['round'] == 2]:
 r3 = []
 r3.append('# Image requests · round three: after integrating round one\n')
 r3.append('Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one optional quality pass. Nothing here replaces a delivered file except the optional sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.\n')
-r3.append('**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` (see `textures/round3/manifest.json`, status awaiting-verification: tiling, atlas padding and alpha checks are still due) and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.\n')
+r3.append('**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.\n')
+r3.append('**Verification: nine of ten assets fail.** The tiling, atlas-padding and alpha checks that were outstanding at delivery have been run (`design/source/verify_round3.py`, results in `textures/round3/verification.json`). The six tiling surfaces and the foam strip have visible seams, and both atlases place artwork inside the padding their prompts asked for; only the light landing guide passes. The artwork stays in the game meanwhile - these are repeat and filtering faults, not wrong pictures - and each entry below carries its own result.\n')
 r3.append('| Request | Why | Priority |\n| --- | --- | --- |')
 for x in [x for x in T if x['round'] == 3]:
     pri = 'optional' if x['category'] == 'sky-hd' else 'before the region that needs it' if x['category'] == 'surface' else 'any time'
@@ -564,6 +579,7 @@ for x in [x for x in T if x['round'] == 3]:
     r3.append(f"- **Spec:** {x['spec']}")
     r3.append(f"- **Status:** {x['status']}{' (' + x['approval'] + ')' if x.get('approval') else ''} · **Final:** `{x['final']}`")
     if x.get('integration'): r3.append(f"- **In the game:** {x['integration']}")
+    if x.get('verification'): r3.append(f"- **Verification:** {x['verification']}")
     r3.append(f"- **Prompt:** {x['prompt']}")
     r3.append('')
 (ROOT / 'image-requests-round-3.md').write_text('\n'.join(r3) + '\n')

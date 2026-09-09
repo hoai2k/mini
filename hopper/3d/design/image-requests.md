@@ -16,7 +16,7 @@ Style for every painted request: the 2D game's 1970s cel-and-gouache look. Flat 
 | shading | 1 | 0 | 0 | 0 | 1 |
 | ui | 9 | 9 | 0 | 0 | 0 |
 | effects | 3 | 3 | 0 | 0 | 0 |
-| **total** | **47** | **46** | **0** | **0** | **1** |
+| **total** | **50** | **49** | **0** | **0** | **1** |
 
 ## Painted skies (9)
 
