@@ -14,8 +14,8 @@ Style for every painted request: the 2D game's 1970s cel-and-gouache look. Flat 
 | trim | 9 | 9 | 0 | 0 | 0 |
 | creature | 1 | 1 | 0 | 0 | 0 |
 | shading | 1 | 0 | 0 | 0 | 1 |
-| ui | 9 | 9 | 0 | 0 | 0 |
-| effects | 3 | 3 | 0 | 0 | 0 |
+| ui | 9 | 8 | 0 | 1 | 0 |
+| effects | 3 | 2 | 0 | 1 | 0 |
 | **total** | **47** | **46** | **0** | **0** | **1** |
 
 ## Painted skies (9)
@@ -411,7 +411,7 @@ The delivered guide is dark navy, right for the fields and the city; on the obsi
 Small painted faces for the props the player reads at a glance. The stand-ins draw them as flat emissive shapes; the delivered models (M-071 onward) will carry these as decals.
 
 - **Spec:** 512² alpha sheet: lit and unlit totem lamp faces, a chevron ring for the spring pad plate, a signal-cage crown glyph
-- **Status:** delivered · **Stand-in:** `none` · **Final:** `textures/ui/props.png`
+- **Status:** open · **Stand-in:** `none` · **Final:** `textures/ui/props.png`
 - **Prompt:** Use case: prop decals. Hand-painted anime cel decals on transparent background: a glowing ivory lamp face and its dark unlit twin, a ring of four white chevrons on cyan, a violet crown glyph. Flat tones with ink edges, no text.
 
 
@@ -436,7 +436,7 @@ The inversion warning graphics; must read at 200 m.
 Round one covered impacts and sparks; Hopper's own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. This sheet gives them paint in the same style as the delivered atlases.
 
 - **Spec:** one 2048² sheet, four 512² alpha elements plus an 8-frame 512² strip for the muzzle glow
-- **Status:** delivered · **Stand-in:** `none` · **Final:** `textures/effects/hopper.png`
+- **Status:** open · **Stand-in:** `none` · **Final:** `textures/effects/hopper.png`
 - **Prompt:** Use case: effect sprites. 1970s anime cel effects on transparent background: a red-white eye laser bolt with a bright core and ink edge, an eight-frame eye muzzle glow, a teal hexagon-patterned shield face with a white rim, and a soft cream glide wing trail. Flat tones, no text.
 
 ## Delivery history

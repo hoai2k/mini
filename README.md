@@ -16,6 +16,8 @@ To build locally, run `pnpm build:pages` in `hopper/game`. This uses the same ga
 
 Keep the source, runtime art and music, design documents and their source artwork, QA reports and tests, configuration, `package.json`, and `pnpm-lock.yaml`. The illustrated Hopper design is available as [Word](hopper/design/Hopper_Game_Design.docx) and [PDF](hopper/design/Hopper_Game_Design.pdf). `hopper/models/` (the delivered Hopper GLBs) and `hopper/3d/` (the 3D design and stand-in assets) are also kept.
 
+`hopper/intake/` is a drop box for files handed to Claude for integration; it is emptied once its contents land, and [hopper/intake/README.md](hopper/intake/README.md) describes how a drop is processed.
+
 `local/` is excluded by the root `.gitignore`. It holds installed dependencies, package caches, build output, intermediate document previews, and the previous game-only Git history. Ignored symlinks at the original dependency/cache paths keep this checkout usable. Do not include those symlinks in a manual browser upload; Git excludes them automatically.
 
 ## Run after cloning

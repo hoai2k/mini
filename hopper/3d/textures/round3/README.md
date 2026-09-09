@@ -1,6 +1,18 @@
-# Round-three artwork — initial delivery
+# Round-three artwork
 
-Current generated assets for T080, T081, T082 and T086 are available at the requested texture paths. This first commit publishes the artwork promptly at the user's request; tiling, atlas padding, alpha and animation checks are still in progress and will follow in another commit.
+Current generated assets for T080, T081, T082 and T086 are available at the requested texture paths and the game uses them.
+
+**The outstanding checks have now been run, and nine of the ten assets fail them.** `python3 ../../design/source/verify_round3.py` measures tiling, atlas padding and alpha, and writes [verification.json](verification.json); `manifest.json` carries the per-asset result.
+
+| Asset | Result |
+| --- | --- |
+| `surface/{sea,dust,slag}.png` and their detail masks | Fail. Opposite edges differ by 5–17 per channel against a limit of 2, so the seam shows wherever the floor repeats. |
+| `surface/shoreline-foam.png` | Fail. Does not tile horizontally (22.3), and the foam runs into both vertical margins the prompt asked to keep clear. |
+| `effects/hopper.png` | Fail. Four of the twelve sprite cells sit inside the 48 px padding, the tightest at 11 px, so neighbours bleed at small mip levels. Row four is intentionally empty. |
+| `ui/props.png` | Fail. All four decals touch their cell edges (smallest margin 0 px) against 24 px requested. |
+| `ui/landing-guide-light.png` | Pass. Alpha 0–255 and geometry identical to the dark guide (coverage ratio 1.000). |
+
+T-080, T-082 and T-086 are back to `open` in the request documents so the next generation round picks them up again; T-081 stays `delivered`. The artwork stays in place meanwhile: it reads correctly in the districts that use it, and these are repeat/filtering faults rather than wrong pictures. Fixing them means an offset-and-repaint pass on the seams and a re-export of both atlases on their grids, not new prompts.
 
 `manifest.json` records every prompt, native resolution and export size. Square painted masters are 1254×1254 and exported at requested dimensions; these are not native 2K paintings. The landing guide uses the original editable SVG geometry with ivory strokes. Three matching grayscale detail maps are scalar detail/animation masks, not normal maps or directional flow vectors.
 

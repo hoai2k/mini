@@ -1,0 +1,59 @@
+{
+  "tool": "built-in imagegen",
+  "images": [
+    {
+      "name": "hopper-master",
+      "prompt": "Create ONE clean modeling reference image of Hopper ALONE, no boy. Exact green giant mechanical grasshopper from reference: red oval compound eyes, ivory segmented mouth plate, blue thorax panels, red/ivory striping, brass circular hinges, two segmented gold antennae, folded green wing covers, enormous green hind femurs and serrated rear tibiae. Exactly SIX legs in three bilateral pairs: two front, two middle, two massive rear jumping legs. Neutral stable standing pose with all legs separated, hind legs partly unfolded, all feet visible. Three-quarter front-left view showing left flank. Empty red saddle and gold safety rail retained. Full object fills canvas with 10% margins including antenna tips and feet. Plain light gray background, soft even studio illumination, no cast shadow obscuring joints. Hard-surface 1970s anime design, restrained cel shading, clean sharp geometry rather than painted lighting, no scenery, no labels, no text.",
+      "file": "hopper-master.png",
+      "reference": "../assets/hopper-canonical-v1.png"
+    },
+    {
+      "name": "rider-master",
+      "prompt": "Create ONE standalone full-body model reference of ONLY the young boy shown in the reference, no robot or saddle. Preserve short tousled black hair, friendly youthful face, ivory short-sleeved shirt, red neck scarf, blue shorts, tan belt, cream socks and brown ankle shoes. Front view, neutral A-pose, arms 35 degrees away from body, open relaxed hands with separate fingers, legs hip-width apart, feet forward. Scarf short and resting down behind shoulder with visible separation from arm, no wind. Child proportions, no adult musculature. Full body uncropped with generous margins. Plain light gray background, soft even lighting, clean 1970s anime character design with restrained cel shading, no labels, no text, no dramatic shadows.",
+      "file": "rider-master.png",
+      "reference": "../assets/hopper-canonical-v1.png"
+    },
+    {
+      "name": "hopper-left",
+      "prompt": "Generate ONE LEFT SIDE orthographic profile, nose pointing LEFT reference of the EXACT six-legged mechanical grasshopper in the attached master image. Rotate the camera ONLY; preserve the identical neutral standing pose, proportions, appendage lengths, joint placements, markings, costume and palette. No rider. Retain empty red saddle, brass rail, two antennae and exactly six legs in three bilateral pairs; enormous rear femurs with stripes are LEG ARMOR, do not invent extra wings or limbs. Four smaller supporting legs. Legs physically separated; far-side limbs may naturally be occluded in strict profile. Full object centered and uncropped, 10% padding on all sides, same plain neutral light gray background and soft uniform lighting. Clean 1970s anime modeling reference, restrained cel shading, no dramatic shadow. No text, labels, grids, extra views or scenery. Hidden surfaces are conservative continuations of visible construction.",
+      "file": "hopper-left.png",
+      "reference": "hopper-master.png"
+    },
+    {
+      "name": "hopper-front",
+      "prompt": "Generate ONE FRONT orthographic elevation, facing camera reference of the EXACT six-legged mechanical grasshopper in the attached master image. Rotate the camera ONLY; preserve the identical neutral standing pose, proportions, appendage lengths, joint placements, markings, costume and palette. No rider. Retain empty red saddle, brass rail, two antennae and exactly six legs in three bilateral pairs; enormous rear femurs with stripes are LEG ARMOR, do not invent extra wings or limbs. Four smaller supporting legs. Legs physically separated; far-side limbs may naturally be occluded in strict profile. Full object centered and uncropped, 10% padding on all sides, same plain neutral light gray background and soft uniform lighting. Clean 1970s anime modeling reference, restrained cel shading, no dramatic shadow. No text, labels, grids, extra views or scenery. Hidden surfaces are conservative continuations of visible construction.",
+      "file": "hopper-front.png",
+      "reference": "hopper-master.png"
+    },
+    {
+      "name": "hopper-right",
+      "prompt": "Generate ONE RIGHT SIDE orthographic profile, nose pointing RIGHT reference of the EXACT six-legged mechanical grasshopper in the attached master image. Rotate the camera ONLY; preserve the identical neutral standing pose, proportions, appendage lengths, joint placements, markings, costume and palette. No rider. Retain empty red saddle, brass rail, two antennae and exactly six legs in three bilateral pairs; enormous rear femurs with stripes are LEG ARMOR, do not invent extra wings or limbs. Four smaller supporting legs. Legs physically separated; far-side limbs may naturally be occluded in strict profile. Full object centered and uncropped, 10% padding on all sides, same plain neutral light gray background and soft uniform lighting. Clean 1970s anime modeling reference, restrained cel shading, no dramatic shadow. No text, labels, grids, extra views or scenery. Hidden surfaces are conservative continuations of visible construction.",
+      "file": "hopper-right.png",
+      "reference": "hopper-master.png"
+    },
+    {
+      "name": "hopper-back",
+      "prompt": "Generate ONE BACK orthographic elevation, facing directly away from camera reference of the EXACT six-legged mechanical grasshopper in the attached master image. Rotate the camera ONLY; preserve the identical neutral standing pose, proportions, appendage lengths, joint placements, markings, costume and palette. No rider. Retain empty red saddle, brass rail, two antennae and exactly six legs in three bilateral pairs; enormous rear femurs with stripes are LEG ARMOR, do not invent extra wings or limbs. Four smaller supporting legs. Legs physically separated; far-side limbs may naturally be occluded in strict profile. Full object centered and uncropped, 10% padding on all sides, same plain neutral light gray background and soft uniform lighting. Clean 1970s anime modeling reference, restrained cel shading, no dramatic shadow. No text, labels, grids, extra views or scenery. Hidden surfaces are conservative continuations of visible construction.",
+      "file": "hopper-back.png",
+      "reference": "hopper-master.png"
+    },
+    {
+      "name": "rider-left",
+      "prompt": "Generate ONE LEFT SIDE orthographic profile, nose pointing LEFT reference of the EXACT boy in the attached master image. Rotate the camera ONLY; preserve the identical neutral standing pose, proportions, appendage lengths, joint placements, markings, costume and palette. Preserve the A-pose, short black hair, ivory shirt, red scarf, blue shorts, belt, cream socks and brown shoes. Arms stay at the same angle and hands relaxed. No robot. Full object centered and uncropped, 10% padding on all sides, same plain neutral light gray background and soft uniform lighting. Clean 1970s anime modeling reference, restrained cel shading, no dramatic shadow. No text, labels, grids, extra views or scenery. Hidden surfaces are conservative continuations of visible construction.",
+      "file": "rider-left.png",
+      "reference": "rider-master.png"
+    },
+    {
+      "name": "rider-back",
+      "prompt": "Generate ONE BACK orthographic elevation, facing directly away from camera reference of the EXACT boy in the attached master image. Rotate the camera ONLY; preserve the identical neutral standing pose, proportions, appendage lengths, joint placements, markings, costume and palette. Preserve the A-pose, short black hair, ivory shirt, red scarf, blue shorts, belt, cream socks and brown shoes. Arms stay at the same angle and hands relaxed. No robot. Full object centered and uncropped, 10% padding on all sides, same plain neutral light gray background and soft uniform lighting. Clean 1970s anime modeling reference, restrained cel shading, no dramatic shadow. No text, labels, grids, extra views or scenery. Hidden surfaces are conservative continuations of visible construction.",
+      "file": "rider-back.png",
+      "reference": "rider-master.png"
+    },
+    {
+      "name": "rider-right",
+      "prompt": "Generate ONE RIGHT SIDE orthographic profile, nose pointing RIGHT reference of the EXACT boy in the attached master image. Rotate the camera ONLY; preserve the identical neutral standing pose, proportions, appendage lengths, joint placements, markings, costume and palette. Preserve the A-pose, short black hair, ivory shirt, red scarf, blue shorts, belt, cream socks and brown shoes. Arms stay at the same angle and hands relaxed. No robot. Full object centered and uncropped, 10% padding on all sides, same plain neutral light gray background and soft uniform lighting. Clean 1970s anime modeling reference, restrained cel shading, no dramatic shadow. No text, labels, grids, extra views or scenery. Hidden surfaces are conservative continuations of visible construction.",
+      "file": "rider-right.png",
+      "reference": "rider-master.png"
+    }
+  ]
+}

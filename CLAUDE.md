@@ -43,6 +43,19 @@ The request documents (`hopper/3d/design/model-requests.md`,
 When delivered art replaces a stand-in, flip its manifest status to `delivered`
 and load the real file; stand-ins remain for tests.
 
+## Intake
+
+`hopper/intake/` is where the user drops files for integration: artwork, audio,
+models, exported data, notes from another agent. Process a drop rather than
+leaving it: verify each file against what it claims to be, integrate what holds
+up, and empty the folder, keeping only its README. Take artwork and
+machine-readable data as delivered, but rewrite accompanying prose from what the
+files actually show — a drop's write-up is intent, not repository
+documentation, and it may carry another machine's paths or a status the
+repository has since moved past. Treat "done" or "verified" as a claim to test;
+run the check where one can be run, and record the result either way.
+`hopper/intake/README.md` holds the full convention.
+
 ## Agents
 
 Use subagents where they save effort, and pick the model by the work:
