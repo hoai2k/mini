@@ -86,6 +86,10 @@ export interface District {
   /** Reaching this ends the district. */
   exit: { x: number; z: number; r: number; name: string };
   landmark: { name: string; x: number; z: number };
+  /** The trail's waypoints in order, start to exit, through every totem in
+   * checkpoint order. The camera faces along it and the ground is dressed
+   * along it. Omitted, the route runs start → totems → exit in straight legs. */
+  route?: { x: number; z: number }[];
 }
 
 const P = (id: string, x: number, z: number, y = 0, yaw = 0, opts?: Record<string, unknown>, mode: 'r' | 'a' = 'r'): Placement => ({ id, x, z, y, yaw, opts, mode });
@@ -186,6 +190,14 @@ export function sunseedFields(): District {
     start: { x: 0, z: 40, yaw: Math.PI },
     exit: { x: 0, z: -1800, r: 30, name: 'The road to Crownline' },
     landmark: { name: 'Crownline City', x: 0, z: -3200 },
+    // The trail winds up onto the orchard terraces, swings west over the
+    // ridge, drops through the valley and straightens for the road.
+    route: [
+      { x: 0, z: 40 }, { x: 0, z: 20 }, { x: 30, z: -120 }, { x: 15, z: -240 }, { x: 0, z: -330 },
+      { x: 60, z: -420 }, { x: 120, z: -540 }, { x: 90, z: -690 }, { x: -30, z: -770 }, { x: -180, z: -860 },
+      { x: -190, z: -960 }, { x: -110, z: -1040 }, { x: 0, z: -1120 }, { x: 30, z: -1250 }, { x: -10, z: -1380 },
+      { x: 0, z: -1480 }, { x: 0, z: -1650 }, { x: 0, z: -1800 },
+    ],
   };
 }
 
@@ -300,6 +312,14 @@ export function crownlineCity(): District {
     start: { x: 0, z: 40, yaw: Math.PI },
     exit: { x: 0, z: -1830, r: 40, name: 'The observatory crown' },
     landmark: { name: 'Thunderhead Range', x: 0, z: -3400 },
+    // Streets zigzag between the roof decks, under the rail span and round
+    // the crown, climbing plateau by plateau to the observatory.
+    route: [
+      { x: 0, z: 40 }, { x: 0, z: 10 }, { x: -25, z: -90 }, { x: 25, z: -190 }, { x: 0, z: -300 }, { x: -30, z: -390 },
+      { x: 0, z: -460 }, { x: 35, z: -570 }, { x: 0, z: -700 }, { x: -30, z: -790 }, { x: 0, z: -850 }, { x: 45, z: -930 },
+      { x: 30, z: -1000 }, { x: 0, z: -1050 }, { x: -25, z: -1110 }, { x: 0, z: -1150 }, { x: 35, z: -1250 }, { x: 0, z: -1350 },
+      { x: -25, z: -1430 }, { x: 0, z: -1500 }, { x: 30, z: -1600 }, { x: 0, z: -1700 }, { x: 0, z: -1790 }, { x: 0, z: -1830 },
+    ],
   };
 }
 
@@ -417,6 +437,14 @@ export function thunderheadRange(): District {
     start: { x: 0, z: 20, yaw: Math.PI },
     exit: { x: 0, z: -1750, r: 40, name: 'The summit transmitter' },
     landmark: { name: 'The transmitter', x: 0, z: -1750 },
+    // A switchback trail between the crag columns, across the gorge floor and
+    // up the broken ridge to the summit.
+    route: [
+      { x: 0, z: 20 }, { x: 0, z: 10 }, { x: -15, z: -90 }, { x: 0, z: -180 }, { x: 18, z: -250 }, { x: -5, z: -330 },
+      { x: 0, z: -380 }, { x: -40, z: -480 }, { x: 0, z: -580 }, { x: 30, z: -670 }, { x: 0, z: -780 }, { x: -30, z: -880 },
+      { x: 0, z: -980 }, { x: 40, z: -1080 }, { x: 0, z: -1180 }, { x: 15, z: -1235 }, { x: -20, z: -1300 }, { x: 0, z: -1365 },
+      { x: 30, z: -1460 }, { x: 0, z: -1550 }, { x: 0, z: -1700 }, { x: 0, z: -1750 },
+    ],
   };
 }
 

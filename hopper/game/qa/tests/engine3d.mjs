@@ -21,7 +21,7 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-engine3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'route'];
 for (const name of names) {
   const raw = fs
     .readFileSync(source + name + '.ts', 'utf8')
@@ -44,7 +44,9 @@ const { World } = await import(path.join(temp, 'world.mjs'));
 const { stepHopper, createHopperState, predictLanding } = await import(path.join(temp, 'controller.mjs'));
 const { createCamera, updateCamera } = await import(path.join(temp, 'camera.mjs'));
 const { Combat } = await import(path.join(temp, 'combat3d.mjs'));
-const { sunseedFields } = await import(path.join(temp, 'district.mjs'));
+const { sunseedFields, MISSIONS } = await import(path.join(temp, 'district.mjs'));
+const { buildRoute } = await import(path.join(temp, 'route.mjs'));
+const { shadowBody } = await import(path.join(temp, 'combat3d.mjs'));
 
 const dt = 1 / 120;
 const blank = {
@@ -118,7 +120,7 @@ function check(name, cond, detail) {
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
   check('tap jump apex 19-24m', apex > 19 && apex < 24, apex);
-  check('tap jump lands 1.6-2.4s', landAt !== null && landAt > 1.6 && landAt < 2.4, landAt);
+  check('tap jump lands 1.0-1.4s (a quick launch)', landAt !== null && landAt > 1.0 && landAt < 1.4, landAt);
   check('tap jump never dips below start by >0.5m', minRel > -0.5, minRel);
 }
 
@@ -136,7 +138,7 @@ function check(name, cond, detail) {
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
   check('held jump apex 78-92m', apex > 78 && apex < 92, apex);
-  check('held jump airtime 3.4-4.6s', landAt !== null && landAt > 3.4 && landAt < 4.6, landAt);
+  check('held jump airtime 2.0-2.9s', landAt !== null && landAt > 2.0 && landAt < 2.9, landAt);
 }
 
 // ---------------------------------------------------------------------
@@ -580,7 +582,7 @@ function aimFrom(h, extra = {}) {
   s.grounded = false;
   s.vz = -30;
   const p = predictLanding(s, world);
-  check('predictLanding time is 1.6-2.2s', p.t > 1.6 && p.t < 2.2, p.t);
+  check('predictLanding time is 0.9-1.2s', p.t > 0.9 && p.t < 1.2, p.t);
   check(
     'predictLanding y is within 3m of the terrain at x,z',
     Math.abs(p.y - world.heightAt(p.x, p.z)) < 3,
@@ -701,6 +703,8 @@ function aimFrom(h, extra = {}) {
   const combat = new Combat(world, districtC);
   const cb = makeCallbacks();
   const c1 = combat.shadows.find((s) => s.id === 'c1');
+  // A fixed place on its idle circle: the scenario is about the swoop, not luck.
+  c1.phase = 0;
   // 40m out horizontally, 10m below the condor's line -- inside notice and
   // "not far above it".
   const h = createHopperState(0, c1.y + c1.height * 0.5 + 3, -260, Math.PI);
@@ -741,4 +745,120 @@ function aimFrom(h, extra = {}) {
   check('resetToCheckpoint keeps district shadows', combat.shadows.some((s) => s.id === 'h1'), combat.shadows.map((s) => s.id));
 }
 
-console.log(`engine3d: ${checks} checks passed across 15 scenarios (world, controller, camera, combat3d, district)`);
+// ---------------------------------------------------------------------
+// 16. The trail and the forward camera
+// ---------------------------------------------------------------------
+{
+  const wrap = (d) => {
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return d;
+  };
+  for (const make of MISSIONS[0]) {
+    const d = make();
+    const route = buildRoute(d);
+    // (a) The trail runs through every totem, in checkpoint order.
+    const totems = d.placements
+      .filter((p) => p.id === 'prop.checkpointTotem')
+      .sort((a, b) => Math.hypot(a.x - d.start.x, a.z - d.start.z) - Math.hypot(b.x - d.start.x, b.z - d.start.z));
+    let lastS = -1;
+    for (const t of totems) {
+      const hit = route.nearest(t.x, t.z);
+      check(`${d.name}: totem (${t.x},${t.z}) lies on the trail`, hit.dist < 2, hit.dist);
+      check(`${d.name}: totem (${t.x},${t.z}) is further along the trail than the one before`, hit.s > lastS, `${hit.s} after ${lastS}`);
+      lastS = hit.s;
+    }
+    check(`${d.name}: the trail ends at the exit`, route.distance(d.exit.x, d.exit.z) < 2, route.distance(d.exit.x, d.exit.z));
+    // (b) It winds: the route is longer than the straight line, and bends both ways.
+    const straight = Math.hypot(d.exit.x - d.start.x, d.exit.z - d.start.z);
+    check(`${d.name}: the trail winds (longer than the straight line)`, route.length > straight * 1.03, `${route.length.toFixed(0)} vs ${straight.toFixed(0)}`);
+    let left = false,
+      right = false;
+    for (let s = 20; s < route.length; s += 20) {
+      const turn = wrap(route.yawAt(s) - route.yawAt(s - 20));
+      if (turn > 0.03) left = true;
+      if (turn < -0.03) right = true;
+    }
+    check(`${d.name}: the trail bends both ways`, left && right, `${left} ${right}`);
+    // (c) The forward direction is always onward: from anywhere within 90 m of
+    // the line, the camera's forward agrees with the trail's own direction
+    // there and with the district's overall direction (never backward).
+    const overall = Math.atan2(d.exit.x - d.start.x, d.exit.z - d.start.z);
+    let worstLocal = 1,
+      worstOverall = 1;
+    for (let s = 0; s < route.length - 90; s += 15) {
+      const p = route.pointAt(s);
+      for (const off of [-90, -45, 0, 45, 90]) {
+        const x = p.x + Math.cos(p.yaw) * off,
+          z = p.z - Math.sin(p.yaw) * off;
+        const hit = route.nearest(x, z);
+        const forward = route.yawAt(hit.s + 80);
+        // Deep inside a hairpin the nearest leg is legitimately the next one,
+        // so the local agreement is only asked of the trail's own shoulders.
+        if (Math.abs(off) <= 45) worstLocal = Math.min(worstLocal, Math.cos(wrap(forward - p.yaw)));
+        worstOverall = Math.min(worstOverall, Math.cos(wrap(forward - overall)));
+      }
+    }
+    check(`${d.name}: forward stays within 75° of the trail's own direction, even beside a bend`, worstLocal > 0.25, worstLocal);
+    check(`${d.name}: forward never faces back toward the start`, worstOverall > 0, worstOverall);
+  }
+  // (d) Running back toward the camera does not turn it: the view keeps facing along the trail.
+  {
+    const route = world.route;
+    const settings = { sensitivity: 0.5, invertY: false, reducedMotion: false };
+    const blankCam = { lookX: 0, lookY: 0, mouseLookX: 0, mouseLookY: 0, resetPressed: false, horizonHeld: false };
+    const h = startHopper(0, -200);
+    const forward0 = route.yawAt(route.nearest(h.x, h.z).s + 80);
+    const cam = createCamera(forward0, [h.x, h.y + 8, h.z]);
+    // Hopper turns round and runs back toward the start (+z) for two seconds.
+    h.yaw = 0;
+    h.vz = 40;
+    for (let i = 0; i < 240; i++) {
+      h.z += h.vz * dt;
+      const forward = route.yawAt(route.nearest(h.x, h.z).s + 80);
+      updateCamera(cam, h, world, { ...blankCam, forward }, settings, dt);
+    }
+    check('camera keeps facing along the trail while Hopper runs back toward it', Math.abs(wrap(cam.yaw - forward0)) < 0.35, wrap(cam.yaw - forward0));
+    check('the eye stays behind Hopper along the trail (ahead of him as he runs back)', Math.sin(cam.yaw) * (h.x - cam.eye[0]) + Math.cos(cam.yaw) * (h.z - cam.eye[2]) > 0, [cam.eye, h.x, h.z]);
+  }
+  // (e) Jumping past a totem, off to one side, does not swing the camera.
+  {
+    const route = world.route;
+    const settings = { sensitivity: 0.5, invertY: false, reducedMotion: false };
+    const blankCam = { lookX: 0, lookY: 0, mouseLookX: 0, mouseLookY: 0, resetPressed: false, horizonHeld: false };
+    const h = startHopper(40, -290);
+    const cam = createCamera(route.yawAt(route.nearest(h.x, h.z).s + 80), [h.x, h.y + 8, h.z]);
+    let worstStep = 0;
+    for (let i = 0; i < 360; i++) {
+      const jump = i === 30;
+      stepHopper(h, world, { ...blank, dz: -1, jumpPressed: jump, jumpHeld: jump }, dt);
+      const before = cam.yaw;
+      updateCamera(cam, h, world, { ...blankCam, forward: route.yawAt(route.nearest(h.x, h.z).s + 80) }, settings, dt);
+      worstStep = Math.max(worstStep, Math.abs(wrap(cam.yaw - before)));
+    }
+    check('passing the totem at (0,-330) 40 m to its side never swings the camera (max 1.5°/step)', worstStep < 0.026, worstStep);
+    check('Hopper passed the totem', h.z < -330, h.z);
+  }
+  // (f) The jump is a quick launch: a tap peaks in well under a second.
+  {
+    const s = startHopper(0, 40);
+    let apexAt = 0,
+      apex = 0;
+    for (let i = 0; i < 240; i++) {
+      stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i === 0 }, dt);
+      if (s.y - s.groundY > apex) {
+        apex = s.y - s.groundY;
+        apexAt = i * dt;
+      }
+    }
+    check('tap jump peaks within 0.7 s', apexAt < 0.7, apexAt);
+  }
+  // (g) Every shadow is Hopper's size or bigger (he is 14 m tall).
+  for (const kind of ['shadeHound', 'seedSpitter', 'windowRay', 'spireLeech', 'cragTortoise', 'riftCondor']) {
+    const b = shadowBody(kind);
+    check(`${kind} body reaches Hopper's scale (height or span >= 12 m)`, Math.max(b.height, b.radius * 2) >= 12, b);
+    check(`${kind} is scaled up from its stand-in`, b.size >= 2.8, b.size);
+  }
+}
+
+console.log(`engine3d: ${checks} checks passed across 16 scenarios (world, controller, camera, combat3d, district, route)`);

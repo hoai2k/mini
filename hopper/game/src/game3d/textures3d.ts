@@ -28,6 +28,7 @@ import {
 } from 'three';
 import { makeRampTexture } from '../../../3d/standins/src/textures.js';
 import type { District } from './district';
+import type { Route } from './route';
 
 export const TEXTURE_BASE = './3d/textures/';
 
@@ -224,7 +225,7 @@ export const FLOOR_SURFACE: Record<string, string> = { harbor: 'sea', blue: 'dus
 /** Uniform shared by every terrain material: seconds, for the surface flow. */
 export const terrainClock = { value: 0 };
 
-export async function paintTerrain(terrain: Mesh, region: string, district: District): Promise<boolean> {
+export async function paintTerrain(terrain: Mesh, region: string, district: District, route?: Route): Promise<boolean> {
   const [ground, cliff, path] = await Promise.all(['ground', 'cliff', 'path'].map((f) => painting(`terrain/${region}/${f}.png`, { repeat: 1 })));
   if (!ground || !cliff || !path) return false;
   const surfaceName = FLOOR_SURFACE[region];
@@ -235,11 +236,13 @@ export async function paintTerrain(terrain: Mesh, region: string, district: Dist
   const pos = geo.attributes.position,
     nor = geo.attributes.normal;
   const splat = new Float32Array(pos.count * 3);
-  // The path follows the chapter spine: chapter midpoints joined by segments.
+  // The worn path follows the route (the trail's own line); without one, the
+  // chapter spine: chapter midpoints joined by segments.
   const spine = district.chapters.map((c) => [0, (c.z0 + c.z1) / 2] as [number, number]);
   spine.unshift([district.start.x, district.start.z]);
   spine.push([district.exit.x, district.exit.z]);
   const distToSpine = (x: number, z: number) => {
+    if (route) return route.distance(x, z);
     let best = Infinity;
     for (let i = 0; i + 1 < spine.length; i++) {
       const [ax, az] = spine[i],
@@ -255,7 +258,7 @@ export async function paintTerrain(terrain: Mesh, region: string, district: Dist
   for (let i = 0; i < pos.count; i++) {
     const slope = 1 - nor.getY(i);
     const cliffW = Math.min(1, Math.max(0, (slope - 0.08) * 6));
-    const pathW = Math.max(0, 1 - distToSpine(pos.getX(i), pos.getZ(i)) / 22) * (1 - cliffW);
+    const pathW = Math.max(0, 1 - distToSpine(pos.getX(i), pos.getZ(i)) / 30) * (1 - cliffW);
     const groundW = Math.max(0, 1 - cliffW - pathW);
     splat[i * 3] = groundW;
     splat[i * 3 + 1] = cliffW;

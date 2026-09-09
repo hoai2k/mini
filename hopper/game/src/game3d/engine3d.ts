@@ -66,6 +66,8 @@ export class Engine3D implements GameEngine {
   /** Seconds Y has been held on the ground: a tap hops back, a hold charges. */
   private yHold = -1;
   private predicted: { x: number; y: number; z: number } | null = null;
+  /** Hopper's last known distance along the trail (a search hint). */
+  private routeS = 0;
   private onClick = () => {
     if (!this.paused && document.pointerLockElement !== this.canvas) void this.canvas.requestPointerLock?.()?.catch?.(() => {});
   };
@@ -142,12 +144,14 @@ export class Engine3D implements GameEngine {
     const cp = this.checkpoints[this.checkpointIndex];
     const x = cp ? cp.x + 6 : d.start.x,
       z = cp ? cp.z + 8 : d.start.z;
-    const yaw = cp ? Math.atan2(d.exit.x - x, d.exit.z - z) : d.start.yaw;
+    // Face along the trail from here, as the camera will.
+    const yaw = cp ? world.route.yawAt(world.route.nearest(x, z).s + 40) : d.start.yaw;
     this.player = createHopperState(x, world.groundAt(x, z, 1e6).y, z, yaw);
     this.player.groundY = this.player.y;
     this.player.invuln = 1.7;
     this.camera = createCamera(yaw, [x, this.player.y + 8, z]);
     this.predicted = null;
+    this.routeS = world.route.nearest(x, z).s;
   }
   setPaused(v: boolean): void {
     this.paused = v;
@@ -253,9 +257,9 @@ export class Engine3D implements GameEngine {
         if (e.stomp) {
           combat.shockwave(h.x, h.y, h.z, 12, this.callbacks());
           this.rumble(0.8, 160);
-        } else if (e.speed > 25) {
+        } else if (e.speed > 40) {
           this.sound('stomp');
-          this.rumble(Math.min(0.6, e.speed / 120), 90);
+          this.rumble(Math.min(0.6, e.speed / 190), 90);
         }
       } else if (e.kind === 'wallKick' || e.kind === 'spring') this.sound('jump');
       else if (e.kind === 'glideStart') this.sound('shield');
@@ -383,18 +387,19 @@ export class Engine3D implements GameEngine {
       } else if (this.hintT <= 0) this.setHint(bossDown ? 'The gate is sealed: clear its shadows first.' : 'The commander guards the summit.', 3);
     }
     // Camera and the landing prediction.
-    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], waypoint: this.waypoint() }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
+    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward() }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
     this.predicted = !h.grounded && h.height > 3 && !h.gliding ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
     if (this.time > 20 && this.time < 20.1) this.setHint(`Click the right stick: Horizon View shows the way to ${d.landmark.name}.`, 6);
   }
-  /** The route's next stop: the first unlit totem ahead, else the exit. */
-  private waypoint(): [number, number, number] {
-    const d = this.district!,
+  /** The way onward: the trail's tangent 80 m ahead of Hopper's place on it.
+   * A direction along the route, so it turns only as the trail bends. */
+  private forward(): number {
+    const route = this.world!.route,
       h = this.player;
-    const next = this.checkpoints.find((t, i) => i > this.checkpointIndex && Math.hypot(t.x - h.x, t.z - h.z) > 25);
-    return next ? [next.x, next.y, next.z] : [d.exit.x, 0, d.exit.z];
+    this.routeS = route.nearest(h.x, h.z, this.routeS).s;
+    return route.yawAt(this.routeS + 80);
   }
   /** The episode continues in its next district. */
   private nextDistrict() {

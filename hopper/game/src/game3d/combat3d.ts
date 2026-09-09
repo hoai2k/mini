@@ -38,6 +38,9 @@ export interface Shadow {
   /** Body: a vertical cylinder of this radius and height, feet at y. */
   radius: number;
   height: number;
+  /** Uniform scale of the stand-in body over its authored size; the radius
+   * and height above already include it. */
+  size: number;
   /** Seconds the core stays open after an attack. */
   open: number;
   hitFlash: number;
@@ -81,14 +84,23 @@ export interface CombatCallbacks {
   bounce: (shadow: Shadow) => void;
 }
 
-const SPECS: Record<ShadowKind, { hp: number; radius: number; height: number; flying: boolean; rooted: boolean; armored: boolean; notice: number; range: number; tell: number; recover: number; cooldown: number }> = {
-  shadeHound: { hp: 4, radius: 2.6, height: 3.2, flying: false, rooted: false, armored: false, notice: 110, range: 30, tell: 0.55, recover: 0.9, cooldown: 1.6 },
-  seedSpitter: { hp: 6, radius: 2.6, height: 5.5, flying: false, rooted: true, armored: false, notice: 170, range: 170, tell: 0.7, recover: 1.2, cooldown: 2.4 },
-  windowRay: { hp: 4, radius: 4.5, height: 1.6, flying: true, rooted: false, armored: false, notice: 140, range: 140, tell: 0.75, recover: 1.6, cooldown: 2.2 },
-  spireLeech: { hp: 6, radius: 1.4, height: 1.6, flying: false, rooted: true, armored: false, notice: 200, range: 200, tell: 0.9, recover: 1.4, cooldown: 2.6 },
-  cragTortoise: { hp: 10, radius: 3.4, height: 4.7, flying: false, rooted: false, armored: true, notice: 120, range: 34, tell: 0.8, recover: 1.3, cooldown: 2.2 },
-  riftCondor: { hp: 5, radius: 4.5, height: 1.6, flying: true, rooted: false, armored: false, notice: 170, range: 170, tell: 0.9, recover: 2.0, cooldown: 3.0 },
+/** Hopper is a 14 m giant; every shadow is built to his scale or beyond, so
+ * `size` multiplies the stand-in's authored body (radius and height are the
+ * authored collider, scaled at spawn). A hound stands eye to eye with him, a
+ * condor's span is three of him. */
+const SPECS: Record<ShadowKind, { hp: number; radius: number; height: number; size: number; flying: boolean; rooted: boolean; armored: boolean; notice: number; range: number; tell: number; recover: number; cooldown: number }> = {
+  shadeHound: { hp: 4, radius: 2.6, height: 3.2, size: 4.4, flying: false, rooted: false, armored: false, notice: 130, range: 40, tell: 0.55, recover: 0.9, cooldown: 1.6 },
+  seedSpitter: { hp: 6, radius: 2.6, height: 5.5, size: 2.9, flying: false, rooted: true, armored: false, notice: 190, range: 190, tell: 0.7, recover: 1.2, cooldown: 2.4 },
+  windowRay: { hp: 4, radius: 4.5, height: 1.6, size: 3.5, flying: true, rooted: false, armored: false, notice: 160, range: 160, tell: 0.75, recover: 1.6, cooldown: 2.2 },
+  spireLeech: { hp: 6, radius: 1.4, height: 1.6, size: 4.5, flying: false, rooted: true, armored: false, notice: 220, range: 220, tell: 0.9, recover: 1.4, cooldown: 2.6 },
+  cragTortoise: { hp: 10, radius: 3.4, height: 4.7, size: 3.2, flying: false, rooted: false, armored: true, notice: 140, range: 44, tell: 0.8, recover: 1.3, cooldown: 2.2 },
+  riftCondor: { hp: 5, radius: 4.5, height: 1.6, size: 3.0, flying: true, rooted: false, armored: false, notice: 190, range: 190, tell: 0.9, recover: 2.0, cooldown: 3.0 },
 };
+/** The scaled body of a species, for tests and the renderer. */
+export function shadowBody(kind: ShadowKind): { radius: number; height: number; size: number } {
+  const s = SPECS[kind];
+  return { radius: s.radius * s.size, height: s.height * s.size, size: s.size };
+}
 
 const dist3 = (ax: number, ay: number, az: number, bx: number, by: number, bz: number) => Math.hypot(ax - bx, ay - by, az - bz);
 
@@ -121,7 +133,7 @@ export class Combat {
     // Everything else rests on whatever is solid at or above the terrain.
     const gy = spec.rooted ? y : Math.max(this.world.groundAt(s.x, s.z, y + 0.5).y, y);
     return {
-      id: s.id, kind: s.kind, x: s.x, y: gy, z: s.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: spec.hp, maxHp: spec.hp, state: 'idle', timer: 0, cooldown: 0.8 + (s.id.length % 4) * 0.3, alive: true, dormant: (s.wave ?? 0) > 0, group: s.group || s.id, wave: s.wave ?? 0, homeX: s.x, homeY: gy, homeZ: s.z, flying: spec.flying, rooted: spec.rooted, armored: spec.armored, radius: spec.radius, height: spec.height, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: s.patrol ?? 40, phase: Math.random() * Math.PI * 2, scale: 1, grounded: !spec.flying, spawnFlash: 0, beamX: s.x, beamY: gy, beamZ: s.z,
+      id: s.id, kind: s.kind, x: s.x, y: gy, z: s.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: spec.hp, maxHp: spec.hp, state: 'idle', timer: 0, cooldown: 0.8 + (s.id.length % 4) * 0.3, alive: true, dormant: (s.wave ?? 0) > 0, group: s.group || s.id, wave: s.wave ?? 0, homeX: s.x, homeY: gy, homeZ: s.z, flying: spec.flying, rooted: spec.rooted, armored: spec.armored, radius: spec.radius * spec.size, height: spec.height * spec.size, size: spec.size, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: s.patrol ?? 40, phase: Math.random() * Math.PI * 2, scale: 1, grounded: !spec.flying, spawnFlash: 0, beamX: s.x, beamY: gy, beamZ: s.z,
     };
   }
   /** Summon a shadow at runtime (bosses summoning adds) -- built the same way
@@ -548,7 +560,7 @@ export class Combat {
             s.x += s.vx * dt;
             s.y += s.vy * dt;
             s.z += s.vz * dt;
-            const floor = world.groundAt(s.x, s.z, s.y + 1).y + 3;
+            const floor = world.groundAt(s.x, s.z, s.y + 1).y + Math.max(3, s.height * 0.5);
             if (s.y < floor) s.y = floor;
             if (dh <= MOVE.radius + s.radius && h.y + MOVE.height > s.y - 1 && h.y < s.y + s.height + 1 && h.y + 2 < s.y + s.height) {
               const nx = dx / (dh || 1),
@@ -723,7 +735,7 @@ export class Combat {
             s.x += s.vx * dt;
             s.y += s.vy * dt;
             s.z += s.vz * dt;
-            const floor = world.groundAt(s.x, s.z, s.y + 1).y + 3;
+            const floor = world.groundAt(s.x, s.z, s.y + 1).y + Math.max(3, s.height * 0.5);
             if (s.y < floor) s.y = floor;
             if (dh <= MOVE.radius + s.radius && h.y + MOVE.height > s.y - 1 && h.y < s.y + s.height + 1 && h.y + 2 < s.y + s.height) {
               const nx = dx / (dh || 1),
@@ -737,8 +749,8 @@ export class Combat {
             }
           } else if (s.state === 'recover') {
             s.timer -= dt;
-            // Climb back toward home.
-            this.flyToward(s, s.homeX, s.homeY, s.homeZ, 30, dt);
+            // Pull up out of the swoop first, then climb back toward home.
+            this.flyToward(s, s.homeX, Math.max(s.homeY, s.y + (s.timer > spec.recover * 0.5 ? 8 : 0)), s.homeZ, 30, dt);
             if (s.timer <= 0) s.state = 'idle';
           } else if (s.state === 'launched') {
             s.state = 'recover';

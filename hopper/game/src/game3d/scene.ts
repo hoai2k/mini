@@ -50,6 +50,7 @@ import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, cell, cellPlane, cellSprite, decal, guideVariant, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
 import { standInKey, swapDelivered, type Swapped } from './models3d';
+import { buildTrail } from './trail';
 import type { RookRuntime } from './boss3d';
 
 interface Effect {
@@ -241,7 +242,10 @@ export class Scene3D {
     this.worldGroup.add(hemi, this.sun, new AmbientLight(region.haze, 0.12));
     const terrain = makeTerrain(region, { size: d.size, segments: 160, ...d.terrain });
     this.worldGroup.add(terrain);
-    void paintTerrain(terrain, region.id, d);
+    void paintTerrain(terrain, region.id, d, world.route);
+    // The trail along the route: its ribbon, edge stones, waymarkers and the
+    // tall things beside it.
+    this.worldGroup.add(buildTrail(world));
     this.delivered = [];
     for (const inst of world.instances) {
       this.worldGroup.add(inst.object);
@@ -263,16 +267,20 @@ export class Scene3D {
     void reticle(true, 14).then((r) => (this.reticles.locked = r));
     for (const s of shadows) {
       const o = createStandIn(`enemy.${s.kind}`);
-      // A small flash sphere and an amber tell ring, shown by state.
-      const flash = new Mesh(new SphereGeometry(s.radius * 1.3, 12, 8), this.flashMaterial);
+      // The body is scaled to Hopper's size; the flash sphere and amber tell
+      // ring are authored in the stand-in's own units and scale with it.
+      const r = s.radius / s.size,
+        hgt = s.height / s.size;
+      o.scale.setScalar(s.size);
+      const flash = new Mesh(new SphereGeometry(r * 1.3, 12, 8), this.flashMaterial);
       flash.name = 'Flash';
       flash.visible = false;
-      flash.position.y = s.height * 0.5;
-      const tell = new Mesh(new TorusGeometry(s.radius * 1.4, 0.25, 6, 24), this.tellMaterial);
+      flash.position.y = hgt * 0.5;
+      const tell = new Mesh(new TorusGeometry(r * 1.4, 0.25, 6, 24), this.tellMaterial);
       tell.name = 'Tell';
       tell.visible = false;
       tell.rotation.x = Math.PI / 2;
-      tell.position.y = s.height + 1.5;
+      tell.position.y = hgt + 1.5;
       o.add(flash, tell);
       this.worldGroup.add(o);
       this.shadowObjects.set(s.id, o);
@@ -536,7 +544,7 @@ export class Scene3D {
         tell.scale.setScalar(s.state === 'tell' ? 1.6 - s.telegraph * 0.6 : 0.9 + Math.sin(this.time * 12) * 0.1);
       }
       const squash = s.kind === 'seedSpitter' ? s.scale : 1;
-      o.scale.set(squash, 1 / Math.sqrt(squash), squash);
+      o.scale.set(squash * s.size, s.size / Math.sqrt(squash), squash * s.size);
       o.userData.animate?.(this.time + s.phase);
       if (combat.lock === s.id) {
         const r = s.open > 0 || s.state === 'tell' ? this.reticles.locked : this.reticles.locked || this.reticles.open;

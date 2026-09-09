@@ -32,8 +32,10 @@ export interface CameraInput {
   /** World position of the locked shadow, if any. */
   lock?: [number, number, number] | null;
   landmark?: [number, number, number];
-  /** Where the route goes next (the next totem or the exit): the camera faces it. */
-  waypoint?: [number, number, number];
+  /** The route's forward yaw where Hopper stands (its tangent a little way
+   * ahead): the follow camera faces this, and only this. It is a direction,
+   * not a point, so it never swings round as Hopper passes something. */
+  forward?: number;
 }
 export interface CameraSettings {
   sensitivity: number;
@@ -50,7 +52,9 @@ export const CAMERA = {
   /** Manual turn from the forward direction, either way. */
   maxTurn: Math.PI / 4,
   turnReturn: 1.2,
-  forwardRate: 1.5,
+  forwardRate: 1.1,
+  /** Fastest the forward direction may turn, so a bend is a pan, never a whip. */
+  forwardTurnRate: 0.9,
   pullBackPerMetre: 0.25,
   maxPullBack: 20,
   tiltPerMetre: 0.004,
@@ -133,11 +137,12 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     wantPitch = Math.max(-0.25, Math.min(0.45, Math.atan2(com[1] + 6 - input.lock[1], Math.max(10, d)) + 0.12));
   } else {
     cam.mode = 'follow';
-    // The camera faces the way forward: toward the next waypoint. Hopper is
-    // free to turn round and run back toward it; the view does not follow him.
-    if (input.waypoint) {
-      const want = Math.atan2(input.waypoint[0] - h.x, input.waypoint[2] - h.z);
-      cam.forward += wrap(want - cam.forward) * Math.min(1, CAMERA.forwardRate * dt);
+    // The camera faces the way forward along the trail. Hopper is free to turn
+    // round and run back toward it; the view does not follow him, and it never
+    // faces backward: the route's tangent always points onward.
+    if (input.forward !== undefined) {
+      const want = wrap(input.forward - cam.forward) * Math.min(1, CAMERA.forwardRate * dt);
+      cam.forward += Math.max(-CAMERA.forwardTurnRate * dt, Math.min(CAMERA.forwardTurnRate * dt, want));
     }
     // A limited manual turn either way, springing back when released.
     cam.turn -= stickX * CAMERA.stickRate * sens * dt + input.mouseLookX * CAMERA.mouseRate * sens;

@@ -11,6 +11,7 @@ import {
   regionById,
 } from '../../../3d/standins/src/index.js';
 import type { District, Placement } from './district';
+import { buildRoute, type Route } from './route';
 
 export interface Collider {
   /** Structure instance that owns this box. */
@@ -140,11 +141,14 @@ export class World {
   readonly volumes: Volume[] = [];
   readonly triggers: Trigger[] = [];
   readonly fields: Field[] = [];
+  /** The trail from the start to the exit; the camera faces along it. */
+  readonly route: Route;
   private grid = new Map<string, Collider[]>();
   readonly region;
   constructor(district: District) {
     this.district = district;
     this.region = regionById(district.region);
+    this.route = buildRoute(district);
     this.heightAt = makeHeightField({ size: district.size, ...district.terrain });
     for (const p of district.placements) this.place(p);
     for (const c of district.cages || []) this.placeCage(c);

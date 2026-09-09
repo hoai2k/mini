@@ -9,14 +9,16 @@ import { World, type Collider } from './world';
 export const MOVE = {
   height: 14,
   radius: 5,
-  gravity: 45,
+  gravity: 120,
+  /** Falling pulls harder than rising: the arc peaks and comes down sharp. */
+  fallGravity: 1.25,
   run: 52,
   groundAccel: 320,
   airAccel: 170,
   turnRate: Math.PI * 5,
-  tapJump: 43.5,
-  holdWindow: 0.5,
-  holdThrust: 55,
+  tapJump: 72,
+  holdWindow: 0.32,
+  holdThrust: 140,
   glideSink: 7,
   glideSpeed: 62,
   glideTurn: Math.PI * 0.6,
@@ -25,8 +27,8 @@ export const MOVE = {
   chargeApexMax: 140,
   springApex: 168,
   diveGravity: 2.5,
-  diveTerminal: 110,
-  wallKickUp: 38,
+  diveTerminal: 190,
+  wallKickUp: 62,
   wallKickAway: 26,
   wallGrace: 0.12,
   wallCommit: 0.16,
@@ -391,7 +393,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.vx *= k;
         s.vz *= k;
       } else {
-        s.vy -= g * dt;
+        s.vy -= g * (s.vy < 0 ? MOVE.fallGravity : 1) * dt;
       }
     }
     // Dive (Y in the air).
@@ -514,7 +516,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.vx = s.vz = 0;
         s.move = 'stomp';
       } else {
-        s.landTimer = impact > 40 ? 0.25 : 0.12;
+        s.landTimer = impact > 65 ? 0.25 : 0.12;
         s.move = 'land';
       }
       s.events.push({ kind: 'land', speed: impact, stomp });
@@ -572,7 +574,7 @@ export function predictLanding(s: HopperState, world: World, maxTime = 8): { x: 
     x += s.vx * dt;
     z += s.vz * dt;
     y = ny;
-    vy -= g * dt;
+    vy -= g * (vy < 0 ? MOVE.fallGravity : 1) * dt;
   }
   return { x, y: world.groundAt(x, z, y).y, z, t: maxTime };
 }

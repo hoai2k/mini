@@ -122,22 +122,22 @@ The mapping keeps the 2D game's muscle memory where it still means the same thin
 <!-- page -->
 ## Movement
 
-The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation timed independently. Gravity is stylised at 30 m/s² in Earth regions, heavier than the real thing so that an 84 m leap still lands with weight.
+The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation timed independently. Gravity is stylised at 120 m/s² in Earth regions, 1.25× that on the way down, far heavier than the real thing so that a jump is a launch and a landing has weight: the same apexes as before in about half the airtime.
 
 | Parameter | Value | Result |
 | --- | --- | --- |
 | Run speed | 32 m/s (2.3 H/s) | Crosses a 100 m roof in three seconds |
 | Acceleration, stop, turn | 0.2 s · 0.15 s · 180° in 0.25 s | Heavy pose changes, quick control |
-| Tap jump | 21 m apex (1.5 H), 2.4 s airtime | Hop between roof decks |
-| Held jump | 84 m apex (6 H), 4.7 s airtime, 0.5 s thrust window | Clears a tower band, crosses 150 m |
+| Tap jump | 21 m apex (1.5 H) in 0.6 s, 1.15 s airtime | A quick launch between roof decks |
+| Held jump | 87 m apex (6 H) in 1.3 s, 2.4 s airtime, 0.32 s thrust window | Clears a tower band, crosses 120 m |
 | Glide | Sink 6 m/s, forward 40 m/s, from any apex | 84 m of height becomes 560 m of distance |
 | Crouch charge | 0.8 s to full; super leap to 140 m (10 H), 6.1 s | Reaches a tower roof from the street |
 | Spring pad | Launch to 168 m (12 H); hold A to float | The tallest single climb |
 | Thermal | Lift 25 m/s inside the column while gliding | Chimneys, furnace doors, vents |
 | Wind lane | 15 m/s lateral push, marked by streaks | Bends a glide, never past its landing |
 | Stomp bounce | 56 m (4 H); 84 m with A held | Flyers are steps |
-| Dive | 2.5× gravity, terminal 90 m/s; 100 m in 1.5 s | Fast return to the ground, stomp on landing |
-| Wall kick | 30 m/s up, 20 m/s away, unlimited chain | Tower corners are ladders |
+| Dive | 2.5× gravity, terminal 190 m/s; 100 m in 1 s | Fast return to the ground, stomp on landing |
+| Wall kick | 62 m/s up (16 m), 26 m/s away, unlimited chain | Tower corners are ladders |
 | Ledge mantle | Reach 6 m over the lip, 0.7 s | Forgives a short leap |
 | Air control | 60% of ground acceleration | Real corrections, legible arcs |
 | Coyote time, input buffer | 0.12 s · 0.14 s | Forgiving edges and landings |
@@ -150,6 +150,10 @@ The crouch charge is the deliberate big jump. Holding RB compresses the hind leg
 
 Wall kicks chain without limit, because the world is full of corners and the ladder up a tower is a rhythm the player should be allowed to enjoy. Each kick preserves facing and commits steering for 0.16 s.
 
+### The trail
+
+Every district is a trail: a smooth route from the start totem through each checkpoint to the exit, authored as waypoints so that it winds between the structures, climbs the terraces and plateaus, drops through the valleys and keeps going forward. The ground is painted with a worn path along it and dressed with a ribbon the width of Hopper's stance, stones along both edges, a lit waymarker every 55 m, and tall things standing 20–95 m back from the edges (trees and haystacks, pylons and lamps, rock spires and cairns) so the scale of a 14 m grasshopper and the distance still to go can be read at a glance. Hopper may leave the trail whenever he likes; it is the direction the camera faces and the way home, not a corridor.
+
 ### Falling is free
 
 There is no death fall. The lowest surface in every district is ground, water, slag or dust, and each of those returns Hopper to play: water and dust are soft landings that push him back toward shore, slag is a hot updraft that lifts him out. A missed leap costs the climb back, and the design rule is that from any point in a district a spring pad, thermal, stair of structures or wall-kick corner leads back to the main line within twenty seconds. Signals are hidden at the bottom of things on purpose, so that falling is sometimes an invitation.
@@ -159,7 +163,7 @@ Knockback from an enemy hit can throw Hopper off a roof. That is the real cost o
 <!-- page -->
 ## Camera and readability
 
-The camera follows from 35 m behind and 12 m above the centre-of-mass socket with a 60° vertical field of view, so Hopper fills about a fifth of the frame and the rider stays visible on his back. The right stick orbits; releasing it lets the camera drift back behind the direction of travel over about a second. Camera collision is a spring against structure colliders, never a cut.
+The camera follows from 48 m behind and above the centre-of-mass socket with a 64° vertical field of view, so Hopper fills about a fifth of the frame and the rider stays visible on his back. It faces the way onward: along the district's trail, the route's own tangent 80 m ahead of Hopper's place on it, never toward a point, so it pans only as the trail bends (never faster than 0.9 rad/s) and never faces back toward the start. Hopper is free to turn round and run toward the camera; the view holds its direction. The right stick turns the view up to 45° either way and it springs back when released. Camera collision is a spring against structure colliders, never a cut.
 
 - **High leaps** pull the camera back and tilt it down as height above the last surface grows, up to 55 m behind at a super-leap apex, and ease back in as Hopper descends toward a landing. The landing is always framed before it is reached.
 - **Gliding** lowers the camera to just above wing height and widens the field of view by 8°, so distance and speed read.
@@ -176,7 +180,7 @@ Reduced motion halves camera pull-back and disables the glide field-of-view chan
 <!-- page -->
 ## Combat
 
-Only shadows can hurt Hopper. He has six armour pips; ordinary hits cost one, heavy and boss hits cost two, and 1.1 s of soft-outlined protection follows a hit. Capsules restore two, checkpoints and arena clears refill all six. Reaching zero plays the defeat and restarts at the last totem within three seconds, with the chapter's shadows reset and its cleared knots kept.
+Shadows are built to Hopper's scale or beyond: a hound stands eye to eye with a 14 m grasshopper, a tortoise is a moving hill, a condor's span is three of him. The enemies of a giant have to be worth fighting, and a fight reads from across the district. Only shadows can hurt Hopper. He has six armour pips; ordinary hits cost one, heavy and boss hits cost two, and 1.1 s of soft-outlined protection follows a hit. Capsules restore two, checkpoints and arena clears refill all six. Reaching zero plays the defeat and restarts at the last totem within three seconds, with the chapter's shadows reset and its cleared knots kept.
 
 | Attack | How | Damage and effect |
 | --- | --- | --- |
