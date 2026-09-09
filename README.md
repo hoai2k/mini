@@ -6,9 +6,11 @@ Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)**
 
 The 3D design, asset requests, and stand-in viewer are documented in [hopper/3d/README.md](hopper/3d/README.md).
 
+Static pages that sit beside the games live under [`sites/`](sites/README.md); the first is the artist page for **[Space Tiber](https://hoai2k.github.io/mini/sites/space-tiber/)**, the band that made Hopper's music.
+
 ## GitHub Pages
 
-Pushes to `main` run `.github/workflows/pages.yml`, which builds the game and deploys only `local/pages/` as the Pages artifact. The source entry is `hopper/index.html`; its compiled version is published at `/mini/hopper/index.html`. GitHub redirects `/mini/hopper` to `/mini/hopper/`.
+Pushes to `main` run `.github/workflows/pages.yml`, which builds the game, copies the static sites in, and deploys only `local/pages/` as the Pages artifact. The source entry is `hopper/index.html`; its compiled version is published at `/mini/hopper/index.html`. GitHub redirects `/mini/hopper` to `/mini/hopper/`.
 
 To build locally, run `pnpm build:pages` in `hopper/game`. This uses the same game components and engine as the existing development setup, with a static entry and `/mini/hopper/` asset base. Generated files stay under `local/pages/hopper/` and are not committed. Repository Settings → Pages must use **GitHub Actions** (already configured for this repository).
 
