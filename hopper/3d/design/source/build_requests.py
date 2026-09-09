@@ -356,12 +356,15 @@ for texture in T:
 ROUND3_DELIVERED = {'surface', 'effects', 'ui'}
 for texture in T:
     if texture['round'] == 3 and texture['category'] in ROUND3_DELIVERED:
-        texture['status'] = 'delivered'
         # design/source/verify_round3.py measured the checks that were due at
-        # delivery. Only the light landing guide passed; see
-        # ../textures/round3/verification.json.
-        texture['approval'] = ('verified' if texture['request'] == 'T-081'
-                               else 'verification-failed')
+        # delivery; only the light landing guide passed. A failing request goes
+        # back to `open` rather than staying `delivered`, because these lists
+        # are what the next generation round is worked from: a delivered file
+        # that fails its own spec would otherwise never be asked for again. The
+        # imperfect painting stays in the game meanwhile, as `In the game` says.
+        passed = texture['request'] == 'T-081'
+        texture['status'] = 'delivered' if passed else 'open'
+        texture['approval'] = 'verified' if passed else 'verification-failed'
         texture['verification'] = {
             'T-080': 'The three albedos and their detail masks do not tile: opposite edges differ by 5-17 per channel against a limit of 2. The foam strip does not tile horizontally (22.3) and runs into both vertical margins. Needs an offset-and-repaint pass, not a new prompt.',
             'T-081': 'Passes: alpha 0-255, geometry identical to the dark guide (coverage ratio 1.000).',

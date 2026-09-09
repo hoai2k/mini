@@ -12,7 +12,7 @@ Current generated assets for T080, T081, T082 and T086 are available at the requ
 | `ui/props.png` | Fail. All four decals touch their cell edges (smallest margin 0 px) against 24 px requested. |
 | `ui/landing-guide-light.png` | Pass. Alpha 0–255 and geometry identical to the dark guide (coverage ratio 1.000). |
 
-The artwork stays in place: it reads correctly in the districts that use it, and these are repeat/filtering faults rather than wrong pictures. Fixing them means an offset-and-repaint pass on the seams and a re-export of both atlases on their grids, not new prompts.
+T-080, T-082 and T-086 are back to `open` in the request documents so the next generation round picks them up again; T-081 stays `delivered`. The artwork stays in place meanwhile: it reads correctly in the districts that use it, and these are repeat/filtering faults rather than wrong pictures. Fixing them means an offset-and-repaint pass on the seams and a re-export of both atlases on their grids, not new prompts.
 
 `manifest.json` records every prompt, native resolution and export size. Square painted masters are 1254×1254 and exported at requested dimensions; these are not native 2K paintings. The landing guide uses the original editable SVG geometry with ivory strokes. Three matching grayscale detail maps are scalar detail/animation masks, not normal maps or directional flow vectors.
 

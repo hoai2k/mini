@@ -23,7 +23,7 @@ Round one is delivered and in the game (painted skies, horizon cards, terrain se
 The design makes every district floor a return to play: water and dust push Hopper back ashore, slag lifts him out. Round one has no painted surface for any of them, so the game draws flat colour. Needed before the docks, drift and foundry districts are built.
 
 - **Spec:** three 2048² tileable albedos with matching 512² flow/normal-free detail maps: storm-channel sea (Tempest Docks), luminous blue dust (Cobalt Drift), glowing slag (Cinder Foundries); plus a 1024×256 shoreline foam strip with alpha
-- **Status:** delivered (verification-failed) · **Final:** `textures/surface/{sea,dust,slag}.png`
+- **Status:** open (verification-failed) · **Final:** `textures/surface/{sea,dust,slag}.png`
 - **In the game:** paintTerrain paints the low floor of the harbor (sea), blue (dust) and foundry (slag) districts with the surface and scrolls its detail mask; paintKit puts slag on the barge deck and dust on the drift volumes. The foam strip waits for a district with a shoreline.
 - **Verification:** The three albedos and their detail masks do not tile: opposite edges differ by 5-17 per channel against a limit of 2. The foam strip does not tile horizontally (22.3) and runs into both vertical margins. Needs an offset-and-repaint pass, not a new prompt.
 - **Prompt:** Use case: texture. Seamless tileable hand-painted gouache surface, 1970s anime background style, three flat cel tones with brushed edges: (1) storm-grey sea with white spray streaks, (2) luminous ultramarine dust with cyan motes, (3) black slag crust with glowing orange seams. No lighting baked in, no text.
@@ -43,7 +43,7 @@ The delivered guide is dark navy, right for the fields and the city; on the obsi
 Round one covered impacts and sparks; Hopper's own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. This sheet gives them paint in the same style as the delivered atlases.
 
 - **Spec:** one 2048² sheet, four 512² alpha elements plus an 8-frame 512² strip for the muzzle glow
-- **Status:** delivered (verification-failed) · **Final:** `textures/effects/hopper.png`
+- **Status:** open (verification-failed) · **Final:** `textures/effects/hopper.png`
 - **In the game:** Hopper's laser bolts, eye muzzle glow (8 frames), guard shield face and glide wing trails come from the sheet; the flat shapes remain as fallbacks.
 - **Verification:** Four of the twelve sprite cells sit inside the 48px padding, the tightest at 11px, so neighbours bleed at small mip levels. Row four is intentionally empty. Needs a re-export on the grid.
 - **Prompt:** Use case: effect sprites. 1970s anime cel effects on transparent background: a red-white eye laser bolt with a bright core and ink edge, an eight-frame eye muzzle glow, a teal hexagon-patterned shield face with a white rim, and a soft cream glide wing trail. Flat tones, no text.
@@ -77,7 +77,7 @@ Optional. The delivered Thunderhead Range sky is painted at 1774×887 and upscal
 Small painted faces for the props the player reads at a glance. The stand-ins draw them as flat emissive shapes; the delivered models (M-071 onward) will carry these as decals.
 
 - **Spec:** 512² alpha sheet: lit and unlit totem lamp faces, a chevron ring for the spring pad plate, a signal-cage crown glyph
-- **Status:** delivered (verification-failed) · **Final:** `textures/ui/props.png`
+- **Status:** open (verification-failed) · **Final:** `textures/ui/props.png`
 - **In the game:** guideVariant picks the ivory guide on dark floors; the prop decals sit on every totem lamp (lit/unlit), spring pad plate and cage crown.
 - **Verification:** All four decals touch their cell edges (smallest margin 0px) against the 24px requested, so they bleed into each other under filtering. Needs a re-export on the grid.
 - **Prompt:** Use case: prop decals. Hand-painted anime cel decals on transparent background: a glowing ivory lamp face and its dark unlit twin, a ring of four white chevrons on cyan, a violet crown glyph. Flat tones with ink edges, no text.
