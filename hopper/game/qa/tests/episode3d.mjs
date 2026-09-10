@@ -25,7 +25,7 @@ fs.writeFileSync(
   `export class Scene3D {
   constructor(canvas) { this.canvas = canvas; this.builds = 0; this.effects = []; this.bossSets = []; this.frames = 0; }
   async loadHopper(_url, progress) { progress(1); }
-  buildWorld(world, shadows, rook, ahead) { this.builds++; this.lastBuild = { world, shadows, rook, ahead }; }
+  buildWorld(world, shadows, rook, ahead, next) { this.builds++; this.lastBuild = { world, shadows, rook, ahead, next }; }
   capture() { return 'data:image/jpeg;base64,STUB'; }
   setBoss(rook) { this.bossSets.push(rook); }
   effect(name, x, y, z) { this.effects.push({ name, x, y, z }); }
@@ -135,6 +135,16 @@ function playDistrict(index) {
   check(d.name === MISSIONS[0][index]().name, `district ${index} loaded`);
   check(w.instances.length > 10, `${d.name} has structures`);
   check(priv('scene').lastBuild.world === w, 'scene built for the district');
+  // The next district stands beyond the exit, its start on this exit at the same height.
+  const ahead = priv('scene').lastBuild.next;
+  if (index < MISSIONS[0].length - 1) {
+    check(!!ahead, `${d.name}: the next district is shown ahead`);
+    const n = ahead.world.district;
+    check(Math.abs(ahead.offset[0] + n.start.x - d.exit.x) < 0.01 && Math.abs(ahead.offset[2] + n.start.z - d.exit.z) < 0.01, 'the next district starts on this exit');
+    const seam = ahead.offset[1] + ahead.world.heightAt(n.start.x, n.start.z) - w.heightAt(d.exit.x, d.exit.z);
+    check(Math.abs(seam) < 0.01, `the ground meets at the seam (${seam.toFixed(2)} m)`);
+    check(ahead.world.instances.length > 40, 'the district ahead has its structures');
+  } else check(!ahead, `${d.name}: nothing beyond the last district`);
   const totems = priv('checkpoints');
   check(totems.length >= 7, `${d.name} has a totem chain (${totems.length})`);
   if (priv('boss')) check(!priv('boss').rook.active && priv('boss').rook.state === 'sleep', 'the Rook sleeps until Hopper enters the arena');

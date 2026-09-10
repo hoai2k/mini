@@ -161,7 +161,7 @@ export class Engine3D implements GameEngine {
     this.victoryT = 0;
     this.respawnT = 0;
     this.hp = this.maxHp;
-    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null, this.aheadColours());
+    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null, this.aheadColours(), this.districtAhead());
     for (let i = 0; i <= this.checkpointIndex; i++) this.checkpoints[i]?.object?.userData.lit?.(true);
     this.resetPlayer(carry);
     this.combat.resetToCheckpoint(this.player.z);
@@ -535,6 +535,20 @@ export class Engine3D implements GameEngine {
     if (!next) return undefined;
     const region = regionById(next().region);
     return { sky: region.sky, haze: region.haze, ground: region.ground };
+  }
+  /** The next district as a picture beyond this one's exit: built in its own
+   * frame and offset so its start sits on this district's exit, at the same
+   * ground height, so the crossing is continuous. */
+  private districtAhead(): { world: World; offset: [number, number, number] } | undefined {
+    const next = MISSIONS[this.mission]?.[this.districtIndex + 1];
+    if (!next || !this.world || !this.district) return undefined;
+    const world = new World(next());
+    const d = this.district,
+      n = world.district;
+    const dx = d.exit.x - n.start.x,
+      dz = d.exit.z - n.start.z,
+      dy = this.world.heightAt(d.exit.x, d.exit.z) - world.heightAt(n.start.x, n.start.z);
+    return { world, offset: [dx, dy, dz] };
   }
   /** The way onward: the trail's tangent 80 m ahead of Hopper's place on it.
    * A direction along the route, so it turns only as the trail bends. */

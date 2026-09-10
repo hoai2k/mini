@@ -244,7 +244,7 @@ export class Scene3D {
     this.actionName = name;
   }
   /** Build the picture of a district: atmosphere, terrain, structures, shadows. */
-  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }) {
+  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }, next?: { world: World; offset: [number, number, number] }) {
     this.scene.remove(this.worldGroup);
     this.worldGroup = new Group();
     this.scene.add(this.worldGroup);
@@ -272,10 +272,14 @@ export class Scene3D {
     });
     // The landmark is the next district seen from here, so it is painted in
     // that district's colours: the place ahead looks like the place ahead.
-    const landmark = makeLandmark(ahead ? { ...region, haze: ahead.haze, ground: ahead.ground, sky: ahead.sky } : region);
-    landmark.position.set(d.landmark.x, 0, d.landmark.z);
-    this.worldGroup.add(landmark);
-    void swapDelivered(landmark, standInKey('terrain.landmark', region.id));
+    if (next) this.worldGroup.add(this.districtAhead(next.world, next.offset));
+    else {
+      // With no district to show, the landmark silhouette stands for what is ahead.
+      const landmark = makeLandmark(ahead ? { ...region, haze: ahead.haze, ground: ahead.ground, sky: ahead.sky } : region);
+      landmark.position.set(d.landmark.x, 0, d.landmark.z);
+      this.worldGroup.add(landmark);
+      void swapDelivered(landmark, standInKey('terrain.landmark', region.id));
+    }
     const hemi = new HemisphereLight(new Color(region.sky).lerp(new Color('#ffffff'), 0.3), new Color(region.ground), 0.5);
     this.sun.color = new Color(region.sun || '#fff1c2').lerp(new Color('#ffffff'), 0.5);
     this.worldGroup.add(hemi, this.sun, new AmbientLight(region.haze, 0.12));
@@ -398,6 +402,34 @@ export class Scene3D {
         object.add(s);
       });
     }
+  }
+  /** The next district, seen from this one: its terrain and structures at
+   * low detail, placed beyond the exit in this district's frame so the seam
+   * lines up and what grows on the horizon is what Hopper walks into. Picture
+   * only: no colliders, shadows or triggers live here. */
+  private districtAhead(next: World, offset: [number, number, number]): Group {
+    const group = new Group();
+    group.name = 'district.ahead';
+    group.position.set(offset[0], offset[1], offset[2]);
+    const region = next.region,
+      d = next.district;
+    const terrain = makeTerrain(region, { size: d.size, segments: 56, ...d.terrain });
+    // The seam is this district's ground: the far terrain starts a little way in.
+    const pos = terrain.geometry.attributes.position;
+    const seamZ = d.start.z - 90;
+    for (let i = 0; i < pos.count; i++) if (pos.getZ(i) > seamZ) pos.setY(i, pos.getY(i) - Math.min(60, (pos.getZ(i) - seamZ) * 0.6));
+    pos.needsUpdate = true;
+    terrain.geometry.computeVertexNormals();
+    group.add(terrain);
+    void paintTerrain(terrain, region.id, d, next.route);
+    for (const inst of next.instances) {
+      const id = inst.standIn;
+      if (id === 'prop.signalBeacon' || id === 'prop.recoveryCapsule' || id === 'prop.thermalVent' || id === 'prop.windLane' || id === 'prop.lockdownEmitter' || id === 'prop.signalCage') continue;
+      group.add(inst.object);
+      void swapDelivered(inst.object, id, { lod: 'LOD1' });
+    }
+    void paintKit(group, region.id);
+    return group;
   }
   /** Attach (or drop) the Night Rook's stand-in body. Stand-in art: the boss has no delivered model yet. */
   setBoss(rook: RookRuntime | null) {
