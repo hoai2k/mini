@@ -878,16 +878,6 @@ export default function Home() {
                 </span>
               </div>
             </div>
-            <div className="location">
-              <span>
-                EPISODE {String(hud.mission + 1).padStart(2, '0')} <b> / </b>{' '}
-                {hud.area.toUpperCase()}
-              </span>
-              <p>{hud.chapter}</p>
-              <div className="route-progress">
-                <i style={{ width: `${hud.progress * 100}%` }} />
-              </div>
-            </div>
             <div className="hud-right">
               <span className="signal-count">
                 ✧ {hud.signals} <small>/ 9</small>
@@ -913,11 +903,6 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          {hud.landmark && (
-            <div className="compass">
-              ▲ {hud.landmark.name} · {Math.round(hud.landmark.distance)} m
-            </div>
-          )}
           {hud.lock && (
             <div
               className={`crosshair ${hud.lock}`}
@@ -930,23 +915,63 @@ export default function Home() {
           {hud.height !== undefined && hud.height > 4 && (
             <div className="height-ticks">{Math.round(hud.height)} m</div>
           )}
-          {hud.stronghold && (
-            <div className="stronghold-bar">
-              <span className="stronghold-name">{hud.stronghold.name}</span>
-              <span className="stronghold-host">
-                {Array.from({ length: hud.stronghold.total }, (_, i) => (
-                  <i key={i} className={i < hud.stronghold!.total - hud.stronghold!.remaining ? 'down' : ''} />
-                ))}
-              </span>
-              <span className="stronghold-count">{hud.stronghold.remaining} left</span>
-            </div>
-          )}
           {hud.standIns && (
             <div className="stand-in-tag" title={`Placeholder art on screen: ${hud.standIns}`}>
               STAND-IN ART · {hud.standIns}
             </div>
           )}
+          {/* Everything informational sits low, in the corners or along the
+              bottom edge: the top middle of the frame is the way ahead, and
+              stays clear. */}
           <div className="game-bottom">
+            <div className="game-bottom-status">
+              <div className="location">
+                <span>
+                  EPISODE {String(hud.mission + 1).padStart(2, '0')} <b> / </b>{' '}
+                  {hud.area.toUpperCase()}
+                </span>
+                <p>{hud.chapter}</p>
+                <div className="route-progress">
+                  <i style={{ width: `${hud.progress * 100}%` }} />
+                </div>
+                {hud.landmark && (
+                  <div className="compass">
+                    ▲ {hud.landmark.name} · {Math.round(hud.landmark.distance)} m
+                  </div>
+                )}
+              </div>
+              <div className="status-right">
+                {hud.stronghold && (
+                  <div className="stronghold-bar">
+                    <span className="stronghold-name">{hud.stronghold.name}</span>
+                    <span className="stronghold-host">
+                      {Array.from({ length: hud.stronghold.total }, (_, i) => (
+                        <i key={i} className={i < hud.stronghold!.total - hud.stronghold!.remaining ? 'down' : ''} />
+                      ))}
+                    </span>
+                    <span className="stronghold-count">{hud.stronghold.remaining} left</span>
+                  </div>
+                )}
+                {hud.target && !hud.boss && (
+                  <div className={`target-hud ${hud.target.locked ? 'locked' : ''}`}>
+                    <span>
+                      {hud.target.name}
+                      {hud.target.locked && <small>LOCKED</small>}
+                    </span>
+                    <div>
+                      <i style={{ width: `${hud.target.health * 100}%` }} />
+                    </div>
+                  </div>
+                )}
+                <span className="gravity-note">
+                  {hud.gravity < 0
+                    ? '↑ INVERTED GRAVITY'
+                    : hud.gravity === 1
+                      ? ''
+                      : `${hud.gravity.toFixed(2)}g GRAVITY`}
+                </span>
+              </div>
+            </div>
             <div className="game-bottom-row">
               {edition === '3d' ? (
                 <span>
@@ -962,13 +987,6 @@ export default function Home() {
                   <b className="pad b">B</b> GUARD FRONT
                 </span>
               )}
-              <span>
-                {hud.gravity < 0
-                  ? '↑ INVERTED GRAVITY'
-                  : hud.gravity === 1
-                    ? ''
-                    : `${hud.gravity.toFixed(2)}g GRAVITY`}
-              </span>
             </div>
             {hud.hint && <div className="game-bottom-hint">{hud.hint}</div>}
           </div>
@@ -988,17 +1006,6 @@ export default function Home() {
             <div className="area-banner">
               <span>{hud.bannerSmall}</span>
               <h2>{hud.banner}</h2>
-            </div>
-          )}
-          {hud.target && !hud.boss && (
-            <div className={`target-hud ${hud.target.locked ? 'locked' : ''}`}>
-              <span>
-                {hud.target.name}
-                {hud.target.locked && <small>LOCKED</small>}
-              </span>
-              <div>
-                <i style={{ width: `${hud.target.health * 100}%` }} />
-              </div>
             </div>
           )}
           {hud.boss && (

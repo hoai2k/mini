@@ -31,6 +31,9 @@ export interface CameraState {
   /** The rate the picture follows Hopper's height at, itself eased so that
    * taking off and landing change it gradually rather than in a step. */
   riseRate: number;
+  /** Seconds left of a stick-click recentre, which brings the view round
+   * quickly but still as a turn, never a cut. */
+  snap: number;
 }
 export interface CameraInput {
   lookX: number;
@@ -62,9 +65,20 @@ export const CAMERA = {
   pitch: 0.36,
   fov: 66,
   glideFov: 72,
-  /** Manual turn from the forward direction, either way. */
-  maxTurn: Math.PI / 4,
-  turnReturn: 1.2,
+  /** Manual turn from the forward direction, either way: far enough to look
+   * back over a shoulder, short of facing the way Hopper came. */
+  maxTurn: Math.PI * 0.8,
+  /** Forward is the default, not a demand. A turned view stays where the
+   * player left it; only after `turnReturnDelay` seconds without a touch on
+   * the stick does it begin to drift back, coming up to speed over
+   * `turnReturnRamp` seconds and never turning faster than `turnReturnSpeed`
+   * (about 26°/s), settling proportionally at `turnReturn` near the end. */
+  turnReturn: 1.0,
+  turnReturnDelay: 2.0,
+  turnReturnRamp: 2.0,
+  turnReturnSpeed: 0.45,
+  /** A stick click recentres at this rate, a quick pan rather than a cut. */
+  snapRate: 6,
   forwardRate: 1.1,
   /** Fastest the forward direction may turn, so a bend is a pan, never a whip. */
   forwardTurnRate: 0.9,
@@ -86,8 +100,6 @@ export const CAMERA = {
   maxPitch: 1.2,
   stickRate: 2.6,
   mouseRate: 0.0035,
-  returnRate: 1.6,
-  returnDelay: 1.0,
   /** The eye and the look point follow at this rate along the ground ... */
   smoothing: 8,
   /** ... and this much more slowly in height, so a hop is a hop of the body
@@ -106,7 +118,7 @@ export const CAMERA = {
 };
 
 export function createCamera(yaw: number, at: [number, number, number]): CameraState {
-  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0, forward: yaw, turn: 0, flow: [0, 0, 0], clip: 1, riseRate: CAMERA.riseRate };
+  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0, forward: yaw, turn: 0, flow: [0, 0, 0], clip: 1, riseRate: CAMERA.riseRate, snap: 0 };
 }
 
 const ease = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -188,17 +200,29 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
       const want = wrap(input.forward - cam.forward) * Math.min(1, CAMERA.forwardRate * dt);
       cam.forward += Math.max(-CAMERA.forwardTurnRate * dt, Math.min(CAMERA.forwardTurnRate * dt, want));
     }
-    // A limited manual turn either way, springing back when released.
+    // A manual turn either way. It is not sprung: the view stays where it was
+    // left, and only once the stick has been still for a while does it drift
+    // back toward forward, starting imperceptibly and never faster than a
+    // slow pan, so forward is where the view ends up, not something fought.
     cam.turn -= stickX * CAMERA.stickRate * sens * dt + input.mouseLookX * CAMERA.mouseRate * sens;
     cam.turn = Math.max(-CAMERA.maxTurn, Math.min(CAMERA.maxTurn, cam.turn));
-    if (!looking) cam.turn -= cam.turn * Math.min(1, CAMERA.turnReturn * dt);
     cam.pitch += (stickY * CAMERA.stickRate * 0.6 * sens * dt + input.mouseLookY * CAMERA.mouseRate * 0.6 * sens) * invert;
     cam.pitch = Math.max(CAMERA.minPitch, Math.min(CAMERA.maxPitch, cam.pitch));
-    if (!looking && cam.idle > CAMERA.returnDelay) cam.pitch += (CAMERA.pitch - cam.pitch) * Math.min(1, 0.8 * dt);
     if (input.resetPressed) {
-      cam.turn = 0;
-      cam.pitch = CAMERA.pitch;
+      cam.snap = 1;
       cam.idle = 10;
+    }
+    if (looking) cam.snap = 0;
+    if (cam.snap > 0) {
+      const k = Math.min(1, CAMERA.snapRate * dt);
+      cam.turn -= cam.turn * k;
+      cam.pitch += (CAMERA.pitch - cam.pitch) * k;
+      cam.snap -= dt;
+    } else if (!looking && cam.idle > CAMERA.turnReturnDelay) {
+      const ramp = Math.min(1, (cam.idle - CAMERA.turnReturnDelay) / CAMERA.turnReturnRamp);
+      const step = Math.min(Math.abs(cam.turn) * CAMERA.turnReturn * dt, CAMERA.turnReturnSpeed * ramp * ramp * dt);
+      cam.turn -= Math.sign(cam.turn) * step;
+      cam.pitch += (CAMERA.pitch - cam.pitch) * Math.min(1, 0.8 * ramp * dt);
     }
     cam.yaw = cam.forward + cam.turn;
     wantYaw = cam.yaw;
