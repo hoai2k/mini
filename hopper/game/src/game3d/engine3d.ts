@@ -332,22 +332,57 @@ export class Engine3D implements GameEngine {
         this.rumble(0.3, 60);
       }
     }
-    // Caged signals open when a reflected shot reaches the cage's lock. Checked
-    // before combat moves the shots, so one arriving at the crown counts before
-    // the crown's collider stops it.
+    // Caged signals break open under any of Hopper's attacks: lasers chip the
+    // bars, a kick tears at them, and a turned-back shot still hits hardest.
+    // Checked before combat moves the shots so a hit registers where it looks.
     for (const t of world.triggers) {
       if (!t.locked || !t.cage) continue;
+      if (t.cageFlash) t.cageFlash = Math.max(0, t.cageFlash - dt);
+      // The cage shudders on a hit and its lock fades as integrity drops, so a
+      // shot that lands reads even when no bar falls on that particular hit.
+      const flash = t.cageFlash ?? 0;
+      t.cage.scale.setScalar(1 + flash * 1.6);
+      const crown = (t.cageCrown as { material?: { emissiveIntensity?: number } } | undefined)?.material;
+      if (crown && crown.emissiveIntensity !== undefined)
+        crown.emissiveIntensity = 0.15 + 0.65 * ((t.cageHp ?? 0) / (t.cageMaxHp || 1)) + flash * 8;
+      const hit = (damage: number, x: number, y: number, z: number) => {
+        t.cageHp = Math.max(0, (t.cageHp ?? 0) - damage);
+        t.cageFlash = 0.12;
+        this.scene?.effect('spark', x, y, z);
+        const bars = t.cageBars ?? [];
+        // Keep as many bars standing as the remaining integrity earns.
+        const standing = Math.ceil((t.cageHp / (t.cageMaxHp || 1)) * bars.length);
+        bars.forEach((bar, i) => (bar.visible = i < standing));
+        if (t.cageHp > 0) {
+          this.sound('hit');
+          this.rumble(0.25, 60);
+          return;
+        }
+        t.locked = false;
+        for (const bar of bars) bar.visible = false;
+        if (t.cageCrown) t.cageCrown.visible = false;
+        this.scene?.effect('parry', t.x, t.lockY ?? t.y, t.z);
+        this.sound('explode');
+        this.rumble(0.6, 180);
+        this.showBanner('Cage broken', 'THE SIGNAL IS FREE', 1.6);
+      };
+      const top = t.lockY ?? t.y;
       for (const p of combat.projectiles) {
-        if (p.owner !== 'hopper' || p.kind === 'laser' || p.life <= 0) continue;
-        if (Math.hypot(p.x - t.x, p.y - (t.lockY ?? t.y), p.z - t.z) < 7) {
-          p.life = 0;
-          t.locked = false;
-          t.cage.traverse((o) => {
-            if (o.name.startsWith('Bar') || o.name === 'Crown') o.visible = false;
-          });
-          this.scene?.effect('parry', t.x, t.lockY ?? t.y, t.z);
-          this.sound('explode');
-          this.showBanner('Cage broken', 'A REFLECTED SHOT OPENS IT', 1.6);
+        if (p.owner !== 'hopper' || p.life <= 0) continue;
+        // The whole cage is the target, not just the crown: anywhere between
+        // the pedestal and the lock counts.
+        const height = p.y > top ? p.y - top : p.y < t.y ? t.y - p.y : 0;
+        if (Math.hypot(p.x - t.x, p.z - t.z) > 7 + p.radius || height > 2 + p.radius) continue;
+        p.life = 0;
+        hit(p.kind === 'laser' ? 1 : 4, p.x, p.y, p.z);
+        if (!t.locked) break;
+      }
+      // A kick lands once per swing, tracked in the same set the shadows use.
+      if (t.locked && combat.kick > 0.15 && combat.kick < 0.42 && !combat.kickHit.has(t.id)) {
+        const reach = Math.hypot(h.x - t.x, h.z - t.z) <= 14;
+        if (reach && h.y + 24 > t.y && h.y < top + 4) {
+          combat.kickHit.add(t.id);
+          hit(3, t.x, Math.min(top, h.y + 10), t.z);
         }
       }
     }

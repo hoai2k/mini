@@ -149,14 +149,27 @@ function playDistrict(index) {
     }
     check(JSON.parse(store.get('hopper3d.save')).checkpoint >= 1, 'checkpoint saved');
   };
-  // Signals: beacons are free, cages open to a reflected shot at the lock.
+  // Signals: beacons are free, cages break open under Hopper's own fire and
+  // shed bars on the way, so the damage is visible before the cage opens.
   const signalTriggers = w.triggers.filter((t) => t.kind === 'signal');
   for (const t of signalTriggers) {
     if (t.locked) {
       teleport(t.x, t.y + 1, t.z + 10);
-      c.projectiles.push({ id: 900000 + signalTriggers.indexOf(t), x: t.x, y: t.lockY, z: t.z, vx: 0, vy: 0, vz: 0, life: 1, radius: 1, damage: 2, gravity: 0, owner: 'hopper', kind: 'seed' });
+      const bars = t.cageBars.length;
+      const shoot = (kind) =>
+        c.projectiles.push({ id: 900000 + c.projectiles.length, x: t.x, y: t.lockY, z: t.z, vx: 0, vy: 0, vz: 0, life: 1, radius: 1, damage: 2, gravity: 0, owner: 'hopper', kind });
+      shoot('laser');
       run(0.1);
-      check(!t.locked, `${d.name}: cage ${t.id} opened by a reflected shot`);
+      check(t.locked, `${d.name}: cage ${t.id} survives one laser hit`);
+      check(t.cageHp === t.cageMaxHp - 1, `${d.name}: cage ${t.id} lost integrity (${t.cageHp}/${t.cageMaxHp})`);
+      check(t.cageBars.filter((b) => b.visible).length < bars, `${d.name}: cage ${t.id} shed a bar`);
+      for (let shot = 0; shot < 40 && t.locked; shot++) {
+        shoot('laser');
+        run(0.1);
+      }
+      check(!t.locked, `${d.name}: cage ${t.id} opens under sustained fire`);
+      check(t.cageBars.every((b) => !b.visible), `${d.name}: cage ${t.id} bars are gone`);
+      check(!t.cageCrown.visible, `${d.name}: cage ${t.id} crown is gone`);
     }
     teleport(t.x, t.y + 1, t.z);
     run(0.3);

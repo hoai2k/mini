@@ -72,10 +72,17 @@ export interface Trigger {
   r: number;
   taken?: boolean;
   object?: Object3D;
-  /** A caged signal: locked until a reflected shot hits the cage's lock. */
+  /** A caged signal: locked until Hopper's attacks break the cage open. */
   locked?: boolean;
   cage?: Object3D;
   lockY?: number;
+  /** Remaining cage integrity; bars fall away as it drops. */
+  cageHp?: number;
+  cageMaxHp?: number;
+  cageBars?: Object3D[];
+  cageCrown?: Object3D;
+  /** Seconds left of the white flash on a hit. */
+  cageFlash?: number;
 }
 export interface Instance {
   id: string;
@@ -167,7 +174,7 @@ export class World {
       this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss' });
     }
   }
-  /** A caged signal: the cage and its prize, locked until a reflected shot. */
+  /** A caged signal: the cage and its prize, locked until the bars are broken. */
   private placeCage(c: { id: string; x: number; z: number; y?: number; mode?: 'r' | 'a' }) {
     const cage = this.place({ id: 'prop.signalCage', x: c.x, z: c.z, y: c.y, mode: c.mode });
     const beacon = this.place({ id: 'prop.signalBeacon', x: c.x, z: c.z, y: (c.y || 0) + (c.mode === 'a' ? 1.5 : 1.5), mode: c.mode });
@@ -177,6 +184,21 @@ export class World {
       t.locked = true;
       t.cage = cage.object;
       t.lockY = cage.object.position.y + 9.2;
+      // The bars are the damage read: one falls away for each step of integrity
+      // lost, so the cage is visibly coming apart before it opens.
+      t.cageBars = [];
+      cage.object.traverse((o) => {
+        if (o.name.startsWith('Bar')) t.cageBars!.push(o);
+        else if (o.name === 'Crown') {
+          t.cageCrown = o;
+          // Stand-in materials are cached and shared by colour, so this cage
+          // needs its own copy before its lock can fade with its own damage.
+          const mesh = o as { material?: { clone?: () => unknown } };
+          if (mesh.material?.clone) mesh.material = mesh.material.clone() as typeof mesh.material;
+        }
+      });
+      t.cageMaxHp = t.cageBars.length || 10;
+      t.cageHp = t.cageMaxHp;
     }
   }
   /** A gate knot's dome, with two emitters on the ground beside it. */
