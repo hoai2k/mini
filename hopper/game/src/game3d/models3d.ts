@@ -70,14 +70,14 @@ function selectLod(root: Object3D, lod: 'LOD0' | 'LOD1') {
 }
 
 /** Replace a stand-in's picture with its delivered model, if there is one. */
-export async function swapDelivered(standIn: Object3D, standInId: string): Promise<Swapped | null> {
+export async function swapDelivered(standIn: Object3D, standInId: string, { lod = 'LOD0' as 'LOD0' | 'LOD1' } = {}): Promise<Swapped | null> {
   const entry = byStandIn.get(standInId);
   if (!entry) return null;
   const gltf = await load(entry.file);
   if (!gltf) return null;
   const root = gltf.scene.clone(true);
   root.name = `delivered:${standInId}`;
-  selectLod(root, 'LOD0');
+  selectLod(root, lod);
   root.traverse((o) => {
     const m = o as Mesh;
     if (m.isMesh) {
