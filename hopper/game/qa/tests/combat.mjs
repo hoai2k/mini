@@ -302,7 +302,7 @@ for (let n = 0; n < 240; n++) {
   if (w.enemies[0].state === 'attack' && w.enemies[0].y > 560) dropped = true;
 }
 assert.ok(dropped, 'it pounces down when Hopper is beneath');
-// A reflected shot opens a signal cage; nothing else does.
+// A reflected shot damages a signal cage, spending itself on the bars.
 const opened = [];
 w = new CombatWorld({
   ...base,
@@ -332,18 +332,22 @@ w.reflect(w.projectiles[0], p);
 for (let n = 0; n < 240 && w.projectiles.length; n++)
   w.update(1 / 120, n / 120, p, [], {
     ...cb,
-    breakBarrier(id) {
-      opened.push(id);
+    breakBarrier(id, damage) {
+      opened.push([id, damage]);
     },
   });
-assert.deepEqual(opened, ['cage'], 'the reflected shot breaks the cage');
+assert.deepEqual(
+  opened,
+  [['cage', 4]],
+  'the reflected shot lands a heavy hit on the cage',
+);
 assert.equal(
   w.enemies[0].hp,
   wardenHp,
   'and is spent on the bars, not the warden',
 );
 console.log(
-  'PASS: under-ambush tells then surfaces, mirror stalker shadows and pounces, reflected shots open cages.',
+  'PASS: under-ambush tells then surfaces, mirror stalker shadows and pounces, reflected shots damage cages.',
 );
 // Agile techniques: an agile hound pounces (leaves the ground and lands back
 // on its shelf); an agile shooter vaults over Hopper and fires from behind; an

@@ -57,6 +57,9 @@ export interface RenderState {
   }>;
   signals: Set<string>;
   broken?: Set<string>;
+  /** Cage integrity 0..1 and the white flash left on a fresh hit. */
+  barrierHp?: Map<string, number>;
+  barrierFlash?: Map<string, number>;
   lockT?: number;
   checkpointIndex: number;
   shake: number;
@@ -725,11 +728,28 @@ export class Renderer {
       if (!this.visible(b.x, b.y, b.w, b.h)) continue;
       const shattered = !!s.broken?.has(b.id),
         cage = this.image(shattered ? 'cageBroken' : 'cageIntact');
+      const flash = s.barrierFlash?.get(b.id) || 0,
+        integrity = shattered ? 0 : (s.barrierHp?.get(b.id) ?? 1);
       if (cage) {
         // The painted empty cage lets the live warden and signal show through.
+        // Damage shows as a shudder, a bright flash, and the broken cage
+        // bleeding through the intact one as its integrity falls.
         c.save();
+        if (flash > 0)
+          c.translate(Math.sin(flash * 90) * flash * 26, Math.cos(flash * 70) * flash * 14);
         c.globalAlpha = shattered ? 0.85 : 1;
         c.drawImage(cage, b.x, b.y, b.w, b.h);
+        const wreck = !shattered && integrity < 1 ? this.image('cageBroken') : null;
+        if (wreck) {
+          c.globalAlpha = (1 - integrity) * 0.75;
+          c.drawImage(wreck, b.x, b.y, b.w, b.h);
+        }
+        if (flash > 0) {
+          c.globalAlpha = Math.min(0.85, flash * 5);
+          c.globalCompositeOperation = 'lighter';
+          c.fillStyle = '#d8f6ff';
+          c.fillRect(b.x, b.y, b.w, b.h);
+        }
         c.restore();
         continue;
       }
