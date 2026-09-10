@@ -25,10 +25,19 @@ export interface ShadowSpawn {
   /** Height above terrain (ground shadows) or absolute for flyers (mode a). */
   y?: number;
   mode?: 'r' | 'a';
-  /** Encounter group; wave n appears when wave n-1 of the group is down. */
+  /** Encounter group; wave n appears when wave n-1 of the group is down.
+   * A group named after a stronghold is its host: dormant until the
+   * stronghold activates, then released in `delay` order. */
   group?: string;
   wave?: number;
   patrol?: number;
+  /** How the shadow arrives when its stronghold activates: 'drop' falls in
+   * from high above, 'leap' waits crouched on its perch and pounces when
+   * Hopper is close, 'emerge' rises out of the ground with a flash, 'ambush'
+   * stays hidden until Hopper has passed it. Default: already there. */
+  entry?: 'drop' | 'leap' | 'emerge' | 'ambush';
+  /** Seconds after the stronghold activates before this shadow appears. */
+  delay?: number;
 }
 export interface Chapter {
   name: string;
@@ -46,6 +55,21 @@ export interface Gate {
   group: string;
   /** Height offset of the dome centre above the terrain. */
   y?: number;
+}
+/** A stronghold: a battle cluster around something tall enough to see from
+ * the previous interlude. Its host (shadows whose group is the stronghold id)
+ * pours out when Hopper comes within r; when the host is down the region is
+ * freed. `seal` raises a lockdown dome while the fight lasts (the final knot
+ * of a district). The exit needs every stronghold freed. */
+export interface Stronghold {
+  id: string;
+  name: string;
+  x: number;
+  z: number;
+  r: number;
+  /** Height offset of the field centre above the terrain. */
+  y?: number;
+  seal?: boolean;
 }
 /** A caged signal: only a reflected shot at its lock opens the bars. */
 export interface Cage {
@@ -79,7 +103,9 @@ export interface District {
   placements: Placement[];
   shadows: ShadowSpawn[];
   chapters: Chapter[];
+  /** Legacy sealed strongholds; prefer `strongholds`. */
   gates?: Gate[];
+  strongholds?: Stronghold[];
   cages?: Cage[];
   boss?: BossSpec;
   start: { x: number; z: number; yaw: number };

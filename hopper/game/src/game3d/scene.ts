@@ -546,6 +546,16 @@ export class Scene3D {
       }
       const squash = s.kind === 'seedSpitter' ? s.scale : 1;
       o.scale.set(squash, 1 / Math.sqrt(squash), squash);
+      // Arrivals: an emerging shadow grows out of the ground, a dropping one
+      // stretches with the fall, a waiting one crouches on its perch.
+      if (s.state === 'arrive' && s.arrive < 1) {
+        const k = 0.35 + 0.65 * s.arrive;
+        if (s.entry === 'drop') o.scale.set(squash * 0.85, 1.25 / Math.sqrt(squash), squash * 0.85);
+        else o.scale.set(squash * k, k / Math.sqrt(squash), squash * k);
+      } else if (s.state === 'wait') {
+        const crouch = 0.78 + Math.sin(this.time * 6 + s.phase) * 0.03;
+        o.scale.set(squash * 1.08, crouch / Math.sqrt(squash), squash * 1.08);
+      } else if (s.state === 'pounce') o.scale.set(squash * 0.9, 1.15 / Math.sqrt(squash), squash * 0.9);
       o.userData.animate?.(this.time + s.phase);
       if (combat.lock === s.id) {
         const r = s.open > 0 || s.state === 'tell' ? this.reticles.locked : this.reticles.locked || this.reticles.open;

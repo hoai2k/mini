@@ -17,7 +17,7 @@ export const MOVE = {
   tapJump: 43.5,
   /** A short variable-height window after takeoff (a few metres, not a boost). */
   holdWindow: 0.2,
-  holdThrust: 22,
+  holdThrust: 15,
   /** Hover: A held in the air holds altitude on beating wings for this long. */
   hoverFuel: 1.8,
   hoverLift: 2.5,
@@ -381,8 +381,8 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   // Vertical motion.
   if (!s.grounded) {
     if (s.holding && intent.jumpHeld && s.hold < MOVE.holdWindow) {
-      // A short variable-height window after takeoff; no second boost.
-      s.vy += MOVE.holdThrust * dt;
+      // A short variable-height window after takeoff: thrust against gravity, a few metres, no boost.
+      s.vy += (MOVE.holdThrust - g) * dt;
       s.hold += dt;
     } else {
       s.holding = false;
