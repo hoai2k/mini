@@ -6,6 +6,11 @@ optimised copies of whatever art it uses. `sites/publish.sh` copies every such
 folder into the GitHub Pages output, so a site at `sites/<name>/` is published
 at https://hoai2k.github.io/mini/sites/<name>/.
 
+- [`ygent/`](ygent/) — Ygent Records, the label page that catalogues every
+  band site here. Published at https://hoai2k.github.io/mini/sites/ygent/.
+  The roster and releases render from the JSON block at the bottom of its
+  `index.html`; add a new band there and copy a 640 × 640 cover into
+  `ygent/assets/`.
 - [`space-tiber/`](space-tiber/) — artist page for Space Tiber, the band that
   made the music for Hopper the Grasshopper. Published at
   https://hoai2k.github.io/mini/sites/space-tiber/. Its player streams the

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0b0f" />
+    <title>Ygent Records</title>
+    <meta
+      name="description"
+      content="Ygent Records is an independent label for agentic video game music: the bands behind Hoai's games, each with a page of their own. Space Tiber, Charlie's Girl Dolls, Canadensis, Mech Mayhem."
+    />
+    <meta property="og:title" content="Ygent Records" />
+    <meta property="og:description" content="An independent label for agentic video game music." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="assets/cover-mechmayhem.webp" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#roster">Skip to the roster</a>
+
+    <header class="masthead">
+      <a class="brand" href="#top" aria-label="Ygent Records, home">
+        <svg class="logo" viewBox="0 0 24 24" aria-hidden="true" width="28" height="28">
+          <rect x="2" y="2" width="4" height="4" /><rect x="18" y="2" width="4" height="4" />
+          <rect x="6" y="6" width="4" height="4" /><rect x="14" y="6" width="4" height="4" />
+          <rect x="10" y="10" width="4" height="4" /><rect x="10" y="14" width="4" height="4" />
+          <rect x="10" y="18" width="4" height="4" />
+        </svg>
+        <span>Ygent<em>Records</em></span>
+      </a>
+      <nav aria-label="Sections">
+        <a href="#roster">Roster</a>
+        <a href="#releases">Releases</a>
+        <a href="#about">About</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <p class="mono kicker">YGT · est. 2026 · independent</p>
+        <h1 id="hero-title">Music for games that play themselves.</h1>
+        <p class="lede">
+          Ygent Records is an independent label for agentic video game
+          music. Each game on the roster has a band. Each band has a page.
+          This is the catalogue.
+        </p>
+        <p class="mono status" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="status">4 artists · 4 games · 1 label</span>
+        </p>
+      </section>
+
+      <section class="roster" id="roster" aria-labelledby="roster-title">
+        <div class="section-head">
+          <h2 id="roster-title">Roster</h2>
+          <p class="mono">select artist ▸</p>
+        </div>
+        <ul class="cards" id="cards" aria-label="Artists"></ul>
+      </section>
+
+      <section class="releases" id="releases" aria-labelledby="releases-title">
+        <div class="section-head">
+          <h2 id="releases-title">Releases</h2>
+          <p class="mono">catalogue · newest first</p>
+        </div>
+        <div class="table-wrap">
+          <table id="releases-table">
+            <thead>
+              <tr>
+                <th scope="col" class="mono">Cat. no.</th>
+                <th scope="col">Artist</th>
+                <th scope="col">Release</th>
+                <th scope="col">Game</th>
+                <th scope="col" class="mono">Tracks</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="about" id="about" aria-labelledby="about-title">
+        <div>
+          <h2 id="about-title">About</h2>
+          <p>
+            Ygent is run by Hoai, who makes small games and the imaginary
+            bands who score them. The games are built with agents; so are
+            the bands, their photographs and their pages. The music is where
+            the two meet.
+          </p>
+          <p>
+            Every artist on the label is fictional, and every artist is
+            real enough to have a set list. New bands arrive when new games
+            do.
+          </p>
+        </div>
+        <dl class="mono meta">
+          <div><dt>Label</dt><dd>Ygent Records</dd></div>
+          <div><dt>Prefix</dt><dd>YGT</dd></div>
+          <div><dt>Format</dt><dd>Streaming, from the games themselves</dd></div>
+          <div><dt>Contact</dt><dd>Through the games</dd></div>
+        </dl>
+      </section>
+    </main>
+
+    <footer>
+      <p class="mono">© Ygent Records. Artists, games and artwork are Hoai's own projects.</p>
+    </footer>
+
+    <!-- The catalogue. Add a band here and it appears in the roster and the
+         releases table; nothing else on the page needs editing. -->
+    <script type="application/json" id="catalog">
+    {
+      "artists": [
+        {
+          "id": "mechmayhem",
+          "cat": "YGT-004",
+          "name": "Mech Mayhem",
+          "genre": "Drum & bass",
+          "blurb": "Five war machines who liked the sound of the fight more than the fight. Breaks at 174, sub-bass in the hydraulics, a frog on the mic.",
+          "game": "Mech Mayhem",
+          "release": "Titan Clash · Twelve Cities",
+          "tracks": 19,
+          "url": "../mechmayhem/",
+          "cover": "assets/cover-mechmayhem.webp",
+          "accent": "#aef23c"
+        },
+        {
+          "id": "canadensis",
+          "cat": "YGT-003",
+          "name": "Canadensis",
+          "genre": "Cape Breton fiddle",
+          "blurb": "A herring boat out of Sydney in 1887 that came out of the fog in Toronto harbour. Marches into strathspeys into reels, on deck, Thursdays.",
+          "game": "In development",
+          "release": "Lake Ontario, Wide and Deep",
+          "tracks": 1,
+          "url": "../canadensis/",
+          "cover": "assets/cover-canadensis.webp",
+          "accent": "#d4b36a"
+        },
+        {
+          "id": "charlies-girl-dolls",
+          "cat": "YGT-002",
+          "name": "Charlie's Girl Dolls",
+          "genre": "Bubblegum pop",
+          "blurb": "Five girls, one pink speedway, and a chorus you can shout from the grandstand. Creators of Bubblegum Radar.",
+          "game": "American Girl Doll Race",
+          "release": "Bubblegum Radar",
+          "tracks": 5,
+          "url": "../charlies-girl-dolls/",
+          "cover": "assets/cover-charlies-girl-dolls.webp",
+          "accent": "#ff5fb0"
+        },
+        {
+          "id": "space-tiber",
+          "cat": "YGT-001",
+          "name": "Space Tiber",
+          "genre": "Space rock, 1971",
+          "blurb": "Five musicians, one converted orbital liner, and the three recordings that carry Hopper the Grasshopper from title screen to the far side of the black sun.",
+          "game": "Hopper the Grasshopper",
+          "release": "Hopper the Grasshopper OST",
+          "tracks": 3,
+          "url": "../space-tiber/",
+          "cover": "assets/cover-space-tiber.webp",
+          "accent": "#c8402a"
+        }
+      ]
+    }
+    </script>
+    <script src="catalog.js" defer></script>
+  </body>
+</html>
