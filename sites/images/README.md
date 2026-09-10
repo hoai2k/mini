@@ -14,3 +14,5 @@ its own `assets/` folder.
 - `Canadensis_2.png` — sepia photograph of Canadensis on the deck of the
   St. Patrick No. 17, 1448 × 1086, used by `sites/canadensis/` (hero, crew
   crops and the nameplate detail).
+- `mech_mayhem_1.png` — the band photo of Mech Mayhem, five mechs on a temple
+  ledge at sunset, 1536 × 1024, used by `sites/mechmayhem/`.
