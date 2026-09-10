@@ -456,6 +456,44 @@ button {
   pointer-events: none;
   text-shadow: 0 2px 3px #000;
 }
+.stronghold-bar {
+  position: absolute;
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: #2a1520c0;
+  border: 1px solid #ffb45480;
+  color: #efe8d0;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  font-variant: small-caps;
+  pointer-events: none;
+  text-shadow: 0 1px 2px #000;
+}
+.stronghold-bar.sealed {
+  border-color: #b48cff;
+}
+.stronghold-host {
+  display: flex;
+  gap: 3px;
+}
+.stronghold-host i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #ff8a6a;
+  box-shadow: 0 0 4px #ff5a3a;
+}
+.stronghold-host i.down {
+  background: #3a2a3a;
+  box-shadow: none;
+}
 .stand-in-tag {
   position: absolute;
   top: 14px;

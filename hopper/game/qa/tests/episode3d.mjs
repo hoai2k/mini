@@ -162,18 +162,23 @@ function playDistrict(index) {
     check(t.taken, `${d.name}: signal ${t.id} taken (trigger ${t.x},${t.y.toFixed(1)},${t.z} r ${t.r}; Hopper ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move}; locked ${t.locked})`);
   }
   check(snapshot.signals >= signalTriggers.length, 'HUD counts the signals');
-  // Gates: enter the dome, confirm the lockdown holds Hopper in, clear its shadows.
+  // Strongholds: approach, confirm the host pours out (a sealed one keeps
+  // Hopper inside), then clear the host and see the region freed.
   for (const field of w.fields.filter((f) => f.group !== 'boss')) {
     teleport(field.x, field.y + 1, field.z);
     run(0.2);
-    check(field.active, `${d.name}: gate ${field.id} sealed on entry`);
-    check(sounds.includes('boss'), 'lockdown sting played');
-    // Try to leave: the dome pushes back.
-    engine.player.x = field.x + field.r + 30;
-    run(0.1);
-    check(Math.hypot(engine.player.x - field.x, engine.player.z - field.z) <= field.r, 'the dome keeps Hopper inside');
+    check(field.active, `${d.name}: stronghold ${field.id} activated on approach`);
+    check(sounds.includes('boss'), 'stronghold sting played');
+    if (field.seal) {
+      // Try to leave: the dome pushes back.
+      engine.player.x = field.x + field.r + 30;
+      run(0.1);
+      check(Math.hypot(engine.player.x - field.x, engine.player.z - field.z) <= field.r, 'the dome keeps Hopper inside');
+    }
     const group = c.shadows.filter((s) => s.group === field.group);
-    check(group.length > 0, `gate ${field.id} has shadows`);
+    check(group.length > 0, `stronghold ${field.id} has a host`);
+    run(7); // let the host pour out
+    check(group.some((s) => s.alive && !s.dormant), `${d.name}: ${field.id} host released`);
     for (const s of group)
       if (s.alive) {
         // Armoured shadows only take full damage with the core open.
@@ -181,7 +186,8 @@ function playDistrict(index) {
         c.damage(s, 999, priv('callbacks').call(engine));
       }
     run(0.2);
-    check(field.cleared && !field.active, `${d.name}: gate ${field.id} opened when its shadows fell`);
+    check(field.cleared && !field.active, `${d.name}: ${field.id} freed when its host fell`);
+    check(snapshot.banner.includes('freed') || snapshot.banner === 'Gate open', `freed banner (${snapshot.banner})`);
   }
   // The exit: sealed while the boss lives, otherwise the district ends.
   const boss = priv('boss');

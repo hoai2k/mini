@@ -575,7 +575,7 @@ export default function Home() {
         ref={canvas}
         aria-label={
           edition === '3d'
-            ? 'Hopper the Grasshopper 3D world. A jumps and soars, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
+            ? 'Hopper the Grasshopper 3D world. A jumps and hovers, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
             : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick behind, B or L to guard the front, RT or K to fire.'
         }
         tabIndex={-1}
@@ -710,7 +710,7 @@ export default function Home() {
               {edition === '3d' ? (
                 <ul className="control-key">
                   <li>
-                    <b className="pad a">A</b> Jump · soar · glide
+                    <b className="pad a">A</b> Jump · hover · glide
                   </li>
                   <li>
                     <b className="pad x">X</b> Spin kick
@@ -930,6 +930,17 @@ export default function Home() {
           {hud.height !== undefined && hud.height > 4 && (
             <div className="height-ticks">{Math.round(hud.height)} m</div>
           )}
+          {hud.stronghold && (
+            <div className={`stronghold-bar ${hud.stronghold.sealed ? 'sealed' : ''}`}>
+              <span className="stronghold-name">{hud.stronghold.name}</span>
+              <span className="stronghold-host">
+                {Array.from({ length: hud.stronghold.total }, (_, i) => (
+                  <i key={i} className={i < hud.stronghold!.total - hud.stronghold!.remaining ? 'down' : ''} />
+                ))}
+              </span>
+              <span className="stronghold-count">{hud.stronghold.remaining} left</span>
+            </div>
+          )}
           {hud.standIns && (
             <div className="stand-in-tag" title={`Placeholder art on screen: ${hud.standIns}`}>
               STAND-IN ART · {hud.standIns}
@@ -1069,10 +1080,13 @@ export default function Home() {
                     <div className="control-notes">
                       <p>
                         <b className="pad a">A</b>
-                        <strong>Jump</strong> Hold to soar; keep holding past
-                        the top and the wings open into a glide. Release to
-                        drop. Jump at a wall to kick off it; the front legs
-                        haul up over a ledge on their own.
+                        <strong>Jump</strong> Tap to jump. Hold A in the air
+                        and the wings beat: Hopper hovers in place for a
+                        breath, then glides down while you keep holding.
+                        Release to drop. Jump at a wall to kick off it; the
+                        front legs haul up over a ledge on their own. Hopper
+                        always faces the way you are going: pulling back
+                        backpedals, sideways strafes.
                       </p>
                       <p>
                         <b className="pad x">X</b>

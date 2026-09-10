@@ -162,6 +162,10 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
       wantPull -= 6;
       wantTilt -= 0.12;
       if (!settings.reducedMotion) wantFov = CAMERA.glideFov;
+    } else if (h.hovering) {
+      // Hovering settles the view: a little closer, level with Hopper.
+      wantPull -= 3;
+      wantTilt -= 0.06;
     } else if (h.diving) {
       wantTilt += 0.35;
       wantPull += 4;

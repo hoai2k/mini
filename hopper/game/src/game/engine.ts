@@ -45,6 +45,8 @@ export interface GameSnapshot {
   lock?: 'open' | 'locked';
   /** 3D edition: which visible art is still a procedural stand-in. */
   standIns?: string;
+  /** The stronghold Hopper is fighting: its name and how much of the host still stands. */
+  stronghold?: { name: string; remaining: number; total: number; sealed: boolean };
 }
 interface Particle {
   x: number;

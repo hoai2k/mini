@@ -77,6 +77,7 @@ export class Scene3D {
   private actionName = '';
   private wings: Object3D[] = [];
   private wingSpread = 0;
+  private wingBeat = 0;
   // Round-three effect sheet: muzzle glow, shield face, glide trails, laser bolts.
   private muzzle: Sprite | null = null;
   private shieldSprite: Sprite | null = null;
@@ -449,10 +450,13 @@ export class Scene3D {
     } else if (h.mantle > 0) clip = 'Crouch';
     else
       switch (h.move) {
-        case 'run':
+        case 'run': {
+          // Backpedalling plays the run in reverse: Hopper keeps facing forward.
+          const along = speed > 1 ? (h.vx * Math.sin(h.yaw) + h.vz * Math.cos(h.yaw)) / speed : 1;
           clip = 'Run';
-          scale = Math.max(0.6, speed / 32);
+          scale = Math.max(0.6, speed / 32) * (along < -0.3 ? -1 : 1);
           break;
+        }
         case 'crouch':
           clip = 'Crouch_Hold';
           break;
@@ -462,6 +466,7 @@ export class Scene3D {
           break;
         case 'fall':
         case 'glide':
+        case 'hover':
           clip = 'Jump_Loop';
           break;
         case 'dive':
@@ -482,15 +487,19 @@ export class Scene3D {
       loop = false;
     }
     this.play(clip, loop, 0.12, scale);
-    // Wings open for the glide; the body pitches into dives and glides.
-    const wantSpread = h.gliding ? 1 : h.diving ? 0.3 : 0;
-    this.wingSpread += (wantSpread - this.wingSpread) * Math.min(1, dt * 8);
+    // Wings open for the glide and beat hard in a hover; the body pitches into dives and glides.
+    const wantSpread = h.gliding ? 1 : h.hovering ? 0.8 : h.diving ? 0.3 : 0;
+    this.wingSpread += (wantSpread - this.wingSpread) * Math.min(1, dt * (h.hovering ? 14 : 8));
+    this.wingBeat += (h.hovering ? 1 : 0) - this.wingBeat > 0 ? Math.min(1, dt * 10) : -Math.min(1, dt * 4);
+    this.wingBeat = Math.max(0, Math.min(1, this.wingBeat));
+    const beat = Math.sin(this.time * 26) * 0.6 * this.wingBeat + (h.gliding ? Math.sin(this.time * 2.2) * 0.06 : 0);
     for (const [i, w] of this.wings.entries()) {
       const side = i === 0 ? 1 : -1;
-      w.rotation.z = side * this.wingSpread * 1.1;
+      w.rotation.z = side * (this.wingSpread * 1.1 + beat);
       w.rotation.y = side * this.wingSpread * 0.35;
+      w.rotation.x = -this.wingBeat * 0.25 - Math.max(0, beat) * 0.15;
     }
-    const pitch = h.diving ? -0.7 : h.gliding ? Math.max(-0.35, Math.min(0.2, -h.vy * 0.015)) : h.grounded ? 0 : Math.max(-0.25, Math.min(0.25, -h.vy * 0.006));
+    const pitch = h.diving ? -0.7 : h.gliding ? Math.max(-0.35, Math.min(0.2, -h.vy * 0.015)) : h.hovering ? 0.12 : h.grounded ? 0 : Math.max(-0.25, Math.min(0.25, -h.vy * 0.006));
     root.rotation.x += (pitch - root.rotation.x) * Math.min(1, dt * 6);
     this.mixer?.update(dt);
     // Guard: the painted shield face, or the stand-in dome until it loads.
@@ -515,7 +524,7 @@ export class Scene3D {
       if (firing) muzzleCell((this.muzzle.material as SpriteMaterial).map!, Math.floor(this.time * 24) % 8);
     }
     // Glide trails fade in with the wings and the airspeed.
-    const trail = this.wingSpread * Math.min(1, speed / 45) * (h.gliding ? 1 : 0.4);
+    const trail = this.wingSpread * Math.min(1, speed / 45) * (h.gliding ? 1 : 0.4) + (h.hovering ? 0.35 : 0);
     for (const t of this.trails) (t.material as MeshBasicMaterial).opacity += (trail * 0.85 - (t.material as MeshBasicMaterial).opacity) * Math.min(1, dt * 6);
   }
   private syncShadows(shadows: Shadow[], combat: Combat) {
