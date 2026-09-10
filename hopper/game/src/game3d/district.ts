@@ -31,11 +31,14 @@ export interface ShadowSpawn {
   group?: string;
   wave?: number;
   patrol?: number;
-  /** How the shadow arrives when its stronghold activates: 'drop' falls in
-   * from high above, 'leap' waits crouched on its perch and pounces when
-   * Hopper is close, 'emerge' rises out of the ground with a flash, 'ambush'
-   * stays hidden until Hopper has passed it. Default: already there. */
-  entry?: 'drop' | 'leap' | 'emerge' | 'ambush';
+  /** How a stronghold's host member joins the fight. Every host shadow is
+   * visible from the start, crouched on the nearest structure top (or, with
+   * nothing to climb, standing at its spawn) and staring at Hopper as he
+   * approaches. 'perch' (the default) releases in `delay` order once the
+   * stronghold activates: ground kinds leap down at Hopper, flyers launch
+   * for their station, rooted kinds simply wake. 'ambush' stays crouched
+   * until Hopper has passed it, then leaps at his back. */
+  entry?: 'perch' | 'ambush';
   /** Seconds after the stronghold activates before this shadow appears. */
   delay?: number;
 }
@@ -45,22 +48,11 @@ export interface Chapter {
   z1: number;
   beat: string;
 }
-/** A gate knot: lockdown emitters raise a dome around it when Hopper enters;
- * it drops when every shadow of `group` is down. The exit needs it cleared. */
-export interface Gate {
-  id: string;
-  x: number;
-  z: number;
-  r: number;
-  group: string;
-  /** Height offset of the dome centre above the terrain. */
-  y?: number;
-}
 /** A stronghold: a battle cluster around something tall enough to see from
- * the previous interlude. Its host (shadows whose group is the stronghold id)
- * pours out when Hopper comes within r; when the host is down the region is
- * freed. `seal` raises a lockdown dome while the fight lasts (the final knot
- * of a district). The exit needs every stronghold freed. */
+ * the previous interlude, with its host perched on top in plain view. The
+ * host (shadows whose group is the stronghold id) pours out when Hopper
+ * comes within r; when it is down the region is freed. Nothing bars the
+ * way: a stronghold is a dangerous place on the trail, not a door. */
 export interface Stronghold {
   id: string;
   name: string;
@@ -69,7 +61,6 @@ export interface Stronghold {
   r: number;
   /** Height offset of the field centre above the terrain. */
   y?: number;
-  seal?: boolean;
 }
 /** A caged signal: only a reflected shot at its lock opens the bars. */
 export interface Cage {
@@ -103,8 +94,6 @@ export interface District {
   placements: Placement[];
   shadows: ShadowSpawn[];
   chapters: Chapter[];
-  /** Legacy sealed strongholds; prefer `strongholds`. */
-  gates?: Gate[];
   strongholds?: Stronghold[];
   cages?: Cage[];
   boss?: BossSpec;
@@ -211,7 +200,7 @@ export function sunseedFields(): District {
     P('structure.fields.terraceStep', 0, -1600, 0, 0, { w: 60, d: 40, h: 6, tiers: 3 }),
     P('prop.signalBeacon', -150, -1680, 29, 0),
     P('prop.checkpointTotem', 0, -1760),
-    // Stronghold 3 · The Crownline Gate (sealed; centre 0,-1960, r 200): the last granary on the plateau before the city road.
+    // Stronghold 3 · The Crownline Gate (centre 0,-1960, r 200): the last granary on the plateau before the city road.
     P('structure.fields.silo', -40, -1990, 0, 0, { h: 40 }),
     P('structure.fields.silo', -70, -1970, 0, 0, { h: 38 }),
     P('structure.fields.silo', -58, -2020, 0, 0, { h: 36 }),
@@ -232,51 +221,51 @@ export function sunseedFields(): District {
     // The granary's lookout: a rooted spitter already on the big terrace.
     S('s1', 'seedSpitter', 130, -520, { y: 24.6 }),
     // Stronghold 1 host.
-    S('g1', 'shadeHound', -30, -560, { y: 40, group: 'granary', entry: 'leap', delay: 0 }),
-    S('g2', 'shadeHound', -50, -590, { y: 38, group: 'granary', entry: 'leap', delay: 1 }),
-    S('r1', 'windowRay', 60, -500, { y: 106, mode: 'a', group: 'granary', entry: 'drop', delay: 1.5 }),
-    S('r2', 'windowRay', -20, -640, { y: 100, mode: 'a', group: 'granary', entry: 'drop', delay: 3 }),
-    S('g5', 'shadeHound', 10, -520, { group: 'granary', entry: 'emerge', delay: 0.5 }),
-    S('g6', 'shadeHound', -10, -600, { group: 'granary', entry: 'emerge', delay: 2 }),
+    S('g1', 'shadeHound', -30, -560, { y: 40, group: 'granary', entry: 'perch', delay: 0 }),
+    S('g2', 'shadeHound', -50, -590, { y: 38, group: 'granary', entry: 'perch', delay: 1 }),
+    S('r1', 'windowRay', 60, -500, { y: 106, mode: 'a', group: 'granary', entry: 'perch', delay: 1.5 }),
+    S('r2', 'windowRay', -20, -640, { y: 100, mode: 'a', group: 'granary', entry: 'perch', delay: 3 }),
+    S('g5', 'shadeHound', 10, -520, { group: 'granary', entry: 'perch', delay: 0.5 }),
+    S('g6', 'shadeHound', -10, -600, { group: 'granary', entry: 'perch', delay: 2 }),
     S('g3', 'shadeHound', 20, -636, { group: 'granary', entry: 'ambush', delay: 4 }),
-    S('s2', 'seedSpitter', 60, -640, { y: 14.6, group: 'granary', entry: 'emerge', delay: 2.5 }),
-    S('g7', 'shadeHound', -40, -560, { group: 'granary', wave: 1, entry: 'emerge' }),
-    S('g4', 'shadeHound', 60, -580, { group: 'granary', wave: 1, entry: 'emerge' }),
-    S('r3', 'windowRay', 40, -560, { y: 110, mode: 'a', group: 'granary', wave: 1, entry: 'drop' }),
+    S('s2', 'seedSpitter', 60, -640, { y: 14.6, group: 'granary', entry: 'perch', delay: 2.5 }),
+    S('g7', 'shadeHound', -40, -560, { group: 'granary', wave: 1, entry: 'perch' }),
+    S('g4', 'shadeHound', 60, -580, { group: 'granary', wave: 1, entry: 'perch' }),
+    S('r3', 'windowRay', 40, -560, { y: 110, mode: 'a', group: 'granary', wave: 1, entry: 'perch' }),
     // Interlude 2 patrol on the ridge: a pair, and a third that comes when both are down.
     S('h3', 'shadeHound', -20, -920, { group: 'ridge' }),
     S('h4', 'shadeHound', 30, -960, { group: 'ridge' }),
     S('h5', 'shadeHound', 0, -940, { group: 'ridge', wave: 1 }),
     // Stronghold 2 host.
-    S('sf1', 'shadeHound', 30, -1300, { y: 40, group: 'seedfall', entry: 'leap', delay: 0 }),
-    S('sf2', 'shadeHound', 40, -1350, { y: 38, group: 'seedfall', entry: 'leap', delay: 1.5 }),
-    S('r4', 'windowRay', 0, -1220, { y: 94, mode: 'a', group: 'seedfall', entry: 'drop', delay: 1 }),
-    S('r5', 'windowRay', -60, -1320, { y: 90, mode: 'a', group: 'seedfall', entry: 'drop', delay: 3.5 }),
-    S('h6', 'shadeHound', 20, -1230, { group: 'seedfall', entry: 'emerge', delay: 0.5 }),
-    S('h7', 'shadeHound', -20, -1290, { group: 'seedfall', entry: 'emerge', delay: 2 }),
-    S('h8', 'shadeHound', 10, -1340, { group: 'seedfall', entry: 'emerge', delay: 4 }),
+    S('sf1', 'shadeHound', 30, -1300, { y: 40, group: 'seedfall', entry: 'perch', delay: 0 }),
+    S('sf2', 'shadeHound', 40, -1350, { y: 38, group: 'seedfall', entry: 'perch', delay: 1.5 }),
+    S('r4', 'windowRay', 0, -1220, { y: 94, mode: 'a', group: 'seedfall', entry: 'perch', delay: 1 }),
+    S('r5', 'windowRay', -60, -1320, { y: 90, mode: 'a', group: 'seedfall', entry: 'perch', delay: 3.5 }),
+    S('h6', 'shadeHound', 20, -1230, { group: 'seedfall', entry: 'perch', delay: 0.5 }),
+    S('h7', 'shadeHound', -20, -1290, { group: 'seedfall', entry: 'perch', delay: 2 }),
+    S('h8', 'shadeHound', 10, -1340, { group: 'seedfall', entry: 'perch', delay: 4 }),
     S('h9', 'shadeHound', 70, -1268, { group: 'seedfall', entry: 'ambush', delay: 5 }),
-    S('s3', 'seedSpitter', -30, -1180, { y: 12.2, group: 'seedfall', entry: 'emerge', delay: 0 }),
-    S('sf3', 'shadeHound', -100, -1330, { group: 'seedfall', wave: 1, entry: 'emerge' }),
-    S('sf4', 'shadeHound', 60, -1250, { group: 'seedfall', wave: 1, entry: 'emerge' }),
-    S('r6', 'windowRay', 0, -1300, { y: 100, mode: 'a', group: 'seedfall', wave: 1, entry: 'drop' }),
+    S('s3', 'seedSpitter', -30, -1180, { y: 12.2, group: 'seedfall', entry: 'perch', delay: 0 }),
+    S('sf3', 'shadeHound', -100, -1330, { group: 'seedfall', wave: 1, entry: 'perch' }),
+    S('sf4', 'shadeHound', 60, -1250, { group: 'seedfall', wave: 1, entry: 'perch' }),
+    S('r6', 'windowRay', 0, -1300, { y: 100, mode: 'a', group: 'seedfall', wave: 1, entry: 'perch' }),
     // Interlude 3 patrol: two rays over the road.
     S('rr1', 'windowRay', 0, -1560, { y: 100, mode: 'a', group: 'road' }),
     S('rr2', 'windowRay', 40, -1640, { y: 108, mode: 'a', group: 'road' }),
     // Stronghold 3 host.
-    S('gt1', 'shadeHound', -40, -1990, { y: 40, group: 'gate', entry: 'leap', delay: 0 }),
-    S('gt2', 'shadeHound', -58, -2020, { y: 36, group: 'gate', entry: 'leap', delay: 1 }),
-    S('gt3', 'shadeHound', -70, -1970, { y: 38, group: 'gate', entry: 'leap', delay: 2.5 }),
-    S('r7', 'windowRay', 0, -1900, { y: 132, mode: 'a', group: 'gate', entry: 'drop', delay: 1 }),
-    S('r8', 'windowRay', 40, -2000, { y: 140, mode: 'a', group: 'gate', entry: 'drop', delay: 3 }),
-    S('h10', 'shadeHound', 20, -1930, { group: 'gate', entry: 'emerge', delay: 0.5 }),
-    S('h11', 'shadeHound', -20, -1980, { group: 'gate', entry: 'emerge', delay: 2 }),
-    S('h12', 'shadeHound', 10, -2030, { group: 'gate', entry: 'emerge', delay: 4 }),
+    S('gt1', 'shadeHound', -40, -1990, { y: 40, group: 'gate', entry: 'perch', delay: 0 }),
+    S('gt2', 'shadeHound', -58, -2020, { y: 36, group: 'gate', entry: 'perch', delay: 1 }),
+    S('gt3', 'shadeHound', -70, -1970, { y: 38, group: 'gate', entry: 'perch', delay: 2.5 }),
+    S('r7', 'windowRay', 0, -1900, { y: 132, mode: 'a', group: 'gate', entry: 'perch', delay: 1 }),
+    S('r8', 'windowRay', 40, -2000, { y: 140, mode: 'a', group: 'gate', entry: 'perch', delay: 3 }),
+    S('h10', 'shadeHound', 20, -1930, { group: 'gate', entry: 'perch', delay: 0.5 }),
+    S('h11', 'shadeHound', -20, -1980, { group: 'gate', entry: 'perch', delay: 2 }),
+    S('h12', 'shadeHound', 10, -2030, { group: 'gate', entry: 'perch', delay: 4 }),
     S('h13', 'shadeHound', 50, -1938, { group: 'gate', entry: 'ambush', delay: 5 }),
-    S('s4', 'seedSpitter', 70, -2070, { y: 12.6, group: 'gate', entry: 'emerge', delay: 1.5 }),
-    S('gt4', 'shadeHound', -100, -2060, { group: 'gate', wave: 1, entry: 'emerge' }),
-    S('gt5', 'shadeHound', 60, -1990, { group: 'gate', wave: 1, entry: 'emerge' }),
-    S('r9', 'windowRay', 0, -1960, { y: 140, mode: 'a', group: 'gate', wave: 1, entry: 'drop' }),
+    S('s4', 'seedSpitter', 70, -2070, { y: 12.6, group: 'gate', entry: 'perch', delay: 1.5 }),
+    S('gt4', 'shadeHound', -100, -2060, { group: 'gate', wave: 1, entry: 'perch' }),
+    S('gt5', 'shadeHound', 60, -1990, { group: 'gate', wave: 1, entry: 'perch' }),
+    S('r9', 'windowRay', 0, -1960, { y: 140, mode: 'a', group: 'gate', wave: 1, entry: 'perch' }),
   ];
   return {
     region: 'fields',
@@ -310,7 +299,7 @@ export function sunseedFields(): District {
     strongholds: [
       { id: 'granary', name: 'The Orchard Granary', x: 40, z: -560, r: 190, y: 20 },
       { id: 'seedfall', name: 'The Seedfall Granary', x: 0, z: -1270, r: 190, y: 20 },
-      { id: 'gate', name: 'The Crownline Gate', x: 0, z: -1960, r: 200, y: 20, seal: true },
+      { id: 'gate', name: 'The Crownline Gate', x: 0, z: -1960, r: 200, y: 20 },
     ],
     start: { x: 0, z: 40, yaw: Math.PI },
     exit: { x: 0, z: -2000, r: 30, name: 'The road to Crownline' },
@@ -390,7 +379,7 @@ export function crownlineCity(): District {
     P('prop.springPad', 30, -1690, 0, 0, { w: 10 }),
     P('prop.windLane', 0, -1730, 60, Math.PI / 2, { length: 140, r: 20 }),
     P('prop.checkpointTotem', 0, -1600),
-    // Stronghold 3 · The Highline Observatory (sealed; centre 0,-1970, r 200): the tallest towers flank the dome on the highest plateau.
+    // Stronghold 3 · The Highline Observatory (centre 0,-1970, r 200): the tallest towers flank the dome on the highest plateau.
     P('prop.checkpointTotem', 0, -1770),
     P('structure.city.ivoryTower', -90, -1930, 0, 0.1, { h: 140 }),
     P('structure.city.ivoryTower', 90, -1990, 0, -0.1, { h: 120 }),
@@ -410,47 +399,47 @@ export function crownlineCity(): District {
     S('h1', 'shadeHound', 30, -80, { group: 'street' }),
     S('h2', 'shadeHound', -30, -300, { group: 'street' }),
     // Stronghold 1 host.
-    S('w1', 'shadeHound', -70, -560, { y: 112, group: 'ward', entry: 'leap', delay: 0 }),
-    S('w2', 'shadeHound', 80, -640, { y: 132, group: 'ward', entry: 'leap', delay: 1.5 }),
-    S('r1', 'windowRay', 0, -540, { y: 120, mode: 'a', group: 'ward', entry: 'drop', delay: 1 }),
-    S('r2', 'windowRay', 30, -660, { y: 125, mode: 'a', group: 'ward', entry: 'drop', delay: 3 }),
-    S('h3', 'shadeHound', 0, -520, { group: 'ward', entry: 'emerge', delay: 0.5 }),
-    S('h4', 'shadeHound', -25, -580, { group: 'ward', entry: 'emerge', delay: 2 }),
-    S('h5', 'shadeHound', 20, -650, { group: 'ward', entry: 'emerge', delay: 4 }),
+    S('w1', 'shadeHound', -70, -560, { y: 112, group: 'ward', entry: 'perch', delay: 0 }),
+    S('w2', 'shadeHound', 80, -640, { y: 132, group: 'ward', entry: 'perch', delay: 1.5 }),
+    S('r1', 'windowRay', 0, -540, { y: 120, mode: 'a', group: 'ward', entry: 'perch', delay: 1 }),
+    S('r2', 'windowRay', 30, -660, { y: 125, mode: 'a', group: 'ward', entry: 'perch', delay: 3 }),
+    S('h3', 'shadeHound', 0, -520, { group: 'ward', entry: 'perch', delay: 0.5 }),
+    S('h4', 'shadeHound', -25, -580, { group: 'ward', entry: 'perch', delay: 2 }),
+    S('h5', 'shadeHound', 20, -650, { group: 'ward', entry: 'perch', delay: 4 }),
     S('h6', 'shadeHound', -40, -716, { group: 'ward', entry: 'ambush', delay: 5 }),
-    S('l1', 'spireLeech', -53, -560, { y: 83.5, mode: 'a', group: 'ward', wave: 1, entry: 'emerge' }),
-    S('l2', 'spireLeech', 63, -640, { y: 93.5, mode: 'a', group: 'ward', wave: 1, entry: 'emerge' }),
-    S('r3', 'windowRay', 0, -600, { y: 130, mode: 'a', group: 'ward', wave: 1, entry: 'drop' }),
+    S('l1', 'spireLeech', -53, -560, { y: 83.5, mode: 'a', group: 'ward', wave: 1, entry: 'perch' }),
+    S('l2', 'spireLeech', 63, -640, { y: 93.5, mode: 'a', group: 'ward', wave: 1, entry: 'perch' }),
+    S('r3', 'windowRay', 0, -600, { y: 130, mode: 'a', group: 'ward', wave: 1, entry: 'perch' }),
     // Interlude 2 patrol: two rays over the rail.
     S('c1', 'windowRay', 0, -900, { y: 140, mode: 'a', group: 'canyon' }),
     S('c2', 'windowRay', -30, -1000, { y: 145, mode: 'a', group: 'canyon' }),
     // Stronghold 2 host.
-    S('k1', 'shadeHound', 0, -1280, { y: 100, group: 'crown', entry: 'leap', delay: 0 }),
-    S('k2', 'shadeHound', -100, -1230, { y: 102, group: 'crown', entry: 'leap', delay: 1.5 }),
-    S('r4', 'windowRay', -30, -1200, { y: 220, mode: 'a', group: 'crown', entry: 'drop', delay: 1 }),
-    S('r5', 'windowRay', 40, -1360, { y: 230, mode: 'a', group: 'crown', entry: 'drop', delay: 3 }),
-    S('h7', 'shadeHound', 0, -1160, { group: 'crown', entry: 'emerge', delay: 0.5 }),
-    S('h8', 'shadeHound', -30, -1250, { group: 'crown', entry: 'emerge', delay: 2 }),
-    S('h9', 'shadeHound', 30, -1330, { group: 'crown', entry: 'emerge', delay: 4 }),
+    S('k1', 'shadeHound', 0, -1280, { y: 100, group: 'crown', entry: 'perch', delay: 0 }),
+    S('k2', 'shadeHound', -100, -1230, { y: 102, group: 'crown', entry: 'perch', delay: 1.5 }),
+    S('r4', 'windowRay', -30, -1200, { y: 220, mode: 'a', group: 'crown', entry: 'perch', delay: 1 }),
+    S('r5', 'windowRay', 40, -1360, { y: 230, mode: 'a', group: 'crown', entry: 'perch', delay: 3 }),
+    S('h7', 'shadeHound', 0, -1160, { group: 'crown', entry: 'perch', delay: 0.5 }),
+    S('h8', 'shadeHound', -30, -1250, { group: 'crown', entry: 'perch', delay: 2 }),
+    S('h9', 'shadeHound', 30, -1330, { group: 'crown', entry: 'perch', delay: 4 }),
     S('h10', 'shadeHound', -50, -1196, { group: 'crown', entry: 'ambush', delay: 5 }),
-    S('l3', 'spireLeech', -83, -1230, { y: 168.5, mode: 'a', group: 'crown', wave: 1, entry: 'emerge' }),
-    S('l4', 'spireLeech', 83, -1340, { y: 165, mode: 'a', group: 'crown', wave: 1, entry: 'emerge' }),
-    S('r6', 'windowRay', 0, -1280, { y: 240, mode: 'a', group: 'crown', wave: 1, entry: 'drop' }),
+    S('l3', 'spireLeech', -83, -1230, { y: 168.5, mode: 'a', group: 'crown', wave: 1, entry: 'perch' }),
+    S('l4', 'spireLeech', 83, -1340, { y: 165, mode: 'a', group: 'crown', wave: 1, entry: 'perch' }),
+    S('r6', 'windowRay', 0, -1280, { y: 240, mode: 'a', group: 'crown', wave: 1, entry: 'perch' }),
     // Interlude 3 patrol: two rays between the bridges.
     S('b1', 'windowRay', 0, -1600, { y: 250, mode: 'a', group: 'bridges' }),
     S('b2', 'windowRay', 30, -1680, { y: 260, mode: 'a', group: 'bridges' }),
     // Stronghold 3 host.
-    S('o1', 'shadeHound', -90, -1930, { y: 142, group: 'observatory', entry: 'leap', delay: 0 }),
-    S('o2', 'shadeHound', 90, -1990, { y: 122, group: 'observatory', entry: 'leap', delay: 1.5 }),
-    S('r7', 'windowRay', 0, -1900, { y: 360, mode: 'a', group: 'observatory', entry: 'drop', delay: 1 }),
-    S('r8', 'windowRay', -40, -2000, { y: 350, mode: 'a', group: 'observatory', entry: 'drop', delay: 3 }),
-    S('h11', 'shadeHound', 0, -1860, { group: 'observatory', entry: 'emerge', delay: 0.5 }),
-    S('h12', 'shadeHound', -30, -1940, { group: 'observatory', entry: 'emerge', delay: 2 }),
-    S('h13', 'shadeHound', 30, -1990, { group: 'observatory', entry: 'emerge', delay: 4 }),
+    S('o1', 'shadeHound', -90, -1930, { y: 142, group: 'observatory', entry: 'perch', delay: 0 }),
+    S('o2', 'shadeHound', 90, -1990, { y: 122, group: 'observatory', entry: 'perch', delay: 1.5 }),
+    S('r7', 'windowRay', 0, -1900, { y: 360, mode: 'a', group: 'observatory', entry: 'perch', delay: 1 }),
+    S('r8', 'windowRay', -40, -2000, { y: 350, mode: 'a', group: 'observatory', entry: 'perch', delay: 3 }),
+    S('h11', 'shadeHound', 0, -1860, { group: 'observatory', entry: 'perch', delay: 0.5 }),
+    S('h12', 'shadeHound', -30, -1940, { group: 'observatory', entry: 'perch', delay: 2 }),
+    S('h13', 'shadeHound', 30, -1990, { group: 'observatory', entry: 'perch', delay: 4 }),
     S('h14', 'shadeHound', 40, -1876, { group: 'observatory', entry: 'ambush', delay: 5 }),
-    S('l5', 'spireLeech', -73, -1930, { y: 338.5, mode: 'a', group: 'observatory', wave: 1, entry: 'emerge' }),
-    S('l6', 'spireLeech', 73, -1990, { y: 330, mode: 'a', group: 'observatory', wave: 1, entry: 'emerge' }),
-    S('r9', 'windowRay', 0, -1970, { y: 370, mode: 'a', group: 'observatory', wave: 1, entry: 'drop' }),
+    S('l5', 'spireLeech', -73, -1930, { y: 338.5, mode: 'a', group: 'observatory', wave: 1, entry: 'perch' }),
+    S('l6', 'spireLeech', 73, -1990, { y: 330, mode: 'a', group: 'observatory', wave: 1, entry: 'perch' }),
+    S('r9', 'windowRay', 0, -1970, { y: 370, mode: 'a', group: 'observatory', wave: 1, entry: 'perch' }),
   ];
   return {
     region: 'city',
@@ -484,7 +473,7 @@ export function crownlineCity(): District {
     strongholds: [
       { id: 'ward', name: 'The Ivory Ward', x: 0, z: -600, r: 190, y: 40 },
       { id: 'crown', name: 'The Construction Crown', x: 0, z: -1280, r: 190, y: 50 },
-      { id: 'observatory', name: 'The Highline Observatory', x: 0, z: -1970, r: 200, y: 50, seal: true },
+      { id: 'observatory', name: 'The Highline Observatory', x: 0, z: -1970, r: 200, y: 50 },
     ],
     cages: [
       { id: 'cage-city-1', x: -120, z: -160, y: 2, mode: 'r' },
@@ -589,31 +578,31 @@ export function thunderheadRange(): District {
     S('h1', 'shadeHound', 40, -40, { group: 'entrance' }),
     S('h2', 'shadeHound', -40, -80, { group: 'entrance' }),
     // Stronghold 1 host: tortoises crouched on the crag tops, condors from above the rim.
-    S('b1', 'cragTortoise', 80, -640, { y: 116, group: 'bastion', entry: 'leap', delay: 0 }),
-    S('b2', 'cragTortoise', -70, -600, { y: 111, group: 'bastion', entry: 'leap', delay: 1.5 }),
-    S('b3', 'shadeHound', -50, -720, { y: 101, group: 'bastion', entry: 'leap', delay: 3 }),
-    S('c1', 'riftCondor', 0, -620, { y: 30, mode: 'a', group: 'bastion', entry: 'drop', delay: 1 }),
-    S('c2', 'riftCondor', -40, -720, { y: 30, mode: 'a', group: 'bastion', entry: 'drop', delay: 3.5 }),
-    S('t1', 'cragTortoise', 0, -600, { group: 'bastion', entry: 'emerge', delay: 0.5 }),
-    S('t2', 'cragTortoise', -20, -680, { group: 'bastion', entry: 'emerge', delay: 2 }),
-    S('h3', 'shadeHound', 20, -740, { group: 'bastion', entry: 'emerge', delay: 4 }),
+    S('b1', 'cragTortoise', 80, -640, { y: 116, group: 'bastion', entry: 'perch', delay: 0 }),
+    S('b2', 'cragTortoise', -70, -600, { y: 111, group: 'bastion', entry: 'perch', delay: 1.5 }),
+    S('b3', 'shadeHound', -50, -720, { y: 101, group: 'bastion', entry: 'perch', delay: 3 }),
+    S('c1', 'riftCondor', 0, -620, { y: 30, mode: 'a', group: 'bastion', entry: 'perch', delay: 1 }),
+    S('c2', 'riftCondor', -40, -720, { y: 30, mode: 'a', group: 'bastion', entry: 'perch', delay: 3.5 }),
+    S('t1', 'cragTortoise', 0, -600, { group: 'bastion', entry: 'perch', delay: 0.5 }),
+    S('t2', 'cragTortoise', -20, -680, { group: 'bastion', entry: 'perch', delay: 2 }),
+    S('h3', 'shadeHound', 20, -740, { group: 'bastion', entry: 'perch', delay: 4 }),
     S('h4', 'shadeHound', -100, -716, { group: 'bastion', entry: 'ambush', delay: 5 }),
-    S('c3', 'riftCondor', 0, -660, { y: 40, mode: 'a', group: 'bastion', wave: 1, entry: 'drop' }),
-    S('t3', 'cragTortoise', 30, -640, { group: 'bastion', wave: 1, entry: 'emerge' }),
-    S('h5', 'shadeHound', -30, -760, { group: 'bastion', wave: 1, entry: 'emerge' }),
+    S('c3', 'riftCondor', 0, -660, { y: 40, mode: 'a', group: 'bastion', wave: 1, entry: 'perch' }),
+    S('t3', 'cragTortoise', 30, -640, { group: 'bastion', wave: 1, entry: 'perch' }),
+    S('h5', 'shadeHound', -30, -760, { group: 'bastion', wave: 1, entry: 'perch' }),
     // Stronghold 2 host.
-    S('cs1', 'cragTortoise', 100, -1320, { y: 111, group: 'cloudstep', entry: 'leap', delay: 0 }),
-    S('cs2', 'cragTortoise', -100, -1290, { y: 106, group: 'cloudstep', entry: 'leap', delay: 1.5 }),
-    S('cs3', 'shadeHound', 0, -1380, { y: 41, group: 'cloudstep', entry: 'leap', delay: 2.5 }),
-    S('c4', 'riftCondor', 0, -1300, { y: 240, mode: 'a', group: 'cloudstep', entry: 'drop', delay: 1 }),
-    S('c5', 'riftCondor', -40, -1440, { y: 250, mode: 'a', group: 'cloudstep', entry: 'drop', delay: 3.5 }),
-    S('t4', 'cragTortoise', 0, -1250, { group: 'cloudstep', entry: 'emerge', delay: 0.5 }),
-    S('t5', 'cragTortoise', -20, -1420, { group: 'cloudstep', entry: 'emerge', delay: 2 }),
-    S('h6', 'shadeHound', 30, -1470, { group: 'cloudstep', entry: 'emerge', delay: 4 }),
+    S('cs1', 'cragTortoise', 100, -1320, { y: 111, group: 'cloudstep', entry: 'perch', delay: 0 }),
+    S('cs2', 'cragTortoise', -100, -1290, { y: 106, group: 'cloudstep', entry: 'perch', delay: 1.5 }),
+    S('cs3', 'shadeHound', 0, -1380, { y: 41, group: 'cloudstep', entry: 'perch', delay: 2.5 }),
+    S('c4', 'riftCondor', 0, -1300, { y: 240, mode: 'a', group: 'cloudstep', entry: 'perch', delay: 1 }),
+    S('c5', 'riftCondor', -40, -1440, { y: 250, mode: 'a', group: 'cloudstep', entry: 'perch', delay: 3.5 }),
+    S('t4', 'cragTortoise', 0, -1250, { group: 'cloudstep', entry: 'perch', delay: 0.5 }),
+    S('t5', 'cragTortoise', -20, -1420, { group: 'cloudstep', entry: 'perch', delay: 2 }),
+    S('h6', 'shadeHound', 30, -1470, { group: 'cloudstep', entry: 'perch', delay: 4 }),
     S('h7', 'shadeHound', -60, -1376, { group: 'cloudstep', entry: 'ambush', delay: 5 }),
-    S('c6', 'riftCondor', 0, -1370, { y: 260, mode: 'a', group: 'cloudstep', wave: 1, entry: 'drop' }),
-    S('t6', 'cragTortoise', 40, -1330, { group: 'cloudstep', wave: 1, entry: 'emerge' }),
-    S('h8', 'shadeHound', -40, -1330, { group: 'cloudstep', wave: 1, entry: 'emerge' }),
+    S('c6', 'riftCondor', 0, -1370, { y: 260, mode: 'a', group: 'cloudstep', wave: 1, entry: 'perch' }),
+    S('t6', 'cragTortoise', 40, -1330, { group: 'cloudstep', wave: 1, entry: 'perch' }),
+    S('h8', 'shadeHound', -40, -1330, { group: 'cloudstep', wave: 1, entry: 'perch' }),
     // Interlude 3 patrol: two condors over the summit road.
     S('c7', 'riftCondor', 0, -1700, { y: 250, mode: 'a', group: 'summitRoad' }),
     S('c8', 'riftCondor', 40, -1780, { y: 260, mode: 'a', group: 'summitRoad' }),

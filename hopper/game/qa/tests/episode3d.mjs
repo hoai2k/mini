@@ -1,7 +1,7 @@
 // Node test for the 3D edition's episode flow: Engine3D with a stubbed
 // renderer and audio, played through all three districts of episode one.
 // Hopper is teleported along the totem chain (the controller has its own
-// tests), signals and cages are collected, gate domes and the Night Rook are
+// tests), signals and cages are collected, strongholds and the Night Rook are
 // fought, and the district transitions and the episode's completion are
 // checked, at the fixed 120 Hz step the game uses.
 import fs from 'node:fs';
@@ -127,7 +127,7 @@ const finite = () => {
   check([h.x, h.y, h.z, h.vx, h.vy, h.vz].every(Number.isFinite), `Hopper state stays finite (${JSON.stringify({ x: h.x, y: h.y, z: h.z, vx: h.vx, vy: h.vy, vz: h.vz, move: h.move })})`);
 };
 
-/** Play one district: totems, signals, cages, gates, then the boss and exit. */
+/** Play one district: totems, signals, cages, strongholds, then the boss and exit. */
 function playDistrict(index) {
   const d = district();
   const w = world();
@@ -159,23 +159,32 @@ function playDistrict(index) {
     }
     check(JSON.parse(store.get('hopper3d.save')).checkpoint >= 1, 'checkpoint saved');
   };
-  // Strongholds: approach, confirm the host pours out (a sealed one keeps
-  // Hopper inside), then clear the host and see the region freed.
+  // Strongholds: the host waits in plain view on the structures (most of it
+  // up on their tops), stares as Hopper approaches, comes down when he is
+  // within reach, and nothing holds him in; clear the host and see the
+  // region freed.
   for (const field of w.fields.filter((f) => f.group !== 'boss')) {
+    const group = c.shadows.filter((s) => s.group === field.group);
+    check(group.length > 0, `stronghold ${field.id} has a host`);
+    check(group.every((s) => s.perched && s.dormant && s.held), `${d.name}: ${field.id} host waits perched in view before the approach`);
+    const climbers = group.filter((s) => !s.rooted);
+    const up = climbers.filter((s) => s.y - w.heightAt(s.x, s.z) >= 10);
+    check(up.length >= Math.ceil(climbers.length * 0.7), `${d.name}: ${field.id} host is up on the structures (${up.length}/${climbers.length} at least 10 m up)`);
+    teleport(field.x + 300, w.heightAt(field.x + 300, field.z + 300) + 1, field.z + 300);
+    run(0.2);
+    check(!field.active, `${d.name}: stronghold ${field.id} is quiet from 420 m`);
+    check(group.some((s) => s.stare > 0), `${d.name}: ${field.id} host stares as Hopper approaches`);
     teleport(field.x, field.y + 1, field.z);
     run(0.2);
     check(field.active, `${d.name}: stronghold ${field.id} activated on approach`);
     check(sounds.includes('boss'), 'stronghold sting played');
-    if (field.seal) {
-      // Try to leave: the dome pushes back.
-      engine.player.x = field.x + field.r + 30;
-      run(0.1);
-      check(Math.hypot(engine.player.x - field.x, engine.player.z - field.z) <= field.r, 'the dome keeps Hopper inside');
-    }
-    const group = c.shadows.filter((s) => s.group === field.group);
-    check(group.length > 0, `stronghold ${field.id} has a host`);
-    run(7); // let the host pour out
+    engine.player.x = field.x + field.r + 30;
+    run(0.1);
+    check(Math.hypot(engine.player.x - field.x, engine.player.z - field.z) > field.r, 'nothing holds Hopper inside a stronghold');
+    teleport(field.x, field.y + 1, field.z);
+    run(7); // let the host come down
     check(group.some((s) => s.alive && !s.dormant), `${d.name}: ${field.id} host released`);
+    check(group.every((s) => !s.alive || !s.dormant || s.entry === 'ambush' || s.wave > 0), `${d.name}: ${field.id} wave-0 host all released within 7 s`);
     for (const s of group)
       if (s.alive) {
         // Armoured shadows only take full damage with the core open.
@@ -213,7 +222,7 @@ function playDistrict(index) {
     check(t.taken, `${d.name}: signal ${t.id} taken (trigger ${t.x},${t.y.toFixed(1)},${t.z} r ${t.r}; Hopper ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move}; locked ${t.locked})`);
   }
   check(snapshot.signals >= signalTriggers.length, 'HUD counts the signals');
-  // The exit: sealed while the boss lives, otherwise the district ends.
+  // The exit: barred only while the boss lives, otherwise the district ends.
   const boss = priv('boss');
   if (boss) {
     // The arena holds the exit, so the totems come first here.
@@ -242,7 +251,7 @@ function fightBoss(boss, w, c) {
   check(arena, 'boss arena field exists');
   teleport(arena.x, arena.y + 1, arena.z);
   run(0.2);
-  check(rook.active && arena.active, 'entering the arena wakes the Rook and seals the dome');
+  check(rook.active && arena.active, 'entering the arena wakes the Rook');
   check(snapshot.boss && snapshot.boss.name === 'Night Rook' && snapshot.boss.health === 1, 'HUD shows the boss bar');
   check(snapshot.standIns?.includes('commander'), 'HUD marks the commander as stand-in art');
   // Let the fight run: the Rook should mark, sweep and climb on its own.
@@ -273,7 +282,7 @@ function fightBoss(boss, w, c) {
   check(!rook.alive, `the Rook falls to sustained fire (${shots} shots)`);
   check(rook.phase === 3, 'the fight reached phase three');
   run(0.3);
-  check(arena.cleared, 'the arena dome lifts when the Rook falls');
+  check(arena.cleared, 'the arena is cleared when the Rook falls');
   check(snapshot.boss === null, 'boss bar gone');
   check(priv('hp') > 0, 'Hopper survives');
 }
@@ -339,4 +348,4 @@ check(engine2.districtIndex === 1 && engine2.checkpointIndex === 3, 'resume rest
 check(engine2.score === 1234, 'resume restores the score');
 check(Math.hypot(engine2.player.x - engine2.checkpoints[3].x, engine2.player.z - engine2.checkpoints[3].z) < 20, 'Hopper starts at the saved totem');
 
-console.log(`episode3d: ${checks} checks passed (three districts, cages, gates, the Night Rook, transitions, resume)`);
+console.log(`episode3d: ${checks} checks passed (three districts, cages, strongholds, the Night Rook, transitions, resume)`);

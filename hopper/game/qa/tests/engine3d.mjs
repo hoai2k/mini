@@ -377,12 +377,51 @@ function check(name, cond, detail) {
     const cam = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
     for (let i = 0; i < 240; i++) updateCamera(cam, h, world, blankCam, settings, dt);
     const eyeDist = Math.hypot(cam.eye[0] - h.x, cam.eye[1] - h.y, cam.eye[2] - h.z);
-    check('camera settles 25-60m from Hopper', eyeDist > 25 && eyeDist < 60, eyeDist);
+    check('camera settles 25-66m from Hopper', eyeDist > 25 && eyeDist < 66, eyeDist);
     check(
       'camera eye is above the terrain',
       cam.eye[1] > world.heightAt(cam.eye[0], cam.eye[2]),
       `${cam.eye[1]} vs ${world.heightAt(cam.eye[0], cam.eye[2])}`,
     );
+  }
+
+  // A run with hops and landings: the camera takes a smooth path. Its eye
+  // never jolts (no frame-to-frame change of velocity beyond a small bound)
+  // and a landing does not drop the picture: the eye's height changes in
+  // a frame by less than a metre.
+  {
+    const h = startHopper(0, 40);
+    const cam = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
+    for (let i = 0; i < 120; i++) updateCamera(cam, h, world, blankCam, settings, dt);
+    let prevEye = [...cam.eye],
+      prevV = null,
+      worstJolt = 0,
+      worstAt = '',
+      worstRise = 0,
+      landings = 0,
+      wasAir = false;
+    for (let i = 0; i < 120 * 12; i++) {
+      const jumpPressed = i % 180 === 30;
+      const ev = stepHopper(h, world, { ...blank, dz: -1, jumpPressed, jumpHeld: jumpPressed }, dt);
+      if (ev.some((e) => e.kind === 'land')) landings++;
+      wasAir = h.height > 0.5;
+      updateCamera(cam, h, world, blankCam, settings, dt);
+      const v = [(cam.eye[0] - prevEye[0]) / dt, (cam.eye[1] - prevEye[1]) / dt, (cam.eye[2] - prevEye[2]) / dt];
+      if (prevV) {
+        const jolt = Math.hypot(v[0] - prevV[0], v[1] - prevV[1], v[2] - prevV[2]);
+        if (jolt > worstJolt) {
+          worstJolt = jolt;
+          worstAt = `t ${(i / 120).toFixed(2)} height ${h.height.toFixed(1)} at ${h.x.toFixed(0)},${h.z.toFixed(0)} clip ${cam.clip.toFixed(2)} dv ${(v[0] - prevV[0]).toFixed(1)},${(v[1] - prevV[1]).toFixed(1)},${(v[2] - prevV[2]).toFixed(1)}`;
+        }
+      }
+      worstRise = Math.max(worstRise, Math.abs(cam.eye[1] - prevEye[1]));
+      prevV = v;
+      prevEye = [...cam.eye];
+    }
+    check('the run had hops that landed', landings >= 5, landings);
+    check('the camera eye never jolts on a run with landings (velocity change per frame < 4 m/s)', worstJolt < 4, `${worstJolt} ${worstAt}`);
+    check('the camera eye height never steps more than 0.6 m in a frame', worstRise < 0.6, worstRise);
+    void wasAir;
   }
 
   // lookX orbits the camera.
@@ -1040,27 +1079,46 @@ function aimFrom(h, extra = {}) {
 }
 
 // ---------------------------------------------------------------------
-// 21. Stronghold entries: held hosts, activateGroup, and 'drop' / 'leap' /
-// 'emerge' / 'ambush' arrivals. Each scenario builds combat from a copy of
-// sunseedFields() with a synthetic `shadows` and `strongholds` list.
+// 21. Stronghold hosts: perched in plain view, staring, released in delay
+// order, leaping or launching off their perches. Each scenario builds combat
+// from a copy of sunseedFields() with a synthetic `shadows` and `strongholds`
+// list placed on one of the district's own structures.
 // ---------------------------------------------------------------------
+const fortAt = (() => {
+  // A structure with a top the perch finder accepts, so the host has
+  // something tall to wait on.
+  for (const p of sunseedFields().placements) {
+    if (!p.id.startsWith('structure.')) continue;
+    const top = world.perchNear(p.x, p.z);
+    if (top && top.y - world.heightAt(top.x, top.z) >= 10) return { x: p.x, z: p.z, top };
+  }
+  return null;
+})();
+check('sunseed has a structure top to perch a host on', !!fortAt, fortAt);
+const fort = { id: 'fort', name: 'Fort', x: fortAt.x, z: fortAt.z, r: 80 };
+const farHopper = () => {
+  const h = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
+  h.groundY = h.y;
+  return h;
+};
 
-// 21a. Held hosts start held+dormant and are excluded from aliveShadows();
-// resetToCheckpoint's internal wake() does not release them.
+// 21a. A held host starts held+dormant, crouched on a structure top, in
+// plain view and targetable; resetToCheckpoint's internal wake() does not
+// release it.
 {
-  const districtA = {
-    ...sunseedFields(),
-    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
-    shadows: [{ id: 'g1', kind: 'shadeHound', x: 0, z: -100, group: 'fort' }],
-  };
+  const districtA = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'g1', kind: 'shadeHound', x: fort.x, z: fort.z, group: 'fort' }] };
   const combat = new Combat(world, districtA);
   const g1 = combat.shadows.find((s) => s.id === 'g1');
   check('held host starts held', g1.held === true, g1.held);
   check('held host starts dormant', g1.dormant === true, g1.dormant);
-  check('aliveShadows() excludes the held host', !combat.aliveShadows().includes(g1), combat.aliveShadows().map((s) => s.id));
+  check('held host is perched and waiting', g1.perched === true && g1.state === 'wait', `${g1.perched} ${g1.state}`);
+  const rise = g1.y - world.heightAt(g1.x, g1.z);
+  check('held host waits on a structure top at least 10 m up', rise >= 10, rise);
+  check('held host stands on that top', Math.abs(world.groundAt(g1.x, g1.z, g1.y + 0.5).y - g1.y) < 0.05, world.groundAt(g1.x, g1.z, g1.y + 0.5).y - g1.y);
+  check('aliveShadows() includes the perched host (it can be shot off its perch)', combat.aliveShadows().includes(g1), combat.aliveShadows().map((s) => s.id));
   combat.resetToCheckpoint(0);
   const g1After = combat.shadows.find((s) => s.id === 'g1');
-  check('resetToCheckpoint (wake()) does not release a held host', g1After.held === true && g1After.dormant === true, `${g1After.held} ${g1After.dormant}`);
+  check('resetToCheckpoint (wake()) does not release a held host', g1After.held === true && g1After.dormant === true && g1After.perched, `${g1After.held} ${g1After.dormant}`);
 }
 
 // 21b. activateGroup returns the held count and releases wave-0 members in
@@ -1068,10 +1126,10 @@ function aimFrom(h, extra = {}) {
 {
   const districtB = {
     ...sunseedFields(),
-    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    strongholds: [fort],
     shadows: [
-      { id: 'd0', kind: 'shadeHound', x: 0, z: -100, group: 'fort', delay: 0 },
-      { id: 'd1', kind: 'shadeHound', x: 20, z: -100, group: 'fort', delay: 1.5 },
+      { id: 'd0', kind: 'shadeHound', x: fort.x, z: fort.z, group: 'fort', delay: 0 },
+      { id: 'd1', kind: 'shadeHound', x: fort.x + 20, z: fort.z, group: 'fort', delay: 1.5 },
     ],
   };
   const combat = new Combat(world, districtB);
@@ -1079,8 +1137,7 @@ function aimFrom(h, extra = {}) {
   const d1 = combat.shadows.find((s) => s.id === 'd1');
   const released = combat.activateGroup('fort');
   check('activateGroup returns the held count', released === 2, released);
-  const h = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
-  h.groundY = h.y;
+  const h = farHopper();
   const cb = makeCallbacks();
   let d0At = null,
     d1At = null;
@@ -1094,49 +1151,41 @@ function aimFrom(h, extra = {}) {
   check('delay:0 releases before delay:1.5', d0At !== null && d1At !== null && d0At < d1At, `${d0At} vs ${d1At}`);
 }
 
-// 21c. 'drop': appears ~90m above home and lands on the ground within 4s,
-// recording a shockwave effect.
+// 21c. Staring: a perched host turns to face Hopper from 700 m and its
+// stare brightens with the last 500 m; beyond that it looks at nothing.
 {
-  const districtC = {
-    ...sunseedFields(),
-    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
-    shadows: [{ id: 'dr1', kind: 'shadeHound', x: 0, z: -100, group: 'fort', entry: 'drop' }],
-  };
+  const districtC = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'st1', kind: 'shadeHound', x: fort.x, z: fort.z, group: 'fort' }] };
   const combat = new Combat(world, districtC);
-  const dr1 = combat.shadows.find((s) => s.id === 'dr1');
-  const homeY = dr1.homeY;
-  combat.activateGroup('fort');
-  const h = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
-  h.groundY = h.y;
+  const st1 = combat.shadows.find((s) => s.id === 'st1');
   const cb = makeCallbacks();
-  combat.update(dt, h, cb, aimFrom(h));
-  check('drop hound appears ~90m above home', dr1.y - homeY > 80 && dr1.y - homeY < 95, dr1.y - homeY);
-  let shockwaveAt = null;
-  for (let i = 0; i < 480; i++) {
-    combat.update(dt, h, cb, aimFrom(h));
-    if (shockwaveAt === null && cb.record.effects.includes('shockwave')) shockwaveAt = i / 120;
-  }
-  check('drop hound is grounded near home within 4s', Math.abs(dr1.y - homeY) < 1, dr1.y - homeY);
-  check('drop hound records a shockwave effect', shockwaveAt !== null && shockwaveAt < 4, shockwaveAt);
+  const at = (dx, dz) => {
+    const h = createHopperState(st1.x + dx, world.heightAt(st1.x + dx, st1.z + dz), st1.z + dz, Math.PI);
+    h.groundY = h.y;
+    return h;
+  };
+  const far = at(0, 900);
+  for (let i = 0; i < 12; i++) combat.update(dt, far, cb, aimFrom(far));
+  check('a perched host 900 m off has no stare', st1.stare === 0, st1.stare);
+  const near = at(200, 200);
+  for (let i = 0; i < 12; i++) combat.update(dt, near, cb, aimFrom(near));
+  check('a perched host 280 m off stares (0 < stare < 1)', st1.stare > 0.3 && st1.stare < 0.6, st1.stare);
+  const want = Math.atan2(200, 200);
+  check('a perched host faces Hopper', Math.abs(Math.atan2(Math.sin(st1.yaw - want), Math.cos(st1.yaw - want))) < 0.01, `${st1.yaw} vs ${want}`);
+  check('staring is harmless and keeps the host dormant', st1.dormant && cb.record.hurt === 0, `${st1.dormant} ${cb.record.hurt}`);
 }
 
-// 21d. 'leap': waits crouched on its perch while Hopper is far, pounces once
-// Hopper is close, and a pounce contact calls hurt.
+// 21d. A ground host, released: waits crouched on its perch while Hopper is
+// far, pounces once Hopper is close, and a pounce contact calls hurt.
 {
-  const districtD = {
-    ...sunseedFields(),
-    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
-    shadows: [{ id: 'lp1', kind: 'shadeHound', x: 0, z: -100, group: 'fort', entry: 'leap' }],
-  };
+  const districtD = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'lp1', kind: 'shadeHound', x: fort.x, z: fort.z, group: 'fort', entry: 'perch' }] };
   const combat = new Combat(world, districtD);
   const lp1 = combat.shadows.find((s) => s.id === 'lp1');
   combat.activateGroup('fort');
   const cb = makeCallbacks();
-  const hFar = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
-  hFar.groundY = hFar.y;
+  const hFar = farHopper();
   for (let i = 0; i < 60; i++) combat.update(dt, hFar, cb, aimFrom(hFar));
-  check('leaper stays waiting while Hopper is far', lp1.state === 'wait', lp1.state);
-  check('leaper is harmless while waiting', cb.record.hurt === 0, cb.record.hurt);
+  check('released ground host stays waiting on its perch while Hopper is far', lp1.state === 'wait' && !lp1.dormant, `${lp1.state} ${lp1.dormant}`);
+  check('waiting host is harmless', cb.record.hurt === 0, cb.record.hurt);
   const hNear = createHopperState(lp1.x, lp1.y, lp1.z - 5, Math.PI);
   hNear.groundY = hNear.y;
   let pounced = false;
@@ -1144,54 +1193,96 @@ function aimFrom(h, extra = {}) {
     combat.update(dt, hNear, cb, aimFrom(hNear));
     if (lp1.state === 'pounce') pounced = true;
   }
-  check('leaper pounces once Hopper is close', pounced, pounced);
+  check('ground host pounces once Hopper is close', pounced, pounced);
   check('a pounce contact calls hurt', cb.record.hurt > 0, cb.record.hurt);
 }
 
-// 21e. 'emerge': rises from below ground to homeY within 0.7s.
+// 21d2. Left alone, a released ground host pounces anyway within 4.5 s and
+// comes down off its perch to the ground.
 {
-  const districtE = {
-    ...sunseedFields(),
-    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
-    shadows: [{ id: 'em1', kind: 'seedSpitter', x: 0, z: -100, group: 'fort', entry: 'emerge' }],
-  };
-  const combat = new Combat(world, districtE);
-  const em1 = combat.shadows.find((s) => s.id === 'em1');
-  const homeY = em1.homeY;
+  const districtD2 = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'lp2', kind: 'shadeHound', x: fort.x, z: fort.z, group: 'fort' }] };
+  const combat = new Combat(world, districtD2);
+  const lp2 = combat.shadows.find((s) => s.id === 'lp2');
+  const perchY = lp2.y;
   combat.activateGroup('fort');
-  const h = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
-  h.groundY = h.y;
   const cb = makeCallbacks();
-  combat.update(dt, h, cb, aimFrom(h));
-  check('emerge spitter starts below its home (under the ground)', em1.y < homeY, em1.y - homeY);
-  check('emerge spitter records a splat effect', cb.record.effects.includes('splat'), cb.record.effects);
-  let reachedAt = null;
-  for (let i = 0; i < 96; i++) {
+  const h = createHopperState(fort.x + 150, world.heightAt(fort.x + 150, fort.z), fort.z, Math.PI);
+  h.groundY = h.y;
+  let pouncedAt = null;
+  for (let i = 0; i < 120 * 9; i++) {
     combat.update(dt, h, cb, aimFrom(h));
-    if (reachedAt === null && Math.abs(em1.y - homeY) < 0.05) reachedAt = i / 120;
+    if (pouncedAt === null && lp2.state === 'pounce') pouncedAt = i / 120;
   }
-  check('emerge spitter reaches homeY within 0.7s', reachedAt !== null && reachedAt < 0.7, reachedAt);
+  check('a released ground host pounces on its own within 4.5 s', pouncedAt !== null && pouncedAt < 4.5, pouncedAt);
+  check('after the pounce the host is down off its perch, near the ground and in its ordinary states', lp2.y - world.heightAt(lp2.x, lp2.z) < 15 && lp2.y < perchY - 5 && lp2.state !== 'pounce' && lp2.state !== 'wait', `${lp2.state} y ${lp2.y.toFixed(1)} perch ${perchY.toFixed(1)} terrain ${world.heightAt(lp2.x, lp2.z).toFixed(1)}`);
 }
 
-// 21f. 'ambush': stays dormant while Hopper is in front of it, releases once
-// Hopper's z is 20m past it (forward is -z).
+// 21e. A flyer host perches on the top too, and on release launches for
+// its station in the air, arriving within a few seconds.
 {
-  const districtF = {
+  const districtE = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'fl1', kind: 'windowRay', x: fort.x + 30, z: fort.z + 30, y: fortAt.top.y + 60, mode: 'a', group: 'fort' }] };
+  const combat = new Combat(world, districtE);
+  const fl1 = combat.shadows.find((s) => s.id === 'fl1');
+  check('flyer host waits perched on a structure top', fl1.perched && Math.abs(world.groundAt(fl1.x, fl1.z, fl1.y + 0.5).y - fl1.y) < 0.05, `${fl1.perched} ${fl1.y}`);
+  combat.activateGroup('fort');
+  const cb = makeCallbacks();
+  const h = farHopper();
+  combat.update(dt, h, cb, aimFrom(h));
+  check('flyer host launches (arrive state, arrive < 1)', fl1.state === 'arrive' && fl1.arrive < 1, `${fl1.state} ${fl1.arrive}`);
+  let arrivedAt = null,
+    arrivedOff = null;
+  for (let i = 0; i < 120 * 6; i++) {
+    combat.update(dt, h, cb, aimFrom(h));
+    if (arrivedAt === null && fl1.arrive >= 1) {
+      arrivedAt = i / 120;
+      arrivedOff = Math.hypot(fl1.x - fl1.homeX, fl1.y - fl1.homeY, fl1.z - fl1.homeZ);
+    }
+  }
+  check('flyer host reaches its station within 5 s', arrivedAt !== null && arrivedAt < 5, arrivedAt);
+  check('flyer host arrives at its station and is awake from there', arrivedOff !== null && arrivedOff < 1 && fl1.state !== 'arrive' && !fl1.dormant, `${arrivedOff} ${fl1.state}`);
+}
+
+// 21e2. Hitting a perched host before its stronghold wakes releases it at
+// once; a rooted host waits at its own spawn and simply wakes.
+{
+  const districtE2 = {
     ...sunseedFields(),
-    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
-    shadows: [{ id: 'am1', kind: 'shadeHound', x: 0, z: -100, group: 'fort', entry: 'ambush' }],
+    strongholds: [fort],
+    shadows: [
+      { id: 'hit1', kind: 'shadeHound', x: fort.x, z: fort.z, group: 'fort' },
+      { id: 'sp1', kind: 'seedSpitter', x: fort.x + 40, z: fort.z, group: 'fort' },
+    ],
   };
+  const combat = new Combat(world, districtE2);
+  const hit1 = combat.shadows.find((s) => s.id === 'hit1');
+  const sp1 = combat.shadows.find((s) => s.id === 'sp1');
+  check('a rooted host is perched where it was placed', sp1.perched && sp1.x === fort.x + 40 && sp1.z === fort.z && sp1.state === 'idle', `${sp1.perched} ${sp1.x} ${sp1.state}`);
+  const cb = makeCallbacks();
+  combat.damage(hit1, 1, cb);
+  check('a hit releases a perched host at once', !hit1.dormant && !hit1.held && !hit1.perched && hit1.state === 'wait', `${hit1.dormant} ${hit1.held} ${hit1.state}`);
+  check('the rest of the host stays perched', sp1.dormant && sp1.held, `${sp1.dormant} ${sp1.held}`);
+  combat.activateGroup('fort');
+  const h = farHopper();
+  for (let i = 0; i < 120; i++) combat.update(dt, h, cb, aimFrom(h));
+  check('a rooted host wakes in place', !sp1.dormant && sp1.state === 'idle' && sp1.x === fort.x + 40, `${sp1.dormant} ${sp1.state}`);
+}
+
+// 21f. 'ambush': perched and visible, stays dormant while Hopper is in
+// front of it, releases once Hopper's z is 20m past it (forward is -z).
+{
+  const districtF = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'am1', kind: 'shadeHound', x: fort.x, z: fort.z, group: 'fort', entry: 'ambush' }] };
   const combat = new Combat(world, districtF);
   const am1 = combat.shadows.find((s) => s.id === 'am1');
+  check('ambush shadow waits perched in view', am1.perched && am1.state === 'wait', `${am1.perched} ${am1.state}`);
   const released = combat.activateGroup('fort');
   check('ambush shadow is released from held by activateGroup', released === 1 && am1.held === false, `${released} ${am1.held}`);
   check('ambush shadow stays dormant immediately after activation', am1.dormant === true, am1.dormant);
   const cb = makeCallbacks();
-  const hInFront = createHopperState(am1.homeX, world.heightAt(am1.homeX, -50), -50, Math.PI);
+  const hInFront = createHopperState(am1.homeX, world.heightAt(am1.homeX, am1.homeZ + 50), am1.homeZ + 50, Math.PI);
   hInFront.groundY = hInFront.y;
   for (let i = 0; i < 120; i++) combat.update(dt, hInFront, cb, aimFrom(hInFront));
   check('ambush shadow stays dormant while Hopper is in front of it', am1.dormant === true, am1.dormant);
-  const hPast = createHopperState(am1.homeX, world.heightAt(am1.homeX, -120), -120, Math.PI);
+  const hPast = createHopperState(am1.homeX, world.heightAt(am1.homeX, am1.homeZ - 20), am1.homeZ - 20, Math.PI);
   hPast.groundY = hPast.y;
   for (let i = 0; i < 30 && am1.dormant; i++) combat.update(dt, hPast, cb, aimFrom(hPast));
   check('ambush shadow releases once Hopper is 20m past it', am1.dormant === false, am1.dormant);

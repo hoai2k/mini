@@ -36,7 +36,8 @@ export interface Collider {
   ly1?: number;
   instance?: Instance;
 }
-/** A lockdown dome: while active it keeps Hopper inside the arena. */
+/** A stronghold's field: entering it wakes the host; when the host is down
+ * the region is freed. It never holds Hopper in. */
 export interface Field {
   id: string;
   x: number;
@@ -46,13 +47,9 @@ export interface Field {
   active: boolean;
   cleared: boolean;
   group: string;
-  /** A lockdown dome keeps Hopper inside while the field is active. */
-  seal: boolean;
   /** The stronghold's name for banners. */
   name: string;
   object?: Object3D;
-  /** Seconds of bright flare left after Hopper pushed against the barrier. */
-  flare?: number;
 }
 export interface Volume {
   kind: 'thermal' | 'wind';
@@ -172,11 +169,10 @@ export class World {
     this.scenery = sceneryFor(district, this.route, this.heightAt);
     for (const p of this.scenery) this.place(p);
     for (const c of district.cages || []) this.placeCage(c);
-    for (const g of district.gates || []) this.placeStronghold({ id: g.id, name: 'Gate', x: g.x, z: g.z, r: g.r, y: g.y, seal: true }, g.group);
     for (const st of district.strongholds || []) this.placeStronghold(st, st.id);
     if (district.boss) {
       const b = district.boss;
-      this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss', seal: true, name: 'The Night Rook' });
+      this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss', name: 'The Night Rook' });
     }
   }
   /** A caged signal: the cage and its prize, locked until the bars are broken. */
@@ -206,11 +202,43 @@ export class World {
       t.cageHp = t.cageMaxHp;
     }
   }
-  /** A stronghold's field; a sealed one gets two lockdown emitters beside it. */
-  private placeStronghold(st: { id: string; name: string; x: number; z: number; r: number; y?: number; seal?: boolean }, group: string) {
+  /** A stronghold's field. */
+  private placeStronghold(st: { id: string; name: string; x: number; z: number; r: number; y?: number }, group: string) {
     const y = this.heightAt(st.x, st.z) + (st.y ?? 0);
-    if (st.seal) for (const s of [-1, 1]) this.place({ id: 'prop.lockdownEmitter', x: st.x + s * Math.min(60, st.r * 0.6), z: st.z, mode: 'r' });
-    this.fields.push({ id: st.id, x: st.x, y, z: st.z, r: st.r, active: false, cleared: false, group, seal: !!st.seal, name: st.name });
+    this.fields.push({ id: st.id, x: st.x, y, z: st.z, r: st.r, active: false, cleared: false, group, name: st.name });
+  }
+  /** A perch for a stronghold's host member: a structure top within
+   * `radius` of a point that stands at least `minRise` above the terrain, so
+   * the shadow is in plain view on something tall before the fight. Tall
+   * tops are preferred over near ones; the point is pulled onto the top
+   * (inset from its edge); a wanted height prefers tops near it. Spring pads
+   * and moving structures are skipped. */
+  perchNear(x: number, z: number, wantY?: number, radius = 110, minRise = 10): { x: number; y: number; z: number } | null {
+    let best: { x: number; y: number; z: number } | null = null,
+      bestScore = Infinity;
+    for (const c of this.colliders) {
+      if (c.spring || c.instance?.moving || c.hx < 2.5 || c.hz < 2.5) continue;
+      if (Math.hypot(c.cx - x, c.cz - z) > radius + Math.hypot(c.hx, c.hz)) continue;
+      const [lx, lz] = World.local(c, x, z);
+      const ux = Math.max(-(c.hx - 2), Math.min(c.hx - 2, lx)) + c.ox,
+        uz = Math.max(-(c.hz - 2), Math.min(c.hz - 2, lz)) + c.oz,
+        cos = Math.cos(c.yaw),
+        sin = Math.sin(c.yaw),
+        px = c.cx + ux * cos - uz * sin,
+        pz = c.cz + ux * sin + uz * cos;
+      const dist = Math.hypot(px - x, pz - z);
+      if (dist > radius) continue;
+      const rise = c.y1 - this.heightAt(px, pz);
+      if (rise < minRise) continue;
+      // The top has to be the top: nothing solid above it at that point.
+      if (this.groundAt(px, pz, 1e6, 0).y > c.y1 + 0.5) continue;
+      const score = dist * 0.5 + (wantY !== undefined ? Math.abs(c.y1 - wantY) * 0.5 : 0) - Math.min(90, rise) * 0.6;
+      if (score < bestScore) {
+        bestScore = score;
+        best = { x: px, y: c.y1, z: pz };
+      }
+    }
+    return best;
   }
   /** Advance moving structures; returns nothing, callers read instance.moving.dx/dy/dz. */
   update(dt: number) {

@@ -13,7 +13,7 @@
 //       within 250 m of some checkpoint totem,
 //   (d) every shadow spawn with mode 'r' has ground under it, and every
 //       flyer (mode 'a') is above the terrain,
-//   (e) every gate and the boss centre sit over terrain,
+//   (e) the boss centre sits over terrain,
 //   (f) the exit is within 60 m of the last totem,
 //   (g) every stronghold has a structure placement within 120 m whose
 //       stand-in measures at least 30 m tall (fields) or 80 m (city,
@@ -26,8 +26,11 @@
 //       both sides) and no host shadows -- the interlude,
 //   (i) shadows outside every stronghold host stay in patrol pairs: no two
 //       of them within 100 m unless they share a group,
-//   (j) every 'leap' spawn has a perch: a structure landing under it within
-//       12 m of its height.
+//   (j) every host shadow that is not rooted has a perch: a structure top
+//       within 110 m of its spawn standing at least 10 m above the terrain
+//       (World.perchNear), so the host waits in plain view on the
+//       stronghold's structures; and at least 70% of a stronghold's
+//       climbers find one at least 20 m up.
 // Prints one PASS/FAIL line per district with counts, and exits 1 on any
 // failure. Also run `node qa/tests/engine3d.mjs` separately to confirm
 // Sunseed Fields (and the shared simulation modules) still pass.
@@ -68,6 +71,8 @@ for (const name of names) {
 
 const { World } = await import(path.join(temp, 'world.mjs'));
 const { measure } = await import(standIns);
+// Kinds that keep their spawn instead of climbing to a perch (see combat3d SPECS).
+const ROOTED = new Set(['seedSpitter', 'spireLeech']);
 const { MISSIONS } = await import(path.join(temp, 'district.mjs'));
 
 const dist2 = (ax, az, bx, bz) => Math.hypot(ax - bx, az - bz);
@@ -88,7 +93,7 @@ for (const make of districts) {
   const district = make();
   const world = new World(district);
   const problems = [];
-  const checked = { placements: 0, totemPairs: 0, signals: 0, shadows: 0, gates: 0, strongholds: 0, gaps: 0, patrols: 0, leaps: 0 };
+  const checked = { placements: 0, totemPairs: 0, signals: 0, shadows: 0, strongholds: 0, gaps: 0, patrols: 0, leaps: 0 };
 
   // (a) placement ground heights.
   for (const p of district.placements) {
@@ -165,12 +170,7 @@ for (const make of districts) {
     }
   }
 
-  // (e) gates and boss centre over terrain.
-  for (const g of district.gates || []) {
-    checked.gates++;
-    const h = world.heightAt(g.x, g.z);
-    if (!Number.isFinite(h)) problems.push(`(e) gate ${g.id}: terrain height is not finite`);
-  }
+  // (e) boss centre over terrain.
   if (district.boss) {
     const h = world.heightAt(district.boss.x, district.boss.z);
     if (!Number.isFinite(h)) problems.push(`(e) boss ${district.boss.kind}: terrain height is not finite`);
@@ -251,33 +251,24 @@ for (const make of districts) {
     }
   }
 
-  // (j) leap perches: a structure landing under the spawn within 12 m of its height.
-  const landingsOf = (inst) =>
-    (inst.object.userData.landings || []).map((l) => {
-      const yaw = inst.object.rotation.y;
-      const wx = inst.object.position.x + l.x * Math.cos(yaw) + l.z * Math.sin(yaw);
-      const wz = inst.object.position.z - l.x * Math.sin(yaw) + l.z * Math.cos(yaw);
-      return { ...l, wx, wy: inst.object.position.y + l.y, wz, yaw };
-    });
-  const perches = structures.flatMap(landingsOf);
-  for (const sh of district.shadows) {
-    if (sh.entry !== 'leap') continue;
-    checked.leaps++;
-    const y = (sh.mode || 'r') === 'a' ? sh.y || 0 : world.heightAt(sh.x, sh.z) + (sh.y || 0);
-    const perched = perches.some((l) => {
-      // Spawn position in the landing's own frame.
-      const dx = sh.x - l.wx,
-        dz = sh.z - l.wz;
-      const lx = dx * Math.cos(l.yaw) - dz * Math.sin(l.yaw),
-        lz = dx * Math.sin(l.yaw) + dz * Math.cos(l.yaw);
-      return Math.abs(lx) <= l.halfX + 4 && Math.abs(lz) <= l.halfZ + 4 && Math.abs(y - l.wy) <= 12;
-    });
-    if (!perched) problems.push(`(j) leap shadow ${sh.id} at (${sh.x},${sh.z}) y=${y.toFixed(1)} has no structure top within 12m to perch on`);
+  // (j) host perches: a structure top near every climber's spawn, and most
+  // of each stronghold's climbers well up.
+  for (const st of district.strongholds || []) {
+    const climbers = district.shadows.filter((sh) => sh.group === st.id && !ROOTED.has(sh.kind));
+    let high = 0;
+    for (const sh of climbers) {
+      checked.leaps++;
+      const y = (sh.mode || 'r') === 'a' ? sh.y || 0 : world.heightAt(sh.x, sh.z) + (sh.y || 0);
+      const top = world.perchNear(sh.x, sh.z, sh.y !== undefined ? y : undefined);
+      if (!top) problems.push(`(j) host shadow ${sh.id} (${st.id}) at (${sh.x},${sh.z}) has no structure top within 110 m to perch on`);
+      else if (top.y - world.heightAt(top.x, top.z) >= 20) high++;
+    }
+    if (climbers.length && high < Math.ceil(climbers.length * 0.7)) problems.push(`(j) stronghold ${st.id}: only ${high}/${climbers.length} of its climbers perch at least 20 m up (need 70%)`);
   }
 
   const status = problems.length === 0 ? 'PASS' : 'FAIL';
   console.log(
-    `${status} ${district.name}: ${checked.placements} placements, ${totems.length} totems, ${checked.signals} signals/cages, ${checked.shadows} shadows, ${checked.gates} gates, ${checked.strongholds} strongholds${district.boss ? ' (incl. boss)' : ''}, ${checked.gaps} interludes, ${checked.patrols} patrol shadows, ${checked.leaps} leap perches`,
+    `${status} ${district.name}: ${checked.placements} placements, ${totems.length} totems, ${checked.signals} signals/cages, ${checked.shadows} shadows, ${checked.strongholds} strongholds${district.boss ? ' (incl. boss)' : ''}, ${checked.gaps} interludes, ${checked.patrols} patrol shadows, ${checked.leaps} perched hosts`,
   );
   for (const p of problems) console.log(`  - ${p}`);
   if (problems.length) anyFail = true;

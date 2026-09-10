@@ -398,23 +398,23 @@ export class Engine3D implements GameEngine {
     // Combat: aim from the eye sockets along the facing, tilted with the camera.
     const aim = this.aimDirection();
     combat.update(dt, h, this.callbacks(), { x: h.x + Math.sin(h.yaw) * 9, y: h.y + 12, z: h.z + Math.cos(h.yaw) * 9, dx: aim[0], dy: aim[1], dz: aim[2], firing: f.shootHeld && h.hitstun <= 0, guarding: f.blockHeld && h.hitstun <= 0, kickPressed: f.kickPressed });
-    // Gate domes: sealed once entered, open when their shadows are down.
+    // Strongholds: the host, in plain view on its perches, comes down the
+    // moment Hopper is within reach; the region is freed when it is down.
+    // Nothing holds Hopper in: the trail runs straight through.
     for (const field of world.fields) {
       const dist = Math.hypot(field.x - h.x, field.z - h.z);
-      if (!field.active && !field.cleared && dist < field.r * (field.seal ? 0.75 : 1) && Math.abs(h.y - field.y) < field.r) {
+      if (!field.active && !field.cleared && dist < field.r && Math.abs(h.y - field.y) < field.r) {
         field.active = true;
         if (field.group === 'boss') {
           this.boss?.wake(this.callbacks());
-          this.showBanner('The Night Rook', 'LOCKDOWN · defeat the commander', 3);
+          this.showBanner('The Night Rook', 'DEFEAT THE COMMANDER', 3);
         } else {
-          // The stronghold's host pours out; a sealed one raises its dome.
           const released = combat.activateGroup(field.group);
-          this.showBanner(field.name, field.seal ? 'LOCKDOWN · CLEAR THE SHADOWS' : released > 0 ? 'THE SHADOWS POUR OUT · FREE THE REGION' : 'FREE THE REGION', 2.6);
+          this.showBanner(field.name, released > 0 ? 'THE SHADOWS COME DOWN · FREE THE REGION' : 'FREE THE REGION', 2.6);
         }
         this.sound('boss');
       }
       if (field.active) {
-        if (field.flare) field.flare = Math.max(0, field.flare - dt);
         const left = field.group === 'boss' ? (this.boss && this.boss.rook.alive ? 1 : 0) : combat.shadows.filter((s) => s.group === field.group && s.alive).length;
         const done = field.group === 'boss' ? !!this.boss && !this.boss.rook.alive : left === 0;
         if (done) {
@@ -425,26 +425,6 @@ export class Engine3D implements GameEngine {
           this.score += 1000;
           this.showBanner(field.group === 'boss' ? 'The shadow falls' : `${field.name} freed`, field.group === 'boss' ? 'THE TRANSMITTER IS YOURS' : 'THE WAY IS CLEAR · ON TO THE NEXT', 2.6);
           this.sound('checkpoint');
-        } else if (field.seal) {
-          // Say what is holding the way, and keep saying it: an arena the
-          // player cannot leave has to explain itself.
-          const task = field.group === 'boss' ? 'The commander holds the gate — defeat it to lift the lockdown.' : `Lockdown: ${left} shadow${left === 1 ? '' : 's'} left inside the barrier.`;
-          if (this.hintT <= 0.25) this.setHint(task, 1.5);
-          if (dist > field.r - 2) {
-            // The barrier: keep Hopper inside, and light up where he met it.
-            const k = (field.r - 2) / (dist || 1);
-            h.x = field.x + (h.x - field.x) * k;
-            h.z = field.z + (h.z - field.z) * k;
-            const out = ((h.x - field.x) * h.vx + (h.z - field.z) * h.vz) / (dist || 1);
-            if (out > 0) {
-              h.vx -= ((h.x - field.x) / (dist || 1)) * out;
-              h.vz -= ((h.z - field.z) / (dist || 1)) * out;
-              if (!field.flare) this.sound('shield');
-            }
-            field.flare = 0.8;
-            this.scene?.effect('barrier', h.x, h.y + 8, h.z);
-            this.setHint(task, 1.5);
-          }
         }
       }
     }
@@ -494,9 +474,10 @@ export class Engine3D implements GameEngine {
       // district has been drawn, so it can be kept and dissolved from.
       if (this.transitionT <= 0) this.captureNext = true;
     } else if (this.victoryT <= 0 && !this.completed && Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r) {
-      const gatesOpen = world.fields.every((fl) => fl.cleared || (!fl.active && fl.group === 'boss' && !this.boss?.rook.active));
+      // The threshold is open: a stronghold left standing is a choice, and
+      // only the mission's commander bars the way at the end.
       const bossDown = !this.boss || !this.boss.rook.alive;
-      if (gatesOpen && bossDown) {
+      if (bossDown) {
         const last = this.districtIndex >= MISSIONS[this.mission].length - 1;
         this.score += last ? 5000 : 2000;
         this.sound('checkpoint');
@@ -512,10 +493,7 @@ export class Engine3D implements GameEngine {
           this.showBanner(d.exit.name, 'REGION COMPLETE', 3.4);
         }
       } else if (this.hintT <= 0) {
-        const holding = world.fields.filter((fl) => !fl.cleared && fl.group !== 'boss');
-        const left = holding.reduce((n, fl) => n + combat.shadows.filter((s) => s.group === fl.group && s.alive).length, 0);
-        const names = holding.map((fl) => fl.name).join(', ');
-        this.setHint(bossDown ? `${names} still ${holding.length === 1 ? 'holds' : 'hold'} the region: ${left} shadow${left === 1 ? '' : 's'} left. Follow the trail back and free it.` : 'The commander guards the summit: defeat it to open the way.', 3.5);
+        this.setHint('The commander guards the summit: defeat it to open the way.', 3.5);
       }
     }
     // Camera and the landing prediction. While the commander is awake the
@@ -745,7 +723,7 @@ export class Engine3D implements GameEngine {
     const field = this.world?.fields.find((f) => f.active && f.group !== 'boss');
     if (!field || !this.combat) return undefined;
     const host = this.combat.shadows.filter((s) => s.group === field.group);
-    return { name: field.name, remaining: host.filter((s) => s.alive).length, total: host.length, sealed: field.seal };
+    return { name: field.name, remaining: host.filter((s) => s.alive).length, total: host.length };
   }
   /** Which placeholder art is in play right now, for the HUD's stand-in tag. */
   private standInsOnScreen(): string | undefined {
