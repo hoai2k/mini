@@ -105,7 +105,7 @@ The boy is company and a scale reference, never a health bar. He leans into leap
 | --- | --- | --- |
 | Left stick / D-pad | Move, camera-relative; full deflection runs | WASD |
 | Right stick | Camera; click to reset behind Hopper | Mouse |
-| A | Jump; hold to soar, keep holding to glide; at a wall, wall kick | Space |
+| A | Jump; hold in the air to hover on beating wings, keep holding to glide; at a wall, wall kick | Space |
 | X | Spin kick, all-round, ground or air; parries during its first frames | J |
 | B | Guard (hold): shield the front; in the air, air brake | L |
 | Y | In the air: dive, stomp on landing. On the ground: hop back | F |
@@ -117,7 +117,7 @@ The boy is company and a scale reference, never a health bar. He leans into leap
 
 Automatic, with no button: ledge mantle when the front feet reach a lip, stomp bounce when landing on a flyer or an exposed back, the takeoff strike behind Hopper in the first 0.16 s of any jump, and the landing guide projected below him whenever he is airborne. Menus keep the collection's conventions: A confirms, B backs out, any fresh button starts from the idle title screen, the left stick enters utility navigation.
 
-The mapping keeps the 2D game's muscle memory where it still means the same thing (A jump and soar, X kick, B guard, RT lasers, Menu, View) and gives the four unused inputs to the four new 3D verbs. Nothing essential is on a click or a combination.
+The mapping keeps the 2D game's muscle memory where it still means the same thing (A jump and hover, X kick, B guard, RT lasers, Menu, View) and gives the four unused inputs to the four new 3D verbs. Nothing essential is on a click or a combination.
 
 <!-- page -->
 ## Movement
@@ -127,11 +127,11 @@ The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation tim
 | Parameter | Value | Result |
 | --- | --- | --- |
 | Run speed | 66 m/s (4.7 H/s), 106 sprinting | Crosses a 100 m roof in a second and a half |
-| Acceleration, stop, turn | 0.2 s · 0.15 s · 180° in 0.25 s | Heavy pose changes, quick control |
-| Tap jump | 23 m apex (1.6 H) in 0.6 s, 1.15 s airtime; 108 m running, 162 sprinting | A quick launch between roof decks |
-| Held jump | 88 m apex (6 H) in 1.3 s, 2.4 s airtime, 0.32 s thrust window; 219 m running, 309 sprinting | Clears a tower band and the gap after it |
+| Acceleration, stop, turn | 0.2 s · 0.15 s · the camera's forward | Hopper faces the route; backpedal at 55 %, strafe at 85 % |
+| Tap jump | 23 m apex (1.6 H) in 0.6 s, 1.15 s airtime; 108 m running, 162 sprinting; a 0.2 s hold adds a few metres | A quick launch between roof decks |
+| Hover | A held in the air: 1.8 s of altitude held on beating wings, refilled on landing | Cross a gap, line up a landing, fight above the ground |
 | Takeoff lunge | +24 m/s along the run (or the stick) | The leap goes forward, not merely up |
-| Glide | Sink 6 m/s, forward 40 m/s, from any apex | 84 m of height becomes 560 m of distance |
+| Glide | Sink 7 m/s, forward 80 m/s, once the hover is spent | Height becomes distance at eleven to one |
 | Crouch charge | 0.8 s to full; super leap to 140 m (10 H), 6.1 s | Reaches a tower roof from the street |
 | Spring pad | Launch to 168 m (12 H); hold A to float | The tallest single climb |
 | Thermal | Lift 25 m/s inside the column while gliding | Chimneys, furnace doors, vents |
@@ -145,7 +145,9 @@ The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation tim
 
 ### The jump family
 
-A tap is a leap, not a hop: takeoff adds a forward lunge along the way Hopper is already running, and the air steering redirects that speed without bleeding it, so a jump goes four to seven times further than it goes up. Holding A sustains the launch impulse and cuts it on release, as in the 2D game. Keep holding after the thrust window and the wings open into a glide that lasts until Hopper lands, presses Y to dive, or releases A to drop. Releasing and pressing A again in the air re-opens the wings; there is no second jump. Steering in the air is strong enough to correct a line, never so strong that arcs stop reading.
+A tap is a leap, not a hop: takeoff adds a forward lunge along the way Hopper is already running, and the air steering redirects that speed without bleeding it, so a jump goes four to seven times further than it goes up. A short hold after takeoff adds a few metres, no more. Holding A in the air is a **hover**: the wings beat hard, the fall stops, and Hopper holds his height for just under two seconds, long enough to cross a gap, pick a landing or trade shots with a flyer. There is no second jump and no boost; the hover is a pause in the air, not a climb. When the hover is spent and A is still held, the wings lock open into a glide that lasts until Hopper lands, presses Y to dive, or releases A to drop. Releasing and pressing A again while falling hovers again if any fuel is left; the fuel refills on the ground. Steering in the air is strong enough to correct a line, never so strong that arcs stop reading.
+
+Hopper always faces forward: along the trail, or wherever the camera's 45° of manual turn points, or at a locked target. Pulling the stick back is a backpedal at half speed, sideways is a strafe, and the dash, the hop back and the wall kick are manoeuvres that keep the facing. Turning round is the camera's job, never the stick's, so the rider is always looking where the danger is.
 
 The crouch charge is the deliberate big jump. Holding RB compresses the hind legs over 0.8 s; releasing launches straight up by charge, and the stick during the charge sets the direction. It is slow to start and enormous, so it is the way onto the tall things and rarely a combat move.
 
@@ -209,11 +211,15 @@ Every flyer is a step. Stomping one damages it and bounces Hopper upward; holdin
 
 Ground shadows attack with clear tells 0.5–0.9 s long, and the ground game is about cores: a hound's ribs open when it lands from a pounce, a tortoise shows its belly in a lunge, a crab shows its rear vent after a slam. Lock-on, strafing and the hop back are for getting to the core; the dive stomp is for opening a group at once, because it knocks ground shadows into the air where they are helpless for a second and can be kicked or shot.
 
-### Knots, waves and ambushes
+### Pacing: interludes and strongholds
 
 The HUD names what is being aimed at and shows its health: the commander gets the full bar, phase and tell; anything else locked or under fire gets a small name-and-health readout, so a player can always tell whether the shots are landing.
 
-Shadows cluster at **knots**: nests around seed vessels, perches on masts, gangs on a deck. A knot's first wave is present; later waves leap in from cover, from above or from under the ground as the first falls, up to five at once in the third mission. Most knots are optional, and the route around them is always visible. Two knots per region are **gates**: lockdown emitters raise a violet dome around them when Hopper enters, and it drops when the knot is cleared. The dome is not only overhead — a ribbed wall of light stands at the exact radius Hopper is held inside, flaring where he pushes against it, and the HUD says what would open it (how many shadows are still alive in the knot, or that the commander holds it). A barrier the player cannot see or explain is a bug, not a challenge. The last gate of a region stands at the landmark. Ambushes come from behind (a hound following Hopper's line), from above (a ray on a mast, a stalker on a ceiling), from under (a burrower beneath a landing) and from a mirror (a stalker on the ceiling of an arch Hopper is crossing). Nothing spawns off-screen with damage already in flight.
+A district alternates two kinds of ground. An **interlude** is three or four hundred metres of clear trail: scenic props left and right (windbreaks, farmhouses, silos, crag columns, roof decks), a totem at its start, one or two jump elements on the path itself (a terrace to climb, a shelf sequence, a spring pad over a gap) and at most one patrolling pair of shadows, so the road is alive but not a fight. The next battle is always in view: a **stronghold**, a cluster of tall things (a granary of silos, an ivory tower pair, a ring of crag columns around the mast) that the interlude walks toward and that grows on the horizon.
+
+Coming within the stronghold's radius wakes its **host**, which pours out over five or six seconds rather than standing in wait: hounds that were crouched on the silo tops leap down at Hopper, rays and condors drop in from high above and land with a shock, spitters and hounds rise out of the ground by the path, one ambusher waits behind a prop until Hopper has passed, and a second surge appears when the first is down. The HUD counts the host. When the last of it falls the region is **freed**: a banner, two hearts back, a thousand points, and the road opens to the next interlude. The last stronghold of a district is **sealed**: lockdown emitters raise a violet dome for the fight, and the dome is not only overhead — a ribbed wall of light stands at the exact radius Hopper is held inside, flaring where he pushes against it, and the HUD says what would open it. A barrier the player cannot see or explain is a bug, not a challenge. The district exit needs every stronghold freed; Thunderhead's last stronghold is the Night Rook's arena.
+
+Nothing spawns off-screen with damage already in flight, and every arrival has its tell: the crouch on the perch, the shadow of a drop, the flash of an emergence.
 
 ### Enemy health and scaling
 
@@ -285,17 +291,17 @@ A **region** is an open district about 2.4 km on a side with a main line of roug
 
 ### Chapters
 
-Each chapter is a leg between two landmarks with one dominant beat, keeping the 2D game's forty-five chapter names and their elevation envelopes converted to metres. A chapter has one or two knots, a checkpoint totem near its start and its midpoint, one signal on a high thing, one at the bottom of something and one in a cage, and a way back up from its floor. The last chapter of a region ends at the landmark with a gate knot, or with the mission boss.
+Each chapter is a leg between two landmarks with one dominant beat, keeping the 2D game's forty-five chapter names and their elevation envelopes converted to metres. A chapter is an interlude and the stronghold it walks toward, or the last stretch to the landmark: a checkpoint totem at the interlude's start and at the stronghold's edge, one signal on a high thing, one at the bottom of something and one in a cage, and a way back up from its floor. The last chapter of a region ends at the landmark with a sealed stronghold, or with the mission boss.
 
 ### Gravity
 
-| Zone | Gravity | Held-jump apex | Use |
+| Zone | Gravity | Charged-leap apex | Use |
 | --- | --- | --- | --- |
-| Earth and industry | 30 m/s² | 84 m | Baseline |
-| Vermilion Basin | 1.35× | 62 m | Short, forceful arcs; wide ivory landings |
-| Cobalt Drift | 0.55× | 153 m | Long glides between drifting reefs |
-| Violet, normal | 0.85× | 99 m | Broad approach to the arches |
-| Violet, inverted galleries | 0.85× toward a ceiling | 99 m | Optional ceiling lanes under arches; one required arch |
+| Earth and industry | 120 m/s² | 140 m | Baseline |
+| Vermilion Basin | 1.35× | 104 m | Short, forceful arcs; wide ivory landings |
+| Cobalt Drift | 0.55× | 255 m | Long glides between drifting reefs |
+| Violet, normal | 0.85× | 165 m | Broad approach to the arches |
+| Violet, inverted galleries | 0.85× toward a ceiling | 165 m | Optional ceiling lanes under arches; one required arch |
 
 Inversion is a volume, not a screen: passing a gravity gate or a seam under an arch flips local gravity for whatever is inside, Hopper rotates over 0.25 s to the new surface, the camera keeps the horizon, and the seam arrows show the way out. Cantors flip a marked volume beneath them; they never flip the whole district.
 
@@ -310,15 +316,15 @@ Totems light when reached and are the respawn point. Nine signals per region unl
 
 ### Sunseed Fields
 
-Honey-coloured morning, terraces, windbreaks, silos and a fallen seed vessel. The first chapter teaches the tap and the hold on terrace tiers, then the glide off the first silo with a whole valley to land in. Hounds follow the player's line so the takeoff strike behind has a use; spitters on terrace lips teach lasers from a glide. The seed vessel is the first knot, and the Crownline towers stand on the horizon the whole time. Exit: the road to Crownline under the windbreaks.
+Honey-coloured morning, terraces, windbreaks, silos and fallen seed vessels. Three interludes and three strongholds: the irrigation lesson (a two-tier terrace on the road, a silo to wall-kick, a patrolling pair of hounds) walks toward the Orchard Granary, three silos close together with hounds crouched on their tops, rays dropping in and spitters rising by the path; the windbreak ridges (a thermal onto the ridge, the irrigation cut) walk toward the Seedfall Granary and its two vessels; the road to Crownline climbs a three-tier terrace toward the sealed Crownline Gate. The Crownline towers stand on the horizon the whole time. Exit: the road to Crownline under the windbreaks.
 
 ### Crownline City
 
-Golden sunset, ivory towers with teal glass bands, roof decks, an elevated line with a train, a construction crown with a slewing crane, billboards that tip, and the observatory at the top. The main line climbs 270 m by roof decks, tower ledges and wall-kick corners. Rays hang between the towers and are the first stomp bounces; leeches on the tower faces beam across the gaps the player is about to cross. The train roof is a moving landing along the transit canyon. Exit: the observatory crown, looking at the summit.
+Golden sunset, ivory towers with teal glass bands, roof decks, an elevated line with a train, a construction crown with a slewing crane, billboards that tip, and the observatory at the top. The main line climbs 270 m by roof decks, tower ledges and wall-kick corners, through three strongholds: the Ivory Ward (two towers with hounds on the roofs, rays dropping between them, leeches on the faces as the surge), the Construction Crown, and the sealed Highline Observatory, with the roof ladder, the transit canyon (the rail span runs along the street, the train shuttling) and the sky bridges (a spring pad into a wind lane) as the interludes between. Exit: the observatory crown, looking at the summit.
 
 ### Thunderhead Range
 
-Slate, apricot storm cloud, an eclipse beginning over the summit. The route drops into the gorge along crag columns, crosses the storm on the ravine bridge under wind lanes, and climbs the broken ridge on thermals that condors also ride. Tortoises hold the shelves; condors make the ascent an air fight. The transmitter mast is visible from the gorge floor as a beacon and is reached at the summit, where the Night Rook is waiting.
+Slate, apricot storm cloud, an eclipse beginning over the summit. The slate descent steps down toward the Gorge Bastion, four crag columns rising out of the storm gorge past the rim with tortoises leaping from their tops and condors dropping over the edge; the broken ridge climbs out on a spring pad and a thermal toward the Cloudstep Bastion, a ring of crags around a low step; the summit road walks under the mast, visible from the gorge floor as a beacon, into the Night Rook's arena. Tortoises hold the shelves; condors make the ascent an air fight.
 
 ### The mission's kit
 

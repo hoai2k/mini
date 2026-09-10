@@ -46,6 +46,10 @@ export interface Field {
   active: boolean;
   cleared: boolean;
   group: string;
+  /** A lockdown dome keeps Hopper inside while the field is active. */
+  seal: boolean;
+  /** The stronghold's name for banners. */
+  name: string;
   object?: Object3D;
   /** Seconds of bright flare left after Hopper pushed against the barrier. */
   flare?: number;
@@ -168,10 +172,11 @@ export class World {
     this.scenery = sceneryFor(district, this.route, this.heightAt);
     for (const p of this.scenery) this.place(p);
     for (const c of district.cages || []) this.placeCage(c);
-    for (const g of district.gates || []) this.placeGate(g);
+    for (const g of district.gates || []) this.placeStronghold({ id: g.id, name: 'Gate', x: g.x, z: g.z, r: g.r, y: g.y, seal: true }, g.group);
+    for (const st of district.strongholds || []) this.placeStronghold(st, st.id);
     if (district.boss) {
       const b = district.boss;
-      this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss' });
+      this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss', seal: true, name: 'The Night Rook' });
     }
   }
   /** A caged signal: the cage and its prize, locked until the bars are broken. */
@@ -201,11 +206,11 @@ export class World {
       t.cageHp = t.cageMaxHp;
     }
   }
-  /** A gate knot's dome, with two emitters on the ground beside it. */
-  private placeGate(g: { id: string; x: number; z: number; r: number; group: string; y?: number }) {
-    const y = this.heightAt(g.x, g.z) + (g.y ?? 0);
-    for (const s of [-1, 1]) this.place({ id: 'prop.lockdownEmitter', x: g.x + s * Math.min(60, g.r * 0.6), z: g.z, mode: 'r' });
-    this.fields.push({ id: g.id, x: g.x, y, z: g.z, r: g.r, active: false, cleared: false, group: g.group });
+  /** A stronghold's field; a sealed one gets two lockdown emitters beside it. */
+  private placeStronghold(st: { id: string; name: string; x: number; z: number; r: number; y?: number; seal?: boolean }, group: string) {
+    const y = this.heightAt(st.x, st.z) + (st.y ?? 0);
+    if (st.seal) for (const s of [-1, 1]) this.place({ id: 'prop.lockdownEmitter', x: st.x + s * Math.min(60, st.r * 0.6), z: st.z, mode: 'r' });
+    this.fields.push({ id: st.id, x: st.x, y, z: st.z, r: st.r, active: false, cleared: false, group, seal: !!st.seal, name: st.name });
   }
   /** Advance moving structures; returns nothing, callers read instance.moving.dx/dy/dz. */
   update(dt: number) {

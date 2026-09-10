@@ -86,7 +86,7 @@ function check(name, cond, detail) {
     world.volumes.filter((v) => v.kind === 'thermal').length === 1,
     world.volumes.filter((v) => v.kind === 'thermal').length,
   );
-  check('14 triggers', world.triggers.length === 14, world.triggers.length);
+  check('16 triggers (7 totems, 6 signals, 3 capsules)', world.triggers.length === 16, world.triggers.length);
   check(
     'heightAt deterministic',
     world.heightAt(12.5, -640.25) === world.heightAt(12.5, -640.25),
@@ -126,24 +126,34 @@ function check(name, cond, detail) {
 }
 
 // ---------------------------------------------------------------------
-// 3. Held jump
+// 3. Held jump: a hover, not a boost
 // ---------------------------------------------------------------------
 {
   const s = startHopper(0, 40);
   const startY = s.y;
   let apex = 0,
-    landAt = null;
-  for (let i = 0; i < 800; i++) {
-    const ev = stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i < 60 }, dt);
+    landAt = null,
+    hoverStart = null,
+    hoverEnd = null;
+  const heldAt = [];
+  for (let i = 0; i < 1200; i++) {
+    const ev = stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i < 420 }, dt);
     apex = Math.max(apex, s.y - startY);
+    if (hoverStart === null && ev.some((e) => e.kind === 'hoverStart')) hoverStart = i / 120;
+    if (hoverEnd === null && ev.some((e) => e.kind === 'hoverEnd')) hoverEnd = i / 120;
+    if (s.hovering) heldAt.push(s.y - startY);
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
-  check('held jump apex 78-92m', apex > 78 && apex < 92, apex);
-  check('held jump airtime 2.0-2.9s', landAt !== null && landAt > 2.0 && landAt < 2.9, landAt);
+  check('held jump apex stays a hop (20-32m), no boost', apex > 20 && apex < 32, apex);
+  check('hover starts near the apex (0.4-1.0s)', hoverStart !== null && hoverStart > 0.4 && hoverStart < 1.0, hoverStart);
+  check('hover lasts about the fuel (1.5-2.1s)', hoverStart !== null && hoverEnd !== null && hoverEnd - hoverStart > 1.5 && hoverEnd - hoverStart < 2.1, hoverEnd - hoverStart);
+  const held = heldAt.slice(Math.floor(heldAt.length * 0.4));
+  check('altitude held while hovering (drift < 3m)', held.length > 10 && Math.max(...held) - Math.min(...held) < 3, held.length ? Math.max(...held) - Math.min(...held) : null);
+  check('hovering lands later than a tap (>2.2s)', landAt !== null && landAt > 2.2, landAt);
 }
 
 // ---------------------------------------------------------------------
-// 4. Held then glide
+// 4. Hover then glide
 // ---------------------------------------------------------------------
 {
   const s = startHopper(0, 40);
@@ -157,9 +167,31 @@ function check(name, cond, detail) {
     if (s.gliding) minVyWhileGliding = Math.min(minVyWhileGliding, s.vy);
   }
   const dist = Math.hypot(s.x - startX, s.z - startZ);
-  check('glideStart fires', glideStart, glideStart);
-  check('glide covers >500m in 20s', dist > 500, dist);
+  check('glideStart fires once the hover is spent', glideStart, glideStart);
+  check('hover and glide cover >500m in 20s', dist > 500, dist);
   check('vy never below -7.5 while gliding', minVyWhileGliding >= -7.5, minVyWhileGliding);
+  check('hover fuel refills on landing', s.grounded ? s.hoverFuel > 1.7 : true, s.hoverFuel);
+}
+
+// ---------------------------------------------------------------------
+// 4b. Facing forward: backpedal and strafe keep the yaw
+// ---------------------------------------------------------------------
+{
+  const s = startHopper(0, 40);
+  const forward = Math.PI;
+  s.yaw = forward;
+  for (let i = 0; i < 120; i++) stepHopper(s, world, { ...blank, dz: -1, faceYaw: forward }, dt);
+  const vFwd = Math.hypot(s.vx, s.vz);
+  for (let i = 0; i < 120; i++) stepHopper(s, world, { ...blank, dz: 1, faceYaw: forward }, dt);
+  const vBack = Math.hypot(s.vx, s.vz);
+  const yawAfterBack = s.yaw;
+  for (let i = 0; i < 120; i++) stepHopper(s, world, { ...blank, dx: 1, faceYaw: forward }, dt);
+  const vSide = Math.hypot(s.vx, s.vz);
+  check('forward run reaches full speed', vFwd > MOVE.run - 2, vFwd);
+  check('backpedal is slower (45-65% of run)', vBack > vFwd * 0.45 && vBack < vFwd * 0.65, vBack / vFwd);
+  check('strafe is a little slower', vSide > vFwd * 0.75 && vSide < vFwd * 0.95, vSide / vFwd);
+  check('facing holds forward while backpedalling', Math.abs(yawAfterBack - forward) < 0.05, yawAfterBack - forward);
+  check('facing holds forward while strafing', Math.abs(s.yaw - forward) < 0.05, s.yaw - forward);
 }
 
 // ---------------------------------------------------------------------
@@ -225,7 +257,7 @@ function check(name, cond, detail) {
     const ev = stepHopper(
       withDive,
       world,
-      { ...blank, jumpPressed: i === 0, jumpHeld: i < 60, divePressed: i === 200 },
+      { ...blank, jumpPressed: i === 0, jumpHeld: i < 60, divePressed: i === 45 },
       dt,
     );
     for (const e of ev) {
@@ -819,7 +851,8 @@ function aimFrom(h, extra = {}) {
       const forward = route.yawAt(route.nearest(h.x, h.z).s + 80);
       updateCamera(cam, h, world, { ...blankCam, forward }, settings, dt);
     }
-    check('camera keeps facing along the trail while Hopper runs back toward it', Math.abs(wrap(cam.yaw - forward0)) < 0.35, wrap(cam.yaw - forward0));
+    // The trail itself bends through here (an S between totems), so the view may pan with it a little; it must not turn to follow Hopper.
+    check('camera keeps facing along the trail while Hopper runs back toward it', Math.abs(wrap(cam.yaw - forward0)) < 0.55, wrap(cam.yaw - forward0));
     check('the eye stays behind Hopper along the trail (ahead of him as he runs back)', Math.sin(cam.yaw) * (h.x - cam.eye[0]) + Math.cos(cam.yaw) * (h.z - cam.eye[2]) > 0, [cam.eye, h.x, h.z]);
   }
   // (e) Jumping past a totem, off to one side, does not swing the camera.
@@ -900,9 +933,9 @@ function aimFrom(h, extra = {}) {
   check('sprinting takes off faster than running', sprinting.takeoff > running.takeoff + 20, `${sprinting.takeoff.toFixed(0)} vs ${running.takeoff.toFixed(0)}`);
   check('a sprint jump keeps its speed in the air (never dragged back to running pace)', sprinting.slowest >= sprinting.takeoff, `${sprinting.slowest.toFixed(0)} from ${sprinting.takeoff.toFixed(0)}`);
   check('a sprint jump carries much further than a running one', sprinting.range > running.range * 1.35, `${sprinting.range.toFixed(0)} vs ${running.range.toFixed(0)}`);
-  const held = arc({ runUp: 1.5, sprint: true, hold: 0.5 });
-  check('a sprinting held jump crosses 250 m', held.range > 250, held.range);
-  check('holding still buys height, not just distance', held.apex > sprinting.apex * 3, `${held.apex.toFixed(0)} vs ${sprinting.apex.toFixed(0)}`);
+  const held = arc({ runUp: 1.5, sprint: true, hold: 4 });
+  check('a sprinting held jump (hover, then glide) crosses 250 m', held.range > 250, held.range);
+  check('holding buys distance, not height: a hover is no boost', held.apex < sprinting.apex * 1.6 && held.range > sprinting.range * 1.3, `${held.apex.toFixed(0)} vs ${sprinting.apex.toFixed(0)}; ${held.range.toFixed(0)} vs ${sprinting.range.toFixed(0)}`);
   // Pushing back against the flight still slows Hopper down: control is kept.
   {
     const s = startHopper(0, 40);
@@ -1006,4 +1039,182 @@ function aimFrom(h, extra = {}) {
   }
 }
 
-console.log(`engine3d: ${checks} checks passed across 20 scenarios (world, controller, camera, combat3d, district, route, scenery, boss3d)`);
+// ---------------------------------------------------------------------
+// 21. Stronghold entries: held hosts, activateGroup, and 'drop' / 'leap' /
+// 'emerge' / 'ambush' arrivals. Each scenario builds combat from a copy of
+// sunseedFields() with a synthetic `shadows` and `strongholds` list.
+// ---------------------------------------------------------------------
+
+// 21a. Held hosts start held+dormant and are excluded from aliveShadows();
+// resetToCheckpoint's internal wake() does not release them.
+{
+  const districtA = {
+    ...sunseedFields(),
+    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    shadows: [{ id: 'g1', kind: 'shadeHound', x: 0, z: -100, group: 'fort' }],
+  };
+  const combat = new Combat(world, districtA);
+  const g1 = combat.shadows.find((s) => s.id === 'g1');
+  check('held host starts held', g1.held === true, g1.held);
+  check('held host starts dormant', g1.dormant === true, g1.dormant);
+  check('aliveShadows() excludes the held host', !combat.aliveShadows().includes(g1), combat.aliveShadows().map((s) => s.id));
+  combat.resetToCheckpoint(0);
+  const g1After = combat.shadows.find((s) => s.id === 'g1');
+  check('resetToCheckpoint (wake()) does not release a held host', g1After.held === true && g1After.dormant === true, `${g1After.held} ${g1After.dormant}`);
+}
+
+// 21b. activateGroup returns the held count and releases wave-0 members in
+// delay order (an explicit delay:0 and an explicit delay:1.5).
+{
+  const districtB = {
+    ...sunseedFields(),
+    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    shadows: [
+      { id: 'd0', kind: 'shadeHound', x: 0, z: -100, group: 'fort', delay: 0 },
+      { id: 'd1', kind: 'shadeHound', x: 20, z: -100, group: 'fort', delay: 1.5 },
+    ],
+  };
+  const combat = new Combat(world, districtB);
+  const d0 = combat.shadows.find((s) => s.id === 'd0');
+  const d1 = combat.shadows.find((s) => s.id === 'd1');
+  const released = combat.activateGroup('fort');
+  check('activateGroup returns the held count', released === 2, released);
+  const h = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
+  h.groundY = h.y;
+  const cb = makeCallbacks();
+  let d0At = null,
+    d1At = null;
+  for (let i = 0; i < 240; i++) {
+    combat.update(dt, h, cb, aimFrom(h));
+    if (d0At === null && !d0.dormant) d0At = i / 120;
+    if (d1At === null && !d1.dormant) d1At = i / 120;
+  }
+  check('delay:0 shadow releases almost immediately', d0At !== null && d0At < 0.05, d0At);
+  check('delay:1.5 shadow releases around 1.5s', d1At !== null && d1At > 1.3 && d1At < 1.7, d1At);
+  check('delay:0 releases before delay:1.5', d0At !== null && d1At !== null && d0At < d1At, `${d0At} vs ${d1At}`);
+}
+
+// 21c. 'drop': appears ~90m above home and lands on the ground within 4s,
+// recording a shockwave effect.
+{
+  const districtC = {
+    ...sunseedFields(),
+    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    shadows: [{ id: 'dr1', kind: 'shadeHound', x: 0, z: -100, group: 'fort', entry: 'drop' }],
+  };
+  const combat = new Combat(world, districtC);
+  const dr1 = combat.shadows.find((s) => s.id === 'dr1');
+  const homeY = dr1.homeY;
+  combat.activateGroup('fort');
+  const h = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
+  h.groundY = h.y;
+  const cb = makeCallbacks();
+  combat.update(dt, h, cb, aimFrom(h));
+  check('drop hound appears ~90m above home', dr1.y - homeY > 80 && dr1.y - homeY < 95, dr1.y - homeY);
+  let shockwaveAt = null;
+  for (let i = 0; i < 480; i++) {
+    combat.update(dt, h, cb, aimFrom(h));
+    if (shockwaveAt === null && cb.record.effects.includes('shockwave')) shockwaveAt = i / 120;
+  }
+  check('drop hound is grounded near home within 4s', Math.abs(dr1.y - homeY) < 1, dr1.y - homeY);
+  check('drop hound records a shockwave effect', shockwaveAt !== null && shockwaveAt < 4, shockwaveAt);
+}
+
+// 21d. 'leap': waits crouched on its perch while Hopper is far, pounces once
+// Hopper is close, and a pounce contact calls hurt.
+{
+  const districtD = {
+    ...sunseedFields(),
+    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    shadows: [{ id: 'lp1', kind: 'shadeHound', x: 0, z: -100, group: 'fort', entry: 'leap' }],
+  };
+  const combat = new Combat(world, districtD);
+  const lp1 = combat.shadows.find((s) => s.id === 'lp1');
+  combat.activateGroup('fort');
+  const cb = makeCallbacks();
+  const hFar = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
+  hFar.groundY = hFar.y;
+  for (let i = 0; i < 60; i++) combat.update(dt, hFar, cb, aimFrom(hFar));
+  check('leaper stays waiting while Hopper is far', lp1.state === 'wait', lp1.state);
+  check('leaper is harmless while waiting', cb.record.hurt === 0, cb.record.hurt);
+  const hNear = createHopperState(lp1.x, lp1.y, lp1.z - 5, Math.PI);
+  hNear.groundY = hNear.y;
+  let pounced = false;
+  for (let i = 0; i < 360 && cb.record.hurt === 0; i++) {
+    combat.update(dt, hNear, cb, aimFrom(hNear));
+    if (lp1.state === 'pounce') pounced = true;
+  }
+  check('leaper pounces once Hopper is close', pounced, pounced);
+  check('a pounce contact calls hurt', cb.record.hurt > 0, cb.record.hurt);
+}
+
+// 21e. 'emerge': rises from below ground to homeY within 0.7s.
+{
+  const districtE = {
+    ...sunseedFields(),
+    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    shadows: [{ id: 'em1', kind: 'seedSpitter', x: 0, z: -100, group: 'fort', entry: 'emerge' }],
+  };
+  const combat = new Combat(world, districtE);
+  const em1 = combat.shadows.find((s) => s.id === 'em1');
+  const homeY = em1.homeY;
+  combat.activateGroup('fort');
+  const h = createHopperState(1000, world.heightAt(1000, 1000), 1000, Math.PI);
+  h.groundY = h.y;
+  const cb = makeCallbacks();
+  combat.update(dt, h, cb, aimFrom(h));
+  check('emerge spitter starts below its home (under the ground)', em1.y < homeY, em1.y - homeY);
+  check('emerge spitter records a splat effect', cb.record.effects.includes('splat'), cb.record.effects);
+  let reachedAt = null;
+  for (let i = 0; i < 96; i++) {
+    combat.update(dt, h, cb, aimFrom(h));
+    if (reachedAt === null && Math.abs(em1.y - homeY) < 0.05) reachedAt = i / 120;
+  }
+  check('emerge spitter reaches homeY within 0.7s', reachedAt !== null && reachedAt < 0.7, reachedAt);
+}
+
+// 21f. 'ambush': stays dormant while Hopper is in front of it, releases once
+// Hopper's z is 20m past it (forward is -z).
+{
+  const districtF = {
+    ...sunseedFields(),
+    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    shadows: [{ id: 'am1', kind: 'shadeHound', x: 0, z: -100, group: 'fort', entry: 'ambush' }],
+  };
+  const combat = new Combat(world, districtF);
+  const am1 = combat.shadows.find((s) => s.id === 'am1');
+  const released = combat.activateGroup('fort');
+  check('ambush shadow is released from held by activateGroup', released === 1 && am1.held === false, `${released} ${am1.held}`);
+  check('ambush shadow stays dormant immediately after activation', am1.dormant === true, am1.dormant);
+  const cb = makeCallbacks();
+  const hInFront = createHopperState(am1.homeX, world.heightAt(am1.homeX, -50), -50, Math.PI);
+  hInFront.groundY = hInFront.y;
+  for (let i = 0; i < 120; i++) combat.update(dt, hInFront, cb, aimFrom(hInFront));
+  check('ambush shadow stays dormant while Hopper is in front of it', am1.dormant === true, am1.dormant);
+  const hPast = createHopperState(am1.homeX, world.heightAt(am1.homeX, -120), -120, Math.PI);
+  hPast.groundY = hPast.y;
+  for (let i = 0; i < 30 && am1.dormant; i++) combat.update(dt, hPast, cb, aimFrom(hPast));
+  check('ambush shadow releases once Hopper is 20m past it', am1.dormant === false, am1.dormant);
+}
+
+// 21g. activateGroup on a group that names no stronghold returns 0 and
+// changes nothing.
+{
+  const districtG = {
+    ...sunseedFields(),
+    strongholds: [{ id: 'fort', name: 'Fort', x: 0, z: -100, r: 50 }],
+    shadows: [{ id: 'p1', kind: 'shadeHound', x: 0, z: -100, group: 'plain' }],
+  };
+  const combat = new Combat(world, districtG);
+  const p1 = combat.shadows.find((s) => s.id === 'p1');
+  const before = { held: p1.held, dormant: p1.dormant, state: p1.state, x: p1.x, y: p1.y, z: p1.z };
+  const released = combat.activateGroup('plain');
+  check('activateGroup on a non-stronghold group returns 0', released === 0, released);
+  check(
+    'activateGroup on a non-stronghold group changes nothing',
+    p1.held === before.held && p1.dormant === before.dormant && p1.state === before.state && p1.x === before.x && p1.y === before.y && p1.z === before.z,
+    { before, after: { held: p1.held, dormant: p1.dormant, state: p1.state, x: p1.x, y: p1.y, z: p1.z } },
+  );
+}
+
+console.log(`engine3d: ${checks} checks passed across 21 scenarios (world, controller, camera, combat3d, district, route, scenery, boss3d)`);

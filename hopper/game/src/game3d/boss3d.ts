@@ -81,7 +81,7 @@ export class NightRook {
   target(): Shadow {
     const r = this.rook;
     const t = (this.aimTarget ||= {
-      id: 'boss', kind: 'riftCondor' as ShadowKind, x: r.x, y: r.y, z: r.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: r.hp, maxHp: r.maxHp, state: 'idle', timer: 0, cooldown: 0, alive: true, dormant: false, group: 'boss', wave: 0, homeX: r.x, homeY: r.y, homeZ: r.z, flying: true, rooted: false, armored: false, radius: r.radius, height: r.height, size: 1, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: 0, phase: 0, scale: 1, grounded: false, spawnFlash: 0, beamX: r.x, beamY: r.y, beamZ: r.z,
+      id: 'boss', kind: 'riftCondor' as ShadowKind, x: r.x, y: r.y, z: r.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: r.hp, maxHp: r.maxHp, state: 'idle', timer: 0, cooldown: 0, alive: true, dormant: false, group: 'boss', wave: 0, homeX: r.x, homeY: r.y, homeZ: r.z, flying: true, rooted: false, armored: false, radius: r.radius, height: r.height, size: 1, held: false, entry: undefined, delay: -1, arrive: 1, perch: [r.x, r.y, r.z], open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: 0, phase: 0, scale: 1, grounded: false, spawnFlash: 0, beamX: r.x, beamY: r.y, beamZ: r.z,
     } satisfies Shadow);
     t.x = r.x;
     t.y = r.y;

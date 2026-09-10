@@ -17,8 +17,16 @@ export const MOVE = {
   airAccel: 215,
   turnRate: Math.PI * 5,
   tapJump: 72,
-  holdWindow: 0.32,
-  holdThrust: 140,
+  /** A short variable-height window after takeoff: thrust against gravity, a few metres, no boost. */
+  holdWindow: 0.2,
+  holdThrust: 40,
+  /** Hover: A held in the air holds altitude on beating wings for this long. */
+  hoverFuel: 1.8,
+  hoverLift: 2.5,
+  hoverGrip: 9,
+  /** Moving against the facing is slower: backpedal and strafe factors. */
+  backpedal: 0.55,
+  strafe: 0.85,
   /** Forward lunge added at takeoff, along the way Hopper is already going
    * (or the stick, from standing). A leap travels; it does not just rise. */
   leap: 24,
@@ -51,7 +59,7 @@ export const MOVE = {
   dashCooldown: 0.55,
 };
 
-export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack' | 'dash';
+export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'hover' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack' | 'dash';
 
 export interface HopperState {
   x: number;
@@ -94,6 +102,10 @@ export interface HopperState {
   hitstun: number;
   /** Seconds A has been held while airborne; a glide needs a moment of it. */
   glideHold: number;
+  /** Hovering on beating wings; fuel in seconds, refilled on the ground. */
+  hovering: boolean;
+  hoverFuel: number;
+  hoverT: number;
   dashTimer: number;
   dashCooldown: number;
   /** LB held with no direction: the dash fires when the stick moves. */
@@ -110,13 +122,15 @@ export type MoveEvent =
   | { kind: 'spring' }
   | { kind: 'glideStart' }
   | { kind: 'glideEnd' }
+  | { kind: 'hoverStart' }
+  | { kind: 'hoverEnd' }
   | { kind: 'dive' }
   | { kind: 'hopBack' }
   | { kind: 'dash' };
 
 export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
   return {
-    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false,
+    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, hovering: false, hoverFuel: MOVE.hoverFuel, hoverT: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false,
   };
 }
 
@@ -139,6 +153,8 @@ export interface MoveIntent {
   /** Strafe: keep facing while moving (lock-on). */
   faceX?: number;
   faceZ?: number;
+  /** The forward to hold when nothing else claims the facing (the camera's). */
+  faceYaw?: number;
 }
 
 export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
@@ -153,7 +169,7 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
     dz = forwardZ * -f.moveY + rightZ * f.moveX;
   const len = Math.hypot(dx, dz);
   const k = len > 1 ? 1 / len : 1;
-  return { dx: dx * k, dz: dz * k, jumpPressed: f.jumpPressed, jumpHeld: f.jumpHeld, divePressed: f.divePressed, diveHeld: f.diveHeld, chargeHeld: f.chargeHeld, guardHeld: f.blockHeld, dashPressed: f.dashPressed, dashHeld: f.dashHeld, sprintHeld: f.sprintHeld };
+  return { dx: dx * k, dz: dz * k, jumpPressed: f.jumpPressed, jumpHeld: f.jumpHeld, divePressed: f.divePressed, diveHeld: f.diveHeld, chargeHeld: f.chargeHeld, guardHeld: f.blockHeld, dashPressed: f.dashPressed, dashHeld: f.dashHeld, sprintHeld: f.sprintHeld, faceYaw: cameraYaw };
 }
 
 const apexSpeed = (apex: number, g: number) => Math.sqrt(2 * g * apex);
@@ -257,9 +273,9 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
       s.dashX = intent.dx / wantLen;
       s.dashZ = intent.dz / wantLen;
       s.gliding = false;
+      s.hovering = false;
       s.holding = false;
       s.charge = 0;
-      s.yaw = Math.atan2(s.dashX, s.dashZ);
       s.events.push({ kind: 'dash' });
     }
   }
@@ -288,7 +304,15 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     // taken at a sprint is dragged back to running speed in the air, which is
     // what makes an arc feel like a hop straight up.
     const carried = Math.hypot(s.vx, s.vz);
-    const top = s.grounded ? MOVE.run * (s.sprinting ? MOVE.sprint : 1) : Math.max(MOVE.run * (intent.sprintHeld ? MOVE.sprint : 1), carried);
+    // Hopper keeps facing forward: moving against the facing is a backpedal,
+    // across it a strafe, both slower than a run.
+    const fx = Math.sin(s.yaw),
+      fz = Math.cos(s.yaw);
+    const along = wantLen > 0.05 ? (intent.dx * fx + intent.dz * fz) / wantLen : 1;
+    const across = wantLen > 0.05 ? Math.abs(intent.dx * fz - intent.dz * fx) / wantLen : 0;
+    const shape = along < 0 ? 1 - (1 - MOVE.backpedal) * -along : 1 - (1 - MOVE.strafe) * across * (1 - Math.max(0, along));
+    const sprint = along > 0.3 ? MOVE.sprint : 1;
+    const top = s.grounded ? MOVE.run * (s.sprinting ? sprint : 1) * shape : Math.max(MOVE.run * (intent.sprintHeld ? sprint : 1) * shape, carried);
     const tx = intent.dx * top,
       tz = intent.dz * top;
     if (s.grounded || wantLen > 0.05) {
@@ -303,10 +327,9 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.vz += (ez / el) * accel;
       }
     }
-    if (wantLen > 0.1) {
-      const target = intent.faceX !== undefined ? Math.atan2(intent.faceX, intent.faceZ!) : Math.atan2(intent.dx, intent.dz);
-      s.yaw = turnToward(s.yaw, target, MOVE.turnRate * dt);
-    } else if (intent.faceX !== undefined) s.yaw = turnToward(s.yaw, Math.atan2(intent.faceX, intent.faceZ!), MOVE.turnRate * dt);
+    // Facing: the locked target, else the camera's forward, else the stick.
+    const faceTarget = intent.faceX !== undefined ? Math.atan2(intent.faceX, intent.faceZ!) : intent.faceYaw !== undefined ? intent.faceYaw : wantLen > 0.1 ? Math.atan2(intent.dx, intent.dz) : s.yaw;
+    s.yaw = turnToward(s.yaw, faceTarget, MOVE.turnRate * dt);
   } else if (s.grounded && (busy || !control || s.charge > 0 || intent.chargeHeld)) {
     // Standing still while charging, stunned or recovering.
     const k = Math.max(0, 1 - 12 * dt);
@@ -337,6 +360,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
       s.coyote = 0;
       s.hold = MOVE.holdWindow; // no extra thrust on a charged leap
       s.holding = false;
+      s.hovering = false;
       s.charge = 0;
       s.move = 'jump';
       s.events.push({ kind: 'jump', charged: true });
@@ -376,14 +400,30 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   // Vertical motion.
   if (!s.grounded) {
     if (s.holding && intent.jumpHeld && s.hold < MOVE.holdWindow) {
-      // Sustained launch: net upward acceleration during the hold window.
-      s.vy += MOVE.holdThrust * dt;
+      // A short variable-height window after takeoff: thrust against gravity, a few metres, no boost.
+      s.vy += (MOVE.holdThrust - g) * dt;
       s.hold += dt;
     } else {
       s.holding = false;
-      // Gliding: A held past the thrust window (or pressed again) while falling.
       s.glideHold = intent.jumpHeld ? s.glideHold + dt : 0;
-      const wantGlide = intent.jumpHeld && control && !s.diving && (s.vy < 10 || s.hold >= MOVE.holdWindow) && (s.gliding || s.glideHold > 0.12);
+      const thermal = world.volumesAt(s.x, s.y, s.z).find((v) => v.kind === 'thermal');
+      // Hover: A held in the air (past the takeoff window, or from a fall)
+      // beats the wings and holds altitude while the fuel lasts.
+      const wantHover = intent.jumpHeld && control && !s.diving && s.hoverFuel > 0 && (s.hovering || (s.glideHold > 0.06 && s.vy < 4));
+      if (wantHover && !s.hovering) {
+        s.hovering = true;
+        s.hoverT = 0;
+        if (s.gliding) {
+          s.gliding = false;
+          s.events.push({ kind: 'glideEnd' });
+        }
+        s.events.push({ kind: 'hoverStart' });
+      } else if (!wantHover && s.hovering) {
+        s.hovering = false;
+        s.events.push({ kind: 'hoverEnd' });
+      }
+      // Gliding: fuel spent (or A held again after a hover) while falling.
+      const wantGlide = !s.hovering && intent.jumpHeld && control && !s.diving && s.hoverFuel <= 0 && (s.gliding || s.glideHold > 0.12);
       if (wantGlide && !s.gliding && s.vy < 12) {
         s.gliding = true;
         s.events.push({ kind: 'glideStart' });
@@ -396,8 +436,13 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.gliding = false;
         s.events.push({ kind: 'glideEnd' });
       }
-      const thermal = world.volumesAt(s.x, s.y, s.z).find((v) => v.kind === 'thermal');
-      if (s.gliding && thermal) {
+      if (s.hovering) {
+        // Wings bite: a small lift at first, then altitude held; a thermal lifts.
+        s.hoverT += dt;
+        s.hoverFuel = Math.max(0, s.hoverFuel - dt);
+        const target = thermal ? thermal.lift! : s.hoverT < 0.35 ? MOVE.hoverLift : 0;
+        s.vy += (target - s.vy) * Math.min(1, MOVE.hoverGrip * dt);
+      } else if (s.gliding && thermal) {
         // Riding a thermal: the wings turn the updraft into climb.
         s.vy = s.vy < thermal.lift! ? Math.min(thermal.lift!, s.vy + 60 * dt) : Math.max(thermal.lift!, s.vy - 30 * dt);
       } else if (s.gliding) {
@@ -416,6 +461,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     if (control && intent.divePressed && !s.diving) {
       s.diving = true;
       s.gliding = false;
+      s.hovering = false;
       s.holding = false;
       s.move = 'dive';
       s.events.push({ kind: 'dive' });
@@ -432,8 +478,10 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   } else {
     s.vy = 0;
     s.gliding = false;
+    s.hovering = false;
     s.diving = false;
     s.glideHold = 0;
+    s.hoverFuel = MOVE.hoverFuel;
     s.coyote = MOVE.coyote;
   }
   if (!s.grounded && s.coyote > 0) s.coyote -= dt;
@@ -458,6 +506,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
       s.mantleFrom = [s.x, s.y, s.z];
       s.mantleTo = [s.x - wall.nx * over, lip, s.z - wall.nz * over];
       s.gliding = false;
+      s.hovering = false;
       s.holding = false;
       s.move = 'mantle';
       s.events.push({ kind: 'mantle' });
@@ -474,7 +523,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.hold = MOVE.holdWindow;
     s.holding = false;
     s.gliding = false;
-    s.yaw = Math.atan2(s.wallNx, s.wallNz);
+    s.hovering = false;
     s.move = 'jump';
     s.events.push({ kind: 'wallKick' });
   }
@@ -490,6 +539,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.coyote = 0;
     s.hold = MOVE.holdWindow;
     s.holding = false;
+    s.hovering = false;
     s.charge = 0;
     s.move = 'jump';
     s.events.push({ kind: 'spring' });
@@ -519,6 +569,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
       s.hold = MOVE.holdWindow;
       s.holding = false;
       s.gliding = false;
+      s.hovering = false;
       s.diving = false;
       s.move = 'jump';
       s.events.push({ kind: 'spring' });
@@ -568,6 +619,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     else if (s.charge > 0 || (intent.chargeHeld && control)) s.move = 'crouch';
     else s.move = Math.hypot(s.vx, s.vz) > 2 ? 'run' : 'idle';
   } else if (s.dashTimer > 0) s.move = 'dash';
+  else if (s.hovering) s.move = 'hover';
   else if (s.gliding) s.move = 'glide';
   else if (s.diving) s.move = 'dive';
   else s.move = s.vy > 0 ? 'jump' : 'fall';

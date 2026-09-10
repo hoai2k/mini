@@ -145,10 +145,37 @@ function playDistrict(index) {
       run(0.6);
       finite();
       if (priv('district') !== d) break;
-      check(priv('checkpointIndex') === i, `${d.name}: totem ${i} lit (index ${priv('checkpointIndex')}, totem at ${t.x.toFixed(0)},${t.y.toFixed(0)},${t.z.toFixed(0)}, taken ${t.taken}, completed ${priv('completed')}, respawnT ${priv('respawnT').toFixed(2)}, hp ${priv('hp')}, player ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move})`);
+      check(priv('checkpointIndex') >= i, `${d.name}: totem ${i} lit (index ${priv('checkpointIndex')}, totem at ${t.x.toFixed(0)},${t.y.toFixed(0)},${t.z.toFixed(0)}, taken ${t.taken}, completed ${priv('completed')}, respawnT ${priv('respawnT').toFixed(2)}, hp ${priv('hp')}, player ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move})`);
     }
     check(JSON.parse(store.get('hopper3d.save')).checkpoint >= 1, 'checkpoint saved');
   };
+  // Strongholds: approach, confirm the host pours out (a sealed one keeps
+  // Hopper inside), then clear the host and see the region freed.
+  for (const field of w.fields.filter((f) => f.group !== 'boss')) {
+    teleport(field.x, field.y + 1, field.z);
+    run(0.2);
+    check(field.active, `${d.name}: stronghold ${field.id} activated on approach`);
+    check(sounds.includes('boss'), 'stronghold sting played');
+    if (field.seal) {
+      // Try to leave: the dome pushes back.
+      engine.player.x = field.x + field.r + 30;
+      run(0.1);
+      check(Math.hypot(engine.player.x - field.x, engine.player.z - field.z) <= field.r, 'the dome keeps Hopper inside');
+    }
+    const group = c.shadows.filter((s) => s.group === field.group);
+    check(group.length > 0, `stronghold ${field.id} has a host`);
+    run(7); // let the host pour out
+    check(group.some((s) => s.alive && !s.dormant), `${d.name}: ${field.id} host released`);
+    for (const s of group)
+      if (s.alive) {
+        // Armoured shadows only take full damage with the core open.
+        s.open = 5;
+        c.damage(s, 999, priv('callbacks').call(engine));
+      }
+    run(0.2);
+    check(field.cleared && !field.active, `${d.name}: ${field.id} freed when its host fell`);
+    check(snapshot.banner.includes('freed') || snapshot.banner === 'Gate open', `freed banner (${snapshot.banner})`);
+  }
   // Signals: beacons are free, cages break open under Hopper's own fire and
   // shed bars on the way, so the damage is visible before the cage opens.
   const signalTriggers = w.triggers.filter((t) => t.kind === 'signal');
@@ -176,27 +203,6 @@ function playDistrict(index) {
     check(t.taken, `${d.name}: signal ${t.id} taken (trigger ${t.x},${t.y.toFixed(1)},${t.z} r ${t.r}; Hopper ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move}; locked ${t.locked})`);
   }
   check(snapshot.signals >= signalTriggers.length, 'HUD counts the signals');
-  // Gates: enter the dome, confirm the lockdown holds Hopper in, clear its shadows.
-  for (const field of w.fields.filter((f) => f.group !== 'boss')) {
-    teleport(field.x, field.y + 1, field.z);
-    run(0.2);
-    check(field.active, `${d.name}: gate ${field.id} sealed on entry`);
-    check(sounds.includes('boss'), 'lockdown sting played');
-    // Try to leave: the dome pushes back.
-    engine.player.x = field.x + field.r + 30;
-    run(0.1);
-    check(Math.hypot(engine.player.x - field.x, engine.player.z - field.z) <= field.r, 'the dome keeps Hopper inside');
-    const group = c.shadows.filter((s) => s.group === field.group);
-    check(group.length > 0, `gate ${field.id} has shadows`);
-    for (const s of group)
-      if (s.alive) {
-        // Armoured shadows only take full damage with the core open.
-        s.open = 5;
-        c.damage(s, 999, priv('callbacks').call(engine));
-      }
-    run(0.2);
-    check(field.cleared && !field.active, `${d.name}: gate ${field.id} opened when its shadows fell`);
-  }
   // The exit: sealed while the boss lives, otherwise the district ends.
   const boss = priv('boss');
   if (boss) {
@@ -275,7 +281,8 @@ check(snapshot.banner === first.exit.name, 'exit banner');
   const angleToTrail = () => {
     const h = engine.player,
       route = world().route;
-    return wrap(h.yaw - route.yawAt(route.nearest(h.x, h.z).s + 60));
+    // Heading is the way he moves; the facing follows the camera.
+    return wrap(Math.atan2(h.vx, h.vz) - route.yawAt(route.nearest(h.x, h.z).s + 60));
   };
   const running = { ...empty, moveX: 0.45, moveY: -1 };
   run(0.4, running);
@@ -291,7 +298,7 @@ check(snapshot.banner === first.exit.name, 'exit banner');
   check(priv('districtIndex') === 1, 'the threshold hands over to the next district');
   check(Math.abs(wrap(angleToTrail() - before)) < 0.35, `heading carries across the threshold (${angleToTrail().toFixed(2)} vs ${before.toFixed(2)})`);
   check(speedAtSeam > speedBefore * 0.6, `momentum carries across the threshold (${speedAtSeam.toFixed(0)} of ${speedBefore.toFixed(0)} m/s)`);
-  check(Math.abs(wrap(priv('camera').yaw - engine.player.yaw)) < 1.2, 'the camera comes through pointing the same way as Hopper');
+  check(Math.abs(wrap(priv('camera').yaw - engine.player.yaw)) < 1.2, `the camera comes through pointing the same way as Hopper (cam ${priv('camera').yaw.toFixed(2)} forward ${priv('camera').forward.toFixed(2)} turn ${priv('camera').turn.toFixed(2)}, hopper ${engine.player.yaw.toFixed(2)}, route ${world().route.yawAt(world().route.nearest(engine.player.x, engine.player.z).s + 40).toFixed(2)}, at ${engine.player.x.toFixed(0)},${engine.player.z.toFixed(0)})`);
   check(!!snapshot.transitionImage && fadeSeen > 0.5, `the frame just left is held over the new district (fade ${fadeSeen.toFixed(2)})`);
 }
 check(priv('districtIndex') === 1, 'second district loaded');

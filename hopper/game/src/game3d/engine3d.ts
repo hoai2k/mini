@@ -31,14 +31,20 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 /** What crosses the threshold with Hopper when a district hands over. */
 interface Carry {
+  /** Hopper's facing as an angle from the camera's, and his movement as an
+   * angle from the trail: both are kept across the seam. */
   turn: number;
+  moveTurn: number;
   camTurn: number;
   pitch: number;
   speed: number;
   vy: number;
   airborne: boolean;
   gliding: boolean;
+  hovering: boolean;
+  hoverFuel: number;
 }
+const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 interface Save {
   mission: number;
   district: number;
@@ -132,7 +138,7 @@ export class Engine3D implements GameEngine {
     this.victoryT = 0;
     this.respawnT = 0;
     this.showBanner(this.district!.name, this.district!.subtitle, 3.2);
-    this.setHint('Hold A to soar. Keep holding to glide. RB sprints, LB dashes.', 7);
+    this.setHint('Hold A in the air to hover; keep holding to glide down. RB sprints, LB dashes.', 7);
     this.emit();
   }
   /** Build the current district of the episode and place Hopper at a checkpoint. */
@@ -160,7 +166,7 @@ export class Engine3D implements GameEngine {
     this.resetPlayer(carry);
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
-    this.setHint('Hold A to soar. Keep holding to glide. RB sprints, LB dashes.', 7);
+    this.setHint('Hold A in the air to hover; keep holding to glide down. RB sprints, LB dashes.', 7);
     this.emit();
   }
   private resetPlayer(carry?: Carry) {
@@ -171,21 +177,24 @@ export class Engine3D implements GameEngine {
       z = cp ? cp.z + 8 : d.start.z;
     // Face along the trail from here, as the camera will.
     const forward = cp ? world.route.yawAt(world.route.nearest(x, z).s + 40) : d.start.yaw;
-    // Crossing a threshold keeps the heading he had, as an angle from the way
-    // on, so a run continues as a run instead of being turned around.
-    const yaw = forward + (carry?.turn ?? 0);
+    // Crossing a threshold keeps the facing he had relative to the view and
+    // the heading he had relative to the way on, so a run continues as a run.
+    const yaw = forward + (carry ? carry.camTurn + carry.turn : 0);
     this.player = createHopperState(x, world.groundAt(x, z, 1e6).y, z, yaw);
     this.player.groundY = this.player.y;
     this.player.invuln = 1.7;
     if (carry) {
-      this.player.vx = Math.sin(yaw) * carry.speed;
-      this.player.vz = Math.cos(yaw) * carry.speed;
+      const heading = forward + carry.moveTurn;
+      this.player.vx = Math.sin(heading) * carry.speed;
+      this.player.vz = Math.cos(heading) * carry.speed;
       if (carry.airborne) {
         this.player.y += 24;
         this.player.vy = carry.vy;
         this.player.grounded = false;
         this.player.gliding = carry.gliding;
-        this.player.move = carry.vy > 0 ? 'jump' : 'fall';
+        this.player.hovering = carry.hovering;
+        this.player.hoverFuel = carry.hoverFuel;
+        this.player.move = carry.hovering ? 'hover' : carry.gliding ? 'glide' : carry.vy > 0 ? 'jump' : 'fall';
       } else this.player.move = carry.speed > 4 ? 'run' : 'idle';
     }
     this.camera = createCamera(yaw, [x, this.player.y + 8, z]);
@@ -325,7 +334,7 @@ export class Engine3D implements GameEngine {
           this.rumble(Math.min(0.6, e.speed / 190), 90);
         }
       } else if (e.kind === 'wallKick' || e.kind === 'spring') this.sound('jump');
-      else if (e.kind === 'glideStart') this.sound('shield');
+      else if (e.kind === 'glideStart' || e.kind === 'hoverStart') this.sound('shield');
       else if (e.kind === 'dive') this.sound('kick');
       else if (e.kind === 'dash') {
         this.sound('shield');
@@ -392,12 +401,16 @@ export class Engine3D implements GameEngine {
     // Gate domes: sealed once entered, open when their shadows are down.
     for (const field of world.fields) {
       const dist = Math.hypot(field.x - h.x, field.z - h.z);
-      if (!field.active && !field.cleared && dist < field.r * 0.75 && Math.abs(h.y - field.y) < field.r) {
+      if (!field.active && !field.cleared && dist < field.r * (field.seal ? 0.75 : 1) && Math.abs(h.y - field.y) < field.r) {
         field.active = true;
         if (field.group === 'boss') {
           this.boss?.wake(this.callbacks());
           this.showBanner('The Night Rook', 'LOCKDOWN · defeat the commander', 3);
-        } else this.showBanner('Lockdown', 'CLEAR THE SHADOWS TO OPEN THE GATE', 2.4);
+        } else {
+          // The stronghold's host pours out; a sealed one raises its dome.
+          const released = combat.activateGroup(field.group);
+          this.showBanner(field.name, field.seal ? 'LOCKDOWN · CLEAR THE SHADOWS' : released > 0 ? 'THE SHADOWS POUR OUT · FREE THE REGION' : 'FREE THE REGION', 2.6);
+        }
         this.sound('boss');
       }
       if (field.active) {
@@ -409,9 +422,10 @@ export class Engine3D implements GameEngine {
           field.cleared = true;
           this.clearedGates.add(field.id);
           this.hp = Math.min(this.maxHp, this.hp + 2);
-          this.showBanner(field.group === 'boss' ? 'The shadow falls' : 'Gate open', field.group === 'boss' ? 'THE TRANSMITTER IS YOURS' : 'THE WAY IS CLEAR', 2.4);
+          this.score += 1000;
+          this.showBanner(field.group === 'boss' ? 'The shadow falls' : `${field.name} freed`, field.group === 'boss' ? 'THE TRANSMITTER IS YOURS' : 'THE WAY IS CLEAR · ON TO THE NEXT', 2.6);
           this.sound('checkpoint');
-        } else {
+        } else if (field.seal) {
           // Say what is holding the way, and keep saying it: an arena the
           // player cannot leave has to explain itself.
           const task = field.group === 'boss' ? 'The commander holds the gate — defeat it to lift the lockdown.' : `Lockdown: ${left} shadow${left === 1 ? '' : 's'} left inside the barrier.`;
@@ -498,9 +512,10 @@ export class Engine3D implements GameEngine {
           this.showBanner(d.exit.name, 'REGION COMPLETE', 3.4);
         }
       } else if (this.hintT <= 0) {
-        const sealed = world.fields.filter((fl) => !fl.cleared && fl.group !== 'boss');
-        const left = sealed.reduce((n, fl) => n + combat.shadows.filter((s) => s.group === fl.group && s.alive).length, 0);
-        this.setHint(bossDown ? `The way on is sealed by a lockdown gate: ${left} shadow${left === 1 ? '' : 's'} still hold it. Follow the trail back to the violet dome.` : 'The commander guards the summit: defeat it to open the way.', 3.5);
+        const holding = world.fields.filter((fl) => !fl.cleared && fl.group !== 'boss');
+        const left = holding.reduce((n, fl) => n + combat.shadows.filter((s) => s.group === fl.group && s.alive).length, 0);
+        const names = holding.map((fl) => fl.name).join(', ');
+        this.setHint(bossDown ? `${names} still ${holding.length === 1 ? 'holds' : 'hold'} the region: ${left} shadow${left === 1 ? '' : 's'} left. Follow the trail back and free it.` : 'The commander guards the summit: defeat it to open the way.', 3.5);
       }
     }
     // Camera and the landing prediction. While the commander is awake the
@@ -508,7 +523,7 @@ export class Engine3D implements GameEngine {
     const rook = this.boss?.rook;
     const rookInFrame = rook && rook.active && rook.alive ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [number, number, number]) : null;
     updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
-    this.predicted = !h.grounded && h.height > 3 && !h.gliding ? predictLanding(h, world) : null;
+    this.predicted = !h.grounded && h.height > 3 && !h.gliding && !h.hovering ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
     if (this.time > 20 && this.time < 20.1) this.setHint(`Click the right stick: Horizon View shows the way to ${d.landmark.name}.`, 6);
@@ -537,15 +552,20 @@ export class Engine3D implements GameEngine {
     const h = this.player,
       old = this.world!;
     const forward = old.route.yawAt(old.route.nearest(h.x, h.z).s + 80);
+    const speed = Math.hypot(h.vx, h.vz);
     const carry: Carry = {
-      // How he was going, as an angle from the way on: kept across the seam.
-      turn: h.yaw - forward,
+      // Where he faces relative to the view, and where he is going relative
+      // to the way on: both kept across the seam.
+      turn: wrapAngle(h.yaw - this.camera.yaw),
+      moveTurn: speed > 4 ? wrapAngle(Math.atan2(h.vx, h.vz) - forward) : 0,
       camTurn: this.camera.turn,
       pitch: this.camera.pitch,
-      speed: Math.hypot(h.vx, h.vz),
+      speed,
       vy: h.vy,
       airborne: !h.grounded,
       gliding: h.gliding,
+      hovering: h.hovering,
+      hoverFuel: h.hoverFuel,
     };
     this.districtIndex++;
     this.loadDistrict(0, carry);
@@ -585,6 +605,7 @@ export class Engine3D implements GameEngine {
     h.grounded = false;
     h.diving = false;
     h.gliding = false;
+    h.hovering = false;
     h.holding = false;
     h.hold = MOVE.holdWindow;
     h.move = 'jump';
@@ -616,6 +637,7 @@ export class Engine3D implements GameEngine {
     h.vz = kz;
     h.grounded = false;
     h.gliding = false;
+    h.hovering = false;
     h.diving = false;
     h.charge = 0;
     this.sound('hurt');
@@ -686,6 +708,7 @@ export class Engine3D implements GameEngine {
       lock: c?.lock ? 'locked' : this.lockHeldPrev ? 'open' : undefined,
       target: this.targetInfo(),
       standIns: this.standInsOnScreen(),
+      stronghold: this.activeStronghold(),
       transitionImage: this.transitionFade > 0 ? this.transitionImage : undefined,
       transitionFade: this.transitionFade > 0 ? this.transitionFade : undefined,
     };
@@ -702,6 +725,13 @@ export class Engine3D implements GameEngine {
     if (!s || !s.alive) return undefined;
     if (s.id === 'boss') return undefined;
     return { name: SHADOW_NAMES[s.kind] || 'Shadow', health: Math.max(0, s.hp / s.maxHp), locked: !!locked };
+  }
+  /** The stronghold whose host is out right now, for the HUD. */
+  private activeStronghold(): GameSnapshot['stronghold'] {
+    const field = this.world?.fields.find((f) => f.active && f.group !== 'boss');
+    if (!field || !this.combat) return undefined;
+    const host = this.combat.shadows.filter((s) => s.group === field.group);
+    return { name: field.name, remaining: host.filter((s) => s.alive).length, total: host.length, sealed: field.seal };
   }
   /** Which placeholder art is in play right now, for the HUD's stand-in tag. */
   private standInsOnScreen(): string | undefined {
