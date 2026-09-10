@@ -74,7 +74,7 @@ export function sceneryFor(d: District, route: Route, heightAt: Height): Placeme
   const random = rng(d.terrain.seed * 104729 + 7);
   const out: Placement[] = [];
   const placed: { x: number; z: number; r: number }[] = d.placements.map((p) => ({ x: p.x, z: p.z, r: p.id.startsWith('structure.') ? 70 : 24 }));
-  const gates = [...(d.gates || []).map((g) => ({ x: g.x, z: g.z, r: g.r + 30 })), ...(d.boss ? [{ x: d.boss.x, z: d.boss.z, r: d.boss.r + 40 }] : [])];
+  const gates = d.boss ? [{ x: d.boss.x, z: d.boss.z, r: d.boss.r + 40 }] : [];
   const free = (x: number, z: number, margin: number) =>
     placed.every((p) => Math.hypot(p.x - x, p.z - z) > p.r + margin) && gates.every((g) => Math.hypot(g.x - x, g.z - z) > g.r) && route.distance(x, z) > 120;
   const claim = (x: number, z: number, r: number) => placed.push({ x, z, r });

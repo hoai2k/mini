@@ -60,17 +60,23 @@ export interface Shadow {
   /** Waiting for its stronghold to activate. wake() never releases a held
    * shadow -- only activateGroup() (and, for 'ambush', being passed) does. */
   held: boolean;
-  /** How this shadow arrives once released; see district.ts. */
-  entry?: 'drop' | 'leap' | 'emerge' | 'ambush';
+  /** How this shadow joins the fight once released; see district.ts. */
+  entry?: 'perch' | 'ambush';
   /** Seconds remaining before a scheduled (delayed) release; -1 when none
    * is pending. */
   delay: number;
-  /** 0..1 progress of the entry animation, 1 when done. aliveShadows()
-   * (lock-on/targeting) ignores a shadow while this is < 1, even though it
-   * can still be hit. */
+  /** 0..1 progress of a flyer's launch from its perch to its station, 1
+   * otherwise. */
   arrive: number;
-  /** Spawn position; 'leap' holds this as its perch until it pounces. */
+  /** Where the shadow waits before it is released: a structure top near its
+   * spawn when one exists, else the spawn itself. */
   perch: [number, number, number];
+  /** A stronghold host member in plain view on its perch while it is still
+   * dormant: rendered, targetable, staring at Hopper, harmless until
+   * released -- unless Hopper hits it first, which releases it at once. */
+  perched: boolean;
+  /** 0..1 how intently a perched shadow watches Hopper (by distance). */
+  stare: number;
 }
 export interface Projectile {
   id: number;
@@ -156,11 +162,23 @@ export class Combat {
     const gy = spec.rooted ? y : Math.max(this.world.groundAt(s.x, s.z, y + 0.5).y, y);
     const group = s.group || s.id;
     // A stronghold's host (every spawn whose group names the stronghold) is
-    // held back regardless of wave -- activateGroup() releases it.
+    // held back regardless of wave -- activateGroup() releases it -- and
+    // waits in plain view: on the nearest structure top when there is one
+    // to climb, else standing where it was placed. Rooted kinds stay put;
+    // they are on their structure already.
     const held = this.district.strongholds?.some((st) => st.id === group) ?? false;
+    const perch: [number, number, number] = [s.x, gy, s.z];
+    if (held && !spec.rooted) {
+      const top = this.world.perchNear(s.x, s.z, s.y !== undefined ? y : undefined);
+      if (top) {
+        perch[0] = top.x;
+        perch[1] = top.y;
+        perch[2] = top.z;
+      }
+    }
     return {
-      id: s.id, kind: s.kind, x: s.x, y: gy, z: s.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: spec.hp, maxHp: spec.hp, state: 'idle', timer: 0, cooldown: 0.8 + (s.id.length % 4) * 0.3, alive: true, dormant: held ? true : (s.wave ?? 0) > 0, group, wave: s.wave ?? 0, homeX: s.x, homeY: gy, homeZ: s.z, flying: spec.flying, rooted: spec.rooted, armored: spec.armored, radius: spec.radius * spec.size, height: spec.height * spec.size, size: spec.size, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: s.patrol ?? 40, phase: Math.random() * Math.PI * 2, scale: 1, grounded: !spec.flying, spawnFlash: 0, beamX: s.x, beamY: gy, beamZ: s.z,
-      held, entry: s.entry, delay: -1, arrive: 1, perch: [s.x, gy, s.z],
+      id: s.id, kind: s.kind, x: perch[0], y: perch[1], z: perch[2], vx: 0, vy: 0, vz: 0, yaw: 0, hp: spec.hp, maxHp: spec.hp, state: held && !spec.rooted ? 'wait' : 'idle', timer: 0, cooldown: 0.8 + (s.id.length % 4) * 0.3, alive: true, dormant: held ? true : (s.wave ?? 0) > 0, group, wave: s.wave ?? 0, homeX: s.x, homeY: gy, homeZ: s.z, flying: spec.flying, rooted: spec.rooted, armored: spec.armored, radius: spec.radius * spec.size, height: spec.height * spec.size, size: spec.size, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: s.patrol ?? 40, phase: Math.random() * Math.PI * 2, scale: 1, grounded: !spec.flying, spawnFlash: 0, beamX: s.x, beamY: gy, beamZ: s.z,
+      held, entry: s.entry, delay: -1, arrive: 1, perch, perched: held, stare: 0,
     };
   }
   /** Summon a shadow at runtime (bosses summoning adds) -- built the same way
@@ -170,6 +188,8 @@ export class Combat {
     const shadow = this.make(s);
     shadow.held = false;
     shadow.dormant = false;
+    shadow.perched = false;
+    shadow.state = 'idle';
     shadow.spawnFlash = 0.6;
     shadow.arrive = 1;
     this.shadows.push(shadow);
@@ -193,49 +213,39 @@ export class Combat {
     }
     return held.length;
   }
-  /** Apply a shadow's entry behaviour and mark it awake. Used wherever a
-   * dormant shadow's release condition is met: later waves via wake(),
-   * delayed or ambush stronghold hosts via the per-frame check in update(). */
+  /** Let a shadow off its perch and into the fight. Used wherever a dormant
+   * shadow's release condition is met: later waves via wake(), delayed or
+   * ambush stronghold hosts via the per-frame check in update(), and a
+   * perched host hit by Hopper. A ground kind crouches a moment longer and
+   * pounces; a flyer launches for its station; a rooted kind wakes; a
+   * shadow that was never perched simply appears with a flash. */
   private release(s: Shadow, cb?: CombatCallbacks) {
     s.dormant = false;
-    switch (s.entry) {
-      case 'drop':
-        s.y = s.homeY + (s.flying ? 60 : 90);
-        s.vy = -8;
-        s.grounded = false;
-        s.state = 'arrive';
-        s.arrive = 0;
-        break;
-      case 'leap':
-        if (s.flying) {
-          // Only ground kinds actually leap; a flyer falls in like 'drop'.
-          s.y = s.homeY + 60;
-          s.vy = -8;
-          s.grounded = false;
-          s.state = 'arrive';
-          s.arrive = 0;
-        } else {
-          s.state = 'wait';
-          s.arrive = 0;
-          s.timer = 6;
-          s.vx = 0;
-          s.vz = 0;
-        }
-        break;
-      case 'emerge':
-      case 'ambush':
-        s.y = s.homeY - s.height;
-        s.state = 'arrive';
-        s.arrive = 0;
-        s.timer = 0;
-        s.spawnFlash = 0.9;
-        cb?.effect('splat', s.x, s.y, s.z);
-        cb?.sound('boss');
-        break;
-      default:
-        s.spawnFlash = 0.6;
-        s.arrive = 1;
-        break;
+    s.held = false;
+    s.delay = -1;
+    s.stare = 0;
+    if (!s.perched) {
+      s.spawnFlash = 0.6;
+      s.arrive = 1;
+      s.state = 'idle';
+      return;
+    }
+    s.perched = false;
+    if (s.rooted) {
+      s.state = 'idle';
+      s.arrive = 1;
+      s.open = 0;
+    } else if (s.flying) {
+      s.state = 'arrive';
+      s.arrive = 0;
+      s.grounded = false;
+      cb?.sound('boss');
+    } else {
+      s.state = 'wait';
+      s.arrive = 1;
+      s.timer = 4;
+      s.vx = 0;
+      s.vz = 0;
     }
   }
   /** Later waves wake when every earlier wave of their group is down. Never
@@ -267,8 +277,10 @@ export class Combat {
     this.shield = 1;
     this.shieldBroken = 0;
   }
+  /** Everything that can be hit, stomped and locked on: awake shadows, and
+   * dormant ones in plain view on their perches. */
   aliveShadows(): Shadow[] {
-    return this.shadows.filter((s) => s.alive && !s.dormant && s.arrive >= 1);
+    return this.shadows.filter((s) => s.alive && (!s.dormant || s.perched));
   }
   /** Everything the auto-aim and the lock-on may choose: the live shadows and
    * the commander. */
@@ -342,6 +354,8 @@ export class Combat {
   }
   damage(s: Shadow, amount: number, cb: CombatCallbacks, kx = 0, kz = 0) {
     if (!s.alive) return;
+    // A perched host hit before its stronghold woke comes down at once.
+    if (s.dormant && s.perched) this.release(s, cb);
     // Armour plate: lasers, kicks and shockwaves chip only 1 while the core
     // is closed. A stomp is blocked entirely -- see the caller in update().
     if (s.armored && s.open <= 0) amount = Math.min(amount, 1);
@@ -532,6 +546,16 @@ export class Combat {
         s.delay -= dt;
         if (s.delay <= 0) this.release(s, cb);
       }
+    }
+    // Perched hosts stare Hopper down as he approaches: they turn to face
+    // him from 700 m and their eyes brighten with the last 500.
+    for (const s of this.shadows) {
+      if (!s.alive || !s.dormant || !s.perched) continue;
+      const dx = h.x - s.x,
+        dz = h.z - s.z,
+        dh = Math.hypot(dx, dz);
+      s.stare = Math.max(0, Math.min(1, 1 - dh / 500));
+      if (dh < 700 && !s.rooted) s.yaw = Math.atan2(dx, dz);
     }
     // Shadows.
     for (const s of this.shadows) {
@@ -933,8 +957,7 @@ export class Combat {
     if (Math.hypot(s.vx, s.vz) > 2) s.yaw = Math.atan2(s.vx, s.vz);
   }
   /** Ground shadows follow the surface; airborne ones fall onto it. cb is
-   * only needed for the entry-landing branches ('arrive' from a drop,
-   * 'pounce' from a leap), which fire an effect/sound or open the core. */
+   * only needed for the pounce landing, which fires an effect and a sound. */
   private fall(s: Shadow, dt: number, cb?: CombatCallbacks) {
     s.x += s.vx * dt;
     s.z += s.vz * dt;
@@ -956,61 +979,51 @@ export class Combat {
           s.state = 'recover';
           s.timer = SPECS[s.kind].recover;
           s.open = s.timer;
-        } else if (s.state === 'arrive') {
-          // A 'drop' entry landing: stomp shockwave, then a short stun.
-          s.state = 'recover';
-          s.timer = 0.5;
-          s.open = 0.5;
-          s.arrive = 1;
-          cb?.effect('shockwave', s.x, s.y, s.z);
-          cb?.sound('stomp');
         } else if (s.state === 'pounce') {
-          // A 'leap' pounce that missed and landed: a shorter stun, no shockwave.
+          // A pounce that missed and landed: a short stun with the core open.
           s.state = 'recover';
           s.timer = 0.6;
           s.open = 0.6;
           s.arrive = 1;
+          cb?.effect('shockwave', s.x, s.y, s.z);
+          cb?.sound('stomp');
         }
       }
     }
   }
-  /** Entry animations run generically in place of the per-kind switch while
-   * they're active: 'arrive' covers a 'drop' fall or an 'emerge'/'ambush'
-   * rise; 'wait' is a 'leap' crouched on its perch; 'pounce' is its attack. */
+  /** Entry states run generically in place of the per-kind switch while
+   * they're active: 'arrive' is a flyer's launch from its perch to its
+   * station; 'wait' is a ground kind crouched on its perch; 'pounce' is the
+   * leap it makes from there. */
   private updateEntryState(s: Shadow, dt: number, h: HopperState, cb: CombatCallbacks, dx: number, dz: number, dh: number, d3: number) {
     const spec = SPECS[s.kind];
     if (s.state === 'arrive') {
-      if (s.entry === 'emerge' || s.entry === 'ambush') {
-        s.timer += dt;
-        const t = Math.min(1, s.timer / 0.6);
-        s.arrive = t;
-        s.y = s.homeY - s.height * (1 - t);
-        if (t >= 1) {
-          s.y = s.homeY;
-          s.state = 'idle';
-          s.arrive = 1;
-        }
-        return;
+      // A flyer launching off its perch: a straight run to its station.
+      const tx = s.homeX - s.x,
+        ty = s.homeY - s.y,
+        tz = s.homeZ - s.z,
+        left = Math.hypot(tx, ty, tz),
+        total = Math.max(1, Math.hypot(s.homeX - s.perch[0], s.homeY - s.perch[1], s.homeZ - s.perch[2])),
+        step = Math.min(left, 55 * dt);
+      if (left > 0.01) {
+        s.x += (tx / left) * step;
+        s.y += (ty / left) * step;
+        s.z += (tz / left) * step;
+        s.yaw = Math.atan2(tx, tz);
       }
-      // 'drop' entry.
-      if (s.flying) {
-        const drop = 60;
-        s.y = Math.max(s.homeY, s.y - 45 * dt);
-        s.arrive = Math.min(1, 1 - Math.max(0, s.y - s.homeY) / drop);
-        if (s.y <= s.homeY) {
-          s.y = s.homeY;
-          s.state = 'idle';
-          s.arrive = 1;
-        }
-        return;
+      s.arrive = Math.min(1, 1 - (left - step) / total);
+      if (left - step <= 0.5) {
+        s.x = s.homeX;
+        s.y = s.homeY;
+        s.z = s.homeZ;
+        s.state = 'idle';
+        s.arrive = 1;
       }
-      s.arrive = Math.min(1, Math.max(0, 1 - (s.y - s.homeY) / 90));
-      this.fall(s, dt, cb);
       return;
     }
     if (s.state === 'wait') {
       // Crouched on the perch, facing Hopper, harmless -- until Hopper is
-      // close enough or a 6s timeout forces the pounce (so hanging back
+      // close enough or a 4s timeout forces the pounce (so hanging back
       // can't leave a stronghold permanently uncleared).
       s.vx = 0;
       s.vz = 0;

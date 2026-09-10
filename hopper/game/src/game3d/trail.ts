@@ -189,10 +189,9 @@ export function buildTrail(world: World): Group {
     ribbonMaterial.needsUpdate = true;
   });
 
-  // --- Keep-out: structures, gates, the arena --------------------------
+  // --- Keep-out: structures, the arena ---------------------------------
   const keepOut: { x: number; z: number; r: number }[] = [];
   for (const p of d.placements) keepOut.push({ x: p.x, z: p.z, r: p.id.startsWith('structure.') ? 75 : 26 });
-  for (const g of d.gates || []) keepOut.push({ x: g.x, z: g.z, r: g.r + 10 });
   if (d.boss) keepOut.push({ x: d.boss.x, z: d.boss.z, r: d.boss.r + 20 });
   for (const c of d.cages || []) keepOut.push({ x: c.x, z: c.z, r: 30 });
   const clear = (x: number, z: number, margin = 0) => keepOut.every((k) => Math.hypot(k.x - x, k.z - z) > k.r + margin);

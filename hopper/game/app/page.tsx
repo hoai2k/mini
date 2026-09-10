@@ -931,7 +931,7 @@ export default function Home() {
             <div className="height-ticks">{Math.round(hud.height)} m</div>
           )}
           {hud.stronghold && (
-            <div className={`stronghold-bar ${hud.stronghold.sealed ? 'sealed' : ''}`}>
+            <div className="stronghold-bar">
               <span className="stronghold-name">{hud.stronghold.name}</span>
               <span className="stronghold-host">
                 {Array.from({ length: hud.stronghold.total }, (_, i) => (
