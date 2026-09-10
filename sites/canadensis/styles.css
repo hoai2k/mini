@@ -169,6 +169,10 @@ a {
   color: var(--navy);
   text-shadow: 2px 2px 0 var(--paper-3), 4px 4px 0 var(--brass-2);
 }
+.sub a {
+  color: var(--rust);
+  font-style: italic;
+}
 .sub {
   font-family: var(--display);
   font-size: clamp(1.05rem, 2.2vw, 1.35rem);

@@ -23,6 +23,11 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/canadensis/. Uses the deck photograph
   from `images/` and plays the band's one recording from `canadensis/music/`;
   `canadensis/image-requests.md` lists further art the page could take.
+- [`mechmayhem/`](mechmayhem/) — artist page for Mech Mayhem, the drum &
+  bass outfit of five fighters from the Mech Mayhem arena game. Published at
+  https://hoai2k.github.io/mini/sites/mechmayhem/. Uses the band photo from
+  `images/`, portraits and badges from the game repository's canonical art,
+  and streams the game's soundtrack from its deployed site.
 - [`images/`](images/) — source images dropped by the user for use in sites.
   Sites keep their own web-sized copies under `assets/`; the originals stay
   here.
