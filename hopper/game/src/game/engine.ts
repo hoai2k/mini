@@ -43,10 +43,18 @@ export interface GameSnapshot {
   hint?: string;
   /** 3D lock-on state while LT is held: aiming, or locked onto a shadow. */
   lock?: 'open' | 'locked';
+  /** 3D edition: the shadow being aimed at or locked, and how hurt it is, so
+   * the player can see the damage landing. */
+  target?: { name: string; health: number; locked: boolean };
   /** 3D edition: which visible art is still a procedural stand-in. */
   standIns?: string;
   /** The stronghold Hopper is fighting: its name and how much of the host still stands. */
   stronghold?: { name: string; remaining: number; total: number; sealed: boolean };
+  /** 3D district hand-over: the last frame of the district just left, held
+   * over the new one and faded out, so crossing the threshold dissolves
+   * instead of cutting. `transitionFade` is its opacity, 1 down to 0. */
+  transitionImage?: string;
+  transitionFade?: number;
 }
 interface Particle {
   x: number;
@@ -89,6 +97,8 @@ const BG = [
   'blue',
   'purple',
 ];
+/** Laser hits needed to open a signal cage; a reflected shot is worth four. */
+const BARRIER_HP = 8;
 const BOSSES = ['nightRook', 'smelterLeviathan', 'eclipseRegent'];
 /** Corridor plates are named by region; skin 8's file is "violet", not "purple". */
 const LOW_ROAD = BG.map((k) => (k === 'purple' ? 'violet' : k));
@@ -228,8 +238,11 @@ export class Engine {
   explosions: Explosion[] = [];
   lasers: Laser[] = [];
   signals = new Set<string>();
-  /** Barriers opened by a reflected shot. */
+  /** Barriers broken open. */
   broken = new Set<string>();
+  /** Integrity left in each cage as 0..1, and the flash left on a fresh hit. */
+  barrierHp = new Map<string, number>();
+  barrierFlash = new Map<string, number>();
   checkpointIndex = 0;
   settings: GameSettings = {
     master: 0.8,
@@ -302,15 +315,7 @@ export class Engine {
         this.player.landT = 0.18;
         this.shake = Math.max(this.shake, 6);
       },
-      breakBarrier: (id) => {
-        if (this.broken.has(id)) return;
-        this.broken.add(id);
-        const b = this.level.barriers.find((b) => b.id === id);
-        if (b) {
-          this.effect('explosion', b.x + b.w * 0.5, b.y + b.h * 0.5, '#b6fbff');
-          this.score += 250;
-        }
-      },
+      breakBarrier: (id, damage = 1) => this.damageBarrier(id, damage),
       bossDefeated: () => {
         this.victoryT = 2.6;
         this.effect(
@@ -578,6 +583,8 @@ export class Engine {
     this.lasers = [];
     this.signals = new Set(save?.signals || []);
     this.broken = new Set();
+    this.barrierHp = new Map();
+    this.barrierFlash = new Map();
     this.lockT = 0;
     this.score = save?.score || 0;
     this.checkpointIndex = clamp(
@@ -793,6 +800,8 @@ export class Engine {
     this.time += dt;
     this.bannerT = Math.max(0, this.bannerT - dt);
     this.shake = Math.max(0, this.shake - dt * 25);
+    for (const [id, left] of this.barrierFlash)
+      if (left > 0) this.barrierFlash.set(id, Math.max(0, left - dt));
     const p = this.player;
     for (const n of [
       'kickT',
@@ -1383,6 +1392,36 @@ export class Engine {
   }
   /** Fraction of the beam travelled before it meets this box, or 1 for a clear
    * line. Slab method against an axis-aligned rectangle. */
+  /**
+   * Chip a cage open. Every one of Hopper's attacks counts, so the bars visibly
+   * come apart under ordinary fire instead of waiting on a reflected shot.
+   */
+  damageBarrier(id: string, damage = 1) {
+    if (this.broken.has(id)) return;
+    const bar = this.level.barriers.find((b) => b.id === id);
+    if (!bar) return;
+    // Kept as a fraction so the renderer can fade the wreck through without
+    // needing to know how many hits a cage is worth.
+    const hp = (this.barrierHp.get(id) ?? 1) - damage / BARRIER_HP;
+    this.barrierFlash.set(id, 0.14);
+    const cx = bar.x + bar.w * 0.5,
+      cy = bar.y + bar.h * 0.5;
+    if (hp > 0.001) {
+      this.barrierHp.set(id, hp);
+      this.effect('spark', cx, cy, '#b6fbff');
+      this.audio.effect('hit');
+      this.shake = Math.max(this.shake, 3);
+      return;
+    }
+    this.barrierHp.set(id, 0);
+    this.broken.add(id);
+    this.combat.brokenBarriers.add(id);
+    this.effect('explosion', cx, cy, '#b6fbff');
+    this.audio.effect('explode');
+    this.shake = Math.max(this.shake, 7);
+    this.score += 250;
+  }
+
   private beamClip(
     x1: number,
     y1: number,
@@ -1450,10 +1489,17 @@ export class Engine {
       if (q.kind === 'oneWay' || q.routeRole === 'optional') continue;
       clip = Math.min(clip, this.beamClip(eye.x, eye.y, aimX, aimY, q));
     }
+    // The beam already stops at a cage; that is the hit, so it chips it open.
+    let struck = '';
     for (const q of this.level.barriers) {
       if (this.broken.has(q.id)) continue;
-      clip = Math.min(clip, this.beamClip(eye.x, eye.y, aimX, aimY, q));
+      const at = this.beamClip(eye.x, eye.y, aimX, aimY, q);
+      if (at < clip) {
+        clip = at;
+        struck = q.id;
+      }
     }
+    if (struck) this.damageBarrier(struck, 1);
     if (clip < 1) {
       end = eye.x + (aimX - eye.x) * clip;
       endY = eye.y + (aimY - eye.y) * clip;
@@ -1581,6 +1627,8 @@ export class Engine {
       lasers: this.lasers,
       signals: this.signals,
       broken: this.broken,
+      barrierHp: this.barrierHp,
+      barrierFlash: this.barrierFlash,
       lockT: this.lockT,
       checkpointIndex: this.checkpointIndex,
       shake: this.shake,

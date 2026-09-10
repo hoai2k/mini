@@ -6,6 +6,7 @@
 import type { World } from './world';
 import { MOVE, type HopperState } from './controller';
 import type { Combat, CombatCallbacks, Shadow } from './combat3d';
+import type { ShadowKind } from './district';
 import type { BossSpec } from './district';
 
 export type RookState = 'sleep' | 'perch' | 'mark' | 'sweep' | 'climb' | 'fan' | 'land' | 'channel' | 'burst' | 'summon' | 'dead';
@@ -56,21 +57,44 @@ export const ROOK = {
 
 export class NightRook {
   rook: RookRuntime;
-  private perches: [number, number, number][];
+  /** The three places it hangs between attacks; the tests read them. */
+  readonly perches: [number, number, number][];
   private centre: [number, number, number];
   constructor(readonly spec: BossSpec, readonly world: World) {
     const ground = world.heightAt(spec.x, spec.z);
     this.centre = [spec.x, ground + spec.y, spec.z];
     // The mast top and two points over the arena's rim.
+    // Perches Hopper can actually reach: a held jump peaks at 88 m, so the
+    // commander hangs inside that, not two hundred metres over the arena.
     this.perches = [
-      [spec.x, ground + 215, spec.z],
-      [spec.x + spec.r * 0.55, ground + 120, spec.z + spec.r * 0.3],
-      [spec.x - spec.r * 0.5, ground + 140, spec.z - spec.r * 0.35],
+      [spec.x, ground + 96, spec.z],
+      [spec.x + spec.r * 0.55, ground + 56, spec.z + spec.r * 0.3],
+      [spec.x - spec.r * 0.5, ground + 70, spec.z - spec.r * 0.35],
     ];
     this.rook = {
       x: this.perches[0][0], y: this.perches[0][1], z: this.perches[0][2], vx: 0, vy: 0, vz: 0, yaw: Math.PI, hp: ROOK.hp, maxHp: ROOK.hp, phase: 1, state: 'sleep', timer: 0, telegraph: 0, open: 0, hitFlash: 0, alive: true, active: false, wingSpread: 0.3, markFrom: [0, 0, 0], markTo: [0, 0, 0], perchIndex: 0, cycles: 0, summoned: [], radius: 9, height: 16, kickHit: false, laserHits: new Set(),
     };
   }
+  /** The commander as an aim target: one object, kept in step with the
+   * runtime, that the lasers and the lock-on can choose. It is never one of
+   * the district's shadows. */
+  target(): Shadow {
+    const r = this.rook;
+    const t = (this.aimTarget ||= {
+      id: 'boss', kind: 'riftCondor' as ShadowKind, x: r.x, y: r.y, z: r.z, vx: 0, vy: 0, vz: 0, yaw: 0, hp: r.hp, maxHp: r.maxHp, state: 'idle', timer: 0, cooldown: 0, alive: true, dormant: false, group: 'boss', wave: 0, homeX: r.x, homeY: r.y, homeZ: r.z, flying: true, rooted: false, armored: false, radius: r.radius, height: r.height, size: 1, held: false, entry: undefined, delay: -1, arrive: 1, perch: [r.x, r.y, r.z], open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: 0, phase: 0, scale: 1, grounded: false, spawnFlash: 0, beamX: r.x, beamY: r.y, beamZ: r.z,
+    } satisfies Shadow);
+    t.x = r.x;
+    t.y = r.y;
+    t.z = r.z;
+    t.hp = r.hp;
+    t.maxHp = r.maxHp;
+    t.alive = r.alive;
+    t.open = r.open;
+    t.radius = r.radius;
+    t.height = r.height;
+    return t;
+  }
+  private aimTarget: Shadow | null = null;
   /** Wake when Hopper enters the arena. */
   wake(cb: CombatCallbacks) {
     const r = this.rook;

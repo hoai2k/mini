@@ -112,9 +112,38 @@ export interface District {
   /** Reaching this ends the district. */
   exit: { x: number; z: number; r: number; name: string };
   landmark: { name: string; x: number; z: number };
+  /** The trail's waypoints in order, start to exit, through every totem in
+   * checkpoint order. The camera faces along it and the ground is dressed
+   * along it. Omitted, the route runs start → totems → exit in straight legs. */
+  route?: { x: number; z: number }[];
 }
 
 const P = (id: string, x: number, z: number, y = 0, yaw = 0, opts?: Record<string, unknown>, mode: 'r' | 'a' = 'r'): Placement => ({ id, x, z, y, yaw, opts, mode });
+/** The trail through a district: start, every totem in checkpoint order and
+ * the exit, with a gentle swing to alternate sides between totems so the
+ * road winds through the props instead of running dead straight. The swing
+ * stays inside the clear path (|x| < 30) that the jump elements sit on. */
+function windingRoute(placements: Placement[], start: { x: number; z: number }, exit: { x: number; z: number }, swing = 26): { x: number; z: number }[] {
+  const totems = placements
+    .filter((p) => p.id === 'prop.checkpointTotem')
+    .map((p) => ({ x: p.x, z: p.z }))
+    .sort((a, b) => Math.hypot(a.x - start.x, a.z - start.z) - Math.hypot(b.x - start.x, b.z - start.z));
+  const stops = [start, ...totems, exit];
+  const route: { x: number; z: number }[] = [];
+  for (let i = 0; i < stops.length; i++) {
+    route.push({ x: stops[i].x, z: stops[i].z });
+    const next = stops[i + 1];
+    if (!next || Math.hypot(next.x - stops[i].x, next.z - stops[i].z) < 120) continue;
+    // An S between the two: out to one side at a third of the way, back to
+    // the other at two thirds, so every leg bends both ways.
+    const side = i % 2 ? -1 : 1;
+    // Short legs get a shallower swing, so the bend never turns more than the camera can follow.
+    const amp = Math.min(swing, Math.hypot(next.x - stops[i].x, next.z - stops[i].z) * 0.09);
+    route.push({ x: stops[i].x + (next.x - stops[i].x) / 3 + side * amp, z: stops[i].z + (next.z - stops[i].z) / 3 });
+    route.push({ x: stops[i].x + ((next.x - stops[i].x) * 2) / 3 - side * amp, z: stops[i].z + ((next.z - stops[i].z) * 2) / 3 });
+  }
+  return route;
+}
 const S = (id: string, kind: ShadowKind, x: number, z: number, extra: Partial<ShadowSpawn> = {}): ShadowSpawn => ({ id, kind, x, z, ...extra });
 
 /** Sunseed Fields: the first district. Three granaries along −z, each a
@@ -286,6 +315,7 @@ export function sunseedFields(): District {
     start: { x: 0, z: 40, yaw: Math.PI },
     exit: { x: 0, z: -2000, r: 30, name: 'The road to Crownline' },
     landmark: { name: 'Crownline City', x: 0, z: -3200 },
+    route: windingRoute(placements, { x: 0, z: 40 }, { x: 0, z: -2000 }),
   };
 }
 
@@ -464,6 +494,7 @@ export function crownlineCity(): District {
     start: { x: 0, z: 40, yaw: Math.PI },
     exit: { x: 0, z: -2030, r: 40, name: 'The observatory crown' },
     landmark: { name: 'Thunderhead Range', x: 0, z: -3400 },
+    route: windingRoute(placements, { x: 0, z: 40 }, { x: 0, z: -2030 }),
   };
 }
 
@@ -629,6 +660,7 @@ export function thunderheadRange(): District {
     start: { x: 0, z: 20, yaw: Math.PI },
     exit: { x: 0, z: -2150, r: 40, name: 'The summit transmitter' },
     landmark: { name: 'The transmitter', x: 0, z: -2150 },
+    route: windingRoute(placements, { x: 0, z: 20 }, { x: 0, z: -2150 }),
   };
 }
 

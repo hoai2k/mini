@@ -11,6 +11,8 @@ import {
   regionById,
 } from '../../../3d/standins/src/index.js';
 import type { District, Placement } from './district';
+import { buildRoute, type Route } from './route';
+import { sceneryFor } from './scenery';
 
 export interface Collider {
   /** Structure instance that owns this box. */
@@ -49,6 +51,8 @@ export interface Field {
   /** The stronghold's name for banners. */
   name: string;
   object?: Object3D;
+  /** Seconds of bright flare left after Hopper pushed against the barrier. */
+  flare?: number;
 }
 export interface Volume {
   kind: 'thermal' | 'wind';
@@ -72,10 +76,17 @@ export interface Trigger {
   r: number;
   taken?: boolean;
   object?: Object3D;
-  /** A caged signal: locked until a reflected shot hits the cage's lock. */
+  /** A caged signal: locked until Hopper's attacks break the cage open. */
   locked?: boolean;
   cage?: Object3D;
   lockY?: number;
+  /** Remaining cage integrity; bars fall away as it drops. */
+  cageHp?: number;
+  cageMaxHp?: number;
+  cageBars?: Object3D[];
+  cageCrown?: Object3D;
+  /** Seconds left of the white flash on a hit. */
+  cageFlash?: number;
 }
 export interface Instance {
   id: string;
@@ -144,13 +155,22 @@ export class World {
   readonly volumes: Volume[] = [];
   readonly triggers: Trigger[] = [];
   readonly fields: Field[] = [];
+  /** The trail from the start to the exit; the camera faces along it. */
+  readonly route: Route;
+  /** Generated scenery: span continuations and the middle-distance structures. */
+  readonly scenery: Placement[] = [];
   private grid = new Map<string, Collider[]>();
   readonly region;
   constructor(district: District) {
     this.district = district;
     this.region = regionById(district.region);
+    this.route = buildRoute(district);
     this.heightAt = makeHeightField({ size: district.size, ...district.terrain });
     for (const p of district.placements) this.place(p);
+    // The world either side of the trail: spans that land somewhere, and
+    // structures standing well back from the path.
+    this.scenery = sceneryFor(district, this.route, this.heightAt);
+    for (const p of this.scenery) this.place(p);
     for (const c of district.cages || []) this.placeCage(c);
     for (const g of district.gates || []) this.placeStronghold({ id: g.id, name: 'Gate', x: g.x, z: g.z, r: g.r, y: g.y, seal: true }, g.group);
     for (const st of district.strongholds || []) this.placeStronghold(st, st.id);
@@ -159,7 +179,7 @@ export class World {
       this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss', seal: true, name: 'The Night Rook' });
     }
   }
-  /** A caged signal: the cage and its prize, locked until a reflected shot. */
+  /** A caged signal: the cage and its prize, locked until the bars are broken. */
   private placeCage(c: { id: string; x: number; z: number; y?: number; mode?: 'r' | 'a' }) {
     const cage = this.place({ id: 'prop.signalCage', x: c.x, z: c.z, y: c.y, mode: c.mode });
     const beacon = this.place({ id: 'prop.signalBeacon', x: c.x, z: c.z, y: (c.y || 0) + (c.mode === 'a' ? 1.5 : 1.5), mode: c.mode });
@@ -169,6 +189,21 @@ export class World {
       t.locked = true;
       t.cage = cage.object;
       t.lockY = cage.object.position.y + 9.2;
+      // The bars are the damage read: one falls away for each step of integrity
+      // lost, so the cage is visibly coming apart before it opens.
+      t.cageBars = [];
+      cage.object.traverse((o) => {
+        if (o.name.startsWith('Bar')) t.cageBars!.push(o);
+        else if (o.name === 'Crown') {
+          t.cageCrown = o;
+          // Stand-in materials are cached and shared by colour, so this cage
+          // needs its own copy before its lock can fade with its own damage.
+          const mesh = o as { material?: { clone?: () => unknown } };
+          if (mesh.material?.clone) mesh.material = mesh.material.clone() as typeof mesh.material;
+        }
+      });
+      t.cageMaxHp = t.cageBars.length || 10;
+      t.cageHp = t.cageMaxHp;
     }
   }
   /** A stronghold's field; a sealed one gets two lockdown emitters beside it. */

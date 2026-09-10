@@ -9,15 +9,17 @@ import { World, type Collider } from './world';
 export const MOVE = {
   height: 14,
   radius: 5,
-  gravity: 45,
-  run: 52,
-  groundAccel: 320,
-  airAccel: 170,
+  gravity: 120,
+  /** Falling pulls harder than rising: the arc peaks and comes down sharp. */
+  fallGravity: 1.25,
+  run: 66,
+  groundAccel: 420,
+  airAccel: 215,
   turnRate: Math.PI * 5,
-  tapJump: 43.5,
-  /** A short variable-height window after takeoff (a few metres, not a boost). */
+  tapJump: 72,
+  /** A short variable-height window after takeoff: thrust against gravity, a few metres, no boost. */
   holdWindow: 0.2,
-  holdThrust: 15,
+  holdThrust: 40,
   /** Hover: A held in the air holds altitude on beating wings for this long. */
   hoverFuel: 1.8,
   hoverLift: 2.5,
@@ -25,16 +27,19 @@ export const MOVE = {
   /** Moving against the facing is slower: backpedal and strafe factors. */
   backpedal: 0.55,
   strafe: 0.85,
+  /** Forward lunge added at takeoff, along the way Hopper is already going
+   * (or the stick, from standing). A leap travels; it does not just rise. */
+  leap: 24,
   glideSink: 7,
-  glideSpeed: 62,
+  glideSpeed: 80,
   glideTurn: Math.PI * 0.6,
   chargeTime: 0.8,
   chargeApexMin: 21,
   chargeApexMax: 140,
   springApex: 168,
   diveGravity: 2.5,
-  diveTerminal: 110,
-  wallKickUp: 38,
+  diveTerminal: 190,
+  wallKickUp: 62,
   wallKickAway: 26,
   wallGrace: 0.12,
   wallCommit: 0.16,
@@ -49,7 +54,7 @@ export const MOVE = {
   stompLag: 0.35,
   brake: 120,
   sprint: 1.6,
-  dashSpeed: 130,
+  dashSpeed: 170,
   dashTime: 0.28,
   dashCooldown: 0.55,
 };
@@ -295,6 +300,10 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.yaw = turnToward(s.yaw, heading, MOVE.turnRate * dt);
   } else if (canSteer) {
     const accel = (s.grounded ? MOVE.groundAccel : MOVE.airAccel) * dt;
+    // Airborne steering turns the leap; it never slows it. Without this a jump
+    // taken at a sprint is dragged back to running speed in the air, which is
+    // what makes an arc feel like a hop straight up.
+    const carried = Math.hypot(s.vx, s.vz);
     // Hopper keeps facing forward: moving against the facing is a backpedal,
     // across it a strafe, both slower than a run.
     const fx = Math.sin(s.yaw),
@@ -302,7 +311,8 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     const along = wantLen > 0.05 ? (intent.dx * fx + intent.dz * fz) / wantLen : 1;
     const across = wantLen > 0.05 ? Math.abs(intent.dx * fz - intent.dz * fx) / wantLen : 0;
     const shape = along < 0 ? 1 - (1 - MOVE.backpedal) * -along : 1 - (1 - MOVE.strafe) * across * (1 - Math.max(0, along));
-    const top = MOVE.run * (s.sprinting && along > 0.3 ? MOVE.sprint : 1) * shape;
+    const sprint = along > 0.3 ? MOVE.sprint : 1;
+    const top = s.grounded ? MOVE.run * (s.sprinting ? sprint : 1) * shape : Math.max(MOVE.run * (intent.sprintHeld ? sprint : 1) * shape, carried);
     const tx = intent.dx * top,
       tz = intent.dz * top;
     if (s.grounded || wantLen > 0.05) {
@@ -344,8 +354,8 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     } else if (s.charge > 0) {
       const apex = MOVE.chargeApexMin + (MOVE.chargeApexMax - MOVE.chargeApexMin) * s.charge;
       s.vy = apexSpeed(apex, g);
-      s.vx += intent.dx * 12 * s.charge;
-      s.vz += intent.dz * 12 * s.charge;
+      s.vx += intent.dx * 26 * s.charge;
+      s.vz += intent.dz * 26 * s.charge;
       s.grounded = false;
       s.coyote = 0;
       s.hold = MOVE.holdWindow; // no extra thrust on a charged leap
@@ -361,6 +371,15 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   if (control && !busy && s.buffer > 0 && (s.grounded || s.coyote > 0) && s.charge <= 0 && !intent.chargeHeld) {
     s.buffer = 0;
     s.vy = MOVE.tapJump;
+    // The lunge: a grasshopper's leap goes forward. It follows the stick when
+    // one is pushed, otherwise the way Hopper is already running, and a jump
+    // taken from a standstill with no stick is still straight up.
+    const speed = Math.hypot(s.vx, s.vz);
+    const lx = wantLen > 0.1 ? intent.dx / wantLen : speed > 6 ? s.vx / speed : 0,
+      lz = wantLen > 0.1 ? intent.dz / wantLen : speed > 6 ? s.vz / speed : 0;
+    const lunge = MOVE.leap * (wantLen > 0.1 ? 1 : Math.min(1, speed / MOVE.run));
+    s.vx += lx * lunge;
+    s.vz += lz * lunge;
     s.grounded = false;
     s.coyote = 0;
     s.hold = 0;
@@ -435,7 +454,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.vx *= k;
         s.vz *= k;
       } else {
-        s.vy -= g * dt;
+        s.vy -= g * (s.vy < 0 ? MOVE.fallGravity : 1) * dt;
       }
     }
     // Dive (Y in the air).
@@ -564,7 +583,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.vx = s.vz = 0;
         s.move = 'stomp';
       } else {
-        s.landTimer = impact > 40 ? 0.25 : 0.12;
+        s.landTimer = impact > 65 ? 0.25 : 0.12;
         s.move = 'land';
       }
       s.events.push({ kind: 'land', speed: impact, stomp });
@@ -623,7 +642,7 @@ export function predictLanding(s: HopperState, world: World, maxTime = 8): { x: 
     x += s.vx * dt;
     z += s.vz * dt;
     y = ny;
-    vy -= g * dt;
+    vy -= g * (vy < 0 ? MOVE.fallGravity : 1) * dt;
   }
   return { x, y: world.groundAt(x, z, y).y, z, t: maxTime };
 }

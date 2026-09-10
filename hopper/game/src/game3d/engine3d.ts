@@ -9,6 +9,7 @@ import type { InputFrame } from '../game/input';
 import type { GameEngine } from '../game/game-engine';
 import { saveKey } from '../game/game-engine';
 import { World, type Trigger } from './world';
+import { regionById } from '../../../3d/standins/src/index.js';
 import { MISSIONS, type District } from './district';
 import { NightRook } from './boss3d';
 import { createHopperState, intentFromInput, predictLanding, stepHopper, MOVE, type HopperState } from './controller';
@@ -17,8 +18,33 @@ import { Combat, type Shadow } from './combat3d';
 import { Scene3D } from './scene';
 
 const STEP = 1 / 120;
+/** What the HUD calls each shadow when it is the target. */
+const SHADOW_NAMES: Record<string, string> = {
+  shadeHound: 'Shade Hound',
+  seedSpitter: 'Seed Spitter',
+  windowRay: 'Window Ray',
+  spireLeech: 'Spire Leech',
+  cragTortoise: 'Crag Tortoise',
+  riftCondor: 'Rift Condor',
+};
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+/** What crosses the threshold with Hopper when a district hands over. */
+interface Carry {
+  /** Hopper's facing as an angle from the camera's, and his movement as an
+   * angle from the trail: both are kept across the seam. */
+  turn: number;
+  moveTurn: number;
+  camTurn: number;
+  pitch: number;
+  speed: number;
+  vy: number;
+  airborne: boolean;
+  gliding: boolean;
+  hovering: boolean;
+  hoverFuel: number;
+}
+const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 interface Save {
   mission: number;
   district: number;
@@ -38,6 +64,11 @@ export class Engine3D implements GameEngine {
   private districtIndex = 0;
   private clearedGates = new Set<string>();
   private transitionT = 0;
+  /** The hand-over: the frame captured as the threshold is crossed, and how
+   * much of it is still showing. */
+  private transitionImage = '';
+  private transitionFade = 0;
+  private captureNext = false;
   private camera: CameraState = createCamera(0, [0, 0, 0]);
   private settings: GameSettings = { master: 0.8, music: 0.55, sfx: 0.65, shake: true, assist: false, cameraSensitivity: 0.5, invertY: false, landingGuide: true };
   private loaded = false;
@@ -66,6 +97,8 @@ export class Engine3D implements GameEngine {
   /** Seconds Y has been held on the ground: a tap hops back, a hold charges. */
   private yHold = -1;
   private predicted: { x: number; y: number; z: number } | null = null;
+  /** Hopper's last known distance along the trail (a search hint). */
+  private routeS = 0;
   private onClick = () => {
     if (!this.paused && document.pointerLockElement !== this.canvas) void this.canvas.requestPointerLock?.()?.catch?.(() => {});
   };
@@ -109,7 +142,7 @@ export class Engine3D implements GameEngine {
     this.emit();
   }
   /** Build the current district of the episode and place Hopper at a checkpoint. */
-  private loadDistrict(checkpoint: number) {
+  private loadDistrict(checkpoint: number, carry?: Carry) {
     const district = MISSIONS[this.mission][this.districtIndex]();
     this.district = district;
     this.world = new World(district);
@@ -128,26 +161,51 @@ export class Engine3D implements GameEngine {
     this.victoryT = 0;
     this.respawnT = 0;
     this.hp = this.maxHp;
-    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null);
+    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null, this.aheadColours());
     for (let i = 0; i <= this.checkpointIndex; i++) this.checkpoints[i]?.object?.userData.lit?.(true);
-    this.resetPlayer();
+    this.resetPlayer(carry);
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
     this.setHint('Hold A in the air to hover; keep holding to glide down. RB sprints, LB dashes.', 7);
     this.emit();
   }
-  private resetPlayer() {
+  private resetPlayer(carry?: Carry) {
     const d = this.district!,
       world = this.world!;
     const cp = this.checkpoints[this.checkpointIndex];
     const x = cp ? cp.x + 6 : d.start.x,
       z = cp ? cp.z + 8 : d.start.z;
-    const yaw = cp ? Math.atan2(d.exit.x - x, d.exit.z - z) : d.start.yaw;
+    // Face along the trail from here, as the camera will.
+    const forward = cp ? world.route.yawAt(world.route.nearest(x, z).s + 40) : d.start.yaw;
+    // Crossing a threshold keeps the facing he had relative to the view and
+    // the heading he had relative to the way on, so a run continues as a run.
+    const yaw = forward + (carry ? carry.camTurn + carry.turn : 0);
     this.player = createHopperState(x, world.groundAt(x, z, 1e6).y, z, yaw);
     this.player.groundY = this.player.y;
     this.player.invuln = 1.7;
+    if (carry) {
+      const heading = forward + carry.moveTurn;
+      this.player.vx = Math.sin(heading) * carry.speed;
+      this.player.vz = Math.cos(heading) * carry.speed;
+      if (carry.airborne) {
+        this.player.y += 24;
+        this.player.vy = carry.vy;
+        this.player.grounded = false;
+        this.player.gliding = carry.gliding;
+        this.player.hovering = carry.hovering;
+        this.player.hoverFuel = carry.hoverFuel;
+        this.player.move = carry.hovering ? 'hover' : carry.gliding ? 'glide' : carry.vy > 0 ? 'jump' : 'fall';
+      } else this.player.move = carry.speed > 4 ? 'run' : 'idle';
+    }
     this.camera = createCamera(yaw, [x, this.player.y + 8, z]);
+    if (carry) {
+      this.camera.forward = forward;
+      this.camera.turn = carry.camTurn;
+      this.camera.pitch = carry.pitch;
+      this.camera.yaw = forward + carry.camTurn;
+    }
     this.predicted = null;
+    this.routeS = world.route.nearest(x, z).s;
   }
   setPaused(v: boolean): void {
     this.paused = v;
@@ -182,6 +240,15 @@ export class Engine3D implements GameEngine {
       }
     }
     this.scene.render(this.player, this.world, this.combat, this.camera, this.paused ? 0 : dt, this.predicted, this.settings.landingGuide !== false);
+    // The hand-over: keep the frame just drawn, swap districts behind it, and
+    // let the shell dissolve it away over the new one.
+    if (this.captureNext) {
+      this.captureNext = false;
+      this.transitionImage = this.scene.capture();
+      this.transitionFade = 1;
+      this.nextDistrict();
+      this.emit();
+    }
   }
   private step(dt: number, f: InputFrame) {
     const world = this.world!,
@@ -194,8 +261,9 @@ export class Engine3D implements GameEngine {
     if (this.victoryT > 0) {
       this.victoryT -= dt;
       if (this.victoryT <= 0) {
+        // Completion stops the tick loop, so it has to be announced here: the
+        // next scheduled snapshot never comes.
         this.completed = true;
-        // Ticks stop once complete, so the shell must hear it now.
         this.emit();
       }
     }
@@ -204,12 +272,16 @@ export class Engine3D implements GameEngine {
       if (this.respawnT <= 0) this.respawn();
       return;
     }
+    // The commander is an aim target while it is awake, so the lasers find it
+    // and the lock-on can hold it: a shadow this big, this high, is otherwise
+    // shot at only by luck.
+    combat.bossTarget = this.boss && this.boss.rook.active && this.boss.rook.alive ? this.boss.target() : null;
     // Lock-on: hold LT to lock the nearest shadow in view; tap to cycle.
     const lockTapped = f.lockPressed && this.lockHeldPrev;
     if (f.lockHeld) {
       if (!combat.lock || lockTapped) {
         const forward = this.aimDirection();
-        const candidates = combat.aliveShadows().filter((s) => Math.hypot(s.x - h.x, s.z - h.z) < 220).sort((a, b) => this.lockScore(a, forward) - this.lockScore(b, forward));
+        const candidates = combat.targets().filter((s) => Math.hypot(s.x - h.x, s.z - h.z) < 260).sort((a, b) => this.lockScore(a, forward) - this.lockScore(b, forward));
         if (candidates.length) {
           const i = combat.lock ? candidates.findIndex((s) => s.id === combat.lock) : -1;
           combat.lock = candidates[(i + 1) % candidates.length].id;
@@ -217,7 +289,7 @@ export class Engine3D implements GameEngine {
       }
     } else combat.lock = null;
     this.lockHeldPrev = f.lockHeld;
-    const locked = combat.lock ? combat.shadows.find((s) => s.id === combat.lock && s.alive) || null : null;
+    const locked = combat.targetById(combat.lock);
     if (!locked) combat.lock = null;
 
     // Moving structures carry whatever stands on them.
@@ -257,9 +329,9 @@ export class Engine3D implements GameEngine {
         if (e.stomp) {
           combat.shockwave(h.x, h.y, h.z, 12, this.callbacks());
           this.rumble(0.8, 160);
-        } else if (e.speed > 25) {
+        } else if (e.speed > 40) {
           this.sound('stomp');
-          this.rumble(Math.min(0.6, e.speed / 120), 90);
+          this.rumble(Math.min(0.6, e.speed / 190), 90);
         }
       } else if (e.kind === 'wallKick' || e.kind === 'spring') this.sound('jump');
       else if (e.kind === 'glideStart' || e.kind === 'hoverStart') this.sound('shield');
@@ -269,30 +341,64 @@ export class Engine3D implements GameEngine {
         this.rumble(0.3, 60);
       }
     }
-    // Caged signals open when a reflected shot reaches the cage's lock. Checked
-    // before combat moves the shots, so one arriving at the crown counts before
-    // the crown's collider stops it.
+    // Caged signals break open under any of Hopper's attacks: lasers chip the
+    // bars, a kick tears at them, and a turned-back shot still hits hardest.
+    // Checked before combat moves the shots so a hit registers where it looks.
     for (const t of world.triggers) {
       if (!t.locked || !t.cage) continue;
+      if (t.cageFlash) t.cageFlash = Math.max(0, t.cageFlash - dt);
+      // The cage shudders on a hit and its lock fades as integrity drops, so a
+      // shot that lands reads even when no bar falls on that particular hit.
+      const flash = t.cageFlash ?? 0;
+      t.cage.scale.setScalar(1 + flash * 1.6);
+      const crown = (t.cageCrown as { material?: { emissiveIntensity?: number } } | undefined)?.material;
+      if (crown && crown.emissiveIntensity !== undefined)
+        crown.emissiveIntensity = 0.15 + 0.65 * ((t.cageHp ?? 0) / (t.cageMaxHp || 1)) + flash * 8;
+      const hit = (damage: number, x: number, y: number, z: number) => {
+        t.cageHp = Math.max(0, (t.cageHp ?? 0) - damage);
+        t.cageFlash = 0.12;
+        this.scene?.effect('spark', x, y, z);
+        const bars = t.cageBars ?? [];
+        // Keep as many bars standing as the remaining integrity earns.
+        const standing = Math.ceil((t.cageHp / (t.cageMaxHp || 1)) * bars.length);
+        bars.forEach((bar, i) => (bar.visible = i < standing));
+        if (t.cageHp > 0) {
+          this.sound('hit');
+          this.rumble(0.25, 60);
+          return;
+        }
+        t.locked = false;
+        for (const bar of bars) bar.visible = false;
+        if (t.cageCrown) t.cageCrown.visible = false;
+        this.scene?.effect('parry', t.x, t.lockY ?? t.y, t.z);
+        this.sound('explode');
+        this.rumble(0.6, 180);
+        this.showBanner('Cage broken', 'THE SIGNAL IS FREE', 1.6);
+      };
+      const top = t.lockY ?? t.y;
       for (const p of combat.projectiles) {
-        if (p.owner !== 'hopper' || p.kind === 'laser' || p.life <= 0) continue;
-        if (Math.hypot(p.x - t.x, p.y - (t.lockY ?? t.y), p.z - t.z) < 7) {
-          p.life = 0;
-          t.locked = false;
-          t.cage.traverse((o) => {
-            if (o.name.startsWith('Bar') || o.name === 'Crown') o.visible = false;
-          });
-          this.scene?.effect('parry', t.x, t.lockY ?? t.y, t.z);
-          this.sound('explode');
-          this.showBanner('Cage broken', 'A REFLECTED SHOT OPENS IT', 1.6);
+        if (p.owner !== 'hopper' || p.life <= 0) continue;
+        // The whole cage is the target, not just the crown: anywhere between
+        // the pedestal and the lock counts.
+        const height = p.y > top ? p.y - top : p.y < t.y ? t.y - p.y : 0;
+        if (Math.hypot(p.x - t.x, p.z - t.z) > 7 + p.radius || height > 2 + p.radius) continue;
+        p.life = 0;
+        hit(p.kind === 'laser' ? 1 : 4, p.x, p.y, p.z);
+        if (!t.locked) break;
+      }
+      // A kick lands once per swing, tracked in the same set the shadows use.
+      if (t.locked && combat.kick > 0.15 && combat.kick < 0.42 && !combat.kickHit.has(t.id)) {
+        const reach = Math.hypot(h.x - t.x, h.z - t.z) <= 14;
+        if (reach && h.y + 24 > t.y && h.y < top + 4) {
+          combat.kickHit.add(t.id);
+          hit(3, t.x, Math.min(top, h.y + 10), t.z);
         }
       }
     }
     // Combat: aim from the eye sockets along the facing, tilted with the camera.
     const aim = this.aimDirection();
     combat.update(dt, h, this.callbacks(), { x: h.x + Math.sin(h.yaw) * 9, y: h.y + 12, z: h.z + Math.cos(h.yaw) * 9, dx: aim[0], dy: aim[1], dz: aim[2], firing: f.shootHeld && h.hitstun <= 0, guarding: f.blockHeld && h.hitstun <= 0, kickPressed: f.kickPressed });
-    // Strongholds: the host pours out when Hopper comes near; the region is
-    // freed when it is down. Sealed ones raise a dome for the fight.
+    // Gate domes: sealed once entered, open when their shadows are down.
     for (const field of world.fields) {
       const dist = Math.hypot(field.x - h.x, field.z - h.z);
       if (!field.active && !field.cleared && dist < field.r * (field.seal ? 0.75 : 1) && Math.abs(h.y - field.y) < field.r) {
@@ -301,13 +407,16 @@ export class Engine3D implements GameEngine {
           this.boss?.wake(this.callbacks());
           this.showBanner('The Night Rook', 'LOCKDOWN · defeat the commander', 3);
         } else {
+          // The stronghold's host pours out; a sealed one raises its dome.
           const released = combat.activateGroup(field.group);
           this.showBanner(field.name, field.seal ? 'LOCKDOWN · CLEAR THE SHADOWS' : released > 0 ? 'THE SHADOWS POUR OUT · FREE THE REGION' : 'FREE THE REGION', 2.6);
         }
         this.sound('boss');
       }
       if (field.active) {
-        const done = field.group === 'boss' ? !!this.boss && !this.boss.rook.alive : combat.shadows.filter((s) => s.group === field.group).every((s) => !s.alive);
+        if (field.flare) field.flare = Math.max(0, field.flare - dt);
+        const left = field.group === 'boss' ? (this.boss && this.boss.rook.alive ? 1 : 0) : combat.shadows.filter((s) => s.group === field.group && s.alive).length;
+        const done = field.group === 'boss' ? !!this.boss && !this.boss.rook.alive : left === 0;
         if (done) {
           field.active = false;
           field.cleared = true;
@@ -316,15 +425,25 @@ export class Engine3D implements GameEngine {
           this.score += 1000;
           this.showBanner(field.group === 'boss' ? 'The shadow falls' : `${field.name} freed`, field.group === 'boss' ? 'THE TRANSMITTER IS YOURS' : 'THE WAY IS CLEAR · ON TO THE NEXT', 2.6);
           this.sound('checkpoint');
-        } else if (field.seal && dist > field.r - 2) {
-          // Keep Hopper inside the arena.
-          const k = (field.r - 2) / (dist || 1);
-          h.x = field.x + (h.x - field.x) * k;
-          h.z = field.z + (h.z - field.z) * k;
-          const out = ((h.x - field.x) * h.vx + (h.z - field.z) * h.vz) / (dist || 1);
-          if (out > 0) {
-            h.vx -= ((h.x - field.x) / (dist || 1)) * out;
-            h.vz -= ((h.z - field.z) / (dist || 1)) * out;
+        } else if (field.seal) {
+          // Say what is holding the way, and keep saying it: an arena the
+          // player cannot leave has to explain itself.
+          const task = field.group === 'boss' ? 'The commander holds the gate — defeat it to lift the lockdown.' : `Lockdown: ${left} shadow${left === 1 ? '' : 's'} left inside the barrier.`;
+          if (this.hintT <= 0.25) this.setHint(task, 1.5);
+          if (dist > field.r - 2) {
+            // The barrier: keep Hopper inside, and light up where he met it.
+            const k = (field.r - 2) / (dist || 1);
+            h.x = field.x + (h.x - field.x) * k;
+            h.z = field.z + (h.z - field.z) * k;
+            const out = ((h.x - field.x) * h.vx + (h.z - field.z) * h.vz) / (dist || 1);
+            if (out > 0) {
+              h.vx -= ((h.x - field.x) / (dist || 1)) * out;
+              h.vz -= ((h.z - field.z) / (dist || 1)) * out;
+              if (!field.flare) this.sound('shield');
+            }
+            field.flare = 0.8;
+            this.scene?.effect('barrier', h.x, h.y + 8, h.z);
+            this.setHint(task, 1.5);
           }
         }
       }
@@ -368,9 +487,12 @@ export class Engine3D implements GameEngine {
       this.chapterName = chapter.name;
       if (this.time > 1) this.showBanner(chapter.name, d.name.toUpperCase(), 2.2);
     }
+    if (this.transitionFade > 0) this.transitionFade = Math.max(0, this.transitionFade - dt / 1.15);
     if (this.transitionT > 0) {
       this.transitionT -= dt;
-      if (this.transitionT <= 0) this.nextDistrict();
+      // The swap happens in tick(), right after the last frame of this
+      // district has been drawn, so it can be kept and dissolved from.
+      if (this.transitionT <= 0) this.captureNext = true;
     } else if (this.victoryT <= 0 && !this.completed && Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r) {
       const gatesOpen = world.fields.every((fl) => fl.cleared || (!fl.active && fl.group === 'boss' && !this.boss?.rook.active));
       const bossDown = !this.boss || !this.boss.rook.alive;
@@ -386,29 +508,67 @@ export class Engine3D implements GameEngine {
             localStorage.removeItem(saveKey('3d', 'save'));
           } catch {}
         } else {
-          this.transitionT = 2.2;
-          this.showBanner(d.exit.name, 'REGION COMPLETE', 2.2);
+          this.transitionT = 1.2;
+          this.showBanner(d.exit.name, 'REGION COMPLETE', 3.4);
         }
-      } else if (this.hintT <= 0) this.setHint(bossDown ? 'A stronghold still holds the region: free it first.' : 'The commander guards the summit.', 3);
+      } else if (this.hintT <= 0) {
+        const holding = world.fields.filter((fl) => !fl.cleared && fl.group !== 'boss');
+        const left = holding.reduce((n, fl) => n + combat.shadows.filter((s) => s.group === fl.group && s.alive).length, 0);
+        const names = holding.map((fl) => fl.name).join(', ');
+        this.setHint(bossDown ? `${names} still ${holding.length === 1 ? 'holds' : 'hold'} the region: ${left} shadow${left === 1 ? '' : 's'} left. Follow the trail back and free it.` : 'The commander guards the summit: defeat it to open the way.', 3.5);
+      }
     }
-    // Camera and the landing prediction.
-    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], waypoint: this.waypoint() }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
+    // Camera and the landing prediction. While the commander is awake the
+    // camera lifts and pulls back to hold it in frame.
+    const rook = this.boss?.rook;
+    const rookInFrame = rook && rook.active && rook.alive ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [number, number, number]) : null;
+    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, lock: locked ? [locked.x, locked.y + locked.height * 0.5, locked.z] : null, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
     this.predicted = !h.grounded && h.height > 3 && !h.gliding && !h.hovering ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
     if (this.time > 20 && this.time < 20.1) this.setHint(`Click the right stick: Horizon View shows the way to ${d.landmark.name}.`, 6);
   }
-  /** The route's next stop: the first unlit totem ahead, else the exit. */
-  private waypoint(): [number, number, number] {
-    const d = this.district!,
-      h = this.player;
-    const next = this.checkpoints.find((t, i) => i > this.checkpointIndex && Math.hypot(t.x - h.x, t.z - h.z) > 25);
-    return next ? [next.x, next.y, next.z] : [d.exit.x, 0, d.exit.z];
+  /** The palette of the district this one leads to, for the landmark on the
+   * horizon: what is ahead should look like what is ahead. */
+  private aheadColours(): { sky: string; haze: string; ground: string } | undefined {
+    const next = MISSIONS[this.mission]?.[this.districtIndex + 1];
+    if (!next) return undefined;
+    const region = regionById(next().region);
+    return { sky: region.sky, haze: region.haze, ground: region.ground };
   }
-  /** The episode continues in its next district. */
+  /** The way onward: the trail's tangent 80 m ahead of Hopper's place on it.
+   * A direction along the route, so it turns only as the trail bends. */
+  private forward(): number {
+    const route = this.world!.route,
+      h = this.player;
+    this.routeS = route.nearest(h.x, h.z, this.routeS).s;
+    return route.yawAt(this.routeS + 80);
+  }
+  /** The episode continues in its next district. Hopper crosses a threshold:
+   * he keeps the way he was facing relative to the trail, the speed he had
+   * and whether he was in the air, and the picture dissolves from the frame
+   * he crossed on rather than cutting. */
   private nextDistrict() {
+    const h = this.player,
+      old = this.world!;
+    const forward = old.route.yawAt(old.route.nearest(h.x, h.z).s + 80);
+    const speed = Math.hypot(h.vx, h.vz);
+    const carry: Carry = {
+      // Where he faces relative to the view, and where he is going relative
+      // to the way on: both kept across the seam.
+      turn: wrapAngle(h.yaw - this.camera.yaw),
+      moveTurn: speed > 4 ? wrapAngle(Math.atan2(h.vx, h.vz) - forward) : 0,
+      camTurn: this.camera.turn,
+      pitch: this.camera.pitch,
+      speed,
+      vy: h.vy,
+      airborne: !h.grounded,
+      gliding: h.gliding,
+      hovering: h.hovering,
+      hoverFuel: h.hoverFuel,
+    };
     this.districtIndex++;
-    this.loadDistrict(0);
+    this.loadDistrict(0, carry);
     this.save();
     const d = this.district!;
     this.showBanner(d.name, d.subtitle, 3.2);
@@ -546,9 +706,25 @@ export class Engine3D implements GameEngine {
       landmark: d ? { name: d.landmark.name, distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z) } : undefined,
       hint: this.hintT > 0 ? this.hint : undefined,
       lock: c?.lock ? 'locked' : this.lockHeldPrev ? 'open' : undefined,
+      target: this.targetInfo(),
       standIns: this.standInsOnScreen(),
       stronghold: this.activeStronghold(),
+      transitionImage: this.transitionFade > 0 ? this.transitionImage : undefined,
+      transitionFade: this.transitionFade > 0 ? this.transitionFade : undefined,
     };
+  }
+  /** The shadow the HUD shows a health bar for: whatever is locked, else
+   * whatever the lasers last chose, for a few seconds after the last shot.
+   * The commander has its own bar, so it is not repeated here. */
+  private targetInfo(): { name: string; health: number; locked: boolean } | undefined {
+    const c = this.combat;
+    if (!c) return undefined;
+    const locked = c.targetById(c.lock);
+    const recent = c.time - c.lastTargetAt < 3.5 ? c.lastTarget : null;
+    const s = locked || (recent && recent.alive ? recent : null);
+    if (!s || !s.alive) return undefined;
+    if (s.id === 'boss') return undefined;
+    return { name: SHADOW_NAMES[s.kind] || 'Shadow', health: Math.max(0, s.hp / s.maxHp), locked: !!locked };
   }
   /** The stronghold whose host is out right now, for the HUD. */
   private activeStronghold(): GameSnapshot['stronghold'] {

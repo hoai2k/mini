@@ -29,7 +29,7 @@ export interface CombatCallbacks {
   bossDefeated?: () => void;
   stomp?: () => void;
   /** A reflected shot has struck a barrier. */
-  breakBarrier?: (id: string) => void;
+  breakBarrier?: (id: string, damage?: number) => void;
 }
 export type CombatState = 'idle' | 'telegraph' | 'attack' | 'recover' | 'dead';
 export interface EnemyRuntime {
@@ -631,7 +631,7 @@ export class CombatWorld {
       b.y += b.vy * dt;
       if (b.owner === 'player') {
         // A parried shot flies back and lands as a kick on whatever it meets,
-        // and it is the one thing that opens a signal cage.
+        // and it takes a signal cage down in a few hits.
         const bar = (this.level.barriers || []).find(
           (q) =>
             !this.brokenBarriers.has(q.id) &&
@@ -641,8 +641,9 @@ export class CombatWorld {
             b.y < q.y + q.h + b.radius,
         );
         if (bar) {
-          this.brokenBarriers.add(bar.id);
-          callbacks.breakBarrier?.(bar.id);
+          // A turned-back shot still hits hardest, but it is no longer the only
+          // thing that opens a cage: the engine counts the damage.
+          callbacks.breakBarrier?.(bar.id, 4);
           b.life = 0;
           callbacks.effect('spark', b.x, b.y, '#b6fbff');
           continue;

@@ -1,0 +1,487 @@
+/* Charlie's Girl Dolls — artist page. Bubblegum pink, lavender and sky blue
+   with checkered-flag trim, after the group's racing-circuit poster. */
+:root {
+  --pink: #ff5fb0;
+  --pink-deep: #e0338c;
+  --pink-pale: #ffd6ec;
+  --lav: #b48cff;
+  --lav-deep: #7a4fd6;
+  --sky: #7fd9ff;
+  --sky-deep: #2aa7d8;
+  --cream: #fff7fb;
+  --ink: #3a1f4a;
+  --ink-soft: #6f5581;
+  --gold: #ffc93c;
+  --max: 1120px;
+  --radius: 18px;
+  --display: 'Baloo 2', 'Fredoka', 'Arial Rounded MT Bold', 'Trebuchet MS', sans-serif;
+  --body: 'Fredoka', 'Karla', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --checker: repeating-conic-gradient(var(--ink) 0 25%, #fff 0 50%) 0 0 / 22px 22px;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+body {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--cream);
+  background-image:
+    radial-gradient(circle at 15% 10%, #ffe1f1 0, transparent 45%),
+    radial-gradient(circle at 90% 60%, #e6dcff 0, transparent 40%);
+}
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 1.05;
+  margin: 0 0 0.5em;
+}
+h2 {
+  font-size: clamp(2rem, 4.5vw, 2.8rem);
+  color: var(--pink-deep);
+}
+a {
+  color: var(--lav-deep);
+}
+.kicker {
+  font-family: var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.8rem;
+  color: var(--sky-deep);
+  margin: 0 0 0.4em;
+}
+.skip {
+  position: absolute;
+  left: -999px;
+  top: 8px;
+  background: var(--pink);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+.skip:focus {
+  left: 8px;
+  z-index: 10;
+}
+
+/* Masthead */
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem clamp(1rem, 4vw, 2.5rem);
+  background: rgb(255 255 255 / 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 3px solid var(--pink);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--pink-deep);
+  text-decoration: none;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+.brand img {
+  border-radius: 8px;
+}
+.masthead nav {
+  display: flex;
+  gap: clamp(0.5rem, 2vw, 1.3rem);
+  flex-wrap: wrap;
+}
+.masthead nav a {
+  color: var(--ink);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+}
+.masthead nav a:hover,
+.masthead nav a:focus-visible {
+  border-bottom-color: var(--pink);
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  color: #fff;
+  background:
+    linear-gradient(rgb(255 95 176 / 0.6), rgb(122 79 214 / 0.75)),
+    url('assets/bg-fairy.webp') center 20% / cover no-repeat;
+}
+.flag {
+  height: 22px;
+  background: var(--checker);
+}
+.hero-art {
+  display: block;
+  max-width: 900px;
+  margin: clamp(1.5rem, 4vw, 3rem) auto 0;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+}
+.hero-art img {
+  border-radius: var(--radius);
+  border: 4px solid #fff;
+  box-shadow: 0 24px 50px rgb(58 31 74 / 0.45);
+}
+.hero-copy {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) clamp(2rem, 5vw, 3.5rem);
+  text-align: center;
+}
+.hero h1 {
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  margin: 0 0 0.5rem;
+  color: #fff;
+  -webkit-text-stroke: 2px var(--pink-deep);
+  text-shadow:
+    0 4px 0 var(--pink-deep),
+    0 10px 0 rgb(122 79 214 / 0.6),
+    0 14px 30px rgb(0 0 0 / 0.25);
+}
+.ribbon {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.35rem 1.1rem;
+  background: var(--pink);
+  color: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 var(--pink-deep);
+}
+.lede {
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+  max-width: 46ch;
+  margin: 0 auto 1.4rem;
+  text-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+}
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+.button {
+  display: inline-block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  color: #fff;
+  background: rgb(255 255 255 / 0.15);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.button:hover,
+.button:focus-visible {
+  transform: translateY(-2px);
+  background: rgb(255 255 255 / 0.3);
+}
+.button.primary {
+  background: var(--pink);
+  box-shadow: 0 5px 0 var(--pink-deep);
+}
+.button.primary:hover,
+.button.primary:focus-visible {
+  background: var(--pink-deep);
+}
+
+/* Sections */
+main > section:not(.hero) {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1rem, 4vw, 2.5rem);
+}
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+}
+.prose p {
+  max-width: 62ch;
+}
+.facts {
+  list-style: none;
+  margin: 0;
+  padding: 1.25rem;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 8px 8px 0 var(--lav);
+}
+.facts li {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.6rem 0;
+  border-top: 2px dotted var(--pink-pale);
+}
+.facts li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.facts span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+}
+
+/* Members */
+.member-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1.25rem;
+}
+.member-grid li {
+  --c: var(--pink);
+  --c2: var(--pink-pale);
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 6px 6px 0 var(--c);
+}
+.m-rina {
+  --c: var(--pink-deep);
+  --c2: #ffc2e0;
+}
+.m-zoe {
+  --c: var(--sky-deep);
+  --c2: #d5f2ff;
+}
+.m-yuna {
+  --c: var(--lav-deep);
+  --c2: #e6dcff;
+}
+.m-cheri {
+  --c: var(--gold);
+  --c2: #fff2f8;
+}
+.member-grid img {
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-bottom: 3px solid var(--ink);
+}
+.member-grid h3 {
+  font-size: 1.35rem;
+  margin: 0.9rem 1rem 0.1rem;
+  color: var(--c);
+}
+.member-grid .role {
+  margin: 0 1rem 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+.member-grid p:last-child {
+  margin: 0 1rem 1rem;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+/* Music */
+main > section.music {
+  max-width: none;
+  padding-inline: 0;
+  color: #fff;
+  background:
+    linear-gradient(rgb(122 79 214 / 0.88), rgb(58 31 74 / 0.94)),
+    url('assets/bg-fairy.webp') center / cover no-repeat;
+}
+.record {
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+}
+.sleeve {
+  margin: 0;
+}
+.sleeve img {
+  border-radius: var(--radius);
+  border: 4px solid #fff;
+  box-shadow: 0 24px 50px rgb(0 0 0 / 0.4);
+  transform: rotate(-2deg);
+}
+.sleeve figcaption {
+  margin-top: 1.2rem;
+  text-align: center;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+.music h2 {
+  color: var(--gold);
+}
+.tracklist > p {
+  margin-top: 0;
+}
+.tracks {
+  list-style: none;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.track {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  text-align: left;
+  font: inherit;
+  color: #fff;
+  background: rgb(255 255 255 / 0.1);
+  border: 3px solid rgb(255 255 255 / 0.35);
+  border-radius: 16px;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+}
+.track:hover,
+.track:focus-visible {
+  background: rgb(255 255 255 / 0.2);
+  border-color: var(--gold);
+  transform: translateX(4px);
+}
+.track[aria-pressed='true'] {
+  background: var(--pink);
+  border-color: #fff;
+}
+.track .n {
+  font-family: var(--display);
+  font-weight: 800;
+  color: var(--gold);
+}
+.track[aria-pressed='true'] .n {
+  color: #fff;
+}
+.track .t {
+  display: grid;
+}
+.track strong {
+  font-family: var(--display);
+  font-size: 1.1rem;
+}
+.track small {
+  color: rgb(255 255 255 / 0.85);
+}
+.track .d {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.player {
+  margin-top: 1.5rem;
+}
+.player .now {
+  margin: 0 0 0.5rem;
+}
+.player .now span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  margin-right: 0.5rem;
+}
+.player audio {
+  width: 100%;
+  display: block;
+}
+.player-note {
+  font-style: italic;
+}
+
+/* Footer */
+footer {
+  background: var(--ink);
+  color: #f1e6ff;
+  padding: 2rem clamp(1rem, 4vw, 2.5rem) 3rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  border-top: 22px solid transparent;
+  border-image: var(--checker) 22;
+  font-size: 0.9rem;
+}
+footer img {
+  border-radius: 8px;
+}
+footer p {
+  max-width: 70ch;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .about,
+  .record {
+    grid-template-columns: 1fr;
+  }
+  .sleeve {
+    max-width: 420px;
+    margin-inline: auto;
+  }
+  .member-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .masthead {
+    padding-inline: 0.75rem;
+  }
+  .brand {
+    font-size: 1rem;
+  }
+  .masthead nav {
+    gap: 0.5rem;
+  }
+  .masthead nav a {
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+  }
+}

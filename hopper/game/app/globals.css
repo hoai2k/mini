@@ -621,6 +621,51 @@ button {
   font-size: clamp(28px, 4vw, 60px);
   margin: 12px 0;
 }
+.district-dissolve {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 2;
+}
+.target-hud {
+  position: absolute;
+  top: 142px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(260px, 28vw);
+  text-align: center;
+  filter: drop-shadow(0 3px 3px #100e21);
+  opacity: 0.86;
+}
+.target-hud > span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f3d1a4;
+}
+.target-hud small {
+  font-size: 8px;
+  margin-left: 10px;
+  color: #ff8f7a;
+}
+.target-hud > div {
+  height: 5px;
+  margin-top: 5px;
+  background: #151725cf;
+  border: 1px solid #e8adc551;
+}
+.target-hud i {
+  height: 100%;
+  display: block;
+  background: linear-gradient(90deg, #d98a6a, #f3d1a4);
+  transition: width 0.12s;
+}
+.target-hud.locked {
+  opacity: 1;
+}
 .boss-hud {
   position: absolute;
   bottom: 66px;

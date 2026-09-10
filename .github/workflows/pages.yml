@@ -32,6 +32,7 @@ jobs:
       - run: pnpm install --frozen-lockfile && pnpm test
         working-directory: hopper/3d/standins
       - run: hopper/3d/publish.sh local/pages/hopper
+      - run: sites/publish.sh local/pages/sites
       - uses: actions/upload-pages-artifact@v3
         with:
           path: local/pages

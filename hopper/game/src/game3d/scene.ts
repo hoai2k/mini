@@ -32,6 +32,9 @@ import {
   WebGLRenderer,
   DoubleSide,
   PlaneGeometry,
+  CanvasTexture,
+  RepeatWrapping,
+  ClampToEdgeWrapping,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -50,6 +53,7 @@ import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, cell, cellPlane, cellSprite, decal, guideVariant, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
 import { standInKey, swapDelivered, type Swapped } from './models3d';
+import { buildTrail } from './trail';
 import type { RookRuntime } from './boss3d';
 
 interface Effect {
@@ -57,6 +61,34 @@ interface Effect {
   life: number;
   maxLife: number;
   kind: string;
+}
+
+/** The lockdown barrier's surface: bright along the ground, ribbed, and clear
+ * through the middle so a sealed arena reads as a wall rather than a fog the
+ * whole view is seen through. */
+function barrierTexture(): Texture {
+  const c = document.createElement('canvas');
+  c.width = 64;
+  c.height = 256;
+  const g = c.getContext('2d')!;
+  const grad = g.createLinearGradient(0, 256, 0, 0);
+  grad.addColorStop(0, 'rgba(226,196,255,0.95)');
+  grad.addColorStop(0.1, 'rgba(198,158,255,0.5)');
+  grad.addColorStop(0.35, 'rgba(186,146,255,0.14)');
+  grad.addColorStop(0.75, 'rgba(186,146,255,0.05)');
+  grad.addColorStop(1, 'rgba(186,146,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 64, 256);
+  // Ribs down the seams, and a bright line where the barrier meets the ground.
+  g.fillStyle = 'rgba(240,222,255,0.55)';
+  g.fillRect(0, 0, 3, 256);
+  g.fillRect(61, 0, 3, 256);
+  g.fillStyle = 'rgba(255,244,255,0.9)';
+  g.fillRect(0, 246, 64, 10);
+  const tex = new CanvasTexture(c);
+  tex.wrapS = RepeatWrapping;
+  tex.wrapT = ClampToEdgeWrapping;
+  return tex;
 }
 
 /** Find a node by its glTF name, before or after three's name sanitising. */
@@ -100,6 +132,8 @@ export class Scene3D {
   private bossWings: Object3D[] = [];
   private corridor: Mesh | null = null;
   private fieldDomes = new Map<string, Mesh>();
+  /** The barrier itself: a wall of light at the radius Hopper cannot pass. */
+  private fieldWalls = new Map<string, Mesh>();
   private buildVersion = 0;
   private kickSparked = false;
   private sun: DirectionalLight;
@@ -113,7 +147,9 @@ export class Scene3D {
   private height = 1;
   time = 0;
   constructor(readonly canvas: HTMLCanvasElement) {
-    this.renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    // preserveDrawingBuffer: the district hand-over reads the last frame back
+    // to dissolve from it.
+    this.renderer = new WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     this.scene.add(this.worldGroup);
@@ -208,12 +244,13 @@ export class Scene3D {
     this.actionName = name;
   }
   /** Build the picture of a district: atmosphere, terrain, structures, shadows. */
-  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null) {
+  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }) {
     this.scene.remove(this.worldGroup);
     this.worldGroup = new Group();
     this.scene.add(this.worldGroup);
     this.shadowObjects.clear();
     this.fieldDomes.clear();
+    this.fieldWalls.clear();
     this.bossObject = null;
     this.corridor = null;
     this.animated = [];
@@ -233,7 +270,9 @@ export class Scene3D {
       this.worldGroup.remove(horizon);
       this.worldGroup.add(cards);
     });
-    const landmark = makeLandmark(region);
+    // The landmark is the next district seen from here, so it is painted in
+    // that district's colours: the place ahead looks like the place ahead.
+    const landmark = makeLandmark(ahead ? { ...region, haze: ahead.haze, ground: ahead.ground, sky: ahead.sky } : region);
     landmark.position.set(d.landmark.x, 0, d.landmark.z);
     this.worldGroup.add(landmark);
     void swapDelivered(landmark, standInKey('terrain.landmark', region.id));
@@ -242,7 +281,10 @@ export class Scene3D {
     this.worldGroup.add(hemi, this.sun, new AmbientLight(region.haze, 0.12));
     const terrain = makeTerrain(region, { size: d.size, segments: 160, ...d.terrain });
     this.worldGroup.add(terrain);
-    void paintTerrain(terrain, region.id, d);
+    void paintTerrain(terrain, region.id, d, world.route);
+    // The trail along the route: its ribbon, edge stones, waymarkers and the
+    // tall things beside it.
+    this.worldGroup.add(buildTrail(world));
     this.delivered = [];
     for (const inst of world.instances) {
       this.worldGroup.add(inst.object);
@@ -264,22 +306,28 @@ export class Scene3D {
     void reticle(true, 14).then((r) => (this.reticles.locked = r));
     for (const s of shadows) {
       const o = createStandIn(`enemy.${s.kind}`);
-      // A small flash sphere and an amber tell ring, shown by state.
-      const flash = new Mesh(new SphereGeometry(s.radius * 1.3, 12, 8), this.flashMaterial);
+      // The body is scaled to Hopper's size; the flash sphere and amber tell
+      // ring are authored in the stand-in's own units and scale with it.
+      const r = s.radius / s.size,
+        hgt = s.height / s.size;
+      o.scale.setScalar(s.size);
+      const flash = new Mesh(new SphereGeometry(r * 1.3, 12, 8), this.flashMaterial);
       flash.name = 'Flash';
       flash.visible = false;
-      flash.position.y = s.height * 0.5;
-      const tell = new Mesh(new TorusGeometry(s.radius * 1.4, 0.25, 6, 24), this.tellMaterial);
+      flash.position.y = hgt * 0.5;
+      const tell = new Mesh(new TorusGeometry(r * 1.4, 0.25, 6, 24), this.tellMaterial);
       tell.name = 'Tell';
       tell.visible = false;
       tell.rotation.x = Math.PI / 2;
-      tell.position.y = s.height + 1.5;
+      tell.position.y = hgt + 1.5;
       o.add(flash, tell);
       this.worldGroup.add(o);
       this.shadowObjects.set(s.id, o);
     }
     void paintShadows(this.shadowObjects.values());
-    // Lockdown fields: a translucent dome per gate or boss arena, shown while active.
+    // Lockdown fields: a dome overhead and, at the radius Hopper is actually
+    // held inside, a wall of violet light. The clamp is a cylinder, so the
+    // wall is one too -- what you see is exactly what stops you.
     for (const f of world.fields) {
       const dome = createStandIn('prop.lockdownDome', { r: 1 });
       const mesh = dome.getObjectByName('Field') as Mesh | undefined;
@@ -290,6 +338,13 @@ export class Scene3D {
       mesh.visible = false;
       this.worldGroup.add(mesh);
       this.fieldDomes.set(f.id, mesh);
+      const tex = barrierTexture();
+      tex.repeat.set(Math.max(8, Math.round((Math.PI * 2 * f.r) / 45)), 1);
+      const wall = new Mesh(new CylinderGeometry(f.r - 2, f.r - 2, 300, 72, 1, true), new MeshBasicMaterial({ color: '#e0c6ff', map: tex, transparent: true, opacity: 0.85, side: DoubleSide, depthWrite: false, fog: false }));
+      wall.position.set(f.x, world.heightAt(f.x, f.z) + 132, f.z);
+      wall.visible = false;
+      this.worldGroup.add(wall);
+      this.fieldWalls.set(f.id, wall);
     }
     this.setBoss(rook);
   }
@@ -423,10 +478,23 @@ export class Scene3D {
   }
   private syncFields(world: World) {
     for (const f of world.fields) {
+      const on = f.active && !f.cleared;
+      const flare = f.flare || 0;
       const dome = this.fieldDomes.get(f.id);
-      if (!dome) continue;
-      dome.visible = f.active && !f.cleared;
-      if (dome.visible) (dome.material as MeshToonMaterial).opacity = 0.14 + Math.sin(this.time * 3) * 0.05;
+      if (dome) {
+        dome.visible = on;
+        if (on) (dome.material as MeshToonMaterial).opacity = 0.2 + Math.sin(this.time * 3) * 0.05 + flare * 0.25;
+      }
+      const wall = this.fieldWalls.get(f.id);
+      if (wall) {
+        wall.visible = on;
+        // The wall brightens where Hopper has just pushed against it.
+        if (on) {
+          const m = wall.material as MeshBasicMaterial;
+          m.opacity = 0.8 + Math.sin(this.time * 2.4) * 0.08 + flare * 0.2;
+          if (m.map) m.map.offset.y = -0.02 + Math.sin(this.time * 0.7) * 0.01;
+        }
+      }
     }
   }
   private syncHopper(h: HopperState, combat: Combat, dt: number) {
@@ -545,17 +613,17 @@ export class Scene3D {
         tell.scale.setScalar(s.state === 'tell' ? 1.6 - s.telegraph * 0.6 : 0.9 + Math.sin(this.time * 12) * 0.1);
       }
       const squash = s.kind === 'seedSpitter' ? s.scale : 1;
-      o.scale.set(squash, 1 / Math.sqrt(squash), squash);
+      o.scale.set(squash * s.size, s.size / Math.sqrt(squash), squash * s.size);
       // Arrivals: an emerging shadow grows out of the ground, a dropping one
       // stretches with the fall, a waiting one crouches on its perch.
       if (s.state === 'arrive' && s.arrive < 1) {
         const k = 0.35 + 0.65 * s.arrive;
-        if (s.entry === 'drop') o.scale.set(squash * 0.85, 1.25 / Math.sqrt(squash), squash * 0.85);
-        else o.scale.set(squash * k, k / Math.sqrt(squash), squash * k);
+        if (s.entry === 'drop') o.scale.set(squash * s.size * 0.85, (s.size * 1.25) / Math.sqrt(squash), squash * s.size * 0.85);
+        else o.scale.set(squash * s.size * k, (s.size * k) / Math.sqrt(squash), squash * s.size * k);
       } else if (s.state === 'wait') {
         const crouch = 0.78 + Math.sin(this.time * 6 + s.phase) * 0.03;
-        o.scale.set(squash * 1.08, crouch / Math.sqrt(squash), squash * 1.08);
-      } else if (s.state === 'pounce') o.scale.set(squash * 0.9, 1.15 / Math.sqrt(squash), squash * 0.9);
+        o.scale.set(squash * s.size * 1.08, (s.size * crouch) / Math.sqrt(squash), squash * s.size * 1.08);
+      } else if (s.state === 'pounce') o.scale.set(squash * s.size * 0.9, (s.size * 1.15) / Math.sqrt(squash), squash * s.size * 0.9);
       o.userData.animate?.(this.time + s.phase);
       if (combat.lock === s.id) {
         const r = s.open > 0 || s.state === 'tell' ? this.reticles.locked : this.reticles.locked || this.reticles.open;
@@ -629,6 +697,10 @@ export class Scene3D {
       object = new Mesh(new TorusGeometry(4, 0.8, 6, 40), new MeshBasicMaterial({ color: '#ffe8a0', transparent: true, opacity: 0.8 }));
       object.rotation.x = Math.PI / 2;
       life = 0.45;
+    } else if (name === 'barrier') {
+      object = new Mesh(new RingGeometry(2, 9, 28), new MeshBasicMaterial({ color: '#d9b6ff', transparent: true, opacity: 0.9, side: DoubleSide, depthWrite: false }));
+      object.lookAt(this.camera.position);
+      life = 0.4;
     } else if (name === 'parry') {
       object = new Mesh(new SphereGeometry(2.5, 10, 8), new MeshBasicMaterial({ color: '#b9fff1', transparent: true, opacity: 0.8 }));
       life = 0.25;
@@ -697,6 +769,14 @@ export class Scene3D {
     }
     this.sun.position.set(cam.target[0] + 190, cam.target[1] + 760, cam.target[2] + 980);
     this.renderer.render(this.scene, this.camera);
+  }
+  /** The frame on screen, as an image the shell can hold over the next one. */
+  capture(): string {
+    try {
+      return this.canvas.toDataURL('image/jpeg', 0.72);
+    } catch {
+      return '';
+    }
   }
   /** Draw once with no simulation (title screen behind the poster). */
   renderIdle() {

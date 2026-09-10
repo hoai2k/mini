@@ -18,14 +18,15 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-episode3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'boss3d', 'engine3d'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'boss3d', 'engine3d', 'route', 'scenery'];
 // The renderer needs a DOM; the engine only calls a handful of its methods.
 fs.writeFileSync(
   path.join(temp, 'scene.mjs'),
   `export class Scene3D {
   constructor(canvas) { this.canvas = canvas; this.builds = 0; this.effects = []; this.bossSets = []; this.frames = 0; }
   async loadHopper(_url, progress) { progress(1); }
-  buildWorld(world, shadows, rook) { this.builds++; this.lastBuild = { world, shadows, rook }; }
+  buildWorld(world, shadows, rook, ahead) { this.builds++; this.lastBuild = { world, shadows, rook, ahead }; }
+  capture() { return 'data:image/jpeg;base64,STUB'; }
   setBoss(rook) { this.bossSets.push(rook); }
   effect(name, x, y, z) { this.effects.push({ name, x, y, z }); }
   render() { this.frames++; }
@@ -175,14 +176,27 @@ function playDistrict(index) {
     check(field.cleared && !field.active, `${d.name}: ${field.id} freed when its host fell`);
     check(snapshot.banner.includes('freed') || snapshot.banner === 'Gate open', `freed banner (${snapshot.banner})`);
   }
-  // Signals: beacons are free, cages open to a reflected shot at the lock.
+  // Signals: beacons are free, cages break open under Hopper's own fire and
+  // shed bars on the way, so the damage is visible before the cage opens.
   const signalTriggers = w.triggers.filter((t) => t.kind === 'signal');
   for (const t of signalTriggers) {
     if (t.locked) {
       teleport(t.x, t.y + 1, t.z + 10);
-      c.projectiles.push({ id: 900000 + signalTriggers.indexOf(t), x: t.x, y: t.lockY, z: t.z, vx: 0, vy: 0, vz: 0, life: 1, radius: 1, damage: 2, gravity: 0, owner: 'hopper', kind: 'seed' });
+      const bars = t.cageBars.length;
+      const shoot = (kind) =>
+        c.projectiles.push({ id: 900000 + c.projectiles.length, x: t.x, y: t.lockY, z: t.z, vx: 0, vy: 0, vz: 0, life: 1, radius: 1, damage: 2, gravity: 0, owner: 'hopper', kind });
+      shoot('laser');
       run(0.1);
-      check(!t.locked, `${d.name}: cage ${t.id} opened by a reflected shot`);
+      check(t.locked, `${d.name}: cage ${t.id} survives one laser hit`);
+      check(t.cageHp === t.cageMaxHp - 1, `${d.name}: cage ${t.id} lost integrity (${t.cageHp}/${t.cageMaxHp})`);
+      check(t.cageBars.filter((b) => b.visible).length < bars, `${d.name}: cage ${t.id} shed a bar`);
+      for (let shot = 0; shot < 40 && t.locked; shot++) {
+        shoot('laser');
+        run(0.1);
+      }
+      check(!t.locked, `${d.name}: cage ${t.id} opens under sustained fire`);
+      check(t.cageBars.every((b) => !b.visible), `${d.name}: cage ${t.id} bars are gone`);
+      check(!t.cageCrown.visible, `${d.name}: cage ${t.id} crown is gone`);
     }
     teleport(t.x, t.y + 1, t.z);
     run(0.3);
@@ -260,10 +274,40 @@ check(snapshot.standIns === undefined || snapshot.standIns.includes('shadows'), 
 const first = playDistrict(0);
 check(priv('transitionT') > 0, `${first.name}: exit starts the transition`);
 check(snapshot.banner === first.exit.name, 'exit banner');
-run(2.5);
+// Cross the threshold at a run, angled off the trail: the hand-over has to
+// keep the heading, the speed and the picture.
+{
+  const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const angleToTrail = () => {
+    const h = engine.player,
+      route = world().route;
+    // Heading is the way he moves; the facing follows the camera.
+    return wrap(Math.atan2(h.vx, h.vz) - route.yawAt(route.nearest(h.x, h.z).s + 60));
+  };
+  const running = { ...empty, moveX: 0.45, moveY: -1 };
+  run(0.4, running);
+  const before = angleToTrail(),
+    speedBefore = Math.hypot(engine.player.vx, engine.player.vz);
+  let speedAtSeam = 0,
+    fadeSeen = 0;
+  for (let i = 0; i < 180 && priv('districtIndex') === 0; i++) {
+    run(1 / 60, running);
+    speedAtSeam = Math.hypot(engine.player.vx, engine.player.vz);
+    fadeSeen = Math.max(fadeSeen, snapshot.transitionFade || 0);
+  }
+  check(priv('districtIndex') === 1, 'the threshold hands over to the next district');
+  check(Math.abs(wrap(angleToTrail() - before)) < 0.35, `heading carries across the threshold (${angleToTrail().toFixed(2)} vs ${before.toFixed(2)})`);
+  check(speedAtSeam > speedBefore * 0.6, `momentum carries across the threshold (${speedAtSeam.toFixed(0)} of ${speedBefore.toFixed(0)} m/s)`);
+  check(Math.abs(wrap(priv('camera').yaw - engine.player.yaw)) < 1.2, `the camera comes through pointing the same way as Hopper (cam ${priv('camera').yaw.toFixed(2)} forward ${priv('camera').forward.toFixed(2)} turn ${priv('camera').turn.toFixed(2)}, hopper ${engine.player.yaw.toFixed(2)}, route ${world().route.yawAt(world().route.nearest(engine.player.x, engine.player.z).s + 40).toFixed(2)}, at ${engine.player.x.toFixed(0)},${engine.player.z.toFixed(0)})`);
+  check(!!snapshot.transitionImage && fadeSeen > 0.5, `the frame just left is held over the new district (fade ${fadeSeen.toFixed(2)})`);
+}
 check(priv('districtIndex') === 1, 'second district loaded');
 check(priv('scene').builds === 2, 'scene rebuilt for the second district');
+check(priv('scene').lastBuild.ahead !== undefined, 'the landmark ahead is painted in the next district\'s colours');
 check(JSON.parse(store.get('hopper3d.save')).district === 1, 'district saved');
+// And the dissolve clears itself.
+run(1.6);
+check(!snapshot.transitionImage, 'the held frame fades away');
 const second = playDistrict(1);
 run(2.5);
 check(priv('districtIndex') === 2, `${second.name} leads to the third district`);

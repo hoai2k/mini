@@ -22,4 +22,8 @@ The illustrated proposal is `Hopper_Game_Design.docx`. It contains 21 pages and 
 
 `source/design.md` is the editable text source, `source/build_document.py` builds the Word document, and `source/export_icons.cjs` packages favicon sizes from the generated icon master. `source/controller.svg` is the editable instruction diagram. The document was rendered and visually checked. The final PDF is `Hopper_Game_Design.pdf`; internal render iterations are kept locally under `../../local/hopper/design/qa/`.
 
+## 3D source generation
+
+`tripo/` holds the reference images the 3D characters were generated from and the prompts that made them. The models they produced are in [`../models/`](../models/README.md). See [tripo/README.md](tripo/README.md).
+
 This proposal records the original design. The implemented game and its current controls are documented in `../game/README.md`.

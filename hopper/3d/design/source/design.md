@@ -122,35 +122,44 @@ The mapping keeps the 2D game's muscle memory where it still means the same thin
 <!-- page -->
 ## Movement
 
-The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation timed independently. Gravity is stylised at 30 m/s² in Earth regions, heavier than the real thing so that an 84 m leap still lands with weight.
+The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation timed independently. Gravity is stylised at 120 m/s² in Earth regions, 1.25× that on the way down, far heavier than the real thing so that a jump is a launch and a landing has weight: the same apexes as before in about half the airtime.
 
 | Parameter | Value | Result |
 | --- | --- | --- |
-| Run speed | 32 m/s (2.3 H/s) | Crosses a 100 m roof in three seconds |
+| Run speed | 66 m/s (4.7 H/s), 106 sprinting | Crosses a 100 m roof in a second and a half |
 | Acceleration, stop, turn | 0.2 s · 0.15 s · the camera's forward | Hopper faces the route; backpedal at 55 %, strafe at 85 % |
-| Tap jump | 21 m apex (1.5 H), 2.4 s airtime; a 0.2 s hold adds a few metres | Hop between roof decks |
+| Tap jump | 23 m apex (1.6 H) in 0.6 s, 1.15 s airtime; 108 m running, 162 sprinting; a 0.2 s hold adds a few metres | A quick launch between roof decks |
 | Hover | A held in the air: 1.8 s of altitude held on beating wings, refilled on landing | Cross a gap, line up a landing, fight above the ground |
-| Glide | Sink 7 m/s, forward 62 m/s, once the hover is spent | 84 m of height becomes 700 m of distance |
+| Takeoff lunge | +24 m/s along the run (or the stick) | The leap goes forward, not merely up |
+| Glide | Sink 7 m/s, forward 80 m/s, once the hover is spent | Height becomes distance at eleven to one |
 | Crouch charge | 0.8 s to full; super leap to 140 m (10 H), 6.1 s | Reaches a tower roof from the street |
 | Spring pad | Launch to 168 m (12 H); hold A to float | The tallest single climb |
 | Thermal | Lift 25 m/s inside the column while gliding | Chimneys, furnace doors, vents |
 | Wind lane | 15 m/s lateral push, marked by streaks | Bends a glide, never past its landing |
 | Stomp bounce | 56 m (4 H); 84 m with A held | Flyers are steps |
-| Dive | 2.5× gravity, terminal 90 m/s; 100 m in 1.5 s | Fast return to the ground, stomp on landing |
-| Wall kick | 30 m/s up, 20 m/s away, unlimited chain | Tower corners are ladders |
+| Dive | 2.5× gravity, terminal 190 m/s; 100 m in 1 s | Fast return to the ground, stomp on landing |
+| Wall kick | 62 m/s up (16 m), 26 m/s away, unlimited chain | Tower corners are ladders |
 | Ledge mantle | Reach 6 m over the lip, 0.7 s | Forgives a short leap |
-| Air control | 60% of ground acceleration | Real corrections, legible arcs |
+| Air control | Half of ground acceleration; steering turns the arc, never slows it | Momentum is kept; pushing back still brakes |
 | Coyote time, input buffer | 0.12 s · 0.14 s | Forgiving edges and landings |
 
 ### The jump family
 
-A tap is a hop, and a short hold after takeoff adds a few metres, no more. Holding A in the air is a **hover**: the wings beat hard, the fall stops, and Hopper holds his height for just under two seconds, long enough to cross a gap, pick a landing or trade shots with a flyer. There is no second jump and no boost; the hover is a pause in the air, not a climb. When the hover is spent and A is still held, the wings lock open into a glide that lasts until Hopper lands, presses Y to dive, or releases A to drop. Releasing and pressing A again while falling hovers again if any fuel is left; the fuel refills on the ground. Steering in the air is strong enough to correct a line, never so strong that arcs stop reading.
+A tap is a leap, not a hop: takeoff adds a forward lunge along the way Hopper is already running, and the air steering redirects that speed without bleeding it, so a jump goes four to seven times further than it goes up. A short hold after takeoff adds a few metres, no more. Holding A in the air is a **hover**: the wings beat hard, the fall stops, and Hopper holds his height for just under two seconds, long enough to cross a gap, pick a landing or trade shots with a flyer. There is no second jump and no boost; the hover is a pause in the air, not a climb. When the hover is spent and A is still held, the wings lock open into a glide that lasts until Hopper lands, presses Y to dive, or releases A to drop. Releasing and pressing A again while falling hovers again if any fuel is left; the fuel refills on the ground. Steering in the air is strong enough to correct a line, never so strong that arcs stop reading.
 
-Hopper always faces forward: the route, or wherever the camera's 45° of manual turn points, or a locked target. Pulling the stick back is a backpedal at half speed, sideways is a strafe, and the dash, the hop back and the wall kick are manoeuvres that keep the facing. Turning round is the camera's job, never the stick's, so the rider is always looking where the danger is.
+Hopper always faces forward: along the trail, or wherever the camera's 45° of manual turn points, or at a locked target. Pulling the stick back is a backpedal at half speed, sideways is a strafe, and the dash, the hop back and the wall kick are manoeuvres that keep the facing. Turning round is the camera's job, never the stick's, so the rider is always looking where the danger is.
 
 The crouch charge is the deliberate big jump. Holding RB compresses the hind legs over 0.8 s; releasing launches straight up by charge, and the stick during the charge sets the direction. It is slow to start and enormous, so it is the way onto the tall things and rarely a combat move.
 
 Wall kicks chain without limit, because the world is full of corners and the ladder up a tower is a rhythm the player should be allowed to enjoy. Each kick preserves facing and commits steering for 0.16 s.
+
+### The trail
+
+Every district is a trail: a smooth route from the start totem through each checkpoint to the exit, authored as waypoints so that it winds between the structures, climbs the terraces and plateaus, drops through the valleys and keeps going forward. The ground is painted with a worn path along it and dressed with a ribbon the width of Hopper's stance, stones along both edges, a lit waymarker every 55 m, and tall things standing 20–95 m back from the edges (trees and haystacks, pylons and lamps, rock spires and cairns) so the scale of a 14 m grasshopper and the distance still to go can be read at a glance. Hopper may leave the trail whenever he likes; it is the direction the camera faces and the way home, not a corridor.
+
+Districts hand over across a **threshold**: a lit arch where the trail ends, with the next district visible through it on the horizon in its own colours. Crossing it dissolves the last frame of the old district into the new one over about a second, and Hopper arrives with the heading, the speed and the airborne state he crossed on, measured from the trail so that forward stays forward. A region change should read as walking on, not as being put somewhere else.
+
+Either side of it the country is filled in: clumps of the region's tall things out to 430 m, and real structures — farmhouses, towers, crag columns — standing well back from the path with their own colliders, so what looks climbable is climbable. Every span lands on something: a bridge or an elevated rail carries an abutment under each end of its deck and one more span beyond it, because a crossing that starts and stops in mid-air reads as scaffolding rather than a world.
 
 ### Falling is free
 
@@ -161,11 +170,12 @@ Knockback from an enemy hit can throw Hopper off a roof. That is the real cost o
 <!-- page -->
 ## Camera and readability
 
-The camera follows from 35 m behind and 12 m above the centre-of-mass socket with a 60° vertical field of view, so Hopper fills about a fifth of the frame and the rider stays visible on his back. The right stick orbits; releasing it lets the camera drift back behind the direction of travel over about a second. Camera collision is a spring against structure colliders, never a cut.
+The camera follows from 48 m behind and above the centre-of-mass socket with a 64° vertical field of view, so Hopper fills about a fifth of the frame and the rider stays visible on his back. It faces the way onward: along the district's trail, the route's own tangent 80 m ahead of Hopper's place on it, never toward a point, so it pans only as the trail bends (never faster than 0.9 rad/s) and never faces back toward the start. Hopper is free to turn round and run toward the camera; the view holds its direction. The right stick turns the view up to 45° either way and it springs back when released. Camera collision is a spring against structure colliders, never a cut.
 
 - **High leaps** pull the camera back and tilt it down as height above the last surface grows, up to 55 m behind at a super-leap apex, and ease back in as Hopper descends toward a landing. The landing is always framed before it is reached.
 - **Gliding** lowers the camera to just above wing height and widens the field of view by 8°, so distance and speed read.
 - **Diving** looks down the dive with Hopper high in the frame, so the landing and whatever is on it are visible.
+- **A commander in the air** lifts the camera's look toward it and pulls the view back while it is awake, so a boss that fights from 90 m up is framed with Hopper rather than off the top of the screen. Its lasers and lock-on treat it as an ordinary target.
 - **Lock-on (LT held)** frames Hopper and the target together, enables strafing on the left stick, and keeps the target in view through a jump. Releasing returns to the follow camera. Tap LT to cycle targets by angle and distance. Lock-on is soft: lasers auto-aim in a cone whether or not a target is locked.
 - **Horizon View (LB held)** swings the camera up and out to frame the region's exit landmark, the next checkpoint totem and any signals within 300 m, with distance labels. The rider points. Releasing returns smoothly. It is the "which way" button and also the "look at that" button.
 
@@ -178,7 +188,7 @@ Reduced motion halves camera pull-back and disables the glide field-of-view chan
 <!-- page -->
 ## Combat
 
-Only shadows can hurt Hopper. He has six armour pips; ordinary hits cost one, heavy and boss hits cost two, and 1.1 s of soft-outlined protection follows a hit. Capsules restore two, checkpoints and arena clears refill all six. Reaching zero plays the defeat and restarts at the last totem within three seconds, with the chapter's shadows reset and its cleared knots kept.
+Shadows are built to Hopper's scale or beyond: a hound stands eye to eye with a 14 m grasshopper, a tortoise is a moving hill, a condor's span is three of him. The enemies of a giant have to be worth fighting, and a fight reads from across the district. Only shadows can hurt Hopper. He has six armour pips; ordinary hits cost one, heavy and boss hits cost two, and 1.1 s of soft-outlined protection follows a hit. Capsules restore two, checkpoints and arena clears refill all six. Reaching zero plays the defeat and restarts at the last totem within three seconds, with the chapter's shadows reset and its cleared knots kept.
 
 | Attack | How | Damage and effect |
 | --- | --- | --- |
@@ -203,9 +213,11 @@ Ground shadows attack with clear tells 0.5–0.9 s long, and the ground game is 
 
 ### Pacing: interludes and strongholds
 
-A district alternates two kinds of ground. An **interlude** is three or four hundred metres of clear road: scenic props left and right (windbreaks, farmhouses, silos, crag columns, roof decks), a totem at its start, one or two jump elements on the path itself (a terrace to climb, a shelf sequence, a spring pad over a gap) and at most one patrolling pair of shadows, so the road is alive but not a fight. The next battle is always in view: a **stronghold**, a cluster of tall things (a granary of silos, an ivory tower pair, a ring of crag columns around the mast) that the interlude walks toward and that grows on the horizon.
+The HUD names what is being aimed at and shows its health: the commander gets the full bar, phase and tell; anything else locked or under fire gets a small name-and-health readout, so a player can always tell whether the shots are landing.
 
-Coming within the stronghold's radius wakes its **host**, which pours out over five or six seconds rather than standing in wait: hounds that were crouched on the silo tops leap down at Hopper, rays and condors drop in from high above and land with a shock, spitters and hounds rise out of the ground by the path, one ambusher waits behind a prop until Hopper has passed, and a second surge appears when the first is down. The HUD counts the host. When the last of it falls the region is **freed**: a banner, two hearts back, a thousand points, and the road opens to the next interlude. The last stronghold of a district is **sealed**: lockdown emitters raise a violet dome for the fight, as the gates did. The district exit needs every stronghold freed; Thunderhead's last stronghold is the Night Rook's arena.
+A district alternates two kinds of ground. An **interlude** is three or four hundred metres of clear trail: scenic props left and right (windbreaks, farmhouses, silos, crag columns, roof decks), a totem at its start, one or two jump elements on the path itself (a terrace to climb, a shelf sequence, a spring pad over a gap) and at most one patrolling pair of shadows, so the road is alive but not a fight. The next battle is always in view: a **stronghold**, a cluster of tall things (a granary of silos, an ivory tower pair, a ring of crag columns around the mast) that the interlude walks toward and that grows on the horizon.
+
+Coming within the stronghold's radius wakes its **host**, which pours out over five or six seconds rather than standing in wait: hounds that were crouched on the silo tops leap down at Hopper, rays and condors drop in from high above and land with a shock, spitters and hounds rise out of the ground by the path, one ambusher waits behind a prop until Hopper has passed, and a second surge appears when the first is down. The HUD counts the host. When the last of it falls the region is **freed**: a banner, two hearts back, a thousand points, and the road opens to the next interlude. The last stronghold of a district is **sealed**: lockdown emitters raise a violet dome for the fight, and the dome is not only overhead — a ribbed wall of light stands at the exact radius Hopper is held inside, flaring where he pushes against it, and the HUD says what would open it. A barrier the player cannot see or explain is a bug, not a challenge. The district exit needs every stronghold freed; Thunderhead's last stronghold is the Night Rook's arena.
 
 Nothing spawns off-screen with damage already in flight, and every arrival has its tell: the crouch on the perch, the shadow of a drop, the flash of an emergence.
 
@@ -285,7 +297,7 @@ Each chapter is a leg between two landmarks with one dominant beat, keeping the 
 
 | Zone | Gravity | Charged-leap apex | Use |
 | --- | --- | --- | --- |
-| Earth and industry | 45 m/s² | 140 m | Baseline |
+| Earth and industry | 120 m/s² | 140 m | Baseline |
 | Vermilion Basin | 1.35× | 104 m | Short, forceful arcs; wide ivory landings |
 | Cobalt Drift | 0.55× | 255 m | Long glides between drifting reefs |
 | Violet, normal | 0.85× | 165 m | Broad approach to the arches |

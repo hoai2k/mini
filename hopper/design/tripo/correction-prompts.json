@@ -1,0 +1,10 @@
+[
+  {
+    "name": "hopper-master",
+    "prompt": "Precise anatomy correction of this modeling reference. It incorrectly shows SEVEN separate feet. Remove ONLY the extra small far-side middle leg directly below the center of the blue body, whose small foot sits above the baseline near the horizontal middle of the image. Remove that entire extra leg from its attachment to its foot and restore plain background behind it. Retain EXACTLY SIX complete legs and SIX feet: a left and right FRONT pair, a left and right MIDDLE pair, and the two huge REAR jumping legs. Preserve all other proportions, color panels, empty saddle, antennae, camera, neutral pose and gray background. Do not add replacement legs. Count six feet before finishing. No text."
+  },
+  {
+    "name": "hopper-left",
+    "prompt": "Precise anatomy correction of this modeling reference. It incorrectly shows SEVEN separate feet. Remove ONLY the extra small far-side middle leg directly below the center of the blue body, whose small foot sits above the baseline near the horizontal middle of the image. Remove that entire extra leg from its attachment to its foot and restore plain background behind it. Retain EXACTLY SIX complete legs and SIX feet: a left and right FRONT pair, a left and right MIDDLE pair, and the two huge REAR jumping legs. Preserve all other proportions, color panels, empty saddle, antennae, camera, neutral pose and gray background. Do not add replacement legs. Count six feet before finishing. No text."
+  }
+]
