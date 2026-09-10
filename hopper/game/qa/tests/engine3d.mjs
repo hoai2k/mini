@@ -83,7 +83,7 @@ function check(name, cond, detail) {
     world.volumes.filter((v) => v.kind === 'thermal').length === 1,
     world.volumes.filter((v) => v.kind === 'thermal').length,
   );
-  check('14 triggers', world.triggers.length === 14, world.triggers.length);
+  check('16 triggers', world.triggers.length === 16, world.triggers.length);
   check(
     'heightAt deterministic',
     world.heightAt(12.5, -640.25) === world.heightAt(12.5, -640.25),

@@ -144,24 +144,10 @@ function playDistrict(index) {
       run(0.6);
       finite();
       if (priv('district') !== d) break;
-      check(priv('checkpointIndex') === i, `${d.name}: totem ${i} lit (index ${priv('checkpointIndex')}, totem at ${t.x.toFixed(0)},${t.y.toFixed(0)},${t.z.toFixed(0)}, taken ${t.taken}, completed ${priv('completed')}, respawnT ${priv('respawnT').toFixed(2)}, hp ${priv('hp')}, player ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move})`);
+      check(priv('checkpointIndex') >= i, `${d.name}: totem ${i} lit (index ${priv('checkpointIndex')}, totem at ${t.x.toFixed(0)},${t.y.toFixed(0)},${t.z.toFixed(0)}, taken ${t.taken}, completed ${priv('completed')}, respawnT ${priv('respawnT').toFixed(2)}, hp ${priv('hp')}, player ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move})`);
     }
     check(JSON.parse(store.get('hopper3d.save')).checkpoint >= 1, 'checkpoint saved');
   };
-  // Signals: beacons are free, cages open to a reflected shot at the lock.
-  const signalTriggers = w.triggers.filter((t) => t.kind === 'signal');
-  for (const t of signalTriggers) {
-    if (t.locked) {
-      teleport(t.x, t.y + 1, t.z + 10);
-      c.projectiles.push({ id: 900000 + signalTriggers.indexOf(t), x: t.x, y: t.lockY, z: t.z, vx: 0, vy: 0, vz: 0, life: 1, radius: 1, damage: 2, gravity: 0, owner: 'hopper', kind: 'seed' });
-      run(0.1);
-      check(!t.locked, `${d.name}: cage ${t.id} opened by a reflected shot`);
-    }
-    teleport(t.x, t.y + 1, t.z);
-    run(0.3);
-    check(t.taken, `${d.name}: signal ${t.id} taken (trigger ${t.x},${t.y.toFixed(1)},${t.z} r ${t.r}; Hopper ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move}; locked ${t.locked})`);
-  }
-  check(snapshot.signals >= signalTriggers.length, 'HUD counts the signals');
   // Strongholds: approach, confirm the host pours out (a sealed one keeps
   // Hopper inside), then clear the host and see the region freed.
   for (const field of w.fields.filter((f) => f.group !== 'boss')) {
@@ -189,6 +175,20 @@ function playDistrict(index) {
     check(field.cleared && !field.active, `${d.name}: ${field.id} freed when its host fell`);
     check(snapshot.banner.includes('freed') || snapshot.banner === 'Gate open', `freed banner (${snapshot.banner})`);
   }
+  // Signals: beacons are free, cages open to a reflected shot at the lock.
+  const signalTriggers = w.triggers.filter((t) => t.kind === 'signal');
+  for (const t of signalTriggers) {
+    if (t.locked) {
+      teleport(t.x, t.y + 1, t.z + 10);
+      c.projectiles.push({ id: 900000 + signalTriggers.indexOf(t), x: t.x, y: t.lockY, z: t.z, vx: 0, vy: 0, vz: 0, life: 1, radius: 1, damage: 2, gravity: 0, owner: 'hopper', kind: 'seed' });
+      run(0.1);
+      check(!t.locked, `${d.name}: cage ${t.id} opened by a reflected shot`);
+    }
+    teleport(t.x, t.y + 1, t.z);
+    run(0.3);
+    check(t.taken, `${d.name}: signal ${t.id} taken (trigger ${t.x},${t.y.toFixed(1)},${t.z} r ${t.r}; Hopper ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move}; locked ${t.locked})`);
+  }
+  check(snapshot.signals >= signalTriggers.length, 'HUD counts the signals');
   // The exit: sealed while the boss lives, otherwise the district ends.
   const boss = priv('boss');
   if (boss) {

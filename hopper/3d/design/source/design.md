@@ -304,15 +304,15 @@ Totems light when reached and are the respawn point. Nine signals per region unl
 
 ### Sunseed Fields
 
-Honey-coloured morning, terraces, windbreaks, silos and a fallen seed vessel. The first chapter teaches the tap and the hold on terrace tiers, then the glide off the first silo with a whole valley to land in. Hounds follow the player's line so the takeoff strike behind has a use; spitters on terrace lips teach lasers from a glide. The seed vessel is the first knot, and the Crownline towers stand on the horizon the whole time. Exit: the road to Crownline under the windbreaks.
+Honey-coloured morning, terraces, windbreaks, silos and fallen seed vessels. Three interludes and three strongholds: the irrigation lesson (a two-tier terrace on the road, a silo to wall-kick, a patrolling pair of hounds) walks toward the Orchard Granary, three silos close together with hounds crouched on their tops, rays dropping in and spitters rising by the path; the windbreak ridges (a thermal onto the ridge, the irrigation cut) walk toward the Seedfall Granary and its two vessels; the road to Crownline climbs a three-tier terrace toward the sealed Crownline Gate. The Crownline towers stand on the horizon the whole time. Exit: the road to Crownline under the windbreaks.
 
 ### Crownline City
 
-Golden sunset, ivory towers with teal glass bands, roof decks, an elevated line with a train, a construction crown with a slewing crane, billboards that tip, and the observatory at the top. The main line climbs 270 m by roof decks, tower ledges and wall-kick corners. Rays hang between the towers and are the first stomp bounces; leeches on the tower faces beam across the gaps the player is about to cross. The train roof is a moving landing along the transit canyon. Exit: the observatory crown, looking at the summit.
+Golden sunset, ivory towers with teal glass bands, roof decks, an elevated line with a train, a construction crown with a slewing crane, billboards that tip, and the observatory at the top. The main line climbs 270 m by roof decks, tower ledges and wall-kick corners, through three strongholds: the Ivory Ward (two towers with hounds on the roofs, rays dropping between them, leeches on the faces as the surge), the Construction Crown, and the sealed Highline Observatory, with the roof ladder, the transit canyon (the rail span runs along the street, the train shuttling) and the sky bridges (a spring pad into a wind lane) as the interludes between. Exit: the observatory crown, looking at the summit.
 
 ### Thunderhead Range
 
-Slate, apricot storm cloud, an eclipse beginning over the summit. The route drops into the gorge along crag columns, crosses the storm on the ravine bridge under wind lanes, and climbs the broken ridge on thermals that condors also ride. Tortoises hold the shelves; condors make the ascent an air fight. The transmitter mast is visible from the gorge floor as a beacon and is reached at the summit, where the Night Rook is waiting.
+Slate, apricot storm cloud, an eclipse beginning over the summit. The slate descent steps down toward the Gorge Bastion, four crag columns rising out of the storm gorge past the rim with tortoises leaping from their tops and condors dropping over the edge; the broken ridge climbs out on a spring pad and a thermal toward the Cloudstep Bastion, a ring of crags around a low step; the summit road walks under the mast, visible from the gorge floor as a beacon, into the Night Rook's arena. Tortoises hold the shelves; condors make the ascent an air fight.
 
 ### The mission's kit
 

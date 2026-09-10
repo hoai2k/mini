@@ -193,7 +193,11 @@ export class Engine3D implements GameEngine {
     if (this.hintT > 0) this.hintT -= dt;
     if (this.victoryT > 0) {
       this.victoryT -= dt;
-      if (this.victoryT <= 0) this.completed = true;
+      if (this.victoryT <= 0) {
+        this.completed = true;
+        // Ticks stop once complete, so the shell must hear it now.
+        this.emit();
+      }
     }
     if (this.respawnT > 0) {
       this.respawnT -= dt;
