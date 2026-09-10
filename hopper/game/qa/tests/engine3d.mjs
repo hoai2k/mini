@@ -433,6 +433,44 @@ function check(name, cond, detail) {
     check('lookX changes yaw by >0.5 rad', Math.abs(cam.yaw - yaw0) > 0.5, cam.yaw - yaw0);
   }
 
+  // Forward is the default, not a demand. A turned view stays put when the
+  // stick is released, begins to drift back only after a couple of seconds
+  // without a touch, never turns faster than a slow pan, and ends up
+  // forward; a stick click brings it round quickly but still as a turn.
+  {
+    const h = startHopper(0, 40);
+    const cam = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
+    const forward = cam.forward;
+    for (let i = 0; i < 90; i++) updateCamera(cam, h, world, { ...blankCam, lookX: 1, forward }, settings, dt);
+    const held = cam.turn;
+    check('the view can be turned well past 45° (>1.2 rad)', Math.abs(held) > 1.2 && Math.abs(held) <= Math.PI * 0.8 + 1e-9, held);
+    let worstStep = 0,
+      prevYaw = cam.yaw;
+    const yawAt = [];
+    for (let i = 0; i < 120 * 14; i++) {
+      updateCamera(cam, h, world, { ...blankCam, forward }, settings, dt);
+      worstStep = Math.max(worstStep, Math.abs(cam.yaw - prevYaw) / dt);
+      prevYaw = cam.yaw;
+      yawAt.push(cam.turn);
+    }
+    check('a released turn holds for the first 1.8 s (moves < 0.5°)', Math.abs(yawAt[120 * 1.8 - 1] - held) < 0.009, yawAt[120 * 1.8 - 1] - held);
+    check('the drift back has begun by 4 s', Math.abs(yawAt[120 * 4 - 1]) < Math.abs(held) - 0.05, yawAt[120 * 4 - 1]);
+    check('the drift never turns faster than 0.5 rad/s', worstStep < 0.5, worstStep);
+    check('the view is forward again within 14 s', Math.abs(cam.turn) < 0.04, cam.turn);
+    // The stick click.
+    for (let i = 0; i < 90; i++) updateCamera(cam, h, world, { ...blankCam, lookX: -1, forward }, settings, dt);
+    const before = cam.turn;
+    let clickStep = 0;
+    prevYaw = cam.yaw;
+    for (let i = 0; i < 120; i++) {
+      updateCamera(cam, h, world, { ...blankCam, resetPressed: i === 0, forward }, settings, dt);
+      clickStep = Math.max(clickStep, Math.abs(cam.yaw - prevYaw) / dt);
+      prevYaw = cam.yaw;
+    }
+    check('a stick click recentres within a second', Math.abs(before) > 1 && Math.abs(cam.turn) < 0.03, `${before} -> ${cam.turn}`);
+    check('the recentre is a pan, not a cut (< 12 rad/s)', clickStep < 12 && clickStep > 1, clickStep);
+  }
+
   // Horizon View aims at the landmark.
   {
     const h = startHopper(0, 40);
