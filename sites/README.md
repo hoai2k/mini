@@ -22,12 +22,12 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/charlies-girl-dolls/. Uses the group
   poster and the single cover from `images/`; the five songs stream from the
   game rather than being copied here.
-- [`canadensis/`](canadensis/) — artist page for Canadensis, a Cape Breton
+- [`canagentsis/`](canagentsis/) — artist page for Canagentsis, a Cape Breton
   folk band of the 1880s moored in present-day Toronto harbour, styled after
   late-Victorian nautical print. Published at
-  https://hoai2k.github.io/mini/sites/canadensis/. Uses the deck photograph
-  from `images/` and plays the band's one recording from `canadensis/music/`;
-  `canadensis/image-requests.md` lists further art the page could take.
+  https://hoai2k.github.io/mini/sites/canagentsis/. Uses the deck photograph
+  from `images/` and plays the band's one recording from `canagentsis/music/`;
+  `canagentsis/image-requests.md` lists further art the page could take.
 - [`mechmayhem/`](mechmayhem/) — artist page for Mech Mayhem, the drum &
   bass outfit of five fighters from the Mech Mayhem arena game. Published at
   https://hoai2k.github.io/mini/sites/mechmayhem/. Uses the band photo from

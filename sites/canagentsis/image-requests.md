@@ -1,4 +1,4 @@
-# Canadensis — image requests
+# Canagentsis — image requests
 
 Images the band page would use if generated. The page works without them;
 each one replaces a drawn placeholder or adds a section that is text-only
@@ -9,18 +9,18 @@ the page can be updated to take them. Match the delivered photograph
 
 | # | File name | Size | Used for | Status |
 |---|-----------|------|----------|--------|
-| 1 | `canadensis_crest.png` | 1024 × 1024, transparent | Site badge and favicon: a Victorian ship's-company crest | open |
-| 2 | `canadensis_portraits.png` | 2048 × 1024 | Five tintype portraits for the crew cards | open |
-| 3 | `canadensis_broadside.png` | 1086 × 1448 (portrait) | A printed playbill for the "Sailings" section | open |
-| 4 | `canadensis_chart.png` | 2048 × 1024 | A nautical chart of the voyage, as a section backdrop | open |
-| 5 | `canadensis_tavern.png` | 1448 × 1086 | Second photograph: the band playing below decks or in a harbour tavern | open |
-| 6 | `canadensis_paper.png` | 1024 × 1024, tileable | Aged-paper texture for the page background | open |
+| 1 | `canagentsis_crest.png` | 1024 × 1024, transparent | Site badge and favicon: a Victorian ship's-company crest | open |
+| 2 | `canagentsis_portraits.png` | 2048 × 1024 | Five tintype portraits for the crew cards | open |
+| 3 | `canagentsis_broadside.png` | 1086 × 1448 (portrait) | A printed playbill for the "Sailings" section | open |
+| 4 | `canagentsis_chart.png` | 2048 × 1024 | A nautical chart of the voyage, as a section backdrop | open |
+| 5 | `canagentsis_tavern.png` | 1448 × 1086 | Second photograph: the band playing below decks or in a harbour tavern | open |
+| 6 | `canagentsis_paper.png` | 1024 × 1024, tileable | Aged-paper texture for the page background | open |
 
 ## 1. Crest
 
 An engraved ship's-company crest in the manner of an 1880s letterhead: a
 fouled anchor crossed with a fiddle and bow, inside a rope ring, the word
-CANADENSIS on a ribbon below and "SYDNEY · C.B. · 1887" on a ribbon above.
+CANAGENTSIS on a ribbon below and "SYDNEY · C.B. · 1887" on a ribbon above.
 Single colour (sepia-black ink) on transparent, crisp line engraving, no
 shading gradients. Must read at 32 px, so keep the anchor and fiddle bold.
 
@@ -43,7 +43,7 @@ touch of colour on the cheeks only.
 ## 3. Broadside
 
 A letterpress playbill, portrait, on cream paper with a woodcut of the boat at
-the top: "CANADENSIS · Cape Breton Fiddle Music · Aboard the St. Patrick
+the top: "CANAGENTSIS · Cape Breton Fiddle Music · Aboard the St. Patrick
 No. 17 · Toronto Harbour · Thursdays on the Evening Tide · Admission by
 the gangway". Heavy wood-type headline, several typefaces stacked in the
 Victorian manner, printer's ornaments, an ornamental border. Slight ink
