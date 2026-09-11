@@ -10,6 +10,7 @@ import type { GameEngine } from '../game/game-engine';
 import { saveKey } from '../game/game-engine';
 import { World, type Trigger } from './world';
 import { regionById } from '../../../3d/standins/src/index.js';
+import { preloadDistrict, Prefetcher } from './preload';
 import { MISSIONS, type District } from './district';
 import { NightRook } from './boss3d';
 import { createHopperState, intentFromInput, predictLanding, stepHopper, MOVE, type HopperState } from './controller';
@@ -72,6 +73,9 @@ export class Engine3D implements GameEngine {
   private camera: CameraState = createCamera(0, [0, 0, 0]);
   private settings: GameSettings = { master: 0.8, music: 0.55, sfx: 0.65, shake: true, assist: false, cameraSensitivity: 0.5, invertY: false, landingGuide: true };
   private loaded = false;
+  /** Held while a district's paintings are still arriving. */
+  private loading: { label: string; progress: number } | null = null;
+  private prefetcher = new Prefetcher();
   private paused = true;
   private acc = 0;
   private uiClock = 0;
@@ -117,6 +121,24 @@ export class Engine3D implements GameEngine {
   }
   configure(s: GameSettings): void {
     this.settings = s;
+  }
+  /**
+   * Everything the district about to be entered paints, before it is built.
+   * Resuming enters the saved district, so that is the one warmed.
+   */
+  async prepare(mission: number, resume: boolean, progress: (fraction: number) => void): Promise<void> {
+    this.prefetcher.stop();
+    let save: Save | null = null;
+    try {
+      if (resume) save = JSON.parse(localStorage.getItem(saveKey('3d', 'save')) || 'null');
+    } catch {}
+    const m = clamp(save?.mission ?? mission, 0, MISSIONS.length - 1);
+    const district = clamp(save?.district ?? 0, 0, MISSIONS[m].length - 1);
+    await preloadDistrict(m, district, progress);
+  }
+  /** Spend idle time on the episode the player is looking at. */
+  prefetch(mission: number): void {
+    this.prefetcher.retarget(clamp(mission, 0, MISSIONS.length - 1));
   }
   private sound(name: SoundEffect) {
     this.audio.effect(name);
@@ -217,6 +239,12 @@ export class Engine3D implements GameEngine {
     if (!this.loaded || !this.scene) return;
     if (!this.world || !this.combat) {
       this.scene.renderIdle();
+      return;
+    }
+    // A seam crossing waits for its paintings: hold the simulation and keep
+    // presenting the last frame behind the loading screen.
+    if (this.loading) {
+      this.scene.render(this.player, this.world, this.combat, this.camera, 0, this.predicted, this.settings.landingGuide !== false);
       return;
     }
     if (!this.paused && f && !this.completed) {
@@ -559,12 +587,23 @@ export class Engine3D implements GameEngine {
       hovering: h.hovering,
       hoverFuel: h.hoverFuel,
     };
-    this.districtIndex++;
-    this.loadDistrict(0, carry);
-    this.save();
-    const d = this.district!;
-    this.showBanner(d.name, d.subtitle, 3.2);
+    const next = this.districtIndex + 1;
+    const name = MISSIONS[this.mission][next]?.().name ?? '';
+    this.loading = { label: name, progress: 0 };
     this.emit();
+    void preloadDistrict(this.mission, next, (fraction) => {
+      if (!this.loading) return;
+      this.loading = { label: name, progress: fraction };
+      this.emit();
+    }).then(() => {
+      this.loading = null;
+      this.districtIndex = next;
+      this.loadDistrict(0, carry);
+      this.save();
+      const d = this.district!;
+      this.showBanner(d.name, d.subtitle, 3.2);
+      this.emit();
+    });
   }
   private lockScore(s: Shadow, forward: [number, number, number]) {
     const h = this.player;
@@ -677,6 +716,7 @@ export class Engine3D implements GameEngine {
     const districts = MISSIONS[this.mission]?.length || 1;
     const rook = this.boss?.rook;
     return {
+      loading: this.loading ?? undefined,
       mission: this.mission,
       hp: this.hp,
       maxHp: this.maxHp,

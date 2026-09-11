@@ -35,6 +35,24 @@ export const TEXTURE_BASE = './3d/textures/';
 const loader = new TextureLoader();
 const cache = new Map<string, Promise<Texture | null>>();
 
+/**
+ * Options per asset family. The preloader warms the same cache as the build,
+ * and the cache key includes these, so a copy that drifted would download the
+ * file twice and warm nothing. Both sides import from here.
+ */
+export const OPTS = {
+  trim: { wrapT: ClampToEdgeWrapping },
+  trimEmissive: { srgb: false, wrapT: ClampToEdgeWrapping },
+  terrain: { repeat: 1 },
+  surface: { repeat: 1 },
+  surfaceDetail: { repeat: 1, srgb: false },
+  sky: { wrapS: RepeatWrapping, wrapT: ClampToEdgeWrapping },
+  horizon: { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping },
+  creature: { repeat: 1 },
+  creatureEmissive: { srgb: false, repeat: 1 },
+  sheet: { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping },
+} as const;
+
 /** Load a painting once; resolves null when it is not there. */
 export function painting(path: string, { srgb = true, repeat = 1, wrapS = RepeatWrapping as Wrapping, wrapT = RepeatWrapping as Wrapping, anisotropy = 8 }: { srgb?: boolean; repeat?: number; wrapS?: Wrapping; wrapT?: Wrapping; anisotropy?: number } = {}): Promise<Texture | null> {
   const key = `${path}|${srgb}|${repeat}|${wrapS}|${wrapT}`;
@@ -96,8 +114,8 @@ const swapped = new WeakMap<Object3D, boolean>();
 
 /** Repaint a region kit's stand-ins with the delivered trim and terrain sets. */
 export async function paintKit(root: Object3D, region: string): Promise<number> {
-  const trim = await painting(`trim/${region}.png`, { wrapT: ClampToEdgeWrapping });
-  const emissive = await painting(`trim/${region}-emissive.png`, { srgb: false, wrapT: ClampToEdgeWrapping });
+  const trim = await painting(`trim/${region}.png`, OPTS.trim);
+  const emissive = await painting(`trim/${region}-emissive.png`, OPTS.trimEmissive);
   const bands = TRIM_BANDS[region] || [];
   let count = 0;
   const materials = new Map<string, MeshToonMaterial>();
@@ -168,8 +186,8 @@ export async function paintKit(root: Object3D, region: string): Promise<number> 
 
 /** The shadow hide over every shadow stand-in: charcoal skin with an emissive mask. */
 export async function paintShadows(objects: Iterable<Object3D>): Promise<void> {
-  const hide = await painting('creatures/shadow-hide.png', { repeat: 1 });
-  const glow = await painting('creatures/shadow-hide-emissive.png', { srgb: false, repeat: 1 });
+  const hide = await painting('creatures/shadow-hide.png', OPTS.creature);
+  const glow = await painting('creatures/shadow-hide-emissive.png', OPTS.creatureEmissive);
   if (!hide) return;
   const material = new MeshToonMaterial({ color: new Color('#ffffff'), map: hide, gradientMap: ramp, emissive: new Color('#8a4bd8'), emissiveMap: glow || undefined, emissiveIntensity: glow ? 0.9 : 0 });
   for (const root of objects)
@@ -183,7 +201,7 @@ export async function paintShadows(objects: Iterable<Object3D>): Promise<void> {
 
 /** Painted sky on the stand-in dome (JPEG preview; the KTX2 needs a transcoder). */
 export async function paintSky(dome: Mesh, region: string): Promise<boolean> {
-  const t = await painting(`sky/${region}-preview.jpg`, { wrapS: RepeatWrapping, wrapT: ClampToEdgeWrapping });
+  const t = await painting(`sky/${region}-preview.jpg`, OPTS.sky);
   if (!t) return false;
   const m = dome.material as MeshBasicMaterial;
   m.map = t;
@@ -191,11 +209,10 @@ export async function paintSky(dome: Mesh, region: string): Promise<boolean> {
   return true;
 }
 
-/** Two rings of painted horizon cards, leaving the landmark's sector open. */
-export async function paintHorizon(region: string, landmarkAngle: number): Promise<Group | null> {
-  const group = new Group();
-  group.name = 'horizon.painted';
-  const jobs: Promise<void>[] = [];
+/** Which horizon cards a region draws: both rings, minus the landmark's sector.
+ * Shared with the preloader so it warms exactly the cards that get drawn. */
+export function horizonCards(region: string, landmarkAngle: number): { ring: number; n: number; a: number }[] {
+  const out: { ring: number; n: number; a: number }[] = [];
   for (let ring = 0; ring < 2; ring++)
     for (let n = 0; n < 8; n++) {
       const a = (n / 8) * Math.PI * 2;
@@ -203,8 +220,20 @@ export async function paintHorizon(region: string, landmarkAngle: number): Promi
       while (d > Math.PI) d -= Math.PI * 2;
       while (d < -Math.PI) d += Math.PI * 2;
       if (Math.abs(d) < Math.PI / 8 + 0.01) continue;
+      out.push({ ring, n, a });
+    }
+  return out;
+}
+
+/** Two rings of painted horizon cards, leaving the landmark's sector open. */
+export async function paintHorizon(region: string, landmarkAngle: number): Promise<Group | null> {
+  const group = new Group();
+  group.name = 'horizon.painted';
+  const jobs: Promise<void>[] = [];
+  for (const { ring, n, a } of horizonCards(region, landmarkAngle))
+    {
       jobs.push(
-        painting(`horizon/${region}-${ring}-${n}.png`, { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping }).then((t) => {
+        painting(`horizon/${region}-${ring}-${n}.png`, OPTS.horizon).then((t) => {
           if (!t) return;
           const radius = ring ? 6750 : 5000;
           const card = new Mesh(new PlaneGeometry(radius * 0.84, radius * 0.21), new MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, side: DoubleSide, fog: false }));
@@ -226,10 +255,10 @@ export const FLOOR_SURFACE: Record<string, string> = { harbor: 'sea', blue: 'dus
 export const terrainClock = { value: 0 };
 
 export async function paintTerrain(terrain: Mesh, region: string, district: District, route?: Route): Promise<boolean> {
-  const [ground, cliff, path] = await Promise.all(['ground', 'cliff', 'path'].map((f) => painting(`terrain/${region}/${f}.png`, { repeat: 1 })));
+  const [ground, cliff, path] = await Promise.all(['ground', 'cliff', 'path'].map((f) => painting(`terrain/${region}/${f}.png`, OPTS.terrain)));
   if (!ground || !cliff || !path) return false;
   const surfaceName = FLOOR_SURFACE[region];
-  const [surface, detail] = surfaceName ? await Promise.all([painting(`surface/${surfaceName}.png`, { repeat: 1 }), painting(`surface/${surfaceName}-detail.png`, { repeat: 1, srgb: false })]) : [null, null];
+  const [surface, detail] = surfaceName ? await Promise.all([painting(`surface/${surfaceName}.png`, OPTS.surface), painting(`surface/${surfaceName}-detail.png`, OPTS.surfaceDetail)]) : [null, null];
   // The floor: the district's low ground, where water, dust or slag returns Hopper to play.
   const floorY = -district.terrain.relief * 0.55;
   const geo = terrain.geometry;
@@ -315,7 +344,7 @@ export interface AtlasSprite {
 }
 const atlasMaterials = new Map<string, Promise<Texture | null>>();
 export async function atlasSprite(name: string, size: number, { fps = 20, loop = false, additive = false } = {}): Promise<AtlasSprite | null> {
-  if (!atlasMaterials.has(name)) atlasMaterials.set(name, painting(`effects/${name}.png`, { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping }));
+  if (!atlasMaterials.has(name)) atlasMaterials.set(name, painting(`effects/${name}.png`, OPTS.sheet));
   const atlas = await atlasMaterials.get(name)!;
   if (!atlas) return null;
   const t = atlas.clone();
@@ -339,7 +368,7 @@ export function stepAtlas(a: AtlasSprite, dt: number): boolean {
 
 /** One cell of a delivered sheet laid out on a cols × rows grid, as its own texture. */
 export async function cell(path: string, cols: number, rows: number, col: number, row: number): Promise<Texture | null> {
-  const sheet = await painting(path, { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping });
+  const sheet = await painting(path, OPTS.sheet);
   if (!sheet) return null;
   const t = sheet.clone();
   setCell(t, cols, rows, col, row);
@@ -384,7 +413,7 @@ export function guideVariant(region: string, groundColor: string): string {
 
 /** A flat painted decal (landing guide) on the ground. */
 export async function decal(path: string, size: number, color = '#ffffff'): Promise<Mesh | null> {
-  const t = await painting(`ui/${path}`, { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping });
+  const t = await painting(`ui/${path}`, OPTS.sheet);
   if (!t) return null;
   const m = new Mesh(new PlaneGeometry(size, size), new MeshBasicMaterial({ map: t, color: new Color(color), transparent: true, depthWrite: false, side: DoubleSide }));
   m.rotation.x = -Math.PI / 2;
@@ -392,7 +421,7 @@ export async function decal(path: string, size: number, color = '#ffffff'): Prom
 }
 /** A screen-facing reticle sprite for the locked shadow. */
 export async function reticle(locked: boolean, size: number): Promise<Sprite | null> {
-  const t = await painting(`ui/${locked ? 'lock-on-locked' : 'lock-on'}.png`, { wrapS: ClampToEdgeWrapping, wrapT: ClampToEdgeWrapping });
+  const t = await painting(`ui/${locked ? 'lock-on-locked' : 'lock-on'}.png`, OPTS.sheet);
   if (!t) return null;
   const s = new Sprite(new SpriteMaterial({ map: t, transparent: true, depthTest: false, depthWrite: false }));
   s.scale.set(size, size, 1);
