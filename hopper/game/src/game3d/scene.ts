@@ -93,6 +93,10 @@ export class Scene3D {
   private guidePredicted: Mesh;
   private lockRing: Mesh;
   private reticles: { open: Sprite | null; locked: Sprite | null } = { open: null, locked: null };
+  /** The crosshair's own line and range, eased: it rides the middle of the
+   * picture and slides the short way onto a shadow the aim comes near. */
+  private aimLine = new Vector3(0, 0, -1);
+  private aimRange = 90;
   private guideDecal: Mesh | null = null;
   private atlases: AtlasSprite[] = [];
   private delivered: Swapped[] = [];
@@ -549,7 +553,7 @@ export class Scene3D {
     const trail = this.wingSpread * Math.min(1, speed / 45) * (h.gliding ? 1 : 0.4) + (h.hovering ? 0.35 : 0);
     for (const t of this.trails) (t.material as MeshBasicMaterial).opacity += (trail * 0.85 - (t.material as MeshBasicMaterial).opacity) * Math.min(1, dt * 6);
   }
-  private syncShadows(shadows: Shadow[], combat: Combat) {
+  private syncShadows(shadows: Shadow[]) {
     for (const s of shadows) {
       const o = this.shadowObjects.get(s.id);
       if (!o) continue;
@@ -584,20 +588,6 @@ export class Scene3D {
         o.scale.set(squash * s.size * 1.08, (s.size * crouch) / Math.sqrt(squash), squash * s.size * 1.08);
       } else if (s.state === 'pounce') o.scale.set(squash * s.size * 0.9, (s.size * 1.15) / Math.sqrt(squash), squash * s.size * 0.9);
       o.userData.animate?.(this.time + s.phase);
-      if (combat.lock === s.id) {
-        const r = s.open > 0 || s.state === 'tell' ? this.reticles.locked : this.reticles.locked || this.reticles.open;
-        if (r) {
-          if (!r.parent) this.scene.add(r);
-          r.visible = true;
-          r.position.set(s.x, s.y + s.height * 0.5, s.z);
-          const d = this.camera.position.distanceTo(r.position);
-          r.scale.setScalar(Math.max(10, d * 0.095));
-        } else {
-          this.lockRing.visible = true;
-          this.lockRing.position.set(s.x, s.y + s.height * 0.5, s.z);
-          this.lockRing.lookAt(this.camera.position);
-        }
-      }
     }
   }
   private syncProjectiles(projectiles: Projectile[]) {
@@ -708,7 +698,7 @@ export class Scene3D {
     if (this.reticles.open) this.reticles.open.visible = false;
     if (this.reticles.locked) this.reticles.locked.visible = false;
     this.syncHopper(h, combat, dt);
-    this.syncShadows(combat.shadows, combat);
+    this.syncShadows(combat.shadows);
     this.syncBoss(dt);
     this.syncProjectiles(combat.projectiles);
     this.syncEffects(dt);
@@ -722,7 +712,49 @@ export class Scene3D {
       this.camera.updateProjectionMatrix();
     }
     this.sun.position.set(cam.target[0] + 190, cam.target[1] + 760, cam.target[2] + 980);
+    this.syncCrosshair(combat, cam, dt);
     this.renderer.render(this.scene, this.camera);
+  }
+  /** The crosshair: the middle of the picture while LT is held, drawn in the
+   * world so it reads at any range. A shadow the aim comes near takes hold of
+   * it and it slides the short way onto that shadow; losing the shadow lets it
+   * back to the middle. It never moves the camera -- it is the other way
+   * about, always. */
+  private syncCrosshair(combat: Combat, cam: CameraState, dt: number) {
+    if (cam.aim < 0.02) return;
+    const locked = combat.shadows.find((s) => s.id === combat.lock && s.alive) || (combat.bossTarget && combat.bossTarget.id === combat.lock ? combat.bossTarget : null);
+    const r = locked ? this.reticles.locked || this.reticles.open : this.reticles.open || this.reticles.locked;
+    const eye = this.camera.position;
+    // The crosshair's line is held in the camera's own frame, where straight
+    // ahead is the middle of the screen: turning the view never drags it off
+    // centre, and only taking or losing a shadow moves it, over a tenth of a
+    // second, the short way there and back.
+    let wantRange = 90;
+    const want = new Vector3(0, 0, -1);
+    if (locked) {
+      const at = new Vector3(locked.x, locked.y + locked.height * 0.5, locked.z).sub(eye);
+      wantRange = Math.max(20, at.length());
+      want.copy(at).normalize().applyQuaternion(this.camera.quaternion.clone().invert());
+    }
+    const k = 1 - Math.exp(-14 * dt);
+    this.aimLine.lerp(want, k).normalize();
+    this.aimRange += (wantRange - this.aimRange) * k;
+    const line = this.aimLine.clone().applyQuaternion(this.camera.quaternion);
+    if (!r) {
+      this.lockRing.visible = !!locked;
+      if (locked) {
+        this.lockRing.position.copy(eye).addScaledVector(line, this.aimRange);
+        this.lockRing.scale.setScalar(Math.max(1, this.aimRange * 0.02));
+        this.lockRing.lookAt(eye);
+      }
+      return;
+    }
+    if (!r.parent) this.scene.add(r);
+    r.visible = true;
+    r.position.copy(eye).addScaledVector(line, this.aimRange);
+    // A constant size on screen, whatever the range and however far the
+    // aiming view has zoomed in.
+    r.scale.setScalar(this.aimRange * 0.17 * Math.tan(((cam.fov * Math.PI) / 180) * 0.5) * (0.85 + 0.15 * cam.aim));
   }
   /** The frame on screen, as an image the shell can hold over the next one. */
   capture(): string {

@@ -942,13 +942,6 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          {hud.lock && (
-            <div
-              className="crosshair"
-              aria-hidden="true"
-              style={{ backgroundImage: 'url(./3d/textures/ui/lock-on.png)' }}
-            />
-          )}
           {hud.height !== undefined && hud.height > 4 && (
             <div className="height-ticks">{Math.round(hud.height)} m</div>
           )}

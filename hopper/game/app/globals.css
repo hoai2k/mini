@@ -1403,19 +1403,3 @@ dialog.menu-panel {
   max-width: none;
 }
 
-/* 3D lock-on: the free-aim crosshair at the centre while LT is held and holds
-   nothing. A locked target wears its reticle in the world, on the target. */
-.crosshair {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 96px;
-  height: 96px;
-  margin: -48px 0 0 -48px;
-  pointer-events: none;
-  background: center / contain no-repeat;
-  opacity: 0.8;
-  transition:
-    transform 0.15s ease-out,
-    opacity 0.15s;
-}
