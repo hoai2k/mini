@@ -905,11 +905,9 @@ export default function Home() {
           </div>
           {hud.lock && (
             <div
-              className={`crosshair ${hud.lock}`}
+              className="crosshair"
               aria-hidden="true"
-              style={{
-                backgroundImage: `url(./3d/textures/ui/${hud.lock === 'locked' ? 'lock-on-locked' : 'lock-on'}.png)`,
-              }}
+              style={{ backgroundImage: 'url(./3d/textures/ui/lock-on.png)' }}
             />
           )}
           {hud.height !== undefined && hud.height > 4 && (
