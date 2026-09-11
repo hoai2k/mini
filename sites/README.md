@@ -34,6 +34,9 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/mechmayhem/. Uses the band photo from
   `images/`, portraits and badges from the game repository's canonical art,
   and streams the game's soundtrack from its deployed site.
+- [`music/`](music/) — shared home for recordings that belong to a band
+  rather than a game. A band page looks in its own `music/` folder first,
+  then here. Deployed to `/mini/sites/music/`.
 - [`images/`](images/) — source images dropped by the user for use in sites.
   Sites keep their own web-sized copies under `assets/`; the originals stay
   here.

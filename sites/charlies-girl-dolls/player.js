@@ -4,6 +4,9 @@
 // first one that loads wins.
 (function () {
   var AUDIO_ROOTS = ['https://www.hoai.net/games/americangirldollrace/assets/music/'];
+  // Recordings that live with the sites rather than a game: this site's own
+  // music/ folder first, then the shared sites/music/ folder.
+  var LOCAL_ROOTS = ['music/', '../music/'];
   var buttons = Array.prototype.slice.call(
     document.querySelectorAll('#tracks .track'),
   );
@@ -30,13 +33,13 @@
     load(button.dataset.src, autoplay);
   }
 
-  // A track marked data-local lives with this page (music/…), not with the
-  // game, so it skips the game roots.
+  function roots() {
+    var b = buttons[current];
+    return b && b.hasAttribute('data-local') ? LOCAL_ROOTS : AUDIO_ROOTS;
+  }
+
   function load(file, autoplay) {
-    var local = buttons[current] && buttons[current].hasAttribute('data-local');
-    audio.src = local
-      ? file.split('/').map(encodeURIComponent).join('/')
-      : AUDIO_ROOTS[rootIndex] + encodeURIComponent(file);
+    audio.src = roots()[rootIndex] + encodeURIComponent(file);
     audio.load();
     if (autoplay) {
       var attempt = audio.play();
@@ -47,7 +50,7 @@
   audio.addEventListener('error', function () {
     var button = buttons[current];
     if (!button) return;
-    if (!button.hasAttribute('data-local') && rootIndex < AUDIO_ROOTS.length - 1) {
+    if (rootIndex < roots().length - 1) {
       rootIndex += 1;
       load(button.dataset.src, true);
     } else {
