@@ -1,5 +1,6 @@
-/** The follow camera, its orbit, the high-leap pull-back, glide framing,
- * lock-on and Horizon View. Pure math over the world's colliders so it can
+/** The follow camera, its orbit, the high-leap pull-back, glide framing and
+ * Horizon View. Lock-on is not a camera mode: a locked target moves the
+ * crosshair and Hopper's facing, and the view carries on as it was. Pure math over the world's colliders so it can
  * be tested in node; the renderer copies eye/target/fov each frame.
  */
 import { World } from './world';
@@ -14,7 +15,9 @@ export interface CameraState {
   target: [number, number, number];
   /** Seconds since the player last moved the camera. */
   idle: number;
-  mode: 'follow' | 'lock' | 'horizon';
+  /** Lock-on is deliberately absent here: a locked target moves the crosshair
+   * and Hopper's facing, never the camera. */
+  mode: 'follow' | 'horizon';
   /** Eased state offsets (glide, dive, height) so state changes never pop. */
   tilt: number;
   pull: number;
@@ -42,8 +45,6 @@ export interface CameraInput {
   mouseLookY: number;
   resetPressed: boolean;
   horizonHeld: boolean;
-  /** World position of the locked shadow, if any. */
-  lock?: [number, number, number] | null;
   landmark?: [number, number, number];
   /** The commander's centre while one is awake: the follow camera lifts its
    * look and pulls back so a boss overhead stays in frame. */
@@ -181,17 +182,15 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     wantDistance = 22;
     wantFov = 70;
     target = [h.x, h.y + 14, h.z];
-  } else if (input.lock) {
-    cam.mode = 'lock';
-    const dx = input.lock[0] - h.x,
-      dz = input.lock[2] - h.z,
-      d = Math.hypot(dx, dz);
-    wantYaw = Math.atan2(dx, dz);
-    // Aiming view: over Hopper's shoulder, the shadow held near the centre.
-    target = [input.lock[0], input.lock[1], input.lock[2]];
-    wantDistance = Math.min(60, 26 + d * 0.35);
-    wantPitch = Math.max(-0.25, Math.min(0.45, Math.atan2(com[1] + 6 - input.lock[1], Math.max(10, d)) + 0.12));
   } else {
+    // Coming back from Horizon View: the view it was left at becomes a manual
+    // turn from forward, so the yaw the player is looking along carries over
+    // unbroken, and the recentre below brings it round as a pan.
+    if (cam.mode !== 'follow') {
+      cam.turn = wrap(cam.yaw - cam.forward);
+      cam.snap = 1;
+      cam.idle = 10;
+    }
     cam.mode = 'follow';
     // The camera faces the way forward along the trail. Hopper is free to turn
     // round and run back toward it; the view does not follow him, and it never
@@ -204,8 +203,12 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     // left, and only once the stick has been still for a while does it drift
     // back toward forward, starting imperceptibly and never faster than a
     // slow pan, so forward is where the view ends up, not something fought.
+    // The stick turns up to `maxTurn` either way. A wider turn carried out of
+    // Horizon View is allowed to stand and be wound back, never cut to the
+    // limit: the limit only stops the stick from opening it further.
+    const limit = Math.max(CAMERA.maxTurn, Math.abs(cam.turn));
     cam.turn -= stickX * CAMERA.stickRate * sens * dt + input.mouseLookX * CAMERA.mouseRate * sens;
-    cam.turn = Math.max(-CAMERA.maxTurn, Math.min(CAMERA.maxTurn, cam.turn));
+    cam.turn = Math.max(-limit, Math.min(limit, cam.turn));
     cam.pitch += (stickY * CAMERA.stickRate * 0.6 * sens * dt + input.mouseLookY * CAMERA.mouseRate * 0.6 * sens) * invert;
     cam.pitch = Math.max(CAMERA.minPitch, Math.min(CAMERA.maxPitch, cam.pitch));
     if (input.resetPressed) {
@@ -278,14 +281,7 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   cam.target = [ease(cam.target[0], target[0], k), ease(cam.target[1], target[1], ky), ease(cam.target[2], target[2], k)];
   const cp = Math.cos(usePitch),
     sp = Math.sin(usePitch);
-  // In lock mode the eye hangs behind Hopper, not behind the target.
-  const anchor = cam.mode === 'lock' ? com : cam.target;
-  const shoulder = cam.mode === 'lock' ? 9 : 0;
-  const eye: [number, number, number] = [
-    anchor[0] - Math.sin(cam.yaw) * cp * cam.distance - Math.cos(cam.yaw) * shoulder,
-    anchor[1] + sp * cam.distance + (cam.mode === 'lock' ? 5 : 0),
-    anchor[2] - Math.cos(cam.yaw) * cp * cam.distance + Math.sin(cam.yaw) * shoulder,
-  ];
+  const eye: [number, number, number] = [cam.target[0] - Math.sin(cam.yaw) * cp * cam.distance, cam.target[1] + sp * cam.distance, cam.target[2] - Math.cos(cam.yaw) * cp * cam.distance];
   // Something solid in the way pulls the eye in quickly and lets it back
   // out slowly; the ground lifts it rather than pulling it in, so a slope
   // behind Hopper never shortens the shot.

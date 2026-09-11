@@ -591,7 +591,7 @@ export class Scene3D {
           r.visible = true;
           r.position.set(s.x, s.y + s.height * 0.5, s.z);
           const d = this.camera.position.distanceTo(r.position);
-          r.scale.setScalar(Math.max(8, d * 0.07));
+          r.scale.setScalar(Math.max(10, d * 0.095));
         } else {
           this.lockRing.visible = true;
           this.lockRing.position.set(s.x, s.y + s.height * 0.5, s.z);

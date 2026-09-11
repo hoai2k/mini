@@ -289,6 +289,53 @@ function fightBoss(boss, w, c) {
 
 // ---- Episode one ----
 check(MISSIONS[0].length === 3, 'episode one has three districts');
+
+// ---- Lock-on leaves the camera alone ----
+// Holding LT marks a target and turns Hopper toward it. It must not turn the
+// view, and losing the target -- shot down, or simply gone -- must not snap
+// the view back: the camera's direction is the trail's, locked or not.
+{
+  const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const cam = priv('camera');
+  const h = engine.player;
+  teleport(h.x, h.y, h.z);
+  run(0.5);
+  const aiming = { ...empty, lockHeld: true, lockPressed: true };
+  // A target square off to one side, 90° from the way the view faces.
+  const side = cam.forward + Math.PI / 2;
+  const mark = combat().spawn({ id: 'lock-probe', kind: 'riftCondor', x: h.x + Math.sin(side) * 30, z: h.z + Math.cos(side) * 30, y: h.y + 24, mode: 'a' });
+  check(Math.abs(wrapA(Math.atan2(mark.x - h.x, mark.z - h.z) - cam.yaw)) > 1, 'the probe stands well off the view');
+  const yaw0 = cam.yaw,
+    dist0 = cam.distance;
+  let worstStep = 0,
+    prevYaw = cam.yaw;
+  const track = () => {
+    worstStep = Math.max(worstStep, Math.abs(wrapA(cam.yaw - prevYaw)) / dt);
+    prevYaw = cam.yaw;
+  };
+  for (let i = 0; i < 120; i++) {
+    engine.tick(dt, i === 0 ? aiming : { ...aiming, lockPressed: false });
+    track();
+  }
+  check(combat().lock === 'lock-probe', `the lock finds the target off to the side (${combat().lock})`);
+  check(snapshot.lock === undefined, 'the centre crosshair stands down while a target is locked');
+  check(Math.abs(wrapA(cam.yaw - yaw0)) < 0.05, `locking on does not turn the camera (${wrapA(cam.yaw - yaw0).toFixed(3)} rad)`);
+  check(Math.abs(cam.distance - dist0) < 2, `locking on does not move the camera back (${cam.distance.toFixed(1)} vs ${dist0.toFixed(1)})`);
+  check(cam.mode === 'follow', `lock-on is not a camera mode (${cam.mode})`);
+  check(Math.abs(wrapA(h.yaw - Math.atan2(mark.x - h.x, mark.z - h.z))) < 0.2, 'Hopper faces the locked target');
+  // Shot down with the lock still held: the crosshair lets go, the view does not move.
+  combat().damage(mark, 999, engine.callbacks ? engine.callbacks() : { hurt() {}, effect() {}, sound() {}, bounce() {} });
+  const yaw1 = cam.yaw;
+  for (let i = 0; i < 120; i++) {
+    engine.tick(dt, { ...aiming, lockPressed: false });
+    track();
+  }
+  check(!combat().targetById('lock-probe'), 'the target is gone');
+  check(Math.abs(wrapA(cam.yaw - yaw1)) < 0.05, `losing the target does not reset the camera (${wrapA(cam.yaw - yaw1).toFixed(3)} rad)`);
+  check(worstStep < 0.35, `the view never jumps through the lock, the kill or the release (worst ${worstStep.toFixed(2)} rad/s)`);
+  run(0.5);
+  check(snapshot.lock === 'open' || snapshot.lock === undefined, 'the crosshair returns to free aim with nothing locked');
+}
 check(snapshot.standIns === undefined || snapshot.standIns.includes('shadows'), 'HUD stand-in tag reads the shadows on screen');
 const first = playDistrict(0);
 check(priv('transitionT') > 0, `${first.name}: exit starts the transition`);

@@ -487,13 +487,25 @@ function check(name, cond, detail) {
     );
   }
 
-  // Lock mode engages on a locked shadow.
+  // Leaving Horizon View does not snap the picture: the yaw it was left at
+  // becomes a manual turn from forward, and the recentre pans it home.
   {
+    const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
     const h = startHopper(0, 40);
     const cam = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
-    const lock = [h.x + 50, h.y, h.z - 50];
-    updateCamera(cam, h, world, { ...blankCam, lock }, settings, dt);
-    check('lock mode engages', cam.mode === 'lock', cam.mode);
+    const forward = cam.forward;
+    const landmark = [h.x + 900, 200, h.z - 900];
+    for (let i = 0; i < 240; i++) updateCamera(cam, h, world, { ...blankCam, horizonHeld: true, landmark, forward }, settings, dt);
+    const turned = cam.yaw;
+    let worstStep = 0,
+      prevYaw = cam.yaw;
+    for (let i = 0; i < 240; i++) {
+      updateCamera(cam, h, world, { ...blankCam, forward }, settings, dt);
+      worstStep = Math.max(worstStep, Math.abs(wrap(cam.yaw - prevYaw)) / dt);
+      prevYaw = cam.yaw;
+    }
+    check('releasing Horizon View carries the yaw over, it does not cut', Math.abs(wrap(turned - cam.yaw)) > 0.3 && worstStep < 12, `${worstStep.toFixed(2)} rad/s`);
+    check('and the view is back on the trail within 2 s', Math.abs(wrap(cam.yaw - forward)) < 0.05, wrap(cam.yaw - forward));
   }
 }
 
