@@ -437,6 +437,29 @@ main > section.music {
   max-width: 64ch;
 }
 
+/* New single */
+.single {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+}
+.single-art {
+  margin: 0;
+  max-width: 440px;
+}
+.single-art img {
+  border-radius: var(--radius);
+  border: 3px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--red), 0 24px 40px rgb(36 27 22 / 0.3);
+}
+.single-copy p:not(.kicker) {
+  max-width: 58ch;
+}
+.single .kicker {
+  color: var(--red);
+}
+
 /* Hopper */
 .hopper {
   display: grid;
@@ -558,8 +581,12 @@ footer a {
 @media (max-width: 760px) {
   .about,
   .record,
+  .single,
   .hopper {
     grid-template-columns: 1fr;
+  }
+  .single-art {
+    margin-inline: auto;
   }
   .hero-art img {
     max-height: none;

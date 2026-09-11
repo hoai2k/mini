@@ -16,3 +16,7 @@ its own `assets/` folder.
   crops and the nameplate detail).
 - `mech_mayhem_1.png` — the band photo of Mech Mayhem, five mechs on a temple
   ledge at sunset, 1536 × 1024, used by `sites/mechmayhem/`.
+- `moonlit_gogo.png` — cover art for Space Tiber's single "Moonlit Go-go
+  Interlude", 1122 × 1402, used by `sites/space-tiber/`.
+- `match_point_midnight.png` — cover art for Charlie's Girl Dolls' single
+  "Matchpoint Midnight", 1448 × 1086, used by `sites/charlies-girl-dolls/`.

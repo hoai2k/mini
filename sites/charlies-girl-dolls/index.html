@@ -35,6 +35,7 @@
         <a href="#band">Band</a>
         <a href="#dolls">Dolls</a>
         <a href="#music">Music</a>
+        <a href="#single">New single</a>
       </nav>
     </header>
 
@@ -141,8 +142,7 @@
           <div class="tracklist">
             <h2 id="music-title">Music</h2>
             <p>
-              Five songs, one for every world the race runs through. Tap one
-              to play.
+              Five songs for the race, one for the court. Tap one to play.
             </p>
             <ol class="tracks" id="tracks">
               <li>
@@ -180,17 +180,53 @@
                   <span class="d">2:36</span>
                 </button>
               </li>
+              <li>
+                <button type="button" class="track" data-src="music/Matchpoint Midnight.mp3" data-local aria-label="Play Matchpoint Midnight">
+                  <span class="n">06</span>
+                  <span class="t"><strong>Matchpoint Midnight</strong><small>Single · not from the game</small></span>
+                  <span class="d">new</span>
+                </button>
+              </li>
             </ol>
             <div class="player" id="player" hidden>
               <p class="now"><span>Now playing</span> <strong id="now-title">—</strong></p>
               <audio id="audio" controls preload="none"></audio>
               <p class="player-note" id="player-note" hidden>
-                The recordings could not be reached right now. Try again in a moment.
+                That recording could not be reached. The race songs stream from
+                the game; the single lives with this page, once it lands.
               </p>
             </div>
           </div>
         </div>
       </section>
+      <section class="single" id="single" aria-labelledby="single-title">
+        <div class="single-copy">
+          <p class="kicker">New single · not from the game</p>
+          <h2 id="single-title">Matchpoint Midnight</h2>
+          <p>
+            The dolls took a night off the speedway and wrote a song about a
+            tennis final that starts at midnight and does not end. A glass
+            court under a disco ball, neon rackets on the wall, a crowd in
+            sequins holding its breath on every serve. Bomi calls the score,
+            Rina counts the rally in, Zoe takes the tiebreak alone, and Yuna
+            built the beat out of a ball machine.
+          </p>
+          <p>
+            No hurdles, no worlds, no finish line. Just deuce, forever, in
+            heels.
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="#music">Play it</a>
+          </div>
+        </div>
+        <figure class="single-art">
+          <picture>
+            <source media="(max-width: 700px)" srcset="assets/matchpoint-midnight-500.webp" />
+            <img src="assets/matchpoint-midnight.webp" alt="Matchpoint Midnight cover: a glass tennis court inside a nightclub, two players mid-rally under a mirror ball, neon rackets and glowing tennis balls on the walls, a crowd in evening wear raising champagne from the balconies." width="1000" height="750" loading="lazy" />
+          </picture>
+        </figure>
+      </section>
+
     </main>
 
     <footer>

@@ -14,8 +14,9 @@ at https://hoai2k.github.io/mini/sites/<name>/.
 - [`space-tiber/`](space-tiber/) — artist page for Space Tiber, the band that
   made the music for Hopper the Grasshopper. Published at
   https://hoai2k.github.io/mini/sites/space-tiber/. Its player streams the
-  three recordings from the deployed game (`/mini/hopper/audio/`) rather than
-  carrying a second copy.
+  three Hopper recordings from the deployed game (`/mini/hopper/audio/`)
+  rather than carrying a second copy; the single, Moonlit Go-go Interlude,
+  plays from `space-tiber/music/` once its file is dropped there.
 - [`charlies-girl-dolls/`](charlies-girl-dolls/) — artist page for Charlie's
   Girl Dolls, the girl group behind Bubblegum Radar and the songs of a
   doll-racing game. Published at

@@ -30,8 +30,13 @@
     load(button.dataset.src, autoplay);
   }
 
+  // A track marked data-local lives with this page (music/…), not with the
+  // game, so it skips the game roots.
   function load(file, autoplay) {
-    audio.src = AUDIO_ROOTS[rootIndex] + encodeURIComponent(file);
+    var local = buttons[current] && buttons[current].hasAttribute('data-local');
+    audio.src = local
+      ? file.split('/').map(encodeURIComponent).join('/')
+      : AUDIO_ROOTS[rootIndex] + encodeURIComponent(file);
     audio.load();
     if (autoplay) {
       var attempt = audio.play();
@@ -42,7 +47,7 @@
   audio.addEventListener('error', function () {
     var button = buttons[current];
     if (!button) return;
-    if (rootIndex < AUDIO_ROOTS.length - 1) {
+    if (!button.hasAttribute('data-local') && rootIndex < AUDIO_ROOTS.length - 1) {
       rootIndex += 1;
       load(button.dataset.src, true);
     } else {
