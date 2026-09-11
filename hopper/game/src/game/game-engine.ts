@@ -9,6 +9,17 @@ export interface GameEngine {
   load(progress: (fraction: number) => void): Promise<void>;
   configure(settings: GameSettings): void;
   start(mission: number, resume?: boolean): void;
+  /**
+   * Load everything the first district of `mission` needs before play starts.
+   * Editions that load their whole pack up front resolve immediately.
+   */
+  prepare?(
+    mission: number,
+    resume: boolean,
+    progress: (fraction: number) => void,
+  ): Promise<void>;
+  /** Warm assets for an episode during idle time; call again to retarget. */
+  prefetch?(mission: number): void;
   setPaused(paused: boolean): void;
   tick(dt: number, frame?: InputFrame): void;
   respawn(): void;

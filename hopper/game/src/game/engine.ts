@@ -39,6 +39,9 @@ export interface GameSnapshot {
   height?: number;
   /** 3D edition only: metres to the region's exit landmark. */
   landmark?: { name: string; distance: number };
+  /** Set while assets for the district ahead are still loading: play is held
+   * at a loading screen until every painting it needs is in hand. */
+  loading?: { label: string; progress: number };
   /** 3D edition only: a short contextual hint shown in the HUD. */
   hint?: string;
   /** 3D lock-on state while LT is held: aiming, or locked onto a shadow. */

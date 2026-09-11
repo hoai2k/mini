@@ -18,7 +18,7 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-episode3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'boss3d', 'engine3d', 'route', 'scenery'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'boss3d', 'engine3d', 'route', 'scenery', 'preload', 'textures3d', 'models3d', 'trail'];
 // The renderer needs a DOM; the engine only calls a handful of its methods.
 fs.writeFileSync(
   path.join(temp, 'scene.mjs'),
@@ -43,6 +43,8 @@ for (const name of names) {
     .replace(/from '\.\/([\w-]+)'/g, (m, n) => (names.includes(n) || n === 'scene' ? `from './${n}.mjs'` : m))
     .replaceAll("from '../game/game-engine'", "from './game-engine.mjs'")
     .replace("'../../../3d/standins/src/index.js'", `'${standIns}'`)
+    .replace("'../../../3d/standins/src/palette.js'", `'${new URL('../../../3d/standins/src/palette.js', import.meta.url).pathname}'`)
+    .replace("'../../../3d/standins/src/textures.js'", `'${new URL('../../../3d/standins/src/textures.js', import.meta.url).pathname}'`)
     .replace(/from 'three'/g, `from '${threeModule}'`);
   fs.writeFileSync(path.join(temp, name + '.mjs'), ts.transpileModule(raw, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022, verbatimModuleSyntax: false } }).outputText);
 }
@@ -55,6 +57,11 @@ globalThis.document = { pointerLockElement: null };
 const { Engine3D } = await import(path.join(temp, 'engine3d.mjs'));
 const { MISSIONS } = await import(path.join(temp, 'district.mjs'));
 
+/** Let the district preload settle: its paintings resolve on the microtask
+ * queue (null in Node, where nothing decodes), then the handover runs. */
+const settle = async () => {
+  for (let i = 0; i < 10; i++) await new Promise((r) => setTimeout(r, 0));
+};
 const dt = 1 / 60;
 const empty = {
   moveX: 0,
@@ -309,11 +316,23 @@ check(snapshot.banner === first.exit.name, 'exit banner');
     speedBefore = Math.hypot(engine.player.vx, engine.player.vz);
   let speedAtSeam = 0,
     fadeSeen = 0;
-  for (let i = 0; i < 180 && priv('districtIndex') === 0; i++) {
+  for (let i = 0; i < 180 && priv('districtIndex') === 0 && !snapshot.loading; i++) {
     run(1 / 60, running);
     speedAtSeam = Math.hypot(engine.player.vx, engine.player.vz);
     fadeSeen = Math.max(fadeSeen, snapshot.transitionFade || 0);
   }
+  // The seam now waits for the next district's paintings: the loading screen
+  // is up, play is frozen, and the handover happens once they are in hand.
+  check(!!snapshot.loading, 'the seam raises a loading screen');
+  const frozen = { x: engine.player.x, z: engine.player.z };
+  run(0.5, running);
+  check(
+    engine.player.x === frozen.x && engine.player.z === frozen.z,
+    'play is held while the district loads',
+  );
+  await settle();
+  run(1 / 60, running);
+  check(!snapshot.loading, 'the loading screen clears');
   check(priv('districtIndex') === 1, 'the threshold hands over to the next district');
   check(Math.abs(wrap(angleToTrail() - before)) < 0.35, `heading carries across the threshold (${angleToTrail().toFixed(2)} vs ${before.toFixed(2)})`);
   check(speedAtSeam > speedBefore * 0.6, `momentum carries across the threshold (${speedAtSeam.toFixed(0)} of ${speedBefore.toFixed(0)} m/s)`);
@@ -329,6 +348,8 @@ run(1.6);
 check(!snapshot.transitionImage, 'the held frame fades away');
 const second = playDistrict(1);
 run(2.5);
+await settle();
+run(1 / 60);
 check(priv('districtIndex') === 2, `${second.name} leads to the third district`);
 const third = playDistrict(2);
 check(priv('victoryT') > 0, `${third.name}: episode complete`);

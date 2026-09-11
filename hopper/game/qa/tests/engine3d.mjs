@@ -27,6 +27,8 @@ for (const name of names) {
     .readFileSync(source + name + '.ts', 'utf8')
     .replace(/from '\.\/([\w-]+)'/g, (m, n) => (names.includes(n) ? `from './${n}.mjs'` : m))
     .replace("'../../../3d/standins/src/index.js'", `'${standIns}'`)
+    .replace("'../../../3d/standins/src/palette.js'", `'${new URL('../../../3d/standins/src/palette.js', import.meta.url).pathname}'`)
+    .replace("'../../../3d/standins/src/textures.js'", `'${new URL('../../../3d/standins/src/textures.js', import.meta.url).pathname}'`)
     .replace(/from 'three'/g, `from '${threeModule}'`);
   fs.writeFileSync(
     path.join(temp, name + '.mjs'),

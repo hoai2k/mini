@@ -30,8 +30,7 @@ import {
 } from '@/src/game/game-engine';
 import { Engine3D } from '@/src/game3d/engine3d';
 
-const edition =
-  typeof location !== 'undefined' ? editionFromLocation() : '3d';
+const edition = typeof location !== 'undefined' ? editionFromLocation() : '3d';
 
 type Screen =
   | 'title'
@@ -84,6 +83,11 @@ export default function Home() {
   // Sound reads off when the player muted it or when the browser is still
   // refusing music: either way the button is the thing to press.
   const [soundOff, setSoundOff] = useState(false);
+  /** Shown while a district's assets load, before play or across a seam. */
+  const [preparing, setPreparing] = useState<{
+    label: string;
+    progress: number;
+  } | null>(null);
   const [hud, setHud] = useState<GameSnapshot | null>(null),
     [saved, setSaved] = useState(false),
     [unlocked, setUnlocked] = useState(0);
@@ -139,8 +143,13 @@ export default function Home() {
     change('select');
     setNotice('');
   }
+  /**
+   * Enter play. The district's paintings are loaded first, behind a progress
+   * bar, so the world is never built half-textured and filled in afterwards.
+   * Idle prefetching usually means the bar is gone before it is read.
+   */
   function begin(mission = 0, resume = false) {
-    if (!ready) return;
+    if (!ready || preparing) return;
     audio.current?.setLevelTrack(mission);
     audio.current?.setScene('gameplay');
     audio.current?.setDucked(false);
@@ -149,9 +158,24 @@ export default function Home() {
       void root.current
         ?.requestFullscreen?.()
         .catch(() => setNotice('Press ⛶ for fullscreen.'));
-    engine.current?.start(mission, resume);
-    change('playing');
     setNotice('');
+    const engineRef = engine.current;
+    if (!engineRef?.prepare) {
+      engineRef?.start(mission, resume);
+      change('playing');
+      return;
+    }
+    setPreparing({ label: missions[mission] || '', progress: 0 });
+    void engineRef
+      .prepare(mission, resume, (progress) =>
+        setPreparing((p) => (p ? { ...p, progress } : p)),
+      )
+      .catch(() => {})
+      .then(() => {
+        setPreparing(null);
+        engineRef.start(mission, resume);
+        change('playing');
+      });
   }
   /**
    * The button does what its icon promises. Deriving that from the audio at
@@ -556,14 +580,27 @@ export default function Home() {
   useLayoutEffect(() => {
     focusRef.current = focus;
   }, [focus]);
+  /**
+   * Idle prefetching. The title screen warms episode one (or the saved one);
+   * moving the selection on play-select points it at that episode instead, so
+   * the assets arriving are the ones about to be needed.
+   */
+  const [aimed, setAimed] = useState(0);
+  useEffect(() => {
+    if (!ready || screen === 'playing' || preparing) return;
+    const id = setTimeout(() => engine.current?.prefetch?.(aimed), 400);
+    return () => clearTimeout(id);
+  }, [ready, screen, aimed, preparing]);
+
   // Continue takes the first focus slot when there is a save, so every later
   // control on the play-select screen shifts down by one.
   const episodeBase = saved ? 1 : 0;
-  const nav = (index: number) => ({
+  const nav = (index: number, aim?: number) => ({
     'data-nav': true,
     'data-selected': focus === index,
     onFocus: () => {
       setFocus(index);
+      if (aim !== undefined) setAimed(aim);
     },
   });
   return (
@@ -667,10 +704,11 @@ export default function Home() {
               <div className="episode-list">
                 {missions.map((name, n) => (
                   <Button
-                    {...nav(episodeBase + n)}
+                    {...nav(episodeBase + n, n)}
                     key={name}
                     disabled={n > unlocked}
                     onClick={() => begin(n)}
+                    onPointerEnter={() => setAimed(n)}
                   >
                     <span>0{n + 1}</span>
                     <div>
@@ -761,7 +799,8 @@ export default function Home() {
                   <>
                     KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
                     <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
-                    lasers <span>L</span> guard <span>Q</span> lock-on <span>SHIFT</span> sprint <span>E</span> dash
+                    lasers <span>L</span> guard <span>Q</span> lock-on{' '}
+                    <span>SHIFT</span> sprint <span>E</span> dash
                   </>
                 ) : (
                   <>
@@ -916,7 +955,10 @@ export default function Home() {
             <div className="height-ticks">{Math.round(hud.height)} m</div>
           )}
           {hud.standIns && (
-            <div className="stand-in-tag" title={`Placeholder art on screen: ${hud.standIns}`}>
+            <div
+              className="stand-in-tag"
+              title={`Placeholder art on screen: ${hud.standIns}`}
+            >
               STAND-IN ART · {hud.standIns}
             </div>
           )}
@@ -936,24 +978,39 @@ export default function Home() {
                 </div>
                 {hud.landmark && (
                   <div className="compass">
-                    ▲ {hud.landmark.name} · {Math.round(hud.landmark.distance)} m
+                    ▲ {hud.landmark.name} · {Math.round(hud.landmark.distance)}{' '}
+                    m
                   </div>
                 )}
               </div>
               <div className="status-right">
                 {hud.stronghold && (
                   <div className="stronghold-bar">
-                    <span className="stronghold-name">{hud.stronghold.name}</span>
+                    <span className="stronghold-name">
+                      {hud.stronghold.name}
+                    </span>
                     <span className="stronghold-host">
                       {Array.from({ length: hud.stronghold.total }, (_, i) => (
-                        <i key={i} className={i < hud.stronghold!.total - hud.stronghold!.remaining ? 'down' : ''} />
+                        <i
+                          key={i}
+                          className={
+                            i <
+                            hud.stronghold!.total - hud.stronghold!.remaining
+                              ? 'down'
+                              : ''
+                          }
+                        />
                       ))}
                     </span>
-                    <span className="stronghold-count">{hud.stronghold.remaining} left</span>
+                    <span className="stronghold-count">
+                      {hud.stronghold.remaining} left
+                    </span>
                   </div>
                 )}
                 {hud.target && !hud.boss && (
-                  <div className={`target-hud ${hud.target.locked ? 'locked' : ''}`}>
+                  <div
+                    className={`target-hud ${hud.target.locked ? 'locked' : ''}`}
+                  >
                     <span>
                       {hud.target.name}
                       {hud.target.locked && <small>LOCKED</small>}
@@ -990,18 +1047,19 @@ export default function Home() {
             </div>
             {hud.hint && <div className="game-bottom-hint">{hud.hint}</div>}
           </div>
-          {hud.transitionImage && (hud.transitionFade ?? 0) > 0 && (
-            // A data URL of the frame just left, held for a second: an
-            // optimising image loader has nothing to do here.
-            // oxlint-disable-next-line no-img-element
-            <img
-              className="district-dissolve"
-              src={hud.transitionImage}
-              alt=""
-              aria-hidden="true"
-              style={{ opacity: hud.transitionFade }}
-            />
-          )}
+          {hud.transitionImage &&
+            (hud.transitionFade ?? 0) > 0 && (
+              // A data URL of the frame just left, held for a second: an
+              // optimising image loader has nothing to do here.
+              // oxlint-disable-next-line no-img-element
+              <img
+                className="district-dissolve"
+                src={hud.transitionImage}
+                alt=""
+                aria-hidden="true"
+                style={{ opacity: hud.transitionFade }}
+              />
+            )}
           {hud.banner && screen === 'playing' && (
             <div className="area-banner">
               <span>{hud.bannerSmall}</span>
@@ -1110,26 +1168,26 @@ export default function Home() {
                     <div className="control-notes">
                       <p>
                         <b className="pad a">A</b>
-                        <strong>Jump</strong> Tap to jump. Hold A in the air
-                        and the wings beat: Hopper hovers in place for a
-                        breath, then glides down while you keep holding.
-                        Release to drop. Jump at a wall to kick off it; the
-                        front legs haul up over a ledge on their own. Hopper
-                        always faces the way you are going: pulling back
-                        backpedals, sideways strafes.
+                        <strong>Jump</strong> Tap to jump. Hold A in the air and
+                        the wings beat: Hopper hovers in place for a breath,
+                        then glides down while you keep holding. Release to
+                        drop. Jump at a wall to kick off it; the front legs haul
+                        up over a ledge on their own. Hopper always faces the
+                        way you are going: pulling back backpedals, sideways
+                        strafes.
                       </p>
                       <p>
                         <b className="pad x">X</b>
                         <strong>Spin kick</strong> The hind legs sweep all the
-                        way round, on the ground or in the air. Timed as a
-                        shot arrives, it parries and sends the shot back.
+                        way round, on the ground or in the air. Timed as a shot
+                        arrives, it parries and sends the shot back.
                       </p>
                       <p>
                         <b className="pad y">Y</b>
                         <strong>Dive stomp · charge</strong> In the air, dive
                         straight down and stomp on landing; a shockwave knocks
-                        shadows into the air. On the ground, tap for a quick
-                        hop back, or hold to crouch and charge a super leap.
+                        shadows into the air. On the ground, tap for a quick hop
+                        back, or hold to crouch and charge a super leap.
                       </p>
                       <p>
                         <b className="pad b">B</b>
@@ -1150,18 +1208,18 @@ export default function Home() {
                       </p>
                       <p>
                         <b className="trigger">RB</b>
-                        <strong>Sprint</strong> Hold to run flat out; the
-                        speed carries into a jump.
+                        <strong>Sprint</strong> Hold to run flat out; the speed
+                        carries into a jump.
                       </p>
                       <p>
                         <b className="trigger">LB</b>
                         <strong>Dash</strong> A fast burst the way the stick
-                        points, on the ground or in the air. Held with the
-                        stick centred, it fires the moment you move.
+                        points, on the ground or in the air. Held with the stick
+                        centred, it fires the moment you move.
                       </p>
                       <p>
-                        <strong>The view faces the way forward</strong> Turn
-                        it up to 45° with the right stick; click the stick for
+                        <strong>The view faces the way forward</strong> Turn it
+                        up to 45° with the right stick; click the stick for
                         Horizon View. Hopper can turn round and run toward the
                         camera whenever he needs to.
                       </p>
@@ -1177,34 +1235,34 @@ export default function Home() {
                         <b className="pad a">A</b>
                         <strong>Jump</strong> Hold to soar; release for a
                         precise landing. Your back legs strike behind you at
-                        takeoff. Land on shadows to crush them. Pull back in
-                        the air to brake without turning; facing changes after
+                        takeoff. Land on shadows to crush them. Pull back in the
+                        air to brake without turning; facing changes after
                         landing.
                       </p>
                       <p>
                         <b className="pad x">X</b>
                         <strong>Rear spin kick · parry</strong> Sweep your
                         powerful hind legs behind you and overhead. It breaks
-                        armor, and timed as a blow lands from behind or
-                        straight down it parries: the shadow staggers wide
-                        open and a parried shot flies back at its shooter. It
-                        reaches nothing in front of you.
+                        armor, and timed as a blow lands from behind or straight
+                        down it parries: the shadow staggers wide open and a
+                        parried shot flies back at its shooter. It reaches
+                        nothing in front of you.
                       </p>
                       <p>
                         <b className="trigger">RT</b>
-                        <strong>Eye lasers</strong> Lock onto the nearest
-                        shadow ahead, including one on a shelf below you.
-                        Brief bursts keep the reactor cool. Turn with the
-                        stick to choose a side.
+                        <strong>Eye lasers</strong> Lock onto the nearest shadow
+                        ahead, including one on a shelf below you. Brief bursts
+                        keep the reactor cool. Turn with the stick to choose a
+                        side.
                       </p>
                       <p>
                         <b className="pad b">B</b>
-                        <strong>Forward guard</strong> Hold to parry
-                        everything arriving from the front, turning shots back
-                        at their shooter. It leaves your back open, does no
-                        damage of its own, spends energy while held and when
-                        struck, and breaks briefly if drained. Release to
-                        recharge. Keyboard: L.
+                        <strong>Forward guard</strong> Hold to parry everything
+                        arriving from the front, turning shots back at their
+                        shooter. It leaves your back open, does no damage of its
+                        own, spends energy while held and when struck, and
+                        breaks briefly if drained. Release to recharge.
+                        Keyboard: L.
                       </p>
                       <p>
                         <strong>Take a hit</strong> Shadows knock Hopper back a
@@ -1233,15 +1291,14 @@ export default function Home() {
                       <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
                       lasers <span>L</span> guard <span>Q</span> lock-on{' '}
                       <span>SHIFT</span> sprint <span>E</span> dash{' '}
-                      <span>TAB</span> horizon view · click the game to turn
-                      the view with the mouse
+                      <span>TAB</span> horizon view · click the game to turn the
+                      view with the mouse
                     </>
                   ) : (
                     <>
-                      KEYBOARD <span>← → / A D</span> move{' '}
-                      <span>SPACE</span> jump <span>J</span> rear kick{' '}
-                      <span>K</span> lasers <span>L</span> forward guard{' '}
-                      <span>ESC</span> pause
+                      KEYBOARD <span>← → / A D</span> move <span>SPACE</span>{' '}
+                      jump <span>J</span> rear kick <span>K</span> lasers{' '}
+                      <span>L</span> forward guard <span>ESC</span> pause
                     </>
                   )}
                 </div>
@@ -1358,10 +1415,11 @@ export default function Home() {
                 <div className="episode-list">
                   {missions.map((name, n) => (
                     <Button
-                      {...nav(n)}
+                      {...nav(n, n)}
                       key={name}
                       disabled={n > unlocked}
                       onClick={() => begin(n)}
+                      onPointerEnter={() => setAimed(n)}
                     >
                       <span>0{n + 1}</span>
                       <div>
@@ -1414,6 +1472,27 @@ export default function Home() {
             )}
           </dialog>
         </div>
+      )}
+      {(preparing || hud?.loading) && (
+        <output className="loading-screen" aria-live="polite">
+          <div className="loading-panel">
+            <span className="loading-eyebrow">
+              {preparing ? 'Preparing' : 'Next district'}
+            </span>
+            <h2>{(preparing ?? hud?.loading)?.label}</h2>
+            <progress
+              className="loading-bar"
+              max={100}
+              value={Math.round(
+                ((preparing ?? hud?.loading)?.progress || 0) * 100,
+              )}
+            />
+            <p>
+              {Math.round(((preparing ?? hud?.loading)?.progress || 0) * 100)}%
+              <span> · loading the artwork for this district</span>
+            </p>
+          </div>
+        </output>
       )}
       {notice && (
         <output className="notice">
