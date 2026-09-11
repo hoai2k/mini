@@ -487,6 +487,56 @@ function check(name, cond, detail) {
     );
   }
 
+  // Aiming (LT) is a camera mode of distance and zoom only: it comes in over
+  // the shoulder and narrows the field, it holds where the player is looking
+  // rather than drifting home, the trail bending underneath does not drag it,
+  // and it never turns the view by a degree, going in or coming out.
+  {
+    const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+    const h = startHopper(0, 40);
+    const cam = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
+    const forward = cam.forward;
+    for (let i = 0; i < 240; i++) updateCamera(cam, h, world, { ...blankCam, forward }, settings, dt);
+    const yaw0 = cam.yaw,
+      dist0 = cam.distance,
+      fov0 = cam.fov;
+    let worstStep = 0,
+      prevYaw = cam.yaw;
+    for (let i = 0; i < 240; i++) {
+      updateCamera(cam, h, world, { ...blankCam, forward, aimHeld: true }, settings, dt);
+      worstStep = Math.max(worstStep, Math.abs(wrapA(cam.yaw - prevYaw)) / dt);
+      prevYaw = cam.yaw;
+    }
+    check('aiming brings the camera in', cam.distance < dist0 - 5 && cam.distance > 30, cam.distance);
+    check('aiming zooms in', cam.fov < fov0 - 15, cam.fov);
+    check('aiming levels the picture off', cam.viewPitch < 0.2 && cam.viewPitch > 0, cam.viewPitch);
+    check('aiming does not turn the view', Math.abs(wrapA(cam.yaw - yaw0)) < 0.01 && worstStep < 0.05, `${wrapA(cam.yaw - yaw0)} ${worstStep}`);
+    // Turned off the trail and held there: aiming does not wind it back.
+    for (let i = 0; i < 60; i++) updateCamera(cam, h, world, { ...blankCam, forward, aimHeld: true, lookX: 1 }, settings, dt);
+    const turned = cam.turn;
+    for (let i = 0; i < 120 * 8; i++) updateCamera(cam, h, world, { ...blankCam, forward, aimHeld: true }, settings, dt);
+    check('the aim stays where it is put, it does not drift home', Math.abs(cam.turn - turned) < 0.01, `${turned} -> ${cam.turn}`);
+    // The trail bending under Hopper does not drag the shot off either.
+    const yawHeld = cam.yaw;
+    for (let i = 0; i < 120 * 3; i++) updateCamera(cam, h, world, { ...blankCam, forward: forward + 0.9, aimHeld: true }, settings, dt);
+    check('a bend in the trail does not drag the aim', Math.abs(wrapA(cam.yaw - yawHeld)) < 0.02, wrapA(cam.yaw - yawHeld));
+    check('and the trail direction went on turning underneath', Math.abs(wrapA(cam.forward - forward)) > 0.5, wrapA(cam.forward - forward));
+    // Released: the shot goes back out, and the drift takes it home.
+    const yawOut = cam.yaw;
+    let outStep = 0;
+    prevYaw = cam.yaw;
+    for (let i = 0; i < 120; i++) {
+      updateCamera(cam, h, world, { ...blankCam, forward: forward + 0.9 }, settings, dt);
+      outStep = Math.max(outStep, Math.abs(wrapA(cam.yaw - prevYaw)) / dt);
+      prevYaw = cam.yaw;
+    }
+    check('releasing the aim goes back out without turning the view', cam.distance > dist0 - 6 && cam.fov > fov0 - 3 && Math.abs(wrapA(cam.yaw - yawOut)) < 0.05, `${cam.distance.toFixed(1)} ${cam.fov.toFixed(1)} ${wrapA(cam.yaw - yawOut).toFixed(2)}`);
+    check('and it comes out as a turn, never a cut', outStep < 1.2, outStep);
+    // Only then does the view make its own slow way back to the trail.
+    for (let i = 0; i < 120 * 16; i++) updateCamera(cam, h, world, { ...blankCam, forward: forward + 0.9 }, settings, dt);
+    check('the drift home waits for the trigger, then takes the view back to the trail', Math.abs(cam.turn) < 0.05, cam.turn);
+  }
+
   // Leaving Horizon View does not snap the picture: the yaw it was left at
   // becomes a manual turn from forward, and the recentre pans it home.
   {

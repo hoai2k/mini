@@ -28,6 +28,13 @@ const SHADOW_NAMES: Record<string, string> = {
   riftCondor: 'Rift Condor',
 };
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
+/** The crosshair's reach. It takes hold of a shadow within `grab` of the
+ * middle of the screen and keeps it out to `hold`, so what it catches is
+ * always something the player was already all but pointing at: `grab` is
+ * about a tenth of the way to the edge of the aimed picture, so the crosshair
+ * only ever slides a little off centre, and a shadow away to the side of the
+ * view is never snatched at. */
+const AIM = { grab: 0.11, hold: 0.2, range: 340, drop: 420, converge: 220 };
 
 /** What crosses the threshold with Hopper when a district hands over. */
 interface Carry {
@@ -276,16 +283,25 @@ export class Engine3D implements GameEngine {
     // and the lock-on can hold it: a shadow this big, this high, is otherwise
     // shot at only by luck.
     combat.bossTarget = this.boss && this.boss.rook.active && this.boss.rook.alive ? this.boss.target() : null;
-    // Lock-on: hold LT to lock the nearest shadow in view; tap to cycle.
+    // Aiming (LT held): the camera comes in and zooms, the player aims it, and
+    // the crosshair at the middle of it takes hold of whatever shadow it comes
+    // near. Nothing here turns the view: the lock follows the aim, never the
+    // other way about. A tap cycles between the shadows near the crosshair.
     const lockTapped = f.lockPressed && this.lockHeldPrev;
     if (f.lockHeld) {
-      if (!combat.lock || lockTapped) {
-        const forward = this.aimDirection();
-        const candidates = combat.targets().filter((s) => Math.hypot(s.x - h.x, s.z - h.z) < 260).sort((a, b) => this.lockScore(a, forward) - this.lockScore(b, forward));
-        if (candidates.length) {
-          const i = combat.lock ? candidates.findIndex((s) => s.id === combat.lock) : -1;
-          combat.lock = candidates[(i + 1) % candidates.length].id;
-        }
+      const aim = this.aimDirection();
+      const off = (s: Shadow) => this.aimOffset(s, aim);
+      const held = combat.targetById(combat.lock);
+      // What the crosshair holds, it keeps until the aim has drifted well off
+      // it, so a shadow that jinks does not shake the crosshair loose.
+      const keep = held && !lockTapped && off(held) < AIM.hold && Math.hypot(held.x - h.x, held.z - h.z) < AIM.drop;
+      if (!keep) {
+        const near = combat
+          .targets()
+          .filter((s) => Math.hypot(s.x - h.x, s.z - h.z) < AIM.range && off(s) < AIM.grab)
+          .sort((a, b) => off(a) - off(b));
+        const i = held ? near.findIndex((s) => s.id === held.id) : -1;
+        combat.lock = near.length ? near[lockTapped && i >= 0 ? (i + 1) % near.length : 0].id : null;
       }
     } else combat.lock = null;
     this.lockHeldPrev = f.lockHeld;
@@ -500,7 +516,7 @@ export class Engine3D implements GameEngine {
     // camera lifts and pulls back to hold it in frame.
     const rook = this.boss?.rook;
     const rookInFrame = rook && rook.active && rook.alive ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [number, number, number]) : null;
-    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, horizonHeld: f.horizonHeld, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
+    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, aimHeld: f.lockHeld, horizonHeld: f.horizonHeld, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
     this.predicted = !h.grounded && h.height > 3 && !h.gliding && !h.hovering ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
@@ -566,20 +582,48 @@ export class Engine3D implements GameEngine {
     this.showBanner(d.name, d.subtitle, 3.2);
     this.emit();
   }
-  private lockScore(s: Shadow, forward: [number, number, number]) {
+  /** How far off the crosshair a shadow stands, in radians. */
+  private aimOffset(s: Shadow, aim: [number, number, number]) {
     const h = this.player;
     const dx = s.x - h.x,
-      dy = s.y - h.y,
+      dy = s.y + s.height * 0.5 - (h.y + 12),
       dz = s.z - h.z,
       d = Math.hypot(dx, dy, dz) || 1;
-    const cos = (dx * forward[0] + dy * forward[1] + dz * forward[2]) / d;
-    return d * (1.5 - cos);
+    return Math.acos(Math.max(-1, Math.min(1, (dx * aim[0] + dy * aim[1] + dz * aim[2]) / d)));
   }
+  /** The way the shot goes: along Hopper's facing, which is the way the
+   * camera faces, tilted with the picture. Aimed, the crosshair and the shot
+   * are the same line; from the follow view the tilt is halved, because there
+   * the camera looks down at Hopper rather than along with him. */
   private aimDirection(): [number, number, number] {
-    const h = this.player;
-    const pitch = -Math.sin(this.camera.pitch) * 0.5;
-    const l = Math.hypot(1, pitch);
-    return [Math.sin(h.yaw) / l, pitch / l, Math.cos(h.yaw) / l];
+    const h = this.player,
+      cam = this.camera;
+    const pitch = -Math.sin(cam.viewPitch) * (0.5 + 0.5 * cam.aim);
+    let l = Math.hypot(1, pitch);
+    const dir: [number, number, number] = [Math.sin(h.yaw) / l, pitch / l, Math.cos(h.yaw) / l];
+    if (cam.aim > 0.01) {
+      // Aimed, the shot is laid on the crosshair itself: the camera stands off
+      // Hopper's shoulder, so the two lines are brought together a couple of
+      // hundred metres out rather than left running parallel.
+      const cp = Math.cos(cam.viewPitch),
+        sp = Math.sin(cam.viewPitch);
+      const px = cam.target[0] + Math.sin(cam.yaw) * cp * AIM.converge,
+        py = cam.target[1] - sp * AIM.converge,
+        pz = cam.target[2] + Math.cos(cam.yaw) * cp * AIM.converge;
+      const dx = px - (h.x + Math.sin(h.yaw) * 9),
+        dy = py - (h.y + 12),
+        dz = pz - (h.z + Math.cos(h.yaw) * 9),
+        d = Math.hypot(dx, dy, dz) || 1;
+      const w = cam.aim;
+      dir[0] += (dx / d - dir[0]) * w;
+      dir[1] += (dy / d - dir[1]) * w;
+      dir[2] += (dz / d - dir[2]) * w;
+      l = Math.hypot(dir[0], dir[1], dir[2]) || 1;
+      dir[0] /= l;
+      dir[1] /= l;
+      dir[2] /= l;
+    }
+    return dir;
   }
   private callbacks() {
     return {
@@ -697,10 +741,6 @@ export class Engine3D implements GameEngine {
       height: h.grounded ? undefined : h.height,
       landmark: d ? { name: d.landmark.name, distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z) } : undefined,
       hint: this.hintT > 0 ? this.hint : undefined,
-      // The centre crosshair is the free-aim mark, and free aim is where the
-      // shots go when nothing is locked. A locked target carries its own
-      // reticle in the world, so the centre mark stands down.
-      lock: c?.lock ? undefined : this.lockHeldPrev ? 'open' : undefined,
       target: this.targetInfo(),
       standIns: this.standInsOnScreen(),
       stronghold: this.activeStronghold(),

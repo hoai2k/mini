@@ -290,10 +290,12 @@ function fightBoss(boss, w, c) {
 // ---- Episode one ----
 check(MISSIONS[0].length === 3, 'episode one has three districts');
 
-// ---- Lock-on leaves the camera alone ----
-// Holding LT marks a target and turns Hopper toward it. It must not turn the
-// view, and losing the target -- shot down, or simply gone -- must not snap
-// the view back: the camera's direction is the trail's, locked or not.
+// ---- Aiming: the camera comes in, the crosshair does the rest ----
+// Holding LT is a camera mode, but only of distance and zoom: it brings the
+// view in over Hopper's shoulder and narrows the field. It must never turn
+// the view, and the crosshair must take hold only of what the player is
+// already looking at -- and let go, without moving the camera, when that
+// shadow falls.
 {
   const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
   const cam = priv('camera');
@@ -301,42 +303,58 @@ check(MISSIONS[0].length === 3, 'episode one has three districts');
   teleport(h.x, h.y, h.z);
   run(0.5);
   const aiming = { ...empty, lockHeld: true, lockPressed: true };
-  // A target square off to one side, 90° from the way the view faces.
-  const side = cam.forward + Math.PI / 2;
-  const mark = combat().spawn({ id: 'lock-probe', kind: 'riftCondor', x: h.x + Math.sin(side) * 30, z: h.z + Math.cos(side) * 30, y: h.y + 24, mode: 'a' });
-  check(Math.abs(wrapA(Math.atan2(mark.x - h.x, mark.z - h.z) - cam.yaw)) > 1, 'the probe stands well off the view');
+  const held = { ...aiming, lockPressed: false };
   const yaw0 = cam.yaw,
-    dist0 = cam.distance;
+    dist0 = cam.distance,
+    fov0 = cam.fov;
   let worstStep = 0,
     prevYaw = cam.yaw;
   const track = () => {
     worstStep = Math.max(worstStep, Math.abs(wrapA(cam.yaw - prevYaw)) / dt);
     prevYaw = cam.yaw;
   };
-  for (let i = 0; i < 120; i++) {
-    engine.tick(dt, i === 0 ? aiming : { ...aiming, lockPressed: false });
+  // A shadow square off to one side: the crosshair must not snatch at it.
+  const side = cam.yaw + Math.PI / 2;
+  combat().spawn({ id: 'aim-side', kind: 'riftCondor', x: h.x + Math.sin(side) * 60, z: h.z + Math.cos(side) * 60, y: h.y + 24, mode: 'a' });
+  for (let i = 0; i < 180; i++) {
+    engine.tick(dt, i === 0 ? aiming : held);
     track();
   }
-  check(combat().lock === 'lock-probe', `the lock finds the target off to the side (${combat().lock})`);
-  check(snapshot.lock === undefined, 'the centre crosshair stands down while a target is locked');
-  check(Math.abs(wrapA(cam.yaw - yaw0)) < 0.05, `locking on does not turn the camera (${wrapA(cam.yaw - yaw0).toFixed(3)} rad)`);
-  check(Math.abs(cam.distance - dist0) < 2, `locking on does not move the camera back (${cam.distance.toFixed(1)} vs ${dist0.toFixed(1)})`);
-  check(cam.mode === 'follow', `lock-on is not a camera mode (${cam.mode})`);
-  check(Math.abs(wrapA(h.yaw - Math.atan2(mark.x - h.x, mark.z - h.z))) < 0.2, 'Hopper faces the locked target');
-  // Shot down with the lock still held: the crosshair lets go, the view does not move.
-  combat().damage(mark, 999, engine.callbacks ? engine.callbacks() : { hurt() {}, effect() {}, sound() {}, bounce() {} });
-  const yaw1 = cam.yaw;
+  check(combat().lock !== 'aim-side', `the crosshair does not snatch at a shadow 90° off the view (${combat().lock})`);
+  check(cam.aim > 0.9, `holding LT brings up the aiming view (${cam.aim.toFixed(2)})`);
+  check(cam.distance < dist0 - 5, `aiming brings the camera in (${cam.distance.toFixed(1)} from ${dist0.toFixed(1)})`);
+  check(cam.fov < fov0 - 15, `aiming zooms in (${cam.fov.toFixed(1)}° from ${fov0.toFixed(1)}°)`);
+  check(Math.abs(wrapA(cam.yaw - yaw0)) < 0.05, `aiming does not turn the view (${wrapA(cam.yaw - yaw0).toFixed(3)} rad)`);
+  // A shadow out in front, where the crosshair is: that one it takes.
+  const mark = combat().spawn({ id: 'aim-probe', kind: 'shadeHound', x: h.x + Math.sin(cam.yaw) * 150, z: h.z + Math.cos(cam.yaw) * 150, y: 0 });
   for (let i = 0; i < 120; i++) {
-    engine.tick(dt, { ...aiming, lockPressed: false });
+    engine.tick(dt, held);
     track();
   }
-  check(!combat().targetById('lock-probe'), 'the target is gone');
-  check(Math.abs(wrapA(cam.yaw - yaw1)) < 0.05, `losing the target does not reset the camera (${wrapA(cam.yaw - yaw1).toFixed(3)} rad)`);
-  check(worstStep < 0.35, `the view never jumps through the lock, the kill or the release (worst ${worstStep.toFixed(2)} rad/s)`);
-  run(0.5);
-  check(snapshot.lock === 'open' || snapshot.lock === undefined, 'the crosshair returns to free aim with nothing locked');
+  check(combat().lock === 'aim-probe', `the crosshair takes hold of the shadow it is pointing at (${combat().lock})`);
+  const yawLocked = cam.yaw;
+  check(Math.abs(wrapA(yawLocked - yaw0)) < 0.05, `taking a target does not turn the view (${wrapA(yawLocked - yaw0).toFixed(3)} rad)`);
+  // Shot down with the aim still held: the crosshair lets go, the view holds.
+  combat().damage(mark, 999, { hurt() {}, effect() {}, sound() {}, bounce() {} });
+  for (let i = 0; i < 120; i++) {
+    engine.tick(dt, held);
+    track();
+  }
+  check(!combat().targetById('aim-probe'), 'the target is gone');
+  check(combat().lock !== 'aim-probe', 'the crosshair lets the dead target go');
+  check(Math.abs(wrapA(cam.yaw - yawLocked)) < 0.05, `losing the target does not turn the view (${wrapA(cam.yaw - yawLocked).toFixed(3)} rad)`);
+  check(worstStep < 0.35, `the view never jumps through any of it (worst ${worstStep.toFixed(2)} rad/s)`);
+  // Releasing gives the shot back.
+  run(1.5);
+  check(cam.aim < 0.05, `releasing LT drops the aiming view (${cam.aim.toFixed(2)})`);
+  check(Math.abs(cam.distance - dist0) < 4 && Math.abs(cam.fov - fov0) < 3, `the camera goes back out (${cam.distance.toFixed(1)} m, ${cam.fov.toFixed(1)}°)`);
+  check(combat().lock === null, 'the lock is released with the trigger');
+  for (const id of ['aim-side']) {
+    const s = combat().shadows.find((x) => x.id === id);
+    if (s) s.alive = false;
+  }
 }
-check(snapshot.standIns === undefined || snapshot.standIns.includes('shadows'), 'HUD stand-in tag reads the shadows on screen');
+
 const first = playDistrict(0);
 check(priv('transitionT') > 0, `${first.name}: exit starts the transition`);
 check(snapshot.banner === first.exit.name, 'exit banner');

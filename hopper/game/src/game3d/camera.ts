@@ -1,6 +1,8 @@
-/** The follow camera, its orbit, the high-leap pull-back, glide framing and
- * Horizon View. Lock-on is not a camera mode: a locked target moves the
- * crosshair and Hopper's facing, and the view carries on as it was. Pure math over the world's colliders so it can
+/** The follow camera, its orbit, the high-leap pull-back, glide framing, the
+ * aiming view and Horizon View. Aiming (LT) brings the camera in over
+ * Hopper's shoulder and zooms, and changes nothing about where the view
+ * points: the player aims it, and the crosshair at the centre of it does the
+ * rest by drifting onto whatever it is near. Pure math over the world's colliders so it can
  * be tested in node; the renderer copies eye/target/fov each frame.
  */
 import { World } from './world';
@@ -15,8 +17,9 @@ export interface CameraState {
   target: [number, number, number];
   /** Seconds since the player last moved the camera. */
   idle: number;
-  /** Lock-on is deliberately absent here: a locked target moves the crosshair
-   * and Hopper's facing, never the camera. */
+  /** Aiming is a modifier on the follow view, not a direction of its own, so
+   * it is `aim` below rather than a mode: taking or losing a target can never
+   * turn the picture. */
   mode: 'follow' | 'horizon';
   /** Eased state offsets (glide, dive, height) so state changes never pop. */
   tilt: number;
@@ -37,6 +40,13 @@ export interface CameraState {
   /** Seconds left of a stick-click recentre, which brings the view round
    * quickly but still as a turn, never a cut. */
   snap: number;
+  /** How far into the aiming view the camera is, 0 to 1: in over the
+   * shoulder, zoomed, levelled off, the look slowed. Eased, so holding and
+   * releasing LT is a move of the shot, never a cut. */
+  aim: number;
+  /** The pitch the picture is actually taken at this frame, tilt and the
+   * aim's levelling included: the direction the crosshair looks along. */
+  viewPitch: number;
 }
 export interface CameraInput {
   lookX: number;
@@ -44,6 +54,9 @@ export interface CameraInput {
   mouseLookX: number;
   mouseLookY: number;
   resetPressed: boolean;
+  /** LT: the aiming view. It moves the camera in and zooms; it never turns
+   * it, and nothing about the target does either. */
+  aimHeld?: boolean;
   horizonHeld: boolean;
   landmark?: [number, number, number];
   /** The commander's centre while one is awake: the follow camera lifts its
@@ -101,6 +114,17 @@ export const CAMERA = {
   maxPitch: 1.2,
   stickRate: 2.6,
   mouseRate: 0.0035,
+  /** Aiming: the camera comes in this close, zooms to this field of view,
+   * steps this far over Hopper's shoulder and levels off to this pitch, all
+   * eased at `aimRate`; the look slows to `aimSens` of its usual speed so a
+   * distant shadow can be held. None of it touches the yaw. */
+  aimDistance: 46,
+  aimFov: 46,
+  aimShoulder: 15,
+  aimLift: 3,
+  aimPitch: 0.04,
+  aimRate: 5,
+  aimSens: 0.55,
   /** The eye and the look point follow at this rate along the ground ... */
   smoothing: 8,
   /** ... and this much more slowly in height, so a hop is a hop of the body
@@ -119,7 +143,7 @@ export const CAMERA = {
 };
 
 export function createCamera(yaw: number, at: [number, number, number]): CameraState {
-  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0, forward: yaw, turn: 0, flow: [0, 0, 0], clip: 1, riseRate: CAMERA.riseRate, snap: 0 };
+  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0, forward: yaw, turn: 0, flow: [0, 0, 0], clip: 1, riseRate: CAMERA.riseRate, snap: 0, aim: 0, viewPitch: CAMERA.pitch };
 }
 
 const ease = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -159,7 +183,10 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   const stickX = input.lookX,
     stickY = input.lookY;
   const looking = Math.abs(stickX) > 0.02 || Math.abs(stickY) > 0.02 || Math.abs(input.mouseLookX) > 0 || Math.abs(input.mouseLookY) > 0;
-  if (looking) cam.idle = 0;
+  // Aiming counts as a hand on the camera: the drift back toward forward
+  // waits its usual couple of seconds after the trigger is released rather
+  // than starting the moment the shot ends.
+  if (looking || input.aimHeld) cam.idle = 0;
   else cam.idle += dt;
 
   // Desired framing by mode. The look point leads Hopper by his smoothed
@@ -167,6 +194,9 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   // changes it over a few tenths of a second, not in a frame.
   const kf = 1 - Math.exp(-CAMERA.flowRate * dt);
   cam.flow = [ease(cam.flow[0], h.vx, kf), ease(cam.flow[1], h.vy, kf), ease(cam.flow[2], h.vz, kf)];
+  // Aiming eases in and out. Horizon View is its own picture and wins.
+  const aiming = !!input.aimHeld && !(input.horizonHeld && input.landmark);
+  cam.aim = ease(cam.aim, aiming ? 1 : 0, 1 - Math.exp(-CAMERA.aimRate * dt));
   let wantYaw = cam.yaw,
     wantPitch = CAMERA.pitch,
     wantDistance = CAMERA.distance,
@@ -196,8 +226,13 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     // round and run back toward it; the view does not follow him, and it never
     // faces backward: the route's tangent always points onward.
     if (input.forward !== undefined) {
+      const was = cam.forward;
       const want = wrap(input.forward - cam.forward) * Math.min(1, CAMERA.forwardRate * dt);
       cam.forward += Math.max(-CAMERA.forwardTurnRate * dt, Math.min(CAMERA.forwardTurnRate * dt, want));
+      // While the player is aiming, the trail bending under him must not drag
+      // the shot off the shadow: the turn takes up the difference and the yaw
+      // stands still. It is given back by the drift once LT is released.
+      if (aiming) cam.turn -= cam.forward - was;
     }
     // A manual turn either way. It is not sprung: the view stays where it was
     // left, and only once the stick has been still for a while does it drift
@@ -207,9 +242,12 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     // Horizon View is allowed to stand and be wound back, never cut to the
     // limit: the limit only stops the stick from opening it further.
     const limit = Math.max(CAMERA.maxTurn, Math.abs(cam.turn));
-    cam.turn -= stickX * CAMERA.stickRate * sens * dt + input.mouseLookX * CAMERA.mouseRate * sens;
+    // Zoomed in, the same stick travel covers less sky, so a shadow at three
+    // hundred metres can be held on the crosshair.
+    const look = sens * (1 - cam.aim * (1 - CAMERA.aimSens));
+    cam.turn -= stickX * CAMERA.stickRate * look * dt + input.mouseLookX * CAMERA.mouseRate * look;
     cam.turn = Math.max(-limit, Math.min(limit, cam.turn));
-    cam.pitch += (stickY * CAMERA.stickRate * 0.6 * sens * dt + input.mouseLookY * CAMERA.mouseRate * 0.6 * sens) * invert;
+    cam.pitch += (stickY * CAMERA.stickRate * 0.6 * look * dt + input.mouseLookY * CAMERA.mouseRate * 0.6 * look) * invert;
     cam.pitch = Math.max(CAMERA.minPitch, Math.min(CAMERA.maxPitch, cam.pitch));
     if (input.resetPressed) {
       cam.snap = 1;
@@ -221,7 +259,7 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
       cam.turn -= cam.turn * k;
       cam.pitch += (CAMERA.pitch - cam.pitch) * k;
       cam.snap -= dt;
-    } else if (!looking && cam.idle > CAMERA.turnReturnDelay) {
+    } else if (!looking && !aiming && cam.idle > CAMERA.turnReturnDelay) {
       const ramp = Math.min(1, (cam.idle - CAMERA.turnReturnDelay) / CAMERA.turnReturnRamp);
       const step = Math.min(Math.abs(cam.turn) * CAMERA.turnReturn * dt, CAMERA.turnReturnSpeed * ramp * ramp * dt);
       cam.turn -= Math.sign(cam.turn) * step;
@@ -261,6 +299,24 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     cam.tilt = ease(cam.tilt, wantTilt, ks);
     wantDistance = CAMERA.distance + cam.pull;
     wantPitch = cam.pitch + cam.tilt;
+    // Aiming: in over the shoulder and zoomed, and the picture levels off so
+    // that the middle of the screen is a long way ahead at Hopper's height
+    // rather than the ground at his feet. The yaw is untouched throughout.
+    if (cam.aim > 0.001) {
+      wantDistance = ease(wantDistance, CAMERA.aimDistance, cam.aim);
+      wantFov = ease(wantFov, CAMERA.aimFov, cam.aim);
+      wantPitch -= cam.aim * (CAMERA.pitch - CAMERA.aimPitch);
+      // Over the right shoulder: the middle of the screen steps off Hopper's
+      // flank so that the crosshair looks past him rather than through him.
+      // The step is an angle, not a distance -- it is taken as a share of how
+      // far the eye actually stands off, so a wall behind Hopper that brings
+      // the eye in does not also shove him out of the frame.
+      const reach = Math.min(1, (cam.distance * cam.clip) / CAMERA.aimDistance);
+      const step = cam.aim * CAMERA.aimShoulder * reach;
+      target[0] -= Math.cos(cam.yaw) * step;
+      target[2] += Math.sin(cam.yaw) * step;
+      target[1] += cam.aim * CAMERA.aimLift * reach;
+    }
   }
   const k = 1 - Math.exp(-CAMERA.smoothing * dt);
   if (cam.mode !== 'follow') {
@@ -268,6 +324,7 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     cam.pitch = ease(cam.pitch, wantPitch, k * 0.8);
   }
   const usePitch = cam.mode === 'follow' ? wantPitch : cam.pitch;
+  cam.viewPitch = usePitch;
   cam.distance = ease(cam.distance, wantDistance, k * 0.6);
   cam.fov = ease(cam.fov, wantFov, Math.min(1, 3 * dt));
   // The look point follows at the camera's pace along the ground and more

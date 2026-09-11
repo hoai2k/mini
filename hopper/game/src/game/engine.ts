@@ -41,10 +41,6 @@ export interface GameSnapshot {
   landmark?: { name: string; distance: number };
   /** 3D edition only: a short contextual hint shown in the HUD. */
   hint?: string;
-  /** 3D lock-on: the free-aim crosshair at the centre of the screen while LT
-   * is held and holds nothing. A locked target wears its reticle in the
-   * world, on the target, so the centre mark stands down. */
-  lock?: 'open';
   /** 3D edition: the shadow being aimed at or locked, and how hurt it is, so
    * the player can see the damage landing. */
   target?: { name: string; health: number; locked: boolean };
