@@ -11,7 +11,7 @@ its own `assets/` folder.
 - `bubblegum_radar_2.png` — the Bubblegum Radar single cover, 1254 × 1254,
   used by `sites/charlies-girl-dolls/`.
 - `jungle_temple.png` — 1672 × 940, delivered; not yet used by a site.
-- `Canadensis_2.png` — sepia photograph of Canagentsis on the deck of the
+- `Canagentsis_2.png` — sepia photograph of Canagentsis on the deck of the
   St. Patrick No. 17, 1448 × 1086, used by `sites/canagentsis/` (hero, crew
   crops and the nameplate detail).
 - `mech_mayhem_1.png` — the band photo of Mech Mayhem, five mechs on a temple

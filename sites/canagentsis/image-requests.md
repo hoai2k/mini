@@ -4,7 +4,7 @@ Images the band page would use if generated. The page works without them;
 each one replaces a drawn placeholder or adds a section that is text-only
 today. Drop finished files in `sites/images/` with the file name given, and
 the page can be updated to take them. Match the delivered photograph
-(`Canadensis_2.png`): sepia albumen-print look, foxed edges, soft focus, late
+(`Canagentsis_2.png`): sepia albumen-print look, foxed edges, soft focus, late
 1880s costume and rigging, with modern Toronto visible only where noted.
 
 | # | File name | Size | Used for | Status |
