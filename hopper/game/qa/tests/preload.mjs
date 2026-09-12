@@ -54,7 +54,10 @@ for (let mission = 0; mission < MISSIONS.length; mission++)
     check(paths.includes(`trim/${region}-emissive.png`), `${district.name}: trim emissive queued`);
     for (const f of ['ground', 'cliff', 'path'])
       check(paths.includes(`terrain/${region}/${f}.png`), `${district.name}: terrain ${f} queued`);
-    check(paths.some((p) => p.startsWith('ui/landing-guide')), `${district.name}: landing guide queued`);
+    check(
+      !paths.some((p) => p.startsWith('ui/landing-guide')),
+      `${district.name}: the retired landing guide is not fetched`,
+    );
     const surface = FLOOR_SURFACE[region];
     check(
       !!surface === paths.some((p) => p.startsWith('surface/')),

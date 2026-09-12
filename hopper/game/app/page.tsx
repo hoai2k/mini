@@ -1389,7 +1389,7 @@ export default function Home() {
                         />
                       </div>
                       <div className="setting-row">
-                        <label htmlFor="landingGuide">Landing guide</label>
+                        <label htmlFor="landingGuide">Ground shadow</label>
                         <Switch
                           {...nav(7)}
                           id="landingGuide"
