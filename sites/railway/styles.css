@@ -140,22 +140,32 @@ a {
 }
 .hero-art img {
   width: 100%;
-  max-height: 82vh;
+  /* The three faces sit between 38% and 68% down the source photo. A cover
+     crop hides (scaledHeight - boxHeight) x objectPositionY from the top, so
+     the high Y here pushes the crop window down the photo and lifts the faces
+     into the upper two thirds of the frame, clear of the title block. */
+  max-height: 72vh;
   object-fit: cover;
-  object-position: center 35%;
+  object-position: center 58%;
 }
 .hero-art::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 45%, var(--black) 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 45%,
+    rgb(20 17 15 / 0.55) 78%,
+    var(--black) 100%
+  );
   pointer-events: none;
 }
 .hero-copy {
   position: relative;
   max-width: var(--max);
-  margin: clamp(-6rem, -12vw, -10rem) auto 0;
-  padding: 0 clamp(1rem, 4vw, 2.5rem) clamp(2.5rem, 5vw, 4rem);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1rem, 4vw, 2.5rem)
+    clamp(2.5rem, 5vw, 4rem);
 }
 .hero h1 {
   font-size: clamp(3rem, 9vw, 6.5rem);
@@ -454,16 +464,21 @@ main > section.repertoire {
 /* Live clips */
 .clips {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Phone-shot clips stay 9:16 when they play; the thumbnail is capped so a
+     portrait video does not take over the page. */
+  grid-template-columns: repeat(2, minmax(0, 240px));
   gap: clamp(1rem, 3vw, 2rem);
   align-items: start;
-  max-width: 760px;
+  justify-content: start;
 }
 .clip {
   margin: 0;
 }
 .clip video {
   width: 100%;
+  /* Without this the height="1280" attribute wins over aspect-ratio and the
+     thumbnail renders 1280px tall. */
+  height: auto;
   aspect-ratio: 9 / 16;
   object-fit: cover;
   border-radius: 6px;
@@ -610,10 +625,8 @@ footer p {
 }
 @media (max-width: 560px) {
   .clips {
-    grid-template-columns: 1fr;
-  }
-  .hero-copy {
-    margin-top: -3rem;
+    grid-template-columns: minmax(0, 240px);
+    justify-content: center;
   }
   .masthead {
     padding-inline: 0.75rem;
