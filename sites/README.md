@@ -39,6 +39,13 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   imaginary bands). Published at https://hoai2k.github.io/mini/sites/railway/.
   Its `media/` folder holds the original photo and video drops and is not
   deployed; the page serves the web copies in `assets/`.
+- [`stratfordtennisclub/`](stratfordtennisclub/) — a redesign prototype for
+  the real Stratford Tennis Club's website, more professional and tennis-like
+  while staying friendly and community-oriented, responsive on phone and
+  desktop. Published at https://hoai2k.github.io/mini/sites/stratfordtennisclub/.
+  Ten pages mirror the live site's 2026 content; `BOOKING.md` records what the
+  club's JustBookIt booking system exposes and the options for integrating or
+  replacing it.
 - [`music/`](music/) — shared home for recordings that belong to a band
   rather than a game. A band page looks in its own `music/` folder first,
   then here. Deployed to `/mini/sites/music/`.
