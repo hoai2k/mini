@@ -21,5 +21,9 @@ for dir in "$here"/*/; do
   [ -f "$dir/index.html" ] || continue
   rm -rf "$out/$name"
   cp -R "$dir" "$out/$name"
+  # A site's media/ folder holds the original drops (raw phone video and
+  # full-size photos); the page uses the web copies in assets/, so leave the
+  # originals out of the deploy.
+  rm -rf "$out/$name/media"
   echo "published $name to $out/$name/"
 done

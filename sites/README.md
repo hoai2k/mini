@@ -34,6 +34,11 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/mechmayhem/. Uses the band photo from
   `images/`, portraits and badges from the game repository's canonical art,
   and streams the game's soundtrack from its deployed site.
+- [`railway/`](railway/) — The Railway Trio, a real live jazz trio from
+  Stratford, Ontario (not part of the Ygent catalogue, which is for the
+  imaginary bands). Published at https://hoai2k.github.io/mini/sites/railway/.
+  Its `media/` folder holds the original photo and video drops and is not
+  deployed; the page serves the web copies in `assets/`.
 - [`music/`](music/) — shared home for recordings that belong to a band
   rather than a game. A band page looks in its own `music/` folder first,
   then here. Deployed to `/mini/sites/music/`.
