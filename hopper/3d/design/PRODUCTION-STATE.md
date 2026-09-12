@@ -34,7 +34,7 @@ Reconcile the current request inventory, finish requested image work that the av
 
 - [x] Fetch latest upstream and fast-forward main, preserving local edits in named stashes.
 - [x] Write staged plan and agent assignments.
-- [x] Reconcile request source and docs; count local-feasible versus Tripo-preferred work. See REQUEST-AUDIT.md: 5 local-first creatures, 4 conditional, 12 Tripo-preferred; 2 existing-rig animation requests.
+- [x] Reconcile request source and docs; count local-feasible versus Tripo-preferred work. See REQUEST-AUDIT.md: 4 local-first creatures, 4 conditional, 1 canonical/contract conflict (Gravity Cantor), 12 Tripo-preferred; 2 existing-rig animation requests.
 - [ ] Fix/re-export/regenerate failed Round 3 images and rerun verification.
 - [ ] Deliver native-resolution sky repaints or document concrete tool limitation.
 - [ ] Complete verified Tier A batches.
@@ -50,3 +50,6 @@ Reconcile the current request inventory, finish requested image work that the av
 - Native sky retries still below spec: Fields `exec-409532f4-9913-420d-ac32-9cf530e07e64.png`, City `exec-3c11740a-585f-4413-837e-1ac9c001459a.png`, Mountains `exec-4bc4ba46-de4b-4826-aa2c-ab15915121c1.png`; all 1774×887. Outputs are discarded candidates in the default imagegen session directory, not published HD assets. T-083–085 remain open. The built-in tool has no resolution parameter; do not spend repeated calls on the same limit.
 - Pending user text clarification: authorize deterministic image-processing seam repair and atlas repacking, or use imagegen for visual edits. Continue independent model work while waiting; do not interpret elapsed time as authorization.
 - Sol `tier_a` agent owns new cleanup scripts and ignored `local/hopper-tier-a/` candidates; no production GLB/manifest writes yet. Luna `rig_inventory` owns RIG-AUDIT.md.
+- Inventory/checks batch committed/pushed as `1960fd4`. The inexpensive rig audit is complete in RIG-AUDIT.md; it distinguishes 15 new Hopper clips and 6 new rider clips from existing exports (combined expected total 46). Existing character geometry/weights should be retained byte-for-byte using an animation append workflow where practical.
+- Tier A prototype found the installed gltfpack needs `-kn -ke -km` during decode to retain named nodes. Sol is testing one landmark before batching.
+- Simple audit stages are complete and backed up; begin Astra animation work while the mechanical cleanup test runs. Animation agent owns candidate outputs/new authoring code, not production GLBs or manifests.
