@@ -13,7 +13,7 @@ import { regionById } from '../../../3d/standins/src/index.js';
 import { preloadDistrict, Prefetcher } from './preload';
 import { MISSIONS, type District } from './district';
 import { NightRook } from './boss3d';
-import { createHopperState, intentFromInput, predictLanding, stepHopper, MOVE, type HopperState } from './controller';
+import { createHopperState, intentFromInput, stepHopper, MOVE, type HopperState } from './controller';
 import { createCamera, updateCamera, type CameraState } from './camera';
 import { Combat, type Shadow } from './combat3d';
 import { Scene3D } from './scene';
@@ -107,7 +107,6 @@ export class Engine3D implements GameEngine {
   private lockHeldPrev = false;
   /** Seconds Y has been held on the ground: a tap hops back, a hold charges. */
   private yHold = -1;
-  private predicted: { x: number; y: number; z: number } | null = null;
   /** Hopper's last known distance along the trail (a search hint). */
   private routeS = 0;
   private onClick = () => {
@@ -233,7 +232,6 @@ export class Engine3D implements GameEngine {
       this.camera.pitch = carry.pitch;
       this.camera.yaw = forward + carry.camTurn;
     }
-    this.predicted = null;
     this.routeS = world.route.nearest(x, z).s;
   }
   setPaused(v: boolean): void {
@@ -251,7 +249,7 @@ export class Engine3D implements GameEngine {
     // A seam crossing waits for its paintings: hold the simulation and keep
     // presenting the last frame behind the loading screen.
     if (this.loading) {
-      this.scene.render(this.player, this.world, this.combat, this.camera, 0, this.predicted, this.settings.landingGuide !== false);
+      this.scene.render(this.player, this.world, this.combat, this.camera, 0, this.settings.landingGuide !== false);
       return;
     }
     if (!this.paused && f && !this.completed) {
@@ -274,7 +272,7 @@ export class Engine3D implements GameEngine {
         this.uiClock = 0;
       }
     }
-    this.scene.render(this.player, this.world, this.combat, this.camera, this.paused ? 0 : dt, this.predicted, this.settings.landingGuide !== false);
+    this.scene.render(this.player, this.world, this.combat, this.camera, this.paused ? 0 : dt, this.settings.landingGuide !== false);
     // The hand-over: keep the frame just drawn, swap districts behind it, and
     // let the shell dissolve it away over the new one.
     if (this.captureNext) {
@@ -545,7 +543,6 @@ export class Engine3D implements GameEngine {
     const rook = this.boss?.rook;
     const rookInFrame = rook && rook.active && rook.alive ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [number, number, number]) : null;
     updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, aimHeld: f.lockHeld, horizonHeld: f.horizonHeld, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
-    this.predicted = !h.grounded && h.height > 3 && !h.gliding && !h.hovering ? predictLanding(h, world) : null;
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
     if (this.time > 20 && this.time < 20.1) this.setHint(`Click the right stick: Horizon View shows the way to ${d.landmark.name}.`, 6);

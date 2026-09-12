@@ -24,7 +24,8 @@ import {
   TorusGeometry,
   CapsuleGeometry,
   CylinderGeometry,
-  RingGeometry,
+  CanvasTexture,
+  CircleGeometry,
   Sprite,
   SpriteMaterial,
   Texture,
@@ -48,7 +49,7 @@ import type { World } from './world';
 import type { HopperState } from './controller';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
-import { atlasSprite, cell, cellPlane, cellSprite, decal, guideVariant, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
+import { atlasSprite, cell, cellPlane, cellSprite, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
 import { standInKey, swapDelivered, type Swapped } from './models3d';
 import { buildTrail } from './trail';
 import type { RookRuntime } from './boss3d';
@@ -61,6 +62,26 @@ interface Effect {
 }
 
 /** Find a node by its glTF name, before or after three's name sanitising. */
+/** A radial falloff for the ground shadow: dark in the middle, gone at the rim. */
+let shadowTexture: CanvasTexture | null = null;
+function softShadowTexture(): CanvasTexture | null {
+  if (shadowTexture) return shadowTexture;
+  if (typeof document === 'undefined') return null;
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const c = canvas.getContext('2d');
+  if (!c) return null;
+  const g = c.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.55, 'rgba(255,255,255,0.82)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  c.fillStyle = g;
+  c.fillRect(0, 0, size, size);
+  shadowTexture = new CanvasTexture(canvas);
+  return shadowTexture;
+}
+
 function node(root: Object3D, name: string): Object3D | null {
   let found = root.getObjectByName(name) || root.getObjectByName(name.replace(/[\s.]/g, '')) || null;
   if (!found) root.traverse((o) => { if (!found && o.userData?.name === name) found = o; });
@@ -89,15 +110,14 @@ export class Scene3D {
   private animated: StandInObject[] = [];
   private projectileObjects = new Map<number, Mesh>();
   private effects: Effect[] = [];
-  private guide: Mesh;
-  private guidePredicted: Mesh;
+  /** Hopper's shadow on the ground: where he is, and where he would land. */
+  private groundShadow: Mesh;
   private lockRing: Mesh;
   private reticles: { open: Sprite | null; locked: Sprite | null } = { open: null, locked: null };
   /** The crosshair's own line and range, eased: it rides the middle of the
    * picture and slides the short way onto a shadow the aim comes near. */
   private aimLine = new Vector3(0, 0, -1);
   private aimRange = 90;
-  private guideDecal: Mesh | null = null;
   private atlases: AtlasSprite[] = [];
   private delivered: Swapped[] = [];
   private bossObject: Object3D | null = null;
@@ -125,15 +145,14 @@ export class Scene3D {
     this.scene.add(this.worldGroup);
     this.sun = new DirectionalLight('#fff1c2', 1.15);
     this.sun.position.set(-600, 900, 500);
-    this.guide = new Mesh(new RingGeometry(3.2, 4.2, 40), new MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.75, side: DoubleSide, depthWrite: false }));
-    this.guide.rotation.x = -Math.PI / 2;
-    this.guide.visible = false;
-    this.guidePredicted = new Mesh(new RingGeometry(1.6, 2.4, 32), new MeshBasicMaterial({ color: '#ffdf7a', transparent: true, opacity: 0.6, side: DoubleSide, depthWrite: false }));
-    this.guidePredicted.rotation.x = -Math.PI / 2;
-    this.guidePredicted.visible = false;
+    // Drawn after the opaque ground (renderOrder 1) and writing no depth, so
+    // the terrain cannot paint over it and it cannot occlude anything itself.
+    this.groundShadow = new Mesh(new CircleGeometry(15, 40), new MeshBasicMaterial({ color: '#0b120e', transparent: true, opacity: 0.6, depthWrite: false, map: softShadowTexture() }));
+    this.groundShadow.rotation.x = -Math.PI / 2;
+    this.groundShadow.renderOrder = 1;
     this.lockRing = new Mesh(new TorusGeometry(4, 0.3, 6, 32), new MeshBasicMaterial({ color: '#ff5a4a', depthTest: false }));
     this.lockRing.visible = false;
-    this.scene.add(this.guide, this.guidePredicted, this.lockRing);
+    this.scene.add(this.groundShadow, this.lockRing);
     this.resize();
   }
   resize() {
@@ -267,19 +286,13 @@ export class Scene3D {
     }
     void paintKit(this.worldGroup, region.id);
     for (const inst of world.instances) this.decorate(inst.object, inst.standIn);
-    // Delivered decals and reticles replace the placeholder rings once loaded.
-    void decal(guideVariant(region.id, region.ground), 12, '#f6edcc').then((m) => {
-      if (!m || version !== this.buildVersion) return;
-      this.guideDecal = m;
-      m.visible = false;
-      this.scene.add(m);
-    });
+    // Delivered reticles replace the placeholder rings once loaded.
     void reticle(false, 14).then((r) => (this.reticles.open = r));
     void reticle(true, 14).then((r) => (this.reticles.locked = r));
     for (const s of shadows) {
       const o = createStandIn(`enemy.${s.kind}`);
-      // The body is scaled to Hopper's size; the flash sphere and amber tell
-      // ring are authored in the stand-in's own units and scale with it.
+      // The body is scaled to Hopper's size; the flash sphere is authored in
+      // the stand-in's own units and scales with it.
       const r = s.radius / s.size,
         hgt = s.height / s.size;
       o.scale.setScalar(s.size);
@@ -287,12 +300,7 @@ export class Scene3D {
       flash.name = 'Flash';
       flash.visible = false;
       flash.position.y = hgt * 0.5;
-      const tell = new Mesh(new TorusGeometry(r * 1.4, 0.25, 6, 24), this.tellMaterial);
-      tell.name = 'Tell';
-      tell.visible = false;
-      tell.rotation.x = Math.PI / 2;
-      tell.position.y = hgt + 1.5;
-      o.add(flash, tell);
+      o.add(flash);
       this.worldGroup.add(o);
       this.shadowObjects.set(s.id, o);
     }
@@ -563,20 +571,9 @@ export class Scene3D {
       if (!o.visible) continue;
       o.position.set(s.x, s.y, s.z);
       o.rotation.set(0, s.yaw, 0);
-      const flash = o.getObjectByName('Flash') as Mesh,
-        tell = o.getObjectByName('Tell') as Mesh;
+      const flash = o.getObjectByName('Flash') as Mesh;
       flash.visible = s.hitFlash > 0 || s.spawnFlash > 0;
       if (flash.visible) flash.scale.setScalar(s.spawnFlash > 0 ? 1 + s.spawnFlash * 2 : 1);
-      const staring = s.dormant && s.perched && s.stare > 0;
-      tell.visible = s.state === 'tell' || s.open > 0 || staring;
-      if (staring) {
-        // Eyes on Hopper: an ember that brightens as he comes closer.
-        (tell.material as MeshBasicMaterial).color.set('#ff7a48');
-        tell.scale.setScalar(0.35 + s.stare * 0.4 + Math.sin(this.time * 2.2 + s.phase) * 0.05);
-      } else if (tell.visible) {
-        (tell.material as MeshBasicMaterial).color.set(s.open > 0 && s.state !== 'tell' ? '#f3e7c8' : '#ffb454');
-        tell.scale.setScalar(s.state === 'tell' ? 1.6 - s.telegraph * 0.6 : 0.9 + Math.sin(this.time * 12) * 0.1);
-      }
       const squash = s.kind === 'seedSpitter' ? s.scale : 1;
       o.scale.set(squash * s.size, s.size / Math.sqrt(squash), squash * s.size);
       // A flyer launching off its perch stretches along the dive; a waiting
@@ -672,25 +669,22 @@ export class Scene3D {
     }
     this.effects = this.effects.filter((e) => e.life > 0);
   }
-  private syncGuide(h: HopperState, world: World, predicted: { x: number; y: number; z: number } | null, enabled: boolean) {
-    const show = enabled && !h.grounded && h.height > 3;
-    const guide = this.guideDecal || this.guide;
-    this.guide.visible = show && !this.guideDecal;
-    if (this.guideDecal) this.guideDecal.visible = show;
-    this.guidePredicted.visible = show && !!predicted;
-    if (!show) return;
+  /**
+   * Hopper's shadow, cast straight down onto the ground he is over. It doubles
+   * as the height reference the landing ring used to give: it spreads and
+   * fades as he climbs, and tightens as he comes down.
+   */
+  private syncShadow(h: HopperState, world: World, enabled: boolean) {
+    this.groundShadow.visible = enabled;
+    if (!enabled) return;
     const below = world.groundAt(h.x, h.z, h.y).y;
-    guide.position.set(h.x, below + 0.3, h.z);
-    const k = 1 + Math.min(3, h.height * 0.04);
-    guide.scale.setScalar(k);
-    (guide.material as MeshBasicMaterial).opacity = 0.35 + Math.min(0.5, 12 / Math.max(6, h.height));
-    if (predicted) {
-      this.guidePredicted.position.set(predicted.x, predicted.y + 0.35, predicted.z);
-      this.guidePredicted.scale.setScalar(k);
-    }
+    this.groundShadow.position.set(h.x, below + 0.25, h.z);
+    const height = Math.max(0, h.height);
+    this.groundShadow.scale.setScalar(1 + Math.min(1.6, height * 0.022));
+    (this.groundShadow.material as MeshBasicMaterial).opacity = 0.5 * Math.max(0.16, 1 - height / 150);
   }
   /** Sync everything to the simulation and draw. */
-  render(h: HopperState, world: World, combat: Combat, cam: CameraState, dt: number, predicted: { x: number; y: number; z: number } | null, guideEnabled: boolean) {
+  render(h: HopperState, world: World, combat: Combat, cam: CameraState, dt: number, shadowEnabled: boolean) {
     this.time += dt;
     terrainClock.value = this.time;
     this.resize();
@@ -702,7 +696,7 @@ export class Scene3D {
     this.syncBoss(dt);
     this.syncProjectiles(combat.projectiles);
     this.syncEffects(dt);
-    this.syncGuide(h, world, predicted, guideEnabled);
+    this.syncShadow(h, world, shadowEnabled);
     for (const o of this.animated) o.userData.animate?.(this.time);
     for (const d of this.delivered) d.mixer?.update(dt);
     this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);

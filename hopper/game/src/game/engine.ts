@@ -14,7 +14,7 @@ export interface GameSettings {
   cameraSensitivity: number;
   /** 3D edition only: flip the vertical look axis. */
   invertY: boolean;
-  /** 3D edition only: show the landing-guide reticle while airborne. */
+  /** 3D edition only: draw Hopper's shadow on the ground below him. */
   landingGuide: boolean;
 }
 export interface GameSnapshot {
