@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-09-09",
-  "checks": "tiling, atlas padding, alpha",
+  "checkedAt": "2026-09-12",
+  "checks": "dimensions, tiling, atlas padding, occupied cells, alpha",
   "failures": [
     "surface/sea.png: opposite edges differ (x=8.161, y=11.549, limit 2.0)",
     "surface/dust.png: opposite edges differ (x=7.948, y=7.122, limit 2.0)",

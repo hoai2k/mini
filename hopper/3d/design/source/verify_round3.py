@@ -14,6 +14,7 @@ from PIL import Image
 import json
 import pathlib
 import sys
+from datetime import datetime, timezone
 
 TEXTURES = pathlib.Path(__file__).resolve().parents[2] / 'textures'
 # A tiling texture's opposite edges should differ no more than the repo's own
@@ -64,12 +65,17 @@ def main():
         tiles = x <= SEAM_LIMIT and y <= SEAM_LIMIT
         results[name] = {'size': list(image.size), 'seamX': x, 'seamY': y,
                          'seamLimit': SEAM_LIMIT, 'tiles': tiles}
+        expected = (512, 512) if '-detail' in name else (2048, 2048)
+        if image.size != expected:
+            failures.append(f'{name}: size {image.size}, expected {expected}')
         if not tiles:
             failures.append(f'{name}: opposite edges differ (x={x}, y={y}, limit {SEAM_LIMIT})')
 
     name = 'surface/shoreline-foam.png'
     image = Image.open(TEXTURES / name).convert('RGBA')
     w, h = image.size
+    if image.size != (1024, 256):
+        failures.append(f'{name}: size {image.size}, expected (1024, 256)')
     px = image.load()
     x = round(sum(abs(px[0, y][c] - px[w - 1, y][c]) for y in range(h) for c in range(4)) / (h * 4), 3)
     margin = int(h * 0.12)
@@ -88,6 +94,12 @@ def main():
         image = Image.open(TEXTURES / name).convert('RGBA')
         worst, empty, under = cell_padding(image, columns, rows, cell, required)
         low, high = image.getchannel('A').getextrema()
+        expected_size = (columns * cell, rows * cell)
+        if image.size != expected_size:
+            failures.append(f'{name}: size {image.size}, expected {expected_size}')
+        expected_empty = [[column, 3] for column in range(4)] if name == 'effects/hopper.png' else []
+        if empty != expected_empty:
+            failures.append(f'{name}: empty cells {empty}, expected {expected_empty}')
         results[name] = {'size': list(image.size), 'grid': [columns, rows],
                          'filledCells': columns * rows - len(empty), 'emptyCells': empty,
                          'minPaddingPx': worst, 'requiredPaddingPx': required,
@@ -110,7 +122,7 @@ def main():
     if not same or low != 0 or high <= 100:
         failures.append(f'{name}: alpha {low}-{high}, coverage ratio {ratio}')
 
-    report = {'checkedAt': '2026-09-09', 'checks': 'tiling, atlas padding, alpha',
+    report = {'checkedAt': datetime.now(timezone.utc).date().isoformat(), 'checks': 'dimensions, tiling, atlas padding, occupied cells, alpha',
               'failures': failures, 'results': results}
     out = TEXTURES / 'round3' / 'verification.json'
     out.write_text(json.dumps(report, indent=2) + '\n')

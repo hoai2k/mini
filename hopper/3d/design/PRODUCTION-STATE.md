@@ -34,10 +34,19 @@ Reconcile the current request inventory, finish requested image work that the av
 
 - [x] Fetch latest upstream and fast-forward main, preserving local edits in named stashes.
 - [x] Write staged plan and agent assignments.
-- [ ] Reconcile request source and docs; count local-feasible versus Tripo-preferred work.
+- [x] Reconcile request source and docs; count local-feasible versus Tripo-preferred work. See REQUEST-AUDIT.md: 5 local-first creatures, 4 conditional, 12 Tripo-preferred; 2 existing-rig animation requests.
 - [ ] Fix/re-export/regenerate failed Round 3 images and rerun verification.
 - [ ] Deliver native-resolution sky repaints or document concrete tool limitation.
 - [ ] Complete verified Tier A batches.
 - [ ] Complete animation requests.
 - [ ] Complete feasible creative model batches.
 - [ ] Final validation, main commits/pushes, and restart handoff.
+
+## Checkpoint: inventory and verification
+
+- Plan committed/pushed as `4490e93`.
+- Luna inventory audit complete. Preserve both named stashes; their stale delivered claims must not overwrite upstream verification failures.
+- Round 3 verifier now also checks required export dimensions and expected occupied atlas cells; a blank atlas cannot pass. Current baseline: 10 failures across 9 assets, consistent with upstream.
+- Native sky retries still below spec: Fields `exec-409532f4-9913-420d-ac32-9cf530e07e64.png`, City `exec-3c11740a-585f-4413-837e-1ac9c001459a.png`, Mountains `exec-4bc4ba46-de4b-4826-aa2c-ab15915121c1.png`; all 1774×887. Outputs are discarded candidates in the default imagegen session directory, not published HD assets. T-083–085 remain open. The built-in tool has no resolution parameter; do not spend repeated calls on the same limit.
+- Pending user text clarification: authorize deterministic image-processing seam repair and atlas repacking, or use imagegen for visual edits. Continue independent model work while waiting; do not interpret elapsed time as authorization.
+- Sol `tier_a` agent owns new cleanup scripts and ignored `local/hopper-tier-a/` candidates; no production GLB/manifest writes yet. Luna `rig_inventory` owns RIG-AUDIT.md.
