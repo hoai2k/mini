@@ -46,6 +46,8 @@ import {
 } from '../../../3d/standins/src/index.js';
 import type { World } from './world';
 import type { HopperState } from './controller';
+import { Gait } from './gait';
+import { HopperRig } from './rig3d';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, cell, cellPlane, cellSprite, decal, guideVariant, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
@@ -73,6 +75,12 @@ export class Scene3D {
   readonly camera = new PerspectiveCamera(60, 16 / 9, 0.5, 30000);
   private hopper: Object3D | null = null;
   private mixer: AnimationMixer | null = null;
+  /** The gaits and the skeleton they are put onto. */
+  private readonly gait = new Gait();
+  private readonly rig = new HopperRig();
+  private rigWeight = 1;
+  private lean = 0;
+  private wingPhase = 0;
   private clips = new Map<string, AnimationClip>();
   private action: AnimationAction | null = null;
   private actionName = '';
@@ -155,6 +163,7 @@ export class Scene3D {
     this.mixer = new AnimationMixer(gltf.scene);
     for (const c of gltf.animations) this.clips.set(c.name, c);
     this.wings = ['wing.L', 'wing.R'].map((n) => node(gltf.scene, n)).filter((o): o is Object3D => !!o);
+    this.rig.bind(gltf.scene);
     this.scene.add(gltf.scene);
     this.play('Idle', true);
     progress(1);
@@ -455,16 +464,17 @@ export class Scene3D {
       }
     }
   }
-  private syncHopper(h: HopperState, combat: Combat, dt: number) {
+  private syncHopper(h: HopperState, world: World, combat: Combat, dt: number) {
     const root = this.hopper;
     if (!root) return;
-    root.position.set(h.x, h.y, h.z);
-    root.rotation.set(0, h.yaw, 0);
     const speed = Math.hypot(h.vx, h.vz);
-    // Clip by movement state; attacks override.
+    // Clips are for the things the body does with its whole self: a kick, a
+    // blow taken, a guard, the lasers. Standing, walking, galloping, climbing
+    // and flying are the rig's own, below, and no clip is allowed near them.
     let clip = 'Idle',
       loop = true,
-      scale = 1;
+      scale = 1,
+      own = 0;
     if (combat.kick > 0.05) {
       if (combat.kick > 0.46 && !this.kickSparked) {
         this.kickSparked = true;
@@ -473,61 +483,50 @@ export class Scene3D {
       clip = 'Spin_Kick';
       loop = false;
       scale = 2;
-    } else if (h.mantle > 0) clip = 'Crouch';
-    else
-      switch (h.move) {
-        case 'run': {
-          // Backpedalling plays the run in reverse: Hopper keeps facing forward.
-          const along = speed > 1 ? (h.vx * Math.sin(h.yaw) + h.vz * Math.cos(h.yaw)) / speed : 1;
-          clip = 'Run';
-          scale = Math.max(0.6, speed / 32) * (along < -0.3 ? -1 : 1);
-          break;
-        }
-        case 'crouch':
-          clip = 'Crouch_Hold';
-          break;
-        case 'jump':
-          clip = h.hold < 0.45 ? 'Jump_Start' : 'Jump_Loop';
-          loop = clip === 'Jump_Loop';
-          break;
-        case 'fall':
-        case 'glide':
-        case 'hover':
-          clip = 'Jump_Loop';
-          break;
-        case 'dive':
-          clip = 'Crouch_Hold';
-          break;
-        case 'land':
-        case 'stomp':
-        case 'hopBack':
-          clip = 'Land';
-          loop = false;
-          break;
-        default:
-          clip = combat.guarding ? 'Block_Loop' : combat.heat > 0 && combat.shotClock > 0 ? 'Fire_Loop' : 'Idle';
-      }
-    if (combat.kick <= 0.05) this.kickSparked = false;
-    if (h.hitstun > 0) {
+      own = 1;
+    } else if (h.hitstun > 0) {
       clip = 'Hit_Reaction';
       loop = false;
+      own = 1;
+    } else if (h.move === 'stomp') {
+      clip = 'Land';
+      loop = false;
+      own = 0.7;
+    } else if (h.move === 'crouch' || h.charge > 0) clip = 'Crouch_Hold';
+    else if (combat.guarding) clip = 'Block_Loop';
+    else if (combat.heat > 0 && combat.shotClock > 0) clip = 'Fire_Loop';
+    else if (!this.rig.bound) {
+      // No rig to drive (a model without the leg bones): fall back to clips.
+      clip = h.grounded ? (speed > 4 ? 'Run' : 'Idle') : 'Jump_Loop';
+      scale = clip === 'Run' ? Math.max(0.6, speed / 32) : 1;
     }
+    if (combat.kick <= 0.05) this.kickSparked = false;
     this.play(clip, loop, 0.12, scale);
-    // Wings open for the glide and beat hard in a hover; the body pitches into dives and glides.
-    const wantSpread = h.gliding ? 1 : h.hovering ? 0.8 : h.diving ? 0.3 : 0;
-    this.wingSpread += (wantSpread - this.wingSpread) * Math.min(1, dt * (h.hovering ? 14 : 8));
-    this.wingBeat += (h.hovering ? 1 : 0) - this.wingBeat > 0 ? Math.min(1, dt * 10) : -Math.min(1, dt * 4);
-    this.wingBeat = Math.max(0, Math.min(1, this.wingBeat));
-    const beat = Math.sin(this.time * 26) * 0.6 * this.wingBeat + (h.gliding ? Math.sin(this.time * 2.2) * 0.06 : 0);
-    for (const [i, w] of this.wings.entries()) {
-      const side = i === 0 ? 1 : -1;
-      w.rotation.z = side * (this.wingSpread * 1.1 + beat);
-      w.rotation.y = side * this.wingSpread * 0.35;
-      w.rotation.x = -this.wingBeat * 0.25 - Math.max(0, beat) * 0.15;
-    }
-    const pitch = h.diving ? -0.7 : h.gliding ? Math.max(-0.35, Math.min(0.2, -h.vy * 0.015)) : h.hovering ? 0.12 : h.grounded ? 0 : Math.max(-0.25, Math.min(0.25, -h.vy * 0.006));
-    root.rotation.x += (pitch - root.rotation.x) * Math.min(1, dt * 6);
     this.mixer?.update(dt);
+    // The gait: which of the three is running, where the six feet are, and
+    // what the ground under them is doing to the body.
+    const pose = this.gait.update(h, world, dt);
+    // Flying and diving lean the body by hand; the ground gaits get their
+    // angle from the feet instead.
+    const lean = h.diving ? 0.75 : h.gliding ? Math.max(-0.2, Math.min(0.35, h.vy * 0.015)) : h.hovering ? -0.12 : h.grounded || h.climbing ? 0 : Math.max(-0.25, Math.min(0.25, h.vy * 0.006));
+    this.lean += (lean - this.lean) * Math.min(1, dt * 6);
+    this.rigWeight += ((own > 0 ? 1 - own : 1) - this.rigWeight) * Math.min(1, dt * 12);
+    this.rig.placeBody(h, pose, this.lean);
+    this.rig.apply(h, pose, this.rigWeight);
+    // Wings. Opened for a glide, drumming for a hover: the beat is a running
+    // angle, so it never restarts or stutters when the state changes.
+    const wantSpread = h.gliding ? 1 : h.hovering ? 0.85 : h.diving ? 0.3 : h.climbing ? 0.12 : 0;
+    this.wingSpread += (wantSpread - this.wingSpread) * Math.min(1, dt * (h.hovering ? 14 : 8));
+    const wantBeat = h.hovering ? 1 : 0;
+    this.wingBeat += (wantBeat - this.wingBeat) * Math.min(1, dt * (h.hovering ? 12 : 4));
+    this.wingPhase += dt * (26 + this.wingBeat * 6);
+    const beat = Math.sin(this.wingPhase) * 0.62 * this.wingBeat + (h.gliding ? Math.sin(this.time * 2.2) * 0.06 : 0);
+    if (this.rig.bound) this.rig.poseWings(this.wingSpread, beat, this.wingBeat * 0.25);
+    else
+      for (const [i, w] of this.wings.entries()) {
+        const side = i === 0 ? 1 : -1;
+        w.rotation.set(-this.wingBeat * 0.25 - Math.max(0, beat) * 0.15, side * this.wingSpread * 0.35, side * (this.wingSpread * 1.1 + beat));
+      }
     // Guard: the painted shield face, or the stand-in dome until it loads.
     const shield = root.getObjectByName('GuardDome');
     if (this.shieldSprite) {
@@ -673,7 +672,8 @@ export class Scene3D {
     this.effects = this.effects.filter((e) => e.life > 0);
   }
   private syncGuide(h: HopperState, world: World, predicted: { x: number; y: number; z: number } | null, enabled: boolean) {
-    const show = enabled && !h.grounded && h.height > 3;
+    // Not while he is on a wall: he is holding on, not falling.
+    const show = enabled && !h.grounded && !h.climbing && h.height > 3;
     const guide = this.guideDecal || this.guide;
     this.guide.visible = show && !this.guideDecal;
     if (this.guideDecal) this.guideDecal.visible = show;
@@ -697,7 +697,7 @@ export class Scene3D {
     this.lockRing.visible = false;
     if (this.reticles.open) this.reticles.open.visible = false;
     if (this.reticles.locked) this.reticles.locked.visible = false;
-    this.syncHopper(h, combat, dt);
+    this.syncHopper(h, world, combat, dt);
     this.syncShadows(combat.shadows);
     this.syncBoss(dt);
     this.syncProjectiles(combat.projectiles);

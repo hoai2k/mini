@@ -90,7 +90,7 @@ The delivered models set the scale of everything. Hopper is 14 m from his feet t
 | Guard | Block_Start → Block_Loop → Block_End | Shield socket anchors the dome |
 | Hit, defeat, win | Hit_Reaction, Defeat, Victory | Rider Hit_Reaction, Cheer |
 
-The new clips are request M-001; they add to the existing rig without changing the mesh. Until they arrive the game plays Jump_Loop for gliding with the wing joints opened procedurally, Crouch_Hold for diving and Land for stomps, which is enough to build against.
+The new clips are request M-001; they add to the existing rig without changing the mesh. Locomotion, though, is not a clip any more and will not become one: walking, galloping, climbing and flying are driven procedurally over the delivered skeleton, because feet that are placed on the world can hold a slope, a stair and a wall that no authored cycle can. Clips are kept for what the whole body does at once — the kick, a blow taken, the guard, the lasers, the crouch — and the procedural pass fades out under them while they play. It runs after the animation mixer, never before, since the mixer writes the whole skeleton every frame; the wings are beaten there too, which is why a hover drums steadily rather than fluttering.
 
 ### The rider
 
@@ -139,9 +139,22 @@ The simulation runs at a fixed 120 Hz, as the 2D engine does, with animation tim
 | Stomp bounce | 56 m (4 H); 84 m with A held | Flyers are steps |
 | Dive | 2.5× gravity, terminal 190 m/s; 100 m in 1 s | Fast return to the ground, stomp on landing |
 | Wall kick | 62 m/s up (16 m), 26 m/s away, unlimited chain | Tower corners are ladders |
-| Ledge mantle | Reach 6 m over the lip, 0.7 s | Forgives a short leap |
+| Climb | Push into a face and he takes hold: 27 m/s up, 19 m/s along it, no fall while he holds | Any wall is a way up; A kicks off it |
+| Ledge mantle | Reach 6 m over the lip, 0.7 s | Forgives a short leap, and tops out a climb |
 | Air control | Half of ground acceleration; steering turns the arc, never slows it | Momentum is kept; pushing back still brakes |
 | Coyote time, input buffer | 0.12 s · 0.14 s | Forgiving edges and landings |
+
+### How he moves: three gaits
+
+A grasshopper the size of a horse should move like one when it is crossing open country and like an insect when it is picking its way up something, so there are three gaits and the ground chooses between them.
+
+- **Gallop.** Open ground at a run: four-beat, hind pair first, then the middle and front pairs, with a moment in every stride when nothing is touching the ground. The legs gather in under the body where a horse's are, the body runs low with the knees kept bent, and it bounds — the barrel rising and falling once a stride, the nose lifting as the hind legs drive and dropping as the front pair take the landing. It needs to be a way of going forward: crossing the ground sideways or backing off is the walk, however fast.
+- **Walk.** Anything slower, and anything on ground steep enough to pick over: the insect's alternating tripod, three feet down at all times, the wide stance, the high step.
+- **Climb.** Ground past about 46°, and any wall he is holding: the same tripod, slower, splayed wider, hugging the face.
+
+They cross-fade by speed and by the angle of the ground, so there is no moment where he changes gait; the stride clock is shared, so the feet never jump when one gives way to another.
+
+The feet are put on the world, not on the body. A planted foot stays exactly where it was put while the body travels over it, and a swinging foot arcs to where the body will be; the renderer solves two-bone inverse kinematics up each leg to reach them. Nothing is authored per surface, so a stair, a boulder, the lip of a roof and the face of a silo all come out of the same solve, and the body reads its own pitch and roll back off the ground under its six feet rather than being told. In the air the legs hold what the leap left them with: the hind pair swept back and down behind him where they finished the shove, the front and middle pairs drawn up, and everything reaching forward again as the ground comes up.
 
 ### The jump family
 
@@ -152,6 +165,8 @@ Hopper always faces forward: along the trail, or wherever the camera's manual tu
 The crouch charge is the deliberate big jump. Holding RB compresses the hind legs over 0.8 s; releasing launches straight up by charge, and the stick during the charge sets the direction. It is slow to start and enormous, so it is the way onto the tall things and rarely a combat move.
 
 Wall kicks chain without limit, because the world is full of corners and the ladder up a tower is a rhythm the player should be allowed to enjoy. Each kick preserves facing and commits steering for 0.16 s.
+
+A wall can also simply be climbed. Pushing into a face takes hold of it, from a standing start as much as out of the air: gravity stops, the stick's push into the wall is the climb and its slide along the wall the traverse, and letting go of the stick leaves him hanging and sliding slowly rather than falling. A is the wall kick off it, pulling hard away from it or pressing Y lets go, and a lip within mantle reach is hauled over as it always was. Hopper lies against the face with his back to the camera while he is on it.
 
 ### The trail
 
@@ -179,6 +194,7 @@ The camera takes its own smooth path and Hopper moves within the frame. Its look
 - **Diving** looks down the dive with Hopper high in the frame, so the landing and whatever is on it are visible.
 - **A commander in the air** lifts the camera's look toward it and pulls the view back while it is awake, so a boss that fights from 90 m up is framed with Hopper rather than off the top of the screen. Its lasers and lock-on treat it as an ordinary target.
 - **Aiming (LT held)** is a camera mode of distance and zoom, never of direction. The camera comes in from 54 m to 46, steps over Hopper's right shoulder so his flank is clear of the middle of the screen, levels the picture off toward the horizon and narrows the field of view from 66° to 46°; the right stick slows to a little over half speed so a shadow three hundred metres out can be held. The view points where the player points it, going in, coming out and throughout: taking a target, cycling, killing one or releasing the trigger never turns it a degree, and the trail bending underneath does not drag the shot off either. The crosshair is the middle of that picture, drawn in the world so it reads at any range. A shadow the aim comes near takes hold of it and it slides the short way onto that shadow, keeps it while the aim stays roughly on it, and lets go to the centre when the shadow falls or the aim leaves. Hopper faces where the camera faces, so the shot follows the crosshair and the left stick strafes. Tap LT to cycle between the shadows near the crosshair. Lock-on is soft: lasers auto-aim in a cone whether or not a shadow is held.
+- **A climb** turns the view round to stand off the wall and watch his back go up it, and holds its pitch inside a narrow band: climbing straight up must never point the camera at the sky, so the eye stays a little above the look point, level with the face, and the picture never cranes after him.
 - **Horizon View (LB held)** swings the camera up and out to frame the region's exit landmark, the next checkpoint totem and any signals within 300 m, with distance labels. The rider points. Releasing keeps the direction it was left at, as a manual turn, and pans it back along the trail within a second: the return is a turn, never a cut. It is the "which way" button and also the "look at that" button.
 
 ### Reading the ground from the air
@@ -450,7 +466,8 @@ The 3D edition is a second entry in the same repository, sharing the shell, inpu
 - **Models:** the delivered GLBs loaded with the meshopt decoder and `KHR_mesh_quantization`, as `models/README.md` describes; final assets follow the same conventions. The rider binding helper in `models/attachments.js` is used for the separate files; the combined file needs no binding.
 - **Simulation:** fixed 120 Hz steps as in the 2D engine. Hopper is a capsule (5 m radius, 14 m tall) against a heightfield sampled from the region's heightmap plus box and convex colliders from the structure kits. Fast states (dive, super leap) sub-step four times so nothing tunnels at 90 m/s. Moving platforms carry what stands on them.
 - **Enemies:** state machines with tells, attacks and recoveries in the manner of the shipped combat module, on a **perch graph** of landings rather than a navmesh: ground shadows move between landings they can reach, flyers along authored lanes. Waves and knots as described; a stronghold's host waits on the perch graph's tops in view.
-- **Camera:** a follow rig with spring collision, the lock-on and Horizon View rigs, and the leap and glide framing rules above.
+- **Gaits:** a small pure module decides which of the three gaits is running, keeps the stride clock, and puts the six feet in the world; a rig module solves two-bone IK up each leg on the delivered skeleton to reach them. Both run in the node tests at the game's own rate, so the rhythms, the suspension in the gallop, the planting and the body's angle on a slope are checked rather than eyeballed.
+- **Camera:** a follow rig with spring collision, the aiming and Horizon View rigs, the climb framing, and the leap and glide framing rules above.
 - **Input and audio:** the shipped `input.ts` (all connected pads combined, keyboard fallback, connection handling) with the right stick, triggers and bumpers added; the shipped `audio.ts` with a panner per effect voice.
 - **Shell:** the shipped React title, play-select, HUD, pause, settings and instructions with the 3D diagram and the new settings.
 - **Saves:** local, per checkpoint, with cleared knots, signals and settings.

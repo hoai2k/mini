@@ -21,7 +21,7 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-engine3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'route', 'scenery', 'boss3d'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'route', 'scenery', 'boss3d', 'gait'];
 for (const name of names) {
   const raw = fs
     .readFileSync(source + name + '.ts', 'utf8')
@@ -50,6 +50,7 @@ const { NightRook } = await import(path.join(temp, 'boss3d.mjs'));
 const { sunseedFields, MISSIONS } = await import(path.join(temp, 'district.mjs'));
 const { buildRoute } = await import(path.join(temp, 'route.mjs'));
 const { shadowBody } = await import(path.join(temp, 'combat3d.mjs'));
+const { Gait, LEGS, solveTwoBone, airFoot } = await import(path.join(temp, 'gait.mjs'));
 
 const dt = 1 / 120;
 const blank = {
@@ -1410,4 +1411,213 @@ const farHopper = () => {
   );
 }
 
-console.log(`engine3d: ${checks} checks passed across 21 scenarios (world, controller, camera, combat3d, district, route, scenery, boss3d)`);
+// ---------------------------------------------------------------------
+// 22. The three gaits, the feet that carry them, and the climb
+// ---------------------------------------------------------------------
+{
+  const bodyOf = (h, over = {}) => ({
+    x: h.x, y: h.y, z: h.z, yaw: h.yaw, vx: h.vx, vy: h.vy, vz: h.vz,
+    grounded: h.grounded, climbing: !!h.climbing, climbNx: h.climbNx || 0, climbNz: h.climbNz || 0,
+    airTime: h.airTime || 0, height: h.height || 0, diving: !!h.diving, gliding: !!h.gliding, hovering: !!h.hovering,
+    ...over,
+  });
+  // (a) Two-bone IK: it reaches what it can reach, stops short of what it
+  // cannot, and puts the knee on the side the pole asks for.
+  {
+    const hip = [0, 20, 0];
+    const knee = solveTwoBone(hip, [0, 8, 6], 8, 8, [0, 1, 0]);
+    const d1 = Math.hypot(knee[0] - hip[0], knee[1] - hip[1], knee[2] - hip[2]);
+    const d2 = Math.hypot(knee[0] - 0, knee[1] - 8, knee[2] - 6);
+    check('the leg keeps its bone lengths', Math.abs(d1 - 8) < 0.01 && Math.abs(d2 - 8) < 0.01, `${d1} ${d2}`);
+    check('the knee goes to the pole side', knee[1] > (20 + 8) / 2 - 4.01, knee[1]);
+    const far = solveTwoBone(hip, [0, -40, 0], 8, 8, [0, 0, 1]);
+    const reach = Math.hypot(far[0] - hip[0], far[1] - hip[1], far[2] - hip[2]);
+    check('an unreachable target straightens the leg instead of tearing it', Math.abs(reach - 8) < 0.01, reach);
+  }
+  // (b) Which gait runs. Flat and fast is a gallop, slow is the walk, a wall
+  // is the climb, and the gallop has a moment with nothing on the ground.
+  {
+    const h = startHopper(0, 40);
+    const g = new Gait();
+    h.vz = -66;
+    let suspended = 0,
+      frames = 0,
+      minPlanted = 6;
+    for (let i = 0; i < 240; i++) {
+      h.z -= 66 * dt;
+      h.y = world.heightAt(h.x, h.z);
+      const pose = g.update(bodyOf(h), world, dt);
+      if (i > 60) {
+        frames++;
+        const on = pose.planted.filter(Boolean).length;
+        minPlanted = Math.min(minPlanted, on);
+        if (on === 0) suspended++;
+      }
+    }
+    check('running flat out gallops', g.blend.gallop > 0.85, JSON.stringify(g.blend));
+    check('the gallop has a moment of suspension in every stride', suspended > frames * 0.05, `${suspended}/${frames}`);
+    check('and it is a moment, not the whole stride', suspended < frames * 0.5, `${suspended}/${frames}`);
+  }
+  {
+    const h = startHopper(0, 40);
+    const g = new Gait();
+    let minPlanted = 6;
+    for (let i = 0; i < 240; i++) {
+      h.z -= 12 * dt;
+      h.y = world.heightAt(h.x, h.z);
+      const pose = g.update(bodyOf(h, { vz: -12 }), world, dt);
+      if (i > 60) minPlanted = Math.min(minPlanted, pose.planted.filter(Boolean).length);
+    }
+    check('walking pace walks', g.blend.walk > 0.85 && g.blend.gallop < 0.15, JSON.stringify(g.blend));
+    check('the walk always keeps a tripod on the ground', minPlanted >= 3, minPlanted);
+  }
+  // (c) Feet are put on the world and stay there: no sliding under him, and
+  // every planted foot is on the surface it landed on, whatever that is.
+  {
+    const h = startHopper(0, 40);
+    const g = new Gait();
+    let worstSlide = 0,
+      worstOff = 0;
+    let prev = null;
+    for (let i = 0; i < 600; i++) {
+      h.z -= 52 * dt;
+      h.y = world.heightAt(h.x, h.z);
+      const pose = g.update(bodyOf(h, { vz: -52 }), world, dt);
+      if (prev)
+        for (let l = 0; l < LEGS.length; l++) {
+          if (pose.planted[l] && prev.planted[l]) {
+            const moved = Math.hypot(pose.feet[l][0] - prev.feet[l][0], pose.feet[l][2] - prev.feet[l][2]);
+            if (moved < 6) worstSlide = Math.max(worstSlide, moved);
+          }
+          // Asked of the foot's own level: whatever it is standing on, a
+          // step or the field, it is standing on it and not above it.
+          if (pose.planted[l]) worstOff = Math.max(worstOff, Math.abs(pose.feet[l][1] - world.groundAt(pose.feet[l][0], pose.feet[l][2], pose.feet[l][1] + 0.5, 0.6).y));
+        }
+      prev = { planted: [...pose.planted], feet: pose.feet.map((f) => [...f]) };
+    }
+    check('a planted foot does not slide under him', worstSlide < 0.02, worstSlide);
+    check('and every planted foot is on the surface below it', worstOff < 0.5, worstOff);
+  }
+  // (d) The body reads its angle off the ground: uphill lifts his nose.
+  {
+    // The steepest stretch of the ridge that leads up to the plateau.
+    let at = -700,
+      steepest = 0;
+    for (let z = -520; z > -900; z -= 4) {
+      const rise = world.heightAt(-220, z - 9) - world.heightAt(-220, z + 9);
+      if (rise > steepest) {
+        steepest = rise;
+        at = z;
+      }
+    }
+    check('the ridge has a real slope on it', steepest > 4, `${steepest.toFixed(1)} m over 18 at z ${at}`);
+    const up = startHopper(-220, at + 30);
+    const g = new Gait();
+    let pose = null;
+    for (let i = 0; i < 120; i++) {
+      up.z -= 30 * dt;
+      up.y = world.heightAt(up.x, up.z);
+      pose = g.update(bodyOf(up, { vz: -30 }), world, dt);
+    }
+    check('and the body takes the angle of it, nose up the hill', pose.slope > 0.1 && pose.pitch < -0.05, `pitch ${pose.pitch.toFixed(3)} slope ${pose.slope.toFixed(3)}`);
+  }
+  // (e) In the air the hind legs stay where the push left them: back and down.
+  {
+    const h = startHopper(0, 40);
+    const rear = LEGS.find((l) => l.rear);
+    const front = LEGS.find((l) => !l.rear);
+    const flying = bodyOf(h, { grounded: false, airTime: 0.4, height: 40, vy: 20 });
+    const rp = airFoot(rear, flying),
+      fp = airFoot(front, flying);
+    check('the hind legs trail back behind him', rp[2] < rear.home[2] - 10, rp[2]);
+    check('and below him, not tucked up', rp[1] < rear.home[1] - 5, rp[1]);
+    check('the front legs tuck up under the chin', fp[1] > front.home[1] + 2, fp[1]);
+    const landing = airFoot(rear, bodyOf(h, { grounded: false, airTime: 1.4, height: 8, vy: -60 }));
+    check('coming down they reach for the ground again', landing[1] > rp[1] + 1 && landing[2] > rp[2] + 4, JSON.stringify(landing));
+  }
+  // (f) A wall: he takes hold of it, climbs it, and the gait is the climb.
+  {
+    // A tall face with open ground at the foot of it: the wall he will climb.
+    let box = null,
+      stand = null;
+    for (const c of world.colliders) {
+      if (c.spring || c.instance?.moving || c.hx < 5 || c.hz < 5) continue;
+      const cos = Math.cos(c.yaw),
+        sin = Math.sin(c.yaw);
+      for (const [ox, oz] of [
+        [0, c.hz + 9],
+        [0, -c.hz - 9],
+        [c.hx + 9, 0],
+        [-c.hx - 9, 0],
+      ]) {
+        const x = c.cx + ox * cos - oz * sin,
+          z = c.cz + ox * sin + oz * cos;
+        const g0 = world.groundAt(x, z, c.y1, 2.5);
+        // The face has to run from the ground he is standing on up past his
+        // head; a piece of a silo hanging in the air is not a wall.
+        if (g0.collider || c.y1 < g0.y + 22 || c.y0 > g0.y + 2) continue;
+        box = c;
+        stand = [x, z, g0.y];
+        break;
+      }
+      if (box) break;
+    }
+    check('there is a tall face with ground at the foot of it', !!box, box ? `${box.cx.toFixed(0)},${box.cz.toFixed(0)} top ${box.y1.toFixed(0)}` : 'none');
+    const h = startHopper(stand[0], stand[1], stand[2]);
+    const toWall = Math.hypot(box.cx - stand[0], box.cz - stand[1]);
+    const into = { ...blank, dx: (box.cx - stand[0]) / toWall, dz: (box.cz - stand[1]) / toWall };
+    h.yaw = Math.atan2(into.dx, into.dz);
+    let started = false;
+    for (let i = 0; i < 240 && !started; i++) {
+      const ev = stepHopper(h, world, into, dt);
+      started = ev.some((e) => e.kind === 'climbStart') || h.climbing;
+    }
+    check('pushing into a wall takes hold of it', h.climbing, `${h.x.toFixed(1)},${h.y.toFixed(1)},${h.z.toFixed(1)} move ${h.move}`);
+    const y0 = h.y;
+    const g = new Gait();
+    let onWall = 0,
+      wallFrames = 0,
+      climbBlend = 0;
+    // Half a second of climbing: up the face, short of the lip he would mantle.
+    for (let i = 0; i < 60; i++) {
+      stepHopper(h, world, into, dt);
+      if (!h.climbing) break;
+      const pose = g.update(bodyOf(h), world, dt);
+      climbBlend = Math.max(climbBlend, pose.blend.climb);
+      wallFrames++;
+      // Every foot sits against the face, not out in the air behind him.
+      const off = pose.feet.map((f) => (f[0] - h.x) * h.climbNx + (f[2] - h.z) * h.climbNz);
+      if (off.every((d) => d > -3 && d < 14)) onWall++;
+    }
+    check('climbing carries him up the face', h.y > y0 + 8, `${y0.toFixed(1)} -> ${h.y.toFixed(1)}`);
+    check('the climb gait runs while he is on it', climbBlend > 0.9, climbBlend);
+    check('and his feet stay on the face', onWall === wallFrames, `${onWall}/${wallFrames}`);
+    // A press of A kicks him off it.
+    const climbed = h.y;
+    stepHopper(h, world, { ...into, jumpPressed: true, jumpHeld: true }, dt);
+    check('A kicks off the wall', !h.climbing && h.vy > 20, `${h.climbing} vy ${h.vy.toFixed(1)}`);
+    void climbed;
+  }
+  // (g) The camera watching a climb: it stands off the wall and never cranes
+  // up after him, however far up he goes.
+  {
+    const h = startHopper(0, 40);
+    const cam = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
+    const settings = { sensitivity: 0.5, invertY: false, reducedMotion: false };
+    const blankCam = { lookX: 0, lookY: 0, mouseLookX: 0, mouseLookY: 0, resetPressed: false, horizonHeld: false };
+    const forward = cam.forward;
+    const climb = [0, 1];
+    let worstPitch = -9;
+    for (let i = 0; i < 480; i++) {
+      h.y += 27 * dt;
+      updateCamera(cam, h, world, { ...blankCam, forward, climb }, settings, dt);
+      if (i > 120) worstPitch = Math.max(worstPitch, cam.pitch);
+    }
+    const want = Math.atan2(-climb[0], -climb[1]);
+    check('the view swings round to stand off the wall', Math.abs(Math.atan2(Math.sin(cam.yaw - want), Math.cos(cam.yaw - want))) < 0.1, cam.yaw - want);
+    check('and holds its pitch down: no craning up the face', worstPitch <= 0.35 && cam.pitch >= 0.07, `${cam.pitch} worst ${worstPitch}`);
+    check('the eye stays above his back', cam.eye[1] > cam.target[1], `${cam.eye[1]} vs ${cam.target[1]}`);
+  }
+}
+
+console.log(`engine3d: ${checks} checks passed across 22 scenarios (world, controller, camera, gait, combat3d, district, route, scenery, boss3d)`);

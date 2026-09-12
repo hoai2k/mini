@@ -43,6 +43,18 @@ export const MOVE = {
   wallKickAway: 26,
   wallGrace: 0.12,
   wallCommit: 0.16,
+  /** Climbing. Push into a wall and Hopper takes hold of it and goes up it
+   * on six feet; the stick steers along the face, A kicks off it, and a lip
+   * within reach is mantled as it always was. Letting go of the stick leaves
+   * him hanging and sliding slowly, which is a rest, not a fall. */
+  climbUp: 27,
+  climbDown: 22,
+  climbSide: 19,
+  climbSlide: 3.5,
+  climbGrip: 7,
+  climbEnter: 0.35,
+  climbLetGo: 0.72,
+  climbGrace: 0.16,
   mantleReach: 6,
   mantleTime: 0.5,
   bounceApex: 56,
@@ -59,7 +71,7 @@ export const MOVE = {
   dashCooldown: 0.55,
 };
 
-export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'hover' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack' | 'dash';
+export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'hover' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack' | 'dash' | 'climb';
 
 export interface HopperState {
   x: number;
@@ -84,6 +96,13 @@ export interface HopperState {
   wallTimer: number;
   wallNx: number;
   wallNz: number;
+  /** On a wall: hanging from it and climbing it, and its outward normal. */
+  climbing: boolean;
+  climbNx: number;
+  climbNz: number;
+  climbTimer: number;
+  /** Seconds since the feet last left a surface: the air pose grows over it. */
+  airTime: number;
   commit: number;
   mantle: number;
   mantleFrom: [number, number, number];
@@ -118,6 +137,8 @@ export type MoveEvent =
   | { kind: 'jump'; charged: boolean }
   | { kind: 'land'; speed: number; stomp: boolean }
   | { kind: 'wallKick' }
+  | { kind: 'climbStart' }
+  | { kind: 'climbEnd' }
   | { kind: 'mantle' }
   | { kind: 'spring' }
   | { kind: 'glideStart' }
@@ -130,7 +151,7 @@ export type MoveEvent =
 
 export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
   return {
-    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, hovering: false, hoverFuel: MOVE.hoverFuel, hoverT: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false,
+    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, climbing: false, climbNx: 0, climbNz: 0, climbTimer: 0, airTime: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, hovering: false, hoverFuel: MOVE.hoverFuel, hoverT: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false,
   };
 }
 
@@ -255,6 +276,8 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   if (s.hopBackTimer > 0) s.hopBackTimer -= dt;
   if (s.dashCooldown > 0) s.dashCooldown -= dt;
   if (s.wallTimer > 0) s.wallTimer -= dt;
+  if (s.climbTimer > 0) s.climbTimer -= dt;
+  s.airTime = s.grounded ? 0 : s.airTime + dt;
   if (s.commit > 0) s.commit -= dt;
   if (s.buffer > 0) s.buffer -= dt;
   if (intent.jumpPressed) s.buffer = MOVE.buffer;
@@ -282,7 +305,32 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   if (!intent.dashHeld) s.dashArmed = false;
   s.sprinting = !!intent.sprintHeld && s.grounded && s.charge <= 0 && !busy;
   const canSteer = control && !busy && s.commit <= 0 && s.charge <= 0 && !(s.grounded && intent.chargeHeld) && s.dashTimer <= 0;
-  if (s.dashTimer > 0) {
+  // On a wall. The stick's push into the face is the climb, its slide along
+  // the face is the traverse, and nothing falls: he hangs where he is put.
+  if (s.climbing && control) {
+    const into = -(intent.dx * s.climbNx + intent.dz * s.climbNz);
+    const tx = -s.climbNz,
+      tz = s.climbNx;
+    const along = intent.dx * tx + intent.dz * tz;
+    if (into < -MOVE.climbLetGo || intent.diveHeld) {
+      // Pulled hard away from the wall (or dived): he lets go.
+      s.climbing = false;
+      s.events.push({ kind: 'climbEnd' });
+      s.vx = -s.climbNx * 14;
+      s.vz = -s.climbNz * 14;
+    } else {
+      s.vy = Math.abs(into) < 0.15 ? -MOVE.climbSlide : into > 0 ? into * MOVE.climbUp : into * MOVE.climbDown;
+      s.vx = tx * along * MOVE.climbSide - s.climbNx * MOVE.climbGrip;
+      s.vz = tz * along * MOVE.climbSide - s.climbNz * MOVE.climbGrip;
+      s.yaw = turnToward(s.yaw, Math.atan2(-s.climbNx, -s.climbNz), MOVE.turnRate * dt);
+      s.move = 'climb';
+      s.hoverFuel = MOVE.hoverFuel;
+      s.gliding = false;
+      s.hovering = false;
+      s.holding = false;
+      s.charge = 0;
+    }
+  } else if (s.dashTimer > 0) {
     s.dashTimer -= dt;
     s.vx = s.dashX * MOVE.dashSpeed;
     s.vz = s.dashZ * MOVE.dashSpeed;
@@ -397,8 +445,10 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.events.push({ kind: 'hopBack' });
   }
 
-  // Vertical motion.
-  if (!s.grounded) {
+  // Vertical motion. A climb carries its own; gravity is not part of it.
+  if (s.climbing) {
+    // Held to the wall: no fall, and the wings rest.
+  } else if (!s.grounded) {
     if (s.holding && intent.jumpHeld && s.hold < MOVE.holdWindow) {
       // A short variable-height window after takeoff: thrust against gravity, a few metres, no boost.
       s.vy += (MOVE.holdThrust - g) * dt;
@@ -493,14 +543,48 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
 
   // Walls, wall kicks and the ledge mantle.
   const wall = resolveWalls(s, world);
+  if (wall) {
+    const lip = wall.collider.y1;
+    const into = intent.dx * -wall.nx + intent.dz * -wall.nz;
+    if (!s.grounded) {
+      s.wallTimer = MOVE.wallGrace;
+      s.wallNx = wall.nx;
+      s.wallNz = wall.nz;
+    }
+    // Taking hold: push into a face with something above to climb, and he is
+    // on it. It works from a standing start as well as out of the air, which
+    // is what makes a wall a way up rather than something to bounce off.
+    if (s.climbing) {
+      s.climbTimer = MOVE.climbGrace;
+      s.climbNx = wall.nx;
+      s.climbNz = wall.nz;
+    } else if (into > MOVE.climbEnter && control && !s.diving && !s.gliding && s.mantle <= 0 && s.dashTimer <= 0 && lip > s.y + 3) {
+      s.climbing = true;
+      s.grounded = false;
+      s.vy = Math.min(s.vy, MOVE.climbUp);
+      s.climbTimer = MOVE.climbGrace;
+      s.climbNx = wall.nx;
+      s.climbNz = wall.nz;
+      s.wallNx = wall.nx;
+      s.wallNz = wall.nz;
+      s.move = 'climb';
+      s.events.push({ kind: 'climbStart' });
+    }
+  }
+  if (s.climbing && s.climbTimer <= 0) {
+    // The wall ran out from under him -- around a corner, or off the top.
+    s.climbing = false;
+    s.events.push({ kind: 'climbEnd' });
+  }
   if (wall && !s.grounded) {
-    s.wallTimer = MOVE.wallGrace;
-    s.wallNx = wall.nx;
-    s.wallNz = wall.nz;
     // Mantle: the lip is within reach and the stick pushes toward it.
     const lip = wall.collider.y1;
     const pushing = intent.dx * -wall.nx + intent.dz * -wall.nz > 0.3;
-    if (pushing && s.vy <= 8 && lip > s.y + 0.5 && lip <= s.y + MOVE.mantleReach && control && !s.diving) {
+    if (pushing && (s.climbing || s.vy <= 8) && lip > s.y + 0.5 && lip <= s.y + MOVE.mantleReach && control && !s.diving) {
+      if (s.climbing) {
+        s.climbing = false;
+        s.events.push({ kind: 'climbEnd' });
+      }
       const over = 3.5 + MOVE.radius;
       s.mantle = MOVE.mantleTime;
       s.mantleFrom = [s.x, s.y, s.z];
@@ -516,6 +600,10 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   if (control && !s.grounded && s.wallTimer > 0 && s.buffer > 0 && !s.diving) {
     s.buffer = 0;
     s.wallTimer = 0;
+    if (s.climbing) {
+      s.climbing = false;
+      s.events.push({ kind: 'climbEnd' });
+    }
     s.vy = MOVE.wallKickUp;
     s.vx = s.wallNx * MOVE.wallKickAway;
     s.vz = s.wallNz * MOVE.wallKickAway;
@@ -556,6 +644,9 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
       s.grounded = false;
       s.move = 'fall';
     }
+  } else if (s.climbing && s.vy > -1) {
+    // On a wall with his feet by the floor: the floor is not a landing until
+    // he climbs down onto it.
   } else if (s.vy <= 0 && s.y <= surface && prevY >= surface - 0.05) {
     // Landing.
     const impact = -s.vy;
@@ -563,6 +654,10 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
     s.groundY = surface;
     s.grounded = true;
     s.vy = 0;
+    if (s.climbing) {
+      s.climbing = false;
+      s.events.push({ kind: 'climbEnd' });
+    }
     if (ground.collider?.spring) {
       s.vy = apexSpeed(MOVE.springApex, g);
       s.grounded = false;

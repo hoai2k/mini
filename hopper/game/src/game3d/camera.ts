@@ -40,6 +40,8 @@ export interface CameraState {
   /** Seconds left of a stick-click recentre, which brings the view round
    * quickly but still as a turn, never a cut. */
   snap: number;
+  /** How far into the climbing view the camera is, 0 to 1. */
+  climb: number;
   /** How far into the aiming view the camera is, 0 to 1: in over the
    * shoulder, zoomed, levelled off, the look slowed. Eased, so holding and
    * releasing LT is a move of the shot, never a cut. */
@@ -57,6 +59,10 @@ export interface CameraInput {
   /** LT: the aiming view. It moves the camera in and zooms; it never turns
    * it, and nothing about the target does either. */
   aimHeld?: boolean;
+  /** The outward normal of the wall Hopper is climbing, while he is on one.
+   * The view swings round to stand off that wall and watch his back, and its
+   * pitch is held down so that climbing never points the camera at the sky. */
+  climb?: [number, number] | null;
   horizonHeld: boolean;
   landmark?: [number, number, number];
   /** The commander's centre while one is awake: the follow camera lifts its
@@ -125,6 +131,13 @@ export const CAMERA = {
   aimPitch: 0.04,
   aimRate: 5,
   aimSens: 0.55,
+  /** Climbing: the view stands off the wall at this range and holds its
+   * pitch between these, so the shot looks along the face at Hopper's back
+   * rather than craning up after him. */
+  climbDistance: 42,
+  climbPitchMin: 0.08,
+  climbPitchMax: 0.34,
+  climbTurnRate: 1.6,
   /** The eye and the look point follow at this rate along the ground ... */
   smoothing: 8,
   /** ... and this much more slowly in height, so a hop is a hop of the body
@@ -143,7 +156,7 @@ export const CAMERA = {
 };
 
 export function createCamera(yaw: number, at: [number, number, number]): CameraState {
-  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0, forward: yaw, turn: 0, flow: [0, 0, 0], clip: 1, riseRate: CAMERA.riseRate, snap: 0, aim: 0, viewPitch: CAMERA.pitch };
+  return { yaw, pitch: CAMERA.pitch, distance: CAMERA.distance, fov: CAMERA.fov, eye: [at[0] - Math.sin(yaw) * 35, at[1] + 12, at[2] - Math.cos(yaw) * 35], target: [...at], idle: 10, mode: 'follow', tilt: 0, pull: 0, forward: yaw, turn: 0, flow: [0, 0, 0], clip: 1, riseRate: CAMERA.riseRate, snap: 0, climb: 0, aim: 0, viewPitch: CAMERA.pitch };
 }
 
 const ease = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -225,7 +238,17 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     // The camera faces the way forward along the trail. Hopper is free to turn
     // round and run back toward it; the view does not follow him, and it never
     // faces backward: the route's tangent always points onward.
-    if (input.forward !== undefined) {
+    // Climbing: the way onward is off the wall, not along the trail, so the
+    // view swings round to stand behind him and look at the face he is on.
+    if (input.climb) {
+      const want = Math.atan2(-input.climb[0], -input.climb[1]);
+      const step = wrap(want - cam.forward);
+      cam.forward += Math.max(-CAMERA.climbTurnRate * dt, Math.min(CAMERA.climbTurnRate * dt, step));
+      cam.climb = Math.min(1, cam.climb + dt * 2.5);
+    } else {
+      cam.climb = Math.max(0, cam.climb - dt * 1.5);
+    }
+    if (input.forward !== undefined && !input.climb) {
       const was = cam.forward;
       const want = wrap(input.forward - cam.forward) * Math.min(1, CAMERA.forwardRate * dt);
       cam.forward += Math.max(-CAMERA.forwardTurnRate * dt, Math.min(CAMERA.forwardTurnRate * dt, want));
@@ -267,6 +290,13 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     }
     cam.yaw = cam.forward + cam.turn;
     wantYaw = cam.yaw;
+    // The pitch is held inside a band while he is on a wall: a climb straight
+    // up must never tip the picture up after him. The eye stays above the
+    // look point, a little way off the face, watching his back go up it.
+    if (cam.climb > 0.001) {
+      const held = Math.max(CAMERA.climbPitchMin, Math.min(CAMERA.climbPitchMax, cam.pitch));
+      cam.pitch += (held - cam.pitch) * Math.min(1, cam.climb * 6 * dt);
+    }
     // Height above the ground pulls back and tilts down; gliding flattens and
     // widens; diving looks down. All of it eased, so a tap never pops the view.
     const pull = settings.reducedMotion ? 0.5 : 1;
@@ -302,6 +332,7 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
     // Aiming: in over the shoulder and zoomed, and the picture levels off so
     // that the middle of the screen is a long way ahead at Hopper's height
     // rather than the ground at his feet. The yaw is untouched throughout.
+    if (cam.climb > 0.001) wantDistance = ease(wantDistance, CAMERA.climbDistance, cam.climb);
     if (cam.aim > 0.001) {
       wantDistance = ease(wantDistance, CAMERA.aimDistance, cam.aim);
       wantFov = ease(wantFov, CAMERA.aimFov, cam.aim);

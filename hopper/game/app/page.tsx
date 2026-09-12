@@ -1209,10 +1209,18 @@ export default function Home() {
                         centred, it fires the moment you move.
                       </p>
                       <p>
+                        <strong>Walk, gallop, climb</strong> Open ground at
+                        speed is a gallop; picking his way about is the insect
+                        walk. Push into a wall and he takes hold of it and
+                        climbs, with the stick along the face and A to kick
+                        off; a lip within reach is hauled over.
+                      </p>
+                      <p>
                         <strong>The view faces the way forward</strong> Turn it
-                        up to 45° with the right stick; click the stick for
-                        Horizon View. Hopper can turn round and run toward the
-                        camera whenever he needs to.
+                        with the right stick and it stays where you leave it,
+                        drifting back to the trail only after a while; click
+                        the stick to recentre. Hopper can turn round and run
+                        toward the camera whenever he needs to.
                       </p>
                       <p>
                         <strong>Falling never hurts</strong> Every drop has a
