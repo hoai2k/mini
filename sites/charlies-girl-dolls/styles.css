@@ -439,6 +439,41 @@ main > section.music {
   font-style: italic;
 }
 
+/* New single */
+.single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+}
+.single .kicker {
+  color: var(--lav-deep);
+}
+.single-copy p:not(.kicker) {
+  max-width: 56ch;
+  color: var(--ink-soft);
+}
+.single-copy h2 {
+  color: var(--lav-deep);
+}
+.single .button.primary {
+  background: var(--lav-deep);
+  box-shadow: 0 5px 0 #4a2a78;
+}
+.single .button.primary:hover,
+.single .button.primary:focus-visible {
+  background: #5a35a0;
+}
+.single-art {
+  margin: 0;
+}
+.single-art img {
+  border-radius: var(--radius);
+  border: 4px solid #fff;
+  box-shadow: 0 24px 50px rgb(58 31 74 / 0.35);
+  transform: rotate(1.5deg);
+}
+
 /* Footer */
 footer {
   background: var(--ink);
@@ -461,8 +496,12 @@ footer p {
 
 @media (max-width: 760px) {
   .about,
-  .record {
+  .record,
+  .single {
     grid-template-columns: 1fr;
+  }
+  .single-copy {
+    order: 2;
   }
   .sleeve {
     max-width: 420px;

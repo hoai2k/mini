@@ -37,6 +37,7 @@
       <nav aria-label="Sections">
         <a href="#band">Band</a>
         <a href="#music">Music</a>
+        <a href="#single">New single</a>
         <a href="#hopper">Hopper</a>
         <a href="#tour">Tour</a>
       </nav>
@@ -102,7 +103,7 @@
         <ul class="facts" aria-label="Quick facts">
           <li><span>Home port</span><strong>Tempest Docks, Episode Two</strong></li>
           <li><span>Vessel</span><strong>The Tiber, orbital liner (converted)</strong></li>
-          <li><span>Recordings</span><strong>Three, all for Hopper</strong></li>
+          <li><span>Recordings</span><strong>Three for Hopper, one of their own</strong></li>
           <li><span>Running time</span><strong>10 min 49 s, looped for hours</strong></li>
         </ul>
       </section>
@@ -147,8 +148,8 @@
         <div class="music-head">
           <h2 id="music-title">Music</h2>
           <p>
-            The complete Space Tiber catalogue is the Hopper the Grasshopper
-            score. All three recordings play from the game itself.
+            Three recordings for Hopper the Grasshopper, which play from the
+            game itself, and one the band made for nobody but themselves.
           </p>
         </div>
         <div class="record">
@@ -187,14 +188,24 @@
                 <span class="d">4:13</span>
               </button>
             </li>
+            <li>
+              <button type="button" class="track" data-src="Moonlit Go-go Interlude.mp3" data-local aria-label="Play Moonlit Go-go Interlude">
+                <span class="n">04</span>
+                <span class="t">
+                  <strong>Moonlit Go-go Interlude</strong>
+                  <small>Single · not from the game</small>
+                </span>
+                <span class="d">new</span>
+              </button>
+            </li>
           </ol>
         </div>
         <div class="player" id="player" hidden>
           <p class="now"><span>Now playing</span> <strong id="now-title">—</strong></p>
           <audio id="audio" controls preload="none"></audio>
           <p class="player-note" id="player-note" hidden>
-            The recordings live with the game. Open this page from the
-            published site, or run the game locally, to hear them.
+            That recording could not be reached. The Hopper tracks live with
+            the game; the single lives with this page, once it lands.
           </p>
         </div>
         <p class="liner">
@@ -202,6 +213,34 @@
           at the foundries; Dark Moon plays for the red, blue and violet worlds.
           Recorded aboard the Tiber.
         </p>
+      </section>
+
+      <section class="single" id="single" aria-labelledby="single-title">
+        <figure class="single-art">
+          <picture>
+            <source media="(max-width: 700px)" srcset="assets/moonlit-gogo-interlude-440.webp" />
+            <img src="assets/moonlit-gogo-interlude.webp" alt="Moonlit Go-go Interlude cover: Lulu in a black-and-white op-art shift dress and white go-go boots, lounging on an orange velvet sofa in the Tiber's observation lounge, a full moon filling the porthole behind her." width="800" height="1000" loading="lazy" />
+          </picture>
+        </figure>
+        <div class="single-copy">
+          <p class="kicker">New single · off the record</p>
+          <h2 id="single-title">Moonlit Go-go Interlude</h2>
+          <p>
+            The first Space Tiber recording that was never asked for. Made in
+            the observation lounge on a night the Tiber was parked with the
+            moon in the big window: Lulu's organ on a slow shuffle, Rui
+            walking under it, Teo on brushes, Jun playing almost nothing and
+            making it count. Sora does not sing on it. She says the room was
+            already saying enough.
+          </p>
+          <p>
+            Not part of Hopper, not part of any game. Three minutes of white
+            boots on a black floor and a moon that does not move.
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="#music">Play it</a>
+          </div>
+        </div>
       </section>
 
       <section class="hopper" id="hopper" aria-labelledby="hopper-title">

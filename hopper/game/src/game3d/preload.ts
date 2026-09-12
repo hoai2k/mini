@@ -10,11 +10,9 @@
  * Both go through `painting()` in textures3d, sharing its cache and its option
  * sets, so a warmed entry is the very texture the build later asks for.
  */
-import { regionById } from '../../../3d/standins/src/palette.js';
 import { MISSIONS, type District } from './district';
 import {
   FLOOR_SURFACE,
-  guideVariant,
   horizonCards,
   OPTS,
   painting,
@@ -42,12 +40,10 @@ function sharedJobs(): Job[] {
 /** Everything a single district paints: sky, horizon, terrain, trim, floor. */
 export function districtJobs(district: District): Job[] {
   const region = district.region;
-  const ground = regionById(region)?.ground ?? '#456747';
   const jobs: Job[] = [
     { path: `sky/${region}-preview.jpg`, opts: OPTS.sky },
     { path: `trim/${region}.png`, opts: OPTS.trim },
     { path: `trim/${region}-emissive.png`, opts: OPTS.trimEmissive },
-    { path: `ui/${guideVariant(region, ground)}`, opts: OPTS.sheet },
   ];
   for (const file of ['ground', 'cliff', 'path'])
     jobs.push({ path: `terrain/${region}/${file}.png`, opts: OPTS.terrain });
