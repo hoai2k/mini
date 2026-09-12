@@ -6,7 +6,7 @@ Luke Robertson (guitar), Hoai Nguyen (upright bass) and Gop Intarachot
 https://hoai2k.github.io/mini/sites/railway/.
 
 - `index.html`, `styles.css` — the page. Story, the three players with their
-  social links, the repertoire, two live clips, where to find them, bookings.
+  social links, two live clips, where to find them, and bookings.
 - `media/` — the original drops: full-size photographs and the raw phone
   videos. Not deployed; `sites/publish.sh` leaves every site's `media/` out.
 - `assets/` — what the page actually serves: WebP copies of the photos,
