@@ -38,6 +38,25 @@ in every file, so a nav change means editing each page (or regenerating).
 - **Layout.** A sticky header with a persistent "Book a court" button, a
   photo-led hero, and card/tile sections that collapse to one column on
   phones. Tables scroll horizontally rather than breaking the page.
+- **Member-first hierarchy.** The club's own traffic is mostly existing
+  members booking a court or checking what's on, so booking outranks joining
+  everywhere they compete:
+  - the header's booking button is the only filled button in the bar, and it
+    stays visible on phones instead of hiding behind the menu;
+  - the hero's primary (chartreuse) button is "Book a court", with "Become a
+    member" as the outlined secondary;
+  - a dark action bar sits directly under the hero with the four things
+    members come for: book a court, round robin and clinic sign-up, this
+    week's schedule, club news and results. Its first cell is highlighted and
+    bleeds to the page edge;
+  - the season/hours/courts/location facts, which used to occupy that band,
+    are now a quiet one-line strip below it;
+  - the home page tiles lead with booking; membership follows;
+  - the top bar carries a "Member login" link;
+  - nav order runs programs first, then news, then membership and about;
+  - the closing band on the home page is still the pitch to join, since that
+    is where a prospective member ends up, with a booking shortcut in its
+    text for members who scrolled that far.
 - **Booking** links go to the club's existing JustBookIt site in a new tab.
   See `BOOKING.md` for what was learned about that system and the options
   for integrating or replacing it.
