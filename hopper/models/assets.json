@@ -1,11 +1,11 @@
 {
-  "status": "review snapshot for future game integration",
+  "status": "Canonical runtime character assets; M-001 and M-002 animation extension visually reviewed 2026-09-12",
   "assets": {
     "hopper": {
       "file": "hopper.glb",
-      "bytes": 2890228,
-      "sha256": "e7462deb990f75740dbf0781dbfadccf299d26f4b2d40b87b379600b576f2ec1",
-      "animation_count": 20,
+      "bytes": 3566344,
+      "sha256": "da8dbcd8d783580e3beef2d47d4a33e2d51d0d6cecefef314d485f0cf696e0e1",
+      "animation_count": 35,
       "skins": 1,
       "required_extensions": [
         "KHR_mesh_quantization",
@@ -14,9 +14,9 @@
     },
     "rider": {
       "file": "rider.glb",
-      "bytes": 2369560,
-      "sha256": "b7efc466bc0dd36c51a339e43474ee87ea83c050a4e10d0b28e408161e152627",
-      "animation_count": 13,
+      "bytes": 2836676,
+      "sha256": "6a00722e6c2a8625c8dea8e986971f70a8520fc94c52738caf9f2ff64bde4735",
+      "animation_count": 19,
       "skins": 1,
       "required_extensions": [
         "KHR_mesh_quantization",
@@ -25,9 +25,9 @@
     },
     "hopper-rider": {
       "file": "hopper-rider.glb",
-      "bytes": 5376164,
-      "sha256": "3fe62cd8533f58b73e97076dd318f5fcaa577350e34bfce0248e39310b0cc1a1",
-      "animation_count": 25,
+      "bytes": 7288784,
+      "sha256": "10b446ff37d0eae666d0990bb1392563e4189d1af70be22b67e8388f920fa514",
+      "animation_count": 46,
       "skins": 2,
       "required_extensions": [
         "KHR_mesh_quantization",

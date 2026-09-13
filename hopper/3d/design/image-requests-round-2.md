@@ -43,7 +43,7 @@ All 32 requested sheets are delivered, with ten larger supporting plates. [Open 
 | T-076 Kit sheet: Cobalt Drift | M-060, M-061, M-062, M-090 |
 | T-077 Kit sheet: Violet Inversion | M-063, M-064, M-065, M-066, M-067, M-091 |
 | T-078 Props sheet | M-068, M-069, M-070, M-071, M-072, M-073, M-074, M-075, M-076, M-077, M-078, M-079, M-080, M-081, M-082 |
-| T-079 Hopper pose sheet for the new clips | M-001, M-002 |
+| T-079 Hopper pose sheet for the new clips | (reference for animation) |
 
 ## Order
 
@@ -84,7 +84,7 @@ Hopper pose sheet first, then the four mission-one species (Shade Hound, Seed Sp
 | T-076 | `design/assets/level-3-alien.png`, `game/public/assets/backgrounds/blue.webp` |
 | T-077 | `design/assets/level-3-alien.png`, `game/public/assets/backgrounds/purple.webp` |
 | T-078 | `game/public/assets/upgrades/props/spring-pad.png`, `game/public/assets/upgrades/reference/props/signal-cage-intact.png`, `game/public/assets/upgrades/reference/props/lockdown-wall.png` |
-| T-079 | `design/assets/hopper-canonical-v1.png`, `design/assets/hopper-action-study.png`, `models/hopper-rider.glb` |
+| T-079 | `design/assets/hopper-canonical-v1.png`, `design/assets/hopper-action-study.png` |
 
 ## The sheets
 

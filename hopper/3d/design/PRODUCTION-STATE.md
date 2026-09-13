@@ -38,7 +38,7 @@ Reconcile the current request inventory, finish requested image work that the av
 - [ ] Fix/re-export/regenerate failed Round 3 images and rerun verification.
 - [ ] Deliver native-resolution sky repaints or document concrete tool limitation.
 - [ ] Complete verified Tier A batches.
-- [ ] Complete animation requests.
+- [x] Complete animation requests (15 Hopper clips, 6 rider reactions; visual and preservation checks passed).
 - [ ] Complete feasible creative model batches.
 - [ ] Final validation, main commits/pushes, and restart handoff.
 
@@ -68,3 +68,6 @@ Reconcile the current request inventory, finish requested image work that the av
 - New creature M-018 initial candidate rejected in visual review: rectangular wings, excessive glow and disconnected-looking tails do not meet the canonical reference. Sol is refining custom silhouette/armor/tails; it is NOT a delivered asset.
 - Animation candidates have 35/19/46 clips and preserved source mesh/skin data. Astra visual review caught and corrected gaze/tuck directions and reaction layer masks; publication still awaits root visual acceptance.
 - Image-processing preference re-requested on resume; still pending. No failed image asset has been marked fixed.
+- Animation delivery integrated into canonical `hopper/models`: 35 Hopper, 19 rider, 46 combined clips. Root accepted all five pose sheets; independent published-file validation confirms original binary/rig resources preserved and exact loop closure. M-001/M-002 docs regenerated as delivered. Gameplay transition testing remains separate.
+- Landmark batch committed/pushed as `06894cc`. M-089 LOD1 ring gaps and M-024/027/036/037 atlas appearance remain rejected pending fixes; do not publish their existing candidates.
+- Phase Skate second candidate passes structural checks but still fails visual quality; awaiting creative handoff. No creature candidate is delivered.

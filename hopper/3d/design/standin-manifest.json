@@ -42,14 +42,11 @@
       ],
       "standIn": "hopper.proxy",
       "final": "models/hopper-rider.glb (new clips)",
-      "status": "open",
+      "status": "delivered",
       "references": [
         "design/assets/hopper-canonical-v1.png",
         "design/assets/hopper-action-study.png",
         "models/hopper-rider.glb"
-      ],
-      "needs": [
-        "T-079"
       ]
     },
     {
@@ -65,14 +62,11 @@
       ],
       "standIn": "hopper.proxy",
       "final": "models/hopper-rider.glb (new rider clips)",
-      "status": "open",
+      "status": "delivered",
       "references": [
         "design/assets/hopper-canonical-v1.png",
         "design/assets/hopper-action-study.png",
         "models/hopper-rider.glb"
-      ],
-      "needs": [
-        "T-079"
       ]
     },
     {

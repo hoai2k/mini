@@ -52,7 +52,7 @@ for clip in clips:
  lo=Vector([min(b[0][i] for b in boxes) for i in range(3)]);hi=Vector([max(b[1][i] for b in boxes) for i in range(3)])
  center=(lo+hi)/2;size=hi-lo;camdata.ortho_scale=max(size)*1.48
  # glTF +Z forward becomes Blender -Y. Front three-quarter view keeps seat and both sides legible.
- direction=Vector((1.4,-2.2,.95)).normalized();cam.location=center+direction*75;cam.rotation_euler=(center-cam.location).to_track_quat('-Z','Y').to_euler()
+ direction=Vector((-1.7,-2.2,1.45) if isr else (1.4,-2.2,.95)).normalized();cam.location=center+direction*75;cam.rotation_euler=(center-cam.location).to_track_quat('-Z','Y').to_euler()
  for idx,u in enumerate(us):
   pose(name,dur*u);scene.render.filepath=str(qa/f'{kind}-{name}-{idx}.png');bpy.ops.render.render(write_still=True)
  print('QA DONE',kind,name,flush=True)

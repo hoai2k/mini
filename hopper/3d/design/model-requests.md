@@ -22,15 +22,15 @@ Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mes
 
 | Category | Requests | Delivered | Stand-in | Open |
 | --- | ---: | ---: | ---: | ---: |
-| hopper | 2 | 1 | 0 | 1 |
-| rider | 1 | 0 | 0 | 1 |
+| hopper | 2 | 2 | 0 | 0 |
+| rider | 1 | 1 | 0 | 0 |
 | enemy | 18 | 0 | 18 | 0 |
 | boss | 3 | 0 | 3 | 0 |
 | structure | 44 | 44 | 0 | 0 |
 | prop | 15 | 15 | 0 | 0 |
 | landmark | 9 | 9 | 0 | 0 |
 | terrain | 1 | 1 | 0 | 0 |
-| **total** | **93** | **70** | **21** | **2** |
+| **total** | **93** | **72** | **21** | **0** |
 
 ## Hopper and the rider
 
@@ -39,25 +39,25 @@ Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mes
 The delivered insect rig (51 joints) with the boy parented under Hopper.Seat. The 3D game loads this file as-is; the proxy exists for engine tests and for scale in stand-in scenes.
 
 - **Rig:** skeletal · **Status:** delivered · **Final:** `models/hopper-rider.glb` · **Stand-in:** `hopper.proxy`
-- **Clips:** 25 delivered (see models/manifest.json)
-- **Sockets:** 18 Hopper + 8 rider sockets (see models/manifest.json)
+- **Clips:** 46 delivered (35 Hopper actions, 5 original rider previews, 6 new rider reactions; see hopper/models/manifest.json)
+- **Sockets:** 20 Hopper + 8 rider sockets (see models/manifest.json)
 - **Textures:** delivered 4K colour + normal
 
 ### M-001 · Hopper: traversal and air-combat clips
 
-New clips on the existing HopperRig. No mesh or joint changes. Walk/Run stay in place; every airborne clip is physics-driven (no root motion). Wings open from the folded rest pose.
+15 new clips delivered on the existing HopperRig; separate Hopper total 35 and combined total 46. No mesh or skin-joint changes. Walk/Run stay in place; every airborne clip is physics-driven (no root motion). Wings open from the folded rest pose.
 
-- **Rig:** skeletal · **Status:** open · **Final:** `models/hopper-rider.glb (new clips)` · **Stand-in:** `hopper.proxy`
+- **Rig:** skeletal · **Status:** delivered · **Final:** `models/hopper-rider.glb (new clips)` · **Stand-in:** `hopper.proxy`
 - **Clips:** Wing_Open (0.25 s), Glide_Loop (wings spread, hind legs trailing), Wing_Close (0.2 s), Dive_Loop (legs tucked, head down), Stomp_Land (deep compression + shockwave pose, 0.6 s), Air_Kick (Spin_Kick timed for 0.6 s with the body level), Wall_Kick (plant + push, 0.35 s), Ledge_Mantle (front legs hook, haul, 0.7 s), Hop_Back (0.45 s), Crouch_Charge_Loop (femurs compressing progressively, 0.8 s, sampled by charge), Super_Leap_Start (0.3 s), Lock_Strafe_L/R (sidestep loops), Hit_Air (0.5 s), Land_Heavy (from a dive, 0.8 s)
-- **Sockets:** existing; add Hopper.Wing.L/R tip sockets for glide trails
+- **Sockets:** existing plus Hopper.Wing.L/R non-deforming tip nodes for glide trails; no new skin joints
 - **Textures:** existing
 
 ### M-002 · Rider: reaction clips
 
-Additional seated reactions layered over Riding_Idle: Glide_Lean (arms back, scarf streaming), Dive_Tuck, Stomp_Brace, Point_Forward (used by Horizon View), Look_Up_Long (watching a flyer), Cheer_Short. All local to the seat; never leave the couch.
+6 additional seated reactions delivered as rider-only masked poses over Riding_Idle: Glide_Lean (arms back; scarf retains existing torso skinning), Dive_Tuck, Stomp_Brace, Point_Forward (used by Horizon View), Look_Up_Long (watching a flyer), Cheer_Short. All local to the seat; never leave the couch.
 
-- **Rig:** skeletal · **Status:** open · **Final:** `models/hopper-rider.glb (new rider clips)` · **Stand-in:** `hopper.proxy`
-- **Clips:** 6 listed
+- **Rig:** skeletal · **Status:** delivered · **Final:** `models/hopper-rider.glb (new rider clips)` · **Stand-in:** `hopper.proxy`
+- **Clips:** Glide_Lean (1.6 s loop), Dive_Tuck (1.2 s loop), Stomp_Brace (0.6 s), Point_Forward (1.3 s), Look_Up_Long (2.4 s), Cheer_Short (1.1 s); separate rider total 19
 - **Sockets:** existing
 - **Textures:** existing
 

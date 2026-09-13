@@ -105,6 +105,127 @@
         "name": "Victory",
         "duration": 2.0333333015441895,
         "loop": false
+      },
+      {
+        "name": "Wing_Open",
+        "loop": false,
+        "duration": 0.25,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Glide_Loop",
+        "loop": true,
+        "duration": 1.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Wing_Close",
+        "loop": false,
+        "duration": 0.2,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Dive_Loop",
+        "loop": true,
+        "duration": 1.2,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Stomp_Land",
+        "loop": false,
+        "duration": 0.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Air_Kick",
+        "loop": false,
+        "duration": 0.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Wall_Kick",
+        "loop": false,
+        "duration": 0.35,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Ledge_Mantle",
+        "loop": false,
+        "duration": 0.7,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Hop_Back",
+        "loop": false,
+        "duration": 0.45,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Crouch_Charge_Loop",
+        "loop": false,
+        "duration": 0.8,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001",
+        "sampling": "normalized charge 0..1; clamped; intentionally non-cyclic"
+      },
+      {
+        "name": "Super_Leap_Start",
+        "loop": false,
+        "duration": 0.3,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Lock_Strafe_L",
+        "loop": true,
+        "duration": 1,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Lock_Strafe_R",
+        "loop": true,
+        "duration": 1,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Hit_Air",
+        "loop": false,
+        "duration": 0.5,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Land_Heavy",
+        "loop": false,
+        "duration": 0.8,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
       }
     ],
     "rider": [
@@ -172,6 +293,60 @@
         "name": "Dismount_Seat",
         "duration": 1.8333333730697632,
         "loop": false
+      },
+      {
+        "name": "Glide_Lean",
+        "loop": true,
+        "duration": 1.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Dive_Tuck",
+        "loop": true,
+        "duration": 1.2,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Stomp_Brace",
+        "loop": false,
+        "duration": 0.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Point_Forward",
+        "loop": false,
+        "duration": 1.3,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Look_Up_Long",
+        "loop": false,
+        "duration": 2.4,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Cheer_Short",
+        "loop": false,
+        "duration": 1.1,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
       }
     ],
     "hopper-rider": [
@@ -299,6 +474,181 @@
         "name": "Dismount_Seat",
         "duration": 1.8333333730697632,
         "loop": false
+      },
+      {
+        "name": "Wing_Open",
+        "loop": false,
+        "duration": 0.25,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Glide_Loop",
+        "loop": true,
+        "duration": 1.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Wing_Close",
+        "loop": false,
+        "duration": 0.2,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Dive_Loop",
+        "loop": true,
+        "duration": 1.2,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Stomp_Land",
+        "loop": false,
+        "duration": 0.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Air_Kick",
+        "loop": false,
+        "duration": 0.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Wall_Kick",
+        "loop": false,
+        "duration": 0.35,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Ledge_Mantle",
+        "loop": false,
+        "duration": 0.7,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Hop_Back",
+        "loop": false,
+        "duration": 0.45,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Crouch_Charge_Loop",
+        "loop": false,
+        "duration": 0.8,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001",
+        "sampling": "normalized charge 0..1; clamped; intentionally non-cyclic"
+      },
+      {
+        "name": "Super_Leap_Start",
+        "loop": false,
+        "duration": 0.3,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Lock_Strafe_L",
+        "loop": true,
+        "duration": 1,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Lock_Strafe_R",
+        "loop": true,
+        "duration": 1,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Hit_Air",
+        "loop": false,
+        "duration": 0.5,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Land_Heavy",
+        "loop": false,
+        "duration": 0.8,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-001"
+      },
+      {
+        "name": "Glide_Lean",
+        "loop": true,
+        "duration": 1.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Dive_Tuck",
+        "loop": true,
+        "duration": 1.2,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Stomp_Brace",
+        "loop": false,
+        "duration": 0.6,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Point_Forward",
+        "loop": false,
+        "duration": 1.3,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Look_Up_Long",
+        "loop": false,
+        "duration": 2.4,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
+      },
+      {
+        "name": "Cheer_Short",
+        "loop": false,
+        "duration": 1.1,
+        "sampleRate": 30,
+        "rootMotion": false,
+        "request": "M-002",
+        "targetMask": "rider DEF nodes only; no Hopper, actor-root or socket tracks"
       }
     ]
   },
@@ -359,7 +709,7 @@
   },
   "event_time_units": "normalized clip time; proposed gameplay hooks, not embedded damage or effects",
   "combined_attachment": "RiderRig is parented to Hopper.Seat; never run the external binding helper on the combined GLB",
-  "physics": "Walk/Run are in-place. Jump_Start/Jump_Loop/Land are physics-driven. Jump_Preview has a demonstration vertical body arc. Spin_Kick spins the body locally; preserve the gameplay actor facing.",
+  "physics": "Walk/Run are in-place. Jump_Start/Jump_Loop/Land are physics-driven. Jump_Preview has a demonstration vertical body arc. Spin_Kick spins the body locally; preserve the gameplay actor facing. All 15 M-001 extension clips have no actor root motion. Crouch_Charge_Loop is a clamped charge ramp, not cyclic playback.",
   "sockets": {
     "hopper": [
       "Hopper.Foot.Front.L",
@@ -379,7 +729,9 @@
       "Hopper.Footrest.R",
       "Hopper.Grip.L",
       "Hopper.Grip.R",
-      "Hopper.Seat"
+      "Hopper.Seat",
+      "Hopper.Wing.L",
+      "Hopper.Wing.R"
     ],
     "rider": [
       "Rider.Foot.L",
@@ -402,5 +754,47 @@
     ],
     "description": "Seated on original central red couch cushion inside yellow frame; no booster geometry. Grip and footrest sockets are neutral-pose references for optional future controls."
   },
-  "skinning_revision": "surface-connected wing segmentation; fitted symmetric limb chains; preserved couch rider fit"
+  "skinning_revision": "surface-connected wing segmentation; fitted symmetric limb chains; preserved couch rider fit",
+  "socket_metadata": {
+    "Hopper.Wing.L": {
+      "parent": "wing.L",
+      "translation": [
+        0,
+        0.329203584,
+        0
+      ],
+      "purpose": "glide-trail wing tip",
+      "deforming": false
+    },
+    "Hopper.Wing.R": {
+      "parent": "wing.R",
+      "translation": [
+        0,
+        0.329203584,
+        0
+      ],
+      "purpose": "glide-trail wing tip",
+      "deforming": false
+    }
+  },
+  "animation_extension": {
+    "date": "2026-09-12",
+    "requests": {
+      "M-001": 15,
+      "M-002": 6
+    },
+    "sampleRate": 30,
+    "skinJointCounts": {
+      "hopper": 51,
+      "rider": 41
+    },
+    "newSkinJoints": 0,
+    "newSocketNodes": 2,
+    "riderReactions": "Absolute seated poses masked to rider DEF nodes. Layer as normal actions, not additive deltas. Combined reactions never target Hopper. All seated pelvis/leg-root transforms remain at Riding_Idle. Underlying combined locomotion includes its own rider tracks, so split/remove its DEF channels when full-strength independent reactions are required.",
+    "limitations": [
+      "Scarf uses existing torso skinning; no independent cloth joint.",
+      "63 keypose renders reviewed; gameplay transition timing remains to be tuned."
+    ],
+    "validation": "animation-extension-validation.json"
+  }
 }
