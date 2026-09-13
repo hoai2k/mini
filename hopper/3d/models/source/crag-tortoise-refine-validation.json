@@ -1,0 +1,330 @@
+{
+  "request": "M-007",
+  "date": "2026-09-12",
+  "status": "root-reviewed and integrated",
+  "file": "hopper/3d/models/enemies/cragTortoise.glb",
+  "bytes": 2203668,
+  "sha256": "946fc1b8536fa8bfd6b0633ebdccb3f27fb99b5b4fbca76d4b2cfa58190f434b",
+  "bounds": [
+    7.100000381469727,
+    4.699999809265137,
+    8.600000381469727
+  ],
+  "triangles": [
+    6206,
+    1983
+  ],
+  "skinJoints": [
+    [
+      "Spine.0",
+      "Leg.RL.0",
+      "Leg.RL.1",
+      "Leg.RL.2",
+      "Leg.RR.0",
+      "Leg.RR.1",
+      "Leg.RR.2",
+      "Shell",
+      "Spine.1",
+      "Head",
+      "Jaw",
+      "Leg.FL.0",
+      "Leg.FL.1",
+      "Leg.FL.2",
+      "Leg.FR.0",
+      "Leg.FR.1",
+      "Leg.FR.2"
+    ],
+    [
+      "LOD1.Spine.0",
+      "LOD1.Leg.RL.0",
+      "LOD1.Leg.RL.1",
+      "LOD1.Leg.RL.2",
+      "LOD1.Leg.RR.0",
+      "LOD1.Leg.RR.1",
+      "LOD1.Leg.RR.2",
+      "LOD1.Shell",
+      "LOD1.Spine.1",
+      "LOD1.Head",
+      "LOD1.Jaw",
+      "LOD1.Leg.FL.0",
+      "LOD1.Leg.FL.1",
+      "LOD1.Leg.FL.2",
+      "LOD1.Leg.FR.0",
+      "LOD1.Leg.FR.1",
+      "LOD1.Leg.FR.2"
+    ]
+  ],
+  "skinnedVerticesAudited": 13233,
+  "clipChecks": [
+    {
+      "name": "Lunge",
+      "duration": 0.366667,
+      "channels": 104,
+      "loop": false,
+      "rootMotion": [
+        {
+          "node": "LOD0",
+          "translation": [
+            0.0,
+            1.149999976158142,
+            5.400000095367432
+          ]
+        },
+        {
+          "node": "LOD1",
+          "translation": [
+            0.0,
+            1.149999976158142,
+            5.400000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Idle",
+      "duration": 1.233333,
+      "channels": 102,
+      "loop": true,
+      "rootMotion": [],
+      "loopEndpointMaxError": 4.235164736271502e-22
+    },
+    {
+      "name": "Walk",
+      "duration": 1.033333,
+      "channels": 102,
+      "loop": true,
+      "rootMotion": [],
+      "loopEndpointMaxError": 0.0
+    },
+    {
+      "name": "Lunge_Tell",
+      "duration": 0.666667,
+      "channels": 102,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Belly_Open_Hold",
+      "duration": 0.833333,
+      "channels": 102,
+      "loop": true,
+      "rootMotion": [],
+      "loopEndpointMaxError": 0.0
+    },
+    {
+      "name": "Withdraw",
+      "duration": 0.733333,
+      "channels": 102,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Hit",
+      "duration": 0.466667,
+      "channels": 102,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Dissolve",
+      "duration": 0.9,
+      "channels": 102,
+      "loop": false,
+      "rootMotion": []
+    }
+  ],
+  "sockets": [
+    "Core",
+    "Mouth",
+    "Hitbox.Shell",
+    "Hitbox.Body"
+  ],
+  "checks": {
+    "repositoryValidator": "PASS local/hopper-crag-tortoise-refine/cragTortoise.glb\n  726 nodes \u00b7 342 meshes \u00b7 8 materials \u00b7 6206/1983 tris\n\n1/1 GLBs passed.",
+    "normalizedFiniteWeights": true,
+    "finitePositionNormalUVInverseBindAnimationValues": true,
+    "rootMotionOnlyLunge": true,
+    "loopEndpointsMatch": true,
+    "allSocketsFollowCorrectBone": true,
+    "walkNoGroundPenetrationAtExtremes": true,
+    "bellyHoldRearFeetGrounded": true
+  },
+  "visualQA": {
+    "viewsPerLOD": [
+      "front",
+      "three-quarter",
+      "top",
+      "side"
+    ],
+    "clipSamplesPerLOD": [
+      0,
+      0.5,
+      1
+    ],
+    "renders": 70,
+    "walkExtraSamples": [
+      0.25,
+      0.75
+    ],
+    "contactSheets": [
+      {
+        "file": "LOD0-deformation-sheet.jpg",
+        "sha256": "e56cbdbbed250f5a5c27ef76a27aa72642ce801d90de8fe81ccb6c6c9a2f5edc"
+      },
+      {
+        "file": "LOD1-deformation-sheet.jpg",
+        "sha256": "33ac2caab300ab098155f909e57c5656e63944f187647843945bed7c38b9ee06"
+      },
+      {
+        "file": "lod1-seam-review-sheet.jpg",
+        "sha256": "416a25d5355742c76dc912c0a1de03d1a866870e918df59373258c14cdbe9e33"
+      },
+      {
+        "file": "support-and-belly-sheet.jpg",
+        "sha256": "905bec83d4a3a2944282be6cf375f5971d76be1081567ec564d3f998d599ddea"
+      },
+      {
+        "file": "views-contact-sheet.jpg",
+        "sha256": "5d9cb7b07226863d24eb5dd6b1b57ae916e6c69d101750d9409220a71b3b508f"
+      },
+      {
+        "file": "walk-extremes-sheet.jpg",
+        "sha256": "6ff8328ed63e1dcbf323e2c61a780ad2709a83cbf55275d125043c12927b6fa1"
+      }
+    ],
+    "location": "local/hopper-crag-tortoise-refine/",
+    "stagedReview": "All clips and attachments reviewed on both LODs; final UV-only seam pass reviewed in four rest views, Walk and Belly_Open_Hold. Exported geometry, skin and animation invariants are exact.",
+    "review": "Root accepted both LOD deformation, wrap-scaled legs and final six-view LOD1 seam review; UV-only invariants preserve the accepted geometry, skin and all animation data."
+  },
+  "runtimeResponsibilities": [
+    "Enemy navigation and Lunge root-motion application.",
+    "Violet belly-core charge material and shader dissolve effects.",
+    "Belly vulnerability window and shell/body hitbox activation."
+  ],
+  "seamUVInvariants": {
+    "baseline": "pre-seam-uncompressed.glb",
+    "baselineSha256": "64f2835e03baa0a58a7d3c402dcbb99fc5d50b9c88bf45711a38960e0bb175b0",
+    "final": "cragTortoise-uncompressed.glb",
+    "finalSha256": "c636a1fed00778b35068eeddb5ef6101c3acf06c603d0d3e1f6b57ef651faf73",
+    "status": "PASS",
+    "unchanged": [
+      "expanded triangle positions, normals, joint indices and weights",
+      "all animation channels and samples",
+      "skin joints and inverse bind matrices",
+      "node hierarchy and transforms"
+    ],
+    "changed": "LOD1 armor plate UVs only; generated texture reused without pixel edits"
+  },
+  "evaluatedSoleChecks": [
+    {
+      "lod": 0,
+      "clip": "Walk",
+      "phase": 0.25,
+      "evaluatedSoleYMin": {
+        "FL": -0.001170620322227478,
+        "FR": 0.14486053586006165,
+        "RL": 0.16949507594108582,
+        "RR": -0.0013031214475631714
+      }
+    },
+    {
+      "lod": 0,
+      "clip": "Walk",
+      "phase": 0.75,
+      "evaluatedSoleYMin": {
+        "FL": 0.144860178232193,
+        "FR": -0.0011707097291946411,
+        "RL": -0.001303166151046753,
+        "RR": 0.1694951057434082
+      }
+    },
+    {
+      "lod": 0,
+      "clip": "Lunge_Tell",
+      "phase": 1,
+      "evaluatedSoleYMin": {
+        "FL": 4.842460632324219,
+        "FR": 4.842461585998535,
+        "RL": 0.012226134538650513,
+        "RR": 0.012226134538650513
+      }
+    },
+    {
+      "lod": 0,
+      "clip": "Belly_Open_Hold",
+      "phase": 0.5,
+      "evaluatedSoleYMin": {
+        "FL": 4.842460632324219,
+        "FR": 4.842461585998535,
+        "RL": 0.012226134538650513,
+        "RR": 0.012226134538650513
+      }
+    },
+    {
+      "lod": 0,
+      "clip": "Withdraw",
+      "phase": 0.5,
+      "evaluatedSoleYMin": {
+        "FL": 2.425832748413086,
+        "FR": 2.425832986831665,
+        "RL": 0.05302204191684723,
+        "RR": 0.05302204191684723
+      }
+    },
+    {
+      "lod": 1,
+      "clip": "Walk",
+      "phase": 0.25,
+      "evaluatedSoleYMin": {
+        "FL": -0.001170620322227478,
+        "FR": 0.14486053586006165,
+        "RL": 0.16949507594108582,
+        "RR": -0.0013031214475631714
+      }
+    },
+    {
+      "lod": 1,
+      "clip": "Walk",
+      "phase": 0.75,
+      "evaluatedSoleYMin": {
+        "FL": 0.144860178232193,
+        "FR": -0.0011706799268722534,
+        "RL": -0.001303166151046753,
+        "RR": 0.1694951057434082
+      }
+    },
+    {
+      "lod": 1,
+      "clip": "Lunge_Tell",
+      "phase": 1,
+      "evaluatedSoleYMin": {
+        "FL": 4.842460632324219,
+        "FR": 4.842461585998535,
+        "RL": 0.005897983908653259,
+        "RR": 0.005899295210838318
+      }
+    },
+    {
+      "lod": 1,
+      "clip": "Belly_Open_Hold",
+      "phase": 0.5,
+      "evaluatedSoleYMin": {
+        "FL": 4.842460632324219,
+        "FR": 4.842461585998535,
+        "RL": 0.005897983908653259,
+        "RR": 0.005899295210838318
+      }
+    },
+    {
+      "lod": 1,
+      "clip": "Withdraw",
+      "phase": 0.5,
+      "evaluatedSoleYMin": {
+        "FL": 2.424456834793091,
+        "FR": 2.424466133117676,
+        "RL": 0.05884291231632233,
+        "RR": 0.05884291231632233
+      }
+    }
+  ]
+}

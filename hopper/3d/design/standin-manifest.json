@@ -129,7 +129,7 @@
       ],
       "standIn": "enemy.windowRay",
       "final": "models/enemies/windowRay.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/windowRay.png",
         "design/assets/enemy-silhouettes.png"
@@ -152,7 +152,7 @@
       ],
       "standIn": "enemy.spireLeech",
       "final": "models/enemies/spireLeech.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/spireLeech.png",
         "design/assets/enemy-silhouettes.png"
@@ -175,7 +175,7 @@
       ],
       "standIn": "enemy.cragTortoise",
       "final": "models/enemies/cragTortoise.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/cragTortoise.png",
         "design/assets/enemy-silhouettes.png"
@@ -267,7 +267,7 @@
       ],
       "standIn": "enemy.chainManta",
       "final": "models/enemies/chainManta.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/chainManta.png",
         "design/assets/enemy-silhouettes.png"
@@ -336,7 +336,7 @@
       ],
       "standIn": "enemy.turbineWasp",
       "final": "models/enemies/turbineWasp.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/turbineWasp.png",
         "design/assets/enemy-silhouettes.png"
@@ -2973,7 +2973,7 @@
       "name": "Soft-landing surfaces: sea, drift dust, slag",
       "category": "surface",
       "final": "textures/surface/{sea,dust,slag}.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     },
     {
@@ -2991,7 +2991,7 @@
       "name": "Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail",
       "category": "effects",
       "final": "textures/effects/hopper.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     },
     {
@@ -3030,7 +3030,7 @@
       "name": "Checkpoint totem and spring pad decals",
       "category": "ui",
       "final": "textures/ui/props.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     }
   ]

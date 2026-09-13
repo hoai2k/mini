@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-/** Validate final Hopper GLBs without external dependencies.
+/** Validate final Hopper GLBs; compressed skins use the installed offline meshopt decoder.
  * Usage: node source/validate.mjs [--manifest ../manifest.json] [model.glb ...]
  * With no model arguments, every manifest entry is required and validated.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { measureSkinBounds } from './skin_bounds.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MODEL_DIR = path.resolve(HERE, '..');
@@ -157,7 +158,7 @@ function expectedTriangles(entry) {
 function manifestEntries(data) { return Array.isArray(data) ? data : data.models || data.entries || []; }
 function canonicalFile(value) { return String(value || '').replaceAll('\\','/').replace(/^.*?hopper\/3d\/models\//,'').replace(/^models\//,'').replace(/^\.\//,''); }
 
-function validate(file, entry) {
+async function validate(file, entry) {
   const result={file,errors:[],warnings:[],facts:{}};
   const error=(x)=>result.errors.push(x), warn=(x)=>result.warnings.push(x);
   let parsed; try { parsed=parseGlb(file); } catch(e) { error(e.message); return result; }
@@ -224,7 +225,12 @@ function validate(file, entry) {
       if(name&&!exported.some((x)=>(typeof x==='string'?x:x?.name||x?.label)===name)&&!nameSet.has(name)) error(`missing landing metadata ${name}`);
     }
   }
-  const recordedBounds=expectedBounds(entry), requestedBounds=targetBounds(entry), actualBounds=lodRoots[0].index<0?null:measuredBounds(doc,binary,lodRoots[0].index);
+  const recordedBounds=expectedBounds(entry), requestedBounds=targetBounds(entry);
+  let actualBounds=null;
+  if(lodRoots[0].index>=0) {
+    try { actualBounds=doc.skins?.length ? await measureSkinBounds(doc,binary,lodRoots[0].index) : measuredBounds(doc,binary,lodRoots[0].index); }
+    catch(e) { error(`skin bounds: ${e.message}`); }
+  }
   if(recordedBounds&&actualBounds) for(let i=0;i<3;i++) { const delta=Math.abs(actualBounds[i]-recordedBounds[i])/Math.max(recordedBounds[i],.001); if(delta>.12) error(`LOD0 ${'XYZ'[i]} bound ${actualBounds[i].toFixed(3)} m differs from manifest measurement ${recordedBounds[i]} m by ${(delta*100).toFixed(1)}%`); }
   if(recordedBounds&&requestedBounds) for(let i=0;i<3;i++) { const delta=Math.abs(recordedBounds[i]-requestedBounds[i])/Math.max(requestedBounds[i],.001); if(delta>.12) error(`manifest ${'XYZ'[i]} bound ${recordedBounds[i].toFixed(3)} m differs from target ${requestedBounds[i]} m by ${(delta*100).toFixed(1)}%`); }
   const targetTri=expectedTriangles(entry);
@@ -244,7 +250,7 @@ if(!files.length) files=manifest.map((entry)=>path.resolve(MODEL_DIR,canonicalFi
 if(!files.length) fail(`No GLBs selected or found from ${manifestPath}`);
 let failed=0;
 for(const file of files) {
-  const entry=entryFor(file); const result=validate(file,entry);
+  const entry=entryFor(file); const result=await validate(file,entry);
   if(!entry) result.warnings.unshift('no matching manifest entry; contract fields were not checked');
   if(result.errors.length) failed++;
   const label=path.relative(process.cwd(),file), status=result.errors.length?'FAIL':'PASS';

@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 import bpy
+import bmesh
 from mathutils import Matrix, Vector
 
 
@@ -60,6 +61,14 @@ def world_position(obj: bpy.types.Object) -> list[float]:
 def mesh_triangles(obj: bpy.types.Object) -> int:
     obj.data.calc_loop_triangles()
     return len(obj.data.loop_triangles)
+
+
+def mesh_is_closed_manifold(obj: bpy.types.Object) -> bool:
+    mesh = bmesh.new()
+    mesh.from_mesh(obj.data)
+    result = bool(mesh.edges) and all(edge.is_manifold for edge in mesh.edges)
+    mesh.free()
+    return result
 
 
 def snapshot(root_by_lod: dict[int, bpy.types.Object], contract: dict) -> dict:
@@ -112,24 +121,25 @@ def safe_name(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", value)[:55] or "material"
 
 
-def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Object]:
-    meshes = [o for o in descendants(root) if o.type == "MESH"]
+def merge_meshes_by_material(
+    parent: bpy.types.Object, name_prefix: str, meshes: list[bpy.types.Object]
+) -> list[bpy.types.Object]:
     groups: dict[str, list[bpy.types.Object]] = {}
     for obj in meshes:
         groups.setdefault(material_key(obj), []).append(obj)
 
     merged: list[bpy.types.Object] = []
     for mat_name, group in sorted(groups.items()):
-        # Bake each static part into the LOD root's local space before joining.
+        # Bake each part into its allowed rigid parent's local space before joining.
         # Reparenting a joined object whose source hierarchy contains rotated,
         # non-uniform scales can create shear that glTF TRS cannot represent;
         # M-027 and M-036 exposed this as greatly inflated exported bounds.
-        root_inverse = root.matrix_world.inverted_safe()
+        parent_inverse = parent.matrix_world.inverted_safe()
         for obj in group:
             if obj.data.users > 1:
                 obj.data = obj.data.copy()
-            obj.data.transform(root_inverse @ obj.matrix_world)
-            obj.parent = root
+            obj.data.transform(parent_inverse @ obj.matrix_world)
+            obj.parent = parent
             obj.matrix_parent_inverse = Matrix.Identity(4)
             obj.matrix_basis = Matrix.Identity(4)
         bpy.ops.object.select_all(action="DESELECT")
@@ -139,7 +149,7 @@ def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Obje
         bpy.context.view_layer.objects.active = active
         bpy.ops.object.join()
         joined = bpy.context.view_layer.objects.active
-        joined.name = f"LOD{level}.{safe_name(mat_name)}"
+        joined.name = f"{safe_name(name_prefix)}.{safe_name(mat_name)}"
         joined.data.name = joined.name
         if len(joined.material_slots) != 1:
             die(f"{joined.name}: join produced {len(joined.material_slots)} material slots")
@@ -147,9 +157,44 @@ def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Obje
     return merged
 
 
+def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Object]:
+    meshes = [o for o in descendants(root) if o.type == "MESH"]
+    return merge_meshes_by_material(root, f"LOD{level}", meshes)
+
+
+def merge_with_functional_pivots(
+    root: bpy.types.Object, pivot_names: set[str]
+) -> tuple[list[bpy.types.Object], dict[str, list[str]]]:
+    """Merge only meshes sharing the same nearest protected rigid pivot."""
+    pivots = {obj.name: obj for obj in descendants(root) if obj.name in pivot_names}
+    relevant_names = {name for name in pivot_names if name == root.name or name.startswith(f"{root.name}.")}
+    missing = sorted(relevant_names - pivots.keys())
+    if missing:
+        die(f"{root.name}: functional pivots missing after import: {missing}")
+    owners = {root, *pivots.values()}
+    owned: dict[bpy.types.Object, list[bpy.types.Object]] = {owner: [] for owner in owners}
+    for mesh in [obj for obj in descendants(root) if obj.type == "MESH"]:
+        owner = mesh.parent
+        while owner not in owners and owner is not None:
+            owner = owner.parent
+        if owner is None:
+            die(f"{mesh.name}: no functional rigid owner below {root.name}")
+        owned[owner].append(mesh)
+
+    merged: list[bpy.types.Object] = []
+    ownership = {}
+    for owner in sorted(owners, key=lambda obj: obj.name):
+        meshes = owned[owner]
+        ownership[owner.name] = sorted(obj.name for obj in meshes)
+        if meshes:
+            merged.extend(merge_meshes_by_material(owner, owner.name, meshes))
+    return merged, ownership
+
+
 def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
     before_vertices = len(obj.data.vertices)
     before_triangles = mesh_triangles(obj)
+    original_mesh = obj.data.copy()
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
@@ -157,14 +202,21 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.remove_doubles(threshold=0.01)
     bpy.ops.object.mode_set(mode="OBJECT")
+    welded_triangles = mesh_triangles(obj)
+    if welded_triangles != before_triangles:
+        changed_mesh = obj.data
+        obj.data = original_mesh
+        bpy.data.meshes.remove(changed_mesh)
+        weld_action = "skipped-triangle-change"
+    else:
+        bpy.data.meshes.remove(original_mesh)
+        weld_action = "applied"
     welded_mesh = obj.data.copy()
     welded_triangles = mesh_triangles(obj)
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="DESELECT")
     bpy.ops.mesh.select_interior_faces()
     bpy.ops.mesh.delete(type="FACE")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.normals_make_consistent(inside=False)
     bpy.ops.mesh.select_all(action="DESELECT")
     bpy.ops.object.mode_set(mode="OBJECT")
     obj.data.update()
@@ -183,11 +235,15 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
     else:
         bpy.data.meshes.remove(welded_mesh)
         interior_action = "no-faces-selected"
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.normals_make_consistent(inside=False)
-    bpy.ops.mesh.select_all(action="DESELECT")
-    bpy.ops.object.mode_set(mode="OBJECT")
+    if mesh_is_closed_manifold(obj):
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.mesh.normals_make_consistent(inside=False)
+        bpy.ops.mesh.select_all(action="DESELECT")
+        bpy.ops.object.mode_set(mode="OBJECT")
+        normals_action = "recalculated-closed-manifold"
+    else:
+        normals_action = "preserved-open-shell"
     obj.data.update()
 
     after_vertices = len(obj.data.vertices)
@@ -216,8 +272,10 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
         "vertices_after": after_vertices,
         "triangles_before": before_triangles,
         "triangles_after": after_triangles,
+        "weld_action": weld_action,
         "interior_faces_selected": selected_interior_removed,
         "interior_action": interior_action,
+        "normals_action": normals_action,
     }
 
 
@@ -488,23 +546,35 @@ def replace_material_textures(
         links.new(shader.outputs["BSDF"], output.inputs["Surface"])
 
 
-def bake_atlas(lod0: list[bpy.types.Object], lod1: list[bpy.types.Object], size: int, atlas_dir: Path, stem: str) -> dict:
+def bake_atlas(
+    lod0: list[bpy.types.Object],
+    lod1: list[bpy.types.Object],
+    size: int,
+    atlas_dir: Path,
+    stem: str,
+    jpeg_emission: bool = False,
+) -> dict:
     source_uvs = pin_implicit_source_uv(lod0)
     ensure_atlas_uv(lod0)
     materials = sorted({slot.material for obj in lod0 for slot in obj.material_slots if slot.material}, key=lambda m: m.name)
     has_emission = {material.name: material_has_emission(material) for material in materials}
     albedo = bpy.data.images.new(f"{stem}.albedo", width=size, height=size, alpha=False)
     emission = bpy.data.images.new(f"{stem}.emission", width=size, height=size, alpha=False)
+    emission_format = "JPEG" if jpeg_emission else "PNG"
+    emission_extension = "jpg" if jpeg_emission else "png"
     albedo.file_format = "JPEG"
-    emission.file_format = "PNG"
+    emission.file_format = emission_format
     albedo.filepath_raw = str(atlas_dir / f"{stem}.albedo.jpg")
-    emission.filepath_raw = str(atlas_dir / f"{stem}.emission.png")
+    emission.filepath_raw = str(atlas_dir / f"{stem}.emission.{emission_extension}")
     bpy.context.scene.render.image_settings.file_format = "JPEG"
     bpy.context.scene.render.image_settings.quality = 92
     bake(lod0, materials, albedo, "DIFFUSE")
     albedo.save_render(albedo.filepath_raw, scene=bpy.context.scene)
-    bpy.context.scene.render.image_settings.file_format = "PNG"
-    bpy.context.scene.render.image_settings.compression = 100
+    bpy.context.scene.render.image_settings.file_format = emission_format
+    if jpeg_emission:
+        bpy.context.scene.render.image_settings.quality = 92
+    else:
+        bpy.context.scene.render.image_settings.compression = 100
     bake(lod0, materials, emission, "EMIT")
     emission.save_render(emission.filepath_raw, scene=bpy.context.scene)
     transfers = transfer_lod1_uvs(lod0, lod1)
@@ -518,6 +588,7 @@ def bake_atlas(lod0: list[bpy.types.Object], lod1: list[bpy.types.Object], size:
             bpy.data.images.remove(image)
     return {
         "size": size,
+        "image_formats": {"albedo": "JPEG", "emission": emission_format},
         "materials": [m.name for m in materials],
         "emissive_materials": [name for name, active in has_emission.items() if active],
         "uv_transfers": transfers,
@@ -546,6 +617,28 @@ def assert_mechanical_invariants(before: dict, after: dict) -> None:
                 die(f"LOD{level} {'XYZ'[axis]} bound changed {source:.6f} -> {candidate:.6f} m")
 
 
+def assert_import_topology(contract: dict, imported: dict) -> dict:
+    source = {str(level): int(count) for level, count in contract["compressed_source_triangles"].items()}
+    imported_triangles = {str(level): int(count) for level, count in imported["triangles"].items()}
+    delta = {level: imported_triangles[level] - source[level] for level in ("0", "1")}
+    exception = contract.get("import_triangle_exception")
+    expected_delta = (
+        {str(level): int(count) for level, count in exception["delta"].items()}
+        if exception else {"0": 0, "1": 0}
+    )
+    if delta != expected_delta:
+        die(
+            "Blender import changed compressed-source triangle counts without the reviewed exception: "
+            f"source={source}, imported={imported_triangles}, delta={delta}, expected={expected_delta}"
+        )
+    return {
+        "compressed_source_triangles": source,
+        "blender_imported_triangles": imported_triangles,
+        "delta": delta,
+        "accepted_exception": exception,
+    }
+
+
 def main() -> None:
     args = parse_args()
     contract = json.loads(Path(args.contract).read_text())
@@ -565,11 +658,13 @@ def main() -> None:
             die(f"expected one LOD{level} root, found {[o.name for o in matches]}")
         root_by_lod[level] = matches[0]
     before = snapshot(root_by_lod, contract)
+    import_topology = assert_import_topology(contract, before)
     expected_nodes = int(contract["source_nodes"])
     if before["objects"] != expected_nodes:
         die(f"decoded import has {before['objects']} objects; validator reported {expected_nodes} nodes")
 
     operations = []
+    functional_cleanup = None
     if args.terrain_bake_only:
         lod_meshes = {
             level: [o for o in descendants(root) if o.type == "MESH"]
@@ -577,6 +672,26 @@ def main() -> None:
         }
         if any(len(meshes) != 1 for meshes in lod_meshes.values()):
             die(f"terrain bake-only input is not one mesh per LOD: { {k: len(v) for k, v in lod_meshes.items()} }")
+    elif contract.get("functional_rigid"):
+        pivot_names = set(contract["functional_rigid"].get("pivots", []))
+        imported_names = {obj.name for obj in bpy.data.objects}
+        missing = sorted(pivot_names - imported_names)
+        if missing:
+            die(f"functional pivots missing after import: {missing}")
+        lod_meshes = {}
+        ownership = {}
+        for level, root in root_by_lod.items():
+            merged, level_ownership = merge_with_functional_pivots(root, pivot_names)
+            lod_meshes[level] = merged
+            ownership.update(level_ownership)
+            operations.extend(weld_and_delete_interior(obj) for obj in merged)
+        functional_cleanup = {
+            "status": "rigid-pivots-preserved",
+            "reason": contract["functional_rigid"]["reason"],
+            "protected_pivots": sorted(pivot_names),
+            "source_triangles_by_rigid_subtree": contract["functional_structure"]["triangles_by_rigid_subtree"],
+            "imported_mesh_ownership": ownership,
+        }
     else:
         lod_meshes = {}
         for level, root in root_by_lod.items():
@@ -585,7 +700,13 @@ def main() -> None:
             operations.extend(weld_and_delete_interior(obj) for obj in merged)
 
     landing_checks = raycast_landings(root_by_lod, contract)
-    if int(contract.get("source_images", 0)) == 0:
+    if contract.get("preserve_source_textures"):
+        atlas = {
+            "status": "skipped-preserve-source-textures-quality",
+            "reason": "shared atlas visibly reduced texture density; retaining original painted materials",
+            "materials": sorted({material_key(obj) for obj in lod_meshes[0]}),
+        }
+    elif int(contract.get("source_images", 0)) == 0:
         atlas = {
             "status": "skipped-untextured-flat-color",
             "reason": "source GLB embeds no images; retaining its flat-color materials avoids adding a redundant atlas",
@@ -593,7 +714,14 @@ def main() -> None:
         }
     else:
         atlas_size = 2048 if max(contract["bounds"]) > 120 else 1024
-        atlas = bake_atlas(lod_meshes[0], lod_meshes[1], atlas_size, Path(args.atlas_dir), Path(args.output).stem)
+        atlas = bake_atlas(
+            lod_meshes[0],
+            lod_meshes[1],
+            atlas_size,
+            Path(args.atlas_dir),
+            Path(args.output).stem,
+            jpeg_emission=bool(contract.get("jpeg_emission")),
+        )
     after = snapshot(root_by_lod, contract)
     assert_mechanical_invariants(before, after)
 
@@ -624,6 +752,8 @@ def main() -> None:
         "file": contract["file"],
         "before": before,
         "after": after,
+        "import_topology": import_topology,
+        "functional_cleanup": functional_cleanup,
         "operations": operations,
         "landing_checks": landing_checks,
         "atlas": atlas,

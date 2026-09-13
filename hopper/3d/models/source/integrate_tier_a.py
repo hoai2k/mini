@@ -1,6 +1,7 @@
 """Integrate explicitly reviewed Tier A candidates; root-only delivery step.
 
 Usage: python3 hopper/3d/models/source/integrate_tier_a.py M-084 M-085
+Use M-092:fields to select a terrain within a shared request ID.
 Run the full model validator immediately afterwards, before committing.
 """
 import json
@@ -20,13 +21,21 @@ def main(ids):
     manifest = json.loads(manifest_file.read_text())
     entries = manifest['models']
     approved = []
-    for request in ids:
-        reports = list((WORK / 'reports').glob(f'{request}-*.json'))
+    for selector in ids:
+        request, separator, stem = selector.partition(':')
+        if separator and (not stem or not stem.replace('-', '').isalnum()):
+            raise ValueError(f'{selector}: invalid asset stem')
+        reports = list((WORK / 'reports').glob(f'{request}-{stem if separator else "*"}.json'))
         if len(reports) != 1:
             raise ValueError(f'{request}: expected exactly one candidate report')
         report = json.loads(reports[0].read_text())
-        entry = next(e for e in entries if e['request'] == request)
         source, candidate = REPO / report['source'], REPO / report['candidate']
+        matches = [e for e in entries if e['request'] == request and (MODELS / e['file']).resolve() == source.resolve()]
+        if len(matches) != 1:
+            raise ValueError(f'{selector}: expected one matching production asset')
+        entry = matches[0]
+        if any(previous[2].resolve() == source.resolve() for previous in approved):
+            raise ValueError(f'{selector}: duplicate production asset')
         if source.resolve() != (MODELS / entry['file']).resolve():
             raise ValueError(f'{request}: report path mismatch')
         if report['status'] != 'passed' or entry['processing'] != 'needs-cleanup':
@@ -36,7 +45,17 @@ def main(ids):
         if candidate.stat().st_size != report['candidate_bytes']:
             raise ValueError(f'{request}: candidate changed; re-review')
         if report['metrics']['triangles'] != entry['triangles']:
-            raise ValueError(f'{request}: changed triangles need separate review')
+            topology = report.get('blender', {}).get('import_topology', {})
+            approved_duplicates = (
+                request == 'M-067'
+                and entry['triangles'] == [648, 124]
+                and report['metrics']['triangles'] == [648, 122]
+                and topology.get('compressed_source_triangles') == {'0': 648, '1': 124}
+                and topology.get('delta') == {'0': 0, '1': -2}
+                and topology.get('accepted_exception', {}).get('evidence', {}).get('source_geometric_duplicate_pairs') == [[0, 1], [40, 41]]
+            )
+            if not approved_duplicates:
+                raise ValueError(f'{request}: changed triangles need separate review')
         approved.append((entry, report, source, candidate))
     # Preflight every item before the first write. Originals stay recoverable
     # in git history; candidate/intermediate sources stay in ignored local/.
@@ -44,11 +63,14 @@ def main(ids):
         shutil.copy2(candidate, source)
         entry['processing'] = 'cleaned-tier-a'
         entry['bytes'] = report['candidate_bytes']
+        entry['triangles'] = report['metrics']['triangles']
         entry['processingNotes'] = (
-            f"Validated material merge/weld; {report['source_bytes']} to "
+            f"Validated mechanical cleanup; {report['source_bytes']} to "
             f"{report['candidate_bytes']} bytes. Matched before/after renders "
             "reviewed. No clips removed. Tier B remains pending."
         )
+        if entry['request'] == 'M-067':
+            entry['processingNotes'] += ' Two coincident LOD1 ring faces removed on import (124 to 122 triangles); matched LOD1 review approved.'
         print(entry['request'], entry['bytes'])
     manifest_file.write_text(json.dumps(manifest, indent=2) + '\n')
 

@@ -85,6 +85,21 @@ function softShadowTexture(): CanvasTexture | null {
   return shadowTexture;
 }
 
+/**
+ * Delivered creatures name their clips per species (a Window Ray hovers and
+ * dives, a Spire Leech clings and crawls), so each combat state lists the
+ * clips that can express it and the first one the model has is played. Only
+ * sustained states are driven: hits and deaths already read through the flash
+ * and the body being removed, and their clips are authored as one-shots.
+ */
+const SHADOW_CLIPS: Record<string, string[]> = {
+  idle: ['Hover', 'Cling_Idle', 'Glide', 'Idle'],
+  approach: ['Crawl', 'Hover', 'Glide', 'Idle'],
+  tell: ['Dive_Tell', 'Charge_Tell', 'Intake_Tell', 'Tell'],
+  attack: ['Dive', 'Dash', 'Beam_Hold', 'Attack'],
+  recover: ['Recover', 'Retract', 'Fade_In', 'Hover', 'Cling_Idle', 'Glide'],
+};
+
 function node(root: Object3D, name: string): Object3D | null {
   let found = root.getObjectByName(name) || root.getObjectByName(name.replace(/[\s.]/g, '')) || null;
   if (!found) root.traverse((o) => { if (!found && o.userData?.name === name) found = o; });
@@ -122,6 +137,9 @@ export class Scene3D {
   private laserTex: Texture | null = null;
   private worldGroup = new Group();
   private shadowObjects = new Map<string, StandInObject>();
+  private shadowModels = new Map<string, Swapped>();
+  /** The clip each delivered creature is playing, so it restarts only on a change. */
+  private shadowClip = new Map<string, string>();
   private animated: StandInObject[] = [];
   private projectileObjects = new Map<number, Mesh>();
   private effects: Effect[] = [];
@@ -258,6 +276,8 @@ export class Scene3D {
     this.scene.add(this.worldGroup);
     this.shadowObjects.clear();
     this.stoneObjects.clear();
+    this.shadowModels.clear();
+    this.shadowClip.clear();
     this.bossObject = null;
     this.corridor = null;
     this.animated = [];
@@ -333,6 +353,11 @@ export class Scene3D {
       o.add(flash);
       this.worldGroup.add(o);
       this.shadowObjects.set(s.id, o);
+      void swapDelivered(o, `enemy.${s.kind}`).then((swapped) => {
+        if (!swapped || version !== this.buildVersion) return;
+        this.delivered.push(swapped);
+        this.shadowModels.set(s.id, swapped);
+      });
     }
     void paintShadows(this.shadowObjects.values());
     this.setBoss(rook);
@@ -672,6 +697,16 @@ export class Scene3D {
       const flash = o.getObjectByName('Flash') as Mesh;
       flash.visible = s.hitFlash > 0 || s.spawnFlash > 0;
       if (flash.visible) flash.scale.setScalar(s.spawnFlash > 0 ? 1 + s.spawnFlash * 2 : 1);
+      const model = this.shadowModels.get(s.id);
+      if (model) {
+        const moving = Math.hypot(s.vx, s.vz) > 1.5;
+        const wanted = (SHADOW_CLIPS[s.state] || SHADOW_CLIPS[moving ? 'approach' : 'idle'])
+          .find((name) => model.clips.has(name));
+        if (wanted && this.shadowClip.get(s.id) !== wanted) {
+          model.play(wanted);
+          this.shadowClip.set(s.id, wanted);
+        }
+      }
       const squash = s.kind === 'seedSpitter' ? s.scale : 1;
       o.scale.set(squash * s.size, s.size / Math.sqrt(squash), squash * s.size);
       // A flyer launching off its perch stretches along the dive; a waiting

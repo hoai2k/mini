@@ -78,6 +78,11 @@ ENEMY_DATA = [
      'Floating ring organ with four hanging prongs. Counts in, then flips local gravity in a marked volume beneath it. Shot in the core, or simply flown around.'),
 ]
 DELIVERED_ENEMIES = {
+    'chainManta': '2026-09-12: reference-authored armored manta delivered at 14.2 × 7.3 × 7.6 m, 4,818/1,980 triangles. Both LODs have eighteen-joint skins, six sockets and seven clips. Canonical hooked wings, slate armor, inset eye/back core, twin linked chains and crescent hooks reviewed in 54 renders. The chains share the contracted six-joint spline; hooks have separate joints. Violet fissures share wing topology and skin weights. Nine evaluated samples per clip/LOD pass contact checks; Soar closes exactly and roots remain static. Navigation, platform tether attachment/dragging, weak-point hitboxes, stomp/bounce collision and charge/dissolve shaders remain runtime responsibilities. See models/source/chain-manta-refine-validation.json.',
+    'cragTortoise': '2026-09-12: reference-authored plated tortoise delivered at 7.1 × 4.7 × 8.6 m, 6,206/1,983 triangles. Both LODs have seventeen-joint skins, four sockets and eight clips. Canonical shell/thorns, scale-wrapped clawed legs, fitted face and recessed belly core reviewed through both-LOD deformation. Corrected rear-up axes and planted Walk support. LOD1 violet seams reuse the generated trim; exact geometry/skin/animation invariants pass. Lunge root motion is [0, 1.15, 5.4] m. Navigation/root-motion application, belly vulnerability timing, shell/body hitbox activation and charge/dissolve shaders remain runtime responsibilities. See models/source/crag-tortoise-refine-validation.json.',
+    'windowRay': '2026-09-12: reference-authored diamond manta delivered at 11 × 0.9 × 6.3 m, 1,758/730 triangles. Both LODs have eight-joint skins, four sockets and eight clips. Sixty renders reviewed including Hover extrema and all clip endpoints. Wing folding uses the transverse axis; Landing follows Body. Dive root motion is [0, -2.4, 5.2] m. Navigation, root-motion application, charge/dissolve shaders and stomp/hitbox activation remain runtime responsibilities. See models/source/window-ray-refine-validation.json.',
+    'spireLeech': '2026-09-12: reference-authored segmented Leech delivered at 1.3 × 1.3 × 8.2 m, 4,858/1,480 triangles. Both LODs have nine-joint skins (seven chain bones, Head and Jaw), normalized weights, three sockets and seven separate clips. Fifty renders reviewed, including start/middle/end of every clip on both LODs. Surface-relative wall placement, beam/charge and dissolve shaders, Core/body hitbox exposure and activation remain runtime responsibilities. See models/source/spire-leech-refine-validation.json.',
+    'turbineWasp': '2026-09-12: reference-authored sculpted Wasp delivered at 7.7 × 3.4 × 6.1 m, 5,910/1,933 triangles. Three fan pivots, intake, stinger and two legs; six clips and sockets. Both LODs and all clip key poses visually reviewed; continuous Hover fan rotation and 4.2 m Dash checked on both LODs. Wind/intake and dissolve shaders, fan-motion layering, Core/Landing hitbox activation and stomp vulnerability after Guard_Break remain runtime responsibilities. See models/source/wasp-refine-validation.json.',
     'phaseSkate': '2026-09-12: reference-authored cambered ray delivered at 8.7 × 0.9 × 6.1 m, 2,616/990 triangles. Two wing pivots and three curved tapered tail shards; Core and Hitbox.Body sockets. Seven clips and both LODs visually reviewed. Shader visibility/dissolve, destination ghost placement, hitbox activation and the 0.4 s post-solidification stomp window remain runtime responsibilities. See models/source/phase-skate-validation.json.',
 }
 for i, (key, name, region, rig, size, tris, joints, clips, sockets, summary) in enumerate(ENEMY_DATA):
@@ -359,20 +364,17 @@ for texture in T:
 ROUND3_DELIVERED = {'surface', 'effects', 'ui'}
 for texture in T:
     if texture['round'] == 3 and texture['category'] in ROUND3_DELIVERED:
-        # design/source/verify_round3.py measured the checks that were due at
-        # delivery; only the light landing guide passed. A failing request goes
-        # back to `open` rather than staying `delivered`, because these lists
-        # are what the next generation round is worked from: a delivered file
-        # that fails its own spec would otherwise never be asked for again. The
-        # imperfect painting stays in the game meanwhile, as `In the game` says.
-        passed = texture['request'] == 'T-081'
+        # design/source/verify_round3.py measures the delivery checks. All four
+        # functional round-three requests now pass; optional native-4K skies
+        # remain open separately because their resolution target was not met.
+        passed = texture['request'] in {'T-080', 'T-081', 'T-082', 'T-086'}
         texture['status'] = 'delivered' if passed else 'open'
         texture['approval'] = 'verified' if passed else 'verification-failed'
         texture['verification'] = {
-            'T-080': 'The three albedos and their detail masks do not tile: opposite edges differ by 5-17 per channel against a limit of 2. The foam strip does not tile horizontally (22.3) and runs into both vertical margins. Needs an offset-and-repaint pass, not a new prompt.',
+            'T-080': 'Passes: three imagegen seam-cross repaints tile at 0.000/0.000 after a trivial 8px wrap-edge finish; matching registered 512px grayscale detail maps also tile at 0.000/0.000. Native paintings are 1254px square and the 2048px albedos are upscaled exports, not new detail. The repaired foam strip passes at seam 0.000 with clear margins. Rejected 10% feather candidates were not used.',
             'T-081': 'Passes: alpha 0-255, geometry identical to the dark guide (coverage ratio 1.000).',
-            'T-082': 'Four of the twelve sprite cells sit inside the 48px padding, the tightest at 11px, so neighbours bleed at small mip levels. Row four is intentionally empty. Needs a re-export on the grid.',
-            'T-086': 'All four decals touch their cell edges (smallest margin 0px) against the 24px requested, so they bleed into each other under filtering. Needs a re-export on the grid.',
+            'T-082': 'Passes: all twelve occupied cells clear the 48px padding requirement (minimum 53px); row four remains intentionally empty. Existing native painted cells were uniformly scaled to 0.8327, which creates no new detail.',
+            'T-086': 'Passes: all four occupied cells clear the 24px padding requirement (minimum 28px). Existing native painted cells were uniformly scaled to 0.7812, which creates no new detail.',
         }[texture['request']]
         texture['integration'] = {
             'surface': 'paintTerrain paints the low floor of the harbor (sea), blue (dust) and foundry (slag) districts with the surface and scrolls its detail mask; paintKit puts slag on the barge deck and dust on the drift volumes. The foam strip waits for a district with a shoreline.',
@@ -569,7 +571,7 @@ r3 = []
 r3.append('# Image requests · round three: after integrating round one\n')
 r3.append('Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one optional quality pass. Nothing here replaces a delivered file except the optional sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.\n')
 r3.append('**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.\n')
-r3.append('**Verification: nine of ten assets fail.** The tiling, atlas-padding and alpha checks that were outstanding at delivery have been run (`design/source/verify_round3.py`, results in `textures/round3/verification.json`). The six tiling surfaces and the foam strip have visible seams, and both atlases place artwork inside the padding their prompts asked for; only the light landing guide passes. The artwork stays in the game meanwhile - these are repeat and filtering faults, not wrong pictures - and each entry below carries its own result.\n')
+r3.append('**Verification: all ten assets pass.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The six surface albedo/detail files and repaired foam strip have zero measured seams, both atlases meet their cell padding, and the light landing guide matches the dark guide geometry. Optional T-083..085 skies remain open because the native-4K requirement was not met.\n')
 r3.append('| Request | Why | Priority |\n| --- | --- | --- |')
 for x in [x for x in T if x['round'] == 3]:
     pri = 'optional' if x['category'] == 'sky-hd' else 'before the region that needs it' if x['category'] == 'surface' else 'any time'

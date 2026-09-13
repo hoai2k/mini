@@ -1,0 +1,136 @@
+{
+  "request": "M-006",
+  "date": "2026-09-12",
+  "status": "root-reviewed and integrated",
+  "file": "enemies/spireLeech.glb",
+  "bytes": 3404984,
+  "sha256": "84d5c76e08d3952f792aab8aab0c8ad33e0d2c9cc187d03e1620d751e1a0d252",
+  "bounds": [
+    1.2999999523162842,
+    1.2999999523162842,
+    8.200000762939453
+  ],
+  "triangles": [
+    4858,
+    1480
+  ],
+  "skinJoints": [
+    [
+      "Chain.0",
+      "Chain.1",
+      "Chain.2",
+      "Chain.3",
+      "Chain.4",
+      "Chain.5",
+      "Chain.6",
+      "Head",
+      "Jaw"
+    ],
+    [
+      "LOD1.Chain.0",
+      "LOD1.Chain.1",
+      "LOD1.Chain.2",
+      "LOD1.Chain.3",
+      "LOD1.Chain.4",
+      "LOD1.Chain.5",
+      "LOD1.Chain.6",
+      "LOD1.Head",
+      "LOD1.Jaw"
+    ]
+  ],
+  "skinnedVerticesAudited": 11551,
+  "clipChecks": [
+    {
+      "name": "Cling_Idle",
+      "duration": 1.233333,
+      "channels": 54,
+      "loop": true,
+      "loopEndpointMaxError": 4.592306428089807e-25
+    },
+    {
+      "name": "Crawl",
+      "duration": 1.033333,
+      "channels": 54,
+      "loop": true,
+      "loopEndpointMaxError": 1.099245485900547e-23
+    },
+    {
+      "name": "Charge_Tell",
+      "duration": 0.7,
+      "channels": 54,
+      "loop": false
+    },
+    {
+      "name": "Beam_Hold",
+      "duration": 0.833333,
+      "channels": 54,
+      "loop": true,
+      "loopEndpointMaxError": 8.271806125530277e-25
+    },
+    {
+      "name": "Retract",
+      "duration": 0.633333,
+      "channels": 54,
+      "loop": false
+    },
+    {
+      "name": "Hit",
+      "duration": 0.466667,
+      "channels": 54,
+      "loop": false
+    },
+    {
+      "name": "Dissolve",
+      "duration": 0.9,
+      "channels": 54,
+      "loop": false
+    }
+  ],
+  "sockets": [
+    "Core",
+    "Emitter",
+    "Hitbox.Body"
+  ],
+  "checks": {
+    "repositoryValidator": "PASS local/hopper-spire-leech-refine/spireLeech.glb\n  523 nodes \u00b7 249 meshes \u00b7 6 materials \u00b7 4858/1480 tris\n\n1/1 GLBs passed.",
+    "normalizedFiniteWeights": true,
+    "finitePositionNormalUVInverseBindAnimationValues": true,
+    "rootMotionAbsent": true,
+    "loopEndpointsMatch": true
+  },
+  "visualQA": {
+    "viewsPerLOD": [
+      "side",
+      "three-quarter",
+      "top",
+      "mouth"
+    ],
+    "clipSamplesPerLOD": [
+      0,
+      0.5,
+      1
+    ],
+    "renders": 50,
+    "contactSheets": [
+      {
+        "file": "LOD0-deformation-sheet.jpg",
+        "sha256": "ce278dafd4e21ac331fed2b94618af1beb89aadf6ddda611fb4c74a543367a0b"
+      },
+      {
+        "file": "LOD1-deformation-sheet.jpg",
+        "sha256": "f823f142d66b50a4f186965437b71556ff96368f0dc341ba02659671242cf1b5"
+      },
+      {
+        "file": "views-contact-sheet.jpg",
+        "sha256": "048f067263808e8d126cff7b19e04d129fb9970d7cf791ad75ac69afa7a753cd"
+      }
+    ],
+    "location": "local/hopper-spire-leech-refine/",
+    "review": "Root accepted both LOD deformation sheets and reviewed the corrected skin bounds calculation."
+  },
+  "runtimeResponsibilities": [
+    "Surface-relative wall placement and navigation.",
+    "Beam, charge emissive material and shader dissolve effects.",
+    "Core and body hitbox exposure/activation."
+  ]
+}

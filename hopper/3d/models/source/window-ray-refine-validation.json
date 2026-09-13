@@ -1,0 +1,173 @@
+{
+  "request": "M-005",
+  "date": "2026-09-12",
+  "status": "root-reviewed and integrated",
+  "file": "enemies/windowRay.glb",
+  "bytes": 3185524,
+  "sha256": "e2604dc5ae184763293a3e1efc15568db0773459b2c752c7a42bcd1246531a5b",
+  "bounds": [
+    11.0,
+    0.8999999761581421,
+    6.300000190734863
+  ],
+  "triangles": [
+    1758,
+    730
+  ],
+  "skinJoints": [
+    [
+      "Body",
+      "Eye",
+      "Tail.0",
+      "Tail.1",
+      "Wing.L.0",
+      "Wing.L.1",
+      "Wing.R.0",
+      "Wing.R.1"
+    ],
+    [
+      "LOD1.Body",
+      "LOD1.Eye",
+      "LOD1.Tail.0",
+      "LOD1.Tail.1",
+      "LOD1.Wing.L.0",
+      "LOD1.Wing.L.1",
+      "LOD1.Wing.R.0",
+      "LOD1.Wing.R.1"
+    ]
+  ],
+  "skinnedVerticesAudited": 2926,
+  "clipChecks": [
+    {
+      "name": "Dive",
+      "duration": 0.366667,
+      "channels": 50,
+      "loop": false,
+      "rootMotion": [
+        {
+          "node": "LOD0",
+          "translation": [
+            0.0,
+            -2.4000000953674316,
+            5.199999809265137
+          ]
+        },
+        {
+          "node": "LOD1",
+          "translation": [
+            0.0,
+            -2.4000000953674316,
+            5.199999809265137
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hover",
+      "duration": 1.233333,
+      "channels": 48,
+      "loop": true,
+      "rootMotion": [],
+      "loopEndpointMaxError": 0.0
+    },
+    {
+      "name": "Bank_L",
+      "duration": 0.7,
+      "channels": 48,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Bank_R",
+      "duration": 0.7,
+      "channels": 48,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Dive_Tell",
+      "duration": 0.566667,
+      "channels": 48,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Recover",
+      "duration": 0.766667,
+      "channels": 48,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Hit",
+      "duration": 0.466667,
+      "channels": 48,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Dissolve",
+      "duration": 0.9,
+      "channels": 48,
+      "loop": false,
+      "rootMotion": []
+    }
+  ],
+  "sockets": [
+    "Core",
+    "Mouth",
+    "Hitbox.Body",
+    "Landing"
+  ],
+  "checks": {
+    "repositoryValidator": "PASS local/hopper-window-ray-refine/windowRay.glb\n  184 nodes \u00b7 80 meshes \u00b7 6 materials \u00b7 1758/730 tris\n\n1/1 GLBs passed.",
+    "normalizedFiniteWeights": true,
+    "finitePositionNormalUVInverseBindAnimationValues": true,
+    "rootMotionOnlyDive": true,
+    "loopEndpointsMatch": true,
+    "landingFollowsBodyBone": true
+  },
+  "visualQA": {
+    "viewsPerLOD": [
+      "front",
+      "three-quarter",
+      "top",
+      "side"
+    ],
+    "clipSamplesPerLOD": [
+      0,
+      0.5,
+      1
+    ],
+    "renders": 60,
+    "hoverExtraSamples": [
+      0.25,
+      0.75
+    ],
+    "contactSheets": [
+      {
+        "file": "LOD0-deformation-sheet.jpg",
+        "sha256": "3614a195a0256ee152b633dd18eef92ae8894be5fae341d431868fdafdda036a"
+      },
+      {
+        "file": "LOD1-deformation-sheet.jpg",
+        "sha256": "e5da2c945729774f62e6ab92b928fa2ffe818e4213aea24efdcef0172703ffb9"
+      },
+      {
+        "file": "hover-extremes-sheet.jpg",
+        "sha256": "20c96d3dc705ac7706b8014ed3bbef83c80d8d3a1b0acb6262a8a49112363369"
+      },
+      {
+        "file": "views-contact-sheet.jpg",
+        "sha256": "4a0e79f4690ea79bf5aa68821f3d2da184a6704e98b8c370f9b393a2dc5b0838"
+      }
+    ],
+    "location": "local/hopper-window-ray-refine/",
+    "review": "Root accepted all four final contact sheets, both LOD appearances, all eight clips and Hover extrema."
+  },
+  "runtimeResponsibilities": [
+    "Enemy navigation and Dive root-motion application.",
+    "Eye charge material and shader dissolve effects.",
+    "Core/body hitbox activation and back Landing stomp collision."
+  ]
+}

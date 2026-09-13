@@ -1,0 +1,12 @@
+# M005 Window Ray art refinement
+
+2026-09-12: Separate `window_ray_refine.py` builds on Sol's validated eight-bone scaffold (`window_ray.py`). Candidate outputs are isolated in `local/hopper-window-ray-refine/`. Root authorized production integration after final visual review.
+
+- Canonical turnaround inspected: dark diamond manta, four pointed wing corners, one ivory slit eye, bronze vents, a single thin tail, and a central back stomp target. Identity is distinct from the cyan-eyed three-tailed Phase Skate.
+- First source pass builds continuous cambered wings with overlapping armor, a tapered body with surface-seated eye layers, curved tail and integrated vent details. Reuses the exact scaffold bone names, normalized wing/tail weights, eight clips and Dive root motion.
+- Rest views checked. Armor, vents and edge lips now sample the actual triangulated wing surface; continuous UVs replace repeated per-face texture tiles. Authoring geometry is 1,834/778 triangles (export removes degenerate center triangles); exact rest bounds are 11 × 0.9 × 6.3 m.
+- Full deformation QA caught a scaffold rotation-axis issue: local wing Y is the length axis, so it twisted the membrane. The refinement remaps these rotations to local X, which folds local wing Y toward local Z/up. Bone names, weights, clip names and Dive root motion stay intact.
+- Landing is now parented to Body, so the stomp target follows banking/folding body poses.
+- Final 60 renders include four rest views per LOD, start/middle/end of all eight clips, and the Hover quarter-cycle extrema. Compressed skin/clip audit passes: two eight-joint skins, all 2,926 exported vertices normalized and finite, Hover loop endpoint delta zero, Dive root translation [0, -2.4, 5.2] on both LODs, and Landing follows Body. Final decoded export is 1,758/730 triangles and 3,185,524 bytes, SHA-256 `e2604dc5ae184763293a3e1efc15568db0773459b2c752c7a42bcd1246531a5b`. Root accepted all 60 renders via the four final sheets. Integrated `enemies/windowRay.glb`, compact `previews/enemy.windowRay.png`, manifest entry and delivered request documents. No commit made by the refinement agent.
+- Rebuild: Blender `--background --python hopper/3d/models/source/window_ray_refine.py`; append `-- --qa` for start/middle/end of every clip on both LODs.
+- Rest transforms are captured/restored between poses and around export. Bone sockets initialize from updated world transforms before bone parenting.

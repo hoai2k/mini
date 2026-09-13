@@ -59,8 +59,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/fields.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 252696,
+      "processingNotes": "Validated material merge/weld; 5837332 to 252696 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-025",
@@ -168,8 +170,10 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/references/kits/fields.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 206872,
+      "processingNotes": "Validated material merge/weld; 3875728 to 206872 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-028",
@@ -568,9 +572,9 @@
       "source": "game/scripts/code-models.mjs",
       "authoring": "code-built (authored three.js geometry, painted trim and terrain sheets)",
       "bounds": [
-        59.357,
-        98.318,
-        55.545
+        52.003,
+        95.943,
+        51.1
       ],
       "targetBounds": [
         57,
@@ -597,8 +601,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/mountains.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 5865996,
+      "processingNotes": "Validated material merge/weld; 5908448 to 5865996 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending. Bounds corrected from the prior transformed-accessor AABB overestimate to measured decoded vertices: baseline and cleaned geometry both measure 52.002719879 \u00d7 95.943271399 \u00d7 51.099992752 m. No geometry moved; targetBounds preserved."
     },
     {
       "request": "M-037",
@@ -1719,8 +1725,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/red.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 113552,
+      "processingNotes": "Validated material merge/weld; 1866472 to 113552 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-058",
@@ -1761,8 +1769,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/red.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 177820,
+      "processingNotes": "Validated material merge/weld; 1856104 to 177820 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-059",
@@ -1821,8 +1831,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/red.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 1859120,
+      "processingNotes": "Validated mechanical cleanup; 1861240 to 1859120 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-060",
@@ -1863,8 +1875,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/blue.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 3854144,
+      "processingNotes": "Validated mechanical cleanup; 3860448 to 3854144 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-061",
@@ -1932,8 +1946,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/blue.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 1202560,
+      "processingNotes": "Validated mechanical cleanup; 3859332 to 1202560 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-062",
@@ -1966,8 +1982,10 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/references/kits/blue.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 3832,
+      "processingNotes": "Validated material merge/weld; 5728 to 3832 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-063",
@@ -2009,8 +2027,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/violet.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 97112,
+      "processingNotes": "Validated material merge/weld; 3173932 to 97112 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-064",
@@ -2051,8 +2071,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/violet.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 5033284,
+      "processingNotes": "Validated mechanical cleanup; 5034812 to 5033284 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-065",
@@ -2103,8 +2125,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/violet.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 357256,
+      "processingNotes": "Validated material merge/weld; 3190564 to 357256 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-066",
@@ -2134,8 +2158,10 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/references/kits/violet.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 6280,
+      "processingNotes": "Validated mechanical cleanup; 10628 to 6280 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-067",
@@ -2158,7 +2184,7 @@
       ],
       "triangles": [
         648,
-        124
+        122
       ],
       "clips": [],
       "sockets": [
@@ -2230,8 +2256,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/violet.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 3179428,
+      "processingNotes": "Validated mechanical cleanup; 3184508 to 3179428 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending. Two coincident LOD1 ring faces removed on import (124 to 122 triangles); matched LOD1 review approved."
     },
     {
       "request": "M-068",
@@ -3054,8 +3082,10 @@
         60
       ],
       "heightmap": "terrain/fields-height.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 2382564,
+      "processingNotes": "Validated mechanical cleanup; 2625820 to 2382564 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-092",
@@ -3094,8 +3124,10 @@
         270
       ],
       "heightmap": "terrain/city-height.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 1949752,
+      "processingNotes": "Validated mechanical cleanup; 2184740 to 1949752 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-092",
@@ -3134,8 +3166,10 @@
         190
       ],
       "heightmap": "terrain/mountains-height.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 2411588,
+      "processingNotes": "Validated mechanical cleanup; 2662692 to 2411588 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-018",
@@ -3182,6 +3216,250 @@
       "sha256": "7378153e84e4fe7e1634cae55f9a24d2932004aae58ebfd42147ed0b251127f8",
       "deliveredAt": "2026-09-12",
       "validation": "source/phase-skate-validation.json"
+    },
+    {
+      "request": "M-014",
+      "name": "Turbine Wasp",
+      "file": "enemies/turbineWasp.glb",
+      "preview": "previews/enemy.turbineWasp.png",
+      "source": "source/wasp_refine.py",
+      "category": "enemy",
+      "region": "launchworks",
+      "bounds": [
+        7.7,
+        3.4,
+        6.1
+      ],
+      "targetBounds": [
+        7.7,
+        3.4,
+        6.1
+      ],
+      "triangles": [
+        5910,
+        1933
+      ],
+      "clips": [
+        "Hover",
+        "Intake_Tell",
+        "Dash",
+        "Guard_Break",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Fan.L",
+        "Fan.R",
+        "Fan.Tail",
+        "Hitbox.Body",
+        "Landing"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/turbineWasp-turnaround.png",
+      "notes": "Reviewed against canonical turnaround: sculpted swept helmet with seated eye lenses, layered thorax armor, curved thorns, three ducted fans and two claw legs. Both LODs and all six clip poses reviewed. Hover spins continuously; Dash travels 4.2 m on both LODs. Blend fan motion under Intake_Tell/Dash as appropriate; wind/intake VFX, shader dissolve and Core/Landing hitbox activation after Guard_Break remain runtime responsibilities.",
+      "authoring": "reference-authored Blender mesh with surface-seated lenses, swept shell lofts and regular fan rims",
+      "rig": "rigid",
+      "bytes": 3206832,
+      "sha256": "62ef01a69fd55e1327761a38e7e734d4e165efc24a3b8065caf79af1bf82f967",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/wasp-refine-validation.json"
+    },
+    {
+      "request": "M-006",
+      "name": "Spire Leech",
+      "file": "enemies/spireLeech.glb",
+      "preview": "previews/enemy.spireLeech.png",
+      "source": "source/spire_leech_refine.py",
+      "category": "enemy",
+      "region": "city",
+      "bounds": [
+        1.3,
+        1.3,
+        8.2
+      ],
+      "targetBounds": [
+        1.3,
+        1.3,
+        8.2
+      ],
+      "triangles": [
+        4858,
+        1480
+      ],
+      "clips": [
+        "Cling_Idle",
+        "Crawl",
+        "Charge_Tell",
+        "Beam_Hold",
+        "Retract",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Emitter",
+        "Hitbox.Body"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/spireLeech-turnaround.png",
+      "notes": "Reviewed against canonical turnaround: overlapping segmented slate/violet armor, hooked ivory circular mouth, four curved mouth appendages and curled terminal hook. Both LODs have nine-joint skins (seven chain bones, Head, Jaw) with normalized weights. All seven clips reviewed at start/middle/end on both LODs; three loops have matching endpoints and no LOD root motion. Surface-relative wall placement/navigation, beam/charge and dissolve shader effects, Core/body hitbox exposure and activation remain runtime responsibilities.",
+      "authoring": "reference-authored Blender segmented armor with true nine-bone deforming skin and authored LOD curves",
+      "rig": "spline",
+      "bytes": 3404984,
+      "sha256": "84d5c76e08d3952f792aab8aab0c8ad33e0d2c9cc187d03e1620d751e1a0d252",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/spire-leech-refine-validation.json"
+    },
+    {
+      "request": "M-005",
+      "name": "Window Ray",
+      "file": "enemies/windowRay.glb",
+      "preview": "previews/enemy.windowRay.png",
+      "source": "source/window_ray_refine.py",
+      "category": "enemy",
+      "region": "city",
+      "bounds": [
+        11,
+        0.9,
+        6.3
+      ],
+      "targetBounds": [
+        11.0,
+        0.9,
+        6.3
+      ],
+      "triangles": [
+        1758,
+        730
+      ],
+      "clips": [
+        "Hover",
+        "Bank_L",
+        "Bank_R",
+        "Dive_Tell",
+        "Dive",
+        "Recover",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Mouth",
+        "Hitbox.Body",
+        "Landing"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/windowRay-turnaround.png",
+      "notes": "Reviewed against canonical turnaround: continuous cambered diamond wings, surface-seated armor and vent details, one ivory slit eye and one curved tail. Both LODs have eight-joint skins. Wing rotations use the transverse folding axis; Landing follows Body for the back stomp target. Eight clips reviewed on both LODs including Hover quarter-cycle extrema. Dive alone moves each LOD root by [0, -2.4, 5.2] m. Navigation/root-motion application, charge and dissolve shaders, Core/body hitbox activation and stomp collision remain runtime responsibilities.",
+      "authoring": "reference-authored Blender diamond manta with surface-sampled armor and eight-bone deforming skin",
+      "rig": "skeletal",
+      "bytes": 3185524,
+      "sha256": "e2604dc5ae184763293a3e1efc15568db0773459b2c752c7a42bcd1246531a5b",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/window-ray-refine-validation.json"
+    },
+    {
+      "request": "M-007",
+      "name": "Crag Tortoise",
+      "file": "enemies/cragTortoise.glb",
+      "preview": "previews/enemy.cragTortoise.png",
+      "source": "source/crag_tortoise_refine.py",
+      "category": "enemy",
+      "region": "mountains",
+      "bounds": [
+        7.1,
+        4.7,
+        8.6
+      ],
+      "targetBounds": [
+        7.1,
+        4.7,
+        8.6
+      ],
+      "triangles": [
+        6206,
+        1983
+      ],
+      "clips": [
+        "Idle",
+        "Walk",
+        "Lunge_Tell",
+        "Lunge",
+        "Belly_Open_Hold",
+        "Withdraw",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Mouth",
+        "Hitbox.Shell",
+        "Hitbox.Body"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/cragTortoise-turnaround.png",
+      "rig": "skeletal",
+      "bytes": 2203668,
+      "sha256": "946fc1b8536fa8bfd6b0633ebdccb3f27fb99b5b4fbca76d4b2cfa58190f434b",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/crag-tortoise-refine-validation.json",
+      "authoring": "reference-authored plated tortoise with seventeen-bone deforming skin and texture-mapped LOD1 seams",
+      "notes": "Reviewed against canonical turnaround: overlapping slate shell plates and thorns, four connected scale-wrapped legs with ivory claws, fitted eyes and jaw, ivory plastron and recessed violet belly core. Both LODs have seventeen-joint skins and all eight clips. Rear-up pitch is mapped through bone rest axes; Walk support corrections keep planted soles within 1.3 mm of ground at checked extrema. Final LOD1 seam UV pass preserves exact geometry, skin and animation data. Lunge alone moves both LOD roots by [0, 1.15, 5.4] m. Navigation and root-motion application, belly vulnerability timing, shell/body hitbox activation and charge/dissolve shaders remain runtime responsibilities."
+    },
+    {
+      "request": "M-011",
+      "name": "Chain Manta",
+      "file": "enemies/chainManta.glb",
+      "preview": "previews/enemy.chainManta.png",
+      "source": "source/chain_manta_refine.py",
+      "category": "enemy",
+      "region": "harbor",
+      "bounds": [
+        14.2,
+        7.3,
+        7.6
+      ],
+      "targetBounds": [
+        14.2,
+        7.3,
+        7.6
+      ],
+      "triangles": [
+        4818,
+        1980
+      ],
+      "clips": [
+        "Soar",
+        "Tether_Tell",
+        "Tether_Pull",
+        "Release",
+        "Bank",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "TetherNode",
+        "Hook.L",
+        "Hook.R",
+        "Hitbox.Body",
+        "Landing"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/chainManta-turnaround.png",
+      "rig": "skeletal",
+      "bytes": 3293856,
+      "sha256": "2018c2f8ef266dd02edeecd412dd7e14f82cf1008d3138fea94d588296d62583",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/chain-manta-refine-validation.json",
+      "authoring": "reference-authored armored Chain Manta with two eighteen-joint skins and shared-topology violet wing fissures",
+      "notes": "Reviewed against canonical turnaround: broad cambered hook wings, lapped slate armor, swept horns, inset ivory eye and back core, short center tail, paired linked chains and crescent spear hooks. Both LODs retain eighteen-joint skins, seven clips and six sockets. The paired chains share the required six-joint tether spline; each hook has a separate joint. Wing axes bend across the span; Dissolve scales once at Body. Violet fissures share wing topology and skin weights, eliminating overlay drift. All 54 renders and nine evaluated samples per clip/LOD reviewed; Soar closes exactly and neither LOD root has motion tracks. Navigation, platform tether attachment and dragging, weak-point hitbox activation, stomp/bounce collision and charge/dissolve shaders remain runtime responsibilities."
     }
   ],
   "deliveredAt": "2026-09-08",
