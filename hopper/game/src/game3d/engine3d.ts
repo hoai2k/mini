@@ -12,10 +12,11 @@ import { World, type Trigger } from './world';
 import { regionById } from '../../../3d/standins/src/index.js';
 import { preloadDistrict, Prefetcher } from './preload';
 import { MISSIONS, type District } from './district';
-import { NightRook } from './boss3d';
+import type { Commander } from './boss3d';
+import { makeCommander } from './commanders';
 import { createHopperState, intentFromInput, stepHopper, MOVE, type HopperState } from './controller';
 import { createCamera, updateCamera, type CameraState } from './camera';
-import { Combat, type Shadow } from './combat3d';
+import { Combat, shadowBounce, type Shadow } from './combat3d';
 import { Scene3D } from './scene';
 
 const STEP = 1 / 120;
@@ -27,6 +28,18 @@ const SHADOW_NAMES: Record<string, string> = {
   spireLeech: 'Spire Leech',
   cragTortoise: 'Crag Tortoise',
   riftCondor: 'Rift Condor',
+  furnaceHound: 'Furnace Hound',
+  slagCaster: 'Slag Caster',
+  chainManta: 'Chain Manta',
+  ballastCrab: 'Ballast Crab',
+  coilWraith: 'Coil Wraith',
+  turbineWasp: 'Turbine Wasp',
+  basaltBurrower: 'Basalt Burrower',
+  thornChoir: 'Thorn Choir',
+  veilMedusa: 'Veil Medusa',
+  phaseSkate: 'Phase Skate',
+  mirrorStalker: 'Mirror Stalker',
+  gravityCantor: 'Gravity Cantor',
 };
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 /** The crosshair's reach. It takes hold of a shadow within `grab` of the
@@ -68,7 +81,7 @@ export class Engine3D implements GameEngine {
   private world: World | null = null;
   private district: District | null = null;
   private combat: Combat | null = null;
-  private boss: NightRook | null = null;
+  private boss: Commander | null = null;
   private districtIndex = 0;
   private clearedGates = new Set<string>();
   private transitionT = 0;
@@ -175,7 +188,7 @@ export class Engine3D implements GameEngine {
     this.district = district;
     this.world = new World(district);
     this.combat = new Combat(this.world, district, this.settings.assist);
-    this.boss = district.boss ? new NightRook(district.boss, this.world) : null;
+    this.boss = district.boss ? makeCommander(district.boss, this.world) : null;
     this.clearedGates = new Set();
     this.chapterName = '';
     // Checkpoints in spine order (toward the exit).
@@ -189,7 +202,7 @@ export class Engine3D implements GameEngine {
     this.victoryT = 0;
     this.respawnT = 0;
     this.hp = this.maxHp;
-    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.rook ?? null, this.aheadColours(), this.districtAhead());
+    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.runtime ?? null, this.aheadColours(), this.districtAhead());
     for (let i = 0; i <= this.checkpointIndex; i++) this.checkpoints[i]?.object?.userData.lit?.(true);
     this.resetPlayer(carry);
     this.combat.resetToCheckpoint(this.player.z);
@@ -209,6 +222,8 @@ export class Engine3D implements GameEngine {
     // the heading he had relative to the way on, so a run continues as a run.
     const yaw = forward + (carry ? carry.camTurn + carry.turn : 0);
     this.player = createHopperState(x, world.groundAt(x, z, 1e6).y, z, yaw);
+    // Each region has its own pull: heavy in the basin, light in the drift.
+    this.player.gravityScale = regionById(d.region).gravity ?? 1;
     this.player.groundY = this.player.y;
     this.player.invuln = 1.7;
     if (carry) {
@@ -308,7 +323,7 @@ export class Engine3D implements GameEngine {
     // The commander is an aim target while it is awake, so the lasers find it
     // and the lock-on can hold it: a shadow this big, this high, is otherwise
     // shot at only by luck.
-    combat.bossTarget = this.boss && this.boss.rook.active && this.boss.rook.alive ? this.boss.target() : null;
+    combat.bossTarget = this.boss && this.boss.runtime.active && this.boss.runtime.alive ? this.boss.target() : null;
     // Aiming (LT held): the camera comes in and zooms, the player aims it, and
     // the crosshair at the middle of it takes hold of whatever shadow it comes
     // near. Nothing here turns the view: the lock follows the aim, never the
@@ -335,6 +350,7 @@ export class Engine3D implements GameEngine {
     if (!locked) combat.lock = null;
 
     // Moving structures carry whatever stands on them.
+    world.trackHopper(h.x, h.y, h.z);
     world.update(dt);
     if (h.grounded) {
       const under = world.groundAt(h.x, h.z, h.y + 0.5).collider;
@@ -343,6 +359,22 @@ export class Engine3D implements GameEngine {
         h.x += m.dx;
         h.y += m.dy;
         h.z += m.dz;
+        // A press ram rising fast enough launches whatever stands on it.
+        if (m.fling && m.vy > 15) {
+          h.vy = m.vy + 30;
+          h.grounded = false;
+          h.coyote = 0;
+          h.hold = MOVE.holdWindow;
+          h.holding = false;
+          h.move = 'jump';
+          h.events.push({ kind: 'spring' });
+        }
+      }
+      // A conveyor carries a grounded Hopper along its flow, unassisted.
+      const flow = under?.instance?.flow;
+      if (flow && Math.abs(under!.y1 - h.y) < 1) {
+        h.x += flow.dx * flow.speed * dt;
+        h.z += flow.dz * flow.speed * dt;
       }
     }
     // Movement. Y on the ground: tap to hop back, hold to crouch and charge.
@@ -363,6 +395,22 @@ export class Engine3D implements GameEngine {
     if (locked) {
       intent.faceX = locked.x - h.x;
       intent.faceZ = locked.z - h.z;
+    }
+    // Gravity: the district's, the commander's while it is awake, and pulling
+    // upward inside a flip volume (a seam, a cantor's song, the Regent's turn).
+    const baseGravity = this.boss?.runtime.active && this.boss.runtime.alive ? this.boss.runtime.gravity : (regionById(d.region).gravity ?? 1);
+    const wasInverted = h.gravityScale < 0;
+    // Inside while either his upright centre or his hanging centre is: the
+    // hop in from below holds, and so does hanging just under the volume's top.
+    const half = MOVE.height * 0.5;
+    h.gravityScale = world.flipAt(h.x, h.y + half, h.z) || world.flipAt(h.x, h.y - half, h.z) ? -Math.abs(baseGravity) : baseGravity;
+    if (wasInverted !== h.gravityScale < 0) {
+      // The turn: whatever he stood on is no longer under him, and it costs
+      // him his speed, so a fall out of a seam settles at its edge.
+      h.grounded = false;
+      h.coyote = 0;
+      h.vy *= 0.5;
+      this.sound('shield');
     }
     const events = stepHopper(h, world, intent, dt);
     for (const e of events) {
@@ -440,6 +488,8 @@ export class Engine3D implements GameEngine {
     // Combat: aim from the eye sockets along the facing, tilted with the camera.
     const aim = this.aimDirection();
     combat.update(dt, h, this.callbacks(), { x: h.x + Math.sin(h.yaw) * 9, y: h.y + 12, z: h.z + Math.cos(h.yaw) * 9, dx: aim[0], dy: aim[1], dz: aim[2], firing: f.shootHeld && h.hitstun <= 0, guarding: f.blockHeld && h.hitstun <= 0, kickPressed: f.kickPressed });
+    // The commander, before the arena reads whether it still stands.
+    this.boss?.update(dt, h, combat, this.callbacks());
     // Strongholds: the host, in plain view on its perches, comes down the
     // moment Hopper is within reach; the region is freed when it is down.
     // Nothing holds Hopper in: the trail runs straight through.
@@ -449,7 +499,7 @@ export class Engine3D implements GameEngine {
         field.active = true;
         if (field.group === 'boss') {
           this.boss?.wake(this.callbacks());
-          this.showBanner('The Night Rook', 'DEFEAT THE COMMANDER', 3);
+          this.showBanner(this.boss?.title ?? 'The commander', 'DEFEAT THE COMMANDER', 3);
         } else {
           const released = combat.activateGroup(field.group);
           this.showBanner(field.name, released > 0 ? 'THE SHADOWS COME DOWN · FREE THE REGION' : 'FREE THE REGION', 2.6);
@@ -457,21 +507,19 @@ export class Engine3D implements GameEngine {
         this.sound('boss');
       }
       if (field.active) {
-        const left = field.group === 'boss' ? (this.boss && this.boss.rook.alive ? 1 : 0) : combat.shadows.filter((s) => s.group === field.group && s.alive).length;
-        const done = field.group === 'boss' ? !!this.boss && !this.boss.rook.alive : left === 0;
+        const left = field.group === 'boss' ? (this.boss && this.boss.runtime.alive ? 1 : 0) : combat.shadows.filter((s) => s.group === field.group && s.alive).length;
+        const done = field.group === 'boss' ? !!this.boss && !this.boss.runtime.alive : left === 0;
         if (done) {
           field.active = false;
           field.cleared = true;
           this.clearedGates.add(field.id);
           this.hp = Math.min(this.maxHp, this.hp + 2);
           this.score += 1000;
-          this.showBanner(field.group === 'boss' ? 'The shadow falls' : `${field.name} freed`, field.group === 'boss' ? 'THE TRANSMITTER IS YOURS' : 'THE WAY IS CLEAR · ON TO THE NEXT', 2.6);
+          this.showBanner(field.group === 'boss' ? 'The shadow falls' : `${field.name} freed`, field.group === 'boss' ? (this.boss?.won ?? 'THE WAY IS OPEN') : 'THE WAY IS CLEAR · ON TO THE NEXT', 2.6);
           this.sound('checkpoint');
         }
       }
     }
-    // The commander.
-    this.boss?.update(dt, h, combat, this.callbacks());
     // Triggers.
     for (const t of world.triggers) {
       if (t.taken) continue;
@@ -518,14 +566,15 @@ export class Engine3D implements GameEngine {
     } else if (this.victoryT <= 0 && !this.completed && Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r) {
       // The threshold is open: a stronghold left standing is a choice, and
       // only the mission's commander bars the way at the end.
-      const bossDown = !this.boss || !this.boss.rook.alive;
+      const bossDown = !this.boss || !this.boss.runtime.alive;
       if (bossDown) {
         const last = this.districtIndex >= MISSIONS[this.mission].length - 1;
         this.score += last ? 5000 : 2000;
         this.sound('checkpoint');
         if (last) {
-          this.victoryT = 2.5;
-          this.showBanner(d.exit.name, 'EPISODE COMPLETE', 2.5);
+          const finale = this.mission >= MISSIONS.length - 1;
+          this.victoryT = finale ? 4 : 2.5;
+          this.showBanner(finale ? 'The sun comes back' : d.exit.name, finale ? 'HOPPER RETURNS TO EARTH · THANK YOU FOR PLAYING' : 'EPISODE COMPLETE', finale ? 4 : 2.5);
           try {
             localStorage.setItem(saveKey('3d', 'unlocked'), String(Math.max(Number(localStorage.getItem(saveKey('3d', 'unlocked')) || 0), Math.min(MISSIONS.length - 1, this.mission + 1))));
             localStorage.removeItem(saveKey('3d', 'save'));
@@ -540,7 +589,7 @@ export class Engine3D implements GameEngine {
     }
     // Camera and the landing prediction. While the commander is awake the
     // camera lifts and pulls back to hold it in frame.
-    const rook = this.boss?.rook;
+    const rook = this.boss?.runtime;
     const rookInFrame = rook && rook.active && rook.alive ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [number, number, number]) : null;
     updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, aimHeld: f.lockHeld, climb: h.climbing ? [h.climbNx, h.climbNz] : null, horizonHeld: f.horizonHeld, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
     // Contextual hints for the first minutes.
@@ -673,7 +722,7 @@ export class Engine3D implements GameEngine {
   private bounce(_shadow: Shadow) {
     const h = this.player;
     const apex = h.holding || h.gliding ? MOVE.bounceApexHeld : MOVE.bounceApex;
-    h.vy = Math.sqrt(2 * MOVE.gravity * h.gravityScale * apex);
+    h.vy = Math.sqrt(2 * MOVE.gravity * Math.abs(h.gravityScale) * apex * shadowBounce(_shadow.kind));
     h.grounded = false;
     h.diving = false;
     h.gliding = false;
@@ -726,11 +775,12 @@ export class Engine3D implements GameEngine {
     this.hp = this.maxHp;
     this.respawnT = 0;
     this.resetPlayer();
+    this.world.resetStages();
     this.combat.resetToCheckpoint(this.player.z);
     for (const t of this.world.triggers) if (t.kind === 'checkpoint') t.taken = this.checkpoints.indexOf(t) <= this.checkpointIndex;
     for (const field of this.world.fields) if (field.active) field.active = false;
-    if (this.boss && this.boss.rook.alive && this.boss.rook.active) this.boss = new NightRook(this.district!.boss!, this.world);
-    this.scene?.setBoss(this.boss?.rook ?? null);
+    if (this.boss && this.boss.runtime.alive && this.boss.runtime.active) this.boss = makeCommander(this.district!.boss!, this.world);
+    this.scene?.setBoss(this.boss?.runtime ?? null);
     this.showBanner('Back in the saddle', 'CHECKPOINT RESTORED', 2);
     this.emit();
   }
@@ -755,7 +805,7 @@ export class Engine3D implements GameEngine {
     const total = d ? Math.hypot(d.exit.x - d.start.x, d.exit.z - d.start.z) : 1;
     const remaining = d ? Math.hypot(d.exit.x - h.x, d.exit.z - h.z) : 1;
     const districts = MISSIONS[this.mission]?.length || 1;
-    const rook = this.boss?.rook;
+    const rook = this.boss?.runtime;
     return {
       loading: this.loading ?? undefined,
       mission: this.mission,
@@ -773,7 +823,7 @@ export class Engine3D implements GameEngine {
       gravity: h.gravityScale,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,
-      boss: rook && rook.active && rook.alive ? { name: 'Night Rook', health: rook.hp / rook.maxHp, phase: rook.phase, tell: this.boss!.tell() } : null,
+      boss: rook && rook.active && rook.alive ? { name: this.boss!.name, health: rook.hp / rook.maxHp, phase: rook.phase, tell: this.boss!.tell() } : null,
       completed: this.completed,
       height: h.grounded ? undefined : h.height,
       landmark: d ? { name: d.landmark.name, distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z) } : undefined,
@@ -810,7 +860,7 @@ export class Engine3D implements GameEngine {
     const h = this.player,
       parts: string[] = [];
     if (this.combat?.shadows.some((s) => s.alive && !s.dormant && Math.hypot(s.x - h.x, s.z - h.z) < 400)) parts.push('shadows');
-    if (this.boss?.rook.active && this.boss.rook.alive) parts.push('commander');
+    if (this.boss?.runtime.active && this.boss.runtime.alive) parts.push('commander');
     return parts.length ? parts.join(', ') : undefined;
   }
   private emit() {

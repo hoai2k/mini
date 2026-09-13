@@ -5,8 +5,9 @@
 import { World } from './world';
 import { MOVE, type HopperState } from './controller';
 import type { District, ShadowKind, ShadowSpawn } from './district';
+import { BEHAVIOURS } from './shadows/index';
 
-export type ShadowState = 'idle' | 'approach' | 'tell' | 'attack' | 'recover' | 'launched' | 'dead' | 'arrive' | 'wait' | 'pounce';
+export type ShadowState = 'idle' | 'approach' | 'tell' | 'attack' | 'recover' | 'launched' | 'dead' | 'arrive' | 'wait' | 'pounce' | 'stalled' | 'phased' | 'silhouette' | 'burrow';
 export interface Shadow {
   id: string;
   kind: ShadowKind;
@@ -77,6 +78,16 @@ export interface Shadow {
   perched: boolean;
   /** 0..1 how intently a perched shadow watches Hopper (by distance). */
   stare: number;
+  /** Phase skate: faded out -- untargetable, drawn faint. */
+  phased: boolean;
+  /** Basalt burrower: under the ground -- untargetable, not drawn. */
+  underground: boolean;
+  /** Coil wraith: the far node of its beam (absolute), or null. */
+  link: [number, number, number] | null;
+  /** Mirror stalker on a lintel's underside: hangs at its spawn height. */
+  ceiling: boolean;
+  /** Turbine wasp kicked into a platform: seconds left of the stall. */
+  stall: number;
 }
 export interface Projectile {
   id: number;
@@ -92,7 +103,7 @@ export interface Projectile {
   gravity: number;
   /** 'shadow' hurts Hopper; 'hopper' hurts shadows (lasers and reflected shots). */
   owner: 'shadow' | 'hopper';
-  kind: 'seed' | 'laser' | 'beam';
+  kind: 'seed' | 'laser' | 'beam' | 'slag';
   ownerId?: string;
 }
 export interface CombatCallbacks {
@@ -107,15 +118,75 @@ export interface CombatCallbacks {
 /** Hopper is a 14 m giant; every shadow is built to his scale or beyond, so
  * `size` multiplies the stand-in's authored body (radius and height are the
  * authored collider, scaled at spawn). A hound stands eye to eye with him, a
- * condor's span is three of him. */
-const SPECS: Record<ShadowKind, { hp: number; radius: number; height: number; size: number; flying: boolean; rooted: boolean; armored: boolean; notice: number; range: number; tell: number; recover: number; cooldown: number }> = {
+ * condor's span is three of him. `bounce` scales the stomp rebound. */
+export interface ShadowSpec {
+  hp: number;
+  radius: number;
+  height: number;
+  size: number;
+  flying: boolean;
+  rooted: boolean;
+  armored: boolean;
+  notice: number;
+  range: number;
+  tell: number;
+  recover: number;
+  cooldown: number;
+  bounce?: number;
+}
+export const SPECS: Record<ShadowKind, ShadowSpec> = {
   shadeHound: { hp: 4, radius: 2.6, height: 3.2, size: 4.4, flying: false, rooted: false, armored: false, notice: 130, range: 40, tell: 0.55, recover: 0.9, cooldown: 1.6 },
   seedSpitter: { hp: 6, radius: 2.6, height: 5.5, size: 2.9, flying: false, rooted: true, armored: false, notice: 190, range: 190, tell: 0.7, recover: 1.2, cooldown: 2.4 },
   windowRay: { hp: 4, radius: 4.5, height: 1.6, size: 3.5, flying: true, rooted: false, armored: false, notice: 160, range: 160, tell: 0.75, recover: 1.6, cooldown: 2.2 },
   spireLeech: { hp: 6, radius: 1.4, height: 1.6, size: 4.5, flying: false, rooted: true, armored: false, notice: 220, range: 220, tell: 0.9, recover: 1.4, cooldown: 2.6 },
   cragTortoise: { hp: 10, radius: 3.4, height: 4.7, size: 3.2, flying: false, rooted: false, armored: true, notice: 140, range: 44, tell: 0.8, recover: 1.3, cooldown: 2.2 },
   riftCondor: { hp: 5, radius: 4.5, height: 1.6, size: 3.0, flying: true, rooted: false, armored: false, notice: 190, range: 190, tell: 0.9, recover: 2.0, cooldown: 3.0 },
+  // Mission two and three kinds: behaviours live in ./shadows, one file per
+  // class; the numbers here are the level plan's (LEVEL-PLAN-M2-M3.md).
+  furnaceHound: { hp: 5, radius: 2.8, height: 3.4, size: 4.2, flying: false, rooted: false, armored: false, notice: 150, range: 120, tell: 0.6, recover: 1.0, cooldown: 2.0 },
+  slagCaster: { hp: 6, radius: 3, height: 6, size: 3.0, flying: false, rooted: true, armored: false, notice: 220, range: 220, tell: 0.8, recover: 1.2, cooldown: 2.6 },
+  chainManta: { hp: 5, radius: 4.5, height: 1.6, size: 3.4, flying: true, rooted: false, armored: false, notice: 200, range: 200, tell: 0.9, recover: 1.5, cooldown: 3.0 },
+  ballastCrab: { hp: 12, radius: 3.6, height: 4.5, size: 3.4, flying: false, rooted: false, armored: true, notice: 140, range: 40, tell: 0.85, recover: 1.2, cooldown: 2.4 },
+  coilWraith: { hp: 6, radius: 1.6, height: 3, size: 4.0, flying: false, rooted: true, armored: false, notice: 240, range: 240, tell: 0.9, recover: 1.5, cooldown: 2.0 },
+  turbineWasp: { hp: 5, radius: 3.5, height: 2.4, size: 3.5, flying: true, rooted: false, armored: false, notice: 180, range: 160, tell: 0.7, recover: 1.6, cooldown: 2.5 },
+  basaltBurrower: { hp: 8, radius: 3, height: 3.5, size: 3.6, flying: false, rooted: false, armored: false, notice: 160, range: 80, tell: 0.9, recover: 1.4, cooldown: 3.0 },
+  thornChoir: { hp: 6, radius: 2.4, height: 5, size: 3.0, flying: false, rooted: true, armored: false, notice: 220, range: 220, tell: 1.0, recover: 1.5, cooldown: 3.0 },
+  veilMedusa: { hp: 4, radius: 4, height: 5, size: 3.5, flying: true, rooted: false, armored: false, notice: 150, range: 30, tell: 0.8, recover: 1.8, cooldown: 2.5, bounce: 1.8 },
+  phaseSkate: { hp: 5, radius: 3, height: 2.5, size: 3.4, flying: true, rooted: false, armored: false, notice: 170, range: 150, tell: 0.5, recover: 1.2, cooldown: 2.2 },
+  mirrorStalker: { hp: 7, radius: 2.6, height: 3.6, size: 3.8, flying: false, rooted: false, armored: false, notice: 150, range: 50, tell: 0.7, recover: 1.0, cooldown: 2.0 },
+  gravityCantor: { hp: 7, radius: 3.5, height: 5, size: 3.2, flying: true, rooted: false, armored: false, notice: 220, range: 200, tell: 1.5, recover: 2.0, cooldown: 4.0 },
 };
+/** How high a stomp off this kind's back bounces, over the usual apex. */
+export function shadowBounce(kind: ShadowKind): number {
+  return SPECS[kind].bounce ?? 1;
+}
+/** What a behaviour in ./shadows gets each step: the shadow, Hopper, the
+ * geometry between them already worked out, and the combat's own helpers. */
+export interface ShadowContext {
+  s: Shadow;
+  h: HopperState;
+  world: World;
+  combat: Combat;
+  cb: CombatCallbacks;
+  dt: number;
+  spec: ShadowSpec;
+  /** Tells stretch by this in assist mode. */
+  tellScale: number;
+  /** Hopper relative to the shadow: horizontal offset and distance, the
+   * height of his centre over the shadow's, and the straight-line distance. */
+  dx: number;
+  dz: number;
+  dh: number;
+  dy: number;
+  d3: number;
+}
+export interface ShadowBehaviour {
+  update(ctx: ShadowContext): void;
+  /** Hopper's kick just connected with this shadow (damage already dealt). */
+  onKick?(ctx: ShadowContext): void;
+  /** Hopper's feet just came down on its back (damage and bounce done). */
+  onStomp?(ctx: ShadowContext): void;
+}
 /** The scaled body of a species, for tests and the renderer. */
 export function shadowBody(kind: ShadowKind): { radius: number; height: number; size: number } {
   const s = SPECS[kind];
@@ -127,7 +198,8 @@ const dist3 = (ax: number, ay: number, az: number, bx: number, by: number, bz: n
 export class Combat {
   shadows: Shadow[] = [];
   projectiles: Projectile[] = [];
-  private nextProjectile = 1;
+  /** Next projectile id; behaviours that push their own projectiles use it. */
+  nextProjectile = 1;
   time = 0;
   /** Hopper's attack timers, owned here so the tests can drive them. */
   kick = 0;
@@ -159,7 +231,7 @@ export class Combat {
     // Rooted shadows (wall-clingers, casters) keep their spawn y exactly --
     // it may sit on a structure face groundAt has no business snapping to.
     // Everything else rests on whatever is solid at or above the terrain.
-    const gy = spec.rooted ? y : Math.max(this.world.groundAt(s.x, s.z, y + 0.5).y, y);
+    const gy = spec.rooted || s.ceiling ? y : Math.max(this.world.groundAt(s.x, s.z, y + 0.5).y, y);
     const group = s.group || s.id;
     // A stronghold's host (every spawn whose group names the stronghold) is
     // held back regardless of wave -- activateGroup() releases it -- and
@@ -168,7 +240,7 @@ export class Combat {
     // they are on their structure already.
     const held = this.district.strongholds?.some((st) => st.id === group) ?? false;
     const perch: [number, number, number] = [s.x, gy, s.z];
-    if (held && !spec.rooted) {
+    if (held && !spec.rooted && !s.ceiling) {
       const top = this.world.perchNear(s.x, s.z, s.y !== undefined ? y : undefined);
       if (top) {
         perch[0] = top.x;
@@ -178,7 +250,8 @@ export class Combat {
     }
     return {
       id: s.id, kind: s.kind, x: perch[0], y: perch[1], z: perch[2], vx: 0, vy: 0, vz: 0, yaw: 0, hp: spec.hp, maxHp: spec.hp, state: held && !spec.rooted ? 'wait' : 'idle', timer: 0, cooldown: 0.8 + (s.id.length % 4) * 0.3, alive: true, dormant: held ? true : (s.wave ?? 0) > 0, group, wave: s.wave ?? 0, homeX: s.x, homeY: gy, homeZ: s.z, flying: spec.flying, rooted: spec.rooted, armored: spec.armored, radius: spec.radius * spec.size, height: spec.height * spec.size, size: spec.size, open: 0, hitFlash: 0, telegraph: 0, deadAt: -1e9, patrol: s.patrol ?? 40, phase: Math.random() * Math.PI * 2, scale: 1, grounded: !spec.flying, spawnFlash: 0, beamX: s.x, beamY: gy, beamZ: s.z,
-      held, entry: s.entry, delay: -1, arrive: 1, perch, perched: held, stare: 0,
+      held, entry: s.entry, delay: -1, arrive: 1, perch, perched: held && !s.ceiling, stare: 0,
+      phased: false, underground: false, link: s.link ? [s.link[0], s.link[1], s.link[2]] : null, ceiling: !!s.ceiling, stall: 0,
     };
   }
   /** Summon a shadow at runtime (bosses summoning adds) -- built the same way
@@ -279,8 +352,11 @@ export class Combat {
   }
   /** Everything that can be hit, stomped and locked on: awake shadows, and
    * dormant ones in plain view on their perches. */
+  /** The live shadows that can be aimed at, kicked and stomped: a perched
+   * host in view counts; a faded skate or a burrower under the ground does
+   * not. */
   aliveShadows(): Shadow[] {
-    return this.shadows.filter((s) => s.alive && (!s.dormant || s.perched));
+    return this.shadows.filter((s) => s.alive && (!s.dormant || s.perched) && !s.phased && !s.underground);
   }
   /** Everything the auto-aim and the lock-on may choose: the live shadows and
    * the commander. */
@@ -330,7 +406,7 @@ export class Combat {
       this.projectiles.push({ id: this.nextProjectile++, x: x + rx, y, z: z + rz, vx: (tx / l) * 400, vy: (ty / l) * 400, vz: (tz / l) * 400, life: 0.7, radius: 0.8, damage: 1, gravity: 0, owner: 'hopper', kind: 'laser' });
     }
   }
-  private spit(s: Shadow, h: HopperState) {
+  spit(s: Shadow, h: HopperState) {
     const ox = s.x,
       oy = s.y + s.height * 0.8,
       oz = s.z;
@@ -468,6 +544,13 @@ export class Combat {
           const nx = (s.x - h.x) / (d || 1),
             nz = (s.z - h.z) / (d || 1);
           this.damage(s, 4, cb, nx * 22, nz * 22);
+          // A kind with its own answer to a kick (a wasp stalls, a choir
+          // staggers its fellows) is not then knocked into recover as well.
+          const behaviour = BEHAVIOURS[s.kind];
+          if (s.alive && behaviour?.onKick) {
+            behaviour.onKick(this.context(s, h, cb, dt));
+            continue;
+          }
           if (s.alive && s.state === 'tell') {
             s.state = 'recover';
             s.timer = 1.0;
@@ -492,6 +575,8 @@ export class Combat {
       if (p.y < world.groundAt(p.x, p.z, p.y + 1).y) {
         p.life = 0;
         cb.effect(p.kind === 'laser' || p.kind === 'beam' ? 'spark' : 'splat', p.x, p.y, p.z);
+        // Slag cools where it lands into a stone that can be stood on.
+        if (p.kind === 'slag') world.dropStone(p.x, world.groundAt(p.x, p.z, p.y + 1).y, p.z, 9);
         continue;
       }
       if (p.owner === 'shadow') {
@@ -576,6 +661,11 @@ export class Combat {
         continue;
       }
       s.telegraph = s.state === 'tell' ? 1 - s.timer / (spec.tell * tellScale) : 0;
+      const behaviour = BEHAVIOURS[s.kind];
+      if (behaviour) {
+        behaviour.update({ s, h, world, combat: this, cb, dt, spec, tellScale, dx, dz, dh, dy, d3 });
+        continue;
+      }
       switch (s.kind) {
         case 'shadeHound': {
           if (s.state === 'launched') {
@@ -918,7 +1008,8 @@ export class Combat {
           // Hopper -- it's just harmless.
           if (!(s.armored && s.open <= 0)) this.damage(s, 5, cb);
           cb.bounce(s);
-          if (s.alive && s.flying) {
+          if (s.alive && BEHAVIOURS[s.kind]?.onStomp) BEHAVIOURS[s.kind]!.onStomp!(this.context(s, h, cb, dt));
+          else if (s.alive && s.flying) {
             s.state = 'recover';
             s.timer = 1.2;
           }
@@ -927,7 +1018,45 @@ export class Combat {
       }
     }
   }
-  private walkToward(s: Shadow, tx: number, tz: number, speed: number) {
+  /** The step context for a behaviour hook outside the main loop. */
+  context(s: Shadow, h: HopperState, cb: CombatCallbacks, dt: number): ShadowContext {
+    const dx = h.x - s.x,
+      dz = h.z - s.z,
+      dh = Math.hypot(dx, dz),
+      dy = h.y + 7 - (s.y + s.height * 0.5);
+    return { s, h, world: this.world, combat: this, cb, dt, spec: SPECS[s.kind], tellScale: this.assist ? 1.5 : 1, dx, dz, dh, dy, d3: Math.hypot(dh, dy) };
+  }
+  /** A ground shockwave from a shadow: hurts Hopper only when he is standing
+   * on the ground within `radius` of it, so a jump clears it. */
+  groundShock(x: number, y: number, z: number, radius: number, damage: number, h: HopperState, cb: CombatCallbacks) {
+    cb.effect('shockwave', x, y, z);
+    cb.sound('stomp');
+    const d = Math.hypot(h.x - x, h.z - z);
+    if (h.grounded && d < radius + MOVE.radius && Math.abs(h.y - y) < 10) {
+      cb.hurt(damage, ((h.x - x) / (d || 1)) * 18, 8, ((h.z - z) / (d || 1)) * 18, x, z);
+      return true;
+    }
+    return false;
+  }
+  /** Lob one projectile from a shadow at where Hopper will be, on a gravity
+   * arc. `kind` names the projectile for the renderer and the landing rule. */
+  lob(s: Shadow, h: HopperState, kind: Projectile['kind'], radius: number, damage: number, lead = 0.6) {
+    const ox = s.x,
+      oy = s.y + s.height * 0.8,
+      oz = s.z;
+    const tx = h.x + h.vx * lead,
+      ty = h.y + h.vy * lead * 0.5,
+      tz = h.z + h.vz * lead;
+    const dx = tx - ox,
+      dz = tz - oz,
+      dist = Math.hypot(dx, dz) || 1;
+    const speed = Math.min(70, Math.max(35, dist * 0.55));
+    const t = dist / speed;
+    const p: Projectile = { id: this.nextProjectile++, x: ox, y: oy, z: oz, vx: (dx / dist) * speed, vy: (ty - oy) / t + 0.5 * 30 * t, vz: (dz / dist) * speed, life: 5, radius, damage, gravity: 30, owner: 'shadow', kind, ownerId: s.id };
+    this.projectiles.push(p);
+    return p;
+  }
+  walkToward(s: Shadow, tx: number, tz: number, speed: number) {
     const dx = tx - s.x,
       dz = tz - s.z,
       d = Math.hypot(dx, dz);
@@ -940,7 +1069,7 @@ export class Combat {
     s.vz = (dz / d) * speed;
     s.yaw = Math.atan2(dx, dz);
   }
-  private flyToward(s: Shadow, tx: number, ty: number, tz: number, speed: number, dt: number) {
+  flyToward(s: Shadow, tx: number, ty: number, tz: number, speed: number, dt: number) {
     const dx = tx - s.x,
       dy = ty - s.y,
       dz = tz - s.z,
@@ -958,7 +1087,7 @@ export class Combat {
   }
   /** Ground shadows follow the surface; airborne ones fall onto it. cb is
    * only needed for the pounce landing, which fires an effect and a sound. */
-  private fall(s: Shadow, dt: number, cb?: CombatCallbacks) {
+  fall(s: Shadow, dt: number, cb?: CombatCallbacks) {
     s.x += s.vx * dt;
     s.z += s.vz * dt;
     const surface = this.world.groundAt(s.x, s.z, Math.max(s.y, s.y + s.vy * dt) + 0.5).y;

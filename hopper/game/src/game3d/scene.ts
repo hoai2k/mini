@@ -14,6 +14,7 @@ import {
   LoopOnce,
   LoopRepeat,
   Mesh,
+  BoxGeometry,
   MeshBasicMaterial,
   MeshToonMaterial,
   Object3D,
@@ -47,14 +48,14 @@ import {
 } from '../../../3d/standins/src/index.js';
 import type { World } from './world';
 import type { HopperState } from './controller';
-import { Gait } from './gait';
+import { Gait, type GaitBody, type GaitPose } from './gait';
 import { HopperRig } from './rig3d';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, cell, cellPlane, cellSprite, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
 import { standInKey, swapDelivered, type Swapped } from './models3d';
 import { buildTrail } from './trail';
-import type { RookRuntime } from './boss3d';
+import type { CommanderRuntime, RookRuntime } from './boss3d';
 
 interface Effect {
   object: Object3D;
@@ -111,8 +112,14 @@ export class Scene3D {
   readonly camera = new PerspectiveCamera(60, 16 / 9, 0.5, 30000);
   private hopper: Object3D | null = null;
   private mixer: AnimationMixer | null = null;
+  private readonly stoneObjects = new Map<number, Mesh>();
+  private readonly stoneMaterial = new MeshToonMaterial({ color: '#4a3a34', emissive: '#ff6a2a', emissiveIntensity: 0.35 });
+  private readonly flipMaterial = new MeshBasicMaterial({ color: '#b48cff', transparent: true, opacity: 0.16, depthWrite: false, side: DoubleSide });
+  private flipObjects: Mesh[] = [];
   /** The gaits and the skeleton they are put onto. */
   private readonly gait = new Gait();
+  /** Hopper's state seen in the world's mirror, for the gait under inverted gravity. */
+  private readonly mirrorBody: GaitBody = { x: 0, y: 0, z: 0, yaw: 0, vx: 0, vy: 0, vz: 0, grounded: false, climbing: false, climbNx: 0, climbNz: 0, airTime: 0, height: 0, diving: false, gliding: false, hovering: false };
   private readonly rig = new HopperRig();
   private rigWeight = 1;
   private lean = 0;
@@ -147,7 +154,9 @@ export class Scene3D {
   private atlases: AtlasSprite[] = [];
   private delivered: Swapped[] = [];
   private bossObject: Object3D | null = null;
-  private bossRook: RookRuntime | null = null;
+  private bossRook: CommanderRuntime | null = null;
+  private readonly markObjects: Mesh[] = [];
+  private readonly markMaterial = new MeshBasicMaterial({ color: '#ffb454', transparent: true, opacity: 0.5, depthWrite: false, side: DoubleSide });
   private bossWings: Object3D[] = [];
   private corridor: Mesh | null = null;
   private buildVersion = 0;
@@ -260,11 +269,13 @@ export class Scene3D {
     this.actionName = name;
   }
   /** Build the picture of a district: atmosphere, terrain, structures, shadows. */
-  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }, next?: { world: World; offset: [number, number, number] }) {
+  buildWorld(world: World, shadows: Shadow[], rook: CommanderRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }, next?: { world: World; offset: [number, number, number] }) {
     this.scene.remove(this.worldGroup);
     this.worldGroup = new Group();
+    this.flipObjects = [];
     this.scene.add(this.worldGroup);
     this.shadowObjects.clear();
+    this.stoneObjects.clear();
     this.shadowModels.clear();
     this.shadowClip.clear();
     this.bossObject = null;
@@ -302,6 +313,16 @@ export class Scene3D {
     const terrain = makeTerrain(region, { size: d.size, segments: 160, ...d.terrain });
     this.worldGroup.add(terrain);
     void paintTerrain(terrain, region.id, d, world.route);
+    if (d.terrain.soft) {
+      // The soft floor's surface: a sheet of sea, slag or dust at its level.
+      const soft = d.terrain.soft;
+      const look = { sea: { color: '#2a5f8f', emissive: '#0d2438', opacity: 0.82 }, slag: { color: '#ff7a24', emissive: '#c8300a', opacity: 0.94 }, dust: { color: '#9fb8d8', emissive: '#3a4d70', opacity: 0.8 } }[soft.kind];
+      const sheet = new Mesh(new PlaneGeometry(d.size * 1.2, d.size * 1.2), new MeshToonMaterial({ color: look.color, emissive: look.emissive, emissiveIntensity: 0.6, transparent: true, opacity: look.opacity, depthWrite: false }));
+      sheet.rotation.x = -Math.PI / 2;
+      sheet.position.y = soft.level;
+      sheet.renderOrder = -1;
+      this.worldGroup.add(sheet);
+    }
     // The trail along the route: its ribbon, edge stones, waymarkers and the
     // tall things beside it.
     this.worldGroup.add(buildTrail(world));
@@ -420,8 +441,8 @@ export class Scene3D {
     void paintKit(group, region.id);
     return group;
   }
-  /** Attach (or drop) the Night Rook's stand-in body. Stand-in art: the boss has no delivered model yet. */
-  setBoss(rook: RookRuntime | null) {
+  /** Attach (or drop) a commander's stand-in body. Stand-in art: no commander has a delivered model yet. */
+  setBoss(rook: CommanderRuntime | null) {
     if (this.bossObject) {
       this.worldGroup.remove(this.bossObject);
       this.bossObject = null;
@@ -432,8 +453,10 @@ export class Scene3D {
     }
     this.bossRook = rook;
     this.bossWings = [];
+    for (const m of this.markObjects) this.worldGroup.remove(m);
+    this.markObjects.length = 0;
     if (!rook) return;
-    const o = createStandIn('boss.nightRook');
+    const o = createStandIn(`boss.${rook.kind}`);
     delete o.userData.animate;
     for (const side of ['L', 'R']) {
       const w = node(o, `Wing.${side}`);
@@ -458,6 +481,53 @@ export class Scene3D {
     this.worldGroup.add(this.corridor);
     void paintShadows([o]);
   }
+  /** A commander's telegraphs, drawn from its own list: rings on the ground,
+   * discs, spheres at cores and lines between points. One pool of meshes,
+   * reshaped each frame, so a new commander needs no renderer work. */
+  private syncMarks(r: CommanderRuntime) {
+    const marks = r.alive ? r.marks : [];
+    while (this.markObjects.length < marks.length) {
+      const m = new Mesh(new TorusGeometry(1, 0.06, 6, 40), this.markMaterial.clone());
+      this.worldGroup.add(m);
+      this.markObjects.push(m);
+    }
+    for (const [i, m] of this.markObjects.entries()) {
+      const mark = marks[i];
+      m.visible = !!mark;
+      if (!mark) continue;
+      const shape = m.userData.shape as string | undefined;
+      if (shape !== mark.shape) {
+        m.geometry.dispose();
+        m.geometry = mark.shape === 'ring' ? new TorusGeometry(1, 0.06, 6, 40) : mark.shape === 'disc' ? new CylinderGeometry(1, 1, 0.2, 32) : mark.shape === 'sphere' ? new SphereGeometry(1, 12, 8) : new CylinderGeometry(0.5, 0.5, 1, 8, 1, true);
+        m.userData.shape = mark.shape;
+      }
+      const mat = m.material as MeshBasicMaterial;
+      mat.color.set(mark.color);
+      mat.opacity = mark.alpha;
+      m.rotation.set(mark.shape === 'ring' ? Math.PI / 2 : 0, 0, 0);
+      if (mark.shape === 'line' && mark.x2 !== undefined) {
+        const a = new Vector3(mark.x, mark.y, mark.z),
+          b = new Vector3(mark.x2, mark.y2 ?? mark.y, mark.z2 ?? mark.z);
+        m.position.copy(a).lerp(b, 0.5);
+        m.scale.set(mark.r, Math.max(1, a.distanceTo(b)), mark.r);
+        m.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), b.clone().sub(a).normalize());
+      } else {
+        m.position.set(mark.x, mark.y, mark.z);
+        m.scale.setScalar(mark.r);
+      }
+    }
+  }
+  /** A chain commander: its stand-in's segments are laid along the runtime's positions. */
+  private syncSegments(r: CommanderRuntime, o: Object3D) {
+    if (!r.segments) return;
+    for (const [i, p] of r.segments.entries()) {
+      const seg = o.getObjectByName(`Segment${i}`);
+      if (!seg) continue;
+      seg.position.set(p[0] - r.x, p[1] - r.y, p[2] - r.z);
+      const next = r.segments[i + 1] ?? r.segments[i - 1];
+      if (next) seg.lookAt(next[0] - r.x + o.position.x, next[1] - r.y + o.position.y, next[2] - r.z + o.position.z);
+    }
+  }
   private syncBoss(dt: number) {
     const r = this.bossRook,
       o = this.bossObject;
@@ -468,7 +538,8 @@ export class Scene3D {
       return;
     }
     o.position.set(r.x, r.y, r.z);
-    o.rotation.set(0, r.yaw, 0);
+    // A chain commander's segments are laid in world space, so its group does not turn.
+    o.rotation.set(0, r.segments ? 0 : r.yaw, 0);
     const flash = o.getObjectByName('Flash') as Mesh,
       tell = o.getObjectByName('Tell') as Mesh;
     flash.visible = r.hitFlash > 0;
@@ -477,9 +548,13 @@ export class Scene3D {
       (tell.material as MeshBasicMaterial).color.set(r.open > 0 ? '#f3e7c8' : r.state === 'channel' ? '#8a4bd8' : '#ffb454');
       tell.scale.setScalar(r.state === 'mark' || r.state === 'fan' ? 1.6 - r.telegraph * 0.6 : 0.9 + Math.sin(this.time * 12) * 0.1);
     }
+    this.syncMarks(r);
+    this.syncSegments(r, o);
+    if (r.kind !== 'nightRook') return;
+    const rook = r as RookRuntime;
     // Wings: the runtime's spread plus a slow beat while airborne.
     const beat = r.state === 'sweep' || r.state === 'climb' ? Math.sin(this.time * 9) * 0.35 : Math.sin(this.time * 1.6) * 0.12;
-    for (const [i, w] of this.bossWings.entries()) w.rotation.z = (i ? -1 : 1) * (0.15 + r.wingSpread * 0.9 + beat);
+    for (const [i, w] of this.bossWings.entries()) w.rotation.z = (i ? -1 : 1) * (0.15 + rook.wingSpread * 0.9 + beat);
     const pitch = r.state === 'sweep' ? -0.35 : r.state === 'climb' ? 0.4 : 0;
     o.rotation.x += (pitch - o.rotation.x) * Math.min(1, dt * 5);
     // The marked sweep corridor: a red tube from the perch to the far rim.
@@ -487,8 +562,8 @@ export class Scene3D {
       const show = r.state === 'mark';
       this.corridor.visible = show;
       if (show) {
-        const a = new Vector3(...r.markFrom),
-          b = new Vector3(...r.markTo);
+        const a = new Vector3(...rook.markFrom),
+          b = new Vector3(...rook.markTo);
         const len = Math.max(1, a.distanceTo(b));
         this.corridor.position.copy(a).lerp(b, 0.5);
         this.corridor.scale.set(1, len, 1);
@@ -538,7 +613,16 @@ export class Scene3D {
     this.mixer?.update(dt);
     // The gait: which of the three is running, where the six feet are, and
     // what the ground under them is doing to the body.
-    const pose = this.gait.update(h, world, dt);
+    // Under inverted gravity the gait runs in the world's mirror, feet on the
+    // undersides, and its answers are turned back over.
+    const inverted = h.gravityScale < 0;
+    let pose: GaitPose;
+    if (inverted) {
+      const b = this.mirrorBody;
+      Object.assign(b, { x: h.x, y: -h.y, z: h.z, yaw: h.yaw, vx: h.vx, vy: -h.vy, vz: h.vz, grounded: h.grounded, climbing: h.climbing, climbNx: h.climbNx, climbNz: h.climbNz, airTime: h.airTime, height: h.height, diving: h.diving, gliding: h.gliding, hovering: h.hovering });
+      pose = this.gait.update(b, { groundAt: (x, z, y, r) => ({ y: -Math.min(1e4, world.ceilingAt(x, z, -y, r).y) }), heightAt: () => -1e4 }, dt);
+      for (const f of pose.feet) f[1] = -f[1];
+    } else pose = this.gait.update(h, world, dt);
     // Flying and diving lean the body by hand; the ground gaits get their
     // angle from the feet instead.
     const lean = h.diving ? 0.75 : h.gliding ? Math.max(-0.2, Math.min(0.35, h.vy * 0.015)) : h.hovering ? -0.12 : h.grounded || h.climbing ? 0 : Math.max(-0.25, Math.min(0.25, h.vy * 0.006));
@@ -591,8 +675,23 @@ export class Scene3D {
       if (!o) continue;
       // A perched host is in plain view while it waits; anything else
       // dormant is not there yet.
-      o.visible = s.alive && (!s.dormant || s.perched);
+      o.visible = s.alive && (!s.dormant || s.perched) && !s.underground;
       if (!o.visible) continue;
+      // A faded skate is drawn as a ghost of itself.
+      o.traverse((m: Object3D) => {
+        const mat = (m as Mesh).material as { transparent?: boolean; opacity?: number; userData?: Record<string, unknown> } | undefined;
+        if (!mat || !('opacity' in mat)) return;
+        if (s.phased && mat.opacity === 1) {
+          mat.userData ||= {};
+          mat.userData.solid = true;
+          mat.transparent = true;
+          mat.opacity = 0.28;
+        } else if (!s.phased && mat.userData?.solid) {
+          mat.opacity = 1;
+          mat.transparent = false;
+          delete mat.userData.solid;
+        }
+      });
       o.position.set(s.x, s.y, s.z);
       o.rotation.set(0, s.yaw, 0);
       const flash = o.getObjectByName('Flash') as Mesh;
@@ -688,6 +787,41 @@ export class Scene3D {
     this.worldGroup.add(object);
     this.effects.push({ object, life, maxLife: life, kind: name });
   }
+  /** Cooled slag: a slab per stone while it lasts, sinking as it goes. */
+  private syncStones(world: World) {
+    const live = new Set<number>();
+    for (const st of world.stones) {
+      live.add(st.id);
+      let m = this.stoneObjects.get(st.id);
+      if (!m) {
+        m = new Mesh(new BoxGeometry(8, 2, 8), this.stoneMaterial);
+        m.position.set(st.x, st.y + 0.5, st.z);
+        this.worldGroup.add(m);
+        this.stoneObjects.set(st.id, m);
+      }
+      m.position.y = st.y + 0.5 - Math.max(0, 1 - st.life) * 1.5;
+    }
+    for (const [id, m] of this.stoneObjects) {
+      if (live.has(id)) continue;
+      this.worldGroup.remove(m);
+      this.stoneObjects.delete(id);
+    }
+  }
+  /** Flip volumes: standing seams and the cantors' songs, as columns of turned light. */
+  private syncFlips(world: World) {
+    for (const [i, f] of world.flips.entries()) {
+      let m = this.flipObjects[i];
+      if (!m) {
+        m = new Mesh(new CylinderGeometry(1, 1, 1, 24, 1, true), this.flipMaterial);
+        this.worldGroup.add(m);
+        this.flipObjects[i] = m;
+      }
+      m.visible = true;
+      m.position.set(f.x, (f.y0 + f.y1) / 2, f.z);
+      m.scale.set(f.r, f.y1 - f.y0, f.r);
+    }
+    for (let i = world.flips.length; i < this.flipObjects.length; i++) this.flipObjects[i].visible = false;
+  }
   private syncEffects(dt: number) {
     for (const a of this.atlases) if (!stepAtlas(a, dt)) this.worldGroup.remove(a.sprite);
     this.atlases = this.atlases.filter((a) => a.sprite.parent);
@@ -729,6 +863,8 @@ export class Scene3D {
     this.syncShadows(combat.shadows);
     this.syncBoss(dt);
     this.syncProjectiles(combat.projectiles);
+    this.syncStones(world);
+    this.syncFlips(world);
     this.syncEffects(dt);
     this.syncShadow(h, world, shadowEnabled);
     for (const o of this.animated) o.userData.animate?.(this.time);

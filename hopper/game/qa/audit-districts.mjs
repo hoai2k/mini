@@ -1,6 +1,6 @@
 // Node audit for the 3D edition's mission-one districts. Transpiles
 // district.ts, world.ts and controller.ts (same approach as
-// qa/tests/engine3d.mjs) and, for each district in MISSIONS[0], builds the
+// qa/tests/engine3d.mjs) and, for each district in every mission, builds the
 // World and checks:
 //   (a) every placement's ground height is finite, and no structure's base
 //       (mode 'r' only) sits more than 3 m below or above the terrain,
@@ -50,7 +50,7 @@ const standIns = new URL('../../3d/standins/src/index.js', import.meta.url).path
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-audit-districts-'));
-const names = ['world', 'controller', 'district', 'route', 'scenery'];
+const names = ['world', 'controller', 'district', 'district2', 'district3', 'route', 'scenery'];
 for (const name of names) {
   const raw = fs
     .readFileSync(source + name + '.ts', 'utf8')
@@ -72,7 +72,7 @@ for (const name of names) {
 const { World } = await import(path.join(temp, 'world.mjs'));
 const { measure } = await import(standIns);
 // Kinds that keep their spawn instead of climbing to a perch (see combat3d SPECS).
-const ROOTED = new Set(['seedSpitter', 'spireLeech']);
+const ROOTED = new Set(['seedSpitter', 'spireLeech', 'slagCaster', 'coilWraith', 'thornChoir']);
 const { MISSIONS } = await import(path.join(temp, 'district.mjs'));
 
 const dist2 = (ax, az, bx, bz) => Math.hypot(ax - bx, az - bz);
@@ -87,7 +87,7 @@ function groundHeight(world, x, z, y, mode, isStructure) {
 }
 
 let anyFail = false;
-const districts = MISSIONS[0];
+const districts = MISSIONS.flat();
 
 for (const make of districts) {
   const district = make();
@@ -105,7 +105,8 @@ for (const make of districts) {
       problems.push(`(a) ${p.id} at (${p.x},${p.z}): terrain height is not finite`);
       continue;
     }
-    if (mode === 'r' && isStructure) {
+    // Seams and currents are volumes hung in the air, not things that stand.
+    if (mode === 'r' && isStructure && !/gravitySeam|dustCurrent/.test(p.id)) {
       const base = groundHeight(world, p.x, p.z, p.y, mode, true);
       const diff = base - h;
       if (diff < -3 || diff > 3) {

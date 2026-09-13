@@ -132,6 +132,8 @@ export interface HopperState {
   dashX: number;
   dashZ: number;
   sprinting: boolean;
+  /** Under a soft floor's surface (sea, slag, dust), being lifted back out. */
+  inSoft: boolean;
 }
 export type MoveEvent =
   | { kind: 'jump'; charged: boolean }
@@ -147,11 +149,12 @@ export type MoveEvent =
   | { kind: 'hoverEnd' }
   | { kind: 'dive' }
   | { kind: 'hopBack' }
-  | { kind: 'dash' };
+  | { kind: 'dash' }
+  | { kind: 'soft'; soft: 'sea' | 'slag' | 'dust' };
 
 export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
   return {
-    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, climbing: false, climbNx: 0, climbNz: 0, climbTimer: 0, airTime: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, hovering: false, hoverFuel: MOVE.hoverFuel, hoverT: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false,
+    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, climbing: false, climbNx: 0, climbNz: 0, climbTimer: 0, airTime: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, hovering: false, hoverFuel: MOVE.hoverFuel, hoverT: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false, inSoft: false,
   };
 }
 
@@ -203,7 +206,71 @@ const turnToward = (yaw: number, target: number, max: number) => {
 
 /** Horizontal push-out against every nearby solid the body overlaps.
  * Returns the wall normal of the strongest contact, or null. */
-function resolveWalls(s: HopperState, world: World): { nx: number; nz: number; collider: Collider } | null {
+/** What a step needs of the world. The real world satisfies it, and so does
+ * its mirror image, which is how inverted gravity is stepped. */
+export interface StepWorld {
+  groundAt(x: number, z: number, y: number, radius?: number): { y: number; collider: Collider | null };
+  near(x: number, z: number, margin?: number): Collider[];
+  volumesAt(x: number, y: number, z: number): World['volumes'];
+  readonly soft: World['soft'];
+  readonly route: World['route'];
+}
+
+/** The world seen upside down: undersides are floors and tops are ceilings,
+ * with every height negated. Stepping in it with gravity made positive is
+ * stepping the real world with gravity pulling up, so nothing else in the
+ * controller needs to know which way is down. */
+class MirrorWorld implements StepWorld {
+  private readonly mirrored = new WeakMap<Collider, Collider>();
+  readonly soft = null;
+  constructor(private readonly world: World) {}
+  get route() {
+    return this.world.route;
+  }
+  private mirror(c: Collider): Collider {
+    let m = this.mirrored.get(c);
+    if (!m) {
+      m = { ...c };
+      this.mirrored.set(c, m);
+    }
+    Object.assign(m, c);
+    m.y0 = -c.y1;
+    m.y1 = -c.y0;
+    // A spring pad's underside is only a floor.
+    m.spring = false;
+    return m;
+  }
+  groundAt(x: number, z: number, y: number, radius = 2.5) {
+    const c = this.world.ceilingAt(x, z, -y, radius);
+    return { y: c.y === Infinity ? -1e4 : -c.y, collider: c.collider ? this.mirror(c.collider) : null };
+  }
+  near(x: number, z: number, margin = 6): Collider[] {
+    return this.world.near(x, z, margin).map((c) => this.mirror(c));
+  }
+  volumesAt(): World['volumes'] {
+    return [];
+  }
+}
+const mirrors = new WeakMap<World, MirrorWorld>();
+function mirrorOf(world: World): MirrorWorld {
+  let m = mirrors.get(world);
+  if (!m) {
+    m = new MirrorWorld(world);
+    mirrors.set(world, m);
+  }
+  return m;
+}
+/** Negate every height in the state, so a step can be taken in the mirror. */
+function mirrorState(s: HopperState) {
+  s.y = -s.y;
+  s.vy = -s.vy;
+  s.groundY = -s.groundY;
+  s.mantleFrom[1] = -s.mantleFrom[1];
+  s.mantleTo[1] = -s.mantleTo[1];
+  s.gravityScale = -s.gravityScale;
+}
+
+function resolveWalls(s: HopperState, world: StepWorld): { nx: number; nz: number; collider: Collider } | null {
   let best: { nx: number; nz: number; collider: Collider; depth: number } | null = null;
   const r = MOVE.radius;
   const bodyLow = s.y + 2.0,
@@ -244,8 +311,17 @@ function resolveWalls(s: HopperState, world: World): { nx: number; nz: number; c
   return best;
 }
 
-/** One fixed step. Returns the state's events for this step. */
+/** One fixed step. Returns the state's events for this step. Under inverted
+ * gravity (`gravityScale < 0`) the step is taken in the world's mirror: he
+ * falls up, lands on undersides and jumps down off them. */
 export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt: number): MoveEvent[] {
+  if (s.gravityScale >= 0) return stepUpright(s, world, intent, dt);
+  mirrorState(s);
+  const events = stepUpright(s, mirrorOf(world), intent, dt);
+  mirrorState(s);
+  return events;
+}
+function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: number): MoveEvent[] {
   s.events = [];
   const g = MOVE.gravity * s.gravityScale;
   if (s.invuln > 0) s.invuln -= dt;
@@ -525,6 +601,29 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
         s.vz += v.dz! * v.push! * dt * 2;
       }
     }
+    // Soft floors: sea, slag or dust below the surface never kill Hopper --
+    // gravity cuts out and he eases back up, bobbing at the surface. A barge
+    // or the shore (a solid top at or above the level) is ground as usual.
+    const soft = world.soft;
+    if (soft && s.y < soft.level && world.groundAt(s.x, s.z, soft.level).y < soft.level) {
+      if (!s.inSoft) s.events.push({ kind: 'soft', soft: soft.kind });
+      s.inSoft = true;
+      s.gliding = false;
+      s.hovering = false;
+      s.diving = false;
+      s.vy += (soft.lift - s.vy) * Math.min(1, 8 * dt);
+      if (soft.shore) {
+        // The sea carries him back toward the trail while he is under.
+        const hit = world.route.nearest(s.x, s.z),
+          hdx = hit.x - s.x,
+          hdz = hit.z - s.z,
+          hlen = Math.hypot(hdx, hdz) || 1;
+        s.vx = (hdx / hlen) * 12;
+        s.vz = (hdz / hlen) * 12;
+      }
+    } else {
+      s.inSoft = false;
+    }
   } else {
     s.vy = 0;
     s.gliding = false;
@@ -619,6 +718,9 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   // Ground: land on the highest solid top crossed this step, else terrain.
   const ground = world.groundAt(s.x, s.z, Math.max(prevY, s.y) + 0.05);
   const surface = ground.y;
+  // A soft floor's terrain (no barge, no shore) is never a landing: he rises
+  // to the surface instead, where the vertical-motion lift takes back over.
+  const softBlock = !!(world.soft && !ground.collider && surface < world.soft.level);
   if (s.grounded && ground.collider?.spring && s.mantle <= 0) {
     // Standing on a spring pad launches, as landing on one does.
     s.y = surface;
@@ -647,7 +749,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
   } else if (s.climbing && s.vy > -1) {
     // On a wall with his feet by the floor: the floor is not a landing until
     // he climbs down onto it.
-  } else if (s.vy <= 0 && s.y <= surface && prevY >= surface - 0.05) {
+  } else if (s.vy <= 0 && s.y <= surface && prevY >= surface - 0.05 && !softBlock) {
     // Landing.
     const impact = -s.vy;
     s.y = surface;
@@ -683,7 +785,7 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
       }
       s.events.push({ kind: 'land', speed: impact, stomp });
     }
-  } else if (s.y < surface) {
+  } else if (s.y < surface && !softBlock) {
     // Passed a surface from below or sideways (thin step): resolve upward.
     s.y = surface;
     if (s.vy < 0) s.vy = 0;
@@ -724,6 +826,14 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
 
 /** Predicted landing point for the current velocity (ballistic, no glide). */
 export function predictLanding(s: HopperState, world: World, maxTime = 8): { x: number; y: number; z: number; t: number } {
+  if (s.gravityScale >= 0) return predictUpright(s, world, maxTime);
+  mirrorState(s);
+  const hit = predictUpright(s, mirrorOf(world), maxTime);
+  mirrorState(s);
+  hit.y = -hit.y;
+  return hit;
+}
+function predictUpright(s: HopperState, world: StepWorld, maxTime: number): { x: number; y: number; z: number; t: number } {
   let x = s.x,
     y = s.y,
     z = s.z,

@@ -323,6 +323,8 @@ Each chapter is a leg between two landmarks with one dominant beat, keeping the 
 
 Inversion is a volume, not a screen: passing a gravity gate or a seam under an arch flips local gravity for whatever is inside, Hopper rotates over 0.25 s to the new surface, the camera keeps the horizon, and the seam arrows show the way out. Cantors flip a marked volume beneath them; they never flip the whole district.
 
+As built: a seam stands as a permanent flip volume from a hop's height up past its lintel, so walking under it does nothing and a hop enters it; inside, the controller steps Hopper in the world's mirror, so he falls up, lands on undersides, jumps down off them and climbs the piers back down. A turn halves his vertical speed, so a fall out of a seam's top settles at its edge. The commanders set the arena's gravity while they are awake; the Regent's third phase turns it upward toward the eclipse canopy over the dais. `LEVEL-PLAN-M2-M3.md` records the rest of what missions two and three built.
+
 ### Checkpoints, signals, cages and capsules
 
 Totems light when reached and are the respawn point. Nine signals per region unlock gallery entries and count on the results screen; three sit on high things, three at the bottom of things, three in cages that only a reflected shot opens. Capsules sit where fights are. Spring pads are the region's elevators, thermals rise from chimneys, furnace doors and vents, and wind lanes cross open gaps.

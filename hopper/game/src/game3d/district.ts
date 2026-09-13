@@ -3,6 +3,9 @@
  * landmark. Positions are metres; z runs toward the landmark (negative z is
  * "forward" into the region, matching the stand-in viewer's dioramas).
  */
+import { cinderFoundries, skyhookWorks, tempestDocks } from './district2';
+import { cobaltDrift, vermilionBasin, violetInversion } from './district3';
+
 export interface Placement {
   id: string;
   x: number;
@@ -13,10 +16,34 @@ export interface Placement {
   opts?: Record<string, unknown>;
   mode?: 'r' | 'a';
   /** A moving structure: it shuttles between its placement and `to` and back,
-   * carrying whatever stands on it. Speed in m/s, dwell in seconds at each end. */
-  moving?: { to: { x: number; z: number; y?: number }; speed: number; dwell?: number };
+   * carrying whatever stands on it. Speed in m/s, dwell in seconds at each end.
+   * `fling`: a press ram -- standing on it as it rises fast launches Hopper. */
+  moving?: { to: { x: number; z: number; y?: number }; speed: number; dwell?: number; fling?: boolean };
+  /** A conveyor: whatever stands on the span is carried along it. */
+  flow?: { dx: number; dz: number; speed: number };
+  /** A staged bridge: each of `stages` thirds of the deck drops away `after`
+   * seconds once Hopper has left it, with a crack as the tell. */
+  staged?: { stages: number; after: number };
 }
-export type ShadowKind = 'shadeHound' | 'seedSpitter' | 'windowRay' | 'spireLeech' | 'cragTortoise' | 'riftCondor';
+export type ShadowKind =
+  | 'shadeHound'
+  | 'seedSpitter'
+  | 'windowRay'
+  | 'spireLeech'
+  | 'cragTortoise'
+  | 'riftCondor'
+  | 'furnaceHound'
+  | 'slagCaster'
+  | 'chainManta'
+  | 'ballastCrab'
+  | 'coilWraith'
+  | 'turbineWasp'
+  | 'basaltBurrower'
+  | 'thornChoir'
+  | 'veilMedusa'
+  | 'phaseSkate'
+  | 'mirrorStalker'
+  | 'gravityCantor';
 export interface ShadowSpawn {
   id: string;
   kind: ShadowKind;
@@ -41,6 +68,10 @@ export interface ShadowSpawn {
   entry?: 'perch' | 'ambush';
   /** Seconds after the stronghold activates before this shadow appears. */
   delay?: number;
+  /** Coil wraith: the far node its beam runs to, in absolute metres. */
+  link?: [number, number, number];
+  /** Mirror stalker: hangs under a lintel at its absolute y and lunges down. */
+  ceiling?: boolean;
 }
 export interface Chapter {
   name: string;
@@ -71,7 +102,7 @@ export interface Cage {
   mode?: 'r' | 'a';
 }
 export interface BossSpec {
-  kind: 'nightRook';
+  kind: 'nightRook' | 'smelterLeviathan' | 'eclipseRegent';
   x: number;
   z: number;
   /** Arena centre height above terrain and radius of its lockdown dome. */
@@ -89,6 +120,11 @@ export interface District {
     relief: number;
     plateaus?: { x: number; z: number; r: number; y: number }[];
     valley?: { axis: 'x' | 'z'; at: number; width: number; depth: number } | null;
+    /** Beyond a line on `side` the ground shelves down by `drop` over `width` (the sea past a breakwater). */
+    shelf?: { axis: 'x' | 'z'; at: number; side: 1 | -1; drop: number; width: number } | null;
+    /** A soft floor: sea, slag or dust below `level` lifts Hopper back out
+     * instead of ever being a death; `shore` also pushes him toward the trail. */
+    soft?: { kind: 'sea' | 'slag' | 'dust'; level: number; lift: number; shore?: boolean };
   };
   horizon?: { height?: number; gap?: { angle: number; width: number } };
   placements: Placement[];
@@ -107,12 +143,12 @@ export interface District {
   route?: { x: number; z: number }[];
 }
 
-const P = (id: string, x: number, z: number, y = 0, yaw = 0, opts?: Record<string, unknown>, mode: 'r' | 'a' = 'r'): Placement => ({ id, x, z, y, yaw, opts, mode });
+export const P = (id: string, x: number, z: number, y = 0, yaw = 0, opts?: Record<string, unknown>, mode: 'r' | 'a' = 'r'): Placement => ({ id, x, z, y, yaw, opts, mode });
 /** The trail through a district: start, every totem in checkpoint order and
  * the exit, with a gentle swing to alternate sides between totems so the
  * road winds through the props instead of running dead straight. The swing
  * stays inside the clear path (|x| < 30) that the jump elements sit on. */
-function windingRoute(placements: Placement[], start: { x: number; z: number }, exit: { x: number; z: number }, swing = 26): { x: number; z: number }[] {
+export function windingRoute(placements: Placement[], start: { x: number; z: number }, exit: { x: number; z: number }, swing = 26): { x: number; z: number }[] {
   const totems = placements
     .filter((p) => p.id === 'prop.checkpointTotem')
     .map((p) => ({ x: p.x, z: p.z }))
@@ -133,7 +169,7 @@ function windingRoute(placements: Placement[], start: { x: number; z: number }, 
   }
   return route;
 }
-const S = (id: string, kind: ShadowKind, x: number, z: number, extra: Partial<ShadowSpawn> = {}): ShadowSpawn => ({ id, kind, x, z, ...extra });
+export const S = (id: string, kind: ShadowKind, x: number, z: number, extra: Partial<ShadowSpawn> = {}): ShadowSpawn => ({ id, kind, x, z, ...extra });
 
 /** Sunseed Fields: the first district. Three granaries along −z, each a
  * stronghold visible from the interlude before it, the Crownline skyline on
@@ -654,5 +690,9 @@ export function thunderheadRange(): District {
 }
 
 /** Episodes are lists of districts played in order; the last carries the boss. */
-export const MISSIONS: Array<Array<() => District>> = [[sunseedFields, crownlineCity, thunderheadRange]];
-export const DISTRICTS: Array<() => District> = [sunseedFields, crownlineCity, thunderheadRange];
+export const MISSIONS: Array<Array<() => District>> = [
+  [sunseedFields, crownlineCity, thunderheadRange],
+  [cinderFoundries, tempestDocks, skyhookWorks],
+  [vermilionBasin, cobaltDrift, violetInversion],
+];
+export const DISTRICTS: Array<() => District> = MISSIONS.flat();
