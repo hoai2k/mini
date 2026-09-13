@@ -31,6 +31,12 @@ GLTFPACK_CANDIDATES = [
     *Path.home().glob(".npm/_npx/*/node_modules/.bin/gltfpack"),
 ]
 PRESERVE_SOURCE_TEXTURE_REQUESTS = {"M-036"}
+FUNCTIONAL_PIVOT_REQUESTS = {
+    "M-059": "three bridge stages are independent rigid drop pivots",
+    "M-060": "the floating reef moves as a rigid root",
+    "M-064": "the ring shard orbits as a rigid root with a moving landing",
+    "M-066": "the gravity seam animates its named Arrow pivots",
+}
 
 
 def run(command: list[str], log: Path, cwd: Path = ROOT) -> str:
@@ -210,13 +216,28 @@ def ensure_previews(job: Path, request: str, blender: Path) -> dict[str, str]:
 
 
 def process(entry: dict, force: bool) -> dict:
-    gltfpack, blender = tools()
     request = entry["request"]
     rel = Path(entry["file"])
     key = f"{request}-{rel.stem}"
     job = WORK / "jobs" / key
     candidate = WORK / "candidates" / rel
     final_report = WORK / "reports" / f"{key}.json"
+    source = MODEL_DIR / rel
+    if request in FUNCTIONAL_PIVOT_REQUESTS:
+        if candidate.exists():
+            candidate.unlink()
+        report = {
+            "status": "held-functional-pivots",
+            "request": request,
+            "name": entry["name"],
+            "source": str(source.relative_to(ROOT)),
+            "reason": FUNCTIONAL_PIVOT_REQUESTS[request],
+            "required_path": "separate rigid/pivot-preserving cleanup; static material flatten is forbidden",
+        }
+        final_report.parent.mkdir(parents=True, exist_ok=True)
+        final_report.write_text(json.dumps(report, indent=2) + "\n")
+        return report
+    gltfpack, blender = tools()
     if candidate.exists() and final_report.exists() and not force:
         report = json.loads(final_report.read_text())
         if report.get("status") == "passed":
@@ -229,7 +250,6 @@ def process(entry: dict, force: bool) -> dict:
         shutil.rmtree(job)
     job.mkdir(parents=True)
     (job / "atlas").mkdir()
-    source = MODEL_DIR / rel
     decoded = job / "decoded.glb"
     raw = job / "cleaned.raw.glb"
     compressed = job / "cleaned.compressed.glb"
@@ -350,7 +370,8 @@ def main() -> int:
         print(f"TIER_A_START {entry['request']} {entry['file']}", flush=True)
         report = process(entry, args.force)
         results.append(report)
-        print(f"TIER_A_{report['status'].upper()} {entry['request']} {report.get('candidate', report.get('error'))}", flush=True)
+        detail = report.get("candidate", report.get("error", report.get("reason")))
+        print(f"TIER_A_{report['status'].upper()} {entry['request']} {detail}", flush=True)
     passed = sum(r["status"] == "passed" for r in results)
     failed = len(results) - passed
     print(f"TIER_A_SUMMARY {passed} passed, {failed} failed")

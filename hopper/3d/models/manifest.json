@@ -1725,8 +1725,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/red.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 113552,
+      "processingNotes": "Validated material merge/weld; 1866472 to 113552 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-058",
@@ -1767,8 +1769,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/red.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 177820,
+      "processingNotes": "Validated material merge/weld; 1856104 to 177820 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-059",

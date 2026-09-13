@@ -177,6 +177,45 @@ manifest correction.
   later one-atlas build also lost too much texture detail, so the candidate
   above uses its source paint instead.
 
+## Remaining alien-kit and terrain scope
+
+The remaining manifest inventory contains 12 alien-kit structures and three
+terrain files. All currently contain zero glTF animations and declare zero
+clips, but the design source still identifies rigid or procedurally animated
+pivots that a GLB-only animation check cannot see.
+
+The first true-static visual gate is ready in isolated candidates:
+
+- M-057 Coral spire: 1,866,472 to 113,552 bytes (93.9% reduction), unchanged
+  148 / 32 triangles, exact decoded bounds, and `Landing.0` moved less than
+  0.000001 m. Both LODs preserve the silhouette, material placement, coral
+  stripe texture, and emissive fronds.
+- M-058 Basin terrace: 1,856,104 to 177,820 bytes (90.4% reduction), unchanged
+  24 / 12 triangles, exact decoded bounds, and `Landing.0` moved less than
+  0.000001 m. Both LODs preserve the coral sides and striped ivory top.
+
+Their review sheets are
+`local/hopper-tier-a/previews/alien-static-first-two-lod0-contact.png` and
+`local/hopper-tier-a/previews/alien-static-first-two-lod1-contact.png`.
+
+Six more alien-kit files are eligible for the same static path after this gate:
+M-056 Ivory rib arch, M-061 Root pillar, M-062 Dust current, M-063 Obsidian
+arch, M-065 Gravity cathedral facade, and M-067 Eclipse dais. Their sockets and
+landings remain part of the exact transform and raycast contracts.
+
+Four alien-kit files are blocked from static flattening and recorded in
+`FUNCTIONAL_PIVOT_REQUESTS`: M-059 Coral bridge has three independently falling
+stages; M-060 Floating reef moves as a rigid root; M-064 Ring shard orbits with
+its landing; and M-066 Gravity seam procedurally animates the named `Arrow*`
+pivots. M-066's exploratory static candidate was discarded after this source
+behavior audit. These four require a separately reviewed rigid/pivot-preserving
+cleanup path even though their current GLBs contain no animation clips.
+
+The three M-092 files are `terrain/fields.glb`, `terrain/city.glb`, and
+`terrain/mountains.glb`. They use the terrain bake-only branch, which requires
+one mesh per LOD and skips material merge and weld. Because all three share the
+same request ID, invoke them by file path in separate bounded runs.
+
 ## Resume
 
 From the repository root, run one bounded selector at a time:
@@ -190,12 +229,11 @@ python3 hopper/3d/models/source/tier_a_batch.py M-056
 Use `--force` only to rebuild a completed/failed job after changing the cleanup
 scripts. A normal rerun reuses already-passed reports.
 
-Current focused rebuild command:
+Current next static batch after the first-pair review:
 
 ```sh
-python3 hopper/3d/models/source/tier_a_batch.py M-024 M-027 M-036 --force
+python3 hopper/3d/models/source/tier_a_batch.py M-056 M-061
 ```
 
-The current three reports and both LOD contact sheets are ready for root review.
 Do not integrate a rebuilt candidate without regenerating and inspecting both
-LOD levels again.
+LOD levels. Invoke terrain with an exact path rather than the shared M-092 ID.
