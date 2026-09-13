@@ -57,8 +57,7 @@ const jumped = { ...blank, jumpPressed: true, jumpHeld: true };
 h.gravityScale = gravityOf();
 stepHopper(h, world, jumped, dt);
 c.check('a jump off the underside is downward', !h.grounded && h.vy < 0, h.vy);
-run(0.3, { ...blank, jumpHeld: true });
-run(2.2);
+run(2.5);
 c.check('and he lands back on the underside', h.grounded && Math.abs(h.y - ceiling) < 0.5, `y ${h.y.toFixed(1)}`);
 
 // A run off the lintel's edge carries him out of the seam's disc: gravity is

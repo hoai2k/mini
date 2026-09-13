@@ -51,8 +51,8 @@ export interface GaitBody {
 
 export const GAIT = {
   /** Speed the gallop comes in at and the speed it has fully taken over. */
-  gallopFrom: 26,
-  gallopFull: 44,
+  gallopFrom: 36,
+  gallopFull: 52,
   /** Ground pitch (radians) that ends the gallop and begins the climb. */
   steepFrom: 0.3,
   steepFull: 0.62,

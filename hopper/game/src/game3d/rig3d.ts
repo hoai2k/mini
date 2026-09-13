@@ -10,7 +10,7 @@
  * skeleton every frame, so anything posed ahead of it is thrown away. That is
  * also why the wings are beaten here rather than in the clip.
  */
-import { Euler, Object3D, Quaternion, Vector3 } from 'three';
+import { Euler, Object3D, Quaternion, Vector3, type AnimationClip } from 'three';
 import { LEGS, solveTwoBone, type GaitPose } from './gait';
 import type { HopperState } from './controller';
 
@@ -26,6 +26,9 @@ interface LegBones {
   side: number;
 }
 
+const qBeat = new Quaternion();
+const zAxis = new Vector3(0, 0, 1);
+const xAxis = new Vector3(1, 0, 0);
 const qParent = new Quaternion();
 const qLower = new Quaternion();
 const qInv = new Quaternion();
@@ -42,17 +45,30 @@ function aim(bone: Object3D, axis: Vector3, parentWorld: Quaternion, dir: Vector
   else bone.quaternion.slerp(qLower.setFromUnitVectors(axis, vTmp), weight);
 }
 
+/** A node by its request name; the delivered GLB spells the same names
+ * without the dots (`front_upperL`, `wingL`). */
+function find(root: Object3D, name: string): Object3D | null {
+  return root.getObjectByName(name) || root.getObjectByName(name.replace(/[\s.]/g, '')) || null;
+}
+
 export class HopperRig {
   private legs: (LegBones | null)[] = [];
   private wings: Object3D[] = [];
+  /** The wing bones' folded (Idle) and open (Glide_Loop) poses, from the
+   * delivered clips: every body clip animates the wings, so the rig poses
+   * them itself between the two, over whatever the clip wrote this frame. */
+  private wingFolded: Quaternion[] = [];
+  private wingOpen: Quaternion[] = [];
   private root: Object3D | null = null;
   private ready = false;
 
-  bind(root: Object3D) {
+  bind(root: Object3D, clips: AnimationClip[] = []) {
     this.root = root;
     root.updateMatrixWorld(true);
     this.legs = LEGS.map((leg) => {
       const [group, side] = leg.id.split('.');
+      // Strictly the request's names: a model that spells them differently
+      // keeps its own authored leg clips, and only the wings are posed here.
       const upper = root.getObjectByName(`${group}_upper.${side}`);
       const lower = root.getObjectByName(`${group}_lower.${side}`);
       if (!upper || !lower) return null;
@@ -71,13 +87,27 @@ export class HopperRig {
         side: leg.side,
       };
     });
-    this.wings = ['wing.L', 'wing.R'].map((n) => root.getObjectByName(n)).filter((o): o is Object3D => !!o);
+    this.wings = ['wing.L', 'wing.R'].map((n) => find(root, n)).filter((o): o is Object3D => !!o);
+    const poseFrom = (clipName: string, bone: Object3D, at: 'start' | 'mid'): Quaternion | null => {
+      const clip = clips.find((c) => c.name === clipName);
+      const track = clip?.tracks.find((t) => t.name === `${bone.name}.quaternion`);
+      if (!track) return null;
+      const keys = track.values.length / 4,
+        k = at === 'start' ? 0 : Math.floor(keys / 2);
+      return new Quaternion().fromArray(track.values, k * 4);
+    };
+    this.wingFolded = this.wings.map((w) => poseFrom('Idle', w, 'start') || w.quaternion.clone());
+    this.wingOpen = this.wings.map((w, i) => poseFrom('Glide_Loop', w, 'mid') || poseFrom('Wing_Open', w, 'mid') || this.wingFolded[i]);
     this.ready = this.legs.some(Boolean);
     return this.ready;
   }
 
   get bound() {
     return this.ready;
+  }
+  /** Whether the wing bones were found, so poseWings has something to move. */
+  get hasWings() {
+    return this.wings.length > 0;
   }
 
   /** Place the body. The gait's own pitch and roll ride on top of the
@@ -129,7 +159,13 @@ export class HopperRig {
   poseWings(spread: number, beat: number, tilt: number) {
     for (const [i, w] of this.wings.entries()) {
       const side = i === 0 ? 1 : -1;
-      w.rotation.set(-tilt - Math.max(0, beat) * 0.15, side * spread * 0.35, side * (spread * 1.1 + beat));
+      // Between the folded and the open pose, then the beat: a roll about the
+      // body's forward axis, opposite on each side, and a little pitch.
+      w.quaternion.slerpQuaternions(this.wingFolded[i], this.wingOpen[i], Math.max(0, Math.min(1, spread)));
+      qBeat.setFromAxisAngle(zAxis, side * beat * 0.55);
+      w.quaternion.premultiply(qBeat);
+      qBeat.setFromAxisAngle(xAxis, -tilt - Math.max(0, beat) * 0.1);
+      w.quaternion.premultiply(qBeat);
     }
   }
 }

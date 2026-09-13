@@ -11,15 +11,20 @@ export const MOVE = {
   radius: 5,
   gravity: 120,
   /** Falling pulls harder than rising: the arc peaks and comes down sharp. */
-  fallGravity: 1.25,
-  run: 66,
-  groundAccel: 420,
+  fallGravity: 1.4,
+  /** Top speeds: a light stick walks, a full tilt gallops at twice the walk. */
+  walk: 34,
+  run: 68,
+  /** Stick throw up to which he walks; beyond it the gallop takes over. */
+  walkBand: 0.55,
+  groundAccel: 520,
   airAccel: 215,
   turnRate: Math.PI * 5,
-  tapJump: 72,
+  /** The jump: a mighty kick off the ground, then a short held window of thrust. */
+  tapJump: 104,
   /** A short variable-height window after takeoff: thrust against gravity, a few metres, no boost. */
-  holdWindow: 0.2,
-  holdThrust: 40,
+  holdWindow: 0.22,
+  holdThrust: 70,
   /** Hover: A held in the air holds altitude on beating wings for this long. */
   hoverFuel: 1.8,
   hoverLift: 2.5,
@@ -34,8 +39,8 @@ export const MOVE = {
   glideSpeed: 80,
   glideTurn: Math.PI * 0.6,
   chargeTime: 0.8,
-  chargeApexMin: 21,
-  chargeApexMax: 140,
+  chargeApexMin: 46,
+  chargeApexMax: 190,
   springApex: 168,
   diveGravity: 2.5,
   diveTerminal: 190,
@@ -311,6 +316,15 @@ function resolveWalls(s: HopperState, world: StepWorld): { nx: number; nz: numbe
   return best;
 }
 
+/** Stick throw to a fraction of the top speed: up to `walkBand` he walks (to
+ * MOVE.walk), beyond it the gallop ramps to the full speed, twice the walk. */
+function drive(mag: number): number {
+  const m = Math.max(0, Math.min(1, mag)),
+    walk = MOVE.walk / MOVE.run;
+  if (m <= MOVE.walkBand) return (m / MOVE.walkBand) * walk;
+  return walk + ((m - MOVE.walkBand) / (1 - MOVE.walkBand)) * (1 - walk);
+}
+
 /** One fixed step. Returns the state's events for this step. Under inverted
  * gravity (`gravityScale < 0`) the step is taken in the world's mirror: he
  * falls up, lands on undersides and jumps down off them. */
@@ -437,8 +451,10 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     const shape = along < 0 ? 1 - (1 - MOVE.backpedal) * -along : 1 - (1 - MOVE.strafe) * across * (1 - Math.max(0, along));
     const sprint = along > 0.3 ? MOVE.sprint : 1;
     const top = s.grounded ? MOVE.run * (s.sprinting ? sprint : 1) * shape : Math.max(MOVE.run * (intent.sprintHeld ? sprint : 1) * shape, carried);
-    const tx = intent.dx * top,
-      tz = intent.dz * top;
+    // The stick's throw: its lower band walks, its upper band gallops.
+    const throwSpeed = drive(wantLen) * top;
+    const tx = wantLen > 0.001 ? (intent.dx / wantLen) * throwSpeed : 0,
+      tz = wantLen > 0.001 ? (intent.dz / wantLen) * throwSpeed : 0;
     if (s.grounded || wantLen > 0.05) {
       const ex = tx - s.vx,
         ez = tz - s.vz,

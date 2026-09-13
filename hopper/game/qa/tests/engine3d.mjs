@@ -124,8 +124,8 @@ function check(name, cond, detail) {
     minRel = Math.min(minRel, s.y - startY);
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
-  check('tap jump apex 19-24m', apex > 19 && apex < 24, apex);
-  check('tap jump lands 1.0-1.4s (a quick launch)', landAt !== null && landAt > 1.0 && landAt < 1.4, landAt);
+  check('tap jump apex 40-50m', apex > 40 && apex < 50, apex);
+  check('tap jump lands 1.4-1.9s (a mighty launch)', landAt !== null && landAt > 1.4 && landAt < 1.9, landAt);
   check('tap jump never dips below start by >0.5m', minRel > -0.5, minRel);
 }
 
@@ -148,8 +148,8 @@ function check(name, cond, detail) {
     if (s.hovering) heldAt.push(s.y - startY);
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
-  check('held jump apex stays a hop (20-32m), no boost', apex > 20 && apex < 32, apex);
-  check('hover starts near the apex (0.4-1.0s)', hoverStart !== null && hoverStart > 0.4 && hoverStart < 1.0, hoverStart);
+  check('held jump apex stays a hop (50-65m), no boost', apex > 50 && apex < 65, apex);
+  check('hover starts near the apex (0.5-1.4s)', hoverStart !== null && hoverStart > 0.5 && hoverStart < 1.4, hoverStart);
   check('hover lasts about the fuel (1.5-2.1s)', hoverStart !== null && hoverEnd !== null && hoverEnd - hoverStart > 1.5 && hoverEnd - hoverStart < 2.1, hoverEnd - hoverStart);
   const held = heldAt.slice(Math.floor(heldAt.length * 0.4));
   check('altitude held while hovering (drift < 3m)', held.length > 10 && Math.max(...held) - Math.min(...held) < 3, held.length ? Math.max(...held) - Math.min(...held) : null);
@@ -212,7 +212,7 @@ function check(name, cond, detail) {
     apex = Math.max(apex, s.y - startY);
   }
   check('charged jump event fires', chargedJump !== null && chargedJump.charged === true, chargedJump);
-  check('charge apex 125-150m', apex > 125 && apex < 150, apex);
+  check('charge apex 170-200m', apex > 170 && apex < 200, apex);
 }
 
 // ---------------------------------------------------------------------

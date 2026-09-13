@@ -48,7 +48,7 @@ import {
 } from '../../../3d/standins/src/index.js';
 import type { World } from './world';
 import type { HopperState } from './controller';
-import { Gait, type GaitBody, type GaitPose } from './gait';
+import { GAIT, Gait, type GaitBody, type GaitPose } from './gait';
 import { HopperRig } from './rig3d';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
@@ -235,7 +235,7 @@ export class Scene3D {
     this.mixer = new AnimationMixer(gltf.scene);
     for (const c of gltf.animations) this.clips.set(c.name, c);
     this.wings = ['wing.L', 'wing.R'].map((n) => node(gltf.scene, n)).filter((o): o is Object3D => !!o);
-    this.rig.bind(gltf.scene);
+    this.rig.bind(gltf.scene, gltf.animations);
     this.scene.add(gltf.scene);
     this.play('Idle', true);
     progress(1);
@@ -635,8 +635,9 @@ export class Scene3D {
     else if (combat.heat > 0 && combat.shotClock > 0) clip = 'Fire_Loop';
     else if (!this.rig.bound) {
       // No rig to drive (a model without the leg bones): fall back to clips.
-      clip = h.grounded ? (speed > 4 ? 'Run' : 'Idle') : 'Jump_Loop';
-      scale = clip === 'Run' ? Math.max(0.6, speed / 32) : 1;
+      // A light stick walks, a full tilt gallops: the clips follow the speed.
+      clip = h.grounded ? (speed > GAIT.gallopFrom ? 'Run' : speed > 3 ? 'Walk' : 'Idle') : 'Jump_Loop';
+      scale = clip === 'Run' ? Math.max(0.6, speed / 40) : clip === 'Walk' ? Math.max(0.5, speed / 24) : 1;
     }
     if (combat.kick <= 0.05) this.kickSparked = false;
     this.play(clip, loop, 0.12, scale);
@@ -668,7 +669,7 @@ export class Scene3D {
     this.wingBeat += (wantBeat - this.wingBeat) * Math.min(1, dt * (h.hovering ? 12 : 4));
     this.wingPhase += dt * (26 + this.wingBeat * 6);
     const beat = Math.sin(this.wingPhase) * 0.62 * this.wingBeat + (h.gliding ? Math.sin(this.time * 2.2) * 0.06 : 0);
-    if (this.rig.bound) this.rig.poseWings(this.wingSpread, beat, this.wingBeat * 0.25);
+    if (this.rig.hasWings) this.rig.poseWings(this.wingSpread, beat, this.wingBeat * 0.25);
     else
       for (const [i, w] of this.wings.entries()) {
         const side = i === 0 ? 1 : -1;

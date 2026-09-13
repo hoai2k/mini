@@ -766,13 +766,14 @@ export class Combat {
         }
         case 'windowRay': {
           if (s.state === 'idle' || s.state === 'approach') {
-            // Hang in the air, drifting in a slow circle around home.
+            // Hang in the air, drifting in a slow circle around home; with
+            // Hopper near it drops below him, to come up at him from under.
             s.phase += dt * 0.35;
             const px = s.homeX + Math.cos(s.phase) * 26,
               pz = s.homeZ + Math.sin(s.phase) * 26,
-              py = s.homeY + Math.sin(s.phase * 2) * 4;
-            this.flyToward(s, px, py, pz, 14, dt);
-            if (d3 < spec.notice && s.cooldown <= 0 && dy < 20) {
+              py = d3 < spec.notice * 1.4 ? this.stalkHeight(s, h, world, 24) : s.homeY + Math.sin(s.phase * 2) * 4;
+            this.flyToward(s, px, py, pz, d3 < spec.notice * 1.4 ? 24 : 14, dt);
+            if (d3 < spec.notice && s.cooldown <= 0 && dy > -12) {
               s.state = 'tell';
               s.timer = spec.tell * tellScale;
               s.vx = s.vy = s.vz = 0;
@@ -940,12 +941,13 @@ export class Combat {
         }
         case 'riftCondor': {
           if (s.state === 'idle' || s.state === 'approach') {
-            // Soar a wide, slow circle around home.
+            // Soar a wide, slow circle around home; near Hopper it comes down
+            // under him, so the swoop rises to meet him.
             s.phase += dt * 0.25;
             const px = s.homeX + Math.cos(s.phase) * 60,
               pz = s.homeZ + Math.sin(s.phase) * 60;
-            this.flyToward(s, px, s.homeY, pz, 26, dt);
-            if (d3 < spec.notice && s.cooldown <= 0 && dy < 40) {
+            this.flyToward(s, px, d3 < spec.notice * 1.4 ? this.stalkHeight(s, h, world, 34) : s.homeY, pz, 26, dt);
+            if (d3 < spec.notice && s.cooldown <= 0 && dy > -20) {
               s.state = 'tell';
               s.timer = spec.tell * tellScale;
               s.vx = s.vy = s.vz = 0;
@@ -1068,6 +1070,13 @@ export class Combat {
     s.vx = (dx / d) * speed;
     s.vz = (dz / d) * speed;
     s.yaw = Math.atan2(dx, dz);
+  }
+  /** The height a flyer stalks Hopper from: `below` metres under him, never
+   * lower than a body above the ground and never above its own home. The
+   * fight comes up at Hopper; super jumps and the way down are his answer. */
+  stalkHeight(s: Shadow, h: HopperState, world: World, below: number): number {
+    const floor = world.groundAt(s.x, s.z, s.y + 1).y + Math.max(6, s.height);
+    return Math.max(floor, Math.min(s.homeY, h.y - below));
   }
   flyToward(s: Shadow, tx: number, ty: number, tz: number, speed: number, dt: number) {
     const dx = tx - s.x,

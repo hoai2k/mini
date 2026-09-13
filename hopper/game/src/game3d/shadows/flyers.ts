@@ -14,12 +14,14 @@ const skateTarget = new WeakMap<Shadow, { x: number; z: number }>();
 const chainManta: ShadowBehaviour = {
   update({ s, h, world, combat, cb, dt, spec, tellScale, dx, dz, dh, d3 }: ShadowContext) {
     if (s.state === 'idle' || s.state === 'approach') {
-      // Drift round home, same slow circle as windowRay.
+      // Drift round home, same slow circle as windowRay, and under Hopper
+      // once he is near: its dive comes up at him.
       s.phase += dt * 0.35;
+      const near = d3 < spec.notice * 1.4;
       const px = s.homeX + Math.cos(s.phase) * 30,
         pz = s.homeZ + Math.sin(s.phase) * 30,
-        py = s.homeY + Math.sin(s.phase * 2) * 4;
-      combat.flyToward(s, px, py, pz, 14, dt);
+        py = near ? combat.stalkHeight(s, h, world, 24) : s.homeY + Math.sin(s.phase * 2) * 4;
+      combat.flyToward(s, px, py, pz, near ? 24 : 14, dt);
       if (d3 < spec.notice && s.cooldown <= 0) {
         s.state = 'tell';
         s.timer = spec.tell * tellScale;
