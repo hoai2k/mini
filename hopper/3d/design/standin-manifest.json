@@ -129,7 +129,7 @@
       ],
       "standIn": "enemy.windowRay",
       "final": "models/enemies/windowRay.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/windowRay.png",
         "design/assets/enemy-silhouettes.png"

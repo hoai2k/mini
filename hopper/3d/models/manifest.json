@@ -3114,8 +3114,10 @@
         270
       ],
       "heightmap": "terrain/city-height.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 1949752,
+      "processingNotes": "Validated mechanical cleanup; 2184740 to 1949752 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-092",
@@ -3154,8 +3156,10 @@
         190
       ],
       "heightmap": "terrain/mountains-height.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 2411588,
+      "processingNotes": "Validated mechanical cleanup; 2662692 to 2411588 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-018",
@@ -3298,6 +3302,55 @@
       "sha256": "84d5c76e08d3952f792aab8aab0c8ad33e0d2c9cc187d03e1620d751e1a0d252",
       "deliveredAt": "2026-09-12",
       "validation": "source/spire-leech-refine-validation.json"
+    },
+    {
+      "request": "M-005",
+      "name": "Window Ray",
+      "file": "enemies/windowRay.glb",
+      "preview": "previews/enemy.windowRay.png",
+      "source": "source/window_ray_refine.py",
+      "category": "enemy",
+      "region": "city",
+      "bounds": [
+        11,
+        0.9,
+        6.3
+      ],
+      "targetBounds": [
+        11.0,
+        0.9,
+        6.3
+      ],
+      "triangles": [
+        1758,
+        730
+      ],
+      "clips": [
+        "Hover",
+        "Bank_L",
+        "Bank_R",
+        "Dive_Tell",
+        "Dive",
+        "Recover",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Mouth",
+        "Hitbox.Body",
+        "Landing"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/windowRay-turnaround.png",
+      "notes": "Reviewed against canonical turnaround: continuous cambered diamond wings, surface-seated armor and vent details, one ivory slit eye and one curved tail. Both LODs have eight-joint skins. Wing rotations use the transverse folding axis; Landing follows Body for the back stomp target. Eight clips reviewed on both LODs including Hover quarter-cycle extrema. Dive alone moves each LOD root by [0, -2.4, 5.2] m. Navigation/root-motion application, charge and dissolve shaders, Core/body hitbox activation and stomp collision remain runtime responsibilities.",
+      "authoring": "reference-authored Blender diamond manta with surface-sampled armor and eight-bone deforming skin",
+      "rig": "skeletal",
+      "bytes": 3185524,
+      "sha256": "e2604dc5ae184763293a3e1efc15568db0773459b2c752c7a42bcd1246531a5b",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/window-ray-refine-validation.json"
     }
   ],
   "deliveredAt": "2026-09-08",
