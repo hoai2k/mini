@@ -48,7 +48,7 @@ import {
 } from '../../../3d/standins/src/index.js';
 import type { World } from './world';
 import type { HopperState } from './controller';
-import { Gait } from './gait';
+import { Gait, type GaitBody, type GaitPose } from './gait';
 import { HopperRig } from './rig3d';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
@@ -99,8 +99,12 @@ export class Scene3D {
   private mixer: AnimationMixer | null = null;
   private readonly stoneObjects = new Map<number, Mesh>();
   private readonly stoneMaterial = new MeshToonMaterial({ color: '#4a3a34', emissive: '#ff6a2a', emissiveIntensity: 0.35 });
+  private readonly flipMaterial = new MeshBasicMaterial({ color: '#b48cff', transparent: true, opacity: 0.16, depthWrite: false, side: DoubleSide });
+  private flipObjects: Mesh[] = [];
   /** The gaits and the skeleton they are put onto. */
   private readonly gait = new Gait();
+  /** Hopper's state seen in the world's mirror, for the gait under inverted gravity. */
+  private readonly mirrorBody: GaitBody = { x: 0, y: 0, z: 0, yaw: 0, vx: 0, vy: 0, vz: 0, grounded: false, climbing: false, climbNx: 0, climbNz: 0, airTime: 0, height: 0, diving: false, gliding: false, hovering: false };
   private readonly rig = new HopperRig();
   private rigWeight = 1;
   private lean = 0;
@@ -250,8 +254,10 @@ export class Scene3D {
   buildWorld(world: World, shadows: Shadow[], rook: CommanderRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }, next?: { world: World; offset: [number, number, number] }) {
     this.scene.remove(this.worldGroup);
     this.worldGroup = new Group();
+    this.flipObjects = [];
     this.scene.add(this.worldGroup);
     this.shadowObjects.clear();
+    this.stoneObjects.clear();
     this.bossObject = null;
     this.corridor = null;
     this.animated = [];
@@ -582,7 +588,16 @@ export class Scene3D {
     this.mixer?.update(dt);
     // The gait: which of the three is running, where the six feet are, and
     // what the ground under them is doing to the body.
-    const pose = this.gait.update(h, world, dt);
+    // Under inverted gravity the gait runs in the world's mirror, feet on the
+    // undersides, and its answers are turned back over.
+    const inverted = h.gravityScale < 0;
+    let pose: GaitPose;
+    if (inverted) {
+      const b = this.mirrorBody;
+      Object.assign(b, { x: h.x, y: -h.y, z: h.z, yaw: h.yaw, vx: h.vx, vy: -h.vy, vz: h.vz, grounded: h.grounded, climbing: h.climbing, climbNx: h.climbNx, climbNz: h.climbNz, airTime: h.airTime, height: h.height, diving: h.diving, gliding: h.gliding, hovering: h.hovering });
+      pose = this.gait.update(b, { groundAt: (x, z, y, r) => ({ y: -Math.min(1e4, world.ceilingAt(x, z, -y, r).y) }), heightAt: () => -1e4 }, dt);
+      for (const f of pose.feet) f[1] = -f[1];
+    } else pose = this.gait.update(h, world, dt);
     // Flying and diving lean the body by hand; the ground gaits get their
     // angle from the feet instead.
     const lean = h.diving ? 0.75 : h.gliding ? Math.max(-0.2, Math.min(0.35, h.vy * 0.015)) : h.hovering ? -0.12 : h.grounded || h.climbing ? 0 : Math.max(-0.25, Math.min(0.25, h.vy * 0.006));
@@ -757,6 +772,21 @@ export class Scene3D {
       this.stoneObjects.delete(id);
     }
   }
+  /** Flip volumes: standing seams and the cantors' songs, as columns of turned light. */
+  private syncFlips(world: World) {
+    for (const [i, f] of world.flips.entries()) {
+      let m = this.flipObjects[i];
+      if (!m) {
+        m = new Mesh(new CylinderGeometry(1, 1, 1, 24, 1, true), this.flipMaterial);
+        this.worldGroup.add(m);
+        this.flipObjects[i] = m;
+      }
+      m.visible = true;
+      m.position.set(f.x, (f.y0 + f.y1) / 2, f.z);
+      m.scale.set(f.r, f.y1 - f.y0, f.r);
+    }
+    for (let i = world.flips.length; i < this.flipObjects.length; i++) this.flipObjects[i].visible = false;
+  }
   private syncEffects(dt: number) {
     for (const a of this.atlases) if (!stepAtlas(a, dt)) this.worldGroup.remove(a.sprite);
     this.atlases = this.atlases.filter((a) => a.sprite.parent);
@@ -799,6 +829,7 @@ export class Scene3D {
     this.syncBoss(dt);
     this.syncProjectiles(combat.projectiles);
     this.syncStones(world);
+    this.syncFlips(world);
     this.syncEffects(dt);
     this.syncShadow(h, world, shadowEnabled);
     for (const o of this.animated) o.userData.animate?.(this.time);

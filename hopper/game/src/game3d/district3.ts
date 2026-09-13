@@ -389,6 +389,9 @@ export function violetInversion(): District {
     arch(100, -1860, -0.2, 80, 85),
     P('prop.thermalVent', 0, -1900, 0, 0, { height: 140 }),
     P('structure.violet.eclipseDais', 0, -2140, 0, 0, { r: 40 }),
+    // The eclipse canopy: shards held still over the dais, their undersides
+    // at 280, the floor the Regent's turned gravity lands Hopper on.
+    ...[0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4].map((yaw) => P('structure.violet.ringShard', 0, -2140, 286.3, yaw, { length: 130, width: 28 }, 'a')),
     P('structure.violet.cathedralFacade', 0, -2230, 0, 0, { w: 160, h: 140 }),
     P('structure.violet.gravitySeam', -70, -2140, 30, 0, { length: 60 }),
     P('structure.violet.gravitySeam', 70, -2140, 30, 0, { length: 60 }),

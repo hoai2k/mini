@@ -396,6 +396,19 @@ export class Engine3D implements GameEngine {
       intent.faceX = locked.x - h.x;
       intent.faceZ = locked.z - h.z;
     }
+    // Gravity: the district's, the commander's while it is awake, and pulling
+    // upward inside a flip volume (a seam, a cantor's song, the Regent's turn).
+    const baseGravity = this.boss?.runtime.active && this.boss.runtime.alive ? this.boss.runtime.gravity : (regionById(d.region).gravity ?? 1);
+    const wasInverted = h.gravityScale < 0;
+    h.gravityScale = world.flipAt(h.x, h.y + MOVE.height * 0.5, h.z) ? -Math.abs(baseGravity) : baseGravity;
+    if (wasInverted !== h.gravityScale < 0) {
+      // The turn: whatever he stood on is no longer under him, and it costs
+      // him his speed, so a fall out of a seam settles at its edge.
+      h.grounded = false;
+      h.coyote = 0;
+      h.vy *= 0.5;
+      this.sound('shield');
+    }
     const events = stepHopper(h, world, intent, dt);
     for (const e of events) {
       if (e.kind === 'jump') this.sound('jump');

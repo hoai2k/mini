@@ -85,9 +85,14 @@ export class HopperRig {
   placeBody(h: HopperState, pose: GaitPose, lean: number) {
     const root = this.root;
     if (!root) return;
-    root.position.set(h.x, h.y + pose.lift, h.z);
+    // Under inverted gravity he hangs from his feet: the body rolls over and
+    // its pitch and roll mirror, the lift now hanging below the ceiling.
+    const inverted = h.gravityScale < 0;
+    root.position.set(h.x, h.y + (inverted ? -pose.lift : pose.lift), h.z);
     if (h.climbing) {
       euler.set(-Math.PI / 2, Math.atan2(-h.climbNx, -h.climbNz), 0);
+    } else if (inverted) {
+      euler.set(-(pose.pitch + lean), h.yaw, Math.PI - pose.roll);
     } else {
       euler.set(pose.pitch + lean, h.yaw, pose.roll);
     }
@@ -109,6 +114,8 @@ export class HopperRig {
       // does; on a wall "above" is out of the wall, so the knees stand off it.
       if (h.climbing) vPole.set(h.climbNx, 0.35, h.climbNz);
       else vPole.set(Math.sin(h.yaw + Math.PI / 2) * bones.side * 0.7, 1, Math.cos(h.yaw + Math.PI / 2) * bones.side * 0.7);
+      // Hanging upside down, out and up are both the other way.
+      if (h.gravityScale < 0 && !h.climbing) vPole.negate();
       const knee = solveTwoBone([vHip.x, vHip.y, vHip.z], target, bones.l1, bones.l2, [vPole.x, vPole.y, vPole.z]);
       aim(bones.upper, bones.axisUpper, qParent, vTmp.set(knee[0] - vHip.x, knee[1] - vHip.y, knee[2] - vHip.z), weight);
       qLower.copy(qParent).multiply(bones.upper.quaternion);

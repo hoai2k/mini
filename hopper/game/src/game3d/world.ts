@@ -442,6 +442,11 @@ export class World {
         len = d.length();
       d.normalize();
       this.volumes.push({ kind: 'wind', x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, y0: a.y - 20, y1: a.y + 20, r: len / 2, dx: d.x, dz: d.z, push: 15 });
+    } else if (meta.gate === 'gravity') {
+      // A gravity seam: a standing flip volume from a hop's height up past
+      // the lintel it hangs under, as wide as the seam is long.
+      const length = meta.size?.[0] ?? 80;
+      this.flip(object.position.x, object.position.z, length / 2, object.position.y - 56, object.position.y + 24, Infinity);
     } else if (p.id === 'prop.checkpointTotem') {
       this.triggers.push({ id, kind: 'checkpoint', x: object.position.x, y: object.position.y, z: object.position.z, r: 14, object });
     } else if (p.id === 'prop.signalBeacon') {
@@ -518,6 +523,21 @@ export class World {
       const [lx, lz] = World.local(c, x, z);
       if (Math.abs(lx) <= c.hx + radius && Math.abs(lz) <= c.hz + radius) {
         best = c.y1;
+        hit = c;
+      }
+    }
+    return { y: best, collider: hit };
+  }
+  /** Lowest solid underside at or above `y` (the head) over a point, else
+   * nothing: inverted gravity lands on these. */
+  ceilingAt(x: number, z: number, y: number, radius = 2.5): { y: number; collider: Collider | null } {
+    let best = Infinity,
+      hit: Collider | null = null;
+    for (const c of this.near(x, z, radius + 2)) {
+      if (c.y0 < y - 0.01 || c.y0 > best) continue;
+      const [lx, lz] = World.local(c, x, z);
+      if (Math.abs(lx) <= c.hx + radius && Math.abs(lz) <= c.hz + radius) {
+        best = c.y0;
         hit = c;
       }
     }

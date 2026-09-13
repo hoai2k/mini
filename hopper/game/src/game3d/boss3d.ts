@@ -55,7 +55,8 @@ export interface CommanderRuntime {
   marks: Mark[];
   /** A chain commander's body: world positions the renderer lays its segments along. */
   segments?: [number, number, number][];
-  /** The arena's gravity this frame, as a multiplier on the district's. */
+  /** The arena's gravity scale while the commander is awake, replacing the
+   * district's: 1 is Earth's, 0.5 light, 1.35 heavy, negative pulls upward. */
   gravity: number;
 }
 export interface Commander {

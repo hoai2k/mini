@@ -206,7 +206,71 @@ const turnToward = (yaw: number, target: number, max: number) => {
 
 /** Horizontal push-out against every nearby solid the body overlaps.
  * Returns the wall normal of the strongest contact, or null. */
-function resolveWalls(s: HopperState, world: World): { nx: number; nz: number; collider: Collider } | null {
+/** What a step needs of the world. The real world satisfies it, and so does
+ * its mirror image, which is how inverted gravity is stepped. */
+export interface StepWorld {
+  groundAt(x: number, z: number, y: number, radius?: number): { y: number; collider: Collider | null };
+  near(x: number, z: number, margin?: number): Collider[];
+  volumesAt(x: number, y: number, z: number): World['volumes'];
+  readonly soft: World['soft'];
+  readonly route: World['route'];
+}
+
+/** The world seen upside down: undersides are floors and tops are ceilings,
+ * with every height negated. Stepping in it with gravity made positive is
+ * stepping the real world with gravity pulling up, so nothing else in the
+ * controller needs to know which way is down. */
+class MirrorWorld implements StepWorld {
+  private readonly mirrored = new WeakMap<Collider, Collider>();
+  readonly soft = null;
+  constructor(private readonly world: World) {}
+  get route() {
+    return this.world.route;
+  }
+  private mirror(c: Collider): Collider {
+    let m = this.mirrored.get(c);
+    if (!m) {
+      m = { ...c };
+      this.mirrored.set(c, m);
+    }
+    Object.assign(m, c);
+    m.y0 = -c.y1;
+    m.y1 = -c.y0;
+    // A spring pad's underside is only a floor.
+    m.spring = false;
+    return m;
+  }
+  groundAt(x: number, z: number, y: number, radius = 2.5) {
+    const c = this.world.ceilingAt(x, z, -y, radius);
+    return { y: c.y === Infinity ? -1e4 : -c.y, collider: c.collider ? this.mirror(c.collider) : null };
+  }
+  near(x: number, z: number, margin = 6): Collider[] {
+    return this.world.near(x, z, margin).map((c) => this.mirror(c));
+  }
+  volumesAt(): World['volumes'] {
+    return [];
+  }
+}
+const mirrors = new WeakMap<World, MirrorWorld>();
+function mirrorOf(world: World): MirrorWorld {
+  let m = mirrors.get(world);
+  if (!m) {
+    m = new MirrorWorld(world);
+    mirrors.set(world, m);
+  }
+  return m;
+}
+/** Negate every height in the state, so a step can be taken in the mirror. */
+function mirrorState(s: HopperState) {
+  s.y = -s.y;
+  s.vy = -s.vy;
+  s.groundY = -s.groundY;
+  s.mantleFrom[1] = -s.mantleFrom[1];
+  s.mantleTo[1] = -s.mantleTo[1];
+  s.gravityScale = -s.gravityScale;
+}
+
+function resolveWalls(s: HopperState, world: StepWorld): { nx: number; nz: number; collider: Collider } | null {
   let best: { nx: number; nz: number; collider: Collider; depth: number } | null = null;
   const r = MOVE.radius;
   const bodyLow = s.y + 2.0,
@@ -247,8 +311,17 @@ function resolveWalls(s: HopperState, world: World): { nx: number; nz: number; c
   return best;
 }
 
-/** One fixed step. Returns the state's events for this step. */
+/** One fixed step. Returns the state's events for this step. Under inverted
+ * gravity (`gravityScale < 0`) the step is taken in the world's mirror: he
+ * falls up, lands on undersides and jumps down off them. */
 export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt: number): MoveEvent[] {
+  if (s.gravityScale >= 0) return stepUpright(s, world, intent, dt);
+  mirrorState(s);
+  const events = stepUpright(s, mirrorOf(world), intent, dt);
+  mirrorState(s);
+  return events;
+}
+function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: number): MoveEvent[] {
   s.events = [];
   const g = MOVE.gravity * s.gravityScale;
   if (s.invuln > 0) s.invuln -= dt;
@@ -753,6 +826,14 @@ export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt:
 
 /** Predicted landing point for the current velocity (ballistic, no glide). */
 export function predictLanding(s: HopperState, world: World, maxTime = 8): { x: number; y: number; z: number; t: number } {
+  if (s.gravityScale >= 0) return predictUpright(s, world, maxTime);
+  mirrorState(s);
+  const hit = predictUpright(s, mirrorOf(world), maxTime);
+  mirrorState(s);
+  hit.y = -hit.y;
+  return hit;
+}
+function predictUpright(s: HopperState, world: StepWorld, maxTime: number): { x: number; y: number; z: number; t: number } {
   let x = s.x,
     y = s.y,
     z = s.z,
