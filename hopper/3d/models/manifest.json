@@ -1831,8 +1831,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/red.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 1859120,
+      "processingNotes": "Validated mechanical cleanup; 1861240 to 1859120 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-060",
@@ -2156,8 +2158,10 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/references/kits/violet.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 6280,
+      "processingNotes": "Validated mechanical cleanup; 10628 to 6280 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-067",

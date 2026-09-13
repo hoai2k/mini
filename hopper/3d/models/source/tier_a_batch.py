@@ -94,6 +94,46 @@ def glb_json(path: Path) -> dict:
     raise RuntimeError(f"missing JSON chunk: {path}")
 
 
+def rewrite_glb_json(path: Path, doc: dict) -> None:
+    """Replace a GLB JSON chunk without changing its binary payload chunks."""
+    data = path.read_bytes()
+    if data[:4] != b"glTF" or struct.unpack_from("<I", data, 4)[0] != 2:
+        raise RuntimeError(f"not glTF 2 GLB: {path}")
+    chunks: list[tuple[int, bytes]] = []
+    offset = 12
+    replaced = False
+    while offset + 8 <= len(data):
+        length, chunk_type = struct.unpack_from("<II", data, offset)
+        offset += 8
+        payload = data[offset : offset + length]
+        offset += length
+        if chunk_type == 0x4E4F534A:
+            if replaced:
+                raise RuntimeError(f"multiple JSON chunks: {path}")
+            payload = json.dumps(doc, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+            payload += b" " * ((-len(payload)) % 4)
+            replaced = True
+        chunks.append((chunk_type, payload))
+    if not replaced:
+        raise RuntimeError(f"missing JSON chunk: {path}")
+    body = b"".join(struct.pack("<II", len(payload), chunk_type) + payload for chunk_type, payload in chunks)
+    path.write_bytes(struct.pack("<4sII", b"glTF", 2, 12 + len(body)) + body)
+
+
+def strip_generated_mesh_node_names(path: Path, protected_names: set[str]) -> list[str]:
+    """Let gltfpack reuse meshes without adding wrappers for Blender-generated names."""
+    doc = glb_json(path)
+    removed = []
+    for node in doc.get("nodes", []):
+        name = node.get("name")
+        if node.get("mesh") is not None and name and name not in protected_names:
+            removed.append(name)
+            node.pop("name")
+    if removed:
+        rewrite_glb_json(path, doc)
+    return removed
+
+
 def primitive_triangle_count(doc: dict, primitive: dict) -> int:
     accessors = doc.get("accessors", [])
     accessor_index = primitive.get("indices")
@@ -267,6 +307,9 @@ def cross_file_checks(before_path: Path, after_path: Path, entry: dict) -> dict:
     missing = sorted(required - after_names)
     if missing:
         raise RuntimeError(f"candidate lost required nodes: {missing}")
+    lost_named = sorted(before_names - after_names)
+    if lost_named:
+        raise RuntimeError(f"candidate lost source named nodes: {lost_named}")
     roots = {}
     for name in ("LOD0", "LOD1"):
         b = next(n for n in before["nodes"] if n.get("name") == name)
@@ -454,8 +497,19 @@ def process(entry: dict, force: bool) -> dict:
         run(blender_args, job / "blender.log")
         if not raw.exists() or not (job / "blender-report.json").exists():
             raise RuntimeError("Blender did not produce the raw GLB and success report; see blender.log")
+        stripped_mesh_node_names = []
+        if contract.get("functional_rigid"):
+            protected_names = {
+                "LOD0", "LOD1", *contract["functional_rigid"].get("pivots", []),
+                *contract["functional_structure"]["nodes"].keys(),
+            }
+            stripped_mesh_node_names = strip_generated_mesh_node_names(raw, protected_names)
         stage = "compress"
-        run(["node", str(HERE / "compress.mjs"), str(raw), str(compressed), "--gltfpack", str(gltfpack), "--force"], job / "compress.log")
+        run(
+            ["node", str(HERE / "compress.mjs"), str(raw), str(compressed), "--gltfpack", str(gltfpack), "--force"],
+            job / "compress.log",
+        )
+        compression_mode = "standard-meshopt"
         stage = "validate"
         blender_report = json.loads((job / "blender-report.json").read_text())
         validation_entry = dict(entry)
@@ -496,6 +550,8 @@ def process(entry: dict, force: bool) -> dict:
             "cross_file_checks": cross,
             "manifest_bounds_review": manifest_bounds_review(entry, blender_report),
             "blender": blender_report,
+            "stripped_generated_mesh_node_names": stripped_mesh_node_names,
+            "compression_mode": compression_mode,
             "seconds": round(time.time() - started, 1),
         }
         report["previews"] = ensure_previews(job, preview_key, blender)
