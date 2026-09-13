@@ -21,6 +21,7 @@ export interface TerrainOptions {
   relief?: number;
   plateaus?: { x: number; z: number; r: number; y: number }[];
   valley?: { axis: 'x' | 'z'; at: number; width: number; depth: number } | null;
+  shelf?: { axis: 'x' | 'z'; at: number; side: 1 | -1; drop: number; width: number } | null;
 }
 export interface HorizonOptions {
   radius?: number;

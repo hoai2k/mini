@@ -109,7 +109,12 @@ export interface Instance {
   object: Group;
   placement: Placement;
   /** Shuttle state for a moving structure. */
-  moving?: { from: [number, number, number]; to: [number, number, number]; speed: number; dwell: number; t: number; dir: 1 | -1; wait: number; dx: number; dy: number; dz: number; boost: number; fling: boolean };
+  moving?: { from: [number, number, number]; to: [number, number, number]; speed: number; dwell: number; t: number; dir: 1 | -1; wait: number; dx: number; dy: number; dz: number; boost: number; fling: boolean; vy: number };
+  /** A conveyor: whatever stands on it is carried along this, in world space. */
+  flow?: { dx: number; dz: number; speed: number };
+  /** A staged bridge: each third (etc.) of the deck as its own group of
+   * colliders, cracking and then dropping in turn once Hopper has crossed. */
+  stages?: { colliders: Collider[]; left: number; state: 'standing' | 'cracking' | 'fallen'; crackAt: number }[];
 }
 
 const CELL = 60;
@@ -179,11 +184,16 @@ export class World {
   stones: Stone[] = [];
   /** Temporary volumes of inverted gravity: a cantor's flip, the Regent's. */
   flips: Flip[] = [];
+  /** A soft floor (sea, slag, dust): below `level` Hopper is lifted, never killed. */
+  readonly soft: { kind: 'sea' | 'slag' | 'dust'; level: number; lift: number; shore?: boolean } | null;
+  /** Hopper's last position, so a staged bridge knows which stage he is over. */
+  private hopperAt: { x: number; y: number; z: number } | null = null;
   readonly region;
   constructor(district: District) {
     this.district = district;
     this.region = regionById(district.region);
     this.route = buildRoute(district);
+    this.soft = district.terrain.soft ? { ...district.terrain.soft } : null;
     this.heightAt = makeHeightField({ size: district.size, ...district.terrain });
     for (const p of district.placements) this.place(p);
     // The world either side of the trail: spans that land somewhere, and
@@ -306,6 +316,7 @@ export class World {
       m.dx = m.dy = m.dz = 0;
       if (m.wait > 0) {
         m.wait -= dt;
+        m.vy = 0;
         continue;
       }
       const len = Math.hypot(m.to[0] - m.from[0], m.to[1] - m.from[1], m.to[2] - m.from[2]) || 1;
@@ -322,6 +333,9 @@ export class World {
       m.dx = nx - inst.object.position.x;
       m.dy = ny - inst.object.position.y;
       m.dz = nz - inst.object.position.z;
+      // A press ram's rise speed this step, so the engine can tell a hard
+      // upward shove from a gentle one and launch whatever stands on it.
+      m.vy = m.dy / dt;
       inst.object.position.set(nx, ny, nz);
       for (const c of this.colliders) {
         if (c.instance !== inst) continue;
@@ -329,6 +343,60 @@ export class World {
         c.cz = nz;
         c.y0 = ny + (c.ly0 ?? 0);
         c.y1 = ny + (c.ly1 ?? 0);
+      }
+    }
+    // Staged bridge: the stage Hopper stands on, and everything behind him,
+    // cracks and then falls away a signalled moment later.
+    if (this.hopperAt) {
+      const at = this.hopperAt;
+      for (const inst of this.instances) {
+        if (!inst.stages) continue;
+        let over = -1;
+        for (let i = 0; i < inst.stages.length && over < 0; i++) {
+          for (const c of inst.stages[i].colliders) {
+            const [lx, lz] = World.local(c, at.x, at.z);
+            if (Math.abs(lx) <= c.hx + 3 && Math.abs(lz) <= c.hz + 3 && at.y >= c.y1 - 1 && at.y <= c.y1 + 3) {
+              over = i;
+              break;
+            }
+          }
+        }
+        for (let i = 0; i < over; i++) {
+          const st = inst.stages[i];
+          if (st.state === 'standing') {
+            st.state = 'cracking';
+            st.crackAt = inst.placement.staged!.after;
+            st.left = st.crackAt;
+          }
+        }
+      }
+    }
+    for (const inst of this.instances) {
+      if (!inst.stages) continue;
+      for (const st of inst.stages) {
+        if (st.state !== 'cracking') continue;
+        st.crackAt -= dt;
+        if (st.crackAt <= 0) {
+          st.state = 'fallen';
+          for (const c of st.colliders) this.dropCollider(c);
+        }
+      }
+    }
+  }
+  /** Hopper's position, read each step before update() so a staged bridge
+   * knows which stage he is over. */
+  trackHopper(x: number, y: number, z: number) {
+    this.hopperAt = { x, y, z };
+  }
+  /** Restore every stage of every staged instance (a respawn). */
+  resetStages() {
+    for (const inst of this.instances) {
+      if (!inst.stages) continue;
+      for (const st of inst.stages) {
+        if (st.state === 'fallen') for (const c of st.colliders) this.addCollider(c, null);
+        st.state = 'standing';
+        st.left = 0;
+        st.crackAt = 0;
       }
     }
   }
@@ -347,7 +415,14 @@ export class World {
     if (p.moving) {
       const from: [number, number, number] = [object.position.x, object.position.y, object.position.z];
       const toY = p.moving.to.y !== undefined ? (p.mode === 'a' ? p.moving.to.y : this.heightAt(p.moving.to.x, p.moving.to.z) + p.moving.to.y) : from[1];
-      instance.moving = { from, to: [p.moving.to.x, toY, p.moving.to.z], speed: p.moving.speed, dwell: p.moving.dwell ?? 1.5, t: 0, dir: 1, wait: 0, dx: 0, dy: 0, dz: 0, boost: 0, fling: !!p.moving.fling };
+      instance.moving = { from, to: [p.moving.to.x, toY, p.moving.to.z], speed: p.moving.speed, dwell: p.moving.dwell ?? 1.5, t: 0, dir: 1, wait: 0, dx: 0, dy: 0, dz: 0, boost: 0, fling: !!p.moving.fling, vy: 0 };
+    }
+    if (p.flow) {
+      // Rotate the conveyor's local flow direction into world space, the
+      // same local-to-world turn perchNear uses to place a point on a top.
+      const cos = Math.cos(p.yaw || 0),
+        sin = Math.sin(p.yaw || 0);
+      instance.flow = { dx: p.flow.dx * cos - p.flow.dz * sin, dz: p.flow.dx * sin + p.flow.dz * cos, speed: p.flow.speed };
     }
     this.instances.push(instance);
     // Volumes and triggers are read from the stand-in's sockets and metadata.
@@ -376,11 +451,27 @@ export class World {
     }
     // Signals, capsules and volumes have no solid parts to land on.
     if (!['prop.signalBeacon', 'prop.recoveryCapsule', 'prop.checkpointTotem', 'prop.thermalVent', 'prop.windLane', 'structure.blue.dustCurrent', 'structure.violet.gravitySeam', 'prop.lockdownDome'].includes(p.id)) {
-      for (const c of collidersOf(object, id)) {
+      const built = collidersOf(object, id);
+      for (const c of built) {
         c.instance = instance;
         c.ly0 = c.y0 - object.position.y;
         c.ly1 = c.y1 - object.position.y;
         this.addCollider(c, instance.moving ? instance.moving.to : null);
+      }
+      // A staged bridge: group its colliders into thirds (etc.) along the
+      // structure's longer horizontal axis, so each third can crack and fall
+      // on its own once Hopper has crossed it.
+      if (p.staged) {
+        const n = p.staged.stages,
+          alongX = (meta.size?.[0] ?? 1) >= (meta.size?.[2] ?? 1),
+          span = Math.max(1, alongX ? (meta.size?.[0] ?? 1) : (meta.size?.[2] ?? 1));
+        const groups: Collider[][] = Array.from({ length: n }, () => []);
+        for (const c of built) {
+          const pos = alongX ? c.ox : c.oz;
+          const i = Math.min(n - 1, Math.max(0, Math.floor((pos / span + 0.5) * n)));
+          groups[i].push(c);
+        }
+        instance.stages = groups.map((colliders) => ({ colliders, left: 0, state: 'standing' as const, crackAt: 0 }));
       }
     }
     return instance;

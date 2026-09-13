@@ -278,6 +278,7 @@ export function cobaltDrift(): District {
       relief: 20,
       plateaus: [
         { x: 0, z: 0, r: 150, y: 60 },
+        { x: 0, z: -270, r: 90, y: 16 },
         { x: 0, z: -650, r: 260, y: 20 },
         { x: 0, z: -1060, r: 120, y: 20 },
         { x: 0, z: -1480, r: 300, y: 20 },
@@ -285,6 +286,8 @@ export function cobaltDrift(): District {
         { x: 0, z: -2050, r: 200, y: 20 },
       ],
       valley: null,
+      // The floor of the drift is dust: a fall ends in a slow lift, never a death.
+      soft: { kind: 'dust', level: 12, lift: 22 },
     },
     horizon: { gap: { angle: Math.PI / 2, width: 0.5 } },
     placements,

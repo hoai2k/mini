@@ -120,6 +120,11 @@ export interface District {
     relief: number;
     plateaus?: { x: number; z: number; r: number; y: number }[];
     valley?: { axis: 'x' | 'z'; at: number; width: number; depth: number } | null;
+    /** Beyond a line on `side` the ground shelves down by `drop` over `width` (the sea past a breakwater). */
+    shelf?: { axis: 'x' | 'z'; at: number; side: 1 | -1; drop: number; width: number } | null;
+    /** A soft floor: sea, slag or dust below `level` lifts Hopper back out
+     * instead of ever being a death; `shore` also pushes him toward the trail. */
+    soft?: { kind: 'sea' | 'slag' | 'dust'; level: number; lift: number; shore?: boolean };
   };
   horizon?: { height?: number; gap?: { angle: number; width: number } };
   placements: Placement[];

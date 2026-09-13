@@ -287,6 +287,16 @@ export class Scene3D {
     const terrain = makeTerrain(region, { size: d.size, segments: 160, ...d.terrain });
     this.worldGroup.add(terrain);
     void paintTerrain(terrain, region.id, d, world.route);
+    if (d.terrain.soft) {
+      // The soft floor's surface: a sheet of sea, slag or dust at its level.
+      const soft = d.terrain.soft;
+      const look = { sea: { color: '#2a5f8f', emissive: '#0d2438', opacity: 0.82 }, slag: { color: '#ff7a24', emissive: '#c8300a', opacity: 0.94 }, dust: { color: '#9fb8d8', emissive: '#3a4d70', opacity: 0.8 } }[soft.kind];
+      const sheet = new Mesh(new PlaneGeometry(d.size * 1.2, d.size * 1.2), new MeshToonMaterial({ color: look.color, emissive: look.emissive, emissiveIntensity: 0.6, transparent: true, opacity: look.opacity, depthWrite: false }));
+      sheet.rotation.x = -Math.PI / 2;
+      sheet.position.y = soft.level;
+      sheet.renderOrder = -1;
+      this.worldGroup.add(sheet);
+    }
     // The trail along the route: its ribbon, edge stones, waymarkers and the
     // tall things beside it.
     this.worldGroup.add(buildTrail(world));

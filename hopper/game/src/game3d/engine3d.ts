@@ -350,6 +350,7 @@ export class Engine3D implements GameEngine {
     if (!locked) combat.lock = null;
 
     // Moving structures carry whatever stands on them.
+    world.trackHopper(h.x, h.y, h.z);
     world.update(dt);
     if (h.grounded) {
       const under = world.groundAt(h.x, h.z, h.y + 0.5).collider;
@@ -358,6 +359,22 @@ export class Engine3D implements GameEngine {
         h.x += m.dx;
         h.y += m.dy;
         h.z += m.dz;
+        // A press ram rising fast enough launches whatever stands on it.
+        if (m.fling && m.vy > 15) {
+          h.vy = m.vy + 30;
+          h.grounded = false;
+          h.coyote = 0;
+          h.hold = MOVE.holdWindow;
+          h.holding = false;
+          h.move = 'jump';
+          h.events.push({ kind: 'spring' });
+        }
+      }
+      // A conveyor carries a grounded Hopper along its flow, unassisted.
+      const flow = under?.instance?.flow;
+      if (flow && Math.abs(under!.y1 - h.y) < 1) {
+        h.x += flow.dx * flow.speed * dt;
+        h.z += flow.dz * flow.speed * dt;
       }
     }
     // Movement. Y on the ground: tap to hop back, hold to crouch and charge.
@@ -741,6 +758,7 @@ export class Engine3D implements GameEngine {
     this.hp = this.maxHp;
     this.respawnT = 0;
     this.resetPlayer();
+    this.world.resetStages();
     this.combat.resetToCheckpoint(this.player.z);
     for (const t of this.world.triggers) if (t.kind === 'checkpoint') t.taken = this.checkpoints.indexOf(t) <= this.checkpointIndex;
     for (const field of this.world.fields) if (field.active) field.active = false;

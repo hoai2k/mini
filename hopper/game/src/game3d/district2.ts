@@ -145,7 +145,9 @@ export function cinderFoundries(): District {
         { x: 0, z: -1880, r: 120, y: -40 },
         { x: 0, z: -2050, r: 200, y: -50 },
       ],
-      valley: { axis: 'x', at: -1470, width: 110, depth: 47 },
+      valley: { axis: 'x', at: -1470, width: 110, depth: 64 },
+      // The casting trench is a slag pool; the barges float on it.
+      soft: { kind: 'slag', level: -60, lift: 28 },
     },
     horizon: { gap: { angle: Math.PI / 2, width: 0.5 } },
     placements,
@@ -295,6 +297,7 @@ export function tempestDocks(): District {
       relief: 30,
       plateaus: [
         { x: 0, z: 0, r: 150, y: 0 },
+        { x: 0, z: -250, r: 130, y: 2 },
         { x: 0, z: -650, r: 240, y: 6 },
         { x: 0, z: -1070, r: 150, y: 10 },
         { x: 0, z: -1480, r: 240, y: 90 },
@@ -302,6 +305,9 @@ export function tempestDocks(): District {
         { x: 0, z: -2050, r: 200, y: 150 },
       ],
       valley: { axis: 'x', at: -1070, width: 140, depth: 40 },
+      // The sea: past the breakwater to the west and under the channel.
+      shelf: { axis: 'x', at: -140, side: -1, drop: 36, width: 90 },
+      soft: { kind: 'sea', level: -6, lift: 14, shore: true },
     },
     horizon: { gap: { angle: Math.PI / 2, width: 0.5 } },
     placements,

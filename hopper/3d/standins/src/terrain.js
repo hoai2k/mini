@@ -18,7 +18,7 @@ import { fbm, makeRampTexture, makeSkyTexture, cel } from './textures.js';
 import { GEOMETRY as G, part, standIn, toon } from './kit.js';
 
 /** Height function shared by the mesh and the collision query. */
-export function makeHeightField({ size = 2400, seed = 7, relief = 60, plateaus = [], valley = null } = {}) {
+export function makeHeightField({ size = 2400, seed = 7, relief = 60, plateaus = [], valley = null, shelf = null } = {}) {
   return function heightAt(x, z) {
     const u = x / size + 0.5,
       v = z / size + 0.5;
@@ -35,13 +35,19 @@ export function makeHeightField({ size = 2400, seed = 7, relief = 60, plateaus =
         t = 1 - Math.min(1, d / valley.width);
       h -= t * t * valley.depth;
     }
+    if (shelf) {
+      // Beyond a line the ground shelves away (a sea past the breakwater).
+      const d = ((shelf.axis === 'x' ? x : z) - shelf.at) * shelf.side,
+        t = Math.min(1, Math.max(0, d / shelf.width));
+      h -= t * t * (3 - 2 * t) * shelf.drop;
+    }
     return h;
   };
 }
 
 /** Terrain mesh coloured by height and slope in a few flat gouache tones. */
-export function makeTerrain(region, { size = 2400, segments = 96, seed = 7, relief = 60, plateaus = [], valley = null } = {}) {
-  const heightAt = makeHeightField({ size, seed, relief, plateaus, valley });
+export function makeTerrain(region, { size = 2400, segments = 96, seed = 7, relief = 60, plateaus = [], valley = null, shelf = null } = {}) {
+  const heightAt = makeHeightField({ size, seed, relief, plateaus, valley, shelf });
   const geo = new PlaneGeometry(size, size, segments, segments);
   geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position,
