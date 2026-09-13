@@ -1942,8 +1942,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/blue.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 1202560,
+      "processingNotes": "Validated mechanical cleanup; 3859332 to 1202560 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-062",
@@ -3070,8 +3072,10 @@
         60
       ],
       "heightmap": "terrain/fields-height.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 2382564,
+      "processingNotes": "Validated mechanical cleanup; 2625820 to 2382564 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-092",
