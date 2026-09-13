@@ -202,6 +202,10 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
 }
 
 const apexSpeed = (apex: number, g: number) => Math.sqrt(2 * g * apex);
+/** How far above his feet a top can be and still count as a step to hop up
+ * onto rather than a ceiling to stop under (see the ground-resolution
+ * section of `stepUpright`). */
+const STEP_UP_MAX = 3;
 const turnToward = (yaw: number, target: number, max: number) => {
   let d = target - yaw;
   while (d > Math.PI) d -= Math.PI * 2;
@@ -219,6 +223,10 @@ export interface StepWorld {
   volumesAt(x: number, y: number, z: number): World['volumes'];
   readonly soft: World['soft'];
   readonly route: World['route'];
+  /** Lowest solid underside at or above y over a point (the head). Optional:
+   * the real World has it; the ground-resolution section only calls it while
+   * stepping upright, so a mirrored world need not implement it. */
+  ceilingAt?(x: number, z: number, y: number, radius?: number): { y: number; collider: Collider | null };
 }
 
 /** The world seen upside down: undersides are floors and tops are ceilings,
@@ -801,10 +809,40 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
       }
       s.events.push({ kind: 'land', speed: impact, stomp });
     }
-  } else if (s.y < surface && !softBlock) {
-    // Passed a surface from below or sideways (thin step): resolve upward.
-    s.y = surface;
-    if (s.vy < 0) s.vy = 0;
+  } else if (!softBlock) {
+    // Bare terrain (no collider: `best` is just heightAt) has no underside to
+    // guard -- it is the floor of the world, not a roof, so any gap still
+    // resolves upward unconditionally, exactly as before. That is also what
+    // recovers a body the sea's current has carried along at a held depth
+    // onto a shelf that rises well out of the water in front of it. Only a
+    // structure's own top gets the step-vs-ceiling distinction below.
+    if (s.y < surface && (!ground.collider || surface - s.y <= STEP_UP_MAX)) {
+      // Passed a surface from below or sideways (thin step): resolve upward.
+      s.y = surface;
+      if (s.vy < 0) s.vy = 0;
+    } else if (s.vy > 0) {
+      // Rising toward the underside of something taller than a step -- a
+      // roof, a deck, a bridge -- crossed from below. `surface` only ever
+      // reflects a top very close to his current feet (groundAt is asked
+      // about his own height, give or take), so a tall or thin overhead
+      // never shows up as "surface" at all: without this he sails on
+      // through it untouched (a fast rise can cross a thin top -- and even
+      // clear a wide gap over a merely tall one -- within a single step,
+      // skipping past both the underside and the resolve-upward window
+      // above), only to land somewhere far higher, or -- were the step
+      // small enough to land in that window -- pop up onto the top from
+      // underneath it: the one-way-platform bug. Stop him under the
+      // lowest underside his head reaches this step instead, checking from
+      // the lower of the previous and current head height so a fast rise
+      // cannot skip past a thin one in one frame.
+      const headY = s.y + MOVE.height,
+        prevHeadY = prevY + MOVE.height;
+      const ceil = world.ceilingAt?.(s.x, s.z, Math.min(prevHeadY, headY));
+      if (ceil?.collider && ceil.y <= Math.max(prevHeadY, headY) + 0.05) {
+        s.y = ceil.y - MOVE.height;
+        s.vy = 0;
+      }
+    }
   }
 
   // Ceilings: stop rising into a solid.
