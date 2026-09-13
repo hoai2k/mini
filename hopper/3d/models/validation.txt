@@ -74,7 +74,7 @@ PASS hopper/3d/models/structures/red/coralBridge.glb
   36 nodes · 5 meshes · 1 materials · 132/100 tris
   WARN  only one named material; painted colour separation may be missing
 PASS hopper/3d/models/structures/blue/floatingReef.glb
-  30 nodes · 6 meshes · 3 materials · 156/40 tris
+  25 nodes · 4 meshes · 3 materials · 156/40 tris
 PASS hopper/3d/models/structures/blue/rootPillar.glb
   24 nodes · 2 meshes · 1 materials · 212/48 tris
   WARN  only one named material; painted colour separation may be missing
@@ -85,7 +85,7 @@ PASS hopper/3d/models/structures/blue/dustCurrent.glb
 PASS hopper/3d/models/structures/violet/obsidianArch.glb
   19 nodes · 2 meshes · 2 materials · 48/36 tris
 PASS hopper/3d/models/structures/violet/ringShard.glb
-  10 nodes · 3 meshes · 2 materials · 24/12 tris
+  13 nodes · 2 meshes · 2 materials · 24/12 tris
 PASS hopper/3d/models/structures/violet/cathedralFacade.glb
   38 nodes · 6 meshes · 5 materials · 784/12 tris
 PASS hopper/3d/models/structures/violet/gravitySeam.glb
