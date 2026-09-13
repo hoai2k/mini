@@ -105,7 +105,8 @@ for (const make of districts) {
       problems.push(`(a) ${p.id} at (${p.x},${p.z}): terrain height is not finite`);
       continue;
     }
-    if (mode === 'r' && isStructure) {
+    // Seams and currents are volumes hung in the air, not things that stand.
+    if (mode === 'r' && isStructure && !/gravitySeam|dustCurrent/.test(p.id)) {
       const base = groundHeight(world, p.x, p.z, p.y, mode, true);
       const diff = base - h;
       if (diff < -3 || diff > 3) {

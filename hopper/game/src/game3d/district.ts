@@ -4,6 +4,7 @@
  * "forward" into the region, matching the stand-in viewer's dioramas).
  */
 import { cinderFoundries, skyhookWorks, tempestDocks } from './district2';
+import { cobaltDrift, vermilionBasin, violetInversion } from './district3';
 
 export interface Placement {
   id: string;
@@ -687,5 +688,6 @@ export function thunderheadRange(): District {
 export const MISSIONS: Array<Array<() => District>> = [
   [sunseedFields, crownlineCity, thunderheadRange],
   [cinderFoundries, tempestDocks, skyhookWorks],
+  [vermilionBasin, cobaltDrift, violetInversion],
 ];
 export const DISTRICTS: Array<() => District> = MISSIONS.flat();
