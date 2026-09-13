@@ -131,7 +131,7 @@ def render(scene,cam,roots,arms,saved,lod,view,clip=None,phase=.5):
  low=Vector(tuple(min(p[i] for p in points) for i in range(3)));high=Vector(tuple(max(p[i] for p in points) for i in range(3)));target=(low+high)/2
  # Every pose is fitted from evaluated skinned vertices, including Retract's arc.
  width=max(p.dot(right) for p in points)-min(p.dot(right) for p in points);height=max(p.dot(up) for p in points)-min(p.dot(up) for p in points)
- cam.location=target+direction*15;cam.rotation_euler=rotation.to_euler();cam.data.ortho_scale=max(width,height*scene.render.resolution_x/scene.render.resolution_y)*1.16
+ cam.location=target+direction*15;cam.rotation_euler=rotation.to_euler();cam.data.ortho_scale=max(max(width,height*scene.render.resolution_x/scene.render.resolution_y)*1.16,9.0 if clip=='Dissolve' else 0)
  scene.render.filepath=str(OUT/(f'LOD{lod}-{view}'+(f'-{clip}-{phase:.2f}' if clip else '')+'.png'));bpy.ops.render.render(write_still=True)
 
 def main():

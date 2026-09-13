@@ -152,7 +152,7 @@
       ],
       "standIn": "enemy.spireLeech",
       "final": "models/enemies/spireLeech.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/spireLeech.png",
         "design/assets/enemy-silhouettes.png"
