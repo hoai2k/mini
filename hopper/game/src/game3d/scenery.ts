@@ -59,6 +59,42 @@ function farStructures(region: string, random: () => number): { id: string; opts
         { id: 'structure.mountains.cragColumn', opts: { h: 40 + random() * 60, r: 12 + random() * 8 } },
         { id: 'structure.mountains.ledgeShelf', opts: { w: 40 + random() * 30, d: 18 } },
       ];
+    case 'foundry':
+      return [
+        { id: 'structure.foundry.chimney', opts: { r: 4 + random() * 3, h: 70 + random() * 60 } },
+        { id: 'structure.foundry.furnaceTower', opts: { r: 12 + random() * 8, h: 50 + random() * 50 } },
+        { id: 'structure.foundry.slagBarge', opts: { length: 30 + random() * 20, width: 14 + random() * 6 } },
+      ];
+    case 'harbor':
+      return [
+        { id: 'structure.harbor.containerStack', opts: { rows: 2 + Math.floor(random() * 3), cols: 3 + Math.floor(random() * 3) } },
+        { id: 'structure.harbor.craneBoom', opts: { h: 60 + random() * 60, reach: 50 + random() * 40 } },
+        { id: 'structure.harbor.gantryTower', opts: { w: 18 + random() * 10, h: 70 + random() * 70 } },
+      ];
+    case 'launchworks':
+      return [
+        { id: 'structure.launchworks.rocket', opts: { r: 6 + random() * 5, h: 90 + random() * 90 } },
+        { id: 'structure.launchworks.pistonStair', opts: { count: 3 + Math.floor(random() * 3), rise: 10 + random() * 6 } },
+        { id: 'structure.harbor.gantryTower', opts: { w: 18 + random() * 8, h: 60 + random() * 60 } },
+      ];
+    case 'red':
+      return [
+        { id: 'structure.red.coralSpire', opts: { r: 7 + random() * 6, h: 40 + random() * 60 } },
+        { id: 'structure.red.ivoryRibArch', opts: { span: 50 + random() * 40, height: 30 + random() * 25, ribs: 5 + Math.floor(random() * 4) } },
+        { id: 'structure.red.basinTerrace', opts: { w: 50 + random() * 40, d: 30 + random() * 20, h: 8 + random() * 8 } },
+      ];
+    case 'blue':
+      return [
+        { id: 'structure.blue.rootPillar', opts: { h: 90 + random() * 100, r: 5 + random() * 4 } },
+        { id: 'structure.blue.rootPillar', opts: { h: 60 + random() * 60, r: 4 + random() * 3 } },
+        { id: 'structure.red.coralSpire', opts: { r: 6 + random() * 4, h: 30 + random() * 30 } },
+      ];
+    case 'violet':
+      return [
+        { id: 'structure.violet.obsidianArch', opts: { span: 50 + random() * 50, height: 40 + random() * 50, thick: 8 } },
+        { id: 'structure.violet.ringShard', opts: { length: 60 + random() * 60, width: 14 + random() * 10 } },
+        { id: 'structure.mountains.cragColumn', opts: { h: 40 + random() * 60, r: 10 + random() * 8 } },
+      ];
     default:
       return [
         { id: 'structure.fields.farmhouse', opts: { w: 14 + random() * 8, d: 18 + random() * 8, h: 7 + random() * 4 } },
