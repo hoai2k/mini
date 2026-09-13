@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Visitor stats — the sites</title>
+    <!-- Not indexed: this is the back office, not one of the sites. -->
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="../ygent/assets/favicon.svg" type="image/svg+xml" />
+    <!-- Self-contained on purpose. This page is a heading, a tab row, a frame
+         and two lists; borrowing any one site's stylesheet would tie the back
+         office to that site's design and let a change there reflow this by
+         accident. No counter is loaded here either — see counter.js for why. -->
+    <style>
+      :root {
+        --bg: #0a0b0f;
+        --panel: #141722;
+        --line: #262a38;
+        --text: #eef0f5;
+        --text-dim: #9aa1b3;
+        --mint: #7ef0d0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 2rem 1.25rem 3rem;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.6 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      }
+      main {
+        max-width: 68rem;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: 1.7rem;
+      }
+      h2 {
+        margin: 2rem 0 0.5rem;
+        font-size: 1.1rem;
+        color: var(--mint);
+      }
+      p {
+        margin: 0.5rem 0;
+      }
+      a {
+        color: var(--mint);
+      }
+      .sub {
+        color: var(--text-dim);
+        margin: 0 0 1.5rem;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+      }
+      .panel.quiet {
+        color: var(--text-dim);
+        font-size: 0.93rem;
+      }
+      ol,
+      ul {
+        margin: 0.5rem 0;
+        padding-left: 1.3rem;
+      }
+      li {
+        margin: 0.35rem 0;
+      }
+      code {
+        background: #1b2030;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 0.08em 0.35em;
+        font-size: 0.9em;
+      }
+      /* Tab row: the overview first, then one per site. */
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin: 1.25rem 0 0.75rem;
+      }
+      .tabs button {
+        font: inherit;
+        font-size: 0.9rem;
+        color: var(--text-dim);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.35rem 0.9rem;
+        cursor: pointer;
+        transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+      }
+      .tabs button:hover,
+      .tabs button:focus-visible {
+        color: var(--text);
+        border-color: var(--mint);
+      }
+      .tabs button[aria-selected='true'] {
+        background: var(--mint);
+        border-color: var(--mint);
+        color: #0a0b0f;
+        font-weight: 600;
+      }
+      .viewing {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        align-items: baseline;
+        justify-content: space-between;
+        color: var(--text-dim);
+        font-size: 0.9rem;
+        margin: 0 0 0.5rem;
+      }
+      .frame-wrap {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+      }
+      iframe {
+        display: block;
+        width: 100%;
+        height: 78vh;
+        min-height: 34rem;
+        border: 0;
+      }
+      .cols {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .cols > * {
+        flex: 1 1 16rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.45rem 0.6rem;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        color: var(--text-dim);
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td code {
+        white-space: nowrap;
+      }
+      .back {
+        display: inline-block;
+        margin-top: 2rem;
+        color: var(--text-dim);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Visitor stats</h1>
+      <p class="sub">
+        Who is finding the sites under <code>/mini/sites/</code>, and from where. One
+        counter covers all of them: the overview is everything together, and each tab
+        narrows the same dashboard to one site.
+      </p>
+
+      <div id="mount"></div>
+
+      <h2>What this records</h2>
+      <div class="cols">
+        <div class="panel quiet">
+          <strong>Kept, per visit</strong>
+          <ul>
+            <li>Country, derived from the IP address and then discarded</li>
+            <li>Referrer — the page that linked here</li>
+            <li>Browser and operating system</li>
+            <li>Screen width and language</li>
+            <li>Which page, and when</li>
+          </ul>
+        </div>
+        <div class="panel quiet">
+          <strong>Never kept</strong>
+          <ul>
+            <li>IP addresses</li>
+            <li>The full User-Agent string</li>
+            <li>Any tracker or advertising ID</li>
+            <li>Cookies — none are set, by us or by the counter</li>
+            <li>Anything a visitor did on the page: no clicks, no scrolling</li>
+          </ul>
+        </div>
+      </div>
+      <p class="sub" style="margin-top: 0.75rem">
+        Counting is done by <a href="https://www.goatcounter.com/">GoatCounter</a>, whose
+        <a href="https://www.goatcounter.com/help/privacy">privacy page</a> is the
+        authority on the two lists above, not this one.
+      </p>
+
+      <h2>The sites it covers</h2>
+      <div class="panel">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Site</th>
+              <th scope="col">Path a visit reports</th>
+            </tr>
+          </thead>
+          <tbody id="site-rows"></tbody>
+        </table>
+      </div>
+
+      <h2>Reading it honestly</h2>
+      <div class="panel quiet">
+        <ul>
+          <li>
+            <strong>Your own visits are not counted.</strong> The counter skips
+            <code>localhost</code>, private addresses and <code>file://</code>, so the
+            numbers are other people rather than you checking a page you just changed.
+            It also means a local preview can never confirm that counting works; only
+            the deployed site can.
+          </li>
+          <li>
+            <strong>It undercounts.</strong> Ad blockers block <code>gc.zgo.at</code>,
+            and those visits go unrecorded with no sign on either end. Treat every
+            number as a floor.
+          </li>
+          <li>
+            <strong>There is no history before switch-on.</strong> Pages kept no log, so
+            there is nothing to backfill. Day one is the day the code lands.
+          </li>
+          <li>
+            <strong>Country is coarse and sometimes wrong.</strong> It comes from an IP
+            database, and a VPN reports wherever its exit node is.
+          </li>
+          <li>
+            <strong>The games are counted separately.</strong> This covers
+            <code>/mini/sites/</code> only. Hopper, at <code>/mini/hopper/</code>, has no
+            counter on it.
+          </li>
+        </ul>
+      </div>
+
+      <a class="back" href="../ygent/">← back to Ygent Records</a>
+    </main>
+
+    <script type="module">
+      import { GOATCOUNTER_SITE, dashboardUrl, SITES } from './config.js';
+
+      // The path a visit reports is this page's own parent, so the table and
+      // the per-site filters cannot drift from where the pages are deployed.
+      const base = location.pathname.replace(/stats\/[^/]*$/, '');
+      const paths = SITES.map((s) => ({ ...s, path: base + s.dir + '/' }));
+
+      document.getElementById('site-rows').innerHTML = paths
+        .map((s) => `<tr><td>${s.name}</td><td><code>${s.path}</code></td></tr>`)
+        .join('');
+
+      const url = dashboardUrl(GOATCOUNTER_SITE);
+      const mount = document.getElementById('mount');
+
+      // Two pages in one, because the honest answer differs before and after
+      // setup. Unconfigured, a blank dashboard would read as "nobody has ever
+      // visited" — the single most misleading thing this page could say — so
+      // it shows the steps instead and claims no numbers at all.
+      if (!url) {
+        mount.innerHTML = `
+          <div class="panel">
+            <p><strong>Not switched on yet.</strong> Nothing is being counted, and
+            nothing has been counted in the past — this page cannot show history that
+            was never recorded. Four steps, about five minutes:</p>
+            <ol>
+              <li>Register a site at
+                <a href="https://www.goatcounter.com/signup">goatcounter.com/signup</a>.
+                The <em>code</em> you choose becomes the dashboard subdomain.</li>
+              <li>Put that bare code in <code>sites/stats/config.js</code> —
+                <code>export const GOATCOUNTER_SITE = "yourcode";</code></li>
+              <li>In GoatCounter, <em>Settings → Sites that can embed GoatCounter</em>,
+                add <code>hoai2k.github.io</code> and <code>games.hoai.net</code>, so the
+                dashboard can appear on this page rather than only on theirs.</li>
+              <li>Push to <code>main</code>. The next deploy starts counting, and the
+                overview and per-site tabs appear here.</li>
+            </ol>
+            <p class="quiet" style="margin-bottom:0">Counting starts the moment it is
+            switched on. Visits before that are gone; Pages keeps no log to backfill
+            from.</p>
+          </div>`;
+      } else {
+        // One dashboard, filtered. GoatCounter takes a path filter in the
+        // query string, which is the same thing its own "filter paths" box
+        // does — so a tab is a shortcut, never a separate source of numbers.
+        const views = [
+          { label: 'All sites', name: 'All sites together', filter: base },
+          ...paths.map((s) => ({ label: s.name, name: s.name, filter: s.path })),
+        ];
+
+        mount.innerHTML = `
+          <div class="tabs" role="tablist" aria-label="Which site to show"></div>
+          <p class="viewing">
+            <span id="viewing-label"></span>
+            <a id="open-full" href="${url}" target="_blank" rel="noopener">Open this view in GoatCounter ↗</a>
+          </p>
+          <div class="frame-wrap">
+            <iframe id="dash" title="GoatCounter dashboard" referrerpolicy="no-referrer"></iframe>
+          </div>
+          <p class="panel quiet">Frame blank, or asking you to sign in? Browsers withhold
+          the GoatCounter session cookie inside a frame on another domain. Either mark the
+          dashboard public in its settings, or use the link above — the frame is a
+          convenience, not the record. If a tab ever looks unfiltered, the dashboard's own
+          <em>filter paths</em> box does the same job.</p>`;
+
+        const tabs = mount.querySelector('.tabs');
+        const frame = mount.querySelector('#dash');
+        const label = mount.querySelector('#viewing-label');
+        const openFull = mount.querySelector('#open-full');
+
+        function show(i) {
+          const view = views[i];
+          const q = new URLSearchParams({ filter: view.filter });
+          frame.src = `${url}/?${q}&hideui=1`;
+          openFull.href = `${url}/?${q}`;
+          label.textContent =
+            view.filter === base
+              ? `Showing every page under ${base}`
+              : `Showing ${view.filter}`;
+          [...tabs.children].forEach((b, n) =>
+            b.setAttribute('aria-selected', String(n === i)),
+          );
+        }
+
+        views.forEach((view, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.role = 'tab';
+          b.textContent = view.label;
+          b.setAttribute('aria-selected', 'false');
+          b.addEventListener('click', () => show(i));
+          tabs.append(b);
+        });
+        show(0);
+      }
+    </script>
+  </body>
+</html>
