@@ -4,11 +4,11 @@ Audited 2026-09-12 against `hopper/3d/design/source/build_requests.py`, the gene
 
 ## Counts and source of truth
 
-The generated inventory contains **93 model requests**: **70 delivered**, **21 stand-ins**, and **2 open**. The breakdown is hopper 2 (1/0/1), rider 1 (0/0/1), enemies 18 (0/18/0), bosses 3 (0/3/0), structures 44 (44/0/0), props 15 (15/0/0), landmarks 9 (9/0/0), terrain 1 (1/0/0). The two open model IDs are **M-001** and **M-002**. The 21 creature IDs still represented by stand-ins are **M-003–M-023**.
+After animation delivery `060c59d`, the generated inventory contains **93 model requests**: **72 delivered**, **21 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed animation extensions. The 21 creature IDs still represented by stand-ins are **M-003–M-023**; zero open entries does not mean these creatures or later art cleanup are finished.
 
 There are **86 image requests**: round one **47** (46 delivered, **T-038 procedural-final**), round two **32 delivered pending art review**, and round three **7** (T-081 delivered; **T-080, T-082, T-083, T-084, T-085, T-086 open**). The exact pending image IDs are therefore **T-080, T-082–T-086**. `standin-manifest.json` is the generated status inventory; `build_requests.py` is its source. `model-requests.md` and the round image request documents are generated outputs.
 
-The 70 delivered model entries comprise the existing combined Hopper/rider GLB in `hopper/models` plus M-024–M-092 in `hopper/3d/models`. The current 43-model authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
+The 72 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-024–M-092 in `hopper/3d/models`. The current 43-model authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
 
 ## Image reconciliation
 
