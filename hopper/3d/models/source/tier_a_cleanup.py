@@ -85,7 +85,20 @@ def snapshot(root_by_lod: dict[int, bpy.types.Object], contract: dict) -> dict:
             str(level): sum(len(o.data.vertices) for o in descendants(root) if o.type == "MESH")
             for level, root in root_by_lod.items()
         },
+        "bounds": {
+            str(level): game_bounds(root)
+            for level, root in root_by_lod.items()
+        },
     }
+
+
+def game_bounds(root: bpy.types.Object) -> list[float]:
+    points = [obj.matrix_world @ vertex.co for obj in descendants(root) if obj.type == "MESH" for vertex in obj.data.vertices]
+    if not points:
+        die(f"{root.name}: no vertices for bounds")
+    blender_span = [max(p[i] for p in points) - min(p[i] for p in points) for i in range(3)]
+    # Blender imports glTF Y-up as Z-up: game XYZ maps to Blender XZY.
+    return [float(blender_span[0]), float(blender_span[2]), float(blender_span[1])]
 
 
 def material_key(obj: bpy.types.Object) -> str:
@@ -107,6 +120,18 @@ def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Obje
 
     merged: list[bpy.types.Object] = []
     for mat_name, group in sorted(groups.items()):
+        # Bake each static part into the LOD root's local space before joining.
+        # Reparenting a joined object whose source hierarchy contains rotated,
+        # non-uniform scales can create shear that glTF TRS cannot represent;
+        # M-027 and M-036 exposed this as greatly inflated exported bounds.
+        root_inverse = root.matrix_world.inverted_safe()
+        for obj in group:
+            if obj.data.users > 1:
+                obj.data = obj.data.copy()
+            obj.data.transform(root_inverse @ obj.matrix_world)
+            obj.parent = root
+            obj.matrix_parent_inverse = Matrix.Identity(4)
+            obj.matrix_basis = Matrix.Identity(4)
         bpy.ops.object.select_all(action="DESELECT")
         for obj in group:
             obj.select_set(True)
@@ -114,9 +139,6 @@ def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Obje
         bpy.context.view_layer.objects.active = active
         bpy.ops.object.join()
         joined = bpy.context.view_layer.objects.active
-        before_parent_world = joined.matrix_world.copy()
-        joined.parent = root
-        joined.matrix_world = before_parent_world
         joined.name = f"LOD{level}.{safe_name(mat_name)}"
         joined.data.name = joined.name
         if len(joined.material_slots) != 1:
@@ -134,9 +156,34 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.remove_doubles(threshold=0.01)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    welded_mesh = obj.data.copy()
+    welded_triangles = mesh_triangles(obj)
+    bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="DESELECT")
     bpy.ops.mesh.select_interior_faces()
     bpy.ops.mesh.delete(type="FACE")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.mesh.select_all(action="DESELECT")
+    bpy.ops.object.mode_set(mode="OBJECT")
+    obj.data.update()
+
+    selected_interior_removed = welded_triangles - mesh_triangles(obj)
+    if selected_interior_removed:
+        # Blender's interior selector can classify visible faces inside
+        # overlapping shells (M-089's LOD1 ring lost 30 exterior triangles).
+        # Keep the weld but roll back deletion whenever the operator selects
+        # anything; Tier A must favor an intact silhouette over speculative
+        # hidden-face removal.
+        removed_mesh = obj.data
+        obj.data = welded_mesh
+        bpy.data.meshes.remove(removed_mesh)
+        interior_action = "skipped-conservative"
+    else:
+        bpy.data.meshes.remove(welded_mesh)
+        interior_action = "no-faces-selected"
+    bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.normals_make_consistent(inside=False)
     bpy.ops.mesh.select_all(action="DESELECT")
@@ -169,6 +216,8 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
         "vertices_after": after_vertices,
         "triangles_before": before_triangles,
         "triangles_after": after_triangles,
+        "interior_faces_selected": selected_interior_removed,
+        "interior_action": interior_action,
     }
 
 
@@ -202,17 +251,126 @@ def raycast_landings(root_by_lod: dict[int, bpy.types.Object], contract: dict) -
 
 
 def ensure_atlas_uv(objects: list[bpy.types.Object]) -> None:
-    bpy.ops.object.select_all(action="DESELECT")
-    for obj in objects:
+    # Blender's multi-object Smart Project can pack each object independently
+    # into the full 0..1 square, making their islands overlap in the shared
+    # bake. Give every merged material object a deterministic grid cell.
+    grid = math.ceil(math.sqrt(len(objects)))
+    cell_padding = 0.02
+    for index, obj in enumerate(objects):
+        bpy.ops.object.select_all(action="DESELECT")
         uv = obj.data.uv_layers.get("Atlas") or obj.data.uv_layers.new(name="Atlas")
         obj.data.uv_layers.active = uv
-        obj.data.uv_layers.active_index = list(obj.data.uv_layers).index(uv)
+        obj.data.uv_layers.active_index = next(i for i, layer in enumerate(obj.data.uv_layers) if layer.name == "Atlas")
+        uv.active_render = True
         obj.select_set(True)
-    bpy.context.view_layer.objects.active = objects[0]
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=math.radians(66.0), island_margin=0.02)
-    bpy.ops.object.mode_set(mode="OBJECT")
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.context.scene.tool_settings.use_uv_select_sync = True
+        result = bpy.ops.uv.smart_project(
+            angle_limit=math.radians(66.0),
+            island_margin=0.02,
+            scale_to_bounds=True,
+        )
+        if "FINISHED" not in result:
+            die(f"{obj.name}: Smart Project failed: {result}")
+        bpy.ops.object.mode_set(mode="OBJECT")
+        column, row = index % grid, index // grid
+        atlas_layer = obj.data.attributes.get("Atlas")
+        if atlas_layer is None or atlas_layer.domain != "CORNER":
+            die(f"{obj.name}: Smart Project did not create Atlas loop data")
+        values = [0.0] * (len(atlas_layer.data) * 2)
+        atlas_layer.data.foreach_get("vector", values)
+        for offset in range(0, len(values), 2):
+            values[offset] = (column + cell_padding + values[offset] * (1 - 2 * cell_padding)) / grid
+            values[offset + 1] = (row + cell_padding + values[offset + 1] * (1 - 2 * cell_padding)) / grid
+        atlas_layer.data.foreach_set("vector", values)
+        obj.data.update()
+
+
+def pin_implicit_source_uv(objects: list[bpy.types.Object]) -> list[dict]:
+    """Keep source textures sampling their original UV while Atlas is active for baking."""
+    material_objects: dict[bpy.types.Material, list[bpy.types.Object]] = {}
+    for obj in objects:
+        for slot in obj.material_slots:
+            if slot.material:
+                material_objects.setdefault(slot.material, []).append(obj)
+    reports = []
+    for material, users in material_objects.items():
+        if not material.use_nodes or material.node_tree is None:
+            reports.append({"material": material.name, "uv": None, "pinned_image_nodes": []})
+            continue
+        implicit_nodes = [
+            node for node in material.node_tree.nodes
+            if node.type == "TEX_IMAGE" and node.inputs.get("Vector") is not None
+            and not node.inputs["Vector"].is_linked
+        ]
+        if not implicit_nodes:
+            reports.append({"material": material.name, "uv": None, "pinned_image_nodes": []})
+            continue
+        uv_names = set()
+        for obj in users:
+            original = next((uv for uv in obj.data.uv_layers if uv.name != "Atlas" and uv.active_render), None)
+            original = original or next((uv for uv in obj.data.uv_layers if uv.name != "Atlas"), None)
+            if original:
+                uv_names.add(original.name)
+        if len(uv_names) != 1:
+            die(f"{material.name}: expected one shared source UV name, found {sorted(uv_names)}")
+        uv_name = next(iter(uv_names))
+        implicit = []
+        for node in implicit_nodes:
+            vector = node.inputs["Vector"]
+            uv_node = material.node_tree.nodes.new("ShaderNodeUVMap")
+            uv_node.name = f"Tier A source UV for {node.name}"
+            uv_node.uv_map = uv_name
+            material.node_tree.links.new(uv_node.outputs["UV"], vector)
+            implicit.append(node.name)
+        reports.append({"material": material.name, "uv": uv_name, "pinned_image_nodes": implicit})
+    return reports
+
+
+def keep_only_atlas_uv(objects: list[bpy.types.Object]) -> None:
+    """Make the baked atlas the unambiguous TEXCOORD_0 for glTF export."""
+    for obj in objects:
+        atlas = obj.data.uv_layers.get("Atlas")
+        if atlas is None:
+            die(f"{obj.name}: missing Atlas UV before export")
+        debug_layers = {}
+        for layer in obj.data.uv_layers:
+            attribute = obj.data.attributes.get(layer.name)
+            layer_values = [0.0] * (len(attribute.data) * 2)
+            attribute.data.foreach_get("vector", layer_values)
+            debug_layers[layer.name] = [min(layer_values), max(layer_values)] if layer_values else []
+        print("TIER_A_UV_BEFORE_FINALIZE", obj.name, json.dumps(debug_layers, sort_keys=True))
+        originals = [uv.name for uv in obj.data.uv_layers if uv.name != "Atlas"]
+        if originals:
+            # Removing TEXCOORD_0 from Blender 5.2 can retain its data under
+            # the surviving layer. Copy Atlas data into the first layer, then
+            # remove the later Atlas layer so the exported TEXCOORD_0 is exact.
+            target_name = originals[0]
+            source_layer = obj.data.attributes.get("Atlas")
+            target_layer = obj.data.attributes.get(target_name)
+            if source_layer is None or target_layer is None or source_layer.domain != "CORNER" or target_layer.domain != "CORNER":
+                die(f"{obj.name}: cannot copy Atlas UV to {target_name}")
+            values = [0.0] * (len(source_layer.data) * 2)
+            source_layer.data.foreach_get("vector", values)
+            target_layer.data.foreach_set("vector", values)
+            obj.data.update()
+            for uv in list(obj.data.uv_layers):
+                if uv.name != target_name:
+                    obj.data.uv_layers.remove(uv)
+            obj.data.uv_layers[0].name = "Atlas"
+        atlas = obj.data.uv_layers.get("Atlas")
+        if atlas is None or len(obj.data.uv_layers) != 1:
+            die(f"{obj.name}: failed to make Atlas the sole UV layer")
+        obj.data.uv_layers.active = atlas
+        obj.data.uv_layers.active_index = 0
+        atlas.active_render = True
+        exported = obj.data.attributes.get("Atlas")
+        values = [0.0] * (len(exported.data) * 2)
+        exported.data.foreach_get("vector", values)
+        if values and (min(values) < -0.001 or max(values) > 1.001):
+            die(f"{obj.name}: final Atlas UV escapes 0..1 ({min(values):.4f}..{max(values):.4f})")
 
 
 def material_has_emission(material: bpy.types.Material) -> bool:
@@ -271,11 +429,16 @@ def transfer_lod1_uvs(lod0: list[bpy.types.Object], lod1: list[bpy.types.Object]
             die(f"{target.name}: no LOD0 source for material {mat_name}")
         target.data.uv_layers.new(name="Atlas") if target.data.uv_layers.get("Atlas") is None else None
         target.data.uv_layers.active = target.data.uv_layers["Atlas"]
+        target.data.uv_layers.active_index = next(i for i, layer in enumerate(target.data.uv_layers) if layer.name == "Atlas")
         source.data.uv_layers.active = source.data.uv_layers["Atlas"]
+        source.data.uv_layers.active_index = next(i for i, layer in enumerate(source.data.uv_layers) if layer.name == "Atlas")
         bpy.ops.object.select_all(action="DESELECT")
         source.select_set(True)
         target.select_set(True)
-        bpy.context.view_layer.objects.active = target
+        # data_transfer copies from the active object to the other selected
+        # objects. Keeping the LOD1 target active reversed the transfer and
+        # overwrote the freshly packed LOD0 Atlas with LOD1's tiled source UV.
+        bpy.context.view_layer.objects.active = source
         bpy.ops.object.data_transfer(
             data_type="UV",
             use_create=True,
@@ -299,16 +462,21 @@ def replace_material_textures(
         nodes.clear()
         output = nodes.new("ShaderNodeOutputMaterial")
         shader = nodes.new("ShaderNodeBsdfPrincipled")
+        uv = nodes.new("ShaderNodeUVMap")
+        uv.name = "Tier A Atlas UV"
+        uv.uv_map = "Atlas"
         base = nodes.new("ShaderNodeTexImage")
         base.name = "Tier A Albedo"
         base.image = albedo
         base.interpolation = "Linear"
+        links.new(uv.outputs["UV"], base.inputs["Vector"])
         links.new(base.outputs["Color"], shader.inputs["Base Color"])
         if has_emission.get(material.name):
             emit = nodes.new("ShaderNodeTexImage")
             emit.name = "Tier A Emission"
             emit.image = emission
             emit.interpolation = "Linear"
+            links.new(uv.outputs["UV"], emit.inputs["Vector"])
             emission_input = shader.inputs.get("Emission Color") or shader.inputs.get("Emission")
             if emission_input:
                 links.new(emit.outputs["Color"], emission_input)
@@ -321,19 +489,26 @@ def replace_material_textures(
 
 
 def bake_atlas(lod0: list[bpy.types.Object], lod1: list[bpy.types.Object], size: int, atlas_dir: Path, stem: str) -> dict:
+    source_uvs = pin_implicit_source_uv(lod0)
     ensure_atlas_uv(lod0)
     materials = sorted({slot.material for obj in lod0 for slot in obj.material_slots if slot.material}, key=lambda m: m.name)
     has_emission = {material.name: material_has_emission(material) for material in materials}
     albedo = bpy.data.images.new(f"{stem}.albedo", width=size, height=size, alpha=False)
     emission = bpy.data.images.new(f"{stem}.emission", width=size, height=size, alpha=False)
-    albedo.file_format = emission.file_format = "PNG"
-    albedo.filepath_raw = str(atlas_dir / f"{stem}.albedo.png")
+    albedo.file_format = "JPEG"
+    emission.file_format = "PNG"
+    albedo.filepath_raw = str(atlas_dir / f"{stem}.albedo.jpg")
     emission.filepath_raw = str(atlas_dir / f"{stem}.emission.png")
+    bpy.context.scene.render.image_settings.file_format = "JPEG"
+    bpy.context.scene.render.image_settings.quality = 92
     bake(lod0, materials, albedo, "DIFFUSE")
-    albedo.save()
+    albedo.save_render(albedo.filepath_raw, scene=bpy.context.scene)
+    bpy.context.scene.render.image_settings.file_format = "PNG"
+    bpy.context.scene.render.image_settings.compression = 100
     bake(lod0, materials, emission, "EMIT")
-    emission.save()
+    emission.save_render(emission.filepath_raw, scene=bpy.context.scene)
     transfers = transfer_lod1_uvs(lod0, lod1)
+    keep_only_atlas_uv(lod0 + lod1)
     replace_material_textures(materials, albedo, emission, has_emission)
     albedo.pack()
     emission.pack()
@@ -346,6 +521,7 @@ def bake_atlas(lod0: list[bpy.types.Object], lod1: list[bpy.types.Object], size:
         "materials": [m.name for m in materials],
         "emissive_materials": [name for name, active in has_emission.items() if active],
         "uv_transfers": transfers,
+        "source_uvs": source_uvs,
     }
 
 
@@ -364,11 +540,20 @@ def assert_mechanical_invariants(before: dict, after: dict) -> None:
         die("triangle count increased")
     if after["triangles"]["1"] >= after["triangles"]["0"]:
         die("LOD1 is not lower detail than LOD0")
+    for level in ("0", "1"):
+        for axis, (source, candidate) in enumerate(zip(before["bounds"][level], after["bounds"][level])):
+            if abs(source - candidate) > 0.01:
+                die(f"LOD{level} {'XYZ'[axis]} bound changed {source:.6f} -> {candidate:.6f} m")
 
 
 def main() -> None:
     args = parse_args()
     contract = json.loads(Path(args.contract).read_text())
+    if int(contract.get("source_animations", 0)) or contract.get("clips"):
+        die(
+            "static Tier A cleanup refuses animated inputs: "
+            f"GLB animations={contract.get('source_animations', 0)}, manifest clips={contract.get('clips', [])}"
+        )
     bpy.ops.wm.read_factory_settings(use_empty=True)
     result = bpy.ops.import_scene.gltf(filepath=str(Path(args.input).resolve()))
     if "FINISHED" not in result:
@@ -423,7 +608,10 @@ def main() -> None:
         export_format="GLB",
         use_selection=True,
         export_extras=True,
-        export_apply=True,
+        # Applying TRS at export inflated bounds on rotated/scaled assemblies
+        # such as M-027 and M-036. The joined geometry is already in the
+        # correct object space, so preserve transforms verbatim.
+        export_apply=False,
         export_yup=True,
         export_animations=False,
         export_materials="EXPORT",

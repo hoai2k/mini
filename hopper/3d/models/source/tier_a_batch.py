@@ -120,6 +120,13 @@ def cross_file_checks(before_path: Path, after_path: Path, entry: dict) -> dict:
             raise RuntimeError(f"socket {name} moved {delta:.6f} m")
     if len(after.get("images", [])) > 2:
         raise RuntimeError(f"candidate embeds {len(after.get('images', []))} images; expected at most two")
+    before_animations = before.get("animations", [])
+    after_animations = after.get("animations", [])
+    if before_animations or after_animations:
+        raise RuntimeError(
+            "static Tier A path received animation data "
+            f"(source={len(before_animations)}, candidate={len(after_animations)})"
+        )
     return {
         "source_nodes": len(before.get("nodes", [])),
         "candidate_nodes": len(after.get("nodes", [])),
@@ -127,6 +134,7 @@ def cross_file_checks(before_path: Path, after_path: Path, entry: dict) -> dict:
         "candidate_named_nodes": len(after_names),
         "socket_deltas_m": moved,
         "images": len(after.get("images", [])),
+        "animations": {"source": len(before_animations), "candidate": len(after_animations)},
         "root_extras": roots,
     }
 
@@ -149,6 +157,25 @@ def tools() -> tuple[Path, Path]:
     return gltfpack, BLENDER
 
 
+def ensure_previews(job: Path, request: str, blender: Path) -> dict[str, str]:
+    before = WORK / "previews" / f"{request}-before.png"
+    after = WORK / "previews" / f"{request}-after.png"
+    inputs = ((job / "decoded.glb", before, "preview-before.log"), (job / "cleaned.raw.glb", after, "preview-after.log"))
+    for source, output, log_name in inputs:
+        if output.exists() and output.stat().st_mtime >= source.stat().st_mtime:
+            continue
+        if not source.exists():
+            raise RuntimeError(f"cannot render preview; missing job artifact {source}")
+        run(
+            [str(blender), "--background", "--python", str(HERE / "tier_a_preview.py"), "--", str(source), str(output)],
+            job / log_name,
+        )
+    return {
+        "before": str(before.relative_to(ROOT)),
+        "after": str(after.relative_to(ROOT)),
+    }
+
+
 def process(entry: dict, force: bool) -> dict:
     gltfpack, blender = tools()
     request = entry["request"]
@@ -158,7 +185,12 @@ def process(entry: dict, force: bool) -> dict:
     candidate = WORK / "candidates" / rel
     final_report = WORK / "reports" / f"{key}.json"
     if candidate.exists() and final_report.exists() and not force:
-        return json.loads(final_report.read_text())
+        report = json.loads(final_report.read_text())
+        if report.get("status") == "passed":
+            _, blender = tools()
+            report["previews"] = ensure_previews(job, request, blender)
+            final_report.write_text(json.dumps(report, indent=2) + "\n")
+        return report
     if job.exists():
         shutil.rmtree(job)
     job.mkdir(parents=True)
@@ -171,10 +203,16 @@ def process(entry: dict, force: bool) -> dict:
     source_doc = glb_json(source)
     contract["source_nodes"] = len(source_doc.get("nodes", []))
     contract["source_images"] = len(source_doc.get("images", []))
+    contract["source_animations"] = len(source_doc.get("animations", []))
     (job / "contract.json").write_text(json.dumps(contract, indent=2) + "\n")
     started = time.time()
     stage = "decode"
     try:
+        if contract["source_animations"] or contract.get("clips"):
+            raise RuntimeError(
+                "static Tier A cleanup refuses animated inputs: "
+                f"GLB animations={contract['source_animations']}, manifest clips={contract.get('clips', [])}"
+            )
         run([str(gltfpack), "-i", str(source), "-o", str(decoded), "-noq", "-kn", "-ke", "-km"], job / "decode.log")
         decoded_doc = glb_json(decoded)
         if len(decoded_doc.get("nodes", [])) != contract["source_nodes"]:
@@ -193,8 +231,13 @@ def process(entry: dict, force: bool) -> dict:
         stage = "compress"
         run(["node", str(HERE / "compress.mjs"), str(raw), str(compressed), "--gltfpack", str(gltfpack), "--force"], job / "compress.log")
         stage = "validate"
+        blender_report = json.loads((job / "blender-report.json").read_text())
         validation_entry = dict(entry)
         validation_entry["file"] = compressed.name
+        # The production measurement can overestimate rotated source parts
+        # because compressed accessor AABBs are transformed by their corners.
+        # Validate against the exact decoded vertex bounds recorded by Blender.
+        validation_entry["bounds"] = blender_report["before"]["bounds"]["0"]
         validation_manifest = job / "validation-manifest.json"
         validation_manifest.write_text(json.dumps({"version": 1, "models": [validation_entry]}, indent=2) + "\n")
         validation = run(
@@ -222,9 +265,10 @@ def process(entry: dict, force: bool) -> dict:
             "byte_reduction_percent": round((1 - byte_count / source.stat().st_size) * 100, 1),
             "metrics": metrics,
             "cross_file_checks": cross,
-            "blender": json.loads((job / "blender-report.json").read_text()),
+            "blender": blender_report,
             "seconds": round(time.time() - started, 1),
         }
+        report["previews"] = ensure_previews(job, request, blender)
     except Exception as error:
         if candidate.exists():
             candidate.unlink()

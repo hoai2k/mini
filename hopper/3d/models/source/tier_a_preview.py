@@ -14,6 +14,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("input")
     parser.add_argument("output")
+    parser.add_argument("--lod", type=int, choices=(0, 1), default=0)
     values = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
     return parser.parse_args(values)
 
@@ -36,9 +37,11 @@ def main() -> None:
     lod1 = next((o for o in bpy.data.objects if o.name.upper() == "LOD1"), None)
     if lod0 is None or lod1 is None:
         raise RuntimeError("preview input must contain exact LOD0 and LOD1 roots")
-    for obj in [lod1] + descendants(lod1):
+    shown = lod0 if args.lod == 0 else lod1
+    hidden = lod1 if args.lod == 0 else lod0
+    for obj in [hidden] + descendants(hidden):
         obj.hide_render = True
-    meshes = [o for o in descendants(lod0) if o.type == "MESH"]
+    meshes = [o for o in descendants(shown) if o.type == "MESH"]
     points = [o.matrix_world @ Vector(corner) for o in meshes for corner in o.bound_box]
     if not points:
         raise RuntimeError("LOD0 contains no mesh bounds")
