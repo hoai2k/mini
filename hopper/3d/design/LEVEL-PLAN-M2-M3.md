@@ -174,7 +174,7 @@ Terrain: relief 45; plateaus at 0, 40 (ring), 90 (gallery), 130 (approach), 160 
 - [x] Commander interface (`Commander`, `CommanderRuntime`, marks and segments drawn generically by the scene; `commanders.ts` picks the fight by kind).
 - [x] Leviathan (`leviathan3d.ts`, 37 checks in `qa/tests/boss-leviathan.mjs`) · Regent (`regent3d.ts`, 29 checks in `qa/tests/boss-regent.mjs`), both to the contracts above. The Regent counts a medusa bounce by the medusa's death (a stomp's 5 always kills its 4 hp).
 - [x] The last episode ends on the finale banner (Hopper's return to Earth); the design documents are regenerated.
-- [ ] Episode flow: an episode test for missions two and three (`qa/tests/episode3d-m2m3.mjs`), then the merge to `main` and the deploy.
+- [x] Episode flow: `qa/tests/episode3d-m2m3.mjs` plays both missions end to end through the engine (580 checks: totems, strongholds, every signal, the slag and the sea, the staged bridge, the seams, both commanders, the finale). Fixes it found: a signal authored inside a structure is lifted onto its top (`World.liftOut`), a seam's volume ends at its lintel's underside, either body centre counts for a flip, and the commander is updated before the arena reads it. Merged to `main` and deployed.
 
 ### Notes for whoever continues
 
