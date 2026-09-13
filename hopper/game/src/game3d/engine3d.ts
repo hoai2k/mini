@@ -400,7 +400,10 @@ export class Engine3D implements GameEngine {
     // upward inside a flip volume (a seam, a cantor's song, the Regent's turn).
     const baseGravity = this.boss?.runtime.active && this.boss.runtime.alive ? this.boss.runtime.gravity : (regionById(d.region).gravity ?? 1);
     const wasInverted = h.gravityScale < 0;
-    h.gravityScale = world.flipAt(h.x, h.y + MOVE.height * 0.5, h.z) ? -Math.abs(baseGravity) : baseGravity;
+    // Inside while either his upright centre or his hanging centre is: the
+    // hop in from below holds, and so does hanging just under the volume's top.
+    const half = MOVE.height * 0.5;
+    h.gravityScale = world.flipAt(h.x, h.y + half, h.z) || world.flipAt(h.x, h.y - half, h.z) ? -Math.abs(baseGravity) : baseGravity;
     if (wasInverted !== h.gravityScale < 0) {
       // The turn: whatever he stood on is no longer under him, and it costs
       // him his speed, so a fall out of a seam settles at its edge.
@@ -485,6 +488,8 @@ export class Engine3D implements GameEngine {
     // Combat: aim from the eye sockets along the facing, tilted with the camera.
     const aim = this.aimDirection();
     combat.update(dt, h, this.callbacks(), { x: h.x + Math.sin(h.yaw) * 9, y: h.y + 12, z: h.z + Math.cos(h.yaw) * 9, dx: aim[0], dy: aim[1], dz: aim[2], firing: f.shootHeld && h.hitstun <= 0, guarding: f.blockHeld && h.hitstun <= 0, kickPressed: f.kickPressed });
+    // The commander, before the arena reads whether it still stands.
+    this.boss?.update(dt, h, combat, this.callbacks());
     // Strongholds: the host, in plain view on its perches, comes down the
     // moment Hopper is within reach; the region is freed when it is down.
     // Nothing holds Hopper in: the trail runs straight through.
@@ -515,8 +520,6 @@ export class Engine3D implements GameEngine {
         }
       }
     }
-    // The commander.
-    this.boss?.update(dt, h, combat, this.callbacks());
     // Triggers.
     for (const t of world.triggers) {
       if (t.taken) continue;

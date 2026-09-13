@@ -26,13 +26,14 @@ const ceiling = world.ceilingAt(ax, az, ground + 20).y;
 c.check('the arch has an underside over the seam', Number.isFinite(ceiling) && ceiling > ground + 60 && ceiling < ground + 90, ceiling - ground);
 c.check('walking under the seam is not inside its volume', !world.flipAt(ax, ground + MOVE.height * 0.5, az));
 c.check('a hop under the seam enters its volume', world.flipAt(ax, ground + 20, az));
+c.check('the lintel top is outside the seam', !world.flipAt(ax, world.groundAt(ax, az, 1e5).y - MOVE.height * 0.5, az));
 
 const h = createHopperState(ax, ground + 20, az, Math.PI);
 h.grounded = false;
 h.coyote = 0;
 // As the engine does each frame: the flip's sign, and the turn costs speed.
 const gravityOf = () => {
-  const g = world.flipAt(h.x, h.y + MOVE.height * 0.5, h.z) ? -0.85 : 0.85;
+  const g = world.flipAt(h.x, h.y + MOVE.height * 0.5, h.z) || world.flipAt(h.x, h.y - MOVE.height * 0.5, h.z) ? -0.85 : 0.85;
   if (g < 0 !== h.gravityScale < 0) {
     h.grounded = false;
     h.coyote = 0;

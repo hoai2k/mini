@@ -196,6 +196,15 @@ export class World {
     this.soft = district.terrain.soft ? { ...district.terrain.soft } : null;
     this.heightAt = makeHeightField({ size: district.size, ...district.terrain });
     for (const p of district.placements) this.place(p);
+    // A signal authored inside a structure or under the ground is lifted
+    // onto the nearest top above it, so every signal can be reached.
+    for (const t of this.triggers) {
+      if (t.kind !== 'signal' || !t.object) continue;
+      const lifted = this.liftOut(t.object.position.x, t.object.position.z, t.object.position.y);
+      if (lifted === t.object.position.y) continue;
+      t.y += lifted - t.object.position.y;
+      t.object.position.y = lifted;
+    }
     // The world either side of the trail: spans that land somewhere, and
     // structures standing well back from the path.
     this.scenery = sceneryFor(district, this.route, this.heightAt);
@@ -443,10 +452,11 @@ export class World {
       d.normalize();
       this.volumes.push({ kind: 'wind', x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, y0: a.y - 20, y1: a.y + 20, r: len / 2, dx: d.x, dz: d.z, push: 15 });
     } else if (meta.gate === 'gravity') {
-      // A gravity seam: a standing flip volume from a hop's height up past
-      // the lintel it hangs under, as wide as the seam is long.
+      // A gravity seam: a standing flip volume from a hop's height up to the
+      // underside of the lintel it hangs under, as wide as the seam is long;
+      // the lintel's top is ordinary ground.
       const length = meta.size?.[0] ?? 80;
-      this.flip(object.position.x, object.position.z, length / 2, object.position.y - 56, object.position.y + 24, Infinity);
+      this.flip(object.position.x, object.position.z, length / 2, object.position.y - 56, object.position.y + 1.5, Infinity);
     } else if (p.id === 'prop.checkpointTotem') {
       this.triggers.push({ id, kind: 'checkpoint', x: object.position.x, y: object.position.y, z: object.position.z, r: 14, object });
     } else if (p.id === 'prop.signalBeacon') {
@@ -527,6 +537,23 @@ export class World {
       }
     }
     return { y: best, collider: hit };
+  }
+  /** The lowest height at or above `y` that is neither deep inside a solid
+   * (more than a few metres under its top, beyond a signal's reach from
+   * whatever stands on it) nor under the ground at a point. */
+  liftOut(x: number, z: number, y: number): number {
+    let out = Math.max(y, this.heightAt(x, z) + 0.3);
+    for (let pass = 0; pass < 8; pass++) {
+      let inside: Collider | null = null;
+      for (const c of this.near(x, z, 3)) {
+        if (out < c.y0 - 0.01 || c.y1 - out < 4) continue;
+        const [lx, lz] = World.local(c, x, z);
+        if (Math.abs(lx) <= c.hx && Math.abs(lz) <= c.hz && (!inside || c.y1 > inside.y1)) inside = c;
+      }
+      if (!inside) break;
+      out = inside.y1 + 0.3;
+    }
+    return out;
   }
   /** Lowest solid underside at or above `y` (the head) over a point, else
    * nothing: inverted gravity lands on these. */
