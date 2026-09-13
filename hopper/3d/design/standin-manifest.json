@@ -428,7 +428,7 @@
       ],
       "standIn": "enemy.phaseSkate",
       "final": "models/enemies/phaseSkate.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/phaseSkate.png",
         "design/assets/enemy-silhouettes.png"

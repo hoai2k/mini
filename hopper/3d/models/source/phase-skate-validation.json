@@ -1,0 +1,150 @@
+{
+  "request": "M-018",
+  "date": "2026-09-12",
+  "status": "root-reviewed and integrated",
+  "file": "enemies/phaseSkate.glb",
+  "bytes": 3320324,
+  "sha256": "7378153e84e4fe7e1634cae55f9a24d2932004aae58ebfd42147ed0b251127f8",
+  "bounds": [
+    8.7,
+    0.9,
+    6.1
+  ],
+  "triangles": [
+    2616,
+    990
+  ],
+  "sourceReference": "design/references/enemies/phaseSkate-turnaround.png",
+  "rig": "rigid body, two wing pivots, three tail shards; no skins",
+  "sockets": [
+    "Core",
+    "Hitbox.Body"
+  ],
+  "clipChecks": [
+    {
+      "name": "Dash",
+      "duration": 0.333333,
+      "loop": false,
+      "channels": 2,
+      "targetCount": 2,
+      "loopEndpointMaxError": 0,
+      "rootMotion": [
+        {
+          "node": "LOD0",
+          "translation": [
+            0.0,
+            0.0,
+            3.5999999046325684
+          ]
+        },
+        {
+          "node": "LOD1",
+          "translation": [
+            0.0,
+            0.0,
+            3.5999999046325684
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Glide",
+      "duration": 1.433333,
+      "loop": true,
+      "channels": 10,
+      "targetCount": 10,
+      "loopEndpointMaxError": 0,
+      "rootMotion": []
+    },
+    {
+      "name": "Fade_Out",
+      "duration": 0.366667,
+      "loop": false,
+      "channels": 2,
+      "targetCount": 2,
+      "loopEndpointMaxError": 0,
+      "rootMotion": []
+    },
+    {
+      "name": "Silhouette_Hold",
+      "duration": 0.833333,
+      "loop": true,
+      "channels": 2,
+      "targetCount": 2,
+      "loopEndpointMaxError": 0,
+      "rootMotion": []
+    },
+    {
+      "name": "Fade_In",
+      "duration": 0.333333,
+      "loop": false,
+      "channels": 2,
+      "targetCount": 2,
+      "loopEndpointMaxError": 0,
+      "rootMotion": []
+    },
+    {
+      "name": "Hit",
+      "duration": 0.533333,
+      "loop": false,
+      "channels": 2,
+      "targetCount": 2,
+      "loopEndpointMaxError": 0,
+      "rootMotion": []
+    },
+    {
+      "name": "Dissolve",
+      "duration": 0.833333,
+      "loop": false,
+      "channels": 2,
+      "targetCount": 2,
+      "loopEndpointMaxError": 0,
+      "rootMotion": []
+    }
+  ],
+  "checks": {
+    "repositoryValidator": "PASS: exact bounds, LOD roots, required clips/sockets, compression and quantization",
+    "finiteAnimationValues": true,
+    "exactLoopEndpoints": true,
+    "rootMotionOnlyDash": true,
+    "dashDistanceMetres": 3.6,
+    "savedBlendRestPoseRestored": true
+  },
+  "visualQA": {
+    "viewsPerLOD": [
+      "front",
+      "top",
+      "rear",
+      "side"
+    ],
+    "keyPosesPerLOD": [
+      "Glide",
+      "Fade_Out",
+      "Silhouette_Hold",
+      "Fade_In",
+      "Dash",
+      "Hit",
+      "Dissolve"
+    ],
+    "renders": 22,
+    "contactSheets": [
+      {
+        "file": "clips-contact-sheet.jpg",
+        "sha256": "be0441ecdc708ad399b074f5ff7a918419ad64f9c03f18dab555ee4c7a5ef0c5"
+      },
+      {
+        "file": "views-contact-sheet.jpg",
+        "sha256": "903af3b3134e4d74442ee5e656dba06fbbc1e6d6bf46e88d12d96517e051243d"
+      }
+    ],
+    "location": "local/hopper-phase-skate-refine/",
+    "review": "Both LODs and all clip key poses accepted by root after curved-shell/tail refinement, surface-seated seams and shaded eye correction."
+  },
+  "runtimeResponsibilities": [
+    "shader visibility and dissolve effect",
+    "destination silhouette placement",
+    "Hitbox.Body activation while solid",
+    "0.4s stomp vulnerability after solidification"
+  ],
+  "baselineDrafts": "Rejected drafts preserved in local/hopper-rigid-creatures/M-018; never integrated."
+}

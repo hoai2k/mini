@@ -77,8 +77,11 @@ ENEMY_DATA = [
     ('gravityCantor', 'Gravity Cantor', 'violet', 'rigid', [8.9, 4.7, 8.9], '5k / 1.5k', 'ring (spin), core, 4 prong pivots', 'Ring_Idle, Count_In (prongs rise ×3), Gate_Activate, Gate_Hold, Core_Exposed, Dissolve', 'Core (ring centre), Emitter0..3 (prong tips), Hitbox.Ring',
      'Floating ring organ with four hanging prongs. Counts in, then flips local gravity in a marked volume beneath it. Shot in the core, or simply flown around.'),
 ]
+DELIVERED_ENEMIES = {
+    'phaseSkate': '2026-09-12: reference-authored cambered ray delivered at 8.7 × 0.9 × 6.1 m, 2,616/990 triangles. Two wing pivots and three curved tapered tail shards; Core and Hitbox.Body sockets. Seven clips and both LODs visually reviewed. Shader visibility/dissolve, destination ghost placement, hitbox activation and the 0.4 s post-solidification stomp window remain runtime responsibilities. See models/source/phase-skate-validation.json.',
+}
 for i, (key, name, region, rig, size, tris, joints, clips, sockets, summary) in enumerate(ENEMY_DATA):
-    model(f'M-{3 + i:03d}', name, 'enemy', rig, size, tris, f'enemy.{key}', f'models/enemies/{key}.glb', 'stand-in', summary, joints=joints, clips=clips, sockets=sockets, region=region)
+    model(f'M-{3 + i:03d}', name, 'enemy', rig, size, tris, f'enemy.{key}', f'models/enemies/{key}.glb', 'delivered' if key in DELIVERED_ENEMIES else 'stand-in', summary, joints=joints, clips=clips, sockets=sockets, region=region, notes=DELIVERED_ENEMIES.get(key, ''))
 
 BOSS_DATA = [
     ('nightRook', 'Night Rook', 'mountains', 'skeletal', [65, 41, 16], '40k / 12k', 'spine ×4, neck ×2, head, beak, 2 wings × 5 (blade feathers as rigid children), 2 arms × 3 with talons, 2 legs × 3', 'Perch_Idle, Take_Off, Soar, Mark_Corridor, Sweep (root motion), Land, Feather_Fan, Channel_Tell, Channel_Hold, Wing_Guard_Break, Core_Open, Stagger, Defeat_Dissolve', 'Core (sternum), WingJoint.L/R (kick targets), Mouth, Hitbox.Body, Landing (back, after wings fold)',

@@ -27,7 +27,7 @@ def uv_project(o):
     for poly in o.data.polygons:
         for li in poly.loop_indices:
             co=o.data.vertices[o.data.loops[li].vertex_index].co
-            uv.data[li].uv=(.14+co.x*.12,.49+co.y*.11)
+            uv.data[li].uv=(.14+co.x*.12, (.918+(co.y*.023)% .047) if any('Cobalt.Chitin' in m.name for m in o.data.materials) else .49+co.y*.11)
 
 def shell(c,name,outline,mat,parent,height=.15,center=None,rings=2):
     # Closed cambered shell, not a flat extruded polygon. Smooth crowns are bounded
@@ -67,11 +67,11 @@ def build(req,c,lod=0):
     # Existing painted hide supplies broad brushwork; blue trim is sampled on a
     # narrow slate band for the chitin, instead of a repeated full-image UV per face.
     hide=c.material(N('Obsidian.Hide'),(.70,.81,1),TEXTURES/'creatures/shadow-hide.png')
-    plate=c.material(N('Cobalt.Chitin'),(.28,.34,.49),TEXTURES/'trim/blue.png')
+    plate=c.material(N('Cobalt.Chitin'),(.24,.29,.39),TEXTURES/'trim/blue.png')
     edge=c.material(N('Blue.Edge'),(.055,.17,.44),emission=.12)
     dark=c.material(N('Socket.Ink'),(.009,.017,.035))
-    ivory=c.material(N('Eye.Ivory'),(.69,.91,1),emission=.65)
-    iris=c.material(N('Eye.Cobalt'),(.06,.35,.95),emission=.50)
+    ivory=c.material(N('Eye.Ivory'),(.42,.73,.90),emission=.08)
+    iris=c.material(N('Eye.Cobalt'),(.035,.20,.65),emission=.12)
     fit=c.empty(N('Scale.ToContract'),parent=c.root);motion=c.empty(N('Motion'),parent=fit);body=c.empty(N('Body'),parent=motion)
     # Narrow sculpted hull joins a long predatory nose to a pointed dorsal keel.
     hull=[(-.10,.0,2.80),(-.39,.04,1.91),(-.80,.10,1.22),(-.82,.08,.30),(-.58,.02,-.56),(0,-.01,-1.40),(.58,.02,-.56),(.82,.08,.30),(.80,.10,1.22),(.39,.04,1.91),(.10,0,2.80),(0,0,3.00)]
@@ -85,22 +85,22 @@ def build(req,c,lod=0):
     # Almond-shaped embedded lens: crown fades into the socket instead of a torus
     # placed over a flat surface. Layered planar rings also survive the far LOD.
     count=24 if lod==0 else 14;zs=1.08;rx=.48;rz=.39
-    for label,scale,h,mat in [('EyeSocket',1.28,.00,dark),('EyeRim',1.14,.027,edge),('EyeLens',1.0,.045,ivory)]:
+    for label,scale,h,mat in [('EyeSocket',1.20,.00,dark),('EyeRim',1.10,.027,edge),('EyeLens',1.0,.045,ivory)]:
         outline=[]
         for i in range(count):
             t=TAU*i/count;x=rx*math.cos(t)*scale;z=zs+rz*math.sin(t)*scale
-            outline.append((x,.265-.40*(z-zs)+h,z))
-        shell(c,N(label),outline,mat,body,.10 if label=='EyeLens' else .015,center=(0,.265+h,zs),rings=2 if label=='EyeLens' and lod==0 else 1)
+            outline.append((x,.37-.20*(z-zs)+h,z))
+        shell(c,N(label),outline,mat,body,.10 if label=='EyeLens' else .015,center=(0,.37+h,zs),rings=2 if label=='EyeLens' and lod==0 else 1)
     # Colored iris and narrow vertical slit sit flush on the lens crown.
-    for label,rx2,rz2,h,mat in [('Iris',.16,.245,.420,iris),('Pupil',.055,.208,.435,dark),('Catchlight',.032,.065,.449,ivory)]:
+    for label,rx2,rz2,h,mat in [('Iris',.215,.27,.525,iris),('Pupil',.055,.208,.540,dark),('Catchlight',.032,.065,.554,ivory)]:
         pts=[]
         for i in range(14 if lod==0 else 8):
             t=TAU*i/(14 if lod==0 else 8);x=rx2*math.cos(t)+(-.052 if label=='Catchlight' else 0);z=zs+rz2*math.sin(t)
-            pts.append((x,h-.40*(z-zs),z))
+            pts.append((x,h-.20*(z-zs),z))
         shell(c,N('Eye.'+label),pts,mat,body,.012,rings=1)
     # Swept leading edge uses a continuous spline. Trailing serrations are small
     # hooked notches in the same closed surface, never stacked rectangular steps.
-    leading=[(.55,.10,1.66),(1.08,.055,.91),(1.93,.015,.18),(2.90,-.025,-.63),(4.35,-.02,-1.92)]
+    leading=[(.55,.10,1.66),(1.08,.055,.91),(1.93,.015,.38),(2.90,-.025,-.30),(4.35,-.02,-1.92)]
     trailing=[(3.68,-.015,-1.48),(3.18,.015,-1.16),(3.07,.014,-1.27),(2.91,.025,-1.03),(2.58,.04,-1.00),(2.44,.036,-1.16),(2.22,.047,-.91),(1.92,.05,-.94),(1.61,.053,-1.22),(1.56,.06,-.99),(1.22,.062,-1.14),(.89,.065,-1.40),(.60,.072,-.84)]
     for side,sign in [('L',-1),('R',1)]:
         pivot=c.empty(N('Wing.'+side),(sign*.54,.04,.38),body)
@@ -121,9 +121,17 @@ def build(req,c,lod=0):
             op=[(x,base+(.06 if x<1.8 else -.02),z) for x,z in points]
             o=shell(c,N(f'Wing.{side}.Scale.{i}'),[local(p) for p in op],plate,pivot,.06,rings=2 if lod==0 else 1)
             # One broken blue edge per scale; the rest is ink-shadow separation.
-            if lod==0 or i in [0,2,4]:
-                e=[Vector(local((x,base+.058+( .06 if x<1.8 else -.02),z))) for x,z in points[:3]]
-                tube(c,N(f'Wing.{side}.Seam.{i}'),e,.013,edge,pivot,3)
+            if lod==0:
+                center=sum([Vector(p) for p in op],Vector((0,0,0)))/len(op)
+                # Inset along the actual crown: rings=2 raises 0.042426 at half
+                # radius, so at radius .93 the surface lift is 0.00594.
+                e=[center+(Vector(p)-center)*.93+Vector((0,.008,0)) for p in op[:3]]
+                e[0]=e[0].lerp(e[1],.10);e[-1]=e[-1].lerp(e[-2],.15)
+                e=[Vector(local(p)) for p in e];verts=[]
+                for k,pnt in enumerate(e):
+                    tangent=e[min(k+1,len(e)-1)]-e[max(0,k-1)];perp=Vector((-tangent.z,0,tangent.x)).normalized()*(.009 if k==1 else .003)
+                    verts.extend([tuple(pnt-perp),tuple(pnt+perp)])
+                c.mesh(N(f'Wing.{side}.Seam.{i}'),verts,[(0,1,3,2),(2,3,5,4)],edge,pivot)
         ep=[Vector(local(p)) for p in catmull(leading,3 if lod==0 else 2)]
         tube(c,N('Wing.'+side+'.LeadingRim'),ep,lambda t:.025*(1-t)+.006,edge,pivot,4)
     # Curved, tapering tail surfaces share vertices along their whole length. Three
@@ -135,12 +143,12 @@ def build(req,c,lod=0):
     tails=[]
     for label,control in controls.items():
         origin=Vector(control[0]);pivot=c.empty(N('Tail.'+label),origin,body);tails.append(pivot)
-        points=[p-origin for p in catmull(control,5 if lod==0 else 3)]
+        points=[p-origin for p in catmull(control,5 if lod==0 else 2)]
         tube(c,N('Tail.'+label+'.SweptShard'),points,lambda t:.105*(1-t)**1.25+.003,plate,pivot,7 if lod==0 else 5)
         if lod==0:
             pts=[p+Vector((0,.084*(1-i/(len(points)-1))+.008,0)) for i,p in enumerate(points)]
             tube(c,N('Tail.'+label+'.DorsalLine'),pts,lambda t:.013*(1-t)+.002,edge,pivot,3)
-    c.socket(N('Core'),(0,.42,1.08),body);c.socket(N('Hitbox.Body'),(0,.04,.48),motion)
+    c.socket(N('Core'),(0,.53,1.08),body);c.socket(N('Hitbox.Body'),(0,.04,.48),motion)
     animate(c,N,motion,body,tails)
     return fit
 
@@ -167,9 +175,13 @@ def studio(roots):
     scene.view_settings.view_transform='Standard';scene.view_settings.look='Medium High Contrast' if 'Medium High Contrast' in [i.identifier for i in scene.view_settings.bl_rna.properties['look'].enum_items] else 'None'
     return scene,cam
 
+def restore(c):
+    c.rest_pose()
+    for o,transforms in c._rest.items():o.location,o.rotation_euler,o.scale=transforms
+
 def render(scene,cam,contexts,lod,view,clip=None,time=0):
     for i,c in enumerate(contexts):
-        c.rest_pose()
+        restore(c)
         for o in [c.root,*c.root.children_recursive]:o.hide_render=i!=lod
     if clip:
         for o in [contexts[lod].root,*contexts[lod].root.children_recursive]:
@@ -185,15 +197,16 @@ def main():
     bpy.ops.wm.read_factory_settings(use_empty=True);contexts=[];sizes=[]
     for lod in range(2):
         c=Context(REQ);c.root.name=f'LOD{lod}';c.root['lod']=lod;fit=build(REQ,c,lod);c.rest_pose()
-        lo,hi=mesh_bounds(c.root);sz=hi-lo;fit.scale=(8.7/sz.x,6.1/sz.y,.9/sz.z);bpy.context.view_layer.update();lo,hi=mesh_bounds(c.root);sizes.append([hi.x-lo.x,hi.z-lo.z,hi.y-lo.y]);contexts.append(c)
-    for c in contexts:c.rest_pose()
+        lo,hi=mesh_bounds(c.root);sz=hi-lo;fit.scale=(8.7/sz.x,6.1/sz.y,.9/sz.z);bpy.context.view_layer.update();lo,hi=mesh_bounds(c.root);sizes.append([hi.x-lo.x,hi.z-lo.z,hi.y-lo.y]);c._rest={o:(o.location.copy(),o.rotation_euler.copy(),o.scale.copy()) for o in [c.root,*c.root.children_recursive]};contexts.append(c)
+    for c in contexts:restore(c)
     triangles=[count_triangles(c.root) for c in contexts];print('PHASE GEOMETRY',sizes,triangles,flush=True)
     scene,cam=studio([c.root for c in contexts]);scene.render.fps=30
     for lod in range(2):
         for view in ['front','top','rear','side']:render(scene,cam,contexts,lod,view)
-    for clip,t in [('Glide',.7),('Fade_Out',.34),('Silhouette_Hold',.4),('Fade_In',.20),('Dash',.3),('Hit',.10),('Dissolve',.4)]:render(scene,cam,contexts,0,'front',clip,t)
+    for lod in range(2):
+        for clip,t in [('Glide',.7),('Fade_Out',.34),('Silhouette_Hold',.4),('Fade_In',.20),('Dash',.3),('Hit',.10),('Dissolve',.4)]:render(scene,cam,contexts,lod,'front',clip,t)
     for c in contexts:
-        c.rest_pose()
+        restore(c)
         for o in [c.root,*c.root.children_recursive]:o.hide_render=False
     scene.frame_set(1);bpy.context.view_layer.update();bpy.ops.object.select_all(action='DESELECT')
     for c in contexts:
@@ -201,6 +214,9 @@ def main():
     raw=OUT/'phaseSkate-uncompressed.glb';final=OUT/'phaseSkate.glb'
     bpy.ops.export_scene.gltf(filepath=str(raw),export_format='GLB',use_selection=True,export_animations=True,export_animation_mode='NLA_TRACKS',export_extras=True,export_apply=True,export_materials='EXPORT',export_yup=True)
     subprocess.run([shutil.which('node'),str(HERE/'compress.mjs'),str(raw),str(final),'--force'],check=True)
+    # Blender NLA export may leave its last action evaluated in the authoring scene.
+    for c in contexts:restore(c)
+    scene.frame_set(1);bpy.context.view_layer.update()
     for o in [contexts[1].root,*contexts[1].root.children_recursive]:o.hide_render=True
     bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'phaseSkate.blend'),compress=True)
     record={'request':'M-018','name':'Phase Skate','file':str(final.relative_to(ROOT)),'preview':str((OUT/'LOD0-front.png').relative_to(ROOT)),'category':'enemy','region':'blue','source':'hopper/3d/models/source/phase_skate_refine.py','bounds':sizes[0],'targetBounds':[8.7,.9,6.1],'triangles':triangles,'clips':REQ['clips'],'sockets':REQ['sockets'],'landings':[],'status':'candidate-awaiting-root-review','sourceReference':REQ['reference'],'notes':'Sculpted cambered manta with swept serrated wings, embedded eye and three continuous tapered tail meshes. Both LODs authored from shared curves; fade silhouettes use vertical collapse while gameplay owns visibility/hitbox.'}

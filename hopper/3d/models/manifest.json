@@ -639,8 +639,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/mountains.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 1197276,
+      "processingNotes": "Validated material merge/weld; 5881836 to 1197276 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-038",
@@ -3134,6 +3136,52 @@
       "heightmap": "terrain/mountains-height.png",
       "processing": "needs-cleanup",
       "cleanup": "CODE-BUILT-CLEANUP.md"
+    },
+    {
+      "request": "M-018",
+      "name": "Phase Skate",
+      "file": "enemies/phaseSkate.glb",
+      "preview": "previews/enemy.phaseSkate.png",
+      "category": "enemy",
+      "region": "blue",
+      "source": "source/phase_skate_refine.py",
+      "bounds": [
+        8.7,
+        0.9,
+        6.1
+      ],
+      "targetBounds": [
+        8.7,
+        0.9,
+        6.1
+      ],
+      "triangles": [
+        2616,
+        990
+      ],
+      "clips": [
+        "Glide",
+        "Fade_Out",
+        "Silhouette_Hold",
+        "Fade_In",
+        "Dash",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Hitbox.Body"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/phaseSkate-turnaround.png",
+      "notes": "Reviewed against canonical turnaround: sculpted swept serrated manta silhouette, three continuous tapered tail shards, integrated eye/socket and seated surface seams. All seven clips and both LODs reviewed. Fade and dissolve clips supply geometric poses; shader visibility, destination ghost placement, Hitbox.Body activation and the 0.4s post-solidification stomp window remain runtime responsibilities.",
+      "authoring": "reference-authored Blender mesh with cambered wing shells, swept armor and shared-curve LODs",
+      "rig": "rigid",
+      "bytes": 3320324,
+      "sha256": "7378153e84e4fe7e1634cae55f9a24d2932004aae58ebfd42147ed0b251127f8",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/phase-skate-validation.json"
     }
   ],
   "deliveredAt": "2026-09-08",
