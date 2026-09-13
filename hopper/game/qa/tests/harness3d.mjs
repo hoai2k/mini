@@ -14,7 +14,7 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-harness3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'route', 'scenery', 'boss3d', 'gait', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'boss3d', 'gait', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'));
 for (const name of names) {
   const raw = fs

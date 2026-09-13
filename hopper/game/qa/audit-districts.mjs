@@ -1,6 +1,6 @@
 // Node audit for the 3D edition's mission-one districts. Transpiles
 // district.ts, world.ts and controller.ts (same approach as
-// qa/tests/engine3d.mjs) and, for each district in MISSIONS[0], builds the
+// qa/tests/engine3d.mjs) and, for each district in every mission, builds the
 // World and checks:
 //   (a) every placement's ground height is finite, and no structure's base
 //       (mode 'r' only) sits more than 3 m below or above the terrain,
@@ -50,7 +50,7 @@ const standIns = new URL('../../3d/standins/src/index.js', import.meta.url).path
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-audit-districts-'));
-const names = ['world', 'controller', 'district', 'route', 'scenery'];
+const names = ['world', 'controller', 'district', 'district2', 'district3', 'route', 'scenery'];
 for (const name of names) {
   const raw = fs
     .readFileSync(source + name + '.ts', 'utf8')
@@ -87,7 +87,7 @@ function groundHeight(world, x, z, y, mode, isStructure) {
 }
 
 let anyFail = false;
-const districts = MISSIONS[0];
+const districts = MISSIONS.flat();
 
 for (const make of districts) {
   const district = make();
