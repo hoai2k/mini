@@ -45,7 +45,17 @@ def main(ids):
         if candidate.stat().st_size != report['candidate_bytes']:
             raise ValueError(f'{request}: candidate changed; re-review')
         if report['metrics']['triangles'] != entry['triangles']:
-            raise ValueError(f'{request}: changed triangles need separate review')
+            topology = report.get('blender', {}).get('import_topology', {})
+            approved_duplicates = (
+                request == 'M-067'
+                and entry['triangles'] == [648, 124]
+                and report['metrics']['triangles'] == [648, 122]
+                and topology.get('compressed_source_triangles') == {'0': 648, '1': 124}
+                and topology.get('delta') == {'0': 0, '1': -2}
+                and topology.get('accepted_exception', {}).get('evidence', {}).get('source_geometric_duplicate_pairs') == [[0, 1], [40, 41]]
+            )
+            if not approved_duplicates:
+                raise ValueError(f'{request}: changed triangles need separate review')
         approved.append((entry, report, source, candidate))
     # Preflight every item before the first write. Originals stay recoverable
     # in git history; candidate/intermediate sources stay in ignored local/.
@@ -53,11 +63,14 @@ def main(ids):
         shutil.copy2(candidate, source)
         entry['processing'] = 'cleaned-tier-a'
         entry['bytes'] = report['candidate_bytes']
+        entry['triangles'] = report['metrics']['triangles']
         entry['processingNotes'] = (
             f"Validated mechanical cleanup; {report['source_bytes']} to "
             f"{report['candidate_bytes']} bytes. Matched before/after renders "
             "reviewed. No clips removed. Tier B remains pending."
         )
+        if entry['request'] == 'M-067':
+            entry['processingNotes'] += ' Two coincident LOD1 ring faces removed on import (124 to 122 triangles); matched LOD1 review approved.'
         print(entry['request'], entry['bytes'])
     manifest_file.write_text(json.dumps(manifest, indent=2) + '\n')
 

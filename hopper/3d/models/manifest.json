@@ -2176,7 +2176,7 @@
       ],
       "triangles": [
         648,
-        124
+        122
       ],
       "clips": [],
       "sockets": [
@@ -2248,8 +2248,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/violet.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 3179428,
+      "processingNotes": "Validated mechanical cleanup; 3184508 to 3179428 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending. Two coincident LOD1 ring faces removed on import (124 to 122 triangles); matched LOD1 review approved."
     },
     {
       "request": "M-068",

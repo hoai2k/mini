@@ -30,12 +30,27 @@ GLTFPACK_CANDIDATES = [
     *([Path(os.environ["GLTFPACK"])] if os.environ.get("GLTFPACK") else []),
     *Path.home().glob(".npm/_npx/*/node_modules/.bin/gltfpack"),
 ]
-PRESERVE_SOURCE_TEXTURE_REQUESTS = {"M-036"}
+PRESERVE_SOURCE_TEXTURE_REQUESTS = {"M-036", "M-067", "M-092"}
+JPEG_EMISSION_REQUESTS = {"M-061"}
 FUNCTIONAL_PIVOT_REQUESTS = {
     "M-059": "three bridge stages are independent rigid drop pivots",
     "M-060": "the floating reef moves as a rigid root",
     "M-064": "the ring shard orbits as a rigid root with a moving landing",
     "M-066": "the gravity seam animates its named Arrow pivots",
+}
+IMPORT_TRIANGLE_EXCEPTIONS = {
+    "M-067": {
+        "delta": {"0": 0, "1": -2},
+        "reason": (
+            "Blender removes two exact coincident geometric faces from "
+            "LOD1.Circle during glTF import; reviewed visual cleanup accepted"
+        ),
+        "evidence": {
+            "mesh": "LOD1.Circle",
+            "source_geometric_duplicate_pairs": [[0, 1], [40, 41]],
+            "zero_area_triangles": 0,
+        },
+    },
 }
 
 
@@ -62,6 +77,60 @@ def glb_json(path: Path) -> dict:
             return json.loads(data[offset : offset + length].decode("utf-8").rstrip(" \x00"))
         offset += length
     raise RuntimeError(f"missing JSON chunk: {path}")
+
+
+def triangle_counts_by_lod(doc: dict) -> dict[str, int]:
+    """Count authored draw triangles from GLB accessor metadata under each LOD."""
+    nodes = doc.get("nodes", [])
+    meshes = doc.get("meshes", [])
+    accessors = doc.get("accessors", [])
+
+    def primitive_count(primitive: dict) -> int:
+        accessor_index = primitive.get("indices")
+        if accessor_index is None:
+            accessor_index = primitive.get("attributes", {}).get("POSITION")
+        if accessor_index is None or not 0 <= accessor_index < len(accessors):
+            raise RuntimeError("mesh primitive has no countable indices or POSITION accessor")
+        count = int(accessors[accessor_index]["count"])
+        mode = int(primitive.get("mode", 4))
+        if mode == 4:
+            if count % 3:
+                raise RuntimeError(f"TRIANGLES accessor count {count} is not divisible by 3")
+            return count // 3
+        if mode in (5, 6):
+            return max(0, count - 2)
+        raise RuntimeError(f"unsupported non-triangle primitive mode {mode}")
+
+    def descendants(root_index: int) -> list[int]:
+        found: list[int] = []
+        stack = [root_index]
+        seen: set[int] = set()
+        while stack:
+            index = stack.pop()
+            if index in seen:
+                continue
+            if not 0 <= index < len(nodes):
+                raise RuntimeError(f"node index {index} is out of range")
+            seen.add(index)
+            found.append(index)
+            stack.extend(nodes[index].get("children", []))
+        return found
+
+    counts: dict[str, int] = {}
+    for level in (0, 1):
+        roots = [i for i, node in enumerate(nodes) if node.get("name", "").upper() == f"LOD{level}"]
+        if len(roots) != 1:
+            raise RuntimeError(f"expected one LOD{level} node, found {len(roots)}")
+        total = 0
+        for node_index in descendants(roots[0]):
+            mesh_index = nodes[node_index].get("mesh")
+            if mesh_index is None:
+                continue
+            if not 0 <= mesh_index < len(meshes):
+                raise RuntimeError(f"mesh index {mesh_index} is out of range")
+            total += sum(primitive_count(primitive) for primitive in meshes[mesh_index].get("primitives", []))
+        counts[str(level)] = total
+    return counts
 
 
 def node_matrix(node: dict) -> list[float]:
@@ -184,11 +253,11 @@ def tools() -> tuple[Path, Path]:
     return gltfpack, BLENDER
 
 
-def ensure_previews(job: Path, request: str, blender: Path) -> dict[str, str]:
-    before = WORK / "previews" / f"{request}-before.png"
-    after = WORK / "previews" / f"{request}-after.png"
-    before_lod1 = WORK / "previews" / f"{request}-before-lod1.png"
-    after_lod1 = WORK / "previews" / f"{request}-after-lod1.png"
+def ensure_previews(job: Path, preview_key: str, blender: Path) -> dict[str, str]:
+    before = WORK / "previews" / f"{preview_key}-before.png"
+    after = WORK / "previews" / f"{preview_key}-after.png"
+    before_lod1 = WORK / "previews" / f"{preview_key}-before-lod1.png"
+    after_lod1 = WORK / "previews" / f"{preview_key}-after-lod1.png"
     inputs = (
         (job / "decoded.glb", before, "preview-before.log", 0),
         (job / "cleaned.raw.glb", after, "preview-after.log", 0),
@@ -222,6 +291,7 @@ def process(entry: dict, force: bool) -> dict:
     job = WORK / "jobs" / key
     candidate = WORK / "candidates" / rel
     final_report = WORK / "reports" / f"{key}.json"
+    preview_key = key if request == "M-092" else request
     source = MODEL_DIR / rel
     if request in FUNCTIONAL_PIVOT_REQUESTS:
         if candidate.exists():
@@ -243,7 +313,7 @@ def process(entry: dict, force: bool) -> dict:
         if report.get("status") == "passed":
             _, blender = tools()
             report["manifest_bounds_review"] = manifest_bounds_review(entry, report["blender"])
-            report["previews"] = ensure_previews(job, request, blender)
+            report["previews"] = ensure_previews(job, preview_key, blender)
             final_report.write_text(json.dumps(report, indent=2) + "\n")
         return report
     if job.exists():
@@ -258,7 +328,10 @@ def process(entry: dict, force: bool) -> dict:
     contract["source_nodes"] = len(source_doc.get("nodes", []))
     contract["source_images"] = len(source_doc.get("images", []))
     contract["source_animations"] = len(source_doc.get("animations", []))
+    contract["compressed_source_triangles"] = triangle_counts_by_lod(source_doc)
+    contract["import_triangle_exception"] = IMPORT_TRIANGLE_EXCEPTIONS.get(request)
     contract["preserve_source_textures"] = request in PRESERVE_SOURCE_TEXTURE_REQUESTS
+    contract["jpeg_emission"] = request in JPEG_EMISSION_REQUESTS
     (job / "contract.json").write_text(json.dumps(contract, indent=2) + "\n")
     started = time.time()
     stage = "decode"
@@ -272,6 +345,12 @@ def process(entry: dict, force: bool) -> dict:
         decoded_doc = glb_json(decoded)
         if len(decoded_doc.get("nodes", [])) != contract["source_nodes"]:
             raise RuntimeError(f"decode changed node count {contract['source_nodes']} -> {len(decoded_doc.get('nodes', []))}")
+        decoded_triangles = triangle_counts_by_lod(decoded_doc)
+        if decoded_triangles != contract["compressed_source_triangles"]:
+            raise RuntimeError(
+                "decode changed authored triangle counts "
+                f"{contract['compressed_source_triangles']} -> {decoded_triangles}"
+            )
         stage = "blender"
         blender_args = [
             str(blender), "--background", "--python", str(HERE / "tier_a_cleanup.py"), "--",
@@ -327,7 +406,7 @@ def process(entry: dict, force: bool) -> dict:
             "blender": blender_report,
             "seconds": round(time.time() - started, 1),
         }
-        report["previews"] = ensure_previews(job, request, blender)
+        report["previews"] = ensure_previews(job, preview_key, blender)
     except Exception as error:
         if candidate.exists():
             candidate.unlink()

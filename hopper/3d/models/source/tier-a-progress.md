@@ -60,11 +60,16 @@ this runner never edits production GLBs or `manifest.json` itself.
   materials instead of receiving a redundant atlas. This applies to the
   silhouette landmarks; the two-image rule is an upper bound there, and adding
   a 2048 atlas made the first M-083 trial 4.6 times larger than its source.
-- Opaque generated albedo atlases use JPEG quality 92 while emission remains
-  PNG. M-036 is an explicit quality exception: its original three painted
+- Opaque generated albedo atlases use JPEG quality 92. M-061 also stores its
+  opaque 2048 emission atlas as quality-92 JPEG, cutting the atlas below its
+  size cap without lowering resolution. M-036 is an explicit quality
+  exception: its original three painted
   images and materials are retained because one atlas erased the visible slate
   courses. The source-texture path still merges meshes by material and applies
   conservative geometry cleanup.
+- The static runner rejects M-059, M-060, M-064, and M-066 from source-design
+  evidence even though their current GLBs contain no clips. Their falling,
+  drifting, orbiting, or animated-arrow pivots need a separate rigid cleanup.
 
 ## Integrated landmarks
 
@@ -184,7 +189,7 @@ terrain files. All currently contain zero glTF animations and declare zero
 clips, but the design source still identifies rigid or procedurally animated
 pivots that a GLB-only animation check cannot see.
 
-The first true-static visual gate is ready in isolated candidates:
+Root reviewed and integrated the first true-static visual gate in `4c0bc91`:
 
 - M-057 Coral spire: 1,866,472 to 113,552 bytes (93.9% reduction), unchanged
   148 / 32 triangles, exact decoded bounds, and `Landing.0` moved less than
@@ -198,10 +203,40 @@ Their review sheets are
 `local/hopper-tier-a/previews/alien-static-first-two-lod0-contact.png` and
 `local/hopper-tier-a/previews/alien-static-first-two-lod1-contact.png`.
 
-Six more alien-kit files are eligible for the same static path after this gate:
-M-056 Ivory rib arch, M-061 Root pillar, M-062 Dust current, M-063 Obsidian
-arch, M-065 Gravity cathedral facade, and M-067 Eclipse dais. Their sockets and
-landings remain part of the exact transform and raycast contracts.
+Root reviewed and integrated M-062 Dust current, M-063 Obsidian arch, and M-065
+Gravity cathedral facade in `d0b9106`. M-062 retains translucent `BLEND`, 0.25
+alpha, double-sided material semantics and exact FlowStart/FlowEnd positions.
+M-063 retains CeilingLane and Landing.0 exactly. M-065 retains ArenaCenter and
+both landings exactly. Their candidates are 3,832, 97,112, and 357,256 bytes,
+respectively, with unchanged source triangle counts at both LODs.
+
+M-061 Root pillar is ready for review at 1,202,560 bytes, down 68.8%. Its 2048
+albedo and emission atlases are JPEG quality 92, and both LOD renders preserve
+the reef strands and four shelves. Triangles remain 212 / 48, exact bounds are
+unchanged, all four landing raycasts pass, and socket drift stays below
+0.000007 m. The review sheets are `alien-static-M061-lod0-contact.png` and
+`alien-static-M061-lod1-contact.png` under the local preview directory.
+
+M-067 Eclipse dais is ready for renewed review after the shared atlas made its
+LOD1 emissive ring too faint. The rebuilt candidate retains both source images,
+materials, and UVs; both LOD rings now match the source. It is 3,179,428 bytes,
+down 0.2%, and reduces five meshes to four while preserving exact bounds and
+all seven landing transforms/raycasts. The original compressed GLB and the
+`gltfpack` decoded GLB both contain 648 / 124 authored triangles. Two LOD1.Circle
+faces are exact coincident geometric duplicates (source triangle pairs 0/1 and
+40/41, with no zero-area triangles); Blender removes those faces during import,
+so the reviewed candidate deliberately contains 648 / 122. Root accepted this
+specific cleanup after both-LOD visual comparison. The runner now rejects any
+compressed-source/import triangle change except this documented M-067 delta,
+and records the source count, imported count, delta, and duplicate-face evidence
+in `local/hopper-tier-a/reports/M-067-eclipseDais.json` under
+`blender.import_topology`. The manifest should change to 122 only when this
+reviewed candidate is integrated.
+
+M-056 Ivory rib arch remains blocked. Its unchanged source geometry already
+fails `Landing.0`: the authored crown socket at y=26.5 sits inside the central
+rib and has no downward landing face within 0.5 m. The static runner does not
+relax that gameplay contract.
 
 Four alien-kit files are blocked from static flattening and recorded in
 `FUNCTIONAL_PIVOT_REQUESTS`: M-059 Coral bridge has three independently falling
@@ -211,10 +246,22 @@ pivots. M-066's exploratory static candidate was discarded after this source
 behavior audit. These four require a separately reviewed rigid/pivot-preserving
 cleanup path even though their current GLBs contain no animation clips.
 
-The three M-092 files are `terrain/fields.glb`, `terrain/city.glb`, and
-`terrain/mountains.glb`. They use the terrain bake-only branch, which requires
-one mesh per LOD and skips material merge and weld. Because all three share the
-same request ID, invoke them by file path in separate bounded runs.
+The three M-092 terrain candidates are ready for review. The first fields atlas
+trial introduced dark LOD1 seams and was discarded. All three now retain their
+source texture, material, and UVs through the terrain bake-only branch, which
+requires one mesh per LOD and skips material merge and weld:
+
+| File | Candidate bytes | Reduction | LOD0 / LOD1 triangles |
+| --- | ---: | ---: | ---: |
+| `terrain/fields.glb` | 2,382,564 | 9.3% | 59,858 / 2,518 |
+| `terrain/city.glb` | 1,949,752 | 10.8% | 59,858 / 2,518 |
+| `terrain/mountains.glb` | 2,411,588 | 9.4% | 59,858 / 2,519 |
+
+Exact decoded bounds are unchanged for every LOD. M-092 preview keys now append
+the terrain stem so the shared request ID cannot overwrite another terrain's
+renders. Review files are `M-092-fields-lod0-contact.png`,
+`M-092-fields-lod1-contact.png`, `terrain-city-mountains-lod0-contact.png`, and
+`terrain-city-mountains-lod1-contact.png` under the local preview directory.
 
 ## Resume
 
@@ -229,10 +276,10 @@ python3 hopper/3d/models/source/tier_a_batch.py M-056
 Use `--force` only to rebuild a completed/failed job after changing the cleanup
 scripts. A normal rerun reuses already-passed reports.
 
-Current next static batch after the first-pair review:
+Current blocked diagnostic:
 
 ```sh
-python3 hopper/3d/models/source/tier_a_batch.py M-056 M-061
+python3 hopper/3d/models/source/tier_a_batch.py M-056 --force
 ```
 
 Do not integrate a rebuilt candidate without regenerating and inspecting both

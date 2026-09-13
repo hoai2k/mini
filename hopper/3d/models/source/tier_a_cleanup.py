@@ -511,23 +511,35 @@ def replace_material_textures(
         links.new(shader.outputs["BSDF"], output.inputs["Surface"])
 
 
-def bake_atlas(lod0: list[bpy.types.Object], lod1: list[bpy.types.Object], size: int, atlas_dir: Path, stem: str) -> dict:
+def bake_atlas(
+    lod0: list[bpy.types.Object],
+    lod1: list[bpy.types.Object],
+    size: int,
+    atlas_dir: Path,
+    stem: str,
+    jpeg_emission: bool = False,
+) -> dict:
     source_uvs = pin_implicit_source_uv(lod0)
     ensure_atlas_uv(lod0)
     materials = sorted({slot.material for obj in lod0 for slot in obj.material_slots if slot.material}, key=lambda m: m.name)
     has_emission = {material.name: material_has_emission(material) for material in materials}
     albedo = bpy.data.images.new(f"{stem}.albedo", width=size, height=size, alpha=False)
     emission = bpy.data.images.new(f"{stem}.emission", width=size, height=size, alpha=False)
+    emission_format = "JPEG" if jpeg_emission else "PNG"
+    emission_extension = "jpg" if jpeg_emission else "png"
     albedo.file_format = "JPEG"
-    emission.file_format = "PNG"
+    emission.file_format = emission_format
     albedo.filepath_raw = str(atlas_dir / f"{stem}.albedo.jpg")
-    emission.filepath_raw = str(atlas_dir / f"{stem}.emission.png")
+    emission.filepath_raw = str(atlas_dir / f"{stem}.emission.{emission_extension}")
     bpy.context.scene.render.image_settings.file_format = "JPEG"
     bpy.context.scene.render.image_settings.quality = 92
     bake(lod0, materials, albedo, "DIFFUSE")
     albedo.save_render(albedo.filepath_raw, scene=bpy.context.scene)
-    bpy.context.scene.render.image_settings.file_format = "PNG"
-    bpy.context.scene.render.image_settings.compression = 100
+    bpy.context.scene.render.image_settings.file_format = emission_format
+    if jpeg_emission:
+        bpy.context.scene.render.image_settings.quality = 92
+    else:
+        bpy.context.scene.render.image_settings.compression = 100
     bake(lod0, materials, emission, "EMIT")
     emission.save_render(emission.filepath_raw, scene=bpy.context.scene)
     transfers = transfer_lod1_uvs(lod0, lod1)
@@ -541,6 +553,7 @@ def bake_atlas(lod0: list[bpy.types.Object], lod1: list[bpy.types.Object], size:
             bpy.data.images.remove(image)
     return {
         "size": size,
+        "image_formats": {"albedo": "JPEG", "emission": emission_format},
         "materials": [m.name for m in materials],
         "emissive_materials": [name for name, active in has_emission.items() if active],
         "uv_transfers": transfers,
@@ -569,6 +582,28 @@ def assert_mechanical_invariants(before: dict, after: dict) -> None:
                 die(f"LOD{level} {'XYZ'[axis]} bound changed {source:.6f} -> {candidate:.6f} m")
 
 
+def assert_import_topology(contract: dict, imported: dict) -> dict:
+    source = {str(level): int(count) for level, count in contract["compressed_source_triangles"].items()}
+    imported_triangles = {str(level): int(count) for level, count in imported["triangles"].items()}
+    delta = {level: imported_triangles[level] - source[level] for level in ("0", "1")}
+    exception = contract.get("import_triangle_exception")
+    expected_delta = (
+        {str(level): int(count) for level, count in exception["delta"].items()}
+        if exception else {"0": 0, "1": 0}
+    )
+    if delta != expected_delta:
+        die(
+            "Blender import changed compressed-source triangle counts without the reviewed exception: "
+            f"source={source}, imported={imported_triangles}, delta={delta}, expected={expected_delta}"
+        )
+    return {
+        "compressed_source_triangles": source,
+        "blender_imported_triangles": imported_triangles,
+        "delta": delta,
+        "accepted_exception": exception,
+    }
+
+
 def main() -> None:
     args = parse_args()
     contract = json.loads(Path(args.contract).read_text())
@@ -588,6 +623,7 @@ def main() -> None:
             die(f"expected one LOD{level} root, found {[o.name for o in matches]}")
         root_by_lod[level] = matches[0]
     before = snapshot(root_by_lod, contract)
+    import_topology = assert_import_topology(contract, before)
     expected_nodes = int(contract["source_nodes"])
     if before["objects"] != expected_nodes:
         die(f"decoded import has {before['objects']} objects; validator reported {expected_nodes} nodes")
@@ -622,7 +658,14 @@ def main() -> None:
         }
     else:
         atlas_size = 2048 if max(contract["bounds"]) > 120 else 1024
-        atlas = bake_atlas(lod_meshes[0], lod_meshes[1], atlas_size, Path(args.atlas_dir), Path(args.output).stem)
+        atlas = bake_atlas(
+            lod_meshes[0],
+            lod_meshes[1],
+            atlas_size,
+            Path(args.atlas_dir),
+            Path(args.output).stem,
+            jpeg_emission=bool(contract.get("jpeg_emission")),
+        )
     after = snapshot(root_by_lod, contract)
     assert_mechanical_invariants(before, after)
 
@@ -653,6 +696,7 @@ def main() -> None:
         "file": contract["file"],
         "before": before,
         "after": after,
+        "import_topology": import_topology,
         "operations": operations,
         "landing_checks": landing_checks,
         "atlas": atlas,
