@@ -18,7 +18,7 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-episode3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'boss3d', 'engine3d', 'route', 'scenery', 'preload', 'textures3d', 'models3d', 'trail', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'engine3d', 'route', 'scenery', 'preload', 'textures3d', 'models3d', 'trail', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 // The renderer needs a DOM; the engine only calls a handful of its methods.
 fs.writeFileSync(

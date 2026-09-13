@@ -55,7 +55,7 @@ import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, cell, cellPlane, cellSprite, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
 import { standInKey, swapDelivered, type Swapped } from './models3d';
 import { buildTrail } from './trail';
-import type { RookRuntime } from './boss3d';
+import type { CommanderRuntime, RookRuntime } from './boss3d';
 
 interface Effect {
   object: Object3D;
@@ -132,7 +132,9 @@ export class Scene3D {
   private atlases: AtlasSprite[] = [];
   private delivered: Swapped[] = [];
   private bossObject: Object3D | null = null;
-  private bossRook: RookRuntime | null = null;
+  private bossRook: CommanderRuntime | null = null;
+  private readonly markObjects: Mesh[] = [];
+  private readonly markMaterial = new MeshBasicMaterial({ color: '#ffb454', transparent: true, opacity: 0.5, depthWrite: false, side: DoubleSide });
   private bossWings: Object3D[] = [];
   private corridor: Mesh | null = null;
   private buildVersion = 0;
@@ -245,7 +247,7 @@ export class Scene3D {
     this.actionName = name;
   }
   /** Build the picture of a district: atmosphere, terrain, structures, shadows. */
-  buildWorld(world: World, shadows: Shadow[], rook: RookRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }, next?: { world: World; offset: [number, number, number] }) {
+  buildWorld(world: World, shadows: Shadow[], rook: CommanderRuntime | null = null, ahead?: { sky: string; haze: string; ground: string }, next?: { world: World; offset: [number, number, number] }) {
     this.scene.remove(this.worldGroup);
     this.worldGroup = new Group();
     this.scene.add(this.worldGroup);
@@ -398,8 +400,8 @@ export class Scene3D {
     void paintKit(group, region.id);
     return group;
   }
-  /** Attach (or drop) the Night Rook's stand-in body. Stand-in art: the boss has no delivered model yet. */
-  setBoss(rook: RookRuntime | null) {
+  /** Attach (or drop) a commander's stand-in body. Stand-in art: no commander has a delivered model yet. */
+  setBoss(rook: CommanderRuntime | null) {
     if (this.bossObject) {
       this.worldGroup.remove(this.bossObject);
       this.bossObject = null;
@@ -410,8 +412,10 @@ export class Scene3D {
     }
     this.bossRook = rook;
     this.bossWings = [];
+    for (const m of this.markObjects) this.worldGroup.remove(m);
+    this.markObjects.length = 0;
     if (!rook) return;
-    const o = createStandIn('boss.nightRook');
+    const o = createStandIn(`boss.${rook.kind}`);
     delete o.userData.animate;
     for (const side of ['L', 'R']) {
       const w = node(o, `Wing.${side}`);
@@ -436,6 +440,53 @@ export class Scene3D {
     this.worldGroup.add(this.corridor);
     void paintShadows([o]);
   }
+  /** A commander's telegraphs, drawn from its own list: rings on the ground,
+   * discs, spheres at cores and lines between points. One pool of meshes,
+   * reshaped each frame, so a new commander needs no renderer work. */
+  private syncMarks(r: CommanderRuntime) {
+    const marks = r.alive ? r.marks : [];
+    while (this.markObjects.length < marks.length) {
+      const m = new Mesh(new TorusGeometry(1, 0.06, 6, 40), this.markMaterial.clone());
+      this.worldGroup.add(m);
+      this.markObjects.push(m);
+    }
+    for (const [i, m] of this.markObjects.entries()) {
+      const mark = marks[i];
+      m.visible = !!mark;
+      if (!mark) continue;
+      const shape = m.userData.shape as string | undefined;
+      if (shape !== mark.shape) {
+        m.geometry.dispose();
+        m.geometry = mark.shape === 'ring' ? new TorusGeometry(1, 0.06, 6, 40) : mark.shape === 'disc' ? new CylinderGeometry(1, 1, 0.2, 32) : mark.shape === 'sphere' ? new SphereGeometry(1, 12, 8) : new CylinderGeometry(0.5, 0.5, 1, 8, 1, true);
+        m.userData.shape = mark.shape;
+      }
+      const mat = m.material as MeshBasicMaterial;
+      mat.color.set(mark.color);
+      mat.opacity = mark.alpha;
+      m.rotation.set(mark.shape === 'ring' ? Math.PI / 2 : 0, 0, 0);
+      if (mark.shape === 'line' && mark.x2 !== undefined) {
+        const a = new Vector3(mark.x, mark.y, mark.z),
+          b = new Vector3(mark.x2, mark.y2 ?? mark.y, mark.z2 ?? mark.z);
+        m.position.copy(a).lerp(b, 0.5);
+        m.scale.set(mark.r, Math.max(1, a.distanceTo(b)), mark.r);
+        m.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), b.clone().sub(a).normalize());
+      } else {
+        m.position.set(mark.x, mark.y, mark.z);
+        m.scale.setScalar(mark.r);
+      }
+    }
+  }
+  /** A chain commander: its stand-in's segments are laid along the runtime's positions. */
+  private syncSegments(r: CommanderRuntime, o: Object3D) {
+    if (!r.segments) return;
+    for (const [i, p] of r.segments.entries()) {
+      const seg = o.getObjectByName(`Segment${i}`);
+      if (!seg) continue;
+      seg.position.set(p[0] - r.x, p[1] - r.y, p[2] - r.z);
+      const next = r.segments[i + 1] ?? r.segments[i - 1];
+      if (next) seg.lookAt(next[0] - r.x + o.position.x, next[1] - r.y + o.position.y, next[2] - r.z + o.position.z);
+    }
+  }
   private syncBoss(dt: number) {
     const r = this.bossRook,
       o = this.bossObject;
@@ -455,9 +506,13 @@ export class Scene3D {
       (tell.material as MeshBasicMaterial).color.set(r.open > 0 ? '#f3e7c8' : r.state === 'channel' ? '#8a4bd8' : '#ffb454');
       tell.scale.setScalar(r.state === 'mark' || r.state === 'fan' ? 1.6 - r.telegraph * 0.6 : 0.9 + Math.sin(this.time * 12) * 0.1);
     }
+    this.syncMarks(r);
+    this.syncSegments(r, o);
+    if (r.kind !== 'nightRook') return;
+    const rook = r as RookRuntime;
     // Wings: the runtime's spread plus a slow beat while airborne.
     const beat = r.state === 'sweep' || r.state === 'climb' ? Math.sin(this.time * 9) * 0.35 : Math.sin(this.time * 1.6) * 0.12;
-    for (const [i, w] of this.bossWings.entries()) w.rotation.z = (i ? -1 : 1) * (0.15 + r.wingSpread * 0.9 + beat);
+    for (const [i, w] of this.bossWings.entries()) w.rotation.z = (i ? -1 : 1) * (0.15 + rook.wingSpread * 0.9 + beat);
     const pitch = r.state === 'sweep' ? -0.35 : r.state === 'climb' ? 0.4 : 0;
     o.rotation.x += (pitch - o.rotation.x) * Math.min(1, dt * 5);
     // The marked sweep corridor: a red tube from the perch to the far rim.
@@ -465,8 +520,8 @@ export class Scene3D {
       const show = r.state === 'mark';
       this.corridor.visible = show;
       if (show) {
-        const a = new Vector3(...r.markFrom),
-          b = new Vector3(...r.markTo);
+        const a = new Vector3(...rook.markFrom),
+          b = new Vector3(...rook.markTo);
         const len = Math.max(1, a.distanceTo(b));
         this.corridor.position.copy(a).lerp(b, 0.5);
         this.corridor.scale.set(1, len, 1);

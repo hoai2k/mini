@@ -194,7 +194,8 @@ export class World {
     for (const st of district.strongholds || []) this.placeStronghold(st, st.id);
     if (district.boss) {
       const b = district.boss;
-      this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss', name: 'The Night Rook' });
+      const names = { nightRook: 'The Night Rook', smelterLeviathan: 'The Smelter Leviathan', eclipseRegent: 'The Eclipse Regent' };
+      this.fields.push({ id: 'boss', x: b.x, y: this.heightAt(b.x, b.z) + b.y, z: b.z, r: b.r, active: false, cleared: false, group: 'boss', name: names[b.kind] });
     }
   }
   /** A caged signal: the cage and its prize, locked until the bars are broken. */

@@ -11,7 +11,26 @@ import type { BossSpec } from './district';
 
 export type RookState = 'sleep' | 'perch' | 'mark' | 'sweep' | 'climb' | 'fan' | 'land' | 'channel' | 'burst' | 'summon' | 'dead';
 
-export interface RookRuntime {
+export type CommanderKind = BossSpec['kind'];
+/** A telegraph the renderer draws for a commander: a ring on the ground, a
+ * disc, a sphere at a core, a line between two points. Kind-agnostic, so a
+ * new commander needs no renderer work to show its tells. */
+export interface Mark {
+  shape: 'ring' | 'disc' | 'sphere' | 'line';
+  x: number;
+  y: number;
+  z: number;
+  r: number;
+  x2?: number;
+  y2?: number;
+  z2?: number;
+  color: string;
+  alpha: number;
+}
+/** What every commander's runtime has: the engine, the HUD and the camera
+ * read only these. Kind-specific fields ride alongside. */
+export interface CommanderRuntime {
+  kind: CommanderKind;
   x: number;
   y: number;
   z: number;
@@ -22,7 +41,7 @@ export interface RookRuntime {
   hp: number;
   maxHp: number;
   phase: 1 | 2 | 3;
-  state: RookState;
+  state: string;
   timer: number;
   telegraph: number;
   /** Seconds the core stays open. */
@@ -30,6 +49,37 @@ export interface RookRuntime {
   hitFlash: number;
   alive: boolean;
   active: boolean;
+  radius: number;
+  height: number;
+  /** Telegraphs to draw this frame. */
+  marks: Mark[];
+  /** A chain commander's body: world positions the renderer lays its segments along. */
+  segments?: [number, number, number][];
+  /** The arena's gravity this frame, as a multiplier on the district's. */
+  gravity: number;
+}
+export interface Commander {
+  readonly kind: CommanderKind;
+  /** HUD name, banner title and the banner line when it falls. */
+  readonly name: string;
+  readonly title: string;
+  readonly won: string;
+  readonly runtime: CommanderRuntime;
+  target(): Shadow;
+  wake(cb: CombatCallbacks): void;
+  tell(): string;
+  update(dt: number, h: HopperState, combat: Combat, cb: CombatCallbacks): void;
+}
+/** The names the banners and the HUD use for each commander. */
+export const COMMANDER_NAMES: Record<CommanderKind, { name: string; title: string; won: string }> = {
+  nightRook: { name: 'Night Rook', title: 'The Night Rook', won: 'THE TRANSMITTER IS YOURS' },
+  smelterLeviathan: { name: 'Smelter Leviathan', title: 'The Smelter Leviathan', won: 'THE STAR GATE OPENS' },
+  eclipseRegent: { name: 'Eclipse Regent', title: 'The Eclipse Regent', won: 'THE SUN COMES BACK' },
+};
+
+export interface RookRuntime extends CommanderRuntime {
+  kind: 'nightRook';
+  state: RookState;
   wingSpread: number;
   /** The marked corridor for a sweep. */
   markFrom: [number, number, number];
@@ -37,8 +87,6 @@ export interface RookRuntime {
   perchIndex: number;
   cycles: number;
   summoned: string[];
-  radius: number;
-  height: number;
   /** Ids Hopper's current kick has already struck. */
   kickHit: boolean;
   laserHits: Set<number>;
@@ -55,8 +103,15 @@ export const ROOK = {
   contactDamage: 2,
 };
 
-export class NightRook {
+export class NightRook implements Commander {
+  readonly kind = 'nightRook' as const;
+  readonly name = COMMANDER_NAMES.nightRook.name;
+  readonly title = COMMANDER_NAMES.nightRook.title;
+  readonly won = COMMANDER_NAMES.nightRook.won;
   rook: RookRuntime;
+  get runtime(): RookRuntime {
+    return this.rook;
+  }
   /** The three places it hangs between attacks; the tests read them. */
   readonly perches: [number, number, number][];
   private centre: [number, number, number];
@@ -72,7 +127,7 @@ export class NightRook {
       [spec.x - spec.r * 0.5, ground + 70, spec.z - spec.r * 0.35],
     ];
     this.rook = {
-      x: this.perches[0][0], y: this.perches[0][1], z: this.perches[0][2], vx: 0, vy: 0, vz: 0, yaw: Math.PI, hp: ROOK.hp, maxHp: ROOK.hp, phase: 1, state: 'sleep', timer: 0, telegraph: 0, open: 0, hitFlash: 0, alive: true, active: false, wingSpread: 0.3, markFrom: [0, 0, 0], markTo: [0, 0, 0], perchIndex: 0, cycles: 0, summoned: [], radius: 9, height: 16, kickHit: false, laserHits: new Set(),
+      kind: 'nightRook', x: this.perches[0][0], y: this.perches[0][1], z: this.perches[0][2], vx: 0, vy: 0, vz: 0, yaw: Math.PI, hp: ROOK.hp, maxHp: ROOK.hp, phase: 1, state: 'sleep', timer: 0, telegraph: 0, open: 0, hitFlash: 0, alive: true, active: false, wingSpread: 0.3, markFrom: [0, 0, 0], markTo: [0, 0, 0], perchIndex: 0, cycles: 0, summoned: [], radius: 9, height: 16, kickHit: false, laserHits: new Set(), marks: [], gravity: 1,
     };
   }
   /** The commander as an aim target: one object, kept in step with the

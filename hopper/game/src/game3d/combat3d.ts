@@ -546,9 +546,9 @@ export class Combat {
           this.damage(s, 4, cb, nx * 22, nz * 22);
           // A kind with its own answer to a kick (a wasp stalls, a choir
           // staggers its fellows) is not then knocked into recover as well.
-          const hook = BEHAVIOURS[s.kind]?.onKick;
-          if (s.alive && hook) {
-            hook(this.context(s, h, cb, dt));
+          const behaviour = BEHAVIOURS[s.kind];
+          if (s.alive && behaviour?.onKick) {
+            behaviour.onKick(this.context(s, h, cb, dt));
             continue;
           }
           if (s.alive && s.state === 'tell') {
