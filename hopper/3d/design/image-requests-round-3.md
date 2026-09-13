@@ -1,19 +1,19 @@
 # Image requests · round three: after integrating round one
 
-Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one optional quality pass. Nothing here replaces a delivered file except the optional sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.
+Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one quality pass. Nothing here replaces a delivered file except the sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.
 
-**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.
+**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open, and are no longer conditional: the 4K review ran, the softness is measurable, and what they ask for is native detail at 4096x2048 rather than a larger file.
 
-**Verification: all ten assets pass.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The six surface albedo/detail files and repaired foam strip have zero measured seams, both atlases meet their cell padding, and the light landing guide matches the dark guide geometry. Optional T-083..085 skies remain open because the native-4K requirement was not met.
+**Verification: all ten assets pass.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The six surface albedo/detail files and repaired foam strip have zero measured seams, both atlases meet their cell padding, and the light landing guide matches the dark guide geometry. T-083..085 remain open on the native-detail rule: the delivered skies lose under one grey level RMS when halved and re-expanded, which is how an upscale measures, and the repaints must clear 3.0.
 
 | Request | Why | Priority |
 | --- | --- | --- |
 | T-080 Soft-landing surfaces: sea, drift dust, slag | The design makes every district floor a return to play: water and dust push Hopper back ashore, slag lifts him out. | before the region that needs it |
 | T-081 Landing guide, light variant | The delivered guide is dark navy, right for the fields and the city; on the obsidian, slag and reef floors of later regions it disappears. | any time |
 | T-082 Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail | Round one covered impacts and sparks; Hopper's own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. | any time |
-| T-083 Sky repaint at native 4K: Sunseed Fields | Optional. | optional |
-| T-084 Sky repaint at native 4K: Crownline City | Optional. | optional |
-| T-085 Sky repaint at native 4K: Thunderhead Range | Optional. | optional |
+| T-083 Sky repaint with native 4K detail: Sunseed Fields | The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. | quality pass, before any 4K polish |
+| T-084 Sky repaint with native 4K detail: Crownline City | The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. | quality pass, before any 4K polish |
+| T-085 Sky repaint with native 4K detail: Thunderhead Range | The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. | quality pass, before any 4K polish |
 | T-086 Checkpoint totem and spring pad decals | Small painted faces for the props the player reads at a glance. | any time |
 
 ## The requests
@@ -48,29 +48,29 @@ Round one covered impacts and sparks; Hopper's own attacks still use flat shapes
 - **Verification:** Passes: all twelve occupied cells clear the 48px padding requirement (minimum 53px); row four remains intentionally empty. Existing native painted cells were uniformly scaled to 0.8327, which creates no new detail.
 - **Prompt:** Use case: effect sprites. 1970s anime cel effects on transparent background: a red-white eye laser bolt with a bright core and ink edge, an eight-frame eye muzzle glow, a teal hexagon-patterned shield face with a white rim, and a soft cream glide wing trail. Flat tones, no text.
 
-### T-083 · Sky repaint at native 4K: Sunseed Fields
+### T-083 · Sky repaint with native 4K detail: Sunseed Fields
 
-Optional. The delivered Sunseed Fields sky is painted at 1774×887 and upscaled; it reads well at 1080p but softens when the camera looks up at 4K. Only worth doing for the three mission-one skies the player sees most, and only if the softness shows in review.
+The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. The delivered Sunseed Fields sky is a 4096x2048 file upscaled from a 1774x887 painting, and it measures like one - halving it and re-expanding costs under one grey level RMS, so there is no detail above roughly half its stated width. The dome gives about 11 px per degree at 4096 wide and the painting behind it only 3-6; a 4K frame wants about 42 (3840 px across the 91 degree horizontal FOV), so the sky is magnified several times over wherever the camera looks up. A repaint at the same 4096x2048 with real detail is worth 2-4x the effective sharpness at no runtime cost; a bigger file that is still an upscale is worth nothing. If native 4K is genuinely out of reach, deliver a high-detail horizon strip over the procedural gradient instead, because the painted dome only carries the top fifth of a gameplay frame and the rest is hazed out.
 
-- **Spec:** 4096×2048 native (not upscaled) equirectangular painting, same composition and sun position as the delivered sky
+- **Spec:** 4096×2048 equirectangular painting carrying real detail at that size - no upscale of a smaller painting - same composition and sun position as the delivered sky; must clear 3.0 RMS in `source/verify_native_detail.py`
 - **Status:** open · **Final:** `textures/sky/fields-hd.jpg`
-- **Prompt:** Use case: environment. Repaint the attached sky at the highest native resolution available, keeping its composition, cloud shapes and sun position exactly: honey morning light, huge cumulus, sun low in the east, apricot haze band. 1970s anime gouache, brushed clouds, flat colour fields, no text.
+- **Prompt:** Use case: environment. Repaint the attached sky so that every cloud edge and brush mark is painted at 4096x2048 itself, never upscaled or super-resolved from a smaller render, keeping its composition, cloud shapes and sun position exactly: honey morning light, huge cumulus, sun low in the east, apricot haze band. 1970s anime gouache, brushed clouds, flat colour fields, no text.
 
-### T-084 · Sky repaint at native 4K: Crownline City
+### T-084 · Sky repaint with native 4K detail: Crownline City
 
-Optional. The delivered Crownline City sky is painted at 1774×887 and upscaled; it reads well at 1080p but softens when the camera looks up at 4K. Only worth doing for the three mission-one skies the player sees most, and only if the softness shows in review.
+The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. The delivered Crownline City sky is a 4096x2048 file upscaled from a 1774x887 painting, and it measures like one - halving it and re-expanding costs under one grey level RMS, so there is no detail above roughly half its stated width. The dome gives about 11 px per degree at 4096 wide and the painting behind it only 3-6; a 4K frame wants about 42 (3840 px across the 91 degree horizontal FOV), so the sky is magnified several times over wherever the camera looks up. A repaint at the same 4096x2048 with real detail is worth 2-4x the effective sharpness at no runtime cost; a bigger file that is still an upscale is worth nothing. If native 4K is genuinely out of reach, deliver a high-detail horizon strip over the procedural gradient instead, because the painted dome only carries the top fifth of a gameplay frame and the rest is hazed out.
 
-- **Spec:** 4096×2048 native (not upscaled) equirectangular painting, same composition and sun position as the delivered sky
+- **Spec:** 4096×2048 equirectangular painting carrying real detail at that size - no upscale of a smaller painting - same composition and sun position as the delivered sky; must clear 3.0 RMS in `source/verify_native_detail.py`
 - **Status:** open · **Final:** `textures/sky/city-hd.jpg`
-- **Prompt:** Use case: environment. Repaint the attached sky at the highest native resolution available, keeping its composition, cloud shapes and sun position exactly: golden sunset, long cloud streaks, warm pink haze. 1970s anime gouache, brushed clouds, flat colour fields, no text.
+- **Prompt:** Use case: environment. Repaint the attached sky so that every cloud edge and brush mark is painted at 4096x2048 itself, never upscaled or super-resolved from a smaller render, keeping its composition, cloud shapes and sun position exactly: golden sunset, long cloud streaks, warm pink haze. 1970s anime gouache, brushed clouds, flat colour fields, no text.
 
-### T-085 · Sky repaint at native 4K: Thunderhead Range
+### T-085 · Sky repaint with native 4K detail: Thunderhead Range
 
-Optional. The delivered Thunderhead Range sky is painted at 1774×887 and upscaled; it reads well at 1080p but softens when the camera looks up at 4K. Only worth doing for the three mission-one skies the player sees most, and only if the softness shows in review.
+The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. The delivered Thunderhead Range sky is a 4096x2048 file upscaled from a 1774x887 painting, and it measures like one - halving it and re-expanding costs under one grey level RMS, so there is no detail above roughly half its stated width. The dome gives about 11 px per degree at 4096 wide and the painting behind it only 3-6; a 4K frame wants about 42 (3840 px across the 91 degree horizontal FOV), so the sky is magnified several times over wherever the camera looks up. A repaint at the same 4096x2048 with real detail is worth 2-4x the effective sharpness at no runtime cost; a bigger file that is still an upscale is worth nothing. If native 4K is genuinely out of reach, deliver a high-detail horizon strip over the procedural gradient instead, because the painted dome only carries the top fifth of a gameplay frame and the rest is hazed out.
 
-- **Spec:** 4096×2048 native (not upscaled) equirectangular painting, same composition and sun position as the delivered sky
+- **Spec:** 4096×2048 equirectangular painting carrying real detail at that size - no upscale of a smaller painting - same composition and sun position as the delivered sky; must clear 3.0 RMS in `source/verify_native_detail.py`
 - **Status:** open · **Final:** `textures/sky/mountains-hd.jpg`
-- **Prompt:** Use case: environment. Repaint the attached sky at the highest native resolution available, keeping its composition, cloud shapes and sun position exactly: slate grey storm sky, apricot clouds, an eclipse beginning above the summit. 1970s anime gouache, brushed clouds, flat colour fields, no text.
+- **Prompt:** Use case: environment. Repaint the attached sky so that every cloud edge and brush mark is painted at 4096x2048 itself, never upscaled or super-resolved from a smaller render, keeping its composition, cloud shapes and sun position exactly: slate grey storm sky, apricot clouds, an eclipse beginning above the summit. 1970s anime gouache, brushed clouds, flat colour fields, no text.
 
 ### T-086 · Checkpoint totem and spring pad decals
 

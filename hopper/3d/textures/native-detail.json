@@ -1,0 +1,19 @@
+{
+  "checkedAt": "2026-09-13",
+  "check": "RMS grey-level cost of halving and re-expanding; an upscale loses almost nothing",
+  "skyLimit": 3.0,
+  "skiesOnly": "only skies are failed; elsewhere flat art scores low by style",
+  "failures": [],
+  "results": {
+    "horizon/fields-0-0.png": {
+      "size": [
+        4096,
+        1024
+      ],
+      "halfRms": 0.902,
+      "quarterRms": 1.395,
+      "limit": null,
+      "native": false
+    }
+  }
+}

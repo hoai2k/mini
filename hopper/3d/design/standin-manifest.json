@@ -2997,7 +2997,7 @@
     {
       "request": "T-083",
       "kind": "image",
-      "name": "Sky repaint at native 4K: Sunseed Fields",
+      "name": "Sky repaint with native 4K detail: Sunseed Fields",
       "category": "sky-hd",
       "region": "fields",
       "final": "textures/sky/fields-hd.jpg",
@@ -3007,7 +3007,7 @@
     {
       "request": "T-084",
       "kind": "image",
-      "name": "Sky repaint at native 4K: Crownline City",
+      "name": "Sky repaint with native 4K detail: Crownline City",
       "category": "sky-hd",
       "region": "city",
       "final": "textures/sky/city-hd.jpg",
@@ -3017,7 +3017,7 @@
     {
       "request": "T-085",
       "kind": "image",
-      "name": "Sky repaint at native 4K: Thunderhead Range",
+      "name": "Sky repaint with native 4K detail: Thunderhead Range",
       "category": "sky-hd",
       "region": "mountains",
       "final": "textures/sky/mountains-hd.jpg",

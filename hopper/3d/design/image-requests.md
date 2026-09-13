@@ -20,7 +20,7 @@ Style for every painted request: the 2D game's 1970s cel-and-gouache look. Flat 
 
 ## Painted skies (9)
 
-One equirectangular dome per region, drawn from inside a 9 km sphere. The stand-in is the procedural gradient-plus-sun in `paintSky`.
+One equirectangular dome per region, drawn from inside a 9 km sphere. The stand-in is the procedural gradient-plus-sun in `paintSky`. Every delivered sky must carry native detail at its stated size - `source/verify_native_detail.py` measures it - because the dome magnifies the painting several times over at 4K.
 
 ### T-001 · Sky: Sunseed Fields
 
@@ -447,6 +447,7 @@ See [image-history.md](image-history.md) and [texture pack notes](../textures/RE
 
 - Inspect every painting at gameplay distance in the viewer (`hopper/3d/viewer/`) against the stand-in it replaces before it is committed.
 - Skies must tile at the seam and keep the sun where `paintSky` puts it, because the directional light is aimed there.
+- **Native detail, measured:** a painting must carry detail at the size it is delivered at, and `source/verify_native_detail.py` measures whether it does - halve it, re-expand it and take the RMS grey-level difference. The nine delivered skies score 0.58-0.84, which is what an upscale scores; natively painted plates and atlases in this repo score 7-14. Skies must clear **3.0**, because the dome magnifies them several times over at 4K. A file under the bar is an upscale whatever its dimensions say, and a larger upscale is worth nothing. Flat-by-design art - horizon silhouettes, UI decals - is exempt: there a low score is the style, not a resample.
 - Terrain and trim textures must tile; check repeated features at 6× repeat over a 200 m surface.
 - Record prompts, references and acceptance notes in this file's history, as the 2D `image-history.md` does.
 
