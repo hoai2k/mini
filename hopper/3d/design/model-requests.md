@@ -24,13 +24,13 @@ Conventions for every delivery: glTF binary, metres, +Y up, +Z forward, `KHR_mes
 | --- | ---: | ---: | ---: | ---: |
 | hopper | 2 | 2 | 0 | 0 |
 | rider | 1 | 1 | 0 | 0 |
-| enemy | 18 | 1 | 17 | 0 |
+| enemy | 18 | 2 | 16 | 0 |
 | boss | 3 | 0 | 3 | 0 |
 | structure | 44 | 44 | 0 | 0 |
 | prop | 15 | 15 | 0 | 0 |
 | landmark | 9 | 9 | 0 | 0 |
 | terrain | 1 | 1 | 0 | 0 |
-| **total** | **93** | **73** | **20** | **0** |
+| **total** | **93** | **74** | **19** | **0** |
 
 ## Hopper and the rider
 

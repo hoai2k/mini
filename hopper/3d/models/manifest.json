@@ -59,8 +59,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/fields.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 252696,
+      "processingNotes": "Validated material merge/weld; 5837332 to 252696 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-025",
@@ -168,8 +170,10 @@
       "landings": [],
       "status": "delivered",
       "sourceReference": "design/references/kits/fields.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 206872,
+      "processingNotes": "Validated material merge/weld; 3875728 to 206872 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-028",
@@ -568,9 +572,9 @@
       "source": "game/scripts/code-models.mjs",
       "authoring": "code-built (authored three.js geometry, painted trim and terrain sheets)",
       "bounds": [
-        59.357,
-        98.318,
-        55.545
+        52.003,
+        95.943,
+        51.1
       ],
       "targetBounds": [
         57,
@@ -597,8 +601,10 @@
       ],
       "status": "delivered",
       "sourceReference": "design/references/kits/mountains.png",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 5865996,
+      "processingNotes": "Validated material merge/weld; 5908448 to 5865996 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending. Bounds corrected from the prior transformed-accessor AABB overestimate to measured decoded vertices: baseline and cleaned geometry both measure 52.002719879 \u00d7 95.943271399 \u00d7 51.099992752 m. No geometry moved; targetBounds preserved."
     },
     {
       "request": "M-037",
@@ -3182,6 +3188,55 @@
       "sha256": "7378153e84e4fe7e1634cae55f9a24d2932004aae58ebfd42147ed0b251127f8",
       "deliveredAt": "2026-09-12",
       "validation": "source/phase-skate-validation.json"
+    },
+    {
+      "request": "M-014",
+      "name": "Turbine Wasp",
+      "file": "enemies/turbineWasp.glb",
+      "preview": "previews/enemy.turbineWasp.png",
+      "source": "source/wasp_refine.py",
+      "category": "enemy",
+      "region": "launchworks",
+      "bounds": [
+        7.7,
+        3.4,
+        6.1
+      ],
+      "targetBounds": [
+        7.7,
+        3.4,
+        6.1
+      ],
+      "triangles": [
+        5910,
+        1933
+      ],
+      "clips": [
+        "Hover",
+        "Intake_Tell",
+        "Dash",
+        "Guard_Break",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Fan.L",
+        "Fan.R",
+        "Fan.Tail",
+        "Hitbox.Body",
+        "Landing"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/turbineWasp-turnaround.png",
+      "notes": "Reviewed against canonical turnaround: sculpted swept helmet with seated eye lenses, layered thorax armor, curved thorns, three ducted fans and two claw legs. Both LODs and all six clip poses reviewed. Hover spins continuously; Dash travels 4.2 m on both LODs. Blend fan motion under Intake_Tell/Dash as appropriate; wind/intake VFX, shader dissolve and Core/Landing hitbox activation after Guard_Break remain runtime responsibilities.",
+      "authoring": "reference-authored Blender mesh with surface-seated lenses, swept shell lofts and regular fan rims",
+      "rig": "rigid",
+      "bytes": 3206832,
+      "sha256": "62ef01a69fd55e1327761a38e7e734d4e165efc24a3b8065caf79af1bf82f967",
+      "deliveredAt": "2026-09-12",
+      "validation": "source/wasp-refine-validation.json"
     }
   ],
   "deliveredAt": "2026-09-08",

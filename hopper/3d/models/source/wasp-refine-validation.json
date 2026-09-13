@@ -1,0 +1,138 @@
+{
+  "request": "M-014",
+  "date": "2026-09-12",
+  "status": "root-reviewed and integrated",
+  "file": "enemies/turbineWasp.glb",
+  "bytes": 3206832,
+  "sha256": "62ef01a69fd55e1327761a38e7e734d4e165efc24a3b8065caf79af1bf82f967",
+  "bounds": [
+    7.699999809265137,
+    3.399999976158142,
+    6.099999904632568
+  ],
+  "triangles": [
+    5910,
+    1933
+  ],
+  "rig": "rigid body, head, three fan pivots, intake ring, stinger and two legs; no skins",
+  "sockets": [
+    "Core",
+    "Fan.L",
+    "Fan.R",
+    "Fan.Tail",
+    "Hitbox.Body",
+    "Landing"
+  ],
+  "clipChecks": [
+    {
+      "name": "Dash",
+      "duration": 0.3,
+      "loop": false,
+      "channels": 2,
+      "rootMotion": [
+        {
+          "node": "LOD0",
+          "translation": [
+            0.0,
+            0.0,
+            4.199999809265137
+          ]
+        },
+        {
+          "node": "LOD1",
+          "translation": [
+            0.0,
+            0.0,
+            4.199999809265137
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Hover",
+      "duration": 1.133333,
+      "loop": true,
+      "channels": 8,
+      "rootMotion": [],
+      "loopEndpointMaxError": 3.4969110629390343e-07,
+      "continuouslySampledFans": [
+        "Fan.L",
+        "Fan.R",
+        "Fan.Tail",
+        "LOD1.Fan.L",
+        "LOD1.Fan.R",
+        "LOD1.Fan.Tail"
+      ]
+    },
+    {
+      "name": "Guard_Break",
+      "duration": 0.866667,
+      "loop": false,
+      "channels": 8,
+      "rootMotion": []
+    },
+    {
+      "name": "Hit",
+      "duration": 0.533333,
+      "loop": false,
+      "channels": 2,
+      "rootMotion": []
+    },
+    {
+      "name": "Dissolve",
+      "duration": 0.866667,
+      "loop": false,
+      "channels": 2,
+      "rootMotion": []
+    },
+    {
+      "name": "Intake_Tell",
+      "duration": 0.566667,
+      "loop": false,
+      "channels": 2,
+      "rootMotion": []
+    }
+  ],
+  "checks": {
+    "repositoryValidator": "PASS local/hopper-wasp-refine/turbineWasp.glb\n  430 nodes \u00b7 146 meshes \u00b7 10 materials \u00b7 5910/1933 tris\n\n1/1 GLBs passed.",
+    "finiteAnimationValues": true,
+    "exactLoopEndpoints": true,
+    "rootMotionOnlyDash": true,
+    "dashDistanceMetresBothLODs": 4.2,
+    "savedBlendRestTransformsRestored": true
+  },
+  "visualQA": {
+    "renders": 20,
+    "viewsPerLOD": [
+      "front",
+      "three-quarter",
+      "side",
+      "top"
+    ],
+    "keyPosesPerLOD": [
+      "Dash",
+      "Hover",
+      "Guard_Break",
+      "Hit",
+      "Dissolve",
+      "Intake_Tell"
+    ],
+    "location": "local/hopper-wasp-refine/",
+    "contactSheets": [
+      {
+        "file": "clips-contact-sheet.jpg",
+        "sha256": "84f3a4f6f22c158256fb52b9dd2028d826abe9277aadb7bbb60859ed932f34f8"
+      },
+      {
+        "file": "views-contact-sheet.jpg",
+        "sha256": "ab55337ec41b17465c843c037b6bd7febc6a4037695fb44b34764c5430ce074a"
+      }
+    ],
+    "review": "Root accepted both final contact sheets, all six clip key poses and both LODs."
+  },
+  "runtimeResponsibilities": [
+    "Blend Hover fan motion under Intake_Tell and Dash when required by gameplay.",
+    "Core/Landing socket exposure and stomp vulnerability after Guard_Break require runtime hitbox logic.",
+    "Dissolve supplies a scale collapse; shader dissolve and wind/intake VFX remain runtime effects."
+  ]
+}

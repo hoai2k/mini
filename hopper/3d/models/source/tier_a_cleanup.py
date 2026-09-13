@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 import bpy
+import bmesh
 from mathutils import Matrix, Vector
 
 
@@ -60,6 +61,14 @@ def world_position(obj: bpy.types.Object) -> list[float]:
 def mesh_triangles(obj: bpy.types.Object) -> int:
     obj.data.calc_loop_triangles()
     return len(obj.data.loop_triangles)
+
+
+def mesh_is_closed_manifold(obj: bpy.types.Object) -> bool:
+    mesh = bmesh.new()
+    mesh.from_mesh(obj.data)
+    result = bool(mesh.edges) and all(edge.is_manifold for edge in mesh.edges)
+    mesh.free()
+    return result
 
 
 def snapshot(root_by_lod: dict[int, bpy.types.Object], contract: dict) -> dict:
@@ -150,6 +159,7 @@ def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Obje
 def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
     before_vertices = len(obj.data.vertices)
     before_triangles = mesh_triangles(obj)
+    original_mesh = obj.data.copy()
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
@@ -157,14 +167,21 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
     bpy.ops.mesh.select_all(action="SELECT")
     bpy.ops.mesh.remove_doubles(threshold=0.01)
     bpy.ops.object.mode_set(mode="OBJECT")
+    welded_triangles = mesh_triangles(obj)
+    if welded_triangles != before_triangles:
+        changed_mesh = obj.data
+        obj.data = original_mesh
+        bpy.data.meshes.remove(changed_mesh)
+        weld_action = "skipped-triangle-change"
+    else:
+        bpy.data.meshes.remove(original_mesh)
+        weld_action = "applied"
     welded_mesh = obj.data.copy()
     welded_triangles = mesh_triangles(obj)
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="DESELECT")
     bpy.ops.mesh.select_interior_faces()
     bpy.ops.mesh.delete(type="FACE")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.normals_make_consistent(inside=False)
     bpy.ops.mesh.select_all(action="DESELECT")
     bpy.ops.object.mode_set(mode="OBJECT")
     obj.data.update()
@@ -183,11 +200,15 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
     else:
         bpy.data.meshes.remove(welded_mesh)
         interior_action = "no-faces-selected"
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.normals_make_consistent(inside=False)
-    bpy.ops.mesh.select_all(action="DESELECT")
-    bpy.ops.object.mode_set(mode="OBJECT")
+    if mesh_is_closed_manifold(obj):
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.mesh.normals_make_consistent(inside=False)
+        bpy.ops.mesh.select_all(action="DESELECT")
+        bpy.ops.object.mode_set(mode="OBJECT")
+        normals_action = "recalculated-closed-manifold"
+    else:
+        normals_action = "preserved-open-shell"
     obj.data.update()
 
     after_vertices = len(obj.data.vertices)
@@ -216,8 +237,10 @@ def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
         "vertices_after": after_vertices,
         "triangles_before": before_triangles,
         "triangles_after": after_triangles,
+        "weld_action": weld_action,
         "interior_faces_selected": selected_interior_removed,
         "interior_action": interior_action,
+        "normals_action": normals_action,
     }
 
 
@@ -585,7 +608,13 @@ def main() -> None:
             operations.extend(weld_and_delete_interior(obj) for obj in merged)
 
     landing_checks = raycast_landings(root_by_lod, contract)
-    if int(contract.get("source_images", 0)) == 0:
+    if contract.get("preserve_source_textures"):
+        atlas = {
+            "status": "skipped-preserve-source-textures-quality",
+            "reason": "shared atlas visibly reduced texture density; retaining original painted materials",
+            "materials": sorted({material_key(obj) for obj in lod_meshes[0]}),
+        }
+    elif int(contract.get("source_images", 0)) == 0:
         atlas = {
             "status": "skipped-untextured-flat-color",
             "reason": "source GLB embeds no images; retaining its flat-color materials avoids adding a redundant atlas",

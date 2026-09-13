@@ -336,7 +336,7 @@
       ],
       "standIn": "enemy.turbineWasp",
       "final": "models/enemies/turbineWasp.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/turbineWasp.png",
         "design/assets/enemy-silhouettes.png"

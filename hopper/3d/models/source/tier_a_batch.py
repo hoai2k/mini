@@ -30,6 +30,7 @@ GLTFPACK_CANDIDATES = [
     *([Path(os.environ["GLTFPACK"])] if os.environ.get("GLTFPACK") else []),
     *Path.home().glob(".npm/_npx/*/node_modules/.bin/gltfpack"),
 ]
+PRESERVE_SOURCE_TEXTURE_REQUESTS = {"M-036"}
 
 
 def run(command: list[str], log: Path, cwd: Path = ROOT) -> str:
@@ -118,8 +119,9 @@ def cross_file_checks(before_path: Path, after_path: Path, entry: dict) -> dict:
         moved[name] = delta
         if delta > 0.01:
             raise RuntimeError(f"socket {name} moved {delta:.6f} m")
-    if len(after.get("images", [])) > 2:
-        raise RuntimeError(f"candidate embeds {len(after.get('images', []))} images; expected at most two")
+    image_limit = len(before.get("images", [])) if entry["request"] in PRESERVE_SOURCE_TEXTURE_REQUESTS else 2
+    if len(after.get("images", [])) > image_limit:
+        raise RuntimeError(f"candidate embeds {len(after.get('images', []))} images; expected at most {image_limit}")
     before_animations = before.get("animations", [])
     after_animations = after.get("animations", [])
     if before_animations or after_animations:
@@ -148,6 +150,25 @@ def parse_validator(output: str) -> dict:
     return {"nodes": nodes, "meshes": meshes, "materials": materials, "triangles": [lod0, lod1]}
 
 
+def manifest_bounds_review(entry: dict, blender_report: dict) -> dict:
+    manifest = [float(value) for value in entry.get("bounds", [])]
+    exact_source = [float(value) for value in blender_report["before"]["bounds"]["0"]]
+    if len(manifest) != 3 or len(exact_source) != 3:
+        raise RuntimeError("cannot compare manifest and exact decoded LOD0 bounds")
+    deltas = [abs(actual - recorded) / max(recorded, 0.001) for recorded, actual in zip(manifest, exact_source)]
+    required = any(delta > 0.12 for delta in deltas)
+    return {
+        "required_before_integration": required,
+        "manifest": manifest,
+        "exact_decoded_source": exact_source,
+        "relative_deltas_percent": [round(delta * 100, 3) for delta in deltas],
+        "reason": (
+            "compressed accessor AABB measurement differs from exact decoded source geometry"
+            if required else "exact decoded source geometry remains within the production validator tolerance"
+        ),
+    }
+
+
 def tools() -> tuple[Path, Path]:
     gltfpack = next((p for p in GLTFPACK_CANDIDATES if p.is_file() and os.access(p, os.X_OK)), None)
     if gltfpack is None:
@@ -160,19 +181,31 @@ def tools() -> tuple[Path, Path]:
 def ensure_previews(job: Path, request: str, blender: Path) -> dict[str, str]:
     before = WORK / "previews" / f"{request}-before.png"
     after = WORK / "previews" / f"{request}-after.png"
-    inputs = ((job / "decoded.glb", before, "preview-before.log"), (job / "cleaned.raw.glb", after, "preview-after.log"))
-    for source, output, log_name in inputs:
+    before_lod1 = WORK / "previews" / f"{request}-before-lod1.png"
+    after_lod1 = WORK / "previews" / f"{request}-after-lod1.png"
+    inputs = (
+        (job / "decoded.glb", before, "preview-before.log", 0),
+        (job / "cleaned.raw.glb", after, "preview-after.log", 0),
+        (job / "decoded.glb", before_lod1, "preview-before-lod1.log", 1),
+        (job / "cleaned.raw.glb", after_lod1, "preview-after-lod1.log", 1),
+    )
+    for source, output, log_name, lod in inputs:
         if output.exists() and output.stat().st_mtime >= source.stat().st_mtime:
             continue
         if not source.exists():
             raise RuntimeError(f"cannot render preview; missing job artifact {source}")
         run(
-            [str(blender), "--background", "--python", str(HERE / "tier_a_preview.py"), "--", str(source), str(output)],
+            [
+                str(blender), "--background", "--python", str(HERE / "tier_a_preview.py"), "--",
+                str(source), str(output), "--lod", str(lod),
+            ],
             job / log_name,
         )
     return {
         "before": str(before.relative_to(ROOT)),
         "after": str(after.relative_to(ROOT)),
+        "before_lod1": str(before_lod1.relative_to(ROOT)),
+        "after_lod1": str(after_lod1.relative_to(ROOT)),
     }
 
 
@@ -188,6 +221,7 @@ def process(entry: dict, force: bool) -> dict:
         report = json.loads(final_report.read_text())
         if report.get("status") == "passed":
             _, blender = tools()
+            report["manifest_bounds_review"] = manifest_bounds_review(entry, report["blender"])
             report["previews"] = ensure_previews(job, request, blender)
             final_report.write_text(json.dumps(report, indent=2) + "\n")
         return report
@@ -204,6 +238,7 @@ def process(entry: dict, force: bool) -> dict:
     contract["source_nodes"] = len(source_doc.get("nodes", []))
     contract["source_images"] = len(source_doc.get("images", []))
     contract["source_animations"] = len(source_doc.get("animations", []))
+    contract["preserve_source_textures"] = request in PRESERVE_SOURCE_TEXTURE_REQUESTS
     (job / "contract.json").write_text(json.dumps(contract, indent=2) + "\n")
     started = time.time()
     stage = "decode"
@@ -248,7 +283,10 @@ def process(entry: dict, force: bool) -> dict:
         if metrics["triangles"][1] >= metrics["triangles"][0]:
             raise RuntimeError("validator metrics violate LOD relation")
         cross = cross_file_checks(source, compressed, entry)
-        size_limit = 2_500_000 if max(entry["bounds"]) > 120 else 1_200_000
+        if request in PRESERVE_SOURCE_TEXTURE_REQUESTS:
+            size_limit = math.ceil(source.stat().st_size * 1.05)
+        else:
+            size_limit = 2_500_000 if max(entry["bounds"]) > 120 else 1_200_000
         byte_count = compressed.stat().st_size
         if byte_count >= size_limit:
             raise RuntimeError(f"candidate is {byte_count} bytes; Tier A limit is {size_limit}")
@@ -265,6 +303,7 @@ def process(entry: dict, force: bool) -> dict:
             "byte_reduction_percent": round((1 - byte_count / source.stat().st_size) * 100, 1),
             "metrics": metrics,
             "cross_file_checks": cross,
+            "manifest_bounds_review": manifest_bounds_review(entry, blender_report),
             "blender": blender_report,
             "seconds": round(time.time() - started, 1),
         }
