@@ -23,4 +23,20 @@ Working area: `local/hopper-rigid-creatures/` (ignored)
 
 ## M-014 Turbine Wasp
 
-- Not started. Remains gated until Phase Skate reaches visual acceptance.
+- Phase Skate was handed to a separate Astra refinement owner; root authorized M-014 in isolated source/output.
+- Authored source: `hopper/3d/models/source/turbine_wasp.py`.
+- Canonical sprite: `hopper/game/public/assets/enemies/turbineWasp.png`.
+- Approved/corrected modelling reference: `hopper/3d/design/references/enemies/turbineWasp-turnaround.png` with correction metadata in `turbineWasp-turnaround.json`.
+- Contract source: `hopper/3d/design/model-requests.md` (M-014). Contract anatomy is authoritative: exactly three ducted fans (left, right, one central tail), two dangling hooked legs, one stinger.
+- Silhouette checkpoint command:
+  `/Applications/Blender.app/Contents/MacOS/Blender --background --python hopper/3d/models/source/turbine_wasp.py -- silhouette`
+- Full candidate command:
+  `/Applications/Blender.app/Contents/MacOS/Blender --background --python hopper/3d/models/source/turbine_wasp.py -- full`
+- Isolated output directory: `local/hopper-rigid-creatures/M-014/` (ignored). No production GLB or shared manifest touched.
+- Frozen technical draft: exact 7.7 × 3.4 × 6.1 m, 4228/1736 triangles, LOD0/LOD1, named rigid hierarchy, compressed GLB with meshopt and KHR mesh quantization. The validator reports 334 nodes, 94 meshes, and 8 materials. Validation command:
+  `node hopper/3d/models/source/validate.mjs --manifest local/hopper-rigid-creatures/M-014/manifest.json local/hopper-rigid-creatures/M-014/turbineWasp.glb`
+- Required clips present and nonzero: `Hover`, `Intake_Tell`, `Dash`, `Guard_Break`, `Hit`, and `Dissolve`; `Dash` alone translates the root. Required sockets present: `Core`, `Fan.L`, `Fan.R`, `Fan.Tail`, `Hitbox.Body`, and `Landing`.
+- Current outputs: `turbineWasp.glb`, `turbineWasp-uncompressed.glb`, `turbineWasp.blend`, `record.json`, `manifest.json`, `preview-front.png`, `preview-three-quarter.png`, `preview-side.png`, and `preview-top.png`, all under `local/hopper-rigid-creatures/M-014/`.
+- The exporter preview-state bug is fixed in source by capturing and restoring every object location, rotation, and scale around export. Nominal rest renders now show all three fans and exact bounds.
+- Visual review still rejects this draft: the enlarged almond eyes read as separate floating discs rather than painted/inset facial anatomy, so the head/eye integration remains below the canonical reference quality. Earlier buried eyes, rectangular dorsal boards, noisy generic fan materials, and crude triangular fan blades were improved, but the candidate is not approved for delivery.
+- Status: frozen for Astra creative refinement; useful structural/mechanical draft only. No production GLB, shared manifest, or shared build script touched.
