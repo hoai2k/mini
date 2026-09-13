@@ -34,7 +34,7 @@ Reconcile the current request inventory, finish requested image work that the av
 
 - [x] Fetch latest upstream and fast-forward main, preserving local edits in named stashes.
 - [x] Write staged plan and agent assignments.
-- [x] Reconcile request source and docs; count local-feasible versus Tripo-preferred work. See REQUEST-AUDIT.md: 4 local-first creatures, 4 conditional, 1 canonical/contract conflict (Gravity Cantor), 12 Tripo-preferred; 2 existing-rig animation requests.
+- [x] Reconcile request source and docs; count local-feasible versus Tripo-preferred work. After visual review: 3 local-first creatures, 4 conditional, 2 canonical/contract conflicts (Coil Wraith and Gravity Cantor), 12 Tripo-preferred; 2 existing-rig animation requests now delivered.
 - [ ] Fix/re-export/regenerate failed Round 3 images and rerun verification.
 - [ ] Deliver native-resolution sky repaints or document concrete tool limitation.
 - [ ] Complete verified Tier A batches.
