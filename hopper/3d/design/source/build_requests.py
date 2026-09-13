@@ -359,20 +359,17 @@ for texture in T:
 ROUND3_DELIVERED = {'surface', 'effects', 'ui'}
 for texture in T:
     if texture['round'] == 3 and texture['category'] in ROUND3_DELIVERED:
-        # design/source/verify_round3.py measured the checks that were due at
-        # delivery; only the light landing guide passed. A failing request goes
-        # back to `open` rather than staying `delivered`, because these lists
-        # are what the next generation round is worked from: a delivered file
-        # that fails its own spec would otherwise never be asked for again. The
-        # imperfect painting stays in the game meanwhile, as `In the game` says.
-        passed = texture['request'] == 'T-081'
+        # design/source/verify_round3.py measures the delivery checks. T-080
+        # remains open because its six repeating surfaces still fail; its foam
+        # strip is repaired. The two atlas padding repairs and T-081 now pass.
+        passed = texture['request'] in {'T-081', 'T-082', 'T-086'}
         texture['status'] = 'delivered' if passed else 'open'
         texture['approval'] = 'verified' if passed else 'verification-failed'
         texture['verification'] = {
-            'T-080': 'The three albedos and their detail masks do not tile: opposite edges differ by 5-17 per channel against a limit of 2. The foam strip does not tile horizontally (22.3) and runs into both vertical margins. Needs an offset-and-repaint pass, not a new prompt.',
+            'T-080': 'The three albedos and their detail masks still fail tiling: opposite edges differ by 5-17 per channel against a limit of 2. The repaired foam strip passes with horizontal seam 0.000 and clear top/bottom margins (alpha max 0). Three scripted feather candidates were rejected because they introduced visible streaks; the six surfaces need a painted regeneration.',
             'T-081': 'Passes: alpha 0-255, geometry identical to the dark guide (coverage ratio 1.000).',
-            'T-082': 'Four of the twelve sprite cells sit inside the 48px padding, the tightest at 11px, so neighbours bleed at small mip levels. Row four is intentionally empty. Needs a re-export on the grid.',
-            'T-086': 'All four decals touch their cell edges (smallest margin 0px) against the 24px requested, so they bleed into each other under filtering. Needs a re-export on the grid.',
+            'T-082': 'Passes: all twelve occupied cells clear the 48px padding requirement (minimum 53px); row four remains intentionally empty. Existing native painted cells were uniformly scaled to 0.8327, which creates no new detail.',
+            'T-086': 'Passes: all four occupied cells clear the 24px padding requirement (minimum 28px). Existing native painted cells were uniformly scaled to 0.7812, which creates no new detail.',
         }[texture['request']]
         texture['integration'] = {
             'surface': 'paintTerrain paints the low floor of the harbor (sea), blue (dust) and foundry (slag) districts with the surface and scrolls its detail mask; paintKit puts slag on the barge deck and dust on the drift volumes. The foam strip waits for a district with a shoreline.',
@@ -569,7 +566,7 @@ r3 = []
 r3.append('# Image requests · round three: after integrating round one\n')
 r3.append('Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one optional quality pass. Nothing here replaces a delivered file except the optional sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.\n')
 r3.append('**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.\n')
-r3.append('**Verification: nine of ten assets fail.** The tiling, atlas-padding and alpha checks that were outstanding at delivery have been run (`design/source/verify_round3.py`, results in `textures/round3/verification.json`). The six tiling surfaces and the foam strip have visible seams, and both atlases place artwork inside the padding their prompts asked for; only the light landing guide passes. The artwork stays in the game meanwhile - these are repeat and filtering faults, not wrong pictures - and each entry below carries its own result.\n')
+r3.append('**Verification: six of ten assets fail.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The three surface albedos and their three detail masks still have visible seams. The repaired foam strip, Hopper atlas, prop atlas and light landing guide pass. The three scripted surface feather candidates were rejected because they introduced visible streaks; those six surfaces remain open for a painted regeneration.\n')
 r3.append('| Request | Why | Priority |\n| --- | --- | --- |')
 for x in [x for x in T if x['round'] == 3]:
     pri = 'optional' if x['category'] == 'sky-hd' else 'before the region that needs it' if x['category'] == 'surface' else 'any time'

@@ -6,7 +6,7 @@ Audited 2026-09-12 against `hopper/3d/design/source/build_requests.py`, the gene
 
 After M-018 delivery `068ac04`, the generated inventory contains **93 model requests**: **73 delivered**, **20 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed animation extensions. The 20 creature IDs still represented by stand-ins are **M-003–M-017 and M-019–M-023**; zero open entries does not mean these creatures or later art cleanup are finished.
 
-There are **86 image requests**: round one **47** (46 delivered, **T-038 procedural-final**), round two **32 delivered pending art review**, and round three **7** (T-081 delivered; **T-080, T-082, T-083, T-084, T-085, T-086 open**). The exact pending image IDs are therefore **T-080, T-082–T-086**. `standin-manifest.json` is the generated status inventory; `build_requests.py` is its source. `model-requests.md` and the round image request documents are generated outputs.
+There are **86 image requests**: round one **47** (46 delivered, **T-038 procedural-final**), round two **32 delivered pending art review**, and round three **7** (**T-081, T-082 and T-086 delivered**; **T-080 and T-083–T-085 open**). The exact pending image IDs are therefore **T-080 and T-083–T-085**. `standin-manifest.json` is the generated status inventory; `build_requests.py` is its source. `model-requests.md` and the round image request documents are generated outputs.
 
 The 73 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-018 and M-024–M-092 in `hopper/3d/models`. The current authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
 
@@ -14,13 +14,13 @@ The 73 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-
 
 Round-three verification is authoritative at `hopper/3d/textures/round3/verification.json` and `hopper/3d/textures/round3/README.md`:
 
-- **T-080 open:** sea, dust, slag and their detail masks fail edge tiling; shoreline foam fails horizontal tiling and its transparent vertical margins.
+- **T-080 open:** sea, dust, slag and their detail masks still fail edge tiling. The repaired shoreline foam passes with horizontal seam 0.000 and clear top/bottom margins (alpha max 0). Three scripted surface feather candidates were rejected because they introduced visible streaks; a painted regeneration remains pending.
 - **T-081 delivered/verified:** light landing guide passes alpha and geometry checks.
-- **T-082 open:** four Hopper effect cells violate the requested 48 px atlas padding (tightest 11 px).
-- **T-086 open:** all four prop decal cells violate the requested 24 px padding (minimum 0 px).
+- **T-082 delivered/verified:** all twelve occupied Hopper effect cells clear the requested 48 px atlas padding (minimum 53 px) after uniform scale 0.8327.
+- **T-086 delivered/verified:** all four prop decal cells clear the requested 24 px padding (minimum 28 px) after uniform scale 0.7812.
 - **T-083–T-085 open/optional:** native-4K repaint attempts returned 1774×887, so they do not meet the explicit 4096×2048 native requirement.
 
-Native-resolution constraint applies broadly to the delivered painted pack: `hopper/3d/design/image-history.md` and `hopper/3d/textures/README.md` record source masters around 1254² for tiles and 1774×887 for skies; requested larger exports are upscaled. Round-two reference metadata similarly records native source sizes per plate and says larger exports are upscaled. Do not describe those exports as native 2K/4K/8K detail.
+Native-resolution constraint applies broadly to the delivered painted pack: `hopper/3d/design/image-history.md` and `hopper/3d/textures/README.md` record source masters around 1254² for tiles and 1774×887 for skies; requested larger exports are upscaled. The T-082/T-086 padding repair uniformly scales existing native paint and creates no new detail. Round-two reference metadata similarly records native source sizes per plate and says larger exports are upscaled. Do not describe those exports as native 2K/4K/8K detail.
 
 ## Model disposition suggestions (not status changes)
 
@@ -38,7 +38,7 @@ This review moved Coil Wraith from the initial text-only local-first recommendat
 
 ## Stash reconciliation
 
-`stash@{1}` (`Preserve Round 3 documentation before production sync`) contains an older documentation-only claim that T-080, T-081, T-082, and T-086 were delivered, plus an older 47-image summary. Do not restore it: current generated docs and verification correctly keep T-080, T-082, and T-086 open and T-081 verified.
+`stash@{1}` (`Preserve Round 3 documentation before production sync`) contains an older documentation-only claim that T-080, T-081, T-082, and T-086 were delivered, plus an older 47-image summary. Do not restore it: current generated docs and verification keep T-080 open, verify T-081/T-082/T-086, and preserve the separate native-4K failures for T-083–T-085.
 
 `stash@{0}` (`Preserve local Tripo references before production sync`) contains the formerly untracked `hopper/design/tripo/` references, reports, prompts, and animation materials. Upstream now includes this directory. Preserve it as reference material; do not blindly pop or treat its presence as delivery of any M-003–M-023 request.
 

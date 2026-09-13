@@ -2991,7 +2991,7 @@
       "name": "Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail",
       "category": "effects",
       "final": "textures/effects/hopper.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     },
     {
@@ -3030,7 +3030,7 @@
       "name": "Checkpoint totem and spring pad decals",
       "category": "ui",
       "final": "textures/ui/props.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     }
   ]
