@@ -1,14 +1,40 @@
-# Code-built models: the clean-up pass they still need
+# Code-built models: Tier A cleanup record
 
-## Completed Tier A deliveries
+## Tier A result: 27 of 28 delivered
 
-- M-057/058 (`4c0bc91`), M-062/063/065 (`d0b9106`), M-061 plus fields terrain (`42aa735`), city/mountains terrain (`f169534`), and M-067 (`879f691`) are delivered after matched LOD review. M-067 removes two exact coincident ring faces (LOD1 124 to 122) with explicit source/import topology evidence. M-056 remains held for a pre-existing invalid landing; functional M-059/060/064/066 are excluded from the static merge path.
-- Quality-preserving exceptions to the original bake recipe: original textures remain where atlasing loses painted detail or LOD readability (M-036 and terrain); M-061 uses a 2048 atlas. These are mechanical deliveries, not Tier B art approval. See the per-model progress record for measured bounds, bytes, and retained textures.
+- Twenty-seven mechanical candidates are delivered. M-056 Ivory rib arch is the
+  sole hold: its unchanged source geometry has no downward face within 0.5 m of
+  the authored `Landing.0`, so the cleanup correctly refuses to relax the
+  gameplay contract.
+- M-057/058 (`4c0bc91`), M-062/063/065 (`d0b9106`), M-061 plus fields terrain
+  (`42aa735`), city/mountains terrain (`f169534`), and M-067 (`879f691`) are
+  delivered after matched LOD review. M-067 removes two exact coincident ring
+  faces (LOD1 124 to 122) with explicit source/import topology evidence.
+- Functional models use a separate rigid-owner branch. M-060 Floating reef and
+  M-064 Ring shard were delivered in `1135ed2`; M-059 Coral bridge and M-066
+  Gravity seam were delivered in `1f00d9a`. The branch preserves protected node
+  parents, local transforms, extras, and triangles by rigid subtree, and merges
+  only inside one owner. M-059 preserves the source's three stage pivots. Its
+  `Landing.0`–`Landing.2` nodes remain siblings of the stages under each LOD root,
+  exactly as authored; cleanup does not invent a new landing-parent relationship.
+- Quality-preserving exceptions to the original bake recipe retain original
+  textures where atlasing loses painted detail or LOD readability: M-036,
+  M-059, M-060, M-064, M-067, and all three terrain files. M-061 uses 2048
+  quality-92 JPEG albedo and emission atlases. These are mechanical deliveries,
+  not Tier B art approval. See the per-model progress record for measured bounds,
+  bytes, and retained textures.
 - M-024 Terrace step, M-027 Windbreak row, and M-036 Crag column: delivered after matched review of both LODs (`52f8a38`). M-037 Ledge shelf is also delivered at 1,197,276 bytes after matched LOD0/LOD1 review.
 - All nine landmarks, M-083–M-091, are delivered after matched before/after render review and full model validation. They retain their original untextured color materials and unchanged LOD triangle counts. M-083 merged 17 meshes to 2 and reduced 17,540 bytes to 6,260; M-089's corrected candidate preserves 928/118 triangles and passed separate LOD1 comparison (`4607af3`). Tier B remains pending.
 - Repeatable candidate-only scripts: `source/tier_a_batch.py`, `source/tier_a_cleanup.py`, `source/tier_a_preview.py`. Decode must use `-noq -kn -ke -km`; `-noq` alone discards hierarchy with the installed gltfpack. Detailed restart evidence is in `source/tier-a-progress.md`.
 
-The 28 manifest entries with `"authoring": "code-built"` and `"processing": "needs-cleanup"` were exported by `hopper/game/scripts/code-models.mjs` straight from three.js primitives so that episode one could be played end to end. They pass the delivery validator and look right at game distance, but they are not production meshes. The painted models from the Blender pipeline (`source/*.py`) do not need this; they were authored under `source/BUILD-CONTRACT.md`.
+The 28 manifest entries whose `authoring` begins with `code-built` and whose
+`cleanup` points here were exported by
+`hopper/game/scripts/code-models.mjs` straight from three.js primitives so that
+episode one could be played end to end. Twenty-seven now record
+`"processing": "cleaned-tier-a"`; M-056 remains `"needs-cleanup"` with its
+failed landing evidence. These remain stand-in shapes pending Tier B art review.
+The painted models from the Blender pipeline (`source/*.py`) do not need this;
+they were authored under `source/BUILD-CONTRACT.md`.
 
 The work splits into two tiers. **Tier A** is mechanical: every step is a fixed recipe with a pass/fail check, and it can be handed to a small local model or a script without judgement calls. **Tier B** needs someone to look at the reference sheet and decide what the shape should be; give it to a stronger model or an artist. Do Tier A first on every file; it removes most of the bytes and the draw calls, and Tier B works on a cleaner base.
 
@@ -33,22 +59,40 @@ Run in Blender 4.x or 5.x, headless is fine (`blender --background --python clea
 
 - The `LOD0` and `LOD1` root empties keep their names and their `extras` (`request`, `standIn`, `landings` JSON, `authoring`); the validator reads them.
 - Every empty whose name starts with `Landing.` or is listed under `sockets` in `manifest.json` keeps its name and world position (tolerance 1 cm).
+- Functional rigid nodes keep the same parent, local matrix, extras, and triangle ownership. A merge may not cross a protected stage, root, or arrow pivot.
 - LOD0 bounds stay within 12 % of the manifest `bounds` on every axis (validator rule).
 - LOD1 triangle count stays below LOD0.
 - No mesh is added, no material colour is changed.
 
 **Steps, per file:**
 
-1. **Decode.** `gltfpack -i <in>.glb -o work.glb -noq` (removes meshopt compression so Blender's importer reads it), then `bpy.ops.import_scene.gltf(filepath='work.glb')`. Check: object count equals `nodes` in the validator's line for that file.
-2. **Merge by material.** For each LOD root separately: select all mesh children that share the same material name (`trim.timber`, `terrain.cliff`, …), `bpy.ops.object.join()`, rename the result `<LODn>.<materialName>`. Parent it to the LOD root. Check: each LOD root has at most one mesh per material; empties untouched.
-3. **Weld.** Edit mode, select all, `bpy.ops.mesh.remove_doubles(threshold=0.01)`. Check: vertex count dropped or equal; no non-manifold spikes appear in the render (compare `previews.mjs --force` output side by side).
-4. **Delete interior faces.** `bpy.ops.mesh.select_interior_faces()` then `bpy.ops.mesh.delete(type='FACE')`. Then `bpy.ops.mesh.select_all(action='DESELECT')`; select faces whose normal points into the model within closed volumes is not required. Check: triangle count did not go up; landings' top faces still exist (raycast down at each `Landing.N` position hits a face within 0.5 m).
+1. **Decode.** `gltfpack -i <in>.glb -o work.glb -noq -kn -ke -km`
+   removes meshopt compression while preserving names, extras, and materials,
+   then Blender imports `work.glb`. Check compressed-source, decoded, and Blender
+   import triangle counts separately; only M-067 has a reviewed import exception.
+2. **Merge by material.** For ordinary static models, merge separately under
+   each LOD root. For functional models, assign every mesh to its nearest
+   protected rigid owner and merge only within that subtree. Bake geometry into
+   that owner's local space and export transforms verbatim.
+3. **Weld.** Edit mode, select all, `bpy.ops.mesh.remove_doubles(threshold=0.01)`.
+   Roll back the weld for that mesh if its triangle count changes.
+4. **Delete interior faces.** Run `bpy.ops.mesh.select_interior_faces()`, but roll
+   back deletion whenever it selects any face. Blender misclassified visible
+   overlapping shells in M-089, so speculative removal is not accepted. Every
+   landing must still raycast to a face within 0.5 m.
 5. **Normals.** `bpy.ops.mesh.normals_make_consistent(inside=False)`, then per object set auto smooth 30° (`mesh.set_sharp_from_angle` / `shade_smooth_by_angle`). Rock and obsidian materials (`terrain.cliff`, `trim.obsidian`, `trim.ringstone`) keep flat shading (`shade_flat`). Check: no black faces in the preview.
-6. **Bake one atlas per model.** Add a second UV map `Atlas`, `bpy.ops.uv.smart_project(angle_limit=66°, island_margin=0.02)` on all LOD0 meshes together, then bake `DIFFUSE` (colour only, no lighting) and `EMIT` from the existing materials into a new 1024² image (`2048²` when the manifest `bounds` exceed 120 m on any axis). Replace every material's base colour texture with the baked albedo and its emissive texture with the baked emission; delete the trim/terrain images from the file. LOD1 shares the atlas: transfer UVs with `bpy.ops.object.data_transfer(data_type='UV')` from the LOD0 mesh of the same material. Check: only two images remain in the exported file; file size below 1.2 MB (2.5 MB for the 2048² cases).
-7. **Export.** `bpy.ops.export_scene.gltf(export_format='GLB', export_extras=True, export_apply=True, export_yup=True, export_animations=False)` to `work.out.glb`, then compress with `node source/compress.mjs work.out.glb <target>.glb --force` (or `gltfpack -cc -kn -ke`). Check: `node source/validate.mjs <target>.glb` passes; `node source/previews.mjs --force <target>.glb` renders; sockets listed in the manifest are still present (the validator says so).
+6. **Bake one atlas per model.** Add and activate `Atlas` only after pinning every
+   implicit source texture node to the original UV map. Bake LOD0, transfer from
+   the active LOD0 source to LOD1, and make Atlas the sole exported TEXCOORD_0.
+   Retain source textures for the quality exceptions listed above.
+7. **Export.** Export with `export_apply=False`, `export_extras=True`, and
+   `export_animations=False` only after proving the source and manifest contain
+   no clips. Compress with `source/compress.mjs`, run the per-candidate validator,
+   and inspect matched LOD0 and LOD1 before/after renders.
 8. **Manifest.** In `manifest.json` set the entry's `processing` to `"cleaned-tier-a"`, record the new `triangles` and `bytes` from the validator output, keep `authoring` as is. Regenerate `validation.txt` (`node source/validate.mjs > validation.txt` from the repository root).
 
-**Order for Tier A:** all 28 files, episode one first (M-024, M-027, M-036, M-037, terrain fields/city/mountains), then landmarks, then the alien kits. Each file is independent; they can run in parallel.
+**Tier A status:** 27 delivered; M-056 held. Do not rebuild an accepted candidate
+without regenerating both LOD comparisons and repeating the full validator.
 
 **What Tier A must not do:** retopologise, decimate, move vertices except by welding, re-author LOD1, touch the reference sheets, change any landing, or edit `hopper/game`.
 

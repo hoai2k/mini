@@ -1,10 +1,11 @@
 # Tier A cleanup progress
 
-This is the restart record for the mechanical cleanup pass in
-`CODE-BUILT-CLEANUP.md`. Root has reviewed, integrated, and validated all nine
-static landmark candidates. In-progress candidates, atlases, logs, and
-machine-readable reports remain under the ignored `local/hopper-tier-a/` tree;
-this runner never edits production GLBs or `manifest.json` itself.
+This is the final restart record for the mechanical cleanup pass in
+`CODE-BUILT-CLEANUP.md`. Root reviewed, integrated, and validated 27 of the 28
+code-built entries; M-056 is held on its invalid authored landing. Candidates,
+atlases, logs, and machine-readable reports remain under the ignored
+`local/hopper-tier-a/` tree; this runner never edits production GLBs or
+`manifest.json` itself.
 
 ## Pipeline
 
@@ -17,7 +18,7 @@ this runner never edits production GLBs or `manifest.json` itself.
   nodes to one and removed both LOD roots. The preservation flags keep names,
   extras, and named materials through the decode.
 - `tier_a_cleanup.py` preserves the imported hierarchy and empty transforms,
-  bakes static part transforms into LOD-root space before merging by material,
+  bakes static part transforms into their allowed rigid-owner space before merging by material,
   welds at 1 cm, checks landing raycasts, bakes a per-model albedo/emission
   atlas, transfers Atlas UVs to LOD1, and exports without animation. Baking
   transforms before the join avoids unrepresentable shear and the inflated
@@ -50,12 +51,14 @@ this runner never edits production GLBs or `manifest.json` itself.
   exact source bounds because transforming compressed accessor AABB corners can
   overestimate rotated assemblies (M-036 recorded 59.357 m in X while its
   decoded vertices span 52.003 m).
-- This is intentionally a static export path. The runner and Blender script
+- This path accepts only files with no stored animation clips. The runner and Blender script
   reject a source before cleanup if either the GLB contains animations or the
   manifest declares clips, and the final cross-file check requires zero source
-  and candidate animations. A separately reviewed path is required for any
-  animated or functional rigid pivot; `export_animations=False` is never used
-  on such an input.
+  and candidate animations. Functional behavior described outside the GLB is
+  handled by the rigid-owner branch: it records protected node parents, local
+  matrices, extras, and triangle ownership, merges only within the nearest
+  protected pivot, and rejects any post-compression drift. `export_animations=False`
+  runs only after the zero-animation checks pass.
 - Source files with no embedded images keep their existing flat-color
   materials instead of receiving a redundant atlas. This applies to the
   silhouette landmarks; the two-image rule is an upper bound there, and adding
@@ -65,11 +68,10 @@ this runner never edits production GLBs or `manifest.json` itself.
   size cap without lowering resolution. M-036 is an explicit quality
   exception: its original three painted
   images and materials are retained because one atlas erased the visible slate
-  courses. The source-texture path still merges meshes by material and applies
+  courses. M-059, M-060, and M-064 also retain their source images, materials,
+  and UVs so functional cleanup cannot reduce their painted texture fidelity.
+  The source-texture path still merges meshes by material and applies
   conservative geometry cleanup.
-- The static runner rejects M-059, M-060, M-064, and M-066 from source-design
-  evidence even though their current GLBs contain no clips. Their falling,
-  drifting, orbiting, or animated-arrow pivots need a separate rigid cleanup.
 
 ## Integrated landmarks
 
@@ -210,14 +212,15 @@ M-063 retains CeilingLane and Landing.0 exactly. M-065 retains ArenaCenter and
 both landings exactly. Their candidates are 3,832, 97,112, and 357,256 bytes,
 respectively, with unchanged source triangle counts at both LODs.
 
-M-061 Root pillar is ready for review at 1,202,560 bytes, down 68.8%. Its 2048
+Root integrated M-061 Root pillar with M-092 fields in `42aa735`. M-061 is
+1,202,560 bytes, down 68.8%. Its 2048
 albedo and emission atlases are JPEG quality 92, and both LOD renders preserve
 the reef strands and four shelves. Triangles remain 212 / 48, exact bounds are
 unchanged, all four landing raycasts pass, and socket drift stays below
 0.000007 m. The review sheets are `alien-static-M061-lod0-contact.png` and
 `alien-static-M061-lod1-contact.png` under the local preview directory.
 
-M-067 Eclipse dais is ready for renewed review after the shared atlas made its
+Root integrated M-067 Eclipse dais in `879f691` after the shared atlas made its
 LOD1 emissive ring too faint. The rebuilt candidate retains both source images,
 materials, and UVs; both LOD rings now match the source. It is 3,179,428 bytes,
 down 0.2%, and reduces five meshes to four while preserving exact bounds and
@@ -230,23 +233,38 @@ specific cleanup after both-LOD visual comparison. The runner now rejects any
 compressed-source/import triangle change except this documented M-067 delta,
 and records the source count, imported count, delta, and duplicate-face evidence
 in `local/hopper-tier-a/reports/M-067-eclipseDais.json` under
-`blender.import_topology`. The manifest should change to 122 only when this
-reviewed candidate is integrated.
+`blender.import_topology`. Integration records the reviewed 122 count without
+falsifying the original compressed GLB's 124 authored triangles.
 
 M-056 Ivory rib arch remains blocked. Its unchanged source geometry already
 fails `Landing.0`: the authored crown socket at y=26.5 sits inside the central
 rib and has no downward landing face within 0.5 m. The static runner does not
 relax that gameplay contract.
 
-Four alien-kit files are blocked from static flattening and recorded in
-`FUNCTIONAL_PIVOT_REQUESTS`: M-059 Coral bridge has three independently falling
-stages; M-060 Floating reef moves as a rigid root; M-064 Ring shard orbits with
-its landing; and M-066 Gravity seam procedurally animates the named `Arrow*`
-pivots. M-066's exploratory static candidate was discarded after this source
-behavior audit. These four require a separately reviewed rigid/pivot-preserving
-cleanup path even though their current GLBs contain no animation clips.
+The functional rigid-owner path is now implemented for M-059, M-060, M-064,
+and M-066. Root reviewed and integrated M-060 Floating reef and M-064 Ring shard
+in `1135ed2`; their LOD roots, landing parents/transforms/extras, exact bounds,
+and per-root triangle ownership are preserved. Their original painted textures
+remain unchanged. Production manifest processing records the cleanup while the
+source hierarchy evidence remains in the local reports.
 
-The three M-092 terrain candidates are ready for review. The first fields atlas
+Root integrated M-059 Coral bridge and M-066 Gravity seam in `1f00d9a` after
+matched LOD0/LOD1 review. M-059 is 1,859,120 bytes with 132 / 100 triangles.
+Stage0/1/2 and the three LOD1 stage pivots retain their exact parents,
+transforms, extras, and 12 triangles each; all three landing raycasts pass. The
+authored landing nodes are LOD-root siblings, and the candidate preserves that
+source relationship rather than inventing a new parent. M-066 is 6,280 bytes,
+down 40.9%, with 76 / 68 triangles. Arrow0..7 and LOD1.Arrow1..7 retain exact
+parents, transforms, extras, and eight triangles each; the source intentionally
+has no LOD1.Arrow0. Quantized compression adds anonymous transform wrappers, so
+reported node counts rise to 38 and 53 respectively, but none replaces or
+intervenes above a protected pivot. Reports record
+`functional_structure: preserved`. Review sheets are
+`functional-pivots-secondpair-lod0-contact.png` and
+`functional-pivots-secondpair-lod1-contact.png` under the local preview directory.
+
+Root integrated all three M-092 terrain candidates: fields in `42aa735`, then
+city and mountains in `f169534`. The first fields atlas
 trial introduced dark LOD1 seams and was discarded. All three now retain their
 source texture, material, and UVs through the terrain bake-only branch, which
 requires one mesh per LOD and skips material merge and weld:
@@ -257,7 +275,7 @@ requires one mesh per LOD and skips material merge and weld:
 | `terrain/city.glb` | 1,949,752 | 10.8% | 59,858 / 2,518 |
 | `terrain/mountains.glb` | 2,411,588 | 9.4% | 59,858 / 2,519 |
 
-Exact decoded bounds are unchanged for every LOD. M-092 preview keys now append
+Exact decoded bounds are unchanged for every LOD. M-092 preview keys append
 the terrain stem so the shared request ID cannot overwrite another terrain's
 renders. Review files are `M-092-fields-lod0-contact.png`,
 `M-092-fields-lod1-contact.png`, `terrain-city-mountains-lod0-contact.png`, and
@@ -265,11 +283,9 @@ renders. Review files are `M-092-fields-lod0-contact.png`,
 
 ## Resume
 
-From the repository root, run one bounded selector at a time:
+Only the held M-056 diagnostic remains. From the repository root, run:
 
 ```sh
-python3 hopper/3d/models/source/tier_a_batch.py landmarks
-python3 hopper/3d/models/source/tier_a_batch.py episode-one-static
 python3 hopper/3d/models/source/tier_a_batch.py M-056
 ```
 
