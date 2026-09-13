@@ -507,7 +507,8 @@ export class Scene3D {
       return;
     }
     o.position.set(r.x, r.y, r.z);
-    o.rotation.set(0, r.yaw, 0);
+    // A chain commander's segments are laid in world space, so its group does not turn.
+    o.rotation.set(0, r.segments ? 0 : r.yaw, 0);
     const flash = o.getObjectByName('Flash') as Mesh,
       tell = o.getObjectByName('Tell') as Mesh;
     flash.visible = r.hitFlash > 0;
