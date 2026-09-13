@@ -3,7 +3,7 @@ Independent candidate: local/hopper-crag-tortoise-refine. --qa renders all poses
 """
 import bpy,math,json,sys,shutil,subprocess,struct
 from pathlib import Path
-from mathutils import Vector
+from mathutils import Vector,Quaternion
 HERE=Path(__file__).resolve().parent;sys.path.insert(0,str(HERE))
 from common import Context,ROOT,TEXTURES,v
 import crag_tortoise as ct
@@ -40,9 +40,15 @@ def raised(c,name,outline,mat,edge,root,arm,pre,kind='Shell',height=.075,low=Fal
  center=sum((Vector(p) for p in outline),Vector())/len(outline);n=len(outline);verts=list(outline)
  for p in outline:verts.append(tuple(center+(Vector(p)-center)*.92+Vector((0,.025,0))))
  verts.append(tuple(center+Vector((0,height,0))));faces=[]
+ if name.startswith('Shell.Plate'):
+  # Project inner bevel/crown back to the curved shell, so chords cannot sink
+  # through the substrate and leave broken outlines or detached streaks.
+  for j,p in enumerate(verts):
+   x,y,z=p;r=((x/3.08)**2+((z+.20)/3.34)**2)**.5
+   verts[j]=(x,1.57+1.82*max(0,1-r*r)**.56+.065+(height if j==2*n else (.025 if j>=n else 0)),z)
  for i in range(n):j=(i+1)%n;faces.extend([(i,j,n+j,n+i),(n+i,n+j,2*n)])
  if pre:
-  verts=list(outline)+[tuple(center+Vector((0,height,0)))];faces=[(i,(i+1)%n,n) for i in range(n)]
+  verts=verts[:n]+[verts[-1]];faces=[(i,(i+1)%n,n) for i in range(n)]
  o=mesh(c,name,verts,faces,mat,root,arm,pre,kind)
  o.data.materials.append(bpy.data.materials[edge])
  for i,p in enumerate(o.data.polygons):p.material_index=1 if not pre and i%2==0 else 0
@@ -50,7 +56,7 @@ def raised(c,name,outline,mat,edge,root,arm,pre,kind='Shell',height=.075,low=Fal
 
 def shell(c,root,arm,pre,m,low):
  def surface(r,a):
-  x=3.08*r*math.cos(a);z=3.34*r*math.sin(a)-.20;y=1.57+2.13*max(0,1-r*r)**.56
+  x=3.08*r*math.cos(a);z=3.34*r*math.sin(a)-.20;y=1.57+1.82*max(0,1-r*r)**.56
   return Vector((x,y,z))
  n=16 if low else 32;verts=[];faces=[]
  for r in [.0,.36,.70,.91,1.0]:
@@ -76,7 +82,7 @@ def limb(c,leg,root,arm,pre,m,low):
  s=-1 if leg.endswith('L') else 1;f=1 if leg.startswith('F') else -1
  controls=[(1.52*s,1.43,1.46*f),(2.00*s,1.24,1.66*f),(2.48*s,.76,1.97*f),(2.86*s,.46,2.25*f),(3.18*s,.30,2.58*f),(3.31*s,.25,2.84*f)]
  pts=catmull(controls,1 if low else 2);sides=7 if low else 10;verts=[];faces=[]
- radii=[.63,.66,.53,.40,.38,.25]
+ radii=[.72,.73,.62,.46,.40,.25]
  def sample(t,a,extra=0):
   u=t*(len(pts)-1);j=min(len(pts)-2,int(u));center=pts[j].lerp(pts[j+1],u-j);tangent=(pts[min(len(pts)-1,j+1)]-pts[max(0,j-1)]).normalized();right=tangent.cross(Vector((0,1,0))).normalized();up=right.cross(tangent).normalized();k=min(4,int(t*5));r=radii[k]*(1-(t*5-k))+radii[k+1]*(t*5-k)+extra
   q=center+(right*math.cos(a)+up*math.sin(a))*r;q.y=max(.045,q.y);return q
@@ -87,7 +93,7 @@ def limb(c,leg,root,arm,pre,m,low):
  faces.extend([tuple(reversed(range(sides))),tuple((len(pts)-1)*sides+i for i in range(sides))]);mesh(c,f'Leg.{leg}.ConnectedHide',verts,faces,m['hide'],root,arm,pre,f'Leg.{leg}',True)
  # Broad overlapping scales follow the limb's curvature and deform with the same weights.
  for row,t in enumerate([.17,.43,.69,.87]):
-  for col,a in enumerate([.70,1.65,2.65] if not low else [1.15,2.30]):
+  for col,a in enumerate([-.15,.70,1.65,2.65,3.30] if not low else [-.15,1.15,2.30,3.30]):
    outline=[tuple(sample(max(0,min(1,t+dt)),a+da,.018)) for dt,da in [(-.13,-.36),(-.12,.34),(.04,.45),(.13,.12),(.10,-.38)]]
    raised(c,f'Leg.{leg}.Scale.{row}.{col}',outline,m['rock'],m['edge'],root,arm,pre,f'Leg.{leg}',.07)
  # Wide flattened foot has real Y=0 sole; three swept ivory claws per foot.
@@ -129,6 +135,15 @@ def build(c,root,lod,m):
     for ix in p.loop_indices:
      co=o.data.vertices[o.data.loops[ix].vertex_index].co;o.data.uv_layers.active.data[ix].uv=(.57+co.x*.003,.952+co.y*.0015)
  if low:
+  # Reuse the generated trim's bright-to-dark seam transition on existing
+  # plate fans. No texture synthesis or extra triangles: center remains rock.
+  for o in root.children_recursive:
+   if o.type=='MESH' and ('Shell.Plate.' in o.name or '.Scale.' in o.name):
+    center=len(o.data.vertices)-1
+    for polygon in o.data.polygons:
+     for k,ix in enumerate(polygon.loop_indices):
+      is_center=o.data.loops[ix].vertex_index==center
+      o.data.uv_layers.active.data[ix].uv=((2505 if is_center else 2453.5)/4096,1-(400 if is_center else 399+k)/4096)
   for o in root.children_recursive:
    if o.type!='MESH' or any(token in o.name for token in ['Plate.','Scale.','Thorn.','Eye.','Claw.']):continue
    o.data.calc_loop_triangles()
@@ -137,13 +152,47 @@ def build(c,root,lod,m):
  return arm,[o for o in root.children_recursive if o.type=='MESH']
 
 
+def plant_walk_feet(arm,pre):
+ # The original angular gait drives planted soles through Y=0. Bake a small
+ # root-of-leg translation for each support half-stride, retaining swing lift.
+ # This is skin-joint motion; neither scene root receives Walk translation.
+ ct.mute_actions([arm]);action=next(t.strips[0].action for t in arm.animation_data.nla_tracks if t.name=='Walk');arm.animation_data.action=action
+ scene=bpy.context.scene
+ for frame in range(1,32):
+  scene.frame_set(frame)
+  for leg in ct.LEG_IDS:arm.pose.bones[pre+f'Leg.{leg}.0'].location=(0,0,0)
+  bpy.context.view_layer.update();dg=bpy.context.evaluated_depsgraph_get()
+  for leg in ct.LEG_IDS:
+   foot=bpy.data.objects[pre+f'Leg.{leg}.Foot'];e=foot.evaluated_get(dg);me=e.to_mesh();floor=min((e.matrix_world@p.co).z for p in me.vertices);e.to_mesh_clear()
+   bone=arm.pose.bones[pre+f'Leg.{leg}.0'];bone.location=bone.bone.matrix_local.to_3x3().inverted()@Vector((0,0,max(0,-floor)))
+   bone.keyframe_insert('location',frame=frame,group=bone.name)
+ for fc in ct.action_fcurves(action):
+  if fc.data_path.endswith('location'):
+   for key in fc.keyframe_points:key.interpolation='LINEAR'
+ arm.animation_data.action=None;ct.clear_pose(arm);scene.frame_set(1);bpy.context.view_layer.update()
+
+
 def main():
  bpy.ops.wm.read_factory_settings(use_empty=True);c=Context(ct.REQ);c.root['authoring']='reference-authored seventeen-bone Crag Tortoise';c.root['reference']='design/references/enemies/cragTortoise-turnaround.png';c.root['landings']='[]'
- m={'hide':c.material('Crag.DarkHide',(.085,.092,.11)),'rock':c.material('Crag.PaintedSlate',(.54,.53,.62),TEXTURES/'trim/violet.png'),'edge':c.material('Crag.VioletBevel',(.19,.095,.27)),'ink':c.material('Crag.Recess',(.012,.014,.020)),'ivory':c.material('Crag.Ivory',(.61,.52,.33)),'metal':c.material('Crag.CoreMetal',(.19,.18,.21)),'core':c.material('Crag.CoreViolet',(.26,.055,.49),emission=.5),'mouth':c.material('Crag.Mouth',(.22,.042,.035))}
+ m={'hide':c.material('Crag.DarkHide',(.085,.092,.11)),'rock':c.material('Crag.PaintedSlate',(.54,.53,.62),TEXTURES/'trim/violet.png'),'edge':c.material('Crag.VioletBevel',(.072,.029,.105)),'ink':c.material('Crag.Recess',(.012,.014,.020)),'ivory':c.material('Crag.Ivory',(.61,.52,.33)),'metal':c.material('Crag.CoreMetal',(.19,.18,.21)),'core':c.material('Crag.CoreViolet',(.26,.055,.49),emission=.5),'mouth':c.material('Crag.Mouth',(.22,.042,.035))}
  a0,m0=build(c,c.root,0,m);r1=bpy.data.objects.new('LOD1',None);bpy.context.collection.objects.link(r1);r1['lod']=1;r1['request']='M-007';a1,m1=build(c,r1,1,m);roots=[c.root,r1];arms=[a0,a1]
  for name,pos,bone in [('Core',(0,.40,-.18),'Spine.0'),('Mouth',(0,1.02,3.90),'Head'),('Hitbox.Shell',(0,2.5,-.2),'Shell'),('Hitbox.Body',(0,1.25,0),'Spine.0')]:
   o=bpy.data.objects.new(name,None);bpy.context.collection.objects.link(o);o.location=v(pos);bpy.context.view_layer.update();world=o.matrix_world.copy();o.parent=a0;o.parent_type='BONE';o.parent_bone=bone;o.matrix_world=world;o['socket']=True;c.sockets.append(name)
- ct.author_actions(a0);ct.author_actions(a1,'LOD1.');ct.author_root_lunge(c.root);ct.author_root_lunge(r1)
+ scaffold_pose=ct.pose_for
+ for arm,pre in [(a0,''),(a1,'LOD1.')]:
+  def corrected_pose(clip,phase,name):
+   rotation,scale=scaffold_pose(clip,phase,name)
+   if clip in ['Lunge_Tell','Lunge','Belly_Open_Hold','Withdraw']:
+    amount=phase if clip=='Lunge_Tell' else (1-phase if clip=='Withdraw' else 1)
+    angle={'Spine.0':-.95,'Spine.1':-.05,'Shell':.04,'Head':.09,'Jaw':.50}.get(name,0)
+    if name.startswith('Leg.'):
+     front=name.split('.')[1].startswith('F');joint=int(name[-1]);angle=([- .20,.35,-.18] if front else [.76,-.10,.03])[joint]
+    if clip=='Belly_Open_Hold' and name=='Head':angle+=.022*math.sin(phase*math.tau)
+    axis=arm.data.bones[pre+name].matrix_local.to_quaternion().inverted()@Vector((1,0,0));rotation=list(Quaternion(axis,angle*amount).to_euler())
+   elif name=='Spine.1':rotation[0]*=-1
+   return rotation,scale
+  ct.pose_for=corrected_pose;ct.author_actions(arm,pre)
+ plant_walk_feet(a0,'');plant_walk_feet(a1,'LOD1.');ct.author_root_lunge(c.root);ct.author_root_lunge(r1)
  bounds=[ct.fit_root(r) for r in roots];tris=[ct.count_triangles(r) for r in roots];print('CRAG REFINED GEOMETRY',bounds,tris,flush=True);assert tris[0]<=7000 and tris[1]<=2000
  weights={'LOD0':ct.validate_weights(m0,a0),'LOD1':ct.validate_weights(m1,a1,'LOD1.')};saved=ct.capture_transforms();samples=ct.sample_animations(roots+arms,m0+m1);loops=ct.validate_loops(arms);motion=ct.validate_root_motion(roots);ground={r.name:ct.ground_report(r) for r in roots}
  preview.wr=ct;preview.OUT=OUT;preview.rest(roots,arms,saved);scene,cam=preview.studio()
@@ -153,6 +202,8 @@ def main():
   for lod in range(2):
    for clip in ct.REQ['clips']:
     for phase in ([0,.25,.5,.75,1] if clip=='Walk' else [0,.5,1]):preview.render(scene,cam,roots,arms,saved,lod,'three-quarter',clip,phase)
+ if '--material-qa' in sys.argv:
+  for clip,phase in [('Walk',.25),('Belly_Open_Hold',.5)]:preview.render(scene,cam,roots,arms,saved,1,'three-quarter',clip,phase)
  preview.rest(roots,arms,saved);bpy.ops.object.select_all(action='DESELECT')
  for r in roots:
   for o in [r,*r.children_recursive]:o.select_set(True);o.hide_render=False

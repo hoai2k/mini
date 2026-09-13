@@ -175,7 +175,7 @@
       ],
       "standIn": "enemy.cragTortoise",
       "final": "models/enemies/cragTortoise.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/cragTortoise.png",
         "design/assets/enemy-silhouettes.png"

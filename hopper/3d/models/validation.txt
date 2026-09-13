@@ -176,5 +176,7 @@ PASS hopper/3d/models/enemies/spireLeech.glb
   523 nodes · 249 meshes · 6 materials · 4858/1480 tris
 PASS hopper/3d/models/enemies/windowRay.glb
   184 nodes · 80 meshes · 6 materials · 1758/730 tris
+PASS hopper/3d/models/enemies/cragTortoise.glb
+  726 nodes · 342 meshes · 8 materials · 6206/1983 tris
 
-75/75 GLBs passed.
+76/76 GLBs passed.
