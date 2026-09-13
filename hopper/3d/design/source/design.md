@@ -162,6 +162,8 @@ A tap is a leap, not a hop: takeoff adds a forward lunge along the way Hopper is
 
 Hopper always faces forward: along the trail, or wherever the camera's manual turn points, or at a locked target. Pulling the stick back is a backpedal at half speed, sideways is a strafe, and the dash, the hop back and the wall kick are manoeuvres that keep the facing. Turning round is the camera's job, never the stick's, so the rider is always looking where the danger is.
 
+As built: the tap is a mighty kick — 104 m/s off the ground, a 45 m apex, 57 m with the short hold — and the fall pulls harder (1.4×), so the arc is quick up and sharp down; the crouch charge reaches 190 m. The stick's lower band (to 55 % of its throw) walks at up to 34 m/s and its upper band gallops to 68 m/s, twice the walk, with the sprint on top.
+
 The crouch charge is the deliberate big jump. Holding RB compresses the hind legs over 0.8 s; releasing launches straight up by charge, and the stick during the charge sets the direction. It is slow to start and enormous, so it is the way onto the tall things and rarely a combat move.
 
 Wall kicks chain without limit, because the world is full of corners and the ladder up a tower is a rhythm the player should be allowed to enjoy. Each kick preserves facing and commits steering for 0.16 s.
@@ -222,6 +224,8 @@ Shadows are built to Hopper's scale or beyond: a hound stands eye to eye with a 
 The kick is now all-round because in 3D the question is timing, not direction. The guard is still a front-facing dome because facing is something the player controls, and a shield that only covers the front makes lock-on and strafing matter.
 
 ### Fighting in the air
+
+The fight comes up at Hopper, not down on him: once he is near, window rays, rift condors and chain mantas drop below him (never lower than a body above the ground, never above their own perch) and their dives rise to meet him, while the rooted shooters lob and beam upward from where they stand. The super jump and the way down — stomps, kicks, dives — are the answer; aiming upward is never the game.
 
 Every flyer is a step. Stomping one damages it and bounces Hopper upward; holding A on the bounce goes higher; releasing takes a low, controllable rebound. Kicks work in the air and preserve the arc. Lasers fire while gliding, so a glide toward a roof can clear the sniper on it before arrival. The guard in the air is a brake that kills forward speed for a moment, which is a dodge as much as a defence. A chain of bounce, kick, bounce can keep Hopper aloft through a whole flock, and the flocks over the ravines and reefs are built to invite it.
 

@@ -145,7 +145,11 @@ export const CAMERA = {
    * gap beyond `catchUp` metres closes faster whatever the state. */
   riseRate: 4.5,
   airRiseRate: 2.4,
-  catchUp: 26,
+  catchUp: 60,
+  /** How much faster the look point closes each metre of gap past `catchUp`. */
+  catchUpRate: 0.2,
+  /** The look point and the eye never climb or drop faster than this (m/s), whatever the gap. */
+  maxRise: 66,
   /** How quickly the smoothed velocity and the height framing follow. */
   flowRate: 3,
   frameRate: 2,
@@ -363,10 +367,11 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   // one smooth path, and only a real change of level (a roof, a fall) moves
   // it, faster once the gap is wide. Lock and horizon views track fully.
   const gap = Math.abs(target[1] - cam.target[1]);
-  const wantRise = cam.mode !== 'follow' ? CAMERA.smoothing : (h.height > 0.5 ? CAMERA.airRiseRate : CAMERA.riseRate) + Math.max(0, gap - CAMERA.catchUp) * 0.5;
+  const wantRise = cam.mode !== 'follow' ? CAMERA.smoothing : (h.height > 0.5 ? CAMERA.airRiseRate : CAMERA.riseRate) + Math.max(0, gap - CAMERA.catchUp) * CAMERA.catchUpRate;
   cam.riseRate = ease(cam.riseRate, wantRise, 1 - Math.exp(-4 * dt));
   const ky = 1 - Math.exp(-cam.riseRate * dt);
-  cam.target = [ease(cam.target[0], target[0], k), ease(cam.target[1], target[1], ky), ease(cam.target[2], target[2], k)];
+  const lift = (from: number, to: number) => from + Math.max(-CAMERA.maxRise * dt, Math.min(CAMERA.maxRise * dt, ease(from, to, ky) - from));
+  cam.target = [ease(cam.target[0], target[0], k), lift(cam.target[1], target[1]), ease(cam.target[2], target[2], k)];
   const cp = Math.cos(usePitch),
     sp = Math.sin(usePitch);
   const eye: [number, number, number] = [cam.target[0] - Math.sin(cam.yaw) * cp * cam.distance, cam.target[1] + sp * cam.distance, cam.target[2] - Math.cos(cam.yaw) * cp * cam.distance];
@@ -377,7 +382,7 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   cam.clip = free < cam.clip ? ease(cam.clip, free, 1 - Math.exp(-CAMERA.clipIn * dt)) : ease(cam.clip, free, 1 - Math.exp(-CAMERA.clipOut * dt));
   const want: [number, number, number] = [cam.target[0] + (eye[0] - cam.target[0]) * cam.clip, cam.target[1] + (eye[1] - cam.target[1]) * cam.clip, cam.target[2] + (eye[2] - cam.target[2]) * cam.clip];
   want[1] = Math.max(want[1], world.heightAt(want[0], want[2]) + 3);
-  cam.eye = [ease(cam.eye[0], want[0], k), ease(cam.eye[1], want[1], ky), ease(cam.eye[2], want[2], k)];
+  cam.eye = [ease(cam.eye[0], want[0], k), lift(cam.eye[1], want[1]), ease(cam.eye[2], want[2], k)];
   // The slow height follow must never leave the eye under a rising slope.
   cam.eye[1] = Math.max(cam.eye[1], world.heightAt(cam.eye[0], cam.eye[2]) + 2.5);
 }

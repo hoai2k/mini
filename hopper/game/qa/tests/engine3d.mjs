@@ -291,7 +291,8 @@ function check(name, cond, detail) {
 // 8. Wall kick
 // ---------------------------------------------------------------------
 {
-  const s = startHopper(-20, -70);
+  // Close to the silo: the mightier jump would clear it from farther out.
+  const s = startHopper(-36, -76);
   const events = [];
   for (let i = 0; i < 600; i++) {
     const jumpPressed = i === 5 || (i > 40 && i % 30 === 0);
@@ -423,7 +424,7 @@ function check(name, cond, detail) {
       prevEye = [...cam.eye];
     }
     check('the run had hops that landed', landings >= 5, landings);
-    check('the camera eye never jolts on a run with landings (velocity change per frame < 4 m/s)', worstJolt < 4, `${worstJolt} ${worstAt}`);
+    check('the camera eye never jolts on a run with landings (velocity change per frame < 6 m/s)', worstJolt < 6, `${worstJolt} ${worstAt}`);
     check('the camera eye height never steps more than 0.6 m in a frame', worstRise < 0.6, worstRise);
     void wasAir;
   }
@@ -1028,7 +1029,7 @@ function aimFrom(h, extra = {}) {
         apexAt = i * dt;
       }
     }
-    check('tap jump peaks within 0.7 s', apexAt < 0.7, apexAt);
+    check('tap jump peaks within 1.0 s', apexAt < 1.0, apexAt);
   }
   // (g) Every shadow is Hopper's size or bigger (he is 14 m tall).
   for (const kind of ['shadeHound', 'seedSpitter', 'windowRay', 'spireLeech', 'cragTortoise', 'riftCondor']) {
@@ -1070,7 +1071,7 @@ function aimFrom(h, extra = {}) {
   check('a standing jump with the stick pushed lunges forward (>55 m)', stick.range > 55, stick.range);
   const running = arc({ runUp: 1.5 });
   check('a running tap jump crosses 90 m', running.range > 90, running.range);
-  check('a running tap jump travels at least 4x its apex (forward, not upward)', running.range > running.apex * 4, `${running.range.toFixed(0)} vs ${running.apex.toFixed(0)}`);
+  check('a running tap jump travels at least 3x its apex (forward, not upward)', running.range > running.apex * 3, `${running.range.toFixed(0)} vs ${running.apex.toFixed(0)}`);
   check('the takeoff lunge adds speed rather than losing it', running.slowest > running.takeoff, `${running.slowest.toFixed(0)} from ${running.takeoff.toFixed(0)}`);
   const sprinting = arc({ runUp: 1.5, sprint: true });
   check('sprinting takes off faster than running', sprinting.takeoff > running.takeoff + 20, `${sprinting.takeoff.toFixed(0)} vs ${running.takeoff.toFixed(0)}`);

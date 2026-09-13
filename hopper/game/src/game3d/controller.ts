@@ -34,7 +34,7 @@ export const MOVE = {
   strafe: 0.85,
   /** Forward lunge added at takeoff, along the way Hopper is already going
    * (or the stick, from standing). A leap travels; it does not just rise. */
-  leap: 24,
+  leap: 34,
   glideSink: 7,
   glideSpeed: 80,
   glideTurn: Math.PI * 0.6,
