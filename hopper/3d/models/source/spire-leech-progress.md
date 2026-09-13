@@ -1,8 +1,9 @@
 # M-006 Spire Leech scaffold progress
 
-This checkpoint is a mechanical rig and animation foundation for a later Astra
-art pass. It is not a finished creature-art delivery and has not been copied to
-production.
+This checkpoint records the mechanical rig and animation foundation that fed
+the later Astra art pass. The scaffold itself is not the delivered art;
+`spire_leech_refine.py` superseded its placeholder geometry, and the reviewed
+Spire Leech was integrated in `bdd3082`.
 
 ## Contract and references
 
@@ -36,12 +37,16 @@ production.
 - All seven exported animations contain 46 channels and remain separate after meshopt compression. `Charge_Tell` and `Beam_Hold` also animate the mouth-emitter scale as a readable glow proxy.
 - Three authoritative sockets exist on LOD0. `Core` follows `Chain.3`, `Emitter` follows `Head`, and `Hitbox.Body` remains under the LOD root.
 
-## Handoff status
+## Completed art handoff
 
-The placeholder establishes the long segmented silhouette, circular hooked mouth,
-charge lenses, and terminal hook only far enough to exercise the rig. The later
-creative pass should replace the simple tube, collars, and teeth with the painted
-overlapping armour and hooked anatomy from the canonical sheet while retaining
-the bone names, normalized skinning, sockets, clips, exact bounds, and LOD budgets.
-No shared manifest, request source, production-state document, or production GLB
-was edited.
+The placeholder established the long segmented silhouette, circular hooked
+mouth, charge lenses, and terminal hook far enough to exercise the rig.
+`spire_leech_refine.py` replaced the simple tube, collars and teeth with the
+reviewed overlapping armour and hooked anatomy while retaining the scaffold
+interfaces. The final production GLB is
+`hopper/3d/models/enemies/spireLeech.glb`; validation and final render details
+are in `spire-leech-refine-progress.md`.
+
+The scaffold authoring step did not edit shared manifests, request sources,
+production state or production GLBs. Production integration happened later
+under the reviewed refinement commit.

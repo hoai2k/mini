@@ -1,8 +1,9 @@
 # M-005 Window Ray scaffold progress
 
-This checkpoint is a mechanical skeletal and animation foundation for a later
-Astra art pass. It is not a finished creature-art delivery and has not been
-copied to production.
+This checkpoint records the mechanical skeletal and animation foundation that
+fed the later Astra art pass. The scaffold itself is not the delivered art;
+`window_ray_refine.py` superseded its placeholder geometry, and the reviewed
+Window Ray was integrated in `f169534`.
 
 ## Contract and compatibility
 
@@ -38,13 +39,15 @@ copied to production.
 - Only `Dive` animates the two LOD roots. Its authored game-space root delta is `[0, -2.4, 5.2]`; all other clip motion remains on the skeleton.
 - `Core` follows `Body`, `Mouth` follows `Eye`, and `Hitbox.Body` plus `Landing` remain under LOD0. The top landing socket is the stomp target.
 
-## Art handoff
+## Completed art handoff
 
-The placeholder only establishes a flat diamond body, broad continuous wings,
-one thin tail, and one visible ivory eye. The creative pass should replace these
-simple prisms with the canonical swept armour, camber, inset core and refined eye
-while preserving bone and clip names, root-motion isolation, socket placement,
-normalized skinning, exact bounds, and LOD budgets.
+The placeholder established a flat diamond body, broad continuous wings, one
+thin tail, and one visible ivory eye. `window_ray_refine.py` replaced those
+simple prisms with the reviewed canonical armour, camber, inset core and refined
+eye while preserving the scaffold interfaces. The final production GLB is
+`hopper/3d/models/enemies/windowRay.glb`; validation and final render details are
+in `window-ray-refine-progress.md`.
 
-No shared request document, manifest, production-state file, production GLB or
-game file was edited.
+The scaffold authoring step did not edit shared request documents, manifests,
+production state, production GLBs or game files. Production integration happened
+later under the reviewed refinement commit.

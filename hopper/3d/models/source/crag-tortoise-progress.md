@@ -4,6 +4,11 @@ This checkpoint is a mechanical skeletal and animation foundation for a later
 Astra art pass. It is not a finished creature-art delivery and has not been
 copied to production.
 
+Current disposition (2026-09-12): M-007 remains a stand-in in the generated
+request inventory. This validated scaffold is queued for Astra art refinement;
+only a reviewed canonical art pass and production integration remain locally
+feasible.
+
 ## Contract and compatibility
 
 - Request: `hopper/3d/design/model-requests.md` (M-007).

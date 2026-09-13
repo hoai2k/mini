@@ -4,11 +4,24 @@ Audited 2026-09-12 against `hopper/3d/design/source/build_requests.py`, the gene
 
 ## Counts and source of truth
 
-After M-014 delivery `52f8a38`, the generated inventory contains **93 model requests**: **74 delivered**, **19 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed animation extensions. The 19 creature IDs still represented by stand-ins are **M-003–M-013, M-015–M-017, and M-019–M-023**; zero open entries does not mean these creatures or later art cleanup are finished.
+After the reviewed M-006 and M-005 deliveries (`bdd3082` and `f169534`),
+the generated inventory contains **93 distinct model requests**: **76 delivered**,
+**17 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed
+animation extensions. The 17 creature IDs still represented by stand-ins are
+**M-003, M-004, M-007–M-013, M-015–M-017, and M-019–M-023**; zero open entries
+does not mean these creatures or later art cleanup are finished.
 
 There are **86 image requests**: round one **47** (46 delivered, **T-038 procedural-final**), round two **32 delivered pending art review**, and round three **7** (**T-080–T-082 and T-086 delivered**; **T-083–T-085 open**). The exact pending image IDs are therefore **T-083–T-085**, all optional native-4K skies. `standin-manifest.json` is the generated status inventory; `build_requests.py` is its source. `model-requests.md` and the round image request documents are generated outputs.
 
-The 74 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-014, M-018 and M-024–M-092 in `hopper/3d/models`. The current authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
+The 76 delivered request IDs comprise M-000–M-002 in `hopper/models` plus
+M-005, M-006, M-014, M-018 and M-024–M-092 in `hopper/3d/models`. The latter
+manifest contains **75 GLB entries representing 73 distinct request IDs**:
+M-092 has separate city, fields and mountains terrain files. File count and
+request count must therefore remain separate. The current authored
+high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its
+code-built entries remain delivered for gameplay but are explicitly marked for
+later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered”
+here means the current implementation delivery, not final painted-art approval.
 
 ## Image reconciliation
 
@@ -24,9 +37,46 @@ Native-resolution constraint applies broadly to the delivered painted pack: `hop
 
 ## Model disposition suggestions (not status changes)
 
-The remaining creature stand-ins are pending review and production. The operational local-first batch is now **1**: **M-006 Spire Leech**; M-014 Turbine Wasp and M-018 Phase Skate are delivered. A further **4** are conditionally local-feasible: **M-005 Window Ray, M-007 Crag Tortoise, M-011 Chain Manta, and M-015 Basalt Burrower**. **M-013 Coil Wraith** and **M-020 Gravity Cantor** have identity/contract conflicts requiring reconciliation. Gravity Cantor's crowned humanoid painting contradicts its requested rigid ring organ with four prongs; Coil Wraith's mismatch is detailed below. The practical split is **1 local-first + 4 conditional + 2 conflicts + 12 Tripo-preferred**.
+The remaining 17 creature stand-ins are pending review and production. M-005
+Window Ray and M-006 Spire Leech are now reviewed deliveries, alongside M-014
+Turbine Wasp and M-018 Phase Skate. The exact feasible local remainder is
+**three art refinements backed by completed mechanical scaffolds**:
+
+- **M-007 Crag Tortoise:** `hopper/3d/models/source/crag_tortoise.py`; Astra
+  refinement queued after Window Ray.
+- **M-011 Chain Manta:** `hopper/3d/models/source/chain_manta.py`; Astra
+  refinement queued after M-007.
+- **M-015 Basalt Burrower:**
+  `hopper/3d/models/source/basalt_burrower.py`; scaffold ready, art refinement
+  still pending.
+
+These three remain stand-ins until their canonical art passes are reviewed and
+integrated. No additional creature scaffold is planned beyond this seven-creature
+local sequence. **M-013 Coil Wraith** and **M-020 Gravity Cantor** retain
+identity/contract conflicts requiring reconciliation. Gravity Cantor's crowned
+humanoid painting contradicts its requested rigid ring organ with four prongs;
+Coil Wraith's mismatch is detailed below. The current split is therefore **3
+scaffold-backed art passes + 2 conflicts + 12 Tripo-preferred**.
 
 The remaining **12** are Tripo-preferred or require a higher creative/organic pass: **M-003 Shade Hound, M-004 Seed Spitter, M-008 Rift Condor, M-009 Furnace Hound, M-010 Slag Caster, M-012 Ballast Crab, M-016 Thorn Choir, M-017 Veil Medusa, M-019 Mirror Stalker, M-021 Night Rook, M-022 Smelter Leviathan, and M-023 Eclipse Regent**. This is a recommendation only; it does not relabel any request or authorize Tripo work.
+
+Outside the creature stand-ins, the exact feasible Tier A cleanup remainder is
+**four functional rigid kits**: **M-059 Coral Bridge, M-060 Floating Reef,
+M-064 Ring Shard, and M-066 Gravity Seam**. Their falling, moving-root,
+orbiting-landing, and animated-arrow pivots require the separate
+pivot-preserving cleanup path documented in
+`hopper/3d/models/source/tier-a-progress.md`; they must not pass through the
+static flattening runner. **M-056 Ivory Rib Arch** is a separate creative
+geometry correction: its existing `Landing.0` is inside the central rib with no
+downward landing face within the required 0.5 m, so cleanup alone cannot make
+the authored landing valid. These five entries are already delivered code-built
+requests and do not change the 76/17 request-status counts.
+
+The remaining image-side external limitation is **T-083–T-085 only**. They are
+optional sky repaints whose explicit requirement is native 4096×2048 paint;
+the available generator returned 1774×887, and upscaling cannot satisfy that
+constraint. They remain open unless a source capable of true native 4K becomes
+available and the resulting paintings pass review.
 
 For every creature, the source-of-truth chain is `build_requests.py` → `standin-manifest.json` / `model-requests.md`, canonical sprites in `hopper/game/public/assets/enemies` or `bosses`, and approved-but-pending-review turnaround sheets under `hopper/3d/design/references`. The local model contract is `hopper/3d/models/source/BUILD-CONTRACT.md`; existing local builders are `common.py`, `rural.py`, `architecture.py`, and `props.py`. Tripo-preferred material is preserved under `hopper/design/tripo/` when applicable, but no Tripo output was inferred as a delivered creature model.
 
@@ -42,4 +92,8 @@ This review moved Coil Wraith from the initial text-only local-first recommendat
 
 `stash@{0}` (`Preserve local Tripo references before production sync`) contains the formerly untracked `hopper/design/tripo/` references, reports, prompts, and animation materials. Upstream now includes this directory. Preserve it as reference material; do not blindly pop or treat its presence as delivery of any M-003–M-023 request.
 
-No source count correction was necessary. The model manifests are split by layout: `hopper/3d/models/manifest.json` covers M-014, M-018 and M-024–M-092, while the existing M-000–M-002 deliveries are in `hopper/models/manifest.json`; the generated request inventory correctly totals both.
+No source count correction is pending. The model records are split by layout:
+`hopper/3d/models/manifest.json` covers M-005, M-006, M-014, M-018 and
+M-024–M-092, while the existing M-000–M-002 delivery metadata is in
+`hopper/models/manifest.json`. The generated request inventory correctly totals
+76 delivered request IDs and keeps the remaining 17 creatures as stand-ins.

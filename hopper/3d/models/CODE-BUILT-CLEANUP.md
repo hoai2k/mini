@@ -2,7 +2,7 @@
 
 ## Completed Tier A deliveries
 
-- M-057/058 (`4c0bc91`), M-062/063/065 (`d0b9106`), and M-061 plus fields terrain (`42aa735`) are delivered after matched LOD review. City/mountains terrain and M-067 are still awaiting integration. M-056 remains held for a pre-existing invalid landing; functional M-059/060/064/066 are excluded from the static merge path.
+- M-057/058 (`4c0bc91`), M-062/063/065 (`d0b9106`), M-061 plus fields terrain (`42aa735`), city/mountains terrain (`f169534`), and M-067 (`879f691`) are delivered after matched LOD review. M-067 removes two exact coincident ring faces (LOD1 124 to 122) with explicit source/import topology evidence. M-056 remains held for a pre-existing invalid landing; functional M-059/060/064/066 are excluded from the static merge path.
 - Quality-preserving exceptions to the original bake recipe: original textures remain where atlasing loses painted detail or LOD readability (M-036 and terrain); M-061 uses a 2048 atlas. These are mechanical deliveries, not Tier B art approval. See the per-model progress record for measured bounds, bytes, and retained textures.
 - M-024 Terrace step, M-027 Windbreak row, and M-036 Crag column: delivered after matched review of both LODs (`52f8a38`). M-037 Ledge shelf is also delivered at 1,197,276 bytes after matched LOD0/LOD1 review.
 - All nine landmarks, M-083–M-091, are delivered after matched before/after render review and full model validation. They retain their original untextured color materials and unchanged LOD triangle counts. M-083 merged 17 meshes to 2 and reduced 17,540 bytes to 6,260; M-089's corrected candidate preserves 928/118 triangles and passed separate LOD1 comparison (`4607af3`). Tier B remains pending.
