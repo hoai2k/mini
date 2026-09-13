@@ -18,10 +18,12 @@ import {
   countEndpoint,
   dashboardUrl,
   SITES,
+  GAMES,
 } from './config.js';
 
 const STATS = dirname(fileURLToPath(import.meta.url));
 const SITES_DIR = join(STATS, '..');
+const REPO = join(SITES_DIR, '..');
 const TAG = '../stats/counter.js';
 
 let failed = 0;
@@ -57,6 +59,27 @@ const onDisk = readdirSync(SITES_DIR, { withFileTypes: true })
 const listed = new Set(SITES.map((s) => s.dir));
 for (const dir of onDisk) {
   ok(listed.has(dir), `${dir}: listed in SITES`);
+}
+
+// A game is a built app, so its entry page reaches the counter through an
+// inline dynamic import the bundler does not follow. Two things can rot here:
+// the import can go missing, and someone can "fix" it into a module src that
+// Vite then bundles — which fails the build, or worse, succeeds and bakes in a
+// second copy of the GoatCounter code.
+for (const game of GAMES) {
+  const entry = join(REPO, game.entry);
+  ok(existsSync(entry), `${game.entry}: exists`);
+  if (!existsSync(entry)) continue;
+  const html = readFileSync(entry, 'utf8');
+  // Allows the /* @vite-ignore */ comment between the paren and the string.
+  ok(/import\([^)]*['"]\.\.\/sites\/stats\/counter\.js['"]/.test(html),
+    `${game.entry}: imports the shared counter at run time`);
+  ok(!/<script[^>]+src=[^>]*stats\/counter\.js/.test(html),
+    `${game.entry}: does not use a module src the bundler would follow`);
+  ok(/@vite-ignore/.test(html),
+    `${game.entry}: keeps @vite-ignore, without which the bundler inlines the counter`);
+  ok(!html.includes('GOATCOUNTER_SITE'),
+    `${game.entry}: does not carry its own copy of the code`);
 }
 
 // The back office must not count itself, or it inflates the number it reports.

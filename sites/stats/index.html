@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Visitor stats — the sites</title>
+    <title>Visitor stats</title>
     <!-- Not indexed: this is the back office, not one of the sites. -->
     <meta name="robots" content="noindex" />
     <link rel="icon" href="../ygent/assets/favicon.svg" type="image/svg+xml" />
@@ -173,9 +173,9 @@
     <main>
       <h1>Visitor stats</h1>
       <p class="sub">
-        Who is finding the sites under <code>/mini/sites/</code>, and from where. One
-        counter covers all of them: the overview is everything together, and each tab
-        narrows the same dashboard to one site.
+        Who is finding the sites and the game under <code>/mini/</code>, and from
+        where. One counter covers all of them: the overview is everything together,
+        and each tab narrows the same dashboard to one of them.
       </p>
 
       <div id="mount"></div>
@@ -209,12 +209,12 @@
         authority on the two lists above, not this one.
       </p>
 
-      <h2>The sites it covers</h2>
+      <h2>What it covers</h2>
       <div class="panel">
         <table>
           <thead>
             <tr>
-              <th scope="col">Site</th>
+              <th scope="col">Site or game</th>
               <th scope="col">Path a visit reports</th>
             </tr>
           </thead>
@@ -246,9 +246,10 @@
             database, and a VPN reports wherever its exit node is.
           </li>
           <li>
-            <strong>The games are counted separately.</strong> This covers
-            <code>/mini/sites/</code> only. Hopper, at <code>/mini/hopper/</code>, has no
-            counter on it.
+            <strong>The game counts a page load, not a play.</strong> Hopper reports one
+            visit when it is opened, whether that visitor presses Start or closes the
+            tab. Nothing from inside the game reaches the counter: no episode reached,
+            no deaths, no session length.
           </li>
         </ul>
       </div>
@@ -257,12 +258,18 @@
     </main>
 
     <script type="module">
-      import { GOATCOUNTER_SITE, dashboardUrl, SITES } from './config.js';
+      import { GOATCOUNTER_SITE, dashboardUrl, COUNTED } from './config.js';
 
-      // The path a visit reports is this page's own parent, so the table and
-      // the per-site filters cannot drift from where the pages are deployed.
+      // The path a visit reports is derived from this page's own location, so
+      // the table and the filters cannot drift from where things are deployed.
+      // base is the sites folder; root is its parent, which is everything the
+      // counter covers — the sites and the game together.
       const base = location.pathname.replace(/stats\/[^/]*$/, '');
-      const paths = SITES.map((s) => ({ ...s, path: base + s.dir + '/' }));
+      const root = base.replace(/sites\/$/, '');
+      const paths = COUNTED.map((c) => ({
+        ...c,
+        path: new URL(c.rel, location.origin + base).pathname,
+      }));
 
       document.getElementById('site-rows').innerHTML = paths
         .map((s) => `<tr><td>${s.name}</td><td><code>${s.path}</code></td></tr>`)
@@ -302,7 +309,7 @@
         // query string, which is the same thing its own "filter paths" box
         // does — so a tab is a shortcut, never a separate source of numbers.
         const views = [
-          { label: 'All sites', name: 'All sites together', filter: base },
+          { label: 'Everything', name: 'Everything together', filter: root },
           ...paths.map((s) => ({ label: s.name, name: s.name, filter: s.path })),
         ];
 
@@ -332,8 +339,8 @@
           frame.src = `${url}/?${q}&hideui=1`;
           openFull.href = `${url}/?${q}`;
           label.textContent =
-            view.filter === base
-              ? `Showing every page under ${base}`
+            view.filter === root
+              ? `Showing every page under ${root}`
               : `Showing ${view.filter}`;
           [...tabs.children].forEach((b, n) =>
             b.setAttribute('aria-selected', String(n === i)),

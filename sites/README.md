@@ -46,11 +46,11 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   Ten pages mirror the live site's 2026 content; `BOOKING.md` records what the
   club's JustBookIt booking system exposes and the options for integrating or
   replacing it.
-- [`stats/`](stats/README.md) — visitor stats for every site here, at
-  https://hoai2k.github.io/mini/sites/stats/: an overview of all of them plus a
-  tab per site. One GoatCounter site covers the lot, because the path it records
-  is already the name of the site. Off until a code is filled in; the page says
-  so and gives the steps. Nothing links to it from the sites.
+- [`stats/`](stats/README.md) — visitor stats for every site here and for the
+  Hopper game, at https://hoai2k.github.io/mini/sites/stats/: an overview of all
+  of them plus a tab each. One GoatCounter site covers the lot, because the path
+  it records is already the name of the thing visited. Off until a code is
+  filled in; the page says so and gives the steps. Nothing links to it.
 - [`music/`](music/) — shared home for recordings that belong to a band
   rather than a game. A band page looks in its own `music/` folder first,
   then here. Deployed to `/mini/sites/music/`.

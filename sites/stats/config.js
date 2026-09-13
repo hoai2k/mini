@@ -55,19 +55,37 @@ export function dashboardUrl(code = GOATCOUNTER_SITE) {
   return isValidSite(code) ? `https://${code}.goatcounter.com` : null;
 }
 
-/** The sites this counter covers, and the path each one reports.
+/** The sites this counter covers, one entry per directory under sites/.
  *
- *  One GoatCounter site covers all of them, because the path it records is
- *  already the name of the site — so the dashboard's Pages view is the
- *  per-site breakdown, with no extra configuration. This list exists so the
- *  stats page can show which paths to look for, and so the smoke test knows
- *  which pages must carry the counter. */
+ *  One GoatCounter site covers everything, because the path it records is
+ *  already the name of the thing visited — so the dashboard's Pages view is
+ *  the breakdown, with no extra configuration. This list exists so the stats
+ *  page can show which paths to look for, and so the smoke test knows which
+ *  pages must carry the counter.
+ *
+ *  `rel` is relative to sites/, which is where the stats page lives. */
 export const SITES = [
-  { name: 'Ygent Records', dir: 'ygent' },
-  { name: 'Space Tiber', dir: 'space-tiber' },
-  { name: "Charlie's Girl Dolls", dir: 'charlies-girl-dolls' },
-  { name: 'Canagentsis', dir: 'canagentsis' },
-  { name: 'Mech Mayhem', dir: 'mechmayhem' },
-  { name: 'The Railway Trio', dir: 'railway' },
-  { name: 'Stratford Tennis Club', dir: 'stratfordtennisclub' },
+  { name: 'Ygent Records', dir: 'ygent', rel: 'ygent/' },
+  { name: 'Space Tiber', dir: 'space-tiber', rel: 'space-tiber/' },
+  { name: "Charlie's Girl Dolls", dir: 'charlies-girl-dolls', rel: 'charlies-girl-dolls/' },
+  { name: 'Canagentsis', dir: 'canagentsis', rel: 'canagentsis/' },
+  { name: 'Mech Mayhem', dir: 'mechmayhem', rel: 'mechmayhem/' },
+  { name: 'The Railway Trio', dir: 'railway', rel: 'railway/' },
+  { name: 'Stratford Tennis Club', dir: 'stratfordtennisclub', rel: 'stratfordtennisclub/' },
 ];
+
+/** The games, counted by the same GoatCounter site but not living under
+ *  sites/.
+ *
+ *  Hopper is a built Vite app, so it cannot include counter.js the way a
+ *  hand-written page does: Vite resolves and bundles any module `src` in its
+ *  entry page, which would bake a copy of the code above into the game's
+ *  JavaScript. Its entry page uses an inline dynamic import instead, resolved
+ *  by the browser at run time — see the comment in hopper/index.html.
+ *  `entry` is the repo path the smoke test checks. */
+export const GAMES = [
+  { name: 'Hopper the Grasshopper', rel: '../hopper/', entry: 'hopper/index.html' },
+];
+
+/** Everything the counter covers, sites and games, in one list. */
+export const COUNTED = [...SITES, ...GAMES];
