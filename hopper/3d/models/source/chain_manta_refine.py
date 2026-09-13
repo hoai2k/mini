@@ -28,7 +28,9 @@ def mesh(c,name,verts,faces,mat,root,arm,pre,kind='Body',smooth=True):
  return normals(o) if smooth else o
 
 def plate(c,name,outline,height,mat,root,arm,pre,kind,low,center=None):
- o=shell(c,pre+name,outline,mat,root,height,center,1 if low else 2);return bind(o,arm,pre,kind)
+ o=shell(c,pre+name,outline,mat,root,height,center,1 if low else 2)
+ for p in o.data.polygons:p.use_smooth=False
+ return bind(o,arm,pre,kind)
 
 def wing(c,sign,root,arm,pre,m,low):
  side='L' if sign<0 else 'R'
@@ -60,7 +62,7 @@ def wing(c,sign,root,arm,pre,m,low):
  for row,(x,z,sx,sz) in enumerate([(1.33,.94,.56,.57),(2.24,1.04,.70,.60),(3.27,.90,.75,.53),(4.32,.63,.72,.43),(1.48,-.10,.60,.48),(2.42,-.05,.67,.48),(3.44,.01,.68,.42),(5.25,.29,.65,.26)]):
   shape=[(-.65,.35),(-.12,.72),(.67,.40),(.75,-.20),(.23,-.75),(-.72,-.43)]
   outline=[(sign*(x+dx*sx),foil(x+dx*sx,z+dz*sz)+.012,z+dz*sz) for dx,dz in shape]
-  plate(c,f'Wing.{side}.LappedScale.{row}',outline,.075,m['shell'],root,arm,pre,'Wing',low)
+  plate(c,f'Wing.{side}.LappedScale.{row}',outline,.035,m['shell'],root,arm,pre,'Wing',low)
  vv=[]
  for rad in [1,.974]:
   for p in anchors:
@@ -68,9 +70,10 @@ def wing(c,sign,root,arm,pre,m,low):
  mesh(c,f'Wing.{side}.VioletLip',vv,[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],m['edge'],root,arm,pre,'Wing')
  # Narrow branching violet fissures follow the foil rather than floating tubes.
  for line,pts in enumerate([[(1.76,1.71),(2.10,1.02),(1.85,.62),(2.43,-.56)],[(3.01,1.79),(3.19,1.05),(3.86,.82),(4.14,-.20)]]):
+  pts=[(a[0]+(b[0]-a[0])*j/6,a[1]+(b[1]-a[1])*j/6) for a,b in zip(pts,pts[1:]) for j in range(6)]+[pts[-1]] if not low else pts
   vv=[]
   for x,z in pts:
-   for dx in [-.025,.025]:vv.append((sign*(x+dx),foil(x+dx,z)+.09,z))
+   for dx in [-.025,.025]:vv.append((sign*(x+dx),foil(x+dx,z)+.014,z))
   mesh(c,f'Wing.{side}.Fissure.{line}',vv,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(pts)-1)],m['edge'],root,arm,pre,'Wing')
 
 def link(c,name,center,tangent,major,minor,radius,mat,root,arm,pre,bone,low,alternate=False):
@@ -96,10 +99,11 @@ def chains(c,root,arm,pre,m,low):
   # Forked terminal crescent: two swept blades plus a center spear and socket.
   x=sign*.76
   for flank in [-1,1]:
-   outline=[(x+flank*.10,.78,-4.97),(x+flank*.42,.89,-5.07),(x+flank*.68,1.02,-4.86),(x+flank*.65,.71,-5.42),(x+flank*.43,.56,-5.64),(x+flank*.10,.63,-5.50)]
+   outline=[(x+flank*.10,.78,-5.04),(x+flank*.39,.91,-4.96),(x+flank*.68,1.03,-4.65),(x+flank*.69,.80,-5.09),(x+flank*.55,.64,-5.43),(x+flank*.30,.58,-5.62),(x+flank*.12,.67,-5.42),(x+flank*.34,.76,-5.29),(x+flank*.42,.84,-5.10)]
    plate(c,f'Hook.{side}.Crescent.{flank}',outline,.10,m['edge'],root,arm,pre,f'HookJoint.{side}',low)
    inset=[(x+(px-x)*.88,y+.028,-5.23+(z+5.23)*.83) for px,y,z in outline]
-   plate(c,f'Hook.{side}.BladeArmor.{flank}',inset,.09,m['shell'],root,arm,pre,f'HookJoint.{side}',low)
+   if low:mesh(c,f'Hook.{side}.BladeArmor.{flank}',inset,[tuple(range(len(inset)))],m['shell'],root,arm,pre,f'HookJoint.{side}',False)
+   else:plate(c,f'Hook.{side}.BladeArmor.{flank}',inset,.07,m['shell'],root,arm,pre,f'HookJoint.{side}',low)
   plate(c,f'Hook.{side}.Spear',[(x-.22,.75,-5.13),(x+.22,.75,-5.13),(x+.16,.74,-5.64),(x,.72,-6.03),(x-.16,.74,-5.64)],.22,m['shell'],root,arm,pre,f'HookJoint.{side}',low)
   link(c,f'Hook.{side}.Eyelet',(x,.84,-5.11),(0,0,1),.22,.16,.07,m['chain'],root,arm,pre,f'HookJoint.{side}',low)
 
@@ -112,7 +116,7 @@ def build(c,root,lod,m):
  for side,sign in [('L',-1),('R',1)]:
   for i,z in enumerate([-.75,-.22,.32]):
    bind(patch(c,pre+f'Back.{side}.Armor.{i}',surface,z,math.pi*(.25 if sign>0 else .75),.37,.47,m['shell'],root,.026,.08,6 if low else 10),arm,pre)
-  points=catmull([(sign*.62,4.80,.26),(sign*.80,5.23,-.04),(sign*1.09,5.66,-.38),(sign*1.38,5.87,-.63)],1 if low else 3)
+  points=catmull([(sign*.62,4.80,.26),(sign*.75,5.17,-.02),(sign*1.06,5.62,-.35),(sign*1.48,5.87,-.72)],1 if low else 3)
   bind(tube(c,pre+f'Back.{side}.SweptHorn',points,lambda t:.23*(1-t)**1.1+.003,m['shell'],root,4 if low else 7),arm,pre)
  # Dorsal core is an inset faceted jewel surrounded by nested armored rings.
  for name,r,t,y,mat in [('Socket',.48,.13,4.91,m['ink']),('OuterArmor',.49,.065,4.99,m['shell']),('InnerViolet',.34,.04,5.04,m['edge'])]:
@@ -121,6 +125,8 @@ def build(c,root,lod,m):
  # Short central tail stays clearly separate from the two long chains.
  plate(c,'Tail.ArmoredFin',[(-.46,4.43,-.69),(.46,4.43,-.69),(.36,4.38,-1.38),(.15,4.17,-2.22),(0,4.04,-2.72),(-.15,4.17,-2.22),(-.36,4.38,-1.38)],.20,m['shell'],root,arm,pre,'Tail',low)
  chains(c,root,arm,pre,m,low)
+ # One visible weak-point inset at the left tether end, aligned to TetherNode.
+ o=c.sphere(pre+'Tether.WeakPoint',(-.76,.91,-5.10),(.15,.10,.15),m['core'],6,3,root);bind(o,arm,pre,'Tether.5')
  for o in root.children_recursive:
   if o.type!='MESH':continue
   if any(a.name==m['shell'] for a in o.data.materials):
@@ -135,9 +141,9 @@ def build(c,root,lod,m):
 
 def main():
  bpy.ops.wm.read_factory_settings(use_empty=True);c=Context(cm.REQ);c.root['authoring']='reference-authored armored Chain Manta';c.root['reference']='design/references/enemies/chainManta-turnaround.png';c.root['landings']='[]'
- m={'hide':c.material('Manta.PaintedHide',(.55,.57,.65),TEXTURES/'creatures/shadow-hide.png'),'shell':c.material('Manta.ArmorSlate',(.46,.48,.55),TEXTURES/'trim/violet.png'),'edge':c.material('Manta.Violet',(.22,.065,.37)),'ink':c.material('Manta.Ink',(.009,.012,.018)),'ivory':c.material('Manta.Ivory',(.76,.66,.40),emission=.04),'chain':c.material('Manta.Iron',(.16,.19,.20)),'core':c.material('Manta.Core',(.39,.07,.83),emission=.8)}
+ m={'hide':c.material('Manta.PaintedHide',(.62,.77,.75),TEXTURES/'creatures/shadow-hide.png'),'shell':c.material('Manta.ArmorSlate',(.48,.76,.65),TEXTURES/'trim/violet.png'),'edge':c.material('Manta.Violet',(.085,.027,.145)),'ink':c.material('Manta.Ink',(.009,.012,.018)),'ivory':c.material('Manta.Ivory',(.42,.34,.17),emission=.008),'chain':c.material('Manta.Iron',(.075,.10,.105)),'core':c.material('Manta.Core',(.25,.035,.58),emission=.30)}
  a0,m0=build(c,c.root,0,m);r1=bpy.data.objects.new('LOD1',None);bpy.context.collection.objects.link(r1);r1['lod']=1;r1['request']='M-011';a1,m1=build(c,r1,1,m);roots=[c.root,r1];arms=[a0,a1]
- for name,pos,bone in [('Core',(0,5.16,-.15),'Body'),('TetherNode',(0,.80,-5.12),'Tether.5'),('Hook.L',(-.76,.80,-5.40),'HookJoint.L'),('Hook.R',(.76,.80,-5.40),'HookJoint.R'),('Hitbox.Body',(0,4.44,.28),'Body'),('Landing',(0,5.22,-.15),'Body')]:
+ for name,pos,bone in [('Core',(0,5.16,-.15),'Body'),('TetherNode',(-.76,.96,-5.10),'Tether.5'),('Hook.L',(-.76,.80,-5.40),'HookJoint.L'),('Hook.R',(.76,.80,-5.40),'HookJoint.R'),('Hitbox.Body',(0,4.44,.28),'Body'),('Landing',(0,5.22,-.15),'Body')]:
   # Refresh matrix_world before parenting: authoritative socket positions must
   # remain at their authored surface locations, not the previous depsgraph state.
   o=bpy.data.objects.new(name,None);bpy.context.collection.objects.link(o);o.location=v(pos);bpy.context.view_layer.update();world=o.matrix_world.copy();o.parent=a0;o.parent_type='BONE';o.parent_bone=bone;o.matrix_world=world;o['socket']=True;c.sockets.append(name)
@@ -160,7 +166,7 @@ def main():
  subprocess.run([shutil.which('node'),str(HERE/'compress.mjs'),str(raw),str(final),'--force'],check=True);qa.rest(roots,arms,saved)
  record={'request':'M-011','name':'Chain Manta','file':str(final.relative_to(ROOT)),'preview':str((OUT/'LOD0-three-quarter.png').relative_to(ROOT)),'source':'hopper/3d/models/source/chain_manta_refine.py','category':'enemy','region':'harbor','bounds':bounds[0],'targetBounds':cm.REQ['size'],'triangles':tris,'clips':cm.REQ['clips'],'sockets':cm.REQ['sockets'],'landings':[],'status':'candidate-awaiting-root-review','sourceReference':'design/references/enemies/chainManta-turnaround.png'}
  (OUT/'record.json').write_text(json.dumps(record,indent=2)+'\n');(OUT/'manifest.json').write_text(json.dumps({'version':1,'models':[record]},indent=2)+'\n');(OUT/'rig-qa.json').write_text(json.dumps({'bones':{r.name:[b.name for b in a.data.bones] for r,a in zip(roots,arms)},'weights':weights,'samples':samples,'loops':loops,'chainMotion':chain,'rootMotion':motion,'bounds':bounds,'triangles':tris},indent=2)+'\n')
- scene,cam=qa.studio()
+ scene,cam=qa.studio();scene.view_settings.view_transform='AgX';scene.view_settings.look='AgX - Medium High Contrast'
  for o in scene.objects:
   if o.type=='LIGHT':o.location.z+=4;o.rotation_euler=(Vector((0,1,4))-o.location).to_track_quat('-Z','Y').to_euler()
  for lod in range(2):

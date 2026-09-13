@@ -1,0 +1,82 @@
+{
+  "request": "M-011",
+  "status": "candidate-awaiting-root-art-review",
+  "file": "local/hopper-chain-manta-refine/chainManta.glb",
+  "sha256": "5f4f6fac27ff6a842c64309d53e690c49094ec935a3cedbc8fc94bf6ceec6037",
+  "compressedBytes": 3297992,
+  "skins": [
+    {
+      "jointCount": 18
+    },
+    {
+      "jointCount": 18
+    }
+  ],
+  "triangles": [
+    4914,
+    1968
+  ],
+  "bounds": [
+    [
+      14.199998315517641,
+      7.299786736989231,
+      7.599682209941991
+    ],
+    [
+      14.199997866096439,
+      7.2997873583269675,
+      7.5996821695620955
+    ]
+  ],
+  "clips": [
+    "Soar",
+    "Tether_Tell",
+    "Tether_Pull",
+    "Release",
+    "Bank",
+    "Hit",
+    "Dissolve"
+  ],
+  "sockets": [
+    "Core",
+    "TetherNode",
+    "Hook.L",
+    "Hook.R",
+    "Hitbox.Body",
+    "Landing"
+  ],
+  "materials": 7,
+  "images": 2,
+  "allMeshesWeighted": true,
+  "staticRoots": true,
+  "loops": {
+    "Soar": {
+      "maxChannelDelta": 2.571758291167179e-17
+    }
+  },
+  "chainMotion": {
+    "Rig": {
+      "Tether.0": 0.1,
+      "Tether.1": 0.1,
+      "Tether.2": 0.1,
+      "Tether.3": 0.1,
+      "Tether.4": 0.1,
+      "Tether.5": 0.1
+    },
+    "LOD1.Rig": {
+      "LOD1.Tether.0": 0.1,
+      "LOD1.Tether.1": 0.1,
+      "LOD1.Tether.2": 0.1,
+      "LOD1.Tether.3": 0.1,
+      "LOD1.Tether.4": 0.1,
+      "LOD1.Tether.5": 0.1
+    }
+  },
+  "visualSheets": [
+    "local/hopper-chain-manta-refine/contact-rest.png",
+    "local/hopper-chain-manta-refine/contact-clips-LOD0.png",
+    "local/hopper-chain-manta-refine/contact-clips-LOD1.png",
+    "local/hopper-chain-manta-refine/contact-soar-extrema.png"
+  ],
+  "source": "hopper/3d/models/source/chain_manta_refine.py"
+}
