@@ -172,8 +172,9 @@ Terrain: relief 45; plateaus at 0, 40 (ring), 90 (gallery), 130 (approach), 160 
 - [x] Mechanics: district gravity from the palette · soft floors (`terrain.soft`, the scene's sheet) · conveyors (`Placement.flow`) · press rams (`moving.fling`) · staged bridge (`Placement.staged`) · inverted gravity (flip volumes, `World.ceilingAt`, the mirrored step in `controller.ts`, the hanging rig and mirrored gait; `qa/tests/inversion3d.mjs`, 16 checks). A terrain `shelf` gives the Docks their sea.
 - [x] Districts: foundry · harbor · launchworks · red · blue · violet, all passing `qa/audit-districts.mjs`; each region has its own middle-distance structures. The eclipse canopy hangs at 280 over the dais.
 - [x] Commander interface (`Commander`, `CommanderRuntime`, marks and segments drawn generically by the scene; `commanders.ts` picks the fight by kind).
-- [ ] Leviathan (`leviathan3d.ts`) · Regent (`regent3d.ts`) — placeholders in the tree; the fights are being written to the contracts above.
-- [ ] Episode flow: an episode test for missions two and three, play-select and unlocks checked, docs regenerated, deploy.
+- [x] Leviathan (`leviathan3d.ts`, 37 checks in `qa/tests/boss-leviathan.mjs`) · Regent (`regent3d.ts`, 29 checks in `qa/tests/boss-regent.mjs`), both to the contracts above. The Regent counts a medusa bounce by the medusa's death (a stomp's 5 always kills its 4 hp).
+- [x] The last episode ends on the finale banner (Hopper's return to Earth); the design documents are regenerated.
+- [ ] Episode flow: an episode test for missions two and three (`qa/tests/episode3d-m2m3.mjs`), then the merge to `main` and the deploy.
 
 ### Notes for whoever continues
 
