@@ -2738,7 +2738,9 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
+      "processing": "cleaned-tier-a",
+      "bytes": 6260,
+      "processingNotes": "M-083: merged by material and welded; 17 meshes to 2, 408 vertices to 136. Bounds, LOD triangles and visual silhouette preserved. No source textures, so no redundant atlas added. Tier B remains pending.",
       "cleanup": "CODE-BUILT-CLEANUP.md"
     },
     {

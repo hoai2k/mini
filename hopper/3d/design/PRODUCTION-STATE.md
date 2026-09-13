@@ -53,3 +53,13 @@ Reconcile the current request inventory, finish requested image work that the av
 - Inventory/checks batch committed/pushed as `1960fd4`. The inexpensive rig audit is complete in RIG-AUDIT.md; it distinguishes 15 new Hopper clips and 6 new rider clips from existing exports (combined expected total 46). Existing character geometry/weights should be retained byte-for-byte using an animation append workflow where practical.
 - Tier A prototype found the installed gltfpack needs `-kn -ke -km` during decode to retain named nodes. Sol is testing one landmark before batching.
 - Simple audit stages are complete and backed up; begin Astra animation work while the mechanical cleanup test runs. Animation agent owns candidate outputs/new authoring code, not production GLBs or manifests.
+- Audit checkpoint pushed as `0f8d834`.
+- Image-processing preparation is complete: `source/repack_round3.py --dry-run` passes and predicts uniform scale 0.8327 for effects and 0.7812 for props, preserving frame anchors. Root corrected path indexing, off-center padding calculation, and double premultiplication found during review. `source/repair_surface_seams.py` has passed syntax/dependency checks only. Neither has processed production artwork; image-processing authorization is still pending.
+- Astra `animations` agent is appending new tracks/sockets to canonical GLBs with binary mesh/skin preservation, candidates under `local/hopper-animation-extension/`.
+- Sol `rigid_creatures` agent is starting Phase Skate then Turbine Wasp, candidates under `local/hopper-rigid-creatures/`; root reviews visual output before integration.
+
+## Resumed checkpoint
+
+- Prior commit attempt after `0f8d834` was rejected by automatic approval review due to usage limits. Prepared sources remained local. On resume, fetched and fast-forwarded main to `5a6cd9b` (only unrelated site updates).
+- M-083 first Tier A candidate visually reviewed by root against matched before/after renders and integrated: 17,540 → 6,260 bytes, 17 → 2 meshes, 108/96 triangles unchanged. Full model validation rerun. This is mechanical cleanup only; the basic distant silhouette still needs Tier B art work.
+- Resumed Sol cleanup and Astra animation agents from saved source; no dependency on former live agent state.

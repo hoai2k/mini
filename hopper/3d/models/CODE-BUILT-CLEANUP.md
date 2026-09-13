@@ -1,5 +1,10 @@
 # Code-built models: the clean-up pass they still need
 
+## Completed Tier A deliveries
+
+- M-083 Crownline skyline: merged/welded, 17 meshes reduced to 2 and 17,540 bytes reduced to 6,260. LOD triangles remain 108/96; root metadata and matched visual silhouette verified. This untextured distant silhouette retains its original color materials rather than adding a redundant atlas. Tier B remains pending.
+- Repeatable candidate-only scripts: `source/tier_a_batch.py`, `source/tier_a_cleanup.py`, `source/tier_a_preview.py`. Decode must use `-noq -kn -ke -km`; `-noq` alone discards hierarchy with the installed gltfpack. Detailed restart evidence is in `source/tier-a-progress.md`.
+
 The 28 manifest entries with `"authoring": "code-built"` and `"processing": "needs-cleanup"` were exported by `hopper/game/scripts/code-models.mjs` straight from three.js primitives so that episode one could be played end to end. They pass the delivery validator and look right at game distance, but they are not production meshes. The painted models from the Blender pipeline (`source/*.py`) do not need this; they were authored under `source/BUILD-CONTRACT.md`.
 
 The work splits into two tiers. **Tier A** is mechanical: every step is a fixed recipe with a pass/fail check, and it can be handed to a small local model or a script without judgement calls. **Tier B** needs someone to look at the reference sheet and decide what the shape should be; give it to a stronger model or an artist. Do Tier A first on every file; it removes most of the bytes and the draw calls, and Tier B works on a cleaner base.

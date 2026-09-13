@@ -128,7 +128,7 @@ PASS hopper/3d/models/props/dissolveBurst.glb
   62 nodes · 30 meshes · 3 materials · 212/48 tris
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/fields.glb
-  36 nodes · 17 meshes · 1 materials · 108/96 tris
+  23 nodes · 2 meshes · 1 materials · 108/96 tris
   WARN  only one named material; painted colour separation may be missing
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/city.glb
