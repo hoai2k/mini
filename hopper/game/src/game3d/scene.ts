@@ -93,11 +93,27 @@ function softShadowTexture(): CanvasTexture | null {
  * and the body being removed, and their clips are authored as one-shots.
  */
 const SHADOW_CLIPS: Record<string, string[]> = {
-  idle: ['Hover', 'Cling_Idle', 'Glide', 'Idle'],
-  approach: ['Crawl', 'Hover', 'Glide', 'Idle'],
-  tell: ['Dive_Tell', 'Charge_Tell', 'Intake_Tell', 'Tell'],
-  attack: ['Dive', 'Dash', 'Beam_Hold', 'Attack'],
-  recover: ['Recover', 'Retract', 'Fade_In', 'Hover', 'Cling_Idle', 'Glide'],
+  idle: ['Hover', 'Soar', 'Cling_Idle', 'Buried_Idle', 'Glide', 'Idle'],
+  approach: ['Walk', 'Crawl', 'Tunnel', 'Hover', 'Soar', 'Glide', 'Idle'],
+  // A Phase Skate has no named tell: fading out and holding its silhouette
+  // is the warning, so those trail the species that do name one.
+  tell: ['Dive_Tell', 'Charge_Tell', 'Intake_Tell', 'Lunge_Tell', 'Tether_Tell', 'Erupt_Tell', 'Tell', 'Silhouette_Hold', 'Fade_Out'],
+  attack: ['Dive', 'Dash', 'Lunge', 'Tether_Pull', 'Erupt', 'Beam_Hold', 'Attack'],
+  recover: ['Recover', 'Retract', 'Withdraw', 'Release', 'Fade_In', 'Land', 'Hover', 'Soar', 'Cling_Idle', 'Glide', 'Idle'],
+  // Open: the core exposed after an attack, where a species has a pose for it.
+  open: ['Belly_Open_Hold', 'Guard_Break', 'Recover', 'Retract', 'Withdraw'],
+  // States the later missions added.
+  stalled: ['Guard_Break', 'Hit', 'Recover'],
+  phased: ['Fade_Out', 'Silhouette_Hold', 'Glide'],
+  silhouette: ['Silhouette_Hold', 'Fade_Out', 'Glide'],
+  burrow: ['Tunnel', 'Buried_Idle'],
+  pounce: ['Dive', 'Lunge', 'Erupt', 'Dash'],
+  launched: ['Erupt', 'Dive', 'Dash', 'Hover', 'Soar'],
+  arrive: ['Hover', 'Soar', 'Glide', 'Walk', 'Idle'],
+  wait: ['Buried_Idle', 'Cling_Idle', 'Hover', 'Soar', 'Idle'],
+  // A flyer banks into its turn; picked by which way it is turning.
+  bankLeft: ['Bank_L', 'Bank'],
+  bankRight: ['Bank_R', 'Bank'],
 };
 
 function node(root: Object3D, name: string): Object3D | null {
@@ -140,6 +156,8 @@ export class Scene3D {
   private shadowModels = new Map<string, Swapped>();
   /** The clip each delivered creature is playing, so it restarts only on a change. */
   private shadowClip = new Map<string, string>();
+  /** Last yaw per shadow, to tell which way a flyer is turning. */
+  private shadowYaw = new Map<string, number>();
   private animated: StandInObject[] = [];
   private projectileObjects = new Map<number, Mesh>();
   private effects: Effect[] = [];
@@ -278,6 +296,7 @@ export class Scene3D {
     this.stoneObjects.clear();
     this.shadowModels.clear();
     this.shadowClip.clear();
+    this.shadowYaw.clear();
     this.bossObject = null;
     this.corridor = null;
     this.animated = [];
@@ -700,7 +719,22 @@ export class Scene3D {
       const model = this.shadowModels.get(s.id);
       if (model) {
         const moving = Math.hypot(s.vx, s.vz) > 1.5;
-        const wanted = (SHADOW_CLIPS[s.state] || SHADOW_CLIPS[moving ? 'approach' : 'idle'])
+        // How hard it is turning this frame, for the banking clips.
+        const previous = this.shadowYaw.get(s.id);
+        let turn = previous === undefined ? 0 : s.yaw - previous;
+        while (turn > Math.PI) turn -= Math.PI * 2;
+        while (turn < -Math.PI) turn += Math.PI * 2;
+        this.shadowYaw.set(s.id, s.yaw);
+        const banking = s.flying && moving && Math.abs(turn) > 0.012 && (s.state === 'idle' || s.state === 'approach' || s.state === 'arrive');
+        const lists = [
+          banking ? SHADOW_CLIPS[turn > 0 ? 'bankLeft' : 'bankRight'] : null,
+          s.open > 0 && s.state !== 'tell' && s.state !== 'attack' ? SHADOW_CLIPS.open : null,
+          SHADOW_CLIPS[s.state],
+          SHADOW_CLIPS[moving ? 'approach' : 'idle'],
+        ];
+        const wanted = lists
+          .filter((l): l is string[] => !!l)
+          .flatMap((l) => l)
           .find((name) => model.clips.has(name));
         if (wanted && this.shadowClip.get(s.id) !== wanted) {
           model.play(wanted);
