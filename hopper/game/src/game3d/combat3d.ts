@@ -544,7 +544,13 @@ export class Combat {
           const nx = (s.x - h.x) / (d || 1),
             nz = (s.z - h.z) / (d || 1);
           this.damage(s, 4, cb, nx * 22, nz * 22);
-          if (s.alive) BEHAVIOURS[s.kind]?.onKick?.(this.context(s, h, cb, dt));
+          // A kind with its own answer to a kick (a wasp stalls, a choir
+          // staggers its fellows) is not then knocked into recover as well.
+          const hook = BEHAVIOURS[s.kind]?.onKick;
+          if (s.alive && hook) {
+            hook(this.context(s, h, cb, dt));
+            continue;
+          }
           if (s.alive && s.state === 'tell') {
             s.state = 'recover';
             s.timer = 1.0;
