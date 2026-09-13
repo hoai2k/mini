@@ -34,6 +34,10 @@ export const HOPPER_SOCKETS = {
   'Hopper.Footrest.R': [-0.8, 11.2, 0.6],
   'Hopper.Grip.L': [0.9, 13.4, 1.1],
   'Hopper.Grip.R': [-0.9, 13.4, 1.1],
+  // Wing tips, where the glide trail is anchored. The GLB parents these to the
+  // wing bones; the proxy is static, so they are the rest-pose tip positions.
+  'Hopper.Wing.L': [0.03, 12.83, -14.27],
+  'Hopper.Wing.R': [-0.03, 12.83, -14.27],
 };
 export const RIDER_SOCKETS = {
   'Rider.Mount': [0, 12.51, -0.15],
@@ -46,7 +50,7 @@ export const RIDER_SOCKETS = {
   'Rider.Camera': [0, 15.09, 0.59],
 };
 /** Clip names in the delivered combined GLB (see models/manifest.json). */
-export const HOPPER_CLIPS = ['Idle', 'Walk', 'Run', 'Crouch', 'Crouch_Hold', 'Jump_Start', 'Jump_Loop', 'Land', 'Jump_Preview', 'Back_Kick', 'Spin_Kick', 'Fire_Start', 'Fire_Loop', 'Fire_End', 'Block_Start', 'Block_Loop', 'Block_End', 'Hit_Reaction', 'Defeat', 'Victory', 'Rider_Cheer', 'Rider_Lean_Forward', 'Rider_Lean_Back', 'Mount_Seat', 'Dismount_Seat'];
+export const HOPPER_CLIPS = ['Idle', 'Walk', 'Run', 'Crouch', 'Crouch_Hold', 'Jump_Start', 'Jump_Loop', 'Land', 'Jump_Preview', 'Back_Kick', 'Spin_Kick', 'Fire_Start', 'Fire_Loop', 'Fire_End', 'Block_Start', 'Block_Loop', 'Block_End', 'Hit_Reaction', 'Defeat', 'Victory', 'Rider_Cheer', 'Rider_Lean_Forward', 'Rider_Lean_Back', 'Mount_Seat', 'Dismount_Seat', 'Wing_Open', 'Glide_Loop', 'Wing_Close', 'Dive_Loop', 'Stomp_Land', 'Air_Kick', 'Wall_Kick', 'Ledge_Mantle', 'Hop_Back', 'Crouch_Charge_Loop', 'Super_Leap_Start', 'Lock_Strafe_L', 'Lock_Strafe_R', 'Hit_Air', 'Land_Heavy', 'Glide_Lean', 'Dive_Tuck', 'Stomp_Brace', 'Point_Forward', 'Look_Up_Long', 'Cheer_Short'];
 
 /** Overall gameplay height: feet to the camera socket on the head. */
 export const HOPPER_HEIGHT_M = 14;
