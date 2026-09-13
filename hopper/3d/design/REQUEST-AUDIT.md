@@ -4,17 +4,17 @@ Audited 2026-09-12 against `hopper/3d/design/source/build_requests.py`, the gene
 
 ## Counts and source of truth
 
-After M-018 delivery `068ac04`, the generated inventory contains **93 model requests**: **73 delivered**, **20 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed animation extensions. The 20 creature IDs still represented by stand-ins are **M-003–M-017 and M-019–M-023**; zero open entries does not mean these creatures or later art cleanup are finished.
+After M-014 delivery `52f8a38`, the generated inventory contains **93 model requests**: **74 delivered**, **19 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed animation extensions. The 19 creature IDs still represented by stand-ins are **M-003–M-013, M-015–M-017, and M-019–M-023**; zero open entries does not mean these creatures or later art cleanup are finished.
 
-There are **86 image requests**: round one **47** (46 delivered, **T-038 procedural-final**), round two **32 delivered pending art review**, and round three **7** (**T-081, T-082 and T-086 delivered**; **T-080 and T-083–T-085 open**). The exact pending image IDs are therefore **T-080 and T-083–T-085**. `standin-manifest.json` is the generated status inventory; `build_requests.py` is its source. `model-requests.md` and the round image request documents are generated outputs.
+There are **86 image requests**: round one **47** (46 delivered, **T-038 procedural-final**), round two **32 delivered pending art review**, and round three **7** (**T-080–T-082 and T-086 delivered**; **T-083–T-085 open**). The exact pending image IDs are therefore **T-083–T-085**, all optional native-4K skies. `standin-manifest.json` is the generated status inventory; `build_requests.py` is its source. `model-requests.md` and the round image request documents are generated outputs.
 
-The 73 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-018 and M-024–M-092 in `hopper/3d/models`. The current authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
+The 74 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-014, M-018 and M-024–M-092 in `hopper/3d/models`. The current authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
 
 ## Image reconciliation
 
 Round-three verification is authoritative at `hopper/3d/textures/round3/verification.json` and `hopper/3d/textures/round3/README.md`:
 
-- **T-080 open:** sea, dust, slag and their detail masks still fail edge tiling. The repaired shoreline foam passes with horizontal seam 0.000 and clear top/bottom margins (alpha max 0). Three scripted surface feather candidates were rejected because they introduced visible streaks; a painted regeneration remains pending.
+- **T-080 delivered/verified:** the imagegen seam-cross sea, dust and slag repaints and their aligned grayscale detail maps all measure 0.000 on both seams. Native paintings are 1254²; 2048² albedos are upscaled exports with a trivial 8 px wrap-edge finish. The rejected 10% feather candidates were not used. Shoreline foam also passes at seam 0.000 with clear top/bottom margins.
 - **T-081 delivered/verified:** light landing guide passes alpha and geometry checks.
 - **T-082 delivered/verified:** all twelve occupied Hopper effect cells clear the requested 48 px atlas padding (minimum 53 px) after uniform scale 0.8327.
 - **T-086 delivered/verified:** all four prop decal cells clear the requested 24 px padding (minimum 28 px) after uniform scale 0.7812.
@@ -24,7 +24,7 @@ Native-resolution constraint applies broadly to the delivered painted pack: `hop
 
 ## Model disposition suggestions (not status changes)
 
-The remaining creature stand-ins are pending review and production. The operational local-first batch is now **2**: **M-006 Spire Leech and M-014 Turbine Wasp**; M-018 Phase Skate is delivered. A further **4** are conditionally local-feasible: **M-005 Window Ray, M-007 Crag Tortoise, M-011 Chain Manta, and M-015 Basalt Burrower**. **M-013 Coil Wraith** and **M-020 Gravity Cantor** have identity/contract conflicts requiring reconciliation. Gravity Cantor's crowned humanoid painting contradicts its requested rigid ring organ with four prongs; Coil Wraith's mismatch is detailed below. The practical split is **2 local-first + 4 conditional + 2 conflicts + 12 Tripo-preferred**.
+The remaining creature stand-ins are pending review and production. The operational local-first batch is now **1**: **M-006 Spire Leech**; M-014 Turbine Wasp and M-018 Phase Skate are delivered. A further **4** are conditionally local-feasible: **M-005 Window Ray, M-007 Crag Tortoise, M-011 Chain Manta, and M-015 Basalt Burrower**. **M-013 Coil Wraith** and **M-020 Gravity Cantor** have identity/contract conflicts requiring reconciliation. Gravity Cantor's crowned humanoid painting contradicts its requested rigid ring organ with four prongs; Coil Wraith's mismatch is detailed below. The practical split is **1 local-first + 4 conditional + 2 conflicts + 12 Tripo-preferred**.
 
 The remaining **12** are Tripo-preferred or require a higher creative/organic pass: **M-003 Shade Hound, M-004 Seed Spitter, M-008 Rift Condor, M-009 Furnace Hound, M-010 Slag Caster, M-012 Ballast Crab, M-016 Thorn Choir, M-017 Veil Medusa, M-019 Mirror Stalker, M-021 Night Rook, M-022 Smelter Leviathan, and M-023 Eclipse Regent**. This is a recommendation only; it does not relabel any request or authorize Tripo work.
 
@@ -38,8 +38,8 @@ This review moved Coil Wraith from the initial text-only local-first recommendat
 
 ## Stash reconciliation
 
-`stash@{1}` (`Preserve Round 3 documentation before production sync`) contains an older documentation-only claim that T-080, T-081, T-082, and T-086 were delivered, plus an older 47-image summary. Do not restore it: current generated docs and verification keep T-080 open, verify T-081/T-082/T-086, and preserve the separate native-4K failures for T-083–T-085.
+`stash@{1}` (`Preserve Round 3 documentation before production sync`) contains an older documentation-only claim about T-080, T-081, T-082 and T-086, plus an older 47-image summary. Do not restore it: current generated docs and zero-failure verification supersede that record; only the separate native-4K failures for T-083–T-085 remain open.
 
 `stash@{0}` (`Preserve local Tripo references before production sync`) contains the formerly untracked `hopper/design/tripo/` references, reports, prompts, and animation materials. Upstream now includes this directory. Preserve it as reference material; do not blindly pop or treat its presence as delivery of any M-003–M-023 request.
 
-No source count correction was necessary. The model manifests are split by layout: `hopper/3d/models/manifest.json` covers M-018 and M-024–M-092, while the existing M-000–M-002 deliveries are in `hopper/models/manifest.json`; the generated request inventory correctly totals both.
+No source count correction was necessary. The model manifests are split by layout: `hopper/3d/models/manifest.json` covers M-014, M-018 and M-024–M-092, while the existing M-000–M-002 deliveries are in `hopper/models/manifest.json`; the generated request inventory correctly totals both.

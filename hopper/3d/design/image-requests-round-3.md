@@ -4,7 +4,7 @@ Round one is delivered and in the game (painted skies, horizon cards, terrain se
 
 **Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.
 
-**Verification: six of ten assets fail.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The three surface albedos and their three detail masks still have visible seams. The repaired foam strip, Hopper atlas, prop atlas and light landing guide pass. The three scripted surface feather candidates were rejected because they introduced visible streaks; those six surfaces remain open for a painted regeneration.
+**Verification: all ten assets pass.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The six surface albedo/detail files and repaired foam strip have zero measured seams, both atlases meet their cell padding, and the light landing guide matches the dark guide geometry. Optional T-083..085 skies remain open because the native-4K requirement was not met.
 
 | Request | Why | Priority |
 | --- | --- | --- |
@@ -23,9 +23,9 @@ Round one is delivered and in the game (painted skies, horizon cards, terrain se
 The design makes every district floor a return to play: water and dust push Hopper back ashore, slag lifts him out. Round one has no painted surface for any of them, so the game draws flat colour. Needed before the docks, drift and foundry districts are built.
 
 - **Spec:** three 2048² tileable albedos with matching 512² flow/normal-free detail maps: storm-channel sea (Tempest Docks), luminous blue dust (Cobalt Drift), glowing slag (Cinder Foundries); plus a 1024×256 shoreline foam strip with alpha
-- **Status:** open (verification-failed) · **Final:** `textures/surface/{sea,dust,slag}.png`
+- **Status:** delivered (verified) · **Final:** `textures/surface/{sea,dust,slag}.png`
 - **In the game:** paintTerrain paints the low floor of the harbor (sea), blue (dust) and foundry (slag) districts with the surface and scrolls its detail mask; paintKit puts slag on the barge deck and dust on the drift volumes. The foam strip waits for a district with a shoreline.
-- **Verification:** The three albedos and their detail masks still fail tiling: opposite edges differ by 5-17 per channel against a limit of 2. The repaired foam strip passes with horizontal seam 0.000 and clear top/bottom margins (alpha max 0). Three scripted feather candidates were rejected because they introduced visible streaks; the six surfaces need a painted regeneration.
+- **Verification:** Passes: three imagegen seam-cross repaints tile at 0.000/0.000 after a trivial 8px wrap-edge finish; matching registered 512px grayscale detail maps also tile at 0.000/0.000. Native paintings are 1254px square and the 2048px albedos are upscaled exports, not new detail. The repaired foam strip passes at seam 0.000 with clear margins. Rejected 10% feather candidates were not used.
 - **Prompt:** Use case: texture. Seamless tileable hand-painted gouache surface, 1970s anime background style, three flat cel tones with brushed edges: (1) storm-grey sea with white spray streaks, (2) luminous ultramarine dust with cyan motes, (3) black slag crust with glowing orange seams. No lighting baked in, no text.
 
 ### T-081 · Landing guide, light variant

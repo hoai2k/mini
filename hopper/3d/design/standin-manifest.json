@@ -2973,7 +2973,7 @@
       "name": "Soft-landing surfaces: sea, drift dust, slag",
       "category": "surface",
       "final": "textures/surface/{sea,dust,slag}.png",
-      "status": "open",
+      "status": "delivered",
       "round": 3
     },
     {

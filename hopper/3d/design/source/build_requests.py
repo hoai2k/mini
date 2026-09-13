@@ -360,14 +360,14 @@ for texture in T:
 ROUND3_DELIVERED = {'surface', 'effects', 'ui'}
 for texture in T:
     if texture['round'] == 3 and texture['category'] in ROUND3_DELIVERED:
-        # design/source/verify_round3.py measures the delivery checks. T-080
-        # remains open because its six repeating surfaces still fail; its foam
-        # strip is repaired. The two atlas padding repairs and T-081 now pass.
-        passed = texture['request'] in {'T-081', 'T-082', 'T-086'}
+        # design/source/verify_round3.py measures the delivery checks. All four
+        # functional round-three requests now pass; optional native-4K skies
+        # remain open separately because their resolution target was not met.
+        passed = texture['request'] in {'T-080', 'T-081', 'T-082', 'T-086'}
         texture['status'] = 'delivered' if passed else 'open'
         texture['approval'] = 'verified' if passed else 'verification-failed'
         texture['verification'] = {
-            'T-080': 'The three albedos and their detail masks still fail tiling: opposite edges differ by 5-17 per channel against a limit of 2. The repaired foam strip passes with horizontal seam 0.000 and clear top/bottom margins (alpha max 0). Three scripted feather candidates were rejected because they introduced visible streaks; the six surfaces need a painted regeneration.',
+            'T-080': 'Passes: three imagegen seam-cross repaints tile at 0.000/0.000 after a trivial 8px wrap-edge finish; matching registered 512px grayscale detail maps also tile at 0.000/0.000. Native paintings are 1254px square and the 2048px albedos are upscaled exports, not new detail. The repaired foam strip passes at seam 0.000 with clear margins. Rejected 10% feather candidates were not used.',
             'T-081': 'Passes: alpha 0-255, geometry identical to the dark guide (coverage ratio 1.000).',
             'T-082': 'Passes: all twelve occupied cells clear the 48px padding requirement (minimum 53px); row four remains intentionally empty. Existing native painted cells were uniformly scaled to 0.8327, which creates no new detail.',
             'T-086': 'Passes: all four occupied cells clear the 24px padding requirement (minimum 28px). Existing native painted cells were uniformly scaled to 0.7812, which creates no new detail.',
@@ -567,7 +567,7 @@ r3 = []
 r3.append('# Image requests · round three: after integrating round one\n')
 r3.append('Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one optional quality pass. Nothing here replaces a delivered file except the optional sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.\n')
 r3.append('**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open because the generator could not reach native 4K.\n')
-r3.append('**Verification: six of ten assets fail.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The three surface albedos and their three detail masks still have visible seams. The repaired foam strip, Hopper atlas, prop atlas and light landing guide pass. The three scripted surface feather candidates were rejected because they introduced visible streaks; those six surfaces remain open for a painted regeneration.\n')
+r3.append('**Verification: all ten assets pass.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The six surface albedo/detail files and repaired foam strip have zero measured seams, both atlases meet their cell padding, and the light landing guide matches the dark guide geometry. Optional T-083..085 skies remain open because the native-4K requirement was not met.\n')
 r3.append('| Request | Why | Priority |\n| --- | --- | --- |')
 for x in [x for x in T if x['round'] == 3]:
     pri = 'optional' if x['category'] == 'sky-hd' else 'before the region that needs it' if x['category'] == 'surface' else 'any time'

@@ -2,7 +2,7 @@
 
 ## Completed Tier A deliveries
 
-- M-037 Ledge shelf: delivered at 1,197,276 bytes after matched review of both LOD0 and LOD1. The other episode-one static candidates, M-024, M-027, and M-036, remain held.
+- M-024 Terrace step, M-027 Windbreak row, and M-036 Crag column: delivered after matched review of both LODs (`52f8a38`). M-037 Ledge shelf is also delivered at 1,197,276 bytes after matched LOD0/LOD1 review.
 - All nine landmarks, M-083–M-091, are delivered after matched before/after render review and full model validation. They retain their original untextured color materials and unchanged LOD triangle counts. M-083 merged 17 meshes to 2 and reduced 17,540 bytes to 6,260; M-089's corrected candidate preserves 928/118 triangles and passed separate LOD1 comparison (`4607af3`). Tier B remains pending.
 - Repeatable candidate-only scripts: `source/tier_a_batch.py`, `source/tier_a_cleanup.py`, `source/tier_a_preview.py`. Decode must use `-noq -kn -ke -km`; `-noq` alone discards hierarchy with the installed gltfpack. Detailed restart evidence is in `source/tier-a-progress.md`.
 
