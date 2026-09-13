@@ -1,13 +1,15 @@
 # M-007 Crag Tortoise scaffold progress
 
-This checkpoint is a mechanical skeletal and animation foundation for a later
-Astra art pass. It is not a finished creature-art delivery and has not been
-copied to production.
+This checkpoint records the mechanical skeletal and animation foundation that
+fed the later Astra art pass. The scaffold itself is not the delivered art;
+`crag_tortoise_refine.py` superseded its placeholder geometry, and the reviewed
+Crag Tortoise was integrated in `17680e9`.
 
-Current disposition (2026-09-12): M-007 remains a stand-in in the generated
-request inventory. This validated scaffold is queued for Astra art refinement;
-only a reviewed canonical art pass and production integration remain locally
-feasible.
+Current disposition (2026-09-13): M-007 is delivered in the generated request
+inventory. The production asset is
+`hopper/3d/models/enemies/cragTortoise.glb`; final validation and visual-review
+evidence are recorded in `crag-tortoise-refine-progress.md` and
+`crag-tortoise-refine-validation.json`.
 
 ## Contract and compatibility
 
@@ -61,14 +63,16 @@ feasible.
   grounding tolerance. The rest and tell previews keep the belly readable and
   demonstrate the requested rear-up presentation.
 
-## Art handoff
+## Completed art handoff
 
 The placeholder establishes a low domed shell, rigid spikes, visible ivory
 belly, one head and jaw, and four grounded three-joint legs only far enough to
-exercise the rig. The creative pass should replace the primitive shell, legs,
-head, and belly with the canonical layered rock armour and creature anatomy
-while preserving bone and clip names, shell rigidity, root-motion isolation,
-socket placement, normalized skinning, exact bounds, and LOD budgets.
+exercise the rig. `crag_tortoise_refine.py` replaced those primitives with the
+reviewed canonical layered rock armour, wrapped limbs, grounded clawed feet,
+head and belly mechanism while preserving the scaffold interfaces. The final
+asset contains 6,206 / 1,983 triangles at exact 7.1 × 4.7 × 8.6 m bounds, two
+17-joint skins, all eight clips, four sockets, and Lunge-only root motion.
 
-No shared request document, manifest, production-state file, production GLB or
-game file was edited.
+The scaffold authoring step did not edit shared request documents, manifests,
+production state, production GLBs or game files. Production integration happened
+later under the reviewed refinement commit.

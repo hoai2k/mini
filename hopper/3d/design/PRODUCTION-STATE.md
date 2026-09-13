@@ -6,6 +6,21 @@ Reconcile the current request inventory, finish requested image work that the av
 
 ## Starting state
 
+The starting state and chronological checkpoints below are historical. Use the current handoff first.
+
+## Current handoff — 2026-09-13
+
+- All seven planned local creature models are reviewed and published: Phase Skate (`068ac04`), Turbine Wasp (`52f8a38`), Spire Leech (`bdd3082`), Window Ray (`f169534`), Crag Tortoise (`17680e9`), Chain Manta (`11baf6b`), and Basalt Burrower (`aec3a95`). Each has both LODs, named sockets, animations, source, and QA evidence under `hopper/3d/models/`. Candidates and full render sheets stay in ignored `local/`.
+- Production model validation passes **78/78 GLBs**. The request inventory is **79 delivered / 14 stand-ins / 0 open**, out of 93 requests. File count differs from request count because M-092 has three terrain files, and M-000–M-002 are recorded in `hopper/models`.
+- Existing Hopper/rider animation extensions are delivered (`060c59d`): 35 Hopper, 19 rider, and 46 combined clips. Original mesh/rig data were preserved. Gameplay blending, root-motion application, shader effects, and hitbox timing remain runtime integration responsibilities.
+- **27/28 code-built files have reviewed Tier A cleanup.** All four functional kits preserve their pivots, per-pivot geometry, transforms, extras, and original landing hierarchy. M-056 is held: its landing lies within the current Spine collision box, and the intended half-ring argument is ignored by the geometry helper. An art-only deck cannot reconcile both contracts. See `hopper/3d/models/source/TIER-B-HANDOFF.md` for source evidence and later art batches; Tier B is not marked complete.
+- Round 3 texture repairs pass **10 files / 0 failures**. Image inventory: **82 delivered / 3 open / 1 procedural-final**. The only open images are optional native-4K T-083–T-085; builtin generation returned 1774×887. Do not relabel upscaled exports as native 4K. User approved trivial processing only if artwork quality is preserved; rejected broad seam feathers were replaced by imagegen repaints and an 8 px edge finish.
+- Remaining creature requests: **12 Tripo-preferred** complex species and **2 design conflicts**, M-013 Coil Wraith and M-020 Gravity Cantor. No further Tripo generation is authorized by this local-only phase. Their details are in `REQUEST-AUDIT.md`.
+- Main was repeatedly synced with the other integration agent, including mission-two/three changes through `a0ed51b` (merge `522185a`). Finished assets were pushed separately for immediate use. No local candidate is silently marked delivered. All agents have completed their model work.
+- Preserve the two named stashes below and unrelated `updates/`; do not blindly pop or commit them. Latest validation output is `hopper/3d/models/validation.txt`. Reproduce checks with `node hopper/3d/models/source/validate.mjs` and `python3 hopper/3d/design/source/verify_round3.py`; each creature's progress file records its Blender rebuild and independent QA commands.
+
+## Original starting checkpoint
+
 - Synced main to origin/main at `956414d` on 2026-09-12.
 - Preserved prior local Round 3 documentation in the stash named `Preserve Round 3 documentation before production sync`.
 - Preserved the formerly untracked Tripo references in `Preserve local Tripo references before production sync`; upstream now includes this directory. Compare before restoring anything; do not blindly pop either stash.
@@ -35,12 +50,12 @@ Reconcile the current request inventory, finish requested image work that the av
 - [x] Fetch latest upstream and fast-forward main, preserving local edits in named stashes.
 - [x] Write staged plan and agent assignments.
 - [x] Reconcile request source and docs; count local-feasible versus Tripo-preferred work. After visual review: 3 local-first creatures, 4 conditional, 2 canonical/contract conflicts (Coil Wraith and Gravity Cantor), 12 Tripo-preferred; 2 existing-rig animation requests now delivered.
-- [ ] Fix/re-export/regenerate failed Round 3 images and rerun verification.
-- [ ] Deliver native-resolution sky repaints or document concrete tool limitation.
-- [ ] Complete verified Tier A batches.
+- [x] Fix/re-export/regenerate failed Round 3 images and rerun verification.
+- [x] Deliver native-resolution sky repaints or document concrete tool limitation (T-083–T-085 remain open).
+- [x] Complete verified Tier A batches (27 delivered, M-056 collision conflict documented).
 - [x] Complete animation requests (15 Hopper clips, 6 rider reactions; visual and preservation checks passed).
-- [ ] Complete feasible creative model batches.
-- [ ] Final validation, main commits/pushes, and restart handoff.
+- [x] Complete the seven planned local creature models; review remaining Tier B work and record dependencies.
+- [x] Final model validation, main asset commits/pushes, and restart handoff.
 
 ## Checkpoint: inventory and verification
 
@@ -60,7 +75,7 @@ Reconcile the current request inventory, finish requested image work that the av
 
 ## Resumed checkpoint
 
-### Latest handoff (2026-09-12)
+### Historical delivery checkpoints (2026-09-12)
 
 - User requests regular commits and pushes to main for another integration agent. Latest pushed batch `42aa735`: reviewed M-061 root pillar and M-092 fields terrain; all 74 production GLBs pass validation.
 - Previous published batches: `bdd3082` Spire Leech with skin-aware bounds validation; `d0b9106` M-062/063/065 cleanup; `4c0bc91` M-057/058 cleanup. Round 3 image fixes are complete (`5255d7b`, `67dcf3d`), except optional native-4K T-083–085 beyond builtin imagegen resolution.
