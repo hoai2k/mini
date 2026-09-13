@@ -13,10 +13,34 @@ export interface Placement {
   opts?: Record<string, unknown>;
   mode?: 'r' | 'a';
   /** A moving structure: it shuttles between its placement and `to` and back,
-   * carrying whatever stands on it. Speed in m/s, dwell in seconds at each end. */
-  moving?: { to: { x: number; z: number; y?: number }; speed: number; dwell?: number };
+   * carrying whatever stands on it. Speed in m/s, dwell in seconds at each end.
+   * `fling`: a press ram -- standing on it as it rises fast launches Hopper. */
+  moving?: { to: { x: number; z: number; y?: number }; speed: number; dwell?: number; fling?: boolean };
+  /** A conveyor: whatever stands on the span is carried along it. */
+  flow?: { dx: number; dz: number; speed: number };
+  /** A staged bridge: each of `stages` thirds of the deck drops away `after`
+   * seconds once Hopper has left it, with a crack as the tell. */
+  staged?: { stages: number; after: number };
 }
-export type ShadowKind = 'shadeHound' | 'seedSpitter' | 'windowRay' | 'spireLeech' | 'cragTortoise' | 'riftCondor';
+export type ShadowKind =
+  | 'shadeHound'
+  | 'seedSpitter'
+  | 'windowRay'
+  | 'spireLeech'
+  | 'cragTortoise'
+  | 'riftCondor'
+  | 'furnaceHound'
+  | 'slagCaster'
+  | 'chainManta'
+  | 'ballastCrab'
+  | 'coilWraith'
+  | 'turbineWasp'
+  | 'basaltBurrower'
+  | 'thornChoir'
+  | 'veilMedusa'
+  | 'phaseSkate'
+  | 'mirrorStalker'
+  | 'gravityCantor';
 export interface ShadowSpawn {
   id: string;
   kind: ShadowKind;
@@ -41,6 +65,10 @@ export interface ShadowSpawn {
   entry?: 'perch' | 'ambush';
   /** Seconds after the stronghold activates before this shadow appears. */
   delay?: number;
+  /** Coil wraith: the far node its beam runs to, in absolute metres. */
+  link?: [number, number, number];
+  /** Mirror stalker: hangs under a lintel at its absolute y and lunges down. */
+  ceiling?: boolean;
 }
 export interface Chapter {
   name: string;

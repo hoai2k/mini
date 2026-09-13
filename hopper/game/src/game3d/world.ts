@@ -85,13 +85,31 @@ export interface Trigger {
   /** Seconds left of the white flash on a hit. */
   cageFlash?: number;
 }
+/** A stepping stone: a temporary box collider the scene draws as a slab. */
+export interface Stone {
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  life: number;
+  collider: Collider;
+}
+/** A volume in which gravity pulls up, for `life` seconds (Infinity: authored). */
+export interface Flip {
+  x: number;
+  y0: number;
+  y1: number;
+  z: number;
+  r: number;
+  life: number;
+}
 export interface Instance {
   id: string;
   standIn: string;
   object: Group;
   placement: Placement;
   /** Shuttle state for a moving structure. */
-  moving?: { from: [number, number, number]; to: [number, number, number]; speed: number; dwell: number; t: number; dir: 1 | -1; wait: number; dx: number; dy: number; dz: number };
+  moving?: { from: [number, number, number]; to: [number, number, number]; speed: number; dwell: number; t: number; dir: 1 | -1; wait: number; dx: number; dy: number; dz: number; boost: number; fling: boolean };
 }
 
 const CELL = 60;
@@ -157,6 +175,10 @@ export class World {
   /** Generated scenery: span continuations and the middle-distance structures. */
   readonly scenery: Placement[] = [];
   private grid = new Map<string, Collider[]>();
+  /** Temporary standing surfaces: cooled slag, a caster's stepping stones. */
+  stones: Stone[] = [];
+  /** Temporary volumes of inverted gravity: a cantor's flip, the Regent's. */
+  flips: Flip[] = [];
   readonly region;
   constructor(district: District) {
     this.district = district;
@@ -240,18 +262,54 @@ export class World {
     }
     return best;
   }
+  /** Cool a slab of slag into a stone Hopper and the shadows can stand on. */
+  dropStone(x: number, y: number, z: number, life: number): Stone {
+    const collider: Collider = { owner: 'stone', cx: x, cz: z, yaw: 0, ox: 0, oz: 0, hx: 4, hz: 4, y0: y - 0.5, y1: y + 1.5 };
+    const stone: Stone = { id: this.stones.length + 1, x, y, z, life, collider };
+    this.stones.push(stone);
+    this.addCollider(collider, null);
+    return stone;
+  }
+  /** Flip gravity in a cylinder for a while (a cantor's song, the Regent's). */
+  flip(x: number, z: number, r: number, y0: number, y1: number, life: number): Flip {
+    const f: Flip = { x, z, r, y0, y1, life };
+    this.flips.push(f);
+    return f;
+  }
+  /** Is gravity inverted at this point? */
+  flipAt(x: number, y: number, z: number): boolean {
+    for (const f of this.flips) if (y >= f.y0 && y <= f.y1 && Math.hypot(x - f.x, z - f.z) <= f.r) return true;
+    return false;
+  }
+  private dropCollider(c: Collider) {
+    const i = this.colliders.indexOf(c);
+    if (i >= 0) this.colliders.splice(i, 1);
+    for (const list of this.grid.values()) {
+      const i = list.indexOf(c);
+      if (i >= 0) list.splice(i, 1);
+    }
+  }
   /** Advance moving structures; returns nothing, callers read instance.moving.dx/dy/dz. */
   update(dt: number) {
+    for (const st of this.stones) {
+      st.life -= dt;
+      if (st.life <= 0) this.dropCollider(st.collider);
+    }
+    this.stones = this.stones.filter((st) => st.life > 0);
+    for (const f of this.flips) f.life -= dt;
+    this.flips = this.flips.filter((f) => f.life > 0);
     for (const inst of this.instances) {
       const m = inst.moving;
       if (!m) continue;
+      if (m.boost > 0) m.boost -= dt;
       m.dx = m.dy = m.dz = 0;
       if (m.wait > 0) {
         m.wait -= dt;
         continue;
       }
       const len = Math.hypot(m.to[0] - m.from[0], m.to[1] - m.from[1], m.to[2] - m.from[2]) || 1;
-      m.t += (m.dir * m.speed * dt) / len;
+      // A manta's tether hauls the platform at three times its pace.
+      m.t += (m.dir * m.speed * (m.boost > 0 ? 3 : 1) * dt) / len;
       if (m.t >= 1 || m.t <= 0) {
         m.t = Math.max(0, Math.min(1, m.t));
         m.dir = m.dir === 1 ? -1 : 1;
@@ -288,7 +346,7 @@ export class World {
     if (p.moving) {
       const from: [number, number, number] = [object.position.x, object.position.y, object.position.z];
       const toY = p.moving.to.y !== undefined ? (p.mode === 'a' ? p.moving.to.y : this.heightAt(p.moving.to.x, p.moving.to.z) + p.moving.to.y) : from[1];
-      instance.moving = { from, to: [p.moving.to.x, toY, p.moving.to.z], speed: p.moving.speed, dwell: p.moving.dwell ?? 1.5, t: 0, dir: 1, wait: 0, dx: 0, dy: 0, dz: 0 };
+      instance.moving = { from, to: [p.moving.to.x, toY, p.moving.to.z], speed: p.moving.speed, dwell: p.moving.dwell ?? 1.5, t: 0, dir: 1, wait: 0, dx: 0, dy: 0, dz: 0, boost: 0, fling: !!p.moving.fling };
     }
     this.instances.push(instance);
     // Volumes and triggers are read from the stand-in's sockets and metadata.

@@ -14,6 +14,7 @@ import {
   LoopOnce,
   LoopRepeat,
   Mesh,
+  BoxGeometry,
   MeshBasicMaterial,
   MeshToonMaterial,
   Object3D,
@@ -96,6 +97,8 @@ export class Scene3D {
   readonly camera = new PerspectiveCamera(60, 16 / 9, 0.5, 30000);
   private hopper: Object3D | null = null;
   private mixer: AnimationMixer | null = null;
+  private readonly stoneObjects = new Map<number, Mesh>();
+  private readonly stoneMaterial = new MeshToonMaterial({ color: '#4a3a34', emissive: '#ff6a2a', emissiveIntensity: 0.35 });
   /** The gaits and the skeleton they are put onto. */
   private readonly gait = new Gait();
   private readonly rig = new HopperRig();
@@ -566,8 +569,23 @@ export class Scene3D {
       if (!o) continue;
       // A perched host is in plain view while it waits; anything else
       // dormant is not there yet.
-      o.visible = s.alive && (!s.dormant || s.perched);
+      o.visible = s.alive && (!s.dormant || s.perched) && !s.underground;
       if (!o.visible) continue;
+      // A faded skate is drawn as a ghost of itself.
+      o.traverse((m: Object3D) => {
+        const mat = (m as Mesh).material as { transparent?: boolean; opacity?: number; userData?: Record<string, unknown> } | undefined;
+        if (!mat || !('opacity' in mat)) return;
+        if (s.phased && mat.opacity === 1) {
+          mat.userData ||= {};
+          mat.userData.solid = true;
+          mat.transparent = true;
+          mat.opacity = 0.28;
+        } else if (!s.phased && mat.userData?.solid) {
+          mat.opacity = 1;
+          mat.transparent = false;
+          delete mat.userData.solid;
+        }
+      });
       o.position.set(s.x, s.y, s.z);
       o.rotation.set(0, s.yaw, 0);
       const flash = o.getObjectByName('Flash') as Mesh;
@@ -653,6 +671,26 @@ export class Scene3D {
     this.worldGroup.add(object);
     this.effects.push({ object, life, maxLife: life, kind: name });
   }
+  /** Cooled slag: a slab per stone while it lasts, sinking as it goes. */
+  private syncStones(world: World) {
+    const live = new Set<number>();
+    for (const st of world.stones) {
+      live.add(st.id);
+      let m = this.stoneObjects.get(st.id);
+      if (!m) {
+        m = new Mesh(new BoxGeometry(8, 2, 8), this.stoneMaterial);
+        m.position.set(st.x, st.y + 0.5, st.z);
+        this.worldGroup.add(m);
+        this.stoneObjects.set(st.id, m);
+      }
+      m.position.y = st.y + 0.5 - Math.max(0, 1 - st.life) * 1.5;
+    }
+    for (const [id, m] of this.stoneObjects) {
+      if (live.has(id)) continue;
+      this.worldGroup.remove(m);
+      this.stoneObjects.delete(id);
+    }
+  }
   private syncEffects(dt: number) {
     for (const a of this.atlases) if (!stepAtlas(a, dt)) this.worldGroup.remove(a.sprite);
     this.atlases = this.atlases.filter((a) => a.sprite.parent);
@@ -694,6 +732,7 @@ export class Scene3D {
     this.syncShadows(combat.shadows);
     this.syncBoss(dt);
     this.syncProjectiles(combat.projectiles);
+    this.syncStones(world);
     this.syncEffects(dt);
     this.syncShadow(h, world, shadowEnabled);
     for (const o of this.animated) o.userData.animate?.(this.time);

@@ -18,7 +18,8 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-episode3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'boss3d', 'engine3d', 'route', 'scenery', 'preload', 'textures3d', 'models3d', 'trail'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'boss3d', 'engine3d', 'route', 'scenery', 'preload', 'textures3d', 'models3d', 'trail', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 // The renderer needs a DOM; the engine only calls a handful of its methods.
 fs.writeFileSync(
   path.join(temp, 'scene.mjs'),
@@ -40,7 +41,7 @@ fs.writeFileSync(path.join(temp, 'game-engine.mjs'), `export function saveKey(ed
 for (const name of names) {
   const raw = fs
     .readFileSync(source + 'game3d/' + name + '.ts', 'utf8')
-    .replace(/from '\.\/([\w-]+)'/g, (m, n) => (names.includes(n) || n === 'scene' ? `from './${n}.mjs'` : m))
+    .replace(/from '(\.\.?\/[\w-/]+)'/g, (m, rel) => { const target = path.posix.normalize(path.posix.join(path.posix.dirname(name), rel)); return names.includes(target) || target === 'scene' ? `from '${rel}.mjs'` : m; })
     .replaceAll("from '../game/game-engine'", "from './game-engine.mjs'")
     .replace("'../../../3d/standins/src/index.js'", `'${standIns}'`)
     .replace("'../../../3d/standins/src/palette.js'", `'${new URL('../../../3d/standins/src/palette.js', import.meta.url).pathname}'`)

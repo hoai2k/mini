@@ -72,7 +72,7 @@ for (const name of names) {
 const { World } = await import(path.join(temp, 'world.mjs'));
 const { measure } = await import(standIns);
 // Kinds that keep their spawn instead of climbing to a perch (see combat3d SPECS).
-const ROOTED = new Set(['seedSpitter', 'spireLeech']);
+const ROOTED = new Set(['seedSpitter', 'spireLeech', 'slagCaster', 'coilWraith', 'thornChoir']);
 const { MISSIONS } = await import(path.join(temp, 'district.mjs'));
 
 const dist2 = (ax, az, bx, bz) => Math.hypot(ax - bx, az - bz);

@@ -16,11 +16,12 @@ const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.modul
 const textureRoot = new URL('../../../3d/textures/', import.meta.url).pathname;
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-preload-'));
-const names = ['district', 'route', 'scenery', 'world', 'textures3d', 'preload', 'models3d', 'trail', 'combat3d', 'controller', 'camera', 'boss3d'];
+const names = ['district', 'route', 'scenery', 'world', 'textures3d', 'preload', 'models3d', 'trail', 'combat3d', 'controller', 'camera', 'boss3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 for (const name of names) {
   const raw = fs
     .readFileSync(source + 'game3d/' + name + '.ts', 'utf8')
-    .replace(/from '\.\/([\w-]+)'/g, (m, n) => (names.includes(n) ? `from './${n}.mjs'` : m))
+    .replace(/from '(\.\.?\/[\w-/]+)'/g, (m, rel) => { const target = path.posix.normalize(path.posix.join(path.posix.dirname(name), rel)); return names.includes(target) || target === 'scene' ? `from '${rel}.mjs'` : m; })
     .replace("'../../../3d/standins/src/index.js'", `'${standIns}'`)
     .replace("'../../../3d/standins/src/palette.js'", `'${palette}'`)
     .replace("'../../../3d/standins/src/textures.js'", `'${new URL('../../../3d/standins/src/textures.js', import.meta.url).pathname}'`)

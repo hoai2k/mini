@@ -15,7 +15,7 @@ import { MISSIONS, type District } from './district';
 import { NightRook } from './boss3d';
 import { createHopperState, intentFromInput, stepHopper, MOVE, type HopperState } from './controller';
 import { createCamera, updateCamera, type CameraState } from './camera';
-import { Combat, type Shadow } from './combat3d';
+import { Combat, shadowBounce, type Shadow } from './combat3d';
 import { Scene3D } from './scene';
 
 const STEP = 1 / 120;
@@ -27,6 +27,18 @@ const SHADOW_NAMES: Record<string, string> = {
   spireLeech: 'Spire Leech',
   cragTortoise: 'Crag Tortoise',
   riftCondor: 'Rift Condor',
+  furnaceHound: 'Furnace Hound',
+  slagCaster: 'Slag Caster',
+  chainManta: 'Chain Manta',
+  ballastCrab: 'Ballast Crab',
+  coilWraith: 'Coil Wraith',
+  turbineWasp: 'Turbine Wasp',
+  basaltBurrower: 'Basalt Burrower',
+  thornChoir: 'Thorn Choir',
+  veilMedusa: 'Veil Medusa',
+  phaseSkate: 'Phase Skate',
+  mirrorStalker: 'Mirror Stalker',
+  gravityCantor: 'Gravity Cantor',
 };
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 /** The crosshair's reach. It takes hold of a shadow within `grab` of the
@@ -673,7 +685,7 @@ export class Engine3D implements GameEngine {
   private bounce(_shadow: Shadow) {
     const h = this.player;
     const apex = h.holding || h.gliding ? MOVE.bounceApexHeld : MOVE.bounceApex;
-    h.vy = Math.sqrt(2 * MOVE.gravity * h.gravityScale * apex);
+    h.vy = Math.sqrt(2 * MOVE.gravity * Math.abs(h.gravityScale) * apex * shadowBounce(_shadow.kind));
     h.grounded = false;
     h.diving = false;
     h.gliding = false;
