@@ -62,6 +62,8 @@ interface Effect {
   life: number;
   maxLife: number;
   kind: string;
+  /** A delivered effect model's mixer, stepped for as long as the effect lives. */
+  mixer?: AnimationMixer | null;
 }
 
 /** Find a node by its glTF name, before or after three's name sanitising. */
@@ -161,6 +163,8 @@ export class Scene3D {
   private animated: StandInObject[] = [];
   private projectileObjects = new Map<number, Mesh>();
   private effects: Effect[] = [];
+  /** The guard dome's delivered model while it is up, for its mixer. */
+  private guardDome: Swapped | null = null;
   /** Hopper's shadow on the ground: where he is, and where he would land. */
   private groundShadow: Mesh;
   private lockRing: Mesh;
@@ -676,8 +680,16 @@ export class Scene3D {
         dome.position.set(0, 11.6, 12);
         dome.rotation.y = Math.PI;
         root.add(dome);
+        void swapDelivered(dome, 'prop.shieldDome').then((swapped) => {
+          if (!swapped) return;
+          swapped.play('Active');
+          this.guardDome = swapped;
+        });
       }
-    } else if (shield) root.remove(shield);
+    } else if (shield) {
+      root.remove(shield);
+      this.guardDome = null;
+    }
     // Eye muzzle glow while the lasers run: eight painted frames.
     if (this.muzzle) {
       const firing = combat.heat > 0 && combat.shotClock > 0 && !combat.guarding;
@@ -806,6 +818,14 @@ export class Scene3D {
     if (name === 'dissolve') {
       object = createStandIn('prop.dissolveBurst');
       life = 0.6;
+      void swapDelivered(object, 'prop.dissolveBurst').then((swapped) => {
+        if (!swapped) return;
+        swapped.play('Dissolve');
+        // The effect owns the mixer, so it is stepped while it lives and
+        // dropped with it rather than accumulating in the world list.
+        const effect = this.effects.find((e) => e.object === object);
+        if (effect) effect.mixer = swapped.mixer;
+      });
     } else if (name === 'shockwave') {
       object = new Mesh(new TorusGeometry(4, 0.8, 6, 40), new MeshBasicMaterial({ color: '#ffe8a0', transparent: true, opacity: 0.8 }));
       object.rotation.x = Math.PI / 2;
@@ -860,6 +880,7 @@ export class Scene3D {
     for (const a of this.atlases) if (!stepAtlas(a, dt)) this.worldGroup.remove(a.sprite);
     this.atlases = this.atlases.filter((a) => a.sprite.parent);
     for (const e of this.effects) {
+      e.mixer?.update(dt);
       e.life -= dt;
       const t = 1 - Math.max(0, e.life) / e.maxLife;
       if (e.kind === 'shockwave') e.object.scale.setScalar(1 + t * 3);
@@ -903,6 +924,7 @@ export class Scene3D {
     this.syncShadow(h, world, shadowEnabled);
     for (const o of this.animated) o.userData.animate?.(this.time);
     for (const d of this.delivered) d.mixer?.update(dt);
+    this.guardDome?.mixer?.update(dt);
     this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);
     this.camera.lookAt(new Vector3(cam.target[0], cam.target[1], cam.target[2]));
     if (Math.abs(this.camera.fov - cam.fov) > 0.05) {
