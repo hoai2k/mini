@@ -306,7 +306,12 @@ export function makeTexture(name, options = {}) {
 }
 export function makeSkyTexture(region, { width = 512, height = 256, seed = 1 } = {}) {
   const raw = paintSky(width, height, region, seed);
-  const tex = new DataTexture(raw.data, raw.width, raw.height, RGBAFormat);
+  // A DataTexture ignores flipY, and row 0 of raw data lands at v = 0. The dome's
+  // zenith is at v = 1, so hand the rows over bottom-up to keep the sky up there.
+  const data = new Uint8Array(raw.data.length);
+  const stride = raw.width * 4;
+  for (let y = 0; y < raw.height; y++) data.set(raw.data.subarray(y * stride, y * stride + stride), (raw.height - 1 - y) * stride);
+  const tex = new DataTexture(data, raw.width, raw.height, RGBAFormat);
   tex.colorSpace = SRGBColorSpace;
   tex.magFilter = LinearFilter;
   tex.minFilter = LinearFilter;

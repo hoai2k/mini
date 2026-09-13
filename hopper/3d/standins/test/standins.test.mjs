@@ -12,6 +12,7 @@ import {
   socketNames,
   paintTexture,
   paintSky,
+  makeSkyTexture,
   TEXTURE_NAMES,
   REGIONS,
   ENEMIES,
@@ -119,6 +120,11 @@ for (const region of REGIONS) {
   const top = sky.data.slice(0, 4),
     bottom = sky.data.slice(sky.data.length - 4);
   ok(top.join() !== bottom.join(), `${region.id} sky differs zenith to nadir`);
+  // The dome samples v = 1 at its zenith, and a DataTexture puts its last row
+  // there, so the texture must carry the sky rows bottom-up.
+  const tex = makeSkyTexture(region, { width: 64, height: 32 });
+  const last = tex.image.data.slice(tex.image.data.length - 4, tex.image.data.length - 1);
+  ok(last.join() === top.slice(0, 3).join(), `${region.id} sky texture keeps the zenith at v = 1`);
 }
 
 // 6. Terrain: the height function and the mesh agree; landmarks exist per region.
