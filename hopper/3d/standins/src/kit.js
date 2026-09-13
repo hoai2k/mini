@@ -6,17 +6,22 @@
 import {
   BoxGeometry,
   CapsuleGeometry,
+  CatmullRomCurve3,
   ConeGeometry,
   CylinderGeometry,
+  ExtrudeGeometry,
   Group,
+  LatheGeometry,
   Mesh,
   MeshBasicMaterial,
   MeshToonMaterial,
   Object3D,
+  Shape,
   SphereGeometry,
   TorusGeometry,
   BackSide,
   Color,
+  Vector2,
   Vector3,
   Box3,
 } from 'three';
@@ -48,8 +53,76 @@ export const GEOMETRY = {
   cylinder: (rt, rb, h, seg = 10) => new CylinderGeometry(rt, rb, h, seg),
   cone: (r, h, seg = 8) => new ConeGeometry(r, h, seg),
   capsule: (r, len, seg = 6) => new CapsuleGeometry(r, len, seg, 10),
-  torus: (r, tube, seg = 10, tub = 24) => new TorusGeometry(r, tube, seg, tub),
+  torus: (r, tube, seg = 10, tub = 24, arc = Math.PI * 2) => new TorusGeometry(r, tube, seg, tub, arc),
+  /** A surface of revolution from an [r, y] profile, bottom to top. */
+  lathe: (profile, seg = 16) => new LatheGeometry(profile.map(([r, y]) => new Vector2(r, y)), seg),
+  /** A flat plate cut to a 2D outline (in the geometry's XY plane) and
+   * extruded `thick` across Z, centred: fins, feathers, claws, plates. */
+  fin: (points, thick = 0.2) => {
+    // Wind the outline counter-clockwise so the plate's faces point outward.
+    let area = 0;
+    for (let i = 0; i < points.length; i++) {
+      const [x0, y0] = points[i],
+        [x1, y1] = points[(i + 1) % points.length];
+      area += x0 * y1 - x1 * y0;
+    }
+    if (area < 0) points = [...points].reverse();
+    const shape = new Shape();
+    points.forEach(([x, y], i) => (i ? shape.lineTo(x, y) : shape.moveTo(x, y)));
+    shape.closePath();
+    const geo = new ExtrudeGeometry(shape, { depth: thick, bevelEnabled: false });
+    geo.translate(0, 0, -thick / 2);
+    return geo;
+  },
 };
+
+/** A tapered outline for feathers, petals and leaves: `len` along +X,
+ * `w` wide, the widest point at `peak` (0..1) along it. */
+export function leafOutline(len, w, peak = 0.45, tip = 0) {
+  return [[0, -w * 0.25], [len * peak, -w * 0.5], [len, -tip], [len, tip], [len * peak, w * 0.5], [0, w * 0.25]];
+}
+
+/** A curved claw or horn outline: an arc `len` long bending by `bend`
+ * radians, `w` wide at the root and pointed at the tip. */
+export function clawOutline(len, w, bend = 0.9, steps = 6) {
+  const outer = [],
+    inner = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps,
+      a = bend * t;
+    const x = Math.sin(a) * (len / bend),
+      y = (1 - Math.cos(a)) * (len / bend);
+    // Offset either side of the arc along its normal (-sin a, cos a).
+    const hw = (w * (1 - t)) / 2;
+    outer.push([x - Math.sin(a) * hw, y + Math.cos(a) * hw]);
+    inner.push([x + Math.sin(a) * hw, y - Math.cos(a) * hw]);
+  }
+  return [...outer, ...inner.reverse()];
+}
+
+const up = new Vector3(0, 1, 0);
+/** A tapered strand along a curve through `points`: a tail, a tendril, a
+ * coil, a neck. Built from cylinders so the radius can run from `r0` at
+ * the start to `r1` at the end. Returns the segment meshes in order. */
+export function strand(parent, points, r0, r1, material, { name = 'Strand', steps = 12, sides = 7, outline = true } = {}) {
+  const curve = new CatmullRomCurve3(points.map((p) => new Vector3(...p)), false, 'catmullrom', 0.5);
+  const samples = curve.getPoints(steps);
+  const out = [];
+  for (let i = 0; i < steps; i++) {
+    const a = samples[i],
+      b = samples[i + 1],
+      dir = b.clone().sub(a),
+      len = dir.length();
+    if (len < 1e-4) continue;
+    const ra = r0 + (r1 - r0) * (i / steps),
+      rb = r0 + (r1 - r0) * ((i + 1) / steps);
+    const mid = a.clone().add(b).multiplyScalar(0.5);
+    const m = part(parent, new CylinderGeometry(rb, ra, len * 1.08, sides), material, { name: `${name}${i}`, position: [mid.x, mid.y, mid.z], outline });
+    m.quaternion.setFromUnitVectors(up, dir.normalize());
+    out.push(m);
+  }
+  return out;
+}
 
 /** Add a named part to a parent. Rotation in radians, position in metres. */
 export function part(parent, geometry, material, { name, position = [0, 0, 0], rotation = [0, 0, 0], scale = null, outline = true, castShadow = true } = {}) {

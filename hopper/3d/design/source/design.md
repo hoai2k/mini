@@ -248,6 +248,8 @@ Light shadows have 4 health, ranged 6, armoured 10–12, in units of laser pulse
 
 ![Stand-in silhouettes for all eighteen species on a contact sheet; the final models are requests M-003 to M-020.](../assets/sheet-enemies.png)
 
+The shadows are drawn as dark spots on the picture: an optional pass (the "Shadow halo" setting, on by default) renders their silhouettes to a mask against the frame's own depth, blurs it at a quarter of the resolution and lays it back over the frame as a feathered violet darkness that hugs each silhouette and bleeds a little into what stands around it. Nothing inside the silhouette changes but a touch of darkening, so cores, eyes and tells still read; a shadow behind a wall leaves no spot.
+
 | Species | Region | Role in 3D | Tell and counter |
 | --- | --- | --- | --- |
 | Shade Hound | Fields | Pouncer that follows Hopper's line across terraces and roofs | Crouch, flash, pounce; ribs open on landing: kick, or stomp the back |
@@ -439,6 +441,8 @@ Forty-four structure pieces in nine kits, one trim sheet per kit, are what the d
 ### Stand-ins
 
 Every model, texture and sky in the request documents has a procedural placeholder, built from primitives with cel materials and ink hulls, in `hopper/3d/standins/`. They are the same size as the requested model, expose the same named sockets, publish the same landings and animate a little, so gameplay code binds to names that survive the swap. Textures are painted in code into data textures, skies are gradient-plus-sun paintings, terrain is a heightfield whose colour and collision share one function, and the horizon is a ring of silhouettes in the haze colour.
+
+The creature stand-ins are shaped to the turnaround sheets in `design/references` rather than left as blocks: plated bodies drawn in profile and extruded, rib arcs, crests, claws and horns cut from outlines, tapered strands for tails and tendrils, lathes for bells, pots and shells, feathered wings on jointed bones. They are still shadow — black plates, violet seams, ivory teeth and cores — so the game can play with them until the delivered models arrive.
 
 The manifest maps each request to its stand-in and its final file. When an asset arrives, its status flips from `stand-in` to `delivered`, the loader takes the GLB or texture, and the stand-in stays available for tests. A build with any stand-ins left shows a small "stand-in art" mark in the corner and must not be the public build.
 

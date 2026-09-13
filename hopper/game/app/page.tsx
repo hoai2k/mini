@@ -50,6 +50,7 @@ const initial: GameSettings = {
   cameraSensitivity: 0.5,
   invertY: false,
   landingGuide: true,
+  shadowHalo: true,
 };
 const missions = [
   'Earthbound Thunder',
@@ -524,12 +525,12 @@ export default function Home() {
             'shake',
             'assist',
             ...(edition === '3d'
-              ? (['cameraSensitivity', 'invertY', 'landingGuide'] as const)
+              ? (['cameraSensitivity', 'invertY', 'landingGuide', 'shadowHalo'] as const)
               : []),
           ];
           const k = keys[focusRef.current];
           if (k) {
-            const v = settingsRef.current[k];
+            const v = settingsRef.current[k] ?? true;
             action.setting(
               k,
               typeof v === 'boolean'
@@ -1395,6 +1396,15 @@ export default function Home() {
                           id="landingGuide"
                           checked={settings.landingGuide}
                           onCheckedChange={(v) => setting('landingGuide', v)}
+                        />
+                      </div>
+                      <div className="setting-row">
+                        <label htmlFor="shadowHalo">Shadow halo</label>
+                        <Switch
+                          {...nav(8)}
+                          id="shadowHalo"
+                          checked={settings.shadowHalo !== false}
+                          onCheckedChange={(v) => setting('shadowHalo', v)}
                         />
                       </div>
                     </>

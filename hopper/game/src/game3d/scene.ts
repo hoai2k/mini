@@ -55,6 +55,7 @@ import type { Combat, Shadow, Projectile } from './combat3d';
 import { atlasSprite, cell, cellPlane, cellSprite, HOPPER_CELLS, HOPPER_SHEET, muzzleCell, paintHorizon, paintKit, paintShadows, paintSky, paintTerrain, PROP_CELLS, PROP_SHEET, reticle, setCell, stepAtlas, terrainClock, type AtlasSprite } from './textures3d';
 import { standInKey, swapDelivered, type Swapped } from './models3d';
 import { buildTrail } from './trail';
+import { ShadowHalo, markShadow } from './halo';
 import type { CommanderRuntime, RookRuntime } from './boss3d';
 
 interface Effect {
@@ -136,6 +137,9 @@ export class Scene3D {
   private flipObjects: Mesh[] = [];
   /** The gaits and the skeleton they are put onto. */
   private readonly gait = new Gait();
+  /** The shadows as dark spots on the picture; null while the setting is off. */
+  private halo: ShadowHalo | null = null;
+  private haloWanted = false;
   /** Hopper's state seen in the world's mirror, for the gait under inverted gravity. */
   private readonly mirrorBody: GaitBody = { x: 0, y: 0, z: 0, yaw: 0, vx: 0, vy: 0, vz: 0, grounded: false, climbing: false, climbNx: 0, climbNz: 0, airTime: 0, height: 0, diving: false, gliding: false, hovering: false };
   private readonly rig = new HopperRig();
@@ -376,10 +380,12 @@ export class Scene3D {
       o.add(flash);
       this.worldGroup.add(o);
       this.shadowObjects.set(s.id, o);
+      markShadow(o);
       void swapDelivered(o, `enemy.${s.kind}`).then((swapped) => {
         if (!swapped || version !== this.buildVersion) return;
         this.delivered.push(swapped);
         this.shadowModels.set(s.id, swapped);
+        markShadow(o);
       });
     }
     void paintShadows(this.shadowObjects.values());
@@ -498,6 +504,7 @@ export class Scene3D {
     o.position.set(rook.x, rook.y, rook.z);
     o.rotation.y = rook.yaw;
     this.worldGroup.add(o);
+    markShadow(o);
     this.bossObject = o;
     this.corridor = new Mesh(new CylinderGeometry(6, 6, 1, 10, 1, true), this.corridorMaterial);
     this.corridor.visible = false;
@@ -933,7 +940,22 @@ export class Scene3D {
     }
     this.sun.position.set(cam.target[0] + 190, cam.target[1] + 760, cam.target[2] + 980);
     this.syncCrosshair(combat, cam, dt);
-    this.renderer.render(this.scene, this.camera);
+    this.draw();
+  }
+  /** Turn the shadow halo on or off. */
+  setHalo(on: boolean) {
+    this.haloWanted = on;
+    if (!on && this.halo) {
+      this.halo.dispose();
+      this.halo = null;
+    }
+  }
+  /** The frame, plain or through the halo. */
+  private draw() {
+    if (this.haloWanted) {
+      this.halo ||= new ShadowHalo(this.renderer);
+      this.halo.render(this.scene, this.camera);
+    } else this.renderer.render(this.scene, this.camera);
   }
   /** The crosshair: the middle of the picture while LT is held, drawn in the
    * world so it reads at any range. A shadow the aim comes near takes hold of
@@ -987,7 +1009,7 @@ export class Scene3D {
   /** Draw once with no simulation (title screen behind the poster). */
   renderIdle() {
     this.resize();
-    this.renderer.render(this.scene, this.camera);
+    this.draw();
   }
   dispose() {
     this.renderer.dispose();

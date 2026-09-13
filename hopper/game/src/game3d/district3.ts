@@ -29,14 +29,14 @@ export function vermilionBasin(): District {
     // in a row with choirs on their crowns, burrowers under the terraces.
     P('structure.red.ivoryRibArch', 0, -540, 0, 0, { span: 90, height: 48 }),
     P('structure.red.basinTerrace', -100, -600, 0, 0.3, { w: 70, d: 40, h: 12 }),
-    P('structure.red.coralSpire', 130, -590, 0, 0.2, { r: 12, h: 90 }),
+    P('structure.red.coralSpire', 100, -600, 0, 0.2, { r: 12, h: 90 }),
     P('structure.red.ivoryRibArch', 0, -650, 0, 0, { span: 96, height: 50 }),
     P('prop.checkpointTotem', 30, -660),
     P('structure.red.basinTerrace', 110, -700, 0, -0.3, { w: 70, d: 40, h: 12 }),
     P('structure.red.coralSpire', -130, -720, 0, -0.2, { r: 12, h: 90 }),
     P('structure.red.ivoryRibArch', 0, -760, 0, 0, { span: 90, height: 48 }),
     P('prop.recoveryCapsule', 0, -600, 3),
-    P('prop.signalBeacon', 130, -590, 55, 0),
+    P('prop.signalBeacon', 100, -600, 55, 0),
     P('prop.checkpointTotem', 0, -880),
     // Interlude 2 · The staged bridge (−880 → −1260): the coral bridge over the
     // basin breaks behind Hopper; dawdle and he drops to the floor, where a
@@ -54,7 +54,7 @@ export function vermilionBasin(): District {
     P('prop.checkpointTotem', 0, -1260),
     // Stronghold 2 · The Basin Floor (centre 0,−1480, r 210) on the floor with
     // spires and a terrace ring around it.
-    P('structure.red.coralSpire', -90, -1380, 0, 0.2, { r: 12, h: 90 }),
+    P('structure.red.coralSpire', -80, -1410, 0, 0.2, { r: 12, h: 90 }),
     P('structure.red.coralSpire', 100, -1400, 0, -0.2, { r: 12, h: 90 }),
     P('structure.red.basinTerrace', -110, -1480, 0, 0.5, { w: 60, d: 36, h: 12 }),
     P('structure.red.basinTerrace', 110, -1500, 0, -0.5, { w: 60, d: 36, h: 12 }),
@@ -63,7 +63,7 @@ export function vermilionBasin(): District {
     P('structure.red.coralSpire', -100, -1580, 0, -0.3, { r: 12, h: 90 }),
     P('structure.red.coralSpire', 90, -1600, 0, 0.3, { r: 12, h: 90 }),
     P('prop.recoveryCapsule', 0, -1420, 3),
-    P('prop.signalBeacon', -90, -1380, 55, 0),
+    P('prop.signalBeacon', -80, -1410, 55, 0),
     P('prop.springPad', -30, -1640, 0, 0, { w: 10 }),
     P('prop.checkpointTotem', 0, -1700),
     // Interlude 3 · Terrace ascent (−1700 → −2100): the terraces climb out of
@@ -88,7 +88,7 @@ export function vermilionBasin(): District {
     S('ch1', 'thornChoir', 0, -540, { y: 28, group: 'choir', entry: 'perch', delay: 0 }),
     S('ch2', 'thornChoir', 0, -650, { y: 29, group: 'choir', entry: 'perch', delay: 1.5 }),
     S('ch3', 'thornChoir', 0, -760, { y: 28, group: 'choir', entry: 'perch', delay: 3 }),
-    S('ch4', 'basaltBurrower', 130, -590, { y: 54, group: 'choir', entry: 'perch', delay: 0.5 }),
+    S('ch4', 'basaltBurrower', 100, -600, { y: 54, group: 'choir', entry: 'perch', delay: 0.5 }),
     S('ch5', 'basaltBurrower', -130, -720, { y: 54, group: 'choir', entry: 'perch', delay: 2 }),
     S('ch6', 'basaltBurrower', 110, -600, { y: 54, group: 'choir', entry: 'perch', delay: 4 }),
     S('ch7', 'basaltBurrower', -110, -715, { y: 54, group: 'choir', entry: 'ambush', delay: 5 }),
@@ -99,7 +99,7 @@ export function vermilionBasin(): District {
     S('bb3', 'basaltBurrower', 30, -1180, { group: 'bridge' }),
     S('bb4', 'basaltBurrower', -20, -1240, { group: 'bridge' }),
     // Stronghold 2 host.
-    S('bf1', 'basaltBurrower', -90, -1380, { y: 54, group: 'floor', entry: 'perch', delay: 0 }),
+    S('bf1', 'basaltBurrower', -80, -1410, { y: 54, group: 'floor', entry: 'perch', delay: 0 }),
     S('bf2', 'basaltBurrower', 100, -1400, { y: 54, group: 'floor', entry: 'perch', delay: 1.5 }),
     S('bf3', 'basaltBurrower', -100, -1580, { y: 54, group: 'floor', entry: 'perch', delay: 3 }),
     S('bf4', 'thornChoir', 0, -1480, { y: 30, group: 'floor', entry: 'perch', delay: 0.5 }),
