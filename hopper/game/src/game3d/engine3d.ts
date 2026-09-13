@@ -134,12 +134,14 @@ export class Engine3D implements GameEngine {
   }
   async load(progress: (fraction: number) => void): Promise<void> {
     this.scene = new Scene3D(this.canvas);
+    this.scene.setHalo(this.settings.shadowHalo !== false);
     await this.scene.loadHopper('./models/hopper-rider.glb', progress);
     this.loaded = true;
     this.emit();
   }
   configure(s: GameSettings): void {
     this.settings = s;
+    this.scene?.setHalo(s.shadowHalo !== false);
   }
   /**
    * Everything the district about to be entered paints, before it is built.

@@ -37,6 +37,7 @@ fs.writeFileSync(
   effect(name, x, y, z) { this.effects.push({ name, x, y, z }); }
   render() { this.frames++; }
   renderIdle() {}
+  setHalo() {}
   dispose() {}
   get hopperReady() { return true; }
 }

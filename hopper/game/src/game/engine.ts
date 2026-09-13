@@ -16,6 +16,8 @@ export interface GameSettings {
   invertY: boolean;
   /** 3D edition only: draw Hopper's shadow on the ground below him. */
   landingGuide: boolean;
+  /** 3D edition only: draw the shadows as feathered dark spots on the picture. */
+  shadowHalo?: boolean;
 }
 export interface GameSnapshot {
   mission: number;
