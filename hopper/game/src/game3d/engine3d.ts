@@ -569,8 +569,9 @@ export class Engine3D implements GameEngine {
         this.score += last ? 5000 : 2000;
         this.sound('checkpoint');
         if (last) {
-          this.victoryT = 2.5;
-          this.showBanner(d.exit.name, 'EPISODE COMPLETE', 2.5);
+          const finale = this.mission >= MISSIONS.length - 1;
+          this.victoryT = finale ? 4 : 2.5;
+          this.showBanner(finale ? 'The sun comes back' : d.exit.name, finale ? 'HOPPER RETURNS TO EARTH · THANK YOU FOR PLAYING' : 'EPISODE COMPLETE', finale ? 4 : 2.5);
           try {
             localStorage.setItem(saveKey('3d', 'unlocked'), String(Math.max(Number(localStorage.getItem(saveKey('3d', 'unlocked')) || 0), Math.min(MISSIONS.length - 1, this.mission + 1))));
             localStorage.removeItem(saveKey('3d', 'save'));
