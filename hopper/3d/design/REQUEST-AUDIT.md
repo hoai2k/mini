@@ -24,7 +24,7 @@ Native-resolution constraint applies broadly to the delivered painted pack: `hop
 
 ## Model disposition suggestions (not status changes)
 
-All M-003–M-023 remain stand-ins pending review and production. The 21 are not all Tripo-dependent. The operational high-confidence local-first batch is **4**: **M-006 Spire Leech, M-013 Coil Wraith, M-014 Turbine Wasp, and M-018 Phase Skate** (spline and rigid contracts). A further **4** are conditionally local-feasible after reference review—**M-005 Window Ray, M-007 Crag Tortoise, M-011 Chain Manta, and M-015 Basalt Burrower**. **M-020 Gravity Cantor** is a separate identity/contract conflict: its canonical turnaround is an elaborate crowned humanoid spirit with two arms and claws, contradicting the requested rigid ring organ with four prongs. It is not presently a reliable local-first deliverable; reconcile the contract and canonical identity before choosing a pipeline. Thus the practical split is 4 local-first + 4 conditional + 1 identity conflict + 12 Tripo-preferred.
+All M-003–M-023 remain stand-ins pending review and production. The operational local-first batch after visual review is **3**: **M-006 Spire Leech, M-014 Turbine Wasp, and M-018 Phase Skate**. A further **4** are conditionally local-feasible: **M-005 Window Ray, M-007 Crag Tortoise, M-011 Chain Manta, and M-015 Basalt Burrower**. **M-013 Coil Wraith** and **M-020 Gravity Cantor** have identity/contract conflicts requiring reconciliation. Gravity Cantor's crowned humanoid painting contradicts its requested rigid ring organ with four prongs; Coil Wraith's mismatch is detailed below. The practical split is **3 local-first + 4 conditional + 2 conflicts + 12 Tripo-preferred**.
 
 The remaining **12** are Tripo-preferred or require a higher creative/organic pass: **M-003 Shade Hound, M-004 Seed Spitter, M-008 Rift Condor, M-009 Furnace Hound, M-010 Slag Caster, M-012 Ballast Crab, M-016 Thorn Choir, M-017 Veil Medusa, M-019 Mirror Stalker, M-021 Night Rook, M-022 Smelter Leviathan, and M-023 Eclipse Regent**. This is a recommendation only; it does not relabel any request or authorize Tripo work.
 
@@ -34,7 +34,7 @@ For every creature, the source-of-truth chain is `build_requests.py` → `standi
 
 Root inspected the Spire Leech and Coil Wraith turnaround paintings. Spire Leech's segmented armored worm is compatible with its spline contract. Coil Wraith is another material mismatch: its painting has a beaked head, armored torso, two clawed arms and a serpentine tail, while M-013 specifies a narrow ribbon between two electrical nodes. It cannot be faithfully delivered as that simple spline ribbon without changing either the canonical design or the rig/dimensions contract.
 
-The operative count after visual review is therefore **3 local-first** (M-006, M-014, M-018), **4 conditional** (M-005, M-007, M-011, M-015), **2 identity/contract conflicts** (M-013, M-020), and **12 Tripo-preferred**. Earlier prose above records the initial text-only recommendations; this visual-review disposition supersedes them.
+This review moved Coil Wraith from the initial text-only local-first recommendation into the conflict category. Counts above include this correction.
 
 ## Stash reconciliation
 
