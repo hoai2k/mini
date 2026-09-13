@@ -21,6 +21,9 @@ const ts = require('typescript');
 const source = new URL('../../src/', import.meta.url).pathname;
 const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).pathname;
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
+const threeDir = path.dirname(path.dirname(threeModule)); // .../three/build/three.module.js -> .../three
+const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
+const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-episode3d-m2m3-'));
 const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'engine3d', 'route', 'scenery', 'preload', 'textures3d', 'models3d', 'trail', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
@@ -52,8 +55,19 @@ for (const name of names) {
     .replace("'../../../3d/standins/src/index.js'", `'${standIns}'`)
     .replace("'../../../3d/standins/src/palette.js'", `'${new URL('../../../3d/standins/src/palette.js', import.meta.url).pathname}'`)
     .replace("'../../../3d/standins/src/textures.js'", `'${new URL('../../../3d/standins/src/textures.js', import.meta.url).pathname}'`)
-    .replace(/from 'three'/g, `from '${threeModule}'`);
-  fs.writeFileSync(path.join(temp, name + '.mjs'), ts.transpileModule(raw, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022, verbatimModuleSyntax: false } }).outputText);
+    .replace("'three/examples/jsm/loaders/GLTFLoader.js'", `'${gltfLoader}'`)
+    .replace("'three/examples/jsm/libs/meshopt_decoder.module.js'", `'${meshoptDecoder}'`)
+    .replace(/from 'three'/g, `from '${threeModule}'`)
+    // Bare JSON imports (design/delivery manifests, baked collision) need an
+    // import attribute under plain Node ESM; `require` reads JSON natively.
+    .replace(/import (\w+) from '(\.\.\/[^']+\.json)';/g, (m, ident, rel) => {
+      const dir = path.posix.dirname(name);
+      const base = dir === '.' ? source + 'game3d/' : source + 'game3d/' + dir + '/';
+      return `const ${ident} = require('${base}${rel}');`;
+    });
+  const compiled = ts.transpileModule(raw, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022, verbatimModuleSyntax: false } }).outputText;
+  const withRequire = compiled.includes('require(') ? `import { createRequire as __cr } from 'node:module';\nconst require = __cr(import.meta.url);\n${compiled}` : compiled;
+  fs.writeFileSync(path.join(temp, name + '.mjs'), withRequire);
 }
 
 // Browser globals the engine touches.
@@ -269,7 +283,13 @@ async function playDistrict(ctx, missionIdx, index, opts = {}) {
       check(!t.cageCrown.visible, `${d.name}: cage ${t.id} crown is gone`);
     }
     teleport(t.x, t.y + 1, t.z);
-    run(0.3);
+    // Up to 3 s, not a flat 0.3: a signal authored against a delivered
+    // structure's assumed perch may have been snapped onto real ground well
+    // below it, so reaching it can take a real fall. Stop as soon as it is
+    // taken, though: a signal inside the exit's radius (Tempest Docks' last
+    // one) starts the 1.2 s district transition on pickup, and waiting the
+    // full 3 s would let that transition load the next district under us.
+    for (let i = 0; i < 30 && !t.taken; i++) run(0.1);
     check(t.taken, `${d.name}: signal ${t.id} taken`);
     // A signal that happens to sit inside the exit's own radius (Tempest
     // Docks' last one does, 10 m from a 40 m exit) starts the region's exit
@@ -321,6 +341,11 @@ async function playDistrict(ctx, missionIdx, index, opts = {}) {
     check(priv('transitionT') <= 0 && priv('victoryT') <= 0, 'exit refused while the commander lives');
     check(snap().hint?.includes('commander'), 'hint names the commander');
     await fightBoss(ctx, d, w, c, opts.boss);
+    // Violet Inversion's exit is the eclipse dais itself, where the Regent
+    // is fought: when it falls with Hopper still standing there, the
+    // victory timer has already started by the time the fight helper
+    // returns, and the fixed 4 s below is measured from that moment.
+    const already = priv('victoryT');
     toExit();
     run(0.3);
     check(priv('victoryT') > 0, `${d.name}: the episode's victory timer starts`);
@@ -329,7 +354,7 @@ async function playDistrict(ctx, missionIdx, index, opts = {}) {
     const finale = missionIdx >= MISSIONS.length - 1;
     const intended = finale ? 'HOPPER RETURNS TO EARTH · THANK YOU FOR PLAYING' : 'EPISODE COMPLETE';
     check(priv('bannerSmall') === intended, `${d.name}: the banner left on screen is the completion text (${priv('bannerSmall')})`);
-    if (finale) check(priv('victoryT') > 3.5, `${d.name}: the finale's victory timer is the long one (~4 s)`);
+    if (finale) check(already > 0 ? already > 3.2 && priv('victoryT') > already - 0.35 : priv('victoryT') > 3.5, `${d.name}: the finale's victory timer is the long one (~4 s; ${already.toFixed(2)} s left when the fight ended, ${priv('victoryT').toFixed(2)} s now)`);
   } else {
     walkTotems();
     if (priv('district') === d) {

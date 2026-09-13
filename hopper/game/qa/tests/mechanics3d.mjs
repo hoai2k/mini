@@ -84,8 +84,15 @@ const TX = 1200,
 {
   const probe = new World(base);
   const groundHeight = probe.heightAt(TX, TZ);
+  // terraceStep is a delivered structure: its collision is baked from the
+  // real (fixed-size) model, not sized by `opts` any more, so a synthetic
+  // "conveyor" placed on it is only as big as the real model's own natural
+  // footprint (~62 x 41 m -- manifest.json M-024) regardless of w/d/tiers.
+  // The requested opts are kept (matching how a real conveyor is authored)
+  // but the carry distance tested is well inside that real footprint,
+  // rather than the 240 m belt this test used before delivery.
   const belt = P('structure.fields.terraceStep', TX, TZ, groundHeight, 0, { w: 40, d: 240, h: 5, tiers: 1 }, 'a');
-  belt.flow = { dx: 0, dz: -1, speed: 20 };
+  belt.flow = { dx: 0, dz: -1, speed: 8 };
   const world = new World({ ...base, placements: [belt] });
   const s = standing(world, TX, TZ);
   const startZ = s.z;
@@ -105,7 +112,7 @@ const TX = 1200,
     stepHopper(s, world, blank, dt);
   }
   const moved = startZ - s.z;
-  c.check('a conveyor carries a grounded Hopper along its flow, no stick input', s.grounded && Math.abs(moved - 20) < 2, moved);
+  c.check('a conveyor carries a grounded Hopper along its flow, no stick input', s.grounded && Math.abs(moved - 8) < 2, moved);
 
   // A conveyor placed at a right angle turns its local flow into world space.
   const yawed = P('structure.fields.terraceStep', TX + 400, TZ, groundHeight, Math.PI / 2, { w: 20, d: 20, h: 5, tiers: 1 }, 'a');

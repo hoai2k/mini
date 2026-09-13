@@ -2,7 +2,12 @@
  * Colliders come from the same stand-in meshes the player sees (every solid
  * part becomes an oriented box in the structure's frame), so a landing and
  * its picture can never disagree, and swapping a stand-in for a delivered
- * model only changes the picture if the model keeps the same solid parts.
+ * model only changes the picture if the model keeps the same solid parts --
+ * UNLESS the stand-in has a delivered model with its own baked collision in
+ * `collision.json` (structures/*.glb so far), in which case that replaces
+ * the stand-in's own primitive-mesh boxes so the collider matches what is
+ * actually drawn instead of the stand-in's (often differently-sized) boxes.
+ * See collision-audit.mjs / collision.json's header for how it is made.
  */
 import { Box3, Group, Matrix4, Mesh, Object3D, Vector3 } from 'three';
 import {
@@ -11,8 +16,26 @@ import {
   regionById,
 } from '../../../3d/standins/src/index.js';
 import type { District, Placement } from './district';
+import { deliveredFile } from './models3d';
 import { buildRoute, type Route } from './route';
 import { sceneryFor } from './scenery';
+import bakedCollision from '../../../3d/models/collision.json';
+
+/** A baked collision box in a delivered model's own local frame -- see
+ * `collision.json`'s header (bake-collision.mjs) for how these are made. */
+interface BakedBox {
+  ox: number;
+  oz: number;
+  hx: number;
+  hz: number;
+  y0: number;
+  y1: number;
+  /** From the ring scan for a near-vertical face (a cylinder, a curved
+   * facade), not the footprint scan: a shell for `resolveWalls` to meet,
+   * not a designed top -- `perchNear` and signal placement skip these. */
+  wall?: boolean;
+}
+const collisionByFile = bakedCollision as Record<string, BakedBox[]>;
 
 export interface Collider {
   /** Structure instance that owns this box. */
@@ -31,6 +54,14 @@ export interface Collider {
   y1: number;
   /** A spring pad plate launches whatever lands on it. */
   spring?: boolean;
+  /** From a delivered model's baked `collision.json` rather than the
+   * stand-in's own primitive meshes -- many small boxes (one per voxel
+   * column) rather than one per part, so exhaustive per-collider sweeps
+   * (qa/tests/collision3d.mjs's district sweep) skip these and
+   * qa/tests/delivered-collision.mjs checks them instead. */
+  baked?: boolean;
+  /** A baked ring-scan wall shell, not a designed top -- see BakedBox.wall. */
+  wall?: boolean;
   /** Local vertical extent, kept so a moving owner can re-place the box. */
   ly0?: number;
   ly1?: number;
@@ -167,11 +198,42 @@ function collidersOf(object: Group, id: string): Collider[] {
   return out;
 }
 
+/** Collision shapes for a placed stand-in whose delivered model has baked
+ * collision: the same shape `collidersOf` returns (owner id, structure-frame
+ * box, world-space y0/y1), but from `collision.json` instead of the
+ * stand-in's own primitive meshes -- so where a delivered GLB's drawn
+ * surfaces differ from the stand-in's boxes, this is the one that matches
+ * what is actually on screen. */
+function bakedCollidersOf(boxes: BakedBox[], object: Group, id: string): Collider[] {
+  return boxes.map((b) => ({
+    owner: id,
+    cx: object.position.x,
+    cz: object.position.z,
+    yaw: object.rotation.y,
+    ox: b.ox,
+    oz: b.oz,
+    hx: b.hx,
+    hz: b.hz,
+    y0: object.position.y + b.y0,
+    y1: object.position.y + b.y1,
+    baked: true,
+    wall: b.wall,
+  }));
+}
+
 export class World {
   readonly district: District;
   readonly heightAt: (x: number, z: number) => number;
   readonly instances: Instance[] = [];
   readonly colliders: Collider[] = [];
+  /** One candidate top per stand-in `landing()` (a designed, clean flat
+   * platform, independent of how finely a delivered model's baked collision
+   * happens to be diced) -- `perchNear` scans these too, so a fragmented
+   * voxel top still offers a host somewhere obvious to perch. */
+  private readonly perchCandidates: Collider[] = [];
+  /** Gravity seams with their flip volumes, so the pass below can hang each
+   * under the lintel that is really there. */
+  private readonly seams: { object: Group; flip: Flip }[] = [];
   readonly volumes: Volume[] = [];
   readonly triggers: Trigger[] = [];
   readonly fields: Field[] = [];
@@ -197,13 +259,107 @@ export class World {
     this.heightAt = makeHeightField({ size: district.size, ...district.terrain });
     for (const p of district.placements) this.place(p);
     // A signal authored inside a structure or under the ground is lifted
-    // onto the nearest top above it, so every signal can be reached.
+    // onto the nearest top above it, so every signal can be reached. One
+    // authored to rest on a delivered structure's own (parametric) assumed
+    // perch -- often dead centre of the structure's footprint, e.g. a
+    // rooftop or a chimney's cap -- can now be over open air if the real
+    // (baked) model is hollow or shaped differently there (a chimney's real
+    // flue, unlike the stand-in's solid-capped guess, has no floor at its
+    // own centre): snap it sideways as well as vertically, onto whatever
+    // real collider top nearest its own authored height actually passes
+    // closest by, then still run the usual lift-clear-of-solid pass.
+    // A gravity seam is authored a couple of metres under its arch's lintel,
+    // and its flip volume reaches up to that underside. A delivered arch is
+    // its own height (the stand-in's height parameter only sized the
+    // picture that it replaced), so hang the seam and its volume under the
+    // underside that is really there -- otherwise a lintel top can end up
+    // inside the flip, and whoever stands on it is turned upside down.
+    for (const { object, flip } of this.seams) {
+      const authored = object.position.y;
+      const under = this.ceilingAt(object.position.x, object.position.z, this.heightAt(object.position.x, object.position.z) + 12, 1).y;
+      if (!Number.isFinite(under) || Math.abs(under - 2 - authored) < 1 || Math.abs(under - authored) > 40) continue;
+      object.position.y = under - 2;
+      flip.y1 = under - 0.5;
+    }
     for (const t of this.triggers) {
-      if (t.kind !== 'signal' || !t.object) continue;
-      const lifted = this.liftOut(t.object.position.x, t.object.position.z, t.object.position.y);
-      if (lifted === t.object.position.y) continue;
-      t.y += lifted - t.object.position.y;
+      if (!t.object || (t.kind !== 'signal' && t.kind !== 'checkpoint' && t.kind !== 'capsule')) continue;
+      const x = t.object.position.x,
+        z = t.object.position.z,
+        y = t.object.position.y;
+      // A totem or capsule authored on the ground where a delivered
+      // structure's body now stands (the eclipse dais is 4.5 m tall where
+      // its stand-in's edge was) is lifted onto the top the same way.
+      // Only a signal authored to rest on a designed landing that is not
+      // really there any more is moved sideways; one authored in open air
+      // (over a vent, on a glide line) stays exactly where it was put and
+      // gets the plain lift-out-of-solid below.
+      const designed = t.kind !== 'signal' ? undefined : this.perchCandidates.find((c) => {
+        if (Math.abs(c.y1 - y) > 3) return false;
+        const [lx, lz] = World.local(c, x, z);
+        return Math.abs(lx) <= c.hx && Math.abs(lz) <= c.hz;
+      });
+      const lost = designed !== undefined && Math.abs(this.groundAt(x, z, designed.y1 + 0.5, 0).y - designed.y1) > 1;
+      if (!lost) {
+        const lifted = this.liftOut(x, z, y);
+        if (lifted === y) continue;
+        t.y += lifted - y;
+        t.object.position.y = lifted;
+        continue;
+      }
+      const onto = this.nearestTop(x, z, y, 20, 30);
+      let start = onto && Math.hypot(onto.x - x, onto.z - z) + Math.abs(onto.y - y) > 1 ? onto : { x, y, z };
+      // Whatever surface was chosen, it must not be against a nearby wall
+      // shell's own footprint -- a narrow structure's ring-scan bands wrap
+      // close around it, so even a real, validated top nearby can still
+      // spawn Hopper's body inside one of them (a shove on arrival, not a
+      // place he can stand). Clear of those first...
+      const clear = this.clearOfFootprint(start.x, start.z, 2.5); // Hopper's own body radius
+      if (clear.x !== start.x || clear.z !== start.z) {
+        // ...then re-settle at the real surface there -- the top this
+        // point was chosen for may no longer be under it once moved.
+        const resettled = this.groundAt(clear.x, clear.z, start.y + 40, 3);
+        start = { x: clear.x, y: Number.isFinite(resettled.y) ? resettled.y : this.heightAt(clear.x, clear.z) + 0.3, z: clear.z };
+      }
+      // liftOut only makes sense for the "nothing at all nearby" fallback
+      // below: nearestTop already returned a real, validated top, and
+      // liftOut does not know to ignore the wall shell around it -- a
+      // ring-scan band stacked above the chosen point would read as "still
+      // inside solid" and shove the signal on up the wall.
+      let lifted = start.y;
+      if (!onto) {
+        // No designed top nearby at all, big enough to actually stand on --
+        // a hollow chimney's real flue has no floor anywhere along its
+        // height, only fragments too small to trust (its thin wall shell,
+        // or a footprint-scan sliver that never merged into anything
+        // bigger), so this rests on the terrain itself: guaranteed stable,
+        // rather than a coin-sized ledge partway up that might not even
+        // catch a falling Hopper before the wall around it pushes him off.
+        const ground = this.heightAt(start.x, start.z) + 0.3;
+        if (Math.abs(ground - y) > 1 || start.x !== x || start.z !== z) start = { x: start.x, y: ground, z: start.z };
+        lifted = this.liftOut(start.x, start.z, start.y);
+      }
+      if (Math.abs(lifted - y) < 0.05 && start.x === x && start.z === z) continue;
+      t.x = start.x;
+      t.z = start.z;
+      t.y += lifted - y;
+      t.object.position.x = start.x;
+      t.object.position.z = start.z;
       t.object.position.y = lifted;
+    }
+    // Wherever each ended up, Hopper has to fit: a delivered structure can
+    // hang a shelf or a beam over a spot its stand-in left open (the eclipse
+    // dais's shelves sit right over a totem authored at its rim), and a
+    // pickup under an overhang lower than his own height would only shove
+    // him away on arrival. Slide such a one sideways to the nearest open
+    // spot on the same surface.
+    for (const t of this.triggers) {
+      if (!t.object || (t.kind !== 'signal' && t.kind !== 'checkpoint' && t.kind !== 'capsule')) continue;
+      const open = this.withHeadroom(t.object.position.x, t.object.position.z, t.object.position.y);
+      if (!open) continue;
+      t.x = open.x;
+      t.z = open.z;
+      t.y += open.y - t.object.position.y;
+      t.object.position.set(open.x, open.y, open.z);
     }
     // The world either side of the trail: spans that land somewhere, and
     // structures standing well back from the path.
@@ -258,7 +414,12 @@ export class World {
   perchNear(x: number, z: number, wantY?: number, radius = 110, minRise = 10): { x: number; y: number; z: number } | null {
     let best: { x: number; y: number; z: number } | null = null,
       bestScore = Infinity;
-    for (const c of this.colliders) {
+    for (const c of [...this.colliders, ...this.perchCandidates]) {
+      // A wall shell (a curved facade's ring scan) is fair game here, unlike
+      // for nearestTop's signal placement: a stronghold host only needs a
+      // point to wait at, not to survive a falling Hopper's resolveWalls
+      // contact, and several red/violet structures (coral spires, arches)
+      // have nothing else this size nearby.
       if (c.spring || c.instance?.moving || c.hx < 2.5 || c.hz < 2.5) continue;
       if (Math.hypot(c.cx - x, c.cz - z) > radius + Math.hypot(c.hx, c.hz)) continue;
       const [lx, lz] = World.local(c, x, z);
@@ -270,11 +431,115 @@ export class World {
         pz = c.cz + ux * sin + uz * cos;
       const dist = Math.hypot(px - x, pz - z);
       if (dist > radius) continue;
-      const rise = c.y1 - this.heightAt(px, pz);
+      // What is actually there, per real collision -- not just this box's
+      // own claimed top: a landing candidate is the stand-in's own idea of
+      // where its top sits, which need not exactly match a delivered
+      // model's baked collision at that point. Whoever places something at
+      // the returned point must find it standing on real ground, so that
+      // (not c.y1) is the height used from here on; a claim too far from
+      // what is really there is not a usable perch at all.
+      const groundY = this.groundAt(px, pz, 1e6, 0).y;
+      if (Math.abs(groundY - c.y1) > 3) continue;
+      const rise = groundY - this.heightAt(px, pz);
       if (rise < minRise) continue;
-      // The top has to be the top: nothing solid above it at that point.
-      if (this.groundAt(px, pz, 1e6, 0).y > c.y1 + 0.5) continue;
-      const score = dist * 0.5 + (wantY !== undefined ? Math.abs(c.y1 - wantY) * 0.5 : 0) - Math.min(90, rise) * 0.6;
+      const score = dist * 0.5 + (wantY !== undefined ? Math.abs(groundY - wantY) * 0.5 : 0) - Math.min(90, rise) * 0.6;
+      if (score < bestScore) {
+        bestScore = score;
+        best = { x: px, y: groundY, z: pz };
+      }
+    }
+    return best;
+  }
+  /** The real collider top nearest (x, y, z), among those within `radius`
+   * horizontally and `yMargin` of y vertically -- the same "closest point on
+   * a box" clamp `perchNear` uses, but without its size/rise floor, since
+   * this is about snapping one authored point onto whatever is really
+   * there, not finding a platform to stand and fight on. */
+  /** Push (x, z) clear of any nearby collider's own footprint (at any
+   * height), radially away from that collider's centre -- used to keep a
+   * repositioned signal from spawning against the base of the very
+   * structure it could not find a top on (a hollow chimney's wall, at
+   * ground level, is still a wall Hopper's own body cannot stand inside). */
+  private clearOfFootprint(x: number, z: number, margin: number): { x: number; z: number } {
+    for (let pass = 0; pass < 4; pass++) {
+      let moved = false;
+      for (const c of this.near(x, z, margin + 5)) {
+        // Only a wall shell: a real top's own footprint is exactly where a
+        // point resting on it is supposed to be.
+        if (c.instance?.moving || !c.wall) continue;
+        const [lx, lz] = World.local(c, x, z);
+        if (Math.abs(lx) > c.hx + margin || Math.abs(lz) > c.hz + margin) continue;
+        // Push straight out from the BOX's own centre (its ox/oz offset
+        // turned into world space, not the instance's cx/cz) -- an
+        // off-centre box (any ring-scan point that is not dead over its
+        // structure's own placement origin) would otherwise push relative
+        // to the wrong point and could leap toward the structure's centre
+        // instead of just clearing this one box. Dead centre on the box
+        // itself (rare: only a box authored with ox=oz=0) has no
+        // well-defined outward direction, so default to +x.
+        const cos = Math.cos(c.yaw),
+          sin = Math.sin(c.yaw),
+          wx = c.cx + c.ox * cos - c.oz * sin,
+          wz = c.cz + c.ox * sin + c.oz * cos,
+          dx = x - wx,
+          dz = z - wz,
+          dist = Math.hypot(dx, dz),
+          dirX = dist > 0.01 ? dx / dist : 1,
+          dirZ = dist > 0.01 ? dz / dist : 0,
+          reach = Math.hypot(c.hx, c.hz) + margin + 0.5;
+        x = wx + dirX * reach;
+        z = wz + dirZ * reach;
+        moved = true;
+      }
+      if (!moved) break;
+    }
+    return { x, z };
+  }
+  /** The nearest point to (x, z) on the same surface with Hopper's height of
+   * clear air above it, searched on rings out to 15 m; nothing when the
+   * spot already has that headroom or no ring offers it. */
+  private withHeadroom(x: number, z: number, y: number): { x: number; y: number; z: number } | null {
+    const need = 15,
+      fits = (px: number, pz: number, py: number) => this.ceilingAt(px, pz, py + 0.5, 2.5).y - py >= need;
+    if (fits(x, z, y)) return null;
+    for (const r of [5, 10, 15])
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2,
+          px = x + Math.cos(a) * r,
+          pz = z + Math.sin(a) * r,
+          py = this.groundAt(px, pz, y + 3, 0).y;
+        if (Math.abs(py - y) <= 3 && fits(px, pz, py)) return { x: px, y: py + (y - this.groundAt(x, z, y + 3, 0).y), z: pz };
+      }
+    return null;
+  }
+  private nearestTop(x: number, z: number, y: number, radius: number, yMargin: number, allowWall = false): { x: number; y: number; z: number } | null {
+    let best: { x: number; y: number; z: number } | null = null,
+      bestScore = Infinity;
+    for (const c of this.colliders) {
+      // Big enough to actually stand on (a signal's own footprint, not a
+      // sliver at the tip of some baked decoration or a footprint-scan box
+      // that only just cleared the merge threshold) -- unless nothing
+      // better exists nearby at all, in which case a wall shell (a hollow
+      // chimney's flue has no real top anywhere) is still closer to the
+      // authored spot than dropping all the way to the ground below.
+      if (c.instance?.moving || (c.wall && !allowWall)) continue;
+      if (!allowWall && (c.hx < 3 || c.hz < 3)) continue;
+      if (Math.abs(c.y1 - y) > yMargin) continue;
+      if (Math.hypot(c.cx - x, c.cz - z) > radius + Math.hypot(c.hx, c.hz)) continue;
+      const [lx, lz] = World.local(c, x, z);
+      const ux = Math.max(-c.hx, Math.min(c.hx, lx)) + c.ox,
+        uz = Math.max(-c.hz, Math.min(c.hz, lz)) + c.oz,
+        cos = Math.cos(c.yaw),
+        sin = Math.sin(c.yaw),
+        px = c.cx + ux * cos - uz * sin,
+        pz = c.cz + ux * sin + uz * cos;
+      const dist = Math.hypot(px - x, pz - z);
+      if (dist > radius) continue;
+      // Prefer a genuinely wide top over a thin ring-scan wall fragment
+      // (baked at a coarser cell for a near-vertical face, so still often
+      // just the wallStep/2 minimum) -- a real platform close by beats a
+      // technically-closer sliver of somebody's cylindrical hull.
+      const score = dist + Math.abs(c.y1 - y) * 3 - Math.min(c.hx, c.hz) * 2;
       if (score < bestScore) {
         bestScore = score;
         best = { x: px, y: c.y1, z: pz };
@@ -456,7 +721,7 @@ export class World {
       // underside of the lintel it hangs under, as wide as the seam is long;
       // the lintel's top is ordinary ground.
       const length = meta.size?.[0] ?? 80;
-      this.flip(object.position.x, object.position.z, length / 2, object.position.y - 56, object.position.y + 1.5, Infinity);
+      this.seams.push({ object, flip: this.flip(object.position.x, object.position.z, length / 2, object.position.y - 56, object.position.y + 1.5, Infinity) });
     } else if (p.id === 'prop.checkpointTotem') {
       this.triggers.push({ id, kind: 'checkpoint', x: object.position.x, y: object.position.y, z: object.position.z, r: 14, object });
     } else if (p.id === 'prop.signalBeacon') {
@@ -466,7 +731,9 @@ export class World {
     }
     // Signals, capsules and volumes have no solid parts to land on.
     if (!['prop.signalBeacon', 'prop.recoveryCapsule', 'prop.checkpointTotem', 'prop.thermalVent', 'prop.windLane', 'structure.blue.dustCurrent', 'structure.violet.gravitySeam', 'prop.lockdownDome'].includes(p.id)) {
-      const built = collidersOf(object, id);
+      const file = deliveredFile(p.id);
+      const baked = file ? collisionByFile[file] : undefined;
+      const built = baked?.length ? bakedCollidersOf(baked, object, id) : collidersOf(object, id);
       for (const c of built) {
         c.instance = instance;
         c.ly0 = c.y0 - object.position.y;
@@ -487,6 +754,24 @@ export class World {
           groups[i].push(c);
         }
         instance.stages = groups.map((colliders) => ({ colliders, left: 0, state: 'standing' as const, crackAt: 0 }));
+      }
+    }
+    const landings = object.userData.landings as { y: number; halfX: number; halfZ: number; x: number; z: number }[] | undefined;
+    if (landings) {
+      for (const l of landings) {
+        this.perchCandidates.push({
+          owner: id,
+          cx: object.position.x,
+          cz: object.position.z,
+          yaw: object.rotation.y,
+          ox: l.x,
+          oz: l.z,
+          hx: l.halfX,
+          hz: l.halfZ,
+          y0: object.position.y + l.y - 1,
+          y1: object.position.y + l.y,
+          instance,
+        });
       }
     }
     return instance;

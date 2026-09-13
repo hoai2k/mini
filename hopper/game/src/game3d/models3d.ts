@@ -46,6 +46,13 @@ export function hasDeliveredModel(standIn: string): boolean {
 export function deliveredModels(): string[] {
   return [...byStandIn.keys()];
 }
+/** The delivered GLB file for a stand-in, if any -- world.ts's key into
+ * `collision.json`, which is baked in this same file's own local frame
+ * (swapDelivered draws the GLB at the stand-in's local origin, unit scale,
+ * so collision.json's frame already matches). */
+export function deliveredFile(standIn: string): string | null {
+  return byStandIn.get(standIn)?.file ?? null;
+}
 
 const loader = new GLTFLoader();
 loader.setMeshoptDecoder(MeshoptDecoder);

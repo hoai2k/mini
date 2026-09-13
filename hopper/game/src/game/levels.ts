@@ -1108,9 +1108,15 @@ export function buildLevel(mission: number): LevelData {
         // ceiling, walk it across the gap and drop out onto the next shelf.
         if (inverted) {
           const gx = x + w - 260,
-            gw = gap + 520,
             gy = y - 820,
             ceilingId = `${id}-invert-ceiling`;
+          // Gravity comes back at the gate's end and Hopper drops out of it
+          // with his running speed, so the gate ends where a full-speed drop
+          // from the ceiling lands a stride into the next shelf (fall time
+          // from the ceiling at 1900 px/s², carried at 650 px/s), not over
+          // the shelf itself, which overshoots it.
+          const fallT = Math.sqrt((2 * Math.max(200, nextY - gy)) / 1900),
+            gw = Math.round(gap + 520 - 650 * fallT);
           out.platforms.push({
             id: ceilingId,
             x: gx,

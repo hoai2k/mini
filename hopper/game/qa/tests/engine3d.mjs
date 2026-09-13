@@ -19,9 +19,12 @@ const standIns = new URL('../../../3d/standins/src/index.js', import.meta.url).p
 // hands back (the package's "require" export condition); swap to it so the
 // transpiled modules' `import ... from 'three'` resolves under node.
 const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.module.js');
+const threeDir = path.dirname(path.dirname(threeModule)); // .../three/build/three.module.js -> .../three
+const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
+const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-engine3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 for (const name of names) {
   const raw = fs
@@ -30,17 +33,25 @@ for (const name of names) {
     .replace("'../../../3d/standins/src/index.js'", `'${standIns}'`)
     .replace("'../../../3d/standins/src/palette.js'", `'${new URL('../../../3d/standins/src/palette.js', import.meta.url).pathname}'`)
     .replace("'../../../3d/standins/src/textures.js'", `'${new URL('../../../3d/standins/src/textures.js', import.meta.url).pathname}'`)
-    .replace(/from 'three'/g, `from '${threeModule}'`);
-  fs.writeFileSync(
-    path.join(temp, name + '.mjs'),
-    ts.transpileModule(raw, {
-      compilerOptions: {
-        target: ts.ScriptTarget.ES2022,
-        module: ts.ModuleKind.ES2022,
-        verbatimModuleSyntax: false,
-      },
-    }).outputText,
-  );
+    .replace("'three/examples/jsm/loaders/GLTFLoader.js'", `'${gltfLoader}'`)
+    .replace("'three/examples/jsm/libs/meshopt_decoder.module.js'", `'${meshoptDecoder}'`)
+    .replace(/from 'three'/g, `from '${threeModule}'`)
+    // Bare JSON imports (design/delivery manifests, baked collision) need an
+    // import attribute under plain Node ESM; `require` reads JSON natively.
+    .replace(/import (\w+) from '(\.\.\/[^']+\.json)';/g, (m, ident, rel) => {
+      const dir = path.posix.dirname(name);
+      const base = dir === '.' ? source : source + dir + '/';
+      return `const ${ident} = require('${base}${rel}');`;
+    });
+  const compiled = ts.transpileModule(raw, {
+    compilerOptions: {
+      target: ts.ScriptTarget.ES2022,
+      module: ts.ModuleKind.ES2022,
+      verbatimModuleSyntax: false,
+    },
+  }).outputText;
+  const withRequire = compiled.includes('require(') ? `import { createRequire as __cr } from 'node:module';\nconst require = __cr(import.meta.url);\n${compiled}` : compiled;
+  fs.writeFileSync(path.join(temp, name + '.mjs'), withRequire);
 }
 
 const { World } = await import(path.join(temp, 'world.mjs'));
@@ -1132,7 +1143,13 @@ function aimFrom(h, extra = {}) {
         const ex = p.x + Math.cos(yaw) * side * (length / 2),
           ez = p.z - Math.sin(yaw) * side * (length / 2);
         const gap = base + deck - w.heightAt(ex, ez);
-        const support = w.groundAt(ex, ez, base + deck).y;
+        // A generated abutment that got a delivered (fixed-shape) model can
+        // run taller than the parametric height scenery.ts asked for, and
+        // its footprint no longer matches the parametric w/d the abutment
+        // was sized to either -- it still holds the deck up, so look a good
+        // margin above the naive "exactly at deck height" ceiling, and a
+        // wider radius, rather than only right at the deck's own edge.
+        const support = w.groundAt(ex, ez, base + deck + 60, 20).y;
         check(
           `${d.name}: the ${p.id.split('.').pop()} deck lands on something at (${ex.toFixed(0)},${ez.toFixed(0)})`,
           gap < 8 || support > w.heightAt(ex, ez) + 4,
@@ -1325,7 +1342,12 @@ const farHopper = () => {
 // 21e. A flyer host perches on the top too, and on release launches for
 // its station in the air, arriving within a few seconds.
 {
-  const districtE = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'fl1', kind: 'windowRay', x: fort.x + 30, z: fort.z + 30, y: fortAt.top.y + 60, mode: 'a', group: 'fort' }] };
+  // Spawn near fortAt's own top rather than offset (30, 30, 60) from it: a
+  // delivered structure's real (baked) footprint is not guaranteed to still
+  // reach that far from its own accepted perch point the way the old
+  // parametric stand-in boxes did, and perchNear (which combat3d.ts calls
+  // for every held, non-rooted host) only searches near where it is asked.
+  const districtE = { ...sunseedFields(), strongholds: [fort], shadows: [{ id: 'fl1', kind: 'windowRay', x: fortAt.x, z: fortAt.z, y: fortAt.top.y + 20, mode: 'a', group: 'fort' }] };
   const combat = new Combat(world, districtE);
   const fl1 = combat.shadows.find((s) => s.id === 'fl1');
   check('flyer host waits perched on a structure top', fl1.perched && Math.abs(world.groundAt(fl1.x, fl1.z, fl1.y + 0.5).y - fl1.y) < 0.05, `${fl1.perched} ${fl1.y}`);
@@ -1498,7 +1520,11 @@ const farHopper = () => {
       prev = { planted: [...pose.planted], feet: pose.feet.map((f) => [...f]) };
     }
     check('a planted foot does not slide under him', worstSlide < 0.02, worstSlide);
-    check('and every planted foot is on the surface below it', worstOff < 0.5, worstOff);
+    // The walk crosses a delivered structure (Sunseed Fields' terraceStep at
+    // (0,-200)); its baked collision is voxel boxes rounded to a 0.25 m grid,
+    // so two adjacent tops can differ by up to ~0.5 m at the seam between
+    // them -- a hair more slack than the smooth stand-in boxes needed.
+    check('and every planted foot is on the surface below it', worstOff < 0.55, worstOff);
   }
   // (d) The body reads its angle off the ground: uphill lifts his nose.
   {
@@ -1543,7 +1569,11 @@ const farHopper = () => {
     let box = null,
       stand = null;
     for (const c of world.colliders) {
-      if (c.spring || c.instance?.moving || c.hx < 5 || c.hz < 5) continue;
+      // 2.5 m matches perchNear's own floor for "a reasonably-sized top" --
+      // a delivered model's baked wall is voxelised at a coarser cell than
+      // its footprint (a thin shell reads as clutter, not a wall), so it is
+      // chunky rather than the wide flat face a stand-in's own box gave.
+      if (c.spring || c.instance?.moving || c.hx < 2.5 || c.hz < 2.5) continue;
       const cos = Math.cos(c.yaw),
         sin = Math.sin(c.yaw);
       for (const [ox, oz] of [

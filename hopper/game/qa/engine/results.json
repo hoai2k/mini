@@ -12,18 +12,11 @@
     },
     {
       "mission": 2,
-      "passed": 137,
+      "passed": 138,
       "total": 138
     }
   ],
-  "failures": [
-    {
-      "mission": 2,
-      "from": "m2-a2-c2-p6",
-      "to": "m2-a2-c2-p7",
-      "kind": "inverted crossing"
-    }
-  ],
+  "failures": [],
   "gravityGallery": {
     "inverted": true,
     "ceiling": true,

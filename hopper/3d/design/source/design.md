@@ -329,7 +329,7 @@ Each chapter is a leg between two landmarks with one dominant beat, keeping the 
 
 Inversion is a volume, not a screen: passing a gravity gate or a seam under an arch flips local gravity for whatever is inside, Hopper rotates over 0.25 s to the new surface, the camera keeps the horizon, and the seam arrows show the way out. Cantors flip a marked volume beneath them; they never flip the whole district.
 
-As built: a seam stands as a permanent flip volume from a hop's height up past its lintel, so walking under it does nothing and a hop enters it; inside, the controller steps Hopper in the world's mirror, so he falls up, lands on undersides, jumps down off them and climbs the piers back down. A turn halves his vertical speed, so a fall out of a seam's top settles at its edge. The commanders set the arena's gravity while they are awake; the Regent's third phase turns it upward toward the eclipse canopy over the dais. `LEVEL-PLAN-M2-M3.md` records the rest of what missions two and three built.
+As built: a seam stands as a permanent flip volume from a hop's height up past its lintel, so walking under it does nothing and a hop enters it; inside, the controller steps Hopper in the world's mirror, so he falls up, lands on undersides, jumps down off them and climbs the piers back down. A turn halves his vertical speed, so a fall out of a seam's top settles at its edge. A jump away from a ceiling is a hop at seven tenths of the tap's kick, so it comes back to the lintel; the charged leap is the way to leave on purpose. Each seam's volume is hung under whichever lintel is really there, since a delivered arch is its own height rather than the height its stand-in was placed at. The commanders set the arena's gravity while they are awake; the Regent's third phase turns it upward toward the eclipse canopy over the dais. `LEVEL-PLAN-M2-M3.md` records the rest of what missions two and three built.
 
 ### Checkpoints, signals, cages and capsules
 
@@ -469,6 +469,8 @@ The three supplied recordings keep their roles: **Hopper the Grasshopper** on th
 
 <!-- page -->
 ## Technical plan
+
+As built: every delivered structure carries collision baked from its own GLB (`hopper/3d/models/collision.json`, made by `models/source/bake-collision.mjs`: a 2 m grid of tops and undersides plus a ring scan for near-vertical faces, merged into boxes in the model's frame), and the world uses those boxes instead of the stand-in's primitives wherever a delivered file exists. The audit that motivated it (`models/collision-audit.md`) found stand-in and delivered surfaces disagreeing by up to 120 m, which was the falling-through and the invisible floors. Signals authored on a designed landing that the real model no longer has are moved onto the nearest real top, totems and capsules are lifted out of a body that now stands where they were, and any of them under an overhang lower than Hopper slides sideways to open air.
 
 The 3D edition is a second entry in the same repository, sharing the shell, input and audio code with the 2D game and adding a 3D world, simulation and renderer.
 

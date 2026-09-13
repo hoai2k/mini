@@ -22,6 +22,8 @@ export const MOVE = {
   turnRate: Math.PI * 5,
   /** The jump: a mighty kick off the ground, then a short held window of thrust. */
   tapJump: 104,
+  /** A jump away from a ceiling, as a fraction of the tap jump's impulse. */
+  ceilingJump: 0.7,
   /** A short variable-height window after takeoff: thrust against gravity, a few metres, no boost. */
   holdWindow: 0.22,
   holdThrust: 70,
@@ -227,6 +229,12 @@ export interface StepWorld {
    * the real World has it; the ground-resolution section only calls it while
    * stepping upright, so a mirrored world need not implement it. */
   ceilingAt?(x: number, z: number, y: number, radius?: number): { y: number; collider: Collider | null };
+  /** Scale on the tap jump's impulse. Optional: the mirror world sets it
+   * below one, so a jump away from a ceiling is a hop that comes back to
+   * it (a full mighty kick from under a lintel would carry him out of the
+   * seam's volume and drop him to the ground); a charged leap is still the
+   * way to leave on purpose. */
+  readonly jumpScale?: number;
 }
 
 /** The world seen upside down: undersides are floors and tops are ceilings,
@@ -236,6 +244,7 @@ export interface StepWorld {
 class MirrorWorld implements StepWorld {
   private readonly mirrored = new WeakMap<Collider, Collider>();
   readonly soft = null;
+  readonly jumpScale = MOVE.ceilingJump;
   constructor(private readonly world: World) {}
   get route() {
     return this.world.route;
@@ -518,7 +527,7 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
   // Jump, with coyote time and an input buffer.
   if (control && !busy && s.buffer > 0 && (s.grounded || s.coyote > 0) && s.charge <= 0 && !intent.chargeHeld) {
     s.buffer = 0;
-    s.vy = MOVE.tapJump;
+    s.vy = MOVE.tapJump * (world.jumpScale ?? 1);
     // The lunge: a grasshopper's leap goes forward. It follows the stick when
     // one is pushed, otherwise the way Hopper is already running, and a jump
     // taken from a standstill with no stick is still straight up.

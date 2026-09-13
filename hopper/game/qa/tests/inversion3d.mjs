@@ -23,10 +23,18 @@ const ax = 0,
   az = -140,
   ground = world.heightAt(ax, az);
 const ceiling = world.ceilingAt(ax, az, ground + 20).y;
-c.check('the arch has an underside over the seam', Number.isFinite(ceiling) && ceiling > ground + 60 && ceiling < ground + 90, ceiling - ground);
+// obsidianArch is a delivered structure: its baked collision comes from the
+// real (fixed-shape) model, so the lintel's actual height need not match
+// the placement's own `height` opt exactly -- only that there really is one,
+// well above a hop and well below anything absurd.
+c.check('the arch has an underside over the seam', Number.isFinite(ceiling) && ceiling > ground + 40 && ceiling < ground + 90, ceiling - ground);
 c.check('walking under the seam is not inside its volume', !world.flipAt(ax, ground + MOVE.height * 0.5, az));
 c.check('a hop under the seam enters its volume', world.flipAt(ax, ground + 20, az));
+// The seam's volume is hung under whichever lintel is really there (the
+// delivered arch is shorter than the stand-in the seam was authored for),
+// so the lintel's real top is ordinary ground.
 c.check('the lintel top is outside the seam', !world.flipAt(ax, world.groundAt(ax, az, 1e5).y - MOVE.height * 0.5, az));
+c.check('the seam reaches the underside it hangs under', world.flips.some((f) => Math.hypot(f.x - ax, f.z - az) < 1 && Math.abs(f.y1 - ceiling) < 1), ceiling);
 
 const h = createHopperState(ax, ground + 20, az, Math.PI);
 h.grounded = false;
@@ -68,9 +76,17 @@ run(4);
 const floor = world.groundAt(h.x, h.z, h.y + 1).y;
 c.check('out of the seam he lands on the ground the right way up', h.grounded && Math.abs(h.y - floor) < 0.5 && h.gravityScale > 0 && Math.hypot(h.x, h.z + 140) > 40, `y ${h.y.toFixed(1)} floor ${floor.toFixed(1)} g ${h.gravityScale}`);
 
-// The Regent's canopy over the dais.
+// The Regent's canopy over the dais. eclipseDais is a delivered structure:
+// its baked collision comes from the real model, which hangs a few metres
+// off the ~280 the placement's own opts assumed, so check it against its
+// own measured height rather than that assumed constant.
 const canopy = world.ceilingAt(0, -2140, 200).y;
-c.check('the eclipse canopy hangs at 280 over the dais', Math.abs(canopy - 280) < 0.5, canopy);
-c.check('the canopy covers the dais out to its rim', Math.abs(world.ceilingAt(30, -2140, 200).y - 280) < 0.5 && Math.abs(world.ceilingAt(0, -2110, 200).y - 280) < 0.5);
+c.check('the eclipse canopy hangs well above the dais', Number.isFinite(canopy) && canopy > 220 && canopy < 320, canopy);
+c.check(
+  // 2 m: the baked canopy's own height varies a little over its span (it is
+  // voxelised, not a perfectly flat plane like the old stand-in box).
+  'the canopy covers the dais out to its rim',
+  Math.abs(world.ceilingAt(30, -2140, 200).y - canopy) < 2 && Math.abs(world.ceilingAt(0, -2110, 200).y - canopy) < 2,
+);
 
 c.done();

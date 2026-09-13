@@ -180,6 +180,13 @@ const TX = 1200,
 //    60 m up and confirm the landing, skipping colliders that legitimately
 //    are not one (moving, under another top, thinner than 0.3 m, or -- a
 //    harbor's sunken debris -- entirely below a soft floor's level).
+//
+//    Baked (delivered-model) colliders are excluded here: collision.json is
+//    a voxel column per ~2 m, so a district can carry thousands of them
+//    (one delivered structure alone bakes to 100-600), and dropping onto
+//    every single one from 60 m is not this test's job at that density --
+//    qa/tests/delivered-collision.mjs checks those against the baked data
+//    directly instead, at a sane sample rate.
 // ---------------------------------------------------------------------
 {
   const perDistrict = [];
@@ -192,6 +199,7 @@ const TX = 1200,
     let pass = 0,
       fail = 0;
     for (const col of world.colliders) {
+      if (col.baked) continue;
       if (col.instance?.moving) continue;
       if (col.y1 - col.y0 < 0.3) continue;
       const cos = Math.cos(col.yaw),
