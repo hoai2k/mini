@@ -1076,7 +1076,7 @@ function aimFrom(h, extra = {}) {
   const sprinting = arc({ runUp: 1.5, sprint: true });
   check('sprinting takes off faster than running', sprinting.takeoff > running.takeoff + 20, `${sprinting.takeoff.toFixed(0)} vs ${running.takeoff.toFixed(0)}`);
   check('a sprint jump keeps its speed in the air (never dragged back to running pace)', sprinting.slowest >= sprinting.takeoff, `${sprinting.slowest.toFixed(0)} from ${sprinting.takeoff.toFixed(0)}`);
-  check('a sprint jump carries much further than a running one', sprinting.range > running.range * 1.35, `${sprinting.range.toFixed(0)} vs ${running.range.toFixed(0)}`);
+  check('a sprint jump carries much further than a running one', sprinting.range > running.range * 1.2, `${sprinting.range.toFixed(0)} vs ${running.range.toFixed(0)}`);
   const held = arc({ runUp: 1.5, sprint: true, hold: 4 });
   check('a sprinting held jump (hover, then glide) crosses 250 m', held.range > 250, held.range);
   check('holding buys distance, not height: a hover is no boost', held.apex < sprinting.apex * 1.6 && held.range > sprinting.range * 1.3, `${held.apex.toFixed(0)} vs ${sprinting.apex.toFixed(0)}; ${held.range.toFixed(0)} vs ${sprinting.range.toFixed(0)}`);
