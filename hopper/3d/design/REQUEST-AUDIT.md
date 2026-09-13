@@ -4,11 +4,11 @@ Audited 2026-09-12 against `hopper/3d/design/source/build_requests.py`, the gene
 
 ## Counts and source of truth
 
-After animation delivery `060c59d`, the generated inventory contains **93 model requests**: **72 delivered**, **21 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed animation extensions. The 21 creature IDs still represented by stand-ins are **M-003–M-023**; zero open entries does not mean these creatures or later art cleanup are finished.
+After M-018 delivery `068ac04`, the generated inventory contains **93 model requests**: **73 delivered**, **20 stand-ins**, and **0 open**. M-001 and M-002 are delivered with reviewed animation extensions. The 20 creature IDs still represented by stand-ins are **M-003–M-017 and M-019–M-023**; zero open entries does not mean these creatures or later art cleanup are finished.
 
 There are **86 image requests**: round one **47** (46 delivered, **T-038 procedural-final**), round two **32 delivered pending art review**, and round three **7** (T-081 delivered; **T-080, T-082, T-083, T-084, T-085, T-086 open**). The exact pending image IDs are therefore **T-080, T-082–T-086**. `standin-manifest.json` is the generated status inventory; `build_requests.py` is its source. `model-requests.md` and the round image request documents are generated outputs.
 
-The 72 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-024–M-092 in `hopper/3d/models`. The current 43-model authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
+The 73 delivered model entries comprise M-000–M-002 in `hopper/models` plus M-018 and M-024–M-092 in `hopper/3d/models`. The current authored high-confidence batch is documented in `hopper/3d/models/PROGRESS.md`; its code-built entries remain delivered for gameplay but are explicitly marked for later Blender cleanup in `hopper/3d/models/CODE-BUILT-CLEANUP.md`. “Delivered” here means the current implementation delivery, not final painted-art approval.
 
 ## Image reconciliation
 
@@ -24,7 +24,7 @@ Native-resolution constraint applies broadly to the delivered painted pack: `hop
 
 ## Model disposition suggestions (not status changes)
 
-All M-003–M-023 remain stand-ins pending review and production. The operational local-first batch after visual review is **3**: **M-006 Spire Leech, M-014 Turbine Wasp, and M-018 Phase Skate**. A further **4** are conditionally local-feasible: **M-005 Window Ray, M-007 Crag Tortoise, M-011 Chain Manta, and M-015 Basalt Burrower**. **M-013 Coil Wraith** and **M-020 Gravity Cantor** have identity/contract conflicts requiring reconciliation. Gravity Cantor's crowned humanoid painting contradicts its requested rigid ring organ with four prongs; Coil Wraith's mismatch is detailed below. The practical split is **3 local-first + 4 conditional + 2 conflicts + 12 Tripo-preferred**.
+The remaining creature stand-ins are pending review and production. The operational local-first batch is now **2**: **M-006 Spire Leech and M-014 Turbine Wasp**; M-018 Phase Skate is delivered. A further **4** are conditionally local-feasible: **M-005 Window Ray, M-007 Crag Tortoise, M-011 Chain Manta, and M-015 Basalt Burrower**. **M-013 Coil Wraith** and **M-020 Gravity Cantor** have identity/contract conflicts requiring reconciliation. Gravity Cantor's crowned humanoid painting contradicts its requested rigid ring organ with four prongs; Coil Wraith's mismatch is detailed below. The practical split is **2 local-first + 4 conditional + 2 conflicts + 12 Tripo-preferred**.
 
 The remaining **12** are Tripo-preferred or require a higher creative/organic pass: **M-003 Shade Hound, M-004 Seed Spitter, M-008 Rift Condor, M-009 Furnace Hound, M-010 Slag Caster, M-012 Ballast Crab, M-016 Thorn Choir, M-017 Veil Medusa, M-019 Mirror Stalker, M-021 Night Rook, M-022 Smelter Leviathan, and M-023 Eclipse Regent**. This is a recommendation only; it does not relabel any request or authorize Tripo work.
 
@@ -42,4 +42,4 @@ This review moved Coil Wraith from the initial text-only local-first recommendat
 
 `stash@{0}` (`Preserve local Tripo references before production sync`) contains the formerly untracked `hopper/design/tripo/` references, reports, prompts, and animation materials. Upstream now includes this directory. Preserve it as reference material; do not blindly pop or treat its presence as delivery of any M-003–M-023 request.
 
-No source count correction was necessary. The apparent model-manifest difference is layout: `hopper/3d/models/manifest.json` covers M-024–M-092, while the existing combined M-000 delivery is in `hopper/models/manifest.json`; the generated request inventory correctly totals both.
+No source count correction was necessary. The model manifests are split by layout: `hopper/3d/models/manifest.json` covers M-018 and M-024–M-092, while the existing M-000–M-002 deliveries are in `hopper/models/manifest.json`; the generated request inventory correctly totals both.
