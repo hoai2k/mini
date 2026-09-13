@@ -1,9 +1,9 @@
 {
   "request": "M-011",
-  "status": "candidate-awaiting-root-art-review",
-  "file": "local/hopper-chain-manta-refine/chainManta.glb",
-  "sha256": "5f4f6fac27ff6a842c64309d53e690c49094ec935a3cedbc8fc94bf6ceec6037",
-  "compressedBytes": 3297992,
+  "status": "root-reviewed and integrated",
+  "file": "enemies/chainManta.glb",
+  "sha256": "2018c2f8ef266dd02edeecd412dd7e14f82cf1008d3138fea94d588296d62583",
+  "compressedBytes": 3293856,
   "skins": [
     {
       "jointCount": 18
@@ -13,8 +13,8 @@
     }
   ],
   "triangles": [
-    4914,
-    1968
+    4818,
+    1980
   ],
   "bounds": [
     [
@@ -78,5 +78,37 @@
     "local/hopper-chain-manta-refine/contact-clips-LOD1.png",
     "local/hopper-chain-manta-refine/contact-soar-extrema.png"
   ],
-  "source": "hopper/3d/models/source/chain_manta_refine.py"
+  "source": "hopper/3d/models/source/chain_manta_refine.py",
+  "surfaceAudit": {
+    "passed": true,
+    "samplesPerClipPerLOD": 9,
+    "finiteVertices": true,
+    "fissures": "Shared foil material faces; zero overlay separation",
+    "maxNeighborLinkVertexDistance": 0.113606,
+    "maxHookEyeletVertexDistance": 0.05075094848871231,
+    "soarMaxVertexClosure": {
+      "0": 3.4467038214728835e-17,
+      "1": 3.446704087917282e-17
+    }
+  },
+  "visualReview": {
+    "artAgent": "Both LODs: four rest views, every clip start/mid/end, and Soar quarter-cycle extrema inspected",
+    "root": "All final rest, clip, and Soar extrema sheets accepted"
+  },
+  "runtimeResponsibilities": [
+    "Enemy navigation and platform tether attachment/dragging.",
+    "Weak-point hitbox activation and stomp/bounce collision.",
+    "Charge and dissolve shaders."
+  ],
+  "date": "2026-09-12",
+  "checks": {
+    "fullRepositoryValidation": "77/77 GLBs passed.",
+    "productionHashMatchesCandidate": true
+  },
+  "contactSheetHashes": {
+    "contact-rest.png": "d049442079550d910f93365a369e9b8c462f8d3eb6a305a5e5436235d21bc561",
+    "contact-clips-LOD0.png": "e999583595a3f7ee2c43908f7e016b3509595743635a4ee87926f1cd78dd5c06",
+    "contact-clips-LOD1.png": "17c48487e30740e5931657ccf32fde813bcb3b64ce00b854fda970a9edc85796",
+    "contact-soar-extrema.png": "0c23ef99f65203fd755dc058ac32522969dc525bec2d4d7e56a41b81cc05e3aa"
+  }
 }

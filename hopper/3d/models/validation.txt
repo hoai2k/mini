@@ -178,5 +178,7 @@ PASS hopper/3d/models/enemies/windowRay.glb
   184 nodes · 80 meshes · 6 materials · 1758/730 tris
 PASS hopper/3d/models/enemies/cragTortoise.glb
   726 nodes · 342 meshes · 8 materials · 6206/1983 tris
+PASS hopper/3d/models/enemies/chainManta.glb
+  338 nodes · 146 meshes · 7 materials · 4818/1980 tris
 
-76/76 GLBs passed.
+77/77 GLBs passed.

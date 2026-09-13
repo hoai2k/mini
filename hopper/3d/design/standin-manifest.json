@@ -267,7 +267,7 @@
       ],
       "standIn": "enemy.chainManta",
       "final": "models/enemies/chainManta.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/chainManta.png",
         "design/assets/enemy-silhouettes.png"

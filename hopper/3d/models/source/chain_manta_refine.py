@@ -36,6 +36,11 @@ def wing(c,sign,root,arm,pre,m,low):
  side='L' if sign<0 else 'R'
  # Distinct broad forward hook, sharp outer sweep, and stepped aft membrane.
  anchors=[(.62,1.38),(1.62,1.76),(2.82,1.88),(4.05,1.60),(5.38,1.12),(6.65,.12),(7.10,-.84),(5.83,-.30),(4.73,-.12),(4.41,-.40),(4.04,-.18),(3.64,-.55),(3.23,-.40),(2.81,-.75),(2.22,-.60),(1.73,-1.08),(.72,-.76)]
+ original=anchors;anchors=[];crease_indices=[]
+ for i,a in enumerate(original):
+  anchors.append(a)
+  if i in [2,4,14]:
+   crease_indices.append(len(anchors)-1);b=original[(i+1)%len(original)];length=math.hypot(b[0]-a[0],b[1]-a[1]);t=.035/length;anchors.append((a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t))
  center=Vector((2.35,.38));n=len(anchors);verts=[];faces=[]
  rings=[(1,0),(.64,.19),(.24,.30)] if not low else [(1,0),(.40,.26)]
  def baseline(x,z):return 4.30+.055*(7.1-x)+.10*z
@@ -46,7 +51,12 @@ def wing(c,sign,root,arm,pre,m,low):
  for r in range(len(rings)-1):
   for i in range(n):j=(i+1)%n;faces.append((r*n+i,r*n+j,(r+1)*n+j,(r+1)*n+i))
  for i in range(n):j=(i+1)%n;faces.extend([((len(rings)-1)*n+i,(len(rings)-1)*n+j,top),(j,i,bottom)])
- mesh(c,f'Wing.{side}.Cambered',verts,faces,m['hide'],root,arm,pre,'Wing')
+ foil_mesh=mesh(c,f'Wing.{side}.Cambered',verts,faces,m['hide'],root,arm,pre,'Wing');foil_mesh.data.materials.append(c.materials[m['edge']])
+ # Fissures are material regions of the foil itself, sharing vertices/weights.
+ # Their radial paths cannot float or separate during skeletal deformation.
+ for r in range(len(rings)-1):
+  for i in crease_indices:foil_mesh.data.polygons[r*n+i].material_index=1
+ for i in crease_indices:foil_mesh.data.polygons[(len(rings)-1)*n+i*2].material_index=1
  # Sampling the actual triangulated foil keeps plates and violet rims seated.
  triangles=[]
  for face in faces[:-n*2]:
@@ -68,13 +78,6 @@ def wing(c,sign,root,arm,pre,m,low):
   for p in anchors:
    q=center+(Vector(p)-center)*rad;vv.append((sign*q.x,foil(q.x,q.y)+.008,q.y))
  mesh(c,f'Wing.{side}.VioletLip',vv,[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)],m['edge'],root,arm,pre,'Wing')
- # Narrow branching violet fissures follow the foil rather than floating tubes.
- for line,pts in enumerate([[(1.76,1.71),(2.10,1.02),(1.85,.62),(2.43,-.56)],[(3.01,1.79),(3.19,1.05),(3.86,.82),(4.14,-.20)]]):
-  pts=[(a[0]+(b[0]-a[0])*j/6,a[1]+(b[1]-a[1])*j/6) for a,b in zip(pts,pts[1:]) for j in range(6)]+[pts[-1]] if not low else pts
-  vv=[]
-  for x,z in pts:
-   for dx in [-.025,.025]:vv.append((sign*(x+dx),foil(x+dx,z)+.014,z))
-  mesh(c,f'Wing.{side}.Fissure.{line}',vv,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(len(pts)-1)],m['edge'],root,arm,pre,'Wing')
 
 def link(c,name,center,tangent,major,minor,radius,mat,root,arm,pre,bone,low,alternate=False):
  tangent=Vector(tangent).normalized();side=Vector((1,0,0));other=tangent.cross(side).normalized()
