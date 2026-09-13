@@ -1,4 +1,5 @@
 import type { LevelData, Platform, Hazard } from './levels';
+import { floorAt } from './levels';
 import type { CombatWorld, EnemyRuntime, BossRuntime } from './combat';
 import { drawHopper, hopperEye } from './hopper-animation';
 
@@ -326,6 +327,46 @@ export class Renderer {
     }
     c.globalAlpha = 1;
   }
+  /** The dark below: its floor and the launch pads that shoot back up. */
+  private floor(p: Platform, s: RenderState) {
+    const c = this.ctx;
+    if (p.kind !== 'launch') {
+      // Gloom gathering down onto the floor, then the floor itself.
+      const gloom = c.createLinearGradient(0, p.y - 460, 0, p.y);
+      gloom.addColorStop(0, '#02030800');
+      gloom.addColorStop(1, '#020308cc');
+      c.fillStyle = gloom;
+      c.fillRect(p.x, p.y - 460, p.w, 460);
+      c.fillStyle = '#04060c';
+      c.fillRect(p.x, p.y, p.w, Math.max(p.h, this.bounds.bottom - p.y + 200));
+      c.fillStyle = '#1a1f2e';
+      c.fillRect(p.x, p.y, p.w, 5);
+      return;
+    }
+    const pulse = 0.55 + Math.sin(s.time * 4 + p.x * 0.01) * 0.25;
+    c.save();
+    c.shadowColor = '#b48cff';
+    c.shadowBlur = 22 * pulse;
+    c.fillStyle = '#e9dfc5';
+    c.fillRect(p.x, p.y - 8, p.w, 14);
+    c.fillStyle = '#8a4bd8';
+    c.globalAlpha = 0.9;
+    c.fillRect(p.x + 8, p.y + 6, p.w - 16, 6);
+    // Chevrons rising off the pad: the only way out is up.
+    c.strokeStyle = '#d9c4ff';
+    c.lineWidth = 4;
+    c.globalAlpha = 0.5 + pulse * 0.4;
+    const mid = p.x + p.w / 2;
+    for (let i = 0; i < 3; i++) {
+      const y = p.y - 34 - i * 26 - ((s.time * 40) % 26);
+      c.beginPath();
+      c.moveTo(mid - 22, y + 14);
+      c.lineTo(mid, y);
+      c.lineTo(mid + 22, y + 14);
+      c.stroke();
+    }
+    c.restore();
+  }
   private lockWall(p: Platform, s: RenderState) {
     // Lockdown wall: energy bars that drop from above as the boss wakes and
     // lift again when it falls. Drawn from the arena floor upward.
@@ -383,6 +424,10 @@ export class Renderer {
       this.lockWall(p, s);
       return;
     }
+    if (p.routeRole === 'floor') {
+      this.floor(p, s);
+      return;
+    }
     const pillar = p.id.includes('-arena-pillar')
       ? this.image('arenaPillar' + p.skin)
       : undefined;
@@ -395,11 +440,13 @@ export class Renderer {
       img = this.image('platform' + p.skin),
       area = s.level.areas[p.area ?? 0],
       optional = p.kind === 'oneWay' || p.routeRole === 'optional' || p.ceiling;
+    // A body stops short of the dark floor below, so the floor reads as a place.
+    const floorY = floorAt(s.level, p.x + p.w / 2);
     const depth = optional
       ? Math.max(p.h, 65)
       : p.hollow
         ? Math.max(p.h, p.hollow)
-        : Math.max(p.h, this.bounds.bottom - p.y + 120);
+        : Math.max(p.h, Math.min(this.bounds.bottom - p.y + 120, floorY === null ? Infinity : floorY - p.y - 90));
     if (p.hollow) {
       // The corridor plate paints the recess under a hollowed fight shelf: its
       // painted ceiling meets the underside of the shelf and its painted floor

@@ -160,6 +160,10 @@ export const PHYSICS = {
   lookZoom: 0.22,
   /** Spring pads launch at this multiple of jump speed; holding A adds float. */
   spring: 1.4,
+  /** The dark below: how fast the floor carries Hopper back toward a launch
+   * pad, and how far above the route shelf a pad's launch tops out. */
+  slide: 260,
+  launchClear: 140,
 };
 const emptyInput: InputFrame = {
   moveX: 0,
@@ -294,6 +298,9 @@ export class Engine {
   private bannerT = 0;
   private crumble = new Map<string, number>();
   private stood = '';
+  /** A launch from the dark below is committed: no steering, no ceilings, until Hopper is above its target. */
+  private launchLock = false;
+  private launchTarget = 0;
   private respawnT = 0;
   private deathY = 2000;
   private resizeObserver: ResizeObserver;
@@ -956,7 +963,20 @@ export class Engine {
     else this.jumpBuffer = Math.max(0, this.jumpBuffer - dt);
     if (p.grounded) this.coyote = PHYSICS.coyote;
     else this.coyote = Math.max(0, this.coyote - dt);
-    if (stunned) {
+    // The dark below: the floor carries him back to a pad, where he stands
+    // still and can only jump; the launch itself is committed straight up.
+    const under = this.stood ? this.level.platforms.find((q) => q.id === this.stood) : undefined;
+    // A pad holds him only once he is well onto it; its edge is still floor.
+    const onPad = p.grounded && under?.kind === 'launch' && p.x >= under.x + 24 && p.x <= under.x + under.w - 24,
+      onFloor = p.grounded && under?.routeRole === 'floor' && !onPad;
+    if (this.launchLock && (p.grounded || (p.vy * sign >= 0 && p.y * sign < this.launchTarget * sign - 10))) this.launchLock = false;
+    if (this.launchLock) {
+      p.vx = 0;
+    } else if (onFloor) {
+      p.vx = approach(p.vx, -PHYSICS.slide, 1400 * dt);
+    } else if (onPad) {
+      p.vx = approach(p.vx, 0, 4000 * dt);
+    } else if (stunned) {
       // Knockback is not steerable; it only bleeds off against the ground.
       p.vx = approach(p.vx, 0, (p.grounded ? 1500 : 250) * dt);
     } else if (p.wallKickT > 0) {
@@ -993,7 +1013,30 @@ export class Engine {
       this.effect('stomp', p.x + p.wallSide * 40, p.y - 60 * sign, '#d7dd9f');
       this.score += 10;
     }
-    if (this.jumpBuffer > 0 && this.coyote > 0 && !stunned) {
+    if (onPad && under?.launchTo !== undefined && this.jumpBuffer > 0 && !stunned) {
+      // The pad's jump: straight up, to just above the route shelf over it,
+      // however far up that is; nothing steers it until he is there.
+      const g = PHYSICS.gravity * area.gravity;
+      const rise = Math.max(200, (p.y - under.launchTo) * sign + PHYSICS.launchClear);
+      p.vy = -Math.sqrt(2 * g * rise) * sign;
+      p.vx = 0;
+      p.grounded = false;
+      this.stood = '';
+      this.hold = PHYSICS.holdTime;
+      this.coyote = 0;
+      this.jumpBuffer = 0;
+      this.launchLock = true;
+      this.launchTarget = under.launchTo;
+      p.launchT = 0.2;
+      p.landT = 0;
+      this.launchFacing = p.facing;
+      this.launchId++;
+      this.audio.effect('jump');
+      this.rumble(0.35, 70);
+      this.effect('stomp', p.x, p.y, '#b48cff');
+      this.effect('spark', p.x, p.y - 20 * sign, '#eaffff');
+      this.shake = Math.max(this.shake, 3);
+    } else if (this.jumpBuffer > 0 && this.coyote > 0 && !stunned && !onFloor) {
       p.vy = -PHYSICS.jump * sign;
       p.grounded = false;
       this.stood = '';
@@ -1007,7 +1050,7 @@ export class Engine {
       this.audio.effect('jump');
       this.effect('stomp', p.x - p.facing * 65, p.y - 20, '#d7dd9f');
     }
-    if (this.previousHold && !f.jumpHeld && p.vy * sign < 0)
+    if (this.previousHold && !f.jumpHeld && p.vy * sign < 0 && !this.launchLock)
       p.vy *= PHYSICS.releaseCut;
     this.previousHold = f.jumpHeld;
     this.hold += dt;
@@ -1019,7 +1062,7 @@ export class Engine {
         ? PHYSICS.holdGravity
         : 1) *
       dt;
-    p.vy = clamp(p.vy, -1600, 1600);
+    p.vy = this.launchLock ? clamp(p.vy, -9000, 1600) : clamp(p.vy, -1600, 1600);
     const oldX = p.x,
       oldY = p.y,
       wasGrounded = p.grounded;
@@ -1037,6 +1080,8 @@ export class Engine {
       const top = sign > 0 ? p.y - p.h : p.y,
         bottom = sign > 0 ? p.y : p.y + p.h;
       if (bottom <= q.y + 8 || top >= q.y + q.h - 3) continue;
+      // The dark floor is stepped along its slope; its small steps are walked over.
+      if (q.routeRole === 'floor' && sign > 0 && q.y >= p.y - 40) continue;
       if (oldX + 45 <= q.x && p.x + 45 > q.x) {
         p.x = q.x - 45;
         p.vx = 0;
@@ -1082,12 +1127,25 @@ export class Engine {
         q.kind !== 'oneWay' &&
         q.routeRole !== 'optional' &&
         !q.ceiling &&
+        !this.launchLock &&
         p.vy < 0 &&
         oldY - p.h >= q.y + q.h &&
         p.y - p.h < q.y + q.h
       ) {
         p.y = q.y + q.h + p.h;
         p.vy = 0;
+      }
+    }
+    // On the dark floor a step just above the feet is climbed, not a wall.
+    if (sign > 0 && (onFloor || onPad || String(this.stood).startsWith('floor-'))) {
+      for (const q of this.platforms) {
+        if (q.routeRole !== 'floor' || p.x + 43 < q.x || p.x - 43 > q.x + q.w) continue;
+        if (q.y < p.y && q.y >= p.y - 40) {
+          p.y = q.y;
+          p.vy = Math.min(p.vy, 0);
+          p.grounded = true;
+          this.stood = q.id;
+        }
       }
     }
     // Ledge catch: falling just short of (or just past) an edge while moving toward

@@ -38,9 +38,9 @@ export interface Platform {
   w: number;
   h: number;
   skin: number;
-  kind?: 'solid' | 'oneWay' | 'conveyor' | 'crumble' | 'spring';
+  kind?: 'solid' | 'oneWay' | 'conveyor' | 'crumble' | 'spring' | 'launch';
   moving?: { axis: 'x' | 'y'; range: number; speed: number; phase: number };
-  routeRole?: 'main' | 'optional' | 'arena' | 'salvage' | 'high' | 'low';
+  routeRole?: 'main' | 'optional' | 'arena' | 'salvage' | 'high' | 'low' | 'floor';
   ceiling?: boolean;
   area?: number;
   encounter?: Beat;
@@ -54,6 +54,16 @@ export interface Platform {
   lock?: boolean;
   /** The verb an optional signal shelf is built to reward. */
   teach?: 'catch' | 'parry' | 'high';
+  /** A launch pad in the dark below: its jump lands just above this surface y. */
+  launchTo?: number;
+}
+/** The dark floor under an area's route: y = a + b·x between xStart and xEnd. */
+export interface Undercroft {
+  area: number;
+  xStart: number;
+  xEnd: number;
+  a: number;
+  b: number;
 }
 export interface Area {
   id: number;
@@ -147,6 +157,8 @@ export interface LevelData {
   width: number;
   start: { x: number; y: number };
   platforms: Platform[];
+  /** The dark below each area: the floor line a missed jump lands on. */
+  undercroft: Undercroft[];
   areas: Area[];
   enemies: EnemySpawn[];
   hazards: Hazard[];
@@ -572,6 +584,7 @@ export function buildLevel(mission: number): LevelData {
     width: 0,
     start: { x: 180, y: 800 },
     platforms: [],
+    undercroft: [],
     areas: [],
     enemies: [],
     hazards: [],
@@ -1265,5 +1278,82 @@ export function buildLevel(mission: number): LevelData {
   };
   out.width = ax + aw;
   out.areas[2].xEnd = out.width;
+  addUndercroft(out);
   return out;
+}
+
+/** The floor line of the dark below at x, or null where there is none (the arena). */
+export function floorAt(level: LevelData, x: number): number | null {
+  const u = level.undercroft.find((f) => x >= f.xStart && x < f.xEnd);
+  return u ? u.a + u.b * x : null;
+}
+
+export const UNDERCROFT = {
+  /** How far below the lowest shelf the floor starts. */
+  drop: 560,
+  /** Floor segments are stepped this wide; the slope is shallow, so each step is small. */
+  segment: 600,
+  /** Launch pads sit this far apart along the floor. */
+  spacing: 1000,
+  padWidth: 180,
+};
+
+/** The dark below: a floor under every area, sloping up roughly with the
+ * route but a little less, so it falls further behind the higher the
+ * route climbs; a missed jump lands on it, slides back to the nearest
+ * launch pad, and the pad's jump lands just above the route again. */
+function addUndercroft(out: LevelData) {
+  const floors: Platform[] = [],
+    pads: Platform[] = [];
+  for (const area of out.areas) {
+    // The boss arena has its own floor and lockdown walls.
+    const xEnd = area.id === 2 ? out.boss.arena.x : area.xEnd;
+    const tops = out.platforms.filter((p) => !p.ceiling && !p.lock && p.routeRole !== 'floor' && p.x + p.w > area.xStart && p.x < xEnd);
+    const mains = tops.filter((p) => p.routeRole === 'main');
+    if (mains.length < 2) continue;
+    // A straight line through the route's tops, then eased toward level so
+    // the gap opens as the route climbs (or closes less as it descends).
+    let sx = 0,
+      sy = 0,
+      sxx = 0,
+      sxy = 0;
+    for (const p of mains) {
+      const cx = p.x + p.w / 2;
+      sx += cx;
+      sy += p.y;
+      sxx += cx * cx;
+      sxy += cx * p.y;
+    }
+    const n = mains.length;
+    const b = (n * sxy - sx * sy) / (n * sxx - sx * sx || 1);
+    const slope = b + Math.max(0.3 * Math.abs(b), 0.03);
+    let a = -Infinity;
+    for (const p of tops) a = Math.max(a, p.y + UNDERCROFT.drop - slope * (p.x + p.w / 2));
+    out.undercroft.push({ area: area.id, xStart: area.xStart, xEnd, a, b: slope });
+    const skin = out.areas.indexOf(area) + (out.areas[0].backgroundIndex ?? 0);
+    const segY = (x: number) => {
+      const i = Math.floor((x - area.xStart) / UNDERCROFT.segment);
+      return Math.round(a + slope * (area.xStart + (i + 0.5) * UNDERCROFT.segment));
+    };
+    for (let x = area.xStart, i = 0; x < xEnd; x += UNDERCROFT.segment, i++) {
+      floors.push({ id: `floor-${area.id}-${i}`, x, y: segY(x), w: Math.min(UNDERCROFT.segment, xEnd - x) + 4, h: 3000, skin, kind: 'solid', routeRole: 'floor', area: area.id });
+    }
+    for (let x = area.xStart + UNDERCROFT.spacing * 0.5, k = 0; x < xEnd - 200; x += UNDERCROFT.spacing, k++) {
+      // The pad stands under the nearest route shelf, so its jump lands on it.
+      let target = mains[0],
+        best = Infinity;
+      for (const p of mains) {
+        const d = x < p.x ? p.x - x : x > p.x + p.w ? x - (p.x + p.w) : 0;
+        if (d < best) {
+          best = d;
+          target = p;
+        }
+      }
+      const half = UNDERCROFT.padWidth / 2;
+      const px = target.w > UNDERCROFT.padWidth + 40 ? Math.max(target.x + half + 20, Math.min(target.x + target.w - half - 20, x)) : target.x + target.w / 2;
+      pads.push({ id: `launch-${area.id}-${k}`, x: px - half, y: segY(px), w: UNDERCROFT.padWidth, h: 60, skin, kind: 'launch', routeRole: 'floor', area: area.id, launchTo: target.y });
+    }
+  }
+  // Pads after floors: whichever is stood on last wins, and the pad must.
+  out.platforms.push(...floors, ...pads);
 }
