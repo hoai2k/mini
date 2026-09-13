@@ -167,9 +167,16 @@ Terrain: relief 45; plateaus at 0, 40 (ring), 90 (gallery), 130 (approach), 160 
 ## Progress
 
 - [x] Plan written.
-- [ ] Scaffolding
-- [ ] Shadows: ground · rooted · flyers
-- [ ] Mechanics: gravity · soft · conveyor · rams · staged · flip
-- [ ] Districts: foundry · harbor · launchworks · red · blue · violet
-- [ ] Leviathan · Regent
-- [ ] Episode flow, docs, deploy
+- [x] Scaffolding: `SPECS` for the twelve kinds, `ShadowContext`/`ShadowBehaviour`, the `BEHAVIOURS` registry (`shadows/index.ts`), the shared harness (`qa/tests/harness3d.mjs`).
+- [x] Shadows: ground (`shadows/ground.ts`, 28 checks) · rooted (`shadows/rooted.ts`, 13) · flyers (`shadows/flyers.ts`, 25).
+- [x] Mechanics: district gravity from the palette · soft floors (`terrain.soft`, the scene's sheet) · conveyors (`Placement.flow`) · press rams (`moving.fling`) · staged bridge (`Placement.staged`) · inverted gravity (flip volumes, `World.ceilingAt`, the mirrored step in `controller.ts`, the hanging rig and mirrored gait; `qa/tests/inversion3d.mjs`, 16 checks). A terrain `shelf` gives the Docks their sea.
+- [x] Districts: foundry · harbor · launchworks · red · blue · violet, all passing `qa/audit-districts.mjs`; each region has its own middle-distance structures. The eclipse canopy hangs at 280 over the dais.
+- [x] Commander interface (`Commander`, `CommanderRuntime`, marks and segments drawn generically by the scene; `commanders.ts` picks the fight by kind).
+- [ ] Leviathan (`leviathan3d.ts`) · Regent (`regent3d.ts`) — placeholders in the tree; the fights are being written to the contracts above.
+- [ ] Episode flow: an episode test for missions two and three, play-select and unlocks checked, docs regenerated, deploy.
+
+### Notes for whoever continues
+
+- Under inverted gravity `stepHopper` runs in `MirrorWorld` (heights negated, undersides as floors); the engine picks each frame's gravity: the commander's `runtime.gravity` while awake, else the district's, negated inside a flip volume. A turn halves `vy`, so a fall out of a seam's top settles at its edge instead of bobbing.
+- Seams are permanent flips (`life: Infinity`) from a hop's height (`y − 56` of the seam) to just past the lintel; walking under a seam does nothing, a hop enters it. The piers let a hanging Hopper climb back down.
+- Soft floors: Foundry slag at −60 (the trench floor is under it, the barges float at −63 with tops at −57), Docks sea at −6 with a shelf west of x = −140, Drift dust at 12. The trail never dips under a level (checked by sampling the route; add plateaus if it does).
