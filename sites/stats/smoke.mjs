@@ -95,6 +95,17 @@ if (!GOATCOUNTER_SITE) {
   ok(dashboardUrl() === null, 'unconfigured: no dashboard url');
   ok(/Not switched on yet/.test(statsHtml), 'unconfigured: the page says it is off');
   ok(/goatcounter\.com\/signup/.test(statsHtml), 'unconfigured: the page gives the steps');
+} else {
+  // Configured. The endpoint is what every counted page will actually send to,
+  // so a typo here is a day of visits landing in someone else's dashboard or
+  // nowhere at all.
+  ok(countEndpoint() === `https://${GOATCOUNTER_SITE}.goatcounter.com/count`,
+    `configured: counts to ${GOATCOUNTER_SITE}.goatcounter.com`);
+  ok(dashboardUrl() === `https://${GOATCOUNTER_SITE}.goatcounter.com`,
+    `configured: dashboard is ${GOATCOUNTER_SITE}.goatcounter.com`);
+  // The off-state copy has to stay in the page even while it is on: it is what
+  // the page falls back to if the code is ever cleared.
+  ok(/Not switched on yet/.test(statsHtml), 'the off-state text is still there for when it is cleared');
 }
 
 // A configured code must reach the right endpoint, and a pasted URL must be
