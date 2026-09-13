@@ -118,26 +118,33 @@ def build(c,root,lod,m):
  # Thick broken dorsal slabs frame the unarmored core instead of a flat board.
  for sign in [-1,1]:
   for row,z in enumerate([-2.15,-.78,.58,1.67]):
+   z+=.16*sign*(1 if row%2 else -1)
    a=math.pi*(.35 if sign>0 else .65);p,_=body(z,a,.06);height=[.65,1.02,.89,.52][row]
-   profile=[(p.y-.03,z-.61),(p.y+height*.70,z-.56),(p.y+height,z+.08),(p.y+height*.73,z+.25),(p.y+height*.80,z+.59),(p.y-.04,z+.52)]
+   profile=[(p.y-.03,z-.61),(p.y+height*.55,z-.48),(p.y+height,z+.23),(p.y+height*.67,z+.34),(p.y+height*.58,z+.60),(p.y-.04,z+.52)]
    verts=[]
    for side in [-1,1]:
-    for y,zz in profile:verts.append((p.x+sign*(y-p.y)*.36+side*.09,y,zz))
-   n=len(profile);faces=[tuple(reversed(range(n))),tuple(n+i for i in range(n))]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)]
-   o=mesh(c,f'Dorsal.BrokenSlab.{sign}.{row}',verts,faces,m['rock'],root,arm,pre,'Body');o.data.materials.append(bpy.data.materials[m['edge']])
-   for i,face in enumerate(o.data.polygons):face.material_index=1 if i in [3,5] else 0
+    for y,zz in profile:
+     taper=max(.045,.15-.07*(y-p.y)/height);verts.append((p.x+sign*(y-p.y)*.63+side*taper,y,zz))
+   n=len(profile)
+   for side in [-1,1]:verts.append((p.x+sign*height*.30+side*.29,p.y+height*.45,z+.015))
+   faces=[(i,(i+1)%n,2*n) for i in range(n)]+[(n+i,2*n+1,n+(i+1)%n) for i in range(n)]+[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)]
+   yaw=sign*[.32,-.22,.27,-.35][row];turned=[]
+   for x,y,zz in verts:
+    dx=x-p.x;dz=zz-z;turned.append((p.x+dx*math.cos(yaw)-dz*math.sin(yaw),y,z+dx*math.sin(yaw)+dz*math.cos(yaw)))
+   o=mesh(c,f'Dorsal.BrokenSlab.{sign}.{row}',turned,faces,m['rock'],root,arm,pre,'Body');o.data.materials.append(bpy.data.materials[m['edge']])
+   for i,face in enumerate(o.data.polygons):face.material_index=1 if i in [n*2+1,n*2+3] else 0
  # A narrow ivory mechanism occupies the protected dorsal opening, echoed by side vents.
  core=c.sphere(pre+'Core.IvoryMechanism',(0,2.66,-.13),(1.12,.57,1.70),m['ivory'],8 if low else 14,4 if low else 7,root);bind(core,arm,pre,'Spine.1')
  for i,z in enumerate([-.70,-.37,.0,.34,.64]):
   points=[]
   for k in range(5 if low else 9):
-   a=math.pi*k/(4 if low else 8);points.append((.54*math.cos(a),2.64+.32*math.sin(a),z))
+   a=math.pi*k/(4 if low else 8);points.append(Vector((.54*math.cos(a),2.64+.32*math.sin(a),z)))
   o=tube(c,pre+f'Core.CageRib.{i}',points,lambda t:.045,m['metal'],root,4 if low else 6);bind(o,arm,pre,'Spine.1')
  for sign in [-1,1]:
   a=.015 if sign>0 else math.pi-.015
   bind(patch(c,pre+f'Vent.{sign}.Recess',body,-.20,a,.97,.38,m['ink'],root,.036,.012,6 if low else 12),arm,pre,'Body')
   for i,z in enumerate([-.78,-.41,-.04,.33]):
-   points=[tuple(body(z,a+da,.078)[0]) for da in [-.29,-.15,0,.15,.29]];o=tube(c,pre+f'Vent.{sign}.IvoryRib.{i}',points,lambda t:.056,m['ivory'],root,4 if low else 6);bind(o,arm,pre,'Body')
+   points=[body(z,a+da,.078)[0] for da in [-.29,-.15,0,.15,.29]];o=tube(c,pre+f'Vent.{sign}.IvoryRib.{i}',points,lambda t:.056,m['ivory'],root,4 if low else 6);bind(o,arm,pre,'Body')
  drill(c,root,arm,pre,m,low)
  for leg in ct.LEG_IDS:limb(c,leg,root,arm,pre,m,low)
  tail=loft(c,pre+'Tail.Basalt',[(-5.1,.003,.003,.76),(-4.45,.42,.29,.97),(-3.66,.91,.51,1.19),(-2.82,1.0,.59,1.30)],m['rock'],root,1 if low else 2,6 if low else 10);bind(bpy.data.objects[pre+'Tail.Basalt'],arm,pre,'Spine.0')
@@ -161,13 +168,43 @@ def build(c,root,lod,m):
  return arm,[o for o in root.children_recursive if o.type=='MESH']
 
 
+def support_actions(arm,pre):
+ # Ground contact is authored on leg-root joints, never on scene roots. The
+ # original brace/landing spine bends displaced soles by nearly two metres.
+ ct.mute_actions([arm]);scene=bpy.context.scene
+ for clip in ['Tunnel','Erupt_Tell','Erupt','Land','Withdraw']:
+  action=next(t.strips[0].action for t in arm.animation_data.nla_tracks if t.name==clip);arm.animation_data.action=action;end=round(action.frame_range[1])
+  for frame in range(1,end+1):
+   scene.frame_set(frame)
+   for leg in ct.LEG_IDS:arm.pose.bones[pre+f'Leg.{leg}.0'].location=(0,0,0)
+   bpy.context.view_layer.update();dg=bpy.context.evaluated_depsgraph_get()
+   for leg in ct.LEG_IDS:
+    foot=bpy.data.objects[pre+f'Leg.{leg}.Foot'];e=foot.evaluated_get(dg);me=e.to_mesh();floor=min((e.matrix_world@p.co).z for p in me.vertices);e.to_mesh_clear()
+    bone=arm.pose.bones[pre+f'Leg.{leg}.0'];parent=bone.parent;basis=parent.matrix.to_3x3()@parent.bone.matrix_local.to_3x3().inverted()@bone.bone.matrix_local.to_3x3();delta=max(0,-floor) if clip=='Tunnel' else -floor;bone.location=basis.inverted()@Vector((0,0,delta));bone.keyframe_insert('location',frame=frame,group=bone.name)
+  for fc in ct.action_fcurves(action):
+   if fc.data_path.endswith('location'):
+    for key in fc.keyframe_points:key.interpolation='LINEAR'
+  arm.animation_data.action=None;ct.clear_pose(arm)
+ scene.frame_set(1);bpy.context.view_layer.update()
+
+
 def main():
  bpy.ops.wm.read_factory_settings(use_empty=True);c=Context(ct.REQ);c.root['authoring']='reference-authored sixteen-bone Basalt Burrower';c.root['reference']='design/references/enemies/basaltBurrower-turnaround.png';c.root['landings']='[]'
  m={'hide':c.material('Basalt.DarkHide',(.071,.080,.095)),'rock':c.material('Basalt.PaintedSlate',(.54,.53,.62),TEXTURES/'trim/violet.png'),'edge':c.material('Basalt.VioletBevel',(.072,.029,.105)),'ink':c.material('Basalt.Recess',(.012,.014,.020)),'ivory':c.material('Basalt.IvoryMechanism',(.61,.52,.33),emission=.018),'metal':c.material('Basalt.CoreMetal',(.13,.14,.17))}
  a0,m0=build(c,c.root,0,m);r1=bpy.data.objects.new('LOD1',None);bpy.context.collection.objects.link(r1);r1['lod']=1;r1['request']='M-015';a1,m1=build(c,r1,1,m);roots=[c.root,r1];arms=[a0,a1]
  for name,pos,bone in [('Core',(0,2.95,-.13),'Spine.1'),('Drill',(0,1.42,5.93),'DrillPivot'),('Hitbox.Body',(0,1.65,0),'Spine.1')]:
   o=bpy.data.objects.new(name,None);bpy.context.collection.objects.link(o);o.location=v(pos);bpy.context.view_layer.update();world=o.matrix_world.copy();o.parent=a0;o.parent_type='BONE';o.parent_bone=bone;o.matrix_world=world;o['socket']=True;c.sockets.append(name)
- ct.author_actions(a0);ct.author_actions(a1,'LOD1.');ct.author_root_erupt(c.root);ct.author_root_erupt(r1)
+ scaffold_pose=ct.pose_for
+ for arm,pre in [(a0,''),(a1,'LOD1.')]:
+  def corrected_pose(clip,phase,name):
+   rotation,scale=scaffold_pose(clip,phase,name)
+   if name.startswith('Spine.') and clip in ['Erupt_Tell','Erupt','Land','Withdraw']:
+    j=int(name[-1]);erupt=[-.04,-.04,-.02][j]
+    angle=erupt*(phase if clip=='Erupt_Tell' else 1) if clip in ['Erupt_Tell','Erupt'] else (erupt*(1-phase)+.04*math.sin(phase*math.pi) if clip=='Land' else [.015,.02,.03][j]*math.sin(phase*math.pi))
+    axis=arm.data.bones[pre+name].matrix_local.to_quaternion().inverted()@Vector((1,0,0));rotation=list(Quaternion(axis,angle).to_euler())
+   return rotation,scale
+  ct.pose_for=corrected_pose;ct.author_actions(arm,pre);support_actions(arm,pre)
+ ct.author_root_erupt(c.root);ct.author_root_erupt(r1)
  bounds=[ct.fit_root(r) for r in roots];tris=[ct.count_triangles(r) for r in roots];print('BASALT REFINED GEOMETRY',bounds,tris,flush=True);assert tris[0]<=7000 and tris[1]<=2000
  weights={'LOD0':ct.validate_weights(m0,a0),'LOD1':ct.validate_weights(m1,a1,'LOD1.')};saved=ct.capture_transforms();samples=ct.sample_animations(roots+arms,m0+m1);loops=ct.validate_loops(arms);motion=ct.validate_root_motion(roots);spin=ct.validate_drill_motion(arms);ground={r.name:ct.ground_report(r) for r in roots}
  preview.wr=ct;preview.OUT=OUT;preview.rest(roots,arms,saved);scene,cam=preview.studio()

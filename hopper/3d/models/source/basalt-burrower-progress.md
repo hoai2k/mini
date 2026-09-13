@@ -4,10 +4,11 @@ This checkpoint is a mechanical skeletal and animation foundation for a later
 Astra art pass. It is not a finished creature-art delivery and has not been
 copied to production.
 
-Current disposition (2026-09-12): M-015 remains a stand-in in the generated
-request inventory. Its validated scaffold is ready for an Astra art pass; only
-canonical art refinement, review and production integration remain locally
-feasible.
+Current disposition (2026-09-13): the refined M-015 is reviewed and integrated at
+`hopper/3d/models/enemies/basaltBurrower.glb`. This mechanical scaffold remains
+preserved as provenance. Final art source, fixed-ground QA and delivery receipt
+are `basalt_burrower_refine.py`, `basalt-burrower-refine-progress.md` and
+`basalt-burrower-refine-validation.json`. The generated request is delivered.
 
 ## Contract and compatibility
 

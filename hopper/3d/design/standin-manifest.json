@@ -359,7 +359,7 @@
       ],
       "standIn": "enemy.basaltBurrower",
       "final": "models/enemies/basaltBurrower.glb",
-      "status": "stand-in",
+      "status": "delivered",
       "references": [
         "game/public/assets/enemies/basaltBurrower.png",
         "design/assets/enemy-silhouettes.png"

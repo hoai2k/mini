@@ -180,5 +180,7 @@ PASS hopper/3d/models/enemies/cragTortoise.glb
   726 nodes · 342 meshes · 8 materials · 6206/1983 tris
 PASS hopper/3d/models/enemies/chainManta.glb
   338 nodes · 146 meshes · 7 materials · 4818/1980 tris
+PASS hopper/3d/models/enemies/basaltBurrower.glb
+  679 nodes · 320 meshes · 6 materials · 6740/1988 tris
 
-77/77 GLBs passed.
+78/78 GLBs passed.

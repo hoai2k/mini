@@ -3460,6 +3460,54 @@
       "validation": "source/chain-manta-refine-validation.json",
       "authoring": "reference-authored armored Chain Manta with two eighteen-joint skins and shared-topology violet wing fissures",
       "notes": "Reviewed against canonical turnaround: broad cambered hook wings, lapped slate armor, swept horns, inset ivory eye and back core, short center tail, paired linked chains and crescent spear hooks. Both LODs retain eighteen-joint skins, seven clips and six sockets. The paired chains share the required six-joint tether spline; each hook has a separate joint. Wing axes bend across the span; Dissolve scales once at Body. Violet fissures share wing topology and skin weights, eliminating overlay drift. All 54 renders and nine evaluated samples per clip/LOD reviewed; Soar closes exactly and neither LOD root has motion tracks. Navigation, platform tether attachment and dragging, weak-point hitbox activation, stomp/bounce collision and charge/dissolve shaders remain runtime responsibilities."
+    },
+    {
+      "request": "M-015",
+      "name": "Basalt Burrower",
+      "file": "enemies/basaltBurrower.glb",
+      "preview": "previews/enemy.basaltBurrower.png",
+      "source": "source/basalt_burrower_refine.py",
+      "category": "enemy",
+      "region": "red",
+      "bounds": [
+        7.7,
+        4.1,
+        11.4
+      ],
+      "targetBounds": [
+        7.7,
+        4.1,
+        11.4
+      ],
+      "triangles": [
+        6740,
+        1988
+      ],
+      "clips": [
+        "Buried_Idle",
+        "Tunnel",
+        "Erupt_Tell",
+        "Erupt",
+        "Land",
+        "Withdraw",
+        "Hit",
+        "Dissolve"
+      ],
+      "sockets": [
+        "Core",
+        "Drill",
+        "Hitbox.Body"
+      ],
+      "landings": [],
+      "status": "delivered",
+      "sourceReference": "design/references/enemies/basaltBurrower-turnaround.png",
+      "rig": "skeletal",
+      "bytes": 2179260,
+      "sha256": "4776f936f9aad7a844f3de14caa98f453c8f1a4ca83688585f20041ff92ecdaa",
+      "deliveredAt": "2026-09-13",
+      "validation": "source/basalt-burrower-refine-validation.json",
+      "authoring": "reference-authored fractured basalt quadruped with sixteen-bone deforming skin and seven-ring drill",
+      "notes": "Reviewed against canonical turnaround: long low armored body, irregular convex broken dorsal shards, protected ivory core cage and side ribs, seven-ring fluted drill, four scale-wrapped clawed legs and pointed tail. Both LODs have sixteen-joint skins and all eight clips. Rest views, all-clip deformation and fixed-camera Y=0 support sheets reviewed on both LODs. Dense 61-phase contact samples per support clip/LOD keep brace/landing/withdraw sole error below 6.8 mm and Tunnel penetration below 2.2 mm with swing lift retained. Exported quaternion travel preserves one full Buried_Idle drill turn and two Tunnel turns. Erupt alone moves both LOD roots by [0, 4.8, 0] m. Underground placement/root-motion application, crack trails, eruption debris, exposed-back vulnerability timing, Core/body hitbox activation and dissolve shaders remain runtime responsibilities."
     }
   ],
   "deliveredAt": "2026-09-08",

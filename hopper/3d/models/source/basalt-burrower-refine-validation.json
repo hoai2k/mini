@@ -1,0 +1,295 @@
+{
+  "request": "M-015",
+  "date": "2026-09-13",
+  "status": "root-reviewed and integrated",
+  "file": "hopper/3d/models/enemies/basaltBurrower.glb",
+  "bytes": 2179260,
+  "sha256": "4776f936f9aad7a844f3de14caa98f453c8f1a4ca83688585f20041ff92ecdaa",
+  "bounds": [
+    7.699999809265137,
+    4.09999942779541,
+    11.39999771118164
+  ],
+  "triangles": [
+    6740,
+    1988
+  ],
+  "skinJoints": [
+    [
+      "Spine.0",
+      "Leg.RL.0",
+      "Leg.RL.1",
+      "Leg.RL.2",
+      "Leg.RR.0",
+      "Leg.RR.1",
+      "Leg.RR.2",
+      "Spine.1",
+      "Spine.2",
+      "DrillPivot",
+      "Leg.FL.0",
+      "Leg.FL.1",
+      "Leg.FL.2",
+      "Leg.FR.0",
+      "Leg.FR.1",
+      "Leg.FR.2"
+    ],
+    [
+      "LOD1.Spine.0",
+      "LOD1.Leg.RL.0",
+      "LOD1.Leg.RL.1",
+      "LOD1.Leg.RL.2",
+      "LOD1.Leg.RR.0",
+      "LOD1.Leg.RR.1",
+      "LOD1.Leg.RR.2",
+      "LOD1.Spine.1",
+      "LOD1.Spine.2",
+      "LOD1.DrillPivot",
+      "LOD1.Leg.FL.0",
+      "LOD1.Leg.FL.1",
+      "LOD1.Leg.FL.2",
+      "LOD1.Leg.FR.0",
+      "LOD1.Leg.FR.1",
+      "LOD1.Leg.FR.2"
+    ]
+  ],
+  "skinnedVerticesAudited": 12785,
+  "clipChecks": [
+    {
+      "name": "Erupt",
+      "duration": 0.466667,
+      "channels": 98,
+      "loop": false,
+      "rootMotion": [
+        {
+          "node": "LOD0",
+          "translation": [
+            0.0,
+            4.800000190734863,
+            0.0
+          ]
+        },
+        {
+          "node": "LOD1",
+          "translation": [
+            0.0,
+            4.800000190734863,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Buried_Idle",
+      "duration": 1.233333,
+      "channels": 96,
+      "loop": true,
+      "rootMotion": [],
+      "loopEndpointMaxError": 8.738071954894622e-08
+    },
+    {
+      "name": "Tunnel",
+      "duration": 0.933333,
+      "channels": 96,
+      "loop": true,
+      "rootMotion": [],
+      "loopEndpointMaxError": 1.7476143909789243e-07
+    },
+    {
+      "name": "Erupt_Tell",
+      "duration": 0.666667,
+      "channels": 96,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Land",
+      "duration": 0.566667,
+      "channels": 96,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Withdraw",
+      "duration": 0.766667,
+      "channels": 96,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Hit",
+      "duration": 0.466667,
+      "channels": 96,
+      "loop": false,
+      "rootMotion": []
+    },
+    {
+      "name": "Dissolve",
+      "duration": 0.9,
+      "channels": 96,
+      "loop": false,
+      "rootMotion": []
+    }
+  ],
+  "sockets": [
+    "Core",
+    "Drill",
+    "Hitbox.Body"
+  ],
+  "checks": {
+    "repositoryValidator": "PASS local/hopper-basalt-burrower-refine/basaltBurrower.glb\n  679 nodes \u00b7 320 meshes \u00b7 6 materials \u00b7 6740/1988 tris\n\n1/1 GLBs passed.",
+    "normalizedFiniteWeights": true,
+    "finitePositionNormalUVInverseBindAnimationValues": true,
+    "rootMotionOnlyErupt": true,
+    "loopEndpointsMatch": true,
+    "allSocketsFollowCorrectBone": true,
+    "denseGroundSupportPassed": true
+  },
+  "visualQA": {
+    "viewsPerLOD": [
+      "front",
+      "three-quarter",
+      "top",
+      "side"
+    ],
+    "clipSamplesPerLOD": [
+      0,
+      0.5,
+      1
+    ],
+    "renders": 60,
+    "tunnelExtraSamples": [
+      0.25,
+      0.75
+    ],
+    "contactSheets": [
+      {
+        "file": "LOD0-deformation-sheet.jpg",
+        "sha256": "9840ff33cf692b4dd9f89beee777f93d7de326d6f3a5c17dd97f8ba45a63d3ef"
+      },
+      {
+        "file": "LOD0-ground-contact-sheet.jpg",
+        "sha256": "5a0586bb5c9bc33b5d4abb5402e2727592ae18046afee61cc7b48ff366ceaf26"
+      },
+      {
+        "file": "LOD1-deformation-sheet.jpg",
+        "sha256": "80c986ff19661607632bba270cf008af03b3dbad3455b25b6b246f90b391d4ac"
+      },
+      {
+        "file": "LOD1-ground-contact-sheet.jpg",
+        "sha256": "abb483c2a24b99e769b6f30212f2da3ee06de3f11e2d3e9393e85460c9149569"
+      },
+      {
+        "file": "tunnel-extremes-sheet.jpg",
+        "sha256": "e83d7f5100a33bfabeaab3613920eec11a58df83f5d2b3f6276174455ab73feb"
+      },
+      {
+        "file": "views-contact-sheet.jpg",
+        "sha256": "f92ce975c55e9b95c3582eac1ab1ec2f88664fc99843ebf1de36b9111df2627b"
+      }
+    ],
+    "location": "local/hopper-basalt-burrower-refine/",
+    "fixedGroundContactRenders": 24,
+    "review": "Root accepted both-LOD rest appearance, all-clip deformation, Tunnel extrema and final fixed-camera Y=0 ground contact sheets; dense contact, skin, root-motion and exported drill-turn audits pass."
+  },
+  "runtimeResponsibilities": [
+    "Enemy underground placement and Erupt upward root-motion application.",
+    "Crack-trail, eruption debris and shader dissolve effects.",
+    "Exposed-back vulnerability window and Core/body hitbox activation."
+  ],
+  "exportedDrillRotation": [
+    {
+      "clip": "Buried_Idle",
+      "joint": "DrillPivot",
+      "quaternionTravelRadians": 6.283185482025119
+    },
+    {
+      "clip": "Buried_Idle",
+      "joint": "LOD1.DrillPivot",
+      "quaternionTravelRadians": 6.283185482025119
+    },
+    {
+      "clip": "Tunnel",
+      "joint": "DrillPivot",
+      "quaternionTravelRadians": 12.566370964050268
+    },
+    {
+      "clip": "Tunnel",
+      "joint": "LOD1.DrillPivot",
+      "quaternionTravelRadians": 12.566370964050268
+    }
+  ],
+  "drillMotion": {
+    "Rig": {
+      "DrillPivot": 12.566371
+    },
+    "LOD1.Rig": {
+      "LOD1.DrillPivot": 12.566371
+    }
+  },
+  "denseGroundContact": [
+    {
+      "lod": 0,
+      "clip": "Tunnel",
+      "samples": 61,
+      "minimumSoleY": -0.002014338970184326,
+      "maximumSoleY": 0.1746819019317627,
+      "maximumAbsoluteSoleY": 0.1746819019317627
+    },
+    {
+      "lod": 0,
+      "clip": "Erupt_Tell",
+      "samples": 61,
+      "minimumSoleY": -0.00048097968101501465,
+      "maximumSoleY": 0.0004316270351409912,
+      "maximumAbsoluteSoleY": 0.00048097968101501465
+    },
+    {
+      "lod": 0,
+      "clip": "Land",
+      "samples": 61,
+      "minimumSoleY": -0.00557178258895874,
+      "maximumSoleY": 0.006421953439712524,
+      "maximumAbsoluteSoleY": 0.006421953439712524
+    },
+    {
+      "lod": 0,
+      "clip": "Withdraw",
+      "samples": 61,
+      "minimumSoleY": -0.0005030184984207153,
+      "maximumSoleY": 0.0007171779870986938,
+      "maximumAbsoluteSoleY": 0.0007171779870986938
+    },
+    {
+      "lod": 1,
+      "clip": "Tunnel",
+      "samples": 61,
+      "minimumSoleY": -0.0021217912435531616,
+      "maximumSoleY": 0.18158915638923645,
+      "maximumAbsoluteSoleY": 0.18158915638923645
+    },
+    {
+      "lod": 1,
+      "clip": "Erupt_Tell",
+      "samples": 61,
+      "minimumSoleY": -0.0005800127983093262,
+      "maximumSoleY": 0.0014669448137283325,
+      "maximumAbsoluteSoleY": 0.0014669448137283325
+    },
+    {
+      "lod": 1,
+      "clip": "Land",
+      "samples": 61,
+      "minimumSoleY": -0.005636468529701233,
+      "maximumSoleY": 0.0067079514265060425,
+      "maximumAbsoluteSoleY": 0.0067079514265060425
+    },
+    {
+      "lod": 1,
+      "clip": "Withdraw",
+      "samples": 61,
+      "minimumSoleY": -0.0006433427333831787,
+      "maximumSoleY": 0.0005586892366409302,
+      "maximumAbsoluteSoleY": 0.0006433427333831787
+    }
+  ]
+}
