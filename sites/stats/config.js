@@ -8,23 +8,26 @@
 // open-source counter with a free hosted tier — the same one the games use, so
 // there is one thing to learn rather than two.
 //
-// Setup, once, about five minutes:
+// This is switched on. The code below is the GoatCounter site's subdomain,
+// so visits land at https://hoai.goatcounter.com and the stats page frames
+// that dashboard.
 //
-//   1. Register a site at https://www.goatcounter.com/signup. The "code" you
-//      pick becomes the subdomain: code `hoai-sites` gives you the dashboard
-//      https://hoai-sites.goatcounter.com.
-//   2. Put that code below.
-//   3. In GoatCounter's Settings → "Sites that can embed GoatCounter", add
-//      `hoai2k.github.io` (and `games.hoai.net`, which is where the published
-//      pages actually answer) so /sites/stats/ can show the dashboard inline.
-//   4. Push to main. The next Pages deploy starts counting.
+// To point it somewhere else, change the code below and nothing else — one
+// value serves every site under sites/ and the Hopper game. To switch counting
+// off entirely, set it to the empty string: nothing is sent anywhere, and the
+// stats page says so and gives the setup steps rather than showing an empty
+// dashboard, which would read as "nobody has ever visited".
 //
-// Empty is the honest default: nothing is sent anywhere, the stats page says
-// so and repeats these steps, and nobody has to trust a subdomain this repo
-// does not own. Kept as a bare code rather than a full URL because a full URL
-// is the thing people paste by mistake, and half a URL glued to "/count" fails
-// silently — so countEndpoint() below refuses anything that is not a code.
-export const GOATCOUNTER_SITE = '';
+// For the dashboard to appear inline on the stats page rather than only at its
+// own address, GoatCounter's Settings → "Sites that can embed GoatCounter"
+// needs `hoai2k.github.io` and `games.hoai.net`, which is where the published
+// pages actually answer. Without that the frame goes blank; the link beside it
+// still works.
+//
+// Kept as a bare code rather than a full URL because a full URL is the thing
+// people paste by mistake, and half a URL glued to "/count" fails silently —
+// so countEndpoint() below refuses anything that is not a code.
+export const GOATCOUNTER_SITE = 'hoai';
 
 /** Is a code shaped like one GoatCounter would have issued?
  *
@@ -42,7 +45,7 @@ export function countEndpoint(code = GOATCOUNTER_SITE) {
   if (!isValidSite(code)) {
     console.error(
       `[stats] GOATCOUNTER_SITE is "${code}", which is not a GoatCounter code. ` +
-        `Use the bare code — "hoai-sites", not "https://hoai-sites.goatcounter.com". ` +
+        `Use the bare code — "hoai", not "https://hoai.goatcounter.com". ` +
         `See sites/stats/config.js.`,
     );
     return null;
@@ -55,19 +58,37 @@ export function dashboardUrl(code = GOATCOUNTER_SITE) {
   return isValidSite(code) ? `https://${code}.goatcounter.com` : null;
 }
 
-/** The sites this counter covers, and the path each one reports.
+/** The sites this counter covers, one entry per directory under sites/.
  *
- *  One GoatCounter site covers all of them, because the path it records is
- *  already the name of the site — so the dashboard's Pages view is the
- *  per-site breakdown, with no extra configuration. This list exists so the
- *  stats page can show which paths to look for, and so the smoke test knows
- *  which pages must carry the counter. */
+ *  One GoatCounter site covers everything, because the path it records is
+ *  already the name of the thing visited — so the dashboard's Pages view is
+ *  the breakdown, with no extra configuration. This list exists so the stats
+ *  page can show which paths to look for, and so the smoke test knows which
+ *  pages must carry the counter.
+ *
+ *  `rel` is relative to sites/, which is where the stats page lives. */
 export const SITES = [
-  { name: 'Ygent Records', dir: 'ygent' },
-  { name: 'Space Tiber', dir: 'space-tiber' },
-  { name: "Charlie's Girl Dolls", dir: 'charlies-girl-dolls' },
-  { name: 'Canagentsis', dir: 'canagentsis' },
-  { name: 'Mech Mayhem', dir: 'mechmayhem' },
-  { name: 'The Railway Trio', dir: 'railway' },
-  { name: 'Stratford Tennis Club', dir: 'stratfordtennisclub' },
+  { name: 'Ygent Records', dir: 'ygent', rel: 'ygent/' },
+  { name: 'Space Tiber', dir: 'space-tiber', rel: 'space-tiber/' },
+  { name: "Charlie's Girl Dolls", dir: 'charlies-girl-dolls', rel: 'charlies-girl-dolls/' },
+  { name: 'Canagentsis', dir: 'canagentsis', rel: 'canagentsis/' },
+  { name: 'Mech Mayhem', dir: 'mechmayhem', rel: 'mechmayhem/' },
+  { name: 'The Railway Trio', dir: 'railway', rel: 'railway/' },
+  { name: 'Stratford Tennis Club', dir: 'stratfordtennisclub', rel: 'stratfordtennisclub/' },
 ];
+
+/** The games, counted by the same GoatCounter site but not living under
+ *  sites/.
+ *
+ *  Hopper is a built Vite app, so it cannot include counter.js the way a
+ *  hand-written page does: Vite resolves and bundles any module `src` in its
+ *  entry page, which would bake a copy of the code above into the game's
+ *  JavaScript. Its entry page uses an inline dynamic import instead, resolved
+ *  by the browser at run time — see the comment in hopper/index.html.
+ *  `entry` is the repo path the smoke test checks. */
+export const GAMES = [
+  { name: 'Hopper the Grasshopper', rel: '../hopper/', entry: 'hopper/index.html' },
+];
+
+/** Everything the counter covers, sites and games, in one list. */
+export const COUNTED = [...SITES, ...GAMES];

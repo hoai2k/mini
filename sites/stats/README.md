@@ -1,12 +1,12 @@
-# Visitor stats for the sites
+# Visitor stats
 
 **Where:** https://hoai2k.github.io/mini/sites/stats/ (which redirects to
 https://games.hoai.net/mini/sites/stats/).
 
-**Question it answers:** is anyone I don't know looking at these sites, which
-ones, and roughly where are they?
+**Question it answers:** is anyone I don't know looking at these sites or
+playing the game, which ones, and roughly where are they?
 
-Nothing links to this page from the sites themselves. It is the back office,
+Nothing links to this page from the sites or the game. It is the back office,
 and it is `noindex`.
 
 ## Why it works this way
@@ -25,42 +25,75 @@ for a question a counter already answers.
 
 | File | What it is |
 | --- | --- |
-| `config.js` | The site code, the validation around it, and the list of sites |
+| `config.js` | The site code, the validation around it, and the lists of what is counted |
 | `counter.js` | The one line every site page loads; appends GoatCounter's `count.js` |
-| `index.html` | This dashboard: overview plus a tab per site |
+| `index.html` | This dashboard: overview plus a tab per site and per game |
 | `smoke.mjs` | Checks the wiring, offline |
 
-## One counter, every site
+And outside this folder, for the game:
 
-All the sites share a single GoatCounter site, because the path GoatCounter
-records is already the name of the site. `/mini/sites/railway/` and
-`/mini/sites/ygent/` arrive as different pages in one dashboard, so the
-overview is everything together and a per-site view is the same dashboard with
-a path filter. That is what the tabs on the page do; the dashboard's own
-*filter paths* box does the same job by hand.
+| File | What it is |
+| --- | --- |
+| `hopper/index.html` | An inline `import(/* @vite-ignore */ '../sites/stats/counter.js')` |
+
+## One counter, everything
+
+The sites and the game share a single GoatCounter site, because the path
+GoatCounter records is already the name of the thing visited.
+`/mini/sites/railway/`, `/mini/sites/ygent/` and `/mini/hopper/` arrive as
+different pages in one dashboard, so the overview is everything together and a
+per-site view is the same dashboard with a path filter. That is what the tabs
+on the page do; the dashboard's own *filter paths* box does the same job by
+hand.
 
 Adding a site later means two things: add it to `SITES` in `config.js`, and add
 the counter line to its pages. `smoke.mjs` fails if you do one and not the
 other.
 
-## Switching it on
+### Why the game is wired differently
 
-It is **off** until step 2 is done. Nothing is sent anywhere, and the page says
-so and repeats these steps rather than showing an empty dashboard — because an
-empty dashboard would read as "nobody has ever visited", which is a different
-and much more interesting claim than "we have not been counting".
+A hand-written page can load `counter.js` with a script tag. Hopper cannot: it
+is a Vite app, and the counter is deployed beside the game rather than built
+into it, so the path has to survive the build and be resolved by the browser.
+Two obvious ways to write it both fail, in opposite directions:
 
-1. Register a site at [goatcounter.com/signup](https://www.goatcounter.com/signup).
-   The **code** you pick becomes the dashboard subdomain — code `hoai-sites`
-   gives `https://hoai-sites.goatcounter.com`.
-2. Put the bare code in [`config.js`](config.js):
-   `export const GOATCOUNTER_SITE = "hoai-sites";`. The bare code, not the URL —
-   a pasted URL is refused with a console error rather than silently 404ing
-   once per visit.
-3. In GoatCounter, **Settings → Sites that can embed GoatCounter**, add
-   `hoai2k.github.io` and `games.hoai.net`. Without this the dashboard still
-   works at its own address; only the frame on this page goes blank.
-4. Merge to `main`. The next Pages deploy starts counting.
+- `<script type="module" src="../sites/stats/counter.js">` **fails the build.**
+  Vite resolves that src against the source tree, where the deployed path does
+  not exist.
+- A plain inline `import('../sites/stats/counter.js')` **builds fine and is
+  worse.** Vite follows it and inlines the whole counter as a base64 `data:`
+  module — a second copy of the GoatCounter code, whose own import of
+  `config.js` then resolves against the data URL and breaks.
+
+Marking it `/* @vite-ignore */` is Vite's escape hatch: the literal path
+survives into the built HTML, and the browser resolves it at load time against
+`/mini/hopper/`, landing on `/mini/sites/stats/counter.js`. One code, in one
+file, for both. `smoke.mjs` guards every part of that — the import, the absence
+of a module src, the marker, and the absence of `GOATCOUNTER_SITE` in the entry
+page, which is the shape each mistake would take.
+
+Adding another game means the same one line and an entry in `GAMES`.
+
+## Switching it on and off
+
+It is **on**. `GOATCOUNTER_SITE` in [`config.js`](config.js) is `hoai`, so
+visits go to `https://hoai.goatcounter.com/count` and the stats page frames
+that dashboard. That one value serves every site under `sites/` and the Hopper
+game; there is nothing else to change.
+
+- **To point it elsewhere**, put a different bare code in `config.js`. The bare
+  code, not the URL — a pasted URL is refused with a console error rather than
+  silently 404ing once per visit.
+- **To switch counting off**, set it to `""`. Nothing is sent anywhere, and the
+  stats page says so and gives the setup steps rather than showing an empty
+  dashboard, which would read as "nobody has ever visited".
+- **If the frame on the stats page is blank**, GoatCounter's *Settings → Sites
+  that can embed GoatCounter* needs `hoai2k.github.io` and `games.hoai.net`.
+  Without them the dashboard still works at its own address, and the link
+  beside the frame still opens it.
+
+Counting starts at the deploy that lands the code. There is no history before
+that: Pages kept no log to backfill from.
 
 ## What it records
 
@@ -71,10 +104,12 @@ ours, which is why there is no consent banner. GoatCounter's
 [privacy page](https://www.goatcounter.com/help/privacy) is the authority here,
 not this paragraph.
 
-Nothing from inside a page is recorded: no clicks, no scrolling, no time on
-page, no which-track-was-played. That needs a collector we control, and it is
-the reason to revisit the Worker option if the interesting question ever
-becomes "what did they do" rather than "who came".
+Nothing from inside a page or the game is recorded: no clicks, no scrolling, no
+time on page, no which-track-was-played, no episode reached. The game counts one
+visit when it is opened, whether that visitor presses Start or closes the tab.
+Going further needs a collector we control, and that is the reason to revisit
+the Worker option if the interesting question ever becomes "what did they do"
+rather than "who came".
 
 ## Reading it honestly
 
@@ -88,10 +123,9 @@ becomes "what did they do" rather than "who came".
   nothing to backfill from. Day one is the day the code lands.
 - **Country is coarse and occasionally wrong.** It comes from an IP database;
   a VPN reports wherever the exit node is.
-- **The games are separate.** This covers `/mini/sites/` only. Hopper, at
-  `/mini/hopper/`, has no counter on it. Adding one would mean the same three
-  files and a second GoatCounter site, or the same one if you would rather see
-  games and sites in a single dashboard.
+- **A game visit is a page load, not a play.** Hopper reports one visit when
+  the page opens. Whether anyone got past the title screen is not something
+  this can tell you.
 
 ## Checking it still works
 
@@ -101,6 +135,13 @@ node sites/stats/smoke.mjs
 
 No browser, no network, no server. It asserts the part that can rot without
 showing: that every page of every site still loads the counter, that every site
-directory on disk is listed in `SITES`, that the stats page does not count
-itself, that the off state says it is off, that a configured code reaches the
-right endpoint, and that a pasted URL is refused.
+directory on disk is listed in `SITES`, that the game's entry page still reaches
+the shared counter through the import the bundler leaves alone, that the stats
+page does not count itself, that the configured code reaches the right endpoint,
+and that a pasted URL is refused.
+
+When anything under `hopper/game/` changes, the game's own checks apply too:
+
+```sh
+cd hopper/game && pnpm test && pnpm typecheck && pnpm lint && pnpm build:pages
+```

@@ -13,5 +13,20 @@
     <div id="root"></div>
     <noscript>Enable JavaScript to play Hopper the Grasshopper.</noscript>
     <script type="module" src="/game/pages/main.tsx"></script>
+    <!-- Visitor counter, shared with the sites.
+         The counter is deployed beside the game, at /mini/sites/stats/, not
+         built into it: one GoatCounter code in sites/stats/config.js serves
+         the game and the sites both. So this must stay a path the browser
+         resolves at run time, and both halves below are load-bearing. A
+         <script type="module" src> fails the build outright, because Vite
+         resolves the src against the source tree; and without @vite-ignore
+         Vite follows the dynamic import too and inlines the counter as a
+         base64 data: module, which is the same baked-in copy by another name.
+         In local development the page is served from / rather than /mini/, so
+         the path does not exist and the rejection is swallowed — local play is
+         not counted anyway. sites/stats/smoke.mjs guards both halves. -->
+    <script>
+      import(/* @vite-ignore */ '../sites/stats/counter.js').catch(function () {});
+    </script>
   </body>
 </html>

@@ -26,11 +26,56 @@ import {
 import {
   editionFromLocation,
   saveKey,
+  type Edition,
   type GameEngine,
 } from '@/src/game/game-engine';
 import { Engine3D } from '@/src/game3d/engine3d';
 
-const edition = typeof location !== 'undefined' ? editionFromLocation() : '3d';
+// Both editions are chosen from the title screen now. `?render=2d` still
+// works as a deep link, so it decides which one is loaded first.
+const initialEdition: Edition =
+  typeof location !== 'undefined' ? editionFromLocation() : '3d';
+const editionName = (edition: Edition) => (edition === '3d' ? '3D' : '2D');
+
+/** Register one model-context tool, ignoring a host that has none. */
+function registerTool(
+  signal: AbortSignal,
+  name: string,
+  description: string,
+  execute: (input: Record<string, unknown>) => unknown,
+  schema: object = {
+    type: 'object',
+    properties: {},
+    additionalProperties: false,
+  },
+  readOnly = false,
+) {
+  const modelContext = (
+    document as unknown as {
+      modelContext?: {
+        registerTool: (tool: unknown, options: unknown) => Promise<void>;
+      };
+    }
+  ).modelContext;
+  try {
+    void Promise.resolve(
+      modelContext?.registerTool(
+        {
+          name,
+          description,
+          inputSchema: schema,
+          annotations: { readOnlyHint: readOnly },
+          execute: (v: Record<string, unknown>) => {
+            if (!v || typeof v !== 'object')
+              throw new Error('Expected an object');
+            return execute(v);
+          },
+        },
+        { signal },
+      ),
+    ).catch(() => {});
+  } catch {}
+}
 
 type Screen =
   | 'title'
@@ -72,6 +117,10 @@ export default function Home() {
   const [screen, setScreen] = useState<Screen>('title'),
     screenRef = useRef<Screen>('title'),
     returnTo = useRef<Screen>('title');
+  // Which edition is loaded. The engine, the canvas it draws into and the save
+  // slot all follow it, so switching rebuilds the engine rather than reloading.
+  const [edition, setEdition] = useState<Edition>(initialEdition),
+    editionRef = useRef<Edition>(initialEdition);
   const [ready, setReady] = useState(false),
     [load, setLoad] = useState(0),
     [error, setError] = useState(''),
@@ -131,16 +180,21 @@ export default function Home() {
     });
   }
   /**
-   * The title screen carries one action. Taking it is the gesture that starts
-   * the music where autoplay was refused and asks for fullscreen, and it opens
-   * the play-select screen rather than dropping straight into an episode.
+   * The title screen offers one action per edition. Taking either is the
+   * gesture that starts the music where autoplay was refused and asks for
+   * fullscreen, and it opens the play-select screen for that edition rather
+   * than dropping straight into an episode.
    */
-  function enterSelect() {
+  function enterSelect(next: Edition = editionRef.current) {
     void audio.current?.unlock();
     if (!document.fullscreenElement)
       void root.current
         ?.requestFullscreen?.()
         .catch(() => setNotice('Press ⛶ for fullscreen.'));
+    if (next !== editionRef.current) {
+      editionRef.current = next;
+      setEdition(next);
+    }
     change('select');
     setNotice('');
   }
@@ -269,91 +323,18 @@ export default function Home() {
         ...initial,
         ...JSON.parse(localStorage.getItem('hopper.settings') || '{}'),
       };
-      queueMicrotask(() => {
-        if (alive) {
-          setSaved(!!localStorage.getItem(saveKey(edition, 'save')));
-          setUnlocked(
-            Number(localStorage.getItem(saveKey(edition, 'unlocked')) || 0),
-          );
-        }
-      });
     } catch {}
     settingsRef.current = s;
     queueMicrotask(() => {
       if (alive) setSettings(s);
     });
     a.setVolumes(s.master, s.music, s.sfx);
-    const onSnapshot = (snapshot: GameSnapshot) => {
-      if (alive) {
-        setHud(snapshot);
-        if (snapshot.completed) {
-          setUnlocked((v) => Math.max(v, Math.min(2, snapshot.mission + 1)));
-          actionsRef.current.change('complete');
-        }
-      }
-    };
-    const e: GameEngine =
-      edition === '3d'
-        ? new Engine3D(canvas.current!, a, onSnapshot)
-        : new Engine(canvas.current!, a, onSnapshot);
-    engine.current = e;
-    e.rumble = (strength, duration) => i.vibrate(strength, duration);
-    e.configure(s);
-    void e
-      .load((v) => alive && setLoad(v))
-      .then(() => {
-        if (alive) setReady(true);
-      })
-      .catch((err) => alive && setError(String(err)));
-    const modelContext = (
-      document as unknown as {
-        modelContext?: {
-          registerTool: (tool: unknown, options: unknown) => Promise<void>;
-        };
-      }
-    ).modelContext;
     const lifecycle = new AbortController();
     const register = (
       name: string,
       description: string,
       execute: (input: Record<string, unknown>) => unknown,
-      schema: object = {
-        type: 'object',
-        properties: {},
-        additionalProperties: false,
-      },
-      readOnly = false,
-    ) => {
-      try {
-        void Promise.resolve(
-          modelContext?.registerTool(
-            {
-              name,
-              description,
-              inputSchema: schema,
-              annotations: { readOnlyHint: readOnly },
-              execute: (v: Record<string, unknown>) => {
-                if (!v || typeof v !== 'object')
-                  throw new Error('Expected an object');
-                return execute(v);
-              },
-            },
-            { signal: lifecycle.signal },
-          ),
-        ).catch(() => {});
-      } catch {}
-    };
-    register(
-      'get_game_status',
-      'Read the current episode, armor, checkpoint and menu.',
-      () => ({
-        screen: screenRef.current,
-        ...e.snapshot(),
-        player: { ...e.player },
-      }),
-      undefined,
-      true,
-    );
+    ) => registerTool(lifecycle.signal, name, description, execute);
     register(
       'pause_game',
       'Pause the adventure and open the pause menu.',
@@ -369,6 +350,191 @@ export default function Home() {
         actionsRef.current.open('instructions');
         return { screen: 'instructions' };
       },
+    );
+    const unlock = () => void a.unlock();
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    const pause = () => {
+      if (screenRef.current === 'playing') actionsRef.current.change('pause');
+    };
+    // A hidden or unfocused tab keeps no music or effects playing.
+    const background = () =>
+      a.setBackground(document.hidden || !document.hasFocus());
+    const leave = () => {
+      pause();
+      background();
+    };
+    window.addEventListener('blur', leave);
+    window.addEventListener('focus', background);
+    document.addEventListener('visibilitychange', leave);
+    const loop = (now: number) => {
+      const dt = Math.min(0.05, (now - previous) / 1000);
+      previous = now;
+      const f = i.update(dt);
+      const action = actionsRef.current;
+      uiClock += dt;
+      if (uiClock > 0.2) {
+        setConnected(f.connected);
+        setSoundOff(a.isMuted() || a.musicBlocked());
+        uiClock = 0;
+      }
+      if (f.disconnected && screenRef.current === 'playing') {
+        setNotice('Controller disconnected · reconnect or use the keyboard.');
+        action.change('pause');
+      }
+      if (f.anyPressed) a.retryMusic();
+      const mode = screenRef.current;
+      if (mode === 'playing') {
+        if (f.pausePressed) action.change('pause');
+        else if (f.instructionsPressed) action.open('instructions');
+      } else {
+        const list = Array.from(
+          root.current?.querySelectorAll<HTMLElement>('[data-nav]') || [],
+        ).filter(
+          (el) => el.offsetParent !== null && !el.hasAttribute('disabled'),
+        );
+        if (f.menuY || (mode !== 'settings' && f.menuX)) {
+          const current = list.indexOf(document.activeElement as HTMLElement);
+          focusRef.current =
+            ((current >= 0 ? current : focusRef.current) +
+              (f.menuY || f.menuX) +
+              list.length) %
+            Math.max(1, list.length);
+          setFocus(focusRef.current);
+          list[focusRef.current]?.focus();
+        }
+        if (mode === 'settings' && f.menuX) {
+          const keys: (keyof GameSettings)[] = [
+            'master',
+            'music',
+            'sfx',
+            'shake',
+            'assist',
+            ...(editionRef.current === '3d'
+              ? (['cameraSensitivity', 'invertY', 'landingGuide', 'shadowHalo'] as const)
+              : []),
+          ];
+          const k = keys[focusRef.current];
+          if (k) {
+            const v = settingsRef.current[k] ?? true;
+            action.setting(
+              k,
+              typeof v === 'boolean'
+                ? !v
+                : Math.max(0, Math.min(1, v + f.menuX * 0.1)),
+            );
+          }
+        }
+        // On the title screen any button starts, so a player who has not found
+        // A yet still gets in - on whichever edition is selected.
+        if (
+          mode === 'title' &&
+          (f.confirmPressed ||
+            f.jumpPressed ||
+            (f.anyPressed && f.active === 'gamepad'))
+        )
+          (list[focusRef.current] ?? list[0])?.click();
+        else if (f.confirmPressed && f.active === 'gamepad')
+          list[focusRef.current]?.click();
+        if (f.backPressed || f.pausePressed) {
+          if (mode === 'pause') action.change('playing');
+          else if (mode === 'complete' || mode === 'select')
+            action.change('title');
+          else if (mode !== 'title') action.back();
+        }
+      }
+      engine.current?.tick(
+        dt,
+        mode === 'playing' && screenRef.current === 'playing' ? f : undefined,
+      );
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      lifecycle.abort();
+      alive = false;
+      cancelAnimationFrame(raf);
+      i.dispose();
+      a.dispose();
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+      window.removeEventListener('blur', leave);
+      window.removeEventListener('focus', background);
+      document.removeEventListener('visibilitychange', leave);
+    };
+  }, []);
+  /**
+   * The engine for the loaded edition. Each edition draws into its own canvas -
+   * a canvas that has handed out a 2D context cannot hand out WebGL - so the
+   * element is keyed by edition and replaced with it, and the engine, its asset
+   * pack and its model-context tools are rebuilt here rather than by reloading
+   * the page. Runs after the session effect above, which owns the audio, the
+   * input manager and the frame loop across both editions.
+   */
+  useEffect(() => {
+    const a = audio.current,
+      i = input.current,
+      surface = canvas.current;
+    if (!a || !i || !surface) return;
+    let alive = true;
+    i.setSurface(surface);
+    queueMicrotask(() => {
+      if (!alive) return;
+      setReady(false);
+      setLoad(0);
+      setError('');
+      // Each edition keeps its own save slot and unlock count.
+      try {
+        setSaved(!!localStorage.getItem(saveKey(edition, 'save')));
+        setUnlocked(
+          Math.min(
+            2,
+            Number(localStorage.getItem(saveKey(edition, 'unlocked')) || 0),
+          ),
+        );
+      } catch {}
+    });
+    const onSnapshot = (snapshot: GameSnapshot) => {
+      if (alive) {
+        setHud(snapshot);
+        if (snapshot.completed) {
+          setUnlocked((v) => Math.max(v, Math.min(2, snapshot.mission + 1)));
+          actionsRef.current.change('complete');
+        }
+      }
+    };
+    const e: GameEngine =
+      edition === '3d'
+        ? new Engine3D(surface, a, onSnapshot)
+        : new Engine(surface, a, onSnapshot);
+    engine.current = e;
+    e.rumble = (strength, duration) => i.vibrate(strength, duration);
+    e.configure(settingsRef.current);
+    void e
+      .load((v) => alive && setLoad(v))
+      .then(() => {
+        if (alive) setReady(true);
+      })
+      .catch((err) => alive && setError(String(err)));
+    const lifecycle = new AbortController();
+    const register = (
+      name: string,
+      description: string,
+      execute: (input: Record<string, unknown>) => unknown,
+      schema?: object,
+      readOnly?: boolean,
+    ) =>
+      registerTool(lifecycle.signal, name, description, execute, schema, readOnly);
+    register(
+      'get_game_status',
+      'Read the current episode, armor, checkpoint and menu.',
+      () => ({
+        screen: screenRef.current,
+        ...e.snapshot(),
+        player: { ...e.player },
+      }),
+      undefined,
+      true,
     );
     if (
       ['localhost', '127.0.0.1'].includes(location.hostname) &&
@@ -458,117 +624,13 @@ export default function Home() {
         },
       );
     }
-    const unlock = () => void a.unlock();
-    window.addEventListener('pointerdown', unlock);
-    window.addEventListener('keydown', unlock);
-    const pause = () => {
-      if (screenRef.current === 'playing') actionsRef.current.change('pause');
-    };
-    // A hidden or unfocused tab keeps no music or effects playing.
-    const background = () =>
-      a.setBackground(document.hidden || !document.hasFocus());
-    const leave = () => {
-      pause();
-      background();
-    };
-    window.addEventListener('blur', leave);
-    window.addEventListener('focus', background);
-    document.addEventListener('visibilitychange', leave);
-    const loop = (now: number) => {
-      const dt = Math.min(0.05, (now - previous) / 1000);
-      previous = now;
-      const f = i.update(dt);
-      const action = actionsRef.current;
-      uiClock += dt;
-      if (uiClock > 0.2) {
-        setConnected(f.connected);
-        setSoundOff(a.isMuted() || a.musicBlocked());
-        uiClock = 0;
-      }
-      if (f.disconnected && screenRef.current === 'playing') {
-        setNotice('Controller disconnected · reconnect or use the keyboard.');
-        action.change('pause');
-      }
-      if (f.anyPressed) a.retryMusic();
-      const mode = screenRef.current;
-      if (mode === 'playing') {
-        if (f.pausePressed) action.change('pause');
-        else if (f.instructionsPressed) action.open('instructions');
-      } else if (
-        mode === 'title' &&
-        (f.confirmPressed ||
-          f.jumpPressed ||
-          (f.anyPressed && f.active === 'gamepad'))
-      ) {
-        action.enterSelect();
-      } else {
-        const list = Array.from(
-          root.current?.querySelectorAll<HTMLElement>('[data-nav]') || [],
-        ).filter(
-          (el) => el.offsetParent !== null && !el.hasAttribute('disabled'),
-        );
-        if (f.menuY || (mode !== 'settings' && f.menuX)) {
-          const current = list.indexOf(document.activeElement as HTMLElement);
-          focusRef.current =
-            ((current >= 0 ? current : focusRef.current) +
-              (f.menuY || f.menuX) +
-              list.length) %
-            Math.max(1, list.length);
-          setFocus(focusRef.current);
-          list[focusRef.current]?.focus();
-        }
-        if (mode === 'settings' && f.menuX) {
-          const keys: (keyof GameSettings)[] = [
-            'master',
-            'music',
-            'sfx',
-            'shake',
-            'assist',
-            ...(edition === '3d'
-              ? (['cameraSensitivity', 'invertY', 'landingGuide', 'shadowHalo'] as const)
-              : []),
-          ];
-          const k = keys[focusRef.current];
-          if (k) {
-            const v = settingsRef.current[k] ?? true;
-            action.setting(
-              k,
-              typeof v === 'boolean'
-                ? !v
-                : Math.max(0, Math.min(1, v + f.menuX * 0.1)),
-            );
-          }
-        }
-        if (f.confirmPressed && f.active === 'gamepad')
-          list[focusRef.current]?.click();
-        if (f.backPressed || f.pausePressed) {
-          if (mode === 'pause') action.change('playing');
-          else if (mode === 'complete' || mode === 'select')
-            action.change('title');
-          else if (mode !== 'title') action.back();
-        }
-      }
-      e.tick(
-        dt,
-        mode === 'playing' && screenRef.current === 'playing' ? f : undefined,
-      );
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
     return () => {
-      lifecycle.abort();
       alive = false;
-      cancelAnimationFrame(raf);
+      lifecycle.abort();
       e.dispose();
-      i.dispose();
-      a.dispose();
-      window.removeEventListener('pointerdown', unlock);
-      window.removeEventListener('keydown', unlock);
-      window.removeEventListener('blur', leave);
-      window.removeEventListener('focus', background);
-      document.removeEventListener('visibilitychange', leave);
+      if (engine.current === e) engine.current = null;
     };
-  }, []);
+  }, [edition]);
   useEffect(() => {
     if (screen === 'playing' || screen === 'title') return;
     const id = requestAnimationFrame(() =>
@@ -610,6 +672,9 @@ export default function Home() {
       className={`game-shell ${screen === 'title' || screen === 'select' ? 'at-title' : ''}`}
     >
       <canvas
+        // A fresh element per edition: a canvas that has handed out a 2D
+        // context cannot hand out WebGL, so the two engines never share one.
+        key={edition}
         ref={canvas}
         aria-label={
           edition === '3d'
@@ -638,25 +703,32 @@ export default function Home() {
             <p className="title-tagline">
               A small boy. A giant leap. A world to save.
             </p>
-            <Button
-              {...nav(0)}
-              className="start-button"
-              disabled={!ready}
-              onClick={enterSelect}
-            >
-              {ready ? (
-                <>
-                  <span className="start-diamond">◆</span> PRESS START{' '}
-                  <span className="start-diamond">◆</span>
-                </>
-              ) : error ? (
-                'ASSET LOAD FAILED'
-              ) : (
-                `PREPARING ADVENTURE · ${Math.round(load * 100)}%`
-              )}
-            </Button>
+            <div className="start-row">
+              <Button
+                {...nav(0)}
+                className="start-button"
+                onClick={() => enterSelect('3d')}
+              >
+                <span className="start-diamond">◆</span> PLAY IN 3D
+              </Button>
+              <Button
+                {...nav(1)}
+                className="start-button start-button-2d"
+                onClick={() => enterSelect('2d')}
+              >
+                <span className="start-diamond">◆</span> PLAY THE 2D ORIGINAL
+              </Button>
+            </div>
             <p className="start-hint">
-              Press any controller button <span> / </span> ENTER
+              {error ? (
+                'ASSET LOAD FAILED'
+              ) : !ready ? (
+                `PREPARING THE ${editionName(edition)} ADVENTURE · ${Math.round(load * 100)}%`
+              ) : (
+                <>
+                  Press any controller button <span> / </span> ENTER
+                </>
+              )}
             </p>
           </div>
           <div className="title-footer">
@@ -688,10 +760,18 @@ export default function Home() {
                 alt="Hopper the Grasshopper"
               />
               <h2 className="select-heading">Choose your horizon.</h2>
+              {!ready && (
+                <p className="select-loading">
+                  {error
+                    ? 'ASSET LOAD FAILED'
+                    : `LOADING THE ${editionName(edition)} EDITION · ${Math.round(load * 100)}%`}
+                </p>
+              )}
               {saved && (
                 <Button
                   {...nav(0)}
                   className="continue-button"
+                  disabled={!ready}
                   onClick={() => begin(0, true)}
                 >
                   <Play />
@@ -707,7 +787,7 @@ export default function Home() {
                   <Button
                     {...nav(episodeBase + n, n)}
                     key={name}
-                    disabled={n > unlocked}
+                    disabled={!ready || n > unlocked}
                     onClick={() => begin(n)}
                     onPointerEnter={() => setAimed(n)}
                   >
@@ -818,32 +898,11 @@ export default function Home() {
               >
                 <BookOpen /> Full controls
               </Button>
-              {/* A full navigation (not next/link) so the module-level
-                  `edition` re-reads location.search on a fresh load. */}
-              {edition === '3d' ? (
-                // oxlint-disable-next-line no-html-link-for-pages
-                <a
-                  {...nav(episodeBase + 4)}
-                  className="quiet-button edition-link"
-                  href="?render=2d"
-                >
-                  Play the original 2D edition
-                </a>
-              ) : (
-                // oxlint-disable-next-line no-html-link-for-pages
-                <a
-                  {...nav(episodeBase + 4)}
-                  className="quiet-button edition-link"
-                  href="?render=3d"
-                >
-                  Play the 3D edition
-                </a>
-              )}
             </div>
           </div>
           <div className="corner-controls">
             <Button
-              {...nav(episodeBase + 5)}
+              {...nav(episodeBase + 4)}
               size="icon"
               onClick={() => change('title')}
               aria-label="Back to title"
@@ -851,7 +910,7 @@ export default function Home() {
               <ArrowLeft />
             </Button>
             <Button
-              {...nav(episodeBase + 6)}
+              {...nav(episodeBase + 5)}
               size="icon"
               className={soundOff ? 'sound-off' : ''}
               onClick={toggleSound}
@@ -861,7 +920,7 @@ export default function Home() {
               {soundOff ? <VolumeX /> : <Volume2 />}
             </Button>
             <Button
-              {...nav(episodeBase + 7)}
+              {...nav(episodeBase + 6)}
               size="icon"
               onClick={() => open('settings')}
               aria-label="Settings"
@@ -869,7 +928,7 @@ export default function Home() {
               <Settings />
             </Button>
             <Button
-              {...nav(episodeBase + 8)}
+              {...nav(episodeBase + 7)}
               size="icon"
               onClick={fullscreen}
               aria-label="Fullscreen"

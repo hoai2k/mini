@@ -18,10 +18,12 @@ import {
   countEndpoint,
   dashboardUrl,
   SITES,
+  GAMES,
 } from './config.js';
 
 const STATS = dirname(fileURLToPath(import.meta.url));
 const SITES_DIR = join(STATS, '..');
+const REPO = join(SITES_DIR, '..');
 const TAG = '../stats/counter.js';
 
 let failed = 0;
@@ -59,6 +61,27 @@ for (const dir of onDisk) {
   ok(listed.has(dir), `${dir}: listed in SITES`);
 }
 
+// A game is a built app, so its entry page reaches the counter through an
+// inline dynamic import the bundler does not follow. Two things can rot here:
+// the import can go missing, and someone can "fix" it into a module src that
+// Vite then bundles — which fails the build, or worse, succeeds and bakes in a
+// second copy of the GoatCounter code.
+for (const game of GAMES) {
+  const entry = join(REPO, game.entry);
+  ok(existsSync(entry), `${game.entry}: exists`);
+  if (!existsSync(entry)) continue;
+  const html = readFileSync(entry, 'utf8');
+  // Allows the /* @vite-ignore */ comment between the paren and the string.
+  ok(/import\([^)]*['"]\.\.\/sites\/stats\/counter\.js['"]/.test(html),
+    `${game.entry}: imports the shared counter at run time`);
+  ok(!/<script[^>]+src=[^>]*stats\/counter\.js/.test(html),
+    `${game.entry}: does not use a module src the bundler would follow`);
+  ok(/@vite-ignore/.test(html),
+    `${game.entry}: keeps @vite-ignore, without which the bundler inlines the counter`);
+  ok(!html.includes('GOATCOUNTER_SITE'),
+    `${game.entry}: does not carry its own copy of the code`);
+}
+
 // The back office must not count itself, or it inflates the number it reports.
 const statsHtml = readFileSync(join(STATS, 'index.html'), 'utf8');
 ok(!statsHtml.includes(TAG), 'the stats page does not count itself');
@@ -72,6 +95,17 @@ if (!GOATCOUNTER_SITE) {
   ok(dashboardUrl() === null, 'unconfigured: no dashboard url');
   ok(/Not switched on yet/.test(statsHtml), 'unconfigured: the page says it is off');
   ok(/goatcounter\.com\/signup/.test(statsHtml), 'unconfigured: the page gives the steps');
+} else {
+  // Configured. The endpoint is what every counted page will actually send to,
+  // so a typo here is a day of visits landing in someone else's dashboard or
+  // nowhere at all.
+  ok(countEndpoint() === `https://${GOATCOUNTER_SITE}.goatcounter.com/count`,
+    `configured: counts to ${GOATCOUNTER_SITE}.goatcounter.com`);
+  ok(dashboardUrl() === `https://${GOATCOUNTER_SITE}.goatcounter.com`,
+    `configured: dashboard is ${GOATCOUNTER_SITE}.goatcounter.com`);
+  // The off-state copy has to stay in the page even while it is on: it is what
+  // the page falls back to if the code is ever cleared.
+  ok(/Not switched on yet/.test(statsHtml), 'the off-state text is still there for when it is cleared');
 }
 
 // A configured code must reach the right endpoint, and a pasted URL must be

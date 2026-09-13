@@ -358,6 +358,33 @@ assert(
 );
 assert(!poll().disconnected, 'disconnect is reported once');
 shared.dispose();
+
+// Switching editions hands the input manager a new canvas, so the mouse
+// button has to follow it and stop listening to the old one.
+const oldSurface = new HTMLElement(),
+  newSurface = new HTMLElement();
+const surfaced = new InputManager(oldSurface);
+const click = (el) => {
+  const event = new Event('pointerdown');
+  Object.defineProperty(event, 'button', { value: 0 });
+  el.dispatchEvent(event);
+};
+const release = () => window.dispatchEvent(new Event('pointerup'));
+click(oldSurface);
+assert(surfaced.update(1 / 60).shootHeld, 'the first surface drives the mouse');
+release();
+surfaced.update(1 / 60);
+surfaced.setSurface(newSurface);
+click(oldSurface);
+assert(
+  !surfaced.update(1 / 60).shootHeld,
+  'the replaced surface stops driving the mouse',
+);
+release();
+surfaced.update(1 / 60);
+click(newSurface);
+assert(surfaced.update(1 / 60).shootHeld, 'the new surface drives it instead');
+surfaced.dispose();
 console.log(
-  'PASS: shared controller actions, independent edges, summed axes, sparse slots, quarantine, disconnect/reconnect.',
+  'PASS: shared controller actions, independent edges, summed axes, sparse slots, quarantine, disconnect/reconnect, surface swap.',
 );

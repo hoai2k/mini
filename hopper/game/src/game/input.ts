@@ -150,6 +150,15 @@ export class InputManager {
     canvas?.addEventListener('pointerdown', this.onPointerDown);
   }
 
+  /** Follow a replaced canvas. Each edition renders into its own element, so
+   * switching editions hands the same input manager a new surface. */
+  setSurface(canvas?: HTMLElement): void {
+    if (canvas === this.canvas) return;
+    this.canvas?.removeEventListener('pointerdown', this.onPointerDown);
+    this.canvas = canvas;
+    canvas?.addEventListener('pointerdown', this.onPointerDown);
+  }
+
   private axis(value: number): number {
     return Math.abs(value) <= 0.18
       ? 0

@@ -129,6 +129,31 @@ button {
 .start-button:hover {
   background: #fae5b512 !important;
 }
+/* Both editions are offered here, so the two actions share the row that one
+ * used to own: the 3D edition leads and the original sits beside it, quieter. */
+.start-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.2vw, 18px);
+}
+.start-button-2d {
+  font-size: clamp(11px, 1.15vw, 15px) !important;
+  letter-spacing: 3px;
+  color: #f3e9c9c4 !important;
+  gap: 10px !important;
+}
+.start-button-2d:hover {
+  color: #fff1cd !important;
+}
+.start-button-2d .start-diamond {
+  font-size: 8px;
+}
+.start-row .start-button[data-selected='true'] {
+  color: #fff1cd !important;
+  box-shadow: inset 0 -2px 0 #edc86d99;
+}
 .start-diamond {
   color: #edc86d;
   font-size: 10px;
@@ -290,6 +315,12 @@ button {
   margin: 0 0 18px;
   text-shadow: 0 2px 8px #071417;
 }
+.select-loading {
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  margin: -8px 0 14px;
+  color: #f5edcba8;
+}
 .select-play .episode-list {
   margin: 12px 0 0;
 }
@@ -390,23 +421,6 @@ button {
 }
 .select-controls .quiet-button {
   font-size: 11px !important;
-}
-.edition-link {
-  display: inline-block;
-  font-size: 10px !important;
-  font-variant: small-caps;
-  letter-spacing: 0.6px;
-  color: #efe8d0a3 !important;
-  text-align: center;
-  text-decoration: none;
-  opacity: 0.75;
-}
-.edition-link:hover {
-  opacity: 1;
-}
-.edition-link:focus-visible {
-  text-decoration: underline;
-  opacity: 1;
 }
 .hud {
   position: absolute;
@@ -1083,6 +1097,13 @@ button:focus-visible,
   }
   .start-button {
     letter-spacing: 3px !important;
+  }
+  .start-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  .start-button-2d {
+    height: 44px !important;
   }
   /* Stacked and scrollable, clearing the corner controls at the foot. */
   .select-layout {
