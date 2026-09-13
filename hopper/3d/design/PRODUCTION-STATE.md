@@ -63,3 +63,8 @@ Reconcile the current request inventory, finish requested image work that the av
 - Prior commit attempt after `0f8d834` was rejected by automatic approval review due to usage limits. Prepared sources remained local. On resume, fetched and fast-forwarded main to `5a6cd9b` (only unrelated site updates).
 - M-083 first Tier A candidate visually reviewed by root against matched before/after renders and integrated: 17,540 → 6,260 bytes, 17 → 2 meshes, 108/96 triangles unchanged. Full model validation rerun. This is mechanical cleanup only; the basic distant silhouette still needs Tier B art work.
 - Resumed Sol cleanup and Astra animation agents from saved source; no dependency on former live agent state.
+- `7e6d7f9` pushed first M-083 cleanup and image repair tools; `cfe00df` pushed the animation generator/QA source checkpoint.
+- Integrated seven further static landmarks M-084–M-088, M-090–M-091 after paired render review; 71/71 production model validations pass. M-089 held for separate LOD1 visual review (118 to 88 triangles).
+- New creature M-018 initial candidate rejected in visual review: rectangular wings, excessive glow and disconnected-looking tails do not meet the canonical reference. Sol is refining custom silhouette/armor/tails; it is NOT a delivered asset.
+- Animation candidates have 35/19/46 clips and preserved source mesh/skin data. Astra visual review caught and corrected gaze/tuck directions and reaction layer masks; publication still awaits root visual acceptance.
+- Image-processing preference re-requested on resume; still pending. No failed image asset has been marked fixed.

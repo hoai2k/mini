@@ -132,18 +132,18 @@ PASS hopper/3d/models/landmarks/fields.glb
   WARN  only one named material; painted colour separation may be missing
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/city.glb
-  8 nodes · 3 meshes · 1 materials · 34/8 tris
+  9 nodes · 2 meshes · 1 materials · 34/8 tris
   WARN  only one named material; painted colour separation may be missing
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/mountains.glb
   10 nodes · 4 meshes · 2 materials · 124/36 tris
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/foundry.glb
-  28 nodes · 5 meshes · 1 materials · 84/72 tris
+  19 nodes · 2 meshes · 1 materials · 84/72 tris
   WARN  only one named material; painted colour separation may be missing
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/harbor.glb
-  10 nodes · 4 meshes · 1 materials · 416/112 tris
+  10 nodes · 2 meshes · 1 materials · 416/112 tris
   WARN  only one named material; painted colour separation may be missing
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/launchworks.glb
@@ -157,7 +157,7 @@ PASS hopper/3d/models/landmarks/blue.glb
   WARN  only one named material; painted colour separation may be missing
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/landmarks/violet.glb
-  16 nodes · 5 meshes · 2 materials · 512/28 tris
+  15 nodes · 3 meshes · 2 materials · 512/28 tris
   WARN  contains no embedded painted texture images; verify intentional flat-colour art direction
 PASS hopper/3d/models/terrain/fields.glb
   6 nodes · 2 meshes · 1 materials · 59858/2518 tris

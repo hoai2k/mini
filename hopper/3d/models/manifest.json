@@ -2772,8 +2772,10 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 3604,
+      "processingNotes": "Validated material merge/weld; 6644 to 3604 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-085",
@@ -2804,8 +2806,10 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-1-earth.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 5568,
+      "processingNotes": "Validated material merge/weld; 9960 to 5568 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-086",
@@ -2836,8 +2840,10 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-2-industry.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 5284,
+      "processingNotes": "Validated material merge/weld; 8048 to 5284 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-087",
@@ -2868,8 +2874,10 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-2-industry.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 6952,
+      "processingNotes": "Validated material merge/weld; 11852 to 6952 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-088",
@@ -2900,8 +2908,10 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-2-industry.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 10612,
+      "processingNotes": "Validated material merge/weld; 14604 to 10612 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-089",
@@ -2964,8 +2974,10 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-3-alien.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 5056,
+      "processingNotes": "Validated material merge/weld; 8980 to 5056 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-091",
@@ -2996,8 +3008,10 @@
       "status": "delivered",
       "sourceReference": "design/assets/level-3-alien.png",
       "notes": "The request envelope of 400 \u00d7 600 \u00d7 400 m was nominal; the silhouette keeps the size the stand-in is placed at so the horizon composition is unchanged.",
-      "processing": "needs-cleanup",
-      "cleanup": "CODE-BUILT-CLEANUP.md"
+      "processing": "cleaned-tier-a",
+      "cleanup": "CODE-BUILT-CLEANUP.md",
+      "bytes": 8104,
+      "processingNotes": "Validated material merge/weld; 13972 to 8104 bytes. Matched before/after renders reviewed. No clips removed. Tier B remains pending."
     },
     {
       "request": "M-092",

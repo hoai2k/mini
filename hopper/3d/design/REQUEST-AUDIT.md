@@ -30,6 +30,12 @@ The remaining **12** are Tripo-preferred or require a higher creative/organic pa
 
 For every creature, the source-of-truth chain is `build_requests.py` → `standin-manifest.json` / `model-requests.md`, canonical sprites in `hopper/game/public/assets/enemies` or `bosses`, and approved-but-pending-review turnaround sheets under `hopper/3d/design/references`. The local model contract is `hopper/3d/models/source/BUILD-CONTRACT.md`; existing local builders are `common.py`, `rural.py`, `architecture.py`, and `props.py`. Tripo-preferred material is preserved under `hopper/design/tripo/` when applicable, but no Tripo output was inferred as a delivered creature model.
 
+## Additional canonical review on resume
+
+Root inspected the Spire Leech and Coil Wraith turnaround paintings. Spire Leech's segmented armored worm is compatible with its spline contract. Coil Wraith is another material mismatch: its painting has a beaked head, armored torso, two clawed arms and a serpentine tail, while M-013 specifies a narrow ribbon between two electrical nodes. It cannot be faithfully delivered as that simple spline ribbon without changing either the canonical design or the rig/dimensions contract.
+
+The operative count after visual review is therefore **3 local-first** (M-006, M-014, M-018), **4 conditional** (M-005, M-007, M-011, M-015), **2 identity/contract conflicts** (M-013, M-020), and **12 Tripo-preferred**. Earlier prose above records the initial text-only recommendations; this visual-review disposition supersedes them.
+
 ## Stash reconciliation
 
 `stash@{1}` (`Preserve Round 3 documentation before production sync`) contains an older documentation-only claim that T-080, T-081, T-082, and T-086 were delivered, plus an older 47-image summary. Do not restore it: current generated docs and verification correctly keep T-080, T-082, and T-086 open and T-081 verified.
