@@ -198,7 +198,8 @@ const dist3 = (ax: number, ay: number, az: number, bx: number, by: number, bz: n
 export class Combat {
   shadows: Shadow[] = [];
   projectiles: Projectile[] = [];
-  private nextProjectile = 1;
+  /** Next projectile id; behaviours that push their own projectiles use it. */
+  nextProjectile = 1;
   time = 0;
   /** Hopper's attack timers, owned here so the tests can drive them. */
   kick = 0;
