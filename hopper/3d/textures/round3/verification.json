@@ -1,74 +1,67 @@
 {
   "checkedAt": "2026-09-13",
   "checks": "dimensions, tiling, atlas padding, occupied cells, alpha",
-  "failures": [
-    "surface/sea.png: opposite edges differ (x=8.161, y=11.549, limit 2.0)",
-    "surface/dust.png: opposite edges differ (x=7.948, y=7.122, limit 2.0)",
-    "surface/slag.png: opposite edges differ (x=4.943, y=5.159, limit 2.0)",
-    "surface/sea-detail.png: opposite edges differ (x=10.867, y=16.962, limit 2.0)",
-    "surface/dust-detail.png: opposite edges differ (x=12.566, y=11.558, limit 2.0)",
-    "surface/slag-detail.png: opposite edges differ (x=5.016, y=6.872, limit 2.0)"
-  ],
+  "failures": [],
   "results": {
     "surface/sea.png": {
       "size": [
         2048,
         2048
       ],
-      "seamX": 8.161,
-      "seamY": 11.549,
+      "seamX": 0.0,
+      "seamY": 0.0,
       "seamLimit": 2.0,
-      "tiles": false
+      "tiles": true
     },
     "surface/dust.png": {
       "size": [
         2048,
         2048
       ],
-      "seamX": 7.948,
-      "seamY": 7.122,
+      "seamX": 0.0,
+      "seamY": 0.0,
       "seamLimit": 2.0,
-      "tiles": false
+      "tiles": true
     },
     "surface/slag.png": {
       "size": [
         2048,
         2048
       ],
-      "seamX": 4.943,
-      "seamY": 5.159,
+      "seamX": 0.0,
+      "seamY": 0.0,
       "seamLimit": 2.0,
-      "tiles": false
+      "tiles": true
     },
     "surface/sea-detail.png": {
       "size": [
         512,
         512
       ],
-      "seamX": 10.867,
-      "seamY": 16.962,
+      "seamX": 0.0,
+      "seamY": 0.0,
       "seamLimit": 2.0,
-      "tiles": false
+      "tiles": true
     },
     "surface/dust-detail.png": {
       "size": [
         512,
         512
       ],
-      "seamX": 12.566,
-      "seamY": 11.558,
+      "seamX": 0.0,
+      "seamY": 0.0,
       "seamLimit": 2.0,
-      "tiles": false
+      "tiles": true
     },
     "surface/slag-detail.png": {
       "size": [
         512,
         512
       ],
-      "seamX": 5.016,
-      "seamY": 6.872,
+      "seamX": 0.0,
+      "seamY": 0.0,
       "seamLimit": 2.0,
-      "tiles": false
+      "tiles": true
     },
     "surface/shoreline-foam.png": {
       "size": [
