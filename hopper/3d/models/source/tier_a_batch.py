@@ -30,13 +30,28 @@ GLTFPACK_CANDIDATES = [
     *([Path(os.environ["GLTFPACK"])] if os.environ.get("GLTFPACK") else []),
     *Path.home().glob(".npm/_npx/*/node_modules/.bin/gltfpack"),
 ]
-PRESERVE_SOURCE_TEXTURE_REQUESTS = {"M-036", "M-067", "M-092"}
+PRESERVE_SOURCE_TEXTURE_REQUESTS = {"M-036", "M-059", "M-060", "M-064", "M-067", "M-092"}
 JPEG_EMISSION_REQUESTS = {"M-061"}
-FUNCTIONAL_PIVOT_REQUESTS = {
-    "M-059": "three bridge stages are independent rigid drop pivots",
-    "M-060": "the floating reef moves as a rigid root",
-    "M-064": "the ring shard orbits as a rigid root with a moving landing",
-    "M-066": "the gravity seam animates its named Arrow pivots",
+FUNCTIONAL_RIGID_REQUESTS = {
+    "M-059": {
+        "reason": "three bridge stages are independent rigid drop pivots",
+        "pivots": ["Stage0", "Stage1", "Stage2", "LOD1.Stage0", "LOD1.Stage1", "LOD1.Stage2"],
+    },
+    "M-060": {
+        "reason": "the floating reef moves as a rigid LOD root",
+        "pivots": [],
+    },
+    "M-064": {
+        "reason": "the ring shard orbits as a rigid LOD root with its landing",
+        "pivots": [],
+    },
+    "M-066": {
+        "reason": "the gravity seam animates its named Arrow pivots",
+        "pivots": [
+            *[f"Arrow{i}" for i in range(8)],
+            *[f"LOD1.Arrow{i}" for i in range(1, 8)],
+        ],
+    },
 }
 IMPORT_TRIANGLE_EXCEPTIONS = {
     "M-067": {
@@ -79,27 +94,28 @@ def glb_json(path: Path) -> dict:
     raise RuntimeError(f"missing JSON chunk: {path}")
 
 
+def primitive_triangle_count(doc: dict, primitive: dict) -> int:
+    accessors = doc.get("accessors", [])
+    accessor_index = primitive.get("indices")
+    if accessor_index is None:
+        accessor_index = primitive.get("attributes", {}).get("POSITION")
+    if accessor_index is None or not 0 <= accessor_index < len(accessors):
+        raise RuntimeError("mesh primitive has no countable indices or POSITION accessor")
+    count = int(accessors[accessor_index]["count"])
+    mode = int(primitive.get("mode", 4))
+    if mode == 4:
+        if count % 3:
+            raise RuntimeError(f"TRIANGLES accessor count {count} is not divisible by 3")
+        return count // 3
+    if mode in (5, 6):
+        return max(0, count - 2)
+    raise RuntimeError(f"unsupported non-triangle primitive mode {mode}")
+
+
 def triangle_counts_by_lod(doc: dict) -> dict[str, int]:
     """Count authored draw triangles from GLB accessor metadata under each LOD."""
     nodes = doc.get("nodes", [])
     meshes = doc.get("meshes", [])
-    accessors = doc.get("accessors", [])
-
-    def primitive_count(primitive: dict) -> int:
-        accessor_index = primitive.get("indices")
-        if accessor_index is None:
-            accessor_index = primitive.get("attributes", {}).get("POSITION")
-        if accessor_index is None or not 0 <= accessor_index < len(accessors):
-            raise RuntimeError("mesh primitive has no countable indices or POSITION accessor")
-        count = int(accessors[accessor_index]["count"])
-        mode = int(primitive.get("mode", 4))
-        if mode == 4:
-            if count % 3:
-                raise RuntimeError(f"TRIANGLES accessor count {count} is not divisible by 3")
-            return count // 3
-        if mode in (5, 6):
-            return max(0, count - 2)
-        raise RuntimeError(f"unsupported non-triangle primitive mode {mode}")
 
     def descendants(root_index: int) -> list[int]:
         found: list[int] = []
@@ -128,9 +144,82 @@ def triangle_counts_by_lod(doc: dict) -> dict[str, int]:
                 continue
             if not 0 <= mesh_index < len(meshes):
                 raise RuntimeError(f"mesh index {mesh_index} is out of range")
-            total += sum(primitive_count(primitive) for primitive in meshes[mesh_index].get("primitives", []))
+            total += sum(primitive_triangle_count(doc, primitive) for primitive in meshes[mesh_index].get("primitives", []))
         counts[str(level)] = total
     return counts
+
+
+def functional_structure(doc: dict, definition: dict, sockets: list[str]) -> dict:
+    """Capture the nodes and per-pivot geometry that define rigid gameplay motion."""
+    nodes = doc.get("nodes", [])
+    meshes = doc.get("meshes", [])
+    names = {node.get("name"): i for i, node in enumerate(nodes) if node.get("name")}
+    parents = {child: parent for parent, node in enumerate(nodes) for child in node.get("children", [])}
+    pivot_names = set(definition.get("pivots", []))
+    missing_pivots = sorted(pivot_names - names.keys())
+    if missing_pivots:
+        raise RuntimeError(f"functional pivot nodes are missing: {missing_pivots}")
+    socket_names = {
+        name for name in names
+        if name in sockets or (name.startswith("LOD1.") and name[5:] in sockets)
+    }
+    protected_names = {"LOD0", "LOD1", *pivot_names, *socket_names}
+
+    protected = {}
+    for name in sorted(protected_names):
+        if name not in names:
+            raise RuntimeError(f"functional contract node is missing: {name}")
+        index = names[name]
+        parent_index = parents.get(index)
+        protected[name] = {
+            "parent": nodes[parent_index].get("name") if parent_index is not None else None,
+            "local_matrix": node_matrix(nodes[index]),
+            "extras": nodes[index].get("extras"),
+        }
+
+    triangle_owners: dict[str, int] = {}
+    for root_name in ("LOD0", "LOD1"):
+        root_index = names[root_name]
+        stack = [(root_index, root_name)]
+        seen: set[int] = set()
+        while stack:
+            index, owner = stack.pop()
+            if index in seen:
+                raise RuntimeError(f"node {index} appears more than once below {root_name}")
+            seen.add(index)
+            node = nodes[index]
+            node_name = node.get("name")
+            if node_name in pivot_names:
+                owner = node_name
+            mesh_index = node.get("mesh")
+            if mesh_index is not None:
+                if not 0 <= mesh_index < len(meshes):
+                    raise RuntimeError(f"mesh index {mesh_index} is out of range")
+                triangle_owners[owner] = triangle_owners.get(owner, 0) + sum(
+                    primitive_triangle_count(doc, primitive)
+                    for primitive in meshes[mesh_index].get("primitives", [])
+                )
+            stack.extend((child, owner) for child in node.get("children", []))
+    return {"nodes": protected, "triangles_by_rigid_subtree": triangle_owners}
+
+
+def compare_functional_structure(source: dict, candidate: dict) -> None:
+    if source["triangles_by_rigid_subtree"] != candidate["triangles_by_rigid_subtree"]:
+        raise RuntimeError(
+            "functional rigid-subtree triangles changed: "
+            f"{source['triangles_by_rigid_subtree']} -> {candidate['triangles_by_rigid_subtree']}"
+        )
+    if source["nodes"].keys() != candidate["nodes"].keys():
+        raise RuntimeError("functional node set changed")
+    for name, before in source["nodes"].items():
+        after = candidate["nodes"][name]
+        if before["parent"] != after["parent"]:
+            raise RuntimeError(f"functional node {name} parent changed {before['parent']} -> {after['parent']}")
+        if stable(before["extras"]) != stable(after["extras"]):
+            raise RuntimeError(f"functional node {name} extras changed")
+        delta = max(abs(a - b) for a, b in zip(before["local_matrix"], after["local_matrix"]))
+        if delta > 1e-5:
+            raise RuntimeError(f"functional node {name} local transform changed by {delta:.8f}")
 
 
 def node_matrix(node: dict) -> list[float]:
@@ -204,7 +293,7 @@ def cross_file_checks(before_path: Path, after_path: Path, entry: dict) -> dict:
             "static Tier A path received animation data "
             f"(source={len(before_animations)}, candidate={len(after_animations)})"
         )
-    return {
+    result = {
         "source_nodes": len(before.get("nodes", [])),
         "candidate_nodes": len(after.get("nodes", [])),
         "source_named_nodes": len(before_names),
@@ -214,6 +303,18 @@ def cross_file_checks(before_path: Path, after_path: Path, entry: dict) -> dict:
         "animations": {"source": len(before_animations), "candidate": len(after_animations)},
         "root_extras": roots,
     }
+    functional = entry.get("functional_rigid")
+    if functional:
+        source_structure = entry["functional_structure"]
+        candidate_structure = functional_structure(after, functional, entry.get("sockets", []))
+        compare_functional_structure(source_structure, candidate_structure)
+        result["functional_structure"] = {
+            "status": "preserved",
+            "reason": functional["reason"],
+            "source": source_structure,
+            "candidate": candidate_structure,
+        }
+    return result
 
 
 def parse_validator(output: str) -> dict:
@@ -293,20 +394,6 @@ def process(entry: dict, force: bool) -> dict:
     final_report = WORK / "reports" / f"{key}.json"
     preview_key = key if request == "M-092" else request
     source = MODEL_DIR / rel
-    if request in FUNCTIONAL_PIVOT_REQUESTS:
-        if candidate.exists():
-            candidate.unlink()
-        report = {
-            "status": "held-functional-pivots",
-            "request": request,
-            "name": entry["name"],
-            "source": str(source.relative_to(ROOT)),
-            "reason": FUNCTIONAL_PIVOT_REQUESTS[request],
-            "required_path": "separate rigid/pivot-preserving cleanup; static material flatten is forbidden",
-        }
-        final_report.parent.mkdir(parents=True, exist_ok=True)
-        final_report.write_text(json.dumps(report, indent=2) + "\n")
-        return report
     gltfpack, blender = tools()
     if candidate.exists() and final_report.exists() and not force:
         report = json.loads(final_report.read_text())
@@ -330,6 +417,11 @@ def process(entry: dict, force: bool) -> dict:
     contract["source_animations"] = len(source_doc.get("animations", []))
     contract["compressed_source_triangles"] = triangle_counts_by_lod(source_doc)
     contract["import_triangle_exception"] = IMPORT_TRIANGLE_EXCEPTIONS.get(request)
+    contract["functional_rigid"] = FUNCTIONAL_RIGID_REQUESTS.get(request)
+    if contract["functional_rigid"]:
+        contract["functional_structure"] = functional_structure(
+            source_doc, contract["functional_rigid"], contract.get("sockets", [])
+        )
     contract["preserve_source_textures"] = request in PRESERVE_SOURCE_TEXTURE_REQUESTS
     contract["jpeg_emission"] = request in JPEG_EMISSION_REQUESTS
     (job / "contract.json").write_text(json.dumps(contract, indent=2) + "\n")
@@ -381,7 +473,7 @@ def process(entry: dict, force: bool) -> dict:
         metrics = parse_validator(validation)
         if metrics["triangles"][1] >= metrics["triangles"][0]:
             raise RuntimeError("validator metrics violate LOD relation")
-        cross = cross_file_checks(source, compressed, entry)
+        cross = cross_file_checks(source, compressed, contract)
         if request in PRESERVE_SOURCE_TEXTURE_REQUESTS:
             size_limit = math.ceil(source.stat().st_size * 1.05)
         else:

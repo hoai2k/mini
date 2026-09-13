@@ -121,24 +121,25 @@ def safe_name(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", value)[:55] or "material"
 
 
-def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Object]:
-    meshes = [o for o in descendants(root) if o.type == "MESH"]
+def merge_meshes_by_material(
+    parent: bpy.types.Object, name_prefix: str, meshes: list[bpy.types.Object]
+) -> list[bpy.types.Object]:
     groups: dict[str, list[bpy.types.Object]] = {}
     for obj in meshes:
         groups.setdefault(material_key(obj), []).append(obj)
 
     merged: list[bpy.types.Object] = []
     for mat_name, group in sorted(groups.items()):
-        # Bake each static part into the LOD root's local space before joining.
+        # Bake each part into its allowed rigid parent's local space before joining.
         # Reparenting a joined object whose source hierarchy contains rotated,
         # non-uniform scales can create shear that glTF TRS cannot represent;
         # M-027 and M-036 exposed this as greatly inflated exported bounds.
-        root_inverse = root.matrix_world.inverted_safe()
+        parent_inverse = parent.matrix_world.inverted_safe()
         for obj in group:
             if obj.data.users > 1:
                 obj.data = obj.data.copy()
-            obj.data.transform(root_inverse @ obj.matrix_world)
-            obj.parent = root
+            obj.data.transform(parent_inverse @ obj.matrix_world)
+            obj.parent = parent
             obj.matrix_parent_inverse = Matrix.Identity(4)
             obj.matrix_basis = Matrix.Identity(4)
         bpy.ops.object.select_all(action="DESELECT")
@@ -148,12 +149,46 @@ def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Obje
         bpy.context.view_layer.objects.active = active
         bpy.ops.object.join()
         joined = bpy.context.view_layer.objects.active
-        joined.name = f"LOD{level}.{safe_name(mat_name)}"
+        joined.name = f"{safe_name(name_prefix)}.{safe_name(mat_name)}"
         joined.data.name = joined.name
         if len(joined.material_slots) != 1:
             die(f"{joined.name}: join produced {len(joined.material_slots)} material slots")
         merged.append(joined)
     return merged
+
+
+def merge_by_material(root: bpy.types.Object, level: int) -> list[bpy.types.Object]:
+    meshes = [o for o in descendants(root) if o.type == "MESH"]
+    return merge_meshes_by_material(root, f"LOD{level}", meshes)
+
+
+def merge_with_functional_pivots(
+    root: bpy.types.Object, pivot_names: set[str]
+) -> tuple[list[bpy.types.Object], dict[str, list[str]]]:
+    """Merge only meshes sharing the same nearest protected rigid pivot."""
+    pivots = {obj.name: obj for obj in descendants(root) if obj.name in pivot_names}
+    relevant_names = {name for name in pivot_names if name == root.name or name.startswith(f"{root.name}.")}
+    missing = sorted(relevant_names - pivots.keys())
+    if missing:
+        die(f"{root.name}: functional pivots missing after import: {missing}")
+    owners = {root, *pivots.values()}
+    owned: dict[bpy.types.Object, list[bpy.types.Object]] = {owner: [] for owner in owners}
+    for mesh in [obj for obj in descendants(root) if obj.type == "MESH"]:
+        owner = mesh.parent
+        while owner not in owners and owner is not None:
+            owner = owner.parent
+        if owner is None:
+            die(f"{mesh.name}: no functional rigid owner below {root.name}")
+        owned[owner].append(mesh)
+
+    merged: list[bpy.types.Object] = []
+    ownership = {}
+    for owner in sorted(owners, key=lambda obj: obj.name):
+        meshes = owned[owner]
+        ownership[owner.name] = sorted(obj.name for obj in meshes)
+        if meshes:
+            merged.extend(merge_meshes_by_material(owner, owner.name, meshes))
+    return merged, ownership
 
 
 def weld_and_delete_interior(obj: bpy.types.Object) -> dict:
@@ -629,6 +664,7 @@ def main() -> None:
         die(f"decoded import has {before['objects']} objects; validator reported {expected_nodes} nodes")
 
     operations = []
+    functional_cleanup = None
     if args.terrain_bake_only:
         lod_meshes = {
             level: [o for o in descendants(root) if o.type == "MESH"]
@@ -636,6 +672,26 @@ def main() -> None:
         }
         if any(len(meshes) != 1 for meshes in lod_meshes.values()):
             die(f"terrain bake-only input is not one mesh per LOD: { {k: len(v) for k, v in lod_meshes.items()} }")
+    elif contract.get("functional_rigid"):
+        pivot_names = set(contract["functional_rigid"].get("pivots", []))
+        imported_names = {obj.name for obj in bpy.data.objects}
+        missing = sorted(pivot_names - imported_names)
+        if missing:
+            die(f"functional pivots missing after import: {missing}")
+        lod_meshes = {}
+        ownership = {}
+        for level, root in root_by_lod.items():
+            merged, level_ownership = merge_with_functional_pivots(root, pivot_names)
+            lod_meshes[level] = merged
+            ownership.update(level_ownership)
+            operations.extend(weld_and_delete_interior(obj) for obj in merged)
+        functional_cleanup = {
+            "status": "rigid-pivots-preserved",
+            "reason": contract["functional_rigid"]["reason"],
+            "protected_pivots": sorted(pivot_names),
+            "source_triangles_by_rigid_subtree": contract["functional_structure"]["triangles_by_rigid_subtree"],
+            "imported_mesh_ownership": ownership,
+        }
     else:
         lod_meshes = {}
         for level, root in root_by_lod.items():
@@ -697,6 +753,7 @@ def main() -> None:
         "before": before,
         "after": after,
         "import_topology": import_topology,
+        "functional_cleanup": functional_cleanup,
         "operations": operations,
         "landing_checks": landing_checks,
         "atlas": atlas,
