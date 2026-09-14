@@ -410,13 +410,14 @@ main > section.story {
   color: var(--brass);
 }
 
-/* A player with more than one place to be found: the links sit in a row and
-   wrap together rather than running into each other on a narrow column. */
+/* A player with more than one place to be found: one link per line, each only
+   as wide as its own label so the brass underline stops at the text rather
+   than running the width of the column. */
 .socials {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 1.4rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
 }
 
 /* Live clips */
