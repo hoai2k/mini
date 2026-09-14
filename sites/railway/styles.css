@@ -410,6 +410,15 @@ main > section.story {
   color: var(--brass);
 }
 
+/* A player with more than one place to be found: the links sit in a row and
+   wrap together rather than running into each other on a narrow column. */
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1.4rem;
+}
+
 /* Live clips */
 .clips {
   display: grid;
