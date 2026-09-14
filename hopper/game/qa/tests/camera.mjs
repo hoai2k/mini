@@ -192,9 +192,10 @@ report.airBrake = {
   facingOnLanding,
   facingNextGroundTick: e.player.facing,
 };
-// Parry directions: the spin kick guards Hopper's back and overhead, the held
-// guard covers only the front, and neither turns a hazard. kx points away from
-// the attacker, so kx > 0 while facing right means a blow from behind.
+// Parry directions: the spin kick turns through every side, so it guards the
+// back, the front and overhead alike; the held guard covers only the front,
+// and neither turns a hazard. kx points away from the attacker, so kx > 0
+// while facing right means a blow from behind.
 e = make();
 const hpStart = e.hp;
 step(e, { kickPressed: true });
@@ -208,6 +209,22 @@ const kickFrontHp = e.hp;
 e = make();
 step(e, { kickPressed: true });
 const kickOverhead = e.hurt(2, 0, -200);
+// The sweep's damage arc is centred on Hopper rather than set behind it, so
+// one press reaches a shadow on either side.
+e = make();
+e.level.enemies = [
+  { id: 'ahead', type: 'shadeHound', x: 5120, y: 800, area: 0 },
+  { id: 'behind', type: 'shadeHound', x: 4880, y: 800, area: 0 },
+];
+e.combat = new CombatWorld(e.level);
+e.combat.boss.alive = false;
+for (const shadow of e.combat.enemies) shadow.asleep = false;
+const sweepStart = e.combat.enemies.map((shadow) => shadow.hp);
+step(e, { kickPressed: true });
+for (let n = 0; n < 40; n++) step(e);
+const kickSweep = e.combat.enemies.map(
+  (shadow, n) => shadow.hp < sweepStart[n],
+);
 e = make();
 step(e, { kickPressed: true });
 const hazardParried = e.hurt(1, 300, -200, false);
@@ -654,7 +671,8 @@ const checks = {
   kickParriesTheBack:
     kickRear === true && kickRearHp === hpStart && parryFlash > 0,
   kickParriesOverhead: kickOverhead === true,
-  kickLeavesTheFrontOpen: kickFront === false && kickFrontHp < hpStart,
+  kickParriesTheFront: kickFront === true && kickFrontHp === hpStart,
+  kickSweepsBothSides: kickSweep.length === 2 && kickSweep.every(Boolean),
   guardParriesTheFront:
     guardFront === true && guardFrontHp === hpStart && guardCost < 1,
   guardLeavesTheBackOpen: guardRear === false && guardRearHp < hpStart,

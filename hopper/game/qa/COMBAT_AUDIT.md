@@ -79,12 +79,31 @@ Full-hold-at-speed jumps are 5 per mission; the hardest combined moments are lan
 
 A later pass changed what the two guard buttons cover, to make the answer to "something is attacking me" depend on where it is:
 
-- **X sweeps behind and overhead only.** The kick's damage arc is centred 55 units behind Hopper and uses the same rear filter as the takeoff strike, so it reaches nothing in front. It parries a blow arriving from behind or straight down. Deflecting shots with it also only works behind.
+- **X sweeps behind and overhead only.** The kick's damage arc is centred 55 units behind Hopper and uses the same rear filter as the takeoff strike, so it reaches nothing in front. It parries a blow arriving from behind or straight down. Deflecting shots with it also only works behind. *(Reversed since: see "The spin kick turns all the way round" below.)*
 - **B guards the front and does no damage.** Held, it parries frontal blows and shots at 0.2 energy each, staggering the attacker and turning shots back at their shooter, and leaves the back open. It still drains while held, breaks when empty, recharges on release, and suspends kicking and shooting.
 - **A parried shot is turned, not swallowed.** Whichever guard catches it, the projectile becomes Hopper's and flies back as a `reflect` hit (armor-opening like a kick, but with no rear filter).
 - **Eye lasers auto-aim downward.** Targets are chosen in a cone reaching 1.9× the horizontal distance below and 0.45× above, measured from Hopper's body so a shadow pressed against it still counts, and the beam is clipped against solid terrain and unbroken cages by a slab test rather than the old horizontal-band check.
 
-Together these mean a shadow directly in front is answered with lasers, a jump attack or the guard, never a kick, and one at your back is answered with the kick. The trade is deliberate: holding either guard is choosing a side.
+Together these meant a shadow directly in front was answered with lasers, a jump attack or the guard, never a kick, and one at your back with the kick. The trade was deliberate: holding either guard was choosing a side.
+
+## The spin kick turns all the way round
+
+That rear-only trade did not survive play: a kick that reaches nothing in front
+asks the player to read which side a fight is on before pressing the button
+that is meant to answer it, and the answer is usually to turn around first.
+The kick is now what its name says.
+
+- The damage arc is a circle of radius 165 centred on Hopper rather than 175
+  set 55 units behind it, and `hit` no longer filters `kick` by facing. The
+  takeoff strike (`launch`) keeps its rear filter: that one is a shove out of a
+  standing start, not a turn.
+- Reach is now symmetric at 165 either way, against 230 behind and nothing in
+  front before.
+- The parry follows the sweep. A blow from any direction is parried while the
+  kick is out, and a shot inside 185 units is deflected wherever it came from,
+  where both used to require the attacker at Hopper's back.
+- B is still the front guard and still the only way to hold a side open
+  indefinitely; the kick is a moment, not a stance.
 
 The other fix in that pass: a shadow killed within 15 seconds no longer returns when Hopper dies and restarts from a checkpoint. `resetToCheckpoint` keeps it down with a `reviveAt` stamp, and it comes back only once the delay is up **and** Hopper is more than 1,100 units away, so it is never seen appearing.
 

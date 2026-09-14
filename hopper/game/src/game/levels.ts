@@ -396,23 +396,26 @@ const REGIONS: Region[] = [
 // Every region has five authored chapters with a distinct terrain envelope.
 // Values are the cumulative elevation relative to that region's entrance.
 const CHAPTERS: [string, number][][] = [
+  // Board one: a chapter that fights on level ground carries no elevation of
+  // its own, so its cumulative repeats the one before it. Each region still
+  // ends exactly where it did, so the board's descent and climb are unchanged.
   [
     ['Irrigation lesson', -60],
-    ['Orchard terraces', -350],
-    ['Windbreak ridges', -100],
-    ['The seedfall valley', 250],
+    ['Orchard terraces', -60],
+    ['Windbreak ridges', -350],
+    ['The seedfall valley', -100],
     ['Road to Crownline', -180],
   ],
   [
     ['Ivory roof ladder', -650],
     ['Transit canyon', -300],
     ['Construction crown', -1500],
-    ['The sky bridges', -1900],
+    ['The sky bridges', -1500],
     ['Highline observatory', -2700],
   ],
   [
     ['Slate descent', 800],
-    ['The storm gorge', 1100],
+    ['The storm gorge', 800],
     ['Broken ridge', 100],
     ['Cloudstep traverse', -800],
     ['Summit transmitter', -1900],
@@ -506,6 +509,47 @@ const CHAPTER_BEATS: Beat[][] = [
     'rest',
   ],
 ];
+/** A chapter's personality: what the whole stretch asks for.
+ * `mixed` is the shared rhythm above - jumps and fights interleaved. The other
+ * two ask for one thing at a time, so a chapter reads as a place with a job. */
+type Shape = 'leaps' | 'skirmish' | 'mixed';
+const SHAPE_BEATS: Record<'leaps' | 'skirmish', Beat[]> = {
+  // Jumping alone: no shelf here spawns an encounter, and its crossing is
+  // unguarded, so the only thing being read is the ground.
+  leaps: ['learn', 'run', 'climb', 'run', 'rest', 'vista', 'run', 'climb', 'rest'],
+  // Fighting alone, on shelves that barely rise and short hops between them:
+  // the fight is the difficulty, not the footing.
+  skirmish: ['learn', 'fight', 'rest', 'fight', 'rest', 'fight', 'rest', 'finish', 'rest'],
+};
+/** Board one is authored as a progression rather than five turns of the same
+ * rhythm. Its first region opens on jumping alone, meets its first enemies on
+ * level ground, goes back to jumping, and only then asks for both at once; the
+ * two regions after it keep changing personality every chapter so the board
+ * stays varied. Later boards have no plan and keep the shared rhythm.
+ * `lessons` are the shelves that introduce one species on its own. */
+const BOARD_ONE: { shape: Shape; lessons?: number[] }[][] = [
+  [
+    { shape: 'leaps' },
+    { shape: 'skirmish', lessons: [1, 3] },
+    { shape: 'leaps' },
+    { shape: 'mixed' },
+    { shape: 'mixed' },
+  ],
+  [
+    { shape: 'mixed', lessons: [2, 6] },
+    { shape: 'leaps' },
+    { shape: 'mixed' },
+    { shape: 'skirmish' },
+    { shape: 'mixed' },
+  ],
+  [
+    { shape: 'leaps' },
+    { shape: 'skirmish', lessons: [1, 3] },
+    { shape: 'mixed' },
+    { shape: 'mixed' },
+    { shape: 'mixed' },
+  ],
+];
 /** Each chapter asks for a different jump. The signature sets how gaps scale
  * and how the chapter's elevation change is spread across its nine shelves. */
 interface Signature {
@@ -541,7 +585,11 @@ const SIGNATURES: Signature[] = [
     gap: 1,
     profile: [0.8, 1.4, 1, 0.6, 1.3, 1.5, 0.9, 1.1, 0.4],
   },
+  // Skirmish: even shelves and short hops, so a fight is fought on level
+  // ground. Chosen by a chapter's shape rather than by its index.
+  { name: 'skirmish', gap: 0.62, profile: [1, 1, 1, 1, 1, 1, 1, 1, 1] },
 ];
+const SKIRMISH_SIGNATURE = SIGNATURES.length - 1;
 const MISSION_NAMES = [
   'Earthbound Thunder',
   'The Iron Migration',
@@ -625,15 +673,27 @@ export function buildLevel(mission: number): LevelData {
       const chapterStart = x,
         chapterY = y,
         chapterTarget = regionY + CHAPTERS[skin][ci][1];
+      // Board one's chapters each have one job; every other board runs the
+      // shared rhythm, which is what `mixed` means.
+      const plan = mission === 0 ? BOARD_ONE[ai][ci] : null,
+        shape: Shape = plan ? plan.shape : 'mixed',
+        // A skirmish chapter is level ground: its elevation target matches the
+        // chapter before it, and what relief is left is a hint, not a climb.
+        level = shape === 'skirmish',
+        fighting = shape !== 'leaps',
+        // The shelves that introduce one species alone. Without a plan that is
+        // the region's opening chapter, as it always was.
+        lessons = plan ? (plan.lessons ?? []) : ci === 0 ? [2, 6] : [];
       const relief = RELIEF[(ci + skin) % RELIEF.length],
-        signature = SIGNATURES[ci],
+        signature = SIGNATURES[level ? SKIRMISH_SIGNATURE : ci],
         profileTotal = signature.profile.reduce((n, v) => n + v, 0);
       let profileSum = 0,
         prevGap = 0,
         prevY = y;
       // Half-length chapters carry twice the elevation change per step, so local
       // relief is damped to keep required rises inside a forgiving jump arc.
-      const reliefScale = 0.6 * (skin === 6 ? 0.7 : skin === 7 ? 1.5 : 1);
+      const reliefScale =
+        0.6 * (skin === 6 ? 0.7 : skin === 7 ? 1.5 : 1) * (level ? 0.35 : 1);
       r.steps.forEach((step, i) => {
         const shapeIndex = i === 0 || i === 8 ? i : 1 + ((i - 1 + ci * 3) % 7);
         const source = r.steps[shapeIndex];
@@ -643,7 +703,8 @@ export function buildLevel(mission: number): LevelData {
             : Math.round(source[0] * widthScale);
         // The chapter crossing (i === 5) is a deliberately long leap; a catch
         // floor below it turns a miss into a climb back rather than a death.
-        const crossing = i === 5;
+        // Level ground has no long crossing: its hops stay uniformly short.
+        const crossing = i === 5 && !level;
         // Violet Inversion's drop chapter crosses one gap on the ceiling: the
         // gap is too long to jump, so the inverted stretch is the route.
         const inverted = skin === 8 && ci === 2 && i === 6;
@@ -665,7 +726,7 @@ export function buildLevel(mission: number): LevelData {
           ((chapterTarget - chapterY) * profileSum) / profileTotal +
           relief[i + 1] * reliefScale;
         const dy = Math.round(nextY - y);
-        let beat = CHAPTER_BEATS[ci][i];
+        let beat = shape === 'mixed' ? CHAPTER_BEATS[ci][i] : SHAPE_BEATS[shape][i];
         if (beat === 'hazard' && skin !== 3 && skin !== 5) beat = 'run';
         const id = `m${mission}-a${ai}-c${ci}-p${i}`;
         const p: Platform = {
@@ -854,27 +915,17 @@ export function buildLevel(mission: number): LevelData {
             }
           }
         }
-        // An isolated second lesson gives every enemy its own readable introduction.
-        if (i === 2 && ci === 0) {
-          const type = r.enemies[0];
+        // An isolated lesson gives each species its own readable introduction:
+        // one enemy on an otherwise empty shelf, before any shelf holds two.
+        const lesson = lessons.indexOf(i);
+        if (lesson >= 0) {
+          const type = r.enemies[lesson % 2] as EnemyType;
           out.enemies = out.enemies.filter((e) => !e.id.startsWith(`${id}-`));
           out.enemies.push({
             id: `${id}-lesson`,
             type,
-            x: x + w * 0.62,
-            y: y - (FLYING.has(type) ? 120 : 0),
-            patrol: 110,
-            area: ai,
-          });
-        }
-        if (i === 6 && ci === 0) {
-          const type = r.enemies[1];
-          out.enemies = out.enemies.filter((e) => !e.id.startsWith(`${id}-`));
-          out.enemies.push({
-            id: `${id}-lesson`,
-            type,
-            x: x + w * 0.66,
-            y: y - (FLYING.has(type) ? 130 : 0),
+            x: x + w * (0.62 + lesson * 0.04),
+            y: y - (FLYING.has(type) ? 120 + lesson * 10 : 0),
             patrol: 110,
             area: ai,
           });
@@ -1014,7 +1065,7 @@ export function buildLevel(mission: number): LevelData {
         // Crossing guards: the long leap is contested from the far side. A
         // flyer hangs over the gap where a stomp or parry mid-arc clears it,
         // or the region's shooter waits at the far landing firing back across.
-        if (crossing && (ci >= 2 || tier >= 1)) {
+        if (crossing && fighting && (ci >= 2 || tier >= 1)) {
           const overhead = r.enemies.find((t) => FLYING.has(t)),
             shooter = r.enemies.find((t) => RANGED.has(t));
           if (overhead && ci % 2 === 0)
@@ -1067,7 +1118,9 @@ export function buildLevel(mission: number): LevelData {
         }
         // Deep crossings have a low recovery shelf. It rejoins the next landing
         // through two steps; a miss costs time instead of an unseen fatal plunge.
-        if (crossing || inverted || (gap >= 250 && i === 3 && !lowRoad)) {
+        // The chapter's midpoint keeps one even where level ground has shortened
+        // the hop, so every chapter has a caught mistake in the same place.
+        if (i === 5 || inverted || (gap >= 250 && i === 3 && !lowRoad)) {
           const recoveryY = Math.max(y, y + dy) + 260;
           out.platforms.push({
             id: `${id}-salvage`,

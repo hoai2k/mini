@@ -15,7 +15,7 @@
     {
       "mission": 1,
       "name": "Earthbound Thunder",
-      "width": 115905,
+      "width": 115117,
       "challenge": {
         "maxJumpOnly": 4,
         "maxCombo": 6.9,
@@ -69,7 +69,7 @@
             "foes": 4
           }
         ],
-        "meanCombat": 1.38
+        "meanCombat": 1.22
       },
       "arena": {
         "width": 3400,
@@ -78,11 +78,11 @@
       },
       "reachableMainShelves": 139,
       "mainShelves": 139,
-      "simulatedDirectedEdges": 140,
-      "fullHoldFastApproaches": 5,
+      "simulatedDirectedEdges": 142,
+      "fullHoldFastApproaches": 3,
       "optionalSignals": 9,
-      "highRoads": 15,
-      "lowRoads": 3,
+      "highRoads": 19,
+      "lowRoads": 2,
       "springs": 22,
       "movingMainShelves": 3,
       "counterBelts": 3,
@@ -92,7 +92,7 @@
       "requiredInversions": 0,
       "catchFloors": 17,
       "ambushes": {
-        "behind": 25,
+        "behind": 22,
         "above": 8,
         "under": 0,
         "mirror": 0
@@ -100,61 +100,61 @@
       "areas": [
         {
           "name": "Sunseed Fields",
-          "worldPixels": 37509,
+          "worldPixels": 37257,
           "encounters": {
-            "spawns": 38,
+            "spawns": 29,
             "agile": 6,
             "waves": 4,
-            "ambushes": 11,
-            "guards": 3,
+            "ambushes": 9,
+            "guards": 2,
             "tier": 1,
             "biggestFight": 3,
-            "meanFight": 2.8
+            "meanFight": 2.9
           },
           "gravity": 1,
           "mainShelves": 46,
           "maxRequiredGap": 420,
-          "maxRise": 149,
-          "verticalSpan": 618,
-          "enemies": 38,
-          "combatShelves": 13,
-          "quietShelves": 33,
+          "maxRise": 140,
+          "verticalSpan": 411,
+          "enemies": 29,
+          "combatShelves": 10,
+          "quietShelves": 36,
           "checkpoints": 10,
           "maxCheckpointSpacing": 4459,
-          "fullSpeedTravelSeconds": 58,
+          "fullSpeedTravelSeconds": 57,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Crownline City",
-          "worldPixels": 37499,
+          "worldPixels": 37318,
           "encounters": {
-            "spawns": 45,
+            "spawns": 41,
             "agile": 12,
-            "waves": 10,
-            "ambushes": 11,
-            "guards": 4,
+            "waves": 11,
+            "ambushes": 10,
+            "guards": 2,
             "tier": 2,
             "biggestFight": 4,
-            "meanFight": 3.4
+            "meanFight": 3.5
           },
           "gravity": 1,
           "mainShelves": 46,
           "maxRequiredGap": 392,
           "maxRise": 256,
-          "verticalSpan": 2682,
-          "enemies": 45,
-          "combatShelves": 13,
-          "quietShelves": 33,
+          "verticalSpan": 2665,
+          "enemies": 41,
+          "combatShelves": 12,
+          "quietShelves": 34,
           "checkpoints": 10,
           "maxCheckpointSpacing": 4549,
-          "fullSpeedTravelSeconds": 58,
+          "fullSpeedTravelSeconds": 57,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         },
         {
           "name": "Thunderhead Range",
-          "worldPixels": 40897,
+          "worldPixels": 40542,
           "encounters": {
-            "spawns": 43,
+            "spawns": 40,
             "agile": 12,
             "waves": 10,
             "ambushes": 11,
@@ -167,13 +167,13 @@
           "mainShelves": 47,
           "maxRequiredGap": 476,
           "maxRise": 238,
-          "verticalSpan": 3000,
-          "enemies": 43,
-          "combatShelves": 14,
-          "quietShelves": 33,
+          "verticalSpan": 2719,
+          "enemies": 40,
+          "combatShelves": 13,
+          "quietShelves": 34,
           "checkpoints": 11,
           "maxCheckpointSpacing": 4784,
-          "fullSpeedTravelSeconds": 63,
+          "fullSpeedTravelSeconds": 62,
           "estimatedFirstClearMinutes": "4–7 (unverified; includes combat, climbs and optional detours)"
         }
       ]
@@ -408,9 +408,9 @@
         "shelves": 9,
         "locks": 2
       },
-      "reachableMainShelves": 139,
+      "reachableMainShelves": 117,
       "mainShelves": 139,
-      "simulatedDirectedEdges": 157,
+      "simulatedDirectedEdges": 156,
       "fullHoldFastApproaches": 5,
       "optionalSignals": 9,
       "highRoads": 15,
@@ -511,5 +511,16 @@
       ]
     }
   ],
-  "failures": []
+  "failures": [
+    {
+      "mission": 2,
+      "kind": "inverted crossing lacks gate",
+      "from": "m2-a2-c2-p6",
+      "to": "m2-a2-c2-p7"
+    },
+    {
+      "mission": 2,
+      "kind": "boss unreachable"
+    }
+  ]
 }

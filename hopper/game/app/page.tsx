@@ -679,7 +679,7 @@ export default function Home() {
         aria-label={
           edition === '3d'
             ? 'Hopper the Grasshopper 3D world. A jumps and hovers, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
-            : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick behind, B or L to guard the front, RT or K to fire.'
+            : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to spin kick all round, B or L to guard the front, RT or K to fire.'
         }
         tabIndex={-1}
       />
@@ -823,7 +823,7 @@ export default function Home() {
                 alt={
                   edition === '3d'
                     ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
-                    : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
+                    : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
                 }
               />
               {edition === '3d' ? (
@@ -859,7 +859,7 @@ export default function Home() {
                     <b className="pad a">A</b> Jump
                   </li>
                   <li>
-                    <b className="pad x">X</b> Rear kick · parry
+                    <b className="pad x">X</b> Spin kick · parry
                   </li>
                   <li>
                     <b className="pad b">B</b> Guard front
@@ -1091,7 +1091,7 @@ export default function Home() {
               ) : (
                 <span>
                   <b className="pad a">A</b> JUMP <b className="pad x">X</b>{' '}
-                  KICK BEHIND <b className="trigger">RT</b> EYE LASERS{' '}
+                  SPIN KICK <b className="trigger">RT</b> EYE LASERS{' '}
                   <b className="pad b">B</b> GUARD FRONT
                 </span>
               )}
@@ -1212,7 +1212,7 @@ export default function Home() {
                     alt={
                       edition === '3d'
                         ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
-                        : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
+                        : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
                     }
                   />
                   {edition === '3d' ? (
@@ -1356,7 +1356,7 @@ export default function Home() {
                   ) : (
                     <>
                       KEYBOARD <span>← → / A D</span> move <span>SPACE</span>{' '}
-                      jump <span>J</span> rear kick <span>K</span> lasers{' '}
+                      jump <span>J</span> spin kick <span>K</span> lasers{' '}
                       <span>L</span> forward guard <span>ESC</span> pause
                     </>
                   )}
