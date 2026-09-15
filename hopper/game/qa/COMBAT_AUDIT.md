@@ -88,6 +88,16 @@ Together these mean a shadow directly in front is answered with lasers, a jump a
 
 The other fix in that pass: a shadow killed within 15 seconds no longer returns when Hopper dies and restarts from a checkpoint. `resetToCheckpoint` keeps it down with a `reviveAt` stamp, and it comes back only once the delay is up **and** Hopper is more than 1,100 units away, so it is never seen appearing.
 
+## Nothing appears out of thin air
+
+A later pass again, after play showed shadows seeming to spawn behind Hopper:
+
+- **The forward guard is gone.** B and L are a second kick button, and a new kick can start once the current one has counted down to `kickRepress` (0.17 s left of its 0.5 s), so a volley from behind is turned kick after kick. The energy meter, its breaking and recharging, and the "suspends kicking and shooting" rule went with it. The 3D edition keeps its own guard.
+- **Lurkers are there to be seen.** A ground shadow with a `behind` ambush, or in a later wave, is visible from the start: crouched (scaleY 0.62), dim, still, harmless on contact, and hittable, so a stomp or a laser on it wakes it staggered and open. It rises when Hopper is past it (or when its wave is called) instead of appearing. Later waves wait at the far end of their shelf and leap in toward the landing fight. A buried burrower is the one shadow still unseen until it surfaces, and it tells first.
+- **Flyers arrive, never appear.** A flyer in a later wave sweeps in from 950 units above the shelf; a flyer with a `behind` ambush starts 1,350 units behind Hopper, off the screen, and crosses the picture at 620 units per second to reach him.
+- **A fallen shadow comes back only far offscreen.** It revives once its delay is up and Hopper is more than 3,000 units away (the screen's half-width plus a full screen width at the widest look zoom, `REVIVE_DISTANCE`), whether or not Hopper has died in between; backtrack that far and it is simply there again. A checkpoint restart keeps everything behind the checkpoint down.
+- **Every shadow on the first board can be stomped, and shells turn the beam.** A closed shell takes nothing from a laser (a kick or a turned shot opens it for 1.5 s); instead the engine draws where the beam went. The crag tortoise throws it 57° off the reversed line, upward, as a 320-unit `fizzle` beam that fades along its length. The second episode's slag caster, ballast crab and turbine wasp (`MIRROR`) send it back whole for up to 1,000 units, 11° to 32° off the reversed line, alternating sides shot by shot, and if that line crosses Hopper's body it hurts him (not parryable). The crab, caster and wasp can all be stomped now. Only `hardened` spawns refuse a stomp while closed, and they mirror too: the generator marks one per finish shelf in the third episode (twelve in all), drawn with a pale stone rim.
+
 ## What still needs a human
 
 The numbers say a five-foe wave with two agile spawns is clearable because each dies to one stomp; they cannot say whether the vault-and-shoot from behind reads clearly enough at tier 3 tell speeds, or whether the crossing guard's double dive over a low-gravity 882-unit gap feels fair. Those are controller-in-hand checks. The arena also wants a playtest for whether the swinging shelf and the pillars actually get used against each boss's patterns or are ignored for the floor.

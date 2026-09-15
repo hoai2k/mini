@@ -323,9 +323,21 @@ for (const type of [
   });
   const hp = engine.combat.enemies[0].hp;
   engine.shoot();
+  // A closed shell turns the beam aside (a second beam leaves the shadow) and
+  // takes nothing; opened by a kick, it takes the lasers like any other.
+  const turned = engine.lasers.length > 1;
+  const closedDamage = hp - engine.combat.enemies[0].hp;
+  if (turned) {
+    engine.combat.enemies[0].open = 2;
+    engine.combat.enemies[0].invulnerable = 0;
+    engine.lasers = [];
+    engine.shoot();
+  }
   laserTests.push({
     type,
     damage: hp - engine.combat.enemies[0].hp,
+    turned,
+    closedDamage,
     beam: engine.lasers.at(-1),
   });
 }
@@ -361,8 +373,14 @@ for (let m = 0; m < 3; m++) {
   });
 }
 const laserSummary = {
-  allSpeciesHit: laserTests.every((t) => t.damage > 0),
-  species: laserTests.map(({ type, damage }) => ({ type, damage })),
+  allSpeciesHit: laserTests.every(
+    (t) => t.damage > 0 && (!t.turned || t.closedDamage === 0),
+  ),
+  species: laserTests.map(({ type, damage, turned }) => ({
+    type,
+    damage,
+    turned,
+  })),
   bossLaserTests,
 };
 fs.writeFileSync(

@@ -85,6 +85,8 @@ interface Laser {
   y2: number;
   life: number;
   maxLife: number;
+  /** A beam turned aside by a shell that dies out along its line. */
+  fizzle?: boolean;
 }
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 const approach = (v: number, t: number, s: number) =>
@@ -144,6 +146,9 @@ export const PHYSICS = {
   hitstun: 0.3,
   /** The spin kick parries rear attacks while kickT is above this value. */
   parryUntil: 0.14,
+  /** A new kick can start once the current one has counted down to this: the
+   * sweep chains fast enough to turn a whole volley of shots. */
+  kickRepress: 0.17,
   /** Laser aim cone in front: how far down and up it will follow a target. */
   aimDown: 1.9,
   aimUp: 0.45,
@@ -228,8 +233,6 @@ export class Engine {
     wallSide: 0,
     wallKickT: 0,
     shooting: false,
-    blocking: false,
-    shieldFlash: 0,
     landingDistance: Infinity,
     reducedMotion: false,
   };
@@ -267,10 +270,8 @@ export class Engine {
   overheated = false;
   score = 0;
   shake = 0;
-  shield = 1;
-  private shieldBrokenT = 0;
-  private shieldHitT = 0;
-  private shieldRestT = 0;
+  /** Whether the guard button was held last step: its press is a kick. */
+  private guardHeld = false;
   private groundAnchorY = 800;
   private groundAnchorSign = 1;
   private cameraLead = 330;
@@ -288,6 +289,8 @@ export class Engine {
   private hold = 0;
   private previousHold = false;
   private shotCooldown = 0;
+  /** Shots fired, so a mirrored beam comes back off a different side each time. */
+  private shotIndex = 0;
   private kickId = 0;
   private launchId = 0;
   private launchFacing = 1;
@@ -536,10 +539,6 @@ export class Engine {
       this.player.kickT = 0.4;
       this.player.parryT = 0.3;
     }
-    if (pose === 'shield') {
-      this.player.blocking = true;
-      this.player.shieldFlash = 0.18;
-    }
     if (pose === 'laser') {
       this.player.shooting = true;
       this.shoot();
@@ -585,8 +584,6 @@ export class Engine {
     this.victoryT = 0;
     this.hp = this.maxHp;
     this.heat = 0;
-    this.shield = 1;
-    this.shieldBrokenT = 0;
     this.overheated = false;
     this.particles = [];
     this.explosions = [];
@@ -679,8 +676,6 @@ export class Engine {
       wallSide: 0,
       wallKickT: 0,
       shooting: false,
-      blocking: false,
-      shieldFlash: 0,
       landingDistance: 0,
     });
     this.camera = {
@@ -708,8 +703,6 @@ export class Engine {
   respawn() {
     this.hp = this.maxHp;
     this.heat = 0;
-    this.shield = 1;
-    this.shieldBrokenT = 0;
     this.overheated = false;
     this.resetPlayer();
     this.combat.resetToCheckpoint(this.checkpoint.x);
@@ -759,31 +752,6 @@ export class Engine {
       this.rumble(0.25, 60);
       return true;
     }
-    // The held shield is a parry facing forward: it turns a frontal blow at an
-    // energy cost, and leaves Hopper's back open.
-    if (parryable && p.blocking && -Math.sign(kx) === p.facing) {
-      if (this.shieldHitT <= 0) {
-        this.shield = Math.max(0, this.shield - 0.2);
-        this.shieldHitT = 0.22;
-        p.shieldFlash = 0.3;
-        this.shieldRestT = 0.8;
-        this.effect(
-          'spark',
-          p.x + p.facing * 105,
-          p.y - 65 * p.gravitySign,
-          '#b6fbff',
-        );
-        this.audio.effect('shield');
-        this.rumble(0.22, 55);
-        if (this.shield <= 0) {
-          this.shieldBrokenT = 1.4;
-          p.blocking = false;
-        }
-      }
-      p.invuln = Math.max(p.invuln, 0.2);
-      p.vx = kx * 0.35;
-      return true;
-    }
     if (p.invuln > 0) return false;
     this.hp = Math.max(0, this.hp - d);
     p.invuln = this.settings.assist ? 2.8 : 1.25;
@@ -823,33 +791,15 @@ export class Engine {
       'catchT',
       'wallT',
       'wallKickT',
-      'shieldFlash',
     ] as const)
       p[n] = Math.max(0, p[n] - dt);
     this.shotCooldown = Math.max(0, this.shotCooldown - dt);
-    this.shieldBrokenT = Math.max(0, this.shieldBrokenT - dt);
-    this.shieldHitT = Math.max(0, this.shieldHitT - dt);
-    this.shieldRestT = Math.max(0, this.shieldRestT - dt);
     const stunned = p.hitstun > 0;
-    const wasBlocking = p.blocking;
-    p.blocking =
-      !!f.blockHeld &&
-      !stunned &&
-      this.shield > 0.03 &&
-      this.shieldBrokenT <= 0;
-    if (p.blocking) {
-      this.shield = Math.max(0, this.shield - dt * 0.13);
-      this.shieldRestT = 0.65;
-      if (!wasBlocking) {
-        this.audio.effect('shield');
-        p.kickT = 0;
-      }
-      if (this.shield <= 0.03) {
-        this.shieldBrokenT = 1.4;
-        p.blocking = false;
-      }
-    } else if (this.shieldRestT <= 0)
-      this.shield = Math.min(1, this.shield + dt * 0.27);
+    // There is no held guard in this edition: the button it sat on (B, or L
+    // on the keyboard) is a second kick, so the answer to a volley from any
+    // side is to turn and sweep.
+    const guardPressed = !!f.blockHeld && !this.guardHeld;
+    this.guardHeld = !!f.blockHeld;
     // Right-stick look eases out toward the stick and eases back when released.
     const lookMag = Math.min(1, Math.hypot(f.lookX, f.lookY)),
       ease = Math.min(1, dt * (lookMag > 0.05 ? 5 : 3.5));
@@ -965,11 +915,22 @@ export class Engine {
     else this.coyote = Math.max(0, this.coyote - dt);
     // The dark below: the floor carries him back to a pad, where he stands
     // still and can only jump; the launch itself is committed straight up.
-    const under = this.stood ? this.level.platforms.find((q) => q.id === this.stood) : undefined;
+    const under = this.stood
+      ? this.level.platforms.find((q) => q.id === this.stood)
+      : undefined;
     // A pad holds him only once he is well onto it; its edge is still floor.
-    const onPad = p.grounded && under?.kind === 'launch' && p.x >= under.x + 24 && p.x <= under.x + under.w - 24,
+    const onPad =
+        p.grounded &&
+        under?.kind === 'launch' &&
+        p.x >= under.x + 24 &&
+        p.x <= under.x + under.w - 24,
       onFloor = p.grounded && under?.routeRole === 'floor' && !onPad;
-    if (this.launchLock && (p.grounded || (p.vy * sign >= 0 && p.y * sign < this.launchTarget * sign - 10))) this.launchLock = false;
+    if (
+      this.launchLock &&
+      (p.grounded ||
+        (p.vy * sign >= 0 && p.y * sign < this.launchTarget * sign - 10))
+    )
+      this.launchLock = false;
     if (this.launchLock) {
       p.vx = 0;
     } else if (onFloor) {
@@ -1013,11 +974,19 @@ export class Engine {
       this.effect('stomp', p.x + p.wallSide * 40, p.y - 60 * sign, '#d7dd9f');
       this.score += 10;
     }
-    if (onPad && under?.launchTo !== undefined && this.jumpBuffer > 0 && !stunned) {
+    if (
+      onPad &&
+      under?.launchTo !== undefined &&
+      this.jumpBuffer > 0 &&
+      !stunned
+    ) {
       // The pad's jump: straight up, to just above the route shelf over it,
       // however far up that is; nothing steers it until he is there.
       const g = PHYSICS.gravity * area.gravity;
-      const rise = Math.max(200, (p.y - under.launchTo) * sign + PHYSICS.launchClear);
+      const rise = Math.max(
+        200,
+        (p.y - under.launchTo) * sign + PHYSICS.launchClear,
+      );
       p.vy = -Math.sqrt(2 * g * rise) * sign;
       p.vx = 0;
       p.grounded = false;
@@ -1062,7 +1031,9 @@ export class Engine {
         ? PHYSICS.holdGravity
         : 1) *
       dt;
-    p.vy = this.launchLock ? clamp(p.vy, -9000, 1600) : clamp(p.vy, -1600, 1600);
+    p.vy = this.launchLock
+      ? clamp(p.vy, -9000, 1600)
+      : clamp(p.vy, -1600, 1600);
     const oldX = p.x,
       oldY = p.y,
       wasGrounded = p.grounded;
@@ -1137,9 +1108,13 @@ export class Engine {
       }
     }
     // On the dark floor a step just above the feet is climbed, not a wall.
-    if (sign > 0 && (onFloor || onPad || String(this.stood).startsWith('floor-'))) {
+    if (
+      sign > 0 &&
+      (onFloor || onPad || String(this.stood).startsWith('floor-'))
+    ) {
       for (const q of this.platforms) {
-        if (q.routeRole !== 'floor' || p.x + 43 < q.x || p.x - 43 > q.x + q.w) continue;
+        if (q.routeRole !== 'floor' || p.x + 43 < q.x || p.x - 43 > q.x + q.w)
+          continue;
         if (q.y < p.y && q.y >= p.y - 40) {
           p.y = q.y;
           p.vy = Math.min(p.vy, 0);
@@ -1233,7 +1208,11 @@ export class Engine {
         this.shake = Math.max(this.shake, 3);
       }
     }
-    if (f.kickPressed && p.kickT === 0 && !stunned && !p.blocking) {
+    if (
+      (f.kickPressed || guardPressed) &&
+      p.kickT <= PHYSICS.kickRepress &&
+      !stunned
+    ) {
       p.kickT = 0.5;
       this.kickId++;
       this.audio.effect('kick');
@@ -1286,13 +1265,10 @@ export class Engine {
     this.heat = Math.max(
       0,
       this.heat -
-        dt *
-          (f.shootHeld && !this.overheated && !stunned && !p.blocking
-            ? 0.06
-            : 0.34),
+        dt * (f.shootHeld && !this.overheated && !stunned ? 0.06 : 0.34),
     );
     if (this.overheated && this.heat < 0.15) this.overheated = false;
-    p.shooting = f.shootHeld && !this.overheated && !stunned && !p.blocking;
+    p.shooting = f.shootHeld && !this.overheated && !stunned;
     if (p.shooting && this.shotCooldown === 0) {
       this.shoot();
       this.shotCooldown = 0.11;
@@ -1569,7 +1545,9 @@ export class Engine {
     if (hitTarget) {
       const r = this.combat.hit(end, endY, 26, 1, 'laser', p.facing);
       this.score += r.kills * 100;
-      this.effect('spark', end, endY, '#ffe7bb');
+      if (r.guarded && r.at)
+        this.reflectBeam(eye.x, eye.y, r.at.x, r.at.y, !!r.mirror);
+      else this.effect('spark', end, endY, '#ffe7bb');
     }
     this.lasers.push({
       x: eye.x,
@@ -1580,6 +1558,83 @@ export class Engine {
       maxLife: 0.1,
     });
     this.audio.effect('laser');
+  }
+  /** How far along a beam solid terrain stops it (1 = not at all). */
+  private beamReach(x1: number, y1: number, x2: number, y2: number): number {
+    let clip = 1;
+    for (const q of this.platforms) {
+      if (q.kind === 'oneWay' || q.routeRole === 'optional') continue;
+      clip = Math.min(clip, this.beamClip(x1, y1, x2, y2, q));
+    }
+    return clip;
+  }
+  /** A closed shell turns the beam. An ordinary shell sends it off at a steep
+   * angle, upward, where it dies out along its line; a mirror sends it back
+   * whole, near Hopper's own line but never exactly along it, so it can come
+   * back and hit him. */
+  private reflectBeam(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    mirror: boolean,
+  ) {
+    const p = this.player,
+      sign = p.gravitySign,
+      len = Math.hypot(x2 - x1, y2 - y1) || 1,
+      ux = (x2 - x1) / len,
+      uy = (y2 - y1) / len;
+    this.shotIndex++;
+    // Rotate the reversed beam off its line. A mirror alternates sides and
+    // varies its angle a little from shot to shot (11° to 32°); a plain
+    // shell throws the beam 57° off, whichever way is up.
+    const turn = mirror
+      ? (0.2 + 0.18 * (this.shotIndex % 3)) * (this.shotIndex % 2 ? 1 : -1)
+      : 1;
+    const rotate = (a: number) =>
+      [
+        -ux * Math.cos(a) + uy * Math.sin(a),
+        -ux * Math.sin(a) - uy * Math.cos(a),
+      ] as const;
+    let [rx, ry] = rotate(turn);
+    if (!mirror && ry * sign > 0) [rx, ry] = rotate(-turn);
+    const reach = mirror ? 1000 : 320;
+    let ex = x2 + rx * reach,
+      ey = y2 + ry * reach;
+    const clip = this.beamReach(x2, y2, ex, ey);
+    ex = x2 + (ex - x2) * clip;
+    ey = y2 + (ey - y2) * clip;
+    this.effect('spark', x2, y2, '#fff6cf');
+    if (mirror) {
+      // Does the returned beam cross Hopper's body?
+      const cx = p.x,
+        cy = p.y - 60 * sign,
+        segX = ex - x2,
+        segY = ey - y2,
+        segLen = Math.hypot(segX, segY) || 1,
+        t = clamp(
+          ((cx - x2) * segX + (cy - y2) * segY) / (segLen * segLen),
+          0,
+          1,
+        ),
+        nx = x2 + segX * t,
+        ny = y2 + segY * t;
+      if (Math.hypot(cx - nx, cy - ny) < 52) {
+        ex = nx;
+        ey = ny;
+        this.effect('spark', nx, ny, '#ff9c8a');
+        this.hurt(1, Math.sign(rx || -p.facing) * 270, -200 * sign, false);
+      }
+    }
+    this.lasers.push({
+      x: x2,
+      y: y2,
+      x2: ex,
+      y2: ey,
+      life: mirror ? 0.1 : 0.16,
+      maxLife: mirror ? 0.1 : 0.16,
+      fizzle: !mirror,
+    });
   }
   private effect(name: string, x: number, y: number, color = '#efd6a4') {
     const explosion = name === 'explosion' || name === 'bossExplosion';
@@ -1646,8 +1701,8 @@ export class Engine {
       progress: clamp(this.player.x / this.level.width, 0, 1),
       signals: this.signals.size,
       score: this.score,
-      shield: this.shield,
-      shieldBroken: this.shieldBrokenT > 0,
+      shield: 1,
+      shieldBroken: false,
       gravity: (area?.gravity || 1) * this.player.gravitySign,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,

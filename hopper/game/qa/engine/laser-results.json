@@ -3,75 +3,93 @@
   "species": [
     {
       "type": "shadeHound",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "seedSpitter",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "windowRay",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "spireLeech",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "cragTortoise",
-      "damage": 0.2999999999999998
+      "damage": 1,
+      "turned": true
     },
     {
       "type": "riftCondor",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "furnaceHound",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "slagCaster",
-      "damage": 0.2999999999999998
+      "damage": 1,
+      "turned": true
     },
     {
       "type": "chainManta",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "ballastCrab",
-      "damage": 0.2999999999999998
+      "damage": 1,
+      "turned": true
     },
     {
       "type": "coilWraith",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "turbineWasp",
-      "damage": 0.2999999999999998
+      "damage": 1,
+      "turned": true
     },
     {
       "type": "basaltBurrower",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "thornChoir",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "veilMedusa",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "phaseSkate",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "mirrorStalker",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     },
     {
       "type": "gravityCantor",
-      "damage": 1
+      "damage": 1,
+      "turned": false
     }
   ],
   "bossLaserTests": [

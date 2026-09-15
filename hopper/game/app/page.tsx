@@ -411,7 +411,12 @@ export default function Home() {
             'shake',
             'assist',
             ...(editionRef.current === '3d'
-              ? (['cameraSensitivity', 'invertY', 'landingGuide', 'shadowHalo'] as const)
+              ? ([
+                  'cameraSensitivity',
+                  'invertY',
+                  'landingGuide',
+                  'shadowHalo',
+                ] as const)
               : []),
           ];
           const k = keys[focusRef.current];
@@ -524,7 +529,14 @@ export default function Home() {
       schema?: object,
       readOnly?: boolean,
     ) =>
-      registerTool(lifecycle.signal, name, description, execute, schema, readOnly);
+      registerTool(
+        lifecycle.signal,
+        name,
+        description,
+        execute,
+        schema,
+        readOnly,
+      );
     register(
       'get_game_status',
       'Read the current episode, armor, checkpoint and menu.',
@@ -582,7 +594,6 @@ export default function Home() {
                 'inverted',
                 'explosion',
                 'parry',
-                'shield',
               ],
             },
           },
@@ -679,7 +690,7 @@ export default function Home() {
         aria-label={
           edition === '3d'
             ? 'Hopper the Grasshopper 3D world. A jumps and hovers, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
-            : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick behind, B or L to guard the front, RT or K to fire.'
+            : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to kick behind, B or L also kicks, RT or K to fire.'
         }
         tabIndex={-1}
       />
@@ -823,7 +834,7 @@ export default function Home() {
                 alt={
                   edition === '3d'
                     ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
-                    : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
+                    : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B rear spin kick and parry, RT shoot, Menu pause, View instructions.'
                 }
               />
               {edition === '3d' ? (
@@ -862,7 +873,7 @@ export default function Home() {
                     <b className="pad x">X</b> Rear kick · parry
                   </li>
                   <li>
-                    <b className="pad b">B</b> Guard front
+                    <b className="pad b">B</b> Kick too
                   </li>
                   <li>
                     <b className="trigger">RT</b> Eye lasers
@@ -886,8 +897,7 @@ export default function Home() {
                 ) : (
                   <>
                     KEYBOARD <span>← →</span> move <span>SPACE</span> jump{' '}
-                    <span>J</span> kick <span>K</span> lasers <span>L</span>{' '}
-                    guard
+                    <span>J</span> kick <span>K</span> lasers
                   </>
                 )}
               </p>
@@ -962,12 +972,14 @@ export default function Home() {
                 <div className="heat">
                   <i style={{ width: `${hud.heat * 100}%` }} />
                 </div>
-                <div
-                  className="shield-meter"
-                  aria-label={`Shield ${Math.round(hud.shield * 100)} percent`}
-                >
-                  <i style={{ width: `${hud.shield * 100}%` }} />
-                </div>
+                {edition === '3d' && (
+                  <div
+                    className="shield-meter"
+                    aria-label={`Shield ${Math.round(hud.shield * 100)} percent`}
+                  >
+                    <i style={{ width: `${hud.shield * 100}%` }} />
+                  </div>
+                )}
                 <span className="heat-label">
                   {hud.shieldBroken
                     ? 'SHIELD RECHARGING'
@@ -1091,8 +1103,7 @@ export default function Home() {
               ) : (
                 <span>
                   <b className="pad a">A</b> JUMP <b className="pad x">X</b>{' '}
-                  KICK BEHIND <b className="trigger">RT</b> EYE LASERS{' '}
-                  <b className="pad b">B</b> GUARD FRONT
+                  KICK BEHIND <b className="trigger">RT</b> EYE LASERS
                 </span>
               )}
             </div>
@@ -1212,7 +1223,7 @@ export default function Home() {
                     alt={
                       edition === '3d'
                         ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
-                        : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X rear spin kick and parry, B forward guard, RT shoot, Menu pause, View instructions.'
+                        : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B rear spin kick and parry, RT shoot, Menu pause, View instructions.'
                     }
                   />
                   {edition === '3d' ? (
@@ -1272,15 +1283,15 @@ export default function Home() {
                         <strong>Walk, gallop, climb</strong> Open ground at
                         speed is a gallop; picking his way about is the insect
                         walk. Push into a wall and he takes hold of it and
-                        climbs, with the stick along the face and A to kick
-                        off; a lip within reach is hauled over.
+                        climbs, with the stick along the face and A to kick off;
+                        a lip within reach is hauled over.
                       </p>
                       <p>
                         <strong>The view faces the way forward</strong> Turn it
                         with the right stick and it stays where you leave it,
-                        drifting back to the trail only after a while; click
-                        the stick to recentre. Hopper can turn round and run
-                        toward the camera whenever he needs to.
+                        drifting back to the trail only after a while; click the
+                        stick to recentre. Hopper can turn round and run toward
+                        the camera whenever he needs to.
                       </p>
                       <p>
                         <strong>Falling never hurts</strong> Every drop has a
@@ -1316,12 +1327,10 @@ export default function Home() {
                       </p>
                       <p>
                         <b className="pad b">B</b>
-                        <strong>Forward guard</strong> Hold to parry everything
-                        arriving from the front, turning shots back at their
-                        shooter. It leaves your back open, does no damage of its
-                        own, spends energy while held and when struck, and
-                        breaks briefly if drained. Release to recharge.
-                        Keyboard: L.
+                        <strong>Kick, again</strong> B is a second kick button.
+                        The sweep chains quickly, so a volley of shots from
+                        behind can be turned one after another; face away from a
+                        shooter to parry it. Keyboard: L.
                       </p>
                       <p>
                         <strong>Take a hit</strong> Shadows knock Hopper back a
@@ -1357,7 +1366,7 @@ export default function Home() {
                     <>
                       KEYBOARD <span>← → / A D</span> move <span>SPACE</span>{' '}
                       jump <span>J</span> rear kick <span>K</span> lasers{' '}
-                      <span>L</span> forward guard <span>ESC</span> pause
+                      <span>L</span> kick too <span>ESC</span> pause
                     </>
                   )}
                 </div>

@@ -47,11 +47,11 @@
     "hazardParried": false,
     "hazardHp": 6,
     "lateParried": false,
-    "guardFront": true,
-    "guardFrontHp": 7,
-    "guardCost": 0.7989166666666667,
-    "guardRear": false,
-    "guardRearHp": 5
+    "bKick": true,
+    "bRear": true,
+    "bRearHp": 7,
+    "bFront": false,
+    "bFrontHp": 5
   },
   "knockback": {
     "stunStart": 0.3,
@@ -95,16 +95,11 @@
       "x": 5920.166666666667
     }
   },
-  "shield": {
-    "shieldStart": 0.9989166666666667,
-    "afterHit": 0.7989166666666667,
-    "shieldHpStart": 7,
-    "shieldHitHp": 7,
-    "breakAt": 0.9916666666666667,
-    "blockingWhenBroken": false,
-    "hpAtBreak": 7,
-    "afterBreakHp": 6,
-    "recharged": 1
+  "kickChain": {
+    "midKick": 0.14166666666666594,
+    "chained": true,
+    "volleyParried": 12,
+    "volleyHp": 7
   },
   "wallKick": {
     "prompt": {
@@ -191,8 +186,8 @@
     "kickParriesTheBack": true,
     "kickParriesOverhead": true,
     "kickLeavesTheFrontOpen": true,
-    "guardParriesTheFront": true,
-    "guardLeavesTheBackOpen": true,
+    "BKicks": true,
+    "BLeavesTheFrontOpen": true,
     "hazardsCannotBeParried": true,
     "parryWindowCloses": true,
     "knockbackCarries": true,
@@ -200,11 +195,9 @@
     "ledgeCatchAtEdge": true,
     "ledgeCatchLimits": true,
     "thinShelfOnlyAtLip": true,
-    "blockProtects": true,
-    "shieldBreaks": true,
-    "brokenAllowsDamage": true,
-    "shieldRecharges": true,
-    "BHoldsShield": true,
+    "kickChains": true,
+    "volleyTurned": true,
+    "BReachesTheEngine": true,
     "wallKickPromptLaunches": true,
     "wallKickWindowCloses": true,
     "lookPushesAndWidens": true,

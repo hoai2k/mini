@@ -21,8 +21,6 @@ export interface RenderState {
     shooting: boolean;
     parryT?: number;
     catchT?: number;
-    blocking?: boolean;
-    shieldFlash?: number;
     landingDistance?: number;
     reducedMotion: boolean;
     w?: number;
@@ -49,6 +47,7 @@ export interface RenderState {
     size: number;
   }>;
   lasers: Array<{
+    fizzle?: boolean;
     x: number;
     y: number;
     x2: number;
@@ -187,45 +186,13 @@ export class Renderer {
     this.cages(s);
     this.projectiles(s);
     this.player(s);
-    if (s.player.blocking) {
-      const p = s.player,
-        flash = p.shieldFlash || 0,
-        pulse = 0.5 + Math.sin(s.time * 11) * 0.12;
-      // A forward-facing guard, not a bubble: the back is deliberately open.
-      c.save();
-      c.translate(p.x, p.y - 70 * p.gravitySign);
-      c.scale(p.facing, 1);
-      c.globalAlpha = 0.55 + flash * 1.4;
-      c.strokeStyle = flash > 0 ? '#eaffff' : '#8ce6ef';
-      c.lineWidth = 5 + flash * 8;
-      c.shadowColor = '#76e9ff';
-      c.shadowBlur = 22 + flash * 40;
-      c.beginPath();
-      c.ellipse(
-        18,
-        0,
-        104 + pulse * 8,
-        96 + pulse * 8,
-        0,
-        -Math.PI * 0.44,
-        Math.PI * 0.44,
-      );
-      c.stroke();
-      c.globalAlpha = 0.13 + flash * 0.3;
-      c.fillStyle = '#b6fbff';
-      c.fill();
-      c.restore();
-    }
     if ((s.player.parryT || 0) > 0) {
       // Parry flash: a bright ring that snaps outward from the spin. The kick
       // sweeps behind, so the ring is centred on Hopper's back.
       const p = s.player,
         t = 1 - (p.parryT || 0) / 0.36;
       c.save();
-      c.translate(
-        p.x - (p.blocking ? 0 : p.facing * 45),
-        p.y - 70 * p.gravitySign,
-      );
+      c.translate(p.x - p.facing * 45, p.y - 70 * p.gravitySign);
       c.globalAlpha = Math.max(0, 1 - t) * 0.9;
       c.strokeStyle = '#d6ffff';
       c.lineWidth = 5 - t * 3;
@@ -446,7 +413,13 @@ export class Renderer {
       ? Math.max(p.h, 65)
       : p.hollow
         ? Math.max(p.h, p.hollow)
-        : Math.max(p.h, Math.min(this.bounds.bottom - p.y + 120, floorY === null ? Infinity : floorY - p.y - 90));
+        : Math.max(
+            p.h,
+            Math.min(
+              this.bounds.bottom - p.y + 120,
+              floorY === null ? Infinity : floorY - p.y - 90,
+            ),
+          );
     if (p.hollow) {
       // The corridor plate paints the recess under a hollowed fight shelf: its
       // painted ceiling meets the underside of the shelf and its painted floor
@@ -783,10 +756,14 @@ export class Renderer {
         // bleeding through the intact one as its integrity falls.
         c.save();
         if (flash > 0)
-          c.translate(Math.sin(flash * 90) * flash * 26, Math.cos(flash * 70) * flash * 14);
+          c.translate(
+            Math.sin(flash * 90) * flash * 26,
+            Math.cos(flash * 70) * flash * 14,
+          );
         c.globalAlpha = shattered ? 0.85 : 1;
         c.drawImage(cage, b.x, b.y, b.w, b.h);
-        const wreck = !shattered && integrity < 1 ? this.image('cageBroken') : null;
+        const wreck =
+          !shattered && integrity < 1 ? this.image('cageBroken') : null;
         if (wreck) {
           c.globalAlpha = (1 - integrity) * 0.75;
           c.drawImage(wreck, b.x, b.y, b.w, b.h);
@@ -926,9 +903,12 @@ export class Renderer {
       pulse = reducedMotion
         ? 0.5
         : 0.5 + Math.sin(time * 3.1 + e.sequence) * 0.5;
+    // A shadow lying in wait is a dark, still lump: its aura barely glows,
+    // so the crouch reads as dormant rather than as a fresh arrival.
+    const lurking = 'dormant' in e && e.dormant;
     c.save();
     c.globalCompositeOperation = 'lighter';
-    c.globalAlpha = (boss ? 0.34 : 0.28) + pulse * 0.12;
+    c.globalAlpha = lurking ? 0.1 : (boss ? 0.34 : 0.28) + pulse * 0.12;
     const aura = c.createRadialGradient(cx, cy, auraR * 0.12, cx, cy, auraR);
     aura.addColorStop(0, 'rgba(255,92,86,0.55)');
     aura.addColorStop(0.45, 'rgba(214,42,52,0.28)');
@@ -942,13 +922,18 @@ export class Renderer {
     c.translate(e.x, e.y + e.bob);
     c.scale(facing * e.scaleX, e.scaleY);
     if (e.invulnerable > 0) c.globalAlpha = 0.62 + Math.sin(time * 65) * 0.25;
+    else if (lurking) c.globalAlpha = 0.86;
     if (e.glow > 0) {
       c.shadowColor = e.open > 0 ? '#ffe7a4' : '#db8dff';
       c.shadowBlur = 12 + e.glow * 25;
     } else {
       // A red rim traces the silhouette itself, so the outline stays readable
-      // even where the aura falls on a bright piece of background.
-      c.shadowColor = 'rgba(255,74,74,0.85)';
+      // even where the aura falls on a bright piece of background. A
+      // hardened shadow wears a pale stone rim instead.
+      c.shadowColor =
+        'hardened' in e && e.hardened
+          ? 'rgba(236,222,190,0.95)'
+          : 'rgba(255,74,74,0.85)';
       c.shadowBlur = 14 + pulse * 6;
     }
     c.drawImage(img, -w / 2, -h, w, h);
@@ -1085,6 +1070,23 @@ export class Renderer {
     for (const beam of s.lasers) {
       const alpha = clamp(beam.life / beam.maxLife);
       c.globalAlpha = alpha;
+      if (beam.fizzle) {
+        // Turned aside by a shell: a thinner, warmer line that dies out
+        // along its way, so the bounce reads as the beam going nowhere.
+        const fade = c.createLinearGradient(beam.x, beam.y, beam.x2, beam.y2);
+        fade.addColorStop(0, 'rgba(255,190,120,0.95)');
+        fade.addColorStop(0.55, 'rgba(255,150,90,0.45)');
+        fade.addColorStop(1, 'rgba(255,120,80,0)');
+        c.strokeStyle = fade;
+        c.shadowColor = '#ff8a4c';
+        c.shadowBlur = 10;
+        c.lineWidth = 5;
+        c.beginPath();
+        c.moveTo(beam.x, beam.y);
+        c.lineTo(beam.x2, beam.y2);
+        c.stroke();
+        continue;
+      }
       c.strokeStyle = '#ff4e58';
       c.shadowColor = '#ff334c';
       c.shadowBlur = 18;

@@ -215,15 +215,17 @@ const hazardHp = e.hp;
 e = make();
 for (let n = 0; n < 60; n++) step(e);
 const lateParried = e.hurt(2, 300, -200);
+// B (blockHeld) is a second kick button now: its press starts the sweep,
+// which parries the back like any kick and leaves the front open.
 e = make();
 step(e, { blockHeld: true });
-const guardFront = e.hurt(2, -300, -200);
-const guardFrontHp = e.hp,
-  guardCost = e.shield;
+const bKick = e.player.kickT > 0;
+const bRear = e.hurt(2, 300, -200);
+const bRearHp = e.hp;
 e = make();
 step(e, { blockHeld: true });
-const guardRear = e.hurt(2, 300, -200);
-const guardRearHp = e.hp;
+const bFront = e.hurt(2, -300, -200);
+const bFrontHp = e.hp;
 report.parry = {
   hpStart,
   kickRear,
@@ -235,11 +237,11 @@ report.parry = {
   hazardParried,
   hazardHp,
   lateParried,
-  guardFront,
-  guardFrontHp,
-  guardCost,
-  guardRear,
-  guardRearHp,
+  bKick,
+  bRear,
+  bRearHp,
+  bFront,
+  bFrontHp,
 };
 // Knockback: after a hit, steering is ignored for the stun window and Hopper
 // travels backward a real distance before regaining control.
@@ -295,41 +297,22 @@ report.ledgeCatch = {
   thinShelfAtLip: ledge(80, 6, 1, 'oneWay'),
   thinShelfBelowLip: ledge(80, 40, 1, 'oneWay'),
 };
-// Shield: held B absorbs from every direction at an energy cost, breaks when
-// drained, and recharges once released. It sits beside the parry, not instead.
+// Kick chain: a new kick can start before the last one has counted all the
+// way down, so a volley of shots from behind is turned kick after kick.
 e = make();
-step(e, { blockHeld: true });
-const shieldStart = e.shield,
-  shieldHpStart = e.hp;
-e.hurt(2, -300, -200);
-const afterHit = e.shield,
-  shieldHitHp = e.hp;
-let breakAt = null;
-for (let n = 0; n < 600; n++) {
-  step(e, { blockHeld: true });
-  if (n % 30 === 29) e.hurt(1, -300, -200);
-  if (e.shieldBrokenT > 0) {
-    breakAt = n / 120;
-    break;
-  }
+step(e, { kickPressed: true });
+for (let n = 0; n < Math.round(0.36 * 120); n++) step(e);
+const midKick = e.player.kickT;
+step(e, { kickPressed: true });
+const chained = e.player.kickT > midKick;
+e = make();
+let volleyParried = 0;
+for (let n = 0; n < 240; n++) {
+  step(e, { kickPressed: n % 40 === 0 });
+  if (n % 20 === 10 && e.hurt(1, 300, -200)) volleyParried++;
 }
-const blockingWhenBroken = e.player.blocking,
-  hpAtBreak = e.hp;
-e.player.invuln = 0;
-e.hurt(1, -300, -200);
-const afterBreakHp = e.hp;
-for (let n = 0; n < 800; n++) step(e, { blockHeld: false });
-report.shield = {
-  shieldStart,
-  afterHit,
-  shieldHpStart,
-  shieldHitHp,
-  breakAt,
-  blockingWhenBroken,
-  hpAtBreak,
-  afterBreakHp,
-  recharged: e.shield,
-};
+const volleyHp = e.hp;
+report.kickChain = { midKick, chained, volleyParried, volleyHp };
 // Wall kick: a jump pressed just after meeting a solid face pushes off it.
 function wall(pressAfterFrames) {
   const eng = make();
@@ -655,9 +638,8 @@ const checks = {
     kickRear === true && kickRearHp === hpStart && parryFlash > 0,
   kickParriesOverhead: kickOverhead === true,
   kickLeavesTheFrontOpen: kickFront === false && kickFrontHp < hpStart,
-  guardParriesTheFront:
-    guardFront === true && guardFrontHp === hpStart && guardCost < 1,
-  guardLeavesTheBackOpen: guardRear === false && guardRearHp < hpStart,
+  BKicks: bKick && bRear === true && bRearHp === hpStart,
+  BLeavesTheFrontOpen: bFront === false && bFrontHp < hpStart,
   hazardsCannotBeParried: hazardParried === false && hazardHp < hpStart,
   parryWindowCloses: lateParried === false,
   knockbackCarries:
@@ -675,11 +657,9 @@ const checks = {
   thinShelfOnlyAtLip:
     report.ledgeCatch.thinShelfAtLip.grounded &&
     !report.ledgeCatch.thinShelfBelowLip.grounded,
-  blockProtects: shieldHitHp === shieldHpStart && afterHit < shieldStart,
-  shieldBreaks: breakAt !== null && !blockingWhenBroken,
-  brokenAllowsDamage: afterBreakHp < hpAtBreak,
-  shieldRecharges: e.shield === 1,
-  BHoldsShield:
+  kickChains: chained && midKick > 0,
+  volleyTurned: volleyParried === 12 && volleyHp === hpStart,
+  BReachesTheEngine:
     report.controllerB.blockHeld &&
     report.controllerB.backPressed &&
     !report.controllerB.pausePressed,

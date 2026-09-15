@@ -75,15 +75,68 @@ p.vy = 400;
 p.grounded = false;
 assert.equal(w.tryStomp(p, 725, true, cb), true);
 assert.ok(p.vy < 0 && !w.enemies[0].alive);
+// Only a hardened spawn (rare, third episode) refuses a stomp while closed.
 w = new CombatWorld({
   ...base,
-  enemies: [{ id: 'armor', type: 'cragTortoise', x: 500, y: 800, area: 0 }],
+  enemies: [
+    {
+      id: 'armor',
+      type: 'basaltBurrower',
+      x: 500,
+      y: 800,
+      area: 0,
+      hardened: true,
+    },
+  ],
 });
 w.enemies[0].asleep = false;
 p = player(500, 720);
 p.vy = 400;
 assert.equal(w.tryStomp(p, 690, true, cb), false);
 assert.equal(w.enemies[0].hp, 5);
+const hardenedShot = w.hit(500, 760, 150, 1, 'laser');
+assert.ok(
+  hardenedShot.guarded && hardenedShot.mirror,
+  'and mirrors the lasers',
+);
+// Episode two's shells mirror the beam but can be stomped.
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'crab', type: 'ballastCrab', x: 500, y: 800, area: 0 }],
+});
+w.enemies[0].asleep = false;
+const crabShot = w.hit(500, 760, 150, 1, 'laser');
+assert.ok(
+  crabShot.guarded && crabShot.mirror && w.enemies[0].hp === 5,
+  'a crab mirrors the beam unharmed',
+);
+p = player(500, 720);
+p.vy = 400;
+assert.equal(w.tryStomp(p, 690, true, cb), true, 'but a stomp lands on it');
+// The first episode's crag tortoise is a shell against lasers only: every
+// shadow on the first board can be stomped, and a kick opens the shell.
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'shell', type: 'cragTortoise', x: 500, y: 800, area: 0 }],
+});
+w.enemies[0].asleep = false;
+const shellShot = w.hit(500, 760, 150, 1, 'laser');
+assert.ok(
+  shellShot.guarded && !shellShot.mirror && shellShot.at,
+  'the closed shell turns the beam aside, and it fizzles',
+);
+assert.equal(w.enemies[0].hp, 5, 'nothing lands');
+w.enemies[0].invulnerable = 0;
+w.hit(500, 760, 150, 1, 'kick', 1);
+w.enemies[0].invulnerable = 0;
+const shellHp = w.enemies[0].hp;
+w.hit(500, 760, 150, 1, 'laser');
+assert.equal(w.enemies[0].hp, shellHp - 1, 'a kick opens the shell to lasers');
+w.enemies[0].invulnerable = 0;
+p = player(500, 720);
+p.vy = 400;
+assert.equal(w.tryStomp(p, 690, true, cb), true, 'the tortoise is stompable');
+assert.ok(!w.enemies[0].alive, 'and a stomp finishes it');
 w = new CombatWorld({
   ...base,
   enemies: [{ id: 'swing', type: 'cragTortoise', x: 500, y: 800, area: 0 }],
@@ -148,8 +201,9 @@ assert.equal(
 console.log(
   'PASS: inverted 120px player collider is below feet; former ghost hitbox is clear.',
 );
-// Ambush from behind: hidden and harmless until Hopper is past, then it emerges
-// facing Hopper's back and moves straight into its telegraph.
+// Ambush from behind: crouched in plain sight and harmless until Hopper is
+// past, then up and facing Hopper's back, straight into its telegraph. It is
+// there to be seen from the start, so a blow lands on it and wakes it.
 w = new CombatWorld({
   ...base,
   enemies: [
@@ -173,14 +227,51 @@ const contactCb = {
 p = { ...player(520, 800), w: 110, h: 120 };
 for (let n = 0; n < 30; n++) w.update(1 / 120, n / 120, p, [], contactCb);
 assert.equal(contact, 0, 'a dormant ambusher cannot touch Hopper');
-assert.equal(w.enemies[0].visible, false, 'dormant ambusher stays hidden');
-assert.equal(w.hit(500, 760, 200, 5, 'kick').hits, 0, 'and cannot be hit');
+assert.equal(w.enemies[0].visible, true, 'a lurker is there to be seen');
+assert.ok(w.enemies[0].scaleY < 0.8, 'crouched');
+assert.equal(w.hit(500, 760, 200, 1, 'kick').hits, 1, 'and can be hit');
+assert.equal(w.enemies[0].dormant, false, 'a blow wakes it');
+assert.ok(w.enemies[0].open > 0, 'and leaves it open');
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    {
+      id: 'lurker',
+      type: 'shadeHound',
+      x: 500,
+      y: 800,
+      area: 0,
+      ambush: 'behind',
+    },
+  ],
+});
+p = { ...player(520, 800), w: 110, h: 120 };
+for (let n = 0; n < 30; n++) w.update(1 / 120, n / 120, p, [], contactCb);
 p = { ...player(800, 800), w: 110, h: 120 };
 w.update(1 / 120, 1, p, [], contactCb);
 assert.equal(w.enemies[0].dormant, false, 'passing it wakes the ambusher');
 assert.equal(w.enemies[0].visible, true);
 assert.equal(w.enemies[0].state, 'telegraph');
 assert.equal(w.enemies[0].facing, 1, 'it comes at Hopper from behind');
+// A flyer lying in wait is not seen until it sweeps in from behind, off the
+// screen's edge, and crosses the picture to reach Hopper.
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    { id: 'ray', type: 'windowRay', x: 500, y: 680, area: 0, ambush: 'behind' },
+  ],
+});
+p = { ...player(520, 800), w: 110, h: 120 };
+w.update(1 / 120, 0, p, [], cb);
+assert.equal(w.enemies[0].visible, false, 'an unarrived flyer is not there');
+p = { ...player(800, 800), w: 110, h: 120 };
+w.update(1 / 120, 1, p, [], cb);
+assert.ok(
+  w.enemies[0].visible && w.enemies[0].x < 800 - 1200,
+  'it starts off the screen behind Hopper',
+);
+for (let n = 0; n < 180; n++) w.update(1 / 120, 1 + n / 120, p, [], cb);
+assert.ok(w.enemies[0].x > 800 - 700, 'and flies in');
 // Parry: a frontal blow the engine reports as parried leaves the attacker open.
 w = new CombatWorld({
   ...base,
@@ -459,7 +550,12 @@ w = new CombatWorld({
 });
 p = { ...player(300, 800), w: 110, h: 120 };
 for (let n = 0; n < 60; n++) w.update(1 / 120, n / 120, p, flat, cb);
-assert.equal(w.enemies[2].visible, false, 'wave 1 waits');
+assert.equal(w.enemies[2].dormant, true, 'wave 1 waits');
+assert.equal(
+  w.enemies[2].visible,
+  true,
+  'in plain sight, crouched at the back',
+);
 w.enemies[0].alive = false;
 w.enemies[1].alive = false;
 for (let n = 0; n < 10; n++) w.update(1 / 120, 1 + n / 120, p, flat, cb);
@@ -552,7 +648,27 @@ assert.equal(w.enemies[0].reviveAt, 20 + CombatWorld.respawnDelay);
 w.update(1 / 120, 40, p, [], cb);
 assert.equal(w.enemies[0].alive, false, 'and never returns in front of Hopper');
 w.update(1 / 120, 40, { ...p, x: 3000 }, [], cb);
-assert.equal(w.enemies[0].alive, true, 'it returns once Hopper is away');
+assert.equal(w.enemies[0].alive, false, 'nor within a screen of it');
+w.update(1 / 120, 40, { ...p, x: 1500 }, [], cb);
+assert.equal(
+  w.enemies[0].alive,
+  true,
+  'it returns once Hopper is a full screen beyond the edge',
+);
+// The same holds without a death in between: a shadow that fell stays down
+// until Hopper has gone a full screen past the screen's edge.
+w = new CombatWorld({
+  ...base,
+  enemies: [{ id: 'far', type: 'shadeHound', x: 5000, y: 800, area: 0 }],
+});
+w.enemies[0].asleep = false;
+p = { ...player(5000, 800), w: 110, h: 120 };
+w.update(1 / 120, 20, p, [], cb);
+w.hit(5000, 760, 200, 9, 'stomp');
+w.update(1 / 120, 60, { ...p, x: 7500 }, [], cb);
+assert.equal(w.enemies[0].alive, false, 'down while Hopper is within a screen');
+w.update(1 / 120, 60, { ...p, x: 8200 }, [], cb);
+assert.equal(w.enemies[0].alive, true, 'back once he is well beyond it');
 console.log(
   'PASS: parried shots are turned not spent, the kick reaches only behind, and a fresh kill waits out its respawn delay offscreen.',
 );

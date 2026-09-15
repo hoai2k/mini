@@ -40,7 +40,14 @@ export interface Platform {
   skin: number;
   kind?: 'solid' | 'oneWay' | 'conveyor' | 'crumble' | 'spring' | 'launch';
   moving?: { axis: 'x' | 'y'; range: number; speed: number; phase: number };
-  routeRole?: 'main' | 'optional' | 'arena' | 'salvage' | 'high' | 'low' | 'floor';
+  routeRole?:
+    | 'main'
+    | 'optional'
+    | 'arena'
+    | 'salvage'
+    | 'high'
+    | 'low'
+    | 'floor';
   ceiling?: boolean;
   area?: number;
   encounter?: Beat;
@@ -97,6 +104,9 @@ export interface EnemySpawn {
   wave?: number;
   /** Encounter group for waves (the shelf id). */
   group?: string;
+  /** Hardened: a laser shell that mirrors the beam, and closed to a stomp
+   * until a kick opens it. Rare, and only in the third episode. */
+  hardened?: boolean;
 }
 export interface Hazard {
   id: string;
@@ -637,10 +647,21 @@ export function buildLevel(mission: number): LevelData {
       r.steps.forEach((step, i) => {
         const shapeIndex = i === 0 || i === 8 ? i : 1 + ((i - 1 + ci * 3) % 7);
         const source = r.steps[shapeIndex];
-        const w =
-          skin === 8 && ci === 1 && i === 4
+        let beat = CHAPTER_BEATS[ci][i];
+        if (beat === 'hazard' && skin !== 3 && skin !== 5) beat = 'run';
+        // A stretch with nothing to fight is half as long as its shape asks
+        // for, shelf and gap alike, while its rise stays: the way through a
+        // quiet stretch is a steeper jump, not a longer run. The crossing's
+        // takeoff shelf and far landing keep their length: the guard over the
+        // gap, the shooter on the far side and the caged warden above it make
+        // those a fight, and the spring and salvage geometry hang off them.
+        const quiet =
+          beat !== 'fight' && beat !== 'finish' && i !== 5 && i !== 6;
+        const w = Math.round(
+          (skin === 8 && ci === 1 && i === 4
             ? 1100
-            : Math.round(source[0] * widthScale);
+            : Math.round(source[0] * widthScale)) * (quiet ? 0.5 : 1),
+        );
         // The chapter crossing (i === 5) is a deliberately long leap; a catch
         // floor below it turns a miss into a climb back rather than a death.
         const crossing = i === 5;
@@ -649,6 +670,9 @@ export function buildLevel(mission: number): LevelData {
         const inverted = skin === 8 && ci === 2 && i === 6;
         // The gap onto a finish shelf is never stretched: the finish is a fight
         // fought on arrival, and the jump into it should not be the hard part.
+        // The chapter crossing and the inverted crossing keep their length:
+        // one is the chapter's set piece with a guard over it, the other has
+        // to stay too long to jump.
         const gap = Math.round(
           source[1] *
             (crossing
@@ -657,7 +681,8 @@ export function buildLevel(mission: number): LevelData {
                 ? 2.6
                 : i === 6
                   ? Math.min(1, signature.gap)
-                  : signature.gap),
+                  : signature.gap) *
+            (quiet && !crossing && !inverted ? 0.5 : 1),
         );
         profileSum += signature.profile[i];
         const nextY =
@@ -665,8 +690,6 @@ export function buildLevel(mission: number): LevelData {
           ((chapterTarget - chapterY) * profileSum) / profileTotal +
           relief[i + 1] * reliefScale;
         const dy = Math.round(nextY - y);
-        let beat = CHAPTER_BEATS[ci][i];
-        if (beat === 'hazard' && skin !== 3 && skin !== 5) beat = 'run';
         const id = `m${mission}-a${ai}-c${ci}-p${i}`;
         const p: Platform = {
           id,
@@ -791,8 +814,14 @@ export function buildLevel(mission: number): LevelData {
           for (let n = 0; n < count; n++) {
             let type = pair[n % 2] as EnemyType;
             const wave = n < (beat === 'finish' ? 3 : 2) ? 0 : n < 4 ? 1 : 2;
-            // Later waves leap in deeper along the shelf, past the landing fight.
-            const ex = x + Math.min(w - 145, 250 + (n % 3) * 185 + wave * 240);
+            // Later waves lie in wait at the far end of the shelf, in plain
+            // sight, and come at the landing fight when their turn comes; a
+            // flyer in a later wave is placed at its hover height and sweeps
+            // in from above when called.
+            const ex =
+              wave > 0
+                ? x + w - 130 - (n - 2) * 150
+                : x + Math.min(w - 145, 250 + (n % 3) * 185);
             const agile = agileEvery > 0 && (n + i + ci) % agileEvery === 0;
             // Later chapters vary the approach: one foe lies in wait behind
             // the landing, or comes at Hopper from overhead.
@@ -839,6 +868,10 @@ export function buildLevel(mission: number): LevelData {
               agile,
               wave: ambush ? 0 : wave,
               group: id,
+              // The rare shadow that refuses both a stomp and the lasers:
+              // one per finish shelf, and only in the third episode.
+              hardened:
+                mission === 2 && beat === 'finish' && n === 0 && ci >= 1,
             });
             if (ambush === 'above' && type === 'thornChoir' && perch) {
               const line = out.platforms.find((q) => q.id === `${id}-high-b`)!;
@@ -1314,7 +1347,14 @@ function addUndercroft(out: LevelData) {
   for (const area of out.areas) {
     // The boss arena has its own floor and lockdown walls.
     const xEnd = area.id === 2 ? out.boss.arena.x : area.xEnd;
-    const tops = out.platforms.filter((p) => !p.ceiling && !p.lock && p.routeRole !== 'floor' && p.x + p.w > area.xStart && p.x < xEnd);
+    const tops = out.platforms.filter(
+      (p) =>
+        !p.ceiling &&
+        !p.lock &&
+        p.routeRole !== 'floor' &&
+        p.x + p.w > area.xStart &&
+        p.x < xEnd,
+    );
     const mains = tops.filter((p) => p.routeRole === 'main');
     if (mains.length < 2) continue;
     // A straight line through the route's tops, then eased toward level so
@@ -1334,17 +1374,40 @@ function addUndercroft(out: LevelData) {
     const b = (n * sxy - sx * sy) / (n * sxx - sx * sx || 1);
     const slope = b + Math.max(0.3 * Math.abs(b), 0.03);
     let a = -Infinity;
-    for (const p of tops) a = Math.max(a, p.y + UNDERCROFT.drop - slope * (p.x + p.w / 2));
-    out.undercroft.push({ area: area.id, xStart: area.xStart, xEnd, a, b: slope });
+    for (const p of tops)
+      a = Math.max(a, p.y + UNDERCROFT.drop - slope * (p.x + p.w / 2));
+    out.undercroft.push({
+      area: area.id,
+      xStart: area.xStart,
+      xEnd,
+      a,
+      b: slope,
+    });
     const skin = out.areas.indexOf(area) + (out.areas[0].backgroundIndex ?? 0);
     const segY = (x: number) => {
       const i = Math.floor((x - area.xStart) / UNDERCROFT.segment);
-      return Math.round(a + slope * (area.xStart + (i + 0.5) * UNDERCROFT.segment));
+      return Math.round(
+        a + slope * (area.xStart + (i + 0.5) * UNDERCROFT.segment),
+      );
     };
     for (let x = area.xStart, i = 0; x < xEnd; x += UNDERCROFT.segment, i++) {
-      floors.push({ id: `floor-${area.id}-${i}`, x, y: segY(x), w: Math.min(UNDERCROFT.segment, xEnd - x) + 4, h: 3000, skin, kind: 'solid', routeRole: 'floor', area: area.id });
+      floors.push({
+        id: `floor-${area.id}-${i}`,
+        x,
+        y: segY(x),
+        w: Math.min(UNDERCROFT.segment, xEnd - x) + 4,
+        h: 3000,
+        skin,
+        kind: 'solid',
+        routeRole: 'floor',
+        area: area.id,
+      });
     }
-    for (let x = area.xStart + UNDERCROFT.spacing * 0.5, k = 0; x < xEnd - 200; x += UNDERCROFT.spacing, k++) {
+    for (
+      let x = area.xStart + UNDERCROFT.spacing * 0.5, k = 0;
+      x < xEnd - 200;
+      x += UNDERCROFT.spacing, k++
+    ) {
       // The pad stands under the nearest route shelf, so its jump lands on it.
       let target = mains[0],
         best = Infinity;
@@ -1356,8 +1419,27 @@ function addUndercroft(out: LevelData) {
         }
       }
       const half = UNDERCROFT.padWidth / 2;
-      const px = target.w > UNDERCROFT.padWidth + 40 ? Math.max(target.x + half + 20, Math.min(target.x + target.w - half - 20, x)) : target.x + target.w / 2;
-      pads.push({ id: `launch-${area.id}-${k}`, x: px - half, y: segY(px), w: UNDERCROFT.padWidth, h: 60, skin, kind: 'launch', routeRole: 'floor', area: area.id, launchTo: target.y });
+      const px =
+        target.w > UNDERCROFT.padWidth + 40
+          ? Math.max(
+              target.x + half + 20,
+              Math.min(target.x + target.w - half - 20, x),
+            )
+          : target.x + target.w / 2;
+      // Two pads pulled under the same short shelf would stand on each other.
+      if (pads.length && px - half - pads[pads.length - 1].x < 400) continue;
+      pads.push({
+        id: `launch-${area.id}-${k}`,
+        x: px - half,
+        y: segY(px),
+        w: UNDERCROFT.padWidth,
+        h: 60,
+        skin,
+        kind: 'launch',
+        routeRole: 'floor',
+        area: area.id,
+        launchTo: target.y,
+      });
     }
   }
   // Pads after floors: whichever is stood on last wins, and the pad must.

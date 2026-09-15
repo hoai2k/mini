@@ -62,6 +62,10 @@ export interface EnemyRuntime {
   alive: boolean;
   asleep: boolean;
   armored: boolean;
+  /** Hardened: laser shell and a mirror, and it refuses a stomp while closed.
+   * A rare spawn flag, not a species: the generator sets it on a few of the
+   * third episode's shadows. */
+  hardened: boolean;
   /** Ambush from behind: hidden until Hopper has passed, then it emerges. */
   dormant: boolean;
   ambush?: 'behind' | 'above' | 'under' | 'mirror';
@@ -135,6 +139,12 @@ export interface HitResult {
   hits: number;
   kills: number;
   bossHit: boolean;
+  /** A laser met a closed shell and was turned aside instead of landing. */
+  guarded?: boolean;
+  /** ...and the shell is a mirror: the beam comes back whole. */
+  mirror?: boolean;
+  /** Where the shell turned it. */
+  at?: { x: number; y: number };
 }
 export const ENEMY_ORDER: EnemyType[] = [
   'shadeHound',
@@ -176,12 +186,23 @@ const RANGED = new Set<EnemyType>([
   'veilMedusa',
   'gravityCantor',
 ]);
+/** A shell that turns lasers: a kick (or a turned-back shot) opens it. */
 const ARMORED = new Set<EnemyType>([
   'cragTortoise',
   'slagCaster',
   'ballastCrab',
   'turbineWasp',
 ]);
+/** Shells that turn a laser back whole rather than letting it fizzle: the
+ * beam comes back near enough to Hopper's line to hit him. Episode two's
+ * shells and every hardened spawn. */
+const MIRROR = new Set<EnemyType>(['slagCaster', 'ballastCrab', 'turbineWasp']);
+/** How far away Hopper has to be before a fallen shadow is back: well past
+ * the screen edge plus a full screen width at the widest look zoom, so it is
+ * never seen returning, it is simply there again on the way back. */
+const REVIVE_DISTANCE = 3000;
+/** A flyer that arrives from behind starts this far back, off the screen. */
+const FLY_IN_DISTANCE = 1350;
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 const dist = (a: number, b: number) => Math.sqrt(a * a + b * b);
 const nullCallbacks: CombatCallbacks = {
@@ -214,7 +235,7 @@ export class CombatWorld {
   }
   private makeEnemies(): EnemyRuntime[] {
     return this.level.enemies.map((s, i) => {
-      const armored = ARMORED.has(s.type),
+      const armored = ARMORED.has(s.type) || !!s.hardened,
         flying = FLYERS.has(s.type),
         h = flying ? 76 : armored ? 91 : 65,
         w = armored ? 140 : flying ? 135 : 110;
@@ -241,10 +262,16 @@ export class CombatWorld {
         bob: 0,
         scaleX: 1,
         scaleY: 1,
-        visible: true,
+        // Nothing appears out of thin air: a ground shadow lying in wait is
+        // there to be seen (and stomped) from the start, crouched and still.
+        // Only a buried burrower and a flyer yet to swoop in are unseen.
+        visible:
+          s.ambush !== 'under' &&
+          !(flying && (s.ambush === 'behind' || (s.wave ?? 0) > 0)),
         alive: true,
         asleep: true,
         armored,
+        hardened: !!s.hardened,
         dormant:
           s.ambush === 'behind' || s.ambush === 'under' || (s.wave ?? 0) > 0,
         ambush: s.ambush,
@@ -313,7 +340,7 @@ export class CombatWorld {
     const previous = new Map(this.enemies.map((e) => [e.id, e]));
     const fresh = this.makeEnemies();
     this.enemies = fresh.map((e) => {
-      if (e.x < x - 350)
+      if (e.x < x)
         return { ...e, hp: 0, alive: false, state: 'dead' as CombatState };
       const was = previous.get(e.id);
       if (
@@ -394,9 +421,14 @@ export class CombatWorld {
     dt = Math.min(dt, 0.05);
     for (const e of this.enemies) {
       if (!e.alive) {
-        // A held-back shadow returns only once its delay is up and Hopper is
-        // far enough away that it is never seen appearing.
-        if (e.reviveAt && time >= e.reviveAt && Math.abs(e.x - p.x) > 1100) {
+        // A fallen shadow returns only once its delay is up and Hopper is a
+        // full screen beyond the screen's edge, so it is never seen
+        // appearing: backtrack that far and it is simply there again.
+        const since = Math.max(
+          e.reviveAt ?? 0,
+          e.deadAt + CombatWorld.respawnDelay,
+        );
+        if (time >= since && Math.abs(e.x - p.x) > REVIVE_DISTANCE) {
           const fresh = this.makeEnemies().find((o) => o.id === e.id);
           if (fresh) Object.assign(e, fresh, { asleep: true });
         }
@@ -405,7 +437,13 @@ export class CombatWorld {
       e.asleep = Math.abs(e.x - p.x) > 2200;
       if (e.asleep) continue;
       if (e.dormant) {
-        e.visible = false;
+        const flying = FLYERS.has(e.type);
+        if (e.visible) {
+          // Lying in wait: flattened, still, facing the way Hopper comes.
+          e.scaleX = 1.16;
+          e.scaleY = 0.62;
+          e.bob = 0;
+        }
         if (e.wave > 0) {
           // The next wave jumps in once the previous wave of its group is down,
           // or after the group has held Hopper for a while.
@@ -427,11 +465,19 @@ export class CombatWorld {
             e.facing = p.x - e.x < 0 ? -1 : 1;
             e.state = 'idle';
             e.cooldown = 0.35;
-            if (!FLYERS.has(e.type)) {
-              // Leap in from the wings rather than appearing in place.
+            e.scaleX = 1;
+            e.scaleY = 1;
+            if (!flying) {
+              // Up from its crouch at the back of the shelf and in with a
+              // leap toward Hopper, rather than appearing in place.
               e.airborne = true;
               e.vy = -560;
               e.vx = e.facing * 220;
+            } else {
+              // A flyer sweeps in from above the top of the screen.
+              e.y = e.homeY - 950;
+              e.state = 'recover';
+              e.timer = 0.9;
             }
             callbacks.effect('emerge', e.x, e.y - e.h * 0.5, '#f6c2ff');
             callbacks.sound('enemy');
@@ -458,13 +504,27 @@ export class CombatWorld {
             continue;
           } else continue;
         } else if (p.x - e.x > e.wake) {
-          // Stay hidden until Hopper is clearly past, then burst out behind it.
+          // Crouched in plain sight until Hopper is clearly past, then up and
+          // at its back; a flyer instead sweeps in from behind, off the
+          // screen's edge, and crosses the whole picture to reach it.
           e.dormant = false;
           e.visible = true;
           e.facing = 1;
-          e.state = 'telegraph';
-          e.timer = 0.55;
+          e.scaleX = 1;
+          e.scaleY = 1;
           e.cooldown = 0;
+          if (flying) {
+            e.x = p.x - FLY_IN_DISTANCE;
+            e.homeX = e.x;
+            e.y = e.homeY;
+            e.state = 'attack';
+            e.timer = 1.4;
+            e.vx = 620;
+            e.vy = 0;
+          } else {
+            e.state = 'telegraph';
+            e.timer = 0.55;
+          }
           callbacks.effect('emerge', e.x, e.y - e.h * 0.5, '#f6c2ff');
           callbacks.sound('enemy');
         } else continue;
@@ -1151,27 +1211,37 @@ export class CombatWorld {
         radius + Math.min(e.w, e.h) * 0.42
       )
         continue;
-      if (
-        kind === 'stomp' &&
-        (e.type === 'cragTortoise' || (e.armored && e.open <= 0))
-      ) {
+      if (kind === 'stomp' && e.hardened && e.open <= 0) {
         this.callbacks.effect('guard', e.x, e.y - e.h, '#ffe2a8');
         continue;
       }
-      const guarded = e.armored && e.open <= 0 && kind === 'laser';
-      const dealt = guarded ? Math.max(0.25, damage * 0.3) : damage;
+      if (kind === 'laser' && e.armored && e.open <= 0) {
+        // A closed shell turns the beam aside: nothing lands, and the engine
+        // draws where it went. A kick or a turned-back shot opens the shell.
+        result.guarded = true;
+        result.mirror = MIRROR.has(e.type) || e.hardened;
+        result.at = { x: e.x, y: e.y - e.h * 0.5 };
+        this.callbacks.effect('guard', e.x, e.y - e.h, '#ffe2a8');
+        continue;
+      }
+      const dealt = damage;
       if (kind === 'kick' || kind === 'reflect') e.open = 1.5;
+      if (e.dormant) {
+        // A shadow struck while it lies in wait is up at once, and open.
+        e.dormant = false;
+        e.scaleX = 1;
+        e.scaleY = 1;
+        e.state = 'recover';
+        e.timer = 0.8;
+        e.open = Math.max(e.open, 0.8);
+        e.cooldown = 0.5;
+      }
       e.hp -= dealt;
       e.invulnerable = 0.15;
       e.glow = 1;
       if (attackId) e.attackIds.add(attackId);
       result.hits++;
-      this.callbacks.effect(
-        'hit',
-        e.x,
-        e.y - e.h * 0.5,
-        guarded ? '#dcb48a' : '#d8c3ff',
-      );
+      this.callbacks.effect('hit', e.x, e.y - e.h * 0.5, '#d8c3ff');
       if (e.hp <= 0) {
         e.alive = false;
         e.state = 'dead';
@@ -1246,8 +1316,7 @@ export class CombatWorld {
       if (
         e.id === 'boss'
           ? e.open <= 0
-          : (e as EnemyRuntime).type === 'cragTortoise' ||
-            ((e as EnemyRuntime).armored && e.open <= 0)
+          : (e as EnemyRuntime).hardened && e.open <= 0
       )
         continue;
       const r = this.hit(e.x, e.y - e.h * 0.5, 12, 5, 'stomp', p.facing);
