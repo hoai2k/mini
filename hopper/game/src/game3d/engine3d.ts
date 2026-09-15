@@ -125,6 +125,8 @@ export class Engine3D implements GameEngine {
   private completed = false;
   private victoryT = 0;
   private respawnT = 0;
+  /** Last step's wind, so the spring reaching its stop can be felt once. */
+  private wasWound = 0;
   private banner = '';
   private bannerSmall = '';
   private bannerT = 0;
@@ -218,7 +220,7 @@ export class Engine3D implements GameEngine {
     this.respawnT = 0;
     this.showBanner(this.district!.name, this.district!.subtitle, 3.2);
     this.setHint(
-      'Hold A to wind the spring, let go to leap; hold it again in the air to hover and glide. RB sprints, LB dashes.',
+      'Hold A to wind the spring and the stick to aim it: forward leaps flat and far, back stands it up. RB sprints, LB dashes.',
       7,
     );
     this.emit();
@@ -262,7 +264,7 @@ export class Engine3D implements GameEngine {
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
     this.setHint(
-      'Hold A to wind the spring, let go to leap; hold it again in the air to hover and glide. RB sprints, LB dashes.',
+      'Hold A to wind the spring and the stick to aim it: forward leaps flat and far, back stands it up. RB sprints, LB dashes.',
       7,
     );
     this.emit();
@@ -547,6 +549,13 @@ export class Engine3D implements GameEngine {
       this.sound('shield');
     }
     const events = stepHopper(h, world, intent, dt);
+    // The spring reaching its stop is felt once: a knock through the pad and
+    // a note, so "ready to go" lands without watching the crouch.
+    if (h.charge >= 1 && this.wasWound < 1) {
+      this.rumble(MOVE.readyRumble, MOVE.readyRumbleMs);
+      this.sound('checkpoint');
+    }
+    this.wasWound = h.charge;
     for (const e of events) {
       if (e.kind === 'jump') this.sound('jump');
       else if (e.kind === 'land') {

@@ -79,6 +79,9 @@ export interface HopperState {
   gliding: boolean;
   diving: boolean;
   charge: number;
+  /** While the spring is wound: the angle it will leave at, above the
+   * ground, so the crouch can show what is about to happen. */
+  chargeAim: number;
   coyote: number;
   buffer: number;
   wallTimer: number;
@@ -157,6 +160,7 @@ export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
     gliding: false,
     diving: false,
     charge: 0,
+    chargeAim: JUMP.aimNeutral,
     coyote: MOVE.coyote,
     buffer: 0,
     wallTimer: 0,
@@ -246,10 +250,51 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
 }
 
 const apexSpeed = (apex: number, g: number) => Math.sqrt(2 * g * apex);
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** How far above his feet a top can be and still count as a step to hop up
  * onto rather than a ceiling to stop under (see the ground-resolution
  * section of `stepUpright`). */
 const STEP_UP_MAX = 3;
+/** Where the wound spring is pointing. The stick's own throw, read against
+ * the camera's forward, sets the angle it leaves at: fully forward is the
+ * flat lunge, neutral the middle, fully back straight up. The backward part
+ * of the stick only stands the launch up -- whatever forward and sideways
+ * part is left gives the direction, and when nothing is left Hopper springs
+ * the way he already faces, so a spring never carries him backwards. */
+function springAim(
+  s: HopperState,
+  intent: MoveIntent,
+  charge: number,
+): { angle: number; hx: number; hz: number } {
+  const ref = intent.faceYaw !== undefined ? intent.faceYaw : s.yaw;
+  const fx = Math.sin(ref),
+    fz = Math.cos(ref),
+    rx = Math.cos(ref),
+    rz = -Math.sin(ref);
+  // The stick's throw carries its own magnitude, so a half push aims halfway.
+  const fwd = Math.max(-1, Math.min(1, intent.dx * fx + intent.dz * fz)),
+    side = Math.max(-1, Math.min(1, intent.dx * rx + intent.dz * rz));
+  const flat = lerp(
+    MOVE.aimForwardTap,
+    MOVE.aimForward,
+    Math.max(0, Math.min(1, charge)),
+  );
+  const angle =
+    fwd >= 0
+      ? lerp(MOVE.aimNeutral, flat, fwd)
+      : lerp(MOVE.aimNeutral, MOVE.aimBack, -fwd);
+  let hx = Math.max(0, fwd) * fx + side * rx,
+    hz = Math.max(0, fwd) * fz + side * rz;
+  const hl = Math.hypot(hx, hz);
+  if (hl > 0.001) {
+    hx /= hl;
+    hz /= hl;
+  } else {
+    hx = Math.sin(s.yaw);
+    hz = Math.cos(s.yaw);
+  }
+  return { angle, hx, hz };
+}
 const turnToward = (yaw: number, target: number, max: number) => {
   let d = target - yaw;
   while (d > Math.PI) d -= Math.PI * 2;
@@ -595,8 +640,19 @@ function stepUpright(
     const top = s.grounded
       ? MOVE.run * (s.sprinting ? sprint : 1) * shape
       : Math.max(MOVE.run * (intent.sprintHeld ? sprint : 1) * shape, carried);
-    // The stick's throw: its lower band walks, its upper band gallops.
-    const throwSpeed = drive(wantLen) * top;
+    // The stick's throw: its lower band walks, its upper band gallops. In
+    // the air a stick pointing along the flight never brakes it -- a spring
+    // is a committed launch, and easing the stick to steer should not throw
+    // its speed away. Pushing across or back still brakes, as it must.
+    const flight = Math.hypot(s.vx, s.vz);
+    const align =
+      !s.grounded && wantLen > 0.05 && flight > 1
+        ? ((intent.dx / wantLen) * s.vx + (intent.dz / wantLen) * s.vz) / flight
+        : 0;
+    const throwSpeed = Math.max(
+      drive(wantLen) * top,
+      align > 0 ? flight * align : 0,
+    );
     const tx = wantLen > 0.001 ? (intent.dx / wantLen) * throwSpeed : 0,
       tz = wantLen > 0.001 ? (intent.dz / wantLen) * throwSpeed : 0;
     if (s.grounded || wantLen > 0.05) {
@@ -649,36 +705,46 @@ function stepUpright(
     if (footed && (intent.jumpHeld || intent.chargeHeld)) {
       s.charge = Math.min(1, s.charge + dt / MOVE.chargeTime);
       s.buffer = 0;
+      // The crouch shows its aim: Hopper turns the way the spring points and
+      // the angle is kept on the state for the pose to read.
+      const aim = springAim(s, intent, s.charge);
+      s.chargeAim = aim.angle;
+      if (wantLen > 0.05)
+        s.yaw = turnToward(
+          s.yaw,
+          Math.atan2(aim.hx, aim.hz),
+          MOVE.turnRate * dt,
+        );
       if (s.grounded) s.move = 'crouch';
     } else if (footed && s.charge > 0) {
       const c = Math.min(1, s.charge);
-      // Height: the wind-up's own apex, taken whole when the stick is
-      // neutral and split with the forward throw as the stick comes over.
-      const throwMag = drive(wantLen);
-      const apex =
-        MOVE.chargeApexMin + (MOVE.chargeApexMax - MOVE.chargeApexMin) * c;
-      s.vy =
-        apexSpeed(apex, g) *
-        (1 + (MOVE.chargeUp - 1) * (1 - throwMag)) *
-        (world.jumpScale ?? 1);
-      // Reach: the arc has to beat the run it interrupted. Time in the air
-      // is the rise plus the sharper fall; over the wind-up and that flight
-      // together, a tap keeps exactly the pace Hopper was running at and a
-      // full charge doubles it, which is why springing beats running.
-      const flight = (s.vy / g) * (1 + 1 / Math.sqrt(MOVE.fallGravity));
-      const paced = throwMag * MOVE.run * (intent.sprintHeld ? MOVE.sprint : 1);
-      const reach =
-        (1 + (MOVE.chargePace - 1) * c) *
-        paced *
-        (1 + (MOVE.chargeTime * c) / flight);
-      if (wantLen > 0.05) {
-        s.vx = (intent.dx / wantLen) * reach;
-        s.vz = (intent.dz / wantLen) * reach;
-        s.yaw = Math.atan2(intent.dx / wantLen, intent.dz / wantLen);
-      } else {
-        s.vx = 0;
-        s.vz = 0;
-      }
+      // One launch speed from the wind, written as the height it would reach
+      // thrown straight up, and one angle from the stick. Everything else is
+      // the split between them.
+      const apex = lerp(MOVE.chargeApexMin, MOVE.chargeApexMax, c);
+      const speed = apexSpeed(apex, g) * (world.jumpScale ?? 1);
+      const aim = springAim(s, intent, c);
+      s.chargeAim = aim.angle;
+      // The flatter the launch the shorter its flight, so the flat end is
+      // given back some ground with extra speed along it -- the lunge. It
+      // fades out as the launch stands up, and never touches the height.
+      const flat = Math.max(
+        0,
+        Math.min(1, Math.cos(aim.angle) / Math.cos(MOVE.aimForward)),
+      );
+      s.vy = speed * Math.sin(aim.angle);
+      // Momentum is not thrown away: a spring never leaves slower along its
+      // own line than Hopper was already travelling, so a tap taken at a
+      // sprint keeps the sprint. A real wind-up has stopped him by then, so
+      // there is nothing left to keep and the wind alone decides.
+      const carried = s.vx * aim.hx + s.vz * aim.hz;
+      const reach = Math.max(
+        speed * Math.cos(aim.angle) * (1 + (MOVE.lungeBoost - 1) * flat),
+        carried,
+      );
+      s.vx = aim.hx * reach;
+      s.vz = aim.hz * reach;
+      if (reach > 1) s.yaw = Math.atan2(aim.hx, aim.hz);
       s.grounded = false;
       s.coyote = 0;
       s.holding = false;

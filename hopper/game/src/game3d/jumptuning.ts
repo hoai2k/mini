@@ -12,32 +12,46 @@
  * tap is a small hop taken without a pause and `chargeTime` seconds is the
  * full charge. The wind fraction `c` runs 0 (a tap) to 1 (full).
  *
- * **Height.** The arc's apex runs from `chargeApexMin` at a tap to
- * `chargeApexMax` at a full wind, straight-line in `c`. With the stick
- * neutral the whole wind goes into height instead of being split between
- * forward and up, multiplying the launch by `chargeUp`; as the stick comes
- * over to full tilt that boost fades out to nothing.
+ * **Power.** The wind sets one launch speed, written here as the height it
+ * would reach thrown straight up: `chargeApexMin` at a tap rising to
+ * `chargeApexMax` at a full wind. `chargeApexMax` is therefore the highest
+ * jump in the game.
  *
- * **Reach.** The forward throw is not a fixed speed. It is worked back from
- * the arc's own flight time so the spring can be measured against the run it
- * interrupted: over the wind-up and the flight together, a tap keeps exactly
- * the pace Hopper was running at and a full wind covers `chargePace` times
- * the ground in the same time. That is why springing across a district beats
- * running it, and why the bargain holds under every region's gravity and
- * scales with the sprint without another number to keep in step.
+ * **Aim.** The stick sets the angle the launch leaves at, measured from the
+ * ground. Pushed fully forward it is `aimForward` -- a flat, fast lunge
+ * rather than a jump. Neutral it is `aimNeutral`. Pulled fully back it is
+ * `aimBack`, straight up. A half-pushed stick lands halfway between, and a
+ * stick pushed sideways aims sideways at `aimNeutral`. Pulling back never
+ * launches him backwards: the backward part of the stick only stands the
+ * launch up, and what forward or sideways part is left sets the direction.
+ * A tap cannot reach the flattest angle -- at no wind, fully forward is
+ * `aimForwardTap` instead, so the lunge has to be earned.
+ *
+ * **Lunge.** The flatter the launch, the shorter its flight, so a flat angle
+ * would otherwise cover little ground. `lungeBoost` adds horizontal speed at
+ * the flat end (fading to nothing as the launch stands up) so a full-forward
+ * spring reads as a lunge. It does not touch the height.
  *
  * ## What the numbers below currently produce
  *
- * Running at `run` (68 m/s) under standard gravity, stick held forward:
+ * Running at `run` (68 m/s) under standard gravity. "Pace" is ground covered
+ * per second over the whole manoeuvre, the wind-up included, against running
+ * the same stretch:
  *
- * | wind   | apex  | ground | pace vs running |
- * | ------ | ----- | ------ | --------------- |
- * | tap    |  13 m |   62 m | 1.00x           |
- * | 0.75 s | 100 m |  317 m | 1.50x           |
- * | 1.5 s  | 189 m |  641 m | 1.99x           |
- * | 1.5 s sprinting | 189 m | 993 m | 1.97x    |
+ * | wind   | stick        | angle | apex  | ground | pace  |
+ * | ------ | ------------ | ----- | ----- | ------ | ----- |
+ * | tap    | forward      |  25°  |   4 m |   40 m | 1.36x |
+ * | 0.25 s | forward      |  23°  |   9 m |   97 m | 1.65x |
+ * | 0.75 s | forward      |  20°  |  15 m |  192 m | 1.81x |
+ * | 1.5 s  | forward      |  15°  |  16 m |  296 m | 1.81x |
+ * | 1.5 s  | half forward |  30°  |  60 m |  497 m | 2.25x |
+ * | 1.5 s  | neutral      |  45°  | 120 m |  561 m | 2.04x |
+ * | 1.5 s  | fully back   |  90°  | 240 m |    0 m |   --  |
+ * | tap    | neutral      |  45°  |  11 m |   56 m | 1.00x |
  *
- * Stick neutral, straight up: 23 m from a tap, 345 m from a full wind.
+ * So a tap never loses ground, a mid-angle wind is the fastest way across a
+ * district, and fully forward is a flat dart that crosses a gap in under a
+ * second. The highest jump in the game is the 240 m one, pulled fully back.
  *
  * `qa/tests/engine3d.mjs` sections 2, 5 and 17 hold this contract: change a
  * number here and they will tell you what moved.
@@ -53,18 +67,35 @@ export const JUMP = {
   /** Seconds of holding A that reach a full wind. Holding past it adds
    * nothing, so over-holding only costs the time. */
   chargeTime: 1.5,
-  /** Apex in metres at a tap. Keep it small: this is the hop that should
-   * cost nothing to take mid-run. */
-  chargeApexMin: 10,
-  /** Apex in metres at a full wind. */
-  chargeApexMax: 190,
-  /** Launch multiplier with the stick neutral, where the wind is not split
-   * between forward and up. 1.35 on the speed is about 1.8x the height. */
-  chargeUp: 1.35,
-  /** Ground covered per second at a full wind, as a multiple of running,
-   * counting the wind-up as part of the manoeuvre. 2 means a full spring is
-   * twice as fast as running the same stretch; 1 would make it break even. */
-  chargePace: 2,
+  /** The wind's power, written as the height it reaches thrown straight up.
+   * At a tap: a small hop that costs nothing to take mid-run. */
+  chargeApexMin: 23,
+  /** ...and at a full wind. This is the highest jump in the game. */
+  chargeApexMax: 241,
+  /** Launch angle above the ground with the stick pushed fully forward at a
+   * full wind: flat, so it reads as a lunge rather than a jump. Radians. */
+  aimForward: (15 * Math.PI) / 180,
+  /** ...and fully forward at no wind, so a tap is still a hop you can clear
+   * something with. The flattest angle is earned by winding. */
+  aimForwardTap: (25 * Math.PI) / 180,
+  /** Launch angle with the stick neutral, and the angle a sideways push
+   * leaves at. */
+  aimNeutral: (45 * Math.PI) / 180,
+  /** Launch angle with the stick pulled fully back: straight up. Pulling
+   * back stands the launch up; it never throws Hopper backwards. */
+  aimBack: (90 * Math.PI) / 180,
+  /** Extra horizontal speed at the flattest angle, fading to nothing as the
+   * launch stands up. Buys the lunge its ground back without buying height. */
+  lungeBoost: 1.4,
+  /** The crouch. How far the body sinks at a full wind, in metres, and how
+   * far it tips back as the aim stands up (radians at straight up). */
+  crouchSink: 7,
+  crouchAim: 0.62,
+  /** Full wind: the ready signal. Rumble strength and milliseconds, and the
+   * throb the body takes on so it reads without a controller in hand. */
+  readyRumble: 0.55,
+  readyRumbleMs: 130,
+  readyThrob: 0.05,
   /** A jump away from a ceiling (inverted gravity), as a fraction of the
    * spring's impulse: a hop that comes back rather than a leap that leaves. */
   ceilingJump: 0.7,

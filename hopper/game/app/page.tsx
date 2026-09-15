@@ -694,7 +694,7 @@ export default function Home() {
         ref={canvas}
         aria-label={
           edition === '3d'
-            ? 'Hopper the Grasshopper 3D world. Hold A to wind the spring and release to leap, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
+            ? 'Hopper the Grasshopper 3D world. Hold A to wind the spring and release to leap, the stick aiming it forward or up, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
             : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to spin kick all round, B or L also kicks, RT or K to fire.'
         }
         tabIndex={-1}
@@ -1238,13 +1238,14 @@ export default function Home() {
                         <strong>Spring</strong> Hold A and Hopper stops where he
                         stands and winds up; let go and he springs. A quick tap
                         is a small hop taken without a pause, a second and a
-                        half is the full charge. Hold the stick forward and the
-                        spring carries you at least as far as the run it
-                        interrupted, up to twice as far at full wind, so
-                        springing across a district beats running it. Let the
-                        stick go and the whole wind goes into height instead:
-                        straight up, and steerable all the way down. Hold A
-                        again in the air and the wings beat: Hopper hovers for a
+                        half is the full charge. The stick aims it: pushed
+                        forward the spring leaves flat and fast, a lunge rather
+                        than a jump; neutral it arcs at 45 degrees; pulled back
+                        it stands up, all the way to straight up, and it never
+                        throws you backwards. The crouch shows which is coming,
+                        and at full wind Hopper throbs inside a ring of light.
+                        Springing beats running across a district. Hold A again
+                        in the air and the wings beat: Hopper hovers for a
                         breath, then glides. Spring at a wall to kick off it;
                         the front legs haul up over a ledge on their own.
                       </p>

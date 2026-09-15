@@ -150,6 +150,11 @@ export const CAMERA = {
   catchUpRate: 0.2,
   /** The look point and the eye never climb or drop faster than this (m/s), whatever the gap. */
   maxRise: 66,
+  /** Seconds of travel the eye looks ahead for rising ground. A spring
+   * crosses ground fast and low, and a floor clamp that only reads what is
+   * already under the eye has to snap; reading where the eye is heading
+   * lets the same rise be taken smoothly. */
+  eyeLookAhead: 0.3,
   /** How quickly the smoothed velocity and the height framing follow. */
   flowRate: 3,
   frameRate: 2,
@@ -392,7 +397,8 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   const free = clearance(world, cam.target, eye);
   cam.clip = free < cam.clip ? ease(cam.clip, free, 1 - Math.exp(-CAMERA.clipIn * dt)) : ease(cam.clip, free, 1 - Math.exp(-CAMERA.clipOut * dt));
   const want: [number, number, number] = [cam.target[0] + (eye[0] - cam.target[0]) * cam.clip, cam.target[1] + (eye[1] - cam.target[1]) * cam.clip, cam.target[2] + (eye[2] - cam.target[2]) * cam.clip];
-  want[1] = Math.max(want[1], floorUnder(world, want[0], want[2]) + 3);
+  const ahead = CAMERA.eyeLookAhead;
+  want[1] = Math.max(want[1], floorUnder(world, want[0], want[2]) + 3, floorUnder(world, want[0] + cam.flow[0] * ahead, want[2] + cam.flow[2] * ahead) + 3);
   cam.eye = [ease(cam.eye[0], want[0], k), lift(cam.eye[1], want[1]), ease(cam.eye[2], want[2], k)];
   // The slow height follow must never leave the eye under a rising slope.
   cam.eye[1] = Math.max(cam.eye[1], floorUnder(world, cam.eye[0], cam.eye[2]) + 2.5);

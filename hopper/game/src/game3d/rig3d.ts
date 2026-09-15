@@ -112,13 +112,16 @@ export class HopperRig {
 
   /** Place the body. The gait's own pitch and roll ride on top of the
    * facing; on a wall he lies against it, head up, back to the camera. */
-  placeBody(h: HopperState, pose: GaitPose, lean: number) {
+  placeBody(h: HopperState, pose: GaitPose, lean: number, sink = 0) {
     const root = this.root;
     if (!root) return;
     // Under inverted gravity he hangs from his feet: the body rolls over and
     // its pitch and roll mirror, the lift now hanging below the ceiling.
+    // `sink` is the wind-up crouch: the body settles toward its own feet as
+    // the spring winds, so how deep he is reads as how far he will go.
     const inverted = h.gravityScale < 0;
-    root.position.set(h.x, h.y + (inverted ? -pose.lift : pose.lift), h.z);
+    const lift = Math.max(0.4, pose.lift - sink);
+    root.position.set(h.x, h.y + (inverted ? -lift : lift), h.z);
     if (h.climbing) {
       euler.set(-Math.PI / 2, Math.atan2(-h.climbNx, -h.climbNz), 0);
     } else if (inverted) {

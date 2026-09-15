@@ -50,6 +50,7 @@ import {
 import type { World } from './world';
 import type { HopperState } from './controller';
 import { GAIT, Gait, type GaitBody, type GaitPose } from './gait';
+import { JUMP } from './jumptuning';
 import { HopperRig } from './rig3d';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
@@ -131,6 +132,10 @@ export class Scene3D {
   readonly scene = new Scene();
   readonly camera = new PerspectiveCamera(60, 16 / 9, 0.5, 30000);
   private hopper: Object3D | null = null;
+  /** How deep the wind-up crouch is, and how far into the full-wind signal. */
+  private crouch = 0;
+  private ready = 0;
+  private readyRing: Mesh | null = null;
   private mixer: AnimationMixer | null = null;
   private readonly stoneObjects = new Map<number, Mesh>();
   private readonly stoneMaterial = new MeshToonMaterial({ color: '#4a3a34', emissive: '#ff6a2a', emissiveIntensity: 0.35 });
@@ -214,7 +219,13 @@ export class Scene3D {
     this.groundShadow.renderOrder = 1;
     this.lockRing = new Mesh(new TorusGeometry(4, 0.3, 6, 32), new MeshBasicMaterial({ color: '#ff5a4a', depthTest: false }));
     this.lockRing.visible = false;
-    this.scene.add(this.groundShadow, this.lockRing);
+    // The full-wind signal: a ring of light that snaps open around Hopper's
+    // feet and pulses while the spring is held at its stop.
+    this.readyRing = new Mesh(new TorusGeometry(1, 0.09, 6, 40), new MeshBasicMaterial({ color: '#c8ffe4', transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+    this.readyRing.rotation.x = -Math.PI / 2;
+    this.readyRing.renderOrder = 3;
+    this.readyRing.visible = false;
+    this.scene.add(this.groundShadow, this.lockRing, this.readyRing);
     this.resize();
   }
   resize() {
@@ -657,10 +668,31 @@ export class Scene3D {
     } else pose = this.gait.update(h, world, dt);
     // Flying and diving lean the body by hand; the ground gaits get their
     // angle from the feet instead.
-    const lean = h.diving ? 0.75 : h.gliding ? Math.max(-0.2, Math.min(0.35, h.vy * 0.015)) : h.hovering ? -0.12 : h.grounded || h.climbing ? 0 : Math.max(-0.25, Math.min(0.25, h.vy * 0.006));
-    this.lean += (lean - this.lean) * Math.min(1, dt * 6);
+    // Winding the spring is its own pose: the body tips back toward wherever
+    // the launch is aimed, so a flat lunge and a straight-up leap are told
+    // apart before either happens.
+    const winding = h.charge > 0 && h.grounded;
+    const lean = winding ? -h.chargeAim * JUMP.crouchAim : h.diving ? 0.75 : h.gliding ? Math.max(-0.2, Math.min(0.35, h.vy * 0.015)) : h.hovering ? -0.12 : h.grounded || h.climbing ? 0 : Math.max(-0.25, Math.min(0.25, h.vy * 0.006));
+    // The wind-up is quick, so the pose has to keep up with it.
+    this.lean += (lean - this.lean) * Math.min(1, dt * (winding ? 16 : 6));
     this.rigWeight += ((own > 0 ? 1 - own : 1) - this.rigWeight) * Math.min(1, dt * 12);
-    this.rig.placeBody(h, pose, this.lean);
+    // ...and he sinks the whole way down as it winds, deepest at full.
+    this.crouch += ((winding ? h.charge * JUMP.crouchSink : 0) - this.crouch) * Math.min(1, dt * (winding ? 14 : 22));
+    this.rig.placeBody(h, pose, this.lean, this.crouch);
+    // Full wind: he is coiled and it shows. The body throbs against the stop
+    // and a ring of light snaps open at his feet, so "ready" reads without a
+    // controller in hand; engine3d rumbles the pad to match.
+    this.ready += ((winding && h.charge >= 1 ? 1 : 0) - this.ready) * Math.min(1, dt * 20);
+    root.scale.setScalar(1 + this.ready * JUMP.readyThrob * Math.sin(this.time * 19));
+    if (this.readyRing) {
+      this.readyRing.visible = this.ready > 0.02;
+      if (this.readyRing.visible) {
+        this.readyRing.position.set(h.x, h.y + 1.2, h.z);
+        const open = 9 + this.ready * 5 + Math.sin(this.time * 19) * 1.4;
+        this.readyRing.scale.set(open, open, open);
+        (this.readyRing.material as MeshBasicMaterial).opacity = this.ready * (0.55 + 0.35 * Math.sin(this.time * 19));
+      }
+    }
     this.rig.apply(h, pose, this.rigWeight);
     // Wings. Opened for a glide, drumming for a hover: the beat is a running
     // angle, so it never restarts or stutters when the state changes.

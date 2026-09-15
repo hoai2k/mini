@@ -60,10 +60,11 @@ c.check('he falls up and lands on the lintel underside', h.grounded && Math.abs(
 c.check('the ground under his feet reads the underside', Math.abs(h.groundY - ceiling) < 0.5);
 c.check('predictLanding upside down predicts the underside', Math.abs(predictLanding(h, world).y - ceiling) < 1);
 
-// A jump off the ceiling is downward and comes back. A tap of the spring:
-// pressed and let go in the same step, so it never winds up.
+// A jump off the ceiling is downward and comes back. A tap of the spring
+// with the stick pulled back: pressed and let go in the same step so it
+// never winds up, and aimed straight off the surface rather than along it.
 h.gravityScale = gravityOf();
-stepHopper(h, world, { ...blank, jumpPressed: true, jumpHeld: false }, dt);
+stepHopper(h, world, { ...blank, dz: 1, jumpPressed: true, jumpHeld: false }, dt);
 c.check('a jump off the underside is downward', !h.grounded && h.vy < 0, h.vy);
 run(2.5);
 c.check('and he lands back on the underside', h.grounded && Math.abs(h.y - ceiling) < 0.5, `y ${h.y.toFixed(1)}`);
