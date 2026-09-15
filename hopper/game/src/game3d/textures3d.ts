@@ -381,7 +381,7 @@ export function setCell(t: Texture, cols: number, rows: number, col: number, row
 }
 /** Hopper's effect sheet (round three, T-082): 4 × 4 cells of 512 px. */
 export const HOPPER_SHEET = 'effects/hopper.png';
-export const HOPPER_CELLS = { laser: [0, 0], muzzle: [1, 0], shield: [2, 0], trail: [3, 0] } as const;
+export const HOPPER_CELLS = { laser: [0, 0], muzzle: [1, 0], parry: [2, 0], trail: [3, 0] } as const;
 /** Muzzle frame n (0..7) lives on rows two and three. */
 export function muzzleCell(t: Texture, frame: number) {
   setCell(t, 4, 4, frame % 4, 1 + Math.floor(frame / 4));

@@ -17,7 +17,7 @@ const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
 const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-harness3d-'));
-const names = ['world', 'controller', 'jumptuning', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'jumptuning', 'combattuning', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'));
 for (const name of names) {
   const raw = fs
@@ -59,7 +59,7 @@ export const { BEHAVIOURS } = await import(path.join(temp, 'shadows/index.mjs'))
 
 export const dt = 1 / 120;
 /** A neutral movement intent. */
-export const blank = { dx: 0, dz: 0, jumpPressed: false, jumpHeld: false, divePressed: false, diveHeld: false, chargeHeld: false, guardHeld: false };
+export const blank = { dx: 0, dz: 0, jumpPressed: false, jumpHeld: false, divePressed: false, diveHeld: false, chargeHeld: false };
 /** A neutral aim for Combat.update. */
 export const noAim = { x: 0, y: 0, z: 0, dx: 0, dy: 0, dz: 1, firing: false, guarding: false, kickPressed: false };
 /** Callbacks that record what a fight did. */

@@ -16,7 +16,7 @@ const threeModule = require.resolve('three').replace(/three\.cjs$/, 'three.modul
 const textureRoot = new URL('../../../3d/textures/', import.meta.url).pathname;
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-preload-'));
-const names = ['jumptuning', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'world', 'textures3d', 'preload', 'models3d', 'trail', 'combat3d', 'controller', 'camera', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['jumptuning', 'combattuning', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'world', 'textures3d', 'preload', 'models3d', 'trail', 'combat3d', 'controller', 'camera', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 for (const name of names) {
   const raw = fs

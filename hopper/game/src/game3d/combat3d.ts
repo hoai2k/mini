@@ -4,6 +4,7 @@
  */
 import { World } from './world';
 import { MOVE, type HopperState } from './controller';
+import { KICK } from './combattuning';
 import type { District, ShadowKind, ShadowSpawn } from './district';
 import { BEHAVIOURS } from './shadows/index';
 
@@ -208,9 +209,6 @@ export class Combat {
   heat = 0;
   overheated = 0;
   shotClock = 0;
-  shield = 1;
-  shieldBroken = 0;
-  guarding = false;
   /** Locked target id, if any. */
   lock: string | null = null;
   /** The commander, while one is awake: an aim target only. It never joins
@@ -347,8 +345,6 @@ export class Combat {
     this.kick = 0;
     this.heat = 0;
     this.overheated = 0;
-    this.shield = 1;
-    this.shieldBroken = 0;
   }
   /** Everything that can be hit, stomped and locked on: awake shadows, and
    * dormant ones in plain view on their perches. */
@@ -480,32 +476,16 @@ export class Combat {
       }
     }
   }
-  update(dt: number, h: HopperState, cb: CombatCallbacks, aim: { x: number; y: number; z: number; dx: number; dy: number; dz: number; firing: boolean; guarding: boolean; kickPressed: boolean }) {
+  update(dt: number, h: HopperState, cb: CombatCallbacks, aim: { x: number; y: number; z: number; dx: number; dy: number; dz: number; firing: boolean; kickPressed: boolean }) {
     this.time += dt;
     const world = this.world;
     // Hopper's attack timers.
     if (this.kickCooldown > 0) this.kickCooldown -= dt;
     if (aim.kickPressed && h.hitstun <= 0) this.startKick(cb);
     if (this.kick > 0) this.kick -= dt;
-    // Guard.
-    if (this.shieldBroken > 0) {
-      this.shieldBroken -= dt;
-      this.guarding = false;
-    } else if (aim.guarding && this.shield > 0) {
-      this.guarding = true;
-      this.shield = Math.max(0, this.shield - dt * 0.15);
-      if (this.shield <= 0) {
-        this.shieldBroken = 0.6;
-        this.guarding = false;
-        cb.sound('shield');
-      }
-    } else {
-      this.guarding = false;
-      this.shield = Math.min(1, this.shield + dt * 0.5);
-    }
     // Lasers.
     if (this.overheated > 0) this.overheated -= dt;
-    if (aim.firing && this.overheated <= 0 && !this.guarding) {
+    if (aim.firing && this.overheated <= 0) {
       this.heat = Math.min(1, this.heat + dt / 3.5);
       this.shotClock -= dt;
       if (this.shotClock <= 0) {
@@ -532,14 +512,14 @@ export class Combat {
       this.heat = Math.max(0, this.heat - dt / 2);
       this.shotClock = 0;
     }
-    // Kick: active window sweeps everything around Hopper once.
-    const kickActive = this.kick > 0.15 && this.kick < 0.42;
+    // Kick: the active window sweeps everything around Hopper once.
+    const kickActive = this.kick > KICK.hitFrom && this.kick < KICK.hitTo;
     if (kickActive) {
       for (const s of this.aliveShadows()) {
         if (this.kickHit.has(s.id)) continue;
         const d = Math.hypot(s.x - h.x, s.z - h.z);
-        const vertical = s.y + s.height > h.y - 2 && s.y < h.y + MOVE.height + 2;
-        if (d <= 7 + MOVE.radius + s.radius && vertical) {
+        const vertical = s.y + s.height > h.y - KICK.rise && s.y < h.y + MOVE.height + KICK.rise;
+        if (d <= KICK.reach + MOVE.radius + s.radius && vertical) {
           this.kickHit.add(s.id);
           const nx = (s.x - h.x) / (d || 1),
             nz = (s.z - h.z) / (d || 1);
@@ -564,7 +544,10 @@ export class Combat {
       }
     }
     // Projectiles.
-    const parryWindow = this.kick > 0.36;
+    // The kick is the whole defence now: while the spin is out it turns a
+    // shot from any side, and the window is wider than the damage so turning
+    // to meet one is enough.
+    const parryWindow = this.kick > KICK.parryFrom;
     for (const p of this.projectiles) {
       p.life -= dt;
       p.vy -= p.gravity * dt;
@@ -585,22 +568,20 @@ export class Combat {
           dh = Math.hypot(dx, dz);
         const near = dh <= MOVE.radius + p.radius && p.y >= h.y - p.radius && p.y <= h.y + MOVE.height + p.radius;
         if (!near) continue;
-        const fromFront = (dx * Math.sin(h.yaw) + dz * Math.cos(h.yaw)) / (dh || 1) > 0.35;
-        if (parryWindow || (this.guarding && fromFront)) {
+        if (parryWindow) {
           // Reflect toward the shooter.
           const owner = this.shadows.find((s) => s.id === p.ownerId);
           const tx = (owner?.x ?? p.x - p.vx) - p.x,
             ty = (owner ? owner.y + owner.height * 0.5 : p.y) - p.y,
             tz = (owner?.z ?? p.z - p.vz) - p.z,
             l = Math.hypot(tx, ty, tz) || 1;
-          p.vx = (tx / l) * 120;
-          p.vy = (ty / l) * 120;
-          p.vz = (tz / l) * 120;
+          p.vx = (tx / l) * KICK.returnSpeed;
+          p.vy = (ty / l) * KICK.returnSpeed;
+          p.vz = (tz / l) * KICK.returnSpeed;
           p.gravity = 0;
           p.owner = 'hopper';
-          p.damage = 6;
+          p.damage = KICK.returnDamage;
           p.life = 3;
-          if (!parryWindow) this.shield = Math.max(0, this.shield - 0.25);
           cb.effect('parry', p.x, p.y, p.z);
           cb.sound('shield');
           continue;

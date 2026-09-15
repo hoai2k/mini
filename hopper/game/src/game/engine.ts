@@ -30,8 +30,6 @@ export interface GameSnapshot {
   progress: number;
   signals: number;
   score: number;
-  shield: number;
-  shieldBroken: boolean;
   gravity: number;
   banner: string;
   bannerSmall: string;
@@ -1709,8 +1707,6 @@ export class Engine {
       progress: clamp(this.player.x / this.level.width, 0, 1),
       signals: this.signals.size,
       score: this.score,
-      shield: 1,
-      shieldBroken: false,
       gravity: (area?.gravity || 1) * this.player.gravitySign,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,

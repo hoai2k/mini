@@ -422,7 +422,7 @@ Each region has a kit that maps onto one trim sheet (T-028..T-036). `Landings` a
 | M-078 | Launch gate | rigid | 203 × 203 × 16 m | 4k | `prop.launchGate` | `models/props/launchGate.glb` |
 | M-079 | Eye laser bolt | static | 0.6 × 0.6 × 6 m | 0.1k | `prop.laserBolt` | `models/props/laserBolt.glb` |
 | M-080 | Kick arc | static | 20 × 1 × 20 m | 0.2k | `prop.kickArc` | `models/props/kickArc.glb` |
-| M-081 | Guard shield | static | 18 × 18 × 9 m | 0.5k | `prop.shieldDome` | `models/props/shieldDome.glb` |
+| M-081 | Parry flare | static | 18 × 18 × 9 m | 0.5k | `prop.shieldDome` | `models/props/shieldDome.glb` |
 | M-082 | Shadow dissolve | rigid | 12 × 12 × 12 m | 0.5k | `prop.dissolveBurst` | `models/props/dissolveBurst.glb` |
 
 - **M-068 Spring pad.** Cyan plate on an iron base with four chevrons. Plate compresses (rigid) and launches Hopper to 12 H. Regional recolours as in the 2D game.
@@ -438,7 +438,7 @@ Each region has a kit that maps onto one trim sheet (T-028..T-036). `Landings` a
 - **M-078 Launch gate.** Rust ring on struts with a glowing portal. The mission-two exit; the star tunnel transition begins at Entry.
 - **M-079 Eye laser bolt.** Red-white capsule with a bright core. Spawned in pairs from Hopper.Laser.L/R.
 - **M-080 Kick arc.** Translucent gold arc that sweeps with the spin kick. Reads the kick radius (7 m) on screen.
-- **M-081 Guard shield.** Translucent teal half-dome at Hopper.Shield with a white rim. Shown while B is held.
+- **M-081 Parry flare.** Translucent teal half-dome with a white rim, flaring for a quarter second where a spin kick turns a shot aside. There is no held guard in this edition: this is the moment a parry lands, not a shield that stays up.
 - **M-082 Shadow dissolve.** Fourteen charcoal and violet shards around a pale flash. Every shadow dies into this (scale-up over 0.5 s).
 
 ## Landmarks and terrain

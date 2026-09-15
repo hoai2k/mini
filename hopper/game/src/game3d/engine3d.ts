@@ -21,6 +21,7 @@ import {
   MOVE,
   type HopperState,
 } from './controller';
+import { KICK } from './combattuning';
 import { createCamera, updateCamera, type CameraState } from './camera';
 import { Combat, shadowBounce, type Shadow } from './combat3d';
 import { Scene3D } from './scene';
@@ -127,6 +128,8 @@ export class Engine3D implements GameEngine {
   private respawnT = 0;
   /** Last step's wind, so the spring reaching its stop can be felt once. */
   private wasWound = 0;
+  /** B's state last step, so a hold only starts one kick. */
+  private blockWasHeld = false;
   private banner = '';
   private bannerSmall = '';
   private bannerT = 0;
@@ -220,7 +223,7 @@ export class Engine3D implements GameEngine {
     this.respawnT = 0;
     this.showBanner(this.district!.name, this.district!.subtitle, 3.2);
     this.setHint(
-      'Hold A to wind the spring and the stick to aim it: forward leaps flat and far, back stands it up. RB sprints, LB dashes.',
+      'Tap A for a hop without breaking stride, or hold it to wind the spring and aim with the stick: forward leaps flat and far, back stands it up.',
       7,
     );
     this.emit();
@@ -264,7 +267,7 @@ export class Engine3D implements GameEngine {
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
     this.setHint(
-      'Hold A to wind the spring and the stick to aim it: forward leaps flat and far, back stands it up. RB sprints, LB dashes.',
+      'Tap A for a hop without breaking stride, or hold it to wind the spring and aim with the stick: forward leaps flat and far, back stands it up.',
       7,
     );
     this.emit();
@@ -654,9 +657,11 @@ export class Engine3D implements GameEngine {
       dy: aim[1],
       dz: aim[2],
       firing: f.shootHeld && h.hitstun <= 0,
-      guarding: f.blockHeld && h.hitstun <= 0,
-      kickPressed: f.kickPressed,
+      // B is a second kick: the sweep is the whole defence, so the button
+      // the guard used to sit on starts one too.
+      kickPressed: f.kickPressed || (f.blockHeld && !this.blockWasHeld),
     });
+    this.blockWasHeld = !!f.blockHeld;
     // The commander, before the arena reads whether it still stands.
     this.boss?.update(dt, h, combat, this.callbacks());
     // Strongholds: the host, in plain view on its perches, comes down the
@@ -854,7 +859,9 @@ export class Engine3D implements GameEngine {
     // Contextual hints for the first minutes.
     if (this.time > 8 && this.time < 8.1)
       this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
-    if (this.time > 20 && this.time < 20.1)
+    if (this.time > 14 && this.time < 14.1)
+      this.setHint('X or B spin kicks. Kick as a shot arrives to send it back.', 6);
+    if (this.time > 26 && this.time < 26.1)
       this.setHint(
         `Click the right stick: Horizon View shows the way to ${d.landmark.name}.`,
         6,
@@ -1023,7 +1030,7 @@ export class Engine3D implements GameEngine {
     this.sound('stomp');
     this.rumble(0.5, 100);
   }
-  /** Returns true when the blow was blocked by the guard. */
+  /** Returns true when the spin kick turned the blow aside. */
   private hurt(
     damage: number,
     kx: number,
@@ -1035,20 +1042,14 @@ export class Engine3D implements GameEngine {
     const h = this.player,
       combat = this.combat!;
     if (this.respawnT > 0 || this.victoryT > 0 || h.invuln > 0) return false;
-    // The guard turns blows arriving from the front.
-    const dx = fromX - h.x,
-      dz = fromZ - h.z,
-      dl = Math.hypot(dx, dz) || 1;
-    const fromFront = (dx * Math.sin(h.yaw) + dz * Math.cos(h.yaw)) / dl > 0.35;
-    if (combat.guarding && fromFront) {
-      combat.shield = Math.max(0, combat.shield - 0.25);
+    // The spin kick turns a blow from any side while it is out: there is no
+    // held guard in this edition, so the sweep is the whole defence.
+    if (combat.kick > KICK.parryFrom) {
+      const dx = fromX - h.x,
+        dz = fromZ - h.z,
+        dl = Math.hypot(dx, dz) || 1;
       h.invuln = Math.max(h.invuln, 0.3);
-      this.scene?.effect(
-        'parry',
-        h.x + Math.sin(h.yaw) * 10,
-        h.y + 11,
-        h.z + Math.cos(h.yaw) * 10,
-      );
+      this.scene?.effect('parry', h.x + (dx / dl) * 10, h.y + 11, h.z + (dz / dl) * 10);
       this.sound('shield');
       return true;
     }
@@ -1141,8 +1142,6 @@ export class Engine3D implements GameEngine {
       ),
       signals: this.signals.size,
       score: this.score,
-      shield: c?.shield ?? 1,
-      shieldBroken: (c?.shieldBroken ?? 0) > 0,
       gravity: h.gravityScale,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,

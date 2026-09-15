@@ -166,7 +166,7 @@ PROP_DATA = [
     ('launchGate', 'Launch gate', 'rigid', [203, 203, 16], '4k', 'Rust ring on struts with a glowing portal. The mission-two exit; the star tunnel transition begins at Entry.'),
     ('laserBolt', 'Eye laser bolt', 'static', [0.6, 0.6, 6], '0.1k', 'Red-white capsule with a bright core. Spawned in pairs from Hopper.Laser.L/R.'),
     ('kickArc', 'Kick arc', 'static', [20, 1, 20], '0.2k', 'Translucent gold arc that sweeps with the spin kick. Reads the kick radius (7 m) on screen.'),
-    ('shieldDome', 'Guard shield', 'static', [18, 18, 9], '0.5k', 'Translucent teal half-dome at Hopper.Shield with a white rim. Shown while B is held.'),
+    ('shieldDome', 'Parry flare', 'static', [18, 18, 9], '0.5k', 'Translucent teal half-dome with a white rim, flaring for a quarter second where a spin kick turns a shot aside. There is no held guard in this edition: this is the moment a parry lands, not a shield that stays up.'),
     ('dissolveBurst', 'Shadow dissolve', 'rigid', [12, 12, 12], '0.5k', 'Fourteen charcoal and violet shards around a pale flash. Every shadow dies into this (scale-up over 0.5 s).'),
 ]
 for i, (key, name, rig, size, tris, summary) in enumerate(PROP_DATA):
@@ -286,7 +286,7 @@ for region, notes in KIT_SHEET_NOTES.items():
 tid = f'T-{t:03d}'
 image(tid, 'Props sheet', 'reference', '8192×4096 sheet: every prop in front and three-quarter views at a shared scale, with the active state beside the idle state', None, 'design/references/props.png', 'open',
       'Model reference for the fifteen props and effects (' + ', '.join(m['request'] for m in M if m['category'] == 'prop') + '). Spring pad, lockdown gate, signal cage and signal keep the identity of the 2D art in game/public/assets/upgrades/props and game/public/assets/upgrades/reference/props; the rest are new. Must exist before the props are modelled.',
-      prompt='Use case: prop concept sheet. Draw a prop sheet in the 1970s hand-painted anime cel style of the attached 2D props: cyan spring pad with chevrons, twin-crystal gold signal with a halo, shadow-bar signal cage on a pedestal with a violet crown, obsidian lockdown pylon with a violet emitter and the translucent dome it raises, ivory checkpoint totem with red bands and a lamp, cream recovery capsule with a red band and white cross, grated thermal vent with a rising translucent column, translucent crosswind lane with streaks, obsidian gravity gate with a violet curtain and arrows, rust launch gate ring with a glowing portal, red-white eye laser bolt, gold kick arc, teal guard half-dome, shadow dissolve shards. Each in idle and active state, front and three-quarter views, shared scale with a 14 m Hopper silhouette. No text.')
+      prompt='Use case: prop concept sheet. Draw a prop sheet in the 1970s hand-painted anime cel style of the attached 2D props: cyan spring pad with chevrons, twin-crystal gold signal with a halo, shadow-bar signal cage on a pedestal with a violet crown, obsidian lockdown pylon with a violet emitter and the translucent dome it raises, ivory checkpoint totem with red bands and a lamp, cream recovery capsule with a red band and white cross, grated thermal vent with a rising translucent column, translucent crosswind lane with streaks, obsidian gravity gate with a violet curtain and arrows, rust launch gate ring with a glowing portal, red-white eye laser bolt, gold kick arc, teal parry flash, shadow dissolve shards. Each in idle and active state, front and three-quarter views, shared scale with a 14 m Hopper silhouette. No text.')
 for m in M:
     if m['category'] == 'prop': ref_by_model[m['standIn']] = tid
 t += 1
@@ -332,7 +332,7 @@ image(f'T-{t:03d}', 'Soft-landing surfaces: sea, drift dust, slag', 'surface', '
 image(f'T-{t:03d}', 'Landing guide, light variant', 'ui', '512² alpha ring and centre mark in ivory with a dark rim, same geometry as ui/landing-guide.png', None, 'textures/ui/landing-guide-light.png', 'open',
       'The delivered guide is dark navy, right for the fields and the city; on the obsidian, slag and reef floors of later regions it disappears. The game picks the variant by region floor luminance.',
       prompt='Use case: interface decal. The attached landing guide, redrawn in ivory #f6edcc lines with a thin dark rim, identical geometry and transparent background, no text.'); t += 1
-image(f'T-{t:03d}', 'Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail', 'effects', 'one 2048² sheet, four 512² alpha elements plus an 8-frame 512² strip for the muzzle glow', None, 'textures/effects/hopper.png', 'open',
+image(f'T-{t:03d}', 'Hopper effect sprites: laser bolt, eye muzzle glow, parry flash, glide wing trail', 'effects', 'one 2048² sheet, four 512² alpha elements plus an 8-frame 512² strip for the muzzle glow', None, 'textures/effects/hopper.png', 'open',
       'Round one covered impacts and sparks; Hopper\'s own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. This sheet gives them paint in the same style as the delivered atlases.',
       prompt='Use case: effect sprites. 1970s anime cel effects on transparent background: a red-white eye laser bolt with a bright core and ink edge, an eight-frame eye muzzle glow, a teal hexagon-patterned shield face with a white rim, and a soft cream glide wing trail. Flat tones, no text.'); t += 1
 for region, notes in [('fields', SKY_NOTES['fields']), ('city', SKY_NOTES['city']), ('mountains', SKY_NOTES['mountains'])]:
@@ -380,7 +380,7 @@ for texture in T:
         texture['integration'] = {
             'surface': 'paintTerrain paints the low floor of the harbor (sea), blue (dust) and foundry (slag) districts with the surface and scrolls its detail mask; paintKit puts slag on the barge deck and dust on the drift volumes. The foam strip waits for a district with a shoreline.',
             'ui': 'guideVariant picks the ivory guide on dark floors; the prop decals sit on every totem lamp (lit/unlit), spring pad plate and cage crown.',
-            'effects': 'Hopper\'s laser bolts, eye muzzle glow (8 frames), guard shield face and glide wing trails come from the sheet; the flat shapes remain as fallbacks.',
+            'effects': 'Hopper\'s laser bolts, eye muzzle glow (8 frames), parry flash and glide wing trails come from the sheet; the flat shapes remain as fallbacks.',
         }[texture['category']]
 
 # Authored high-confidence batch; source, exports and QA live in ../models/.

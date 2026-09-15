@@ -10,7 +10,7 @@ Round one is delivered and in the game (painted skies, horizon cards, terrain se
 | --- | --- | --- |
 | T-080 Soft-landing surfaces: sea, drift dust, slag | The design makes every district floor a return to play: water and dust push Hopper back ashore, slag lifts him out. | before the region that needs it |
 | T-081 Landing guide, light variant | The delivered guide is dark navy, right for the fields and the city; on the obsidian, slag and reef floors of later regions it disappears. | any time |
-| T-082 Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail | Round one covered impacts and sparks; Hopper's own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. | any time |
+| T-082 Hopper effect sprites: laser bolt, eye muzzle glow, parry flash, glide wing trail | Round one covered impacts and sparks; Hopper's own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. | any time |
 | T-083 Sky repaint with native 4K detail: Sunseed Fields | The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. | quality pass, before any 4K polish |
 | T-084 Sky repaint with native 4K detail: Crownline City | The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. | quality pass, before any 4K polish |
 | T-085 Sky repaint with native 4K detail: Thunderhead Range | The review ran and the softness is real, so this is no longer conditional: what it requires is native detail, not a larger file. | quality pass, before any 4K polish |
@@ -38,13 +38,13 @@ The delivered guide is dark navy, right for the fields and the city; on the obsi
 - **Verification:** Passes: alpha 0-255, geometry identical to the dark guide (coverage ratio 1.000).
 - **Prompt:** Use case: interface decal. The attached landing guide, redrawn in ivory #f6edcc lines with a thin dark rim, identical geometry and transparent background, no text.
 
-### T-082 · Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail
+### T-082 · Hopper effect sprites: laser bolt, eye muzzle glow, parry flash, glide wing trail
 
 Round one covered impacts and sparks; Hopper's own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. This sheet gives them paint in the same style as the delivered atlases.
 
 - **Spec:** one 2048² sheet, four 512² alpha elements plus an 8-frame 512² strip for the muzzle glow
 - **Status:** delivered (verified) · **Final:** `textures/effects/hopper.png`
-- **In the game:** Hopper's laser bolts, eye muzzle glow (8 frames), guard shield face and glide wing trails come from the sheet; the flat shapes remain as fallbacks.
+- **In the game:** Hopper's laser bolts, eye muzzle glow (8 frames), parry flash and glide wing trails come from the sheet; the flat shapes remain as fallbacks.
 - **Verification:** Passes: all twelve occupied cells clear the 48px padding requirement (minimum 53px); row four remains intentionally empty. Existing native painted cells were uniformly scaled to 0.8327, which creates no new detail.
 - **Prompt:** Use case: effect sprites. 1970s anime cel effects on transparent background: a red-white eye laser bolt with a bright core and ink edge, an eight-frame eye muzzle glow, a teal hexagon-patterned shield face with a white rim, and a soft cream glide wing trail. Flat tones, no text.
 

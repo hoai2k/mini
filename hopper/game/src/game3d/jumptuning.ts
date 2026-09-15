@@ -7,10 +7,12 @@
  *
  * ## How the spring works
  *
- * A held on the ground roots Hopper where he stands and winds the spring up;
- * letting go launches it. Nothing fires while the button is down, so a quick
- * tap is a small hop taken without a pause and `chargeTime` seconds is the
- * full charge. The wind fraction `c` runs 0 (a tap) to 1 (full).
+ * A held on the ground winds the spring up; letting go launches it. For the
+ * first `tapWindow` seconds nothing is given up: Hopper keeps running, and a
+ * release inside that window is the quick hop, taken at full stride with no
+ * pause at all. Hold past it and he stops where he stands and the wind
+ * begins, reaching full `chargeTime` seconds after the press. The wind
+ * fraction `c` runs 0 (a tap, or the instant the wind starts) to 1 (full).
  *
  * **Power.** The wind sets one launch speed, written here as the height it
  * would reach thrown straight up: `chargeApexMin` at a tap rising to
@@ -34,24 +36,26 @@
  *
  * ## What the numbers below currently produce
  *
- * Running at `run` (68 m/s) under standard gravity. "Pace" is ground covered
- * per second over the whole manoeuvre, the wind-up included, against running
- * the same stretch:
+ * Running at `run` (68 m/s) under standard gravity. "Held" is how long A was
+ * down, the free `tapWindow` included; "pace" is ground covered per second
+ * over the whole manoeuvre, that hold included, against running the same
+ * stretch:
  *
- * | wind   | stick        | angle | apex  | ground | pace  |
+ * | held   | stick        | angle | apex  | ground | pace  |
  * | ------ | ------------ | ----- | ----- | ------ | ----- |
- * | tap    | forward      |  25°  |   4 m |   40 m | 1.36x |
- * | 0.25 s | forward      |  23°  |   9 m |   97 m | 1.65x |
- * | 0.75 s | forward      |  20°  |  15 m |  192 m | 1.81x |
- * | 1.5 s  | forward      |  15°  |  16 m |  296 m | 1.81x |
- * | 1.5 s  | half forward |  30°  |  60 m |  497 m | 2.25x |
- * | 1.5 s  | neutral      |  45°  | 120 m |  561 m | 2.04x |
+ * | tap    | forward      |  25°  |   4 m |   45 m | 1.36x |
+ * | 0.25 s | forward      |  25°  |   4 m |   62 m | 1.24x |
+ * | 0.75 s | forward      |  21°  |  14 m |  152 m | 1.62x |
+ * | 1.5 s  | forward      |  15°  |  16 m |  262 m | 1.73x |
+ * | 1.5 s  | half forward |  30°  |  60 m |  481 m | 2.24x |
+ * | 1.5 s  | neutral      |  45°  | 120 m |  550 m | 2.03x |
  * | 1.5 s  | fully back   |  90°  | 240 m |    0 m |   --  |
- * | tap    | neutral      |  45°  |  11 m |   56 m | 1.00x |
+ * | tap    | neutral      |  45°  |  11 m |   55 m | 1.00x |
  *
- * So a tap never loses ground, a mid-angle wind is the fastest way across a
- * district, and fully forward is a flat dart that crosses a gap in under a
- * second. The highest jump in the game is the 240 m one, pulled fully back.
+ * So a tap never loses ground, a hold barely past the window is still that
+ * same tap, a mid-angle wind is the fastest way across a district, and fully
+ * forward is a flat dart that crosses a gap in under a second. The highest
+ * jump in the game is the 240 m one, pulled fully back.
  *
  * `qa/tests/engine3d.mjs` sections 2, 5 and 17 hold this contract: change a
  * number here and they will tell you what moved.
@@ -64,8 +68,14 @@ export const JUMP = {
   fallGravity: 1.4,
 
   // ---- The spring -------------------------------------------------------
-  /** Seconds of holding A that reach a full wind. Holding past it adds
-   * nothing, so over-holding only costs the time. */
+  /** Seconds A can be held before Hopper gives anything up. Release inside
+   * this and the spring is the quick hop, taken without breaking stride;
+   * hold past it and he stops and the wind starts. */
+  tapWindow: 0.3,
+  /** Seconds A must be held, counted from the press, to reach a full wind.
+   * The first `tapWindow` of it is the free hop, so the wind itself builds
+   * over `chargeTime - tapWindow`. Holding past this adds nothing, so
+   * over-holding only costs the time. */
   chargeTime: 1.5,
   /** The wind's power, written as the height it reaches thrown straight up.
    * At a tap: a small hop that costs nothing to take mid-run. */

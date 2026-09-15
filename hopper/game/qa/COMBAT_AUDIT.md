@@ -111,11 +111,23 @@ The other fix in that pass: a shadow killed within 15 seconds no longer returns 
 
 A later pass again, after play showed shadows seeming to spawn behind Hopper:
 
-- **The forward guard is gone.** B and L are a second kick button, and a new kick can start once the current one has counted down to `kickRepress` (0.17 s left of its 0.5 s), so a volley from any side is turned kick after kick (the kick itself now sweeps all round, per the section above). The energy meter, its breaking and recharging, and the "suspends kicking and shooting" rule went with it. The 3D edition keeps its own guard.
+- **The forward guard is gone.** B and L are a second kick button, and a new kick can start once the current one has counted down to `kickRepress` (0.17 s left of its 0.5 s), so a volley from any side is turned kick after kick (the kick itself now sweeps all round, per the section above). The energy meter, its breaking and recharging, and the "suspends kicking and shooting" rule went with it.
 - **Lurkers are there to be seen.** A ground shadow with a `behind` ambush, or in a later wave, is visible from the start: crouched (scaleY 0.62), dim, still, harmless on contact, and hittable, so a stomp or a laser on it wakes it staggered and open. It rises when Hopper is past it (or when its wave is called) instead of appearing. Later waves wait at the far end of their shelf and leap in toward the landing fight. A buried burrower is the one shadow still unseen until it surfaces, and it tells first.
 - **Flyers arrive, never appear.** A flyer in a later wave sweeps in from 950 units above the shelf; a flyer with a `behind` ambush starts 1,350 units behind Hopper, off the screen, and crosses the picture at 620 units per second to reach him.
 - **A fallen shadow comes back only far offscreen.** It revives once its delay is up and Hopper is more than 3,000 units away (the screen's half-width plus a full screen width at the widest look zoom, `REVIVE_DISTANCE`), whether or not Hopper has died in between; backtrack that far and it is simply there again. A checkpoint restart keeps everything behind the checkpoint down.
 - **Every shadow on the first board can be stomped, and shells turn the beam.** A closed shell takes nothing from a laser (a kick or a turned shot opens it for 1.5 s); instead the engine draws where the beam went. The crag tortoise throws it 57° off the reversed line, upward, as a 320-unit `fizzle` beam that fades along its length. The second episode's slag caster, ballast crab and turbine wasp (`MIRROR`) send it back whole for up to 1,000 units, 11° to 32° off the reversed line, alternating sides shot by shot, and if that line crosses Hopper's body it hurts him (not parryable). The crab, caster and wasp can all be stomped now. Only `hardened` spawns refuse a stomp while closed, and they mirror too: the generator marks one per finish shelf in the third episode (twelve in all), drawn with a pale stone rim.
+
+## The 3D edition follows
+
+The same pass was then made in the 3D edition, where the guard had been a teal dome held on B with its own draining meter:
+
+- **The dome is gone**, and with it the HUD's shield meter and the button air brake it doubled as. Pushing the stick back against a flight still brakes it, which is all that brake ever was.
+- **B is a second kick**, as it is in 2D, so either thumb can meet a shot.
+- **The kick parries from any side.** The window opens at 0.12 s of the 0.5 s swing -- wider than the 0.15--0.42 s the swing damages in -- and no longer asks that the shot came from the front. A turned shot becomes Hopper's and flies back at 120 m/s for 6.
+- **The sweep reaches 16 m past his body** (up from 7 m) and 6 m above and below it, and is drawn: a bright band sweeps twice round Hopper over the swing, out at the edge of that reach, so what the kick covers is visible while it covers it.
+- **A parry flares the sheet's painted shield face** where the shot was turned, which is the one place that art still has a job.
+
+Every number above is in `src/game3d/combattuning.ts`, beside `jumptuning.ts`, and `qa/tests/engine3d.mjs` section 13i holds them.
 
 ## What still needs a human
 

@@ -48,9 +48,10 @@ import {
   type StandInObject,
 } from '../../../3d/standins/src/index.js';
 import type { World } from './world';
-import type { HopperState } from './controller';
+import { MOVE, type HopperState } from './controller';
 import { GAIT, Gait, type GaitBody, type GaitPose } from './gait';
 import { JUMP } from './jumptuning';
+import { KICK } from './combattuning';
 import { HopperRig } from './rig3d';
 import type { CameraState } from './camera';
 import type { Combat, Shadow, Projectile } from './combat3d';
@@ -136,6 +137,8 @@ export class Scene3D {
   private crouch = 0;
   private ready = 0;
   private readyRing: Mesh | null = null;
+  /** The arc of light the spin kick sweeps. */
+  private kickArc: Mesh | null = null;
   private mixer: AnimationMixer | null = null;
   private readonly stoneObjects = new Map<number, Mesh>();
   private readonly stoneMaterial = new MeshToonMaterial({ color: '#4a3a34', emissive: '#ff6a2a', emissiveIntensity: 0.35 });
@@ -158,11 +161,11 @@ export class Scene3D {
   private wings: Object3D[] = [];
   private wingSpread = 0;
   private wingBeat = 0;
-  // Round-three effect sheet: muzzle glow, shield face, glide trails, laser bolts.
+  // Round-three effect sheet: muzzle glow, parry flash, glide trails, laser bolts.
   private muzzle: Sprite | null = null;
-  private shieldSprite: Sprite | null = null;
   private trails: Mesh[] = [];
   private laserTex: Texture | null = null;
+  private parryTex: Texture | null = null;
   private worldGroup = new Group();
   private shadowObjects = new Map<string, StandInObject>();
   private shadowModels = new Map<string, Swapped>();
@@ -174,7 +177,6 @@ export class Scene3D {
   private projectileObjects = new Map<number, Mesh>();
   private effects: Effect[] = [];
   /** The guard dome's delivered model while it is up, for its mixer. */
-  private guardDome: Swapped | null = null;
   /** Hopper's shadow on the ground: where he is, and where he would land. */
   private groundShadow: Mesh;
   private lockRing: Mesh;
@@ -225,7 +227,14 @@ export class Scene3D {
     this.readyRing.rotation.x = -Math.PI / 2;
     this.readyRing.renderOrder = 3;
     this.readyRing.visible = false;
-    this.scene.add(this.groundShadow, this.lockRing, this.readyRing);
+    // The spin kick's own arc: a band of the circle it sweeps, spun about
+    // Hopper as the swing goes round. Built at unit radius and scaled to the
+    // kick's reach, so `combattuning.ts` alone decides how far it goes.
+    this.kickArc = new Mesh(new TorusGeometry(1, KICK.arcThickness, 6, 48, KICK.arcSweep), new MeshBasicMaterial({ color: '#cfe8ff', transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+    this.kickArc.rotation.x = -Math.PI / 2;
+    this.kickArc.renderOrder = 4;
+    this.kickArc.visible = false;
+    this.scene.add(this.groundShadow, this.lockRing, this.readyRing, this.kickArc);
     this.resize();
   }
   resize() {
@@ -253,9 +262,11 @@ export class Scene3D {
     progress(1);
     this.attachEffects(gltf.scene);
   }
-  /** Hopper's painted effects (T-082) ride on the model: the eye muzzle glow,
-   * the guard's shield face and a glide trail off each wing. Lasers use the
-   * same sheet when they are spawned. Missing paint leaves the flat shapes. */
+  /** Hopper's painted effects (T-082) ride on the model: the eye muzzle glow
+   * and a glide trail off each wing. Lasers and the parry flash use the same
+   * sheet when they are spawned -- the sheet's shield face is what a turned
+   * shot flares into, now that the kick is the whole defence. Missing paint
+   * leaves the flat shapes. */
   private attachEffects(root: Object3D) {
     void cellSprite(HOPPER_SHEET, 4, 4, HOPPER_CELLS.muzzle[0], HOPPER_CELLS.muzzle[1], 9, { additive: true }).then((s) => {
       if (!s) return;
@@ -263,14 +274,6 @@ export class Scene3D {
       s.visible = false;
       root.add(s);
       this.muzzle = s;
-    });
-    void cellSprite(HOPPER_SHEET, 4, 4, HOPPER_CELLS.shield[0], HOPPER_CELLS.shield[1], 19).then((s) => {
-      if (!s) return;
-      s.position.set(0, 11.6, 13);
-      s.visible = false;
-      (s.material as SpriteMaterial).opacity = 0.9;
-      root.add(s);
-      this.shieldSprite = s;
     });
     for (const side of [-1, 1])
       void cellPlane(HOPPER_SHEET, 4, 4, HOPPER_CELLS.trail[0], HOPPER_CELLS.trail[1], 28, 7, { color: '#fff3d2' }).then((m) => {
@@ -287,6 +290,7 @@ export class Scene3D {
         this.trails.push(m);
       });
     void cell(HOPPER_SHEET, 4, 4, HOPPER_CELLS.laser[0], HOPPER_CELLS.laser[1]).then((t) => (this.laserTex = t));
+    void cell(HOPPER_SHEET, 4, 4, HOPPER_CELLS.parry[0], HOPPER_CELLS.parry[1]).then((t) => (this.parryTex = t));
   }
   /** Crossfade to a clip. One-shots clamp at their last frame. */
   play(name: string, loop: boolean, fade = 0.12, timeScale = 1) {
@@ -643,7 +647,6 @@ export class Scene3D {
       loop = false;
       own = 0.7;
     } else if (h.move === 'crouch' || h.charge > 0) clip = 'Crouch_Hold';
-    else if (combat.guarding) clip = 'Block_Loop';
     else if (combat.heat > 0 && combat.shotClock > 0) clip = 'Fire_Loop';
     else if (!this.rig.bound) {
       // No rig to drive (a model without the leg bones): fall back to clips.
@@ -708,32 +711,23 @@ export class Scene3D {
         const side = i === 0 ? 1 : -1;
         w.rotation.set(-this.wingBeat * 0.25 - Math.max(0, beat) * 0.15, side * this.wingSpread * 0.35, side * (this.wingSpread * 1.1 + beat));
       }
-    // Guard: the painted shield face, or the stand-in dome until it loads.
-    const shield = root.getObjectByName('GuardDome');
-    if (this.shieldSprite) {
-      this.shieldSprite.visible = combat.guarding;
-      if (combat.guarding) this.shieldSprite.scale.setScalar(19 + Math.sin(this.time * 9) * 0.6);
-      if (shield) root.remove(shield);
-    } else if (combat.guarding) {
-      if (!shield) {
-        const dome = createStandIn('prop.shieldDome');
-        dome.name = 'GuardDome';
-        dome.position.set(0, 11.6, 12);
-        dome.rotation.y = Math.PI;
-        root.add(dome);
-        void swapDelivered(dome, 'prop.shieldDome').then((swapped) => {
-          if (!swapped) return;
-          swapped.play('Active');
-          this.guardDome = swapped;
-        });
+    // The spin: an arc of light sweeping the circle the kick reaches, so the
+    // sweep is a thing you can see coming round rather than a sound and a
+    // hit. It turns over the swing and fades as it goes.
+    if (this.kickArc) {
+      const swing = combat.kick > 0 ? combat.kick / KICK.time : 0;
+      this.kickArc.visible = swing > 0.02;
+      if (this.kickArc.visible) {
+        const r = KICK.reach + MOVE.radius;
+        this.kickArc.position.set(h.x, h.y + KICK.arcHeight, h.z);
+        this.kickArc.scale.set(r, r, r);
+        this.kickArc.rotation.z = h.yaw - (1 - swing) * KICK.arcTurns * Math.PI * 2;
+        (this.kickArc.material as MeshBasicMaterial).opacity = KICK.arcOpacity * Math.min(1, swing * 2.2);
       }
-    } else if (shield) {
-      root.remove(shield);
-      this.guardDome = null;
     }
     // Eye muzzle glow while the lasers run: eight painted frames.
     if (this.muzzle) {
-      const firing = combat.heat > 0 && combat.shotClock > 0 && !combat.guarding;
+      const firing = combat.heat > 0 && combat.shotClock > 0;
       this.muzzle.visible = firing;
       if (firing) muzzleCell((this.muzzle.material as SpriteMaterial).map!, Math.floor(this.time * 24) % 8);
     }
@@ -872,7 +866,13 @@ export class Scene3D {
       object.rotation.x = Math.PI / 2;
       life = 0.45;
     } else if (name === 'parry') {
-      object = new Mesh(new SphereGeometry(2.5, 10, 8), new MeshBasicMaterial({ color: '#b9fff1', transparent: true, opacity: 0.8 }));
+      if (this.parryTex) {
+        const flash = new Sprite(new SpriteMaterial({ map: this.parryTex, transparent: true, depthWrite: false, opacity: 0.9, fog: false }));
+        flash.scale.setScalar(14);
+        object = flash;
+      } else {
+        object = new Mesh(new SphereGeometry(2.5, 10, 8), new MeshBasicMaterial({ color: '#b9fff1', transparent: true, opacity: 0.8 }));
+      }
       life = 0.25;
     } else {
       object = new Mesh(new SphereGeometry(name === 'hit' ? 1.6 : 0.9, 8, 6), new MeshBasicMaterial({ color: name === 'splat' ? '#8a4bd8' : '#fff3d2', transparent: true, opacity: 0.9 }));
@@ -965,7 +965,6 @@ export class Scene3D {
     this.syncShadow(h, world, shadowEnabled);
     for (const o of this.animated) o.userData.animate?.(this.time);
     for (const d of this.delivered) d.mixer?.update(dt);
-    this.guardDome?.mixer?.update(dt);
     this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);
     this.camera.lookAt(new Vector3(cam.target[0], cam.target[1], cam.target[2]));
     if (Math.abs(this.camera.fov - cam.fov) > 0.05) {

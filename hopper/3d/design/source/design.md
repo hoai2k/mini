@@ -51,7 +51,7 @@ A region is about ten minutes on the main line and longer for anyone who chases 
 | 1970s cel character treatment and gouache landscapes | Cel-shaded models with ink outlines under painted equirect skies |
 | Xbox-first controls, menus, pause, settings, accessibility rules | Camera controls and 3D readability aids added |
 
-Deliberately not carried over: the directional two-way defence of the 2D game (rear kick only, front guard only), the one-way shelves, ceiling runs as a required mechanic, the fixed side view and its camera rules, and death by falling. Those were answers to a side-scroller's questions. The 3D game asks different ones.
+Deliberately not carried over: the directional two-way defence of the 2D game (rear kick only, front guard only) and the held guard with it, the one-way shelves, ceiling runs as a required mechanic, the fixed side view and its camera rules, and death by falling. Those were answers to a side-scroller's questions. The 3D game asks different ones.
 
 ### What the player is doing, minute to minute
 
@@ -71,7 +71,7 @@ The delivered models set the scale of everything. Hopper is 14 m from his feet t
 
 - **Rig:** a 51-joint insect skeleton with six legs, two wings and three antenna segments per side, and a 41-joint humanoid rider. Both face +Z, +Y up, metres.
 - **Clips:** twenty Hopper actions and five rider reactions, listed in `models/manifest.json` with their event timings. Walk and Run are in place; the jump family is physics-driven.
-- **Sockets:** feet, laser origins, shield, camera, centre of mass, rear-kick hitboxes, seat, grips and footrests; on the rider, hands, feet, chest, head, camera and mount.
+- **Sockets:** feet, laser origins, camera, centre of mass, rear-kick hitboxes, seat, grips and footrests; on the rider, hands, feet, chest, head, camera and mount.
 
 ### Clip mapping
 
@@ -87,10 +87,9 @@ The delivered models set the scale of everything. Hopper is 14 m from his feet t
 | Landing | Land / Stomp_Land (new) | Ground contact event 0.16 |
 | Kick | Spin_Kick / Air_Kick (new) | Facing preserved |
 | Lasers | Fire_Start → Fire_Loop → Fire_End | Laser sockets aim the bolts |
-| Guard | Block_Start → Block_Loop → Block_End | Shield socket anchors the dome |
 | Hit, defeat, win | Hit_Reaction, Defeat, Victory | Rider Hit_Reaction, Cheer |
 
-The new clips are request M-001; they add to the existing rig without changing the mesh. Locomotion, though, is not a clip any more and will not become one: walking, galloping, climbing and flying are driven procedurally over the delivered skeleton, because feet that are placed on the world can hold a slope, a stair and a wall that no authored cycle can. Clips are kept for what the whole body does at once — the kick, a blow taken, the guard, the lasers, the crouch — and the procedural pass fades out under them while they play. It runs after the animation mixer, never before, since the mixer writes the whole skeleton every frame; the wings are beaten there too, which is why a hover drums steadily rather than fluttering.
+The new clips are request M-001; they add to the existing rig without changing the mesh. Locomotion, though, is not a clip any more and will not become one: walking, galloping, climbing and flying are driven procedurally over the delivered skeleton, because feet that are placed on the world can hold a slope, a stair and a wall that no authored cycle can. Clips are kept for what the whole body does at once — the kick, a blow taken, the lasers, the crouch — and the procedural pass fades out under them while they play. It runs after the animation mixer, never before, since the mixer writes the whole skeleton every frame; the wings are beaten there too, which is why a hover drums steadily rather than fluttering.
 
 ### The rider
 
@@ -105,19 +104,20 @@ The boy is company and a scale reference, never a health bar. He leans into leap
 | --- | --- | --- |
 | Left stick / D-pad | Move, camera-relative; full deflection runs | WASD |
 | Right stick | Camera; click to reset behind Hopper | Mouse |
-| A | Jump; hold in the air to hover on beating wings, keep holding to glide; at a wall, wall kick | Space |
-| X | Spin kick, all-round, ground or air; parries during its first frames | J |
-| B | Guard (hold): shield the front; in the air, air brake | L |
+| A | Spring: a tap under 0.3 s is a hop taken without breaking stride, a longer hold stops Hopper and winds the jump and the stick aims it; hold in the air to hover on beating wings, keep holding to glide; at a wall, wall kick | Space |
+| X | Spin kick, all-round, ground or air; parries a shot from any side | J |
+| B | Spin kick, the same sweep on the other thumb | L |
 | Y | In the air: dive, stomp on landing. On the ground: hop back | F |
 | RT | Eye lasers (hold); heat builds and cools | K or left mouse |
 | LT | Lock-on (hold); tap to switch target | Q |
-| RB | Crouch charge (hold); release for a super leap | Shift |
-| LB | Horizon View (hold): frame the far landmark and the next checkpoint | Tab |
+| RB | Sprint (hold) | Shift |
+| LB | Dash, the way the stick points, on the ground or in the air | E |
+| Right-stick click | Horizon View (hold): frame the far landmark and the next checkpoint | Tab |
 | Menu / View | Pause / instructions | Escape / I |
 
 Automatic, with no button: ledge mantle when the front feet reach a lip, stomp bounce when landing on a flyer or an exposed back, the takeoff strike behind Hopper in the first 0.16 s of any jump, and the landing guide projected below him whenever he is airborne. Menus keep the collection's conventions: A confirms, B backs out, any fresh button starts from the idle title screen, the left stick enters utility navigation.
 
-The mapping keeps the 2D game's muscle memory where it still means the same thing (A jump and hover, X kick, B guard, RT lasers, Menu, View) and gives the four unused inputs to the four new 3D verbs. Nothing essential is on a click or a combination.
+The mapping keeps the 2D game's muscle memory where it still means the same thing (A jump and hover, X and B kick, RT lasers, Menu, View) and gives the unused inputs to the new 3D verbs. Nothing essential is on a combination.
 
 <!-- page -->
 ## Movement
@@ -213,21 +213,20 @@ Shadows are built to Hopper's scale or beyond: a hound stands eye to eye with a 
 | Attack | How | Damage and effect |
 | --- | --- | --- |
 | Eye lasers | Hold RT; auto-aim within a 30° cone, 250 m | 1 per pulse, 8 pulses/s; heat locks after 3.5 s, cools in 2 s |
-| Spin kick | X, ground or air; 7 m radius, all round | 4; parries a projectile or blow in its first 0.14 s |
+| Spin kick | X or B, ground or air; 16 m past the body and 6 m above and below it, all round, drawn as a bright sweeping arc | 4; parries a projectile or blow from any side through most of the swing |
 | Dive stomp | Y in the air, then landing | 5 in a 12 m shockwave; knocks ground shadows into the air |
 | Stomp bounce | Land on a flyer or an exposed back | 5; rebound to 56 m, 84 m with A held |
 | Takeoff strike | Automatic, first 0.16 s of a jump, 10 m behind | 3 and a stagger |
-| Guard | Hold B; teal dome at the shield socket | Blocks the front; energy drains while held and when hit; breaks for 0.6 s if drained |
-| Parry and reflect | Kick or guard as a shot arrives | Shot returns to its shooter for 6; opens cages; staggers the shooter |
+| Parry and reflect | Kick as a shot arrives | Shot returns to its shooter for 6; opens cages; staggers the shooter |
 | Hop back | Y on the ground | 0.2 s of invulnerability and a 12 m step away |
 
-The kick is now all-round because in 3D the question is timing, not direction. The guard is still a front-facing dome because facing is something the player controls, and a shield that only covers the front makes lock-on and strafing matter.
+The kick is all-round because in 3D the question is timing, not direction, and it is the whole defence: there is no held guard in this edition, as there is none in the 2D game any more. A dome that has to be raised and aimed asks the player to think about facing at the moment they most need to think about timing, and it made the kick the lesser answer to a volley. Instead the kick's parry window is generous and its reach is long, the sweep is drawn so its cover is legible, and it sits on both X and B so the nearer thumb can meet a shot.
 
 ### Fighting in the air
 
 The fight comes up at Hopper, not down on him: once he is near, window rays, rift condors and chain mantas drop below him (never lower than a body above the ground, never above their own perch) and their dives rise to meet him, while the rooted shooters lob and beam upward from where they stand. The super jump and the way down — stomps, kicks, dives — are the answer; aiming upward is never the game.
 
-Every flyer is a step. Stomping one damages it and bounces Hopper upward; holding A on the bounce goes higher; releasing takes a low, controllable rebound. Kicks work in the air and preserve the arc. Lasers fire while gliding, so a glide toward a roof can clear the sniper on it before arrival. The guard in the air is a brake that kills forward speed for a moment, which is a dodge as much as a defence. A chain of bounce, kick, bounce can keep Hopper aloft through a whole flock, and the flocks over the ravines and reefs are built to invite it.
+Every flyer is a step. Stomping one damages it and bounces Hopper upward; holding A on the bounce goes higher; releasing takes a low, controllable rebound. Kicks work in the air and preserve the arc. Lasers fire while gliding, so a glide toward a roof can clear the sniper on it before arrival. Pushing the stick back against the flight brakes it, which is a dodge as much as a steering correction. A chain of bounce, kick, bounce can keep Hopper aloft through a whole flock, and the flocks over the ravines and reefs are built to invite it.
 
 ### Fighting on the ground
 
@@ -427,7 +426,7 @@ The nine region palettes are the exact hex values the 2D game uses, so a 3D regi
 | Cobalt Drift | #193d77 | #478bab | #b9fff1 | #355d91 |
 | Violet Inversion | #251633 | #60436c | #e5b8ff | #503653 |
 
-Shadows keep their language: charcoal interiors, violet contours, pale cores; furnace species glow orange. Hopper keeps his green, cream, red, blue and gold. Saturated red-white is reserved for lasers, amber-white for danger tells, teal for the guard, violet for gravity.
+Shadows keep their language: charcoal interiors, violet contours, pale cores; furnace species glow orange. Hopper keeps his green, cream, red, blue and gold. Saturated red-white is reserved for lasers, amber-white for danger tells, teal for the kick's arc, violet for gravity.
 
 ### Scale cues
 
@@ -457,7 +456,7 @@ The title screen is the one the 2D game ships: the painted poster with the boy o
 
 ### HUD
 
-The top middle of the frame is the way ahead and stays empty: nothing informational is ever drawn there. The top corners hold what they did in 2D, six armour pips with the laser heat gauge beneath them at the top left, the signal count and the sound, fullscreen and pause buttons at the top right. Everything else sits low. The episode, region, chapter, route progress and the landmark compass line are at the lower left above the button legend; the stronghold host count, the locked target's name and health and any gravity note are at the lower right; the commander's bar, phase and tell sit along the bottom edge in the middle; the district title card rises in the lower third. In the world itself: the landing guide ring, height ticks at the right-hand screen edge while airborne, the crosshair in the middle of the aimed picture and the guard energy arc around the shield while B is held. Boss health appears only in boss arenas. Nothing sits where the rider, the next landing or the road ahead would be.
+The top middle of the frame is the way ahead and stays empty: nothing informational is ever drawn there. The top corners hold what they did in 2D, six armour pips with the laser heat gauge beneath them at the top left, the signal count and the sound, fullscreen and pause buttons at the top right. Everything else sits low. The episode, region, chapter, route progress and the landmark compass line are at the lower left above the button legend; the stronghold host count, the locked target's name and health and any gravity note are at the lower right; the commander's bar, phase and tell sit along the bottom edge in the middle; the district title card rises in the lower third. In the world itself: the landing guide ring, height ticks at the right-hand screen edge while airborne, the crosshair in the middle of the aimed picture and the kick's arc sweeping around Hopper while the spin runs. Boss health appears only in boss arenas. Nothing sits where the rider, the next landing or the road ahead would be.
 
 ### Pause and settings
 
@@ -539,7 +538,7 @@ Art can arrive in any order because the stand-ins hold every slot, but the order
 | --- | --- | --- |
 | M0 · Design and stand-ins | This document, the request documents, the stand-in library and viewer | Delivered with this document |
 | M1 · First leap | Sunseed district playable: controller, camera, the jump family, glide, dive, wall kick, mantle, landing guide, terrain and kit collision, the animated GLB | Ten minutes of free roaming feels good to three people; the skyline is visible from the start; nothing kills |
-| M2 · Shadows | Combat core with hound, spitter, ray and leech; armour, lasers, kick, stomps, dive, lock-on, guard, knots, dissolves | Air-stomp chains work; a knot fight is fun on standard and readable on relaxed |
+| M2 · Shadows | Combat core with hound, spitter, ray and leech; armour, lasers, kick, parry, stomps, dive, lock-on, knots, dissolves | Air-stomp chains work; a knot fight is fun on standard and readable on relaxed |
 | M3 · Earthbound Thunder | Three districts authored with the kit, chapters, totems, signals, cages, capsules, the Night Rook; title, play-select, HUD, pause, settings, save | Mission one playable start to finish; route audit and simulation tests pass |
 | M4 · The Iron Migration | Moving structures, belts, thermals, wind, tethers, presses; six species; the Leviathan | Mission two playable; performance budget met in the docks |
 | M5 · Beyond the Black Sun | Gravity volumes, drifting reefs, inversion galleries, six species, the Regent, transitions, ending | Full campaign playable; Dark Moon routed |
@@ -564,7 +563,7 @@ Milestones one and two are the ones to spend tuning time on; everything after th
 - The four new verbs and their buttons: glide on held A, dive stomp on Y, crouch charge on RB, Horizon View on LB, lock-on on LT.
 - District size (2.4 km) and the ten-minute region.
 - Falling never hurts; hazards push and never damage; knockback is the cost.
-- All-round kick with a front-only guard.
+- An all-round kick that is the whole defence: it parries from any side, and there is no held guard.
 - Shipping as a second entry beside the 2D game with the same title screen.
 - The order in which art should arrive.
 

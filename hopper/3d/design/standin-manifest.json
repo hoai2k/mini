@@ -1882,7 +1882,7 @@
     {
       "request": "M-081",
       "kind": "model",
-      "name": "Guard shield",
+      "name": "Parry flare",
       "category": "prop",
       "rig": "static",
       "size_m": [
@@ -2988,7 +2988,7 @@
     {
       "request": "T-082",
       "kind": "image",
-      "name": "Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail",
+      "name": "Hopper effect sprites: laser bolt, eye muzzle glow, parry flash, glide wing trail",
       "category": "effects",
       "final": "textures/effects/hopper.png",
       "status": "delivered",

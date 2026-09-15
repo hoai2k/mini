@@ -694,7 +694,7 @@ export default function Home() {
         ref={canvas}
         aria-label={
           edition === '3d'
-            ? 'Hopper the Grasshopper 3D world. Hold A to wind the spring and release to leap, the stick aiming it forward or up, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
+            ? 'Hopper the Grasshopper 3D world. Hold A to wind the spring and release to leap, the stick aiming it forward or up, X or B spin kicks and parries, Y dives, RT fires, LT locks on.'
             : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to spin kick all round, B or L also kicks, RT or K to fire.'
         }
         tabIndex={-1}
@@ -838,7 +838,7 @@ export default function Home() {
                 }
                 alt={
                   edition === '3d'
-                    ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
+                    ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X or B spin kick and parry, Y dive stomp, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
                     : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B spin kick and parry, RT shoot, Menu pause, View instructions.'
                 }
               />
@@ -848,13 +848,13 @@ export default function Home() {
                     <b className="pad a">A</b> Spring · hover · glide
                   </li>
                   <li>
-                    <b className="pad x">X</b> Spin kick
+                    <b className="pad x">X</b> Spin kick · parry
                   </li>
                   <li>
                     <b className="pad y">Y</b> Dive stomp
                   </li>
                   <li>
-                    <b className="pad b">B</b> Guard
+                    <b className="pad b">B</b> Kick too
                   </li>
                   <li>
                     <b className="trigger">RT</b> Eye lasers
@@ -896,7 +896,7 @@ export default function Home() {
                   <>
                     KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
                     <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
-                    lasers <span>L</span> guard <span>Q</span> lock-on{' '}
+                    lasers <span>L</span> kick <span>Q</span> lock-on{' '}
                     <span>SHIFT</span> sprint <span>E</span> dash
                   </>
                 ) : (
@@ -977,20 +977,8 @@ export default function Home() {
                 <div className="heat">
                   <i style={{ width: `${hud.heat * 100}%` }} />
                 </div>
-                {edition === '3d' && (
-                  <div
-                    className="shield-meter"
-                    aria-label={`Shield ${Math.round(hud.shield * 100)} percent`}
-                  >
-                    <i style={{ width: `${hud.shield * 100}%` }} />
-                  </div>
-                )}
                 <span className="heat-label">
-                  {hud.shieldBroken
-                    ? 'SHIELD RECHARGING'
-                    : hud.overheated
-                      ? 'EYES COOLING'
-                      : 'EYE REACTOR'}
+                  {hud.overheated ? 'EYES COOLING' : 'EYE REACTOR'}
                 </span>
               </div>
             </div>
@@ -1101,9 +1089,9 @@ export default function Home() {
               {edition === '3d' ? (
                 <span>
                   <b className="pad a">A</b> SPRING <b className="pad x">X</b>{' '}
-                  KICK <b className="pad y">Y</b> DIVE{' '}
+                  KICK · PARRY <b className="pad y">Y</b> DIVE{' '}
                   <b className="trigger">RT</b> LASERS{' '}
-                  <b className="pad b">B</b> GUARD
+                  <b className="pad b">B</b> KICK
                 </span>
               ) : (
                 <span>
@@ -1227,7 +1215,7 @@ export default function Home() {
                     }
                     alt={
                       edition === '3d'
-                        ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
+                        ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X or B spin kick and parry, Y dive stomp, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
                         : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B spin kick and parry, RT shoot, Menu pause, View instructions.'
                     }
                   />
@@ -1251,9 +1239,11 @@ export default function Home() {
                       </p>
                       <p>
                         <b className="pad x">X</b>
-                        <strong>Spin kick</strong> The hind legs sweep all the
-                        way round, on the ground or in the air. Timed as a shot
-                        arrives, it parries and sends the shot back.
+                        <strong>Spin kick · parry</strong> The hind legs sweep
+                        all the way round, on the ground or in the air, drawing
+                        a bright arc out to the edge of their reach. Anything
+                        the arc touches is hit, and a shot caught by it is
+                        parried straight back at whoever fired it.
                       </p>
                       <p>
                         <b className="pad y">Y</b>
@@ -1264,8 +1254,10 @@ export default function Home() {
                       </p>
                       <p>
                         <b className="pad b">B</b>
-                        <strong>Guard</strong> A shield in front of Hopper. In
-                        the air it brakes.
+                        <strong>Spin kick</strong> The same sweep X does, on the
+                        other thumb, so a shot can be met whichever button is
+                        nearer. There is no held guard in this edition: the kick
+                        is the whole answer to something coming at Hopper.
                       </p>
                       <p>
                         <b className="trigger">RT</b>
@@ -1368,7 +1360,7 @@ export default function Home() {
                     <>
                       KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
                       <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
-                      lasers <span>L</span> guard <span>Q</span> lock-on{' '}
+                      lasers <span>L</span> kick <span>Q</span> lock-on{' '}
                       <span>SHIFT</span> sprint <span>E</span> dash{' '}
                       <span>TAB</span> horizon view · click the game to turn the
                       view with the mouse

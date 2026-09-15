@@ -24,7 +24,7 @@ const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
 const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-engine3d-'));
-const names = ['world', 'controller', 'jumptuning', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'jumptuning', 'combattuning', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 for (const name of names) {
   const raw = fs
@@ -57,6 +57,7 @@ for (const name of names) {
 const { World } = await import(path.join(temp, 'world.mjs'));
 const { stepHopper, createHopperState, predictLanding, MOVE } = await import(path.join(temp, 'controller.mjs'));
 const { JUMP } = await import(path.join(temp, 'jumptuning.mjs'));
+const { KICK } = await import(path.join(temp, 'combattuning.mjs'));
 const { createCamera, updateCamera } = await import(path.join(temp, 'camera.mjs'));
 const { Combat } = await import(path.join(temp, 'combat3d.mjs'));
 const { NightRook } = await import(path.join(temp, 'boss3d.mjs'));
@@ -74,7 +75,6 @@ const blank = {
   divePressed: false,
   diveHeld: false,
   chargeHeld: false,
-  guardHeld: false,
 };
 const district = sunseedFields();
 const world = new World(district);
@@ -229,41 +229,45 @@ function check(name, cond, detail) {
 // 5. The wind-up: A held roots Hopper, the stick aims it, 1.5 s is full
 // ---------------------------------------------------------------------
 {
-  // Held at a run: he stops dead and stays put while the spring winds.
+  // Held at a run: nothing is given up inside the tap window, and only past
+  // it does he stop dead and stay put while the spring winds.
   const s = startHopper(0, 40);
   for (let i = 0; i < 180; i++) stepHopper(s, world, { ...blank, dz: -1 }, dt);
   const running = Math.hypot(s.vx, s.vz);
-  const zHeld = s.z;
-  for (let i = 0; i < 120; i++)
-    stepHopper(
-      s,
-      world,
-      { ...blank, dz: -1, jumpPressed: i === 0, jumpHeld: true },
-      dt,
-    );
   check('running speed is real before the wind-up', running > 60, running);
-  check(
-    'A held stops Hopper where he stands (<8m of drift)',
-    Math.abs(s.z - zHeld) < 8,
-    s.z - zHeld,
-  );
+  const inside = Math.round((MOVE.tapWindow * 0.8) / dt);
+  for (let i = 0; i < inside; i++) stepHopper(s, world, { ...blank, dz: -1, jumpPressed: i === 0, jumpHeld: true }, dt);
+  check('inside the tap window he keeps running', Math.hypot(s.vx, s.vz) > running * 0.9, Math.hypot(s.vx, s.vz));
+  check('and does not crouch or wind', s.move !== 'crouch' && s.charge === 0, `${s.move}, ${s.charge}`);
+  const zHeld = s.z;
+  for (let i = 0; i < 120; i++) stepHopper(s, world, { ...blank, dz: -1, jumpHeld: true }, dt);
+  check('past it he stops where he stands (<8m of drift)', Math.abs(s.z - zHeld) < 8, s.z - zHeld);
   check('and he crouches into it', s.move === 'crouch', s.move);
-  check(
-    'the wind builds toward full charge',
-    s.charge > 0.6 && s.charge < 0.75,
-    s.charge,
-  );
-  check(
-    'the crouch carries the aim it will leave at',
-    s.chargeAim > MOVE.aimForward - 0.01 && s.chargeAim < MOVE.aimNeutral,
-    s.chargeAim,
-  );
+  check('the wind builds toward full charge', s.charge > 0.7 && s.charge < 0.85, s.charge);
+  check('the crouch carries the aim it will leave at', s.chargeAim > MOVE.aimForward - 0.01 && s.chargeAim < MOVE.aimNeutral, s.chargeAim);
 
-  // Wind for `holdS` with the stick at `stick` (+1 forward, 0 neutral, -1
-  // back), let go, and report the arc. The aim is read at the moment it is
-  // let go, so the stick is held all the way through the release.
+  // A release inside the tap window is the quick hop, taken at full stride.
+  {
+    const q = startHopper(0, 40);
+    for (let i = 0; i < 180; i++) stepHopper(q, world, { ...blank, dz: -1 }, dt);
+    const before = Math.hypot(q.vx, q.vz);
+    let launched = null;
+    for (let i = 0; i < 120 && launched === null; i++) {
+      const ev = stepHopper(q, world, { ...blank, dz: -1, jumpPressed: i === 0, jumpHeld: i * dt < MOVE.tapWindow * 0.5 }, dt);
+      if (ev.some((e) => e.kind === 'jump')) launched = Math.hypot(q.vx, q.vz);
+    }
+    check('a hop taken inside the window never breaks stride', launched !== null && launched >= before - 0.5, `${launched?.toFixed(0)} from ${before.toFixed(0)}`);
+  }
+
+  // Hold A for `holdS` seconds with the stick at `stick` (+1 forward, 0
+  // neutral, -1 back), let go, and report the arc. The aim is read at the
+  // moment it is let go, so the stick is held all the way through release.
   const spring = (holdS, stick = 0) => {
     const q = startHopper(0, 40);
+    // The camera's forward is the aim's reference, as it is in play: inside
+    // the tap window he is still running, so without one a pulled-back stick
+    // would simply turn him around.
+    const face = q.yaw;
     const startY = q.y,
       startZ = q.z;
     let apex = 0,
@@ -278,6 +282,7 @@ function check(name, cond, detail) {
         {
           ...blank,
           dz: -stick,
+          faceYaw: face,
           jumpPressed: i === 0,
           jumpHeld: i * dt < holdS,
         },
@@ -517,11 +522,14 @@ function check(name, cond, detail) {
 {
   const s = startHopper(-100, -780);
   const startY = s.y;
+  const face = s.yaw;
   let apex = 0;
+  // Past the tap window the wind runs for 1.05s, so a little over 0.7 of it.
+  const letGo = Math.round((MOVE.tapWindow + 1.05) / dt);
   for (let i = 0; i < 1800; i++) {
     // Wind with the stick pulled back so the spring goes straight up the
     // column, then hold A to ride it on beating wings.
-    stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i < 126 || i > 129, dz: i <= 126 ? 1 : 0 }, dt);
+    stepHopper(s, world, { ...blank, faceYaw: face, jumpPressed: i === 0, jumpHeld: i < letGo || i > letGo + 3, dz: i <= letGo ? 1 : 0 }, dt);
     apex = Math.max(apex, s.y - startY);
   }
   check('thermal apex above 120m', apex > 120, apex);
@@ -803,7 +811,6 @@ function aimFrom(h, extra = {}) {
     dy: 0,
     dz: Math.cos(h.yaw),
     firing: false,
-    guarding: false,
     kickPressed: false,
     ...extra,
   };
@@ -946,21 +953,63 @@ function aimFrom(h, extra = {}) {
   check('resetToCheckpoint(0) restores h1 (ahead of the checkpoint)', h1After.alive === true, h1After.alive);
 }
 
-// 13i. Guard: draining and breaking the shield.
+// 13i. The kick is the whole defence: it turns a shot from any side.
 {
   const h = startHopper(40, -218);
   const combat = new Combat(world, district);
   const cb = makeCallbacks();
-  const shieldStart = combat.shield;
-  for (let i = 0; i < 120; i++) combat.update(dt, h, cb, aimFrom(h, { guarding: true }));
-  check('guarding is true while held', combat.guarding === true, combat.guarding);
-  check('shield decreases while guarding', combat.shield < shieldStart, `${shieldStart} -> ${combat.shield}`);
-  let brokeAt = null;
-  for (let i = 120; i < 8 * 120; i++) {
-    combat.update(dt, h, cb, aimFrom(h, { guarding: true }));
-    if (brokeAt === null && combat.shieldBroken > 0) brokeAt = i / 120;
+  const shot = (dx, dz) => ({
+    id: 9000 + combat.projectiles.length,
+    kind: 'orb',
+    owner: 'shadow',
+    ownerId: 'nobody',
+    x: h.x + dx * 12,
+    y: h.y + 6,
+    z: h.z + dz * 12,
+    vx: -dx * 90,
+    vy: 0,
+    vz: -dz * 90,
+    gravity: 0,
+    radius: 2,
+    damage: 2,
+    life: 3,
+  });
+  // No kick out: the shot lands.
+  combat.projectiles.push(shot(0, 1));
+  let hurt = 0;
+  for (let i = 0; i < 30; i++) combat.update(dt, h, { ...cb, hurt: () => (hurt++, false) }, aimFrom(h));
+  check('with no kick out a shot gets through', hurt > 0, hurt);
+  // Kicking: a shot from behind is turned back at its shooter, as one from
+  // the front is. There is no side the sweep does not cover.
+  for (const [dx, dz, side] of [[0, 1, 'ahead'], [0, -1, 'behind'], [1, 0, 'beside']]) {
+    const c2 = new Combat(world, district);
+    let hit = 0;
+    c2.update(dt, h, cb, aimFrom(h, { kickPressed: true }));
+    c2.projectiles.push(shot(dx, dz));
+    const p = c2.projectiles[c2.projectiles.length - 1];
+    for (let i = 0; i < 20; i++) c2.update(dt, h, { ...cb, hurt: () => (hit++, false) }, aimFrom(h));
+    check(`a shot from ${side} is parried, not taken`, hit === 0 && p.owner === 'hopper', `${side}: hurt ${hit}, owner ${p.owner}`);
+    check(`and the parried shot from ${side} flies back`, p.vx * dx + p.vz * dz > 0, `${p.vx.toFixed(0)},${p.vz.toFixed(0)}`);
   }
-  check('shield breaks at some point within 8s of holding', brokeAt !== null, brokeAt);
+  // The parry window is wider than the damage window, so turning to meet
+  // something is enough.
+  check('the parry outlasts the sweep that damages', KICK.parryFrom < KICK.hitFrom, `${KICK.parryFrom} vs ${KICK.hitFrom}`);
+  // The sweep reaches further than Hopper's own body by the tuned reach.
+  {
+    const c3 = new Combat(world, district);
+    const far = c3.shadows.find((s) => s.alive);
+    if (far) {
+      far.x = h.x + KICK.reach + MOVE.radius + far.radius - 1;
+      far.z = h.z;
+      far.y = h.y;
+      const hp = far.hp;
+      c3.update(dt, h, cb, aimFrom(h, { kickPressed: true }));
+      for (let i = 0; i < 30; i++) c3.update(dt, h, cb, aimFrom(h));
+      check('the sweep reaches the full tuned distance', far.hp < hp, `${hp} -> ${far.hp} at ${(far.x - h.x).toFixed(0)}m`);
+    }
+  }
+  // Nothing of the old held guard is left on the combat world.
+  check('there is no guard left to hold', !('guarding' in combat) && !('shield' in combat), Object.keys(combat).filter((k) => k === 'guarding' || k === 'shield').join(' '));
 }
 
 // ---------------------------------------------------------------------
@@ -1255,11 +1304,12 @@ function aimFrom(h, extra = {}) {
 // 17. The spring travels: the stick aims it, the wind powers it
 // ---------------------------------------------------------------------
 {
-  // Run up to speed, wind the spring for `wind` seconds with the stick at
-  // `stick` (+1 forward, 0 neutral, -1 back), spring, and report the arc.
-  // `wind` 0 is a tap: pressed and released inside one step.
-  const arc = ({ runUp = 0, sprint = false, wind = 0, stick = 1 }) => {
+  // Run up to speed, hold A for `hold` seconds with the stick at `stick`
+  // (+1 forward, 0 neutral, -1 back), spring, and report the arc. `hold` 0
+  // is a tap: pressed and released inside one step.
+  const arc = ({ runUp = 0, sprint = false, hold = 0, stick = 1 }) => {
     const s = startHopper(0, 40);
+    const face = s.yaw;
     for (let i = 0; i < Math.round(runUp / dt); i++)
       stepHopper(s, world, { ...blank, dz: -1, sprintHeld: sprint }, dt);
     const z0 = s.z,
@@ -1278,9 +1328,10 @@ function aimFrom(h, extra = {}) {
         {
           ...blank,
           dz: -stick,
+          faceYaw: face,
           sprintHeld: sprint,
           jumpPressed: i === 0,
-          jumpHeld: i * dt < wind,
+          jumpHeld: i * dt < hold,
         },
         dt,
       );
@@ -1305,7 +1356,7 @@ function aimFrom(h, extra = {}) {
       aim,
       range: Math.abs(s.z - z0),
       slowest,
-      pace: Math.abs(s.z - z0) / (wind + air),
+      pace: Math.abs(s.z - z0) / (hold + air),
     };
   };
   check('run speed is at least 66 m/s', MOVE.run >= 66, MOVE.run);
@@ -1325,8 +1376,8 @@ function aimFrom(h, extra = {}) {
     tap.aim > (MOVE.aimForward * 180) / Math.PI + 5,
     tap.aim,
   );
-  const half = arc({ runUp: 1.5, wind: 0.75 });
-  const full = arc({ runUp: 1.5, wind: 1.5 });
+  const half = arc({ runUp: 1.5, hold: 0.75 });
+  const full = arc({ runUp: 1.5, hold: 1.5 });
   check(
     'more wind, more ground',
     full.range > half.range && half.range > tap.range,
@@ -1352,7 +1403,7 @@ function aimFrom(h, extra = {}) {
     full.slowest >= full.takeoff - 1,
     `${full.slowest.toFixed(0)} from ${full.takeoff.toFixed(0)}`,
   );
-  const mid = arc({ runUp: 1.5, wind: 1.5, stick: 0 });
+  const mid = arc({ runUp: 1.5, hold: 1.5, stick: 0 });
   check(
     'neutral trades the lunge for height and covers most ground of all',
     mid.apex > full.apex * 4 && mid.pace > full.pace,
@@ -1363,7 +1414,7 @@ function aimFrom(h, extra = {}) {
     mid.pace > MOVE.run * 1.9 && mid.pace < MOVE.run * 2.3,
     `${mid.pace.toFixed(0)} vs ${MOVE.run}`,
   );
-  const up = arc({ runUp: 1.5, wind: 1.5, stick: -1 });
+  const up = arc({ runUp: 1.5, hold: 1.5, stick: -1 });
   check(
     'pulled back is the highest jump and goes nowhere',
     Math.abs(up.apex - JUMP.chargeApexMax) < 6 && up.takeoff < 0.1,

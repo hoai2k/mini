@@ -431,7 +431,7 @@ The inversion warning graphics; must read at 200 m.
 - **Spec:** 256² alpha arrow + 1024×128 seam strip, animated by UV scroll
 - **Status:** delivered · **Stand-in:** `none` · **Final:** `textures/effects/gravity.png`
 
-### T-082 · Hopper effect sprites: laser bolt, eye muzzle glow, guard shield face, glide wing trail
+### T-082 · Hopper effect sprites: laser bolt, eye muzzle glow, parry flash, glide wing trail
 
 Round one covered impacts and sparks; Hopper's own attacks still use flat shapes: the laser bolt is a red capsule, the shield a translucent dome, the glide has no trail. This sheet gives them paint in the same style as the delivered atlases.
 

@@ -39,7 +39,6 @@ export const MOVE = {
   hopBack: 64,
   hopBackTime: 0.22,
   stompLag: 0.35,
-  brake: 120,
   dashSpeed: 170,
   dashTime: 0.28,
   dashCooldown: 0.55,
@@ -79,6 +78,10 @@ export interface HopperState {
   gliding: boolean;
   diving: boolean;
   charge: number;
+  /** Seconds A has been down with his feet on the ground. Inside
+   * `tapWindow` nothing is given up and a release is the quick hop; past it
+   * he is rooted and `charge` is winding. */
+  springHold: number;
   /** While the spring is wound: the angle it will leave at, above the
    * ground, so the crouch can show what is about to happen. */
   chargeAim: number;
@@ -160,6 +163,7 @@ export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
     gliding: false,
     diving: false,
     charge: 0,
+    springHold: 0,
     chargeAim: JUMP.aimNeutral,
     coyote: MOVE.coyote,
     buffer: 0,
@@ -208,7 +212,6 @@ export interface MoveIntent {
   divePressed: boolean;
   diveHeld: boolean;
   chargeHeld: boolean;
-  guardHeld: boolean;
   /** Y tapped on the ground: a quick hop backward. */
   hopBackPressed?: boolean;
   dashPressed?: boolean;
@@ -241,7 +244,6 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
     divePressed: f.divePressed,
     diveHeld: f.diveHeld,
     chargeHeld: f.chargeHeld,
-    guardHeld: f.blockHeld,
     dashPressed: f.dashPressed,
     dashHeld: f.dashHeld,
     sprintHeld: f.sprintHeld,
@@ -551,9 +553,10 @@ function stepUpright(
     }
   }
   if (!intent.dashHeld) s.dashArmed = false;
-  // Winding the spring roots Hopper: no steering, no sprint, no drift.
-  const winding =
-    control && !busy && s.grounded && (intent.jumpHeld || intent.chargeHeld);
+  // Winding the spring roots Hopper: no steering, no sprint, no drift. The
+  // first `tapWindow` of the hold gives nothing up, so a quick hop is taken
+  // at full stride and only a real wind costs him his feet.
+  const winding = control && !busy && s.grounded && s.springHold > MOVE.tapWindow && (intent.jumpHeld || intent.chargeHeld);
   s.sprinting =
     !!intent.sprintHeld && s.grounded && s.charge <= 0 && !winding && !busy;
   const canSteer =
@@ -683,15 +686,8 @@ function stepUpright(
     s.vx *= k;
     s.vz *= k;
   }
-  // Air brake: guard in the air kills forward speed.
-  if (!s.grounded && intent.guardHeld && !s.gliding) {
-    const sp = Math.hypot(s.vx, s.vz);
-    if (sp > 0) {
-      const k = Math.max(0, sp - MOVE.brake * dt) / sp;
-      s.vx *= k;
-      s.vz *= k;
-    }
-  }
+  // There is no held guard in this edition and so no button air brake:
+  // pushing the stick back against the flight is what slows a spring down.
 
   // The spring. A held on the ground (or the old charge button) stops Hopper
   // where he stands and winds the jump up; letting go launches it. Nothing
@@ -700,23 +696,23 @@ function stepUpright(
   if (control && !busy) {
     const footed = s.grounded || s.coyote > 0;
     // A press and a release inside one step is still a spring: the press
-    // seeds the wind, and the release below lets go of it the same step.
-    if (footed && intent.jumpPressed) s.charge = Math.max(s.charge, 1e-4);
-    if (footed && (intent.jumpHeld || intent.chargeHeld)) {
-      s.charge = Math.min(1, s.charge + dt / MOVE.chargeTime);
+    // starts the hold, and the release below lets go of it the same step.
+    if (footed && intent.jumpPressed) s.springHold = Math.max(s.springHold, 1e-6);
+    if (footed && s.springHold > 0 && (intent.jumpHeld || intent.chargeHeld)) {
+      s.springHold += dt;
+      // Nothing is given up inside the tap window; past it he is rooted and
+      // the wind builds from nothing.
+      s.charge = Math.max(0, Math.min(1, (s.springHold - MOVE.tapWindow) / Math.max(0.01, MOVE.chargeTime - MOVE.tapWindow)));
       s.buffer = 0;
       // The crouch shows its aim: Hopper turns the way the spring points and
       // the angle is kept on the state for the pose to read.
       const aim = springAim(s, intent, s.charge);
       s.chargeAim = aim.angle;
-      if (wantLen > 0.05)
-        s.yaw = turnToward(
-          s.yaw,
-          Math.atan2(aim.hx, aim.hz),
-          MOVE.turnRate * dt,
-        );
-      if (s.grounded) s.move = 'crouch';
-    } else if (footed && s.charge > 0) {
+      if (winding) {
+        if (wantLen > 0.05) s.yaw = turnToward(s.yaw, Math.atan2(aim.hx, aim.hz), MOVE.turnRate * dt);
+        s.move = 'crouch';
+      }
+    } else if (footed && s.springHold > 0) {
       const c = Math.min(1, s.charge);
       // One launch speed from the wind, written as the height it would reach
       // thrown straight up, and one angle from the stick. Everything else is
@@ -752,12 +748,14 @@ function stepUpright(
       s.gliding = false;
       s.glideHold = 0;
       s.charge = 0;
+      s.springHold = 0;
       s.buffer = 0;
       s.move = 'jump';
       s.events.push({ kind: 'jump', charged: c > 0.15 });
-    } else if (s.charge > 0) {
-      // Walked off the edge mid-wind: the spring is lost, not banked.
+    } else if (s.springHold > 0) {
+      // Walked off the edge mid-hold: the spring is lost, not banked.
       s.charge = 0;
+      s.springHold = 0;
     }
   }
   // Hop back on the ground (a tap of Y).
@@ -1149,11 +1147,8 @@ function stepUpright(
     if (s.stompTimer > 0) s.move = 'stomp';
     else if (s.hopBackTimer > 0) s.move = 'hopBack';
     else if (s.landTimer > 0) s.move = 'land';
-    else if (
-      s.charge > 0 ||
-      ((intent.chargeHeld || intent.jumpHeld) && control)
-    )
-      s.move = 'crouch';
+    // Only a real wind is a crouch: inside the tap window he is still running.
+    else if (s.springHold > MOVE.tapWindow && control) s.move = 'crouch';
     else s.move = Math.hypot(s.vx, s.vz) > 2 ? 'run' : 'idle';
   } else if (s.dashTimer > 0) s.move = 'dash';
   else if (s.hovering) s.move = 'hover';
