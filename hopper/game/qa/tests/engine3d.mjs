@@ -24,7 +24,7 @@ const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
 const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-engine3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'jumptuning', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 for (const name of names) {
   const raw = fs
@@ -56,6 +56,7 @@ for (const name of names) {
 
 const { World } = await import(path.join(temp, 'world.mjs'));
 const { stepHopper, createHopperState, predictLanding, MOVE } = await import(path.join(temp, 'controller.mjs'));
+const { JUMP } = await import(path.join(temp, 'jumptuning.mjs'));
 const { createCamera, updateCamera } = await import(path.join(temp, 'camera.mjs'));
 const { Combat } = await import(path.join(temp, 'combat3d.mjs'));
 const { NightRook } = await import(path.join(temp, 'boss3d.mjs'));
@@ -256,6 +257,14 @@ function check(name, cond, detail) {
   check('and it goes straight up, not forward (<2m)', wound.range < 2, wound.range);
   check('holding past 1.5s adds nothing', Math.abs(full(2.5).apex - wound.apex) < 1, full(2.5).apex - wound.apex);
   check('half a wind is well short of a full one', full(0.75).apex < wound.apex * 0.65, `${full(0.75).apex.toFixed(0)} vs ${wound.apex.toFixed(0)}`);
+
+  // The spring's numbers live in jumptuning.ts and nowhere else, so the feel
+  // can be changed in one file. If a literal ever creeps back into MOVE this
+  // stops naming the tuning file as the source of truth.
+  const tuned = Object.keys(JUMP);
+  check('the jump tuning file carries the spring, the arc and the run', ['chargeTime', 'chargeApexMin', 'chargeApexMax', 'chargeUp', 'chargePace', 'gravity', 'fallGravity', 'run', 'sprint'].every((k) => tuned.includes(k)), tuned.join(' '));
+  check('and the controller takes every one of them from it', tuned.every((k) => MOVE[k] === JUMP[k]), tuned.filter((k) => MOVE[k] !== JUMP[k]).join(' '));
+  check('the wind-up the sim used is the one the file names', Math.abs(MOVE.chargeTime - JUMP.chargeTime) < 1e-9 && wound.apex > JUMP.chargeApexMax, `${JUMP.chargeTime}s, apex ${wound.apex.toFixed(0)} over ${JUMP.chargeApexMax}`);
 }
 
 // ---------------------------------------------------------------------

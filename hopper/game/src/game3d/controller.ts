@@ -4,53 +4,22 @@
  * objects, so it runs in node tests at the same fixed 120 Hz as the game.
  */
 import type { InputFrame } from '../game/input';
+import { JUMP } from './jumptuning';
 import { World, type Collider } from './world';
 
 export const MOVE = {
+  // Everything that shapes the jump -- the spring's wind and reach, the
+  // arc's gravity, the run it is measured against, the hover, the glide and
+  // the dive -- is written down once in `jumptuning.ts`. Tune it there.
+  ...JUMP,
   height: 14,
   radius: 5,
-  gravity: 120,
-  /** Falling pulls harder than rising: the arc peaks and comes down sharp. */
-  fallGravity: 1.4,
-  /** Top speeds: a light stick walks, a full tilt gallops at twice the walk. */
-  walk: 34,
-  run: 68,
-  /** Stick throw up to which he walks; beyond it the gallop takes over. */
-  walkBand: 0.55,
   groundAccel: 520,
   airAccel: 215,
   turnRate: Math.PI * 5,
-  /** A jump away from a ceiling, as a fraction of the spring's impulse. */
-  ceilingJump: 0.7,
-  /** Hover: A held in the air holds altitude on beating wings for this long. */
-  hoverFuel: 1.8,
-  hoverLift: 2.5,
-  hoverGrip: 9,
   /** Moving against the facing is slower: backpedal and strafe factors. */
   backpedal: 0.55,
   strafe: 0.85,
-  glideSink: 7,
-  glideSpeed: 80,
-  glideTurn: Math.PI * 0.6,
-  /** The spring. A is held on the ground: Hopper stops dead and winds up,
-   * and lets go when the button does. A quick tap barely winds at all and is
-   * a small hop; 1.5 s is a full charge. */
-  chargeTime: 1.5,
-  chargeApexMin: 10,
-  chargeApexMax: 190,
-  /** Stick neutral puts the whole wind-up into height rather than splitting
-   * it between forward and up, so a standing spring rises about 1.8x as far. */
-  chargeUp: 1.35,
-  /** What the spring is worth against running. A tap breaks even: it carries
-   * exactly as far as the run it interrupts. A full charge covers twice the
-   * ground in the same time, wind-up included, so springing in succession
-   * beats running outright. */
-  chargePace: 2,
-  springApex: 168,
-  diveGravity: 2.5,
-  diveTerminal: 190,
-  wallKickUp: 62,
-  wallKickAway: 26,
   wallGrace: 0.12,
   wallCommit: 0.16,
   /** Climbing. Push into a wall and Hopper takes hold of it and goes up it
@@ -67,15 +36,10 @@ export const MOVE = {
   climbGrace: 0.16,
   mantleReach: 6,
   mantleTime: 0.5,
-  bounceApex: 56,
-  bounceApexHeld: 84,
   hopBack: 64,
   hopBackTime: 0.22,
-  coyote: 0.12,
-  buffer: 0.14,
   stompLag: 0.35,
   brake: 120,
-  sprint: 1.6,
   dashSpeed: 170,
   dashTime: 0.28,
   dashCooldown: 0.55,
