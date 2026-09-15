@@ -343,16 +343,30 @@ export class World {
       // inside solid" and shove the signal on up the wall.
       let lifted = start.y;
       if (!onto) {
-        // No designed top nearby at all, big enough to actually stand on --
-        // a hollow chimney's real flue has no floor anywhere along its
-        // height, only fragments too small to trust (its thin wall shell,
-        // or a footprint-scan sliver that never merged into anything
-        // bigger), so this rests on the terrain itself: guaranteed stable,
-        // rather than a coin-sized ledge partway up that might not even
-        // catch a falling Hopper before the wall around it pushes him off.
+        // Before the terrain: the structure it was authored onto may still
+        // have a real top here, just not in the exact column the designed
+        // perch claimed. A farmhouse's roof is two ridge slopes with nothing
+        // along the ridge line itself, so the centre reads as hollow and the
+        // signal authored on the roof would be dropped into the room below --
+        // where a 14 m grasshopper cannot go. A top within a body's radius,
+        // at or under the height it was authored at and clear of the ground,
+        // is that roof.
+        const roof = this.groundAt(start.x, start.z, y, 5);
         const ground = this.heightAt(start.x, start.z) + 0.3;
-        if (Math.abs(ground - y) > 1 || start.x !== x || start.z !== z) start = { x: start.x, y: ground, z: start.z };
-        lifted = this.liftOut(start.x, start.z, start.y);
+        if (roof.collider && roof.y > ground + 1) {
+          start = { x: start.x, y: roof.y + 0.3, z: start.z };
+          lifted = start.y;
+        } else {
+          // No designed top nearby at all, big enough to actually stand on --
+          // a hollow chimney's real flue has no floor anywhere along its
+          // height, only fragments too small to trust (its thin wall shell,
+          // or a footprint-scan sliver that never merged into anything
+          // bigger), so this rests on the terrain itself: guaranteed stable,
+          // rather than a coin-sized ledge partway up that might not even
+          // catch a falling Hopper before the wall around it pushes him off.
+          if (Math.abs(ground - y) > 1 || start.x !== x || start.z !== z) start = { x: start.x, y: ground, z: start.z };
+          lifted = this.liftOut(start.x, start.z, start.y);
+        }
       }
       if (Math.abs(lifted - y) < 0.05 && start.x === x && start.z === z) continue;
       t.x = start.x;
