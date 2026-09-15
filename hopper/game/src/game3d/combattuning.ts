@@ -36,10 +36,11 @@ export const KICK = {
   /** The arc drawn as he spins: how thick the band is against its radius,
    * how much of the circle it covers (radians), how many turns it makes over
    * the swing, and how bright it starts. */
-  arcThickness: 0.16,
-  arcSweep: (150 * Math.PI) / 180,
+  arcThickness: 0.055,
+  arcSweep: (120 * Math.PI) / 180,
   arcTurns: 2.2,
-  arcOpacity: 0.85,
-  /** How far up Hopper's body the arc is drawn, in metres. */
-  arcHeight: 6,
+  arcOpacity: 0.95,
+  /** How far up Hopper's body the arc is drawn, in metres: level with the
+   * hind legs that swing it, not down among his feet. */
+  arcHeight: 9,
 } as const;

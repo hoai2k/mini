@@ -3,6 +3,7 @@
  * effects and the landing guide. Reads simulation state; never changes it.
  */
 import {
+  AdditiveBlending,
   AmbientLight,
   AnimationAction,
   AnimationClip,
@@ -230,7 +231,7 @@ export class Scene3D {
     // The spin kick's own arc: a band of the circle it sweeps, spun about
     // Hopper as the swing goes round. Built at unit radius and scaled to the
     // kick's reach, so `combattuning.ts` alone decides how far it goes.
-    this.kickArc = new Mesh(new TorusGeometry(1, KICK.arcThickness, 6, 48, KICK.arcSweep), new MeshBasicMaterial({ color: '#cfe8ff', transparent: true, opacity: 0, depthWrite: false, depthTest: false }));
+    this.kickArc = new Mesh(new TorusGeometry(1, KICK.arcThickness, 6, 64, KICK.arcSweep), new MeshBasicMaterial({ color: '#d8f4ff', transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: AdditiveBlending, fog: false }));
     this.kickArc.rotation.x = -Math.PI / 2;
     this.kickArc.renderOrder = 4;
     this.kickArc.visible = false;
