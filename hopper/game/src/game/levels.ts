@@ -730,14 +730,10 @@ export function buildLevel(mission: number): LevelData {
         let beat =
           shape === 'mixed' ? CHAPTER_BEATS[ci][i] : SHAPE_BEATS[shape][i];
         if (beat === 'hazard' && skin !== 3 && skin !== 5) beat = 'run';
-        // A stretch with nothing to fight is half as long as its shape asks
-        // for, shelf and gap alike, while its rise stays: the way through a
-        // quiet stretch is a steeper jump, not a longer run. The crossing's
-        // takeoff shelf and far landing keep their length: the guard over the
-        // gap, the shooter on the far side and the caged warden above it make
-        // those a fight, and the spring and salvage geometry hang off them.
-        const quiet =
-          beat !== 'fight' && beat !== 'finish' && i !== 5 && i !== 6;
+        // A chapter with nothing to fight (a `leaps` chapter) is half as long
+        // as its shape asks for, shelf and gap alike, while its elevation
+        // change stays: the way through it is steeper jumps, not longer runs.
+        const quiet = shape === 'leaps';
         const w = Math.round(
           (skin === 8 && ci === 1 && i === 4
             ? 1100
@@ -752,9 +748,8 @@ export function buildLevel(mission: number): LevelData {
         const inverted = skin === 8 && ci === 2 && i === 6;
         // The gap onto a finish shelf is never stretched: the finish is a fight
         // fought on arrival, and the jump into it should not be the hard part.
-        // The chapter crossing and the inverted crossing keep their length:
-        // one is the chapter's set piece with a guard over it, the other has
-        // to stay too long to jump.
+        // Only the inverted crossing keeps its length in a halved chapter: it
+        // has to stay too long to jump.
         const gap = Math.round(
           source[1] *
             (crossing
@@ -764,7 +759,7 @@ export function buildLevel(mission: number): LevelData {
                 : i === 6
                   ? Math.min(1, signature.gap)
                   : signature.gap) *
-            (quiet && !crossing && !inverted ? 0.5 : 1),
+            (quiet && !inverted ? 0.5 : 1),
         );
         profileSum += signature.profile[i];
         const nextY =
