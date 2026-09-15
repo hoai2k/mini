@@ -292,12 +292,13 @@ function mirrorState(s: HopperState) {
   s.gravityScale = -s.gravityScale;
 }
 
-/** Hopper meets a wall as a circle, not as the 22 m body he is drawn as: his
- * nose and tail can overlap a face by a few metres. Resolving his whole length
- * is a wider change than it looks -- the districts are authored around this
- * radius, and a body that long cannot get into places they mean him to reach
- * (a signal stands inside a farmhouse in Sunseed Fields) -- so the circle
- * stands until those places are re-authored around him. */
+/** Hopper meets a wall as a circle, not as the 22 m body he is drawn as, so
+ * his nose and tail can overlap a face by a few metres. Resolving his whole
+ * length works and every check passes with it, but eleven places across the
+ * nine districts have no room for a body that long -- two checkpoints, the
+ * three blue cages, and signals on spire caps and rocket noses -- and a
+ * respawn point he is shoved off is worse than an overlapping nose. The
+ * circle stands until those are re-authored around him. */
 function resolveWalls(s: HopperState, world: StepWorld): { nx: number; nz: number; collider: Collider } | null {
   let best: { nx: number; nz: number; collider: Collider; depth: number } | null = null;
   const bodyLow = s.y + 2.0,

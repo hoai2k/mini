@@ -303,3 +303,28 @@ const TX = 1200,
   c.check('and nothing solid stands in the trail', intoTheTrail === 0, intoTheTrail);
   c.done(`trail props: ${approached} solid props walked into across nine districts, deepest entry ${worst.toFixed(2)} m`);
 }
+
+// ---------------------------------------------------------------------
+// A pickup authored onto a structure settles onto it, not inside it. A
+// farmhouse's roof is two ridge slopes with nothing along the ridge line, so
+// the column at its centre reads as hollow: the signal authored on that roof
+// used to be dropped to the terrain, which is the room below - a place a 14 m
+// grasshopper cannot get into, and the reason it could not be collected.
+// ---------------------------------------------------------------------
+{
+  const world = new World(MISSIONS[0][0]());
+  for (const [x, z, what] of [
+    [-90, -110, 'the signal on the first farmhouse'],
+    [-30, -1180, 'the capsule on the granary farmhouse'],
+  ]) {
+    const t = world.triggers.find((q) => Math.hypot(q.object.position.x - x, q.object.position.z - z) < 1);
+    const ground = world.heightAt(x, z);
+    const roof = world.groundAt(x, z, 1e6, 5);
+    c.check(
+      `${what} rests on the farmhouse, not on the floor inside it`,
+      !!t && t.object.position.y > ground + 5,
+      t ? `settled ${t.object.position.y.toFixed(1)}, ground ${ground.toFixed(1)}, roof ${roof.y.toFixed(1)}` : 'no trigger',
+    );
+  }
+  c.done('rooftop pickups: a perch with a hollow centre still puts its pickup on the roof');
+}
