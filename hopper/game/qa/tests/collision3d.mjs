@@ -200,6 +200,10 @@ const TX = 1200,
       fail = 0;
     for (const col of world.colliders) {
       if (col.baked) continue;
+      // The trail's own props are scenery mass, not designed tops: a 22 m
+      // grasshopper cannot stand on a tree trunk, and is not meant to. That
+      // they stop him is what the trail-prop check below asks.
+      if (col.owner === 'trail.prop') continue;
       if (col.instance?.moving) continue;
       if (col.y1 - col.y0 < 0.3) continue;
       const cos = Math.cos(col.yaw),
@@ -245,4 +249,57 @@ const TX = 1200,
   }
   c.check('every district lands on every eligible structure top', totalFail === 0, failNote.join('; ') || 'none');
   c.done(`district sweep ${totalPass}/${totalPass + totalFail} landings — ${perDistrict.join(', ')}`);
+}
+
+// ---------------------------------------------------------------------
+// The trail's own props: a tree beside the road is something Hopper runs
+// into, not through. Their placement lives in trailprops.ts so the picture
+// and the colliders come from one pass; this walks into each one and checks
+// he never ends up inside it (sliding around a narrow trunk is the right
+// answer; standing in it is not), and that nothing solid reaches into the
+// trail he has to run along.
+// ---------------------------------------------------------------------
+{
+  let approached = 0,
+    through = 0,
+    intoTheTrail = 0,
+    worst = 0;
+  const note = [];
+  for (const make of MISSIONS.flat()) {
+    const world = new World(make());
+    const props = world.trailProps.filter((p) => p.solid);
+    for (const p of props) {
+      const half = p.w * p.solid.half;
+      if (world.route.distance(p.x, p.z) - half < 12) intoTheTrail++;
+      const col = world.colliders.find((c) => c.owner === 'trail.prop' && Math.abs(c.cx - p.x) < 1e-6 && Math.abs(c.cz - p.z) < 1e-6);
+      if (!col) continue;
+      const startX = p.x + half + MOVE.radius + 25;
+      const groundY = world.groundAt(startX, p.z, 1e6, 0).y;
+      if (Math.abs(groundY - p.y) > 6) continue; // not standing on its own level
+      approached++;
+      const s = createHopperState(startX, groundY, p.z, -Math.PI / 2);
+      s.grounded = true;
+      s.groundY = groundY;
+      let deepest = 0;
+      for (let i = 0; i < 220; i++) {
+        stepHopper(s, world, { ...blank, dx: -1, dz: 0 }, dt);
+        // Taking hold of a broad face hugs it, which is what climbing is; the
+        // question here is whether walking into one lets him through.
+        if (s.climbing || s.mantle > 0) continue;
+        // Inside the box, at the height of his body?
+        if (s.y + MOVE.height <= col.y0 || s.y >= col.y1) continue;
+        const [lx, lz] = World.local(col, s.x, s.z);
+        const inside = Math.min(col.hx - Math.abs(lx), col.hz - Math.abs(lz));
+        if (inside > deepest) deepest = inside;
+      }
+      worst = Math.max(worst, deepest);
+      if (deepest > 0.5) {
+        through++;
+        if (note.length < 6) note.push(`${world.district.name} prop at (${p.x.toFixed(0)},${p.z.toFixed(0)}) half ${half.toFixed(1)} entered ${deepest.toFixed(1)} m`);
+      }
+    }
+  }
+  c.check('walking into a solid trail prop never puts him inside it', through === 0, note.join('; ') || `deepest ${worst.toFixed(2)} m`);
+  c.check('and nothing solid stands in the trail', intoTheTrail === 0, intoTheTrail);
+  c.done(`trail props: ${approached} solid props walked into across nine districts, deepest entry ${worst.toFixed(2)} m`);
 }

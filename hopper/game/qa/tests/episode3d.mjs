@@ -21,7 +21,7 @@ const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
 const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-episode3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'engine3d', 'route', 'scenery', 'preload', 'textures3d', 'models3d', 'trail', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'engine3d', 'route', 'scenery', 'trailprops', 'preload', 'textures3d', 'models3d', 'trail', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 // The renderer needs a DOM; the engine only calls a handful of its methods.
 fs.writeFileSync(

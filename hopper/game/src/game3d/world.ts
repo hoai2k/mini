@@ -13,12 +13,17 @@ import { Box3, Group, Matrix4, Mesh, Object3D, Vector3 } from 'three';
 import {
   createStandIn,
   makeHeightField,
+  TERRAIN_SEGMENTS,
   regionById,
 } from '../../../3d/standins/src/index.js';
 import type { District, Placement } from './district';
 import { deliveredFile } from './models3d';
 import { buildRoute, type Route } from './route';
 import { sceneryFor } from './scenery';
+import { trailProps, type TrailProp } from './trailprops';
+
+/** Half-extent under which a face is too narrow to climb or mantle onto. */
+const SLIM_FACE = 3;
 import bakedCollision from '../../../3d/models/collision.json';
 
 /** A baked collision box in a delivered model's own local frame -- see
@@ -62,6 +67,9 @@ export interface Collider {
   baked?: boolean;
   /** A baked ring-scan wall shell, not a designed top -- see BakedBox.wall. */
   wall?: boolean;
+  /** Too narrow a face to take hold of: a tree trunk or a lamp shaft is
+   * something to run into, not a wall to climb or a lip to mantle onto. */
+  slim?: boolean;
   /** Local vertical extent, kept so a moving owner can re-place the box. */
   ly0?: number;
   ly1?: number;
@@ -241,6 +249,10 @@ export class World {
   readonly route: Route;
   /** Generated scenery: span continuations and the middle-distance structures. */
   readonly scenery: Placement[] = [];
+  /** The tall things beside the trail. The picture draws these; the solid ones
+   * are colliders here, so a tree is something Hopper runs into rather than
+   * through. */
+  readonly trailProps: TrailProp[] = [];
   private grid = new Map<string, Collider[]>();
   /** Temporary standing surfaces: cooled slag, a caster's stepping stones. */
   stones: Stone[] = [];
@@ -256,7 +268,11 @@ export class World {
     this.region = regionById(district.region);
     this.route = buildRoute(district);
     this.soft = district.terrain.soft ? { ...district.terrain.soft } : null;
-    this.heightAt = makeHeightField({ size: district.size, ...district.terrain });
+    // The ground Hopper stands on is the ground that is drawn: the field is
+    // sampled on the terrain mesh's own grid and read across its triangles.
+    // The smooth field the mesh samples runs up to 34 m away from those
+    // triangles between vertices, which is a foot through the floor.
+    this.heightAt = makeHeightField({ size: district.size, segments: TERRAIN_SEGMENTS, ...district.terrain });
     for (const p of district.placements) this.place(p);
     // A signal authored inside a structure or under the ground is lifted
     // onto the nearest top above it, so every signal can be reached. One
@@ -365,6 +381,29 @@ export class World {
     // structures standing well back from the path.
     this.scenery = sceneryFor(district, this.route, this.heightAt);
     for (const p of this.scenery) this.place(p);
+    // The trail's own props, after the structures they stand clear of: a
+    // trunk, a pylon shaft, a boulder and a kiosk are solid; foliage, lamp
+    // heads and fence rails are not.
+    this.trailProps = trailProps(this);
+    for (const prop of this.trailProps) {
+      if (!prop.solid) continue;
+      const half = prop.w * prop.solid.half;
+      this.addCollider({
+        // A trunk is a pole: he bumps into it. A pylon shaft, a rock spire or
+        // a boulder is broad enough to take hold of and climb.
+        slim: half < SLIM_FACE,
+        owner: 'trail.prop',
+        cx: prop.x,
+        cz: prop.z,
+        yaw: prop.yaw,
+        ox: 0,
+        oz: 0,
+        hx: half,
+        hz: half,
+        y0: prop.y,
+        y1: prop.y + prop.h * prop.solid.top,
+      }, null);
+    }
     for (const c of district.cages || []) this.placeCage(c);
     for (const st of district.strongholds || []) this.placeStronghold(st, st.id);
     if (district.boss) {

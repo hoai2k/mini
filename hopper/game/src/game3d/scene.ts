@@ -43,6 +43,7 @@ import {
   makeHorizon,
   makeLandmark,
   makeSkyDome,
+  TERRAIN_SEGMENTS,
   makeTerrain,
   type StandInObject,
 } from '../../../3d/standins/src/index.js';
@@ -337,7 +338,7 @@ export class Scene3D {
     const hemi = new HemisphereLight(new Color(region.sky).lerp(new Color('#ffffff'), 0.3), new Color(region.ground), 0.5);
     this.sun.color = new Color(region.sun || '#fff1c2').lerp(new Color('#ffffff'), 0.5);
     this.worldGroup.add(hemi, this.sun, new AmbientLight(region.haze, 0.12));
-    const terrain = makeTerrain(region, { size: d.size, segments: 160, ...d.terrain });
+    const terrain = makeTerrain(region, { size: d.size, segments: TERRAIN_SEGMENTS, ...d.terrain });
     this.worldGroup.add(terrain);
     void paintTerrain(terrain, region.id, d, world.route);
     if (d.terrain.soft) {

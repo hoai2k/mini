@@ -53,7 +53,7 @@ const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
 const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-audit-districts-'));
-const names = ['world', 'controller', 'district', 'district2', 'district3', 'route', 'scenery', 'models3d'];
+const names = ['world', 'controller', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'models3d'];
 for (const name of names) {
   const raw = fs
     .readFileSync(source + name + '.ts', 'utf8')

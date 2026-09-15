@@ -128,8 +128,9 @@ export default function Home() {
     [notice, setNotice] = useState(''),
     [settings, setSettings] = useState(initial),
     settingsRef = useRef(initial),
-    [focus, setFocus] = useState(0),
-    focusRef = useRef(0);
+    // The title opens with the page's own edition selected; see `change`.
+    [focus, setFocus] = useState(initialEdition === '3d' ? 1 : 0),
+    focusRef = useRef(initialEdition === '3d' ? 1 : 0);
   // Sound reads off when the player muted it or when the browser is still
   // refusing music: either way the button is the thing to press.
   const [soundOff, setSoundOff] = useState(false);
@@ -155,8 +156,12 @@ export default function Home() {
     }
     screenRef.current = next;
     setScreen(next);
-    focusRef.current = 0;
-    setFocus(0);
+    // The two title actions are equals, so the one already selected is the
+    // edition the page is on: pressing any button starts what the URL asked
+    // for, which is the 3D edition unless ?render=2d says otherwise.
+    const first = next === 'title' && editionRef.current === '3d' ? 1 : 0;
+    focusRef.current = first;
+    setFocus(first);
     input.current?.resetEdges();
     engine.current?.setPaused(next !== 'playing');
     // The title and play-select screens own the menu theme. Pausing keeps
@@ -707,16 +712,16 @@ export default function Home() {
               <Button
                 {...nav(0)}
                 className="start-button"
-                onClick={() => enterSelect('3d')}
+                onClick={() => enterSelect('2d')}
               >
-                <span className="start-diamond">◆</span> PLAY IN 3D
+                <span className="start-diamond">◆</span> PLAY 2D
               </Button>
               <Button
                 {...nav(1)}
-                className="start-button start-button-2d"
-                onClick={() => enterSelect('2d')}
+                className="start-button"
+                onClick={() => enterSelect('3d')}
               >
-                <span className="start-diamond">◆</span> PLAY THE 2D ORIGINAL
+                <span className="start-diamond">◆</span> PLAY 3D
               </Button>
             </div>
             <p className="start-hint">

@@ -174,6 +174,17 @@ const wrap = (d: number) => {
  * 1 when the eye is free, else the fraction just short of the first solid.
  * Terrain is not a solid here; the eye is lifted over it instead, which
  * keeps the distance steady across rolling ground. */
+/** The ground under the eye, read across a few metres rather than at a point.
+ * The terrain Hopper stands on is the terrain that is drawn - triangles, with
+ * a crease at every cell edge - and a hard clamp against a creased surface
+ * jolts the camera by the change of slope times his speed as he crosses one.
+ * Reading a small neighbourhood smooths the kink out; the margins the callers
+ * add cover the couple of metres it can shave off a steep slope. */
+function floorUnder(world: World, x: number, z: number): number {
+  const d = 4;
+  return (world.heightAt(x - d, z) + world.heightAt(x + d, z) + world.heightAt(x, z - d) + world.heightAt(x, z + d)) / 4;
+}
+
 function clearance(world: World, target: [number, number, number], eye: [number, number, number]): number {
   const inside = (x: number, y: number, z: number) => {
     for (const c of world.near(x, z, 2)) {
@@ -381,8 +392,8 @@ export function updateCamera(cam: CameraState, h: HopperState, world: World, inp
   const free = clearance(world, cam.target, eye);
   cam.clip = free < cam.clip ? ease(cam.clip, free, 1 - Math.exp(-CAMERA.clipIn * dt)) : ease(cam.clip, free, 1 - Math.exp(-CAMERA.clipOut * dt));
   const want: [number, number, number] = [cam.target[0] + (eye[0] - cam.target[0]) * cam.clip, cam.target[1] + (eye[1] - cam.target[1]) * cam.clip, cam.target[2] + (eye[2] - cam.target[2]) * cam.clip];
-  want[1] = Math.max(want[1], world.heightAt(want[0], want[2]) + 3);
+  want[1] = Math.max(want[1], floorUnder(world, want[0], want[2]) + 3);
   cam.eye = [ease(cam.eye[0], want[0], k), lift(cam.eye[1], want[1]), ease(cam.eye[2], want[2], k)];
   // The slow height follow must never leave the eye under a rising slope.
-  cam.eye[1] = Math.max(cam.eye[1], world.heightAt(cam.eye[0], cam.eye[2]) + 2.5);
+  cam.eye[1] = Math.max(cam.eye[1], floorUnder(world, cam.eye[0], cam.eye[2]) + 2.5);
 }

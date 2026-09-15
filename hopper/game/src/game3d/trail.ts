@@ -8,10 +8,10 @@ import { BackSide, BoxGeometry, BufferAttribute, BufferGeometry, Color, ConeGeom
 import { makeRampTexture } from '../../../3d/standins/src/textures.js';
 import { SURFACE } from '../../../3d/standins/src/palette.js';
 import type { World } from './world';
+import { TRAIL_HALF_WIDTH } from './trailprops';
 import { painting } from './textures3d';
 
-/** Half the ribbon's width in metres: wide enough for a 14 m grasshopper. */
-export const TRAIL_HALF_WIDTH = 11;
+export { TRAIL_HALF_WIDTH } from './trailprops';
 
 const ramp = makeRampTexture(3);
 const ink = new MeshBasicMaterial({ color: 0x14100f, side: BackSide });
@@ -195,7 +195,6 @@ export function buildTrail(world: World): Group {
   if (d.boss) keepOut.push({ x: d.boss.x, z: d.boss.z, r: d.boss.r + 20 });
   for (const c of d.cages || []) keepOut.push({ x: c.x, z: c.z, r: 30 });
   const clear = (x: number, z: number, margin = 0) => keepOut.every((k) => Math.hypot(k.x - x, k.z - z) > k.r + margin);
-  const slopeAt = (x: number, z: number) => Math.abs(world.heightAt(x + 4, z) - world.heightAt(x - 4, z)) + Math.abs(world.heightAt(x, z + 4) - world.heightAt(x, z - 4));
 
   // --- Edge stones and waymarkers ---------------------------------------
   const stone = new Batch([{ geometry: new SphereGeometry(0.5, 6, 4), material: toon(region.id === 'city' ? SURFACE.ivoryShade : SURFACE.slate), at: [0, 0.3, 0], scale: [1, 0.7, 0.85] }]);
@@ -228,37 +227,17 @@ export function buildTrail(world: World): Group {
   }
 
   // --- The tall things beside the trail --------------------------------
+  // Where each one stands (and which of them is solid) is decided in
+  // trailprops.ts, so the world can put a collider on the same trunk this
+  // draws rather than the two guessing separately.
   const kinds = templates(region.id);
   const bigBatches = kinds.big.map((t) => new Batch(t)),
     smallBatches = kinds.small.map((t) => new Batch(t));
-  const bigHeight = region.id === 'city' ? [52, 80] : region.id === 'mountains' ? [38, 78] : [26, 46];
-  for (let s = 20, i = 0; s < route.length - 20; s += 24, i++) {
-    const p = route.pointAt(s),
-      [rx, rz] = right(p.yaw);
-    for (const side of [-1, 1]) {
-      // Every stretch gets something on one side or both; the far ones stand
-      // back to 95 m so the trail reads as a road through a wide country.
-      if (random() < 0.3) continue;
-      const big = random() < 0.55;
-      const off = big ? 34 + random() * 60 : 22 + random() * 24;
-      const x = p.x + rx * side * off,
-        z = p.z + rz * side * off;
-      if (!clear(x, z, big ? 12 : 0) || slopeAt(x, z) > (big ? 5 : 8)) continue;
-      // Never on the trail itself where it doubles back: keep off the line.
-      if (route.distance(x, z) < TRAIL_HALF_WIDTH + (big ? 14 : 6)) continue;
-      const y = surface(x, z) - 0.3,
-        yaw = random() * Math.PI * 2;
-      if (big) {
-        const h = bigHeight[0] + random() * (bigHeight[1] - bigHeight[0]);
-        const w = h * (0.7 + random() * 0.5);
-        bigBatches[Math.floor(random() * bigBatches.length)].add(x, y, z, yaw, w, h, w);
-      } else {
-        const h = 6 + random() * 9;
-        const w = region.id === 'city' ? h * 1.6 : region.id === 'fields' ? h * (0.9 + random() * 0.3) : h * (1.1 + random() * 0.6);
-        smallBatches[Math.floor(random() * smallBatches.length)].add(x, y, z, region.id === 'fields' && random() < 0.5 ? p.yaw : yaw, w, h, w);
-      }
-    }
+  for (const prop of world.trailProps) {
+    const batches = prop.big ? bigBatches : smallBatches;
+    batches[prop.slot % batches.length].add(prop.x, prop.y, prop.z, prop.yaw, prop.w, prop.h, prop.w);
   }
+
   // --- The threshold: the way on, marked where the district ends. Two pylons
   // and a lintel across the trail with a warm curtain between them, so leaving
   // is something Hopper jumps through rather than a line he trips over.
@@ -299,32 +278,6 @@ export function buildTrail(world: World): Group {
     group.add(gate);
   }
 
-  // --- The middle distance: clumps of the same things, 120-430 m out, taller,
-  // so the country carries on past the props at the trail's shoulder instead
-  // of ending in bare ground.
-  for (let s = 30, i = 0; s < route.length; s += 34, i++) {
-    const p = route.pointAt(s + random() * 30);
-    for (const side of [-1, 1]) {
-      if (random() < 0.2) continue;
-      const off = (120 + random() * 310) * side;
-      const cx = p.x + Math.cos(p.yaw) * off,
-        cz = p.z - Math.sin(p.yaw) * off;
-      if (!clear(cx, cz, 20)) continue;
-      // A clump, not a lone thing: two to five of a kind around the point.
-      const batch = bigBatches[Math.floor(random() * bigBatches.length)];
-      const count = 2 + Math.floor(random() * 4);
-      for (let k = 0; k < count; k++) {
-        const a = random() * Math.PI * 2,
-          rad = random() * 60;
-        const x = cx + Math.cos(a) * rad,
-          z = cz + Math.sin(a) * rad;
-        if (!clear(x, z, 8) || slopeAt(x, z) > 9) continue;
-        const h = bigHeight[0] * (0.9 + random() * 0.8) + random() * (bigHeight[1] - bigHeight[0]);
-        const w = h * (0.6 + random() * 0.5);
-        batch.add(x, surface(x, z) - 0.4, z, random() * Math.PI * 2, w, h, w);
-      }
-    }
-  }
   for (const b of [stone, marker, ...bigBatches, ...smallBatches]) b.build(group);
   return group;
 }
