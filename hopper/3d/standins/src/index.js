@@ -6,7 +6,7 @@
 import { ENEMIES, BOSSES } from './creatures.js';
 import { STRUCTURES } from './structures.js';
 import { PROPS } from './props.js';
-import { makeTerrain, makeHorizon, makeSkyDome, makeLandmark, makeFog, makeHeightField } from './terrain.js';
+import { makeTerrain, makeHorizon, makeSkyDome, makeLandmark, makeFog, makeHeightField, TERRAIN_SEGMENTS } from './terrain.js';
 import { makeHopperProxy, HOPPER_SOCKETS, RIDER_SOCKETS, HOPPER_CLIPS, HOPPER_HEIGHT_M } from './hopper.js';
 import { REGIONS, regionById, HOPPER, SHADOW, SURFACE } from './palette.js';
 import { TEXTURE_NAMES, paintTexture, makeTexture, makeSkyTexture, paintSky } from './textures.js';
@@ -56,6 +56,7 @@ export {
   makeLandmark,
   makeFog,
   makeHeightField,
+  TERRAIN_SEGMENTS,
   makeHopperProxy,
   HOPPER_SOCKETS,
   RIDER_SOCKETS,

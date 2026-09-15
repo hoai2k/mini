@@ -18,7 +18,53 @@ import { fbm, makeRampTexture, makeSkyTexture, cel } from './textures.js';
 import { GEOMETRY as G, part, standIn, toon } from './kit.js';
 
 /** Height function shared by the mesh and the collision query. */
-export function makeHeightField({ size = 2400, seed = 7, relief = 60, plateaus = [], valley = null, shelf = null } = {}) {
+/** Segments the game builds a district's terrain mesh with. The collision
+ * surface is sampled on this same grid, so what Hopper stands on is what is
+ * drawn: a 4,800 m district is 30 m to a cell, and reading the smooth field
+ * instead put the ground up to 34 m away from the triangles you can see. */
+export const TERRAIN_SEGMENTS = 160;
+
+/** The ground as a function. With `segments` it is the surface the terrain
+ * mesh actually draws - the same grid, interpolated across the same two
+ * triangles per cell - rather than the smooth field the mesh samples. The two
+ * agree exactly at every vertex and differ in between, which is where a foot
+ * or a body ends up under the ground it looks like it is standing on. */
+export function makeHeightField(options = {}) {
+  const smooth = smoothHeightField(options);
+  const { size = 2400, segments = 0 } = options;
+  if (!segments) return smooth;
+  // The grid is sampled once here rather than three times per query: the mesh
+  // pays for exactly these heights anyway, and the lookup that replaces the
+  // noise is arithmetic.
+  const span = segments + 1,
+    cell = size / segments,
+    half = size / 2;
+  const grid = new Float32Array(span * span);
+  for (let j = 0; j < span; j++)
+    for (let i = 0; i < span; i++) grid[j * span + i] = smooth(i * cell - half, j * cell - half);
+  const at = (i, j) => grid[Math.min(span - 1, Math.max(0, j)) * span + Math.min(span - 1, Math.max(0, i))];
+  return function heightAt(x, z) {
+    const gx = (x + half) / cell,
+      gz = (z + half) / cell;
+    // Beyond the mesh there is nothing drawn to agree with.
+    if (gx < 0 || gz < 0 || gx > segments || gz > segments) return smooth(x, z);
+    const i = Math.min(segments - 1, Math.floor(gx)),
+      j = Math.min(segments - 1, Math.floor(gz)),
+      fx = gx - i,
+      fz = gz - j;
+    // PlaneGeometry splits each cell along the anti-diagonal: the triangle
+    // (i,j)-(i,j+1)-(i+1,j) on one side of fx + fz = 1, and
+    // (i,j+1)-(i+1,j+1)-(i+1,j) on the other.
+    if (fx + fz <= 1) {
+      const a = at(i, j);
+      return a + (at(i + 1, j) - a) * fx + (at(i, j + 1) - a) * fz;
+    }
+    const c = at(i + 1, j + 1);
+    return c + (at(i, j + 1) - c) * (1 - fx) + (at(i + 1, j) - c) * (1 - fz);
+  };
+}
+
+function smoothHeightField({ size = 2400, seed = 7, relief = 60, plateaus = [], valley = null, shelf = null } = {}) {
   return function heightAt(x, z) {
     const u = x / size + 0.5,
       v = z / size + 0.5;
@@ -47,7 +93,11 @@ export function makeHeightField({ size = 2400, seed = 7, relief = 60, plateaus =
 
 /** Terrain mesh coloured by height and slope in a few flat gouache tones. */
 export function makeTerrain(region, { size = 2400, segments = 96, seed = 7, relief = 60, plateaus = [], valley = null, shelf = null } = {}) {
+  // Vertices come from the smooth field; the mesh IS the sampling. What the
+  // mesh hands on as `heightAt` is the drawn surface, so anything that stands
+  // on this terrain reads the same ground the player sees.
   const heightAt = makeHeightField({ size, seed, relief, plateaus, valley, shelf });
+  const drawnAt = makeHeightField({ size, segments, seed, relief, plateaus, valley, shelf });
   const geo = new PlaneGeometry(size, size, segments, segments);
   geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position,
@@ -75,7 +125,7 @@ export function makeTerrain(region, { size = 2400, segments = 96, seed = 7, reli
   mesh.name = 'terrain.heightfield';
   mesh.receiveShadow = true;
   mesh.userData.standIn = { id: 'terrain.heightfield', kind: 'terrain', size: [size, relief * 3, size], region: region.id };
-  mesh.userData.heightAt = heightAt;
+  mesh.userData.heightAt = drawnAt;
   return mesh;
 }
 

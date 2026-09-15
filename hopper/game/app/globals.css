@@ -129,26 +129,14 @@ button {
 .start-button:hover {
   background: #fae5b512 !important;
 }
-/* Both editions are offered here, so the two actions share the row that one
- * used to own: the 3D edition leads and the original sits beside it, quieter. */
+/* Both editions are offered here as equals, sharing the row that one action
+ * used to own. */
 .start-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: clamp(6px, 1.2vw, 18px);
-}
-.start-button-2d {
-  font-size: clamp(11px, 1.15vw, 15px) !important;
-  letter-spacing: 3px;
-  color: #f3e9c9c4 !important;
-  gap: 10px !important;
-}
-.start-button-2d:hover {
-  color: #fff1cd !important;
-}
-.start-button-2d .start-diamond {
-  font-size: 8px;
 }
 .start-row .start-button[data-selected='true'] {
   color: #fff1cd !important;
@@ -1101,9 +1089,6 @@ button:focus-visible,
   .start-row {
     flex-direction: column;
     gap: 0;
-  }
-  .start-button-2d {
-    height: 44px !important;
   }
   /* Stacked and scrollable, clearing the corner controls at the foot. */
   .select-layout {

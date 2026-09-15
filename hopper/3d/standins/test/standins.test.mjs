@@ -131,6 +131,32 @@ for (const region of REGIONS) {
 const heightAt = makeHeightField({ size: 1000, seed: 5, relief: 40, plateaus: [{ x: 0, z: 0, r: 80, y: 12 }] });
 ok(Math.abs(heightAt(0, 0) - 12) < 1e-6, 'plateau centre sits at its authored height');
 ok(heightAt(400, -300) === heightAt(400, -300), 'height query is stable');
+// The ground the game stands on is the ground it draws: a height field asked
+// for the mesh's segment count reads the triangles the mesh builds, not the
+// smooth field they sample. They agree at every vertex, and in between the
+// field follows the same two triangles per cell PlaneGeometry makes.
+{
+  const opts = { size: 480, segments: 16, seed: 5, relief: 40, plateaus: [{ x: 0, z: 0, r: 60, y: 30 }] };
+  const smooth = makeHeightField({ ...opts, segments: 0 });
+  const drawn = makeHeightField(opts);
+  const cell = opts.size / opts.segments;
+  let atVertices = 0,
+    between = 0;
+  for (let i = 1; i < opts.segments; i++)
+    for (let j = 1; j < opts.segments; j++) {
+      const x = i * cell - opts.size / 2,
+        z = j * cell - opts.size / 2;
+      atVertices = Math.max(atVertices, Math.abs(drawn(x, z) - smooth(x, z)));
+      between = Math.max(between, Math.abs(drawn(x + cell * 0.5, z + cell * 0.37) - smooth(x + cell * 0.5, z + cell * 0.37)));
+    }
+  ok(atVertices < 1e-4, `the drawn surface meets the smooth one at every vertex (${atVertices})`);
+  ok(between > 0.01, `and differs between them, which is the point (${between.toFixed(2)} m)`);
+  const mesh = makeTerrain(regionById('fields'), opts);
+  const pos = mesh.geometry.attributes.position;
+  let worst = 0;
+  for (let i = 0; i < pos.count; i++) worst = Math.max(worst, Math.abs(pos.getY(i) - mesh.userData.heightAt(pos.getX(i), pos.getZ(i))));
+  ok(worst < 1e-4, `every terrain vertex matches the height the mesh hands on (${worst})`);
+}
 const terrain = makeTerrain(regionById('mountains'), { size: 400, segments: 8, seed: 5, relief: 40 });
 const pos = terrain.geometry.attributes.position;
 let mismatch = 0;
