@@ -480,106 +480,89 @@ const RELIEF: number[][] = [
   [0, -90, 90, -70, 90, -60, 70, 20, -30, 0],
   [0, -30, -30, 100, -50, -20, -70, 90, -70, 0],
 ];
-// One rhythm per chapter: an entrance lesson, two encounters framing a rest
-// checkpoint, the chapter's crossing, and a closing push onto the exit shelf.
+// One rhythm per fighting chapter. Each keeps its own run and climb, but a
+// beat is never repeated back to back: no second lesson shelf, no second
+// fight in a row, and no rest after the finish, since the shelf after a
+// finish is the next chapter's entrance.
 const CHAPTER_BEATS: Beat[][] = [
-  [
-    'learn',
-    'learn',
-    'fight',
-    'run',
-    'rest',
-    'vista',
-    'fight',
-    'finish',
-    'rest',
-  ],
-  ['learn', 'fight', 'run', 'climb', 'rest', 'vista', 'drop', 'finish', 'rest'],
-  ['learn', 'run', 'climb', 'fight', 'rest', 'vista', 'drop', 'finish', 'rest'],
-  [
-    'learn',
-    'fight',
-    'fight',
-    'run',
-    'rest',
-    'vista',
-    'hazard',
-    'finish',
-    'rest',
-  ],
-  [
-    'learn',
-    'climb',
-    'fight',
-    'run',
-    'rest',
-    'vista',
-    'fight',
-    'finish',
-    'rest',
-  ],
+  ['learn', 'fight', 'run', 'rest', 'vista', 'fight', 'finish'],
+  ['learn', 'fight', 'run', 'climb', 'rest', 'vista', 'drop', 'finish'],
+  ['learn', 'run', 'climb', 'fight', 'rest', 'vista', 'drop', 'finish'],
+  ['learn', 'fight', 'run', 'rest', 'vista', 'hazard', 'finish'],
+  ['learn', 'climb', 'fight', 'run', 'rest', 'vista', 'fight', 'finish'],
 ];
 /** A chapter's personality: what the whole stretch asks for.
  * `mixed` is the shared rhythm above - jumps and fights interleaved. The other
  * two ask for one thing at a time, so a chapter reads as a place with a job. */
 type Shape = 'leaps' | 'skirmish' | 'mixed';
 const SHAPE_BEATS: Record<'leaps' | 'skirmish', Beat[]> = {
-  // Jumping alone: no shelf here spawns an encounter, and its crossing is
-  // unguarded, so the only thing being read is the ground.
-  leaps: [
-    'learn',
-    'run',
-    'climb',
-    'run',
-    'rest',
-    'vista',
-    'run',
-    'climb',
-    'rest',
-  ],
+  // Jumping alone, and only five shelves of it: each carries nearly twice
+  // the chapter's rise per step, so every jump is a tall one and none is
+  // filler. No shelf here spawns an encounter, and its crossing is unguarded.
+  leaps: ['learn', 'climb', 'vista', 'climb', 'rest'],
+  // (A leaps chapter with a lot of height to gain takes a climb or two more,
+  // so no single jump asks for more than the region's gravity allows; see
+  // `leapsBeats`.)
   // Fighting alone, on shelves that barely rise and short hops between them:
-  // the fight is the difficulty, not the footing.
-  skirmish: [
-    'learn',
-    'fight',
-    'rest',
-    'fight',
-    'rest',
-    'fight',
-    'rest',
-    'finish',
-    'rest',
-  ],
+  // the fight is the difficulty, not the footing. Two fights and the finish,
+  // each with a breath before it, rather than the same pair three times over.
+  skirmish: ['learn', 'fight', 'rest', 'fight', 'rest', 'finish'],
 };
-/** Board one is authored as a progression rather than five turns of the same
- * rhythm. Its first region opens on jumping alone, meets its first enemies on
- * level ground, goes back to jumping, and only then asks for both at once; the
- * two regions after it keep changing personality every chapter so the board
- * stays varied. Later boards have no plan and keep the shared rhythm.
- * `lessons` are the shelves that introduce one species on its own. */
-const BOARD_ONE: { shape: Shape; lessons?: number[] }[][] = [
+/** Every board is authored as a progression rather than five turns of the
+ * same rhythm. Board one's first region opens on jumping alone, meets its
+ * first enemies on level ground, goes back to jumping, and only then asks for
+ * both at once; the two regions after it keep changing personality. Later
+ * boards open each region on jumping alone and take one more leaps chapter
+ * where the region has nothing keyed to that chapter (the foundry's and the
+ * docks' fourth chapters carry their presses). The species introductions
+ * fall on the first two fight shelves of each region's first fighting
+ * chapter. */
+const PLANS: Shape[][][] = [
   [
-    { shape: 'leaps' },
-    { shape: 'skirmish', lessons: [1, 3] },
-    { shape: 'leaps' },
-    { shape: 'mixed' },
-    { shape: 'mixed' },
+    ['leaps', 'skirmish', 'leaps', 'mixed', 'mixed'],
+    ['mixed', 'leaps', 'mixed', 'skirmish', 'mixed'],
+    ['leaps', 'skirmish', 'mixed', 'mixed', 'mixed'],
   ],
   [
-    { shape: 'mixed', lessons: [2, 6] },
-    { shape: 'leaps' },
-    { shape: 'mixed' },
-    { shape: 'skirmish' },
-    { shape: 'mixed' },
+    ['leaps', 'mixed', 'mixed', 'mixed', 'mixed'],
+    ['leaps', 'mixed', 'mixed', 'mixed', 'mixed'],
+    ['leaps', 'mixed', 'mixed', 'leaps', 'mixed'],
   ],
   [
-    { shape: 'leaps' },
-    { shape: 'skirmish', lessons: [1, 3] },
-    { shape: 'mixed' },
-    { shape: 'mixed' },
-    { shape: 'mixed' },
+    ['leaps', 'mixed', 'mixed', 'leaps', 'mixed'],
+    ['leaps', 'mixed', 'mixed', 'leaps', 'mixed'],
+    ['leaps', 'mixed', 'mixed', 'leaps', 'mixed'],
   ],
 ];
+/** The leaps rhythm sized to a chapter's climb: five shelves unless the rise
+ * per jump would pass what a held jump reaches under the region's gravity,
+ * in which case a climb or two more share it out. The crossing stays in the
+ * middle. */
+function leapsBeats(rise: number, gravity: number): Beat[] {
+  const limit = (0.75 * 300) / Math.pow(gravity, 0.75);
+  let n = 5;
+  while (Math.abs(rise) / (n - 1) > limit && n < 7) n++;
+  const beats: Beat[] = ['learn'];
+  for (let i = 1; i < n - 1; i++) beats.push('climb');
+  beats.push('rest');
+  beats[Math.floor((n - 1) / 2)] = 'vista';
+  return beats;
+}
+/** A nine-step profile shared out over `n` shelves: each new step takes the
+ * mean of the old steps it covers, so a signature's shape (where its tall
+ * chunks fall) survives a shorter chapter. */
+function resample(profile: number[], n: number): number[] {
+  const out: number[] = [];
+  for (let k = 0; k < n; k++) {
+    const from = (k * profile.length) / n,
+      to = ((k + 1) * profile.length) / n;
+    let sum = 0;
+    for (let j = Math.floor(from); j < Math.ceil(to); j++)
+      sum += profile[j] * (Math.min(to, j + 1) - Math.max(from, j));
+    out.push(sum / (to - from));
+  }
+  return out;
+}
 /** Each chapter asks for a different jump. The signature sets how gaps scale
  * and how the chapter's elevation change is spread across its nine shelves. */
 interface Signature {
@@ -703,65 +686,79 @@ export function buildLevel(mission: number): LevelData {
       const chapterStart = x,
         chapterY = y,
         chapterTarget = regionY + CHAPTERS[skin][ci][1];
-      // Board one's chapters each have one job; every other board runs the
-      // shared rhythm, which is what `mixed` means.
-      const plan = mission === 0 ? BOARD_ONE[ai][ci] : null,
-        shape: Shape = plan ? plan.shape : 'mixed',
+      // Every chapter has one job; `mixed` is the shared rhythm.
+      const shape: Shape = PLANS[mission][ai][ci],
+        beats =
+          shape === 'mixed'
+            ? CHAPTER_BEATS[ci]
+            : shape === 'leaps'
+              ? leapsBeats(chapterTarget - chapterY, r.gravity)
+              : SHAPE_BEATS.skirmish,
         // A skirmish chapter is level ground: its elevation target matches the
         // chapter before it, and what relief is left is a hint, not a climb.
         level = shape === 'skirmish',
         fighting = shape !== 'leaps',
-        // The shelves that introduce one species alone. Without a plan that is
-        // the region's opening chapter, as it always was.
-        lessons = plan ? (plan.lessons ?? []) : ci === 0 ? [2, 6] : [];
+        // The crossing is the vista shelf's gap; a level chapter has none, and
+        // its first rest's hop stands in for it. The second checkpoint sits on
+        // the shelf before the crossing, or on that first rest.
+        crossingIndex = level ? -1 : beats.indexOf('vista'),
+        checkpointIndex =
+          crossingIndex > 0 ? crossingIndex - 1 : beats.indexOf('rest'),
+        // The shelves that introduce one species alone: the first two fight
+        // shelves of the region's first fighting chapter.
+        lessons =
+          PLANS[mission][ai].findIndex((q) => q !== 'leaps') === ci
+            ? beats
+                .map((b, i) => (b === 'fight' || b === 'finish' ? i : -1))
+                .filter((i) => i >= 0)
+                .slice(0, 2)
+            : [];
       const relief = RELIEF[(ci + skin) % RELIEF.length],
         signature = SIGNATURES[level ? SKIRMISH_SIGNATURE : ci],
-        profileTotal = signature.profile.reduce((n, v) => n + v, 0);
+        // A leaps chapter shares its rise out evenly: every jump is a tall one.
+        profile = resample(
+          shape === 'leaps' ? SIGNATURES[0].profile : signature.profile,
+          beats.length,
+        ),
+        profileTotal = profile.reduce((n, v) => n + v, 0);
       let profileSum = 0,
         prevGap = 0,
         prevY = y;
-      // Half-length chapters carry twice the elevation change per step, so local
+      // Short chapters carry more of the elevation change per step, so local
       // relief is damped to keep required rises inside a forgiving jump arc.
       const reliefScale =
         0.6 * (skin === 6 ? 0.7 : skin === 7 ? 1.5 : 1) * (level ? 0.35 : 1);
-      r.steps.forEach((step, i) => {
-        const shapeIndex = i === 0 || i === 8 ? i : 1 + ((i - 1 + ci * 3) % 7);
-        const source = r.steps[shapeIndex];
-        let beat =
-          shape === 'mixed' ? CHAPTER_BEATS[ci][i] : SHAPE_BEATS[shape][i];
+      beats.forEach((authored, i) => {
+        const last = i === beats.length - 1,
+          shapeIndex = i === 0 ? 0 : last ? 8 : 1 + ((i - 1 + ci * 3) % 7),
+          source = r.steps[shapeIndex];
+        let beat = authored;
         if (beat === 'hazard' && skin !== 3 && skin !== 5) beat = 'run';
-        // A chapter with nothing to fight (a `leaps` chapter) is half as long
-        // as its shape asks for, shelf and gap alike, while its elevation
-        // change stays: the way through it is steeper jumps, not longer runs.
-        const quiet = shape === 'leaps';
-        const w = Math.round(
-          (skin === 8 && ci === 1 && i === 4
+        const w =
+          skin === 8 && ci === 1 && i === checkpointIndex
             ? 1100
-            : Math.round(source[0] * widthScale)) * (quiet ? 0.5 : 1),
-        );
-        // The chapter crossing (i === 5) is a deliberately long leap; a catch
-        // floor below it turns a miss into a climb back rather than a death.
-        // Level ground has no long crossing: its hops stay uniformly short.
-        const crossing = i === 5 && !level;
+            : Math.round(source[0] * widthScale);
+        // The chapter crossing is a deliberately long leap; a catch floor
+        // below it turns a miss into a climb back rather than a death.
+        const crossing = i === crossingIndex;
         // Violet Inversion's drop chapter crosses one gap on the ceiling: the
         // gap is too long to jump, so the inverted stretch is the route.
-        const inverted = skin === 8 && ci === 2 && i === 6;
+        const inverted = skin === 8 && ci === 2 && beat === 'drop';
         // The gap onto a finish shelf is never stretched: the finish is a fight
         // fought on arrival, and the jump into it should not be the hard part.
-        // Only the inverted crossing keeps its length in a halved chapter: it
-        // has to stay too long to jump.
-        const gap = Math.round(
-          source[1] *
-            (crossing
-              ? 1.4
-              : inverted
-                ? 2.6
-                : i === 6
-                  ? Math.min(1, signature.gap)
-                  : signature.gap) *
-            (quiet && !inverted ? 0.5 : 1),
-        );
-        profileSum += signature.profile[i];
+        // The inverted crossing has a floor of its own: whatever its shape
+        // asks for, it stays too long to jump across.
+        const gap = inverted
+          ? Math.max(1000, Math.round(source[1] * 2.6))
+          : Math.round(
+              source[1] *
+                (crossing
+                  ? 1.4
+                  : beats[i + 1] === 'finish'
+                    ? Math.min(1, signature.gap)
+                    : signature.gap),
+            );
+        profileSum += profile[i];
         const nextY =
           chapterY +
           ((chapterTarget - chapterY) * profileSum) / profileTotal +
@@ -781,20 +778,25 @@ export function buildLevel(mission: number): LevelData {
           encounter: beat,
         };
         // The industrial moving-belt lesson changes horizontal drift, never landing geometry.
-        if (skin === 3 && (i === 1 || i === 5)) p.kind = 'conveyor';
+        if (skin === 3 && (i === 1 || crossing)) p.kind = 'conveyor';
         // Summit chapter: one shelf on the main route swings, so the jump onto
-        // it and off it must be timed, and one fight runs on a belt that
-        // carries Hopper backward unless it keeps winning ground.
-        if (ci === 4 && i === 3)
+        // it and off it must be timed, and the fight past the crossing runs on
+        // a belt that carries Hopper backward unless it keeps winning ground.
+        if (ci === 4 && shape === 'mixed' && beat === 'run')
           p.moving = { axis: 'x', range: 90, speed: 60, phase: 0 };
-        if (ci === 4 && i === 6) {
+        if (
+          ci === 4 &&
+          shape === 'mixed' &&
+          beat === 'fight' &&
+          i > crossingIndex
+        ) {
           p.kind = 'conveyor';
           p.drift = -70;
         }
-        if (inverted) p.encounter = 'drop';
-        if (ci === 2 && i === 7 && skin === 8) p.via = 'inversion';
+        if (skin === 8 && ci === 2 && i > 0 && beats[i - 1] === 'drop')
+          p.via = 'inversion';
         out.platforms.push(p);
-        if (i === 0 || i === 4)
+        if (i === 0 || i === checkpointIndex)
           out.checkpoints.push({ x: x + 170, y, area: ai });
         // Encounters each begin after an unobstructed landing/reading strip.
         // High road: two light shelves above a fight let Hopper go over the
@@ -995,7 +997,7 @@ export function buildLevel(mission: number): LevelData {
         // Three optional signal shelves per region, each built around one verb:
         // a lip only a ledge catch reaches, a cage only a reflected shot opens,
         // and a perch only the high road climbs to.
-        if (ci === 1 && i === 4) {
+        if (ci === 1 && i === checkpointIndex) {
           // Just beyond a full jump's apex (which scales with held gravity as
           // roughly g^-0.75); the ledge catch makes up the difference.
           const rise = Math.round(400 / Math.pow(r.gravity, 0.75)) + 45;
@@ -1018,7 +1020,7 @@ export function buildLevel(mission: number): LevelData {
             y: opt.y - 85,
           });
         }
-        if (ci === 2 && i === 6) {
+        if (ci === 2 && i === crossingIndex + 1) {
           const rise = skin === 6 ? 170 : skin === 7 ? 400 : 220;
           const opt: Platform = {
             id: `${id}-signal`,
@@ -1059,7 +1061,7 @@ export function buildLevel(mission: number): LevelData {
             area: ai,
           });
         }
-        if (ci === 4 && i === 6 && highRoad) {
+        if (ci === 4 && i > crossingIndex && highRoad) {
           const line = out.platforms.find((q) => q.id === `${id}-high-b`)!;
           const opt: Platform = {
             id: `${id}-signal`,
@@ -1169,7 +1171,12 @@ export function buildLevel(mission: number): LevelData {
         // through two steps; a miss costs time instead of an unseen fatal plunge.
         // The chapter's midpoint keeps one even where level ground has shortened
         // the hop, so every chapter has a caught mistake in the same place.
-        if (i === 5 || inverted || (gap >= 250 && i === 3 && !lowRoad)) {
+        if (
+          crossing ||
+          (level && i === checkpointIndex) ||
+          inverted ||
+          (gap >= 250 && i === checkpointIndex - 1 && !lowRoad)
+        ) {
           const recoveryY = Math.max(y, y + dy) + 260;
           out.platforms.push({
             id: `${id}-salvage`,
@@ -1245,7 +1252,7 @@ export function buildLevel(mission: number): LevelData {
         }
         // Optional inversion gallery sits above a broad uninterrupted normal floor.
         // Its left and right edges return to ordinary gravity over that same shelf.
-        if (skin === 8 && ci === 1 && i === 4) {
+        if (skin === 8 && ci === 1 && i === checkpointIndex) {
           const gx = x + 150,
             gy = y - 950,
             gw = Math.max(430, w - 300),
@@ -1285,11 +1292,7 @@ export function buildLevel(mission: number): LevelData {
           });
         }
         // Pools are below the route; required surface hazards always have clear staging room.
-        if (
-          (skin === 3 || skin === 6) &&
-          gap >= 180 &&
-          i !== r.steps.length - 1
-        ) {
+        if ((skin === 3 || skin === 6) && gap >= 180 && !last) {
           out.hazards.push({
             id: `${id}-pool`,
             type: 'lava',
@@ -1453,18 +1456,26 @@ function addUndercroft(out: LevelData) {
       b: slope,
     });
     const skin = out.areas.indexOf(area) + (out.areas[0].backgroundIndex ?? 0);
+    // Segments are as long as the slope allows while each step between them
+    // stays a small one Hopper walks over (30 units): a steep floor under a
+    // steep region is cut finer.
+    const segment = Math.max(
+      200,
+      Math.min(
+        UNDERCROFT.segment,
+        Math.floor(30 / Math.max(1e-6, Math.abs(slope))),
+      ),
+    );
     const segY = (x: number) => {
-      const i = Math.floor((x - area.xStart) / UNDERCROFT.segment);
-      return Math.round(
-        a + slope * (area.xStart + (i + 0.5) * UNDERCROFT.segment),
-      );
+      const i = Math.floor((x - area.xStart) / segment);
+      return Math.round(a + slope * (area.xStart + (i + 0.5) * segment));
     };
-    for (let x = area.xStart, i = 0; x < xEnd; x += UNDERCROFT.segment, i++) {
+    for (let x = area.xStart, i = 0; x < xEnd; x += segment, i++) {
       floors.push({
         id: `floor-${area.id}-${i}`,
         x,
         y: segY(x),
-        w: Math.min(UNDERCROFT.segment, xEnd - x) + 4,
+        w: Math.min(segment, xEnd - x) + 4,
         h: 3000,
         skin,
         kind: 'solid',

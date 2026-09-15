@@ -303,6 +303,9 @@ export class Engine {
   private stood = '';
   /** A launch from the dark below is committed: no steering, no ceilings, until Hopper is above its target. */
   private launchLock = false;
+  /** Seconds left of the floor's pull after his feet leave it: a hop down a
+   * floor step is still the slide, not a moment of steering. */
+  private floorSlideT = 0;
   private launchTarget = 0;
   private respawnT = 0;
   private deathY = 2000;
@@ -921,6 +924,15 @@ export class Engine {
         p.x >= under.x + 24 &&
         p.x <= under.x + under.w - 24,
       onFloor = p.grounded && under?.routeRole === 'floor' && !onPad;
+    // The slide carries through a drop off a floor step (the stepped floor
+    // descends where the route does): the stick only comes back on a pad or
+    // on the route.
+    this.floorSlideT = onFloor
+      ? 0.45
+      : p.grounded || onPad
+        ? 0
+        : Math.max(0, this.floorSlideT - dt);
+    const sliding = onFloor || (this.floorSlideT > 0 && !p.grounded);
     if (
       this.launchLock &&
       (p.grounded ||
@@ -929,7 +941,7 @@ export class Engine {
       this.launchLock = false;
     if (this.launchLock) {
       p.vx = 0;
-    } else if (onFloor) {
+    } else if (sliding) {
       p.vx = approach(p.vx, -PHYSICS.slide, 1400 * dt);
     } else if (onPad) {
       p.vx = approach(p.vx, 0, 4000 * dt);
@@ -1001,7 +1013,7 @@ export class Engine {
       this.effect('stomp', p.x, p.y, '#b48cff');
       this.effect('spark', p.x, p.y - 20 * sign, '#eaffff');
       this.shake = Math.max(this.shake, 3);
-    } else if (this.jumpBuffer > 0 && this.coyote > 0 && !stunned && !onFloor) {
+    } else if (this.jumpBuffer > 0 && this.coyote > 0 && !stunned && !sliding) {
       p.vy = -PHYSICS.jump * sign;
       p.grounded = false;
       this.stood = '';

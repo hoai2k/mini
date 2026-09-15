@@ -226,39 +226,36 @@ function fire(engine, seconds) {
     `a few hardened shadows in the third (${hard} of ${third.enemies.length})`,
   );
 }
-// A leaps chapter (nothing to fight) is half as long as its shape asks:
-// its shelves and gaps average well under a mixed chapter's.
+// A leaps chapter (nothing to fight) has fewer, taller shelves than a
+// fighting chapter, so it is well shorter and its jumps rise more.
 {
   const l = buildLevel(0);
   const main = l.platforms.filter(
     (p) => p.routeRole === 'main' && /-p\d$/.test(p.id),
   );
+  const shelves = (chapter) => main.filter((p) => p.id.startsWith(chapter));
   const span = (chapter) => {
-    const shelves = main.filter((p) => p.id.startsWith(chapter));
-    return (
-      shelves[shelves.length - 1].x +
-      shelves[shelves.length - 1].w -
-      shelves[0].x
-    );
+    const s = shelves(chapter);
+    return s[s.length - 1].x + s[s.length - 1].w - s[0].x;
   };
-  const leaps = span('m0-a0-c0-'),
-    mixed = span('m0-a0-c4-');
+  const leaps = shelves('m0-a0-c0-'),
+    mixed = shelves('m0-a0-c4-');
   check(
-    leaps < mixed * 0.6,
-    `a leaps chapter spans well under a mixed one (${leaps} vs ${mixed})`,
+    leaps.length < mixed.length,
+    `a leaps chapter has fewer shelves (${leaps.length} vs ${mixed.length})`,
   );
-  const gaps = (chapter) => {
-    const shelves = main.filter((p) => p.id.startsWith(chapter));
-    return (
-      shelves
-        .slice(1)
-        .reduce((n, p, i) => n + (p.x - shelves[i].x - shelves[i].w), 0) /
-      (shelves.length - 1)
-    );
-  };
   check(
-    gaps('m0-a0-c0-') < gaps('m0-a0-c4-') * 0.75,
-    `its gaps are shorter too (${gaps('m0-a0-c0-').toFixed(0)} vs ${gaps('m0-a0-c4-').toFixed(0)})`,
+    span('m0-a0-c0-') < span('m0-a0-c4-') * 0.8,
+    `and spans well under a mixed one (${span('m0-a0-c0-')} vs ${span('m0-a0-c4-')})`,
+  );
+  check(
+    leaps.every((p) => !l.enemies.some((e) => e.id.startsWith(p.id + '-'))),
+    'and nothing to fight on it',
+  );
+  const total = buildLevel(0).width + buildLevel(1).width + buildLevel(2).width;
+  check(
+    total < 290000,
+    `the three boards together are shorter than they were (${total} of the old ~350k)`,
   );
 }
 
