@@ -410,6 +410,16 @@ main > section.story {
   color: var(--brass);
 }
 
+/* A player with more than one place to be found: one link per line, each only
+   as wide as its own label so the brass underline stops at the text rather
+   than running the width of the column. */
+.socials {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
 /* Live clips */
 .clips {
   display: grid;

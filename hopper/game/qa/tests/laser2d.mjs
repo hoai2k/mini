@@ -226,22 +226,27 @@ function fire(engine, seconds) {
     `a few hardened shadows in the third (${hard} of ${third.enemies.length})`,
   );
 }
-// Quiet stretches are half as long as their shape asks, and the gap onto a
-// fight is not.
+// Quiet stretches are half as long as their shape asks: across a board, the
+// shelves with nothing to fight average well under the fight shelves.
 {
   const l = buildLevel(0);
   const main = l.platforms.filter(
-    (p) =>
-      p.routeRole === 'main' &&
-      !p.id.endsWith('arena-floor') &&
-      !p.id.endsWith('island'),
+    (p) => p.routeRole === 'main' && /-p\d$/.test(p.id),
   );
-  const byId = new Map(main.map((p) => [p.id, p]));
-  const learn = byId.get('m0-a0-c0-p0'),
-    fight = byId.get('m0-a0-c0-p2');
+  const mean = (list) => list.reduce((n, p) => n + p.w, 0) / list.length;
+  const fights = main.filter(
+    (p) => p.encounter === 'fight' || p.encounter === 'finish',
+  );
+  const quiet = main.filter(
+    (p) => !fights.includes(p) && !/-p[56]$/.test(p.id),
+  );
   check(
-    learn.w < fight.w,
-    `a quiet shelf is shorter than a fight shelf (${learn.w} vs ${fight.w})`,
+    fights.length > 20 && quiet.length > 40,
+    `fight and quiet shelves counted (${fights.length}, ${quiet.length})`,
+  );
+  check(
+    mean(quiet) < mean(fights) * 0.75,
+    `quiet shelves average well under fight shelves (${mean(quiet).toFixed(0)} vs ${mean(fights).toFixed(0)})`,
   );
 }
 

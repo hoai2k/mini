@@ -605,7 +605,8 @@ w.enemies[0].asleep = false;
 w.projectiles.push({ ...incoming, id: 22 });
 w.update(1 / 120, 0, p, [], { ...cb, hurt: () => false });
 assert.equal(w.projectiles.length, 0, 'an unparried shot is spent on Hopper');
-// The rear-only kick reaches behind Hopper and never in front of it.
+// The spin kick sweeps the whole circle: one swing reaches both sides. The
+// takeoff strike keeps the rear filter the kick used to share.
 w = new CombatWorld({
   ...base,
   enemies: [
@@ -614,9 +615,24 @@ w = new CombatWorld({
   ],
 });
 for (const e of w.enemies) e.asleep = false;
-w.hit(500 - 55, 740, 175, 4, 'kick', 1, 'sweep');
-assert.equal(w.enemies[0].hp, w.enemies[0].maxHp, 'the kick misses the front');
-assert.ok(w.enemies[1].hp < w.enemies[1].maxHp, 'and lands behind');
+w.hit(500, 740, 165, 4, 'kick', 1, 'sweep');
+assert.ok(w.enemies[0].hp < w.enemies[0].maxHp, 'the kick lands in front');
+assert.ok(w.enemies[1].hp < w.enemies[1].maxHp, 'and behind, in one swing');
+w = new CombatWorld({
+  ...base,
+  enemies: [
+    { id: 'front', type: 'shadeHound', x: 620, y: 800, area: 0 },
+    { id: 'back', type: 'shadeHound', x: 380, y: 800, area: 0 },
+  ],
+});
+for (const e of w.enemies) e.asleep = false;
+w.hit(500, 740, 165, 4, 'launch', 1, 'takeoff');
+assert.equal(
+  w.enemies[0].hp,
+  w.enemies[0].maxHp,
+  'the takeoff strike still misses the front',
+);
+assert.ok(w.enemies[1].hp < w.enemies[1].maxHp, 'and still lands behind');
 // A shadow that has just fallen stays down for the respawn delay even when
 // Hopper dies, and returns only once Hopper is far away.
 w = new CombatWorld({
@@ -670,5 +686,5 @@ assert.equal(w.enemies[0].alive, false, 'down while Hopper is within a screen');
 w.update(1 / 120, 60, { ...p, x: 8200 }, [], cb);
 assert.equal(w.enemies[0].alive, true, 'back once he is well beyond it');
 console.log(
-  'PASS: parried shots are turned not spent, the kick reaches only behind, and a fresh kill waits out its respawn delay offscreen.',
+  'PASS: parried shots are turned not spent, the spin kick reaches all round while the takeoff strike stays rear-only, and a fresh kill waits out its respawn delay offscreen.',
 );

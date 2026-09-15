@@ -144,7 +144,7 @@ export const PHYSICS = {
   buffer: 0.13,
   /** Seconds after a hit during which steering is lost and knockback carries. */
   hitstun: 0.3,
-  /** The spin kick parries rear attacks while kickT is above this value. */
+  /** The spin kick parries blows from any side while kickT is above this. */
   parryUntil: 0.14,
   /** A new kick can start once the current one has counted down to this: the
    * sweep chains fast enough to turn a whole volley of shots. */
@@ -731,13 +731,9 @@ export class Engine {
   private hurt(d: number, kx: number, ky: number, parryable = true): boolean {
     if (this.respawnT > 0 || this.victoryT > 0) return false;
     const p = this.player;
-    // The spin kick sweeps behind and overhead: it parries a blow arriving from
-    // Hopper's back or straight down. kx points away from the attacker.
-    if (
-      parryable &&
-      p.kickT > PHYSICS.parryUntil &&
-      (kx === 0 || Math.sign(kx) === p.facing)
-    ) {
+    // The spin kick turns through every side: while it is out, a blow from any
+    // direction is parried. kx points away from the attacker.
+    if (parryable && p.kickT > PHYSICS.parryUntil) {
       p.invuln = Math.max(p.invuln, 0.35);
       p.parryT = 0.36;
       p.vx = kx * 0.35;
@@ -1219,11 +1215,12 @@ export class Engine {
       this.rumble(0.3, 65);
     }
     if (p.kickT > 0.1 && p.kickT < 0.44) {
-      // The sweep covers Hopper's back and the space above it, never ahead.
+      // The sweep is a full turn: it covers every side of Hopper and the space
+      // above it, so the circle is centred on Hopper rather than set behind it.
       const result = this.combat.hit(
-        p.x - p.facing * 55,
+        p.x,
         p.y - 60 * sign,
-        175,
+        165,
         4,
         'kick',
         p.facing,
@@ -1234,8 +1231,7 @@ export class Engine {
         if (
           b.owner !== 'player' &&
           b.active &&
-          (b.x - p.x) * p.facing < 40 &&
-          Math.hypot(b.x - p.x, b.y - (p.y - 55 * sign)) < 195
+          Math.hypot(b.x - p.x, b.y - (p.y - 55 * sign)) < 185
         ) {
           this.combat.reflect(b, p);
           p.parryT = Math.max(p.parryT, 0.3);

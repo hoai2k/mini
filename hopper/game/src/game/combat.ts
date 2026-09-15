@@ -1178,7 +1178,8 @@ export class CombatWorld {
       }
     }
   }
-  /** Circle centered on rendered hurt region. launch only hits behind facing.
+  /** Circle centered on rendered hurt region. launch only hits behind facing;
+   * every other kind, the spin kick included, hits the whole circle.
    * attackId, when supplied, enforces once per swing for its entire lifetime.
    * Returns counts for hit stop, score and controller rumble.
    */
@@ -1200,12 +1201,9 @@ export class CombatWorld {
         (attackId && e.attackIds.has(attackId))
       )
         continue;
-      // The takeoff strike and the spin kick both reach behind Hopper only.
-      if (
-        (kind === 'launch' || kind === 'kick') &&
-        (e.x - x) * facing > e.w * 0.2
-      )
-        continue;
+      // The takeoff strike reaches behind Hopper only; the spin kick sweeps the
+      // whole circle around it.
+      if (kind === 'launch' && (e.x - x) * facing > e.w * 0.2) continue;
       if (
         dist(e.x - x, e.y - e.h * 0.5 - y) >
         radius + Math.min(e.w, e.h) * 0.42
