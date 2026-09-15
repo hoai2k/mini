@@ -121,23 +121,32 @@ function check(name, cond, detail) {
 }
 
 // ---------------------------------------------------------------------
-// 2. Tap jump
+// 2. The spring, tapped: a small hop taken without a pause
 // ---------------------------------------------------------------------
 {
   const s = startHopper(0, 40);
   const startY = s.y;
   let apex = 0,
     minRel = 0,
-    landAt = null;
+    landAt = null,
+    liftAt = null;
   for (let i = 0; i < 400; i++) {
     const ev = stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i === 0 }, dt);
+    if (liftAt === null && ev.some((e) => e.kind === 'jump')) liftAt = i / 120;
     apex = Math.max(apex, s.y - startY);
     minRel = Math.min(minRel, s.y - startY);
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
-  check('tap jump apex 40-50m', apex > 40 && apex < 50, apex);
-  check('tap jump lands 1.4-1.9s (a mighty launch)', landAt !== null && landAt > 1.4 && landAt < 1.9, landAt);
-  check('tap jump never dips below start by >0.5m', minRel > -0.5, minRel);
+  check('a tap springs at once, with no wind-up pause (<0.05s)', liftAt !== null && liftAt < 0.05, liftAt);
+  check('a tapped spring is a small hop (8-20m)', apex > 8 && apex < 20, apex);
+  check('and it is over quickly (0.5-1.1s)', landAt !== null && landAt > 0.5 && landAt < 1.1, landAt);
+  check('a tapped spring never dips below start by >0.5m', minRel > -0.5, minRel);
+  // A press and its release inside one step still springs.
+  {
+    const q = startHopper(0, 40);
+    const ev = stepHopper(q, world, { ...blank, jumpPressed: true, jumpHeld: false }, dt);
+    check('a press and release in one step still springs', ev.some((e) => e.kind === 'jump'), ev);
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -152,19 +161,21 @@ function check(name, cond, detail) {
     hoverEnd = null;
   const heldAt = [];
   for (let i = 0; i < 1200; i++) {
-    const ev = stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i < 420 }, dt);
+    // Tap to spring, then take A up again in the air to beat the wings.
+    const ev = stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i === 0 || (i > 3 && i < 420) }, dt);
     apex = Math.max(apex, s.y - startY);
     if (hoverStart === null && ev.some((e) => e.kind === 'hoverStart')) hoverStart = i / 120;
     if (hoverEnd === null && ev.some((e) => e.kind === 'hoverEnd')) hoverEnd = i / 120;
     if (s.hovering) heldAt.push(s.y - startY);
     if (landAt === null && ev.some((e) => e.kind === 'land')) landAt = i / 120;
   }
-  check('held jump apex stays a hop (50-65m), no boost', apex > 50 && apex < 65, apex);
-  check('hover starts near the apex (0.5-1.4s)', hoverStart !== null && hoverStart > 0.5 && hoverStart < 1.4, hoverStart);
+  check('taking A up again in the air is a hover, not a boost (apex stays a hop, 8-22m)', apex > 8 && apex < 22, apex);
+  check('hover starts near the apex (0.1-1.0s)', hoverStart !== null && hoverStart > 0.1 && hoverStart < 1.0, hoverStart);
   check('hover lasts about the fuel (1.5-2.1s)', hoverStart !== null && hoverEnd !== null && hoverEnd - hoverStart > 1.5 && hoverEnd - hoverStart < 2.1, hoverEnd - hoverStart);
   const held = heldAt.slice(Math.floor(heldAt.length * 0.4));
   check('altitude held while hovering (drift < 3m)', held.length > 10 && Math.max(...held) - Math.min(...held) < 3, held.length ? Math.max(...held) - Math.min(...held) : null);
   check('hovering lands later than a tap (>2.2s)', landAt !== null && landAt > 2.2, landAt);
+  check('winding the spring in the air is impossible: A up there never charges', s.charge === 0, s.charge);
 }
 
 // ---------------------------------------------------------------------
@@ -177,7 +188,8 @@ function check(name, cond, detail) {
   let glideStart = false,
     minVyWhileGliding = Infinity;
   for (let i = 0; i < 2400; i++) {
-    const ev = stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: true, dz: -1 }, dt);
+    // Half a wind, spring, then take A up again in the air: hover, then glide.
+    const ev = stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i < 60 || i > 63, dz: -1 }, dt);
     if (ev.some((e) => e.kind === 'glideStart')) glideStart = true;
     if (s.gliding) minVyWhileGliding = Math.min(minVyWhileGliding, s.vy);
   }
@@ -210,20 +222,40 @@ function check(name, cond, detail) {
 }
 
 // ---------------------------------------------------------------------
-// 5. Crouch charge
+// 5. The wind-up: A held roots Hopper and charges; 1.5 s is the full spring
 // ---------------------------------------------------------------------
 {
+  // Held at a run: he stops dead and stays put while the spring winds.
   const s = startHopper(0, 40);
-  const startY = s.y;
-  let apex = 0,
-    chargedJump = null;
-  for (let i = 0; i < 900; i++) {
-    const ev = stepHopper(s, world, { ...blank, chargeHeld: i < 100 }, dt);
-    for (const e of ev) if (e.kind === 'jump') chargedJump = e;
-    apex = Math.max(apex, s.y - startY);
-  }
-  check('charged jump event fires', chargedJump !== null && chargedJump.charged === true, chargedJump);
-  check('charge apex 170-200m', apex > 170 && apex < 200, apex);
+  for (let i = 0; i < 180; i++) stepHopper(s, world, { ...blank, dz: -1 }, dt);
+  const running = Math.hypot(s.vx, s.vz);
+  const zHeld = s.z;
+  for (let i = 0; i < 120; i++) stepHopper(s, world, { ...blank, dz: -1, jumpPressed: i === 0, jumpHeld: true }, dt);
+  check('running speed is real before the wind-up', running > 60, running);
+  check('A held stops Hopper where he stands (<8m of drift)', Math.abs(s.z - zHeld) < 8, s.z - zHeld);
+  check('and he crouches into it', s.move === 'crouch', s.move);
+  check('the wind builds toward full charge', s.charge > 0.6 && s.charge < 0.75, s.charge);
+
+  // A full 1.5 s wind, released with the stick neutral: straight up, high.
+  const full = (holdS) => {
+    const q = startHopper(0, 40);
+    const startY = q.y;
+    let apex = 0,
+      jump = null;
+    for (let i = 0; i < 1800; i++) {
+      const ev = stepHopper(q, world, { ...blank, jumpPressed: i === 0, jumpHeld: i * dt < holdS }, dt);
+      for (const e of ev) if (e.kind === 'jump') jump = e;
+      if (jump) apex = Math.max(apex, q.y - startY);
+      if (jump && i * dt > holdS + 0.2 && ev.some((e) => e.kind === 'land')) break;
+    }
+    return { apex, jump, range: Math.hypot(q.x - 0, q.z - 40) };
+  };
+  const wound = full(1.5);
+  check('a full wind fires a charged jump', wound.jump !== null && wound.jump.charged === true, wound.jump);
+  check('a full wind with no stick goes straight up, 320-370m', wound.apex > 320 && wound.apex < 370, wound.apex);
+  check('and it goes straight up, not forward (<2m)', wound.range < 2, wound.range);
+  check('holding past 1.5s adds nothing', Math.abs(full(2.5).apex - wound.apex) < 1, full(2.5).apex - wound.apex);
+  check('half a wind is well short of a full one', full(0.75).apex < wound.apex * 0.65, `${full(0.75).apex.toFixed(0)} vs ${wound.apex.toFixed(0)}`);
 }
 
 // ---------------------------------------------------------------------
@@ -272,7 +304,8 @@ function check(name, cond, detail) {
     const ev = stepHopper(
       withDive,
       world,
-      { ...blank, jumpPressed: i === 0, jumpHeld: i < 60, divePressed: i === 45 },
+      // Wind for half a second, spring, then dive out of the arc.
+      { ...blank, jumpPressed: i === 0, jumpHeld: i < 60, divePressed: i === 105 },
       dt,
     );
     for (const e of ev) {
@@ -287,7 +320,7 @@ function check(name, cond, detail) {
   let plainLandAt = null;
   for (let i = 0; i < 800; i++) {
     const ev = stepHopper(noDive, world, { ...blank, jumpPressed: i === 0, jumpHeld: i < 60 }, dt);
-    for (const e of ev) if (e.kind === 'land' && plainLandAt === null) plainLandAt = i / 120;
+    for (const e of ev) if (e.kind === 'land' && plainLandAt === null && i > 62) plainLandAt = i / 120;
   }
   check('dive event fires', diveEv, diveEv);
   check('dive lands as a stomp', diveStomp === true, diveStomp);
@@ -341,7 +374,8 @@ function check(name, cond, detail) {
   const startY = s.y;
   let apex = 0;
   for (let i = 0; i < 1800; i++) {
-    stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: true }, dt);
+    // Spring into the column, then hold A to ride it on beating wings.
+    stepHopper(s, world, { ...blank, jumpPressed: i === 0, jumpHeld: i < 60 || i > 63 }, dt);
     apex = Math.max(apex, s.y - startY);
   }
   check('thermal apex above 120m', apex > 120, apex);
@@ -1062,54 +1096,65 @@ function aimFrom(h, extra = {}) {
 }
 
 // ---------------------------------------------------------------------
-// 17. The leap travels: speed, the takeoff lunge and carried momentum
+// 17. The spring travels: a tap keeps the pace, a full wind doubles it
 // ---------------------------------------------------------------------
 {
-  // Run up to speed, jump, and report the arc.
-  const arc = ({ runUp = 0, sprint = false, hold = 0, steer = true }) => {
+  // Run up to speed, wind the spring for `wind` seconds, spring, and report
+  // the arc. `wind` 0 is a tap: pressed and released inside one step.
+  const arc = ({ runUp = 0, sprint = false, wind = 0, stick = 1 }) => {
     const s = startHopper(0, 40);
     for (let i = 0; i < Math.round(runUp / dt); i++) stepHopper(s, world, { ...blank, dz: -1, sprintHeld: sprint }, dt);
     const z0 = s.z,
       y0 = s.y,
-      takeoff = Math.hypot(s.vx, s.vz);
+      running = Math.hypot(s.vx, s.vz);
     let apex = 0,
       air = 0,
-      slowest = Infinity;
-    for (let i = 0; i < 900; i++) {
-      const ev = stepHopper(s, world, { ...blank, dz: steer ? -1 : 0, sprintHeld: sprint, jumpPressed: i === 0, jumpHeld: i === 0 || i * dt < hold }, dt);
-      if (i > 0 && !s.grounded) slowest = Math.min(slowest, Math.hypot(s.vx, s.vz));
-      apex = Math.max(apex, s.y - y0);
-      if (i > 4 && ev.some((e) => e.kind === 'land')) {
-        air = i * dt;
-        break;
+      launched = false,
+      slowest = Infinity,
+      takeoff = 0;
+    for (let i = 0; i < 1800; i++) {
+      const ev = stepHopper(s, world, { ...blank, dz: -stick, sprintHeld: sprint, jumpPressed: i === 0, jumpHeld: i * dt < wind }, dt);
+      if (!launched && ev.some((e) => e.kind === 'jump')) {
+        launched = true;
+        takeoff = Math.hypot(s.vx, s.vz);
+      }
+      if (launched) {
+        air += dt;
+        apex = Math.max(apex, s.y - y0);
+        if (air > 0.05) slowest = Math.min(slowest, Math.hypot(s.vx, s.vz));
+        if (air > 0.1 && ev.some((e) => e.kind === 'land')) break;
       }
     }
-    return { takeoff, apex, air, range: Math.abs(s.z - z0), slowest };
+    // Ground covered per second over the whole manoeuvre, wind-up included.
+    return { running, takeoff, apex, air, range: Math.abs(s.z - z0), slowest, pace: Math.abs(s.z - z0) / (wind + air) };
   };
   check('run speed is at least 66 m/s', MOVE.run >= 66, MOVE.run);
-  const standing = arc({ runUp: 0, steer: false });
-  check('a standing jump with no stick still goes straight up', standing.range < 1, standing.range);
-  const stick = arc({ runUp: 0 });
-  check('a standing jump with the stick pushed lunges forward (>55 m)', stick.range > 55, stick.range);
-  const running = arc({ runUp: 1.5 });
-  check('a running tap jump crosses 90 m', running.range > 90, running.range);
-  check('a running tap jump travels at least 3x its apex (forward, not upward)', running.range > running.apex * 3, `${running.range.toFixed(0)} vs ${running.apex.toFixed(0)}`);
-  check('the takeoff lunge adds speed rather than losing it', running.slowest > running.takeoff, `${running.slowest.toFixed(0)} from ${running.takeoff.toFixed(0)}`);
-  const sprinting = arc({ runUp: 1.5, sprint: true });
-  check('sprinting takes off faster than running', sprinting.takeoff > running.takeoff + 20, `${sprinting.takeoff.toFixed(0)} vs ${running.takeoff.toFixed(0)}`);
-  check('a sprint jump keeps its speed in the air (never dragged back to running pace)', sprinting.slowest >= sprinting.takeoff, `${sprinting.slowest.toFixed(0)} from ${sprinting.takeoff.toFixed(0)}`);
-  check('a sprint jump carries much further than a running one', sprinting.range > running.range * 1.2, `${sprinting.range.toFixed(0)} vs ${running.range.toFixed(0)}`);
-  const held = arc({ runUp: 1.5, sprint: true, hold: 4 });
-  check('a sprinting held jump (hover, then glide) crosses 250 m', held.range > 250, held.range);
-  check('holding buys distance, not height: a hover is no boost', held.apex < sprinting.apex * 1.6 && held.range > sprinting.range * 1.3, `${held.apex.toFixed(0)} vs ${sprinting.apex.toFixed(0)}; ${held.range.toFixed(0)} vs ${sprinting.range.toFixed(0)}`);
+  const standing = arc({ stick: 0 });
+  check('a standing spring with no stick goes straight up', standing.range < 1, standing.range);
+  const tap = arc({ runUp: 1.5 });
+  check('a tap at a run keeps exactly the pace it interrupted', tap.pace > MOVE.run * 0.95 && tap.pace < MOVE.run * 1.12, `${tap.pace.toFixed(0)} vs ${MOVE.run}`);
+  check('a tap is a low, quick arc (apex under 20m, under 1.1s)', tap.apex < 20 && tap.air < 1.1, `${tap.apex.toFixed(0)}m, ${tap.air.toFixed(2)}s`);
+  check('a tap travels several times its own apex', tap.range > tap.apex * 3, `${tap.range.toFixed(0)} vs ${tap.apex.toFixed(0)}`);
+  const half = arc({ runUp: 1.5, wind: 0.75 });
+  check('half a wind beats running outright (1.3x-1.7x)', half.pace > MOVE.run * 1.3 && half.pace < MOVE.run * 1.7, `${half.pace.toFixed(0)} vs ${MOVE.run}`);
+  const full = arc({ runUp: 1.5, wind: 1.5 });
+  check('a full wind covers twice the ground in the same time', full.pace > MOVE.run * 1.9 && full.pace < MOVE.run * 2.15, `${full.pace.toFixed(0)} vs ${MOVE.run}`);
+  check('a full wind crosses 600m', full.range > 600, full.range);
+  check('more wind is always more ground', full.range > half.range && half.range > tap.range, `${tap.range.toFixed(0)} / ${half.range.toFixed(0)} / ${full.range.toFixed(0)}`);
+  check('more wind is always more height', full.apex > half.apex && half.apex > tap.apex, `${tap.apex.toFixed(0)} / ${half.apex.toFixed(0)} / ${full.apex.toFixed(0)}`);
+  check('a spring keeps its speed in the air, never dragged back', full.slowest >= full.takeoff - 1, `${full.slowest.toFixed(0)} from ${full.takeoff.toFixed(0)}`);
+  const sprinting = arc({ runUp: 1.5, sprint: true, wind: 1.5 });
+  check('a sprint-wound spring carries further still', sprinting.range > full.range * 1.4, `${sprinting.range.toFixed(0)} vs ${full.range.toFixed(0)}`);
+  check('and it too doubles the run it interrupted', sprinting.pace > MOVE.run * MOVE.sprint * 1.9 && sprinting.pace < MOVE.run * MOVE.sprint * 2.15, `${sprinting.pace.toFixed(0)} vs ${(MOVE.run * MOVE.sprint).toFixed(0)}`);
   // Pushing back against the flight still slows Hopper down: control is kept.
   {
     const s = startHopper(0, 40);
     for (let i = 0; i < 180; i++) stepHopper(s, world, { ...blank, dz: -1, sprintHeld: true }, dt);
-    stepHopper(s, world, { ...blank, dz: -1, sprintHeld: true, jumpPressed: true, jumpHeld: true }, dt);
+    for (let i = 0; i < 120; i++) stepHopper(s, world, { ...blank, dz: -1, sprintHeld: true, jumpPressed: i === 0, jumpHeld: true }, dt);
+    stepHopper(s, world, { ...blank, dz: -1, sprintHeld: true, jumpHeld: false }, dt);
     const launched = Math.hypot(s.vx, s.vz);
     for (let i = 0; i < 60; i++) stepHopper(s, world, { ...blank, dz: 1 }, dt);
-    check('pushing back in the air brakes the leap', Math.hypot(s.vx, s.vz) < launched - 40, `${launched.toFixed(0)} -> ${Math.hypot(s.vx, s.vz).toFixed(0)}`);
+    check('pushing back in the air brakes the spring', Math.hypot(s.vx, s.vz) < launched - 40, `${launched.toFixed(0)} -> ${Math.hypot(s.vx, s.vz).toFixed(0)}`);
   }
 }
 

@@ -1,5 +1,5 @@
-/** Hopper's movement in three dimensions: the jump family, glide, dive,
- * crouch charge, wall kick, ledge mantle, spring pads, thermals and wind.
+/** Hopper's movement in three dimensions: the spring jump, glide, dive,
+ * wall kick, ledge mantle, spring pads, thermals and wind.
  * Pure simulation over the World's colliders; no rendering, no three.js
  * objects, so it runs in node tests at the same fixed 120 Hz as the game.
  */
@@ -20,13 +20,8 @@ export const MOVE = {
   groundAccel: 520,
   airAccel: 215,
   turnRate: Math.PI * 5,
-  /** The jump: a mighty kick off the ground, then a short held window of thrust. */
-  tapJump: 104,
-  /** A jump away from a ceiling, as a fraction of the tap jump's impulse. */
+  /** A jump away from a ceiling, as a fraction of the spring's impulse. */
   ceilingJump: 0.7,
-  /** A short variable-height window after takeoff: thrust against gravity, a few metres, no boost. */
-  holdWindow: 0.22,
-  holdThrust: 70,
   /** Hover: A held in the air holds altitude on beating wings for this long. */
   hoverFuel: 1.8,
   hoverLift: 2.5,
@@ -34,15 +29,23 @@ export const MOVE = {
   /** Moving against the facing is slower: backpedal and strafe factors. */
   backpedal: 0.55,
   strafe: 0.85,
-  /** Forward lunge added at takeoff, along the way Hopper is already going
-   * (or the stick, from standing). A leap travels; it does not just rise. */
-  leap: 34,
   glideSink: 7,
   glideSpeed: 80,
   glideTurn: Math.PI * 0.6,
-  chargeTime: 0.8,
-  chargeApexMin: 46,
+  /** The spring. A is held on the ground: Hopper stops dead and winds up,
+   * and lets go when the button does. A quick tap barely winds at all and is
+   * a small hop; 1.5 s is a full charge. */
+  chargeTime: 1.5,
+  chargeApexMin: 10,
   chargeApexMax: 190,
+  /** Stick neutral puts the whole wind-up into height rather than splitting
+   * it between forward and up, so a standing spring rises about 1.8x as far. */
+  chargeUp: 1.35,
+  /** What the spring is worth against running. A tap breaks even: it carries
+   * exactly as far as the run it interrupts. A full charge covers twice the
+   * ground in the same time, wind-up included, so springing in succession
+   * beats running outright. */
+  chargePace: 2,
   springApex: 168,
   diveGravity: 2.5,
   diveTerminal: 190,
@@ -78,7 +81,21 @@ export const MOVE = {
   dashCooldown: 0.55,
 };
 
-export type Move = 'idle' | 'run' | 'crouch' | 'jump' | 'fall' | 'hover' | 'glide' | 'dive' | 'mantle' | 'land' | 'stomp' | 'hopBack' | 'dash' | 'climb';
+export type Move =
+  | 'idle'
+  | 'run'
+  | 'crouch'
+  | 'jump'
+  | 'fall'
+  | 'hover'
+  | 'glide'
+  | 'dive'
+  | 'mantle'
+  | 'land'
+  | 'stomp'
+  | 'hopBack'
+  | 'dash'
+  | 'climb';
 
 export interface HopperState {
   x: number;
@@ -161,7 +178,55 @@ export type MoveEvent =
 
 export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
   return {
-    x, y, z, vx: 0, vy: 0, vz: 0, yaw, grounded: true, groundY: y, move: 'idle', hold: 0, holding: false, gliding: false, diving: false, charge: 0, coyote: MOVE.coyote, buffer: 0, wallTimer: 0, wallNx: 0, wallNz: 0, climbing: false, climbNx: 0, climbNz: 0, climbTimer: 0, airTime: 0, commit: 0, mantle: 0, mantleFrom: [0, 0, 0], mantleTo: [0, 0, 0], landTimer: 0, stompTimer: 0, hopBackTimer: 0, height: 0, landedFrom: 0, events: [], gravityScale: 1, invuln: 0, hitstun: 0, glideHold: 0, hovering: false, hoverFuel: MOVE.hoverFuel, hoverT: 0, dashTimer: 0, dashCooldown: 0, dashArmed: false, dashX: 0, dashZ: 0, sprinting: false, inSoft: false,
+    x,
+    y,
+    z,
+    vx: 0,
+    vy: 0,
+    vz: 0,
+    yaw,
+    grounded: true,
+    groundY: y,
+    move: 'idle',
+    hold: 0,
+    holding: false,
+    gliding: false,
+    diving: false,
+    charge: 0,
+    coyote: MOVE.coyote,
+    buffer: 0,
+    wallTimer: 0,
+    wallNx: 0,
+    wallNz: 0,
+    climbing: false,
+    climbNx: 0,
+    climbNz: 0,
+    climbTimer: 0,
+    airTime: 0,
+    commit: 0,
+    mantle: 0,
+    mantleFrom: [0, 0, 0],
+    mantleTo: [0, 0, 0],
+    landTimer: 0,
+    stompTimer: 0,
+    hopBackTimer: 0,
+    height: 0,
+    landedFrom: 0,
+    events: [],
+    gravityScale: 1,
+    invuln: 0,
+    hitstun: 0,
+    glideHold: 0,
+    hovering: false,
+    hoverFuel: MOVE.hoverFuel,
+    hoverT: 0,
+    dashTimer: 0,
+    dashCooldown: 0,
+    dashArmed: false,
+    dashX: 0,
+    dashZ: 0,
+    sprinting: false,
+    inSoft: false,
   };
 }
 
@@ -200,7 +265,20 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
     dz = forwardZ * -f.moveY + rightZ * f.moveX;
   const len = Math.hypot(dx, dz);
   const k = len > 1 ? 1 / len : 1;
-  return { dx: dx * k, dz: dz * k, jumpPressed: f.jumpPressed, jumpHeld: f.jumpHeld, divePressed: f.divePressed, diveHeld: f.diveHeld, chargeHeld: f.chargeHeld, guardHeld: f.blockHeld, dashPressed: f.dashPressed, dashHeld: f.dashHeld, sprintHeld: f.sprintHeld, faceYaw: cameraYaw };
+  return {
+    dx: dx * k,
+    dz: dz * k,
+    jumpPressed: f.jumpPressed,
+    jumpHeld: f.jumpHeld,
+    divePressed: f.divePressed,
+    diveHeld: f.diveHeld,
+    chargeHeld: f.chargeHeld,
+    guardHeld: f.blockHeld,
+    dashPressed: f.dashPressed,
+    dashHeld: f.dashHeld,
+    sprintHeld: f.sprintHeld,
+    faceYaw: cameraYaw,
+  };
 }
 
 const apexSpeed = (apex: number, g: number) => Math.sqrt(2 * g * apex);
@@ -220,7 +298,12 @@ const turnToward = (yaw: number, target: number, max: number) => {
 /** What a step needs of the world. The real world satisfies it, and so does
  * its mirror image, which is how inverted gravity is stepped. */
 export interface StepWorld {
-  groundAt(x: number, z: number, y: number, radius?: number): { y: number; collider: Collider | null };
+  groundAt(
+    x: number,
+    z: number,
+    y: number,
+    radius?: number,
+  ): { y: number; collider: Collider | null };
   near(x: number, z: number, margin?: number): Collider[];
   volumesAt(x: number, y: number, z: number): World['volumes'];
   readonly soft: World['soft'];
@@ -228,7 +311,12 @@ export interface StepWorld {
   /** Lowest solid underside at or above y over a point (the head). Optional:
    * the real World has it; the ground-resolution section only calls it while
    * stepping upright, so a mirrored world need not implement it. */
-  ceilingAt?(x: number, z: number, y: number, radius?: number): { y: number; collider: Collider | null };
+  ceilingAt?(
+    x: number,
+    z: number,
+    y: number,
+    radius?: number,
+  ): { y: number; collider: Collider | null };
   /** Scale on the tap jump's impulse. Optional: the mirror world sets it
    * below one, so a jump away from a ceiling is a hop that comes back to
    * it (a full mighty kick from under a lintel would carry him out of the
@@ -264,7 +352,10 @@ class MirrorWorld implements StepWorld {
   }
   groundAt(x: number, z: number, y: number, radius = 2.5) {
     const c = this.world.ceilingAt(x, z, -y, radius);
-    return { y: c.y === Infinity ? -1e4 : -c.y, collider: c.collider ? this.mirror(c.collider) : null };
+    return {
+      y: c.y === Infinity ? -1e4 : -c.y,
+      collider: c.collider ? this.mirror(c.collider) : null,
+    };
   }
   near(x: number, z: number, margin = 6): Collider[] {
     return this.world.near(x, z, margin).map((c) => this.mirror(c));
@@ -298,8 +389,16 @@ function mirrorState(s: HopperState) {
  * radius, and a body that long cannot get into places they mean him to reach
  * (a signal stands inside a farmhouse in Sunseed Fields) -- so the circle
  * stands until those places are re-authored around him. */
-function resolveWalls(s: HopperState, world: StepWorld): { nx: number; nz: number; collider: Collider } | null {
-  let best: { nx: number; nz: number; collider: Collider; depth: number } | null = null;
+function resolveWalls(
+  s: HopperState,
+  world: StepWorld,
+): { nx: number; nz: number; collider: Collider } | null {
+  let best: {
+    nx: number;
+    nz: number;
+    collider: Collider;
+    depth: number;
+  } | null = null;
   const bodyLow = s.y + 2.0,
     bodyHigh = s.y + MOVE.height - 1.5;
   {
@@ -337,7 +436,8 @@ function resolveWalls(s: HopperState, world: StepWorld): { nx: number; nz: numbe
         s.vx -= wx * into;
         s.vz -= wz * into;
       }
-      if (!best || depth > best.depth) best = { nx: wx, nz: wz, collider: c, depth };
+      if (!best || depth > best.depth)
+        best = { nx: wx, nz: wz, collider: c, depth };
     }
   }
   return best;
@@ -355,14 +455,24 @@ function drive(mag: number): number {
 /** One fixed step. Returns the state's events for this step. Under inverted
  * gravity (`gravityScale < 0`) the step is taken in the world's mirror: he
  * falls up, lands on undersides and jumps down off them. */
-export function stepHopper(s: HopperState, world: World, intent: MoveIntent, dt: number): MoveEvent[] {
+export function stepHopper(
+  s: HopperState,
+  world: World,
+  intent: MoveIntent,
+  dt: number,
+): MoveEvent[] {
   if (s.gravityScale >= 0) return stepUpright(s, world, intent, dt);
   mirrorState(s);
   const events = stepUpright(s, mirrorOf(world), intent, dt);
   mirrorState(s);
   return events;
 }
-function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: number): MoveEvent[] {
+function stepUpright(
+  s: HopperState,
+  world: StepWorld,
+  intent: MoveIntent,
+  dt: number,
+): MoveEvent[] {
   s.events = [];
   const g = MOVE.gravity * s.gravityScale;
   if (s.invuln > 0) s.invuln -= dt;
@@ -376,7 +486,9 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     const t = 1 - Math.max(0, s.mantle) / MOVE.mantleTime;
     const e = t * t * (3 - 2 * t);
     s.x = s.mantleFrom[0] + (s.mantleTo[0] - s.mantleFrom[0]) * e;
-    s.y = s.mantleFrom[1] + (s.mantleTo[1] - s.mantleFrom[1]) * Math.min(1, e * 1.4);
+    s.y =
+      s.mantleFrom[1] +
+      (s.mantleTo[1] - s.mantleFrom[1]) * Math.min(1, e * 1.4);
     s.z = s.mantleFrom[2] + (s.mantleTo[2] - s.mantleFrom[2]) * e;
     s.vx = s.vy = s.vz = 0;
     if (s.mantle <= 0) {
@@ -404,9 +516,18 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
   const wantLen = Math.hypot(intent.dx, intent.dz);
   // Dash (LB): a burst in the stick direction, on the ground or in the air.
   // Held with no direction, it arms and fires the moment the stick moves.
-  if (control && !busy && s.mantle <= 0 && s.dashCooldown <= 0 && s.dashTimer <= 0) {
+  if (
+    control &&
+    !busy &&
+    s.mantle <= 0 &&
+    s.dashCooldown <= 0 &&
+    s.dashTimer <= 0
+  ) {
     if (intent.dashPressed && wantLen < 0.2) s.dashArmed = true;
-    if ((intent.dashPressed || (s.dashArmed && intent.dashHeld)) && wantLen >= 0.2) {
+    if (
+      (intent.dashPressed || (s.dashArmed && intent.dashHeld)) &&
+      wantLen >= 0.2
+    ) {
       s.dashArmed = false;
       s.dashTimer = MOVE.dashTime;
       s.dashCooldown = MOVE.dashCooldown + MOVE.dashTime;
@@ -420,8 +541,18 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     }
   }
   if (!intent.dashHeld) s.dashArmed = false;
-  s.sprinting = !!intent.sprintHeld && s.grounded && s.charge <= 0 && !busy;
-  const canSteer = control && !busy && s.commit <= 0 && s.charge <= 0 && !(s.grounded && intent.chargeHeld) && s.dashTimer <= 0;
+  // Winding the spring roots Hopper: no steering, no sprint, no drift.
+  const winding =
+    control && !busy && s.grounded && (intent.jumpHeld || intent.chargeHeld);
+  s.sprinting =
+    !!intent.sprintHeld && s.grounded && s.charge <= 0 && !winding && !busy;
+  const canSteer =
+    control &&
+    !busy &&
+    s.commit <= 0 &&
+    s.charge <= 0 &&
+    !winding &&
+    s.dashTimer <= 0;
   // On a wall. The stick's push into the face is the climb, its slide along
   // the face is the traverse, and nothing falls: he hangs where he is put.
   if (s.climbing && control) {
@@ -436,10 +567,19 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
       s.vx = -s.climbNx * 14;
       s.vz = -s.climbNz * 14;
     } else {
-      s.vy = Math.abs(into) < 0.15 ? -MOVE.climbSlide : into > 0 ? into * MOVE.climbUp : into * MOVE.climbDown;
+      s.vy =
+        Math.abs(into) < 0.15
+          ? -MOVE.climbSlide
+          : into > 0
+            ? into * MOVE.climbUp
+            : into * MOVE.climbDown;
       s.vx = tx * along * MOVE.climbSide - s.climbNx * MOVE.climbGrip;
       s.vz = tz * along * MOVE.climbSide - s.climbNz * MOVE.climbGrip;
-      s.yaw = turnToward(s.yaw, Math.atan2(-s.climbNx, -s.climbNz), MOVE.turnRate * dt);
+      s.yaw = turnToward(
+        s.yaw,
+        Math.atan2(-s.climbNx, -s.climbNz),
+        MOVE.turnRate * dt,
+      );
       s.move = 'climb';
       s.hoverFuel = MOVE.hoverFuel;
       s.gliding = false;
@@ -458,7 +598,12 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
   } else if (s.gliding) {
     // Glide: hold speed, steer the heading with the stick, sink slowly.
     let heading = Math.atan2(s.vx, s.vz);
-    if (canSteer && wantLen > 0.1) heading = turnToward(heading, Math.atan2(intent.dx, intent.dz), MOVE.glideTurn * dt * wantLen);
+    if (canSteer && wantLen > 0.1)
+      heading = turnToward(
+        heading,
+        Math.atan2(intent.dx, intent.dz),
+        MOVE.glideTurn * dt * wantLen,
+      );
     const speed = Math.min(MOVE.glideSpeed, Math.hypot(s.vx, s.vz) + 60 * dt);
     s.vx = Math.sin(heading) * speed;
     s.vz = Math.cos(heading) * speed;
@@ -473,11 +618,18 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     // across it a strafe, both slower than a run.
     const fx = Math.sin(s.yaw),
       fz = Math.cos(s.yaw);
-    const along = wantLen > 0.05 ? (intent.dx * fx + intent.dz * fz) / wantLen : 1;
-    const across = wantLen > 0.05 ? Math.abs(intent.dx * fz - intent.dz * fx) / wantLen : 0;
-    const shape = along < 0 ? 1 - (1 - MOVE.backpedal) * -along : 1 - (1 - MOVE.strafe) * across * (1 - Math.max(0, along));
+    const along =
+      wantLen > 0.05 ? (intent.dx * fx + intent.dz * fz) / wantLen : 1;
+    const across =
+      wantLen > 0.05 ? Math.abs(intent.dx * fz - intent.dz * fx) / wantLen : 0;
+    const shape =
+      along < 0
+        ? 1 - (1 - MOVE.backpedal) * -along
+        : 1 - (1 - MOVE.strafe) * across * (1 - Math.max(0, along));
     const sprint = along > 0.3 ? MOVE.sprint : 1;
-    const top = s.grounded ? MOVE.run * (s.sprinting ? sprint : 1) * shape : Math.max(MOVE.run * (intent.sprintHeld ? sprint : 1) * shape, carried);
+    const top = s.grounded
+      ? MOVE.run * (s.sprinting ? sprint : 1) * shape
+      : Math.max(MOVE.run * (intent.sprintHeld ? sprint : 1) * shape, carried);
     // The stick's throw: its lower band walks, its upper band gallops.
     const throwSpeed = drive(wantLen) * top;
     const tx = wantLen > 0.001 ? (intent.dx / wantLen) * throwSpeed : 0,
@@ -495,11 +647,18 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
       }
     }
     // Facing: the locked target, else the camera's forward, else the stick.
-    const faceTarget = intent.faceX !== undefined ? Math.atan2(intent.faceX, intent.faceZ!) : intent.faceYaw !== undefined ? intent.faceYaw : wantLen > 0.1 ? Math.atan2(intent.dx, intent.dz) : s.yaw;
+    const faceTarget =
+      intent.faceX !== undefined
+        ? Math.atan2(intent.faceX, intent.faceZ!)
+        : intent.faceYaw !== undefined
+          ? intent.faceYaw
+          : wantLen > 0.1
+            ? Math.atan2(intent.dx, intent.dz)
+            : s.yaw;
     s.yaw = turnToward(s.yaw, faceTarget, MOVE.turnRate * dt);
-  } else if (s.grounded && (busy || !control || s.charge > 0 || intent.chargeHeld)) {
-    // Standing still while charging, stunned or recovering.
-    const k = Math.max(0, 1 - 12 * dt);
+  } else if (s.grounded && (busy || !control || s.charge > 0 || winding)) {
+    // Rooted: winding the spring, stunned or recovering.
+    const k = Math.max(0, 1 - 18 * dt);
     s.vx *= k;
     s.vz *= k;
   }
@@ -513,49 +672,72 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     }
   }
 
-  // Crouch charge on the ground: hold RB to compress, release to launch.
-  if (s.grounded && control && !busy) {
-    if (intent.chargeHeld) {
+  // The spring. A held on the ground (or the old charge button) stops Hopper
+  // where he stands and winds the jump up; letting go launches it. Nothing
+  // fires while the button is down, so a quick tap is a small hop taken
+  // without a pause and a long hold is a leap that crosses a district.
+  if (control && !busy) {
+    const footed = s.grounded || s.coyote > 0;
+    // A press and a release inside one step is still a spring: the press
+    // seeds the wind, and the release below lets go of it the same step.
+    if (footed && intent.jumpPressed) s.charge = Math.max(s.charge, 1e-4);
+    if (footed && (intent.jumpHeld || intent.chargeHeld)) {
       s.charge = Math.min(1, s.charge + dt / MOVE.chargeTime);
-      s.move = 'crouch';
-    } else if (s.charge > 0) {
-      const apex = MOVE.chargeApexMin + (MOVE.chargeApexMax - MOVE.chargeApexMin) * s.charge;
-      s.vy = apexSpeed(apex, g);
-      s.vx += intent.dx * 26 * s.charge;
-      s.vz += intent.dz * 26 * s.charge;
+      s.buffer = 0;
+      if (s.grounded) s.move = 'crouch';
+    } else if (footed && s.charge > 0) {
+      const c = Math.min(1, s.charge);
+      // Height: the wind-up's own apex, taken whole when the stick is
+      // neutral and split with the forward throw as the stick comes over.
+      const throwMag = drive(wantLen);
+      const apex =
+        MOVE.chargeApexMin + (MOVE.chargeApexMax - MOVE.chargeApexMin) * c;
+      s.vy =
+        apexSpeed(apex, g) *
+        (1 + (MOVE.chargeUp - 1) * (1 - throwMag)) *
+        (world.jumpScale ?? 1);
+      // Reach: the arc has to beat the run it interrupted. Time in the air
+      // is the rise plus the sharper fall; over the wind-up and that flight
+      // together, a tap keeps exactly the pace Hopper was running at and a
+      // full charge doubles it, which is why springing beats running.
+      const flight = (s.vy / g) * (1 + 1 / Math.sqrt(MOVE.fallGravity));
+      const paced = throwMag * MOVE.run * (intent.sprintHeld ? MOVE.sprint : 1);
+      const reach =
+        (1 + (MOVE.chargePace - 1) * c) *
+        paced *
+        (1 + (MOVE.chargeTime * c) / flight);
+      if (wantLen > 0.05) {
+        s.vx = (intent.dx / wantLen) * reach;
+        s.vz = (intent.dz / wantLen) * reach;
+        s.yaw = Math.atan2(intent.dx / wantLen, intent.dz / wantLen);
+      } else {
+        s.vx = 0;
+        s.vz = 0;
+      }
       s.grounded = false;
       s.coyote = 0;
-      s.hold = MOVE.holdWindow; // no extra thrust on a charged leap
       s.holding = false;
       s.hovering = false;
+      s.gliding = false;
+      s.glideHold = 0;
       s.charge = 0;
+      s.buffer = 0;
       s.move = 'jump';
-      s.events.push({ kind: 'jump', charged: true });
+      s.events.push({ kind: 'jump', charged: c > 0.15 });
+    } else if (s.charge > 0) {
+      // Walked off the edge mid-wind: the spring is lost, not banked.
+      s.charge = 0;
     }
   }
-
-  // Jump, with coyote time and an input buffer.
-  if (control && !busy && s.buffer > 0 && (s.grounded || s.coyote > 0) && s.charge <= 0 && !intent.chargeHeld) {
-    s.buffer = 0;
-    s.vy = MOVE.tapJump * (world.jumpScale ?? 1);
-    // The lunge: a grasshopper's leap goes forward. It follows the stick when
-    // one is pushed, otherwise the way Hopper is already running, and a jump
-    // taken from a standstill with no stick is still straight up.
-    const speed = Math.hypot(s.vx, s.vz);
-    const lx = wantLen > 0.1 ? intent.dx / wantLen : speed > 6 ? s.vx / speed : 0,
-      lz = wantLen > 0.1 ? intent.dz / wantLen : speed > 6 ? s.vz / speed : 0;
-    const lunge = MOVE.leap * (wantLen > 0.1 ? 1 : Math.min(1, speed / MOVE.run));
-    s.vx += lx * lunge;
-    s.vz += lz * lunge;
-    s.grounded = false;
-    s.coyote = 0;
-    s.hold = 0;
-    s.holding = true;
-    s.move = 'jump';
-    s.events.push({ kind: 'jump', charged: false });
-  }
   // Hop back on the ground (a tap of Y).
-  if (control && s.grounded && !busy && intent.hopBackPressed && s.charge <= 0 && s.dashTimer <= 0) {
+  if (
+    control &&
+    s.grounded &&
+    !busy &&
+    intent.hopBackPressed &&
+    s.charge <= 0 &&
+    s.dashTimer <= 0
+  ) {
     s.hopBackTimer = MOVE.hopBackTime;
     s.invuln = Math.max(s.invuln, 0.2);
     s.vx = -Math.sin(s.yaw) * MOVE.hopBack;
@@ -568,17 +750,20 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
   if (s.climbing) {
     // Held to the wall: no fall, and the wings rest.
   } else if (!s.grounded) {
-    if (s.holding && intent.jumpHeld && s.hold < MOVE.holdWindow) {
-      // A short variable-height window after takeoff: thrust against gravity, a few metres, no boost.
-      s.vy += (MOVE.holdThrust - g) * dt;
-      s.hold += dt;
-    } else {
+    {
       s.holding = false;
       s.glideHold = intent.jumpHeld ? s.glideHold + dt : 0;
-      const thermal = world.volumesAt(s.x, s.y, s.z).find((v) => v.kind === 'thermal');
+      const thermal = world
+        .volumesAt(s.x, s.y, s.z)
+        .find((v) => v.kind === 'thermal');
       // Hover: A held in the air (past the takeoff window, or from a fall)
       // beats the wings and holds altitude while the fuel lasts.
-      const wantHover = intent.jumpHeld && control && !s.diving && s.hoverFuel > 0 && (s.hovering || (s.glideHold > 0.06 && s.vy < 4));
+      const wantHover =
+        intent.jumpHeld &&
+        control &&
+        !s.diving &&
+        s.hoverFuel > 0 &&
+        (s.hovering || (s.glideHold > 0.06 && s.vy < 4));
       if (wantHover && !s.hovering) {
         s.hovering = true;
         s.hoverT = 0;
@@ -592,7 +777,13 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
         s.events.push({ kind: 'hoverEnd' });
       }
       // Gliding: fuel spent (or A held again after a hover) while falling.
-      const wantGlide = !s.hovering && intent.jumpHeld && control && !s.diving && s.hoverFuel <= 0 && (s.gliding || s.glideHold > 0.12);
+      const wantGlide =
+        !s.hovering &&
+        intent.jumpHeld &&
+        control &&
+        !s.diving &&
+        s.hoverFuel <= 0 &&
+        (s.gliding || s.glideHold > 0.12);
       if (wantGlide && !s.gliding && s.vy < 12) {
         s.gliding = true;
         s.events.push({ kind: 'glideStart' });
@@ -609,14 +800,22 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
         // Wings bite: a small lift at first, then altitude held; a thermal lifts.
         s.hoverT += dt;
         s.hoverFuel = Math.max(0, s.hoverFuel - dt);
-        const target = thermal ? thermal.lift! : s.hoverT < 0.35 ? MOVE.hoverLift : 0;
+        const target = thermal
+          ? thermal.lift!
+          : s.hoverT < 0.35
+            ? MOVE.hoverLift
+            : 0;
         s.vy += (target - s.vy) * Math.min(1, MOVE.hoverGrip * dt);
       } else if (s.gliding && thermal) {
         // Riding a thermal: the wings turn the updraft into climb.
-        s.vy = s.vy < thermal.lift! ? Math.min(thermal.lift!, s.vy + 60 * dt) : Math.max(thermal.lift!, s.vy - 30 * dt);
+        s.vy =
+          s.vy < thermal.lift!
+            ? Math.min(thermal.lift!, s.vy + 60 * dt)
+            : Math.max(thermal.lift!, s.vy - 30 * dt);
       } else if (s.gliding) {
         s.vy = Math.max(s.vy - 60 * dt, -MOVE.glideSink);
-        if (s.vy > -MOVE.glideSink) s.vy = Math.max(-MOVE.glideSink, s.vy - g * dt);
+        if (s.vy > -MOVE.glideSink)
+          s.vy = Math.max(-MOVE.glideSink, s.vy - g * dt);
       } else if (s.diving) {
         s.vy = Math.max(-MOVE.diveTerminal, s.vy - g * MOVE.diveGravity * dt);
         const k = Math.max(0, 1 - 2.5 * dt);
@@ -638,7 +837,8 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     // Volumes: thermals slow a fall and lift a little without wings; wind pushes.
     for (const v of world.volumesAt(s.x, s.y, s.z)) {
       if (v.kind === 'thermal') {
-        if (!s.gliding && !s.diving && s.vy < v.lift! * 0.5) s.vy = Math.min(v.lift! * 0.5, s.vy + (g + 20) * dt);
+        if (!s.gliding && !s.diving && s.vy < v.lift! * 0.5)
+          s.vy = Math.min(v.lift! * 0.5, s.vy + (g + 20) * dt);
       } else if (v.kind === 'wind') {
         s.vx += v.dx! * v.push! * dt * 2;
         s.vz += v.dz! * v.push! * dt * 2;
@@ -648,7 +848,11 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     // gravity cuts out and he eases back up, bobbing at the surface. A barge
     // or the shore (a solid top at or above the level) is ground as usual.
     const soft = world.soft;
-    if (soft && s.y < soft.level && world.groundAt(s.x, s.z, soft.level).y < soft.level) {
+    if (
+      soft &&
+      s.y < soft.level &&
+      world.groundAt(s.x, s.z, soft.level).y < soft.level
+    ) {
       if (!s.inSoft) s.events.push({ kind: 'soft', soft: soft.kind });
       s.inSoft = true;
       s.gliding = false;
@@ -700,7 +904,16 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
       s.climbTimer = MOVE.climbGrace;
       s.climbNx = wall.nx;
       s.climbNz = wall.nz;
-    } else if (into > MOVE.climbEnter && control && !s.diving && !s.gliding && !wall.collider.slim && s.mantle <= 0 && s.dashTimer <= 0 && lip > s.y + 3) {
+    } else if (
+      into > MOVE.climbEnter &&
+      control &&
+      !s.diving &&
+      !s.gliding &&
+      !wall.collider.slim &&
+      s.mantle <= 0 &&
+      s.dashTimer <= 0 &&
+      lip > s.y + 3
+    ) {
       s.climbing = true;
       s.grounded = false;
       s.vy = Math.min(s.vy, MOVE.climbUp);
@@ -722,7 +935,15 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     // Mantle: the lip is within reach and the stick pushes toward it.
     const lip = wall.collider.y1;
     const pushing = intent.dx * -wall.nx + intent.dz * -wall.nz > 0.3;
-    if (pushing && !wall.collider.slim && (s.climbing || s.vy <= 8) && lip > s.y + 0.5 && lip <= s.y + MOVE.mantleReach && control && !s.diving) {
+    if (
+      pushing &&
+      !wall.collider.slim &&
+      (s.climbing || s.vy <= 8) &&
+      lip > s.y + 0.5 &&
+      lip <= s.y + MOVE.mantleReach &&
+      control &&
+      !s.diving
+    ) {
       if (s.climbing) {
         s.climbing = false;
         s.events.push({ kind: 'climbEnd' });
@@ -750,7 +971,6 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     s.vx = s.wallNx * MOVE.wallKickAway;
     s.vz = s.wallNz * MOVE.wallKickAway;
     s.commit = MOVE.wallCommit;
-    s.hold = MOVE.holdWindow;
     s.holding = false;
     s.gliding = false;
     s.hovering = false;
@@ -763,14 +983,17 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
   const surface = ground.y;
   // A soft floor's terrain (no barge, no shore) is never a landing: he rises
   // to the surface instead, where the vertical-motion lift takes back over.
-  const softBlock = !!(world.soft && !ground.collider && surface < world.soft.level);
+  const softBlock = !!(
+    world.soft &&
+    !ground.collider &&
+    surface < world.soft.level
+  );
   if (s.grounded && ground.collider?.spring && s.mantle <= 0) {
     // Standing on a spring pad launches, as landing on one does.
     s.y = surface;
     s.vy = apexSpeed(MOVE.springApex, g);
     s.grounded = false;
     s.coyote = 0;
-    s.hold = MOVE.holdWindow;
     s.holding = false;
     s.hovering = false;
     s.charge = 0;
@@ -792,7 +1015,12 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
   } else if (s.climbing && s.vy > -1) {
     // On a wall with his feet by the floor: the floor is not a landing until
     // he climbs down onto it.
-  } else if (s.vy <= 0 && s.y <= surface && prevY >= surface - 0.05 && !softBlock) {
+  } else if (
+    s.vy <= 0 &&
+    s.y <= surface &&
+    prevY >= surface - 0.05 &&
+    !softBlock
+  ) {
     // Landing.
     const impact = -s.vy;
     s.y = surface;
@@ -806,7 +1034,6 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     if (ground.collider?.spring) {
       s.vy = apexSpeed(MOVE.springApex, g);
       s.grounded = false;
-      s.hold = MOVE.holdWindow;
       s.holding = false;
       s.gliding = false;
       s.hovering = false;
@@ -870,7 +1097,10 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     for (const c of world.near(s.x, s.z, MOVE.radius)) {
       if (c.y0 < top - 1 || c.y0 > top + s.vy * dt + 0.5) continue;
       const [lx, lz] = World.local(c, s.x, s.z);
-      if (Math.abs(lx) <= c.hx + MOVE.radius * 0.6 && Math.abs(lz) <= c.hz + MOVE.radius * 0.6) {
+      if (
+        Math.abs(lx) <= c.hx + MOVE.radius * 0.6 &&
+        Math.abs(lz) <= c.hz + MOVE.radius * 0.6
+      ) {
         s.vy = 0;
         s.holding = false;
         s.y = Math.min(s.y, c.y0 - MOVE.height);
@@ -879,14 +1109,20 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
   }
 
   // Height above whatever is below (for the HUD and the landing guide).
-  s.height = s.grounded ? 0 : Math.max(0, s.y - world.groundAt(s.x, s.z, s.y).y);
+  s.height = s.grounded
+    ? 0
+    : Math.max(0, s.y - world.groundAt(s.x, s.z, s.y).y);
 
   // Move label for animation.
   if (s.grounded) {
     if (s.stompTimer > 0) s.move = 'stomp';
     else if (s.hopBackTimer > 0) s.move = 'hopBack';
     else if (s.landTimer > 0) s.move = 'land';
-    else if (s.charge > 0 || (intent.chargeHeld && control)) s.move = 'crouch';
+    else if (
+      s.charge > 0 ||
+      ((intent.chargeHeld || intent.jumpHeld) && control)
+    )
+      s.move = 'crouch';
     else s.move = Math.hypot(s.vx, s.vz) > 2 ? 'run' : 'idle';
   } else if (s.dashTimer > 0) s.move = 'dash';
   else if (s.hovering) s.move = 'hover';
@@ -898,7 +1134,11 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
 }
 
 /** Predicted landing point for the current velocity (ballistic, no glide). */
-export function predictLanding(s: HopperState, world: World, maxTime = 8): { x: number; y: number; z: number; t: number } {
+export function predictLanding(
+  s: HopperState,
+  world: World,
+  maxTime = 8,
+): { x: number; y: number; z: number; t: number } {
   if (s.gravityScale >= 0) return predictUpright(s, world, maxTime);
   mirrorState(s);
   const hit = predictUpright(s, mirrorOf(world), maxTime);
@@ -906,7 +1146,11 @@ export function predictLanding(s: HopperState, world: World, maxTime = 8): { x: 
   hit.y = -hit.y;
   return hit;
 }
-function predictUpright(s: HopperState, world: StepWorld, maxTime: number): { x: number; y: number; z: number; t: number } {
+function predictUpright(
+  s: HopperState,
+  world: StepWorld,
+  maxTime: number,
+): { x: number; y: number; z: number; t: number } {
   let x = s.x,
     y = s.y,
     z = s.z,
@@ -915,8 +1159,13 @@ function predictUpright(s: HopperState, world: StepWorld, maxTime: number): { x:
     dt = 1 / 30;
   for (let t = 0; t < maxTime; t += dt) {
     const ny = y + vy * dt;
-    const ground = world.groundAt(x + s.vx * dt, z + s.vz * dt, Math.max(y, ny)).y;
-    if (ny <= ground && vy <= 0) return { x: x + s.vx * dt, y: ground, z: z + s.vz * dt, t };
+    const ground = world.groundAt(
+      x + s.vx * dt,
+      z + s.vz * dt,
+      Math.max(y, ny),
+    ).y;
+    if (ny <= ground && vy <= 0)
+      return { x: x + s.vx * dt, y: ground, z: z + s.vz * dt, t };
     x += s.vx * dt;
     z += s.vz * dt;
     y = ny;

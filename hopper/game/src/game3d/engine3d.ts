@@ -14,7 +14,13 @@ import { preloadDistrict, Prefetcher } from './preload';
 import { MISSIONS, type District } from './district';
 import type { Commander } from './boss3d';
 import { makeCommander } from './commanders';
-import { createHopperState, intentFromInput, stepHopper, MOVE, type HopperState } from './controller';
+import {
+  createHopperState,
+  intentFromInput,
+  stepHopper,
+  MOVE,
+  type HopperState,
+} from './controller';
 import { createCamera, updateCamera, type CameraState } from './camera';
 import { Combat, shadowBounce, type Shadow } from './combat3d';
 import { Scene3D } from './scene';
@@ -91,7 +97,16 @@ export class Engine3D implements GameEngine {
   private transitionFade = 0;
   private captureNext = false;
   private camera: CameraState = createCamera(0, [0, 0, 0]);
-  private settings: GameSettings = { master: 0.8, music: 0.55, sfx: 0.65, shake: true, assist: false, cameraSensitivity: 0.5, invertY: false, landingGuide: true };
+  private settings: GameSettings = {
+    master: 0.8,
+    music: 0.55,
+    sfx: 0.65,
+    shake: true,
+    assist: false,
+    cameraSensitivity: 0.5,
+    invertY: false,
+    landingGuide: true,
+  };
   private loaded = false;
   /** Held while a district's paintings are still arriving. */
   private loading: { label: string; progress: number } | null = null;
@@ -116,14 +131,21 @@ export class Engine3D implements GameEngine {
   private chapterName = '';
   private hint = '';
   private hintT = 0;
-  private pending = { jump: false, kick: false, dive: false, lock: false, reset: false };
+  private pending = {
+    jump: false,
+    kick: false,
+    dive: false,
+    lock: false,
+    reset: false,
+  };
   private lockHeldPrev = false;
   /** Seconds Y has been held on the ground: a tap hops back, a hold charges. */
   private yHold = -1;
   /** Hopper's last known distance along the trail (a search hint). */
   private routeS = 0;
   private onClick = () => {
-    if (!this.paused && document.pointerLockElement !== this.canvas) void this.canvas.requestPointerLock?.()?.catch?.(() => {});
+    if (!this.paused && document.pointerLockElement !== this.canvas)
+      void this.canvas.requestPointerLock?.()?.catch?.(() => {});
   };
   constructor(
     private canvas: HTMLCanvasElement,
@@ -147,11 +169,18 @@ export class Engine3D implements GameEngine {
    * Everything the district about to be entered paints, before it is built.
    * Resuming enters the saved district, so that is the one warmed.
    */
-  async prepare(mission: number, resume: boolean, progress: (fraction: number) => void): Promise<void> {
+  async prepare(
+    mission: number,
+    resume: boolean,
+    progress: (fraction: number) => void,
+  ): Promise<void> {
     this.prefetcher.stop();
     let save: Save | null = null;
     try {
-      if (resume) save = JSON.parse(localStorage.getItem(saveKey('3d', 'save')) || 'null');
+      if (resume)
+        save = JSON.parse(
+          localStorage.getItem(saveKey('3d', 'save')) || 'null',
+        );
     } catch {}
     const m = clamp(save?.mission ?? mission, 0, MISSIONS.length - 1);
     const district = clamp(save?.district ?? 0, 0, MISSIONS[m].length - 1);
@@ -168,10 +197,17 @@ export class Engine3D implements GameEngine {
     if (!this.scene) return;
     let save: Save | null = null;
     try {
-      if (resume) save = JSON.parse(localStorage.getItem(saveKey('3d', 'save')) || 'null');
+      if (resume)
+        save = JSON.parse(
+          localStorage.getItem(saveKey('3d', 'save')) || 'null',
+        );
     } catch {}
     this.mission = clamp(save?.mission ?? mission, 0, MISSIONS.length - 1);
-    this.districtIndex = clamp(save?.district ?? 0, 0, MISSIONS[this.mission].length - 1);
+    this.districtIndex = clamp(
+      save?.district ?? 0,
+      0,
+      MISSIONS[this.mission].length - 1,
+    );
     this.hp = this.maxHp;
     this.score = save?.score || 0;
     this.signals = new Set(save?.signals || []);
@@ -181,7 +217,10 @@ export class Engine3D implements GameEngine {
     this.victoryT = 0;
     this.respawnT = 0;
     this.showBanner(this.district!.name, this.district!.subtitle, 3.2);
-    this.setHint('Hold A in the air to hover; keep holding to glide down. RB sprints, LB dashes.', 7);
+    this.setHint(
+      'Hold A to wind the spring, let go to leap; hold it again in the air to hover and glide. RB sprints, LB dashes.',
+      7,
+    );
     this.emit();
   }
   /** Build the current district of the episode and place Hopper at a checkpoint. */
@@ -194,7 +233,13 @@ export class Engine3D implements GameEngine {
     this.clearedGates = new Set();
     this.chapterName = '';
     // Checkpoints in spine order (toward the exit).
-    this.checkpoints = this.world.triggers.filter((t) => t.kind === 'checkpoint').sort((a, b) => Math.hypot(a.x - district.start.x, a.z - district.start.z) - Math.hypot(b.x - district.start.x, b.z - district.start.z));
+    this.checkpoints = this.world.triggers
+      .filter((t) => t.kind === 'checkpoint')
+      .sort(
+        (a, b) =>
+          Math.hypot(a.x - district.start.x, a.z - district.start.z) -
+          Math.hypot(b.x - district.start.x, b.z - district.start.z),
+      );
     this.checkpointIndex = clamp(checkpoint, 0, this.checkpoints.length - 1);
     for (const t of this.world.triggers)
       if (t.kind === 'signal' && this.signals.has(t.id)) {
@@ -204,12 +249,22 @@ export class Engine3D implements GameEngine {
     this.victoryT = 0;
     this.respawnT = 0;
     this.hp = this.maxHp;
-    this.scene?.buildWorld(this.world, this.combat.shadows, this.boss?.runtime ?? null, this.aheadColours(), this.districtAhead());
-    for (let i = 0; i <= this.checkpointIndex; i++) this.checkpoints[i]?.object?.userData.lit?.(true);
+    this.scene?.buildWorld(
+      this.world,
+      this.combat.shadows,
+      this.boss?.runtime ?? null,
+      this.aheadColours(),
+      this.districtAhead(),
+    );
+    for (let i = 0; i <= this.checkpointIndex; i++)
+      this.checkpoints[i]?.object?.userData.lit?.(true);
     this.resetPlayer(carry);
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
-    this.setHint('Hold A in the air to hover; keep holding to glide down. RB sprints, LB dashes.', 7);
+    this.setHint(
+      'Hold A to wind the spring, let go to leap; hold it again in the air to hover and glide. RB sprints, LB dashes.',
+      7,
+    );
     this.emit();
   }
   private resetPlayer(carry?: Carry) {
@@ -219,7 +274,9 @@ export class Engine3D implements GameEngine {
     const x = cp ? cp.x + 6 : d.start.x,
       z = cp ? cp.z + 8 : d.start.z;
     // Face along the trail from here, as the camera will.
-    const forward = cp ? world.route.yawAt(world.route.nearest(x, z).s + 40) : d.start.yaw;
+    const forward = cp
+      ? world.route.yawAt(world.route.nearest(x, z).s + 40)
+      : d.start.yaw;
     // Crossing a threshold keeps the facing he had relative to the view and
     // the heading he had relative to the way on, so a run continues as a run.
     const yaw = forward + (carry ? carry.camTurn + carry.turn : 0);
@@ -239,7 +296,13 @@ export class Engine3D implements GameEngine {
         this.player.gliding = carry.gliding;
         this.player.hovering = carry.hovering;
         this.player.hoverFuel = carry.hoverFuel;
-        this.player.move = carry.hovering ? 'hover' : carry.gliding ? 'glide' : carry.vy > 0 ? 'jump' : 'fall';
+        this.player.move = carry.hovering
+          ? 'hover'
+          : carry.gliding
+            ? 'glide'
+            : carry.vy > 0
+              ? 'jump'
+              : 'fall';
       } else this.player.move = carry.speed > 4 ? 'run' : 'idle';
     }
     this.camera = createCamera(yaw, [x, this.player.y + 8, z]);
@@ -254,8 +317,19 @@ export class Engine3D implements GameEngine {
   setPaused(v: boolean): void {
     this.paused = v;
     this.acc = 0;
-    this.pending = { jump: false, kick: false, dive: false, lock: false, reset: false };
-    if (v && typeof document !== 'undefined' && document.pointerLockElement === this.canvas) document.exitPointerLock?.();
+    this.pending = {
+      jump: false,
+      kick: false,
+      dive: false,
+      lock: false,
+      reset: false,
+    };
+    if (
+      v &&
+      typeof document !== 'undefined' &&
+      document.pointerLockElement === this.canvas
+    )
+      document.exitPointerLock?.();
   }
   tick(dt: number, f?: InputFrame): void {
     if (!this.loaded || !this.scene) return;
@@ -266,7 +340,14 @@ export class Engine3D implements GameEngine {
     // A seam crossing waits for its paintings: hold the simulation and keep
     // presenting the last frame behind the loading screen.
     if (this.loading) {
-      this.scene.render(this.player, this.world, this.combat, this.camera, 0, this.settings.landingGuide !== false);
+      this.scene.render(
+        this.player,
+        this.world,
+        this.combat,
+        this.camera,
+        0,
+        this.settings.landingGuide !== false,
+      );
       return;
     }
     if (!this.paused && f && !this.completed) {
@@ -278,9 +359,36 @@ export class Engine3D implements GameEngine {
       this.acc += Math.min(dt, 0.05);
       let first = true;
       while (this.acc >= STEP) {
-        this.step(STEP, first ? { ...f, jumpPressed: this.pending.jump, kickPressed: this.pending.kick, divePressed: this.pending.dive, lockPressed: this.pending.lock, cameraResetPressed: this.pending.reset } : { ...f, jumpPressed: false, kickPressed: false, divePressed: false, lockPressed: false, cameraResetPressed: false, mouseLookX: 0, mouseLookY: 0 });
+        this.step(
+          STEP,
+          first
+            ? {
+                ...f,
+                jumpPressed: this.pending.jump,
+                kickPressed: this.pending.kick,
+                divePressed: this.pending.dive,
+                lockPressed: this.pending.lock,
+                cameraResetPressed: this.pending.reset,
+              }
+            : {
+                ...f,
+                jumpPressed: false,
+                kickPressed: false,
+                divePressed: false,
+                lockPressed: false,
+                cameraResetPressed: false,
+                mouseLookX: 0,
+                mouseLookY: 0,
+              },
+        );
         first = false;
-        this.pending = { jump: false, kick: false, dive: false, lock: false, reset: false };
+        this.pending = {
+          jump: false,
+          kick: false,
+          dive: false,
+          lock: false,
+          reset: false,
+        };
         this.acc -= STEP;
       }
       this.uiClock += dt;
@@ -289,7 +397,14 @@ export class Engine3D implements GameEngine {
         this.uiClock = 0;
       }
     }
-    this.scene.render(this.player, this.world, this.combat, this.camera, this.paused ? 0 : dt, this.settings.landingGuide !== false);
+    this.scene.render(
+      this.player,
+      this.world,
+      this.combat,
+      this.camera,
+      this.paused ? 0 : dt,
+      this.settings.landingGuide !== false,
+    );
     // The hand-over: keep the frame just drawn, swap districts behind it, and
     // let the shell dissolve it away over the new one.
     if (this.captureNext) {
@@ -325,7 +440,10 @@ export class Engine3D implements GameEngine {
     // The commander is an aim target while it is awake, so the lasers find it
     // and the lock-on can hold it: a shadow this big, this high, is otherwise
     // shot at only by luck.
-    combat.bossTarget = this.boss && this.boss.runtime.active && this.boss.runtime.alive ? this.boss.target() : null;
+    combat.bossTarget =
+      this.boss && this.boss.runtime.active && this.boss.runtime.alive
+        ? this.boss.target()
+        : null;
     // Aiming (LT held): the camera comes in and zooms, the player aims it, and
     // the crosshair at the middle of it takes hold of whatever shadow it comes
     // near. Nothing here turns the view: the lock follows the aim, never the
@@ -337,14 +455,23 @@ export class Engine3D implements GameEngine {
       const held = combat.targetById(combat.lock);
       // What the crosshair holds, it keeps until the aim has drifted well off
       // it, so a shadow that jinks does not shake the crosshair loose.
-      const keep = held && !lockTapped && off(held) < AIM.hold && Math.hypot(held.x - h.x, held.z - h.z) < AIM.drop;
+      const keep =
+        held &&
+        !lockTapped &&
+        off(held) < AIM.hold &&
+        Math.hypot(held.x - h.x, held.z - h.z) < AIM.drop;
       if (!keep) {
         const near = combat
           .targets()
-          .filter((s) => Math.hypot(s.x - h.x, s.z - h.z) < AIM.range && off(s) < AIM.grab)
+          .filter(
+            (s) =>
+              Math.hypot(s.x - h.x, s.z - h.z) < AIM.range && off(s) < AIM.grab,
+          )
           .sort((a, b) => off(a) - off(b));
         const i = held ? near.findIndex((s) => s.id === held.id) : -1;
-        combat.lock = near.length ? near[lockTapped && i >= 0 ? (i + 1) % near.length : 0].id : null;
+        combat.lock = near.length
+          ? near[lockTapped && i >= 0 ? (i + 1) % near.length : 0].id
+          : null;
       }
     } else combat.lock = null;
     this.lockHeldPrev = f.lockHeld;
@@ -366,7 +493,6 @@ export class Engine3D implements GameEngine {
           h.vy = m.vy + 30;
           h.grounded = false;
           h.coyote = 0;
-          h.hold = MOVE.holdWindow;
           h.holding = false;
           h.move = 'jump';
           h.events.push({ kind: 'spring' });
@@ -400,12 +526,18 @@ export class Engine3D implements GameEngine {
     }
     // Gravity: the district's, the commander's while it is awake, and pulling
     // upward inside a flip volume (a seam, a cantor's song, the Regent's turn).
-    const baseGravity = this.boss?.runtime.active && this.boss.runtime.alive ? this.boss.runtime.gravity : (regionById(d.region).gravity ?? 1);
+    const baseGravity =
+      this.boss?.runtime.active && this.boss.runtime.alive
+        ? this.boss.runtime.gravity
+        : (regionById(d.region).gravity ?? 1);
     const wasInverted = h.gravityScale < 0;
     // Inside while either his upright centre or his hanging centre is: the
     // hop in from below holds, and so does hanging just under the volume's top.
     const half = MOVE.height * 0.5;
-    h.gravityScale = world.flipAt(h.x, h.y + half, h.z) || world.flipAt(h.x, h.y - half, h.z) ? -Math.abs(baseGravity) : baseGravity;
+    h.gravityScale =
+      world.flipAt(h.x, h.y + half, h.z) || world.flipAt(h.x, h.y - half, h.z)
+        ? -Math.abs(baseGravity)
+        : baseGravity;
     if (wasInverted !== h.gravityScale < 0) {
       // The turn: whatever he stood on is no longer under him, and it costs
       // him his speed, so a fall out of a seam settles at its edge.
@@ -425,8 +557,10 @@ export class Engine3D implements GameEngine {
           this.sound('stomp');
           this.rumble(Math.min(0.6, e.speed / 190), 90);
         }
-      } else if (e.kind === 'wallKick' || e.kind === 'spring') this.sound('jump');
-      else if (e.kind === 'glideStart' || e.kind === 'hoverStart') this.sound('shield');
+      } else if (e.kind === 'wallKick' || e.kind === 'spring')
+        this.sound('jump');
+      else if (e.kind === 'glideStart' || e.kind === 'hoverStart')
+        this.sound('shield');
       else if (e.kind === 'dive') this.sound('kick');
       else if (e.kind === 'dash') {
         this.sound('shield');
@@ -443,16 +577,21 @@ export class Engine3D implements GameEngine {
       // shot that lands reads even when no bar falls on that particular hit.
       const flash = t.cageFlash ?? 0;
       t.cage.scale.setScalar(1 + flash * 1.6);
-      const crown = (t.cageCrown as { material?: { emissiveIntensity?: number } } | undefined)?.material;
+      const crown = (
+        t.cageCrown as { material?: { emissiveIntensity?: number } } | undefined
+      )?.material;
       if (crown && crown.emissiveIntensity !== undefined)
-        crown.emissiveIntensity = 0.15 + 0.65 * ((t.cageHp ?? 0) / (t.cageMaxHp || 1)) + flash * 8;
+        crown.emissiveIntensity =
+          0.15 + 0.65 * ((t.cageHp ?? 0) / (t.cageMaxHp || 1)) + flash * 8;
       const hit = (damage: number, x: number, y: number, z: number) => {
         t.cageHp = Math.max(0, (t.cageHp ?? 0) - damage);
         t.cageFlash = 0.12;
         this.scene?.effect('spark', x, y, z);
         const bars = t.cageBars ?? [];
         // Keep as many bars standing as the remaining integrity earns.
-        const standing = Math.ceil((t.cageHp / (t.cageMaxHp || 1)) * bars.length);
+        const standing = Math.ceil(
+          (t.cageHp / (t.cageMaxHp || 1)) * bars.length,
+        );
         bars.forEach((bar, i) => (bar.visible = i < standing));
         if (t.cageHp > 0) {
           this.sound('hit');
@@ -473,13 +612,22 @@ export class Engine3D implements GameEngine {
         // The whole cage is the target, not just the crown: anywhere between
         // the pedestal and the lock counts.
         const height = p.y > top ? p.y - top : p.y < t.y ? t.y - p.y : 0;
-        if (Math.hypot(p.x - t.x, p.z - t.z) > 7 + p.radius || height > 2 + p.radius) continue;
+        if (
+          Math.hypot(p.x - t.x, p.z - t.z) > 7 + p.radius ||
+          height > 2 + p.radius
+        )
+          continue;
         p.life = 0;
         hit(p.kind === 'laser' ? 1 : 4, p.x, p.y, p.z);
         if (!t.locked) break;
       }
       // A kick lands once per swing, tracked in the same set the shadows use.
-      if (t.locked && combat.kick > 0.15 && combat.kick < 0.42 && !combat.kickHit.has(t.id)) {
+      if (
+        t.locked &&
+        combat.kick > 0.15 &&
+        combat.kick < 0.42 &&
+        !combat.kickHit.has(t.id)
+      ) {
         const reach = Math.hypot(h.x - t.x, h.z - t.z) <= 14;
         if (reach && h.y + 24 > t.y && h.y < top + 4) {
           combat.kickHit.add(t.id);
@@ -489,7 +637,17 @@ export class Engine3D implements GameEngine {
     }
     // Combat: aim from the eye sockets along the facing, tilted with the camera.
     const aim = this.aimDirection();
-    combat.update(dt, h, this.callbacks(), { x: h.x + Math.sin(h.yaw) * 9, y: h.y + 12, z: h.z + Math.cos(h.yaw) * 9, dx: aim[0], dy: aim[1], dz: aim[2], firing: f.shootHeld && h.hitstun <= 0, guarding: f.blockHeld && h.hitstun <= 0, kickPressed: f.kickPressed });
+    combat.update(dt, h, this.callbacks(), {
+      x: h.x + Math.sin(h.yaw) * 9,
+      y: h.y + 12,
+      z: h.z + Math.cos(h.yaw) * 9,
+      dx: aim[0],
+      dy: aim[1],
+      dz: aim[2],
+      firing: f.shootHeld && h.hitstun <= 0,
+      guarding: f.blockHeld && h.hitstun <= 0,
+      kickPressed: f.kickPressed,
+    });
     // The commander, before the arena reads whether it still stands.
     this.boss?.update(dt, h, combat, this.callbacks());
     // Strongholds: the host, in plain view on its perches, comes down the
@@ -497,27 +655,57 @@ export class Engine3D implements GameEngine {
     // Nothing holds Hopper in: the trail runs straight through.
     for (const field of world.fields) {
       const dist = Math.hypot(field.x - h.x, field.z - h.z);
-      if (!field.active && !field.cleared && dist < field.r && Math.abs(h.y - field.y) < field.r) {
+      if (
+        !field.active &&
+        !field.cleared &&
+        dist < field.r &&
+        Math.abs(h.y - field.y) < field.r
+      ) {
         field.active = true;
         if (field.group === 'boss') {
           this.boss?.wake(this.callbacks());
-          this.showBanner(this.boss?.title ?? 'The commander', 'DEFEAT THE COMMANDER', 3);
+          this.showBanner(
+            this.boss?.title ?? 'The commander',
+            'DEFEAT THE COMMANDER',
+            3,
+          );
         } else {
           const released = combat.activateGroup(field.group);
-          this.showBanner(field.name, released > 0 ? 'THE SHADOWS COME DOWN · FREE THE REGION' : 'FREE THE REGION', 2.6);
+          this.showBanner(
+            field.name,
+            released > 0
+              ? 'THE SHADOWS COME DOWN · FREE THE REGION'
+              : 'FREE THE REGION',
+            2.6,
+          );
         }
         this.sound('boss');
       }
       if (field.active) {
-        const left = field.group === 'boss' ? (this.boss && this.boss.runtime.alive ? 1 : 0) : combat.shadows.filter((s) => s.group === field.group && s.alive).length;
-        const done = field.group === 'boss' ? !!this.boss && !this.boss.runtime.alive : left === 0;
+        const left =
+          field.group === 'boss'
+            ? this.boss && this.boss.runtime.alive
+              ? 1
+              : 0
+            : combat.shadows.filter((s) => s.group === field.group && s.alive)
+                .length;
+        const done =
+          field.group === 'boss'
+            ? !!this.boss && !this.boss.runtime.alive
+            : left === 0;
         if (done) {
           field.active = false;
           field.cleared = true;
           this.clearedGates.add(field.id);
           this.hp = Math.min(this.maxHp, this.hp + 2);
           this.score += 1000;
-          this.showBanner(field.group === 'boss' ? 'The shadow falls' : `${field.name} freed`, field.group === 'boss' ? (this.boss?.won ?? 'THE WAY IS OPEN') : 'THE WAY IS CLEAR · ON TO THE NEXT', 2.6);
+          this.showBanner(
+            field.group === 'boss' ? 'The shadow falls' : `${field.name} freed`,
+            field.group === 'boss'
+              ? (this.boss?.won ?? 'THE WAY IS OPEN')
+              : 'THE WAY IS CLEAR · ON TO THE NEXT',
+            2.6,
+          );
           this.sound('checkpoint');
         }
       }
@@ -525,7 +713,10 @@ export class Engine3D implements GameEngine {
     // Triggers.
     for (const t of world.triggers) {
       if (t.taken) continue;
-      const near = Math.hypot(t.x - h.x, t.z - h.z) < t.r && h.y > t.y - 12 && h.y < t.y + (t.kind === 'checkpoint' ? 30 : 16);
+      const near =
+        Math.hypot(t.x - h.x, t.z - h.z) < t.r &&
+        h.y > t.y - 12 &&
+        h.y < t.y + (t.kind === 'checkpoint' ? 30 : 16);
       if (!near) continue;
       if (t.kind === 'checkpoint') {
         const i = this.checkpoints.indexOf(t);
@@ -554,18 +745,28 @@ export class Engine3D implements GameEngine {
       }
     }
     // Chapter and exit.
-    const chapter = h.z > d.chapters[0].z0 ? d.chapters[0] : d.chapters.find((c) => h.z <= c.z0 && h.z > c.z1) || d.chapters[d.chapters.length - 1];
+    const chapter =
+      h.z > d.chapters[0].z0
+        ? d.chapters[0]
+        : d.chapters.find((c) => h.z <= c.z0 && h.z > c.z1) ||
+          d.chapters[d.chapters.length - 1];
     if (chapter && chapter.name !== this.chapterName) {
       this.chapterName = chapter.name;
-      if (this.time > 1) this.showBanner(chapter.name, d.name.toUpperCase(), 2.2);
+      if (this.time > 1)
+        this.showBanner(chapter.name, d.name.toUpperCase(), 2.2);
     }
-    if (this.transitionFade > 0) this.transitionFade = Math.max(0, this.transitionFade - dt / 1.15);
+    if (this.transitionFade > 0)
+      this.transitionFade = Math.max(0, this.transitionFade - dt / 1.15);
     if (this.transitionT > 0) {
       this.transitionT -= dt;
       // The swap happens in tick(), right after the last frame of this
       // district has been drawn, so it can be kept and dissolved from.
       if (this.transitionT <= 0) this.captureNext = true;
-    } else if (this.victoryT <= 0 && !this.completed && Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r) {
+    } else if (
+      this.victoryT <= 0 &&
+      !this.completed &&
+      Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r
+    ) {
       // The threshold is open: a stronghold left standing is a choice, and
       // only the mission's commander bars the way at the end.
       const bossDown = !this.boss || !this.boss.runtime.alive;
@@ -576,9 +777,23 @@ export class Engine3D implements GameEngine {
         if (last) {
           const finale = this.mission >= MISSIONS.length - 1;
           this.victoryT = finale ? 4 : 2.5;
-          this.showBanner(finale ? 'The sun comes back' : d.exit.name, finale ? 'HOPPER RETURNS TO EARTH · THANK YOU FOR PLAYING' : 'EPISODE COMPLETE', finale ? 4 : 2.5);
+          this.showBanner(
+            finale ? 'The sun comes back' : d.exit.name,
+            finale
+              ? 'HOPPER RETURNS TO EARTH · THANK YOU FOR PLAYING'
+              : 'EPISODE COMPLETE',
+            finale ? 4 : 2.5,
+          );
           try {
-            localStorage.setItem(saveKey('3d', 'unlocked'), String(Math.max(Number(localStorage.getItem(saveKey('3d', 'unlocked')) || 0), Math.min(MISSIONS.length - 1, this.mission + 1))));
+            localStorage.setItem(
+              saveKey('3d', 'unlocked'),
+              String(
+                Math.max(
+                  Number(localStorage.getItem(saveKey('3d', 'unlocked')) || 0),
+                  Math.min(MISSIONS.length - 1, this.mission + 1),
+                ),
+              ),
+            );
             localStorage.removeItem(saveKey('3d', 'save'));
           } catch {}
         } else {
@@ -586,21 +801,61 @@ export class Engine3D implements GameEngine {
           this.showBanner(d.exit.name, 'REGION COMPLETE', 3.4);
         }
       } else if (this.hintT <= 0) {
-        this.setHint('The commander guards the summit: defeat it to open the way.', 3.5);
+        this.setHint(
+          'The commander guards the summit: defeat it to open the way.',
+          3.5,
+        );
       }
     }
     // Camera and the landing prediction. While the commander is awake the
     // camera lifts and pulls back to hold it in frame.
     const rook = this.boss?.runtime;
-    const rookInFrame = rook && rook.active && rook.alive ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [number, number, number]) : null;
-    updateCamera(this.camera, h, world, { lookX: f.lookX, lookY: f.lookY, mouseLookX: f.mouseLookX, mouseLookY: f.mouseLookY, resetPressed: f.cameraResetPressed, aimHeld: f.lockHeld, climb: h.climbing ? [h.climbNx, h.climbNz] : null, horizonHeld: f.horizonHeld, landmark: [d.landmark.x, 200, d.landmark.z], forward: this.forward(), boss: rookInFrame }, { sensitivity: this.settings.cameraSensitivity ?? 0.5, invertY: !!this.settings.invertY, reducedMotion: !this.settings.shake }, dt);
+    const rookInFrame =
+      rook && rook.active && rook.alive
+        ? ([rook.x, rook.y + rook.height * 0.5, rook.z] as [
+            number,
+            number,
+            number,
+          ])
+        : null;
+    updateCamera(
+      this.camera,
+      h,
+      world,
+      {
+        lookX: f.lookX,
+        lookY: f.lookY,
+        mouseLookX: f.mouseLookX,
+        mouseLookY: f.mouseLookY,
+        resetPressed: f.cameraResetPressed,
+        aimHeld: f.lockHeld,
+        climb: h.climbing ? [h.climbNx, h.climbNz] : null,
+        horizonHeld: f.horizonHeld,
+        landmark: [d.landmark.x, 200, d.landmark.z],
+        forward: this.forward(),
+        boss: rookInFrame,
+      },
+      {
+        sensitivity: this.settings.cameraSensitivity ?? 0.5,
+        invertY: !!this.settings.invertY,
+        reducedMotion: !this.settings.shake,
+      },
+      dt,
+    );
     // Contextual hints for the first minutes.
-    if (this.time > 8 && this.time < 8.1) this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
-    if (this.time > 20 && this.time < 20.1) this.setHint(`Click the right stick: Horizon View shows the way to ${d.landmark.name}.`, 6);
+    if (this.time > 8 && this.time < 8.1)
+      this.setHint('Y in the air: dive. Land on a shadow to bounce.', 6);
+    if (this.time > 20 && this.time < 20.1)
+      this.setHint(
+        `Click the right stick: Horizon View shows the way to ${d.landmark.name}.`,
+        6,
+      );
   }
   /** The palette of the district this one leads to, for the landmark on the
    * horizon: what is ahead should look like what is ahead. */
-  private aheadColours(): { sky: string; haze: string; ground: string } | undefined {
+  private aheadColours():
+    | { sky: string; haze: string; ground: string }
+    | undefined {
     const next = MISSIONS[this.mission]?.[this.districtIndex + 1];
     if (!next) return undefined;
     const region = regionById(next().region);
@@ -609,7 +864,9 @@ export class Engine3D implements GameEngine {
   /** The next district as a picture beyond this one's exit: built in its own
    * frame and offset so its start sits on this district's exit, at the same
    * ground height, so the crossing is continuous. */
-  private districtAhead(): { world: World; offset: [number, number, number] } | undefined {
+  private districtAhead():
+    | { world: World; offset: [number, number, number] }
+    | undefined {
     const next = MISSIONS[this.mission]?.[this.districtIndex + 1];
     if (!next || !this.world || !this.district) return undefined;
     const world = new World(next());
@@ -617,7 +874,9 @@ export class Engine3D implements GameEngine {
       n = world.district;
     const dx = d.exit.x - n.start.x,
       dz = d.exit.z - n.start.z,
-      dy = this.world.heightAt(d.exit.x, d.exit.z) - world.heightAt(n.start.x, n.start.z);
+      dy =
+        this.world.heightAt(d.exit.x, d.exit.z) -
+        world.heightAt(n.start.x, n.start.z);
     return { world, offset: [dx, dy, dz] };
   }
   /** The way onward: the trail's tangent 80 m ahead of Hopper's place on it.
@@ -676,7 +935,9 @@ export class Engine3D implements GameEngine {
       dy = s.y + s.height * 0.5 - (h.y + 12),
       dz = s.z - h.z,
       d = Math.hypot(dx, dy, dz) || 1;
-    return Math.acos(Math.max(-1, Math.min(1, (dx * aim[0] + dy * aim[1] + dz * aim[2]) / d)));
+    return Math.acos(
+      Math.max(-1, Math.min(1, (dx * aim[0] + dy * aim[1] + dz * aim[2]) / d)),
+    );
   }
   /** The way the shot goes: along Hopper's facing, which is the way the
    * camera faces, tilted with the picture. Aimed, the crosshair and the shot
@@ -687,7 +948,11 @@ export class Engine3D implements GameEngine {
       cam = this.camera;
     const pitch = -Math.sin(cam.viewPitch) * (0.5 + 0.5 * cam.aim);
     let l = Math.hypot(1, pitch);
-    const dir: [number, number, number] = [Math.sin(h.yaw) / l, pitch / l, Math.cos(h.yaw) / l];
+    const dir: [number, number, number] = [
+      Math.sin(h.yaw) / l,
+      pitch / l,
+      Math.cos(h.yaw) / l,
+    ];
     if (cam.aim > 0.01) {
       // Aimed, the shot is laid on the crosshair itself: the camera stands off
       // Hopper's shoulder, so the two lines are brought together a couple of
@@ -714,29 +979,50 @@ export class Engine3D implements GameEngine {
   }
   private callbacks() {
     return {
-      hurt: (damage: number, kx: number, ky: number, kz: number, fromX: number, fromZ: number) => this.hurt(damage, kx, ky, kz, fromX, fromZ),
-      effect: (name: string, x: number, y: number, z: number) => this.scene?.effect(name, x, y, z),
+      hurt: (
+        damage: number,
+        kx: number,
+        ky: number,
+        kz: number,
+        fromX: number,
+        fromZ: number,
+      ) => this.hurt(damage, kx, ky, kz, fromX, fromZ),
+      effect: (name: string, x: number, y: number, z: number) =>
+        this.scene?.effect(name, x, y, z),
       sound: (name: string) => this.sound(name as SoundEffect),
       bounce: (shadow: Shadow) => this.bounce(shadow),
     };
   }
-  /** Hopper's feet met a shadow's back: bounce, higher with A held. */
+  /** Hopper's feet met a shadow's back: bounce, higher off a glide or hover. */
   private bounce(_shadow: Shadow) {
     const h = this.player;
-    const apex = h.holding || h.gliding ? MOVE.bounceApexHeld : MOVE.bounceApex;
-    h.vy = Math.sqrt(2 * MOVE.gravity * Math.abs(h.gravityScale) * apex * shadowBounce(_shadow.kind));
+    const apex =
+      h.hovering || h.gliding ? MOVE.bounceApexHeld : MOVE.bounceApex;
+    h.vy = Math.sqrt(
+      2 *
+        MOVE.gravity *
+        Math.abs(h.gravityScale) *
+        apex *
+        shadowBounce(_shadow.kind),
+    );
     h.grounded = false;
     h.diving = false;
     h.gliding = false;
     h.hovering = false;
     h.holding = false;
-    h.hold = MOVE.holdWindow;
     h.move = 'jump';
     this.sound('stomp');
     this.rumble(0.5, 100);
   }
   /** Returns true when the blow was blocked by the guard. */
-  private hurt(damage: number, kx: number, ky: number, kz: number, fromX: number, fromZ: number): boolean {
+  private hurt(
+    damage: number,
+    kx: number,
+    ky: number,
+    kz: number,
+    fromX: number,
+    fromZ: number,
+  ): boolean {
     const h = this.player,
       combat = this.combat!;
     if (this.respawnT > 0 || this.victoryT > 0 || h.invuln > 0) return false;
@@ -748,11 +1034,18 @@ export class Engine3D implements GameEngine {
     if (combat.guarding && fromFront) {
       combat.shield = Math.max(0, combat.shield - 0.25);
       h.invuln = Math.max(h.invuln, 0.3);
-      this.scene?.effect('parry', h.x + Math.sin(h.yaw) * 10, h.y + 11, h.z + Math.cos(h.yaw) * 10);
+      this.scene?.effect(
+        'parry',
+        h.x + Math.sin(h.yaw) * 10,
+        h.y + 11,
+        h.z + Math.cos(h.yaw) * 10,
+      );
       this.sound('shield');
       return true;
     }
-    this.hp -= this.settings.assist ? Math.max(1, Math.round(damage * 0.5)) : damage;
+    this.hp -= this.settings.assist
+      ? Math.max(1, Math.round(damage * 0.5))
+      : damage;
     h.invuln = this.settings.assist ? 1.8 : 1.1;
     h.hitstun = 0.3;
     h.vx = kx;
@@ -779,16 +1072,29 @@ export class Engine3D implements GameEngine {
     this.resetPlayer();
     this.world.resetStages();
     this.combat.resetToCheckpoint(this.player.z);
-    for (const t of this.world.triggers) if (t.kind === 'checkpoint') t.taken = this.checkpoints.indexOf(t) <= this.checkpointIndex;
-    for (const field of this.world.fields) if (field.active) field.active = false;
-    if (this.boss && this.boss.runtime.alive && this.boss.runtime.active) this.boss = makeCommander(this.district!.boss!, this.world);
+    for (const t of this.world.triggers)
+      if (t.kind === 'checkpoint')
+        t.taken = this.checkpoints.indexOf(t) <= this.checkpointIndex;
+    for (const field of this.world.fields)
+      if (field.active) field.active = false;
+    if (this.boss && this.boss.runtime.alive && this.boss.runtime.active)
+      this.boss = makeCommander(this.district!.boss!, this.world);
     this.scene?.setBoss(this.boss?.runtime ?? null);
     this.showBanner('Back in the saddle', 'CHECKPOINT RESTORED', 2);
     this.emit();
   }
   private save() {
     try {
-      localStorage.setItem(saveKey('3d', 'save'), JSON.stringify({ mission: this.mission, district: this.districtIndex, checkpoint: this.checkpointIndex, signals: [...this.signals], score: this.score } satisfies Save));
+      localStorage.setItem(
+        saveKey('3d', 'save'),
+        JSON.stringify({
+          mission: this.mission,
+          district: this.districtIndex,
+          checkpoint: this.checkpointIndex,
+          signals: [...this.signals],
+          score: this.score,
+        } satisfies Save),
+      );
     } catch {}
   }
   private showBanner(text: string, small: string, seconds: number) {
@@ -804,7 +1110,9 @@ export class Engine3D implements GameEngine {
     const d = this.district,
       h = this.player,
       c = this.combat;
-    const total = d ? Math.hypot(d.exit.x - d.start.x, d.exit.z - d.start.z) : 1;
+    const total = d
+      ? Math.hypot(d.exit.x - d.start.x, d.exit.z - d.start.z)
+      : 1;
     const remaining = d ? Math.hypot(d.exit.x - h.x, d.exit.z - h.z) : 1;
     const districts = MISSIONS[this.mission]?.length || 1;
     const rook = this.boss?.runtime;
@@ -817,7 +1125,11 @@ export class Engine3D implements GameEngine {
       overheated: (c?.overheated ?? 0) > 0,
       area: d?.name || '',
       chapter: this.chapterName || d?.chapters[0]?.name || '',
-      progress: clamp((this.districtIndex + clamp(1 - remaining / total, 0, 1)) / districts, 0, 1),
+      progress: clamp(
+        (this.districtIndex + clamp(1 - remaining / total, 0, 1)) / districts,
+        0,
+        1,
+      ),
       signals: this.signals.size,
       score: this.score,
       shield: c?.shield ?? 1,
@@ -825,22 +1137,38 @@ export class Engine3D implements GameEngine {
       gravity: h.gravityScale,
       banner: this.bannerT > 0 ? this.banner : '',
       bannerSmall: this.bannerSmall,
-      boss: rook && rook.active && rook.alive ? { name: this.boss!.name, health: rook.hp / rook.maxHp, phase: rook.phase, tell: this.boss!.tell() } : null,
+      boss:
+        rook && rook.active && rook.alive
+          ? {
+              name: this.boss!.name,
+              health: rook.hp / rook.maxHp,
+              phase: rook.phase,
+              tell: this.boss!.tell(),
+            }
+          : null,
       completed: this.completed,
       height: h.grounded ? undefined : h.height,
-      landmark: d ? { name: d.landmark.name, distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z) } : undefined,
+      landmark: d
+        ? {
+            name: d.landmark.name,
+            distance: Math.hypot(d.landmark.x - h.x, d.landmark.z - h.z),
+          }
+        : undefined,
       hint: this.hintT > 0 ? this.hint : undefined,
       target: this.targetInfo(),
       standIns: this.standInsOnScreen(),
       stronghold: this.activeStronghold(),
-      transitionImage: this.transitionFade > 0 ? this.transitionImage : undefined,
+      transitionImage:
+        this.transitionFade > 0 ? this.transitionImage : undefined,
       transitionFade: this.transitionFade > 0 ? this.transitionFade : undefined,
     };
   }
   /** The shadow the HUD shows a health bar for: whatever is locked, else
    * whatever the lasers last chose, for a few seconds after the last shot.
    * The commander has its own bar, so it is not repeated here. */
-  private targetInfo(): { name: string; health: number; locked: boolean } | undefined {
+  private targetInfo():
+    | { name: string; health: number; locked: boolean }
+    | undefined {
     const c = this.combat;
     if (!c) return undefined;
     const locked = c.targetById(c.lock);
@@ -848,21 +1176,37 @@ export class Engine3D implements GameEngine {
     const s = locked || (recent && recent.alive ? recent : null);
     if (!s || !s.alive) return undefined;
     if (s.id === 'boss') return undefined;
-    return { name: SHADOW_NAMES[s.kind] || 'Shadow', health: Math.max(0, s.hp / s.maxHp), locked: !!locked };
+    return {
+      name: SHADOW_NAMES[s.kind] || 'Shadow',
+      health: Math.max(0, s.hp / s.maxHp),
+      locked: !!locked,
+    };
   }
   /** The stronghold whose host is out right now, for the HUD. */
   private activeStronghold(): GameSnapshot['stronghold'] {
-    const field = this.world?.fields.find((f) => f.active && f.group !== 'boss');
+    const field = this.world?.fields.find(
+      (f) => f.active && f.group !== 'boss',
+    );
     if (!field || !this.combat) return undefined;
     const host = this.combat.shadows.filter((s) => s.group === field.group);
-    return { name: field.name, remaining: host.filter((s) => s.alive).length, total: host.length };
+    return {
+      name: field.name,
+      remaining: host.filter((s) => s.alive).length,
+      total: host.length,
+    };
   }
   /** Which placeholder art is in play right now, for the HUD's stand-in tag. */
   private standInsOnScreen(): string | undefined {
     const h = this.player,
       parts: string[] = [];
-    if (this.combat?.shadows.some((s) => s.alive && !s.dormant && Math.hypot(s.x - h.x, s.z - h.z) < 400)) parts.push('shadows');
-    if (this.boss?.runtime.active && this.boss.runtime.alive) parts.push('commander');
+    if (
+      this.combat?.shadows.some(
+        (s) => s.alive && !s.dormant && Math.hypot(s.x - h.x, s.z - h.z) < 400,
+      )
+    )
+      parts.push('shadows');
+    if (this.boss?.runtime.active && this.boss.runtime.alive)
+      parts.push('commander');
     return parts.length ? parts.join(', ') : undefined;
   }
   private emit() {

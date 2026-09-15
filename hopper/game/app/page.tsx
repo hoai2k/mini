@@ -694,7 +694,7 @@ export default function Home() {
         ref={canvas}
         aria-label={
           edition === '3d'
-            ? 'Hopper the Grasshopper 3D world. A jumps and hovers, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
+            ? 'Hopper the Grasshopper 3D world. Hold A to wind the spring and release to leap, X spin kicks, Y dives, B guards, RT fires, LT locks on.'
             : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to spin kick all round, B or L also kicks, RT or K to fire.'
         }
         tabIndex={-1}
@@ -838,14 +838,14 @@ export default function Home() {
                 }
                 alt={
                   edition === '3d'
-                    ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
+                    ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
                     : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B spin kick and parry, RT shoot, Menu pause, View instructions.'
                 }
               />
               {edition === '3d' ? (
                 <ul className="control-key">
                   <li>
-                    <b className="pad a">A</b> Jump · hover · glide
+                    <b className="pad a">A</b> Spring · hover · glide
                   </li>
                   <li>
                     <b className="pad x">X</b> Spin kick
@@ -1100,7 +1100,7 @@ export default function Home() {
             <div className="game-bottom-row">
               {edition === '3d' ? (
                 <span>
-                  <b className="pad a">A</b> JUMP <b className="pad x">X</b>{' '}
+                  <b className="pad a">A</b> SPRING <b className="pad x">X</b>{' '}
                   KICK <b className="pad y">Y</b> DIVE{' '}
                   <b className="trigger">RT</b> LASERS{' '}
                   <b className="pad b">B</b> GUARD
@@ -1227,7 +1227,7 @@ export default function Home() {
                     }
                     alt={
                       edition === '3d'
-                        ? 'Xbox controller: left stick move, right stick camera, A jump and glide, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
+                        ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X spin kick, Y dive stomp, B guard, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
                         : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B spin kick and parry, RT shoot, Menu pause, View instructions.'
                     }
                   />
@@ -1235,13 +1235,18 @@ export default function Home() {
                     <div className="control-notes">
                       <p>
                         <b className="pad a">A</b>
-                        <strong>Jump</strong> Tap to jump. Hold A in the air and
-                        the wings beat: Hopper hovers in place for a breath,
-                        then glides down while you keep holding. Release to
-                        drop. Jump at a wall to kick off it; the front legs haul
-                        up over a ledge on their own. Hopper always faces the
-                        way you are going: pulling back backpedals, sideways
-                        strafes.
+                        <strong>Spring</strong> Hold A and Hopper stops where he
+                        stands and winds up; let go and he springs. A quick tap
+                        is a small hop taken without a pause, a second and a
+                        half is the full charge. Hold the stick forward and the
+                        spring carries you at least as far as the run it
+                        interrupted, up to twice as far at full wind, so
+                        springing across a district beats running it. Let the
+                        stick go and the whole wind goes into height instead:
+                        straight up, and steerable all the way down. Hold A
+                        again in the air and the wings beat: Hopper hovers for a
+                        breath, then glides. Spring at a wall to kick off it;
+                        the front legs haul up over a ledge on their own.
                       </p>
                       <p>
                         <b className="pad x">X</b>
@@ -1251,10 +1256,10 @@ export default function Home() {
                       </p>
                       <p>
                         <b className="pad y">Y</b>
-                        <strong>Dive stomp · charge</strong> In the air, dive
+                        <strong>Dive stomp · hop back</strong> In the air, dive
                         straight down and stomp on landing; a shockwave knocks
                         shadows into the air. On the ground, tap for a quick hop
-                        back, or hold to crouch and charge a super leap.
+                        back; held, it winds the spring as A does.
                       </p>
                       <p>
                         <b className="pad b">B</b>
