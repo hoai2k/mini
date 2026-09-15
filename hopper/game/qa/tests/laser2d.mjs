@@ -226,27 +226,39 @@ function fire(engine, seconds) {
     `a few hardened shadows in the third (${hard} of ${third.enemies.length})`,
   );
 }
-// Quiet stretches are half as long as their shape asks: across a board, the
-// shelves with nothing to fight average well under the fight shelves.
+// A leaps chapter (nothing to fight) is half as long as its shape asks:
+// its shelves and gaps average well under a mixed chapter's.
 {
   const l = buildLevel(0);
   const main = l.platforms.filter(
     (p) => p.routeRole === 'main' && /-p\d$/.test(p.id),
   );
-  const mean = (list) => list.reduce((n, p) => n + p.w, 0) / list.length;
-  const fights = main.filter(
-    (p) => p.encounter === 'fight' || p.encounter === 'finish',
-  );
-  const quiet = main.filter(
-    (p) => !fights.includes(p) && !/-p[56]$/.test(p.id),
-  );
+  const span = (chapter) => {
+    const shelves = main.filter((p) => p.id.startsWith(chapter));
+    return (
+      shelves[shelves.length - 1].x +
+      shelves[shelves.length - 1].w -
+      shelves[0].x
+    );
+  };
+  const leaps = span('m0-a0-c0-'),
+    mixed = span('m0-a0-c4-');
   check(
-    fights.length > 20 && quiet.length > 40,
-    `fight and quiet shelves counted (${fights.length}, ${quiet.length})`,
+    leaps < mixed * 0.6,
+    `a leaps chapter spans well under a mixed one (${leaps} vs ${mixed})`,
   );
+  const gaps = (chapter) => {
+    const shelves = main.filter((p) => p.id.startsWith(chapter));
+    return (
+      shelves
+        .slice(1)
+        .reduce((n, p, i) => n + (p.x - shelves[i].x - shelves[i].w), 0) /
+      (shelves.length - 1)
+    );
+  };
   check(
-    mean(quiet) < mean(fights) * 0.75,
-    `quiet shelves average well under fight shelves (${mean(quiet).toFixed(0)} vs ${mean(fights).toFixed(0)})`,
+    gaps('m0-a0-c0-') < gaps('m0-a0-c4-') * 0.75,
+    `its gaps are shorter too (${gaps('m0-a0-c0-').toFixed(0)} vs ${gaps('m0-a0-c4-').toFixed(0)})`,
   );
 }
 
