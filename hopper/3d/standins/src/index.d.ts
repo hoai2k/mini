@@ -56,6 +56,10 @@ export function regionById(id: string): Region;
 export function listStandIns(): string[];
 export function hasStandIn(id: string): boolean;
 export function createStandIn(id: string, options?: Record<string, unknown>): StandInObject;
+/** Segments the game builds a district's terrain mesh with; pass it to
+ * makeHeightField as `segments` to read the drawn surface rather than the
+ * smooth field the mesh samples. */
+export const TERRAIN_SEGMENTS: number;
 export function makeHeightField(options?: TerrainOptions): (x: number, z: number) => number;
 export function makeTerrain(region: Region, options?: TerrainOptions): TerrainMesh;
 export function makeHorizon(region: Region, options?: HorizonOptions): Group;

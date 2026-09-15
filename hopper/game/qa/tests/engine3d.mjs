@@ -24,7 +24,7 @@ const gltfLoader = path.join(threeDir, 'examples/jsm/loaders/GLTFLoader.js');
 const meshoptDecoder = path.join(threeDir, 'examples/jsm/libs/meshopt_decoder.module.js');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'hopper-engine3d-'));
-const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
+const names = ['world', 'controller', 'camera', 'combat3d', 'district', 'district2', 'district3', 'route', 'scenery', 'trailprops', 'boss3d', 'commanders', 'leviathan3d', 'regent3d', 'gait', 'models3d', 'shadows/index', 'shadows/ground', 'shadows/rooted', 'shadows/flyers'];
 fs.mkdirSync(path.join(temp, 'shadows'), { recursive: true });
 for (const name of names) {
   const raw = fs
@@ -406,7 +406,18 @@ function check(name, cond, detail) {
   // and a landing does not drop the picture: the eye's height changes in
   // a frame by less than a metre.
   {
-    const h = startHopper(0, 40);
+    // Along the trail rather than straight across country: the trail is the
+    // lane kept clear of the solid props that flank it, and running into a
+    // tree stops him dead, which is a collision the camera is right to
+    // follow and not the smoothness this scenario is about.
+    const path = world.route;
+    const start = path.pointAt(60);
+    const h = startHopper(start.x, start.z);
+    h.yaw = path.yawAt(60);
+    const along = () => {
+      const ahead = path.yawAt(path.nearest(h.x, h.z).s + 40);
+      return { dx: Math.sin(ahead), dz: Math.cos(ahead) };
+    };
     const cam = createCamera(h.yaw, [h.x, h.y + 8, h.z]);
     for (let i = 0; i < 120; i++) updateCamera(cam, h, world, blankCam, settings, dt);
     let prevEye = [...cam.eye],
@@ -416,9 +427,9 @@ function check(name, cond, detail) {
       worstRise = 0,
       landings = 0,
       wasAir = false;
-    for (let i = 0; i < 120 * 12; i++) {
+    for (let i = 0; i < 120 * 16; i++) {
       const jumpPressed = i % 180 === 30;
-      const ev = stepHopper(h, world, { ...blank, dz: -1, jumpPressed, jumpHeld: jumpPressed }, dt);
+      const ev = stepHopper(h, world, { ...blank, ...along(), jumpPressed, jumpHeld: jumpPressed }, dt);
       if (ev.some((e) => e.kind === 'land')) landings++;
       wasAir = h.height > 0.5;
       updateCamera(cam, h, world, blankCam, settings, dt);
@@ -1494,6 +1505,33 @@ const farHopper = () => {
     }
     check('walking pace walks', g.blend.walk > 0.85 && g.blend.gallop < 0.15, JSON.stringify(g.blend));
     check('the walk always keeps a tripod on the ground', minPlanted >= 3, minPlanted);
+  }
+  // (b2) The walk carries the body level: an insect's legs do the work, and a
+  // body that bobbed and rolled with the stride read as a waddle. The gallop
+  // still bounds, which is what tells the two apart from outside.
+  {
+    const flat = { heightAt: () => 0, groundAt: () => ({ y: 0 }) };
+    const sway = (speed) => {
+      const g = new Gait();
+      const h = startHopper(0, 40);
+      h.y = 0;
+      let lo = Infinity, hi = -Infinity, roll = 0;
+      for (let i = 0; i < 300; i++) {
+        h.z -= speed * dt;
+        const pose = g.update(bodyOf(h, { y: 0, vz: -speed }), flat, dt);
+        if (i > 120) {
+          lo = Math.min(lo, pose.lift);
+          hi = Math.max(hi, pose.lift);
+          roll = Math.max(roll, Math.abs(pose.roll));
+        }
+      }
+      return { swing: hi - lo, roll, blend: g.blend };
+    };
+    const walking = sway(12),
+      galloping = sway(66);
+    check('the walk holds the body level', walking.swing < 0.02, `${walking.swing.toFixed(4)} m over a stride`);
+    check('and does not roll it side to side', walking.roll < 0.002, walking.roll.toFixed(4));
+    check('while the gallop still bounds', galloping.swing > 1, `${galloping.swing.toFixed(2)} m`);
   }
   // (c) Feet are put on the world and stay there: no sliding under him, and
   // every planted foot is on the surface it landed on, whatever that is.

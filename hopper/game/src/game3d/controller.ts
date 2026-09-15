@@ -292,43 +292,53 @@ function mirrorState(s: HopperState) {
   s.gravityScale = -s.gravityScale;
 }
 
+/** Hopper meets a wall as a circle, not as the 22 m body he is drawn as: his
+ * nose and tail can overlap a face by a few metres. Resolving his whole length
+ * is a wider change than it looks -- the districts are authored around this
+ * radius, and a body that long cannot get into places they mean him to reach
+ * (a signal stands inside a farmhouse in Sunseed Fields) -- so the circle
+ * stands until those places are re-authored around him. */
 function resolveWalls(s: HopperState, world: StepWorld): { nx: number; nz: number; collider: Collider } | null {
   let best: { nx: number; nz: number; collider: Collider; depth: number } | null = null;
-  const r = MOVE.radius;
   const bodyLow = s.y + 2.0,
     bodyHigh = s.y + MOVE.height - 1.5;
-  for (const c of world.near(s.x, s.z, r + 2)) {
-    if (c.y1 <= bodyLow || c.y0 >= bodyHigh) continue;
-    // Standing on this box (feet on its top) is not a wall contact.
-    if (s.grounded && Math.abs(c.y1 - s.y) < 0.6) continue;
-    const [lx, lz] = World.local(c, s.x, s.z);
-    const px = c.hx + r - Math.abs(lx),
-      pz = c.hz + r - Math.abs(lz);
-    if (px <= 0 || pz <= 0) continue;
-    // Steps and lips the mantle handles are resolved by ground snapping instead.
-    let nx: number, nz: number, depth: number;
-    if (px < pz) {
-      nx = Math.sign(lx) || 1;
-      nz = 0;
-      depth = px;
-    } else {
-      nx = 0;
-      nz = Math.sign(lz) || 1;
-      depth = pz;
+  {
+    const px0 = s.x,
+      pz0 = s.z,
+      r = MOVE.radius;
+    for (const c of world.near(px0, pz0, r + 2)) {
+      if (c.y1 <= bodyLow || c.y0 >= bodyHigh) continue;
+      // Standing on this box (feet on its top) is not a wall contact.
+      if (s.grounded && Math.abs(c.y1 - s.y) < 0.6) continue;
+      const [lx, lz] = World.local(c, px0, pz0);
+      const ox = c.hx + r - Math.abs(lx),
+        oz = c.hz + r - Math.abs(lz);
+      if (ox <= 0 || oz <= 0) continue;
+      // Steps and lips the mantle handles are resolved by ground snapping instead.
+      let nx: number, nz: number, depth: number;
+      if (ox < oz) {
+        nx = Math.sign(lx) || 1;
+        nz = 0;
+        depth = ox;
+      } else {
+        nx = 0;
+        nz = Math.sign(lz) || 1;
+        depth = oz;
+      }
+      // Rotate the normal back into world space.
+      const cos = Math.cos(c.yaw),
+        sin = Math.sin(c.yaw);
+      const wx = nx * cos - nz * sin,
+        wz = nx * sin + nz * cos;
+      s.x += wx * depth;
+      s.z += wz * depth;
+      const into = s.vx * wx + s.vz * wz;
+      if (into < 0) {
+        s.vx -= wx * into;
+        s.vz -= wz * into;
+      }
+      if (!best || depth > best.depth) best = { nx: wx, nz: wz, collider: c, depth };
     }
-    // Rotate the normal back into world space.
-    const cos = Math.cos(c.yaw),
-      sin = Math.sin(c.yaw);
-    const wx = nx * cos - nz * sin,
-      wz = nx * sin + nz * cos;
-    s.x += wx * depth;
-    s.z += wz * depth;
-    const into = s.vx * wx + s.vz * wz;
-    if (into < 0) {
-      s.vx -= wx * into;
-      s.vz -= wz * into;
-    }
-    if (!best || depth > best.depth) best = { nx: wx, nz: wz, collider: c, depth };
   }
   return best;
 }
@@ -690,7 +700,7 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
       s.climbTimer = MOVE.climbGrace;
       s.climbNx = wall.nx;
       s.climbNz = wall.nz;
-    } else if (into > MOVE.climbEnter && control && !s.diving && !s.gliding && s.mantle <= 0 && s.dashTimer <= 0 && lip > s.y + 3) {
+    } else if (into > MOVE.climbEnter && control && !s.diving && !s.gliding && !wall.collider.slim && s.mantle <= 0 && s.dashTimer <= 0 && lip > s.y + 3) {
       s.climbing = true;
       s.grounded = false;
       s.vy = Math.min(s.vy, MOVE.climbUp);
@@ -712,7 +722,7 @@ function stepUpright(s: HopperState, world: StepWorld, intent: MoveIntent, dt: n
     // Mantle: the lip is within reach and the stick pushes toward it.
     const lip = wall.collider.y1;
     const pushing = intent.dx * -wall.nx + intent.dz * -wall.nz > 0.3;
-    if (pushing && (s.climbing || s.vy <= 8) && lip > s.y + 0.5 && lip <= s.y + MOVE.mantleReach && control && !s.diving) {
+    if (pushing && !wall.collider.slim && (s.climbing || s.vy <= 8) && lip > s.y + 0.5 && lip <= s.y + MOVE.mantleReach && control && !s.diving) {
       if (s.climbing) {
         s.climbing = false;
         s.events.push({ kind: 'climbEnd' });

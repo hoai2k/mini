@@ -76,12 +76,12 @@ export const GAIT = {
   /** How far the body sits below its standing height. A gallop runs low,
    * with the knees kept bent under him rather than propped straight. */
   crouch: { gallop: 2.8, walk: 0.6, climb: 1.4 },
-  /** The body's own movement: the bound of a gallop, the smaller roll of a
-   * walk, and how hard the picture rocks fore and aft with it. */
+  /** The body's own movement, and how hard the picture rocks fore and aft with
+   * it. Only the gallop has any: an insect walking carries its body level and
+   * lets six legs do the work, so a walk that bobbed or rolled read as a
+   * waddle rather than as an animal. */
   bound: 2.2,
   boundPitch: 0.14,
-  walkBob: 0.34,
-  walkRoll: 0.035,
   /** The body rides this far above the mean of the ground under its feet. */
   bodyFollow: 0.75,
   /** Ground angles the body will take, and how fast it takes them. */
@@ -368,15 +368,16 @@ export class Gait {
 
     // The body rides above the mean of what its feet are standing on, and
     // bounds with the gallop: one long beat a stride, the nose rising as the
-    // hind legs drive and dropping as the front pair take the landing.
+    // hind legs drive and dropping as the front pair take the landing. The
+    // walk adds nothing of its own - the body holds level and the legs carry
+    // it, which is what separates an insect's walk from a waddle.
     const mean = contacts ? contactSum / contacts : b.y;
     let wantLift = air || b.climbing ? 0 : (mean - b.y) * GAIT.bodyFollow - crouch;
     let bodyPitch = this.pitch;
-    if (!air && !b.climbing && moving) {
+    if (!air && !b.climbing && moving && this.blend.gallop > 0) {
       const turn = Math.PI * 2 * this.phase;
-      wantLift += Math.sin(turn + 0.9) * GAIT.bound * this.blend.gallop + Math.sin(turn * 2) * GAIT.walkBob * this.blend.walk;
+      wantLift += Math.sin(turn + 0.9) * GAIT.bound * this.blend.gallop;
       bodyPitch += Math.sin(turn - 0.4) * GAIT.boundPitch * this.blend.gallop;
-      this.roll += Math.sin(turn * 2 + 1.2) * GAIT.walkRoll * this.blend.walk;
     }
     this.lift = ease(this.lift, wantLift, dt * 12);
 
