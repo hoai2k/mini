@@ -6,6 +6,8 @@ Round one is delivered and in the game (painted skies, horizon cards, terrain se
 
 **Verification: all ten assets pass.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The six surface albedo/detail files and repaired foam strip have zero measured seams, both atlases meet their cell padding, and the light landing guide matches the dark guide geometry. T-083..085 remain open on the native-detail rule: the delivered skies lose under one grey level RMS when halved and re-expanded, which is how an upscale measures, and the repaints must clear 3.0.
 
+**Sky fallback delivered.** T-083..085 also permit a high-detail horizon strip when a true native-4K repaint is unavailable. Three native 1774×887 ImageGen panoramas now live in `textures/sky/fallback/`. They are usable horizon artwork, while the original 4096×2048 dome-repaint acceptance criterion remains open.
+
 | Request | Why | Priority |
 | --- | --- | --- |
 | T-080 Soft-landing surfaces: sea, drift dust, slag | The design makes every district floor a return to play: water and dust push Hopper back ashore, slag lifts him out. | before the region that needs it |
@@ -54,6 +56,7 @@ The review ran and the softness is real, so this is no longer conditional: what 
 
 - **Spec:** 4096×2048 equirectangular painting carrying real detail at that size - no upscale of a smaller painting - same composition and sun position as the delivered sky; must clear 3.0 RMS in `source/verify_native_detail.py`
 - **Status:** open · **Final:** `textures/sky/fields-hd.jpg`
+- **Delivered fallback:** `textures/sky/fallback/fields-horizon-detail.png (native 1774x887 panorama; not a 4K dome replacement)`
 - **Prompt:** Use case: environment. Repaint the attached sky so that every cloud edge and brush mark is painted at 4096x2048 itself, never upscaled or super-resolved from a smaller render, keeping its composition, cloud shapes and sun position exactly: honey morning light, huge cumulus, sun low in the east, apricot haze band. 1970s anime gouache, brushed clouds, flat colour fields, no text.
 
 ### T-084 · Sky repaint with native 4K detail: Crownline City
@@ -62,6 +65,7 @@ The review ran and the softness is real, so this is no longer conditional: what 
 
 - **Spec:** 4096×2048 equirectangular painting carrying real detail at that size - no upscale of a smaller painting - same composition and sun position as the delivered sky; must clear 3.0 RMS in `source/verify_native_detail.py`
 - **Status:** open · **Final:** `textures/sky/city-hd.jpg`
+- **Delivered fallback:** `textures/sky/fallback/city-horizon-detail.png (native 1774x887 panorama; not a 4K dome replacement)`
 - **Prompt:** Use case: environment. Repaint the attached sky so that every cloud edge and brush mark is painted at 4096x2048 itself, never upscaled or super-resolved from a smaller render, keeping its composition, cloud shapes and sun position exactly: golden sunset, long cloud streaks, warm pink haze. 1970s anime gouache, brushed clouds, flat colour fields, no text.
 
 ### T-085 · Sky repaint with native 4K detail: Thunderhead Range
@@ -70,6 +74,7 @@ The review ran and the softness is real, so this is no longer conditional: what 
 
 - **Spec:** 4096×2048 equirectangular painting carrying real detail at that size - no upscale of a smaller painting - same composition and sun position as the delivered sky; must clear 3.0 RMS in `source/verify_native_detail.py`
 - **Status:** open · **Final:** `textures/sky/mountains-hd.jpg`
+- **Delivered fallback:** `textures/sky/fallback/mountains-horizon-detail.png (native 1774x887 panorama; not a 4K dome replacement)`
 - **Prompt:** Use case: environment. Repaint the attached sky so that every cloud edge and brush mark is painted at 4096x2048 itself, never upscaled or super-resolved from a smaller render, keeping its composition, cloud shapes and sun position exactly: slate grey storm sky, apricot clouds, an eclipse beginning above the summit. 1970s anime gouache, brushed clouds, flat colour fields, no text.
 
 ### T-086 · Checkpoint totem and spring pad decals
