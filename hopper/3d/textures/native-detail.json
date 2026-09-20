@@ -1,18 +1,108 @@
 {
-  "checkedAt": "2026-09-13",
+  "checkedAt": "2026-09-20",
   "check": "RMS grey-level cost of halving and re-expanding; an upscale loses almost nothing",
   "skyLimit": 3.0,
   "skiesOnly": "only skies are failed; elsewhere flat art scores low by style",
-  "failures": [],
+  "failures": [
+    "sky/blue-preview.jpg: 0.839 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/city-preview.jpg: 0.587 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/fields-preview.jpg: 0.666 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/foundry-preview.jpg: 0.581 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/harbor-preview.jpg: 0.739 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/launchworks-preview.jpg: 0.712 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/mountains-preview.jpg: 0.721 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/red-preview.jpg: 0.624 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale",
+    "sky/violet-preview.jpg: 0.753 RMS at half size, under the 3.0 bar - no real detail above 2048px, so this is an upscale"
+  ],
   "results": {
-    "horizon/fields-0-0.png": {
+    "sky/blue-preview.jpg": {
       "size": [
         4096,
-        1024
+        2048
       ],
-      "halfRms": 0.902,
-      "quarterRms": 1.395,
-      "limit": null,
+      "halfRms": 0.839,
+      "quarterRms": 2.641,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/city-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.587,
+      "quarterRms": 1.311,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/fields-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.666,
+      "quarterRms": 1.808,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/foundry-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.581,
+      "quarterRms": 1.438,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/harbor-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.739,
+      "quarterRms": 1.902,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/launchworks-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.712,
+      "quarterRms": 1.855,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/mountains-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.721,
+      "quarterRms": 1.915,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/red-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.624,
+      "quarterRms": 1.515,
+      "limit": 3.0,
+      "native": false
+    },
+    "sky/violet-preview.jpg": {
+      "size": [
+        4096,
+        2048
+      ],
+      "halfRms": 0.753,
+      "quarterRms": 2.283,
+      "limit": 3.0,
       "native": false
     }
   }
