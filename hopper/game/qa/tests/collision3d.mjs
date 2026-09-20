@@ -283,11 +283,14 @@ const TX = 1200,
       let deepest = 0;
       for (let i = 0; i < 220; i++) {
         stepHopper(s, world, { ...blank, dx: -1, dz: 0 }, dt);
-        // Taking hold of a broad face hugs it, which is what climbing is; the
-        // question here is whether walking into one lets him through.
+        // Taking hold of a broad face hugs it, which is what climbing is, and
+        // running at a boulder scrambles him up onto it; the question here is
+        // only whether walking into one lets him through it. Standing on the
+        // lip counts as on top rather than inside -- his feet settle to
+        // within a metre of it, not exactly on it.
         if (s.climbing || s.mantle > 0) continue;
         // Inside the box, at the height of his body?
-        if (s.y + MOVE.height <= col.y0 || s.y >= col.y1) continue;
+        if (s.y + MOVE.height <= col.y0 || s.y >= col.y1 - 1) continue;
         const [lx, lz] = World.local(col, s.x, s.z);
         const inside = Math.min(col.hx - Math.abs(lx), col.hz - Math.abs(lz));
         if (inside > deepest) deepest = inside;

@@ -249,4 +249,53 @@ const TX = 1200,
   }
 }
 
+// ---------------------------------------------------------------------
+// 6. The scramble: a lip too tall to step over is hauled up, not walled at
+// ---------------------------------------------------------------------
+// Between `stepOver` and `scramble` a rise is neither a stride nor a wall:
+// running into it hauls Hopper up onto it. Without this a terrace riser or a
+// low roof is a dead stop with the stick still pressed into it.
+{
+  const gy = new World({ ...base, placements: [] }).heightAt(TX, TZ);
+  const bar = (height, halfDepth = 20) => {
+    const w = new World({ ...base, placements: [] });
+    w.addCollider(
+      { owner: 'test', cx: TX, cz: TZ - 26 - halfDepth, yaw: 0, ox: 0, oz: 0, hx: 60, hz: halfDepth, y0: gy - 30, y1: gy + height },
+      null,
+    );
+    return w;
+  };
+  // Runs at the bar and reports how far he got, whether he hauled up, and
+  // how high his feet were while he was actually over it.
+  const runInto = (w, halfDepth = 20) => {
+    const s = standing(w, TX, TZ);
+    const face = s.yaw;
+    const z0 = s.z;
+    let sawMantle = false,
+      over = null;
+    for (let i = 0; i < 420; i++) {
+      stepHopper(s, w, { ...blank, dz: -1, faceYaw: face }, dt);
+      if (s.move === 'mantle') sawMantle = true;
+      if (Math.abs(s.z - (TZ - 26 - halfDepth)) < halfDepth && s.move !== 'mantle')
+        over = over === null ? s.y - gy : Math.max(over, s.y - gy);
+    }
+    return { s, gained: z0 - s.z, over, sawMantle };
+  };
+
+  const lip = MOVE.stepOver + (MOVE.scramble - MOVE.stepOver) * 0.5;
+  const up = runInto(bar(lip));
+  c.check('a lip past a step is hauled up, not walled at', up.sawMantle, `move never reached mantle (got ${up.s.move})`);
+  c.check('and crossing it puts his feet on its top', up.over !== null && Math.abs(up.over - lip) < 2.5, `${up.over === null ? 'never over it' : up.over.toFixed(1)} of ${lip}`);
+  c.check('and he carries on past it', up.gained > 60, `${up.gained.toFixed(0)} m`);
+
+  // Above the scramble it is a wall again: something to jump at or climb.
+  const wall = runInto(bar(MOVE.scramble + 6));
+  c.check('a rise past the scramble is still a wall', !wall.sawMantle && wall.gained < 40, `${wall.gained.toFixed(0)} m, mantled ${wall.sawMantle}`);
+
+  // A lip with nothing to stand on beyond it is not hauled onto: he would
+  // only drop straight off its far side through its own top corner.
+  const narrow = runInto(bar(lip, 2), 2);
+  c.check('a lip too narrow to stand on is not hauled onto', !narrow.sawMantle, `mantled onto a ${2 * 2} m ledge`);
+}
+
 c.done();
