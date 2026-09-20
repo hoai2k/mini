@@ -23,3 +23,9 @@ Kick spark correction prompt:
 **Review:** inspected original and corrected horizon contact sheets; removed the duplicated celestial bodies and kick-leg contamination. Loaded all nine region sets in `viewer/textures.html`, using 200 m surfaces at six repeats, with sky domes and both horizon depths. Compared against the existing stand-in path and checked shadow hide at the same scale. KTX2 loaded in the browser with the corrected orientation and no console errors. UI/effect alpha, dimensions and terrain/trim seam borders are covered by `textures/validation.json`. Distant surface colours remain distinct across the nine palettes. Larger-scale repetition should still be broken up by actual terrain splatting, props and level geometry during game integration.
 
 Raw/generated masters, corrections, 8K intermediate PNGs, contact sheets and the downloaded encoder remain under ignored `local/hopper-3d-textures/`. Published files live in `hopper/3d/textures/`; review code lives in `hopper/3d/viewer/textures.html` and `textures.js`.
+
+## 2026-09-19 — native-detail audit after main sync
+
+Re-ran `source/verify_native_detail.py` over the nine in-game sky previews. All nine 4096×2048 preview JPEGs measure 0.58–0.84 RMS after halving and re-expanding, below the 3.0 native-detail threshold. This confirms the documented source-size caveat; it does not change the round-one delivery status.
+
+The only outstanding image requests remain T-083, T-084 and T-085: native-detail 4096×2048 repaint replacements for Fields, City and Mountains. The built-in image generator's prior landscape output was 1774×887, so it cannot meet this acceptance criterion without a higher-resolution generation path. No noncompliant upscale or synthetic detail pass was published.
