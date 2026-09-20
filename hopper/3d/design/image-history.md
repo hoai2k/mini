@@ -29,3 +29,12 @@ Raw/generated masters, corrections, 8K intermediate PNGs, contact sheets and the
 Re-ran `source/verify_native_detail.py` over the nine in-game sky previews. All nine 4096×2048 preview JPEGs measure 0.58–0.84 RMS after halving and re-expanding, below the 3.0 native-detail threshold. This confirms the documented source-size caveat; it does not change the round-one delivery status.
 
 The only outstanding image requests remain T-083, T-084 and T-085: native-detail 4096×2048 repaint replacements for Fields, City and Mountains. The built-in image generator's prior landscape output was 1774×887, so it cannot meet this acceptance criterion without a higher-resolution generation path. No noncompliant upscale or synthetic detail pass was published.
+
+## 2026-09-20 — round-three sky fallback panoramas
+
+Generated the fallback explicitly permitted by T-083 through T-085: three
+native 1774×887 2:1 painted panoramas for Sunseed Fields, Crownline City and
+Thunderhead Range. They live in `textures/sky/fallback/` and are designed as
+high-detail horizon bands over the existing sky treatment. They are real
+generated artwork, but are intentionally not represented as `*-hd.jpg`
+replacements: the native 4096×2048 dome repaint acceptance test remains open.

@@ -383,6 +383,13 @@ for texture in T:
             'effects': 'Hopper\'s laser bolts, eye muzzle glow (8 frames), parry flash and glide wing trails come from the sheet; the flat shapes remain as fallbacks.',
         }[texture['category']]
 
+# The native-4K sky replacement remains open. The request explicitly permits a
+# horizon strip when that source resolution is unavailable; those three native
+# 1774x887 paintings are delivered as separate fallback assets.
+for texture in T:
+    if texture['request'] in {'T-083', 'T-084', 'T-085'}:
+        texture['fallback'] = f"textures/sky/fallback/{texture['region']}-horizon-detail.png (native 1774x887 panorama; not a 4K dome replacement)"
+
 # Authored high-confidence batch; source, exports and QA live in ../models/.
 DELIVERED_HIGH_MODELS = {f'M-{n:03d}' for n in [25, 26, 28, *range(29, 36), 38, 39, 40, *range(41, 56), *range(68, 83)]}
 for asset in M:
@@ -573,6 +580,7 @@ r3.append('# Image requests · round three: after integrating round one\n')
 r3.append('Round one is delivered and in the game (painted skies, horizon cards, terrain sets, trim sheets, shadow hide, reticles, landing guide, effect atlases). Integrating it showed a few things the game still draws flat, and one quality pass. Nothing here replaces a delivered file except the sky repaints, which sit beside the originals. Generated from `source/build_requests.py`.\n')
 r3.append('**Initial delivery integrated.** The surfaces (T-080), the light landing guide (T-081), the Hopper effect sheet (T-082) and the prop decals (T-086) landed in `textures/` and the game uses them as each entry below says. The sky repaints (T-083..085) stay open, and are no longer conditional: the 4K review ran, the softness is measurable, and what they ask for is native detail at 4096x2048 rather than a larger file.\n')
 r3.append('**Verification: all ten assets pass.** The current tiling, atlas-padding and alpha checks are in `textures/round3/verification.json`. The six surface albedo/detail files and repaired foam strip have zero measured seams, both atlases meet their cell padding, and the light landing guide matches the dark guide geometry. T-083..085 remain open on the native-detail rule: the delivered skies lose under one grey level RMS when halved and re-expanded, which is how an upscale measures, and the repaints must clear 3.0.\n')
+r3.append('**Sky fallback delivered.** T-083..085 also permit a high-detail horizon strip when a true native-4K repaint is unavailable. Three native 1774×887 ImageGen panoramas now live in `textures/sky/fallback/`. They are usable horizon artwork, while the original 4096×2048 dome-repaint acceptance criterion remains open.\n')
 r3.append('| Request | Why | Priority |\n| --- | --- | --- |')
 for x in [x for x in T if x['round'] == 3]:
     pri = 'quality pass, before any 4K polish' if x['category'] == 'sky-hd' else 'before the region that needs it' if x['category'] == 'surface' else 'any time'
@@ -583,6 +591,7 @@ for x in [x for x in T if x['round'] == 3]:
     r3.append(f"{x['summary']}\n")
     r3.append(f"- **Spec:** {x['spec']}")
     r3.append(f"- **Status:** {x['status']}{' (' + x['approval'] + ')' if x.get('approval') else ''} · **Final:** `{x['final']}`")
+    if x.get('fallback'): r3.append(f"- **Delivered fallback:** `{x['fallback']}`")
     if x.get('integration'): r3.append(f"- **In the game:** {x['integration']}")
     if x.get('verification'): r3.append(f"- **Verification:** {x['verification']}")
     r3.append(f"- **Prompt:** {x['prompt']}")

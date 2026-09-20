@@ -129,13 +129,15 @@ for(let mission=0;mission<3;mission++){
  for(const floor of l.platforms.filter(p=>p.id.endsWith('-low'))){
   const baseId=floor.id.replace('-low','');
   const idx=main.findIndex(p=>p.id===baseId),prev=main[idx-1],next=main[idx+1];
-  const a=l.platforms.find(p=>p.id===baseId+'-low-step-a'),b=l.platforms.find(p=>p.id===baseId+'-low-step-b');
+  // As many steps as the climb needed, not always two.
+  const steps=l.platforms.filter(p=>p.id.startsWith(baseId+'-low-step-')).sort((p,q)=>p.x-q.x);
+  const a=steps[0],b=steps[steps.length-1];
   if(!prev||floor.x>prev.x+prev.w-40)failures.push({mission,kind:'low road not under previous edge',id:floor.id});
   if(floor.y-prev.y<150)failures.push({mission,kind:'low road too shallow to duck under',id:floor.id});
   const corridor=main[idx];
   if(floor.y-(corridor.y+corridor.h)<200)failures.push({mission,kind:'low road corridor too low',id:floor.id,clear:floor.y-(corridor.y+corridor.h)});
   if(!reachable(l,{...floor,w:Math.max(180,a.x-floor.x+80)},a))failures.push({mission,kind:'low road cannot reach first step',id:floor.id});
-  if(!reachable(l,a,b))failures.push({mission,kind:'low road step break',id:floor.id});
+  for(let k=1;k<steps.length;k++)if(!reachable(l,steps[k-1],steps[k]))failures.push({mission,kind:'low road step break',id:floor.id,step:steps[k].id});
   if(next&&!reachable(l,b,next))failures.push({mission,kind:'low road cannot rejoin route',id:floor.id,to:next.id});
  }
  // High roads: the first shelf rises from the fight shelf, the second continues
@@ -150,7 +152,9 @@ for(let mission=0;mission<3;mission++){
   if(next&&!reachable(l,b,next))failures.push({mission,kind:'high road cannot rejoin',id:b.id,to:next.id});
  }
  // Every chapter crossing has a catch floor and a step back up to the route.
- for(const p of main.filter(p=>/-c\d-p5$/.test(p.id))){
+ // The crossing is the vista shelf, wherever it falls: chapters are as long as
+ // their beats need, so it is no longer always the sixth shelf.
+ for(const p of main.filter(p=>p.encounter==='vista'&&!p.id.endsWith('-island'))){
   const salvage=l.platforms.find(q=>q.id===p.id+'-salvage'),step=l.platforms.find(q=>q.id===p.id+'-recovery-step'),spring=l.platforms.find(q=>q.id===p.id+'-salvage-spring');
   const idx=main.indexOf(p),next=main[idx+1]?.id===p.id+'-island'?main[idx+2]:main[idx+1];
   if(!salvage||!step||!spring){failures.push({mission,kind:'crossing lacks catch floor',id:p.id});continue;}

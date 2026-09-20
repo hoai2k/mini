@@ -39,7 +39,7 @@ Round-three verification is authoritative at `hopper/3d/textures/round3/verifica
 - **T-081 delivered/verified:** light landing guide passes alpha and geometry checks.
 - **T-082 delivered/verified:** all twelve occupied Hopper effect cells clear the requested 48 px atlas padding (minimum 53 px) after uniform scale 0.8327.
 - **T-086 delivered/verified:** all four prop decal cells clear the requested 24 px padding (minimum 28 px) after uniform scale 0.7812.
-- **T-083–T-085 open/optional:** native-4K repaint attempts returned 1774×887, so they do not meet the explicit 4096×2048 native requirement.
+- **T-083–T-085 open/optional:** native-4K repaint attempts returned 1774×887, so they do not meet the explicit 4096×2048 native requirement. The permitted native-1774×887 horizon fallback panoramas are delivered at `textures/sky/fallback/`; they remain deliberately separate from the unfulfilled dome-repaint deliverables.
 
 Native-resolution constraint applies broadly to the delivered painted pack: `hopper/3d/design/image-history.md` and `hopper/3d/textures/README.md` record source masters around 1254² for tiles and 1774×887 for skies; requested larger exports are upscaled. The T-082/T-086 padding repair uniformly scales existing native paint and creates no new detail. Round-two reference metadata similarly records native source sizes per plate and says larger exports are upscaled. Do not describe those exports as native 2K/4K/8K detail.
 
