@@ -694,7 +694,7 @@ export default function Home() {
         ref={canvas}
         aria-label={
           edition === '3d'
-            ? 'Hopper the Grasshopper 3D world. Hold A to wind the spring and release to leap, the stick aiming it forward or up, X or B spin kicks and parries, Y dives, RT fires, LT locks on.'
+            ? 'Hopper the Grasshopper 3D world. A jumps and holding it jumps higher, LB winds the spring for a super jump aimed with the stick, X or B spin kicks and parries, Y dives, RT fires, LT locks on.'
             : 'Hopper the Grasshopper game world. Use A or Space to jump, X or J to spin kick all round, B or L also kicks, RT or K to fire.'
         }
         tabIndex={-1}
@@ -838,14 +838,14 @@ export default function Home() {
                 }
                 alt={
                   edition === '3d'
-                    ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X or B spin kick and parry, Y dive stomp, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
+                    ? 'Xbox controller: left stick move, right stick camera, A jump and hold to jump higher, LB hold to wind the spring and release to super jump, X or B spin kick and parry, Y dive stomp, RT eye lasers, LT lock-on, RB sprint, left-stick click dash, right-stick click Horizon View, Menu pause, View instructions.'
                     : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B spin kick and parry, RT shoot, Menu pause, View instructions.'
                 }
               />
               {edition === '3d' ? (
                 <ul className="control-key">
                   <li>
-                    <b className="pad a">A</b> Spring · hover · glide
+                    <b className="pad a">A</b> Jump · hover · glide
                   </li>
                   <li>
                     <b className="pad x">X</b> Spin kick · parry
@@ -861,6 +861,9 @@ export default function Home() {
                   </li>
                   <li>
                     <b className="trigger">LT</b> Lock-on
+                  </li>
+                  <li>
+                    <b className="trigger">LB</b> Spring (hold)
                   </li>
                   <li>
                     <b className="trigger">LS</b> Move
@@ -897,7 +900,7 @@ export default function Home() {
                     KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
                     <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
                     lasers <span>L</span> kick <span>Q</span> lock-on{' '}
-                    <span>SHIFT</span> sprint <span>E</span> dash
+                    <span>SHIFT</span> sprint <span>E</span> spring <span>R</span> dash
                   </>
                 ) : (
                   <>
@@ -1088,7 +1091,8 @@ export default function Home() {
             <div className="game-bottom-row">
               {edition === '3d' ? (
                 <span>
-                  <b className="pad a">A</b> SPRING <b className="pad x">X</b>{' '}
+                  <b className="pad a">A</b> JUMP <b className="trigger">LB</b>{' '}
+                  SPRING <b className="pad x">X</b>{' '}
                   KICK · PARRY <b className="pad y">Y</b> DIVE{' '}
                   <b className="trigger">RT</b> LASERS{' '}
                   <b className="pad b">B</b> KICK
@@ -1202,7 +1206,7 @@ export default function Home() {
                     }
                     alt={
                       edition === '3d'
-                        ? 'Xbox controller: left stick move, right stick camera, hold A to wind the spring and release to leap, X or B spin kick and parry, Y dive stomp, RT eye lasers, LT lock-on, RB sprint, LB dash, right-stick click Horizon View, Menu pause, View instructions.'
+                        ? 'Xbox controller: left stick move, right stick camera, A jump and hold to jump higher, LB hold to wind the spring and release to super jump, X or B spin kick and parry, Y dive stomp, RT eye lasers, LT lock-on, RB sprint, left-stick click dash, right-stick click Horizon View, Menu pause, View instructions.'
                         : 'Xbox controller: left stick or D-pad move, right stick look around, A jump, X or B spin kick and parry, RT shoot, Menu pause, View instructions.'
                     }
                   />
@@ -1210,19 +1214,27 @@ export default function Home() {
                     <div className="control-notes">
                       <p>
                         <b className="pad a">A</b>
-                        <strong>Spring</strong> Hold A and Hopper stops where he
-                        stands and winds up; let go and he springs. A quick tap
-                        is a small hop taken without a pause, a second and a
-                        half is the full charge. The stick aims it: pushed
-                        forward the spring leaves flat and fast, a lunge rather
-                        than a jump; neutral it arcs at 45 degrees; pulled back
-                        it stands up, all the way to straight up, and it never
-                        throws you backwards. The crouch shows which is coming,
-                        and at full wind Hopper throbs inside a ring of light.
-                        Springing beats running across a district. Hold A again
-                        in the air and the wings beat: Hopper hovers for a
-                        breath, then glides. Spring at a wall to kick off it;
-                        the front legs haul up over a ledge on their own.
+                        <strong>Jump</strong> A jumps the moment you press it,
+                        and holding it jumps higher: let go on the way up and
+                        the rise stops there, so a tap is a hop and a full hold
+                        is the whole arc. Keep holding past the top and the
+                        wings beat — Hopper hovers for a breath, then glides.
+                        Jump at a wall to kick off it, or to take hold and
+                        climb; the front legs haul up over a ledge on their own.
+                      </p>
+                      <p>
+                        <b className="trigger">LB</b>
+                        <strong>Spring</strong> The super jump. Hold LB and
+                        Hopper stops where he stands and winds up; let go and he
+                        springs, far past anything A can reach. A second and a
+                        half is the full charge, and a quick tap costs no
+                        stride. The stick aims it: pushed forward the spring
+                        leaves flat and fast, a lunge rather than a jump;
+                        neutral it arcs at 45 degrees; pulled back it stands up,
+                        all the way to straight up, and it never throws you
+                        backwards. The crouch shows which is coming, and at full
+                        wind Hopper throbs inside a ring of light. Springing
+                        beats running across a district.
                       </p>
                       <p>
                         <b className="pad x">X</b>
@@ -1237,7 +1249,7 @@ export default function Home() {
                         <strong>Dive stomp · hop back</strong> In the air, dive
                         straight down and stomp on landing; a shockwave knocks
                         shadows into the air. On the ground, tap for a quick hop
-                        back; held, it winds the spring as A does.
+                        back; held, it winds the spring as LB does.
                       </p>
                       <p>
                         <b className="pad b">B</b>
@@ -1264,10 +1276,11 @@ export default function Home() {
                         carries into a jump.
                       </p>
                       <p>
-                        <b className="trigger">LB</b>
-                        <strong>Dash</strong> A fast burst the way the stick
-                        points, on the ground or in the air. Held with the stick
-                        centred, it fires the moment you move.
+                        <b className="trigger">LS</b>
+                        <strong>Dash</strong> Click the left stick for a fast
+                        burst the way it points, on the ground or in the air.
+                        Held with the stick centred, it fires the moment you
+                        move.
                       </p>
                       <p>
                         <strong>Walk, gallop, climb</strong> Open ground at
@@ -1348,7 +1361,7 @@ export default function Home() {
                       KEYBOARD <span>WASD</span> move <span>SPACE</span> jump{' '}
                       <span>J</span> kick <span>F</span> dive <span>K</span>{' '}
                       lasers <span>L</span> kick <span>Q</span> lock-on{' '}
-                      <span>SHIFT</span> sprint <span>E</span> dash{' '}
+                      <span>SHIFT</span> sprint <span>E</span> spring <span>R</span> dash{' '}
                       <span>TAB</span> horizon view · click the game to turn the
                       view with the mouse
                     </>

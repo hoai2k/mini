@@ -188,6 +188,8 @@ const emptyInput: InputFrame = {
   lockHeld: false,
   lockPressed: false,
   chargeHeld: false,
+  superPressed: false,
+  superHeld: false,
   dashPressed: false,
   dashHeld: false,
   sprintHeld: false,

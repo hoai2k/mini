@@ -5,14 +5,25 @@
  * so this file is the only place any of them is written down. Nothing here
  * is read at run time from disk -- edit, then `pnpm build:pages`.
  *
+ * ## Two jumps
+ *
+ * **A is the jump.** It fires the instant the button goes down, at the speed
+ * that reaches `jumpApexMax`, and holding A keeps the whole arc. Let go
+ * while he is still going up and the rise is cut to `jumpCut` of its speed,
+ * which lands a tap at `jumpApexMin`. Everything between is a matter of how
+ * long the button is held -- an ordinary jump, with no pause and no wind.
+ * Keep holding past the top and the wings take over as they always did:
+ * hover, then glide.
+ *
  * ## How the spring works
  *
- * A held on the ground winds the spring up; letting go launches it. For the
- * first `tapWindow` seconds nothing is given up: Hopper keeps running, and a
- * release inside that window is the quick hop, taken at full stride with no
- * pause at all. Hold past it and he stops where he stands and the wind
- * begins, reaching full `chargeTime` seconds after the press. The wind
- * fraction `c` runs 0 (a tap, or the instant the wind starts) to 1 (full).
+ * **LB is the spring**, the super jump: held on the ground it winds up, and
+ * letting go launches it. For the first `tapWindow` seconds nothing is given
+ * up -- Hopper keeps running, so a mis-tap never costs a stride -- and a
+ * release inside that window is the smallest spring there is, taken at full
+ * stride. Hold past it and he stops where he stands and the wind begins,
+ * reaching full `chargeTime` seconds after the press. The wind fraction `c`
+ * runs 0 (a tap, or the instant the wind starts) to 1 (full).
  *
  * **Power.** The wind sets one launch speed, written here as the height it
  * would reach thrown straight up: `chargeApexMin` at a tap rising to
@@ -61,6 +72,18 @@
  * number here and they will tell you what moved.
  */
 export const JUMP = {
+  // ---- The jump (A) -----------------------------------------------------
+  /** The height a jump reaches when A is tapped and let straight go, in
+   * metres: about two of Hopper's own heights. */
+  jumpApexMin: 26,
+  /** ...and when A is held the whole way up: about seven of them. This is
+   * the ordinary jump's ceiling; the spring is what goes higher. */
+  jumpApexMax: 96,
+  /** What is left of the rise when A is released on the way up. It is
+   * `sqrt(jumpApexMin / jumpApexMax)` -- change either apex and this should
+   * follow, or a tap stops landing where `jumpApexMin` says it does. */
+  jumpCut: 0.52,
+
   // ---- The arc ----------------------------------------------------------
   /** Downward pull, m/s². A region's own gravity multiplies this. */
   gravity: 120,
@@ -68,11 +91,11 @@ export const JUMP = {
   fallGravity: 1.4,
 
   // ---- The spring -------------------------------------------------------
-  /** Seconds A can be held before Hopper gives anything up. Release inside
-   * this and the spring is the quick hop, taken without breaking stride;
+  /** Seconds LB can be held before Hopper gives anything up. Release inside
+   * this and the spring is its smallest, taken without breaking stride;
    * hold past it and he stops and the wind starts. */
   tapWindow: 0.3,
-  /** Seconds A must be held, counted from the press, to reach a full wind.
+  /** Seconds LB must be held, counted from the press, to reach a full wind.
    * The first `tapWindow` of it is the free hop, so the wind itself builds
    * over `chargeTime - tapWindow`. Holding past this adds nothing, so
    * over-holding only costs the time. */
@@ -107,7 +130,7 @@ export const JUMP = {
   readyRumbleMs: 130,
   readyThrob: 0.05,
   /** A jump away from a ceiling (inverted gravity), as a fraction of the
-   * spring's impulse: a hop that comes back rather than a leap that leaves. */
+   * impulse: a hop that comes back rather than a leap that leaves. */
   ceilingJump: 0.7,
 
   // ---- The run the spring is measured against ---------------------------
@@ -123,7 +146,8 @@ export const JUMP = {
   sprint: 1.6,
 
   // ---- After takeoff ----------------------------------------------------
-  /** Hover: A held in the air holds altitude on beating wings this long. */
+  /** Hover: A still held past the top of a jump (or held from a fall) holds
+   * altitude on beating wings this long. */
   hoverFuel: 1.8,
   hoverLift: 2.5,
   hoverGrip: 9,

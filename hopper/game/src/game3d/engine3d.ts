@@ -153,6 +153,7 @@ export class Engine3D implements GameEngine {
   private hintT = 0;
   private pending = {
     jump: false,
+    super: false,
     kick: false,
     dive: false,
     lock: false,
@@ -238,7 +239,7 @@ export class Engine3D implements GameEngine {
     this.respawnT = 0;
     this.showBanner(this.district!.name, this.district!.subtitle, 3.2);
     this.setHint(
-      'Tap A for a hop without breaking stride, or hold it to wind the spring and aim with the stick: forward leaps flat and far, back stands it up.',
+      'A jumps, and holding it jumps higher. LB winds the spring for a leap that crosses a district -- the stick aims it: forward is flat and far, back stands it up.',
       7,
     );
     this.emit();
@@ -282,7 +283,7 @@ export class Engine3D implements GameEngine {
     this.combat.resetToCheckpoint(this.player.z);
     this.showBanner(district.name, district.subtitle, 3.2);
     this.setHint(
-      'Tap A for a hop without breaking stride, or hold it to wind the spring and aim with the stick: forward leaps flat and far, back stands it up.',
+      'A jumps, and holding it jumps higher. LB winds the spring for a leap that crosses a district -- the stick aims it: forward is flat and far, back stands it up.',
       7,
     );
     this.emit();
@@ -346,6 +347,7 @@ export class Engine3D implements GameEngine {
     this.acc = 0;
     this.pending = {
       jump: false,
+      super: false,
       kick: false,
       dive: false,
       lock: false,
@@ -379,6 +381,7 @@ export class Engine3D implements GameEngine {
     }
     if (!this.paused && f && !this.completed) {
       this.pending.jump ||= f.jumpPressed;
+      this.pending.super ||= f.superPressed;
       this.pending.kick ||= f.kickPressed;
       this.pending.dive ||= f.divePressed;
       this.pending.lock ||= f.lockPressed;
@@ -392,6 +395,7 @@ export class Engine3D implements GameEngine {
             ? {
                 ...f,
                 jumpPressed: this.pending.jump,
+                superPressed: this.pending.super,
                 kickPressed: this.pending.kick,
                 divePressed: this.pending.dive,
                 lockPressed: this.pending.lock,
@@ -400,6 +404,7 @@ export class Engine3D implements GameEngine {
             : {
                 ...f,
                 jumpPressed: false,
+                superPressed: false,
                 kickPressed: false,
                 divePressed: false,
                 lockPressed: false,
@@ -411,6 +416,7 @@ export class Engine3D implements GameEngine {
         first = false;
         this.pending = {
           jump: false,
+          super: false,
           kick: false,
           dive: false,
           lock: false,

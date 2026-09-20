@@ -27,7 +27,8 @@ export const MOVE = {
    * than this is not a wall at all -- it neither blocks a run nor stops a
    * flat spring launched into it -- and the ground resolution simply lifts
    * his feet onto its top. A little over a third of his standing height, so
-   * it reads as something he steps over rather than climbs. */
+   * it reads as something he steps over rather than climbs; anything taller
+   * is a lip to scramble up (see `scramble`) or a wall to jump at. */
   stepOver: 5,
   /** Climbing. Jump into a wall with the stick pushed at it and Hopper takes
    * hold and goes up it on six feet; the stick steers along the face, A
@@ -58,6 +59,12 @@ export const MOVE = {
    * there is somewhere to stand on it. A mast or a trunk is not a wall. */
   climbWide: 5,
   mantleReach: 6,
+  /** ...and how high a lip he hauls up onto from his own two feet, running
+   * at it. Above `stepOver` a rise stops being a stride and becomes a
+   * scramble, and without this a terrace or a low roof is a dead stop with
+   * the stick still pressed into it -- which is what "I get stuck on its
+   * side" feels like. Anything over this is a wall to jump at or climb. */
+  scramble: 12,
   mantleTime: 0.5,
   hopBack: 64,
   hopBackTime: 0.22,
@@ -113,6 +120,9 @@ export interface HopperState {
   wallTimer: number;
   wallNx: number;
   wallNz: number;
+  /** Going up on a jump with A still down. Letting go while this is set
+   * cuts the rise short, which is what makes A a hold-to-go-higher jump. */
+  jumpRise: boolean;
   /** Rising off a stomped back: gravity pulls `bounceGravity` harder until
    * the rebound tops out, which is what makes it a kick rather than a
    * trampoline. */
@@ -197,6 +207,7 @@ export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
     wallTimer: 0,
     wallNx: 0,
     wallNz: 0,
+    jumpRise: false,
     bounceRise: false,
     climbing: false,
     climbNx: 0,
@@ -240,6 +251,9 @@ export interface MoveIntent {
   divePressed: boolean;
   diveHeld: boolean;
   chargeHeld: boolean;
+  /** LB: the spring, wound while held and launched on release. */
+  superPressed: boolean;
+  superHeld: boolean;
   /** Y tapped on the ground: a quick hop backward. */
   hopBackPressed?: boolean;
   dashPressed?: boolean;
@@ -272,6 +286,8 @@ export function intentFromInput(f: InputFrame, cameraYaw: number): MoveIntent {
     divePressed: f.divePressed,
     diveHeld: f.diveHeld,
     chargeHeld: f.chargeHeld,
+    superPressed: f.superPressed,
+    superHeld: f.superHeld,
     dashPressed: f.dashPressed,
     dashHeld: f.dashHeld,
     sprintHeld: f.sprintHeld,
@@ -598,7 +614,7 @@ function stepUpright(
   // Winding the spring roots Hopper: no steering, no sprint, no drift. The
   // first `tapWindow` of the hold gives nothing up, so a quick hop is taken
   // at full stride and only a real wind costs him his feet.
-  const winding = control && !busy && s.grounded && s.springHold > MOVE.tapWindow && (intent.jumpHeld || intent.chargeHeld);
+  const winding = control && !busy && s.grounded && s.springHold > MOVE.tapWindow && (intent.superHeld || intent.chargeHeld);
   s.sprinting =
     !!intent.sprintHeld && s.grounded && s.charge <= 0 && !winding && !busy;
   const canSteer =
@@ -731,16 +747,48 @@ function stepUpright(
   // There is no held guard in this edition and so no button air brake:
   // pushing the stick back against the flight is what slows a spring down.
 
-  // The spring. A held on the ground (or the old charge button) stops Hopper
-  // where he stands and winds the jump up; letting go launches it. Nothing
-  // fires while the button is down, so a quick tap is a small hop taken
-  // without a pause and a long hold is a leap that crosses a district.
+  // The jump. A fires it the instant the button goes down, and holding A
+  // keeps the whole arc: let go on the way up and the rise is cut short, so
+  // a tap is a hop and a full hold is the whole jump. Nothing is wound and
+  // nothing is given up -- the spring below is the button that does that.
+  if (control && !busy && !winding) {
+    const footed = s.grounded || s.coyote > 0;
+    if (footed && (intent.jumpPressed || s.buffer > 0)) {
+      s.vy = apexSpeed(MOVE.jumpApexMax, g) * (world.jumpScale ?? 1);
+      s.grounded = false;
+      s.coyote = 0;
+      s.buffer = 0;
+      s.jumpRise = true;
+      s.bounceRise = false;
+      s.holding = false;
+      s.hovering = false;
+      s.gliding = false;
+      s.glideHold = 0;
+      s.move = 'jump';
+      s.events.push({ kind: 'jump', charged: false });
+    }
+  }
+  // Cutting it short: A let go while he is still going up ends the climb
+  // there, and what is left of the rise is `jumpCut` of what it was.
+  if (s.jumpRise) {
+    if (s.grounded || s.vy <= 0) s.jumpRise = false;
+    else if (!intent.jumpHeld || !control) {
+      s.vy *= MOVE.jumpCut;
+      s.jumpRise = false;
+    }
+  }
+
+  // The spring: the super jump. LB held on the ground (or the old charge
+  // button) stops Hopper where he stands and winds it up; letting go
+  // launches it. Nothing fires while the button is down, so a quick tap is
+  // the smallest spring taken without a pause and a long hold is a leap that
+  // crosses a district.
   if (control && !busy) {
     const footed = s.grounded || s.coyote > 0;
     // A press and a release inside one step is still a spring: the press
     // starts the hold, and the release below lets go of it the same step.
-    if (footed && intent.jumpPressed) s.springHold = Math.max(s.springHold, 1e-6);
-    if (footed && s.springHold > 0 && (intent.jumpHeld || intent.chargeHeld)) {
+    if (footed && intent.superPressed) s.springHold = Math.max(s.springHold, 1e-6);
+    if (footed && s.springHold > 0 && (intent.superHeld || intent.chargeHeld)) {
       s.springHold += dt;
       // Nothing is given up inside the tap window; past it he is rooted and
       // the wind builds from nothing.
@@ -772,6 +820,7 @@ function stepUpright(
       );
       s.vy = speed * Math.sin(aim.angle);
       s.bounceRise = false;
+      s.jumpRise = false;
       // Momentum is not thrown away: a spring never leaves slower along its
       // own line than Hopper was already travelling, so a tap taken at a
       // sprint keeps the sprint. A real wind-up has stopped him by then, so
@@ -1013,16 +1062,21 @@ function stepUpright(
     s.climbing = false;
     s.events.push({ kind: 'climbEnd' });
   }
-  if (wall && !s.grounded) {
-    // Mantle: the lip is within reach and the stick pushes toward it.
+  if (wall) {
+    // Mantle: the lip is within reach and the stick pushes toward it. In the
+    // air that reach is short -- it forgives a leap that fell just short. On
+    // his feet it is a scramble instead, and reaches most of his own height:
+    // a run into a terrace riser or a low roof hauls him up it rather than
+    // stopping him dead against it.
     const lip = wall.collider.y1;
+    const reach = s.grounded ? MOVE.scramble : MOVE.mantleReach;
     const pushing = intent.dx * -wall.nx + intent.dz * -wall.nz > 0.3;
     if (
       pushing &&
       !wall.collider.slim &&
-      (s.climbing || s.vy <= 8) &&
+      (s.grounded || s.climbing || s.vy <= 8) &&
       lip > s.y + 0.5 &&
-      lip <= s.y + MOVE.mantleReach &&
+      lip <= s.y + reach &&
       control &&
       !s.diving
     ) {
@@ -1030,7 +1084,28 @@ function stepUpright(
         s.climbing = false;
         s.events.push({ kind: 'climbEnd' });
       }
-      const over = 3.5 + MOVE.radius;
+      // Where he ends up has to be somewhere he can stand. A full stride in
+      // over the lip is the natural haul, but on something narrow -- a
+      // boulder, a cairn -- that lands him past the far edge, and he drops
+      // straight off it again through its own top corner. So take the
+      // longest reach in that the top actually supports, and if none of them
+      // does, this is not a lip to haul onto at all.
+      const at = (reach: number, ceiling: number) =>
+        world.groundAt(s.x - wall.nx * reach, s.z - wall.nz * reach, ceiling, 0).y;
+      let over = 0;
+      for (const reach of [3.5 + MOVE.radius, MOVE.radius + 1]) {
+        // He has to come down on the lip itself...
+        if (Math.abs(at(reach, lip + 1) - lip) > 1.5) continue;
+        // ...and a body's width further in must not fall away under him. A
+        // step up there is fine -- that is what the next riser of a terrace
+        // looks like -- but a drop means a ledge he would half hang off,
+        // and hauling onto one only puts him through its own top corner.
+        if (at(reach + MOVE.radius, 1e6) < lip - 1.5) continue;
+        over = reach;
+        break;
+      }
+      if (over === 0) return s.events;
+      s.grounded = false;
       s.mantle = MOVE.mantleTime;
       s.mantleFrom = [s.x, s.y, s.z];
       s.mantleTo = [s.x - wall.nx * over, lip, s.z - wall.nz * over];
