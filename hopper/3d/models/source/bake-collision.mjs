@@ -23,6 +23,12 @@
  * Columns are then grouped into layers by (rounded) y0/y1 and run-merged
  * along X within each Z row, to keep the box count sane over flat expanses.
  *
+ * Thin plates: the kit models a deck, a roof or a walkway as a shell far
+ * thinner than a tenth of a metre. A plate is still a floor, so each
+ * interval is given a solid body of at least `MIN_SOLID`, taken downward
+ * from the drawn surface so the walkable top stays exactly where the art
+ * puts it.
+ *
  * Usage: node source/bake-collision.mjs [--step 2] [file.glb ...]
  * With no files, every delivered structure in manifest.json is baked.
  */
@@ -41,6 +47,8 @@ const args = process.argv.slice(2);
 const stepIdx = args.indexOf('--step');
 const step = stepIdx >= 0 ? +args[stepIdx + 1] : 2;
 const wantFiles = new Set(args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--step'));
+/** The least solid body a surface is given, in metres. */
+const MIN_SOLID = 1.5;
 
 const delivery = JSON.parse(fs.readFileSync(path.join(MODELS, 'manifest.json'), 'utf8'));
 const structures = delivery.models.filter((m) => m.category === 'structure' && m.status === 'delivered' && (!wantFiles.size || wantFiles.has(m.file) || wantFiles.has(m.request)));
@@ -159,9 +167,19 @@ function contentType(file) {
 function mergeColumns(columns, step) {
   const layers = new Map(); // "ry0|ry1" -> [{x, z}]
   for (const c of columns) {
-    const ry0 = Math.round(c.y0 / 0.25) * 0.25,
-      ry1 = Math.round(c.y1 / 0.25) * 0.25;
-    if (ry1 - ry0 < 0.05) continue; // degenerate after rounding: not worth a box
+    // A deck, a roof and a walkway are modelled as thin plates -- the
+    // delivered kit builds them well under a tenth of a metre thick -- and a
+    // plate is still a floor. Give every interval a solid body of at least
+    // MIN_SOLID, taken downward so the walkable surface stays exactly where
+    // the art puts it. Dropping these instead is what hollowed the buildings
+    // out: the ivory tower's scan finds 2,796 intervals and 2,747 of them
+    // are plates, the roof deck block's 915 of 917, so discarding them left
+    // a perimeter shell with no storeys in it and a roof you fell through.
+    const y1 = c.y1,
+      y0 = Math.min(c.y0, y1 - MIN_SOLID);
+    const ry0 = Math.round(y0 / 0.25) * 0.25,
+      ry1 = Math.round(y1 / 0.25) * 0.25;
+    if (ry1 - ry0 < 0.05) continue; // degenerate even after that: skip
     const key = `${ry0}|${ry1}`;
     if (!layers.has(key)) layers.set(key, { ry0, ry1, cols: [] });
     layers.get(key).cols.push({ x: c.x, z: c.z });
