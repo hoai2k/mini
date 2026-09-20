@@ -94,6 +94,16 @@ const FLYING = new Set([
 ]);
 export const HOPPER_RENDER_SIZE = 240;
 
+/** The pixel budget a frame is drawn to, and the frame times that move it.
+ * `start` is a little over twice the 1600x900 picture the game composes at;
+ * `floor` is a third more than it. A frame slower than `slow` spends the
+ * budget down, a run faster than `fast` buys it back. */
+const PIXELS = {
+  start: 3.1e6,
+  floor: 1.9e6,
+  slow: 19,
+  fast: 13.5,
+};
 /** Canvas has no UI: DOM overlay owns menus and HUD. Viewport values are world units. */
 export class Renderer {
   readonly canvas: HTMLCanvasElement;
@@ -126,11 +136,51 @@ export class Renderer {
       y < this.bounds.bottom + 120
     );
   }
+  /** How many pixels a frame is worth drawing.
+   *
+   * Every frame repaints the whole screen: the sky, a painting blown up to
+   * cover it, a shade, the motes, the world, and a vignette over the lot. The
+   * cost of that is per pixel and nothing else - it barely moves with how much
+   * of the board exists - so the frame time tracks the size of the canvas and
+   * nothing else. A 2x pixel ratio on a 1080p screen is 8.3 million pixels a
+   * frame for a game whose own picture is 1600x900, and that is where the
+   * stutter comes from.
+   *
+   * The budget starts near twice the logical picture and moves with what the
+   * machine can actually keep up with: slow frames spend it down, a run of
+   * fast ones buys it back. `PIXELS.floor` is still a third more than the
+   * picture the game is composed at. */
+  private budget = PIXELS.start;
+  private smoothed = 0;
+  private lastFrame = 0;
+  private settled = 0;
+  /** Watch how long frames are really taking and spend the budget to suit. */
+  private pace(now: number) {
+    const gap = now - this.lastFrame;
+    this.lastFrame = now;
+    // A first frame, a tab coming back, or a pause: not evidence of anything.
+    if (gap <= 0 || gap > 250) return;
+    this.smoothed = this.smoothed ? this.smoothed + (gap - this.smoothed) * 0.1 : gap;
+    if (++this.settled < 45) return;
+    if (this.smoothed > PIXELS.slow && this.budget > PIXELS.floor) {
+      this.budget = Math.max(PIXELS.floor, this.budget * 0.75);
+      this.settled = 0;
+    } else if (this.smoothed < PIXELS.fast && this.budget < PIXELS.start) {
+      this.budget = Math.min(PIXELS.start, this.budget * 1.2);
+      this.settled = 0;
+    }
+  }
   private resize() {
     const rect = this.canvas.getBoundingClientRect();
     this.width = Math.max(1, rect.width || 1600);
     this.height = Math.max(1, rect.height || 900);
-    this.ratio = Math.min(2, window.devicePixelRatio || 1);
+    const asked = Math.min(2, window.devicePixelRatio || 1);
+    // Never more pixels than the budget. The canvas carries no text - the HUD
+    // and the menus are DOM over the top of it - so a painterly picture can
+    // sit a little under the screen's own grid when the machine needs it to,
+    // but never under three fifths of it.
+    const fit = Math.sqrt(this.budget / (this.width * this.height));
+    this.ratio = Math.max(0.6, Math.min(asked, fit));
     const w = Math.round(this.width * this.ratio),
       h = Math.round(this.height * this.ratio);
     if (this.canvas.width !== w || this.canvas.height !== h) {
@@ -139,6 +189,7 @@ export class Renderer {
     }
   }
   draw(s: RenderState): void {
+    this.pace(performance.now());
     this.resize();
     const c = this.ctx,
       zoom = clamp(s.camera.zoom, 0.2, 3),
@@ -242,8 +293,15 @@ export class Renderer {
     );
     if (s.player.x >= areas[areas.length - 1].xEnd) index = areas.length - 1;
     const area = areas[index];
-    c.fillStyle = area.palette.sky;
-    c.fillRect(0, 0, this.width, this.height);
+    // The near layer is drawn to cover the screen, so the flat sky behind it is
+    // a whole extra screen of fill for nothing once the painting has loaded.
+    if (
+      !this.image('background-' + BACKGROUNDS[area.backgroundIndex]) &&
+      !this.image('bg' + area.backgroundIndex)
+    ) {
+      c.fillStyle = area.palette.sky;
+      c.fillRect(0, 0, this.width, this.height);
+    }
     const layer = (i: number, alpha: number) => {
       const a = areas[i],
         key = BACKGROUNDS[a.backgroundIndex],
