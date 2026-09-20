@@ -488,6 +488,8 @@ export default function Home() {
     if (!a || !i || !surface) return;
     let alive = true;
     i.setSurface(surface);
+    // W jumps and F spin-kicks in the 2D edition, where nothing else wants them.
+    i.setLayout(edition);
     queueMicrotask(() => {
       if (!alive) return;
       setReady(false);
@@ -901,8 +903,8 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    KEYBOARD <span>← →</span> move <span>SPACE</span> jump{' '}
-                    <span>J</span> kick <span>K</span> lasers
+                    KEYBOARD <span>← →</span> move <span>SPACE / W</span>{' '}
+                    jump <span>J / F</span> kick <span>K</span> lasers
                   </>
                 )}
               </p>
@@ -1367,9 +1369,10 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      KEYBOARD <span>← → / A D</span> move <span>SPACE</span>{' '}
-                      jump <span>J</span> spin kick <span>K</span> lasers{' '}
-                      <span>L</span> kick too <span>ESC</span> pause
+                      KEYBOARD <span>← → / A D</span> move{' '}
+                      <span>SPACE / W</span> jump <span>J / F</span> spin kick{' '}
+                      <span>K</span> lasers <span>L</span> kick too{' '}
+                      <span>ESC</span> pause
                     </>
                   )}
                 </div>

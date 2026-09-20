@@ -81,7 +81,6 @@ export class InputManager {
     'KeyK',
     'KeyL',
     'Escape',
-    'KeyI',
     'Enter',
     'Backspace',
     'KeyF',
@@ -148,6 +147,15 @@ export class InputManager {
     window.addEventListener('pointerup', this.onPointerUp);
     window.addEventListener('mousemove', this.onMouseMove);
     canvas?.addEventListener('pointerdown', this.onPointerDown);
+  }
+
+  /** Which edition's keyboard is live. The two games want different keys from
+   * the same hand: the 3D edition walks with WASD and dives on F, while the 2D
+   * edition only ever moves along one axis, so W and F are free there to double
+   * as the jump and the spin kick beside Space and J. */
+  private layout: '2d' | '3d' = '3d';
+  setLayout(layout: '2d' | '3d'): void {
+    this.layout = layout;
   }
 
   /** Follow a replaced canvas. Each edition renders into its own element, so
@@ -290,16 +298,17 @@ export class InputManager {
       );
     const keyboardX =
       Number(held('KeyD', 'ArrowRight')) - Number(held('KeyA', 'ArrowLeft'));
+    const flat = this.layout === '2d';
     const keyboardY =
-      Number(held('KeyS', 'ArrowDown')) - Number(held('KeyW', 'ArrowUp'));
+      Number(held('KeyS', 'ArrowDown')) - Number(held(...(flat ? ['ArrowUp'] : ['KeyW', 'ArrowUp'])));
     const moveX = keyboardX || padX,
       moveY = keyboardY || padY;
     const frame: InputFrame = {
       moveX,
       moveY,
-      jumpHeld: held('Space') || padJump,
-      jumpPressed: edge('Space') || padJumpEdge,
-      kickPressed: edge('KeyJ') || padKick,
+      jumpHeld: held('Space') || (flat && held('KeyW')) || padJump,
+      jumpPressed: edge('Space') || (flat && edge('KeyW')) || padJumpEdge,
+      kickPressed: edge('KeyJ') || (flat && edge('KeyF')) || padKick,
       shootHeld:
         held('KeyK') ||
         edge('KeyK') ||
@@ -309,7 +318,8 @@ export class InputManager {
       lookX: padLookX,
       lookY: padLookY,
       pausePressed: edge('Escape') || padPause,
-      instructionsPressed: edge('KeyI') || padInstructions,
+      // No keyboard shortcut: every menu is reached through the pause menu.
+      instructionsPressed: padInstructions,
       confirmPressed: edge('Enter', 'Space') || padConfirm,
       backPressed: edge('Escape', 'Backspace') || padBack,
       anyPressed:
@@ -321,8 +331,8 @@ export class InputManager {
       connected,
       disconnected,
       active: this.modality,
-      diveHeld: held('KeyF') || padDive,
-      divePressed: edge('KeyF') || padDiveEdge,
+      diveHeld: (!flat && held('KeyF')) || padDive,
+      divePressed: (!flat && edge('KeyF')) || padDiveEdge,
       lockHeld: held('KeyQ') || padLock,
       lockPressed: edge('KeyQ') || padLockEdge,
       // The crouch charge is a held Y on the ground; the engine derives it.
