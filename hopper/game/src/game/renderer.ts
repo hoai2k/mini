@@ -160,7 +160,9 @@ export class Renderer {
     this.lastFrame = now;
     // A first frame, a tab coming back, or a pause: not evidence of anything.
     if (gap <= 0 || gap > 250) return;
-    this.smoothed = this.smoothed ? this.smoothed + (gap - this.smoothed) * 0.1 : gap;
+    this.smoothed = this.smoothed
+      ? this.smoothed + (gap - this.smoothed) * 0.1
+      : gap;
     if (++this.settled < 45) return;
     if (this.smoothed > PIXELS.slow && this.budget > PIXELS.floor) {
       this.budget = Math.max(PIXELS.floor, this.budget * 0.75);
@@ -981,7 +983,13 @@ export class Renderer {
     c.scale(facing * e.scaleX, e.scaleY);
     if (e.invulnerable > 0) c.globalAlpha = 0.62 + Math.sin(time * 65) * 0.25;
     else if (lurking) c.globalAlpha = 0.86;
-    if (e.glow > 0) {
+    const guarding = 'mirror' in e && e.mirror > 0;
+    if (guarding) {
+      // Wings up: the silhouette is rimmed in cold light rather than red, so
+      // the guard reads at a glance even mid-swoop.
+      c.shadowColor = '#9ff6ff';
+      c.shadowBlur = 24 + (reducedMotion ? 6 : Math.sin(time * 7) * 8 + 8);
+    } else if (e.glow > 0) {
       c.shadowColor = e.open > 0 ? '#ffe7a4' : '#db8dff';
       c.shadowBlur = 12 + e.glow * 25;
     } else {
@@ -996,6 +1004,39 @@ export class Renderer {
     }
     c.drawImage(img, -w / 2, -h, w, h);
     c.restore();
+    if (guarding) {
+      // The lit ribcage and the shell around it: while this is up a beam comes
+      // straight back off the chest, and the way through is to turn the Rook's
+      // own shots into it instead.
+      const gx = e.x,
+        gy = e.y + e.bob - h * 0.62,
+        beat = reducedMotion ? 0.5 : 0.5 + Math.sin(time * 7) * 0.5;
+      c.save();
+      c.globalCompositeOperation = 'lighter';
+      const heart = c.createRadialGradient(gx, gy, 2, gx, gy, w * 0.42);
+      heart.addColorStop(0, 'rgba(214,255,255,0.75)');
+      heart.addColorStop(0.4, 'rgba(118,233,255,0.34)');
+      heart.addColorStop(1, 'rgba(24,96,150,0)');
+      c.fillStyle = heart;
+      c.beginPath();
+      c.arc(gx, gy, w * 0.42, 0, Math.PI * 2);
+      c.fill();
+      c.globalAlpha = 0.45 + beat * 0.4;
+      c.strokeStyle = '#bff6ff';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.ellipse(
+        gx,
+        gy,
+        w * 0.62 + beat * 12,
+        h * 0.46 + beat * 12,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      c.stroke();
+      c.restore();
+    }
     if (e.state === 'telegraph') {
       c.save();
       c.strokeStyle = '#ffce81';

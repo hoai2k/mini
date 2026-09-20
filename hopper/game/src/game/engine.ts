@@ -1,5 +1,10 @@
 import { buildLevel, type LevelData, type Platform } from './levels';
-import { CombatWorld, ENEMY_ORDER, type CombatCallbacks } from './combat';
+import {
+  CombatWorld,
+  ENEMY_ORDER,
+  chestOf,
+  type CombatCallbacks,
+} from './combat';
 import { hopperEye } from './hopper-animation';
 import { Renderer } from './renderer';
 import type { InputFrame } from './input';
@@ -1239,7 +1244,11 @@ export class Engine {
       // three, the way it does in the 3D edition. Once per swing, tracked by
       // the same id the shadows are hit with.
       for (const bar of this.level.barriers) {
-        if (this.broken.has(bar.id) || this.kickedBarriers.has(`${this.kickId}:${bar.id}`)) continue;
+        if (
+          this.broken.has(bar.id) ||
+          this.kickedBarriers.has(`${this.kickId}:${bar.id}`)
+        )
+          continue;
         const cx = Math.max(bar.x, Math.min(bar.x + bar.w, p.x)),
           cy = Math.max(bar.y, Math.min(bar.y + bar.h, p.y - 60 * sign));
         if (Math.hypot(cx - p.x, cy - (p.y - 60 * sign)) > 165) continue;
@@ -1530,8 +1539,12 @@ export class Engine {
       if (range >= best) continue;
       best = range;
       hitTarget = e;
-      aimX = e.x;
-      aimY = cy;
+      // Candidates are picked from the body's middle, but the shot goes to the
+      // chest: on a boss those are a long way apart, and a beam into the
+      // middle of the Night Rook's box reads as shooting its shins.
+      const chest = chestOf(e);
+      aimX = chest.x;
+      aimY = chest.y;
     }
     // Solid terrain and unbroken cages stop the beam wherever it meets them.
     let end = aimX,

@@ -118,6 +118,13 @@ export interface BossRuntime {
   attackIds: Set<string>;
   arena: LevelData['boss']['arena'];
   spriteIndex: number;
+  /** The Night Rook's wings are up and its ribcage is lit: a beam that meets
+   * it now comes straight back. Counts down; zero means the guard is down. */
+  mirror: number;
+  /** How long until the guard next goes up or comes down. */
+  mirrorT: number;
+  /** Which side of the arena it is crossing towards, -1 left or 1 right. */
+  side: number;
 }
 export interface EnemyProjectile {
   id: number;
@@ -145,6 +152,29 @@ export interface HitResult {
   mirror?: boolean;
   /** Where the shell turned it. */
   at?: { x: number; y: number };
+}
+/** What a shot turned back into a boss is worth, against the 1 a stomp or a
+ * kick lands on an open one. The Night Rook is built around reflecting: its
+ * guard turns lasers away, so its own shots are the way through. */
+const REFLECT_DAMAGE: Record<LevelData['boss']['type'], number> = {
+  nightRook: 3.4,
+  smelterLeviathan: 1,
+  eclipseRegent: 1,
+};
+/** Where a shot should be pointed: a target's chest.
+ *
+ * The painted body of a boss stands far above its compact combat box - the
+ * Night Rook is 400 tall against a box of 250 - so a beam aimed at the middle
+ * of the box reads as shooting its legs. This is the chest instead: the Rook's
+ * pale ribcage, which is where its guard turns a beam away from too. */
+export function chestOf(e: EnemyRuntime | BossRuntime) {
+  return {
+    x: e.x,
+    y:
+      e.y +
+      e.bob -
+      e.h * ('spriteIndex' in e && e.type === 'nightRook' ? 0.99 : 0.5),
+  };
 }
 export const ENEMY_ORDER: EnemyType[] = [
   'shadeHound',
@@ -321,6 +351,9 @@ export class CombatWorld {
       sequence: 0,
       targetX: s.x,
       targetY: s.y,
+      mirror: 0,
+      mirrorT: 1.4,
+      side: -1,
       attackIds: new Set(),
       arena: { ...s.arena },
       spriteIndex: index,
@@ -397,6 +430,8 @@ export class CombatWorld {
     p: CombatPlayer,
     speed = 280,
     offset = 0,
+    type: EnemyProjectile['type'] = 'orb',
+    radius = 12,
   ) {
     const dx = p.x - e.x,
       dy = p.y - (p.h || 90) * 0.5 * p.gravitySign - (e.y - e.h * 0.55),
@@ -407,6 +442,8 @@ export class CombatWorld {
       e.y - e.h * 0.55,
       Math.cos(a) * speed,
       Math.sin(a) * speed,
+      type,
+      radius,
     );
   }
   update(
@@ -988,6 +1025,7 @@ export class CombatWorld {
       cb.effect('phase', b.x, b.y - b.h * 0.5, '#ffe5b8');
       cb.sound('boss');
     }
+    if (b.type === 'nightRook') this.rook(dt, b);
     b.timer -= dt;
     if (b.state === 'telegraph') {
       b.telegraph = clamp(1 - b.timer / (b.sequence === 0 ? 1.7 : 1.2), 0, 1);
@@ -1070,6 +1108,41 @@ export class CombatWorld {
     b.life = 2.2;
     b.color = '#c9ffe5';
   }
+  /** The Night Rook works the width of its arena, and its guard comes and goes.
+   *
+   * It crosses from one side to the other rather than hanging over the middle,
+   * which keeps the fight moving and gives Hopper somewhere to be. And its
+   * wings come up on a cycle: while they are up its ribcage is lit and a beam
+   * meeting it comes straight back, so the way to hurt it is to turn its own
+   * shots into that chest instead. A stagger drops the guard entirely. */
+  private rook(dt: number, b: BossRuntime) {
+    b.mirrorT -= dt;
+    if (b.mirrorT <= 0) {
+      b.mirror = b.mirror > 0 ? 0 : 1;
+      // The weaker it gets the longer it holds the guard up, so the fight
+      // leans further onto turning its shots back as it goes on.
+      b.mirrorT =
+        b.mirror > 0 ? 2.2 + b.phase * 0.35 : Math.max(1.2, 2 - b.phase * 0.25);
+    }
+    if (b.open > 0) {
+      // Staggered: the wings are down and it cannot turn anything aside.
+      b.mirror = 0;
+      b.mirrorT = Math.max(b.mirrorT, b.open);
+    }
+    // Between swoops it is always on its way somewhere, and it turns around at
+    // the edges of its arena rather than settling in the middle.
+    if (b.state === 'attack') return;
+    const to = b.side < 0 ? b.arena.x + 360 : b.arena.x + b.arena.w - 340,
+      step = (700 + b.phase * 60) * dt;
+    b.x += Math.sign(to - b.x) * Math.min(step, Math.abs(to - b.x));
+    if (Math.abs(b.x - to) < 8) b.side = -b.side;
+    // Between passes it rides above head height, so crossing the arena is a
+    // thing to duck under rather than an unavoidable shove; it comes down to
+    // fight. Staggered, it stays where it fell and within reach of a kick.
+    if (b.open > 0) return;
+    const drop = b.arena.y - 230 - b.y;
+    b.y += Math.sign(drop) * Math.min(300 * dt, Math.abs(drop));
+  }
   private startBossAttack(p: CombatPlayer) {
     const b = this.boss,
       phase = b.phase,
@@ -1080,21 +1153,30 @@ export class CombatWorld {
     this.callbacks.sound('boss');
     if (b.type === 'nightRook') {
       if (pattern === 0) {
-        const dx = b.targetX - b.x,
-          dy = b.targetY - (b.y - b.h * 0.5),
-          len = Math.max(1, dist(dx, dy));
-        b.vx = (dx / len) * (500 + phase * 55);
-        b.vy = (dy / len) * 340;
-        b.timer = 0.9;
+        // A crossing swoop. It commits to the far side of the arena instead of
+        // pulling up over the middle, diving through Hopper's height on the
+        // way, and turns back the other way once it lands.
+        const far =
+            b.x > b.arena.x + b.arena.w * 0.5
+              ? b.arena.x + 360
+              : b.arena.x + b.arena.w - 340,
+          dx = far - b.x,
+          span = Math.max(1, Math.abs(dx)),
+          speed = 620 + phase * 60;
+        b.side = dx < 0 ? 1 : -1;
+        b.vx = Math.sign(dx) * speed;
+        b.vy = (clamp(b.targetY - (b.y - b.h * 0.5), -340, 340) / span) * speed;
+        b.timer = Math.min(1.5, span / speed);
       } else if (pattern === 1) {
         for (let n = 0; n < 5 + phase; n++)
           this.aimed(b, p, 270, (n - (4 + phase) / 2) * 0.14);
-        b.y = b.arena.y;
         b.timer = 0.55;
       } else {
+        // The heavy shots are thrown at Hopper rather than rolled along the
+        // floor: two of them, spread a little, so standing still is no answer.
         b.y = b.arena.y;
         for (const n of [-1, 1])
-          this.shot('boss', b.x, b.arena.y - 23, n * 340, 0, 'wave', 23);
+          this.aimed(b, p, 330 + phase * 25, n * 0.1, 'wave', 23);
         b.open = 1.9;
         b.timer = 0.65;
       }
@@ -1255,7 +1337,13 @@ export class CombatWorld {
       b.alive &&
       b.invulnerable <= 0 &&
       !(attackId && b.attackIds.has(attackId)) &&
-      dist(b.x - x, b.y - b.h * 0.52 - y) <
+      // The painted body is far taller than the combat box, so the hurt region
+      // runs from the middle of the box up to the chest: a shot at either
+      // lands, and neither a kick at its legs nor a beam at its ribs is lost.
+      Math.min(
+        dist(b.x - x, b.y - b.h * 0.52 - y),
+        dist(chestOf(b).x - x, chestOf(b).y - y),
+      ) <
         radius + Math.min(b.w, b.h) * 0.48 &&
       !(kind === 'launch' && (b.x - x) * facing > b.w * 0.2)
     ) {
@@ -1263,7 +1351,26 @@ export class CombatWorld {
         this.callbacks.effect('guard', b.x, b.y - b.h, '#ffd5ac');
         return result;
       }
-      b.hp -= damage * (b.open > 0 ? 1 : kind === 'laser' ? 0.3 : 0.65);
+      if (kind === 'laser' && b.mirror > 0) {
+        // Wings up: the beam comes back off the lit ribcage whole, the way a
+        // mirror shadow turns one. Nothing lands.
+        result.guarded = true;
+        result.mirror = true;
+        result.at = chestOf(b);
+        this.callbacks.effect('guard', b.x, b.y - b.h * 0.9, '#b6fbff');
+        return result;
+      }
+      // A shot turned back into it hurts far more than anything Hopper can
+      // throw himself: that is the fight the Night Rook is asking for.
+      b.hp -=
+        damage *
+        (kind === 'reflect'
+          ? REFLECT_DAMAGE[b.type]
+          : b.open > 0
+            ? 1
+            : kind === 'laser'
+              ? 0.3
+              : 0.65);
       b.invulnerable = 0.15;
       b.glow = 1;
       if (kind === 'kick' || kind === 'reflect' || kind === 'stomp')
