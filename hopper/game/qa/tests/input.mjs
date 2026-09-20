@@ -134,6 +134,43 @@ button(9, false);
 button(8, true);
 assert(input.update(0.016).instructionsPressed);
 button(8, false);
+// The View button still opens the instructions; the keyboard no longer does.
+// Every menu is reached through the pause menu, so there is no shortcut for
+// one, and I is not a game key at all.
+key('keydown', 'KeyI');
+assert(!input.update(0.016).instructionsPressed, 'I does not open instructions');
+key('keyup', 'KeyI');
+
+// The two editions want different keys from the same hand. In the flat game
+// nothing else uses W or F, so they double as the jump and the spin kick;
+// in the 3D game W walks forward and F dives, and neither may do anything
+// else.
+input.setLayout('2d');
+key('keydown', 'KeyW');
+let flat = input.update(0.016);
+assert(flat.jumpPressed && flat.jumpHeld, 'W jumps in the 2D edition');
+assert(flat.moveY === 0, 'and is not also a movement axis there');
+key('keyup', 'KeyW');
+input.resetEdges();
+key('keydown', 'KeyF');
+flat = input.update(0.016);
+assert(flat.kickPressed, 'F spin kicks in the 2D edition');
+assert(!flat.diveHeld && !flat.divePressed, 'and does not dive there');
+key('keyup', 'KeyF');
+input.resetEdges();
+input.setLayout('3d');
+key('keydown', 'KeyW');
+let deep = input.update(0.016);
+assert(deep.moveY === -1, 'W walks forward in the 3D edition');
+assert(!deep.jumpPressed && !deep.jumpHeld, 'and never jumps there');
+key('keyup', 'KeyW');
+input.resetEdges();
+key('keydown', 'KeyF');
+deep = input.update(0.016);
+assert(deep.diveHeld && deep.divePressed, 'F dives in the 3D edition');
+assert(!deep.kickPressed, 'and does not kick there');
+key('keyup', 'KeyF');
+input.resetEdges();
 pads = [];
 frame = input.update(0.016);
 assert(frame.disconnected && !frame.connected);
@@ -157,7 +194,7 @@ assert(
 assert(!tapping.update(0.016).shootHeld);
 tapping.dispose();
 console.log(
-  'PASS: keyboard and Xbox edges, reset quarantine, RT analog threshold, .18 deadzone, menu repeat, disconnect/reconnect, blur, dispose.',
+  'PASS: keyboard and Xbox edges, per-edition W and F, reset quarantine, RT analog threshold, .18 deadzone, menu repeat, disconnect/reconnect, blur, dispose.',
 );
 
 // Multiple controllers share one player without stealing held actions.

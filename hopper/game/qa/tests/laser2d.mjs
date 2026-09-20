@@ -259,10 +259,65 @@ function fire(engine, seconds) {
   );
 }
 
+// ---------------------------------------------------------------------
+// A signal cage comes apart under ordinary hits. It used to open only to a
+// shot parried back into it, which is a thing to know rather than a thing to
+// do; the 3D edition takes one down with lasers or a kick, and so does this.
+// ---------------------------------------------------------------------
+{
+  const cageAt = (x) => ({
+    id: 'cage',
+    x,
+    y: 620,
+    w: 240,
+    h: 250,
+  });
+  const staged = (x) => {
+    const engine = stage('shadeHound', 3000);
+    engine.level.barriers = [cageAt(x)];
+    engine.level.collectibles = [
+      { id: 'signal', x: x + 120, y: 560, barrierId: 'cage' },
+    ];
+    engine.combat = new CombatWorld(engine.level);
+    engine.combat.boss.alive = false;
+    engine.barrierHp = new Map();
+    engine.broken = new Set();
+    return engine;
+  };
+  // The spin kick: the cage stands beside Hopper, within the sweep.
+  const kicked = staged(1060);
+  let swings = 0;
+  for (let n = 0; n < 900 && !kicked.broken.has('cage'); n++) {
+    const press = kicked.player.kickT === 0;
+    if (press) swings++;
+    kicked.step(dt, { ...input, kickPressed: press });
+  }
+  check(kicked.broken.has('cage'), 'the spin kick opens a cage');
+  check(
+    swings > 1 && swings <= 5,
+    `and takes a few swings to do it (${swings})`,
+  );
+  // One swing lands once, however many frames its window covers.
+  const once = staged(1060);
+  const before = once.barrierHp.get('cage') ?? 1;
+  once.step(dt, { ...input, kickPressed: true });
+  for (let n = 0; n < 40; n++) once.step(dt, input);
+  const after = once.barrierHp.get('cage') ?? 1;
+  check(
+    before - after > 0.2 && before - after < 0.5,
+    `one swing is one hit (${(before - after).toFixed(3)})`,
+  );
+  // And the lasers still chip it, from a shelf away.
+  const shot = staged(1400);
+  for (let n = 0; n < 900 && !shot.broken.has('cage'); n++)
+    shot.step(dt, { ...input, shootHeld: true });
+  check(shot.broken.has('cage'), 'eye lasers open a cage too');
+}
+
 if (failures.length) {
   console.error('laser2d FAILED:\n  ' + failures.join('\n  '));
   process.exit(1);
 }
 console.log(
-  `laser2d: ${checks} checks passed (shells turn lasers aside, mirrors send them back, hardened spawns are rare)`,
+  `laser2d: ${checks} checks passed (shells turn lasers aside, mirrors send them back, hardened spawns are rare, cages open to ordinary hits)`,
 );

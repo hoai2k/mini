@@ -2,18 +2,18 @@
   "counts": [
     {
       "mission": 0,
-      "passed": 102,
-      "total": 102
+      "passed": 76,
+      "total": 76
     },
     {
       "mission": 1,
-      "passed": 110,
-      "total": 110
+      "passed": 80,
+      "total": 80
     },
     {
       "mission": 2,
-      "passed": 105,
-      "total": 105
+      "passed": 80,
+      "total": 80
     }
   ],
   "failures": [],
@@ -23,8 +23,8 @@
     "exited": true,
     "recovered": true,
     "final": {
-      "x": 67213,
-      "y": -3701
+      "x": 45426.98611111083,
+      "y": -3583
     }
   }
 }

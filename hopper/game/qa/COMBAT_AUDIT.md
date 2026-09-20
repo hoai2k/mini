@@ -81,6 +81,12 @@ A later pass changed what the two guard buttons cover, to make the answer to "so
 
 - **X sweeps behind and overhead only.** The kick's damage arc is centred 55 units behind Hopper and uses the same rear filter as the takeoff strike, so it reaches nothing in front. It parries a blow arriving from behind or straight down. Deflecting shots with it also only works behind. *(Reversed since: see "The spin kick turns all the way round" below.)*
 - **B guards the front and does no damage.** Held, it parries frontal blows and shots at 0.2 energy each, staggering the attacker and turning shots back at their shooter, and leaves the back open. It still drains while held, breaks when empty, recharges on release, and suspends kicking and shooting.
+- **A signal cage is something to hit.** It has eight points of integrity and
+  comes apart under anything that lands on it: an eye laser takes one, a spin
+  kick three (once per swing), and a shot parried back into it four. It used
+  to open only to the parried shot, which is a thing to know rather than a
+  thing to do; the 3D edition already took one down with lasers or a kick, and
+  the 2D edition now matches it.
 - **A parried shot is turned, not swallowed.** Whichever guard catches it, the projectile becomes Hopper's and flies back as a `reflect` hit (armor-opening like a kick, but with no rear filter).
 - **Eye lasers auto-aim downward.** Targets are chosen in a cone reaching 1.9× the horizontal distance below and 0.45× above, measured from Hopper's body so a shadow pressed against it still counts, and the beam is clipped against solid terrain and unbroken cages by a slab test rather than the old horizontal-band check.
 

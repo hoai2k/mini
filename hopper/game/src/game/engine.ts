@@ -245,6 +245,8 @@ export class Engine {
   broken = new Set<string>();
   /** Integrity left in each cage as 0..1, and the flash left on a fresh hit. */
   barrierHp = new Map<string, number>();
+  /** `${kickId}:${barrierId}` for every cage a swing has already struck. */
+  private kickedBarriers = new Set<string>();
   barrierFlash = new Map<string, number>();
   checkpointIndex = 0;
   settings: GameSettings = {
@@ -588,6 +590,7 @@ export class Engine {
     this.broken = new Set();
     this.barrierHp = new Map();
     this.barrierFlash = new Map();
+    this.kickedBarriers.clear();
     this.lockT = 0;
     this.score = save?.score || 0;
     this.checkpointIndex = clamp(
@@ -1232,6 +1235,17 @@ export class Engine {
         `kick-${this.kickId}`,
       );
       this.score += result.kills * 150;
+      // A cage is something to hit, not a puzzle: the sweep takes it down in
+      // three, the way it does in the 3D edition. Once per swing, tracked by
+      // the same id the shadows are hit with.
+      for (const bar of this.level.barriers) {
+        if (this.broken.has(bar.id) || this.kickedBarriers.has(`${this.kickId}:${bar.id}`)) continue;
+        const cx = Math.max(bar.x, Math.min(bar.x + bar.w, p.x)),
+          cy = Math.max(bar.y, Math.min(bar.y + bar.h, p.y - 60 * sign));
+        if (Math.hypot(cx - p.x, cy - (p.y - 60 * sign)) > 165) continue;
+        this.kickedBarriers.add(`${this.kickId}:${bar.id}`);
+        this.damageBarrier(bar.id, 3);
+      }
       for (const b of this.combat.projectiles) {
         if (
           b.owner !== 'player' &&

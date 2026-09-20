@@ -79,9 +79,35 @@ for (let m = 0; m < 3; m++) {
     l.undercroft.length === 3,
     `mission ${m}: an undercroft per area (${l.undercroft.length})`,
   );
+  // Coverage rather than a count: the boards are shorter than they were, and
+  // what matters is that the dark floor runs the whole way with a pad along
+  // it often enough to walk to - not how many that adds up to.
+  const covered = l.undercroft.every((u) => {
+    const run = floors
+      .filter((f) => f.x + f.w > u.xStart && f.x < u.xEnd)
+      .sort((a, b) => a.x - b.x);
+    if (!run.length || run[0].x > u.xStart) return false;
+    let reach = run[0].x + run[0].w;
+    for (const f of run.slice(1)) {
+      if (f.x > reach + 1) return false;
+      reach = Math.max(reach, f.x + f.w);
+    }
+    return reach >= u.xEnd;
+  });
+  const padGap = Math.max(
+    ...pads
+      .map((p) => p.x)
+      .sort((a, b) => a - b)
+      .slice(1)
+      .map((x, i) => x - pads.map((p) => p.x).sort((a, b) => a - b)[i]),
+  );
   check(
-    floors.length > 100 && pads.length > 50,
-    `mission ${m}: floors ${floors.length}, pads ${pads.length}`,
+    // The floor runs the whole way under every area with no hole in it, and a
+    // pad is never more than half a spacing further than the spacing asks: a
+    // pad is pulled under the nearest route shelf and skipped where that
+    // would stand it on the last one, so it is a target rather than a grid.
+    covered && padGap <= UNDERCROFT.spacing * 1.5,
+    `mission ${m}: floors ${floors.length} (covered ${covered}), pads ${pads.length}, widest pad gap ${Math.round(padGap)}`,
   );
   let below = true,
     growing = true;
