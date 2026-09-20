@@ -1,0 +1,449 @@
+{
+ "tolerance": 3,
+ "step": 2,
+ "columns": 19388,
+ "fallThrough": 280,
+ "frac": 0.014441922838869404,
+ "models": [
+  {
+   "request": "M-043",
+   "name": "Chimney",
+   "file": "structures/foundry/chimney.glb",
+   "columns": 26,
+   "fallThrough": 4,
+   "frac": 0.15384615384615385,
+   "worst": 105,
+   "boxes": 60
+  },
+  {
+   "request": "M-047",
+   "name": "Container stack",
+   "file": "structures/harbor/containerStack.glb",
+   "columns": 120,
+   "fallThrough": 9,
+   "frac": 0.075,
+   "worst": 5.9,
+   "boxes": 42
+  },
+  {
+   "request": "M-029",
+   "name": "Ivory tower",
+   "file": "structures/city/ivoryTower.glb",
+   "columns": 227,
+   "fallThrough": 16,
+   "frac": 0.07048458149779736,
+   "worst": 23.1,
+   "boxes": 103
+  },
+  {
+   "request": "M-027",
+   "name": "Windbreak row",
+   "file": "structures/fields/windbreak.glb",
+   "columns": 78,
+   "fallThrough": 5,
+   "frac": 0.0641025641025641,
+   "worst": 10.4,
+   "boxes": 52
+  },
+  {
+   "request": "M-054",
+   "name": "Exhaust shaft",
+   "file": "structures/launchworks/exhaustShaft.glb",
+   "columns": 663,
+   "fallThrough": 36,
+   "frac": 0.05429864253393665,
+   "worst": 119.7,
+   "boxes": 352
+  },
+  {
+   "request": "M-045",
+   "name": "Stamping press",
+   "file": "structures/foundry/stampingPress.glb",
+   "columns": 143,
+   "fallThrough": 6,
+   "frac": 0.04195804195804196,
+   "worst": 39,
+   "boxes": 87
+  },
+  {
+   "request": "M-030",
+   "name": "Roof deck block",
+   "file": "structures/city/roofDeck.glb",
+   "columns": 291,
+   "fallThrough": 12,
+   "frac": 0.041237113402061855,
+   "worst": 4,
+   "boxes": 82
+  },
+  {
+   "request": "M-057",
+   "name": "Coral spire",
+   "file": "structures/red/coralSpire.glb",
+   "columns": 74,
+   "fallThrough": 3,
+   "frac": 0.04054054054054054,
+   "worst": 10,
+   "boxes": 167
+  },
+  {
+   "request": "M-036",
+   "name": "Crag column",
+   "file": "structures/mountains/cragColumn.glb",
+   "columns": 371,
+   "fallThrough": 14,
+   "frac": 0.03773584905660377,
+   "worst": 63.4,
+   "boxes": 1473
+  },
+  {
+   "request": "M-052",
+   "name": "Rocket on the pad",
+   "file": "structures/launchworks/rocket.glb",
+   "columns": 87,
+   "fallThrough": 3,
+   "frac": 0.034482758620689655,
+   "worst": 120.2,
+   "boxes": 156
+  },
+  {
+   "request": "M-065",
+   "name": "Gravity cathedral facade",
+   "file": "structures/violet/cathedralFacade.glb",
+   "columns": 1856,
+   "fallThrough": 63,
+   "frac": 0.03394396551724138,
+   "worst": 140,
+   "boxes": 193
+  },
+  {
+   "request": "M-049",
+   "name": "Gantry tower",
+   "file": "structures/harbor/gantryTower.glb",
+   "columns": 216,
+   "fallThrough": 7,
+   "frac": 0.032407407407407406,
+   "worst": 10.8,
+   "boxes": 116
+  },
+  {
+   "request": "M-024",
+   "name": "Terrace step",
+   "file": "structures/fields/terraceStep.glb",
+   "columns": 672,
+   "fallThrough": 20,
+   "frac": 0.02976190476190476,
+   "worst": 13.9,
+   "boxes": 97
+  },
+  {
+   "request": "M-042",
+   "name": "Conveyor span",
+   "file": "structures/foundry/conveyorSpan.glb",
+   "columns": 193,
+   "fallThrough": 4,
+   "frac": 0.02072538860103627,
+   "worst": 21.8,
+   "boxes": 21
+  },
+  {
+   "request": "M-039",
+   "name": "Summit transmitter",
+   "file": "structures/mountains/transmitterMast.glb",
+   "columns": 433,
+   "fallThrough": 8,
+   "frac": 0.018475750577367205,
+   "worst": 90,
+   "boxes": 573
+  },
+  {
+   "request": "M-067",
+   "name": "Eclipse dais",
+   "file": "structures/violet/eclipseDais.glb",
+   "columns": 1827,
+   "fallThrough": 26,
+   "frac": 0.014230979748221127,
+   "worst": 17.7,
+   "boxes": 680
+  },
+  {
+   "request": "M-053",
+   "name": "Piston stair",
+   "file": "structures/launchworks/pistonStair.glb",
+   "columns": 145,
+   "fallThrough": 2,
+   "frac": 0.013793103448275862,
+   "worst": 13,
+   "boxes": 115
+  },
+  {
+   "request": "M-031",
+   "name": "Elevated rail span",
+   "file": "structures/city/railSpan.glb",
+   "columns": 415,
+   "fallThrough": 5,
+   "frac": 0.012048192771084338,
+   "worst": 31.4,
+   "boxes": 162
+  },
+  {
+   "request": "M-061",
+   "name": "Root pillar",
+   "file": "structures/blue/rootPillar.glb",
+   "columns": 388,
+   "fallThrough": 4,
+   "frac": 0.010309278350515464,
+   "worst": 136.8,
+   "boxes": 116
+  },
+  {
+   "request": "M-041",
+   "name": "Furnace tower",
+   "file": "structures/foundry/furnaceTower.glb",
+   "columns": 335,
+   "fallThrough": 3,
+   "frac": 0.008955223880597015,
+   "worst": 12.9,
+   "boxes": 290
+  },
+  {
+   "request": "M-062",
+   "name": "Dust current",
+   "file": "structures/blue/dustCurrent.glb",
+   "columns": 720,
+   "fallThrough": 6,
+   "frac": 0.008333333333333333,
+   "worst": 7.9,
+   "boxes": 63
+  },
+  {
+   "request": "M-048",
+   "name": "Freighter",
+   "file": "structures/harbor/freighter.glb",
+   "columns": 2369,
+   "fallThrough": 19,
+   "frac": 0.008020261713803293,
+   "worst": 29.8,
+   "boxes": 372
+  },
+  {
+   "request": "M-056",
+   "name": "Ivory rib arch",
+   "file": "structures/red/ivoryRibArch.glb",
+   "columns": 126,
+   "fallThrough": 1,
+   "frac": 0.007936507936507936,
+   "worst": 5.7,
+   "boxes": 284
+  },
+  {
+   "request": "M-059",
+   "name": "Staged coral bridge",
+   "file": "structures/red/coralBridge.glb",
+   "columns": 402,
+   "fallThrough": 3,
+   "frac": 0.007462686567164179,
+   "worst": 30,
+   "boxes": 43
+  },
+  {
+   "request": "M-051",
+   "name": "Launch ring",
+   "file": "structures/launchworks/launchRing.glb",
+   "columns": 1176,
+   "fallThrough": 1,
+   "frac": 0.0008503401360544217,
+   "worst": 5,
+   "boxes": 893
+  },
+  {
+   "request": "M-025",
+   "name": "Farmhouse",
+   "file": "structures/fields/farmhouse.glb",
+   "columns": 289,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 87
+  },
+  {
+   "request": "M-026",
+   "name": "Grain silo",
+   "file": "structures/fields/silo.glb",
+   "columns": 22,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 30
+  },
+  {
+   "request": "M-028",
+   "name": "Fallen seed vessel",
+   "file": "structures/fields/seedPod.glb",
+   "columns": 112,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 284
+  },
+  {
+   "request": "M-032",
+   "name": "Train car",
+   "file": "structures/city/trainCar.glb",
+   "columns": 33,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 8
+  },
+  {
+   "request": "M-033",
+   "name": "Construction crown",
+   "file": "structures/city/constructionCrown.glb",
+   "columns": 316,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 129
+  },
+  {
+   "request": "M-034",
+   "name": "Rooftop billboard",
+   "file": "structures/city/billboard.glb",
+   "columns": 13,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 26
+  },
+  {
+   "request": "M-035",
+   "name": "Highline observatory",
+   "file": "structures/city/observatoryDome.glb",
+   "columns": 588,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 583
+  },
+  {
+   "request": "M-037",
+   "name": "Ledge shelf",
+   "file": "structures/mountains/ledgeShelf.glb",
+   "columns": 228,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 55
+  },
+  {
+   "request": "M-038",
+   "name": "Ravine bridge",
+   "file": "structures/mountains/ravineBridge.glb",
+   "columns": 300,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 62
+  },
+  {
+   "request": "M-040",
+   "name": "Windsock",
+   "file": "structures/mountains/windsock.glb",
+   "columns": 3,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 11
+  },
+  {
+   "request": "M-044",
+   "name": "Slag barge",
+   "file": "structures/foundry/slagBarge.glb",
+   "columns": 183,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 54
+  },
+  {
+   "request": "M-046",
+   "name": "Crane boom",
+   "file": "structures/harbor/craneBoom.glb",
+   "columns": 160,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 57
+  },
+  {
+   "request": "M-050",
+   "name": "Breakwater",
+   "file": "structures/harbor/breakwater.glb",
+   "columns": 1335,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 113
+  },
+  {
+   "request": "M-055",
+   "name": "Gantry elevator",
+   "file": "structures/launchworks/gantryElevator.glb",
+   "columns": 90,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 186
+  },
+  {
+   "request": "M-058",
+   "name": "Ivory-topped terrace",
+   "file": "structures/red/basinTerrace.glb",
+   "columns": 700,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 59
+  },
+  {
+   "request": "M-060",
+   "name": "Floating reef",
+   "file": "structures/blue/floatingReef.glb",
+   "columns": 653,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 85
+  },
+  {
+   "request": "M-063",
+   "name": "Obsidian arch",
+   "file": "structures/violet/obsidianArch.glb",
+   "columns": 360,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 14
+  },
+  {
+   "request": "M-064",
+   "name": "Ring shard",
+   "file": "structures/violet/ringShard.glb",
+   "columns": 600,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 163
+  },
+  {
+   "request": "M-066",
+   "name": "Gravity seam",
+   "file": "structures/violet/gravitySeam.glb",
+   "columns": 50,
+   "fallThrough": 0,
+   "frac": 0,
+   "worst": 0,
+   "boxes": 13
+  }
+ ]
+}

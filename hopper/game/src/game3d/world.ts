@@ -464,7 +464,14 @@ export class World {
    * tops are preferred over near ones; the point is pulled onto the top
    * (inset from its edge); a wanted height prefers tops near it. Spring pads
    * and moving structures are skipped. */
-  perchNear(x: number, z: number, wantY?: number, radius = 110, minRise = 10): { x: number; y: number; z: number } | null {
+  /** `minRise` is a Hopper's own height above the ground he would otherwise
+   * be standing on: a perch is somewhere he has to climb to, not a kerb.
+   * It was 10 m while the delivered structures were hollow shells and there
+   * was little else to choose; now that their storeys are baked, a lower
+   * floor would let a host settle on the first plate it found instead of
+   * going up where it can be seen (`qa/audit-districts.mjs` (j) holds
+   * stronghold climbers to 70% of them perching 20 m up or better). */
+  perchNear(x: number, z: number, wantY?: number, radius = 110, minRise = 14): { x: number; y: number; z: number } | null {
     let best: { x: number; y: number; z: number } | null = null,
       bestScore = Infinity;
     for (const c of [...this.withinRadius(x, z, radius + 40), ...this.perchCandidates]) {
@@ -575,6 +582,14 @@ export class World {
           py = this.groundAt(px, pz, y + 3, 0).y;
         if (Math.abs(py - y) <= 3 && fits(px, pz, py)) return { x: px, y: py + (y - this.groundAt(x, z, y + 3, 0).y), z: pz };
       }
+    // Nothing open on this surface: it is a sealed room, not an overhang.
+    // A delivered structure has storeys now that its stand-in did not (the
+    // bake used to throw away every floor thinner than a plate, which left
+    // the buildings hollow), so a pickup authored inside one can be shut in
+    // by a deck that appeared over it. Take it up to the open top of the
+    // column instead -- the roof, where there is sky.
+    const roof = this.groundAt(x, z, 1e6, 0).y;
+    if (roof > y + 1 && fits(x, z, roof)) return { x, y: roof + (y - this.groundAt(x, z, y + 3, 0).y), z };
     return null;
   }
   private nearestTop(x: number, z: number, y: number, radius: number, yMargin: number, allowWall = false): { x: number; y: number; z: number } | null {
