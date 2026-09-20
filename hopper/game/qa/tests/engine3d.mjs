@@ -953,7 +953,9 @@ function aimFrom(h, extra = {}) {
   check('resetToCheckpoint(0) restores h1 (ahead of the checkpoint)', h1After.alive === true, h1After.alive);
 }
 
+// ---------------------------------------------------------------------
 // 13i. The kick is the whole defence: it turns a shot from any side.
+// ---------------------------------------------------------------------
 {
   const h = startHopper(40, -218);
   const combat = new Combat(world, district);
@@ -1968,12 +1970,15 @@ const farHopper = () => {
       if (c.spring || c.instance?.moving || c.hx < 2.5 || c.hz < 2.5) continue;
       const cos = Math.cos(c.yaw),
         sin = Math.sin(c.yaw);
-      for (const [ox, oz] of [
-        [0, c.hz + 9],
-        [0, -c.hz - 9],
-        [c.hx + 9, 0],
-        [-c.hx - 9, 0],
+      // The face he walks up to has to be wide enough to hold him: the ones
+      // reached across Z are `hx` wide, the ones across X are `hz`.
+      for (const [ox, oz, face] of [
+        [0, c.hz + 9, c.hx],
+        [0, -c.hz - 9, c.hx],
+        [c.hx + 9, 0, c.hz],
+        [-c.hx - 9, 0, c.hz],
       ]) {
+        if (face < MOVE.climbWide) continue;
         const x = c.cx + ox * cos - oz * sin,
           z = c.cz + ox * sin + oz * cos;
         const g0 = world.groundAt(x, z, c.y1, 2.5);
@@ -1987,16 +1992,29 @@ const farHopper = () => {
       if (box) break;
     }
     check('there is a tall face with ground at the foot of it', !!box, box ? `${box.cx.toFixed(0)},${box.cz.toFixed(0)} top ${box.y1.toFixed(0)}` : 'none');
-    const h = startHopper(stand[0], stand[1], stand[2]);
     const toWall = Math.hypot(box.cx - stand[0], box.cz - stand[1]);
     const into = { ...blank, dx: (box.cx - stand[0]) / toWall, dz: (box.cz - stand[1]) / toWall };
+    // Running at it on his feet is not a climb any more: a wall met at a run
+    // stops him, so a climb never takes him out of a stride he wanted.
+    {
+      const r = startHopper(stand[0], stand[1], stand[2]);
+      r.yaw = Math.atan2(into.dx, into.dz);
+      let took = false;
+      for (let i = 0; i < 240 && !took; i++) {
+        const ev = stepHopper(r, world, into, dt);
+        took = ev.some((e) => e.kind === 'climbStart') || r.climbing;
+      }
+      check('running into a wall does not take hold of it', !took, `${r.move} at ${r.y.toFixed(1)}`);
+    }
+    // Jumping into it does: off the ground, stick into the face.
+    const h = startHopper(stand[0], stand[1], stand[2]);
     h.yaw = Math.atan2(into.dx, into.dz);
     let started = false;
     for (let i = 0; i < 240 && !started; i++) {
-      const ev = stepHopper(h, world, into, dt);
+      const ev = stepHopper(h, world, { ...into, jumpPressed: i === 0, jumpHeld: i * dt < MOVE.tapWindow * 0.5 }, dt);
       started = ev.some((e) => e.kind === 'climbStart') || h.climbing;
     }
-    check('pushing into a wall takes hold of it', h.climbing, `${h.x.toFixed(1)},${h.y.toFixed(1)},${h.z.toFixed(1)} move ${h.move}`);
+    check('jumping into a wall takes hold of it', h.climbing, `${h.x.toFixed(1)},${h.y.toFixed(1)},${h.z.toFixed(1)} move ${h.move}`);
     const y0 = h.y;
     const g = new Gait();
     let onWall = 0,

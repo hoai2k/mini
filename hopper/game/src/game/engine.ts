@@ -51,11 +51,6 @@ export interface GameSnapshot {
   standIns?: string;
   /** The stronghold Hopper is fighting: its name and how much of the host still stands. */
   stronghold?: { name: string; remaining: number; total: number };
-  /** 3D district hand-over: the last frame of the district just left, held
-   * over the new one and faded out, so crossing the threshold dissolves
-   * instead of cutting. `transitionFade` is its opacity, 1 down to 0. */
-  transitionImage?: string;
-  transitionFade?: number;
 }
 interface Particle {
   x: number;

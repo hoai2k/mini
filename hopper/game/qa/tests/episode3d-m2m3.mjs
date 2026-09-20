@@ -283,21 +283,21 @@ async function playDistrict(ctx, missionIdx, index, opts = {}) {
       check(!t.cageCrown.visible, `${d.name}: cage ${t.id} crown is gone`);
     }
     teleport(t.x, t.y + 1, t.z);
+    // A signal that happens to sit inside the exit's own radius (Tempest
+    // Docks' last one does, 10 m from a 40 m exit) would cross the threshold
+    // as a side effect of simply being collected, and there is no taking a
+    // crossing back. Shut the threshold for as long as it takes to pick the
+    // signal up, so the rest of this district's checks -- its own hazards,
+    // the totem walk, the real, deliberate exit -- run against a district
+    // that has not already left.
+    const exitR = d.exit.r;
+    d.exit.r = 0;
     // Up to 3 s, not a flat 0.3: a signal authored against a delivered
     // structure's assumed perch may have been snapped onto real ground well
-    // below it, so reaching it can take a real fall. Stop as soon as it is
-    // taken, though: a signal inside the exit's radius (Tempest Docks' last
-    // one) starts the 1.2 s district transition on pickup, and waiting the
-    // full 3 s would let that transition load the next district under us.
+    // below it, so reaching it can take a real fall.
     for (let i = 0; i < 30 && !t.taken; i++) run(0.1);
+    d.exit.r = exitR;
     check(t.taken, `${d.name}: signal ${t.id} taken`);
-    // A signal that happens to sit inside the exit's own radius (Tempest
-    // Docks' last one does, 10 m from a 40 m exit) starts the region's exit
-    // transition as a side effect of simply being collected. Undo that here
-    // so the rest of this district's checks -- its own hazards, the totem
-    // walk, the real, deliberate exit -- run against a district that has not
-    // already begun leaving.
-    if (priv('transitionT') > 0) ctx.engine['transitionT'] = 0;
     // Likewise, a signal that sits inside the boss arena's own radius
     // (Violet Inversion's cathedral-facade beacon, 90 m from the Regent's
     // 170 m dais field, does) wakes the commander as a side effect of
@@ -338,7 +338,7 @@ async function playDistrict(ctx, missionIdx, index, opts = {}) {
     run(8); // let the opening hint expire
     toExit();
     run(0.3);
-    check(priv('transitionT') <= 0 && priv('victoryT') <= 0, 'exit refused while the commander lives');
+    check(!priv('crossing') && !snap().loading && priv('victoryT') <= 0, 'exit refused while the commander lives');
     check(snap().hint?.includes('commander'), 'hint names the commander');
     await fightBoss(ctx, d, w, c, opts.boss);
     // Violet Inversion's exit is the eclipse dais itself, where the Regent
@@ -449,21 +449,19 @@ async function fightBoss(ctx, d, w, c, spec) {
 }
 
 /** Cross the district threshold: the exit starts a transition, the seam
- * raises a loading screen while the next district's paintings settle, and
- * the handover advances districtIndex. Mirrors episode3d.mjs's own handling
- * of the seam without repeating its heading/speed-carry physics test -- that
- * mechanism is district-agnostic and already covered there. */
+ * crossing it hands over to the next district. These walks teleport from
+ * beat to beat, so they reach each threshold cold -- with none of the
+ * running time the approach would otherwise have used to fetch what is
+ * beyond it -- and take the loading hold that catches that case. The warmed,
+ * seamless crossing is district-agnostic and covered in episode3d.mjs. */
 async function advance(ctx, d, index) {
   const { priv, run, snap } = ctx;
-  check(priv('transitionT') > 0, `${d.name}: exit starts the transition`);
-  check(snap().banner === d.exit.name, `${d.name}: exit banner names the next region`);
-  run(1.5);
-  check(!!snap().loading, `${d.name}: the seam raises a loading screen`);
+  check(priv('crossing'), `${d.name}: stepping over the threshold crosses it`);
+  check(!!snap().loading, `${d.name}: reached cold, the seam raises a loading screen`);
   await settle();
   run(1 / 60);
   check(!snap().loading, `${d.name}: the loading screen clears`);
   check(priv('districtIndex') === index + 1, `${d.name}: the threshold hands over to district ${index + 1}`);
-  run(1.6); // the held frame's dissolve clears itself
 }
 
 // =====================================================================

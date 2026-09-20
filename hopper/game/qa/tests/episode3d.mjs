@@ -245,8 +245,8 @@ function playDistrict(index) {
     // structure's assumed perch may have been snapped onto real ground well
     // below it, so reaching it can take a real fall. Stop as soon as it is
     // taken, though: a signal inside the exit's radius (Tempest Docks' last
-    // one) starts the 1.2 s district transition on pickup, and waiting the
-    // full 3 s would let that transition load the next district under us.
+    // one) crosses the threshold on pickup, and waiting the full 3 s would
+    // let the next district load under us.
     for (let i = 0; i < 30 && !t.taken; i++) run(0.1);
     check(t.taken, `${d.name}: signal ${t.id} taken (trigger ${t.x},${t.y.toFixed(1)},${t.z} r ${t.r}; Hopper ${engine.player.x.toFixed(1)},${engine.player.y.toFixed(1)},${engine.player.z.toFixed(1)} ${engine.player.move}; locked ${t.locked})`);
   }
@@ -259,20 +259,29 @@ function playDistrict(index) {
     run(8); // let the opening hint expire
     teleport(d.exit.x, w.heightAt(d.exit.x, d.exit.z) + 1, d.exit.z);
     run(0.3);
-    check(priv('transitionT') <= 0 && priv('victoryT') <= 0, 'exit refused while the commander lives');
+    check(!priv('crossing') && !snapshot.loading && priv('victoryT') <= 0, 'exit refused while the commander lives');
     check(snapshot.hint?.includes('commander'), 'hint names the commander');
     fightBoss(boss, w, c);
-    teleport(d.exit.x, w.heightAt(d.exit.x, d.exit.z) + 1, d.exit.z);
-    run(0.2);
   } else {
     walkTotems();
-    if (priv('district') === d) {
-      teleport(d.exit.x, w.heightAt(d.exit.x, d.exit.z) + 1, d.exit.z);
-      run(0.2);
-    }
   }
   return d;
 }
+/** Walk up to the threshold and step across it. Standing off it first gives
+ * the approach its chance to fetch the next district's art, which is what
+ * makes the crossing seamless; `await settle()` is the test's stand-in for
+ * the seconds of running that would cover the same ground in play. */
+const approachExit = async (d, w, offset = 120) => {
+  if (priv('district') !== d) return;
+  teleport(d.exit.x, w.heightAt(d.exit.x, d.exit.z + offset) + 1, d.exit.z + offset);
+  run(0.2);
+  await settle();
+  run(1 / 60);
+};
+const stepOverThreshold = (d, w, input) => {
+  teleport(d.exit.x, w.heightAt(d.exit.x, d.exit.z) + 1, d.exit.z);
+  run(1 / 60, input);
+};
 
 function fightBoss(boss, w, c) {
   const rook = boss.rook;
@@ -385,33 +394,16 @@ check(MISSIONS[0].length === 3, 'episode one has three districts');
 }
 
 const first = playDistrict(0);
-check(priv('transitionT') > 0, `${first.name}: exit starts the transition`);
-check(snapshot.banner === first.exit.name, 'exit banner');
-// Cross the threshold at a run, angled off the trail: the hand-over has to
-// keep the heading, the speed and the picture.
+// The last totem of Sunseed Fields stands inside the threshold's own radius,
+// so the walk crosses it the moment it is picked up -- with no running time
+// in hand for the next district's art. That is the cold path, and it is
+// still caught by the loading hold rather than dropping him into a
+// half-painted district.
 {
-  const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-  const angleToTrail = () => {
-    const h = engine.player,
-      route = world().route;
-    // Heading is the way he moves; the facing follows the camera.
-    return wrap(Math.atan2(h.vx, h.vz) - route.yawAt(route.nearest(h.x, h.z).s + 60));
-  };
   const running = { ...empty, moveX: 0.45, moveY: -1 };
-  run(0.4, running);
-  const before = angleToTrail(),
-    speedBefore = Math.hypot(engine.player.vx, engine.player.vz);
-  let speedAtSeam = 0,
-    fadeSeen = 0;
-  for (let i = 0; i < 180 && priv('districtIndex') === 0 && !snapshot.loading; i++) {
-    run(1 / 60, running);
-    speedAtSeam = Math.hypot(engine.player.vx, engine.player.vz);
-    fadeSeen = Math.max(fadeSeen, snapshot.transitionFade || 0);
-  }
-  // The seam now waits for the next district's paintings: the loading screen
-  // is up, play is frozen, and the handover happens once they are in hand.
-  check(!!snapshot.loading, 'the seam raises a loading screen');
+  check(!!snapshot.loading, 'a seam reached cold still raises a loading screen');
   const frozen = { x: engine.player.x, z: engine.player.z };
+  const crossedAt = { x: frozen.x - first.exit.x, z: frozen.z - first.exit.z };
   run(0.5, running);
   check(
     engine.player.x === frozen.x && engine.player.z === frozen.z,
@@ -421,24 +413,86 @@ check(snapshot.banner === first.exit.name, 'exit banner');
   run(1 / 60, running);
   check(!snapshot.loading, 'the loading screen clears');
   check(priv('districtIndex') === 1, 'the threshold hands over to the next district');
-  check(Math.abs(wrap(angleToTrail() - before)) < 0.35, `heading carries across the threshold (${angleToTrail().toFixed(2)} vs ${before.toFixed(2)})`);
-  check(speedAtSeam > speedBefore * 0.6, `momentum carries across the threshold (${speedAtSeam.toFixed(0)} of ${speedBefore.toFixed(0)} m/s)`);
-  check(Math.abs(wrap(priv('camera').yaw - engine.player.yaw)) < 1.2, `the camera comes through pointing the same way as Hopper (cam ${priv('camera').yaw.toFixed(2)} forward ${priv('camera').forward.toFixed(2)} turn ${priv('camera').turn.toFixed(2)}, hopper ${engine.player.yaw.toFixed(2)}, route ${world().route.yawAt(world().route.nearest(engine.player.x, engine.player.z).s + 40).toFixed(2)}, at ${engine.player.x.toFixed(0)},${engine.player.z.toFixed(0)})`);
-  check(!!snapshot.transitionImage && fadeSeen > 0.5, `the frame just left is held over the new district (fade ${fadeSeen.toFixed(2)})`);
+  // However he got here, he keeps his place: the next district's start
+  // stands on the last one's exit, so the offset he crossed at is the
+  // offset he arrives at, and the ground under him does not jump.
+  const d1 = priv('district');
+  check(
+    Math.hypot(engine.player.x - (d1.start.x + crossedAt.x), engine.player.z - (d1.start.z + crossedAt.z)) < 1,
+    `he keeps his place across the threshold (${engine.player.x.toFixed(1)},${engine.player.z.toFixed(1)} vs ${(d1.start.x + crossedAt.x).toFixed(1)},${(d1.start.z + crossedAt.z).toFixed(1)})`,
+  );
 }
 check(priv('districtIndex') === 1, 'second district loaded');
 check(priv('scene').builds === 2, 'scene rebuilt for the second district');
 check(priv('scene').lastBuild.ahead !== undefined, 'the landmark ahead is painted in the next district\'s colours');
 check(JSON.parse(store.get('hopper3d.save')).district === 1, 'district saved');
-// And the dissolve clears itself.
-run(1.6);
-check(!snapshot.transitionImage, 'the held frame fades away');
+
+// ---- The warm seam: walked up to, it is crossed without a pause ----
+// A fresh run of the first district, driven the way play drives it: stand
+// off the threshold long enough for the approach to fetch what is beyond
+// it, then take one step across and check that nothing at all happened
+// except arriving.
+{
+  const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const seamEngine = new Engine3D(canvas, audio, () => {});
+  await seamEngine.load(() => {});
+  seamEngine.start(0, false);
+  seamEngine.setPaused(false);
+  let seamSnap = null;
+  seamEngine.onSnapshot = (x) => (seamSnap = x);
+  const d0 = seamEngine.district,
+    w0 = seamEngine.world;
+  const seamRun = (seconds, input = empty) => {
+    for (let i = 0; i < Math.round(seconds / dt); i++) seamEngine.tick(dt, input);
+  };
+  const angleToTrail = (e) => {
+    const h = e.player,
+      route = e.world.route;
+    return wrap(Math.atan2(h.vx, h.vz) - route.yawAt(route.nearest(h.x, h.z).s + 60));
+  };
+  // Stand 120 m short of the threshold: inside the warming distance, well
+  // outside the threshold's own radius.
+  const standZ = d0.exit.z + 120;
+  seamEngine.player.x = d0.exit.x;
+  seamEngine.player.z = standZ;
+  seamEngine.player.y = w0.heightAt(d0.exit.x, standZ) + 1;
+  seamEngine.player.grounded = true;
+  const running = { ...empty, moveX: 0.45, moveY: -1 };
+  seamRun(0.3, running);
+  check(seamEngine.districtIndex === 0, 'standing off the threshold does not cross it');
+  check(!seamEngine.snapshot().loading, 'and the approach raises no loading screen');
+  // The seconds of running that would cover those 120 m, in test time.
+  await settle();
+  seamRun(0.4, running);
+  const before = angleToTrail(seamEngine),
+    speedBefore = Math.hypot(seamEngine.player.vx, seamEngine.player.vz);
+  // One step, taken on the threshold itself.
+  seamEngine.player.x = d0.exit.x + 9;
+  seamEngine.player.z = d0.exit.z;
+  seamEngine.player.y = w0.heightAt(d0.exit.x + 9, d0.exit.z) + 1;
+  seamEngine.tick(dt, running);
+  check(seamEngine.districtIndex === 1, 'one step across a warmed threshold is the whole crossing');
+  check(!seamEngine.snapshot().loading, 'nothing is held up: no loading screen at a warmed seam');
+  const d1 = seamEngine.district;
+  // Within a stride: the swap happens inside a step he is still running
+  // through, so he ends it a step's travel on. Against the 30 m of exit
+  // radius he used to be snapped across, that is nothing.
+  check(
+    Math.hypot(seamEngine.player.x - (d1.start.x + 9), seamEngine.player.z - d1.start.z) < 3,
+    `he keeps his place (${seamEngine.player.x.toFixed(1)},${seamEngine.player.z.toFixed(1)} vs ${(d1.start.x + 9).toFixed(1)},${d1.start.z.toFixed(1)})`,
+  );
+  const speedAtSeam = Math.hypot(seamEngine.player.vx, seamEngine.player.vz);
+  check(Math.abs(wrap(angleToTrail(seamEngine) - before)) < 0.35, `heading carries across the threshold (${angleToTrail(seamEngine).toFixed(2)} vs ${before.toFixed(2)})`);
+  check(speedAtSeam > speedBefore * 0.6, `momentum carries across the threshold (${speedAtSeam.toFixed(0)} of ${speedBefore.toFixed(0)} m/s)`);
+  check(Math.abs(wrap(seamEngine.camera.yaw - seamEngine.player.yaw)) < 1.2, `the camera comes through pointing the same way as Hopper (cam ${seamEngine.camera.yaw.toFixed(2)}, hopper ${seamEngine.player.yaw.toFixed(2)})`);
+  void seamSnap;
+}
 const second = playDistrict(1);
-run(2.5);
-await settle();
-run(1 / 60);
+await approachExit(second, world());
+stepOverThreshold(second, world());
 check(priv('districtIndex') === 2, `${second.name} leads to the third district`);
 const third = playDistrict(2);
+stepOverThreshold(third, world());
 check(priv('victoryT') > 0, `${third.name}: episode complete`);
 run(3);
 check(snapshot.completed, 'snapshot reports completion');

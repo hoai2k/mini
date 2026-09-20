@@ -71,8 +71,22 @@ interface Carry {
   gliding: boolean;
   hovering: boolean;
   hoverFuel: number;
+  /** Where he stood relative to the threshold he crossed, and how far his
+   * feet were above the ground there. The next district's start sits on
+   * this district's exit -- that is how the picture of it is placed -- so
+   * carrying the offset rather than snapping him to the start makes the
+   * crossing an identity: the same ground under him, one step later. */
+  offX: number;
+  offZ: number;
+  offY: number;
 }
 const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+/** How far short of a district's threshold the next one's art starts being
+ * fetched, in metres. A full-tilt run covers this in about ten seconds and
+ * a spring in three, which is time enough for the handful of paintings a
+ * district needs -- and the fetch costs the run nothing either way, since
+ * it only decides whether crossing is seamless or has to pause. */
+const WARM_AT = 700;
 interface Save {
   mission: number;
   district: number;
@@ -91,12 +105,13 @@ export class Engine3D implements GameEngine {
   private boss: Commander | null = null;
   private districtIndex = 0;
   private clearedGates = new Set<string>();
-  private transitionT = 0;
+  private crossing = false;
   /** The hand-over: the frame captured as the threshold is crossed, and how
    * much of it is still showing. */
-  private transitionImage = '';
-  private transitionFade = 0;
-  private captureNext = false;
+  /** The next district's art, fetched while Hopper is still walking toward
+   * the threshold, so crossing it never has to wait. Null until he is close
+   * enough to bother; `warmed` flips when it has arrived. */
+  private warming: { index: number; ready: boolean; promise: Promise<void> } | null = null;
   private camera: CameraState = createCamera(0, [0, 0, 0]);
   private settings: GameSettings = {
     master: 0.8,
@@ -276,12 +291,18 @@ export class Engine3D implements GameEngine {
     const d = this.district!,
       world = this.world!;
     const cp = this.checkpoints[this.checkpointIndex];
-    const x = cp ? cp.x + 6 : d.start.x,
-      z = cp ? cp.z + 8 : d.start.z;
+    // Arriving over a threshold he keeps his place: the next district's
+    // start stands on the last one's exit, so his offset from that exit is
+    // his offset from this start, and the ground under him does not move.
+    const x = carry ? d.start.x + carry.offX : cp ? cp.x + 6 : d.start.x,
+      z = carry ? d.start.z + carry.offZ : cp ? cp.z + 8 : d.start.z;
     // Face along the trail from here, as the camera will.
-    const forward = cp
-      ? world.route.yawAt(world.route.nearest(x, z).s + 40)
-      : d.start.yaw;
+    const forward =
+      cp && !carry
+        ? world.route.yawAt(world.route.nearest(x, z).s + 40)
+        : carry
+          ? world.route.yawAt(world.route.nearest(x, z).s + 80)
+          : d.start.yaw;
     // Crossing a threshold keeps the facing he had relative to the view and
     // the heading he had relative to the way on, so a run continues as a run.
     const yaw = forward + (carry ? carry.camTurn + carry.turn : 0);
@@ -295,7 +316,8 @@ export class Engine3D implements GameEngine {
       this.player.vx = Math.sin(heading) * carry.speed;
       this.player.vz = Math.cos(heading) * carry.speed;
       if (carry.airborne) {
-        this.player.y += 24;
+        // He was this far off the ground when he crossed; he still is.
+        this.player.y += Math.max(0, carry.offY);
         this.player.vy = carry.vy;
         this.player.grounded = false;
         this.player.gliding = carry.gliding;
@@ -410,15 +432,6 @@ export class Engine3D implements GameEngine {
       this.paused ? 0 : dt,
       this.settings.landingGuide !== false,
     );
-    // The hand-over: keep the frame just drawn, swap districts behind it, and
-    // let the shell dissolve it away over the new one.
-    if (this.captureNext) {
-      this.captureNext = false;
-      this.transitionImage = this.scene.capture();
-      this.transitionFade = 1;
-      this.nextDistrict();
-      this.emit();
-    }
   }
   private step(dt: number, f: InputFrame) {
     const world = this.world!,
@@ -769,17 +782,15 @@ export class Engine3D implements GameEngine {
       if (this.time > 1)
         this.showBanner(chapter.name, d.name.toUpperCase(), 2.2);
     }
-    if (this.transitionFade > 0)
-      this.transitionFade = Math.max(0, this.transitionFade - dt / 1.15);
-    if (this.transitionT > 0) {
-      this.transitionT -= dt;
-      // The swap happens in tick(), right after the last frame of this
-      // district has been drawn, so it can be kept and dissolved from.
-      if (this.transitionT <= 0) this.captureNext = true;
-    } else if (
+    // Coming up on the threshold: fetch the next district's art now, while
+    // he is still walking toward it, so arriving never has to wait for it.
+    const toExit = Math.hypot(d.exit.x - h.x, d.exit.z - h.z);
+    if (toExit < WARM_AT && !this.crossing) this.warmNext();
+    if (
+      !this.crossing &&
       this.victoryT <= 0 &&
       !this.completed &&
-      Math.hypot(d.exit.x - h.x, d.exit.z - h.z) < d.exit.r
+      toExit < d.exit.r
     ) {
       // The threshold is open: a stronghold left standing is a choice, and
       // only the mission's commander bars the way at the end.
@@ -811,8 +822,11 @@ export class Engine3D implements GameEngine {
             localStorage.removeItem(saveKey('3d', 'save'));
           } catch {}
         } else {
-          this.transitionT = 1.2;
-          this.showBanner(d.exit.name, 'REGION COMPLETE', 3.4);
+          // Straight through: no pause and no dissolve. The next district's
+          // start is drawn on this one's exit, so stepping across it is one
+          // more stride -- the banner names where he has arrived, over the
+          // run he is already taking.
+          this.nextDistrict();
         }
       } else if (this.hintT <= 0) {
         this.setHint(
@@ -903,13 +917,39 @@ export class Engine3D implements GameEngine {
     this.routeS = route.nearest(h.x, h.z, this.routeS).s;
     return route.yawAt(this.routeS + 80);
   }
-  /** The episode continues in its next district. Hopper crosses a threshold:
-   * he keeps the way he was facing relative to the trail, the speed he had
-   * and whether he was in the air, and the picture dissolves from the frame
-   * he crossed on rather than cutting. */
+  /** Fetch the next district's paintings while Hopper is still on his way to
+   * the threshold. Idempotent: the first call inside `WARM_AT` starts it and
+   * every call after it is free. Nothing here touches the simulation, so a
+   * slow fetch costs the run nothing -- it only decides whether crossing is
+   * seamless or has to wait. */
+  private warmNext() {
+    const next = this.districtIndex + 1;
+    if (!MISSIONS[this.mission]?.[next]) return;
+    if (this.warming?.index === next) return;
+    const warm: { index: number; ready: boolean; promise: Promise<void> } = {
+      index: next,
+      ready: false,
+      promise: Promise.resolve(),
+    };
+    warm.promise = preloadDistrict(this.mission, next).then(() => {
+      warm.ready = true;
+    });
+    this.warming = warm;
+  }
+  /** The episode continues in its next district. There is no hand-over: the
+   * next district's start is drawn standing on this one's exit, so crossing
+   * the threshold rebuilds the world under Hopper's feet while he keeps his
+   * place on the ground, his heading, his speed and his flight. One stride
+   * ends in one district and the next begins in the one after it.
+   *
+   * The only thing that can stop him is art that has not arrived. `warmNext`
+   * has normally had the whole approach to fetch it; if it somehow has not,
+   * the old loading hold is still there to catch it rather than dropping him
+   * into a half-painted district. */
   private nextDistrict() {
     const h = this.player,
-      old = this.world!;
+      old = this.world!,
+      d = this.district!;
     const forward = old.route.yawAt(old.route.nearest(h.x, h.z).s + 80);
     const speed = Math.hypot(h.vx, h.vz);
     const carry: Carry = {
@@ -925,8 +965,29 @@ export class Engine3D implements GameEngine {
       gliding: h.gliding,
       hovering: h.hovering,
       hoverFuel: h.hoverFuel,
+      // ...and where he is standing, relative to the threshold itself.
+      offX: h.x - d.exit.x,
+      offZ: h.z - d.exit.z,
+      offY: h.y - old.groundAt(h.x, h.z, h.y + 0.05).y,
     };
     const next = this.districtIndex + 1;
+    this.crossing = true;
+    const arrive = () => {
+      this.crossing = false;
+      this.warming = null;
+      this.districtIndex = next;
+      this.loadDistrict(0, carry);
+      this.save();
+      this.emit();
+    };
+    this.warmNext();
+    if (this.warming?.ready) {
+      // The usual way through: everything is already in hand, so the world
+      // is swapped inside the step he crossed on and nothing is shown.
+      arrive();
+      return;
+    }
+    // Cold: fall back to holding the picture until the art lands.
     const name = MISSIONS[this.mission][next]?.().name ?? '';
     this.loading = { label: name, progress: 0 };
     this.emit();
@@ -936,12 +997,7 @@ export class Engine3D implements GameEngine {
       this.emit();
     }).then(() => {
       this.loading = null;
-      this.districtIndex = next;
-      this.loadDistrict(0, carry);
-      this.save();
-      const d = this.district!;
-      this.showBanner(d.name, d.subtitle, 3.2);
-      this.emit();
+      arrive();
     });
   }
   /** How far off the crosshair a shadow stands, in radians. */
@@ -1014,13 +1070,18 @@ export class Engine3D implements GameEngine {
     const h = this.player;
     const apex =
       h.hovering || h.gliding ? MOVE.bounceApexHeld : MOVE.bounceApex;
+    // The rebound is pulled `bounceGravity` harder on the way up, so the
+    // speed that reaches `apex` is correspondingly higher: he leaves fast
+    // and is over the top quickly, which is a kick, not a trampoline.
     h.vy = Math.sqrt(
       2 *
         MOVE.gravity *
+        MOVE.bounceGravity *
         Math.abs(h.gravityScale) *
         apex *
         shadowBounce(_shadow.kind),
     );
+    h.bounceRise = true;
     h.grounded = false;
     h.diving = false;
     h.gliding = false;
@@ -1166,9 +1227,6 @@ export class Engine3D implements GameEngine {
       target: this.targetInfo(),
       standIns: this.standInsOnScreen(),
       stronghold: this.activeStronghold(),
-      transitionImage:
-        this.transitionFade > 0 ? this.transitionImage : undefined,
-      transitionFade: this.transitionFade > 0 ? this.transitionFade : undefined,
     };
   }
   /** The shadow the HUD shows a health bar for: whatever is locked, else

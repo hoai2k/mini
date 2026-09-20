@@ -467,7 +467,7 @@ export class World {
   perchNear(x: number, z: number, wantY?: number, radius = 110, minRise = 10): { x: number; y: number; z: number } | null {
     let best: { x: number; y: number; z: number } | null = null,
       bestScore = Infinity;
-    for (const c of [...this.colliders, ...this.perchCandidates]) {
+    for (const c of [...this.withinRadius(x, z, radius + 40), ...this.perchCandidates]) {
       // A wall shell (a curved facade's ring scan) is fair game here, unlike
       // for nearestTop's signal placement: a stronghold host only needs a
       // point to wait at, not to survive a falling Hopper's resolveWalls
@@ -491,9 +491,21 @@ export class World {
       // the returned point must find it standing on real ground, so that
       // (not c.y1) is the height used from here on; a claim too far from
       // what is really there is not a usable perch at all.
+      // Everything below is decided by what is really there rather than by
+      // this box's claimed top, and asking that is by far the dearest thing
+      // in this loop -- a dense baked district puts thousands of voxel boxes
+      // in one grid cell. So refuse first on what the claim alone can rule
+      // out. Both tests are conservative: the real top has to be within 3 m
+      // of the claim to be used at all, and the score only improves with
+      // rise, so neither can discard a candidate the check below would have
+      // taken.
+      const terrain = this.heightAt(px, pz);
+      if (c.y1 - terrain < minRise - 3) continue;
+      const claim = dist * 0.5 - Math.min(90, c.y1 - terrain + 3) * 0.6;
+      if (claim >= bestScore) continue;
       const groundY = this.groundAt(px, pz, 1e6, 0).y;
       if (Math.abs(groundY - c.y1) > 3) continue;
-      const rise = groundY - this.heightAt(px, pz);
+      const rise = groundY - terrain;
       if (rise < minRise) continue;
       const score = dist * 0.5 + (wantY !== undefined ? Math.abs(groundY - wantY) * 0.5 : 0) - Math.min(90, rise) * 0.6;
       if (score < bestScore) {
@@ -845,6 +857,23 @@ export class World {
         list.push(c);
         this.grid.set(k, list);
       }
+  }
+  /** Every collider whose cell lies within `r` of a point -- unlike `near`,
+   * which samples a few cells and is meant for a body-sized margin, this
+   * walks the whole square of cells, so nothing inside the radius is missed.
+   * For the wide searches (a stronghold host looking for somewhere to
+   * stand): scanning all of them instead costs 56,000 boxes a call in
+   * Thunderhead Range, which is two seconds of a district's build. */
+  withinRadius(x: number, z: number, r: number): Collider[] {
+    const seen = new Set<Collider>();
+    const x0 = Math.floor((x - r) / CELL),
+      x1 = Math.floor((x + r) / CELL),
+      z0 = Math.floor((z - r) / CELL),
+      z1 = Math.floor((z + r) / CELL);
+    for (let cx = x0; cx <= x1; cx++)
+      for (let cz = z0; cz <= z1; cz++)
+        for (const c of this.grid.get(`${cx},${cz}`) || []) seen.add(c);
+    return [...seen];
   }
   /** Colliders whose cells cover a point, with a margin in metres. */
   near(x: number, z: number, margin = 6): Collider[] {

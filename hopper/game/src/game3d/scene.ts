@@ -1032,14 +1032,6 @@ export class Scene3D {
     // aiming view has zoomed in.
     r.scale.setScalar(this.aimRange * 0.17 * Math.tan(((cam.fov * Math.PI) / 180) * 0.5) * (0.85 + 0.15 * cam.aim));
   }
-  /** The frame on screen, as an image the shell can hold over the next one. */
-  capture(): string {
-    try {
-      return this.canvas.toDataURL('image/jpeg', 0.72);
-    } catch {
-      return '';
-    }
-  }
   /** Draw once with no simulation (title screen behind the poster). */
   renderIdle() {
     this.resize();

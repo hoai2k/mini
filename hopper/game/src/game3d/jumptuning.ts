@@ -142,9 +142,16 @@ export const JUMP = {
   // ---- Launched by something other than the legs ------------------------
   /** A spring pad's apex, in metres. */
   springApex: 168,
-  /** Rebounding off a stomped shadow, plain and off a hover or glide. */
-  bounceApex: 56,
-  bounceApexHeld: 84,
+  /** Rebounding off a stomped shadow, plain and off a hover or glide. A
+   * stomp is a kick downward rather than a trampoline, so the rebound is
+   * deliberately short. */
+  bounceApex: 28,
+  bounceApexHeld: 42,
+  /** ...and sharp: while he is rising off a back, gravity pulls this much
+   * harder, so he leaves faster than the apex alone would need and is over
+   * the top in about half the time. It is the snap of the kick, not the
+   * height, that says the stomp landed. */
+  bounceGravity: 1.9,
   /** Wall kick: up, and away from the face. */
   wallKickUp: 62,
   wallKickAway: 26,

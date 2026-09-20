@@ -190,4 +190,63 @@ const TX = 1200,
   c.check('resetStages() brings the deck back', restored.collider !== null && restored.y > ghNear + 10, restored);
 }
 
+// ---------------------------------------------------------------------
+// 5. Steps and walls: what stops Hopper and what he walks over
+// ---------------------------------------------------------------------
+// A box shorter than `MOVE.stepOver` is not a wall at all: he runs over it,
+// and a flat spring launched into it is not blocked by it. A box taller than
+// `MOVE.climbTall` is a wall: it stops a run, and is taken hold of only from
+// the air.
+{
+  const world = new World({ ...base, placements: [] });
+  const gy = world.heightAt(TX, TZ);
+  // A bar across his path, 26 m ahead of where he starts, wide enough that
+  // he cannot go round it inside the run below.
+  const bar = (height) => {
+    const w = new World({ ...base, placements: [] });
+    w.addCollider(
+      { owner: 'test', cx: TX, cz: TZ - 26, yaw: 0, ox: 0, oz: 0, hx: 60, hz: 3, y0: gy - 30, y1: gy + height },
+      null,
+    );
+    return w;
+  };
+  // Run due -Z into it for two seconds. Reports how far past the start he
+  // got, and how high his feet were while he was actually over the bar.
+  const runInto = (w) => {
+    const s = standing(w, TX, TZ);
+    const face = s.yaw;
+    const z0 = s.z;
+    let over = null;
+    for (let i = 0; i < 240; i++) {
+      stepHopper(s, w, { ...blank, dz: -1, faceYaw: face }, dt);
+      if (Math.abs(s.z - (TZ - 26)) < 3) over = over === null ? s.y - gy : Math.max(over, s.y - gy);
+    }
+    return { s, gained: z0 - s.z, over };
+  };
+
+  const kerb = MOVE.stepOver - 1.5;
+  const low = runInto(bar(kerb));
+  c.check('a kerb does not stop a run', low.gained > 120, `${low.gained.toFixed(0)} m past it`);
+  c.check('and crossing it puts his feet on its top', low.over !== null && low.over > kerb - 1.5, `${low.over === null ? 'never over it' : low.over.toFixed(1)} of ${kerb}`);
+
+  const wall = MOVE.climbTall + 6;
+  const high = runInto(bar(wall));
+  c.check('a wall stops a run', high.gained < 30, `${high.gained.toFixed(0)} m past it`);
+  c.check('and running into it never takes hold', !high.s.climbing, high.s.move);
+
+  // A flat spring launched into a kerb clears it rather than being stopped
+  // dead by it: a small thing in front of his legs is not a block on a jump.
+  {
+    const w = bar(kerb);
+    const s = standing(w, TX, TZ);
+    const face = s.yaw;
+    const z0 = s.z;
+    // Run up, then a full forward wind: the flattest, fastest launch there is.
+    for (let i = 0; i < 180; i++) stepHopper(s, w, { ...blank, dz: -1, faceYaw: face }, dt);
+    for (let i = 0; i < 600; i++)
+      stepHopper(s, w, { ...blank, dz: -1, faceYaw: face, jumpPressed: i === 0, jumpHeld: i * dt < MOVE.chargeTime }, dt);
+    c.check('a flat spring is not blocked by a kerb in front of his legs', z0 - s.z > 200, `${(z0 - s.z).toFixed(0)} m`);
+  }
+}
+
 c.done();

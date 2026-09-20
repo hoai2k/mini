@@ -22,10 +22,26 @@ export const MOVE = {
   strafe: 0.85,
   wallGrace: 0.12,
   wallCommit: 0.16,
-  /** Climbing. Push into a wall and Hopper takes hold of it and goes up it
-   * on six feet; the stick steers along the face, A kicks off it, and a lip
-   * within reach is mantled as it always was. Letting go of the stick leaves
-   * him hanging and sliding slowly, which is a rest, not a fall. */
+  /** How tall a thing can be and still be walked over rather than stopped
+   * at: kerbs, rubble, a low wall, the lip of a terrace. Anything shorter
+   * than this is not a wall at all -- it neither blocks a run nor stops a
+   * flat spring launched into it -- and the ground resolution simply lifts
+   * his feet onto its top. A little over a third of his standing height, so
+   * it reads as something he steps over rather than climbs. */
+  stepOver: 5,
+  /** Climbing. Jump into a wall with the stick pushed at it and Hopper takes
+   * hold and goes up it on six feet; the stick steers along the face, A
+   * kicks off it, and a lip within reach is mantled as it always was.
+   * Letting go of the stick leaves him hanging and sliding slowly, which is
+   * a rest, not a fall.
+   *
+   * Taking hold is deliberately narrow, because a climb that starts by
+   * itself is a climb that interrupts running. It needs all of: his feet off
+   * the ground (so it is something he jumped at), the stick pushed into the
+   * face, a face that carries on above his head (`climbTall`, measured from
+   * his feet -- anything shorter he can clear), and a face wide enough to
+   * hold him (`climbWide`, half-width against his own radius). Everything
+   * else he runs over, steps onto or bounces off. */
   climbUp: 27,
   climbDown: 22,
   climbSide: 19,
@@ -34,6 +50,13 @@ export const MOVE = {
   climbEnter: 0.35,
   climbLetGo: 0.72,
   climbGrace: 0.16,
+  /** The lip must stand at least this far above his feet -- his whole
+   * standing height -- before a face is a wall to climb rather than
+   * something to hop. */
+  climbTall: 14,
+  /** ...and the face must be at least this wide (half-width, metres) so
+   * there is somewhere to stand on it. A mast or a trunk is not a wall. */
+  climbWide: 5,
   mantleReach: 6,
   mantleTime: 0.5,
   hopBack: 64,
@@ -90,6 +113,10 @@ export interface HopperState {
   wallTimer: number;
   wallNx: number;
   wallNz: number;
+  /** Rising off a stomped back: gravity pulls `bounceGravity` harder until
+   * the rebound tops out, which is what makes it a kick rather than a
+   * trampoline. */
+  bounceRise: boolean;
   /** On a wall: hanging from it and climbing it, and its outward normal. */
   climbing: boolean;
   climbNx: number;
@@ -170,6 +197,7 @@ export function createHopperState(x = 0, y = 0, z = 0, yaw = 0): HopperState {
     wallTimer: 0,
     wallNx: 0,
     wallNz: 0,
+    bounceRise: false,
     climbing: false,
     climbNx: 0,
     climbNz: 0,
@@ -256,7 +284,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** How far above his feet a top can be and still count as a step to hop up
  * onto rather than a ceiling to stop under (see the ground-resolution
  * section of `stepUpright`). */
-const STEP_UP_MAX = 3;
+const STEP_UP_MAX = MOVE.stepOver;
 /** Where the wound spring is pointing. The stick's own throw, read against
  * the camera's forward, sets the angle it leaves at: fully forward is the
  * flat lunge, neutral the middle, fully back straight up. The backward part
@@ -401,6 +429,18 @@ function mirrorState(s: HopperState) {
  * three blue cages, and signals on spire caps and rocket noses -- and a
  * respawn point he is shoved off is worse than an overlapping nose. The
  * circle stands until those are re-authored around him. */
+/** How wide the face a wall normal points out of is, in metres (half-width).
+ * The normal lies along one of the box's own axes, so the face runs along
+ * the other: a broad wall gives a big number, a mast or a trunk a small one.
+ * Used to tell a wall there is somewhere to stand on from a pole. */
+function faceWidth(c: Collider, nx: number, nz: number): number {
+  // Turn the world-space normal back into the box's own frame.
+  const cos = Math.cos(c.yaw),
+    sin = Math.sin(c.yaw);
+  const lx = nx * cos + nz * sin,
+    lz = -nx * sin + nz * cos;
+  return Math.abs(lx) > Math.abs(lz) ? c.hz : c.hx;
+}
 function resolveWalls(
   s: HopperState,
   world: StepWorld,
@@ -411,7 +451,9 @@ function resolveWalls(
     collider: Collider;
     depth: number;
   } | null = null;
-  const bodyLow = s.y + 2.0,
+  // Anything whose top is below his step height is not a wall: he walks
+  // over it, and a flat spring launched across it is not stopped by it.
+  const bodyLow = s.y + MOVE.stepOver,
     bodyHigh = s.y + MOVE.height - 1.5;
   {
     const px0 = s.x,
@@ -729,6 +771,7 @@ function stepUpright(
         Math.min(1, Math.cos(aim.angle) / Math.cos(MOVE.aimForward)),
       );
       s.vy = speed * Math.sin(aim.angle);
+      s.bounceRise = false;
       // Momentum is not thrown away: a spring never leaves slower along its
       // own line than Hopper was already travelling, so a tap taken at a
       // sprint keeps the sprint. A real wind-up has stopped him by then, so
@@ -851,7 +894,11 @@ function stepUpright(
         s.vx *= k;
         s.vz *= k;
       } else {
-        s.vy -= g * (s.vy < 0 ? MOVE.fallGravity : 1) * dt;
+        // The rebound off a back is pulled harder on the way up, so it is
+        // over quickly; once he is falling it is an ordinary fall again.
+        if (s.bounceRise && s.vy <= 0) s.bounceRise = false;
+        const rise = s.bounceRise ? MOVE.bounceGravity : 1;
+        s.vy -= g * (s.vy < 0 ? MOVE.fallGravity : rise) * dt;
       }
     }
     // Dive (Y in the air).
@@ -905,6 +952,7 @@ function stepUpright(
     s.gliding = false;
     s.hovering = false;
     s.diving = false;
+    s.bounceRise = false;
     s.glideHold = 0;
     s.hoverFuel = MOVE.hoverFuel;
     s.coyote = MOVE.coyote;
@@ -936,12 +984,17 @@ function stepUpright(
     } else if (
       into > MOVE.climbEnter &&
       control &&
+      // Off the ground: a climb is something he jumps into, never something
+      // that takes him mid-stride. Running at a wall now stops him at it.
+      !s.grounded &&
       !s.diving &&
       !s.gliding &&
       !wall.collider.slim &&
       s.mantle <= 0 &&
       s.dashTimer <= 0 &&
-      lip > s.y + 3
+      // Tall enough to be worth climbing, and wide enough to hold him.
+      lip > s.y + MOVE.climbTall &&
+      faceWidth(wall.collider, wall.nx, wall.nz) >= MOVE.climbWide
     ) {
       s.climbing = true;
       s.grounded = false;
@@ -997,6 +1050,7 @@ function stepUpright(
       s.events.push({ kind: 'climbEnd' });
     }
     s.vy = MOVE.wallKickUp;
+    s.bounceRise = false;
     s.vx = s.wallNx * MOVE.wallKickAway;
     s.vz = s.wallNz * MOVE.wallKickAway;
     s.commit = MOVE.wallCommit;
@@ -1008,7 +1062,15 @@ function stepUpright(
   }
 
   // Ground: land on the highest solid top crossed this step, else terrain.
-  const ground = world.groundAt(s.x, s.z, Math.max(prevY, s.y) + 0.05);
+  // On his feet the probe also looks a step's height above them, so a kerb
+  // or a low lip is a thing to walk up onto rather than something he passes
+  // straight through: nothing that short is a wall (`resolveWalls` ignores
+  // it), so if the ground did not pick it up nothing would.
+  const ground = world.groundAt(
+    s.x,
+    s.z,
+    Math.max(prevY, s.y) + (s.grounded ? MOVE.stepOver : 0.05),
+  );
   const surface = ground.y;
   // A soft floor's terrain (no barge, no shore) is never a landing: he rises
   // to the surface instead, where the vertical-motion lift takes back over.
@@ -1034,7 +1096,8 @@ function stepUpright(
       s.y = surface;
       s.groundY = surface;
     } else if (surface > s.y + 2.5) {
-      // Ran into a rise the walls did not catch: snap up only if small.
+      // A step up: the probe above never looks higher than `stepOver`, so
+      // anything it found here is by construction something he can walk onto.
       s.y = surface;
       s.groundY = surface;
     } else {
@@ -1062,6 +1125,7 @@ function stepUpright(
     }
     if (ground.collider?.spring) {
       s.vy = apexSpeed(MOVE.springApex, g);
+      s.bounceRise = false;
       s.grounded = false;
       s.holding = false;
       s.gliding = false;
