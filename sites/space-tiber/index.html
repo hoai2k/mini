@@ -149,7 +149,7 @@
           </div>
           <ol class="tracks" id="tracks">
             <li>
-              <a class="track" href="https://open.spotify.com/track/0zGGPYcB6x2n03zOMH2zwr" rel="noopener" target="_blank">
+              <a class="track" href="https://open.spotify.com/track/0zGGPYcB6x2n03zOMH2zwr" rel="noopener" target="_blank" data-src="theme.mp3">
                 <span class="n">01</span>
                 <span class="t">
                   <strong>Hopper the Grasshopper</strong>
@@ -159,24 +159,24 @@
               </a>
             </li>
             <li>
-              <div class="track is-quiet" aria-disabled="true">
+              <button type="button" class="track is-quiet" data-src="grass-march.mp3" aria-label="Play Grass March" disabled>
                 <span class="n">02</span>
                 <span class="t">
                   <strong>Grass March</strong>
                   <small>Episode Two, The Iron Migration</small>
                 </span>
                 <span class="d">Not streaming yet</span>
-              </div>
+              </button>
             </li>
             <li>
-              <div class="track is-quiet" aria-disabled="true">
+              <button type="button" class="track is-quiet" data-src="dark-moon.mp3" aria-label="Play Dark Moon" disabled>
                 <span class="n">03</span>
                 <span class="t">
                   <strong>Dark Moon</strong>
                   <small>Episode Three, Beyond the Black Sun</small>
                 </span>
                 <span class="d">Not streaming yet</span>
-              </div>
+              </button>
             </li>
           </ol>
         </div>
@@ -185,14 +185,14 @@
           </div>
           <ol class="tracks" id="tracks">
             <li>
-              <div class="track is-quiet" aria-disabled="true">
+              <button type="button" class="track is-quiet" data-src="Moonlit Go-go Interlude.mp3" data-local aria-label="Play Moonlit Go-go Interlude" disabled>
                 <span class="n">04</span>
                 <span class="t">
                   <strong>Moonlit Go-go Interlude</strong>
                   <small>Single · not from the game</small>
                 </span>
                 <span class="d">Not streaming yet</span>
-              </div>
+              </button>
             </li>
           </ol>
         </div>
@@ -200,6 +200,20 @@
           Only the title theme is up on streaming so far. The rest of the
           catalogue follows it there.
         </p>
+        <!-- In-page playback, switched off rather than removed. The recordings
+             still sit with the game at /mini/hopper/audio/ and player.js still
+             drives this element. To bring it back: restore the player.js script
+             tag at the foot of this file, drop the `disabled` attributes from
+             the track buttons above, and turn the Spotify link on track 01 back
+             into a button. -->
+        <div class="player" id="player" hidden>
+          <p class="now"><span>Now playing</span> <strong id="now-title">—</strong></p>
+          <audio id="audio" controls preload="none"></audio>
+          <p class="player-note" id="player-note" hidden>
+            That recording could not be reached. The Hopper tracks live with
+            the game; the single lives with this page, once it lands.
+          </p>
+        </div>
       </section>
 
       <section class="hopper" id="hopper" aria-labelledby="hopper-title">
@@ -272,6 +286,7 @@
       </p>
     </footer>
 
+    <!-- <script src="player.js" defer></script> -->
     <script type="module" src="../stats/counter.js"></script>
   </body>
 </html>

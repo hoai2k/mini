@@ -1,9 +1,13 @@
 # Space Tiber — music
 
-Nothing plays on the page any more: the track list links out to streaming
-instead, so a recording arrives by being published there and linked from
-`index.html`, not by being dropped in here.
+Nothing plays on the page at the moment: the track list links out to
+streaming instead, and the in-page player is switched off rather than
+removed — `player.js` and the player markup are still there, with a comment
+in `index.html` saying how to turn them back on.
 
-Kept because the folder is deployed by `sites/publish.sh` and the single,
-"Moonlit Go-go Interlude", may yet want a file of its own. Until then the
-page lists it greyed out, which is the honest state.
+So a recording arrives by being published on streaming and linked from
+`index.html`. If playback comes back, this folder is still where a file that
+belongs to this page rather than to a game goes:
+
+- `Moonlit Go-go Interlude.mp3` — "Moonlit Go-go Interlude", the single.
+  Not delivered; the page lists it greyed out, which is the honest state.

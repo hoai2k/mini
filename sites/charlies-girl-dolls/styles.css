@@ -396,6 +396,40 @@ main > section.music {
   background: var(--pink);
   border-color: #fff;
 }
+a.track {
+  text-decoration: none;
+}
+/* A song that is not on streaming yet: still listed, plainly not a link.
+   Dimmed rather than hidden, because the run of six is the point. */
+.track.is-quiet {
+  background: rgb(255 255 255 / 0.05);
+  border-color: rgb(255 255 255 / 0.16);
+  color: rgb(255 255 255 / 0.55);
+  cursor: default;
+  transform: none;
+}
+.track.is-quiet:hover,
+.track.is-quiet:focus-visible {
+  background: rgb(255 255 255 / 0.05);
+  border-color: rgb(255 255 255 / 0.16);
+  transform: none;
+}
+.track.is-quiet .n,
+.track.is-quiet small,
+.track.is-quiet .d {
+  color: inherit;
+}
+.track.is-quiet .d {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.track .d .mark {
+  vertical-align: -0.22em;
+  margin-right: 0.2rem;
+  color: #1ed760;
+}
 .track .n {
   font-family: var(--display);
   font-weight: 800;

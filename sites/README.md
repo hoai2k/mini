@@ -16,12 +16,15 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/space-tiber/. The track list is a
   catalogue rather than a player: the title theme links out to Spotify, and
   the recordings that are not on streaming yet are listed greyed out.
+  In-page playback is switched off, not removed — `player.js` and the player
+  markup stay, and `index.html` says how to turn them back on.
 - [`charlies-girl-dolls/`](charlies-girl-dolls/) — artist page for Charlie's
   Girl Dolls, the girl group behind Bubblegum Radar and the songs of a
   doll-racing game. Published at
   https://hoai2k.github.io/mini/sites/charlies-girl-dolls/. Uses the group
-  poster and the single cover from `images/`; the five songs stream from the
-  game rather than being copied here.
+  poster and the single cover from `images/`. Same track list treatment as
+  Space Tiber: Bubblegum Radar links out to Spotify, the other five are
+  greyed out, and in-page playback is switched off rather than removed.
 - [`canagentsis/`](canagentsis/) — artist page for Canagentsis, a Cape Breton
   folk band of the 1880s moored in present-day Toronto harbour, styled after
   late-Victorian nautical print. Published at

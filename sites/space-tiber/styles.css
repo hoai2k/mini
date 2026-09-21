@@ -405,6 +405,11 @@ a.track:focus-visible {
   color: rgb(243 230 200 / 0.55);
   cursor: default;
 }
+.track.is-quiet:hover,
+.track.is-quiet:focus-visible {
+  background: rgb(255 255 255 / 0.03);
+  border-color: rgb(243 230 200 / 0.12);
+}
 .track.is-quiet .n,
 .track.is-quiet small,
 .track.is-quiet .d {
