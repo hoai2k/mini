@@ -1,9 +1,9 @@
 # Space Tiber — music
 
-Recordings that live with this page rather than with a game. The track list
-already points at them; drop the file in here, or in the shared
-`sites/music/` folder, under the exact name and it plays.
+Nothing plays on the page any more: the track list links out to streaming
+instead, so a recording arrives by being published there and linked from
+`index.html`, not by being dropped in here.
 
-- `Moonlit Go-go Interlude.mp3` — "Moonlit Go-go Interlude", the single. Not yet delivered: the page
-  has the cover art and the track entry, and the player says so until the
-  file arrives.
+Kept because the folder is deployed by `sites/publish.sh` and the single,
+"Moonlit Go-go Interlude", may yet want a file of its own. Until then the
+page lists it greyed out, which is the honest state.

@@ -389,6 +389,42 @@ main > section.music {
   background: var(--red);
   border-color: var(--red);
 }
+a.track {
+  text-decoration: none;
+}
+a.track:hover,
+a.track:focus-visible {
+  background: rgb(255 255 255 / 0.12);
+  border-color: var(--gold);
+}
+/* A track that is not on streaming yet: still listed, plainly not a link.
+   Dimmed rather than hidden, because the catalogue is the point. */
+.track.is-quiet {
+  background: rgb(255 255 255 / 0.03);
+  border-color: rgb(243 230 200 / 0.12);
+  color: rgb(243 230 200 / 0.55);
+  cursor: default;
+}
+.track.is-quiet .n,
+.track.is-quiet small,
+.track.is-quiet .d {
+  color: inherit;
+}
+.track.is-quiet .d {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.track .d .mark {
+  vertical-align: -0.22em;
+  margin-right: 0.2rem;
+  color: #1ed760;
+}
+.tracks-note {
+  margin: 1.25rem 0 0;
+  color: var(--cream-2);
+  font-size: 0.92rem;
+}
 .track .n {
   font-family: var(--display);
   color: var(--gold);

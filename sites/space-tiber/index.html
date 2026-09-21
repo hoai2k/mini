@@ -149,34 +149,34 @@
           </div>
           <ol class="tracks" id="tracks">
             <li>
-              <button type="button" class="track" data-src="theme.mp3" aria-label="Play Hopper the Grasshopper">
+              <a class="track" href="https://open.spotify.com/track/0zGGPYcB6x2n03zOMH2zwr" rel="noopener" target="_blank">
                 <span class="n">01</span>
                 <span class="t">
                   <strong>Hopper the Grasshopper</strong>
                   <small>Title theme · Episode One, Earthbound Thunder</small>
                 </span>
-                <span class="d">3:52</span>
-              </button>
+                <span class="d"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.75.75 0 0 1-1 .25c-2.8-1.7-6.3-2.1-10.4-1.2a.75.75 0 1 1-.33-1.46c4.5-1 8.4-.55 11.5 1.35.36.22.47.69.24 1.06zm1.23-2.9a.94.94 0 0 1-1.3.31c-3.2-1.97-8.08-2.54-11.87-1.4a.94.94 0 1 1-.54-1.8c4.33-1.3 9.7-.66 13.38 1.6.44.27.58.85.33 1.29zm.1-3.02c-3.84-2.28-10.17-2.5-13.83-1.38a1.12 1.12 0 1 1-.65-2.15C7.65 5.66 14.64 5.93 19.06 8.55a1.12 1.12 0 1 1-1.14 1.93z" fill="currentColor"/></svg> Spotify</span>
+              </a>
             </li>
             <li>
-              <button type="button" class="track" data-src="grass-march.mp3" aria-label="Play Grass March">
+              <div class="track is-quiet" aria-disabled="true">
                 <span class="n">02</span>
                 <span class="t">
                   <strong>Grass March</strong>
                   <small>Episode Two, The Iron Migration</small>
                 </span>
-                <span class="d">2:44</span>
-              </button>
+                <span class="d">Not streaming yet</span>
+              </div>
             </li>
             <li>
-              <button type="button" class="track" data-src="dark-moon.mp3" aria-label="Play Dark Moon">
+              <div class="track is-quiet" aria-disabled="true">
                 <span class="n">03</span>
                 <span class="t">
                   <strong>Dark Moon</strong>
                   <small>Episode Three, Beyond the Black Sun</small>
                 </span>
-                <span class="d">4:13</span>
-              </button>
+                <span class="d">Not streaming yet</span>
+              </div>
             </li>
           </ol>
         </div>
@@ -185,25 +185,21 @@
           </div>
           <ol class="tracks" id="tracks">
             <li>
-              <button type="button" class="track" data-src="Moonlit Go-go Interlude.mp3" data-local aria-label="Play Moonlit Go-go Interlude">
+              <div class="track is-quiet" aria-disabled="true">
                 <span class="n">04</span>
                 <span class="t">
                   <strong>Moonlit Go-go Interlude</strong>
                   <small>Single · not from the game</small>
                 </span>
-                <span class="d">new</span>
-              </button>
+                <span class="d">Not streaming yet</span>
+              </div>
             </li>
           </ol>
         </div>
-        <div class="player" id="player" hidden>
-          <p class="now"><span>Now playing</span> <strong id="now-title">—</strong></p>
-          <audio id="audio" controls preload="none"></audio>
-          <p class="player-note" id="player-note" hidden>
-            That recording could not be reached. The Hopper tracks live with
-            the game; the single lives with this page, once it lands.
-          </p>
-        </div>
+        <p class="tracks-note">
+          Only the title theme is up on streaming so far. The rest of the
+          catalogue follows it there.
+        </p>
       </section>
 
       <section class="hopper" id="hopper" aria-labelledby="hopper-title">
@@ -276,7 +272,6 @@
       </p>
     </footer>
 
-    <script src="player.js" defer></script>
     <script type="module" src="../stats/counter.js"></script>
   </body>
 </html>

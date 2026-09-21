@@ -8,5 +8,7 @@ looks there first. `sites/publish.sh` deploys this folder to
 
 Expected here or in the band's own folder:
 
-- `Moonlit Go-go Interlude.mp3` — Space Tiber
 - `Matchpoint Midnight.mp3` — Charlie's Girl Dolls
+
+Space Tiber no longer plays anything from here: its track list links out to
+streaming instead.

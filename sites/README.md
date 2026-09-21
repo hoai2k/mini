@@ -13,10 +13,9 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   `ygent/assets/`.
 - [`space-tiber/`](space-tiber/) — artist page for Space Tiber, the band that
   made the music for Hopper the Grasshopper. Published at
-  https://hoai2k.github.io/mini/sites/space-tiber/. Its player streams the
-  three Hopper recordings from the deployed game (`/mini/hopper/audio/`)
-  rather than carrying a second copy; the single, Moonlit Go-go Interlude,
-  plays from `space-tiber/music/` once its file is dropped there.
+  https://hoai2k.github.io/mini/sites/space-tiber/. The track list is a
+  catalogue rather than a player: the title theme links out to Spotify, and
+  the recordings that are not on streaming yet are listed greyed out.
 - [`charlies-girl-dolls/`](charlies-girl-dolls/) — artist page for Charlie's
   Girl Dolls, the girl group behind Bubblegum Radar and the songs of a
   doll-racing game. Published at
@@ -27,7 +26,8 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   folk band of the 1880s moored in present-day Toronto harbour, styled after
   late-Victorian nautical print. Published at
   https://hoai2k.github.io/mini/sites/canagentsis/. Uses the deck photograph
-  from `images/` and plays the band's one recording from `canagentsis/music/`;
+  from `images/` and plays the band's one recording from `canagentsis/music/`,
+  which also links out to Spotify;
   `canagentsis/image-requests.md` lists further art the page could take.
 - [`mechmayhem/`](mechmayhem/) — artist page for Mech Mayhem, the drum &
   bass outfit of five fighters from the Mech Mayhem arena game. Published at

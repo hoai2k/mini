@@ -405,6 +405,37 @@ main > section.tunes {
   border-radius: 999px;
   background: var(--paper);
 }
+/* The record is on streaming as well as on deck: the title and this line
+   both lead there, in the page's brass rather than Spotify's green, which
+   would sit oddly against the sepia. */
+.song-title {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--brass);
+}
+.song-title:hover,
+.song-title:focus-visible {
+  color: var(--brass);
+}
+.spotify {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  color: var(--paper);
+  text-decoration: none;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--brass);
+  border-radius: 999px;
+}
+.spotify:hover,
+.spotify:focus-visible {
+  color: var(--brass);
+  background: rgb(0 0 0 / 0.2);
+}
 
 /* Sailings */
 .sailings {
