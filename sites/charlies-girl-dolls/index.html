@@ -147,54 +147,56 @@
             </p>
             <ol class="tracks" id="tracks">
               <li>
-                <a class="track" href="https://open.spotify.com/track/3XjVisqnqQTDkYfVqvqEyY" rel="noopener" target="_blank" data-src="Bubblegum Radar.mp3">
+                <a class="track" href="https://open.spotify.com/track/3XjVisqnqQTDkYfVqvqEyY" rel="noopener" target="_blank" data-src="Bubblegum Radar.mp3" data-dur="3:04">
                   <span class="n">01</span>
                   <span class="t"><strong>Bubblegum Radar</strong><small>The single</small></span>
                   <span class="d"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.75.75 0 0 1-1 .25c-2.8-1.7-6.3-2.1-10.4-1.2a.75.75 0 1 1-.33-1.46c4.5-1 8.4-.55 11.5 1.35.36.22.47.69.24 1.06zm1.23-2.9a.94.94 0 0 1-1.3.31c-3.2-1.97-8.08-2.54-11.87-1.4a.94.94 0 1 1-.54-1.8c4.33-1.3 9.7-.66 13.38 1.6.44.27.58.85.33 1.29zm.1-3.02c-3.84-2.28-10.17-2.5-13.83-1.38a1.12 1.12 0 1 1-.65-2.15C7.65 5.66 14.64 5.93 19.06 8.55a1.12 1.12 0 1 1-1.14 1.93z" fill="currentColor"/></svg> Spotify</span>
                 </a>
               </li>
               <li>
-                <button type="button" class="track is-quiet" data-src="Plastic Shoes.mp3" aria-label="Play Plastic Shoes" disabled>
+                <button type="button" class="track is-quiet" data-src="Plastic Shoes.mp3" aria-label="Play Plastic Shoes" disabled data-dur="3:22">
                   <span class="n">02</span>
                   <span class="t"><strong>Plastic Shoes</strong><small>Race theme</small></span>
                   <span class="d">Coming soon</span>
                 </button>
               </li>
               <li>
-                <button type="button" class="track is-quiet" data-src="Ghent Sweet Parade.mp3" aria-label="Play Ghent Sweet Parade" disabled>
+                <button type="button" class="track is-quiet" data-src="Ghent Sweet Parade.mp3" aria-label="Play Ghent Sweet Parade" disabled data-dur="2:25">
                   <span class="n">03</span>
                   <span class="t"><strong>Ghent Sweet Parade</strong><small>The village</small></span>
                   <span class="d">Coming soon</span>
                 </button>
               </li>
               <li>
-                <button type="button" class="track is-quiet" data-src="Snow in My Pocket.mp3" aria-label="Play Snow in My Pocket" disabled>
+                <button type="button" class="track is-quiet" data-src="Snow in My Pocket.mp3" aria-label="Play Snow in My Pocket" disabled data-dur="2:39">
                   <span class="n">04</span>
                   <span class="t"><strong>Snow in My Pocket</strong><small>Winter</small></span>
                   <span class="d">Coming soon</span>
                 </button>
               </li>
               <li>
-                <button type="button" class="track is-quiet" data-src="Sugar Castle Run.mp3" aria-label="Play Sugar Castle Run" disabled>
+                <button type="button" class="track is-quiet" data-src="Sugar Castle Run.mp3" aria-label="Play Sugar Castle Run" disabled data-dur="2:36">
                   <span class="n">05</span>
                   <span class="t"><strong>Sugar Castle Run</strong><small>The castles</small></span>
                   <span class="d">Coming soon</span>
                 </button>
               </li>
               <li>
-                <a class="track" href="https://open.spotify.com/track/0grKKtXIPsEbuAv9tLhP1i" rel="noopener" target="_blank" data-src="Matchpoint Midnight.mp3" data-local>
+                <a class="track" href="https://open.spotify.com/track/0grKKtXIPsEbuAv9tLhP1i" rel="noopener" target="_blank" data-src="Matchpoint Midnight.mp3" data-local data-dur="new">
                   <span class="n">06</span>
                   <span class="t"><strong>Matchpoint Midnight</strong><small>Single · not from the game</small></span>
                   <span class="d"><svg class="mark" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.75.75 0 0 1-1 .25c-2.8-1.7-6.3-2.1-10.4-1.2a.75.75 0 1 1-.33-1.46c4.5-1 8.4-.55 11.5 1.35.36.22.47.69.24 1.06zm1.23-2.9a.94.94 0 0 1-1.3.31c-3.2-1.97-8.08-2.54-11.87-1.4a.94.94 0 1 1-.54-1.8c4.33-1.3 9.7-.66 13.38 1.6.44.27.58.85.33 1.29zm.1-3.02c-3.84-2.28-10.17-2.5-13.83-1.38a1.12 1.12 0 1 1-.65-2.15C7.65 5.66 14.64 5.93 19.06 8.55a1.12 1.12 0 1 1-1.14 1.93z" fill="currentColor"/></svg> Spotify</span>
                 </a>
               </li>
             </ol>
-            <!-- In-page playback, switched off rather than removed. The race
-                 songs still stream from the game and player.js still drives
-                 this element. To bring it back: restore the player.js script
-                 tag at the foot of this file, drop the `disabled` attributes
-                 from the track buttons above, and turn the Spotify links on
-                 tracks 01 and 06 back into buttons. -->
+            <!-- In-page playback, switched off rather than removed. Add ?debug=play
+             to the URL and ../shared/play-debug.js turns this element, and
+             every track row, back on. To switch it on for everyone instead,
+             restore the player.js script tag at the foot of this file and
+             drop the `disabled` attributes above.
+             A song that goes up on streaming turns its row into a link like
+             the ones above, keeping data-src and data-dur so the flag still
+             plays it: sites/shared/README.md has the exact swap. -->
             <div class="player" id="player" hidden>
               <p class="now"><span>Now playing</span> <strong id="now-title">—</strong></p>
               <audio id="audio" controls preload="none"></audio>
@@ -241,6 +243,9 @@
     </footer>
 
     <!-- <script src="player.js" defer></script> -->
+    <!-- ?debug=play turns the player below back on; without the flag this
+         does nothing. See sites/shared/README.md. -->
+    <script src="../shared/play-debug.js" defer></script>
     <script type="module" src="../stats/counter.js"></script>
   </body>
 </html>

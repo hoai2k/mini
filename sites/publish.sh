@@ -14,10 +14,18 @@ if [ -d "$here/music" ]; then
   cp -R "$here/music" "$out/music"
   echo "published shared music to $out/music/"
 fi
+# Scripts shared by several band pages (the ?debug=play switch). Same story
+# as music/: no index.html of its own, so copy it explicitly.
+if [ -d "$here/shared" ]; then
+  rm -rf "$out/shared"
+  cp -R "$here/shared" "$out/shared"
+  echo "published shared scripts to $out/shared/"
+fi
 for dir in "$here"/*/; do
   name="$(basename "$dir")"
   [ "$name" = "images" ] && continue
   [ "$name" = "music" ] && continue
+  [ "$name" = "shared" ] && continue
   [ -f "$dir/index.html" ] || continue
   rm -rf "$out/$name"
   cp -R "$dir" "$out/$name"
