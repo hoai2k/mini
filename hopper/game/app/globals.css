@@ -99,6 +99,54 @@ button {
   height: 1px;
   background: #ebdbb673;
 }
+/* A works notice pinned into the sky on the title screen: the game is a work
+ * in progress and says so before anyone presses start. It is tilted and
+ * hazard-striped so it reads as a sign nailed to the poster rather than as
+ * part of the film's own billing. */
+.under-construction {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(6px, 0.8vw, 10px);
+  padding: clamp(5px, 0.7vw, 9px) clamp(8px, 1.1vw, 14px) clamp(5px, 0.7vw, 9px)
+    clamp(6px, 0.8vw, 10px);
+  transform: rotate(2.4deg);
+  border: 1px solid #edc86d7a;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #1b332ce6, #0e1c1ceb);
+  box-shadow:
+    0 6px 18px #04100e6b,
+    inset 0 1px 0 #f5edcb1f;
+  text-align: left;
+}
+.uc-hazard {
+  width: clamp(5px, 0.55vw, 7px);
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #edc86d 0 5px,
+    #1b332c 5px 10px
+  );
+}
+.uc-words {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.uc-words strong {
+  font-size: clamp(8px, 0.86vw, 11px);
+  font-weight: bold;
+  letter-spacing: clamp(1.4px, 0.2vw, 2.5px);
+  color: #f7dc9c;
+}
+.uc-words em {
+  font-size: clamp(6.5px, 0.7vw, 9px);
+  font-style: normal;
+  letter-spacing: clamp(0.7px, 0.1vw, 1.3px);
+  color: #f5edcba8;
+}
 .title-content {
   position: absolute;
   left: 4%;

@@ -709,6 +709,16 @@ export default function Home() {
             <span className="tiny-star">✦</span> A MECHA ADVENTURE{' '}
             <span className="edition-line" /> ORIGINAL SERIES · 01
           </div>
+          {/* The game is still being built, and the title screen says so
+           * plainly rather than letting a player find out by reaching the end
+           * of what exists. */}
+          <div className="under-construction">
+            <span className="uc-hazard" aria-hidden="true" />
+            <span className="uc-words">
+              <strong>UNDER CONSTRUCTION</strong>
+              <em>The adventure is not finished yet</em>
+            </span>
+          </div>
           <div className="title-content">
             <Image
               width={1672}
