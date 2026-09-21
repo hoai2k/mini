@@ -36,8 +36,10 @@ at https://hoai2k.github.io/mini/sites/<name>/.
 - [`mechmayhem/`](mechmayhem/) — artist page for Mech Mayhem, the drum &
   bass outfit of five fighters from the Mech Mayhem arena game. Published at
   https://hoai2k.github.io/mini/sites/mechmayhem/. Uses the band photo from
-  `images/`, portraits and badges from the game repository's canonical art,
-  and streams the game's soundtrack from its deployed site.
+  `images/`, portraits and badges from the game repository's canonical art.
+  Same track list treatment as the other band pages: Jungle Temple links out
+  to Spotify, the other eighteen are greyed out, and in-page playback is
+  switched off rather than removed.
 - [`railway/`](railway/) — The Railway Trio, a real live jazz trio from
   Stratford, Ontario (not part of the Ygent catalogue, which is for the
   imaginary bands). Published at https://hoai2k.github.io/mini/sites/railway/.
