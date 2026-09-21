@@ -23,8 +23,9 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   doll-racing game. Published at
   https://hoai2k.github.io/mini/sites/charlies-girl-dolls/. Uses the group
   poster and the single cover from `images/`. Same track list treatment as
-  Space Tiber: Bubblegum Radar links out to Spotify, the other five are
-  greyed out, and in-page playback is switched off rather than removed.
+  Space Tiber: Bubblegum Radar and Matchpoint Midnight link out to Spotify,
+  the other four are greyed out, and in-page playback is switched off rather
+  than removed.
 - [`canagentsis/`](canagentsis/) — artist page for Canagentsis, a Cape Breton
   folk band of the 1880s moored in present-day Toronto harbour, styled after
   late-Victorian nautical print. Published at
