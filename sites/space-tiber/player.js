@@ -7,8 +7,12 @@
   // Recordings that live with the sites rather than a game: this site's own
   // music/ folder first, then the shared sites/music/ folder.
   var LOCAL_ROOTS = ['music/', '../music/'];
+  // Only the rows that can actually play: a Spotify row is an <a> and should
+  // follow its link, and a row that is not on streaming yet is disabled.
+  // ?debug=play turns both into live buttons before this file is loaded, so
+  // the same selector picks up the whole catalogue in that mode.
   var buttons = Array.prototype.slice.call(
-    document.querySelectorAll('#tracks .track'),
+    document.querySelectorAll('#tracks button.track:not([disabled])'),
   );
   var player = document.getElementById('player');
   var audio = document.getElementById('audio');

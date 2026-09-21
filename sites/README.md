@@ -24,7 +24,8 @@ at https://hoai2k.github.io/mini/sites/<name>/.
   https://hoai2k.github.io/mini/sites/charlies-girl-dolls/. Uses the group
   poster and the single cover from `images/`. Same track list treatment as
   Space Tiber: Bubblegum Radar and Matchpoint Midnight link out to Spotify,
-  the other four are greyed out, and `?debug=play` brings the player back.
+  Plastic Shoes plays in the page for everyone, the other three are greyed
+  out, and `?debug=play` brings the whole list back.
 - [`canagentsis/`](canagentsis/) — artist page for Canagentsis, a Cape Breton
   folk band of the 1880s moored in present-day Toronto harbour, styled after
   late-Victorian nautical print. Published at

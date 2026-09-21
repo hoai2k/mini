@@ -4,8 +4,12 @@
 // segment is URL-encoded before it is requested.
 (function () {
   var GAME_ROOTS = ['https://games.hoai.net/mechmayhem/'];
+  // Only the rows that can actually play: a Spotify row is an <a> and should
+  // follow its link, and a row that is not on streaming yet is disabled.
+  // ?debug=play turns both into live buttons before this file is loaded, so
+  // the same selector picks up the whole catalogue in that mode.
   var buttons = Array.prototype.slice.call(
-    document.querySelectorAll('[data-tracks] .track'),
+    document.querySelectorAll('[data-tracks] button.track:not([disabled])'),
   );
   var player = document.getElementById('player');
   var audio = document.getElementById('audio');

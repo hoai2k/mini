@@ -143,7 +143,7 @@
             <h2 id="music-title">Music</h2>
             <p>
               Five songs for the race, one for the court. Two are up on
-              streaming; the rest follow them there.
+              streaming, Plastic Shoes plays right here, and the rest follow.
             </p>
             <ol class="tracks" id="tracks">
               <li>
@@ -154,10 +154,10 @@
                 </a>
               </li>
               <li>
-                <button type="button" class="track is-quiet" data-src="Plastic Shoes.mp3" aria-label="Play Plastic Shoes" disabled data-dur="3:22">
+                <button type="button" class="track" data-src="Plastic Shoes.mp3" aria-label="Play Plastic Shoes" data-dur="3:22">
                   <span class="n">02</span>
                   <span class="t"><strong>Plastic Shoes</strong><small>Race theme</small></span>
-                  <span class="d">Coming soon</span>
+                  <span class="d">3:22</span>
                 </button>
               </li>
               <li>
@@ -189,14 +189,14 @@
                 </a>
               </li>
             </ol>
-            <!-- In-page playback, switched off rather than removed. Add ?debug=play
-             to the URL and ../shared/play-debug.js turns this element, and
-             every track row, back on. To switch it on for everyone instead,
-             restore the player.js script tag at the foot of this file and
-             drop the `disabled` attributes above.
-             A song that goes up on streaming turns its row into a link like
-             the ones above, keeping data-src and data-dur so the flag still
-             plays it: sites/shared/README.md has the exact swap. -->
+            <!-- Plastic Shoes plays here for everyone, so player.js is loaded at the
+                 foot of this file and drives this element. The rows that are
+                 disabled or link out to Spotify are not in its list; add
+                 ?debug=play and ../shared/play-debug.js turns all of them into
+                 live buttons instead. A song that goes up on streaming turns
+                 its row into a link like the ones above, keeping data-src and
+                 data-dur so the flag still plays it: sites/shared/README.md has
+                 the exact swap. -->
             <div class="player" id="player" hidden>
               <p class="now"><span>Now playing</span> <strong id="now-title">—</strong></p>
               <audio id="audio" controls preload="none"></audio>
@@ -242,10 +242,11 @@
       </p>
     </footer>
 
-    <!-- <script src="player.js" defer></script> -->
-    <!-- ?debug=play turns the player below back on; without the flag this
-         does nothing. See sites/shared/README.md. -->
+    <!-- ?debug=play turns every row into a play button; without the flag this
+         does nothing. It runs before player.js so that player.js sees the
+         unlocked rows. See sites/shared/README.md. -->
     <script src="../shared/play-debug.js" defer></script>
+    <script src="player.js" defer></script>
     <script type="module" src="../stats/counter.js"></script>
   </body>
 </html>

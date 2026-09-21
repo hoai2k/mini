@@ -7,7 +7,8 @@
 // With ?debug=play in the URL, every row goes back to being a play button —
 // the Spotify links included — the duration each row was showing before
 // returns from its data-dur, the player element is revealed, and the page's
-// own player.js is loaded to drive it. Without the flag this file does
+// own player.js drives it — brought in here when the page was not already
+// loading it, and left alone when it was. Without the flag this file does
 // nothing at all, which is the point: one script tag on a page costs a
 // request and changes nothing until it is asked to.
 //
@@ -50,9 +51,15 @@
   var player = document.getElementById('player');
   if (player) player.hidden = false;
 
-  var script = document.createElement('script');
-  script.src = 'player.js';
-  document.body.appendChild(script);
+  // A page that already loads its own player.js — because one of its songs
+  // plays for everyone — needs nothing more: this file runs before it, so it
+  // finds the unlocked rows. Only a page whose player is switched off entirely
+  // needs the script brought in.
+  if (!document.querySelector('script[src="player.js"]')) {
+    var script = document.createElement('script');
+    script.src = 'player.js';
+    document.body.appendChild(script);
+  }
 
   document.documentElement.setAttribute('data-debug-play', 'on');
 })();

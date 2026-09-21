@@ -20,8 +20,8 @@ Adding `?debug=play` to the URL hands the page back:
     https://games.hoai.net/mini/sites/mechmayhem/?debug=play
 
 Every row becomes a play button again, Spotify links included; the durations
-come back; the player element appears and the page's own `player.js` is
-loaded to drive it. `<html data-debug-play="on">` marks the state, for
+come back; the player element appears and the page's own `player.js` drives
+it. `<html data-debug-play="on">` marks the state, for
 styling or for a quick check that the flag took.
 
 Without the flag the script does nothing, so every page can carry it
@@ -71,5 +71,22 @@ on streaming; the rest follow") is worth a look.
 recordings it plays are already served publicly by the games. It is the
 author's view of the page, not access control.
 
-Pages that carry it: `space-tiber/`, `charlies-girl-dolls/`, `mechmayhem/`.
-Not `canagentsis/`, which has one song and plays it outright.
+## Three states a row can be in
+
+| Row | Markup | What a visitor gets |
+| --- | --- | --- |
+| Plays on the page | `<button class="track">` | Clicking it plays the song here |
+| On streaming | `<a class="track" href="…spotify…">` | Clicking it opens Spotify |
+| Not out yet | `<button class="track is-quiet" disabled>` | Listed, greyed, "Coming soon" |
+
+Under `?debug=play` all three play on the page. Every row keeps `data-src`
+and `data-dur` whichever state it is in, which is what makes that possible.
+
+A page needs its own `<script src="player.js" defer>` only if some row is in
+the first state — Charlie's Girl Dolls is, for "Plastic Shoes". Where it is
+loaded, it must come *after* `play-debug.js` so the flag has already unlocked
+the rows; `player.js` only ever picks up `button.track:not([disabled])`, so a
+Spotify row follows its link and a disabled row stays quiet.
+
+Pages that carry the flag: `space-tiber/`, `charlies-girl-dolls/`,
+`mechmayhem/`. Not `canagentsis/`, which has one song and plays it outright.
