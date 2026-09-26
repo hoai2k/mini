@@ -100,12 +100,12 @@
     },
     {
       "type": "smelterLeviathan",
-      "closedDamage": 0.29999999999999716,
+      "closedDamage": 0.20000000000000284,
       "openDamage": 1
     },
     {
       "type": "eclipseRegent",
-      "closedDamage": 0.29999999999999716,
+      "closedDamage": 0.20000000000000284,
       "openDamage": 1
     }
   ]

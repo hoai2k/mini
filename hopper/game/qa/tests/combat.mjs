@@ -52,6 +52,101 @@ for (let m = 0; m < 3; m++) {
   w.hit(w.boss.x, w.boss.y - w.boss.h * 0.52, 50, 100, 'kick');
   assert.equal(wins, 1);
 }
+// Later commanders now share the Rook's patrol, aimed heavy fire, laser guard,
+// and reflected-shot weakness.
+for (let m = 1; m < 3; m++) {
+  const level = buildLevel(m),
+    w = new CombatWorld(level),
+    b = w.boss,
+    p = { ...player(b.arena.x + 700, b.arena.y), w: 110, h: 120 };
+  w.enemies = [];
+  let left = b.x,
+    right = b.x,
+    guarded = false;
+  for (let n = 0; n < 1200; n++) {
+    w.update(1 / 60, n / 60, p, level.platforms, cb);
+    left = Math.min(left, b.x);
+    right = Math.max(right, b.x);
+    guarded ||= b.mirror > 0;
+  }
+  assert.ok(
+    left < b.arena.x + 800 && right > b.arena.x + b.arena.w - 800,
+    `${b.type} patrols both sides of its arena`,
+  );
+  assert.ok(guarded, `${b.type} raises a laser guard`);
+
+  const aimed = new CombatWorld(level),
+    boss = aimed.boss,
+    airborne = { ...player(boss.x + 500, boss.arena.y - 500), w: 110, h: 120 };
+  aimed.enemies = [];
+  boss.active = true;
+  boss.state = 'telegraph';
+  boss.timer = 0.001;
+  boss.sequence = 0;
+  aimed.update(1 / 60, 0, airborne, [], cb);
+  assert.equal(
+    aimed.projectiles.length,
+    2,
+    `${boss.type} fires two heavy shots`,
+  );
+  assert.ok(
+    aimed.projectiles.every((shot) => shot.vx > 0 && shot.vy < 0),
+    `${boss.type} aims its heavy shots up toward Hopper`,
+  );
+
+  const chest = { x: boss.x, y: boss.y - boss.h * 0.5 };
+  boss.mirror = 1;
+  const guardedHp = boss.hp,
+    blocked = aimed.hit(chest.x, chest.y, 30, 1, 'laser');
+  assert.ok(
+    blocked.guarded && blocked.mirror && boss.hp === guardedHp,
+    `${boss.type} reflects lasers while guarded`,
+  );
+  boss.mirror = 0;
+  aimed.hit(chest.x, chest.y, 30, 1, 'laser');
+  const laserDamage = guardedHp - boss.hp;
+  boss.invulnerable = 0;
+  const beforeReflect = boss.hp;
+  aimed.hit(chest.x, chest.y, 30, 2, 'reflect');
+  assert.ok(
+    beforeReflect - boss.hp > laserDamage * 20,
+    `${boss.type} takes much more damage from reflected fire than lasers`,
+  );
+
+  const parry = new CombatWorld(level),
+    movingBoss = parry.boss,
+    parrier = {
+      ...player(movingBoss.x - 300, movingBoss.arena.y),
+      w: 110,
+      h: 120,
+    },
+    projectile = {
+      id: 1,
+      x: parrier.x,
+      y: movingBoss.y - movingBoss.h * 0.5,
+      vx: -300,
+      vy: 0,
+      radius: 26,
+      life: 3,
+      delay: 0,
+      gravity: 0,
+      damage: 1,
+      type: 'wave',
+      color: '#fff',
+      owner: 'boss',
+      active: true,
+    };
+  parry.enemies = [];
+  movingBoss.active = true;
+  parry.projectiles.push(projectile);
+  parry.reflect(projectile, parrier);
+  for (let n = 0; n < 90 && movingBoss.hp === movingBoss.maxHp; n++)
+    parry.update(1 / 60, n / 60, parrier, [], cb);
+  assert.ok(
+    movingBoss.hp < movingBoss.maxHp,
+    `${movingBoss.type} can be hit by its own reflected shot while patrolling`,
+  );
+}
 const base = buildLevel(0);
 const custom = {
   ...base,

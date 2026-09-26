@@ -985,8 +985,7 @@ export class Renderer {
     else if (lurking) c.globalAlpha = 0.86;
     const guarding = 'mirror' in e && e.mirror > 0;
     if (guarding) {
-      // Wings up: the silhouette is rimmed in cold light rather than red, so
-      // the guard reads at a glance even mid-swoop.
+      // The silhouette is rimmed in cold light so the guard reads during motion.
       c.shadowColor = '#9ff6ff';
       c.shadowBlur = 24 + (reducedMotion ? 6 : Math.sin(time * 7) * 8 + 8);
     } else if (e.glow > 0) {
@@ -1005,9 +1004,7 @@ export class Renderer {
     c.drawImage(img, -w / 2, -h, w, h);
     c.restore();
     if (guarding) {
-      // The lit ribcage and the shell around it: while this is up a beam comes
-      // straight back off the chest, and the way through is to turn the Rook's
-      // own shots into it instead.
+      // The lit chest sends lasers back; reflected boss fire breaks through.
       const gx = e.x,
         gy = e.y + e.bob - h * 0.62,
         beat = reducedMotion ? 0.5 : 0.5 + Math.sin(time * 7) * 0.5;

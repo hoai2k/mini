@@ -118,8 +118,7 @@ export interface BossRuntime {
   attackIds: Set<string>;
   arena: LevelData['boss']['arena'];
   spriteIndex: number;
-  /** The Night Rook's wings are up and its ribcage is lit: a beam that meets
-   * it now comes straight back. Counts down; zero means the guard is down. */
+  /** A lit guard reflects lasers until the boss is staggered. */
   mirror: number;
   /** How long until the guard next goes up or comes down. */
   mirrorT: number;
@@ -153,13 +152,11 @@ export interface HitResult {
   /** Where the shell turned it. */
   at?: { x: number; y: number };
 }
-/** What a shot turned back into a boss is worth, against the 1 a stomp or a
- * kick lands on an open one. The Night Rook is built around reflecting: its
- * guard turns lasers away, so its own shots are the way through. */
+/** Reflected boss fire is the strongest way through each boss's guard. */
 const REFLECT_DAMAGE: Record<LevelData['boss']['type'], number> = {
   nightRook: 3.4,
-  smelterLeviathan: 1,
-  eclipseRegent: 1,
+  smelterLeviathan: 3.4,
+  eclipseRegent: 3.4,
 };
 /** Where a shot should be pointed: a target's chest.
  *
@@ -1025,7 +1022,7 @@ export class CombatWorld {
       cb.effect('phase', b.x, b.y - b.h * 0.5, '#ffe5b8');
       cb.sound('boss');
     }
-    if (b.type === 'nightRook') this.rook(dt, b);
+    this.patrolBoss(dt, b);
     b.timer -= dt;
     if (b.state === 'telegraph') {
       b.telegraph = clamp(1 - b.timer / (b.sequence === 0 ? 1.7 : 1.2), 0, 1);
@@ -1108,14 +1105,9 @@ export class CombatWorld {
     b.life = 2.2;
     b.color = '#c9ffe5';
   }
-  /** The Night Rook works the width of its arena, and its guard comes and goes.
-   *
-   * It crosses from one side to the other rather than hanging over the middle,
-   * which keeps the fight moving and gives Hopper somewhere to be. And its
-   * wings come up on a cycle: while they are up its ribcage is lit and a beam
-   * meeting it comes straight back, so the way to hurt it is to turn its own
-   * shots into that chest instead. A stagger drops the guard entirely. */
-  private rook(dt: number, b: BossRuntime) {
+  /** Bosses cross the arena between attacks and cycle a visible laser guard.
+   * A stagger drops the guard, leaving a short window for ordinary attacks. */
+  private patrolBoss(dt: number, b: BossRuntime) {
     b.mirrorT -= dt;
     if (b.mirrorT <= 0) {
       b.mirror = b.mirror > 0 ? 0 : 1;
@@ -1129,18 +1121,20 @@ export class CombatWorld {
       b.mirror = 0;
       b.mirrorT = Math.max(b.mirrorT, b.open);
     }
-    // Between swoops it is always on its way somewhere, and it turns around at
-    // the edges of its arena rather than settling in the middle.
+    // Keep moving between tells and recovery instead of settling in the middle.
     if (b.state === 'attack') return;
-    const to = b.side < 0 ? b.arena.x + 360 : b.arena.x + b.arena.w - 340,
-      step = (700 + b.phase * 60) * dt;
+    const edge = b.type === 'smelterLeviathan' ? 450 : 360,
+      to = b.side < 0 ? b.arena.x + edge : b.arena.x + b.arena.w - edge,
+      speed =
+        b.type === 'smelterLeviathan' ? 430 + b.phase * 45 : 700 + b.phase * 60,
+      step = speed * dt;
     b.x += Math.sign(to - b.x) * Math.min(step, Math.abs(to - b.x));
     if (Math.abs(b.x - to) < 8) b.side = -b.side;
-    // Between passes it rides above head height, so crossing the arena is a
-    // thing to duck under rather than an unavoidable shove; it comes down to
-    // fight. Staggered, it stays where it fell and within reach of a kick.
+    // The Leviathan crosses on the floor; the Rook and Regent pass overhead.
+    // An exposed core stays at its attack height, within reach of a kick.
     if (b.open > 0) return;
-    const drop = b.arena.y - 230 - b.y;
+    const hover = b.type === 'smelterLeviathan' ? 0 : 230,
+      drop = b.arena.y - hover - b.y;
     b.y += Math.sign(drop) * Math.min(300 * dt, Math.abs(drop));
   }
   private startBossAttack(p: CombatPlayer) {
@@ -1183,16 +1177,9 @@ export class CombatWorld {
     } else if (b.type === 'smelterLeviathan') {
       b.y = b.arena.y;
       if (pattern === 0) {
+        // Furnace waves leave the floor and spread toward Hopper's height.
         for (const n of [-1, 1])
-          this.shot(
-            'boss',
-            b.x,
-            b.y - 26,
-            n * (300 + phase * 40),
-            0,
-            'wave',
-            26,
-          );
+          this.aimed(b, p, 300 + phase * 40, n * 0.1, 'wave', 26);
         b.timer = 0.75;
       } else if (pattern === 1) {
         for (let n = 0; n < 5; n++)
@@ -1216,16 +1203,9 @@ export class CombatWorld {
     } else {
       b.y = b.arena.y - 70;
       if (pattern === 0) {
+        // The Regent's rings track Hopper instead of skimming the floor.
         for (const n of [-1, 1])
-          this.shot(
-            'boss',
-            b.x,
-            b.arena.y - 28,
-            n * (240 + phase * 35),
-            0,
-            'ring',
-            28,
-          );
+          this.aimed(b, p, 240 + phase * 35, n * 0.1, 'ring', 28);
         b.timer = 0.8;
       } else if (pattern === 1) {
         for (let n = 0; n < 3 + phase; n++)
@@ -1352,16 +1332,14 @@ export class CombatWorld {
         return result;
       }
       if (kind === 'laser' && b.mirror > 0) {
-        // Wings up: the beam comes back off the lit ribcage whole, the way a
-        // mirror shadow turns one. Nothing lands.
+        // The lit guard sends the beam back whole. Nothing lands.
         result.guarded = true;
         result.mirror = true;
         result.at = chestOf(b);
         this.callbacks.effect('guard', b.x, b.y - b.h * 0.9, '#b6fbff');
         return result;
       }
-      // A shot turned back into it hurts far more than anything Hopper can
-      // throw himself: that is the fight the Night Rook is asking for.
+      // Reflected boss fire is worth far more than Hopper's ordinary attacks.
       b.hp -=
         damage *
         (kind === 'reflect'
@@ -1369,7 +1347,9 @@ export class CombatWorld {
           : b.open > 0
             ? 1
             : kind === 'laser'
-              ? 0.3
+              ? b.type === 'nightRook'
+                ? 0.3
+                : 0.2
               : 0.65);
       b.invulnerable = 0.15;
       b.glow = 1;
