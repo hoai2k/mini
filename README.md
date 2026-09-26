@@ -1,8 +1,8 @@
 # Mini games
 
-Controller-first browser games. Start with [Hopper the Grasshopper](hopper/game/README.md), which ships as a 3D edition by default and a 2D edition at the same address with `?render=2d`; shared requirements are in [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
+Controller-first browser games. Start with [Hopper the Grasshopper](hopper/game/README.md); shared requirements are in [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
 
-Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** (3D edition, or append `?render=2d` for the original 2D game).
+Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)**.
 
 The 3D design, asset requests, and stand-in viewer are documented in [hopper/3d/README.md](hopper/3d/README.md).
 

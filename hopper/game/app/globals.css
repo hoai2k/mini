@@ -177,8 +177,7 @@ button {
 .start-button:hover {
   background: #fae5b512 !important;
 }
-/* Both editions are offered here as equals, sharing the row that one action
- * used to own. */
+/* The flagged page offers both editions in the same row. */
 .start-row {
   display: flex;
   flex-wrap: wrap;
@@ -1429,4 +1428,3 @@ dialog.menu-panel {
   color: inherit;
   max-width: none;
 }
-

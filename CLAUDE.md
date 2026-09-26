@@ -29,10 +29,10 @@ finished and verified rather than holding everything for one final merge.
 
 ## Two editions, one shell
 
-`main` serves both editions of Hopper at https://hoai2k.github.io/mini/hopper/:
-the title screen offers a button each for the 3D edition and the original 2D
-game, and switching rebuilds the engine and its canvas in place rather than
-reloading. `?render=2d` still works as a deep link to the 2D edition. Both
+`main` serves the 2D edition of Hopper at https://hoai2k.github.io/mini/hopper/:
+the regular title screen has one Play button. `?render=3d` loads the 3D edition
+and shows a button for each edition on the title screen. Switching rebuilds the
+engine and its canvas in place rather than reloading. Both
 share the title screen, play-select, menus, settings and audio. Keep the 2D game working: run its checks (`pnpm test`,
 `pnpm typecheck`, `pnpm lint`, `pnpm build:pages` in `hopper/game`) whenever
 shared code changes, and keep saves separate per edition.

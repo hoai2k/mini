@@ -31,10 +31,12 @@ import {
 } from '@/src/game/game-engine';
 import { Engine3D } from '@/src/game3d/engine3d';
 
-// Both editions are chosen from the title screen now. `?render=2d` still
-// works as a deep link, so it decides which one is loaded first.
+// The 3D URL opens the edition selector; the regular page starts in 2D.
+const showEditionOptions =
+  typeof location !== 'undefined' &&
+  new URLSearchParams(location.search).get('render') === '3d';
 const initialEdition: Edition =
-  typeof location !== 'undefined' ? editionFromLocation() : '3d';
+  typeof location !== 'undefined' ? editionFromLocation() : '2d';
 const editionName = (edition: Edition) => (edition === '3d' ? '3D' : '2D');
 
 /** Register one model-context tool, ignoring a host that has none. */
@@ -156,10 +158,11 @@ export default function Home() {
     }
     screenRef.current = next;
     setScreen(next);
-    // The two title actions are equals, so the one already selected is the
-    // edition the page is on: pressing any button starts what the URL asked
-    // for, which is the 3D edition unless ?render=2d says otherwise.
-    const first = next === 'title' && editionRef.current === '3d' ? 1 : 0;
+    // On the flagged page, keep the active edition selected on the title.
+    const first =
+      next === 'title' && showEditionOptions && editionRef.current === '3d'
+        ? 1
+        : 0;
     focusRef.current = first;
     setFocus(first);
     input.current?.resetEdges();
@@ -185,7 +188,7 @@ export default function Home() {
     });
   }
   /**
-   * The title screen offers one action per edition. Taking either is the
+   * The flagged title screen offers one action per edition. Taking one is the
    * gesture that starts the music where autoplay was refused and asks for
    * fullscreen, and it opens the play-select screen for that edition rather
    * than dropping straight into an episode.
@@ -737,15 +740,18 @@ export default function Home() {
                 className="start-button"
                 onClick={() => enterSelect('2d')}
               >
-                <span className="start-diamond">◆</span> PLAY 2D
+                <span className="start-diamond">◆</span>{' '}
+                {showEditionOptions ? 'PLAY 2D' : 'PLAY'}
               </Button>
-              <Button
-                {...nav(1)}
-                className="start-button"
-                onClick={() => enterSelect('3d')}
-              >
-                <span className="start-diamond">◆</span> PLAY 3D
-              </Button>
+              {showEditionOptions && (
+                <Button
+                  {...nav(1)}
+                  className="start-button"
+                  onClick={() => enterSelect('3d')}
+                >
+                  <span className="start-diamond">◆</span> PLAY 3D
+                </Button>
+              )}
             </div>
             <p className="start-hint">
               {error ? (

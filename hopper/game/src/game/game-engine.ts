@@ -27,11 +27,11 @@ export interface GameEngine {
   dispose(): void;
 }
 
-/** Which edition the shell is running; the 3D edition is the default. */
+/** Which edition the shell is running; 3D is available through ?render=3d. */
 export type Edition = '2d' | '3d';
 
 export function editionFromLocation(search = location.search): Edition {
-  return new URLSearchParams(search).get('render') === '2d' ? '2d' : '3d';
+  return new URLSearchParams(search).get('render') === '3d' ? '3d' : '2d';
 }
 
 /** localStorage key prefix for each edition's own save and unlock state. */
