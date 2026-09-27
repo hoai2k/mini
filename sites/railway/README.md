@@ -6,15 +6,16 @@ Luke Robertson (guitar), Hoai Nguyen (upright bass) and Gop Intarachot
 https://hoai2k.github.io/mini/sites/railway/.
 
 - `index.html`, `styles.css` — the page. Story, the three players with their
-  social links, two live clips, where to find them, and bookings.
+  social links, three live clips, where to find them, and bookings.
 - `media/` — the original drops: full-size photographs and the raw phone
   videos. Not deployed; `sites/publish.sh` leaves every site's `media/` out.
 - `assets/` — what the page actually serves: WebP copies of the photos,
-  square portrait crops, and the two clips re-encoded to web H.264 (the
-  Starlight clip was 10-bit HDR HEVC and has been tone-mapped to SDR) with
-  poster frames.
+  square portrait crops, and H.264 clips with poster frames. The early
+  Starlight clip was 10-bit HDR HEVC and has been tone-mapped to SDR; the
+  2026 Starlight clip was supplied as a web-ready H.264 MP4.
 
-To add a clip, drop the original in `media/` and re-encode it into `assets/`:
+To add a clip, drop the original in `media/` and put a web-ready H.264 MP4
+in `assets/`. Re-encode when the original needs conversion:
 
 ```sh
 ffmpeg -i media/clip.MOV -vf "scale=720:-2,format=yuv420p" -c:v libx264 -crf 23 \
