@@ -1,0 +1,123 @@
+// Keyboard, touch and gamepad merged into one per-frame snapshot. Discrete
+// actions are edges (fresh presses only); a button already held when a pad is
+// first seen is ignored until released, so it can't start the game by accident.
+
+const DEAD = 0.35;
+const REPEAT_FIRST = 0.38, REPEAT_NEXT = 0.13;
+// Standard mapping indexes.
+const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+
+export function createInput(target = window) {
+  const keys = new Set();
+  let keyEdges = [];
+  const touch = { up: false, down: false, left: false, right: false, leap: false, pause: false };
+  let touchEdges = [];
+  let owner = null; // gamepad index that owns gameplay
+  const prev = new Map(); // pad index -> boolean[]
+  const held = new Map(); // pad index -> Set of buttons held when first seen
+  const rep = { dir: null, t: 0 };
+  let stickWasNeutral = true;
+  let source = 'key';
+  const listeners = { connect: [], disconnect: [] };
+
+  target.addEventListener('keydown', (e) => {
+    if (e.repeat) return;
+    keys.add(e.code); keyEdges.push(e.code); source = 'key';
+  });
+  target.addEventListener('keyup', (e) => keys.delete(e.code));
+  target.addEventListener('blur', () => keys.clear());
+  window.addEventListener('gamepadconnected', (e) => listeners.connect.forEach((f) => f(e.gamepad)));
+  window.addEventListener('gamepaddisconnected', (e) => {
+    prev.delete(e.gamepad.index); held.delete(e.gamepad.index);
+    const wasOwner = e.gamepad.index === owner;
+    if (wasOwner) owner = null;
+    listeners.disconnect.forEach((f) => f(e.gamepad, wasOwner));
+  });
+
+  function bindTouch(root) {
+    root.querySelectorAll('[data-t]').forEach((el) => {
+      const k = el.dataset.t;
+      const on = (e) => { e.preventDefault(); if (!touch[k]) touchEdges.push(k); touch[k] = true; el.classList.add('on'); source = 'touch'; };
+      const off = (e) => { e.preventDefault(); touch[k] = false; el.classList.remove('on'); };
+      el.addEventListener('pointerdown', on);
+      el.addEventListener('pointerup', off);
+      el.addEventListener('pointercancel', off);
+      el.addEventListener('pointerleave', off);
+    });
+  }
+
+  function poll(dt) {
+    const k = (...codes) => codes.some((c) => keys.has(c));
+    const ke = (...codes) => codes.some((c) => keyEdges.includes(c));
+    const te = (name) => touchEdges.includes(name);
+    const s = {
+      moveX: (k('ArrowRight', 'KeyD') ? 1 : 0) - (k('ArrowLeft', 'KeyA') ? 1 : 0) + (touch.right ? 1 : 0) - (touch.left ? 1 : 0),
+      up: ke('ArrowUp', 'KeyW') || te('up'),
+      down: ke('ArrowDown', 'KeyS') || te('down'),
+      left: ke('ArrowLeft', 'KeyA') || te('left'),
+      right: ke('ArrowRight', 'KeyD') || te('right'),
+      leap: ke('Space', 'KeyZ', 'KeyJ') || te('leap'),
+      confirm: ke('Enter', 'Space', 'KeyZ', 'KeyJ'),
+      back: ke('Escape', 'Backspace'),
+      pause: ke('Escape', 'KeyP') || te('pause'),
+      anyPad: false, stickNav: false, padA: false, padStart: false, padB: false,
+      keyAny: keyEdges.length > 0,
+    };
+
+    const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
+    for (const p of pads) {
+      const now = p.buttons.map((b) => b.pressed || b.value > 0.5);
+      if (!prev.has(p.index)) {
+        held.set(p.index, new Set(now.flatMap((v, i) => (v ? [i] : []))));
+        prev.set(p.index, now);
+        continue;
+      }
+      const was = prev.get(p.index);
+      const h = held.get(p.index);
+      const edge = (i) => {
+        if (h.has(i)) { if (!now[i]) h.delete(i); return false; }
+        return now[i] && !was[i];
+      };
+      const edges = now.map((_, i) => edge(i));
+      prev.set(p.index, now);
+      if (edges.some(Boolean)) {
+        s.anyPad = true; source = 'pad';
+        if (owner === null) owner = p.index;
+      }
+      if (owner !== null && p.index !== owner) continue;
+      const ax = Math.abs(p.axes[0] || 0) > DEAD ? p.axes[0] : 0;
+      const ay = Math.abs(p.axes[1] || 0) > DEAD ? p.axes[1] : 0;
+      if (ax || ay) { source = 'pad'; if (owner === null) owner = p.index; }
+      s.moveX += ax + (now[BTN.RIGHT] ? 1 : 0) - (now[BTN.LEFT] ? 1 : 0);
+      if (edges[BTN.A]) { s.leap = true; s.padA = true; }
+      if (edges[BTN.B]) { s.back = true; s.padB = true; }
+      if (edges[BTN.MENU]) { s.pause = true; s.padStart = true; }
+      if (edges[BTN.UP]) s.up = true;
+      if (edges[BTN.DOWN]) s.down = true;
+      if (edges[BTN.LEFT]) s.left = true;
+      if (edges[BTN.RIGHT]) s.right = true;
+      // stick as discrete directions with menu repeat
+      const dir = Math.abs(ay) > Math.abs(ax) ? (ay < 0 ? 'up' : ay > 0 ? 'down' : null) : (ax < 0 ? 'left' : ax > 0 ? 'right' : null);
+      if (dir) {
+        if (stickWasNeutral) s.stickNav = true;
+        if (dir !== rep.dir) { rep.dir = dir; rep.t = REPEAT_FIRST; s[dir] = true; }
+        else if ((rep.t -= dt) <= 0) { rep.t = REPEAT_NEXT; s[dir] = true; }
+        stickWasNeutral = false;
+      } else { rep.dir = null; stickWasNeutral = true; }
+    }
+    s.moveX = Math.max(-1, Math.min(1, s.moveX));
+    s.source = source;
+    keyEdges = []; touchEdges = [];
+    return s;
+  }
+
+  return {
+    poll, bindTouch,
+    on(ev, f) { listeners[ev].push(f); },
+    owner: () => owner,
+    rumble(strong = 0.6, weak = 0.4, ms = 180) {
+      const p = owner !== null && navigator.getGamepads?.()[owner];
+      p?.vibrationActuator?.playEffect?.('dual-rumble', { duration: ms, strongMagnitude: strong, weakMagnitude: weak }).catch?.(() => {});
+    },
+  };
+}

@@ -2,7 +2,7 @@
 
 Controller-first browser games. Start with [Hopper the Grasshopper](hopper/game/README.md); shared requirements are in [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
 
-Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)**.
+Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · **[Widow's Bay](https://hoai2k.github.io/mini/widows-bay/)** (prototype, Act I; see [widows-bay/README.md](widows-bay/README.md)).
 
 The 3D design, asset requests, and stand-in viewer are documented in [hopper/3d/README.md](hopper/3d/README.md).
 
