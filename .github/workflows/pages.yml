@@ -33,6 +33,10 @@ jobs:
         working-directory: hopper/3d/standins
       - run: hopper/3d/publish.sh local/pages/hopper
       - run: sites/publish.sh local/pages/sites
+      - run: node --test test/*.test.mjs && node scripts/check.mjs
+        working-directory: bronze-drum/game
+      - run: python3 bronze-drum/design/source/build_requests.py --check
+      - run: bronze-drum/publish.sh local/pages/bronze-drum
       - uses: actions/upload-pages-artifact@v3
         with:
           path: local/pages

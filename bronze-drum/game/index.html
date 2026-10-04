@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bronze Drum — prototype</title>
+  <meta name="description" content="Gameplay prototype: two sisters, one bronze drum. Command an army of women by drumming on the beat.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23B07A3A'/%3E%3Cpath d='M16 5l2.6 7.4L26 10l-5 6 5 6-7.4-2.4L16 27l-2.6-7.4L6 22l5-6-5-6 7.4 2.4z' fill='%23F2E8D5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="stage" aria-label="Battlefield"></canvas>
+
+    <section id="title" class="screen" aria-labelledby="logo-text">
+      <div class="title-art" aria-hidden="true"></div>
+      <div class="title-block">
+        <img id="logo-img" alt="" hidden>
+        <h1 id="logo-text" class="logo-text"><span class="vn">Trống Đồng</span><span class="en">Bronze Drum</span></h1>
+        <p class="tagline">Two sisters. One drum. An army of women.</p>
+        <button id="press-start" class="press-start" data-nav>Press Start</button>
+        <p class="hint" id="title-hint">Move left stick for options</p>
+      </div>
+      <p class="proto-note">Gameplay prototype · paper-cut stand-in art</p>
+      <div class="corner-buttons">
+        <button class="icon-btn" data-nav data-open="instructions" aria-label="Instructions" title="Instructions">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9a5 5 0 0 1 5 5v11H8a3 3 0 0 1-3-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 9h6M9 13h6" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Instructions</span>
+        </button>
+        <button class="icon-btn" data-nav data-open="settings" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Settings</span>
+        </button>
+        <button class="icon-btn" data-nav data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Fullscreen</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="select" class="screen" hidden aria-labelledby="select-title">
+      <h2 id="select-title">Choose a chapter</h2>
+      <div id="stage-cards" class="cards"></div>
+      <button class="text-btn" data-nav data-action="title">Back to title</button>
+    </section>
+
+    <section id="pause" class="screen modal" hidden aria-labelledby="pause-title">
+      <div class="panel">
+        <h2 id="pause-title">Paused</h2>
+        <p id="pause-reason" class="muted"></p>
+        <button class="menu-btn" data-nav data-action="resume">Resume</button>
+        <button class="menu-btn" data-nav data-open="instructions">Instructions</button>
+        <button class="menu-btn" data-nav data-open="settings">Settings</button>
+        <button class="menu-btn" data-nav data-action="restart">Restart chapter</button>
+        <button class="menu-btn" data-nav data-action="title">Return to title</button>
+      </div>
+    </section>
+
+    <section id="result" class="screen modal" hidden aria-labelledby="result-title">
+      <div class="panel">
+        <h2 id="result-title"></h2>
+        <p id="result-text" class="muted"></p>
+        <button class="menu-btn" data-nav data-action="next" id="result-next">Next chapter</button>
+        <button class="menu-btn" data-nav data-action="restart">Play again</button>
+        <button class="menu-btn" data-nav data-action="select">Chapters</button>
+      </div>
+    </section>
+
+    <section id="instructions" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="ins-title">
+      <div class="panel wide">
+        <h2 id="ins-title">How to drum</h2>
+        <div class="scroll" id="ins-scroll" tabindex="0">
+          <p><strong>Objective.</strong> Lead the sisters’ army across the field and destroy the goal: the straw targets in training, the Han fort in battle. You lose if the army’s strength runs out.</p>
+          <p><strong>Two drummers.</strong> Trưng Trắc plays the deep centre of the bronze drum — <span class="g-l"></span> <em>tùng</em>. Trưng Nhị plays the rim — <span class="g-r"></span> <em>cắc</em>. Follow the metronome and the herons on the drum face.</p>
+          <p><strong>Commands.</strong> Drum four strokes on four beats in a row. The army answers in the next four beats while you rest.</p>
+          <table class="cmd-table" id="cmd-table"></table>
+          <p><strong>Nhị’s flourish.</strong> While the army answers, rim strokes placed exactly <em>between</em> beats add power (up to four). Any other stroke during the answer is a stumble.</p>
+          <p><strong>The drum wakes.</strong> Start the next command on the very first beat after the answer to chain. Four in a row and the drum wakes: every command is half again as strong.</p>
+          <h3>Xbox controller</h3>
+          <div class="pad-diagram" aria-hidden="true">
+            <svg viewBox="0 0 640 300">
+              <path d="M180 70 Q320 40 460 70 Q540 80 570 190 Q590 270 530 270 Q490 270 460 220 L180 220 Q150 270 110 270 Q50 270 70 190 Q100 80 180 70 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+              <rect x="150" y="36" width="70" height="18" rx="8" fill="#D9A55B"/><text x="185" y="49" text-anchor="middle" font-size="12" fill="#16151A">LB</text>
+              <rect x="420" y="36" width="70" height="18" rx="8" fill="#A8322D"/><text x="455" y="49" text-anchor="middle" font-size="12" fill="#F2E8D5">RB</text>
+              <rect x="160" y="10" width="50" height="20" rx="6" fill="#D9A55B"/><text x="185" y="25" text-anchor="middle" font-size="12" fill="#16151A">LT</text>
+              <rect x="430" y="10" width="50" height="20" rx="6" fill="#A8322D"/><text x="455" y="25" text-anchor="middle" font-size="12" fill="#F2E8D5">RT</text>
+              <circle cx="190" cy="125" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="190" y="129" text-anchor="middle" font-size="11" fill="currentColor">L stick</text>
+              <path d="M240 175h16v-16h16v16h16v16h-16v16h-16v-16h-16z" fill="none" stroke="currentColor" stroke-width="2"/><rect x="240" y="175" width="16" height="16" fill="#D9A55B"/><rect x="288" y="175" width="16" height="16" fill="#A8322D"/>
+              <circle cx="450" cy="100" r="13" fill="none" stroke="currentColor" stroke-width="2"/><text x="450" y="104" text-anchor="middle" font-size="12" fill="currentColor">Y</text>
+              <circle cx="422" cy="127" r="13" fill="#D9A55B"/><text x="422" y="131" text-anchor="middle" font-size="12" fill="#16151A">X</text>
+              <circle cx="478" cy="127" r="13" fill="#A8322D"/><text x="478" y="131" text-anchor="middle" font-size="12" fill="#F2E8D5">B</text>
+              <circle cx="450" cy="154" r="13" fill="none" stroke="currentColor" stroke-width="2"/><text x="450" y="158" text-anchor="middle" font-size="12" fill="currentColor">A</text>
+              <rect x="300" y="110" width="16" height="10" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="308" y="104" text-anchor="middle" font-size="10" fill="currentColor">View</text>
+              <rect x="330" y="110" width="16" height="10" rx="4" fill="currentColor"/><text x="338" y="104" text-anchor="middle" font-size="10" fill="currentColor">Menu</text>
+              <circle cx="380" cy="190" r="20" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+              <g font-size="13" fill="currentColor">
+                <line x1="150" y1="45" x2="40" y2="45" stroke="currentColor"/><text x="10" y="40">Trắc · tùng</text>
+                <line x1="160" y1="20" x2="40" y2="20" stroke="currentColor"/><text x="10" y="16">Trắc · tùng</text>
+                <line x1="490" y1="45" x2="600" y2="45" stroke="currentColor"/><text x="540" y="40">Nhị · cắc</text>
+                <line x1="480" y1="20" x2="600" y2="20" stroke="currentColor"/><text x="540" y="16">Nhị · cắc</text>
+                <line x1="168" y1="125" x2="40" y2="110" stroke="currentColor"/><text x="10" y="104">Menus: move</text>
+                <line x1="248" y1="200" x2="200" y2="290" stroke="currentColor"/><text x="110" y="296">D-pad ◀ tùng · ▶ cắc</text>
+                <line x1="491" y1="127" x2="600" y2="140" stroke="currentColor"/><text x="540" y="156">B · cắc / back</text>
+                <line x1="409" y1="127" x2="380" y2="250" stroke="currentColor"/><text x="340" y="266">X · tùng</text>
+                <line x1="463" y1="158" x2="600" y2="200" stroke="currentColor"/><text x="540" y="215">A · confirm</text>
+                <line x1="338" y1="100" x2="338" y2="70" stroke="currentColor"/><text x="300" y="64">Menu · pause</text>
+              </g>
+            </svg>
+          </div>
+          <table class="map-table">
+            <tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Touch / mouse</th></tr>
+            <tr><td>Trắc · tùng (centre)</td><td>LB, LT, X or D-pad left</td><td>F, D, A or ←</td><td>Left half of the screen</td></tr>
+            <tr><td>Nhị · cắc (rim)</td><td>RB, RT, B or D-pad right</td><td>J, K, L or →</td><td>Right half of the screen</td></tr>
+            <tr><td>Pause</td><td>Menu or View</td><td>Esc or P</td><td>—</td></tr>
+            <tr><td>Menus</td><td>Left stick / D-pad, A confirm, B back</td><td>Arrows, Enter, Esc</td><td>Click</td></tr>
+          </table>
+          <p class="muted">If strokes feel early or late, adjust <em>Audio offset</em> in Settings.</p>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Close</button>
+      </div>
+    </section>
+
+    <section id="settings" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="set-title">
+      <div class="panel">
+        <h2 id="set-title">Settings</h2>
+        <label class="row">Volume <input type="range" min="0" max="100" step="5" data-nav data-setting="volume"><output></output></label>
+        <label class="row">Metronome <input type="range" min="0" max="100" step="5" data-nav data-setting="metronome"><output></output></label>
+        <label class="row">Audio offset (ms) <input type="range" min="-200" max="200" step="5" data-nav data-setting="offset"><output></output></label>
+        <label class="row check">Show hints <input type="checkbox" data-nav data-setting="hints"></label>
+        <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
+        <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
+        <button class="menu-btn" data-nav data-action="close">Done</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
