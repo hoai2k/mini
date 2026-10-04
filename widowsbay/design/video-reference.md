@@ -82,3 +82,7 @@ Primary video and official description: https://www.youtube.com/watch?v=7zoGfdN4
 The description credits Georges Méliès’s 1903 film The Kingdom of the Fairies as the source footage and Timothy McDermott for filming and processing the band footage. It describes this as a single from Tomorrow for a Stone. These credits identify the source; this document does not reconstruct the entire original film’s plot.
 
 Audio measurements and existing game sound treatment: widowsbay/README.md, Sound section. The measurements were already present in the project and have not been independently revalidated for this document. Direct listening is still needed to confirm instruments, harmony, vocal character, percussion and mix details. A lyric sheet would resolve the remaining caption ambiguities.
+
+## Visual companion
+
+The [visual reference gallery](../reference/visual-guide/index.html) and [illustrated Word companion](../reference/visual-guide/visual-guide.docx) add 24 frame-guided reconstructions of scenes, characters, creatures and lyric-based motifs. Each includes input timestamps; the gallery shows all source frames and the generation prompt. These are interpreted references, not exact film stills. A closer inspection also reveals a final fantasy pageant around 3:20, between the rescue and closing card.
