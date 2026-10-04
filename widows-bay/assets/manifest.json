@@ -1,0 +1,15 @@
+{
+  "note": "Art slots the game loads. A slot draws its procedural stand-in until its status is 'delivered' and its file exists in this folder. Request details live in design/image-requests.md under the same id.",
+  "slots": {
+    "logo":            { "status": "standin", "file": "logo.png" },
+    "sky-backdrop":    { "status": "standin", "file": "sky-backdrop.png" },
+    "ship":            { "status": "standin", "file": "ship.png" },
+    "witch-moonboat":  { "status": "standin", "file": "witch-moonboat.png" },
+    "rock":            { "status": "standin", "file": "rock.png" },
+    "cloud":           { "status": "standin", "file": "cloud.png" },
+    "pearl":           { "status": "standin", "file": "pearl.png" },
+    "keepsake-tea":    { "status": "standin", "file": "keepsake-tea.png" },
+    "keepsake-pearl":  { "status": "standin", "file": "keepsake-pearl.png" },
+    "keepsake-rose":   { "status": "standin", "file": "keepsake-rose.png" }
+  }
+}
