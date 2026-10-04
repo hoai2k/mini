@@ -5,8 +5,10 @@ this folder is published or loaded by the game.
 
 - **Art:** name each image by its request id from
   [`../design/image-requests.md`](../design/image-requests.md), for example
-  `ship.png` or `keepsake-tea.png`. It moves to `../assets/`, and its slot in
-  `../assets/manifest.json` is set to `delivered`.
+  `ship.png` or `keepsake-tea.png`. The PNG is kept as
+  `../design/generated/<id>-original.png`, the game gets a WebP copy in
+  `../assets/`, and its slot in `../assets/manifest.json` is set to
+  `delivered`.
 - **Video stills and other references:** put them in `references/`, named
   `video-<mm>m<ss>s-<subject>.jpg`. They move to `../design/references/`.
 - **The song or its stems:** any common audio format. The song moves to

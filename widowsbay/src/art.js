@@ -53,11 +53,49 @@ export async function loadAssets(base = 'assets/') {
   return out;
 }
 
+// Canvas filters are far too slow to run per draw, so each image's print-pass
+// (greyscale) copy, and any dimmed variant, is baked once and cached.
+const baked = new Map();
+const FILTERS_OK = typeof CanvasRenderingContext2D !== 'undefined' && 'filter' in CanvasRenderingContext2D.prototype;
+// w, h: bake at the size it is drawn (the stage canvas is 1280x720), so large
+// art isn't resampled every frame. Omitted: native size.
+export function bake(img, filter, w = 0, h = 0) {
+  let byFilter = baked.get(img);
+  if (!byFilter) baked.set(img, (byFilter = new Map()));
+  const key = `${filter}|${w}x${h}`;
+  let out = byFilter.get(key);
+  if (out) return out;
+  out = document.createElement('canvas');
+  out.width = w || img.naturalWidth || img.width; out.height = h || img.naturalHeight || img.height;
+  const x = out.getContext('2d');
+  x.imageSmoothingQuality = 'high';
+  if (FILTERS_OK || filter === 'none') { x.filter = filter; x.drawImage(img, 0, 0, out.width, out.height); }
+  else {
+    // Fallback: plain luminance (dim variants just darken).
+    x.drawImage(img, 0, 0, out.width, out.height);
+    const d = x.getImageData(0, 0, out.width, out.height), a = d.data;
+    const dim = filter.includes('brightness') ? 0.3 : 1, grey = filter.includes('grayscale');
+    for (let i = 0; i < a.length; i += 4) {
+      const y = 0.3 * a[i] + 0.59 * a[i + 1] + 0.11 * a[i + 2];
+      a[i] = (grey ? y : a[i]) * dim; a[i + 1] = (grey ? y : a[i + 1]) * dim; a[i + 2] = (grey ? y : a[i + 2]) * dim;
+    }
+    x.putImageData(d, 0, 0);
+  }
+  byFilter.set(key, out);
+  return out;
+}
+const PRINT = 'grayscale(1) contrast(1.1)';
+// The source to draw for the current pass (and optional extra filter).
+export function passImage(P, img, extra = '', w = 0, h = 0) {
+  if (P.mode === 'lum') return bake(img, PRINT + (extra ? ' ' + extra : ''), w, h);
+  return extra || w ? bake(img, extra || 'none', w, h) : img;
+}
+
 // Draw a delivered image into a box anchored at its bottom centre.
-function drawAsset(ctx, P, img, cx, by, w, h) {
-  if (P.mode === 'lum') ctx.filter = 'grayscale(1) contrast(1.1)';
-  ctx.drawImage(img, cx - w / 2, by - h, w, h);
-  ctx.filter = 'none';
+function drawAsset(ctx, P, img, cx, by, w, h, extra = '') {
+  // Sprites can be drawn up to ~1.15x their nominal box, so bake a little larger.
+  const k = w * h > 400000 ? 1 : 1.25;
+  ctx.drawImage(passImage(P, img, extra, Math.round(w * k), Math.round(h * k)), cx - w / 2, by - h, w, h);
 }
 
 // ---------------------------------------------------------------- renderer
@@ -179,8 +217,10 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     } else {
       for (let r = 0; r < 3; r++) waves(c, r, t * 60, t);
     }
-    footlights(c, t);
-    proscenium(c, view.curtain, b, t);
+    if (img('proscenium')) { proscenium(c, view.curtain, b, t); footlights(c, t); }
+    else { footlights(c, t); proscenium(c, view.curtain, b, t); }
+    if (!b) bandTrio(c, 1, 1, t); // the band waits in front of the curtain
+    if (b && view.curtainCall > 0) bandTrio(c, view.curtainCall, 0, t);
     if (b && view.hud) hud(c, b, t);
   }
 
@@ -209,16 +249,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     }
     c.globalAlpha = 1;
     moonFace(c, 250, 150, 52, t);
-    // Moving panorama: distant headlands painted on a roll.
-    const off = b ? b.scrolled * 0.18 : t * 10;
-    c.fillStyle = P.c('#2a4049');
-    c.beginPath(); c.moveTo(0, 470);
-    for (let x = 0; x <= 1280; x += 20) {
-      const w = x + off;
-      const y = 400 - 34 * Math.max(0, Math.sin(w * 0.004)) - 18 * Math.sin(w * 0.011 + 1) - 10 * Math.sin(w * 0.027);
-      c.lineTo(x, y);
-    }
-    c.lineTo(1280, 470); c.closePath(); c.fill();
+    if (!img('sky-backdrop')) headlands(c, b, t);
     // The lighthouse of Widow's Bay is wheeled on for the last stretch.
     const p = b ? b.progress : 0;
     if (p > 0.82) {
@@ -228,11 +259,34 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     }
   }
 
+  // Moving panorama: distant headlands painted on a roll (stand-in only; the
+  // delivered sky has its own).
+  function headlands(c, b, t) {
+    const off = b ? b.scrolled * 0.18 : t * 10;
+    c.fillStyle = P.c('#2a4049');
+    c.beginPath(); c.moveTo(0, 470);
+    for (let x = 0; x <= 1280; x += 20) {
+      const w = x + off;
+      const y = 400 - 34 * Math.max(0, Math.sin(w * 0.004)) - 18 * Math.sin(w * 0.011 + 1) - 10 * Math.sin(w * 0.027);
+      c.lineTo(x, y);
+    }
+    c.lineTo(1280, 470); c.closePath(); c.fill();
+  }
+
   function moonFace(c, x, y, r, t) {
     const glow = c.createRadialGradient(x, y, r * 0.6, x, y, r * 2.2);
     glow.addColorStop(0, P.mode === 'lum' ? 'rgba(255,245,220,0.35)' : 'rgba(255,230,160,0.35)');
     glow.addColorStop(1, 'rgba(0,0,0,0)');
     c.fillStyle = glow; c.fillRect(x - r * 3, y - r * 3, r * 6, r * 6);
+    if (img('moon-face')) {
+      // Hung on a wire through the hole at its top, swaying a little.
+      const sway = Math.sin(t * 0.6) * 0.03;
+      wire(c, x, 0, y - r * 1.15);
+      c.save(); c.translate(x, y - r * 1.2); c.rotate(sway);
+      drawAsset(c, P, img('moon-face'), 0, r * 2.45, r * 2.5, r * 2.5);
+      c.restore();
+      return;
+    }
     c.fillStyle = P.c('#f4e7b8'); circle(c, x, y, r);
     // A sleepy Méliès face.
     c.strokeStyle = P.c('#8c7448'); c.lineWidth = 3; c.lineCap = 'round';
@@ -245,6 +299,22 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   }
 
   function lighthouse(c, x, y, t, lit) {
+    const art = img(lit && view_lamp && img('lighthouse-lit') ? 'lighthouse-lit' : 'lighthouse');
+    if (art) {
+      // Art is 700x420 at 2x; its lamp room is at (410, 56) and the cottage
+      // window at (328, 270) in those pixels. Place the lamp at (x, y - 132).
+      const cx = x - 30, yb = y + 50;
+      drawAsset(c, P, art, cx, yb, 350, 210);
+      beam(c, x, yb - 182, t, lit);
+      if (lit && view_lamp) {
+        const wx = cx - 11, wy = yb - 75;
+        const g = c.createRadialGradient(wx, wy, 1, wx, wy, 34);
+        g.addColorStop(0, P.mode === 'lum' ? 'rgba(255,245,215,0.85)' : 'rgba(255,205,90,0.85)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = g; c.fillRect(wx - 34, wy - 34, 68, 68);
+      }
+      return;
+    }
     c.fillStyle = P.c('#3b3a3a');
     c.beginPath(); c.moveTo(x - 120, y + 50); c.quadraticCurveTo(x - 40, y - 10, x + 10, y + 4); c.quadraticCurveTo(x + 90, y - 20, x + 200, y + 50); c.fill();
     c.fillStyle = P.c(PAL.cream);
@@ -255,19 +325,37 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.fillStyle = P.c(PAL.gold); c.fillRect(x - 11, y - 142, 22, 18);
     c.fillStyle = P.c(PAL.woodDark);
     c.beginPath(); c.moveTo(x - 20, y - 146); c.lineTo(x, y - 166); c.lineTo(x + 20, y - 146); c.fill();
-    // sweeping beam
-    const a = Math.sin(t * 1.4) * 0.9;
-    c.save(); c.globalAlpha = lit ? 0.55 : 0.3;
-    c.fillStyle = P.c('#fff2b0');
-    c.beginPath(); c.moveTo(x, y - 133);
-    c.lineTo(x - 420, y - 133 - 380 * a - 40); c.lineTo(x - 420, y - 133 - 380 * a + 40); c.closePath(); c.fill();
-    c.restore();
+    beam(c, x, y - 133, t, lit);
     // cottage with her window
     c.fillStyle = P.c('#4a3a44'); c.fillRect(x + 50, y - 26, 70, 40);
     c.beginPath(); c.moveTo(x + 44, y - 26); c.lineTo(x + 85, y - 56); c.lineTo(x + 126, y - 26); c.fill();
     c.fillStyle = P.c(lit && view_lamp ? '#ffd56b' : '#1b1418'); c.fillRect(x + 76, y - 16, 16, 16);
   }
   let view_lamp = false;
+
+  function beam(c, x, y, t, lit) {
+    const a = Math.sin(t * 1.4) * 0.9;
+    c.save(); c.globalAlpha = lit ? 0.55 : 0.3;
+    c.fillStyle = P.c('#fff2b0');
+    c.beginPath(); c.moveTo(x, y);
+    c.lineTo(x - 420, y - 380 * a - 40); c.lineTo(x - 420, y - 380 * a + 40); c.closePath(); c.fill();
+    c.restore();
+  }
+
+  // The band as a halftone cut-out. title: standing at the left in front of
+  // the closed curtain. Curtain call: rising through the centre trapdoor.
+  function bandTrio(c, k, title, t) {
+    const art = img('band-trio');
+    if (!art) return;
+    const e = 1 - (1 - Math.min(1, k)) ** 3;
+    const size = title ? 330 : 300;
+    const x = title ? 205 : 330;
+    const yb = title ? 708 : 660 + (1 - e) * 300;
+    c.save();
+    if (!title) { c.beginPath(); c.rect(0, 0, 1280, 662); c.clip(); }
+    drawAsset(c, P, art, x, yb + size * 0.013, size, size);
+    c.restore();
+  }
 
   function clouds(c, b, t) {
     // Two hanging cloud flats that drift on their wires.
@@ -336,6 +424,24 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const phase = ((scrolled * (0.9 + r * 0.25) * dir) % span + span) % span;
     const bob = Math.sin(t * 1.7 + r * 1.9) * 4;
     const top = y + bob;
+    const strip = img(WAVE_ART[r].id);
+    if (strip) {
+      // Delivered strip: tile the seamless span [x0, x0 + len) of the 2x art,
+      // then pin its crank end once at the stage-left wing.
+      const { x0, len } = WAVE_ART[r];
+      const g = 0.5 * scale * 1.1; // art px -> stage px
+      const tw = len * g, th = 300 * g;
+      const y0 = top - 14 * scale - 45 * g; // painted crest line (~45 art px) sits on the waterline
+      const off = ((scrolled * (0.9 + r * 0.25) * dir) % tw + tw) % tw;
+      const src = passImage(P, strip);
+      for (let x = -off; x < 1280; x += tw) {
+        c.drawImage(src, x0, 0, len, 300, x, y0, tw + 1, th);
+        // carry the strip's bottom edge down to the floor so no gap shows
+        c.drawImage(src, x0, 296, len, 3, x, y0 + th - 2, tw + 1, 722 - (y0 + th));
+      }
+      c.drawImage(src, 0, 0, 96, 300, 138, y0, 96 * g, th);
+      return;
+    }
     const body = [PAL.tealDeep, '#3f6f6a', PAL.teal][r];
     c.fillStyle = P.c(body);
     c.beginPath();
@@ -492,7 +598,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
 
   function keepsakeIcon(c, kind, t, empty = false) {
     const id = 'keepsake-' + kind;
-    if (!empty && img(id)) return drawAsset(c, P, img(id), 0, 24, 56, 56);
+    if (img(id)) return drawAsset(c, P, img(id), 0, 24, 56, 56, empty ? 'brightness(0.3) saturate(0.4)' : '');
     const col = (hex) => (empty ? P.c('#5a4152') : P.c(hex));
     if (kind === 'tea') {
       c.fillStyle = col(PAL.cream);
@@ -535,8 +641,10 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   }
 
   function footlights(c, t) {
-    c.fillStyle = P.c(PAL.woodDark); c.fillRect(0, 650, 1280, 70);
-    c.fillStyle = P.c(PAL.wood); c.fillRect(0, 650, 1280, 8);
+    if (!img('proscenium')) {
+      c.fillStyle = P.c(PAL.woodDark); c.fillRect(0, 650, 1280, 70);
+      c.fillStyle = P.c(PAL.wood); c.fillRect(0, 650, 1280, 8);
+    }
     for (let k = 0; k < 11; k++) {
       const x = 170 + k * 94;
       const f = 0.85 + 0.15 * Math.sin(t * 9 + k * 2.3);
@@ -550,28 +658,17 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   }
 
   function proscenium(c, open, b, t) {
-    // curtains: closed (0) meet in the middle; open (1) gathered in the wings
-    const half = 640;
-    const w = STAGE.left + (half - STAGE.left) * (1 - open);
-    for (const side of [-1, 1]) {
-      c.save();
-      if (side === 1) { c.translate(1280, 0); c.scale(-1, 1); }
-      const g = c.createLinearGradient(0, 0, w, 0);
-      const folds = Math.max(3, Math.round(w / 44));
-      for (let k = 0; k <= folds; k++) {
-        g.addColorStop(k / folds, P.c(k % 2 ? PAL.velvetDark : PAL.velvet));
-      }
-      c.fillStyle = g;
-      c.beginPath(); c.moveTo(0, 0); c.lineTo(w, 0);
-      c.quadraticCurveTo(w - 30 * open, 400, w + 6 * Math.sin(t), 720); c.lineTo(0, 720); c.fill();
-      // gold tie-back
-      if (open > 0.5) {
-        c.fillStyle = P.c(PAL.gold);
-        c.beginPath(); c.ellipse(w - 14, 420, 22, 9, 0.2, 0, Math.PI * 2); c.fill();
-        c.fillRect(w - 18, 426, 7, 30);
-      }
-      c.restore();
+    const frame = img('proscenium');
+    if (frame) {
+      // The painted frame is overscanned 1.3x so its columns sit off-screen
+      // and its painted drapes frame the playfield. The travelling curtain
+      // slides in behind it and hides behind the painted drapes when open.
+      if (open < 0.995) curtainPanels(c, 150 + (640 - 150) * (1 - open), open, t, false);
+      drawAsset(c, P, frame, 640, 745, 1664, 936);
+      if (b) vane(c, 640, 34, b, t);
+      return;
     }
+    curtainPanels(c, STAGE.left + (640 - STAGE.left) * (1 - open), open, t, true);
     // valance with scallops and tassels
     c.fillStyle = P.c(PAL.velvet); c.fillRect(0, 0, 1280, 58);
     c.beginPath();
@@ -584,6 +681,29 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.fillRect(0, 0, 1280, 8);
     // weathervane on the valance: the witch's wind
     if (b) vane(c, 640, 30, b, t);
+  }
+
+  // The travelling curtain: two velvet panels of width w from each side; when
+  // closed (open 0) they meet at centre stage.
+  function curtainPanels(c, w, open, t, tieBacks) {
+    for (const side of [-1, 1]) {
+      c.save();
+      if (side === 1) { c.translate(1280, 0); c.scale(-1, 1); }
+      const g = c.createLinearGradient(0, 0, w, 0);
+      const folds = Math.max(3, Math.round(w / 44));
+      for (let k = 0; k <= folds; k++) {
+        g.addColorStop(k / folds, P.c(k % 2 ? PAL.velvetDark : PAL.velvet));
+      }
+      c.fillStyle = g;
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(w, 0);
+      c.quadraticCurveTo(w - 30 * open, 400, w + 6 * Math.sin(t), 720); c.lineTo(0, 720); c.fill();
+      if (tieBacks && open > 0.5) {
+        c.fillStyle = P.c(PAL.gold);
+        c.beginPath(); c.ellipse(w - 14, 420, 22, 9, 0.2, 0, Math.PI * 2); c.fill();
+        c.fillRect(w - 18, 426, 7, 30);
+      }
+      c.restore();
+    }
   }
 
   function vane(c, x, y, b, t) {
@@ -601,8 +721,15 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   }
 
   function hud(c, b, t) {
-    // The HUD is painted on the stage floor, below the footlights.
+    // The HUD is painted on the stage floor, below the footlights; on the
+    // delivered proscenium's patterned floor band it sits on plum plaques.
     c.save(); c.translate(0, 596);
+    if (img('proscenium')) {
+      c.fillStyle = P.c(PAL.plum); c.strokeStyle = P.c(PAL.gold); c.lineWidth = 1.5;
+      for (const [x0, x1] of [[140, 390], [450, 830], [960, 1140]]) {
+        c.beginPath(); c.roundRect(x0, 84, x1 - x0, 40, 8); c.fill(); c.stroke();
+      }
+    }
     hudItems(c, b, t);
     c.restore();
   }
@@ -651,6 +778,14 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     clearFx() { fx.particles = []; fx.texts = []; fx.flash = 0; fx.shake = 0; witch.x = witch.tx = 1450; },
   };
 }
+
+// Seamless tiling spans of the delivered wave strips, in art pixels: measured
+// so the columns at x0 and x0 + len match (see the Art section of README.md).
+const WAVE_ART = [
+  { id: 'waves-back', x0: 324, len: 2086 },
+  { id: 'waves-mid', x0: 326, len: 2028 },
+  { id: 'waves-front', x0: 152, len: 1899 },
+];
 
 const LABEL = { tea: 'Tea leaves', pearl: 'Her pearl', rose: 'Sea rose' };
 

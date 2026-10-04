@@ -104,6 +104,7 @@ export function step(b, dt, input) {
     if (b.progress >= 1) {
       b.phase = 'arrive'; b.phaseT = 0;
       b.hazards = b.hazards.filter((h) => h.type === 'rock' && h.x < s.x - 80);
+      b.pickups = []; // the stage is cleared for the arrival
       emit(b, 'arrive');
     }
   }
