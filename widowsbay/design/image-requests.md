@@ -73,6 +73,7 @@ Grabbed from the video's public preview frames (`design/references/`):
 | `video-cover.jpg` | Cover frame: lavender 60s bubble lettering on black blobs, orange and cream vertical stripes over a sepia, hand-tinted Méliès collage, and the trio in grainy halftone (one with a hat, one with an acoustic guitar, one bearded) | Title-screen key art, logo, the band's cameo |
 | `video-intertitle-plum.jpg` | "Widow's Bay / by Langan, Frost & Wane" in pale pink swash script on plum, inside a double rule | Act cards, menus, UI frame (the prototype copies this) |
 | `video-intertitle-magenta.jpg` | The same card on hot magenta | Shipwreck and alert cards |
+| `melies-1903-film-preview.jpg` | Wikimedia Commons' preview still of *Le Royaume des fées* (1903, public domain) | A further example of front-on scenery and hand tinting |
 | `video-grotto-moonboat.jpg` | Méliès footage: a woman in pink in a gold crescent shell boat, a red sea dragon, white coral and anemones, a teal cave opening onto light | The sea witch, her moon boat and dragon, and Act II's grotto |
 
 ### A2. References to gather (please drop stills into intake)
@@ -136,27 +137,27 @@ then pick a direction.
 
 ## Part B — game assets
 
-**Wired** means the prototype already loads the slot. **Planned** slots are
-stand-ins drawn in code that will be wired when their art arrives.
+All of Part B was delivered on 4 October 2026 and checked (see Status at the
+end). **In game** means the delivered file is loaded and drawn.
 
-| # | Id | Wired | Deliver | Anchor |
+| # | Id | Status | Deliver | Anchor |
 | --- | --- | --- | --- | --- |
-| B1 | `logo` | yes | 1600 × 1200 PNG, transparent or plum | centre |
-| B2 | `sky-backdrop` | yes | 2560 × 820 PNG, tiles left-right | bottom |
-| B3 | `ship` | yes | 380 × 400 PNG | waterline, bottom centre |
-| B4 | `witch-moonboat` | yes | 520 × 340 PNG, facing left | bottom centre |
-| B5 | `rock` | yes | 240 × 220 PNG | bottom centre |
-| B6 | `cloud` | yes | 400 × 180 PNG | bottom centre |
-| B7 | `pearl` | yes | 64 × 64 PNG | bottom centre |
-| B8 | `keepsake-tea` | yes | 128 × 128 PNG | bottom centre |
-| B9 | `keepsake-pearl` | yes | 128 × 128 PNG | bottom centre |
-| B10 | `keepsake-rose` | yes | 128 × 128 PNG | bottom centre |
-| B11 | `proscenium` | planned | 2560 × 1440 PNG, transparent centre | full frame |
-| B12 | `waves-back`, `waves-mid`, `waves-front` | planned | 2560 × 300 PNG each, tiles left-right | top = crest line |
-| B13 | `lighthouse` | planned | 700 × 420 PNG | bottom centre |
-| B14 | `band-trio` | planned | 900 × 900 PNG | bottom centre |
-| B15 | `moon-face` | planned | 260 × 260 PNG | centre |
-| B16 | `sea-dragon` | planned | 400 × 160 PNG, facing left | centre |
+| B1 | `logo` | in game | 1600 × 1200 PNG, transparent or plum | centre |
+| B2 | `sky-backdrop` | in game | 2560 × 820 PNG, tiles left-right | bottom |
+| B3 | `ship` | in game | 380 × 400 PNG | waterline, bottom centre |
+| B4 | `witch-moonboat` | in game | 520 × 340 PNG, facing left | bottom centre |
+| B5 | `rock` | in game | 240 × 220 PNG | bottom centre |
+| B6 | `cloud` | in game | 400 × 180 PNG | bottom centre |
+| B7 | `pearl` | in game | 64 × 64 PNG | bottom centre |
+| B8 | `keepsake-tea` | in game | 128 × 128 PNG | bottom centre |
+| B9 | `keepsake-pearl` | in game | 128 × 128 PNG | bottom centre |
+| B10 | `keepsake-rose` | in game | 128 × 128 PNG | bottom centre |
+| B11 | `proscenium` | in game | 2560 × 1440 PNG, transparent centre | full frame |
+| B12 | `waves-back`, `waves-mid`, `waves-front` | in game | 2560 × 300 PNG each, tiles left-right | top = crest line |
+| B13 | `lighthouse` | in game | 700 × 420 PNG | bottom centre |
+| B14 | `band-trio` | in game | 900 × 900 PNG | bottom centre |
+| B15 | `moon-face` | in game | 260 × 260 PNG | centre |
+| B16 | `sea-dragon` | delivered, kept for Act II | 400 × 160 PNG, facing left | centre |
 
 ### B1. `logo` — title logo
 
@@ -269,15 +270,35 @@ like the creature in the grotto frame.
 
 ## Status
 
-Delivered 2026-10-04: all 19 requested game PNGs in `assets/`, including both
-lighthouse variants, plus two takes of each of the seven mood subjects in
-`design/generated/`. See [the gallery](generated/gallery.html) and
-[the prompt records](generated/prompts.json). The ten wired slots are marked
-`delivered`; nine planned files are recorded under `plannedArt` and await
-renderer integration. The sky uses alternating reflected panels to hide its
-generated edge seam. Wave strips require seam tuning before ordinary tiling.
-The selected direction is the faded stencil tint of the first scene studies,
-with the brighter pink-and-gold cut-outs kept legible at sprite scale.
+**Delivered 4 October 2026:** all 19 Part B images (both lighthouse variants
+included), plus two takes of each of the seven Part A3 mood boards. Previews,
+full-size originals and prompts are in [`generated/`](generated/gallery.html)
+([prompt records](generated/prompts.json)).
 
-Source references are collected in [`../reference/`](../reference/README.md).
-The additional Part A2 moments from the band's video remain reference requests.
+**Checked on integration:**
+
+- Every file matches its requested pixel size. Every sprite has real
+  transparency, except `logo` and `sky-backdrop`, which are opaque by design.
+- The dark and lit lighthouse differ only in the cottage window, as requested.
+- The three wave strips aren't seamless edge to edge (their crank ends sit at
+  the left), so the game tiles a measured span of each: art x 324 + 2086
+  (back), 326 + 2028 (mid) and 152 + 1899 (front), where the columns match.
+  Each crank end is drawn once at the stage-left wing.
+- The sky's edges don't meet, so it alternates mirrored panels.
+- The proscenium's opening (780 × 410 at 1:1) is narrower than the playfield,
+  so it is drawn at 1.3× with its columns off-screen; its painted drapes then
+  frame the stage.
+
+**Converted for the web:** the game loads WebP copies in `assets/` (1.7 MB,
+down from 14 MB of PNG); the PNG originals stay in `generated/`.
+
+**How each piece is used:** the band cut-out stands in front of the closed
+curtain on the title and rises through the trapdoor for a curtain call after
+the voyage. The lit lighthouse appears, with a glow in its window, when all
+three keepsakes reach the bay. `sea-dragon` isn't needed in Act I, because the
+witch's art includes her dragon; it is kept for Act II, the grotto.
+
+**Still open:** the Part A2 stills from the band's video. Since then,
+[`video-reference.md`](video-reference.md) has given a timed account of the
+video's sequences (the undersea court, the giant whale, the closing rescue)
+that will feed the Act II and Act III requests.

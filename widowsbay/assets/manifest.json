@@ -1,45 +1,82 @@
 {
-  "note": "Art slots the game loads. A slot draws its procedural stand-in until its status is 'delivered' and its file exists in this folder. Request details live in design/image-requests.md under the same id.",
+  "note": "Art, music and effects the game loads. An image slot draws its procedural stand-in until its status is 'delivered' and its file exists here. Request details: design/image-requests.md (same ids). Full-resolution PNG originals: design/generated/<id>-original.png.",
   "slots": {
     "logo": {
       "status": "delivered",
-      "file": "logo.png"
+      "file": "logo.webp"
     },
     "sky-backdrop": {
       "status": "delivered",
-      "file": "sky-backdrop.png"
+      "file": "sky-backdrop.webp"
     },
-    "ship": {
+    "proscenium": {
       "status": "delivered",
-      "file": "ship.png"
+      "file": "proscenium.webp"
     },
-    "witch-moonboat": {
+    "moon-face": {
       "status": "delivered",
-      "file": "witch-moonboat.png"
-    },
-    "rock": {
-      "status": "delivered",
-      "file": "rock.png"
+      "file": "moon-face.webp"
     },
     "cloud": {
       "status": "delivered",
-      "file": "cloud.png"
+      "file": "cloud.webp"
+    },
+    "waves-back": {
+      "status": "delivered",
+      "file": "waves-back.webp"
+    },
+    "waves-mid": {
+      "status": "delivered",
+      "file": "waves-mid.webp"
+    },
+    "waves-front": {
+      "status": "delivered",
+      "file": "waves-front.webp"
+    },
+    "ship": {
+      "status": "delivered",
+      "file": "ship.webp"
+    },
+    "witch-moonboat": {
+      "status": "delivered",
+      "file": "witch-moonboat.webp"
+    },
+    "rock": {
+      "status": "delivered",
+      "file": "rock.webp"
     },
     "pearl": {
       "status": "delivered",
-      "file": "pearl.png"
+      "file": "pearl.webp"
     },
     "keepsake-tea": {
       "status": "delivered",
-      "file": "keepsake-tea.png"
+      "file": "keepsake-tea.webp"
     },
     "keepsake-pearl": {
       "status": "delivered",
-      "file": "keepsake-pearl.png"
+      "file": "keepsake-pearl.webp"
     },
     "keepsake-rose": {
       "status": "delivered",
-      "file": "keepsake-rose.png"
+      "file": "keepsake-rose.webp"
+    },
+    "lighthouse": {
+      "status": "delivered",
+      "file": "lighthouse.webp"
+    },
+    "lighthouse-lit": {
+      "status": "delivered",
+      "file": "lighthouse-lit.webp"
+    },
+    "band-trio": {
+      "status": "delivered",
+      "file": "band-trio.webp"
+    },
+    "sea-dragon": {
+      "status": "delivered",
+      "file": "sea-dragon.webp",
+      "note": "Not used in Act I (the witch-moonboat art includes her dragon); reserved for Act II, the grotto."
     }
   },
   "audio": {
@@ -136,53 +173,6 @@
       "status": "delivered",
       "file": "sfx/ui.mp3",
       "loop": false
-    }
-  },
-  "plannedArt": {
-    "waves-back": {
-      "status": "delivered",
-      "file": "waves-back.png",
-      "wired": false
-    },
-    "waves-front": {
-      "status": "delivered",
-      "file": "waves-front.png",
-      "wired": false
-    },
-    "waves-mid": {
-      "status": "delivered",
-      "file": "waves-mid.png",
-      "wired": false
-    },
-    "band-trio": {
-      "status": "delivered",
-      "file": "band-trio.png",
-      "wired": false
-    },
-    "moon-face": {
-      "status": "delivered",
-      "file": "moon-face.png",
-      "wired": false
-    },
-    "lighthouse": {
-      "status": "delivered",
-      "file": "lighthouse.png",
-      "wired": false
-    },
-    "sea-dragon": {
-      "status": "delivered",
-      "file": "sea-dragon.png",
-      "wired": false
-    },
-    "proscenium": {
-      "status": "delivered",
-      "file": "proscenium.png",
-      "wired": false
-    },
-    "lighthouse-lit": {
-      "status": "delivered",
-      "file": "lighthouse-lit.png",
-      "wired": false
     }
   }
 }

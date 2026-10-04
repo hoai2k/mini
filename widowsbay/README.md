@@ -46,21 +46,24 @@ A static page with no build step: canvas 2D plus Web Audio.
 
 ## Art
 
-The first art delivery includes 19 game PNGs and 14 mood boards generated with
-the built-in imagegen tool. Browse [the art gallery](design/generated/gallery.html)
-for previews, originals and prompts. The ten existing image slots now load their
-delivered art; the nine planned scenery files are recorded under `plannedArt`
-in the manifest and await renderer integration. The sky alternates reflected
-panels for a continuous loop. The wave strips still need seam tuning before
-ordinary left-to-right repetition.
+All the art is delivered and drawn in the game: 19 images listed in
+[`design/image-requests.md`](design/image-requests.md), which also records how
+each was checked and fitted. The game loads WebP copies from `assets/` (ids
+match `assets/manifest.json`). Full-size PNG originals, the 14 mood boards and
+the generation prompts are in [`design/generated/`](design/generated/gallery.html).
+Reference frames from the video and the 1903 film are in `design/references/`,
+and [`design/video-reference.md`](design/video-reference.md) is a timed account
+of the video.
 
-Additional source references and provenance live in [reference/](reference/README.md).
-[`design/image-requests.md`](design/image-requests.md) lists the requests: the
-look, the palette taken from the video frames in `design/references/`, mood
-boards, and one entry per game asset. Each asset id matches a slot in
-`assets/manifest.json`. To use a delivered image, put the file in `assets/`
-and set its slot's status to `delivered`; the procedural stand-ins remain the
-fallback.
+- **Two passes.** The renderer draws each image twice: in colour, and as a
+  greyscale print for the stencil-tint pass. The greyscale copies are baked
+  once at load, at the size they are drawn, because a canvas filter run on
+  every draw cut the frame rate by about ten times.
+- **Fitting.** The wave strips tile measured seamless spans, the sky
+  alternates mirrored panels, and the proscenium is drawn at 1.3× so its
+  painted drapes frame the stage. `design/image-requests.md` gives the numbers.
+- **Fallbacks.** A slot whose file is missing, or whose status isn't
+  `delivered`, falls back to its procedural stand-in.
 
 ## Sound
 
