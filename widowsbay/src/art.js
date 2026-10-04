@@ -41,6 +41,7 @@ export async function loadAssets(base = 'assets/') {
     const m = await res.json();
     out.slots = m.slots || {};
     out.audio = m.audio || {};
+    out.sfx = m.sfx || {};
   } catch { return out; }
   await Promise.all(Object.entries(out.slots).map(([id, s]) => new Promise((done) => {
     if (s.status !== 'delivered' || !s.file) return done();
@@ -685,7 +686,15 @@ export function drawCard(c, card, t) {
     c.font = '700 24px "Josefin Sans", sans-serif';
     card.sub.split('\n').forEach((l, i) => c.fillText(l, 640, 500 + i * 34));
   }
-  if (card.prompt) {
+  if (card.loading != null) {
+    // The song is still loading: a thin double-ruled bar where the prompt goes.
+    c.globalAlpha = a;
+    c.strokeStyle = card.bg === 'magenta' ? '#f7b9d6' : '#c79ab7'; c.lineWidth = 1.5;
+    c.strokeRect(480, 586, 320, 12); c.strokeRect(476, 582, 328, 20);
+    c.fillStyle = PAL.pink; c.fillRect(482, 588, 316 * card.loading, 8);
+    c.font = '700 18px "Josefin Sans", sans-serif';
+    c.fillText('TUNING UP THE BAND', 640, 626);
+  } else if (card.prompt) {
     c.globalAlpha = a * (0.55 + 0.45 * Math.sin(t * 3));
     c.font = '30px Yesteryear, cursive';
     c.fillText(card.prompt, 640, 600);

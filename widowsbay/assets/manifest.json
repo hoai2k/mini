@@ -44,11 +44,98 @@
   },
   "audio": {
     "song": {
-      "status": "standin",
-      "file": "audio/widows-bay.mp3",
+      "status": "delivered",
+      "file": "audio/widowsbay.mp3",
       "loopStart": 0,
-      "loopEnd": 0,
-      "note": "Langan, Frost & Wane - Widow's Bay. Plays as the score, looping, once status is 'delivered'. loopStart/loopEnd in seconds; 0/0 loops the whole track."
+      "loopEnd": 206.4,
+      "note": "Langan, Frost & Wane - Widow's Bay (3:28, 192 kbps). Loops as the score; loopEnd skips the 2.2 s of silence at the end."
+    }
+  },
+  "sfx": {
+    "sea": {
+      "status": "delivered",
+      "file": "sfx/sea.mp3",
+      "loop": true
+    },
+    "leap": {
+      "status": "delivered",
+      "file": "sfx/leap.mp3",
+      "loop": false
+    },
+    "row": {
+      "status": "delivered",
+      "file": "sfx/row.mp3",
+      "loop": false
+    },
+    "pearl": {
+      "status": "delivered",
+      "file": "sfx/pearl.mp3",
+      "loop": false
+    },
+    "keepsake": {
+      "status": "delivered",
+      "file": "sfx/keepsake.mp3",
+      "loop": false
+    },
+    "hit": {
+      "status": "delivered",
+      "file": "sfx/hit.mp3",
+      "loop": false
+    },
+    "wreck": {
+      "status": "delivered",
+      "file": "sfx/wreck.mp3",
+      "loop": false
+    },
+    "windWarn": {
+      "status": "delivered",
+      "file": "sfx/windWarn.mp3",
+      "loop": false
+    },
+    "wind": {
+      "status": "delivered",
+      "file": "sfx/wind.mp3",
+      "loop": false
+    },
+    "boltWarn": {
+      "status": "delivered",
+      "file": "sfx/boltWarn.mp3",
+      "loop": false
+    },
+    "strike": {
+      "status": "delivered",
+      "file": "sfx/strike.mp3",
+      "loop": false
+    },
+    "rockWarn": {
+      "status": "delivered",
+      "file": "sfx/rockWarn.mp3",
+      "loop": false
+    },
+    "rockUp": {
+      "status": "delivered",
+      "file": "sfx/rockUp.mp3",
+      "loop": false
+    },
+    "arrive": {
+      "status": "delivered",
+      "file": "sfx/arrive.mp3",
+      "loop": false
+    },
+    "done": {
+      "status": "delivered",
+      "file": "sfx/done.mp3",
+      "loop": false
+    },
+    "curtain": {
+      "status": "delivered",
+      "file": "sfx/curtain.mp3",
+      "loop": false
+    },
+    "ui": {
+      "status": "delivered",
+      "file": "sfx/ui.mp3",
+      "loop": false
     }
   },
   "plannedArt": {

@@ -25,5 +25,30 @@ for (const a of manifest.assets.filter((x) => x.status === 'stand-in' || x.statu
     console.error(`manifest id ${a.id} is not used by the game`);
   }
 }
+// Every sound the audio manifest lists must exist, and every sample the code
+// plays by name must be one build_audio.py defines (generated or not).
+import { existsSync } from 'node:fs';
+const audio = JSON.parse(readFileSync(join(root, 'assets', 'audio.json'), 'utf8'));
+for (const [id, e] of Object.entries(audio.sfx)) {
+  for (const f of e.files) {
+    if (!existsSync(join(root, 'assets', f))) {
+      failed++;
+      console.error(`audio.json: ${id} lists missing ${f}`);
+    }
+  }
+}
+const defined = readFileSync(join(root, '..', 'design', 'source', 'build_audio.py'), 'utf8');
+for (const m of source.matchAll(/(?:play|has|startAmbience)\('([a-z-]+)'/g)) {
+  if (!defined.includes(`"${m[1]}"`)) {
+    failed++;
+    console.error(`code plays '${m[1]}', which build_audio.py does not define`);
+  }
+}
+for (const m of readFileSync(join(root, 'src', 'stages.js'), 'utf8').matchAll(/ambience: '([a-z-]+)'/g)) {
+  if (!defined.includes(`"${m[1]}"`)) {
+    failed++;
+    console.error(`stage ambience '${m[1]}' is not defined in build_audio.py`);
+  }
+}
 console.log(failed ? `${failed} problem(s)` : 'check ok');
 process.exit(failed ? 1 : 0);

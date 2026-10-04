@@ -25,6 +25,10 @@
         </div>
       </div>
       <button id="start" class="press-start" data-focus>Press Start</button>
+      <div class="loadbar" id="loadbar" role="progressbar" aria-label="Loading the song" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="loadbar-track"><div class="loadbar-fill" id="loadbar-fill"></div></div>
+        <span class="loadbar-label" id="loadbar-label">Tuning up the band…</span>
+      </div>
       <p class="hint" id="title-hint">Move left stick for options</p>
       <nav class="corner" aria-label="Options">
         <button class="icon" id="btn-instructions" data-focus aria-label="Instructions" data-tip="Instructions">

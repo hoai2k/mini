@@ -13,6 +13,7 @@ export const STAGES = [
     troops: 60,
     elephant: false,
     sky: 'dawn',
+    ambience: 'amb-garden',
     enemies: [
       { type: 'target', x: 9 },
       { type: 'target', x: 16 },
@@ -30,6 +31,7 @@ export const STAGES = [
     troops: 100,
     elephant: false,
     sky: 'day',
+    ambience: 'amb-river',
     enemies: [
       { type: 'spear', x: 12 },
       { type: 'spear', x: 14 },
@@ -50,6 +52,7 @@ export const STAGES = [
     troops: 120,
     elephant: true,
     sky: 'night',
+    ambience: 'amb-night',
     enemies: [
       { type: 'spear', x: 12 },
       { type: 'crossbow', x: 17 },
