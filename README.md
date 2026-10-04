@@ -6,7 +6,7 @@ Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)**
 
 The 3D design, asset requests, and stand-in viewer are documented in [hopper/3d/README.md](hopper/3d/README.md).
 
-**[Bronze Drum](https://hoai2k.github.io/mini/bronze-drum/)** is a gameplay prototype for a paper-cut, drum-command game about the Trưng sisters; its design and image requests are in [`bronze-drum/`](bronze-drum/README.md).
+**[Bronze Drum](https://hoai2k.github.io/mini/bronzedrum/)** is a gameplay prototype for a paper-cut, drum-command game about the Trưng sisters; its design and image requests are in [`bronzedrum/`](bronzedrum/README.md).
 
 Static pages that sit beside the games live under [`sites/`](sites/README.md); the first is the artist page for **[Space Tiber](https://hoai2k.github.io/mini/sites/space-tiber/)**, the band that made Hopper's music.
 

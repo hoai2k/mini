@@ -1,10 +1,10 @@
 # Bronze Drum (prototype)
 
 A drum-command rhythm-strategy game about the Trưng sisters, who raised an army of
-women against Han rule around 40 CE. It is inspired by Phong Nguyen's novel
+women against Han rule around 40 CE. It adapts Phong Nguyen's novel
 *Bronze Drum* and staged as a backlit paper-cut theatre.
 
-Play the prototype at https://hoai2k.github.io/mini/bronze-drum/.
+Play the prototype at https://hoai2k.github.io/mini/bronzedrum/.
 
 - [`design/design.md`](design/design.md): the concept, the core loop, the art
   direction and the open questions.
@@ -19,14 +19,14 @@ Play the prototype at https://hoai2k.github.io/mini/bronze-drum/.
 ## Run and check
 
 ```sh
-cd bronze-drum/game
+cd bronzedrum/game
 python3 -m http.server 8123     # then open http://localhost:8123/
 node --test test/*.test.mjs     # rhythm reader and battle simulation
 node scripts/check.mjs          # syntax and manifest ids
 python3 ../design/source/build_requests.py --check
 ```
 
-`bronze-drum/publish.sh local/pages/bronze-drum` copies the game into the Pages
+`bronzedrum/publish.sh local/pages/bronzedrum` copies the game into the Pages
 output. The workflow in `.github/workflows/pages.yml` runs the tests and the
 manifest check, then publishes the game.
 

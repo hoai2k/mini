@@ -9,10 +9,9 @@ title object, the controller and the HUD.
 
 Sources:
 
-- **The story:** Phong Nguyen's novel *Bronze Drum* (2022) and the historical
-  uprising of 40–43 CE. The novel is in copyright, so an adaptation of it needs
-  the author's or the publisher's permission. The history and the legend are free
-  to use. Until rights are settled, the prototype draws only on the history.
+- **The story:** Phong Nguyen's novel *Bronze Drum* (2022), which tells the
+  uprising of 40–43 CE. The game adapts the novel with the author's blessing, so
+  its characters, scenes and structure are ours to use.
 - **The look:** backlit hand-cut paper, inspired by Sarah Nguyen's suspended
   paper and fibre panels, and the friezes on Đông Sơn bronze drums. See
   [image-requests.md](image-requests.md) for the full art direction and the rule
@@ -85,8 +84,6 @@ colour the paper carries before the full set is generated.
 
 ## Open questions
 
-- **Rights.** Adapt the novel with permission, or base the game on the history
-  alone?
 - **Style.** White paper and lamplight, coloured papers, or shadow theatre
   (style frames S01–S03)?
 - **Music.** The drum carries the rhythm. Is there a score under it (đàn bầu,
