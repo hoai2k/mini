@@ -235,6 +235,8 @@ function frame(now) {
   renderer.render({
     board: S.board, curtain: S.curtain, card: S.card, film: settings.film, t: S.t,
     hud: S.mode === 'play' || S.mode === 'over' || S.mode === 'end',
+    // After the bay is reached the band rises through the trapdoor for a bow.
+    curtainCall: S.mode === 'end' ? Math.min(1, S.modeT / 1.4) : 0,
   });
   requestAnimationFrame(frame);
 }
@@ -292,7 +294,7 @@ function update(dt, i) {
     if (i.pause && !S.paused) { pause(); return; }
     if (S.paused) return;
     // Hold the ship still until the curtains are mostly open.
-    const ready = S.curtain > 0.7;
+    const ready = S.curtain > 0.9;
     step(S.board, dt, ready ? { moveX: i.moveX, rowUp: i.up, rowDown: i.down, leap: i.leap } : {});
     for (const e of S.board.events) handleEvent(e);
     S.board.events.length = 0;
@@ -313,7 +315,7 @@ function update(dt, i) {
   }
 
   if (S.mode === 'over' || S.mode === 'end') {
-    if (S.mode === 'end' && S.modeT < 1.5) { S.card.alpha = 0; return; } // let the bay be seen first
+    if (S.mode === 'end' && S.modeT < 3.2) { S.card.alpha = 0; return; } // the bay, then the band's bow
     S.card.alpha = Math.min(1, S.card.alpha + dt * 2);
     if (S.card.alpha > 0.6) {
       if (go) beginAct();
