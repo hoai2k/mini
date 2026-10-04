@@ -6,19 +6,18 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**33 of 36 files in use.** Not generated yet: `sfx/amb-night.mp3`.
+**35 of 36 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
-- `sfx/drum-tung-2.mp3`: three separate strikes rather than one stroke (three +6 dB onsets in its envelope).
-- `sfx/drum-cac-2.mp3`: no transient: it swells to its peak at 350 ms, so it would sound late.
+- `sfx/drum-tung-2.mp3`: eight takes, none both a single stroke and deep (more energy under 200 Hz than over 2 kHz); the model drifts to a bright metallic hit, and two good deep strokes give enough variety.
 
 ## The drum
 
 | Id | Use | Length | Files | Prompt |
 | --- | --- | ---: | --- | --- |
 | `drum-tung` | Trưng Trắc's centre stroke (tùng), played on every left-hand input. (hit) | 2.0 s | 2/3 | One strong stroke with a padded wooden beater on the centre of a large ancient Vietnamese bronze kettle drum: a deep round boom followed by a shimmering metallic bronze ring. A single hit, close-miked, dry room, no music. |
-| `drum-cac` | Trưng Nhị's rim stroke (cắc), played on every right-hand input and flourish. (hit) | 0.7 s | 2/3 | One sharp stroke of a hardwood stick on the rim of a bronze kettle drum: a bright, dry, metallic click with a short ring. A single hit, close-miked, no music. |
+| `drum-cac` | Trưng Nhị's rim stroke (cắc), played on every right-hand input and flourish. (hit) | 0.7 s | 3/3 | One sharp stroke of a hardwood stick on the rim of a bronze kettle drum: a bright, dry, metallic click with a short ring. A single hit, close-miked, no music. |
 | `drum-wake` | The drum wakes: four commands chained. (sting) | 4.0 s | 1/1 | A huge bronze gong struck softly and swelling: a rising shimmering bronze resonance that blooms and slowly fades, ceremonial and awe-struck. |
 | `stumble` | A stroke during the army's answer, or off the beat. (hit) | 0.5 s | 1/1 | A dull, slightly off-key wooden knock, clumsy and muted, very short. |
 
@@ -69,4 +68,4 @@ Each generated file was checked by measuring its length, peak, level over time (
 | --- | --- | ---: | --- | --- |
 | `amb-garden` | Chapter 1 bed, looped. (loop) | 20.0 s | 1/1 | Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling water, a distant rooster, a light breeze through bamboo. Continuous, no music. |
 | `amb-river` | Chapter 2 bed, looped. (loop) | 20.0 s | 1/1 | Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons and birds. Continuous, no music, no drums. |
-| `amb-night` | Chapter 3 bed, looped. (loop) | 20.0 s | 0/1 | Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice paddies, distant torches crackling, a faint wind. Continuous, no music. |
+| `amb-night` | Chapter 3 bed, looped. (loop) | 20.0 s | 1/1 | Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice paddies, distant torches crackling, a faint wind. Continuous, no music. |

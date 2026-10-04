@@ -52,8 +52,8 @@ def sfx(group, sid, prompt, seconds, use, influence=0.5, variants=1, kind="onesh
 # Generated files that failed review. They are not loaded, and --generate does
 # not remake them unless forced (then remove the entry here if the new take is good).
 REJECTED = {
-    "sfx/drum-tung-2.mp3": "three separate strikes rather than one stroke (three +6 dB onsets in its envelope)",
-    "sfx/drum-cac-2.mp3": "no transient: it swells to its peak at 350 ms, so it would sound late",
+    "sfx/drum-tung-2.mp3": "eight takes, none both a single stroke and deep (more energy under 200 Hz than over 2 kHz); "
+    "the model drifts to a bright metallic hit, and two good deep strokes give enough variety",
 }
 
 
