@@ -51,6 +51,8 @@ const dialogs = []; // stack of open dialog elements
 
 loadAssets().then((a) => {
   assets = a;
+  const song = a.audio?.song;
+  if (song?.status === 'delivered' && song.file) audio.setTrack('assets/' + song.file, song.loopStart, song.loopEnd);
   renderer = createRenderer(canvas, assets);
   const logo = assets.images.logo;
   if (logo) { const el = $('#logo-img'); el.src = logo.src; el.alt = "Widow's Bay"; el.hidden = false; $('#logo').classList.add('has-img'); }
@@ -317,4 +319,4 @@ $('#start').focus({ preventScroll: true });
 requestAnimationFrame(frame);
 
 // QA hook: ?qa exposes the shell state to browser smoke tests.
-if (new URLSearchParams(location.search).has('qa')) window.__widowsBay = { S, settings };
+if (new URLSearchParams(location.search).has('qa')) window.__widowsBay = { S, settings, audio };

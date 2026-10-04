@@ -9,7 +9,7 @@ Two kinds of request live here:
   slot draws its procedural stand-in until its file arrives and its status is
   set to `delivered`.
 
-Drop finished images in `hopper/intake/widows-bay/assets/` (or loose in
+Drop finished images in `hopper/intake/widowsbay/assets/` (or loose in
 `hopper/intake/`, named by id) and ask for them to be integrated.
 
 ---
@@ -78,7 +78,7 @@ Grabbed from the video's public preview frames (`design/references/`):
 ### A2. References to gather (please drop stills into intake)
 
 I could only see the four public preview frames of the video. Grab stills of
-these moments and drop them in `hopper/intake/widows-bay/references/`, named
+these moments and drop them in `hopper/intake/widowsbay/references/`, named
 `video-<mm>m<ss>s-<subject>.jpg` (for example `video-01m12s-ship.jpg`). Each
 one becomes a direct reference for the matching asset in Part B:
 
@@ -271,4 +271,4 @@ like the creature in the grotto frame.
 
 All slots are stand-ins as of this document. When a file lands, set its slot
 to `"delivered"` in `assets/manifest.json`, then check it in the game at
-https://hoai2k.github.io/mini/widows-bay/.
+https://hoai2k.github.io/mini/widowsbay/.

@@ -3,7 +3,7 @@
 A toy-theatre voyage built on the look of Langan, Frost & Wane's "Widow's Bay"
 video: Méliès footage from *Le Royaume des fées* (1903), stencil-tinted colour,
 and the video's plum and magenta title cards. Play it at
-https://hoai2k.github.io/mini/widows-bay/.
+https://hoai2k.github.io/mini/widowsbay/.
 
 ## Act I — The Crossing (the first board)
 
@@ -38,8 +38,9 @@ A static page with no build step: canvas 2D plus Web Audio.
   register, blotched, and laid over the print with the `color` blend. Grain,
   flicker, scratches and gate weave follow. *Settings → Film look* reduces or
   removes these effects.
-- `src/audio.js`: a stand-in shanty in D dorian (fingerpicking, a driven
-  organ drone, a penny whistle) with sea wash and sound effects.
+- `src/audio.js`: plays the band's recording when it is delivered, or a
+  stand-in shanty in D dorian (fingerpicking, a driven organ drone, a penny
+  whistle); sea wash and sound effects play under either.
 - `src/input.js` and `src/main.js`: controller, keyboard and touch input; the
   title screen, act cards, pause menu, instructions and settings, following
   [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md).
@@ -54,11 +55,24 @@ boards, and one entry per game asset. Each asset id matches a slot in
 and set its slot's status to `delivered`; the procedural stand-ins remain the
 fallback.
 
+## Music
+
+The score is the band's recording of "Widow's Bay". To install it, drop the
+file (MP3 is safest across browsers; OGG, M4A or WAV also work) in
+`hopper/intake/` and ask for it to be integrated. It lands at
+`assets/audio/widows-bay.mp3` (or whatever `audio.song.file` names in
+`assets/manifest.json`), with `audio.song.status` set to `delivered`. The
+track loops; set `loopStart` and `loopEnd` in seconds to loop just a section.
+Until a file is delivered, or if it fails to load, the procedural shanty in
+`src/audio.js` plays instead. Separate stems (guitar, organ, vocals) would
+allow music that reacts to the game later, such as dropping the vocals during
+storms.
+
 ## Checks
 
 ```sh
-node widows-bay/qa/board.test.mjs          # rules
-widows-bay/publish.sh local/pages/widows-bay  # what Pages deploys
+node widowsbay/qa/board.test.mjs           # rules
+widowsbay/publish.sh local/pages/widowsbay  # what Pages deploys
 ```
 
 Adding `?qa` to the URL exposes the shell state as `window.__widowsBay` for

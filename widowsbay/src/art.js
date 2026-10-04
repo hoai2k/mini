@@ -38,7 +38,9 @@ export async function loadAssets(base = 'assets/') {
   const out = { slots: {}, images: {} };
   try {
     const res = await fetch(base + 'manifest.json');
-    out.slots = (await res.json()).slots || {};
+    const m = await res.json();
+    out.slots = m.slots || {};
+    out.audio = m.audio || {};
   } catch { return out; }
   await Promise.all(Object.entries(out.slots).map(([id, s]) => new Promise((done) => {
     if (s.status !== 'delivered' || !s.file) return done();

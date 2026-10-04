@@ -1,4 +1,4 @@
-// Headless checks for Act I's rules. Run: node widows-bay/qa/board.test.mjs
+// Headless checks for Act I's rules. Run: node widowsbay/qa/board.test.mjs
 import assert from 'node:assert/strict';
 import { createBoard, step, TUNING, ROWS, effectiveRow } from '../src/board.js';
 

@@ -1,6 +1,7 @@
-// Procedural score and effects with Web Audio. A stand-in shanty in D dorian
-// (6/8, fingerpicked guitar, a low organ drone and a penny-whistle line) plus
-// sea wash, until the band's own stems are delivered to assets/audio/.
+// Score and effects with Web Audio. When the band's recording is delivered
+// (assets/manifest.json → audio.song) it plays as the score; until then a
+// procedural stand-in shanty in D dorian (6/8, fingerpicked guitar, a low
+// organ drone and a penny-whistle line) fills in. Sea wash plays under both.
 
 const NOTE = (n) => 440 * 2 ** ((n - 69) / 12);
 // D dorian chords as MIDI roots + voicing.
@@ -21,6 +22,8 @@ const TUNE = [
 export function createAudio() {
   let ac = null, master, music, sfx, sea, timer = 0, playing = false;
   let nextTime = 0, step = 0;
+  // The delivered song: { url, loopStart, loopEnd, buffer, loading, node }.
+  let track = null;
   const vol = { music: 0.7, sfx: 0.8 };
   const bpm = 104; // dotted-quarter pulse
   const eighth = 60 / bpm / 3;
@@ -108,15 +111,44 @@ export function createAudio() {
     }
   }
 
-  function startMusic() {
-    if (!ensure() || playing) return;
-    playing = true;
-    if (!sea) startSea();
+  async function loadTrack() {
+    if (!track || track.buffer || track.loading) return track?.loading;
+    track.loading = fetch(track.url)
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then((data) => new Promise((ok, fail) => ac.decodeAudioData(data, ok, fail)))
+      .then((buf) => { track.buffer = buf; })
+      .catch(() => { track = null; }); // missing or undecodable: keep the stand-in
+    return track.loading;
+  }
+  function playTrack() {
+    const src = ac.createBufferSource();
+    src.buffer = track.buffer;
+    src.loop = true;
+    if (track.loopEnd) { src.loopStart = track.loopStart || 0; src.loopEnd = track.loopEnd; }
+    src.connect(music);
+    src.start(ac.currentTime + 0.05);
+    track.node = src;
+    if (sea) sea.g.gain.value = 0.05; // let the recording carry the scene
+  }
+  function startProcedural() {
     nextTime = ac.currentTime + 0.1; step = 0;
     timer = setInterval(schedule, 60);
   }
+  async function startMusic() {
+    if (!ensure() || playing) return;
+    playing = true;
+    if (!sea) startSea();
+    if (track) {
+      await loadTrack();
+      if (!playing) return;
+      if (track?.buffer) return playTrack();
+    }
+    startProcedural();
+  }
   function stopMusic() {
     playing = false; clearInterval(timer);
+    try { track?.node?.stop(); } catch { /* already stopped */ }
+    if (track) track.node = null;
   }
 
   function env(t, g, a, d) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(a, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d); }
@@ -164,6 +196,13 @@ export function createAudio() {
   return {
     unlock: ensure,
     startMusic, stopMusic,
+    // Register the band's recording. Decoding waits for the first user
+    // gesture (browsers won't start audio before one).
+    setTrack(url, loopStart = 0, loopEnd = 0) {
+      track = { url, loopStart, loopEnd, buffer: null, loading: null, node: null };
+      if (ac) loadTrack();
+    },
+    usingTrack: () => !!track?.node,
     play(name) { if (ac && SFX[name]) try { SFX[name](); } catch { /* audio is optional */ } },
     setVolumes(m, s) { vol.music = m; vol.sfx = s; apply(); },
     suspend() { ac?.suspend(); },
