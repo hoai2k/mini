@@ -10,7 +10,7 @@ import { Art } from './art.js';
 import { PALETTE as P } from './palette.js';
 
 const $ = (s) => document.querySelector(s);
-const STORE = 'bronze-drum.prototype';
+const STORE = 'bronzedrum.prototype';
 
 // ---------------------------------------------------------------- storage
 

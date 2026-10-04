@@ -3,12 +3,12 @@
 
 Edit the data in this file, then run:
 
-    python3 bronze-drum/design/source/build_requests.py          # write
-    python3 bronze-drum/design/source/build_requests.py --check  # verify up to date
+    python3 bronzedrum/design/source/build_requests.py          # write
+    python3 bronzedrum/design/source/build_requests.py --check  # verify up to date
 
 Outputs:
-    bronze-drum/design/image-requests.md   - the request document
-    bronze-drum/game/assets/manifest.json  - what the game loads
+    bronzedrum/design/image-requests.md   - the request document
+    bronzedrum/game/assets/manifest.json  - what the game loads
 
 Statuses:
     stand-in   the game draws a procedural paper-cut stand-in and loads the
@@ -531,7 +531,7 @@ def build_doc() -> str:
     out = []
     out.append("# Bronze Drum: image requests\n")
     out.append(
-        "Artwork for the Bronze Drum prototype in `bronze-drum/game/`, plus direction pieces for the "
+        "Artwork for the Bronze Drum prototype in `bronzedrum/game/`, plus direction pieces for the "
         "look and atmosphere. Generated from `source/build_requests.py`; edit the data there and "
         "rerun it, which also rewrites `game/assets/manifest.json`.\n")
     out.append("## How to use this list\n")
@@ -543,8 +543,8 @@ def build_doc() -> str:
         "3. Each prompt is complete on its own: paste it as it stands. The shared style text is "
         "already included in every prompt that needs it.\n"
         "4. Save each image under the file name in its **File** line and drop it in "
-        "`hopper/intake/` (or straight into `bronze-drum/game/assets/` and "
-        "`bronze-drum/design/`). On integration the request's status flips to `delivered` and "
+        "`hopper/intake/` (or straight into `bronzedrum/game/assets/` and "
+        "`bronzedrum/design/`). On integration the request's status flips to `delivered` and "
         "the game loads the file in place of its procedural stand-in.\n"
         "5. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure "
         "magenta `#FF00FF` background as the prompts say; it is keyed out on integration.\n")
@@ -557,10 +557,9 @@ def build_doc() -> str:
     out.append(
         "This direction is inspired by **Sarah Nguyen**'s hand-cut paper and fibre panels: "
         "suspended, backlit, built on folklore, plants, animals and a changing moon, often "
-        "about women's stories. The prompts describe those *qualities* and never name her. A "
-        "generator must not be asked to imitate a living artist, and the game must never "
-        "reproduce her actual pieces. If she is involved in the project, her own work replaces "
-        "these direction pieces.\n")
+        "about women's stories. The prompts describe those *qualities* rather than naming her, "
+        "so the generated art borrows the approach without copying her pieces. If she takes part "
+        "in the project, her own work replaces these direction pieces.\n")
     out.append(
         "The second source is the **Dong Son bronze drum** (Lac Viet, before and around the "
         "Trung sisters' time). Its face is already a flat, concentric, stylised frieze of "
@@ -609,7 +608,7 @@ def build_doc() -> str:
             if r["asset"]:
                 status += f" · **Game id:** `{r['asset']}`"
             out.append(f"- **Status:** {status}")
-            where = "bronze-drum/design/" if r["status"] == "reference" else "bronze-drum/game/assets/"
+            where = "bronzedrum/design/" if r["status"] == "reference" else "bronzedrum/game/assets/"
             out.append(f"- **File:** `{where}{r['file']}`")
             out.append(f"- **Prompt:** {r['prompt']}\n")
     return "\n".join(out).rstrip() + "\n"
@@ -620,7 +619,7 @@ def build_manifest() -> str:
         {"id": r["asset"], "request": r["id"], "file": r["file"], "status": r["status"], "section": r["section"]}
         for r in REQUESTS if r["asset"]
     ]
-    return json.dumps({"generatedBy": "bronze-drum/design/source/build_requests.py", "assets": assets}, indent=2, ensure_ascii=False) + "\n"
+    return json.dumps({"generatedBy": "bronzedrum/design/source/build_requests.py", "assets": assets}, indent=2, ensure_ascii=False) + "\n"
 
 
 def validate() -> None:

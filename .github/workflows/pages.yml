@@ -35,9 +35,9 @@ jobs:
       - run: sites/publish.sh local/pages/sites
       - run: node widowsbay/qa/board.test.mjs && widowsbay/publish.sh local/pages/widowsbay
       - run: node --test test/*.test.mjs && node scripts/check.mjs
-        working-directory: bronze-drum/game
-      - run: python3 bronze-drum/design/source/build_requests.py --check
-      - run: bronze-drum/publish.sh local/pages/bronze-drum
+        working-directory: bronzedrum/game
+      - run: python3 bronzedrum/design/source/build_requests.py --check
+      - run: bronzedrum/publish.sh local/pages/bronzedrum
       - uses: actions/upload-pages-artifact@v3
         with:
           path: local/pages
