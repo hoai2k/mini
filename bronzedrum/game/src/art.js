@@ -1,8 +1,10 @@
 // Delivered artwork. assets/manifest.json (generated from
 // design/source/build_requests.py) lists every requested image. Entries whose
-// status is "delivered" are loaded from assets/art/; everything else is drawn
+// status is "delivered" are loaded; everything else is drawn
 // by the procedural paper-cut stand-ins in render.js. Delivered production
-// sheets with runtime: false are reserved for later builds.
+// sheets with runtime: false are reserved for later builds. The game loads
+// the scaled WebP copy (a.web, from design/source/build_web_art.py) when there
+// is one; the PNG masters in assets/art/ are not published.
 
 export class Art {
   constructor() {
@@ -29,7 +31,7 @@ export class Art {
               resolve();
             };
             img.onerror = () => resolve();
-            img.src = `${base}${a.file}`;
+            img.src = `${base}${a.web || a.file}`;
           }),
       ),
     );

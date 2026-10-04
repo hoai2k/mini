@@ -69,6 +69,7 @@ body.reduce-motion .press-start { animation: none; }
   box-shadow: 8px 10px 0 rgba(0, 0, 0, 0.35);
   background-size: cover; background-position: center;
 }
+.card .card-art { display: block; height: 150px; margin: -18px -18px 4px; background-size: cover; background-position: center 60%; }
 .card .num { font: 700 15px var(--sans); color: var(--lacquer); letter-spacing: 0.2em; text-transform: uppercase; }
 .card .name { font: 700 26px var(--serif); line-height: 1.05; }
 .card .sub { font-size: 14px; color: #5a4a35; }
