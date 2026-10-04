@@ -40,6 +40,10 @@ syncSettingsUI();
 
 // ---------------------------------------------------------------- state
 let assets = { slots: {}, images: {} };
+let assetsLoaded = false;
+// The song gates the curtain: 'ready', or given up on ('failed'/'none').
+const songStatus = () => (assetsLoaded ? audio.trackStatus() : { state: 'loading', progress: 0 });
+const songSettled = () => ['ready', 'failed', 'none'].includes(songStatus().state);
 let renderer = createRenderer(canvas, assets);
 const S = {
   mode: 'title', // title | intro | play | over | end
@@ -56,6 +60,7 @@ loadAssets().then((a) => {
   const sfx = Object.fromEntries(Object.entries(a.sfx || {})
     .filter(([, v]) => v.status === 'delivered' && v.file).map(([k, v]) => [k, 'assets/' + v.file]));
   audio.setSfx(sfx);
+  assetsLoaded = true;
   renderer = createRenderer(canvas, assets);
   const logo = assets.images.logo;
   if (logo) { const el = $('#logo-img'); el.src = logo.src; el.alt = "Widow's Bay"; el.hidden = false; $('#logo').classList.add('has-img'); }
@@ -84,6 +89,7 @@ function beginAct() {
   S.mode = 'intro'; S.modeT = 0;
   S.curtain = 0; S.curtainTarget = 0;
   S.card = { ...INTRO, alpha: 0 };
+  S.readyT = 0;
   announce('Act One, The Crossing.');
 }
 
@@ -233,7 +239,19 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
+function updateLoadbar() {
+  const st = songStatus();
+  // On the title the song can only download; decoding waits for Press Start.
+  const done = ['downloaded', 'decoding', 'ready', 'failed', 'none'].includes(st.state);
+  const pct = Math.round((done ? 1 : st.progress / 0.95) * 100);
+  $('#loadbar-fill').style.width = pct + '%';
+  $('#loadbar').setAttribute('aria-valuenow', pct);
+  $('#loadbar').classList.toggle('done', done && st.state !== 'failed');
+  $('#loadbar-label').textContent = st.state === 'failed' ? 'The song could not be loaded' : done ? 'Ready' : `Tuning up the band… ${pct}%`;
+}
+
 function update(dt, i) {
+  if (S.mode === 'title') updateLoadbar();
   S.curtain += (S.curtainTarget - S.curtain) * Math.min(1, dt * 2.2);
   const coarse = matchMedia('(pointer: coarse)').matches;
   $('#touch').hidden = !(coarse && S.mode === 'play' && !S.paused);
@@ -258,7 +276,11 @@ function update(dt, i) {
 
   if (S.mode === 'intro') {
     S.card.alpha = Math.min(1, S.modeT * 2.5);
-    if ((go && S.modeT > 0.4) || S.modeT > 6) {
+    // Hold the card until the song can play, showing its progress.
+    if (!songSettled()) { S.card.loading = songStatus().progress; S.readyT = 0; if (i.pause) pause(); return; }
+    if (S.card.loading != null) { S.card.loading = null; announce('Ready.'); }
+    S.readyT = (S.readyT || 0) + dt;
+    if ((go && S.readyT > 0.4) || S.readyT > 6) {
       S.mode = 'play'; S.modeT = 0; S.card = null; S.curtainTarget = 1;
       audio.play('curtain');
     }

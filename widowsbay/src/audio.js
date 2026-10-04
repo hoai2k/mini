@@ -1,24 +1,11 @@
-// Score and effects with Web Audio. When the band's recording is delivered
-// (assets/manifest.json → audio.song) it plays as the score; until then a
-// procedural stand-in shanty in D dorian (6/8, fingerpicked guitar, a low
-// organ drone and a penny-whistle line) fills in. Sea wash plays under both.
+// Score and effects with Web Audio. The score is the band's recording
+// (assets/manifest.json -> audio.song): it starts downloading as soon as the
+// page opens, reports progress for the loading bar, and is decoded on the
+// first user gesture. There is no stand-in music. Effects are the ElevenLabs
+// recordings (design/source/build_sfx.py); the synthesised versions below
+// play only if a recording fails to load.
 
-// Transposed +3 so the stand-in plays in F, the key of the band's recording.
-const NOTE = (n) => 440 * 2 ** ((n + 3 - 69) / 12);
-// D dorian chords as MIDI roots + voicing.
-const CHORDS = {
-  Dm: [50, 57, 62, 65, 69], C: [48, 55, 60, 64, 67], Am: [45, 52, 57, 60, 64], F: [41, 53, 57, 60, 65], G: [43, 55, 59, 62, 67],
-};
-const PROG = ['Dm', 'Dm', 'C', 'Dm', 'F', 'C', 'G', 'Dm'];
-// Fingerpicking pattern over six eighth notes (indexes into voicing).
-const PICK = [0, 2, 3, 1, 4, 2];
-// Whistle tune, one note per eighth (null = rest), 8 bars × 6.
-const TUNE = [
-  74, null, 72, 69, null, 67, 69, null, null, 65, 67, 69,
-  72, null, 69, 67, null, 65, 62, null, null, null, null, null,
-  65, null, 67, 69, null, 72, 74, null, 72, 69, null, 67,
-  67, null, 69, 65, null, 64, 62, null, null, null, null, null,
-];
+const NOTE = (n) => 440 * 2 ** ((n - 69) / 12);
 
 // Mix for recorded effects: frequent ones sit lower. Tonal effects are tuned
 // to F (design/source/build_sfx.py), so they keep their pitch.
@@ -26,9 +13,9 @@ const MIX = { ui: 0.5, row: 0.55, pearl: 0.7, rockWarn: 0.6, wind: 0.8 };
 const TONAL = new Set(['pearl', 'keepsake', 'done', 'arrive', 'ui']);
 
 export function createAudio() {
-  let ac = null, master, music, sfx, sea, timer = 0, playing = false;
-  let nextTime = 0, step = 0;
-  // The delivered song: { url, loopStart, loopEnd, buffer, loading, node }.
+  let ac = null, master, music, sfx, sea, playing = false;
+  // The song: { url, loopStart, loopEnd, bytes, buffer, state, progress, node }.
+  // state: 'loading' -> 'downloaded' -> 'decoding' -> 'ready', or 'failed'.
   let track = null;
   // Delivered effects (ElevenLabs, see design/source/build_sfx.py):
   // name -> url until decoded, then name -> AudioBuffer.
@@ -36,8 +23,6 @@ export function createAudio() {
   const sfxBuf = {};
   let sfxLoading = null;
   const vol = { music: 0.7, sfx: 0.8 };
-  const bpm = 104; // dotted-quarter pulse
-  const eighth = 60 / bpm / 3;
 
   function ensure() {
     if (ac) { if (ac.state === 'suspended') ac.resume(); return true; }
@@ -49,6 +34,7 @@ export function createAudio() {
     sfx = ac.createGain(); sfx.connect(master);
     apply();
     loadSfx();
+    decodeTrack();
     return true;
   }
 
@@ -113,50 +99,39 @@ export function createAudio() {
     o.connect(f); o2.connect(g2); g2.connect(f); f.connect(g); g.connect(dest);
     o.start(t); o2.start(t); o.stop(t + 1.2); o2.stop(t + 1.2);
   }
-  function organ(t, midi, dur) {
-    const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
-    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.25); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    // gentle drive, like the song's distorted organ
-    const sh = ac.createWaveShaper(); const curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) { const x = i / 128 - 1; curve[i] = Math.tanh(x * 2.2); }
-    sh.curve = curve;
-    for (const [m, d] of [[midi, 0], [midi + 7, 4], [midi + 12, -3]]) {
-      const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = NOTE(m); o.detune.value = d;
-      o.connect(sh); o.start(t); o.stop(t + dur + 0.05);
-    }
-    sh.connect(f); f.connect(g); g.connect(music);
-  }
-  function whistle(t, midi, dur) {
-    const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = NOTE(midi + 12);
-    const v = ac.createOscillator(); v.frequency.value = 5.5; const vg = ac.createGain(); vg.gain.value = 6;
-    v.connect(vg); vg.connect(o.frequency);
-    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.06, t + 0.04); g.gain.setValueAtTime(0.06, t + dur * 0.8); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(music); o.start(t); v.start(t); o.stop(t + dur + 0.05); v.stop(t + dur + 0.05);
-  }
-
-  function schedule() {
-    while (nextTime < ac.currentTime + 0.2) {
-      const bar = Math.floor(step / 6) % PROG.length;
-      const beat = step % 6;
-      const chord = CHORDS[PROG[bar]];
-      pluck(nextTime, chord[PICK[beat]] + (beat === 0 ? -12 : 0), beat === 0 ? 0.22 : 0.13);
-      if (beat === 0) organ(nextTime, chord[0] - 12, eighth * 6);
-      const loop = Math.floor(step / 48);
-      if (loop % 2 === 1) {
-        const n = TUNE[step % 48];
-        if (n) whistle(nextTime, n, eighth * (TUNE[(step + 1) % 48] === null ? 2 : 1) * 0.95);
+  // Download with progress; needs no AudioContext, so it starts at page load.
+  async function download() {
+    try {
+      const res = await fetch(track.url);
+      if (!res.ok) throw new Error(res.status);
+      const total = +res.headers.get('content-length') || 0;
+      if (!res.body || !total) { track.bytes = await res.arrayBuffer(); }
+      else {
+        const reader = res.body.getReader();
+        const chunks = []; let got = 0;
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value); got += value.length;
+          track.progress = Math.min(0.95, (got / total) * 0.95);
+        }
+        const all = new Uint8Array(got); let o = 0;
+        for (const c of chunks) { all.set(c, o); o += c.length; }
+        track.bytes = all.buffer;
       }
-      nextTime += eighth * (beat % 3 === 0 ? 1.04 : 0.98); // a little lilt
-      step++;
-    }
+      track.state = 'downloaded'; track.progress = 0.95;
+      if (ac) decodeTrack();
+    } catch { track.state = 'failed'; }
   }
-
-  async function loadTrack() {
-    if (!track || track.buffer || track.loading) return track?.loading;
-    track.loading = decode(track.url)
-      .then((buf) => { track.buffer = buf; })
-      .catch(() => { track = null; }); // missing or undecodable: keep the stand-in
-    return track.loading;
+  function decodeTrack() {
+    if (!track || track.state !== 'downloaded') return;
+    track.state = 'decoding';
+    new Promise((ok, fail) => ac.decodeAudioData(track.bytes, ok, fail))
+      .then((buf) => {
+        track.buffer = buf; track.bytes = null; track.state = 'ready'; track.progress = 1;
+        if (playing && !track.node) playTrack();
+      })
+      .catch(() => { track.state = 'failed'; });
   }
   function playTrack() {
     const src = ac.createBufferSource();
@@ -169,10 +144,6 @@ export function createAudio() {
     track.node = src;
     if (sea) sea.g.gain.value = sea.recorded ? 0.12 : 0.05; // let the song carry the scene
   }
-  function startProcedural() {
-    nextTime = ac.currentTime + 0.1; step = 0;
-    timer = setInterval(schedule, 60);
-  }
   async function startMusic() {
     if (!ensure() || playing) return;
     playing = true;
@@ -180,15 +151,11 @@ export function createAudio() {
     await Promise.race([loadSfx(), new Promise((r) => setTimeout(r, 1500))]);
     if (!playing) return;
     if (!sea) startSea();
-    if (track) {
-      await loadTrack();
-      if (!playing) return;
-      if (track?.buffer) return playTrack();
-    }
-    startProcedural();
+    if (track?.state === 'ready') playTrack();
+    else decodeTrack(); // plays as soon as it is ready
   }
   function stopMusic() {
-    playing = false; clearInterval(timer);
+    playing = false;
     try { track?.node?.stop(); } catch { /* already stopped */ }
     if (track) track.node = null;
   }
@@ -238,12 +205,14 @@ export function createAudio() {
   return {
     unlock: ensure,
     startMusic, stopMusic,
-    // Register the band's recording. Decoding waits for the first user
-    // gesture (browsers won't start audio before one).
+    // Register the band's recording and start downloading it now. Decoding
+    // waits for the first user gesture (browsers won't start audio before one).
     setTrack(url, loopStart = 0, loopEnd = 0) {
-      track = { url, loopStart, loopEnd, buffer: null, loading: null, node: null };
-      if (ac) loadTrack();
+      track = { url, loopStart, loopEnd, bytes: null, buffer: null, state: 'loading', progress: 0, node: null };
+      download();
     },
+    // { state, progress 0..1 } for the loading bar; 'none' when no song is set.
+    trackStatus: () => (track ? { state: track.state, progress: track.progress } : { state: 'none', progress: 1 }),
     usingTrack: () => !!track?.node,
     sfxLoaded: () => Object.keys(sfxBuf).length,
     play(name) {

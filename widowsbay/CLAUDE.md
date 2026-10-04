@@ -8,8 +8,10 @@
   `ELEVENLABS_API_KEY` in the environment. Never write it into a file in this
   repository, a commit message or a published page. If the variable is
   missing, ask the user for it.
-- **The score is the band's recording,** `assets/audio/widowsbay.mp3`. The
-  band are the user's brother and friends, and the user has cleared its use.
+- **The score is the band's recording,** `assets/audio/widowsbay.mp3`, and
+  nothing else: no stand-in or procedural music. While it loads, show a loading
+  bar (the title screen and the act card already do). The band are the user's
+  brother and friends, and the user has cleared its use.
 - **The look is the priority.** Follow `design/image-requests.md` (stencil
   tint, toy theatre, the video's intertitle cards) and check new work against
   the frames in `design/references/`.
