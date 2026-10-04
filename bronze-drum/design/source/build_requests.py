@@ -76,7 +76,7 @@ REQUESTS: list[dict] = []
 
 def req(section, rid, asset, title, purpose, spec, status, standin, file, prompt):
     # Direction pieces carry the shared style too, except the installation photograph.
-    if section == "mood" and rid != "BD-M02":
+    if section == "mood" and rid != "BD-M02":  # style frames set their own treatment
         prompt = f"{STYLE} {prompt}"
     REQUESTS.append(
         dict(section=section, id=rid, asset=asset, title=title, purpose=purpose, spec=spec,
@@ -85,6 +85,15 @@ def req(section, rid, asset, title, purpose, spec, status, standin, file, prompt
 
 
 SECTIONS = {
+    "style": (
+        "Style frames: choose the direction first",
+        "Generate these three before anything else. They show the same moment (the "
+        "army marching on a Han palisade at dusk, the sisters and the drum behind it) under "
+        "three different treatments of the paper, so the treatment can be judged on its own. "
+        "Pick one, or a mix, and the palette and the prompts below are tuned to it before the "
+        "full set is generated. The prototype's stand-in currently sits closest to S02; "
+        "screenshots of it are in `design/screens/`.",
+    ),
     "mood": (
         "Inspiration and atmosphere",
         "Direction pieces, not game assets. They fix the look, the light and the emotional "
@@ -118,6 +127,40 @@ SECTIONS = {
         "procedurally; the sheets are for the production build.",
     ),
 }
+
+
+# ------------------------------------------------------------------ style
+
+SCENE = (
+    "A side-on view at dusk of a line of Lac Viet women warriors with spears and feather crowns "
+    "marching right across rice paddies towards a Han timber palisade with a watchtower; behind "
+    "the women, two sisters in feather crowns beat a bronze drum on a carried palanquin; "
+    "limestone karst peaks and areca palms behind; a large low moon ringed by faint concentric "
+    "drum rings. Wide 16:9 composition, layered in five depths."
+)
+req("style", "BD-S01", None, "Style frame A: white paper and lamplight",
+    "The closest to hand-cut fibre panels in a gallery: almost no colour; depth and mood come "
+    "from light, shadow and the density of the cuts.",
+    "3840x2160, opaque", "reference", None, "references/s01-white-paper.png",
+    f"{SCENE} Every layer is cut from white and cream fibre paper; colour comes only from a "
+    "warm amber lamp behind the scene and the cool blue shadows each layer casts on the next. "
+    "Intricate snowflake-like filigree in the hills, leaves and feathers; a kaleidoscope of light "
+    "and shadow. Only accents of colour: the bronze drum and a thin lacquer-red sash on each "
+    "woman. Hand-cut paper art, no painterly rendering, no text.")
+req("style", "BD-S02", None, "Style frame B: coloured papers, lit from behind",
+    "The prototype's direction: each depth a different coloured sheet, night indigo to rice "
+    "cream, with bronze and lacquer-red accents.",
+    "3840x2160, opaque", "reference", None, "references/s02-coloured-papers.png",
+    f"{STYLE} {SCENE}")
+req("style", "BD-S03", None, "Style frame C: shadow theatre",
+    "The boldest read at game size: solid ink silhouettes in front of glowing translucent "
+    "coloured paper, like a shadow-puppet screen.",
+    "3840x2160, opaque", "reference", None, "references/s03-shadow-theatre.png",
+    f"{SCENE} Every near figure and object is a solid ink-black silhouette with fine cut-out "
+    "detail, set in front of a glowing screen of translucent dyed paper that shifts from amber "
+    "at the horizon to deep rose and indigo above; the far hills are paler silhouettes printed "
+    "on the screen. Like a Southeast Asian shadow-puppet performance lit by oil lamps. "
+    "Hand-cut paper art, no painterly rendering, no text.")
 
 # ------------------------------------------------------------------ mood
 
@@ -260,6 +303,14 @@ req(W_, "BD-B04", "layer-karst", "Far layer: karst peaks",
     f"{STYLE} A long horizontal strip of steep limestone karst peaks with rounded tops, cut from "
     "one sheet of paper in a single muted indigo-violet, with thin mist bands and small flying "
     "herons cut out of it so the light shows through. Flat silhouette, no interior shading.")
+req(W_, "BD-B09", "layer-karst-far", "Farthest layer: pale karst peaks",
+    "A paler, lower row of peaks behind BD-B04, moving at 7% of the camera speed, so the "
+    "hills read in two depths.",
+    "5120x1440. Peaks between 25% and 52% of the height; the base solid to the bottom edge. " + STRIP,
+    "stand-in", "Renderer.buildKarst(far)", "art/layer-karst-far.png",
+    f"{STYLE} A long horizontal strip of distant limestone karst peaks with rounded tops, "
+    "cut from one pale, misty violet-grey sheet that lets a lot of light through, with a dotted "
+    "seam of tiny cut holes following the inside of each peak and thin mist bands cut across.")
 req(W_, "BD-B05", "layer-grove", "Middle layer: palms, bamboo, stilt houses",
     "The middle distance, moving at 45% of the camera speed.",
     "5120x1440. Tree bases on a solid band at 63-71% of the height; tallest crowns at about 25%. " + STRIP,
@@ -485,15 +536,17 @@ def build_doc() -> str:
         "rerun it, which also rewrites `game/assets/manifest.json`.\n")
     out.append("## How to use this list\n")
     out.append(
-        "1. Start with the **inspiration and atmosphere** pieces (BD-M01 to BD-M14). They fix the "
+        "1. Generate the three **style frames** (BD-S01 to BD-S03) first and choose a direction; "
+        "the rest of the list is tuned to that choice before it is generated in full.\n"
+        "2. Then the **inspiration and atmosphere** pieces (BD-M01 to BD-M14). They fix the "
         "look; when a later asset disagrees with them, the direction pieces win.\n"
-        "2. Each prompt is complete on its own: paste it as it stands. The shared style text is "
+        "3. Each prompt is complete on its own: paste it as it stands. The shared style text is "
         "already included in every prompt that needs it.\n"
-        "3. Save each image under the file name in its **File** line and drop it in "
+        "4. Save each image under the file name in its **File** line and drop it in "
         "`hopper/intake/` (or straight into `bronze-drum/game/assets/` and "
         "`bronze-drum/design/`). On integration the request's status flips to `delivered` and "
         "the game loads the file in place of its procedural stand-in.\n"
-        "4. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure "
+        "5. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure "
         "magenta `#FF00FF` background as the prompts say; it is keyed out on integration.\n")
     out.append("## Art direction\n")
     out.append(

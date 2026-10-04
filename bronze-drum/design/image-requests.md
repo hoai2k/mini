@@ -4,10 +4,11 @@ Artwork for the Bronze Drum prototype in `bronze-drum/game/`, plus direction pie
 
 ## How to use this list
 
-1. Start with the **inspiration and atmosphere** pieces (BD-M01 to BD-M14). They fix the look; when a later asset disagrees with them, the direction pieces win.
-2. Each prompt is complete on its own: paste it as it stands. The shared style text is already included in every prompt that needs it.
-3. Save each image under the file name in its **File** line and drop it in `hopper/intake/` (or straight into `bronze-drum/game/assets/` and `bronze-drum/design/`). On integration the request's status flips to `delivered` and the game loads the file in place of its procedural stand-in.
-4. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.
+1. Generate the three **style frames** (BD-S01 to BD-S03) first and choose a direction; the rest of the list is tuned to that choice before it is generated in full.
+2. Then the **inspiration and atmosphere** pieces (BD-M01 to BD-M14). They fix the look; when a later asset disagrees with them, the direction pieces win.
+3. Each prompt is complete on its own: paste it as it stands. The shared style text is already included in every prompt that needs it.
+4. Save each image under the file name in its **File** line and drop it in `hopper/intake/` (or straight into `bronze-drum/game/assets/` and `bronze-drum/design/`). On integration the request's status flips to `delivered` and the game loads the file in place of its procedural stand-in.
+5. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.
 
 ## Art direction
 
@@ -48,13 +49,45 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 
 | Section | Requests | Stand-in | Planned | Reference | Delivered |
 | --- | ---: | ---: | ---: | ---: | ---: |
+| Style frames: choose the direction first | 3 | 0 | 0 | 3 | 0 |
 | Inspiration and atmosphere | 14 | 0 | 0 | 14 | 0 |
-| Backgrounds | 8 | 8 | 0 | 0 | 0 |
+| Backgrounds | 9 | 9 | 0 | 0 | 0 |
 | Characters and units | 10 | 10 | 0 | 0 | 0 |
 | Puppet part sheets | 4 | 0 | 4 | 0 | 0 |
 | Interface | 8 | 5 | 3 | 0 | 0 |
 | Effects | 3 | 0 | 3 | 0 | 0 |
-| **total** | **47** | **23** | **10** | **14** | **0** |
+| **total** | **51** | **24** | **10** | **17** | **0** |
+
+## Style frames: choose the direction first (3)
+
+Generate these three before anything else. They show the same moment (the army marching on a Han palisade at dusk, the sisters and the drum behind it) under three different treatments of the paper, so the treatment can be judged on its own. Pick one, or a mix, and the palette and the prompts below are tuned to it before the full set is generated. The prototype's stand-in currently sits closest to S02; screenshots of it are in `design/screens/`.
+
+### BD-S01 · Style frame A: white paper and lamplight
+
+The closest to hand-cut fibre panels in a gallery: almost no colour; depth and mood come from light, shadow and the density of the cuts.
+
+- **Spec:** 3840x2160, opaque
+- **Status:** reference only
+- **File:** `bronze-drum/design/references/s01-white-paper.png`
+- **Prompt:** A side-on view at dusk of a line of Lac Viet women warriors with spears and feather crowns marching right across rice paddies towards a Han timber palisade with a watchtower; behind the women, two sisters in feather crowns beat a bronze drum on a carried palanquin; limestone karst peaks and areca palms behind; a large low moon ringed by faint concentric drum rings. Wide 16:9 composition, layered in five depths. Every layer is cut from white and cream fibre paper; colour comes only from a warm amber lamp behind the scene and the cool blue shadows each layer casts on the next. Intricate snowflake-like filigree in the hills, leaves and feathers; a kaleidoscope of light and shadow. Only accents of colour: the bronze drum and a thin lacquer-red sash on each woman. Hand-cut paper art, no painterly rendering, no text.
+
+### BD-S02 · Style frame B: coloured papers, lit from behind
+
+The prototype's direction: each depth a different coloured sheet, night indigo to rice cream, with bronze and lacquer-red accents.
+
+- **Spec:** 3840x2160, opaque
+- **Status:** reference only
+- **File:** `bronze-drum/design/references/s02-coloured-papers.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A side-on view at dusk of a line of Lac Viet women warriors with spears and feather crowns marching right across rice paddies towards a Han timber palisade with a watchtower; behind the women, two sisters in feather crowns beat a bronze drum on a carried palanquin; limestone karst peaks and areca palms behind; a large low moon ringed by faint concentric drum rings. Wide 16:9 composition, layered in five depths.
+
+### BD-S03 · Style frame C: shadow theatre
+
+The boldest read at game size: solid ink silhouettes in front of glowing translucent coloured paper, like a shadow-puppet screen.
+
+- **Spec:** 3840x2160, opaque
+- **Status:** reference only
+- **File:** `bronze-drum/design/references/s03-shadow-theatre.png`
+- **Prompt:** A side-on view at dusk of a line of Lac Viet women warriors with spears and feather crowns marching right across rice paddies towards a Han timber palisade with a watchtower; behind the women, two sisters in feather crowns beat a bronze drum on a carried palanquin; limestone karst peaks and areca palms behind; a large low moon ringed by faint concentric drum rings. Wide 16:9 composition, layered in five depths. Every near figure and object is a solid ink-black silhouette with fine cut-out detail, set in front of a glowing screen of translucent dyed paper that shifts from amber at the horizon to deep rose and indigo above; the far hills are paler silhouettes printed on the screen. Like a Southeast Asian shadow-puppet performance lit by oil lamps. Hand-cut paper art, no painterly rendering, no text.
 
 ## Inspiration and atmosphere (14)
 
@@ -186,7 +219,7 @@ The opposing side, dignified and specific to the Eastern Han, never caricatured.
 - **File:** `bronze-drum/design/references/m14-han-lineup.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Line-up of Eastern Han Chinese soldiers, 1st century, as flat cut-paper figures in profile facing left, at one scale: spearman with a ji halberd, kneeling crossbowman, officer with a banner, the provincial governor in robes and a scholar's cap. Lamellar armour shown as rows of small cut slots, iron grey and black. Ordinary, human faces; no caricature.
 
-## Backgrounds (8)
+## Backgrounds (9)
 
 One sky per chapter and four parallax strips. The game draws each strip at the full 720-pixel screen height, so composition is given as a fraction of the image height. The ground line sits at 69% of the height; the band below it holds the drum HUD.
 
@@ -225,6 +258,15 @@ The far hills, moving at 15% of the camera speed.
 - **Status:** stand-in in the prototype · **Stand-in:** `Renderer.buildKarst` · **Game id:** `layer-karst`
 - **File:** `bronze-drum/game/assets/art/layer-karst.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long horizontal strip of steep limestone karst peaks with rounded tops, cut from one sheet of paper in a single muted indigo-violet, with thin mist bands and small flying herons cut out of it so the light shows through. Flat silhouette, no interior shading.
+
+### BD-B09 · Farthest layer: pale karst peaks
+
+A paler, lower row of peaks behind BD-B04, moving at 7% of the camera speed, so the hills read in two depths.
+
+- **Spec:** 5120x1440. Peaks between 25% and 52% of the height; the base solid to the bottom edge. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky.
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.buildKarst(far)` · **Game id:** `layer-karst-far`
+- **File:** `bronze-drum/game/assets/art/layer-karst-far.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long horizontal strip of distant limestone karst peaks with rounded tops, cut from one pale, misty violet-grey sheet that lets a lot of light through, with a dotted seam of tiny cut holes following the inside of each peak and thin mist bands cut across.
 
 ### BD-B05 · Middle layer: palms, bamboo, stilt houses
 
