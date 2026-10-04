@@ -30,7 +30,7 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, metronome: 50, offset: 0, hints: true, vibration: true, reduceMotion: false });
+const settings = load('settings', { volume: 80, metronome: 50, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
 // The prototype opens every chapter for review; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
 
@@ -45,6 +45,7 @@ const input = new Input(canvas);
 function applySettings() {
   sound.setVolume(settings.volume / 100);
   sound.metronome = settings.metronome / 100;
+  sound.setAmbience(settings.ambience / 100);
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
@@ -108,6 +109,7 @@ function openDialog(id) {
 function closeDialog() {
   const id = dialogs.pop();
   if (!id) return;
+  sound.play('ui-back');
   $(`#${id}`).hidden = true;
   const back = focusMemory.get(id);
   if (back && back.offsetParent !== null) setFocus(back);
@@ -157,6 +159,7 @@ function move(dir) {
       best = el;
     }
   }
+  sound.play('ui-move');
   if (best) setFocus(best);
   else {
     // Wrap within a vertical menu.
@@ -266,6 +269,9 @@ function startStage(i) {
     flourishTaught: false,
   };
   renderer.setStage(stage);
+  sound.loadSamples().then(() => {
+    if (game && game.stage === stage) sound.startAmbience(stage.ambience);
+  });
   if (document.activeElement) document.activeElement.blur();
   show('play');
 }
@@ -318,8 +324,19 @@ function handleRhythm(ev) {
     }
     const power = commandPower(ev.accuracy, ev.spirit);
     g.pending = { beat: ev.responseStart, command: ev.command, power };
-    for (let k = 0; k < 4; k++) sound.call(g.songStart + (ev.responseStart + k) * g.beatDur, 1 + k * 0.06 + (ev.spirit ? 0.2 : 0));
-    if (ev.spirit && ev.combo === SPIRIT_COMBO) toast('Trống thức — the drum wakes!');
+    const answer = g.songStart + ev.responseStart * g.beatDur;
+    if (sound.has('call')) {
+      // Samples: the command's own sound under two unison shouts.
+      sound.play(`cmd-${ev.command}`, answer);
+      sound.call(answer);
+      sound.call(answer + 2 * g.beatDur);
+    } else {
+      for (let k = 0; k < 4; k++) sound.call(answer + k * g.beatDur, 1 + k * 0.06 + (ev.spirit ? 0.2 : 0));
+    }
+    if (ev.spirit && ev.combo === SPIRIT_COMBO) {
+      toast('Trống thức — the drum wakes!');
+      sound.play('drum-wake');
+    }
     g.commandsDone += 1;
   } else if (ev.type === 'flourish') {
     addFlourish(g.battle);
@@ -384,16 +401,46 @@ function updatePlay(dt) {
     const events = stepBeat(g.battle);
     renderer.spawn(events, view());
     for (const ev of events) {
-      if (ev.type === 'damage' && ev.source !== 'arrow') sound.clash();
-      if (ev.type === 'trample') {
-        sound.thud();
-        input.rumble(300, 1);
-      }
+      battleSound(ev);
+      if (ev.type === 'trample') input.rumble(300, 1);
       if (ev.type === 'wound' && !ev.shielded) input.rumble(80, 0.4);
       if (ev.type === 'outcome') finish(ev.outcome);
     }
   }
   renderer.draw(view(), dt);
+}
+
+/** Effects for battle events: samples where loaded, synth otherwise. */
+function battleSound(ev) {
+  const b = game.battle;
+  const enemy = (id) => b.enemies.find((e) => e.id === id);
+  switch (ev.type) {
+    case 'damage': {
+      const straw = enemy(ev.target)?.type === 'target';
+      if (!sound.play(straw ? 'hit-straw' : 'hit-paper', sound.now, ev.source === 'arrow' ? 0.6 : 1) && ev.source !== 'arrow') sound.clash();
+      break;
+    }
+    case 'defeated':
+      if (ev.enemy === 'fort') sound.play('fort-break');
+      else if (ev.enemy !== 'target') sound.play('defeat-han');
+      break;
+    case 'volley':
+      sound.play('volley');
+      break;
+    case 'bolts':
+      sound.play('bolts');
+      break;
+    case 'wound':
+      sound.play(ev.shielded ? 'blocked' : 'wound');
+      break;
+    case 'trample':
+      if (!sound.play('trample')) sound.thud();
+      break;
+    case 'outcome':
+      sound.stopAmbience();
+      sound.play(ev.outcome === 'won' ? 'victory' : 'defeat');
+      break;
+  }
 }
 
 function view() {
@@ -459,11 +506,13 @@ function action(name) {
     case 'next':
       return startStage(game.index + 1);
     case 'select':
+      sound.stopAmbience();
       game = null;
       buildCards();
       return show('select');
     case 'title':
       if (sound.ctx) sound.ctx.resume();
+      sound.stopAmbience();
       game = null;
       titleNav = false;
       return show('title');
@@ -476,12 +525,15 @@ function action(name) {
 
 function pressStart() {
   sound.start();
+  sound.loadSamples().then(() => sound.play('ui-start'));
   enterFullscreen();
   buildCards();
   show('select');
 }
 
 document.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (btn && btn.id !== 'press-start' && btn.dataset.action !== 'close') sound.play('ui-confirm');
   const el = e.target.closest('[data-action],[data-open]');
   if (!el) return;
   if (el.dataset.open) openDialog(el.dataset.open);

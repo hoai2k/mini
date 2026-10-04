@@ -1,5 +1,201 @@
 {
   "generatedBy": "bronzedrum/design/source/build_audio.py",
-  "sfx": {},
+  "sfx": {
+    "drum-tung": {
+      "files": [
+        "sfx/drum-tung-1.mp3",
+        "sfx/drum-tung-3.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "drum-cac": {
+      "files": [
+        "sfx/drum-cac-1.mp3",
+        "sfx/drum-cac-3.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "drum-wake": {
+      "files": [
+        "sfx/drum-wake.mp3"
+      ],
+      "gain": 0.8,
+      "loop": false
+    },
+    "stumble": {
+      "files": [
+        "sfx/stumble.mp3"
+      ],
+      "gain": 0.7,
+      "loop": false
+    },
+    "call": {
+      "files": [
+        "sfx/call-1.mp3",
+        "sfx/call-2.mp3",
+        "sfx/call-3.mp3"
+      ],
+      "gain": 0.6,
+      "loop": false
+    },
+    "cmd-march": {
+      "files": [
+        "sfx/cmd-march.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "cmd-strike": {
+      "files": [
+        "sfx/cmd-strike.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "cmd-shield": {
+      "files": [
+        "sfx/cmd-shield.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "cmd-rally": {
+      "files": [
+        "sfx/cmd-rally.mp3"
+      ],
+      "gain": 0.8,
+      "loop": false
+    },
+    "cmd-charge": {
+      "files": [
+        "sfx/cmd-charge.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "volley": {
+      "files": [
+        "sfx/volley.mp3"
+      ],
+      "gain": 0.7,
+      "loop": false
+    },
+    "bolts": {
+      "files": [
+        "sfx/bolts.mp3"
+      ],
+      "gain": 0.8,
+      "loop": false
+    },
+    "hit-paper": {
+      "files": [
+        "sfx/hit-paper-1.mp3",
+        "sfx/hit-paper-2.mp3",
+        "sfx/hit-paper-3.mp3"
+      ],
+      "gain": 0.9,
+      "loop": false
+    },
+    "hit-straw": {
+      "files": [
+        "sfx/hit-straw.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "defeat-han": {
+      "files": [
+        "sfx/defeat-han.mp3"
+      ],
+      "gain": 0.8,
+      "loop": false
+    },
+    "fort-break": {
+      "files": [
+        "sfx/fort-break.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "trample": {
+      "files": [
+        "sfx/trample.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "wound": {
+      "files": [
+        "sfx/wound.mp3"
+      ],
+      "gain": 0.6,
+      "loop": false
+    },
+    "blocked": {
+      "files": [
+        "sfx/blocked.mp3"
+      ],
+      "gain": 0.6,
+      "loop": false
+    },
+    "ui-move": {
+      "files": [
+        "sfx/ui-move.mp3"
+      ],
+      "gain": 0.5,
+      "loop": false
+    },
+    "ui-confirm": {
+      "files": [
+        "sfx/ui-confirm.mp3"
+      ],
+      "gain": 0.6,
+      "loop": false
+    },
+    "ui-back": {
+      "files": [
+        "sfx/ui-back.mp3"
+      ],
+      "gain": 0.5,
+      "loop": false
+    },
+    "ui-start": {
+      "files": [
+        "sfx/ui-start.mp3"
+      ],
+      "gain": 0.7,
+      "loop": false
+    },
+    "victory": {
+      "files": [
+        "sfx/victory.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "defeat": {
+      "files": [
+        "sfx/defeat.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "amb-garden": {
+      "files": [
+        "sfx/amb-garden.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "amb-river": {
+      "files": [
+        "sfx/amb-river.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    }
+  },
   "music": {}
 }

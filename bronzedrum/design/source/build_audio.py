@@ -44,9 +44,17 @@ API = "https://api.elevenlabs.io/v1/sound-generation"
 SFX: list[dict] = []
 
 
-def sfx(group, sid, prompt, seconds, use, influence=0.5, variants=1, kind="oneshot", gain=1.0):
+def sfx(group, sid, prompt, seconds, use, influence=0.5, variants=1, kind="oneshot", gain=1.0, post=None):
     SFX.append(dict(group=group, id=sid, prompt=prompt, seconds=seconds, use=use,
-                    influence=influence, variants=variants, kind=kind, gain=gain))
+                    influence=influence, variants=variants, kind=kind, gain=gain, post=post))
+
+
+# Generated files that failed review. They are not loaded, and --generate does
+# not remake them unless forced (then remove the entry here if the new take is good).
+REJECTED = {
+    "sfx/drum-tung-2.mp3": "three separate strikes rather than one stroke (three +6 dB onsets in its envelope)",
+    "sfx/drum-cac-2.mp3": "no transient: it swells to its peak at 350 ms, so it would sound late",
+}
 
 
 G = "The drum"
@@ -60,7 +68,9 @@ sfx(G, "drum-cac",
     "One sharp stroke of a hardwood stick on the rim of a bronze kettle drum: a bright, dry, "
     "metallic click with a short ring. A single hit, close-miked, no music.",
     0.7, "Trưng Nhị's rim stroke (cắc), played on every right-hand input and flourish.",
-    influence=0.7, variants=3, kind="hit")
+    influence=0.7, variants=3, kind="hit",
+    # The model tends to add body and ring; a rim stroke must be short and bright.
+    post="highpass=f=400,highpass=f=400,atrim=0:0.32,afade=t=out:st=0.12:d=0.2")
 sfx(G, "drum-wake",
     "A huge bronze gong struck softly and swelling: a rising shimmering bronze resonance that "
     "blooms and slowly fades, ceremonial and awe-struck.",
@@ -388,8 +398,12 @@ def process(src, out: Path, s):
     """Trim, normalise and encode. Hits start on their transient so they stay in time."""
     filters = []
     if s["kind"] == "hit":
-        filters.append("silenceremove=start_periods=1:start_threshold=-40dB:start_silence=0.002")
-    if s["kind"] != "loop":
+        # Trim up to the transient: anything 30 dB under the clip's own peak is lead-in.
+        raw_peak = measure_peak(src, None)
+        filters.append(f"silenceremove=start_periods=1:start_threshold={raw_peak - 30:.1f}dB:start_silence=0.002")
+    if s.get("post"):
+        filters.append(s["post"])
+    if s["kind"] != "loop" and not s.get("post"):
         dur = s["seconds"]
         filters.append(f"afade=t=out:st={max(0.0, dur - min(0.25, dur * 0.3)):.3f}:d={min(0.25, dur * 0.3):.3f}")
     # Peak-normalise to -1 dBFS (loudness is balanced in the game by per-sound gain).
@@ -421,7 +435,7 @@ def measure_peak(src, filters):
 def build_manifest():
     sfx_entries = {}
     for s in SFX:
-        files = [f for f in files_for(s) if (ROOT / "game" / "assets" / f).exists()]
+        files = [f for f in files_for(s) if (ROOT / "game" / "assets" / f).exists() and f not in REJECTED]
         if files:
             sfx_entries[s["id"]] = {"files": files, "gain": s["gain"], "loop": s["kind"] == "loop"}
     music_entries = {}
@@ -453,9 +467,17 @@ def build_sfx_doc():
     out.append("Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, "
                "voices. No synth tones, no music in the effects. Hits are paper tearing, never "
                "gore.\n")
-    have = sum(1 for s in SFX for f in files_for(s) if (ROOT / "game" / "assets" / f).exists())
+    have = sum(1 for s in SFX for f in files_for(s) if (ROOT / "game" / "assets" / f).exists() and f not in REJECTED)
     total = sum(s["variants"] for s in SFX)
-    out.append(f"**{have} of {total} files generated.**\n")
+    missing = [f for s in SFX for f in files_for(s) if not (ROOT / "game" / "assets" / f).exists() and f not in REJECTED]
+    out.append(f"**{have} of {total} files in use.**" + (f" Not generated yet: {', '.join(f'`{m}`' for m in missing)}." if missing else "") + "\n")
+    out.append("Each generated file was checked by measuring its length, peak, level over time "
+               "(50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum "
+               "stroke must start on its loudest moment and be one stroke, a rim click must be "
+               "bright and short. Takes that failed are kept out of the game:\n")
+    for f, why in REJECTED.items():
+        out.append(f"- `{f}`: {why}.")
+    out.append("")
     groups = []
     for s in SFX:
         if s["group"] not in groups:
@@ -466,7 +488,7 @@ def build_sfx_doc():
         out.append("| --- | --- | ---: | --- | --- |")
         for s in [x for x in SFX if x["group"] == gname]:
             files = files_for(s)
-            present = [f for f in files if (ROOT / "game" / "assets" / f).exists()]
+            present = [f for f in files if (ROOT / "game" / "assets" / f).exists() and f not in REJECTED]
             ftxt = f"{len(present)}/{len(files)}"
             kind = {"hit": "hit", "oneshot": "one-shot", "loop": "loop", "sting": "sting"}[s["kind"]]
             out.append(f"| `{s['id']}` | {s['use']} ({kind}) | {s['seconds']} s | {ftxt} | {s['prompt']} |")
@@ -540,7 +562,7 @@ def main():
         for s in SFX:
             for f in files_for(s):
                 out = ROOT / "game" / "assets" / f
-                if out.exists() and s["id"] not in force:
+                if (out.exists() or f in REJECTED) and s["id"] not in force:
                     continue
                 print(f"generating {f} …", flush=True)
                 generate(s, out, key)
