@@ -77,6 +77,286 @@
       "status": "delivered",
       "file": "sea-dragon.webp",
       "note": "Not used in Act I (the witch-moonboat art includes her dragon); reserved for Act II, the grotto."
+    },
+    "sailor-stand": {
+      "status": "requested",
+      "file": "sailor-stand.webp"
+    },
+    "sailor-walk-a": {
+      "status": "requested",
+      "file": "sailor-walk-a.webp"
+    },
+    "sailor-walk-b": {
+      "status": "requested",
+      "file": "sailor-walk-b.webp"
+    },
+    "sailor-leap": {
+      "status": "requested",
+      "file": "sailor-leap.webp"
+    },
+    "sailor-crouch": {
+      "status": "requested",
+      "file": "sailor-crouch.webp"
+    },
+    "sailor-carry": {
+      "status": "requested",
+      "file": "sailor-carry.webp"
+    },
+    "beloved-stand": {
+      "status": "requested",
+      "file": "beloved-stand.webp"
+    },
+    "rival-silhouette": {
+      "status": "requested",
+      "file": "rival-silhouette.webp"
+    },
+    "witch-stand": {
+      "status": "requested",
+      "file": "witch-stand.webp"
+    },
+    "witch-throne": {
+      "status": "requested",
+      "file": "witch-throne.webp"
+    },
+    "band-hat": {
+      "status": "requested",
+      "file": "band-hat.webp"
+    },
+    "band-guitar": {
+      "status": "requested",
+      "file": "band-guitar.webp"
+    },
+    "band-beard": {
+      "status": "requested",
+      "file": "band-beard.webp"
+    },
+    "tea-leaf": {
+      "status": "requested",
+      "file": "tea-leaf.webp"
+    },
+    "keepsake-stone": {
+      "status": "requested",
+      "file": "keepsake-stone.webp"
+    },
+    "playbill": {
+      "status": "requested",
+      "file": "playbill.webp"
+    },
+    "waterspout": {
+      "status": "requested",
+      "file": "waterspout.webp"
+    },
+    "grotto-backcloth": {
+      "status": "requested",
+      "file": "grotto-backcloth.webp"
+    },
+    "grotto-wing-left": {
+      "status": "requested",
+      "file": "grotto-wing-left.webp"
+    },
+    "grotto-wing-right": {
+      "status": "requested",
+      "file": "grotto-wing-right.webp"
+    },
+    "coral-flat-a": {
+      "status": "requested",
+      "file": "coral-flat-a.webp"
+    },
+    "coral-flat-b": {
+      "status": "requested",
+      "file": "coral-flat-b.webp"
+    },
+    "kelp-hanging": {
+      "status": "requested",
+      "file": "kelp-hanging.webp"
+    },
+    "fish-school": {
+      "status": "requested",
+      "file": "fish-school.webp"
+    },
+    "diving-bell": {
+      "status": "requested",
+      "file": "diving-bell.webp"
+    },
+    "fly-trolley": {
+      "status": "requested",
+      "file": "fly-trolley.webp"
+    },
+    "clam-open": {
+      "status": "requested",
+      "file": "clam-open.webp"
+    },
+    "clam-closed": {
+      "status": "requested",
+      "file": "clam-closed.webp"
+    },
+    "eel": {
+      "status": "requested",
+      "file": "eel.webp"
+    },
+    "eel-hole": {
+      "status": "requested",
+      "file": "eel-hole.webp"
+    },
+    "jellyfish": {
+      "status": "requested",
+      "file": "jellyfish.webp"
+    },
+    "air-vent": {
+      "status": "requested",
+      "file": "air-vent.webp"
+    },
+    "court-backcloth": {
+      "status": "requested",
+      "file": "court-backcloth.webp"
+    },
+    "court-wing-left": {
+      "status": "requested",
+      "file": "court-wing-left.webp"
+    },
+    "court-wing-right": {
+      "status": "requested",
+      "file": "court-wing-right.webp"
+    },
+    "court-floor": {
+      "status": "requested",
+      "file": "court-floor.webp"
+    },
+    "attendant-green": {
+      "status": "requested",
+      "file": "attendant-green.webp"
+    },
+    "attendant-pink": {
+      "status": "requested",
+      "file": "attendant-pink.webp"
+    },
+    "attendant-blue": {
+      "status": "requested",
+      "file": "attendant-blue.webp"
+    },
+    "seahorse-guard": {
+      "status": "requested",
+      "file": "seahorse-guard.webp"
+    },
+    "gaze-lantern": {
+      "status": "requested",
+      "file": "gaze-lantern.webp"
+    },
+    "pearl-pedestal": {
+      "status": "requested",
+      "file": "pearl-pedestal.webp"
+    },
+    "whale-side": {
+      "status": "requested",
+      "file": "whale-side.webp"
+    },
+    "whale-mouth": {
+      "status": "requested",
+      "file": "whale-mouth.webp"
+    },
+    "fish-large": {
+      "status": "requested",
+      "file": "fish-large.webp"
+    },
+    "belly-backcloth": {
+      "status": "requested",
+      "file": "belly-backcloth.webp"
+    },
+    "rib-arch": {
+      "status": "requested",
+      "file": "rib-arch.webp"
+    },
+    "belly-water": {
+      "status": "requested",
+      "file": "belly-water.webp"
+    },
+    "barrel": {
+      "status": "requested",
+      "file": "barrel.webp"
+    },
+    "crate": {
+      "status": "requested",
+      "file": "crate.webp"
+    },
+    "figurehead": {
+      "status": "requested",
+      "file": "figurehead.webp"
+    },
+    "piano": {
+      "status": "requested",
+      "file": "piano.webp"
+    },
+    "lantern-hanging": {
+      "status": "requested",
+      "file": "lantern-hanging.webp"
+    },
+    "cradle": {
+      "status": "requested",
+      "file": "cradle.webp"
+    },
+    "whale-throat": {
+      "status": "requested",
+      "file": "whale-throat.webp"
+    },
+    "shore-rocks": {
+      "status": "requested",
+      "file": "shore-rocks.webp"
+    },
+    "whale-tail": {
+      "status": "requested",
+      "file": "whale-tail.webp"
+    },
+    "bay-backcloth": {
+      "status": "requested",
+      "file": "bay-backcloth.webp"
+    },
+    "bay-backcloth-fire": {
+      "status": "requested",
+      "file": "bay-backcloth-fire.webp"
+    },
+    "stone-house": {
+      "status": "requested",
+      "file": "stone-house.webp"
+    },
+    "staircase": {
+      "status": "requested",
+      "file": "staircase.webp"
+    },
+    "ladder": {
+      "status": "requested",
+      "file": "ladder.webp"
+    },
+    "beam-fall": {
+      "status": "requested",
+      "file": "beam-fall.webp"
+    },
+    "debris-stones": {
+      "status": "requested",
+      "file": "debris-stones.webp"
+    },
+    "flame-flat": {
+      "status": "requested",
+      "file": "flame-flat.webp"
+    },
+    "smoke-flat": {
+      "status": "requested",
+      "file": "smoke-flat.webp"
+    },
+    "harbour-quay": {
+      "status": "requested",
+      "file": "harbour-quay.webp"
+    },
+    "ending-lamp": {
+      "status": "requested",
+      "file": "ending-lamp.webp"
+    },
+    "ending-witch": {
+      "status": "requested",
+      "file": "ending-witch.webp"
+    },
+    "ending-dark": {
+      "status": "requested",
+      "file": "ending-dark.webp"
     }
   },
   "audio": {

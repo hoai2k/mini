@@ -5,6 +5,13 @@ video: Méliès footage from *Le Royaume des fées* (1903), stencil-tinted colou
 and the video's plum and magenta title cards. Play it at
 https://hoai2k.github.io/mini/widowsbay/.
 
+The full game has five acts, each driven by a different piece of stage
+machinery: the crossing, the grotto, the undersea court, inside the whale,
+and the burning house at Widow's Bay. Keepsakes carried between acts decide
+which of three endings plays. The design is in
+[`design/acts.md`](design/acts.md), and the art it needs is Part C of
+[`design/image-requests.md`](design/image-requests.md). Act I is built.
+
 ## Act I — The Crossing (the first board)
 
 You sail a cut-out ship along three cranked rows of painted waves toward the
@@ -112,6 +119,7 @@ later acts go in the script's `SFX` table, with the same foley direction.
 ## Checks
 
 ```sh
+python3 widowsbay/design/source/build_act_requests.py --check   # Part C requests in sync
 node widowsbay/qa/board.test.mjs           # rules
 widowsbay/publish.sh local/pages/widowsbay  # what Pages deploys
 ```
