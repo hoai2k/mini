@@ -16,8 +16,8 @@ Play the prototype at https://hoai2k.github.io/mini/bronzedrum/.
   [`design/music-requests.md`](design/music-requests.md): the sound effects
   (generated with ElevenLabs) and the prompts for the score, both built from
   [`design/source/build_audio.py`](design/source/build_audio.py).
-- [`design/screens/`](design/screens/): screenshots of the prototype's
-  procedural stand-in art.
+- [`design/screens/`](design/screens/): screenshots of the prototype with the
+  delivered art.
 - [`game/`](game/): the prototype itself, static ES modules with no build step.
 
 ## Run and check
@@ -29,6 +29,7 @@ node --test test/*.test.mjs     # rhythm reader and battle simulation
 node scripts/check.mjs          # syntax and manifest ids
 python3 ../design/source/build_requests.py --check
 python3 ../design/source/build_audio.py --check
+python3 ../design/source/build_web_art.py --check
 ```
 
 ## Sound effects
@@ -67,6 +68,15 @@ are resampled from the generator's native output rather than generated at native
 The manifest's `runtime` flag distinguishes the 24 images used by the prototype
 from the 10 delivered puppet, effects and planned interface sheets. The latter
 remain available for production work without being downloaded at game startup.
+
+The PNGs in `game/assets/art/` are the masters, kept at the requested sizes.
+The game loads WebP copies scaled to the size it actually draws them at (3.2 MB
+in all, against 61 MB of masters). Only these copies are published. After
+delivering or replacing art, rerun
+[`design/source/build_web_art.py`](design/source/build_web_art.py) and then
+`build_requests.py`. The renderer also tints the painted parallax layers to
+each chapter's light (dawn, day, night), because one set of layers serves all
+three chapters.
 
 Delivered art is integrated through [`intake/`](intake/README.md). For each image:
 

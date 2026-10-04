@@ -615,10 +615,16 @@ def build_doc() -> str:
 
 
 def build_manifest() -> str:
-    assets = [
-        {"id": r["asset"], "request": r["id"], "file": r["file"], "status": r["status"], "section": r["section"], "runtime": bool(r["standin"])}
-        for r in REQUESTS if r["asset"]
-    ]
+    assets = []
+    for r in REQUESTS:
+        if not r["asset"]:
+            continue
+        entry = {"id": r["asset"], "request": r["id"], "file": r["file"], "status": r["status"],
+                 "section": r["section"], "runtime": bool(r["standin"])}
+        # The game loads the web copy made by build_web_art.py, not the master.
+        if entry["runtime"] and (ROOT / "game" / "assets" / "web" / f"{r['asset']}.webp").exists():
+            entry["web"] = f"web/{r['asset']}.webp"
+        assets.append(entry)
     return json.dumps({"generatedBy": "bronzedrum/design/source/build_requests.py", "assets": assets}, indent=2, ensure_ascii=False) + "\n"
 
 

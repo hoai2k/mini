@@ -12,6 +12,8 @@ export const U = 48; // pixels per field unit
 const GROUND = 500;
 const ARMY_SCREEN_X = 470;
 const STRIP_W = 2560;
+// How strongly delivered layers are washed toward each chapter's light.
+const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55 };
 
 function rng(seed) {
   let s = seed >>> 0;
@@ -206,6 +208,7 @@ export class Renderer {
     this.cam = 0;
     this.particles = [];
     this.floaters = [];
+    this.lit = new Map(); // layers lit and scaled for this chapter only
     this.layers = {
       sky: this.buildSky(stage.sky),
       karstFar: this.buildKarst(true),
@@ -560,14 +563,40 @@ export class Renderer {
     if (STRIP_W - off < W) g.drawImage(img, STRIP_W - off, y);
   }
 
+  /**
+   * A delivered layer re-lit for this chapter. The painted layers are one
+   * colour for every chapter, so each is washed toward the colour its
+   * stand-in uses under this chapter's light (paper texture kept), once per
+   * chapter.
+   */
+  litLayer(id, img) {
+    // Cached per chapter and per screen size: drawn at exactly the size it
+    // appears, so the frame loop never rescales a large image.
+    const key = `${id}@${this.stage.sky}@${this.pixel}`;
+    if (this.lit.has(key)) return this.lit.get(key);
+    const tint = { 'layer-karst-far': 'far0', 'layer-karst': 'far', 'layer-grove': 'mid2', 'layer-paddy': 'ground' }[id];
+    const h = Math.round(H * this.pixel);
+    const c = canvas(Math.round((img.width / img.height) * h), h);
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0, c.width, c.height);
+    if (tint) {
+      g.globalCompositeOperation = 'source-atop';
+      g.globalAlpha = LAYER_TINT[this.stage.sky];
+      g.fillStyle = this.sky[tint];
+      g.fillRect(0, 0, c.width, c.height);
+    }
+    this.lit.set(key, c);
+    return c;
+  }
+
   layer(id, fallback, factor) {
-    const img = this.art.get(id);
+    let img = this.art.get(id);
     if (img) {
-      const h = H;
-      const w = (img.width / img.height) * h;
+      img = this.litLayer(id, img);
+      const w = img.width / this.pixel;
       const g = this.ctx;
       const off = (((this.cam * factor) % w) + w) % w;
-      for (let x = -off; x < W; x += w) g.drawImage(img, x, 0, w, h);
+      for (let x = -off; x < W; x += w) g.drawImage(img, x, 0, w, H);
     } else this.strip(fallback, factor);
   }
 
@@ -854,13 +883,25 @@ export class Renderer {
       const charging = view.battle.order && view.battle.order.command === 'charge';
       const step = charging ? Math.sin(t * 14) * 4 : Math.sin(view.beatFloat * Math.PI) * 1.5;
       const img = this.art.get('war-elephant');
-      if (img) this.sprite(img, x, y, 230, { bob: step });
-      else this.elephant(x, y - Math.abs(step), view);
+      if (img) {
+        // Painted art: the sisters stand inside the howdah, so draw them
+        // first and let its rail cover their legs.
+        this.sisters(x - 8, y - 165 - Math.abs(step), armL, armR, view, 30);
+        this.sprite(img, x, y, 230, { bob: step });
+        return;
+      }
+      this.elephant(x, y - Math.abs(step), view);
       this.sisters(x - 8, y - 160 - Math.abs(step), armL, armR, view);
     } else {
       const img = this.art.get('drum-bearers');
-      if (img) this.sprite(img, x, y, 150, { bob: 0 });
-      else {
+      if (img) {
+        // The sisters stand at the two ends of the palanquin deck, the drum
+        // showing between them.
+        this.sprite(img, x, y, 150, { bob: 0 });
+        this.sisters(x, y - 52, armL, armR, view, 64);
+        return;
+      }
+      {
         g.fillStyle = P.ink;
         g.fillRect(x - 60, y - 52, 120, 5); // carrying pole
         for (const px of [-64, 58]) this.warrior(x + px, y, 0.9, { bob: 0, thrust: 0 }, t, false);
@@ -893,13 +934,13 @@ export class Renderer {
     for (let k = 0; k < 3; k++) g.fillRect(x - r * 0.8, y - r * 0.55 + k * 9, r * 1.6, 1.5);
   }
 
-  sisters(x, y, armL, armR, view) {
+  sisters(x, y, armL, armR, view, spread = 30) {
     const g = this.ctx;
     const imgT = this.art.get('sister-trac');
     const imgN = this.art.get('sister-nhi');
     if (imgT && imgN) {
-      this.sprite(imgT, x - 30, y, 96, { bob: armL * 3 });
-      this.sprite(imgN, x + 30, y, 96, { bob: armR * 3 });
+      this.sprite(imgT, x - spread, y, 96, { bob: armL * 3 });
+      this.sprite(imgN, x + spread, y, 96, { bob: armR * 3 });
       return;
     }
     const one = (sx, arm, side, gold) => {
@@ -1072,7 +1113,8 @@ export class Renderer {
 
     g.setTransform(this.pixel, 0, 0, this.pixel, 0, 0);
     g.clearRect(0, 0, W, H);
-    const skyImg = this.art.get(`sky-${this.stage.sky}`);
+    const skyArt = this.art.get(`sky-${this.stage.sky}`);
+    const skyImg = skyArt ? this.litLayer(`sky-${this.stage.sky}`, skyArt) : null;
     g.drawImage(skyImg || this.layers.sky, 0, 0, W, H);
     g.translate(sx, 0);
     // Panels from back to front, with the lamp's haze between them.

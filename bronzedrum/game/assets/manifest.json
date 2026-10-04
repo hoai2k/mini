@@ -7,7 +7,8 @@
       "file": "art/sky-dawn.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sky-dawn.webp"
     },
     {
       "id": "sky-day",
@@ -15,7 +16,8 @@
       "file": "art/sky-day.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sky-day.webp"
     },
     {
       "id": "sky-night",
@@ -23,7 +25,8 @@
       "file": "art/sky-night.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sky-night.webp"
     },
     {
       "id": "layer-karst",
@@ -31,7 +34,8 @@
       "file": "art/layer-karst.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/layer-karst.webp"
     },
     {
       "id": "layer-karst-far",
@@ -39,7 +43,8 @@
       "file": "art/layer-karst-far.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/layer-karst-far.webp"
     },
     {
       "id": "layer-grove",
@@ -47,7 +52,8 @@
       "file": "art/layer-grove.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/layer-grove.webp"
     },
     {
       "id": "layer-paddy",
@@ -55,7 +61,8 @@
       "file": "art/layer-paddy.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/layer-paddy.webp"
     },
     {
       "id": "layer-reeds",
@@ -63,7 +70,8 @@
       "file": "art/layer-reeds.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/layer-reeds.webp"
     },
     {
       "id": "paper-fiber",
@@ -71,7 +79,8 @@
       "file": "art/paper-fiber.png",
       "status": "delivered",
       "section": "world",
-      "runtime": true
+      "runtime": true,
+      "web": "web/paper-fiber.webp"
     },
     {
       "id": "sister-trac",
@@ -79,7 +88,8 @@
       "file": "art/sister-trac.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sister-trac.webp"
     },
     {
       "id": "sister-nhi",
@@ -87,7 +97,8 @@
       "file": "art/sister-nhi.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sister-nhi.webp"
     },
     {
       "id": "war-elephant",
@@ -95,7 +106,8 @@
       "file": "art/war-elephant.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/war-elephant.webp"
     },
     {
       "id": "drum-bearers",
@@ -103,7 +115,8 @@
       "file": "art/drum-bearers.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/drum-bearers.webp"
     },
     {
       "id": "unit-spear",
@@ -111,7 +124,8 @@
       "file": "art/unit-spear.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/unit-spear.webp"
     },
     {
       "id": "unit-archer",
@@ -119,7 +133,8 @@
       "file": "art/unit-archer.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/unit-archer.webp"
     },
     {
       "id": "han-spear",
@@ -127,7 +142,8 @@
       "file": "art/han-spear.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/han-spear.webp"
     },
     {
       "id": "han-crossbow",
@@ -135,7 +151,8 @@
       "file": "art/han-crossbow.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/han-crossbow.webp"
     },
     {
       "id": "fort-palisade",
@@ -143,7 +160,8 @@
       "file": "art/fort-palisade.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/fort-palisade.webp"
     },
     {
       "id": "straw-target",
@@ -151,7 +169,8 @@
       "file": "art/straw-target.png",
       "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/straw-target.webp"
     },
     {
       "id": "rig-sister-trac",
@@ -191,7 +210,8 @@
       "file": "art/logo.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/logo.webp"
     },
     {
       "id": "hud-drum",
@@ -199,7 +219,8 @@
       "file": "art/hud-drum.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/hud-drum.webp"
     },
     {
       "id": "ui-glyphs",
@@ -231,7 +252,8 @@
       "file": "art/card-garden.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-garden.webp"
     },
     {
       "id": "card-outpost",
@@ -239,7 +261,8 @@
       "file": "art/card-outpost.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-outpost.webp"
     },
     {
       "id": "card-luylau",
@@ -247,7 +270,8 @@
       "file": "art/card-luylau.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-luylau.webp"
     },
     {
       "id": "fx-scraps",

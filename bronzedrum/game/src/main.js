@@ -215,8 +215,8 @@ function buildCards() {
     b.dataset.nav = '';
     b.disabled = i >= progress.unlocked;
     const img = art.get(`card-${s.id}`);
-    if (img) b.style.backgroundImage = `linear-gradient(rgba(242,232,213,0.82), rgba(242,232,213,0.92)), url(${img.src})`;
-    b.innerHTML = `<span class="num">Chapter ${i + 1}</span><span class="name"></span><span class="sub"></span><span class="intro"></span>`;
+    b.innerHTML = `${img ? '<span class="card-art" aria-hidden="true"></span>' : ''}<span class="num">Chapter ${i + 1}</span><span class="name"></span><span class="sub"></span><span class="intro"></span>`;
+    if (img) b.querySelector('.card-art').style.backgroundImage = `url(${img.src})`;
     b.querySelector('.name').textContent = s.title;
     b.querySelector('.sub').textContent = s.subtitle;
     b.querySelector('.intro').textContent = i < progress.unlocked ? s.intro : 'Win the chapter before to unlock.';
