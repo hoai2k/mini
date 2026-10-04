@@ -53,6 +53,9 @@ loadAssets().then((a) => {
   assets = a;
   const song = a.audio?.song;
   if (song?.status === 'delivered' && song.file) audio.setTrack('assets/' + song.file, song.loopStart, song.loopEnd);
+  const sfx = Object.fromEntries(Object.entries(a.sfx || {})
+    .filter(([, v]) => v.status === 'delivered' && v.file).map(([k, v]) => [k, 'assets/' + v.file]));
+  audio.setSfx(sfx);
   renderer = createRenderer(canvas, assets);
   const logo = assets.images.logo;
   if (logo) { const el = $('#logo-img'); el.src = logo.src; el.alt = "Widow's Bay"; el.hidden = false; $('#logo').classList.add('has-img'); }

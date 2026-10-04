@@ -3,7 +3,8 @@
 // procedural stand-in shanty in D dorian (6/8, fingerpicked guitar, a low
 // organ drone and a penny-whistle line) fills in. Sea wash plays under both.
 
-const NOTE = (n) => 440 * 2 ** ((n - 69) / 12);
+// Transposed +3 so the stand-in plays in F, the key of the band's recording.
+const NOTE = (n) => 440 * 2 ** ((n + 3 - 69) / 12);
 // D dorian chords as MIDI roots + voicing.
 const CHORDS = {
   Dm: [50, 57, 62, 65, 69], C: [48, 55, 60, 64, 67], Am: [45, 52, 57, 60, 64], F: [41, 53, 57, 60, 65], G: [43, 55, 59, 62, 67],
@@ -19,11 +20,21 @@ const TUNE = [
   67, null, 69, 65, null, 64, 62, null, null, null, null, null,
 ];
 
+// Mix for recorded effects: frequent ones sit lower. Tonal effects are tuned
+// to F (design/source/build_sfx.py), so they keep their pitch.
+const MIX = { ui: 0.5, row: 0.55, pearl: 0.7, rockWarn: 0.6, wind: 0.8 };
+const TONAL = new Set(['pearl', 'keepsake', 'done', 'arrive', 'ui']);
+
 export function createAudio() {
   let ac = null, master, music, sfx, sea, timer = 0, playing = false;
   let nextTime = 0, step = 0;
   // The delivered song: { url, loopStart, loopEnd, buffer, loading, node }.
   let track = null;
+  // Delivered effects (ElevenLabs, see design/source/build_sfx.py):
+  // name -> url until decoded, then name -> AudioBuffer.
+  let sfxUrls = {};
+  const sfxBuf = {};
+  let sfxLoading = null;
   const vol = { music: 0.7, sfx: 0.8 };
   const bpm = 104; // dotted-quarter pulse
   const eighth = 60 / bpm / 3;
@@ -37,7 +48,28 @@ export function createAudio() {
     music = ac.createGain(); music.connect(master);
     sfx = ac.createGain(); sfx.connect(master);
     apply();
+    loadSfx();
     return true;
+  }
+
+  function decode(url) {
+    return fetch(url)
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then((data) => new Promise((ok, fail) => ac.decodeAudioData(data, ok, fail)));
+  }
+  function loadSfx() {
+    if (sfxLoading || !ac) return sfxLoading;
+    sfxLoading = Promise.all(Object.entries(sfxUrls).map(([name, url]) =>
+      decode(url).then((b) => { sfxBuf[name] = b; }).catch(() => { /* keep the synth version */ })));
+    return sfxLoading;
+  }
+  function playBuffer(buf, gain = 1, rate = 1) {
+    const src = ac.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = rate;
+    const g = ac.createGain(); g.gain.value = gain;
+    src.connect(g); g.connect(sfx);
+    src.start();
   }
   function apply() {
     if (!ac) return;
@@ -53,6 +85,14 @@ export function createAudio() {
   }
 
   function startSea() {
+    if (sfxBuf.sea) {
+      // The recorded wave machine, looping under the score.
+      const src = ac.createBufferSource(); src.buffer = sfxBuf.sea; src.loop = true;
+      const g = ac.createGain(); g.gain.value = 0.35;
+      src.connect(g); g.connect(music); src.start();
+      sea = { src, g, recorded: true };
+      return;
+    }
     const src = ac.createBufferSource(); src.buffer = noiseBuffer(4); src.loop = true;
     const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500;
     const g = ac.createGain(); g.gain.value = 0.12;
@@ -113,9 +153,7 @@ export function createAudio() {
 
   async function loadTrack() {
     if (!track || track.buffer || track.loading) return track?.loading;
-    track.loading = fetch(track.url)
-      .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
-      .then((data) => new Promise((ok, fail) => ac.decodeAudioData(data, ok, fail)))
+    track.loading = decode(track.url)
       .then((buf) => { track.buffer = buf; })
       .catch(() => { track = null; }); // missing or undecodable: keep the stand-in
     return track.loading;
@@ -125,10 +163,11 @@ export function createAudio() {
     src.buffer = track.buffer;
     src.loop = true;
     if (track.loopEnd) { src.loopStart = track.loopStart || 0; src.loopEnd = track.loopEnd; }
-    src.connect(music);
+    const g = ac.createGain(); g.gain.value = 0.8;
+    src.connect(g); g.connect(music);
     src.start(ac.currentTime + 0.05);
     track.node = src;
-    if (sea) sea.g.gain.value = 0.05; // let the recording carry the scene
+    if (sea) sea.g.gain.value = sea.recorded ? 0.12 : 0.05; // let the song carry the scene
   }
   function startProcedural() {
     nextTime = ac.currentTime + 0.1; step = 0;
@@ -137,6 +176,9 @@ export function createAudio() {
   async function startMusic() {
     if (!ensure() || playing) return;
     playing = true;
+    // Give the recorded sea a moment to decode before falling back to noise.
+    await Promise.race([loadSfx(), new Promise((r) => setTimeout(r, 1500))]);
+    if (!playing) return;
     if (!sea) startSea();
     if (track) {
       await loadTrack();
@@ -203,7 +245,17 @@ export function createAudio() {
       if (ac) loadTrack();
     },
     usingTrack: () => !!track?.node,
-    play(name) { if (ac && SFX[name]) try { SFX[name](); } catch { /* audio is optional */ } },
+    sfxLoaded: () => Object.keys(sfxBuf).length,
+    play(name) {
+      if (!ac) return;
+      try {
+        // Recorded effects get a little pitch variation so repeats don't grate.
+        if (sfxBuf[name]) return playBuffer(sfxBuf[name], MIX[name] ?? 1, TONAL.has(name) ? 1 : 0.94 + Math.random() * 0.12);
+        SFX[name]?.();
+      } catch { /* audio is optional */ }
+    },
+    // Register delivered effects ({ name: url }); decoded on the first gesture.
+    setSfx(urls) { sfxUrls = { ...urls }; if (ac) loadSfx(); },
     setVolumes(m, s) { vol.music = m; vol.sfx = s; apply(); },
     suspend() { ac?.suspend(); },
     resume() { ac?.resume(); },

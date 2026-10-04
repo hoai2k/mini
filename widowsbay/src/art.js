@@ -41,6 +41,7 @@ export async function loadAssets(base = 'assets/') {
     const m = await res.json();
     out.slots = m.slots || {};
     out.audio = m.audio || {};
+    out.sfx = m.sfx || {};
   } catch { return out; }
   await Promise.all(Object.entries(out.slots).map(([id, s]) => new Promise((done) => {
     if (s.status !== 'delivered' || !s.file) return done();
