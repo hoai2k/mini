@@ -32,7 +32,7 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-Delivered art is integrated through `hopper/intake/`. For each image:
+Delivered art is integrated through [`intake/`](intake/README.md). For each image:
 
 1. Put the file at the **File** path given in its request, under
    `game/assets/art/`. Direction pieces go under `design/references/`.

@@ -59,7 +59,7 @@ fallback.
 
 The score is the band's recording of "Widow's Bay". To install it, drop the
 file (MP3 is safest across browsers; OGG, M4A or WAV also work) in
-`hopper/intake/` and ask for it to be integrated. It lands at
+[`intake/`](intake/README.md) and ask for it to be integrated. It lands at
 `assets/audio/widows-bay.mp3` (or whatever `audio.song.file` names in
 `assets/manifest.json`), with `audio.song.status` set to `delivered`. The
 track loops; set `loopStart` and `loopEnd` in seconds to loop just a section.

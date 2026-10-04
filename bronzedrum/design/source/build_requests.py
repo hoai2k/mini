@@ -543,7 +543,7 @@ def build_doc() -> str:
         "3. Each prompt is complete on its own: paste it as it stands. The shared style text is "
         "already included in every prompt that needs it.\n"
         "4. Save each image under the file name in its **File** line and drop it in "
-        "`hopper/intake/` (or straight into `bronzedrum/game/assets/` and "
+        "`bronzedrum/intake/` (or straight into `bronzedrum/game/assets/` and "
         "`bronzedrum/design/`). On integration the request's status flips to `delivered` and "
         "the game loads the file in place of its procedural stand-in.\n"
         "5. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure "

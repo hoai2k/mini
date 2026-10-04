@@ -7,7 +7,7 @@ Artwork for the Bronze Drum prototype in `bronzedrum/game/`, plus direction piec
 1. Generate the three **style frames** (BD-S01 to BD-S03) first and choose a direction; the rest of the list is tuned to that choice before it is generated in full.
 2. Then the **inspiration and atmosphere** pieces (BD-M01 to BD-M14). They fix the look; when a later asset disagrees with them, the direction pieces win.
 3. Each prompt is complete on its own: paste it as it stands. The shared style text is already included in every prompt that needs it.
-4. Save each image under the file name in its **File** line and drop it in `hopper/intake/` (or straight into `bronzedrum/game/assets/` and `bronzedrum/design/`). On integration the request's status flips to `delivered` and the game loads the file in place of its procedural stand-in.
+4. Save each image under the file name in its **File** line and drop it in `bronzedrum/intake/` (or straight into `bronzedrum/game/assets/` and `bronzedrum/design/`). On integration the request's status flips to `delivered` and the game loads the file in place of its procedural stand-in.
 5. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.
 
 ## Art direction

@@ -1,37 +1,15 @@
-# Mini games
+# mini
 
-Controller-first browser games. Start with [Hopper the Grasshopper](hopper/game/README.md); shared requirements are in [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
+Browser games, one per folder, plus a collection of websites.
 
-Play online: **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · **[Widow's Bay](https://hoai2k.github.io/mini/widowsbay/)** (prototype, Act I; see [widowsbay/README.md](widowsbay/README.md)).
+## Games
 
-The 3D design, asset requests, and stand-in viewer are documented in [hopper/3d/README.md](hopper/3d/README.md).
+- **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · [`hopper/`](hopper/README.md)
+- **[Widow's Bay](https://hoai2k.github.io/mini/widowsbay/)** · [`widowsbay/`](widowsbay/README.md)
+- **[Bronze Drum](https://hoai2k.github.io/mini/bronzedrum/)** · [`bronzedrum/`](bronzedrum/README.md)
 
-**[Bronze Drum](https://hoai2k.github.io/mini/bronzedrum/)** is a gameplay prototype for a paper-cut, drum-command game about the Trưng sisters; its design and image requests are in [`bronzedrum/`](bronzedrum/README.md).
+## Sites
 
-Static pages that sit beside the games live under [`sites/`](sites/README.md); the first is the artist page for **[Space Tiber](https://hoai2k.github.io/mini/sites/space-tiber/)**, the band that made Hopper's music.
+- [`sites/`](sites/README.md): band, label and other web pages, published under https://hoai2k.github.io/mini/sites/
 
-## GitHub Pages
-
-Pushes to `main` run `.github/workflows/pages.yml`, which builds the game, copies the static sites in, and deploys only `local/pages/` as the Pages artifact. The source entry is `hopper/index.html`; its compiled version is published at `/mini/hopper/index.html`. GitHub redirects `/mini/hopper` to `/mini/hopper/`.
-
-To build locally, run `pnpm build:pages` in `hopper/game`. This uses the same game components and engine as the existing development setup, with a static entry and `/mini/hopper/` asset base. Generated files stay under `local/pages/hopper/` and are not committed. Repository Settings → Pages must use **GitHub Actions** (already configured for this repository).
-
-## GitHub contents
-
-Keep the source, runtime art and music, design documents and their source artwork, QA reports and tests, configuration, `package.json`, and `pnpm-lock.yaml`. The illustrated Hopper design is available as [Word](hopper/design/Hopper_Game_Design.docx) and [PDF](hopper/design/Hopper_Game_Design.pdf). `hopper/models/` (the delivered Hopper GLBs) and `hopper/3d/` (the 3D design and stand-in assets) are also kept.
-
-`hopper/intake/` is a drop box for files handed to Claude for integration; it is emptied once its contents land, and [hopper/intake/README.md](hopper/intake/README.md) describes how a drop is processed.
-
-`local/` is excluded by the root `.gitignore`. It holds installed dependencies, package caches, build output, intermediate document previews, and the previous game-only Git history. Ignored symlinks at the original dependency/cache paths keep this checkout usable. Do not include those symlinks in a manual browser upload; Git excludes them automatically.
-
-## Run after cloning
-
-Use Node.js 22.13 or newer and pnpm:
-
-```sh
-cd hopper/game
-pnpm install --frozen-lockfile
-pnpm dev
-```
-
-Dependencies and build output are regenerated locally and are ignored by Git. `local/` is not needed to run a fresh clone. See the game README for controls and verification commands.
+Shared requirements for every game: [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
