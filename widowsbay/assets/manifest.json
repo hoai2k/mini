@@ -2,43 +2,43 @@
   "note": "Art slots the game loads. A slot draws its procedural stand-in until its status is 'delivered' and its file exists in this folder. Request details live in design/image-requests.md under the same id.",
   "slots": {
     "logo": {
-      "status": "standin",
+      "status": "delivered",
       "file": "logo.png"
     },
     "sky-backdrop": {
-      "status": "standin",
+      "status": "delivered",
       "file": "sky-backdrop.png"
     },
     "ship": {
-      "status": "standin",
+      "status": "delivered",
       "file": "ship.png"
     },
     "witch-moonboat": {
-      "status": "standin",
+      "status": "delivered",
       "file": "witch-moonboat.png"
     },
     "rock": {
-      "status": "standin",
+      "status": "delivered",
       "file": "rock.png"
     },
     "cloud": {
-      "status": "standin",
+      "status": "delivered",
       "file": "cloud.png"
     },
     "pearl": {
-      "status": "standin",
+      "status": "delivered",
       "file": "pearl.png"
     },
     "keepsake-tea": {
-      "status": "standin",
+      "status": "delivered",
       "file": "keepsake-tea.png"
     },
     "keepsake-pearl": {
-      "status": "standin",
+      "status": "delivered",
       "file": "keepsake-pearl.png"
     },
     "keepsake-rose": {
-      "status": "standin",
+      "status": "delivered",
       "file": "keepsake-rose.png"
     }
   },
@@ -49,6 +49,53 @@
       "loopStart": 0,
       "loopEnd": 0,
       "note": "Langan, Frost & Wane - Widow's Bay. Plays as the score, looping, once status is 'delivered'. loopStart/loopEnd in seconds; 0/0 loops the whole track."
+    }
+  },
+  "plannedArt": {
+    "waves-back": {
+      "status": "delivered",
+      "file": "waves-back.png",
+      "wired": false
+    },
+    "waves-front": {
+      "status": "delivered",
+      "file": "waves-front.png",
+      "wired": false
+    },
+    "waves-mid": {
+      "status": "delivered",
+      "file": "waves-mid.png",
+      "wired": false
+    },
+    "band-trio": {
+      "status": "delivered",
+      "file": "band-trio.png",
+      "wired": false
+    },
+    "moon-face": {
+      "status": "delivered",
+      "file": "moon-face.png",
+      "wired": false
+    },
+    "lighthouse": {
+      "status": "delivered",
+      "file": "lighthouse.png",
+      "wired": false
+    },
+    "sea-dragon": {
+      "status": "delivered",
+      "file": "sea-dragon.png",
+      "wired": false
+    },
+    "proscenium": {
+      "status": "delivered",
+      "file": "proscenium.png",
+      "wired": false
+    },
+    "lighthouse-lit": {
+      "status": "delivered",
+      "file": "lighthouse-lit.png",
+      "wired": false
     }
   }
 }

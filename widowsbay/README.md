@@ -47,7 +47,15 @@ A static page with no build step: canvas 2D plus Web Audio.
 
 ## Art
 
-Everything is drawn in code until real art arrives.
+The first art delivery includes 19 game PNGs and 14 mood boards generated with
+the built-in imagegen tool. Browse [the art gallery](design/generated/gallery.html)
+for previews, originals and prompts. The ten existing image slots now load their
+delivered art; the nine planned scenery files are recorded under `plannedArt`
+in the manifest and await renderer integration. The sky alternates reflected
+panels for a continuous loop. The wave strips still need seam tuning before
+ordinary left-to-right repetition.
+
+Additional source references and provenance live in [reference/](reference/README.md).
 [`design/image-requests.md`](design/image-requests.md) lists the requests: the
 look, the palette taken from the video frames in `design/references/`, mood
 boards, and one entry per game asset. Each asset id matches a slot in

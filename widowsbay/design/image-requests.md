@@ -269,6 +269,15 @@ like the creature in the grotto frame.
 
 ## Status
 
-All slots are stand-ins as of this document. When a file lands, set its slot
-to `"delivered"` in `assets/manifest.json`, then check it in the game at
-https://hoai2k.github.io/mini/widowsbay/.
+Delivered 2026-10-04: all 19 requested game PNGs in `assets/`, including both
+lighthouse variants, plus two takes of each of the seven mood subjects in
+`design/generated/`. See [the gallery](generated/gallery.html) and
+[the prompt records](generated/prompts.json). The ten wired slots are marked
+`delivered`; nine planned files are recorded under `plannedArt` and await
+renderer integration. The sky uses alternating reflected panels to hide its
+generated edge seam. Wave strips require seam tuning before ordinary tiling.
+The selected direction is the faded stencil tint of the first scene studies,
+with the brighter pink-and-gold cut-outs kept legible at sprite scale.
+
+Source references are collected in [`../reference/`](../reference/README.md).
+The additional Part A2 moments from the band's video remain reference requests.

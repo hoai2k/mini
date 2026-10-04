@@ -188,8 +188,16 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     g.addColorStop(0, P.c(PAL.sky)); g.addColorStop(0.75, P.c('#355a66')); g.addColorStop(1, P.c(PAL.skyLow));
     c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
     if (img('sky-backdrop')) {
-      const off = b ? (b.scrolled * 0.08) % 1280 : 0;
-      for (let k = 0; k < 2; k++) drawAsset(c, P, img('sky-backdrop'), 640 - off + k * 1280, 470, 1280, 410);
+      // Alternate reflected panels so the generated panorama meets its own
+      // edge at each join. A full two-panel cycle keeps the reflection stable.
+      const off = b ? (b.scrolled * 0.08) % 2560 : 0;
+      for (let k = 0; k < 3; k++) {
+        c.save();
+        c.translate(k * 1280 - off + (k % 2 ? 1280 : 0), 0);
+        if (k % 2) c.scale(-1, 1);
+        drawAsset(c, P, img('sky-backdrop'), 640, 470, 1280, 410);
+        c.restore();
+      }
     }
     // stars
     c.fillStyle = P.c(PAL.cream);
