@@ -12,6 +12,7 @@
     "drum-cac": {
       "files": [
         "sfx/drum-cac-1.mp3",
+        "sfx/drum-cac-2.mp3",
         "sfx/drum-cac-3.mp3"
       ],
       "gain": 1.0,
@@ -192,6 +193,13 @@
     "amb-river": {
       "files": [
         "sfx/amb-river.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "amb-night": {
+      "files": [
+        "sfx/amb-night.mp3"
       ],
       "gain": 0.45,
       "loop": true
