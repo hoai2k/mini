@@ -56,10 +56,14 @@ fallback.
 
 ## Sound
 
-**Score.** The band's recording, `assets/audio/widowsbay.mp3` (3:28, 192 kbps),
-starts on Press Start and loops. `audio.song.loopEnd` in `assets/manifest.json`
-is set to 206.4 s to skip the 2.2 s of silence at the end. If the file fails to
-load, the procedural shanty in `src/audio.js` (transposed to F) plays instead.
+**Score.** The band's recording, `assets/audio/widowsbay.mp3` (3:28, 192 kbps,
+5 MB), is the only music; there is no stand-in. It starts downloading when the
+page opens, and a loading bar under Press Start shows its progress. Pressing
+Start before it arrives holds the Act I card, with the same bar, until the song
+is decoded; then the curtain opens with the song playing. It loops, and
+`audio.song.loopEnd` in `assets/manifest.json` is set to 206.4 s to skip the
+2.2 s of silence at the end. If the file can't be loaded, the title says so and
+the game plays without music.
 
 **What the recording sets for everything else.** These are measurements of the
 file, not listening notes:
