@@ -54,6 +54,20 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
+All 51 requests now have generated artwork: 17 style and direction images in
+`design/references/` and 34 game images in `game/assets/art/`. The set follows
+the coloured-paper direction (BD-S02).
+
+[`design/image-deliveries.json`](design/image-deliveries.json) records the exact
+generation and correction prompts, references, native image sizes, export sizes,
+and sprite-sheet cells. Exports match the requested dimensions; larger canvases
+are resampled from the generator's native output rather than generated at native
+4K. Puppet sheets are artwork for future rigging, not animated rigs.
+
+The manifest's `runtime` flag distinguishes the 24 images used by the prototype
+from the 10 delivered puppet, effects and planned interface sheets. The latter
+remain available for production work without being downloaded at game startup.
+
 Delivered art is integrated through [`intake/`](intake/README.md). For each image:
 
 1. Put the file at the **File** path given in its request, under

@@ -5,239 +5,273 @@
       "id": "sky-dawn",
       "request": "BD-B01",
       "file": "art/sky-dawn.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "sky-day",
       "request": "BD-B02",
       "file": "art/sky-day.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "sky-night",
       "request": "BD-B03",
       "file": "art/sky-night.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "layer-karst",
       "request": "BD-B04",
       "file": "art/layer-karst.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "layer-karst-far",
       "request": "BD-B09",
       "file": "art/layer-karst-far.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "layer-grove",
       "request": "BD-B05",
       "file": "art/layer-grove.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "layer-paddy",
       "request": "BD-B06",
       "file": "art/layer-paddy.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "layer-reeds",
       "request": "BD-B07",
       "file": "art/layer-reeds.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "paper-fiber",
       "request": "BD-B08",
       "file": "art/paper-fiber.png",
-      "status": "stand-in",
-      "section": "world"
+      "status": "delivered",
+      "section": "world",
+      "runtime": true
     },
     {
       "id": "sister-trac",
       "request": "BD-C01",
       "file": "art/sister-trac.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "sister-nhi",
       "request": "BD-C02",
       "file": "art/sister-nhi.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "war-elephant",
       "request": "BD-C03",
       "file": "art/war-elephant.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "drum-bearers",
       "request": "BD-C04",
       "file": "art/drum-bearers.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "unit-spear",
       "request": "BD-C05",
       "file": "art/unit-spear.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "unit-archer",
       "request": "BD-C06",
       "file": "art/unit-archer.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "han-spear",
       "request": "BD-C07",
       "file": "art/han-spear.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "han-crossbow",
       "request": "BD-C08",
       "file": "art/han-crossbow.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "fort-palisade",
       "request": "BD-C09",
       "file": "art/fort-palisade.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "straw-target",
       "request": "BD-C10",
       "file": "art/straw-target.png",
-      "status": "stand-in",
-      "section": "cast"
+      "status": "delivered",
+      "section": "cast",
+      "runtime": true
     },
     {
       "id": "rig-sister-trac",
       "request": "BD-R01",
       "file": "art/rig-sister-trac.png",
-      "status": "planned",
-      "section": "rig"
+      "status": "delivered",
+      "section": "rig",
+      "runtime": false
     },
     {
       "id": "rig-sister-nhi",
       "request": "BD-R02",
       "file": "art/rig-sister-nhi.png",
-      "status": "planned",
-      "section": "rig"
+      "status": "delivered",
+      "section": "rig",
+      "runtime": false
     },
     {
       "id": "rig-war-elephant",
       "request": "BD-R03",
       "file": "art/rig-war-elephant.png",
-      "status": "planned",
-      "section": "rig"
+      "status": "delivered",
+      "section": "rig",
+      "runtime": false
     },
     {
       "id": "rig-unit-spear",
       "request": "BD-R04",
       "file": "art/rig-unit-spear.png",
-      "status": "planned",
-      "section": "rig"
+      "status": "delivered",
+      "section": "rig",
+      "runtime": false
     },
     {
       "id": "logo",
       "request": "BD-U01",
       "file": "art/logo.png",
-      "status": "stand-in",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": true
     },
     {
       "id": "hud-drum",
       "request": "BD-U02",
       "file": "art/hud-drum.png",
-      "status": "stand-in",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": true
     },
     {
       "id": "ui-glyphs",
       "request": "BD-U03",
       "file": "art/ui-glyphs.png",
-      "status": "planned",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": false
     },
     {
       "id": "ui-panel",
       "request": "BD-U04",
       "file": "art/ui-panel.png",
-      "status": "planned",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": false
     },
     {
       "id": "ui-icons",
       "request": "BD-U05",
       "file": "art/ui-icons.png",
-      "status": "planned",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": false
     },
     {
       "id": "card-garden",
       "request": "BD-U06",
       "file": "art/card-garden.png",
-      "status": "stand-in",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": true
     },
     {
       "id": "card-outpost",
       "request": "BD-U07",
       "file": "art/card-outpost.png",
-      "status": "stand-in",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": true
     },
     {
       "id": "card-luylau",
       "request": "BD-U08",
       "file": "art/card-luylau.png",
-      "status": "stand-in",
-      "section": "ui"
+      "status": "delivered",
+      "section": "ui",
+      "runtime": true
     },
     {
       "id": "fx-scraps",
       "request": "BD-F01",
       "file": "art/fx-scraps.png",
-      "status": "planned",
-      "section": "fx"
+      "status": "delivered",
+      "section": "fx",
+      "runtime": false
     },
     {
       "id": "fx-projectiles",
       "request": "BD-F02",
       "file": "art/fx-projectiles.png",
-      "status": "planned",
-      "section": "fx"
+      "status": "delivered",
+      "section": "fx",
+      "runtime": false
     },
     {
       "id": "fx-drum-wake",
       "request": "BD-F03",
       "file": "art/fx-drum-wake.png",
-      "status": "planned",
-      "section": "fx"
+      "status": "delivered",
+      "section": "fx",
+      "runtime": false
     }
   ]
 }

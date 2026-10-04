@@ -1,0 +1,1012 @@
+{
+  "generatedOn": "2026-10-04",
+  "direction": "Coloured papers lit from behind (BD-S02)",
+  "notes": [
+    "Export dimensions are resampled from the native imagegen sizes; these are not native 4K generations.",
+    "Puppet sheets are artwork for future rigging, not animated rigs.",
+    "Puppet and effects sheets and planned UI pieces are delivered but are not runtime assets of this prototype."
+  ],
+  "images": [
+    {
+      "id": "BD-B01",
+      "file": "game/assets/art/sky-dawn.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Backdrop of a dawn sky: indigo at the top, rose in the middle, warm bronze near the horizon; the sun as a cut 12-point star low on the right with a glowing halo; a few long scalloped paper clouds. Sky only, no land.\nOutput specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Create only this single requested image. "
+    },
+    {
+      "id": "BD-B02",
+      "file": "game/assets/art/sky-day.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Backdrop of a hazy daylight sky: pale verdigris at the top fading to cream at the horizon; the sun as a cut 12-point star at upper right; long scalloped paper clouds. Sky only, no land.\nOutput specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Create only this single requested image. "
+    },
+    {
+      "id": "BD-B03",
+      "file": "game/assets/art/sky-night.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Backdrop of a night sky: deep indigo, a large full moon at upper right with crater shapes cut out of it, a scatter of small stars, a few long indigo paper clouds. Sky only, no land.\nOutput specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Create only this single requested image. "
+    },
+    {
+      "id": "BD-B04",
+      "file": "game/assets/art/layer-karst.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1983,
+        793
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long horizontal strip of steep limestone karst peaks with rounded tops, cut from one sheet of paper in a single muted indigo-violet, with thin mist bands and small flying herons cut out of it so the light shows through. Flat silhouette, no interior shading.\nOutput specification: 5120x1440. Peaks between 10% and 60% of the height; the base solid to the bottom edge. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky.. Create only this single requested image. Actual transparent PNG background; never paint a checkerboard or magenta. Preserve the requested silhouette placement across the full canvas."
+    },
+    {
+      "id": "BD-B05",
+      "file": "game/assets/art/layer-grove.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        2048,
+        768
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long horizontal strip of areca palms, clumps of bamboo and stilt houses with saddle-shaped roofs like those on Dong Son drums, cut from one dark indigo-green sheet; leaf veins and lattice windows cut out so the light shows through.\nOutput specification: 5120x1440. Tree bases on a solid band at 63-71% of the height; tallest crowns at about 25%. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky.. Create only this single requested image. Actual transparent PNG background; never paint a checkerboard or magenta. Preserve the requested silhouette placement across the full canvas."
+    },
+    {
+      "id": "BD-B06",
+      "file": "game/assets/art/layer-paddy.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1983,
+        793
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Production game ground layer, a SINGLE flat dark ink-indigo sheet of hand-cut rice paper. Long horizontal canvas 5120x1440. Upper 69% completely transparent, lower 31% solid dark sheet extending to all bottom corners. Its top edge is a very gentle low scalloped line exactly near y=69% of canvas. A few faint, thin, horizontal cut slits suggest flooded rice rows in the bottom band; very low contrast so HUD text reads over it. Seamless horizontally, matching edge heights and tones. No objects, no trees, houses, birds, drum, emblems, stars, figures, flowers or scenery. Only this ground band. PNG with genuine alpha transparency, no backdrop, no glow outside the sheet."
+    },
+    {
+      "id": "BD-B07",
+      "file": "game/assets/art/layer-reeds.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1983,
+        793
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Single foreground scenery strip for a 2D game. Entire canvas 5120x1440. Strict placement: the upper 75% of the canvas is EMPTY fully transparent alpha. In the bottom 25% only, sparse small clumps of reeds, grasses and a few lotus pads grow directly from the bottom edge. All plants are flat INK-BLACK hand-cut rice-paper silhouettes with fine cut leaf veins, no coloured flowers, no highlights, no glow. Tallest reeds stop at y=75%; most shorter plants stop at y=85%. Wide generous gaps between clumps: 70% of the width remains open even near the bottom. No solid ground band. Seamless horizontal repeat, both outside edges end in transparent gaps. No sky, mountains, houses, people, drum, text, watermark or other objects. Genuine transparent PNG, no black background."
+    },
+    {
+      "id": "BD-B08",
+      "file": "game/assets/art/paper-fiber.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Seamless tileable texture of handmade mulberry rice paper lit from behind: warm cream, long pale fibres and a few darker flecks, even lighting, no folds, no shadows, no objects.\nOutput specification: 1024x1024, opaque, tileable in both directions. Create only this single requested image. "
+    },
+    {
+      "id": "BD-B09",
+      "file": "game/assets/art/layer-karst-far.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1983,
+        793
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long horizontal strip of distant limestone karst peaks with rounded tops, cut from one pale, misty violet-grey sheet that lets a lot of light through, with a dotted seam of tiny cut holes following the inside of each peak and thin mist bands cut across.\nOutput specification: 5120x1440. Peaks between 25% and 52% of the height; the base solid to the bottom edge. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky.. Only this requested image. Only distant mountains; no additional motifs, objects or glow outside the paper shape. Genuine transparent alpha above and through the cuts."
+    },
+    {
+      "id": "BD-C01",
+      "file": "game/assets/art/sister-trac.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "native canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Trung Trac, a Lac Viet noblewoman and war leader, standing in profile facing right, both hands gripping a long drumstick raised for a strike. Gold armour of small plates over a wrapped skirt, a tall crown of feathers, hair in a high knot. Composed and upright. Bronze and ink-black paper, her armour cut with rings and small stars.\nOutput specification: 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. Input image is a style and costume reference only. Use its matching character silhouette and paper-cut design; create the single requested pose, not the whole reference sheet.",
+      "editPrompts": [
+        "Edit target: the supplied game sprite. Remove ALL surrounding coloured haze, backlight halos and background pixels. Extract ONLY the crisp paper figure and its held weapon, feathers, clothing and fine edge details onto genuine alpha transparency. Every pixel outside the figure must be fully transparent; no glow, shadows or coloured haze. Preserve the figure's identity, exact costume motifs, face, pose, facing direction, full-body framing and colours. Do not add anything. Production PNG cutout for a game."
+      ],
+      "references": [
+        "design/references/m05-sisters.png"
+      ]
+    },
+    {
+      "id": "BD-C02",
+      "file": "game/assets/art/sister-nhi.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "native canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Trung Nhi, a young Lac Viet war leader, in profile facing right, mid-swing with a short drumstick in each hand, body turning with energy. Gold armour over a lacquer-red wrapped skirt, a crown of feathers with flowers tucked in, vines and birds cut into her sleeves. Lively and fierce.\nOutput specification: 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. Input image is a style and costume reference only. Use its matching character silhouette and paper-cut design; create the single requested pose, not the whole reference sheet.",
+      "editPrompts": [
+        "Edit target: the supplied game sprite. Remove ALL surrounding coloured haze, backlight halos and background pixels. Extract ONLY the crisp paper figure and its held weapon, feathers, clothing and fine edge details onto genuine alpha transparency. Every pixel outside the figure must be fully transparent; no glow, shadows or coloured haze. Preserve the figure's identity, exact costume motifs, face, pose, facing direction, full-body framing and colours. Do not add anything. Production PNG cutout for a game."
+      ],
+      "references": [
+        "design/references/m05-sisters.png"
+      ]
+    },
+    {
+      "id": "BD-C03",
+      "file": "game/assets/art/war-elephant.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1448,
+        1086
+      ],
+      "exportSize": [
+        2048,
+        1536
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. An Asian war elephant walking right in profile, an empty open howdah with a lacquer-red rail on its back, a caparison cut with concentric rings and a sun-star, tusks and trunk curled forward. Ink-black paper with red and bronze inlays.\nOutput specification: 2048x1536. Empty howdah floor at about 70% of the height above the feet, centred slightly behind the middle. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. "
+    },
+    {
+      "id": "BD-C04",
+      "file": "game/assets/art/drum-bearers.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        2048,
+        1024
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Four Lac Viet women in feather crowns carry a low wooden palanquin on poles, walking right; on it sits a large bronze drum, its side banded with rings and its top a sun-star. The deck is empty apart from the drum. Ink-black figures, a bronze drum.\nOutput specification: 2048x1024. Platform deck at about 35% of the height. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. "
+    },
+    {
+      "id": "BD-C05",
+      "file": "game/assets/art/unit-spear.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "native canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A Lac Viet woman warrior in profile facing right, holding a long bronze-headed spear upright, a feather crown fanning backwards, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.\nOutput specification: 1024x1536. Spear held upright. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. Input image is a style and costume reference only. Use its matching character silhouette and paper-cut design; create the single requested pose, not the whole reference sheet.",
+      "editPrompts": [
+        "Edit target: the supplied game sprite. Remove ALL surrounding coloured haze, backlight halos and background pixels. Extract ONLY the crisp paper figure and its held weapon, feathers, clothing and fine edge details onto genuine alpha transparency. Every pixel outside the figure must be fully transparent; no glow, shadows or coloured haze. Preserve the figure's identity, exact costume motifs, face, pose, facing direction, full-body framing and colours. Do not add anything. Production PNG cutout for a game."
+      ],
+      "references": [
+        "design/references/m13-army-lineup.png"
+      ]
+    },
+    {
+      "id": "BD-C06",
+      "file": "game/assets/art/unit-archer.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "native canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A Lac Viet woman archer in profile facing right, drawing a bow, a short feather crown, quiver on her back, a lacquer-red sash. Ink-black silhouette with fine cut details.\nOutput specification: 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. Input image is a style and costume reference only. Use its matching character silhouette and paper-cut design; create the single requested pose, not the whole reference sheet.",
+      "editPrompts": [
+        "Edit target: the supplied game sprite. Remove ALL surrounding coloured haze, backlight halos and background pixels. Extract ONLY the crisp paper figure and its held weapon, feathers, clothing and fine edge details onto genuine alpha transparency. Every pixel outside the figure must be fully transparent; no glow, shadows or coloured haze. Preserve the figure's identity, exact costume motifs, face, pose, facing direction, full-body framing and colours. Do not add anything. Production PNG cutout for a game."
+      ],
+      "references": [
+        "design/references/m13-army-lineup.png"
+      ]
+    },
+    {
+      "id": "BD-C07",
+      "file": "game/assets/art/han-spear.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "native canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. An Eastern Han Chinese soldier, 1st century, in profile facing left, holding a ji halberd upright, lamellar armour shown as rows of small cut slots, a soft cap. Iron grey and dark grey paper. An ordinary soldier, no caricature.\nOutput specification: 1024x1536. Faces left. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. Input image is a style and costume reference only. Use its matching character silhouette and paper-cut design; create the single requested pose, not the whole reference sheet.",
+      "editPrompts": [
+        "Edit target: the supplied game sprite. Remove ALL surrounding coloured haze, backlight halos and background pixels. Extract ONLY the crisp paper figure and its held weapon, feathers, clothing and fine edge details onto genuine alpha transparency. Every pixel outside the figure must be fully transparent; no glow, shadows or coloured haze. Preserve the figure's identity, exact costume motifs, face, pose, facing direction, full-body framing and colours. Do not add anything. Production PNG cutout for a game."
+      ],
+      "references": [
+        "design/references/m14-han-lineup.png"
+      ]
+    },
+    {
+      "id": "BD-C08",
+      "file": "game/assets/art/han-crossbow.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "native canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. An Eastern Han Chinese crossbowman, 1st century, kneeling in profile facing left, aiming a bronze-triggered crossbow, lamellar armour as rows of small cut slots. Iron grey and dark grey paper, no caricature.\nOutput specification: 1024x1536. Faces left. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. Input image is a style and costume reference only. Use its matching character silhouette and paper-cut design; create the single requested pose, not the whole reference sheet.",
+      "editPrompts": [
+        "Edit target: the supplied game sprite. Remove ALL surrounding coloured haze, backlight halos and background pixels. Extract ONLY the crisp paper figure and its held weapon, feathers, clothing and fine edge details onto genuine alpha transparency. Every pixel outside the figure must be fully transparent; no glow, shadows or coloured haze. Preserve the figure's identity, exact costume motifs, face, pose, facing direction, full-body framing and colours. Do not add anything. Production PNG cutout for a game."
+      ],
+      "references": [
+        "design/references/m14-han-lineup.png"
+      ]
+    },
+    {
+      "id": "BD-C09",
+      "file": "game/assets/art/fort-palisade.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A Han frontier fort seen from the side: a wall of pointed timber stakes, a gate on the left, a two-storey watchtower with a tiled roof and a pennant, lattice windows cut through. Dark iron-grey paper.\nOutput specification: 2048x2048. Gate on the left side, facing the army. Single cut-paper structure, side view, base on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. "
+    },
+    {
+      "id": "BD-C10",
+      "file": "game/assets/art/straw-target.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A straw training dummy on a wooden post with a crossbar, bound with rope in three places. Straw-coloured paper with ink-black post and ropes.\nOutput specification: 1024x1024. Single cut-paper object, side view, base on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.. Create only this single requested game sprite. Genuine alpha transparency, no backdrop, ground, cast shadow, frame or unrelated motifs/objects. No magenta or checkerboard. "
+    },
+    {
+      "id": "BD-F01",
+      "file": "game/assets/art/fx-scraps.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        2079,
+        756
+      ],
+      "exportSize": [
+        2048,
+        512
+      ],
+      "exportOperation": "trim and pack generated shapes into specified sprite cells",
+      "prompt": "Sixteen small torn and cut paper scraps on a transparent background, in cream, lacquer red, iron grey and straw: triangles, curls, leaf shapes, feather fragments. Each with a fibrous torn edge on one side and a clean knife cut on the other.\nOutput specification: 2048x512, transparent; sixteen scraps on a 128 px grid. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard.For this sprite atlas, keep every item centred in its specified evenly spaced grid cell, no overlapping cells, no additional items, no labels.",
+      "frames": [
+        {
+          "x": 0,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 128,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 256,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 384,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 512,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 640,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 768,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 896,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1024,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1152,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1280,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1408,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1536,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1664,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1792,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        },
+        {
+          "x": 1920,
+          "y": 192,
+          "width": 128,
+          "height": 128
+        }
+      ]
+    },
+    {
+      "id": "BD-F02",
+      "file": "game/assets/art/fx-projectiles.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        1024,
+        256
+      ],
+      "exportOperation": "trim and pack generated shapes into specified sprite cells",
+      "prompt": "Four cut-paper projectiles in a row on a transparent background, all pointing right: a Lac Viet arrow with a bronze head and feather fletching, the same arrow in flight with a motion cut, a short Han crossbow bolt in iron grey, the same bolt with a motion cut.\nOutput specification: 1024x256, transparent; four pieces in a row. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard.For this sprite atlas, keep every item centred in its specified evenly spaced grid cell, no overlapping cells, no additional items, no labels.",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 512,
+          "y": 0,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 768,
+          "y": 0,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "id": "BD-F03",
+      "file": "game/assets/art/fx-drum-wake.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "A radially symmetric burst of concentric cut-paper rings in bronze and gold on a transparent background, like the bands of a bronze drum face expanding outward: tangential circles, flying herons and a sun-star at the centre. Bright glow through the cuts.\nOutput specification: 2048x2048, transparent; one ring pattern, radially symmetric. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard."
+    },
+    {
+      "id": "BD-M01",
+      "file": "design/references/m01-key-art.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Key art for a game about the Trung sisters, Vietnam, 40 CE. Trung Trac and Trung Nhi ride a great war elephant into battle, both in gold armour with tall feathered crowns, beating a huge bronze drum carried in the howdah between them. Behind them an army of women with spears, bows and feather headdresses streams across rice paddies; ahead, a Han palisade citadel under a full moon. Built as a stage of five cut-paper layers, one behind another, lit from behind so the moon and the cuts glow; every layer casts a soft shadow on the one behind. The sisters are the brightest, most intricately cut shapes in the frame.\nOutput specification: 3840x2160, opaque. Create only this single requested image."
+    },
+    {
+      "id": "BD-M02",
+      "file": "design/references/m02-suspended-panels.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Photograph of a gallery installation in a dark room: six large hand-cut white fibre-paper panels hang from the ceiling one behind another. A single warm lamp behind the last panel throws their cut patterns as long shadows onto the floor and the near wall. The panels show, back to front: a full moon ringed with herons, limestone karst peaks, areca palms and bamboo, stilt houses, rice paddies, and a row of women warriors with feather crowns. Fire-lit, cave-like atmosphere; the paper fibres visible where the light passes through.\nOutput specification: 3840x2160, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M03",
+      "file": "design/references/m03-dong-son-motifs.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        3000,
+        3000
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Reference sheet of cut-paper motifs translated from Dong Son bronze drums, arranged in a grid on rice-paper cream: the 12-point sun-star at the drum's centre; bands of tangential circles; zigzag and ladder bands; flying long-beaked herons; feather-crowned dancers and warriors in profile; long boats with crews; deer; stilt houses with saddle roofs; the small frogs that sit on drum rims; a drummer pounding paired drums. Each motif cut as a flat ink-black silhouette with fine interior cuts.\nOutput specification: 3000x3000, opaque cream ground. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M04",
+      "file": "design/references/m04-colour-script.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        4800,
+        1600
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A colour script of eight small cut-paper scenes in two rows of four, each a different light: 1 dawn training, rose and bronze; 2 the garden, verdigris and cream; 3 grief, deep indigo with a single lacquer-red shape; 4 casting the drums, molten bronze and orange; 5 the villages answer, cream daylight and verdigris; 6 battle on the river, slate grey and lacquer red; 7 Luy Lau at night, indigo and gold; 8 elegy, ash grey and cream with one bronze shape. Simple compositions, the colour shift readable at thumbnail size.\nOutput specification: 4800x1600, opaque, eight panels in two rows. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M05",
+      "file": "design/references/m05-sisters.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1536,
+        1024
+      ],
+      "exportSize": [
+        3000,
+        2000
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Character study of two Vietnamese sisters as cut-paper figures, side by side, front view and side profile each. Trung Trac, the elder: composed and upright, bronze and gold, hair in a high knot under a crown of tall feathers, holding a drumstick still at her side; her cut patterns are ordered rings and stars. Trung Nhi, the younger: in motion, lacquer red, flowers and leaves cut into her sleeves and hair, laughing, drumstick raised; her cut patterns are vines and birds. Ancient Lac Viet dress, wrapped skirts, bead collars. Dignified, warm, not sexualised.\nOutput specification: 3000x2000, opaque cream ground. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M06",
+      "file": "design/references/m06-garden.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The garden of a Lac Viet lord's house at Me Linh, late afternoon, with a pale moon in the sky. Nhi sits among lotus and flowering shrubs with birds around her; across the pond, Trac practises with a spear beside straw training targets. Stilt house with a saddle roof behind. Cut-paper layers backlit by low sun, verdigris and cream, the leaves cut with fine veins.\nOutput specification: 3840x2160, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M07",
+      "file": "design/references/m07-casting.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Night in a foundry of the Nhat Nam metalworkers: molten bronze poured from crucibles into clay drum moulds stamped with the sun-star; women carry the moulds, sparks drawn as tiny cut holes letting orange light through. Finished bronze drums stacked at the side. Cut-paper layers, bronze and orange glow against ink black.\nOutput specification: 3840x2160, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M08",
+      "file": "design/references/m08-villages-answer.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Night over the Red River delta seen from above at a low angle. The sound of a great drum spreads from the centre as concentric cut-paper rings, like the rings on a bronze drum face. In stilt villages along the river, lanterns light one by one and women come down to long boats carrying spears. Indigo, cream and bronze.\nOutput specification: 3840x2160, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M09",
+      "file": "design/references/m09-river-battle.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A battle at a river ford in low daylight. Han crossbowmen in iron-grey lamellar armour stand on a wooden palisade; a wall of Lac Viet women raises round shields with star patterns cut through them as a volley of bolts arcs over, drawn as clean cut lines. Reeds and lotus in the foreground. Slate grey, cream and lacquer red.\nOutput specification: 3840x2160, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M10",
+      "file": "design/references/m10-luy-lau.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The Han citadel of Luy Lau at night under a full moon. War elephants carrying the sisters and bronze drums break through the gate; gold armour and feather crowns catch the moonlight; the citadel's watchtowers are cut with lattice windows lit from within. Indigo and gold, triumphant but heavy.\nOutput specification: 3840x2160, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M11",
+      "file": "design/references/m11-elegy.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Quiet aftermath. In a Han workshop, captured bronze drums lie stacked by a furnace, about to be melted down and cast into a bronze horse. Through the open door, the Hat River at dawn with lotus drifting and herons flying. Ash grey and cream with one warm bronze shape. Mournful and still.\nOutput specification: 3840x2160, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M12",
+      "file": "design/references/m12-screen-mockup.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1920,
+        1080
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A 16:9 video game screen in cut-paper style. Side-scrolling battlefield: a line of women warriors on the left marches right towards Han soldiers and a palisade on the right; behind the women, two sisters stand on a palanquin with a bronze drum. Bottom centre, a round bronze drum face with rings, four herons and a central star as the rhythm display. Bottom left, a small panel listing four drum commands as rows of dots. Top left and top right, thin strength bars. Plenty of empty space around the interface.\nOutput specification: 1920x1080, opaque. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M13",
+      "file": "design/references/m13-army-lineup.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        4000,
+        2000
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Costume line-up of a Lac Viet women's army, ancient Vietnam, as flat cut-paper figures in profile facing right, all at the same scale: spearwoman, archer with a crossbow, shield bearer with a round star-cut shield, drum bearer, standard bearer, mountain archer with a longbow. Feather crowns of different heights, wrapped skirts, bead collars, lacquer-red sashes. Each silhouette distinct.\nOutput specification: 4000x2000, opaque cream ground. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-M14",
+      "file": "design/references/m14-han-lineup.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        4000,
+        2000
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Line-up of Eastern Han Chinese soldiers, 1st century, as flat cut-paper figures in profile facing left, at one scale: spearman with a ji halberd, kneeling crossbowman, officer with a banner, the provincial governor in robes and a scholar's cap. Lamellar armour shown as rows of small cut slots, iron grey and black. Ordinary, human faces; no caricature.\nOutput specification: 4000x2000, opaque cream ground. Create only this single requested image. No added labels."
+    },
+    {
+      "id": "BD-R01",
+      "file": "game/assets/art/rig-sister-trac.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        4096,
+        4096
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sheet of separate cut-paper puppet parts for Trung Trac, matching the in-game figure: head with crown, torso, upper and lower arms, hands with drumstick, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.\nOutput specification: 4096x4096, transparent; pieces laid out apart with space between, each with a little overlap at the joints. Reference image is the matching assembled puppet, for identity/costume only. Deliver a disassembled parts atlas, NO assembled figure. Each listed part must be individually complete, clearly separated by generous transparent gutters, with rounded overlapping joint tabs. Include left and right limb parts. No text or labels. Genuine alpha transparency, no background, shadows or halo.",
+      "references": [
+        "game/assets/art/sister-trac.png"
+      ]
+    },
+    {
+      "id": "BD-R02",
+      "file": "game/assets/art/rig-sister-nhi.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        4096,
+        4096
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sheet of separate cut-paper puppet parts for Trung Nhi, matching the in-game figure: head with crown, torso, upper and lower arms, two hands with drumsticks, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.\nOutput specification: 4096x4096, transparent; pieces laid out apart with space between, each with a little overlap at the joints. Reference image is the matching assembled puppet, for identity/costume only. Deliver a disassembled parts atlas, NO assembled figure. Each listed part must be individually complete, clearly separated by generous transparent gutters, with rounded overlapping joint tabs. Include left and right limb parts. No text or labels. Genuine alpha transparency, no background, shadows or halo.",
+      "references": [
+        "game/assets/art/sister-nhi.png"
+      ]
+    },
+    {
+      "id": "BD-R03",
+      "file": "game/assets/art/rig-war-elephant.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        4096,
+        4096
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sheet of separate cut-paper puppet parts for the war elephant, matching the in-game figure: head, ear, trunk in three segments, body with howdah, four legs in two segments, tail. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.\nOutput specification: 4096x4096, transparent; pieces laid out apart with space between, each with a little overlap at the joints. Reference image is the matching assembled puppet, for identity/costume only. Deliver a disassembled parts atlas, NO assembled figure. Each listed part must be individually complete, clearly separated by generous transparent gutters, with rounded overlapping joint tabs. Include left and right limb parts. No text or labels. Genuine alpha transparency, no background, shadows or halo.",
+      "references": [
+        "game/assets/art/war-elephant.png"
+      ]
+    },
+    {
+      "id": "BD-R04",
+      "file": "game/assets/art/rig-unit-spear.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        4096,
+        4096
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sheet of separate cut-paper puppet parts for the spearwoman, matching the in-game figure: head with crown, torso, arms, spear, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.\nOutput specification: 4096x4096, transparent; pieces laid out apart with space between, each with a little overlap at the joints. Reference image is the matching assembled puppet, for identity/costume only. Deliver a disassembled parts atlas, NO assembled figure. Each listed part must be individually complete, clearly separated by generous transparent gutters, with rounded overlapping joint tabs. Include left and right limb parts. No text or labels. Genuine alpha transparency, no background, shadows or halo.",
+      "references": [
+        "game/assets/art/unit-spear.png"
+      ]
+    },
+    {
+      "id": "BD-S01",
+      "file": "design/references/s01-white-paper.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "A side-on view at dusk of a line of Lac Viet women warriors with spears and feather crowns marching right across rice paddies towards a Han timber palisade with a watchtower; behind the women, two sisters in feather crowns beat a bronze drum on a carried palanquin; limestone karst peaks and areca palms behind; a large low moon ringed by faint concentric drum rings. Wide 16:9 composition, layered in five depths. Every layer is cut from white and cream fibre paper; colour comes only from a warm amber lamp behind the scene and the cool blue shadows each layer casts on the next. Intricate snowflake-like filigree in the hills, leaves and feathers; a kaleidoscope of light and shadow. Only accents of colour: the bronze drum and a thin lacquer-red sash on each woman. Hand-cut paper art, no painterly rendering, no text.\nOutput specification: 3840x2160, opaque. Only this requested image. "
+    },
+    {
+      "id": "BD-S02",
+      "file": "design/references/s02-coloured-papers.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A side-on view at dusk of a line of Lac Viet women warriors with spears and feather crowns marching right across rice paddies towards a Han timber palisade with a watchtower; behind the women, two sisters in feather crowns beat a bronze drum on a carried palanquin; limestone karst peaks and areca palms behind; a large low moon ringed by faint concentric drum rings. Wide 16:9 composition, layered in five depths.\nOutput specification: 3840x2160, opaque. Only this requested image. "
+    },
+    {
+      "id": "BD-S03",
+      "file": "design/references/s03-shadow-theatre.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        3840,
+        2160
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "A side-on view at dusk of a line of Lac Viet women warriors with spears and feather crowns marching right across rice paddies towards a Han timber palisade with a watchtower; behind the women, two sisters in feather crowns beat a bronze drum on a carried palanquin; limestone karst peaks and areca palms behind; a large low moon ringed by faint concentric drum rings. Wide 16:9 composition, layered in five depths. Every near figure and object is a solid ink-black silhouette with fine cut-out detail, set in front of a glowing screen of translucent dyed paper that shifts from amber at the horizon to deep rose and indigo above; the far hills are paler silhouettes printed on the screen. Like a Southeast Asian shadow-puppet performance lit by oil lamps. Hand-cut paper art, no painterly rendering, no text.\nOutput specification: 3840x2160, opaque. Only this requested image. "
+    },
+    {
+      "id": "BD-U01",
+      "file": "game/assets/art/logo.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        2048,
+        1024
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Game title logo in hand-cut paper: the words \"BRONZE DRUM\" in large, readable, slightly irregular cut letters in rice-paper cream, set over a bronze drum's sun-star and rings cut in bronze, with \"TRỐNG ĐỒNG\" in small spaced capitals above (keep the Vietnamese diacritics exact). Backlit glow, a soft cast shadow. Transparent background.\nOutput specification: 2048x1024, transparent. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard.Exact text: BRONZE DRUM and TRỐNG ĐỒNG, preserving every Vietnamese diacritic."
+    },
+    {
+      "id": "BD-U02",
+      "file": "game/assets/art/hud-drum.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Top-down view of a Dong Son bronze drum face as a flat bronze paper cut-out disc: a 12-point sun-star at the centre, then bands of rings, tangential circles and zigzags, a plain ring at 80% of the radius where four herons will be overlaid, and a beaded rim. Bronze with darker bronze cut lines, even light, perfectly circular.\nOutput specification: 1024x1024, transparent outside the circle. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard."
+    },
+    {
+      "id": "BD-U03",
+      "file": "game/assets/art/ui-glyphs.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        2079,
+        756
+      ],
+      "exportSize": [
+        2048,
+        512
+      ],
+      "exportOperation": "trim and pack generated shapes into specified sprite cells",
+      "prompt": "A row of seven cut-paper icons on a transparent background: 1 a solid bronze disc (the centre stroke, tung); 2 a lacquer-red ring with a dot (the rim stroke, cac); 3 a foot stepping forward (march); 4 a spearhead (strike); 5 a round shield with a star (shields); 6 a raised hand with feathers (rally); 7 an elephant head (charge). Simple, bold, readable at 32 pixels.\nOutput specification: 2048x512, transparent; seven icons in a row on a 256 px grid. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard.For this sprite atlas, keep every item centred in its specified evenly spaced grid cell, no overlapping cells, no additional items, no labels.",
+      "frames": [
+        {
+          "x": 0,
+          "y": 128,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 256,
+          "y": 128,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 512,
+          "y": 128,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 768,
+          "y": 128,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 1024,
+          "y": 128,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 1280,
+          "y": 128,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 1536,
+          "y": 128,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "id": "BD-U04",
+      "file": "game/assets/art/ui-panel.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1536,
+        1024
+      ],
+      "exportSize": [
+        1536,
+        1024
+      ],
+      "exportOperation": "native canvas",
+      "prompt": "A sheet of cream rice paper with a hand-cut decorative border: a band of tangential circles and small herons cut through near the edge, corners cut with a sun-star. Plain centre for text. Even light, soft fibres.\nOutput specification: 1536x1024, transparent outside the sheet. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard."
+    },
+    {
+      "id": "BD-U05",
+      "file": "game/assets/art/ui-icons.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        768,
+        256
+      ],
+      "exportOperation": "trim and pack generated shapes into specified sprite cells",
+      "prompt": "Three cut-paper icons in rice-paper cream on a transparent background: an open scroll (instructions), a bronze drum seen from above with a small gear cut in it (settings), four corner brackets (fullscreen). Bold and simple, readable at 26 pixels.\nOutput specification: 768x256, transparent; three icons on a 256 px grid. One requested asset only. Genuine transparent alpha outside all paper shapes, no painted background or checkerboard.For this sprite atlas, keep every item centred in its specified evenly spaced grid cell, no overlapping cells, no additional items, no labels.",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 256,
+          "y": 0,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "x": 512,
+          "y": 0,
+          "width": 256,
+          "height": 256
+        }
+      ]
+    },
+    {
+      "id": "BD-U06",
+      "file": "game/assets/art/card-garden.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: two sisters practising with drumsticks beside a lotus pond and straw targets in a lord's garden, dawn. Main shapes on the right half, the left half mostly open sky or water.\nOutput specification: 1600x900, opaque; keep the left half quiet for text. One requested asset only. "
+    },
+    {
+      "id": "BD-U07",
+      "file": "game/assets/art/card-outpost.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut coloured rice-paper chapter card, wide landscape 1600x900, opaque. Scene: Lac Viet women warriors carrying round shields and spears march RIGHT through a shallow river ford toward a Han timber outpost at the far RIGHT edge, in daylight. Every woman faces RIGHT. Infantry on foot ONLY, no elephant, palanquin or mounted figure. Eastern Han guards face LEFT atop the rightmost timber wall. Main shapes confined to right half; left half is mostly quiet pale cream open sky and muted water for menu text. Flat ink-black silhouettes, feather crowns, lacquer-red sashes, bronze shield cut motifs, misty indigo distant hills and verdigris rice-paper water. Paper fibres, fine cut holes, warm backlighting through cuts, layered soft paper shadows. No text, watermark, painted gradients or 3D render."
+    },
+    {
+      "id": "BD-U08",
+      "file": "game/assets/art/card-luylau.png",
+      "mode": "built-in imagegen",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: the sisters on a war elephant with a bronze drum before a walled citadel under a full moon. Main shapes on the right half, the left half mostly open sky or water.\nCritical composition: ALL Lac Viet women and their elephant face RIGHT, marching toward the fort/citadel which sits at the FAR RIGHT edge. Do not face any Lac Viet figure left. Keep all warriors and the fortress within the right half; left half quiet open sky/water for text. Wide 1600x900 opaque image. No text. Flat coloured hand-cut paper, no rendered 3D."
+    }
+  ]
+}

@@ -141,7 +141,7 @@ SCENE = (
 req("style", "BD-S01", None, "Style frame A: white paper and lamplight",
     "The closest to hand-cut fibre panels in a gallery: almost no colour; depth and mood come "
     "from light, shadow and the density of the cuts.",
-    "3840x2160, opaque", "reference", None, "references/s01-white-paper.png",
+    "3840x2160, opaque", "delivered", None, "references/s01-white-paper.png",
     f"{SCENE} Every layer is cut from white and cream fibre paper; colour comes only from a "
     "warm amber lamp behind the scene and the cool blue shadows each layer casts on the next. "
     "Intricate snowflake-like filigree in the hills, leaves and feathers; a kaleidoscope of light "
@@ -150,12 +150,12 @@ req("style", "BD-S01", None, "Style frame A: white paper and lamplight",
 req("style", "BD-S02", None, "Style frame B: coloured papers, lit from behind",
     "The prototype's direction: each depth a different coloured sheet, night indigo to rice "
     "cream, with bronze and lacquer-red accents.",
-    "3840x2160, opaque", "reference", None, "references/s02-coloured-papers.png",
+    "3840x2160, opaque", "delivered", None, "references/s02-coloured-papers.png",
     f"{STYLE} {SCENE}")
 req("style", "BD-S03", None, "Style frame C: shadow theatre",
     "The boldest read at game size: solid ink silhouettes in front of glowing translucent "
     "coloured paper, like a shadow-puppet screen.",
-    "3840x2160, opaque", "reference", None, "references/s03-shadow-theatre.png",
+    "3840x2160, opaque", "delivered", None, "references/s03-shadow-theatre.png",
     f"{SCENE} Every near figure and object is a solid ink-black silhouette with fine cut-out "
     "detail, set in front of a glowing screen of translucent dyed paper that shifts from amber "
     "at the horizon to deep rose and indigo above; the far hills are paler silhouettes printed "
@@ -167,7 +167,7 @@ req("style", "BD-S03", None, "Style frame C: shadow theatre",
 M = "mood"
 req(M, "BD-M01", None, "Key art: the sisters ride to war",
     "The single image the game is sold on. Sets scale, hierarchy and the backlit-diorama look.",
-    "3840x2160, opaque", "reference", None, "references/m01-key-art.png",
+    "3840x2160, opaque", "delivered", None, "references/m01-key-art.png",
     "Key art for a game about the Trung sisters, Vietnam, 40 CE. Trung Trac and Trung Nhi ride a "
     "great war elephant into battle, both in gold armour with tall feathered crowns, beating a "
     "huge bronze drum carried in the howdah between them. Behind them an army of women with "
@@ -178,7 +178,7 @@ req(M, "BD-M01", None, "Key art: the sisters ride to war",
 req(M, "BD-M02", None, "Lightbox study: suspended panels",
     "Defines the game's depth and lighting model: how layers glow, how shadows fall, how much "
     "the cuts carry.",
-    "3840x2160, opaque", "reference", None, "references/m02-suspended-panels.png",
+    "3840x2160, opaque", "delivered", None, "references/m02-suspended-panels.png",
     "Photograph of a gallery installation in a dark room: six large hand-cut white fibre-paper "
     "panels hang from the ceiling one behind another. A single warm lamp behind the last panel "
     "throws their cut patterns as long shadows onto the floor and the near wall. The panels show, "
@@ -188,7 +188,7 @@ req(M, "BD-M02", None, "Lightbox study: suspended panels",
 req(M, "BD-M03", None, "Dong Son motif sheet",
     "A shared vocabulary of cut shapes, translated from the bronze drums, for every artist "
     "and every later request.",
-    "3000x3000, opaque cream ground", "reference", None, "references/m03-dong-son-motifs.png",
+    "3000x3000, opaque cream ground", "delivered", None, "references/m03-dong-son-motifs.png",
     "Reference sheet of cut-paper motifs translated from Dong Son bronze drums, arranged in a grid "
     "on rice-paper cream: the 12-point sun-star at the drum's centre; bands of tangential circles; "
     "zigzag and ladder bands; flying long-beaked herons; feather-crowned dancers and warriors in "
@@ -197,7 +197,7 @@ req(M, "BD-M03", None, "Dong Son motif sheet",
     "silhouette with fine interior cuts.")
 req(M, "BD-M04", None, "Colour script",
     "The palette's journey through the story, so each chapter has its own light.",
-    "4800x1600, opaque, eight panels in two rows", "reference", None, "references/m04-colour-script.png",
+    "4800x1600, opaque, eight panels in two rows", "delivered", None, "references/m04-colour-script.png",
     "A colour script of eight small cut-paper scenes in two rows of four, each a different light: "
     "1 dawn training, rose and bronze; 2 the garden, verdigris and cream; 3 grief, deep indigo with "
     "a single lacquer-red shape; 4 casting the drums, molten bronze and orange; 5 the villages "
@@ -206,7 +206,7 @@ req(M, "BD-M04", None, "Colour script",
     "compositions, the colour shift readable at thumbnail size.")
 req(M, "BD-M05", None, "The sisters: character study",
     "Fixes the two leads' silhouettes and personalities before the sprites are made.",
-    "3000x2000, opaque cream ground", "reference", None, "references/m05-sisters.png",
+    "3000x2000, opaque cream ground", "delivered", None, "references/m05-sisters.png",
     "Character study of two Vietnamese sisters as cut-paper figures, side by side, front view and "
     "side profile each. Trung Trac, the elder: composed and upright, bronze and gold, hair in a "
     "high knot under a crown of tall feathers, holding a drumstick still at her side; her cut "
@@ -216,14 +216,14 @@ req(M, "BD-M05", None, "The sisters: character study",
     "sexualised.")
 req(M, "BD-M06", None, "The garden at Me Linh",
     "Atmosphere for chapter one: the training years, intimate and green.",
-    "3840x2160, opaque", "reference", None, "references/m06-garden.png",
+    "3840x2160, opaque", "delivered", None, "references/m06-garden.png",
     "The garden of a Lac Viet lord's house at Me Linh, late afternoon, with a pale moon in the sky. "
     "Nhi sits among lotus and flowering shrubs with birds around her; across the pond, Trac "
     "practises with a spear beside straw training targets. Stilt house with a saddle roof behind. "
     "Cut-paper layers backlit by low sun, verdigris and cream, the leaves cut with fine veins.")
 req(M, "BD-M07", None, "Casting the drums",
     "Atmosphere for the uprising's preparation: the metalworkers of Nhat Nam.",
-    "3840x2160, opaque", "reference", None, "references/m07-casting.png",
+    "3840x2160, opaque", "delivered", None, "references/m07-casting.png",
     "Night in a foundry of the Nhat Nam metalworkers: molten bronze poured from crucibles into "
     "clay drum moulds stamped with the sun-star; women carry the moulds, sparks drawn as tiny cut "
     "holes letting orange light through. Finished bronze drums stacked at the side. Cut-paper "
@@ -231,35 +231,35 @@ req(M, "BD-M07", None, "Casting the drums",
 req(M, "BD-M08", None, "The villages answer",
     "The drum as a call: the sound made visible. Direction for the drum-wake effect and the "
     "campaign map.",
-    "3840x2160, opaque", "reference", None, "references/m08-villages-answer.png",
+    "3840x2160, opaque", "delivered", None, "references/m08-villages-answer.png",
     "Night over the Red River delta seen from above at a low angle. The sound of a great drum "
     "spreads from the centre as concentric cut-paper rings, like the rings on a bronze drum face. "
     "In stilt villages along the river, lanterns light one by one and women come down to long "
     "boats carrying spears. Indigo, cream and bronze.")
 req(M, "BD-M09", None, "Battle on the Hat River",
     "Atmosphere for chapter two: daylight battle, shield walls and crossbow volleys.",
-    "3840x2160, opaque", "reference", None, "references/m09-river-battle.png",
+    "3840x2160, opaque", "delivered", None, "references/m09-river-battle.png",
     "A battle at a river ford in low daylight. Han crossbowmen in iron-grey lamellar armour stand "
     "on a wooden palisade; a wall of Lac Viet women raises round shields with star patterns cut "
     "through them as a volley of bolts arcs over, drawn as clean cut lines. Reeds and lotus in "
     "the foreground. Slate grey, cream and lacquer red.")
 req(M, "BD-M10", None, "Luy Lau at night",
     "Atmosphere for chapter three: the climax.",
-    "3840x2160, opaque", "reference", None, "references/m10-luy-lau.png",
+    "3840x2160, opaque", "delivered", None, "references/m10-luy-lau.png",
     "The Han citadel of Luy Lau at night under a full moon. War elephants carrying the sisters "
     "and bronze drums break through the gate; gold armour and feather crowns catch the moonlight; "
     "the citadel's watchtowers are cut with lattice windows lit from within. Indigo and gold, "
     "triumphant but heavy.")
 req(M, "BD-M11", None, "Elegy: the drums melted",
     "The ending's tone: the victory does not last. Quiet, respectful, no depiction of death.",
-    "3840x2160, opaque", "reference", None, "references/m11-elegy.png",
+    "3840x2160, opaque", "delivered", None, "references/m11-elegy.png",
     "Quiet aftermath. In a Han workshop, captured bronze drums lie stacked by a furnace, about to "
     "be melted down and cast into a bronze horse. Through the open door, the Hat River at dawn "
     "with lotus drifting and herons flying. Ash grey and cream with one warm bronze shape. "
     "Mournful and still.")
 req(M, "BD-M12", None, "In-game screen mock-up",
     "Steers the production HUD and checks that the style reads at play size.",
-    "1920x1080, opaque", "reference", None, "references/m12-screen-mockup.png",
+    "1920x1080, opaque", "delivered", None, "references/m12-screen-mockup.png",
     "A 16:9 video game screen in cut-paper style. Side-scrolling battlefield: a line of women "
     "warriors on the left marches right towards Han soldiers and a palisade on the right; "
     "behind the women, two sisters stand on a palanquin with a bronze drum. Bottom centre, a "
@@ -268,7 +268,7 @@ req(M, "BD-M12", None, "In-game screen mock-up",
     "right, thin strength bars. Plenty of empty space around the interface.")
 req(M, "BD-M13", None, "Army of women: costume line-up",
     "The unit types and their silhouettes, readable at small sizes.",
-    "4000x2000, opaque cream ground", "reference", None, "references/m13-army-lineup.png",
+    "4000x2000, opaque cream ground", "delivered", None, "references/m13-army-lineup.png",
     "Costume line-up of a Lac Viet women's army, ancient Vietnam, as flat cut-paper figures in "
     "profile facing right, all at the same scale: spearwoman, archer with a crossbow, shield "
     "bearer with a round star-cut shield, drum bearer, standard bearer, mountain archer with a "
@@ -276,7 +276,7 @@ req(M, "BD-M13", None, "Army of women: costume line-up",
     "sashes. Each silhouette distinct.")
 req(M, "BD-M14", None, "Han forces: line-up",
     "The opposing side, dignified and specific to the Eastern Han, never caricatured.",
-    "4000x2000, opaque cream ground", "reference", None, "references/m14-han-lineup.png",
+    "4000x2000, opaque cream ground", "delivered", None, "references/m14-han-lineup.png",
     "Line-up of Eastern Han Chinese soldiers, 1st century, as flat cut-paper figures in profile "
     "facing left, at one scale: spearman with a ji halberd, kneeling crossbowman, officer with a "
     "banner, the provincial governor in robes and a scholar's cap. Lamellar armour shown as rows "
@@ -293,13 +293,13 @@ for sky, desc, light in [
     req(W_, f"BD-B0{['dawn','day','night'].index(sky)+1}", f"sky-{sky}", f"Sky: {sky}",
         f"{desc}. The furthest backdrop; everything else is layered over it.",
         "2560x1440, opaque; keep the lower third plain, it is covered by hills",
-        "stand-in", "Renderer.buildSky", f"art/sky-{sky}.png",
+        "delivered", "Renderer.buildSky", f"art/sky-{sky}.png",
         f"{STYLE} Backdrop of {light}. Sky only, no land.")
 
 req(W_, "BD-B04", "layer-karst", "Far layer: karst peaks",
     "The far hills, moving at 15% of the camera speed.",
     "5120x1440. Peaks between 10% and 60% of the height; the base solid to the bottom edge. " + STRIP,
-    "stand-in", "Renderer.buildKarst", "art/layer-karst.png",
+    "delivered", "Renderer.buildKarst", "art/layer-karst.png",
     f"{STYLE} A long horizontal strip of steep limestone karst peaks with rounded tops, cut from "
     "one sheet of paper in a single muted indigo-violet, with thin mist bands and small flying "
     "herons cut out of it so the light shows through. Flat silhouette, no interior shading.")
@@ -307,21 +307,21 @@ req(W_, "BD-B09", "layer-karst-far", "Farthest layer: pale karst peaks",
     "A paler, lower row of peaks behind BD-B04, moving at 7% of the camera speed, so the "
     "hills read in two depths.",
     "5120x1440. Peaks between 25% and 52% of the height; the base solid to the bottom edge. " + STRIP,
-    "stand-in", "Renderer.buildKarst(far)", "art/layer-karst-far.png",
+    "delivered", "Renderer.buildKarst(far)", "art/layer-karst-far.png",
     f"{STYLE} A long horizontal strip of distant limestone karst peaks with rounded tops, "
     "cut from one pale, misty violet-grey sheet that lets a lot of light through, with a dotted "
     "seam of tiny cut holes following the inside of each peak and thin mist bands cut across.")
 req(W_, "BD-B05", "layer-grove", "Middle layer: palms, bamboo, stilt houses",
     "The middle distance, moving at 45% of the camera speed.",
     "5120x1440. Tree bases on a solid band at 63-71% of the height; tallest crowns at about 25%. " + STRIP,
-    "stand-in", "Renderer.buildGrove", "art/layer-grove.png",
+    "delivered", "Renderer.buildGrove", "art/layer-grove.png",
     f"{STYLE} A long horizontal strip of areca palms, clumps of bamboo and stilt houses with "
     "saddle-shaped roofs like those on Dong Son drums, cut from one dark indigo-green sheet; leaf "
     "veins and lattice windows cut out so the light shows through.")
 req(W_, "BD-B06", "layer-paddy", "Ground layer: rice paddies",
     "The ground the armies stand on.",
     "5120x1440. Top edge a gentle scalloped line at 69% of the height; solid below, with the water slits kept faint so the HUD reads over it. " + STRIP,
-    "stand-in", "Renderer.buildPaddy", "art/layer-paddy.png",
+    "delivered", "Renderer.buildPaddy", "art/layer-paddy.png",
     f"{STYLE} A long horizontal strip of flooded rice paddies seen from the side, one dark sheet "
     "with a softly scalloped top edge; rows of thin horizontal slits cut through it suggest water "
     "catching light between rows of rice.")
@@ -329,13 +329,13 @@ req(W_, "BD-B07", "layer-reeds", "Foreground layer: reeds and lotus",
     "The nearest layer, in front of the armies, moving at 125% of the camera speed.",
     "5120x1440. Reeds rising from the bottom edge up to about 25% of the height; sparse enough "
     "that most of the bottom stays open. " + STRIP,
-    "stand-in", "Renderer.buildReeds", "art/layer-reeds.png",
+    "delivered", "Renderer.buildReeds", "art/layer-reeds.png",
     f"{STYLE} A long horizontal strip of reeds, grasses and lotus pads rising from the bottom "
     "edge, ink-black silhouettes with very fine cut detail, sparse with gaps between clumps.")
 req(W_, "BD-B08", "paper-fiber", "Paper fibre texture",
     "Laid over the whole screen at low opacity, so the scene reads as one sheet of paper.",
     "1024x1024, opaque, tileable in both directions",
-    "stand-in", "fiberTexture", "art/paper-fiber.png",
+    "delivered", "fiberTexture", "art/paper-fiber.png",
     "Seamless tileable texture of handmade mulberry rice paper lit from behind: warm cream, long "
     "pale fibres and a few darker flecks, even lighting, no folds, no shadows, no objects.")
 
@@ -345,7 +345,7 @@ C = "cast"
 req(C, "BD-C01", "sister-trac", "Trung Trac, drumming",
     "The elder sister at the drum: plays the deep centre stroke (tung). Shown 96 px tall.",
     "1024x1536. " + CUTOUT,
-    "stand-in", "Renderer.sisters", "art/sister-trac.png",
+    "delivered", "Renderer.sisters", "art/sister-trac.png",
     f"{STYLE} Trung Trac, a Lac Viet noblewoman and war leader, standing in profile facing right, "
     "both hands gripping a long drumstick raised for a strike. Gold armour of small plates over a "
     "wrapped skirt, a tall crown of feathers, hair in a high knot. Composed and upright. Bronze "
@@ -354,7 +354,7 @@ req(C, "BD-C02", "sister-nhi", "Trung Nhi, drumming",
     "The younger sister at the drum: plays the rim stroke (cac) and the off-beat flourishes. "
     "Shown 96 px tall.",
     "1024x1536. " + CUTOUT,
-    "stand-in", "Renderer.sisters", "art/sister-nhi.png",
+    "delivered", "Renderer.sisters", "art/sister-nhi.png",
     f"{STYLE} Trung Nhi, a young Lac Viet war leader, in profile facing right, mid-swing with a "
     "short drumstick in each hand, body turning with energy. Gold armour over a lacquer-red "
     "wrapped skirt, a crown of feathers with flowers tucked in, vines and birds cut into her "
@@ -364,7 +364,7 @@ req(C, "BD-C03", "war-elephant", "War elephant with howdah",
     "drum on top, so the howdah is empty. Shown 230 px tall.",
     "2048x1536. Empty howdah floor at about 70% of the height above the feet, centred slightly "
     "behind the middle. " + CUTOUT,
-    "stand-in", "Renderer.elephant", "art/war-elephant.png",
+    "delivered", "Renderer.elephant", "art/war-elephant.png",
     f"{STYLE} An Asian war elephant walking right in profile, an empty open howdah with a "
     "lacquer-red rail on its back, a caparison cut with concentric rings and a sun-star, tusks "
     "and trunk curled forward. Ink-black paper with red and bronze inlays.")
@@ -372,34 +372,34 @@ req(C, "BD-C04", "drum-bearers", "The drum on its palanquin",
     "Chapters one and two: four women carry the bronze drum on a low platform; the sisters "
     "stand on its deck (drawn separately). Shown 150 px tall.",
     "2048x1024. Platform deck at about 35% of the height. " + CUTOUT,
-    "stand-in", "Renderer.drumCrew", "art/drum-bearers.png",
+    "delivered", "Renderer.drumCrew", "art/drum-bearers.png",
     f"{STYLE} Four Lac Viet women in feather crowns carry a low wooden palanquin on poles, "
     "walking right; on it sits a large bronze drum, its side banded with rings and its top a "
     "sun-star. The deck is empty apart from the drum. Ink-black figures, a bronze drum.")
 req(C, "BD-C05", "unit-spear", "Spearwoman",
     "The front line. Shown 92 px tall; the game bobs, levels and tilts it for march and strike.",
     "1024x1536. Spear held upright. " + CUTOUT,
-    "stand-in", "Renderer.warrior", "art/unit-spear.png",
+    "delivered", "Renderer.warrior", "art/unit-spear.png",
     f"{STYLE} A Lac Viet woman warrior in profile facing right, holding a long bronze-headed "
     "spear upright, a feather crown fanning backwards, wrapped skirt, a lacquer-red sash. "
     "Ink-black silhouette with fine cut details in the feathers.")
 req(C, "BD-C06", "unit-archer", "Archer",
     "The back line. Shown 92 px tall.",
     "1024x1536. " + CUTOUT,
-    "stand-in", "Renderer.warrior", "art/unit-archer.png",
+    "delivered", "Renderer.warrior", "art/unit-archer.png",
     f"{STYLE} A Lac Viet woman archer in profile facing right, drawing a bow, a short feather "
     "crown, quiver on her back, a lacquer-red sash. Ink-black silhouette with fine cut details.")
 req(C, "BD-C07", "han-spear", "Han spearman",
     "Advances and attacks at close range. Shown 96 px tall.",
     "1024x1536. Faces left. " + CUTOUT,
-    "stand-in", "Renderer.hanSoldier", "art/han-spear.png",
+    "delivered", "Renderer.hanSoldier", "art/han-spear.png",
     f"{STYLE} An Eastern Han Chinese soldier, 1st century, in profile facing left, holding a ji "
     "halberd upright, lamellar armour shown as rows of small cut slots, a soft cap. Iron grey "
     "and dark grey paper. An ordinary soldier, no caricature.")
 req(C, "BD-C08", "han-crossbow", "Han crossbowman",
     "Fires a bolt every measure from range. Shown 96 px tall.",
     "1024x1536. Faces left. " + CUTOUT,
-    "stand-in", "Renderer.hanSoldier", "art/han-crossbow.png",
+    "delivered", "Renderer.hanSoldier", "art/han-crossbow.png",
     f"{STYLE} An Eastern Han Chinese crossbowman, 1st century, kneeling in profile facing left, "
     "aiming a bronze-triggered crossbow, lamellar armour as rows of small cut slots. Iron grey "
     "and dark grey paper, no caricature.")
@@ -407,14 +407,14 @@ req(C, "BD-C09", "fort-palisade", "Han palisade fort",
     "The goal of chapters two and three. Shown 300 px tall; the game tears pieces out as it "
     "takes damage.",
     "2048x2048. Gate on the left side, facing the army. " + CUTOUT.replace("figure, side profile, full body, feet", "structure, side view, base"),
-    "stand-in", "Renderer.fort", "art/fort-palisade.png",
+    "delivered", "Renderer.fort", "art/fort-palisade.png",
     f"{STYLE} A Han frontier fort seen from the side: a wall of pointed timber stakes, a gate on "
     "the left, a two-storey watchtower with a tiled roof and a pennant, lattice windows cut "
     "through. Dark iron-grey paper.")
 req(C, "BD-C10", "straw-target", "Straw training target",
     "Chapter one's goal. Shown 110 px tall.",
     "1024x1024. " + CUTOUT.replace("figure, side profile, full body, feet", "object, side view, base"),
-    "stand-in", "Renderer.target", "art/straw-target.png",
+    "delivered", "Renderer.target", "art/straw-target.png",
     f"{STYLE} A straw training dummy on a wooden post with a crossbar, bound with rope in three "
     "places. Straw-coloured paper with ink-black post and ropes.")
 
@@ -431,7 +431,7 @@ for rid, asset, who, parts in [
         f"Separate pieces of {who} for puppet rigging.",
         "4096x4096, transparent; pieces laid out apart with space between, each with a little "
         "overlap at the joints",
-        "planned", None, f"art/{asset}.png",
+        "delivered", None, f"art/{asset}.png",
         f"{STYLE} A sheet of separate cut-paper puppet parts for {who}, matching the in-game "
         f"figure: {parts}. Each piece is whole and flat, laid out with space between, joints "
         "rounded so they overlap when assembled.")
@@ -442,7 +442,7 @@ U_ = "ui"
 req(U_, "BD-U01", "logo", "Title logo",
     "Replaces the typeset title on the title screen. Must read at small sizes.",
     "2048x1024, transparent",
-    "stand-in", "#logo-text (CSS)", "art/logo.png",
+    "delivered", "#logo-text (CSS)", "art/logo.png",
     "Game title logo in hand-cut paper: the words \"BRONZE DRUM\" in large, readable, slightly "
     "irregular cut letters in rice-paper cream, set over a bronze drum's sun-star and rings cut "
     "in bronze, with \"TRỐNG ĐỒNG\" in small spaced capitals above (keep the Vietnamese "
@@ -451,7 +451,7 @@ req(U_, "BD-U02", "hud-drum", "HUD: the drum face",
     "The rhythm display at the bottom of the screen. The game lights four herons and the star "
     "over it, so keep those areas simple.",
     "1024x1024, transparent outside the circle",
-    "stand-in", "Renderer.hud", "art/hud-drum.png",
+    "delivered", "Renderer.hud", "art/hud-drum.png",
     "Top-down view of a Dong Son bronze drum face as a flat bronze paper cut-out disc: a "
     "12-point sun-star at the centre, then bands of rings, tangential circles and zigzags, a "
     "plain ring at 80% of the radius where four herons will be overlaid, and a beaded rim. "
@@ -459,7 +459,7 @@ req(U_, "BD-U02", "hud-drum", "HUD: the drum face",
 req(U_, "BD-U03", "ui-glyphs", "Drum and command glyphs",
     "Icons for the two strokes and the five commands, for the HUD and the instructions.",
     "2048x512, transparent; seven icons in a row on a 256 px grid",
-    "planned", None, "art/ui-glyphs.png",
+    "delivered", None, "art/ui-glyphs.png",
     "A row of seven cut-paper icons on a transparent background: 1 a solid bronze disc (the "
     "centre stroke, tung); 2 a lacquer-red ring with a dot (the rim stroke, cac); 3 a foot "
     "stepping forward (march); 4 a spearhead (strike); 5 a round shield with a star (shields); 6 a "
@@ -468,14 +468,14 @@ req(U_, "BD-U03", "ui-glyphs", "Drum and command glyphs",
 req(U_, "BD-U04", "ui-panel", "Dialog panel",
     "The paper sheet behind menus and dialogs, nine-sliced in the production build.",
     "1536x1024, transparent outside the sheet",
-    "planned", None, "art/ui-panel.png",
+    "delivered", None, "art/ui-panel.png",
     "A sheet of cream rice paper with a hand-cut decorative border: a band of tangential circles "
     "and small herons cut through near the edge, corners cut with a sun-star. Plain centre for "
     "text. Even light, soft fibres.")
 req(U_, "BD-U05", "ui-icons", "Utility icons",
     "Instructions, Settings and Fullscreen buttons.",
     "768x256, transparent; three icons on a 256 px grid",
-    "planned", None, "art/ui-icons.png",
+    "delivered", None, "art/ui-icons.png",
     "Three cut-paper icons in rice-paper cream on a transparent background: an open scroll "
     "(instructions), a bronze drum seen from above with a small gear cut in it (settings), four "
     "corner brackets (fullscreen). Bold and simple, readable at 26 pixels.")
@@ -487,7 +487,7 @@ for i, (cid, name, scene) in enumerate([
     req(U_, f"BD-U0{6+i}", f"card-{cid}", f"Chapter card: {name}",
         "Background of the chapter-select card; the game lays a pale wash over it for text.",
         "1600x900, opaque; keep the left half quiet for text",
-        "stand-in", "buildCards (plain paper)", f"art/card-{cid}.png",
+        "delivered", "buildCards (plain paper)", f"art/card-{cid}.png",
         f"{STYLE} A wide cut-paper vignette: {scene}. Main shapes on the right half, the left half "
         "mostly open sky or water.")
 
@@ -497,21 +497,21 @@ F = "fx"
 req(F, "BD-F01", "fx-scraps", "Paper scraps sheet",
     "Hits and defeats burst into torn scraps of paper instead of blood.",
     "2048x512, transparent; sixteen scraps on a 128 px grid",
-    "planned", None, "art/fx-scraps.png",
+    "delivered", None, "art/fx-scraps.png",
     "Sixteen small torn and cut paper scraps on a transparent background, in cream, lacquer red, "
     "iron grey and straw: triangles, curls, leaf shapes, feather fragments. Each with a fibrous "
     "torn edge on one side and a clean knife cut on the other.")
 req(F, "BD-F02", "fx-projectiles", "Arrows and bolts",
     "Lac Viet arrows and Han crossbow bolts.",
     "1024x256, transparent; four pieces in a row",
-    "planned", None, "art/fx-projectiles.png",
+    "delivered", None, "art/fx-projectiles.png",
     "Four cut-paper projectiles in a row on a transparent background, all pointing right: a Lac "
     "Viet arrow with a bronze head and feather fletching, the same arrow in flight with a motion "
     "cut, a short Han crossbow bolt in iron grey, the same bolt with a motion cut.")
 req(F, "BD-F03", "fx-drum-wake", "The drum wakes",
     "Plays when four commands chain: the drum's rings spread outward like the call in BD-M08.",
     "2048x2048, transparent; one ring pattern, radially symmetric",
-    "planned", None, "art/fx-drum-wake.png",
+    "delivered", None, "art/fx-drum-wake.png",
     "A radially symmetric burst of concentric cut-paper rings in bronze and gold on a transparent "
     "background, like the bands of a bronze drum face expanding outward: tangential circles, "
     "flying herons and a sun-star at the centre. Bright glow through the cuts.")
@@ -608,7 +608,7 @@ def build_doc() -> str:
             if r["asset"]:
                 status += f" · **Game id:** `{r['asset']}`"
             out.append(f"- **Status:** {status}")
-            where = "bronzedrum/design/" if r["status"] == "reference" else "bronzedrum/game/assets/"
+            where = "bronzedrum/design/" if not r["asset"] else "bronzedrum/game/assets/"
             out.append(f"- **File:** `{where}{r['file']}`")
             out.append(f"- **Prompt:** {r['prompt']}\n")
     return "\n".join(out).rstrip() + "\n"
@@ -616,7 +616,7 @@ def build_doc() -> str:
 
 def build_manifest() -> str:
     assets = [
-        {"id": r["asset"], "request": r["id"], "file": r["file"], "status": r["status"], "section": r["section"]}
+        {"id": r["asset"], "request": r["id"], "file": r["file"], "status": r["status"], "section": r["section"], "runtime": bool(r["standin"])}
         for r in REQUESTS if r["asset"]
     ]
     return json.dumps({"generatedBy": "bronzedrum/design/source/build_requests.py", "assets": assets}, indent=2, ensure_ascii=False) + "\n"
@@ -633,7 +633,8 @@ def validate() -> None:
         if r["status"] == "stand-in":
             assert r["asset"] and r["standin"], f"{r['id']}: a stand-in needs a game id and a stand-in"
         if r["status"] == "delivered":
-            assert (ROOT / "game" / "assets" / r["file"]).exists(), f"{r['id']}: delivered file missing"
+            base = ROOT / "game" / "assets" if r["asset"] else ROOT / "design"
+            assert (base / r["file"]).exists(), f"{r['id']}: delivered file missing"
 
 
 def main() -> int:

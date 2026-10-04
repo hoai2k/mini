@@ -17,7 +17,7 @@ for (const f of readdirSync(join(root, 'src'))) {
 }
 const manifest = JSON.parse(readFileSync(join(root, 'assets', 'manifest.json'), 'utf8'));
 const source = readdirSync(join(root, 'src')).map((f) => readFileSync(join(root, 'src', f), 'utf8')).join('\n');
-for (const a of manifest.assets.filter((x) => x.status === 'stand-in' || x.status === 'delivered')) {
+for (const a of manifest.assets.filter((x) => x.runtime !== false && (x.status === 'stand-in' || x.status === 'delivered'))) {
   // Ids are used literally or as `prefix-${...}` templates (sky-*, card-*).
   const prefix = a.id.split('-')[0];
   if (!source.includes(`'${a.id}'`) && !source.includes(`\`${prefix}-\${`)) {

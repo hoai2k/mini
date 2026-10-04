@@ -1,7 +1,8 @@
 // Delivered artwork. assets/manifest.json (generated from
 // design/source/build_requests.py) lists every requested image. Entries whose
 // status is "delivered" are loaded from assets/art/; everything else is drawn
-// by the procedural paper-cut stand-ins in render.js.
+// by the procedural paper-cut stand-ins in render.js. Delivered production
+// sheets with runtime: false are reserved for later builds.
 
 export class Art {
   constructor() {
@@ -17,7 +18,7 @@ export class Art {
     } catch {
       this.entries = [];
     }
-    const delivered = this.entries.filter((a) => a.status === 'delivered' && a.file);
+    const delivered = this.entries.filter((a) => a.status === 'delivered' && a.runtime !== false && a.file);
     await Promise.all(
       delivered.map(
         (a) =>
