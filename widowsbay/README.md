@@ -38,9 +38,8 @@ A static page with no build step: canvas 2D plus Web Audio.
   register, blotched, and laid over the print with the `color` blend. Grain,
   flicker, scratches and gate weave follow. *Settings → Film look* reduces or
   removes these effects.
-- `src/audio.js`: plays the band's recording when it is delivered, or a
-  stand-in shanty in D dorian (fingerpicking, a driven organ drone, a penny
-  whistle); sea wash and sound effects play under either.
+- `src/audio.js`: the band's recording as the score, the generated foley
+  effects and sea loop, and synthesised fallbacks for all of them.
 - `src/input.js` and `src/main.js`: controller, keyboard and touch input; the
   title screen, act cards, pause menu, instructions and settings, following
   [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md).
@@ -55,18 +54,45 @@ boards, and one entry per game asset. Each asset id matches a slot in
 and set its slot's status to `delivered`; the procedural stand-ins remain the
 fallback.
 
-## Music
+## Sound
 
-The score is the band's recording of "Widow's Bay". To install it, drop the
-file (MP3 is safest across browsers; OGG, M4A or WAV also work) in
-[`intake/`](intake/README.md) and ask for it to be integrated. It lands at
-`assets/audio/widows-bay.mp3` (or whatever `audio.song.file` names in
-`assets/manifest.json`), with `audio.song.status` set to `delivered`. The
-track loops; set `loopStart` and `loopEnd` in seconds to loop just a section.
-Until a file is delivered, or if it fails to load, the procedural shanty in
-`src/audio.js` plays instead. Separate stems (guitar, organ, vocals) would
-allow music that reacts to the game later, such as dropping the vocals during
-storms.
+**Score.** The band's recording, `assets/audio/widowsbay.mp3` (3:28, 192 kbps),
+starts on Press Start and loops. `audio.song.loopEnd` in `assets/manifest.json`
+is set to 206.4 s to skip the 2.2 s of silence at the end. If the file fails to
+load, the procedural shanty in `src/audio.js` (transposed to F) plays instead.
+
+**What the recording sets for everything else.** These are measurements of the
+file, not listening notes:
+
+- Key F major, with F♯ and A♭ colour that gives it a modal, psychedelic edge.
+- About 76 BPM in 4/4, with a strong 152 BPM eighth-note pulse (duple, not a
+  6/8 jig).
+- Warm and dark: 53% of the energy is in the low mids (120–500 Hz), 24% in the
+  mids, and only 1.5% above 6 kHz.
+- Compressed: it holds −13 to −17 dB RMS from the end of an 8 s fade-in to the
+  fade-out at about 3:22.
+- Very wide stereo (side/mid ratio 0.78), in a 60s style.
+
+**Effects.** All 17 effects are generated with the ElevenLabs sound-generation
+API by [`design/source/build_sfx.py`](design/source/build_sfx.py), which holds
+every prompt. They are written as period stage foley (a wave machine of peas
+in a drum, a canvas wind machine, a thunder sheet, ropes and pulleys) to match
+the toy theatre. The script keeps raw generations in
+`design/source/sfx-raw/` and processes them into `assets/sfx/` to sit with the
+song: a roll-off above 9 kHz and below 40 Hz, a common loudness (about −19 dB
+mean), and tonal effects retuned into F (pearl to C8, keepsake harp to C5,
+music-box flourish to C6, harbour bell to F6). `src/audio.js` plays the
+recordings with slight pitch variation, except the tuned ones, and falls back
+to synthesised versions if a file is missing.
+
+```sh
+ELEVENLABS_API_KEY=... python3 widowsbay/design/source/build_sfx.py          # generate missing, process all
+ELEVENLABS_API_KEY=... python3 widowsbay/design/source/build_sfx.py strike   # regenerate one
+python3 widowsbay/design/source/build_sfx.py --process                       # reprocess only, no API
+```
+
+The key comes from the environment and is never committed. New effects for
+later acts go in the script's `SFX` table, with the same foley direction.
 
 ## Checks
 
