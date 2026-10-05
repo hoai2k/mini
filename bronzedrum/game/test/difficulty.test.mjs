@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DrumReader, COMMANDS, DIFFICULTIES, setDifficulty, rhythmFor, parsePattern } from '../src/rhythm.js';
+import { DrumReader, COMMANDS, DIFFICULTIES, BEAT_RANGE, setDifficulty, setBeatCount, rhythmFor, fitBeats, parsePattern } from '../src/rhythm.js';
 import { STAGES } from '../src/stages.js';
 
 /** Play strokes ([drum, t]) in real time, letting the clock run between them and after. */
@@ -75,6 +75,43 @@ test('calls and the casting rhythm at every difficulty still start and end clear
         const ev = playLive(reader, even(r, u, 20 + u));
         assert.ok(command(ev), `${d}: ${r} at ${u}s a beat is accepted`);
       }
+    }
+  }
+});
+
+test('number of beats: at every length and difficulty, every command keeps its first beat, its length, and is read as itself', () => {
+  for (const d of DIFFICULTIES) {
+    setDifficulty(d);
+    for (let n = BEAT_RANGE.min; n <= BEAT_RANGE.max; n++) {
+      setBeatCount(n);
+      const all = COMMANDS.flatMap((c) => c.tiers);
+      assert.equal(new Set(all).size, all.length, `${d} ${n}: all distinct`);
+      for (const c of COMMANDS) {
+        c.tiers.forEach((text, i) => {
+          assert.equal(text.split(' ').length, n, `${d} ${n} ${text}`);
+          assert.equal(text.split(' ')[0].length, 1);
+          for (const u of [0.45, 0.8]) {
+            const cmd = command(playLive(new DrumReader(), even(text, u)));
+            assert.ok(cmd && cmd.command === c.id && cmd.tier === i + 1, `${d} ${n}: ${text} at ${u} read as ${cmd && cmd.command} ${cmd && cmd.tier}`);
+          }
+        });
+      }
+    }
+  }
+  setDifficulty('medium');
+  setBeatCount(4);
+});
+
+test('number of beats: calls fit to every length and are still accepted', () => {
+  const calls = STAGES.flatMap((s) => (s.calls || []).map((c) => c.text));
+  for (let n = BEAT_RANGE.min; n <= BEAT_RANGE.max; n++) {
+    for (const text of calls) {
+      const r = fitBeats(text, n);
+      assert.equal(r.split(' ').length, n);
+      assert.equal(r.split(' ')[0], text.split(' ')[0]);
+      const reader = new DrumReader();
+      reader.patterns = [{ command: 'call', tier: 1, text: r, strokes: parsePattern(r), drums: '' }];
+      assert.ok(command(playLive(reader, even(r, 0.6, 30))), `${n}: ${r}`);
     }
   }
 });

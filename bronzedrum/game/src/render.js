@@ -40,6 +40,14 @@ export const TOUCH = {
   more: { x: 1044, y: 518, r: 34 },
 };
 
+/** How many beats a pattern spans (its text, or its last stroke's beat). */
+function spanOf(pattern) {
+  if (pattern.text) return pattern.text.split(' ').length;
+  if (pattern.beats) return pattern.beats;
+  const s = pattern.strokes;
+  return s.length ? Math.floor(s[s.length - 1].pos) + 1 : 4;
+}
+
 function rng(seed) {
   let s = seed >>> 0;
   return () => {
@@ -2928,7 +2936,7 @@ export class Renderer {
     } else if (view.miss) {
       // A broken phrase: what was played, the wrong stroke crossed out.
       const m = view.miss;
-      const x0 = cx - 2 * cell;
+      const x0 = cx - (spanOf(m) / 2) * cell;
       this.pattern(x0, slotY, { strokes: m.strokes }, dotR, cell, m.filled);
       const q = Math.min(1, (t - m.t) / 0.12);
       g.save();
@@ -2956,14 +2964,16 @@ export class Renderer {
       g.stroke();
       g.restore();
     } else if (ph) {
-      this.pattern(cx - 2 * cell, slotY, ph.pattern, dotR, cell, ph.filled, ph.done);
+      this.pattern(cx - (spanOf(ph.pattern) / 2) * cell, slotY, ph.pattern, dotR, cell, ph.filled, ph.done);
     } else {
-      for (let i = 0; i < 4; i++) {
+      // Empty slots, one per beat (Number of beats; four by default).
+      const n = view.beats || 4;
+      for (let i = 0; i < n; i++) {
         g.strokeStyle = P.paper;
         g.globalAlpha = view.ready ? 0.45 + 0.25 * Math.sin(t * 4) : 0.35;
         g.lineWidth = 1.5;
         g.beginPath();
-        g.arc(cx - 1.5 * cell + i * cell, slotY, dotR, 0, Math.PI * 2);
+        g.arc(cx - ((n - 1) / 2) * cell + i * cell, slotY, dotR, 0, Math.PI * 2);
         g.stroke();
       }
       g.globalAlpha = 1;
@@ -2981,7 +2991,7 @@ export class Renderer {
       g.save();
       g.globalAlpha = 1 - q;
       g.translate(0, q * q * 40);
-      this.pattern(cx - 2 * cell, slotY, this.clearing.pattern, dotR * (1 - 0.4 * q), cell + 30 * q, this.clearing.filled);
+      this.pattern(cx - (spanOf(this.clearing.pattern) / 2) * (cell + 30 * q), slotY, this.clearing.pattern, dotR * (1 - 0.4 * q), cell + 30 * q, this.clearing.filled);
       g.restore();
     }
 
@@ -3032,7 +3042,8 @@ export class Renderer {
       // Small screens: each command on two lines (its name, then its tiers),
       // narrow enough to grow large and still stay clear of the drum.
       const px = 22;
-      const tierW = 70;
+      // Each tier's column fits its rhythm (Number of beats; four by default).
+      const tierW = Math.max(70, 30 + (view.beats || 4) * 12);
       const blockW = Math.max(120, 18 + view.maxTier * tierW);
       const by = (touch ? 500 : 570) / (px + blockW);
       g.save();
@@ -3068,16 +3079,17 @@ export class Renderer {
       const px = 22;
       const rowH = 22;
       const cellS = 12;
+      const colW = Math.max(84, 36 + (view.beats || 4) * cellS);
       let py = H - 14 - (list.length - 1) * rowH;
       g.fillStyle = 'rgba(22,21,26,0.6)';
-      if (list.length) g.fillRect(px - 10, py - 19, 120 + view.maxTier * 84, list.length * rowH + 8);
+      if (list.length) g.fillRect(px - 10, py - 19, 120 + view.maxTier * colW, list.length * rowH + 8);
       for (const c of list) {
         const active = ph && ph.done && ph.pattern.command === c.id;
         g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
         g.fillStyle = active ? P.bronzeLight : P.paper;
         g.fillText(`${c.name} · ${c.gloss.replace('Elephant charge', 'Charge')}`, px, py);
         c.tiers.slice(0, view.maxTier).forEach((text, i) => {
-          const x0 = px + 116 + i * 84;
+          const x0 = px + 116 + i * colW;
           const lit = active && ph.pattern.tier === i + 1;
           g.font = '600 11px "Be Vietnam Pro", system-ui, sans-serif';
           g.fillStyle = lit ? P.bronzeLight : 'rgba(242,232,213,0.6)';
@@ -3359,7 +3371,8 @@ export class Renderer {
   demoState(demo, t) {
     const n = demo.strokes.length;
     const hits = [];
-    for (let rep = 0; rep < demo.reps; rep++) demo.strokes.forEach((s, i) => hits.push({ i, at: demo.start + (rep * 5 + s.pos) * demo.u }));
+    const round = (demo.beats || 4) + 1; // each time through, then a beat's rest
+    for (let rep = 0; rep < demo.reps; rep++) demo.strokes.forEach((s, i) => hits.push({ i, at: demo.start + (rep * round + s.pos) * demo.u }));
     const glow = (i) => {
       let v = 0;
       for (const h of hits) if (h.i === i && t >= h.at) v = Math.max(v, 1 - (t - h.at) / 0.35);

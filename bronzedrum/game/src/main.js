@@ -1,6 +1,6 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
-import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, DIFFICULTIES, commandById, parsePattern, rhythmFor, setDifficulty } from './rhythm.js';
+import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, DIFFICULTIES, commandById, parsePattern, rhythmFor, setDifficulty, fitBeats, beatsOf, setBeatCount, getBeatCount } from './rhythm.js';
 import { createBattle, orderFor, spawnEnemy, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
@@ -34,11 +34,12 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1 });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4 });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
 const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
 function applyDifficulty() {
   setDifficulty(DIFFICULTIES[settings.difficulty] || 'medium');
+  setBeatCount(settings.beats);
   buildCommandTable();
 }
 // The prototype opens every chapter for review; winning still records progress.
@@ -310,7 +311,7 @@ function startStage(i) {
   input.practice = false;
   applyDifficulty();
   // The rhythm this chapter plays, at the chosen difficulty (calls, the hammer rhythm).
-  const rhythm = (text) => rhythmFor(text);
+  const rhythm = (text) => fitBeats(rhythmFor(text));
   game = {
     index: i,
     stage,
@@ -482,7 +483,7 @@ function missView(events, trying, before, drum, t) {
     if (!(kind === 'drum' && onTime)) {
       kind = raw < want.pos ? 'soon' : 'late';
       // Snap to the nearest half or third of a beat, after the last stroke.
-      const grid = [...Array(25).keys()].flatMap((i) => [i / 2, i / 3]).filter((v) => v > p.strokes[k - 1].pos + 0.1 && v < 4);
+      const grid = [...Array(25).keys()].flatMap((i) => [i / 2, i / 3]).filter((v) => v > p.strokes[k - 1].pos + 0.1 && v < (p.text ? beatsOf(p.text) : 4));
       pos = grid.reduce((a, b) => (Math.abs(b - raw) < Math.abs(a - raw) ? b : a), grid[0] ?? want.pos);
     }
   }
@@ -742,12 +743,12 @@ function startDemo(item, { again = false, u = 0.55 } = {}) {
   const g = game;
   const strokes = parsePattern(item.text);
   const prefix = again ? `Listen again — ${item.label}: ` : `Listen — ${item.label}: `;
-  g.demo = { text: prefix + rhythmTokens(item.text), tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, key: item.key, sources: [] };
+  g.demo = { text: prefix + rhythmTokens(item.text), tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, key: item.key, sources: [], beats: beatsOf(item.text) };
   // Every stroke is scheduled on the audio clock now, so a slow frame cannot
   // delay one: the pointer follows the same clock (heardTime) and stays on it.
   for (let rep = 0; rep < DEMO_REPS; rep++) {
     for (const s of strokes) {
-      const when = g.clockStart + g.demo.start + (rep * 5 + s.pos) * u;
+      const when = g.clockStart + g.demo.start + (rep * (g.demo.beats + 1) + s.pos) * u;
       g.demo.sources.push(s.drum === 'L' ? sound.tung(when) : sound.cac(when));
     }
   }
@@ -761,7 +762,7 @@ function startDemo(item, { again = false, u = 0.55 } = {}) {
 function tickDemo() {
   const g = game;
   const d = g.demo;
-  if (d && songTime() > d.start + (d.reps * 5 - 1) * d.u + 0.4) g.demo = null;
+  if (d && songTime() > d.start + (d.reps * (d.beats + 1) - 1) * d.u + 0.4) g.demo = null;
 }
 
 /** Cut a demonstration short (the player drums, or leaves): silence the strokes still to come. */
@@ -792,7 +793,7 @@ function tickGuide() {
   while (true) {
     const round = Math.floor(d.next / n);
     const s = d.strokes[d.next % n];
-    const at = d.start + (round * 4 + s.pos) * d.u;
+    const at = d.start + (round * beatsOf(g.rhythm) + s.pos) * d.u;
     if (at - t > LOOKAHEAD) break;
     if (at >= t - 0.05 && !g.demo) sound.echo(s.drum, g.clockStart + Math.max(at, t), 0.32, 0.82);
     d.next += 1;
@@ -1016,6 +1017,7 @@ function view() {
     feedback: g.feedback,
     unlocked: g.stage.unlocked || [],
     maxTier: g.stage.maxTier || 3,
+    beats: getBeatCount(),
     mode: g.mode,
     stage: g.stage,
     session: g.session,

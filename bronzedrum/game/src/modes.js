@@ -56,7 +56,7 @@ export class EchoSession {
       const u = 60 / c.bpm;
       const pattern = callPattern(c.text);
       const strokes = pattern.strokes.map((s) => ({ drum: s.drum, t: t + s.pos * u }));
-      this.call = { ...c, u, start: t, end: t + 4 * u, pattern, strokes };
+      this.call = { ...c, u, start: t, end: t + c.text.split(' ').length * u, pattern, strokes };
       this.phase = 'calling';
       events.push({ type: 'call', call: this.call, index: this.index });
     }

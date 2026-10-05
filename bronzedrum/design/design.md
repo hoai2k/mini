@@ -219,6 +219,16 @@ The reader measures a stroke after a rest from the last stroke on a beat, and
 a test plays every command and call at every difficulty. Rests show as a short
 dash in the dots, the hints and the command table.
 
+**Number of beats** (Settings, 3 to 8, four by default; separate from
+Difficulty) sets how long every command and call is (`fitBeats`). The first
+and last beats stay. A shorter rhythm keeps the middle beats that tell the
+tiers apart (pairs and triplets first). A longer one repeats the middle beats
+in order: at 6 beats, march II is `L L LR L LR R`. The army still answers for
+four beats, starting on the beat after the command. A test plays every command
+at every length and difficulty and checks each is read as itself and no two
+are alike. Two beats are not offered: on Easy they cannot hold three distinct
+strike tiers.
+
 **Pairs, triplets and tiers.** A beat can hold one stroke, a pair (two) or a
 triplet (three). Every command has three tiers. Tier I is four plain strokes;
 tiers II and III add pairs and triplets. The deep tùng needs room to ring, so

@@ -68,6 +68,53 @@ const TIERS = {
   },
 };
 let difficulty = 'medium';
+// Number of beats (Settings): how long commands and calls are. Four by
+// default; fitBeats stretches or shrinks every rhythm to it.
+export const BEAT_RANGE = { min: 3, max: 8 }; // two beats cannot hold three distinct tiers on Easy
+let beatCount = 4;
+
+/** Set how many beats commands and calls last. */
+export function setBeatCount(n) {
+  beatCount = Math.max(BEAT_RANGE.min, Math.min(BEAT_RANGE.max, Math.round(n) || 4));
+}
+
+export function getBeatCount() {
+  return beatCount;
+}
+
+/**
+ * A rhythm fitted to n beats. The first and last beats stay. Shorter: the
+ * middle keeps its most intricate beats (pairs and triplets, then the later
+ * ones), which are what tell the tiers apart; with two beats, the first and
+ * the most intricate one. Longer: the middle beats repeat in order.
+ */
+export function fitBeats(text, n = beatCount) {
+  const beats = text.split(' ');
+  if (beats.length === n) return text;
+  const first = beats[0];
+  const last = beats[beats.length - 1];
+  const middle = beats.slice(1, -1);
+  const weight = (b) => (b === '.' ? 0 : b.length);
+  if (n === 1) return first;
+  if (n === 2) {
+    const all = beats.slice(1).map((b, i) => [b, i]);
+    all.sort((a, b) => weight(b[0]) - weight(a[0]) || b[1] - a[1]);
+    return `${first} ${all[0][0]}`;
+  }
+  let mid;
+  if (n - 2 <= middle.length) {
+    const keep = middle.map((b, i) => [b, i]).sort((a, b) => weight(b[0]) - weight(a[0]) || b[1] - a[1]).slice(0, n - 2).map((x) => x[1]);
+    mid = middle.filter((_, i) => keep.includes(i));
+  } else {
+    mid = Array.from({ length: n - 2 }, (_, i) => middle[i % middle.length]);
+  }
+  return [first, ...mid, last].join(' ');
+}
+
+/** How many beats a rhythm text spans. */
+export function beatsOf(text) {
+  return text.split(' ').length;
+}
 
 /** Choose the rhythms for a difficulty ('easy', 'medium' or 'hard'). */
 export function setDifficulty(d) {
@@ -79,8 +126,8 @@ export function getDifficulty() {
 }
 
 export const COMMANDS = [
-  { id: 'march', name: 'Tiến', gloss: 'March', kind: 'move', get tiers() { return TIERS.march[difficulty]; } },
-  { id: 'strike', name: 'Đánh', gloss: 'Strike', kind: 'attack', get tiers() { return TIERS.strike[difficulty]; } },
+  { id: 'march', name: 'Tiến', gloss: 'March', kind: 'move', get tiers() { return TIERS.march[difficulty].map((t) => fitBeats(t)); } },
+  { id: 'strike', name: 'Đánh', gloss: 'Strike', kind: 'attack', get tiers() { return TIERS.strike[difficulty].map((t) => fitBeats(t)); } },
 ];
 
 /**
@@ -360,8 +407,9 @@ export class DrumReader {
     const accuracy = accuracyOf(c.meanErr, this.windows);
     this.combo = this.chainArmed ? this.combo + 1 : 1;
     this.chainUntil = null;
-    // The answer starts on the beat after the pattern's fourth.
-    const start = Math.max(t0 + 4 * u, now + 0.05);
+    // The answer starts on the beat after the pattern's last (its fourth,
+    // unless Number of beats says otherwise); the army answers for four beats.
+    const start = Math.max(t0 + beatsOf(p.text || '. . . .') * u, now + 0.05);
     this.action = { command: p.command, tier: p.tier, pattern: p, u, start, ready: start + 4 * u };
     this.shown = { pattern: p, strokes: this.phrase.slice(), accuracy };
     this.phrase = [];
