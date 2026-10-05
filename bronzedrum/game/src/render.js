@@ -33,7 +33,6 @@ const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55, dusk: 0.45, foundry: 0.
 export const TOUCH = {
   drum: { x: 640, y: 668, r: 100, centre: 0.66, band: 1.3, reach: 1.42 },
   shield: { x: 1170, y: 628, r: 70 },
-  reset: { x: 1000, y: 670, r: 36 },
   pause: { x: 640, y: 32, r: 24 },
 };
 
@@ -254,6 +253,7 @@ export class Renderer {
     this.wakes = [];
     this.incenseState = null;
     this.celebration = null;
+    this.wokenAt = {};
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
     this.motion = { front: 0, frontM: { x: 0, v: 0 }, crew: { x: -330, v: 0 }, units: [], enemies: new Map() };
@@ -926,6 +926,7 @@ export class Renderer {
         const lit = i < sess.index;
         const calling = i === sess.index && sess.phase === 'calling';
         this.villageHouse(x, GROUND - 4, lit, calling ? callPulse : 0, t, i);
+        this.villageWake(x, GROUND - 4, t - ((this.wokenAt || {})[i] ?? -99));
       });
     } else if (caller === 'festival') {
       this.lanternString(-480, 820, 150, sess.index, sess.calls.length, t);
@@ -982,6 +983,72 @@ export class Renderer {
       g.fill();
     });
     g.restore();
+  }
+
+  /** A village has answered: remember when, for its burst of light. */
+  villageWakes(i, t) {
+    this.wokenAt = { ...(this.wokenAt || {}), [i]: t };
+  }
+
+  /**
+   * A village coming to life, `age` seconds after it answered: a flare of
+   * lamplight over the house, sparks, the drum's rings over the water and a
+   * few paper lanterns floating up, settling after about three seconds.
+   */
+  villageWake(x, y, age) {
+    if (age < 0 || age > 4) return;
+    const g = this.ctx;
+    const k = age / 4;
+    if (age < 1.4) this.wakeBurst(x, y - 60, 260, age / 1.4);
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    // The flare, strongest at once and fading.
+    const f = Math.max(0, 1 - age / 1.8);
+    if (f > 0) {
+      const gr = g.createRadialGradient(x, y - 60, 4, x, y - 60, 120);
+      gr.addColorStop(0, `rgba(255,200,120,${0.7 * f})`);
+      gr.addColorStop(1, 'rgba(255,140,60,0)');
+      g.fillStyle = gr;
+      g.fillRect(x - 120, y - 180, 240, 240);
+    }
+    // Sparks thrown up and falling.
+    for (let n = 0; n < 16; n++) {
+      const a = -Math.PI / 2 + ((n / 16) - 0.5) * 2.2;
+      const v = 70 + (n % 5) * 22;
+      const sx = x + Math.cos(a) * v * age;
+      const sy = y - 70 + Math.sin(a) * v * age + 60 * age * age;
+      const alpha = Math.max(0, 1 - age / 1.3);
+      if (alpha <= 0) break;
+      g.fillStyle = `rgba(255,${180 + (n % 3) * 25},90,${alpha})`;
+      g.fillRect(sx, sy, 3, 3);
+    }
+    g.restore();
+    // Paper lanterns rising from the house and drifting.
+    for (let n = 0; n < 3; n++) {
+      const la = age - n * 0.35;
+      if (la < 0) continue;
+      const lx = x + (n - 1) * 26 + Math.sin(la * 1.6 + n) * 8;
+      const ly = y - 80 - la * 46;
+      const alpha = Math.max(0, Math.min(1, la * 3) * (1 - k));
+      g.save();
+      g.globalAlpha = alpha;
+      g.globalCompositeOperation = 'lighter';
+      const gl = g.createRadialGradient(lx, ly, 1, lx, ly, 24);
+      gl.addColorStop(0, 'rgba(255,190,110,0.6)');
+      gl.addColorStop(1, 'rgba(255,140,60,0)');
+      g.fillStyle = gl;
+      g.fillRect(lx - 24, ly - 24, 48, 48);
+      g.restore();
+      g.save();
+      g.globalAlpha = alpha;
+      g.fillStyle = '#FFB65C';
+      g.beginPath();
+      g.ellipse(lx, ly, 6, 8, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = 'rgba(22,21,26,0.6)';
+      g.fillRect(lx - 4, ly + 7, 8, 1.5);
+      g.restore();
+    }
   }
 
   /** A prop: delivered art when there is some, else the stand-in callback. */
@@ -3145,15 +3212,26 @@ export class Renderer {
           g.fillStyle = P.ink;
           g.fillText(k.slice(2), bx, by + rr * 0.4);
         } else {
-          g.fillStyle = colors[k];
+          // Controller buttons as the game's own drum marks, the letter on
+          // top: X the gold tùng disc, B the black-and-red cắc target, A the
+          // cream hide of the barrel drum (Y, unused in play, stays plain).
+          const face = { X: [P.bronzeLight, null, P.ink], B: [P.ink, P.lacquer, P.paper], A: ['#EADBC0', P.bronze, P.ink] }[k] || [colors[k], null, P.ink];
+          g.fillStyle = face[0];
           g.beginPath();
           g.arc(bx, by, rr, 0, Math.PI * 2);
           g.fill();
           g.shadowBlur = 0;
-          g.font = `700 ${Math.round(rr * 1.3)}px "Be Vietnam Pro", system-ui, sans-serif`;
+          if (face[1]) {
+            g.strokeStyle = face[1];
+            g.lineWidth = rr * (k === 'B' ? 0.3 : 0.16);
+            g.beginPath();
+            g.arc(bx, by, rr * (k === 'B' ? 0.78 : 0.88), 0, Math.PI * 2);
+            g.stroke();
+          }
+          g.font = `700 ${Math.round(rr * 1.2)}px "Be Vietnam Pro", system-ui, sans-serif`;
           g.textAlign = 'center';
-          g.fillStyle = k === 'Y' ? P.ink : '#fff';
-          g.fillText(k, bx, by + rr * 0.46);
+          g.fillStyle = face[2];
+          g.fillText(k, bx, by + rr * 0.43);
         }
         g.restore();
         g.font = font;
@@ -3272,7 +3350,6 @@ export class Renderer {
     const near = (b, pad) => Math.hypot(x - b.x, y - b.y) < b.r + pad;
     if (near(T.pause, 16)) return 'pause';
     if (mode === 'battle' && near(T.shield, 18)) return 'guard';
-    if (near(T.reset, 14)) return 'reset';
     const d = Math.hypot(x - T.drum.x, y - T.drum.y);
     if (d < T.drum.r * T.drum.centre) return 'L';
     if (this.onDots(x, y) && d > T.drum.r * T.drum.band) return 'none';
@@ -3458,7 +3535,8 @@ export class Renderer {
     const t = view.songTime;
     const sheet = this.art.get('touch-buttons');
     const b = view.battle;
-    const buttons = [['reset', TOUCH.reset, 1], ['pause', TOUCH.pause, 2]];
+    // The shield drum is the one action button (shield and clear); pause at the top.
+    const buttons = [['pause', TOUCH.pause, 2]];
     if (view.mode === 'battle') buttons.unshift(['guard', TOUCH.shield, 0]);
     for (const [id, pos, cellIx] of buttons) {
       const since = t - (this.pressed[id] ?? -9);

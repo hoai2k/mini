@@ -94,7 +94,8 @@ export const STAGES = [
     troops: 0,
     elephant: false,
     sky: 'night',
-    ambience: 'amb-night',
+    ambience: 'amb-village',
+    settle: 2.6, // seconds after a village lights up, back to the crickets, before the next call
     enemies: [],
   },
   {

@@ -185,6 +185,13 @@
       "gain": 0.7,
       "loop": false
     },
+    "village-wakes": {
+      "files": [
+        "sfx/village-wakes.mp3"
+      ],
+      "gain": 0.75,
+      "loop": false
+    },
     "victory": {
       "files": [
         "sfx/victory.mp3"
@@ -251,6 +258,13 @@
     "amb-foundry": {
       "files": [
         "sfx/amb-foundry.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "amb-village": {
+      "files": [
+        "sfx/amb-village.mp3"
       ],
       "gain": 0.45,
       "loop": true

@@ -23,7 +23,7 @@ const CONTACT_GAP = 1.5;
 // it while an attack is visibly on its way always deflects it. Raising it
 // with nothing incoming costs a longer recovery (`whiff`) than a real block.
 export const FLIGHT = { spear: 0.7, crossbow: 0.9, fort: 1.1 };
-export const GUARD = { up: 0.5, recover: 0.3, whiff: 0.9 };
+export const GUARD = { up: 0.5, recover: 0.1, whiff: 0.2 }; // quick to raise again: it is also the rhythm's clear
 const SPEAR_HIT = 1.5; // every 2 Han beats in contact
 const BOLT_VOLLEY = 1.5; // every 4 Han beats in range
 const FORT_VOLLEY = 2.25;

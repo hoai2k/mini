@@ -198,10 +198,12 @@ body.reduce-motion #bars-hint .arrow { animation: none; }
 
 /* Xbox face buttons, in their standard colours, for the instructions. */
 .xb { display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; border-radius: 50%; font: 700 0.8em var(--sans); color: #fff; vertical-align: 0.05em; line-height: 1; }
-.xb-a { background: #107C10; }
-.xb-b { background: #E81123; }
-.xb-x { background: #0078D4; }
-.xb-y { background: #FFB900; color: var(--ink); }
+/* As the game's own drum marks, the letter on top: X the gold tùng disc, B the
+   black-and-red cắc target, A the cream hide of the barrel drum. */
+.xb-x { background: var(--bronze-light); color: var(--ink); }
+.xb-b { background: var(--ink); color: var(--paper); box-shadow: inset 0 0 0 0.17em var(--ink), inset 0 0 0 0.3em var(--lacquer); }
+.xb-a { background: #EADBC0; color: var(--ink); box-shadow: inset 0 0 0 0.1em var(--bronze); }
+.xb-y { background: var(--paper-shade); color: var(--ink); }
 
 /* The success moment: over the celebrating scene, low on the screen, with a
    single button. Restart and the chapter list are in the pause menu. */

@@ -319,7 +319,7 @@ function startStage(i) {
     blocks: 0,
   };
   if (game.mode === 'echo') {
-    game.session = new EchoSession({ calls: stage.calls, matchTempo: stage.matchTempo, tolerance: stage.tolerance });
+    game.session = new EchoSession({ calls: stage.calls, matchTempo: stage.matchTempo, tolerance: stage.tolerance, pause: stage.settle ?? 0.4 });
     game.reader.patterns = [];
     game.session.nextCallAt = 2.2;
   } else if (game.mode === 'casting') {
@@ -479,18 +479,25 @@ function act(action, time) {
     return;
   }
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
-  if (action === 'reset') {
-    // Clear the phrase: a knock on the wooden slit drum (mõ), the dots tumble
-    // away and "Cleared" shows under the drum.
-    sound.play('drum-mo', sound.now, 0.8);
-    renderer.kick('mo', songTime());
-    input.rumble(25, 0.3);
+  // One button, A (Space, the shield drum): it always clears the rhythm dots,
+  // and in a battle it also raises the shield wall. In chapters with no
+  // shields it is just the clear, with a knock on the wooden slit drum (mõ).
+  const battle = game.mode === 'battle';
+  if (action === 'reset' || action === 'guard') {
     const shown = view().phraseView;
     const events = game.reader.reset();
     if (events.length && shown && !shown.done) renderer.clearDots(shown, songTime());
+    game.quietClear = battle && action === 'guard';
     for (const ev of events) handleRhythm(ev);
-  } else if (action === 'guard') {
-    // The shield wall: separate from the drum, timed to attacks in flight.
+    game.quietClear = false;
+    if (!battle || action === 'reset') {
+      sound.play('drum-mo', sound.now, 0.8);
+      renderer.kick('mo', songTime());
+      input.rumble(25, 0.3);
+    }
+  }
+  if (action === 'guard' && battle) {
+    // The shield wall: timed to attacks in flight.
     const t = hitTime(time);
     if (guard(game.battle, Math.max(t, game.battle.time))) {
       // A stroke on the big hide barrel drum (trống chầu) calls the shields up.
@@ -595,7 +602,7 @@ function handleRhythm(ev) {
         g.wantAgain = g.lastTry;
       }
     }
-    if (ev.reason === 'manual') confirm('Cleared', P.paperShade);
+    if (ev.reason === 'manual' && !g.quietClear) confirm('Cleared', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
   } else if (ev.type === 'comboLost') {
     if (ev.combo > 1 && g.mode === 'battle') feedback('Chain broken', P.paperShade);
@@ -646,7 +653,12 @@ function handleMode(e) {
       const words = { mourning: 'An incense stick is lit', village: `${e.call.label || 'The village'} answers`, festival: 'The crowd roars', elegy: 'A drum falls silent' };
       confirm(words[stage.caller] || 'Answered', P.bronzeLight);
       if (stage.caller === 'festival') sound.play('crowd-cheer', sound.now + 0.2, 0.8);
-      else if (stage.caller !== 'elegy') sound.play('lantern', sound.now + 0.1, 0.8);
+      else if (stage.caller === 'village') {
+        // The village comes to life: its gong and voices over the water, its house ablaze.
+        sound.play('lantern', sound.now + 0.05, 0.8);
+        sound.play('village-wakes', sound.now + 0.25, 0.9);
+        renderer.villageWakes(e.index, t + 0.25);
+      } else if (stage.caller !== 'elegy') sound.play('lantern', sound.now + 0.1, 0.8);
       break;
     }
     case 'crack':

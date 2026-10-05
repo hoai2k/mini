@@ -6,7 +6,7 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**47 of 48 files in use.**
+**49 of 50 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
@@ -56,6 +56,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `ui-confirm` | Choosing a menu item. (hit) | 0.5 s | 1/1 | A small hardwood clapper knock, clean and single, like a temple woodblock. |
 | `ui-back` | Closing a menu or dialog. (hit) | 0.5 s | 1/1 | A sheet of paper sliding softly across a wooden table, short. |
 | `ui-start` | Press Start. (sting) | 2.5 s | 1/1 | A single resonant strike on a small bronze gong, ringing out. |
+| `village-wakes` | The Villages Answer: a village answers and lights its lanterns. (sting) | 3.0 s | 1/1 | A riverside village wakes at night: a bronze gong struck once in the distance, then a small crowd of villagers calling out joyfully together, and a hand drum rolling briefly in answer, all echoing over the water. |
 
 ## Stings
 
@@ -81,6 +82,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `amb-garden` | Chapter 1 bed, looped. (loop) | 20.0 s | 1/1 | Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling water, a distant rooster, a light breeze through bamboo. Continuous, no music. |
 | `amb-river` | Chapter 2 bed, looped. (loop) | 20.0 s | 1/1 | Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons and birds. Continuous, no music, no drums. |
 | `amb-foundry` | Casting the Drums bed, looped. Chosen from six takes as the least tonal (the old take had a steady hum that read as a machine); looped with a 3 s crossfade and raised 7 dB under a soft limiter. (loop) | 20.0 s | 1/1 | Blacksmith's forge ambience recorded outdoors, traditional and hand-powered: crackling coal fire, slow leather bellows whooshing, hot metal hissing now and then, crickets far off. Natural, no machinery, no electrical hum, no music. |
+| `amb-village` | The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked to one steady rate (a strong steady chirp would pull against the player's tempo); looped with a 3 s crossfade and lowered 6 dB. (loop) | 20.0 s | 1/1 | Field recording at night beside a slow river in the Vietnamese countryside: steady crickets chirping in the grass, frogs calling from the rice paddies, gentle water lapping against a wooden jetty. Calm, natural, recorded outdoors with a real microphone. No music, no voices, no hum, no wind howl. |
 | `amb-mourning` | The Oath (chapter 2) bed, looped. Chosen from six takes as the least synthetic (most noise-like spectrum); raised 10 dB under a soft limiter to sit with the other beds. (loop) | 20.0 s | 1/1 | Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and calm, no music, no electronic sounds. |
 | `breeze` | The Oath: the breeze stirred by holding A or Y, faded with the wind. (loop) | 8.0 s | 1/1 | A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves lightly. Continuous, airy and natural, no whistling, no howling, no music. |
 | `amb-night` | Chapter 3 bed, looped. (loop) | 20.0 s | 1/1 | Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice paddies, distant torches crackling, a faint wind. Continuous, no music. |

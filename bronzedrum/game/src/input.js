@@ -127,7 +127,8 @@ export class Input {
         e.preventDefault();
         return;
       }
-      const act = { Space: 'guard', KeyR: 'reset', Backspace: 'reset', Enter: 'confirm', NumpadEnter: 'confirm' }[e.code];
+      // Space is the one shield-and-clear button (Enter goes on from a success screen).
+      const act = { Space: 'guard', Enter: 'confirm', NumpadEnter: 'confirm' }[e.code];
       if (act) {
         this.emit('action', { action: act, time: e.timeStamp });
         e.preventDefault();
@@ -149,7 +150,7 @@ export class Input {
     }
   }
 
-  /** Whether the shield (A / Space) or reset (Y / R) button is held now. */
+  /** Whether A (Space) or Y (R) is held now: the Oath's breeze, one way or the other. */
   held(action) {
     const keys = action === 'guard' ? ['Space'] : ['KeyR', 'Backspace'];
     const button = action === 'guard' ? PAD.A : PAD.Y;
@@ -195,7 +196,6 @@ export class Input {
       if (this.mode === 'play') {
         if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: now });
         else if (i === PAD.A) this.emit('action', { action: 'guard', time: now });
-        else if (i === PAD.Y) this.emit('action', { action: 'reset', time: now });
         else if (i === PAD.MENU || i === PAD.VIEW) this.emit('nav', 'menu');
       } else if (PAD_NAV[i]) {
         this.emit('nav', PAD_NAV[i]);

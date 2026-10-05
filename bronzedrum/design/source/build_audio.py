@@ -168,6 +168,12 @@ sfx(G, "ui-start",
     "A single resonant strike on a small bronze gong, ringing out.",
     2.5, "Press Start.", kind="sting", gain=0.7)
 
+sfx(G, "village-wakes",
+    "A riverside village wakes at night: a bronze gong struck once in the distance, then a "
+    "small crowd of villagers calling out joyfully together, and a hand drum rolling briefly "
+    "in answer, all echoing over the water.",
+    3.0, "The Villages Answer: a village answers and lights its lanterns.", kind="sting", gain=0.75)
+
 G = "Stings"
 sfx(G, "victory",
     "A triumphant flourish on large bronze drums and gongs, building quickly and ending on one "
@@ -216,6 +222,14 @@ sfx(G, "amb-foundry",
     20.0, "Casting the Drums bed, looped. Chosen from six takes as the least tonal (the old "
     "take had a steady hum that read as a machine); looped with a 3 s crossfade and raised "
     "7 dB under a soft limiter.", kind="loop", gain=0.45, post="lowpass=f=9000")
+sfx(G, "amb-village",
+    "Field recording at night beside a slow river in the Vietnamese countryside: steady "
+    "crickets chirping in the grass, frogs calling from the rice paddies, gentle water lapping "
+    "against a wooden jetty. Calm, natural, recorded outdoors with a real microphone. No music, "
+    "no voices, no hum, no wind howl.",
+    20.0, "The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked "
+    "to one steady rate (a strong steady chirp would pull against the player's tempo); looped "
+    "with a 3 s crossfade and lowered 6 dB.", kind="loop", gain=0.45, post="lowpass=f=10000")
 sfx(G, "amb-mourning",
     "Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire "
     "close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and "

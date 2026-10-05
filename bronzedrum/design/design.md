@@ -23,8 +23,7 @@ Sources:
 | --- | --- | --- | --- | --- | --- |
 | **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ← | F D A ← | left half of the screen | the big drum's centre, or the left side |
 | **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad → | J K L → | right half of the screen | the red rim ring, or the right side |
-| **Shield** | the army's shield wall | A | Space | click the bronze drum | Shield drum (trống chầu) |
-| **Reset the rhythm** | | Y | R / Backspace | (the phrase fades by itself) | Reset drum (mõ) |
+| **Shield and clear** | the army's shield wall; clears the rhythm dots | A | Space | click the bronze drum | Shield drum (trống chầu), or swipe the drum to clear |
 
 **Phones and tablets.** A touch switches the HUD to a touch layout; mouse and
 keyboard keep the desktop one. The drum becomes the instrument: it sits large
@@ -34,11 +33,12 @@ halves, so a phone can also be drummed with two thumbs, and several fingers
 can play pairs and triplets. The two buttons are the drums that stand beside a
 bronze drum in a temple or village hall. The Shield button, at the bottom right
 where the right thumb rests, is a trống chầu, a hide-headed barrel drum. It
-glows while an attack is coming and dims while it recovers. Reset, beside it,
-is a mõ, the wooden slit drum. Pause sits at the top. On every device the
-shield sounds a stroke on the barrel drum and a reset knocks the mõ (both
+glows while an attack is coming and dims while it recovers, and it also clears
+the rhythm (a separate mõ Reset drum stood beside it until shield and clear
+became one button). Pause sits at the top. On every device the shield sounds a
+stroke on the barrel drum, and a clear outside battle knocks the mõ (both
 generated with ElevenLabs). Two gestures save reaching for the buttons: a
-sideways swipe across the drum or the rhythm dots resets, and a tap on the
+sideways swipe across the drum or the rhythm dots clears, and a tap on the
 battle itself (the army, the enemy, the ground between) raises the shields.
 Taps on the dots do nothing, so a swipe across them is clean; a swipe that
 starts on the drum plays that first stroke before it clears.
@@ -121,7 +121,7 @@ the next beat on time, so their spacing costs a little precision but never
 breaks a phrase, and the wait for the next stroke is measured from the beat.
 (An earlier reader judged every gap, which rejected natural triplets, such as
 the Giao Chỉ call RRR L RR L.) The phrase fades as soon as no pattern can still
-be finished in time, or when a stroke breaks the rhythm. Y resets it at once.
+be finished in time, or when a stroke breaks the rhythm. A clears it at once.
 
 **Seeing a mistake.** When a stroke breaks the phrase, the dots show what was
 played: the strokes so far, and the wrong one where it actually fell, at the
@@ -135,6 +135,23 @@ timestamp), so each light and the pointer's tap meet their sound.
 
 **Answering early.** In the call-and-answer chapters the player may answer as
 soon as they know the rhythm, during the call; the caller falls silent.
+
+**One button to shield and clear.** A (Space, the barrel-drum button on touch)
+always clears the rhythm dots, and in a battle also raises the shield wall, so a
+player can shield and start the next command afresh in one motion; the shield is
+ready again 0.7 s after raising it with nothing coming, 0.6 s after a block. In
+chapters with no shields A only clears, with the mõ's knock. Y and the separate
+touch Reset drum are gone; on touch, a swipe across the drum or the dots still
+clears. Instructions and hints show the face buttons as the game's own drum
+marks with the letter on top: X the gold tùng disc, B the black-and-red cắc
+target, A the cream hide of the barrel drum.
+
+**The Villages Answer** has a cricket-and-river night bed (frogs, water lapping
+at a jetty; chosen so the crickets do not chirp at one steady rate, which would
+pull against the player's tempo). Each village that answers comes to life: a
+gong and voices over the water, its house flaring with lamplight and sparks, the
+drum's rings, paper lanterns floating up. Then 2.6 s more for the scene to
+settle back to the crickets before the next village calls.
 
 **The pause menu** names the chapter being played.
 
@@ -218,7 +235,7 @@ Feedback is "Defended" under the drum, a ringing sound and sparks. Raising the
 shield with nothing incoming makes it slower to be ready again (0.9 s against
 0.3 s). A red "!" marks a Han soldier winding up for his first blow.
 
-**Confirmations.** "Cleared" (Y) and "Defended" (a deflected attack) appear
+**Confirmations.** "Cleared" (A, in chapters without shields) and "Defended" (a deflected attack) appear
 under the drum. When the rhythm is cleared, its dots tumble away.
 
 | Command | Tier I | Tier II | Tier III | Effect | Unlocked |
