@@ -12,7 +12,7 @@ let dev;
 
 before(async () => {
   const cwd = fileURLToPath(new URL("..", import.meta.url));
-  dev = spawn("npx", ["wrangler", "dev", "--port", String(PORT), "--ip", "127.0.0.1", "--persist-to", ".wrangler/test-state"], { cwd, stdio: "pipe" });
+  dev = spawn("npx", ["wrangler", "dev", "--port", String(PORT), "--ip", "127.0.0.1", "--persist-to", ".wrangler/test-state"], { cwd, stdio: "pipe", detached: true });
   for (let i = 0; i < 120; i++) {
     try { if ((await fetch(BASE)).ok) return; } catch {}
     await new Promise(r => setTimeout(r, 500));
@@ -20,7 +20,9 @@ before(async () => {
   throw new Error("wrangler dev did not start");
 });
 
-after(() => dev?.kill());
+// npx starts wrangler, which starts workerd: kill the whole process group, or
+// the grandchildren keep running and the test process never exits.
+after(() => { try { process.kill(-dev.pid, "SIGTERM"); } catch {} });
 
 function connect(path) {
   const ws = new WebSocket(`${WS}${path}`);
