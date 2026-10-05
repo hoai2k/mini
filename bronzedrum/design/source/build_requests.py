@@ -487,19 +487,27 @@ req(U_, "BD-U05", "ui-icons", "Utility icons",
     "Three cut-paper icons in rice-paper cream on a transparent background: an open scroll "
     "(instructions), a bronze drum seen from above with a small gear cut in it (settings), four "
     "corner brackets (fullscreen). Bold and simple, readable at 26 pixels.")
-req(U_, "BD-U16", "touch-buttons", "Touch buttons",
-    "On phones and tablets the game draws on-screen buttons beside the big touch drum: a "
-    "shield button at the bottom right (drawn about 150 px across), a smaller reset button "
-    "next to it and a pause button at the top. The game adds its own glow and press "
-    "animation, so each icon should be a plain, flat button face.",
-    "768x256, transparent; three round buttons on a 256 px grid, each filling about 90% of "
-    "its cell",
-    "stand-in", "Renderer.touchButtons", "art/touch-buttons.png",
-    "Three round cut-paper buttons in a row on a transparent background, each a disc of dark "
-    "indigo paper with a thin beaded bronze rim and a bold cream cut-out icon in the middle: "
-    "1 a round Lạc Việt war shield with a sun-star boss (shield); 2 a curved arrow turning "
-    "back on itself, like a ribbon of paper (reset the rhythm); 3 two upright bars (pause). "
-    "Flat even light, soft shadow under each disc, bold enough to read at 48 pixels.")
+req(U_, "BD-U16", "touch-buttons", "Touch buttons: the companion drums",
+    "On phones and tablets the game draws on-screen buttons beside the big touch drum, made "
+    "as the instruments that accompany a bronze drum in a temple or village hall. The shield "
+    "is a trống chầu barrel drum (bottom right, drawn about 150 px across). Reset is a mõ "
+    "wooden slit drum (next to it, about 75 px). Pause is a small plain disc at the top. The "
+    "game adds the glow, the press animation and the labels, so draw each one at rest with "
+    "nothing written on it.",
+    "768x256, transparent; three pieces on a 256 px grid, each centred and filling about 90% "
+    "of its cell",
+    "stand-in", "Renderer.chauDrum / moDrum", "art/touch-buttons.png",
+    f"{STYLE} Three cut-paper objects in a row on a transparent background, each centred in "
+    "its third. 1: a trống chầu, a Vietnamese barrel drum with a buffalo-hide head, seen from "
+    "the front and a little above so the round cream hide head fills most of the piece. The "
+    "head has a red painted disc with a small sun-star at its centre and a ring of bronze tacks "
+    "round its edge. The barrel below is lacquered red with a bronze band, and a wooden beater "
+    "with a red tip rests across the top right. 2: a mõ, a round wooden slit drum from a "
+    "pagoda, squat and a little wider than tall, in dark polished brown wood. A long curved "
+    "slit is cut across its front like a mouth, and it sits on a small red cushion with a "
+    "short wooden mallet leaning on it. 3: a plain round disc of dark indigo paper with a "
+    "beaded bronze rim and two upright cream bars cut in the middle (pause). Flat even light, "
+    "soft shadow under each, bold shapes that read at 48 pixels.")
 for i, (cid, name, scene) in enumerate([
     ("garden", "The Garden at Me Linh", "two sisters practising with drumsticks beside a lotus pond and straw targets in a lord's garden, dawn"),
     ("outpost", "The Outpost on the Hat River", "women warriors with shields advancing on a Han timber outpost across a river ford, daylight"),

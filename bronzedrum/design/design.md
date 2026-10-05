@@ -23,17 +23,21 @@ Sources:
 | --- | --- | --- | --- | --- | --- |
 | **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ← | F D A ← | left half of the screen | the big drum's centre, or the left side |
 | **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad → | J K L → | right half of the screen | the red rim ring, or the right side |
-| **Shield** | the army's shield wall | A | Space | click the bronze drum | Shield button |
-| **Reset the rhythm** | | Y | R / Backspace | (the phrase fades by itself) | Reset button |
+| **Shield** | the army's shield wall | A | Space | click the bronze drum | Shield drum (trống chầu) |
+| **Reset the rhythm** | | Y | R / Backspace | (the phrase fades by itself) | Reset drum (mõ) |
 
 **Phones and tablets.** A touch switches the HUD to a touch layout; mouse and
 keyboard keep the desktop one. The drum becomes the instrument: it sits large
 at the bottom centre, its centre is *tùng* and a lacquer-red ring round its rim
 is *cắc*, as on a real bronze drum. Taps elsewhere fall back to the screen's
 halves, so a phone can also be drummed with two thumbs, and several fingers
-can play pairs and triplets. The Shield button sits at the bottom right where
-the right thumb rests, glowing while an attack is coming and dimmed while it
-recovers. Reset sits beside it and Pause at the top. Text is drawn larger, taps
+can play pairs and triplets. The two buttons are the drums that stand beside a
+bronze drum in a temple or village hall. The Shield button, at the bottom right
+where the right thumb rests, is a trống chầu, a hide-headed barrel drum. It
+glows while an attack is coming and dims while it recovers. Reset, beside it,
+is a mõ, the wooden slit drum. Pause sits at the top. On every device the
+shield sounds a stroke on the barrel drum and a reset knocks the mõ (both
+generated with ElevenLabs). Text is drawn larger, taps
 buzz briefly if Vibration is on, and an upright phone pauses with a prompt to
 turn it sideways. The button faces are request BD-U16; until it is delivered
 the renderer draws them.

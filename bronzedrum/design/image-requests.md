@@ -488,14 +488,14 @@ Instructions, Settings and Fullscreen buttons.
 - **File:** `bronzedrum/game/assets/art/ui-icons.png`
 - **Prompt:** Three cut-paper icons in rice-paper cream on a transparent background: an open scroll (instructions), a bronze drum seen from above with a small gear cut in it (settings), four corner brackets (fullscreen). Bold and simple, readable at 26 pixels.
 
-### BD-U16 · Touch buttons
+### BD-U16 · Touch buttons: the companion drums
 
-On phones and tablets the game draws on-screen buttons beside the big touch drum: a shield button at the bottom right (drawn about 150 px across), a smaller reset button next to it and a pause button at the top. The game adds its own glow and press animation, so each icon should be a plain, flat button face.
+On phones and tablets the game draws on-screen buttons beside the big touch drum, made as the instruments that accompany a bronze drum in a temple or village hall. The shield is a trống chầu barrel drum (bottom right, drawn about 150 px across). Reset is a mõ wooden slit drum (next to it, about 75 px). Pause is a small plain disc at the top. The game adds the glow, the press animation and the labels, so draw each one at rest with nothing written on it.
 
-- **Spec:** 768x256, transparent; three round buttons on a 256 px grid, each filling about 90% of its cell
-- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.touchButtons` · **Game id:** `touch-buttons`
+- **Spec:** 768x256, transparent; three pieces on a 256 px grid, each centred and filling about 90% of its cell
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.chauDrum / moDrum` · **Game id:** `touch-buttons`
 - **File:** `bronzedrum/game/assets/art/touch-buttons.png`
-- **Prompt:** Three round cut-paper buttons in a row on a transparent background, each a disc of dark indigo paper with a thin beaded bronze rim and a bold cream cut-out icon in the middle: 1 a round Lạc Việt war shield with a sun-star boss (shield); 2 a curved arrow turning back on itself, like a ribbon of paper (reset the rhythm); 3 two upright bars (pause). Flat even light, soft shadow under each disc, bold enough to read at 48 pixels.
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Three cut-paper objects in a row on a transparent background, each centred in its third. 1: a trống chầu, a Vietnamese barrel drum with a buffalo-hide head, seen from the front and a little above so the round cream hide head fills most of the piece. The head has a red painted disc with a small sun-star at its centre and a ring of bronze tacks round its edge. The barrel below is lacquered red with a bronze band, and a wooden beater with a red tip rests across the top right. 2: a mõ, a round wooden slit drum from a pagoda, squat and a little wider than tall, in dark polished brown wood. A long curved slit is cut across its front like a mouth, and it sits on a small red cushion with a short wooden mallet leaning on it. 3: a plain round disc of dark indigo paper with a beaded bronze rim and two upright cream bars cut in the middle (pause). Flat even light, soft shadow under each, bold shapes that read at 48 pixels.
 
 ### BD-U06 · Chapter card: The Garden at Me Linh
 

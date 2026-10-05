@@ -374,7 +374,10 @@ function strike(drum, time) {
 function act(action, time) {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   if (action === 'reset') {
-    // Clear the phrase: the dots tumble away and "Cleared" shows under the drum.
+    // Clear the phrase: a knock on the wooden slit drum (mõ), the dots tumble
+    // away and "Cleared" shows under the drum.
+    sound.play('drum-mo', sound.now, 0.8);
+    input.rumble(25, 0.3);
     const shown = view().phraseView;
     const events = game.reader.reset();
     if (events.length && shown && !shown.done) renderer.clearDots(shown, songTime());
@@ -383,7 +386,9 @@ function act(action, time) {
     // The shield wall: separate from the drum, timed to attacks in flight.
     const t = hitTime(time);
     if (guard(game.battle, Math.max(t, game.battle.time))) {
-      sound.play('cmd-shield', sound.now, 0.7);
+      // A stroke on the big hide barrel drum (trống chầu) calls the shields up.
+      sound.play('drum-chau', sound.now, 0.9);
+      sound.play('cmd-shield', sound.now + 0.04, 0.6);
       input.rumble(40, 0.3);
       game.guards += 1;
     }

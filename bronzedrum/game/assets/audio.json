@@ -18,6 +18,22 @@
       "gain": 1.0,
       "loop": false
     },
+    "drum-chau": {
+      "files": [
+        "sfx/drum-chau-1.mp3",
+        "sfx/drum-chau-2.mp3"
+      ],
+      "gain": 0.9,
+      "loop": false
+    },
+    "drum-mo": {
+      "files": [
+        "sfx/drum-mo-1.mp3",
+        "sfx/drum-mo-2.mp3"
+      ],
+      "gain": 0.8,
+      "loop": false
+    },
     "drum-wake": {
       "files": [
         "sfx/drum-wake.mp3"
