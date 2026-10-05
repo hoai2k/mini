@@ -184,3 +184,10 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 body.reduce-motion #bars-hint .arrow { animation: none; }
 #bars-hint.flash { animation: hintflash 0.9s ease-in-out 2; }
 @keyframes hintflash { 50% { background: var(--lacquer); } }
+
+/* Xbox face buttons, in their standard colours, for the instructions. */
+.xb { display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; border-radius: 50%; font: 700 0.8em var(--sans); color: #fff; vertical-align: 0.05em; line-height: 1; }
+.xb-a { background: #107C10; }
+.xb-b { background: #E81123; }
+.xb-x { background: #0078D4; }
+.xb-y { background: #FFB900; color: var(--ink); }

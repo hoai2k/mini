@@ -213,6 +213,19 @@ sfx(G, "amb-foundry",
     "Inside an ancient bronze foundry at night: a roaring furnace, crackling charcoal, leather "
     "bellows breathing, distant hammering on metal. Continuous, no music.",
     20.0, "Casting the Drums bed, looped.", kind="loop", gain=0.45)
+sfx(G, "amb-mourning",
+    "Dusk in a quiet village courtyard during a funeral: a soft warm breeze moving through "
+    "bamboo leaves and palm fronds, a few birds settling in distant trees, very faint murmur of "
+    "mourners far away, leaves rustling. Gentle, warm and natural. Continuous, no music, no "
+    "insects, no bells, no chimes, no metallic sounds.",
+    20.0, "The Oath (chapter 2) bed, looped.", kind="loop", gain=0.45,
+    # Generated ambience can carry a thin synthetic fizz at the top; keep it warm.
+    post="lowpass=f=7000,equalizer=f=4000:t=q:w=1:g=-3")
+sfx(G, "breeze",
+    "A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves "
+    "lightly. Continuous, airy and natural, no whistling, no howling, no music.",
+    8.0, "The Oath: the breeze stirred by holding A or Y, faded with the wind.", kind="loop", gain=0.6,
+    post="lowpass=f=6000")
 sfx(G, "amb-night",
     "Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice "
     "paddies, distant torches crackling, a faint wind. Continuous, no music.",

@@ -6,7 +6,7 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**45 of 46 files in use.**
+**47 of 48 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
@@ -81,4 +81,6 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `amb-garden` | Chapter 1 bed, looped. (loop) | 20.0 s | 1/1 | Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling water, a distant rooster, a light breeze through bamboo. Continuous, no music. |
 | `amb-river` | Chapter 2 bed, looped. (loop) | 20.0 s | 1/1 | Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons and birds. Continuous, no music, no drums. |
 | `amb-foundry` | Casting the Drums bed, looped. (loop) | 20.0 s | 1/1 | Inside an ancient bronze foundry at night: a roaring furnace, crackling charcoal, leather bellows breathing, distant hammering on metal. Continuous, no music. |
+| `amb-mourning` | The Oath (chapter 2) bed, looped. (loop) | 20.0 s | 1/1 | Dusk in a quiet village courtyard during a funeral: a soft warm breeze moving through bamboo leaves and palm fronds, a few birds settling in distant trees, very faint murmur of mourners far away, leaves rustling. Gentle, warm and natural. Continuous, no music, no insects, no bells, no chimes, no metallic sounds. |
+| `breeze` | The Oath: the breeze stirred by holding A or Y, faded with the wind. (loop) | 8.0 s | 1/1 | A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves lightly. Continuous, airy and natural, no whistling, no howling, no music. |
 | `amb-night` | Chapter 3 bed, looped. (loop) | 20.0 s | 1/1 | Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice paddies, distant torches crackling, a faint wind. Continuous, no music. |

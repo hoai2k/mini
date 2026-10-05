@@ -114,6 +114,7 @@ export class Sound {
   }
 
   stopAmbience() {
+    this.stopBreeze();
     if (!this.ambience) return;
     const { src, bus } = this.ambience;
     const t = this.ctx.currentTime;
@@ -257,6 +258,40 @@ export class Sound {
     // The volume may have changed in Settings while paused.
     const cur = this.music.current;
     if (!paused && cur && !cur.out) glide(this.ctx, cur.gain.gain, this.musicLevel * this.music.level, 0.3);
+  }
+
+  /**
+   * The Oath's breeze: a looping wind that fades in while A or Y is held and
+   * out when released (level 0..1). Started on first use, kept running quietly.
+   */
+  setBreeze(level) {
+    if (!this.ctx || !this.samples.has('breeze')) return;
+    if (!this.breeze) {
+      if (level <= 0) return;
+      const bus = this.ctx.createGain();
+      bus.gain.value = 0;
+      bus.connect(this.master);
+      const src = this.play('breeze', this.now, 1, bus);
+      this.breeze = { bus, src, level: 0 };
+    }
+    if (Math.abs(level - this.breeze.level) < 0.01) return;
+    this.breeze.level = level;
+    glide(this.ctx, this.breeze.bus.gain, level * this.ambienceLevel, level > 0 ? 0.35 : 0.8);
+  }
+
+  stopBreeze() {
+    if (!this.breeze) return;
+    const { bus, src } = this.breeze;
+    glide(this.ctx, bus.gain, 0, 0.4);
+    setTimeout(() => {
+      try {
+        src.stop();
+      } catch {
+        /* already stopped */
+      }
+      bus.disconnect();
+    }, 600);
+    this.breeze = null;
   }
 
   setAmbience(v) {

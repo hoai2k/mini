@@ -360,7 +360,12 @@ function confirm(text, color) {
 }
 
 input.on('drum', ({ drum, time }) => strike(drum, time));
-input.on('action', ({ action, time }) => act(action, time));
+input.on('action', ({ action, time }) => {
+  // The Oath has no shields and its calls need no reset: there A and Y (Space
+  // and R) only stir a breeze over the incense while held (see view()).
+  if (game && game.stage.caller === 'mourning') return;
+  act(action, time);
+});
 
 // Touch: the renderer's layout says what was tapped (the drum's centre or
 // rim, the shield, reset or pause button), then it is handled like a key.
@@ -565,7 +570,7 @@ function hint(view) {
   if (!settings.hints) return null;
   const keys = {
     keyboard: { L: 'F', R: 'J' },
-    gamepad: { L: 'LB', R: 'RB' },
+    gamepad: { L: '⟨X⟩', R: '⟨B⟩' },
     pointer: { L: 'left', R: 'right' },
     touch: { L: '●', R: '○' },
   }[input.device] || { L: 'F', R: 'J' };
@@ -599,7 +604,7 @@ function hint(view) {
     if (g.commandsDone >= 3 && !g.flourishTaught) return `While they answer, tap ${touch ? 'the rim' : keys.R} between their beats for Nhị’s flourish`;
     return null;
   }
-  const guardKey = { keyboard: 'Space', gamepad: 'A', pointer: 'tap the drum', touch: 'the Shield button' }[input.device] || 'Space';
+  const guardKey = { keyboard: 'Space', gamepad: '⟨A⟩', pointer: 'tap the drum', touch: 'the Shield button' }[input.device] || 'Space';
   if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return `Attack coming — shield (${guardKey}) while it is in the air`;
   if (g.stage.id === 'outpost' && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
     return `Triplets hit hardest — ${say('strike', 3)}`;
@@ -614,6 +619,8 @@ function updatePlay(dt) {
   const t = songTime();
   for (const ev of g.reader.update(t)) handleRhythm(ev);
   if (g.mode === 'echo' && !g.ended) for (const e of g.session.update(t)) handleMode(e);
+  // The Oath: holding A or Y stirs a breeze over the incense (drawn by the renderer).
+  if (g.stage.caller === 'mourning') sound.setBreeze(input.held('guard') || input.held('reset') ? 0.7 : 0);
   if (g.mode !== 'battle') {
     // No battle in echo and casting chapters: just the scene.
     renderer.draw(view(), dt);
@@ -759,6 +766,8 @@ function view() {
     crackAt: g.crackAt,
     pouring: g.mode === 'casting' && !!r.action && t >= r.action.start,
     touch: input.device === 'touch',
+    // The Oath: A blows one way over the incense, Y the other, while held.
+    wind: g.stage.caller === 'mourning' && screen === 'play' ? { a: input.held('guard'), y: input.held('reset') } : null,
   };
   v.hint = hint(v);
   return v;
@@ -823,6 +832,8 @@ function action(name) {
     case 'next':
       return startStage(game.index + 1);
     case 'select':
+      // From the pause menu the audio clock is suspended; wake it for the select music.
+      if (sound.ctx) sound.ctx.resume();
       sound.stopAmbience();
       game = null;
       buildCards();
@@ -898,7 +909,7 @@ input.on('padButton', () => {
 input.on('stick', () => {
   if (screen === 'title' && !titleNav && !dialogs.length) {
     titleNav = true;
-    $('#title-hint').textContent = 'A select · Menu start';
+    $('#title-hint').innerHTML = '<span class="xb xb-a">A</span> select · Menu start';
   }
 });
 input.on('device', (d) => {
@@ -974,6 +985,6 @@ async function boot() {
 }
 
 // Debug hooks for automated checks.
-window.__bronzeDrum = { get game() { return game; }, renderer, sound, startStage, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
+window.__bronzeDrum = { get game() { return game; }, renderer, sound, input, startStage, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
 
 boot();

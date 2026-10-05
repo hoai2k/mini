@@ -255,6 +255,20 @@
       "gain": 0.45,
       "loop": true
     },
+    "amb-mourning": {
+      "files": [
+        "sfx/amb-mourning.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "breeze": {
+      "files": [
+        "sfx/breeze.mp3"
+      ],
+      "gain": 0.6,
+      "loop": true
+    },
     "amb-night": {
       "files": [
         "sfx/amb-night.mp3"

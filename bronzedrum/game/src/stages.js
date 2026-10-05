@@ -51,7 +51,7 @@ export const STAGES = [
     troops: 0,
     elephant: false,
     sky: 'dusk',
-    ambience: 'amb-night',
+    ambience: 'amb-mourning',
     enemies: [],
   },
   {

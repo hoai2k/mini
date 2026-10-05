@@ -22,10 +22,12 @@ export function callPattern(text, command = 'call') {
 export class EchoSession {
   /**
    * calls: [{ text, bpm, label? }]. matchTempo: answers must be within
-   * `tolerance` of the call's beat length. pause: seconds between an answer
-   * and the next call.
+   * `tolerance` of the call's beat length. The next call comes a beat and a
+   * half (of the call just answered) plus `pause` seconds after the answer:
+   * long enough to see the answer land, short enough to keep the exchange
+   * going.
    */
-  constructor({ calls, matchTempo = false, tolerance = 0.3, pause = 1.2 }) {
+  constructor({ calls, matchTempo = false, tolerance = 0.3, pause = 0.4 }) {
     this.calls = calls;
     this.matchTempo = matchTempo;
     this.tolerance = tolerance;
@@ -94,7 +96,7 @@ export class EchoSession {
       events.push({ type: 'complete', evenness: this.evenness() });
     } else {
       this.phase = 'waiting';
-      this.nextCallAt = (ev.ready ?? t) + this.pause;
+      this.nextCallAt = t + 1.5 * this.call.u + this.pause;
     }
     return events;
   }

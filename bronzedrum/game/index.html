@@ -64,6 +64,7 @@
         <button class="menu-btn" data-nav data-open="instructions">Instructions</button>
         <button class="menu-btn" data-nav data-open="settings">Settings</button>
         <button class="menu-btn" data-nav data-action="restart">Restart chapter</button>
+        <button class="menu-btn" data-nav data-action="select">Chapters</button>
         <button class="menu-btn" data-nav data-action="title">Return to title</button>
       </div>
     </section>
@@ -94,42 +95,42 @@
           <div class="pad-diagram" aria-hidden="true">
             <svg viewBox="0 0 640 300">
               <path d="M180 70 Q320 40 460 70 Q540 80 570 190 Q590 270 530 270 Q490 270 460 220 L180 220 Q150 270 110 270 Q50 270 70 190 Q100 80 180 70 Z" fill="none" stroke="currentColor" stroke-width="3"/>
-              <rect x="150" y="36" width="70" height="18" rx="8" fill="#D9A55B"/><text x="185" y="49" text-anchor="middle" font-size="12" fill="#16151A">LB</text>
-              <rect x="420" y="36" width="70" height="18" rx="8" fill="#A8322D"/><text x="455" y="49" text-anchor="middle" font-size="12" fill="#F2E8D5">RB</text>
-              <rect x="160" y="10" width="50" height="20" rx="6" fill="#D9A55B"/><text x="185" y="25" text-anchor="middle" font-size="12" fill="#16151A">LT</text>
-              <rect x="430" y="10" width="50" height="20" rx="6" fill="#A8322D"/><text x="455" y="25" text-anchor="middle" font-size="12" fill="#F2E8D5">RT</text>
+              <!-- Shoulder buttons: alternatives, drawn neutral. -->
+              <rect x="150" y="36" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><text x="185" y="49" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">LB</text>
+              <rect x="420" y="36" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><text x="455" y="49" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">RB</text>
+              <rect x="160" y="10" width="50" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><text x="185" y="25" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">LT</text>
+              <rect x="430" y="10" width="50" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><text x="455" y="25" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">RT</text>
               <circle cx="190" cy="125" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="190" y="129" text-anchor="middle" font-size="11" fill="currentColor">L stick</text>
-              <path d="M240 175h16v-16h16v16h16v16h-16v16h-16v-16h-16z" fill="none" stroke="currentColor" stroke-width="2"/><rect x="240" y="175" width="16" height="16" fill="#D9A55B"/><rect x="288" y="175" width="16" height="16" fill="#A8322D"/>
-              <circle cx="450" cy="100" r="13" fill="#4F8A7B"/><text x="450" y="104" text-anchor="middle" font-size="12" fill="currentColor">Y</text>
-              <circle cx="422" cy="127" r="13" fill="#D9A55B"/><text x="422" y="131" text-anchor="middle" font-size="12" fill="#16151A">X</text>
-              <circle cx="478" cy="127" r="13" fill="#A8322D"/><text x="478" y="131" text-anchor="middle" font-size="12" fill="#F2E8D5">B</text>
-              <circle cx="450" cy="154" r="13" fill="#D9C9A8" stroke="currentColor" stroke-width="2"/><text x="450" y="158" text-anchor="middle" font-size="12" fill="currentColor">A</text>
+              <path d="M240 175h16v-16h16v16h16v16h-16v16h-16v-16h-16z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <!-- Face buttons in their Xbox colours: X blue, B red, Y yellow, A green. -->
+              <circle cx="450" cy="100" r="15" fill="#FFB900"/><text x="450" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#16151A">Y</text>
+              <circle cx="420" cy="128" r="15" fill="#0078D4"/><text x="420" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">X</text>
+              <circle cx="480" cy="128" r="15" fill="#E81123"/><text x="480" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">B</text>
+              <circle cx="450" cy="156" r="15" fill="#107C10"/><text x="450" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A</text>
               <rect x="300" y="110" width="16" height="10" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="308" y="104" text-anchor="middle" font-size="10" fill="currentColor">View</text>
               <rect x="330" y="110" width="16" height="10" rx="4" fill="currentColor"/><text x="338" y="104" text-anchor="middle" font-size="10" fill="currentColor">Menu</text>
               <circle cx="380" cy="190" r="20" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
               <g font-size="13" fill="currentColor">
-                <line x1="150" y1="45" x2="40" y2="45" stroke="currentColor"/><text x="10" y="40">Trắc · tùng</text>
-                <line x1="160" y1="20" x2="40" y2="20" stroke="currentColor"/><text x="10" y="16">Trắc · tùng</text>
-                <line x1="490" y1="45" x2="600" y2="45" stroke="currentColor"/><text x="540" y="40">Nhị · cắc</text>
-                <line x1="480" y1="20" x2="600" y2="20" stroke="currentColor"/><text x="540" y="16">Nhị · cắc</text>
+                <line x1="405" y1="128" x2="372" y2="250" stroke="currentColor"/><text x="300" y="266" font-weight="700">X · Trắc · tùng</text>
+                <line x1="495" y1="128" x2="600" y2="140" stroke="currentColor"/><text x="508" y="156" font-weight="700">B · Nhị · cắc</text>
+                <line x1="465" y1="158" x2="600" y2="200" stroke="currentColor"/><text x="508" y="215">A · shield / confirm</text>
+                <line x1="465" y1="96" x2="600" y2="90" stroke="currentColor"/><text x="520" y="84">Y · reset rhythm</text>
+                <line x1="150" y1="45" x2="40" y2="45" stroke="currentColor" opacity="0.6"/><text x="10" y="40" opacity="0.8">LB, LT: also tùng</text>
+                <line x1="490" y1="45" x2="600" y2="45" stroke="currentColor" opacity="0.6"/><text x="512" y="40" opacity="0.8">RB, RT: also cắc</text>
                 <line x1="168" y1="125" x2="40" y2="110" stroke="currentColor"/><text x="10" y="104">Menus: move</text>
-                <line x1="248" y1="200" x2="200" y2="290" stroke="currentColor"/><text x="110" y="296">D-pad ◀ tùng · ▶ cắc</text>
-                <line x1="491" y1="127" x2="600" y2="140" stroke="currentColor"/><text x="540" y="156">B · cắc / back</text>
-                <line x1="409" y1="127" x2="380" y2="250" stroke="currentColor"/><text x="340" y="266">X · tùng</text>
-                <line x1="463" y1="158" x2="600" y2="200" stroke="currentColor"/><text x="508" y="215">A · guard / confirm</text>
-                <line x1="463" y1="96" x2="600" y2="90" stroke="currentColor"/><text x="532" y="84">Y · reset rhythm</text>
+                <line x1="248" y1="200" x2="200" y2="290" stroke="currentColor"/><text x="90" y="296">D-pad ◀ tùng · ▶ cắc</text>
                 <line x1="338" y1="100" x2="338" y2="70" stroke="currentColor"/><text x="300" y="64">Menu · pause</text>
               </g>
             </svg>
           </div>
           <table class="map-table">
             <tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Mouse</th><th>Touch</th></tr>
-            <tr><td>Trắc · tùng (centre)</td><td>LB, LT, X or D-pad left</td><td>F, D, A or ←</td><td>Left half of the screen</td><td>The drum’s centre, or the left side of the screen</td></tr>
-            <tr><td>Nhị · cắc (rim)</td><td>RB, RT, B or D-pad right</td><td>J, K, L or →</td><td>Right half of the screen</td><td>The red rim ring, or the right side of the screen</td></tr>
-            <tr><td>Shield wall (deflects attacks in the air)</td><td>A</td><td>Space</td><td>Click the bronze drum</td><td>The barrel drum (trống chầu), bottom right, or tap the battle</td></tr>
-            <tr><td>Reset the rhythm</td><td>Y</td><td>R or Backspace</td><td>—</td><td>The wooden slit drum (mõ), or swipe across the drum or the dots</td></tr>
+            <tr><td>Trắc · tùng (centre)</td><td><span class="xb xb-x">X</span> (also LB, LT, D-pad ◀)</td><td>F, D, A or ←</td><td>Left half of the screen</td><td>The drum’s centre, or the left side of the screen</td></tr>
+            <tr><td>Nhị · cắc (rim)</td><td><span class="xb xb-b">B</span> (also RB, RT, D-pad ▶)</td><td>J, K, L or →</td><td>Right half of the screen</td><td>The red rim ring, or the right side of the screen</td></tr>
+            <tr><td>Shield wall (deflects attacks in the air)</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Click the bronze drum</td><td>The barrel drum (trống chầu), bottom right, or tap the battle</td></tr>
+            <tr><td>Reset the rhythm</td><td><span class="xb xb-y">Y</span></td><td>R or Backspace</td><td>—</td><td>The wooden slit drum (mõ), or swipe across the drum or the dots</td></tr>
             <tr><td>Pause</td><td>Menu or View</td><td>Esc or P</td><td>—</td><td>Pause button, top centre</td></tr>
-            <tr><td>Menus</td><td>Left stick / D-pad, A confirm, B back</td><td>Arrows, Enter, Esc</td><td>Click</td><td>Tap</td></tr>
+            <tr><td>Menus</td><td>Left stick / D-pad, <span class="xb xb-a">A</span> confirm, <span class="xb xb-b">B</span> back</td><td>Arrows, Enter, Esc</td><td>Click</td><td>Tap</td></tr>
           </table>
           <p><strong>Phones and tablets.</strong> Hold the device sideways. The big drum at the bottom is played like the real one: tap its centre for Trắc’s <em>tùng</em> and the red ring round its rim for Nhị’s <em>cắc</em>. On a phone you can also drum with your thumbs: anywhere on the left side of the screen is <em>tùng</em>, the right side <em>cắc</em>. Use several fingers at once for quick pairs and triplets. Tap the battle itself to raise the shields, and swipe across the drum or the dots to reset.</p>
           <p class="muted">If your strokes sound late, adjust <em>Audio offset</em> in Settings.</p>
