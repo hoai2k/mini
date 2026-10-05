@@ -1786,6 +1786,20 @@ export class Renderer {
       this.elephant(x, y - Math.abs(step), view);
       this.sisters(x - 8, y - 160 - Math.abs(step), armL, armR, view);
     } else {
+      const deck = this.art.get('drum-palanquin');
+      if (deck) {
+        // BD-C14: the sisters ride on the deck and beat the drum between them.
+        // The request fixes the deck's top at 42% of the height up from the
+        // bottom, and their standing places at 22% and 78% of the width.
+        const H_ = 190;
+        const sh = this.shiver(Math.max(this.flash.L, this.flash.R), t, 1.6);
+        const bob = (view.crewBob || 0) - sh.dy;
+        this.sprite(deck, x + sh.dx, y, H_, { bob });
+        const w = (deck.width / deck.height) * H_;
+        const deckY = y + (deck.footMargin || 0) * H_ - 0.42 * H_ - bob;
+        this.sisters(x + sh.dx, deckY, armL, armR, view, 0.28 * w);
+        return;
+      }
       const img = this.art.get('drum-bearers');
       if (img) {
         // The bearers carry the drum; the sisters walk on the ground beside
@@ -2567,21 +2581,24 @@ export class Renderer {
     }
     // The drum crew walks behind the ranks, with the two companion drummers
     // (the barrel drum and the mõ) between them and the archers.
-    const crewOffset = battle.elephant ? 460 : 445;
+    // The wider palanquin (BD-C14) needs more room in front of it.
+    const wide = !battle.elephant && !!this.art.get('drum-palanquin');
+    const crewOffset = battle.elephant ? 460 : wide ? 500 : 445;
+    const compX = battle.elephant ? 200 : wide ? 225 : 170;
     const cm = mm.crew;
     this.spring(cm, frontTarget - crewOffset, 2.6, dt);
 
     g.save();
     for (let i = 0; i < 12; i++) if (mm.units[i].alpha > 0.05) this.footShadow(mm.units[i].x, 16 * mm.units[i].alpha, GROUND - (i % 2) * 7);
     this.footShadow(cm.x, battle.elephant ? 110 : 80);
-    this.footShadow(cm.x + (battle.elephant ? 200 : 170), 34);
+    this.footShadow(cm.x + compX, 34);
     this.backlit();
     // The drum crew walks with the army.
     const crewSpeed = Math.abs(cm.v);
     cm.phase = (cm.phase || 0) + (crewSpeed * dt) / 60;
     const crewView = { ...view, crewBob: Math.abs(Math.sin(cm.phase * Math.PI)) * Math.min(1, crewSpeed / 40) * 3 * calm };
     this.drumCrew(cm.x, GROUND, crewView);
-    this.companions(cm.x + (battle.elephant ? 200 : 170), GROUND, crewView);
+    this.companions(cm.x + compX, GROUND, crewView);
 
     // Two ranks: the back rank (odd slots) stands a little further up the
     // ground, smaller and dimmer, and is drawn first so the front rank's
@@ -4183,13 +4200,16 @@ export class Renderer {
       }
       g.restore();
     };
-    // What the player is drumming: the strokes so far as read, then rings for the rest.
+    // What the player is drumming: the strokes so far as read, then rings for
+    // the rest. Only ghosts until the rhythm is complete: how the strokes
+    // group can change as more come (four quick strokes may be two pairs
+    // until the last has landed), so nothing is final yet.
     const entering = (y, r = dotR, c = cell) => {
       const part = p.partial;
       const done = part ? part.strokes.length : 0;
       const beats = (part ? part.beats : 0) + (p.dots - done);
       const x0 = rowX(beats, c);
-      if (part) this.pattern(x0, y, part, r, c, Infinity);
+      if (part) this.pattern(x0, y, part, r, c, Infinity, false, false, 0.45);
       rings(x0, y, part ? part.beats : 0, p.dots - done, r, c, part ? 0.4 : 0.45 + 0.25 * Math.sin(t * 4));
     };
     const label = (text, x, y, color = P.paper, align = 'center') => {
@@ -4204,6 +4224,23 @@ export class Renderer {
     };
     const rowY = o.slotY;
     const upperY = rowY - (dotR * 2 + 34 * k);
+    // A rhythm just completed: it lights up as the finished sequence.
+    const flash = (x0, y, pat) => {
+      const q = p.doneAt === null ? 1 : (t - p.doneAt) / 0.7;
+      if (q < 0 || q >= 1) return;
+      g.save();
+      g.globalAlpha = (1 - q) * 0.9;
+      g.strokeStyle = '#FFE2A8';
+      g.shadowColor = '#FFE2A8';
+      g.shadowBlur = 18;
+      g.lineWidth = 3;
+      const w = pat.beats * cell;
+      const pad = 10 + 16 * q;
+      g.beginPath();
+      g.roundRect(x0 - pad, y - dotR - pad, w + 2 * pad, 2 * dotR + 2 * pad, dotR + pad);
+      g.stroke();
+      g.restore();
+    };
     {
       // A dark band behind the rows keeps them readable over the scene.
       const top = (p.kind === 'call' || (p.loop && p.entered) ? upperY : rowY) - dotR - 34 * k;
@@ -4223,7 +4260,9 @@ export class Renderer {
       } else if (p.loop) {
         // The rhythm repeating: each stroke lights as it sounds.
         const x0 = rowX(p.loop.beats);
-        this.pattern(x0, rowY, p.loop, dotR, cell, Infinity);
+        const fresh = p.doneAt !== null && t - p.doneAt < 0.7;
+        this.pattern(x0, rowY, p.loop, dotR, cell, Infinity, fresh);
+        flash(x0, rowY, p.loop);
         if (p.loopPos && p.loopPos.played) {
           const i = p.loopPos.played - 1;
           const st = p.loop.strokes[i];
@@ -4259,7 +4298,10 @@ export class Renderer {
       rings(rowX(p.dots), upperY, 0, p.dots, dotR, cell, 0.3);
     }
     if (p.entered) entering(rowY);
-    else if (p.answer) this.pattern(rowX(p.answer.beats), rowY, p.answer, dotR, cell, Infinity, p.showAnswer, false, p.showAnswer ? 1 : 0.6);
+    else if (p.answer) {
+      this.pattern(rowX(p.answer.beats), rowY, p.answer, dotR, cell, Infinity, p.showAnswer, false, p.showAnswer ? 1 : 0.6);
+      flash(rowX(p.answer.beats), rowY, p.answer);
+    }
     else rings(rowX(p.dots), rowY, 0, p.dots, dotR, cell, 0.45 + 0.25 * Math.sin(t * 4));
     const youBeats = p.entered && p.partial ? p.partial.beats + p.dots - p.partial.strokes.length : p.answer ? p.answer.beats : p.dots;
     label('You', rowX(youBeats) - 12, rowY + 5, P.paper, 'right');

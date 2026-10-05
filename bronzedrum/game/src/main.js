@@ -1210,6 +1210,7 @@ function startPractice(kind) {
     pulses: [], // strokes heard, for the dancers: { t, drum, who }
     energy: 0, // how much drumming there has been lately (dancers come with it)
     dancers: 0,
+    doneAt: null, // when the last rhythm was completed (it lights up)
     lastSound: -9,
     loopBus: null,
     loopNext: 0,
@@ -1311,6 +1312,7 @@ function practiceEvent(e) {
       }
       g.loopBus = sound.bus(level);
       g.loopNext = 0;
+      g.doneAt = songTime();
       confirm('Again and again', P.bronzeLight);
       break;
     }
@@ -1349,6 +1351,7 @@ function practiceEvent(e) {
       break;
     }
     case 'answered':
+      g.doneAt = songTime();
       confirm('Answered', P.bronzeLight);
       break;
   }
@@ -1457,6 +1460,7 @@ function practiceView() {
       answer: s.answer,
       // The answer stays up until the partner's next call starts.
       showAnswer: !!s.answer && !!call && t < call.start,
+      doneAt: g.doneAt,
       dancers: practiceDancers(),
       groove: Math.min(1, g.energy / 30),
       pulses: g.pulses,
