@@ -56,6 +56,7 @@ function belly(k, st, t) {
   throat(k, st, t);
   if (!img(k, 'belly-backcloth')) midRibs(k, L, R);   // the delivered backcloth paints its own ribs
   LANTERN_XS.forEach((x, i) => { if (x > L && x < R) lantern(k, st, x, i, t); });
+  for (const p of st.ledges) { const e = extent(p); if (e.x1 > L && e.x0 < R) ribBehind(k, p); }
   for (const p of st.ledges) { const e = extent(p); if (e.x1 > L && e.x0 < R) ledge(k, p); }
   if (!st.stone) stone(k, t);
   for (const h of HOOKS) if (h.ax > L - 300 && h.ax < R + 300) hook(k, st, h);
@@ -173,6 +174,16 @@ function lantern(k, st, x, i, t) {
   c.restore();
 }
 
+// The requested rib-arch-tall, rooted at the stomach floor (its base dissolves
+// into the water), 900 tall (450 wide) at stage scale and scaled up to reach
+// high ledges. Every rib is drawn before every slab, so a later rib never hides
+// an earlier slab and the upper part always stands behind the slab.
+function ribBehind(k, p) {
+  if (p.kind || !img(k, 'rib-arch-tall')) return;
+  const cx = (p.x0 + p.x1) / 2, base = floorY(cx) + 12, h = Math.max(900, base - p.y + 150);
+  k.asset('rib-arch-tall', cx, base, h / 2, h);
+}
+
 function ledge(k, p) {
   const c = k.c, { x0, x1, y } = p, cx = (x0 + x1) / 2;
   let art = false;
@@ -200,13 +211,8 @@ function ledge(k, p) {
     // A rib with a bone slab on it. The slab is rib-ledge (360 x 70 art, 35 tall
     // here, top on the walkable y); the rib stands behind it.
     const slab = img(k, 'rib-ledge');
-    if (img(k, 'rib-arch-tall')) {
-      // rooted at the stomach floor (its bottom dissolves into the water), about 900
-      // tall (450 wide) at stage scale and scaled up to reach high ledges, with the
-      // upper part behind the slab
-      const base = floorY(cx) + 12, h = Math.max(900, base - y + 150);
-      k.asset('rib-arch-tall', cx, base, h / 2, h);
-    } else if (!k.asset('rib-arch', cx - 51, y + 490, 230, 490)) {
+    if (img(k, 'rib-arch-tall')) { /* drawn behind everything by ribBehind() */ }
+    else if (!k.asset('rib-arch', cx - 51, y + 490, 230, 490)) {
       // A bone shelf jutting from a rib: a short curved bracket under it.
       const side = (Math.round(cx / 10) % 2) ? 1 : -1; // brackets lean either way
       c.fillStyle = k.col(BONE_DARK);

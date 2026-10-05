@@ -614,7 +614,9 @@ function shutter(k, st, t) {
   const x = cx - 26, y = cy - 56;
   // art 55 x 115, centred on the painted shutter
   if (!k.asset(st.shutter === 'shut' ? 'shutter-shut' : 'shutter-smashed', cx, cy + 57.5, 55, 115)) {
-    if (st.shutter === 'shut') {
+    // Shut, the shutter painted on the delivered house shows as it is.
+    if (st.shutter === 'shut' && k.img('stone-house')) { /* the painted one */ }
+    else if (st.shutter === 'shut') {
       c.fillStyle = k.col('#6b4024'); c.fillRect(x, y, 52, 112);
       c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2;
       for (let i = 1; i < 5; i++) { c.beginPath(); c.moveTo(x, y + i * 22); c.lineTo(x + 52, y + i * 22); c.stroke(); }
