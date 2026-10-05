@@ -31,7 +31,9 @@ export const TUNE = {
   guitarLead: 110,   // he can never get closer than this above the guitar
 };
 
-export const PHASE_LEN = { open: 6.4, choice: 3.4, ride: 20, iris: 1.4, drown: 2.0 };
+// Cues in the take: the rose leaves her hand, reaches him, the sleepers rise.
+export const ROSE_CUES = { fly: 0.7, arrive: 1.5, wake: 1.6 };
+export const PHASE_LEN = { open: 6.4, choice: 4.4, ride: 20, iris: 1.4, drown: 2.0 };
 
 // ---------------------------------------------------------------- the set
 // Every position is in world pixels: x on the stage, y down the descent.
@@ -479,7 +481,14 @@ function stepChoice(st, dt, input) {
   const d = Math.exp(-TUNE.drag * dt); s.vx *= d; s.vy *= d;
   s.x = clamp(s.x + s.vx * dt, BOUNDS.x0, BOUNDS.x1); s.y = clamp(s.y + s.vy * dt, FLOOR - 560, FLOOR - 30);
   s.strokeT += dt; if (s.strokeT >= 0.8) { s.strokeT = 0; s.stroke ^= 1; }
-  if (st.choice === 'take' && st.phaseT >= 0.7 && !st.massWoken) {
+  // Taking the rose, in order: her wand sparkles (the spell begins), the rose
+  // sparkles in her hand and flies to his head, and only when it reaches him
+  // does the spell take: a flash on him, then every sleeper rises.
+  if (st.choice === 'take') {
+    once(st, 'cRoseFly', st.phaseT >= ROSE_CUES.fly, { type: 'roseFly' });
+    once(st, 'cRoseArrive', st.phaseT >= ROSE_CUES.arrive, { type: 'roseArrive' });
+  }
+  if (st.choice === 'take' && st.phaseT >= ROSE_CUES.wake && !st.massWoken) {
     // With a wave of her wand she wakes every sleeper at once.
     st.massWoken = true;
     const left = st.sleepers.filter((sl) => sl.state === 'asleep');

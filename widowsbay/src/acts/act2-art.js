@@ -5,7 +5,7 @@
 // draw the same shapes, so all motion comes from state and `t`.
 import {
   CAM_MAX, FLOOR, SHELF_Y, REST, TUNE, PHASE_LEN, DRAGON, RIDE,
-  clamOpen, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX,
+  clamOpen, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, ROSE_CUES,
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 
@@ -54,12 +54,11 @@ export function onEvent(k, e, st) {
     case 'airVent': k.burst(x, y - 30, '#eef3ea', 8, 'bubble'); break;
     case 'guitarCatch': k.burst(x, y, '#d9b34a', 26, 'sparkle'); k.text('The guitar!', x, y - 90, true); break;
     case 'witchOffer': k.burst(WITCH_X + WITCH_ROSE.x, sy(st, FLOOR) + 44 + WITCH_ROSE.y, '#f3c6dc', 16, 'sparkle'); break;
-    case 'roseTake': {
-      // the rose lands in his hands; her wand star scatters the spell that wakes them all
-      const wy = sy(st, FLOOR) + 44 + WITCH_WAND.y;
-      k.flash(0.5); k.burst(x, y, '#e0127a', 18, 'sparkle'); k.burst(WITCH_X + WITCH_WAND.x, wy, '#fff2b0', 26, 'sparkle');
-      break;
-    }
+    // Taking the rose: the wand sparkles first, then the rose in her hand,
+    // then him when it reaches his head (act2.js ROSE_CUES).
+    case 'roseTake': k.burst(WITCH_X + WITCH_WAND.x, sy(st, FLOOR) + 44 + WITCH_WAND.y, '#fff2b0', 26, 'sparkle'); break;
+    case 'roseFly': k.burst(WITCH_X + WITCH_ROSE.x, sy(st, FLOOR) + 44 + WITCH_ROSE.y, '#e0127a', 16, 'sparkle'); break;
+    case 'roseArrive': { const h = sailorHead(st); k.flash(0.5); k.burst(h.x, h.y, '#e0127a', 18, 'sparkle'); k.burst(h.x, h.y, '#fff2b0', 10, 'sparkle'); break; }
     case 'sleepersRise': k.text('Every sleeper wakes!', 640, 220, true); break;
     case 'witchLaugh': k.shake(0.25); k.text('Her laugh rings through the grotto', 640, 220); break;
     case 'drown': k.burst(x, y - 20, '#eef3ea', 20, 'bubble'); break;
@@ -548,8 +547,8 @@ function swimmer(k, st, t) {
   c.globalAlpha = 1;
   // bubbles from his beard, and the air warning
   c.fillStyle = k.col('#eef3ea');
-  // painted mouth of the swim art (measured: +46, -17 from the figure origin), turned with his tilt
-  const mArt = k.img('sailor-swim-a') ? [46, -17] : [60, -20], mc = Math.cos(rot), ms = Math.sin(rot);
+  // painted mouth of the swim art (+80, -14 from the figure origin in both strokes), turned with his tilt
+  const mArt = k.img('sailor-swim-a') ? [80, -14] : [60, -20], mc = Math.cos(rot), ms = Math.sin(rot);
   const mox = s.face * mArt[0], moy = mArt[1] * (drown ? -1 : 1);
   const mx = x + mox * mc - moy * ms, my = y + mox * ms + moy * mc;
   for (let i = 0; i < 3; i++) { const f = (t * 0.9 + i / 3) % 1; c.globalAlpha = 0.6 * (1 - f); k.circle(mx + Math.sin(t * 3 + i) * 5, my - f * 70, 2 + i); }
@@ -564,10 +563,11 @@ function swimmer(k, st, t) {
 // The flying wires to the harness ring; they go slack as he swims up.
 function harness(k, x, y, vy, t, fade, face = 1, rot = 0, flipY = 1) {
   const c = k.c, slack = clamp(-vy / 160, 0, 1);
-  // the swim art paints its own gold ring on his back (measured at +15, -28); the
-  // wires attach to it, in the rotated frame. The stand-in keeps its own ring.
+  // the swim art paints its own gold ring on his back (at +43, -28 in both
+  // strokes, once A is matched to B); the wires attach to it, in the rotated
+  // frame. The stand-in keeps its own ring.
   const art = !!k.img('sailor-swim-a');
-  const ox = art ? face * 15 : 0, oy = (art ? -28 : -24) * flipY;
+  const ox = art ? face * 43 : 0, oy = (art ? -28 : -24) * flipY;
   const cs = Math.cos(rot), sn = Math.sin(rot);
   const rx = x + ox * cs - oy * sn, ry = y + ox * sn + oy * cs;
   c.save(); c.globalAlpha = 1 - fade;
@@ -588,7 +588,14 @@ function harness(k, x, y, vy, t, fade, face = 1, rot = 0, flipY = 1) {
 function sailorFigure(k, x, y, face, stroke, flipY, t) {
   const c = k.c;
   c.save(); c.translate(x, y); c.scale(face, flipY || 0.001);
-  if (k.asset(stroke ? 'sailor-swim-b' : 'sailor-swim-a', 0, 60, 180, 120)) { c.restore(); return; }
+  if (k.img('sailor-swim-a') && k.img('sailor-swim-b')) {
+    // The two strokes are painted at different sizes: reaching forward (A) his
+    // body is shorter than swept back (B). A is scaled and turned so its head
+    // and boots land where B's are, and its arms reach further ahead.
+    if (!stroke) { c.translate(-77.5, 11); c.rotate(0.13); c.scale(1.215, 1.215); c.translate(79, -16); }
+    k.asset(stroke ? 'sailor-swim-b' : 'sailor-swim-a', 0, 60, 180, 120);
+    c.restore(); return;
+  }
   const kick = Math.sin(t * 7) * (stroke ? 0.35 : 0.15);
   // legs and boots
   c.fillStyle = k.col('#7d7f86');
@@ -664,6 +671,12 @@ function witchFigure(k, x, by, bend, rose, t, wandUp = 0) {
   c.restore();
 }
 
+// His head on screen (the swim art's head is at +74, -22 from his centre).
+function sailorHead(st) {
+  const s = st.sailor;
+  return { x: s.x + s.face * 74, y: sy(st, s.y) - 22 };
+}
+
 // Points on the delivered witch-stand art, drawn 150x242 from her feet: the
 // rose in her raised hand, the star of her wand and her lips.
 const WITCH_ROSE = { x: -63, y: -209 }, WITCH_WAND = { x: 31, y: -166 }, WITCH_LIPS = { x: -18, y: -218 };
@@ -732,27 +745,29 @@ function closeWitch(k, st, t) {
   const pt = st.phaseT, c = k.c, by = sy(st, FLOOR) + 44;
   let y = by, rose = true, wand = 0;
   if (st.phase === 'offer') y = lerp(-60, by, easeOut(pt / 1.4));
-  else if (st.choice === 'take') { rose = pt < 0.2; wand = easeInOut((pt - 0.3) / 0.4) * (1 - easeInOut((pt - 1.6) / 0.6)); }
+  else if (st.choice === 'take') { rose = pt < ROSE_CUES.fly; wand = easeInOut(pt / 0.3) * (1 - easeInOut((pt - ROSE_CUES.fly + 0.2) / 0.3)); }
   else { rose = true; y = by - easeInOut((pt - 1.4) / 1.6) * 760; }
   k.wire(WITCH_X - 20, 0, y - 236); k.wire(WITCH_X + 20, 0, y - 236);
   const laugh = st.phase === 'choice' && st.choice === 'refuse' ? Math.sin(pt * 26) * 0.05 * (pt < 1.4 ? 1 : 0) : 0;
   witchFigure(k, WITCH_X, y, laugh, rose, t, wand);
-  // the rose drifting to his hands
-  if (st.phase === 'choice' && st.choice === 'take' && pt < 1) {
-    const s = st.sailor, f = easeInOut(pt / 1);
-    k.keepsake('rose', lerp(WITCH_X + WITCH_ROSE.x, s.x, f), lerp(y + WITCH_ROSE.y, sy(st, s.y) - 30, f), 0.6);
-  }
-  if (st.phase === 'choice' && st.choice === 'take' && pt > 0.6 && pt < 2) {
-    c.save(); c.globalAlpha = 0.25 * Math.sin(Math.PI * (pt - 0.6) / 1.4); c.fillStyle = k.col('#ffe27a');
+  const taking = st.phase === 'choice' && st.choice === 'take';
+  // first the wand glows: the spell begins (and only then)
+  if (taking && pt < ROSE_CUES.fly) {
+    c.save(); c.globalAlpha = 0.3 * Math.sin(Math.PI * pt / ROSE_CUES.fly); c.fillStyle = k.col('#ffe27a');
     k.circle(WITCH_X + WITCH_WAND.x, y + WITCH_WAND.y, 80); c.restore();
+  }
+  // then the rose flies from her hand straight to his head
+  if (taking && pt >= ROSE_CUES.fly && pt < ROSE_CUES.arrive) {
+    const h = sailorHead(st), f = easeInOut((pt - ROSE_CUES.fly) / (ROSE_CUES.arrive - ROSE_CUES.fly));
+    k.keepsake('rose', lerp(WITCH_X + WITCH_ROSE.x, h.x, f), lerp(y + WITCH_ROSE.y, h.y, f) - Math.sin(Math.PI * f) * 40, 0.6);
   }
 }
 
 function roseRisers(k, st, t) {
-  const pt = st.phaseT - 0.7, c = k.c;
+  const pt = st.phaseT - ROSE_CUES.wake, c = k.c;
   if (pt <= 0) return;
   for (let i = 0; i < st.roseRisers; i++) {
-    const f = (pt - i * 0.18) / 2.6;
+    const f = (pt - i * 0.1) / 2.0;
     if (f <= 0 || f >= 1) continue;
     const x = 230 + ((i * 197) % 820), y = 760 - f * 860;
     c.save(); c.translate(x, y); c.rotate(Math.sin(t * 2 + i) * 0.1);
