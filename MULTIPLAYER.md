@@ -158,6 +158,143 @@ tell the player and return them to the lobby.
    rules as everything else in [GAME_GUIDELINES.md](GAME_GUIDELINES.md). Lobby
    entries must be navigable with a D-pad or stick and joinable with A.
 
+## Lessons from a larger game
+
+Brick Kart (in the `hoai2k/francis` repository, `brick-kart/js/online/`) is a
+racer for up to 12 people per room. It has several split-screen players per
+browser, host-driven AI karts, projectiles, reconnects and host migration, all
+on the unchanged relay. Its README has the full protocol. These are the
+patterns from it that any game with more than a couple of players will need.
+
+### Identity and roster
+
+- **Peer IDs change on every connection.** Put your own stable ID (random per
+  page load) and the player's name in every presence message, and key
+  everything on that. A reconnect is then the same player with a new peer ID.
+- **The relay doesn't tell clients names or join order.** The `name` query
+  parameter stays on the server. Send names in presence. The host keeps the
+  join order (needed for host migration) and publishes it in its presence.
+- **Presence can be empty for a newcomer.** A room keeps presence in memory,
+  so after hibernation a `welcome` may list peers as `{}`. Re-publish your
+  presence, after a short random delay, whenever a new peer ID appears, and
+  keep a slow heartbeat (every 15 s) for anything that slips through.
+- **A dropped socket can linger,** so the same player can briefly show under
+  two peer IDs. Prefer the one that updated most recently.
+- **Don't report a leave at once.** Mark a vanished player missing and call
+  them gone after about 3 s. A quick reconnect then shows no "left" and
+  "joined" messages and doesn't hand their avatar to the AI. Skip leave
+  detection while you are reconnecting or migrating yourself.
+- **One presence message per browser, not per player.** Put all of a
+  browser's split-screen players in one message, so cost grows with browsers,
+  not people. Room capacity counts connections, so enforce a people limit in
+  the game.
+
+### Keep durable state in the host's presence
+
+Topics aren't replayed, so a joiner, a reconnecting player or a migrated room
+misses them. Put everything a newcomer needs (phase, join order, round, level
+setup, start time, results) in one object in the host's presence, and make
+each client a pure function of its latest value. Use topics only for truly
+one-off things such as pings, item uses and hits.
+
+Attach big but rarely changing fields (Brick Kart's race setup is about 1 KB)
+only once a second, at once when they change, and when someone joins.
+Clients cache them. Put a protocol version in every presence and topic and
+ignore anything else. Check the type, range and finiteness of every received
+number before it reaches physics or rendering, and escape every name.
+
+### A shared clock
+
+- Guests send `ping {a: sentAt}` and the host answers
+  `pong {a, h: hostNow, to: uid}`. Topics are broadcast, so name the
+  recipient. The offset is `h + rtt/2 - receivedAt`. Keep the last dozen
+  samples and use the one with the smallest round trip. Send a burst of 6 on
+  joining (250 ms apart), then one every 6 s.
+- Ease later corrections in a few milliseconds per second, so game time never
+  jumps. Jump only when the error is over 250 ms.
+- Schedule starts at an absolute shared time, such as `hostNow + 9 s`. Across
+  three test browsers, GO landed within one frame.
+- Make anything moving on a timer a function of shared time
+  (`pos = f(t)`), not of summed frame times. Draw any randomness in it from a
+  hash of the cycle number. Build the level from a shared seed. Swapping
+  `Math.random` for a seeded generator while building is a cheap way to make
+  existing random code deterministic.
+- After host migration, the new host keeps serving the old host's timeline
+  (its own clock plus its existing offset). Start times and timestamps in
+  flight then stay valid.
+
+### Smooth remote motion
+
+- Owners publish state about 15 times a second, stamped with shared time.
+  The client's 50 ms presence throttle adds latency, but that's harmless
+  because samples are stamped when created.
+- Receivers keep a short buffer per object and draw it at `now - D`. D adapts
+  to each sender: `clamp(lateness + sample spacing + 2 × jitter + 15 ms,
+  90 ms, 350 ms)`, using running averages and changing by at most 5% a
+  second. At 60 fps that lands around 110–150 ms.
+- When drawing time passes the newest sample, extrapolate with velocity and
+  turn rate for 0.3 s. Then, in a racer, keep advancing along the track at
+  the last speed for up to 3 s. That hides reconnects and host changes far
+  better than a straight line.
+- Move the shown pose by the sample's velocity, then pull it toward the
+  sampled pose with `exp(-11 · dt)`. Snap only on jumps over about 9 m
+  (respawns). In tests a remote kart stayed within 0.6 m of its owner's real
+  path, with no snaps.
+- Hold another player's one-off event (firing an item) until their avatar's
+  drawing time reaches the event's time. Then run it from where the avatar
+  is shown, so the projectile leaves the kart you can see.
+
+### Who decides a hit
+
+Only an object's owner decides what happens to it. Run every item use on
+every browser, from the same seed and the same standings snapshot, but make
+hits on objects you don't own do nothing. The victim's browser applies the
+hit, the result shows through its presence, and it announces the
+projectile's ID so the other browsers remove it. Showing an effect locally is
+fine as long as no state changes.
+
+### Host migration on the current relay
+
+- The room closes with `host_left`, but every client already has the host's
+  latest join order, so all agree on the successor: the first remaining
+  player. That player hosts `<roomId>-g<n+1>`, and the others try to join it
+  every 0.7 s. Candidate k waits k × 4 s before hosting, in case the
+  successor has also gone. If hosting returns `taken`, join instead. In tests
+  everyone was in the new room within about 0.8 s.
+- A host whose socket drops gets `disconnected`, not `host_left`. It should
+  join the successor room like any guest and give up its AI objects.
+- The new host takes over AI objects from where they are now (the newest
+  sample plus extrapolation), not from its delayed display. Otherwise they
+  rewind by D and jump for everyone else.
+- Guests whose socket drops rejoin the same room, retrying after 0.3, 0.8,
+  1.5, 2.5 and 4 s. `not_found` means the host left meanwhile, so migrate. If
+  every attempt is refused because the relay is down, give up after about
+  7 s and let the game carry on offline.
+
+### Budget
+
+Each sent message counts as 1/20 of a request, so 15 updates a second from
+one browser costs 2,700 requests an hour, about 37 browser-hours of play a
+day. Send one batched presence per browser per tick, and batch one-off events
+into at most one topic per 50 ms. The hidden cost is the lobby: each
+`watchRooms` poll is a full request (1,200 an hour per open lobby at the
+3 s default). Poll only while the lobby is visible, and consider 4–5 s.
+
+### Testing headless
+
+- Software WebGL ran three pages at 2.5–4 seconds per frame. A `?norender`
+  page flag that skips drawing brought it to about 40 fps per page, enough to
+  test logic, timing and sync. Take screenshots from one drawing page only.
+- Hold simulated key taps for at least a frame (two `requestAnimationFrame`s),
+  or slow pages miss them.
+- When measuring smoothness, stamp samples with the `requestAnimationFrame`
+  time. Stamping with `performance.now()` inside the recorder produces fake
+  speed spikes.
+- Claude's cloud sandbox proxy can't open WebSockets (the production relay
+  answers 426), so only the lobby can be checked against production from
+  there. Chromium ignores proxy bypass lists for localhost, so use a PAC
+  script to reach a local `wrangler dev` directly.
+
 ## Running and testing locally
 
 ```sh
@@ -237,3 +374,24 @@ lobby is a `Lobby` Durable Object named after the game, backed by SQLite.
 Rooms report their player count to the lobby on every join and leave, and
 every 30 seconds while anyone is connected. The lobby drops rooms it hasn't
 heard from in 90 seconds. The code is `multiplayer/server/src/index.js`.
+
+### Proposed relay changes (not yet made)
+
+These came out of Brick Kart. Each is backward compatible, and games work
+without them. They need a redeploy, as described in "Deploying the relay".
+
+1. **Server time on messages.** Add `ts: Date.now()` to `welcome` and to
+   every relayed message. Clients could estimate a clock offset without
+   ping/pong topics, and the clock would survive host changes for free.
+2. **Host migration on the server, opt-in per room** (`?migrate=1` when
+   hosting). When the host leaves, promote the earliest-joined remaining
+   player, broadcast `{t:"host", id}`, and keep the room open. The client
+   would update `room.isHost` on that message; older clients ignore unknown
+   types. This removes the half-second gap and the successor-room logic.
+3. **Names and join order from the server.** Send
+   `{t:"join", from, name, joinedAt}` and add a separate
+   `meta: {peerId: {name, joinedAt}}` field to `welcome`, leaving `peers`
+   unchanged.
+4. **Flush presence at once when idle.** If no presence was sent in the last
+   50 ms, send immediately instead of always waiting 50 ms. That removes a
+   fixed 50 ms of latency without raising the rate.
