@@ -235,6 +235,7 @@ export class Renderer {
     this.sky = SKIES[stage.sky];
     this.cam = 0;
     this.particles = [];
+    this.wakes = [];
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
     this.motion = { front: 0, frontM: { x: 0, v: 0 }, crew: { x: -330, v: 0 }, units: [], enemies: new Map() };
@@ -1762,7 +1763,9 @@ export class Renderer {
 
   scraps(x, y, n, colors) {
     if (this.reduceMotion) n = Math.ceil(n / 3);
+    const sheet = this.scrapSheet();
     for (let i = 0; i < n; i++) {
+      const c = colors[i % colors.length];
       this.particles.push({
         x, y,
         vx: (Math.random() - 0.3) * 260,
@@ -1770,10 +1773,86 @@ export class Renderer {
         r: Math.random() * Math.PI,
         vr: (Math.random() - 0.5) * 12,
         s: 4 + Math.random() * 7,
-        c: colors[i % colors.length],
+        c,
+        // With the delivered sheet (BD-F01): a cut scrap of the nearest colour.
+        cell: sheet ? this.scrapCell(sheet, c) : undefined,
         life: 1.2 + Math.random() * 0.6,
       });
     }
+  }
+
+  /**
+   * The paper-scrap sheet (BD-F01): sixteen scraps in a row of 128 px cells,
+   * each in the band 192-320 px of the 512 px sheet. On first use each
+   * cell's average colour is measured, so a burst can ask for "lacquer and
+   * ink" and get red and grey scraps.
+   */
+  scrapSheet() {
+    const img = this.art.get('fx-scraps');
+    if (!img) return null;
+    if (!this.scrapInfo) {
+      const c = canvas(64, 4);
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, img.height * 0.375, img.width, img.height * 0.25, 0, 0, 64, 4);
+      const data = g.getImageData(0, 0, 64, 4).data;
+      const cells = [];
+      for (let i = 0; i < 16; i++) {
+        let r = 0, gg = 0, b = 0, a = 0;
+        for (let y = 0; y < 4; y++) {
+          for (let x = i * 4; x < i * 4 + 4; x++) {
+            const k = (y * 64 + x) * 4;
+            const w = data[k + 3] / 255;
+            r += data[k] * w; gg += data[k + 1] * w; b += data[k + 2] * w; a += w;
+          }
+        }
+        cells.push(a ? [r / a, gg / a, b / a] : [128, 128, 128]);
+      }
+      this.scrapInfo = { cells, by: new Map() };
+    }
+    return img;
+  }
+
+  /** A random scrap cell among the three nearest in colour to a hex colour. */
+  scrapCell(sheet, hex) {
+    const info = this.scrapInfo;
+    if (!info.by.has(hex)) {
+      const n = parseInt(hex.slice(1), 16);
+      const want = [n >> 16, (n >> 8) & 255, n & 255];
+      const ranked = info.cells.map((c, i) => [Math.hypot(c[0] - want[0], c[1] - want[1], c[2] - want[2]), i]).sort((a, b) => a[0] - b[0]);
+      info.by.set(hex, ranked.slice(0, 3).map((r) => r[1]));
+    }
+    const near = info.by.get(hex);
+    return near[Math.floor(Math.random() * near.length)];
+  }
+
+  /** The drum wakes (or a drum is cast): its rings spread outward (BD-F03). */
+  wake(t, where = 'crew') {
+    this.wakes = (this.wakes || []).filter((w) => t - w.t < 1.6);
+    this.wakes.push({ t, where });
+  }
+
+  /** One spreading burst of the drum's rings, centred on (x, y), up to `size` across. */
+  wakeBurst(x, y, size, k) {
+    const g = this.ctx;
+    const img = this.art.get('fx-drum-wake');
+    const d = size * (0.35 + 0.65 * (1 - (1 - k) ** 3));
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = 0.85 * (1 - k) ** 1.5;
+    if (img) {
+      g.translate(x, y);
+      g.rotate(k * 0.35);
+      g.drawImage(img, -d / 2, -d / 2, d, d);
+    } else {
+      g.strokeStyle = P.bronzeLight;
+      for (const f of [1, 0.8, 0.6]) {
+        g.lineWidth = 4 * f;
+        g.beginPath();
+        g.arc(x, y, (d / 2) * f, 0, Math.PI * 2);
+        g.stroke();
+      }
+    }
+    g.restore();
   }
 
   projectile(fromX, toX, t0, color, dir, dur = 0.45, height = 120) {
@@ -1837,6 +1916,13 @@ export class Renderer {
     if (view.shieldsUp || view.songTime <= view.guardUntil + 0.2) this.shieldWall(view);
     this.threatMarks(view);
     this.drawParticles(t, dt);
+    // The drum waking: its rings spread from the drum the sisters play.
+    for (const w of this.wakes || []) {
+      const k = (t - w.t) / 1.4;
+      if (w.where !== 'crew' || k < 0 || k > 1) continue;
+      const cx = this.motion.crew.x;
+      this.wakeBurst(cx, battle.elephant ? GROUND - 200 : GROUND - 80, 420, k);
+    }
     g.restore();
 
     this.layer('layer-reeds', this.layers.reeds, 1.25);
@@ -2083,6 +2169,16 @@ export class Renderer {
         g.save();
         g.translate(x, y);
         g.rotate(ang);
+        const fx = this.art.get('fx-projectiles');
+        if (fx) {
+          // The delivered arrows and bolts (BD-F02), the in-flight cuts with
+          // motion lines: cell 1 a Lạc Việt arrow, cell 3 a Han bolt.
+          const cw = fx.width / 4;
+          const len = p.dir < 0 ? 44 : 50;
+          g.drawImage(fx, (p.dir < 0 ? 3 : 1) * cw, 0, cw, fx.height, -len / 2, -len / 2, len, len);
+          g.restore();
+          return true;
+        }
         if (p.dir < 0) {
           // Han bolts: a faint light trail so they read against any sky.
           g.fillStyle = this.sky.glow;
@@ -2110,6 +2206,14 @@ export class Renderer {
       g.globalAlpha = Math.max(0, Math.min(1, p.life));
       g.translate(p.x, p.y);
       g.rotate(p.r);
+      const sheet = p.cell !== undefined && this.art.get('fx-scraps');
+      if (sheet) {
+        const cw = sheet.width / 16;
+        const sz = p.s * 2.6;
+        g.drawImage(sheet, p.cell * cw, sheet.height * 0.375, cw, sheet.height * 0.25, -sz / 2, -sz / 2, sz, sz);
+        g.restore();
+        return p.life > 0;
+      }
       g.fillStyle = p.c;
       g.beginPath();
       g.moveTo(-p.s, -p.s * 0.4);
@@ -2226,6 +2330,10 @@ export class Renderer {
     }
 
     if (touch) this.touchDrumLabels(cx, cy, R, k / 1.3);
+    for (const w of this.wakes || []) {
+      const q = (t - w.t) / 1.2;
+      if (q >= 0 && q <= 1) this.wakeBurst(cx, cy, R * 4.2, q);
+    }
     g.restore();
 
     // The phrase: the accepted pattern stays filled until the drum is ready

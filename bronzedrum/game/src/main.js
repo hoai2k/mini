@@ -485,6 +485,7 @@ function handleRhythm(ev) {
     if (ev.spirit && ev.combo === SPIRIT_COMBO) {
       toast('Trống thức — the drum wakes!');
       sound.play('drum-wake');
+      renderer.wake(songTime());
       sound.play('cmd-rally', sound.now + 0.3, 0.7);
       sound.musicOverlay('mu-wake');
     }
@@ -548,6 +549,7 @@ function handleMode(e) {
     case 'cast':
       toast(`Drum ${e.drum + 1} is cast`);
       sound.play('drum-wake', sound.now + 0.3, 0.6);
+      renderer.wake(songTime() + 0.3, 'hud');
       break;
     case 'complete':
       g.evenness = e.evenness;

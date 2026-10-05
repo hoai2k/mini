@@ -544,14 +544,14 @@ Background of the chapter-select card; the game lays a pale wash over it for tex
 
 ## Effects (3)
 
-Sprite sheets for hits, projectiles and the drum waking. The prototype draws these procedurally; the sheets are for the production build.
+Sprite sheets for hits, projectiles and the drum waking, all used by the game (it falls back to drawing its own if a sheet is missing).
 
 ### BD-F01 · Paper scraps sheet
 
 Hits and defeats burst into torn scraps of paper instead of blood.
 
 - **Spec:** 2048x512, transparent; sixteen scraps on a 128 px grid
-- **Status:** delivered · **Game id:** `fx-scraps`
+- **Status:** delivered · **Stand-in:** `Renderer.scraps` · **Game id:** `fx-scraps`
 - **File:** `bronzedrum/game/assets/art/fx-scraps.png`
 - **Prompt:** Sixteen small torn and cut paper scraps on a transparent background, in cream, lacquer red, iron grey and straw: triangles, curls, leaf shapes, feather fragments. Each with a fibrous torn edge on one side and a clean knife cut on the other.
 
@@ -560,7 +560,7 @@ Hits and defeats burst into torn scraps of paper instead of blood.
 Lac Viet arrows and Han crossbow bolts.
 
 - **Spec:** 1024x256, transparent; four pieces in a row
-- **Status:** delivered · **Game id:** `fx-projectiles`
+- **Status:** delivered · **Stand-in:** `Renderer.drawParticles` · **Game id:** `fx-projectiles`
 - **File:** `bronzedrum/game/assets/art/fx-projectiles.png`
 - **Prompt:** Four cut-paper projectiles in a row on a transparent background, all pointing right: a Lac Viet arrow with a bronze head and feather fletching, the same arrow in flight with a motion cut, a short Han crossbow bolt in iron grey, the same bolt with a motion cut.
 
@@ -569,7 +569,7 @@ Lac Viet arrows and Han crossbow bolts.
 Plays when four commands chain: the drum's rings spread outward like the call in BD-M08.
 
 - **Spec:** 2048x2048, transparent; one ring pattern, radially symmetric
-- **Status:** delivered · **Game id:** `fx-drum-wake`
+- **Status:** delivered · **Stand-in:** `Renderer.wakeBurst` · **Game id:** `fx-drum-wake`
 - **File:** `bronzedrum/game/assets/art/fx-drum-wake.png`
 - **Prompt:** A radially symmetric burst of concentric cut-paper rings in bronze and gold on a transparent background, like the bands of a bronze drum face expanding outward: tangential circles, flying herons and a sun-star at the centre. Bright glow through the cuts.
 

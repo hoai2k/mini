@@ -307,7 +307,8 @@
       "file": "art/fx-scraps.png",
       "status": "delivered",
       "section": "fx",
-      "runtime": false
+      "runtime": true,
+      "web": "web/fx-scraps.webp"
     },
     {
       "id": "fx-projectiles",
@@ -315,7 +316,8 @@
       "file": "art/fx-projectiles.png",
       "status": "delivered",
       "section": "fx",
-      "runtime": false
+      "runtime": true,
+      "web": "web/fx-projectiles.webp"
     },
     {
       "id": "fx-drum-wake",
@@ -323,7 +325,8 @@
       "file": "art/fx-drum-wake.png",
       "status": "delivered",
       "section": "fx",
-      "runtime": false
+      "runtime": true,
+      "web": "web/fx-drum-wake.webp"
     },
     {
       "id": "sky-dusk",

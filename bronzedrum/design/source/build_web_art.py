@@ -54,6 +54,10 @@ TARGETS = {
     "straw-target": ("scale=-1:288", 85),
     "hud-drum": ("scale=480:480", 88),
     "touch-buttons": ("scale=480:160", 88),
+    # Effects: scraps drawn about 30 px, arrows about 50 px, the wake burst up to 420 px.
+    "fx-scraps": ("scale=1024:-1", 85),
+    "fx-projectiles": ("scale=512:-1", 85),
+    "fx-drum-wake": ("scale=640:640", 76),
     "logo": ("scale=1200:-1", 88),
     "ui-panel": ("scale=768:-1", 85),
     "card-garden": ("scale=800:-1", 80),

@@ -123,8 +123,8 @@ SECTIONS = {
     ),
     "fx": (
         "Effects",
-        "Sprite sheets for hits, projectiles and the drum waking. The prototype draws these "
-        "procedurally; the sheets are for the production build.",
+        "Sprite sheets for hits, projectiles and the drum waking, all used by the game (it "
+        "falls back to drawing its own if a sheet is missing).",
     ),
     "story": (
         "Story chapters",
@@ -548,21 +548,21 @@ F = "fx"
 req(F, "BD-F01", "fx-scraps", "Paper scraps sheet",
     "Hits and defeats burst into torn scraps of paper instead of blood.",
     "2048x512, transparent; sixteen scraps on a 128 px grid",
-    "delivered", None, "art/fx-scraps.png",
+    "delivered", "Renderer.scraps", "art/fx-scraps.png",
     "Sixteen small torn and cut paper scraps on a transparent background, in cream, lacquer red, "
     "iron grey and straw: triangles, curls, leaf shapes, feather fragments. Each with a fibrous "
     "torn edge on one side and a clean knife cut on the other.")
 req(F, "BD-F02", "fx-projectiles", "Arrows and bolts",
     "Lac Viet arrows and Han crossbow bolts.",
     "1024x256, transparent; four pieces in a row",
-    "delivered", None, "art/fx-projectiles.png",
+    "delivered", "Renderer.drawParticles", "art/fx-projectiles.png",
     "Four cut-paper projectiles in a row on a transparent background, all pointing right: a Lac "
     "Viet arrow with a bronze head and feather fletching, the same arrow in flight with a motion "
     "cut, a short Han crossbow bolt in iron grey, the same bolt with a motion cut.")
 req(F, "BD-F03", "fx-drum-wake", "The drum wakes",
     "Plays when four commands chain: the drum's rings spread outward like the call in BD-M08.",
     "2048x2048, transparent; one ring pattern, radially symmetric",
-    "delivered", None, "art/fx-drum-wake.png",
+    "delivered", "Renderer.wakeBurst", "art/fx-drum-wake.png",
     "A radially symmetric burst of concentric cut-paper rings in bronze and gold on a transparent "
     "background, like the bands of a bronze drum face expanding outward: tangential circles, "
     "flying herons and a sun-star at the centre. Bright glow through the cuts.")
