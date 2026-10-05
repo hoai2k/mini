@@ -192,6 +192,8 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   .card h2 { font-size: 34px; }
   .card button, .slider { padding: 8px 12px; font-size: 16px; }
   .card .tabs button { padding: 4px 10px; font-size: 14px; }
+  .card.wide h2 { font-size: 28px; line-height: 1; }
+  .scroll h3 { font-size: 24px; margin: 0 0 4px; }
 }
 
 /* Portrait on a phone: a card asking to turn the device */

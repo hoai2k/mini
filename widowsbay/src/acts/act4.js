@@ -114,16 +114,15 @@ export function shoreTimes(n) {
 
 // Scenes, for checkpoints and the scene select. Each begins on a fixed ledge
 // (`on`, standing at `x`) just past a lantern's stretch of the stage. The stone
-// lies before scene 5, so scene 5 starts with it gathered.
+// is a detour within the last scene, so no scene starts with it. (The lip by
+// the throat makes no scene: the last hook reaches every spot on it.)
 export const SCENES = [
   { name: 'The Belly', on: 'bank', x: 260 },
   { name: 'The Rib Ledges', on: 'L1', x: 1320 },
   { name: 'The Wreck Field', on: 'L3', x: 2940 },
   { name: 'The Far Wreckage', on: 'L5', x: 3980 },
   { name: 'The Ribcage', on: 'L6', x: 5450 },
-  { name: 'The Throat', on: 'lip', x: 5960 },
 ];
-const STONE_SCENE = 5;
 
 // ---------------------------------------------------------------- machines
 const cyc = (beat) => ((beat % BREATH_BEATS) + BREATH_BEATS) % BREATH_BEATS;
@@ -198,7 +197,7 @@ export default {
       const sc = SCENES[k], on = from.on ?? sc.on, led = LEDGES.find((l) => l.id === on) || LEDGES.find((l) => l.id === sc.on);
       const x = clamp(from.x ?? sc.x, led.x0 + 15, led.x1 - 15);
       st.scene = k;
-      st.stone = from.stone ?? k >= STONE_SCENE;
+      st.stone = from.stone ?? false;
       for (const i of from.got || []) if (st.pearlsLeft[i]) st.pearlsLeft[i].got = true;
       st.pearls = from.pearls ?? 0; st.score = from.score ?? 0; st.hits = from.hits ?? 0;
       Object.assign(st.s, { x, y: led.y, on: led.id, safe: led.id, onT: 1 });

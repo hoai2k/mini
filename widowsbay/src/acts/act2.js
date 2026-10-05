@@ -80,6 +80,22 @@ export const sceneAt = (y) => SCENE_Y.reduce((k, y0, i) => (y >= y0 ? i : k), 0)
 // Where the sailor stands in a vent's bubbles.
 const ventSpot = (i) => ({ x: VENTS[i][0], y: VENTS[i][1] - 120 });
 
+// The hazard clock for a resume at (x, y): the one that keeps the dragon and
+// the jellyfish furthest from that spot for the first eight seconds, so a
+// retry never starts in the dragon's path.
+function safeClock(x, y) {
+  let best = 3, bestD = -1;
+  for (let c = 0; c < DRAGON.period; c += 0.25) {
+    let d = Infinity;
+    for (let tau = 0; tau <= 8; tau += 0.25) {
+      const p = dragonPos(c + tau); d = Math.min(d, Math.hypot(p.x - x, p.y - y));
+      for (const j of JELLIES) { const q = jellyPos({ cx: j[0], cy: j[1], ax: j[2], ay: j[3], w: j[4], p: j[5] }, c + tau); d = Math.min(d, Math.hypot(q.x - x, q.y - y)); }
+    }
+    if (d > bestD) { bestD = d; best = c; }
+  }
+  return best;
+}
+
 export const RIDE = { boatX: 470, speed: 300, pearls: 16 };
 
 // ---------------------------------------------------------------- helpers
@@ -159,6 +175,7 @@ export default {
       g.y = Math.min(REST.y, Math.max(from.gy ?? 0, s.y + 160), s.y + 700); g.x = guitarX(g.y);
       st.cam = clamp(s.y - 230, 0, CAM_MAX);
       st.inVent = ventAt(st);
+      st.hzT = safeClock(s.x, s.y);
     } else {
       s.x = from.x ?? REST.x; s.y = from.y ?? REST.y - 40;
       g.x = REST.x; g.y = REST.y; g.settled = true; g.held = true;

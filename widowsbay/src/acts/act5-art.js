@@ -648,7 +648,11 @@ function flames(k, st, t, amt = 1) {
   c.save(); c.globalAlpha = Math.min(1, amt);
   for (let i = 0; i < 2; i++) {
     const x = ((t * 34 + i * 820) % 1700) - 210, y = 150 + i * 70;
-    if (!k.asset('smoke-flat', x, y + 100, 400, 200)) {
+    // Translucent, so the sailor stays visible as it drifts over the floors.
+    c.globalAlpha = 0.6 * Math.min(1, amt);
+    const drawn = k.asset('smoke-flat', x, y + 100, 400, 200);
+    c.globalAlpha = Math.min(1, amt);
+    if (!drawn) {
       c.fillStyle = k.col('#6d5a72'); c.globalAlpha = 0.55 * amt;
       c.beginPath(); c.ellipse(x - 90, y + 10, 110, 50, 0, 0, Math.PI * 2); c.ellipse(x + 40, y - 10, 130, 66, 0, 0, Math.PI * 2); c.ellipse(x + 170, y + 14, 100, 46, 0, 0, Math.PI * 2); c.fill();
       c.globalAlpha = Math.min(1, amt);
