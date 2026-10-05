@@ -136,6 +136,18 @@ timestamp), so each light and the pointer's tap meet their sound.
 **Answering early.** In the call-and-answer chapters the player may answer as
 soon as they know the rhythm, during the call; the caller falls silent.
 
+**Winning a chapter.** No menu: the scene celebrates in its own way (paper
+confetti over a battle or the coronation, lanterns rising when the villages
+answer, embers from the incense, the foundry and the elegy) as the drum's rings
+burst from the middle, with a title for the chapter ("The oath is sworn", "The
+ford is ours"), its closing line, and one button, Continue (A, Enter or Space),
+to the next chapter. Restart and the chapter list are in the pause menu, which
+still opens. A loss keeps the menu with Play again.
+
+In call and answer, an accepted answer stays lit for a moment and then clears,
+so the next call's rhythm shows as ghosts while it is called; the drum is free
+at once (no army cycle to wait out).
+
 **Casting at the bellows' pace.** The foundry has a fixed pace (76 beats a
 minute, never shown as a number). Its own drum plays the hammer rhythm softly
 at that pace throughout, and the bellows beside the furnace squeeze on every
