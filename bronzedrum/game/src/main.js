@@ -905,6 +905,10 @@ async function boot() {
   applySettings();
   if (coarsePointer.matches) $('#title-hint').textContent = 'Best played with the device sideways';
   buildCommandTable();
+  // The title is usable at once: on a slow connection the player may press
+  // start before the art has arrived, so loading must not send them back.
+  show('title');
+  requestAnimationFrame(frame);
   await art.load();
   const logo = art.get('logo');
   if (logo) {
@@ -913,8 +917,13 @@ async function boot() {
     $('#logo-img').hidden = false;
     $('#logo-text').classList.add('visually-hidden');
   }
-  show('title');
-  requestAnimationFrame(frame);
+  // Cards built before the art arrived get their pictures now.
+  document.querySelectorAll('#stage-cards .card-art').forEach((el, i) => {
+    const img = art.get(`card-${STAGES[i].id}`);
+    if (!img) return;
+    el.classList.remove('plain');
+    el.style.backgroundImage = `url(${img.src})`;
+  });
 }
 
 // Debug hooks for automated checks.
