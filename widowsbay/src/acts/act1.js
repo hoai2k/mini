@@ -5,9 +5,21 @@ import { createBoard, step as stepBoard, LEAVES, TUNING } from '../board.js';
 import { BEAT_WINDOW, beatHit } from './shared.js';
 import * as art from './act1-art.js';
 
-// Ending timeline, seconds per phase.
-export const ENDING = { landho: 3, party: 15, turn: 6, wreck: 6.5, sink: 4.5, iris: 1.4 };
-export const LANTERNS = 8; // paper lanterns lit on the beat during the party
+// Ending timeline, seconds per phase. Each scene shows its moment and moves
+// on: the deck rises as soon as the ship's bell has rung.
+export const ENDING = { landho: 1.7, party: 6, turn: 4.4, wreck: 4.6, sink: 3.6, iris: 1.2 };
+export const LANTERNS = 4; // paper lanterns lit on the beat during the party
+// Cues within the turn and the wreck (seconds into the phase).
+export const CUES = { strike: 1.2, shipBreak: 2.0, splash: 3.2 };
+// Where the revellers land on the deck set (stage px, feet; s = scale). The
+// first two are the big and small barrels, so only one of them is used.
+export const SPOTS = [
+  { x: 418, y: 296, s: 0.62 }, { x: 372, y: 360, s: 0.58 },   // on the barrels by the left hatch
+  { x: 870, y: 316, s: 0.62 },                                // on the right barrel
+  { x: 520, y: 390, s: 0.64 },                                // on the coil of rope
+  { x: 262, y: 466, s: 0.8 }, { x: 1012, y: 460, s: 0.8 },    // at the rail, left and right
+  { x: 748, y: 402, s: 0.66 },                                // by the bell
+];
 
 const ORDER = ['landho', 'party', 'turn', 'wreck', 'sink', 'iris'];
 
@@ -51,6 +63,7 @@ export default {
     } else {
       b.progress = 1; b.phase = 'done'; b.ship.x = 560; b.pickups = [];
       st.phase = k === 4 ? 'party' : 'turn';
+      placeRevellers(st);
       if (k === 4) st.events.push({ type: 'cheer' });
       else st.events.push({ type: 'spirits' });
     }
@@ -90,10 +103,10 @@ export default {
         }
       }
     }
-    if (st.phase === 'turn' && st.phaseT >= 2.4 && !st.struck) { st.struck = true; st.events.push({ type: 'strike' }); }
+    if (st.phase === 'turn' && st.phaseT >= CUES.strike && !st.struck) { st.struck = true; st.events.push({ type: 'strike' }); }
     if (st.phase === 'turn') st.witchAt = { x: 900, y: 170 };
-    if (st.phase === 'wreck' && st.phaseT >= 3 && !st.broken) { st.broken = true; st.events.push({ type: 'shipBreak' }); }
-    if (st.phase === 'wreck' && st.phaseT >= 4.6 && !st.splashed) { st.splashed = true; st.witchAt = { x: 1500, y: 150 }; st.events.push({ type: 'splash' }); }
+    if (st.phase === 'wreck' && st.phaseT >= CUES.shipBreak && !st.broken) { st.broken = true; st.events.push({ type: 'shipBreak' }); }
+    if (st.phase === 'wreck' && st.phaseT >= CUES.splash && !st.splashed) { st.splashed = true; st.witchAt = { x: 1500, y: 150 }; st.events.push({ type: 'splash' }); }
 
     if (st.phaseT >= ENDING[st.phase]) next(st);
   },
@@ -138,7 +151,16 @@ function next(st) {
     st.checkpoint = { scene: st.phase === 'party' ? 4 : 5, leaves: b.leaves, spawned: b.keepsakesSpawned, score: b.score, pearls: b.pearls };
   }
   if (st.phase === 'landho') st.events.push({ type: 'landho' });
-  if (st.phase === 'party') st.events.push({ type: 'cheer' });
+  if (st.phase === 'party') { placeRevellers(st); st.events.push({ type: 'cheer' }); }
   if (st.phase === 'turn') st.events.push({ type: 'spirits' });
   if (st.phase === 'sink') st.events.push({ type: 'guitarSink' });
+}
+
+// A different arrangement each time: four of the spots (only one of the two
+// barrels by the left hatch), shuffled with the voyage's own random numbers.
+function placeRevellers(st) {
+  const r = st.board.rand;
+  const pool = [r() < 0.5 ? 0 : 1, 2, 3, 4, 5, 6];
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  st.party.spots = pool.slice(0, 4);
 }

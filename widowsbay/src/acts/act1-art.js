@@ -1,24 +1,36 @@
 // Act I drawing: the voyage (kit.voyage) and the ending scenes. Every piece
 // of new art has a procedural stand-in until its file is delivered (ids are
 // in design/image-requests.md, Part C2).
-import { LANTERNS, ENDING } from './act1.js';
+import { LANTERNS, ENDING, SPOTS } from './act1.js';
 import { clamp, easeOut, easeInOut, beatPhase } from './shared.js';
 
-const HATCHES = [420, 860];
+// The deck set as delivered (drawn 1280x500 with its foot at the deck line,
+// y 660 when fully up): the deck floor runs y 395-480 behind the carved rail,
+// and its two hatches open at x 320-500 and 785-960, around y 450. Figures
+// stand on the floor (feet above the rail) or on the barrels (act1.js SPOTS).
+const HATCHES = [{ x: 410, y: 450 }, { x: 872, y: 450 }];
+const LIP = 472;                 // the hatches' front edge: a figure below it is in the hole
+const BAND = { x: 640, y: 474, s: 210 };
 const REVELLERS = [
-  { id: 'reveller-yellow', hatch: 0, dx: -60, at: 1.2, col: '#e3c13b' },
-  { id: 'reveller-shaggy', hatch: 1, dx: 50, at: 1.6, col: '#6f9a4a' },
-  { id: 'reveller-jester', hatch: 0, dx: 70, at: 2.2, col: '#8a3f7a' },
-  { id: 'reveller-lady', hatch: 1, dx: -70, at: 2.7, col: '#e7a6bd' },
+  { id: 'reveller-yellow', col: '#e3c13b' },
+  { id: 'reveller-shaggy', col: '#6f9a4a' },
+  { id: 'reveller-jester', col: '#8a3f7a' },
+  { id: 'reveller-lady', col: '#e7a6bd' },
 ];
+// Revellers spring out of the hatches to their spots as the deck rises,
+// hold the moment, and when the witch strikes hop toward the nearest hatch
+// and drop in.
+const ARRIVE = { from: 0.55, stagger: 0.12, dur: 0.5 };
+const FLEE = { from: 0.9, stagger: 0.14, hop: 0.3, hopLen: 120, dive: 0.35 };
 const LANTERN_COLS = ['#f3c6dc', '#d9b34a', '#5f8c88'];
 
 export function draw(k, st, t) {
   const b = st.board, ph = st.phase, pt = st.phaseT;
   if (ph === 'voyage' || ph === 'landho') return k.voyage(b);
   if (ph === 'party' || ph === 'turn') {
-    // The wave rows sink through the floor and the deck set rises.
-    const deck = ph === 'party' ? easeInOut(pt / 1.6) : 1 - easeInOut((pt - 3.6) / 2);
+    // The wave rows sink through the floor and the deck set rises, at once
+    // when the bell has rung; it drops away after the revellers are below.
+    const deck = ph === 'party' ? easeInOut(pt / 0.8) : 1 - easeInOut((pt - 2.9) / 1.3);
     k.voyage(b, { rowsDrop: deck * 360, hideShip: true });
     if (ph === 'turn') whiteout(k, pt);
     deckScene(k, st, deck, t);
@@ -51,27 +63,64 @@ export function onEvent(k, e, st) {
 const lanternX = (i) => 300 + i * (680 / (LANTERNS - 1));
 
 function deckScene(k, st, deck, t) {
-  const c = k.c, base = 660 + (1 - deck) * 520; // deck floor line
+  const c = k.c, base = 660 + (1 - deck) * 520, off = base - 660; // deck floor line, and how far it has sunk
   const beat = st.beat ?? t / 0.784;
   const bob = Math.abs(Math.sin(Math.PI * beatPhase(beat)));
-  // lantern string in the rigging
   if (deck > 0.5) lanterns(k, st.party.lit, t, deck);
   if (!k.asset('deck-set', 640, base + 10, 1280, 500)) deckStandin(k, base);
-  // revellers through the hatches
-  for (const r of REVELLERS) {
-    const since = st.phase === 'party' ? st.phaseT - r.at : 3 - st.phaseT; // they dive back in the turn
-    const up = easeOut(clamp(since / 0.5, 0, 1));
-    if (up <= 0) continue;
-    const x = HATCHES[r.hatch] + r.dx * up, y = base - 70 + (1 - up) * 160 - bob * 14;
-    c.save(); c.beginPath(); c.rect(0, 0, 1280, base - 64); c.clip();
-    if (!k.asset(r.id, x, y, 110, 210)) figure(k, x, y, r.col, bob);
-    c.restore();
+  // Everyone on the deck, back to front.
+  const items = [{ y: BAND.y, f: () => {
+    if (!k.asset('band-trio', BAND.x, BAND.y + off, BAND.s, BAND.s)) {
+      for (const [dx, col] of [[-50, '#2b2b2b'], [0, '#e9e1d0'], [50, '#5a4a3a']]) figure(k, BAND.x + dx, BAND.y + off, col, bob * 0.5, 0.9);
+    }
+  } }];
+  REVELLERS.forEach((r, i) => {
+    const p = revellerAt(st, i, bob);
+    if (!p) return;
+    items.push({ y: p.y, f: () => {
+      // Clipped at the hatches' front edge, so a figure below it is down the hole.
+      c.save(); c.beginPath(); c.rect(0, 0, 1280, LIP + off); c.clip();
+      if (!k.asset(r.id, p.x, p.y + off, 110 * p.s, 210 * p.s)) figure(k, p.x, p.y + off, r.col, 0, p.s);
+      c.restore();
+    } });
+  });
+  items.sort((a, b) => a.y - b.y);
+  for (const it of items) it.f();
+}
+
+// Where reveller i is (feet x, y, scale), or null while below deck.
+function revellerAt(st, i, bob) {
+  const spot = SPOTS[st.party.spots?.[i] ?? i + 2];
+  const h = HATCHES[spot.x < 640 ? 0 : 1];
+  const pt = st.phaseT;
+  if (st.phase === 'party') {
+    // Out of the hatch in one bound, up and over to the spot.
+    const k = clamp((pt - ARRIVE.from - i * ARRIVE.stagger) / ARRIVE.dur, 0, 1);
+    if (k <= 0) return null;
+    if (k >= 1) return { x: spot.x, y: spot.y - bob * 3 * spot.s, s: spot.s };
+    const e = easeOut(k), peak = Math.min(spot.y, h.y) - 120;
+    const x = h.x + (spot.x - h.x) * e;
+    const y = (1 - e) ** 2 * (h.y + 150) + 2 * (1 - e) * e * peak + e * e * spot.y;
+    return { x, y, s: 0.72 + (spot.s - 0.72) * e };
   }
-  // the band on the barrels
-  const by = base - 64;
-  if (!k.asset('band-trio', 640, by + 4, 230, 230)) {
-    for (const [dx, col] of [[-50, '#2b2b2b'], [0, '#e9e1d0'], [50, '#5a4a3a']]) figure(k, 640 + dx, by, col, bob * 0.5);
+  // The turn: hop, hop toward the hatch, then drop in.
+  const dist = Math.hypot(h.x - spot.x, h.y - spot.y), hops = Math.max(1, Math.ceil(dist / FLEE.hopLen));
+  let tt = pt - FLEE.from - i * FLEE.stagger;
+  if (tt <= 0) return { x: spot.x, y: spot.y, s: spot.s };
+  const hopT = hops * FLEE.hop;
+  if (tt < hopT) {
+    const n = Math.floor(tt / FLEE.hop), f = (tt % FLEE.hop) / FLEE.hop;
+    const a = n / hops, b2 = (n + 1) / hops, at = (u) => ({ x: spot.x + (h.x - spot.x) * u, y: spot.y + (h.y - spot.y) * u, s: spot.s + (0.74 - spot.s) * u });
+    const p0 = at(a), p1 = at(b2), u = easeInOut(f);
+    return { x: p0.x + (p1.x - p0.x) * u, y: p0.y + (p1.y - p0.y) * u - Math.sin(Math.PI * f) * 34, s: p0.s + (p1.s - p0.s) * u };
   }
+  tt -= hopT;
+  if (tt < FLEE.dive) {
+    // a little spring up, then straight down past the lip
+    const f = tt / FLEE.dive;
+    return { x: h.x, y: h.y - Math.sin(Math.PI * Math.min(1, f * 2)) * 30 * (f < 0.5 ? 1 : 0) + Math.max(0, f - 0.3) / 0.7 * 230, s: 0.74 };
+  }
+  return null;
 }
 
 function lanterns(k, lit, t, deck) {
@@ -104,7 +153,7 @@ function deckStandin(k, base) {
   // deck boards
   c.fillStyle = k.col('#8a5a32'); c.fillRect(0, base - 64, 1280, 80);
   c.fillStyle = k.col('#1a1012');
-  for (const x of HATCHES) c.fillRect(x - 55, base - 66, 110, 14);
+  for (const h of HATCHES) c.fillRect(h.x - 70, base - 660 + h.y - 20, 140, 36);
   // barrels
   for (const x of [560, 720]) { c.fillStyle = k.col('#7a4a26'); c.beginPath(); c.ellipse(x, base - 96, 30, 36, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = k.col('#3a2112'); c.fillRect(x - 30, base - 106, 60, 5); c.fillRect(x - 30, base - 88, 60, 5); }
   // carved rail with heraldic shields
@@ -117,29 +166,32 @@ function deckStandin(k, base) {
 }
 
 // A stand-in cut-out person: hat, head, coat in `col`, dancing with the beat.
-function figure(k, x, y, col, bob = 0) {
+function figure(k, x0, y0, col, bob = 0, s = 1) {
   const c = k.c;
+  c.save(); c.translate(x0, y0); c.scale(s, s);
+  const x = 0, y = 0;
   c.fillStyle = k.col(col);
   c.beginPath(); c.moveTo(x - 22, y); c.lineTo(x - 16, y - 90); c.lineTo(x + 16, y - 90); c.lineTo(x + 22, y); c.fill();
   c.save(); c.translate(x, y - 80); c.rotate((bob - 0.5) * 0.8);
   c.fillRect(-36, -4, 72, 9); c.restore();
   c.fillStyle = k.col('#efd7c4'); k.circle(x, y - 104, 13);
   c.fillStyle = k.col('#2a1a22'); c.fillRect(x - 15, y - 122, 30, 7);
+  c.restore();
 }
 
 // ---------------------------------------------------------------- the turn
 function whiteout(k, pt) {
   // The sky bleaches white, as in the video around 1:00.
-  k.wash('#f4f1ea', 0.75 * easeInOut(pt / 2.2) * (1 - easeInOut((pt - 4.2) / 1.8)));
+  k.wash('#f4f1ea', 0.75 * easeInOut(pt / 1.3) * (1 - easeInOut((pt - 3.0) / 1.4)));
 }
 
 function spirits(k, pt, t) {
   const c = k.c;
   for (let i = 0; i < 4; i++) {
-    const rise = easeOut((pt - 0.6 - i * 0.35) / 2.2);
+    const rise = easeOut((pt - 0.3 - i * 0.2) / 1.6);
     if (rise <= 0) continue;
     const x = 260 + i * 250 + Math.sin(t * 0.9 + i) * 20, y = 760 - rise * 360;
-    c.save(); c.globalAlpha = 0.55 * (1 - easeInOut((pt - 4.4) / 1.4));
+    c.save(); c.globalAlpha = 0.55 * (1 - easeInOut((pt - 3.2) / 1.2));
     if (!k.asset('sea-spirit', x, y, 150, 300)) {
       c.fillStyle = k.col('#ffffff');
       c.beginPath(); c.moveTo(x - 40, y); c.quadraticCurveTo(x - 50, y - 160, x, y - 230); c.quadraticCurveTo(x + 50, y - 160, x + 40, y);
@@ -160,7 +212,7 @@ function wreck(k, st, pt, t) {
 
 function waterspout(k, pt, t) {
   const c = k.c;
-  const rise = easeOut(pt / 1.4) * (1 - easeInOut((pt - 4.6) / 1.2));
+  const rise = easeOut(pt / 0.9) * (1 - easeInOut((pt - 3.2) / 1.0));
   if (rise > 0 && !k.asset('waterspout', 560, 560, 300 * rise, 550 * rise)) {
     // A twisting column of water, narrow at the sea and flaring into cloud.
     const H = 520 * rise, pts = 24, edge = (side, i) => {
@@ -185,9 +237,9 @@ function waterspout(k, pt, t) {
 
 function shipWreck(k, st, pt, t) {
   const c = k.c, x = st.board.ship.x, y0 = 512;
-  const lift = easeInOut((pt - 1.2) / 1.6) * 110 * (1 - easeInOut((pt - 3) / 1.4));
-  const brk = easeInOut((pt - 3) / 1.6);  // halves part and tip
-  const sink = easeInOut((pt - 3.6) / 2.2) * 200;
+  const lift = easeInOut((pt - 0.5) / 1.1) * 110 * (1 - easeInOut((pt - 2.0) / 1.2));
+  const brk = easeInOut((pt - 2.0) / 1.2);  // halves part and tip
+  const sink = easeInOut((pt - 2.5) / 1.8) * 200;
   for (const side of [-1, 1]) {
     c.save();
     c.translate(x + side * brk * 50, y0 - lift + sink);

@@ -23,7 +23,7 @@ export const TUNING = {
   rock: { warn: 0.95, hitW: 44 },
   bolt: { warn: 1.35, strike: 0.32, hitW: 62, from: 0.1 },
   keepsakeAt: [0.22, 0.5, 0.78],
-  arriveTime: 3,
+  arriveTime: 2.4, // the harbour bell rings twice, then land ho
 };
 
 export function rng(seed) {

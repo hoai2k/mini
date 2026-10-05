@@ -116,4 +116,43 @@ test('an idle voyage is survivable in rough length and never walls off all rows'
   }
 });
 
+
+// ---------------------------------------------------------------- Act I's ending
+const { default: act1, ENDING, LANTERNS, SPOTS } = await import('../src/acts/act1.js');
+const { beatHit } = await import('../src/acts/shared.js');
+const endingRun = (seed, lightOnBeat) => {
+  const st = act1.create({ seed, from: { scene: 3, progress: 0.999 } });
+  st.board.ship.invuln = 99;
+  const seen = [];
+  for (let t = 0; t < 60 && st.status === 'play'; t += 1 / 60) {
+    const beat = t * 76.5 / 60 + 0.33;
+    act1.step(st, 1 / 60, { beat, a: lightOnBeat && st.phase === 'party' && beatHit(beat, 0.05) != null });
+    if (seen[seen.length - 1]?.phase !== st.phase) seen.push({ phase: st.phase, t });
+    st.events.length = 0;
+  }
+  return { st, seen };
+};
+
+test('the ending: bell, deck party, turn, wreck, guitar, each kept brief', () => {
+  const { st, seen } = endingRun(11, true);
+  assert.equal(st.status, 'won');
+  assert.deepEqual(seen.map((s) => s.phase), ['voyage', 'landho', 'party', 'turn', 'wreck', 'sink', 'iris']);
+  const total = Object.values(ENDING).reduce((a, b) => a + b, 0);
+  assert.ok(total <= 23, `ending runs ${total.toFixed(1)} s`);
+  assert.equal(st.party.lit, LANTERNS); assert.ok(st.result.revelry, 'every lantern lit');
+});
+
+test('the revellers land in a different arrangement of the deck spots each time', () => {
+  const layouts = new Set();
+  for (let seed = 1; seed <= 12; seed++) {
+    const { st } = endingRun(seed, false);
+    const sp = st.party.spots;
+    assert.equal(sp.length, 4); assert.equal(new Set(sp).size, 4);
+    assert.ok(sp.every((i) => SPOTS[i]), 'real spots');
+    assert.ok(!(sp.includes(0) && sp.includes(1)), 'never both barrels by the left hatch');
+    layouts.add(sp.join());
+  }
+  assert.ok(layouts.size >= 6, `${layouts.size} layouts in 12 voyages`);
+});
+
 console.log(`\n${n} checks passed`);

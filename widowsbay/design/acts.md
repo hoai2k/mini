@@ -123,41 +123,48 @@ witch's lightning, the shifting wind, pearls, and the voyage ribbon.
 which complete the reading in the cup (`keepsake-tea`). The pearl and the
 rose move to Acts III and II.
 
-**New ending: celebration, then the wreck.** It runs about 30 s, replacing
-the arrival card, in four scenes.
+**New ending: celebration, then the wreck.** It runs about 21 s after the
+ship arrives, replacing the arrival card, in four scenes. Each scene shows
+its moment and moves on: no lingering. Timings are `ENDING` and `CUES` in
+`src/acts/act1.js`; watch it in the workbench (`workbench/#act1-ending`).
 
-1. **Land ho** (about 3 s). The lighthouse is wheeled on as now and its
-   beam sweeps the stage. A ship's bell rings.
-2. **The celebration** (about 15 s, `0:25–0:45`). Stage machinery changes
-   the scene in full view:
+1. **Land ho** (1.7 s, after the harbour bell's two rings on arrival). The
+   lighthouse is wheeled on and its beam sweeps the stage. The ship's bell
+   rings three times, and as it finishes the scene changes.
+2. **The celebration** (6 s, `0:25–0:45`). Stage machinery changes the scene
+   in full view:
    - The three wave rows sink through the floor and the **deck set**
-     (`deck-set`) rises in their place. It has a carved rail with heraldic
-     shields, the mast and rigging, barrels and coiled rope, and two hatches.
-   - Costumed revellers pop up through the hatches and dance in step with
-     the song: the traveller in yellow (`reveller-yellow`), the shaggy green
-     sea creature (`reveller-shaggy`), the harlequin (`reveller-jester`) and
-     the lady in stripes (`reveller-lady`).
-   - The band sit on the barrels among the ropes, as at `0:40` (`band-hat`,
-     `band-guitar`, `band-beard`, drawn deck-sized). Strings of paper
-     lanterns (`lantern-string`) light across the rigging.
-   - **Play:** press **A** on the beat to keep the party going. Each good
-     beat lights a lantern and throws confetti, and lighting them all earns
-     the *Revelry* bonus. This can't be failed: it's a breath before the fall.
-3. **The turn** (about 6 s, `0:50–1:00`).
+     (`deck-set`) rises in their place in 0.8 s. It has a carved rail with
+     heraldic shields, the mast and rigging, barrels and coiled rope, and
+     two hatches. Its deck floor lies at y 395–480 behind the rail, and the
+     hatches open at x 320–500 and 785–960.
+   - The band (`band-trio`) stand on the deck between the hatches.
+   - The costumed revellers spring out of the hatches in quick succession
+     and land in a different arrangement each voyage: on the barrels, on
+     the coil of rope, by the bell and at the rail (`SPOTS`). They are the
+     traveller in yellow (`reveller-yellow`), the shaggy green sea creature
+     (`reveller-shaggy`), the harlequin (`reveller-jester`) and the lady in
+     stripes (`reveller-lady`). Then they hold the tableau, nodding to the
+     beat. A string of paper lanterns hangs across the rigging.
+   - **Play:** press **A** on the beat. Each good beat lights one of the
+     four lanterns and throws confetti, and lighting them all earns the
+     *Revelry* bonus. This can't be failed: it's a breath before the fall.
+3. **The turn** (4.4 s, `0:50–1:00`).
    - The music doesn't stop, but the sky bleaches to white as at `0:60`.
    - Ghostly sea spirits (`sea-spirit`), translucent white figures like
      Méliès double exposures, rise out of the sea.
-   - The witch laughs and lightning strikes the mast. The revellers dive
-     back down the hatches and the deck set drops away.
-4. **The wreck** (about 6 s).
+   - The witch strikes the mast (1.2 s). The revellers hop across the deck
+     toward the nearer hatch, one hop for every 120 px, and drop down it.
+     The band stay where they are, and the deck set drops away (from 2.9 s).
+4. **The wreck** (4.6 s).
    - The sea is back, and the ship is caught among the rocks (`0:55`). The
      waterspout (`waterspout`) lifts it.
-   - It breaks in two (`ship-wreck-bow`, `ship-wreck-stern`), and the halves
-     go down with a splash.
-   - The stage drains dark blue. One last shot: **the guitar**
-     (`guitar-sinking`) tumbles slowly down through bubbles and kelp, as at
+   - It breaks in two at 2 s (`ship-wreck-bow`, `ship-wreck-stern`), and the
+     halves go down with a splash at 3.2 s.
+   - The stage drains dark blue. One last shot (3.6 s): **the guitar**
+     (`guitar-sinking`) tumbles down through bubbles and kelp, as at
      `1:05`.
-   - Iris out to the Act II card.
+   - Iris out to the Act II card (1.2 s).
 
 The ending runs whatever your score. The tea leaves you gathered carry on,
 and a full reading shows as a glint in the cup as it sinks.
