@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
+    <title>Tank Wars</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <script src="https://www.unpkg.com/@instantdb/core@latest/dist/standalone/index.umd.cjs"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <div id="ui-wrapper">
+        <div id="notifications"></div>
+        <div id="stats-tl" class="hud-container hud-side hud-tl"></div>
+        <div id="stats-tr" class="hud-container hud-side hud-tr"></div>
+        <div id="stats-row-top" class="hud-container hud-row hud-row-top"></div>
+        <div id="stats-row-bottom" class="hud-container hud-row hud-row-bottom"></div>
+
+        <div id="mobile-controls">
+            <button id="mobile-pause-btn" onclick="togglePause()">PAUSE</button>
+            <div id="left-stick-zone" class="joystick-zone">
+                <div id="left-stick-thumb" class="joystick-thumb"></div>
+            </div>
+            <div id="right-stick-zone" class="joystick-zone">
+                <div id="right-stick-thumb" class="joystick-thumb"></div>
+            </div>
+        </div>
+
+        <div id="menu" class="ui-panel">
+            <h1>TANK WARS</h1>
+            <button class="nav-item" onclick="startGame()">PLAY LOCAL</button>
+            <button class="nav-item" onclick="showLobby()">PLAY ONLINE</button>
+            <button class="nav-item" onclick="showOptions()">SETTINGS</button>
+            <p class="stats">WASD / Arrows to Move<br>Mouse to Aim & Shoot<br>Controllers to join<br><br>A game by Hoai Nguyen</p>
+        </div>
+
+        <div id="lobby" class="ui-panel hidden">
+            <h1>LOBBY</h1>
+            <button class="nav-item" onclick="showHostSetup()">HOST ONLINE GAME</button>
+            <h3>Active Games</h3>
+            <div class="room-list" id="roomList">
+                <div class="room-item stats">Searching for games...</div>
+            </div>
+            <button class="nav-item" onclick="backToMenu()">BACK</button>
+        </div>
+
+        <div id="host-setup" class="ui-panel hidden">
+            <h1>HOST GAME</h1>
+            <h2>Enter Tank Name</h2>
+            <div style="display: flex; justify-content: center;">
+                <input type="text" id="hostNameInput" placeholder="Tank Name...">
+            </div>
+            <button class="nav-item" onclick="hostGame()">HOST GAME</button>
+            <button class="nav-item" onclick="showLobby()">CANCEL</button>
+        </div>
+
+        <div id="join-setup" class="ui-panel hidden">
+            <h1>JOIN GAME</h1>
+            <h2>Enter Tank Name</h2>
+            <div style="display: flex; justify-content: center;">
+                <input type="text" id="joinNameInput" placeholder="Tank Name...">
+            </div>
+            <button class="nav-item" onclick="confirmJoin()">JOIN</button>
+            <button class="nav-item" onclick="showLobby()">CANCEL</button>
+        </div>
+
+        <div id="options" class="ui-panel hidden">
+            <h1>SETTINGS</h1>
+            
+            <div class="settings-nav nav-item" id="settings-pagination">
+                <span class="page-arrow">◀</span>
+                <span id="settings-page-title" style="letter-spacing: 2px; font-weight: 800;">GAMEPLAY</span>
+                <span class="page-arrow">▶</span>
+            </div>
+
+            <div class="settings-content-wrapper">
+                <div id="settings-p1" class="settings-page active">
+                    <div class="opt-group nav-item"><span>Fullscreen</span><button id="fullscreenBtn" class="toggle-btn" onclick="toggleFullscreen()">OFF</button></div>
+                    <div class="opt-group nav-item"><span>Cooperative Mode</span><button id="coopModeBtn" class="toggle-btn" onclick="toggleCoop()">OFF</button></div>
+                    <div class="opt-group nav-item"><span>Power-ups for Everyone</span><button id="defaultPUBtn" class="cycle-btn" onclick="cycleDefaultPU(true, 1)">NONE</button></div>
+                    <div class="opt-group nav-item"><span>Power-up Duration</span><button id="puDurationBtn" class="cycle-btn" onclick="cyclePUDuration(1)">LIFESPAN</button></div>
+                    <div class="opt-group nav-item"><span>AI can get Power-Ups</span><button id="aiPUBtn" class="toggle-btn" onclick="toggleAiPU()">OFF</button></div>
+                    
+                    <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+                    
+                    <div class="opt-group nav-item"><span>Power-Up Frequency (sec)</span><div class="opt-controls"><input type="range" id="puFreqR" min="1" max="60" value="12" oninput="syncSlider('puFreq', this.value)"><input type="number" id="puFreqI" class="val-input" value="12" onchange="syncInput('puFreq', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>Player Health</span><div class="opt-controls"><input type="range" id="hpR" min="10" max="500" value="100" oninput="syncSlider('hp', this.value)"><input type="number" id="hpI" class="val-input" value="100" onchange="syncInput('hp', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>Tank Speed</span><div class="opt-controls"><input type="range" id="speedR" min="1" max="8" value="3.5" step="0.5" oninput="syncSlider('speed', this.value)"><input type="number" id="speedI" class="val-input" value="3.5" step="0.5" onchange="syncInput('speed', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>Shot Range</span><div class="opt-controls"><input type="range" id="rangeR" min="100" max="800" value="300" oninput="syncSlider('range', this.value)"><input type="number" id="rangeI" class="val-input" value="300" onchange="syncInput('range', this.value)"></div></div>
+                </div>
+
+                <div id="settings-p2" class="settings-page">
+                    <div class="opt-group nav-item"><span>AI Intensity</span><div class="opt-controls"><input type="range" id="aiIntensR" min="0" max="1" value="0.25" step="0.05" oninput="syncSlider('aiIntens', this.value)"><input type="number" id="aiIntensI" class="val-input" value="0.25" step="0.05" onchange="syncInput('aiIntens', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>AI Aim Precision</span><div class="opt-controls"><input type="range" id="aiPrecR" min="0" max="1" value="0.75" step="0.05" oninput="syncSlider('aiPrec', this.value)"><input type="number" id="aiPrecI" class="val-input" value="0.75" step="0.05" onchange="syncInput('aiPrec', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>AI Max Health</span><div class="opt-controls"><input type="range" id="aiHpR" min="1" max="500" value="100" oninput="syncSlider('aiHp', this.value)"><input type="number" id="aiHpI" class="val-input" value="100" onchange="syncInput('aiHp', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>AI Personality</span><button id="aiPersBtn" class="cycle-btn" onclick="cycleAiPers(1)">NORMAL</button></div>
+                    
+                    <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+                    
+                    <div class="opt-group nav-item"><span>Respawn Cooldown (sec)</span><div class="opt-controls"><input type="range" id="cooldownR" min="0" max="5" value="1.5" step="0.5" oninput="syncSlider('cooldown', this.value)"><input type="number" id="cooldownI" class="val-input" value="1.5" step="0.5" onchange="syncInput('cooldown', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>Board Size</span><button id="boardSizeBtn" class="cycle-btn" onclick="cycleBoardSize(1)">NORMAL</button></div>
+                    <div class="opt-group nav-item"><span>Obstacle Density (%)</span><div class="opt-controls"><input type="range" id="densityR" min="5" max="45" value="15" step="1" oninput="syncSlider('density', this.value)"><input type="number" id="densityI" class="val-input" value="15" step="1" onchange="syncInput('density', this.value)"></div></div>
+                    <div class="opt-group nav-item"><span>God Mode</span><button id="godModeBtn" class="toggle-btn" onclick="toggleGodMode()">OFF</button></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: center; margin-top: 20px;">
+                <button id="saveBtn" class="nav-item" onclick="hideOptions()">BACK</button>
+                <button class="nav-item" onclick="resetOptions()">RESET TO DEFAULT</button>
+            </div>
+        </div>
+
+        <div id="pause-menu" class="ui-panel hidden">
+            <h1 id="pause-title">PAUSED</h1>
+            <div class="pause-grid">
+                <button id="resumeBtn" class="nav-item" onclick="togglePause()">RESUME</button>
+                <button id="quitMenuBtn" class="nav-item" onclick="backToMenu()">EXIT</button>
+                <button id="settingsPauseBtn" class="nav-item" style="grid-column: span 2;" onclick="showOptions()">SETTINGS</button>
+            </div>
+        </div>
+
+        <div id="game-over" class="ui-panel hidden">
+            <h1 id="game-over-title">LEVEL COMPLETED</h1>
+            <h2 id="round-stat">Round 1</h2>
+            <div id="game-over-buttons">
+                <button class="nav-item" id="next-btn" onclick="nextRound()">NEXT ROUND</button>
+                <button class="nav-item hidden" id="fail-continue-btn" onclick="nextRound()">CONTINUE</button>
+                <button class="nav-item hidden" id="main-menu-btn" onclick="backToMenu()">MAIN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="menu.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
