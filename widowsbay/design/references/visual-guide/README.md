@@ -31,4 +31,4 @@ Generated with the built-in imagegen tool. All prompts and input timestamps are 
 - [Grotto fish and marine ornaments](creature-fish.png) — input frames 1:10, 1:40, 1:45, 1:55. Generated reconstruction from video frames. Hidden details, faces and any added views are interpretive completions.
 - [Pearls tea and flowers](story-motifs.png) — input frames 1:20, 1:55. Interpretive adaptation objects from the song’s captions. Frames supply style only; these are not claimed film props.
 
-The [expanded source-film gallery](../../design/references/expanded-world/index.html) adds nine world references from the full 1903 film, including omitted scenes and a deeper armoury study.
+The [expanded source-film gallery](../expanded-world/index.html) adds nine world references from the full 1903 film, including omitted scenes and a deeper armoury study.

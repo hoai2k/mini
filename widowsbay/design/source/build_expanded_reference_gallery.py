@@ -23,7 +23,7 @@ page = '''<!doctype html>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f6efe2;color:#2a1424;font:17px/1.6 Georgia,serif}main{max-width:1120px;margin:auto;padding:36px 24px}h1{font-size:clamp(30px,5vw,52px);line-height:1.1}h2{font-size:30px}a{color:#8e1730}nav{display:flex;gap:20px;flex-wrap:wrap}article{margin:44px 0;padding-top:20px;border-top:1px solid #c9b89f}.generated{display:block;width:100%;height:auto}.inputs{display:flex;gap:16px;flex-wrap:wrap}figure{margin:0;flex:1;min-width:240px;max-width:480px}figure img{width:100%;height:auto}figcaption{font-size:14px}details{margin-top:18px}summary{cursor:pointer}details p{font:14px/1.6 system-ui,sans-serif}footer{margin:36px 0;font-size:14px}
 </style></head><body><main>'''
-page += f'<h1>Beyond the music video</h1><p>{intro}</p><nav><a href="../../../reference/visual-guide/index.html">Music-video atlas</a><a href="{esc(data["source_url"])}">Full source film</a><a href="prompts.json">Prompts and provenance</a></nav>'
+page += f'<h1>Beyond the music video</h1><p>{intro}</p><nav><a href="../visual-guide/index.html">Music-video atlas</a><a href="{esc(data["source_url"])}">Full source film</a><a href="prompts.json">Prompts and provenance</a></nav>'
 page += ''.join(cards)
 page += '<footer>Source timestamps refer to the 16:33 Wikimedia Commons copy. Inputs are browser captures, not original-resolution frame exports; white timestamp boxes belong to the player. Built-in imagegen created all nine final illustrations. The source film and generated adaptations remain distinct from the song’s narrative.</footer></main></body></html>'
 (folder / 'index.html').write_text(page)

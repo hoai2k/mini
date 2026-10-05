@@ -65,6 +65,13 @@ ACTS = [
         ('sailor-carry', 'Sailor carrying the beloved', 360, 400, 'bottom centre', SPRITE,
          f'{SAILOR} in profile facing right, carrying {BELOVED} in his arms; her arm around his neck, her '
          f'shawl trailing. One cut-out piece.'),
+        ('sailor-swim-a', 'Sailor swimming on the harness, stroke A', 360, 240, 'centre (harness ring on his back)', SPRITE,
+         f'{SAILOR}, swimming horizontally facing right in a breaststroke with arms reaching forward, a small '
+         f'leather harness on his back with a brass ring for the flying wires, cap clamped on, bubbles from his '
+         f'beard.'),
+        ('sailor-swim-b', 'Sailor swimming on the harness, stroke B', 360, 240, 'centre (harness ring on his back)', SPRITE,
+         f'{SAILOR}, swimming horizontally facing right with arms swept back and legs kicking, the same '
+         f'harness and ring. Same scale and framing as sailor-swim-a.'),
         ('beloved-stand', 'The beloved', 200, 380, 'bottom centre', SPRITE,
          f'Full figure of {BELOVED}, standing in profile facing left, one hand at her throat, looking out '
          f'to sea.'),
@@ -74,9 +81,6 @@ ACTS = [
         ('witch-stand', 'The witch offering the sea rose', 260, 420, 'bottom centre', SPRITE,
          f'Full figure of {WITCH}, standing facing left, holding out a single deep-pink sea rose in her open '
          f'hand, wand lowered in the other. Alluring and ambiguous rather than evil.'),
-        ('witch-throne', 'The witch on her shell throne', 520, 520, 'bottom centre', SPRITE,
-         f'{WITCH}, seated facing front on a tall gold scallop-shell throne flanked by white coral, chin on '
-         f'her hand, watching.'),
         ('band-hat', 'Band member with the hat', 400, 800, 'bottom centre', HALFTONE,
          'Full-length cut-out of the band member wearing the hat in video-cover.jpg (the left of the trio), '
          'standing facing front, one hand on the hat brim. Halftone dots visible, pale card edge around the '
@@ -91,21 +95,65 @@ ACTS = [
          'A single curled dark tea leaf with a faint gold glow around it, like a fortune about to be read.'),
         ('keepsake-stone', 'The stone (Act IV keepsake)', 128, 128, 'bottom centre', SPRITE,
          'A smooth grey sea pebble, palm-sized, with a thin white quartz ring around it, resting on nothing.'),
+        ('keepsake-guitar', 'The guitar (Act II keepsake)', 128, 128, 'bottom centre', SPRITE,
+         'A small acoustic guitar with a pale spruce top and dark wood sides, like the one in video-cover.jpg, '
+         'tilted, with a strand of kelp caught on its neck and a few bubbles.'),
+        ('band-legs-giant', "Band member's giant legs", 500, 1000, 'bottom centre', HALFTONE,
+         'Only the legs, from the hip down, of a band member standing like a giant: striped trousers and black '
+         'boots, feet apart, as cut off by the top of the frame in video frames 2:45-2:55. Cut out as one tall '
+         'piece.'),
         ('playbill', 'Playbill (act select)', 1400, 2000, 'centre', PLAYBILL,
          'A Victorian playbill on cream paper with ornate plum and gold borders, shells and stars in the '
          'corners, a small crescent-moon boat vignette at the top. Leave five large empty horizontal panels '
          'down the middle for the game to letter (one per act), and an empty banner at the top for the '
          'title. No words at all.'),
     ]),
-    ('Act I additions', 'For the full-game version of The Crossing (see acts.md).', [
+    ('Act I additions — the celebration and the wreck', 'The new ending of The Crossing (see acts.md): the deck party, the storm, the wreck and the sinking guitar.', [
+        ('deck-set', 'Ship deck set', 2560, 1000, 'bottom edge', SPRITE,
+         "A ship's deck built as a stage set, seen square-on: a carved wooden rail along the front with a row of "
+         'painted heraldic shields (as in video frame 0:25), a mast with rigging rising out of the top edge, '
+         'barrels, coiled ropes and a ship\'s bell; two square hatch openings in the deck boards, left and right '
+         'of centre, dark inside.'),
+        ('reveller-yellow', 'Reveller in yellow', 220, 420, 'bottom centre', SPRITE,
+         'A costumed party reveller from the Méliès deck scene (video 0:30-0:35): a man in a bright yellow tunic, '
+         'yellow tights and a small cap, mid-dance with one knee raised and arms out.'),
+        ('reveller-shaggy', 'Shaggy sea-creature reveller', 260, 440, 'bottom centre', SPRITE,
+         'A reveller in a shaggy green sea-creature costume of long fringed strands (video 0:35), arms thrown up '
+         'in a dance, a comic face peering out.'),
+        ('reveller-jester', 'Harlequin reveller', 220, 420, 'bottom centre', SPRITE,
+         'A harlequin reveller in a diamond-patched costume of plum, gold and teal with a ruff and a belled '
+         'cap, mid-caper.'),
+        ('reveller-lady', 'Lady reveller in stripes', 220, 420, 'bottom centre', SPRITE,
+         'A lady reveller in a striped pink-and-cream Edwardian dress and a feathered hat, holding up her skirt '
+         'in a jig.'),
+        ('lantern-string', 'String of paper lanterns', 1200, 300, 'top edge (hangs from the ends)', SPRITE,
+         'A swagged string of eight round paper lanterns in rose, gold and teal, unlit, hanging from a cord '
+         'whose two ends are at the top corners.'),
+        ('sea-spirit', 'Sea spirit (double exposure)', 300, 600, 'bottom centre', SPRITE.replace(
+            'stencil-tinted colour: sepia-grey line and tone with translucent washes of', 'pale ghostly white with only the faintest washes of'),
+         'A translucent ghostly sea spirit: a tall veiled female figure in white, arms raised, her lower body '
+         'dissolving into spray, like a Méliès double exposure over stormy water (video 0:50-0:55). Soft, '
+         'semi-transparent edges.'),
+        ('ship-wreck-bow', 'Wrecked ship, bow half', 300, 400, 'bottom centre', SPRITE,
+         'The front half of the two-masted toy-theatre ship from assets/ship.webp (brown hull, gold rail, coral '
+         'stripe, cream sails), broken off amidships with splintered timbers at its left edge, its foremast '
+         'snapped and sails torn, tipping forward into the water.'),
+        ('ship-wreck-stern', 'Wrecked ship, stern half', 300, 400, 'bottom centre', SPRITE,
+         'The rear half of the same ship, broken off amidships with splintered timbers at its right edge, the '
+         'mainmast leaning, the magenta pennant tangled, stern rising out of the water.'),
+        ('guitar-sinking', 'The guitar, sinking', 220, 520, 'centre', SPRITE,
+         'An acoustic guitar with a pale spruce top, sound hole and dark wood sides, like the one in '
+         'video-cover.jpg, sinking head-first at a slight angle, a broken string curling, bubbles and a strand '
+         'of kelp around it (video 1:05).'),
         ('waterspout', "The witch's waterspout", 600, 1100, 'bottom centre', SPRITE,
          'A towering twisting waterspout of painted sea water and foam, teal and white, as a tall stage flat '
          'with a visible wooden spine; spray curling at the top and a ring of waves at its base.'),
     ]),
-    ('Act II — The Grotto', 'A diving bell lowered on the fly rope through the witch\'s grotto.', [
+    ('Act II — The Sleepers\' Grotto', 'Swimming on the flying harness down through the grotto, waking the drowned revellers, chasing the sinking guitar.', [
         ('grotto-backcloth', 'Grotto backcloth (tall roll)', 2560, 4320, 'top, scrolls up', CLOTH,
          'A tall vertical backcloth that is read from top to bottom as the audience descends. Top third: '
-         'sunlit water just under the waves, light rays falling. Middle third: a teal grotto of rock arches '
+         'dim blue water on the sea floor near the surface, faint light rays, kelp and the dark shapes of a '
+         'sunken ship\'s timbers. Middle third: a teal grotto of rock arches '
          'and white coral, a distant painted underwater palace. Bottom third: a deep dark cave floor with '
          'faint phosphorescent anemones. The three zones blend smoothly, with no seams.'),
         ('grotto-wing-left', 'Grotto rock wing, left', 640, 1440, 'left edge', SPRITE,
@@ -125,12 +173,6 @@ ACTS = [
         ('fish-school', 'School of fish on a stick', 420, 200, 'centre', SPRITE,
          'A small school of seven gold and coral fish arranged in a swimming curve, all facing right, mounted '
          'together on one visible wooden stick.'),
-        ('diving-bell', 'Diving bell', 300, 380, 'top centre (rope ring)', SPRITE,
-         f'A brass diving bell with riveted bands and a round porthole; through the porthole, the face of '
-         f'{SAILOR}. A heavy ring at the top for the rope.'),
-        ('fly-trolley', 'Fly trolley', 300, 120, 'bottom centre', SPRITE,
-         'A wooden stage trolley with iron wheels on a rail and a pulley hanging beneath it, the rope leading '
-         'down; seen from the front.'),
         ('clam-open', 'Giant clam, open', 240, 200, 'bottom centre', SPRITE,
          'A giant fluted clam, wide open, pink inside, holding one large lustrous pearl.'),
         ('clam-closed', 'Giant clam, closed', 240, 200, 'bottom centre', SPRITE,
@@ -143,11 +185,17 @@ ACTS = [
          'A rose-pink jellyfish with trailing ribbon tentacles, a thin brass wire hook at the top.'),
         ('air-vent', 'Air vent', 160, 200, 'bottom centre', SPRITE,
          'A small volcanic rock vent on the sea floor, cracked open, with a column of bubbles starting to rise.'),
+        ('conch-horn', 'Conch horn', 160, 140, 'bottom centre', SPRITE,
+         'A large pink-and-cream conch shell lying on a rock, its mouth facing the viewer, a faint gold glow '
+         'inside.'),
+        ('wreck-debris', 'Wreckage from the ship', 700, 300, 'bottom centre', SPRITE,
+         'A ground row of wreckage from the sailor\'s ship lying on the sea floor: a broken section of gold-railed '
+         'hull with a coral stripe, a torn cream sail draped over a rock, a barrel and a coil of rope.'),
     ]),
-    ('Act III — The Undersea Court', "Crossing the witch's court between processional courtiers, hidden by the passing whale.", [
+    ('Act III — The Sea King\'s Court', "Crossing the Sea King's court between processional courtiers and snapping sea creatures, hidden by the passing whale.", [
         ('court-backcloth', 'Court backcloth', 2560, 1440, 'full frame', CLOTH,
-         'The great hall of an underwater palace: tall gold-ornamented arches, coral-red columns, a raised '
-         'dais at the back centre (left empty for the throne), shell-shaped windows letting in teal water '
+         'The great hall of an underwater palace, as in the Méliès court of video frames 1:55-2:10: tall '
+         'gold-ornamented arches, coral-red columns, a raised dais at the back centre (left empty for the throne), shell-shaped windows letting in teal water '
          'light, drifting bubbles.'),
         ('court-wing-left', 'Court column wing, left', 640, 1440, 'left edge', SPRITE,
          'A tall wing flat of a coral-red column wrapped in gold ornament and pearls, with a hanging lamp; '
@@ -170,7 +218,18 @@ ACTS = [
         ('seahorse-guard', 'Seahorse guard', 240, 460, 'bottom centre', SPRITE,
          'A palace guard in a gold seahorse-shaped helmet and coral-red tabard, holding a trident upright, '
          'facing front.'),
-        ('gaze-lantern', "The witch's gaze lantern", 200, 300, 'bottom centre', SPRITE,
+        ('sea-king-throne', 'The Sea King on his throne', 600, 620, 'bottom centre', SPRITE,
+         'The Sea King of the Méliès undersea court (video 1:45): a crowned, long white-bearded ruler in '
+         'flowing white and pale-blue robes with gold trim, holding a gold trident, seated facing front on a tall '
+         'gold scallop-shell throne flanked by white coral.'),
+        ('sentry-creature-closed', 'Red sea-creature sentry, jaws shut', 500, 340, 'bottom centre', SPRITE,
+         'One of the giant red sea creatures that line the foreground of the video\'s court (2:00-2:25): a '
+         'crouching coral-red beast with a frilled, finned crest, scaly body and a curled tail, jaws shut, '
+         'facing right.'),
+        ('sentry-creature-open', 'Red sea-creature sentry, jaws open', 500, 340, 'bottom centre', SPRITE,
+         'The same red sea-creature sentry with its jaws snapped wide open, crest flared. Same scale and '
+         'framing as sentry-creature-closed.'),
+        ('gaze-lantern', "The king's gaze lantern", 200, 300, 'bottom centre', SPRITE,
          'A tall gilded pole topped by a lantern shaped like a single wide-open eye with a pink iris, glowing.'),
         ('pearl-pedestal', 'Pedestal with her pearl', 260, 340, 'bottom centre', SPRITE,
          'A white coral pedestal holding an open scallop shell; in it, one large pearl on a broken fine gold '
@@ -213,10 +272,15 @@ ACTS = [
         ('whale-throat', 'Throat opening with daylight', 800, 800, 'centre', SPRITE,
          'A round fleshy opening framed by baleen, with bright daylight and a glimpse of rocky shore beyond.'),
         ('shore-rocks', 'Rocky shore', 2560, 600, 'bottom edge', SPRITE,
-         'A ground row of dark rocky shoreline with white surf breaking along it and a few gulls, as a long '
-         'stage flat.'),
+         'A ground row of rocky shoreline with white surf breaking along it and a few gulls, as a long stage '
+         'flat; the rocks painted in pale stone tones so the game\'s rose-pink wash (video 2:30-2:40) reads '
+         'well on them.'),
         ('whale-tail', 'Whale tail', 700, 500, 'bottom centre', SPRITE,
          'The whale\'s great tail fluke rising from the water as it swims away, streaming water.'),
+        ('whale-beached', 'Whale beached on the rocks', 1800, 900, 'bottom centre', SPRITE,
+         'The giant whale lying beached on its belly across rocks, side view facing right, its huge mouth open '
+         'at the right with baleen showing, so figures can crawl out (video 2:30-2:35); slate-grey body, pale '
+         'ridged throat.'),
     ]),
     ('Act V — Widow\'s Bay', 'The burning house on the cliff, the rescue and the three endings.', [
         ('bay-backcloth', 'Widow\'s Bay at night', 2560, 1440, 'full frame', CLOTH,
@@ -244,6 +308,22 @@ ACTS = [
         ('harbour-quay', 'Harbour quay', 2560, 400, 'bottom edge', SPRITE,
          'A long stone quay with iron bollards, coiled ropes, lobster pots and a lamp post, as a ground-row '
          'flat.'),
+        ('cliff-face', 'Cliff face', 1400, 1800, 'bottom centre', SPRITE,
+         'A tall sea-cliff flat climbing from the shore (video 2:45-3:05): pale layered rock with green ivy, '
+         'jutting ledges at different heights for climbing, a dark vertical gap in the rock about two-thirds of '
+         'the way up, and a flat grassy top edge.'),
+        ('house-front', 'Stone house, front with door', 1400, 1800, 'bottom centre', SPRITE,
+         'The front of the tall three-storey stone house, closed: grey stone walls hung with ivy, a heavy '
+         'wooden door with iron hinges at ground level (as in video frames 2:45-3:05), a shuttered window on '
+         'the middle floor and a small window at the top. Same outline and scale as stone-house, so it can '
+         'swing open like a dollhouse front to reveal it.'),
+        ('pageant-backcloth', 'Pageant backcloth (apotheosis)', 2560, 1440, 'full frame', CLOTH,
+         'A Méliès apotheosis finale set (video 3:20): a gilded fairy palace of tiered arches, fountains and '
+         'coral, shells and stars, a radiant sunburst behind the central arch, everything shimmering as if in a '
+         'dissolve; an open stage floor across the front for the dancers.'),
+        ('pageant-dancers', 'Line of pageant dancers', 1600, 700, 'bottom centre', SPRITE,
+         'A line of five ballet dancers in pink tutus and pale bodices with flower crowns, arms raised in '
+         'unison, as in the closing tableau of the video (3:20), mounted together as one ground-row cut-out.'),
         ('ending-lamp', 'Ending: a lamp in the window', 2560, 1440, 'full frame', TABLEAU,
          f'Night. The stone house on the cliff, saved, a warm lamp in its window; on the quay below, {SAILOR} '
          f'and {BELOVED} embrace; the pearl is back on her chain. The moon smiles.'),
@@ -257,15 +337,26 @@ ACTS = [
 ]
 
 MOODS = [
+    ('mood-deck-party', 'Act I: the celebration on deck', f'{MOOD} A carnival on a ship\'s deck as a stage set: '
+     f'costumed revellers in yellow tights, a shaggy green sea creature and a harlequin dancing between barrels '
+     f'and ropes, paper lanterns in the rigging, a band of three musicians sitting on the barrels, a carved rail '
+     f'with heraldic shields; then, behind, a white storm sky with ghostly figures rising from the sea.'),
+    ('mood-sleepers', 'Act II: the drowned sleepers', f'{MOOD} The sea floor among kelp and coral: costumed '
+     f'revellers lying asleep in a heap, a red sea dragon nosing past, a woman in rose-pink robes with a gold '
+     f'crown bending over a grey-bearded sailor to wake him, a guitar sinking through bubbles above.'),
     ('mood-court', 'Act III: the undersea court', f'{MOOD} A Méliès undersea court: rows of attendants in '
-     f'pastel green, pink and blue among gold ornament and coral-red creatures; the sea witch on a shell '
-     f'throne; a vast dark whale passing in front of everything.'),
+     f'pastel green, pink and blue among gold ornament and coral-red creatures; a white-bearded Sea King '
+     f'with a trident on a shell throne, the sea witch beside him; a vast dark whale passing in front of '
+     f'everything.'),
     ('mood-whale-belly', 'Act IV: inside the whale', f'{MOOD} The inside of a whale as a stage set: ribs '
      f'like Gothic arches, swallowed barrels, a figurehead and a piano floating in murky water, a lantern '
      f'swinging, daylight in the throat.'),
     ('mood-finale-fire', 'Act V: the burning house', f'{MOOD} A stone house on a cliff collapsing in stage '
      f'fire: painted flame flats, a red-orange wash over everything, a sailor carrying a woman down the '
      f'stairs, the moon behind smoke.'),
+    ('mood-pageant', 'Finale: the pageant', f'{MOOD} A Méliès apotheosis: a gilded fairy palace with '
+     f'fountains, a line of dancers in pink tutus, sea creatures and courtiers arranged in tiers, a band of '
+     f'three musicians at the centre, shimmering like a dissolve.'),
     ('mood-beloved', 'The beloved, character sheet', f'{MOOD} Character sheet with front and profile '
      f'cut-outs of {BELOVED}.'),
     ('mood-playbill', 'The playbill', f'{MOOD} A Victorian playbill for "Widow\'s Bay, a toy theatre in five '
@@ -281,7 +372,8 @@ def render():
            f'2× game units, as in Part B. Name each file by its id (for example `sailor-stand.png`) and '
            f'drop it in [`../intake/`](../intake/README.md). The ids are already listed as `requested` in '
            f'`assets/manifest.json`.', '',
-           'Characters must match the delivered mood boards: the sailor `mood-sailor-1`, the witch '
+           'Times such as "video 0:25" refer to `references/video-frames/frame-025s.jpg`; attach those frames '
+           'as image references when generating. Characters must match the delivered mood boards: the sailor `mood-sailor-1`, the witch '
            '`mood-witch-1`, and the band `band-trio` / `video-cover.jpg`. Generate `mood-beloved` first so '
            'the beloved stays consistent across her three appearances.', '',
            '### C0. Mood boards for the new acts', '', '| Id | Subject | Prompt |', '| --- | --- | --- |']
@@ -310,11 +402,15 @@ def main():
     m = json.load(open(MANIFEST))
     slots = m['slots']
     changed = False
-    for _, _, items in ACTS:
-        for aid, *_ in items:
-            if aid not in slots:
-                slots[aid] = {'status': 'requested', 'file': aid + '.webp'}
-                changed = True
+    wanted = {aid for _, _, items in ACTS for aid, *_ in items}
+    for aid in wanted:
+        if aid not in slots:
+            slots[aid] = {'status': 'requested', 'file': aid + '.webp'}
+            changed = True
+    # Requests dropped from the design go too (never a delivered slot).
+    for aid in [k for k, v in slots.items() if v.get('status') == 'requested' and k not in wanted]:
+        del slots[aid]
+        changed = True
     if check:
         if new != doc or changed:
             raise SystemExit('image-requests.md or manifest.json is out of date: rerun build_act_requests.py')

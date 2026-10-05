@@ -5,8 +5,8 @@ Prompts for the score, ready to paste into a music generator (Suno, Udio, Eleven
 ## How to use this list
 
 - Each request has **style tags** (short, for a generator's style field) and a full **prompt** (for a description field, or both together).
-- Battle loops must hold their exact tempo and length: the game starts each one on the first beat of the chapter and layers the player's drum on top. Trim any silence before the first downbeat and cut the loop at the stated time. If a generator drifts in tempo, regenerate rather than stretch.
-- Save each finished track as `bronzedrum/game/assets/music/<id>.mp3` (or drop it in `hopper/intake/`). On integration the request is marked delivered and the game plays it.
+- Battle loops must hold their exact tempo and length: the game starts each one with the chapter, in time with the Han war drum, and the player drums on top at whatever speed they like. Trim any silence before the first downbeat and cut the loop at the stated time. If a generator drifts in tempo, regenerate rather than stretch.
+- Save each finished track as `bronzedrum/game/assets/music/<id>.mp3` (or drop it in `bronzedrum/intake/`). On integration the request is marked delivered and the game plays it.
 
 ## The sound of the game
 
@@ -14,7 +14,7 @@ Score for a game about the Trưng sisters' uprising in ancient Vietnam (40 CE), 
 
 **Rules for every track**
 
-- The player is the drummer. In-battle tracks keep a clear, steady pulse at the exact tempo given, in 4/4, and leave the low and low-mid range open: no kick drum, no busy percussion on the beat, no big taiko hits. The player's bronze drum is the lead percussion.
+- The player is the drummer and sets their own speed: commands are judged on evenness, not on a metronome, so the player may drum faster or slower than the music. The tempo given for a battle track is the Han war drum, the beat on which the enemy strikes. Keep that pulse soft and felt rather than hammered (sustained textures, melodic phrases, gentle plucked ostinati), so drumming at another speed on top never clashes; leave the low and low-mid range open: no kick drum, no accented percussion on the beat, no big taiko hits. The player's bronze drum is the lead percussion.
 - In-battle tracks start exactly on the first downbeat at 0.000 s, with no pickup, no fade-in and no silence, and loop seamlessly after the stated number of bars.
 - Each chapter has a second layer, the waking drum, at the same tempo, key and length. It is played on top of the base when four commands chain, so it must sound right both alone and layered.
 - Avoid generic "Asian" clichés, Chinese or Japanese instrument colour (guzheng, erhu, shakuhachi, koto) for the Viet side, Western rock drums, EDM drops, and trailer-music braams. Keep it acoustic and human.

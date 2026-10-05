@@ -6,9 +6,18 @@ and the video's plum and magenta title cards. Play it at
 https://hoai2k.github.io/mini/widowsbay/.
 
 The full game has five acts, each driven by a different piece of stage
-machinery: the crossing, the grotto, the undersea court, inside the whale,
-and the burning house at Widow's Bay. Keepsakes carried between acts decide
-which of three endings plays. The design is in
+machinery and following the band's video scene by scene:
+
+1. The crossing, ending in a celebration on deck before the witch sinks the
+   ship.
+2. The sleepers' grotto, waking the drowned revellers and chasing the
+   sinking guitar.
+3. The Sea King's court.
+4. Inside the whale.
+5. The cliff and the burning house at Widow's Bay.
+
+Keepsakes carried between acts decide which of three endings plays before
+the closing pageant. The design is in
 [`design/acts.md`](design/acts.md), and the art it needs is Part C of
 [`design/image-requests.md`](design/image-requests.md). Act I is built.
 
@@ -58,7 +67,8 @@ All the art is delivered and drawn in the game: 19 images listed in
 each was checked and fitted. The game loads WebP copies from `assets/` (ids
 match `assets/manifest.json`). Full-size PNG originals, the 14 mood boards and
 the generation prompts are in [`design/generated/`](design/generated/gallery.html).
-Reference frames from the video and the 1903 film are in `design/references/`,
+Reference frames from the video (one every 5 s), reconstructions made from
+them, and a still from the 1903 film are in `design/references/`,
 and [`design/video-reference.md`](design/video-reference.md) is a timed account
 of the video.
 
