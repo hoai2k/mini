@@ -249,6 +249,7 @@ export class Sound {
 
   /** Pause and resume with the game (the audio clock suspends; elements do not). */
   pauseMusic(paused) {
+    this.musicPaused = paused;
     if (!this.music) return;
     for (const v of this.music.voices) {
       if (v === this.music.next) continue;
@@ -315,11 +316,33 @@ export class Sound {
       this.limiter.release.value = 0.12;
       // The pause fade: the last gain before the speakers.
       this.out = this.ctx.createGain();
-      this.master.connect(this.limiter).connect(this.out).connect(this.ctx.destination);
+      // Silent while the tab or window is in the background (setFocused).
+      this.focusGain = this.ctx.createGain();
+      this.focusGain.gain.value = this.focused === false ? 0 : 1;
+      this.master.connect(this.limiter).connect(this.out).connect(this.focusGain).connect(this.ctx.destination);
       this.noise = this.makeNoise();
       this.setVolume(this.volume);
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
+  }
+
+  /** Mute everything while the game's tab or window is not focused. */
+  setFocused(focused) {
+    this.focused = focused;
+    if (!this.focusGain) return;
+    const t = this.ctx.currentTime;
+    const g = this.focusGain.gain;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(focused ? 1 : 0, t + (focused ? 0.3 : 0.08));
+    // Streamed music plays through <audio> elements: hold them too.
+    if (this.music) {
+      for (const v of this.music.voices) {
+        if (v === this.music.next) continue;
+        if (!focused) v.el.pause();
+        else if (!this.musicPaused) v.el.play().catch(() => {});
+      }
+    }
   }
 
   /** Pause: fade out over a few milliseconds, then stop the audio clock. */

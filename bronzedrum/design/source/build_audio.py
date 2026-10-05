@@ -210,17 +210,19 @@ sfx(G, "amb-river",
     "and birds. Continuous, no music, no drums.",
     20.0, "Chapter 2 bed, looped.", kind="loop", gain=0.45)
 sfx(G, "amb-foundry",
-    "Inside an ancient bronze foundry at night: a roaring furnace, crackling charcoal, leather "
-    "bellows breathing, distant hammering on metal. Continuous, no music.",
-    20.0, "Casting the Drums bed, looped.", kind="loop", gain=0.45)
+    "Blacksmith's forge ambience recorded outdoors, traditional and hand-powered: crackling "
+    "coal fire, slow leather bellows whooshing, hot metal hissing now and then, crickets far "
+    "off. Natural, no machinery, no electrical hum, no music.",
+    20.0, "Casting the Drums bed, looped. Chosen from six takes as the least tonal (the old "
+    "take had a steady hum that read as a machine); looped with a 3 s crossfade and raised "
+    "7 dB under a soft limiter.", kind="loop", gain=0.45, post="lowpass=f=9000")
 sfx(G, "amb-mourning",
-    "Dusk in a quiet village courtyard during a funeral: a soft warm breeze moving through "
-    "bamboo leaves and palm fronds, a few birds settling in distant trees, very faint murmur of "
-    "mourners far away, leaves rustling. Gentle, warm and natural. Continuous, no music, no "
-    "insects, no bells, no chimes, no metallic sounds.",
-    20.0, "The Oath (chapter 2) bed, looped.", kind="loop", gain=0.45,
-    # Generated ambience can carry a thin synthetic fizz at the top; keep it warm.
-    post="lowpass=f=7000,equalizer=f=4000:t=q:w=1:g=-3")
+    "Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire "
+    "close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and "
+    "calm, no music, no electronic sounds.",
+    20.0, "The Oath (chapter 2) bed, looped. Chosen from six takes as the least synthetic "
+    "(most noise-like spectrum); raised 10 dB under a soft limiter to sit with the other beds.",
+    kind="loop", gain=0.45, post="lowpass=f=9000")
 sfx(G, "breeze",
     "A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves "
     "lightly. Continuous, airy and natural, no whistling, no howling, no music.",

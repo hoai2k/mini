@@ -19,9 +19,19 @@ test('echo: the caller calls, then it is the player’s turn', () => {
   const ev = s.update(0);
   assert.equal(ev[0].type, 'call');
   assert.equal(ev[0].call.strokes.length, 4);
-  assert.ok(s.listening(1), 'listen while it calls');
   assert.equal(s.update(4)[0].type, 'yourTurn');
-  assert.ok(!s.listening(4.1));
+});
+
+test('echo: the player may answer during the call, which ends it early', () => {
+  const s = new EchoSession({ calls: [{ text: 'L R L R', bpm: 60 }, { text: 'L R R L', bpm: 60 }] });
+  s.update(0);
+  assert.equal(s.phase, 'calling');
+  const ev = s.answer({ accuracy: 1, u: 1 }, 2.5);
+  assert.equal(ev[0].type, 'answered');
+  assert.ok(ev[0].early, 'marked early so the caller can fall silent');
+  assert.equal(s.phase, 'waiting');
+  // The call's end does not reopen the answer.
+  assert.deepEqual(s.update(4).map((e) => e.type), []);
 });
 
 test('echo: answering every call completes the chapter, with its evenness', () => {

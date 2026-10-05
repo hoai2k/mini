@@ -6,7 +6,7 @@ women against Han rule around 40 CE. It adapts Phong Nguyen's novel
 
 Play the prototype at https://hoai2k.github.io/mini/bronzedrum/. It has nine
 chapters in story order: four battles, four call-and-answer chapters (echo
-the caller's rhythm), and one casting chapter (hold a steady tempo).
+the caller's rhythm), and one casting chapter (keep pace with the bellows).
 [`design/design.md`](design/design.md) lists them.
 
 It plays with a controller, a keyboard, a mouse, or on a phone or tablet held

@@ -78,7 +78,18 @@ body.reduce-motion .press-start { animation: none; }
 .card .num { font: 700 12px var(--sans); color: var(--lacquer); letter-spacing: 0.2em; text-transform: uppercase; }
 .card .name { font: 700 19px var(--serif); line-height: 1.1; }
 .card .sub { font-size: 13px; color: #5a4a35; }
-.card:hover { background-color: #fff8e8; }
+/* The selected chapter: lifted, outlined in bronze and glowing, with a marker;
+   the others dim, so the choice reads at a glance from the sofa. */
+.card { transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, opacity 0.12s, filter 0.12s; }
+.cards:has(.card:focus) .card:not(:focus) { opacity: 0.72; filter: saturate(0.8); }
+.card:focus, .card.nav-focus {
+  transform: translateY(-4px) scale(1.04);
+  outline: 4px solid var(--bronze-light) !important; outline-offset: 0 !important;
+  box-shadow: 0 0 0 8px rgba(217, 165, 91, 0.35), 0 0 34px rgba(246, 217, 160, 0.55), 8px 12px 0 rgba(0, 0, 0, 0.35);
+  clip-path: none; background-color: #fff4dc; z-index: 1; position: relative;
+}
+.card:focus .num::before, .card.nav-focus .num::before { content: "▶ "; color: var(--lacquer); }
+@media (hover: hover) { .card:hover:not(:focus) { background-color: #fff8e8; } }
 .card[disabled] { opacity: 0.45; cursor: not-allowed; }
 .stage-intro { margin: 0; max-width: 760px; min-height: 3em; text-align: center; color: var(--paper-shade); font-size: 15px; line-height: 1.5; }
 .text-btn { background: none; border: 0; color: var(--paper); font: 600 16px var(--sans); cursor: pointer; padding: 8px 14px; }

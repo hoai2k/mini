@@ -321,7 +321,9 @@ function startStage(i) {
     game.reader.patterns = [];
     game.session.nextCallAt = 2.2;
   } else if (game.mode === 'casting') {
-    game.session = new CastingSession({ drums: stage.drums, pours: stage.pours, tolerance: stage.tolerance });
+    game.session = new CastingSession({ drums: stage.drums, pours: stage.pours, tolerance: stage.tolerance, u: stage.bpm ? 60 / stage.bpm : null });
+    // The guide: the foundry's drum plays the hammer rhythm at the pace to hold.
+    game.guide = stage.bpm ? { u: 60 / stage.bpm, start: 2.5, next: 0, strokes: parsePattern(stage.rhythm) } : null;
     game.reader.patterns = [callPattern(stage.rhythm, 'cast')];
   }
   renderer.setStage(stage);
@@ -392,15 +394,58 @@ function strike(drum, time) {
   else sound.cac(undefined, game.reader.busy(t));
   renderer.hit(drum, songTime());
   input.rumble(drum === 'L' ? 50 : 30, drum === 'L' ? 0.6 : 0.3);
-  if (game.mode === 'echo' && game.session.listening(t)) {
-    feedback('Listen first — then answer', P.paperShade);
-    return;
-  }
   // The player takes over: a demonstration stops at the first stroke.
   if (game.demo && songTime() > game.demo.start - 0.3) game.demo = null;
   const trying = game.reader.progress();
   if (trying) game.lastTry = trying.pattern;
-  for (const ev of game.reader.hit(drum, t)) handleRhythm(ev);
+  const before = game.reader.phrase.slice();
+  game.miss = null;
+  const events = game.reader.hit(drum, t);
+  game.miss = missView(events, trying, before, drum, t);
+  // A stroke just after the phrase timed out: it was too late.
+  const f = game.faded;
+  if (!game.miss && f && f.trying.u && songTime() - f.at < 1.2 * f.trying.u) {
+    game.miss = missView([{ type: 'reset', reason: 'uneven' }], f.trying, f.before, drum, t);
+  }
+  game.faded = null;
+  for (const ev of events) handleRhythm(ev);
+}
+
+/**
+ * When a stroke breaks the phrase, what to show: the strokes played so far
+ * and the wrong one where it actually fell, at the player's own tempo. The
+ * wrong drum on time sits in the expected place; a stroke too soon joins the
+ * beat before as a pair or triplet; too late, it lands past its beat. The HUD
+ * crosses it out (see Renderer.hud).
+ */
+function missView(events, trying, before, drum, t) {
+  const r = game.reader;
+  const broke = events.some((e) => e.type === 'reset' && e.reason === 'uneven') ||
+    (!before.length && events.some((e) => e.type === 'reset' && e.reason === 'no-pattern') && r.patterns.length === 1);
+  if (!broke) return null;
+  const p = trying ? trying.pattern : r.patterns[0];
+  const k = before.length;
+  const want = p.strokes[k];
+  if (!want) return null;
+  const u = trying && trying.u;
+  let pos = want.pos;
+  let kind = drum !== want.drum ? 'drum' : 'time';
+  if (k > 0 && u) {
+    const raw = p.strokes[0].pos + (t - before[0].t) / u;
+    const gap = (t - before[k - 1].t) / (u * (want.pos - p.strokes[k - 1].pos));
+    const onTime = Math.abs(Math.log2(Math.max(1e-6, gap))) <= 0.45;
+    if (!(kind === 'drum' && onTime)) {
+      kind = raw < want.pos ? 'soon' : 'late';
+      // Snap to the nearest half or third of a beat, after the last stroke.
+      const grid = [...Array(25).keys()].flatMap((i) => [i / 2, i / 3]).filter((v) => v > p.strokes[k - 1].pos + 0.1 && v < 4);
+      pos = grid.reduce((a, b) => (Math.abs(b - raw) < Math.abs(a - raw) ? b : a), grid[0] ?? want.pos);
+    }
+  }
+  const played = p.strokes.slice(0, k).map((s) => ({ drum: s.drum, pos: s.pos }));
+  played.push({ drum, pos, wrong: true });
+  const rest = p.strokes.filter((s) => Math.floor(s.pos) > Math.floor(pos));
+  const label = kind === 'drum' ? `Wrong drum — that beat is ${want.drum === 'L' ? 'tùng' : 'cắc'}` : kind === 'soon' ? 'Too soon' : 'Too late';
+  return { strokes: [...played, ...rest], filled: played.length, wrong: k, beat: Math.floor(pos), timing: kind !== 'drum', label, t: songTime() };
 }
 
 function act(action, time) {
@@ -489,9 +534,9 @@ function handleRhythm(ev) {
     if (order === 'charge') g.reader.combo = 0;
     const power = commandPower(ev.accuracy, ev.spirit, TIER_POWER[ev.tier - 1]) * tempoFactor(ev.u);
     startCycle({ command: order, pattern: ev.pattern, tier: ev.tier, u: ev.u, start: ev.start, power, index: 0, spirit: ev.spirit });
-    const bpm = Math.round(60 / ev.u);
     const name = order === 'charge' ? 'Voi! The elephant charges' : `${c.name} ${['', 'I', 'II', 'III'][ev.tier]}`;
-    feedback(`${ev.even ? 'Even!' : 'Good'}  ${name} · ${bpm} BPM`, ev.even ? P.bronzeLight : P.paper);
+    const pace = ev.u < 0.45 ? 'quick' : ev.u < 0.8 ? 'steady' : 'slow';
+    feedback(`${ev.even ? 'Even!' : 'Good'}  ${name} · ${pace}`, ev.even ? P.bronzeLight : P.paper);
     if (ev.spirit && ev.combo === SPIRIT_COMBO) {
       toast('Trống thức — the drum wakes!');
       sound.play('drum-wake');
@@ -515,7 +560,7 @@ function handleRhythm(ev) {
       }
     }
     if (ev.reason === 'manual') confirm('Cleared', P.paperShade);
-    else if (ev.reason !== 'no-pattern' && ev.strokes >= 2) feedback(ev.reason === 'timeout' ? 'The rhythm fades' : 'Uneven — start again', P.paperShade);
+    else if (ev.reason !== 'no-pattern' && ev.strokes >= 2 && !g.miss) feedback(ev.reason === 'timeout' ? 'The rhythm fades' : 'Uneven — start again', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
   } else if (ev.type === 'comboLost') {
     if (ev.combo > 1 && g.mode === 'battle') feedback('Chain broken', P.paperShade);
@@ -533,7 +578,8 @@ function handleMode(e) {
       g.reader.patterns = [e.call.pattern];
       g.reader.phrase = [];
       const voice = { mourning: 0.72, village: 1.08, festival: 1.18, elegy: 0.8 }[stage.caller] || 1;
-      for (const s of e.call.strokes) sound.echo(s.drum, g.clockStart + s.t, 0.75, voice);
+      // Kept so an early answer can silence the rest of the call.
+      g.callSources = e.call.strokes.map((s) => ({ at: g.clockStart + s.t, src: sound.echo(s.drum, g.clockStart + s.t, 0.75, voice) }));
       if (e.call.label) feedback(`${e.call.label} calls`, P.paperShade);
       break;
     }
@@ -549,6 +595,18 @@ function handleMode(e) {
       g.reader.shown = null;
       break;
     case 'answered': {
+      if (e.early && g.callSources) {
+        // The player answered during the call: the caller falls silent.
+        for (const c of g.callSources) {
+          if (c.src && c.at > sound.now + 0.02) {
+            try {
+              c.src.stop();
+            } catch {
+              /* already finished */
+            }
+          }
+        }
+      }
       const words = { mourning: 'An incense stick is lit', village: `${e.call.label || 'The village'} answers`, festival: 'The crowd roars', elegy: 'A drum falls silent' };
       confirm(words[stage.caller] || 'Answered', P.bronzeLight);
       if (stage.caller === 'festival') sound.play('crowd-cheer', sound.now + 0.2, 0.8);
@@ -640,6 +698,27 @@ function tickDemo() {
   if (t > d.start + (d.reps * 5 - 1) * d.u + 0.4) g.demo = null;
 }
 
+/**
+ * The casting guide: the foundry's drum plays the hammer rhythm, round after
+ * round, at the pace the player must hold, softly and a little deeper than
+ * the sisters' drum. It rests while a demonstration plays.
+ */
+function tickGuide() {
+  const g = game;
+  const d = g.guide;
+  if (!d || g.ended || (g.session && g.session.done)) return;
+  const t = songTime();
+  const n = d.strokes.length;
+  while (true) {
+    const round = Math.floor(d.next / n);
+    const s = d.strokes[d.next % n];
+    const at = d.start + (round * 4 + s.pos) * d.u;
+    if (at - t > 0.3) break;
+    if (at >= t - 0.05 && !g.demo) sound.echo(s.drum, g.clockStart + Math.max(at, t), 0.32, 0.82);
+    d.next += 1;
+  }
+}
+
 function hint(view) {
   const g = game;
   const t = view.songTime;
@@ -663,7 +742,7 @@ function hint(view) {
   const near = front && front.x - b.army.x <= 4.6;
   if (g.mode === 'echo') {
     const sess = g.session;
-    if (sess.phase === 'calling') return 'Listen to the call…';
+    if (sess.phase === 'calling' && sess.index === 0) return 'Listen to the call — answer as soon as you know it';
     if (sess.phase === 'answer' && sess.index === 0) {
       return touch ? 'Now answer it: the same rhythm, evenly (● centre = tùng, ○ rim = cắc)' : `Now answer it: the same rhythm, evenly (${keys.L} = tùng, ${keys.R} = cắc)`;
     }
@@ -671,11 +750,11 @@ function hint(view) {
   }
   if (g.mode === 'casting') {
     const sess = g.session;
-    if (sess.u === null) {
+    if (sess.cast === 0 && sess.level === 0) {
       g.mentioned = [{ key: `cast:${g.stage.rhythm}`, text: g.stage.rhythm, label: 'The hammer rhythm' }];
-      return `Drum the hammer rhythm at a speed you can hold: ${rhythmTokens(g.stage.rhythm)}`;
+      return `Drum with the bellows, at their pace: ${rhythmTokens(g.stage.rhythm)}`;
     }
-    return `Hold ${Math.round(60 / sess.u)} BPM — every phrase the same speed`;
+    return 'Keep the bellows’ pace — every phrase in time with them';
   }
   if (g.stage.id === 'mavien' && view.songTime < 20) return 'Hold the ford — strike the columns, shield every volley';
   if (g.stage.id === 'garden') {
@@ -698,8 +777,15 @@ function hint(view) {
 function updatePlay(dt) {
   const g = game;
   const t = songTime();
-  for (const ev of g.reader.update(t)) handleRhythm(ev);
+  // Note the phrase before the clock moves on: if it times out, a stroke that
+  // comes just after was the late one (see strike).
+  const held = g.reader.phrase.length ? { trying: g.reader.progress(), before: g.reader.phrase.slice() } : null;
+  for (const ev of g.reader.update(t)) {
+    if (ev.type === 'reset' && ev.reason === 'timeout' && held && held.trying) g.faded = { ...held, at: t };
+    handleRhythm(ev);
+  }
   tickDemo();
+  tickGuide();
   if (g.mode === 'echo' && !g.ended) for (const e of g.session.update(t)) handleMode(e);
   // The Oath: holding A or Y stirs a breeze over the incense (drawn by the renderer).
   if (g.stage.caller === 'mourning') sound.setBreeze(input.held('guard') || input.held('reset') ? 0.7 : 0);
@@ -810,7 +896,7 @@ function view() {
   // Echo chapters: show the caller's rhythm as it is played, then wait for the answer.
   if (g.mode === 'echo' && g.session.call) {
     const call = g.session.call;
-    if (g.session.phase === 'calling') {
+    if (g.session.phase === 'calling' && !r.phrase.length && !r.shown) {
       const played = call.strokes.filter((st) => st.t <= t).length;
       phraseView = { pattern: call.pattern, filled: played, done: false, caller: true };
       heron = played ? Math.floor(call.pattern.strokes[played - 1].pos) : -1;
@@ -847,6 +933,7 @@ function view() {
     session: g.session,
     crackAt: g.crackAt,
     pouring: g.mode === 'casting' && !!r.action && t >= r.action.start,
+    guide: g.guide,
     touch: input.device === 'touch',
     // The Oath: A blows one way over the incense, Y the other, while held.
     wind: g.stage.caller === 'mourning' && screen === 'play' ? { a: input.held('guard'), y: input.held('reset') } : null,
@@ -865,11 +952,12 @@ function view() {
   } else if (free && settings.hints && g.mentioned && !r.action) {
     const item = g.mentioned.find((m) => !seenDemos.has(m.key));
     if (item) {
-      startDemo(item, { u: g.mode === 'casting' ? 0.6 : 0.55 });
+      startDemo(item, { u: g.mode === 'casting' && g.session.u ? g.session.u : 0.55 });
       v.hint = hint(v);
     }
   }
   v.demo = g.demo;
+  v.miss = g.miss && t - g.miss.t < 1.1 ? g.miss : null;
   return v;
 }
 
@@ -1021,9 +1109,15 @@ input.on('device', (d) => {
     if (d.device !== 'gamepad') for (const n of document.querySelectorAll('.nav-focus')) n.classList.remove('nav-focus');
   }
 });
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) pause();
-});
+// The game goes quiet whenever its tab or window is in the background, and a
+// chapter in play pauses.
+function background(away) {
+  sound.setFocused(!away);
+  if (away) pause();
+}
+document.addEventListener('visibilitychange', () => background(document.hidden));
+window.addEventListener('blur', () => background(true));
+window.addEventListener('focus', () => background(document.hidden));
 
 // ---------------------------------------------------------------- loop
 

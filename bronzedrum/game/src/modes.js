@@ -5,10 +5,10 @@
 //           must be even; if matchTempo is set it must also be near the
 //           caller's speed. Used by The Oath, The Villages Answer, The
 //           Coronation and The Drums Are Melted.
-//  casting  The player repeats one rhythm at a steady tempo: the first phrase
-//           sets the tempo, each later phrase within `tolerance` of it pours
-//           bronze, and a phrase that drifts cracks the mould and starts that
-//           drum again. Casting the Drums.
+//  casting  The player repeats one rhythm at the furnace's pace (a guide
+//           rhythm plays it): each phrase within `tolerance` of that pace pours
+//           bronze, and a phrase that rushes or drags cracks the mould and
+//           starts that drum again. Casting the Drums.
 //  battle   (battle.js) — with `survive`, hold out while waves arrive.
 
 import { parsePattern } from './rhythm.js';
@@ -75,14 +75,15 @@ export class EchoSession {
     return events;
   }
 
-  /** Strokes before the call has finished are "listen first". */
-  listening(t) {
-    return this.phase === 'calling' || (this.phase === 'waiting' && !this.done);
-  }
-
-  /** The reader accepted the player's rhythm (it can only be this call's pattern). */
+  /**
+   * The reader accepted the player's rhythm (it can only be this call's
+   * pattern). The player may answer as soon as they know the rhythm, during
+   * the call as well as after it; an early answer cuts the call short
+   * (`early` on the event).
+   */
   answer(ev, t) {
-    if (this.phase !== 'answer') return [];
+    if (this.phase !== 'answer' && this.phase !== 'calling') return [];
+    const early = this.phase === 'calling';
     const ratio = ev.u / this.call.u;
     if (this.matchTempo && Math.abs(Math.log(ratio)) > Math.log(1 + this.tolerance)) {
       this.misses += 1;
@@ -90,7 +91,7 @@ export class EchoSession {
     }
     this.answered.push({ accuracy: ev.accuracy, u: ev.u });
     this.index += 1;
-    const events = [{ type: 'answered', index: this.index - 1, accuracy: ev.accuracy, call: this.call }];
+    const events = [{ type: 'answered', index: this.index - 1, accuracy: ev.accuracy, call: this.call, early }];
     if (this.index >= this.calls.length) {
       this.phase = 'done';
       events.push({ type: 'complete', evenness: this.evenness() });
@@ -109,14 +110,19 @@ export class EchoSession {
 }
 
 export class CastingSession {
-  /** drums: how many to cast; pours: steady phrases per drum; tolerance: tempo drift allowed. */
-  constructor({ drums = 3, pours = 3, tolerance = 0.12 } = {}) {
+  /**
+   * drums: how many to cast; pours: steady phrases per drum; tolerance:
+   * tempo drift allowed; u: the pace to hold (seconds per beat). Without u,
+   * the first phrase sets the pace and a crack resets it.
+   */
+  constructor({ drums = 3, pours = 3, tolerance = 0.12, u = null } = {}) {
     this.drums = drums;
     this.pours = pours;
     this.tolerance = tolerance;
+    this.fixed = u !== null;
     this.cast = 0; // finished drums
     this.level = 0; // pours into the current mould
-    this.u = null; // the tempo the first phrase set
+    this.u = u; // the pace to hold
     this.cracks = 0;
   }
 
@@ -134,7 +140,7 @@ export class CastingSession {
       const lost = this.level;
       const faster = ev.u < this.u;
       this.level = 0;
-      this.u = ev.u; // the new tempo is the one to hold from here
+      if (!this.fixed) this.u = ev.u; // the new tempo is the one to hold from here
       return [{ type: 'crack', drum: this.cast, lost, faster }];
     }
     this.level += 1;
