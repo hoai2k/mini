@@ -6,6 +6,7 @@ import {
   beamOn, rowY, rowScale, whaleX, fishX, backX, gazeLook,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
+import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
 const FLOOR_TOP = 404;
 const BC_H = 900;               // drawn height of the delivered backcloth
@@ -261,9 +262,10 @@ function pearlCue(k, st, t) {
     c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 24); c.restore();
     pearlAt(k, x, py, 15);
     if (st.canTake) {
-      c.fillStyle = k.col('#2a1424'); k.circle(x, py - 46, 17);
-      c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2.5; c.beginPath(); c.arc(x, py - 46, 17, 0, Math.PI * 2); c.stroke();
-      c.fillStyle = k.col('#f3c6dc'); c.font = '700 20px "Josefin Sans", sans-serif'; c.textAlign = 'center'; c.fillText('A', x, py - 39);
+      // the A button glyph for the input in use (the kit may name it; keys otherwise)
+      c.save(); c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
+      richText(c, '[A]', x, py - 46 + 34 * 0.34, { px: 34, mode: k.inputMode || 'key', col: k.col });
+      c.restore();
     }
   }
   if (st.phase === 'take') {
@@ -298,7 +300,7 @@ function floor(k, cam) {
     for (let x = Math.floor(x0 / 1280) * 1280; x < x1; x += 1280) {
       for (let i = 0; i < 4; i++) k.assetCrop('court-floor-3', 0, A[i], 2560, A[i + 1] - A[i], x, D[i], 1281, D[i + 1] - D[i] + 1);
     }
-    c.fillStyle = k.col('#6d4a6a'); c.fillRect(x0, 640, 1280, 10);
+    frontEdge(k, x0);
     return;
   }
   const tiled = !!k.img('court-floor');
@@ -322,7 +324,17 @@ function floor(k, cam) {
     grooves(k, x0);
   }
   // the floor's front edge, where the sentries crouch
-  c.fillStyle = k.col('#6d4a6a'); c.fillRect(x0, 640, 1280, 10);
+  frontEdge(k, x0);
+}
+
+// The floor's front edge (y 640-650): the seamless strip court-floor-edge
+// (2560 x 40 art, 1280 x 20 here) tiled along it, its top on y 640.
+function frontEdge(k, x0) {
+  if (k.img('court-floor-edge')) {
+    for (let x = Math.floor(x0 / 1280) * 1280; x < x0 + 1280; x += 1280) k.asset('court-floor-edge', x + 640, 640 + 20, 1281, 20);
+    return;
+  }
+  k.c.fillStyle = k.col('#6d4a6a'); k.c.fillRect(x0, 640, 1280, 10);
 }
 
 // Source band (y, height) of the floor strip -> stage band (y, height).
@@ -352,7 +364,10 @@ function floorPearl(k, q, t) {
 
 // ---------------------------------------------------------------- figures
 // A brass slider tab where each cut-out rides in its groove.
-function tab(k, x, y, s) { k.c.fillStyle = k.col('#9a7a2a'); k.c.fillRect(x - 8 * s, y - 4 * s, 16 * s, 8 * s); }
+function tab(k, x, y, s) {
+  if (k.asset('groove-slider', x, y, 24 * s, 12 * s)) return;   // requested: 56x28 art, bottom centre on the groove
+  k.c.fillStyle = k.col('#9a7a2a'); k.c.fillRect(x - 8 * s, y - 4 * s, 16 * s, 8 * s);
+}
 
 function courtier(k, cr, bob, st) {
   const c = k.c, s = ROWSCALE[cr.row], x = cr.x, y = ROWY[cr.row];
@@ -625,6 +640,7 @@ function omens(k, st, t) {
   for (const o0 of st.omens) {
     const o = { ...o0, x: o0.x - st.cam }, y = o.y + Math.sin(t * 6) * 3;
     k.c.save(); k.c.globalAlpha = 0.85;
+    if (typeof k.omen === 'function') { k.omen(o.x, y, 1); k.c.restore(); continue; }
     k.c.fillStyle = k.col('#2a1424'); k.circle(o.x, y, 17);
     k.c.strokeStyle = k.col('#d9b34a'); k.c.lineWidth = 2; k.c.beginPath(); k.c.arc(o.x, y, 17, 0, Math.PI * 2); k.c.stroke();
     k.keepsake('leaf', o.x, y, 0.55);

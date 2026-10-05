@@ -54,7 +54,7 @@ function belly(k, st, t) {
   c.save(); c.translate(-cam.x, -cam.y);
   const L = cam.x - 320, R = cam.x + 1600;
   throat(k, st, t);
-  midRibs(k, L, R);
+  if (!img(k, 'belly-backcloth')) midRibs(k, L, R);   // the delivered backcloth paints its own ribs
   LANTERN_XS.forEach((x, i) => { if (x > L && x < R) lantern(k, st, x, i, t); });
   for (const p of st.ledges) { const e = extent(p); if (e.x1 > L && e.x0 < R) ledge(k, p); }
   if (!st.stone) stone(k, t);
@@ -66,7 +66,7 @@ function belly(k, st, t) {
   floorOmens(k, st, t, L, R);
   sailor(k, st, t);
   c.restore();
-  foreRibs(k, st);
+  if (!img(k, 'belly-backcloth')) foreRibs(k, st);
   setBase(k);
   c.restore();
   fulcrum(k);
@@ -127,6 +127,9 @@ function throat(k, st, t) {
   g.addColorStop(0, k.P.mode === 'lum' ? 'rgba(255,250,235,0.55)' : 'rgba(255,226,160,0.5)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
   c.fillStyle = g; c.fillRect(x - 420, y - 420, 840, 840);
+  // Requested re-draw seen from inside (800 x 800 art, 400 here, centred): the
+  // bottom of its opening (70% down) sits on the lip at THROAT.y + 150.
+  if (k.asset('whale-throat-inside', x, y + 150 - 0.7 * 400 + 400, 400, 400)) return;
   if (k.asset('whale-throat', x, y + 235, 300, 300)) return;
   // fleshy ring, baleen fringe, daylight and a glimpse of the shore
   c.fillStyle = k.col(FLESH_LIT); c.beginPath(); c.ellipse(x, y, 150, 140, 0, 0, Math.PI * 2); c.fill();
@@ -147,8 +150,15 @@ function lantern(k, st, x, i, t) {
   // It hangs plumb while the set tilts, so it swings against the cradle.
   const a = -st.tilt * 1.4 + 0.08 * Math.sin(t * 1.3 + i * 2);
   c.save(); c.translate(x, top); c.rotate(a);
-  c.strokeStyle = k.col('#2a1a12'); c.lineWidth = 3; c.setLineDash([6, 4]);
-  c.beginPath(); c.moveTo(0, 0); c.lineTo(0, len); c.stroke(); c.setLineDash([]);
+  if (img(k, 'chain-strip')) {
+    // the requested chain (24 x 400 art), tiled down from the top to the lantern
+    c.save(); c.beginPath(); c.rect(-10, 0, 20, len + 10); c.clip();
+    for (let y = 0; y < len + 10; y += 200) k.asset('chain-strip', 0, y + 201, 12, 201);
+    c.restore();
+  } else {
+    c.strokeStyle = k.col('#2a1a12'); c.lineWidth = 3; c.setLineDash([6, 4]);
+    c.beginPath(); c.moveTo(0, 0); c.lineTo(0, len); c.stroke(); c.setLineDash([]);
+  }
   const g = c.createRadialGradient(0, len + 70, 6, 0, len + 70, 230);
   g.addColorStop(0, k.P.mode === 'lum' ? 'rgba(255,245,215,0.42)' : 'rgba(255,196,110,0.42)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -165,23 +175,39 @@ function lantern(k, st, x, i, t) {
 
 function ledge(k, p) {
   const c = k.c, { x0, x1, y } = p, cx = (x0 + x1) / 2;
+  let art = false;
   if (p.kind === 'bank') {
-    // A fleshy shelf of stomach wall to start on.
-    c.fillStyle = k.col(FLESH);
-    c.beginPath(); c.moveTo(-200, 760); c.lineTo(-200, y - 6); c.lineTo(x1 - 20, y - 6); c.quadraticCurveTo(x1 + 10, y + 40, x1 - 10, 760); c.fill();
-    c.fillStyle = k.col(FLESH_LIT); c.fillRect(-200, y - 6, x1 - 10 + 200, 12);
+    // The starting bank (900 x 1000 art, 450 x 500 here), spanning x -200 .. x1.
+    if (k.asset('belly-bank', (x1 - 200) / 2, y - 6 + 500, x1 + 200, 500)) art = true;
+    else {
+      // A fleshy shelf of stomach wall to start on.
+      c.fillStyle = k.col(FLESH);
+      c.beginPath(); c.moveTo(-200, 760); c.lineTo(-200, y - 6); c.lineTo(x1 - 20, y - 6); c.quadraticCurveTo(x1 + 10, y + 40, x1 - 10, 760); c.fill();
+      c.fillStyle = k.col(FLESH_LIT); c.fillRect(-200, y - 6, x1 - 10 + 200, 12);
+    }
   } else if (p.kind === 'lip') {
-    // the fleshy lower lip of the throat, a soft rounded tongue of flesh
-    c.fillStyle = k.col(FLESH);
-    c.beginPath(); c.moveTo(x0, y + 2);
-    c.quadraticCurveTo(x0 - 26, y + 40, x0 + 20, y + 80); c.quadraticCurveTo(x0 + 110, y + 130, x1 + 200, y + 70);
-    c.lineTo(x1 + 200, y - 4); c.quadraticCurveTo(cx, y - 14, x0, y + 2); c.fill();
-    c.fillStyle = k.col(FLESH_LIT); c.beginPath(); c.moveTo(x0 + 4, y - 2); c.quadraticCurveTo(cx, y - 14, x1 + 200, y - 4); c.lineTo(x1 + 200, y + 8); c.quadraticCurveTo(cx, y - 2, x0 + 4, y + 8); c.fill();
+    // The throat's lower lip (900 x 300 art, 450 x 150 here), x0 .. x1 + 200.
+    if (k.asset('throat-lip', (x0 + x1 + 200) / 2, y - 4 + 150, x1 + 200 - x0, 150)) art = true;
+    else {
+      // the fleshy lower lip of the throat, a soft rounded tongue of flesh
+      c.fillStyle = k.col(FLESH);
+      c.beginPath(); c.moveTo(x0, y + 2);
+      c.quadraticCurveTo(x0 - 26, y + 40, x0 + 20, y + 80); c.quadraticCurveTo(x0 + 110, y + 130, x1 + 200, y + 70);
+      c.lineTo(x1 + 200, y - 4); c.quadraticCurveTo(cx, y - 14, x0, y + 2); c.fill();
+      c.fillStyle = k.col(FLESH_LIT); c.beginPath(); c.moveTo(x0 + 4, y - 2); c.quadraticCurveTo(cx, y - 14, x1 + 200, y - 4); c.lineTo(x1 + 200, y + 8); c.quadraticCurveTo(cx, y - 2, x0 + 4, y + 8); c.fill();
+    }
   } else {
-    // A rib rising from the stomach floor and curving away into the dark,
-    // with a bone shelf jutting from it.
-    // A bone shelf jutting from a rib: a short curved bracket under it.
-    if (!k.asset('rib-arch', cx - 51, y + 490, 230, 490)) {
+    // A rib with a bone slab on it. The slab is rib-ledge (360 x 70 art, 35 tall
+    // here, top on the walkable y); the rib stands behind it.
+    const slab = img(k, 'rib-ledge');
+    if (img(k, 'rib-arch-tall')) {
+      // rooted at the stomach floor (its bottom dissolves into the water), about 900
+      // tall (450 wide) at stage scale and scaled up to reach high ledges, with the
+      // upper part behind the slab
+      const base = floorY(cx) + 12, h = Math.max(900, base - y + 150);
+      k.asset('rib-arch-tall', cx, base, h / 2, h);
+    } else if (!k.asset('rib-arch', cx - 51, y + 490, 230, 490)) {
+      // A bone shelf jutting from a rib: a short curved bracket under it.
       const side = (Math.round(cx / 10) % 2) ? 1 : -1; // brackets lean either way
       c.fillStyle = k.col(BONE_DARK);
       c.beginPath(); c.moveTo(cx - 22, y + 10); c.lineTo(cx + 22, y + 10);
@@ -191,10 +217,14 @@ function ledge(k, p) {
       c.strokeStyle = k.col(BONE); c.lineWidth = 2;
       c.beginPath(); c.moveTo(cx - side * 8, y + 14); c.quadraticCurveTo(cx + side * 6, y + 50, cx + side * 33, y + 108); c.stroke();
     }
-    c.fillStyle = k.col('#5e4a3a'); c.beginPath(); c.roundRect(x0 + 4, y + 8, x1 - x0 - 8, 8, 4); c.fill();
-    c.fillStyle = k.col(IVORY); c.beginPath(); c.roundRect(x0, y - 2, x1 - x0, 16, 7); c.fill();
+    if (slab) { k.asset('rib-ledge', cx, y + 35, x1 - x0, 35); art = true; }
+    else {
+      c.fillStyle = k.col('#5e4a3a'); c.beginPath(); c.roundRect(x0 + 4, y + 8, x1 - x0 - 8, 8, 4); c.fill();
+      c.fillStyle = k.col(IVORY); c.beginPath(); c.roundRect(x0, y - 2, x1 - x0, 16, 7); c.fill();
+    }
   }
-  c.fillStyle = k.col(TOP_EDGE); c.fillRect(x0 + 4, y - 3, x1 - x0 - 8, 3);
+  // the pale walkable edge belongs to the stand-ins; art paints its own
+  if (!art) { c.fillStyle = k.col(TOP_EDGE); c.fillRect(x0 + 4, y - 3, x1 - x0 - 8, 3); }
 }
 
 function pearls(k, st, t, L, R) {
@@ -219,15 +249,23 @@ function stone(k, t) {
 
 function hook(k, st, h) {
   const c = k.c, tip = hookTip(h, st.beat), a = hookAngle(h, st.beat);
+  // The requested sprite (80 x 220 art, 40 x 110 here) hangs from its top
+  // centre, 75 above the tip, swung by -a about that attachment; the long
+  // line stays a thin stroke down to it.
+  const sprite = img(k, 'fish-hook');
+  const ex = sprite ? tip.x - 75 * Math.sin(a) : tip.x, ey = sprite ? tip.y - 75 * Math.cos(a) : tip.y;
   c.strokeStyle = k.col('#d9cdb5'); c.lineWidth = 1.5;
-  c.beginPath(); c.moveTo(h.ax, h.ay); c.lineTo(tip.x, tip.y); c.stroke();
+  c.beginPath(); c.moveTo(h.ax, h.ay); c.lineTo(ex, ey); c.stroke();
   c.save(); c.translate(tip.x, tip.y); c.rotate(-a);
+  if (sprite) k.asset('fish-hook', 0, -75 + 110, 40, 110);
+  else {
   // a red and cream float on the line, so the hook reads from afar
   c.fillStyle = k.col('#c8321e'); c.beginPath(); c.arc(0, -70, 9, Math.PI, 0); c.fill();
   c.fillStyle = k.col('#f1e3c8'); c.beginPath(); c.arc(0, -70, 9, 0, Math.PI); c.fill();
   c.strokeStyle = k.col('#aeb6ba'); c.lineWidth = 5; c.lineCap = 'round';
   c.beginPath(); c.moveTo(0, -28); c.lineTo(0, 6); c.arc(-11, 6, 11, 0, Math.PI * 0.95); c.stroke();
   c.beginPath(); c.moveTo(-22, 7); c.lineTo(-17, -3); c.stroke();
+  }
   c.restore();
   // The tea-leaf omen: where the hook will be one beat from now.
   if (st.carry.tea >= 3) {
@@ -239,7 +277,8 @@ function hook(k, st, h) {
 function floater(k, f) {
   const c = k.c, x = f.x, top = f.top;
   const box = { barrel: [80, 100, 'barrel'], crate: [90, 90, 'crate'], debris: [260, 111, 'wreck-debris', -45, 0], piano: [210, 160, 'piano'], figurehead: [160, 210, 'figurehead', -14, 12] }[f.kind];
-  if (!k.asset(box[2], x + (box[4] || 0), top + box[1] + (box[3] || 0), box[0], box[1])) {
+  const drawn = k.asset(box[2], x + (box[4] || 0), top + box[1] + (box[3] || 0), box[0], box[1]);
+  if (!drawn) {
     if (f.kind === 'barrel') {
       c.fillStyle = k.col('#7a4a26'); c.beginPath(); c.moveTo(x - 30, top); c.quadraticCurveTo(x - 44, top + 50, x - 30, top + 100); c.lineTo(x + 30, top + 100); c.quadraticCurveTo(x + 44, top + 50, x + 30, top); c.fill();
       c.fillStyle = k.col('#3a2a22'); for (const dy of [12, 48, 84]) c.fillRect(x - 38, top + dy, 76, 6);
@@ -274,7 +313,7 @@ function floater(k, f) {
       c.fillStyle = k.col('#c4426e'); c.beginPath(); c.moveTo(x + 40, top + 6); c.quadraticCurveTo(x + 20, top + 30, x + 30, top + 54); c.lineTo(x + 40, top + 30); c.fill();
     }
   }
-  c.fillStyle = k.col(TOP_EDGE); c.fillRect(x - f.w / 2 + 4, top - 3, f.w - 8, 3);
+  if (!drawn) { c.fillStyle = k.col(TOP_EDGE); c.fillRect(x - f.w / 2 + 4, top - 3, f.w - 8, 3); }
 }
 
 function anchorGlyph(k, x, y) {
@@ -298,8 +337,20 @@ function floor(k, st, t, L, R) {
   c.beginPath(); c.moveTo(L, 1300);
   for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x));
   c.lineTo(R, 1300); c.fill();
-  c.strokeStyle = k.col(FLESH_LIT); c.lineWidth = 4;
-  c.beginPath(); for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x) + 4); c.stroke();
+  if (img(k, 'belly-floor')) {
+    // The seamless strip (2560 x 400 art, tiling every 1280) in 10-px columns,
+    // each sheared to follow floorY, its top on the walkable line. The flesh
+    // fill above shows below the strip.
+    for (let x = Math.floor(L / 10) * 10; x < R; x += 10) {
+      const y0 = floorY(x), y1 = floorY(x + 10), sx = (((x % 1280) + 1280) % 1280) * 2;
+      c.save(); c.transform(1, (y1 - y0) / 10, 0, 1, x, y0);
+      k.assetCrop('belly-floor', sx, 0, 20, 400, 0, 0, 10.6, 200);
+      c.restore();
+    }
+  } else {
+    c.strokeStyle = k.col(FLESH_LIT); c.lineWidth = 4;
+    c.beginPath(); for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x) + 4); c.stroke();
+  }
   // Under water the floor (a ground row in front of the water strip) is dimmed by it.
   const under = clamp((610 - st.water) / 30, 0, 1);
   if (under > 0) {
@@ -327,12 +378,29 @@ function water(k, st, t, L, R) {
   const amp = 4 + (st.breath.phase === 'cue' ? (b - 12) * 2.5 : 0);
   if (img(k, 'belly-water')) {
     // The delivered strip (2560x300 art, drawn 1280x150) drifts slowly and
-    // bobs with the tremble; its own bottom rows are carried down to the
-    // floor, as Act I's wave strips are, so no flat slab shows below it.
+    // bobs with the tremble. Below it: belly-water-body when delivered, else the
+    // strip's bottom fades into a dark gradient (no stretched streaks).
     const drift = (t * 18) % 1280, bob = Math.sin(t * 1.6) * amp * 0.5, top = y - 8 + bob;
+    const body = img(k, 'belly-water-body');
+    if (body) {
+      // the requested seamless body (1024 art, 512 here) fills everything below the
+      // strip; the strip is drawn over its top
+      for (let ty = top + 120; ty < 1300; ty += 512) {
+        for (let x = Math.floor((L - drift) / 512) * 512 + drift; x < R; x += 512) k.asset('belly-water-body', x + 256, ty + 512, 513, 513);
+      }
+    }
     for (let x = Math.floor((L - drift) / 1280) * 1280 + drift - 1280; x < R; x += 1280) {
       k.assetCrop('belly-water', 0, 0, 2560, 300, x, top, 1281, 150);
-      k.assetCrop('belly-water', 0, 294, 2560, 6, x, top + 147, 1281, 1300 - (top + 147));
+    }
+    if (!body) {
+      // Until then the strip's own bottom fades into a dark gradient, rather than
+      // being stretched into streaks.
+      const dark = k.col('#26343a'), gr = c.createLinearGradient(0, top + 70, 0, top + 150);
+      gr.addColorStop(0, 'rgba(38,52,58,0)'); gr.addColorStop(1, dark);
+      c.fillStyle = gr; c.fillRect(L, top + 70, R - L, 81);
+      const gb = c.createLinearGradient(0, top + 150, 0, 1300);
+      gb.addColorStop(0, dark); gb.addColorStop(1, k.col('#10181c'));
+      c.fillStyle = gb; c.fillRect(L, top + 149, R - L, 1300 - (top + 149));
     }
     return;
   }
@@ -352,6 +420,7 @@ const img = (k, id) => !!k.img(id);
 // A tea-leaf omen glyph on a pale disc, so it reads against anything.
 function omen(k, x, y, alpha) {
   const c = k.c;
+  if (typeof k.omen === 'function') { c.save(); c.globalAlpha = alpha; k.omen(x, y, 1); c.restore(); return; }
   c.save(); c.globalAlpha = alpha * 0.55; c.fillStyle = k.col('#f6ead0'); k.circle(x, y, 17); c.restore();
   c.save(); c.globalAlpha = alpha; k.keepsake('leaf', x, y - 4, 0.75); c.restore();
 }
@@ -423,8 +492,13 @@ function foreRibs(k, st) {
 function setBase(k) {
   // The edge of the set platform, and the rocker of the cradle beneath it.
   const c = k.c;
-  c.fillStyle = k.col('#3a2112'); c.fillRect(-300, 648, 1880, 16);
-  c.fillStyle = k.col('#b9a27c'); c.fillRect(-300, 648, 1880, 3);
+  if (img(k, 'set-platform-edge')) {
+    // the seamless beam (2560 x 40 art, 1280 x 20 here), tiled, its top on y 648
+    for (let x = -300; x < 1580; x += 1280) k.asset('set-platform-edge', x + 640, 648 + 20, 1281, 20);
+  } else {
+    c.fillStyle = k.col('#3a2112'); c.fillRect(-300, 648, 1880, 16);
+    c.fillStyle = k.col('#b9a27c'); c.fillRect(-300, 648, 1880, 3);
+  }
   if (k.asset('cradle', 640, 662 + 110, 700, 110)) return;
   c.strokeStyle = k.col('#6b4024'); c.lineWidth = 16; c.lineCap = 'round';
   c.beginPath(); c.moveTo(300, 664); c.quadraticCurveTo(640, 820, 980, 664); c.stroke();
@@ -434,6 +508,7 @@ function setBase(k) {
 
 function fulcrum(k) {
   const c = k.c;
+  if (k.asset('cradle-fulcrum', 640, 760, 80, 60)) return;   // 160 x 120 art, bottom centre on y 760
   c.fillStyle = k.col('#2a160e'); c.beginPath(); c.moveTo(600, 760); c.lineTo(640, 712); c.lineTo(680, 760); c.fill();
   c.fillStyle = k.col('#d9b34a'); k.circle(640, 716, 6);
 }
@@ -462,11 +537,15 @@ function shoreScene(k, st, t) {
   const c = k.c, n = st.revellers, T = shoreTimes(n);
   const pt = st.phase === 'shore' ? st.phaseT : T.end + (st.phase === 'iris' ? st.phaseT : OUTRO.iris);
   // pale sky and hung clouds
-  const g = c.createLinearGradient(0, 60, 0, 440);
-  g.addColorStop(0, k.col('#e9b9c4')); g.addColorStop(1, k.col('#f8ded6'));
-  c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+  // the requested backcloth (2560 x 1440 art) is the whole frame: sky, clouds, sea
+  const cloth = k.asset('shore-backcloth', 640, 720, 1280, 720);
+  if (!cloth) {
+    const g = c.createLinearGradient(0, 60, 0, 440);
+    g.addColorStop(0, k.col('#e9b9c4')); g.addColorStop(1, k.col('#f8ded6'));
+    c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+  }
   k.cloud(320, 170, 0.8, '#f6e4e6'); k.cloud(930, 130, 0.65, '#f6e4e6');
-  sea(k, t);
+  if (!cloth) sea(k, t);
   // its tail lifts out of the sea and slips away
   const tk = pt - T.tail, lift = easeOut(tk / 1.2) - easeInOut((tk - 1.8) / 1.2);
   if (tk > 0 && lift > 0.01) {
@@ -477,20 +556,30 @@ function shoreScene(k, st, t) {
   }
   // the whale, beached on the rocks, then sliding back into the sea
   const slide = easeInOut((pt - T.slide) / 2.4);
-  const wx = 520 - slide * 1000, wb = 560 + slide * 70;
+  const wx = 520 - slide * 1000, wb = 610 + slide * 70;   // belly sunk into the painted rocks
   if (slide < 1) whaleBeached(k, wx, wb, t);
   rocks(k);
   // the sailor crawls out of the mouth onto the rocks
-  const mouth = { x: 902, y: 405 };
+  const mouth = { x: 902, y: 455 };   // 50 lower with the whale
   const sp = clamp((pt - T.crawl) / 2, 0, 1);
-  crawler(k, mouth, { x: 1060, y: 612 }, sp, (fr) => drawSailor(k, fr), t);
+  crawler(k, mouth, { x: 950, y: rockTop(950) + 6 }, sp, (fr) => drawSailor(k, fr), t);
   for (let i = 0; i < n; i++) {
     const p = clamp((pt - T.out - i * T.gap) / 1.6, 0, 1);
     if (p <= 0) continue;
-    const r = REV[i % REV.length], to = { x: 1000 - i * 58, y: 606 + (i % 2) * 14 };
+    const r = REV[i % REV.length], tx = 900 - i * 44, to = { x: tx, y: rockTop(tx) + 6 + (i % 2) * 8 };
     crawler(k, mouth, to, p, () => { if (!k.asset(r.id, 0, 0, 60, 115)) figure(k, r.col, Math.sin(t * 6 + i) * 0.5 + 0.5); }, t);
   }
   k.wash('#e7a6bd', 0.3); // the video's rose-pink stage wash
+}
+
+// Top of the painted shore-rocks ground row (art alpha, sampled every 40 px
+// over its main mass); the landing spots stand on it.
+const ROCK_TOPS = [[560, 512], [600, 548], [640, 544], [680, 574], [720, 596], [760, 594], [800, 586], [840, 577], [880, 566], [920, 572], [960, 556]];
+function rockTop(x) {
+  const T = ROCK_TOPS;
+  if (x <= T[0][0]) return T[0][1];
+  for (let i = 1; i < T.length; i++) if (x <= T[i][0]) return T[i - 1][1] + (T[i][1] - T[i - 1][1]) * (x - T[i - 1][0]) / (T[i][0] - T[i - 1][0]);
+  return T[T.length - 1][1];
 }
 
 // Crawl from `a` to `b` head-first, low to the ground, then stand up.

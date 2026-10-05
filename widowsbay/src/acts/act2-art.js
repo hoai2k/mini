@@ -922,7 +922,7 @@ function boat(k, st, y, t) {
   // the sailor rides in the stern of the crescent, guitar on his knee
   const sx = x - 84, syy = y + Math.sin(t * 2.1) * 6 + 4;
   // seated with the guitar on his knee (art requested); the rose follows his hand
-  const seated = k.asset('sailor-seated', sx - 12, syy + 6, 110, 110);
+  const seated = k.asset('sailor-seated', sx - 24, syy + 6, 110, 110);
   if (!seated && !k.asset('sailor-stand', sx, syy, 60, 100)) {
     c.save(); c.translate(sx, syy); c.scale(1.35, 1.35); c.translate(-sx, -syy);
     c.fillStyle = k.col(NAVY); c.beginPath(); c.moveTo(sx - 15, syy); c.lineTo(sx - 11, syy - 44); c.lineTo(sx + 11, syy - 44); c.lineTo(sx + 15, syy); c.fill();
@@ -937,5 +937,5 @@ function boat(k, st, y, t) {
     if (!k.asset('keepsake-guitar', 0, 20, 40, 40)) guitarStandin(k, 0.22);
     c.restore();
   }
-  if (st.rose) { if (seated) k.keepsake('rose', sx - 12 + 18, syy + 6 - 62, 0.4); else k.keepsake('rose', sx + 8, syy - 66, 0.4); }
+  if (st.rose) { if (seated) k.keepsake('rose', sx - 24 + 18, syy + 6 - 62, 0.4); else k.keepsake('rose', sx + 8, syy - 66, 0.4); }
 }
