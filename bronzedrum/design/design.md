@@ -316,25 +316,43 @@ On the title screen, under Press Start, is a mode with no right or wrong: the
 drum, a choice of instruments, and dancers. It is for learning the core skill,
 an even beat with pairs and triplets inside it, without a chapter at stake.
 
-**Free drumming.** The dots show how many strokes a rhythm has: 2 to 12, set
-with LB and RB (− and +, or the buttons beside the dots on touch). The player
-drums any rhythm of that length, at any tempo. It is read as beats of one, two
-or three strokes, with a silent beat allowed between two beats (`transcribe` in
-`practice.js`). The reading tries every tempo and groups the strokes to fit it
-best, and a pair, a triplet or a rest costs a little extra, so plain beats win
-a tie. The rhythm appears as dots, and the drum crew plays it back on the next
-beat, round after round, each dot lighting as it sounds. The player can start a
-new rhythm at any time. The old loop quiets while the new rhythm is drummed and
-the new one takes over once it is complete. If the player stops part way, the
-old loop comes back up. A (Space, a swipe) stops the loop.
+**Free drumming.** A rhythm is counted in beats: 2 to 12, set with LB and RB
+(− and +, or the buttons beside the dots on touch), four by default like a
+command. Each beat may hold one, two or three strokes, or none, so four
+beats of triplets are twelve strokes. The player drums at any tempo, and the
+strokes are read as beats (`transcribe` in `practice.js`). The reading tries
+every tempo and groups the strokes to fit it best. A pair, a triplet, a rest,
+or a deep stroke inside a beat costs a little extra, so plain beats and deep
+strokes on the beat win a tie. While the rhythm is being drummed, its last
+group may still grow, so two quick strokes are judged as the start of a
+triplet as well as a pair. The dots show the reading as ghosts, which may
+regroup.
 
-**Call and answer.** A partner on a small stage drums a rhythm with the same
-number of strokes. It is generated, may open with a pair or a triplet, and keeps deep strokes
-to the start of a beat. The player answers with any rhythm of that length.
-Both rows stay on screen, the partner's above and the player's below. The
-partner comes straight back on the next beat with a new call, at the player's
-tempo. Answering during a call cuts it short. An unanswered call is played
-again.
+The rhythm is complete just before the beat after its last beat, at the tempo
+its strokes have set, so a closing pair or triplet still fits. Beats left
+silent at the end are rests. It then settles into solid dots and the drum
+crew plays it back from that next beat, round after round.
+
+A rhythm that opens with a pair or a triplet cannot be told from faster plain
+beats until a tempo is known. Once a loop is playing (or a partner), its tempo
+is preferred, and a test drums 120 random rhythms against a loop and reads
+every one exactly. Drumming a new rhythm quiets the old loop, and the new one
+takes over once complete. A (Space, a swipe) stops the loop.
+
+**Call and answer** (`CallSession`). The partner drums a call; the player
+answers with any rhythm of the same length. The exchange is then played back,
+the call in the partner's voice and the answer in the player's drum. What
+follows depends on the answer:
+- **On the beat after the call** (within about half a beat): everything keeps
+  that beat, and it is the player's turn to lead. The player drums a call and
+  the partner answers it from the next beat with a riff (`riffOn`): the same
+  first beat, with one or two later beats divided differently. The player may
+  lead again at once, even over the riff. Waiting two beats after the riff
+  hands the lead back to the partner, with a new call on the beat.
+- **Late:** after the playback the partner takes the initiative and calls
+  again.
+
+An unanswered call is played again.
 
 **Kits.** Y, or ↑ and ↓ (the kit drum at the bottom right on touch), cycles
 through six pairs of instruments, low voice for Trắc's stroke and high for
