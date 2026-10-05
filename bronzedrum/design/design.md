@@ -200,6 +200,25 @@ A stroke from the player ends a demonstration at once. Hints write each stroke
 as a token in the device's own terms (an Xbox button, a key, the drum's centre
 or rim), and strokes that share a beat are drawn small, touching and beamed.
 
+**Difficulty** (Settings: Easy, Medium, Hard; Medium by default) sets the
+rhythms, from the next chapter started (`rhythm.js`).
+- **Easy** never reaches triplets. Tier I is plain beats, II adds a pair and III
+  two (march `L RR L RR`, strike `R RR RR L`). Calls and the hammer rhythm play
+  their triplets as pairs.
+- **Medium** is the game as designed.
+- **Hard** adds rests, written `.` for a silent slot:
+  - march `L L . R`, `L L .R R`, `L R.R L R`;
+  - strike `R . L R`, `R .R L R`, `R R.R L R`.
+
+  Calls and the hammer rhythm get the same treatment (`rhythmFor`). After the
+  first beat, each triplet loses its middle stroke and every other pair its
+  first, making it an off-beat stroke. A rhythm with neither gets a silent third
+  beat. The first beat and the last stroke are never changed.
+
+The reader measures a stroke after a rest from the last stroke on a beat, and
+a test plays every command and call at every difficulty. Rests show as a short
+dash in the dots, the hints and the command table.
+
 **Pairs, triplets and tiers.** A beat can hold one stroke, a pair (two) or a
 triplet (three). Every command has three tiers. Tier I is four plain strokes;
 tiers II and III add pairs and triplets. The deep tùng needs room to ring, so
