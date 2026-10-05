@@ -1436,6 +1436,198 @@
       ],
       "exportOperation": "trim transparent margin, fit without distortion, centre and align bottom",
       "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The Eastern Han general Mã Viện, 1st century, an old but upright commander on a dark warhorse in profile facing left, lamellar armour cut as rows of small slots, a crested helmet with a red plume, one hand raised to signal the advance, a long red banner on a pole behind him. Iron grey, black and lacquer red. Dignified and formidable, not caricatured.\nProduction constraints: 1536x1536. Faces left. Single cut-paper figure on horseback, side profile, hooves on the bottom edge, centred, transparent background (PNG with alpha).  Genuine transparent PNG alpha. No scenery, ground plane, cast shadow, glow halo, text or background decorations. Motifs must appear only as cut details within the subject, never as additional objects. Entire subject visible with small clear margin; side profile, bold readable silhouette."
+    },
+    {
+      "id": "BD-U17",
+      "file": "game/assets/art/card-practice-free.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-05",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample opaque vignette to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: feather-crowned Lạc Việt dancers circling a fire on a village green at dusk, a bronze drum beside them, a communal house with a sweeping saddle roof behind, lanterns overhead.\nOutput: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Wide 16:9 landscape composition. Keep the fire, dancers and drum grouped within the middle horizontal band so a shallow card crop reads well. Create only this requested image."
+    },
+    {
+      "id": "BD-U18",
+      "file": "game/assets/art/card-practice-call.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-05",
+      "nativeSize": [
+        1672,
+        940
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample opaque vignette to requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: two drummers facing each other across a fire, one at a bronze drum and one at a lacquer-red festival drum, trading rhythms while villagers watch, dusk.\nOutput: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Wide 16:9 landscape composition. Keep both drummers and their instruments readable within the middle horizontal band for a shallow menu card crop. Create only this requested image."
+    },
+    {
+      "id": "BD-P11",
+      "file": "game/assets/art/prop-dinh.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-05",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        2048,
+        1024
+      ],
+      "exportOperation": "trim alpha, fit without distortion, bottom-align on requested canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A Lạc Việt communal house (đình) seen from the side: a long low hall raised on wooden stilts, under a huge saddle-shaped roof whose two ends sweep up like a boat's prow, as on the houses of the Đông Sơn drums. Woven walls with rows of lattice windows cut through so warm light shows. Dark indigo-violet paper, a single sheet.\nOutput specification: 2048x1024. Single cut-paper object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow.\nA single isolated building only. Clean true alpha around the silhouette and through open lattice holes. No scenery, ground plane, fire, people, lanterns, exterior glow halo or cast shadow. Broad 2:1 canvas, whole roof and all stilts visible. Create only this requested asset."
+    },
+    {
+      "id": "BD-C13",
+      "file": "game/assets/art/dancer-sheet.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-05",
+      "nativeSize": [
+        1086,
+        1448
+      ],
+      "exportSize": [
+        1536,
+        2048
+      ],
+      "exportOperation": "crop native grid cells, trim alpha, fit and align each on requested sprite grid",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sprite sheet of feather-crowned Lạc Việt dancers like the figures on the face of a Đông Sơn bronze drum, in profile facing right, on a grid of 3 columns by 4 rows. Each row is one dancer, each column a pose: 1 standing at rest, arms low; 2 stamping, knees bent, both arms thrown up high; 3 hopping on one foot, one wrist flicked out to the side. Row 1 a woman with a tall feather crown and a wrapped skirt; row 2 a man in a loincloth with a feather crown; row 3 a woman holding a long feather in each hand; row 4 a man with a small hand drum. Ink-black silhouettes with lacquer-red sashes and fine cut details in the feathers.\nOutput specification: 1536x2048, transparent; a grid of 3 columns (poses) by 4 rows (dancers), 512x512 cells, each figure standing on the bottom of its cell, facing right, centred. Rows: a woman with a tall feather crown; a man in a loincloth with a feather crown; a woman holding two feathers; a man with a small hand drum. Same scale in every cell. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.\nExactly TWELVE separate full-body dancers in twelve equally spaced square cells. Portrait canvas aspect ratio 3:4; 3 columns and 4 rows, no drawn grid lines. Consistent character identity across each row. All faces/noses point RIGHT. Cell-local baseline and margins, no figure crosses into another cell. Keep feet, feather crowns, hands entirely inside cells. Pure transparent background, no scenery, ground, shadows, glow or lettering. Raise arms visibly in column 2; clearly hop in column 3.\nLayout correction: Edit this transparent 3-column by 4-row dancer sprite sheet. Preserve the twelve dancers, their clothing, colours, right-facing profiles and poses. Change only their layout: place every dancer entirely inside its own equal square cell with generous transparent margins on ALL sides, including above the raised feathers in row 3. No hands, feathers, crowns or feet may cross the invisible cell boundaries. Align feet at the same baseline inside every cell. Exactly 3 columns x 4 rows. No visible grid, no background, no shadow or text. Portrait 3:4 canvas.",
+      "frames": [
+        [
+          0,
+          0,
+          512,
+          512
+        ],
+        [
+          512,
+          0,
+          512,
+          512
+        ],
+        [
+          1024,
+          0,
+          512,
+          512
+        ],
+        [
+          0,
+          512,
+          512,
+          512
+        ],
+        [
+          512,
+          512,
+          512,
+          512
+        ],
+        [
+          1024,
+          512,
+          512,
+          512
+        ],
+        [
+          0,
+          1024,
+          512,
+          512
+        ],
+        [
+          512,
+          1024,
+          512,
+          512
+        ],
+        [
+          1024,
+          1024,
+          512,
+          512
+        ],
+        [
+          0,
+          1536,
+          512,
+          512
+        ],
+        [
+          512,
+          1536,
+          512,
+          512
+        ],
+        [
+          1024,
+          1536,
+          512,
+          512
+        ]
+      ]
+    },
+    {
+      "id": "BD-U19",
+      "file": "game/assets/art/kit-faces.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-05",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        1536,
+        256
+      ],
+      "exportOperation": "crop native grid cells, trim alpha, fit and align each on requested sprite grid",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Six round instrument faces in a row, seen straight from above, each a flat disc: 1 a Đông Sơn bronze drum's tympanum with a sun-star and rings of herons; 2 the cream buffalo-hide head of a trống chầu with a red centre disc and a ring of bronze tacks, a small dark wooden mõ resting at its edge; 3 the pale hide head of a trống cơm rice drum with a round darker patch of rice paste in its centre and a brown wooden rim; 4 a flat bronze gong with concentric rings and a raised polished boss; 5 a round mat with five green bamboo tubes of a đàn t'rưng laid side by side, shortest to longest; 6 the cream head of a lion-dance drum with a lacquer-red rim and a gold ring, a small brass cymbal at its edge. Bold shapes that read at 100 pixels.\nOutput specification: 1536x256, transparent; six discs on a 256 px grid, each centred and filling about 94% of its cell, in this order: bronze drum (not used; the game has BD-U02), barrel drum and mõ, rice drum, gongs, bamboo, lion-dance drum and cymbals\nExactly six isolated icons in ONE horizontal row, equal-size circular instrument faces with equal spacing. Left-to-right order exactly as described. No second row, no scene, no labels, no ground, no shadows or exterior glow. All parts including small mõ and cymbal stay within their own circular silhouette and cell. True transparent background. Very wide 6:1 sprite strip.",
+      "frames": [
+        [
+          0,
+          0,
+          256,
+          256
+        ],
+        [
+          256,
+          0,
+          256,
+          256
+        ],
+        [
+          512,
+          0,
+          256,
+          256
+        ],
+        [
+          768,
+          0,
+          256,
+          256
+        ],
+        [
+          1024,
+          0,
+          256,
+          256
+        ],
+        [
+          1280,
+          0,
+          256,
+          256
+        ]
+      ]
     }
   ]
 }

@@ -23,8 +23,7 @@ Sources:
 | --- | --- | --- | --- | --- | --- |
 | **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ← | F D A ← | left half of the screen | the big drum's centre, or the left side |
 | **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad → | J K L → | right half of the screen | the red rim ring, or the right side |
-| **Shield** | the army's shield wall | A | Space | click the bronze drum | Shield drum (trống chầu) |
-| **Reset the rhythm** | | Y | R / Backspace | (the phrase fades by itself) | Reset drum (mõ) |
+| **Shield and clear** | the army's shield wall; clears the rhythm dots | A | Space | click the bronze drum | Shield drum (trống chầu), or swipe the drum to clear |
 
 **Phones and tablets.** A touch switches the HUD to a touch layout; mouse and
 keyboard keep the desktop one. The drum becomes the instrument: it sits large
@@ -34,11 +33,12 @@ halves, so a phone can also be drummed with two thumbs, and several fingers
 can play pairs and triplets. The two buttons are the drums that stand beside a
 bronze drum in a temple or village hall. The Shield button, at the bottom right
 where the right thumb rests, is a trống chầu, a hide-headed barrel drum. It
-glows while an attack is coming and dims while it recovers. Reset, beside it,
-is a mõ, the wooden slit drum. Pause sits at the top. On every device the
-shield sounds a stroke on the barrel drum and a reset knocks the mõ (both
+glows while an attack is coming and dims while it recovers, and it also clears
+the rhythm (a separate mõ Reset drum stood beside it until shield and clear
+became one button). Pause sits at the top. On every device the shield sounds a
+stroke on the barrel drum, and a clear outside battle knocks the mõ (both
 generated with ElevenLabs). Two gestures save reaching for the buttons: a
-sideways swipe across the drum or the rhythm dots resets, and a tap on the
+sideways swipe across the drum or the rhythm dots clears, and a tap on the
 battle itself (the army, the enemy, the ground between) raises the shields.
 Taps on the dots do nothing, so a swipe across them is clean; a swipe that
 starts on the drum plays that first stroke before it clears.
@@ -120,8 +120,10 @@ fall inside their beat, in order. People play them as a flurry and then land
 the next beat on time, so their spacing costs a little precision but never
 breaks a phrase, and the wait for the next stroke is measured from the beat.
 (An earlier reader judged every gap, which rejected natural triplets, such as
-the Giao Chỉ call RRR L RR L.) The phrase fades as soon as no pattern can still
-be finished in time, or when a stroke breaks the rhythm. Y resets it at once.
+the Giao Chỉ call, now R RRR L RR.) Every rhythm opens with a single stroke:
+the first two beats set the tempo, and only then can a pair or triplet be told
+apart from plain beats (a test enforces it). The phrase fades as soon as no pattern can still
+be finished in time, or when a stroke breaks the rhythm. A clears it at once.
 
 **Seeing a mistake.** When a stroke breaks the phrase, the dots show what was
 played: the strokes so far, and the wrong one where it actually fell, at the
@@ -135,6 +137,25 @@ timestamp), so each light and the pointer's tap meet their sound.
 
 **Answering early.** In the call-and-answer chapters the player may answer as
 soon as they know the rhythm, during the call; the caller falls silent.
+
+**One button to shield and clear.** A (Space, the barrel-drum button on touch)
+always clears the rhythm dots, and in a battle also raises the shield wall, so a
+player can shield and start the next command afresh in one motion; the shield is
+ready again 0.7 s after raising it with nothing coming, 0.6 s after a block. In
+chapters with no shields A only clears, with the mõ's knock. Y and the separate
+touch Reset drum are gone; on touch, a swipe across the drum or the dots still
+clears. Instructions and hints show the face buttons as the game's own drum
+marks with the letter on top: X the gold tùng disc, B the black-and-red cắc
+target, A the cream hide of the barrel drum.
+
+**The Villages Answer** has a cricket-and-river night bed (frogs, water lapping
+at a jetty; chosen so the crickets do not chirp at one steady rate, which would
+pull against the player's tempo). Each village that answers comes to life: a
+gong and voices over the water, its house flaring with lamplight and sparks, the
+drum's rings, paper lanterns floating up. Then 2.6 s more for the scene to
+settle back to the crickets before the next village calls.
+
+**The pause menu** names the chapter being played.
 
 **Winning a chapter.** No menu: the scene celebrates in its own way (paper
 confetti over a battle or the coronation, lanterns rising when the villages
@@ -151,9 +172,16 @@ at once (no army cycle to wait out).
 **Casting at the bellows' pace.** The foundry has a fixed pace (76 beats a
 minute, never shown as a number). Its own drum plays the hammer rhythm softly
 at that pace throughout, and the bellows beside the furnace squeeze on every
-beat as the fire flares, so the pace is heard and seen. Each phrase within 14%
-of it pours. Elsewhere, the confirmation after a command names its pace in
-words (quick, steady, slow) rather than BPM.
+beat as the fire flares, so the pace is heard and seen. The player drums the
+rhythm round after round without stopping. It is one continuous pour: every
+stroke at the pace raises the bronze along a single line, a whole round a
+little more, and the three drums are marks on that line, each reached after
+about two and a half rounds. Passing one casts that drum (its rings burst from
+the mould, sparks fly, "Drum 1 cast!") and makes it a checkpoint. A mistake, or
+a round that rushes or drags, spills a little (about half a round's worth),
+never below the last drum cast; stopping lets the bronze sink slowly back to
+it. Elsewhere, the confirmation after a command names its pace in words
+(quick, steady, slow) rather than BPM.
 
 **Focus.** The game goes silent whenever its tab or window is in the
 background, and a chapter in play pauses.
@@ -209,13 +237,13 @@ Feedback is "Defended" under the drum, a ringing sound and sparks. Raising the
 shield with nothing incoming makes it slower to be ready again (0.9 s against
 0.3 s). A red "!" marks a Han soldier winding up for his first blow.
 
-**Confirmations.** "Cleared" (Y) and "Defended" (a deflected attack) appear
+**Confirmations.** "Cleared" (A, in chapters without shields) and "Defended" (a deflected attack) appear
 under the drum. When the rhythm is cleared, its dots tumble away.
 
 | Command | Tier I | Tier II | Tier III | Effect | Unlocked |
 | --- | --- | --- | --- | --- | --- |
 | Tiến · March | `L L L R` | `L L LR R` | `L RRR L R` | advance, stopping at the enemy line | ch. 1 |
-| Đánh · Strike | `R R L R` | `RR R L R` | `RRR R L R` | spears hit the front enemy; archers shoot | ch. 1 |
+| Đánh · Strike | `R R L R` | `R RR L R` | `R RRR L R` | spears hit the front enemy; archers shoot | ch. 1 |
 
 In the patterns, L is tùng and R is cắc. Spaces separate the four beats, and
 letters written together share a beat. Chapter 1 allows tiers I and II, and the
@@ -259,6 +287,57 @@ who drums a phrase, waits for the answer, and starts the next at once.
 - Without shielding, they still win with about 40% left.
 - Higher tiers win faster.
 - Sloppy drumming, fast or slow, still clears chapters 1 and 2.
+
+## Drum Practice
+
+On the title screen, under Press Start, is a mode with no right or wrong: the
+drum, a choice of instruments, and dancers. It is for learning the core skill,
+an even beat with pairs and triplets inside it, without a chapter at stake.
+
+**Free drumming.** The dots show how many strokes a rhythm has: 2 to 12, set
+with LB and RB (− and +, or the buttons beside the dots on touch). The player
+drums any rhythm of that length, at any tempo. It is read as beats of one, two
+or three strokes, with a silent beat allowed between two beats (`transcribe` in
+`practice.js`). The reading tries every tempo and groups the strokes to fit it
+best, and a pair, a triplet or a rest costs a little extra, so plain beats win
+a tie. The rhythm appears as dots, and the drum crew plays it back on the next
+beat, round after round, each dot lighting as it sounds. The player can start a
+new rhythm at any time. The old loop quiets while the new rhythm is drummed and
+the new one takes over once it is complete. If the player stops part way, the
+old loop comes back up. A (Space, a swipe) stops the loop.
+
+**Call and answer.** A partner on a small stage drums a rhythm with the same
+number of strokes. It is generated, opens on one stroke, and keeps deep strokes
+to the start of a beat. The player answers with any rhythm of that length.
+Both rows stay on screen, the partner's above and the player's below. The
+partner comes straight back on the next beat with a new call, at the player's
+tempo. Answering during a call cuts it short. An unanswered call is played
+again.
+
+**Kits.** Y, or ↑ and ↓ (the kit drum at the bottom right on touch), cycles
+through six pairs of instruments, low voice for Trắc's stroke and high for
+Nhị's:
+- the bronze drum;
+- the barrel drum and mõ;
+- the rice drum (trống cơm);
+- gongs (cồng chiêng);
+- bamboo (đàn t’rưng);
+- the lion-dance drum and cymbals.
+
+The loop and the partner play on the same kit. The HUD drum shows the kit's
+face. The kit and the stroke count are remembered.
+
+**The green.** The scene is the dusk sky and strips with a communal house
+(đình), a lantern string, and a fire right of centre. The fire burns higher as
+the drumming builds. Every stroke heard (the player's, the loop's, the
+partner's) adds to the groove, and every five points of groove draws a dancer,
+up to six. The dancers are feather-crowned like the figures on a Đông Sơn
+drum, and they walk in from the right to places round the fire. A deep stroke
+is a stamp with both arms up; a rim stroke is a hop with a flick to alternate
+sides. When the drumming stops for two seconds the groove drains and the
+dancers leave the way they came. Each new dancer is greeted by a shout and a clap
+(`dancer-join`). The bed is its own ambience (`amb-green`): the fire crackling,
+crickets, and villagers murmuring far off. Nothing in it keeps a beat.
 
 ## Structure for the full game
 

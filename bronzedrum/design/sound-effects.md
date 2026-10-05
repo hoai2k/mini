@@ -6,10 +6,11 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**47 of 48 files in use.**
+**67 of 69 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
+- `sfx/kit-bamboo-high-1.mp3`: two takes, both with a second bounce of the beater; the other take, trimmed, is clean.
 - `sfx/drum-tung-2.mp3`: eight takes, none both a single stroke and deep (more energy under 200 Hz than over 2 kHz); the model drifts to a bright metallic hit, and two good deep strokes give enough variety.
 
 ## The drum
@@ -22,6 +23,19 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `drum-mo` | Reset the rhythm: a knock on the wooden slit drum (Y / R / the Reset drum). (hit) | 0.5 s | 2/2 | One knock of a wooden mallet on a hollow Vietnamese wooden slit drum (mõ, a temple block): a round, dry, woody 'tok' with a tiny hollow resonance. A single hit, close-miked, no music. |
 | `drum-wake` | The drum wakes: four commands chained. (sting) | 4.0 s | 1/1 | A huge bronze gong struck softly and swelling: a rising shimmering bronze resonance that blooms and slowly fades, ceremonial and awe-struck. |
 | `stumble` | A stroke during the army's answer, or off the beat. (hit) | 0.5 s | 1/1 | A dull, slightly off-key wooden knock, clumsy and muted, very short. |
+
+## Drum practice: the kits
+
+| Id | Use | Length | Files | Prompt |
+| --- | --- | ---: | --- | --- |
+| `kit-com-low` | Rice drum kit, low voice (Drum Practice). (hit) | 1.0 s | 2/2 | One stroke of the flat palm on the large head of a Vietnamese rice drum (trống cơm), a long two-headed wooden barrel drum tuned with rice paste: a warm, round, pitched low 'bùng' tone that sings briefly. A single hit, close-miked, dry room, no music. |
+| `kit-com-high` | Rice drum kit, high voice (Drum Practice). (hit) | 0.6 s | 2/2 | One quick slap of the fingers on the small head of a Vietnamese rice drum (trống cơm): a bright, tight, pitched high 'tang' tone, short. A single hit, close-miked, dry room, no music. |
+| `kit-gong-low` | Gong kit, low voice (Drum Practice). (hit) | 2.0 s | 2/2 | One strike of a padded mallet on a large flat bronze gong of the Vietnamese Central Highlands (cồng chiêng): a deep, warm, humming bronze tone that rings and fades. A single hit, close-miked, no music. |
+| `kit-gong-high` | Gong kit, high voice (Drum Practice). (hit) | 1.4 s | 2/2 | One sharp strike of a hard mallet on the boss of a small bronze gong (chiêng): an instant, bright, clear, high-pitched bronze tone with a medium ring, loudest at the very start. A single hit, close-miked, no music. |
+| `kit-bamboo-low` | Bamboo kit, low voice (Drum Practice). (hit) | 0.8 s | 2/2 | One strike of a soft wooden beater on a large bamboo tube of a Vietnamese bamboo xylophone (đàn t'rưng): a hollow, woody, pitched low 'tok' with a short resonant ring. A single hit, close-miked, dry room, no music. |
+| `kit-bamboo-high` | Bamboo kit, high voice (Drum Practice). (hit) | 0.5 s | 1/2 | One sharp strike of a small hard wooden beater on the shortest, thinnest bamboo tube of a đàn t'rưng: a bright, hollow, high-pitched woody 'tik', very short, an octave above a large tube. Exactly one hit, close-miked, dry room, no music. |
+| `kit-lan-drum` | Lion-dance kit, low voice (Drum Practice). (hit) | 1.0 s | 2/2 | One heavy stroke of a wooden stick on the centre of a big Vietnamese lion-dance drum (trống lân): a booming, punchy, low drum hit with a little buzz of the skin, no metal. A single hit, close-miked, dry room, no music. |
+| `kit-lan-cymbal` | Lion-dance kit, high voice (Drum Practice). (hit) | 0.8 s | 2/2 | One clash of a pair of small brass hand cymbals (chũm chọe) in a lion dance: a bright, splashy, brassy crash, cut short. A single clash, close-miked, no music. |
 
 ## The army answers
 
@@ -56,6 +70,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `ui-confirm` | Choosing a menu item. (hit) | 0.5 s | 1/1 | A small hardwood clapper knock, clean and single, like a temple woodblock. |
 | `ui-back` | Closing a menu or dialog. (hit) | 0.5 s | 1/1 | A sheet of paper sliding softly across a wooden table, short. |
 | `ui-start` | Press Start. (sting) | 2.5 s | 1/1 | A single resonant strike on a small bronze gong, ringing out. |
+| `village-wakes` | The Villages Answer: a village answers and lights its lanterns. (sting) | 3.0 s | 1/1 | A riverside village wakes at night: a bronze gong struck once in the distance, then a small crowd of villagers calling out joyfully together, and a hand drum rolling briefly in answer, all echoing over the water. |
 
 ## Stings
 
@@ -72,6 +87,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `crack` | Casting the Drums: a phrase that drifts cracks the mould. (one-shot) | 1.5 s | 1/1 | A clay casting mould cracking from the heat: one sharp crack, then crumbling pieces and a hiss of steam. |
 | `lantern` | The Oath and The Villages Answer: an answered call lights incense or lanterns. (one-shot) | 1.5 s | 1/1 | A paper lantern being lit at night: a soft whoosh of flame catching, then one small clear bronze bell. |
 | `crowd-cheer` | The Coronation: the crowd answers each rhythm. (one-shot) | 3.0 s | 1/1 | A festival crowd in an ancient village square cheering and clapping with joy, a few small gongs ringing. |
+| `dancer-join` | Drum Practice: a dancer walks in to join the dance. (one-shot) | 1.5 s | 2/2 | A single joyful shout of 'hey!' from a villager joining a dance by a fire, with two or three quick hand claps and a jingle of small ankle bells, outdoors at dusk. Short, no music, no drums. |
 | `han-horn` | Mã Viện Returns: a new Han column arrives. (one-shot) | 3.0 s | 1/1 | Several ancient war horns made of buffalo horn blown together in the distance across a river, a low ominous call that swells and fades, an army approaching. |
 
 ## Ambience
@@ -81,6 +97,8 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `amb-garden` | Chapter 1 bed, looped. (loop) | 20.0 s | 1/1 | Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling water, a distant rooster, a light breeze through bamboo. Continuous, no music. |
 | `amb-river` | Chapter 2 bed, looped. (loop) | 20.0 s | 1/1 | Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons and birds. Continuous, no music, no drums. |
 | `amb-foundry` | Casting the Drums bed, looped. Chosen from six takes as the least tonal (the old take had a steady hum that read as a machine); looped with a 3 s crossfade and raised 7 dB under a soft limiter. (loop) | 20.0 s | 1/1 | Blacksmith's forge ambience recorded outdoors, traditional and hand-powered: crackling coal fire, slow leather bellows whooshing, hot metal hissing now and then, crickets far off. Natural, no machinery, no electrical hum, no music. |
+| `amb-village` | The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked to one steady rate (a strong steady chirp would pull against the player's tempo); looped with a 3 s crossfade and lowered 6 dB. (loop) | 20.0 s | 1/1 | Field recording at night beside a slow river in the Vietnamese countryside: steady crickets chirping in the grass, frogs calling from the rice paddies, gentle water lapping against a wooden jetty. Calm, natural, recorded outdoors with a real microphone. No music, no voices, no hum, no wind howl. |
+| `amb-green` | Drum Practice bed (the village green), looped. Nothing in it keeps a beat, so it never pulls against the player's own tempo. (loop) | 20.0 s | 1/1 | Field recording at dusk on a village green in the Vietnamese countryside: a bonfire crackling and popping close by, soft crickets in the grass, the low relaxed murmur of villagers talking far off, an occasional distant laugh. Calm, natural, recorded outdoors with a real microphone. No music, no drums, no clear words, no wind howl. |
 | `amb-mourning` | The Oath (chapter 2) bed, looped. Chosen from six takes as the least synthetic (most noise-like spectrum); raised 10 dB under a soft limiter to sit with the other beds. (loop) | 20.0 s | 1/1 | Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and calm, no music, no electronic sounds. |
 | `breeze` | The Oath: the breeze stirred by holding A or Y, faded with the wind. (loop) | 8.0 s | 1/1 | A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves lightly. Continuous, airy and natural, no whistling, no howling, no music. |
 | `amb-night` | Chapter 3 bed, looped. (loop) | 20.0 s | 1/1 | Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice paddies, distant torches crackling, a faint wind. Continuous, no music. |

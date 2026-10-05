@@ -4,8 +4,9 @@ import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, commandById, parsePatte
 import { createBattle, orderFor, spawnEnemy, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
+import { PracticeSession, KITS, loopPosition } from './practice.js';
 import { Sound } from './audio.js';
-import { Input } from './input.js';
+import { Input, PAD } from './input.js';
 import { Renderer } from './render.js';
 import { Art } from './art.js';
 import { PALETTE as P } from './palette.js';
@@ -36,6 +37,8 @@ function save(key, value) {
 const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
 // The prototype opens every chapter for review; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
+// Drum Practice remembers the last number of strokes and kit.
+const practiceSettings = load('practice', { dots: 4, kit: 'bronze' });
 progress.unlocked = Math.max(progress.unlocked, STAGES.length);
 
 // ---------------------------------------------------------------- systems
@@ -72,14 +75,14 @@ const dialogs = []; // open dialog ids, top last
 const focusMemory = new Map();
 
 function show(id) {
-  for (const s of ['title', 'select', 'pause', 'result']) $(`#${s}`).hidden = s !== id;
-  if (id === 'title' || id === 'select' || id === 'result') hideSuccess();
+  for (const s of ['title', 'select', 'practice', 'pause', 'result']) $(`#${s}`).hidden = s !== id;
+  if (id === 'title' || id === 'select' || id === 'practice' || id === 'result') hideSuccess();
   // Menu music: the title theme, and the two sisters' theme on the chapter select.
   if (id === 'title') sound.playMusic('mu-title');
-  if (id === 'select') sound.playMusic('mu-select');
+  if (id === 'select' || id === 'practice') sound.playMusic('mu-select');
   screen = id;
   input.mode = id === 'play' ? 'play' : 'menu';
-  canvas.style.visibility = id === 'title' || id === 'select' ? 'hidden' : 'visible';
+  canvas.style.visibility = id === 'title' || id === 'select' || id === 'practice' ? 'hidden' : 'visible';
   document.body.classList.toggle('playing', id === 'play');
   chrome.update();
   if (id !== 'play') focusFirst(activeRoot());
@@ -226,7 +229,7 @@ async function toggleFullscreen() {
 // Resizing clears the canvas; while paused nothing else redraws it, so draw
 // the frozen scene again (Esc leaves fullscreen as it pauses, phones rotate).
 function redrawPaused() {
-  if (game && screen !== 'play' && screen !== 'title' && screen !== 'select') renderer.draw(view(), 0);
+  if (game && screen !== 'play' && screen !== 'title' && screen !== 'select' && screen !== 'practice') renderer.draw(view(), 0);
 }
 
 
@@ -294,6 +297,8 @@ function startStage(i) {
   hideSuccess();
   const stage = STAGES[i];
   sound.start();
+  sound.setKit(null);
+  input.practice = false;
   game = {
     index: i,
     stage,
@@ -319,11 +324,11 @@ function startStage(i) {
     blocks: 0,
   };
   if (game.mode === 'echo') {
-    game.session = new EchoSession({ calls: stage.calls, matchTempo: stage.matchTempo, tolerance: stage.tolerance });
+    game.session = new EchoSession({ calls: stage.calls, matchTempo: stage.matchTempo, tolerance: stage.tolerance, pause: stage.settle ?? 0.4 });
     game.reader.patterns = [];
     game.session.nextCallAt = 2.2;
   } else if (game.mode === 'casting') {
-    game.session = new CastingSession({ drums: stage.drums, pours: stage.pours, tolerance: stage.tolerance, u: stage.bpm ? 60 / stage.bpm : null });
+    game.session = new CastingSession({ drums: stage.drums, u: 60 / stage.bpm, tolerance: stage.tolerance });
     // The guide: the foundry's drum plays the hammer rhythm at the pace to hold.
     game.guide = stage.bpm ? { u: 60 / stage.bpm, start: 2.5, next: 0, strokes: parsePattern(stage.rhythm) } : null;
     game.reader.patterns = [callPattern(stage.rhythm, 'cast')];
@@ -404,6 +409,7 @@ input.on('swipe', ({ x0, y0, x, y, time }) => {
 
 function strike(drum, time) {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  if (game.mode === 'practice') return practiceStrike(drum, time);
   const t = hitTime(time);
   if (drum === 'L') sound.tung();
   else sound.cac(undefined, game.reader.busy(t));
@@ -417,6 +423,17 @@ function strike(drum, time) {
   game.miss = null;
   const events = game.reader.hit(drum, t);
   game.miss = missView(events, trying, before, drum, t);
+  if (game.mode === 'casting') {
+    // The continuous pour: every stroke in time adds bronze, a broken phrase
+    // cracks back to the last cast drum (see CastingSession).
+    const done = events.find((e) => e.type === 'command');
+    const now = game.reader.progress();
+    let out = [];
+    if (done) out = game.session.stroke(songTime(), done.u);
+    else if (game.miss) out = game.session.miss();
+    else if (game.reader.phrase.length) out = game.session.stroke(songTime(), now ? now.u : null);
+    for (const e of out) handleMode(e);
+  }
   // A stroke just after the phrase timed out: it was too late.
   const f = game.faded;
   if (!game.miss && f && f.trying.u && songTime() - f.at < 1.2 * f.trying.u) {
@@ -468,18 +485,26 @@ function act(action, time) {
     return;
   }
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
-  if (action === 'reset') {
-    // Clear the phrase: a knock on the wooden slit drum (mõ), the dots tumble
-    // away and "Cleared" shows under the drum.
-    sound.play('drum-mo', sound.now, 0.8);
-    renderer.kick('mo', songTime());
-    input.rumble(25, 0.3);
+  if (game.mode === 'practice') return practiceAct(action);
+  // One button, A (Space, the shield drum): it always clears the rhythm dots,
+  // and in a battle it also raises the shield wall. In chapters with no
+  // shields it is just the clear, with a knock on the wooden slit drum (mõ).
+  const battle = game.mode === 'battle';
+  if (action === 'reset' || action === 'guard') {
     const shown = view().phraseView;
     const events = game.reader.reset();
     if (events.length && shown && !shown.done) renderer.clearDots(shown, songTime());
+    game.quietClear = battle && action === 'guard';
     for (const ev of events) handleRhythm(ev);
-  } else if (action === 'guard') {
-    // The shield wall: separate from the drum, timed to attacks in flight.
+    game.quietClear = false;
+    if (!battle || action === 'reset') {
+      sound.play('drum-mo', sound.now, 0.8);
+      renderer.kick('mo', songTime());
+      input.rumble(25, 0.3);
+    }
+  }
+  if (action === 'guard' && battle) {
+    // The shield wall: timed to attacks in flight.
     const t = hitTime(time);
     if (guard(game.battle, Math.max(t, game.battle.time))) {
       // A stroke on the big hide barrel drum (trống chầu) calls the shields up.
@@ -548,7 +573,10 @@ function handleRhythm(ev) {
     g.clearShownAt = songTime() + 0.8;
     for (const e of g.session.answer(ev, songTime())) handleMode(e);
   } else if (ev.type === 'command' && g.mode === 'casting') {
-    for (const e of g.session.pour(ev)) handleMode(e);
+    // No pause between phrases: the next round can follow straight on.
+    g.reader.action = null;
+    g.reader.shown = null;
+    for (const e of g.session.phrase(ev)) handleMode(e);
   } else if (ev.type === 'command') {
     const c = commandById(ev.command);
     // With the elephant, a strike on a waking drum is the charge; it spends the drum.
@@ -581,7 +609,7 @@ function handleRhythm(ev) {
         g.wantAgain = g.lastTry;
       }
     }
-    if (ev.reason === 'manual') confirm('Cleared', P.paperShade);
+    if (ev.reason === 'manual' && !g.quietClear) confirm('Cleared', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
   } else if (ev.type === 'comboLost') {
     if (ev.combo > 1 && g.mode === 'battle') feedback('Chain broken', P.paperShade);
@@ -632,20 +660,24 @@ function handleMode(e) {
       const words = { mourning: 'An incense stick is lit', village: `${e.call.label || 'The village'} answers`, festival: 'The crowd roars', elegy: 'A drum falls silent' };
       confirm(words[stage.caller] || 'Answered', P.bronzeLight);
       if (stage.caller === 'festival') sound.play('crowd-cheer', sound.now + 0.2, 0.8);
-      else if (stage.caller !== 'elegy') sound.play('lantern', sound.now + 0.1, 0.8);
+      else if (stage.caller === 'village') {
+        // The village comes to life: its gong and voices over the water, its house ablaze.
+        sound.play('lantern', sound.now + 0.05, 0.8);
+        sound.play('village-wakes', sound.now + 0.25, 0.9);
+        renderer.villageWakes(e.index, t + 0.25);
+      } else if (stage.caller !== 'elegy') sound.play('lantern', sound.now + 0.1, 0.8);
       break;
     }
-    case 'pour':
-      confirm(`Steady — pour ${e.level} of ${e.of}`, P.bronzeLight);
-      sound.play('pour', sound.now, 0.8);
-      break;
     case 'crack':
-      confirm(e.faster ? 'Too fast — the mould cracks' : 'Too slow — the mould cracks', P.lacquer);
+      confirm(e.faster ? 'Rushing — some bronze spills' : e.slower ? 'Dragging — the bronze cools' : 'A little bronze spills', P.lacquer);
       sound.play('crack');
       g.crackAt = t;
       break;
     case 'cast':
       toast(`Drum ${e.drum + 1} is cast`);
+      confirm(`Drum ${e.drum + 1} cast!`, P.bronzeLight);
+      sound.play('pour', sound.now, 0.8);
+      g.castAt = { ...(g.castAt || {}), [e.drum]: t };
       sound.play('drum-wake', sound.now + 0.3, 0.6);
       renderer.wake(songTime() + 0.3, 'hud');
       break;
@@ -756,7 +788,8 @@ function hint(view) {
   const say = (id, tier = 1) => {
     const c = commandById(id);
     const label = `${c.name}${tier > 1 ? ' ' + ['', 'I', 'II', 'III'][tier] : ''}`;
-    g.mentioned.push({ key: `${id}:${tier}`, text: c.tiers[tier - 1], label });
+    // Keyed by the rhythm itself, so a changed rhythm is demonstrated afresh.
+    g.mentioned.push({ key: `${id}:${c.tiers[tier - 1]}`, text: c.tiers[tier - 1], label });
     return `${label}: ${rhythmTokens(c.tiers[tier - 1])}`;
   };
   const b = g.battle;
@@ -798,6 +831,7 @@ function hint(view) {
 
 function updatePlay(dt) {
   const g = game;
+  if (g.mode === 'practice') return updatePractice(dt);
   const t = songTime();
   // Note the phrase before the clock moves on: if it times out, a stroke that
   // comes just after was the late one (see strike).
@@ -808,6 +842,7 @@ function updatePlay(dt) {
   }
   tickDemo();
   tickGuide();
+  if (g.mode === 'casting' && !g.ended) g.session.update(t, dt);
   if (g.mode === 'echo' && !g.ended) for (const e of g.session.update(t)) handleMode(e);
   // The Oath: holding A or Y stirs a breeze over the incense (drawn by the renderer).
   if (g.stage.caller === 'mourning') sound.setBreeze(input.held('guard') || input.held('reset') ? 0.7 : 0);
@@ -898,6 +933,7 @@ function battleSound(ev) {
 
 function view() {
   const g = game;
+  if (g.mode === 'practice') return practiceView();
   const t = songTime();
   const r = g.reader;
   const c = g.cycle;
@@ -958,8 +994,9 @@ function view() {
     stage: g.stage,
     session: g.session,
     crackAt: g.crackAt,
-    pouring: g.mode === 'casting' && !!r.action && t >= r.action.start,
+    pouring: g.mode === 'casting' && g.session.lastStroke !== null && t - g.session.lastStroke < 0.6 && !g.session.done,
     guide: g.guide,
+    castAt: g.castAt,
     touch: input.device === 'touch',
     // The Oath: A blows one way over the incense, Y the other, while held.
     wind: g.stage.caller === 'mourning' && screen === 'play' ? { a: input.held('guard'), y: input.held('reset') } : null,
@@ -1080,6 +1117,12 @@ function pause(reason = '') {
   sound.suspend();
   sound.pauseMusic(true);
   $('#pause-reason').textContent = reason;
+  $('#pause-chapter').innerHTML = '<span class="num"></span><span class="name"></span>';
+  $('#pause-chapter .num').textContent = game.practice ? 'Drum Practice' : `Chapter ${game.index + 1}`;
+  $('#pause-chapter .name').textContent = game.stage.title;
+  // In practice the chapter buttons lead back to the practice modes instead.
+  $('#pause [data-action="restart"]').textContent = game.practice ? 'Start over' : 'Restart chapter';
+  $('#pause [data-action="select"]').textContent = game.practice ? 'Practice modes' : 'Chapters';
   show('pause');
 }
 
@@ -1087,6 +1130,340 @@ function resume() {
   sound.resume();
   sound.pauseMusic(false);
   show('play');
+}
+
+// ---------------------------------------------------------------- drum practice
+// Free drumming and call and answer (practice.js): no right or wrong, just
+// the drum, a kit to choose, and dancers who come once the drumming gets going.
+
+const PRACTICE = {
+  free: {
+    id: 'practice-free',
+    title: 'Free drumming',
+    subtitle: 'Drum anything; the crew plays it back',
+    intro: 'Drum any rhythm of as many strokes as the dots show. The drum crew plays it back again and again, and dancers gather at the fire. Drum a new one at any time: the old rhythm quiets while you play and the new one takes over. Pairs, triplets, pauses: anything goes.',
+  },
+  call: {
+    id: 'practice-call',
+    title: 'Call and answer',
+    subtitle: 'Trade rhythms with a partner',
+    intro: 'A partner drums a rhythm with as many strokes as the dots show; answer with any rhythm of the same length, and they come straight back with the next. Nothing is wrong: copy them, or answer in your own way.',
+  },
+};
+for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-green', troops: 0, elephant: false, enemies: [] });
+
+/** The practice modes' screen (from the title). */
+function openPractice() {
+  sound.start();
+  sound.loadSamples().then(() => {
+    if (screen === 'practice') sound.playMusic('mu-select');
+  });
+  enterFullscreen();
+  buildPracticeCards();
+  show('practice');
+}
+
+function buildPracticeCards() {
+  const box = $('#practice-cards');
+  box.innerHTML = '';
+  const intro = $('#practice-intro');
+  for (const [kind, st] of Object.entries(PRACTICE)) {
+    const b = document.createElement('button');
+    b.className = 'card';
+    b.dataset.nav = '';
+    const img = art.get(`card-${st.id}`);
+    b.innerHTML = `<span class="card-art${img ? '' : ' plain'}" aria-hidden="true"></span><span class="num">Drum Practice</span><span class="name"></span><span class="sub"></span>`;
+    if (img) b.querySelector('.card-art').style.backgroundImage = `url(${img.src})`;
+    b.querySelector('.name').textContent = st.title;
+    b.querySelector('.sub').textContent = st.subtitle;
+    b.setAttribute('aria-description', st.intro);
+    const describe = () => {
+      intro.textContent = st.intro;
+    };
+    b.addEventListener('focus', describe);
+    b.addEventListener('mouseenter', describe);
+    b.addEventListener('click', () => startPractice(kind));
+    box.appendChild(b);
+  }
+  intro.textContent = PRACTICE.free.intro;
+}
+
+function practiceKit() {
+  return KITS.find((k) => k.id === practiceSettings.kit) || KITS[0];
+}
+
+function startPractice(kind) {
+  hideSuccess();
+  if (game && game.practice) stopPractice();
+  const stage = PRACTICE[kind];
+  sound.start();
+  sound.setKit(practiceKit());
+  input.practice = true;
+  game = {
+    index: -1,
+    stage,
+    practice: kind,
+    mode: 'practice',
+    session: new PracticeSession({ mode: kind, dots: practiceSettings.dots }),
+    battle: createBattle(stage),
+    clockStart: sound.now + 0.6,
+    pulses: [], // strokes heard, for the dancers: { t, drum, who }
+    energy: 0, // how much drumming there has been lately (dancers come with it)
+    dancers: 0,
+    lastSound: -9,
+    loopBus: null,
+    loopNext: 0,
+    callBus: null,
+    feedback: null,
+    confirm: null,
+    ended: false,
+  };
+  renderer.setStage(stage);
+  renderer.dancers = [];
+  sound.loadSamples().then(() => {
+    if (game && game.stage === stage) {
+      sound.startAmbience(stage.ambience);
+      sound.stopMusic(1.5);
+    }
+  });
+  if (document.activeElement) document.activeElement.blur();
+  show('play');
+}
+
+/** Silence the practice loop and the partner when leaving. */
+function stopPractice() {
+  const g = game;
+  if (!g) return;
+  for (const bus of [g.loopBus, g.callBus]) {
+    if (!bus) continue;
+    sound.fadeBus(bus, 0, 0.15);
+    setTimeout(() => bus.disconnect(), 400);
+  }
+  g.loopBus = null;
+  g.callBus = null;
+  sound.setKit(null);
+  input.practice = false;
+}
+
+function practiceStrike(drum, time) {
+  const g = game;
+  const t = hitTime(time);
+  if (drum === 'L') sound.tung();
+  else sound.cac();
+  renderer.hit(drum, songTime());
+  input.rumble(drum === 'L' ? 50 : 30, drum === 'L' ? 0.6 : 0.3);
+  heard(drum, songTime(), 'you', 1);
+  for (const e of g.session.stroke(drum, t)) practiceEvent(e);
+}
+
+/** A stroke reaches the green: the dancers move to it, and the drumming builds. */
+function heard(drum, t, who, energy) {
+  const g = game;
+  g.pulses.push({ t, drum, who });
+  if (g.pulses.length > 48) g.pulses.splice(0, g.pulses.length - 48);
+  g.energy = Math.min(36, g.energy + energy);
+  g.lastSound = Math.max(g.lastSound, t);
+}
+
+function practiceAct(action) {
+  const g = game;
+  const s = g.session;
+  const t = songTime();
+  if (action === 'guard' || action === 'reset') {
+    // A (Space, a swipe on touch): clear the dots, and in free play stop the loop.
+    for (const e of s.clear(t)) practiceEvent(e);
+    sound.play('drum-mo', sound.now, 0.6);
+    renderer.kick('mo', t);
+  } else if (action === 'fewer' || action === 'more') {
+    const events = s.setDots(s.dots + (action === 'more' ? 1 : -1), t);
+    if (!events.length) return sound.play('ui-back');
+    sound.play('ui-move');
+    for (const e of events) practiceEvent(e);
+  } else if (action === 'kit' || action === 'kitPrev') {
+    const i = KITS.indexOf(practiceKit());
+    const next = KITS[(i + (action === 'kit' ? 1 : KITS.length - 1)) % KITS.length];
+    practiceSettings.kit = next.id;
+    save('practice', practiceSettings);
+    sound.setKit(next);
+    // Let them hear it: one low and one high stroke.
+    sound.tung(sound.now + 0.02);
+    sound.cac(sound.now + 0.24);
+    confirm(`${next.vn} · ${next.name}`, P.bronzeLight);
+  }
+}
+
+function practiceEvent(e) {
+  const g = game;
+  const level = (settings.echo / 100) * 0.9 + 0.1;
+  switch (e.type) {
+    case 'phraseStart':
+      // The old loop quiets while a new rhythm is drummed.
+      if (g.loopBus) sound.fadeBus(g.loopBus, 0.22 * level, 0.25);
+      break;
+    case 'abandon':
+      if (g.loopBus) sound.fadeBus(g.loopBus, level, 0.5);
+      break;
+    case 'loop': {
+      if (g.loopBus) {
+        const old = g.loopBus;
+        sound.fadeBus(old, 0, 0.3);
+        setTimeout(() => old.disconnect(), 800);
+      }
+      g.loopBus = sound.bus(level);
+      g.loopNext = 0;
+      confirm('Again and again', P.bronzeLight);
+      break;
+    }
+    case 'clear':
+      if (g.loopBus) {
+        const old = g.loopBus;
+        sound.fadeBus(old, 0, 0.2);
+        setTimeout(() => old.disconnect(), 600);
+        g.loopBus = null;
+      }
+      confirm(e.stopped ? 'Stopped' : 'Cleared', P.paperShade);
+      break;
+    case 'dots':
+      practiceSettings.dots = e.dots;
+      save('practice', practiceSettings);
+      confirm(`${e.dots} strokes`, P.paper);
+      break;
+    case 'cutCall':
+      if (g.callBus) {
+        const old = g.callBus;
+        sound.fadeBus(old, 0, 0.06);
+        setTimeout(() => old.disconnect(), 400);
+        g.callBus = null;
+      }
+      // The strokes not played yet no longer move the dancers.
+      g.pulses = g.pulses.filter((q) => q.who !== 'partner' || q.t <= songTime());
+      break;
+    case 'call': {
+      // The partner plays the whole call now, scheduled on the audio clock.
+      if (g.callBus) g.callBus.disconnect();
+      g.callBus = sound.bus(0.85);
+      for (const st of e.call.strokes) {
+        sound.echo(st.drum, g.clockStart + st.t, 1, 1.07, g.callBus);
+        heard(st.drum, st.t, 'partner', 0.5);
+      }
+      break;
+    }
+    case 'answered':
+      confirm('Answered', P.bronzeLight);
+      break;
+  }
+}
+
+function updatePractice(dt) {
+  const g = game;
+  const t = songTime();
+  const s = g.session;
+  for (const e of s.update(t)) practiceEvent(e);
+  // The loop: the crew drums it round after round, just ahead of time.
+  const L = s.loop;
+  if (L && g.loopBus) {
+    const n = L.strokes.length;
+    while (true) {
+      const st = L.strokes[g.loopNext % n];
+      const at = L.start + Math.floor(g.loopNext / n) * L.period + st.pos * L.u;
+      if (at - t > 0.3) break;
+      if (at >= t - 0.05) {
+        sound.echo(st.drum, g.clockStart + Math.max(at, t), 1, 0.97, g.loopBus);
+        heard(st.drum, at, 'loop', 0.6);
+      }
+      g.loopNext += 1;
+    }
+  }
+  // The drumming dies down when it stops: the dancers drift away.
+  const quiet = t - g.lastSound > 2;
+  g.energy = Math.max(0, g.energy - dt * (quiet ? 2.2 : 0.12));
+  // A shout and a clap as each new dancer joins.
+  const dancers = practiceDancers();
+  if (dancers > g.dancers) sound.play('dancer-join', sound.now, 0.8);
+  g.dancers = dancers;
+  renderer.draw(view(), dt);
+}
+
+/** How many dancers the drumming has drawn in: one for every five points of groove, up to six. */
+function practiceDancers() {
+  return Math.min(6, Math.floor(game.energy / 5));
+}
+
+/** How each practice control is shown in the HUD for the device in use, as rich-text tokens. */
+function practiceKeys() {
+  return {
+    gamepad: { fewer: '⟨k:LB⟩', more: '⟨k:RB⟩', kit: '⟨Y⟩', clear: '⟨A⟩' },
+    touch: { fewer: '−', more: '+', kit: 'Kit', clear: 'Swipe' },
+  }[input.device] || { fewer: '⟨k:−⟩', more: '⟨k:+⟩', kit: '⟨k:↑⟩ ⟨k:↓⟩', clear: 'Space:' };
+}
+
+function practiceView() {
+  const g = game;
+  const t = songTime();
+  const s = g.session;
+  const lp = loopPosition(s.loop, t);
+  const call = s.call;
+  const callPlayed = call ? call.strokes.filter((st) => st.t <= Math.min(t, call.end)).length : 0;
+  const calling = !!call && t >= call.start - 0.05 && t < call.end && !s.phrase.length;
+  const keys = strokeKeys();
+  let hint = null;
+  if (settings.hints && t < 14 && !s.loops) {
+    hint = s.mode === 'free'
+      ? `Drum any ${s.dots} strokes — ${keys.L} tùng, ${keys.R} cắc — and the crew plays them back`
+      : `Listen to your partner, then answer with any ${s.dots} strokes`;
+  }
+  const v = {
+    battle: g.battle,
+    songTime: t,
+    beatFloat: lp ? lp.pos : t / 0.8,
+    heron: -1,
+    phraseView: null,
+    ready: !s.phrase.length,
+    shieldsUp: false,
+    cycle: null,
+    threats: [],
+    incoming: 0,
+    guardAt: -9,
+    guardUntil: -9,
+    confirm: g.confirm,
+    sustaining: false,
+    inResponse: false,
+    responseCommand: null,
+    combo: 0,
+    spirit: false,
+    feedback: g.feedback,
+    unlocked: [],
+    maxTier: 3,
+    mode: 'practice',
+    stage: g.stage,
+    session: s,
+    touch: input.device === 'touch',
+    hint,
+    demo: null,
+    heard: heardTime(),
+    success: false,
+    miss: null,
+    practice: {
+      kind: s.mode,
+      dots: s.dots,
+      kit: practiceKit(),
+      entered: s.phrase.length,
+      partial: s.partial,
+      loop: s.loop,
+      loopPos: lp,
+      call,
+      callPlayed,
+      calling,
+      answer: s.answer,
+      // The answer stays up until the partner's next call starts.
+      showAnswer: !!s.answer && !!call && t < call.start,
+      dancers: practiceDancers(),
+      groove: Math.min(1, g.energy / 30),
+      pulses: g.pulses,
+      keys: practiceKeys(),
+    },
+  };
+  return v;
 }
 
 // ---------------------------------------------------------------- actions
@@ -1097,6 +1474,7 @@ function action(name) {
       return resume();
     case 'restart':
       sound.resume();
+      if (game.practice) return startPractice(game.practice);
       return startStage(game.index);
     case 'next':
       return startStage(game.index + 1);
@@ -1104,15 +1482,27 @@ function action(name) {
       // From the pause menu the audio clock is suspended; wake it for the select music.
       sound.resume();
       sound.stopAmbience();
+      if (game && game.practice) {
+        stopPractice();
+        game = null;
+        return show('practice');
+      }
       game = null;
       buildCards();
       return show('select');
     case 'title':
       sound.resume();
       sound.stopAmbience();
+      if (game && game.practice) stopPractice();
       game = null;
       titleNav = false;
       return show('title');
+    case 'practice':
+      return openPractice();
+    case 'practice-free':
+      return startPractice('free');
+    case 'practice-call':
+      return startPractice('call');
     case 'fullscreen':
       return toggleFullscreen();
     case 'close':
@@ -1171,14 +1561,21 @@ input.on('nav', (dir) => {
     if (dir === 'confirm') return activate(document.activeElement || $('#press-start'));
     return move(dir);
   }
-  if (screen === 'select' && dir === 'back') return action('title');
+  if ((screen === 'select' || screen === 'practice') && dir === 'back') return action('title');
   if (dir === 'confirm') return activate(document.activeElement);
   if (dir === 'menu') return;
   move(dir);
 });
 
-input.on('padButton', () => {
-  if (screen === 'title' && !titleNav && !dialogs.length) pressStart();
+input.on('padButton', (i) => {
+  if (screen !== 'title' || titleNav || dialogs.length) return;
+  // The d-pad moves between Press Start and Drum Practice; any other button starts.
+  if (i >= PAD.UP && i <= PAD.RIGHT) {
+    titleNav = true;
+    $('#title-hint').innerHTML = '<span class="xb xb-a">A</span> select · Menu start';
+    return;
+  }
+  pressStart();
 });
 input.on('stick', () => {
   if (screen === 'title' && !titleNav && !dialogs.length) {
@@ -1265,6 +1662,6 @@ async function boot() {
 }
 
 // Debug hooks for automated checks.
-window.__bronzeDrum = { get game() { return game; }, renderer, sound, input, startStage, finish, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
+window.__bronzeDrum = { get game() { return game; }, renderer, sound, input, startStage, startPractice, finish, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
 
 boot();

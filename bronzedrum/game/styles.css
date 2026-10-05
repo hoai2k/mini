@@ -62,10 +62,18 @@ body.playing #app { touch-action: none; -webkit-user-select: none; user-select: 
 
 :focus-visible, .nav-focus { outline: 3px solid var(--focus) !important; outline-offset: 4px; }
 body.reduce-motion .press-start { animation: none; }
+.practice-start {
+  margin-top: 4px; font: 600 clamp(16px, 1.9vw, 21px) var(--serif); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--paper); background: rgba(22, 21, 26, 0.55); border: 2px solid var(--paper-shade); padding: 7px 26px; cursor: pointer;
+  clip-path: polygon(3% 0, 97% 5%, 100% 50%, 96% 100%, 2% 95%, 0 50%);
+}
+.practice-start:hover { background: var(--bronze); color: var(--ink); }
+.practice-start:active { transform: translateY(2px) scale(0.98); }
 
 /* Chapter select: a 3 × 3 grid of compact cards, the focused chapter described below. */
-#select { background: radial-gradient(ellipse at 50% 30%, #2B3556, #0D111E); gap: 14px; overflow-y: auto; justify-content: flex-start; padding-top: 28px; }
-#select h2 { margin: 0; font: 700 clamp(26px, 3.4vw, 40px) var(--serif); }
+#select, #practice { background: radial-gradient(ellipse at 50% 30%, #2B3556, #0D111E); gap: 14px; overflow-y: auto; justify-content: flex-start; padding-top: 28px; }
+#select h2, #practice h2 { margin: 0; font: 700 clamp(26px, 3.4vw, 40px) var(--serif); }
+.cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(680px, 100%); }
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; width: min(980px, 100%); }
 .card {
   padding: 0 14px 12px; text-align: left; cursor: pointer; color: var(--ink); overflow: hidden;
@@ -198,10 +206,12 @@ body.reduce-motion #bars-hint .arrow { animation: none; }
 
 /* Xbox face buttons, in their standard colours, for the instructions. */
 .xb { display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; border-radius: 50%; font: 700 0.8em var(--sans); color: #fff; vertical-align: 0.05em; line-height: 1; }
-.xb-a { background: #107C10; }
-.xb-b { background: #E81123; }
-.xb-x { background: #0078D4; }
-.xb-y { background: #FFB900; color: var(--ink); }
+/* As the game's own drum marks, the letter on top: X the gold tùng disc, B the
+   black-and-red cắc target, A the cream hide of the barrel drum. */
+.xb-x { background: var(--bronze-light); color: var(--ink); }
+.xb-b { background: var(--ink); color: var(--paper); box-shadow: inset 0 0 0 0.17em var(--ink), inset 0 0 0 0.3em var(--lacquer); }
+.xb-a { background: #EADBC0; color: var(--ink); box-shadow: inset 0 0 0 0.1em var(--bronze); }
+.xb-y { background: var(--paper-shade); color: var(--ink); }
 
 /* The success moment: over the celebrating scene, low on the screen, with a
    single button. Restart and the chapter list are in the pause menu. */
@@ -224,3 +234,9 @@ body.reduce-motion #bars-hint .arrow { animation: none; }
 #success .press-start { margin-top: 6px; display: inline-flex; align-items: center; gap: 12px; }
 #success .press-start .xb { font-size: 0.75em; }
 body.reduce-motion #success { transition: none; }
+
+/* The chapter being played, under 'Paused'. */
+.pause-chapter { margin: -2px 0 6px; text-align: center; font: 600 15px var(--sans); color: #5a4a35; }
+.pause-chapter .num { display: block; font: 700 11px var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--lacquer); }
+.pause-chapter .name { font: 700 20px var(--serif); color: var(--ink); }
+#pause .pause-chapter { grid-column: 1 / -1; }

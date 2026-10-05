@@ -30,6 +30,7 @@
         <h1 id="logo-text" class="logo-text"><span class="vn">Trống Đồng</span><span class="en">Bronze Drum</span></h1>
         <p class="tagline">Two sisters. One drum. An army of women.</p>
         <button id="press-start" class="press-start" data-nav>Press Start</button>
+        <button id="practice-start" class="practice-start" data-nav data-action="practice">Drum Practice</button>
         <p class="hint" id="title-hint">Move left stick for options</p>
       </div>
       <div class="corner-buttons">
@@ -55,9 +56,18 @@
       <button class="text-btn" data-nav data-action="title">Back to title</button>
     </section>
 
+    <!-- Drum Practice: free drumming, or call and answer with a partner. -->
+    <section id="practice" class="screen" hidden aria-labelledby="practice-title">
+      <h2 id="practice-title">Drum Practice</h2>
+      <div id="practice-cards" class="cards two"></div>
+      <p id="practice-intro" class="stage-intro" aria-live="polite"></p>
+      <button class="text-btn" data-nav data-action="title">Back to title</button>
+    </section>
+
     <section id="pause" class="screen modal" hidden aria-labelledby="pause-title">
       <div class="panel">
         <h2 id="pause-title">Paused</h2>
+        <p id="pause-chapter" class="pause-chapter"></p>
         <p id="pause-reason" class="muted"></p>
         <button class="menu-btn" data-nav data-action="resume">Resume</button>
         <button class="menu-btn" data-nav data-open="instructions">Instructions</button>
@@ -88,7 +98,7 @@
           <p><strong>Stronger rhythms.</strong> Every command has three tiers. Tier I is four plain strokes; tiers II and III add pairs and triplets and hit harder (×1.4 and ×1.96). Evenness adds up to a further ×1.4 on top: a sloppy tier II still beats a perfect tier I, and the more even you play, the more it hits.</p>
           <table class="cmd-table" id="cmd-table"></table>
           <p><strong>The army answers.</strong> When a rhythm is accepted, the army acts for four beats at your speed while its drums play your rhythm back; your dots stay lit until the drum glows, ready for the next command. The army moves on your strokes, at your speed. A march or a strike carries on in your rhythm for up to two more rounds (weaker) until you start the next command. <strong>Nhị’s flourish:</strong> while the army answers, rim strokes placed <em>between</em> its beats add power (up to four). Other strokes during the answer are simply ignored.</p>
-          <p><strong>Shield.</strong> Defence is separate from the drum. Han crossbow bolts fly in a visible arc, and a spearman draws back before he lunges. Press shield while an attack is on its way and the army throws a shield wall over the whole group: everything already in the air is deflected (“Defended”). Raise it with nothing coming and it takes longer to be ready again. Shielding never interrupts your rhythm. Made a mistake in a rhythm? Reset it (“Cleared”) and start again.</p>
+          <p><strong>Shield.</strong> Defence is separate from the drum. Han crossbow bolts fly in a visible arc, and a spearman draws back before he lunges. Press shield while an attack is on its way and the army throws a shield wall over the whole group: everything already in the air is deflected (“Defended”). It is ready again almost at once. The same button clears the rhythm dots: raising the shields starts your rhythm afresh, so shield, then drum the next command. In chapters without shields, A (Space) just clears the dots.</p>
           <p><strong>The drum wakes.</strong> Start the next command within two beats of the drum glowing ready to chain. Four in a row and the drum wakes: every command is half again as strong.</p>
           <h3>Xbox controller</h3>
           <div class="pad-diagram" aria-hidden="true">
@@ -101,19 +111,19 @@
               <rect x="430" y="10" width="50" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/><text x="455" y="25" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">RT</text>
               <circle cx="190" cy="125" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="190" y="129" text-anchor="middle" font-size="11" fill="currentColor">L stick</text>
               <path d="M240 175h16v-16h16v16h16v16h-16v16h-16v-16h-16z" fill="none" stroke="currentColor" stroke-width="2"/>
-              <!-- Face buttons in their Xbox colours: X blue, B red, Y yellow, A green. -->
-              <circle cx="450" cy="100" r="15" fill="#FFB900"/><text x="450" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#16151A">Y</text>
-              <circle cx="420" cy="128" r="15" fill="#0078D4"/><text x="420" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">X</text>
-              <circle cx="480" cy="128" r="15" fill="#E81123"/><text x="480" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">B</text>
-              <circle cx="450" cy="156" r="15" fill="#107C10"/><text x="450" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A</text>
+              <!-- Face buttons as the game's drum marks: X the gold tùng disc, B the
+                   black-and-red cắc target, A the barrel drum's cream hide. Y is unused. -->
+              <circle cx="450" cy="100" r="15" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"/><text x="450" y="105" text-anchor="middle" font-size="13" fill="currentColor" opacity="0.5">Y</text>
+              <circle cx="420" cy="128" r="15" fill="#D9A55B"/><text x="420" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#16151A">X</text>
+              <circle cx="480" cy="128" r="15" fill="#16151A"/><circle cx="480" cy="128" r="11" fill="none" stroke="#A8322D" stroke-width="4"/><text x="480" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#F2E8D5">B</text>
+              <circle cx="450" cy="156" r="15" fill="#EADBC0" stroke="#B07A3A" stroke-width="2"/><text x="450" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#16151A">A</text>
               <rect x="300" y="110" width="16" height="10" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="308" y="104" text-anchor="middle" font-size="10" fill="currentColor">View</text>
               <rect x="330" y="110" width="16" height="10" rx="4" fill="currentColor"/><text x="338" y="104" text-anchor="middle" font-size="10" fill="currentColor">Menu</text>
               <circle cx="380" cy="190" r="20" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
               <g font-size="13" fill="currentColor">
                 <line x1="405" y1="128" x2="372" y2="250" stroke="currentColor"/><text x="300" y="266" font-weight="700">X · Trắc · tùng</text>
                 <line x1="495" y1="128" x2="600" y2="140" stroke="currentColor"/><text x="508" y="156" font-weight="700">B · Nhị · cắc</text>
-                <line x1="465" y1="158" x2="600" y2="200" stroke="currentColor"/><text x="508" y="215">A · shield / confirm</text>
-                <line x1="465" y1="96" x2="600" y2="90" stroke="currentColor"/><text x="520" y="84">Y · reset rhythm</text>
+                <line x1="465" y1="158" x2="600" y2="200" stroke="currentColor"/><text x="490" y="215">A · shield + clear</text>
                 <line x1="150" y1="45" x2="40" y2="45" stroke="currentColor" opacity="0.6"/><text x="10" y="40" opacity="0.8">LB, LT: also tùng</text>
                 <line x1="490" y1="45" x2="600" y2="45" stroke="currentColor" opacity="0.6"/><text x="512" y="40" opacity="0.8">RB, RT: also cắc</text>
                 <line x1="168" y1="125" x2="40" y2="110" stroke="currentColor"/><text x="10" y="104">Menus: move</text>
@@ -126,12 +136,19 @@
             <tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Mouse</th><th>Touch</th></tr>
             <tr><td>Trắc · tùng (centre)</td><td><span class="xb xb-x">X</span> (also LB, LT, D-pad ◀)</td><td>F, D, A or ←</td><td>Left half of the screen</td><td>The drum’s centre, or the left side of the screen</td></tr>
             <tr><td>Nhị · cắc (rim)</td><td><span class="xb xb-b">B</span> (also RB, RT, D-pad ▶)</td><td>J, K, L or →</td><td>Right half of the screen</td><td>The red rim ring, or the right side of the screen</td></tr>
-            <tr><td>Shield wall (deflects attacks in the air)</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Click the bronze drum</td><td>The barrel drum (trống chầu), bottom right, or tap the battle</td></tr>
-            <tr><td>Reset the rhythm</td><td><span class="xb xb-y">Y</span></td><td>R or Backspace</td><td>—</td><td>The wooden slit drum (mõ), or swipe across the drum or the dots</td></tr>
+            <tr><td>Shield wall and clear the rhythm (in battle the shields go up too)</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Click the bronze drum</td><td>The barrel drum (trống chầu), bottom right, or tap the battle; swipe across the drum or the dots to clear</td></tr>
             <tr><td>Pause</td><td>Menu or View</td><td>Esc or P</td><td>—</td><td>Pause button, top centre</td></tr>
             <tr><td>Menus</td><td>Left stick / D-pad, <span class="xb xb-a">A</span> confirm, <span class="xb xb-b">B</span> back</td><td>Arrows, Enter, Esc</td><td>Click</td><td>Tap</td></tr>
           </table>
           <p><strong>Phones and tablets.</strong> Hold the device sideways. The big drum at the bottom is played like the real one: tap its centre for Trắc’s <em>tùng</em> and the red ring round its rim for Nhị’s <em>cắc</em>. On a phone you can also drum with your thumbs: anywhere on the left side of the screen is <em>tùng</em>, the right side <em>cắc</em>. Use several fingers at once for quick pairs and triplets. Tap the battle itself to raise the shields, and swipe across the drum or the dots to reset.</p>
+          <h3>Drum Practice</h3>
+          <p>From the title screen, <strong>Drum Practice</strong> has no right or wrong, only the drum. In <strong>free drumming</strong>, drum any rhythm with as many strokes as the dots show. The game reads it as beats of one, two or three strokes at your own speed, shows it, and the drum crew plays it back again and again while dancers gather at the fire. Drum a new rhythm whenever you like: the old one quiets while you play and the new one takes over. In <strong>call and answer</strong>, a partner drums a rhythm with the same number of strokes and you answer with any rhythm of that length. They come straight back with the next call.</p>
+          <table class="map-table">
+            <tr><th>Practice</th><th>Controller</th><th>Keyboard</th><th>Touch</th></tr>
+            <tr><td>Fewer or more strokes (2 to 12)</td><td>LB · RB</td><td>− and + (or [ and ])</td><td>The − and + buttons beside the dots</td></tr>
+            <tr><td>Change the drums: bronze drum, barrel drum and mõ, rice drum, gongs, bamboo, lion-dance drum and cymbals</td><td><span class="xb xb-y">Y</span>, or D-pad ▲ ▼</td><td>↑ ↓</td><td>The drum at the bottom right</td></tr>
+            <tr><td>Clear the dots and stop the loop</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Swipe across the drum or the dots</td></tr>
+          </table>
           <p class="muted">If your strokes sound late, adjust <em>Audio offset</em> in Settings.</p>
         </div>
         <button class="menu-btn" data-nav data-action="close">Close</button>

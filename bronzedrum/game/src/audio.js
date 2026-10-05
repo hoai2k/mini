@@ -50,6 +50,7 @@ export class Sound {
     this.musicFiles = new Map(); // id -> { file, loop } for tracks that exist
     this.music = null; // { id, el, gain } now playing
     this.base = 'assets/';
+    this.kit = null; // Drum Practice's kit (setKit); null is the bronze drum
   }
 
   /** Fetch and decode every sample in the audio manifest. */
@@ -396,19 +397,19 @@ export class Sound {
     gain.gain.exponentialRampToValueAtTime(0.0001, t + decay);
   }
 
-  tone(type, freq, t, peak, decay, endFreq) {
+  tone(type, freq, t, peak, decay, endFreq, dest = this.master) {
     const o = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     o.type = type;
     o.frequency.setValueAtTime(freq, t);
     if (endFreq) o.frequency.exponentialRampToValueAtTime(endFreq, t + decay * 0.6);
     this.env(g, t, peak, decay);
-    o.connect(g).connect(this.master);
+    o.connect(g).connect(dest);
     o.start(t);
     o.stop(t + decay + 0.05);
   }
 
-  noiseBurst(t, peak, decay, filterType, freq, q = 1) {
+  noiseBurst(t, peak, decay, filterType, freq, q = 1, dest = this.master) {
     const s = this.ctx.createBufferSource();
     s.buffer = this.noise;
     const f = this.ctx.createBiquadFilter();
@@ -417,14 +418,83 @@ export class Sound {
     f.Q.value = q;
     const g = this.ctx.createGain();
     this.env(g, t, peak, decay);
-    s.connect(f).connect(g).connect(this.master);
+    s.connect(f).connect(g).connect(dest);
     s.start(t, Math.random() * 0.5);
     s.stop(t + decay + 0.05);
+  }
+
+  /**
+   * Drum Practice can swap the bronze drum for another kit (practice.js
+   * KITS): its low voice takes Trắc's strokes and its high voice Nhị's.
+   * null is the bronze drum.
+   */
+  setKit(kit) {
+    this.kit = kit && kit.id !== 'bronze' ? kit : null;
+  }
+
+  /** A stroke on the current kit: its sample, or a synthesised stand-in. */
+  kitStroke(drum, t, gain = 1, rate = 1, dest = this.master) {
+    const k = this.kit;
+    const src = this.play(k[drum], t, gain, dest, rate);
+    const tone = (type, f, at, peak, d, end) => this.tone(type, f, at, peak, d, end, dest);
+    const noise = (at, peak, d, type, f, q = 1) => this.noiseBurst(at, peak, d, type, f, q, dest);
+    if (src) return src;
+    const low = drum === 'L';
+    const a = gain;
+    switch (k.id) {
+      case 'temple':
+        if (low) {
+          tone('sine', 92 * rate, t, 0.8 * a, 0.4, 50);
+          noise(t, 0.25 * a, 0.12, 'lowpass', 500);
+        } else {
+          tone('sine', 820 * rate, t, 0.35 * a, 0.09);
+          noise(t, 0.2 * a, 0.04, 'bandpass', 1400, 3);
+        }
+        break;
+      case 'rice':
+        tone('sine', (low ? 150 : 410) * rate, t, (low ? 0.75 : 0.45) * a, low ? 0.4 : 0.16, low ? 132 : 390);
+        noise(t, 0.15 * a, 0.03, 'bandpass', low ? 700 : 2400, 2);
+        break;
+      case 'gongs':
+        for (const [f, amp, d] of low ? [[146, 0.5, 1.8], [293, 0.18, 1.2], [441, 0.08, 0.9]] : [[523, 0.3, 1.1], [1049, 0.1, 0.7], [1571, 0.05, 0.5]]) {
+          tone('sine', f * rate, t, amp * a, d);
+        }
+        break;
+      case 'bamboo':
+        tone('triangle', (low ? 294 : 698) * rate, t, (low ? 0.5 : 0.35) * a, low ? 0.25 : 0.12);
+        noise(t, 0.12 * a, 0.02, 'bandpass', low ? 900 : 2600, 3);
+        break;
+      case 'lion':
+        if (low) {
+          tone('sine', 78 * rate, t, 0.9 * a, 0.45, 44);
+          noise(t, 0.3 * a, 0.1, 'lowpass', 700);
+        } else {
+          noise(t, 0.35 * a, 0.45, 'highpass', 4500);
+          noise(t, 0.2 * a, 0.2, 'bandpass', 2800, 2);
+        }
+        break;
+    }
+    return null;
+  }
+
+  /** A gain stage of its own (Drum Practice's loop), so it can be quieted and stopped as one. */
+  bus(level = 1) {
+    if (!this.ctx) return null;
+    const g = this.ctx.createGain();
+    g.gain.value = level;
+    g.connect(this.master);
+    return g;
+  }
+
+  /** Fade a bus to a level over dur seconds. */
+  fadeBus(bus, to, dur = 0.3) {
+    if (bus && this.ctx) glide(this.ctx, bus.gain, to, dur);
   }
 
   /** Trắc's deep centre stroke. */
   tung(t = this.now, strong = false) {
     if (!this.ctx) return;
+    if (this.kit) return void this.kitStroke('L', t, strong ? 1.1 : 1);
     if (this.play('drum-tung', t, strong ? 1.15 : 1)) return;
     const k = strong ? 1.25 : 1;
     this.tone('sine', 110, t, 0.9 * k, 0.55, 52);
@@ -438,6 +508,7 @@ export class Sound {
   /** Nhị's rim stroke. */
   cac(t = this.now, soft = false) {
     if (!this.ctx) return;
+    if (this.kit) return void this.kitStroke('R', t, soft ? 0.7 : 1);
     if (this.play('drum-cac', t, soft ? 0.7 : 1)) return;
     const k = soft ? 0.55 : 1;
     this.noiseBurst(t, 0.5 * k, 0.05, 'bandpass', 3200, 4);
@@ -450,17 +521,18 @@ export class Sound {
    * and softer, so the player can tell their own strokes from the answer.
    * Returns the source so a cancelled answer can be silenced.
    */
-  echo(drum, t, level, rate = 0.9) {
+  echo(drum, t, level, rate = 0.9, dest = this.master) {
     if (!this.ctx || level <= 0) return null;
+    if (this.kit) return this.kitStroke(drum, t, level, rate, dest);
     const id = drum === 'L' ? 'drum-tung' : 'drum-cac';
-    const src = this.play(id, t, level, this.master, rate);
+    const src = this.play(id, t, level, dest, rate);
     if (src) return src;
     // Stand-in: a short low tone.
     const o = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     o.frequency.value = drum === 'L' ? 95 : 1500;
     this.env(g, t, 0.5 * level, drum === 'L' ? 0.3 : 0.06);
-    o.connect(g).connect(this.master);
+    o.connect(g).connect(dest);
     o.start(t);
     o.stop(t + 0.4);
     return o;

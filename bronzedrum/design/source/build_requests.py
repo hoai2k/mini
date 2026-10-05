@@ -134,6 +134,14 @@ SECTIONS = {
         "face left. Props are drawn at fixed sizes in quiet scenes, so they can carry more cut "
         "detail than the battle sprites.",
     ),
+    "practice": (
+        "Drum Practice",
+        "Art for Drum Practice, chosen from the title screen: free drumming and call and answer "
+        "on a village green at dusk. The scene reuses the dusk sky and the parallax strips; the "
+        "game draws the fire, the lantern string and the partner drummers (BD-P03). Until these "
+        "are delivered the game draws paper-cut stand-ins, so each piece replaces one drawing "
+        "and must keep its proportions.",
+    ),
 }
 
 
@@ -684,6 +692,70 @@ for rid, title, purpose, file, prompt in [
      "lacquer red. The Han are dignified, not caricatured."),
 ]:
     req(ST, rid, None, title, purpose, "3840x2160, opaque", "delivered", None, file, f"{STYLE} {prompt}")
+
+# ------------------------------------------------------------------ drum practice
+
+PR = "practice"
+for rid, cid, name, scene in [
+    ("BD-U17", "practice-free", "Free drumming",
+     "feather-crowned Lạc Việt dancers circling a fire on a village green at dusk, a bronze drum "
+     "beside them, a communal house with a sweeping saddle roof behind, lanterns overhead"),
+    ("BD-U18", "practice-call", "Call and answer",
+     "two drummers facing each other across a fire, one at a bronze drum and one at a lacquer-red "
+     "festival drum, trading rhythms while villagers watch, dusk"),
+]:
+    req(PR, rid, f"card-{cid}", f"Practice card: {name}",
+        "Background band of the card on the Drum Practice screen.",
+        "1600x900, opaque; the band is cropped from the middle, so keep the subject central",
+        "delivered", "buildPracticeCards (plain paper)", f"art/card-{cid}.png",
+        f"{STYLE} A wide cut-paper vignette: {scene}.")
+req(PR, "BD-P11", "prop-dinh", "The communal house (đình)",
+    "The back of the practice green: a village communal house, dim against the dusk sky, its "
+    "lattice lit from inside. Shown 230 px tall, centred about two thirds of the way across the "
+    "screen; the fire and the dancers stand in front of it.",
+    "2048x1024. " + PROP,
+    "delivered", "Renderer.dinh", "art/prop-dinh.png",
+    f"{STYLE} A Lạc Việt communal house (đình) seen from the side: a long low hall raised on "
+    "wooden stilts, under a huge saddle-shaped roof whose two ends sweep up like a boat's prow, "
+    "as on the houses of the Đông Sơn drums. Woven walls with rows of lattice windows cut "
+    "through so warm light shows. Dark indigo-violet paper, a single sheet.")
+req(PR, "BD-C13", "dancer-sheet", "Dancers: three poses each",
+    "The dancers who gather as the player drums: four figures, each in three poses the game "
+    "switches between on every stroke it hears (at rest or walking; a stamp on the deep stroke "
+    "with both arms thrown up; a hop on the rim stroke with one wrist flicked out). The game "
+    "flips them to face the fire, bobs and tilts them. Shown 96 px tall, so keep the shapes "
+    "bold.",
+    "1536x2048, transparent; a grid of 3 columns (poses) by 4 rows (dancers), 512x512 cells, "
+    "each figure standing on the bottom of its cell, facing right, centred. Rows: a woman with "
+    "a tall feather crown; a man in a loincloth with a feather crown; a woman holding two "
+    "feathers; a man with a small hand drum. Same scale in every cell. " + CUTOUT,
+    "delivered", "Renderer.dancer", "art/dancer-sheet.png",
+    f"{STYLE} A sprite sheet of feather-crowned Lạc Việt dancers like the figures on the face "
+    "of a Đông Sơn bronze drum, in profile facing right, on a grid of 3 columns by 4 rows. "
+    "Each row is one dancer, each column a pose: 1 standing at rest, arms low; 2 stamping, knees "
+    "bent, both arms thrown up high; 3 hopping on one foot, one wrist flicked out to the side. "
+    "Row 1 a woman with a tall feather crown and a wrapped skirt; row 2 a man in a loincloth "
+    "with a feather crown; row 3 a woman holding a long feather in each hand; row 4 a man "
+    "with a small hand drum. Ink-black silhouettes with lacquer-red sashes and fine cut "
+    "details in the feathers.")
+req(PR, "BD-U19", "kit-faces", "Practice kits: drum faces",
+    "In Drum Practice the player can swap the bronze drum for another pair of instruments. The "
+    "big HUD drum (and the kit button on touch screens) shows the kit's face, seen from above "
+    "and drawn as a disc: its centre is the deep stroke, its rim the high one. The game adds "
+    "the glow and the flash on each stroke.",
+    "1536x256, transparent; six discs on a 256 px grid, each centred and filling about 94% of "
+    "its cell, in this order: bronze drum (not used; the game has BD-U02), barrel drum and mõ, "
+    "rice drum, gongs, bamboo, lion-dance drum and cymbals",
+    "delivered", "Renderer.kitFace", "art/kit-faces.png",
+    f"{STYLE} Six round instrument faces in a row, seen straight from above, each a flat disc: "
+    "1 a Đông Sơn bronze drum's tympanum with a sun-star and rings of herons; 2 the cream "
+    "buffalo-hide head of a trống chầu with a red centre disc and a ring of bronze tacks, a "
+    "small dark wooden mõ resting at its edge; 3 the pale hide head of a trống cơm rice drum "
+    "with a round darker patch of rice paste in its centre and a brown wooden rim; 4 a flat "
+    "bronze gong with concentric rings and a raised polished boss; 5 a round mat with five "
+    "green bamboo tubes of a đàn t'rưng laid side by side, shortest to longest; 6 the cream "
+    "head of a lion-dance drum with a lacquer-red rim and a gold ring, a small brass cymbal "
+    "at its edge. Bold shapes that read at 100 pixels.")
 
 # ------------------------------------------------------------------ output
 

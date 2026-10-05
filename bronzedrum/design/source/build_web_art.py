@@ -83,6 +83,12 @@ TARGETS = {
     "prop-mould": ("scale=-1:200", 85),
     "prop-drum-cast": ("scale=-1:200", 85),
     "han-general": ("scale=-1:360", 85),
+    # Drum Practice (stand-ins until delivered).
+    "card-practice-free": ("scale=800:-1", 80),
+    "card-practice-call": ("scale=800:-1", 80),
+    "prop-dinh": ("scale=-1:512", 85),
+    "dancer-sheet": ("scale=768:1024", 85),
+    "kit-faces": ("scale=1536:256", 85),
 }
 
 

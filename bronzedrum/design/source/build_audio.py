@@ -59,6 +59,7 @@ def sfx(group, sid, prompt, seconds, use, influence=0.5, variants=1, kind="onesh
 # Generated files that failed review. They are not loaded, and --generate does
 # not remake them unless forced (then remove the entry here if the new take is good).
 REJECTED = {
+    "sfx/kit-bamboo-high-1.mp3": "two takes, both with a second bounce of the beater; the other take, trimmed, is clean",
     "sfx/drum-tung-2.mp3": "eight takes, none both a single stroke and deep (more energy under 200 Hz than over 2 kHz); "
     "the model drifts to a bright metallic hit, and two good deep strokes give enough variety",
 }
@@ -99,6 +100,54 @@ sfx(G, "drum-wake",
 sfx(G, "stumble",
     "A dull, slightly off-key wooden knock, clumsy and muted, very short.",
     0.5, "A stroke during the army's answer, or off the beat.", kind="hit", gain=0.7)
+
+G = "Drum practice: the kits"
+# Drum Practice lets the player swap the bronze drum for another pair of
+# instruments; every kit has a low voice (Trắc's side, L) and a high one (R).
+# The bronze drum and the barrel drum and mõ reuse the samples above.
+sfx(G, "kit-com-low",
+    "One stroke of the flat palm on the large head of a Vietnamese rice drum (trống cơm), a "
+    "long two-headed wooden barrel drum tuned with rice paste: a warm, round, pitched low "
+    "'bùng' tone that sings briefly. A single hit, close-miked, dry room, no music.",
+    1.0, "Rice drum kit, low voice (Drum Practice).", influence=0.7, variants=2, kind="hit")
+sfx(G, "kit-com-high",
+    "One quick slap of the fingers on the small head of a Vietnamese rice drum (trống cơm): a "
+    "bright, tight, pitched high 'tang' tone, short. A single hit, close-miked, dry room, no music.",
+    0.6, "Rice drum kit, high voice (Drum Practice).", influence=0.7, variants=2, kind="hit")
+sfx(G, "kit-gong-low",
+    "One strike of a padded mallet on a large flat bronze gong of the Vietnamese Central "
+    "Highlands (cồng chiêng): a deep, warm, humming bronze tone that rings and fades. A single "
+    "hit, close-miked, no music.",
+    2.0, "Gong kit, low voice (Drum Practice).", influence=0.7, variants=2, kind="hit", gain=0.85)
+sfx(G, "kit-gong-high",
+    "One sharp strike of a hard mallet on the boss of a small bronze gong (chiêng): an "
+    "instant, bright, clear, high-pitched bronze tone with a medium ring, loudest at the very "
+    "start. A single hit, close-miked, no music.",
+    1.4, "Gong kit, high voice (Drum Practice).", influence=0.7, variants=2, kind="hit", gain=0.8,
+    # The model holds the tone flat; a struck gong dies away, and quick strokes must not smear.
+    post="afade=t=out:st=0.02:d=1.2:curve=exp")
+sfx(G, "kit-bamboo-low",
+    "One strike of a soft wooden beater on a large bamboo tube of a Vietnamese bamboo "
+    "xylophone (đàn t'rưng): a hollow, woody, pitched low 'tok' with a short resonant ring. A "
+    "single hit, close-miked, dry room, no music.",
+    0.8, "Bamboo kit, low voice (Drum Practice).", influence=0.7, variants=2, kind="hit")
+sfx(G, "kit-bamboo-high",
+    "One sharp strike of a small hard wooden beater on the shortest, thinnest bamboo tube of a "
+    "đàn t'rưng: a bright, hollow, high-pitched woody 'tik', very short, an octave above a "
+    "large tube. Exactly one hit, close-miked, dry room, no music.",
+    0.5, "Bamboo kit, high voice (Drum Practice).", influence=0.7, variants=2, kind="hit",
+    # Cut before the tube's bounce, so quick strokes stay clean.
+    post="atrim=0:0.25,afade=t=out:st=0.06:d=0.19")
+sfx(G, "kit-lan-drum",
+    "One heavy stroke of a wooden stick on the centre of a big Vietnamese lion-dance drum "
+    "(trống lân): a booming, punchy, low drum hit with a little buzz of the skin, no metal. A "
+    "single hit, close-miked, dry room, no music.",
+    1.0, "Lion-dance kit, low voice (Drum Practice).", influence=0.7, variants=2, kind="hit")
+sfx(G, "kit-lan-cymbal",
+    "One clash of a pair of small brass hand cymbals (chũm chọe) in a lion dance: a bright, "
+    "splashy, brassy crash, cut short. A single clash, close-miked, no music.",
+    0.8, "Lion-dance kit, high voice (Drum Practice).", influence=0.7, variants=2, kind="hit", gain=0.7,
+    post="atrim=0:0.6,afade=t=out:st=0.25:d=0.35")
 
 G = "The army answers"
 sfx(G, "call",
@@ -168,6 +217,12 @@ sfx(G, "ui-start",
     "A single resonant strike on a small bronze gong, ringing out.",
     2.5, "Press Start.", kind="sting", gain=0.7)
 
+sfx(G, "village-wakes",
+    "A riverside village wakes at night: a bronze gong struck once in the distance, then a "
+    "small crowd of villagers calling out joyfully together, and a hand drum rolling briefly "
+    "in answer, all echoing over the water.",
+    3.0, "The Villages Answer: a village answers and lights its lanterns.", kind="sting", gain=0.75)
+
 G = "Stings"
 sfx(G, "victory",
     "A triumphant flourish on large bronze drums and gongs, building quickly and ending on one "
@@ -195,6 +250,11 @@ sfx(G, "crowd-cheer",
     "gongs ringing.",
     3.0, "The Coronation: the crowd answers each rhythm.", gain=0.7)
 
+sfx(G, "dancer-join",
+    "A single joyful shout of 'hey!' from a villager joining a dance by a fire, with two or three "
+    "quick hand claps and a jingle of small ankle bells, outdoors at dusk. Short, no music, no drums.",
+    1.5, "Drum Practice: a dancer walks in to join the dance.", variants=2, gain=0.55)
+
 sfx(G, "han-horn",
     "Several ancient war horns made of buffalo horn blown together in the distance across a "
     "river, a low ominous call that swells and fades, an army approaching.",
@@ -216,6 +276,21 @@ sfx(G, "amb-foundry",
     20.0, "Casting the Drums bed, looped. Chosen from six takes as the least tonal (the old "
     "take had a steady hum that read as a machine); looped with a 3 s crossfade and raised "
     "7 dB under a soft limiter.", kind="loop", gain=0.45, post="lowpass=f=9000")
+sfx(G, "amb-village",
+    "Field recording at night beside a slow river in the Vietnamese countryside: steady "
+    "crickets chirping in the grass, frogs calling from the rice paddies, gentle water lapping "
+    "against a wooden jetty. Calm, natural, recorded outdoors with a real microphone. No music, "
+    "no voices, no hum, no wind howl.",
+    20.0, "The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked "
+    "to one steady rate (a strong steady chirp would pull against the player's tempo); looped "
+    "with a 3 s crossfade and lowered 6 dB.", kind="loop", gain=0.45, post="lowpass=f=10000")
+sfx(G, "amb-green",
+    "Field recording at dusk on a village green in the Vietnamese countryside: a bonfire "
+    "crackling and popping close by, soft crickets in the grass, the low relaxed murmur of "
+    "villagers talking far off, an occasional distant laugh. Calm, natural, recorded outdoors "
+    "with a real microphone. No music, no drums, no clear words, no wind howl.",
+    20.0, "Drum Practice bed (the village green), looped. Nothing in it keeps a beat, so it never "
+    "pulls against the player's own tempo.", kind="loop", gain=0.45, post="lowpass=f=11000")
 sfx(G, "amb-mourning",
     "Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire "
     "close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and "

@@ -33,8 +33,11 @@ const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55, dusk: 0.45, foundry: 0.
 export const TOUCH = {
   drum: { x: 640, y: 668, r: 100, centre: 0.66, band: 1.3, reach: 1.42 },
   shield: { x: 1170, y: 628, r: 70 },
-  reset: { x: 1000, y: 670, r: 36 },
   pause: { x: 640, y: 32, r: 24 },
+  // Drum Practice: the kit (where the shield drum sits), fewer and more strokes beside the dots.
+  kit: { x: 1170, y: 628, r: 62 },
+  fewer: { x: 236, y: 518, r: 34 },
+  more: { x: 1044, y: 518, r: 34 },
 };
 
 function rng(seed) {
@@ -210,6 +213,21 @@ export class Renderer {
     this.fiberPattern = this.ctx.createPattern(this.fiber, 'repeat');
     this.layers = null;
     this.reduceMotion = false;
+    // Count save()/restore() per frame (checked at the end of draw()).
+    this.depth = 0;
+    this.depthLow = 0;
+    const ctx = this.ctx;
+    const save = ctx.save.bind(ctx);
+    const restore = ctx.restore.bind(ctx);
+    ctx.save = () => {
+      this.depth += 1;
+      save();
+    };
+    ctx.restore = () => {
+      this.depth -= 1;
+      this.depthLow = Math.min(this.depthLow, this.depth);
+      restore();
+    };
     this.pressed = {}; // touch button id -> time pressed
     this.kicks = { chau: -9, mo: -9 }; // when the companion drums were last struck
     this.taps = []; // touch points, drawn as brief rings
@@ -239,6 +257,7 @@ export class Renderer {
     this.wakes = [];
     this.incenseState = null;
     this.celebration = null;
+    this.wokenAt = {};
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
     this.motion = { front: 0, frontM: { x: 0, v: 0 }, crew: { x: -330, v: 0 }, units: [], enemies: new Map() };
@@ -897,6 +916,7 @@ export class Renderer {
   // (ids in assets/manifest.json) and a paper-cut stand-in otherwise.
 
   scene(view) {
+    if (view.mode === 'practice') return this.practiceScene(view);
     const t = view.songTime;
     const sess = view.session;
     const call = sess && sess.call;
@@ -911,6 +931,7 @@ export class Renderer {
         const lit = i < sess.index;
         const calling = i === sess.index && sess.phase === 'calling';
         this.villageHouse(x, GROUND - 4, lit, calling ? callPulse : 0, t, i);
+        this.villageWake(x, GROUND - 4, t - ((this.wokenAt || {})[i] ?? -99));
       });
     } else if (caller === 'festival') {
       this.lanternString(-480, 820, 150, sess.index, sess.calls.length, t);
@@ -967,6 +988,72 @@ export class Renderer {
       g.fill();
     });
     g.restore();
+  }
+
+  /** A village has answered: remember when, for its burst of light. */
+  villageWakes(i, t) {
+    this.wokenAt = { ...(this.wokenAt || {}), [i]: t };
+  }
+
+  /**
+   * A village coming to life, `age` seconds after it answered: a flare of
+   * lamplight over the house, sparks, the drum's rings over the water and a
+   * few paper lanterns floating up, settling after about three seconds.
+   */
+  villageWake(x, y, age) {
+    if (age < 0 || age > 4) return;
+    const g = this.ctx;
+    const k = age / 4;
+    if (age < 1.4) this.wakeBurst(x, y - 60, 260, age / 1.4);
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    // The flare, strongest at once and fading.
+    const f = Math.max(0, 1 - age / 1.8);
+    if (f > 0) {
+      const gr = g.createRadialGradient(x, y - 60, 4, x, y - 60, 120);
+      gr.addColorStop(0, `rgba(255,200,120,${0.7 * f})`);
+      gr.addColorStop(1, 'rgba(255,140,60,0)');
+      g.fillStyle = gr;
+      g.fillRect(x - 120, y - 180, 240, 240);
+    }
+    // Sparks thrown up and falling.
+    for (let n = 0; n < 16; n++) {
+      const a = -Math.PI / 2 + ((n / 16) - 0.5) * 2.2;
+      const v = 70 + (n % 5) * 22;
+      const sx = x + Math.cos(a) * v * age;
+      const sy = y - 70 + Math.sin(a) * v * age + 60 * age * age;
+      const alpha = Math.max(0, 1 - age / 1.3);
+      if (alpha <= 0) break;
+      g.fillStyle = `rgba(255,${180 + (n % 3) * 25},90,${alpha})`;
+      g.fillRect(sx, sy, 3, 3);
+    }
+    g.restore();
+    // Paper lanterns rising from the house and drifting.
+    for (let n = 0; n < 3; n++) {
+      const la = age - n * 0.35;
+      if (la < 0) continue;
+      const lx = x + (n - 1) * 26 + Math.sin(la * 1.6 + n) * 8;
+      const ly = y - 80 - la * 46;
+      const alpha = Math.max(0, Math.min(1, la * 3) * (1 - k));
+      g.save();
+      g.globalAlpha = alpha;
+      g.globalCompositeOperation = 'lighter';
+      const gl = g.createRadialGradient(lx, ly, 1, lx, ly, 24);
+      gl.addColorStop(0, 'rgba(255,190,110,0.6)');
+      gl.addColorStop(1, 'rgba(255,140,60,0)');
+      g.fillStyle = gl;
+      g.fillRect(lx - 24, ly - 24, 48, 48);
+      g.restore();
+      g.save();
+      g.globalAlpha = alpha;
+      g.fillStyle = '#FFB65C';
+      g.beginPath();
+      g.ellipse(lx, ly, 6, 8, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = 'rgba(22,21,26,0.6)';
+      g.fillRect(lx - 4, ly + 7, 8, 1.5);
+      g.restore();
+    }
   }
 
   /** A prop: delivered art when there is some, else the stand-in callback. */
@@ -1388,6 +1475,7 @@ export class Renderer {
       const bx = fx + 92;
       const by = GROUND - 30;
       const open = 34 - 22 * push;
+      g.save();
       g.fillStyle = P.ink;
       g.fillRect(bx - 20, by - 3, 24, 6); // nozzle into the furnace
       g.fillStyle = '#6B4A32';
@@ -1424,9 +1512,23 @@ export class Renderer {
     // The moulds: the current one fills pour by pour; cast ones glow bronze.
     for (let i = 0; i < sess.drums; i++) {
       const x = 170 + i * 150;
-      const fill = i < sess.cast ? 1 : i === sess.cast ? sess.level / sess.pours : 0;
+      const fill = Math.max(0, Math.min(1, sess.level * sess.drums - i));
       const cracked = i === sess.cast && t - view.crackAt < 0.8;
       this.mould(x, GROUND, fill, cracked, i < sess.cast, t);
+      // A drum just cast: its rings burst from the mould, sparks fly up.
+      const since = t - (view.castAt?.[i] ?? -9);
+      if (since >= 0 && since < 1.4) {
+        this.wakeBurst(x, GROUND - 50, 300, since / 1.4);
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < 18; k++) {
+          const a = (k / 18) * Math.PI * 2 + i;
+          const d = 20 + since * (60 + (k % 4) * 25);
+          g.fillStyle = `rgba(255,${190 + (k % 3) * 20},90,${Math.max(0, 1 - since / 1.1)})`;
+          g.fillRect(x + Math.cos(a) * d, GROUND - 50 + Math.sin(a) * d * 0.7 - since * 40, 3, 3);
+        }
+        g.restore();
+      }
     }
     // The pour: a glowing stream from the crucible into the current mould.
     if (view.pouring && !sess.done) {
@@ -2222,6 +2324,8 @@ export class Renderer {
 
   draw(view, dt) {
     const g = this.ctx;
+    this.depth = 0;
+    this.depthLow = 0;
     this.frameDt = dt;
     const { battle, songTime: t } = view;
     const targetCam = (this.motion ? this.motion.front : battle.army.x * U) - ARMY_SCREEN_X;
@@ -2303,6 +2407,12 @@ export class Renderer {
     g.fillRect(0, 0, W, H);
     this.drawCelebration(t, dt);
     this.hud(view);
+    // Every save() must have its restore(): a stray restore() pops the
+    // camera and draws the rest of the scene in the wrong place.
+    if (this.depth !== 0 || this.depthLow < 0) {
+      if (!this.leakWarned) console.error(`Renderer: save()/restore() unbalanced in a frame (depth ${this.depth}, lowest ${this.depthLow})`);
+      this.leakWarned = true;
+    }
   }
 
   /**
@@ -2635,13 +2745,16 @@ export class Renderer {
     const beatPhase = view.beatFloat - Math.floor(view.beatFloat);
     const responding = view.inResponse;
 
-    // The drum face (tympanum): rings, herons, the star.
-    const img = this.art.get('hud-drum');
+    // The drum face (tympanum): rings, herons, the star. Drum Practice may
+    // have swapped in another kit, drawn by kitFace.
+    const kitId = view.practice ? view.practice.kit.id : 'bronze';
+    const img = kitId === 'bronze' ? this.art.get('hud-drum') : null;
     g.save();
     g.shadowColor = view.ready ? P.bronzeLight : 'rgba(0,0,0,0.5)';
     g.shadowBlur = view.ready ? 18 + 8 * Math.sin(t * 4) : 14;
     g.shadowOffsetY = view.ready ? 0 : 6;
     if (img) g.drawImage(img, cx - R, cy - R, R * 2, R * 2);
+    else if (kitId !== 'bronze') this.kitFace(cx, cy, R, kitId);
     else {
       g.fillStyle = P.bronze;
       g.beginPath();
@@ -2649,7 +2762,7 @@ export class Renderer {
       g.fill();
     }
     g.restore();
-    if (!img) {
+    if (!img && kitId === 'bronze') {
       g.strokeStyle = P.ink;
       g.globalAlpha = 0.55;
       for (const rr of [R - 6, R - 20, R - 24, R - 38]) {
@@ -2661,7 +2774,7 @@ export class Renderer {
       g.globalAlpha = 1;
     }
     // Four herons around the ring: one per beat of the pattern or the answer.
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < (kitId === 'bronze' ? 4 : 0); i++) {
       const a = -Math.PI / 2 + (i / 4) * Math.PI * 2;
       const hx = cx + Math.cos(a) * (R - 13 * s);
       const hy = cy + Math.sin(a) * (R - 13 * s);
@@ -2679,8 +2792,16 @@ export class Renderer {
     const fl = Math.max(0, 1 - (t - this.flash.L) * 5);
     const fr = Math.max(0, 1 - (t - this.flash.R) * 5);
     g.fillStyle = view.spirit ? P.bronzeLight : P.paper;
-    g.globalAlpha = 0.5 + 0.5 * Math.max(pulse * 0.6, fl);
-    star(g, cx, cy, 16 * s + fl * 6, 12 * s, 12);
+    if (kitId === 'bronze') {
+      g.globalAlpha = 0.5 + 0.5 * Math.max(pulse * 0.6, fl);
+      star(g, cx, cy, 16 * s + fl * 6, 12 * s, 12);
+    } else if (fl > 0) {
+      // Another kit: its face lights where it is struck.
+      g.globalAlpha = fl * 0.35;
+      g.beginPath();
+      g.arc(cx, cy, R * 0.6, 0, Math.PI * 2);
+      g.fill();
+    }
     g.globalAlpha = 1;
     if (fr > 0 && !touch) {
       g.strokeStyle = P.lacquer;
@@ -2724,13 +2845,16 @@ export class Renderer {
       labelColor = P.paperShade;
     }
     g.font = font(600, label === null || labelColor === P.paper ? 15 : 14);
-    if (touch) {
+    if (view.practice) this.practiceDots(view, { cx, slotY, cell, dotR, k, grow, touch, font });
+    else if (touch) {
       // A dark band behind the dots and the label keeps them readable over the field.
       const bw = Math.max(4 * cell + 32, label ? g.measureText(label).width + 28 : 0);
       g.fillStyle = 'rgba(22,21,26,0.45)';
       g.fillRect(cx - bw / 2, labelY - 22 * k, bw, slotY + dotR + 8 - (labelY - 22 * k));
     }
-    if (view.miss) {
+    if (view.practice) {
+      // Drawn by practiceDots.
+    } else if (view.miss) {
       // A broken phrase: what was played, the wrong stroke crossed out.
       const m = view.miss;
       const x0 = cx - 2 * cell;
@@ -2897,19 +3021,18 @@ export class Renderer {
     // Troops and goal.
     const b = view.battle;
     const sess = view.session;
-    if (view.mode === 'echo') {
+    if (view.mode === 'practice') {
+      if (!touch) this.practiceControls(view, k);
+    } else if (view.mode === 'echo') {
       const words = { mourning: 'Incense lit', village: 'Villages answering', festival: 'Rhythms answered', elegy: 'Drums silent' };
       scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, sess.index / sess.calls.length, `${words[view.stage.caller] || 'Answered'} · ${sess.index} of ${sess.calls.length}`, P.bronzeLight));
     } else if (view.mode === 'casting') {
-      scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, (sess.cast + sess.level / sess.pours) / sess.drums, `Drums cast · ${sess.cast} of ${sess.drums}`, P.bronze));
+      scaled(W - 24, 22, () => this.pourLine(W - 304, 22, 280, sess, t));
       if (sess.u !== null) {
         g.font = font(600, 15);
         g.textAlign = 'left';
         g.fillStyle = P.paper;
-        if (touch || compact) {
-          g.fillText('Keep the bellows’ pace', 24, H - 18 - 22 * k);
-          g.fillText(`Pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
-        } else g.fillText(`Keep the bellows’ pace · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
+        g.fillText('Keep the bellows’ pace', 24, H - 18);
       }
     } else {
       scaled(24, 22, () => this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer));
@@ -3110,15 +3233,26 @@ export class Renderer {
           g.fillStyle = P.ink;
           g.fillText(k.slice(2), bx, by + rr * 0.4);
         } else {
-          g.fillStyle = colors[k];
+          // Controller buttons as the game's own drum marks, the letter on
+          // top: X the gold tùng disc, B the black-and-red cắc target, A the
+          // cream hide of the barrel drum (Y, unused in play, stays plain).
+          const face = { X: [P.bronzeLight, null, P.ink], B: [P.ink, P.lacquer, P.paper], A: ['#EADBC0', P.bronze, P.ink] }[k] || [colors[k], null, P.ink];
+          g.fillStyle = face[0];
           g.beginPath();
           g.arc(bx, by, rr, 0, Math.PI * 2);
           g.fill();
           g.shadowBlur = 0;
-          g.font = `700 ${Math.round(rr * 1.3)}px "Be Vietnam Pro", system-ui, sans-serif`;
+          if (face[1]) {
+            g.strokeStyle = face[1];
+            g.lineWidth = rr * (k === 'B' ? 0.3 : 0.16);
+            g.beginPath();
+            g.arc(bx, by, rr * (k === 'B' ? 0.78 : 0.88), 0, Math.PI * 2);
+            g.stroke();
+          }
+          g.font = `700 ${Math.round(rr * 1.2)}px "Be Vietnam Pro", system-ui, sans-serif`;
           g.textAlign = 'center';
-          g.fillStyle = k === 'Y' ? P.ink : '#fff';
-          g.fillText(k, bx, by + rr * 0.46);
+          g.fillStyle = face[2];
+          g.fillText(k, bx, by + rr * 0.43);
         }
         g.restore();
         g.font = font;
@@ -3237,7 +3371,11 @@ export class Renderer {
     const near = (b, pad) => Math.hypot(x - b.x, y - b.y) < b.r + pad;
     if (near(T.pause, 16)) return 'pause';
     if (mode === 'battle' && near(T.shield, 18)) return 'guard';
-    if (near(T.reset, 14)) return 'reset';
+    if (mode === 'practice') {
+      if (near(T.kit, 16)) return 'kit';
+      if (near(T.fewer, 14)) return 'fewer';
+      if (near(T.more, 14)) return 'more';
+    }
     const d = Math.hypot(x - T.drum.x, y - T.drum.y);
     if (d < T.drum.r * T.drum.centre) return 'L';
     if (this.onDots(x, y) && d > T.drum.r * T.drum.band) return 'none';
@@ -3264,7 +3402,7 @@ export class Renderer {
   touched(x, y, target, t) {
     this.taps.push({ x, y, t, target });
     if (this.taps.length > 8) this.taps.shift();
-    if (target === 'guard' || target === 'reset' || target === 'pause') this.pressed[target] = t;
+    if (['guard', 'reset', 'pause', 'kit', 'fewer', 'more'].includes(target)) this.pressed[target] = t;
   }
 
   /**
@@ -3415,7 +3553,6 @@ export class Renderer {
     g.ellipse(tip.x, tip.y, r * 0.15, r * 0.13, -0.5, 0, Math.PI * 2);
     g.fill();
     g.restore();
-    g.restore();
   }
 
   /** The shield, reset and pause buttons, and the rings left by touches. */
@@ -3424,8 +3561,10 @@ export class Renderer {
     const t = view.songTime;
     const sheet = this.art.get('touch-buttons');
     const b = view.battle;
-    const buttons = [['reset', TOUCH.reset, 1], ['pause', TOUCH.pause, 2]];
+    // The shield drum is the one action button (shield and clear); pause at the top.
+    const buttons = [['pause', TOUCH.pause, 2]];
     if (view.mode === 'battle') buttons.unshift(['guard', TOUCH.shield, 0]);
+    if (view.practice) this.practiceButtons(view);
     for (const [id, pos, cellIx] of buttons) {
       const since = t - (this.pressed[id] ?? -9);
       const press = since < 0.18 ? 1 - 0.1 * Math.sin((since / 0.18) * Math.PI) : 1;
@@ -3531,7 +3670,7 @@ export class Renderer {
     return x + beat * cell + cell / 2 + (n === 1 ? 0 : (inner - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95));
   }
 
-  pattern(x, y, pattern, r, cell, filled = Infinity, glow = false, small = false) {
+  pattern(x, y, pattern, r, cell, filled = Infinity, glow = false, small = false, alpha = 1) {
     const g = this.ctx;
     const strokes = pattern.strokes;
     const perBeat = {};
@@ -3542,7 +3681,7 @@ export class Renderer {
       const inner = s.pos - beat;
       const rr = n === 1 ? r : n === 2 ? r * 0.72 : r * 0.62;
       const sx = x + beat * cell + cell / 2 + (n === 1 ? 0 : (inner - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95));
-      g.globalAlpha = i < filled ? 1 : 0.28;
+      g.globalAlpha = (i < filled ? 1 : 0.28) * alpha;
       if (glow && i < filled && !small) {
         g.save();
         g.shadowColor = P.bronzeLight;
@@ -3552,7 +3691,7 @@ export class Renderer {
       } else this.glyph(sx, y, s.drum, rr);
     });
     // Beams under pairs and triplets.
-    g.globalAlpha = 0.8;
+    g.globalAlpha = 0.8 * alpha;
     g.strokeStyle = P.paper;
     g.lineWidth = small ? 1 : 1.5;
     for (const [beat, n] of Object.entries(perBeat)) {
@@ -3598,6 +3737,50 @@ export class Renderer {
     }
   }
 
+  /**
+   * The casting line: the bronze rising towards the last drum, with each
+   * drum a mark along it. Marks passed glow; the checkpoint the level can
+   * sink back to is the last one passed.
+   */
+  pourLine(x, y, w, sess, t) {
+    const g = this.ctx;
+    g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
+    g.textAlign = 'left';
+    g.fillStyle = P.paper;
+    g.fillText(`Drums cast · ${sess.cast} of ${sess.drums}`, x, y + 12);
+    const by = y + 20;
+    g.fillStyle = 'rgba(22,21,26,0.6)';
+    g.fillRect(x, by, w, 12);
+    // The banked part (to the checkpoint) solid, the part still at risk lighter.
+    g.fillStyle = P.bronze;
+    g.fillRect(x, by, w * sess.checkpoint, 12);
+    const grad = g.createLinearGradient(x + w * sess.checkpoint, 0, x + w * sess.level, 0);
+    grad.addColorStop(0, '#E8A04A');
+    grad.addColorStop(1, '#FFD08A');
+    g.fillStyle = grad;
+    g.fillRect(x + w * sess.checkpoint, by, w * Math.max(0, sess.level - sess.checkpoint), 12);
+    // The drums: marks on the line.
+    for (let i = 1; i <= sess.drums; i++) {
+      const mx = x + (w * i) / sess.drums;
+      const passed = i <= sess.cast;
+      g.fillStyle = passed ? P.bronzeLight : P.paperShade;
+      g.save();
+      if (passed) {
+        g.shadowColor = '#FFD08A';
+        g.shadowBlur = 8;
+      }
+      g.beginPath();
+      g.arc(mx - (i === sess.drums ? 6 : 0), by + 6, 7, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+      g.fillStyle = P.ink;
+      g.font = '700 9px "Be Vietnam Pro", system-ui, sans-serif';
+      g.textAlign = 'center';
+      g.fillText(String(i), mx - (i === sess.drums ? 6 : 0), by + 9);
+    }
+    g.textAlign = 'left';
+  }
+
   bar(x, y, w, frac, label, color) {
     const g = this.ctx;
     g.fillStyle = 'rgba(22,21,26,0.6)';
@@ -3608,6 +3791,552 @@ export class Renderer {
     g.textAlign = 'left';
     g.fillStyle = P.paper;
     g.fillText(label, x, y + 12);
+  }
+
+  // ---------------------------------------------------------------- drum practice
+
+  /**
+   * Drum Practice's scene: an evening on the village green before the
+   * communal house (đình), lanterns strung overhead and a fire in the
+   * middle. Dancers come in as the drumming gets going and dance to every
+   * stroke heard; in call and answer a partner drums from a small stage on
+   * the right.
+   */
+  practiceScene(view) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const p = view.practice;
+    const sx = (x) => x + this.cam; // screen x to world x
+    // The communal house, dim, at the back.
+    this.prop('prop-dinh', sx(880), GROUND - 6, 230, () => this.dinh(sx(880), GROUND - 6), { bob: 0 });
+    this.lanternString(sx(40), sx(1260), 130, 6, 6, t);
+    const fireX = sx(this.fireScreenX(p));
+    // Dancers behind the fire, the fire, then dancers in front.
+    const ds = this.updateDancers(view);
+    for (const d of ds) if (d.back) this.dancer(d, view);
+    this.bonfire(fireX, GROUND + 4, t, p.groove, this.lastPulse(p.pulses, t));
+    for (const d of ds) if (!d.back) this.dancer(d, view);
+    if (p.kind === 'call') {
+      const last = this.lastPulse(p.pulses, t, null, 'partner');
+      const pulse = last === null ? 0 : Math.exp(-(t - last) / 0.12);
+      this.callerDrum(sx(1130), GROUND, pulse, 'festival');
+    }
+  }
+
+  /** Where the fire burns on screen: right of the dots, left of the partner's stage in call and answer. */
+  fireScreenX(p) {
+    return p.kind === 'call' ? 790 : 880;
+  }
+
+  /** The latest stroke heard at or before t (optionally of one drum, or by one player), or null. */
+  lastPulse(pulses, t, drum = null, who = null) {
+    let last = null;
+    for (const q of pulses) {
+      if (q.t > t || (drum && q.drum !== drum) || (who && q.who !== who)) continue;
+      if (last === null || q.t > last) last = q.t;
+    }
+    return last;
+  }
+
+  /** How many strokes were heard at or before t (for alternating steps). */
+  pulseCount(pulses, t) {
+    let n = 0;
+    for (const q of pulses) if (q.t <= t) n += 1;
+    return n;
+  }
+
+  /**
+   * Keep the dancers in step with how many the drumming has drawn in: new
+   * ones walk in from the right to a place round the fire, and when the
+   * drumming stops they leave the way they came.
+   */
+  updateDancers(view) {
+    const dt = this.frameDt || 0.016;
+    const p = view.practice;
+    const call = p.kind === 'call';
+    // Round the fire, which stands right of centre, clear of the dots.
+    const f = this.fireScreenX(p);
+    const slots = [-170, 170, -260, 250, -85, 85].map((dx) => f + dx);
+    const ds = (this.dancers = this.dancers || []);
+    const staying = ds.filter((d) => !d.leaving);
+    if (staying.length < p.dancers) {
+      const used = new Set(staying.map((d) => d.slot));
+      const slot = slots.findIndex((_, i) => !used.has(i));
+      if (slot >= 0) {
+        ds.push({ slot, x: this.cam + 1380 + Math.random() * 60, v: 0, k: 1.6 + Math.random() * 0.4, phase: Math.random(), kind: ds.length % 4, delay: Math.random() * 0.05, back: slot % 2 === 1, leaving: false });
+      }
+    } else if (staying.length > p.dancers) {
+      staying[staying.length - 1].leaving = true;
+    }
+    for (const d of ds) {
+      const target = d.leaving ? this.cam + 1450 : this.cam + slots[d.slot];
+      this.spring(d, target, d.k, dt);
+    }
+    this.dancers = ds.filter((d) => !(d.leaving && d.x > this.cam + 1420));
+    return this.dancers;
+  }
+
+  /**
+   * One dancer, feather-crowned like the figures on a Đông Sơn drum. A deep
+   * stroke (L) is a stamp with both arms thrown up; a rim stroke (R) a hop
+   * and a turn of the wrists, to alternate sides. Delivered art
+   * (dancer-sheet: four dancers, three poses) replaces the stand-in.
+   */
+  dancer(d, view) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const p = view.practice;
+    const tt = t - d.delay;
+    const calm = this.reduceMotion ? 0.3 : 1;
+    const lastL = this.lastPulse(p.pulses, tt, 'L');
+    const lastR = this.lastPulse(p.pulses, tt, 'R');
+    const pl = lastL === null ? 0 : Math.exp(-(tt - lastL) / 0.16);
+    const pr = lastR === null ? 0 : Math.exp(-(tt - lastR) / 0.13);
+    const side = this.pulseCount(p.pulses, tt) % 2 ? 1 : -1;
+    const speed = Math.abs(d.v);
+    const walking = speed > 25;
+    d.phase += (speed * (this.frameDt || 0.016)) / 40;
+    const gait = walking ? Math.abs(Math.sin(d.phase * Math.PI)) * 5 : 0;
+    const sway = Math.sin(t * 2.4 + d.phase * 6) * p.groove * 0.05;
+    const pose = {
+      bob: (walking ? gait : 5 * pr - 4 * pl) * calm,
+      tilt: (walking ? 0 : side * 0.1 * pr + sway) * calm,
+      arms: walking ? 0.1 : Math.min(1, pl * 1.2),
+      flick: walking ? 0 : pr * side,
+    };
+    // Face the fire, or the way they are walking.
+    const fireX = this.cam + this.fireScreenX(p);
+    const face = walking ? (d.v > 0 ? 1 : -1) : d.x < fireX ? 1 : -1;
+    const s = d.back ? 0.86 : 1;
+    const y = d.back ? GROUND - 10 : GROUND + 6;
+    this.footShadow(d.x, 18 * s);
+    g.save();
+    this.backlit();
+    this.dancerFigure(d, view, pose, face, s, y);
+    g.restore();
+  }
+
+  dancerFigure(d, view, pose, face, s, y) {
+    const g = this.ctx;
+    const sheet = this.art.get('dancer-sheet');
+    if (sheet) {
+      const cw = sheet.width / 3;
+      const ch = sheet.height / 4;
+      const cellIx = pose.arms > 0.35 ? 1 : Math.abs(pose.flick) > 0.35 ? 2 : 0;
+      const h = 96 * s;
+      const w = (cw / ch) * h;
+      g.save();
+      g.translate(d.x, y - pose.bob);
+      g.rotate(pose.tilt);
+      g.scale(face, 1);
+      g.drawImage(sheet, cellIx * cw, d.kind * ch, cw, ch, -w / 2, -h, w, h);
+      g.restore();
+      return;
+    }
+    g.save();
+    g.translate(d.x, y);
+    g.scale(face * s, s);
+    g.rotate(pose.tilt);
+    g.translate(0, -pose.bob);
+    g.fillStyle = d.back ? '#22202A' : P.ink;
+    const woman = d.kind % 2 === 0;
+    // Legs and a wrapped skirt (the women) or a short loincloth (the men).
+    if (woman) {
+      g.beginPath();
+      g.moveTo(-12, 0);
+      g.lineTo(12, 0);
+      g.lineTo(6, -30);
+      g.lineTo(-6, -30);
+      g.fill();
+    } else {
+      const step = pose.flick * 4;
+      g.fillRect(-7 + step, -26, 5, 26);
+      g.fillRect(2 - step, -26, 5, 26);
+      g.beginPath();
+      g.moveTo(-9, -18);
+      g.lineTo(9, -18);
+      g.lineTo(6, -32);
+      g.lineTo(-6, -32);
+      g.fill();
+    }
+    g.fillRect(-5, -54, 10, 26);
+    g.beginPath();
+    g.arc(1, -62, 7, 0, Math.PI * 2);
+    g.fill();
+    // The tall feather crown, fanning back and shivering on the beat.
+    const shake = (pose.arms + Math.abs(pose.flick)) * 0.12;
+    for (let i = 0; i < 6; i++) leaf(g, -1, -66, 30 - i * 2.5, -Math.PI * 0.5 - i * 0.17 - shake, 0.13);
+    // Arms: thrown up on Trắc's stroke, a wrist flicked out on Nhị's.
+    g.strokeStyle = g.fillStyle;
+    g.lineWidth = 3.4;
+    g.lineCap = 'round';
+    const arm = (dir, up, out) => {
+      const a = -Math.PI / 2 + dir * (0.5 + 1.0 * (1 - up)) + out;
+      const ex = 2 + Math.cos(a) * 15;
+      const ey = -50 + Math.sin(a) * 15;
+      const b = a + dir * (0.6 - 0.5 * up) - out * 0.5;
+      const hx = ex + Math.cos(b) * 13;
+      const hy = ey + Math.sin(b) * 13;
+      g.beginPath();
+      g.moveTo(2, -50);
+      g.lineTo(ex, ey);
+      g.lineTo(hx, hy);
+      g.stroke();
+      // A feather held in each hand.
+      leaf(g, hx, hy, 10, b - 0.3, 0.3);
+    };
+    arm(1, pose.arms, pose.flick > 0 ? pose.flick * 0.8 : 0);
+    arm(-1, pose.arms, pose.flick < 0 ? pose.flick * 0.8 : 0);
+    // A lacquer-red sash, and cut light in the crown and skirt.
+    g.fillStyle = P.lacquer;
+    g.fillRect(-6, -38, 12, 4);
+    this.cutLight(g);
+    for (let k = -2; k <= 2; k++) {
+      g.beginPath();
+      g.arc(k * 3.6, -12, 1.1, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.beginPath();
+    g.arc(4, -63, 1, 0, Math.PI * 2);
+    g.fill();
+    this.endCut(g);
+    g.restore();
+  }
+
+  /** The fire in the middle of the green: it burns higher as the drumming builds, and leaps on each stroke. */
+  bonfire(x, y, t, groove, last) {
+    const g = this.ctx;
+    const kick = last === null ? 0 : Math.exp(-(t - last) / 0.2);
+    const heat = 0.45 + 0.4 * groove + 0.25 * kick;
+    g.save();
+    const glow = g.createRadialGradient(x, y - 40, 10, x, y - 40, 220);
+    glow.addColorStop(0, `rgba(255,190,110,${0.35 * heat})`);
+    glow.addColorStop(1, 'rgba(255,190,110,0)');
+    g.fillStyle = glow;
+    g.fillRect(x - 230, y - 260, 460, 300);
+    // Flames: layered tongues of cut paper, flickering.
+    const tongues = [['#A8322D', 1], ['#E07A35', 0.78], ['#F6C46A', 0.5]];
+    for (const [color, size] of tongues) {
+      g.fillStyle = color;
+      for (let i = -2; i <= 2; i++) {
+        const h = (60 + 30 * Math.sin(t * 7 + i * 1.7) + 50 * kick) * heat * size * (1 - Math.abs(i) * 0.18);
+        const w = 16 * size;
+        const fx = x + i * 13 * size + Math.sin(t * 5 + i) * 3;
+        g.beginPath();
+        g.moveTo(fx - w, y - 8);
+        g.quadraticCurveTo(fx - w * 0.6, y - 8 - h * 0.6, fx + Math.sin(t * 9 + i) * 5, y - 8 - h);
+        g.quadraticCurveTo(fx + w * 0.6, y - 8 - h * 0.6, fx + w, y - 8);
+        g.fill();
+      }
+    }
+    // Logs, crossed.
+    g.fillStyle = P.ink;
+    g.save();
+    g.translate(x, y - 6);
+    for (const a of [-0.22, 0.22]) {
+      g.save();
+      g.rotate(a);
+      g.fillRect(-48, -6, 96, 11);
+      g.restore();
+    }
+    g.restore();
+    g.restore();
+  }
+
+  /** The communal house's stand-in: a long low hall under a deep saddle roof, its lattice lit. */
+  dinh(x, y) {
+    const g = this.ctx;
+    g.save();
+    g.globalAlpha = 0.9;
+    g.fillStyle = '#1C1A26';
+    // Stilts and floor.
+    for (let i = -4; i <= 4; i++) g.fillRect(x + i * 42 - 3, y - 40, 6, 40);
+    g.fillRect(x - 200, y - 46, 400, 8);
+    // Walls.
+    g.fillRect(x - 170, y - 120, 340, 76);
+    // The saddle roof, its ends sweeping up like a boat's prow.
+    g.beginPath();
+    g.moveTo(x - 250, y - 210);
+    g.quadraticCurveTo(x - 200, y - 130, x - 190, y - 112);
+    g.lineTo(x + 190, y - 112);
+    g.quadraticCurveTo(x + 200, y - 130, x + 250, y - 210);
+    g.quadraticCurveTo(x, y - 150, x - 250, y - 210);
+    g.fill();
+    // Lit lattice windows.
+    this.cutLight(g);
+    g.globalAlpha = 0.55;
+    for (let i = -3; i <= 3; i++) {
+      for (let r = 0; r < 3; r++) g.fillRect(x + i * 44 - 12, y - 108 + r * 18, 24, 10);
+    }
+    this.endCut(g);
+    g.restore();
+  }
+
+  /**
+   * The face of a practice kit, seen from above, in the HUD (the bronze
+   * drum uses its own art). Delivered art (kit-faces: six faces in a row,
+   * the bronze drum first) replaces these stand-ins.
+   */
+  kitFace(cx, cy, R, id) {
+    const g = this.ctx;
+    const order = ['bronze', 'temple', 'rice', 'gongs', 'bamboo', 'lion'];
+    const sheet = this.art.get('kit-faces');
+    if (sheet) {
+      const cw = sheet.width / 6;
+      g.drawImage(sheet, order.indexOf(id) * cw, 0, cw, sheet.height, cx - R, cy - R, R * 2, R * 2);
+      return;
+    }
+    const disc = (r, color) => {
+      g.fillStyle = color;
+      g.beginPath();
+      g.arc(cx, cy, r, 0, Math.PI * 2);
+      g.fill();
+    };
+    const ring = (r, color, w) => {
+      g.strokeStyle = color;
+      g.lineWidth = w;
+      g.beginPath();
+      g.arc(cx, cy, r, 0, Math.PI * 2);
+      g.stroke();
+    };
+    if (id === 'temple') {
+      disc(R, P.lacquer);
+      disc(R * 0.88, '#EADBC0');
+      disc(R * 0.34, P.lacquer);
+      g.fillStyle = P.bronzeLight;
+      for (let i = 0; i < 24; i++) {
+        const a = (i / 24) * Math.PI * 2;
+        g.beginPath();
+        g.arc(cx + Math.cos(a) * R * 0.94, cy + Math.sin(a) * R * 0.94, R * 0.025, 0, Math.PI * 2);
+        g.fill();
+      }
+    } else if (id === 'rice') {
+      disc(R, '#6E4326');
+      disc(R * 0.86, '#E6D3AE');
+      // The rice paste that tunes the head.
+      disc(R * 0.3, '#8E7756');
+      ring(R * 0.86, P.ink, 2);
+    } else if (id === 'gongs') {
+      disc(R, P.bronze);
+      for (const k of [0.92, 0.72, 0.55]) ring(R * k, 'rgba(22,21,26,0.35)', 2);
+      const boss = g.createRadialGradient(cx - R * 0.08, cy - R * 0.08, 2, cx, cy, R * 0.32);
+      boss.addColorStop(0, '#F2D49A');
+      boss.addColorStop(1, P.bronze);
+      g.fillStyle = boss;
+      g.beginPath();
+      g.arc(cx, cy, R * 0.3, 0, Math.PI * 2);
+      g.fill();
+    } else if (id === 'bamboo') {
+      disc(R, '#24382E');
+      g.fillStyle = '#B7B46A';
+      g.strokeStyle = '#4E5A2A';
+      g.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        const w = R * 0.24;
+        const h = R * (1.3 - i * 0.14);
+        const x = cx - R * 0.68 + i * R * 0.33;
+        g.beginPath();
+        g.roundRect(x, cy - h / 2, w, h, w / 2);
+        g.fill();
+        g.stroke();
+      }
+    } else if (id === 'lion') {
+      disc(R, P.lacquer);
+      disc(R * 0.84, '#F1E4C6');
+      ring(R * 0.7, P.bronzeLight, R * 0.05);
+      ring(R * 0.84, P.ink, 2);
+    }
+  }
+
+  /** The rows of dots in Drum Practice: what is being drummed, the loop, the partner's call. */
+  practiceDots(view, o) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const p = view.practice;
+    const { cx, cell, dotR, k } = o;
+    const rowX = (beats, c = cell) => cx - (beats * c) / 2;
+    const rings = (x0, y, from, n, r, c, alpha) => {
+      g.save();
+      g.strokeStyle = P.paper;
+      g.lineWidth = 1.5;
+      for (let i = 0; i < n; i++) {
+        g.globalAlpha = alpha;
+        g.beginPath();
+        g.arc(x0 + (from + i) * c + c / 2, y, r * 0.8, 0, Math.PI * 2);
+        g.stroke();
+      }
+      g.restore();
+    };
+    // What the player is drumming: the strokes so far as read, then rings for the rest.
+    const entering = (y, r = dotR, c = cell) => {
+      const part = p.partial;
+      const done = part ? part.strokes.length : 0;
+      const beats = (part ? part.beats : 0) + (p.dots - done);
+      const x0 = rowX(beats, c);
+      if (part) this.pattern(x0, y, part, r, c, Infinity);
+      rings(x0, y, part ? part.beats : 0, p.dots - done, r, c, part ? 0.4 : 0.45 + 0.25 * Math.sin(t * 4));
+    };
+    const label = (text, x, y, color = P.paper, align = 'center') => {
+      g.save();
+      g.font = o.font(600, 14);
+      g.textAlign = align;
+      g.fillStyle = color;
+      g.shadowColor = 'rgba(0,0,0,0.85)';
+      g.shadowBlur = 4;
+      g.fillText(text, x, y);
+      g.restore();
+    };
+    const rowY = o.slotY;
+    const upperY = rowY - (dotR * 2 + 34 * k);
+    {
+      // A dark band behind the rows keeps them readable over the scene.
+      const top = (p.kind === 'call' || (p.loop && p.entered) ? upperY : rowY) - dotR - 34 * k;
+      g.fillStyle = 'rgba(22,21,26,0.45)';
+      const w = Math.max(5, p.dots + 1) * cell + 40;
+      g.fillRect(cx - w / 2, top, w, rowY + dotR + 10 - top);
+    }
+    if (p.kind === 'free') {
+      if (p.entered) {
+        if (p.loop) {
+          // The old rhythm, quieter, while the new one is drummed.
+          const c = cell * 0.62;
+          this.pattern(rowX(p.loop.beats, c), upperY, p.loop, dotR * 0.62, c, p.loopPos ? p.loopPos.played : 0, false, false, 0.45);
+        }
+        entering(rowY);
+        label(`${p.entered} of ${p.dots}`, cx, (p.loop ? upperY : rowY) - dotR - 14 * k, P.paperShade);
+      } else if (p.loop) {
+        // The rhythm repeating: each stroke lights as it sounds.
+        const x0 = rowX(p.loop.beats);
+        this.pattern(x0, rowY, p.loop, dotR, cell, Infinity);
+        if (p.loopPos && p.loopPos.played) {
+          const i = p.loopPos.played - 1;
+          const st = p.loop.strokes[i];
+          const since = (p.loopPos.pos - st.pos) * p.loop.u;
+          const q = Math.max(0, 1 - since / 0.35);
+          if (q > 0) {
+            g.save();
+            g.globalAlpha = q;
+            g.strokeStyle = '#FFE2A8';
+            g.shadowColor = '#FFE2A8';
+            g.shadowBlur = 14;
+            g.lineWidth = 3;
+            g.beginPath();
+            g.arc(this.patternX(x0, p.loop.strokes, i, cell), rowY, dotR * (1.1 + 0.3 * (1 - q)), 0, Math.PI * 2);
+            g.stroke();
+            g.restore();
+          }
+        }
+        label('Your rhythm, again and again', cx, rowY - dotR - 14 * k, P.bronzeLight);
+      } else {
+        rings(rowX(p.dots), rowY, 0, p.dots, dotR, cell, 0.45 + 0.25 * Math.sin(t * 4));
+        label(`Drum any ${p.dots} strokes`, cx, rowY - dotR - 14 * k);
+      }
+      return;
+    }
+    // Call and answer: the partner's row above, the player's below.
+    const call = p.call;
+    if (call) {
+      const x0 = rowX(call.beats);
+      this.pattern(x0, upperY, call, dotR, cell, p.callPlayed, p.callPlayed > 0 && p.callPlayed < call.strokes.length);
+      label('Partner', x0 - 12, upperY + 5, P.paperShade, 'right');
+    } else {
+      rings(rowX(p.dots), upperY, 0, p.dots, dotR, cell, 0.3);
+    }
+    if (p.entered) entering(rowY);
+    else if (p.answer) this.pattern(rowX(p.answer.beats), rowY, p.answer, dotR, cell, Infinity, p.showAnswer, false, p.showAnswer ? 1 : 0.6);
+    else rings(rowX(p.dots), rowY, 0, p.dots, dotR, cell, 0.45 + 0.25 * Math.sin(t * 4));
+    const youBeats = p.entered && p.partial ? p.partial.beats + p.dots - p.partial.strokes.length : p.answer ? p.answer.beats : p.dots;
+    label('You', rowX(youBeats) - 12, rowY + 5, P.paper, 'right');
+    const heading = p.calling ? 'Listen…' : p.entered ? `${p.entered} of ${p.dots}` : p.showAnswer ? 'Answered' : `Answer with any ${p.dots} strokes`;
+    label(heading, cx, upperY - dotR - 14 * k, p.showAnswer && !p.entered ? P.bronzeLight : P.paper);
+  }
+
+  /** Drum Practice's controls, bottom left (keyboard, mouse and controller). */
+  practiceControls(view, k) {
+    const g = this.ctx;
+    const p = view.practice;
+    const lines = [
+      `${p.keys.fewer} fewer · ${p.dots} strokes · more ${p.keys.more}`,
+      `${p.keys.kit} ${p.kit.vn} · ${p.kit.name}`,
+      `${p.keys.clear} ${p.kind === 'free' ? 'clear and stop the loop' : 'clear'}`,
+    ];
+    const by = Math.min(k, 1.4);
+    g.save();
+    g.translate(0, H);
+    g.scale(by, by);
+    g.translate(0, -H);
+    g.font = '600 15px "Be Vietnam Pro", system-ui, sans-serif';
+    const w = Math.max(...lines.map((l) => this.richWidth(l))) + 24;
+    const rowH = 26;
+    const top = H - 14 - lines.length * rowH;
+    g.fillStyle = 'rgba(22,21,26,0.6)';
+    g.fillRect(12, top - 4, w, lines.length * rowH + 8);
+    g.fillStyle = P.paper;
+    lines.forEach((l, i) => {
+      const lw = this.richWidth(l);
+      this.richText(l, 24 + lw / 2, top + 18 + i * rowH);
+    });
+    g.restore();
+  }
+
+  /** Drum Practice on touch screens: the kit drum to swap kits, and − and + beside the dots. */
+  practiceButtons(view) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const p = view.practice;
+    const T = TOUCH;
+    const press = (id) => {
+      const since = t - (this.pressed[id] ?? -9);
+      return since < 0.18 ? 1 - 0.1 * Math.sin((since / 0.18) * Math.PI) : 1;
+    };
+    const text = (str, x, y, size = 16) => {
+      g.save();
+      g.font = `700 ${Math.round(size)}px "Be Vietnam Pro", system-ui, sans-serif`;
+      g.textAlign = 'center';
+      g.fillStyle = P.paper;
+      g.shadowColor = 'rgba(0,0,0,0.9)';
+      g.shadowBlur = 4;
+      g.fillText(str, x, y);
+      g.restore();
+    };
+    // The kit: its own face, shivering when pressed.
+    const r = T.kit.r * press('kit');
+    const sh = this.shiver(this.pressed.kit ?? -9, t, 4);
+    g.save();
+    g.translate(sh.dx, sh.dy);
+    g.shadowColor = 'rgba(0,0,0,0.55)';
+    g.shadowBlur = 10;
+    if (p.kit.id === 'bronze') {
+      const img = this.art.get('hud-drum');
+      if (img) g.drawImage(img, T.kit.x - r, T.kit.y - r, r * 2, r * 2);
+      else {
+        g.fillStyle = P.bronze;
+        g.beginPath();
+        g.arc(T.kit.x, T.kit.y, r, 0, Math.PI * 2);
+        g.fill();
+      }
+    } else this.kitFace(T.kit.x, T.kit.y, r, p.kit.id);
+    g.restore();
+    text(p.kit.vn, T.kit.x, T.kit.y - T.kit.r - 26);
+    text('tap to change', T.kit.x, T.kit.y - T.kit.r - 8, 12);
+    // Fewer and more strokes.
+    for (const [id, sign] of [['fewer', '−'], ['more', '+']]) {
+      const pos = T[id];
+      const rr = pos.r * press(id);
+      const off = (id === 'fewer' && p.dots <= 2) || (id === 'more' && p.dots >= 12);
+      g.save();
+      g.globalAlpha = off ? 0.35 : 0.9;
+      g.fillStyle = P.indigo;
+      g.beginPath();
+      g.arc(pos.x, pos.y, rr, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = P.bronze;
+      g.lineWidth = 3;
+      g.stroke();
+      g.restore();
+      text(sign, pos.x, pos.y + 11, 32);
+    }
+    text(`${p.dots} strokes`, T.more.x, T.more.y + T.more.r + 22, 14);
   }
 
   hit(drum, t) {

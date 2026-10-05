@@ -15,6 +15,14 @@ const NAV_KEYS = {
 export const PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 const PAD_DRUM = { [PAD.X]: 'L', [PAD.LB]: 'L', [PAD.LT]: 'L', [PAD.LEFT]: 'L', [PAD.B]: 'R', [PAD.RB]: 'R', [PAD.RT]: 'R', [PAD.RIGHT]: 'R' };
 const PAD_NAV = { [PAD.UP]: 'up', [PAD.DOWN]: 'down', [PAD.LEFT]: 'left', [PAD.RIGHT]: 'right', [PAD.A]: 'confirm', [PAD.B]: 'back', [PAD.MENU]: 'menu' };
+// Drum Practice: LB and RB take strokes away and add them, Y and the d-pad's
+// up and down change the kit (they are drums elsewhere).
+const PAD_PRACTICE = { [PAD.LB]: 'fewer', [PAD.RB]: 'more', [PAD.Y]: 'kit', [PAD.UP]: 'kitPrev', [PAD.DOWN]: 'kit' };
+const KEY_PRACTICE = {
+  Minus: 'fewer', NumpadSubtract: 'fewer', BracketLeft: 'fewer',
+  Equal: 'more', NumpadAdd: 'more', BracketRight: 'more',
+  ArrowUp: 'kitPrev', ArrowDown: 'kit',
+};
 const DEAD = 0.5;
 const REPEAT_FIRST = 0.38;
 const REPEAT_NEXT = 0.14;
@@ -24,6 +32,7 @@ export class Input {
   constructor(target) {
     this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [], action: [], touch: [], swipe: [] };
     this.mode = 'menu'; // 'menu' | 'play'
+    this.practice = false; // Drum Practice: the extra controls above
     this.device = 'keyboard';
     this.padIndex = null;
     this.prev = [];
@@ -127,7 +136,13 @@ export class Input {
         e.preventDefault();
         return;
       }
-      const act = { Space: 'guard', KeyR: 'reset', Backspace: 'reset', Enter: 'confirm', NumpadEnter: 'confirm' }[e.code];
+      if (this.practice && KEY_PRACTICE[e.code]) {
+        this.emit('action', { action: KEY_PRACTICE[e.code], time: e.timeStamp });
+        e.preventDefault();
+        return;
+      }
+      // Space is the one shield-and-clear button (Enter goes on from a success screen).
+      const act = { Space: 'guard', Enter: 'confirm', NumpadEnter: 'confirm' }[e.code];
       if (act) {
         this.emit('action', { action: act, time: e.timeStamp });
         e.preventDefault();
@@ -149,7 +164,7 @@ export class Input {
     }
   }
 
-  /** Whether the shield (A / Space) or reset (Y / R) button is held now. */
+  /** Whether A (Space) or Y (R) is held now: the Oath's breeze, one way or the other. */
   held(action) {
     const keys = action === 'guard' ? ['Space'] : ['KeyR', 'Backspace'];
     const button = action === 'guard' ? PAD.A : PAD.Y;
@@ -193,9 +208,9 @@ export class Input {
       this.setDevice('gamepad');
       this.emit('padButton', i);
       if (this.mode === 'play') {
-        if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: now });
+        if (this.practice && PAD_PRACTICE[i]) this.emit('action', { action: PAD_PRACTICE[i], time: now });
+        else if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: now });
         else if (i === PAD.A) this.emit('action', { action: 'guard', time: now });
-        else if (i === PAD.Y) this.emit('action', { action: 'reset', time: now });
         else if (i === PAD.MENU || i === PAD.VIEW) this.emit('nav', 'menu');
       } else if (PAD_NAV[i]) {
         this.emit('nav', PAD_NAV[i]);

@@ -48,6 +48,69 @@
       "gain": 0.7,
       "loop": false
     },
+    "kit-com-low": {
+      "files": [
+        "sfx/kit-com-low-1.mp3",
+        "sfx/kit-com-low-2.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "kit-com-high": {
+      "files": [
+        "sfx/kit-com-high-1.mp3",
+        "sfx/kit-com-high-2.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "kit-gong-low": {
+      "files": [
+        "sfx/kit-gong-low-1.mp3",
+        "sfx/kit-gong-low-2.mp3"
+      ],
+      "gain": 0.85,
+      "loop": false
+    },
+    "kit-gong-high": {
+      "files": [
+        "sfx/kit-gong-high-1.mp3",
+        "sfx/kit-gong-high-2.mp3"
+      ],
+      "gain": 0.8,
+      "loop": false
+    },
+    "kit-bamboo-low": {
+      "files": [
+        "sfx/kit-bamboo-low-1.mp3",
+        "sfx/kit-bamboo-low-2.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "kit-bamboo-high": {
+      "files": [
+        "sfx/kit-bamboo-high-2.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "kit-lan-drum": {
+      "files": [
+        "sfx/kit-lan-drum-1.mp3",
+        "sfx/kit-lan-drum-2.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "kit-lan-cymbal": {
+      "files": [
+        "sfx/kit-lan-cymbal-1.mp3",
+        "sfx/kit-lan-cymbal-2.mp3"
+      ],
+      "gain": 0.7,
+      "loop": false
+    },
     "call": {
       "files": [
         "sfx/call-1.mp3",
@@ -185,6 +248,13 @@
       "gain": 0.7,
       "loop": false
     },
+    "village-wakes": {
+      "files": [
+        "sfx/village-wakes.mp3"
+      ],
+      "gain": 0.75,
+      "loop": false
+    },
     "victory": {
       "files": [
         "sfx/victory.mp3"
@@ -227,6 +297,14 @@
       "gain": 0.7,
       "loop": false
     },
+    "dancer-join": {
+      "files": [
+        "sfx/dancer-join-1.mp3",
+        "sfx/dancer-join-2.mp3"
+      ],
+      "gain": 0.55,
+      "loop": false
+    },
     "han-horn": {
       "files": [
         "sfx/han-horn.mp3"
@@ -251,6 +329,20 @@
     "amb-foundry": {
       "files": [
         "sfx/amb-foundry.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "amb-village": {
+      "files": [
+        "sfx/amb-village.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "amb-green": {
+      "files": [
+        "sfx/amb-green.mp3"
       ],
       "gain": 0.45,
       "loop": true

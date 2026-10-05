@@ -57,7 +57,8 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Interface | 9 | 0 | 0 | 0 | 9 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
 | Story chapters | 22 | 0 | 0 | 0 | 22 |
-| **total** | **76** | **0** | **0** | **0** | **76** |
+| Drum Practice | 5 | 0 | 0 | 0 | 5 |
+| **total** | **81** | **0** | **0** | **0** | **81** |
 
 ## Style frames: choose the direction first (3)
 
@@ -774,3 +775,52 @@ Atmosphere for Mã Viện Returns: the overwhelming army and the last stand.
 - **Status:** delivered
 - **File:** `bronzedrum/design/references/m17-mavien.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. At dusk, the Han general Mã Viện on a horse at the head of dense columns of soldiers with halberds and crossbows coming down to a wide river ford; on the near bank a thin line of Lạc Việt women raises star-cut shields. Grave, red-violet sky, iron grey and lacquer red. The Han are dignified, not caricatured.
+
+## Drum Practice (5)
+
+Art for Drum Practice, chosen from the title screen: free drumming and call and answer on a village green at dusk. The scene reuses the dusk sky and the parallax strips; the game draws the fire, the lantern string and the partner drummers (BD-P03). Until these are delivered the game draws paper-cut stand-ins, so each piece replaces one drawing and must keep its proportions.
+
+### BD-U17 · Practice card: Free drumming
+
+Background band of the card on the Drum Practice screen.
+
+- **Spec:** 1600x900, opaque; the band is cropped from the middle, so keep the subject central
+- **Status:** delivered · **Stand-in:** `buildPracticeCards (plain paper)` · **Game id:** `card-practice-free`
+- **File:** `bronzedrum/game/assets/art/card-practice-free.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: feather-crowned Lạc Việt dancers circling a fire on a village green at dusk, a bronze drum beside them, a communal house with a sweeping saddle roof behind, lanterns overhead.
+
+### BD-U18 · Practice card: Call and answer
+
+Background band of the card on the Drum Practice screen.
+
+- **Spec:** 1600x900, opaque; the band is cropped from the middle, so keep the subject central
+- **Status:** delivered · **Stand-in:** `buildPracticeCards (plain paper)` · **Game id:** `card-practice-call`
+- **File:** `bronzedrum/game/assets/art/card-practice-call.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: two drummers facing each other across a fire, one at a bronze drum and one at a lacquer-red festival drum, trading rhythms while villagers watch, dusk.
+
+### BD-P11 · The communal house (đình)
+
+The back of the practice green: a village communal house, dim against the dusk sky, its lattice lit from inside. Shown 230 px tall, centred about two thirds of the way across the screen; the fire and the dancers stand in front of it.
+
+- **Spec:** 2048x1024. Single cut-paper object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow.
+- **Status:** delivered · **Stand-in:** `Renderer.dinh` · **Game id:** `prop-dinh`
+- **File:** `bronzedrum/game/assets/art/prop-dinh.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A Lạc Việt communal house (đình) seen from the side: a long low hall raised on wooden stilts, under a huge saddle-shaped roof whose two ends sweep up like a boat's prow, as on the houses of the Đông Sơn drums. Woven walls with rows of lattice windows cut through so warm light shows. Dark indigo-violet paper, a single sheet.
+
+### BD-C13 · Dancers: three poses each
+
+The dancers who gather as the player drums: four figures, each in three poses the game switches between on every stroke it hears (at rest or walking; a stamp on the deep stroke with both arms thrown up; a hop on the rim stroke with one wrist flicked out). The game flips them to face the fire, bobs and tilts them. Shown 96 px tall, so keep the shapes bold.
+
+- **Spec:** 1536x2048, transparent; a grid of 3 columns (poses) by 4 rows (dancers), 512x512 cells, each figure standing on the bottom of its cell, facing right, centred. Rows: a woman with a tall feather crown; a man in a loincloth with a feather crown; a woman holding two feathers; a man with a small hand drum. Same scale in every cell. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
+- **Status:** delivered · **Stand-in:** `Renderer.dancer` · **Game id:** `dancer-sheet`
+- **File:** `bronzedrum/game/assets/art/dancer-sheet.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sprite sheet of feather-crowned Lạc Việt dancers like the figures on the face of a Đông Sơn bronze drum, in profile facing right, on a grid of 3 columns by 4 rows. Each row is one dancer, each column a pose: 1 standing at rest, arms low; 2 stamping, knees bent, both arms thrown up high; 3 hopping on one foot, one wrist flicked out to the side. Row 1 a woman with a tall feather crown and a wrapped skirt; row 2 a man in a loincloth with a feather crown; row 3 a woman holding a long feather in each hand; row 4 a man with a small hand drum. Ink-black silhouettes with lacquer-red sashes and fine cut details in the feathers.
+
+### BD-U19 · Practice kits: drum faces
+
+In Drum Practice the player can swap the bronze drum for another pair of instruments. The big HUD drum (and the kit button on touch screens) shows the kit's face, seen from above and drawn as a disc: its centre is the deep stroke, its rim the high one. The game adds the glow and the flash on each stroke.
+
+- **Spec:** 1536x256, transparent; six discs on a 256 px grid, each centred and filling about 94% of its cell, in this order: bronze drum (not used; the game has BD-U02), barrel drum and mõ, rice drum, gongs, bamboo, lion-dance drum and cymbals
+- **Status:** delivered · **Stand-in:** `Renderer.kitFace` · **Game id:** `kit-faces`
+- **File:** `bronzedrum/game/assets/art/kit-faces.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Six round instrument faces in a row, seen straight from above, each a flat disc: 1 a Đông Sơn bronze drum's tympanum with a sun-star and rings of herons; 2 the cream buffalo-hide head of a trống chầu with a red centre disc and a ring of bronze tacks, a small dark wooden mõ resting at its edge; 3 the pale hide head of a trống cơm rice drum with a round darker patch of rice paste in its centre and a brown wooden rim; 4 a flat bronze gong with concentric rings and a raised polished boss; 5 a round mat with five green bamboo tubes of a đàn t'rưng laid side by side, shortest to longest; 6 the cream head of a lion-dance drum with a lacquer-red rim and a gold ring, a small brass cymbal at its edge. Bold shapes that read at 100 pixels.
