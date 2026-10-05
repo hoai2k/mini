@@ -238,6 +238,7 @@ export class Renderer {
     this.particles = [];
     this.wakes = [];
     this.incenseState = null;
+    this.celebration = null;
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
     this.motion = { front: 0, frontM: { x: 0, v: 0 }, crew: { x: -330, v: 0 }, units: [], enemies: new Map() };
@@ -2093,6 +2094,96 @@ export class Renderer {
     return near[Math.floor(Math.random() * near.length)];
   }
 
+  /**
+   * A chapter won: the drum's rings burst from the middle of the screen and
+   * the scene celebrates in its own way: paper confetti over a battle or the
+   * coronation, lanterns floating up when the villages answer, embers rising
+   * from the incense, the foundry and the elegy.
+   */
+  celebrate(stage, t) {
+    const kind = { villages: 'lantern', oath: 'ember', casting: 'ember', elegy: 'ember' }[stage.id] || 'confetti';
+    const colors = {
+      confetti: [P.lacquer, P.bronzeLight, P.paper, P.verdigris],
+      ember: ['#FFB65C', '#FFD48A', '#FF8A3C'],
+      lantern: ['#FFB65C', '#FF8A3C', '#F2C48C'],
+    }[kind];
+    this.celebration = { t, kind, colors, parts: [] };
+  }
+
+  /** Draw the celebration (screen space, over the scene, under the HUD). */
+  drawCelebration(t, dt) {
+    const c = this.celebration;
+    if (!c) return;
+    const g = this.ctx;
+    const age = t - c.t;
+    // The burst of the drum's rings, once.
+    if (age < 1.6) this.wakeBurst(W / 2, H * 0.36, 760, Math.max(0, age) / 1.6);
+    // Keep the air full of the scene's particles.
+    const rate = this.reduceMotion ? 6 : c.kind === 'confetti' ? 40 : c.kind === 'lantern' ? 3 : 24;
+    c.acc = (c.acc || 0) + dt * rate * (age < 2 ? 2.2 : 1);
+    while (c.acc >= 1 && c.parts.length < 260) {
+      c.acc -= 1;
+      const col = c.colors[Math.floor(Math.random() * c.colors.length)];
+      if (c.kind === 'confetti') {
+        c.parts.push({ x: Math.random() * W, y: -20, vx: (Math.random() - 0.5) * 40, vy: 60 + Math.random() * 80, r: Math.random() * 6, vr: (Math.random() - 0.5) * 6, s: 5 + Math.random() * 6, col, life: 9 });
+      } else if (c.kind === 'lantern') {
+        c.parts.push({ x: 80 + Math.random() * (W - 160), y: H + 30, vx: (Math.random() - 0.5) * 10, vy: -(25 + Math.random() * 25), r: 0, vr: 0, s: 9 + Math.random() * 7, col, life: 30, seed: Math.random() * 6 });
+      } else {
+        c.parts.push({ x: W * (0.2 + Math.random() * 0.6), y: H * 0.72 + Math.random() * 40, vx: (Math.random() - 0.5) * 30, vy: -(40 + Math.random() * 60), r: 0, vr: 0, s: 1.5 + Math.random() * 2.5, col, life: 3 + Math.random() * 3, seed: Math.random() * 6 });
+      }
+    }
+    g.save();
+    for (const p of c.parts) {
+      p.life -= dt;
+      p.x += (p.vx + (p.seed !== undefined ? Math.sin(t * 1.3 + p.seed) * 12 : 0)) * dt;
+      p.y += p.vy * dt;
+      p.r += p.vr * dt;
+      if (c.kind === 'confetti') {
+        const sheet = this.scrapSheet();
+        g.save();
+        g.translate(p.x, p.y);
+        g.rotate(p.r);
+        g.scale(1, Math.cos(t * 3 + p.s));
+        if (sheet) {
+          if (p.cell === undefined) p.cell = this.scrapCell(sheet, p.col);
+          const cw = sheet.width / 16;
+          g.drawImage(sheet, p.cell * cw, sheet.height * 0.375, cw, sheet.height * 0.25, -p.s, -p.s, p.s * 2, p.s * 2);
+        } else {
+          g.fillStyle = p.col;
+          g.fillRect(-p.s, -p.s * 0.6, p.s * 2, p.s * 1.2);
+        }
+        g.restore();
+      } else if (c.kind === 'lantern') {
+        // A paper sky lantern: a glowing body with a darker frame.
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        const gr = g.createRadialGradient(p.x, p.y, 1, p.x, p.y, p.s * 3);
+        gr.addColorStop(0, 'rgba(255,190,110,0.55)');
+        gr.addColorStop(1, 'rgba(255,140,60,0)');
+        g.fillStyle = gr;
+        g.fillRect(p.x - p.s * 3, p.y - p.s * 3, p.s * 6, p.s * 6);
+        g.restore();
+        g.fillStyle = p.col;
+        g.beginPath();
+        g.ellipse(p.x, p.y, p.s * 0.7, p.s, 0, 0, Math.PI * 2);
+        g.fill();
+        g.fillStyle = 'rgba(22,21,26,0.6)';
+        g.fillRect(p.x - p.s * 0.5, p.y + p.s * 0.85, p.s, 2);
+      } else {
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        g.globalAlpha = Math.max(0, Math.min(1, p.life));
+        g.fillStyle = p.col;
+        g.beginPath();
+        g.arc(p.x, p.y, p.s, 0, Math.PI * 2);
+        g.fill();
+        g.restore();
+      }
+    }
+    g.restore();
+    c.parts = c.parts.filter((p) => p.life > 0 && p.y < H + 40 && p.y > -60);
+  }
+
   /** The drum wakes (or a drum is cast): its rings spread outward (BD-F03). */
   wake(t, where = 'crew') {
     this.wakes = (this.wakes || []).filter((w) => t - w.t < 1.6);
@@ -2210,6 +2301,7 @@ export class Renderer {
     v.addColorStop(1, 'rgba(10,8,12,0.55)');
     g.fillStyle = v;
     g.fillRect(0, 0, W, H);
+    this.drawCelebration(t, dt);
     this.hud(view);
   }
 
@@ -2509,6 +2601,8 @@ export class Renderer {
   // ---------------------------------------------------------------- HUD
 
   hud(view) {
+    // The success moment owns the screen: no play HUD under it.
+    if (view.success) return;
     const g = this.ctx;
     const t = view.songTime;
     // Touch play uses a bigger drum and larger text; desktop keeps the small HUD.

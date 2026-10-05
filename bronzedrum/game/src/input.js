@@ -127,7 +127,7 @@ export class Input {
         e.preventDefault();
         return;
       }
-      const act = { Space: 'guard', KeyR: 'reset', Backspace: 'reset' }[e.code];
+      const act = { Space: 'guard', KeyR: 'reset', Backspace: 'reset', Enter: 'confirm', NumpadEnter: 'confirm' }[e.code];
       if (act) {
         this.emit('action', { action: act, time: e.timeStamp });
         e.preventDefault();

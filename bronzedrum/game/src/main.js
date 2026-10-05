@@ -73,6 +73,7 @@ const focusMemory = new Map();
 
 function show(id) {
   for (const s of ['title', 'select', 'pause', 'result']) $(`#${s}`).hidden = s !== id;
+  if (id === 'title' || id === 'select' || id === 'result') hideSuccess();
   // Menu music: the title theme, and the two sisters' theme on the chapter select.
   if (id === 'title') sound.playMusic('mu-title');
   if (id === 'select') sound.playMusic('mu-select');
@@ -290,6 +291,7 @@ const SUSTAIN = { march: 0.6, strike: 0.5 };
 const SUSTAIN_CYCLES = 2;
 
 function startStage(i) {
+  hideSuccess();
   const stage = STAGES[i];
   sound.start();
   game = {
@@ -377,13 +379,14 @@ input.on('drum', ({ drum, time }) => strike(drum, time));
 input.on('action', ({ action, time }) => {
   // The Oath has no shields and its calls need no reset: there A and Y (Space
   // and R) only stir a breeze over the incense while held (see view()).
-  if (game && game.stage.caller === 'mourning') return;
+  if (game && game.stage.caller === 'mourning' && !game.success) return;
   act(action, time);
 });
 
 // Touch: the renderer's layout says what was tapped (the drum's centre or
 // rim, the shield, reset or pause button), then it is handled like a key.
 input.on('touch', ({ x, y, time }) => {
+  // On the success moment only its button goes on (a stray tap should not).
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   const target = renderer.touchTarget(x, y, game.mode);
   renderer.touched(x, y, target, songTime());
@@ -460,6 +463,10 @@ function missView(events, trying, before, drum, t) {
 }
 
 function act(action, time) {
+  if (screen === 'play' && !dialogs.length && game && game.success) {
+    if (action === 'guard' || action === 'confirm') continueOn();
+    return;
+  }
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   if (action === 'reset') {
     // Clear the phrase: a knock on the wooden slit drum (mõ), the dots tumble
@@ -535,6 +542,10 @@ function handleRhythm(ev) {
   if (ev.type === 'phraseStart') {
     endSustain();
   } else if (ev.type === 'command' && g.mode === 'echo') {
+    // No army answers here: the drum is free at once, and the answered dots
+    // clear after a moment so the next call's ghost shows (see view()).
+    g.reader.action = null;
+    g.clearShownAt = songTime() + 0.8;
     for (const e of g.session.answer(ev, songTime())) handleMode(e);
   } else if (ev.type === 'command' && g.mode === 'casting') {
     for (const e of g.session.pour(ev)) handleMode(e);
@@ -587,6 +598,7 @@ function handleMode(e) {
       // The caller's drum plays the rhythm; the reader will only accept that rhythm.
       g.reader.patterns = [e.call.pattern];
       g.reader.phrase = [];
+      g.reader.shown = null;
       const voice = { mourning: 0.72, village: 1.08, festival: 1.18, elegy: 0.8 }[stage.caller] || 1;
       // Kept so an early answer can silence the rest of the call.
       g.callSources = e.call.strokes.map((s) => ({ at: g.clockStart + s.t, src: sound.echo(s.drum, g.clockStart + s.t, 0.75, voice) }));
@@ -889,6 +901,10 @@ function view() {
   const t = songTime();
   const r = g.reader;
   const c = g.cycle;
+  if (g.clearShownAt && t >= g.clearShownAt) {
+    r.shown = null;
+    g.clearShownAt = null;
+  }
   // The army's beat when it is answering; otherwise a slow idle sway.
   const beatFloat = c ? (t - c.start) / c.u : t / 0.8;
   let phraseView = null;
@@ -968,8 +984,42 @@ function view() {
   }
   v.demo = g.demo;
   v.heard = heardTime();
+  v.success = !!g.success;
   v.miss = g.miss && t - g.miss.t < 1.1 ? g.miss : null;
   return v;
+}
+
+/** The success moment's title for each chapter. */
+const SUCCESS = {
+  garden: 'The targets fall',
+  oath: 'The oath is sworn',
+  casting: 'Three drums, cast true',
+  villages: 'The river is lit',
+  outpost: 'The ford is ours',
+  luylau: 'Luy Lâu is free',
+  coronation: 'Two queens',
+  mavien: 'The line held',
+  elegy: 'The drums remember',
+};
+
+/** Go on from the success moment: the next chapter, or the list after the last. */
+function continueOn() {
+  if (!game || !game.success) return;
+  hideSuccess();
+  sound.play('ui-confirm');
+  if (game.index >= STAGES.length - 1) return action('select');
+  startStage(game.index + 1);
+}
+
+function hideSuccess() {
+  $('#success').classList.remove('show');
+  $('#success').hidden = true;
+}
+
+function focusSuccess() {
+  const b = $('#success-next');
+  b.focus({ preventScroll: true });
+  if (input.device === 'gamepad') b.classList.add('nav-focus');
 }
 
 const RESULTS = {
@@ -991,6 +1041,26 @@ function finish(outcome) {
     progress.unlocked = Math.min(STAGES.length, game.index + 2);
     save('progress', progress);
   }
+  if (won) {
+    // A success moment in the scene itself, with one button to go on;
+    // restart and the chapter list stay in the pause menu.
+    setTimeout(() => {
+      if (!game || screen !== 'play') return;
+      const peaceful = game.mode !== 'battle';
+      sound.playMusic(game.stage.id === 'elegy' ? 'mu-ending' : peaceful ? 'mu-complete' : 'mu-victory', { fade: 0.3 });
+      sound.play('drum-wake', sound.now, 0.7);
+      game.success = { t: songTime() };
+      renderer.celebrate(game.stage, songTime());
+      const even = game.evenness !== undefined ? ` Evenness ${Math.round(game.evenness * 100)}%.` : '';
+      $('#success-title').textContent = SUCCESS[game.stage.id] || 'Chapter complete';
+      $('#success-text').textContent = RESULTS[game.stage.id] + even;
+      $('#success-next').querySelector('.label').textContent = game.index >= STAGES.length - 1 ? 'Chapters' : 'Continue';
+      $('#success').hidden = false;
+      requestAnimationFrame(() => $('#success').classList.add('show'));
+      focusSuccess();
+    }, 900);
+    return;
+  }
   setTimeout(() => {
     if (!game || screen !== 'play') return;
     const peaceful = game.mode !== 'battle';
@@ -1006,7 +1076,7 @@ function finish(outcome) {
 }
 
 function pause(reason = '') {
-  if (screen !== 'play' || !game || game.ended) return;
+  if (screen !== 'play' || !game || (game.ended && !game.success)) return;
   sound.suspend();
   sound.pauseMusic(true);
   $('#pause-reason').textContent = reason;
@@ -1060,6 +1130,11 @@ function pressStart() {
   buildCards();
   show('select');
 }
+
+$('#success-next').addEventListener('click', (e) => {
+  e.stopPropagation();
+  continueOn();
+});
 
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('button');
@@ -1190,6 +1265,6 @@ async function boot() {
 }
 
 // Debug hooks for automated checks.
-window.__bronzeDrum = { get game() { return game; }, renderer, sound, input, startStage, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
+window.__bronzeDrum = { get game() { return game; }, renderer, sound, input, startStage, finish, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
 
 boot();
