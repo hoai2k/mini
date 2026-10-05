@@ -589,6 +589,476 @@
       "status": "delivered",
       "file": "sfx/guitarSink.mp3",
       "loop": false
+    },
+    "dragonPass": {
+      "status": "delivered",
+      "file": "sfx/dragonPass.mp3",
+      "loop": false
+    },
+    "witchBreath": {
+      "status": "delivered",
+      "file": "sfx/witchBreath.mp3",
+      "loop": false
+    },
+    "sailorWake": {
+      "status": "delivered",
+      "file": "sfx/sailorWake.mp3",
+      "loop": false
+    },
+    "swimKick": {
+      "status": "delivered",
+      "file": "sfx/swimKick.mp3",
+      "loop": false
+    },
+    "swimStroke": {
+      "status": "delivered",
+      "file": "sfx/swimStroke.mp3",
+      "loop": false
+    },
+    "conchBlow": {
+      "status": "delivered",
+      "file": "sfx/conchBlow.mp3",
+      "loop": false
+    },
+    "sleeperWake": {
+      "status": "delivered",
+      "file": "sfx/sleeperWake.mp3",
+      "loop": false
+    },
+    "sleepersRise": {
+      "status": "delivered",
+      "file": "sfx/sleepersRise.mp3",
+      "loop": false
+    },
+    "clamSnap": {
+      "status": "delivered",
+      "file": "sfx/clamSnap.mp3",
+      "loop": false
+    },
+    "eelGlow": {
+      "status": "delivered",
+      "file": "sfx/eelGlow.mp3",
+      "loop": false
+    },
+    "eelLunge": {
+      "status": "delivered",
+      "file": "sfx/eelLunge.mp3",
+      "loop": false
+    },
+    "eelBite": {
+      "status": "delivered",
+      "file": "sfx/eelBite.mp3",
+      "loop": false
+    },
+    "jellySting": {
+      "status": "delivered",
+      "file": "sfx/jellySting.mp3",
+      "loop": false
+    },
+    "dragonBite": {
+      "status": "delivered",
+      "file": "sfx/dragonBite.mp3",
+      "loop": false
+    },
+    "airLow": {
+      "status": "delivered",
+      "file": "sfx/airLow.mp3",
+      "loop": false
+    },
+    "airVent": {
+      "status": "delivered",
+      "file": "sfx/airVent.mp3",
+      "loop": false
+    },
+    "airOut": {
+      "status": "delivered",
+      "file": "sfx/airOut.mp3",
+      "loop": false
+    },
+    "drown": {
+      "status": "delivered",
+      "file": "sfx/drown.mp3",
+      "loop": false
+    },
+    "guitarSettle": {
+      "status": "delivered",
+      "file": "sfx/guitarSettle.mp3",
+      "loop": false
+    },
+    "guitarCatch": {
+      "status": "delivered",
+      "file": "sfx/guitarCatch.mp3",
+      "loop": false
+    },
+    "witchOffer": {
+      "status": "delivered",
+      "file": "sfx/witchOffer.mp3",
+      "loop": false
+    },
+    "roseTake": {
+      "status": "delivered",
+      "file": "sfx/roseTake.mp3",
+      "loop": false
+    },
+    "witchLaugh": {
+      "status": "delivered",
+      "file": "sfx/witchLaugh.mp3",
+      "loop": false
+    },
+    "rideStart": {
+      "status": "delivered",
+      "file": "sfx/rideStart.mp3",
+      "loop": false
+    },
+    "rideRow": {
+      "status": "delivered",
+      "file": "sfx/rideRow.mp3",
+      "loop": false
+    },
+    "ridePearl": {
+      "status": "delivered",
+      "file": "sfx/ridePearl.mp3",
+      "loop": false
+    },
+    "irisOut": {
+      "status": "delivered",
+      "file": "sfx/irisOut.mp3",
+      "loop": false
+    },
+    "courtierStep": {
+      "status": "delivered",
+      "file": "sfx/courtierStep.mp3",
+      "loop": false
+    },
+    "sentrySnap": {
+      "status": "delivered",
+      "file": "sfx/sentrySnap.mp3",
+      "loop": false
+    },
+    "sentryBite": {
+      "status": "delivered",
+      "file": "sfx/sentryBite.mp3",
+      "loop": false
+    },
+    "guardBump": {
+      "status": "delivered",
+      "file": "sfx/guardBump.mp3",
+      "loop": false
+    },
+    "gazeTurn": {
+      "status": "delivered",
+      "file": "sfx/gazeTurn.mp3",
+      "loop": false
+    },
+    "gazeSweep": {
+      "status": "delivered",
+      "file": "sfx/gazeSweep.mp3",
+      "loop": false
+    },
+    "spotted": {
+      "status": "delivered",
+      "file": "sfx/spotted.mp3",
+      "loop": false
+    },
+    "hauledBack": {
+      "status": "delivered",
+      "file": "sfx/hauledBack.mp3",
+      "loop": false
+    },
+    "unseen": {
+      "status": "delivered",
+      "file": "sfx/unseen.mp3",
+      "loop": false
+    },
+    "freeze": {
+      "status": "delivered",
+      "file": "sfx/freeze.mp3",
+      "loop": false
+    },
+    "groove": {
+      "status": "delivered",
+      "file": "sfx/groove.mp3",
+      "loop": false
+    },
+    "whaleNear": {
+      "status": "delivered",
+      "file": "sfx/whaleNear.mp3",
+      "loop": false
+    },
+    "whalePass": {
+      "status": "delivered",
+      "file": "sfx/whalePass.mp3",
+      "loop": false
+    },
+    "fishPass": {
+      "status": "delivered",
+      "file": "sfx/fishPass.mp3",
+      "loop": false
+    },
+    "pearlTaken": {
+      "status": "delivered",
+      "file": "sfx/pearlTaken.mp3",
+      "loop": false
+    },
+    "whaleTurn": {
+      "status": "delivered",
+      "file": "sfx/whaleTurn.mp3",
+      "loop": false
+    },
+    "swallow": {
+      "status": "delivered",
+      "file": "sfx/swallow.mp3",
+      "loop": false
+    },
+    "caught": {
+      "status": "delivered",
+      "file": "sfx/caught.mp3",
+      "loop": false
+    },
+    "barrelKnock": {
+      "status": "delivered",
+      "file": "sfx/barrelKnock.mp3",
+      "loop": false
+    },
+    "pianoPlink": {
+      "status": "delivered",
+      "file": "sfx/pianoPlink.mp3",
+      "loop": false
+    },
+    "boneTap": {
+      "status": "delivered",
+      "file": "sfx/boneTap.mp3",
+      "loop": false
+    },
+    "acidSting": {
+      "status": "delivered",
+      "file": "sfx/acidSting.mp3",
+      "loop": false
+    },
+    "hookSnag": {
+      "status": "delivered",
+      "file": "sfx/hookSnag.mp3",
+      "loop": false
+    },
+    "stoneFound": {
+      "status": "delivered",
+      "file": "sfx/stoneFound.mp3",
+      "loop": false
+    },
+    "whaleInhale": {
+      "status": "delivered",
+      "file": "sfx/whaleInhale.mp3",
+      "loop": false
+    },
+    "whaleExhale": {
+      "status": "delivered",
+      "file": "sfx/whaleExhale.mp3",
+      "loop": false
+    },
+    "lowTide": {
+      "status": "delivered",
+      "file": "sfx/lowTide.mp3",
+      "loop": false
+    },
+    "breathCue": {
+      "status": "delivered",
+      "file": "sfx/breathCue.mp3",
+      "loop": false
+    },
+    "drip": {
+      "status": "delivered",
+      "file": "sfx/drip.mp3",
+      "loop": false
+    },
+    "timberCreak": {
+      "status": "delivered",
+      "file": "sfx/timberCreak.mp3",
+      "loop": false
+    },
+    "swallowed": {
+      "status": "delivered",
+      "file": "sfx/swallowed.mp3",
+      "loop": false
+    },
+    "daylight": {
+      "status": "delivered",
+      "file": "sfx/daylight.mp3",
+      "loop": false
+    },
+    "beachSurf": {
+      "status": "delivered",
+      "file": "sfx/beachSurf.mp3",
+      "loop": false
+    },
+    "crawlOut": {
+      "status": "delivered",
+      "file": "sfx/crawlOut.mp3",
+      "loop": false
+    },
+    "revellerOut": {
+      "status": "delivered",
+      "file": "sfx/revellerOut.mp3",
+      "loop": false
+    },
+    "whaleSlide": {
+      "status": "delivered",
+      "file": "sfx/whaleSlide.mp3",
+      "loop": false
+    },
+    "tailSplash": {
+      "status": "delivered",
+      "file": "sfx/tailSplash.mp3",
+      "loop": false
+    },
+    "rockScrape": {
+      "status": "delivered",
+      "file": "sfx/rockScrape.mp3",
+      "loop": false
+    },
+    "stoneWarn": {
+      "status": "delivered",
+      "file": "sfx/stoneWarn.mp3",
+      "loop": false
+    },
+    "stoneFall": {
+      "status": "delivered",
+      "file": "sfx/stoneFall.mp3",
+      "loop": false
+    },
+    "stoneGlance": {
+      "status": "delivered",
+      "file": "sfx/stoneGlance.mp3",
+      "loop": false
+    },
+    "holdCrumble": {
+      "status": "delivered",
+      "file": "sfx/holdCrumble.mp3",
+      "loop": false
+    },
+    "fall": {
+      "status": "delivered",
+      "file": "sfx/fall.mp3",
+      "loop": false
+    },
+    "giantStep": {
+      "status": "delivered",
+      "file": "sfx/giantStep.mp3",
+      "loop": false
+    },
+    "clifftop": {
+      "status": "delivered",
+      "file": "sfx/clifftop.mp3",
+      "loop": false
+    },
+    "fireRoar": {
+      "status": "delivered",
+      "file": "sfx/fireRoar.mp3",
+      "loop": false
+    },
+    "houseOpen": {
+      "status": "delivered",
+      "file": "sfx/houseOpen.mp3",
+      "loop": false
+    },
+    "fireCrackle": {
+      "status": "delivered",
+      "file": "sfx/fireCrackle.mp3",
+      "loop": false
+    },
+    "beamWarn": {
+      "status": "delivered",
+      "file": "sfx/beamWarn.mp3",
+      "loop": false
+    },
+    "beamCrash": {
+      "status": "delivered",
+      "file": "sfx/beamCrash.mp3",
+      "loop": false
+    },
+    "debrisCrash": {
+      "status": "delivered",
+      "file": "sfx/debrisCrash.mp3",
+      "loop": false
+    },
+    "stoneThrow": {
+      "status": "delivered",
+      "file": "sfx/stoneThrow.mp3",
+      "loop": false
+    },
+    "shutterSmash": {
+      "status": "delivered",
+      "file": "sfx/shutterSmash.mp3",
+      "loop": false
+    },
+    "shutterLocked": {
+      "status": "delivered",
+      "file": "sfx/shutterLocked.mp3",
+      "loop": false
+    },
+    "liftHer": {
+      "status": "delivered",
+      "file": "sfx/liftHer.mp3",
+      "loop": false
+    },
+    "floorBreak": {
+      "status": "delivered",
+      "file": "sfx/floorBreak.mp3",
+      "loop": false
+    },
+    "landing": {
+      "status": "delivered",
+      "file": "sfx/landing.mp3",
+      "loop": false
+    },
+    "thud": {
+      "status": "delivered",
+      "file": "sfx/thud.mp3",
+      "loop": false
+    },
+    "carryStep": {
+      "status": "delivered",
+      "file": "sfx/carryStep.mp3",
+      "loop": false
+    },
+    "houseFall": {
+      "status": "delivered",
+      "file": "sfx/houseFall.mp3",
+      "loop": false
+    },
+    "moonboatRise": {
+      "status": "delivered",
+      "file": "sfx/moonboatRise.mp3",
+      "loop": false
+    },
+    "witchClaim": {
+      "status": "delivered",
+      "file": "sfx/witchClaim.mp3",
+      "loop": false
+    },
+    "lampLit": {
+      "status": "delivered",
+      "file": "sfx/lampLit.mp3",
+      "loop": false
+    },
+    "stonePlop": {
+      "status": "delivered",
+      "file": "sfx/stonePlop.mp3",
+      "loop": false
+    },
+    "pageant": {
+      "status": "delivered",
+      "file": "sfx/pageant.mp3",
+      "loop": false
+    },
+    "pageantJoin": {
+      "status": "delivered",
+      "file": "sfx/pageantJoin.mp3",
+      "loop": false
+    },
+    "pageantApplause": {
+      "status": "delivered",
+      "file": "sfx/pageantApplause.mp3",
+      "loop": false
     }
   }
 }
