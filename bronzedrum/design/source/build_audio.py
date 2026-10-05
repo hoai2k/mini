@@ -224,8 +224,10 @@ AVOID = (
 MUSIC: list[dict] = []
 
 
-def track(mid, title, kind, plays, length, loop, tags, prompt, status="requested"):
-    MUSIC.append(dict(id=mid, title=title, kind=kind, plays=plays, length=length, loop=loop,
+# priority: "core" (needed now), "maybe", or "optional" (the game falls back
+# to a core track, or plays nothing, until an optional one is delivered).
+def track(mid, title, kind, plays, length, loop, tags, prompt, status="requested", priority="optional"):
+    MUSIC.append(dict(id=mid, title=title, kind=kind, plays=plays, length=length, loop=loop, priority=priority,
                       tags=tags, prompt=prompt, status=status))
 
 
@@ -247,7 +249,7 @@ track("mu-title", "Trống Đồng (title theme)", "theme",
       "bronze gong marks each phrase; halfway through a solo woman's voice sings the melody back "
       "on wordless vocables (à ơi) in quan họ manner; a quiet bed of modern cinematic strings "
       "swells underneath without taking over. 72 BPM in 4/4. About 90 seconds, built to loop: the "
-      f"last bar leads back into the first, no fade-out. No lyrics. {AVOID}")
+      f"last bar leads back into the first, no fade-out. No lyrics. {AVOID}", priority="core")
 track("mu-select", "Two Sisters (chapter select)", "theme",
       "Chapter-select screen, looping.",
       "about 90 s", True,
@@ -258,7 +260,41 @@ track("mu-select", "Two Sisters (chapter select)", "theme",
       "around the beat; they take turns, tease each other, then play together in harmony in C "
       "major pentatonic. A light modern ambient pad gives warmth underneath. 66 BPM, gentle and "
       "a little bittersweet. About 90 seconds, built to loop seamlessly with no fade-out. No "
-      f"percussion, no lyrics. {AVOID}")
+      f"percussion, no lyrics. {AVOID}", priority="core")
+
+# ---- shared beds: the two that cover every chapter until per-chapter beds exist
+
+track("mu-bed-battle", "Battle bed (all battles)", "bed",
+      "Under every battle chapter (the Garden, the Outpost, Luy Lâu, Mã Viện Returns) unless that chapter has its own bed.",
+      "about 2 min", True,
+      "beatless vietnamese tense heroic ambient, dan nhi, dan nguyet tremolo, quan ho low choir, bronze gongs, cinematic drone, no drums",
+      f"A tense, heroic, completely beatless background score {GAME}. It plays under battles "
+      "while the player drums commands at any speed, so it must have no pulse, no metre and no "
+      "drums or percussion keeping time. Traditional northern Vietnamese colour: a two-string "
+      "fiddle (đàn nhị) plays long, resolute phrases in D minor pentatonic; a moon lute (đàn "
+      "nguyệt) shivers in unmeasured tremolo; a low women's choir holds long notes in the manner "
+      "of quan họ; large bronze gongs are struck softly now and then and left to ring, never in "
+      "a pattern; the bamboo flute (sáo trúc) recalls a proud folk melody in fragments. "
+      "Underneath, a deep modern cinematic drone and low strings rise and fall like wind over a "
+      "river. Urgent and brave but never rhythmic. About 2 minutes, looping seamlessly: end where "
+      f"it began, with no fade-out and no silence at either end. No lyrics. {AVOID}",
+      priority="core")
+track("mu-bed-story", "Story bed (all story chapters)", "bed",
+      "Under every story chapter (the Oath, Casting the Drums, the Villages, the Coronation) unless that chapter has its own bed.",
+      "about 2 min", True,
+      "beatless vietnamese reflective ambient, two sao truc flutes, dan bau hat ru, dan tranh harmonics, quan ho humming, warm pad",
+      f"A warm, reflective, completely beatless background score {GAME}. It plays under quiet "
+      "story chapters (a funeral, a bronze foundry, villages answering along a river at night, a "
+      "coronation festival) while drummers call rhythms and the player answers at any speed, so "
+      "it must have no pulse, no metre and no percussion keeping time. Traditional Vietnamese "
+      "colour: one bamboo flute (sáo trúc) calls a short free-time phrase and a second, nearer "
+      "flute answers; the monochord (đàn bầu) sings slow bending lines in the manner of a hát ru "
+      "lullaby; 16-string zither (đàn tranh) harmonics glint like lantern light; now and then a "
+      "woman's voice hums a phrase in the quan họ style; a soft bronze bell rings rarely and is "
+      "left to decay. A gentle modern ambient pad gives warmth underneath. G major pentatonic, "
+      "tender and hopeful with a thread of sadness. About 2 minutes, looping seamlessly: end "
+      f"where it began, with no fade-out and no silence at either end. No lyrics. {AVOID}",
+      priority="core")
 
 # ---- beds: under each chapter, beatless
 
@@ -280,7 +316,7 @@ track("mu-bed-oath", "The Oath (bed)", "bed",
       "lamenting phrases in A minor pentatonic over a low drone; now and then a woman's voice in "
       "the restrained, ornamented manner of ca trù hums a few notes; a soft bronze bell rings "
       "rarely and is left to decay; a faint modern low string pad sits underneath. Very quiet, "
-      f"lots of space for a slow mourning drum on top. {BEATLESS} About 2 minutes. No words. {AVOID}")
+      f"lots of space for a slow mourning drum on top. {BEATLESS} About 2 minutes. No words. {AVOID}", priority="maybe")
 track("mu-bed-foundry", "Casting the Drums (bed)", "bed",
       "Under chapter 3, in the foundry, while the player holds a steady hammer rhythm.",
       "about 2 min", True,
@@ -389,16 +425,19 @@ track("mu-defeat", "Defeat sting", "sting",
       "bending phrase over a low drone and a dark modern string pad, ending unresolved. "
       f"Sorrowful but not hopeless. A minor pentatonic. No percussion, no lyrics. {AVOID}")
 track("mu-ending", "The Drums Are Melted (ending)", "piece",
-      "After the epilogue: the final results screen and the end of the game.",
+      "Under the epilogue (unless it has its own bed) and on the final results screen.",
       "about 3 min", False,
-      "vietnamese lament, solo dan bau, quan ho female duet, ca tru colour, mournful, sparse, bronze bell ending",
-      f"A sparse, mournful ending piece {GAME}, after the bronze drums have been melted down "
-      "and the uprising has ended. The monochord (đàn bầu) plays alone at first, bending each "
-      "note like a voice holding back tears; two women's voices enter in the quan họ "
-      "call-and-response style with a touch of ca trù ornament, singing a lament on wordless "
-      "vocables (à ơi); a faint modern string pad joins near the end; finally a single bronze "
-      "bell is struck and left to ring into silence. Very slow, about 58 BPM, free and rubato, "
-      f"no percussion. It should feel like dawn on a river after a loss. {AVOID}")
+      "vietnamese lament, solo dan bau, quan ho female duet, ca tru colour, free rubato, no percussion, bronze bell ending",
+      f"A sparse, mournful ending piece {GAME}. It plays as the bronze drums of the uprising are "
+      "gathered to be melted down, and through the final screen. The monochord (đàn bầu) plays "
+      "alone at first, bending each note like a voice holding back tears; two women's voices "
+      "enter in the quan họ call-and-response style with a touch of ca trù ornament, singing a "
+      "lament on wordless vocables (à ơi); a faint modern string pad joins near the end; finally "
+      "a single bronze bell is struck and left to ring into silence. Entirely free and rubato, "
+      "with no beat, no percussion and no steady tempo, so slow drumming can sit on top. A minor "
+      "pentatonic. About 3 minutes. It should feel like dawn on a river after a loss. "
+      f"{AVOID}",
+      priority="core")
 track("mu-anthem", "Song of the Two Queens (vocal song)", "song",
       "Trailer and end credits; not used in the prototype.",
       "about 3 min 30 s", False,
@@ -577,16 +616,31 @@ def build_music_doc():
                "- **Swell:** once over the bed when the drum wakes.\n"
                "- **Stings and the ending:** on the results screens.\n"
                "- **Song:** trailer and credits.\n")
+    order = {"core": 0, "maybe": 1, "optional": 2}
+    ranked = sorted(MUSIC, key=lambda m: order[m["priority"]])
+    out.append("## What to make first\n")
+    out.append(
+        "**Core (needed now):** " + ", ".join(f"`{m['id']}`" for m in ranked if m["priority"] == "core") + ". "
+        "These five cover every screen: the two themes on the menus, the battle bed under every "
+        "battle, the story bed under every story chapter, and the ending under the epilogue and "
+        "the final screen.\n")
+    out.append(
+        "**Maybe:** " + ", ".join(f"`{m['id']}`" for m in ranked if m["priority"] == "maybe") + " "
+        "(its own bed for the funeral, instead of the story bed).\n")
+    out.append(
+        "**Optional, for later:** everything else. A chapter's own bed replaces the shared bed "
+        "when it is delivered; without the swell and the stings the game uses its sound effects "
+        "(the waking drum and the cheer, the victory and defeat gongs).\n")
     out.append("## Summary\n")
-    out.append("| Id | Title | Kind | When it plays | Length | Loops | Status |")
-    out.append("| --- | --- | --- | --- | --- | --- | --- |")
-    for m in MUSIC:
-        out.append(f"| `{m['id']}` | {m['title']} | {m['kind']} | {m['plays']} | {m['length']} | {'yes' if m['loop'] else 'no'} | {m['status']} |")
+    out.append("| Id | Title | Priority | Kind | When it plays | Length | Loops | Status |")
+    out.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
+    for m in ranked:
+        out.append(f"| `{m['id']}` | {m['title']} | {m['priority']} | {m['kind']} | {m['plays']} | {m['length']} | {'yes' if m['loop'] else 'no'} | {m['status']} |")
     out.append("")
-    for m in MUSIC:
+    for m in ranked:
         out.append(f"## {m['id']} · {m['title']}\n")
         out.append(f"{m['plays']}\n")
-        out.append(f"- **Kind:** {m['kind']} · **Length:** {m['length']} · **Loops:** {'yes' if m['loop'] else 'no'}")
+        out.append(f"- **Priority:** {m['priority']} · **Kind:** {m['kind']} · **Length:** {m['length']} · **Loops:** {'yes' if m['loop'] else 'no'}")
         out.append(f"- **File:** `bronzedrum/game/assets/music/{m['id']}.mp3`")
         out.append(f"- **Style tags (optional):** `{m['tags']}`")
         out.append("")
@@ -603,6 +657,7 @@ def validate():
     for m in MUSIC:
         assert len(m["tags"]) <= 200, f"{m['id']}: style tags over 200 characters"
         assert m["kind"] in ("theme", "bed", "swell", "sting", "piece", "song"), m["id"]
+        assert m["priority"] in ("core", "maybe", "optional"), m["id"]
         # Each prompt stands alone: it names the game, a Vietnamese style and what to avoid.
         assert "Trưng sisters" in m["prompt"], f"{m['id']}: prompt does not say what it is for"
         assert any(w in m["prompt"] for w in ("quan họ", "ca trù", "chèo", "hò", "hát ru", "đàn", "sáo")), m["id"]
