@@ -56,8 +56,8 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Puppet part sheets | 4 | 0 | 0 | 0 | 4 |
 | Interface | 8 | 0 | 0 | 0 | 8 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
-| Story chapters | 21 | 0 | 0 | 0 | 21 |
-| **total** | **72** | **0** | **0** | **0** | **72** |
+| Story chapters | 22 | 1 | 0 | 0 | 21 |
+| **total** | **73** | **1** | **0** | **0** | **72** |
 
 ## Style frames: choose the direction first (3)
 
@@ -546,7 +546,7 @@ Plays when four commands chain: the drum's rings spread outward like the call in
 - **File:** `bronzedrum/game/assets/art/fx-drum-wake.png`
 - **Prompt:** A radially symmetric burst of concentric cut-paper rings in bronze and gold on a transparent background, like the bands of a bronze drum face expanding outward: tangential circles, flying herons and a sun-star at the centre. Bright glow through the cuts.
 
-## Story chapters (21)
+## Story chapters (22)
 
 Art for the six chapters added after the first three: The Oath, Casting the Drums, The Villages Answer, The Coronation at Mê Linh, Mã Viện Returns and The Drums Are Melted. Same coloured-paper direction (BD-S02) and the same rules: Lạc Việt face right, Han face left. Props are drawn at fixed sizes in quiet scenes, so they can carry more cut detail than the battle sprites.
 
@@ -711,6 +711,15 @@ Casting the Drums: shown once a mould is full. Shown 100 px tall.
 - **Status:** delivered · **Stand-in:** `Renderer.scene` · **Game id:** `prop-drum-cast`
 - **File:** `bronzedrum/game/assets/art/prop-drum-cast.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A freshly cast bronze kettle drum still glowing faintly orange at the edges, clay mould pieces broken away around its foot, the sun-star crisp on its top.
+
+### BD-P10 · Mã Viện on horseback
+
+Mã Viện Returns: the Han general watching from the rear of his columns, always near the right edge of the screen. Shown 180 px tall, slightly faded behind the field.
+
+- **Spec:** 1536x1536. Faces left. Single cut-paper figure on horseback, side profile, hooves on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.general` · **Game id:** `han-general`
+- **File:** `bronzedrum/game/assets/art/han-general.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The Eastern Han general Mã Viện, 1st century, an old but upright commander on a dark warhorse in profile facing left, lamellar armour cut as rows of small slots, a crested helmet with a red plume, one hand raised to signal the advance, a long red banner on a pole behind him. Iron grey, black and lacquer red. Dignified and formidable, not caricatured.
 
 ### BD-M15 · The Oath: the father's funeral
 

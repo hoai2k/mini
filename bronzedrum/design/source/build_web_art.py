@@ -74,6 +74,7 @@ TARGETS = {
     "prop-furnace": ("scale=-1:380", 85),
     "prop-mould": ("scale=-1:200", 85),
     "prop-drum-cast": ("scale=-1:200", 85),
+    "han-general": ("scale=-1:360", 85),
 }
 
 
