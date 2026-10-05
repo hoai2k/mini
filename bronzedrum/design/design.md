@@ -38,7 +38,10 @@ Y resets it at once.
 
 **Pairs, triplets and tiers.** A beat can hold one stroke, a pair (two) or a
 triplet (three). Every command has three tiers. Tier I is four plain strokes;
-tiers II and III add pairs and triplets.
+tiers II and III add pairs and triplets. The deep tùng needs room to ring, so
+two tùng strokes are always at least a beat apart. The quick strokes are on
+the rim (cắc), and a pair opens with at most one tùng. A test enforces this
+for every pattern.
 
 **Power.** Each tier is ×1.4 the one below (×1, ×1.4, ×1.96). Evenness scales
 power from ×0.72 at the edge of the window to ×1 when perfect, which covers
@@ -73,10 +76,10 @@ first blow, so the warning always comes first.
 
 | Command | Tier I | Tier II | Tier III | Effect | Unlocked |
 | --- | --- | --- | --- | --- | --- |
-| Tiến · March | `L L L R` | `L L LL R` | `L LLL L R` | advance, stopping at the enemy line | ch. 1 |
+| Tiến · March | `L L L R` | `L L LR R` | `L RRR L R` | advance, stopping at the enemy line | ch. 1 |
 | Đánh · Strike | `R R L R` | `RR R L R` | `RRR R L R` | spears hit the front enemy; archers shoot | ch. 1 |
-| Hô · Rally | `R L L L` | `R LL L L` | `R LLL L L` | restore strength | ch. 3 |
-| Voi · Elephant charge | `L L R R` | `LL L R R` | `LLL L RR R` | only with the drum awake: trample everything near the elephant; spends the drum's spirit | ch. 3 |
+| Hô · Rally | `R L L L` | `R LR L L` | `RRR L L L` | restore strength | ch. 3 |
+| Voi · Elephant charge | `L L R R` | `L L RR R` | `L L RRR RR` | only with the drum awake: trample everything near the elephant; spends the drum's spirit | ch. 3 |
 
 In the patterns, L is tùng and R is cắc. Spaces separate the four beats; letters
 written together share a beat. Chapter 1 allows tiers I and II, and the later

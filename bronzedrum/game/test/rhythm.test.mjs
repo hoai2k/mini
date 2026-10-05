@@ -64,6 +64,13 @@ test('evenness, not a grid: small wobbles pass, big ones break the phrase', () =
   assert.ok(events.some((e) => e.type === 'reset' && e.reason === 'uneven'));
 });
 
+test('deep strokes are never played in quick succession', () => {
+  for (const p of allPatterns()) {
+    const deep = p.strokes.filter((s) => s.drum === 'L').map((s) => s.pos);
+    for (let i = 1; i < deep.length; i++) assert.ok(deep[i] - deep[i - 1] >= 1 - 1e-9, `${p.text}: tùng ${deep[i - 1]} then ${deep[i]}`);
+  }
+});
+
 test('pairs and triplets are recognised and are stronger tiers', () => {
   for (const [id, n] of [['march', 2], ['strike', 3], ['rally', 2], ['rally', 3], ['charge', 3]]) {
     const r = new DrumReader();
