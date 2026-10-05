@@ -1,6 +1,7 @@
 # mini
 
-Browser games, one per folder, plus a collection of websites.
+Browser games, one per folder, plus a collection of websites. The game library
+is at https://hoai2k.github.io/mini/.
 
 ## Games
 
