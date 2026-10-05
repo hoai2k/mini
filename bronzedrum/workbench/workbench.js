@@ -389,7 +389,7 @@ function buildChapters() {
       rows.appendChild(bedRow({
         key: markKey('alt', a.id),
         name: a.id,
-        tag: 'alternate',
+        tag: /-clean$/.test(a.id) ? 'de-buzzed copy' : /-2$/.test(a.id) ? 'new · round 2' : 'alternate',
         tagClass: 'alt',
         url: a.file,
         prompt: a.prompt,
@@ -449,6 +449,23 @@ function buildEffects() {
       row.appendChild(d);
       row.appendChild(noteField(markKey('sfx', s.id), label));
       rows.appendChild(row);
+      // Candidate takes waiting to replace this effect: each its own row to mark.
+      for (const c of s.candidates || []) {
+        const crow = document.createElement('div');
+        crow.className = 'row candidate';
+        const b = document.createElement('button');
+        b.className = 'take';
+        b.textContent = '▶';
+        b.setAttribute('aria-label', `Play candidate ${c.id}`);
+        b.addEventListener('click', () => playOnce(c.file, s.gain, b));
+        const cinfo = document.createElement('div');
+        cinfo.innerHTML = '<span class="name"></span><span class="tag alt">candidate</span><div class="meta"></div>';
+        cinfo.querySelector('.name').textContent = c.id;
+        cinfo.querySelector('.meta').textContent = `A possible replacement for ${s.id}`;
+        const clabel = `candidate ${c.id} (for ${s.id})`;
+        crow.append(b, cinfo, markControls(markKey('cand', c.id), clabel), noteField(markKey('cand', c.id), clabel));
+        rows.appendChild(crow);
+      }
     }
     box.appendChild(sec);
   }

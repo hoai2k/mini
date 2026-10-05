@@ -238,7 +238,7 @@
       "files": [
         "sfx/ui-back.mp3"
       ],
-      "gain": 0.5,
+      "gain": 0.3,
       "loop": false
     },
     "ui-start": {
@@ -337,7 +337,21 @@
       "files": [
         "sfx/amb-village.mp3"
       ],
-      "gain": 0.45,
+      "gain": 0.55,
+      "loop": true
+    },
+    "amb-elegy": {
+      "files": [
+        "sfx/amb-elegy.mp3"
+      ],
+      "gain": 0.55,
+      "loop": true
+    },
+    "amb-coronation": {
+      "files": [
+        "sfx/amb-coronation.mp3"
+      ],
+      "gain": 0.5,
       "loop": true
     },
     "amb-green": {

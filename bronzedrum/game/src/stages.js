@@ -168,7 +168,7 @@ export const STAGES = [
     troops: 100,
     elephant: false,
     sky: 'day',
-    ambience: 'amb-garden',
+    ambience: 'amb-coronation',
     enemies: [],
   },
   {
@@ -221,7 +221,7 @@ export const STAGES = [
     troops: 0,
     elephant: false,
     sky: 'ash',
-    ambience: 'amb-river',
+    ambience: 'amb-elegy',
     enemies: [],
   },
 ];
