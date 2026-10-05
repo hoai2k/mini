@@ -42,11 +42,12 @@ export const HOLDS = [
   { x: 650, y: 830 }, { x: 760, y: 840 }, { x: 850, y: 930 }, { x: 900, y: 1030, kind: 'ledge' },
   // a blank wall: leap it, then traverse
   { x: 820, y: 1185 }, { x: 710, y: 1190 }, { x: 600, y: 1180 }, { x: 490, y: 1190 },
-  // the tiny guitarist's gap is the safe handhold between two loose ones
-  { x: 400, y: 1290, kind: 'crumble' }, { x: 530, y: 1295, kind: 'gap' }, { x: 650, y: 1285, kind: 'crumble' },
+  { x: 400, y: 1290, kind: 'crumble' }, { x: 530, y: 1295 }, { x: 650, y: 1285, kind: 'crumble' },
   { x: 480, y: 1390 }, { x: 590, y: 1400 }, { x: 700, y: 1390 }, { x: 810, y: 1400, pearl: true },
   // up under the huge guitarist, and back across to the left
-  { x: 860, y: 1490 }, { x: 900, y: 1585, kind: 'crumble' }, { x: 780, y: 1580 },
+  // the tiny guitarist's gap is the safe handhold after the loose one, in the
+  // dark cleft painted on the cliff
+  { x: 860, y: 1490 }, { x: 900, y: 1585, kind: 'crumble' }, { x: 775, y: 1580, kind: 'gap' },
   { x: 670, y: 1590 }, { x: 560, y: 1600 }, { x: 450, y: 1610, pearl: true },
   { x: 380, y: 1700 }, { x: 420, y: 1790 }, { x: 330, y: 1830, kind: 'ledge' }, { x: 560, y: 1760, pearl: true },
   // the giant's boot, then over the lip

@@ -460,7 +460,7 @@ function eel(k, st, e, t) {
   const L = TUNE.eelReach * ext;
   c.save(); c.beginPath(); c.rect(side > 0 ? hx : hx - 400, y - 60, 400, 120); c.clip();
   c.translate(hx + side * L, y); c.scale(side, 1); // head at the origin, facing +x
-  if (!k.asset('eel', -86, 35, 427, 70)) { // painted jaws end at the head (the art is 70% eel, head on the right)
+  if (!k.asset('eel', -86, 57, 427, 115)) { // painted jaws end at the head (the art is 70% eel, head on the right; drawn at its own proportions)
     c.strokeStyle = k.col('#5d7a34'); c.lineWidth = 24; c.lineCap = 'round';
     c.beginPath(); c.moveTo(-L - 20, 0);
     for (let d = -L; d <= -20; d += 20) c.lineTo(d, Math.sin(d * 0.05 + t * 10) * 7);

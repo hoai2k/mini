@@ -194,7 +194,7 @@ test('a loose hold gives way and costs a lantern; the gap shelters', () => {
   const g = sim();
   const gap = g.st.holds.findIndex((x) => x.kind === 'gap');
   g.st.cl.at = gap; g.st.nextRock = 1e9;
-  g.st.camY = 700;
+  g.st.camY = g.st.holds[gap].y - 595;
   g.st.rocks.push({ x: g.st.holds[gap].x, wait: 0.01, warn: 1, y: null, vy: 0, spin: 0, warned: true, done: false });
   g.run(2);
   assert.equal(g.st.lanterns, 3, 'sheltered in the gap');

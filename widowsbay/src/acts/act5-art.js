@@ -309,7 +309,7 @@ function cliffScene(k, st, t) {
     for (const v of IVY) if (v.y > lo - 40 && v.y < hi + 40) k.circle(v.x - v.r * 0.3, -v.y - v.r * 0.3, v.r * 0.45);
   }
   // the overhanging lip and the grass top
-  if (hi > CLIFF.top - 80) {
+  if (hi > CLIFF.top - 80 && !k.img('cliff-face')) {
     c.fillStyle = k.col('#6f6a5e'); c.fillRect(254, -CLIFF.top + 54, 772, 12);
     c.fillStyle = k.col('#c9bda5'); c.fillRect(258, -CLIFF.top, 764, 56);
     c.strokeStyle = k.col('#8d8170'); c.lineWidth = 2;
@@ -356,8 +356,11 @@ function holds(k, st, t) {
     if (h.kind === 'crumble' && occupied && st.cl.crumbleT < 0.5) x += Math.sin(t * 60) * 2.5;
     if (h.kind === 'gap') {
       // a dark cleft in the rock; the tiny guitarist plays on a knob above the hold
-      c.fillStyle = k.col('#3a302a');
-      c.beginPath(); c.moveTo(x - 34, y + 18); c.lineTo(x - 26, y - 236); c.lineTo(x + 30, y - 228); c.lineTo(x + 38, y + 18); c.closePath(); c.fill();
+      // (the delivered cliff already has the cleft painted; its slot is at x 740-790)
+      if (!k.img('cliff-face')) {
+        c.fillStyle = k.col('#3a302a');
+        c.beginPath(); c.moveTo(x - 34, y + 18); c.lineTo(x - 26, y - 236); c.lineTo(x + 30, y - 228); c.lineTo(x + 38, y + 18); c.closePath(); c.fill();
+      }
       c.fillStyle = k.col('#8d8170'); c.fillRect(x - 22, y - 124, 44, 8);
       tinyGuitarist(k, x, y - 124, t, st.beat || 0);
     }
@@ -547,7 +550,8 @@ function houseInterior(k, st, t) {
     // burnt holes: planks hang from their broken edges, embers below
     if (f > 0) for (let g = 0; g < st.spans[f].length - 1; g++) {
       const gx0 = st.spans[f][g][1], gx1 = st.spans[f][g + 1][0];
-      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.45 + 0.25 * Math.sin(t * 7 + f);
+      if (painted) { c.fillStyle = k.col('#1a0c08'); c.fillRect(gx0, fy - 12, gx1 - gx0, 36); } // the painted floor burnt through
+      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = (painted ? 0.7 : 0.45) + 0.25 * Math.sin(t * 7 + f);
       c.beginPath(); c.ellipse((gx0 + gx1) / 2, fy + 8, (gx1 - gx0) / 2 + 6, 12, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
       c.fillStyle = k.col('#3a2112');
       for (const [ex, dir] of [[gx0, 1], [gx1, -1]]) { c.save(); c.translate(ex, fy + 4); c.rotate(dir * 1.1); c.fillRect(dir > 0 ? 0 : -34, -4, 34, 8); c.restore(); }
@@ -578,6 +582,10 @@ function shutter(k, st, t) {
   }
 }
 
+// The painted rails fill the bottom 62.4% of ladder.webp (alpha y 188-500 of
+// 500), so the art is drawn taller than the climb to make the rails span it.
+const LADDER_RAILS = 312 / 500, LADDER_W = 52;
+
 function connector(k, st, cn, t) {
   const c = k.c, H = HOUSE;
   const ya = H.floors[cn.a.f], yb = H.floors[cn.b.f];
@@ -585,13 +593,14 @@ function connector(k, st, cn, t) {
     if (!cn.on) return;
     // It drops on its hinge at the top.
     const a = (1 - easeOut(clamp((st.ladderDropT ?? 1) / 0.6, 0, 1))) * (Math.PI / 2);
-    c.save(); c.translate(cn.b.x, yb); c.rotate(a);
-    if (!k.asset('ladder', 0, ya - yb, 44, ya - yb)) ladderShape(k, 0, ya - yb, 0);
+    // hinged at the top of the painted rails, hanging down to the lower floor
+    c.save(); c.translate(cn.b.x, yb - 4); c.rotate(a);
+    if (!k.asset('ladder', 0, ya - yb + 8, LADDER_W, (ya - yb + 8) / LADDER_RAILS)) ladderShape(k, 0, ya - yb + 8, 0);
     c.restore();
     return;
   }
   if (!cn.on) return;
-  if (cn.kind === 'ladder') { if (!k.asset('ladder', cn.a.x, ya + 4, 44, ya - yb + 8)) ladderShape(k, cn.a.x, ya + 4, yb - 4); return; }
+  if (cn.kind === 'ladder') { if (!k.asset('ladder', cn.a.x, ya + 4, LADDER_W, (ya - yb + 8) / LADDER_RAILS)) ladderShape(k, cn.a.x, ya + 4, yb - 4); return; }
   if (cn.kind === 'ivy') {
     c.strokeStyle = k.col('#3f6a3a'); c.lineWidth = 5;
     c.beginPath(); for (let y = ya; y >= yb - 10; y -= 12) c.lineTo(cn.a.x + Math.sin(y * 0.12) * 8, y); c.stroke();
@@ -744,7 +753,7 @@ function player(k, st, t) {
 // ---------------------------------------------------------------- the quay
 function quayGround(k, t, lamp = false) {
   const c = k.c;
-  if (k.asset('harbour-quay', 640, 660, 1280, 200)) return;
+  if (k.asset('harbour-quay', 640, 692, 1280, 200)) return;
   c.fillStyle = k.col('#8d877a'); c.fillRect(0, QUAY.y, 1280, 60);
   c.fillStyle = k.col('#a59f92'); c.fillRect(0, QUAY.y, 1280, 6);
   c.strokeStyle = k.col('#6f6a5e'); c.lineWidth = 1.5;
@@ -897,6 +906,8 @@ function caption(k, [title, sub], a) {
 }
 
 // ---------------------------------------------------------------- the pageant
+const REVELLER_ART = ['reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady'];
+const REVELLER_H = 104;
 function joinerSlot(i) {
   const side = i % 2 ? 1 : -1, j = Math.floor(i / 2);
   return { x: 640 + side * (176 + j * 50), side };
@@ -924,7 +935,7 @@ function pageantScene(k, st, t) {
   }
   // the Sea King and the witch take their places on the daises
   const court = easeOut((pt - PAGEANT.court) / 1.2);
-  dais(k, 222); dais(k, 1058);
+  if (!k.img('pageant-backcloth')) { dais(k, 222); dais(k, 1058); }
   if (court > 0) {
     c.save(); c.beginPath(); c.rect(0, 0, 1280, 566); c.clip();
     const cy = 566 + (1 - court) * 240;
@@ -939,7 +950,11 @@ function pageantScene(k, st, t) {
     const walk = easeInOut(since / 0.9);
     const x = lerp(640 + s.side * 720, s.x, walk);
     const hop = walk >= 1 ? ((Math.floor(beat) + i) % 2) * bob * 8 : Math.abs(Math.sin(since * 9)) * 6;
-    person(k, x, 618 - hop, 82, revellerCostume(i), { face: walk < 1 ? -s.side : 1, arms: walk >= 1 ? 'v' : 'down', step: walk < 1 ? Math.sin(since * 12) : 0 });
+    const face = walk < 1 ? -s.side : 1;
+    // the delivered revellers (220 x 420 each), cycled when more than four join
+    if (!artFlip(k, REVELLER_ART[i % REVELLER_ART.length], x, 618 - hop, REVELLER_H * 220 / 420, REVELLER_H, face)) {
+      person(k, x, 618 - hop, 82, revellerCostume(i), { face, arms: walk >= 1 ? 'v' : 'down', step: walk < 1 ? Math.sin(since * 12) : 0 });
+    }
   }
   // the band at centre, rising through the trapdoor
   const band = easeOut((pt - PAGEANT.band) / 1.4);
