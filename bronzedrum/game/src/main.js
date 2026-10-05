@@ -4,7 +4,7 @@ import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, DIFFICULTIES, commandBy
 import { createBattle, orderFor, spawnEnemy, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
-import { PracticeSession, KITS, loopPosition } from './practice.js';
+import { PracticeSession, CallSession, KITS, loopPosition } from './practice.js';
 import { Sound } from './audio.js';
 import { Input, PAD } from './input.js';
 import { Renderer } from './render.js';
@@ -44,7 +44,7 @@ function applyDifficulty() {
 // The prototype opens every chapter for review; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
 // Drum Practice remembers the last number of strokes and kit.
-const practiceSettings = load('practice', { dots: 4, kit: 'bronze' });
+const practiceSettings = load('practice', { beats: 4, kit: 'bronze' });
 progress.unlocked = Math.max(progress.unlocked, STAGES.length);
 
 // ---------------------------------------------------------------- systems
@@ -1169,13 +1169,13 @@ const PRACTICE = {
     id: 'practice-free',
     title: 'Free drumming',
     subtitle: 'Drum anything; the crew plays it back',
-    intro: 'Drum any rhythm of as many strokes as the dots show. The drum crew plays it back again and again, and dancers gather at the fire. Drum a new one at any time: the old rhythm quiets while you play and the new one takes over. Pairs, triplets, pauses: anything goes.',
+    intro: 'Drum any rhythm of four beats (or as many as you set), one, two or three strokes a beat. The drum crew plays it back again and again, and dancers gather at the fire. Drum a new one at any time: the old rhythm quiets while you play and the new one takes over. Pairs, triplets, pauses: anything goes.',
   },
   call: {
     id: 'practice-call',
     title: 'Call and answer',
     subtitle: 'Trade rhythms with a partner',
-    intro: 'A partner drums a rhythm with as many strokes as the dots show; answer with any rhythm of the same length, and they come straight back with the next. Nothing is wrong: copy them, or answer in your own way.',
+    intro: 'Your partner drums a call and you answer with any rhythm of the same number of beats; then the two are played back. Answer on the beat and it is your turn to lead: your partner answers your call with a riff on it. Wait, and they lead again. Nothing is wrong: copy them, or answer in your own way.',
   },
 };
 for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-practice', troops: 0, elephant: false, enemies: [] });
@@ -1232,7 +1232,7 @@ function startPractice(kind) {
     stage,
     practice: kind,
     mode: 'practice',
-    session: new PracticeSession({ mode: kind, dots: practiceSettings.dots }),
+    session: kind === 'call' ? new CallSession({ beats: practiceSettings.beats }) : new PracticeSession({ mode: kind, beats: practiceSettings.beats }),
     battle: createBattle(stage),
     clockStart: sound.now + 0.6,
     pulses: [], // strokes heard, for the dancers: { t, drum, who }
@@ -1304,7 +1304,7 @@ function practiceAct(action) {
     sound.play('drum-mo', sound.now, 0.6);
     renderer.kick('mo', t);
   } else if (action === 'fewer' || action === 'more') {
-    const events = s.setDots(s.dots + (action === 'more' ? 1 : -1), t);
+    const events = s.setBeats(s.beats + (action === 'more' ? 1 : -1), t);
     if (!events.length) return sound.play('ui-back');
     sound.play('ui-move');
     for (const e of events) practiceEvent(e);
@@ -1353,10 +1353,10 @@ function practiceEvent(e) {
       }
       confirm(e.stopped ? 'Stopped' : 'Cleared', P.paperShade);
       break;
-    case 'dots':
-      practiceSettings.dots = e.dots;
+    case 'beats':
+      practiceSettings.beats = e.beats;
       save('practice', practiceSettings);
-      confirm(`${e.dots} strokes`, P.paper);
+      confirm(`${e.beats} beats`, P.paper);
       break;
     case 'cutCall':
       if (g.callBus) {
@@ -1380,7 +1380,42 @@ function practiceEvent(e) {
     }
     case 'answered':
       g.doneAt = songTime();
-      confirm('Answered', P.bronzeLight);
+      confirm(e.inTime ? 'In time!' : 'Answered', P.bronzeLight);
+      break;
+    case 'replay': {
+      // The exchange played back: the partner's call in their voice, then the
+      // player's answer in the player's own drum.
+      if (g.callBus) g.callBus.disconnect();
+      g.callBus = sound.bus(0.85);
+      const [them, you] = e.replay.parts;
+      for (const st of them.strokes) {
+        sound.echo(st.drum, g.clockStart + st.t, 1, 1.07, g.callBus);
+        heard(st.drum, st.t, 'partner', 0.4);
+      }
+      for (const st of you.strokes) {
+        sound.echo(st.drum, g.clockStart + st.t, 0.9, 1, g.callBus);
+        heard(st.drum, st.t, 'loop', 0.4);
+      }
+      break;
+    }
+    case 'yourTurn':
+      confirm('Your turn: lead a call', P.bronzeLight);
+      break;
+    case 'led':
+      g.doneAt = songTime();
+      break;
+    case 'riff': {
+      // The partner answers the player's call with a riff on it.
+      if (g.callBus) g.callBus.disconnect();
+      g.callBus = sound.bus(0.85);
+      for (const st of e.riff.strokes) {
+        sound.echo(st.drum, g.clockStart + st.t, 1, 1.07, g.callBus);
+        heard(st.drum, st.t, 'partner', 0.5);
+      }
+      break;
+    }
+    case 'takeover':
+      confirm('Your partner leads', P.paperShade);
       break;
   }
 }
@@ -1422,6 +1457,49 @@ function practiceDancers() {
   return Math.min(6, Math.floor(game.energy / 5));
 }
 
+/**
+ * What call and answer shows: the partner's row above (their call, their riff
+ * on the player's call, or the call in the playback) and the player's below
+ * (the answer, the player's call, or what is being drummed), with a playhead
+ * on what is sounding, and a heading for the moment.
+ */
+function callRows(s, t) {
+  const played = (strokes, end = Infinity) => strokes.filter((st) => st.t <= Math.min(t, end)).length;
+  const asPattern = (r) => ({ strokes: r.strokes, beats: r.beats, text: r.text });
+  const drumming = s.phrase.length ? { entering: true } : null;
+  const phase = s.phase;
+  if (phase === 'replay' && s.replay) {
+    const [them, you] = s.replay.parts;
+    const a = played(them.strokes);
+    const b = played(you.strokes);
+    return {
+      top: { pattern: { strokes: them.strokes, beats: s.beats }, played: a, glow: a > 0 && b === 0, label: 'Partner' },
+      bottom: { pattern: { strokes: you.strokes, beats: s.beats }, played: b, glow: b > 0, label: 'You' },
+      heading: 'Played back',
+      headingColor: P.bronzeLight,
+    };
+  }
+  if (phase === 'lead' || phase === 'riff') {
+    const riff = s.riff;
+    const sounding = riff && t >= riff.start && t < riff.end;
+    return {
+      top: riff ? { pattern: asPattern(riff), played: played(riff.strokes, riff.end), glow: sounding, dim: !sounding && !!drumming, label: 'Partner' } : null,
+      bottom: drumming || (s.lead ? { pattern: s.lead, flash: true, dim: !!riff && t >= riff.end, label: 'You lead' } : null),
+      heading: drumming
+        ? `Your call: beat ${Math.min(s.beats, s.partial ? s.partial.beats : 1)} of ${s.beats}`
+        : sounding ? 'Your partner answers…' : s.lead ? 'Lead again, or wait for your partner' : 'Your turn: lead a call',
+      headingColor: !drumming && !sounding && !s.lead ? P.bronzeLight : P.paper,
+    };
+  }
+  const call = s.call;
+  const calling = !!call && t >= call.start - 0.05 && t < call.end && !s.phrase.length;
+  return {
+    top: call ? { pattern: asPattern(call), played: played(call.strokes, call.end), glow: calling } : null,
+    bottom: drumming || null,
+    heading: calling ? 'Listen…' : drumming ? `Beat ${Math.min(s.beats, s.partial ? s.partial.beats : 1)} of ${s.beats}` : call ? `Answer with any ${s.beats} beats` : 'Your partner is ready…',
+  };
+}
+
 /** How each practice control is shown in the HUD for the device in use, as rich-text tokens. */
 function practiceKeys() {
   return {
@@ -1442,8 +1520,8 @@ function practiceView() {
   let hint = null;
   if (settings.hints && t < 14 && !s.loops) {
     hint = s.mode === 'free'
-      ? `Drum any ${s.dots} strokes — ${keys.L} tùng, ${keys.R} cắc — and the crew plays them back`
-      : `Listen to your partner, then answer with any ${s.dots} strokes`;
+      ? `Drum any ${s.beats} beats — ${keys.L} tùng, ${keys.R} cắc, one to three strokes a beat — and the crew plays them back`
+      : `Listen to your partner, then answer with any ${s.beats} beats`;
   }
   const v = {
     battle: g.battle,
@@ -1478,7 +1556,7 @@ function practiceView() {
     miss: null,
     practice: {
       kind: s.mode,
-      dots: s.dots,
+      beats: s.beats,
       kit: practiceKit(),
       entered: s.phrase.length,
       partial: s.partial,
@@ -1490,6 +1568,7 @@ function practiceView() {
       answer: s.answer,
       // The answer stays up until the partner's next call starts.
       showAnswer: !!s.answer && !!call && t < call.start,
+      rows: s.mode === 'call' ? callRows(s, t) : null,
       doneAt: g.doneAt,
       dancers: practiceDancers(),
       groove: Math.min(1, g.energy / 30),

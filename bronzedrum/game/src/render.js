@@ -4298,11 +4298,12 @@ export class Renderer {
     // until the last has landed), so nothing is final yet.
     const entering = (y, r = dotR, c = cell) => {
       const part = p.partial;
-      const done = part ? part.strokes.length : 0;
-      const beats = (part ? part.beats : 0) + (p.dots - done);
-      const x0 = rowX(beats, c);
+      // Rings for the beats still to come (a beat may hold up to three strokes).
+      const sofar = part ? part.beats : 0;
+      const left = Math.max(0, p.beats - sofar);
+      const x0 = rowX(sofar + left, c);
       if (part) this.pattern(x0, y, part, r, c, Infinity, false, false, 0.45);
-      rings(x0, y, part ? part.beats : 0, p.dots - done, r, c, part ? 0.4 : 0.45 + 0.25 * Math.sin(t * 4));
+      rings(x0, y, sofar, left, r, c, part ? 0.4 : 0.45 + 0.25 * Math.sin(t * 4));
     };
     const label = (text, x, y, color = P.paper, align = 'center') => {
       g.save();
@@ -4337,7 +4338,7 @@ export class Renderer {
       // A dark band behind the rows keeps them readable over the scene.
       const top = (p.kind === 'call' || (p.loop && p.entered) ? upperY : rowY) - dotR - 34 * k;
       g.fillStyle = 'rgba(22,21,26,0.45)';
-      const w = Math.max(5, p.dots + 1) * cell + 40;
+      const w = Math.max(5, p.beats + 1) * cell + 40;
       g.fillRect(cx - w / 2, top, w, rowY + dotR + 10 - top);
     }
     if (p.kind === 'free') {
@@ -4348,7 +4349,7 @@ export class Renderer {
           this.pattern(rowX(p.loop.beats, c), upperY, p.loop, dotR * 0.62, c, p.loopPos ? p.loopPos.played : 0, false, false, 0.45);
         }
         entering(rowY);
-        label(`${p.entered} of ${p.dots}`, cx, (p.loop ? upperY : rowY) - dotR - 14 * k, P.paperShade);
+        label(`Beat ${Math.min(p.beats, p.partial ? p.partial.beats : 1)} of ${p.beats}`, cx, (p.loop ? upperY : rowY) - dotR - 14 * k, P.paperShade);
       } else if (p.loop) {
         // The rhythm repeating: each stroke lights as it sounds.
         const x0 = rowX(p.loop.beats);
@@ -4375,30 +4376,35 @@ export class Renderer {
         }
         label('Your rhythm, again and again', cx, rowY - dotR - 14 * k, P.bronzeLight);
       } else {
-        rings(rowX(p.dots), rowY, 0, p.dots, dotR, cell, 0.45 + 0.25 * Math.sin(t * 4));
-        label(`Drum any ${p.dots} strokes`, cx, rowY - dotR - 14 * k);
+        rings(rowX(p.beats), rowY, 0, p.beats, dotR, cell, 0.45 + 0.25 * Math.sin(t * 4));
+        label(`Drum any ${p.beats} beats`, cx, rowY - dotR - 14 * k);
       }
       return;
     }
-    // Call and answer: the partner's row above, the player's below.
-    const call = p.call;
-    if (call) {
-      const x0 = rowX(call.beats);
-      this.pattern(x0, upperY, call, dotR, cell, p.callPlayed, p.callPlayed > 0 && p.callPlayed < call.strokes.length);
-      label('Partner', x0 - 12, upperY + 5, P.paperShade, 'right');
-    } else {
-      rings(rowX(p.dots), upperY, 0, p.dots, dotR, cell, 0.3);
-    }
-    if (p.entered) entering(rowY);
-    else if (p.answer) {
-      this.pattern(rowX(p.answer.beats), rowY, p.answer, dotR, cell, Infinity, p.showAnswer, false, p.showAnswer ? 1 : 0.6);
-      flash(rowX(p.answer.beats), rowY, p.answer);
-    }
-    else rings(rowX(p.dots), rowY, 0, p.dots, dotR, cell, 0.45 + 0.25 * Math.sin(t * 4));
-    const youBeats = p.entered && p.partial ? p.partial.beats + p.dots - p.partial.strokes.length : p.answer ? p.answer.beats : p.dots;
-    label('You', rowX(youBeats) - 12, rowY + 5, P.paper, 'right');
-    const heading = p.calling ? 'Listen…' : p.entered ? `${p.entered} of ${p.dots}` : p.showAnswer ? 'Answered' : `Answer with any ${p.dots} strokes`;
-    label(heading, cx, upperY - dotR - 14 * k, p.showAnswer && !p.entered ? P.bronzeLight : P.paper);
+    // Call and answer: the partner's row above, the player's below (main.js
+    // practiceView says what each row holds: a rhythm with a playhead, or the
+    // rhythm being drummed).
+    const row = (r, y, fallbackAlpha) => {
+      if (r && r.entering) {
+        entering(y);
+        return Math.max(p.beats, p.partial ? p.partial.beats : 0);
+      }
+      if (r && r.pattern) {
+        const x0 = rowX(r.pattern.beats);
+        this.pattern(x0, y, r.pattern, dotR, cell, r.played ?? Infinity, !!r.glow, false, r.dim ? 0.55 : 1);
+        if (r.flash) flash(x0, y, r.pattern);
+        return r.pattern.beats;
+      }
+      rings(rowX(p.beats), y, 0, p.beats, dotR, cell, fallbackAlpha);
+      return p.beats;
+    };
+    const top = p.rows.top;
+    const bottom = p.rows.bottom;
+    const topBeats = row(top, upperY, 0.3);
+    label(top && top.label ? top.label : 'Partner', rowX(topBeats) - 12, upperY + 5, P.paperShade, 'right');
+    const youBeats = row(bottom, rowY, 0.45 + 0.25 * Math.sin(t * 4));
+    label(bottom && bottom.label ? bottom.label : 'You', rowX(youBeats) - 12, rowY + 5, P.paper, 'right');
+    label(p.rows.heading, cx, upperY - dotR - 14 * k, p.rows.headingColor || P.paper);
   }
 
   /** Drum Practice's controls, bottom left (keyboard, mouse and controller). */
@@ -4406,7 +4412,7 @@ export class Renderer {
     const g = this.ctx;
     const p = view.practice;
     const lines = [
-      `${p.keys.fewer} fewer · ${p.dots} strokes · more ${p.keys.more}`,
+      `${p.keys.fewer} fewer · ${p.beats} beats · more ${p.keys.more}`,
       `${p.keys.kit} ${p.kit.vn} · ${p.kit.name}`,
       `${p.keys.clear} ${p.kind === 'free' ? 'clear and stop the loop' : 'clear'}`,
     ];
@@ -4473,7 +4479,7 @@ export class Renderer {
     for (const [id, sign] of [['fewer', '−'], ['more', '+']]) {
       const pos = T[id];
       const rr = pos.r * press(id);
-      const off = (id === 'fewer' && p.dots <= 2) || (id === 'more' && p.dots >= 12);
+      const off = (id === 'fewer' && p.beats <= 2) || (id === 'more' && p.beats >= 12);
       g.save();
       g.globalAlpha = off ? 0.35 : 0.9;
       g.fillStyle = P.indigo;
@@ -4486,7 +4492,7 @@ export class Renderer {
       g.restore();
       text(sign, pos.x, pos.y + 11, 32);
     }
-    text(`${p.dots} strokes`, T.more.x, T.more.y + T.more.r + 22, 14);
+    text(`${p.beats} beats`, T.more.x, T.more.y + T.more.r + 22, 14);
   }
 
   hit(drum, t) {
