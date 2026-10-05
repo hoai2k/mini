@@ -304,11 +304,44 @@ export class Sound {
       const AC = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AC({ latencyHint: 'interactive' });
       this.master = this.ctx.createGain();
-      this.master.connect(this.ctx.destination);
+      // A limiter at the end of the mix: a drum stroke landing on the army's
+      // echoes, the music and the ambience peaked over full scale and
+      // clipped, which on the bronze drum sounds like a harsh metallic crack.
+      this.limiter = this.ctx.createDynamicsCompressor();
+      this.limiter.threshold.value = -8;
+      this.limiter.knee.value = 4;
+      this.limiter.ratio.value = 16;
+      this.limiter.attack.value = 0.002;
+      this.limiter.release.value = 0.12;
+      // The pause fade: the last gain before the speakers.
+      this.out = this.ctx.createGain();
+      this.master.connect(this.limiter).connect(this.out).connect(this.ctx.destination);
       this.noise = this.makeNoise();
       this.setVolume(this.volume);
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
+  }
+
+  /** Pause: fade out over a few milliseconds, then stop the audio clock. */
+  async suspend() {
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    const t = this.ctx.currentTime;
+    this.out.gain.cancelScheduledValues(t);
+    this.out.gain.setValueAtTime(this.out.gain.value, t);
+    this.out.gain.linearRampToValueAtTime(0, t + 0.06);
+    this.suspending = new Promise((r) => setTimeout(r, 80)).then(() => this.ctx.suspend());
+    await this.suspending;
+  }
+
+  /** Resume: restart the clock and fade back in, so nothing starts on a hard edge. */
+  async resume() {
+    if (!this.ctx) return;
+    if (this.suspending) await this.suspending;
+    await this.ctx.resume();
+    const t = this.ctx.currentTime;
+    this.out.gain.cancelScheduledValues(t);
+    this.out.gain.setValueAtTime(0, t);
+    this.out.gain.linearRampToValueAtTime(1, t + 0.25);
   }
 
   get now() {
