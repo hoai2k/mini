@@ -1,7 +1,7 @@
 // Headless checks for Act III, the Sea King's Court.
 // Run: node widowsbay/qa/act3.test.mjs
 import assert from 'node:assert/strict';
-import act, { TUNE, PEDESTAL, ROWY, SENTRIES, LANTERN, OUTRO, beamOn, litAt, effRow } from '../src/acts/act3.js';
+import act, { TUNE, PEDESTAL, SENTRIES, OUTRO, CAM_MAX, litAt, effRow } from '../src/acts/act3.js';
 
 const BEAT = 60 / 76.5, DT = 1 / 30;
 let n = 0;
@@ -19,11 +19,18 @@ const calm = (st) => { st.gaze.phase = 'rest'; st.gaze.dur = 1e9; st.gaze.aim = 
 // gets closest to the pedestal. It uses only the act's public inputs.
 const ACTIONS = [{ moveX: 1 }, { moveX: -1 }, {}, { aHeld: true }, { up: true }, { down: true }];
 const FOLLOW = [{ moveX: 1 }, { moveX: -1 }, {}, { aHeld: true }];
-const goal = (st) => (st.phase !== 'play' && st.phase !== 'caught' ? 1e6 : 0)
-  - Math.abs(st.p.x - PEDESTAL.x) - effRow(st.p) * 150 - (st.p.rowT < 1 ? 40 : 0);
-function sim(st, first, follow) {
+// Head for the pedestal when the whale is coming or masking; otherwise wait
+// a little way off, out of the light that rests on the pearl.
+const whaleSoon = (st) => (st.whale.t < 0 ? st.whale.next < 2.2 : st.whale.t < TUNE.whaleMask[1] - 0.6);
+const goal = (st) => {
+  if (st.phase !== 'play' && st.phase !== 'caught') return 1e6;
+  const tx = whaleSoon(st) ? PEDESTAL.x : PEDESTAL.x - 330;
+  const d = Math.abs(st.p.x - tx);
+  return -d - (d < 400 ? effRow(st.p) * 150 : 0) - (st.p.rowT < 1 ? 40 : 0);
+};
+function sim(st, plan) {
   const s = structuredClone(st); s.events = [];
-  let lost = 0;
+  let lost = 0, v = 0;
   const go = (inp, sec) => {
     for (let t = 0; t < sec && s.status === 'play'; t += DT) {
       const atP = effRow(s.p) === 0 && Math.abs(s.p.x - PEDESTAL.x) < PEDESTAL.reach;
@@ -33,15 +40,16 @@ function sim(st, first, follow) {
       lost += before - s.lanterns;
     }
   };
-  go(first, 0.4); const mid = goal(s); go(follow, 1.2);
-  return -lost * 5000 + goal(s) * 0.5 + mid * 0.5 + (s.status === 'lost' ? -1e7 : 0);
+  for (const [inp, sec] of plan) { go(inp, sec); v += goal(s); }
+  return -lost * 5000 + v / plan.length + (s.status === 'lost' ? -1e7 : 0);
 }
+// Each action for 0.4 s, then two follow-ups (0.6 s and 1.2 s).
 function plan(st) {
   let best = null, bestV = -Infinity;
   for (const a of ACTIONS) {
     if ((a.up && st.p.row === 0) || (a.down && st.p.row === 2)) continue;
     let v = -Infinity;
-    for (const f of FOLLOW) v = Math.max(v, sim(st, a, f));
+    for (const f of [...FOLLOW, { up: true }, { down: true }]) for (const g of FOLLOW) v = Math.max(v, sim(st, [[a, 0.4], [f, 0.6], [g, 1.2]]));
     if (v > bestV + 1e-6) { bestV = v; best = a; }
   }
   return best;
@@ -147,8 +155,9 @@ test('the beam spots you unless frozen with an attendant; grace protects', () =>
   assert.equal(st.lanterns, 3); assert.ok(st.p.hidden);
   // a guard is no cover
   st = make(); calm(st);
-  st.courtiers = [{ kind: 'guard', row: 1, x: 1080, x0: 1080, x1: 1080, a: 0, b: 2000, step: 0, pat: 'R', dir: 1 }];
-  st.p.row = st.p.from = 1; st.p.x = 1042; // overlapping for cover, clear of a bump
+  const gx = PEDESTAL.x;
+  st.courtiers = [{ kind: 'guard', row: 1, x: gx, x0: gx, x1: gx, a: 0, b: 9000, step: 0, pat: 'R', dir: 1 }];
+  st.p.row = st.p.from = 1; st.p.x = gx - 38; // overlapping for cover, clear of a bump
   assert.ok(litAt(TUNE.restAim, 1, st.p.x));
   ev = run(st, 0.1, () => ({ aHeld: true }));
   assert.ok(!types(ev).includes('guardBump')); assert.ok(types(ev).includes('spotted'));
@@ -199,7 +208,7 @@ test('guards bump; changing groove is tweened', () => {
 test('pearls along the grooves score', () => {
   const st = make(); calm(st); st.courtiers = [];
   st.p.row = st.p.from = 2; st.p.x = 300; st.carry.rose = true;
-  run(st, 4.5, () => ({ moveX: 1 }));
+  run(st, 7, () => ({ moveX: 1 }));
   assert.ok(st.pearls >= 2); assert.equal(st.score, st.pearls * 10);
 });
 
@@ -208,7 +217,7 @@ test('the pearl: only in the whale\'s shadow; taking it grants the keepsake', ()
   st.gaze.aim = 200; st.p.row = st.p.from = 0; st.p.x = PEDESTAL.x; st.p.grace = 99;
   tick(st, { a: true });
   assert.equal(st.phase, 'play', 'not without the whale');
-  st.fish.t = 1.2; tick(st, { a: true }); // the fish over the lantern is not enough
+  st.cam = CAM_MAX; st.fish.t = 2.17; tick(st, { a: true }); // the fish over the lantern is not enough
   assert.equal(st.maskedBy, 'fish'); assert.equal(st.phase, 'play');
   st = make(); calm(st); st.courtiers = [];
   st.whale.t = 2; st.p.row = st.p.from = 1; st.p.x = PEDESTAL.x;
@@ -251,15 +260,15 @@ test('tea omens appear a beat before the beam reaches you', () => {
 });
 
 const results = [];
-for (const [seed, carry] of [[1, { tea: 3 }], [7, {}], [42, { rose: true }], [99, { tea: 3 }], [2024, {}]]) {
-  test(`winnable by the planner (seed ${seed}, ${carry.rose ? 'rose' : 'no rose'})`, () => {
+for (const [seed, carry] of [[7919, { tea: 3 }], [15838, {}], [23757, { rose: true }], [63352, { tea: 3 }], [71271, { rose: true, tea: 3 }]]) {
+  test(`winnable by the planner with freezes and a whale pass (seed ${seed}, ${carry.rose ? 'rose' : 'no rose'})`, () => {
     const st = make(carry, seed);
-    const r = playBot(st);
-    results.push({ seed, time: r.time.toFixed(1), lanterns: st.lanterns, freezes: st.stats.freezes, hidden: st.stats.hiddenPasses, whales: st.whale.passes, status: st.status });
+    playBot(st);
+    results.push({ seed, rose: !!carry.rose, time: st.t.toFixed(1), lanterns: st.lanterns, freezes: st.stats.freezes, unseen: st.stats.hiddenPasses, whales: st.whale.passes, pearls: st.pearls, score: st.result?.score });
     assert.equal(st.status, 'won', `status ${st.status} at ${st.t.toFixed(1)} s, x ${st.p.x.toFixed(0)} row ${st.p.row}`);
     assert.deepEqual(st.result.keepsakes, { pearl: true });
-    console.log(results.at(-1), st.stats);
-    // assert.ok(st.stats.freezes > 0, 'used freezes');
+    assert.ok(st.stats.freezes > 0, 'used freezes');
+    assert.ok(st.stats.maskedTime > 0 && st.whale.passes >= 1, 'used a whale pass');
   });
 }
 console.table(results);

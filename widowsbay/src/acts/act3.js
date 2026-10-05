@@ -14,24 +14,24 @@ import * as art from './act3-art.js';
 // pedestal ends up beside him. x is floor (world) x; st.cam is the scroll.
 export const ROWY = [432, 512, 596];           // the three grooves (Act I's rows)
 export const ROWSCALE = [0.72, 0.86, 1.0];
-export const HALL_W = 2480, PAR = 0.15;
+export const HALL_W = 3100, PAR = 0.12;
 export const CAM_MAX = HALL_W - 1280;
-export const XMIN = 190, XMAX = 2310;
+export const XMIN = 190, XMAX = 2930;
 export const START = { row: 2, x: 200 };
-export const PEDESTAL = { row: 0, x: 2280, reach: 46 };
+export const PEDESTAL = { row: 0, x: 2900, reach: 46 };
 // Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR).
-export const THRONE_BX = 980, WITCH_BX = 1130, LANTERN_BX = 780;
+export const THRONE_BX = 1018, WITCH_BX = 1168, LANTERN_BX = 818;
 export const LANTERN_Y = 236;                   // the gaze lantern's eye
-export const SENTRIES = [470, 760, 1050, 1420, 1720, 2010]; // along the front groove
+export const SENTRIES = [470, 760, 1050, 1420, 1720, 2010, 2330, 2620]; // along the front groove
 export const BEAT = 60 / 76.5;                  // fallback only; input.beat drives
 
 export const TUNE = {
   walk: 104, rowTween: 0.26, grace: 1.6, lanterns: 3,
-  restAim: PEDESTAL.x, warn: 1.25, hold: 0.85, sweepSpeed: 300, lock: 0.75, rest: [0.8, 1.6],
-  aimRange: [340, 2300], search: 520, // patrol targets (beam centre x), near the sailor
+  restAim: PEDESTAL.x, warn: 1.25, hold: 0.85, sweepSpeed: 300, lock: 0.75, rest: [1.4, 2.6],
+  aimRange: [340, 2920], search: 650, // patrol targets (beam centre x), near the sailor
   cover: 56,                      // half-width of an attendant's cover
   snapOpen: 0.38,                 // fraction of each beat the jaws are open
-  whaleFirst: 22, whaleEvery: [20, 25], whaleDur: 5, whaleMask: [0.9, 4.0],
+  whaleFirst: 20, whaleEvery: [20, 25], whaleDur: 5, whaleMask: [0.9, 4.0],
   fishDur: 4.2,
   caught: 1.8, haul: 300, haulDur: 0.7,
 };
@@ -44,21 +44,26 @@ const COURTIERS = [
   { kind: 'pink', row: 0, x: 380, a: 250, b: 900, step: 42, pat: 'SSSR', dir: 1 },
   { kind: 'guard', row: 0, x: 1000, a: 820, b: 1300, step: 40, pat: 'SSRR', dir: -1 },
   { kind: 'blue', row: 0, x: 1500, a: 1220, b: 1900, step: 42, pat: 'SSSR', dir: 1 },
-  { kind: 'guard', row: 0, x: 2000, a: 1780, b: 2200, step: 40, pat: 'SRSR', dir: -1 },
+  { kind: 'guard', row: 0, x: 2000, a: 1820, b: 2240, step: 40, pat: 'SRSR', dir: -1 },
+  { kind: 'green', row: 0, x: 2400, a: 2150, b: 2760, step: 42, pat: 'SSRS', dir: 1 },
+  { kind: 'pink', row: 0, x: 2700, a: 2470, b: 2880, step: 40, pat: 'SSRR', dir: -1 },
   { kind: 'green', row: 1, x: 300, a: 210, b: 780, step: 46, pat: 'SSSR', dir: 1 },
   { kind: 'guard', row: 1, x: 760, a: 620, b: 1020, step: 38, pat: 'SRSR', dir: 1 },
   { kind: 'pink', row: 1, x: 1300, a: 940, b: 1640, step: 44, pat: 'SSRS', dir: -1 },
-  { kind: 'green', row: 1, x: 1900, a: 1540, b: 2290, step: 46, pat: 'SSSR', dir: 1 },
+  { kind: 'green', row: 1, x: 1900, a: 1540, b: 2200, step: 46, pat: 'SSSR', dir: 1 },
+  { kind: 'guard', row: 1, x: 2300, a: 2120, b: 2520, step: 40, pat: 'SRSR', dir: -1 },
+  { kind: 'blue', row: 1, x: 2700, a: 2420, b: 2920, step: 44, pat: 'SSSR', dir: 1 },
   { kind: 'blue', row: 2, x: 620, a: 230, b: 1120, step: 50, pat: 'SSSSR', dir: -1 },
   { kind: 'pink', row: 2, x: 1600, a: 1140, b: 2060, step: 48, pat: 'SSSR', dir: 1 },
+  { kind: 'green', row: 2, x: 2500, a: 2080, b: 2900, step: 48, pat: 'SSSSR', dir: -1 },
 ];
-const PEARLS = [[2, 345], [1, 470], [0, 620], [2, 905], [1, 1160], [0, 1380], [2, 1570], [1, 1850], [0, 2060]];
+const PEARLS = [[2, 345], [1, 470], [0, 620], [2, 905], [1, 1160], [0, 1380], [2, 1570], [1, 1850], [0, 2060], [2, 2180], [1, 2450], [0, 2600]];
 
 // ---------------------------------------------------------------- helpers
 // The beam falls as a long pool of light across all three grooves, a little
 // wider toward the audience. `aim` is the x of its centre.
 export function beamOn(aim, row) {
-  return { cx: aim, hw: [62, 70, 80][row] };
+  return { cx: aim, hw: [58, 66, 74][row] };
 }
 export const effRow = (p) => (p.rowT < 0.5 ? p.from : p.row);
 export const rowY = (p) => lerp(ROWY[p.from], ROWY[p.row], easeInOut(p.rowT));
@@ -113,7 +118,7 @@ function toWarn(g, dur, emit) {
 // Is a point on a groove in the beam, for this aim?
 export function litAt(aim, row, x) {
   const { cx, hw } = beamOn(aim, row);
-  return Math.abs(x - cx) < hw * 0.82 + 8;
+  return Math.abs(x - cx) < hw;
 }
 
 // ---------------------------------------------------------------- module
@@ -181,7 +186,7 @@ export default {
     ks.push({ id: 'pearl', have: st.taken });
     return {
       lanterns: st.lanterns, maxLanterns: 3, pearls: st.pearls,
-      progress: clamp((st.p.x - XMIN) / (PEDESTAL.x - XMIN) * 0.85 + (st.p.row === 0 ? 0.15 : st.p.row === 1 ? 0.07 : 0), 0, 1),
+      progress: clamp((st.p.x - XMIN) / (PEDESTAL.x - XMIN), 0, 1),
       keepsakes: ks,
     };
   },
@@ -353,7 +358,7 @@ function patrol(st) {
   const lo = Math.max(TUNE.aimRange[0], st.p.x - TUNE.search), hi = Math.min(TUNE.aimRange[1], st.p.x + TUNE.search);
   const legs = [];
   let at = st.gaze.aim;
-  const count = 3 + (rand(st) < 0.5 ? 1 : 0);
+  const count = 2 + (rand(st) < 0.5 ? 1 : 0);
   for (let i = 0; i < count; i++) {
     // somewhere near where the sailor is, but always a real swing
     let x = lo + rand(st) * Math.max(0, hi - lo);

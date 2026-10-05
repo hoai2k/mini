@@ -2,8 +2,8 @@
 // stand-in until its file is delivered (ids and sizes are in
 // design/image-requests.md, Part C4; drawn here at half the listed pixels).
 import {
-  ROWY, ROWSCALE, LANTERN, PEDESTAL, THRONE_X, WITCH_X, TUNE, OUTRO,
-  beamOn, rowY, rowScale, whaleX, fishX,
+  ROWY, ROWSCALE, PEDESTAL, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, PAR, OUTRO,
+  beamOn, rowY, rowScale, whaleX, fishX, backX,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 
@@ -14,24 +14,32 @@ const NAVY = '#26304a';
 export function draw(k, st, t) {
   const c = k.c, ph = st.phase;
   const bob = Math.abs(Math.sin(Math.PI * beatPhase(st.beat)));
+  const cam = st.cam;
   hall(k, st, t);
   dais(k, st, t, bob);
-  floor(k);
-  telegraph(k, st, t);
+  // the floor layer rolls 1:1 with the sailor
+  c.save(); c.translate(-cam, 0);
+  floor(k, cam);
+  pedestal(k, st, t);
 
   // Everything on the grooves, back to front. The sailor sorts just behind a
   // courtier on the same groove, so freezing "behind" one reads as cover.
   const items = [];
-  for (const q of st.pearlsOnFloor) if (!q.got) items.push({ y: ROWY[q.row] - 1, f: () => floorPearl(k, q, t) });
-  for (const cr of st.courtiers) items.push({ y: ROWY[cr.row], f: () => courtier(k, cr, bob, st) });
+  const vis = (x) => Math.abs(x - cam - 640) < 760;
+  for (const q of st.pearlsOnFloor) if (!q.got && vis(q.x)) items.push({ y: ROWY[q.row] - 1, f: () => floorPearl(k, q, t) });
+  for (const cr of st.courtiers) if (vis(cr.x)) items.push({ y: ROWY[cr.row], f: () => courtier(k, cr, bob, st) });
   if (ph !== 'lunge' && ph !== 'iris') items.push({ y: rowY(st.p) - 0.5, f: () => player(k, st, t) });
   items.sort((a, b) => a.y - b.y);
   for (const it of items) it.f();
+  if (ph === 'play') hiddenCue(k, st, t);
 
-  for (const s of st.sentries) sentry(k, s, st, t);
+  for (const s of st.sentries) if (Math.abs(s.x - cam - 640) < 800) sentry(k, s, st, t);
+  c.restore();
+  telegraph(k, st, t);
   beam(k, st, t);
   omens(k, st, t);
   passers(k, st, t);
+  pearlCue(k, st, t);
   if (ph === 'turn' || ph === 'lunge' || ph === 'iris') outro(k, st, t);
   if (ph === 'caught') k.wash('#4a0a18', 0.25 * clamp(st.phaseT / 0.8, 0, 1));
   c.globalAlpha = 1;
@@ -43,33 +51,35 @@ export function drawOver(k, st) {
 }
 
 export function onEvent(k, e, st) {
+  if (e.x != null) e = { ...e, x: e.x - st.cam };
   if (e.type === 'pearl') { k.burst(e.x, e.y - 20, '#eef3ea', 8); k.text('+10', e.x, e.y - 60); }
   if (e.type === 'spotted') { k.flash(0.55); k.shake(0.3); k.text('Spotted!', e.x, e.y - 200, true); k.burst(e.x, e.y - 80, '#e0127a', 14); }
   if (e.type === 'guardBump') { k.shake(0.3); k.burst(e.x, e.y - 60, '#d9b34a', 12); }
   if (e.type === 'sentryBite') { k.shake(0.4); k.burst(e.x, e.y - 30, '#c8321e', 16); }
   if (e.type === 'unseen') { k.text('Unseen +25', e.x, e.y - 190); }
   if (e.type === 'whalePass') { k.shake(0.25); }
-  if (e.type === 'pearlTaken') { k.burst(PEDESTAL.x, 260, '#eef3ea', 22); k.burst(PEDESTAL.x, 260, '#f3c6dc', 14); k.text('Her pearl', PEDESTAL.x - 60, 200, true); }
+  if (e.type === 'pearlTaken') { const px = PEDESTAL.x - st.cam; k.burst(px, 260, '#eef3ea', 22); k.burst(px, 260, '#f3c6dc', 14); k.text('Her pearl', px - 60, 200, true); }
   if (e.type === 'whaleTurn') k.shake(0.4);
   if (e.type === 'swallow') { k.shake(0.9); k.flash(0.4); }
 }
 
 // ---------------------------------------------------------------- the hall
 function hall(k, st, t) {
-  const c = k.c;
-  if (!k.asset('court-backcloth', 640, 720, 1280, 720)) {
+  const c = k.c, off = -st.cam * PAR;
+  if (!k.asset('court-backcloth', 750 + off, 720, 1500, 720)) {
     const g = c.createLinearGradient(0, 60, 0, FLOOR_TOP);
     g.addColorStop(0, k.col('#1f3d40')); g.addColorStop(0.6, k.col('#3f6f6a')); g.addColorStop(1, k.col('#7aa39a'));
     c.fillStyle = g; c.fillRect(0, 0, 1280, FLOOR_TOP + 4);
     // water light falling through the shell windows
     c.save(); c.globalAlpha = 0.12; c.fillStyle = k.col('#eef3ea');
-    for (let i = 0; i < 4; i++) {
-      const x = 260 + i * 250 + Math.sin(t * 0.35 + i * 1.7) * 18;
+    for (let i = 0; i < 5; i++) {
+      const x = 260 + i * 290 + off + Math.sin(t * 0.35 + i * 1.7) * 18;
       c.beginPath(); c.moveTo(x, 60); c.lineTo(x + 50, 60); c.lineTo(x + 130, FLOOR_TOP); c.lineTo(x + 20, FLOOR_TOP); c.fill();
     }
     c.restore();
     // three gilded arches with shell windows
-    for (const [x, w] of [[330, 250], [640, 290], [950, 250]]) {
+    for (const [x0, w] of [[330, 250], [640, 250], [950, 290], [1260, 250]]) {
+      const x = x0 + off;
       const top = 120;
       c.fillStyle = k.col('#16302f');
       c.beginPath(); c.moveTo(x - w / 2 + 18, FLOOR_TOP); c.lineTo(x - w / 2 + 18, top + w / 2); c.arc(x, top + w / 2, w / 2 - 18, Math.PI, 0); c.lineTo(x + w / 2 - 18, FLOOR_TOP); c.fill();
@@ -85,7 +95,7 @@ function hall(k, st, t) {
       for (let i = 0; i <= 10; i++) { const a = Math.PI + (i / 10) * Math.PI; k.circle(x + Math.cos(a) * (w / 2 - 12), top + w / 2 + Math.sin(a) * (w / 2 - 12), 3.5); }
     }
     // coral-red columns between the arches
-    for (const x of [178, 485, 795, 1102]) column(k, x, 70, FLOOR_TOP, 34);
+    for (const x of [178, 485, 795, 1105, 1415]) column(k, x + off, 70, FLOOR_TOP, 34);
     // drifting bubbles (driven by t only)
     c.fillStyle = k.col('#eef3ea'); c.globalAlpha = 0.35;
     for (let i = 0; i < 10; i++) { const y = FLOOR_TOP - ((t * 24 + i * 61) % 330); k.circle(220 + ((i * 113) % 860) + Math.sin(t + i) * 6, y, 2 + (i % 3)); }
@@ -114,22 +124,19 @@ function column(k, x, top, bottom, w, lamp = false) {
 
 // ---------------------------------------------------------------- the dais
 function dais(k, st, t, bob) {
-  const c = k.c;
+  const c = k.c, tx = backX(THRONE_BX, st.cam), wx = backX(WITCH_BX, st.cam), lx = backX(LANTERN_BX, st.cam);
   // raised steps
-  c.fillStyle = k.col('#6d4a6a'); c.fillRect(THRONE_X - 230, FLOOR_TOP - 34, 460, 34);
-  c.fillStyle = k.col('#d9b34a'); c.fillRect(THRONE_X - 230, FLOOR_TOP - 36, 460, 5); c.fillRect(THRONE_X - 260, FLOOR_TOP - 6, 520, 6);
+  c.fillStyle = k.col('#6d4a6a'); c.fillRect(lx - 60, FLOOR_TOP - 34, wx - lx + 160, 34);
+  c.fillStyle = k.col('#d9b34a'); c.fillRect(lx - 60, FLOOR_TOP - 36, wx - lx + 160, 5); c.fillRect(lx - 90, FLOOR_TOP - 6, wx - lx + 220, 6);
   const by = FLOOR_TOP - 32;
   // The king's eyes follow his beam.
-  const look = clamp((st.gaze.aim - THRONE_X) / 600, -1, 1);
-  if (!k.asset('sea-king-throne', THRONE_X, by, 300, 310)) kingStandin(k, THRONE_X, by, look, bob);
+  const look = clamp((st.gaze.aim - st.cam - tx) / 600, -1, 1);
+  if (!k.asset('sea-king-throne', tx, by, 300, 310)) kingStandin(k, tx, by, look, bob);
   // the witch at his side
-  const wy = by + 2;
-  if (!k.asset('witch-stand', WITCH_X, wy, 130, 210)) witchStandin(k, WITCH_X, wy, t);
+  if (!k.asset('witch-stand', wx, by + 2, 130, 210)) witchStandin(k, wx, by + 2, t);
   // the gaze lantern on its gilded pole
   const lit = st.masked ? 0.3 : 1;
-  if (!k.asset('gaze-lantern', LANTERN.x, 412, 140, 210)) lanternStandin(k, st, t, lit);
-  // the pearl pedestal
-  pedestal(k, st, t);
+  if (!k.asset('gaze-lantern', lx, 412, 140, 210)) lanternStandin(k, st, t, lit, lx);
 }
 
 function kingStandin(k, x, y, look, bob) {
@@ -156,8 +163,9 @@ function kingStandin(k, x, y, look, bob) {
   c.fillStyle = k.col('#ffffff');
   c.beginPath(); c.moveTo(x - 22, y - 180); c.quadraticCurveTo(x, y - 60, x + 22, y - 180); c.fill();
   c.fillStyle = k.col('#2a1a22'); k.circle(x - 8 + look * 4, y - 188, 2.5); k.circle(x + 8 + look * 4, y - 188, 2.5);
-  c.fillStyle = k.col('#d9b34a');
-  c.beginPath(); c.moveTo(x - 22, y - 200); c.lineTo(x - 24, y - 226); c.lineTo(x - 11, y - 212); c.lineTo(x, y - 232); c.lineTo(x + 11, y - 212); c.lineTo(x + 24, y - 226); c.lineTo(x + 22, y - 200); c.fill();
+  c.fillStyle = k.col('#d9b34a'); c.strokeStyle = k.col('#3a2112'); c.lineWidth = 3;
+  c.beginPath(); c.moveTo(x - 24, y - 198); c.lineTo(x - 27, y - 230); c.lineTo(x - 12, y - 214); c.lineTo(x, y - 238); c.lineTo(x + 12, y - 214); c.lineTo(x + 27, y - 230); c.lineTo(x + 24, y - 198); c.closePath(); c.stroke(); c.fill();
+  c.fillStyle = k.col('#e0127a'); k.circle(x, y - 208, 4); c.fillStyle = k.col('#5f8c88'); k.circle(x - 14, y - 205, 3); k.circle(x + 14, y - 205, 3);
   // trident, swaying with the beat
   c.save(); c.translate(x + 66, y - 60); c.rotate(0.05 - bob * 0.04);
   c.fillStyle = k.col('#d9b34a'); c.fillRect(-3, -200, 6, 230);
@@ -185,8 +193,8 @@ function witchStandin(k, x, y, t) {
   c.fillStyle = k.col('#d9b34a'); k.star(x + 46, y - 56, 8);
 }
 
-function lanternStandin(k, st, t, lit) {
-  const c = k.c, x = LANTERN.x, y = LANTERN.y;
+function lanternStandin(k, st, t, lit, x) {
+  const c = k.c, y = LANTERN_Y;
   c.fillStyle = k.col('#d9b34a'); c.fillRect(x - 4, y + 22, 8, 412 - y - 22);
   c.fillRect(x - 18, 404, 36, 8);
   // glow
@@ -201,7 +209,7 @@ function lanternStandin(k, st, t, lit) {
   c.beginPath(); c.ellipse(x, y, 34, 22, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = k.col('#f4f1ea');
   c.beginPath(); c.ellipse(x, y, 27, 15, 0, 0, Math.PI * 2); c.fill();
-  const look = clamp((st.gaze.aim - x) / 700, -1, 1) * 12;
+  const look = clamp((st.gaze.aim - st.cam - x) / 700, -1, 1) * 12;
   c.fillStyle = k.col(st.masked ? '#8f8a86' : '#e0127a'); k.circle(x + look, y + 2, 9);
   c.fillStyle = k.col('#2a1424'); k.circle(x + look, y + 2, 4);
   // lid
@@ -227,10 +235,28 @@ function pedestal(k, st, t) {
     c.save(); c.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3);
     c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 26); c.restore();
     pearlAt(k, x, py, 15);
-  } else if (st.phase === 'take') {
-    // the pearl lifts from the shell into his hand
-    const p = st.p, f = easeOut(st.phaseT / 0.8);
-    const sx = lerp(x, p.x, f), sy = lerp(by - 128, rowY(p) - 150 * rowScale(p), f) - Math.sin(f * Math.PI) * 50;
+  }
+}
+
+// Over the whale: the pearl shows through its shadow when it can be taken,
+// with an A prompt; once taken it flies up into his hand.
+function pearlCue(k, st, t) {
+  const c = k.c, x = PEDESTAL.x - st.cam, by = ROWY[0] - 10, p = st.p;
+  if (st.phase === 'play' && st.maskedBy === 'whale' && Math.abs(p.x - PEDESTAL.x) < 260) {
+    const py = by - 128;
+    c.save(); c.globalAlpha = 0.5 + 0.3 * Math.sin(t * 8);
+    c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 24); c.restore();
+    pearlAt(k, x, py, 15);
+    if (st.canTake) {
+      c.fillStyle = k.col('#2a1424'); k.circle(x, py - 46, 17);
+      c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2.5; c.beginPath(); c.arc(x, py - 46, 17, 0, Math.PI * 2); c.stroke();
+      c.fillStyle = k.col('#f3c6dc'); c.font = '700 20px "Josefin Sans", sans-serif'; c.textAlign = 'center'; c.fillText('A', x, py - 39);
+    }
+  }
+  if (st.phase === 'take') {
+    const f = easeOut(st.phaseT / 0.8), px = p.x - st.cam;
+    const sx = lerp(x, px, f), sy = lerp(by - 128, rowY(p) - 150 * rowScale(p), f) - Math.sin(f * Math.PI) * 50;
+    c.save(); c.globalAlpha = 0.5; c.fillStyle = k.col('#fff6e0'); k.circle(sx, sy, 26); c.restore();
     pearlAt(k, sx, sy, 15);
   }
 }
@@ -243,25 +269,31 @@ function pearlAt(k, x, y, r) {
 }
 
 // ---------------------------------------------------------------- the floor
-function floor(k) {
-  const c = k.c;
-  if (!k.asset('court-floor', 640, 650, 1280, 250)) {
-    c.fillStyle = k.col('#e9c9c9'); c.fillRect(0, FLOOR_TOP, 1280, 650 - FLOOR_TOP);
-    // marble slabs in perspective
+function floor(k, cam) {
+  const c = k.c, x0 = cam, x1 = cam + 1280;
+  // the delivered strip tiles seamlessly, 1280 wide
+  let tiled = !!k.img('court-floor');
+  if (tiled) for (let x = Math.floor(x0 / 1280) * 1280; x < x1; x += 1280) k.asset('court-floor', x + 640, 650, 1280, 250);
+  if (!tiled) {
+    c.fillStyle = k.col('#e9c9c9'); c.fillRect(x0, FLOOR_TOP, 1280, 650 - FLOOR_TOP);
+    // marble slabs, their seams raking toward the audience
     c.strokeStyle = k.col('#c79aa5'); c.lineWidth = 1.5;
-    for (let i = -6; i <= 6; i++) { c.beginPath(); c.moveTo(640 + i * 90, FLOOR_TOP); c.lineTo(640 + i * 170, 650); c.stroke(); }
+    for (let x = Math.floor(x0 / 160) * 160 - 160; x < x1 + 160; x += 160) {
+      const lean = (x - cam - 640) * 0.45;
+      c.beginPath(); c.moveTo(x, FLOOR_TOP); c.lineTo(x + lean, 650); c.stroke();
+    }
     c.fillStyle = k.col('#f1e3c8'); c.globalAlpha = 0.5;
-    for (let i = 0; i < 9; i++) { const x = 150 + i * 120, y = 455 + (i % 3) * 70; c.beginPath(); c.ellipse(x, y, 30, 6, 0.2, 0, Math.PI * 2); c.fill(); }
+    for (let x = Math.floor(x0 / 120) * 120; x < x1; x += 120) { const i = Math.round(x / 120), y = 455 + (((i % 3) + 3) % 3) * 70; c.beginPath(); c.ellipse(x + 30, y, 30, 6, 0.2, 0, Math.PI * 2); c.fill(); }
     c.globalAlpha = 1;
     // the three brass-edged processional grooves
     for (let r = 0; r < 3; r++) {
       const y = ROWY[r], s = ROWSCALE[r];
-      c.fillStyle = k.col('#2a1424'); c.fillRect(0, y - 3 * s, 1280, 8 * s);
-      c.fillStyle = k.col('#d9b34a'); c.fillRect(0, y - 6 * s, 1280, 3 * s); c.fillRect(0, y + 5 * s, 1280, 3 * s);
+      c.fillStyle = k.col('#2a1424'); c.fillRect(x0, y - 3 * s, 1280, 8 * s);
+      c.fillStyle = k.col('#d9b34a'); c.fillRect(x0, y - 6 * s, 1280, 3 * s); c.fillRect(x0, y + 5 * s, 1280, 3 * s);
     }
   }
   // the floor's front edge, where the sentries crouch
-  c.fillStyle = k.col('#6d4a6a'); c.fillRect(0, 640, 1280, 10);
+  c.fillStyle = k.col('#6d4a6a'); c.fillRect(x0, 640, 1280, 10);
 }
 
 function floorPearl(k, q, t) {
@@ -341,10 +373,9 @@ function player(k, st, t) {
   const hiddenNow = p.hidden && p.frozen;
   // hidden cue: a soft lavender veil behind him, and two glints
   if (hiddenNow) {
-    c.save(); c.globalAlpha = 0.35 + 0.1 * Math.sin(t * 5);
-    c.fillStyle = k.col('#cfc0dc'); c.beginPath(); c.ellipse(p.x, y - 70 * s, 46 * s, 86 * s, 0, 0, Math.PI * 2); c.fill();
+    c.save(); c.globalAlpha = 0.45 + 0.1 * Math.sin(t * 5);
+    c.fillStyle = k.col('#cfc0dc'); c.beginPath(); c.ellipse(p.x, y - 70 * s, 48 * s, 88 * s, 0, 0, Math.PI * 2); c.fill();
     c.restore();
-    c.fillStyle = k.col('#f4f1ea'); k.star(p.x - 34 * s, y - 150 * s, 5); k.star(p.x + 32 * s, y - 120 * s, 4);
   }
   tab(k, p.x, y, s);
   c.save();
@@ -366,6 +397,23 @@ function player(k, st, t) {
     c.fillStyle = k.col('#e0127a'); c.font = '700 40px "Josefin Sans", sans-serif'; c.textAlign = 'center';
     c.fillText('!', p.x, y - 190 * s);
   }
+}
+
+// Over the courtiers: while he is hidden, a dashed outline shows where he
+// stands and a closed eye says the court cannot see him.
+function hiddenCue(k, st, t) {
+  const c = k.c, p = st.p;
+  if (!(p.hidden && p.frozen)) return;
+  const s = rowScale(p), y = rowY(p);
+  c.save();
+  c.globalAlpha = 0.8; c.strokeStyle = k.col('#cfc0dc'); c.lineWidth = 2; c.setLineDash([5, 5]);
+  c.beginPath(); c.ellipse(p.x, y - 72 * s, 30 * s, 80 * s, 0, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
+  const ex = p.x, ey = y - 236 * s + Math.sin(t * 3) * 2;
+  c.globalAlpha = 0.9; c.fillStyle = k.col('#2a1424'); k.circle(ex, ey, 17);
+  c.strokeStyle = k.col('#cfc0dc'); c.lineWidth = 2.5; c.lineCap = 'round';
+  c.beginPath(); c.arc(ex, ey - 7, 11, 0.2 * Math.PI, 0.8 * Math.PI); c.stroke();
+  for (const d of [-6, 0, 6]) { c.beginPath(); c.moveTo(ex + d, ey + 4); c.lineTo(ex + d * 1.4, ey + 9); c.stroke(); }
+  c.restore();
 }
 
 function sailorStandin(k, stride, holdingPearl) {
@@ -463,32 +511,40 @@ function beam(k, st, t) {
   if (st.phase !== 'play' && st.phase !== 'caught') return;
   const blind = st.masked;
   const spot = g.lock > 0 || st.phase === 'caught';
+  const light = spot ? '#e0127a' : '#ffe9a8';
   c.save();
-  c.globalAlpha = blind ? 0.05 : spot ? 0.3 : 0.2;
-  c.fillStyle = k.col(spot ? '#e0127a' : '#fff2c0');
-  beamPath(c, g.aim); c.fill();
-  // pools of light on each groove
-  c.globalAlpha = blind ? 0.06 : spot ? 0.45 : 0.32;
-  for (let r = 0; r < 3; r++) {
-    const b = beamOn(g.aim, r);
-    c.beginPath(); c.ellipse(b.cx, ROWY[r], b.hw, 9 * ROWSCALE[r], 0, 0, Math.PI * 2); c.fill();
+  // Stage lighting: the hall is dimmed everywhere the gaze is not.
+  c.fillStyle = k.col('#140a16'); c.globalAlpha = 0.32;
+  c.beginPath(); c.rect(0, 60, 1280, 592);
+  if (!blind) beamPath(c, g.aim, st.cam, false);
+  c.fill('evenodd');
+  if (!blind) {
+    // warm light in the cone and pools on the grooves
+    c.fillStyle = k.col(light);
+    c.globalAlpha = spot ? 0.3 : 0.14; beamPath(c, g.aim, st.cam); c.fill();
+    c.globalAlpha = spot ? 0.4 : 0.26;
+    for (let r = 0; r < 3; r++) {
+      const b = beamOn(g.aim - st.cam, r);
+      c.beginPath(); c.ellipse(b.cx, ROWY[r], b.hw, 9 * ROWSCALE[r], 0, 0, Math.PI * 2); c.fill();
+    }
+    // the beam's edge, so its reach reads clearly
+    c.globalAlpha = 0.75; c.strokeStyle = k.col(light); c.lineWidth = 2;
+    beamPath(c, g.aim, st.cam); c.stroke();
   }
-  // the beam's edge, so its reach reads clearly
-  c.globalAlpha = blind ? 0.08 : 0.55; c.strokeStyle = k.col(spot ? '#e0127a' : '#fff2c0'); c.lineWidth = 2;
-  c.setLineDash([8, 8]);
-  beamPath(c, g.aim); c.stroke();
-  c.setLineDash([]);
+  // the lantern's eye glows above the dimming
+  const lx = backX(LANTERN_BX, st.cam);
+  c.globalAlpha = blind ? 0.2 : 0.55; c.fillStyle = k.col(light); k.circle(lx, LANTERN_Y, 12);
   c.restore();
 }
 
 // The beam's outline: from the lantern's eye down to a long pool across the
 // grooves (the same x band on each, as the rules have it).
-function beamPath(c, aim) {
-  const b0 = beamOn(aim, 0), b2 = beamOn(aim, 2), y0 = ROWY[0] - 12, y2 = ROWY[2] + 30;
-  c.beginPath();
-  c.moveTo(LANTERN.x - 14, LANTERN.y + 8); c.lineTo(LANTERN.x + 14, LANTERN.y + 8);
-  if (aim >= LANTERN.x) { c.lineTo(b0.cx + b0.hw, y0); c.lineTo(b2.cx + b2.hw + 4, y2); c.lineTo(b2.cx - b2.hw - 4, y2); c.lineTo(b0.cx - b0.hw, y0); }
-  else { c.lineTo(b0.cx + b0.hw, y0); c.lineTo(b2.cx + b2.hw + 4, y2); c.lineTo(b2.cx - b2.hw - 4, y2); c.lineTo(b0.cx - b0.hw, y0); }
+function beamPath(c, aim, cam, fresh = true) {
+  const b0 = beamOn(aim - cam, 0), b2 = beamOn(aim - cam, 2), y0 = ROWY[0] - 12, y2 = ROWY[2] + 30;
+  const lx = backX(LANTERN_BX, cam), ly = LANTERN_Y + 8;
+  if (fresh) c.beginPath();
+  c.moveTo(lx - 14, ly); c.lineTo(lx + 14, ly);
+  c.lineTo(b0.cx + b0.hw, y0); c.lineTo(b2.cx + b2.hw + 3, y2); c.lineTo(b2.cx - b2.hw - 3, y2); c.lineTo(b0.cx - b0.hw, y0);
   c.closePath();
 }
 
@@ -500,15 +556,15 @@ function telegraph(k, st, t) {
   if (st.phase !== 'play' || (g.phase !== 'warn' && g.phase !== 'sweep')) return;
   const warn = g.phase === 'warn', a = warn ? clamp(g.t / 0.25, 0, 1) : 0.5;
   const cl = (x) => clamp(x, 170, 1110);
-  const from = cl(beamOn(g.aim, 2).cx), to = cl(beamOn(g.to, 2).cx);
+  const from = cl(g.aim - st.cam), to = cl(g.to - st.cam);
   const y = 624, dir = Math.sign(to - from) || 1;
   c.save(); c.globalAlpha = a;
   if (warn) {
     // the ghost beam at the target
     c.globalAlpha = a * 0.09; c.fillStyle = k.col('#fff2c0');
-    beamPath(c, g.to); c.fill();
-    c.globalAlpha = a * 0.6; c.strokeStyle = k.col('#fff2c0'); c.lineWidth = 1.5; c.setLineDash([4, 10]);
-    beamPath(c, g.to); c.stroke();
+    beamPath(c, g.to, st.cam); c.fill();
+    c.globalAlpha = a * 0.9; c.strokeStyle = k.col('#fff2c0'); c.lineWidth = 2; c.setLineDash([6, 8]);
+    beamPath(c, g.to, st.cam); c.stroke();
     c.globalAlpha = a;
   }
   c.strokeStyle = k.col('#fff2c0'); c.lineWidth = 3; c.setLineDash([10, 10]);
@@ -520,8 +576,8 @@ function telegraph(k, st, t) {
 }
 
 function omens(k, st, t) {
-  for (const o of st.omens) {
-    const y = o.y + Math.sin(t * 6) * 3;
+  for (const o0 of st.omens) {
+    const o = { ...o0, x: o0.x - st.cam }, y = o.y + Math.sin(t * 6) * 3;
     k.c.save(); k.c.globalAlpha = 0.85;
     k.c.fillStyle = k.col('#2a1424'); k.circle(o.x, y, 17);
     k.c.strokeStyle = k.col('#d9b34a'); k.c.lineWidth = 2; k.c.beginPath(); k.c.arc(o.x, y, 17, 0, Math.PI * 2); k.c.stroke();
@@ -551,10 +607,10 @@ function passers(k, st, t) {
     if (!k.asset('whale-side', x, y + 183, 1000, 366)) whaleStandin(k, x, y, w.t);
     c.restore();
     // the sailor stays legible through the whale: a pale outline
-    const p = st.p, s = rowScale(p), py = rowY(p);
-    if (Math.abs(p.x - x) < 520 && py - 170 * s < y + 180) {
+    const p = st.p, s = rowScale(p), py = rowY(p), px = p.x - st.cam;
+    if (Math.abs(px - x) < 520 && py - 170 * s < y + 180) {
       c.save(); c.globalAlpha = 0.7; c.strokeStyle = k.col('#f1e3c8'); c.lineWidth = 2; c.setLineDash([5, 5]);
-      c.beginPath(); c.ellipse(p.x, py - 80 * s, 30 * s, 90 * s, 0, 0, Math.PI * 2); c.stroke(); c.setLineDash([]); c.restore();
+      c.beginPath(); c.ellipse(px, py - 80 * s, 30 * s, 90 * s, 0, 0, Math.PI * 2); c.stroke(); c.setLineDash([]); c.restore();
     }
   }
 }
@@ -607,7 +663,12 @@ function fishStandin(k, x, y, t) {
 }
 
 // ---------------------------------------------------------------- the swallow
-function diver(st) { return st.courtiers.find((c) => c.kind !== 'guard' && c.row === 2) || st.courtiers[0]; }
+// the nearest attendant on screen dives in after him
+function diver(st) {
+  let best = null;
+  for (const c of st.courtiers) if (c.kind !== 'guard' && (!best || Math.abs(c.x - st.p.x) < Math.abs(best.x - st.p.x))) best = c;
+  return best;
+}
 
 function outro(k, st, t) {
   const c = k.c, ph = st.phase;
@@ -615,8 +676,9 @@ function outro(k, st, t) {
   if (ph === 'turn') { const f = easeOut(st.phaseT / OUTRO.turn); grow = 0.35 + 0.65 * f; open = easeInOut((st.phaseT - 0.6) / 1.2); }
   else if (ph === 'lunge') { const f = easeInOut(st.phaseT / OUTRO.lunge); grow = 1 + 2.2 * f; open = 1; }
   else { grow = 3.2; open = 1; }
-  const cx = 640, by = 720 + (1 - Math.min(1, grow)) * 260;
-  const W = 800 * grow, H = 600 * grow;
+  const W = 800 * grow, H = 600 * grow, cx = 640;
+  // rising from below the floor, then lunging so its throat fills the stage
+  const by = grow <= 1 ? 720 + (1 - grow) * 260 : lerp(480, 400, (grow - 1) / 2.2) + 0.4 * H;
   c.save(); c.globalAlpha = 1;
   if (!k.asset('whale-mouth', cx, by, W, H)) whaleMouthStandin(k, cx, by, W, H, open);
   c.restore();
@@ -624,10 +686,10 @@ function outro(k, st, t) {
   if (ph === 'lunge') {
     const f = easeInOut(st.phaseT / OUTRO.lunge), p = st.p;
     const mx = cx, my = by - H * 0.45;
-    const sx = lerp(p.x, mx, f), sy = lerp(rowY(p), my, f) - Math.sin(f * Math.PI) * 120, s = rowScale(p) * (1 - f * 0.8);
+    const sx = lerp(p.x - st.cam, mx, f), sy = lerp(rowY(p), my, f) - Math.sin(f * Math.PI) * 120, s = rowScale(p) * (1 - f * 0.8);
     c.save(); c.translate(sx, sy); c.rotate(f * 3); c.scale(s, s); if (!k.asset('sailor-crouch', 0, 0, 120, 150)) sailorBow(k); c.restore();
     const d = diver(st), g = clamp((st.phaseT - 0.15) / 0.7, 0, 1);
-    const dx = lerp(d.x, mx + 40, g), dy = lerp(ROWY[d.row], my, g) - Math.sin(g * Math.PI) * 220, ds = ROWSCALE[d.row] * (1 - g * 0.8);
+    const dx = lerp(d.x - st.cam, mx + 40, g), dy = lerp(ROWY[d.row], my, g) - Math.sin(g * Math.PI) * 220, ds = ROWSCALE[d.row] * (1 - g * 0.8);
     c.save(); c.translate(dx, dy); c.rotate(-g * 2.6); c.scale(ds, ds); if (!k.asset('attendant-' + d.kind, 0, 0, 110, 210)) attendantStandin(k, d.kind); c.restore();
   }
 }

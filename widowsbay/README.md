@@ -126,6 +126,12 @@ python3 widowsbay/design/source/build_sfx.py --process                       # r
 The key comes from the environment and is never committed. New effects for
 later acts go in the script's `SFX` table, with the same foley direction.
 
+**Music after the song.** [`design/music.md`](design/music.md) plans what plays
+once the song ends: period silent-film accompaniment (a pianist, a café-concert
+band, a harmonium), one generated track per mood (voyage, revel, storm, deep,
+tender), chosen by the scene on stage. It also has the generation prompts. The
+song still opens every visit and returns for the pageant and curtain call.
+
 ## Checks
 
 ```sh
