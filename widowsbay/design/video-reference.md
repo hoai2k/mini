@@ -85,4 +85,4 @@ Audio measurements and existing game sound treatment: widowsbay/README.md, Sound
 
 ## Visual companion
 
-The [visual reference gallery](../reference/visual-guide/index.html) and [illustrated Word companion](../reference/visual-guide/visual-guide.docx) add 24 frame-guided reconstructions of scenes, characters, creatures and lyric-based motifs. Each includes input timestamps; the gallery shows all source frames and the generation prompt. These are interpreted references, not exact film stills. A closer inspection also reveals a final fantasy pageant around 3:20, between the rescue and closing card.
+The [visual reference gallery](references/visual-guide/index.html) and [illustrated Word companion](references/visual-guide/visual-guide.docx) add 24 frame-guided reconstructions of scenes, characters, creatures and lyric-based motifs. Each includes input timestamps; the gallery shows all source frames and the generation prompt. These are interpreted references, not exact film stills. A closer inspection also reveals a final fantasy pageant around 3:20, between the rescue and closing card.
