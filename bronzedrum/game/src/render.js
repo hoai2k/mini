@@ -247,6 +247,7 @@ export class Renderer {
     this.cssScale = scale;
     this.compact = scale < COMPACT;
     this.fiberPattern = this.ctx.createPattern(this.fiber, 'repeat');
+    this.fiberFrom = null; // the delivered fibre is patterned again after a resize
   }
 
   setStage(stage) {
@@ -380,7 +381,7 @@ export class Renderer {
       g.save();
       g.globalAlpha = 0.3;
       g.fillStyle = '#000';
-      g.filter = 'blur(4px)';
+      g.filter = 'blur(4px)'; // built once, offscreen
       g.translate(5, 7);
       cloud(g);
       g.restore();
@@ -669,7 +670,8 @@ export class Renderer {
   /** A Lạc Việt warrior woman, facing right. */
   warrior(x, y, s, pose, t, archer) {
     const g = this.ctx;
-    const img = this.art.get(archer ? 'unit-archer' : 'unit-spear');
+    const art = this.art.get(archer ? 'unit-archer' : 'unit-spear');
+    const img = art && pose.dim ? this.shaded(art) : art;
     if (img) {
       this.sprite(img, x, y, 92 * s, pose);
       if (pose.shield) this.roundShield(x + 14 * s + (pose.lean || 0), y - 40 * s - (pose.bob || 0), 11 * s, pose.alpha);
@@ -752,6 +754,39 @@ export class Renderer {
       this.endCut(g);
     }
     g.restore();
+  }
+
+  /**
+   * A darker copy of a cut-out, made once: the back rank stands a little in
+   * shadow. (A canvas filter per figure per frame is far too slow, and Safari
+   * has none.)
+   */
+  shaded(img, grey = false) {
+    this.shades = this.shades || new Map();
+    const key = grey ? 'grey' : 'dim';
+    let byImg = this.shades.get(img);
+    if (!byImg) this.shades.set(img, (byImg = {}));
+    let c = byImg[key];
+    if (!c) {
+      c = canvas(img.width, img.height);
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      if (grey) {
+        // Drain the colour (a grey fill in 'saturation' mode), then keep only
+        // the figure's own shape again.
+        g.globalCompositeOperation = 'saturation';
+        g.fillStyle = '#808080';
+        g.fillRect(0, 0, c.width, c.height);
+        g.globalCompositeOperation = 'destination-in';
+        g.drawImage(img, 0, 0);
+      }
+      g.globalCompositeOperation = 'source-atop';
+      g.fillStyle = grey ? 'rgba(16,14,22,0.45)' : 'rgba(16,14,22,0.22)';
+      g.fillRect(0, 0, c.width, c.height);
+      c.footMargin = img.footMargin;
+      byImg[key] = c;
+    }
+    return c;
   }
 
   /** A round hide shield with a cut star, raised in front of a warrior. */
@@ -1414,9 +1449,10 @@ export class Renderer {
   /** One of the drums gathered to be melted: lit while it can still sound, grey once silent. */
   meltDrum(x, y, silent, pulse, next) {
     const g = this.ctx;
-    const img = this.art.get('prop-bronze-drum');
+    const art = this.art.get('prop-bronze-drum');
+    // A silent drum is a grey copy, made once (no per-frame filter).
+    const img = art && silent ? this.shaded(art, true) : art;
     g.save();
-    if (silent) g.filter = 'grayscale(1) brightness(0.55)';
     if (next && !silent) {
       g.shadowColor = P.bronzeLight;
       g.shadowBlur = 12 + pulse * 20;
@@ -2412,18 +2448,25 @@ export class Renderer {
     this.layer('layer-reeds', this.layers.reeds, 1.25);
     g.setTransform(this.pixel, 0, 0, this.pixel, 0, 0);
     // Paper fibre over everything, as if the whole scene were one sheet.
+    // (The pattern and the gradient are made once, not every frame.)
     const fiberImg = this.art.get('paper-fiber');
+    if (fiberImg && this.fiberFrom !== fiberImg) {
+      this.fiberFrom = fiberImg;
+      this.fiberPattern = g.createPattern(fiberImg, 'repeat');
+    }
     g.save();
     g.globalCompositeOperation = 'multiply';
     g.globalAlpha = 0.22;
-    g.fillStyle = fiberImg ? g.createPattern(fiberImg, 'repeat') : this.fiberPattern;
+    g.fillStyle = this.fiberPattern;
     g.fillRect(0, 0, W, H);
     g.restore();
     // Vignette, like light falling off at the edge of a lightbox.
-    const v = g.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.95);
-    v.addColorStop(0, 'rgba(0,0,0,0)');
-    v.addColorStop(1, 'rgba(10,8,12,0.55)');
-    g.fillStyle = v;
+    if (!this.vignette) {
+      this.vignette = g.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.95);
+      this.vignette.addColorStop(0, 'rgba(0,0,0,0)');
+      this.vignette.addColorStop(1, 'rgba(10,8,12,0.55)');
+    }
+    g.fillStyle = this.vignette;
     g.fillRect(0, 0, W, H);
     this.drawCelebration(t, dt);
     this.hud(view);
@@ -2649,12 +2692,7 @@ export class Renderer {
       }
       bob *= u.alpha;
       const y = GROUND - row * 7;
-      if (row) {
-        g.save();
-        g.filter = 'brightness(0.82)';
-      }
-      this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive, raise: thrust > 0.3, alpha: u.alpha }, t, archer);
-      if (row) g.restore();
+      this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive, raise: thrust > 0.3, alpha: u.alpha, dim: row === 1 }, t, archer);
     }
     g.restore();
   }

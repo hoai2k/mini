@@ -55,6 +55,20 @@ for (const m of stageSounds.map((id) => [null, id])) {
     console.error(`stage sound '${m[1]}' is not defined in build_audio.py`);
   }
 }
+// A canvas filter drawn every frame is ruinously slow (it once made each
+// battle frame ten times slower) and Safari has none: make darker or tinted
+// copies once instead (Renderer.shaded).
+for (const f of ['render.js', 'rig.js']) {
+  const text = readFileSync(join(root, 'src', f), 'utf8');
+  // Filters used once while building an offscreen layer are fine: they say so
+  // on the line ('built once') or draw on the offscreen context `o`.
+  text.split('\n').forEach((line, i) => {
+    if (/\.filter\s*=/.test(line) && !/built once/.test(line) && !/^\s*o\.filter/.test(line)) {
+      failed++;
+      console.error(`src/${f}:${i + 1}: canvas filter in the renderer (make a shaded copy once instead)`);
+    }
+  });
+}
 // A class method overwritten by a property of the same name breaks every
 // later call to it (this.shake = t once replaced the renderer's shake()).
 for (const f of readdirSync(join(root, 'src'))) {

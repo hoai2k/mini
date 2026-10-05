@@ -52,9 +52,13 @@ API = "https://api.elevenlabs.io/v1/sound-generation"
 SFX: list[dict] = []
 
 
-def sfx(group, sid, prompt, seconds, use, influence=0.5, variants=1, kind="oneshot", gain=1.0, post=None):
+def sfx(group, sid, prompt, seconds, use, influence=0.5, variants=1, kind="oneshot", gain=1.0, post=None,
+        keep_level=False):
+    # keep_level: the post chain sets the level itself (a tamed bed is not
+    # raised back to full scale by its quieter peaks).
     SFX.append(dict(group=group, id=sid, prompt=prompt, seconds=seconds, use=use,
-                    influence=influence, variants=variants, kind=kind, gain=gain, post=post))
+                    influence=influence, variants=variants, kind=kind, gain=gain, post=post,
+                    keep_level=keep_level))
 
 
 # Generated files that failed review. They are not loaded, and --generate does
@@ -265,7 +269,11 @@ G = "Ambience"
 sfx(G, "amb-garden",
     "Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling "
     "water, a distant rooster, a light breeze through bamboo. Continuous, no music.",
-    20.0, "Chapter 1 bed, looped.", kind="loop", gain=0.45)
+    20.0, "Chapter 1 bed, looped. Its bird calls spiked up to 36 dB over the bed (heard as "
+    "distortion through the master limiter); a fast compressor holds them to about 18 dB over it "
+    "and a gentle low-pass softens their edge, the bed itself unchanged.", kind="loop", gain=0.45,
+    post="acompressor=threshold=-30dB:ratio=5:attack=1:release=100:knee=4,lowpass=f=9500,"
+         "alimiter=limit=0.8:level=false,volume=1.1dB", keep_level=True)
 sfx(G, "amb-river",
     "Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons "
     "and birds. Continuous, no music, no drums.",
@@ -771,8 +779,11 @@ track("mu-ending", "The Drums Are Melted (ending)", "piece",
       "pentatonic. About 3 minutes. It should feel like dawn on a river after a loss. "
       f"{AVOID}",
       priority="core")
-track("mu-anthem", "Song of the Two Queens (vocal song)", "song",
-      "Trailer and end credits; not used in the prototype.",
+# Delivered: "Trống Đồng Vang Dới Đất Trời" (Bronze drums ring through earth
+# and sky) by hoai2k, 3 min, made outside ElevenLabs; the master is kept as
+# design/music-masters/mu-anthem.mp3.
+track("mu-anthem", "Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song)", "song",
+      "The Coronation's success moment (the two queens crowned); later the trailer and end credits.",
       "about 3 min 30 s", False,
       "vietnamese folk ballad, quan ho female duet, dan tranh, dan bau, bronze drums in chorus, modern cinematic folk, 84 bpm",
       f"A folk ballad in Vietnamese {GAME}: two queens who rode elephants and beat the bronze "
@@ -840,8 +851,9 @@ def process(src, out: Path, s):
         dur = s["seconds"]
         filters.append(f"afade=t=out:st={max(0.0, dur - min(0.25, dur * 0.3)):.3f}:d={min(0.25, dur * 0.3):.3f}")
     # Peak-normalise to -1 dBFS (loudness is balanced in the game by per-sound gain).
-    peak = measure_peak(src, ",".join(filters) if filters else None)
-    filters.append(f"volume={-1.0 - peak:.2f}dB")
+    if not s.get("keep_level"):
+        peak = measure_peak(src, ",".join(filters) if filters else None)
+        filters.append(f"volume={-1.0 - peak:.2f}dB")
     channels = ["-ac", "2"] if s["kind"] in ("loop", "sting") else ["-ac", "1"]
     out.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-af", ",".join(filters),
