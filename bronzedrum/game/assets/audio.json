@@ -347,25 +347,25 @@
       "gain": 0.55,
       "loop": true
     },
+    "amb-practice": {
+      "files": [
+        "sfx/amb-practice.mp3"
+      ],
+      "gain": 0.55,
+      "loop": true
+    },
+    "amb-fire": {
+      "files": [
+        "sfx/amb-fire.mp3"
+      ],
+      "gain": 0.5,
+      "loop": true
+    },
     "amb-coronation": {
       "files": [
         "sfx/amb-coronation.mp3"
       ],
       "gain": 0.5,
-      "loop": true
-    },
-    "amb-green": {
-      "files": [
-        "sfx/amb-green.mp3"
-      ],
-      "gain": 0.45,
-      "loop": true
-    },
-    "amb-mourning": {
-      "files": [
-        "sfx/amb-mourning.mp3"
-      ],
-      "gain": 0.45,
       "loop": true
     },
     "breeze": {

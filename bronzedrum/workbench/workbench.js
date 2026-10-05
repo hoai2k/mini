@@ -391,6 +391,12 @@ function buildChapters() {
       looks.appendChild(a);
     }
     const rows = card.querySelector('.rows');
+    if (!ch.ambience) {
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = 'No ambience in the game: the music alone carries this chapter. The takes below are kept in case.';
+      rows.appendChild(p);
+    }
     if (ch.ambience) {
       rows.appendChild(bedRow({
         key: markKey('bed', `${ch.id}:${ch.ambience}`),
@@ -574,7 +580,7 @@ async function boot() {
     catalogue = await (await fetch('sounds.json')).json();
     const { STAGES } = await import(`${root}src/stages.js`);
     chapters = STAGES.map((s) => ({ id: s.id, title: s.title, ambience: s.ambience, scene: SCENES[s.id] || s.subtitle }));
-    chapters.push({ id: 'practice', title: 'Drum Practice', ambience: 'amb-green', scene: SCENES.practice });
+    chapters.push({ id: 'practice', title: 'Drum Practice', ambience: 'amb-practice', scene: SCENES.practice });
   } catch (e) {
     status(`Could not load the sound catalogue: ${e.message}`);
     return;

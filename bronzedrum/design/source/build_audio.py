@@ -297,23 +297,16 @@ sfx(G, "amb-village", 'Night on the Red River delta: a loud chorus of rice-paddy
 sfx(G, "amb-elegy", 'A very quiet grey dawn by a still river: a single bird singing far away, soft wind, water barely lapping, the low distant roar of a furnace. Melancholy and sparse.',
     20.0, "The Drums Are Melted bed, looped: the workbench take elegy-dawn (the chapter used to "
     "borrow the river bed).", kind="loop", gain=0.55, keep_level=True)
+sfx(G, "amb-practice", "Dusk at the edge of a Vietnamese village: a soft breeze in bamboo, a water buffalo's wooden bell far off in the fields, a few birds settling for the night, a far-off frog. Peaceful. No insects. Real outdoor field recording, no music, no drums, no clear words.",
+    20.0, "Drum Practice bed (the village green at dusk), looped: the workbench take practice-dusk-2.",
+    kind="loop", gain=0.55, keep_level=True)
+sfx(G, "amb-fire", 'A bonfire crackling gently in the open at dusk, a soft breeze through palm leaves, distant frogs. Warm and calm. No insects. Real outdoor field recording, no music, no drums, no clear words.',
+    20.0, "Drum Practice: the bonfire on the green, a second layer over the bed whose level follows "
+    "the fire (louder as the drumming builds): the workbench take practice-fire-2.",
+    kind="loop", gain=0.5, keep_level=True)
 sfx(G, "amb-coronation", 'A festive crowd in a village square in Vietnam on a sunny day: the lively murmur of hundreds of people, children laughing, vendors calling in the distance, cloth banners flapping in the breeze.',
     20.0, "The Coronation bed, looped: the workbench take coronation-crowd, a festival crowd (the "
     "chapter used to borrow the dawn garden bed).", kind="loop", gain=0.5, keep_level=True)
-sfx(G, "amb-green",
-    "Field recording at dusk on a village green in the Vietnamese countryside: a bonfire "
-    "crackling and popping close by, soft crickets in the grass, the low relaxed murmur of "
-    "villagers talking far off, an occasional distant laugh. Calm, natural, recorded outdoors "
-    "with a real microphone. No music, no drums, no clear words, no wind howl.",
-    20.0, "Drum Practice bed (the village green), looped. Nothing in it keeps a beat, so it never "
-    "pulls against the player's own tempo.", kind="loop", gain=0.45, post="lowpass=f=11000")
-sfx(G, "amb-mourning",
-    "Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire "
-    "close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and "
-    "calm, no music, no electronic sounds.",
-    20.0, "The Oath (chapter 2) bed, looped. Chosen from six takes as the least synthetic "
-    "(most noise-like spectrum); raised 10 dB under a soft limiter to sit with the other beds.",
-    kind="loop", gain=0.45, post="lowpass=f=9000")
 sfx(G, "breeze",
     "A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves "
     "lightly. Continuous, airy and natural, no whistling, no howling, no music.",
@@ -478,6 +471,7 @@ ALT_REJECTED = {
     "elegy-lotus": "radio buzz",
     "practice-village": "AI artefacts; the laughter is not natural",
     "practice-festival": "not ambient: a person laughing close to the microphone",
+    "amb-mourning-clean": "still a high-pitched synthetic sound, de-buzzed or not (the Oath now has no ambience)",
 }
 
 alt("oath", "oath-dusk-2",
@@ -500,13 +494,6 @@ alt("luylau", "luylau-wind-2",
 alt("mavien", "mavien-river-2",
     "Dusk on the bank of a wide, slow river: calm flowing water, a cool wind through tall "
     "reeds, a few crows calling far off. Grave and quiet. No insects.", debuzz=True)
-alt("practice", "practice-fire-2",
-    "A bonfire crackling gently in the open at dusk, a soft breeze through palm leaves, distant "
-    "frogs. Warm and calm. No insects.")
-alt("practice", "practice-dusk-2",
-    "Dusk at the edge of a Vietnamese village: a soft breeze in bamboo, a water buffalo's wooden "
-    "bell far off in the fields, a few birds settling for the night, a far-off frog. Peaceful. "
-    "No insects.")
 alt("coronation", "coronation-crowd-2",
     "A large festive crowd murmuring happily at a distance in an open square on a sunny day, "
     "steady and even, no single voice standing out, flags flapping softly in the wind. No "
@@ -525,7 +512,6 @@ CANDIDATES: list[dict] = [
 
 
 for chapter, aid, source, heard in [
-    ("oath", "amb-mourning-clean", "the Oath's bed amb-mourning", "machine noise"),
     ("oath", "oath-gecko-clean", "the turned-down take oath-gecko", "almost, but synthetic and metallic"),
     ("oath", "oath-temple-clean", "the turned-down take oath-temple", "insects good, then metallic sounds"),
     ("luylau", "amb-night-clean", "Luy Lâu's bed amb-night", "a bit synthetic"),
