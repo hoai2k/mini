@@ -52,12 +52,12 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Style frames: choose the direction first | 3 | 0 | 0 | 0 | 3 |
 | Inspiration and atmosphere | 14 | 0 | 0 | 0 | 14 |
 | Backgrounds | 9 | 0 | 0 | 0 | 9 |
-| Characters and units | 10 | 0 | 0 | 0 | 10 |
+| Characters and units | 12 | 2 | 0 | 0 | 10 |
 | Puppet part sheets | 4 | 0 | 0 | 0 | 4 |
 | Interface | 9 | 1 | 0 | 0 | 8 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
 | Story chapters | 22 | 1 | 0 | 0 | 21 |
-| **total** | **74** | **2** | **0** | **0** | **72** |
+| **total** | **76** | **4** | **0** | **0** | **72** |
 
 ## Style frames: choose the direction first (3)
 
@@ -305,7 +305,7 @@ Laid over the whole screen at low opacity, so the scene reads as one sheet of pa
 - **File:** `bronzedrum/game/assets/art/paper-fiber.png`
 - **Prompt:** Seamless tileable texture of handmade mulberry rice paper lit from behind: warm cream, long pale fibres and a few darker flecks, even lighting, no folds, no shadows, no objects.
 
-## Characters and units (10)
+## Characters and units (12)
 
 In-game cutouts. Lac Viet figures face right (the direction of the march); Han figures face left. The game scales each sprite to a fixed on-screen height, given in the spec, and adds the backlit shadow itself.
 
@@ -344,6 +344,24 @@ Chapters one and two: four women carry the bronze drum on a low platform; the si
 - **Status:** delivered · **Stand-in:** `Renderer.drumCrew` · **Game id:** `drum-bearers`
 - **File:** `bronzedrum/game/assets/art/drum-bearers.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Four Lac Viet women in feather crowns carry a low wooden palanquin on poles, walking right; on it sits a large bronze drum, its side banded with rings and its top a sun-star. The deck is empty apart from the drum. Ink-black figures, a bronze drum.
+
+### BD-C11 · Companion drummer: the barrel drum
+
+Walks with the drum crew, just in front of the palanquin. When the shields go up she strikes her drum and the game shakes the whole figure. Shown 88 px tall, so keep the shapes bold.
+
+- **Spec:** 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.companions` · **Game id:** `drummer-chau`
+- **File:** `bronzedrum/game/assets/art/drummer-chau.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A Lac Viet woman drummer walking in profile facing right, a trống chầu slung at her hip on a strap: a small barrel drum lacquered red with a bronze band, its pale buffalo-hide head facing forward. Her right hand raises a wooden beater with a red tip. Short feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.
+
+### BD-C12 · Companion drummer: the mõ
+
+Walks beside the barrel drummer. When the rhythm is reset she knocks her mõ and the game shakes the whole figure. Shown 84 px tall.
+
+- **Spec:** 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.companions` · **Game id:** `drummer-mo`
+- **File:** `bronzedrum/game/assets/art/drummer-mo.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A Lac Viet woman walking in profile facing right, holding out a mõ in her left hand: a small round wooden slit drum of dark polished wood with a long slit cut across its front. Her right hand lifts a short wooden mallet. Short feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with the mõ in warm brown, fine cut details in the feathers.
 
 ### BD-C05 · Spearwoman
 

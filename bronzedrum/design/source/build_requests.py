@@ -384,6 +384,27 @@ req(C, "BD-C04", "drum-bearers", "The drum on its palanquin",
     f"{STYLE} Four Lac Viet women in feather crowns carry a low wooden palanquin on poles, "
     "walking right; on it sits a large bronze drum, its side banded with rings and its top a "
     "sun-star. The deck is empty apart from the drum. Ink-black figures, a bronze drum.")
+req(C, "BD-C11", "drummer-chau", "Companion drummer: the barrel drum",
+    "Walks with the drum crew, just in front of the palanquin. When the shields go up she "
+    "strikes her drum and the game shakes the whole figure. Shown 88 px tall, so keep the "
+    "shapes bold.",
+    "1024x1536. " + CUTOUT,
+    "stand-in", "Renderer.companions", "art/drummer-chau.png",
+    f"{STYLE} A Lac Viet woman drummer walking in profile facing right, a trống chầu slung at "
+    "her hip on a strap: a small barrel drum lacquered red with a bronze band, its pale "
+    "buffalo-hide head facing forward. Her right hand raises a wooden beater with a red tip. "
+    "Short feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut "
+    "details in the feathers.")
+req(C, "BD-C12", "drummer-mo", "Companion drummer: the mõ",
+    "Walks beside the barrel drummer. When the rhythm is reset she knocks her mõ and the game "
+    "shakes the whole figure. Shown 84 px tall.",
+    "1024x1536. " + CUTOUT,
+    "stand-in", "Renderer.companions", "art/drummer-mo.png",
+    f"{STYLE} A Lac Viet woman walking in profile facing right, holding out a mõ in her left "
+    "hand: a small round wooden slit drum of dark polished wood with a long slit cut across its "
+    "front. Her right hand lifts a short wooden mallet. Short feather crown, wrapped skirt, a "
+    "lacquer-red sash. Ink-black silhouette with the mõ in warm brown, fine cut details in the "
+    "feathers.")
 req(C, "BD-C05", "unit-spear", "Spearwoman",
     "The front line. Shown 92 px tall; the game bobs, levels and tilts it for march and strike.",
     "1024x1536. Spear held upright. " + CUTOUT,
