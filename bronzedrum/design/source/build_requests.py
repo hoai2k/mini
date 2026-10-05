@@ -707,14 +707,14 @@ for rid, cid, name, scene in [
     req(PR, rid, f"card-{cid}", f"Practice card: {name}",
         "Background band of the card on the Drum Practice screen.",
         "1600x900, opaque; the band is cropped from the middle, so keep the subject central",
-        "stand-in", "buildPracticeCards (plain paper)", f"art/card-{cid}.png",
+        "delivered", "buildPracticeCards (plain paper)", f"art/card-{cid}.png",
         f"{STYLE} A wide cut-paper vignette: {scene}.")
 req(PR, "BD-P11", "prop-dinh", "The communal house (đình)",
     "The back of the practice green: a village communal house, dim against the dusk sky, its "
     "lattice lit from inside. Shown 230 px tall, centred about two thirds of the way across the "
     "screen; the fire and the dancers stand in front of it.",
     "2048x1024. " + PROP,
-    "stand-in", "Renderer.dinh", "art/prop-dinh.png",
+    "delivered", "Renderer.dinh", "art/prop-dinh.png",
     f"{STYLE} A Lạc Việt communal house (đình) seen from the side: a long low hall raised on "
     "wooden stilts, under a huge saddle-shaped roof whose two ends sweep up like a boat's prow, "
     "as on the houses of the Đông Sơn drums. Woven walls with rows of lattice windows cut "
@@ -729,7 +729,7 @@ req(PR, "BD-C13", "dancer-sheet", "Dancers: three poses each",
     "each figure standing on the bottom of its cell, facing right, centred. Rows: a woman with "
     "a tall feather crown; a man in a loincloth with a feather crown; a woman holding two "
     "feathers; a man with a small hand drum. Same scale in every cell. " + CUTOUT,
-    "stand-in", "Renderer.dancer", "art/dancer-sheet.png",
+    "delivered", "Renderer.dancer", "art/dancer-sheet.png",
     f"{STYLE} A sprite sheet of feather-crowned Lạc Việt dancers like the figures on the face "
     "of a Đông Sơn bronze drum, in profile facing right, on a grid of 3 columns by 4 rows. "
     "Each row is one dancer, each column a pose: 1 standing at rest, arms low; 2 stamping, knees "
@@ -746,7 +746,7 @@ req(PR, "BD-U19", "kit-faces", "Practice kits: drum faces",
     "1536x256, transparent; six discs on a 256 px grid, each centred and filling about 94% of "
     "its cell, in this order: bronze drum (not used; the game has BD-U02), barrel drum and mõ, "
     "rice drum, gongs, bamboo, lion-dance drum and cymbals",
-    "stand-in", "Renderer.kitFace", "art/kit-faces.png",
+    "delivered", "Renderer.kitFace", "art/kit-faces.png",
     f"{STYLE} Six round instrument faces in a row, seen straight from above, each a flat disc: "
     "1 a Đông Sơn bronze drum's tympanum with a sun-star and rings of herons; 2 the cream "
     "buffalo-hide head of a trống chầu with a red centre disc and a ring of bronze tacks, a "

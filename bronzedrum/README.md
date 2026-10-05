@@ -92,10 +92,9 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-The five Drum Practice requests (BD-U17 to BD-U19, BD-P11, BD-C13) are still
-open; the game draws paper-cut stand-ins for them. The 76 earlier requests all
-have generated artwork: 20 style and direction images in
-`design/references/` and 56 game images in `game/assets/art/`. The set follows
+All 81 requests have generated artwork, including the five Drum Practice assets
+(BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in
+`design/references/` and 61 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 
 [`design/image-deliveries.json`](design/image-deliveries.json) records the exact
@@ -112,7 +111,7 @@ between strokes she holds the stick raised; on each tùng her forearm whips over
 onto the drum and lifts back, her body leans in, and her cape and sash ribbons
 trail on springs. The other three rig sheets are not cut yet.
 
-The manifest's `runtime` flag distinguishes the 50 images used by the prototype
+The manifest's `runtime` flag distinguishes the 55 images used by the prototype
 from the 6 delivered sheets it does not use directly: the four puppet-rig sheets
 (cut into rigs instead) and the glyph and icon sheets. They remain available
 for production work without being downloaded at game startup. The effects
