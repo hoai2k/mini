@@ -9,6 +9,11 @@ chapters in story order: four battles, four call-and-answer chapters (echo
 the caller's rhythm), and one casting chapter (keep pace with the bellows).
 [`design/design.md`](design/design.md) lists them.
 
+**Drum Practice**, on the title screen, has no right or wrong. In free drumming
+the crew loops whatever rhythm you drum and dancers gather. In call and answer
+a partner trades rhythms with you. You can set the length (2 to 12 strokes) and
+swap the bronze drum for one of five other kits.
+
 It plays with a controller, a keyboard, a mouse, or on a phone or tablet held
 sideways, where the bronze drum becomes the instrument: tap its centre and its rim.
 On a phone the first tap in landscape goes full screen (on iPhone Safari, swipe
@@ -33,7 +38,7 @@ up to hide the bars, or add the game to the home screen).
 ```sh
 cd bronzedrum/game
 python3 -m http.server 8123     # then open http://localhost:8123/
-node --test test/*.test.mjs     # rhythm reader and battle simulation
+node --test test/*.test.mjs     # rhythm reader, chapters, battles, practice
 node scripts/check.mjs          # syntax and manifest ids
 python3 ../design/source/build_requests.py --check
 python3 ../design/source/build_audio.py --check
@@ -87,7 +92,9 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-All 76 requests now have generated artwork: 20 style and direction images in
+The five Drum Practice requests (BD-U17 to BD-U19, BD-P11, BD-C13) are still
+open; the game draws paper-cut stand-ins for them. The 76 earlier requests all
+have generated artwork: 20 style and direction images in
 `design/references/` and 56 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 

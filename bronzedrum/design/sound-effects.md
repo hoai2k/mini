@@ -6,10 +6,11 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**49 of 50 files in use.**
+**64 of 66 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
+- `sfx/kit-bamboo-high-1.mp3`: two takes, both with a second bounce of the beater; the other take, trimmed, is clean.
 - `sfx/drum-tung-2.mp3`: eight takes, none both a single stroke and deep (more energy under 200 Hz than over 2 kHz); the model drifts to a bright metallic hit, and two good deep strokes give enough variety.
 
 ## The drum
@@ -22,6 +23,19 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `drum-mo` | Reset the rhythm: a knock on the wooden slit drum (Y / R / the Reset drum). (hit) | 0.5 s | 2/2 | One knock of a wooden mallet on a hollow Vietnamese wooden slit drum (mõ, a temple block): a round, dry, woody 'tok' with a tiny hollow resonance. A single hit, close-miked, no music. |
 | `drum-wake` | The drum wakes: four commands chained. (sting) | 4.0 s | 1/1 | A huge bronze gong struck softly and swelling: a rising shimmering bronze resonance that blooms and slowly fades, ceremonial and awe-struck. |
 | `stumble` | A stroke during the army's answer, or off the beat. (hit) | 0.5 s | 1/1 | A dull, slightly off-key wooden knock, clumsy and muted, very short. |
+
+## Drum practice: the kits
+
+| Id | Use | Length | Files | Prompt |
+| --- | --- | ---: | --- | --- |
+| `kit-com-low` | Rice drum kit, low voice (Drum Practice). (hit) | 1.0 s | 2/2 | One stroke of the flat palm on the large head of a Vietnamese rice drum (trống cơm), a long two-headed wooden barrel drum tuned with rice paste: a warm, round, pitched low 'bùng' tone that sings briefly. A single hit, close-miked, dry room, no music. |
+| `kit-com-high` | Rice drum kit, high voice (Drum Practice). (hit) | 0.6 s | 2/2 | One quick slap of the fingers on the small head of a Vietnamese rice drum (trống cơm): a bright, tight, pitched high 'tang' tone, short. A single hit, close-miked, dry room, no music. |
+| `kit-gong-low` | Gong kit, low voice (Drum Practice). (hit) | 2.0 s | 2/2 | One strike of a padded mallet on a large flat bronze gong of the Vietnamese Central Highlands (cồng chiêng): a deep, warm, humming bronze tone that rings and fades. A single hit, close-miked, no music. |
+| `kit-gong-high` | Gong kit, high voice (Drum Practice). (hit) | 1.4 s | 2/2 | One sharp strike of a hard mallet on the boss of a small bronze gong (chiêng): an instant, bright, clear, high-pitched bronze tone with a medium ring, loudest at the very start. A single hit, close-miked, no music. |
+| `kit-bamboo-low` | Bamboo kit, low voice (Drum Practice). (hit) | 0.8 s | 2/2 | One strike of a soft wooden beater on a large bamboo tube of a Vietnamese bamboo xylophone (đàn t'rưng): a hollow, woody, pitched low 'tok' with a short resonant ring. A single hit, close-miked, dry room, no music. |
+| `kit-bamboo-high` | Bamboo kit, high voice (Drum Practice). (hit) | 0.5 s | 1/2 | One sharp strike of a small hard wooden beater on the shortest, thinnest bamboo tube of a đàn t'rưng: a bright, hollow, high-pitched woody 'tik', very short, an octave above a large tube. Exactly one hit, close-miked, dry room, no music. |
+| `kit-lan-drum` | Lion-dance kit, low voice (Drum Practice). (hit) | 1.0 s | 2/2 | One heavy stroke of a wooden stick on the centre of a big Vietnamese lion-dance drum (trống lân): a booming, punchy, low drum hit with a little buzz of the skin, no metal. A single hit, close-miked, dry room, no music. |
+| `kit-lan-cymbal` | Lion-dance kit, high voice (Drum Practice). (hit) | 0.8 s | 2/2 | One clash of a pair of small brass hand cymbals (chũm chọe) in a lion dance: a bright, splashy, brassy crash, cut short. A single clash, close-miked, no music. |
 
 ## The army answers
 

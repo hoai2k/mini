@@ -498,6 +498,46 @@
       "section": "story",
       "runtime": true,
       "web": "web/han-general.webp"
+    },
+    {
+      "id": "card-practice-free",
+      "request": "BD-U17",
+      "file": "art/card-practice-free.png",
+      "status": "stand-in",
+      "section": "practice",
+      "runtime": true
+    },
+    {
+      "id": "card-practice-call",
+      "request": "BD-U18",
+      "file": "art/card-practice-call.png",
+      "status": "stand-in",
+      "section": "practice",
+      "runtime": true
+    },
+    {
+      "id": "prop-dinh",
+      "request": "BD-P11",
+      "file": "art/prop-dinh.png",
+      "status": "stand-in",
+      "section": "practice",
+      "runtime": true
+    },
+    {
+      "id": "dancer-sheet",
+      "request": "BD-C13",
+      "file": "art/dancer-sheet.png",
+      "status": "stand-in",
+      "section": "practice",
+      "runtime": true
+    },
+    {
+      "id": "kit-faces",
+      "request": "BD-U19",
+      "file": "art/kit-faces.png",
+      "status": "stand-in",
+      "section": "practice",
+      "runtime": true
     }
   ]
 }

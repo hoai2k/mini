@@ -62,10 +62,18 @@ body.playing #app { touch-action: none; -webkit-user-select: none; user-select: 
 
 :focus-visible, .nav-focus { outline: 3px solid var(--focus) !important; outline-offset: 4px; }
 body.reduce-motion .press-start { animation: none; }
+.practice-start {
+  margin-top: 4px; font: 600 clamp(16px, 1.9vw, 21px) var(--serif); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--paper); background: rgba(22, 21, 26, 0.55); border: 2px solid var(--paper-shade); padding: 7px 26px; cursor: pointer;
+  clip-path: polygon(3% 0, 97% 5%, 100% 50%, 96% 100%, 2% 95%, 0 50%);
+}
+.practice-start:hover { background: var(--bronze); color: var(--ink); }
+.practice-start:active { transform: translateY(2px) scale(0.98); }
 
 /* Chapter select: a 3 × 3 grid of compact cards, the focused chapter described below. */
-#select { background: radial-gradient(ellipse at 50% 30%, #2B3556, #0D111E); gap: 14px; overflow-y: auto; justify-content: flex-start; padding-top: 28px; }
-#select h2 { margin: 0; font: 700 clamp(26px, 3.4vw, 40px) var(--serif); }
+#select, #practice { background: radial-gradient(ellipse at 50% 30%, #2B3556, #0D111E); gap: 14px; overflow-y: auto; justify-content: flex-start; padding-top: 28px; }
+#select h2, #practice h2 { margin: 0; font: 700 clamp(26px, 3.4vw, 40px) var(--serif); }
+.cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(680px, 100%); }
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; width: min(980px, 100%); }
 .card {
   padding: 0 14px 12px; text-align: left; cursor: pointer; color: var(--ink); overflow: hidden;

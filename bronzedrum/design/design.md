@@ -288,6 +288,55 @@ who drums a phrase, waits for the answer, and starts the next at once.
 - Higher tiers win faster.
 - Sloppy drumming, fast or slow, still clears chapters 1 and 2.
 
+## Drum Practice
+
+On the title screen, under Press Start, is a mode with no right or wrong: the
+drum, a choice of instruments, and dancers. It is for learning the core skill,
+an even beat with pairs and triplets inside it, without a chapter at stake.
+
+**Free drumming.** The dots show how many strokes a rhythm has: 2 to 12, set
+with LB and RB (− and +, or the buttons beside the dots on touch). The player
+drums any rhythm of that length, at any tempo. It is read as beats of one, two
+or three strokes, with a silent beat allowed between two beats (`transcribe` in
+`practice.js`). The reading tries every tempo and groups the strokes to fit it
+best, and a pair, a triplet or a rest costs a little extra, so plain beats win
+a tie. The rhythm appears as dots, and the drum crew plays it back on the next
+beat, round after round, each dot lighting as it sounds. The player can start a
+new rhythm at any time. The old loop quiets while the new rhythm is drummed and
+the new one takes over once it is complete. If the player stops part way, the
+old loop comes back up. A (Space, a swipe) stops the loop.
+
+**Call and answer.** A partner on a small stage drums a rhythm with the same
+number of strokes. It is generated, opens on one stroke, and keeps deep strokes
+to the start of a beat. The player answers with any rhythm of that length.
+Both rows stay on screen, the partner's above and the player's below. The
+partner comes straight back on the next beat with a new call, at the player's
+tempo. Answering during a call cuts it short. An unanswered call is played
+again.
+
+**Kits.** Y, or ↑ and ↓ (the kit drum at the bottom right on touch), cycles
+through six pairs of instruments, low voice for Trắc's stroke and high for
+Nhị's:
+- the bronze drum;
+- the barrel drum and mõ;
+- the rice drum (trống cơm);
+- gongs (cồng chiêng);
+- bamboo (đàn t’rưng);
+- the lion-dance drum and cymbals.
+
+The loop and the partner play on the same kit. The HUD drum shows the kit's
+face. The kit and the stroke count are remembered.
+
+**The green.** The scene is the dusk sky and strips with a communal house
+(đình), a lantern string, and a fire right of centre. The fire burns higher as
+the drumming builds. Every stroke heard (the player's, the loop's, the
+partner's) adds to the groove, and every five points of groove draws a dancer,
+up to six. The dancers are feather-crowned like the figures on a Đông Sơn
+drum, and they walk in from the right to places round the fire. A deep stroke
+is a stamp with both arms up; a rim stroke is a hop with a flick to alternate
+sides. When the drumming stops for two seconds the groove drains and the
+dancers leave the way they came.
+
 ## Structure for the full game
 
 The novel has two halves, and the game follows them:

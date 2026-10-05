@@ -30,6 +30,7 @@
         <h1 id="logo-text" class="logo-text"><span class="vn">Trống Đồng</span><span class="en">Bronze Drum</span></h1>
         <p class="tagline">Two sisters. One drum. An army of women.</p>
         <button id="press-start" class="press-start" data-nav>Press Start</button>
+        <button id="practice-start" class="practice-start" data-nav data-action="practice">Drum Practice</button>
         <p class="hint" id="title-hint">Move left stick for options</p>
       </div>
       <div class="corner-buttons">
@@ -52,6 +53,14 @@
       <h2 id="select-title">Choose a chapter</h2>
       <div id="stage-cards" class="cards"></div>
       <p id="stage-intro" class="stage-intro" aria-live="polite"></p>
+      <button class="text-btn" data-nav data-action="title">Back to title</button>
+    </section>
+
+    <!-- Drum Practice: free drumming, or call and answer with a partner. -->
+    <section id="practice" class="screen" hidden aria-labelledby="practice-title">
+      <h2 id="practice-title">Drum Practice</h2>
+      <div id="practice-cards" class="cards two"></div>
+      <p id="practice-intro" class="stage-intro" aria-live="polite"></p>
       <button class="text-btn" data-nav data-action="title">Back to title</button>
     </section>
 
@@ -132,6 +141,14 @@
             <tr><td>Menus</td><td>Left stick / D-pad, <span class="xb xb-a">A</span> confirm, <span class="xb xb-b">B</span> back</td><td>Arrows, Enter, Esc</td><td>Click</td><td>Tap</td></tr>
           </table>
           <p><strong>Phones and tablets.</strong> Hold the device sideways. The big drum at the bottom is played like the real one: tap its centre for Trắc’s <em>tùng</em> and the red ring round its rim for Nhị’s <em>cắc</em>. On a phone you can also drum with your thumbs: anywhere on the left side of the screen is <em>tùng</em>, the right side <em>cắc</em>. Use several fingers at once for quick pairs and triplets. Tap the battle itself to raise the shields, and swipe across the drum or the dots to reset.</p>
+          <h3>Drum Practice</h3>
+          <p>From the title screen, <strong>Drum Practice</strong> has no right or wrong, only the drum. In <strong>free drumming</strong>, drum any rhythm with as many strokes as the dots show. The game reads it as beats of one, two or three strokes at your own speed, shows it, and the drum crew plays it back again and again while dancers gather at the fire. Drum a new rhythm whenever you like: the old one quiets while you play and the new one takes over. In <strong>call and answer</strong>, a partner drums a rhythm with the same number of strokes and you answer with any rhythm of that length. They come straight back with the next call.</p>
+          <table class="map-table">
+            <tr><th>Practice</th><th>Controller</th><th>Keyboard</th><th>Touch</th></tr>
+            <tr><td>Fewer or more strokes (2 to 12)</td><td>LB · RB</td><td>− and + (or [ and ])</td><td>The − and + buttons beside the dots</td></tr>
+            <tr><td>Change the drums: bronze drum, barrel drum and mõ, rice drum, gongs, bamboo, lion-dance drum and cymbals</td><td><span class="xb xb-y">Y</span>, or D-pad ▲ ▼</td><td>↑ ↓</td><td>The drum at the bottom right</td></tr>
+            <tr><td>Clear the dots and stop the loop</td><td><span class="xb xb-a">A</span></td><td>Space</td><td>Swipe across the drum or the dots</td></tr>
+          </table>
           <p class="muted">If your strokes sound late, adjust <em>Audio offset</em> in Settings.</p>
         </div>
         <button class="menu-btn" data-nav data-action="close">Close</button>
