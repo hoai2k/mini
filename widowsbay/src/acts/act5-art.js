@@ -6,6 +6,7 @@ import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY } f
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 
 const S = 0.6; // the sailor's scale on the cliff and in the house
+const LEGS = [380, 494]; // the giant's boots on their shelf under the lip
 const SAILOR = { coat: '#2b3550', legs: '#8a8a8a', hat: 'cap', hatCol: '#1f2740', scarf: '#c8321e', beard: '#d8d4cc', hair: '#9a948a' };
 const BELOVED = { coat: '#f1e3c8', skirt: '#f1e3c8', shawl: '#f3c6dc', hair: '#7a3420', hat: 'bun' };
 const WITCH = { coat: '#f3c6dc', skirt: '#f3c6dc', hair: '#1a1214', hat: 'crown', hatCol: '#d9b34a', long: true };
@@ -35,7 +36,7 @@ export function onEvent(k, e, st) {
     case 'pearl': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y - 20, '#eef3ea', 8); k.text('+10', s.x, s.y - 60); break; }
     case 'holdCrumble': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y, '#b8ad9a', 14); k.shake(0.2); break; }
     case 'stoneGlance': k.burst(at.x + 30, at.y - 110, '#b8ad9a', 8); k.text('Sheltered', at.x, at.y - 130); break;
-    case 'giantStep': { const s = cliffScreen(st, e.foot ? 970 : 860, 1400); k.burst(s.x, s.y, '#cfc0dc', 4); break; }
+    case 'giantStep': { const s = cliffScreen(st, e.foot ? LEGS[1] : LEGS[0], CLIFF.top - 100); k.burst(s.x, s.y, '#cfc0dc', 4); break; }
     case 'clifftop': k.text("Widow's Bay", 640, 240, true); k.burst(at.x, at.y - 40, '#d9b34a', 18); break;
     case 'strike': k.flash(1); k.shake(0.5); break;
     case 'houseOpen': k.shake(0.3); break;
@@ -104,9 +105,10 @@ function person(k, x, by, h, o, pose = {}) {
   else if (arms === 'throw') { arm(-9, -16, -56); arm(9, 32, -96); }
   else { arm(-9, -14, -46); arm(9, 14, -46); }
   // head
+  if (o.long) { c.fillStyle = k.col(o.hair); c.beginPath(); c.ellipse(-1 * u, -84 * u, 12 * u, 20 * u, 0, 0, Math.PI * 2); c.fill(); }
   c.fillStyle = k.col('#efd7c4'); k.circle(0, -90 * u, 9 * u);
   if (o.beard) { c.fillStyle = k.col(o.beard); c.beginPath(); c.moveTo(-8 * u, -90 * u); c.quadraticCurveTo(0, -70 * u, 9 * u, -90 * u); c.closePath(); c.fill(); }
-  if (o.long) { c.fillStyle = k.col(o.hair); c.fillRect(-10 * u, -98 * u, 20 * u, 30 * u); c.fillStyle = k.col('#efd7c4'); k.circle(2 * u, -90 * u, 7 * u); }
+  if (o.long) { c.fillStyle = k.col(o.hair); c.beginPath(); c.arc(0, -91 * u, 9.5 * u, Math.PI * 1.05, Math.PI * 1.95); c.fill(); }
   if (o.hat === 'cap') { c.fillStyle = k.col(o.hatCol); c.fillRect(-10 * u, -102 * u, 20 * u, 7 * u); c.fillRect(-4 * u, -97 * u, 16 * u, 3 * u); }
   else if (o.hat === 'crown') { c.fillStyle = k.col(o.hatCol); c.beginPath(); c.moveTo(-9 * u, -97 * u); c.lineTo(-9 * u, -108 * u); c.lineTo(-4 * u, -102 * u); c.lineTo(0, -110 * u); c.lineTo(4 * u, -102 * u); c.lineTo(9 * u, -108 * u); c.lineTo(9 * u, -97 * u); c.closePath(); c.fill(); }
   else if (o.hat === 'bun') { c.fillStyle = k.col(o.hair); k.circle(-2 * u, -99 * u, 8 * u); k.circle(-8 * u, -96 * u, 5 * u); }
@@ -128,14 +130,18 @@ function sailor(k, x, by, s, pose, face = 1, step = 0) {
   if (pose === 'carry') {
     if (artFlip(k, 'sailor-carry', x, by, 180 * s, 200 * s, face)) return;
     person(k, x, by, 180 * s, SAILOR, { face, arms: 'out', step });
-    // her, across his arms
+    // her, across his arms: head at his shoulder, skirt falling past his knees
     const c = k.c;
-    c.save(); c.translate(x + face * 4 * s, by - 100 * s); c.scale(face, 1);
+    c.save(); c.translate(x, by - 104 * s); c.scale(face, 1);
     c.fillStyle = k.col(BELOVED.skirt);
-    c.beginPath(); c.moveTo(-40 * s, 6 * s); c.quadraticCurveTo(-10 * s, -14 * s, 36 * s, -2 * s); c.lineTo(46 * s, 18 * s); c.quadraticCurveTo(0, 22 * s, -40 * s, 18 * s); c.closePath(); c.fill();
-    c.fillStyle = k.col(BELOVED.shawl); c.fillRect(-30 * s, -6 * s, 30 * s, 14 * s);
-    c.fillStyle = k.col('#efd7c4'); k.circle(-44 * s, -6 * s, 13 * s);
-    c.fillStyle = k.col(BELOVED.hair); k.circle(-52 * s, -14 * s, 10 * s);
+    c.beginPath(); c.moveTo(-6 * s, -12 * s); c.quadraticCurveTo(40 * s, -16 * s, 74 * s, 6 * s); c.lineTo(80 * s, 44 * s); c.quadraticCurveTo(50 * s, 30 * s, 6 * s, 18 * s); c.closePath(); c.fill();
+    c.fillStyle = k.col('#c9b79a'); c.fillRect(70 * s, 40 * s, 12 * s, 6 * s);
+    c.fillStyle = k.col(BELOVED.shawl);
+    c.beginPath(); c.moveTo(-26 * s, -22 * s); c.lineTo(12 * s, -18 * s); c.lineTo(14 * s, 10 * s); c.lineTo(-20 * s, 26 * s); c.closePath(); c.fill();
+    c.strokeStyle = k.col(BELOVED.shawl); c.lineWidth = 7 * s; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(-14 * s, -18 * s); c.quadraticCurveTo(-4 * s, -52 * s, 10 * s, -66 * s); c.stroke(); // her arm round his neck
+    c.fillStyle = k.col('#efd7c4'); k.circle(-24 * s, -30 * s, 14 * s);
+    c.fillStyle = k.col(BELOVED.hair); k.circle(-34 * s, -36 * s, 11 * s); k.circle(-28 * s, -42 * s, 9 * s);
     c.restore();
     return;
   }
@@ -194,14 +200,14 @@ function giantLeg(k, x, by, half) {
 
 function tinyGuitarist(k, x, by, t, beat) {
   const bob = Math.abs(Math.sin(Math.PI * beatPhase(beat))) * 2;
-  if (k.asset('band-guitar', x, by - bob, 40, 80)) return;
-  if (trioCrop(k, 'guitarist', x - 17, by - 88 - bob, 34, 88)) return;
+  if (k.asset('band-guitar', x, by - bob, 50, 100)) return;
+  if (trioCrop(k, 'guitarist', x - 19, by - 104 - bob, 38, 104)) return;
   person(k, x, by, 70, { coat: '#f3c6dc', legs: '#5f8c88', hair: '#3a2112', long: true }, {});
   k.c.fillStyle = k.col('#e8d3a0'); k.circle(x + 3, by - 36, 8);
 }
 
 function hugeGuitarist(k, st, t) {
-  const show = st.phase === 'storm' ? 1 - easeInOut(st.phaseT / 1.2) : easeInOut((st.camY - 760) / 320);
+  const show = st.phase === 'storm' ? 1 - easeInOut(st.phaseT / 1.2) : easeInOut((st.camY - CLIFF.camMax + 420) / 320);
   if (show <= 0.01) return;
   const c = k.c, x = 1400 - show * 270;
   const sway = Math.sin(Math.PI * (st.beat || 0)) * 0.025;
@@ -250,10 +256,9 @@ function bay(k, st, t, fire, horizon = 470) {
 }
 
 // ---------------------------------------------------------------- part 1: the cliff
-const lx = (wy) => 250 + 18 * Math.sin(wy * 0.013) + 10 * Math.sin(wy * 0.041);
-const rx = (wy) => 1030 + 16 * Math.sin(wy * 0.017 + 1) + 9 * Math.sin(wy * 0.05);
-const IVY = Array.from({ length: 30 }, (_, i) => ({ x: (i * 263) % 720 + 280, y: (i * 211) % 1440, r: 16 + (i * 7) % 16 }));
-const CRACKS = Array.from({ length: 14 }, (_, i) => ({ x: (i * 173) % 700 + 300, y: (i * 307) % 1400, h: 60 + (i * 37) % 90 }));
+const lx = (wy) => 268 + 16 * Math.sin(wy * 0.013) + 10 * Math.sin(wy * 0.041);
+const rx = (wy) => 1004 + 14 * Math.sin(wy * 0.017 + 1) + 9 * Math.sin(wy * 0.05);
+const IVY = Array.from({ length: 40 }, (_, i) => ({ x: (i * 263) % 680 + 300, y: (i * 211) % 1900, r: 16 + (i * 7) % 16 }));
 
 function cliffScene(k, st, t) {
   const c = k.c, cam = st.camY, storm = st.phase === 'storm';
@@ -268,33 +273,41 @@ function cliffScene(k, st, t) {
     c.fillStyle = k.col('#cdbb93'); c.fillRect(0, -2, 1280, 22);
   }
   // the cliff flat
-  if (!k.asset('cliff-face', 640, 30, 820, 1560)) {
-    c.fillStyle = k.col('#d9cfbf');
-    c.beginPath();
+  // a delivered cliff flat is hung twice, one above the other
+  const H2 = (CLIFF.top + 30) / 2;
+  if (!(k.img('cliff-face') && k.asset('cliff-face', 640, 30, 820, H2 + 4) && k.asset('cliff-face', 640, 30 - H2, 820, H2 + 4))) {
     const y0 = Math.max(-20, lo), y1 = Math.min(CLIFF.top, hi);
+    c.fillStyle = k.col('#e4dccb');
+    c.beginPath();
     for (let wy = y0; wy <= y1; wy += 30) c.lineTo(lx(wy), -wy);
     c.lineTo(lx(y1), -y1);
     for (let wy = y1; wy >= y0; wy -= 30) c.lineTo(rx(wy), -wy);
     c.lineTo(rx(y0), -y0);
     c.closePath(); c.fill();
-    c.strokeStyle = k.col('#a99d88'); c.lineWidth = 2;
-    for (let wy = Math.ceil(y0 / 70) * 70; wy < y1; wy += 70) {
-      c.beginPath(); for (let x = lx(wy) + 6; x <= rx(wy) - 6; x += 40) c.lineTo(x, -wy - Math.sin(x * 0.02 + wy) * 6); c.stroke();
+    // pillars of rock, blocks staggered column by column, shaded on one side
+    for (let i = 0; i < 11; i++) {
+      const px = 290 + i * 66, off = (i * 53) % 140;
+      for (let by = Math.floor((y0 - off) / 140) * 140 + off; by < y1; by += 140) {
+        const b0 = Math.max(y0, by), b1 = Math.min(y1, by + 140);
+        if (b1 <= b0) continue;
+        c.fillStyle = k.col('#b9ae98'); c.fillRect(px + 44, -b1, 20, b1 - b0);
+        c.fillStyle = k.col('#8d8170'); c.fillRect(px + 2, -by - 3, 62, 3);
+      }
     }
-    c.strokeStyle = k.col('#7d7262'); c.lineWidth = 3;
-    for (const cr of CRACKS) if (cr.y > lo - 150 && cr.y < hi) { c.beginPath(); c.moveTo(cr.x, -cr.y); c.lineTo(cr.x + 8, -cr.y - cr.h * 0.5); c.lineTo(cr.x - 4, -cr.y - cr.h); c.stroke(); }
     c.fillStyle = k.col('#5f7d4a');
     for (const v of IVY) if (v.y > lo - 40 && v.y < hi + 40) { k.circle(v.x, -v.y, v.r); k.circle(v.x + v.r * 0.8, -v.y + v.r * 0.6, v.r * 0.6); }
+    c.fillStyle = k.col('#7f9a5a');
+    for (const v of IVY) if (v.y > lo - 40 && v.y < hi + 40) k.circle(v.x - v.r * 0.3, -v.y - v.r * 0.3, v.r * 0.45);
   }
   // the overhanging lip and the grass top
   if (hi > CLIFF.top - 80) {
-    c.fillStyle = k.col('#6f6a5e'); c.fillRect(236, -CLIFF.top + 54, 818, 12);
-    c.fillStyle = k.col('#b8ad9a'); c.fillRect(240, -CLIFF.top, 810, 56);
+    c.fillStyle = k.col('#6f6a5e'); c.fillRect(254, -CLIFF.top + 54, 772, 12);
+    c.fillStyle = k.col('#c9bda5'); c.fillRect(258, -CLIFF.top, 764, 56);
     c.strokeStyle = k.col('#8d8170'); c.lineWidth = 2;
-    for (let x = 260; x < 1040; x += 60) { c.beginPath(); c.moveTo(x, -CLIFF.top + 6); c.lineTo(x + 14, -CLIFF.top + 52); c.stroke(); }
-    c.fillStyle = k.col('#6f9a4a'); c.fillRect(230, -CLIFF.top - 10, 830, 14);
+    for (let x = 270; x < 1010; x += 60) { c.beginPath(); c.moveTo(x, -CLIFF.top + 6); c.lineTo(x + 14, -CLIFF.top + 52); c.stroke(); }
+    c.fillStyle = k.col('#6f9a4a'); c.fillRect(248, -CLIFF.top - 10, 784, 14);
     // the rock shelf the giant stands on
-    c.fillStyle = k.col('#8d8170'); c.fillRect(800, -1400, 230, 14);
+    c.fillStyle = k.col('#8d8170'); c.fillRect(LEGS[0] - 70, -(CLIFF.top - 100), 250, 14);
   }
   holds(k, st, t);
   c.restore();
@@ -312,7 +325,7 @@ function cliffScene(k, st, t) {
   const beat = st.beat || 0;
   for (const half of [0, 1]) {
     const lift = (half ? bootLift(beat - 1) : bootLift(beat)) * CLIFF.bootLift;
-    giantLeg(k, half ? 980 : 860, -1400 - lift - off - 4, half);
+    giantLeg(k, LEGS[half], -(CLIFF.top - 100) - lift - off - 4, half);
   }
   rocksWorld(k, st, t);
   climber(k, st, t);
@@ -333,14 +346,20 @@ function holds(k, st, t) {
     let x = h.x;
     if (h.kind === 'crumble' && occupied && st.cl.crumbleT < 0.5) x += Math.sin(t * 60) * 2.5;
     if (h.kind === 'gap') {
+      // a dark cleft in the rock; the tiny guitarist plays on a knob above the hold
       c.fillStyle = k.col('#2a2420');
-      c.beginPath(); c.moveTo(x - 30, y + 18); c.lineTo(x - 22, y - 140); c.lineTo(x + 26, y - 132); c.lineTo(x + 34, y + 18); c.closePath(); c.fill();
-      tinyGuitarist(k, x + 14, y, t, st.beat || 0);
+      c.beginPath(); c.moveTo(x - 34, y + 18); c.lineTo(x - 26, y - 236); c.lineTo(x + 30, y - 228); c.lineTo(x + 38, y + 18); c.closePath(); c.fill();
+      c.fillStyle = k.col('#8d8170'); c.fillRect(x - 22, y - 124, 44, 8);
+      tinyGuitarist(k, x, y - 124, t, st.beat || 0);
     }
-    const w = h.kind === 'ledge' ? 100 : 46;
-    c.fillStyle = k.col(h.kind === 'crumble' ? '#e8dcc0' : '#efe6d6');
-    c.beginPath(); c.moveTo(x - w / 2, y); c.lineTo(x + w / 2, y); c.lineTo(x + w / 2 - 6, y + 12); c.lineTo(x - w / 2 + 6, y + 12); c.closePath(); c.fill();
-    c.fillStyle = k.col('#8d8170'); c.fillRect(x - w / 2 + 6, y + 10, w - 12, 5);
+    const w = h.kind === 'ledge' ? 104 : 50;
+    c.fillStyle = k.col('#2a2420'); c.globalAlpha = 0.28;
+    c.beginPath(); c.moveTo(x - w / 2 + 4, y + 12); c.lineTo(x + w / 2 - 4, y + 12); c.lineTo(x + w / 2 - 14, y + 30); c.lineTo(x - w / 2 + 14, y + 30); c.closePath(); c.fill();
+    c.globalAlpha = 1;
+    c.fillStyle = k.col(h.kind === 'crumble' ? '#c4b394' : '#a8987a');
+    c.beginPath(); c.moveTo(x - w / 2, y); c.lineTo(x + w / 2, y); c.lineTo(x + w / 2 - 6, y + 13); c.lineTo(x - w / 2 + 6, y + 13); c.closePath(); c.fill();
+    c.fillStyle = k.col('#d8ccb2'); c.fillRect(x - w / 2 + 2, y, w - 4, 3);
+    c.fillStyle = k.col('#5e5446'); c.fillRect(x - w / 2 + 6, y + 11, w - 12, 5);
     if (h.kind === 'crumble') {
       c.strokeStyle = k.col('#6f6a5e'); c.lineWidth = 1.5;
       c.beginPath(); c.moveTo(x - 12, y + 1); c.lineTo(x - 4, y + 7); c.lineTo(x + 2, y + 2); c.lineTo(x + 10, y + 11); c.stroke();
@@ -369,8 +388,8 @@ function climber(k, st, t) {
   c.save();
   if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
   if (tilt) { c.translate(p.x, y - 50); c.rotate(tilt); c.translate(-p.x, -(y - 50)); }
-  const pose = p.moving ? (cl.kind === 'leap' ? 'leap' : 'climb') : h.kind === 'top' ? 'stand' : 'climb';
-  sailor(k, p.x, y, S, pose === 'climb' && !p.moving ? 'stand' : pose, face);
+  const pose = p.moving ? (cl.kind === 'leap' ? 'leap' : 'climb') : h.kind === 'ledge' || h.kind === 'top' ? 'stand' : 'climb';
+  sailor(k, p.x, y, S, pose, face);
   c.restore();
 }
 
@@ -391,21 +410,24 @@ function rocksWorld(k, st, t) {
 // Dust gathering at the top of the frame over a stone about to fall, and the
 // tea-leaf omen a beat earlier when the reading is complete.
 function rockWarnings(k, st, t) {
-  const c = k.c;
+  const c = k.c, top = 124;
   for (const r of st.rocks) {
     if (r.y != null) continue;
-    if (r.omen) omenGlyph(k, r.x, 96, t);
+    if (r.omen) omenGlyph(k, r.x, top + 40, t);
     if (r.wait > r.warn) continue;
     const k2 = 1 - r.wait / r.warn;
     c.save();
-    c.globalAlpha = 0.18 + 0.12 * k2;
-    c.strokeStyle = k.col('#f1e3c8'); c.lineWidth = 2; c.setLineDash([8, 10]);
-    c.beginPath(); c.moveTo(r.x, 70); c.lineTo(r.x, 640); c.stroke(); c.setLineDash([]);
-    c.globalAlpha = 0.7;
-    c.fillStyle = k.col('#f1e3c8');
-    for (let i = 0; i < 4; i++) k.circle(r.x - 24 + i * 16, 70 + Math.sin(t * 9 + i) * 4, 10 + k2 * 8);
-    c.fillStyle = k.col('#8d8170');
-    for (let i = 0; i < 6; i++) { const py = 78 + ((t * 240 + i * 41) % (60 + k2 * 160)); k.circle(r.x - 10 + (i * 7) % 20, py, 2.5); }
+    // a column of falling grit down the line the stone will take
+    const g = c.createLinearGradient(0, top, 0, 640);
+    g.addColorStop(0, k.P.mode === 'lum' ? 'rgba(250,240,220,0.55)' : 'rgba(233,164,106,0.5)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.globalAlpha = 0.35 + 0.5 * k2; c.fillStyle = g; c.fillRect(r.x - 22, top, 44, 520);
+    c.globalAlpha = 1;
+    c.fillStyle = k.col('#5e5446');
+    for (let i = 0; i < 9; i++) { const py = top + 10 + ((t * 260 + i * 47) % (40 + k2 * 420)); k.circle(r.x - 12 + (i * 7) % 24, py, 2.5 + (i % 2)); }
+    // the puff of dust at the lip
+    c.fillStyle = k.col('#f1e3c8'); c.globalAlpha = 0.85;
+    for (let i = 0; i < 4; i++) k.circle(r.x - 24 + i * 16, top + Math.sin(t * 9 + i) * 3, 9 + k2 * 9);
     c.restore();
   }
 }
@@ -435,7 +457,7 @@ function stormFx(k, st, t) {
 // The front swings open on its left hinge like a dollhouse front.
 function frontPanel(k, open, t) {
   const c = k.c, H = HOUSE;
-  const sx = Math.cos(open * 1.36);
+  const sx = Math.cos(open * 1.76); // past 90 degrees: it ends up left of the hinge
   c.save(); c.translate(H.x0 - 14, 0); c.scale(sx, 1); c.translate(-(H.x0 - 14), 0);
   if (!k.asset('house-front', 640, 642, 560, 720)) {
     c.fillStyle = k.col('#9a948a');
@@ -508,11 +530,13 @@ function houseInterior(k, st, t) {
       if (a > H.x0) { c.beginPath(); c.moveTo(a, fy); c.lineTo(a + 12, fy + 7); c.lineTo(a, fy + 14); c.closePath(); c.fill(); }
       if (b < H.x1) { c.beginPath(); c.moveTo(b, fy); c.lineTo(b - 12, fy + 7); c.lineTo(b, fy + 14); c.closePath(); c.fill(); }
     }
-    // embers glowing through the holes
+    // burnt holes: planks hang from their broken edges, embers below
     if (f > 0) for (let g = 0; g < st.spans[f].length - 1; g++) {
       const gx0 = st.spans[f][g][1], gx1 = st.spans[f][g + 1][0];
-      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.5 + 0.3 * Math.sin(t * 7 + f);
-      c.fillRect(gx0 + 4, fy + 4, gx1 - gx0 - 8, 6); c.globalAlpha = 1;
+      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.45 + 0.25 * Math.sin(t * 7 + f);
+      c.beginPath(); c.ellipse((gx0 + gx1) / 2, fy + 8, (gx1 - gx0) / 2 + 6, 12, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+      c.fillStyle = k.col('#3a2112');
+      for (const [ex, dir] of [[gx0, 1], [gx1, -1]]) { c.save(); c.translate(ex, fy + 4); c.rotate(dir * 1.1); c.fillRect(dir > 0 ? 0 : -34, -4, 34, 8); c.restore(); }
     }
   });
   // in-room flames on sticks (not in the way)
@@ -642,7 +666,7 @@ function hazards(k, st, t) {
   const c = k.c, quay = st.phase === 'quay';
   for (const h of st.haz) {
     const fy = quay ? QUAY.y : HOUSE.floors[h.f];
-    const ceil = quay ? 70 : fy - HOUSE.storey + 14;
+    const ceil = quay ? 130 : Math.max(132, fy - HOUSE.storey + 14);
     if (h.wait > 0) {
       if (h.omen) omenGlyph(k, h.x, ceil + 34, t);
       if (h.wait > h.warn) continue;
@@ -842,13 +866,13 @@ function caption(k, [title, sub], a) {
   if (a <= 0) return;
   const c = k.c;
   c.save(); c.globalAlpha = a * 0.94;
-  c.fillStyle = k.col('#2a1424'); c.fillRect(300, 74, 680, 112);
+  c.fillStyle = k.col('#2a1424'); c.fillRect(440, 84, 660, 112);
   c.strokeStyle = k.col('#c79ab7'); c.lineWidth = 1.5;
-  c.strokeRect(306, 80, 668, 100); c.strokeRect(312, 86, 656, 88);
+  c.strokeRect(446, 90, 648, 100); c.strokeRect(452, 96, 636, 88);
   c.globalAlpha = a;
   c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
-  c.font = '54px Yesteryear, cursive'; c.fillText(title, 640, 136);
-  c.font = '700 16px "Josefin Sans", sans-serif'; c.fillText(sub.toUpperCase(), 640, 164);
+  c.font = '54px Yesteryear, cursive'; c.fillText(title, 770, 146);
+  c.font = '700 15px "Josefin Sans", sans-serif'; c.fillText(sub.toUpperCase(), 770, 174);
   c.restore();
 }
 

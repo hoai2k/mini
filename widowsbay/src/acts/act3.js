@@ -7,42 +7,52 @@ import { beatPhase, clamp, lerp, easeInOut } from './shared.js';
 import * as art from './act3-art.js';
 
 // ---------------------------------------------------------------- the set
+// The court is a long processional gallery on a moving panorama: the floor
+// (grooves, courtiers, sentries) is HALL_W wide and rolls past 1:1 as the
+// sailor advances; the back wall with the throne, the king, the witch and the
+// gaze lantern rolls at PAR, so the king is in view from the start and the
+// pedestal ends up beside him. x is floor (world) x; st.cam is the scroll.
 export const ROWY = [432, 512, 596];           // the three grooves (Act I's rows)
 export const ROWSCALE = [0.72, 0.86, 1.0];
-export const XMIN = 190, XMAX = 1100;
+export const HALL_W = 2480, PAR = 0.15;
+export const CAM_MAX = HALL_W - 1280;
+export const XMIN = 190, XMAX = 2310;
 export const START = { row: 2, x: 200 };
-export const THRONE_X = 690, WITCH_X = 875;
-export const PEDESTAL = { row: 0, x: 1068, reach: 46 };
-export const LANTERN = { x: 985, y: 236 };    // the gaze lantern's eye
-export const SENTRIES = [470, 745, 1000];      // along the front groove
+export const PEDESTAL = { row: 0, x: 2280, reach: 46 };
+// Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR).
+export const THRONE_BX = 980, WITCH_BX = 1130, LANTERN_BX = 780;
+export const LANTERN_Y = 236;                   // the gaze lantern's eye
+export const SENTRIES = [470, 760, 1050, 1420, 1720, 2010]; // along the front groove
 export const BEAT = 60 / 76.5;                  // fallback only; input.beat drives
 
 export const TUNE = {
-  walk: 112, rowTween: 0.26, grace: 1.6, lanterns: 3,
-  restAim: 0, warn: 1.25, hold: 0.85, sweepSpeed: 300, lock: 0.75, rest: [0.8, 1.6],
-  aimRange: [340, 1000],           // patrol targets (beam centre x)
+  walk: 104, rowTween: 0.26, grace: 1.6, lanterns: 3,
+  restAim: PEDESTAL.x, warn: 1.25, hold: 0.85, sweepSpeed: 300, lock: 0.75, rest: [0.8, 1.6],
+  aimRange: [340, 2300], search: 520, // patrol targets (beam centre x), near the sailor
   cover: 56,                      // half-width of an attendant's cover
   snapOpen: 0.38,                 // fraction of each beat the jaws are open
-  whaleFirst: 21, whaleEvery: [20, 25], whaleDur: 5, whaleMask: [0.9, 4.0],
+  whaleFirst: 22, whaleEvery: [20, 25], whaleDur: 5, whaleMask: [0.9, 4.0],
   fishDur: 4.2,
   caught: 1.8, haul: 300, haulDur: 0.7,
 };
-// The rest aim lights the pedestal: the king keeps his eye on his treasure.
-TUNE.restAim = PEDESTAL.x;
 
 // Win sequence, seconds per phase.
 export const OUTRO = { take: 1.3, turn: 2.0, lunge: 0.9, iris: 1.3 };
 const OUTRO_ORDER = ['take', 'turn', 'lunge', 'iris'];
 
 const COURTIERS = [
-  { kind: 'pink', row: 0, x: 380, a: 250, b: 820, step: 42, pat: 'SSSR', dir: 1 },
-  { kind: 'guard', row: 0, x: 780, a: 640, b: 955, step: 40, pat: 'SSRR', dir: -1 },
-  { kind: 'green', row: 1, x: 300, a: 210, b: 760, step: 46, pat: 'SSSR', dir: 1 },
-  { kind: 'blue', row: 1, x: 940, a: 600, b: 1090, step: 44, pat: 'SSRS', dir: -1 },
-  { kind: 'guard', row: 1, x: 560, a: 400, b: 720, step: 38, pat: 'SRSR', dir: 1 },
-  { kind: 'green', row: 2, x: 620, a: 230, b: 1060, step: 50, pat: 'SSSSR', dir: -1 },
+  { kind: 'pink', row: 0, x: 380, a: 250, b: 900, step: 42, pat: 'SSSR', dir: 1 },
+  { kind: 'guard', row: 0, x: 1000, a: 820, b: 1300, step: 40, pat: 'SSRR', dir: -1 },
+  { kind: 'blue', row: 0, x: 1500, a: 1220, b: 1900, step: 42, pat: 'SSSR', dir: 1 },
+  { kind: 'guard', row: 0, x: 2000, a: 1780, b: 2200, step: 40, pat: 'SRSR', dir: -1 },
+  { kind: 'green', row: 1, x: 300, a: 210, b: 780, step: 46, pat: 'SSSR', dir: 1 },
+  { kind: 'guard', row: 1, x: 760, a: 620, b: 1020, step: 38, pat: 'SRSR', dir: 1 },
+  { kind: 'pink', row: 1, x: 1300, a: 940, b: 1640, step: 44, pat: 'SSRS', dir: -1 },
+  { kind: 'green', row: 1, x: 1900, a: 1540, b: 2290, step: 46, pat: 'SSSR', dir: 1 },
+  { kind: 'blue', row: 2, x: 620, a: 230, b: 1120, step: 50, pat: 'SSSSR', dir: -1 },
+  { kind: 'pink', row: 2, x: 1600, a: 1140, b: 2060, step: 48, pat: 'SSSR', dir: 1 },
 ];
-const PEARLS = [[2, 345], [2, 610], [2, 875], [1, 450], [1, 830], [0, 540]];
+const PEARLS = [[2, 345], [1, 470], [0, 620], [2, 905], [1, 1160], [0, 1380], [2, 1570], [1, 1850], [0, 2060]];
 
 // ---------------------------------------------------------------- helpers
 // The beam falls as a long pool of light across all three grooves, a little
@@ -53,6 +63,10 @@ export function beamOn(aim, row) {
 export const effRow = (p) => (p.rowT < 0.5 ? p.from : p.row);
 export const rowY = (p) => lerp(ROWY[p.from], ROWY[p.row], easeInOut(p.rowT));
 export const rowScale = (p) => lerp(ROWSCALE[p.from], ROWSCALE[p.row], easeInOut(p.rowT));
+// Where a back-wall piece stands on screen for a scroll.
+export const backX = (bx, cam) => bx - cam * PAR;
+// The camera keeps the sailor a little left of centre.
+export const camFor = (x) => clamp(x - 560, 0, CAM_MAX);
 
 function rand(st) {
   let s = st.rs;
@@ -70,7 +84,8 @@ export function whaleX(t) {
 }
 export const fishX = (t) => lerp(1480, -220, t / TUNE.fishDur);
 
-// Advance the gaze. It rests on the pedestal, then patrols: for each leg it
+// Advance the gaze. It rests (at first, and whenever the sailor is near the
+// throne, on the pedestal), then patrols: for each leg it
 // winds up (warn: the lantern pulses and a dotted arrow shows where it will
 // go), then sweeps there. The last leg returns it to the pedestal.
 // `emit` and `pick` are null when predicting.
@@ -78,7 +93,6 @@ function stepGaze(g, dt, emit, pick) {
   if (g.lock > 0) { g.lock -= dt; return; }
   g.t += dt;
   if (g.phase === 'rest') {
-    g.aim = TUNE.restAim;
     if (g.t >= g.dur && pick) { g.legs = pick(); toWarn(g, TUNE.warn, emit); }
   } else if (g.phase === 'warn') {
     if (g.t >= g.dur) { g.phase = 'sweep'; g.t = 0; g.from = g.aim; g.dur = Math.max(0.3, Math.abs(g.to - g.from) / TUNE.sweepSpeed); if (emit) emit({ type: 'gazeSweep' }); }
@@ -114,7 +128,7 @@ export default {
       phase: 'play', phaseT: 0, t: 0,
       rs: (seed >>> 0) || 1,
       carry: { tea: carry.tea || 0, rose: !!carry.rose },
-      beat: 0, beatN: null, steps: 0,
+      beat: 0, beatN: null, steps: 0, cam: camFor(START.x),
       p: { row: START.row, from: START.row, rowT: 1, x: START.x, face: 1, frozen: false, walk: 0, grace: 0, hidden: false, lit: false },
       lanterns: TUNE.lanterns, score: 0, pearls: 0, taken: false,
       courtiers: COURTIERS.map((c) => ({ ...c, x0: c.x, x1: c.x })),
@@ -140,6 +154,7 @@ export default {
     beatMachinery(st, emit);
     stepPassers(st, dt, emit);
 
+    st.cam += (camFor(st.p.x) - st.cam) * Math.min(1, dt * 3);
     if (st.phase === 'play') play(st, dt, input, emit);
     else if (st.phase === 'caught') {
       if (st.phaseT >= TUNE.caught) { st.status = 'lost'; st.statusT = 0; }
@@ -239,7 +254,7 @@ function stepPassers(st, dt, emit) {
     if (f.t >= TUNE.fishDur) { f.t = -1; f.next = 99; }
   }
   const wm = w.t >= TUNE.whaleMask[0] && w.t <= TUNE.whaleMask[1];
-  const fm = f.t >= 0 && Math.abs(fishX(f.t) - LANTERN.x) < 170;
+  const fm = f.t >= 0 && Math.abs(fishX(f.t) - backX(LANTERN_BX, st.cam)) < 170;
   st.masked = wm || fm;
   st.maskedBy = wm ? 'whale' : fm ? 'fish' : null;
 }
@@ -335,15 +350,19 @@ function play(st, dt, input, emit) {
 
 // A patrol of two or three legs that swing well across the hall, then home.
 function patrol(st) {
-  const [lo, hi] = TUNE.aimRange, legs = [];
-  let at = TUNE.restAim;
+  const lo = Math.max(TUNE.aimRange[0], st.p.x - TUNE.search), hi = Math.min(TUNE.aimRange[1], st.p.x + TUNE.search);
+  const legs = [];
+  let at = st.gaze.aim;
   const count = 3 + (rand(st) < 0.5 ? 1 : 0);
   for (let i = 0; i < count; i++) {
-    let x;
-    do x = lo + rand(st) * (hi - lo); while (Math.abs(x - at) < 360);
+    // somewhere near where the sailor is, but always a real swing
+    let x = lo + rand(st) * Math.max(0, hi - lo);
+    if (Math.abs(x - at) < 260) x = at + (at - lo > hi - at ? -1 : 1) * (260 + rand(st) * 120);
+    x = clamp(x, TUNE.aimRange[0], TUNE.aimRange[1]);
     legs.push(Math.round(x)); at = x;
   }
-  legs.push(TUNE.restAim);
+  // Near the throne, it always comes home to rest on the pearl.
+  if (st.p.x > PEDESTAL.x - 900) legs.push(TUNE.restAim);
   return legs;
 }
 

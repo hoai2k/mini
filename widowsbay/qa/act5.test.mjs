@@ -155,7 +155,7 @@ test('endings are chosen from carry, in order', () => {
 
 test('the clifftop is only reachable from the giant\'s boot', () => {
   const st = act.create({ seed: 1 });
-  const ledge = st.holds.findIndex((h) => h.x === 800 && h.y === 1340);
+  const ledge = st.holds.findIndex((h) => h.x === 330 && h.y === 1830);
   const boot = st.holds.findIndex((h) => h.kind === 'boot');
   for (const [, v, leap] of TRIES) {
     const j = pickHold(st, ledge, v, leap);
@@ -163,10 +163,10 @@ test('the clifftop is only reachable from the giant\'s boot', () => {
   }
   st.beat = 0.5; // the boot is raised mid-beat
   assert.ok(holdY(st.holds[boot], st.beat) > st.holds[boot].y + 90);
-  assert.equal(st.holds[pickHold(st, boot, DIRV.left, false)].kind, 'top', 'a raised boot reaches the grass');
+  assert.equal(st.holds[pickHold(st, boot, DIRV.right, false)].kind, "top", "a raised boot reaches the grass");
   st.beat = 1.5; // planted: too far to climb, a leap still makes it
-  assert.notEqual(st.holds[pickHold(st, boot, DIRV.left, false)]?.kind, 'top');
-  assert.equal(st.holds[pickHold(st, boot, DIRV.left, true)].kind, 'top');
+  assert.notEqual(st.holds[pickHold(st, boot, DIRV.right, false)]?.kind, "top");
+  assert.equal(st.holds[pickHold(st, boot, DIRV.right, true)].kind, "top");
 });
 
 test('the boot carries a climber standing on it', () => {
@@ -366,9 +366,74 @@ test('the pageant counts the sleepers, capped at twelve, then irises to won', ()
   }
 });
 
-test('drawing is registered: no randomness in draw', () => {
-  const src = (await_ => await_)(null);
-  void src;
+// A recording stand-in for the renderer's kit: every call on the context and
+// the kit is logged, so two draws of the same state can be compared.
+function mockKit(images = {}) {
+  const log = [];
+  const grad = { addColorStop: () => {} };
+  const c = new Proxy({}, {
+    get(_, k) {
+      if (k === 'createLinearGradient' || k === 'createRadialGradient') return () => grad;
+      return (...args) => log.push([k, ...args.map((v) => (typeof v === 'number' ? Math.round(v * 100) / 100 : v))]);
+    },
+    set(_, k, v) { log.push(['=' + String(k), typeof v === 'number' ? Math.round(v * 100) / 100 : v]); return true; },
+  });
+  const rec = (name, ret) => (...args) => { log.push([name, ...args.map((v) => (typeof v === 'number' ? Math.round(v * 100) / 100 : v))]); return ret; };
+  const kit = {
+    c, P: { mode: 'tint' }, PAL: {}, t: 0, log,
+    col: (h) => h, img: (id) => images[id],
+    asset: (id, ...a) => { rec('asset', !!images[id])(id, ...a); return !!images[id]; },
+    assetCrop: (id, ...a) => { rec('crop', !!images[id])(id, ...a); return !!images[id]; },
+  };
+  for (const k of ['wire', 'circle', 'star', 'cloud', 'moon', 'sky', 'waves', 'lighthouse', 'band', 'keepsake', 'moonboat', 'wash', 'iris']) kit[k] = rec(k);
+  for (const k of ['burst', 'text', 'flash', 'shake']) kit[k] = () => {};
+  return kit;
+}
+
+function drawTwice(st, t, images) {
+  const a = mockKit(images), b = mockKit(images);
+  a.t = b.t = t;
+  act.draw(a, st, t); act.drawOver(a, st, t);
+  act.draw(b, st, t); act.drawOver(b, st, t);
+  const i = a.log.findIndex((x, j) => JSON.stringify(x) !== JSON.stringify(b.log[j]));
+  assert.ok(i < 0 && a.log.length === b.log.length, `draw differs between passes in ${st.phase} at ${i}: ${JSON.stringify(a.log[i])} vs ${JSON.stringify(b.log[i])} after ${JSON.stringify(a.log[i - 1])}`);
+  assert.ok(a.log.length > 20, `draws something in ${st.phase}`);
+  return a.log;
+}
+
+test('drawing: every phase draws, identically in both passes, with and without art', () => {
+  const trio = { 'band-trio': { width: 900, height: 900 } };
+  for (const images of [{}, trio]) {
+    for (const carry of [{ pearl: true, guitar: true, sleepers: 6, tea: 3, stone: true }, { rose: true, sleepers: 12 }, {}]) {
+      const h = sim(carry, 3);
+      const seen = new Set();
+      const plan = housePlan(!!carry.stone);
+      let frame = 0;
+      const look = (s) => { if (++frame % 20 === 0) { drawTwice(s, h.time, images); seen.add(s.phase); for (const e of s.events) act.onEvent(mockKit(images), e, s); } };
+      h.until((s) => s.phase !== 'cliff', 120, (s) => { look(s); return cliffBot(s); });
+      h.until((s) => s.phase !== 'storm', 10, (s) => { look(s); return {}; });
+      h.until((s) => s.phase !== 'house', 120, (s) => { look(s); return houseBot(s, plan); });
+      h.until((s) => s.phase !== 'quay', 40, (s) => { look(s); return houseBot(s, plan); });
+      h.until((s) => s.status !== 'play', 60, (s) => { look(s); return {}; });
+      drawTwice(h.st, h.time, images);
+      for (const ph of ['cliff', 'storm', 'house', 'quay', 'ending', 'pageant', 'iris']) assert.ok(seen.has(ph), `drew ${ph}`);
+    }
+  }
+  // the defeat beat draws too
+  const d = sim();
+  d.until((s) => s.defeatT != null, 60);
+  d.run(0.5);
+  drawTwice(d.st, d.time, {});
+});
+
+test('events get onEvent and announce without throwing', () => {
+  const h = sim({ tea: 3, stone: true, pearl: true, sleepers: 3 });
+  const types = new Set();
+  const plan = housePlan(true);
+  h.until((s) => s.status !== 'play', 200, (s) => (s.phase === 'cliff' ? cliffBot(s) : houseBot(s, plan)));
+  for (const e of h.events) { types.add(e.type); act.onEvent(mockKit(), e, h.st); act.announce(e); }
+  for (const t of ['rockScrape', 'leap', 'stoneWarn', 'stoneFall', 'clifftop', 'strike', 'fireRoar', 'houseOpen', 'fireCrackle', 'stoneThrow', 'shutterSmash', 'liftHer', 'floorBreak', 'carryStep', 'houseFall', 'ending', 'lampLit', 'pageant', 'pageantJoin', 'pageantApplause']) assert.ok(types.has(t), t);
+  console.log('     events:', [...types].sort().join(' '));
 });
 
 console.log(`\n${n} tests passed`);

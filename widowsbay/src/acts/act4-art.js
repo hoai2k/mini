@@ -54,14 +54,15 @@ function belly(k, st, t) {
   c.save(); c.translate(-cam.x, -cam.y);
   const L = cam.x - 320, R = cam.x + 1600;
   throat(k, st, t);
+  midRibs(k, L, R);
   LANTERN_XS.forEach((x, i) => { if (x > L && x < R) lantern(k, st, x, i, t); });
   for (const p of st.ledges) { const e = extent(p); if (e.x1 > L && e.x0 < R) ledge(k, p); }
-  pearls(k, st, t, L, R);
   if (!st.stone) stone(k, t);
   for (const h of HOOKS) if (h.ax > L - 300 && h.ax < R + 300) hook(k, st, h);
   for (const f of st.floaters) if (f.x > L - 150 && f.x < R + 150) floater(k, f);
   floor(k, st, t, L, R);
   water(k, st, t, L, R);
+  pearls(k, st, t, L, R);
   floorOmens(k, st, t, L, R);
   sailor(k, st, t);
   c.restore();
@@ -96,6 +97,19 @@ function backcloth(k, st, t) {
     c.beginPath(); c.moveTo(x + dx, y0); c.lineTo(x + dx + 3, y0 + 60 + Math.sin(t + dx) * 8); c.stroke();
   }
   c.restore();
+}
+
+// The whale's ribs in the midground: each rises from the stomach floor and
+// arches away overhead, as the set's own rib flats.
+function midRibs(k, L, R) {
+  const c = k.c, gap = 560;
+  c.lineCap = 'round';
+  for (let x = Math.floor(L / gap) * gap + 90; x < R + 300; x += gap) {
+    c.strokeStyle = k.col('#6e5a4e'); c.lineWidth = 34;
+    c.beginPath(); c.moveTo(x, 720); c.quadraticCurveTo(x - 20, -200, x + 380, -1100); c.stroke();
+    c.strokeStyle = k.col('#b8a387'); c.lineWidth = 6;
+    c.beginPath(); c.moveTo(x - 10, 720); c.quadraticCurveTo(x - 30, -200, x + 370, -1100); c.stroke();
+  }
 }
 
 // A pointed (Gothic) arch from legs at xl and xr, springing at sy, apex at ay.
@@ -157,19 +171,27 @@ function ledge(k, p) {
     c.beginPath(); c.moveTo(-200, 760); c.lineTo(-200, y - 6); c.lineTo(x1 - 20, y - 6); c.quadraticCurveTo(x1 + 10, y + 40, x1 - 10, 760); c.fill();
     c.fillStyle = k.col(FLESH_LIT); c.fillRect(-200, y - 6, x1 - 10 + 200, 12);
   } else if (p.kind === 'lip') {
+    // the fleshy lower lip of the throat, a soft rounded tongue of flesh
     c.fillStyle = k.col(FLESH);
-    c.beginPath(); c.moveTo(x0 + 10, y); c.quadraticCurveTo(x0 - 30, y + 60, x0 + 40, y + 160); c.lineTo(x1 + 300, y + 160); c.lineTo(x1 + 300, y); c.fill();
-    c.fillStyle = k.col(FLESH_LIT); c.fillRect(x0, y - 4, x1 - x0 + 300, 12);
+    c.beginPath(); c.moveTo(x0, y + 2);
+    c.quadraticCurveTo(x0 - 26, y + 40, x0 + 20, y + 80); c.quadraticCurveTo(x0 + 110, y + 130, x1 + 200, y + 70);
+    c.lineTo(x1 + 200, y - 4); c.quadraticCurveTo(cx, y - 14, x0, y + 2); c.fill();
+    c.fillStyle = k.col(FLESH_LIT); c.beginPath(); c.moveTo(x0 + 4, y - 2); c.quadraticCurveTo(cx, y - 14, x1 + 200, y - 4); c.lineTo(x1 + 200, y + 8); c.quadraticCurveTo(cx, y - 2, x0 + 4, y + 8); c.fill();
   } else {
     // A rib rising from the stomach floor and curving away into the dark,
     // with a bone shelf jutting from it.
-    if (!k.asset('rib-arch', cx, Math.max(y + 480, 700), 300, 433)) {
-      c.strokeStyle = k.col(BONE_DARK); c.lineWidth = 30; c.lineCap = 'round';
-      c.beginPath(); c.moveTo(cx - 10, 720); c.quadraticCurveTo(cx - 30, y - 120, cx + 60, y - 380); c.stroke();
-      c.strokeStyle = k.col(BONE); c.lineWidth = 8;
-      c.beginPath(); c.moveTo(cx - 20, 720); c.quadraticCurveTo(cx - 40, y - 120, cx + 50, y - 380); c.stroke();
+    // A bone shelf jutting from a rib: a short curved bracket under it.
+    if (!k.asset('rib-arch', cx, y + 300, 140, 300)) {
+      const side = (Math.round(cx / 10) % 2) ? 1 : -1; // brackets lean either way
+      c.fillStyle = k.col(BONE_DARK);
+      c.beginPath(); c.moveTo(x0 + 8, y + 8); c.lineTo(x1 - 8, y + 8);
+      c.quadraticCurveTo(cx + side * 10, y + 40, cx + side * 46, y + 120);
+      c.lineTo(cx + side * 30, y + 124);
+      c.quadraticCurveTo(cx - side * 8, y + 50, x0 + 8, y + 8); c.fill();
+      c.strokeStyle = k.col(BONE); c.lineWidth = 3;
+      c.beginPath(); c.moveTo(cx - side * 20, y + 14); c.quadraticCurveTo(cx, y + 50, cx + side * 36, y + 118); c.stroke();
     }
-    c.fillStyle = k.col('#5e4a3a'); c.beginPath(); c.moveTo(x0 + 6, y + 6); c.lineTo(x1 - 6, y + 6); c.lineTo(cx + 18, y + 34); c.lineTo(cx - 18, y + 34); c.fill();
+    c.fillStyle = k.col('#5e4a3a'); c.beginPath(); c.roundRect(x0 + 4, y + 8, x1 - x0 - 8, 8, 4); c.fill();
     c.fillStyle = k.col(IVORY); c.beginPath(); c.roundRect(x0, y - 2, x1 - x0, 16, 7); c.fill();
   }
   c.fillStyle = k.col(TOP_EDGE); c.fillRect(x0 + 4, y - 3, x1 - x0 - 8, 3);
@@ -180,9 +202,12 @@ function pearls(k, st, t, L, R) {
   for (const p of st.pearlsLeft) {
     if (p.got || p.x < L || p.x > R) continue;
     const y = p.y + Math.sin(t * 3 + p.i) * 4;
-    if (k.asset('pearl', p.x, y + 12, 26, 26)) continue;
-    c.fillStyle = k.col('#efe9f2'); k.circle(p.x, y, 10);
-    c.fillStyle = k.col('#ffffff'); k.circle(p.x - 3, y - 3, 3);
+    c.globalAlpha = y > st.water ? 0.3 : 1; // drowned until the water falls
+    if (!k.asset('pearl', p.x, y + 12, 26, 26)) {
+      c.fillStyle = k.col('#efe9f2'); k.circle(p.x, y, 10);
+      c.fillStyle = k.col('#ffffff'); k.circle(p.x - 3, y - 3, 3);
+    }
+    c.globalAlpha = 1;
   }
 }
 
@@ -207,7 +232,7 @@ function hook(k, st, h) {
   // The tea-leaf omen: where the hook will be one beat from now.
   if (st.carry.tea >= 3) {
     const f = hookTip(h, st.beat + 1);
-    c.save(); c.globalAlpha = 0.65; k.keepsake('leaf', f.x, f.y - 4, 0.6); c.restore();
+    omen(k, f.x, f.y, 0.85);
   }
 }
 
@@ -268,7 +293,7 @@ function starfish(k, x, y) {
 }
 
 function floor(k, st, t, L, R) {
-  const c = k.c, bare = st.water > 612;
+  const c = k.c, bare = st.water > 580;
   c.fillStyle = k.col(FLESH);
   c.beginPath(); c.moveTo(L, 1300);
   for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x));
@@ -277,7 +302,7 @@ function floor(k, st, t, L, R) {
   c.beginPath(); for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x) + 4); c.stroke();
   if (bare) {
     // The bare lining smarts: it reddens and fizzes.
-    const k2 = clamp((st.water - 612) / 40, 0, 1);
+    const k2 = clamp((st.water - 580) / 40, 0, 1);
     c.save(); c.globalAlpha = 0.45 * k2; c.fillStyle = k.col('#e0405a');
     c.beginPath(); c.moveTo(L, 1300); for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x)); c.lineTo(R, 1300); c.fill();
     c.globalAlpha = 0.8 * k2; c.fillStyle = k.col('#f3c6dc');
@@ -299,7 +324,7 @@ function water(k, st, t, L, R) {
     return;
   }
   const g = c.createLinearGradient(0, y, 0, y + 260);
-  g.addColorStop(0, k.col('#4c5a55')); g.addColorStop(1, k.col('#1e2229'));
+  g.addColorStop(0, k.col('#5f6e66')); g.addColorStop(1, k.col('#2a2b36'));
   c.fillStyle = g;
   c.beginPath(); c.moveTo(L, 1300);
   for (let x = L; x <= R; x += 40) c.lineTo(x, y + Math.sin(x * 0.02 + t * 1.6) * amp);
@@ -311,14 +336,19 @@ function water(k, st, t, L, R) {
 }
 const img = (k, id) => !!k.img(id);
 
+// A tea-leaf omen glyph on a pale disc, so it reads against anything.
+function omen(k, x, y, alpha) {
+  const c = k.c;
+  c.save(); c.globalAlpha = alpha * 0.55; c.fillStyle = k.col('#f6ead0'); k.circle(x, y, 17); c.restore();
+  c.save(); c.globalAlpha = alpha; k.keepsake('leaf', x, y - 4, 0.75); c.restore();
+}
+
 // The tea-leaf omen over the floor, a beat before the low tide bares it.
 function floorOmens(k, st, t, L, R) {
   const b = st.breath.b;
   if (st.carry.tea < 3 || b < 8.2 || b >= 12) return;
   const c = k.c;
-  c.save(); c.globalAlpha = 0.5 + 0.3 * Math.sin(t * 8);
-  for (let x = Math.ceil(L / 240) * 240 + 120; x < R; x += 240) k.keepsake('leaf', x, floorY(x) - 34, 0.55);
-  c.restore();
+  for (let x = Math.ceil(L / 240) * 240 + 120; x < R; x += 240) omen(k, x, floorY(x) - 40, 0.7 + 0.3 * Math.sin(t * 8));
 }
 
 // ---------------------------------------------------------------- the sailor
@@ -368,7 +398,7 @@ function foreRibs(k, st) {
   const c = k.c, gap = 1500, ox = -((st.cam.x * 1.35) % gap), oy = -st.cam.y * 0.4;
   c.save(); c.lineCap = 'round';
   for (let x = ox - gap; x < 1280 + gap; x += gap) {
-    for (const [col, lw] of [['#1b0b16', 46], ['#4a2238', 6]]) {
+    for (const [col, lw] of [['#2c1324', 30], ['#7a5262', 4]]) {
       c.strokeStyle = k.col(col); c.lineWidth = lw;
       c.beginPath(); c.moveTo(x, 780); c.quadraticCurveTo(x - 10, 120 + oy, x + 260, -160 + oy); c.stroke();
       c.beginPath(); c.moveTo(x + 1180, 780); c.quadraticCurveTo(x + 1190, 120 + oy, x + 920, -160 + oy); c.stroke();
@@ -419,30 +449,35 @@ function shoreScene(k, st, t) {
   const c = k.c, n = st.revellers, T = shoreTimes(n);
   const pt = st.phase === 'shore' ? st.phaseT : T.end + (st.phase === 'iris' ? st.phaseT : OUTRO.iris);
   // pale sky and hung clouds
-  const g = c.createLinearGradient(0, 60, 0, 480);
-  g.addColorStop(0, k.col('#e8d3cf')); g.addColorStop(1, k.col('#f6e6da'));
+  const g = c.createLinearGradient(0, 60, 0, 440);
+  g.addColorStop(0, k.col('#e9b9c4')); g.addColorStop(1, k.col('#f8ded6'));
   c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
-  k.cloud(320, 170, 0.8, '#f3e9e6'); k.cloud(930, 130, 0.65, '#f3e9e6');
-  // the whale, beached, then sliding back into the sea
-  const slide = easeInOut((pt - T.slide) / 2.4);
-  const wx = 520 - slide * 1000, wb = 600 + slide * 90;
-  if (slide < 1) whaleBeached(k, wx, wb, t);
-  // its tail lifts and slips away
-  const tk = pt - T.tail, lift = easeOut(tk / 1.2) - easeInOut((tk - 1.8) / 1.2);
-  if (tk > 0 && lift > 0.01 && !k.asset('whale-tail', 250, 520 + (1 - lift) * 260, 350, 250)) tailStandin(k, 250, 520 + (1 - lift) * 260);
+  k.cloud(320, 170, 0.8, '#f6e4e6'); k.cloud(930, 130, 0.65, '#f6e4e6');
   sea(k, t);
+  // its tail lifts out of the sea and slips away
+  const tk = pt - T.tail, lift = easeOut(tk / 1.2) - easeInOut((tk - 1.8) / 1.2);
+  if (tk > 0 && lift > 0.01) {
+    c.save(); c.beginPath(); c.rect(0, 0, 1280, SEA_Y + 4); c.clip();
+    const by = SEA_Y + 10 + (1 - lift) * 260;
+    if (!k.asset('whale-tail', 260, by, 350, 250)) tailStandin(k, 260, by);
+    c.restore();
+  }
+  // the whale, beached on the rocks, then sliding back into the sea
+  const slide = easeInOut((pt - T.slide) / 2.4);
+  const wx = 520 - slide * 1000, wb = 560 + slide * 70;
+  if (slide < 1) whaleBeached(k, wx, wb, t);
   rocks(k);
   // the sailor crawls out of the mouth onto the rocks
-  const mouth = { x: 520 + 330, y: 520 };
+  const mouth = { x: 520 + 360, y: 470 };
   const sp = clamp((pt - T.crawl) / 2, 0, 1);
-  crawler(k, mouth, { x: 1060, y: 622 }, sp, (fr) => drawSailor(k, fr), t);
+  crawler(k, mouth, { x: 1060, y: 612 }, sp, (fr) => drawSailor(k, fr), t);
   for (let i = 0; i < n; i++) {
     const p = clamp((pt - T.out - i * T.gap) / 1.6, 0, 1);
     if (p <= 0) continue;
-    const r = REV[i % REV.length], to = { x: 1000 - i * 58, y: 616 + (i % 2) * 14 };
+    const r = REV[i % REV.length], to = { x: 1000 - i * 58, y: 606 + (i % 2) * 14 };
     crawler(k, mouth, to, p, () => { if (!k.asset(r.id, 0, 0, 60, 115)) figure(k, r.col, Math.sin(t * 6 + i) * 0.5 + 0.5); }, t);
   }
-  k.wash('#f3c6dc', 0.32); // the video's rose-pink stage wash
+  k.wash('#e7a6bd', 0.3); // the video's rose-pink stage wash
 }
 
 // Crawl from `a` to `b` head-first, low to the ground, then stand up.
@@ -505,9 +540,10 @@ function tailStandin(k, x, bottom) {
   for (const dx of [-140, -90, 90, 140]) { c.beginPath(); c.moveTo(x + dx, bottom - 220); c.lineTo(x + dx * 1.05, bottom - 140); c.stroke(); }
 }
 
+const SEA_Y = 430;
 function sea(k, t) {
-  const c = k.c, y = 500;
-  c.fillStyle = k.col('#7fa3a1');
+  const c = k.c, y = SEA_Y;
+  c.fillStyle = k.col('#6f9896');
   c.beginPath(); c.moveTo(0, 720); for (let x = 0; x <= 1280; x += 40) c.lineTo(x, y + Math.sin(x * 0.03 + t * 1.5) * 5); c.lineTo(1280, 720); c.fill();
   c.strokeStyle = k.col('#ffffff'); c.lineWidth = 3;
   c.beginPath(); for (let x = 0; x <= 1280; x += 40) c.lineTo(x, y + Math.sin(x * 0.03 + t * 1.5) * 5); c.stroke();
@@ -518,10 +554,10 @@ function sea(k, t) {
 function rocks(k) {
   if (k.asset('shore-rocks', 640, 720, 1280, 300)) return;
   const c = k.c;
-  const ridge = [[0, 590], [90, 560], [180, 575], [300, 548], [420, 580], [520, 560], [640, 585], [760, 566], [880, 590], [980, 596], [1080, 606], [1180, 590], [1280, 600]];
-  c.fillStyle = k.col('#cfc6bd');
+  const ridge = [[0, 540], [90, 505], [180, 522], [300, 498], [420, 530], [520, 512], [640, 536], [760, 520], [880, 546], [980, 560], [1080, 572], [1180, 556], [1280, 566]];
+  c.fillStyle = k.col('#b5a6a3');
   c.beginPath(); c.moveTo(0, 720); for (const [x, y] of ridge) c.lineTo(x, y); c.lineTo(1280, 720); c.fill();
-  c.fillStyle = k.col('#a69d95');
+  c.fillStyle = k.col('#857677');
   for (let i = 0; i < ridge.length - 1; i += 2) { const [x0, y0] = ridge[i], [x1] = ridge[i + 1]; c.beginPath(); c.moveTo(x0 + 10, 720); c.lineTo(x0 + 30, y0 + 40); c.lineTo(x1, y0 + 60); c.lineTo(x1 + 20, 720); c.fill(); }
   c.strokeStyle = k.col('#ffffff'); c.lineWidth = 4;
   c.beginPath(); for (const [x, y] of ridge) c.lineTo(x, y - 4); c.stroke();

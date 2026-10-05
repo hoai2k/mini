@@ -13,16 +13,17 @@ export const LANTERNS = 3;
 
 // ---------------------------------------------------------------- the cliff
 // World units: x as on stage, y upward from the shore (0) to the clifftop.
+const TOP = 1990;
 export const CLIFF = {
-  top: 1500,          // the grass edge
+  top: TOP,           // the grass edge
   reach: 130,         // a plain climb move
   leap: 190,          // A: leap between ledges
-  climbT: 0.22, leapT: 0.42, fallT: 0.45,
+  climbT: 0.34, leapT: 0.55, fallT: 0.5,
   crumbleT: 0.7,      // a loose hold gives way this long after you take it
-  camMax: 1170,       // the camera's highest point during the climb
+  camMax: TOP - 330,       // the camera's highest point during the climb
   bootLift: 100,      // how high the giant raises his boot on the beat
   stoneWarn: 1.1,     // dust gathers this long before a stone drops
-  stoneEvery: [2.3, 3.4],
+  stoneEvery: [2.0, 3.0],
 };
 
 // Kinds: ledge (wide), hold, crumble (gives way), gap (the tiny guitarist's
@@ -31,23 +32,26 @@ export const CLIFF = {
 export const HOLDS = [
   // the shore and a warm-up zigzag
   { x: 420, y: 0, kind: 'ledge' }, { x: 540, y: 0, kind: 'ledge', start: true }, { x: 660, y: 0, kind: 'ledge' },
-  { x: 560, y: 95 }, { x: 700, y: 100 },
-  { x: 640, y: 190 }, { x: 790, y: 195 },
-  { x: 720, y: 285 }, { x: 870, y: 290, pearl: true },
-  { x: 800, y: 380 },
+  { x: 560, y: 95 }, { x: 700, y: 100 }, { x: 640, y: 190 }, { x: 790, y: 195 },
+  { x: 720, y: 285 }, { x: 870, y: 290, pearl: true }, { x: 800, y: 380 },
   // a traverse left across the open face, under the stones
   { x: 740, y: 470 }, { x: 630, y: 465 }, { x: 520, y: 470 }, { x: 410, y: 475, pearl: true },
   { x: 330, y: 560 }, { x: 360, y: 650, kind: 'ledge' },
-  // a blank wall: leap it
-  { x: 480, y: 790 }, { x: 600, y: 790, pearl: true },
+  // back up to the right, past a loose hold with a pearl on it
+  { x: 450, y: 740 }, { x: 560, y: 745 }, { x: 540, y: 850, kind: 'crumble', pearl: true },
+  { x: 650, y: 830 }, { x: 760, y: 840 }, { x: 850, y: 930 }, { x: 900, y: 1030, kind: 'ledge' },
+  // a blank wall: leap it, then traverse
+  { x: 820, y: 1185 }, { x: 710, y: 1190 }, { x: 600, y: 1180 }, { x: 490, y: 1190 },
   // the tiny guitarist's gap is the safe handhold between two loose ones
-  { x: 400, y: 900, kind: 'crumble' }, { x: 530, y: 905, kind: 'gap' }, { x: 650, y: 895, kind: 'crumble' },
-  { x: 480, y: 1000 }, { x: 590, y: 1010 }, { x: 700, y: 1000 }, { x: 810, y: 1010, pearl: true },
-  { x: 860, y: 1100 }, { x: 930, y: 1190, kind: 'crumble' }, { x: 780, y: 1190 },
-  { x: 700, y: 1280 }, { x: 800, y: 1340, kind: 'ledge' },
+  { x: 400, y: 1290, kind: 'crumble' }, { x: 530, y: 1295, kind: 'gap' }, { x: 650, y: 1285, kind: 'crumble' },
+  { x: 480, y: 1390 }, { x: 590, y: 1400 }, { x: 700, y: 1390 }, { x: 810, y: 1400, pearl: true },
+  // up under the huge guitarist, and back across to the left
+  { x: 860, y: 1490 }, { x: 900, y: 1585, kind: 'crumble' }, { x: 780, y: 1580 },
+  { x: 670, y: 1590 }, { x: 560, y: 1600 }, { x: 450, y: 1610, pearl: true },
+  { x: 380, y: 1700 }, { x: 420, y: 1790 }, { x: 330, y: 1830, kind: 'ledge' }, { x: 560, y: 1760, pearl: true },
   // the giant's boot, then over the lip
-  { x: 860, y: 1435, kind: 'boot' },
-  { x: 740, y: 1506, kind: 'top' }, { x: 600, y: 1506, kind: 'top' },
+  { x: 380, y: TOP - 65, kind: 'boot' },
+  { x: 500, y: TOP + 6, kind: 'top' }, { x: 620, y: TOP + 6, kind: 'top' },
 ];
 
 export const bootLift = (beat) => (((Math.floor(beat) % 2) + 2) % 2 === 0 ? Math.sin(Math.PI * beatPhase(beat)) : 0);
@@ -66,7 +70,9 @@ export function pickHold(st, from, dir, leap = false) {
     const dx = h.x - a.x, dy = holdY(h, st.beat) - ay, d = Math.hypot(dx, dy);
     if (d > max || d < 1) return;
     const along = dx * dir.x + dy * dir.y;
-    if (along < 0.5 * d) return;                    // within 60 degrees of the stick
+    // Within 50 degrees of the stick; from the boot, any push up or across
+    // toward the grass steps onto it.
+    if (along < (h.kind === 'top' && a.kind === 'boot' ? -0.2 * d : 0.64 * d)) return;
     // Sideways, prefer the higher hold: this is a climb.
     const s = d + Math.abs(dx * dir.y - dy * dir.x) * 0.8 - (Math.abs(dir.y) < 0.5 ? dy * 0.3 : 0);
     if (s < bs) { bs = s; best = i; }
@@ -97,7 +103,7 @@ const CONNS_START = () => [
 export const QUAY = { y: 604, x0: 300, x1: 1050, warn: 0.9, every: [1.3, 1.8] };
 
 // Cut-scene lengths, seconds.
-export const T = { storm: 4.8, ending: 11, pageant: 10.5, iris: 1.6, defeat: 1.8, lift: 0.8 };
+export const T = { storm: 4.8, ending: 12, pageant: 11.5, iris: 1.6, defeat: 1.8, lift: 0.8 };
 
 const PROG = { cliff: [0, 0.45], up: [0.45, 0.7], carry: [0.7, 0.9], quay: [0.9, 1] };
 
@@ -415,7 +421,7 @@ function stepHouse(st, dt, input) {
         const nearShutter = p.f === 1 && st.shutter === 'shut' && p.x >= H.shutterX && !p.carry;
         if (input.a && nearShutter) {
           if (st.carry.stone && !st.stoneThrown) { st.stoneThrown = true; st.throwT = 0; st.events.push({ type: 'stoneThrow' }); }
-          else if (st.lockedT <= 0) { st.lockedT = 0.8; st.events.push({ type: 'shutterLocked' }); }
+          else if (st.lockedT <= 0 && st.throwT == null) { st.lockedT = 0.8; st.events.push({ type: "shutterLocked" }); }
         } else if (input.a && !p.carry) {
           p.vy = -H.jump; p.f = -1; p.airTop = p.y; st.events.push({ type: 'leap' });
         } else if (!onSpan(st, p.f, p.x)) {
@@ -547,7 +553,7 @@ function stepEnding(st) {
 
 // Pageant schedule: the backcloth flies in, the dancers take the line, each
 // woken reveller steps in, the Sea King and the witch, then the band.
-export const PAGEANT = { fly: 1.6, dancers: 1.0, joinFrom: 2.4, joinTo: 6.0, court: 3.2, band: 4.0, applause: 8.0 };
+export const PAGEANT = { fly: 1.6, dancers: 1.0, joinFrom: 2.4, joinTo: 6.0, court: 3.2, band: 4.0, applause: 8.5 };
 export const joinAt = (i, n) => PAGEANT.joinFrom + (n <= 1 ? 0 : (i * (PAGEANT.joinTo - PAGEANT.joinFrom)) / (n - 1));
 
 function stepPageant(st) {

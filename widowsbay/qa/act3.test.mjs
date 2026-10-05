@@ -199,7 +199,7 @@ test('guards bump; changing groove is tweened', () => {
 test('pearls along the grooves score', () => {
   const st = make(); calm(st); st.courtiers = [];
   st.p.row = st.p.from = 2; st.p.x = 300; st.carry.rose = true;
-  run(st, 3, () => ({ moveX: 1 }));
+  run(st, 4.5, () => ({ moveX: 1 }));
   assert.ok(st.pearls >= 2); assert.equal(st.score, st.pearls * 10);
 });
 

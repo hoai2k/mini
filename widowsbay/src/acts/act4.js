@@ -6,9 +6,9 @@ import { clamp, easeInOut } from './shared.js';
 import * as art from './act4-art.js';
 
 export const BEAT_S = 60 / 76.5;     // fallback beat length if no beat comes in
-export const W = 5950;               // the set is this wide (world units = stage px)
+export const W = 6300;               // the set is this wide (world units = stage px)
 export const WALL = [170, W - 150];  // the sailor stays between these
-export const WATER = { mean: 520, high: 350, low: 655 };
+export const WATER = { mean: 490, high: 320, low: 625 };
 export const BREATH_BEATS = 16;      // four bars of 4/4
 export const TILT = 0.055;           // radians, the cradle's main swing
 export const PIVOT = { x: 640, y: 800 }; // screen point the set rocks about
@@ -19,30 +19,31 @@ export const GRACE = 1.6;
 export const HOOK_R = 18;
 
 // The stomach floor: a ridged lining, exposed at low tide.
-export const floorY = (x) => 628 + 10 * Math.sin(x * 0.013) + 6 * Math.sin(x * 0.031 + 1);
+export const floorY = (x) => 598 + 10 * Math.sin(x * 0.013) + 6 * Math.sin(x * 0.031 + 1);
 
 // Rib ledges (fixed, dry: no slip). One-way platforms: land from above.
 export const LEDGES = [
-  { id: 'bank', x0: 150, x1: 380, y: 470, kind: 'bank' },
+  { id: 'bank', x0: 150, x1: 380, y: 300, kind: 'bank' },
   { id: 'L1', x0: 1260, x1: 1440, y: 200 },
-  { id: 'L2', x0: 1570, x1: 1730, y: 230 },
+  { id: 'L2', x0: 1570, x1: 1730, y: 210 },
   { id: 'L2b', x0: 1830, x1: 1930, y: 100 },  // a side climb for pearls
   { id: 'LP', x0: 1640, x1: 1760, y: -30 },
-  { id: 'L2c', x0: 1800, x1: 1910, y: 360 },
+  { id: 'L2c', x0: 1800, x1: 1910, y: 300 },
   { id: 'L3', x0: 2860, x1: 3020, y: 190 },
   { id: 'L4', x0: 3130, x1: 3250, y: 270 },
   { id: 'L5', x0: 3900, x1: 4060, y: 180 },
-  { id: 'L5b', x0: 4180, x1: 4300, y: 300 },
-  { id: 'L6', x0: 5020, x1: 5180, y: 200 },
+  { id: 'L5b', x0: 4180, x1: 4300, y: 290 },
+  { id: 'L5c', x0: 4840, x1: 4980, y: 210 },
+  { id: 'L6', x0: 5370, x1: 5530, y: 200 },
   // the climb up the ribcage to the throat
-  { id: 'T1', x0: 5260, x1: 5380, y: 80 },
-  { id: 'T2', x0: 5100, x1: 5220, y: -50 },
-  { id: 'T3', x0: 5300, x1: 5420, y: -180 },
-  { id: 'T4', x0: 5520, x1: 5640, y: -260 },
-  { id: 'T5', x0: 5380, x1: 5490, y: -390 },
-  { id: 'TSa', x0: 5230, x1: 5330, y: -500 },  // the detour to the stone
-  { id: 'TS', x0: 5060, x1: 5170, y: -620, stone: true },
-  { id: 'lip', x0: 5580, x1: 5800, y: -470, kind: 'lip' },
+  { id: 'T1', x0: 5610, x1: 5730, y: 80 },
+  { id: 'T2', x0: 5450, x1: 5570, y: -50 },
+  { id: 'T3', x0: 5650, x1: 5770, y: -180 },
+  { id: 'T4', x0: 5870, x1: 5990, y: -260 },
+  { id: 'T5', x0: 5730, x1: 5840, y: -390 },
+  { id: 'TSa', x0: 5580, x1: 5680, y: -500 },  // the detour to the stone
+  { id: 'TS', x0: 5410, x1: 5520, y: -620, stone: true },
+  { id: 'lip', x0: 5930, x1: 6150, y: -470, kind: 'lip' },
 ];
 
 // Floating wreckage, each riding in its own slot of the stage floor: it slides
@@ -69,22 +70,24 @@ export const FLOATERS = [
   { id: 'F11', kind: 'barrel', home: 3820, range: 40 },
   { id: 'F12', kind: 'debris', home: 4470, range: 40 },
   { id: 'F13', kind: 'figurehead', home: 4740, range: 45 },
-  { id: 'F14', kind: 'crate', home: 4940, range: 40 },
+  { id: 'F14', kind: 'crate', home: 5100, range: 40 },
+  { id: 'F15', kind: 'barrel', home: 5290, range: 40 },
 ].map((f) => ({ ...FLOAT_KINDS[f.kind], ...f }));
 
 // Swallowed fish-hooks on lines from the dark above, swinging on the beat.
 // Each sweeps `sweep` either side of `ax` at about `tipY`: across a gap, never
 // over the whole of a platform, so there is always somewhere safe to stand.
 export const HOOKS = [
-  { ax: 1505, tipY: 140, sweep: 110, phase: 0 },
+  { ax: 1515, tipY: 140, sweep: 90, phase: 0 },
   { ax: 1795, tipY: -150, sweep: 100, phase: Math.PI },
-  { ax: 2380, tipY: 280, sweep: 120, phase: 1 },
-  { ax: 3490, tipY: 280, sweep: 110, phase: 2.5 },
-  { ax: 4625, tipY: 290, sweep: 110, phase: 0.5 },
-  { ax: 5220, tipY: 20, sweep: 100, phase: 2 },
-  { ax: 5470, tipY: -900, sweep: 70, phase: 3.5 },
-  { ax: 5540, tipY: -460, sweep: 90, phase: 1.2 },
-  { ax: 5200, tipY: -580, sweep: 60, phase: 0 },
+  { ax: 2380, tipY: 250, sweep: 120, phase: 1 },
+  { ax: 3490, tipY: 250, sweep: 110, phase: 2.5 },
+  { ax: 4615, tipY: 260, sweep: 70, phase: 0.5 },
+  { ax: 5160, tipY: 240, sweep: 60, phase: 3 },
+  { ax: 5570, tipY: 20, sweep: 100, phase: 2 },
+  { ax: 5790, tipY: -220, sweep: 80, phase: 3.5 },
+  { ax: 5890, tipY: -460, sweep: 90, phase: 1.2 },
+  { ax: 5510, tipY: -560, sweep: 80, phase: 0 },
 ].map((h) => {
   const ay = Math.min(-1300, h.tipY - 700), len = h.tipY - ay;
   return { ...h, ay, len, amp: Math.asin(h.sweep / len), period: 4 };
@@ -94,11 +97,11 @@ export const HOOKS = [
 export const PEARLS = [
   ...LEDGES.filter((l) => !l.kind && !l.stone).map((l) => [(l.x0 + l.x1) / 2, l.y - 50]),
   ...FLOATERS.map((f) => [f.home, WATER.mean - f.fb - 50]),
-  [1505, 80], [1700, -80], [5440, -330], [5110, -680], [5690, -530],
+  [1515, 80], [1700, -80], [5790, -330], [5460, -680], [6040, -530],
 ];
-export const STONE = { x: 5115, y: -620 };
-export const THROAT = { x: 5740, y: -620, enterX: 5665 };
-export const LANTERN_XS = [900, 2300, 3450, 4600];
+export const STONE = { x: 5465, y: -620 };
+export const THROAT = { x: 6090, y: -620, enterX: 6015 };
+export const LANTERN_XS = [900, 2300, 3450, 4600, 5250];
 
 // Hand-off timing (seconds).
 export const OUTRO = { throat: 1.6, iris: 1.4 };
@@ -169,7 +172,7 @@ export default {
       floaters: FLOATERS.map((f) => ({ ...f, x: f.home, v: 0, top: 0, prevTop: 0, grounded: false })),
       pearlsLeft: PEARLS.map(([x, y], i) => ({ i, x, y, got: false })),
       water: WATER.mean, breath: breath(0), tilt: 0, tiltV: 0,
-      s: { x: 260, y: 470, vx: 0, vy: 0, face: 1, on: 'bank', onT: 0, coyote: 0, buffer: 0, safe: 'bank', walk: 0, air: false },
+      s: { x: 260, y: 300, vx: 0, vy: 0, face: 1, on: 'bank', onT: 0, coyote: 0, buffer: 0, safe: 'bank', walk: 0, air: false },
       cam: { x: 0, y: 0 },
       best: 0,
     };
@@ -363,7 +366,7 @@ function respawn(st) {
 function camera(st, dt) {
   const s = st.s, k = Math.min(1, dt * 5);
   const tx = clamp(s.x - 560, 0, W - 1280);
-  const ty = clamp(Math.min(s.y, 470) - 330, CAM_Y_MIN, 0);
+  const ty = clamp(Math.min(s.y, 440) - 300, CAM_Y_MIN, 0);
   if (st.camInit) { st.cam.x += (tx - st.cam.x) * k; st.cam.y += (ty - st.cam.y) * Math.min(1, dt * 3); }
   else { st.cam.x = tx; st.cam.y = ty; st.camInit = true; }
 }

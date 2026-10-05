@@ -22,7 +22,7 @@ function runner(carry = {}, beat0 = 0) {
 
 // ---------------------------------------------------------------- a scripted climber
 const HEAD = ['bank', 'F1', 'F2', 'F3', 'F4', 'L1', 'L2'];
-const MID = ['L2c', 'F5', 'F6', 'F7', 'F8', 'L3', 'L4', 'F9', 'F10', 'F11', 'L5', 'L5b', 'F12', 'F13', 'F14', 'L6', 'T1', 'T2', 'T3', 'T4', 'T5'];
+const MID = ['L2c', 'F5', 'F6', 'F7', 'F8', 'L3', 'L4', 'F9', 'F10', 'F11', 'L5', 'L5b', 'F12', 'F13', 'L5c', 'F14', 'F15', 'L6', 'T1', 'T2', 'T3', 'T4', 'T5'];
 const MAIN = [...HEAD, ...MID, 'lip'];
 const DETOUR = [...HEAD, 'L2b', 'LP', 'L2', ...MID, 'TSa', 'TS', 'TSa', 'T5', 'lip'];
 
@@ -51,15 +51,26 @@ function jumpClear(st, x, y, tx, ty, delay = 0) {
   return true;
 }
 
+// Would stepping off at x (falling from y to ty) pass clear of every hook?
+function dropClear(st, x, y, ty, delay) {
+  let vy = 0, py = y;
+  for (let t = delay; t < delay + 1.2 && py < ty; t += 0.04) {
+    vy += 2000 * 0.04; py += vy * 0.04;
+    for (const h of HOOKS) { const p = hookTip(h, st.beat + t / BEAT_S); if (Math.abs(p.x - x) < 50 && p.y > py - 130 && p.y < py + 30) return false; }
+  }
+  for (let t = 0; t < 0.6; t += 0.1) for (const h of HOOKS) { const p = hookTip(h, st.beat + (delay + t) / BEAT_S); if (Math.abs(p.x - x) < 40 && p.y > ty - 130 && p.y < ty + 30) return false; }
+  return true;
+}
+
 function climber(route) {
   let i = 0, hold = 0;
   return (st) => {
     const s = st.s;
     if (st.phase !== 'climb') return {};
     if (s.on) {
-      const at = route.indexOf(s.on, Math.max(0, i - 1));
-      if (at >= 0 && at <= i + 1) i = at;
-      else if (route.lastIndexOf(s.on) >= 0) i = route.lastIndexOf(s.on, i + 1) >= 0 ? route.lastIndexOf(s.on, i + 1) : route.indexOf(s.on);
+      // Follow the route forward; after a respawn, pick up from the nearest occurrence.
+      if (route[i + 1] === s.on) i++;
+      else if (route[i] !== s.on) { const back = route.lastIndexOf(s.on, i); i = back >= 0 ? back : Math.max(i, route.indexOf(s.on)); }
     }
     if (i >= route.length - 1) { if (s.on === 'lip') return { moveX: 1 }; return {}; }
     const tgt = platformOf(st, route[i + 1]), te = extent(tgt), tc = (te.x0 + te.x1) / 2;
@@ -76,8 +87,9 @@ function climber(route) {
     const below = te.y > ce.y + 60 && gap < 80 && (dir > 0 ? te.x1 > ce.x1 : te.x0 < ce.x0);
     const rise = s.y - te.y;
     const goal = edge - dir * (below ? -30 : 10);
-    const ready = rise < 132 && jumpClear(st, goal, s.y, tc, te.y, Math.abs(goal - s.x) / 280);
-    if (!ready && !below) {
+    const ready = rise < 132 && (below ? dropClear(st, goal, s.y, te.y, Math.abs(goal - s.x) / 280) : jumpClear(st, goal, s.y, tc, te.y, Math.abs(goal - s.x) / 280));
+    if (!ready && below) return { moveX: 0 };
+    if (!ready) {
       // Wait near the edge, unless a hook is coming for that spot.
       const spots = [edge - dir * 26, (ce.x0 + ce.x1) / 2, edge - dir * (ce.x1 - ce.x0 - 26)];
       const spot = spots.find((x) => !hookNear(st.beat, () => [x, s.y - 55], 1.5, 60)) ?? spots[1];
@@ -166,6 +178,23 @@ test('the first ledge needs the high tide', () => {
   assert.ok(platformOf(st, 'F4').top - l1.y < 130, 'within reach at high water');
 });
 
+// The hooks never cover the whole of a platform, and every leap they guard has a window.
+const hookHits = (beat, x, y) => HOOKS.some((h) => { const p = hookTip(h, beat); return Math.abs(p.x - x) < 34 && p.y > y - 120 && p.y < y + 18; });
+test('fair hooks: every ledge has a safe spot, every guarded leap a window', () => {
+  for (const l of LEDGES) {
+    let safe = 0;
+    for (let x = l.x0 + 5; x <= l.x1 - 5; x += 5) if (![...Array(64).keys()].some((i) => hookHits(i / 16, x, l.y))) safe++;
+    assert.ok(safe >= 4, `${l.id} has ${safe * 5}px safe`);
+  }
+  const L = Object.fromEntries(LEDGES.map((l) => [l.id, l]));
+  for (const [a, b] of [['L1', 'L2'], ['L2b', 'LP'], ['L6', 'T1'], ['T1', 'T2'], ['T2', 'T3'], ['T3', 'T4'], ['T4', 'T5'], ['TSa', 'TS'], ['T5', 'lip']]) {
+    const A = L[a], B = L[b], dir = B.x0 > A.x0 ? 1 : -1, x = dir > 0 ? A.x1 - 10 : A.x0 + 10, tx = (B.x0 + B.x1) / 2;
+    let ok = 0;
+    for (let i = 0; i < 64; i++) if (jumpClear({ beat: i / 16 }, x, A.y, tx, B.y)) ok++;
+    assert.ok(ok / 64 >= 0.25 && ok / 64 < 1, `${a}->${b} window ${ok / 64}`);
+  }
+});
+
 test('falling into the deep costs a lantern and respawns on the last safe platform', () => {
   const r = runner({}, 0);
   for (let i = 0; i < 60; i++) r.step();
@@ -227,7 +256,8 @@ test('the stone detour grants the stone', () => {
 test('the hand-off: revellers crawl out (capped), the tail slips away, then the iris', () => {
   for (const sleepers of [0, 3, 12]) {
     const r = runner({ sleepers }, 0);
-    r.st.phase = 'throat'; r.st.phaseT = 0;
+    r.step();
+    Object.assign(r.st.s, { x: 6050, y: -470, on: 'lip', vx: 0, vy: 0 });
     while (r.st.status === 'play' && r.t < 40) r.step();
     assert.equal(r.st.status, 'won');
     const outs = r.events.filter((e) => e.type === 'revellerOut').length;
@@ -240,6 +270,38 @@ test('the hand-off: revellers crawl out (capped), the tail slips away, then the 
 test('determinism: the same inputs give the same climb', () => {
   const a = play(MAIN, {}, 2, 40), b = play(MAIN, {}, 2, 40);
   assert.equal(a.st.s.x, b.st.s.x); assert.equal(a.st.pearls, b.st.pearls);
+});
+
+test('every fixed ledge stays above the high water', () => {
+  for (const l of LEDGES) assert.ok(l.y < WATER.high - 10, l.id);
+});
+
+// A stand-in kit: a canvas context that accepts anything, art never delivered.
+function mockKit() {
+  const calls = { asset: 0, keepsake: 0, wash: 0, iris: 0 };
+  const grad = { addColorStop() {} };
+  const c = new Proxy({}, { get: (o, k) => (k in o ? o[k] : k.startsWith('create') ? () => grad : () => {}), set: (o, k, v) => { o[k] = v; return true; } });
+  const kit = {
+    c, P: { mode: 'tint' }, t: 0, img: () => undefined, col: (h) => h,
+    asset: () => { calls.asset++; return false; }, assetCrop: () => false,
+    circle() {}, star() {}, wire() {}, cloud() {}, keepsake: (id) => { if (id === 'leaf') calls.keepsake++; },
+    wash: () => calls.wash++, iris: () => calls.iris++, burst() {}, text() {}, flash() {}, shake() {},
+  };
+  return { kit, calls };
+}
+
+test('draws every phase without error, with the omen glyphs when the reading is complete', () => {
+  for (const tea of [0, 3]) {
+    const { kit, calls } = mockKit();
+    const r = play(MAIN, { tea, sleepers: 12 }, 9, 300);
+    // replay a short climb and draw along the way
+    const st = act.create({ carry: { tea, sleepers: 12 } });
+    for (let i = 0; i < 200; i++) { act.step(st, DT, { beat: 8 + i * DT / BEAT_S, moveX: 0 }); act.draw(kit, st, i * DT); act.drawOver(kit, st, i * DT); }
+    if (tea >= 3) assert.ok(calls.keepsake > 0, 'omen glyphs drawn'); else assert.equal(calls.keepsake, 0);
+    for (const e of r.events) act.onEvent(kit, e, r.st);
+    act.draw(kit, r.st, 1); act.drawOver(kit, r.st, 1);
+    assert.equal(r.st.status, 'won'); assert.ok(calls.iris > 0 && calls.wash > 0);
+  }
 });
 
 test('hud and announce', () => {
