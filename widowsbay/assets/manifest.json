@@ -114,10 +114,6 @@
       "status": "requested",
       "file": "witch-stand.webp"
     },
-    "witch-throne": {
-      "status": "requested",
-      "file": "witch-throne.webp"
-    },
     "band-hat": {
       "status": "requested",
       "file": "band-hat.webp"
@@ -173,14 +169,6 @@
     "fish-school": {
       "status": "requested",
       "file": "fish-school.webp"
-    },
-    "diving-bell": {
-      "status": "requested",
-      "file": "diving-bell.webp"
-    },
-    "fly-trolley": {
-      "status": "requested",
-      "file": "fly-trolley.webp"
     },
     "clam-open": {
       "status": "requested",
@@ -357,6 +345,102 @@
     "ending-dark": {
       "status": "requested",
       "file": "ending-dark.webp"
+    },
+    "keepsake-guitar": {
+      "status": "requested",
+      "file": "keepsake-guitar.webp"
+    },
+    "reveller-jester": {
+      "status": "requested",
+      "file": "reveller-jester.webp"
+    },
+    "sailor-swim-a": {
+      "status": "requested",
+      "file": "sailor-swim-a.webp"
+    },
+    "reveller-shaggy": {
+      "status": "requested",
+      "file": "reveller-shaggy.webp"
+    },
+    "sentry-creature-closed": {
+      "status": "requested",
+      "file": "sentry-creature-closed.webp"
+    },
+    "reveller-lady": {
+      "status": "requested",
+      "file": "reveller-lady.webp"
+    },
+    "sailor-swim-b": {
+      "status": "requested",
+      "file": "sailor-swim-b.webp"
+    },
+    "sea-spirit": {
+      "status": "requested",
+      "file": "sea-spirit.webp"
+    },
+    "deck-set": {
+      "status": "requested",
+      "file": "deck-set.webp"
+    },
+    "guitar-sinking": {
+      "status": "requested",
+      "file": "guitar-sinking.webp"
+    },
+    "sentry-creature-open": {
+      "status": "requested",
+      "file": "sentry-creature-open.webp"
+    },
+    "cliff-face": {
+      "status": "requested",
+      "file": "cliff-face.webp"
+    },
+    "sea-king-throne": {
+      "status": "requested",
+      "file": "sea-king-throne.webp"
+    },
+    "reveller-yellow": {
+      "status": "requested",
+      "file": "reveller-yellow.webp"
+    },
+    "pageant-backcloth": {
+      "status": "requested",
+      "file": "pageant-backcloth.webp"
+    },
+    "ship-wreck-stern": {
+      "status": "requested",
+      "file": "ship-wreck-stern.webp"
+    },
+    "house-front": {
+      "status": "requested",
+      "file": "house-front.webp"
+    },
+    "whale-beached": {
+      "status": "requested",
+      "file": "whale-beached.webp"
+    },
+    "lantern-string": {
+      "status": "requested",
+      "file": "lantern-string.webp"
+    },
+    "pageant-dancers": {
+      "status": "requested",
+      "file": "pageant-dancers.webp"
+    },
+    "conch-horn": {
+      "status": "requested",
+      "file": "conch-horn.webp"
+    },
+    "ship-wreck-bow": {
+      "status": "requested",
+      "file": "ship-wreck-bow.webp"
+    },
+    "wreck-debris": {
+      "status": "requested",
+      "file": "wreck-debris.webp"
+    },
+    "band-legs-giant": {
+      "status": "requested",
+      "file": "band-legs-giant.webp"
     }
   },
   "audio": {
