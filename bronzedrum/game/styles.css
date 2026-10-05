@@ -69,6 +69,16 @@ body.reduce-motion .press-start { animation: none; }
 }
 .practice-start:hover { background: var(--bronze); color: var(--ink); }
 .practice-start:active { transform: translateY(2px) scale(0.98); }
+/* The title buttons are cut to a paper shape (clip-path), which also cuts off
+   any outline, so the selected one shows inside its shape: a bronze fill and a
+   marker, with the other dimmed. */
+.press-start, .practice-start { transition: background 0.15s, color 0.15s, opacity 0.15s; }
+#title .press-start:focus, #title .practice-start:focus,
+#title .press-start.nav-focus, #title .practice-start.nav-focus { outline: none; background: var(--bronze-light); color: var(--ink); }
+#title .press-start:focus::before, #title .practice-start:focus::before { content: "▸ "; }
+#title .press-start:focus::after, #title .practice-start:focus::after { content: " ◂"; }
+.title-block:has(.practice-start:focus) .press-start { opacity: 0.6; animation: none; }
+.title-block:has(.press-start:focus) .practice-start { opacity: 0.75; }
 
 /* Chapter select: a 3 × 3 grid of compact cards, the focused chapter described below. */
 #select, #practice { background: radial-gradient(ellipse at 50% 30%, #2B3556, #0D111E); gap: 14px; overflow-y: auto; justify-content: flex-start; padding-top: 28px; }

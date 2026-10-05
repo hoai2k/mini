@@ -45,7 +45,9 @@ up to hide the bars, or add the game to the home screen).
 cd bronzedrum/game
 python3 -m http.server 8123     # then open http://localhost:8123/
 node --test test/*.test.mjs     # rhythm reader, chapters, battles, practice
-node scripts/check.mjs          # syntax and manifest ids
+node scripts/check.mjs          # syntax, manifest ids, no per-frame canvas filters
+node scripts/browser-check.mjs  # in Chromium: frame cost per scene, demonstration
+                                # timing under a slow CPU, title selection
 python3 ../design/source/build_requests.py --check
 python3 ../design/source/build_audio.py --check
 python3 ../design/source/build_web_art.py --check

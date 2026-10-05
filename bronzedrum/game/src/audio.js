@@ -494,8 +494,9 @@ export class Sound {
   /** Trắc's deep centre stroke. */
   tung(t = this.now, strong = false) {
     if (!this.ctx) return;
-    if (this.kit) return void this.kitStroke('L', t, strong ? 1.1 : 1);
-    if (this.play('drum-tung', t, strong ? 1.15 : 1)) return;
+    if (this.kit) return this.kitStroke('L', t, strong ? 1.1 : 1);
+    const src = this.play('drum-tung', t, strong ? 1.15 : 1);
+    if (src) return src;
     const k = strong ? 1.25 : 1;
     this.tone('sine', 110, t, 0.9 * k, 0.55, 52);
     // Bronze: a few inharmonic partials that ring after the thump.
@@ -508,8 +509,9 @@ export class Sound {
   /** Nhị's rim stroke. */
   cac(t = this.now, soft = false) {
     if (!this.ctx) return;
-    if (this.kit) return void this.kitStroke('R', t, soft ? 0.7 : 1);
-    if (this.play('drum-cac', t, soft ? 0.7 : 1)) return;
+    if (this.kit) return this.kitStroke('R', t, soft ? 0.7 : 1);
+    const src = this.play('drum-cac', t, soft ? 0.7 : 1);
+    if (src) return src;
     const k = soft ? 0.55 : 1;
     this.noiseBurst(t, 0.5 * k, 0.05, 'bandpass', 3200, 4);
     this.tone('triangle', 1870, t, 0.18 * k, 0.07);
