@@ -781,7 +781,8 @@ function hint(view) {
   const say = (id, tier = 1) => {
     const c = commandById(id);
     const label = `${c.name}${tier > 1 ? ' ' + ['', 'I', 'II', 'III'][tier] : ''}`;
-    g.mentioned.push({ key: `${id}:${tier}`, text: c.tiers[tier - 1], label });
+    // Keyed by the rhythm itself, so a changed rhythm is demonstrated afresh.
+    g.mentioned.push({ key: `${id}:${c.tiers[tier - 1]}`, text: c.tiers[tier - 1], label });
     return `${label}: ${rhythmTokens(c.tiers[tier - 1])}`;
   };
   const b = g.battle;

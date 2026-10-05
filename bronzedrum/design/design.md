@@ -120,7 +120,9 @@ fall inside their beat, in order. People play them as a flurry and then land
 the next beat on time, so their spacing costs a little precision but never
 breaks a phrase, and the wait for the next stroke is measured from the beat.
 (An earlier reader judged every gap, which rejected natural triplets, such as
-the Giao Chỉ call RRR L RR L.) The phrase fades as soon as no pattern can still
+the Giao Chỉ call, now R RRR L RR.) Every rhythm opens with a single stroke:
+the first two beats set the tempo, and only then can a pair or triplet be told
+apart from plain beats (a test enforces it). The phrase fades as soon as no pattern can still
 be finished in time, or when a stroke breaks the rhythm. A clears it at once.
 
 **Seeing a mistake.** When a stroke breaks the phrase, the dots show what was
@@ -241,7 +243,7 @@ under the drum. When the rhythm is cleared, its dots tumble away.
 | Command | Tier I | Tier II | Tier III | Effect | Unlocked |
 | --- | --- | --- | --- | --- | --- |
 | Tiến · March | `L L L R` | `L L LR R` | `L RRR L R` | advance, stopping at the enemy line | ch. 1 |
-| Đánh · Strike | `R R L R` | `RR R L R` | `RRR R L R` | spears hit the front enemy; archers shoot | ch. 1 |
+| Đánh · Strike | `R R L R` | `R RR L R` | `R RRR L R` | spears hit the front enemy; archers shoot | ch. 1 |
 
 In the patterns, L is tùng and R is cắc. Spaces separate the four beats, and
 letters written together share a beat. Chapter 1 allows tiers I and II, and the

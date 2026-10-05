@@ -231,11 +231,11 @@ const callReader = (text) => {
 };
 
 test('a triplet played as a quick flurry, then the next beat on time, is accepted', () => {
-  // The Villages Answer, Giao Chỉ: RRR L RR L at 104 BPM. The triplet comes
+  // The Villages Answer, Giao Chỉ: R RRR L RR at 104 BPM. The triplet comes
   // out faster than a third of a beat each, and the deep stroke lands on the beat.
   const u = 60 / 104;
-  const r = callReader('RRR L RR L');
-  const ev = playLive(r, [['R', 0], ['R', 0.09], ['R', 0.18], ['L', u], ['R', 2 * u], ['R', 2 * u + 0.17], ['L', 3 * u]]);
+  const r = callReader('R RRR L RR');
+  const ev = playLive(r, [['R', 0], ['R', u], ['R', u + 0.09], ['R', u + 0.18], ['L', 2 * u], ['R', 3 * u], ['R', 3 * u + 0.17]]);
   assert.ok(!ev.some((e) => e.type === 'reset'), 'no stroke breaks the phrase');
   const cmd = command(ev);
   assert.ok(cmd, 'the answer is accepted');
@@ -249,8 +249,8 @@ test('a triplet played as a quick flurry, then the next beat on time, is accepte
 
 test('the beats themselves must still be even', () => {
   const u = 60 / 104;
-  const r = callReader('RRR L RR L');
-  const ev = playLive(r, [['R', 0], ['R', 0.09], ['R', 0.18], ['L', u], ['R', 2.6 * u], ['R', 2.6 * u + 0.15], ['L', 3.6 * u]]);
+  const r = callReader('R RRR L RR');
+  const ev = playLive(r, [['R', 0], ['R', u], ['R', u + 0.09], ['R', u + 0.18], ['L', 2.6 * u], ['R', 3.6 * u], ['R', 3.6 * u + 0.15]]);
   assert.ok(ev.some((e) => e.type === 'reset'), 'a late beat breaks the phrase');
   assert.ok(!command(ev));
 });
@@ -262,4 +262,13 @@ test('a quick stroke must fall inside its beat', () => {
   assert.ok(fit(p, ok));
   const late = [{ drum: 'L', t: 0 }, { drum: 'R', t: 0.6 }, { drum: 'R', t: 1.15 }];
   assert.equal(fit(p, late), null, 'past most of the beat it is not part of the pair');
+});
+
+test('every rhythm opens with a single stroke: the tempo is set before any pair or triplet', async () => {
+  const { STAGES } = await import('../src/stages.js');
+  const all = [
+    ...COMMANDS.flatMap((c) => c.tiers.map((t) => [`${c.id}`, t])),
+    ...STAGES.flatMap((s) => [...(s.calls || []).map((c) => [s.id, c.text]), ...(s.rhythm ? [[s.id, s.rhythm]] : [])]),
+  ];
+  for (const [where, text] of all) assert.equal(text.split(' ')[0].length, 1, `${where}: ${text} opens with more than one stroke`);
 });
