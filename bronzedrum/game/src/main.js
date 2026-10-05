@@ -31,7 +31,7 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
 // The prototype opens every chapter for review; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
 progress.unlocked = Math.max(progress.unlocked, STAGES.length);
@@ -47,6 +47,7 @@ const input = new Input(canvas);
 function applySettings() {
   sound.setVolume(settings.volume / 100);
   sound.setAmbience(settings.ambience / 100);
+  sound.setMusic(settings.music / 100);
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
@@ -70,6 +71,9 @@ const focusMemory = new Map();
 
 function show(id) {
   for (const s of ['title', 'select', 'pause', 'result']) $(`#${s}`).hidden = s !== id;
+  // Menu music: the title theme, and the two sisters' theme on the chapter select.
+  if (id === 'title') sound.playMusic('mu-title');
+  if (id === 'select') sound.playMusic('mu-select');
   screen = id;
   input.mode = id === 'play' ? 'play' : 'menu';
   canvas.style.visibility = id === 'title' || id === 'select' ? 'hidden' : 'visible';
@@ -302,7 +306,11 @@ function startStage(i) {
   }
   renderer.setStage(stage);
   sound.loadSamples().then(() => {
-    if (game && game.stage === stage) sound.startAmbience(stage.ambience);
+    if (game && game.stage === stage) {
+      sound.startAmbience(stage.ambience);
+      // A beatless bed under the chapter, quieter than the menus.
+      if (stage.music) sound.playMusic(stage.music, { level: 0.55 });
+    }
   });
   if (document.activeElement) document.activeElement.blur();
   show('play');
@@ -430,6 +438,7 @@ function handleRhythm(ev) {
       toast('Trống thức — the drum wakes!');
       sound.play('drum-wake');
       sound.play('cmd-rally', sound.now + 0.3, 0.7);
+      sound.musicOverlay('mu-wake');
     }
     g.commandsDone += 1;
     g.tiersUsed.add(ev.tier);
@@ -558,7 +567,10 @@ function updatePlay(dt) {
   }
   // Hold the line: new columns arrive.
   if (g.stage.waves) {
-    for (const w of dueWaves(g.stage.waves, t, g.spawned)) for (const e of w.enemies) spawnEnemy(g.battle, e.type, e.dx);
+    for (const w of dueWaves(g.stage.waves, t, g.spawned)) {
+      for (const e of w.enemies) spawnEnemy(g.battle, e.type, e.dx);
+      sound.play('han-horn');
+    }
   }
   // A sustained order rolls into its next cycle unless a new phrase began.
   const c = g.cycle;
@@ -719,6 +731,7 @@ function finish(outcome) {
   setTimeout(() => {
     if (!game || screen !== 'play') return;
     const peaceful = game.mode !== 'battle';
+    sound.playMusic(!won ? 'mu-defeat' : game.stage.id === 'elegy' ? 'mu-ending' : peaceful ? 'mu-complete' : 'mu-victory', { fade: 0.3 });
     $('#result-title').textContent = won ? (peaceful ? 'Chapter complete' : 'Victory') : 'The line breaks';
     const even = game.evenness !== undefined ? ` Evenness: ${Math.round(game.evenness * 100)}%.` : '';
     $('#result-text').textContent = won
@@ -732,12 +745,14 @@ function finish(outcome) {
 function pause(reason = '') {
   if (screen !== 'play' || !game || game.ended) return;
   if (sound.ctx) sound.ctx.suspend();
+  sound.pauseMusic(true);
   $('#pause-reason').textContent = reason;
   show('pause');
 }
 
 function resume() {
   if (sound.ctx) sound.ctx.resume();
+  sound.pauseMusic(false);
   show('play');
 }
 
@@ -772,7 +787,10 @@ function action(name) {
 
 function pressStart() {
   sound.start();
-  sound.loadSamples().then(() => sound.play('ui-start'));
+  sound.loadSamples().then(() => {
+    sound.play('ui-start');
+    if (screen === 'select') sound.playMusic('mu-select');
+  });
   enterFullscreen();
   buildCards();
   show('select');
@@ -868,6 +886,6 @@ async function boot() {
 }
 
 // Debug hooks for automated checks.
-window.__bronzeDrum = { get game() { return game; }, renderer, startStage, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
+window.__bronzeDrum = { get game() { return game; }, renderer, sound, startStage, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
 
 boot();

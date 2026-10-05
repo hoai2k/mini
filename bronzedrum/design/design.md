@@ -161,8 +161,10 @@ colour the paper carries before the full set is generated.
 
 - **Style.** White paper and lamplight, coloured papers, or shadow theatre
   (style frames S01–S03)?
-- **Music.** The player now sets the tempo. Should the score follow the
-  player's speed (stems that stretch, or a set of tempos), or stay with the Han
-  war drum as it does now?
+- **Music (settled).** Because the player sets the tempo, nothing that plays
+  during a chapter has a beat: each chapter has a beatless bed under the
+  ambience, and a swell plays when the drum wakes. Themes with melody and metre
+  play on the title and chapter select, with stings on the results and the
+  ending piece after the epilogue. See `music-requests.md`.
 - **A cultural reader.** Someone Vietnamese should check the costumes, names and
   how the Han are portrayed before production art.
