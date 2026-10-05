@@ -2,7 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#16151A">
+  <!-- Add to Home Screen: a full-screen, landscape app (see src/chrome.js). -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Bronze Drum">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
   <title>Bronze Drum — prototype</title>
   <meta name="description" content="Gameplay prototype: two sisters, one bronze drum. Command an army of women by drumming on the beat.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -146,6 +154,8 @@
     </section>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <!-- iPhone Safari with its bars showing (see src/chrome.js) -->
+    <div id="bars-hint" hidden><span class="arrow" aria-hidden="true">↑</span> Swipe up to hide Safari’s bars · or Share → Add to Home Screen</div>
   </div>
   <script type="module" src="src/main.js"></script>
 </body>

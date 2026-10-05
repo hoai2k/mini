@@ -150,6 +150,7 @@ body.paper-panels .panel {
   #pause .panel, #result .panel { width: min(600px, 100%); display: grid; grid-template-columns: 1fr 1fr; align-content: start; }
   #pause .panel > :not(.menu-btn), #result .panel > :not(.menu-btn), #pause .menu-btn:first-of-type, #result .menu-btn:first-of-type { grid-column: 1 / -1; }
   .scroll { max-height: none; overflow: visible; }
+  .proto-note { display: none; }
   /* The panel scrolls as one; its Close or Done button stays in reach. */
   .dialog .menu-btn[data-action="close"] { position: sticky; bottom: 0; }
 }
@@ -163,3 +164,23 @@ body.paper-panels .panel {
   .proto-note { display: none; }
 }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* iPhone Safari: the page is a little taller than the screen so a swipe up
+   tucks Safari's bars away (src/chrome.js). During play the drum owns every
+   gesture, so nothing scrolls. */
+html.ios-scroll, html.ios-scroll body { height: auto; overflow-x: hidden; overflow-y: auto; }
+html.ios-scroll body { position: relative; touch-action: pan-y; }
+/* The game itself is fixed and takes no height, so a spacer makes the page
+   taller than the screen (100lvh: as tall as the screen with bars hidden). */
+html.ios-scroll body::after { content: ""; display: block; height: calc(100lvh + 160px); }
+html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow: hidden; touch-action: none; }
+#bars-hint {
+  position: fixed; left: 50%; top: max(8px, env(safe-area-inset-top)); transform: translateX(-50%); z-index: 15;
+  background: rgba(22, 21, 26, 0.93); border: 1px solid var(--bronze-light); color: var(--paper); padding: 7px 14px;
+  font-size: 13px; letter-spacing: 0.03em; white-space: nowrap; pointer-events: none;
+}
+#bars-hint .arrow { display: inline-block; animation: nudge 1.4s ease-in-out infinite; color: var(--bronze-light); font-weight: 700; }
+@keyframes nudge { 50% { transform: translateY(-4px); } }
+body.reduce-motion #bars-hint .arrow { animation: none; }
+#bars-hint.flash { animation: hintflash 0.9s ease-in-out 2; }
+@keyframes hintflash { 50% { background: var(--lacquer); } }

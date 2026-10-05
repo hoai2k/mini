@@ -8,7 +8,8 @@ out="${1:?output directory (the bronzedrum page directory)}"
 here="$(cd "$(dirname "$0")" && pwd)"
 rm -rf "$out"
 mkdir -p "$out"
-cp "$here/game/index.html" "$here/game/styles.css" "$out/"
+cp "$here/game/index.html" "$here/game/styles.css" "$here/game/manifest.webmanifest" "$out/"
+cp -R "$here/game/icons" "$out/"
 cp -R "$here/game/src" "$out/"
 # Assets without the full-size PNG masters: the game loads the WebP copies in
 # assets/web/ (see design/source/build_web_art.py).

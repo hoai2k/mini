@@ -9,6 +9,8 @@ import { Input } from './input.js';
 import { Renderer } from './render.js';
 import { Art } from './art.js';
 import { PALETTE as P } from './palette.js';
+import { createFit } from './fit.js';
+import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, canFullscreen } from './chrome.js';
 
 const $ = (s) => document.querySelector(s);
 const STORE = 'bronzedrum.prototype';
@@ -78,6 +80,7 @@ function show(id) {
   input.mode = id === 'play' ? 'play' : 'menu';
   canvas.style.visibility = id === 'title' || id === 'select' ? 'hidden' : 'visible';
   document.body.classList.toggle('playing', id === 'play');
+  chrome.update();
   if (id !== 'play') focusFirst(activeRoot());
   // The browser may drop the canvas once a menu goes over it and the game stops drawing.
   if (id !== 'play') requestAnimationFrame(redrawPaused);
@@ -199,33 +202,32 @@ function toast(text) {
 // ---------------------------------------------------------------- fullscreen
 
 const coarsePointer = window.matchMedia('(pointer: coarse)');
-async function enterFullscreen() {
-  try {
-    if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
-    // Phones and tablets play sideways; browsers that allow it lock that in.
-    if (coarsePointer.matches && window.screen.orientation && window.screen.orientation.lock) await window.screen.orientation.lock('landscape').catch(() => {});
-  } catch {
-    /* refused: carry on windowed */
-  }
+// Browser bars: fullscreen on the first tap in landscape where possible; on
+// iPhone Safari, a swipe up tucks the bars away (see src/chrome.js).
+const chrome = createChrome({ isPlaying: () => screen === 'play', hintEl: $('#bars-hint') });
+function enterFullscreen() {
+  if (coarsePointer.matches || !chrome.scrollTrick) requestFullscreen();
 }
 async function toggleFullscreen() {
-  try {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen();
-  } catch {
-    toast('Fullscreen is not available here');
+  // iPhone Safari can't go fullscreen: point at the ways it can lose its bars.
+  if (chrome.scrollTrick) {
+    const h = $('#bars-hint');
+    h.hidden = false;
+    h.classList.remove('flash');
+    void h.offsetWidth;
+    h.classList.add('flash');
+    return;
   }
+  if (!canFullscreen()) return toast('Fullscreen is not available here');
+  if (fullscreenElement()) await exitFullscreen();
+  else await requestFullscreen();
 }
 // Resizing clears the canvas; while paused nothing else redraws it, so draw
 // the frozen scene again (Esc leaves fullscreen as it pauses, phones rotate).
 function redrawPaused() {
   if (game && screen !== 'play' && screen !== 'title' && screen !== 'select') renderer.draw(view(), 0);
 }
-document.addEventListener('fullscreenchange', () => {
-  renderer.resize();
-  redrawPaused();
-});
-window.addEventListener('resize', redrawPaused);
+
 
 // ---------------------------------------------------------------- chapter select
 
@@ -925,8 +927,22 @@ function frame(now) {
 }
 
 async function boot() {
+  // The canvas follows the visible viewport, not 100vh (src/fit.js); the
+  // renderer matches its pixels to the new size, then the paused scene redraws.
+  createFit({
+    app: $('#app'),
+    stage: canvas,
+    onChange: () => {
+      renderer.resize();
+      redrawPaused();
+    },
+  });
   applySettings();
-  if (coarsePointer.matches) $('#title-hint').textContent = 'Best played with the device sideways';
+  if (coarsePointer.matches) {
+    $('#title-hint').textContent = chrome.scrollTrick || window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
+      ? 'Best played with the device sideways'
+      : 'Best played sideways · tip: Add to Home Screen to play full screen';
+  }
   buildCommandTable();
   // The title is usable at once: on a slow connection the player may press
   // start before the art has arrived, so loading must not send them back.

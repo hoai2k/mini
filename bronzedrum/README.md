@@ -11,6 +11,8 @@ the caller's rhythm), and one casting chapter (hold a steady tempo).
 
 It plays with a controller, a keyboard, a mouse, or on a phone or tablet held
 sideways, where the bronze drum becomes the instrument: tap its centre and its rim.
+On a phone the first tap in landscape goes full screen (on iPhone Safari, swipe
+up to hide the bars, or add the game to the home screen).
 
 - [`design/design.md`](design/design.md): the concept, the core loop, the art
   direction and the open questions.

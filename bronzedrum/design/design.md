@@ -58,6 +58,23 @@ input device:
   middle of the stage in the story chapters. It never shows past the painted
   edges. The HUD is not zoomed. Taps on the battle follow the zoom.
 
+**Full screen on phones** (the same approach as Widow's Bay). The canvas is
+fitted to the *visible* viewport, measured from the visual viewport less the
+safe-area insets, because iOS Safari's 100vh ignores its own bars
+(`src/fit.js`). Getting the browser's bars out of the way (`src/chrome.js`):
+
+- **Fullscreen API (Android, iPad, desktop).** Fullscreen needs a tap, never
+  just turning the device, so the first tap after the device is in landscape
+  requests fullscreen and locks landscape where the browser allows it.
+- **iPhone Safari** has no fullscreen for anything but video. It does tuck its
+  bars away in landscape when the page scrolls, so there the page is made a
+  little taller than the screen. While the bars show outside play, a hint at
+  the top says to swipe up, and the title's Fullscreen button points at it.
+  During play the drum owns every gesture, so nothing scrolls.
+- **Add to Home Screen.** `manifest.webmanifest` and `icons/` (the drum face,
+  cut from BD-U02) install the game as a full-screen landscape app, which is
+  how iPhones get true full screen.
+
 **Menus.** The pause menu and the other dialogs are cut from the delivered
 paper sheet (BD-U04), nine-sliced so its border of herons and rings keeps its
 shape, with menu buttons as strips of ink and lacquer paper. A panel never
