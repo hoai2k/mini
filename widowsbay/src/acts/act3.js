@@ -23,7 +23,7 @@ export const PEDESTAL = { row: 0, x: 2700, reach: 46 };
 // throne stands on the backcloth's painted dais, which is centred on it.
 export const THRONE_BX = 800, WITCH_BX = 965, LANTERN_BX = 600;
 export const DAIS_Y = 372;                      // where the throne stands
-export const LANTERN_Y = 236;                   // the gaze lantern's eye
+export const LANTERN_Y = 249;                   // the gaze lantern's painted pupil
 export const SENTRIES = [470, 760, 1050, 1420, 1720, 2010, 2330, 2620]; // along the front groove
 // The sentries face right; their snapping head is this far right of centre.
 export const SENTRY_HEAD = 50, SENTRY_REACH = 42;

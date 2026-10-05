@@ -347,7 +347,7 @@ function stepSwim(st, dt, input) {
     const open = !spent && clamOpen(cl, st.beat);
     if (cl.wasOpen && !open && Math.abs(cl.y - s.y) < 400) snap = true;
     cl.wasOpen = open;
-    const ex = 60, ey = 34, cy = cl.y - 26;
+    const ex = 60, ey = 48, cy = cl.y - 48; // the painted shell spans y -96..0
     const dx = (s.x - cl.x) / ex, dy = (s.y - cy) / ey, dd = Math.hypot(dx, dy);
     if (dd >= 1) continue;
     if (open) {

@@ -60,7 +60,7 @@ function bot(choice = 'take') {
       const reach = TUNE.eelReach + 40;
       if (Math.abs(s.x - e.x) < reach && Math.abs(s.y - e.y) < 90) dy += Math.sign(s.y - e.y || 1) * 3;
     }
-    for (const cl of st.clams) if (!clamOpen(cl, st.beat)) push(cl.x, cl.y - 26, 90, 0.6);
+    for (const cl of st.clams) if (!clamOpen(cl, st.beat)) push(cl.x, cl.y - 48, 100, 0.6);
     const m = Math.hypot(dx, dy); if (m > 1) { dx /= m; dy /= m; }
     let a = false, b = false;
     if (st.phase === 'offer' && st.phaseT > 2.1) {
@@ -227,7 +227,7 @@ test('clams open on the beat for one beat; closed is solid, open gives a pearl',
   const p0 = st.pearls;
   tick(st, {});
   assert.equal(st.pearls, p0, 'no pearl from a closed clam');
-  const dd = Math.hypot((st.sailor.x - cl.x) / 60, (st.sailor.y - (cl.y - 26)) / 34);
+  const dd = Math.hypot((st.sailor.x - cl.x) / 60, (st.sailor.y - (cl.y - 48)) / 48);
   assert.ok(dd >= 0.99, 'pushed out of the closed shell');
   opened();
   st.sailor.x = cl.x; st.sailor.y = cl.y - 30;

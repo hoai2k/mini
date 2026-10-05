@@ -442,21 +442,25 @@ function eel(k, st, e, t) {
   const c = k.c, x = e.x, y = sy(st, e.y), side = e.side;
   const hx = x - side * 6; // the hole sits in the wall's edge
   // hole and eyes
-  if (!k.asset('eel-hole', hx, y + 30, 80, 60)) {
+  const holeArt = k.asset('eel-hole', hx, y + 30, 80, 60);
+  if (!holeArt) {
     c.fillStyle = k.col('#2e4644'); c.beginPath(); c.ellipse(hx, y, 40, 30, 0, 0, TAU); c.fill();
     c.fillStyle = k.col('#070b0c'); c.beginPath(); c.ellipse(hx, y, 28, 20, 0, 0, TAU); c.fill();
   }
   const glow = e.state === 'glow' ? 0.55 + 0.45 * Math.sin(e.t * 22) : e.state === 'lunge' || e.state === 'hold' ? 1 : 0.18;
-  if (e.state === 'glow') { c.save(); c.globalAlpha = 0.3 * glow; c.fillStyle = k.col('#ffe27a'); k.circle(hx, y, 40); c.restore(); }
+  if (e.state === 'glow' && !holeArt) { c.save(); c.globalAlpha = 0.3 * glow; c.fillStyle = k.col('#ffe27a'); k.circle(hx, y, 40); c.restore(); }
+  if (e.state === 'glow' && holeArt) { c.save(); c.globalAlpha = 0.22 * glow; c.fillStyle = k.col('#ffe27a'); k.circle(hx, y, 26); c.restore(); }
   c.globalAlpha = glow; c.fillStyle = k.col('#ffe27a');
-  k.circle(hx - 7, y - 3, 4); k.circle(hx + 7, y - 3, 4);
+  if (holeArt) { // glow on the painted eyes (hx - 4, hx + 4.5 at y)
+    c.globalAlpha = 0.55 * glow; k.circle(hx - 4, y, 4.5); k.circle(hx + 4.5, y, 4.5);
+  } else { k.circle(hx - 7, y - 3, 4); k.circle(hx + 7, y - 3, 4); }
   c.globalAlpha = 1;
   const ext = eelExt(e);
   if (ext <= 0) return;
   const L = TUNE.eelReach * ext;
   c.save(); c.beginPath(); c.rect(side > 0 ? hx : hx - 400, y - 60, 400, 120); c.clip();
   c.translate(hx + side * L, y); c.scale(side, 1); // head at the origin, facing +x
-  if (!k.asset('eel', -130, 35, 260, 70)) {
+  if (!k.asset('eel', -86, 35, 427, 70)) { // painted jaws end at the head (the art is 70% eel, head on the right)
     c.strokeStyle = k.col('#5d7a34'); c.lineWidth = 24; c.lineCap = 'round';
     c.beginPath(); c.moveTo(-L - 20, 0);
     for (let d = -L; d <= -20; d += 20) c.lineTo(d, Math.sin(d * 0.05 + t * 10) * 7);
@@ -522,13 +526,14 @@ function swimmer(k, st, t) {
     // lying on his back until the witch's breath turns him over, like a card
     const w = easeInOut(s.wake);
     sailorFigure(k, x, y - w * 10, 1, 0, lerp(-1, 1, w), t);
-    if (w > 0) harness(k, x, y - w * 10, 0, t, 1 - w);
+    if (w > 0) harness(k, x, y - w * 10, 0, t, 1 - w, 1, 0, lerp(-1, 1, w));
     return;
   }
   const flick = s.grace > 0 && Math.floor(s.grace * 10) % 2 === 0;
   const drown = ph === 'drown';
   if (flick && !drown) c.globalAlpha = 0.45;
-  harness(k, x, y, drown ? -0.5 : s.vy, t, 0);
+  const rot = drown ? Math.min(1.2, st.phaseT) * s.face * 0.8 : clamp(s.vy / 900, -0.25, 0.25) * s.face;
+  harness(k, x, y, drown ? -0.5 : s.vy, t, 0, s.face, rot, 1);
   c.save(); c.translate(x, y);
   if (drown) c.rotate(Math.min(1.2, st.phaseT) * s.face * 0.8);
   else c.rotate(clamp(s.vy / 900, -0.25, 0.25) * s.face);
@@ -543,7 +548,11 @@ function swimmer(k, st, t) {
   c.globalAlpha = 1;
   // bubbles from his beard, and the air warning
   c.fillStyle = k.col('#eef3ea');
-  for (let i = 0; i < 3; i++) { const f = (t * 0.9 + i / 3) % 1; c.globalAlpha = 0.6 * (1 - f); k.circle(x + s.face * 60 + Math.sin(t * 3 + i) * 5, y - 20 - f * 70, 2 + i); }
+  // painted mouth of the swim art (measured: +46, -17 from the figure origin), turned with his tilt
+  const mArt = k.img('sailor-swim-a') ? [46, -17] : [60, -20], mc = Math.cos(rot), ms = Math.sin(rot);
+  const mox = s.face * mArt[0], moy = mArt[1] * (drown ? -1 : 1);
+  const mx = x + mox * mc - moy * ms, my = y + mox * ms + moy * mc;
+  for (let i = 0; i < 3; i++) { const f = (t * 0.9 + i / 3) % 1; c.globalAlpha = 0.6 * (1 - f); k.circle(mx + Math.sin(t * 3 + i) * 5, my - f * 70, 2 + i); }
   c.globalAlpha = 1;
   if (st.air < 0.25 && (ph === 'swim') && Math.floor(t * 3) % 2 === 0) {
     c.font = '700 20px "Josefin Sans", sans-serif'; c.textAlign = 'center';
@@ -553,17 +562,25 @@ function swimmer(k, st, t) {
 }
 
 // The flying wires to the harness ring; they go slack as he swims up.
-function harness(k, x, y, vy, t, fade) {
-  const c = k.c, ry = y - 24, slack = clamp(-vy / 160, 0, 1);
+function harness(k, x, y, vy, t, fade, face = 1, rot = 0, flipY = 1) {
+  const c = k.c, slack = clamp(-vy / 160, 0, 1);
+  // the swim art paints its own gold ring on his back (measured at +15, -28); the
+  // wires attach to it, in the rotated frame. The stand-in keeps its own ring.
+  const art = !!k.img('sailor-swim-a');
+  const ox = art ? face * 15 : 0, oy = (art ? -28 : -24) * flipY;
+  const cs = Math.cos(rot), sn = Math.sin(rot);
+  const rx = x + ox * cs - oy * sn, ry = y + ox * sn + oy * cs;
   c.save(); c.globalAlpha = 1 - fade;
   c.strokeStyle = k.col('#1c1c1c'); c.lineWidth = 1.2;
   for (const dx of [-14, 14]) {
     const sway = Math.sin(t * 2.6 + dx) * 26 * slack;
-    c.beginPath(); c.moveTo(x + dx * 1.6, 0);
-    c.quadraticCurveTo(x + dx + sway + dx * slack, ry * 0.6, x + dx * 0.3, ry); c.stroke();
+    c.beginPath(); c.moveTo(rx + dx * 1.6, 0);
+    c.quadraticCurveTo(rx + dx + sway + dx * slack, ry * 0.6, rx + dx * 0.3, ry - (art ? 6 : 0)); c.stroke();
   }
-  c.fillStyle = k.col('#d9b34a'); c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2;
-  c.beginPath(); c.arc(x, ry, 5, 0, TAU); c.stroke();
+  if (!art) {
+    c.fillStyle = k.col('#d9b34a'); c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2;
+    c.beginPath(); c.arc(rx, ry, 5, 0, TAU); c.stroke();
+  }
   c.restore();
 }
 
@@ -871,5 +888,5 @@ function boat(k, st, y, t) {
   c.save(); c.translate(sx + 10, syy - 24); c.rotate(-0.9);
   if (!k.asset('keepsake-guitar', 0, 20, 40, 40)) guitarStandin(k, 0.22);
   c.restore();
-  if (st.rose) k.keepsake('rose', sx - 18, syy - 46, 0.4);
+  if (st.rose) k.keepsake('rose', sx + 8, syy - 66, 0.4);
 }

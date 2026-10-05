@@ -55,8 +55,10 @@ export function onEvent(k, e, st) {
   }
   if (e.type === 'revelry') { k.text('Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
   if (e.type === 'strike') { k.flash(1); k.shake(0.5); }
-  if (e.type === 'shipBreak') { k.shake(0.8); k.burst(560, 470, '#6b4024', 30, 'chip'); }
-  if (e.type === 'splash') { k.burst(520, 520, '#eef3ea', 26, 'drop'); k.burst(620, 520, '#eef3ea', 26, 'drop'); }
+  // the keel breaks where the spout holds it up; each half splashes down where it fell
+  const sx = st.board.ship.x;
+  if (e.type === 'shipBreak') { k.shake(0.8); k.burst(sx, 512 - 110, '#6b4024', 30, 'chip'); }
+  if (e.type === 'splash') { k.burst(sx - 125, 520, '#eef3ea', 26, 'drop'); k.burst(sx + 125, 520, '#eef3ea', 26, 'drop'); }
 }
 
 // ---------------------------------------------------------------- party

@@ -59,7 +59,7 @@ export function onEvent(k, e, st) {
   if (e.type === 'sentryBite') { k.shake(0.4); k.burst(e.x, e.y - 30, '#c8321e', 14, 'streak'); }
   if (e.type === 'unseen') { k.text('Unseen +25', e.x, e.y - 190); }
   if (e.type === 'whalePass') { k.shake(0.25); }
-  if (e.type === 'pearlTaken') { const px = PEDESTAL.x - st.cam; k.burst(px, 260, '#eef3ea', 22, 'sparkle'); k.burst(px, 260, '#f3c6dc', 14, 'sparkle'); k.text('Her pearl', px - 60, 200, true); }
+  if (e.type === 'pearlTaken') { const px = PEDESTAL.x - st.cam, py = pearlY(k, ROWY[0] - 10); k.burst(px, py, '#eef3ea', 22, 'sparkle'); k.burst(px, py, '#f3c6dc', 14, 'sparkle'); k.text('Her pearl', px - 60, 200, true); }
   if (e.type === 'whaleTurn') k.shake(0.4);
   if (e.type === 'swallow') { k.shake(0.9); k.flash(0.4); }
 }
@@ -268,7 +268,7 @@ function pearlCue(k, st, t) {
   }
   if (st.phase === 'take') {
     const f = easeOut(st.phaseT / 0.8), px = p.x - st.cam;
-    const sx = lerp(x, px, f), sy = lerp(py, rowY(p) - 150 * rowScale(p), f) - Math.sin(f * Math.PI) * 50;
+    const sx = lerp(x, px, f), sy = lerp(py, rowY(p) - 112 * rowScale(p), f) - Math.sin(f * Math.PI) * 50;
     c.save(); c.globalAlpha = 0.5; c.fillStyle = k.col('#fff6e0'); k.circle(sx, sy, 26); c.restore();
     pearlAt(k, sx, sy, 15);
   }
@@ -509,7 +509,7 @@ function sailorBow(k) {
 // ---------------------------------------------------------------- sentries
 function sentry(k, s, st, t) {
   const c = k.c, x = s.x, y = 652, asleep = st.carry.rose;
-  if (k.asset(s.open ? 'sentry-creature-open' : 'sentry-creature-closed', x, y + 12, 176, 120)) {
+  if (k.asset(s.open ? 'sentry-creature-open' : 'sentry-creature-closed', x, y - 2, 176, 120)) {
     if (asleep) sleepZ(k, x + 56, y - 96, t);
     return;
   }
@@ -583,7 +583,7 @@ function beam(k, st, t) {
   }
   // the lantern's eye glows above the dimming
   const lx = backX(LANTERN_BX, st.cam);
-  c.globalAlpha = st.masked || g.phase === 'dark' ? 0.2 : 0.55; c.fillStyle = k.col(light); k.circle(lx, LANTERN_Y, 12);
+  c.globalAlpha = st.masked || g.phase === 'dark' ? 0.2 : 0.55; c.fillStyle = k.col(light); k.circle(lx + 3, LANTERN_Y, 12);
   c.restore();
 }
 
@@ -591,7 +591,7 @@ function beam(k, st, t) {
 // grooves (the same x band on each, as the rules have it).
 function beamPath(c, aim, cam, fresh = true) {
   const b0 = beamOn(aim - cam, 0), b2 = beamOn(aim - cam, 2), y0 = ROWY[0] - 12, y2 = ROWY[2] + 30;
-  const lx = backX(LANTERN_BX, cam), ly = LANTERN_Y + 8;
+  const lx = backX(LANTERN_BX, cam) + 3, ly = LANTERN_Y;
   if (fresh) c.beginPath();
   c.moveTo(lx - 14, ly); c.lineTo(lx + 14, ly);
   c.lineTo(b0.cx + b0.hw, y0); c.lineTo(b2.cx + b2.hw + 3, y2); c.lineTo(b2.cx - b2.hw - 3, y2); c.lineTo(b0.cx - b0.hw, y0);
@@ -724,7 +724,7 @@ function outro(k, st, t) {
   else { grow = 3.2; open = 1; }
   const W = 800 * grow, H = 600 * grow, cx = 640;
   // rising from below the floor, then lunging so its throat fills the stage
-  const throat = k.img('whale-mouth') ? 0.52 : 0.4; // throat centre, up from the bottom
+  const throat = k.img('whale-mouth') ? 0.41 : 0.4; // the painted gullet's centre, up from the bottom
   const by = grow <= 1 ? 720 + (1 - grow) * 260 : lerp(720 - throat * 600, 400, (grow - 1) / 2.2) + throat * H;
   c.save(); c.globalAlpha = 1;
   if (!k.asset('whale-mouth', cx, by, W, H)) whaleMouthStandin(k, cx, by, W, H, open);

@@ -468,7 +468,7 @@ function frontPanel(k, open, t) {
   const c = k.c, H = HOUSE;
   const sx = Math.cos(open * 1.76); // past 90 degrees: it ends up left of the hinge
   c.save(); c.translate(H.x0 - 14, 0); c.scale(sx, 1); c.translate(-(H.x0 - 14), 0);
-  if (!k.asset('house-front', 640, 642, 560, 720)) {
+  if (!k.asset('house-front', ...HOUSE_ART)) {
     c.fillStyle = k.col('#9a948a');
     c.beginPath(); c.moveTo(H.x0 - 14, 642); c.lineTo(H.x0 - 14, 112); c.lineTo(640, 40); c.lineTo(H.x1 + 14, 112); c.lineTo(H.x1 + 14, 642); c.closePath(); c.fill();
     c.strokeStyle = k.col('#77716a'); c.lineWidth = 1.5;
@@ -492,6 +492,10 @@ function frontPanel(k, open, t) {
   c.restore();
 }
 
+// The delivered house art (1400 x 1800) drawn so its painted floor edges
+// (y 236, 420, 612 at the old 560 x 720 size) land on HOUSE.floors.
+const HOUSE_ART = [640, 654, 518, 666];
+
 const ROOM = [
   { col: '#b98a5e', y0: 452, y1: 626 },
   { col: '#a0607a', y0: 278, y1: 452 },
@@ -500,7 +504,8 @@ const ROOM = [
 
 function houseInterior(k, st, t) {
   const c = k.c, H = HOUSE;
-  if (!k.asset('stone-house', 640, 642, 560, 720)) {
+  const painted = k.asset('stone-house', ...HOUSE_ART);
+  if (!painted) {
     // shell and roof
     c.fillStyle = k.col('#77716a'); c.fillRect(H.x0 - 14, 112, 14, 530); c.fillRect(H.x1, 112, 14, 530);
     c.fillStyle = k.col('#2a1a22'); c.beginPath(); c.moveTo(H.x0 - 14, 112); c.lineTo(640, 40); c.lineTo(H.x1 + 14, 112); c.closePath(); c.fill();
@@ -532,7 +537,7 @@ function houseInterior(k, st, t) {
   if (st.broke) rubble(k, st, t);
   // floors
   H.floors.forEach((fy, f) => {
-    for (const [a, b] of st.spans[f]) {
+    for (const [a, b] of painted ? [] : st.spans[f]) {
       c.fillStyle = k.col('#7a4a26'); c.fillRect(a, fy, b - a, 14);
       c.fillStyle = k.col('#a0703e'); c.fillRect(a, fy, b - a, 3);
       c.fillStyle = k.col('#2a1a12');

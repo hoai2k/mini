@@ -127,7 +127,7 @@ function throat(k, st, t) {
   g.addColorStop(0, k.P.mode === 'lum' ? 'rgba(255,250,235,0.55)' : 'rgba(255,226,160,0.5)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
   c.fillStyle = g; c.fillRect(x - 420, y - 420, 840, 840);
-  if (k.asset('whale-throat', x, y + 150, 300, 300)) return;
+  if (k.asset('whale-throat', x, y + 235, 300, 300)) return;
   // fleshy ring, baleen fringe, daylight and a glimpse of the shore
   c.fillStyle = k.col(FLESH_LIT); c.beginPath(); c.ellipse(x, y, 150, 140, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = k.col('#fbf1dc'); c.beginPath(); c.ellipse(x, y, 105, 98, 0, 0, Math.PI * 2); c.fill();
@@ -181,7 +181,7 @@ function ledge(k, p) {
     // A rib rising from the stomach floor and curving away into the dark,
     // with a bone shelf jutting from it.
     // A bone shelf jutting from a rib: a short curved bracket under it.
-    if (!k.asset('rib-arch', cx, y + 300, 140, 300)) {
+    if (!k.asset('rib-arch', cx - 51, y + 490, 230, 490)) {
       const side = (Math.round(cx / 10) % 2) ? 1 : -1; // brackets lean either way
       c.fillStyle = k.col(BONE_DARK);
       c.beginPath(); c.moveTo(cx - 22, y + 10); c.lineTo(cx + 22, y + 10);
@@ -238,8 +238,8 @@ function hook(k, st, h) {
 
 function floater(k, f) {
   const c = k.c, x = f.x, top = f.top;
-  const box = { barrel: [80, 100, 'barrel'], crate: [90, 90, 'crate'], debris: [260, 111, 'wreck-debris'], piano: [210, 160, 'piano'], figurehead: [160, 210, 'figurehead'] }[f.kind];
-  if (!k.asset(box[2], x, top + box[1], box[0], box[1])) {
+  const box = { barrel: [80, 100, 'barrel'], crate: [90, 90, 'crate'], debris: [260, 111, 'wreck-debris', -45, 0], piano: [210, 160, 'piano'], figurehead: [160, 210, 'figurehead', -14, 12] }[f.kind];
+  if (!k.asset(box[2], x + (box[4] || 0), top + box[1] + (box[3] || 0), box[0], box[1])) {
     if (f.kind === 'barrel') {
       c.fillStyle = k.col('#7a4a26'); c.beginPath(); c.moveTo(x - 30, top); c.quadraticCurveTo(x - 44, top + 50, x - 30, top + 100); c.lineTo(x + 30, top + 100); c.quadraticCurveTo(x + 44, top + 50, x + 30, top); c.fill();
       c.fillStyle = k.col('#3a2a22'); for (const dy of [12, 48, 84]) c.fillRect(x - 38, top + dy, 76, 6);
@@ -481,7 +481,7 @@ function shoreScene(k, st, t) {
   if (slide < 1) whaleBeached(k, wx, wb, t);
   rocks(k);
   // the sailor crawls out of the mouth onto the rocks
-  const mouth = { x: 520 + 360, y: 470 };
+  const mouth = { x: 902, y: 405 };
   const sp = clamp((pt - T.crawl) / 2, 0, 1);
   crawler(k, mouth, { x: 1060, y: 612 }, sp, (fr) => drawSailor(k, fr), t);
   for (let i = 0; i < n; i++) {

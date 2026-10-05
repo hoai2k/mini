@@ -54,7 +54,7 @@ export const FLOAT_KINDS = {
   crate: { w: 90, fb: 50 },
   debris: { w: 230, fb: 35 },
   piano: { w: 170, fb: 95 },
-  figurehead: { w: 130, fb: 60 },
+  figurehead: { w: 50, fb: 60 },
 };
 export const FLOATERS = [
   { id: 'F1', kind: 'barrel', home: 470, range: 35 },
