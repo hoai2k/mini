@@ -86,9 +86,8 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-All but two of the 74 requests (BD-P10, the Han general, and BD-U16, the touch
-buttons) now have generated artwork: 20 style and direction images in
-`design/references/` and 52 game images in `game/assets/art/`. The set follows
+All 76 requests now have generated artwork: 20 style and direction images in
+`design/references/` and 56 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 
 [`design/image-deliveries.json`](design/image-deliveries.json) records the exact
@@ -97,12 +96,12 @@ and sprite-sheet cells. Exports match the requested dimensions; larger canvases
 are resampled from the generator's native output rather than generated at native
 4K. Puppet sheets are artwork for future rigging, not animated rigs.
 
-The manifest's `runtime` flag distinguishes the 42 images used by the prototype
-from the 10 delivered puppet, effects and planned interface sheets. The latter
+The manifest's `runtime` flag distinguishes the 47 images used by the prototype
+from the 9 delivered puppet, effects and planned interface sheets. The latter
 remain available for production work without being downloaded at game startup.
 
 The PNGs in `game/assets/art/` are the masters, kept at the requested sizes.
-The game loads WebP copies scaled to the size it actually draws them at (4.4 MB
+The game loads WebP copies scaled to the size it actually draws them at (4.6 MB
 in all). Only these copies are published. After
 delivering or replacing art, rerun
 [`design/source/build_web_art.py`](design/source/build_web_art.py) and then

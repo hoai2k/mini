@@ -389,7 +389,7 @@ req(C, "BD-C11", "drummer-chau", "Companion drummer: the barrel drum",
     "strikes her drum and the game shakes the whole figure. Shown 88 px tall, so keep the "
     "shapes bold.",
     "1024x1536. " + CUTOUT,
-    "stand-in", "Renderer.companions", "art/drummer-chau.png",
+    "delivered", "Renderer.companions", "art/drummer-chau.png",
     f"{STYLE} A Lac Viet woman drummer walking in profile facing right, a trống chầu slung at "
     "her hip on a strap: a small barrel drum lacquered red with a bronze band, its pale "
     "buffalo-hide head facing forward. Her right hand raises a wooden beater with a red tip. "
@@ -399,7 +399,7 @@ req(C, "BD-C12", "drummer-mo", "Companion drummer: the mõ",
     "Walks beside the barrel drummer. When the rhythm is reset she knocks her mõ and the game "
     "shakes the whole figure. Shown 84 px tall.",
     "1024x1536. " + CUTOUT,
-    "stand-in", "Renderer.companions", "art/drummer-mo.png",
+    "delivered", "Renderer.companions", "art/drummer-mo.png",
     f"{STYLE} A Lac Viet woman walking in profile facing right, holding out a mõ in her left "
     "hand: a small round wooden slit drum of dark polished wood with a long slit cut across its "
     "front. Her right hand lifts a short wooden mallet. Short feather crown, wrapped skirt, a "
@@ -518,7 +518,7 @@ req(U_, "BD-U16", "touch-buttons", "Touch buttons: the companion drums",
     "nothing written on it.",
     "768x256, transparent; three pieces on a 256 px grid, each centred and filling about 90% "
     "of its cell",
-    "stand-in", "Renderer.chauDrum / moDrum", "art/touch-buttons.png",
+    "delivered", "Renderer.chauDrum / moDrum", "art/touch-buttons.png",
     f"{STYLE} Three cut-paper objects in a row on a transparent background, each centred in "
     "its third. 1: a trống chầu, a Vietnamese barrel drum with a buffalo-hide head, seen from "
     "the front and a little above so the round cream hide head fills most of the piece. The "
@@ -657,7 +657,7 @@ req(ST, "BD-P10", "han-general", "Mã Viện on horseback",
     "Mã Viện Returns: the Han general watching from the rear of his columns, always near the "
     "right edge of the screen. Shown 180 px tall, slightly faded behind the field.",
     "1536x1536. Faces left. " + CUTOUT.replace("figure, side profile, full body, feet", "figure on horseback, side profile, hooves"),
-    "stand-in", "Renderer.general", "art/han-general.png",
+    "delivered", "Renderer.general", "art/han-general.png",
     f"{STYLE} The Eastern Han general Mã Viện, 1st century, an old but upright commander on a "
     "dark warhorse in profile facing left, lamellar armour cut as rows of small slots, a "
     "crested helmet with a red plume, one hand raised to signal the advance, a long red "

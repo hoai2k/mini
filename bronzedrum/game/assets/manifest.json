@@ -122,17 +122,19 @@
       "id": "drummer-chau",
       "request": "BD-C11",
       "file": "art/drummer-chau.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/drummer-chau.webp"
     },
     {
       "id": "drummer-mo",
       "request": "BD-C12",
       "file": "art/drummer-mo.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/drummer-mo.webp"
     },
     {
       "id": "unit-spear",
@@ -267,9 +269,10 @@
       "id": "touch-buttons",
       "request": "BD-U16",
       "file": "art/touch-buttons.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/touch-buttons.webp"
     },
     {
       "id": "card-garden",
@@ -488,9 +491,10 @@
       "id": "han-general",
       "request": "BD-P10",
       "file": "art/han-general.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/han-general.webp"
     }
   ]
 }
