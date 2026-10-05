@@ -2774,9 +2774,43 @@ export class Renderer {
         g.textAlign = 'center';
         const w = fit(lines);
         g.fillStyle = 'rgba(22,21,26,0.7)';
-        g.fillRect(cx - w / 2, top, w, 12 + 24 * lines.length);
+        g.fillRect(cx - w / 2, top, w, 12 + 24 * lines.length + (view.demo && view.hint === view.demo.text ? 18 : 0));
         g.fillStyle = P.paper;
-        lines.forEach((l, i) => this.richText(l, cx, top + 24 + 24 * i));
+        const demo = view.demo && view.hint === view.demo.text ? this.demoState(view.demo, t) : null;
+        // Tokens are counted across lines; the rhythm's are the last n.
+        const all = lines.reduce((m, l) => m + this.richCount(l), 0);
+        const first = demo ? all - demo.n : 0;
+        const glow = demo ? (i) => (i >= first ? demo.glow(i - first) : 0) : null;
+        let count = 0;
+        const centres = [];
+        lines.forEach((l, i) => {
+          centres.push(...this.richText(l, cx, top + 24 + 24 * i, glow, count));
+          count += this.richCount(l);
+        });
+        if (demo && centres.length >= demo.n) {
+          // A paper pointer under the rhythm, tapping up at each stroke.
+          const row = centres.slice(first);
+          const a = row[Math.floor(demo.pointer)];
+          const b = row[Math.min(row.length - 1, Math.ceil(demo.pointer))];
+          const f = demo.pointer - Math.floor(demo.pointer);
+          const px = a.x + (b.x - a.x) * f;
+          const py = Math.max(a.y, b.y) + 14 + 6 * (1 - demo.tap) + (lines.length - 1) * 0;
+          g.save();
+          g.fillStyle = P.bronzeLight;
+          g.shadowColor = 'rgba(0,0,0,0.6)';
+          g.shadowBlur = 4;
+          g.beginPath();
+          g.moveTo(px, py);
+          g.lineTo(px - 7, py + 11);
+          g.lineTo(px - 2.5, py + 11);
+          g.lineTo(px - 2.5, py + 19);
+          g.lineTo(px + 2.5, py + 19);
+          g.lineTo(px + 2.5, py + 11);
+          g.lineTo(px + 7, py + 11);
+          g.closePath();
+          g.fill();
+          g.restore();
+        }
       }, hintScale);
     }
 
@@ -2804,22 +2838,24 @@ export class Renderer {
   // the Xbox face buttons in their standard colours, easier to read than letters.
 
   /**
-   * Split rich text into plain strings and button groups. Buttons written
-   * with nothing between them (⟨B⟩⟨B⟩) share one beat, a pair or triplet:
-   * they are drawn smaller, touching, and joined by a beam like the rhythm
-   * dots, so they read apart from single beats.
+   * Split rich text into plain strings and token groups. Tokens: ⟨A⟩ ⟨B⟩ ⟨X⟩
+   * ⟨Y⟩ controller buttons, ⟨k:F⟩ a keyboard key, ⟨d:L⟩ / ⟨d:R⟩ the drum's
+   * centre and rim. Tokens written with nothing between them (⟨B⟩⟨B⟩) share
+   * one beat, a pair or triplet: they are drawn smaller and touching, joined
+   * by a beam like the rhythm dots, so they read apart from single beats.
    */
   richParts(text) {
+    const TOKEN = /⟨(?:[ABXY]|k:[^⟩]+|d:[LR])⟩/g;
     const out = [];
-    for (const piece of text.split(/((?:⟨[ABXY]⟩)+)/).filter(Boolean)) {
-      const keys = piece.match(/⟨([ABXY])⟩/g);
-      if (keys && keys.join('') === piece) out.push({ keys: keys.map((k) => k[1]) });
+    for (const piece of text.split(/((?:⟨(?:[ABXY]|k:[^⟩]+|d:[LR])⟩)+)/).filter(Boolean)) {
+      const toks = piece.match(TOKEN);
+      if (toks && toks.join('') === piece) out.push({ keys: toks.map((k) => k.slice(1, -1)) });
       else out.push(piece);
     }
     return out;
   }
 
-  /** Button sizes for a group of n buttons, at font size `size`. */
+  /** Token sizes for a group of n tokens, at font size `size`. */
   richGroup(n, size) {
     const r = n > 1 ? size * 0.4 : size * 0.55;
     const step = n > 1 ? r * 2 + size * 0.04 : 0;
@@ -2835,14 +2871,25 @@ export class Renderer {
     return this.richParts(text).reduce((w, p) => w + (typeof p === 'string' ? g.measureText(p).width : this.richGroup(p.keys.length, size).width), 0);
   }
 
-  /** Rich text centred on cx, baseline y, in the current font and fill. */
-  richText(text, cx, y) {
+  /** How many tokens a piece of rich text holds. */
+  richCount(text) {
+    return this.richParts(text).reduce((n, p) => n + (typeof p === 'string' ? 0 : p.keys.length), 0);
+  }
+
+  /**
+   * Rich text centred on cx, baseline y, in the current font and fill.
+   * glow(i) (0..1) lights token i (counted from `first`), swelling it.
+   * Returns each token's centre, for the demonstration's pointer.
+   */
+  richText(text, cx, y, glow = null, first = 0) {
     const g = this.ctx;
     const size = parseFloat(/(\d+(?:\.\d+)?)px/.exec(g.font)?.[1] || 18);
     const colors = { A: '#107C10', B: '#E81123', X: '#0078D4', Y: '#FFB900' };
     const fill = g.fillStyle;
     const align = g.textAlign;
     const font = g.font;
+    const centres = [];
+    let index = first;
     g.textAlign = 'left';
     let x = cx - this.richWidth(text) / 2;
     for (const p of this.richParts(text)) {
@@ -2866,14 +2913,42 @@ export class Renderer {
       }
       p.keys.forEach((k, i) => {
         const bx = x0 + step * i;
-        g.fillStyle = colors[k];
-        g.beginPath();
-        g.arc(bx, by, r, 0, Math.PI * 2);
-        g.fill();
-        g.font = `700 ${Math.round(r * 1.3)}px "Be Vietnam Pro", system-ui, sans-serif`;
-        g.textAlign = 'center';
-        g.fillStyle = k === 'Y' ? P.ink : '#fff';
-        g.fillText(k, bx, by + r * 0.46);
+        const lit = glow ? glow(index) : 0;
+        const rr = r * (1 + 0.35 * lit);
+        centres.push({ x: bx, y: by, r: rr });
+        index += 1;
+        g.save();
+        if (lit > 0) {
+          g.shadowColor = '#FFE2A8';
+          g.shadowBlur = 16 * lit;
+        }
+        if (k.startsWith('d:')) {
+          // The drum's centre (a bronze disc) or rim (a lacquer ring).
+          this.glyph(bx, by, k[2], rr * 0.9);
+        } else if (k.startsWith('k:')) {
+          // A keyboard key: a paper keycap with its letter.
+          const w = rr * 1.9;
+          g.fillStyle = P.paper;
+          g.beginPath();
+          g.roundRect(bx - w / 2, by - w / 2, w, w, rr * 0.35);
+          g.fill();
+          g.shadowBlur = 0;
+          g.font = `700 ${Math.round(rr * 1.15)}px "Be Vietnam Pro", system-ui, sans-serif`;
+          g.textAlign = 'center';
+          g.fillStyle = P.ink;
+          g.fillText(k.slice(2), bx, by + rr * 0.4);
+        } else {
+          g.fillStyle = colors[k];
+          g.beginPath();
+          g.arc(bx, by, rr, 0, Math.PI * 2);
+          g.fill();
+          g.shadowBlur = 0;
+          g.font = `700 ${Math.round(rr * 1.3)}px "Be Vietnam Pro", system-ui, sans-serif`;
+          g.textAlign = 'center';
+          g.fillStyle = k === 'Y' ? P.ink : '#fff';
+          g.fillText(k, bx, by + rr * 0.46);
+        }
+        g.restore();
         g.font = font;
         g.textAlign = 'left';
       });
@@ -2881,6 +2956,37 @@ export class Renderer {
     }
     g.fillStyle = fill;
     g.textAlign = align;
+    return centres;
+  }
+
+  /**
+   * The demonstration's lights: how lit token i is at time t (a flash as its
+   * stroke sounds), and where the pointer is (gliding to the next token just
+   * before its stroke). Tokens are the rhythm's strokes in order.
+   */
+  demoState(demo, t) {
+    const n = demo.strokes.length;
+    const hits = [];
+    for (let rep = 0; rep < demo.reps; rep++) demo.strokes.forEach((s, i) => hits.push({ i, at: demo.start + (rep * 5 + s.pos) * demo.u }));
+    const glow = (i) => {
+      let v = 0;
+      for (const h of hits) if (h.i === i && t >= h.at) v = Math.max(v, 1 - (t - h.at) / 0.35);
+      return Math.max(0, v);
+    };
+    // The pointer rests on the last token struck and slides to the next one
+    // over the moment before it sounds.
+    let k = hits.findIndex((h) => h.at > t);
+    if (k === -1) k = hits.length;
+    const prev = hits[k - 1];
+    const next = hits[k];
+    let pos = prev ? prev.i : next ? next.i : 0;
+    let tap = prev ? Math.max(0, 1 - (t - prev.at) / 0.18) : 0;
+    if (prev && next) {
+      const lead = Math.min(0.22, (next.at - prev.at) * 0.6);
+      const q = Math.max(0, Math.min(1, (t - (next.at - lead)) / lead));
+      pos = prev.i + (next.i - prev.i) * (q * q * (3 - 2 * q));
+    } else if (!prev && next) pos = next.i;
+    return { glow: (i) => glow(i % n), pointer: pos, tap, n };
   }
 
   // ---------------------------------------------------------------- touch

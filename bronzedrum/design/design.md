@@ -120,6 +120,17 @@ breaks a phrase, and the wait for the next stroke is measured from the beat.
 the Giao Chỉ call RRR L RR L.) The phrase fades as soon as no pattern can still
 be finished in time, or when a stroke breaks the rhythm. Y resets it at once.
 
+**Demonstrations.** The first time a hint shows a rhythm (the first march,
+the first pair, the first triplet, the casting rhythm), the game plays it
+before asking for it: the hint becomes "Listen — <name>: <rhythm>", the drum
+plays it twice at about 109 BPM, each button in the hint swells and glows as
+its stroke sounds, and a paper pointer taps under it and slides on to the next.
+Rhythms already demonstrated are remembered between visits. After three uneven
+or abandoned tries in a row at a rhythm, it is played again ("Listen again").
+A stroke from the player ends a demonstration at once. Hints write each stroke
+as a token in the device's own terms (an Xbox button, a key, the drum's centre
+or rim), and strokes that share a beat are drawn small, touching and beamed.
+
 **Pairs, triplets and tiers.** A beat can hold one stroke, a pair (two) or a
 triplet (three). Every command has three tiers. Tier I is four plain strokes;
 tiers II and III add pairs and triplets. The deep tùng needs room to ring, so

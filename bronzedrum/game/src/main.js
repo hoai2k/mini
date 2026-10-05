@@ -396,6 +396,10 @@ function strike(drum, time) {
     feedback('Listen first — then answer', P.paperShade);
     return;
   }
+  // The player takes over: a demonstration stops at the first stroke.
+  if (game.demo && songTime() > game.demo.start - 0.3) game.demo = null;
+  const trying = game.reader.progress();
+  if (trying) game.lastTry = trying.pattern;
   for (const ev of game.reader.hit(drum, t)) handleRhythm(ev);
 }
 
@@ -471,6 +475,7 @@ function endSustain() {
 
 function handleRhythm(ev) {
   const g = game;
+  if (ev.type === 'command') g.misses = 0;
   if (ev.type === 'phraseStart') {
     endSustain();
   } else if (ev.type === 'command' && g.mode === 'echo') {
@@ -501,6 +506,14 @@ function handleRhythm(ev) {
     feedback(`Nhị’s flourish ×${ev.count}`, P.lacquer);
     g.flourishTaught = true;
   } else if (ev.type === 'reset') {
+    // Three uneven tries in a row at a rhythm: play it again for them.
+    if ((ev.reason === 'uneven' || ev.reason === 'timeout') && ev.strokes >= 2) {
+      g.misses = (g.misses || 0) + 1;
+      if (g.misses >= 3 && g.lastTry) {
+        g.misses = 0;
+        g.wantAgain = g.lastTry;
+      }
+    }
     if (ev.reason === 'manual') confirm('Cleared', P.paperShade);
     else if (ev.reason !== 'no-pattern' && ev.strokes >= 2) feedback(ev.reason === 'timeout' ? 'The rhythm fades' : 'Uneven — start again', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
@@ -563,22 +576,87 @@ function handleMode(e) {
   }
 }
 
+/** How each drum is shown in hints for the device in use, as rich-text tokens. */
+function strokeKeys() {
+  return {
+    keyboard: { L: '⟨k:F⟩', R: '⟨k:J⟩' },
+    gamepad: { L: '⟨X⟩', R: '⟨B⟩' },
+    pointer: { L: '⟨d:L⟩', R: '⟨d:R⟩' },
+    touch: { L: '⟨d:L⟩', R: '⟨d:R⟩' },
+  }[input.device] || { L: '⟨k:F⟩', R: '⟨k:J⟩' };
+}
+
+/** A rhythm ("L RR L R") as tokens: beats apart, strokes sharing a beat together. */
+function rhythmTokens(text) {
+  const keys = strokeKeys();
+  return text.split(' ').map((beat) => [...beat].map((d) => keys[d]).join('')).join(' ');
+}
+
+// ---------------------------------------------------------------- demonstrations
+// The first time a rhythm is shown, and again when the player keeps missing
+// it, the game plays it: the hint becomes the rhythm alone, a pointer moves
+// along its buttons and each one lights as its stroke sounds. Twice through
+// at a steady tempo, then the player's turn. Drumming cuts it short.
+
+const DEMO_REPS = 2;
+// Rhythms already demonstrated (kept between visits; load() merges objects, so read the list directly).
+const seenDemos = new Set((() => {
+  try {
+    const v = JSON.parse(localStorage.getItem(`${STORE}.demos`) || '[]');
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+})());
+
+function startDemo(item, { again = false, u = 0.55 } = {}) {
+  const g = game;
+  const strokes = parsePattern(item.text);
+  const prefix = again ? `Listen again — ${item.label}: ` : `Listen — ${item.label}: `;
+  g.demo = { text: prefix + rhythmTokens(item.text), tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, next: 0, key: item.key };
+  if (!seenDemos.has(item.key)) {
+    seenDemos.add(item.key);
+    save('demos', [...seenDemos]);
+  }
+}
+
+/** Sound the demonstration's strokes just ahead of time, and end it when done. */
+function tickDemo() {
+  const g = game;
+  const d = g.demo;
+  if (!d) return;
+  const t = songTime();
+  const total = d.strokes.length * d.reps;
+  while (d.next < total) {
+    const rep = Math.floor(d.next / d.strokes.length);
+    const s = d.strokes[d.next % d.strokes.length];
+    const at = d.start + (rep * 5 + s.pos) * d.u;
+    if (at - t > 0.3) break;
+    const when = g.clockStart + Math.max(at, t);
+    if (s.drum === 'L') sound.tung(when);
+    else sound.cac(when);
+    d.next += 1;
+  }
+  if (t > d.start + (d.reps * 5 - 1) * d.u + 0.4) g.demo = null;
+}
+
 function hint(view) {
   const g = game;
   const t = view.songTime;
   if (t < g.introUntil && g.stage.id !== 'garden') return g.stage.intro.split('. ')[0] + '.';
+  // A demonstration under way replaces the hint (see startDemo).
+  if (g.demo) return g.demo.text;
   if (!settings.hints) return null;
-  const keys = {
-    keyboard: { L: 'F', R: 'J' },
-    gamepad: { L: '⟨X⟩', R: '⟨B⟩' },
-    pointer: { L: 'left', R: 'right' },
-    touch: { L: '●', R: '○' },
-  }[input.device] || { L: 'F', R: 'J' };
+  const keys = strokeKeys();
   const touch = input.device === 'touch';
+  // Every rhythm a hint shows is noted, so the first time one appears the
+  // game can demonstrate it (view()).
+  g.mentioned = [];
   const say = (id, tier = 1) => {
     const c = commandById(id);
-    const text = c.tiers[tier - 1].split(' ').map((beat) => [...beat].map((d) => keys[d]).join(input.device === 'pointer' ? '-' : '')).join(' ');
-    return `${c.name}${tier > 1 ? ' ' + ['', 'I', 'II', 'III'][tier] : ''}: ${text}`;
+    const label = `${c.name}${tier > 1 ? ' ' + ['', 'I', 'II', 'III'][tier] : ''}`;
+    g.mentioned.push({ key: `${id}:${tier}`, text: c.tiers[tier - 1], label });
+    return `${label}: ${rhythmTokens(c.tiers[tier - 1])}`;
   };
   const b = g.battle;
   const front = blocker(b);
@@ -593,7 +671,10 @@ function hint(view) {
   }
   if (g.mode === 'casting') {
     const sess = g.session;
-    if (sess.u === null) return `Drum the hammer rhythm at a speed you can hold: ${g.stage.rhythm.split(' ').map((b) => [...b].map((d) => keys[d]).join('')).join(' ')}`;
+    if (sess.u === null) {
+      g.mentioned = [{ key: `cast:${g.stage.rhythm}`, text: g.stage.rhythm, label: 'The hammer rhythm' }];
+      return `Drum the hammer rhythm at a speed you can hold: ${rhythmTokens(g.stage.rhythm)}`;
+    }
     return `Hold ${Math.round(60 / sess.u)} BPM — every phrase the same speed`;
   }
   if (g.stage.id === 'mavien' && view.songTime < 20) return 'Hold the ford — strike the columns, shield every volley';
@@ -618,6 +699,7 @@ function updatePlay(dt) {
   const g = game;
   const t = songTime();
   for (const ev of g.reader.update(t)) handleRhythm(ev);
+  tickDemo();
   if (g.mode === 'echo' && !g.ended) for (const e of g.session.update(t)) handleMode(e);
   // The Oath: holding A or Y stirs a breeze over the incense (drawn by the renderer).
   if (g.stage.caller === 'mourning') sound.setBreeze(input.held('guard') || input.held('reset') ? 0.7 : 0);
@@ -770,6 +852,24 @@ function view() {
     wind: g.stage.caller === 'mourning' && screen === 'play' ? { a: input.held('guard'), y: input.held('reset') } : null,
   };
   v.hint = hint(v);
+  // Start a demonstration when the drum is free: a rhythm shown for the first
+  // time, or one the player keeps missing.
+  const free = !g.demo && !r.phrase.length && !g.ended && screen === 'play' && t > 1.2;
+  if (free && g.wantAgain) {
+    const p = g.wantAgain;
+    g.wantAgain = null;
+    const c = commandById(p.command);
+    const echoU = g.mode === 'echo' && g.session.call ? g.session.call.u : null;
+    startDemo({ key: `again:${p.text}`, text: p.text, label: c ? `${c.name}${p.tier > 1 ? ' ' + ['', 'I', 'II', 'III'][p.tier] : ''}` : 'The rhythm' }, { again: true, u: echoU || 0.55 });
+    v.hint = hint(v);
+  } else if (free && settings.hints && g.mentioned && !r.action) {
+    const item = g.mentioned.find((m) => !seenDemos.has(m.key));
+    if (item) {
+      startDemo(item, { u: g.mode === 'casting' ? 0.6 : 0.55 });
+      v.hint = hint(v);
+    }
+  }
+  v.demo = g.demo;
   return v;
 }
 
