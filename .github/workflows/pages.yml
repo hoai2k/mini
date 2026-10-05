@@ -38,6 +38,9 @@ jobs:
         working-directory: bronzedrum/game
       - run: python3 bronzedrum/design/source/build_requests.py --check && python3 bronzedrum/design/source/build_audio.py --check && python3 bronzedrum/design/source/build_web_art.py --check
       - run: bronzedrum/publish.sh local/pages/bronzedrum
+      - run: npm ci && npm test
+        working-directory: multiplayer/server
+      - run: node --check tankwars/game/game.js && node --check tankwars/game/menu.js && tankwars/publish.sh local/pages/tankwars
       - run: cp index.html local/pages/index.html
       - uses: actions/upload-pages-artifact@v3
         with:

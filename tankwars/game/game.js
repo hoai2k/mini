@@ -8,19 +8,11 @@ const defaultName = getRandomName();
 document.getElementById('hostNameInput').value = defaultName;
 document.getElementById('joinNameInput').value = defaultName;
 
-const APP_ID = '96e3e93f-4644-4596-a02f-40e8ae915138'; 
-let db = null;
-
-function initDB() {
-    if (db) return; 
-    const sdk = window.instant;
-    if (sdk && typeof sdk.init === 'function') {
-        try {
-            db = sdk.init({ appId: APP_ID });
-        } catch (e) { console.error("Init Error:", e); }
-    } else { setTimeout(initDB, 100); }
-}
-initDB();
+// Online play runs through the mini-rooms relay (see MULTIPLAYER.md at the repository root).
+const net = window.MiniRooms ? window.MiniRooms.connect('tankwars') : null;
+let pendingHostTitle = null;
+const escapeHTML = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const myPeerId = () => presenceHandle?.peerId || 'me';
 
 let currentOnlineRoom = null, onlinePeers = {}, presenceHandle = null, lastPeerCount = 0, isOnlineHost = false, isHostingAction = false, isHostPaused = false, pendingJoinRoomId = null, lastHeartbeatTime = 0, hasInitialPresence = false;
 const prevStats = new Map();
@@ -168,7 +160,7 @@ function showNotification(msg, color) {
     container.appendChild(el); setTimeout(() => el.remove(), 2600);
 }
 
-window.addEventListener('beforeunload', () => { if (isOnlineHost && currentOnlineRoom && db) db.transact([window.instant.tx.tank_rooms[currentOnlineRoom].delete()]); });
+window.addEventListener('beforeunload', () => { if (presenceHandle) presenceHandle.leave(); });
 
 document.addEventListener('fullscreenchange', () => { cfg.fullscreen = !!document.fullscreenElement; const btn = document.getElementById('fullscreenBtn'); if (btn) { btn.innerText = cfg.fullscreen ? "ON" : "OFF"; btn.classList.toggle('active', cfg.fullscreen); } });
 
@@ -198,11 +190,23 @@ function unlockMobileOrientation() {
 function applyGodModePowerUps() { if (cfg.godMode && !currentOnlineRoom) world.tanks.forEach(t => { if (!t.isAI) PU_TYPES.forEach(pu => t.applyPowerUp(pu)); }); }
 
 function joinGame(id) {
-    if (!db) return; world.tanks.clear(); world.map = []; world.myTankId = null; onlinePeers = {}; prevStats.clear(); hasInitialPresence = false;
+    if (!net) { showNotification("Online play is unavailable", "#ff3300"); return; }
+    if (presenceHandle) presenceHandle.leave();
+    world.tanks.clear(); world.map = []; world.myTankId = null; onlinePeers = {}; prevStats.clear(); hasInitialPresence = false; lastPeerCount = 0;
     setTimeout(() => { hasInitialPresence = true; }, 2000); currentOnlineRoom = id; isHostPaused = false;
     lockMobileOrientation();
-    const roomFn = db.room || db.joinRoom; if (!roomFn) return;
-    presenceHandle = roomFn.call(db, 'tank-war', id);
+    const pilotName = document.getElementById(isOnlineHost ? 'hostNameInput' : 'joinNameInput')?.value || defaultName;
+    const room = isOnlineHost
+        ? net.host(id, { title: pendingHostTitle || `${pilotName}'s Game`, name: pilotName, capacity: MAX_ROOM_CAPACITY })
+        : net.join(id, { name: pilotName });
+    pendingHostTitle = null;
+    presenceHandle = room;
+    room.onClose(reason => {
+        if (presenceHandle !== room || reason === 'left') return;
+        const why = { host_left: "The host ended the game", full: "That game is full", not_found: "That game has ended", taken: "Could not host that game" }[reason] || "Lost connection to the game";
+        showNotification(why, "#ff3300");
+        backToMenu(true);
+    });
     presenceHandle.subscribeTopic('map_sync', (msg) => { 
         world.map = msg.map; 
         world.warpX = msg.warpX; 
@@ -253,11 +257,10 @@ function joinGame(id) {
          if (isOnlineHost && peerCount > lastPeerCount) { 
              const currentPUs = world.powerUps.map(p => ({ id: p.id, x: p.x, y: p.y, typeId: p.type.id }));
              presenceHandle.publishTopic('map_sync', { map: world.map, warpX: world.warpX, warpY: world.warpY, rows: cfg.rows, cols: cfg.cols, hostCfg: cfg, hostPowerUps: currentPUs }); 
-             db.transact([window.instant.tx.tank_rooms[currentOnlineRoom].update({ tankCount: peerCount })]); 
          }
          lastPeerCount = peerCount;
          Object.entries(peers).forEach(([peerId, data]) => {
-             if (peerId === (db.auth?.id || 'me')) return;
+             if (peerId === myPeerId()) return;
              if (data.tanks) {
                  data.tanks.forEach(tankData => {
                      let t = world.tanks.get(tankData.id); if (!t) { t = new Tank(tankData.x, tankData.y, tankData.color || PLAYER_COLORS[1], tankData.isAI, null, tankData.id); if (!t.isAI) { t.warpState = 'IN'; t.warpAnim = 0; if (hasInitialPresence) showNotification(`${tankData.name || "A pilot"} joined`, t.color); } if (!t.isAI && cfg.defaultPowerUp) { t.applyPowerUp(cfg.defaultPowerUp); } world.tanks.set(tankData.id, t); }
@@ -752,10 +755,8 @@ function findSafeSpawn(tc, tr) {
 }
 
 function spawnPowerUp() { 
-    if (currentOnlineRoom && presenceHandle) { 
-        if (!isOnlineHost && Object.keys(onlinePeers).length > 0 && Object.keys(onlinePeers)[0] !== (db.auth?.id || 'me')) return; 
-        if (!isOnlineHost && Object.keys(onlinePeers).length === 0) return; 
-    } 
+    // Online, only the host spawns power-ups and tells everyone else.
+    if (currentOnlineRoom && !isOnlineHost) { powerUpTimer = cfg.puFreq * 60; return; } 
     let p, attempts = 0; 
     while (!p && attempts < 100) { attempts++; let r = Math.floor(Math.random() * (cfg.rows-2)) + 1, c = Math.floor(Math.random() * (cfg.cols-2)) + 1; if (world.map[r][c] === 0) { let tx = c * TILE + TILE/2, ty = r * TILE + TILE/2; if (!Array.from(world.tanks.values()).some(t => t.alive && Math.hypot(t.x - tx, t.y - ty) < 40)) p = { x: tx, y: ty }; } } 
     if (p) { 
@@ -832,7 +833,7 @@ function renderHUD() {
         let c; if (!useR) c = (i < 4) ? tl : tr; else c = (humans.length > 4 && i < humans.length / 2) ? rt : rb;
         const kid = `kills-${t.id}`, lid = `lives-${t.id}`, ok = prevStats.get(kid) || 0, ol = prevStats.get(lid) || 0, card = document.createElement('div');
         card.id = `card-${t.id}`; card.className = `tank-card visible ${useR ? 'compact' : ''}`; card.style.color = t.color;
-        card.innerHTML = `<div class="tank-card-name">${currentOnlineRoom ? t.name : `PLAYER ${i + 1}`}</div><div class="tank-card-stats"><span>KILLS: <span id="${kid}" class="stat-val">${t.kills}</span></span><span>LOST: <span id="${lid}" class="stat-val">${t.livesLost}</span></span></div>`;
+        card.innerHTML = `<div class="tank-card-name">${currentOnlineRoom ? escapeHTML(t.name) : `PLAYER ${i + 1}`}</div><div class="tank-card-stats"><span>KILLS: <span id="${kid}" class="stat-val">${t.kills}</span></span><span>LOST: <span id="${lid}" class="stat-val">${t.livesLost}</span></span></div>`;
         c.appendChild(card); if (t.kills > ok) setTimeout(() => createStatParticles(document.getElementById(kid), t.color), 10); if (t.livesLost > ol) setTimeout(() => createStatParticles(document.getElementById(lid), t.color), 10);
         prevStats.set(kid, t.kills); prevStats.set(lid, t.livesLost);
     });
@@ -869,11 +870,10 @@ function loop() {
     if (state === 'PLAYING') { 
         checkNewPlayers(); powerUpTimer--; if (powerUpTimer <= 0) spawnPowerUp(); 
         if (currentOnlineRoom && presenceHandle) { 
-            if (isOnlineHost && Date.now() - lastHeartbeatTime > 15000) { db.transact([window.instant.tx.tank_rooms[currentOnlineRoom].update({ updatedAt: Date.now() })]); lastHeartbeatTime = Date.now(); }
             let local = []; world.tanks.forEach(t => { if (t.inputSet || (isOnlineHost && t.isAI)) local.push({ id: t.id, x: t.x, y: t.y, bodyAngle: t.bodyAngle, cannonAngle: t.cannonAngle, color: t.color, hp: t.hp, alive: t.alive, name: t.name, isAI: t.isAI, kills: t.kills, livesLost: t.livesLost, shield: t.shield, kineticShield: t.kineticShield, empStunTimer: t.empStunTimer, serializedPUs: Array.from(t.powerUps.entries()), serializedRoundPUs: Array.from(t.roundPowerUps.entries()), serializedPermPUs: Array.from(t.permPowerUps.entries()) }); });
             if (local.length > 0) presenceHandle.publishPresence({ tanks: local });
-            Object.entries(onlinePeers).forEach(([peerId, data]) => { if (peerId === (db.auth?.id || 'me')) return; if (data.tanks) data.tanks.forEach(td => { let t = world.tanks.get(td.id); if (!t) { t = new Tank(td.x, td.y, td.color, td.isAI, null, td.id); if (!t.isAI) { t.warpState = 'IN'; t.warpAnim = 0; if (hasInitialPresence) showNotification(`${td.name || "A pilot"} joined`, t.color); } if (!t.isAI && cfg.defaultPowerUp) { t.applyPowerUp(cfg.defaultPowerUp); } world.tanks.set(td.id, t); } if (Math.hypot(t.x - td.x, t.y - td.y) > TILE * 2) { t.x = t.targetX = td.x; t.y = t.targetY = td.y; } else { t.targetX = td.x; t.targetY = td.y; } t.bodyAngle = td.bodyAngle; t.cannonAngle = td.cannonAngle; t.hp = td.hp; t.alive = td.alive; t.name = td.name || "Tank"; t.kills = td.kills || 0; t.livesLost = td.livesLost || 0; t.shield = td.shield || 0; t.kineticShield = td.kineticShield || 0; t.empStunTimer = td.empStunTimer || 0; if (td.serializedPUs) t.powerUps = new Map(td.serializedPUs); if (td.serializedRoundPUs) t.roundPowerUps = new Map(td.serializedRoundPUs); if (td.serializedPermPUs) t.permPowerUps = new Map(td.serializedPermPUs); }); });
-            world.tanks.forEach((t, id) => { if (!t.inputSet && !(isOnlineHost && t.isAI) && t.warpState !== 'OUT') { let ex = false; Object.entries(onlinePeers).forEach(([pid, d]) => { if (pid !== (db.auth?.id || 'me') && d.tanks?.some(td => td.id === id)) ex = true; }); if (!ex) { if (!t.isAI) { showNotification(`${t.name} left`, t.color); t.warpState = 'OUT'; t.warpAnim = 1.0; } else { createExplosion(t.x, t.y, t.color, true, 0.5); world.tanks.delete(id); } } } }); 
+            Object.entries(onlinePeers).forEach(([peerId, data]) => { if (peerId === myPeerId()) return; if (data.tanks) data.tanks.forEach(td => { let t = world.tanks.get(td.id); if (!t) { t = new Tank(td.x, td.y, td.color, td.isAI, null, td.id); if (!t.isAI) { t.warpState = 'IN'; t.warpAnim = 0; if (hasInitialPresence) showNotification(`${td.name || "A pilot"} joined`, t.color); } if (!t.isAI && cfg.defaultPowerUp) { t.applyPowerUp(cfg.defaultPowerUp); } world.tanks.set(td.id, t); } if (Math.hypot(t.x - td.x, t.y - td.y) > TILE * 2) { t.x = t.targetX = td.x; t.y = t.targetY = td.y; } else { t.targetX = td.x; t.targetY = td.y; } t.bodyAngle = td.bodyAngle; t.cannonAngle = td.cannonAngle; t.hp = td.hp; t.alive = td.alive; t.name = td.name || "Tank"; t.kills = td.kills || 0; t.livesLost = td.livesLost || 0; t.shield = td.shield || 0; t.kineticShield = td.kineticShield || 0; t.empStunTimer = td.empStunTimer || 0; if (td.serializedPUs) t.powerUps = new Map(td.serializedPUs); if (td.serializedRoundPUs) t.roundPowerUps = new Map(td.serializedRoundPUs); if (td.serializedPermPUs) t.permPowerUps = new Map(td.serializedPermPUs); }); });
+            world.tanks.forEach((t, id) => { if (!t.inputSet && !(isOnlineHost && t.isAI) && t.warpState !== 'OUT') { let ex = false; Object.entries(onlinePeers).forEach(([pid, d]) => { if (pid !== myPeerId() && d.tanks?.some(td => td.id === id)) ex = true; }); if (!ex) { if (!t.isAI) { showNotification(`${t.name} left`, t.color); t.warpState = 'OUT'; t.warpAnim = 1.0; } else { createExplosion(t.x, t.y, t.color, true, 0.5); world.tanks.delete(id); } } } }); 
         } 
         const rm = []; world.tanks.forEach(t => { if (t.inputSet || t.isAI || (!t.isAI && !t.inputSet && t.id !== world.myTankId) || t.warpState !== 'NONE') t.update(); if (t.shouldDelete) rm.push(t.id); }); 
         rm.forEach(id => world.tanks.delete(id)); resolveTankCollisions(); world.bullets.forEach((b, id) => { b.update(); if (b.life <= 0) world.bullets.delete(id); }); 
@@ -1014,7 +1014,14 @@ window.TankWarsMenu?.configure({
     getKeysDown: () => keysDown,
     isMobile: () => isMobile,
     getCurrentOnlineRoom: () => currentOnlineRoom,
-    getDb: () => db,
+    getRooms: callback => {
+        if (!net) { callback({ rooms: [], error: new Error('offline') }); return () => {}; }
+        // Poll only while the lobby is on screen; showLobby() subscribes again.
+        const stop = net.watchRooms(result => { if (lobby.classList.contains('hidden')) stop(); else callback(result); });
+        return stop;
+    },
+    hostGame: async ({ name }) => { pendingHostTitle = `${name}'s Game`; },
+    maxRoomCapacity: MAX_ROOM_CAPACITY,
     getPowerUps: () => PU_TYPES,
     getAiPersonalities: () => AI_PERSONALITIES,
     getBoardSizes: () => BOARD_SIZES,

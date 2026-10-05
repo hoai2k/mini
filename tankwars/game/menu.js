@@ -50,8 +50,8 @@
  *     resetRound: () => game.resetRound(),
  *     cleanupToMenu: async ({ goToLobby }) => game.cleanup({ goToLobby }),
  *     onPauseChange: paused => game.setPaused(paused),
- *     getRooms: subscribe => db.subscribeQuery({ tank_rooms: {} }, subscribe),
- *     hostGame: async ({ roomId, name }) => db.createRoom(roomId, `${name}'s Game`)
+ *     getRooms: callback => net.watchRooms(callback),   // returns an unsubscribe function
+ *     hostGame: async ({ roomId, name }) => { ... }
  *   });
  *
  *   // In your animation frame:
@@ -387,7 +387,8 @@
         }
 
         const rooms = result?.rooms || result?.data?.tank_rooms || [];
-        const activeRooms = rooms.filter(room => (Date.now() - (room.updatedAt || 0)) < 60000);
+        const activeRooms = rooms.filter(room => (Date.now() - (room.updated ?? room.updatedAt ?? 0)) < 90000);
+        const escape = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
         const maxCapacity = menuState.hooks.maxRoomCapacity || globalValue('MAX_ROOM_CAPACITY', 8);
 
         if (activeRooms.length === 0) {
@@ -400,11 +401,13 @@
         }
 
         list.innerHTML = activeRooms.map(room => {
-            const currentTanks = room.tankCount || 1;
-            const available = Math.max(0, maxCapacity - currentTanks);
+            const capacity = room.capacity || maxCapacity;
+            const currentTanks = room.count ?? room.tankCount ?? 1;
+            const available = Math.max(0, capacity - currentTanks);
             const isFull = available <= 0;
-            return `<div class="room-item nav-item" data-room-id="${room.id}" style="${isFull ? 'opacity: 0.4; pointer-events: none;' : ''}" onclick="${isFull ? '' : `showJoinSetup('${room.id}')`}">
-                    <div class="room-info"><span>${room.name || 'Untitled Game'}</span><span class="room-capacity">(${available}/${maxCapacity} Available)</span></div>
+            const id = escape(room.id);
+            return `<div class="room-item nav-item" data-room-id="${id}" style="${isFull ? 'opacity: 0.4; pointer-events: none;' : ''}" onclick="${isFull ? '' : `showJoinSetup(this.dataset.roomId)`}">
+                    <div class="room-info"><span>${escape(room.title || room.name || 'Untitled Game')}</span><span class="room-capacity">(${available}/${capacity} Available)</span></div>
                     ${!isFull ? `<span style="font-size: 0.7rem; color: #00ff00;">JOIN</span>` : ''}</div>`;
         }).join('');
 
@@ -733,6 +736,7 @@
         }
 
         setGlobalValue('currentOnlineRoom', null);
+        setGlobalValue('presenceHandle', null);
         setGlobalValue('onlinePeers', {});
         setGlobalValue('isOnlineHost', false);
         setGlobalValue('isHostPaused', false);
@@ -741,10 +745,10 @@
         allPanels().filter(p => p.id !== 'menu').forEach(p => p.classList.add(HIDDEN_CLASS));
         panel('mobile-controls')?.classList.remove('active');
 
+        setState('MENU');
         if (goToLobby) showLobby();
         else {
             panels().menu?.classList.remove(HIDDEN_CLASS);
-            setState('MENU');
             restoreRememberedNavigationSelection(panels().menu);
         }
     }

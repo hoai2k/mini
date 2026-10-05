@@ -5,13 +5,15 @@ Repository-wide instructions for Claude Code sessions in this repository.
 ## Repository layout: one folder per game
 
 `mini` is a collection. **Each top-level folder is a separate game**, apart
-from `sites/` and `local/`:
+from `sites/`, `multiplayer/` and `local/`:
 
 | Folder | What it is | Published at |
 | --- | --- | --- |
 | `hopper/` | Hopper the Grasshopper | https://hoai2k.github.io/mini/hopper/ |
 | `widowsbay/` | Widow's Bay | https://hoai2k.github.io/mini/widowsbay/ |
 | `bronzedrum/` | Bronze Drum | https://hoai2k.github.io/mini/bronzedrum/ |
+| `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
+| `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |
 | `local/` | Ignored by Git: dependencies, caches and build output | — |
 
@@ -28,7 +30,8 @@ from `sites/` and `local/`:
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
-  https://hoai2k.github.io/mini/, one card per game. `GAME_GUIDELINES.md` applies to every game. `.github/workflows/pages.yml`
+  https://hoai2k.github.io/mini/, one card per game. `GAME_GUIDELINES.md` applies to every game.
+  `MULTIPLAYER.md` explains how a game adds online play through `multiplayer/`. `.github/workflows/pages.yml`
   builds and publishes everything.
 
 ## Always commit finished work to `main`

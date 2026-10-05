@@ -101,6 +101,18 @@
   .hopper .cover { background-image: url("hopper/assets/backgrounds/fields.webp"); }
   .widowsbay .cover { background: #2f1726 url("widowsbay/assets/logo.webp") center / cover; }
   .bronzedrum .cover { background-image: url("bronzedrum/assets/web/sky-dawn.webp"); }
+  .tankwars .cover {
+    background:
+      linear-gradient(rgba(0, 255, 0, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(90deg, rgba(0, 255, 0, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
+      #050505;
+  }
+  .tankwars .cover strong {
+    color: #fff;
+    font: 800 clamp(1.8rem, 6vw, 2.6rem) / 1 "Segoe UI", system-ui, sans-serif;
+    letter-spacing: 0.18em;
+    text-shadow: 0 0 18px rgba(0, 255, 0, 0.7);
+  }
 
   footer { margin-top: 40px; color: var(--muted); font-size: 0.95rem; }
   footer a { color: var(--ink); }
@@ -115,6 +127,18 @@
 
   <!-- Newest game first: a new game's card goes at the top of the shelf. -->
   <section class="shelf" aria-label="Games">
+    <a class="game tankwars" href="tankwars/">
+      <div class="cover">
+        <span class="tag">Online</span>
+        <strong>TANK WARS</strong>
+      </div>
+      <div class="info">
+        <h2>Tank Wars</h2>
+        <p>Top-down tank battles against the CPU or friends: couch play with controllers, or online rooms for up to eight.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+
     <a class="game bronzedrum" href="bronzedrum/">
       <div class="cover">
         <span class="tag">Prototype</span>

@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Tank Wars](https://hoai2k.github.io/mini/tankwars/)** · [`tankwars/`](tankwars/README.md)
 - **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · [`hopper/`](hopper/README.md)
 - **[Widow's Bay](https://hoai2k.github.io/mini/widowsbay/)** · [`widowsbay/`](widowsbay/README.md)
 - **[Bronze Drum](https://hoai2k.github.io/mini/bronzedrum/)** · [`bronzedrum/`](bronzedrum/README.md)
@@ -14,3 +15,4 @@ is at https://hoai2k.github.io/mini/.
 - [`sites/`](sites/README.md): band, label and other web pages, published under https://hoai2k.github.io/mini/sites/
 
 Shared requirements for every game: [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
+Online multiplayer for any game: [MULTIPLAYER.md](MULTIPLAYER.md).
