@@ -12,7 +12,15 @@ let dev;
 
 before(async () => {
   const cwd = fileURLToPath(new URL("..", import.meta.url));
-  dev = spawn("npx", ["wrangler", "dev", "--port", String(PORT), "--ip", "127.0.0.1", "--persist-to", ".wrangler/test-state"], { cwd, stdio: "pipe", detached: true });
+  const wrangler = fileURLToPath(new URL("../node_modules/wrangler/bin/wrangler.js", import.meta.url));
+  // Run wrangler directly in its own process group so after() can stop it and
+  // everything it started (workerd); otherwise the test run never exits on CI.
+  dev = spawn(process.execPath, [wrangler, "dev", "--port", String(PORT), "--ip", "127.0.0.1", "--persist-to", ".wrangler/test-state"], {
+    cwd,
+    stdio: "ignore",
+    detached: true,
+    env: { ...process.env, WRANGLER_SEND_METRICS: "false" },
+  });
   for (let i = 0; i < 120; i++) {
     try { if ((await fetch(BASE)).ok) return; } catch {}
     await new Promise(r => setTimeout(r, 500));
@@ -20,9 +28,9 @@ before(async () => {
   throw new Error("wrangler dev did not start");
 });
 
-// npx starts wrangler, which starts workerd: kill the whole process group, or
-// the grandchildren keep running and the test process never exits.
-after(() => { try { process.kill(-dev.pid, "SIGTERM"); } catch {} });
+after(() => {
+  try { process.kill(-dev.pid, "SIGTERM"); } catch {}
+});
 
 function connect(path) {
   const ws = new WebSocket(`${WS}${path}`);

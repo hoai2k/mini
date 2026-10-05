@@ -40,6 +40,7 @@ jobs:
       - run: bronzedrum/publish.sh local/pages/bronzedrum
       - run: npm ci && npm test
         working-directory: multiplayer/server
+        timeout-minutes: 5
       - run: node --check tankwars/game/game.js && node --check tankwars/game/menu.js && tankwars/publish.sh local/pages/tankwars
       - run: cp index.html local/pages/index.html
       - uses: actions/upload-pages-artifact@v3
