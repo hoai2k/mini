@@ -2803,15 +2803,36 @@ export class Renderer {
   // Hint text may name controller buttons as ⟨A⟩ ⟨B⟩ ⟨X⟩ ⟨Y⟩: they are drawn as
   // the Xbox face buttons in their standard colours, easier to read than letters.
 
+  /**
+   * Split rich text into plain strings and button groups. Buttons written
+   * with nothing between them (⟨B⟩⟨B⟩) share one beat, a pair or triplet:
+   * they are drawn smaller, touching, and joined by a beam like the rhythm
+   * dots, so they read apart from single beats.
+   */
   richParts(text) {
-    return text.split(/(⟨[ABXY]⟩)/).filter(Boolean);
+    const out = [];
+    for (const piece of text.split(/((?:⟨[ABXY]⟩)+)/).filter(Boolean)) {
+      const keys = piece.match(/⟨([ABXY])⟩/g);
+      if (keys && keys.join('') === piece) out.push({ keys: keys.map((k) => k[1]) });
+      else out.push(piece);
+    }
+    return out;
+  }
+
+  /** Button sizes for a group of n buttons, at font size `size`. */
+  richGroup(n, size) {
+    const r = n > 1 ? size * 0.4 : size * 0.55;
+    const step = n > 1 ? r * 2 + size * 0.04 : 0;
+    // Each group gets a little air on both sides, so beats stand apart.
+    const pad = size * 0.12;
+    return { r, step, width: pad * 2 + r * 2 + step * (n - 1), pad };
   }
 
   /** Width of rich text in the current font. */
   richWidth(text) {
     const g = this.ctx;
     const size = parseFloat(/(\d+(?:\.\d+)?)px/.exec(g.font)?.[1] || 18);
-    return this.richParts(text).reduce((w, p) => w + (/^⟨[ABXY]⟩$/.test(p) ? size * 1.25 : g.measureText(p).width), 0);
+    return this.richParts(text).reduce((w, p) => w + (typeof p === 'string' ? g.measureText(p).width : this.richGroup(p.keys.length, size).width), 0);
   }
 
   /** Rich text centred on cx, baseline y, in the current font and fill. */
@@ -2821,31 +2842,42 @@ export class Renderer {
     const colors = { A: '#107C10', B: '#E81123', X: '#0078D4', Y: '#FFB900' };
     const fill = g.fillStyle;
     const align = g.textAlign;
+    const font = g.font;
     g.textAlign = 'left';
     let x = cx - this.richWidth(text) / 2;
     for (const p of this.richParts(text)) {
-      const m = /^⟨([ABXY])⟩$/.exec(p);
-      if (!m) {
+      if (typeof p === 'string') {
         g.fillStyle = fill;
         g.fillText(p, x, y);
         x += g.measureText(p).width;
         continue;
       }
-      const r = size * 0.55;
-      const bx = x + size * 0.625;
+      const { r, step, width, pad } = this.richGroup(p.keys.length, size);
       const by = y - size * 0.36;
-      g.fillStyle = colors[m[1]];
-      g.beginPath();
-      g.arc(bx, by, r, 0, Math.PI * 2);
-      g.fill();
-      const font = g.font;
-      g.font = `700 ${Math.round(size * 0.72)}px "Be Vietnam Pro", system-ui, sans-serif`;
-      g.textAlign = 'center';
-      g.fillStyle = m[1] === 'Y' ? P.ink : '#fff';
-      g.fillText(m[1], bx, by + size * 0.26);
-      g.font = font;
-      g.textAlign = 'left';
-      x += size * 1.25;
+      const x0 = x + pad + r;
+      if (p.keys.length > 1) {
+        // The beam under a pair or triplet.
+        g.strokeStyle = fill;
+        g.lineWidth = Math.max(1.5, size * 0.09);
+        g.beginPath();
+        g.moveTo(x0 - r * 0.5, by + r + size * 0.14);
+        g.lineTo(x0 + step * (p.keys.length - 1) + r * 0.5, by + r + size * 0.14);
+        g.stroke();
+      }
+      p.keys.forEach((k, i) => {
+        const bx = x0 + step * i;
+        g.fillStyle = colors[k];
+        g.beginPath();
+        g.arc(bx, by, r, 0, Math.PI * 2);
+        g.fill();
+        g.font = `700 ${Math.round(r * 1.3)}px "Be Vietnam Pro", system-ui, sans-serif`;
+        g.textAlign = 'center';
+        g.fillStyle = k === 'Y' ? P.ink : '#fff';
+        g.fillText(k, bx, by + r * 0.46);
+        g.font = font;
+        g.textAlign = 'left';
+      });
+      x += width;
     }
     g.fillStyle = fill;
     g.textAlign = align;
