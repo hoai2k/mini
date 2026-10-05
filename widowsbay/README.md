@@ -74,7 +74,7 @@ frames or scrub, and copy a link to an exact moment (`#act1-ending@12.5`).
 
 ## Art
 
-All the art is delivered and drawn in the game: 118 images listed in
+All the art is delivered and drawn in the game: 172 images listed in
 [`design/image-requests.md`](design/image-requests.md), which also records how
 each was checked and fitted. The game loads WebP copies from `assets/` (ids
 match `assets/manifest.json`). Full-size PNG originals, the 14 mood boards and

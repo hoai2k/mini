@@ -155,7 +155,7 @@ test('endings are chosen from carry, in order', () => {
 
 test('the clifftop is only reachable from the giant\'s boot', () => {
   const st = act.create({ seed: 1 });
-  const ledge = st.holds.findIndex((h) => h.x === 330 && h.y === 1830);
+  const ledge = st.holds.findIndex((h) => h.x === 420 && h.y === 1830);
   const boot = st.holds.findIndex((h) => h.kind === 'boot');
   for (const [, v, leap] of TRIES) {
     const j = pickHold(st, ledge, v, leap);

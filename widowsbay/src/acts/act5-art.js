@@ -6,7 +6,7 @@ import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY } f
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 
 const S = 0.6; // the sailor's scale on the cliff and in the house
-const LEGS = [380, 494]; // the giant's boots on their shelf under the lip
+const LEGS = [450, 564]; // the giant's boots on their shelf under the lip
 const SAILOR = { coat: '#2b3550', legs: '#8a8a8a', hat: 'cap', hatCol: '#1f2740', scarf: '#c8321e', beard: '#d8d4cc', hair: '#9a948a' };
 const BELOVED = { coat: '#f1e3c8', skirt: '#f1e3c8', shawl: '#f3c6dc', hair: '#7a3420', hat: 'bun' };
 const WITCH = { coat: '#f3c6dc', skirt: '#f3c6dc', hair: '#1a1214', hat: 'crown', hatCol: '#d9b34a', long: true };
@@ -257,19 +257,22 @@ function bay(k, st, t, fire, horizon = 470) {
 
 // ---------------------------------------------------------------- part 1: the cliff
 // Any delivered cliff art brings its own surf at the foot and grass on top.
-const CLIFF_ART_SEA = (k) => !!(k.img('cliff-face-tall') || k.img('cliff-face'));
-// cliff-face-tall: 1400 x 3600, drawn 820 wide (x 230-1050) and tallH() high,
-// bottom on world y -30. It is requested with the dark gap from 35% to 50% of
-// the height (from the top) at two-thirds of the width, so the gap lands at
-// stage x = 230 + 820 * 2/3 = 777 and world y from tallGap().lo to tallGap().hi.
-// The gap hold (kind 'gap' in HOLDS, act5.js) is at x 775, y 1580, which is NOT
-// in that span, because it was placed for the current cliff-face's cleft.
-// When cliff-face-tall arrives, check the painted gap and move the hold so
-// that its knob (y - 124) and its guitarist sit in the middle of the gap:
-// set y = (tallGap().lo + tallGap().hi) / 2 - 124 (and x to the gap's centre),
-// then keep the neighbouring holds within reach (CLIFF.reach 130).
-const tallH = () => CLIFF.top + 34;
-export const tallGap = () => ({ x: 230 + 820 * 2 / 3, lo: -30 + tallH() * 0.5, hi: -30 + tallH() * 0.65 });
+const CLIFF_ART_SEA = (k) => !!(k.img('cliff-face-tall-2') || k.img('cliff-face-tall') || k.img('cliff-face'));
+// cliff-face-tall (1400 x 3600) as delivered: its grass top slopes (art y 50
+// at the left to 230 at the right), it narrows toward the top, and its dark
+// crack runs nearly the whole height at about two-thirds across. It is drawn
+// 868 wide (8% wider than its proportions), its left edge at x 213, so the
+// crack falls at x ~790 and the face covers the top-left holds, and scaled
+// so the grass under the house (art y 110) is the clifftop line, its foot
+// on world y -30.
+// cliff-face-tall-2 (third round) is requested with a level top and a full-
+// width face, so it is drawn at its own proportions when it arrives.
+const TALL1 = { id: 'cliff-face-tall', x0: 213, w: 868, topArtY: 110 };
+const TALL2 = { id: 'cliff-face-tall-2', x0: 230, w: 820, topArtY: 60 };
+let TALL = TALL1;
+const tallScale = () => (CLIFF.top + 30) / (3600 - TALL.topArtY);
+const tallH = () => 3600 * tallScale();
+export const tallGap = () => ({ x: TALL.x0 + TALL.w * 0.665, lo: 0, hi: CLIFF.top });
 const lx = (wy) => 268 + 16 * Math.sin(wy * 0.013) + 10 * Math.sin(wy * 0.041);
 const rx = (wy) => 1004 + 14 * Math.sin(wy * 0.017 + 1) + 9 * Math.sin(wy * 0.05);
 // Rock pillars across the cliff flat: x, width, block height, phase, shade.
@@ -300,9 +303,9 @@ function cliffScene(k, st, t) {
   // to y 80, surf from y 1540.)
   const H2 = (CLIFF.top + 30) / 2, SURF = (1800 - 1540) / 1800 * (H2 + 4);
   let cliffArt = false;
-  // The requested cliff-face-tall is the whole climb in one image: drawn once,
-  // 820 wide (as the two copies are) and tallH() high, its foot on world y -30.
-  if (k.img('cliff-face-tall')) cliffArt = k.asset('cliff-face-tall', 640, 30, 820, tallH());
+  // cliff-face-tall is the whole climb in one image, drawn once (see TALL).
+  TALL = k.img(TALL2.id) ? TALL2 : TALL1;
+  if (k.img(TALL.id)) cliffArt = k.asset(TALL.id, TALL.x0 + TALL.w / 2, 30, TALL.w, tallH());
   else if (k.img('cliff-face')) {
     c.save(); c.beginPath(); c.rect(0, -1e5, 1280, 1e5 + 30 - H2 - SURF + 12); c.clip(); // the upper one stops above its surf
     k.asset('cliff-face', 640, 30 - H2, 820, H2 + 4);
@@ -889,7 +892,8 @@ const CAPTIONS = {
 
 function endingScene(k, st, t) {
   const c = k.c, pt = st.phaseT, e = st.ending;
-  const art = (e === 'dark' && k.asset('ending-dark-2', 640, 720, 1280, 720)) || k.asset('ending-' + e, 640, 720, 1280, 720);
+  const art = (e === 'dark' && (k.asset('ending-dark-3', 640, 720, 1280, 720) || k.asset('ending-dark-2', 640, 720, 1280, 720)))
+    || k.asset('ending-' + e, 640, 720, 1280, 720);
   if (!art) {
     bay(k, st, t, 0.12 * (1 - easeInOut(pt / 4)));
     if (e === 'witch') witchEnding(k, st, t, pt);

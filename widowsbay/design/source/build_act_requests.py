@@ -354,17 +354,6 @@ ACTS = [
          'Used in the finale pageant when the guitar was not recovered in Act II.'),
     ]),
     ('Second round: stage machinery, footlights and the HUD', 'Shapes still drawn in code on every stage (found by the October 2026 art audit). The game keeps drawing its stand-ins until each arrives.', [
-        ('wave-crank', 'Wave-row crank handle', 200, 200, 'centre (axle hub)', SPRITE,
-         'A stage-machinery crank seen square-on, as a stagehand turns it from the wing: a round brass hub boss with '
-         'a square axle hole at the exact centre of the image, a flat black iron crank arm running from the hub '
-         'straight out to the right, and a turned dark-wood handle knob standing at the end of the arm, worn pale '
-         'where hands grip it. The hub must sit exactly at the image centre, as the game spins the whole piece '
-         'around it. Match the brass of touch-stick-knob and the gold of the proscenium.'),
-        ('wave-crank-bearing', 'Crank bearing in the wing', 140, 260, 'right edge (axle at the middle of the right edge)', SPRITE,
-         'A small upright iron bearing plate bolted to a strip of dark wing timber, seen square-on: the timber strip '
-         'runs the full height of the image, and a round brass bearing collar sits exactly halfway down at the right '
-         'edge, where the axle of a wave roller comes out of the wing. No crank on it. Painted like the deck-set '
-         'timbers.'),
         ('footlight', 'Footlight hood', 120, 60, 'bottom centre', SPRITE,
          'One brass theatre footlight seen from the audience: a low scalloped shell-shaped reflector hood, the lamp '
          'hidden behind its rim, riveted to a small wooden block. Warm metal, no glow painted (the game adds the '
@@ -566,6 +555,21 @@ ACTS = [
         ('touch-pause', 'Touch pause button', 92, 92, 'centre', SPRITE,
          'A small round button seen straight on: a plum enamel disc with the same gold scalloped rim as '
          'touch-button and two upright gold pause bars engraved in the middle.'),
+    ]),
+    ('Third round: re-requests', 'Second-round art that works but needs another pass (found integrating it, October 2026). The game uses the second-round version until each arrives.', [
+        ('cliff-face-tall-2', 'Tall cliff face, level top', 1400, 3600, 'bottom centre', SPRITE,
+         'The same tall sea cliff as cliff-face-tall (pale layered rock with green ivy, jutting ledges at many heights, '
+         'surf only at the very foot, no repeated section), with two changes: the grassy top is LEVEL and runs straight '
+         'across the full width of the cliff within the top 3% of the image (the delivered one slopes down to the right, '
+         'so the house on top floats), and the rock face keeps its full width all the way up instead of narrowing '
+         'toward the top. The dark vertical crack runs from 20% to 80% of the height at about two-thirds of the width.'),
+        ('ending-dark-3', 'Ending: the window is dark (house in frame)', 2560, 1440, 'full frame', TABLEAU,
+         f'Night. The stone cottage on the cliff (two storeys of pale stone hung with ivy and pink roses, one '
+         f'window, a green wooden door; the same house as house-front), standing between 15% and 45% of the width so '
+         f'the theatre drapes do not hide it: its window dark, and a black silhouette of another figure in its lit '
+         f'doorway. On the quay in front at the right of centre, {SAILOR} alone, throwing a small stone into the bay, '
+         'rings spreading on the water. Replaces ending-dark-2, which paints a castle and puts the doorway under the '
+         'left drape.'),
     ]),
 ]
 

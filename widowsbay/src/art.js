@@ -535,8 +535,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const top = y + bob;
     const strip = img(WAVE_ART[r].id);
     if (strip) {
-      // Delivered strip: tile the seamless span [x0, x0 + len) of the 2x art,
-      // then pin its crank end once at the stage-left wing.
+      // Delivered strip: tile the seamless span [x0, x0 + len) of the 2x art.
       const { x0, len } = WAVE_ART[r];
       const g = 0.5 * scale * 1.1; // art px -> stage px
       const tw = len * g, th = 300 * g;
@@ -548,8 +547,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
         // carry the strip's bottom edge down to the floor so no gap shows
         c.drawImage(src, x0, 296, len, 3, x, y0 + th - 2, tw + 1, 722 - (y0 + th));
       }
-      // The crank end: delivered crank art, else the strip's own 96-px crop.
-      if (!crankArt(c, top, scale, scrolled, dir)) c.drawImage(src, 0, 0, 96, 300, 138, y0, 96 * g, th);
+      // (No crank at the wing: the cranks were tried and dropped; they read as screws.)
       return;
     }
     const body = [PAL.tealDeep, '#3f6f6a', PAL.teal][r];
@@ -575,31 +573,6 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.fillStyle = P.c('#16302f'); c.globalAlpha = 0.35;
     c.fillRect(STAGE.left - 60, top + 30 * scale, STAGE.right - STAGE.left + 160, 10);
     c.globalAlpha = 1;
-    // the crank spindle peeking from the wing
-    if (crankArt(c, top, scale, scrolled, dir)) return;
-    c.fillStyle = P.c(PAL.woodDark); circle(c, STAGE.left + 6, top + 14, 7 * scale);
-    c.strokeStyle = P.c(PAL.gold); c.lineWidth = 3;
-    const a = scrolled * 0.02 * dir;
-    c.beginPath(); c.moveTo(STAGE.left + 6, top + 14); c.lineTo(STAGE.left + 6 + Math.cos(a) * 14, top + 14 + Math.sin(a) * 14); c.stroke();
-  }
-
-  // Delivered crank: a bearing with its right edge at x 150 and its collar at
-  // top + 14, and the crank wheel turning on the axle at (156, top + 14). The
-  // front row would run into the floor, so it is raised, then shrunk to fit.
-  function crankArt(c, top, scale, scrolled, dir) {
-    const crank = img('wave-crank');
-    if (!crank) return false;
-    const bearing = img('wave-crank-bearing');
-    const floor = 646, half = 65 * scale;
-    let cy = top + 14, k = 1;
-    if (cy + half > floor) cy -= Math.min(14, cy + half - floor);
-    if (cy + half > floor) k = (floor - cy) / half;
-    if (bearing) c.drawImage(passImage(P, bearing, '', Math.round(70 * scale * k * 1.25), Math.round(130 * scale * k * 1.25)), 150 - 70 * scale * k, cy - half * k, 70 * scale * k, 130 * scale * k);
-    const cw = 60 * scale * k;
-    c.save(); c.translate(156, cy); c.rotate(scrolled * 0.02 * dir);
-    c.drawImage(passImage(P, crank, '', Math.round(cw * 1.25), Math.round(cw * 1.25)), -cw / 2, -cw / 2, cw, cw);
-    c.restore();
-    return true;
   }
 
   function ship(c, b, t) {
@@ -868,8 +841,14 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       c.save();
       if (side === 1) { c.translate(1280, 0); c.scale(-1, 1); }
       if (img('curtain-panel')) {
-        // 650x720 panel, its leading (right) edge at w, slid rather than squashed.
-        drawAsset(c, P, img('curtain-panel'), w - 325, 720, 650, 720);
+        // The painted curtain fills x 500-1300 of the 1300x1440 art: draw that
+        // 650 px wide with its leading (right) edge at w, slid rather than
+        // squashed, and carry its outer folds on to the wing when w is wider.
+        // Its leading edge swags in by up to 120 art px (75 stage px) at mid
+        // height, so it reaches 75 px past w: closed, the panels overlap there.
+        const src = passImage(P, img('curtain-panel')), r = w + 75;
+        c.drawImage(src, 500, 0, 800, 1440, r - 650, 0, 650, 720);
+        if (r > 650) c.drawImage(src, 500, 0, 60, 1440, 0, 0, r - 650 + 1, 720);
         c.restore(); continue;
       }
       const g = c.createLinearGradient(0, 0, w, 0);

@@ -47,12 +47,12 @@ export const HOLDS = [
   // up under the huge guitarist, and back across to the left
   // the tiny guitarist's gap is the safe handhold after the loose one, in the
   // dark cleft painted on the cliff
-  { x: 860, y: 1490 }, { x: 900, y: 1585, kind: 'crumble' }, { x: 775, y: 1580, kind: 'gap' },
+  { x: 860, y: 1490 }, { x: 900, y: 1585, kind: 'crumble' }, { x: 790, y: 1580, kind: 'gap' },
   { x: 670, y: 1590 }, { x: 560, y: 1600 }, { x: 450, y: 1610, pearl: true },
-  { x: 380, y: 1700 }, { x: 420, y: 1790 }, { x: 330, y: 1830, kind: 'ledge' }, { x: 560, y: 1760, pearl: true },
+  { x: 400, y: 1700 }, { x: 450, y: 1790 }, { x: 420, y: 1830, kind: 'ledge' }, { x: 580, y: 1760, pearl: true },
   // the giant's boot, then over the lip
-  { x: 380, y: TOP - 65, kind: 'boot' },
-  { x: 500, y: TOP + 6, kind: 'top' }, { x: 620, y: TOP + 6, kind: 'top' },
+  { x: 450, y: TOP - 65, kind: 'boot' },
+  { x: 570, y: TOP + 6, kind: 'top' }, { x: 690, y: TOP + 6, kind: 'top' },
 ];
 
 export const bootLift = (beat) => (((Math.floor(beat) % 2) + 2) % 2 === 0 ? Math.sin(Math.PI * beatPhase(beat)) : 0);
@@ -180,7 +180,7 @@ export default {
       st.nextRock = 3.2;
     } else {
       // The house, burning and open, with the stage camera at the clifftop.
-      Object.assign(st, { camY: CLIFF.top, cam0: CLIFF.top, fire: 1, open: 1, struck: true, opened: true, walkFromX: 500 });
+      Object.assign(st, { camY: CLIFF.top, cam0: CLIFF.top, fire: 1, open: 1, struck: true, opened: true, walkFromX: 570 });
       st.cl.at = st.cl.from = holds.findIndex((h) => h.kind === 'top');
       for (const h of holds) if (h.pearl) h.taken = true;
       restoreHouse(st, from, k);

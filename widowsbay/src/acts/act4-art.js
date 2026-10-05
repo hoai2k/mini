@@ -174,14 +174,15 @@ function lantern(k, st, x, i, t) {
   c.restore();
 }
 
-// The requested rib-arch-tall, rooted at the stomach floor (its base dissolves
-// into the water), 900 tall (450 wide) at stage scale and scaled up to reach
-// high ledges. Every rib is drawn before every slab, so a later rib never hides
-// an earlier slab and the upper part always stands behind the slab.
+// The rib-arch-tall art at its natural size (260 x 520), hanging under its
+// bone shelf: the painted hook (80% across, 1% down the art) under the shelf's
+// centre, the rest of the rib curving down and fading into the murk (the art's
+// base dissolves, so it may end above the water). Drawn before every slab.
+const RIB = { w: 260, h: 520, hookX: 0.8, hookY: 0.011 };
 function ribBehind(k, p) {
   if (p.kind || !img(k, 'rib-arch-tall')) return;
-  const cx = (p.x0 + p.x1) / 2, base = floorY(cx) + 12, h = Math.max(900, base - p.y + 150);
-  k.asset('rib-arch-tall', cx, base, h / 2, h);
+  const cx = (p.x0 + p.x1) / 2;
+  k.asset('rib-arch-tall', cx - (RIB.hookX - 0.5) * RIB.w, p.y + 6 + RIB.h * (1 - RIB.hookY), RIB.w, RIB.h);
 }
 
 function ledge(k, p) {
