@@ -38,6 +38,27 @@ export function painter() {
 // the `first` ids (what the opening needs) before the rest, and each one
 // appears in `out.images` the moment it arrives, so stand-ins give way to
 // art progressively. `out.ready` / `out.all` settle after each wave.
+// QA (?qa&testart): a labelled placeholder for a requested slot, at its
+// requested size, with its anchor marked, so the code that will draw the art
+// can be checked before the art exists.
+function testArt(id, s) {
+  const [w, h] = s.size || [200, 200];
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const x = cv.getContext('2d');
+  let hash = 0; for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  x.fillStyle = `hsla(${hash % 360}, 70%, 55%, 0.55)`; x.fillRect(0, 0, w, h);
+  x.strokeStyle = '#000'; x.lineWidth = Math.max(2, Math.min(w, h) / 40); x.strokeRect(1, 1, w - 2, h - 2);
+  const a = s.anchor || '', ax = /right/.test(a) ? w : /left/.test(a) ? 0 : w / 2;
+  const ay = /^top|top edge|top centre/.test(a) ? 0 : /bottom/.test(a) ? h : h / 2;
+  x.strokeStyle = '#ff0'; x.lineWidth = Math.max(3, Math.min(w, h) / 25);
+  x.beginPath(); x.moveTo(ax - w * 0.1, ay); x.lineTo(ax + w * 0.1, ay); x.moveTo(ax, ay - h * 0.1); x.lineTo(ax, ay + h * 0.1); x.stroke();
+  if (/walkable/.test(a)) { x.strokeStyle = '#0f0'; x.beginPath(); x.moveTo(0, 2); x.lineTo(w, 2); x.stroke(); }
+  x.fillStyle = '#000'; x.font = `bold ${Math.max(10, Math.min(h * 0.3, w / (id.length * 0.6)))}px sans-serif`;
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(id, w / 2, h / 2);
+  return cv;
+}
+const TEST_ART = typeof location !== 'undefined' && /[?&]qa\b/.test(location.search) && /[?&]testart\b/.test(location.search);
+
 export async function loadAssets(base = 'assets/', { first = [], onImage } = {}) {
   const out = { slots: {}, images: {}, audio: {}, sfx: {}, ready: Promise.resolve(), all: Promise.resolve() };
   try {
@@ -49,6 +70,7 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
   } catch { return out; }
   const load = (ids) => Promise.all(ids.map((id) => new Promise((done) => {
     const s = out.slots[id];
+    if (TEST_ART && s?.status === 'requested') { out.images[id] = testArt(id, s); onImage?.(id, out.images[id]); return done(); }
     if (!s || s.status !== 'delivered' || !s.file) return done();
     const img = new Image();
     img.onload = () => { out.images[id] = img; onImage?.(id, img); done(); };

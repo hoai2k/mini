@@ -636,10 +636,18 @@ def main():
     slots = m['slots']
     changed = False
     wanted = {aid for _, _, items in ACTS for aid, *_ in items}
+    spec = {a[0]: a for _, _, items in ACTS for a in items}
     for aid in wanted:
         if aid not in slots:
             slots[aid] = {'status': 'requested', 'file': aid + '.webp'}
             changed = True
+        # Requested slots carry the requested size and anchor, so ?qa&testart can
+        # stand a labelled placeholder in for them (src/art.js).
+        if slots[aid].get('status') == 'requested':
+            want = {'size': [spec[aid][2], spec[aid][3]], 'anchor': spec[aid][4]}
+            if any(slots[aid].get(k) != v for k, v in want.items()):
+                slots[aid].update(want)
+                changed = True
     # Requests dropped from the design go too (never a delivered slot).
     for aid in [k for k, v in slots.items() if v.get('status') == 'requested' and k not in wanted]:
         del slots[aid]

@@ -123,6 +123,12 @@ up the scene select in the menu.
 
 Test it in the browser with `?qa&act=N&scene=k`.
 
+**Art that is requested but not delivered yet.** Draw it with
+`if (!k.asset(id, ...)) { stand-in }` exactly as for delivered art. To check
+where the art will land before it exists, add `&testart`: every `requested`
+slot is filled with a labelled placeholder at its requested size, with its
+anchor marked (yellow cross) and a walkable top edge in green.
+
 **`hud(state)`** returns
 `{ lanterns, maxLanterns: 3, pearls, progress: 0..1 | null, keepsakes: [{ id, have }] }`,
 or `null` to hide the HUD (during cutscenes). Keepsake ids that have icons:
