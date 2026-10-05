@@ -369,9 +369,27 @@ function buildChapters() {
   for (const ch of chapters) {
     const card = document.createElement('article');
     card.className = 'chapter';
-    card.innerHTML = '<header><h3></h3><span class="scene"></span></header><div class="rows"></div>';
+    card.innerHTML = '<header><h3></h3><span class="scene"></span></header><div class="chapter-body"><div class="looks"></div><div class="rows"></div></div>';
     card.querySelector('h3').textContent = ch.title;
     card.querySelector('.scene').textContent = ch.scene;
+    // What the chapter looks like while its bed plays (scenes/, from
+    // make-scenes.mjs), and its card art: judge the sound against the light.
+    const looks = card.querySelector('.looks');
+    const cardArt = `${root}assets/web/card-${ch.id === 'practice' ? 'practice-free' : ch.id}.webp`;
+    for (const [src, alt, cls] of [[`scenes/${ch.id}.webp`, `${ch.title}: the scene in the game`, 'shot'], [cardArt, `${ch.title}: chapter card art`, 'art']]) {
+      const a = document.createElement('a');
+      a.href = src;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.className = cls;
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = alt;
+      img.loading = 'lazy';
+      img.addEventListener('error', () => a.remove());
+      a.appendChild(img);
+      looks.appendChild(a);
+    }
     const rows = card.querySelector('.rows');
     if (ch.ambience) {
       rows.appendChild(bedRow({
@@ -582,6 +600,7 @@ $('#along').addEventListener('change', () => {
   alongBeat = 0;
 });
 $('#stop').addEventListener('click', stopAll);
+$('#stop-float').addEventListener('click', stopAll);
 $('#copy').addEventListener('click', async () => {
   const text = $('#summary').textContent;
   try {

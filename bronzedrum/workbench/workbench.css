@@ -68,6 +68,16 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 80px; }
 .chapter { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
 .chapter header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
 .chapter header .scene { color: var(--muted); font-size: 13px; }
+.chapter-body { display: grid; grid-template-columns: minmax(220px, 340px) minmax(0, 1fr); gap: 14px; align-items: start; }
+.looks { display: grid; gap: 8px; position: sticky; top: 96px; }
+.looks a { display: block; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+.looks img { display: block; width: 100%; height: auto; }
+.looks .art { width: 60%; }
+@media (max-width: 760px) {
+  .chapter-body { grid-template-columns: 1fr; }
+  .looks { position: static; grid-template-columns: 2fr 1fr; align-items: start; }
+  .looks .art { width: 100%; }
+}
 
 .rows { display: grid; gap: 6px; }
 .row {
@@ -113,7 +123,12 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 80px; }
 .status { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
 .status.show { opacity: 1; }
 
+/* On a phone the header scrolls away; a small Stop button stays in reach. */
+.stop-float { display: none; }
 @media (max-width: 640px) {
+  .top { position: static; }
+  .sub { display: none; }
+  .stop-float { display: block; position: fixed; right: 16px; bottom: 16px; z-index: 6; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); }
   h1 { font-size: 24px; }
   .row { grid-template-columns: auto minmax(0, 1fr); }
   .row .marks { grid-column: 2; }
