@@ -96,9 +96,13 @@ and sprite-sheet cells. Exports match the requested dimensions; larger canvases
 are resampled from the generator's native output rather than generated at native
 4K. Puppet sheets are artwork for future rigging, not animated rigs.
 
-The manifest's `runtime` flag distinguishes the 47 images used by the prototype
-from the 9 delivered puppet, effects and planned interface sheets. The latter
-remain available for production work without being downloaded at game startup.
+The manifest's `runtime` flag distinguishes the 50 images used by the prototype
+from the 6 delivered sheets it does not use yet: the four puppet-rig sheets
+(for jointed animation) and the glyph and icon sheets. They remain available
+for production work without being downloaded at game startup. The effects
+sheets are in use: hits and deflections burst into the paper scraps (BD-F01,
+picked by colour), the arrows and bolts fly as BD-F02, and when the drum wakes
+its rings (BD-F03) spread from the drum.
 
 The PNGs in `game/assets/art/` are the masters, kept at the requested sizes.
 The game loads WebP copies scaled to the size it actually draws them at (4.6 MB
