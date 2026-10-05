@@ -23,11 +23,12 @@ from `sites/` and `local/`:
 - **A new game gets a new top-level folder** with a `README.md`, an `intake/`
   folder (holding only its README), and a `publish.sh` that copies the
   playable build into `local/pages/<folder>/`. Add a step for it to
-  `.github/workflows/pages.yml`, a link in the root `README.md`, and a row in
-  the table above.
+  `.github/workflows/pages.yml`, a link in the root `README.md`, a card on the
+  game library page (`index.html`), and a row in the table above.
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
-  README. `GAME_GUIDELINES.md` applies to every game. `.github/workflows/pages.yml`
+  README. `index.html` is the game library published at
+  https://hoai2k.github.io/mini/, one card per game. `GAME_GUIDELINES.md` applies to every game. `.github/workflows/pages.yml`
   builds and publishes everything.
 
 ## Always commit finished work to `main`
