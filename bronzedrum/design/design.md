@@ -58,6 +58,13 @@ input device:
   middle of the stage in the story chapters. It never shows past the painted
   edges. The HUD is not zoomed. Taps on the battle follow the zoom.
 
+**Menus.** The pause menu and the other dialogs are cut from the delivered
+paper sheet (BD-U04), nine-sliced so its border of herons and rings keeps its
+shape, with menu buttons as strips of ink and lacquer paper. A panel never
+grows taller than the screen: it scrolls, and on a short screen (a phone held
+sideways) the pause and result buttons sit in two columns and the Close button
+stays pinned in reach.
+
 **A drum for every action.** Two companion drummers walk with the drum crew,
 just behind the ranks: one with a trống chầu at her hip, one holding a mõ
 (requests BD-C11 and BD-C12; drawn stand-ins until delivered). The bronze
@@ -74,10 +81,15 @@ Nhị decorates it.
 
 **No metronome; evenness.** A command is a four-beat rhythm, and the player
 plays it at any speed from about 45 to 200 BPM. The reader fits a tempo to the
-strokes and judges whether they are *even*: every gap must match the pattern at
-that tempo, within about ±37% ("perfect" within ±15%). The phrase fades as soon
-as no pattern can still be finished in time, or when a stroke breaks the rhythm.
-Y resets it at once.
+beats and judges whether they are *even*: every gap between beats (the first
+stroke of each beat) must match the pattern at that tempo, within about ±37%
+("perfect" within ±15%). The quick strokes of a pair or triplet only have to
+fall inside their beat, in order. People play them as a flurry and then land
+the next beat on time, so their spacing costs a little precision but never
+breaks a phrase, and the wait for the next stroke is measured from the beat.
+(An earlier reader judged every gap, which rejected natural triplets, such as
+the Giao Chỉ call RRR L RR L.) The phrase fades as soon as no pattern can still
+be finished in time, or when a stroke breaks the rhythm. Y resets it at once.
 
 **Pairs, triplets and tiers.** A beat can hold one stroke, a pair (two) or a
 triplet (three). Every command has three tiers. Tier I is four plain strokes;

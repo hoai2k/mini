@@ -86,14 +86,35 @@ body.reduce-motion .press-start { animation: none; }
 @media (max-width: 720px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Panels. */
-.panel { background: var(--paper); color: var(--ink); padding: 26px 28px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 10px; box-shadow: 10px 12px 0 rgba(0, 0, 0, 0.4); clip-path: polygon(0 1%, 99% 0, 100% 99%, 1% 100%); max-height: 100%; }
+.panel {
+  background: var(--paper); color: var(--ink); padding: 26px 28px; width: min(440px, 100%); display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 10px 12px 0 rgba(0, 0, 0, 0.4); clip-path: polygon(0 1%, 99% 0, 100% 99%, 1% 100%);
+  /* Never taller than the screen: a panel that does not fit scrolls. */
+  max-height: 100%; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+}
+/* The delivered paper sheet: its cut border of herons and rings is nine-sliced
+   so it keeps its shape at any panel size. */
+body.paper-panels .panel {
+  background: #F1E6CF padding-box; box-shadow: none; clip-path: none;
+  border: 34px solid transparent; border-image: var(--panel-art) 92 / 34px / 0 round;
+  padding: 8px 14px 12px; filter: drop-shadow(8px 10px 0 rgba(0, 0, 0, 0.35));
+}
+.panel h2 { text-align: center; }
+.panel h2::after { content: ""; display: block; width: 64px; height: 3px; margin: 8px auto 0; background: var(--bronze); clip-path: polygon(0 40%, 100% 0, 96% 100%, 4% 70%); }
 .panel.wide { width: min(860px, 100%); }
 .panel h2 { margin: 0 0 6px; font: 700 34px var(--serif); }
 .panel h3 { font: 700 22px var(--serif); margin: 14px 0 6px; }
 .muted { color: #5a4a35; margin: 0; }
-.menu-btn { font: 600 18px var(--sans); padding: 10px 14px; border: 2px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; text-align: left; }
-.menu-btn:hover { background: var(--ink); color: var(--paper); }
-.menu-btn:active { transform: translateY(1px); }
+/* Menu buttons: strips of cut paper, ink on the sheet, lacquer for the first. */
+.menu-btn {
+  font: 700 19px var(--serif); letter-spacing: 0.04em; padding: 10px 18px; border: 0; cursor: pointer; text-align: center;
+  background: var(--ink); color: var(--paper); box-shadow: 3px 4px 0 rgba(22, 21, 26, 0.25);
+  clip-path: polygon(1% 6%, 99% 0, 100% 90%, 98% 100%, 0 96%);
+}
+.menu-btn:first-of-type { background: var(--lacquer); }
+.menu-btn:hover, .menu-btn:focus-visible, .menu-btn.nav-focus { background: var(--bronze); color: var(--ink); }
+.menu-btn:active { transform: translateY(1px) scale(0.99); }
+.panel .menu-btn:focus-visible, .panel .menu-btn.nav-focus { outline-offset: 2px; }
 .scroll { overflow-y: auto; max-height: 64vh; padding-right: 8px; line-height: 1.5; }
 .scroll p { margin: 0 0 10px; }
 .cmd-table, .map-table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; font-size: 15px; }
@@ -117,6 +138,21 @@ body.reduce-motion .press-start { animation: none; }
 .toast { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 8px 16px; border: 1px solid var(--bronze); opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 10; }
 .toast.show { opacity: 1; }
 
+/* Short screens (a phone held sideways): tighter panels, the pause and result
+   buttons in two columns, everything scrollable. */
+@media (max-height: 480px) {
+  .screen { padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+  .panel { gap: 6px; padding: 14px 18px; }
+  body.paper-panels .panel { border-width: 24px; border-image-width: 24px; padding: 4px 10px 8px; }
+  .panel h2 { font-size: 26px; margin: 0; }
+  .panel h2::after { margin-top: 4px; }
+  .menu-btn { font-size: 17px; padding: 8px 12px; }
+  #pause .panel, #result .panel { width: min(600px, 100%); display: grid; grid-template-columns: 1fr 1fr; align-content: start; }
+  #pause .panel > :not(.menu-btn), #result .panel > :not(.menu-btn), #pause .menu-btn:first-of-type, #result .menu-btn:first-of-type { grid-column: 1 / -1; }
+  .scroll { max-height: none; overflow: visible; }
+  /* The panel scrolls as one; its Close or Done button stays in reach. */
+  .dialog .menu-btn[data-action="close"] { position: sticky; bottom: 0; }
+}
 @media (max-width: 600px), (max-height: 480px) {
   .map-table { font-size: 13px; }
   .map-table td, .map-table th { padding: 4px 5px; }

@@ -79,27 +79,67 @@ function gapError(actual, expected) {
   return Math.abs(Math.log2(Math.max(1e-6, actual) / expected));
 }
 
+/** How much a pair's or triplet's own spacing counts towards precision. */
+const SUB_WEIGHT = 0.3;
+
 /**
  * How well the strokes so far fit the start of a pattern, at whatever tempo
  * they imply. Returns null when they cannot be this pattern.
+ *
+ * What must be even is the beat: the first stroke of each beat (its onset).
+ * The tempo comes from the onsets, and every gap between onsets is judged
+ * against it. The quick strokes of a pair or triplet only have to fall inside
+ * their own beat, in order: people play them as a flurry and land the next
+ * beat on time, so their spacing nudges precision but never breaks a phrase.
  */
 export function fit(pattern, strokes, windows = WINDOWS) {
   const k = strokes.length;
   if (k > pattern.strokes.length) return null;
   for (let i = 0; i < k; i++) if (strokes[i].drum !== pattern.strokes[i].drum) return null;
   const p = pattern.strokes;
-  if (k === 1) return { u: null, maxErr: 0, meanErr: 0, complete: k === p.length };
-  const u = (strokes[k - 1].t - strokes[0].t) / (p[k - 1].pos - p[0].pos);
-  if (u < TEMPO.min * 0.85 || u > TEMPO.max * 1.15) return null;
+  const onsets = [];
+  for (let i = 0; i < k; i++) if (Number.isInteger(p[i].pos)) onsets.push(i);
+  const first = onsets[0];
+  const last = onsets[onsets.length - 1];
+  let u = null;
+  if (onsets.length >= 2) {
+    u = (strokes[last].t - strokes[first].t) / (p[last].pos - p[first].pos);
+    if (u < TEMPO.min * 0.85 || u > TEMPO.max * 1.15) return null;
+  }
   let maxErr = 0;
   let sum = 0;
-  for (let i = 1; i < k; i++) {
-    const e = gapError(strokes[i].t - strokes[i - 1].t, u * (p[i].pos - p[i - 1].pos));
+  let n = 0;
+  for (let j = 1; j < onsets.length; j++) {
+    const a = onsets[j - 1];
+    const b = onsets[j];
+    const e = gapError(strokes[b].t - strokes[a].t, u * (p[b].pos - p[a].pos));
     maxErr = Math.max(maxErr, e);
     sum += e;
+    n += 1;
   }
   if (maxErr > windows.good) return null;
-  return { u, maxErr, meanErr: sum / (k - 1), complete: k === p.length };
+  // The quick strokes inside a beat.
+  for (let i = 0; i < k; i++) {
+    if (Number.isInteger(p[i].pos)) continue;
+    const beat = Math.floor(p[i].pos);
+    const on = onsets.find((o) => p[o].pos === beat);
+    const next = onsets.find((o) => p[o].pos === beat + 1);
+    const since = strokes[i].t - strokes[on].t;
+    let span;
+    if (next !== undefined) span = strokes[next].t - strokes[on].t;
+    else if (u !== null) span = u;
+    else {
+      // No tempo yet (still inside the first beat): just keep it plausible.
+      if (since > TEMPO.max * 1.15) return null;
+      continue;
+    }
+    const f = since / span;
+    // Before the next beat has come, a stroke this late is that beat, not a quick one.
+    if (f <= 0 || f > (next !== undefined ? 1 : 0.85)) return null;
+    sum += Math.min(windows.good, SUB_WEIGHT * gapError(f, p[i].pos - beat));
+    n += 1;
+  }
+  return { u, maxErr, meanErr: n ? sum / n : 0, complete: k === p.length };
 }
 
 /** Accuracy from 1 (every gap even) down to 0 (every gap at the edge of the window). */
@@ -148,14 +188,17 @@ export class DrumReader {
 
   /** Latest time the next stroke may come for any open candidate. */
   deadline(cands = this.candidates()) {
-    const last = this.phrase[this.phrase.length - 1];
     let latest = -Infinity;
     for (const c of cands) {
       if (c.complete) continue;
+      // Measured from the latest beat onset, not from a quick stroke inside
+      // a beat: a triplet played as a flurry leaves time to land the next beat.
+      const p = c.pattern.strokes;
       const k = this.phrase.length;
-      const gap = c.pattern.strokes[k].pos - c.pattern.strokes[k - 1].pos;
+      let on = k - 1;
+      while (on > 0 && !Number.isInteger(p[on].pos)) on -= 1;
       const u = c.u ?? TEMPO.max;
-      latest = Math.max(latest, last.t + u * gap * 2 ** this.windows.good);
+      latest = Math.max(latest, this.phrase[on].t + u * (p[k].pos - p[on].pos) * 2 ** this.windows.good);
     }
     return latest;
   }

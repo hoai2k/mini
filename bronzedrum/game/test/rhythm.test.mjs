@@ -213,3 +213,53 @@ test('the reset button drops the phrase being played, and only that', () => {
   const cmd = command(play(r, tier('march', 1), 2, 0.6));
   assert.equal(cmd.command, 'march', 'a fresh phrase plays normally after a reset');
 });
+
+/** Play exact stroke times, advancing the reader's clock every 10 ms as the game does. */
+function playLive(reader, strokes) {
+  const events = [];
+  let clock = strokes[0][1];
+  for (const [drum, t] of strokes) {
+    for (; clock < t; clock += 0.01) events.push(...reader.update(clock));
+    events.push(...reader.hit(drum, t));
+  }
+  return events;
+}
+const callReader = (text) => {
+  const r = new DrumReader();
+  r.patterns = [{ command: 'call', tier: 1, text, strokes: parsePattern(text), drums: text.replace(/ /g, '') }];
+  return r;
+};
+
+test('a triplet played as a quick flurry, then the next beat on time, is accepted', () => {
+  // The Villages Answer, Giao Chỉ: RRR L RR L at 104 BPM. The triplet comes
+  // out faster than a third of a beat each, and the deep stroke lands on the beat.
+  const u = 60 / 104;
+  const r = callReader('RRR L RR L');
+  const ev = playLive(r, [['R', 0], ['R', 0.09], ['R', 0.18], ['L', u], ['R', 2 * u], ['R', 2 * u + 0.17], ['L', 3 * u]]);
+  assert.ok(!ev.some((e) => e.type === 'reset'), 'no stroke breaks the phrase');
+  const cmd = command(ev);
+  assert.ok(cmd, 'the answer is accepted');
+  assert.ok(Math.abs(cmd.u - u) < 1e-9, 'the tempo comes from the beats');
+  assert.ok(cmd.accuracy > 0.5, `uneven quick strokes cost a little precision, not the phrase (${cmd.accuracy})`);
+  // Nhật Nam: L R RRR L, the triplet in the third beat.
+  const r2 = callReader('L R RRR L');
+  const cmd2 = command(playLive(r2, [['L', 0], ['R', u], ['R', 2 * u], ['R', 2 * u + 0.1], ['R', 2 * u + 0.2], ['L', 3 * u]]));
+  assert.ok(cmd2, 'a triplet inside the phrase is accepted too');
+});
+
+test('the beats themselves must still be even', () => {
+  const u = 60 / 104;
+  const r = callReader('RRR L RR L');
+  const ev = playLive(r, [['R', 0], ['R', 0.09], ['R', 0.18], ['L', u], ['R', 2.6 * u], ['R', 2.6 * u + 0.15], ['L', 3.6 * u]]);
+  assert.ok(ev.some((e) => e.type === 'reset'), 'a late beat breaks the phrase');
+  assert.ok(!command(ev));
+});
+
+test('a quick stroke must fall inside its beat', () => {
+  // The second stroke of a pair cannot come after the next beat.
+  const p = { strokes: parsePattern('L RR L R') };
+  const ok = [{ drum: 'L', t: 0 }, { drum: 'R', t: 0.6 }, { drum: 'R', t: 0.8 }, { drum: 'L', t: 1.2 }];
+  assert.ok(fit(p, ok));
+  const late = [{ drum: 'L', t: 0 }, { drum: 'R', t: 0.6 }, { drum: 'R', t: 1.15 }];
+  assert.equal(fit(p, late), null, 'past most of the beat it is not part of the pair');
+});
