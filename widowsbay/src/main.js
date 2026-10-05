@@ -418,7 +418,18 @@ function touchVerb() {
   return '';
 }
 function touchVerbHint(act) {
-  return { 1: 'drag to steer, A to leap', 2: 'drag to swim, A to kick', 3: 'drag to walk, hold A to freeze', 4: 'drag to walk, A to leap', 5: 'drag to climb, A to leap' }[act.id] || 'drag to move';
+  return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick', 3: 'drag to walk, swipe to change groove, hold A to freeze',
+    4: 'drag to walk, swipe up or tap to leap', 5: 'drag to climb, A to leap' }[act.id] || 'drag to move';
+}
+// Which touch scheme a scene uses: swipes for rows and floors, the stick for
+// free movement (swimming, climbing).
+function touchScheme() {
+  const id = S.act?.id, ph = S.state?.phase;
+  if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? 'Tap on the beat' : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
+  if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Swipe ↕ to change row' } : { mode: 'stick', hint: 'Drag to swim' };
+  if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · hold A to freeze' };
+  if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };
+  return { mode: 'stick', hint: 'Drag to climb' };
 }
 let lastPortrait = null;
 function updateTouch() {
@@ -429,8 +440,11 @@ function updateTouch() {
     if (portrait && S.mode === 'play') pause('Turn the device sideways to carry on.');
   }
   const playing = S.mode === 'play' && !S.paused && !portrait;
-  touch.show({ playing, verb: playing ? touchVerb() : '', needB: playing && S.act?.id === 2 && S.state?.phase === 'offer' });
-  if (playing && (S.state?.t ?? S.modeT) > 0) $('#touch').classList.toggle('stick-used', S.modeT > 8);
+  const sch = playing ? touchScheme() : { mode: 'stick', hint: '' };
+  touch.show({ playing, mode: sch.mode, hintText: sch.hint, flickUpIsA: !!sch.flickUpIsA,
+    verb: playing ? touchVerb() : '', needB: playing && S.act?.id === 2 && S.state?.phase === 'offer' });
+  // The hint shows for the first few seconds of each act (and the party).
+  if (playing) $('#touch').classList.toggle('stick-used', S.modeT > 7 && !(S.act?.id === 1 && S.state?.phase === 'party' && S.state.phaseT < 4));
 }
 
 // ---------------------------------------------------------------- shell scenes

@@ -141,8 +141,18 @@ them.
 - **Landscape only.** In portrait a "Turn the theatre sideways" card covers the
   game and pauses play. On Android the game also asks to lock landscape when
   Press Start is tapped.
-- **The left half is a floating stick.** Put a thumb down anywhere and drag.
-  It is analog for swimming and climbing, and a flick changes rows or grooves.
+- **Two touch schemes, chosen by scene:**
+  - **Swipe,** for rows and floors (Act I, Act III, Act IV and Act II's
+    moon-boat ride). The whole screen is the control: drag forward or back to
+    move, swipe up or down to change row or groove, and tap to act (leap, or
+    light a lantern on the beat in the deck party). In Act IV a swipe up also
+    leaps. Tap and swipe-up leaps count as a full press, so jumps aren't cut
+    short.
+  - **Stick,** for free movement (Act II swimming, Act V climbing). Put a
+    thumb down on the left half and drag. The stick follows a thumb that
+    strays, but always stays fully on screen.
+
+  A hint names the gestures for the first few seconds of each act.
 - **The A button is on the right,** labelled with what it does in the current
   scene: Leap, On the beat, Kick, Take, Hold: freeze, Leap / throw. A **B**
   button appears only when the scene needs one (refusing the sea rose). Pause

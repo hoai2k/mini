@@ -202,3 +202,9 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   html.touch .tbtn-a { bottom: max(14px, calc((100vh - 100vw * 9 / 16 - 104px) / 2)); }
   html.touch .tbtn-b { bottom: max(30px, calc((100vh - 100vw * 9 / 16 - 66px) / 2)); right: max(150px, calc(env(safe-area-inset-right) + 140px)); }
 }
+
+/* Swipe scheme: the whole screen is the control and no stick is drawn. */
+#touch.swipe .stick-zone { width: 100%; }
+#touch.swipe .stick-base { display: none; }
+#touch.swipe .stick-hint { left: 50%; top: auto; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  background: #2a1424cc; border: 1px solid #c79ab7; padding: 5px 12px; border-radius: 3px; }
