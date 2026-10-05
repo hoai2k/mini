@@ -85,7 +85,10 @@ altar's glow grows. The chapter has no shields and no use for reset, so A and Y
 (Space and R) instead blow a breeze over the shrine while held, A to the right,
 Y to the left, in wandering gusts, with a soft wind sound. In every
 call-and-answer chapter the next call follows an answer after a beat and a half
-plus 0.4 s, less than half the earlier wait.
+plus 0.4 s, less than half the earlier wait. The Oath's ambience is now a
+crackling fire with crickets at dusk, and the foundry's a hand-powered forge
+(both chosen from six takes each by measuring how tonal they are; the earlier
+ones carried a synthetic fizz and a machine-like hum).
 
 **Menus.** The pause menu and the other dialogs are cut from the delivered
 paper sheet (BD-U04), nine-sliced so its border of herons and rings keeps its
@@ -119,6 +122,27 @@ breaks a phrase, and the wait for the next stroke is measured from the beat.
 (An earlier reader judged every gap, which rejected natural triplets, such as
 the Giao Chỉ call RRR L RR L.) The phrase fades as soon as no pattern can still
 be finished in time, or when a stroke breaks the rhythm. Y resets it at once.
+
+**Seeing a mistake.** When a stroke breaks the phrase, the dots show what was
+played: the strokes so far, and the wrong one where it actually fell, at the
+player's own tempo, crossed out. The wrong drum on time sits in its expected
+place with an X over it ("Wrong drum — that beat is tùng"); a stroke too soon
+joins the beat before as a pair or triplet and that beat is crossed out ("Too
+soon"); a stroke after the phrase has run out of time lands past its beat
+("Too late"). It shows for about a second, or until the next stroke.
+
+**Answering early.** In the call-and-answer chapters the player may answer as
+soon as they know the rhythm, during the call; the caller falls silent.
+
+**Casting at the bellows' pace.** The foundry has a fixed pace (76 beats a
+minute, never shown as a number). Its own drum plays the hammer rhythm softly
+at that pace throughout, and the bellows beside the furnace squeeze on every
+beat as the fire flares, so the pace is heard and seen. Each phrase within 14%
+of it pours. Elsewhere, the confirmation after a command names its pace in
+words (quick, steady, slow) rather than BPM.
+
+**Focus.** The game goes silent whenever its tab or window is in the
+background, and a chapter in play pauses.
 
 **Demonstrations.** The first time a hint shows a rhythm (the first march,
 the first pair, the first triplet, the casting rhythm), the game plays it

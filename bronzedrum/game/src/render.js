@@ -1375,6 +1375,51 @@ export class Renderer {
       g.fill();
       g.restore();
     });
+    // The bellows beside the furnace, pumped on every beat of the guide, so
+    // the pace to hold can be seen as well as heard.
+    if (view.guide) {
+      const d = view.guide;
+      const beat = (t - d.start) / d.u;
+      const ph = beat < 0 ? 0 : beat - Math.floor(beat);
+      const push = beat < 0 ? 0 : Math.max(0, 1 - ph * 3) ** 2; // squeezed on the beat
+      // A leather bag between two boards, its nozzle in the fire, squeezed
+      // shut on each beat and opening again between.
+      const bx = fx + 92;
+      const by = GROUND - 30;
+      const open = 34 - 22 * push;
+      g.fillStyle = P.ink;
+      g.fillRect(bx - 20, by - 3, 24, 6); // nozzle into the furnace
+      g.fillStyle = '#6B4A32';
+      g.beginPath(); // the leather bag, pleated
+      g.moveTo(bx, by);
+      for (let i = 0; i <= 6; i++) g.lineTo(bx + 8 + i * 9, by - open / 2 - (i % 2 ? 4 : 0) * (1 - push));
+      g.lineTo(bx + 68, by);
+      for (let i = 6; i >= 0; i--) g.lineTo(bx + 8 + i * 9, by + open / 2 + (i % 2 ? 4 : 0) * (1 - push));
+      g.closePath();
+      g.fill();
+      g.fillStyle = '#A06A3C';
+      g.save(); // upper and lower boards, hinged at the nozzle end
+      g.translate(bx + 4, by);
+      g.rotate(-Math.atan2(open / 2, 64));
+      g.fillRect(0, -6, 74, 6);
+      g.fillRect(70, -14, 6, 12); // handle
+      g.restore();
+      g.save();
+      g.translate(bx + 4, by);
+      g.rotate(Math.atan2(open / 2, 64));
+      g.fillRect(0, 0, 74, 6);
+      g.restore();
+      if (push > 0.05) {
+        // A breath of air into the fire: the furnace flares on the beat.
+        g.globalCompositeOperation = 'lighter';
+        const gr = g.createRadialGradient(fx, GROUND - 40, 4, fx, GROUND - 40, 70);
+        gr.addColorStop(0, `rgba(255,170,80,${0.35 * push})`);
+        gr.addColorStop(1, 'rgba(255,120,40,0)');
+        g.fillStyle = gr;
+        g.fillRect(fx - 70, GROUND - 110, 140, 140);
+      }
+      g.restore();
+    }
     // The moulds: the current one fills pour by pour; cast ones glow bronze.
     for (let i = 0; i < sess.drums; i++) {
       const x = 170 + i * 150;
@@ -2571,7 +2616,10 @@ export class Renderer {
     // The line above the dots: whose turn it is, or the command being played.
     let label = null;
     let labelColor = P.paper;
-    if (ph && ph.caller) label = 'Listen…';
+    if (view.miss) {
+      label = view.miss.label;
+      labelColor = '#F4B9A8';
+    } else if (ph && ph.caller) label = 'Listen…';
     else if (ph && !ph.done && view.mode === 'echo' && !ph.filled) label = 'Your turn — answer it';
     else if (ph && ph.done && view.mode !== 'battle') label = view.mode === 'casting' ? 'Pouring…' : 'Answered';
     else if (ph && ph.done) {
@@ -2589,7 +2637,37 @@ export class Renderer {
       g.fillStyle = 'rgba(22,21,26,0.45)';
       g.fillRect(cx - bw / 2, labelY - 22 * k, bw, slotY + dotR + 8 - (labelY - 22 * k));
     }
-    if (ph) {
+    if (view.miss) {
+      // A broken phrase: what was played, the wrong stroke crossed out.
+      const m = view.miss;
+      const x0 = cx - 2 * cell;
+      this.pattern(x0, slotY, { strokes: m.strokes }, dotR, cell, m.filled);
+      const q = Math.min(1, (t - m.t) / 0.12);
+      g.save();
+      g.strokeStyle = '#FFF4E0';
+      g.shadowColor = 'rgba(0,0,0,0.9)';
+      g.shadowBlur = 4;
+      g.lineWidth = 3;
+      g.lineCap = 'round';
+      let hx;
+      let hw;
+      if (m.timing) {
+        // Too soon or too late: the whole beat it fell in is crossed out.
+        hx = x0 + m.beat * cell + cell / 2;
+        hw = cell * 0.46;
+      } else {
+        hx = this.patternX(x0, m.strokes, m.wrong, cell);
+        hw = dotR * 1.15;
+      }
+      const hh = hw * 0.9 * q;
+      g.beginPath();
+      g.moveTo(hx - hw * q, slotY - hh);
+      g.lineTo(hx + hw * q, slotY + hh);
+      g.moveTo(hx + hw * q, slotY - hh);
+      g.lineTo(hx - hw * q, slotY + hh);
+      g.stroke();
+      g.restore();
+    } else if (ph) {
       this.pattern(cx - 2 * cell, slotY, ph.pattern, dotR, cell, ph.filled, ph.done);
     } else {
       for (let i = 0; i < 4; i++) {
@@ -2736,9 +2814,9 @@ export class Renderer {
         g.textAlign = 'left';
         g.fillStyle = P.paper;
         if (touch || compact) {
-          g.fillText(`Hold ${Math.round(60 / sess.u)} BPM`, 24, H - 18 - 22 * k);
+          g.fillText('Keep the bellows’ pace', 24, H - 18 - 22 * k);
           g.fillText(`Pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
-        } else g.fillText(`Hold ${Math.round(60 / sess.u)} BPM · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
+        } else g.fillText(`Keep the bellows’ pace · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
       }
     } else {
       scaled(24, 22, () => this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer));
@@ -3349,6 +3427,15 @@ export class Renderer {
    * shares it (smaller, joined by a beam). The first `filled` strokes are
    * solid; the rest are faint, still to come.
    */
+  /** Where pattern() draws stroke i (same layout as pattern()). */
+  patternX(x, strokes, i, cell, small = false) {
+    const s = strokes[i];
+    const beat = Math.floor(s.pos);
+    const n = strokes.filter((q) => Math.floor(q.pos) === beat).length;
+    const inner = s.pos - beat;
+    return x + beat * cell + cell / 2 + (n === 1 ? 0 : (inner - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95));
+  }
+
   pattern(x, y, pattern, r, cell, filled = Infinity, glow = false, small = false) {
     const g = this.ctx;
     const strokes = pattern.strokes;
