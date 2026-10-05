@@ -646,7 +646,7 @@ function openingWitch(k, st, t) {
   const pt = st.phaseT, c = k.c, s = st.sailor;
   const down = easeOut((pt - 2.2) / 1.1), up = easeInOut((pt - 5.0) / 1.2);
   if (down <= 0 || up >= 1) return;
-  const x = s.x + 125, by = lerp(-80, sy(st, SHELF_Y) + 2, down) - up * 700;
+  const x = s.x + 185, by = lerp(-80, sy(st, SHELF_Y) + 2, down) - up * 700;
   const bend = -0.22 * easeInOut((pt - 3.2) / 0.5) * (1 - easeInOut((pt - 4.7) / 0.4));
   k.wire(x - 20, 0, by - 230); k.wire(x + 20, 0, by - 230);
   witchFigure(k, x, by, bend, false, t);
@@ -816,16 +816,18 @@ function boat(k, st, y, t) {
   const c = k.c, x = RIDE.boatX;
   k.moonboat(x, y, -1, 0.9);
   // the sailor rides in the stern of the crescent, guitar on his knee
-  const sx = x - 92, syy = y + Math.sin(t * 2.1) * 6 + 4;
-  if (!k.asset('sailor-stand', sx, syy, 48, 80)) {
+  const sx = x - 84, syy = y + Math.sin(t * 2.1) * 6 + 4;
+  if (!k.asset('sailor-stand', sx, syy, 60, 100)) {
+    c.save(); c.translate(sx, syy); c.scale(1.35, 1.35); c.translate(-sx, -syy);
     c.fillStyle = k.col(NAVY); c.beginPath(); c.moveTo(sx - 15, syy); c.lineTo(sx - 11, syy - 44); c.lineTo(sx + 11, syy - 44); c.lineTo(sx + 15, syy); c.fill();
     c.fillStyle = k.col('#c8321e'); c.fillRect(sx - 7, syy - 48, 14, 6);
     c.fillStyle = k.col('#efd7c4'); k.circle(sx, syy - 57, 10);
     c.fillStyle = k.col('#c9c6c0'); c.beginPath(); c.moveTo(sx - 8, syy - 54); c.quadraticCurveTo(sx, syy - 36, sx + 8, syy - 54); c.fill();
     c.fillStyle = k.col(NAVY); c.fillRect(sx - 11, syy - 70, 22, 6);
+    c.restore();
   }
-  c.save(); c.translate(sx + 8, syy - 18); c.rotate(-0.9);
+  c.save(); c.translate(sx + 10, syy - 24); c.rotate(-0.9);
   if (!k.asset('keepsake-guitar', 0, 20, 40, 40)) guitarStandin(k, 0.22);
   c.restore();
-  if (st.rose) k.keepsake('rose', sx - 14, syy - 34, 0.35);
+  if (st.rose) k.keepsake('rose', sx - 18, syy - 46, 0.4);
 }
