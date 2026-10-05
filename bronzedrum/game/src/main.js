@@ -342,6 +342,18 @@ function songTime() {
   return sound.now - game.clockStart;
 }
 
+/**
+ * The game time now being heard: the audio clock less the output latency, so
+ * pictures that follow sounds (the demonstration's pointer) line up with what
+ * reaches the speakers rather than with what is being scheduled.
+ */
+function heardTime() {
+  const ctx = sound.ctx;
+  const ts = ctx && ctx.getOutputTimestamp ? ctx.getOutputTimestamp() : null;
+  if (ts && ts.performanceTime > 0) return ts.contextTime + (performance.now() - ts.performanceTime) / 1000 - game.clockStart;
+  return songTime() - sound.latency;
+}
+
 /** Map an input timestamp (performance clock) onto the heard game clock. */
 function hitTime(perfMs) {
   const ctx = sound.ctx;
@@ -444,8 +456,7 @@ function missView(events, trying, before, drum, t) {
   const played = p.strokes.slice(0, k).map((s) => ({ drum: s.drum, pos: s.pos }));
   played.push({ drum, pos, wrong: true });
   const rest = p.strokes.filter((s) => Math.floor(s.pos) > Math.floor(pos));
-  const label = kind === 'drum' ? `Wrong drum — that beat is ${want.drum === 'L' ? 'tùng' : 'cắc'}` : kind === 'soon' ? 'Too soon' : 'Too late';
-  return { strokes: [...played, ...rest], filled: played.length, wrong: k, beat: Math.floor(pos), timing: kind !== 'drum', label, t: songTime() };
+  return { strokes: [...played, ...rest], filled: played.length, wrong: k, beat: Math.floor(pos), timing: kind !== 'drum', t: songTime() };
 }
 
 function act(action, time) {
@@ -560,7 +571,6 @@ function handleRhythm(ev) {
       }
     }
     if (ev.reason === 'manual') confirm('Cleared', P.paperShade);
-    else if (ev.reason !== 'no-pattern' && ev.strokes >= 2 && !g.miss) feedback(ev.reason === 'timeout' ? 'The rhythm fades' : 'Uneven — start again', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
   } else if (ev.type === 'comboLost') {
     if (ev.combo > 1 && g.mode === 'battle') feedback('Chain broken', P.paperShade);
@@ -957,6 +967,7 @@ function view() {
     }
   }
   v.demo = g.demo;
+  v.heard = heardTime();
   v.miss = g.miss && t - g.miss.t < 1.1 ? g.miss : null;
   return v;
 }

@@ -126,10 +126,12 @@ be finished in time, or when a stroke breaks the rhythm. Y resets it at once.
 **Seeing a mistake.** When a stroke breaks the phrase, the dots show what was
 played: the strokes so far, and the wrong one where it actually fell, at the
 player's own tempo, crossed out. The wrong drum on time sits in its expected
-place with an X over it ("Wrong drum — that beat is tùng"); a stroke too soon
-joins the beat before as a pair or triplet and that beat is crossed out ("Too
-soon"); a stroke after the phrase has run out of time lands past its beat
-("Too late"). It shows for about a second, or until the next stroke.
+place with an X over it; a stroke too soon joins the beat before as a pair or
+triplet and that beat is crossed out; a stroke after the phrase has run out of
+time lands past its beat. No words: the X says it. It shows for about a
+second, or until the next stroke. Demonstrations are drawn on the heard clock
+(the audio clock less the device's output latency, from the browser's output
+timestamp), so each light and the pointer's tap meet their sound.
 
 **Answering early.** In the call-and-answer chapters the player may answer as
 soon as they know the rhythm, during the call; the caller falls silent.

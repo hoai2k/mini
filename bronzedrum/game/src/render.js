@@ -2617,8 +2617,7 @@ export class Renderer {
     let label = null;
     let labelColor = P.paper;
     if (view.miss) {
-      label = view.miss.label;
-      labelColor = '#F4B9A8';
+      // The X over the dots says it; no words needed.
     } else if (ph && ph.caller) label = 'Listen…';
     else if (ph && !ph.done && view.mode === 'echo' && !ph.filled) label = 'Your turn — answer it';
     else if (ph && ph.done && view.mode !== 'battle') label = view.mode === 'casting' ? 'Pouring…' : 'Answered';
@@ -2854,7 +2853,8 @@ export class Renderer {
         g.fillStyle = 'rgba(22,21,26,0.7)';
         g.fillRect(cx - w / 2, top, w, 12 + 24 * lines.length + (view.demo && view.hint === view.demo.text ? 18 : 0));
         g.fillStyle = P.paper;
-        const demo = view.demo && view.hint === view.demo.text ? this.demoState(view.demo, t) : null;
+        // On the heard clock, so each light and tap meets its sound.
+        const demo = view.demo && view.hint === view.demo.text ? this.demoState(view.demo, view.heard ?? t) : null;
         // Tokens are counted across lines; the rhythm's are the last n.
         const all = lines.reduce((m, l) => m + this.richCount(l), 0);
         const first = demo ? all - demo.n : 0;
@@ -3060,7 +3060,8 @@ export class Renderer {
     let pos = prev ? prev.i : next ? next.i : 0;
     let tap = prev ? Math.max(0, 1 - (t - prev.at) / 0.18) : 0;
     if (prev && next) {
-      const lead = Math.min(0.22, (next.at - prev.at) * 0.6);
+      // A short, quick hop that lands exactly on the stroke.
+      const lead = Math.min(0.12, (next.at - prev.at) * 0.4);
       const q = Math.max(0, Math.min(1, (t - (next.at - lead)) / lead));
       pos = prev.i + (next.i - prev.i) * (q * q * (3 - 2 * q));
     } else if (!prev && next) pos = next.i;
