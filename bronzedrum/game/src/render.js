@@ -895,6 +895,48 @@ export class Renderer {
     }
   }
 
+  /**
+   * Mã Viện on horseback, watching from the rear of his columns: always near
+   * the right edge of the screen, a little behind the field.
+   */
+  general(view) {
+    const g = this.ctx;
+    const x = this.cam + 1150;
+    const y = GROUND - 30;
+    g.save();
+    g.globalAlpha = 0.92;
+    this.prop('han-general', x, y, 180, () => {
+      g.fillStyle = P.ironDark;
+      // Horse, facing left.
+      g.beginPath();
+      g.ellipse(x, y - 70, 50, 24, 0, 0, Math.PI * 2);
+      g.fill();
+      for (const lx of [-36, -20, 22, 38]) g.fillRect(x + lx - 3, y - 52, 6, 52);
+      g.beginPath();
+      g.moveTo(x - 40, y - 80);
+      g.lineTo(x - 70, y - 120);
+      g.lineTo(x - 82, y - 112);
+      g.lineTo(x - 56, y - 72);
+      g.fill();
+      // Rider with a crested helmet and a banner.
+      g.fillRect(x - 8, y - 130, 16, 46);
+      g.beginPath();
+      g.arc(x, y - 138, 9, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = P.lacquer;
+      g.fillRect(x - 2, y - 160, 4, 12);
+      g.fillStyle = P.ironDark;
+      g.fillRect(x + 14, y - 200, 3, 120);
+      g.fillStyle = P.lacquer;
+      g.beginPath();
+      g.moveTo(x + 17, y - 200);
+      g.lineTo(x + 60, y - 190);
+      g.lineTo(x + 17, y - 172);
+      g.fill();
+    });
+    g.restore();
+  }
+
   /** A prop: delivered art when there is some, else the stand-in callback. */
   prop(id, x, y, h, standIn, pose) {
     const img = this.art.get(id);
@@ -925,25 +967,29 @@ export class Renderer {
       this.endCut(g);
       g.restore();
     });
-    // Incense sticks, one per answered call: lit ones glow and smoke.
+    // Incense sticks, one per answered call, standing in the altar's bowl:
+    // lit ones glow and smoke.
+    const painted = !!this.art.get('prop-altar');
+    const bowlY = painted ? y - 78 : y - 70;
     for (let i = 0; i < total; i++) {
-      const sx = x - 40 + i * 20;
+      const sx = painted ? x - 8 + i * 4 : x - 40 + i * 20;
+      const top = bowlY - 26 - (i % 2) * 4;
       const on = i < lit;
       g.fillStyle = P.ink;
-      g.fillRect(sx - 1, y - 100, 2, 30);
+      g.fillRect(sx - 0.8, top, 1.6, bowlY - top);
       if (on) {
         g.save();
         g.fillStyle = '#FF8A3C';
         g.shadowColor = '#FF8A3C';
         g.shadowBlur = 8;
-        g.fillRect(sx - 1.5, y - 103, 3, 4);
+        g.fillRect(sx - 1.5, top - 3, 3, 4);
         g.restore();
         g.save();
         g.strokeStyle = 'rgba(242,232,213,0.35)';
         g.lineWidth = 2;
         g.beginPath();
         for (let k = 0; k < 14; k++) {
-          const yy = y - 106 - k * 7;
+          const yy = top - 6 - k * 7;
           const xx = sx + Math.sin(t * 1.4 + k * 0.6 + i) * (2 + k * 0.8);
           k === 0 ? g.moveTo(xx, yy) : g.lineTo(xx, yy);
         }
@@ -982,12 +1028,15 @@ export class Renderer {
       g.restore();
     }, { bob: pulse * 4 });
     if (pulse > 0.05) {
+      // The ripple sits on the drum: where the painted art has it, or the stand-in's.
+      const painted = this.art.get(id);
+      const [rx, ry] = painted ? (kind === 'festival' ? [x - 4, y - 100] : [x + 70, y - 95]) : [x + 16, y - 80];
       g.save();
       g.globalAlpha = pulse * 0.6;
       g.strokeStyle = this.sky.glow;
       g.lineWidth = 2;
       g.beginPath();
-      g.arc(x + 16, y - 80, 36 + (1 - pulse) * 30, 0, Math.PI * 2);
+      g.arc(rx, ry, 36 + (1 - pulse) * 30, 0, Math.PI * 2);
       g.stroke();
       g.restore();
     }
@@ -1146,6 +1195,37 @@ export class Renderer {
     }
   }
 
+  /**
+   * Molten bronze rising inside a painted mould: the mould itself glows hot
+   * from the bottom up to the fill level (and flashes pale when it cracks).
+   */
+  glowFill(img, x, y, h, fill, cracked) {
+    const w = Math.round((img.width / img.height) * h);
+    const c = this.glowCanvas || (this.glowCanvas = canvas(1, 1));
+    if (c.width !== w || c.height !== h) {
+      c.width = w;
+      c.height = h;
+    }
+    const g = c.getContext('2d');
+    g.clearRect(0, 0, w, h);
+    g.globalCompositeOperation = 'source-over';
+    g.drawImage(img, 0, 0, w, h);
+    g.globalCompositeOperation = 'source-atop';
+    const level = h - h * 0.92 * fill;
+    const grad = g.createLinearGradient(0, h, 0, level - 10);
+    grad.addColorStop(0, cracked ? 'rgba(242,232,213,0.85)' : 'rgba(255,170,80,0.85)');
+    grad.addColorStop(0.85, cracked ? 'rgba(242,232,213,0.6)' : 'rgba(255,120,40,0.65)');
+    grad.addColorStop(1, 'rgba(255,120,40,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, cracked ? 0 : level - 10, w, h);
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.shadowColor = '#FF8A3C';
+    ctx.shadowBlur = cracked ? 0 : 16 * fill;
+    ctx.drawImage(c, x - w / 2, y - h);
+    ctx.restore();
+  }
+
   mould(x, y, fill, cracked, cast, t) {
     const g = this.ctx;
     const done = this.art.get('prop-drum-cast');
@@ -1154,8 +1234,12 @@ export class Renderer {
       return;
     }
     const img = this.art.get('prop-mould');
-    if (img) this.sprite(img, x, y, 100);
-    else {
+    if (img) {
+      this.sprite(img, x, y, 100);
+      if (fill > 0 || cracked) this.glowFill(img, x, y, 100, fill, cracked);
+      return;
+    }
+    {
       g.save();
       g.fillStyle = '#5b4436';
       g.beginPath();
@@ -1594,6 +1678,7 @@ export class Renderer {
     g.save();
     g.translate(-this.cam, 0);
     if (view.mode !== 'battle') this.scene(view);
+    if (view.stage && view.stage.id === 'mavien') this.general(view);
     const beatPhase = view.beatFloat % 1;
     for (const e of battle.enemies) {
       const m = this.enemyMotion(e, t, dt);

@@ -610,6 +610,17 @@ for rid, asset, title, purpose, spec, prompt in [
     req(ST, rid, asset, title, purpose, spec, "delivered", "Renderer.scene", f"art/{asset}.png",
         f"{STYLE} {prompt}")
 
+req(ST, "BD-P10", "han-general", "Mã Viện on horseback",
+    "Mã Viện Returns: the Han general watching from the rear of his columns, always near the "
+    "right edge of the screen. Shown 180 px tall, slightly faded behind the field.",
+    "1536x1536. Faces left. " + CUTOUT.replace("figure, side profile, full body, feet", "figure on horseback, side profile, hooves"),
+    "stand-in", "Renderer.general", "art/han-general.png",
+    f"{STYLE} The Eastern Han general Mã Viện, 1st century, an old but upright commander on a "
+    "dark warhorse in profile facing left, lamellar armour cut as rows of small slots, a "
+    "crested helmet with a red plume, one hand raised to signal the advance, a long red "
+    "banner on a pole behind him. Iron grey, black and lacquer red. Dignified and formidable, "
+    "not caricatured.")
+
 for rid, title, purpose, file, prompt in [
     ("BD-M15", "The Oath: the father's funeral",
      "Atmosphere for The Oath: grief turning into resolve.", "references/m15-oath.png",

@@ -458,6 +458,14 @@
       "section": "story",
       "runtime": true,
       "web": "web/prop-drum-cast.webp"
+    },
+    {
+      "id": "han-general",
+      "request": "BD-P10",
+      "file": "art/han-general.png",
+      "status": "stand-in",
+      "section": "story",
+      "runtime": true
     }
   ]
 }
