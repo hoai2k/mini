@@ -17,6 +17,16 @@ const ARMY_SCREEN_X = 470;
 const STRIP_W = 2560;
 // How strongly delivered layers are washed toward each chapter's light.
 const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55, dusk: 0.45, foundry: 0.6, ash: 0.5 };
+// The touch layout (phones and tablets): a big drum low in the middle, its
+// centre the deep stroke and its rim ring the rim stroke, with the shield and
+// reset buttons at the bottom right and pause at the top. Centre at the
+// bottom edge so it reads as a drum in front of the player.
+export const TOUCH = {
+  drum: { x: 640, y: 668, r: 100, centre: 0.66, band: 1.3, reach: 1.42 },
+  shield: { x: 1170, y: 628, r: 70 },
+  reset: { x: 1000, y: 680, r: 36 },
+  pause: { x: 640, y: 32, r: 24 },
+};
 
 function rng(seed) {
   let s = seed >>> 0;
@@ -191,12 +201,16 @@ export class Renderer {
     this.fiberPattern = this.ctx.createPattern(this.fiber, 'repeat');
     this.layers = null;
     this.reduceMotion = false;
+    this.pressed = {}; // touch button id -> time pressed
+    this.taps = []; // touch points, drawn as brief rings
     this.resize();
     window.addEventListener('resize', () => this.resize());
   }
 
   resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Phones and tablets: a lower pixel ratio keeps the frame rate up.
+    const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2);
     const rect = this.canvas.getBoundingClientRect();
     const scale = Math.min(rect.width / W, rect.height / H) || 1;
     this.canvas.width = Math.round(W * scale * dpr);
@@ -1956,9 +1970,24 @@ export class Renderer {
   hud(view) {
     const g = this.ctx;
     const t = view.songTime;
+    // Touch play uses a bigger drum and larger text; desktop keeps the small HUD.
+    const touch = !!view.touch;
     const cx = W / 2;
-    const cy = H - 92;
-    const R = 58;
+    const cy = touch ? TOUCH.drum.y : H - 92;
+    const R = touch ? TOUCH.drum.r : 58;
+    const s = R / 58;
+    const k = touch ? 1.3 : 1;
+    const font = (w, px, fam = '"Be Vietnam Pro", system-ui, sans-serif') => `${w} ${Math.round(px * k)}px ${fam}`;
+    const serif = '"Cormorant Garamond", Georgia, serif';
+    const scaled = (ax, ay, f, by = k) => {
+      g.save();
+      g.translate(ax, ay);
+      g.scale(by, by);
+      g.translate(-ax, -ay);
+      f();
+      g.restore();
+    };
+    if (touch) this.touchDrumBand(cx, cy, R, t);
     const beatInMeasure = view.heron; // lit heron: the army's beat, or the phrase's
     const beatPhase = view.beatFloat - Math.floor(view.beatFloat);
     const responding = view.inResponse;
@@ -1991,15 +2020,15 @@ export class Renderer {
     // Four herons around the ring: one per beat of the pattern or the answer.
     for (let i = 0; i < 4; i++) {
       const a = -Math.PI / 2 + (i / 4) * Math.PI * 2;
-      const hx = cx + Math.cos(a) * (R - 13);
-      const hy = cy + Math.sin(a) * (R - 13);
+      const hx = cx + Math.cos(a) * (R - 13 * s);
+      const hy = cy + Math.sin(a) * (R - 13 * s);
       const lit = i === beatInMeasure;
       g.fillStyle = lit ? (responding ? P.verdigris : P.paper) : 'rgba(22,21,26,0.6)';
       g.save();
       g.translate(hx, hy);
       g.rotate(a + Math.PI / 2);
-      leaf(g, 0, 0, lit ? 13 : 10, -0.4, 0.3);
-      leaf(g, 0, 0, lit ? 13 : 10, Math.PI + 0.4, 0.3);
+      leaf(g, 0, 0, (lit ? 13 : 10) * s, -0.4, 0.3);
+      leaf(g, 0, 0, (lit ? 13 : 10) * s, Math.PI + 0.4, 0.3);
       g.restore();
     }
     // Star pulses with the army's beat; flashes on strokes.
@@ -2008,9 +2037,9 @@ export class Renderer {
     const fr = Math.max(0, 1 - (t - this.flash.R) * 5);
     g.fillStyle = view.spirit ? P.bronzeLight : P.paper;
     g.globalAlpha = 0.5 + 0.5 * Math.max(pulse * 0.6, fl);
-    star(g, cx, cy, R - 42 + fl * 6, 12, 12);
+    star(g, cx, cy, 16 * s + fl * 6, 12 * s, 12);
     g.globalAlpha = 1;
-    if (fr > 0) {
+    if (fr > 0 && !touch) {
       g.strokeStyle = P.lacquer;
       g.globalAlpha = fr;
       g.lineWidth = 6;
@@ -2020,91 +2049,115 @@ export class Renderer {
       g.globalAlpha = 1;
     }
 
+    if (touch) this.touchDrumLabels(cx, cy, R);
+
     // The phrase: the accepted pattern stays filled until the drum is ready
     // again; while drumming, the likeliest pattern is shown with the strokes
     // still to come drawn faintly.
-    const slotY = cy - R - 26;
+    const slotY = touch ? cy - R * TOUCH.drum.band - 20 : cy - R - 26;
+    const cell = touch ? 44 : 36;
+    const dotR = touch ? 14 : 11;
+    const labelY = slotY - 26 * k;
     const ph = view.phraseView;
+    // The line above the dots: whose turn it is, or the command being played.
+    let label = null;
+    let labelColor = P.paper;
+    if (ph && ph.caller) label = 'Listen…';
+    else if (ph && !ph.done && view.mode === 'echo' && !ph.filled) label = 'Your turn — answer it';
+    else if (ph && ph.done && view.mode !== 'battle') label = view.mode === 'casting' ? 'Pouring…' : 'Answered';
+    else if (ph && ph.done) {
+      const c = COMMANDS.find((k) => k.id === ph.pattern.command);
+      const charging = view.cycle && view.cycle.command === 'charge';
+      label = charging ? 'Voi! — the elephant charges' : `${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`;
+    } else if (!ph && view.sustaining) {
+      label = touch ? 'The army keeps your rhythm' : 'The army keeps your rhythm — drum the next command';
+      labelColor = P.paperShade;
+    }
+    g.font = font(600, label === null || labelColor === P.paper ? 15 : 14);
+    if (touch) {
+      // A dark band behind the dots and the label keeps them readable over the field.
+      const bw = Math.max(4 * cell + 32, label ? g.measureText(label).width + 28 : 0);
+      g.fillStyle = 'rgba(22,21,26,0.45)';
+      g.fillRect(cx - bw / 2, labelY - 22 * k, bw, slotY + dotR + 8 - (labelY - 22 * k));
+    }
     if (ph) {
-      const cell = 36;
-      this.pattern(cx - 2 * cell, slotY, ph.pattern, 11, cell, ph.filled, ph.done);
+      this.pattern(cx - 2 * cell, slotY, ph.pattern, dotR, cell, ph.filled, ph.done);
     } else {
-      if (view.sustaining) {
-        g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
-        g.textAlign = 'center';
-        g.fillStyle = P.paperShade;
-        g.fillText('The army keeps your rhythm — drum the next command', cx, slotY - 26);
-      }
       for (let i = 0; i < 4; i++) {
         g.strokeStyle = P.paper;
         g.globalAlpha = view.ready ? 0.45 + 0.25 * Math.sin(t * 4) : 0.35;
         g.lineWidth = 1.5;
         g.beginPath();
-        g.arc(cx - 54 + i * 36, slotY, 11, 0, Math.PI * 2);
+        g.arc(cx - 1.5 * cell + i * cell, slotY, dotR, 0, Math.PI * 2);
         g.stroke();
       }
       g.globalAlpha = 1;
     }
-    g.font = '600 15px "Be Vietnam Pro", system-ui, sans-serif';
-    g.textAlign = 'center';
-    g.fillStyle = P.paper;
-    if (ph && ph.caller) {
-      g.fillText('Listen…', cx, slotY - 26);
-    } else if (ph && !ph.done && view.mode === 'echo' && !ph.filled) {
-      g.fillText('Your turn — answer it', cx, slotY - 26);
-    } else if (ph && ph.done && view.mode !== 'battle') {
-      g.fillText(view.mode === 'casting' ? 'Pouring…' : 'Answered', cx, slotY - 26);
-    } else if (ph && ph.done) {
-      const c = COMMANDS.find((k) => k.id === ph.pattern.command);
-      const charging = view.cycle && view.cycle.command === 'charge';
-      g.fillText(charging ? 'Voi! — the elephant charges' : `${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`, cx, slotY - 26);
+    if (label) {
+      g.font = font(600, labelColor === P.paper ? 15 : 14);
+      g.textAlign = 'center';
+      g.fillStyle = labelColor;
+      g.fillText(label, cx, labelY);
     }
 
     // Dots tumbling away after a reset.
     if (this.clearing && t - this.clearing.t < 0.5) {
-      const k = (t - this.clearing.t) / 0.5;
+      const q = (t - this.clearing.t) / 0.5;
       g.save();
-      g.globalAlpha = 1 - k;
-      g.translate(0, k * k * 40);
-      this.pattern(cx - 2 * 36, slotY, this.clearing.pattern, 11 * (1 - 0.4 * k), 36 + 30 * k, this.clearing.filled);
+      g.globalAlpha = 1 - q;
+      g.translate(0, q * q * 40);
+      this.pattern(cx - 2 * cell, slotY, this.clearing.pattern, dotR * (1 - 0.4 * q), cell + 30 * q, this.clearing.filled);
       g.restore();
     }
 
-    // Confirmations for the reset and guard buttons, under the drum.
+    // Confirmations for the reset and guard buttons: under the drum, or
+    // beside it on touch screens, where the drum fills the bottom edge.
     if (view.confirm && t - view.confirm.t < 0.9) {
-      const k = (t - view.confirm.t) / 0.9;
+      const q = (t - view.confirm.t) / 0.9;
       g.save();
-      g.globalAlpha = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
-      g.font = '700 18px "Be Vietnam Pro", system-ui, sans-serif';
-      g.textAlign = 'center';
+      g.globalAlpha = q < 0.7 ? 1 : 1 - (q - 0.7) / 0.3;
+      g.font = font(700, 18);
+      g.textAlign = touch ? 'left' : 'center';
       g.fillStyle = view.confirm.color;
       g.shadowColor = 'rgba(0,0,0,0.8)';
       g.shadowBlur = 6;
-      g.fillText(view.confirm.text, cx, H - 10 - k * 4);
+      if (touch) g.fillText(view.confirm.text, cx + R * TOUCH.drum.band + 20, cy - 30 - q * 4);
+      else g.fillText(view.confirm.text, cx, H - 10 - q * 4);
       g.restore();
     }
 
     // Judgement text.
     if (view.feedback && t - view.feedback.t < 0.6) {
-      const k = (t - view.feedback.t) / 0.6;
-      g.globalAlpha = 1 - k;
-      g.font = '700 26px "Cormorant Garamond", Georgia, serif';
+      const q = (t - view.feedback.t) / 0.6;
+      g.globalAlpha = 1 - q;
+      g.font = font(700, 26, serif);
+      g.textAlign = 'center';
       g.fillStyle = view.feedback.color;
-      g.fillText(view.feedback.text, cx, slotY - 50 - k * 16);
+      g.fillText(view.feedback.text, cx, labelY - 24 * k - q * 16);
       g.globalAlpha = 1;
     }
 
-    // Combo and the waking drum.
+    // Combo and the waking drum: beside the drum, or under the army's bar on touch screens.
     if (view.combo > 1 && view.mode === 'battle') {
-      g.font = '700 22px "Cormorant Garamond", Georgia, serif';
+      g.font = font(700, 22, serif);
       g.textAlign = 'left';
       g.fillStyle = view.spirit ? P.bronzeLight : P.paper;
-      g.fillText(view.spirit ? `Trống thức — the drum wakes ×${view.combo}` : `Chain ×${view.combo}`, cx + R + 22, cy + 8);
+      g.save();
+      g.shadowColor = 'rgba(0,0,0,0.8)';
+      g.shadowBlur = touch ? 6 : 0;
+      g.fillText(view.spirit ? `Trống thức — the drum wakes ×${view.combo}` : `Chain ×${view.combo}`, touch ? 24 : cx + R + 22, touch ? 104 : cy + 8);
+      g.restore();
     }
 
     // Command list: every unlocked command and tier, kept low and clear of
     // the field. The tier being played is lit.
     g.textAlign = 'left';
+    if (touch) {
+      g.save();
+      g.translate(0, H);
+      g.scale(1.2, 1.2);
+      g.translate(0, -H);
+    }
     const list = view.mode === 'battle' ? COMMANDS.filter((c) => view.unlocked.includes(c.id)) : [];
     const px = 22;
     const rowH = 22;
@@ -2127,41 +2180,366 @@ export class Renderer {
       });
       py += rowH;
     }
+    if (touch) g.restore();
 
     // Troops and goal.
     const b = view.battle;
     const sess = view.session;
     if (view.mode === 'echo') {
       const words = { mourning: 'Incense lit', village: 'Villages answering', festival: 'Rhythms answered', elegy: 'Drums silent' };
-      this.bar(W - 304, 22, 280, sess.index / sess.calls.length, `${words[view.stage.caller] || 'Answered'} · ${sess.index} of ${sess.calls.length}`, P.bronzeLight);
+      scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, sess.index / sess.calls.length, `${words[view.stage.caller] || 'Answered'} · ${sess.index} of ${sess.calls.length}`, P.bronzeLight));
     } else if (view.mode === 'casting') {
-      this.bar(W - 304, 22, 280, (sess.cast + sess.level / sess.pours) / sess.drums, `Drums cast · ${sess.cast} of ${sess.drums}`, P.bronze);
+      scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, (sess.cast + sess.level / sess.pours) / sess.drums, `Drums cast · ${sess.cast} of ${sess.drums}`, P.bronze));
       if (sess.u !== null) {
-        g.font = '600 15px "Be Vietnam Pro", system-ui, sans-serif';
+        g.font = font(600, 15);
         g.textAlign = 'left';
         g.fillStyle = P.paper;
-        g.fillText(`Hold ${Math.round(60 / sess.u)} BPM · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
+        if (touch) {
+          g.fillText(`Hold ${Math.round(60 / sess.u)} BPM`, 24, H - 48);
+          g.fillText(`Pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
+        } else g.fillText(`Hold ${Math.round(60 / sess.u)} BPM · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
       }
     } else {
-      this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer);
+      scaled(24, 22, () => this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer));
       if (b.survive) {
-        this.bar(W - 304, 22, 280, Math.min(1, b.time / b.survive), `Hold the ford · ${Math.max(0, Math.ceil(b.survive - b.time))} s`, P.verdigris);
+        scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, Math.min(1, b.time / b.survive), `Hold the ford · ${Math.max(0, Math.ceil(b.survive - b.time))} s`, P.verdigris));
       } else {
         const goals = b.enemies.filter((e) => e.goal);
         const goalHp = goals.reduce((s2, e) => s2 + Math.max(0, e.hp), 0) / goals.reduce((s2, e) => s2 + e.maxHp, 0);
-        this.bar(W - 304, 22, 280, goalHp, goals[0].type === 'fort' ? 'Han fort' : 'Straw targets', P.iron);
+        scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, goalHp, goals[0].type === 'fort' ? 'Han fort' : 'Straw targets', P.iron));
       }
     }
 
     if (view.hint) {
+      // Larger on touch screens, but never wider than the screen.
       g.font = '500 18px "Be Vietnam Pro", system-ui, sans-serif';
-      g.textAlign = 'center';
-      const w = g.measureText(view.hint).width + 36;
-      g.fillStyle = 'rgba(22,21,26,0.7)';
-      g.fillRect(cx - w / 2, 70, w, 36);
-      g.fillStyle = P.paper;
-      g.fillText(view.hint, cx, 94);
+      const hintScale = touch ? Math.min(k, (W - 40) / (g.measureText(view.hint).width + 36)) : 1;
+      scaled(cx, 70, () => {
+        g.font = '500 18px "Be Vietnam Pro", system-ui, sans-serif';
+        g.textAlign = 'center';
+        const w = g.measureText(view.hint).width + 36;
+        g.fillStyle = 'rgba(22,21,26,0.7)';
+        g.fillRect(cx - w / 2, 70, w, 36);
+        g.fillStyle = P.paper;
+        g.fillText(view.hint, cx, 94);
+      }, hintScale);
     }
+
+    if (touch) this.touchButtons(view);
+  }
+
+  // ---------------------------------------------------------------- touch
+
+  /**
+   * The rim ring around the touch drum: Nhị's half of the drum. A lacquer
+   * band that flashes on rim strokes, with the zones named faintly.
+   */
+  touchDrumBand(cx, cy, R, t) {
+    const g = this.ctx;
+    const outer = R * TOUCH.drum.band;
+    const fr = Math.max(0, 1 - (t - this.flash.R) * 5);
+    g.save();
+    g.shadowColor = 'rgba(0,0,0,0.5)';
+    g.shadowBlur = 12;
+    g.shadowOffsetY = 4;
+    g.fillStyle = fr > 0 ? `rgba(168,50,45,${0.55 + 0.4 * fr})` : 'rgba(110,32,30,0.6)';
+    g.beginPath();
+    g.arc(cx, cy, outer, 0, Math.PI * 2);
+    g.arc(cx, cy, R - 2, 0, Math.PI * 2, true);
+    g.fill();
+    g.restore();
+    // Tangential circles cut round the band, as on the drum's own rings.
+    g.fillStyle = 'rgba(242,232,213,0.22)';
+    for (let i = 0; i < 28; i++) {
+      const a = (i / 28) * Math.PI * 2;
+      g.beginPath();
+      g.arc(cx + Math.cos(a) * (R + outer) / 2, cy + Math.sin(a) * (R + outer) / 2, 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.strokeStyle = P.bronzeLight;
+    g.globalAlpha = 0.7 + 0.3 * fr;
+    g.lineWidth = 2 + 3 * fr;
+    g.beginPath();
+    g.arc(cx, cy, outer, 0, Math.PI * 2);
+    g.stroke();
+    g.globalAlpha = 1;
+  }
+
+  /** Names on the touch drum's two zones, drawn over the drum face. */
+  touchDrumLabels(cx, cy, R) {
+    const g = this.ctx;
+    const mid = (R + R * TOUCH.drum.band) / 2;
+    g.save();
+    g.font = '700 15px "Be Vietnam Pro", system-ui, sans-serif';
+    g.textAlign = 'center';
+    g.shadowColor = 'rgba(0,0,0,0.9)';
+    g.shadowBlur = 4;
+    g.fillStyle = 'rgba(242,232,213,0.9)';
+    g.fillText('cắc', cx - mid, cy - 18);
+    g.fillText('cắc', cx + mid, cy - 18);
+    g.fillText('tùng', cx, cy - R * 0.32);
+    // The edge of the centre zone.
+    g.setLineDash([4, 6]);
+    g.strokeStyle = 'rgba(242,232,213,0.45)';
+    g.lineWidth = 1.5;
+    g.beginPath();
+    g.arc(cx, cy, R * TOUCH.drum.centre, 0, Math.PI * 2);
+    g.stroke();
+    g.restore();
+  }
+
+  /** What a touch at logical (x, y) presses: 'L', 'R', 'guard', 'reset', 'pause'. */
+  touchTarget(x, y, mode) {
+    const T = TOUCH;
+    const near = (b, pad) => Math.hypot(x - b.x, y - b.y) < b.r + pad;
+    if (near(T.pause, 16)) return 'pause';
+    if (mode === 'battle' && near(T.shield, 18)) return 'guard';
+    if (near(T.reset, 14)) return 'reset';
+    const d = Math.hypot(x - T.drum.x, y - T.drum.y);
+    if (d < T.drum.r * T.drum.centre) return 'L';
+    if (d < T.drum.r * T.drum.reach) return 'R';
+    // Anywhere else: the screen's halves, for thumbs at the edges of a phone.
+    return x < W / 2 ? 'L' : 'R';
+  }
+
+  /** A touch landed: ring it, and press the button it hit. */
+  touched(x, y, target, t) {
+    this.taps.push({ x, y, t, target });
+    if (this.taps.length > 8) this.taps.shift();
+    if (target === 'guard' || target === 'reset' || target === 'pause') this.pressed[target] = t;
+  }
+
+  /**
+   * The shield button's stand-in: a trống chầu, the big hide-headed barrel
+   * drum that stands beside a bronze drum in a temple or a village hall. Seen
+   * from the front and a little above: the buffalo-hide head with its red
+   * centre, the lacquered barrel and its tacks, a beater resting across it.
+   * The head lights when struck (hit, 0..1).
+   */
+  chauDrum(x, y, r, hit = 0) {
+    const g = this.ctx;
+    const hx = x;
+    const hy = y - r * 0.2;
+    const rx = r * 0.9;
+    const ry = r * 0.6;
+    // Barrel: lacquer red, bulging a little, below and behind the head.
+    g.fillStyle = '#7A231F';
+    g.beginPath();
+    g.ellipse(hx, y + r * 0.42, rx * 0.96, ry * 0.62, 0, 0, Math.PI);
+    g.lineTo(hx - rx, hy);
+    g.ellipse(hx, hy, rx, ry, 0, Math.PI, 0, true);
+    g.closePath();
+    g.fill();
+    g.save();
+    g.shadowColor = 'transparent';
+    g.fillStyle = P.lacquer;
+    g.beginPath();
+    g.ellipse(hx, y + r * 0.42, rx * 0.84, ry * 0.5, 0, 0, Math.PI);
+    g.lineTo(hx - rx * 0.86, hy + ry * 0.3);
+    g.ellipse(hx, hy + ry * 0.3, rx * 0.86, ry * 0.8, 0, Math.PI, 0, true);
+    g.closePath();
+    g.fill();
+    // Staves and a bronze band round the belly.
+    g.strokeStyle = 'rgba(22,21,26,0.35)';
+    g.lineWidth = 1.5;
+    for (const f of [-0.6, -0.3, 0, 0.3, 0.6]) {
+      g.beginPath();
+      g.moveTo(hx + f * rx, hy + ry * Math.sqrt(1 - f * f));
+      g.lineTo(hx + f * rx * 0.96, y + r * 0.42 + ry * 0.62 * Math.sqrt(1 - f * f));
+      g.stroke();
+    }
+    g.strokeStyle = P.bronzeLight;
+    g.lineWidth = Math.max(2, r * 0.05);
+    g.beginPath();
+    g.ellipse(hx, y + r * 0.2, rx * 0.99, ry * 0.75, 0, 0.12, Math.PI - 0.12);
+    g.stroke();
+    // The hide head, its rim of tacks, and the red disc painted at its centre.
+    g.fillStyle = hit ? `rgb(${240 + 15 * hit},${226 + 20 * hit},${196 + 30 * hit})` : '#E6D3AE';
+    g.beginPath();
+    g.ellipse(hx, hy, rx, ry, 0, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = '#5A3A22';
+    g.lineWidth = Math.max(2, r * 0.06);
+    g.stroke();
+    g.fillStyle = P.bronzeLight;
+    for (let i = 0; i < 22; i++) {
+      const a = (i / 22) * Math.PI * 2;
+      g.beginPath();
+      g.arc(hx + Math.cos(a) * rx * 0.9, hy + Math.sin(a) * ry * 0.88, Math.max(1.5, r * 0.035), 0, Math.PI * 2);
+      g.fill();
+    }
+    g.fillStyle = P.lacquer;
+    g.beginPath();
+    g.ellipse(hx, hy, rx * 0.36, ry * 0.36, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = '#E6D3AE';
+    g.save();
+    g.translate(hx, hy);
+    g.scale(1, ry / rx);
+    star(g, 0, 0, rx * 0.24, rx * 0.1, 8);
+    g.restore();
+    if (hit) {
+      // The head shivers outward from the stroke.
+      g.strokeStyle = `rgba(242,232,213,${0.8 * hit})`;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.ellipse(hx, hy, rx * (0.45 + 0.5 * (1 - hit)), ry * (0.45 + 0.5 * (1 - hit)), 0, 0, Math.PI * 2);
+      g.stroke();
+    }
+    // A beater resting across the head, its tip lifting on a stroke.
+    g.save();
+    g.translate(hx + rx * 0.62, hy - ry * 0.55 - hit * r * 0.12);
+    g.rotate(-0.85 - hit * 0.25);
+    g.fillStyle = '#5A3A22';
+    g.fillRect(-r * 0.04, -r * 0.05, r * 0.82, r * 0.09);
+    g.fillStyle = P.lacquer;
+    g.fillRect(r * 0.62, -r * 0.06, r * 0.22, r * 0.11);
+    g.restore();
+    g.restore();
+  }
+
+  /**
+   * The reset button's stand-in: a mõ, the round wooden slit drum knocked to
+   * keep time in pagodas and village halls, on a red cushion with its mallet.
+   */
+  moDrum(x, y, r, hit = 0) {
+    const g = this.ctx;
+    // Cushion.
+    g.fillStyle = P.lacquer;
+    g.beginPath();
+    g.ellipse(x, y + r * 0.68, r * 0.95, r * 0.24, 0, 0, Math.PI * 2);
+    g.fill();
+    g.save();
+    g.shadowColor = 'transparent';
+    g.fillStyle = P.bronzeLight;
+    g.fillRect(x - r * 0.95, y + r * 0.66, r * 1.9, Math.max(1.5, r * 0.05));
+    // The body: a squat round block of dark polished wood, a touch wider than tall.
+    const grad = g.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.1, x, y, r * 0.95);
+    grad.addColorStop(0, hit ? '#C98A4E' : '#A86E3A');
+    grad.addColorStop(1, '#4E2E16');
+    g.fillStyle = grad;
+    g.beginPath();
+    g.ellipse(x, y + r * 0.05, r * 0.86, r * 0.7, 0, 0, Math.PI * 2);
+    g.fill();
+    // Carved rings on the crown.
+    g.strokeStyle = 'rgba(22,21,26,0.35)';
+    g.lineWidth = 1.5;
+    g.beginPath();
+    g.ellipse(x, y - r * 0.12, r * 0.6, r * 0.42, 0, Math.PI * 1.1, Math.PI * 1.9);
+    g.stroke();
+    // The slit: a long curved mouth cut through the front.
+    g.fillStyle = '#1A0F08';
+    g.beginPath();
+    g.moveTo(x - r * 0.7, y + r * 0.3);
+    g.quadraticCurveTo(x, y + r * 0.42, x + r * 0.7, y + r * 0.3);
+    g.lineTo(x + r * 0.7, y + r * 0.36);
+    g.quadraticCurveTo(x, y + r * 0.5, x - r * 0.7, y + r * 0.36);
+    g.closePath();
+    g.fill();
+    // Highlight.
+    g.strokeStyle = 'rgba(242,232,213,0.45)';
+    g.lineWidth = Math.max(1.5, r * 0.06);
+    g.beginPath();
+    g.ellipse(x, y + r * 0.05, r * 0.72, r * 0.56, 0, Math.PI * 1.15, Math.PI * 1.5);
+    g.stroke();
+    // The mallet, leaning on the cushion against the body; it taps in on a press.
+    const tip = { x: x + r * (0.8 - 0.12 * hit), y: y - r * 0.12 };
+    const foot = { x: x + r * 1.08, y: y + r * 0.68 };
+    g.strokeStyle = '#5A3A22';
+    g.lineWidth = Math.max(2, r * 0.09);
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(foot.x, foot.y);
+    g.lineTo(tip.x, tip.y);
+    g.stroke();
+    g.fillStyle = '#7A4A26';
+    g.beginPath();
+    g.ellipse(tip.x, tip.y, r * 0.15, r * 0.13, -0.5, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+    g.restore();
+  }
+
+  /** The shield, reset and pause buttons, and the rings left by touches. */
+  touchButtons(view) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const sheet = this.art.get('touch-buttons');
+    const b = view.battle;
+    const buttons = [['reset', TOUCH.reset, 1], ['pause', TOUCH.pause, 2]];
+    if (view.mode === 'battle') buttons.unshift(['guard', TOUCH.shield, 0]);
+    for (const [id, pos, cellIx] of buttons) {
+      const since = t - (this.pressed[id] ?? -9);
+      const press = since < 0.18 ? 1 - 0.1 * Math.sin((since / 0.18) * Math.PI) : 1;
+      let glow = 0;
+      let alpha = id === 'pause' ? 0.75 : 0.92;
+      if (id === 'guard') {
+        // Call for the shield while an attack is coming; dim while it recovers.
+        if ((view.threats.length || view.incoming) && !view.shieldsUp) glow = 0.6 + 0.4 * Math.sin(t * 12);
+        if (b.time < b.guardReadyAt && !view.shieldsUp) alpha = 0.6;
+      }
+      const r = pos.r * press;
+      g.save();
+      g.globalAlpha = alpha;
+      g.shadowColor = glow ? P.bronzeLight : 'rgba(0,0,0,0.55)';
+      g.shadowBlur = glow ? 20 + 14 * glow : 10;
+      g.shadowOffsetY = glow ? 0 : 4;
+      const hit = since < 0.25 ? 1 - since / 0.25 : 0;
+      if (sheet) {
+        const cw = sheet.width / 3;
+        g.drawImage(sheet, cellIx * cw, 0, cw, sheet.height, pos.x - r / 0.9, pos.y - r / 0.9, (2 * r) / 0.9, (2 * r) / 0.9);
+      } else if (id === 'guard') this.chauDrum(pos.x, pos.y, r, hit);
+      else if (id === 'reset') this.moDrum(pos.x, pos.y, r, hit);
+      else {
+        g.fillStyle = P.indigo;
+        g.beginPath();
+        g.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+        g.fill();
+        g.shadowColor = 'transparent';
+        g.strokeStyle = P.bronze;
+        g.lineWidth = Math.max(2, r * 0.08);
+        g.beginPath();
+        g.arc(pos.x, pos.y, r - g.lineWidth / 2, 0, Math.PI * 2);
+        g.stroke();
+        g.fillStyle = P.paper;
+        g.fillRect(pos.x - r * 0.32, pos.y - r * 0.4, r * 0.22, r * 0.8);
+        g.fillRect(pos.x + r * 0.1, pos.y - r * 0.4, r * 0.22, r * 0.8);
+      }
+      g.restore();
+      if (view.shieldsUp && id === 'guard') {
+        // The shield wall is up: a verdigris ring round the barrel drum.
+        g.save();
+        g.strokeStyle = P.verdigris;
+        g.lineWidth = 5;
+        g.beginPath();
+        g.arc(pos.x, pos.y, r + 4, 0, Math.PI * 2);
+        g.stroke();
+        g.restore();
+      }
+      if (id === 'guard' || id === 'reset') {
+        g.save();
+        g.font = '700 16px "Be Vietnam Pro", system-ui, sans-serif';
+        g.textAlign = 'center';
+        g.fillStyle = P.paper;
+        g.globalAlpha = alpha;
+        g.shadowColor = 'rgba(0,0,0,0.9)';
+        g.shadowBlur = 4;
+        g.fillText(id === 'guard' ? 'Shield' : 'Reset', pos.x, pos.y - pos.r - 10);
+        g.restore();
+      }
+    }
+    // Rings where fingers landed.
+    this.taps = this.taps.filter((p) => t - p.t < 0.35);
+    for (const p of this.taps) {
+      const q = (t - p.t) / 0.35;
+      g.strokeStyle = p.target === 'L' ? P.bronzeLight : p.target === 'R' ? P.lacquer : P.paper;
+      g.globalAlpha = 1 - q;
+      g.lineWidth = 3;
+      g.beginPath();
+      g.arc(p.x, p.y, 14 + 30 * q, 0, Math.PI * 2);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
   }
 
   /**

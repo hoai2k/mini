@@ -77,6 +77,7 @@ function show(id) {
   screen = id;
   input.mode = id === 'play' ? 'play' : 'menu';
   canvas.style.visibility = id === 'title' || id === 'select' ? 'hidden' : 'visible';
+  document.body.classList.toggle('playing', id === 'play');
   if (id !== 'play') focusFirst(activeRoot());
 }
 
@@ -192,9 +193,12 @@ function toast(text) {
 
 // ---------------------------------------------------------------- fullscreen
 
+const coarsePointer = window.matchMedia('(pointer: coarse)');
 async function enterFullscreen() {
   try {
     if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+    // Phones and tablets play sideways; browsers that allow it lock that in.
+    if (coarsePointer.matches && window.screen.orientation && window.screen.orientation.lock) await window.screen.orientation.lock('landscape').catch(() => {});
   } catch {
     /* refused: carry on windowed */
   }
@@ -339,7 +343,21 @@ function confirm(text, color) {
   game.confirm = { text, color, t: songTime() };
 }
 
-input.on('drum', ({ drum, time }) => {
+input.on('drum', ({ drum, time }) => strike(drum, time));
+input.on('action', ({ action, time }) => act(action, time));
+
+// Touch: the renderer's layout says what was tapped (the drum's centre or
+// rim, the shield, reset or pause button), then it is handled like a key.
+input.on('touch', ({ x, y, time }) => {
+  if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  const target = renderer.touchTarget(x, y, game.mode);
+  renderer.touched(x, y, target, songTime());
+  if (target === 'L' || target === 'R') strike(target, time);
+  else if (target === 'pause') pause();
+  else act(target, time);
+});
+
+function strike(drum, time) {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   const t = hitTime(time);
   if (drum === 'L') sound.tung();
@@ -351,12 +369,15 @@ input.on('drum', ({ drum, time }) => {
     return;
   }
   for (const ev of game.reader.hit(drum, t)) handleRhythm(ev);
-});
+}
 
-input.on('action', ({ action, time }) => {
+function act(action, time) {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   if (action === 'reset') {
-    // Clear the phrase: the dots tumble away and "Cleared" shows under the drum.
+    // Clear the phrase: a knock on the wooden slit drum (mõ), the dots tumble
+    // away and "Cleared" shows under the drum.
+    sound.play('drum-mo', sound.now, 0.8);
+    input.rumble(25, 0.3);
     const shown = view().phraseView;
     const events = game.reader.reset();
     if (events.length && shown && !shown.done) renderer.clearDots(shown, songTime());
@@ -365,12 +386,14 @@ input.on('action', ({ action, time }) => {
     // The shield wall: separate from the drum, timed to attacks in flight.
     const t = hitTime(time);
     if (guard(game.battle, Math.max(t, game.battle.time))) {
-      sound.play('cmd-shield', sound.now, 0.7);
+      // A stroke on the big hide barrel drum (trống chầu) calls the shields up.
+      sound.play('drum-chau', sound.now, 0.9);
+      sound.play('cmd-shield', sound.now + 0.04, 0.6);
       input.rumble(40, 0.3);
       game.guards += 1;
     }
   }
-});
+}
 
 /**
  * Start one of the army's four-beat cycles at the player's tempo: four army
@@ -517,7 +540,9 @@ function hint(view) {
     keyboard: { L: 'F', R: 'J' },
     gamepad: { L: 'LB', R: 'RB' },
     pointer: { L: 'left', R: 'right' },
+    touch: { L: '●', R: '○' },
   }[input.device] || { L: 'F', R: 'J' };
+  const touch = input.device === 'touch';
   const say = (id, tier = 1) => {
     const c = commandById(id);
     const text = c.tiers[tier - 1].split(' ').map((beat) => [...beat].map((d) => keys[d]).join(input.device === 'pointer' ? '-' : '')).join(' ');
@@ -529,7 +554,9 @@ function hint(view) {
   if (g.mode === 'echo') {
     const sess = g.session;
     if (sess.phase === 'calling') return 'Listen to the call…';
-    if (sess.phase === 'answer' && sess.index === 0) return `Now answer it: the same rhythm, evenly (${keys.L} = tùng, ${keys.R} = cắc)`;
+    if (sess.phase === 'answer' && sess.index === 0) {
+      return touch ? 'Now answer it: the same rhythm, evenly (● centre = tùng, ○ rim = cắc)' : `Now answer it: the same rhythm, evenly (${keys.L} = tùng, ${keys.R} = cắc)`;
+    }
     return null;
   }
   if (g.mode === 'casting') {
@@ -539,13 +566,13 @@ function hint(view) {
   }
   if (g.stage.id === 'mavien' && view.songTime < 20) return 'Hold the ford — strike the columns, shield every volley';
   if (g.stage.id === 'garden') {
-    if (g.commandsDone === 0) return `Drum evenly, at any speed — ${say('march')}`;
+    if (g.commandsDone === 0) return touch ? `Tap the drum evenly (● centre, ○ rim) — ${say('march')}` : `Drum evenly, at any speed — ${say('march')}`;
     if (near) return g.tiersUsed.has(2) ? `In reach — ${say('strike')}  or  ${say('strike', 2)}` : `In reach — ${say('strike')}`;
     if (!g.tiersUsed.has(2)) return `Stronger: two quick strokes share a beat — ${say('march', 2)}`;
-    if (g.commandsDone >= 3 && !g.flourishTaught) return `While they answer, tap ${keys.R} between their beats for Nhị’s flourish`;
+    if (g.commandsDone >= 3 && !g.flourishTaught) return `While they answer, tap ${touch ? 'the rim' : keys.R} between their beats for Nhị’s flourish`;
     return null;
   }
-  const guardKey = { keyboard: 'Space', gamepad: 'A', pointer: 'tap the drum' }[input.device] || 'Space';
+  const guardKey = { keyboard: 'Space', gamepad: 'A', pointer: 'tap the drum', touch: 'the Shield button' }[input.device] || 'Space';
   if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return `Attack coming — shield (${guardKey}) while it is in the air`;
   if (g.stage.id === 'outpost' && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
     return `Triplets hit hardest — ${say('strike', 3)}`;
@@ -704,6 +731,7 @@ function view() {
     session: g.session,
     crackAt: g.crackAt,
     pouring: g.mode === 'casting' && !!r.action && t >= r.action.start,
+    touch: input.device === 'touch',
   };
   v.hint = hint(v);
   return v;
@@ -861,17 +889,21 @@ document.addEventListener('visibilitychange', () => {
 
 // ---------------------------------------------------------------- loop
 
+const portraitTouch = window.matchMedia('(orientation: portrait) and (pointer: coarse)');
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   input.poll();
+  // A phone or tablet held upright: the drum and the field need the width.
+  if (screen === 'play' && !dialogs.length && portraitTouch.matches) pause('Turn your device sideways to play.');
   if (game && screen === 'play') updatePlay(dt);
   requestAnimationFrame(frame);
 }
 
 async function boot() {
   applySettings();
+  if (coarsePointer.matches) $('#title-hint').textContent = 'Best played with the device sideways';
   buildCommandTable();
   await art.load();
   const logo = art.get('logo');

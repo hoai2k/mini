@@ -54,10 +54,10 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Backgrounds | 9 | 0 | 0 | 0 | 9 |
 | Characters and units | 10 | 0 | 0 | 0 | 10 |
 | Puppet part sheets | 4 | 0 | 0 | 0 | 4 |
-| Interface | 8 | 0 | 0 | 0 | 8 |
+| Interface | 9 | 1 | 0 | 0 | 8 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
 | Story chapters | 22 | 1 | 0 | 0 | 21 |
-| **total** | **73** | **1** | **0** | **0** | **72** |
+| **total** | **74** | **2** | **0** | **0** | **72** |
 
 ## Style frames: choose the direction first (3)
 
@@ -439,7 +439,7 @@ Separate pieces of the spearwoman for puppet rigging.
 - **File:** `bronzedrum/game/assets/art/rig-unit-spear.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sheet of separate cut-paper puppet parts for the spearwoman, matching the in-game figure: head with crown, torso, arms, spear, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.
 
-## Interface (8)
+## Interface (9)
 
 The title logo, the drum-face HUD, chapter cards and interface pieces.
 
@@ -487,6 +487,15 @@ Instructions, Settings and Fullscreen buttons.
 - **Status:** delivered · **Game id:** `ui-icons`
 - **File:** `bronzedrum/game/assets/art/ui-icons.png`
 - **Prompt:** Three cut-paper icons in rice-paper cream on a transparent background: an open scroll (instructions), a bronze drum seen from above with a small gear cut in it (settings), four corner brackets (fullscreen). Bold and simple, readable at 26 pixels.
+
+### BD-U16 · Touch buttons: the companion drums
+
+On phones and tablets the game draws on-screen buttons beside the big touch drum, made as the instruments that accompany a bronze drum in a temple or village hall. The shield is a trống chầu barrel drum (bottom right, drawn about 150 px across). Reset is a mõ wooden slit drum (next to it, about 75 px). Pause is a small plain disc at the top. The game adds the glow, the press animation and the labels, so draw each one at rest with nothing written on it.
+
+- **Spec:** 768x256, transparent; three pieces on a 256 px grid, each centred and filling about 90% of its cell
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.chauDrum / moDrum` · **Game id:** `touch-buttons`
+- **File:** `bronzedrum/game/assets/art/touch-buttons.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Three cut-paper objects in a row on a transparent background, each centred in its third. 1: a trống chầu, a Vietnamese barrel drum with a buffalo-hide head, seen from the front and a little above so the round cream hide head fills most of the piece. The head has a red painted disc with a small sun-star at its centre and a ring of bronze tacks round its edge. The barrel below is lacquered red with a bronze band, and a wooden beater with a red tip rests across the top right. 2: a mõ, a round wooden slit drum from a pagoda, squat and a little wider than tall, in dark polished brown wood. A long curved slit is cut across its front like a mouth, and it sits on a small red cushion with a short wooden mallet leaning on it. 3: a plain round disc of dark indigo paper with a beaded bronze rim and two upright cream bars cut in the middle (pause). Flat even light, soft shadow under each, bold shapes that read at 48 pixels.
 
 ### BD-U06 · Chapter card: The Garden at Me Linh
 

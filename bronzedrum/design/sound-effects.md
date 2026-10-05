@@ -6,7 +6,7 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**41 of 42 files in use.**
+**45 of 46 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
@@ -18,6 +18,8 @@ Each generated file was checked by measuring its length, peak, level over time (
 | --- | --- | ---: | --- | --- |
 | `drum-tung` | Trưng Trắc's centre stroke (tùng), played on every left-hand input. (hit) | 2.0 s | 2/3 | One strong stroke with a padded wooden beater on the centre of a large ancient Vietnamese bronze kettle drum: a deep round boom followed by a shimmering metallic bronze ring. A single hit, close-miked, dry room, no music. |
 | `drum-cac` | Trưng Nhị's rim stroke (cắc), played on every right-hand input and flourish. (hit) | 0.7 s | 3/3 | One sharp stroke of a hardwood stick on the rim of a bronze kettle drum: a bright, dry, metallic click with a short ring. A single hit, close-miked, no music. |
+| `drum-chau` | The shield: a stroke on the big hide barrel drum beside the bronze drum, under the shields locking (A / Space / the Shield drum). (hit) | 1.2 s | 2/2 | One heavy stroke of a padded wooden beater on the centre of a large Vietnamese barrel drum (trống chầu) with a thick buffalo-hide head: a deep, warm, dry thud with a short low boom, no metal ring. A single hit, close-miked, dry room, no music. |
+| `drum-mo` | Reset the rhythm: a knock on the wooden slit drum (Y / R / the Reset drum). (hit) | 0.5 s | 2/2 | One knock of a wooden mallet on a hollow Vietnamese wooden slit drum (mõ, a temple block): a round, dry, woody 'tok' with a tiny hollow resonance. A single hit, close-miked, no music. |
 | `drum-wake` | The drum wakes: four commands chained. (sting) | 4.0 s | 1/1 | A huge bronze gong struck softly and swelling: a rising shimmering bronze resonance that blooms and slowly fades, ceremonial and awe-struck. |
 | `stumble` | A stroke during the army's answer, or off the beat. (hit) | 0.5 s | 1/1 | A dull, slightly off-key wooden knock, clumsy and muted, very short. |
 

@@ -9,6 +9,9 @@ chapters in story order: four battles, four call-and-answer chapters (echo
 the caller's rhythm), and one casting chapter (hold a steady tempo).
 [`design/design.md`](design/design.md) lists them.
 
+It plays with a controller, a keyboard, a mouse, or on a phone or tablet held
+sideways, where the bronze drum becomes the instrument: tap its centre and its rim.
+
 - [`design/design.md`](design/design.md): the concept, the core loop, the art
   direction and the open questions.
 - [`design/image-requests.md`](design/image-requests.md): the image requests,
@@ -58,7 +61,8 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-All 72 requests now have generated artwork: 20 style and direction images in
+All but two of the 74 requests (BD-P10, the Han general, and BD-U16, the touch
+buttons) now have generated artwork: 20 style and direction images in
 `design/references/` and 52 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 

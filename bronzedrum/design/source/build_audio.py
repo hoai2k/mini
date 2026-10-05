@@ -71,6 +71,20 @@ sfx(G, "drum-cac",
     influence=0.7, variants=3, kind="hit",
     # The model tends to add body and ring; a rim stroke must be short and bright.
     post="highpass=f=400,highpass=f=400,atrim=0:0.32,afade=t=out:st=0.12:d=0.2")
+# The companion drums of the touch buttons (and the shield and reset inputs).
+sfx(G, "drum-chau",
+    "One heavy stroke of a padded wooden beater on the centre of a large Vietnamese barrel "
+    "drum (trống chầu) with a thick buffalo-hide head: a deep, warm, dry thud with a short "
+    "low boom, no metal ring. A single hit, close-miked, dry room, no music.",
+    1.2, "The shield: a stroke on the big hide barrel drum beside the bronze drum, under the "
+    "shields locking (A / Space / the Shield drum).",
+    influence=0.7, variants=2, kind="hit", gain=0.9)
+sfx(G, "drum-mo",
+    "One knock of a wooden mallet on a hollow Vietnamese wooden slit drum (mõ, a temple "
+    "block): a round, dry, woody 'tok' with a tiny hollow resonance. A single hit, "
+    "close-miked, no music.",
+    0.5, "Reset the rhythm: a knock on the wooden slit drum (Y / R / the Reset drum).",
+    influence=0.7, variants=2, kind="hit", gain=0.8)
 sfx(G, "drum-wake",
     "A huge bronze gong struck softly and swelling: a rising shimmering bronze resonance that "
     "blooms and slowly fades, ceremonial and awe-struck.",
