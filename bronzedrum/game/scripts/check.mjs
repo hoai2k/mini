@@ -55,5 +55,17 @@ for (const m of stageSounds.map((id) => [null, id])) {
     console.error(`stage sound '${m[1]}' is not defined in build_audio.py`);
   }
 }
+// A class method overwritten by a property of the same name breaks every
+// later call to it (this.shake = t once replaced the renderer's shake()).
+for (const f of readdirSync(join(root, 'src'))) {
+  const src = readFileSync(join(root, 'src', f), 'utf8');
+  const methods = new Set([...src.matchAll(/^  (?:async )?([a-zA-Z_]\w*)\([^)]*\) \{$/gm)].map((m) => m[1]).filter((n) => n !== 'constructor'));
+  for (const m of src.matchAll(/this\.(\w+) = /g)) {
+    if (methods.has(m[1])) {
+      failed++;
+      console.error(`${f}: this.${m[1]} = … overwrites the method ${m[1]}()`);
+    }
+  }
+}
 console.log(failed ? `${failed} problem(s)` : 'check ok');
 process.exit(failed ? 1 : 0);

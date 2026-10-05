@@ -1453,7 +1453,7 @@ export class Renderer {
         // The sisters stand at the two ends of the palanquin deck, the drum
         // showing between them.
         // The palanquin jolts a little with each stroke on the drum.
-        const sh = this.shake(Math.max(this.flash.L, this.flash.R), t, 1.6);
+        const sh = this.shiver(Math.max(this.flash.L, this.flash.R), t, 1.6);
         const bob = (view.crewBob || 0) - sh.dy;
         this.sprite(img, x + sh.dx, y, 150, { bob });
         this.sisters(x + sh.dx, y - 52 - bob, armL, armR, view, 64);
@@ -1478,8 +1478,8 @@ export class Renderer {
   companions(x, y, view) {
     const t = view.songTime;
     const bob = view.crewBob || 0;
-    const kc = this.shake(this.kicks.chau, t, 2.4);
-    const km = this.shake(this.kicks.mo, t, 2.4);
+    const kc = this.shiver(this.kicks.chau, t, 2.4);
+    const km = this.shiver(this.kicks.mo, t, 2.4);
     const imgC = this.art.get('drummer-chau');
     const imgM = this.art.get('drummer-mo');
     if (imgM) this.sprite(imgM, x - 26 + km.dx, y, 84, { bob: bob - km.dy, tilt: km.k * 0.05 });
@@ -2097,7 +2097,7 @@ export class Renderer {
       g.restore();
     };
     // The drum shivers on every stroke.
-    const sh = this.shake(Math.max(this.flash.L, this.flash.R), t, touch ? 3.5 : 2);
+    const sh = this.shiver(Math.max(this.flash.L, this.flash.R), t, touch ? 3.5 : 2);
     g.save();
     g.translate(sh.dx, sh.dy);
     if (touch) this.touchDrumBand(cx, cy, R, t);
@@ -2346,7 +2346,7 @@ export class Renderer {
    * A struck drum's shiver: a quick decaying shake for a quarter of a second
    * after time t0. Returns the offset to draw it at.
    */
-  shake(t0, t, amp) {
+  shiver(t0, t, amp) {
     const dt = t - t0;
     if (this.reduceMotion || dt < 0 || dt > 0.25) return { dx: 0, dy: 0, k: 0 };
     const k = 1 - dt / 0.25;
@@ -2634,7 +2634,7 @@ export class Renderer {
       }
       const r = pos.r * press;
       const struck = id === 'guard' ? this.kicks.chau : id === 'reset' ? this.kicks.mo : -9;
-      const bs = this.shake(Math.max(struck, this.pressed[id] ?? -9), t, id === 'pause' ? 0 : 4);
+      const bs = this.shiver(Math.max(struck, this.pressed[id] ?? -9), t, id === 'pause' ? 0 : 4);
       g.save();
       g.translate(bs.dx, bs.dy);
       g.globalAlpha = alpha;
