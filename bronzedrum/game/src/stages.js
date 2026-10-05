@@ -7,12 +7,13 @@
 // modes.js), 'casting' (repeat a rhythm at a steady tempo), or a battle with
 // `survive` seconds and `waves` (hold the line). Echo calls are four-beat
 // rhythms that keep the deep strokes (L) at least a beat apart, like the
-// commands.
+// commands. music lists beds in order of preference: the first one whose
+// file exists plays.
 
 export const STAGES = [
   {
     id: 'garden',
-    music: 'mu-bed-garden',
+    music: ['mu-bed-garden', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'The Garden at Mê Linh',
     subtitle: 'Training years',
     intro:
@@ -32,7 +33,7 @@ export const STAGES = [
   },
   {
     id: 'oath',
-    music: 'mu-bed-oath',
+    music: ['mu-bed-oath', 'mu-bed-story'], // its own bed if delivered, else the shared one
     mode: 'echo',
     title: 'The Oath',
     subtitle: 'The father’s funeral',
@@ -55,7 +56,7 @@ export const STAGES = [
   },
   {
     id: 'casting',
-    music: 'mu-bed-foundry',
+    music: ['mu-bed-foundry', 'mu-bed-story'], // its own bed if delivered, else the shared one
     mode: 'casting',
     title: 'Casting the Drums',
     subtitle: 'The foundry of Nhật Nam',
@@ -73,7 +74,7 @@ export const STAGES = [
   },
   {
     id: 'villages',
-    music: 'mu-bed-villages',
+    music: ['mu-bed-villages', 'mu-bed-story'], // its own bed if delivered, else the shared one
     mode: 'echo',
     title: 'The Villages Answer',
     subtitle: 'A call along the river',
@@ -98,7 +99,7 @@ export const STAGES = [
   },
   {
     id: 'outpost',
-    music: 'mu-bed-river',
+    music: ['mu-bed-river', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'The Outpost on the Hát River',
     subtitle: 'The drums answer',
     intro:
@@ -121,7 +122,7 @@ export const STAGES = [
   },
   {
     id: 'luylau',
-    music: 'mu-bed-luylau',
+    music: ['mu-bed-luylau', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'The Citadel at Luy Lâu',
     subtitle: 'Gold armour, war elephants',
     intro:
@@ -147,7 +148,7 @@ export const STAGES = [
   },
   {
     id: 'coronation',
-    music: 'mu-bed-coronation',
+    music: ['mu-bed-coronation', 'mu-bed-story'], // its own bed if delivered, else the shared one
     mode: 'echo',
     title: 'The Coronation at Mê Linh',
     subtitle: 'Two queens',
@@ -171,7 +172,7 @@ export const STAGES = [
   },
   {
     id: 'mavien',
-    music: 'mu-bed-mavien',
+    music: ['mu-bed-mavien', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'Mã Viện Returns',
     subtitle: 'Hold the ford',
     intro:
@@ -201,7 +202,7 @@ export const STAGES = [
   },
   {
     id: 'elegy',
-    music: 'mu-bed-elegy',
+    music: ['mu-bed-elegy', 'mu-ending'], // its own bed if delivered, else the shared one
     mode: 'echo',
     title: 'The Drums Are Melted',
     subtitle: 'Epilogue',

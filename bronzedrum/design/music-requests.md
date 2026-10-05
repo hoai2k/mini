@@ -20,33 +20,43 @@ Bronze Drum is a rhythm game: the player drums at any speed they like (about 45 
 - **Stings and the ending:** on the results screens.
 - **Song:** trailer and credits.
 
+## What to make first
+
+**Core (needed now):** `mu-title`, `mu-select`, `mu-bed-battle`, `mu-bed-story`, `mu-ending`. These five cover every screen: the two themes on the menus, the battle bed under every battle, the story bed under every story chapter, and the ending under the epilogue and the final screen.
+
+**Maybe:** `mu-bed-oath` (its own bed for the funeral, instead of the story bed).
+
+**Optional, for later:** everything else. A chapter's own bed replaces the shared bed when it is delivered; without the swell and the stings the game uses its sound effects (the waking drum and the cheer, the victory and defeat gongs).
+
 ## Summary
 
-| Id | Title | Kind | When it plays | Length | Loops | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| `mu-title` | Trống Đồng (title theme) | theme | Title screen, looping. | about 90 s | yes | requested |
-| `mu-select` | Two Sisters (chapter select) | theme | Chapter-select screen, looping. | about 90 s | yes | requested |
-| `mu-bed-garden` | The Garden at Mê Linh (bed) | bed | Under chapter 1, the training battle, quietly under the ambience. | about 2 min | yes | requested |
-| `mu-bed-oath` | The Oath (bed) | bed | Under chapter 2, the father's funeral, while the mourning drum calls. | about 2 min | yes | requested |
-| `mu-bed-foundry` | Casting the Drums (bed) | bed | Under chapter 3, in the foundry, while the player holds a steady hammer rhythm. | about 2 min | yes | requested |
-| `mu-bed-villages` | The Villages Answer (bed) | bed | Under chapter 4, at night along the river, while village drummers call and the player answers. | about 2 min | yes | requested |
-| `mu-bed-river` | The Outpost on the Hát River (bed) | bed | Under chapter 5, the river battle. | about 2 min | yes | requested |
-| `mu-bed-luylau` | The Citadel at Luy Lâu (bed) | bed | Under chapter 6, the night attack on the citadel with the war elephant. | about 2 min | yes | requested |
-| `mu-bed-coronation` | The Coronation at Mê Linh (bed) | bed | Under chapter 7, the festival, while festival drummers call and the player answers. | about 2 min | yes | requested |
-| `mu-bed-mavien` | Mã Viện Returns (bed) | bed | Under chapter 8, holding the ford against Mã Viện's army. | about 2 min | yes | requested |
-| `mu-bed-elegy` | The Drums Are Melted (bed) | bed | Under chapter 9, the epilogue, while the drums fall silent one by one. | about 2 min | yes | requested |
-| `mu-wake` | The drum wakes (swell) | swell | Once, over the chapter's bed, when four commands chain and the drum wakes. | 15–20 s | no | requested |
-| `mu-victory` | Victory sting | sting | Results screen after a battle chapter is won. | about 8 s | no | requested |
-| `mu-complete` | Chapter complete sting | sting | Results screen after a story chapter (no battle) is completed. | about 8 s | no | requested |
-| `mu-defeat` | Defeat sting | sting | Results screen after a battle chapter is lost. | about 8 s | no | requested |
-| `mu-ending` | The Drums Are Melted (ending) | piece | After the epilogue: the final results screen and the end of the game. | about 3 min | no | requested |
-| `mu-anthem` | Song of the Two Queens (vocal song) | song | Trailer and end credits; not used in the prototype. | about 3 min 30 s | no | requested |
+| Id | Title | Priority | Kind | When it plays | Length | Loops | Status |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `mu-title` | Trống Đồng (title theme) | core | theme | Title screen, looping. | about 90 s | yes | requested |
+| `mu-select` | Two Sisters (chapter select) | core | theme | Chapter-select screen, looping. | about 90 s | yes | requested |
+| `mu-bed-battle` | Battle bed (all battles) | core | bed | Under every battle chapter (the Garden, the Outpost, Luy Lâu, Mã Viện Returns) unless that chapter has its own bed. | about 2 min | yes | requested |
+| `mu-bed-story` | Story bed (all story chapters) | core | bed | Under every story chapter (the Oath, Casting the Drums, the Villages, the Coronation) unless that chapter has its own bed. | about 2 min | yes | requested |
+| `mu-ending` | The Drums Are Melted (ending) | core | piece | Under the epilogue (unless it has its own bed) and on the final results screen. | about 3 min | no | requested |
+| `mu-bed-oath` | The Oath (bed) | maybe | bed | Under chapter 2, the father's funeral, while the mourning drum calls. | about 2 min | yes | requested |
+| `mu-bed-garden` | The Garden at Mê Linh (bed) | optional | bed | Under chapter 1, the training battle, quietly under the ambience. | about 2 min | yes | requested |
+| `mu-bed-foundry` | Casting the Drums (bed) | optional | bed | Under chapter 3, in the foundry, while the player holds a steady hammer rhythm. | about 2 min | yes | requested |
+| `mu-bed-villages` | The Villages Answer (bed) | optional | bed | Under chapter 4, at night along the river, while village drummers call and the player answers. | about 2 min | yes | requested |
+| `mu-bed-river` | The Outpost on the Hát River (bed) | optional | bed | Under chapter 5, the river battle. | about 2 min | yes | requested |
+| `mu-bed-luylau` | The Citadel at Luy Lâu (bed) | optional | bed | Under chapter 6, the night attack on the citadel with the war elephant. | about 2 min | yes | requested |
+| `mu-bed-coronation` | The Coronation at Mê Linh (bed) | optional | bed | Under chapter 7, the festival, while festival drummers call and the player answers. | about 2 min | yes | requested |
+| `mu-bed-mavien` | Mã Viện Returns (bed) | optional | bed | Under chapter 8, holding the ford against Mã Viện's army. | about 2 min | yes | requested |
+| `mu-bed-elegy` | The Drums Are Melted (bed) | optional | bed | Under chapter 9, the epilogue, while the drums fall silent one by one. | about 2 min | yes | requested |
+| `mu-wake` | The drum wakes (swell) | optional | swell | Once, over the chapter's bed, when four commands chain and the drum wakes. | 15–20 s | no | requested |
+| `mu-victory` | Victory sting | optional | sting | Results screen after a battle chapter is won. | about 8 s | no | requested |
+| `mu-complete` | Chapter complete sting | optional | sting | Results screen after a story chapter (no battle) is completed. | about 8 s | no | requested |
+| `mu-defeat` | Defeat sting | optional | sting | Results screen after a battle chapter is lost. | about 8 s | no | requested |
+| `mu-anthem` | Song of the Two Queens (vocal song) | optional | song | Trailer and end credits; not used in the prototype. | about 3 min 30 s | no | requested |
 
 ## mu-title · Trống Đồng (title theme)
 
 Title screen, looping.
 
-- **Kind:** theme · **Length:** about 90 s · **Loops:** yes
+- **Priority:** core · **Kind:** theme · **Length:** about 90 s · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-title.mp3`
 - **Style tags (optional):** `vietnamese quan ho, sao truc flute, dan tranh zither, bronze gong, female voice, soft cinematic strings, 72 bpm, folk theme`
 
@@ -58,7 +68,7 @@ Title screen, looping.
 
 Chapter-select screen, looping.
 
-- **Kind:** theme · **Length:** about 90 s · **Loops:** yes
+- **Priority:** core · **Kind:** theme · **Length:** about 90 s · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-select.mp3`
 - **Style tags (optional):** `vietnamese folk duet, dan tranh and sao truc, two intertwining themes, gentle, light ambient pad, 66 bpm`
 
@@ -66,23 +76,47 @@ Chapter-select screen, looping.
 
 > A tender theme about two sisters for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre. Traditional Vietnamese folk duet: the elder sister's theme on the 16-string zither (đàn tranh) is steady, dignified and on the beat; the younger sister's theme on the bamboo flute (sáo trúc) is quick, playful and bends around the beat; they take turns, tease each other, then play together in harmony in C major pentatonic. A light modern ambient pad gives warmth underneath. 66 BPM, gentle and a little bittersweet. About 90 seconds, built to loop seamlessly with no fade-out. No percussion, no lyrics. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
 
-## mu-bed-garden · The Garden at Mê Linh (bed)
+## mu-bed-battle · Battle bed (all battles)
 
-Under chapter 1, the training battle, quietly under the ambience.
+Under every battle chapter (the Garden, the Outpost, Luy Lâu, Mã Viện Returns) unless that chapter has its own bed.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
-- **File:** `bronzedrum/game/assets/music/mu-bed-garden.mp3`
-- **Style tags (optional):** `beatless vietnamese ambient, dan tranh harmonics, sao truc free phrases, dawn garden, warm pad, no percussion`
+- **Priority:** core · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **File:** `bronzedrum/game/assets/music/mu-bed-battle.mp3`
+- **Style tags (optional):** `beatless vietnamese tense heroic ambient, dan nhi, dan nguyet tremolo, quan ho low choir, bronze gongs, cinematic drone, no drums`
 
 **Prompt:**
 
-> A warm, hopeful beatless ambient bed for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre, for the sisters' training in their father's garden at dawn. Traditional Vietnamese colour: a bamboo flute (sáo trúc) plays short free-time phrases in G major pentatonic like birdsong, 16-string zither (đàn tranh) harmonics shimmer and fade, a low warm modern synth pad holds a slowly changing chord. Morning light, green and gold, unhurried. Completely beatless and in free time: no pulse, no metre, no drums or percussion keeping time, so a player can drum on top at any speed. It must loop seamlessly: end where it began, with no fade-out and no silence at either end. About 2 minutes. No lyrics. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
+> A tense, heroic, completely beatless background score for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre. It plays under battles while the player drums commands at any speed, so it must have no pulse, no metre and no drums or percussion keeping time. Traditional northern Vietnamese colour: a two-string fiddle (đàn nhị) plays long, resolute phrases in D minor pentatonic; a moon lute (đàn nguyệt) shivers in unmeasured tremolo; a low women's choir holds long notes in the manner of quan họ; large bronze gongs are struck softly now and then and left to ring, never in a pattern; the bamboo flute (sáo trúc) recalls a proud folk melody in fragments. Underneath, a deep modern cinematic drone and low strings rise and fall like wind over a river. Urgent and brave but never rhythmic. About 2 minutes, looping seamlessly: end where it began, with no fade-out and no silence at either end. No lyrics. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
+
+## mu-bed-story · Story bed (all story chapters)
+
+Under every story chapter (the Oath, Casting the Drums, the Villages, the Coronation) unless that chapter has its own bed.
+
+- **Priority:** core · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **File:** `bronzedrum/game/assets/music/mu-bed-story.mp3`
+- **Style tags (optional):** `beatless vietnamese reflective ambient, two sao truc flutes, dan bau hat ru, dan tranh harmonics, quan ho humming, warm pad`
+
+**Prompt:**
+
+> A warm, reflective, completely beatless background score for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre. It plays under quiet story chapters (a funeral, a bronze foundry, villages answering along a river at night, a coronation festival) while drummers call rhythms and the player answers at any speed, so it must have no pulse, no metre and no percussion keeping time. Traditional Vietnamese colour: one bamboo flute (sáo trúc) calls a short free-time phrase and a second, nearer flute answers; the monochord (đàn bầu) sings slow bending lines in the manner of a hát ru lullaby; 16-string zither (đàn tranh) harmonics glint like lantern light; now and then a woman's voice hums a phrase in the quan họ style; a soft bronze bell rings rarely and is left to decay. A gentle modern ambient pad gives warmth underneath. G major pentatonic, tender and hopeful with a thread of sadness. About 2 minutes, looping seamlessly: end where it began, with no fade-out and no silence at either end. No lyrics. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
+
+## mu-ending · The Drums Are Melted (ending)
+
+Under the epilogue (unless it has its own bed) and on the final results screen.
+
+- **Priority:** core · **Kind:** piece · **Length:** about 3 min · **Loops:** no
+- **File:** `bronzedrum/game/assets/music/mu-ending.mp3`
+- **Style tags (optional):** `vietnamese lament, solo dan bau, quan ho female duet, ca tru colour, free rubato, no percussion, bronze bell ending`
+
+**Prompt:**
+
+> A sparse, mournful ending piece for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre. It plays as the bronze drums of the uprising are gathered to be melted down, and through the final screen. The monochord (đàn bầu) plays alone at first, bending each note like a voice holding back tears; two women's voices enter in the quan họ call-and-response style with a touch of ca trù ornament, singing a lament on wordless vocables (à ơi); a faint modern string pad joins near the end; finally a single bronze bell is struck and left to ring into silence. Entirely free and rubato, with no beat, no percussion and no steady tempo, so slow drumming can sit on top. A minor pentatonic. About 3 minutes. It should feel like dawn on a river after a loss. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
 
 ## mu-bed-oath · The Oath (bed)
 
 Under chapter 2, the father's funeral, while the mourning drum calls.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** maybe · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-oath.mp3`
 - **Style tags (optional):** `beatless vietnamese funeral lament, dan bau monochord, ca tru female voice, low drone, soft bronze bell, sparse`
 
@@ -90,11 +124,23 @@ Under chapter 2, the father's funeral, while the mourning drum calls.
 
 > A sparse, grieving beatless bed for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre, for the funeral of the sisters' father. Traditional northern Vietnamese mourning colour: the monochord (đàn bầu) bends slow lamenting phrases in A minor pentatonic over a low drone; now and then a woman's voice in the restrained, ornamented manner of ca trù hums a few notes; a soft bronze bell rings rarely and is left to decay; a faint modern low string pad sits underneath. Very quiet, lots of space for a slow mourning drum on top. Completely beatless and in free time: no pulse, no metre, no drums or percussion keeping time, so a player can drum on top at any speed. It must loop seamlessly: end where it began, with no fade-out and no silence at either end. About 2 minutes. No words. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
 
+## mu-bed-garden · The Garden at Mê Linh (bed)
+
+Under chapter 1, the training battle, quietly under the ambience.
+
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **File:** `bronzedrum/game/assets/music/mu-bed-garden.mp3`
+- **Style tags (optional):** `beatless vietnamese ambient, dan tranh harmonics, sao truc free phrases, dawn garden, warm pad, no percussion`
+
+**Prompt:**
+
+> A warm, hopeful beatless ambient bed for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre, for the sisters' training in their father's garden at dawn. Traditional Vietnamese colour: a bamboo flute (sáo trúc) plays short free-time phrases in G major pentatonic like birdsong, 16-string zither (đàn tranh) harmonics shimmer and fade, a low warm modern synth pad holds a slowly changing chord. Morning light, green and gold, unhurried. Completely beatless and in free time: no pulse, no metre, no drums or percussion keeping time, so a player can drum on top at any speed. It must loop seamlessly: end where it began, with no fade-out and no silence at either end. About 2 minutes. No lyrics. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
+
 ## mu-bed-foundry · Casting the Drums (bed)
 
 Under chapter 3, in the foundry, while the player holds a steady hammer rhythm.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-foundry.mp3`
 - **Style tags (optional):** `beatless vietnamese work song humming, ho, low drone, metallic bronze resonance, dan nguyet tremolo, foundry ambient`
 
@@ -106,7 +152,7 @@ Under chapter 3, in the foundry, while the player holds a steady hammer rhythm.
 
 Under chapter 4, at night along the river, while village drummers call and the player answers.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-villages.mp3`
 - **Style tags (optional):** `beatless vietnamese night ambient, two sao truc flutes call and answer, ho song river song, dan tranh harmonics, pad`
 
@@ -118,7 +164,7 @@ Under chapter 4, at night along the river, while village drummers call and the p
 
 Under chapter 5, the river battle.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-river.mp3`
 - **Style tags (optional):** `beatless vietnamese tense ambient, dan nhi fiddle, dan nguyet tremolo, low cinematic drone, wind, battle tension, no drums`
 
@@ -130,7 +176,7 @@ Under chapter 5, the river battle.
 
 Under chapter 6, the night attack on the citadel with the war elephant.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-luylau.mp3`
 - **Style tags (optional):** `beatless vietnamese epic ambient, quan ho low female choir, cong chieng gong resonances, dan tranh tremolo, cinematic pad, night`
 
@@ -142,7 +188,7 @@ Under chapter 6, the night attack on the citadel with the war elephant.
 
 Under chapter 7, the festival, while festival drummers call and the player answers.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-coronation.mp3`
 - **Style tags (optional):** `beatless vietnamese festive ambient, cheo theatre colours, dan nguyet flourishes, quan ho chorus swells, crowd joy, bright pad`
 
@@ -154,7 +200,7 @@ Under chapter 7, the festival, while festival drummers call and the player answe
 
 Under chapter 8, holding the ford against Mã Viện's army.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-mavien.mp3`
 - **Style tags (optional):** `beatless vietnamese grave cinematic, dan bau lament, dan nhi, distant war horns, low strings, last stand, no drums`
 
@@ -166,7 +212,7 @@ Under chapter 8, holding the ford against Mã Viện's army.
 
 Under chapter 9, the epilogue, while the drums fall silent one by one.
 
-- **Kind:** bed · **Length:** about 2 min · **Loops:** yes
+- **Priority:** optional · **Kind:** bed · **Length:** about 2 min · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-bed-elegy.mp3`
 - **Style tags (optional):** `beatless vietnamese lullaby hat ru, dan bau, hummed female voice, soft bronze bell, dawn, mournful, sparse`
 
@@ -178,7 +224,7 @@ Under chapter 9, the epilogue, while the drums fall silent one by one.
 
 Once, over the chapter's bed, when four commands chain and the drum wakes.
 
-- **Kind:** swell · **Length:** 15–20 s · **Loops:** no
+- **Priority:** optional · **Kind:** swell · **Length:** 15–20 s · **Loops:** no
 - **File:** `bronzedrum/game/assets/music/mu-wake.mp3`
 - **Style tags (optional):** `vietnamese quan ho chorus swell, bronze shimmer, cinematic rise, beatless, 15 seconds, triumphant`
 
@@ -190,7 +236,7 @@ Once, over the chapter's bed, when four commands chain and the drum wakes.
 
 Results screen after a battle chapter is won.
 
-- **Kind:** sting · **Length:** about 8 s · **Loops:** no
+- **Priority:** optional · **Kind:** sting · **Length:** about 8 s · **Loops:** no
 - **File:** `bronzedrum/game/assets/music/mu-victory.mp3`
 - **Style tags (optional):** `short victory sting, vietnamese, sao truc run, dan tranh glissando, bronze gong, cinematic, 8 seconds`
 
@@ -202,7 +248,7 @@ Results screen after a battle chapter is won.
 
 Results screen after a story chapter (no battle) is completed.
 
-- **Kind:** sting · **Length:** about 8 s · **Loops:** no
+- **Priority:** optional · **Kind:** sting · **Length:** about 8 s · **Loops:** no
 - **File:** `bronzedrum/game/assets/music/mu-complete.mp3`
 - **Style tags (optional):** `short gentle sting, vietnamese, dan tranh, sao truc, soft bronze bell, warm pad, peaceful, 8 seconds`
 
@@ -214,7 +260,7 @@ Results screen after a story chapter (no battle) is completed.
 
 Results screen after a battle chapter is lost.
 
-- **Kind:** sting · **Length:** about 8 s · **Loops:** no
+- **Priority:** optional · **Kind:** sting · **Length:** about 8 s · **Loops:** no
 - **File:** `bronzedrum/game/assets/music/mu-defeat.mp3`
 - **Style tags (optional):** `short defeat sting, vietnamese, dan bau falling phrase, low drone, sorrowful, 8 seconds`
 
@@ -222,23 +268,11 @@ Results screen after a battle chapter is lost.
 
 > An 8-second defeat sting for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre: the monochord (đàn bầu) plays a single falling, bending phrase over a low drone and a dark modern string pad, ending unresolved. Sorrowful but not hopeless. A minor pentatonic. No percussion, no lyrics. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
 
-## mu-ending · The Drums Are Melted (ending)
-
-After the epilogue: the final results screen and the end of the game.
-
-- **Kind:** piece · **Length:** about 3 min · **Loops:** no
-- **File:** `bronzedrum/game/assets/music/mu-ending.mp3`
-- **Style tags (optional):** `vietnamese lament, solo dan bau, quan ho female duet, ca tru colour, mournful, sparse, bronze bell ending`
-
-**Prompt:**
-
-> A sparse, mournful ending piece for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre, after the bronze drums have been melted down and the uprising has ended. The monochord (đàn bầu) plays alone at first, bending each note like a voice holding back tears; two women's voices enter in the quan họ call-and-response style with a touch of ca trù ornament, singing a lament on wordless vocables (à ơi); a faint modern string pad joins near the end; finally a single bronze bell is struck and left to ring into silence. Very slow, about 58 BPM, free and rubato, no percussion. It should feel like dawn on a river after a loss. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
-
 ## mu-anthem · Song of the Two Queens (vocal song)
 
 Trailer and end credits; not used in the prototype.
 
-- **Kind:** song · **Length:** about 3 min 30 s · **Loops:** no
+- **Priority:** optional · **Kind:** song · **Length:** about 3 min 30 s · **Loops:** no
 - **File:** `bronzedrum/game/assets/music/mu-anthem.mp3`
 - **Style tags (optional):** `vietnamese folk ballad, quan ho female duet, dan tranh, dan bau, bronze drums in chorus, modern cinematic folk, 84 bpm`
 

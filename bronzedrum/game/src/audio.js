@@ -99,9 +99,13 @@ export class Sound {
     if (this.music) this.music.gain.gain.setTargetAtTime(Math.max(0.0001, v * this.music.level), this.ctx.currentTime, 0.1);
   }
 
-  /** Crossfade to a track. level scales it (beds sit under the ambience). */
+  /**
+   * Crossfade to a track. id may be a list: the first track whose file exists
+   * plays (a chapter's own bed, else the shared one). level scales it.
+   */
   playMusic(id, { level = 1, fade = 1.2 } = {}) {
     if (!this.ctx) return;
+    if (Array.isArray(id)) id = id.find((x) => this.musicFiles.has(x)) || id[0];
     if (this.music && this.music.id === id) return;
     this.stopMusic(fade);
     const m = this.musicFiles.get(id);
