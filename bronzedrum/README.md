@@ -98,7 +98,9 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-All 81 requests have generated artwork, including the five Drum Practice assets
+One request is open: BD-C14, a drum palanquin with a deck the sisters can stand
+on. Until it arrives they walk beside the bearers. The other 81 requests have
+generated artwork, including the five Drum Practice assets
 (BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in
 `design/references/` and 61 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).

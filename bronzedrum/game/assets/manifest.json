@@ -119,6 +119,14 @@
       "web": "web/drum-bearers.webp"
     },
     {
+      "id": "drum-palanquin",
+      "request": "BD-C14",
+      "file": "art/drum-palanquin.png",
+      "status": "stand-in",
+      "section": "cast",
+      "runtime": true
+    },
+    {
       "id": "drummer-chau",
       "request": "BD-C11",
       "file": "art/drummer-chau.png",

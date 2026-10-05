@@ -89,6 +89,7 @@ TARGETS = {
     "prop-dinh": ("scale=-1:512", 85),
     "dancer-sheet": ("scale=768:1024", 85),
     "kit-faces": ("scale=1536:256", 85),
+    "drum-palanquin": ("scale=-1:400", 85),
 }
 
 

@@ -52,13 +52,13 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Style frames: choose the direction first | 3 | 0 | 0 | 0 | 3 |
 | Inspiration and atmosphere | 14 | 0 | 0 | 0 | 14 |
 | Backgrounds | 9 | 0 | 0 | 0 | 9 |
-| Characters and units | 12 | 0 | 0 | 0 | 12 |
+| Characters and units | 13 | 1 | 0 | 0 | 12 |
 | Puppet part sheets | 4 | 0 | 0 | 0 | 4 |
 | Interface | 9 | 0 | 0 | 0 | 9 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
 | Story chapters | 22 | 0 | 0 | 0 | 22 |
 | Drum Practice | 5 | 0 | 0 | 0 | 5 |
-| **total** | **81** | **0** | **0** | **0** | **81** |
+| **total** | **82** | **1** | **0** | **0** | **81** |
 
 ## Style frames: choose the direction first (3)
 
@@ -306,7 +306,7 @@ Laid over the whole screen at low opacity, so the scene reads as one sheet of pa
 - **File:** `bronzedrum/game/assets/art/paper-fiber.png`
 - **Prompt:** Seamless tileable texture of handmade mulberry rice paper lit from behind: warm cream, long pale fibres and a few darker flecks, even lighting, no folds, no shadows, no objects.
 
-## Characters and units (12)
+## Characters and units (13)
 
 In-game cutouts. Lac Viet figures face right (the direction of the march); Han figures face left. The game scales each sprite to a fixed on-screen height, given in the spec, and adds the backlit shadow itself.
 
@@ -345,6 +345,15 @@ Chapters one and two: four women carry the bronze drum on a low platform; the si
 - **Status:** delivered · **Stand-in:** `Renderer.drumCrew` · **Game id:** `drum-bearers`
 - **File:** `bronzedrum/game/assets/art/drum-bearers.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. Four Lac Viet women in feather crowns carry a low wooden palanquin on poles, walking right; on it sits a large bronze drum, its side banded with rings and its top a sun-star. The deck is empty apart from the drum. Ink-black figures, a bronze drum.
+
+### BD-C14 · The drum palanquin with room for the sisters
+
+Replaces BD-C04 in the battle chapters. The sisters ride with the drum and beat it: the game draws them separately (Trưng Trắc as a jointed puppet, Trưng Nhị as a cut-out, each about half the palanquin's height) standing on the deck at the two ends, so their arms can move on every stroke. BD-C04's deck is filled by the drum, so they had nowhere to stand and read as floating; until this arrives they walk on the ground beside the bearers. Shown 190 px tall; the bearers walk, so keep their legs in a mid stride.
+
+- **Spec:** 2400x1200, transparent. The deck's top is one straight, level line at exactly 42% of the height measured up from the bottom edge (58% down from the top), spanning the middle 80% of the width. The drum sits on the deck in the middle third. Two empty standing places on the deck, centred at 22% and 78% of the width and each about 16% wide, with nothing drawn above the deck there (no railing taller than 3% of the height, no canopy, no posts). Four bearers carry the poles on their shoulders, the poles just under the deck, their feet on the bottom edge. One cut-paper group, side profile, full bodies, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.drumCrew (the sisters walk beside BD-C04)` · **Game id:** `drum-palanquin`
+- **File:** `bronzedrum/game/assets/art/drum-palanquin.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long, low ceremonial wooden palanquin carried on two poles by four Lac Viet women in feather crowns, walking right, the poles on their shoulders. On its flat deck, in the middle, a large Dong Son bronze drum banded with rings, its top a sun-star. The two ends of the deck are empty and level, room for two people to stand and drum. The deck's edge is carved with a band of herons and boats in cut detail. Ink-black bearers and wood, a warm bronze drum.
 
 ### BD-C11 · Companion drummer: the barrel drum
 

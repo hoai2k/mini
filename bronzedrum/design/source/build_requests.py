@@ -392,6 +392,27 @@ req(C, "BD-C04", "drum-bearers", "The drum on its palanquin",
     f"{STYLE} Four Lac Viet women in feather crowns carry a low wooden palanquin on poles, "
     "walking right; on it sits a large bronze drum, its side banded with rings and its top a "
     "sun-star. The deck is empty apart from the drum. Ink-black figures, a bronze drum.")
+req(C, "BD-C14", "drum-palanquin", "The drum palanquin with room for the sisters",
+    "Replaces BD-C04 in the battle chapters. The sisters ride with the drum and beat it: the "
+    "game draws them separately (Trưng Trắc as a jointed puppet, Trưng Nhị as a cut-out, each "
+    "about half the palanquin's height) standing on the deck at the two ends, so their arms can "
+    "move on every stroke. BD-C04's deck is filled by the drum, so they had nowhere to stand and "
+    "read as floating; until this arrives they walk on the ground beside the bearers. Shown "
+    "190 px tall; the bearers walk, so keep their legs in a mid stride.",
+    "2400x1200, transparent. The deck's top is one straight, level line at exactly 42% of the "
+    "height measured up from the bottom edge (58% down from the top), spanning the middle 80% of "
+    "the width. The drum sits on the deck in the middle third. Two empty standing places on the "
+    "deck, centred at 22% and 78% of the width and each about 16% wide, with nothing drawn above "
+    "the deck there (no railing taller than 3% of the height, no canopy, no posts). Four bearers "
+    "carry the poles on their shoulders, the poles just under the deck, their feet on the bottom "
+    "edge. " + CUTOUT.replace("Single cut-paper figure, side profile, full body", "One cut-paper group, side profile, full bodies"),
+    "stand-in", "Renderer.drumCrew (the sisters walk beside BD-C04)", "art/drum-palanquin.png",
+    f"{STYLE} A long, low ceremonial wooden palanquin carried on two poles by four Lac Viet "
+    "women in feather crowns, walking right, the poles on their shoulders. On its flat deck, in "
+    "the middle, a large Dong Son bronze drum banded with rings, its top a sun-star. The two ends "
+    "of the deck are empty and level, room for two people to stand and drum. The deck's edge is "
+    "carved with a band of herons and boats in cut detail. Ink-black bearers and wood, a warm "
+    "bronze drum.")
 req(C, "BD-C11", "drummer-chau", "Companion drummer: the barrel drum",
     "Walks with the drum crew, just in front of the palanquin. When the shields go up she "
     "strikes her drum and the game shakes the whole figure. Shown 88 px tall, so keep the "
