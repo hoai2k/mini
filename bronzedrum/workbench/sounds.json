@@ -661,7 +661,7 @@
     {
       "id": "amb-garden",
       "group": "Ambience",
-      "use": "Chapter 1 bed, looped.",
+      "use": "Chapter 1 bed, looped. Its bird calls spiked up to 36 dB over the bed (heard as distortion through the master limiter); a fast compressor holds them to about 18 dB over it and a gentle low-pass softens their edge, the bed itself unchanged.",
       "prompt": "Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling water, a distant rooster, a light breeze through bamboo. Continuous, no music.",
       "kind": "loop",
       "gain": 0.45,
