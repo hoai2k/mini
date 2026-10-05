@@ -114,8 +114,11 @@ export function createTouch(root) {
     else if (Math.abs(dy) > FLICK && Math.abs(dy) > Math.abs(e.clientX - f.x0) * 0.6 && now - st.lastFlick > FLICK_GAP) {
       st.lastFlick = now;
       const asA = dy < 0 && st.flickUpIsA;
-      if (asA && f.leapt) { f.vy = e.clientY; f.vt = now; return; } // one leap per finger-down
-      st.edges.push(asA ? 'a' : dy < 0 ? 'up' : 'down');
+      const dir = dy < 0 ? 'up' : 'down';
+      // One move per swipe: a second in the same drag needs the finger to reverse.
+      if ((asA && f.leapt) || f.lastDir === dir) { f.vy = e.clientY; f.vt = now; return; }
+      f.lastDir = dir;
+      st.edges.push(asA ? 'a' : dir);
       if (asA) { st.holdT = GESTURE_HOLD; f.leapt = true; }
       f.vy = e.clientY; f.vt = now; f.ax = e.clientX; st.ax = 0;
     }
