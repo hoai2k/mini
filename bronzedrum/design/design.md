@@ -43,6 +43,21 @@ battle itself (the army, the enemy, the ground between) raises the shields.
 Taps on the dots do nothing, so a swipe across them is clean; a swipe that
 starts on the drum plays that first stroke before it clears.
 
+**Small screens.** When the game is drawn at under 70% of its 1280 × 720
+size (a phone held sideways, or a small window), two things change, on any
+input device:
+
+- The HUD grows to stay readable at arm's length, about 14 CSS pixels for body
+  text: the bars, the instruction line (which breaks into two lines rather
+  than shrinking), the rhythm dots and their label, the confirmations, and the
+  command list, which puts each command's tiers on a second line so it can
+  grow without reaching the drum.
+- The camera opens on the wide shot to set the scene. At the first stroke, or
+  five seconds in, it eases in on the action: ×1.45 in battle, centred between
+  the army's front and the nearest enemy and following them, ×1.2 on the
+  middle of the stage in the story chapters. It never shows past the painted
+  edges. The HUD is not zoomed. Taps on the battle follow the zoom.
+
 **A drum for every action.** Two companion drummers walk with the drum crew,
 just behind the ranks: one with a trống chầu at her hip, one holding a mõ
 (requests BD-C11 and BD-C12; drawn stand-ins until delivered). The bronze

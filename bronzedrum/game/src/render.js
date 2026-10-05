@@ -14,6 +14,13 @@ export const H = 720;
 export const U = 48; // pixels per field unit
 const GROUND = 500;
 const FIELD_TOP = 290; // touch: taps between here and the ground land on the battle
+// Small screens (a phone held sideways): below this many CSS pixels per
+// logical pixel the HUD text grows to stay legible and the camera moves in
+// on the action once it starts.
+const COMPACT = 0.7;
+const ZOOM_BATTLE = 1.45;
+const ZOOM_STORY = 1.2;
+const ZOOM_EYE = 400; // the screen height the zoom's focus is drawn at
 const ARMY_SCREEN_X = 530; // the front rank's place on screen, leaving room behind for the drums
 const STRIP_W = 2560;
 // How strongly delivered layers are washed toward each chapter's light.
@@ -218,6 +225,8 @@ export class Renderer {
     this.canvas.width = Math.round(W * scale * dpr);
     this.canvas.height = Math.round(H * scale * dpr);
     this.pixel = scale * dpr;
+    this.cssScale = scale;
+    this.compact = scale < COMPACT;
     this.fiberPattern = this.ctx.createPattern(this.fiber, 'repeat');
   }
 
@@ -229,6 +238,9 @@ export class Renderer {
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
     this.motion = { front: 0, frontM: { x: 0, v: 0 }, crew: { x: -330, v: 0 }, units: [], enemies: new Map() };
+    // Each chapter opens on the wide shot; small screens move in once it starts.
+    this.zoom = { z: 1, x: W / 2, y: ZOOM_EYE, started: false };
+    this.flash = { L: -9, R: -9 };
     this.layers = {
       sky: this.buildSky(stage.sky),
       karstFar: this.buildKarst(true),
@@ -1780,6 +1792,13 @@ export class Renderer {
 
     g.setTransform(this.pixel, 0, 0, this.pixel, 0, 0);
     g.clearRect(0, 0, W, H);
+    // The camera: wide, or moved in on the action on a small screen.
+    const zm = this.updateZoom(view, dt);
+    if (zm.z > 1.001) {
+      g.translate(W / 2, ZOOM_EYE);
+      g.scale(zm.z, zm.z);
+      g.translate(-zm.x, -zm.y);
+    }
     const skyArt = this.art.get(`sky-${this.stage.sky}`);
     const skyImg = skyArt ? this.litLayer(`sky-${this.stage.sky}`, skyArt) : null;
     g.drawImage(skyImg || this.layers.sky, 0, 0, W, H);
@@ -1837,6 +1856,46 @@ export class Renderer {
     g.fillStyle = v;
     g.fillRect(0, 0, W, H);
     this.hud(view);
+  }
+
+  /**
+   * The small-screen camera. It opens wide to set the scene, then once the
+   * action starts (the first stroke, or five seconds in) eases in: on the
+   * gap between the army's front and the nearest enemy in a battle, on the
+   * middle of the stage otherwise. Never shows past the painted edges.
+   */
+  updateZoom(view, dt) {
+    const zm = this.zoom || (this.zoom = { z: 1, x: W / 2, y: ZOOM_EYE, started: false });
+    const t = view.songTime;
+    if (!zm.started && (Math.max(this.flash.L, this.flash.R) >= 0 || t > 5)) zm.started = true;
+    let z = 1;
+    let x = W / 2;
+    let y = ZOOM_EYE;
+    if (this.compact && zm.started) {
+      const battle = view.mode === 'battle';
+      z = battle ? ZOOM_BATTLE : ZOOM_STORY;
+      y = GROUND; // the ground well above the drum, the figures in the middle
+      if (battle) {
+        const front = this.motion.front - this.cam;
+        let near = Infinity;
+        for (const e of view.battle.enemies) if (e.alive) near = Math.min(near, e.x * U - this.cam);
+        x = near - front < 760 ? (front + near) / 2 - 40 : front + 120;
+      }
+    }
+    // Keep the view inside the painted scene.
+    x = Math.min(W - W / 2 / z, Math.max(W / 2 / z, x));
+    y = Math.min(H - (H - ZOOM_EYE) / z, Math.max(ZOOM_EYE / z, y));
+    const k = 1 - Math.exp(-dt * (this.reduceMotion ? 6 : 1.8));
+    zm.z += (z - zm.z) * k;
+    zm.x += (x - zm.x) * k;
+    zm.y += (y - zm.y) * k;
+    return zm;
+  }
+
+  /** A point in the scene (before zoom) to the point on screen. */
+  toScreen(x, y) {
+    const zm = this.zoom || { z: 1, x: W / 2, y: ZOOM_EYE };
+    return { x: W / 2 + (x - zm.x) * zm.z, y: ZOOM_EYE + (y - zm.y) * zm.z };
   }
 
   /**
@@ -2085,7 +2144,11 @@ export class Renderer {
     const cy = touch ? TOUCH.drum.y : H - 92;
     const R = touch ? TOUCH.drum.r : 58;
     const s = R / 58;
-    const k = touch ? 1.3 : 1;
+    // Text size: larger on touch screens, and on small screens large enough
+    // to read at arm's length (about 14 CSS pixels for body text).
+    const k = Math.max(touch ? 1.3 : 1, this.compact ? Math.min(2, 0.95 / this.cssScale) : 1);
+    const compact = this.compact;
+    const grow = Math.min(1.3, k / (touch ? 1.3 : 1)); // the dots grow with the text, a little
     const font = (w, px, fam = '"Be Vietnam Pro", system-ui, sans-serif') => `${w} ${Math.round(px * k)}px ${fam}`;
     const serif = '"Cormorant Garamond", Georgia, serif';
     const scaled = (ax, ay, f, by = k) => {
@@ -2162,15 +2225,15 @@ export class Renderer {
       g.globalAlpha = 1;
     }
 
-    if (touch) this.touchDrumLabels(cx, cy, R);
+    if (touch) this.touchDrumLabels(cx, cy, R, k / 1.3);
     g.restore();
 
     // The phrase: the accepted pattern stays filled until the drum is ready
     // again; while drumming, the likeliest pattern is shown with the strokes
     // still to come drawn faintly.
-    const slotY = touch ? cy - R * TOUCH.drum.band - 20 : cy - R - 26;
-    const cell = touch ? 44 : 36;
-    const dotR = touch ? 14 : 11;
+    const slotY = touch ? cy - R * TOUCH.drum.band - 20 * grow : cy - R - 26 * grow;
+    const cell = (touch ? 44 : 36) * grow;
+    const dotR = (touch ? 14 : 11) * grow;
     const labelY = slotY - 26 * k;
     const ph = view.phraseView;
     // The line above the dots: whose turn it is, or the command being played.
@@ -2259,42 +2322,74 @@ export class Renderer {
       g.save();
       g.shadowColor = 'rgba(0,0,0,0.8)';
       g.shadowBlur = touch ? 6 : 0;
-      g.fillText(view.spirit ? `Trống thức — the drum wakes ×${view.combo}` : `Chain ×${view.combo}`, touch ? 24 : cx + R + 22, touch ? 104 : cy + 8);
+      g.fillText(view.spirit ? `Trống thức — the drum wakes ×${view.combo}` : `Chain ×${view.combo}`, touch ? 24 : cx + R + 22, touch ? 22 + 60 * k : cy + 8);
       g.restore();
     }
 
     // Command list: every unlocked command and tier, kept low and clear of
     // the field. The tier being played is lit.
     g.textAlign = 'left';
-    if (touch) {
+    const list = view.mode === 'battle' ? COMMANDS.filter((c) => view.unlocked.includes(c.id)) : [];
+    if (compact && list.length) {
+      // Small screens: each command on two lines (its name, then its tiers),
+      // narrow enough to grow large and still stay clear of the drum.
+      const px = 22;
+      const tierW = 70;
+      const blockW = Math.max(120, 18 + view.maxTier * tierW);
+      const by = (touch ? 500 : 570) / (px + blockW);
       g.save();
       g.translate(0, H);
-      g.scale(1.2, 1.2);
+      g.scale(Math.min(k, by), Math.min(k, by));
       g.translate(0, -H);
+      let py = H - 14 - (list.length - 1) * 38 - 18;
+      g.fillStyle = 'rgba(22,21,26,0.6)';
+      g.fillRect(px - 10, py - 18, blockW + 12, list.length * 38 + 6);
+      for (const c of list) {
+        const active = ph && ph.done && ph.pattern.command === c.id;
+        g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
+        g.fillStyle = active ? P.bronzeLight : P.paper;
+        g.fillText(`${c.name} · ${c.gloss.replace('Elephant charge', 'Charge')}`, px, py);
+        c.tiers.slice(0, view.maxTier).forEach((text, i) => {
+          const x0 = px + i * tierW;
+          const lit = active && ph.pattern.tier === i + 1;
+          g.font = '600 11px "Be Vietnam Pro", system-ui, sans-serif';
+          g.fillStyle = lit ? P.bronzeLight : 'rgba(242,232,213,0.6)';
+          g.fillText(ROMAN[i + 1], x0, py + 18);
+          this.pattern(x0 + 16, py + 13, { strokes: parsePattern(text) }, 4.4, 12, Infinity, lit, true);
+        });
+        py += 38;
+      }
+      g.restore();
+    } else {
+      if (touch) {
+        g.save();
+        g.translate(0, H);
+        g.scale(1.2, 1.2);
+        g.translate(0, -H);
+      }
+      const px = 22;
+      const rowH = 22;
+      const cellS = 12;
+      let py = H - 14 - (list.length - 1) * rowH;
+      g.fillStyle = 'rgba(22,21,26,0.6)';
+      if (list.length) g.fillRect(px - 10, py - 19, 120 + view.maxTier * 84, list.length * rowH + 8);
+      for (const c of list) {
+        const active = ph && ph.done && ph.pattern.command === c.id;
+        g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
+        g.fillStyle = active ? P.bronzeLight : P.paper;
+        g.fillText(`${c.name} · ${c.gloss.replace('Elephant charge', 'Charge')}`, px, py);
+        c.tiers.slice(0, view.maxTier).forEach((text, i) => {
+          const x0 = px + 116 + i * 84;
+          const lit = active && ph.pattern.tier === i + 1;
+          g.font = '600 11px "Be Vietnam Pro", system-ui, sans-serif';
+          g.fillStyle = lit ? P.bronzeLight : 'rgba(242,232,213,0.6)';
+          g.fillText(ROMAN[i + 1], x0, py);
+          this.pattern(x0 + 18, py - 5, { strokes: parsePattern(text) }, 4.4, cellS, Infinity, lit, true);
+        });
+        py += rowH;
+      }
+      if (touch) g.restore();
     }
-    const list = view.mode === 'battle' ? COMMANDS.filter((c) => view.unlocked.includes(c.id)) : [];
-    const px = 22;
-    const rowH = 22;
-    const cellS = 12;
-    let py = H - 14 - (list.length - 1) * rowH;
-    g.fillStyle = 'rgba(22,21,26,0.6)';
-    g.fillRect(px - 10, py - 19, 120 + view.maxTier * 84, list.length * rowH + 8);
-    for (const c of list) {
-      const active = ph && ph.done && ph.pattern.command === c.id;
-      g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
-      g.fillStyle = active ? P.bronzeLight : P.paper;
-      g.fillText(`${c.name} · ${c.gloss.replace('Elephant charge', 'Charge')}`, px, py);
-      c.tiers.slice(0, view.maxTier).forEach((text, i) => {
-        const x0 = px + 116 + i * 84;
-        const lit = active && ph.pattern.tier === i + 1;
-        g.font = '600 11px "Be Vietnam Pro", system-ui, sans-serif';
-        g.fillStyle = lit ? P.bronzeLight : 'rgba(242,232,213,0.6)';
-        g.fillText(ROMAN[i + 1], x0, py);
-        this.pattern(x0 + 18, py - 5, { strokes: parsePattern(text) }, 4.4, cellS, Infinity, lit, true);
-      });
-      py += rowH;
-    }
-    if (touch) g.restore();
 
     // Troops and goal.
     const b = view.battle;
@@ -2308,8 +2403,8 @@ export class Renderer {
         g.font = font(600, 15);
         g.textAlign = 'left';
         g.fillStyle = P.paper;
-        if (touch) {
-          g.fillText(`Hold ${Math.round(60 / sess.u)} BPM`, 24, H - 48);
+        if (touch || compact) {
+          g.fillText(`Hold ${Math.round(60 / sess.u)} BPM`, 24, H - 18 - 22 * k);
           g.fillText(`Pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
         } else g.fillText(`Hold ${Math.round(60 / sess.u)} BPM · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
       }
@@ -2325,17 +2420,31 @@ export class Renderer {
     }
 
     if (view.hint) {
-      // Larger on touch screens, but never wider than the screen.
+      // Larger on touch and small screens, never wider than the screen: a
+      // long line breaks in two rather than shrinking.
       g.font = '500 18px "Be Vietnam Pro", system-ui, sans-serif';
-      const hintScale = touch ? Math.min(k, (W - 40) / (g.measureText(view.hint).width + 36)) : 1;
-      scaled(cx, 70, () => {
+      let lines = [view.hint];
+      const fit = (ls) => Math.max(...ls.map((l) => g.measureText(l).width)) + 36;
+      if (k > 1 && fit(lines) * k > W - 40) {
+        const words = view.hint.split(' ');
+        let best = null;
+        for (let i = 1; i < words.length; i++) {
+          const two = [words.slice(0, i).join(' '), words.slice(i).join(' ')];
+          if (!best || fit(two) < fit(best)) best = two;
+        }
+        if (best) lines = best;
+      }
+      const hintScale = Math.min(k, (W - 40) / fit(lines));
+      // Just under the bars, which grow with the text.
+      const top = Math.max(70, 22 + 32 * k + 8);
+      scaled(cx, top, () => {
         g.font = '500 18px "Be Vietnam Pro", system-ui, sans-serif';
         g.textAlign = 'center';
-        const w = g.measureText(view.hint).width + 36;
+        const w = fit(lines);
         g.fillStyle = 'rgba(22,21,26,0.7)';
-        g.fillRect(cx - w / 2, 70, w, 36);
+        g.fillRect(cx - w / 2, top, w, 12 + 24 * lines.length);
         g.fillStyle = P.paper;
-        g.fillText(view.hint, cx, 94);
+        lines.forEach((l, i) => g.fillText(l, cx, top + 24 + 24 * i));
       }, hintScale);
     }
 
@@ -2396,11 +2505,11 @@ export class Renderer {
   }
 
   /** Names on the touch drum's two zones, drawn over the drum face. */
-  touchDrumLabels(cx, cy, R) {
+  touchDrumLabels(cx, cy, R, grow = 1) {
     const g = this.ctx;
     const mid = (R + R * TOUCH.drum.band) / 2;
     g.save();
-    g.font = '700 15px "Be Vietnam Pro", system-ui, sans-serif';
+    g.font = `700 ${Math.round(15 * Math.min(grow, 1.25))}px "Be Vietnam Pro", system-ui, sans-serif`;
     g.textAlign = 'center';
     g.shadowColor = 'rgba(0,0,0,0.9)';
     g.shadowBlur = 4;
@@ -2439,7 +2548,7 @@ export class Renderer {
     if (this.onDots(x, y) && d > T.drum.r * T.drum.band) return 'none';
     if (d < T.drum.r * T.drum.reach) return 'R';
     // The battle itself (the army, the enemy, the ground between): shield.
-    if (mode === 'battle' && y > FIELD_TOP && y < GROUND + 34) return 'guard';
+    if (mode === 'battle' && y > this.toScreen(0, FIELD_TOP).y && y < this.toScreen(0, GROUND + 34).y) return 'guard';
     // Anywhere else: the screen's halves, for thumbs at the edges of a phone.
     return x < W / 2 ? 'L' : 'R';
   }
@@ -2675,7 +2784,7 @@ export class Renderer {
       }
       if (id === 'guard' || id === 'reset') {
         g.save();
-        g.font = '700 16px "Be Vietnam Pro", system-ui, sans-serif';
+        g.font = `700 ${Math.round(16 * (this.compact ? Math.min(1.5, 0.95 / this.cssScale / 1.3) : 1))}px "Be Vietnam Pro", system-ui, sans-serif`;
         g.textAlign = 'center';
         g.fillStyle = P.paper;
         g.globalAlpha = alpha;
