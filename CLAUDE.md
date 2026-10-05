@@ -59,6 +59,12 @@ When a task produces several independently useful pieces (a document, a request
 list, a working feature), commit and push each to `main` as soon as it is
 finished and verified rather than holding everything for one final merge.
 
+**Image and asset requests go first.** When a task needs new artwork, write the
+request entries (and regenerate the request documents) and push them to `main`
+before building the feature that uses them, so the user can start generating
+while the rest is written. The game keeps drawing its stand-ins until the art
+arrives.
+
 ## Hopper: two editions, one shell
 
 `main` serves the 2D edition of Hopper at https://hoai2k.github.io/mini/hopper/:
