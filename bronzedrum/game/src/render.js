@@ -1197,8 +1197,6 @@ export class Renderer {
         this.scraps(this.motion.front - 20, GROUND - 100, 10, [P.bronzeLight, P.paper, P.ironDark]);
       } else if (ev.type === 'wound') {
         this.scraps(this.motion.front - 30, GROUND - 50, 8, [P.lacquer, P.ink]);
-      } else if (ev.type === 'rally') {
-        this.floaters.push({ x: view.battle.army.x * U - 120, y: GROUND - 170, text: `+${Math.round(ev.amount)}`, t, color: P.verdigris });
       } else if (ev.type === 'trample') {
         this.scraps(ev.x * U + 80, GROUND - 10, 40, [P.paper, P.paperShade, P.ink]);
         this.shake = t + 0.35;
@@ -1449,8 +1447,6 @@ export class Renderer {
         thrust = this.strokePulse(cyc, tt, archer ? 'R' : 'L').pulse * calm;
         tilt += thrust * 0.12;
         bob += thrust * 2;
-      } else if (cyc && cyc.command === 'rally') {
-        bob += this.strokePulse(cyc, tt).pulse * 9 * calm;
       } else {
         // Between orders: a walking gait if still catching up, else breathing.
         u.phase += (speed * dt) / 40;
@@ -1627,7 +1623,8 @@ export class Renderer {
     g.fillStyle = P.paper;
     if (ph && ph.done) {
       const c = COMMANDS.find((k) => k.id === ph.pattern.command);
-      g.fillText(`${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`, cx, slotY - 26);
+      const charging = view.cycle && view.cycle.command === 'charge';
+      g.fillText(charging ? 'Voi! — the elephant charges' : `${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`, cx, slotY - 26);
     }
 
     // Dots tumbling away after a reset.

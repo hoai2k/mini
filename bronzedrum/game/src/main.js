@@ -1,7 +1,7 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
 import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, commandById, parsePattern } from './rhythm.js';
-import { createBattle, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
+import { createBattle, orderFor, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { Sound } from './audio.js';
 import { Input } from './input.js';
@@ -229,9 +229,7 @@ function buildCommandTable() {
   t.innerHTML = '<tr><th>Command</th><th>I</th><th>II · ×1.4</th><th>III · ×1.96</th></tr>';
   const effects = {
     march: 'Advance (stops at the enemy line).',
-    strike: 'Spears hit the front enemy; archers shoot.',
-    rally: 'Restore the army’s strength.',
-    charge: 'Only when the drum is awake: the elephant tramples everything near it. The charge spends the drum’s spirit.',
+    strike: 'Spears hit the front enemy; archers shoot. In chapter 3, with the drum awake, the war elephant charges instead: it tramples everything near it and spends the drum’s spirit.',
   };
   const cell = (text) =>
     text
@@ -254,7 +252,7 @@ let game = null;
 
 // The army keeps a march or a strike going in the player's
 // groove for up to this many extra four-beat cycles, at reduced power, until
-// the next phrase starts. Rally and charge happen once.
+// the next phrase starts. The elephant charge happens once.
 const SUSTAIN = { march: 0.6, strike: 0.5 };
 const SUSTAIN_CYCLES = 2;
 
@@ -391,23 +389,18 @@ function handleRhythm(ev) {
     endSustain();
   } else if (ev.type === 'command') {
     const c = commandById(ev.command);
-    if (ev.command === 'charge') {
-      // The elephant answers only a waking drum, and the charge spends it.
-      if (!ev.spirit) {
-        feedback('The elephant waits for the drum to wake', P.paperShade);
-        g.reader.action = null;
-        g.reader.shown = null;
-        return;
-      }
-      g.reader.combo = 0;
-    }
+    // With the elephant, a strike on a waking drum is the charge; it spends the drum.
+    const order = orderFor(g.battle, ev.command, ev.spirit);
+    if (order === 'charge') g.reader.combo = 0;
     const power = commandPower(ev.accuracy, ev.spirit, TIER_POWER[ev.tier - 1]) * tempoFactor(ev.u);
-    startCycle({ command: ev.command, pattern: ev.pattern, tier: ev.tier, u: ev.u, start: ev.start, power, index: 0, spirit: ev.spirit });
+    startCycle({ command: order, pattern: ev.pattern, tier: ev.tier, u: ev.u, start: ev.start, power, index: 0, spirit: ev.spirit });
     const bpm = Math.round(60 / ev.u);
-    feedback(`${ev.even ? 'Even!' : 'Good'}  ${c.name} ${['', 'I', 'II', 'III'][ev.tier]} · ${bpm} BPM`, ev.even ? P.bronzeLight : P.paper);
+    const name = order === 'charge' ? 'Voi! The elephant charges' : `${c.name} ${['', 'I', 'II', 'III'][ev.tier]}`;
+    feedback(`${ev.even ? 'Even!' : 'Good'}  ${name} · ${bpm} BPM`, ev.even ? P.bronzeLight : P.paper);
     if (ev.spirit && ev.combo === SPIRIT_COMBO) {
       toast('Trống thức — the drum wakes!');
       sound.play('drum-wake');
+      sound.play('cmd-rally', sound.now + 0.3, 0.7);
     }
     g.commandsDone += 1;
     g.tiersUsed.add(ev.tier);
@@ -454,8 +447,8 @@ function hint(view) {
   if (g.index === 1 && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
     return `Triplets hit hardest — ${say('strike', 3)}`;
   }
-  if (g.index === 2 && b.army.troops < b.army.maxTroops * 0.5) return `Wounded — ${say('rally')}`;
-  if (g.index === 2 && near && g.reader.spirit) return `The drum is awake — ${say('charge')}`;
+  if (g.index === 2 && near && g.reader.spirit) return `The drum is awake — strike and the elephant charges: ${say('strike')}`;
+  if (g.index === 2 && !g.reader.spirit && g.commandsDone < 6) return 'Chain four commands to wake the drum — then a strike becomes the elephant charge';
   return null;
 }
 

@@ -67,6 +67,11 @@ export function tempoFactor(u) {
   return Math.min(2, Math.max(0.55, u / 0.6));
 }
 
+/** What a drummed command becomes: with the elephant, a strike on a waking drum is the charge. */
+export function orderFor(state, command, spirit) {
+  return command === 'strike' && spirit && state.elephant ? 'charge' : command;
+}
+
 /** Give the army an order for its next four beats; u is the player's beat length. */
 export function issueOrder(state, command, power, u = 0.6) {
   state.order = { command, power, beat: 0, flourishes: 0, u };
@@ -137,14 +142,8 @@ function runOrder(state, events) {
         }
       }
       break;
-    case 'rally':
-      if (o.beat === 1 || o.beat === 3) {
-        const before = state.army.troops;
-        state.army.troops = Math.min(state.army.maxTroops, before + 5 * p);
-        events.push({ type: 'rally', amount: state.army.troops - before });
-      }
-      break;
     case 'charge':
+      // Not drummed directly: a strike with the drum awake and the elephant present.
       if (!state.elephant) break;
       if (o.beat < 3) advance(state, 2 * o.power);
       else {

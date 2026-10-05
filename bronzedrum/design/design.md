@@ -83,14 +83,18 @@ under the drum. When the rhythm is cleared, its dots tumble away.
 | --- | --- | --- | --- | --- | --- |
 | Tiến · March | `L L L R` | `L L LR R` | `L RRR L R` | advance, stopping at the enemy line | ch. 1 |
 | Đánh · Strike | `R R L R` | `RR R L R` | `RRR R L R` | spears hit the front enemy; archers shoot | ch. 1 |
-| Hô · Rally | `R L L L` | `R LR L L` | `RRR L L L` | restore strength | ch. 3 |
-| Voi · Elephant charge | `R L R L` | `R L RR L` | `RRR L RR L` | only with the drum awake: trample everything near the elephant; spends the drum's spirit | ch. 3 |
 
-In the patterns, L is tùng and R is cắc. The first stroke says what kind of
-order it is: movement (march) starts on tùng, attacks (strike, charge) on cắc.
-Rally is a support order. Spaces separate the four beats; letters
-written together share a beat. Chapter 1 allows tiers I and II, and the later
-chapters allow all three.
+In the patterns, L is tùng and R is cắc. Spaces separate the four beats, and
+letters written together share a beat. Chapter 1 allows tiers I and II, and the
+later chapters allow all three. The first stroke says what kind of order it
+is: movement (march) starts on tùng, attacks (strike) on cắc.
+
+**Two families.** There are only march and strike. Rally (healing) was removed:
+the shield now does the defensive work. The elephant charge (Voi) is no longer
+a rhythm of its own. In chapter 3, with the war elephant, a strike played while
+the drum is awake becomes the charge: the elephant stomps on the drummed
+strokes and tramples everything near it, and the charge spends the drum's
+spirit. The women's cheer that was Rally's sound now plays when the drum wakes.
 
 **Chapters:**
 
