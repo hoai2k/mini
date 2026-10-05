@@ -119,6 +119,22 @@
       "web": "web/drum-bearers.webp"
     },
     {
+      "id": "drummer-chau",
+      "request": "BD-C11",
+      "file": "art/drummer-chau.png",
+      "status": "stand-in",
+      "section": "cast",
+      "runtime": true
+    },
+    {
+      "id": "drummer-mo",
+      "request": "BD-C12",
+      "file": "art/drummer-mo.png",
+      "status": "stand-in",
+      "section": "cast",
+      "runtime": true
+    },
+    {
       "id": "unit-spear",
       "request": "BD-C05",
       "file": "art/unit-spear.png",

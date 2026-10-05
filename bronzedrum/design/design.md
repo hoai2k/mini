@@ -37,7 +37,19 @@ where the right thumb rests, is a trống chầu, a hide-headed barrel drum. It
 glows while an attack is coming and dims while it recovers. Reset, beside it,
 is a mõ, the wooden slit drum. Pause sits at the top. On every device the
 shield sounds a stroke on the barrel drum and a reset knocks the mõ (both
-generated with ElevenLabs). Text is drawn larger, taps
+generated with ElevenLabs). Two gestures save reaching for the buttons: a
+sideways swipe across the drum or the rhythm dots resets, and a tap on the
+battle itself (the army, the enemy, the ground between) raises the shields.
+Taps on the dots do nothing, so a swipe across them is clean; a swipe that
+starts on the drum plays that first stroke before it clears.
+
+**A drum for every action.** Two companion drummers walk with the drum crew,
+just behind the ranks: one with a trống chầu at her hip, one holding a mõ
+(requests BD-C11 and BD-C12; drawn stand-ins until delivered). The bronze
+drum answers the strokes, the barrel drum the shield and the mõ the reset.
+Each shivers when struck: the HUD drum and the palanquin on every stroke, the
+companion drummers and the touch buttons on a shield or a reset. Reduce motion
+turns the shiver off. Text is drawn larger, taps
 buzz briefly if Vibration is on, and an upright phone pauses with a prompt to
 turn it sideways. The button faces are request BD-U16; until it is delivered
 the renderer draws them.
