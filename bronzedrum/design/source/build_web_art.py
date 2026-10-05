@@ -10,13 +10,15 @@ those, and only those are published.
     python3 bronzedrum/design/source/build_web_art.py           # convert stale copies
     python3 bronzedrum/design/source/build_web_art.py --check   # verify copies exist and are current
 
-Needs ffmpeg with libwebp. Run build_requests.py afterwards so the manifest
+Uses ffmpeg with libwebp, or Pillow with WebP support when ffmpeg is absent.
+Run build_requests.py afterwards so the manifest
 points at the copies.
 """
 
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -88,6 +90,18 @@ def convert(asset_id: str) -> None:
     scale, quality = TARGETS[asset_id]
     src = ART / f"{asset_id}.png"
     WEB.mkdir(parents=True, exist_ok=True)
+    if not shutil.which("ffmpeg"):
+        from PIL import Image
+        width, height = (int(n) for n in scale.removeprefix("scale=").split(":"))
+        with Image.open(src) as image:
+            if width == -1:
+                width = round(image.width * height / image.height)
+            if height == -1:
+                height = round(image.height * width / image.width)
+            image.resize((width, height), Image.Resampling.LANCZOS).save(
+                web_path(asset_id), "WEBP", quality=quality, method=6,
+            )
+        return
     subprocess.run(
         ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-vf", f"{scale}:flags=lanczos",
          "-c:v", "libwebp", "-pix_fmt", "yuva420p", "-quality", str(quality),

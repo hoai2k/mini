@@ -58,8 +58,8 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-All 51 requests now have generated artwork: 17 style and direction images in
-`design/references/` and 34 game images in `game/assets/art/`. The set follows
+All 72 requests now have generated artwork: 20 style and direction images in
+`design/references/` and 52 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 
 [`design/image-deliveries.json`](design/image-deliveries.json) records the exact
@@ -68,13 +68,13 @@ and sprite-sheet cells. Exports match the requested dimensions; larger canvases
 are resampled from the generator's native output rather than generated at native
 4K. Puppet sheets are artwork for future rigging, not animated rigs.
 
-The manifest's `runtime` flag distinguishes the 24 images used by the prototype
+The manifest's `runtime` flag distinguishes the 42 images used by the prototype
 from the 10 delivered puppet, effects and planned interface sheets. The latter
 remain available for production work without being downloaded at game startup.
 
 The PNGs in `game/assets/art/` are the masters, kept at the requested sizes.
-The game loads WebP copies scaled to the size it actually draws them at (3.2 MB
-in all, against 61 MB of masters). Only these copies are published. After
+The game loads WebP copies scaled to the size it actually draws them at (4.4 MB
+in all). Only these copies are published. After
 delivering or replacing art, rerun
 [`design/source/build_web_art.py`](design/source/build_web_art.py) and then
 `build_requests.py`. The renderer also tints the painted parallax layers to

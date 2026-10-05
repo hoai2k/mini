@@ -6,7 +6,7 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**40 of 41 files in use.**
+**41 of 42 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
@@ -70,6 +70,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `crack` | Casting the Drums: a phrase that drifts cracks the mould. (one-shot) | 1.5 s | 1/1 | A clay casting mould cracking from the heat: one sharp crack, then crumbling pieces and a hiss of steam. |
 | `lantern` | The Oath and The Villages Answer: an answered call lights incense or lanterns. (one-shot) | 1.5 s | 1/1 | A paper lantern being lit at night: a soft whoosh of flame catching, then one small clear bronze bell. |
 | `crowd-cheer` | The Coronation: the crowd answers each rhythm. (one-shot) | 3.0 s | 1/1 | A festival crowd in an ancient village square cheering and clapping with joy, a few small gongs ringing. |
+| `han-horn` | Mã Viện Returns: a new Han column arrives. (one-shot) | 3.0 s | 1/1 | Several ancient war horns made of buffalo horn blown together in the distance across a river, a low ominous call that swells and fades, an army approaching. |
 
 ## Ambience
 
