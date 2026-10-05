@@ -430,7 +430,8 @@ function stepStorm(st, dt) {
   const t = st.phaseT;
   if (t >= 1.0 && !st.struck) { st.struck = true; st.events.push({ type: 'strike' }); st.events.push({ type: 'fireRoar' }); }
   if (st.cam0 == null) st.cam0 = st.camY;
-  st.camY = lerp(st.cam0, CLIFF.top, smooth((t - 1.2) / 1.8));
+  // The camera rises with him as he walks, so the house roof is in view when the bolt lands (t = 1.0).
+  st.camY = lerp(st.cam0, CLIFF.top, smooth(t / 1.1));
   st.fire = smooth((t - 1.1) / 1.9);
   if (t >= 3.0 && !st.opened) { st.opened = true; st.events.push({ type: 'houseOpen' }); }
   st.open = smooth((t - 3.0) / 1.4);

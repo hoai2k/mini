@@ -279,9 +279,20 @@ function cliffScene(k, st, t) {
     c.fillStyle = k.col('#cdbb93'); c.fillRect(0, -2, 1280, 22);
   }
   // the cliff flat
-  // a delivered cliff flat is hung twice, one above the other
-  const H2 = (CLIFF.top + 30) / 2;
-  if (!(k.img('cliff-face') && k.asset('cliff-face', 640, 30, 820, H2 + 4) && k.asset('cliff-face', 640, 30 - H2, 820, H2 + 4))) {
+  // A delivered cliff flat is hung twice, one above the other. The upper one
+  // whole (its cleft is where the tiny guitarist's gap hold is); the lower one
+  // without its grassy top, reaching up over the upper one's painted surf so
+  // no sea shows halfway up the climb. (cliff-face.webp is 1400x1800: grass
+  // to y 80, surf from y 1540.)
+  const H2 = (CLIFF.top + 30) / 2, SURF = (1800 - 1540) / 1800 * (H2 + 4);
+  let cliffArt = false;
+  if (k.img('cliff-face')) {
+    c.save(); c.beginPath(); c.rect(0, -1e5, 1280, 1e5 + 30 - H2 - SURF + 12); c.clip(); // the upper one stops above its surf
+    k.asset('cliff-face', 640, 30 - H2, 820, H2 + 4);
+    c.restore();
+    cliffArt = k.assetCrop('cliff-face', 0, 80, 1400, 1720, 230, 30 - (H2 + 4) - SURF, 820, H2 + 4 + SURF);
+  }
+  if (!cliffArt) {
     const y0 = Math.max(-20, lo), y1 = Math.min(CLIFF.top, hi);
     c.fillStyle = k.col('#e4dccb');
     c.beginPath();
@@ -389,7 +400,8 @@ function climber(k, st, t) {
     // He walks to the door.
     const x = lerp(st.walkFromX, HOUSE.door + 30, easeInOut(st.phaseT / 1.3));
     const walking = st.phaseT < 1.3;
-    sailor(k, x, -CLIFF.top, S, walking ? 'walk' : 'stand', -1, walking ? Math.sin(st.phaseT * 12) : 0);
+    // on the painted floor edge (HOUSE.floors[0]), 14 px above the cliff line, when the art is hung
+    sailor(k, x, -CLIFF.top - (k.img('stone-house') ? 640 - HOUSE.floors[0] : 0), S, walking ? 'walk' : 'stand', -1, walking ? Math.sin(st.phaseT * 12) : 0);
     return;
   }
   const p = climberPos(st), cl = st.cl, h = st.holds[cl.at];
@@ -457,9 +469,12 @@ function stormFx(k, st, t) {
   const c = k.c, pt = st.phaseT;
   if (pt > 0.95 && pt < 1.3) {
     c.strokeStyle = k.col('#fff6d0'); c.lineWidth = 5;
-    c.beginPath(); c.moveTo(980, 60);
-    const pts = [[930, 140], [960, 170], [880, 250], [910, 270], [800, 360], [820, 380], [700, 460]];
-    for (const [x, y] of pts) c.lineTo(x, y);
+    // It lands on the roof, about (740, 110) once the camera is up. The roof
+    // sits just under the valance, so the bolt comes in at a slant across the
+    // open sky to its right.
+    const ex = 740, ey = 110 + (st.camY - CLIFF.top);
+    c.beginPath(); c.moveTo(ex + 250, ey - 62);
+    for (const [dx, dy] of [[196, -40], [214, -33], [150, -22], [164, -14], [84, -8], [96, -2], [0, 0]]) c.lineTo(ex + dx, ey + dy);
     c.stroke();
   }
   if (st.fire > 0.05) flames(k, st, t, st.fire);
@@ -772,11 +787,15 @@ function quayGround(k, t, lamp = false) {
 // The house on its cliff upstage: small, whole or falling.
 function distantHouse(k, st, t, fall = 0, window = 'dark') {
   const c = k.c;
-  c.fillStyle = k.col('#cfc5b0');
-  c.beginPath(); c.moveTo(150, 640); c.lineTo(150, 330); c.lineTo(520, 330); c.quadraticCurveTo(560, 450, 600, 640); c.closePath(); c.fill();
-  c.fillStyle = k.col('#a99d88');
-  for (let i = 0; i < 9; i++) { const x = 168 + i * 44; c.fillRect(x + 26, 340 + (i % 3) * 20, 10, 300 - (i % 3) * 20); c.fillRect(x, 400 + ((i * 37) % 120), 40, 3); }
-  c.fillStyle = k.col('#6f9a4a'); c.fillRect(150, 322, 372, 10);
+  // The clifftop seen from the quay: the top of the delivered cliff flat (its
+  // grass at the house's foot, y 330), or a stand-in.
+  if (!k.assetCrop('cliff-face', 0, 0, 1400, 1000, 110, 318, 490, 350)) {
+    c.fillStyle = k.col('#cfc5b0');
+    c.beginPath(); c.moveTo(150, 640); c.lineTo(150, 330); c.lineTo(520, 330); c.quadraticCurveTo(560, 450, 600, 640); c.closePath(); c.fill();
+    c.fillStyle = k.col('#a99d88');
+    for (let i = 0; i < 9; i++) { const x = 168 + i * 44; c.fillRect(x + 26, 340 + (i % 3) * 20, 10, 300 - (i % 3) * 20); c.fillRect(x, 400 + ((i * 37) % 120), 40, 3); }
+    c.fillStyle = k.col('#6f9a4a'); c.fillRect(150, 322, 372, 10);
+  }
   c.save();
   c.translate(330, 330); c.rotate(fall * 0.5); c.translate(0, fall * fall * 260); c.scale(0.36, 0.36); c.translate(-640, -642);
   if (fall > 0.95) { c.restore(); return; }
