@@ -433,6 +433,7 @@ function trackInputMode(i) {
   if (i.keyAny) S.keySeen = true;
   const mode = i.source === 'pad' ? 'pad' : i.source === 'touch' || (TOUCH && !S.keySeen) ? 'touch' : 'key';
   if (mode !== S.inputMode) { S.inputMode = mode; syncTitleHint(); }
+  renderer.kit.inputMode = mode; // acts draw button prompts for it (richText)
   if (S.card?.prompts) { S.card.mode = mode; S.card.prompt = mode === 'touch' ? S.card.prompts.touch : S.card.prompts.other; }
 }
 
