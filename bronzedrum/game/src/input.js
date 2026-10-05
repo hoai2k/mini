@@ -1,4 +1,4 @@
-// Keyboard, pointer and Xbox-controller input. Drum hits carry a timestamp
+// Keyboard, mouse, touch and Xbox-controller input. Drum hits carry a timestamp
 // on the performance.now() clock so the game can map them onto the audio
 // clock; menu actions are plain names.
 
@@ -21,7 +21,7 @@ const REPEAT_NEXT = 0.14;
 
 export class Input {
   constructor(target) {
-    this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [], action: [] };
+    this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [], action: [], touch: [] };
     this.mode = 'menu'; // 'menu' | 'play'
     this.device = 'keyboard';
     this.padIndex = null;
@@ -43,11 +43,12 @@ export class Input {
         this.emit('device', { type: 'disconnected' });
       }
     });
+    // Mouse: the left and right halves of the canvas are the two drummers, and
+    // clicking the bronze drum raises the guard.
     target.addEventListener('pointerdown', (e) => {
-      if (this.mode !== 'play') return;
+      if (this.mode !== 'play' || e.pointerType === 'touch' || e.pointerType === 'pen') return;
       const r = target.getBoundingClientRect();
       this.setDevice('pointer');
-      // Tapping the bronze drum in the HUD raises the guard.
       const dx = ((e.clientX - r.left) / r.width - 0.5) * 1280;
       const dy = ((e.clientY - r.top) / r.height - 628 / 720) * 720;
       if (Math.hypot(dx, dy) < 72) {
@@ -57,6 +58,18 @@ export class Input {
       }
       const drum = e.clientX - r.left < r.width / 2 ? 'L' : 'R';
       this.emit('drum', { drum, time: e.timeStamp });
+      e.preventDefault();
+    });
+    // Touch and pen: the game lays out a big drum and on-screen buttons, so
+    // pass the point on in the canvas's 1280 x 720 coordinates. Listening on
+    // the whole app lets the letterbox beside the canvas take thumb taps too.
+    (target.parentElement || target).addEventListener('pointerdown', (e) => {
+      if (this.mode !== 'play' || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
+      const r = target.getBoundingClientRect();
+      this.setDevice('touch');
+      const x = ((e.clientX - r.left) / r.width) * 1280;
+      const y = ((e.clientY - r.top) / r.height) * 720;
+      this.emit('touch', { x, y, time: e.timeStamp });
       e.preventDefault();
     });
   }
@@ -120,6 +133,11 @@ export class Input {
 
   rumble(ms = 60, strength = 0.5) {
     if (!this.vibration) return;
+    if (this.device === 'touch') {
+      // Phones buzz for a duration only; keep taps short so fast rhythms stay crisp.
+      if (navigator.vibrate) navigator.vibrate(Math.round(Math.min(ms, 40) * (0.5 + strength / 2)));
+      return;
+    }
     const p = this.pad();
     const act = p && p.vibrationActuator;
     if (act && act.playEffect) act.playEffect('dual-rumble', { duration: ms, strongMagnitude: strength, weakMagnitude: strength }).catch(() => {});

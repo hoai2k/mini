@@ -16,6 +16,12 @@
 html, body { margin: 0; height: 100%; background: var(--ink); color: var(--paper); font-family: var(--sans); overflow: hidden; }
 #app { position: fixed; inset: 0; display: grid; place-items: center; }
 #stage { width: 100vw; height: 100vh; max-width: calc(100vh * 16 / 9); max-height: calc(100vw * 9 / 16); display: block; touch-action: none; }
+@supports (height: 100dvh) {
+  /* Phones: size to the visible area, not the area behind the browser bars. */
+  #stage { height: 100dvh; max-width: calc(100dvh * 16 / 9); }
+}
+/* While playing, every touch is a drum stroke or a button: no zooming, scrolling or text selection. */
+body.playing #app { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 [hidden] { display: none !important; }
 
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; }
@@ -111,6 +117,10 @@ body.reduce-motion .press-start { animation: none; }
 .toast { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 8px 16px; border: 1px solid var(--bronze); opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 10; }
 .toast.show { opacity: 1; }
 
+@media (max-width: 600px), (max-height: 480px) {
+  .map-table { font-size: 13px; }
+  .map-table td, .map-table th { padding: 4px 5px; }
+}
 @media (max-width: 600px) {
   .row { grid-template-columns: 1fr 120px 44px; }
   .corner-buttons { right: 12px; bottom: 12px; }
