@@ -237,6 +237,7 @@ export class Renderer {
     this.cam = 0;
     this.particles = [];
     this.wakes = [];
+    this.incenseState = null;
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
     this.motion = { front: 0, frontM: { x: 0, v: 0 }, crew: { x: -330, v: 0 }, units: [], enemies: new Map() };
@@ -901,7 +902,7 @@ export class Renderer {
     const callPulse = call && sess.phase === 'calling' ? this.strokePulse({ start: call.start, u: call.u, strokes: call.pattern.strokes }, t).pulse : 0;
     const caller = view.stage.caller;
     if (caller === 'mourning') {
-      this.altar(150, GROUND, sess.index, sess.calls.length, t);
+      this.altar(150, GROUND, sess.index, sess.calls.length, t, view.wind);
       this.callerDrum(560, GROUND, callPulse, 'mourning');
     } else if (caller === 'village') {
       sess.calls.forEach((c, i) => {
@@ -978,7 +979,7 @@ export class Renderer {
     return false;
   }
 
-  altar(x, y, lit, total, t) {
+  altar(x, y, lit, total, t, windIn) {
     const g = this.ctx;
     this.prop('prop-altar', x, y, 170, () => {
       g.save();
@@ -997,36 +998,208 @@ export class Renderer {
       this.endCut(g);
       g.restore();
     });
-    // Incense sticks, one per answered call, standing in the altar's bowl:
-    // lit ones glow and smoke.
     const painted = !!this.art.get('prop-altar');
-    const bowlY = painted ? y - 78 : y - 70;
+    this.incense(x, painted ? y - 78 : y - 70, lit, total, t, windIn);
+  }
+
+  /**
+   * The incense in the altar's bowl, one stick per answered call. Lit sticks
+   * glow at the tip and send up smoke that curls through a slow swirling flow
+   * and climbs high into the sky, spreading into a haze, so every new stick
+   * visibly thickens the column. Lighting one flares: sparks, a dense first
+   * puff and a warm glow over the altar that stays brighter with each stick.
+   * windIn ({ a, y } held) blows the smoke one way or the other just above
+   * the shrine, in gusts, while the button is held.
+   */
+  incense(x, bowlY, lit, total, t, windIn) {
+    const g = this.ctx;
+    const dt = Math.min(0.05, this.frameDt || 0.016);
+    const st = this.incenseState && this.incenseState.total === total ? this.incenseState
+      : (this.incenseState = { total, lit: 0, trails: [], sparks: [], flares: [], acc: [], burst: [], wind: { x: 0, y: 0 }, gust: 0 });
+    const n = (i) => (i - (total - 1) / 2);
+    const sticks = [];
     for (let i = 0; i < total; i++) {
-      const sx = painted ? x - 8 + i * 4 : x - 40 + i * 20;
-      const top = bowlY - 26 - (i % 2) * 4;
-      const on = i < lit;
-      g.fillStyle = P.ink;
-      g.fillRect(sx - 0.8, top, 1.6, bowlY - top);
-      if (on) {
-        g.save();
-        g.fillStyle = '#FF8A3C';
-        g.shadowColor = '#FF8A3C';
-        g.shadowBlur = 8;
-        g.fillRect(sx - 1.5, top - 3, 3, 4);
-        g.restore();
-        g.save();
-        g.strokeStyle = 'rgba(242,232,213,0.35)';
-        g.lineWidth = 2;
+      const a = n(i) * 0.1;
+      const bx = x + n(i) * 5;
+      const len = 30 + (i % 2) * 4;
+      sticks.push({ bx, by: bowlY, a, len, tx: bx + Math.sin(a) * len, ty: bowlY - Math.cos(a) * len, on: i < lit });
+    }
+    // A new stick lit: flare, sparks and a first thick puff.
+    while (st.lit < lit) {
+      const s0 = sticks[st.lit];
+      st.flares.push({ t, x: s0.tx, y: s0.ty });
+      for (let k = 0; k < 14; k++) {
+        st.sparks.push({ x: s0.tx, y: s0.ty, vx: (Math.random() - 0.5) * 70, vy: -30 - Math.random() * 70, life: 0.5 + Math.random() * 0.5 });
+      }
+      // A thicker stream for the first second and a half as it catches.
+      st.burst[st.lit] = t + 1.5;
+      st.lit += 1;
+    }
+    if (lit < st.lit) st.lit = lit; // a restarted chapter
+    // Wind: A blows to the right, Y to the left; gusts wander while held.
+    const want = (windIn && windIn.a ? 1 : 0) - (windIn && windIn.y ? 1 : 0);
+    st.gust += (Math.random() - 0.5) * dt * 6;
+    st.gust *= 1 - dt * 1.5;
+    const strength = want ? 55 * (0.65 + 0.35 * Math.sin(t * 3.1) * Math.sin(t * 1.7 + 1) + st.gust) : 0;
+    const lift = want ? Math.sin(t * 2.3) * 10 : 0;
+    st.wind.x += (want * strength - st.wind.x) * Math.min(1, dt * 4);
+    st.wind.y += (lift - st.wind.y) * Math.min(1, dt * 4);
+    const windAmt = Math.min(1, Math.abs(st.wind.x) / 55);
+    // Emit from each lit tip.
+    sticks.forEach((s0, i) => {
+      if (!s0.on) return;
+      const catching = t < (st.burst[i] || 0);
+      const trail = st.trails[i] || (st.trails[i] = []);
+      st.acc[i] = (st.acc[i] || 0) + dt * (this.reduceMotion ? 10 : catching ? 30 : 18);
+      while (st.acc[i] >= 1) {
+        st.acc[i] -= 1;
+        trail.push(this.puff(s0.tx, s0.ty, catching ? 1.8 : 1));
+      }
+      if (trail.length > 260) trail.splice(0, trail.length - 260);
+    });
+    // The glow over the altar grows with every stick, and flares on lighting.
+    const aura = lit / Math.max(1, total);
+    let flare = 0;
+    st.flares = st.flares.filter((f) => t - f.t < 1.2);
+    for (const f of st.flares) flare = Math.max(flare, 1 - (t - f.t) / 1.2);
+    if (aura > 0 || flare > 0) {
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      const r = 70 + 40 * aura + 110 * flare;
+      const grad = g.createRadialGradient(x, bowlY - 20, 4, x, bowlY - 20, r);
+      grad.addColorStop(0, `rgba(255,170,90,${0.2 * aura + 0.6 * flare})`);
+      grad.addColorStop(1, 'rgba(255,140,60,0)');
+      g.fillStyle = grad;
+      g.fillRect(x - r, bowlY - 20 - r, r * 2, r * 2);
+      g.restore();
+    }
+    // Smoke, behind the sticks. Each stick's puffs, in the order they left
+    // the tip, are joined into a ribbon that curls through a slow swirling
+    // flow; as it ages the ribbon thins out into a soft haze that climbs high
+    // and spreads.
+    const sprite = this.smokeSprite();
+    g.save();
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    for (const trail of st.trails) {
+      if (!trail) continue;
+      for (const p of trail) {
+        p.age += dt;
+        const height = bowlY - p.y;
+        p.vy = -(18 + 26 * Math.min(1, height / 240)) * p.lift;
+        const swirl = Math.sin(p.y * 0.024 + t * 0.55 + p.seed * 0.15) * (2 + height * 0.07) + Math.sin(p.y * 0.0085 - t * 0.3) * (2 + height * 0.05);
+        // The breeze acts in a band just above the shrine.
+        const band = Math.exp(-(((height - 60) / 65) ** 2));
+        p.x += (swirl + st.wind.x * band + p.jx) * dt;
+        p.y += (p.vy + st.wind.y * band) * dt;
+        p.jx *= 1 - dt * 2;
+      }
+      // Ribbon: segments between consecutive puffs, widening with age.
+      for (let j = 1; j < trail.length; j++) {
+        const p = trail[j];
+        const q = trail[j - 1];
+        const k = Math.min(1, p.age / p.max);
+        const ribbon = Math.max(0, 1 - p.age / 6) * Math.min(1, p.age * 5) * Math.max(0, Math.min(1, (p.y - 30) / 150));
+        if (ribbon <= 0.01) continue;
+        g.strokeStyle = `rgba(232,228,220,${0.4 * ribbon * (1 - k) * p.dense})`;
+        g.lineWidth = 1.2 + p.age * 1.8;
         g.beginPath();
-        for (let k = 0; k < 14; k++) {
-          const yy = top - 6 - k * 7;
-          const xx = sx + Math.sin(t * 1.4 + k * 0.6 + i) * (2 + k * 0.8);
-          k === 0 ? g.moveTo(xx, yy) : g.lineTo(xx, yy);
-        }
+        g.moveTo(q.x, q.y);
+        g.lineTo(p.x, p.y);
         g.stroke();
+      }
+      // Haze: the older smoke as soft puffs, spreading as it climbs.
+      for (let j = 0; j < trail.length; j += 2) {
+        const p = trail[j];
+        const k = Math.min(1, p.age / p.max);
+        // Thins out as it climbs: gone well before the top of the sky.
+        const climb = Math.max(0, Math.min(1, (p.y - 30) / 160));
+        const haze = Math.min(1, Math.max(0, (p.age - 1.5) / 2.5)) * (1 - k) ** 1.3 * climb;
+        if (haze <= 0.01) continue;
+        const rad = (6 + p.age * 3.6) * p.size;
+        g.globalAlpha = Math.min(1, 0.1 * haze * p.dense);
+        g.drawImage(sprite, p.x - rad, p.y - rad, rad * 2, rad * 2);
+      }
+      g.globalAlpha = 1;
+      // Drop smoke that has faded or left the top of the sky (lifetimes
+      // differ, so not only from the front of the trail).
+      for (let j = trail.length - 1; j >= 0; j--) if (trail[j].age > trail[j].max || trail[j].y < -60) trail.splice(j, 1);
+    }
+    g.restore();
+    // The sticks: red-stained bamboo with the brown incense coating on top.
+    for (const s0 of sticks) {
+      g.save();
+      g.translate(s0.bx, s0.by);
+      g.rotate(s0.a);
+      g.fillStyle = '#9A2E22';
+      g.fillRect(-0.9, -s0.len * 0.4, 1.8, s0.len * 0.4);
+      g.fillStyle = s0.on ? '#4A3426' : '#6B4A32';
+      g.fillRect(-1.3, -s0.len, 2.6, s0.len * 0.62);
+      if (s0.on) {
+        // Grey ash at the tip, the ember just below it.
+        g.fillStyle = '#B9B2A6';
+        g.fillRect(-1.3, -s0.len - 2.5, 2.6, 2.5);
+      }
+      g.restore();
+      if (s0.on) {
+        const pulse = 0.75 + 0.25 * Math.sin(t * 5 + s0.bx) + 0.5 * windAmt;
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        const er = 5 + 4 * pulse;
+        const eg = g.createRadialGradient(s0.tx, s0.ty, 0, s0.tx, s0.ty, er);
+        eg.addColorStop(0, `rgba(255,220,150,${0.9 * Math.min(1, pulse)})`);
+        eg.addColorStop(0.35, `rgba(255,120,40,${0.6 * Math.min(1, pulse)})`);
+        eg.addColorStop(1, 'rgba(255,90,20,0)');
+        g.fillStyle = eg;
+        g.fillRect(s0.tx - er, s0.ty - er, er * 2, er * 2);
         g.restore();
       }
     }
+    // Sparks from a stick being lit.
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    st.sparks = st.sparks.filter((p) => (p.life -= dt) > 0);
+    for (const p of st.sparks) {
+      p.vy += 60 * dt;
+      p.x += (p.vx + st.wind.x * 0.5) * dt;
+      p.y += p.vy * dt;
+      g.fillStyle = `rgba(255,${150 + Math.round(90 * p.life)},70,${Math.min(1, p.life * 2)})`;
+      g.fillRect(p.x - 1, p.y - 1, 2, 2);
+    }
+    // The ring of light as a stick catches.
+    for (const f of st.flares) {
+      const q = (t - f.t) / 1.2;
+      g.strokeStyle = `rgba(255,190,110,${0.8 * (1 - q)})`;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(f.x, f.y, 6 + 70 * q, 0, Math.PI * 2);
+      g.stroke();
+    }
+    g.restore();
+  }
+
+  /** One puff of incense smoke leaving a tip. dense > 1 for the first thick puff. */
+  puff(x, y, dense) {
+    return {
+      x: x + (Math.random() - 0.5) * 1.5, y, vy: 0, age: 0, jx: (Math.random() - 0.5) * 6 * dense,
+      max: 7 + Math.random() * 4, seed: Math.random() * 6.28, size: 0.8 + Math.random() * 0.5,
+      lift: 0.85 + Math.random() * 0.3, dense,
+    };
+  }
+
+  /** A soft round puff of pale smoke, drawn once. */
+  smokeSprite() {
+    if (this.smokeImg) return this.smokeImg;
+    const c = canvas(64, 64);
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(236,232,224,1)');
+    grad.addColorStop(0.5, 'rgba(226,222,214,0.45)');
+    grad.addColorStop(1, 'rgba(220,216,208,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    this.smokeImg = c;
+    return c;
   }
 
   /** The caller: a drummer at a standing drum, striking on the call's strokes. */
@@ -1913,6 +2086,7 @@ export class Renderer {
 
   draw(view, dt) {
     const g = this.ctx;
+    this.frameDt = dt;
     const { battle, songTime: t } = view;
     const targetCam = (this.motion ? this.motion.front : battle.army.x * U) - ARMY_SCREEN_X;
     this.cam += (targetCam - this.cam) * Math.min(1, dt * 4);
@@ -2582,7 +2756,7 @@ export class Renderer {
       // long line breaks in two rather than shrinking.
       g.font = '500 18px "Be Vietnam Pro", system-ui, sans-serif';
       let lines = [view.hint];
-      const fit = (ls) => Math.max(...ls.map((l) => g.measureText(l).width)) + 36;
+      const fit = (ls) => Math.max(...ls.map((l) => this.richWidth(l))) + 36;
       if (k > 1 && fit(lines) * k > W - 40) {
         const words = view.hint.split(' ');
         let best = null;
@@ -2602,7 +2776,7 @@ export class Renderer {
         g.fillStyle = 'rgba(22,21,26,0.7)';
         g.fillRect(cx - w / 2, top, w, 12 + 24 * lines.length);
         g.fillStyle = P.paper;
-        lines.forEach((l, i) => g.fillText(l, cx, top + 24 + 24 * i));
+        lines.forEach((l, i) => this.richText(l, cx, top + 24 + 24 * i));
       }, hintScale);
     }
 
@@ -2623,6 +2797,58 @@ export class Renderer {
   /** A companion drum was struck: the barrel drum for the shield, the mõ for a reset. */
   kick(drum, t) {
     this.kicks[drum] = t;
+  }
+
+  // ---------------------------------------------------------------- rich text
+  // Hint text may name controller buttons as ⟨A⟩ ⟨B⟩ ⟨X⟩ ⟨Y⟩: they are drawn as
+  // the Xbox face buttons in their standard colours, easier to read than letters.
+
+  richParts(text) {
+    return text.split(/(⟨[ABXY]⟩)/).filter(Boolean);
+  }
+
+  /** Width of rich text in the current font. */
+  richWidth(text) {
+    const g = this.ctx;
+    const size = parseFloat(/(\d+(?:\.\d+)?)px/.exec(g.font)?.[1] || 18);
+    return this.richParts(text).reduce((w, p) => w + (/^⟨[ABXY]⟩$/.test(p) ? size * 1.25 : g.measureText(p).width), 0);
+  }
+
+  /** Rich text centred on cx, baseline y, in the current font and fill. */
+  richText(text, cx, y) {
+    const g = this.ctx;
+    const size = parseFloat(/(\d+(?:\.\d+)?)px/.exec(g.font)?.[1] || 18);
+    const colors = { A: '#107C10', B: '#E81123', X: '#0078D4', Y: '#FFB900' };
+    const fill = g.fillStyle;
+    const align = g.textAlign;
+    g.textAlign = 'left';
+    let x = cx - this.richWidth(text) / 2;
+    for (const p of this.richParts(text)) {
+      const m = /^⟨([ABXY])⟩$/.exec(p);
+      if (!m) {
+        g.fillStyle = fill;
+        g.fillText(p, x, y);
+        x += g.measureText(p).width;
+        continue;
+      }
+      const r = size * 0.55;
+      const bx = x + size * 0.625;
+      const by = y - size * 0.36;
+      g.fillStyle = colors[m[1]];
+      g.beginPath();
+      g.arc(bx, by, r, 0, Math.PI * 2);
+      g.fill();
+      const font = g.font;
+      g.font = `700 ${Math.round(size * 0.72)}px "Be Vietnam Pro", system-ui, sans-serif`;
+      g.textAlign = 'center';
+      g.fillStyle = m[1] === 'Y' ? P.ink : '#fff';
+      g.fillText(m[1], bx, by + size * 0.26);
+      g.font = font;
+      g.textAlign = 'left';
+      x += size * 1.25;
+    }
+    g.fillStyle = fill;
+    g.textAlign = align;
   }
 
   // ---------------------------------------------------------------- touch

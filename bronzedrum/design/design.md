@@ -75,6 +75,18 @@ safe-area insets, because iOS Safari's 100vh ignores its own bars
   cut from BD-U02) install the game as a full-screen landscape app, which is
   how iPhones get true full screen.
 
+**The Oath.** Its ambience is a warm dusk breeze in a courtyard
+(`amb-mourning`, made with ElevenLabs), replacing the night bed with its
+metallic insects. Each answered call lights an incense stick: a flare of light,
+sparks and a ring, then a thicker first breath of smoke. Every lit stick sends
+up a ribbon of smoke that curls through a slow swirling flow and climbs into the
+sky as a thinning haze, so the column visibly thickens with each answer, and the
+altar's glow grows. The chapter has no shields and no use for reset, so A and Y
+(Space and R) instead blow a breeze over the shrine while held, A to the right,
+Y to the left, in wandering gusts, with a soft wind sound. In every
+call-and-answer chapter the next call follows an answer after a beat and a half
+plus 0.4 s, less than half the earlier wait.
+
 **Menus.** The pause menu and the other dialogs are cut from the delivered
 paper sheet (BD-U04), nine-sliced so its border of herons and rings keeps its
 shape, with menu buttons as strips of ink and lacquer paper. A panel never

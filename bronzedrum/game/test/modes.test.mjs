@@ -112,3 +112,19 @@ test('the chapters are in story order with a mode each', () => {
     if (mode === 'battle') assert.ok(s.unlocked && s.unlocked.length, s.id);
   }
 });
+
+test('the next call follows an answer promptly (at most half the old wait)', () => {
+  // The Oath's tempo. The old wait ran to the end of the army's four-beat
+  // answer plus 1.2 s: about 5u + 1.2 after the last stroke.
+  const s = new EchoSession({ calls: [{ text: 'L R L R', bpm: 56 }, { text: 'L R R L', bpm: 56 }] });
+  s.update(0);
+  const u = s.call.u;
+  s.update(s.call.end);
+  const last = s.answerBy - 3; // the answer's last stroke
+  s.answer({ accuracy: 1, u, ready: last + 5 * u }, last);
+  const old = 5 * u + 1.2;
+  assert.ok(s.nextCallAt - last <= old / 2, `${(s.nextCallAt - last).toFixed(2)} s, was ${old.toFixed(2)} s`);
+  assert.ok(s.nextCallAt - last >= 1, 'still time to see the answer land');
+  const ev = s.update(s.nextCallAt);
+  assert.equal(ev[0].type, 'call');
+});

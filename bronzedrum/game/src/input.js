@@ -32,7 +32,13 @@ export class Input {
     this.armed = false; // ignore buttons held when a gamepad first appears
     this.vibration = true;
 
-    window.addEventListener('keydown', (e) => this.onKey(e));
+    this.keysDown = new Set(); // for buttons that act while held (the Oath's wind)
+    window.addEventListener('keydown', (e) => {
+      this.keysDown.add(e.code);
+      this.onKey(e);
+    });
+    window.addEventListener('keyup', (e) => this.keysDown.delete(e.code));
+    window.addEventListener('blur', () => this.keysDown.clear());
     window.addEventListener('gamepadconnected', (e) => {
       if (this.padIndex === null) this.padIndex = e.gamepad.index;
       this.armed = false;
@@ -141,6 +147,13 @@ export class Input {
       this.emit('nav', nav);
       e.preventDefault();
     }
+  }
+
+  /** Whether the shield (A / Space) or reset (Y / R) button is held now. */
+  held(action) {
+    const keys = action === 'guard' ? ['Space'] : ['KeyR', 'Backspace'];
+    const button = action === 'guard' ? PAD.A : PAD.Y;
+    return keys.some((k) => this.keysDown.has(k)) || !!this.prev[button];
   }
 
   pad() {
