@@ -26,7 +26,8 @@ from `sites/`, `multiplayer/` and `local/`:
   folder (holding only its README), and a `publish.sh` that copies the
   playable build into `local/pages/<folder>/`. Add a step for it to
   `.github/workflows/pages.yml`, a link in the root `README.md`, a card at the
-  front of the game library page (`index.html`, newest game first), and a row in the table above.
+  front of the game library page (`index.html`, newest game first by
+  when it was made, so Tank Wars stays last), and a row in the table above.
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
