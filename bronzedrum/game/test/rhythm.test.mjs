@@ -231,11 +231,11 @@ const callReader = (text) => {
 };
 
 test('a triplet played as a quick flurry, then the next beat on time, is accepted', () => {
-  // The Villages Answer, Giao Chỉ: R RRR L RR at 104 BPM. The triplet comes
+  // The Villages Answer, Giao Chỉ: RRR L RR L at 104 BPM. The triplet comes
   // out faster than a third of a beat each, and the deep stroke lands on the beat.
   const u = 60 / 104;
-  const r = callReader('R RRR L RR');
-  const ev = playLive(r, [['R', 0], ['R', u], ['R', u + 0.09], ['R', u + 0.18], ['L', 2 * u], ['R', 3 * u], ['R', 3 * u + 0.17]]);
+  const r = callReader('RRR L RR L');
+  const ev = playLive(r, [['R', 0], ['R', 0.09], ['R', 0.18], ['L', u], ['R', 2 * u], ['R', 2 * u + 0.17], ['L', 3 * u]]);
   assert.ok(!ev.some((e) => e.type === 'reset'), 'no stroke breaks the phrase');
   const cmd = command(ev);
   assert.ok(cmd, 'the answer is accepted');
@@ -249,8 +249,8 @@ test('a triplet played as a quick flurry, then the next beat on time, is accepte
 
 test('the beats themselves must still be even', () => {
   const u = 60 / 104;
-  const r = callReader('R RRR L RR');
-  const ev = playLive(r, [['R', 0], ['R', u], ['R', u + 0.09], ['R', u + 0.18], ['L', 2.6 * u], ['R', 3.6 * u], ['R', 3.6 * u + 0.15]]);
+  const r = callReader('RRR L RR L');
+  const ev = playLive(r, [['R', 0], ['R', 0.09], ['R', 0.18], ['L', u], ['R', 2.6 * u], ['R', 2.6 * u + 0.15], ['L', 3.6 * u]]);
   assert.ok(ev.some((e) => e.type === 'reset'), 'a late beat breaks the phrase');
   assert.ok(!command(ev));
 });
@@ -264,11 +264,21 @@ test('a quick stroke must fall inside its beat', () => {
   assert.equal(fit(p, late), null, 'past most of the beat it is not part of the pair');
 });
 
-test('every rhythm opens with a single stroke: the tempo is set before any pair or triplet', async () => {
+test('every battle command opens with a single stroke: the reader must tell the commands apart', () => {
+  // Only where several rhythms are possible. A call or the casting rhythm is
+  // the one rhythm expected, so it may open with a pair or a triplet.
+  for (const c of COMMANDS) for (const t of c.tiers) assert.equal(t.split(' ')[0].length, 1, `${c.id}: ${t} opens with more than one stroke`);
+});
+
+test('a call may open with a pair or a triplet: the one expected rhythm is read from its first stroke', async () => {
   const { STAGES } = await import('../src/stages.js');
-  const all = [
-    ...COMMANDS.flatMap((c) => c.tiers.map((t) => [`${c.id}`, t])),
-    ...STAGES.flatMap((s) => [...(s.calls || []).map((c) => [s.id, c.text]), ...(s.rhythm ? [[s.id, s.rhythm]] : [])]),
-  ];
-  for (const [where, text] of all) assert.equal(text.split(' ')[0].length, 1, `${where}: ${text} opens with more than one stroke`);
+  const openers = STAGES.flatMap((s) => (s.calls || []).map((c) => c.text)).filter((t) => t.split(' ')[0].length > 1);
+  assert.ok(openers.length >= 3);
+  for (const text of openers) {
+    const u = 0.6;
+    const strokes = [];
+    text.split(' ').forEach((beat, b) => [...beat].forEach((d, i) => strokes.push([d, b * u + (i * u) / beat.length])));
+    const ev = playLive(callReader(text), strokes);
+    assert.ok(command(ev), `${text} played evenly is accepted`);
+  }
 });

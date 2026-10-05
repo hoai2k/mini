@@ -77,14 +77,13 @@ test('LB and RB: 2 to 12 strokes, and the rhythm being drummed starts over', () 
   assert.equal(s.dots, DOTS.max);
 });
 
-test('a partner’s call has the same number of strokes and opens on one stroke', () => {
+test('a partner’s call has the same number of strokes', () => {
   let seed = 7;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   for (let n = DOTS.min; n <= DOTS.max; n++) {
     for (let k = 0; k < 20; k++) {
       const c = makeCall(n, rnd);
       assert.equal(c.strokes.length, n);
-      assert.equal(c.text.split(' ')[0].length, 1);
       // Deep strokes only open a beat.
       for (const beat of c.text.split(' ')) assert.ok(!beat.slice(1).includes('L'), c.text);
       assert.deepEqual(practicePattern(c.text).strokes, c.strokes);

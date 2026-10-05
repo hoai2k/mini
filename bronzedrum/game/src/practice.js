@@ -162,13 +162,13 @@ export function practicePattern(text) {
 }
 
 /**
- * A partner's call of n strokes: beats of one, two or three, opening on a
- * single stroke (like every rhythm in the game) and never two deep strokes
- * inside one beat. rnd() returns 0..1.
+ * A partner's call of n strokes: beats of one, two or three, never two deep
+ * strokes inside one beat. rnd() returns 0..1.
  */
 export function makeCall(n, rnd = Math.random) {
-  const sizes = [1];
-  let left = n - 1;
+  // The partner's call is the one rhythm expected, so it may open with a pair or a triplet.
+  const sizes = [];
+  let left = n;
   while (left > 0) {
     const r = rnd();
     let size = r < 0.55 ? 1 : r < 0.85 ? 2 : 3;

@@ -120,9 +120,12 @@ fall inside their beat, in order. People play them as a flurry and then land
 the next beat on time, so their spacing costs a little precision but never
 breaks a phrase, and the wait for the next stroke is measured from the beat.
 (An earlier reader judged every gap, which rejected natural triplets, such as
-the Giao Chỉ call, now R RRR L RR.) Every rhythm opens with a single stroke:
-the first two beats set the tempo, and only then can a pair or triplet be told
-apart from plain beats (a test enforces it). The phrase fades as soon as no pattern can still
+the Giao Chỉ call, RRR L RR L.) Every battle command opens with a single
+stroke. The first two beats set the tempo, and only then can a pair or a
+triplet be told apart from plain beats, and so one command from another (a
+test enforces it). Where only one rhythm is expected (a call to answer, the
+casting rhythm, the practice partner's call), it may open with a pair or a
+triplet. Several calls do, and a test plays each one. The phrase fades as soon as no pattern can still
 be finished in time, or when a stroke breaks the rhythm. A clears it at once.
 
 **Seeing a mistake.** When a stroke breaks the phrase, the dots show what was
@@ -307,7 +310,7 @@ the new one takes over once it is complete. If the player stops part way, the
 old loop comes back up. A (Space, a swipe) stops the loop.
 
 **Call and answer.** A partner on a small stage drums a rhythm with the same
-number of strokes. It is generated, opens on one stroke, and keeps deep strokes
+number of strokes. It is generated, may open with a pair or a triplet, and keeps deep strokes
 to the start of a beat. The player answers with any rhythm of that length.
 Both rows stay on screen, the partner's above and the player's below. The
 partner comes straight back on the next beat with a new call, at the player's

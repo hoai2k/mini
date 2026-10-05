@@ -1727,12 +1727,13 @@ export class Renderer {
   }
 
   /** The shadow a backlit figure throws forward onto the ground. */
-  footShadow(x, w) {
+  footShadow(x, w, y = GROUND) {
     const g = this.ctx;
     g.save();
     g.fillStyle = 'rgba(0,0,0,0.35)';
     g.beginPath();
-    g.ellipse(x, GROUND + 12, w, 6, 0, 0, Math.PI * 2);
+    // Just under the feet, so the figure stands on it rather than above it.
+    g.ellipse(x, y + 3, w, 5, 0, 0, Math.PI * 2);
     g.fill();
     g.restore();
   }
@@ -1750,6 +1751,8 @@ export class Renderer {
   sprite(img, x, y, h, pose = { bob: 0 }) {
     const w = (img.width / img.height) * h;
     const g = this.ctx;
+    // Stand on the figure's feet, not on the bottom of its image (art.js measures the empty margin).
+    y += (img.footMargin || 0) * h;
     if (!pose.tilt && !pose.lean && pose.alpha === undefined) {
       g.drawImage(img, x - w / 2, y - h - (pose.bob || 0), w, h);
       return;
@@ -1785,13 +1788,16 @@ export class Renderer {
     } else {
       const img = this.art.get('drum-bearers');
       if (img) {
-        // The sisters stand at the two ends of the palanquin deck, the drum
-        // showing between them.
+        // The bearers carry the drum; the sisters walk on the ground beside
+        // the palanquin, a step nearer than the bearers, and strike up at it.
+        // (Standing on the deck they read as floating over the bearers' heads.)
         // The palanquin jolts a little with each stroke on the drum.
         const sh = this.shiver(Math.max(this.flash.L, this.flash.R), t, 1.6);
         const bob = (view.crewBob || 0) - sh.dy;
         this.sprite(img, x + sh.dx, y, 150, { bob });
-        this.sisters(x + sh.dx, y - 52 - bob, armL, armR, view, 64);
+        this.footShadow(x - 46, 22, y + 10);
+        this.footShadow(x + 46, 22, y + 10);
+        this.sisters(x, y + 10 - (view.crewBob || 0) * 0.5, armL, armR, view, 46);
         return;
       }
       {
@@ -2566,7 +2572,7 @@ export class Renderer {
     this.spring(cm, frontTarget - crewOffset, 2.6, dt);
 
     g.save();
-    for (let i = 0; i < 12; i++) if (mm.units[i].alpha > 0.05) this.footShadow(mm.units[i].x, 16 * mm.units[i].alpha);
+    for (let i = 0; i < 12; i++) if (mm.units[i].alpha > 0.05) this.footShadow(mm.units[i].x, 16 * mm.units[i].alpha, GROUND - (i % 2) * 7);
     this.footShadow(cm.x, battle.elephant ? 110 : 80);
     this.footShadow(cm.x + (battle.elephant ? 200 : 170), 34);
     this.backlit();
@@ -2577,7 +2583,12 @@ export class Renderer {
     this.drumCrew(cm.x, GROUND, crewView);
     this.companions(cm.x + (battle.elephant ? 200 : 170), GROUND, crewView);
 
-    for (let i = 11; i >= 0; i--) {
+    // Two ranks: the back rank (odd slots) stands a little further up the
+    // ground, smaller and dimmer, and is drawn first so the front rank's
+    // figures overlap it rather than the other way round.
+    const ranks = [...Array(12).keys()].reverse();
+    ranks.sort((a, b) => (b % 2) - (a % 2));
+    for (const i of ranks) {
       const u = mm.units[i];
       const archer = i >= 8;
       const row = i % 2;
@@ -2620,8 +2631,13 @@ export class Renderer {
         tilt += Math.sin(u.phase * Math.PI * 2) * 0.06 * gait;
       }
       bob *= u.alpha;
-      const y = GROUND + row * 10;
+      const y = GROUND - row * 7;
+      if (row) {
+        g.save();
+        g.filter = 'brightness(0.82)';
+      }
       this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive, raise: thrust > 0.3, alpha: u.alpha }, t, archer);
+      if (row) g.restore();
     }
     g.restore();
   }
@@ -3909,7 +3925,7 @@ export class Renderer {
     const face = walking ? (d.v > 0 ? 1 : -1) : d.x < fireX ? 1 : -1;
     const s = d.back ? 0.86 : 1;
     const y = d.back ? GROUND - 10 : GROUND + 6;
-    this.footShadow(d.x, 18 * s);
+    this.footShadow(d.x, 18 * s, d.back ? GROUND - 10 : GROUND + 6);
     g.save();
     this.backlit();
     this.dancerFigure(d, view, pose, face, s, y);
