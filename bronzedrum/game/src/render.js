@@ -13,7 +13,8 @@ export const W = 1280;
 export const H = 720;
 export const U = 48; // pixels per field unit
 const GROUND = 500;
-const ARMY_SCREEN_X = 470;
+const FIELD_TOP = 290; // touch: taps between here and the ground land on the battle
+const ARMY_SCREEN_X = 530; // the front rank's place on screen, leaving room behind for the drums
 const STRIP_W = 2560;
 // How strongly delivered layers are washed toward each chapter's light.
 const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55, dusk: 0.45, foundry: 0.6, ash: 0.5 };
@@ -202,6 +203,7 @@ export class Renderer {
     this.layers = null;
     this.reduceMotion = false;
     this.pressed = {}; // touch button id -> time pressed
+    this.kicks = { chau: -9, mo: -9 }; // when the companion drums were last struck
     this.taps = []; // touch points, drawn as brief rings
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -1450,9 +1452,11 @@ export class Renderer {
       if (img) {
         // The sisters stand at the two ends of the palanquin deck, the drum
         // showing between them.
-        const bob = view.crewBob || 0;
-        this.sprite(img, x, y, 150, { bob });
-        this.sisters(x, y - 52 - bob, armL, armR, view, 64);
+        // The palanquin jolts a little with each stroke on the drum.
+        const sh = this.shake(Math.max(this.flash.L, this.flash.R), t, 1.6);
+        const bob = (view.crewBob || 0) - sh.dy;
+        this.sprite(img, x + sh.dx, y, 150, { bob });
+        this.sisters(x + sh.dx, y - 52 - bob, armL, armR, view, 64);
         return;
       }
       {
@@ -1463,6 +1467,107 @@ export class Renderer {
       }
       this.sisters(x, y - 52, armL, armR, view);
     }
+  }
+
+  /**
+   * The companion drummers who walk with the drum crew: one with a trống chầu
+   * slung at her hip, struck when the shields go up; one with a mõ, knocked
+   * when the rhythm is reset. Delivered art (BD-C11, BD-C12) or paper-cut
+   * stand-ins; either shivers when its drum is struck.
+   */
+  companions(x, y, view) {
+    const t = view.songTime;
+    const bob = view.crewBob || 0;
+    const kc = this.shake(this.kicks.chau, t, 2.4);
+    const km = this.shake(this.kicks.mo, t, 2.4);
+    const imgC = this.art.get('drummer-chau');
+    const imgM = this.art.get('drummer-mo');
+    if (imgM) this.sprite(imgM, x - 26 + km.dx, y, 84, { bob: bob - km.dy, tilt: km.k * 0.05 });
+    else this.companionDrummer(x - 26 + km.dx, y - bob + km.dy, 'mo', km.k);
+    if (imgC) this.sprite(imgC, x + 14 + kc.dx, y, 88, { bob: bob * 0.8 - kc.dy, tilt: kc.k * 0.05 });
+    else this.companionDrummer(x + 14 + kc.dx, y - bob * 0.8 + kc.dy, 'chau', kc.k);
+  }
+
+  /** A stand-in companion drummer facing right, with her drum (hit: 0..1 just struck). */
+  companionDrummer(x, y, kind, hit) {
+    const g = this.ctx;
+    g.save();
+    g.translate(x, y);
+    g.scale(1.05, 1.05);
+    // Body: wrapped skirt, torso, head, a short fan of feathers.
+    g.fillStyle = P.ink;
+    g.beginPath();
+    g.moveTo(-11, 0);
+    g.lineTo(11, 0);
+    g.lineTo(6, -34);
+    g.lineTo(-6, -34);
+    g.fill();
+    g.fillRect(-5, -58, 10, 26);
+    g.beginPath();
+    g.arc(0, -65, 7, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = P.paperShade;
+    for (let i = 0; i < 5; i++) leaf(g, -1, -69, 22, -Math.PI / 2 - 0.5 + (i - 2) * 0.22, 0.12);
+    g.fillStyle = P.lacquer;
+    g.fillRect(-6, -36, 12, 4); // sash
+    if (kind === 'chau') {
+      // The barrel drum at her hip, its hide head facing the enemy.
+      g.fillStyle = P.lacquer;
+      g.beginPath();
+      g.ellipse(15, -30, 13, 15, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = P.bronzeLight;
+      g.fillRect(4, -31, 22, 2);
+      g.fillStyle = hit ? '#FFF4DA' : '#E6D3AE';
+      g.beginPath();
+      g.ellipse(27, -30, 4, 14, 0, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = P.ink;
+      g.lineWidth = 1.5;
+      g.beginPath();
+      g.moveTo(-3, -56);
+      g.lineTo(15, -45); // strap
+      g.stroke();
+      // Beater arm: raised, then down on the head when struck.
+      const a = -1.1 + hit * 1.5;
+      g.save();
+      g.translate(4, -52);
+      g.rotate(a);
+      g.fillStyle = P.ink;
+      g.fillRect(0, -2, 16, 4);
+      g.fillStyle = '#5A3A22';
+      g.fillRect(14, -1.5, 18, 3);
+      g.fillStyle = P.lacquer;
+      g.fillRect(29, -2.5, 5, 5);
+      g.restore();
+    } else {
+      // The mõ held out in her left hand, the mallet in her right.
+      g.fillStyle = P.ink;
+      g.fillRect(2, -50, 14, 4); // forearm
+      const grad = g.createRadialGradient(19, -50, 1, 21, -46, 11);
+      grad.addColorStop(0, hit ? '#D09050' : '#A86E3A');
+      grad.addColorStop(1, '#4E2E16');
+      g.fillStyle = grad;
+      g.beginPath();
+      g.ellipse(21, -46, 10, 8, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = '#1A0F08';
+      g.fillRect(13, -43, 16, 2);
+      const a = -1.4 + hit * 1.1;
+      g.save();
+      g.translate(3, -56);
+      g.rotate(a);
+      g.fillStyle = P.ink;
+      g.fillRect(0, -2, 13, 4);
+      g.fillStyle = '#5A3A22';
+      g.fillRect(11, -1.2, 13, 2.4);
+      g.fillStyle = '#7A4A26';
+      g.beginPath();
+      g.arc(25, 0, 3.5, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+    g.restore();
   }
 
   bronzeDrum(x, y, r, view) {
@@ -1838,19 +1943,23 @@ export class Renderer {
         });
       }
     }
-    const crewOffset = battle.elephant ? 360 : 330;
+    // The drum crew walks behind the ranks, with the two companion drummers
+    // (the barrel drum and the mõ) between them and the archers.
+    const crewOffset = battle.elephant ? 460 : 445;
     const cm = mm.crew;
     this.spring(cm, frontTarget - crewOffset, 2.6, dt);
 
     g.save();
     for (let i = 0; i < 12; i++) if (mm.units[i].alpha > 0.05) this.footShadow(mm.units[i].x, 16 * mm.units[i].alpha);
     this.footShadow(cm.x, battle.elephant ? 110 : 80);
+    this.footShadow(cm.x + (battle.elephant ? 200 : 170), 34);
     this.backlit();
     // The drum crew walks with the army.
     const crewSpeed = Math.abs(cm.v);
     cm.phase = (cm.phase || 0) + (crewSpeed * dt) / 60;
     const crewView = { ...view, crewBob: Math.abs(Math.sin(cm.phase * Math.PI)) * Math.min(1, crewSpeed / 40) * 3 * calm };
     this.drumCrew(cm.x, GROUND, crewView);
+    this.companions(cm.x + (battle.elephant ? 200 : 170), GROUND, crewView);
 
     for (let i = 11; i >= 0; i--) {
       const u = mm.units[i];
@@ -1987,6 +2096,10 @@ export class Renderer {
       f();
       g.restore();
     };
+    // The drum shivers on every stroke.
+    const sh = this.shake(Math.max(this.flash.L, this.flash.R), t, touch ? 3.5 : 2);
+    g.save();
+    g.translate(sh.dx, sh.dy);
     if (touch) this.touchDrumBand(cx, cy, R, t);
     const beatInMeasure = view.heron; // lit heron: the army's beat, or the phrase's
     const beatPhase = view.beatFloat - Math.floor(view.beatFloat);
@@ -2050,6 +2163,7 @@ export class Renderer {
     }
 
     if (touch) this.touchDrumLabels(cx, cy, R);
+    g.restore();
 
     // The phrase: the accepted pattern stays filled until the drum is ready
     // again; while drumming, the likeliest pattern is shown with the strokes
@@ -2228,6 +2342,22 @@ export class Renderer {
     if (touch) this.touchButtons(view);
   }
 
+  /**
+   * A struck drum's shiver: a quick decaying shake for a quarter of a second
+   * after time t0. Returns the offset to draw it at.
+   */
+  shake(t0, t, amp) {
+    const dt = t - t0;
+    if (this.reduceMotion || dt < 0 || dt > 0.25) return { dx: 0, dy: 0, k: 0 };
+    const k = 1 - dt / 0.25;
+    return { dx: Math.sin(dt * 95) * amp * k, dy: Math.cos(dt * 70) * amp * 0.6 * k, k };
+  }
+
+  /** A companion drum was struck: the barrel drum for the shield, the mõ for a reset. */
+  kick(drum, t) {
+    this.kicks[drum] = t;
+  }
+
   // ---------------------------------------------------------------- touch
 
   /**
@@ -2288,7 +2418,16 @@ export class Renderer {
     g.restore();
   }
 
-  /** What a touch at logical (x, y) presses: 'L', 'R', 'guard', 'reset', 'pause'. */
+  /** The strip of rhythm dots above the touch drum, which a swipe clears. */
+  onDots(x, y) {
+    const slotY = TOUCH.drum.y - TOUCH.drum.r * TOUCH.drum.band - 20;
+    return Math.abs(x - TOUCH.drum.x) < 130 && y > slotY - 60 && y < slotY + 18;
+  }
+
+  /**
+   * What a touch at logical (x, y) presses: 'L', 'R', 'guard', 'reset',
+   * 'pause', or 'none' (the dots, kept free so a swipe across them is clean).
+   */
   touchTarget(x, y, mode) {
     const T = TOUCH;
     const near = (b, pad) => Math.hypot(x - b.x, y - b.y) < b.r + pad;
@@ -2297,9 +2436,24 @@ export class Renderer {
     if (near(T.reset, 14)) return 'reset';
     const d = Math.hypot(x - T.drum.x, y - T.drum.y);
     if (d < T.drum.r * T.drum.centre) return 'L';
+    if (this.onDots(x, y) && d > T.drum.r * T.drum.band) return 'none';
     if (d < T.drum.r * T.drum.reach) return 'R';
+    // The battle itself (the army, the enemy, the ground between): shield.
+    if (mode === 'battle' && y > FIELD_TOP && y < GROUND + 34) return 'guard';
     // Anywhere else: the screen's halves, for thumbs at the edges of a phone.
     return x < W / 2 ? 'L' : 'R';
+  }
+
+  /** Does a swipe starting at (x, y) reset the rhythm? From the drum or the dots. */
+  swipeResets(x, y) {
+    const d = Math.hypot(x - TOUCH.drum.x, y - TOUCH.drum.y);
+    return d < TOUCH.drum.r * TOUCH.drum.reach || this.onDots(x, y);
+  }
+
+  /** A swipe: draw its streak. */
+  swiped(x0, y0, x, y, t) {
+    this.swipes = (this.swipes || []).filter((s) => t - s.t < 0.4);
+    this.swipes.push({ x0, y0, x, y, t });
   }
 
   /** A touch landed: ring it, and press the button it hit. */
@@ -2479,12 +2633,15 @@ export class Renderer {
         if (b.time < b.guardReadyAt && !view.shieldsUp) alpha = 0.6;
       }
       const r = pos.r * press;
+      const struck = id === 'guard' ? this.kicks.chau : id === 'reset' ? this.kicks.mo : -9;
+      const bs = this.shake(Math.max(struck, this.pressed[id] ?? -9), t, id === 'pause' ? 0 : 4);
       g.save();
+      g.translate(bs.dx, bs.dy);
       g.globalAlpha = alpha;
       g.shadowColor = glow ? P.bronzeLight : 'rgba(0,0,0,0.55)';
       g.shadowBlur = glow ? 20 + 14 * glow : 10;
       g.shadowOffsetY = glow ? 0 : 4;
-      const hit = since < 0.25 ? 1 - since / 0.25 : 0;
+      const hit = Math.max(since < 0.25 ? 1 - since / 0.25 : 0, bs.k);
       if (sheet) {
         const cw = sheet.width / 3;
         g.drawImage(sheet, cellIx * cw, 0, cw, sheet.height, pos.x - r / 0.9, pos.y - r / 0.9, (2 * r) / 0.9, (2 * r) / 0.9);
@@ -2527,6 +2684,20 @@ export class Renderer {
         g.fillText(id === 'guard' ? 'Shield' : 'Reset', pos.x, pos.y - pos.r - 10);
         g.restore();
       }
+    }
+    // A swipe's streak, fading.
+    for (const sw of (this.swipes || []).filter((q) => t - q.t < 0.4)) {
+      const q = (t - sw.t) / 0.4;
+      g.save();
+      g.globalAlpha = 0.8 * (1 - q);
+      g.strokeStyle = P.paper;
+      g.lineWidth = 10 * (1 - q) + 2;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(sw.x0, sw.y0);
+      g.lineTo(sw.x, sw.y);
+      g.stroke();
+      g.restore();
     }
     // Rings where fingers landed.
     this.taps = this.taps.filter((p) => t - p.t < 0.35);

@@ -18,10 +18,11 @@ const PAD_NAV = { [PAD.UP]: 'up', [PAD.DOWN]: 'down', [PAD.LEFT]: 'left', [PAD.R
 const DEAD = 0.5;
 const REPEAT_FIRST = 0.38;
 const REPEAT_NEXT = 0.14;
+const SWIPE = 110; // logical pixels a finger must travel sideways to swipe
 
 export class Input {
   constructor(target) {
-    this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [], action: [], touch: [] };
+    this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [], action: [], touch: [], swipe: [] };
     this.mode = 'menu'; // 'menu' | 'play'
     this.device = 'keyboard';
     this.padIndex = null;
@@ -63,15 +64,34 @@ export class Input {
     // Touch and pen: the game lays out a big drum and on-screen buttons, so
     // pass the point on in the canvas's 1280 x 720 coordinates. Listening on
     // the whole app lets the letterbox beside the canvas take thumb taps too.
-    (target.parentElement || target).addEventListener('pointerdown', (e) => {
-      if (this.mode !== 'play' || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
+    const app = target.parentElement || target;
+    const logical = (e) => {
       const r = target.getBoundingClientRect();
+      return { x: ((e.clientX - r.left) / r.width) * 1280, y: ((e.clientY - r.top) / r.height) * 720 };
+    };
+    const fingers = new Map(); // pointerId -> where and when it landed
+    app.addEventListener('pointerdown', (e) => {
+      if (this.mode !== 'play' || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
       this.setDevice('touch');
-      const x = ((e.clientX - r.left) / r.width) * 1280;
-      const y = ((e.clientY - r.top) / r.height) * 720;
-      this.emit('touch', { x, y, time: e.timeStamp });
+      const p = logical(e);
+      fingers.set(e.pointerId, { ...p, time: e.timeStamp, swiped: false });
+      this.emit('touch', { ...p, time: e.timeStamp });
       e.preventDefault();
     });
+    // A quick sideways stroke of one finger is a swipe (the game uses it to
+    // reset the rhythm when it starts on the drum or the dots).
+    app.addEventListener('pointermove', (e) => {
+      const f = fingers.get(e.pointerId);
+      if (!f || f.swiped || this.mode !== 'play') return;
+      const p = logical(e);
+      const dx = p.x - f.x;
+      const dy = p.y - f.y;
+      if (e.timeStamp - f.time < 700 && Math.abs(dx) > SWIPE && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+        f.swiped = true;
+        this.emit('swipe', { x0: f.x, y0: f.y, x: p.x, y: p.y, time: e.timeStamp });
+      }
+    });
+    for (const type of ['pointerup', 'pointercancel']) app.addEventListener(type, (e) => fingers.delete(e.pointerId));
   }
 
   on(type, fn) {

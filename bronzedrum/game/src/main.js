@@ -354,7 +354,14 @@ input.on('touch', ({ x, y, time }) => {
   renderer.touched(x, y, target, songTime());
   if (target === 'L' || target === 'R') strike(target, time);
   else if (target === 'pause') pause();
-  else act(target, time);
+  else if (target !== 'none') act(target, time);
+});
+// A swipe across the drum or the dots resets the rhythm, like the mõ.
+input.on('swipe', ({ x0, y0, x, y, time }) => {
+  if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  if (!renderer.swipeResets(x0, y0)) return;
+  renderer.swiped(x0, y0, x, y, songTime());
+  act('reset', time);
 });
 
 function strike(drum, time) {
@@ -377,6 +384,7 @@ function act(action, time) {
     // Clear the phrase: a knock on the wooden slit drum (mõ), the dots tumble
     // away and "Cleared" shows under the drum.
     sound.play('drum-mo', sound.now, 0.8);
+    renderer.kick('mo', songTime());
     input.rumble(25, 0.3);
     const shown = view().phraseView;
     const events = game.reader.reset();
@@ -388,6 +396,7 @@ function act(action, time) {
     if (guard(game.battle, Math.max(t, game.battle.time))) {
       // A stroke on the big hide barrel drum (trống chầu) calls the shields up.
       sound.play('drum-chau', sound.now, 0.9);
+      renderer.kick('chau', songTime());
       sound.play('cmd-shield', sound.now + 0.04, 0.6);
       input.rumble(40, 0.3);
       game.guards += 1;
@@ -905,6 +914,10 @@ async function boot() {
   applySettings();
   if (coarsePointer.matches) $('#title-hint').textContent = 'Best played with the device sideways';
   buildCommandTable();
+  // The title is usable at once: on a slow connection the player may press
+  // start before the art has arrived, so loading must not send them back.
+  show('title');
+  requestAnimationFrame(frame);
   await art.load();
   const logo = art.get('logo');
   if (logo) {
@@ -913,8 +926,13 @@ async function boot() {
     $('#logo-img').hidden = false;
     $('#logo-text').classList.add('visually-hidden');
   }
-  show('title');
-  requestAnimationFrame(frame);
+  // Cards built before the art arrived get their pictures now.
+  document.querySelectorAll('#stage-cards .card-art').forEach((el, i) => {
+    const img = art.get(`card-${STAGES[i].id}`);
+    if (!img) return;
+    el.classList.remove('plain');
+    el.style.backgroundImage = `url(${img.src})`;
+  });
 }
 
 // Debug hooks for automated checks.
