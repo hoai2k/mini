@@ -21,7 +21,7 @@ const REPEAT_NEXT = 0.14;
 
 export class Input {
   constructor(target) {
-    this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [] };
+    this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [], action: [] };
     this.mode = 'menu'; // 'menu' | 'play'
     this.device = 'keyboard';
     this.padIndex = null;
@@ -46,8 +46,16 @@ export class Input {
     target.addEventListener('pointerdown', (e) => {
       if (this.mode !== 'play') return;
       const r = target.getBoundingClientRect();
-      const drum = e.clientX - r.left < r.width / 2 ? 'L' : 'R';
       this.setDevice('pointer');
+      // Tapping the bronze drum in the HUD raises the guard.
+      const dx = ((e.clientX - r.left) / r.width - 0.5) * 1280;
+      const dy = ((e.clientY - r.top) / r.height - 640 / 720) * 720;
+      if (Math.hypot(dx, dy) < 80) {
+        this.emit('action', { action: 'guard', time: e.timeStamp });
+        e.preventDefault();
+        return;
+      }
+      const drum = e.clientX - r.left < r.width / 2 ? 'L' : 'R';
       this.emit('drum', { drum, time: e.timeStamp });
       e.preventDefault();
     });
@@ -77,6 +85,12 @@ export class Input {
     if (this.mode === 'play') {
       if (DRUM_KEYS[e.code]) {
         this.emit('drum', { drum: DRUM_KEYS[e.code], time: e.timeStamp });
+        e.preventDefault();
+        return;
+      }
+      const act = { Space: 'guard', KeyR: 'reset', Backspace: 'reset' }[e.code];
+      if (act) {
+        this.emit('action', { action: act, time: e.timeStamp });
         e.preventDefault();
         return;
       }
@@ -129,6 +143,8 @@ export class Input {
       this.emit('padButton', i);
       if (this.mode === 'play') {
         if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: now });
+        else if (i === PAD.A) this.emit('action', { action: 'guard', time: now });
+        else if (i === PAD.Y) this.emit('action', { action: 'reset', time: now });
         else if (i === PAD.MENU || i === PAD.VIEW) this.emit('nav', 'menu');
       } else if (PAD_NAV[i]) {
         this.emit('nav', PAD_NAV[i]);

@@ -4,7 +4,10 @@
 // drawn instead (ids match assets/manifest.json).
 
 import { PALETTE as P, SKIES } from './palette.js';
-import { COMMANDS } from './rhythm.js';
+import { COMMANDS, parsePattern } from './rhythm.js';
+import { GUARD } from './battle.js';
+
+const ROMAN = ['', 'I', 'II', 'III'];
 
 export const W = 1280;
 export const H = 720;
@@ -209,6 +212,7 @@ export class Renderer {
     this.particles = [];
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
+    this.motion = { front: 0, frontM: { x: 0, v: 0 }, crew: { x: -330, v: 0 }, units: [], enemies: new Map() };
     this.layers = {
       sky: this.buildSky(stage.sky),
       karstFar: this.buildKarst(true),
@@ -606,9 +610,15 @@ export class Renderer {
   warrior(x, y, s, pose, t, archer) {
     const g = this.ctx;
     const img = this.art.get(archer ? 'unit-archer' : 'unit-spear');
-    if (img) return this.sprite(img, x, y, 92 * s, pose);
+    if (img) {
+      this.sprite(img, x, y, 92 * s, pose);
+      if (pose.shield) this.roundShield(x + 14 * s + (pose.lean || 0), y - 40 * s - (pose.bob || 0), 11 * s, pose.alpha);
+      return;
+    }
     g.save();
-    g.translate(x, y);
+    if (pose.alpha !== undefined) g.globalAlpha *= pose.alpha;
+    g.translate(x + (pose.lean || 0), y);
+    g.rotate(pose.tilt || 0);
     g.scale(s, s);
     const bob = pose.bob;
     g.translate(0, -bob);
@@ -663,7 +673,7 @@ export class Renderer {
       // Spear: levelled on a thrust, upright otherwise.
       g.save();
       g.translate(6, -44);
-      g.rotate(pose.thrust ? 1.45 : 0.2);
+      g.rotate(0.2 + 1.25 * Math.min(1, pose.thrust || 0));
       g.translate(pose.thrust * 10, 0);
       g.fillRect(-1.3, -44, 2.6, 70);
       g.beginPath();
@@ -684,12 +694,26 @@ export class Renderer {
     g.restore();
   }
 
+  /** A round hide shield with a cut star, raised in front of a warrior. */
+  roundShield(x, y, r, alpha = 1) {
+    const g = this.ctx;
+    g.save();
+    g.globalAlpha *= alpha;
+    g.fillStyle = P.bronze;
+    g.beginPath();
+    g.ellipse(x, y, r * 0.75, r, 0, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = P.bronzeLight;
+    star(g, x, y, r * 0.6, r * 0.25, 8);
+    g.restore();
+  }
+
   /** A Han soldier, facing left: iron grey, conical cap, lamellar coat. */
   hanSoldier(e, x, y, t, beatPhase) {
     const g = this.ctx;
     const crossbow = e.type === 'crossbow';
     const img = this.art.get(crossbow ? 'han-crossbow' : 'han-spear');
-    if (img) return this.sprite(img, x, y, 96, { bob: 0 }, e);
+    if (img) return this.sprite(img, x, y, 96, e.pose || { bob: 0 });
     g.save();
     g.translate(x, y - (crossbow ? 0 : Math.abs(Math.sin(beatPhase * Math.PI)) * 2));
     g.fillStyle = P.ironDark;
@@ -826,6 +850,48 @@ export class Renderer {
     this.hpBar(x, y - 126, e, 50);
   }
 
+  /**
+   * A cut-paper "!" over every Han about to strike, ringed by a circle that
+   * closes on the moment the blow lands: the cue for the guard. The ring
+   * brightens inside the guard's window and turns gold in the perfect one.
+   */
+  threatMarks(view) {
+    const g = this.ctx;
+    const pulse = 0.85 + 0.15 * Math.sin(view.songTime * 14);
+    const left = Math.max(0, view.nextHanAt - view.songTime);
+    const frac = Math.min(1, left / view.hanBeat);
+    const ringColor = left <= GUARD.perfect ? P.bronzeLight : left <= GUARD.window ? P.paper : P.lacquer;
+    for (const e of view.threats || []) {
+      const x = e.x * U + (e.type === 'fort' ? 90 : 0);
+      const y = GROUND - (e.type === 'fort' ? 380 : e.type === 'crossbow' ? 112 : 130);
+      g.save();
+      g.translate(x, y);
+      g.scale(pulse, pulse);
+      g.fillStyle = P.lacquer;
+      g.shadowColor = this.sky.glow;
+      g.shadowBlur = 10;
+      g.beginPath();
+      g.moveTo(0, -20);
+      g.lineTo(15, 6);
+      g.lineTo(-15, 6);
+      g.closePath();
+      g.fill();
+      g.shadowBlur = 0;
+      g.fillStyle = P.paper;
+      g.fillRect(-1.6, -11, 3.2, 9);
+      g.fillRect(-1.6, 0, 3.2, 3);
+      g.restore();
+      g.save();
+      g.strokeStyle = ringColor;
+      g.lineWidth = left <= GUARD.window ? 3 : 2;
+      g.globalAlpha = 0.9;
+      g.beginPath();
+      g.arc(x, y - 5, 16 + 30 * frac, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+    }
+  }
+
   /** Knife cuts in a figure: light from the lamp shows through them. */
   cutLight(g) {
     g.save();
@@ -868,9 +934,20 @@ export class Renderer {
     g.fillRect(x - w / 2, y, (w * e.hp) / e.maxHp, 5);
   }
 
+  /** Draw a cut-out standing at (x, y): bob lifts it, tilt rocks it about its feet, lean shifts it. */
   sprite(img, x, y, h, pose = { bob: 0 }) {
     const w = (img.width / img.height) * h;
-    this.ctx.drawImage(img, x - w / 2, y - h - (pose.bob || 0), w, h);
+    const g = this.ctx;
+    if (!pose.tilt && !pose.lean && pose.alpha === undefined) {
+      g.drawImage(img, x - w / 2, y - h - (pose.bob || 0), w, h);
+      return;
+    }
+    g.save();
+    if (pose.alpha !== undefined) g.globalAlpha *= pose.alpha;
+    g.translate(x + (pose.lean || 0), y - (pose.bob || 0));
+    g.rotate(pose.tilt || 0);
+    g.drawImage(img, -w / 2, -h, w, h);
+    g.restore();
   }
 
   /** The bronze drum with both sisters: on a carrying frame, or the elephant. */
@@ -881,7 +958,8 @@ export class Renderer {
     const armR = Math.max(0, 1 - (t - this.flash.R) * 6);
     if (view.battle.elephant) {
       const charging = view.battle.order && view.battle.order.command === 'charge';
-      const step = charging ? Math.sin(t * 14) * 4 : Math.sin(view.beatFloat * Math.PI) * 1.5;
+      // The elephant's gait comes from how fast it is actually moving.
+      const step = charging && view.cycle ? this.strokePulse(view.cycle, t).pulse * 7 : view.crewBob || 0;
       const img = this.art.get('war-elephant');
       if (img) {
         // Painted art: the sisters stand inside the howdah, so draw them
@@ -897,8 +975,9 @@ export class Renderer {
       if (img) {
         // The sisters stand at the two ends of the palanquin deck, the drum
         // showing between them.
-        this.sprite(img, x, y, 150, { bob: 0 });
-        this.sisters(x, y - 52, armL, armR, view, 64);
+        const bob = view.crewBob || 0;
+        this.sprite(img, x, y, 150, { bob });
+        this.sisters(x, y - 52 - bob, armL, armR, view, 64);
         return;
       }
       {
@@ -1071,7 +1150,7 @@ export class Renderer {
       } else if (ev.type === 'wound') {
         const ax = view.battle.army.x * U;
         this.scraps(ax - 30, GROUND - 50, ev.shielded ? 3 : 8, ev.shielded ? [P.bronzeLight] : [P.lacquer, P.ink]);
-        if (ev.shielded) this.floaters.push({ x: ax, y: GROUND - 150, text: 'blocked', t, color: P.bronzeLight });
+        if (ev.block) this.floaters.push({ x: ax, y: GROUND - 150, text: ev.block === 'perfect' ? 'perfect block!' : 'blocked', t, color: ev.block === 'perfect' ? P.bronzeLight : P.paper });
       } else if (ev.type === 'rally') {
         this.floaters.push({ x: view.battle.army.x * U - 120, y: GROUND - 170, text: `+${Math.round(ev.amount)}`, t, color: P.verdigris });
       } else if (ev.type === 'trample') {
@@ -1106,7 +1185,7 @@ export class Renderer {
   draw(view, dt) {
     const g = this.ctx;
     const { battle, songTime: t } = view;
-    const targetCam = battle.army.x * U - ARMY_SCREEN_X;
+    const targetCam = (this.motion ? this.motion.front : battle.army.x * U) - ARMY_SCREEN_X;
     this.cam += (targetCam - this.cam) * Math.min(1, dt * 4);
     let sx = 0;
     if (this.shake && t < this.shake && !this.reduceMotion) sx = (Math.random() - 0.5) * 10;
@@ -1131,18 +1210,22 @@ export class Renderer {
     g.translate(-this.cam, 0);
     const beatPhase = view.beatFloat % 1;
     for (const e of battle.enemies) {
-      if (!e.alive) continue;
-      const x = e.x * U;
+      const m = this.enemyMotion(e, t, dt);
+      if (!m) continue;
+      const x = m.x;
       if (x - this.cam < -300 || x - this.cam > W + 300) continue;
       g.save();
+      g.globalAlpha = m.alpha;
       this.footShadow(x + (e.type === 'fort' ? 90 : 0), e.type === 'fort' ? 130 : 22);
       this.backlit();
+      const shown = { ...e, pose: { bob: m.bob, tilt: m.tilt } };
       if (e.type === 'fort') this.fort(e, x, GROUND);
       else if (e.type === 'target') this.target(e, x, GROUND, t);
-      else this.hanSoldier(e, x, GROUND, t, beatPhase);
+      else this.hanSoldier(shown, x, GROUND, t, beatPhase);
       g.restore();
     }
-    this.army(view);
+    this.army(view, dt);
+    this.threatMarks(view);
     this.drawParticles(t, dt);
     g.restore();
 
@@ -1165,31 +1248,162 @@ export class Renderer {
     this.hud(view);
   }
 
-  army(view) {
+  /**
+   * A soft spring toward a target: the figure accelerates and settles
+   * instead of jumping. k sets how quickly it follows.
+   */
+  spring(m, target, k, dt) {
+    const a = k * k * (target - m.x) - 2 * k * m.v;
+    m.v += a * dt;
+    m.x += m.v * dt;
+  }
+
+  /** Smoothed position and gait of one Han (or a target, or the fort). */
+  enemyMotion(e, t, dt) {
+    const mm = this.motion;
+    let m = mm.enemies.get(e.id);
+    if (!m) {
+      m = { x: e.x * U, v: 0, phase: Math.random(), k: 2.6 + Math.random() * 0.8, alpha: 1, fell: null };
+      mm.enemies.set(e.id, m);
+    }
+    if (!e.alive) {
+      // Fall and fade rather than vanish.
+      if (m.fell === null) m.fell = t;
+      const k = (t - m.fell) / 0.5;
+      if (k >= 1 || this.reduceMotion) return null;
+      m.alpha = 1 - k;
+      m.tilt = (e.type === 'fort' ? 0 : 0.9) * k;
+      m.bob = -6 * k;
+      return m;
+    }
+    if (e.type !== 'fort' && e.type !== 'target') this.spring(m, e.x * U, m.k, dt);
+    else m.x = e.x * U;
+    const speed = Math.abs(m.v);
+    m.phase += (speed * dt) / 44;
+    const gait = this.reduceMotion ? 0 : Math.min(1, speed / 40);
+    m.bob = Math.abs(Math.sin(m.phase * Math.PI)) * 4 * gait + Math.sin(t * 2 + e.id) * 0.6;
+    m.tilt = Math.sin(m.phase * Math.PI * 2) * 0.05 * gait;
+    m.alpha = 1;
+    return m;
+  }
+
+  /**
+   * The army moves on the rhythm that was drummed: how strongly a figure is
+   * caught in a stroke at time tt (1 on the stroke, falling away after), and
+   * how many strokes she has made this cycle. drum limits it to tùng or cắc.
+   */
+  strokePulse(cycle, tt, drum = null) {
+    if (!cycle || tt < cycle.start) return { pulse: 0, count: 0 };
+    const local = tt - cycle.start;
+    let last = null;
+    let count = 0;
+    for (const s of cycle.strokes) {
+      if (drum && s.drum !== drum) continue;
+      const st = s.pos * cycle.u;
+      if (st <= local) {
+        last = st;
+        count += 1;
+      }
+    }
+    if (last === null || local > 4 * cycle.u) return { pulse: 0, count };
+    return { pulse: Math.exp(-(local - last) / Math.min(0.14, cycle.u * 0.35)), count };
+  }
+
+  army(view, dt) {
     const g = this.ctx;
     const { battle, songTime: t } = view;
     const order = battle.order;
     const cmd = order ? order.command : null;
-    const phase = view.beatFloat % 1;
-    const bob = this.reduceMotion ? 0 : Math.abs(Math.sin(phase * Math.PI)) * (cmd === 'march' || cmd === 'charge' ? 6 : 2);
-    const thrust = cmd === 'strike' ? Math.max(0, Math.sin(phase * Math.PI)) : 0;
-    const shielded = battle.beat <= battle.shieldUntil;
+    const shielded = view.shieldsUp;
     const n = battle.army.troops <= 0 ? 0 : Math.max(1, Math.ceil((battle.army.troops / battle.army.maxTroops) * 12));
-    const front = battle.army.x * U;
+    const mm = this.motion;
+    const frontTarget = battle.army.x * U;
+    // The formation's front glides after the simulation's position.
+    const fm = mm.frontM;
+    const moving = view.cycle && (view.cycle.command === 'march' || view.cycle.command === 'charge');
+    // On a march the formation surges forward on each drummed stroke.
+    const surge = moving ? this.strokePulse(view.cycle, t).pulse : 0;
+    this.spring(fm, frontTarget, 2 + 7 * surge, dt);
+    mm.front = fm.x;
+    const calm = this.reduceMotion ? 0 : 1;
+
+    // Each soldier follows her own slot on her own spring: the front rank
+    // a little quicker, small drifts in spacing, her own stride.
+    if (mm.units.length === 0) {
+      for (let i = 0; i < 12; i++) {
+        const col = Math.floor(i / 2);
+        mm.units.push({
+          x: frontTarget - 20 - col * 34 - (i % 2) * 14,
+          v: 0,
+          k: 3.6 - col * 0.18 + Math.random() * 0.5,
+          phase: Math.random(),
+          drift: Math.random() * Math.PI * 2,
+          delay: col * 0.07 + Math.random() * 0.05,
+          alpha: 1,
+        });
+      }
+    }
+    const crewOffset = battle.elephant ? 360 : 330;
+    const cm = mm.crew;
+    this.spring(cm, frontTarget - crewOffset, 2.6, dt);
+
     g.save();
-    for (let i = 0; i < n; i++) this.footShadow(front - 20 - Math.floor(i / 2) * 34 - (i % 2) * 14, 16);
-    this.footShadow(front - (battle.elephant ? 360 : 330), battle.elephant ? 110 : 80);
+    for (let i = 0; i < 12; i++) if (mm.units[i].alpha > 0.05) this.footShadow(mm.units[i].x, 16 * mm.units[i].alpha);
+    this.footShadow(cm.x, battle.elephant ? 110 : 80);
     this.backlit();
-    const crewX = front - (battle.elephant ? 360 : 330);
-    this.drumCrew(crewX, GROUND, view);
-    for (let i = 0; i < n; i++) {
+    // The drum crew walks with the army.
+    const crewSpeed = Math.abs(cm.v);
+    cm.phase = (cm.phase || 0) + (crewSpeed * dt) / 60;
+    const crewView = { ...view, crewBob: Math.abs(Math.sin(cm.phase * Math.PI)) * Math.min(1, crewSpeed / 40) * 3 * calm };
+    this.drumCrew(cm.x, GROUND, crewView);
+
+    for (let i = 11; i >= 0; i--) {
+      const u = mm.units[i];
       const archer = i >= 8;
       const row = i % 2;
       const col = Math.floor(i / 2);
-      const x = front - 20 - col * 34 - row * 14;
+      const alive = i < n;
+      const slot = frontTarget - 20 - col * 34 - row * 14 + Math.sin(t * 0.5 + u.drift) * 3 * calm;
+      if (alive) {
+        this.spring(u, slot, u.k, dt);
+        u.alpha = Math.min(1, u.alpha + dt * 4);
+        u.fall = 0;
+      } else {
+        // Fallen: topple and fade where she stood.
+        u.alpha = Math.max(0, u.alpha - dt * 2.2);
+        u.fall = Math.min(1, (u.fall || 0) + dt * 2.2);
+        u.v *= 0.9;
+      }
+      if (u.alpha <= 0.02) continue;
+      const speed = Math.abs(u.v);
+      const gait = Math.min(1, speed / 35) * calm;
+      // Her own moment in the drummed rhythm: a ripple from front to back.
+      const cyc = alive ? view.cycle : null;
+      const tt = t - u.delay;
+      let thrust = 0;
+      let bob = Math.sin(t * 2.2 + u.drift) * 0.8 * calm;
+      let tilt = (u.fall || 0) * -1.2;
+      if (cyc && cyc.command === 'march') {
+        // One step on every stroke: the foot lands on the drum.
+        const { pulse, count } = this.strokePulse(cyc, tt);
+        bob += pulse * 6 * calm;
+        tilt += (count % 2 ? 1 : -1) * 0.07 * pulse * calm;
+      } else if (cyc && cyc.command === 'strike') {
+        // Spears thrust on Trắc's strokes, bows loose on Nhị's.
+        thrust = this.strokePulse(cyc, tt, archer ? 'R' : 'L').pulse * calm;
+        tilt += thrust * 0.12;
+        bob += thrust * 2;
+      } else if (cyc && cyc.command === 'rally') {
+        bob += this.strokePulse(cyc, tt).pulse * 9 * calm;
+      } else {
+        // Between orders: a walking gait if still catching up, else breathing.
+        u.phase += (speed * dt) / 40;
+        bob += Math.abs(Math.sin(u.phase * Math.PI)) * 5 * gait;
+        tilt += Math.sin(u.phase * Math.PI * 2) * 0.06 * gait;
+      }
+      bob *= u.alpha;
       const y = GROUND + row * 10;
-      const stagger = this.reduceMotion ? 0 : Math.sin(t * 3 + i) * 0.6;
-      this.warrior(x, y, 1 - row * 0.06, { bob: bob + stagger, thrust, shield: shielded, raise: cmd === 'strike' }, t, archer);
+      this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive, raise: thrust > 0.3, alpha: u.alpha }, t, archer);
     }
     g.restore();
   }
@@ -1258,16 +1472,16 @@ export class Renderer {
     const cx = W / 2;
     const cy = H - 80;
     const R = 64;
-    const beatInMeasure = ((Math.floor(view.beatFloat) % 4) + 4) % 4;
+    const beatInMeasure = view.heron; // lit heron: the army's beat, or the phrase's
     const beatPhase = view.beatFloat - Math.floor(view.beatFloat);
     const responding = view.inResponse;
 
     // The drum face (tympanum): rings, herons, the star.
     const img = this.art.get('hud-drum');
     g.save();
-    g.shadowColor = 'rgba(0,0,0,0.5)';
-    g.shadowBlur = 14;
-    g.shadowOffsetY = 6;
+    g.shadowColor = view.ready ? P.bronzeLight : 'rgba(0,0,0,0.5)';
+    g.shadowBlur = view.ready ? 18 + 8 * Math.sin(t * 4) : 14;
+    g.shadowOffsetY = view.ready ? 0 : 6;
     if (img) g.drawImage(img, cx - R, cy - R, R * 2, R * 2);
     else {
       g.fillStyle = P.bronze;
@@ -1287,7 +1501,7 @@ export class Renderer {
       }
       g.globalAlpha = 1;
     }
-    // Four herons around the ring: one per beat of the measure.
+    // Four herons around the ring: one per beat of the pattern or the answer.
     for (let i = 0; i < 4; i++) {
       const a = -Math.PI / 2 + (i / 4) * Math.PI * 2;
       const hx = cx + Math.cos(a) * (R - 13);
@@ -1301,8 +1515,8 @@ export class Renderer {
       leaf(g, 0, 0, lit ? 13 : 10, Math.PI + 0.4, 0.3);
       g.restore();
     }
-    // Star pulses on the beat; flashes on hits.
-    const pulse = Math.max(0, 1 - beatPhase * 3);
+    // Star pulses with the army's beat; flashes on strokes.
+    const pulse = responding ? Math.max(0, 1 - beatPhase * 3) : 0;
     const fl = Math.max(0, 1 - (t - this.flash.L) * 5);
     const fr = Math.max(0, 1 - (t - this.flash.R) * 5);
     g.fillStyle = view.spirit ? P.bronzeLight : P.paper;
@@ -1319,26 +1533,37 @@ export class Renderer {
       g.globalAlpha = 1;
     }
 
-    // The phrase being drummed: four slots.
+    // The phrase: the accepted pattern stays filled until the drum is ready
+    // again; while drumming, the likeliest pattern is shown with the strokes
+    // still to come drawn faintly.
     const slotY = cy - R - 26;
-    for (let i = 0; i < 4; i++) {
-      const x = cx - 54 + i * 36;
-      const d = view.phrase[i];
-      g.strokeStyle = P.paper;
-      g.globalAlpha = 0.6;
-      g.lineWidth = 1.5;
-      g.beginPath();
-      g.arc(x, slotY, 11, 0, Math.PI * 2);
-      g.stroke();
+    const ph = view.phraseView;
+    if (ph) {
+      const cell = 36;
+      this.pattern(cx - 2 * cell, slotY, ph.pattern, 11, cell, ph.filled, ph.done);
+    } else {
+      if (view.sustaining) {
+        g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
+        g.textAlign = 'center';
+        g.fillStyle = P.paperShade;
+        g.fillText('The army keeps your rhythm — drum the next command', cx, slotY - 26);
+      }
+      for (let i = 0; i < 4; i++) {
+        g.strokeStyle = P.paper;
+        g.globalAlpha = view.ready ? 0.45 + 0.25 * Math.sin(t * 4) : 0.35;
+        g.lineWidth = 1.5;
+        g.beginPath();
+        g.arc(cx - 54 + i * 36, slotY, 11, 0, Math.PI * 2);
+        g.stroke();
+      }
       g.globalAlpha = 1;
-      if (d) this.glyph(x, slotY, d, 11);
     }
     g.font = '600 15px "Be Vietnam Pro", system-ui, sans-serif';
     g.textAlign = 'center';
     g.fillStyle = P.paper;
-    if (responding && view.responseCommand) {
-      const c = COMMANDS.find((k) => k.id === view.responseCommand);
-      g.fillText(`${c.name}! — ${c.gloss}`, cx, slotY - 26);
+    if (ph && ph.done) {
+      const c = COMMANDS.find((k) => k.id === ph.pattern.command);
+      g.fillText(`${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`, cx, slotY - 26);
     }
 
     // Judgement text.
@@ -1359,19 +1584,29 @@ export class Renderer {
       g.fillText(view.spirit ? `Trống thức — the drum wakes ×${view.combo}` : `Chain ×${view.combo}`, cx + R + 22, cy + 8);
     }
 
-    // Command list, kept low so it stays clear of the field.
+    // Command list: every unlocked command and tier, kept low and clear of
+    // the field. The tier being played is lit.
     g.textAlign = 'left';
     const list = COMMANDS.filter((c) => view.unlocked.includes(c.id));
     const px = 22;
-    const rowH = 23;
-    let py = H - 16 - (list.length - 1) * rowH;
-    g.fillStyle = 'rgba(22,21,26,0.55)';
-    g.fillRect(px - 10, py - 20, 268, list.length * rowH + 10);
+    const rowH = 22;
+    const cellS = 12;
+    let py = H - 14 - (list.length - 1) * rowH;
+    g.fillStyle = 'rgba(22,21,26,0.6)';
+    g.fillRect(px - 10, py - 19, 120 + view.maxTier * 84, list.length * rowH + 8);
     for (const c of list) {
-      [...c.pattern].forEach((d, i) => this.glyph(px + 7 + i * 18, py - 5, d, 6.5));
-      g.font = '600 15px "Be Vietnam Pro", system-ui, sans-serif';
-      g.fillStyle = view.responseCommand === c.id && responding ? P.bronzeLight : P.paper;
-      g.fillText(`${c.name}  ·  ${c.gloss}`, px + 84, py);
+      const active = ph && ph.done && ph.pattern.command === c.id;
+      g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
+      g.fillStyle = active ? P.bronzeLight : P.paper;
+      g.fillText(`${c.name} · ${c.gloss.replace('Elephant charge', 'Charge')}`, px, py);
+      c.tiers.slice(0, view.maxTier).forEach((text, i) => {
+        const x0 = px + 116 + i * 84;
+        const lit = active && ph.pattern.tier === i + 1;
+        g.font = '600 11px "Be Vietnam Pro", system-ui, sans-serif';
+        g.fillStyle = lit ? P.bronzeLight : 'rgba(242,232,213,0.6)';
+        g.fillText(ROMAN[i + 1], x0, py);
+        this.pattern(x0 + 18, py - 5, { strokes: parsePattern(text) }, 4.4, cellS, Infinity, lit, true);
+      });
       py += rowH;
     }
 
@@ -1391,6 +1626,53 @@ export class Renderer {
       g.fillStyle = P.paper;
       g.fillText(view.hint, cx, 94);
     }
+  }
+
+  /**
+   * A pattern as beat cells: one stroke fills its cell, a pair or a triplet
+   * shares it (smaller, joined by a beam). The first `filled` strokes are
+   * solid; the rest are faint, still to come.
+   */
+  pattern(x, y, pattern, r, cell, filled = Infinity, glow = false, small = false) {
+    const g = this.ctx;
+    const strokes = pattern.strokes;
+    const perBeat = {};
+    for (const s of strokes) perBeat[Math.floor(s.pos)] = (perBeat[Math.floor(s.pos)] || 0) + 1;
+    strokes.forEach((s, i) => {
+      const beat = Math.floor(s.pos);
+      const n = perBeat[beat];
+      const inner = s.pos - beat;
+      const rr = n === 1 ? r : n === 2 ? r * 0.72 : r * 0.62;
+      const sx = x + beat * cell + cell / 2 + (n === 1 ? 0 : (inner - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95));
+      g.globalAlpha = i < filled ? 1 : 0.28;
+      if (glow && i < filled && !small) {
+        g.save();
+        g.shadowColor = P.bronzeLight;
+        g.shadowBlur = 10;
+        this.glyph(sx, y, s.drum, rr);
+        g.restore();
+      } else this.glyph(sx, y, s.drum, rr);
+    });
+    // Beams under pairs and triplets.
+    g.globalAlpha = 0.8;
+    g.strokeStyle = P.paper;
+    g.lineWidth = small ? 1 : 1.5;
+    for (const [beat, n] of Object.entries(perBeat)) {
+      if (n < 2) continue;
+      const bx = x + Number(beat) * cell + cell / 2;
+      const half = ((n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95);
+      g.beginPath();
+      g.moveTo(bx - half, y + r + 3);
+      g.lineTo(bx + half, y + r + 3);
+      g.stroke();
+      if (n === 3 && !small) {
+        g.font = '600 10px "Be Vietnam Pro", system-ui, sans-serif';
+        g.textAlign = 'center';
+        g.fillStyle = P.paper;
+        g.fillText('3', bx, y + r + 14);
+      }
+    }
+    g.globalAlpha = 1;
   }
 
   glyph(x, y, d, r) {

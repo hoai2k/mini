@@ -1,5 +1,10 @@
-// Battle simulation, stepped once per beat. Pure and deterministic: the
-// renderer reads the state and the events, it never changes them.
+import { precisionFactor } from './rhythm.js';
+
+// Battle simulation. Pure and deterministic: the renderer reads the state and
+// the events, it never changes them. Two clocks drive it: the army acts on the
+// player's own beats (stepArmy, four per order), and the Han act on the steady
+// beat of their war drum (stepEnemies, at the chapter's tempo). Times are
+// seconds on the game clock.
 
 export const ENEMY_TYPES = {
   target: { hp: 30, goal: true, faction: 'straw' },
@@ -11,10 +16,14 @@ export const ENEMY_TYPES = {
 const MELEE_REACH = 3;
 const ARCHER_REACH = 12;
 const CONTACT_GAP = 1.5;
-const SHIELD_FACTOR = 0.2;
-const SPEAR_HIT = 2; // every 2 beats in contact
-const BOLT_VOLLEY = 2; // every 4 beats in range
-const FORT_VOLLEY = 3;
+// The guard: shields thrown up against a blow, timed to the blow itself and
+// separate from the drum (it neither reads nor changes the rhythm). Raised
+// within `window` seconds before a blow lands it takes most of it; within
+// `perfect` seconds, nearly all. Then a moment to recover.
+export const GUARD = { window: 0.5, perfect: 0.2, good: 0.35, best: 0.1, recover: 0.45 };
+const SPEAR_HIT = 1.5; // every 2 Han beats in contact
+const BOLT_VOLLEY = 1.5; // every 4 Han beats in range
+const FORT_VOLLEY = 2.25;
 
 export function createBattle(stage) {
   let id = 0;
@@ -27,20 +36,35 @@ export function createBattle(stage) {
       const hp = e.hp ?? type.hp;
       return { id: id++, type: e.type, x: e.x, hp, maxHp: hp, goal: type.goal, cooldown: 0, alive: true };
     }),
-    order: null, // { command, power, beat (0..3), flourishes }
-    shieldUntil: -1,
-    beat: 0,
+    order: null, // { command, power, beat (0..3), flourishes, u }
+    guardAt: -Infinity, // when the guard was last raised (seconds)
+    guardReadyAt: 0,
+    time: 0,
+    tick: 0, // Han beats so far
     outcome: null, // 'won' | 'lost'
   };
 }
 
-/** Power of a command from its accuracy (0.6..1) and the drum's spirit. */
-export function commandPower(accuracy, spirit) {
-  return (0.6 + 0.4 * accuracy) * (spirit ? 1.5 : 1);
+/**
+ * Power of a command: its evenness (accuracy 0..1 gives ×0.72..×1), its tier
+ * (×1, ×1.4, ×1.96) and the drum's spirit (×1.5).
+ */
+export function commandPower(accuracy, spirit, tierPower = 1) {
+  return precisionFactor(accuracy) * tierPower * (spirit ? 1.5 : 1);
 }
 
-export function issueOrder(state, command, power) {
-  state.order = { command, power, beat: 0, flourishes: 0 };
+/**
+ * Slower drumming gives fewer orders per second while the Han keep their own
+ * beat, so an order's power scales with the beat's length: the army does the
+ * same work per second at any tempo. 0.6 s per beat (100 BPM) is ×1.
+ */
+export function tempoFactor(u) {
+  return Math.min(2, Math.max(0.55, u / 0.6));
+}
+
+/** Give the army an order for its next four beats; u is the player's beat length. */
+export function issueOrder(state, command, power, u = 0.6) {
+  state.order = { command, power, beat: 0, flourishes: 0, u };
 }
 
 export function addFlourish(state) {
@@ -75,10 +99,11 @@ function damage(state, enemy, amount, events, source) {
 }
 
 function hurtArmy(state, amount, events, source) {
-  const shielded = state.beat <= state.shieldUntil;
-  const dealt = amount * (shielded ? SHIELD_FACTOR : 1);
+  const lead = state.time - state.guardAt; // how long before the blow the guard went up
+  const block = lead >= 0 && lead <= GUARD.window ? (lead <= GUARD.perfect ? 'perfect' : 'good') : null;
+  const dealt = amount * (block === 'perfect' ? GUARD.best : block === 'good' ? GUARD.good : 1);
   state.army.troops = Math.max(0, state.army.troops - dealt);
-  events.push({ type: 'wound', amount: dealt, shielded, source });
+  events.push({ type: 'wound', amount: dealt, shielded: !!block, block, source });
 }
 
 function runOrder(state, events) {
@@ -101,9 +126,6 @@ function runOrder(state, events) {
           damage(state, shot, 6 * p, events, 'arrow');
         }
       }
-      break;
-    case 'shield':
-      if (o.beat === 0) state.shieldUntil = state.beat + 11; // this answer, the next call and the next answer
       break;
     case 'rally':
       if (o.beat === 1 || o.beat === 3) {
@@ -132,6 +154,16 @@ function runEnemies(state, events) {
   for (const e of living(state)) {
     const dist = e.x - front;
     e.cooldown = Math.max(0, e.cooldown - 1);
+    const inReach =
+      (e.type === 'spear' && dist <= CONTACT_GAP + 0.6) ||
+      (e.type === 'crossbow' && dist <= 14) ||
+      (e.type === 'fort' && dist <= 13);
+    if (inReach && !e.engaged) {
+      // A beat of wind-up before the first blow, so the warning shows.
+      e.engaged = true;
+      e.cooldown = Math.max(e.cooldown, 1);
+      continue;
+    }
     if (e.type === 'spear') {
       if (dist <= CONTACT_GAP + 0.6) {
         if (e.cooldown === 0) {
@@ -153,15 +185,57 @@ function runEnemies(state, events) {
   }
 }
 
-/** Advance one beat. Returns the events for the renderer and audio. */
-export function stepBeat(state) {
-  const events = [];
-  if (state.outcome) return events;
-  runOrder(state, events);
-  runEnemies(state, events);
-  state.beat += 1;
+/** Raise the guard at time t. Returns false while the army is still recovering. */
+export function guard(state, time) {
+  if (state.outcome || time < state.guardReadyAt) return false;
+  state.guardAt = time;
+  state.guardReadyAt = time + GUARD.window + GUARD.recover;
+  return true;
+}
+
+/** Whether the shields are up at time t: for the guard's window after it is raised. */
+export function shieldsUp(state, time = state.time) {
+  const lead = time - state.guardAt;
+  return lead >= 0 && lead <= GUARD.window;
+}
+
+/** Han who will strike on their next beat: the warning the guard answers. */
+export function aboutToAttack(state) {
+  const front = state.army.x;
+  return state.enemies.filter((e) => {
+    if (!e.alive || e.cooldown > 1) return false;
+    const dist = e.x - front;
+    if (e.type === 'spear') return dist <= CONTACT_GAP + 0.6;
+    if (e.type === 'crossbow') return dist <= 14;
+    if (e.type === 'fort') return dist <= 13;
+    return false;
+  });
+}
+
+function checkOutcome(state, events) {
+  if (state.outcome) return;
   if (state.enemies.filter((e) => e.goal).every((e) => !e.alive)) state.outcome = 'won';
   else if (state.army.troops <= 0) state.outcome = 'lost';
   if (state.outcome) events.push({ type: 'outcome', outcome: state.outcome });
+}
+
+/** One of the army's beats, at the player's tempo. */
+export function stepArmy(state, time = state.time) {
+  const events = [];
+  if (state.outcome) return events;
+  state.time = Math.max(state.time, time);
+  runOrder(state, events);
+  checkOutcome(state, events);
+  return events;
+}
+
+/** One beat of the Han war drum. */
+export function stepEnemies(state, time = state.time) {
+  const events = [];
+  if (state.outcome) return events;
+  state.time = Math.max(state.time, time);
+  runEnemies(state, events);
+  state.tick += 1;
+  checkOutcome(state, events);
   return events;
 }
