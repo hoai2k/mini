@@ -88,6 +88,10 @@ function deckScene(k, st, deck, t) {
   for (const it of items) it.f();
 }
 
+// Revelling on the spot: a hop on every beat, as on the old line-up, scaled
+// to how far back the spot stands.
+const dancing = (spot, bob) => ({ x: spot.x, y: spot.y - bob * 16 * spot.s / 0.8, s: spot.s });
+
 // Where reveller i is (feet x, y, scale), or null while below deck.
 function revellerAt(st, i, bob) {
   const spot = SPOTS[st.party.spots?.[i] ?? i + 2];
@@ -97,7 +101,7 @@ function revellerAt(st, i, bob) {
     // Out of the hatch in one bound, up and over to the spot.
     const k = clamp((pt - ARRIVE.from - i * ARRIVE.stagger) / ARRIVE.dur, 0, 1);
     if (k <= 0) return null;
-    if (k >= 1) return { x: spot.x, y: spot.y - bob * 3 * spot.s, s: spot.s };
+    if (k >= 1) return dancing(spot, bob);
     const e = easeOut(k), peak = Math.min(spot.y, h.y) - 120;
     const x = h.x + (spot.x - h.x) * e;
     const y = (1 - e) ** 2 * (h.y + 150) + 2 * (1 - e) * e * peak + e * e * spot.y;
@@ -106,7 +110,7 @@ function revellerAt(st, i, bob) {
   // The turn: hop, hop toward the hatch, then drop in.
   const dist = Math.hypot(h.x - spot.x, h.y - spot.y), hops = Math.max(1, Math.ceil(dist / FLEE.hopLen));
   let tt = pt - FLEE.from - i * FLEE.stagger;
-  if (tt <= 0) return { x: spot.x, y: spot.y, s: spot.s };
+  if (tt <= 0) return dancing(spot, bob);
   const hopT = hops * FLEE.hop;
   if (tt < hopT) {
     const n = Math.floor(tt / FLEE.hop), f = (tt % FLEE.hop) / FLEE.hop;
