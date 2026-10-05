@@ -52,6 +52,10 @@ export function createInput(target = window) {
     const te = (name) => touchEdges.includes(name);
     const s = {
       moveX: (k('ArrowRight', 'KeyD') ? 1 : 0) - (k('ArrowLeft', 'KeyA') ? 1 : 0) + (touch.right ? 1 : 0) - (touch.left ? 1 : 0),
+      // Continuous vertical (positive = down), for swimming and climbing acts.
+      moveY: (k('ArrowDown', 'KeyS') ? 1 : 0) - (k('ArrowUp', 'KeyW') ? 1 : 0) + (touch.down ? 1 : 0) - (touch.up ? 1 : 0),
+      // The action button held (A, Space, Z, J or touch Leap).
+      aHeld: k('Space', 'KeyZ', 'KeyJ') || touch.leap,
       up: ke('ArrowUp', 'KeyW') || te('up'),
       down: ke('ArrowDown', 'KeyS') || te('down'),
       left: ke('ArrowLeft', 'KeyA') || te('left'),
@@ -60,6 +64,8 @@ export function createInput(target = window) {
       confirm: ke('Enter', 'Space', 'KeyZ', 'KeyJ'),
       back: ke('Escape', 'Backspace'),
       pause: ke('Escape', 'KeyP') || te('pause'),
+      // B in play (refuse, cancel): pad B, or X / Backspace on keys.
+      bPress: ke('KeyX', 'Backspace'),
       anyPad: false, stickNav: false, padA: false, padStart: false, padB: false,
       keyAny: keyEdges.length > 0,
     };
@@ -89,6 +95,8 @@ export function createInput(target = window) {
       const ay = Math.abs(p.axes[1] || 0) > DEAD ? p.axes[1] : 0;
       if (ax || ay) { source = 'pad'; if (owner === null) owner = p.index; }
       s.moveX += ax + (now[BTN.RIGHT] ? 1 : 0) - (now[BTN.LEFT] ? 1 : 0);
+      s.moveY += ay + (now[BTN.DOWN] ? 1 : 0) - (now[BTN.UP] ? 1 : 0);
+      if (now[BTN.A] && !h.has(BTN.A)) s.aHeld = true;
       if (edges[BTN.A]) { s.leap = true; s.padA = true; }
       if (edges[BTN.B]) { s.back = true; s.padB = true; }
       if (edges[BTN.MENU]) { s.pause = true; s.padStart = true; }
@@ -106,6 +114,7 @@ export function createInput(target = window) {
       } else { rep.dir = null; stickWasNeutral = true; }
     }
     s.moveX = Math.max(-1, Math.min(1, s.moveX));
+    s.moveY = Math.max(-1, Math.min(1, s.moveY));
     s.source = source;
     keyEdges = []; touchEdges = [];
     return s;

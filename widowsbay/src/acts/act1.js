@@ -1,0 +1,103 @@
+// Act I — The Crossing. The voyage (board.js), then the ending from
+// design/acts.md: land ho, a celebration on the deck set, the witch's turn,
+// the wreck and the sinking guitar. Headless: drawing is in act1-art.js.
+import { createBoard, step as stepBoard, LEAVES } from '../board.js';
+import { BEAT_WINDOW, beatHit } from './shared.js';
+import * as art from './act1-art.js';
+
+// Ending timeline, seconds per phase.
+export const ENDING = { landho: 3, party: 15, turn: 6, wreck: 6.5, sink: 4.5, iris: 1.4 };
+export const LANTERNS = 8; // paper lanterns lit on the beat during the party
+
+const ORDER = ['landho', 'party', 'turn', 'wreck', 'sink', 'iris'];
+
+export default {
+  id: 1, key: 'crossing', kicker: 'Act I', title: 'The Crossing', size: 130,
+  sub: 'The witch will turn the wind.\nGather the three tea leaves for the reading.',
+  action: 'A: leap',
+
+  create({ seed }) {
+    return {
+      board: createBoard(seed), phase: 'voyage', phaseT: 0,
+      status: 'play', statusT: 0, events: [], result: null,
+      party: { lit: 0, beats: new Set(), revelry: false },
+      witchAt: null,
+    };
+  },
+
+  step(st, dt, input) {
+    st.statusT += dt;
+    st.beat = input.beat;
+    if (st.status !== 'play') return;
+    st.phaseT += dt;
+    const b = st.board;
+
+    if (st.phase === 'voyage') {
+      stepBoard(b, dt, { moveX: input.moveX, rowUp: input.up, rowDown: input.down, leap: input.a });
+      st.events.push(...b.events); b.events.length = 0;
+      if (b.phase === 'wrecked' && b.phaseT > 2.2) { st.status = 'lost'; st.statusT = 0; }
+      if (b.phase === 'done') next(st);
+      return;
+    }
+    // The stage keeps scrolling gently behind the ending.
+    stepBoard(b, dt, {}); b.events.length = 0;
+
+    if (st.phase === 'party') {
+      if (input.a && st.party.lit < LANTERNS) {
+        const k = beatHit(input.beat, BEAT_WINDOW);
+        if (k != null && !st.party.beats.has(k)) {
+          st.party.beats.add(k);
+          st.party.lit++;
+          st.events.push({ type: 'partyHit', n: st.party.lit });
+          if (st.party.lit === LANTERNS) { st.party.revelry = true; b.score += 200; st.events.push({ type: 'revelry' }); }
+        }
+      }
+    }
+    if (st.phase === 'turn' && st.phaseT >= 2.4 && !st.struck) { st.struck = true; st.events.push({ type: 'strike' }); }
+    if (st.phase === 'turn') st.witchAt = { x: 900, y: 170 };
+    if (st.phase === 'wreck' && st.phaseT >= 3 && !st.broken) { st.broken = true; st.events.push({ type: 'shipBreak' }); }
+    if (st.phase === 'wreck' && st.phaseT >= 4.6 && !st.splashed) { st.splashed = true; st.witchAt = { x: 1500, y: 150 }; st.events.push({ type: 'splash' }); }
+
+    if (st.phaseT >= ENDING[st.phase]) next(st);
+  },
+
+  hud(st) {
+    const b = st.board;
+    const leaves = Array.from({ length: LEAVES }, (_, i) => ({ id: 'leaf', have: i < b.leaves }));
+    if (st.phase === 'voyage' || st.phase === 'landho') {
+      return { lanterns: b.ship.hull, maxLanterns: 3, pearls: b.pearls, progress: b.progress, keepsakes: leaves,
+        wind: st.phase === 'voyage' ? { dir: b.wind.dir, warn: b.wind.warn } : null };
+    }
+    if (st.phase === 'party') return { lanterns: b.ship.hull, maxLanterns: 3, pearls: b.pearls, progress: null, keepsakes: leaves };
+    return null;
+  },
+
+  announce(e) {
+    if (e.type === 'hit') return `Hit. ${e.hull} lantern${e.hull === 1 ? '' : 's'} left.`;
+    if (e.type === 'keepsake') return `Tea leaf ${e.n} of 3.`;
+    if (e.type === 'windWarn') return e.to > 0 ? 'The wind is turning behind you.' : 'The wind is turning against you.';
+    if (e.type === 'arrive') return "Widow's Bay in sight.";
+    if (e.type === 'cheer') return 'A celebration on deck! Press A on the beat to light the lanterns.';
+    if (e.type === 'revelry') return 'Every lantern lit.';
+    if (e.type === 'strike') return 'The witch strikes the mast.';
+    if (e.type === 'shipBreak') return 'The ship breaks apart.';
+    return null;
+  },
+
+  draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
+};
+
+function next(st) {
+  const i = st.phase === 'voyage' ? 0 : ORDER.indexOf(st.phase) + 1;
+  if (i >= ORDER.length) {
+    const b = st.board;
+    st.status = 'won'; st.statusT = 0;
+    st.result = { keepsakes: { tea: b.leaves }, score: b.score, pearls: b.pearls, revelry: st.party.revelry };
+    return;
+  }
+  st.phase = ORDER[i]; st.phaseT = 0;
+  if (st.phase === 'landho') st.events.push({ type: 'landho' });
+  if (st.phase === 'party') st.events.push({ type: 'cheer' });
+  if (st.phase === 'turn') st.events.push({ type: 'spirits' });
+  if (st.phase === 'sink') st.events.push({ type: 'guitarSink' });
+}
