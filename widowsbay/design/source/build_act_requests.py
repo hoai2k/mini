@@ -28,6 +28,11 @@ CLOTH = (f'A painted theatre backcloth seen square-on, full bleed to every edge,
          f"Georges Méliès' 1903 film Le Royaume des fées; early-1900s stencil-tinted colour: sepia-grey tone with "
          f'translucent washes of {PALETTE} slightly out of register; faint film grain; no lettering.')
 TABLEAU = CLOTH.replace('A painted theatre backcloth', 'A painted toy-theatre tableau')
+CLOTH_STRIP = CLOTH + ' The left and right edges must join seamlessly when the cloth is repeated side by side.'
+CLOTH_TILE = CLOTH + ' It must tile seamlessly in both directions (left to right and top to bottom).'
+SPRITE_VTILE = SPRITE + ' The top and bottom edges must join seamlessly when it is repeated one above the other.'
+WALK = ('The walkable top edge must be straight and level across the full width of the image, as the game stands '
+        'figures on it.')
 SILHOUETTE = ('Flat toy-theatre cut-out seen square-on: a solid black silhouette with a thin warm rim of light '
               'from behind, no other colour; faint pale cut edge; no lettering; transparent background (or flat '
               'pure magenta #FF00FF if transparency is unavailable).')
@@ -348,6 +353,199 @@ ACTS = [
          'embroidered jacket, jeans, boots), standing facing front with empty hands raised in a bow, no guitar. '
          'Used in the finale pageant when the guitar was not recovered in Act II.'),
     ]),
+    ('Second round: stage machinery, footlights and the HUD', 'Shapes still drawn in code on every stage (found by the October 2026 art audit). The game keeps drawing its stand-ins until each arrives.', [
+        ('wave-crank', 'Wave-row crank handle', 200, 200, 'centre (axle hub)', SPRITE,
+         'A stage-machinery crank seen square-on, as a stagehand turns it from the wing: a round brass hub boss with '
+         'a square axle hole at the exact centre of the image, a flat black iron crank arm running from the hub '
+         'straight out to the right, and a turned dark-wood handle knob standing at the end of the arm, worn pale '
+         'where hands grip it. The hub must sit exactly at the image centre, as the game spins the whole piece '
+         'around it. Match the brass of touch-stick-knob and the gold of the proscenium.'),
+        ('wave-crank-bearing', 'Crank bearing in the wing', 140, 260, 'right edge (axle at the middle of the right edge)', SPRITE,
+         'A small upright iron bearing plate bolted to a strip of dark wing timber, seen square-on: the timber strip '
+         'runs the full height of the image, and a round brass bearing collar sits exactly halfway down at the right '
+         'edge, where the axle of a wave roller comes out of the wing. No crank on it. Painted like the deck-set '
+         'timbers.'),
+        ('footlight', 'Footlight hood', 120, 60, 'bottom centre', SPRITE,
+         'One brass theatre footlight seen from the audience: a low scalloped shell-shaped reflector hood, the lamp '
+         'hidden behind its rim, riveted to a small wooden block. Warm metal, no glow painted (the game adds the '
+         'light). Match the gold of the proscenium.'),
+        ('curtain-panel', 'Travelling curtain, left panel', 1300, 1440, 'top edge (leading edge at the right)', SPRITE,
+         'The left half of a theatre travelling curtain seen square-on: deep crimson velvet hanging in heavy '
+         'vertical folds from the top edge to the bottom edge, a gold bullion fringe along the bottom and down the '
+         'right-hand leading edge, the folds a little bunched toward the left. Full height, no tie-back, no rail. '
+         'Match the painted drapes of proscenium exactly in colour and fold style; the game mirrors it for the '
+         'right panel.'),
+        ('vane-plaque', 'Weathervane plaque', 280, 90, 'centre', SPRITE,
+         'An oval plum enamel plaque with a gold rope border, empty in the middle, hung from the centre of a theatre '
+         'valance. Match the proscenium gilding.'),
+        ('vane-arrow', 'Weathervane arrow', 230, 50, 'centre (pivot)', SPRITE,
+         'A gilded weathervane arrow seen side-on, pointing right: a pointed head at the right, a slim shaft and a '
+         'forked feathered tail at the left, its pivot at the exact centre of the image.'),
+        ('vane-arrow-warn', 'Weathervane arrow, spinning', 230, 50, 'centre (pivot)', SPRITE,
+         'The same arrow as vane-arrow with the same framing, but enamelled magenta #e0127a with gold edges, as '
+         'the witch spins the wind.'),
+        ('cloud-storm', 'Storm cloud flat', 400, 180, 'bottom centre', SPRITE,
+         'The same hung cloud flat as cloud, with the same outline and framing, painted in heavy slate-violet storm '
+         'tones with a darker underside and a faint gold crackle of lightning inside.'),
+        ('hud-plaque', 'HUD plaque (stretchable)', 800, 80, 'centre', SPRITE,
+         'A long low plaque of plum enamel with a thin inset gold rule and small gold scroll end caps. The middle '
+         '70% is plain and even along its length, so the game can stretch the middle and keep the two ends. Match '
+         'the proscenium floor band and gilding.'),
+        ('hud-lantern-lit', 'Life lantern, lit', 48, 64, 'centre', SPRITE,
+         "A tiny ship's brass lantern seen square-on, with a cap, a carrying ring and a base, its glass glowing warm "
+         'yellow; the same lantern as lantern-hanging, simplified to read at 24 px.'),
+        ('hud-lantern-out', 'Life lantern, out', 48, 64, 'centre', SPRITE,
+         'The same tiny lantern as hud-lantern-lit with the same framing, its glass dark and smoky.'),
+        ('hud-voyage-rope', 'Voyage ribbon rope', 700, 16, 'centre', STRIP,
+         'A thin twisted cream rope running straight from the left edge to the right edge.'),
+        ('hud-voyage-ship', 'Voyage marker ship', 60, 50, 'bottom centre', SPRITE,
+         'A tiny cut-out of the two-masted toy ship (as in ship), side-on and facing right, simplified to read at '
+         '30 px.'),
+        ('hud-voyage-flag', 'Voyage end flag', 36, 56, 'bottom centre', SPRITE,
+         'A tiny coral-red post with a cream pennant flying to the right, like a harbour marker.'),
+        ('hud-air-bubble', 'Air icon', 40, 40, 'centre', SPRITE,
+         'A single round silvery air bubble with a highlight, as rising from the grotto vents.'),
+        ('hud-air-tube', 'Air gauge tube', 160, 32, 'centre', SPRITE,
+         'An empty horizontal glass tube with brass end caps, the inside clear and even so the game can fill it.'),
+        ('hud-sleeper', 'Sleepers-woken icon', 48, 32, 'centre', SPRITE,
+         'A tiny reclining reveller in a yellow tunic and cap, asleep, simplified from reveller-yellow to read at '
+         '24 px.'),
+        ('omen-token', 'Tea-leaf omen token', 80, 80, 'centre', SPRITE,
+         'A small round plum enamel medallion with a gold rim and a plain centre (the game places the tea leaf on '
+         'it).'),
+    ]),
+    ('Second round: Acts I and II', 'Code-drawn pieces of the deck party, the grotto and the moon-boat ride.', [
+        ('lantern-string-lit', 'String of paper lanterns, lit', 1200, 300, 'top edge (hangs from the ends)', SPRITE,
+         'Exactly the same swagged string of eight round paper lanterns as lantern-string, with the same framing '
+         'and lantern positions, every lantern glowing warm from inside (the game lights them one by one by '
+         'showing parts of this image over the unlit string).'),
+        ('grotto-ledge', 'Grotto rock ledge', 320, 100, 'top edge (walkable)', SPRITE,
+         'A free-standing shelf of teal-grey grotto rock jutting out into the water, seen square-on: both ends '
+         'tapering, the underside ragged with small white coral, anemones and a red sea fan hanging below. ' + WALK +
+         ' Match grotto-wing-left.'),
+        ('grotto-ledge-wall', 'Grotto ledge growing from the wall', 320, 100, 'top edge (walkable)', SPRITE,
+         'The same rock shelf as grotto-ledge, but its left end merges into a sheer slab of wall rock cut off at '
+         'the left edge of the image, and its right end tapers to a point (the game mirrors it for the right-hand '
+         'wall). ' + WALK + ' Match grotto-wing-left.'),
+        ('grotto-shelf', 'Wreck-site sea-floor shelf', 2000, 180, 'top edge (walkable)', SPRITE,
+         'A long ground row of sea-floor rock and sand at the wreck site, seen square-on, scattered with shells, a '
+         'broken plank and kelp roots, the lower edge ragged. The top edge nearly level (no more than 6 px of rise '
+         'and fall), as the drowned revellers lie on it. Match the top third of grotto-backcloth.'),
+        ('grotto-floor', 'Grotto cave floor', 2080, 260, 'top edge (walkable)', SPRITE,
+         'The dark floor of the deep cave as a ground row: black-teal sand and stones with faint phosphorescent '
+         'pink and green anemones, the top edge gently undulating within 6 px of level (the witch and the guitar '
+         'stand on it). Match the bottom third of grotto-backcloth.'),
+        ('deep-panorama', 'Deep-sea panorama (scrolling)', 2560, 1440, 'full frame', CLOTH_STRIP,
+         'Open deep water seen square-on for the moon-boat ride: dark teal fading to near-black below, soft shafts '
+         'of light from the surface above, a low line of distant rock silhouettes along the lower third, faint '
+         'drifting fish. Match grotto-backcloth.'),
+        ('palace-distant', "The Sea King's palace, distant", 760, 660, 'bottom centre', SPRITE,
+         "The Sea King's underwater palace far off, as a pale teal-white silhouette flat: tiered towers, domes and "
+         'arches softened by distance. The same architecture as court-backcloth.'),
+        ('sailor-seated', 'Sailor seated with the guitar', 220, 220, 'bottom centre', SPRITE,
+         f'{SAILOR}, seated on a low bench facing right, the band\'s acoustic guitar resting on his knee, no kit '
+         'bag; for the moon-boat ride beside the witch.'),
+    ]),
+    ('Second round: Acts III and IV', "Code-drawn pieces of the Sea King's court and the inside of the whale.", [
+        ('groove-slider', 'Groove slider shoe', 56, 28, 'bottom centre', SPRITE,
+         'A small brass slider shoe seen square-on, as fitted under a toy-theatre figure that runs in a floor '
+         'groove: a rounded brass block with two rivets. Match the brass edges of court-floor-3.'),
+        ('court-floor-edge', 'Court floor front fascia', 2560, 40, 'top edge', STRIP,
+         'The front edge of the marble processional floor: a narrow gilded moulding over a plum fascia. Match '
+         'court-floor-3.'),
+        ('rib-ledge', 'Bone shelf on a rib', 360, 70, 'top edge (walkable)', SPRITE,
+         'A shelf of whale bone jutting from a rib, seen square-on: ivory and grey bone with a rounded front lip, a '
+         "short curved bone bracket underneath at the centre, wet highlights. " + WALK + " Match rib-arch's bone "
+         'painting.'),
+        ('belly-bank', 'Stomach-wall bank', 900, 1000, 'top edge (walkable)', SPRITE,
+         "A thick shelf of the whale's stomach wall seen square-on: dark red-violet wet flesh with folds and veins, "
+         'its right end a rounded fleshy lip curling down. ' + WALK + ' Match belly-backcloth.'),
+        ('throat-lip', 'Lower lip of the throat', 900, 300, 'top edge (walkable)', SPRITE,
+         "The soft lower lip of the whale's throat seen from inside: a rounded tongue of pink-violet flesh, the "
+         'underside curving away into shadow. ' + WALK + ' Match belly-backcloth.'),
+        ('belly-floor', 'Stomach floor ground row', 2560, 400, 'top edge (walkable)', STRIP,
+         "The whale's stomach floor as a ground row: wet ridged red-violet lining with folds and a few swallowed "
+         'shells, the top edge level. Match belly-backcloth.'),
+        ('belly-water-body', 'Stomach water body (tiling)', 1024, 1024, 'full frame', CLOTH_TILE,
+         'Murky green-violet water seen square-on, darkening slightly, with faint drifting murk; no surface line '
+         '(it fills the water below belly-water).'),
+        ('fish-hook', 'Swinging fish-hook with float', 80, 220, 'top centre (line attachment)', SPRITE,
+         'A short length of fishing line from the top centre down to a red-and-cream cork float, then a big barbed '
+         'steel hook below it, seen square-on, the hook opening to the left. Match lantern-hanging.'),
+        ('chain-strip', 'Lantern chain (tiling)', 24, 400, 'top centre', SPRITE_VTILE,
+         "A hanging iron chain of oval links seen square-on, dark and slightly rusted. Match lantern-hanging's "
+         'chain.'),
+        ('set-platform-edge', 'Rocking set platform edge', 2560, 40, 'top edge', STRIP,
+         'The front edge of a wooden stage platform: a dark timber beam with a pale worn top edge and iron bolts. '
+         'Match cradle.'),
+        ('cradle-fulcrum', 'Cradle fulcrum', 160, 120, 'bottom centre (pivot at the top centre)', SPRITE,
+         'A triangular block of dark timber bound in iron, with a brass pivot pin at its apex, the pivot of a '
+         'rocking stage cradle. Match cradle.'),
+        ('shore-backcloth', 'Daylight sea and sky', 2560, 1440, 'full frame', CLOTH,
+         'Open sea under a pale rose daylight sky with a few soft clouds and distant gulls; the horizon level at 60% '
+         'of the height (860 px), a calm grey-teal sea with white lines of surf below it; no foreground rocks (the '
+         'shore-rocks ground row stands in front). Match shore-rocks.'),
+    ]),
+    ('Second round: Act V', 'Code-drawn pieces of the cliff and the burning house.', [
+        ('cliff-hold', 'Cliff handhold', 110, 44, 'top edge (walkable)', SPRITE,
+         'A small knob of pale layered rock jutting from a cliff, seen square-on: a shadowed underside and a tuft '
+         'of ivy. ' + WALK + ' Match cliff-face.'),
+        ('cliff-ledge', 'Cliff ledge', 220, 50, 'top edge (walkable)', SPRITE,
+         'A wider shelf of the same pale layered rock as cliff-hold. ' + WALK + ' Match cliff-face.'),
+        ('cliff-hold-crumble', 'Crumbling handhold', 110, 44, 'top edge (walkable)', SPRITE,
+         'The same knob as cliff-hold with the same framing, split by dark cracks, grit trickling from beneath.'),
+        ('cliff-hold-gone', 'Broken-off handhold', 80, 24, 'top edge', SPRITE,
+         'The broken stump left in a cliff where a rock knob has fallen away: a rough pale scar. Match cliff-face.'),
+        ('shutter-shut', 'Locked shutter', 110, 230, 'bottom centre', SPRITE,
+         'A pair of closed wooden window shutters with horizontal slats, iron hinges and a heavy padlock across the '
+         'middle, seen square-on. Match the shutters painted on house-front.'),
+        ('shutter-smashed', 'Smashed shutter', 110, 230, 'bottom centre', SPRITE,
+         'The same window as shutter-shut with the same framing, its shutters smashed open: splintered slats '
+         'hanging from the hinges, fire-orange glow through the frame.'),
+        ('floor-hole', 'Burnt-through floor', 300, 90, 'top edge (floor line)', SPRITE,
+         'A gap burnt through wooden floorboards seen square-on: charred, broken plank ends hanging down at the '
+         'left and right edges, glowing embers along the broken edges, the middle open and transparent. Match the '
+         'floors of stone-house.'),
+        ('floor-slope', 'Fallen floor section', 600, 60, 'left end (pivot)', SPRITE,
+         'A long section of broken floorboards lying along its length, planks side by side, charred jagged ends at '
+         'the right; the game tilts it into a slope. Match the floors of stone-house.'),
+        ('ivy-climb', 'Ivy to climb (tiling)', 80, 400, 'bottom centre', SPRITE_VTILE,
+         'A thick vertical rope of ivy stems and leaves, sturdy enough to climb. Match the ivy on house-front.'),
+        ('rubble-planks', 'Fallen planks', 300, 80, 'bottom centre', SPRITE,
+         'A heap of three charred fallen floorboards and splinters. Match stone-house.'),
+        ('ladder-stub', 'Burnt ladder stub', 40, 110, 'bottom centre', SPRITE,
+         'The burnt-off lower end of the wooden ladder, charred black at the top. Match ladder.'),
+    ]),
+    ('Second round: re-requests', 'Delivered art that does not work as painted. Each new version has its own id; the game keeps the current art until it arrives.', [
+        ('rib-arch-tall', 'Rib arch, rooted in the water', 900, 1800, 'bottom centre', SPRITE,
+         'A single huge curved whale rib, ivory and grey, as a free-standing foreground flat. Its base dissolves '
+         'softly into murky water at the bottom edge (no hard cut-off bottom edge, no rocks), and it curves up and '
+         'over to the right. Leave the top quarter free of any ledge or spur (the game adds rib-ledge where the '
+         'sailor stands). Replaces rib-arch, whose straight-cut base floats in mid-air on high ledges.'),
+        ('whale-throat-inside', 'Throat opening seen from inside', 800, 800, 'centre', SPRITE,
+         'The way out of the whale seen from INSIDE its body: a round opening in pink-violet wet flesh, framed '
+         'above by hanging baleen, bright daylight and a glimpse of rocky shore beyond. No outside skin, no eye, '
+         'no barnacles, no jaw outline. The bottom of the opening is level, about 70% of the way down. Replaces '
+         'whale-throat, which shows the whale\'s whole head from outside.'),
+        ('cliff-face-tall', 'Tall cliff face', 1400, 3600, 'bottom centre', SPRITE,
+         'The same sea cliff as cliff-face (pale layered rock with green ivy, jutting ledges at many heights, a dark '
+         'vertical gap in the rock), but twice as tall: surf breaking only at the very foot, grass and the cliff top '
+         'only at the very top, the climb continuous between them with no repeated section. The dark gap runs from '
+         'about 35% to 50% of the height up from the bottom, at about two-thirds of the width. Replaces the two '
+         'stacked copies of cliff-face.'),
+        ('bay-backcloth-empty', 'Widow\'s Bay at night, cliff top empty', 2560, 1440, 'full frame', CLOTH,
+         'The same composition as bay-backcloth (a moonlit harbour, a high cliff at the left, the red-and-white '
+         'lighthouse distant on a headland at the right, fishing boats at anchor) but with NO house on the cliff '
+         'top: the game stands its own stone house there.'),
+        ('bay-backcloth-fire-empty', 'Widow\'s Bay burning, cliff top empty', 2560, 1440, 'full frame', CLOTH,
+         'The same composition as bay-backcloth-empty, washed in a strong red-orange tint as in the video\'s burning '
+         'scenes (3:10-3:15), with smoke and sparks in the sky; no house on the cliff top.'),
+        ('ending-dark-2', 'Ending: the window is dark (with the doorway)', 2560, 1440, 'full frame', TABLEAU,
+         f'Night. The stone house on the cliff at the left with one dark window and a black silhouette of another '
+         f'figure standing in its lit doorway; on the quay in front, {SAILOR} alone, throwing a small stone into the '
+         'bay, rings spreading on the water. All three must be clearly visible. Replaces ending-dark, which is '
+         'missing the doorway.'),
+    ]),
     ('Phones and tablets', 'Art for the touch version: the home-screen icon, the turn-sideways card and the on-screen controls. The game draws plain stand-ins until these arrive (see README, Phones and tablets).', [
         ('app-icon', 'Home-screen icon', 1024, 1024, 'full frame (opaque)', CLOTH.replace('A painted theatre backcloth seen square-on, full bleed to every edge', 'A square app icon, full bleed, no transparency'),
          'A tiny toy-theatre proscenium with red velvet curtains and a gold valance framing a crescent-moon shell boat on '
@@ -365,6 +563,9 @@ ACTS = [
         ('touch-button', 'Touch action button', 208, 208, 'centre', SPRITE,
          'A round button seen straight on: a deep plum enamel disc with a gold scalloped rim like the proscenium valance, '
          'plain in the middle (the game letters it). Should look pressable, like a theatre call bell.'),
+        ('touch-pause', 'Touch pause button', 92, 92, 'centre', SPRITE,
+         'A small round button seen straight on: a plum enamel disc with the same gold scalloped rim as '
+         'touch-button and two upright gold pause bars engraved in the middle.'),
     ]),
 ]
 

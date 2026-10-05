@@ -473,6 +473,230 @@
     "touch-button": {
       "status": "delivered",
       "file": "touch-button.webp"
+    },
+    "cradle-fulcrum": {
+      "status": "requested",
+      "file": "cradle-fulcrum.webp"
+    },
+    "ladder-stub": {
+      "status": "requested",
+      "file": "ladder-stub.webp"
+    },
+    "vane-plaque": {
+      "status": "requested",
+      "file": "vane-plaque.webp"
+    },
+    "lantern-string-lit": {
+      "status": "requested",
+      "file": "lantern-string-lit.webp"
+    },
+    "groove-slider": {
+      "status": "requested",
+      "file": "groove-slider.webp"
+    },
+    "belly-floor": {
+      "status": "requested",
+      "file": "belly-floor.webp"
+    },
+    "sailor-seated": {
+      "status": "requested",
+      "file": "sailor-seated.webp"
+    },
+    "grotto-ledge": {
+      "status": "requested",
+      "file": "grotto-ledge.webp"
+    },
+    "cliff-hold-gone": {
+      "status": "requested",
+      "file": "cliff-hold-gone.webp"
+    },
+    "grotto-floor": {
+      "status": "requested",
+      "file": "grotto-floor.webp"
+    },
+    "shore-backcloth": {
+      "status": "requested",
+      "file": "shore-backcloth.webp"
+    },
+    "hud-voyage-flag": {
+      "status": "requested",
+      "file": "hud-voyage-flag.webp"
+    },
+    "curtain-panel": {
+      "status": "requested",
+      "file": "curtain-panel.webp"
+    },
+    "palace-distant": {
+      "status": "requested",
+      "file": "palace-distant.webp"
+    },
+    "touch-pause": {
+      "status": "requested",
+      "file": "touch-pause.webp"
+    },
+    "whale-throat-inside": {
+      "status": "requested",
+      "file": "whale-throat-inside.webp"
+    },
+    "hud-lantern-lit": {
+      "status": "requested",
+      "file": "hud-lantern-lit.webp"
+    },
+    "omen-token": {
+      "status": "requested",
+      "file": "omen-token.webp"
+    },
+    "hud-air-bubble": {
+      "status": "requested",
+      "file": "hud-air-bubble.webp"
+    },
+    "wave-crank": {
+      "status": "requested",
+      "file": "wave-crank.webp"
+    },
+    "hud-air-tube": {
+      "status": "requested",
+      "file": "hud-air-tube.webp"
+    },
+    "shutter-smashed": {
+      "status": "requested",
+      "file": "shutter-smashed.webp"
+    },
+    "cliff-ledge": {
+      "status": "requested",
+      "file": "cliff-ledge.webp"
+    },
+    "fish-hook": {
+      "status": "requested",
+      "file": "fish-hook.webp"
+    },
+    "cloud-storm": {
+      "status": "requested",
+      "file": "cloud-storm.webp"
+    },
+    "hud-voyage-ship": {
+      "status": "requested",
+      "file": "hud-voyage-ship.webp"
+    },
+    "shutter-shut": {
+      "status": "requested",
+      "file": "shutter-shut.webp"
+    },
+    "footlight": {
+      "status": "requested",
+      "file": "footlight.webp"
+    },
+    "deep-panorama": {
+      "status": "requested",
+      "file": "deep-panorama.webp"
+    },
+    "wave-crank-bearing": {
+      "status": "requested",
+      "file": "wave-crank-bearing.webp"
+    },
+    "bay-backcloth-fire-empty": {
+      "status": "requested",
+      "file": "bay-backcloth-fire-empty.webp"
+    },
+    "hud-sleeper": {
+      "status": "requested",
+      "file": "hud-sleeper.webp"
+    },
+    "belly-bank": {
+      "status": "requested",
+      "file": "belly-bank.webp"
+    },
+    "set-platform-edge": {
+      "status": "requested",
+      "file": "set-platform-edge.webp"
+    },
+    "hud-lantern-out": {
+      "status": "requested",
+      "file": "hud-lantern-out.webp"
+    },
+    "floor-slope": {
+      "status": "requested",
+      "file": "floor-slope.webp"
+    },
+    "belly-water-body": {
+      "status": "requested",
+      "file": "belly-water-body.webp"
+    },
+    "hud-voyage-rope": {
+      "status": "requested",
+      "file": "hud-voyage-rope.webp"
+    },
+    "cliff-hold-crumble": {
+      "status": "requested",
+      "file": "cliff-hold-crumble.webp"
+    },
+    "bay-backcloth-empty": {
+      "status": "requested",
+      "file": "bay-backcloth-empty.webp"
+    },
+    "rib-arch-tall": {
+      "status": "requested",
+      "file": "rib-arch-tall.webp"
+    },
+    "vane-arrow-warn": {
+      "status": "requested",
+      "file": "vane-arrow-warn.webp"
+    },
+    "ending-dark-2": {
+      "status": "requested",
+      "file": "ending-dark-2.webp"
+    },
+    "grotto-shelf": {
+      "status": "requested",
+      "file": "grotto-shelf.webp"
+    },
+    "vane-arrow": {
+      "status": "requested",
+      "file": "vane-arrow.webp"
+    },
+    "cliff-hold": {
+      "status": "requested",
+      "file": "cliff-hold.webp"
+    },
+    "rubble-planks": {
+      "status": "requested",
+      "file": "rubble-planks.webp"
+    },
+    "hud-plaque": {
+      "status": "requested",
+      "file": "hud-plaque.webp"
+    },
+    "chain-strip": {
+      "status": "requested",
+      "file": "chain-strip.webp"
+    },
+    "floor-hole": {
+      "status": "requested",
+      "file": "floor-hole.webp"
+    },
+    "cliff-face-tall": {
+      "status": "requested",
+      "file": "cliff-face-tall.webp"
+    },
+    "court-floor-edge": {
+      "status": "requested",
+      "file": "court-floor-edge.webp"
+    },
+    "ivy-climb": {
+      "status": "requested",
+      "file": "ivy-climb.webp"
+    },
+    "rib-ledge": {
+      "status": "requested",
+      "file": "rib-ledge.webp"
+    },
+    "grotto-ledge-wall": {
+      "status": "requested",
+      "file": "grotto-ledge-wall.webp"
+    },
+    "throat-lip": {
+      "status": "requested",
+      "file": "throat-lip.webp"
     }
   },
   "audio": {
