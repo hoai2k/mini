@@ -1,0 +1,995 @@
+// Act V drawing: the cliff, the burning house, the quay, the three endings
+// and the pageant. Every piece of new art has a procedural stand-in until its
+// file is delivered (ids are in design/image-requests.md, Parts C1 and C6,
+// drawn at half the listed size). Draw only from state and t: no randomness.
+import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY } from './act5.js';
+import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
+
+const S = 0.6; // the sailor's scale on the cliff and in the house
+const SAILOR = { coat: '#2b3550', legs: '#8a8a8a', hat: 'cap', hatCol: '#1f2740', scarf: '#c8321e', beard: '#d8d4cc', hair: '#9a948a' };
+const BELOVED = { coat: '#f1e3c8', skirt: '#f1e3c8', shawl: '#f3c6dc', hair: '#7a3420', hat: 'bun' };
+const WITCH = { coat: '#f3c6dc', skirt: '#f3c6dc', hair: '#1a1214', hat: 'crown', hatCol: '#d9b34a', long: true };
+const KING = { coat: '#f4f1ea', skirt: '#f4f1ea', trim: '#4a6fa0', hat: 'crown', hatCol: '#d9b34a', beard: '#f4f1ea', hair: '#f4f1ea' };
+const REVELLER_COLS = ['#e3c13b', '#6f9a4a', '#8a3f7a', '#e7a6bd', '#5f8c88', '#e9a46a'];
+
+// ---------------------------------------------------------------- entry points
+export function draw(k, st, t) {
+  const ph = st.phase;
+  if (ph === 'cliff' || ph === 'storm') return cliffScene(k, st, t);
+  if (ph === 'house') return houseScene(k, st, t);
+  if (ph === 'quay') return quayScene(k, st, t);
+  if (ph === 'ending') return endingScene(k, st, t);
+  return pageantScene(k, st, t);
+}
+
+export function drawOver(k, st) {
+  if (st.defeatT != null) k.wash('#2a1424', 0.55 * clamp(st.defeatT / T.defeat, 0, 1));
+  if (st.phase === 'iris') k.iris(640, 400, 760 * (1 - easeInOut(st.phaseT / T.iris)));
+  if (st.status === 'won') k.iris(640, 400, 0);
+}
+
+export function onEvent(k, e, st) {
+  const at = playerScreen(st);
+  switch (e.type) {
+    case 'hit': k.shake(0.35); k.burst(at.x, at.y - 50, '#c8321e', 16); break;
+    case 'pearl': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y - 20, '#eef3ea', 8); k.text('+10', s.x, s.y - 60); break; }
+    case 'holdCrumble': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y, '#b8ad9a', 14); k.shake(0.2); break; }
+    case 'stoneGlance': k.burst(at.x + 30, at.y - 110, '#b8ad9a', 8); k.text('Sheltered', at.x, at.y - 130); break;
+    case 'giantStep': { const s = cliffScreen(st, e.foot ? 970 : 860, 1400); k.burst(s.x, s.y, '#cfc0dc', 4); break; }
+    case 'clifftop': k.text("Widow's Bay", 640, 240, true); k.burst(at.x, at.y - 40, '#d9b34a', 18); break;
+    case 'strike': k.flash(1); k.shake(0.5); break;
+    case 'houseOpen': k.shake(0.3); break;
+    case 'beamCrash': k.burst(e.x, e.y - 10, '#3a2112', 14); k.burst(e.x, e.y - 20, '#e9a46a', 8); k.shake(0.25); break;
+    case 'debrisCrash': k.burst(e.x, e.y - 10, '#8d8f91', 14); k.shake(0.2); break;
+    case 'stoneThrow': k.text('The stone!', at.x, at.y - 130); break;
+    case 'shutterSmash': k.burst(870, 360, '#6b4024', 22); k.text('Shortcut!', 780, 300, true); k.shake(0.2); break;
+    case 'shutterLocked': k.text('Locked fast', 820, 330); break;
+    case 'liftHer': k.burst(HOUSE.beloved, HOUSE.floors[2] - 70, '#f3c6dc', 20); break;
+    case 'floorBreak': k.shake(0.6); k.burst(560, 560, '#3a2112', 24); k.burst(820, 440, '#e9a46a', 14); break;
+    case 'thud': k.burst(at.x, at.y, '#b98a5e', 10); break;
+    case 'houseFall': k.shake(0.8); k.burst(330, 300, '#e9a46a', 30); break;
+    case 'ending': break;
+    case 'moonboatRise': k.burst(900, 540, '#eef3ea', 26); break;
+    case 'witchClaim': k.burst(800, 520, '#f3c6dc', 20); break;
+    case 'lampLit': k.flash(0.3); k.burst(372, 268, '#d9b34a', 22); break;
+    case 'stonePlop': k.burst(990, 540, '#eef3ea', 18); break;
+    case 'pageant': k.flash(0.4); break;
+    case 'pageantJoin': { const s = joinerSlot(e.n - 1); k.burst(s.x, 540, REVELLER_COLS[(e.n - 1) % 6], 8); break; }
+    case 'pageantApplause': for (const col of ['#f3c6dc', '#d9b34a', '#5f8c88', '#eef3ea']) k.burst(640, 260, col, 18); break;
+    default: break;
+  }
+}
+
+// ---------------------------------------------------------------- coordinates
+// Cliff world (y up from the shore) to the stage.
+const sy = (st, wy) => 640 + st.camY - wy;
+function cliffScreen(st, x, wy) { return { x, y: sy(st, wy) }; }
+function playerScreen(st) {
+  if (st.phase === 'cliff' || st.phase === 'storm') { const p = climberPos(st); return { x: p.x, y: sy(st, p.y) }; }
+  return { x: st.p.x, y: st.p.y };
+}
+
+// ---------------------------------------------------------------- figures
+// A cut-out person on a stick: feet at (x, by), height h. o: costume.
+function person(k, x, by, h, o, pose = {}) {
+  const c = k.c, face = pose.face || 1, arms = pose.arms || 'down';
+  const step = pose.step || 0;
+  c.save(); c.translate(x, by); c.scale(face, 1);
+  if (pose.tilt) c.rotate(pose.tilt);
+  const u = h / 100;
+  // legs or skirt
+  if (o.skirt) {
+    c.fillStyle = k.col(o.skirt);
+    c.beginPath(); c.moveTo(-20 * u, 0); c.lineTo(20 * u, 0); c.lineTo(10 * u, -55 * u); c.lineTo(-10 * u, -55 * u); c.closePath(); c.fill();
+    if (o.trim) { c.fillStyle = k.col(o.trim); c.fillRect(-20 * u, -6 * u, 40 * u, 6 * u); }
+  } else {
+    c.fillStyle = k.col(o.legs || '#555');
+    c.save(); c.rotate(step * 0.35); c.fillRect(-9 * u, -46 * u, 8 * u, 44 * u); c.restore();
+    c.save(); c.rotate(-step * 0.35); c.fillRect(1 * u, -46 * u, 8 * u, 44 * u); c.restore();
+    c.fillStyle = k.col('#1a1416');
+    c.fillRect(-11 * u + step * 6 * u, -5 * u, 12 * u, 5 * u); c.fillRect(1 * u - step * 6 * u, -5 * u, 13 * u, 5 * u);
+  }
+  // coat / bodice
+  c.fillStyle = k.col(o.coat);
+  c.beginPath(); c.moveTo(-15 * u, -42 * u); c.lineTo(15 * u, -42 * u); c.lineTo(11 * u, -80 * u); c.lineTo(-11 * u, -80 * u); c.closePath(); c.fill();
+  if (o.shawl) { c.fillStyle = k.col(o.shawl); c.beginPath(); c.moveTo(-14 * u, -78 * u); c.lineTo(14 * u, -78 * u); c.lineTo(4 * u, -58 * u); c.lineTo(-6 * u, -60 * u); c.closePath(); c.fill(); }
+  if (o.scarf) { c.fillStyle = k.col(o.scarf); c.fillRect(-7 * u, -82 * u, 14 * u, 6 * u); }
+  // arms
+  c.strokeStyle = k.col(o.shawl || o.coat); c.lineWidth = 6 * u; c.lineCap = 'round';
+  const arm = (sx, ex, ey) => { c.beginPath(); c.moveTo(sx * u, -76 * u); c.lineTo(ex * u, ey * u); c.stroke(); };
+  if (arms === 'up') { arm(-9, -18, -112); arm(9, 16, -106); }
+  else if (arms === 'reach') { arm(-9, -10, -60); arm(9, 30, -100); }
+  else if (arms === 'out') { arm(-9, -30, -70); arm(9, 30, -70); }
+  else if (arms === 'v') { arm(-9, -26, -118); arm(9, 26, -118); }
+  else if (arms === 'throw') { arm(-9, -16, -56); arm(9, 32, -96); }
+  else { arm(-9, -14, -46); arm(9, 14, -46); }
+  // head
+  c.fillStyle = k.col('#efd7c4'); k.circle(0, -90 * u, 9 * u);
+  if (o.beard) { c.fillStyle = k.col(o.beard); c.beginPath(); c.moveTo(-8 * u, -90 * u); c.quadraticCurveTo(0, -70 * u, 9 * u, -90 * u); c.closePath(); c.fill(); }
+  if (o.long) { c.fillStyle = k.col(o.hair); c.fillRect(-10 * u, -98 * u, 20 * u, 30 * u); c.fillStyle = k.col('#efd7c4'); k.circle(2 * u, -90 * u, 7 * u); }
+  if (o.hat === 'cap') { c.fillStyle = k.col(o.hatCol); c.fillRect(-10 * u, -102 * u, 20 * u, 7 * u); c.fillRect(-4 * u, -97 * u, 16 * u, 3 * u); }
+  else if (o.hat === 'crown') { c.fillStyle = k.col(o.hatCol); c.beginPath(); c.moveTo(-9 * u, -97 * u); c.lineTo(-9 * u, -108 * u); c.lineTo(-4 * u, -102 * u); c.lineTo(0, -110 * u); c.lineTo(4 * u, -102 * u); c.lineTo(9 * u, -108 * u); c.lineTo(9 * u, -97 * u); c.closePath(); c.fill(); }
+  else if (o.hat === 'bun') { c.fillStyle = k.col(o.hair); k.circle(-2 * u, -99 * u, 8 * u); k.circle(-8 * u, -96 * u, 5 * u); }
+  else if (o.hat === 'flowers') { c.fillStyle = k.col(o.hair); c.fillRect(-9 * u, -100 * u, 18 * u, 5 * u); for (let i = -1; i <= 1; i++) { c.fillStyle = k.col(i ? '#e0127a' : '#d9b34a'); k.circle(i * 7 * u, -100 * u, 3 * u); } }
+  else if (o.hair) { c.fillStyle = k.col(o.hair); c.fillRect(-9 * u, -100 * u, 18 * u, 5 * u); }
+  c.restore();
+}
+
+// Delivered art faces right; flip it for face -1.
+function artFlip(k, id, x, by, w, h, face = 1) {
+  if (!k.img(id)) return false;
+  const c = k.c;
+  c.save(); c.translate(x, by); c.scale(face, 1); k.asset(id, 0, 0, w, h); c.restore();
+  return true;
+}
+
+// The sailor: pose 'stand' | 'walk' | 'leap' | 'climb' | 'carry' | 'throw'.
+function sailor(k, x, by, s, pose, face = 1, step = 0) {
+  if (pose === 'carry') {
+    if (artFlip(k, 'sailor-carry', x, by, 180 * s, 200 * s, face)) return;
+    person(k, x, by, 180 * s, SAILOR, { face, arms: 'out', step });
+    // her, across his arms
+    const c = k.c;
+    c.save(); c.translate(x + face * 4 * s, by - 100 * s); c.scale(face, 1);
+    c.fillStyle = k.col(BELOVED.skirt);
+    c.beginPath(); c.moveTo(-40 * s, 6 * s); c.quadraticCurveTo(-10 * s, -14 * s, 36 * s, -2 * s); c.lineTo(46 * s, 18 * s); c.quadraticCurveTo(0, 22 * s, -40 * s, 18 * s); c.closePath(); c.fill();
+    c.fillStyle = k.col(BELOVED.shawl); c.fillRect(-30 * s, -6 * s, 30 * s, 14 * s);
+    c.fillStyle = k.col('#efd7c4'); k.circle(-44 * s, -6 * s, 13 * s);
+    c.fillStyle = k.col(BELOVED.hair); k.circle(-52 * s, -14 * s, 10 * s);
+    c.restore();
+    return;
+  }
+  const id = pose === 'walk' ? (step > 0 ? 'sailor-walk-a' : 'sailor-walk-b') : pose === 'leap' || pose === 'climb' ? 'sailor-leap' : 'sailor-stand';
+  const w = pose === 'leap' || pose === 'climb' ? 130 : 110;
+  if (artFlip(k, id, x, by, w * s, 180 * s, face)) return;
+  const arms = pose === 'climb' ? 'up' : pose === 'leap' ? 'reach' : pose === 'throw' ? 'throw' : 'down';
+  person(k, x, by, 180 * s, SAILOR, { face, arms, step: pose === 'walk' ? step : pose === 'leap' ? 0.8 : 0 });
+}
+
+function beloved(k, x, by, s, face = -1, arms = 'down') {
+  if (artFlip(k, 'beloved-stand', x, by, 100 * s, 190 * s, -face)) return;
+  person(k, x, by, 175 * s, BELOVED, { face, arms });
+}
+
+function witchFigure(k, x, by, s, face = -1) {
+  if (artFlip(k, 'witch-stand', x, by, 130 * s, 210 * s, -face)) return;
+  person(k, x, by, 200 * s, WITCH, { face, arms: 'reach' });
+  const c = k.c; // the star wand
+  c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2.5;
+  const hx = x + face * 28 * s, hy = by - 196 * s;
+  c.beginPath(); c.moveTo(x + face * 18 * s, by - 150 * s); c.lineTo(hx, hy); c.stroke();
+  c.fillStyle = k.col('#fff2b0'); k.star(hx, hy, 9 * s);
+}
+
+// ---------------------------------------------------------------- the band at impossible scales
+// Fractions of the delivered band-trio cut-out (1254 px square original).
+const TRIO = {
+  legs: [0.594, 0.55, 0.785, 0.969],     // the bearded one's legs and boots
+  guitarist: [0.295, 0.048, 0.638, 0.969],
+  beard: [0.586, 0.068, 0.917, 0.574],   // the bearded one, hip up, with the guitar neck
+};
+function trioCrop(k, part, dx, dy, dw, dh, sub = null) {
+  const im = k.img('band-trio');
+  if (!im) return false;
+  let [x0, y0, x1, y1] = TRIO[part];
+  if (sub) { const w = x1 - x0; x1 = x0 + w * sub[1]; x0 = x0 + w * sub[0]; }
+  return k.assetCrop('band-trio', x0 * im.width, y0 * im.height, (x1 - x0) * im.width, (y1 - y0) * im.height, dx, dy, dw, dh);
+}
+
+// One giant leg, its boot sole at (x, by). half: 0 = left leg, 1 = right.
+function giantLeg(k, x, by, half) {
+  const c = k.c, legs = k.img('band-legs-giant');
+  if (legs) {
+    const w = legs.width / 2;
+    k.assetCrop('band-legs-giant', half * w, 0, w, legs.height, x - 70, by - 560, 140, 560);
+    return;
+  }
+  if (trioCrop(k, 'legs', x - 64, by - 580, 128, 580, half ? [0.5, 1] : [0, 0.5])) return;
+  c.fillStyle = k.col('#e9e1d0'); c.fillRect(x - 34, by - 900, 68, 870);
+  c.fillStyle = k.col('#6a2a4a');
+  for (let i = 0; i < 4; i++) c.fillRect(x - 30 + i * 18, by - 900, 7, 870);
+  c.fillStyle = k.col('#1a1416');
+  c.beginPath(); c.moveTo(x - 38, by - 46); c.lineTo(x + 38, by - 46); c.lineTo(x + 44, by - 10); c.quadraticCurveTo(x + 60, by, x + 50, by); c.lineTo(x - 50, by); c.quadraticCurveTo(x - 60, by, x - 44, by - 10); c.closePath(); c.fill();
+}
+
+function tinyGuitarist(k, x, by, t, beat) {
+  const bob = Math.abs(Math.sin(Math.PI * beatPhase(beat))) * 2;
+  if (k.asset('band-guitar', x, by - bob, 40, 80)) return;
+  if (trioCrop(k, 'guitarist', x - 17, by - 88 - bob, 34, 88)) return;
+  person(k, x, by, 70, { coat: '#f3c6dc', legs: '#5f8c88', hair: '#3a2112', long: true }, {});
+  k.c.fillStyle = k.col('#e8d3a0'); k.circle(x + 3, by - 36, 8);
+}
+
+function hugeGuitarist(k, st, t) {
+  const show = st.phase === 'storm' ? 1 - easeInOut(st.phaseT / 1.2) : easeInOut((st.camY - 760) / 320);
+  if (show <= 0.01) return;
+  const c = k.c, x = 1400 - show * 270;
+  const sway = Math.sin(Math.PI * (st.beat || 0)) * 0.025;
+  c.save(); c.translate(x, 740); c.rotate(-0.12 + sway);
+  if (!k.asset('band-beard', 0, 260, 440, 880)) {
+    if (!trioCrop(k, 'beard', -230, -700, 460, 704)) {
+      person(k, 0, 0, 760, { coat: '#e9e1d0', legs: '#4a2a3a', beard: '#3a2a20', hair: '#3a2a20' }, { arms: 'out' });
+      c.fillStyle = k.col('#2a1a12'); c.fillRect(-260, -420, 340, 26);
+    }
+  }
+  c.restore();
+}
+
+// ---------------------------------------------------------------- backcloth
+function bay(k, st, t, fire, horizon = 470) {
+  const c = k.c;
+  if (!k.asset('bay-backcloth', 640, 720, 1280, 720)) {
+    const g = c.createLinearGradient(0, 60, 0, horizon);
+    g.addColorStop(0, k.col('#1d3a4a')); g.addColorStop(0.7, k.col('#355a66')); g.addColorStop(1, k.col('#6d4a6a'));
+    c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+    c.fillStyle = k.col('#f1e3c8');
+    for (let i = 0; i < 26; i++) { c.globalAlpha = 0.4 + 0.4 * Math.sin(t * 2 + i); k.star((i * 397) % 980 + 150, (i * 151) % (horizon - 150) + 70, 2 + (i % 3)); }
+    c.globalAlpha = 1;
+    k.moon(1010, 150, 42);
+    // the far headland with the lighthouse
+    c.fillStyle = k.col('#2a4049');
+    c.beginPath(); c.moveTo(860, horizon); c.quadraticCurveTo(1000, horizon - 70, 1180, horizon - 50); c.lineTo(1280, horizon - 40); c.lineTo(1280, horizon); c.fill();
+    if (!k.asset('lighthouse', 1090, horizon - 50, 46, 92)) { c.fillStyle = k.col('#eef3ea'); c.fillRect(1082, horizon - 130, 16, 80); c.fillStyle = k.col('#c8321e'); c.fillRect(1082, horizon - 110, 16, 12); }
+    // the sea and boats at anchor
+    c.fillStyle = k.col('#2f5552'); c.fillRect(0, horizon, 1280, 720 - horizon);
+    c.strokeStyle = k.col('#eef3ea'); c.lineWidth = 2; c.globalAlpha = 0.5;
+    for (let i = 0; i < 5; i++) { const y = horizon + 18 + i * 34; c.beginPath(); for (let x = 140; x <= 1140; x += 40) c.lineTo(x, y + Math.sin(x * 0.03 + t * 1.5 + i) * 4); c.stroke(); }
+    c.globalAlpha = 1;
+    for (const [bx, s] of [[300, 1], [1020, 0.8]]) {
+      c.fillStyle = k.col('#3a2112');
+      c.beginPath(); c.moveTo(bx - 30 * s, horizon + 14); c.lineTo(bx + 30 * s, horizon + 14); c.lineTo(bx + 22 * s, horizon + 26); c.lineTo(bx - 22 * s, horizon + 26); c.fill();
+      c.fillRect(bx - 1, horizon - 34 * s, 2, 48 * s);
+      c.fillStyle = k.col('#f1e3c8'); c.beginPath(); c.moveTo(bx + 2, horizon - 30 * s); c.lineTo(bx + 24 * s, horizon + 8); c.lineTo(bx + 2, horizon + 8); c.fill();
+    }
+  }
+  if (fire > 0.01) {
+    c.save(); c.globalAlpha = fire;
+    if (!k.asset('bay-backcloth-fire', 640, 720, 1280, 720)) { c.globalAlpha = 1; k.wash('#c8321e', 0.5 * fire); k.wash('#e9a46a', 0.22 * fire); }
+    c.restore();
+  }
+}
+
+// ---------------------------------------------------------------- part 1: the cliff
+const lx = (wy) => 250 + 18 * Math.sin(wy * 0.013) + 10 * Math.sin(wy * 0.041);
+const rx = (wy) => 1030 + 16 * Math.sin(wy * 0.017 + 1) + 9 * Math.sin(wy * 0.05);
+const IVY = Array.from({ length: 30 }, (_, i) => ({ x: (i * 263) % 720 + 280, y: (i * 211) % 1440, r: 16 + (i * 7) % 16 }));
+const CRACKS = Array.from({ length: 14 }, (_, i) => ({ x: (i * 173) % 700 + 300, y: (i * 307) % 1400, h: 60 + (i * 37) % 90 }));
+
+function cliffScene(k, st, t) {
+  const c = k.c, cam = st.camY, storm = st.phase === 'storm';
+  bay(k, st, t, st.fire, 470 + cam * 0.08);
+  c.save(); c.translate(0, 640 + cam); // world: draw at y = -wy
+  const lo = Math.max(-120, cam - 120), hi = cam + 720;
+  // shore and surf
+  if (lo < 40) {
+    c.fillStyle = k.col('#2f5552'); c.fillRect(0, 10, 1280, 200);
+    c.strokeStyle = k.col('#eef3ea'); c.lineWidth = 3;
+    for (let i = 0; i < 3; i++) { c.beginPath(); for (let x = 0; x <= 1280; x += 30) c.lineTo(x, 30 + i * 26 + Math.sin(x * 0.04 + t * 2 + i) * 5); c.stroke(); }
+    c.fillStyle = k.col('#cdbb93'); c.fillRect(0, -2, 1280, 22);
+  }
+  // the cliff flat
+  if (!k.asset('cliff-face', 640, 30, 820, 1560)) {
+    c.fillStyle = k.col('#d9cfbf');
+    c.beginPath();
+    const y0 = Math.max(-20, lo), y1 = Math.min(CLIFF.top, hi);
+    for (let wy = y0; wy <= y1; wy += 30) c.lineTo(lx(wy), -wy);
+    c.lineTo(lx(y1), -y1);
+    for (let wy = y1; wy >= y0; wy -= 30) c.lineTo(rx(wy), -wy);
+    c.lineTo(rx(y0), -y0);
+    c.closePath(); c.fill();
+    c.strokeStyle = k.col('#a99d88'); c.lineWidth = 2;
+    for (let wy = Math.ceil(y0 / 70) * 70; wy < y1; wy += 70) {
+      c.beginPath(); for (let x = lx(wy) + 6; x <= rx(wy) - 6; x += 40) c.lineTo(x, -wy - Math.sin(x * 0.02 + wy) * 6); c.stroke();
+    }
+    c.strokeStyle = k.col('#7d7262'); c.lineWidth = 3;
+    for (const cr of CRACKS) if (cr.y > lo - 150 && cr.y < hi) { c.beginPath(); c.moveTo(cr.x, -cr.y); c.lineTo(cr.x + 8, -cr.y - cr.h * 0.5); c.lineTo(cr.x - 4, -cr.y - cr.h); c.stroke(); }
+    c.fillStyle = k.col('#5f7d4a');
+    for (const v of IVY) if (v.y > lo - 40 && v.y < hi + 40) { k.circle(v.x, -v.y, v.r); k.circle(v.x + v.r * 0.8, -v.y + v.r * 0.6, v.r * 0.6); }
+  }
+  // the overhanging lip and the grass top
+  if (hi > CLIFF.top - 80) {
+    c.fillStyle = k.col('#6f6a5e'); c.fillRect(236, -CLIFF.top + 54, 818, 12);
+    c.fillStyle = k.col('#b8ad9a'); c.fillRect(240, -CLIFF.top, 810, 56);
+    c.strokeStyle = k.col('#8d8170'); c.lineWidth = 2;
+    for (let x = 260; x < 1040; x += 60) { c.beginPath(); c.moveTo(x, -CLIFF.top + 6); c.lineTo(x + 14, -CLIFF.top + 52); c.stroke(); }
+    c.fillStyle = k.col('#6f9a4a'); c.fillRect(230, -CLIFF.top - 10, 830, 14);
+    // the rock shelf the giant stands on
+    c.fillStyle = k.col('#8d8170'); c.fillRect(800, -1400, 230, 14);
+  }
+  holds(k, st, t);
+  c.restore();
+
+  // The house on the clifftop, in stage coordinates lifted with the camera:
+  // front closed, or swinging open in the storm.
+  c.save(); c.translate(0, cam - CLIFF.top);
+  if (st.open > 0) houseInterior(k, st, t);
+  frontPanel(k, st.open, t);
+  c.restore();
+
+  c.save(); c.translate(0, 640 + cam);
+  // the giant's legs, shifting weight on the beat; they stride off in the storm
+  const off = storm ? easeInOut((st.phaseT - 0.3) / 1.6) * 1100 : 0;
+  const beat = st.beat || 0;
+  for (const half of [0, 1]) {
+    const lift = (half ? bootLift(beat - 1) : bootLift(beat)) * CLIFF.bootLift;
+    giantLeg(k, half ? 980 : 860, -1400 - lift - off - 4, half);
+  }
+  rocksWorld(k, st, t);
+  climber(k, st, t);
+  c.restore();
+  rockWarnings(k, st, t);
+  if (storm) stormFx(k, st, t);
+  hugeGuitarist(k, st, t);
+}
+
+function holds(k, st, t) {
+  const c = k.c, cam = st.camY;
+  st.holds.forEach((h, i) => {
+    const y = -holdY(h, st.beat || 0);
+    if (-y < cam - 140 || -y > cam + 720) return;
+    if (h.kind === 'boot' || h.kind === 'top') return;
+    if (h.gone) { c.fillStyle = k.col('#7d7262'); c.fillRect(h.x - 16, y + 2, 32, 5); return; }
+    const occupied = st.cl.at === i;
+    let x = h.x;
+    if (h.kind === 'crumble' && occupied && st.cl.crumbleT < 0.5) x += Math.sin(t * 60) * 2.5;
+    if (h.kind === 'gap') {
+      c.fillStyle = k.col('#2a2420');
+      c.beginPath(); c.moveTo(x - 30, y + 18); c.lineTo(x - 22, y - 140); c.lineTo(x + 26, y - 132); c.lineTo(x + 34, y + 18); c.closePath(); c.fill();
+      tinyGuitarist(k, x + 14, y, t, st.beat || 0);
+    }
+    const w = h.kind === 'ledge' ? 100 : 46;
+    c.fillStyle = k.col(h.kind === 'crumble' ? '#e8dcc0' : '#efe6d6');
+    c.beginPath(); c.moveTo(x - w / 2, y); c.lineTo(x + w / 2, y); c.lineTo(x + w / 2 - 6, y + 12); c.lineTo(x - w / 2 + 6, y + 12); c.closePath(); c.fill();
+    c.fillStyle = k.col('#8d8170'); c.fillRect(x - w / 2 + 6, y + 10, w - 12, 5);
+    if (h.kind === 'crumble') {
+      c.strokeStyle = k.col('#6f6a5e'); c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(x - 12, y + 1); c.lineTo(x - 4, y + 7); c.lineTo(x + 2, y + 2); c.lineTo(x + 10, y + 11); c.stroke();
+    }
+    if (h.pearl && !h.taken) {
+      const by = y - 6 + Math.sin(t * 3 + i) * 3;
+      if (!k.asset('pearl', x, by, 22, 22)) { c.fillStyle = k.col('#efe9f2'); k.circle(x, by - 10, 9); c.fillStyle = k.col('#ffffff'); k.circle(x - 3, by - 13, 3); }
+    }
+  });
+}
+
+function climber(k, st, t) {
+  const c = k.c;
+  if (st.phase === 'storm') {
+    // He walks to the door.
+    const x = lerp(st.walkFromX, HOUSE.door + 30, easeInOut(st.phaseT / 1.3));
+    const walking = st.phaseT < 1.3;
+    sailor(k, x, -CLIFF.top, S, walking ? 'walk' : 'stand', -1, walking ? Math.sin(st.phaseT * 12) : 0);
+    return;
+  }
+  const p = climberPos(st), cl = st.cl, h = st.holds[cl.at];
+  let y = -p.y;
+  let tilt = 0;
+  if (st.defeatT != null) { y += st.defeatT * st.defeatT * 500; tilt = st.defeatT * 2; }
+  const face = h.x < (cl.fromX ?? h.x) ? -1 : 1;
+  c.save();
+  if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
+  if (tilt) { c.translate(p.x, y - 50); c.rotate(tilt); c.translate(-p.x, -(y - 50)); }
+  const pose = p.moving ? (cl.kind === 'leap' ? 'leap' : 'climb') : h.kind === 'top' ? 'stand' : 'climb';
+  sailor(k, p.x, y, S, pose === 'climb' && !p.moving ? 'stand' : pose, face);
+  c.restore();
+}
+
+function rocksWorld(k, st, t) {
+  const c = k.c;
+  for (const r of st.rocks) {
+    if (r.y == null) continue;
+    c.save(); c.translate(r.x, -r.y); c.rotate(r.spin + t * 7);
+    if (!k.asset('debris-stones', 0, 22, 60, 40)) {
+      c.fillStyle = k.col('#8d8f91');
+      c.beginPath(); c.moveTo(-18, -6); c.lineTo(-6, -18); c.lineTo(14, -14); c.lineTo(20, 4); c.lineTo(6, 18); c.lineTo(-14, 14); c.closePath(); c.fill();
+      c.fillStyle = k.col('#5a5c5e'); c.fillRect(-6, 2, 14, 6);
+    }
+    c.restore();
+  }
+}
+
+// Dust gathering at the top of the frame over a stone about to fall, and the
+// tea-leaf omen a beat earlier when the reading is complete.
+function rockWarnings(k, st, t) {
+  const c = k.c;
+  for (const r of st.rocks) {
+    if (r.y != null) continue;
+    if (r.omen) omenGlyph(k, r.x, 96, t);
+    if (r.wait > r.warn) continue;
+    const k2 = 1 - r.wait / r.warn;
+    c.save();
+    c.globalAlpha = 0.18 + 0.12 * k2;
+    c.strokeStyle = k.col('#f1e3c8'); c.lineWidth = 2; c.setLineDash([8, 10]);
+    c.beginPath(); c.moveTo(r.x, 70); c.lineTo(r.x, 640); c.stroke(); c.setLineDash([]);
+    c.globalAlpha = 0.7;
+    c.fillStyle = k.col('#f1e3c8');
+    for (let i = 0; i < 4; i++) k.circle(r.x - 24 + i * 16, 70 + Math.sin(t * 9 + i) * 4, 10 + k2 * 8);
+    c.fillStyle = k.col('#8d8170');
+    for (let i = 0; i < 6; i++) { const py = 78 + ((t * 240 + i * 41) % (60 + k2 * 160)); k.circle(r.x - 10 + (i * 7) % 20, py, 2.5); }
+    c.restore();
+  }
+}
+
+function omenGlyph(k, x, y, t) {
+  const c = k.c;
+  c.save(); c.globalAlpha = 0.85 + 0.15 * Math.sin(t * 8);
+  c.fillStyle = k.col('#2a1424'); k.circle(x, y, 19);
+  c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2; c.beginPath(); c.arc(x, y, 19, 0, Math.PI * 2); c.stroke();
+  k.keepsake('leaf', x, y - 4, 0.75);
+  c.restore();
+}
+
+function stormFx(k, st, t) {
+  const c = k.c, pt = st.phaseT;
+  if (pt > 0.95 && pt < 1.3) {
+    c.strokeStyle = k.col('#fff6d0'); c.lineWidth = 5;
+    c.beginPath(); c.moveTo(980, 60);
+    const pts = [[930, 140], [960, 170], [880, 250], [910, 270], [800, 360], [820, 380], [700, 460]];
+    for (const [x, y] of pts) c.lineTo(x, y);
+    c.stroke();
+  }
+  if (st.fire > 0.05) flames(k, st, t, st.fire);
+}
+
+// ---------------------------------------------------------------- the house
+// The front swings open on its left hinge like a dollhouse front.
+function frontPanel(k, open, t) {
+  const c = k.c, H = HOUSE;
+  const sx = Math.cos(open * 1.36);
+  c.save(); c.translate(H.x0 - 14, 0); c.scale(sx, 1); c.translate(-(H.x0 - 14), 0);
+  if (!k.asset('house-front', 640, 642, 560, 720)) {
+    c.fillStyle = k.col('#9a948a');
+    c.beginPath(); c.moveTo(H.x0 - 14, 642); c.lineTo(H.x0 - 14, 112); c.lineTo(640, 40); c.lineTo(H.x1 + 14, 112); c.lineTo(H.x1 + 14, 642); c.closePath(); c.fill();
+    c.strokeStyle = k.col('#77716a'); c.lineWidth = 1.5;
+    for (let y = 130; y < 640; y += 28) { c.beginPath(); c.moveTo(H.x0 - 12, y); c.lineTo(H.x1 + 12, y); c.stroke(); for (let x = H.x0 + ((y / 28) % 2) * 30; x < H.x1; x += 60) { c.beginPath(); c.moveTo(x, y); c.lineTo(x, y + 28); c.stroke(); } }
+    c.fillStyle = k.col('#5a3a2a'); c.beginPath(); c.moveTo(H.x0 - 30, 116); c.lineTo(640, 30); c.lineTo(H.x1 + 30, 116); c.lineTo(H.x1 + 30, 126); c.lineTo(640, 44); c.lineTo(H.x0 - 30, 126); c.closePath(); c.fill();
+    // ivy
+    c.fillStyle = k.col('#4f7a3e');
+    for (let i = 0; i < 16; i++) k.circle(H.x0 + 10 + (i * 37) % 120, 640 - ((i * 53) % 420), 14 + (i % 3) * 5);
+    for (let i = 0; i < 8; i++) k.circle(H.x1 - 20 - (i * 29) % 70, 640 - ((i * 71) % 300), 12 + (i % 3) * 4);
+    // the wooden door with iron hinges
+    c.fillStyle = k.col('#6b4024');
+    c.beginPath(); c.moveTo(H.door - 2, 642); c.lineTo(H.door - 2, 540); c.quadraticCurveTo(H.door + 34, 505, H.door + 70, 540); c.lineTo(H.door + 70, 642); c.closePath(); c.fill();
+    c.fillStyle = k.col('#1a1416'); c.fillRect(H.door, 556, 60, 6); c.fillRect(H.door, 606, 60, 6); k.circle(H.door + 58, 590, 4);
+    // windows: the shuttered one on the middle floor, a small one at the top
+    c.fillStyle = k.col('#6b4024'); c.fillRect(H.shutterX - 10, 316, 70, 96);
+    c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2; c.strokeRect(H.shutterX - 10, 316, 70, 96); c.beginPath(); c.moveTo(H.shutterX + 25, 316); c.lineTo(H.shutterX + 25, 412); c.stroke();
+    c.fillStyle = k.col('#2a1a22'); c.fillRect(612, 160, 56, 66);
+    c.fillStyle = k.col('#3a2112'); c.fillRect(612, 190, 56, 4); c.fillRect(638, 160, 4, 66);
+  }
+  if (open > 0) { c.fillStyle = k.col('#000000'); c.globalAlpha = 0.45 * open; c.fillRect(H.x0 - 14, 30, H.x1 - H.x0 + 28, 612); }
+  c.restore();
+}
+
+const ROOM = [
+  { col: '#b98a5e', y0: 452, y1: 626 },
+  { col: '#a0607a', y0: 278, y1: 452 },
+  { col: '#7d86a8', y0: 112, y1: 278 },
+];
+
+function houseInterior(k, st, t) {
+  const c = k.c, H = HOUSE;
+  if (!k.asset('stone-house', 640, 642, 560, 720)) {
+    // shell and roof
+    c.fillStyle = k.col('#77716a'); c.fillRect(H.x0 - 14, 112, 14, 530); c.fillRect(H.x1, 112, 14, 530);
+    c.fillStyle = k.col('#2a1a22'); c.beginPath(); c.moveTo(H.x0 - 14, 112); c.lineTo(640, 40); c.lineTo(H.x1 + 14, 112); c.closePath(); c.fill();
+    c.fillStyle = k.col('#5a3a2a'); c.beginPath(); c.moveTo(H.x0 - 30, 116); c.lineTo(640, 30); c.lineTo(H.x1 + 30, 116); c.lineTo(H.x1 + 30, 126); c.lineTo(640, 44); c.lineTo(H.x0 - 30, 126); c.closePath(); c.fill();
+    for (const r of ROOM) {
+      c.fillStyle = k.col(r.col); c.fillRect(H.x0, r.y0, H.x1 - H.x0, r.y1 - r.y0);
+      c.fillStyle = k.col('#000000'); c.globalAlpha = 0.12;
+      for (let x = H.x0 + 20; x < H.x1; x += 40) c.fillRect(x, r.y0, 12, r.y1 - r.y0);
+      c.globalAlpha = 1;
+    }
+    // windows onto the burning night
+    c.fillStyle = k.col('#e9a46a'); c.fillRect(680, 490, 60, 70); c.fillRect(740, 150, 64, 76);
+    c.fillStyle = k.col('#3a2112'); c.fillRect(708, 490, 4, 70); c.fillRect(680, 523, 60, 4); c.fillRect(770, 150, 4, 76); c.fillRect(740, 186, 64, 4);
+    // furniture silhouettes
+    c.fillStyle = k.col('#2a1a12');
+    c.fillRect(800, 566, 60, 60); c.fillRect(812, 520, 10, 46);                    // the stove
+    c.fillRect(470, 584, 90, 8); c.fillRect(478, 592, 6, 34); c.fillRect(546, 592, 6, 34); // the table
+    c.fillRect(520, 408, 44, 44); c.fillRect(516, 380, 8, 72);                     // the armchair
+    c.fillRect(680, 360, 26, 92); k.circle(693, 372, 10);                          // the clock
+    c.fillRect(520, 244, 110, 34); c.fillRect(520, 226, 12, 52);                   // the bed
+    c.fillStyle = k.col('#f1e3c8'); c.fillRect(534, 238, 90, 8);
+    c.fillStyle = k.col('#6b4024'); c.fillRect(746, 262, 56, 16);                  // the window seat
+  }
+  // the locked shutter on the middle floor, at the right
+  shutter(k, st, t);
+  // connectors
+  for (const cn of st.conns) connector(k, st, cn, t);
+  // what has fallen away
+  if (st.broke) rubble(k, st, t);
+  // floors
+  H.floors.forEach((fy, f) => {
+    for (const [a, b] of st.spans[f]) {
+      c.fillStyle = k.col('#7a4a26'); c.fillRect(a, fy, b - a, 14);
+      c.fillStyle = k.col('#a0703e'); c.fillRect(a, fy, b - a, 3);
+      c.fillStyle = k.col('#2a1a12');
+      if (a > H.x0) { c.beginPath(); c.moveTo(a, fy); c.lineTo(a + 12, fy + 7); c.lineTo(a, fy + 14); c.closePath(); c.fill(); }
+      if (b < H.x1) { c.beginPath(); c.moveTo(b, fy); c.lineTo(b - 12, fy + 7); c.lineTo(b, fy + 14); c.closePath(); c.fill(); }
+    }
+    // embers glowing through the holes
+    if (f > 0) for (let g = 0; g < st.spans[f].length - 1; g++) {
+      const gx0 = st.spans[f][g][1], gx1 = st.spans[f][g + 1][0];
+      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.5 + 0.3 * Math.sin(t * 7 + f);
+      c.fillRect(gx0 + 4, fy + 4, gx1 - gx0 - 8, 6); c.globalAlpha = 1;
+    }
+  });
+  // in-room flames on sticks (not in the way)
+  for (const [x, f, s] of [[860, 0, 0.7], [400, 0, 0.5], [600, 1, 0.55], [880, 2, 0.45], [410, 2, 0.5]]) flameFlat(k, x, H.floors[f] + 2, s, t + x);
+  if (!st.p.carry) beloved(k, H.beloved, H.floors[2], S, -1, Math.sin(t * 5) > 0.3 ? 'reach' : 'down');
+}
+
+function shutter(k, st, t) {
+  const c = k.c, x = HOUSE.shutterX + 2 + (st.lockedT > 0 ? Math.sin(t * 70) * 2 : 0), y = 300;
+  if (st.shutter === 'shut') {
+    c.fillStyle = k.col('#6b4024'); c.fillRect(x, y, 52, 112);
+    c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2;
+    for (let i = 1; i < 5; i++) { c.beginPath(); c.moveTo(x, y + i * 22); c.lineTo(x + 52, y + i * 22); c.stroke(); }
+    c.fillStyle = k.col('#1a1416'); c.fillRect(x + 20, y + 50, 14, 12); // the lock
+  } else {
+    c.fillStyle = k.col('#e9a46a'); c.fillRect(x, y, 52, 112);
+    c.fillStyle = k.col('#3a2112');
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x + 14, y + 30); c.lineTo(x, y + 60); c.fill();
+    c.beginPath(); c.moveTo(x + 52, y + 112); c.lineTo(x + 38, y + 80); c.lineTo(x + 52, y + 50); c.fill();
+  }
+  // the stone in flight
+  if (st.throwT != null && st.throwT < 0.35) {
+    const kk = st.throwT / 0.35, sx = lerp(st.p.x, x + 26, kk), syy = lerp(st.p.y - 70, y + 50, kk) - Math.sin(Math.PI * kk) * 40;
+    c.fillStyle = k.col('#8d8f91'); k.circle(sx, syy, 7);
+  }
+}
+
+function connector(k, st, cn, t) {
+  const c = k.c, H = HOUSE;
+  const ya = H.floors[cn.a.f], yb = H.floors[cn.b.f];
+  if (cn.id === 'ladderDown') {
+    if (!cn.on) return;
+    // It drops on its hinge at the top.
+    const a = (1 - easeOut(clamp((st.ladderDropT ?? 1) / 0.6, 0, 1))) * (Math.PI / 2);
+    c.save(); c.translate(cn.b.x, yb); c.rotate(a);
+    if (!k.asset('ladder', 0, ya - yb, 44, ya - yb)) ladderShape(k, 0, ya - yb, 0);
+    c.restore();
+    return;
+  }
+  if (!cn.on) return;
+  if (cn.kind === 'ladder') { if (!k.asset('ladder', cn.a.x, ya + 4, 44, ya - yb + 8)) ladderShape(k, cn.a.x, ya + 4, yb - 4); return; }
+  if (cn.kind === 'ivy') {
+    c.strokeStyle = k.col('#3f6a3a'); c.lineWidth = 5;
+    c.beginPath(); for (let y = ya; y >= yb - 10; y -= 12) c.lineTo(cn.a.x + Math.sin(y * 0.12) * 8, y); c.stroke();
+    c.fillStyle = k.col('#5f8c4a');
+    for (let y = ya - 6; y > yb; y -= 18) { k.circle(cn.a.x + Math.sin(y * 0.12) * 8 + 9, y, 6); k.circle(cn.a.x + Math.sin(y * 0.12) * 8 - 9, y - 8, 6); }
+    return;
+  }
+  if (cn.kind === 'stairs') {
+    if (k.asset('staircase', (cn.a.x + cn.b.x) / 2, ya + 4, cn.b.x - cn.a.x + 40, ya - yb + 8)) return;
+    c.strokeStyle = k.col('#5a3a1e'); c.lineWidth = 10;
+    c.beginPath(); c.moveTo(cn.a.x - 16, ya + 6); c.lineTo(cn.b.x, yb + 10); c.stroke();
+    c.fillStyle = k.col('#8a5a32');
+    const n = 9;
+    for (let i = 0; i < n; i++) { const kk = (i + 0.5) / n; c.fillRect(lerp(cn.a.x, cn.b.x, kk) - 14, lerp(ya, yb, kk) - 2, 28, 6); }
+    c.strokeStyle = k.col('#3a2112'); c.lineWidth = 3;
+    c.beginPath(); c.moveTo(cn.a.x, ya - 60); c.lineTo(cn.b.x, yb - 60); c.stroke();
+    for (let i = 0; i <= 4; i++) { const kk = i / 4; c.beginPath(); c.moveTo(lerp(cn.a.x, cn.b.x, kk), lerp(ya, yb, kk) - 60); c.lineTo(lerp(cn.a.x, cn.b.x, kk), lerp(ya, yb, kk)); c.stroke(); }
+    return;
+  }
+  if (cn.kind === 'slope') {
+    // a broken floor section, slanting down to the ground floor
+    c.save(); c.translate(cn.b.x, yb); c.rotate(Math.atan2(ya - yb, cn.a.x - cn.b.x));
+    const len = Math.hypot(cn.a.x - cn.b.x, ya - yb);
+    c.fillStyle = k.col('#7a4a26'); c.fillRect(-4, 0, len + 8, 14);
+    c.fillStyle = k.col('#a0703e'); c.fillRect(-4, 0, len + 8, 3);
+    c.fillStyle = k.col('#2a1a12'); for (let s = 20; s < len; s += 34) c.fillRect(s, 3, 3, 11);
+    c.restore();
+  }
+}
+
+function ladderShape(k, x, by, ty) {
+  const c = k.c;
+  c.fillStyle = k.col('#6b4024'); c.fillRect(x - 20, ty, 6, by - ty); c.fillRect(x + 14, ty, 6, by - ty);
+  c.fillStyle = k.col('#8a5a32');
+  for (let y = by - 16; y > ty; y -= 24) c.fillRect(x - 18, y, 36, 5);
+  c.fillStyle = k.col('#2a1a12'); c.globalAlpha = 0.4; c.fillRect(x - 20, ty, 40, (by - ty) * 0.25); c.globalAlpha = 1;
+}
+
+function rubble(k, st, t) {
+  const c = k.c;
+  c.fillStyle = k.col('#3a2112');
+  for (const [x, y, w, a] of [[600, 616, 120, -0.3], [660, 612, 90, 0.4], [700, 618, 70, -0.1]]) { c.save(); c.translate(x, y); c.rotate(a); c.fillRect(-w / 2, -5, w, 10); c.restore(); }
+  c.fillStyle = k.col('#1a1012'); c.fillRect(444, 400, 12, 52); // the burnt ladder stub
+}
+
+// A painted stage flame on a stick.
+function flameFlat(k, x, by, s, phase) {
+  const c = k.c, f = 1 + Math.sin(phase * 3.1 + kT(k) * 11) * 0.08;
+  if (k.asset('flame-flat', x, by, 150 * s, 200 * s * f)) return;
+  c.fillStyle = k.col('#3a2112'); c.fillRect(x - 3 * s, by - 40 * s, 6 * s, 40 * s);
+  const layer = (col, w, h) => { c.fillStyle = k.col(col); c.beginPath(); c.moveTo(x - w * s, by - 30 * s); c.quadraticCurveTo(x - w * s, by - (h * 0.6) * s * f, x + 6 * s * Math.sin(phase), by - h * s * f); c.quadraticCurveTo(x + w * s, by - (h * 0.6) * s * f, x + w * s, by - 30 * s); c.closePath(); c.fill(); };
+  layer('#c8321e', 50, 190); layer('#e9a46a', 34, 140); layer('#d9b34a', 18, 90);
+}
+const kT = (k) => k.t || 0;
+
+// Flame flats rolling across the front, and smoke flats over the top.
+function flames(k, st, t, amt = 1) {
+  const c = k.c;
+  c.save(); c.globalAlpha = Math.min(1, amt);
+  for (let i = 0; i < 2; i++) {
+    const x = ((t * 34 + i * 820) % 1700) - 210, y = 150 + i * 70;
+    if (!k.asset('smoke-flat', x, y + 100, 400, 200)) {
+      c.fillStyle = k.col('#6d5a72'); c.globalAlpha = 0.55 * amt;
+      c.beginPath(); c.ellipse(x - 90, y + 10, 110, 50, 0, 0, Math.PI * 2); c.ellipse(x + 40, y - 10, 130, 66, 0, 0, Math.PI * 2); c.ellipse(x + 170, y + 14, 100, 46, 0, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = Math.min(1, amt);
+    }
+  }
+  const rise = 1 - easeOut(amt);
+  for (let i = 0; i < 6; i++) {
+    const x = [190, 290, 1000, 1100, 250, 1050][i] + Math.sin(t * 0.8 + i) * 22;
+    flameFlat(k, x, 672 + rise * 160 + (i > 3 ? 20 : 0), i > 3 ? 0.9 : 0.7, t + i);
+  }
+  c.restore();
+}
+
+function houseScene(k, st, t) {
+  bay(k, st, t, 1);
+  houseInterior(k, st, t);
+  hazards(k, st, t);
+  player(k, st, t);
+  flames(k, st, t, 1);
+  frontPanel(k, 1, t);
+}
+
+function hazards(k, st, t) {
+  const c = k.c, quay = st.phase === 'quay';
+  for (const h of st.haz) {
+    const fy = quay ? QUAY.y : HOUSE.floors[h.f];
+    const ceil = quay ? 70 : fy - HOUSE.storey + 14;
+    if (h.wait > 0) {
+      if (h.omen) omenGlyph(k, h.x, ceil + 34, t);
+      if (h.wait > h.warn) continue;
+      // shudder and dust
+      const kk = 1 - h.wait / h.warn;
+      c.save(); c.globalAlpha = 0.6;
+      c.fillStyle = k.col('#f1e3c8');
+      for (let i = 0; i < 5; i++) { const py = ceil + 6 + ((t * 200 + i * 33) % (20 + kk * (fy - ceil - 30))); k.circle(h.x - 30 + i * 15, py, 3); }
+      c.globalAlpha = 0.25 + 0.2 * kk; c.fillStyle = k.col('#2a1424');
+      c.beginPath(); c.ellipse(h.x, fy + 2, (h.kind === 'beam' ? 72 : 44) * (0.6 + 0.4 * kk), 6, 0, 0, Math.PI * 2); c.fill();
+      c.restore();
+      const shake = Math.sin(t * 55) * 2 * kk;
+      fallingPiece(k, h, h.x + shake, ceil - 6, 0);
+      continue;
+    }
+    if (!h.landed) { fallingPiece(k, h, h.x, lerp(ceil - 6, fy - 12, h.fallT / HOUSE.beamFall), 0.1); continue; }
+    c.save(); c.globalAlpha = clamp(h.life / 0.6, 0, 1);
+    fallingPiece(k, h, h.x, fy - 8, h.kind === 'beam' ? 0.05 : 0);
+    c.restore();
+  }
+}
+
+function fallingPiece(k, h, x, y, rot) {
+  const c = k.c;
+  c.save(); c.translate(x, y); c.rotate(rot);
+  if (h.kind === 'beam') {
+    if (!k.asset('beam-fall', 0, 15, 150, 30)) {
+      c.fillStyle = k.col('#2a1a12'); c.fillRect(-75, -11, 150, 22);
+      c.fillStyle = k.col('#e9a46a');
+      for (let i = -3; i <= 3; i++) { c.beginPath(); c.moveTo(i * 20 - 8, -11); c.lineTo(i * 20, -26 - Math.abs(Math.sin(i + kT(k) * 9)) * 8); c.lineTo(i * 20 + 8, -11); c.fill(); }
+    }
+  } else if (!k.asset('debris-stones', 0, 34, 100, 66)) {
+    c.fillStyle = k.col('#8d8f91');
+    for (const [dx, dy, r] of [[-26, 2, 13], [0, -6, 16], [24, 4, 12], [-8, 12, 10], [14, -18, 9]]) { c.beginPath(); c.moveTo(dx - r, dy); c.lineTo(dx - r * 0.3, dy - r); c.lineTo(dx + r, dy - r * 0.4); c.lineTo(dx + r * 0.6, dy + r); c.lineTo(dx - r * 0.6, dy + r * 0.8); c.closePath(); c.fill(); }
+  }
+  c.restore();
+}
+
+function player(k, st, t) {
+  const c = k.c, p = st.p;
+  c.save();
+  if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
+  let tilt = 0;
+  if (st.defeatT != null) tilt = Math.min(1.4, st.defeatT * 2) * -p.face;
+  if (tilt) { c.translate(p.x, p.y); c.rotate(tilt); c.translate(-p.x, -p.y); }
+  const walking = p.f >= 0 && !p.conn && Math.abs(p.vx) > 1;
+  const step = walking ? Math.sin(p.x * 0.09) : 0;
+  const s = st.phase === 'quay' ? 0.8 : S;
+  if (p.carry || p.liftT > 0) sailor(k, p.x, p.y, s, 'carry', p.face, step);
+  else if (p.conn) sailor(k, p.x, p.y, s, 'climb', p.face);
+  else if (p.f < 0) sailor(k, p.x, p.y, s, 'leap', p.face);
+  else if (st.throwT != null && st.throwT < 0.4) sailor(k, p.x, p.y, s, 'throw', 1);
+  else sailor(k, p.x, p.y, s, walking ? 'walk' : 'stand', p.face, step);
+  c.restore();
+}
+
+// ---------------------------------------------------------------- the quay
+function quayGround(k, t, lamp = false) {
+  const c = k.c;
+  if (k.asset('harbour-quay', 640, 660, 1280, 200)) return;
+  c.fillStyle = k.col('#8d877a'); c.fillRect(0, QUAY.y, 1280, 60);
+  c.fillStyle = k.col('#a59f92'); c.fillRect(0, QUAY.y, 1280, 6);
+  c.strokeStyle = k.col('#6f6a5e'); c.lineWidth = 1.5;
+  for (let x = 0; x < 1280; x += 64) { c.beginPath(); c.moveTo(x, QUAY.y + 6); c.lineTo(x, QUAY.y + 60); c.stroke(); }
+  c.beginPath(); c.moveTo(0, QUAY.y + 30); c.lineTo(1280, QUAY.y + 30); c.stroke();
+  c.fillStyle = k.col('#1a1416');
+  for (const x of [240, 560, 880]) { c.fillRect(x - 9, QUAY.y - 22, 18, 22); c.beginPath(); c.ellipse(x, QUAY.y - 22, 13, 5, 0, 0, Math.PI * 2); c.fill(); }
+  c.strokeStyle = k.col('#c9b07a'); c.lineWidth = 3;
+  c.beginPath(); c.ellipse(700, QUAY.y - 6, 24, 7, 0, 0, Math.PI * 2); c.stroke();
+  c.fillStyle = k.col('#6b4024'); c.fillRect(380, QUAY.y - 26, 34, 26); c.strokeStyle = k.col('#3a2112'); c.strokeRect(380, QUAY.y - 26, 34, 26);
+  // the lamp post
+  c.fillStyle = k.col('#1a1416'); c.fillRect(1086, QUAY.y - 170, 6, 170); c.fillRect(1076, QUAY.y - 186, 26, 18);
+  c.fillStyle = k.col(lamp ? '#ffe9a8' : '#d9b34a'); c.fillRect(1080, QUAY.y - 182, 18, 12);
+}
+
+// The house on its cliff upstage: small, whole or falling.
+function distantHouse(k, st, t, fall = 0, window = 'dark') {
+  const c = k.c;
+  c.fillStyle = k.col('#b8ad9a');
+  c.beginPath(); c.moveTo(150, 640); c.lineTo(150, 330); c.lineTo(520, 330); c.quadraticCurveTo(560, 450, 600, 640); c.closePath(); c.fill();
+  c.fillStyle = k.col('#6f9a4a'); c.fillRect(150, 322, 372, 10);
+  c.save();
+  c.translate(330, 330); c.rotate(fall * 0.5); c.translate(0, fall * fall * 260); c.scale(0.36, 0.36); c.translate(-640, -642);
+  if (fall > 0.95) { c.restore(); return; }
+  frontPanel(k, 0, t);
+  if (window === 'lit') {
+    const g = c.createRadialGradient(640, 193, 10, 640, 193, 160);
+    g.addColorStop(0, k.P.mode === 'lum' ? 'rgba(255,245,215,0.9)' : 'rgba(255,214,120,0.9)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.fillRect(480, 40, 320, 320);
+    c.fillStyle = k.col('#ffe9a8'); c.fillRect(612, 160, 56, 66);
+    c.fillStyle = k.col('#3a2112'); c.fillRect(612, 190, 56, 4); c.fillRect(638, 160, 4, 66);
+  }
+  if (window === 'door') {
+    // the door stands open, a figure against the warm light inside
+    c.fillStyle = k.col('#e9a46a'); c.fillRect(HOUSE.door + 2, 540, 64, 102);
+    if (!k.asset('rival-silhouette', HOUSE.door + 34, 642, 64, 120)) {
+      c.fillStyle = k.col('#0c0a0c');
+      c.beginPath(); c.moveTo(HOUSE.door + 14, 642); c.lineTo(HOUSE.door + 22, 570); c.lineTo(HOUSE.door + 46, 570); c.lineTo(HOUSE.door + 54, 642); c.closePath(); c.fill();
+      k.circle(HOUSE.door + 34, 556, 12); c.fillRect(HOUSE.door + 12, 544, 44, 6);
+    }
+  }
+  c.restore();
+}
+
+function quayScene(k, st, t) {
+  const fall = easeInOut(st.quayT / 6);
+  bay(k, st, t, 1 - 0.4 * fall);
+  distantHouse(k, st, t, fall);
+  flames(k, st, t, 1 - fall * 0.5);
+  quayGround(k, t);
+  hazards(k, st, t);
+  player(k, st, t);
+}
+
+// ---------------------------------------------------------------- endings
+const CAPTIONS = {
+  witch: ["The Sea Witch's", 'She claims him for the sea. The beloved is safe on the quay.'],
+  lamp: ['A Lamp in the Window', 'She waited. Her pearl is home on its chain.'],
+  dark: ['The Window is Dark', 'Someone else stands in the doorway. The past is a stone thrown in the bay.'],
+};
+
+function endingScene(k, st, t) {
+  const c = k.c, pt = st.phaseT, e = st.ending;
+  const art = k.asset('ending-' + e, 640, 720, 1280, 720);
+  if (!art) {
+    bay(k, st, t, 0.12 * (1 - easeInOut(pt / 4)));
+    if (e === 'witch') witchEnding(k, st, t, pt);
+    else if (e === 'lamp') lampEnding(k, st, t, pt);
+    else darkEnding(k, st, t, pt);
+  }
+  caption(k, CAPTIONS[e], easeInOut((pt - 1.0) / 1.0));
+  k.wash('#1a0f18', easeInOut((pt - (T.ending - 1.0)) / 1.0));
+}
+
+function witchEnding(k, st, t, pt) {
+  const rise = easeOut((pt - 2.2) / 2.0);
+  const away = easeInOut((pt - 7.0) / 3.5);
+  const bx = 900 + away * 420, by = 600 - rise * 140 - away * 60;
+  distantHouse(k, st, t, 0, 'dark');
+  if (rise > 0) k.moonboat(bx, by, 1, 1);
+  quayGround(k, t);
+  beloved(k, 420, QUAY.y, 0.8, 1, pt > 7 ? 'reach' : 'down');
+  // he is drawn up to her boat
+  const claim = easeInOut((pt - 5.2) / 1.6);
+  if (claim < 1) {
+    const x = lerp(700, bx - 10, claim), y = lerp(QUAY.y, by - 4, claim);
+    k.c.save(); k.c.globalAlpha = 1 - claim * 0.3;
+    sailor(k, x, y, lerp(0.8, 0.45, claim), 'stand', 1);
+    k.c.restore();
+  } else sailor(k, bx - 10, by - 4, 0.45, 'stand', 1);
+  // rose petals on the air
+  const c = k.c;
+  c.fillStyle = k.col('#d63c6c');
+  for (let i = 0; i < 12; i++) { const px = ((i * 113 + t * 30) % 900) + 250, py = ((i * 71 + t * 40) % 400) + 140; c.beginPath(); c.ellipse(px, py, 5, 3, t + i, 0, Math.PI * 2); c.fill(); }
+}
+
+function lampEnding(k, st, t, pt) {
+  const lit = pt > 2.4;
+  distantHouse(k, st, t, 0, lit ? 'lit' : 'dark');
+  quayGround(k, t, lit);
+  const meet = easeInOut((pt - 0.6) / 1.8);
+  sailor(k, lerp(520, 606, meet), QUAY.y, 0.8, meet < 1 ? 'walk' : 'stand', 1, meet < 1 ? Math.sin(pt * 10) : 0);
+  beloved(k, lerp(760, 662, meet), QUAY.y, 0.8, -1, meet >= 1 ? 'out' : 'down');
+  if (meet >= 1) {
+    // her pearl, home on its chain
+    const c = k.c, tw = 0.5 + 0.5 * Math.sin(t * 6);
+    c.fillStyle = k.col('#ffffff'); k.circle(660, QUAY.y - 118, 4);
+    c.globalAlpha = tw; k.star(660, QUAY.y - 118, 10); c.globalAlpha = 1;
+  }
+}
+
+function darkEnding(k, st, t, pt) {
+  const c = k.c;
+  distantHouse(k, st, t, 0, 'door');
+  quayGround(k, t);
+  const thrown = pt > 3.2;
+  sailor(k, 780, QUAY.y, 0.8, pt > 2.6 && pt < 3.6 ? 'throw' : 'stand', 1);
+  if (pt > 2.6 && !thrown) { c.fillStyle = k.col('#8d8f91'); k.circle(806, QUAY.y - 118, 6); }
+  const fly = clamp((pt - 3.2) / 0.9, 0, 1);
+  if (thrown && fly < 1) {
+    const x = lerp(806, 990, fly), y = lerp(QUAY.y - 118, 540, fly) - Math.sin(Math.PI * fly) * 120;
+    c.fillStyle = k.col('#8d8f91'); k.circle(x, y, 6);
+  }
+  if (fly >= 1) {
+    c.strokeStyle = k.col('#eef3ea'); c.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      const r = ((pt - 4.1) * 30 + i * 22) % 90;
+      c.globalAlpha = Math.max(0, 1 - r / 90);
+      c.beginPath(); c.ellipse(990, 545, r * 1.6, r * 0.35, 0, 0, Math.PI * 2); c.stroke();
+    }
+    c.globalAlpha = 1;
+  }
+}
+
+// An intertitle-style caption: plum card, fine double rule, pink script.
+function caption(k, [title, sub], a) {
+  if (a <= 0) return;
+  const c = k.c;
+  c.save(); c.globalAlpha = a * 0.94;
+  c.fillStyle = k.col('#2a1424'); c.fillRect(300, 74, 680, 112);
+  c.strokeStyle = k.col('#c79ab7'); c.lineWidth = 1.5;
+  c.strokeRect(306, 80, 668, 100); c.strokeRect(312, 86, 656, 88);
+  c.globalAlpha = a;
+  c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
+  c.font = '54px Yesteryear, cursive'; c.fillText(title, 640, 136);
+  c.font = '700 16px "Josefin Sans", sans-serif'; c.fillText(sub.toUpperCase(), 640, 164);
+  c.restore();
+}
+
+// ---------------------------------------------------------------- the pageant
+function joinerSlot(i) {
+  const side = i % 2 ? 1 : -1, j = Math.floor(i / 2);
+  return { x: 640 + side * (190 + j * 54), side };
+}
+
+function pageantScene(k, st, t) {
+  const c = k.c, pt = st.phase === 'iris' ? T.pageant + st.phaseT : st.phaseT;
+  const beat = st.beat || 0, ph = beatPhase(beat), bob = Math.abs(Math.sin(Math.PI * ph));
+  c.fillStyle = k.col('#1a0f18'); c.fillRect(0, 0, 1280, 720);
+  // the apotheosis backcloth flies in
+  const dy = -(1 - easeOut(pt / PAGEANT.fly)) * 700;
+  c.save(); c.translate(0, dy);
+  k.wire(300, -800, 62); k.wire(980, -800, 62);
+  if (!k.asset('pageant-backcloth', 640, 720, 1280, 720)) apotheosis(k, t);
+  c.restore();
+  // the dancers' line
+  const dIn = easeOut((pt - PAGEANT.dancers) / 1.2);
+  if (dIn > 0) {
+    c.save(); c.beginPath(); c.rect(0, 0, 1280, 566); c.clip();
+    const yb = 566 + (1 - dIn) * 200 - bob * 6;
+    if (!k.asset('pageant-dancers', 640, yb, 720, 315)) {
+      for (let i = 0; i < 5; i++) dancer(k, 380 + i * 130, yb, 130, ((Math.floor(beat) + i) % 2) * bob);
+    }
+    c.restore();
+  }
+  // the Sea King and the witch take their places on the daises
+  const court = easeOut((pt - PAGEANT.court) / 1.2);
+  dais(k, 250); dais(k, 1030);
+  if (court > 0) {
+    c.save(); c.beginPath(); c.rect(0, 0, 1280, 566); c.clip();
+    const cy = 566 + (1 - court) * 240;
+    if (!k.asset('sea-king-throne', 250, cy, 150, 190)) seaKing(k, 250, cy, t);
+    witchFigure(k, 1030, cy, 0.8, -1);
+    c.restore();
+  }
+  // every reveller woken in the grotto steps into the line
+  const n = st.sleepersShown;
+  for (let i = 0; i < st.joined; i++) {
+    const s = joinerSlot(i), since = pt - joinAt(i, n);
+    const walk = easeInOut(since / 0.9);
+    const x = lerp(640 + s.side * 720, s.x, walk);
+    const hop = walk >= 1 ? ((Math.floor(beat) + i) % 2) * bob * 8 : Math.abs(Math.sin(since * 9)) * 6;
+    person(k, x, 618 - hop, 82, revellerCostume(i), { face: walk < 1 ? -s.side : 1, arms: walk >= 1 ? 'v' : 'down', step: walk < 1 ? Math.sin(since * 12) : 0 });
+  }
+  // the band at centre, rising through the trapdoor
+  const band = easeOut((pt - PAGEANT.band) / 1.4);
+  if (band > 0) {
+    c.save(); c.beginPath(); c.rect(0, 0, 1280, 650); c.clip();
+    const sway = st.carry.guitar ? Math.sin(Math.PI * beat) * 0.03 : 0;
+    c.translate(640, 652 + (1 - band) * 280); c.rotate(sway);
+    if (!k.asset('band-trio', 0, 2, 250, 250)) {
+      for (const [dx, col] of [[-50, '#2b2b2b'], [0, '#e9e1d0'], [50, '#5a4a3a']]) person(k, dx, 0, 200, { coat: col, legs: '#4a2a3a', hair: '#3a2112' });
+    }
+    c.restore();
+    if (st.carry.guitar && band >= 1) {
+      // the guitar is home: notes rise on the beat
+      c.save(); c.font = '34px Yesteryear, cursive'; c.textAlign = 'center';
+      for (let i = 0; i < 4; i++) {
+        const a = ((t * 0.7 + i * 0.25) % 1);
+        c.globalAlpha = 1 - a; c.fillStyle = k.col(i % 2 ? '#d9b34a' : '#f3c6dc');
+        c.fillText(i % 2 ? '♫' : '♪', 640 + Math.sin(i * 2 + t) * 90, 420 - a * 200);
+      }
+      c.restore();
+    }
+  }
+  // confetti from the flies after the band arrives
+  if (pt > PAGEANT.band + 1) {
+    for (let i = 0; i < 36; i++) {
+      c.fillStyle = k.col(REVELLER_COLS[i % 6]);
+      const x = (i * 97) % 980 + 150 + Math.sin(t * 2 + i) * 10, y = ((t * 70 + i * 53) % 600) + 60;
+      c.save(); c.translate(x, y); c.rotate(t * 3 + i); c.fillRect(-4, -2, 8, 4); c.restore();
+    }
+  }
+}
+
+function revellerCostume(i) {
+  const col = REVELLER_COLS[i % 6];
+  return i % 3 === 1 ? { coat: col, skirt: col, hair: '#3a2112', hat: 'bun' } : { coat: col, legs: i % 2 ? '#3a2a40' : '#e9e1d0', hair: '#3a2112', hat: i % 4 === 0 ? 'cap' : undefined, hatCol: '#2a1a22' };
+}
+
+function apotheosis(k, t) {
+  const c = k.c;
+  c.fillStyle = k.col('#e7c6dc'); c.fillRect(0, 0, 1280, 720);
+  // a sunburst behind the central arch
+  c.save(); c.translate(640, 300); c.rotate(t * 0.08);
+  for (let i = 0; i < 24; i++) {
+    c.fillStyle = k.col(i % 2 ? '#d9b34a' : '#f1e3c8');
+    c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 900, (i / 24) * Math.PI * 2, ((i + 1) / 24) * Math.PI * 2); c.closePath(); c.fill();
+  }
+  c.restore();
+  c.fillStyle = k.col('#fff2b0'); k.circle(640, 300, 70);
+  // tiered arches and coral columns
+  for (const [x, r, top] of [[640, 190, 130], [320, 120, 230], [960, 120, 230]]) {
+    c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 16;
+    c.beginPath(); c.arc(x, top + r, r, Math.PI, 0); c.lineTo(x + r, 566); c.moveTo(x - r, 566); c.lineTo(x - r, top + r); c.stroke();
+    c.strokeStyle = k.col('#8a6a20'); c.lineWidth = 3; c.beginPath(); c.arc(x, top + r, r - 10, Math.PI, 0); c.stroke();
+  }
+  for (const x of [170, 470, 810, 1110]) {
+    c.fillStyle = k.col('#c8321e'); c.fillRect(x - 16, 200, 32, 366);
+    c.fillStyle = k.col('#d9b34a'); c.fillRect(x - 24, 192, 48, 14); c.fillRect(x - 24, 556, 48, 12);
+    // a scallop shell on top
+    c.fillStyle = k.col('#f3c6dc'); c.beginPath(); c.moveTo(x, 192); c.arc(x, 192, 30, Math.PI, 0); c.closePath(); c.fill();
+    c.strokeStyle = k.col('#c79ab7'); c.lineWidth = 2; for (let a = 1; a < 6; a++) { c.beginPath(); c.moveTo(x, 192); c.lineTo(x + Math.cos(Math.PI + (a / 6) * Math.PI) * 30, 192 + Math.sin(Math.PI + (a / 6) * Math.PI) * 30); c.stroke(); }
+  }
+  c.fillStyle = k.col('#fff2b0');
+  for (let i = 0; i < 18; i++) { c.globalAlpha = 0.5 + 0.5 * Math.sin(t * 3 + i); k.star((i * 211) % 980 + 150, (i * 97) % 300 + 80, 5 + (i % 3) * 2); }
+  c.globalAlpha = 1;
+  // the stage floor of the set, with foam scallops
+  c.fillStyle = k.col('#5f8c88'); c.fillRect(0, 566, 1280, 154);
+  c.fillStyle = k.col('#eef3ea'); for (let x = 0; x < 1280; x += 40) { c.beginPath(); c.arc(x + 20, 566, 20, 0, Math.PI); c.fill(); }
+}
+
+function dais(k, x) {
+  const c = k.c;
+  c.fillStyle = k.col('#d9b34a'); c.fillRect(x - 70, 566, 140, 18);
+  c.fillStyle = k.col('#8a6a20'); c.fillRect(x - 62, 584, 124, 10);
+}
+
+function dancer(k, x, by, h, kick) {
+  const c = k.c, u = h / 100;
+  c.fillStyle = k.col('#efd7c4');
+  c.fillRect(x - 6 * u, by - 46 * u, 4 * u, 46 * u);
+  c.save(); c.translate(x + 3 * u, by - 46 * u); c.rotate(-kick * 1.1); c.fillRect(0, 0, 4 * u, 46 * u); c.restore();
+  c.fillStyle = k.col('#f3a6c8'); c.beginPath(); c.ellipse(x, by - 48 * u, 26 * u, 8 * u, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = k.col('#f4ece4'); c.fillRect(x - 8 * u, by - 76 * u, 16 * u, 28 * u);
+  c.strokeStyle = k.col('#efd7c4'); c.lineWidth = 3.5 * u; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x - 6 * u, by - 72 * u); c.lineTo(x - 20 * u, by - 104 * u); c.moveTo(x + 6 * u, by - 72 * u); c.lineTo(x + 20 * u, by - 104 * u); c.stroke();
+  c.fillStyle = k.col('#efd7c4'); k.circle(x, by - 84 * u, 7 * u);
+  for (let i = -1; i <= 1; i++) { c.fillStyle = k.col(i ? '#e0127a' : '#d9b34a'); k.circle(x + i * 6 * u, by - 91 * u, 2.6 * u); }
+}
+
+function seaKing(k, x, by, t) {
+  person(k, x, by, 190, KING, { face: 1, arms: 'out' });
+  const c = k.c;
+  c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 4;
+  c.beginPath(); c.moveTo(x + 58, by); c.lineTo(x + 58, by - 220); c.stroke();
+  c.beginPath(); c.moveTo(x + 44, by - 222); c.lineTo(x + 44, by - 200); c.lineTo(x + 72, by - 200); c.lineTo(x + 72, by - 222); c.moveTo(x + 58, by - 230); c.lineTo(x + 58, by - 200); c.stroke();
+}
+
+export const _forTests = { CAPTIONS, joinerSlot };
