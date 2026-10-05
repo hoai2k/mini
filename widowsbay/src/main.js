@@ -82,7 +82,12 @@ const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob'
   'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
   'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];
 const showLogo = (logo) => { const el = $('#logo-img'); el.src = logo.src; el.alt = "Widow's Bay"; el.hidden = false; $('#logo').classList.add('has-img'); };
-loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => { if (id === 'logo') showLogo(im); } }).then((a) => {
+const TOUCH_ART = new Set(['touch-stick-base', 'touch-stick-knob', 'touch-button', 'rotate-card']);
+loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
+  if (id === 'logo') showLogo(im);
+  // Images arrive after the manifest; apply the touch art as each one lands.
+  if (TOUCH && TOUCH_ART.has(id)) touchArt({ images: { [id]: im } });
+} }).then((a) => {
   assets = a;
   const song = a.audio?.song;
   if (song?.status === 'delivered' && song.file) audio.setTrack('assets/' + song.file, song.loopStart, song.loopEnd);

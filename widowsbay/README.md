@@ -189,12 +189,10 @@ them.
     own every gesture, so nothing scrolls.
 - **Add to Home Screen.** `manifest.webmanifest` and `icons/` make the game
   install as a full-screen, landscape app, which is how iPhones get full
-  screen. The icons are cut from the logo for now; `app-icon` in the image
-  requests (C8) asks for a proper one.
+  screen. The icons are generated from the delivered `app-icon`.
 
-Art for the controls and the rotate card is requested in C8 (`touch-stick-base`,
-`touch-stick-knob`, `touch-button`, `rotate-card`); until it arrives they are
-drawn in CSS.
+The controls, the rotate card and the home-screen icons use the delivered C8
+art; CSS draws the controls if it is missing.
 
 ## Checks
 

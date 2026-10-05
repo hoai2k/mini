@@ -938,7 +938,14 @@ function pageantScene(k, st, t) {
     c.save(); c.beginPath(); c.rect(0, 0, 1280, 650); c.clip();
     const sway = st.carry.guitar ? Math.sin(Math.PI * beat) * 0.03 : 0;
     c.translate(640, 652 + (1 - band) * 280); c.rotate(sway);
-    if (!k.asset('band-trio', 0, 2, 250, 250)) {
+    // Without the guitar the band takes its bow empty-handed: the three
+    // members drawn singly, the guitarist with nothing in his hands.
+    const noGuitar = !st.carry.guitar && k.img('band-guitarist-empty') && k.img('band-hat') && k.img('band-beard');
+    if (noGuitar) {
+      k.asset('band-hat', -82, 2, 104, 208);
+      k.asset('band-beard', 82, 2, 104, 208);
+      k.asset('band-guitarist-empty', 0, 4, 108, 216);
+    } else if (!k.asset('band-trio', 0, 2, 250, 250)) {
       for (const [dx, col] of [[-50, '#2b2b2b'], [0, '#e9e1d0'], [50, '#5a4a3a']]) person(k, dx, 0, 200, { coat: col, legs: '#4a2a3a', hair: '#3a2112' });
     }
     c.restore();

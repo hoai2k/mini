@@ -227,7 +227,8 @@ function pedestal(k, st, t) {
   // a pool of treasury light marks it among the painted shells
   c.save(); c.globalAlpha = 0.28 + 0.08 * Math.sin(t * 2);
   c.fillStyle = k.col('#fff2c0'); c.beginPath(); c.ellipse(x, by - 80, 92, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  if (!k.asset('pearl-pedestal', x, by, PED_W, PED_H)) {
+  const emptyArt = st.taken && k.img('pearl-pedestal-empty');
+  if (!(emptyArt ? k.asset('pearl-pedestal-empty', x, by, PED_W, PED_H) : k.asset('pearl-pedestal', x, by, PED_W, PED_H))) {
     c.fillStyle = k.col('#f1e3c8');
     c.beginPath(); c.moveTo(x - 30, by); c.lineTo(x - 16, by - 110); c.lineTo(x + 16, by - 110); c.lineTo(x + 30, by); c.fill();
     c.strokeStyle = k.col('#cbb89a'); c.lineWidth = 6; c.lineCap = 'round';
@@ -244,8 +245,8 @@ function pedestal(k, st, t) {
     c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(t * 3);
     c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 24); c.restore();
     if (!art) pearlAt(k, x, py + Math.sin(t * 2) * 2, 15);
-  } else if (art) {
-    // the painted pearl is gone: the shell lies empty, the chain broken
+  } else if (art && !emptyArt) {
+    // no empty-pedestal art: paint the shell empty over the pearl
     c.fillStyle = k.col('#e7b3c4'); c.beginPath(); c.ellipse(x, py + 2, 17, 15, 0, 0, Math.PI * 2); c.fill();
   }
 }
@@ -290,6 +291,16 @@ function floor(k, cam) {
   // The delivered strip (2560 x 400, tiling 1280 wide) paints two grooves;
   // the court needs three on Act I's rows, so the floor is laid from its
   // plain marble bands with the seams under three brass grooves drawn here.
+  // The three-groove strip (court-floor-3) is laid whole, stretched in four
+  // bands so its painted grooves (art y 95, 210, 314 of 400) land on the rows.
+  if (k.img('court-floor-3')) {
+    const A = [0, 95, 210, 314, 400], D = [FLOOR_TOP, ROWY[0], ROWY[1], ROWY[2], 650];
+    for (let x = Math.floor(x0 / 1280) * 1280; x < x1; x += 1280) {
+      for (let i = 0; i < 4; i++) k.assetCrop('court-floor-3', 0, A[i], 2560, A[i + 1] - A[i], x, D[i], 1281, D[i + 1] - D[i] + 1);
+    }
+    c.fillStyle = k.col('#6d4a6a'); c.fillRect(x0, 640, 1280, 10);
+    return;
+  }
   const tiled = !!k.img('court-floor');
   if (tiled) {
     for (let x = Math.floor(x0 / 1280) * 1280; x < x1; x += 1280) {

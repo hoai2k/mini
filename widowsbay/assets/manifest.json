@@ -443,35 +443,35 @@
       "file": "band-legs-giant.webp"
     },
     "band-guitarist-empty": {
-      "status": "requested",
+      "status": "delivered",
       "file": "band-guitarist-empty.webp"
     },
     "pearl-pedestal-empty": {
-      "status": "requested",
+      "status": "delivered",
       "file": "pearl-pedestal-empty.webp"
     },
     "court-floor-3": {
-      "status": "requested",
+      "status": "delivered",
       "file": "court-floor-3.webp"
     },
     "rotate-card": {
-      "status": "requested",
+      "status": "delivered",
       "file": "rotate-card.webp"
     },
     "app-icon": {
-      "status": "requested",
+      "status": "delivered",
       "file": "app-icon.webp"
     },
     "touch-stick-knob": {
-      "status": "requested",
+      "status": "delivered",
       "file": "touch-stick-knob.webp"
     },
     "touch-stick-base": {
-      "status": "requested",
+      "status": "delivered",
       "file": "touch-stick-base.webp"
     },
     "touch-button": {
-      "status": "requested",
+      "status": "delivered",
       "file": "touch-button.webp"
     }
   },
