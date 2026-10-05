@@ -237,6 +237,10 @@ colour the paper carries before the full set is generated.
   during a chapter has a beat: each chapter has a beatless bed under the
   ambience, and a swell plays when the drum wakes. Themes with melody and metre
   play on the title and chapter select, with stings on the results and the
-  ending piece after the epilogue. See `music-requests.md`.
+  ending piece after the epilogue. See `music-requests.md`. The five core
+  tracks are delivered (Suno). Measured, none has a steady pulse: onset
+  autocorrelation peaks at 0.07–0.22, where a steady beat scores about 1, so
+  the beds don't fight the player's tempo. Loops crossfade on measured loop
+  points rather than restarting (README, "Music").
 - **A cultural reader.** Someone Vietnamese should check the costumes, names and
   how the Han are portrayed before production art.

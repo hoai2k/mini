@@ -4,6 +4,7 @@
     python3 bronzedrum/design/source/build_audio.py               # write docs + manifest
     python3 bronzedrum/design/source/build_audio.py --generate    # also generate missing SFX
     python3 bronzedrum/design/source/build_audio.py --generate --force drum-tung
+    python3 bronzedrum/design/source/build_audio.py --music       # process delivered music
     python3 bronzedrum/design/source/build_audio.py --check       # verify docs, manifest, files
 
 Generation needs an ElevenLabs key in ELEVENLABS_API_KEY, or in
@@ -13,6 +14,8 @@ Outputs:
     bronzedrum/design/sound-effects.md    - every effect, its prompt and use
     bronzedrum/design/music-requests.md   - prompts for the score
     bronzedrum/game/assets/sfx/*.mp3      - processed effects (generated)
+    bronzedrum/game/assets/music/*.mp3    - processed music, from design/music-masters/
+    bronzedrum/design/source/music-loops.json - each track's measured loop points
     bronzedrum/game/assets/audio.json     - what the game loads
 """
 
@@ -30,6 +33,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SFX_DIR = ROOT / "game" / "assets" / "sfx"
 MUSIC_DIR = ROOT / "game" / "assets" / "music"
+# Delivered tracks exactly as generated (not published), named by request id.
+MUSIC_MASTERS = ROOT / "design" / "music-masters"
+MUSIC_LOOPS = Path(__file__).resolve().parent / "music-loops.json"
+MUSIC_LUFS = -17.0  # every track is matched to this integrated loudness
 AUDIO_MANIFEST = ROOT / "game" / "assets" / "audio.json"
 SFX_DOC = ROOT / "design" / "sound-effects.md"
 MUSIC_DOC = ROOT / "design" / "music-requests.md"
@@ -553,10 +560,13 @@ def build_manifest():
         if files:
             sfx_entries[s["id"]] = {"files": files, "gain": s["gain"], "loop": s["kind"] == "loop"}
     music_entries = {}
+    loops = json.loads(MUSIC_LOOPS.read_text(encoding="utf-8")) if MUSIC_LOOPS.exists() else {}
     for m in MUSIC:
         f = f"music/{m['id']}.mp3"
         if (ROOT / "game" / "assets" / f).exists():
-            music_entries[m["id"]] = {"file": f, "loop": m["loop"], "kind": m["kind"]}
+            entry = {"file": f, "loop": m["loop"], "kind": m["kind"]}
+            entry.update(loops.get(m["id"], {}))
+            music_entries[m["id"]] = entry
     return json.dumps({"generatedBy": "bronzedrum/design/source/build_audio.py",
                        "sfx": sfx_entries, "music": music_entries}, indent=2, ensure_ascii=False) + "\n"
 
@@ -663,6 +673,71 @@ def build_music_doc():
     return "\n".join(out).rstrip() + "\n"
 
 
+# ------------------------------------------------------------------ delivered music
+
+def loudness(path):
+    """Integrated loudness (LUFS) of a file, from ffmpeg's loudnorm analysis."""
+    out = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-af", "loudnorm=print_format=json",
+                          "-f", "null", "-"], capture_output=True, text=True).stderr
+    return float(json.loads(out[out.rindex("{"):])["input_i"])
+
+
+def envelope(path, window=0.5, rate=4000):
+    """Level in dB per window, mono."""
+    import math
+    import struct
+    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", str(path), "-ac", "1", "-ar", str(rate),
+                          "-f", "s16le", "-"], capture_output=True, check=True).stdout
+    x = struct.unpack(f"<{len(raw) // 2}h", raw)
+    w = int(window * rate)
+    env = []
+    for i in range(0, len(x) - w + 1, w):
+        seg = x[i:i + w]
+        env.append(20 * math.log10((math.sqrt(sum(v * v for v in seg) / w) or 1) / 32768))
+    return env, len(x) / rate
+
+
+def loop_points(path):
+    """Where a looping track's body starts and ends: after its fade-in and
+    before its fade-out, i.e. the first and last half-second within 6 dB of
+    the track's median level. The game crossfades from just before loopEnd
+    into loopStart, so neither fade is ever heard as a dip."""
+    env, duration = envelope(path)
+    ref = sorted(env)[len(env) // 2]
+    body = [i for i, v in enumerate(env) if v >= ref - 6]
+    start = min(body[0] * 0.5, 8.0)
+    end = max((body[-1] + 1) * 0.5, start + 20)
+    return {"loopStart": round(start, 2), "loopEnd": round(min(end, duration), 2), "duration": round(duration, 2)}
+
+
+def process_music(force=False):
+    """Masters in design/music-masters/<id>.mp3 become the game's copies:
+    cover art and tags stripped, silence trimmed from both ends, matched to
+    MUSIC_LUFS, 44.1 kHz 128 kbps MP3. Loop points are measured and kept in
+    music-loops.json so --check needs no ffmpeg."""
+    loops = json.loads(MUSIC_LOOPS.read_text(encoding="utf-8")) if MUSIC_LOOPS.exists() else {}
+    MUSIC_DIR.mkdir(parents=True, exist_ok=True)
+    for m in MUSIC:
+        src = MUSIC_MASTERS / f"{m['id']}.mp3"
+        out = MUSIC_DIR / f"{m['id']}.mp3"
+        if not src.exists():
+            continue
+        if force or not out.exists() or out.stat().st_mtime < src.stat().st_mtime:
+            gain = MUSIC_LUFS - loudness(src)
+            trim = "silenceremove=start_periods=1:start_threshold=-55dB"
+            chain = f"{trim},areverse,{trim},areverse,volume={gain:.2f}dB,aresample=44100"
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-map", "0:a", "-af", chain,
+                            "-map_metadata", "-1", "-metadata", f"title={m['title']}",
+                            "-c:a", "libmp3lame", "-b:a", "128k", str(out)], check=True)
+            print(f"wrote {out.relative_to(ROOT.parent)} ({out.stat().st_size // 1024} KB, {gain:+.1f} dB)")
+        if m["loop"]:
+            loops[m["id"]] = loop_points(out)
+        else:
+            loops[m["id"]] = {"duration": round(envelope(out)[1], 2)}
+    MUSIC_LOOPS.write_text(json.dumps(loops, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"wrote {MUSIC_LOOPS.relative_to(ROOT.parent)}")
+
+
 def validate():
     ids = [s["id"] for s in SFX]
     assert len(ids) == len(set(ids)), "duplicate sfx id"
@@ -692,6 +767,12 @@ def main():
                     continue
                 print(f"generating {f} …", flush=True)
                 generate(s, out, key)
+    if "--music" in args:
+        process_music(force="--force" in args)
+    # A track is delivered once its processed file is in the game.
+    for m in MUSIC:
+        if (MUSIC_DIR / f"{m['id']}.mp3").exists():
+            m["status"] = "delivered"
     outputs = {SFX_DOC: build_sfx_doc(), MUSIC_DOC: build_music_doc(), AUDIO_MANIFEST: build_manifest()}
     if "--check" in args:
         stale = [p for p, t in outputs.items() if not p.exists() or p.read_text(encoding="utf-8") != t]

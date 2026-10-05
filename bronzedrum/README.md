@@ -40,6 +40,29 @@ python3 ../design/source/build_audio.py --check
 python3 ../design/source/build_web_art.py --check
 ```
 
+## Music
+
+The five core tracks are delivered: the title theme (`mu-title`), the chapter
+select (`mu-select`), the battle and story beds (`mu-bed-battle`,
+`mu-bed-story`) and the ending (`mu-ending`). The rest of
+[`design/music-requests.md`](design/music-requests.md) is optional; each
+chapter falls back to the shared bed until its own arrives.
+
+The tracks as delivered are kept in `design/music-masters/<id>.mp3` (not
+published). To add or replace one, put it there under its request id and run:
+
+```sh
+python3 bronzedrum/design/source/build_audio.py --music
+```
+
+This writes the game's copy to `game/assets/music/` (cover art stripped, silence
+trimmed, matched to −17 LUFS, 128 kbps) and measures the loop points of the
+looping tracks into `design/source/music-loops.json`: where the body starts
+after the fade-in and ends before the fade-out. The game never restarts a loop
+outright. Just before the loop end it starts a second copy at the loop start
+and crossfades the two over three seconds on an equal-power curve, so neither
+the track's own fades nor the gap browsers leave when an MP3 loops are heard.
+
 ## Sound effects
 
 All sound effects come from ElevenLabs. To generate missing effects, or to
