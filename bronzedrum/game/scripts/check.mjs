@@ -44,7 +44,12 @@ for (const m of source.matchAll(/(?:play|has|startAmbience|playMusic|musicOverla
     console.error(`code plays '${m[1]}', which build_audio.py does not define`);
   }
 }
-for (const m of readFileSync(join(root, 'src', 'stages.js'), 'utf8').matchAll(/(?:ambience|music): '([a-z-]+)'/g)) {
+const stagesSrc = readFileSync(join(root, 'src', 'stages.js'), 'utf8');
+const stageSounds = [
+  ...[...stagesSrc.matchAll(/ambience: '([a-z-]+)'/g)].map((m) => m[1]),
+  ...[...stagesSrc.matchAll(/music: \[([^\]]*)\]/g)].flatMap((m) => [...m[1].matchAll(/'([a-z-]+)'/g)].map((x) => x[1])),
+];
+for (const m of stageSounds.map((id) => [null, id])) {
   if (!defined.includes(`"${m[1]}"`)) {
     failed++;
     console.error(`stage sound '${m[1]}' is not defined in build_audio.py`);
