@@ -181,6 +181,7 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
 .tbtn-pause { right: max(16px, calc(env(safe-area-inset-right) + 8px)); top: max(14px, env(safe-area-inset-top)); width: 46px; height: 46px; font-size: 14px; }
 .tbtn.has-art { background: center/contain no-repeat var(--art); border: 0; box-shadow: none; }
 .tbtn.has-art.on { filter: brightness(1.35); }
+.tbtn-pause.has-art { font-size: 0; color: transparent; }
 
 /* Phones: let the stage fill the height and let the controls sit in the side margins */
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {

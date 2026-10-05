@@ -88,7 +88,13 @@ export const HOUSE = {
   x0: 380, x1: 900, wallL: 396, wallR: 884, door: 402,
   floors: [626, 452, 278], storey: 174,
   walk: 190, carryWalk: 118, jump: 560, gravity: 1500,
-  beloved: 830, shutterX: 840,
+  beloved: 830,
+  // The shutter painted in stone-house.webp: its centre, mapped through
+  // HOUSE_ART (act5-art.js) onto the stage, at the middle floor. The stone
+  // sailor throws (or finds it locked) standing shutterNear = [36, 96] px to the
+  // right of its centre: past the launch point for the leap over the burnt gap
+  // (x 650-686), so A there still leaps.
+  shutterX: 651, shutterY: 337, shutterNear: [36, 96],
   beamWarn: 1.0, beamFall: 0.28, hazEvery: [1.9, 2.6],
   climb: { ladder: 140, stairs: 170, ivy: 125, slope: 150 }, carryClimb: 0.62,
 };
@@ -502,7 +508,7 @@ function stepHouse(st, dt, input) {
       }
       if (p.conn) { p.x = lerp(p.conn.c.a.x, p.conn.c.b.x, p.conn.u); }
       else {
-        const nearShutter = p.f === 1 && st.shutter === 'shut' && p.x >= H.shutterX && !p.carry;
+        const nearShutter = p.f === 1 && st.shutter === 'shut' && p.x >= H.shutterX + H.shutterNear[0] && p.x <= H.shutterX + H.shutterNear[1] && !p.carry;
         if (input.a && nearShutter) {
           if (st.carry.stone && !st.stoneThrown) { st.stoneThrown = true; st.throwT = 0; st.events.push({ type: 'stoneThrow' }); }
           else if (st.lockedT <= 0 && st.throwT == null) { st.lockedT = 0.8; st.events.push({ type: "shutterLocked" }); }

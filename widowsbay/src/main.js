@@ -70,19 +70,20 @@ const dialogs = []; // stack of open dialog elements
 
 // Delivered art for the touch controls and the rotate card (image requests D).
 function touchArt(a) {
-  const set = (sel, id) => { const im = a.images[id]; const el = document.querySelector(sel); if (im && el) { el.style.setProperty('--art', `url("${im.src}")`); el.classList.add('has-art'); } };
-  set('.stick-base', 'touch-stick-base'); set('.stick-knob', 'touch-stick-knob');
-  for (const el of document.querySelectorAll('.tbtn-a, .tbtn-b')) if (a.images['touch-button']) { el.style.setProperty('--art', `url("${a.images['touch-button'].src}")`); el.classList.add('has-art'); }
-  if (a.images['rotate-card']) { const im = $('#rotate-img'); im.src = a.images['rotate-card'].src; im.hidden = false; }
+  const url = (im) => im.src || im.toDataURL(); // ?testart placeholders are canvases
+  const set = (sel, id) => { const im = a.images[id]; const el = document.querySelector(sel); if (im && el) { el.style.setProperty('--art', `url("${url(im)}")`); el.classList.add('has-art'); } };
+  set('.stick-base', 'touch-stick-base'); set('.stick-knob', 'touch-stick-knob'); set('.tbtn-pause', 'touch-pause');
+  for (const el of document.querySelectorAll('.tbtn-a, .tbtn-b')) if (a.images['touch-button']) { el.style.setProperty('--art', `url("${url(a.images['touch-button'])}")`); el.classList.add('has-art'); }
+  if (a.images['rotate-card']) { const im = $('#rotate-img'); im.src = url(a.images['rotate-card']); im.hidden = false; }
 }
 
 // Act I and the title load first; the other acts' art follows in the background.
-const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'proscenium', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
+const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'proscenium', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
   'ship', 'witch-moonboat', 'rock', 'pearl', 'tea-leaf', 'keepsake-tea', 'lighthouse', 'lighthouse-lit', 'band-trio',
   'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
   'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];
 const showLogo = (logo) => { const el = $('#logo-img'); el.src = logo.src; el.alt = "Widow's Bay"; el.hidden = false; $('#logo').classList.add('has-img'); };
-const TOUCH_ART = new Set(['touch-stick-base', 'touch-stick-knob', 'touch-button', 'rotate-card']);
+const TOUCH_ART = new Set(['touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'rotate-card']);
 loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
   if (id === 'logo') showLogo(im);
   // Images arrive after the manifest; apply the touch art as each one lands.
@@ -467,9 +468,11 @@ function update(dt, i) {
     if (i.down) { S.pb = (S.pb + 1) % n; audio.play('ui'); }
     if (i.tap) {
       // Tap a line of the playbill to begin that act; tap outside it for the title.
-      const row = Math.round((i.tap.y - 244) / 72);
-      if (i.tap.x > 360 && i.tap.x < 920 && row >= 0 && row < n) { S.pb = row; if (S.modeT > 0.3) beginAct(row); }
-      else if (i.tap.y > 650 || i.tap.x < 330 || i.tap.x > 950) toTitle();
+      const pb = playbillRows();
+      let row = -1;
+      pb.ys.forEach((y, r) => { if (r < n && Math.abs(i.tap.y - y) <= pb.half && (row < 0 || Math.abs(i.tap.y - y) < Math.abs(i.tap.y - pb.ys[row]))) row = r; });
+      if (i.tap.x > pb.x0 && i.tap.x < pb.x1 && row >= 0) { S.pb = row; if (S.modeT > 0.3) beginAct(row); }
+      else if (i.tap.y > 650 || i.tap.x < (pb.art ? pb.left - 10 : 330) || i.tap.x > (pb.art ? pb.left + PB.w + 10 : 950)) toTitle();
       return;
     }
     if (go && S.modeT > 0.3) beginAct(S.pb);
@@ -610,9 +613,55 @@ function updateTouch() {
 
 // ---------------------------------------------------------------- shell scenes
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+// The delivered playbill (700x1000 art, drawn at 404x578 about the middle of
+// the stage). Its title banner and five act panels were measured in the art:
+// panels at art y 236-338, 363-470, 497-607, 634-756 and 783-876, x 128-571.
+const PB = { w: 404, h: 578, cx: 640, cy: 360, panels: [287, 416.5, 552, 695, 829.5], panelH: 100, panelX: [128, 571] };
+// Where each act's row sits, for drawing and for taps (stage px).
+function playbillRows() {
+  if (assets.images.playbill) {
+    const s = PB.w / 700, x0 = PB.cx - PB.w / 2, y0 = PB.cy - PB.h / 2;
+    return { art: true, s, x0: x0 + PB.panelX[0] * s, x1: x0 + PB.panelX[1] * s, half: PB.panelH * s / 2 + 6,
+      ys: PB.panels.map((p) => y0 + p * s), left: x0, top: y0 };
+  }
+  return { art: false, x0: 360, x1: 920, half: 36, ys: ACTS.map((a, n) => 244 + n * 72) };
+}
 function drawPlaybill(k, t) {
   const c = k.c;
   k.sky(null);
+  for (let r = 0; r < 3; r++) k.waves(r, t * 40);
+  const rows = playbillRows();
+  c.textAlign = 'center';
+  const mode = S.inputMode;
+  const hint = mode === 'touch' ? 'Tap an act to begin · tap outside for the title'
+    : mode === 'pad' ? '[LS] Choose · [A] Begin · [B] The title' : '↑ ↓ to choose · [A] to begin · [B] for the title';
+  if (rows.art && k.asset('playbill', PB.cx, PB.cy + PB.h / 2, PB.w, PB.h)) {
+    const s = rows.s, ink = k.col('#2a1424');
+    c.fillStyle = ink; c.textAlign = 'center';
+    c.font = '38px Yesteryear, cursive'; c.fillText("Widow's Bay", 640, rows.top + 163 * s + 8);
+    c.font = '700 9px "Josefin Sans", sans-serif'; c.fillText('A TOY THEATRE IN FIVE ACTS', 640, rows.top + 192 * s);
+    const pw = (rows.x1 - rows.x0) - 28;
+    ACTS.forEach((a, n) => {
+      const y = rows.ys[n], open = n < save.unlocked, sel = n === S.pb;
+      if (sel) { c.fillStyle = k.col('#e0127a'); c.globalAlpha = 0.2; c.fillRect(rows.x0 + 4, y - PB.panelH * s / 2 + 3, rows.x1 - rows.x0 - 8, PB.panelH * s - 6); c.globalAlpha = 1; }
+      c.fillStyle = k.col(open ? '#2a1424' : '#a99a86');
+      c.textAlign = 'left'; c.font = '700 11px "Josefin Sans", sans-serif'; c.fillText('ACT ' + ROMAN[n], rows.x0 + 14, y - 10);
+      const best = save.best[a.id];
+      if (open && best != null) { c.textAlign = 'right'; c.font = '11px "Josefin Sans", sans-serif'; c.fillText('best ' + best, rows.x1 - 14, y - 10); }
+      let px = 27; c.font = `${px}px Yesteryear, cursive`;
+      const label = open ? a.title : '· · ·';
+      const w = c.measureText(label).width;
+      if (w > pw) { px = Math.floor(px * pw / w); c.font = `${px}px Yesteryear, cursive`; }
+      c.textAlign = 'center'; c.fillText(label, (rows.x0 + rows.x1) / 2, y + 17);
+    });
+    // The prompt rides on a small plum label over the foot of the bill.
+    c.font = '700 12px "Josefin Sans", sans-serif';
+    const tw = Math.min(380, c.measureText(hint.replace(/\[(\w+)\]/g, 'XX')).width + 56);
+    c.fillStyle = k.col('#2a1424'); c.globalAlpha = 0.85; c.beginPath(); c.roundRect(640 - tw / 2, 624, tw, 22, 11); c.fill(); c.globalAlpha = 1;
+    c.fillStyle = k.col('#f1e3c8'); c.textAlign = 'center';
+    richText(c, hint, 640, 639, { px: 12, mode, col: k.col });
+    return;
+  }
   c.fillStyle = k.col('#f1e3c8'); c.fillRect(330, 70, 620, 580);
   c.strokeStyle = k.col('#2a1424'); c.lineWidth = 3; c.strokeRect(344, 84, 592, 552); c.lineWidth = 1; c.strokeRect(352, 92, 576, 536);
   c.textAlign = 'center'; c.fillStyle = k.col('#2a1424');
@@ -629,9 +678,7 @@ function drawPlaybill(k, t) {
     if (open && best != null) c.fillText('best ' + best, 888, y - 6);
   });
   c.textAlign = 'center'; c.font = '18px "Josefin Sans", sans-serif'; c.fillStyle = k.col('#2a1424');
-  const mode = S.inputMode;
-  richText(c, mode === 'touch' ? 'Tap an act to begin · tap outside for the title'
-    : mode === 'pad' ? '[LS] Choose · [A] Begin · [B] The title' : '↑ ↓ to choose · [A] to begin · [B] for the title', 640, 612, { px: 18, mode, col: k.col });
+  richText(c, hint, 640, 612, { px: 18, mode, col: k.col });
 }
 
 function drawCurtainCall(k, t) {

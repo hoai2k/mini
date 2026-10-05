@@ -43,8 +43,8 @@ export function onEvent(k, e, st) {
     case 'beamCrash': k.burst(e.x, e.y - 10, '#3a2112', 14, 'chip'); k.burst(e.x, e.y - 20, '#e9a46a', 8, 'sparkle'); k.shake(0.25); break;
     case 'debrisCrash': k.burst(e.x, e.y - 10, '#8d8f91', 14, 'chip'); k.shake(0.2); break;
     case 'stoneThrow': k.text('The stone!', at.x, at.y - 130); break;
-    case 'shutterSmash': k.burst(870, 360, '#6b4024', 22, 'chip'); k.text('Shortcut!', 780, 300, true); k.shake(0.2); break;
-    case 'shutterLocked': k.text('Locked fast', 820, 330); break;
+    case 'shutterSmash': k.burst(HOUSE.shutterX, HOUSE.shutterY, '#6b4024', 22, 'chip'); k.text('Shortcut!', HOUSE.shutterX, HOUSE.shutterY - 90, true); k.shake(0.2); break;
+    case 'shutterLocked': k.text('Locked fast', HOUSE.shutterX, HOUSE.shutterY - 70); break;
     case 'liftHer': k.burst(HOUSE.beloved, HOUSE.floors[2] - 70, '#f3c6dc', 20, 'sparkle'); break;
     case 'floorBreak': k.shake(0.6); k.burst(560, 560, '#3a2112', 24, 'chip'); k.burst(820, 440, '#e9a46a', 14, 'sparkle'); break;
     case 'thud': k.burst(at.x, at.y, '#b98a5e', 10, 'chip'); break;
@@ -224,7 +224,7 @@ function hugeGuitarist(k, st, t) {
 // ---------------------------------------------------------------- backcloth
 function bay(k, st, t, fire, horizon = 470) {
   const c = k.c;
-  if (!k.asset('bay-backcloth', 640, 720, 1280, 720)) {
+  if (!k.asset('bay-backcloth-empty', 640, 720, 1280, 720) && !k.asset('bay-backcloth', 640, 720, 1280, 720)) {
     const g = c.createLinearGradient(0, 60, 0, horizon);
     g.addColorStop(0, k.col('#1d3a4a')); g.addColorStop(0.7, k.col('#355a66')); g.addColorStop(1, k.col('#6d4a6a'));
     c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
@@ -250,12 +250,26 @@ function bay(k, st, t, fire, horizon = 470) {
   }
   if (fire > 0.01) {
     c.save(); c.globalAlpha = fire;
-    if (!k.asset('bay-backcloth-fire', 640, 720, 1280, 720)) { c.globalAlpha = 1; k.wash('#c8321e', 0.5 * fire); k.wash('#e9a46a', 0.22 * fire); }
+    if (!k.asset('bay-backcloth-fire-empty', 640, 720, 1280, 720) && !k.asset('bay-backcloth-fire', 640, 720, 1280, 720)) { c.globalAlpha = 1; k.wash('#c8321e', 0.5 * fire); k.wash('#e9a46a', 0.22 * fire); }
     c.restore();
   }
 }
 
 // ---------------------------------------------------------------- part 1: the cliff
+// Any delivered cliff art brings its own surf at the foot and grass on top.
+const CLIFF_ART_SEA = (k) => !!(k.img('cliff-face-tall') || k.img('cliff-face'));
+// cliff-face-tall: 1400 x 3600, drawn 820 wide (x 230-1050) and tallH() high,
+// bottom on world y -30. It is requested with the dark gap from 35% to 50% of
+// the height (from the top) at two-thirds of the width, so the gap lands at
+// stage x = 230 + 820 * 2/3 = 777 and world y from tallGap().lo to tallGap().hi.
+// The gap hold (kind 'gap' in HOLDS, act5.js) is at x 775, y 1580, which is NOT
+// in that span, because it was placed for the current cliff-face's cleft.
+// When cliff-face-tall arrives, check the painted gap and move the hold so
+// that its knob (y - 124) and its guitarist sit in the middle of the gap:
+// set y = (tallGap().lo + tallGap().hi) / 2 - 124 (and x to the gap's centre),
+// then keep the neighbouring holds within reach (CLIFF.reach 130).
+const tallH = () => CLIFF.top + 34;
+export const tallGap = () => ({ x: 230 + 820 * 2 / 3, lo: -30 + tallH() * 0.5, hi: -30 + tallH() * 0.65 });
 const lx = (wy) => 268 + 16 * Math.sin(wy * 0.013) + 10 * Math.sin(wy * 0.041);
 const rx = (wy) => 1004 + 14 * Math.sin(wy * 0.017 + 1) + 9 * Math.sin(wy * 0.05);
 // Rock pillars across the cliff flat: x, width, block height, phase, shade.
@@ -271,8 +285,8 @@ function cliffScene(k, st, t) {
   bay(k, st, t, st.fire, 470 + cam * 0.08);
   c.save(); c.translate(0, 640 + cam); // world: draw at y = -wy
   const lo = Math.max(-120, cam - 120), hi = cam + 720;
-  // shore and surf
-  if (lo < 40) {
+  // shore and surf (cliff-face paints its own surf at its foot)
+  if (lo < 40 && !CLIFF_ART_SEA(k)) {
     c.fillStyle = k.col('#2f5552'); c.fillRect(0, 10, 1280, 200);
     c.strokeStyle = k.col('#eef3ea'); c.lineWidth = 3;
     for (let i = 0; i < 3; i++) { c.beginPath(); for (let x = 0; x <= 1280; x += 30) c.lineTo(x, 30 + i * 26 + Math.sin(x * 0.04 + t * 2 + i) * 5); c.stroke(); }
@@ -286,7 +300,10 @@ function cliffScene(k, st, t) {
   // to y 80, surf from y 1540.)
   const H2 = (CLIFF.top + 30) / 2, SURF = (1800 - 1540) / 1800 * (H2 + 4);
   let cliffArt = false;
-  if (k.img('cliff-face')) {
+  // The requested cliff-face-tall is the whole climb in one image: drawn once,
+  // 820 wide (as the two copies are) and tallH() high, its foot on world y -30.
+  if (k.img('cliff-face-tall')) cliffArt = k.asset('cliff-face-tall', 640, 30, 820, tallH());
+  else if (k.img('cliff-face')) {
     c.save(); c.beginPath(); c.rect(0, -1e5, 1280, 1e5 + 30 - H2 - SURF + 12); c.clip(); // the upper one stops above its surf
     k.asset('cliff-face', 640, 30 - H2, 820, H2 + 4);
     c.restore();
@@ -320,15 +337,17 @@ function cliffScene(k, st, t) {
     for (const v of IVY) if (v.y > lo - 40 && v.y < hi + 40) k.circle(v.x - v.r * 0.3, -v.y - v.r * 0.3, v.r * 0.45);
   }
   // the overhanging lip and the grass top
-  if (hi > CLIFF.top - 80 && !k.img('cliff-face')) {
+  if (hi > CLIFF.top - 80 && !CLIFF_ART_SEA(k)) {
     c.fillStyle = k.col('#6f6a5e'); c.fillRect(254, -CLIFF.top + 54, 772, 12);
     c.fillStyle = k.col('#c9bda5'); c.fillRect(258, -CLIFF.top, 764, 56);
     c.strokeStyle = k.col('#8d8170'); c.lineWidth = 2;
     for (let x = 270; x < 1010; x += 60) { c.beginPath(); c.moveTo(x, -CLIFF.top + 6); c.lineTo(x + 14, -CLIFF.top + 52); c.stroke(); }
     c.fillStyle = k.col('#6f9a4a'); c.fillRect(248, -CLIFF.top - 10, 784, 14);
     // the rock shelf the giant stands on
-    c.fillStyle = k.col('#8d8170'); c.fillRect(LEGS[0] - 70, -(CLIFF.top - 100), 250, 14);
+    if (!k.img('cliff-ledge')) { c.fillStyle = k.col('#8d8170'); c.fillRect(LEGS[0] - 70, -(CLIFF.top - 100), 250, 14); }
   }
+  // the giant's shelf, 250 wide: three 104 x 24 cliff-ledge tiles, top on the shelf line
+  if (hi > CLIFF.top - 200) for (const lx0 of [LEGS[0] - 18, LEGS[0] + 55, LEGS[0] + 128]) k.asset('cliff-ledge', lx0, -(CLIFF.top - 100) + 24, 104, 24);
   holds(k, st, t);
   c.restore();
 
@@ -361,7 +380,7 @@ function holds(k, st, t) {
     const y = -holdY(h, st.beat || 0);
     if (-y < cam - 140 || -y > cam + 720) return;
     if (h.kind === 'boot' || h.kind === 'top') return;
-    if (h.gone) { c.fillStyle = k.col('#7d7262'); c.fillRect(h.x - 16, y + 2, 32, 5); return; }
+    if (h.gone) { if (!k.asset('cliff-hold-gone', h.x, y + 12, 40, 12)) { c.fillStyle = k.col('#7d7262'); c.fillRect(h.x - 16, y + 2, 32, 5); } return; }
     const occupied = st.cl.at === i;
     let x = h.x;
     if (h.kind === 'crumble' && occupied && st.cl.crumbleT < 0.5) x += Math.sin(t * 60) * 2.5;
@@ -372,20 +391,25 @@ function holds(k, st, t) {
         c.fillStyle = k.col('#3a302a');
         c.beginPath(); c.moveTo(x - 34, y + 18); c.lineTo(x - 26, y - 236); c.lineTo(x + 30, y - 228); c.lineTo(x + 38, y + 18); c.closePath(); c.fill();
       }
-      c.fillStyle = k.col('#8d8170'); c.fillRect(x - 22, y - 124, 44, 8);
+      if (!k.asset('cliff-hold', x, y - 124 + 20, 50, 20)) { c.fillStyle = k.col('#8d8170'); c.fillRect(x - 22, y - 124, 44, 8); }
       tinyGuitarist(k, x, y - 124, t, st.beat || 0);
     }
     const w = h.kind === 'ledge' ? 104 : 50;
-    c.fillStyle = k.col('#2a2420'); c.globalAlpha = 0.28;
-    c.beginPath(); c.moveTo(x - w / 2 + 4, y + 12); c.lineTo(x + w / 2 - 4, y + 12); c.lineTo(x + w / 2 - 14, y + 30); c.lineTo(x - w / 2 + 14, y + 30); c.closePath(); c.fill();
-    c.globalAlpha = 1;
-    c.fillStyle = k.col(h.kind === 'crumble' ? '#c4b394' : '#a8987a');
-    c.beginPath(); c.moveTo(x - w / 2, y); c.lineTo(x + w / 2, y); c.lineTo(x + w / 2 - 6, y + 13); c.lineTo(x - w / 2 + 6, y + 13); c.closePath(); c.fill();
-    c.fillStyle = k.col('#d8ccb2'); c.fillRect(x - w / 2 + 2, y, w - 4, 3);
-    c.fillStyle = k.col('#5e5446'); c.fillRect(x - w / 2 + 6, y + 11, w - 12, 5);
-    if (h.kind === 'crumble') {
-      c.strokeStyle = k.col('#6f6a5e'); c.lineWidth = 1.5;
-      c.beginPath(); c.moveTo(x - 12, y + 1); c.lineTo(x - 4, y + 7); c.lineTo(x + 2, y + 2); c.lineTo(x + 10, y + 11); c.stroke();
+    // art, top at the hold's y: ledge 104 x 24, hold and crumbling hold 50 x 20
+    const holdArt = h.kind === 'ledge' ? k.asset('cliff-ledge', x, y + 24, 104, 24)
+      : k.asset(h.kind === 'crumble' ? 'cliff-hold-crumble' : 'cliff-hold', x, y + 20, 50, 20);
+    if (!holdArt) {
+      c.fillStyle = k.col('#2a2420'); c.globalAlpha = 0.28;
+      c.beginPath(); c.moveTo(x - w / 2 + 4, y + 12); c.lineTo(x + w / 2 - 4, y + 12); c.lineTo(x + w / 2 - 14, y + 30); c.lineTo(x - w / 2 + 14, y + 30); c.closePath(); c.fill();
+      c.globalAlpha = 1;
+      c.fillStyle = k.col(h.kind === 'crumble' ? '#c4b394' : '#a8987a');
+      c.beginPath(); c.moveTo(x - w / 2, y); c.lineTo(x + w / 2, y); c.lineTo(x + w / 2 - 6, y + 13); c.lineTo(x - w / 2 + 6, y + 13); c.closePath(); c.fill();
+      c.fillStyle = k.col('#d8ccb2'); c.fillRect(x - w / 2 + 2, y, w - 4, 3);
+      c.fillStyle = k.col('#5e5446'); c.fillRect(x - w / 2 + 6, y + 11, w - 12, 5);
+      if (h.kind === 'crumble') {
+        c.strokeStyle = k.col('#6f6a5e'); c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(x - 12, y + 1); c.lineTo(x - 4, y + 7); c.lineTo(x + 2, y + 2); c.lineTo(x + 10, y + 11); c.stroke();
+      }
     }
     if (h.pearl && !h.taken) {
       const by = y - 6 + Math.sin(t * 3 + i) * 3;
@@ -459,6 +483,7 @@ function rockWarnings(k, st, t) {
 function omenGlyph(k, x, y, t) {
   const c = k.c;
   c.save(); c.globalAlpha = 0.85 + 0.15 * Math.sin(t * 8);
+  if (k.omen) { k.omen(x, y, 1); c.restore(); return; }
   c.fillStyle = k.col('#2a1424'); k.circle(x, y, 19);
   c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2; c.beginPath(); c.arc(x, y, 19, 0, Math.PI * 2); c.stroke();
   k.keepsake('leaf', x, y - 4, 0.75);
@@ -501,8 +526,8 @@ function frontPanel(k, open, t) {
     c.beginPath(); c.moveTo(H.door - 2, 642); c.lineTo(H.door - 2, 540); c.quadraticCurveTo(H.door + 34, 505, H.door + 70, 540); c.lineTo(H.door + 70, 642); c.closePath(); c.fill();
     c.fillStyle = k.col('#1a1416'); c.fillRect(H.door, 556, 60, 6); c.fillRect(H.door, 606, 60, 6); k.circle(H.door + 58, 590, 4);
     // windows: the shuttered one on the middle floor, a small one at the top
-    c.fillStyle = k.col('#6b4024'); c.fillRect(H.shutterX - 10, 316, 70, 96);
-    c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2; c.strokeRect(H.shutterX - 10, 316, 70, 96); c.beginPath(); c.moveTo(H.shutterX + 25, 316); c.lineTo(H.shutterX + 25, 412); c.stroke();
+    c.fillStyle = k.col('#6b4024'); c.fillRect(FRONT_WINDOW_X, 316, 70, 96);
+    c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2; c.strokeRect(FRONT_WINDOW_X, 316, 70, 96); c.beginPath(); c.moveTo(FRONT_WINDOW_X + 35, 316); c.lineTo(FRONT_WINDOW_X + 35, 412); c.stroke();
     c.fillStyle = k.col('#2a1a22'); c.fillRect(612, 160, 56, 66);
     c.fillStyle = k.col('#3a2112'); c.fillRect(612, 190, 56, 4); c.fillRect(638, 160, 4, 66);
   }
@@ -513,6 +538,11 @@ function frontPanel(k, open, t) {
 // The delivered house art (1400 x 1800) drawn so its painted floor edges
 // (y 236, 420, 612 at the old 560 x 720 size) land on HOUSE.floors.
 const HOUSE_ART = [640, 654, 518, 666];
+// HOUSE.shutterX/Y is the centre of the shutter painted in stone-house.webp:
+// the teal leaves span x 643-816, y 863-1026 of the 1400 x 1800 art, which
+// HOUSE_ART maps to stage x 619-683, y 307-368 (centre 651, 337).
+// The closed front's stand-in window (frontPanel) keeps its old place.
+const FRONT_WINDOW_X = 830;
 
 const ROOM = [
   { col: '#b98a5e', y0: 452, y1: 626 },
@@ -565,11 +595,13 @@ function houseInterior(k, st, t) {
     // burnt holes: planks hang from their broken edges, embers below
     if (f > 0) for (let g = 0; g < st.spans[f].length - 1; g++) {
       const gx0 = st.spans[f][g][1], gx1 = st.spans[f][g + 1][0];
-      if (painted) { c.fillStyle = k.col('#1a0c08'); c.fillRect(gx0, fy - 12, gx1 - gx0, 36); } // the painted floor burnt through
+      // art: the gap + 24 wide, its top 12 above the floor line (planks and embers are painted in)
+      const holeArt = k.asset('floor-hole', (gx0 + gx1) / 2, fy - 12 + 60, gx1 - gx0 + 24, 60);
+      if (painted && !holeArt) { c.fillStyle = k.col('#1a0c08'); c.fillRect(gx0, fy - 12, gx1 - gx0, 36); } // the painted floor burnt through
       c.fillStyle = k.col('#e9a46a'); c.globalAlpha = (painted ? 0.7 : 0.45) + 0.25 * Math.sin(t * 7 + f);
       c.beginPath(); c.ellipse((gx0 + gx1) / 2, fy + 8, (gx1 - gx0) / 2 + 6, 12, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
       c.fillStyle = k.col('#3a2112');
-      for (const [ex, dir] of [[gx0, 1], [gx1, -1]]) { c.save(); c.translate(ex, fy + 4); c.rotate(dir * 1.1); c.fillRect(dir > 0 ? 0 : -34, -4, 34, 8); c.restore(); }
+      if (!holeArt) for (const [ex, dir] of [[gx0, 1], [gx1, -1]]) { c.save(); c.translate(ex, fy + 4); c.rotate(dir * 1.1); c.fillRect(dir > 0 ? 0 : -34, -4, 34, 8); c.restore(); }
     }
   });
   // in-room flames on sticks (not in the way)
@@ -578,22 +610,26 @@ function houseInterior(k, st, t) {
 }
 
 function shutter(k, st, t) {
-  const c = k.c, x = HOUSE.shutterX + 2 + (st.lockedT > 0 ? Math.sin(t * 70) * 2 : 0), y = 300;
-  if (st.shutter === 'shut') {
-    c.fillStyle = k.col('#6b4024'); c.fillRect(x, y, 52, 112);
-    c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2;
-    for (let i = 1; i < 5; i++) { c.beginPath(); c.moveTo(x, y + i * 22); c.lineTo(x + 52, y + i * 22); c.stroke(); }
-    c.fillStyle = k.col('#1a1416'); c.fillRect(x + 20, y + 50, 14, 12); // the lock
-  } else {
-    c.fillStyle = k.col('#e9a46a'); c.fillRect(x, y, 52, 112);
-    c.fillStyle = k.col('#3a2112');
-    c.beginPath(); c.moveTo(x, y); c.lineTo(x + 14, y + 30); c.lineTo(x, y + 60); c.fill();
-    c.beginPath(); c.moveTo(x + 52, y + 112); c.lineTo(x + 38, y + 80); c.lineTo(x + 52, y + 50); c.fill();
+  const c = k.c, cx = HOUSE.shutterX + (st.lockedT > 0 ? Math.sin(t * 70) * 2 : 0), cy = HOUSE.shutterY;
+  const x = cx - 26, y = cy - 56;
+  // art 55 x 115, centred on the painted shutter
+  if (!k.asset(st.shutter === 'shut' ? 'shutter-shut' : 'shutter-smashed', cx, cy + 57.5, 55, 115)) {
+    if (st.shutter === 'shut') {
+      c.fillStyle = k.col('#6b4024'); c.fillRect(x, y, 52, 112);
+      c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2;
+      for (let i = 1; i < 5; i++) { c.beginPath(); c.moveTo(x, y + i * 22); c.lineTo(x + 52, y + i * 22); c.stroke(); }
+      c.fillStyle = k.col('#1a1416'); c.fillRect(x + 20, y + 50, 14, 12); // the lock
+    } else {
+      c.fillStyle = k.col('#e9a46a'); c.fillRect(x, y, 52, 112);
+      c.fillStyle = k.col('#3a2112');
+      c.beginPath(); c.moveTo(x, y); c.lineTo(x + 14, y + 30); c.lineTo(x, y + 60); c.fill();
+      c.beginPath(); c.moveTo(x + 52, y + 112); c.lineTo(x + 38, y + 80); c.lineTo(x + 52, y + 50); c.fill();
+    }
   }
   // the stone in flight
   if (st.throwT != null && st.throwT < 0.35) {
-    const kk = st.throwT / 0.35, sx = lerp(st.p.x, x + 26, kk), syy = lerp(st.p.y - 70, y + 50, kk) - Math.sin(Math.PI * kk) * 40;
-    c.fillStyle = k.col('#8d8f91'); k.circle(sx, syy, 7);
+    const kk = st.throwT / 0.35, sx = lerp(st.p.x, cx, kk), syy = lerp(st.p.y - 70, cy, kk) - Math.sin(Math.PI * kk) * 40;
+    if (!k.asset('keepsake-stone', sx, syy + 12, 24, 24)) { c.fillStyle = k.col('#8d8f91'); k.circle(sx, syy, 7); }
   }
 }
 
@@ -616,6 +652,13 @@ function connector(k, st, cn, t) {
   }
   if (!cn.on) return;
   if (cn.kind === 'ladder') { if (!k.asset('ladder', cn.a.x, ya + 4, LADDER_W, (ya - yb + 8) / LADDER_RAILS)) ladderShape(k, cn.a.x, ya + 4, yb - 4); return; }
+  if (cn.kind === 'ivy' && k.img('ivy-climb')) {
+    // tiled upward from the lower floor along the span, 40 wide (art 80 x 400, so 40 x 200 a tile)
+    c.save(); c.beginPath(); c.rect(cn.a.x - 30, yb - 10, 60, ya - yb + 10); c.clip();
+    for (let y = ya; y > yb - 10; y -= 200) k.asset('ivy-climb', cn.a.x, y, 40, 200);
+    c.restore();
+    return;
+  }
   if (cn.kind === 'ivy') {
     c.strokeStyle = k.col('#3f6a3a'); c.lineWidth = 5;
     c.beginPath(); for (let y = ya; y >= yb - 10; y -= 12) c.lineTo(cn.a.x + Math.sin(y * 0.12) * 8, y); c.stroke();
@@ -639,9 +682,12 @@ function connector(k, st, cn, t) {
     // a broken floor section, slanting down to the ground floor
     c.save(); c.translate(cn.b.x, yb); c.rotate(Math.atan2(ya - yb, cn.a.x - cn.b.x));
     const len = Math.hypot(cn.a.x - cn.b.x, ya - yb);
-    c.fillStyle = k.col('#7a4a26'); c.fillRect(-4, 0, len + 8, 14);
-    c.fillStyle = k.col('#a0703e'); c.fillRect(-4, 0, len + 8, 3);
-    c.fillStyle = k.col('#2a1a12'); for (let s = 20; s < len; s += 34) c.fillRect(s, 3, 3, 11);
+    // art: stretched to the slope's length, pivot at the left end, top on the line
+    if (!k.asset('floor-slope', len / 2, 28 - 2, len, 28)) {
+      c.fillStyle = k.col('#7a4a26'); c.fillRect(-4, 0, len + 8, 14);
+      c.fillStyle = k.col('#a0703e'); c.fillRect(-4, 0, len + 8, 3);
+      c.fillStyle = k.col('#2a1a12'); for (let s = 20; s < len; s += 34) c.fillRect(s, 3, 3, 11);
+    }
     c.restore();
   }
 }
@@ -656,9 +702,12 @@ function ladderShape(k, x, by, ty) {
 
 function rubble(k, st, t) {
   const c = k.c;
-  c.fillStyle = k.col('#3a2112');
-  for (const [x, y, w, a] of [[600, 616, 120, -0.3], [660, 612, 90, 0.4], [700, 618, 70, -0.1]]) { c.save(); c.translate(x, y); c.rotate(a); c.fillRect(-w / 2, -5, w, 10); c.restore(); }
-  c.fillStyle = k.col('#1a1012'); c.fillRect(444, 400, 12, 52); // the burnt ladder stub
+  if (!k.asset('rubble-planks', 650, HOUSE.floors[0], 150, 40)) {
+    c.fillStyle = k.col('#3a2112');
+    for (const [x, y, w, a] of [[600, 616, 120, -0.3], [660, 612, 90, 0.4], [700, 618, 70, -0.1]]) { c.save(); c.translate(x, y); c.rotate(a); c.fillRect(-w / 2, -5, w, 10); c.restore(); }
+  }
+  // the burnt ladder stub, standing on the middle floor under the ladder's top
+  if (!k.asset('ladder-stub', 450, HOUSE.floors[1], 20, 55)) { c.fillStyle = k.col('#1a1012'); c.fillRect(444, 400, 12, 52); }
 }
 
 // A painted stage flame on a stick.
@@ -838,7 +887,7 @@ const CAPTIONS = {
 
 function endingScene(k, st, t) {
   const c = k.c, pt = st.phaseT, e = st.ending;
-  const art = k.asset('ending-' + e, 640, 720, 1280, 720);
+  const art = (e === 'dark' && k.asset('ending-dark-2', 640, 720, 1280, 720)) || k.asset('ending-' + e, 640, 720, 1280, 720);
   if (!art) {
     bay(k, st, t, 0.12 * (1 - easeInOut(pt / 4)));
     if (e === 'witch') witchEnding(k, st, t, pt);
@@ -926,7 +975,7 @@ function caption(k, [title, sub], a) {
 
 // ---------------------------------------------------------------- the pageant
 const REVELLER_ART = ['reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady'];
-const REVELLER_H = 104;
+const REVELLER_H = 180; // beside 315-px dancers and the band
 function joinerSlot(i) {
   const side = i % 2 ? 1 : -1, j = Math.floor(i / 2);
   return { x: 640 + side * (176 + j * 50), side };
@@ -972,7 +1021,7 @@ function pageantScene(k, st, t) {
     const face = walk < 1 ? -s.side : 1;
     // the delivered revellers (220 x 420 each), cycled when more than four join
     if (!artFlip(k, REVELLER_ART[i % REVELLER_ART.length], x, 618 - hop, REVELLER_H * 220 / 420, REVELLER_H, face)) {
-      person(k, x, 618 - hop, 82, revellerCostume(i), { face, arms: walk >= 1 ? 'v' : 'down', step: walk < 1 ? Math.sin(since * 12) : 0 });
+      person(k, x, 618 - hop, 142, revellerCostume(i), { face, arms: walk >= 1 ? 'v' : 'down', step: walk < 1 ? Math.sin(since * 12) : 0 });
     }
   }
   // the band at centre, rising through the trapdoor

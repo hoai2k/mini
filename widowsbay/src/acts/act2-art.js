@@ -226,6 +226,7 @@ function shelf(k, st, t) {
     c.fillStyle = k.col('#3a2112'); c.fillRect(534, y - 14, 52, 4); c.fillRect(534, y + 2, 52, 4);
   }
   // the shelf of the sea floor at the wreck site: a ragged rock ground row
+  if (k.asset('grotto-shelf', 640, y + 90, 1000, 90)) return;
   c.fillStyle = k.col('#34413e');
   c.beginPath(); c.moveTo(150, y + 50);
   for (let x = 150; x <= 1130; x += 70) c.lineTo(x, y + 4 + Math.sin(x * 0.05) * 6);
@@ -238,6 +239,7 @@ function shelf(k, st, t) {
 
 function floor(k, st) {
   const c = k.c, y = sy(st, FLOOR);
+  if (k.asset('grotto-floor', 640, y + 130, 1040, 130)) return;
   c.fillStyle = k.col('#1a2427');
   c.beginPath(); c.moveTo(140, 740);
   for (let x = 140; x <= 1140; x += 60) c.lineTo(x, y + Math.sin(x * 0.04) * 6);
@@ -247,6 +249,14 @@ function floor(k, st) {
 function ledge(k, st, x, wy, w = 140) {
   const c = k.c, y = sy(st, wy);
   const x0 = x < 460 ? wallL(wy) - 10 : x - w / 2, x1 = x > 820 ? wallR(wy) + 10 : x + w / 2;
+  // the delivered ledge, stretched to the walkable run, its top edge on the ledge line
+  const nearWall = x < 460 || x > 820;
+  c.save();
+  if (nearWall && x > 820) { c.translate(x0 + x1, 0); c.scale(-1, 1); }
+  const cx = (x0 + x1) / 2;
+  const drawn = k.asset(nearWall ? 'grotto-ledge-wall' : 'grotto-ledge', cx, y + 50, x1 - x0, 50);
+  c.restore();
+  if (drawn) return;
   c.fillStyle = k.col('#3d524f');
   c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y);
   c.quadraticCurveTo(x1 - 10, y + 26, (x0 + x1) / 2 + 20, y + 40);
@@ -269,9 +279,12 @@ function kelp(k, x, top, len, t) {
 function fishSchool(k, st, [wy, dir], t) {
   const c = k.c, span = 1500;
   const x = dir > 0 ? ((t * 55 + wy) % span) - 110 : 1390 - ((t * 55 + wy) % span), y = sy(st, wy) + Math.sin(t * 1.3 + wy) * 10;
-  c.strokeStyle = k.col('#6b4024'); c.lineWidth = 3; c.beginPath(); c.moveTo(x, y + 20); c.lineTo(x - dir * 20, 730); c.stroke();
   c.save(); c.translate(x, y); c.scale(dir, 1);
+  // the delivered art paints its own stick; the brown stroke is only the stand-in's
   if (!k.asset('fish-school', 0, 50, 210, 100)) {
+    c.restore(); c.save();
+    c.strokeStyle = k.col('#6b4024'); c.lineWidth = 3; c.beginPath(); c.moveTo(x, y + 20); c.lineTo(x - dir * 20, 730); c.stroke();
+    c.translate(x, y); c.scale(dir, 1);
     for (let i = 0; i < 7; i++) {
       const fx = -80 + i * 26, fy = Math.sin(i * 0.9) * 22;
       c.fillStyle = k.col(i % 2 ? '#c8321e' : '#d9b34a');
@@ -514,6 +527,7 @@ function dragon(k, x, y, face, t) {
 // The tea-leaf omen: a small glyph one beat ahead of the hazard's tell.
 function omen(k, x, y, t) {
   const c = k.c;
+  if (typeof k.omen === 'function') return k.omen(x, y + Math.sin(t * 6) * 3, 1);
   c.save(); c.globalAlpha = 0.85; c.fillStyle = k.col('#f1e3c8'); k.circle(x, y + Math.sin(t * 6) * 3, 16); c.restore();
   k.keepsake('leaf', x, y + Math.sin(t * 6) * 3 - 4, 0.6);
 }
@@ -819,17 +833,23 @@ function captions(k, st, t) {
 function airGauge(k, st) {
   const c = k.c, y = 700, low = st.air < 0.25;
   c.fillStyle = k.col('#2a1424'); c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 1.5;
-  c.beginPath(); c.roundRect(840, 680, 164, 40, 8); c.fill(); c.stroke();
+  if (typeof k.plaque === 'function') k.plaque(840, 680, 164, 40);
+  else { c.beginPath(); c.roundRect(840, 680, 164, 40, 8); c.fill(); c.stroke(); }
   // bubble icon and bar
-  c.strokeStyle = k.col('#eef3ea'); c.lineWidth = 2; c.beginPath(); c.arc(858, y, 8, 0, TAU); c.stroke();
-  c.fillStyle = k.col('#eef3ea'); k.circle(855, y - 3, 2);
-  c.fillStyle = k.col('#3b2a2a'); c.fillRect(872, y - 6, 66, 12);
+  if (!k.asset('hud-air-bubble', 858, y + 10, 20, 20)) {
+    c.strokeStyle = k.col('#eef3ea'); c.lineWidth = 2; c.beginPath(); c.arc(858, y, 8, 0, TAU); c.stroke();
+    c.fillStyle = k.col('#eef3ea'); k.circle(855, y - 3, 2);
+  }
+  // the tube is painted; the fill is drawn inside it in code
+  if (!k.asset('hud-air-tube', 905, y + 8, 80, 16)) { c.fillStyle = k.col('#3b2a2a'); c.fillRect(872, y - 6, 66, 12); }
   const pulse = low ? 0.6 + 0.4 * Math.sin(k.t * 12) : 1;
   c.globalAlpha = pulse; c.fillStyle = k.col(low ? '#c8321e' : '#9fe0d0'); c.fillRect(872, y - 6, 66 * clamp(st.air, 0, 1), 12); c.globalAlpha = 1;
-  c.strokeStyle = k.col('#f1e3c8'); c.lineWidth = 1; c.strokeRect(872, y - 6, 66, 12);
+  if (!k.img('hud-air-tube')) { c.strokeStyle = k.col('#f1e3c8'); c.lineWidth = 1; c.strokeRect(872, y - 6, 66, 12); }
   // sleepers woken: a little sleeper icon and the count
-  c.fillStyle = k.col('#e3c13b'); c.fillRect(950, y - 4, 18, 8);
-  c.fillStyle = k.col('#efd7c4'); k.circle(972, y, 4.5);
+  if (!k.asset('hud-sleeper', 960, y + 8, 24, 16)) {
+    c.fillStyle = k.col('#e3c13b'); c.fillRect(950, y - 4, 18, 8);
+    c.fillStyle = k.col('#efd7c4'); k.circle(972, y, 4.5);
+  }
   c.font = '700 20px "Josefin Sans", sans-serif'; c.textAlign = 'left';
   c.fillStyle = k.col('#f1e3c8'); c.fillText(String(st.woken), 981, y + 7);
 }
@@ -847,21 +867,31 @@ function ride(k, st, t) {
   const c = k.c, r = st.ride, rt = st.phase === 'ride' ? st.phaseT : PHASE_LEN.ride + st.phaseT;
   const scrolled = rt * 260;
   // the deep: dark teal water, rays, far rock silhouettes rolling past
+  // the delivered panorama tiles seamlessly left/right and scrolls at 0.25 parallax
+  const pano = k.img('deep-panorama');
+  if (pano) {
+    const po = (scrolled * 0.25) % 1280;
+    k.asset('deep-panorama', 640 - po, 720, 1280, 720);
+    k.asset('deep-panorama', 640 - po + 1280, 720, 1280, 720);
+  } else {
   const g = c.createLinearGradient(0, 0, 0, 720);
   g.addColorStop(0, k.col('#24484c')); g.addColorStop(1, k.col('#0d1c22'));
   c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
   c.save(); c.globalAlpha = 0.14; c.fillStyle = k.col('#eef3ea');
   for (let i = 0; i < 5; i++) { const x = 200 + i * 230 + Math.sin(t * 0.4 + i) * 30; c.beginPath(); c.moveTo(x, 0); c.lineTo(x + 50, 0); c.lineTo(x + 150, 720); c.lineTo(x + 40, 720); c.fill(); }
   c.restore();
+  }
   k.wire(300, 0, 120); c.save(); c.globalAlpha = 0.7; k.moon(300, 170, 46); c.restore();
+  if (!pano) {
   c.fillStyle = k.col('#1a3236');
   const off = (scrolled * 0.25) % 400;
   c.beginPath(); c.moveTo(0, 420);
   for (let x = -off; x <= 1700; x += 100) c.lineTo(x, 330 + Math.sin((x + scrolled * 0.25) * 0.012) * 40 + ((Math.round((x + scrolled * 0.25) / 100) * 37) % 40));
   c.lineTo(1280, 420); c.closePath(); c.fill();
+  }
   // the Sea King's palace coming into view
   const arrive = easeInOut((rt - 11) / 6);
-  if (arrive > 0) {
+  if (arrive > 0 && !k.asset('palace-distant', lerp(1450, 900, arrive), 420, 380, 330)) {
     const px = lerp(1450, 900, arrive), base = 420;
     c.fillStyle = k.col('#cfe3da'); c.globalAlpha = 0.6;
     c.beginPath(); c.moveTo(px - 160, base);
@@ -891,7 +921,9 @@ function boat(k, st, y, t) {
   k.moonboat(x, y, -1, 0.9);
   // the sailor rides in the stern of the crescent, guitar on his knee
   const sx = x - 84, syy = y + Math.sin(t * 2.1) * 6 + 4;
-  if (!k.asset('sailor-stand', sx, syy, 60, 100)) {
+  // seated with the guitar on his knee (art requested); the rose follows his hand
+  const seated = k.asset('sailor-seated', sx - 12, syy + 6, 110, 110);
+  if (!seated && !k.asset('sailor-stand', sx, syy, 60, 100)) {
     c.save(); c.translate(sx, syy); c.scale(1.35, 1.35); c.translate(-sx, -syy);
     c.fillStyle = k.col(NAVY); c.beginPath(); c.moveTo(sx - 15, syy); c.lineTo(sx - 11, syy - 44); c.lineTo(sx + 11, syy - 44); c.lineTo(sx + 15, syy); c.fill();
     c.fillStyle = k.col('#c8321e'); c.fillRect(sx - 7, syy - 48, 14, 6);
@@ -900,8 +932,10 @@ function boat(k, st, y, t) {
     c.fillStyle = k.col(NAVY); c.fillRect(sx - 11, syy - 70, 22, 6);
     c.restore();
   }
-  c.save(); c.translate(sx + 10, syy - 24); c.rotate(-0.9);
-  if (!k.asset('keepsake-guitar', 0, 20, 40, 40)) guitarStandin(k, 0.22);
-  c.restore();
-  if (st.rose) k.keepsake('rose', sx + 8, syy - 66, 0.4);
+  if (!seated) {
+    c.save(); c.translate(sx + 10, syy - 24); c.rotate(-0.9);
+    if (!k.asset('keepsake-guitar', 0, 20, 40, 40)) guitarStandin(k, 0.22);
+    c.restore();
+  }
+  if (st.rose) { if (seated) k.keepsake('rose', sx - 12 + 18, syy + 6 - 62, 0.4); else k.keepsake('rose', sx + 8, syy - 66, 0.4); }
 }

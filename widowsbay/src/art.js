@@ -438,7 +438,11 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   function beam(c, x, y, t, lit) {
     const a = Math.sin(t * 1.4) * 0.9;
     c.save(); c.globalAlpha = lit ? 0.55 : 0.3;
-    c.fillStyle = P.c('#fff2b0');
+    // Brightest at the lamp, fading to nothing at the far end of the wedge.
+    const rgb = P.mode === 'lum' ? '255,245,215' : '255,242,176';
+    const g = c.createLinearGradient(x, y, x - 420, y);
+    g.addColorStop(0, `rgba(${rgb},1)`); g.addColorStop(0.55, `rgba(${rgb},0.4)`); g.addColorStop(1, `rgba(${rgb},0)`);
+    c.fillStyle = g;
     c.beginPath(); c.moveTo(x, y);
     c.lineTo(x - 420, y - 380 * a - 40); c.lineTo(x - 420, y - 380 * a + 40); c.closePath(); c.fill();
     c.restore();
@@ -470,8 +474,9 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     }
   }
 
-  function cloudFlat(c, x, y, s, col) {
-    if (img('cloud')) return drawAsset(c, P, img('cloud'), x, y + 34 * s, 200 * s, 90 * s);
+  function cloudFlat(c, x, y, s, col, storm = false) {
+    const art = storm && img('cloud-storm') ? img('cloud-storm') : img('cloud');
+    if (art) return drawAsset(c, P, art, x, y + 34 * s, 200 * s, 90 * s);
     c.fillStyle = P.c(col);
     c.beginPath();
     c.ellipse(x - 50 * s, y + 8 * s, 46 * s, 26 * s, 0, 0, Math.PI * 2);
@@ -543,7 +548,8 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
         // carry the strip's bottom edge down to the floor so no gap shows
         c.drawImage(src, x0, 296, len, 3, x, y0 + th - 2, tw + 1, 722 - (y0 + th));
       }
-      c.drawImage(src, 0, 0, 96, 300, 138, y0, 96 * g, th);
+      // The crank end: delivered crank art, else the strip's own 96-px crop.
+      if (!crankArt(c, top, scale, scrolled, dir)) c.drawImage(src, 0, 0, 96, 300, 138, y0, 96 * g, th);
       return;
     }
     const body = [PAL.tealDeep, '#3f6f6a', PAL.teal][r];
@@ -570,10 +576,30 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.fillRect(STAGE.left - 60, top + 30 * scale, STAGE.right - STAGE.left + 160, 10);
     c.globalAlpha = 1;
     // the crank spindle peeking from the wing
+    if (crankArt(c, top, scale, scrolled, dir)) return;
     c.fillStyle = P.c(PAL.woodDark); circle(c, STAGE.left + 6, top + 14, 7 * scale);
     c.strokeStyle = P.c(PAL.gold); c.lineWidth = 3;
     const a = scrolled * 0.02 * dir;
     c.beginPath(); c.moveTo(STAGE.left + 6, top + 14); c.lineTo(STAGE.left + 6 + Math.cos(a) * 14, top + 14 + Math.sin(a) * 14); c.stroke();
+  }
+
+  // Delivered crank: a bearing with its right edge at x 150 and its collar at
+  // top + 14, and the crank wheel turning on the axle at (156, top + 14). The
+  // front row would run into the floor, so it is raised, then shrunk to fit.
+  function crankArt(c, top, scale, scrolled, dir) {
+    const crank = img('wave-crank');
+    if (!crank) return false;
+    const bearing = img('wave-crank-bearing');
+    const floor = 646, half = 65 * scale;
+    let cy = top + 14, k = 1;
+    if (cy + half > floor) cy -= Math.min(14, cy + half - floor);
+    if (cy + half > floor) k = (floor - cy) / half;
+    if (bearing) c.drawImage(passImage(P, bearing, '', Math.round(70 * scale * k * 1.25), Math.round(130 * scale * k * 1.25)), 150 - 70 * scale * k, cy - half * k, 70 * scale * k, 130 * scale * k);
+    const cw = 60 * scale * k;
+    c.save(); c.translate(156, cy); c.rotate(scrolled * 0.02 * dir);
+    c.drawImage(passImage(P, crank, '', Math.round(cw * 1.25), Math.round(cw * 1.25)), -cw / 2, -cw / 2, cw, cw);
+    c.restore();
+    return true;
   }
 
   function ship(c, b, t) {
@@ -663,7 +689,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const cy = 190 + h.row * 22;
     const dark = h.state === 'warn' ? Math.min(1, h.t / TUNING.bolt.warn) : 1;
     wire(c, h.x, 0, cy - 30);
-    cloudFlat(c, h.x, cy, 0.8, dark > 0.6 ? '#4b3f5c' : '#7d6d8e');
+    cloudFlat(c, h.x, cy, 0.8, dark > 0.6 ? '#4b3f5c' : '#7d6d8e', dark > 0.6);
     if (h.state === 'warn' && Math.sin(t * 40) > 0.6) {
       c.strokeStyle = P.c('#fff2b0'); c.lineWidth = 2;
       c.beginPath(); c.moveTo(h.x - 20, cy + 30); c.lineTo(h.x - 12, cy + 42); c.lineTo(h.x - 18, cy + 50); c.stroke();
@@ -702,7 +728,13 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
 
   function keepsakeIcon(c, kind, t, empty = false) {
     const id = kind === 'leaf' ? 'tea-leaf' : 'keepsake-' + kind;
-    if (img(id)) return drawAsset(c, P, img(id), 0, 24, 56, 56, empty ? 'brightness(0.3) saturate(0.4)' : '');
+    if (img(id)) {
+      if (!empty) return drawAsset(c, P, img(id), 0, 24, 56, 56);
+      // An empty slot is a pale ghost, easy to read on the plum plaque.
+      const a = c.globalAlpha; c.globalAlpha = a * 0.45;
+      drawAsset(c, P, img(id), 0, 24, 56, 56, 'grayscale(1) brightness(0.8)');
+      c.globalAlpha = a; return;
+    }
     const col = (hex) => (empty ? P.c('#5a4152') : P.c(hex));
     if (kind === 'tea') {
       c.fillStyle = col(PAL.cream);
@@ -797,6 +829,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       g.addColorStop(0, P.mode === 'lum' ? `rgba(255,240,210,${0.45 * f})` : `rgba(255,200,90,${0.45 * f})`);
       g.addColorStop(1, 'rgba(0,0,0,0)');
       c.fillStyle = g; c.fillRect(x - 70, 590, 140, 70);
+      if (img('footlight')) { drawAsset(c, P, img('footlight'), x, 664, 60, 30); continue; }
       c.fillStyle = P.c(PAL.gold);
       c.beginPath(); c.ellipse(x, 660, 20, 7, 0, Math.PI, 0); c.fill();
     }
@@ -834,6 +867,11 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     for (const side of [-1, 1]) {
       c.save();
       if (side === 1) { c.translate(1280, 0); c.scale(-1, 1); }
+      if (img('curtain-panel')) {
+        // 650x720 panel, its leading (right) edge at w, slid rather than squashed.
+        drawAsset(c, P, img('curtain-panel'), w - 325, 720, 650, 720);
+        c.restore(); continue;
+      }
       const g = c.createLinearGradient(0, 0, w, 0);
       const folds = Math.max(3, Math.round(w / 44));
       for (let k = 0; k <= folds; k++) {
@@ -856,9 +894,14 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const target = wind.dir > 0 ? 0 : Math.PI;
     const a = spinning ? t * 9 : target;
     c.save(); c.translate(x, y);
-    c.fillStyle = P.c(PAL.plum); c.beginPath(); c.ellipse(0, 0, 70, 22, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = P.c(PAL.gold); c.lineWidth = 2; c.stroke();
+    if (img('vane-plaque')) drawAsset(c, P, img('vane-plaque'), 0, 22.5, 140, 45);
+    else {
+      c.fillStyle = P.c(PAL.plum); c.beginPath(); c.ellipse(0, 0, 70, 22, 0, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = P.c(PAL.gold); c.lineWidth = 2; c.stroke();
+    }
     c.scale(Math.cos(a), 1);
+    const arrow = spinning && img('vane-arrow-warn') ? 'vane-arrow-warn' : 'vane-arrow';
+    if (img(arrow)) { drawAsset(c, P, img(arrow), 0, 12.5, 115, 25); c.restore(); return; }
     c.fillStyle = P.c(spinning ? PAL.magenta : PAL.gold);
     c.beginPath(); c.moveTo(-48, -3); c.lineTo(30, -3); c.lineTo(30, -11); c.lineTo(52, 0); c.lineTo(30, 11); c.lineTo(30, 3); c.lineTo(-48, 3); c.closePath(); c.fill();
     c.beginPath(); c.moveTo(-48, 0); c.lineTo(-58, -12); c.lineTo(-36, 0); c.lineTo(-58, 12); c.closePath(); c.fill();
@@ -876,23 +919,55 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     if (spec.keepsakes?.length) plaques.push([1140 - spec.keepsakes.length * 52 - 24, 1140]);
     if (img('proscenium')) {
       c.fillStyle = P.c(PAL.plum); c.strokeStyle = P.c(PAL.gold); c.lineWidth = 1.5;
-      for (const [x0, x1] of plaques) { c.beginPath(); c.roundRect(x0, 84, x1 - x0, 40, 8); c.fill(); c.stroke(); }
+      for (const [x0, x1] of plaques) {
+        if (plaque(c, x0, 84, x1 - x0, 40)) continue;
+        c.beginPath(); c.roundRect(x0, 84, x1 - x0, 40, 8); c.fill(); c.stroke();
+      }
     }
     hudItems(c, spec, t);
     c.restore();
   }
+  // Three-slice plaque: 20-px ends (40 px in the 2x art), stretched middle.
+  // False when the art is missing, so the caller draws its own.
+  function plaque(c, x, y, w, h) {
+    const im = img('hud-plaque');
+    if (!im) return false;
+    const src = passImage(P, im), iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+    const e = Math.min(ih / 2, iw / 3), ew = Math.min(20, w / 2);
+    c.drawImage(src, 0, 0, e, ih, x, y, ew, h);
+    c.drawImage(src, e, 0, iw - 2 * e, ih, x + ew, y, Math.max(0, w - 2 * ew), h);
+    c.drawImage(src, iw - e, 0, e, ih, x + w - ew, y, ew, h);
+    return true;
+  }
+  // The omen token (Act III onward): the token with the tea leaf on it.
+  function omen(c, x, y, s = 1) {
+    if (!drawArt(c, 'omen-token', x, y + 20 * s, 40 * s, 40 * s)) {
+      c.fillStyle = P.c(PAL.plum); circle(c, x, y, 20 * s);
+      c.strokeStyle = P.c(PAL.gold); c.lineWidth = 3 * s; c.beginPath(); c.arc(x, y, 19 * s, 0, Math.PI * 2); c.stroke();
+    }
+    c.save(); c.translate(x, y); c.scale(s * 0.5, s * 0.5); keepsakeIcon(c, 'leaf', kit.t); c.restore();
+  }
+  const drawArt = (c, id, cx, by, w, h, extra = '') => { const im = img(id); if (!im) return false; drawAsset(c, P, im, cx, by, w, h, extra); return true; };
+
   function hudItems(c, spec, t) {
     const max = spec.maxLanterns ?? 3;
     for (let k = 0; k < max; k++) {
       const lit = k < spec.lanterns;
       const x = 170 + k * 46, y = 104;
+      const lamp = img(lit ? 'hud-lantern-lit' : 'hud-lantern-out');
+      if (lamp) {
+        c.globalAlpha = lit ? 0.9 + 0.1 * Math.sin(t * 7 + k) : 1;
+        drawAsset(c, P, lamp, x, y + 16, 24, 32);
+        c.globalAlpha = 1;
+        continue;
+      }
       c.fillStyle = P.c(PAL.woodDark); c.fillRect(x - 11, y - 17, 22, 5); c.fillRect(x - 11, y + 12, 22, 5);
       c.fillStyle = P.c(lit ? '#ffcf5c' : '#3b2a2a');
       c.globalAlpha = lit ? 0.9 + 0.1 * Math.sin(t * 7 + k) : 1;
       c.beginPath(); c.ellipse(x, y, 10, 13, 0, 0, Math.PI * 2); c.fill();
       c.globalAlpha = 1;
     }
-    c.fillStyle = P.c('#efe9f2'); circle(c, 320, 104, 10);
+    if (!drawArt(c, 'pearl', 320, 118, 26, 26)) { c.fillStyle = P.c('#efe9f2'); circle(c, 320, 104, 10); }
     c.font = '700 24px "Josefin Sans", sans-serif'; c.textAlign = 'left';
     c.fillStyle = P.c(PAL.cream); c.fillText('× ' + (spec.pearls || 0), 336, 113);
     (spec.keepsakes || []).forEach((k, i, all) => {
@@ -902,11 +977,23 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     });
     if (spec.progress == null) return;
     const x0 = 470, x1 = 810, y = 100;
-    c.strokeStyle = P.c(PAL.cream); c.lineWidth = 3; c.setLineDash([8, 7]);
-    c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke(); c.setLineDash([]);
-    c.fillStyle = P.c(PAL.coral); c.fillRect(x1 - 3, y - 18, 6, 22);
-    c.fillStyle = P.c(PAL.cream); c.beginPath(); c.moveTo(x1 - 3, y - 18); c.lineTo(x1 + 12, y - 13); c.lineTo(x1 - 3, y - 8); c.fill();
+    const rope = img('hud-voyage-rope');
+    if (rope) {
+      // 700x16 art = 350x8 stage px, tiled along the ribbon.
+      const src = passImage(P, rope);
+      c.save(); c.beginPath(); c.rect(x0, y - 4, x1 - x0, 8); c.clip();
+      for (let x = x0; x < x1; x += 350) c.drawImage(src, x, y - 4, 350, 8);
+      c.restore();
+    } else {
+      c.strokeStyle = P.c(PAL.cream); c.lineWidth = 3; c.setLineDash([8, 7]);
+      c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke(); c.setLineDash([]);
+    }
+    if (!drawArt(c, 'hud-voyage-flag', x1, y + 4, 18, 28)) {
+      c.fillStyle = P.c(PAL.coral); c.fillRect(x1 - 3, y - 18, 6, 22);
+      c.fillStyle = P.c(PAL.cream); c.beginPath(); c.moveTo(x1 - 3, y - 18); c.lineTo(x1 + 12, y - 13); c.lineTo(x1 - 3, y - 8); c.fill();
+    }
     const sx = x0 + (x1 - x0) * Math.min(1, spec.progress);
+    if (drawArt(c, 'hud-voyage-ship', sx, y + 4, 30, 25)) return;
     c.fillStyle = P.c(PAL.wood); c.beginPath(); c.moveTo(sx - 12, y - 4); c.lineTo(sx + 12, y - 4); c.lineTo(sx + 8, y + 4); c.lineTo(sx - 8, y + 4); c.fill();
     c.fillStyle = P.c(PAL.cream); c.beginPath(); c.moveTo(sx, y - 20); c.lineTo(sx + 9, y - 6); c.lineTo(sx, y - 6); c.fill();
   }
@@ -936,6 +1023,8 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     waves: (r, scrolled, yOff = 0) => { if (yOff) { kit.c.save(); kit.c.translate(0, yOff); } waves(kit.c, r, scrolled, kit.t); if (yOff) kit.c.restore(); },
     lighthouse: (x, y, lit) => lighthouse(kit.c, x, y, kit.t, lit),
     band: (k, title) => bandTrio(kit.c, k, title, kit.t),
+    plaque: (x, y, w, h) => plaque(kit.c, x, y, w, h),
+    omen: (x, y, s = 1) => omen(kit.c, x, y, s),
     keepsake: (kind, x, y, s = 1, empty = false) => { kit.c.save(); kit.c.translate(x, y); kit.c.scale(s, s); keepsakeIcon(kit.c, kind, kit.t, empty); kit.c.restore(); },
     moonboat: (x, y, face = -1, s = 1) => moonboatAt(kit.c, x, y, face, s, kit.t),
     voyage: (b, opts) => voyage(kit.c, b, kit.t, opts),

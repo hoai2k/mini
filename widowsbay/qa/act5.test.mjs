@@ -113,7 +113,7 @@ function housePlan(useShortcut) {
     if (p.f === 0) return { x: 560, then: { moveY: -1 } };
     if (p.f === 1) {
       if (useShortcut) {
-        if (st.shutter === 'shut') return { x: HOUSE.shutterX + 20, then: { a: true } };
+        if (st.shutter === 'shut') return { x: HOUSE.shutterX + 60, then: { a: true } };
         return { x: 872, then: { moveY: -1 } };
       }
       return { x: 450, jumpAt: 668, then: { moveY: -1 } };
@@ -261,7 +261,7 @@ test('the stone breaks the shutter: a shortcut, only with the stone', () => {
     const h = intoHouse({ stone });
     const plan = housePlan(true);
     h.until((s) => s.p.f === 1 && !s.p.conn, 20, (s) => houseBot(s, plan));
-    h.until((s) => s.p.x >= HOUSE.shutterX + 18, 10, (s) => houseBot(s, plan));
+    h.until((s) => Math.abs(s.p.x - (HOUSE.shutterX + 60)) <= 8, 10, (s) => houseBot(s, plan));
     h.run(0.1, () => ({ a: true }));
     h.run(0.6);
     if (stone) {

@@ -49,9 +49,12 @@ export function drawOver(k, st) {
 export function onEvent(k, e, st) {
   if (st.phase === 'voyage' || st.phase === 'landho') return k.voyageEvent(e, st.board);
   if (e.type === 'partyHit') {
-    const x = lanternX(e.n - 1);
-    for (const c of LANTERN_COLS) k.burst(x, 170, c, 6, 'confetti');
-    k.text('♪', x, 140);
+    // two painted lanterns light per hit
+    for (const j of [2 * (e.n - 1), 2 * (e.n - 1) + 1]) {
+      const px = PAINTED[Math.min(j, PAINTED.length - 1)].x;
+      for (const c of LANTERN_COLS) k.burst(px, 170, c, 3, 'confetti');
+    }
+    k.text('♪', lanternX(e.n - 1), 140);
   }
   if (e.type === 'revelry') { k.text('Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
   if (e.type === 'strike') { k.flash(1); k.shake(0.5); }
@@ -62,7 +65,15 @@ export function onEvent(k, e, st) {
 }
 
 // ---------------------------------------------------------------- party
-const lanternX = (i) => 300 + i * (680 / (LANTERNS - 1));
+// The delivered lantern-string (1200x300 art, drawn 600x150 centred on 640):
+// where its 8 lanterns hang in the art (measured from the alpha), as art x
+// and the y of each lantern's middle below the string's top edge.
+const STRING_X = [83, 217, 360, 513, 679, 835, 983, 1117];
+const STRING_Y = [135, 183, 225, 228, 242, 225, 183, 135];
+const STRING_CUT = [0, 150, 288, 436, 596, 757, 909, 1050, 1200]; // column boundaries between lanterns
+const PAINTED = STRING_X.map((sx, i) => ({ x: 640 + (sx - 600) / 2, dy: STRING_Y[i] / 2 }));
+// each hit lights two painted lanterns; this is the middle of that pair
+const lanternX = (i) => (PAINTED[Math.min(2 * i, 7)].x + PAINTED[Math.min(2 * i + 1, 7)].x) / 2;
 
 function deckScene(k, st, deck, t) {
   const c = k.c, base = 660 + (1 - deck) * 520, off = base - 660; // deck floor line, and how far it has sunk
@@ -131,6 +142,19 @@ function revellerAt(st, i, bob) {
 
 function lanterns(k, lit, t, deck) {
   const c = k.c, y0 = 120 + (1 - deck) * 200;
+  if (k.asset('lantern-string', 640, y0 - 20 + 150, 600, 150)) {
+    const n = Math.min(8, lit * Math.ceil(8 / LANTERNS));
+    // the lit string, one column per lit lantern, over the unlit one
+    for (let j = 0; j < n; j++) k.assetCrop('lantern-string-lit', STRING_CUT[j], 0, STRING_CUT[j + 1] - STRING_CUT[j], 300, 340 + STRING_CUT[j] / 2, y0 - 20, (STRING_CUT[j + 1] - STRING_CUT[j]) / 2, 150);
+    for (let j = 0; j < n; j++) {
+      const x = PAINTED[j].x, y = y0 - 20 + PAINTED[j].dy;
+      const g = c.createRadialGradient(x, y, 2, x, y, 46);
+      g.addColorStop(0, k.P.mode === 'lum' ? 'rgba(255,245,215,0.6)' : 'rgba(255,210,120,0.6)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = g; c.fillRect(x - 46, y - 46, 92, 92);
+    }
+    return;
+  }
   c.strokeStyle = k.col('#3a2112'); c.lineWidth = 2;
   c.beginPath(); c.moveTo(250, y0 - 20);
   for (let i = 0; i < LANTERNS; i++) c.lineTo(lanternX(i), y0 + Math.sin((i / (LANTERNS - 1)) * Math.PI) * 40);
@@ -277,6 +301,14 @@ const GUITAR_AT = 2.3;
 
 function sinking(k, st, pt, t) {
   const c = k.c;
+  // the delivered grotto-backcloth is a tall roll; its top third (surface
+  // light, kelp, wreck timbers) fills the stage
+  if (!k.assetCrop('grotto-backcloth', 0, 0, 2560, 1440, 0, 0, 1280, 720)) sinkingStandin(k, t);
+  sinkingFigures(k, st, pt, t);
+}
+
+function sinkingStandin(k, t) {
+  const c = k.c;
   const g = c.createLinearGradient(0, 60, 0, 720);
   g.addColorStop(0, k.col('#2f5552')); g.addColorStop(1, k.col('#0d1c22'));
   c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
@@ -291,6 +323,10 @@ function sinking(k, st, pt, t) {
     for (let y = 700; y > 420 + (i % 3) * 60; y -= 30) c.lineTo(x + Math.sin(t * 1.3 + y * 0.02 + i) * 22, y);
     c.stroke();
   }
+}
+
+function sinkingFigures(k, st, pt, t) {
+  const c = k.c;
   // first the revellers and the sailor go down through the water, limp and
   // turning slowly, trailing bubbles
   for (const f of FALLERS) {
