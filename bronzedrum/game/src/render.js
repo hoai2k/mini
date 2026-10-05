@@ -3211,9 +3211,9 @@ export class Renderer {
    * by a beam like the rhythm dots, so they read apart from single beats.
    */
   richParts(text) {
-    const TOKEN = /⟨(?:[ABXY]|k:[^⟩]+|d:[LR])⟩/g;
+    const TOKEN = /⟨(?:[ABXY]|k:[^⟩]+|d:[LR]|r)⟩/g;
     const out = [];
-    for (const piece of text.split(/((?:⟨(?:[ABXY]|k:[^⟩]+|d:[LR])⟩)+)/).filter(Boolean)) {
+    for (const piece of text.split(/((?:⟨(?:[ABXY]|k:[^⟩]+|d:[LR]|r)⟩)+)/).filter(Boolean)) {
       const toks = piece.match(TOKEN);
       if (toks && toks.join('') === piece) out.push({ keys: toks.map((k) => k.slice(1, -1)) });
       else out.push(piece);
@@ -3239,7 +3239,8 @@ export class Renderer {
 
   /** How many tokens a piece of rich text holds. */
   richCount(text) {
-    return this.richParts(text).reduce((n, p) => n + (typeof p === 'string' ? 0 : p.keys.length), 0);
+    // Rests (⟨r⟩) are not strokes: the demonstration's pointer skips them.
+    return this.richParts(text).reduce((n, p) => n + (typeof p === 'string' ? 0 : p.keys.filter((k) => k !== 'r').length), 0);
   }
 
   /**
@@ -3279,6 +3280,20 @@ export class Renderer {
       }
       p.keys.forEach((k, i) => {
         const bx = x0 + step * i;
+        if (k === 'r') {
+          // A rest: a short dash in its place in the beat; it has no stroke to light.
+          g.save();
+          g.strokeStyle = fill;
+          g.globalAlpha = 0.6;
+          g.lineWidth = Math.max(2, size * 0.12);
+          g.lineCap = 'round';
+          g.beginPath();
+          g.moveTo(bx - r * 0.6, by);
+          g.lineTo(bx + r * 0.6, by);
+          g.stroke();
+          g.restore();
+          return;
+        }
         const lit = glow ? glow(index) : 0;
         const rr = r * (1 + 0.35 * lit);
         centres.push({ x: bx, y: by, r: rr });
@@ -3736,7 +3751,8 @@ export class Renderer {
   patternX(x, strokes, i, cell, small = false) {
     const s = strokes[i];
     const beat = Math.floor(s.pos);
-    const n = strokes.filter((q) => Math.floor(q.pos) === beat).length;
+    // A beat's division: its slots, silent ones included (parsePattern's div).
+    const n = s.div || strokes.filter((q) => Math.floor(q.pos) === beat).length;
     const inner = s.pos - beat;
     return x + beat * cell + cell / 2 + (n === 1 ? 0 : (inner - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95));
   }
@@ -3744,8 +3760,46 @@ export class Renderer {
   pattern(x, y, pattern, r, cell, filled = Infinity, glow = false, small = false, alpha = 1) {
     const g = this.ctx;
     const strokes = pattern.strokes;
+    // Each beat's division: its slots, silent ones included.
     const perBeat = {};
-    for (const s of strokes) perBeat[Math.floor(s.pos)] = (perBeat[Math.floor(s.pos)] || 0) + 1;
+    const played = {};
+    for (const s of strokes) {
+      const b = Math.floor(s.pos);
+      played[b] = (played[b] || 0) + 1;
+      perBeat[b] = Math.max(perBeat[b] || 0, s.div || 0);
+    }
+    for (const b of Object.keys(played)) perBeat[b] = Math.max(perBeat[b], played[b]);
+    // Rests: a short dash for a silent slot inside a beat, a longer one for a silent beat.
+    const lastBeat = strokes.length ? Math.floor(strokes[strokes.length - 1].pos) : 0;
+    g.save();
+    g.globalAlpha = 0.5 * alpha;
+    g.strokeStyle = P.paper;
+    g.lineCap = 'round';
+    for (let b = 0; b <= lastBeat; b++) {
+      const n = perBeat[b];
+      const bx = x + b * cell + cell / 2;
+      if (!n) {
+        g.lineWidth = small ? 1.5 : 3;
+        g.beginPath();
+        g.moveTo(bx - r * 0.6, y);
+        g.lineTo(bx + r * 0.6, y);
+        g.stroke();
+        continue;
+      }
+      if (n === played[b]) continue;
+      const filledSlots = new Set(strokes.filter((s) => Math.floor(s.pos) === b).map((s) => Math.round((s.pos - b) * n)));
+      const rr = n === 2 ? r * 0.72 : r * 0.62;
+      g.lineWidth = small ? 1 : 2.4;
+      for (let k = 0; k < n; k++) {
+        if (filledSlots.has(k)) continue;
+        const sx = bx + (k / n - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95);
+        g.beginPath();
+        g.moveTo(sx - rr * 0.55, y);
+        g.lineTo(sx + rr * 0.55, y);
+        g.stroke();
+      }
+    }
+    g.restore();
     strokes.forEach((s, i) => {
       const beat = Math.floor(s.pos);
       const n = perBeat[beat];

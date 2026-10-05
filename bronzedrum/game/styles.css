@@ -155,6 +155,10 @@ body.paper-panels .panel {
 .g-r { border: 3px solid var(--lacquer); }
 .g-l.sub, .g-r.sub { width: 10px; height: 10px; margin: 0; }
 .g-r.sub { border-width: 2px; }
+/* A rest: a short dash in the place of the silent stroke. */
+.g-rest { display: inline-block; width: 12px; height: 3px; margin: 0 2px; vertical-align: 3px; background: currentColor; opacity: 0.55; border-radius: 2px; }
+.g-rest.sub { width: 8px; margin: 0 1px; }
+.setting-note { margin: -4px 0 6px; font-size: 13px; }
 .group { display: inline-flex; gap: 2px; padding-bottom: 3px; border-bottom: 1.5px solid var(--ink); vertical-align: -3px; position: relative; }
 .group.g3::after { content: "3"; position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); font-size: 10px; }
 .cmd-table td.pat { white-space: nowrap; }

@@ -48,16 +48,84 @@ const CHAIN_WINDOW = 2; // beats after "ready" to keep the chain
 // a triplet: the reader knows what is coming.
 // There are two families: march and strike. With the war elephant (chapter
 // 3), a strike played while the drum is awake becomes the elephant charge.
+//
+// Difficulty (Settings) sets the rhythms. Easy never reaches triplets: plain
+// beats, then pairs for the stronger tiers. Medium is the game as designed.
+// Hard adds rests: a silent beat, and silences inside pairs and triplets.
+// In pattern text "." is a silent slot: "R.R" is a triplet whose middle
+// stroke is silent, ".R" an off-beat stroke, "." alone a silent beat.
+export const DIFFICULTIES = ['easy', 'medium', 'hard'];
+const TIERS = {
+  march: {
+    easy: ['L L L R', 'L L LR R', 'L RR L RR'],
+    medium: ['L L L R', 'L L LR R', 'L RRR L R'],
+    hard: ['L L . R', 'L L .R R', 'L R.R L R'],
+  },
+  strike: {
+    easy: ['R R L R', 'R RR L R', 'R RR RR L'],
+    medium: ['R R L R', 'R RR L R', 'R RRR L R'],
+    hard: ['R . L R', 'R .R L R', 'R R.R L R'],
+  },
+};
+let difficulty = 'medium';
+
+/** Choose the rhythms for a difficulty ('easy', 'medium' or 'hard'). */
+export function setDifficulty(d) {
+  difficulty = DIFFICULTIES.includes(d) ? d : 'medium';
+}
+
+export function getDifficulty() {
+  return difficulty;
+}
+
 export const COMMANDS = [
-  { id: 'march', name: 'Tiến', gloss: 'March', kind: 'move', tiers: ['L L L R', 'L L LR R', 'L RRR L R'] },
-  { id: 'strike', name: 'Đánh', gloss: 'Strike', kind: 'attack', tiers: ['R R L R', 'R RR L R', 'R RRR L R'] },
+  { id: 'march', name: 'Tiến', gloss: 'March', kind: 'move', get tiers() { return TIERS.march[difficulty]; } },
+  { id: 'strike', name: 'Đánh', gloss: 'Strike', kind: 'attack', get tiers() { return TIERS.strike[difficulty]; } },
 ];
 
-/** Expand "L LL R ..." into strokes with positions in beats. */
+/**
+ * A call or a casting rhythm at a difficulty. Easy plays triplets as pairs.
+ * Hard silences the middle of each triplet after the first beat, turns every
+ * other pair after it into an off-beat stroke, and if nothing else changed,
+ * silences the third beat of a long enough rhythm. The first beat and the
+ * last stroke are never touched, so the rhythm still starts and ends clearly.
+ */
+export function rhythmFor(text, d = difficulty) {
+  const beats = text.split(' ');
+  if (d === 'easy') return beats.map((b) => (b.length === 3 ? b.slice(0, 2) : b)).join(' ');
+  if (d !== 'hard') return text;
+  let changed = false;
+  let pairs = 0;
+  const out = beats.map((b, i) => {
+    if (i === 0) return b;
+    if (b.length === 3) {
+      changed = true;
+      return `${b[0]}.${b[2]}`;
+    }
+    if (b.length === 2 && i < beats.length - 1) {
+      pairs += 1;
+      if (pairs % 2 === 1) {
+        changed = true;
+        return `.${b[1]}`;
+      }
+    }
+    return b;
+  });
+  if (!changed && out.length >= 4) out[2] = '.';
+  return out.join(' ');
+}
+
+/**
+ * Expand "L RR R.R . L" into strokes with positions in beats. Strokes in one
+ * beat share it evenly, silent slots (".") included; `div` is how many slots
+ * the beat has, so a picture of the rhythm can leave the silent ones empty.
+ */
 export function parsePattern(text) {
   const strokes = [];
   text.split(' ').forEach((beat, b) => {
-    [...beat].forEach((drum, i) => strokes.push({ drum, pos: b + i / beat.length }));
+    [...beat].forEach((drum, i) => {
+      if (drum !== '.') strokes.push({ drum, pos: b + i / beat.length, div: beat.length });
+    });
   });
   return strokes;
 }
@@ -123,25 +191,33 @@ export function fit(pattern, strokes, windows = WINDOWS) {
     n += 1;
   }
   if (maxErr > windows.good) return null;
-  // The quick strokes inside a beat.
+  // The quick strokes inside a beat, measured from the last stroke on a beat
+  // before them (usually their own beat's; with rests, maybe an earlier one).
   for (let i = 0; i < k; i++) {
     if (Number.isInteger(p[i].pos)) continue;
-    const beat = Math.floor(p[i].pos);
-    const on = onsets.find((o) => p[o].pos === beat);
-    const next = onsets.find((o) => p[o].pos === beat + 1);
+    let on = -1;
+    for (const o of onsets) if (o < i) on = o;
+    if (on < 0) return null; // a rhythm always opens on a beat
+    const next = onsets.find((o) => o > i);
     const since = strokes[i].t - strokes[on].t;
-    let span;
-    if (next !== undefined) span = strokes[next].t - strokes[on].t;
-    else if (u !== null) span = u;
-    else {
+    const beatEnd = Math.floor(p[i].pos) + 1; // the beat after this stroke's own
+    if (next !== undefined) {
+      const span = strokes[next].t - strokes[on].t;
+      const f = since / span;
+      if (f <= 0 || f >= 1) return null;
+      sum += Math.min(windows.good, SUB_WEIGHT * gapError(f, (p[i].pos - p[on].pos) / (p[next].pos - p[on].pos)));
+    } else if (u !== null) {
+      // Before the next beat has come, a stroke this late is that beat, not a
+      // quick one; a stroke after a rest must also come after the rest.
+      const f = since / u;
+      const lo = Math.floor(p[i].pos) - p[on].pos;
+      if (f <= lo * 0.85 || f > (beatEnd - p[on].pos) - 0.15) return null;
+      sum += Math.min(windows.good, SUB_WEIGHT * gapError(f, p[i].pos - p[on].pos));
+    } else {
       // No tempo yet (still inside the first beat): just keep it plausible.
-      if (since > TEMPO.max * 1.15) return null;
+      if (since <= 0 || since > TEMPO.max * 1.15 * (beatEnd - p[on].pos)) return null;
       continue;
     }
-    const f = since / span;
-    // Before the next beat has come, a stroke this late is that beat, not a quick one.
-    if (f <= 0 || f > (next !== undefined ? 1 : 0.85)) return null;
-    sum += Math.min(windows.good, SUB_WEIGHT * gapError(f, p[i].pos - beat));
     n += 1;
   }
   return { u, maxErr, meanErr: n ? sum / n : 0, complete: k === p.length };

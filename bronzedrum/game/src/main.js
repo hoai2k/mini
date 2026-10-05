@@ -1,6 +1,6 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
-import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, commandById, parsePattern } from './rhythm.js';
+import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, DIFFICULTIES, commandById, parsePattern, rhythmFor, setDifficulty } from './rhythm.js';
 import { createBattle, orderFor, spawnEnemy, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
@@ -34,7 +34,13 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1 });
+// Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
+const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
+function applyDifficulty() {
+  setDifficulty(DIFFICULTIES[settings.difficulty] || 'medium');
+  buildCommandTable();
+}
 // The prototype opens every chapter for review; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
 // Drum Practice remembers the last number of strokes and kit.
@@ -61,9 +67,11 @@ function applySettings() {
     if (el.type === 'checkbox') el.checked = settings[k];
     else {
       el.value = settings[k];
-      el.nextElementSibling.textContent = settings[k];
+      el.nextElementSibling.textContent = k === 'difficulty' ? DIFFICULTY_NAMES[settings[k]] : settings[k];
     }
   }
+  // Mid-chapter the rhythms stay as they are until the next chapter starts.
+  if (!game) applyDifficulty();
   save('settings', settings);
 }
 
@@ -272,7 +280,7 @@ function buildCommandTable() {
     text
       .split(' ')
       .map((beat) => {
-        const dots = [...beat].map((d) => `<span class="${d === 'L' ? 'g-l' : 'g-r'}${beat.length > 1 ? ' sub' : ''}"></span>`).join('');
+        const dots = [...beat].map((d) => `<span class="${d === '.' ? 'g-rest' : d === 'L' ? 'g-l' : 'g-r'}${beat.length > 1 ? ' sub' : ''}"></span>`).join('');
         return beat.length > 1 ? `<span class="group g${beat.length}">${dots}</span>` : dots;
       })
       .join(' ');
@@ -300,6 +308,9 @@ function startStage(i) {
   sound.start();
   sound.setKit(null);
   input.practice = false;
+  applyDifficulty();
+  // The rhythm this chapter plays, at the chosen difficulty (calls, the hammer rhythm).
+  const rhythm = (text) => rhythmFor(text);
   game = {
     index: i,
     stage,
@@ -325,14 +336,15 @@ function startStage(i) {
     blocks: 0,
   };
   if (game.mode === 'echo') {
-    game.session = new EchoSession({ calls: stage.calls, matchTempo: stage.matchTempo, tolerance: stage.tolerance, pause: stage.settle ?? 0.4 });
+    game.session = new EchoSession({ calls: stage.calls.map((c) => ({ ...c, text: rhythm(c.text) })), matchTempo: stage.matchTempo, tolerance: stage.tolerance, pause: stage.settle ?? 0.4 });
     game.reader.patterns = [];
     game.session.nextCallAt = 2.2;
   } else if (game.mode === 'casting') {
     game.session = new CastingSession({ drums: stage.drums, u: 60 / stage.bpm, tolerance: stage.tolerance });
     // The guide: the foundry's drum plays the hammer rhythm at the pace to hold.
-    game.guide = stage.bpm ? { u: 60 / stage.bpm, start: 2.5, next: 0, strokes: parsePattern(stage.rhythm) } : null;
-    game.reader.patterns = [callPattern(stage.rhythm, 'cast')];
+    game.rhythm = rhythm(stage.rhythm);
+    game.guide = stage.bpm ? { u: 60 / stage.bpm, start: 2.5, next: 0, strokes: parsePattern(game.rhythm) } : null;
+    game.reader.patterns = [callPattern(game.rhythm, 'cast')];
   }
   renderer.setStage(stage);
   sound.loadSamples().then(() => {
@@ -474,7 +486,7 @@ function missView(events, trying, before, drum, t) {
       pos = grid.reduce((a, b) => (Math.abs(b - raw) < Math.abs(a - raw) ? b : a), grid[0] ?? want.pos);
     }
   }
-  const played = p.strokes.slice(0, k).map((s) => ({ drum: s.drum, pos: s.pos }));
+  const played = p.strokes.slice(0, k).map((s) => ({ ...s }));
   played.push({ drum, pos, wrong: true });
   const rest = p.strokes.filter((s) => Math.floor(s.pos) > Math.floor(pos));
   return { strokes: [...played, ...rest], filled: played.length, wrong: k, beat: Math.floor(pos), timing: kind !== 'drum', t: songTime() };
@@ -702,7 +714,8 @@ function strokeKeys() {
 /** A rhythm ("L RR L R") as tokens: beats apart, strokes sharing a beat together. */
 function rhythmTokens(text) {
   const keys = strokeKeys();
-  return text.split(' ').map((beat) => [...beat].map((d) => keys[d]).join('')).join(' ');
+  // A silent slot ('.') shows as a rest mark (⟨r⟩), in its place in the beat.
+  return text.split(' ').map((beat) => [...beat].map((d) => (d === '.' ? '⟨r⟩' : keys[d])).join('')).join(' ');
 }
 
 // ---------------------------------------------------------------- demonstrations
@@ -819,8 +832,8 @@ function hint(view) {
   if (g.mode === 'casting') {
     const sess = g.session;
     if (sess.cast === 0 && sess.level === 0) {
-      g.mentioned = [{ key: `cast:${g.stage.rhythm}`, text: g.stage.rhythm, label: 'The hammer rhythm' }];
-      return `Drum with the bellows, at their pace: ${rhythmTokens(g.stage.rhythm)}`;
+      g.mentioned = [{ key: `cast:${g.rhythm}`, text: g.rhythm, label: 'The hammer rhythm' }];
+      return `Drum with the bellows, at their pace: ${rhythmTokens(g.rhythm)}`;
     }
     return 'Keep the bellows’ pace — every phrase in time with them';
   }
@@ -835,7 +848,7 @@ function hint(view) {
   const guardKey = { keyboard: 'Space', gamepad: '⟨A⟩', pointer: 'tap the drum', touch: 'the Shield button' }[input.device] || 'Space';
   if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return `Attack coming — shield (${guardKey}) while it is in the air`;
   if (g.stage.id === 'outpost' && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
-    return `Triplets hit hardest — ${say('strike', 3)}`;
+    return `The third tier hits hardest — ${say('strike', 3)}`;
   }
   if (g.stage.id === 'luylau' && near && g.reader.spirit) return `The drum is awake — strike and the elephant charges: ${say('strike')}`;
   if (g.stage.id === 'luylau' && !g.reader.spirit && g.commandsDone < 6) return 'Chain four commands to wake the drum — then a strike becomes the elephant charge';
