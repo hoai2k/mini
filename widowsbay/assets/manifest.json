@@ -537,6 +537,46 @@
       "status": "delivered",
       "file": "sfx/ui.mp3",
       "loop": false
+    },
+    "landho": {
+      "status": "delivered",
+      "file": "sfx/landho.mp3",
+      "loop": false
+    },
+    "cheer": {
+      "status": "delivered",
+      "file": "sfx/cheer.mp3",
+      "loop": false
+    },
+    "partyHit": {
+      "status": "delivered",
+      "file": "sfx/partyHit.mp3",
+      "loop": false
+    },
+    "revelry": {
+      "status": "delivered",
+      "file": "sfx/revelry.mp3",
+      "loop": false
+    },
+    "spirits": {
+      "status": "delivered",
+      "file": "sfx/spirits.mp3",
+      "loop": false
+    },
+    "shipBreak": {
+      "status": "delivered",
+      "file": "sfx/shipBreak.mp3",
+      "loop": false
+    },
+    "splash": {
+      "status": "delivered",
+      "file": "sfx/splash.mp3",
+      "loop": false
+    },
+    "guitarSink": {
+      "status": "delivered",
+      "file": "sfx/guitarSink.mp3",
+      "loop": false
     }
   }
 }
