@@ -52,7 +52,6 @@ body.playing #app { touch-action: none; -webkit-user-select: none; user-select: 
 .press-start:active { transform: translateY(2px) scale(0.98); background: var(--bronze); }
 @keyframes breathe { 50% { filter: brightness(1.12); } }
 .hint { margin: 0; font-size: 14px; color: var(--paper-shade); opacity: 0.8; }
-.proto-note { position: absolute; left: 16px; bottom: 14px; margin: 0; font-size: 13px; color: var(--paper-shade); opacity: 0.7; }
 .corner-buttons { position: absolute; right: 16px; bottom: 16px; display: flex; gap: 10px; }
 .icon-btn { position: relative; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--paper-shade); background: rgba(22, 21, 26, 0.55); color: var(--paper); cursor: pointer; display: grid; place-items: center; }
 .icon-btn svg { width: 26px; height: 26px; }
@@ -111,8 +110,11 @@ body.paper-panels .panel {
   background: var(--ink); color: var(--paper); box-shadow: 3px 4px 0 rgba(22, 21, 26, 0.25);
   clip-path: polygon(1% 6%, 99% 0, 100% 90%, 98% 100%, 0 96%);
 }
-.menu-btn:first-of-type { background: var(--lacquer); }
-.menu-btn:hover, .menu-btn:focus-visible, .menu-btn.nav-focus { background: var(--bronze); color: var(--ink); }
+/* The selected button (keyboard or controller focus) is bronze; nothing else
+   is. Hover only lightens a button, and only with a real mouse, since on touch
+   screens a tapped button keeps :hover and would look selected too. */
+.menu-btn:focus-visible, .menu-btn.nav-focus { background: var(--bronze); color: var(--ink); }
+@media (hover: hover) { .menu-btn:hover:not(:focus-visible):not(.nav-focus) { background: #34313d; } }
 .menu-btn:active { transform: translateY(1px) scale(0.99); }
 .panel .menu-btn:focus-visible, .panel .menu-btn.nav-focus { outline-offset: 2px; }
 .scroll { overflow-y: auto; max-height: 64vh; padding-right: 8px; line-height: 1.5; }
@@ -150,7 +152,6 @@ body.paper-panels .panel {
   #pause .panel, #result .panel { width: min(600px, 100%); display: grid; grid-template-columns: 1fr 1fr; align-content: start; }
   #pause .panel > :not(.menu-btn), #result .panel > :not(.menu-btn), #pause .menu-btn:first-of-type, #result .menu-btn:first-of-type { grid-column: 1 / -1; }
   .scroll { max-height: none; overflow: visible; }
-  .proto-note { display: none; }
   /* The panel scrolls as one; its Close or Done button stays in reach. */
   .dialog .menu-btn[data-action="close"] { position: sticky; bottom: 0; }
 }
@@ -161,7 +162,6 @@ body.paper-panels .panel {
 @media (max-width: 600px) {
   .row { grid-template-columns: 1fr 120px 44px; }
   .corner-buttons { right: 12px; bottom: 12px; }
-  .proto-note { display: none; }
 }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 

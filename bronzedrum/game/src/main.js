@@ -808,14 +808,14 @@ function finish(outcome) {
 
 function pause(reason = '') {
   if (screen !== 'play' || !game || game.ended) return;
-  if (sound.ctx) sound.ctx.suspend();
+  sound.suspend();
   sound.pauseMusic(true);
   $('#pause-reason').textContent = reason;
   show('pause');
 }
 
 function resume() {
-  if (sound.ctx) sound.ctx.resume();
+  sound.resume();
   sound.pauseMusic(false);
   show('play');
 }
@@ -827,19 +827,19 @@ function action(name) {
     case 'resume':
       return resume();
     case 'restart':
-      if (sound.ctx) sound.ctx.resume();
+      sound.resume();
       return startStage(game.index);
     case 'next':
       return startStage(game.index + 1);
     case 'select':
       // From the pause menu the audio clock is suspended; wake it for the select music.
-      if (sound.ctx) sound.ctx.resume();
+      sound.resume();
       sound.stopAmbience();
       game = null;
       buildCards();
       return show('select');
     case 'title':
-      if (sound.ctx) sound.ctx.resume();
+      sound.resume();
       sound.stopAmbience();
       game = null;
       titleNav = false;
