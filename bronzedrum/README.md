@@ -98,11 +98,10 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-One request is open: BD-C14, a drum palanquin with a deck the sisters can stand
-on. Until it arrives they walk beside the bearers. The other 81 requests have
-generated artwork, including the five Drum Practice assets
+All 82 requests have generated artwork, including BD-C14, the wider drum
+palanquin with standing places for the sisters, and the five Drum Practice assets
 (BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in
-`design/references/` and 61 game images in `game/assets/art/`. The set follows
+`design/references/` and 62 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 
 [`design/image-deliveries.json`](design/image-deliveries.json) records the exact
@@ -119,7 +118,7 @@ between strokes she holds the stick raised; on each tùng her forearm whips over
 onto the drum and lifts back, her body leans in, and her cape and sash ribbons
 trail on springs. The other three rig sheets are not cut yet.
 
-The manifest's `runtime` flag distinguishes the 55 images used by the prototype
+The manifest's `runtime` flag distinguishes the 56 images used by the prototype
 from the 6 delivered sheets it does not use directly: the four puppet-rig sheets
 (cut into rigs instead) and the glyph and icon sheets. They remain available
 for production work without being downloaded at game startup. The effects

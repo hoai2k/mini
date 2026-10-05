@@ -1628,6 +1628,40 @@
           256
         ]
       ]
+    },
+    {
+      "id": "BD-C14",
+      "file": "game/assets/art/drum-palanquin.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-05",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        2400,
+        1200
+      ],
+      "exportOperation": "resample canvas with small top crop to align native deck edge with 58% height; preserve empty standing zones and feet",
+      "sourceCropBox": [
+        0,
+        13.190476190476375,
+        1774,
+        887
+      ],
+      "deckTop": 696,
+      "standingPoints": [
+        [
+          528,
+          696
+        ],
+        [
+          1872,
+          696
+        ]
+      ],
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long, low ceremonial wooden palanquin carried on two poles by four Lac Viet women in feather crowns, walking right, the poles on their shoulders. On its flat deck, in the middle, a large Dong Son bronze drum banded with rings, its top a sun-star. The two ends of the deck are empty and level, room for two people to stand and drum. The deck's edge is carved with a band of herons and boats in cut detail. Ink-black bearers and wood, a warm bronze drum.\nPRODUCTION SPRITE GEOMETRY, mandatory: 2400x1200, transparent. The deck's top is one straight, level line at exactly 42% of the height measured up from the bottom edge (58% down from the top), spanning the middle 80% of the width. The drum sits on the deck in the middle third. Two empty standing places on the deck, centred at 22% and 78% of the width and each about 16% wide, with nothing drawn above the deck there (no railing taller than 3% of the height, no canopy, no posts). Four bearers carry the poles on their shoulders, the poles just under the deck, their feet on the bottom edge. One cut-paper group, side profile, full bodies, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.\nCanvas aspect 2:1, exported at 2400x1200. Treat the full canvas as a coordinate grid: deck top at y=696 (58% down), from x=240 to x=2160. Empty standing zones x=336..720 and x=1680..2064, everything above y=696 in these zones is TRANSPARENT. Bronze drum entirely within x=800..1600, resting on the deck. Four women bearers all BELOW the deck, facing right; heads and feather crowns below y=696; feet at y=1200, mid-stride. No sisters or riders on the deck: the game overlays them separately. The upper part of the canvas is intentionally mostly empty alpha; do NOT crop it away or vertically centre the group. No ground, scenery, cast shadow, exterior glow, canopy, poles above deck or railing. Flat side elevation, no perspective tilting of deck. Only one group asset.",
+      "correctionPrompt": "Correct the layout of this transparent paper-cut palanquin sprite. Keep its style, bronze drum and exactly four right-facing women bearers. The current deck is too short, and the bearers' heads intrude above it. EXTEND THE FLAT DECK to span from 10% to 90% of canvas width. Its top edge must lie at exactly 58% down the full 2:1 canvas height. The drum remains centred in the middle third resting on this edge. SHRINK AND LOWER ALL FOUR BEARERS so their entire bodies, heads and feather crowns fit BELOW this deck line, carrying shoulder poles immediately under the platform. Feet reach the bottom edge. Space four bearers under the deck rather than outside it. Completely clear everything above the deck in the left standing zone (14% to 30% width) and right standing zone (70% to 86% width). These two empty deck portions must remain visible and level for the game to overlay the sisters. No riders, canopy, scenery, glow or shadow. True transparent background. Do not trim the intentionally empty upper canvas. Precision side elevation sprite, 2400x1200 export."
     }
   ]
 }

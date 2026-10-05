@@ -122,9 +122,10 @@
       "id": "drum-palanquin",
       "request": "BD-C14",
       "file": "art/drum-palanquin.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/drum-palanquin.webp"
     },
     {
       "id": "drummer-chau",

@@ -406,7 +406,7 @@ req(C, "BD-C14", "drum-palanquin", "The drum palanquin with room for the sisters
     "the deck there (no railing taller than 3% of the height, no canopy, no posts). Four bearers "
     "carry the poles on their shoulders, the poles just under the deck, their feet on the bottom "
     "edge. " + CUTOUT.replace("Single cut-paper figure, side profile, full body", "One cut-paper group, side profile, full bodies"),
-    "stand-in", "Renderer.drumCrew (the sisters walk beside BD-C04)", "art/drum-palanquin.png",
+    "delivered", "Renderer.drumCrew (the sisters walk beside BD-C04)", "art/drum-palanquin.png",
     f"{STYLE} A long, low ceremonial wooden palanquin carried on two poles by four Lac Viet "
     "women in feather crowns, walking right, the poles on their shoulders. On its flat deck, in "
     "the middle, a large Dong Son bronze drum banded with rings, its top a sun-star. The two ends "
