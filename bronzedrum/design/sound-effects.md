@@ -6,7 +6,7 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**64 of 66 files in use.**
+**67 of 69 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
@@ -87,6 +87,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `crack` | Casting the Drums: a phrase that drifts cracks the mould. (one-shot) | 1.5 s | 1/1 | A clay casting mould cracking from the heat: one sharp crack, then crumbling pieces and a hiss of steam. |
 | `lantern` | The Oath and The Villages Answer: an answered call lights incense or lanterns. (one-shot) | 1.5 s | 1/1 | A paper lantern being lit at night: a soft whoosh of flame catching, then one small clear bronze bell. |
 | `crowd-cheer` | The Coronation: the crowd answers each rhythm. (one-shot) | 3.0 s | 1/1 | A festival crowd in an ancient village square cheering and clapping with joy, a few small gongs ringing. |
+| `dancer-join` | Drum Practice: a dancer walks in to join the dance. (one-shot) | 1.5 s | 2/2 | A single joyful shout of 'hey!' from a villager joining a dance by a fire, with two or three quick hand claps and a jingle of small ankle bells, outdoors at dusk. Short, no music, no drums. |
 | `han-horn` | Mã Viện Returns: a new Han column arrives. (one-shot) | 3.0 s | 1/1 | Several ancient war horns made of buffalo horn blown together in the distance across a river, a low ominous call that swells and fades, an army approaching. |
 
 ## Ambience
@@ -97,6 +98,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `amb-river` | Chapter 2 bed, looped. (loop) | 20.0 s | 1/1 | Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons and birds. Continuous, no music, no drums. |
 | `amb-foundry` | Casting the Drums bed, looped. Chosen from six takes as the least tonal (the old take had a steady hum that read as a machine); looped with a 3 s crossfade and raised 7 dB under a soft limiter. (loop) | 20.0 s | 1/1 | Blacksmith's forge ambience recorded outdoors, traditional and hand-powered: crackling coal fire, slow leather bellows whooshing, hot metal hissing now and then, crickets far off. Natural, no machinery, no electrical hum, no music. |
 | `amb-village` | The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked to one steady rate (a strong steady chirp would pull against the player's tempo); looped with a 3 s crossfade and lowered 6 dB. (loop) | 20.0 s | 1/1 | Field recording at night beside a slow river in the Vietnamese countryside: steady crickets chirping in the grass, frogs calling from the rice paddies, gentle water lapping against a wooden jetty. Calm, natural, recorded outdoors with a real microphone. No music, no voices, no hum, no wind howl. |
+| `amb-green` | Drum Practice bed (the village green), looped. Nothing in it keeps a beat, so it never pulls against the player's own tempo. (loop) | 20.0 s | 1/1 | Field recording at dusk on a village green in the Vietnamese countryside: a bonfire crackling and popping close by, soft crickets in the grass, the low relaxed murmur of villagers talking far off, an occasional distant laugh. Calm, natural, recorded outdoors with a real microphone. No music, no drums, no clear words, no wind howl. |
 | `amb-mourning` | The Oath (chapter 2) bed, looped. Chosen from six takes as the least synthetic (most noise-like spectrum); raised 10 dB under a soft limiter to sit with the other beds. (loop) | 20.0 s | 1/1 | Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and calm, no music, no electronic sounds. |
 | `breeze` | The Oath: the breeze stirred by holding A or Y, faded with the wind. (loop) | 8.0 s | 1/1 | A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves lightly. Continuous, airy and natural, no whistling, no howling, no music. |
 | `amb-night` | Chapter 3 bed, looped. (loop) | 20.0 s | 1/1 | Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice paddies, distant torches crackling, a faint wind. Continuous, no music. |

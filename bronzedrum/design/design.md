@@ -335,7 +335,9 @@ up to six. The dancers are feather-crowned like the figures on a Đông Sơn
 drum, and they walk in from the right to places round the fire. A deep stroke
 is a stamp with both arms up; a rim stroke is a hop with a flick to alternate
 sides. When the drumming stops for two seconds the groove drains and the
-dancers leave the way they came.
+dancers leave the way they came. Each new dancer is greeted by a shout and a clap
+(`dancer-join`). The bed is its own ambience (`amb-green`): the fire crackling,
+crickets, and villagers murmuring far off. Nothing in it keeps a beat.
 
 ## Structure for the full game
 

@@ -250,6 +250,11 @@ sfx(G, "crowd-cheer",
     "gongs ringing.",
     3.0, "The Coronation: the crowd answers each rhythm.", gain=0.7)
 
+sfx(G, "dancer-join",
+    "A single joyful shout of 'hey!' from a villager joining a dance by a fire, with two or three "
+    "quick hand claps and a jingle of small ankle bells, outdoors at dusk. Short, no music, no drums.",
+    1.5, "Drum Practice: a dancer walks in to join the dance.", variants=2, gain=0.55)
+
 sfx(G, "han-horn",
     "Several ancient war horns made of buffalo horn blown together in the distance across a "
     "river, a low ominous call that swells and fades, an army approaching.",
@@ -279,6 +284,13 @@ sfx(G, "amb-village",
     20.0, "The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked "
     "to one steady rate (a strong steady chirp would pull against the player's tempo); looped "
     "with a 3 s crossfade and lowered 6 dB.", kind="loop", gain=0.45, post="lowpass=f=10000")
+sfx(G, "amb-green",
+    "Field recording at dusk on a village green in the Vietnamese countryside: a bonfire "
+    "crackling and popping close by, soft crickets in the grass, the low relaxed murmur of "
+    "villagers talking far off, an occasional distant laugh. Calm, natural, recorded outdoors "
+    "with a real microphone. No music, no drums, no clear words, no wind howl.",
+    20.0, "Drum Practice bed (the village green), looped. Nothing in it keeps a beat, so it never "
+    "pulls against the player's own tempo.", kind="loop", gain=0.45, post="lowpass=f=11000")
 sfx(G, "amb-mourning",
     "Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire "
     "close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and "

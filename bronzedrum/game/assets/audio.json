@@ -297,6 +297,14 @@
       "gain": 0.7,
       "loop": false
     },
+    "dancer-join": {
+      "files": [
+        "sfx/dancer-join-1.mp3",
+        "sfx/dancer-join-2.mp3"
+      ],
+      "gain": 0.55,
+      "loop": false
+    },
     "han-horn": {
       "files": [
         "sfx/han-horn.mp3"
@@ -328,6 +336,13 @@
     "amb-village": {
       "files": [
         "sfx/amb-village.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "amb-green": {
+      "files": [
+        "sfx/amb-green.mp3"
       ],
       "gain": 0.45,
       "loop": true

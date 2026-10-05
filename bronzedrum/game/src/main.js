@@ -1150,7 +1150,7 @@ const PRACTICE = {
     intro: 'A partner drums a rhythm with as many strokes as the dots show; answer with any rhythm of the same length, and they come straight back with the next. Nothing is wrong: copy them, or answer in your own way.',
   },
 };
-for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-village', troops: 0, elephant: false, enemies: [] });
+for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-green', troops: 0, elephant: false, enemies: [] });
 
 /** The practice modes' screen (from the title). */
 function openPractice() {
@@ -1209,6 +1209,7 @@ function startPractice(kind) {
     clockStart: sound.now + 0.6,
     pulses: [], // strokes heard, for the dancers: { t, drum, who }
     energy: 0, // how much drumming there has been lately (dancers come with it)
+    dancers: 0,
     lastSound: -9,
     loopBus: null,
     loopNext: 0,
@@ -1376,7 +1377,16 @@ function updatePractice(dt) {
   // The drumming dies down when it stops: the dancers drift away.
   const quiet = t - g.lastSound > 2;
   g.energy = Math.max(0, g.energy - dt * (quiet ? 2.2 : 0.12));
+  // A shout and a clap as each new dancer joins.
+  const dancers = practiceDancers();
+  if (dancers > g.dancers) sound.play('dancer-join', sound.now, 0.8);
+  g.dancers = dancers;
   renderer.draw(view(), dt);
+}
+
+/** How many dancers the drumming has drawn in: one for every five points of groove, up to six. */
+function practiceDancers() {
+  return Math.min(6, Math.floor(game.energy / 5));
 }
 
 /** How each practice control is shown in the HUD for the device in use, as rich-text tokens. */
@@ -1447,7 +1457,7 @@ function practiceView() {
       answer: s.answer,
       // The answer stays up until the partner's next call starts.
       showAnswer: !!s.answer && !!call && t < call.start,
-      dancers: Math.min(6, Math.floor(g.energy / 5)),
+      dancers: practiceDancers(),
       groove: Math.min(1, g.energy / 30),
       pulses: g.pulses,
       keys: practiceKeys(),
