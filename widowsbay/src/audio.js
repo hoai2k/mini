@@ -138,17 +138,85 @@ export function createAudio() {
       })
       .catch(() => { track.state = 'failed'; });
   }
-  function playTrack() {
+  // ---- The score: the band's song first, then period accompaniment by mood
+  // (design/music.md). `now` is what is playing: { kind: 'song'|'period',
+  // id, node, gain }. With no period tracks ready (or accompaniment off), the
+  // song loops as it always did.
+  const SONG_GAIN = 0.8, PERIOD_GAIN = 0.8, FADE = 2;
+  let now = null, mood = 'voyage', lastPeriod = null, periodOn = true;
+  let periods = []; // [{ id, url, moods, state, buffer }]
+
+  function fadeOut(n, dur = FADE) {
+    if (!n?.node) return;
+    const t = ac.currentTime;
+    try {
+      n.gain.gain.cancelScheduledValues(t);
+      n.gain.gain.setValueAtTime(n.gain.gain.value, t);
+      n.gain.gain.linearRampToValueAtTime(0.0001, t + dur);
+      n.node.onended = null;
+      n.node.stop(t + dur + 0.05);
+    } catch { /* already stopped */ }
+  }
+  function startNode(buffer, level, { loop = false, loopStart = 0, loopEnd = 0, offset = 0, fadeIn = 0.05 } = {}) {
     const src = ac.createBufferSource();
-    src.buffer = track.buffer;
-    src.loop = true;
-    if (track.loopEnd) { src.loopStart = track.loopStart || 0; src.loopEnd = track.loopEnd; }
-    const g = ac.createGain(); g.gain.value = 0.8;
+    src.buffer = buffer; src.loop = loop;
+    if (loop && loopEnd) { src.loopStart = loopStart; src.loopEnd = loopEnd; }
+    const g = ac.createGain();
+    const t = ac.currentTime + 0.05;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(level, t + fadeIn);
     src.connect(g); g.connect(music);
-    src.start(ac.currentTime + 0.05);
-    track.node = src;
-    track.startedAt = ac.currentTime + 0.05;
-    if (sea) sea.g.gain.value = sea.recorded ? 0.12 : 0.05; // let the song carry the scene
+    src.start(t, offset);
+    return { node: src, gain: g, startedAt: t - offset };
+  }
+  const anyPeriodReady = () => periodOn && periods.some((p) => p.state === 'ready');
+
+  function playTrack(fadeIn = 0.05) {
+    // The song plays through once when accompaniment can follow; otherwise it loops.
+    const loop = !anyPeriodReady();
+    const n = startNode(track.buffer, SONG_GAIN, { loop, loopStart: track.loopStart || 0, loopEnd: track.loopEnd || 0, fadeIn });
+    if (now) fadeOut(now, fadeIn > 0.1 ? fadeIn : 0.3);
+    now = { kind: 'song', id: 'song', ...n };
+    track.node = n.node; track.startedAt = n.startedAt;
+    // When the song ends, hand over to the accompaniment.
+    if (!loop) n.node.onended = () => { if (now?.node === n.node) { track.node = null; next(); } };
+    if (sea) sea.g.gain.value = sea.recorded ? 0.12 : 0.05; // let the music carry the scene
+    loadPeriods();
+  }
+
+  // Choose the period track for the current mood (avoiding an immediate repeat).
+  function pick() {
+    const ready = periods.filter((p) => p.state === 'ready');
+    if (!ready.length) return null;
+    const fit = ready.filter((p) => p.moods.includes(mood));
+    const pool = (fit.length ? fit : ready);
+    return pool.find((p) => p.id !== lastPeriod) || pool[0];
+  }
+  function playPeriod(p, fadeIn = 0.4) {
+    if (now) fadeOut(now);
+    const n = startNode(p.buffer, PERIOD_GAIN, { fadeIn });
+    now = { kind: 'period', id: p.id, moods: p.moods, ...n };
+    lastPeriod = p.id;
+    n.node.onended = () => { if (now?.node === n.node) next(); };
+  }
+  function next() {
+    if (!playing) return;
+    const p = periodOn ? pick() : null;
+    if (p) playPeriod(p);
+    else if (track?.buffer) playTrack(); // nothing else ready: the song again
+  }
+  function loadPeriods() {
+    // One at a time in the background, after the song has started.
+    if (!ac) return;
+    const p = periods.find((q) => q.state === 'idle');
+    if (!p) return;
+    p.state = 'loading';
+    decode(p.url).then((b) => { p.buffer = b; p.state = 'ready'; })
+      .catch(() => { p.state = 'failed'; })
+      .finally(() => {
+        // If the song was looping because nothing was ready, let it finish its pass.
+        if (now?.kind === 'song' && now.node.loop && anyPeriodReady()) now.node.loop = false, now.node.onended = () => { if (now?.kind === 'song') { track.node = null; next(); } };
+        loadPeriods();
+      });
   }
   async function startMusic() {
     if (!ensure() || playing) return;
@@ -162,7 +230,8 @@ export function createAudio() {
   }
   function stopMusic() {
     playing = false;
-    try { track?.node?.stop(); } catch { /* already stopped */ }
+    try { now?.node?.stop(); } catch { /* already stopped */ }
+    now = null;
     if (track) track.node = null;
   }
 
@@ -220,9 +289,35 @@ export function createAudio() {
     // { state, progress 0..1 } for the loading bar; 'none' when no song is set.
     trackStatus: () => (track ? { state: track.state, progress: track.progress } : { state: 'none', progress: 1 }),
     usingTrack: () => !!track?.node,
+    // Period accompaniment ([{ id, url, moods }]); loaded after the song starts.
+    setPeriod(list) { periods = list.map((p) => ({ ...p, state: 'idle', buffer: null })); if (now) loadPeriods(); },
+    // The scene's mood. A period track that doesn't suit a new mood crossfades
+    // to one that does; the song is never cut off for a mood change.
+    setMood(m) {
+      if (m === mood) return;
+      mood = m;
+      if (!ac || !playing || now?.kind !== 'period' || now.moods.includes(m)) return;
+      const p = periods.find((q) => q.state === 'ready' && q.moods.includes(m));
+      if (p) playPeriod(p, FADE);
+    },
+    // The pageant and curtain call bring the band's song back.
+    returnToSong() {
+      if (!ac || !playing || !track?.buffer || now?.kind === 'song') return;
+      playTrack(FADE);
+    },
+    setPeriodOn(on) {
+      periodOn = !!on;
+      if (!ac || !playing) return;
+      if (!periodOn && now?.kind === 'period' && track?.buffer) playTrack(FADE);
+      else if (now?.kind === 'song') now.node.loop = !anyPeriodReady();
+    },
+    nowPlaying: () => (now ? { kind: now.kind, id: now.id } : null),
+    // QA: end the current piece now, as if it had played out (tests only).
+    skip() { try { now?.node?.stop(); } catch { /* ignore */ } },
+    periodStates: () => periods.map((p) => `${p.id}:${p.state}`),
     // Seconds into the recording (following its loop), or null when it isn't playing.
     songTime() {
-      if (!track?.node || !ac) return null;
+      if (!track?.node || !ac || now?.kind !== 'song') return null;
       let t = ac.currentTime - track.startedAt;
       const end = track.loopEnd || track.buffer.duration, start = track.loopStart || 0;
       if (t > end) t = start + ((t - start) % (end - start));

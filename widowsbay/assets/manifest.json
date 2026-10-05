@@ -482,6 +482,37 @@
       "loopStart": 0,
       "loopEnd": 206.4,
       "note": "Langan, Frost & Wane - Widow's Bay (3:28, 192 kbps). Loops as the score; loopEnd skips the 2.2 s of silence at the end."
+    },
+    "period": {
+      "period-piano": {
+        "status": "delivered",
+        "file": "audio/period-piano.mp3",
+        "moods": [
+          "voyage",
+          "tender",
+          "storm"
+        ],
+        "beat": null,
+        "note": "\"Paris Cinema\": solo pianist, 2:09, B major, rubato (no steady beat). Normalised to about -13.6 LUFS."
+      },
+      "period-band": {
+        "status": "delivered",
+        "file": "audio/period-band.mp3",
+        "moods": [
+          "revel"
+        ],
+        "beat": null,
+        "note": "\"Festival March\": cafe-concert band, 2:32, E-flat major, rubato. About -11.8 LUFS."
+      },
+      "period-harmonium": {
+        "status": "delivered",
+        "file": "audio/period-harmonium.mp3",
+        "moods": [
+          "deep"
+        ],
+        "beat": null,
+        "note": "\"Sea and Grotto Waltz\": harmonium and piano, 2:05, C minor, rubato. About -12.1 LUFS."
+      }
     }
   },
   "sfx": {

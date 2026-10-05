@@ -27,7 +27,7 @@ const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' &
 const SETTINGS_KEY = 'widowsbay.settings.v1';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Touch devices start on the gentler film look (lighter on a phone's GPU and battery).
-const settings = { music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true };
+const settings = { period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* storage unavailable */ }
 const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* ignore */ } };
 const FILM = { full: 'Full', gentle: 'Gentle', off: 'Off' };
@@ -37,6 +37,7 @@ function syncSettingsUI() {
     if (el.type === 'range') el.value = settings[k];
     else if (k === 'film') el.querySelector('span').textContent = FILM[settings.film];
     else if (k === 'vibration') el.querySelector('span').textContent = settings.vibration ? 'On' : 'Off';
+    else if (k === 'period') el.querySelector('span').textContent = settings.period ? 'On' : 'Off';
   }
   audio.setVolumes(settings.music / 10, settings.sfx / 10);
 }
@@ -46,6 +47,7 @@ for (const el of document.querySelectorAll('#settings [data-key]')) {
   else el.addEventListener('click', () => {
     if (k === 'film') settings.film = { full: 'gentle', gentle: 'off', off: 'full' }[settings.film];
     if (k === 'vibration') settings.vibration = !settings.vibration;
+    if (k === 'period') { settings.period = !settings.period; audio.setPeriodOn(settings.period); }
     syncSettingsUI(); saveSettings(); audio.play('ui');
   });
 }
@@ -87,6 +89,10 @@ loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => { if (id === 'log
   const sfx = Object.fromEntries(Object.entries(a.sfx || {})
     .filter(([, v]) => v.status === 'delivered' && v.file).map(([k, v]) => [k, 'assets/' + v.file]));
   audio.setSfx(sfx);
+  // Period accompaniment after the song (design/music.md).
+  audio.setPeriod(Object.entries(a.audio?.period || {}).filter(([, v]) => v.status === 'delivered' && v.file)
+    .map(([id, v]) => ({ id, url: 'assets/' + v.file, moods: v.moods || [] })));
+  audio.setPeriodOn(settings.period);
   assetsLoaded = true;
   renderer = createRenderer(canvas, assets);
   if (assets.images.logo) showLogo(assets.images.logo);
@@ -304,8 +310,24 @@ function updateLoadbar() {
   $('#loadbar-label').textContent = st.state === 'failed' ? 'The song could not be loaded' : done ? 'Ready' : `Tuning up the band… ${pct}%`;
 }
 
+// The scene's musical mood (design/music.md): which period piece suits it once
+// the band's song has played. The pageant and curtain call bring the song back.
+function musicMood() {
+  const id = S.act?.id, ph = S.state?.phase;
+  if (S.mode === 'curtaincall') return 'song';
+  if (!S.act || S.mode === 'title' || S.mode === 'playbill') return 'tender';
+  if (id === 1) return ph === 'party' ? 'revel' : ['turn', 'wreck', 'sink', 'iris'].includes(ph) ? 'storm' : 'voyage';
+  if (id === 2) return ph === 'ride' ? 'voyage' : 'deep';
+  if (id === 3) return 'revel';
+  if (id === 4) return 'deep';
+  if (id === 5) return ph === 'pageant' || ph === 'iris' ? 'song' : ['storm', 'house', 'quay'].includes(ph) ? 'storm' : 'tender';
+  return 'voyage';
+}
+
 function update(dt, i) {
   if (S.mode === 'title') updateLoadbar();
+  const mood = musicMood();
+  if (mood === 'song') audio.returnToSong(); else audio.setMood(mood);
   S.curtain += (S.curtainTarget - S.curtain) * Math.min(1, dt * 2.2);
   if (TOUCH) updateTouch();
 
