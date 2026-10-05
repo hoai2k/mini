@@ -1026,6 +1026,7 @@ window.TankWarsMenu?.configure({
     getAiPersonalities: () => AI_PERSONALITIES,
     getBoardSizes: () => BOARD_SIZES,
     getRandomName,
+    generateUUID,
     setStartedByMouse: value => { didStartByMouseClick = value; },
     joinGame,
     startGame,

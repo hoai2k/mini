@@ -253,9 +253,10 @@
     }
 
     function generateUUID() {
-        const fn = globalValue('generateUUID', null);
-        if (typeof fn === 'function') return fn();
-        if (crypto.randomUUID) return crypto.randomUUID();
+        // Not globalValue('generateUUID'): inside this file that name resolves to
+        // this very function and recursed until the stack overflowed.
+        if (menuState.hooks.generateUUID) return menuState.hooks.generateUUID();
+        if (window.crypto?.randomUUID) return crypto.randomUUID();
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
             const r = Math.random() * 16 | 0;
             return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);

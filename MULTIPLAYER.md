@@ -40,6 +40,14 @@ There are no accounts, no stored game state and no anti-cheat. That suits
 party games among friends. Don't use it for anything that needs secrets or
 fair competitive play.
 
+Two guards limit abuse. The relay only accepts browsers on the sites listed
+in `ALLOWED_ORIGINS` in `multiplayer/server/wrangler.jsonc` (currently
+`games.hoai.net`, `hoai2k.github.io` and `hoai.net`) plus localhost. **If a
+game is served from a new domain, add it there and redeploy**, or that page
+can't connect. A client that sends more than 300 messages in 2 seconds is
+disconnected. That's far above normal play, but don't send one message per
+particle or per frame per object: batch them into one message.
+
 ## Client API
 
 Load the client before your game script. The global is `MiniRooms`.
@@ -96,7 +104,8 @@ Close reasons:
 | `full` | The room was at capacity |
 | `not_found` | No open room with that ID, usually because it already ended |
 | `taken` | You tried to host a room ID that's already open |
-| `disconnected` | The connection dropped |
+| `rate_limited` | This client sent more than 300 messages in 2 seconds |
+| `disconnected` | The connection dropped, or the server refused the page's origin |
 
 The client doesn't reconnect automatically. On anything other than `left`,
 tell the player and return them to the lobby.
@@ -106,7 +115,10 @@ tell the player and return them to the lobby.
 - Pages on `localhost` or `127.0.0.1` use `http://localhost:8787`, which is
   `wrangler dev`.
 - Every other page uses the production URL in `PRODUCTION_URL` at the top of
-  `mini-rooms.js`.
+  `mini-rooms.js`. The GitHub Pages site is served at `http://games.hoai.net`
+  (`hoai2k.github.io/mini/` redirects there). It's plain HTTP, so browser
+  features that need a secure page, such as `crypto.randomUUID`, aren't
+  available: always provide a fallback.
 - `?rooms=<url>` in the page address overrides both, for example
   `?rooms=http://127.0.0.1:8787`.
 - `MiniRooms.connect(game, { server })` overrides it in code.
@@ -199,8 +211,13 @@ every day, which is plenty for party games. If the dashboard ever shows the
 allowance running out, lower the presence rate (`PRESENCE_INTERVAL_MS` in the
 client) before paying for anything.
 
-Server-side limits: 64 KB per message, 16 players per room, room titles up to
-40 characters, names up to 24, and the lobby shows up to 50 rooms per game.
+Server-side limits: 64 KB per message, 300 messages per 2 seconds per
+client, 16 players per room, room titles up to 40 characters, names up to 24,
+and the lobby shows up to 50 rooms per game.
+
+On the free plan, running out of the daily allowance makes the relay refuse
+requests until the next day; it never produces a bill. Staying on the free
+Workers plan keeps that hard cap.
 
 ## Server protocol (for changing the relay)
 

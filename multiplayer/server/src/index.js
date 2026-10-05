@@ -22,6 +22,10 @@
 // One `Lobby` Durable Object per game keeps the list of open rooms. Rooms
 // report to it when players come and go, and every 30 s while anyone is
 // connected; the lobby drops rooms it hasn't heard from in 90 s.
+//
+// Guards: browsers may connect only from the origins in ALLOWED_ORIGINS
+// (wrangler.jsonc) or localhost, and a connection that sends more than
+// RATE_LIMIT messages in RATE_WINDOW_MS is closed with reason "rate_limited".
 
 import { DurableObject } from "cloudflare:workers";
 
@@ -30,6 +34,19 @@ const MAX_CAPACITY = 16;
 const HEARTBEAT_MS = 30_000;
 const STALE_MS = 90_000;
 const NAME_RE = /^[A-Za-z0-9_-]{1,64}$/;
+const RATE_WINDOW_MS = 2_000;
+const RATE_LIMIT = 300;
+const LOCAL_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
+
+// Requests without an Origin header (non-browser tools) are let through:
+// they could send any Origin anyway, so the check only stops other websites
+// from using the relay through their visitors' browsers.
+function originAllowed(request, env) {
+  const origin = request.headers.get("Origin");
+  if (!origin || LOCAL_ORIGIN_RE.test(origin)) return true;
+  const allowed = String(env.ALLOWED_ORIGINS || "").split(",").map(o => o.trim()).filter(Boolean);
+  return allowed.includes(origin);
+}
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -43,6 +60,9 @@ export default {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS });
     const parts = url.pathname.split("/").filter(Boolean);
+    if ((parts[0] === "lobby" || parts[0] === "room") && !originAllowed(request, env)) {
+      return new Response("Origin not allowed", { status: 403, headers: CORS });
+    }
 
     if (parts[0] === "lobby" && parts.length === 2 && NAME_RE.test(parts[1])) {
       const rooms = await env.LOBBY.getByName(parts[1]).list();
@@ -67,6 +87,7 @@ export class Room extends DurableObject {
     // Presence lives in memory only: clients resend it many times a second,
     // so after a hibernation wake-up it refills on its own.
     this.presence = new Map();
+    this.rates = new Map();
   }
 
   async fetch(request) {
@@ -120,6 +141,15 @@ export class Room extends DurableObject {
   async webSocketMessage(ws, message) {
     const me = ws.deserializeAttachment();
     if (!me || typeof message !== "string" || message.length > MAX_MESSAGE_BYTES) return;
+    const now = Date.now();
+    let rate = this.rates.get(me.peerId);
+    if (!rate || now - rate.start >= RATE_WINDOW_MS) this.rates.set(me.peerId, rate = { start: now, count: 0 });
+    if (++rate.count > RATE_LIMIT) {
+      try { ws.send(JSON.stringify({ t: "closed", reason: "rate_limited" })); } catch {}
+      ws.close(4008, "rate_limited");
+      await this.dropPeer(ws);
+      return;
+    }
     let msg;
     try { msg = JSON.parse(message); } catch { return; }
 
@@ -144,6 +174,7 @@ export class Room extends DurableObject {
     if (!me) return;
     ws.serializeAttachment(null);
     this.presence.delete(me.peerId);
+    this.rates.delete(me.peerId);
 
     if (me.isHost) {
       // The host owns the map and the AI, so the room ends with them.

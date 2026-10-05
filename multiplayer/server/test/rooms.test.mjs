@@ -122,3 +122,22 @@ test("when the host leaves, guests are told and the room leaves the lobby", asyn
   await new Promise(r => setTimeout(r, 200));
   assert.equal((await lobby("testgame")).some(r => r.id === id), false);
 });
+
+test("pages from other websites are refused; listed and local origins are allowed", async () => {
+  const at = origin => fetch(`${BASE}/lobby/testgame`, { headers: { Origin: origin } });
+  assert.equal((await at("https://evil.example")).status, 403);
+  assert.equal((await at("https://hoai2k.github.io")).status, 200);
+  assert.equal((await at("http://games.hoai.net")).status, 200);
+  assert.equal((await at("http://localhost:8000")).status, 200);
+  const roomUrl = `${BASE}/room/testgame/${room()}`;
+  assert.equal((await fetch(roomUrl, { headers: { Origin: "https://evil.example" } })).status, 403);
+  assert.equal((await fetch(roomUrl, { headers: { Origin: "https://hoai.net" } })).status, 426);  // allowed, just not a WebSocket
+});
+
+test("a client flooding messages is disconnected", async () => {
+  const id = room();
+  const host = connect(`/room/testgame/${id}?host=1&title=Flood`);
+  await host.next(m => m.t === "welcome");
+  for (let i = 0; i < 400; i++) host.send({ t: "m", topic: "spam", d: i });
+  assert.deepEqual(await host.next(m => m.t === "closed"), { t: "closed", reason: "rate_limited" });
+});

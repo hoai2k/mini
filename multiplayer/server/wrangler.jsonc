@@ -4,6 +4,8 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
   "observability": { "enabled": true },
+  // Sites whose pages may connect (localhost is always allowed). Comma-separated, no trailing slash.
+  "vars": { "ALLOWED_ORIGINS": "http://games.hoai.net,https://games.hoai.net,https://hoai2k.github.io,https://hoai.net,https://www.hoai.net" },
   "durable_objects": {
     "bindings": [
       { "name": "ROOM", "class_name": "Room" },
