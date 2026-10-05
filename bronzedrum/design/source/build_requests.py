@@ -495,9 +495,10 @@ req(U_, "BD-U03", "ui-glyphs", "Drum and command glyphs",
     "raised hand with feathers (rally); 7 an elephant head (charge). Simple, bold, readable at "
     "32 pixels.")
 req(U_, "BD-U04", "ui-panel", "Dialog panel",
-    "The paper sheet behind menus and dialogs, nine-sliced in the production build.",
+    "The paper sheet behind the pause menu and the other dialogs, nine-sliced so the cut "
+    "border keeps its shape at any size.",
     "1536x1024, transparent outside the sheet",
-    "delivered", None, "art/ui-panel.png",
+    "delivered", "CSS .panel (plain paper)", "art/ui-panel.png",
     "A sheet of cream rice paper with a hand-cut decorative border: a band of tangential circles "
     "and small herons cut through near the edge, corners cut with a sun-star. Plain centre for "
     "text. Even light, soft fibres.")
