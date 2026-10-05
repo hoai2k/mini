@@ -453,6 +453,26 @@
     "court-floor-3": {
       "status": "requested",
       "file": "court-floor-3.webp"
+    },
+    "rotate-card": {
+      "status": "requested",
+      "file": "rotate-card.webp"
+    },
+    "app-icon": {
+      "status": "requested",
+      "file": "app-icon.webp"
+    },
+    "touch-stick-knob": {
+      "status": "requested",
+      "file": "touch-stick-knob.webp"
+    },
+    "touch-stick-base": {
+      "status": "requested",
+      "file": "touch-stick-base.webp"
+    },
+    "touch-button": {
+      "status": "requested",
+      "file": "touch-button.webp"
     }
   },
   "audio": {

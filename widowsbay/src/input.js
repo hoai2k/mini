@@ -10,8 +10,7 @@ const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, VIEW: 8, MENU: 9, UP: 12, DO
 export function createInput(target = window) {
   const keys = new Set();
   let keyEdges = [];
-  const touch = { up: false, down: false, left: false, right: false, leap: false, pause: false };
-  let touchEdges = [];
+  let touchSrc = null; // src/touch.js controller, attached on touch devices
   let owner = null; // gamepad index that owns gameplay
   const prev = new Map(); // pad index -> boolean[]
   const held = new Map(); // pad index -> Set of buttons held when first seen
@@ -34,33 +33,26 @@ export function createInput(target = window) {
     listeners.disconnect.forEach((f) => f(e.gamepad, wasOwner));
   });
 
-  function bindTouch(root) {
-    root.querySelectorAll('[data-t]').forEach((el) => {
-      const k = el.dataset.t;
-      const on = (e) => { e.preventDefault(); if (!touch[k]) touchEdges.push(k); touch[k] = true; el.classList.add('on'); source = 'touch'; };
-      const off = (e) => { e.preventDefault(); touch[k] = false; el.classList.remove('on'); };
-      el.addEventListener('pointerdown', on);
-      el.addEventListener('pointerup', off);
-      el.addEventListener('pointercancel', off);
-      el.addEventListener('pointerleave', off);
-    });
-  }
+  // Attach the touch layer (src/touch.js); its input merges in poll().
+  function attachTouch(t) { touchSrc = t; }
 
   function poll(dt) {
     const k = (...codes) => codes.some((c) => keys.has(c));
     const ke = (...codes) => codes.some((c) => keyEdges.includes(c));
-    const te = (name) => touchEdges.includes(name);
+    const tc = touchSrc ? touchSrc.poll(dt) : null;
+    if (tc && (tc.a || tc.b || tc.pause || tc.tap || tc.moveX || tc.moveY)) source = 'touch';
+    const te = (name) => !!tc?.[name];
     const s = {
-      moveX: (k('ArrowRight', 'KeyD') ? 1 : 0) - (k('ArrowLeft', 'KeyA') ? 1 : 0) + (touch.right ? 1 : 0) - (touch.left ? 1 : 0),
+      moveX: (k('ArrowRight', 'KeyD') ? 1 : 0) - (k('ArrowLeft', 'KeyA') ? 1 : 0) + (tc?.moveX || 0),
       // Continuous vertical (positive = down), for swimming and climbing acts.
-      moveY: (k('ArrowDown', 'KeyS') ? 1 : 0) - (k('ArrowUp', 'KeyW') ? 1 : 0) + (touch.down ? 1 : 0) - (touch.up ? 1 : 0),
+      moveY: (k('ArrowDown', 'KeyS') ? 1 : 0) - (k('ArrowUp', 'KeyW') ? 1 : 0) + (tc?.moveY || 0),
       // The action button held (A, Space, Z, J or touch Leap).
-      aHeld: k('Space', 'KeyZ', 'KeyJ') || touch.leap,
+      aHeld: k('Space', 'KeyZ', 'KeyJ') || !!tc?.aHeld,
       up: ke('ArrowUp', 'KeyW') || te('up'),
       down: ke('ArrowDown', 'KeyS') || te('down'),
       left: ke('ArrowLeft', 'KeyA') || te('left'),
       right: ke('ArrowRight', 'KeyD') || te('right'),
-      leap: ke('Space', 'KeyZ', 'KeyJ') || te('leap'),
+      leap: ke('Space', 'KeyZ', 'KeyJ') || te('a'),
       confirm: ke('Enter', 'Space', 'KeyZ', 'KeyJ'),
       back: ke('Escape', 'Backspace'),
       pause: ke('Escape', 'KeyP') || te('pause'),
@@ -116,12 +108,14 @@ export function createInput(target = window) {
     s.moveX = Math.max(-1, Math.min(1, s.moveX));
     s.moveY = Math.max(-1, Math.min(1, s.moveY));
     s.source = source;
-    keyEdges = []; touchEdges = [];
+    s.tap = tc?.tap || null;     // a tap outside play, in stage coordinates
+    s.touchB = !!tc?.b;
+    keyEdges = [];
     return s;
   }
 
   return {
-    poll, bindTouch,
+    poll, attachTouch,
     on(ev, f) { listeners[ev].push(f); },
     owner: () => owner,
     rumble(strong = 0.6, weak = 0.4, ms = 180) {

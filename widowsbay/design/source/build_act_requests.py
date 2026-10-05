@@ -348,6 +348,24 @@ ACTS = [
          'embroidered jacket, jeans, boots), standing facing front with empty hands raised in a bow, no guitar. '
          'Used in the finale pageant when the guitar was not recovered in Act II.'),
     ]),
+    ('Phones and tablets', 'Art for the touch version: the home-screen icon, the turn-sideways card and the on-screen controls. The game draws plain stand-ins until these arrive (see README, Phones and tablets).', [
+        ('app-icon', 'Home-screen icon', 1024, 1024, 'full frame (opaque)', CLOTH.replace('A painted theatre backcloth seen square-on, full bleed to every edge', 'A square app icon, full bleed, no transparency'),
+         'A tiny toy-theatre proscenium with red velvet curtains and a gold valance framing a crescent-moon shell boat on '
+         'three rows of painted waves under a sleepy-faced moon, all on deep plum #2a1424. Bold, simple shapes that still read '
+         'at 60 px; keep the important art inside the central 80% (it may be cropped to a circle or rounded square). No lettering.'),
+        ('rotate-card', 'Turn-sideways card', 800, 800, 'centre', SPRITE,
+         'A small toy theatre (proscenium, red curtains, gold valance) being turned from upright to sideways by a gloved '
+         'stagehand\'s hand, with a curved painted arrow showing the quarter turn; whimsical, like an instruction in a '
+         'Victorian toy-theatre kit.'),
+        ('touch-stick-base', 'Touch stick base', 264, 264, 'centre', SPRITE,
+         'A round brass stage-machinery dial seen straight on: a ring of riveted brass with four small engraved arrow marks '
+         '(up, down, left, right) on a dark plum velvet centre. Empty in the middle, where the knob sits.'),
+        ('touch-stick-knob', 'Touch stick knob', 128, 128, 'centre', SPRITE,
+         'A round polished brass knob with a small star engraved on top, seen straight on, as on a theatre crank handle.'),
+        ('touch-button', 'Touch action button', 208, 208, 'centre', SPRITE,
+         'A round button seen straight on: a deep plum enamel disc with a gold scalloped rim like the proscenium valance, '
+         'plain in the middle (the game letters it). Should look pressable, like a theatre call bell.'),
+    ]),
 ]
 
 MOODS = [

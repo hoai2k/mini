@@ -127,12 +127,78 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .callout path { stroke: var(--gold); stroke-width: 1.5; fill: none; }
 .callout text { fill: var(--gold); font-size: 13px; }
 
-/* ---------- Touch ---------- */
-#touch { position: absolute; inset: 0; pointer-events: none; }
-#touch button { pointer-events: auto; background: #2a1424b0; border: 2px solid #c79ab7; color: var(--pink); border-radius: 50%; font-size: 20px; touch-action: none; }
-#touch button.on { background: var(--magenta); }
-.dpad { position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: 20px; width: 168px; height: 168px; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); gap: 4px; }
-.dpad [data-t=up] { grid-area: 1 / 2; } .dpad [data-t=left] { grid-area: 2 / 1; }
-.dpad [data-t=right] { grid-area: 2 / 3; } .dpad [data-t=down] { grid-area: 3 / 2; }
-.leap { position: absolute; right: max(20px, env(safe-area-inset-right)); bottom: 40px; width: 96px; height: 96px; font-family: "Yesteryear", cursive; font-size: 28px !important; }
-.tpause { position: absolute; right: 16px; top: 16px; width: 48px; height: 48px; font-size: 16px !important; }
+/* ---------- Touch (phones and tablets; never shown on desktop) ---------- */
+html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#touch { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+#touch[hidden] { display: none; }
+#touch:not(.playing) > * { display: none; }
+.stick-zone { position: absolute; left: 0; top: 0; bottom: 0; width: 50%; pointer-events: auto; touch-action: none; }
+.stick-base {
+  position: absolute; left: max(110px, calc(env(safe-area-inset-left) + 90px)); top: 70%;
+  width: 132px; height: 132px; margin: -66px 0 0 -66px; border-radius: 50%;
+  background: radial-gradient(circle, #2a1424cc 55%, #2a142488 70%, transparent 71%);
+  border: 2px solid #d9b34a99; box-shadow: inset 0 0 0 6px #2a142466, 0 0 0 1px #00000055;
+  opacity: .55; transition: opacity .15s;
+}
+.stick-base.on { opacity: .95; transition: none; }
+.stick-knob {
+  position: absolute; left: 50%; top: 50%; width: 62px; height: 62px; margin: -31px 0 0 -31px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6dc8a, #d9b34a 45%, #8a6a20 100%);
+  border: 2px solid #f3c6dc; box-shadow: 0 3px 8px #000a;
+}
+.stick-base.has-art { background: center/contain no-repeat var(--art); border: 0; box-shadow: none; }
+.stick-knob.has-art { background: center/contain no-repeat var(--art); border: 0; }
+.stick-hint {
+  position: absolute; left: max(110px, calc(env(safe-area-inset-left) + 90px)); top: calc(70% + 78px); transform: translateX(-50%);
+  margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; white-space: nowrap; transition: opacity .6s;
+}
+#touch.stick-used .stick-hint { opacity: 0; }
+.tbtn { pointer-events: auto; position: absolute; touch-action: none; border-radius: 50%; color: #f3c6dc; font: inherit; padding: 0;
+  background: radial-gradient(circle at 40% 32%, #5a1b45, #2a1424 70%); border: 2px solid #d9b34a; box-shadow: 0 3px 10px #000a, inset 0 0 0 5px #2a142488; }
+.tbtn.on { background: radial-gradient(circle at 40% 32%, #ff3d9a, #e0127a 70%); transform: scale(.94); }
+.tbtn-a { right: max(26px, calc(env(safe-area-inset-right) + 16px)); bottom: max(34px, env(safe-area-inset-bottom)); width: 104px; height: 104px;
+  display: grid; place-content: center; gap: 0; }
+.tbtn-a .letter { font-family: "Yesteryear", cursive; font-size: 40px; line-height: .9; }
+.tbtn-a .verb { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.tbtn-b { right: max(146px, calc(env(safe-area-inset-right) + 136px)); bottom: max(96px, calc(env(safe-area-inset-bottom) + 70px)); width: 66px; height: 66px;
+  font-family: "Yesteryear", cursive; font-size: 30px; }
+.tbtn-b[hidden] { display: none; }
+.tbtn-pause { right: max(16px, calc(env(safe-area-inset-right) + 8px)); top: max(14px, env(safe-area-inset-top)); width: 46px; height: 46px; font-size: 14px; }
+.tbtn.has-art { background: center/contain no-repeat var(--art); border: 0; box-shadow: none; }
+.tbtn.has-art.on { filter: brightness(1.35); }
+
+/* Phones: let the stage fill the height and let the controls sit in the side margins */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
+  .tbtn-a { width: 92px; height: 92px; bottom: max(22px, env(safe-area-inset-bottom)); }
+  .tbtn-b { width: 58px; height: 58px; bottom: max(80px, calc(env(safe-area-inset-bottom) + 58px)); right: max(128px, calc(env(safe-area-inset-right) + 118px)); }
+  .stick-base { top: 66%; }
+  .corner .icon { width: 46px; height: 46px; }
+  .card { padding: 18px 20px 16px; gap: 10px; }
+  .card h2 { font-size: 34px; }
+  .card button, .slider { padding: 8px 12px; font-size: 16px; }
+}
+
+/* Portrait on a phone: a card asking to turn the device */
+#rotate { z-index: 20; background: var(--plum); display: grid; place-items: center; padding: 24px; }
+#rotate[hidden] { display: none; }
+.rotate-card { text-align: center; border: 2px solid #c79ab7; outline: 2px solid #c79ab7; outline-offset: -10px; padding: 34px 26px; max-width: 340px; }
+.rotate-card img { width: 100%; max-width: 260px; display: block; margin: 0 auto 14px; }
+.rotate-card img:not([hidden]) + .rotate-icon { display: none; }
+.rotate-icon { width: 70px; height: 110px; margin: 0 auto 22px; border: 3px solid #f3c6dc; border-radius: 12px; position: relative; animation: tip 2.4s ease-in-out infinite; }
+.rotate-icon span { position: absolute; left: 50%; bottom: 8px; width: 14px; height: 4px; margin-left: -7px; background: #f3c6dc; border-radius: 2px; }
+@keyframes tip { 0%, 30% { transform: rotate(0); } 60%, 90% { transform: rotate(-90deg); } 100% { transform: rotate(0); } }
+.rotate-title { font-family: "Yesteryear", cursive; font-size: 40px; margin: 0; line-height: 1; }
+.rotate-sub { margin: 10px 0 0; font-size: 15px; opacity: .85; }
+@media (prefers-reduced-motion: reduce) { .rotate-icon { animation: none; transform: rotate(-90deg); } }
+
+/* Tablets and other screens squarer than 16:10: pin the stage to the top so
+   the spare band collects below it, and seat the controls in that band. */
+@media (pointer: coarse) and (orientation: landscape) and (max-aspect-ratio: 16/10.5) {
+  html.touch #app { place-items: start center; }
+  html.touch #stage { margin-top: env(safe-area-inset-top); }
+  html.touch .stick-base, html.touch .stick-hint { top: auto; }
+  html.touch .stick-base { top: calc(100% - max(84px, calc((100vh - 100vw * 9 / 16) / 2))); }
+  html.touch .stick-hint { top: calc(100% - 22px); }
+  html.touch .tbtn-a { bottom: max(14px, calc((100vh - 100vw * 9 / 16 - 104px) / 2)); }
+  html.touch .tbtn-b { bottom: max(30px, calc((100vh - 100vw * 9 / 16 - 66px) / 2)); right: max(150px, calc(env(safe-area-inset-right) + 140px)); }
+}

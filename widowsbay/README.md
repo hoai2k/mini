@@ -132,6 +132,38 @@ band, a harmonium), one generated track per mood (voyage, revel, storm, deep,
 tender), chosen by the scene on stage. It also has the generation prompts. The
 song still opens every visit and returns for the pageant and curtain call.
 
+## Phones and tablets
+
+Touch devices get their own controls (`src/touch.js`). They feed the same input
+the keyboard and pad do, so the acts are unchanged, and desktop never shows
+them.
+
+- **Landscape only.** In portrait a "Turn the theatre sideways" card covers the
+  game and pauses play. On Android the game also asks to lock landscape when
+  Press Start is tapped.
+- **The left half is a floating stick.** Put a thumb down anywhere and drag.
+  It is analog for swimming and climbing, and a flick changes rows or grooves.
+- **The A button is on the right,** labelled with what it does in the current
+  scene: Leap, On the beat, Kick, Take, Hold: freeze, Leap / throw. A **B**
+  button appears only when the scene needs one (refusing the sea rose). Pause
+  is at top right.
+- **Taps work everywhere else.** Tap a card to begin, tap a line of the
+  playbill to play that act, and on the retry card tap right to try again or
+  left for the playbill.
+- **Placement.** On phones (wider than 16:10) the controls sit at the edges of
+  the stage. On tablets the stage is pinned to the top and the controls sit in
+  the band below it, clear of play.
+- **Touch extras.** Hits give a short vibration where supported (Settings,
+  Vibration), and the film look starts on Gentle.
+- **Add to Home Screen.** `manifest.webmanifest` and `icons/` make the game
+  install as a full-screen, landscape app, which is how iPhones get full
+  screen. The icons are cut from the logo for now; `app-icon` in the image
+  requests (C8) asks for a proper one.
+
+Art for the controls and the rotate card is requested in C8 (`touch-stick-base`,
+`touch-stick-knob`, `touch-button`, `rotate-card`); until it arrives they are
+drawn in CSS.
+
 ## Checks
 
 ```sh

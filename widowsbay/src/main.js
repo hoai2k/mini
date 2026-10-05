@@ -4,18 +4,23 @@ import { loadSave, carryInto, recordResult } from './save.js';
 import { createRenderer, loadAssets } from './art.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
+import { createTouch, isTouchDevice } from './touch.js';
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#stage');
 const live = $('#live');
 const audio = createAudio();
 const input = createInput();
-input.bindTouch($('#touch'));
+// Phones and tablets get the touch layer; desktop never sees it.
+const TOUCH = isTouchDevice();
+const touch = TOUCH ? createTouch($('#touch')) : null;
+if (TOUCH) { document.documentElement.classList.add('touch'); input.attachTouch(touch); }
 
 // ---------------------------------------------------------------- settings
 const SETTINGS_KEY = 'widowsbay.settings.v1';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const settings = { music: 7, sfx: 8, film: reduced ? 'gentle' : 'full', vibration: true };
+// Touch devices start on the gentler film look (lighter on a phone's GPU and battery).
+const settings = { music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* storage unavailable */ }
 const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* ignore */ } };
 const FILM = { full: 'Full', gentle: 'Gentle', off: 'Off' };
@@ -54,8 +59,16 @@ const S = {
 };
 const dialogs = []; // stack of open dialog elements
 
+// Delivered art for the touch controls and the rotate card (image requests D).
+function touchArt(a) {
+  const set = (sel, id) => { const im = a.images[id]; const el = document.querySelector(sel); if (im && el) { el.style.setProperty('--art', `url("${im.src}")`); el.classList.add('has-art'); } };
+  set('.stick-base', 'touch-stick-base'); set('.stick-knob', 'touch-stick-knob');
+  for (const el of document.querySelectorAll('.tbtn-a, .tbtn-b')) if (a.images['touch-button']) { el.style.setProperty('--art', `url("${a.images['touch-button'].src}")`); el.classList.add('has-art'); }
+  if (a.images['rotate-card']) { const im = $('#rotate-img'); im.src = a.images['rotate-card'].src; im.hidden = false; }
+}
+
 // Act I and the title load first; the other acts' art follows in the background.
-const FIRST_ART = ['logo', 'proscenium', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
+const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'proscenium', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
   'ship', 'witch-moonboat', 'rock', 'pearl', 'tea-leaf', 'keepsake-tea', 'lighthouse', 'lighthouse-lit', 'band-trio',
   'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
   'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];
@@ -70,6 +83,7 @@ loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => { if (id === 'log
   assetsLoaded = true;
   renderer = createRenderer(canvas, assets);
   if (assets.images.logo) showLogo(assets.images.logo);
+  if (TOUCH) touchArt(assets);
 });
 
 // ---------------------------------------------------------------- flow
@@ -82,6 +96,7 @@ const QA = params.has('qa');
 function startGame() {
   if (S.mode !== 'title' || dialogs.length) return;
   requestFullscreen();
+  if (TOUCH) screen.orientation?.lock?.('landscape').catch(() => { /* not allowed here; the rotate card covers it */ });
   audio.unlock(); audio.startMusic(); audio.play('ui');
   $('#title').classList.add('opening');
   setTimeout(() => { $('#title').hidden = true; $('#title').classList.remove('opening'); }, 600);
@@ -104,7 +119,8 @@ function beginAct(i) {
   S.state = S.act.create({ seed: (Math.random() * 2 ** 31) | 0, carry: carryFor(i) });
   S.mode = 'intro'; S.modeT = 0;
   S.curtain = 0; S.curtainTarget = 0;
-  S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120, sub: S.act.sub, prompt: 'Press A or Space', alpha: 0 };
+  S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120, sub: S.act.sub,
+    prompt: TOUCH ? `Tap to begin · ${touchVerbHint(S.act)}` : 'Press A or Space', alpha: 0 };
   S.readyT = 0;
   announce(`${S.act.kicker}, ${S.act.title}.`);
 }
@@ -283,8 +299,7 @@ function updateLoadbar() {
 function update(dt, i) {
   if (S.mode === 'title') updateLoadbar();
   S.curtain += (S.curtainTarget - S.curtain) * Math.min(1, dt * 2.2);
-  const coarse = matchMedia('(pointer: coarse)').matches;
-  $('#touch').hidden = !(coarse && S.mode === 'play' && !S.paused);
+  if (TOUCH) updateTouch();
 
   // Menus have the input while any dialog is open.
   if (dialogs.length) { menuInput(i); return; }
@@ -302,12 +317,19 @@ function update(dt, i) {
   }
 
   S.modeT += dt;
-  const go = i.padA || i.confirm || (i.leap && i.source === 'touch');
+  const go = i.padA || i.confirm || !!i.tap;
 
   if (S.mode === 'playbill') {
     const n = Math.min(save.unlocked, ACTS.length);
     if (i.up) { S.pb = (S.pb + n - 1) % n; audio.play('ui'); }
     if (i.down) { S.pb = (S.pb + 1) % n; audio.play('ui'); }
+    if (i.tap) {
+      // Tap a line of the playbill to begin that act; tap outside it for the title.
+      const row = Math.round((i.tap.y - 244) / 72);
+      if (i.tap.x > 360 && i.tap.x < 920 && row >= 0 && row < n) { S.pb = row; if (S.modeT > 0.3) beginAct(row); }
+      else if (i.tap.y > 650 || i.tap.x < 330 || i.tap.x > 950) toTitle();
+      return;
+    }
     if (go && S.modeT > 0.3) beginAct(S.pb);
     else if (i.padB || i.back) toTitle();
     return;
@@ -333,7 +355,7 @@ function update(dt, i) {
     // Hold the player still until the curtains are mostly open.
     const ready = S.curtain > 0.9;
     const actInput = ready
-      ? { moveX: i.moveX, moveY: i.moveY, up: i.up, down: i.down, left: i.left, right: i.right, a: i.leap, aHeld: i.aHeld, b: i.padB || i.bPress, beat: audio.beat() }
+      ? { moveX: i.moveX, moveY: i.moveY, up: i.up, down: i.down, left: i.left, right: i.right, a: i.leap, aHeld: i.aHeld, b: i.padB || i.bPress || i.touchB, beat: audio.beat() }
       : { moveX: 0, moveY: 0, beat: audio.beat() };
     S.act.step(S.state, dt, actInput);
     for (const e of S.state.events) handleEvent(e);
@@ -341,7 +363,7 @@ function update(dt, i) {
     if (S.state.status === 'lost' && S.state.statusT > 0.2) {
       S.mode = 'over'; S.modeT = 0;
       S.card = { bg: 'magenta', kicker: S.act.kicker, title: S.state.lostTitle || 'The Sea Keeps\nHer Own', size: 110,
-        sub: S.state.lostSub || '', prompt: 'Press A to try again · B for the playbill', alpha: 0 };
+        sub: S.state.lostSub || '', prompt: TOUCH ? 'Tap right to try again · tap left for the playbill' : 'Press A to try again · B for the playbill', alpha: 0 };
       announce('The act is lost. Press A to try again.');
     }
     if (S.state.status === 'won' && S.state.statusT > 0.15) actWon();
@@ -351,7 +373,8 @@ function update(dt, i) {
   if (S.mode === 'over') {
     S.card.alpha = Math.min(1, S.card.alpha + dt * 2);
     if (S.card.alpha > 0.6) {
-      if (go) beginAct(S.actIndex);
+      if (i.tap) { if (i.tap.x < 640) showPlaybill(); else beginAct(S.actIndex); }
+      else if (go) beginAct(S.actIndex);
       else if (i.padB || i.back) showPlaybill();
     }
     return;
@@ -375,11 +398,39 @@ function handleEvent(e) {
   audio.play(e.type);
   renderer.onEvent(e, currentView());
   const rumble = settings.vibration && input.owner() !== null;
-  if (e.type === 'hit') { if (rumble) input.rumble(0.8, 0.5, 220); }
+  if (e.type === 'hit') { if (rumble) input.rumble(0.8, 0.5, 220); if (TOUCH && settings.vibration) navigator.vibrate?.(70); }
   if (e.type === 'wreck' && rumble) input.rumble(1, 1, 600);
   if ((e.type === 'strike' || e.type === 'shipBreak') && rumble) input.rumble(0.4, 0.7, 160);
   const msg = S.act?.announce?.(e);
   if (msg) announce(msg);
+}
+
+// ---------------------------------------------------------------- touch
+// What the A button says, scene by scene, and when B is needed.
+function touchVerb() {
+  const st = S.state, id = S.act?.id;
+  if (!st) return '';
+  if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' ? 'On the beat' : '';
+  if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? '' : 'Kick';
+  if (id === 3) return 'Hold: freeze';
+  if (id === 4) return 'Leap';
+  if (id === 5) return st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / throw' : 'Leap';
+  return '';
+}
+function touchVerbHint(act) {
+  return { 1: 'drag to steer, A to leap', 2: 'drag to swim, A to kick', 3: 'drag to walk, hold A to freeze', 4: 'drag to walk, A to leap', 5: 'drag to climb, A to leap' }[act.id] || 'drag to move';
+}
+let lastPortrait = null;
+function updateTouch() {
+  const portrait = innerHeight > innerWidth;
+  if (portrait !== lastPortrait) {
+    lastPortrait = portrait;
+    $('#rotate').hidden = !portrait;
+    if (portrait && S.mode === 'play') pause('Turn the device sideways to carry on.');
+  }
+  const playing = S.mode === 'play' && !S.paused && !portrait;
+  touch.show({ playing, verb: playing ? touchVerb() : '', needB: playing && S.act?.id === 2 && S.state?.phase === 'offer' });
+  if (playing && (S.state?.t ?? S.modeT) > 0) $('#touch').classList.toggle('stick-used', S.modeT > 8);
 }
 
 // ---------------------------------------------------------------- shell scenes
@@ -411,6 +462,7 @@ function drawCurtainCall(k, t) {
   for (let r = 0; r < 3; r++) k.waves(r, t * 40);
 }
 
+if (TOUCH) $('#title-hint').textContent = 'Tip: Add to Home Screen to play full screen';
 // Start focused on Press Start so keyboard users can begin immediately.
 $('#start').focus({ preventScroll: true });
 requestAnimationFrame(frame);
