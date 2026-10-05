@@ -487,6 +487,19 @@ req(U_, "BD-U05", "ui-icons", "Utility icons",
     "Three cut-paper icons in rice-paper cream on a transparent background: an open scroll "
     "(instructions), a bronze drum seen from above with a small gear cut in it (settings), four "
     "corner brackets (fullscreen). Bold and simple, readable at 26 pixels.")
+req(U_, "BD-U16", "touch-buttons", "Touch buttons",
+    "On phones and tablets the game draws on-screen buttons beside the big touch drum: a "
+    "shield button at the bottom right (drawn about 150 px across), a smaller reset button "
+    "next to it and a pause button at the top. The game adds its own glow and press "
+    "animation, so each icon should be a plain, flat button face.",
+    "768x256, transparent; three round buttons on a 256 px grid, each filling about 90% of "
+    "its cell",
+    "stand-in", "Renderer.touchButtons", "art/touch-buttons.png",
+    "Three round cut-paper buttons in a row on a transparent background, each a disc of dark "
+    "indigo paper with a thin beaded bronze rim and a bold cream cut-out icon in the middle: "
+    "1 a round Lạc Việt war shield with a sun-star boss (shield); 2 a curved arrow turning "
+    "back on itself, like a ribbon of paper (reset the rhythm); 3 two upright bars (pause). "
+    "Flat even light, soft shadow under each disc, bold enough to read at 48 pixels.")
 for i, (cid, name, scene) in enumerate([
     ("garden", "The Garden at Me Linh", "two sisters practising with drumsticks beside a lotus pond and straw targets in a lord's garden, dawn"),
     ("outpost", "The Outpost on the Hat River", "women warriors with shields advancing on a Han timber outpost across a river ford, daylight"),

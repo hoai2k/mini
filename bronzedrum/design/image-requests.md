@@ -54,10 +54,10 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Backgrounds | 9 | 0 | 0 | 0 | 9 |
 | Characters and units | 10 | 0 | 0 | 0 | 10 |
 | Puppet part sheets | 4 | 0 | 0 | 0 | 4 |
-| Interface | 8 | 0 | 0 | 0 | 8 |
+| Interface | 9 | 1 | 0 | 0 | 8 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
 | Story chapters | 22 | 1 | 0 | 0 | 21 |
-| **total** | **73** | **1** | **0** | **0** | **72** |
+| **total** | **74** | **2** | **0** | **0** | **72** |
 
 ## Style frames: choose the direction first (3)
 
@@ -439,7 +439,7 @@ Separate pieces of the spearwoman for puppet rigging.
 - **File:** `bronzedrum/game/assets/art/rig-unit-spear.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sheet of separate cut-paper puppet parts for the spearwoman, matching the in-game figure: head with crown, torso, arms, spear, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.
 
-## Interface (8)
+## Interface (9)
 
 The title logo, the drum-face HUD, chapter cards and interface pieces.
 
@@ -487,6 +487,15 @@ Instructions, Settings and Fullscreen buttons.
 - **Status:** delivered · **Game id:** `ui-icons`
 - **File:** `bronzedrum/game/assets/art/ui-icons.png`
 - **Prompt:** Three cut-paper icons in rice-paper cream on a transparent background: an open scroll (instructions), a bronze drum seen from above with a small gear cut in it (settings), four corner brackets (fullscreen). Bold and simple, readable at 26 pixels.
+
+### BD-U16 · Touch buttons
+
+On phones and tablets the game draws on-screen buttons beside the big touch drum: a shield button at the bottom right (drawn about 150 px across), a smaller reset button next to it and a pause button at the top. The game adds its own glow and press animation, so each icon should be a plain, flat button face.
+
+- **Spec:** 768x256, transparent; three round buttons on a 256 px grid, each filling about 90% of its cell
+- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.touchButtons` · **Game id:** `touch-buttons`
+- **File:** `bronzedrum/game/assets/art/touch-buttons.png`
+- **Prompt:** Three round cut-paper buttons in a row on a transparent background, each a disc of dark indigo paper with a thin beaded bronze rim and a bold cream cut-out icon in the middle: 1 a round Lạc Việt war shield with a sun-star boss (shield); 2 a curved arrow turning back on itself, like a ribbon of paper (reset the rhythm); 3 two upright bars (pause). Flat even light, soft shadow under each disc, bold enough to read at 48 pixels.
 
 ### BD-U06 · Chapter card: The Garden at Me Linh
 
