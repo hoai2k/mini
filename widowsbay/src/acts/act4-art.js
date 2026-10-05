@@ -60,8 +60,8 @@ function belly(k, st, t) {
   if (!st.stone) stone(k, t);
   for (const h of HOOKS) if (h.ax > L - 300 && h.ax < R + 300) hook(k, st, h);
   for (const f of st.floaters) if (f.x > L - 150 && f.x < R + 150) floater(k, f);
-  floor(k, st, t, L, R);
   water(k, st, t, L, R);
+  floor(k, st, t, L, R);
   pearls(k, st, t, L, R);
   floorOmens(k, st, t, L, R);
   sailor(k, st, t);
@@ -184,12 +184,12 @@ function ledge(k, p) {
     if (!k.asset('rib-arch', cx, y + 300, 140, 300)) {
       const side = (Math.round(cx / 10) % 2) ? 1 : -1; // brackets lean either way
       c.fillStyle = k.col(BONE_DARK);
-      c.beginPath(); c.moveTo(x0 + 8, y + 8); c.lineTo(x1 - 8, y + 8);
-      c.quadraticCurveTo(cx + side * 10, y + 40, cx + side * 46, y + 120);
-      c.lineTo(cx + side * 30, y + 124);
-      c.quadraticCurveTo(cx - side * 8, y + 50, x0 + 8, y + 8); c.fill();
-      c.strokeStyle = k.col(BONE); c.lineWidth = 3;
-      c.beginPath(); c.moveTo(cx - side * 20, y + 14); c.quadraticCurveTo(cx, y + 50, cx + side * 36, y + 118); c.stroke();
+      c.beginPath(); c.moveTo(cx - 22, y + 10); c.lineTo(cx + 22, y + 10);
+      c.quadraticCurveTo(cx + side * 12 + 6, y + 50, cx + side * 40, y + 110);
+      c.lineTo(cx + side * 30, y + 114);
+      c.quadraticCurveTo(cx - side * 6 - 6, y + 50, cx - 22, y + 10); c.fill();
+      c.strokeStyle = k.col(BONE); c.lineWidth = 2;
+      c.beginPath(); c.moveTo(cx - side * 8, y + 14); c.quadraticCurveTo(cx + side * 6, y + 50, cx + side * 33, y + 108); c.stroke();
     }
     c.fillStyle = k.col('#5e4a3a'); c.beginPath(); c.roundRect(x0 + 4, y + 8, x1 - x0 - 8, 8, 4); c.fill();
     c.fillStyle = k.col(IVORY); c.beginPath(); c.roundRect(x0, y - 2, x1 - x0, 16, 7); c.fill();
@@ -300,6 +300,13 @@ function floor(k, st, t, L, R) {
   c.lineTo(R, 1300); c.fill();
   c.strokeStyle = k.col(FLESH_LIT); c.lineWidth = 4;
   c.beginPath(); for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x) + 4); c.stroke();
+  // Under water the floor (a ground row in front of the water strip) is dimmed by it.
+  const under = clamp((610 - st.water) / 30, 0, 1);
+  if (under > 0) {
+    c.save(); c.globalAlpha = 0.6 * under; c.fillStyle = k.col('#3d4a48');
+    c.beginPath(); c.moveTo(L, 1300); for (let x = L; x <= R; x += 30) c.lineTo(x, floorY(x)); c.lineTo(R, 1300); c.fill();
+    c.restore();
+  }
   if (bare) {
     // The bare lining smarts: it reddens and fizzes.
     const k2 = clamp((st.water - 580) / 40, 0, 1);
@@ -395,7 +402,7 @@ function drawSailor(k, frame) {
 // ---------------------------------------------------------------- the set's machinery
 function foreRibs(k, st) {
   // Foreground rib flats, nearer than the set (parallax 1.35), framing the view.
-  const c = k.c, gap = 1500, ox = -((st.cam.x * 1.35) % gap), oy = -st.cam.y * 0.4;
+  const c = k.c, gap = 2200, ox = -((st.cam.x * 1.35) % gap), oy = -st.cam.y * 0.4;
   c.save(); c.lineCap = 'round';
   for (let x = ox - gap; x < 1280 + gap; x += gap) {
     for (const [col, lw] of [['#2c1324', 30], ['#7a5262', 4]]) {
@@ -541,6 +548,11 @@ function tailStandin(k, x, bottom) {
 }
 
 const SEA_Y = 430;
+const BOULDERS = [
+  [60, 600, 90, 50, '#857679'], [210, 590, 80, 44, '#958687'], [350, 610, 100, 46, '#7e7075'],
+  [520, 596, 90, 52, '#918283'], [680, 612, 110, 40, '#857679'], [850, 600, 80, 46, '#9a8b8a'],
+  [1000, 616, 110, 40, '#8a7b7d'], [1160, 604, 100, 50, '#938485'], [1280, 620, 80, 40, '#857679'],
+];
 function sea(k, t) {
   const c = k.c, y = SEA_Y;
   c.fillStyle = k.col('#6f9896');
@@ -554,13 +566,24 @@ function sea(k, t) {
 function rocks(k) {
   if (k.asset('shore-rocks', 640, 720, 1280, 300)) return;
   const c = k.c;
-  const ridge = [[0, 540], [90, 505], [180, 522], [300, 498], [420, 530], [520, 512], [640, 536], [760, 520], [880, 546], [980, 560], [1080, 572], [1180, 556], [1280, 566]];
-  c.fillStyle = k.col('#b5a6a3');
-  c.beginPath(); c.moveTo(0, 720); for (const [x, y] of ridge) c.lineTo(x, y); c.lineTo(1280, 720); c.fill();
-  c.fillStyle = k.col('#857677');
-  for (let i = 0; i < ridge.length - 1; i += 2) { const [x0, y0] = ridge[i], [x1] = ridge[i + 1]; c.beginPath(); c.moveTo(x0 + 10, 720); c.lineTo(x0 + 30, y0 + 40); c.lineTo(x1, y0 + 60); c.lineTo(x1 + 20, 720); c.fill(); }
-  c.strokeStyle = k.col('#ffffff'); c.lineWidth = 4;
-  c.beginPath(); for (const [x, y] of ridge) c.lineTo(x, y - 4); c.stroke();
+  // A ground row of boulders: a darker back rank, a paler front rank, surf between.
+  c.fillStyle = k.col('#6f6266');
+  c.beginPath(); c.moveTo(0, 720); c.lineTo(0, 540);
+  for (let x = 0; x <= 1280; x += 80) c.lineTo(x, 520 + ((x * 37) % 50));
+  c.lineTo(1280, 720); c.fill();
+  c.strokeStyle = k.col('#ffffff'); c.lineWidth = 3;
+  c.beginPath(); for (let x = 0; x <= 1280; x += 80) c.lineTo(x, 516 + ((x * 37) % 50)); c.stroke();
+  for (const [x, y, rx, ry, col] of BOULDERS) {
+    // an angular cut-out rock with a lit facet on top
+    const j = (n) => ((x * 7 + n * 13) % 17) / 17 - 0.5;
+    c.fillStyle = k.col(col);
+    c.beginPath(); c.moveTo(x - rx, 730); c.lineTo(x - rx, y + ry * 0.1); c.lineTo(x - rx * 0.55, y - ry * (0.8 + j(1) * 0.3));
+    c.lineTo(x + rx * (0.1 + j(2) * 0.3), y - ry); c.lineTo(x + rx * 0.7, y - ry * (0.6 + j(3) * 0.3)); c.lineTo(x + rx, y + ry * 0.2); c.lineTo(x + rx, 730); c.fill();
+    c.fillStyle = k.col('#d9cfca');
+    c.beginPath(); c.moveTo(x - rx * 0.55, y - ry * (0.8 + j(1) * 0.3)); c.lineTo(x + rx * (0.1 + j(2) * 0.3), y - ry); c.lineTo(x + rx * 0.2, y - ry * 0.55); c.lineTo(x - rx * 0.4, y - ry * 0.45); c.fill();
+    c.strokeStyle = k.col('#5e5256'); c.lineWidth = 2;
+    c.beginPath(); c.moveTo(x + rx * 0.2, y - ry * 0.55); c.lineTo(x + rx * 0.35, y + ry * 0.6); c.stroke();
+  }
   // gulls
   c.strokeStyle = k.col('#3a3438'); c.lineWidth = 2;
   for (const [gx, gy] of [[700, 210], [760, 190], [1010, 240]]) { c.beginPath(); c.moveTo(gx - 12, gy); c.quadraticCurveTo(gx - 6, gy - 7, gx, gy); c.quadraticCurveTo(gx + 6, gy - 7, gx + 12, gy); c.stroke(); }

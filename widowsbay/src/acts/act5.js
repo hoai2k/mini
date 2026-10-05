@@ -305,7 +305,7 @@ function stepCliff(st, dt, input) {
 
   // The giant shifts his weight on every beat.
   const pos = climberPos(st);
-  if (Math.floor(st.beat) !== Math.floor(st.lastBeat) && pos.y > 520) st.events.push({ type: 'giantStep', foot: ((Math.floor(st.beat) % 2) + 2) % 2 });
+  if (Math.floor(st.beat) !== Math.floor(st.lastBeat) && pos.y > CLIFF.top - 450) st.events.push({ type: 'giantStep', foot: ((Math.floor(st.beat) % 2) + 2) % 2 });
 
   // The camera follows, like a cliff flat winched down through the floor.
   const want = clamp(pos.y - 250, 0, CLIFF.camMax);

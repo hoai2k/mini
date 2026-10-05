@@ -10,7 +10,7 @@ const LEGS = [380, 494]; // the giant's boots on their shelf under the lip
 const SAILOR = { coat: '#2b3550', legs: '#8a8a8a', hat: 'cap', hatCol: '#1f2740', scarf: '#c8321e', beard: '#d8d4cc', hair: '#9a948a' };
 const BELOVED = { coat: '#f1e3c8', skirt: '#f1e3c8', shawl: '#f3c6dc', hair: '#7a3420', hat: 'bun' };
 const WITCH = { coat: '#f3c6dc', skirt: '#f3c6dc', hair: '#1a1214', hat: 'crown', hatCol: '#d9b34a', long: true };
-const KING = { coat: '#f4f1ea', skirt: '#f4f1ea', trim: '#4a6fa0', hat: 'crown', hatCol: '#d9b34a', beard: '#f4f1ea', hair: '#f4f1ea' };
+const KING = { coat: '#4a6fa0', skirt: '#f4f1ea', trim: '#4a6fa0', hat: 'crown', hatCol: '#d9b34a', beard: '#f4f1ea', hair: '#f4f1ea' };
 const REVELLER_COLS = ['#e3c13b', '#6f9a4a', '#8a3f7a', '#e7a6bd', '#5f8c88', '#e9a46a'];
 
 // ---------------------------------------------------------------- entry points
@@ -105,7 +105,7 @@ function person(k, x, by, h, o, pose = {}) {
   else if (arms === 'throw') { arm(-9, -16, -56); arm(9, 32, -96); }
   else { arm(-9, -14, -46); arm(9, 14, -46); }
   // head
-  if (o.long) { c.fillStyle = k.col(o.hair); c.beginPath(); c.ellipse(-1 * u, -84 * u, 12 * u, 20 * u, 0, 0, Math.PI * 2); c.fill(); }
+  if (o.long) { c.fillStyle = k.col(o.hair); c.fillRect(-12 * u, -96 * u, 6 * u, 32 * u); c.fillRect(6 * u, -96 * u, 6 * u, 32 * u); }
   c.fillStyle = k.col('#efd7c4'); k.circle(0, -90 * u, 9 * u);
   if (o.beard) { c.fillStyle = k.col(o.beard); c.beginPath(); c.moveTo(-8 * u, -90 * u); c.quadraticCurveTo(0, -70 * u, 9 * u, -90 * u); c.closePath(); c.fill(); }
   if (o.long) { c.fillStyle = k.col(o.hair); c.beginPath(); c.arc(0, -91 * u, 9.5 * u, Math.PI * 1.05, Math.PI * 1.95); c.fill(); }
@@ -258,6 +258,12 @@ function bay(k, st, t, fire, horizon = 470) {
 // ---------------------------------------------------------------- part 1: the cliff
 const lx = (wy) => 268 + 16 * Math.sin(wy * 0.013) + 10 * Math.sin(wy * 0.041);
 const rx = (wy) => 1004 + 14 * Math.sin(wy * 0.017 + 1) + 9 * Math.sin(wy * 0.05);
+// Rock pillars across the cliff flat: x, width, block height, phase, shade.
+const PILLARS = (() => {
+  const out = []; let x = 276, i = 0;
+  while (x < 990) { const w = 48 + ((i * 37) % 46); out.push({ x, w: Math.min(w, 1000 - x), h: 110 + ((i * 59) % 80), off: (i * 71) % 150, shade: 12 + (i * 5) % 12 }); x += w; i++; }
+  return out;
+})();
 const IVY = Array.from({ length: 40 }, (_, i) => ({ x: (i * 263) % 680 + 300, y: (i * 211) % 1900, r: 16 + (i * 7) % 16 }));
 
 function cliffScene(k, st, t) {
@@ -285,13 +291,16 @@ function cliffScene(k, st, t) {
     c.lineTo(rx(y0), -y0);
     c.closePath(); c.fill();
     // pillars of rock, blocks staggered column by column, shaded on one side
-    for (let i = 0; i < 11; i++) {
-      const px = 290 + i * 66, off = (i * 53) % 140;
-      for (let by = Math.floor((y0 - off) / 140) * 140 + off; by < y1; by += 140) {
-        const b0 = Math.max(y0, by), b1 = Math.min(y1, by + 140);
+    for (const col of PILLARS) {
+      for (let by = Math.floor((y0 - col.off) / col.h) * col.h + col.off; by < y1; by += col.h) {
+        const b0 = Math.max(y0, by), b1 = Math.min(y1, by + col.h);
         if (b1 <= b0) continue;
-        c.fillStyle = k.col('#b9ae98'); c.fillRect(px + 44, -b1, 20, b1 - b0);
-        c.fillStyle = k.col('#8d8170'); c.fillRect(px + 2, -by - 3, 62, 3);
+        const j = Math.round(by / col.h) & 3, sw = col.shade + j * 3;
+        // the shaded side of each block, a little ragged, and its bedding line
+        c.fillStyle = k.col(j === 2 ? '#a99d88' : '#bdb29c');
+        c.beginPath(); c.moveTo(col.x + col.w - sw, -b0); c.lineTo(col.x + col.w, -b0); c.lineTo(col.x + col.w, -b1); c.lineTo(col.x + col.w - sw - 6, -b1 + 10); c.closePath(); c.fill();
+        if (j === 1) { c.fillStyle = k.col('#d6ccb8'); c.fillRect(col.x + 4, -b1 + 8, col.w * 0.4, (b1 - b0) * 0.5); }
+        c.fillStyle = k.col('#8d8170'); c.fillRect(col.x, -by - 3, col.w, 3);
       }
     }
     c.fillStyle = k.col('#5f7d4a');
@@ -347,7 +356,7 @@ function holds(k, st, t) {
     if (h.kind === 'crumble' && occupied && st.cl.crumbleT < 0.5) x += Math.sin(t * 60) * 2.5;
     if (h.kind === 'gap') {
       // a dark cleft in the rock; the tiny guitarist plays on a knob above the hold
-      c.fillStyle = k.col('#2a2420');
+      c.fillStyle = k.col('#3a302a');
       c.beginPath(); c.moveTo(x - 34, y + 18); c.lineTo(x - 26, y - 236); c.lineTo(x + 30, y - 228); c.lineTo(x + 38, y + 18); c.closePath(); c.fill();
       c.fillStyle = k.col('#8d8170'); c.fillRect(x - 22, y - 124, 44, 8);
       tinyGuitarist(k, x, y - 124, t, st.beat || 0);
@@ -540,7 +549,7 @@ function houseInterior(k, st, t) {
     }
   });
   // in-room flames on sticks (not in the way)
-  for (const [x, f, s] of [[860, 0, 0.7], [400, 0, 0.5], [600, 1, 0.55], [880, 2, 0.45], [410, 2, 0.5]]) flameFlat(k, x, H.floors[f] + 2, s, t + x);
+  for (const [x, y, s] of [[615, H.floors[1] + 22, 0.55], [830, 566, 0.32], [892, H.floors[2], 0.36], [404, H.floors[2], 0.42], [404, H.floors[1], 0.36]]) flameFlat(k, x, y, s, t + x);
   if (!st.p.carry) beloved(k, H.beloved, H.floors[2], S, -1, Math.sin(t * 5) > 0.3 ? 'reach' : 'down');
 }
 
@@ -745,8 +754,10 @@ function quayGround(k, t, lamp = false) {
 // The house on its cliff upstage: small, whole or falling.
 function distantHouse(k, st, t, fall = 0, window = 'dark') {
   const c = k.c;
-  c.fillStyle = k.col('#b8ad9a');
+  c.fillStyle = k.col('#cfc5b0');
   c.beginPath(); c.moveTo(150, 640); c.lineTo(150, 330); c.lineTo(520, 330); c.quadraticCurveTo(560, 450, 600, 640); c.closePath(); c.fill();
+  c.fillStyle = k.col('#a99d88');
+  for (let i = 0; i < 9; i++) { const x = 168 + i * 44; c.fillRect(x + 26, 340 + (i % 3) * 20, 10, 300 - (i % 3) * 20); c.fillRect(x, 400 + ((i * 37) % 120), 40, 3); }
   c.fillStyle = k.col('#6f9a4a'); c.fillRect(150, 322, 372, 10);
   c.save();
   c.translate(330, 330); c.rotate(fall * 0.5); c.translate(0, fall * fall * 260); c.scale(0.36, 0.36); c.translate(-640, -642);
@@ -785,7 +796,7 @@ function quayScene(k, st, t) {
 const CAPTIONS = {
   witch: ["The Sea Witch's", 'She claims him for the sea. The beloved is safe on the quay.'],
   lamp: ['A Lamp in the Window', 'She waited. Her pearl is home on its chain.'],
-  dark: ['The Window is Dark', 'Someone else stands in the doorway. The past is a stone thrown in the bay.'],
+  dark: ['The Window is Dark', 'Another waits in her doorway. The stone goes into the bay.'],
 };
 
 function endingScene(k, st, t) {
@@ -879,7 +890,7 @@ function caption(k, [title, sub], a) {
 // ---------------------------------------------------------------- the pageant
 function joinerSlot(i) {
   const side = i % 2 ? 1 : -1, j = Math.floor(i / 2);
-  return { x: 640 + side * (190 + j * 54), side };
+  return { x: 640 + side * (176 + j * 50), side };
 }
 
 function pageantScene(k, st, t) {
@@ -904,12 +915,12 @@ function pageantScene(k, st, t) {
   }
   // the Sea King and the witch take their places on the daises
   const court = easeOut((pt - PAGEANT.court) / 1.2);
-  dais(k, 250); dais(k, 1030);
+  dais(k, 222); dais(k, 1058);
   if (court > 0) {
     c.save(); c.beginPath(); c.rect(0, 0, 1280, 566); c.clip();
     const cy = 566 + (1 - court) * 240;
-    if (!k.asset('sea-king-throne', 250, cy, 150, 190)) seaKing(k, 250, cy, t);
-    witchFigure(k, 1030, cy, 0.8, -1);
+    if (!k.asset('sea-king-throne', 222, cy, 180, 228)) seaKing(k, 222, cy, t);
+    witchFigure(k, 1058, cy, 1.05, -1);
     c.restore();
   }
   // every reveller woken in the grotto steps into the line
@@ -1009,11 +1020,11 @@ function dancer(k, x, by, h, kick) {
 }
 
 function seaKing(k, x, by, t) {
-  person(k, x, by, 190, KING, { face: 1, arms: 'out' });
+  person(k, x, by, 230, KING, { face: 1, arms: 'out' });
   const c = k.c;
-  c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 4;
-  c.beginPath(); c.moveTo(x + 58, by); c.lineTo(x + 58, by - 220); c.stroke();
-  c.beginPath(); c.moveTo(x + 44, by - 222); c.lineTo(x + 44, by - 200); c.lineTo(x + 72, by - 200); c.lineTo(x + 72, by - 222); c.moveTo(x + 58, by - 230); c.lineTo(x + 58, by - 200); c.stroke();
+  c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 5;
+  c.beginPath(); c.moveTo(x + 70, by); c.lineTo(x + 70, by - 266); c.stroke();
+  c.beginPath(); c.moveTo(x + 54, by - 268); c.lineTo(x + 54, by - 242); c.lineTo(x + 86, by - 242); c.lineTo(x + 86, by - 268); c.moveTo(x + 70, by - 278); c.lineTo(x + 70, by - 242); c.stroke();
 }
 
 export const _forTests = { CAPTIONS, joinerSlot };

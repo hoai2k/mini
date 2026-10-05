@@ -320,9 +320,10 @@ function climb(st, dt, input) {
     return;
   }
   if (!s.on && s.y >= fy) {
-    s.y = fy; s.vy = -760; s.vx *= 0.5;
     st.events.push({ type: 'acidSting', x: s.x, y: fy });
     hurt(st, 'floor');
+    if (st.phase === 'climb') respawn(st);
+    else { s.y = fy; s.vy = -500; }
     return;
   }
   for (const h of HOOKS) {
