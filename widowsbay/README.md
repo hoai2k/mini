@@ -160,6 +160,15 @@ them.
 - **Taps work everywhere else.** Tap a card to begin, tap a line of the
   playbill to play that act, and on the retry card tap right to try again or
   left for the playbill.
+- **Fitting the screen** (`src/fit.js`). The stage is sized from the space that
+  is actually visible, not from CSS `100vh`, which iOS Safari measures as if its
+  address and tab bars were hidden. It uses the visual viewport less the notch
+  and home-bar safe areas, re-measured as the bars come and go. The stage is
+  letterboxed, never stretched. On desktop windows narrower than 16:9, up to
+  100 stage px of painted drape is trimmed from each side so the play area
+  grows. The valance (with Act I's wind vane), the HUD floor band and the play
+  area are never cropped. On short screens the title sets the logo beside
+  Press Start.
 - **Placement.** On phones (wider than 16:10) the controls sit at the edges of
   the stage. On tablets the stage is pinned to the top and the controls sit in
   the band below it, clear of play.

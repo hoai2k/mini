@@ -12,6 +12,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--ink); overflow: hidden; }
+body { position: fixed; inset: 0; }
 body {
   color: var(--pink);
   font-family: "Josefin Sans", system-ui, sans-serif;
@@ -21,8 +22,9 @@ body {
 
 #app { position: fixed; inset: 0; display: grid; place-items: center; }
 #stage {
-  width: min(100vw, calc(100vh * 16 / 9));
-  height: min(100vh, calc(100vw * 9 / 16));
+  /* Fallback until src/fit.js measures the visible box and positions it. */
+  width: min(100vw, calc(100dvh * 16 / 9));
+  height: min(100dvh, calc(100vw * 9 / 16));
   display: block;
   background: #000;
   image-rendering: auto;
@@ -33,13 +35,13 @@ body {
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 /* ---------- Title ---------- */
-#title { grid-template-rows: 1fr auto auto 1fr; justify-items: center; align-content: center; gap: clamp(10px, 2.4vh, 22px); padding: 16px; }
+#title { grid-template-rows: 1fr auto auto 1fr; justify-items: center; align-content: center; gap: clamp(6px, calc(var(--app-h, 100dvh) * 0.024), 22px); padding: 16px; }
 #title.opening { animation: fadeout .6s ease forwards; }
 @keyframes fadeout { to { opacity: 0; } }
 .logo-card {
   grid-row: 1; align-self: end;
   /* fit the width and leave room below for Press Start and the bar on short screens */
-  width: min(78vw, 560px, calc((100vh - 190px) * 4 / 3));
+  width: min(calc(var(--app-w, 100vw) * 0.78), 560px, calc((var(--app-h, 100dvh) - 190px) * 4 / 3));
   aspect-ratio: 4 / 3;
   background: var(--plum);
   border: 2px solid #c79ab7;
@@ -94,10 +96,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .icon:hover::after, .icon:focus-visible::after, .icon.nav-focus::after { opacity: 1; }
 
 /* ---------- Dialogs ---------- */
-.dialog { background: #0a0409b0; padding: 16px; }
+.dialog { background: #0a0409b0; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
 .card {
   background: var(--plum); border: 2px solid #c79ab7; outline: 2px solid #c79ab7; outline-offset: -10px;
-  padding: 28px 30px 24px; width: min(420px, 100%); max-height: calc(100vh - 32px); display: flex; flex-direction: column; gap: 14px;
+  padding: 28px 30px 24px; width: min(420px, 100%); max-height: calc(var(--app-h, 100dvh) - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px;
 }
 .card.wide { width: min(760px, 100%); }
 .card h2 { font-family: "Yesteryear", cursive; font-weight: 400; font-size: 44px; margin: 0; text-align: center; }
@@ -194,13 +196,12 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
 /* Tablets and other screens squarer than 16:10: pin the stage to the top so
    the spare band collects below it, and seat the controls in that band. */
 @media (pointer: coarse) and (orientation: landscape) and (max-aspect-ratio: 16/10.5) {
-  html.touch #app { place-items: start center; }
-  html.touch #stage { margin-top: env(safe-area-inset-top); }
+  /* src/fit.js pins the stage to the top here and reports the band below it. */
   html.touch .stick-base, html.touch .stick-hint { top: auto; }
-  html.touch .stick-base { top: calc(100% - max(84px, calc((100vh - 100vw * 9 / 16) / 2))); }
+  html.touch .stick-base { top: calc(100% - max(84px, calc(var(--band-below, 0px) / 2))); }
   html.touch .stick-hint { top: calc(100% - 22px); }
-  html.touch .tbtn-a { bottom: max(14px, calc((100vh - 100vw * 9 / 16 - 104px) / 2)); }
-  html.touch .tbtn-b { bottom: max(30px, calc((100vh - 100vw * 9 / 16 - 66px) / 2)); right: max(150px, calc(env(safe-area-inset-right) + 140px)); }
+  html.touch .tbtn-a { bottom: max(14px, calc((var(--band-below, 0px) - 104px) / 2)); }
+  html.touch .tbtn-b { bottom: max(30px, calc((var(--band-below, 0px) - 66px) / 2)); right: max(150px, calc(env(safe-area-inset-right) + 140px)); }
 }
 
 /* Swipe scheme: the whole screen is the control and no stick is drawn. */
@@ -208,3 +209,17 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
 #touch.swipe .stick-base { display: none; }
 #touch.swipe .stick-hint { left: 50%; top: auto; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
   background: #2a1424cc; border: 1px solid #c79ab7; padding: 5px 12px; border-radius: 3px; }
+
+/* The swipe hint sits at the top of the stage, clear of the HUD. */
+#touch.swipe .stick-hint { top: calc(var(--stage-y, 0px) + var(--stage-h, 56vw) * 0.11); bottom: auto; max-width: calc(var(--stage-w, 90vw) - 40px); white-space: normal; text-align: center; }
+
+/* Short screens (phones in landscape, especially with Safari's bars showing):
+   logo on the left, Press Start and the bar on the right. */
+@media (max-height: 460px) and (orientation: landscape) {
+  #title { grid-template-columns: auto auto; grid-template-rows: 1fr auto auto auto 1fr; column-gap: clamp(16px, 4vw, 40px); align-items: center; }
+  .logo-card { grid-column: 1; grid-row: 1 / span 5; align-self: center;
+    width: min(calc(var(--app-w, 100vw) * 0.44), calc((var(--app-h, 100dvh) - 40px) * 4 / 3), 440px); }
+  .press-start { grid-column: 2; grid-row: 2; }
+  .loadbar { grid-column: 2; grid-row: 3; width: min(calc(var(--app-w, 100vw) * 0.32), 280px); }
+  .hint { grid-column: 2; grid-row: 4; max-width: calc(var(--app-w, 100vw) * 0.36); text-align: center; font-size: 12px; }
+}

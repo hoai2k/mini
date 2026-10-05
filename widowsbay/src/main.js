@@ -5,6 +5,7 @@ import { createRenderer, loadAssets } from './art.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
 import { createTouch, isTouchDevice } from './touch.js';
+import { createFit } from './fit.js';
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#stage');
@@ -15,6 +16,8 @@ const input = createInput();
 const TOUCH = isTouchDevice();
 const touch = TOUCH ? createTouch($('#touch')) : null;
 if (TOUCH) { document.documentElement.classList.add('touch'); input.attachTouch(touch); }
+// Size the stage to the space that's really visible (see src/fit.js).
+const fitter = createFit({ app: $('#app'), stage: canvas, touch: TOUCH });
 
 // ---------------------------------------------------------------- settings
 const SETTINGS_KEY = 'widowsbay.settings.v1';
