@@ -32,7 +32,7 @@ const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55, dusk: 0.45, foundry: 0.
 export const TOUCH = {
   drum: { x: 640, y: 668, r: 100, centre: 0.66, band: 1.3, reach: 1.42 },
   shield: { x: 1170, y: 628, r: 70 },
-  reset: { x: 1000, y: 680, r: 36 },
+  reset: { x: 1000, y: 670, r: 36 },
   pause: { x: 640, y: 32, r: 24 },
 };
 
