@@ -50,9 +50,9 @@ export const STAGES = [
     title: 'The Citadel at Luy Lâu',
     subtitle: 'Gold armour, war elephants',
     intro:
-      'The governor’s seat. The sisters ride the war elephant with the great drum on its back. Rally the wounded, and when the drum wakes, charge.',
+      'The governor’s seat. The sisters ride the war elephant with the great drum on its back. Wake the drum, then strike: the elephant charges.',
     bpm: 100,
-    unlocked: ['march', 'strike', 'rally', 'charge'],
+    unlocked: ['march', 'strike'],
     maxTier: 3,
     troops: 120,
     elephant: true,

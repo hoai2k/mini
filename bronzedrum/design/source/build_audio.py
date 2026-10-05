@@ -98,11 +98,11 @@ sfx(G, "cmd-shield",
 sfx(G, "cmd-rally",
     "A group of women ululating and cheering together outdoors, a rallying cry rising and "
     "falling.",
-    2.5, "Hô (rally) answer.", gain=0.8)
+    2.5, "The women cheer when the drum wakes (four commands chained).", gain=0.8)
 sfx(G, "cmd-charge",
     "A war elephant trumpets loudly, then charges: heavy thundering footsteps that shake the "
     "ground.",
-    3.0, "Voi (elephant charge) answer.")
+    3.0, "The elephant charge: a strike on a waking drum in chapter 3.")
 
 G = "Battle"
 sfx(G, "volley",

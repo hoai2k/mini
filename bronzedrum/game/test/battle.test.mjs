@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createBattle, issueOrder, stepArmy, stepEnemies, addFlourish, commandPower, blocker,
+  createBattle, orderFor, issueOrder, stepArmy, stepEnemies, addFlourish, commandPower, blocker,
   guard, shieldsUp, aboutToAttack, GUARD, FLIGHT, tempoFactor, resolveIncoming,
 } from '../src/battle.js';
 import { STAGES } from '../src/stages.js';
@@ -24,7 +24,7 @@ test('stages only unlock known commands, have a goal and a tier cap', () => {
     for (const c of s.unlocked) assert.ok(ids.has(c), `${s.id}: ${c}`);
     assert.ok(s.maxTier >= 1 && s.maxTier <= 3, s.id);
     assert.ok(createBattle(s).enemies.some((e) => e.goal), s.id);
-    if (s.unlocked.includes('charge')) assert.ok(s.elephant, s.id);
+    assert.deepEqual(s.unlocked, ['march', 'strike'], `${s.id}: two families`);
   }
 });
 
@@ -134,20 +134,14 @@ test('idling under fire loses the battle', () => {
   assert.equal(b.outcome, 'lost');
 });
 
-test('rally heals up to the maximum', () => {
-  const b = createBattle(stage('luylau'));
-  b.army.troops = 50;
-  order(b, 'rally');
-  assert.equal(b.army.troops, 60);
-  b.army.troops = b.army.maxTroops - 1;
-  order(b, 'rally');
-  assert.equal(b.army.troops, b.army.maxTroops);
-});
-
-test('the elephant charge hits hard and needs the elephant', () => {
-  const b = createBattle(stage('luylau'));
-  assert.ok(order(b, 'charge').some((e) => e.type === 'trample'));
-  assert.ok(!order(createBattle(stage('outpost')), 'charge').some((e) => e.type === 'trample'));
+test('with the elephant, a strike on a waking drum becomes the charge', () => {
+  const elephant = createBattle(stage('luylau'));
+  const foot = createBattle(stage('outpost'));
+  assert.equal(orderFor(elephant, 'strike', true), 'charge');
+  assert.equal(orderFor(elephant, 'strike', false), 'strike');
+  assert.equal(orderFor(elephant, 'march', true), 'march');
+  assert.equal(orderFor(foot, 'strike', true), 'strike');
+  assert.ok(order(elephant, 'charge').some((e) => e.type === 'trample'));
 });
 
 test('flourishes add power to the current order', () => {
@@ -193,8 +187,7 @@ function playChapter(s, { u = 0.6, tier = 1, accuracy = 1, guarding = null } = {
     const dist = front ? front.x - b.army.x : 99;
     const has = (c) => s.unlocked.includes(c);
     let cmd = dist <= 4.6 ? 'strike' : 'march';
-    if (has('charge') && spirit && dist <= 5) cmd = 'charge';
-    if (has('rally') && b.army.troops < b.army.maxTroops * 0.35 && last !== 'rally') cmd = 'rally';
+    if (cmd === 'strike') cmd = orderFor(b, 'strike', spirit);
     const useTier = Math.min(tier, s.maxTier);
     advance(t + 4 * u); // drumming the phrase
     t += 4 * u;

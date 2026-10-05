@@ -80,7 +80,7 @@ test('deep strokes are never played in quick succession', () => {
 });
 
 test('pairs and triplets are recognised and are stronger tiers', () => {
-  for (const [id, n] of [['march', 2], ['strike', 3], ['rally', 2], ['rally', 3], ['charge', 3]]) {
+  for (const [id, n] of [['march', 2], ['march', 3], ['strike', 2], ['strike', 3]]) {
     const r = new DrumReader();
     const cmd = command(play(r, tier(id, n), 0, 0.7));
     assert.ok(cmd, `${id} ${n}`);
