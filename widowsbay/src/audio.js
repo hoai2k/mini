@@ -7,6 +7,11 @@
 
 const NOTE = (n) => 440 * 2 ** ((n - 69) / 12);
 
+// The recording's beat grid, measured from its onsets: a steady 76.5 BPM
+// (the band played to a click) with the first beat 0.33 s in, stable to
+// within 0.04 s across the whole song. Acts use it for beat-timed machinery.
+export const BEAT = { bpm: 76.5, period: 60 / 76.5, offset: 0.33 };
+
 // Mix for recorded effects: frequent ones sit lower. Tonal effects are tuned
 // to F (design/source/build_sfx.py), so they keep their pitch.
 const MIX = { ui: 0.5, row: 0.55, pearl: 0.7, rockWarn: 0.6, wind: 0.8 };
@@ -142,6 +147,7 @@ export function createAudio() {
     src.connect(g); g.connect(music);
     src.start(ac.currentTime + 0.05);
     track.node = src;
+    track.startedAt = ac.currentTime + 0.05;
     if (sea) sea.g.gain.value = sea.recorded ? 0.12 : 0.05; // let the song carry the scene
   }
   async function startMusic() {
@@ -214,6 +220,22 @@ export function createAudio() {
     // { state, progress 0..1 } for the loading bar; 'none' when no song is set.
     trackStatus: () => (track ? { state: track.state, progress: track.progress } : { state: 'none', progress: 1 }),
     usingTrack: () => !!track?.node,
+    // Seconds into the recording (following its loop), or null when it isn't playing.
+    songTime() {
+      if (!track?.node || !ac) return null;
+      let t = ac.currentTime - track.startedAt;
+      const end = track.loopEnd || track.buffer.duration, start = track.loopStart || 0;
+      if (t > end) t = start + ((t - start) % (end - start));
+      return Math.max(0, t);
+    },
+    // The current beat as a running number (its fraction is the phase within
+    // the beat). Follows the recording; a steady clock at the same tempo if
+    // the song isn't playing.
+    beat() {
+      const st = this.songTime();
+      if (st == null) return performance.now() / 1000 / BEAT.period;
+      return (st - BEAT.offset) / BEAT.period;
+    },
     sfxLoaded: () => Object.keys(sfxBuf).length,
     play(name) {
       if (!ac) return;

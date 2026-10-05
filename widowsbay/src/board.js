@@ -9,7 +9,8 @@ export const ROWS = [
   { y: 512, scale: 0.86 },
   { y: 596, scale: 1.0 },
 ];
-export const KEEPSAKES = ['tea', 'pearl', 'rose'];
+// Three tea leaves float past, once each; together they complete the reading.
+export const LEAVES = 3;
 
 export const TUNING = {
   duration: 100, // seconds of sailing at speed 1 to reach the bay
@@ -22,7 +23,7 @@ export const TUNING = {
   rock: { warn: 0.95, hitW: 44 },
   bolt: { warn: 1.35, strike: 0.32, hitW: 62, from: 0.1 },
   keepsakeAt: [0.22, 0.5, 0.78],
-  arriveTime: 4.5,
+  arriveTime: 3,
 };
 
 export function rng(seed) {
@@ -41,8 +42,8 @@ export function createBoard(seed = Date.now()) {
     wind: { dir: 1, next: TUNING.wind.first, warn: 0 },
     hazards: [], pickups: [],
     spawnIn: 2.2, keepsakesSpawned: 0,
-    keepsakes: { tea: false, pearl: false, rose: false },
-    pearls: 0, score: 0, outcome: null,
+    leaves: 0,
+    pearls: 0, score: 0,
     events: [],
   };
 }
@@ -111,9 +112,9 @@ export function step(b, dt, input) {
 
   // --- Spawning.
   if (b.phase === 'sail') {
-    while (b.keepsakesSpawned < 3 && b.progress >= TUNING.keepsakeAt[b.keepsakesSpawned]) {
-      const kind = KEEPSAKES[b.keepsakesSpawned++];
-      b.pickups.push({ type: 'keepsake', kind, row: Math.floor(b.rand() * 3), x: STAGE.right + 60, t: 0 });
+    while (b.keepsakesSpawned < LEAVES && b.progress >= TUNING.keepsakeAt[b.keepsakesSpawned]) {
+      b.keepsakesSpawned++;
+      b.pickups.push({ type: 'keepsake', kind: 'leaf', row: Math.floor(b.rand() * 3), x: STAGE.right + 60, t: 0 });
     }
     b.spawnIn -= dt * b.speed;
     if (b.spawnIn <= 0) spawn(b);
@@ -146,17 +147,16 @@ export function step(b, dt, input) {
     if (!p.taken && p.row === row && Math.abs(p.x - s.x) < 46 && b.phase === 'sail') {
       p.taken = true;
       if (p.type === 'pearl') { b.pearls++; b.score += 10; emit(b, 'pearl'); }
-      else { b.keepsakes[p.kind] = true; b.score += 100; emit(b, 'keepsake', { kind: p.kind }); }
+      else { b.leaves++; b.score += 100; emit(b, 'keepsake', { kind: p.kind, n: b.leaves }); }
     }
   }
   b.pickups = b.pickups.filter((p) => !p.taken && p.x > STAGE.left - 80);
 
+  // The voyage ends a moment after arrival; Act I's ending takes over then.
   if (b.phase === 'arrive' && b.phaseT >= TUNING.arriveTime) {
     b.phase = 'done';
     b.score += s.hull * 50;
-    const all = KEEPSAKES.every((k) => b.keepsakes[k]);
-    b.outcome = all ? 'lamp' : 'dark';
-    emit(b, 'done', { outcome: b.outcome });
+    emit(b, 'landed');
   }
   return b;
 }

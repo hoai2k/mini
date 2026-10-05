@@ -5,7 +5,7 @@
 // is cut from. Procedural stand-ins draw everything until delivered art
 // (assets/manifest.json) replaces a slot.
 
-import { ROWS, STAGE, TUNING, KEEPSAKES, rowPos, leapHeight, effectiveRow } from './board.js';
+import { ROWS, STAGE, TUNING, rowPos, leapHeight, effectiveRow } from './board.js';
 
 export const PAL = {
   plum: '#2a1424', pink: '#f3c6dc', magenta: '#e0127a', lavender: '#cfc0dc',
@@ -114,7 +114,11 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   const stars = Array.from({ length: 70 }, (_, i) => ({ x: (i * 397) % 1040 + 120, y: (i * 151) % 260 + 60, p: i * 1.7 }));
   const img = (id) => assets.images[id];
 
-  function onEvent(e, b) {
+  // Act events: the act's own onEvent, which may call kit.voyageEvent (Act I).
+  function onEvent(e, view) {
+    if (view.act?.onEvent && view.state) view.act.onEvent(kit, e, view.state);
+  }
+  function voyageEvent(e, b) {
     const s = b.ship;
     const sy = ROWS[effectiveRow(s)].y;
     if (e.type === 'pearl') { burst(s.x, sy - 30, PAL.foam, 8); text('+10', s.x, sy - 70); }
@@ -132,7 +136,8 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   }
   function text(str, x, y, big = false) { fx.texts.push({ str, x, y, life: big ? 1.8 : 0.9, big }); }
 
-  function tick(dt, b) {
+  function tick(dt, view) {
+    const b = view?.state?.board || null;
     for (const p of fx.particles) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt; }
     fx.particles = fx.particles.filter((p) => p.life > 0);
     for (const t of fx.texts) { t.life -= dt; t.y -= 40 * dt; }
@@ -144,6 +149,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       const casting = b.hazards.filter((h) => h.type === 'bolt' && h.state === 'warn');
       if (casting.length) { witch.tx = casting[0].x + 120; witch.ty = 175; }
       else if (b.wind.warn) { witch.tx = 880; witch.ty = 190; }
+      else if (view.state.witchAt) { witch.tx = view.state.witchAt.x; witch.ty = view.state.witchAt.y; }
       else if (b.phase !== 'sail') { witch.tx = 1500; }
       else if (witch.x > 1300 || Math.abs(witch.tx - witch.x) < 10) { witch.tx = 1500; }
       const old = witch.x;
@@ -198,30 +204,44 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   }
 
   // ------------------------------------------------------------ scene
+  // view = { act, state, curtain, card, film, t, hud, curtainCall, scene }
+  // The act draws the stage inside the frame; the core draws the frame,
+  // curtains, HUD and anything the act puts over them (irises, washes).
   function scene(c, view) {
-    const b = view.board;
-    const t = view.t;
+    const t = view.t, st = view.state, act = view.act;
+    kit.c = c; kit.t = t;
+    if (view.scene) view.scene(kit, t); // shell scenes: playbill, curtain call
+    else if (act && st) act.draw(kit, st, t);
+    else { backdrop(c, null, t); for (let r = 0; r < 3; r++) waves(c, r, t * 60, t); }
+    particles(c);
+    const spec = act && st && view.hud && act.hud ? act.hud(st) : null;
+    if (img('proscenium')) { proscenium(c, view.curtain, spec?.wind, t); footlights(c, t); }
+    else { footlights(c, t); proscenium(c, view.curtain, spec?.wind, t); }
+    if (!st && !view.scene) bandTrio(c, 1, 1, t); // the band waits in front of the curtain
+    if (view.curtainCall > 0) bandTrio(c, view.curtainCall, 0, t);
+    if (spec) hud(c, spec, t);
+    if (act?.drawOver && st) { kit.c = c; act.drawOver(kit, st, t); }
+  }
+
+  // Act I's voyage: sky, witch, three wave rows with hazards, pickups, ship.
+  // yOff lowers the rows (they sink through the floor for the deck scene).
+  function voyage(c, b, t, opts = {}) {
     backdrop(c, b, t);
-    if (b) {
-      clouds(c, b, t);
-      moonboat(c, t);
-      const shipRow = Math.round(rowPos(b.ship));
-      for (let r = 0; r < 3; r++) {
-        for (const h of b.hazards) if (h.row === r) (h.type === 'rock' ? rock : boltShadow)(c, h, t);
-        for (const p of b.pickups) if (p.row === r) pickup(c, p, t);
-        if (shipRow === r) ship(c, b, t);
-        waves(c, r, b.scrolled, t);
-      }
-      for (const h of b.hazards) if (h.type === 'bolt') bolt(c, h, t);
-      particles(c);
-    } else {
-      for (let r = 0; r < 3; r++) waves(c, r, t * 60, t);
+    clouds(c, b, t);
+    moonboat(c, t);
+    const shipRow = Math.round(rowPos(b.ship));
+    const yOff = opts.rowsDrop || 0; // the back row stays up as the horizon
+    for (let r = 0; r < 3; r++) {
+      const drop = r > 0 && yOff;
+      if (drop) { c.save(); c.translate(0, yOff); }
+      for (const h of b.hazards) if (h.row === r) (h.type === 'rock' ? rock : boltShadow)(c, h, t);
+      for (const p of b.pickups) if (p.row === r) pickup(c, p, t);
+      if (shipRow === r && !opts.hideShip) ship(c, b, t);
+      if (opts.beforeWave) opts.beforeWave(r);
+      waves(c, r, b.scrolled, t);
+      if (drop) c.restore();
     }
-    if (img('proscenium')) { proscenium(c, view.curtain, b, t); footlights(c, t); }
-    else { footlights(c, t); proscenium(c, view.curtain, b, t); }
-    if (!b) bandTrio(c, 1, 1, t); // the band waits in front of the curtain
-    if (b && view.curtainCall > 0) bandTrio(c, view.curtainCall, 0, t);
-    if (b && view.hud) hud(c, b, t);
+    for (const h of b.hazards) if (h.type === 'bolt') bolt(c, h, t);
   }
 
   function backdrop(c, b, t) {
@@ -383,10 +403,12 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
 
   function moonboat(c, t) {
     if (witch.x > 1420) return;
-    const { x, y, face } = witch;
+    moonboatAt(c, witch.x, witch.y, witch.face, 1, t);
+  }
+  function moonboatAt(c, x, y, face, s, t, wires = true) {
     const bob = Math.sin(t * 2.1) * 6;
-    wire(c, x - 30, 0, y - 60 + bob); wire(c, x + 40, 0, y - 50 + bob);
-    c.save(); c.translate(x, y + bob); c.scale(face, 1);
+    if (wires) { wire(c, x - 30 * s, 0, y - 60 * s + bob); wire(c, x + 40 * s, 0, y - 50 * s + bob); }
+    c.save(); c.translate(x, y + bob); c.scale(face * s, s);
     if (img('witch-moonboat')) { drawAsset(c, P, img('witch-moonboat'), 0, 40, 260, 170); c.restore(); return; }
     // red sea dragon in harness, out front
     c.fillStyle = P.c(PAL.coral);
@@ -597,7 +619,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   }
 
   function keepsakeIcon(c, kind, t, empty = false) {
-    const id = 'keepsake-' + kind;
+    const id = kind === 'leaf' ? 'tea-leaf' : 'keepsake-' + kind;
     if (img(id)) return drawAsset(c, P, img(id), 0, 24, 56, 56, empty ? 'brightness(0.3) saturate(0.4)' : '');
     const col = (hex) => (empty ? P.c('#5a4152') : P.c(hex));
     if (kind === 'tea') {
@@ -610,6 +632,20 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
         c.fillStyle = P.c('#4a6b3a');
         for (let k = 0; k < 3; k++) { c.beginPath(); c.ellipse(-8 + k * 8, -16 - Math.sin(t * 3 + k) * 6 - k * 4, 4, 2, k, 0, Math.PI * 2); c.fill(); }
       }
+    } else if (kind === 'leaf') {
+      c.fillStyle = col('#4a6b3a');
+      c.beginPath(); c.ellipse(0, 4, 9, 20, 0.5, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = col('#2c3f22'); c.lineWidth = 2; c.beginPath(); c.moveTo(-8, 18); c.quadraticCurveTo(0, 4, 8, -12); c.stroke();
+      if (!empty) { c.globalAlpha = 0.35; c.fillStyle = P.c(PAL.gold); circle(c, 0, 4, 22); c.globalAlpha = 1; }
+    } else if (kind === 'guitar') {
+      c.save(); c.rotate(-0.5);
+      c.fillStyle = col('#8a5a2b'); c.fillRect(-3, -34, 6, 30);
+      c.fillStyle = col('#e8d3a0'); circle(c, 0, 4, 13); circle(c, 0, 18, 15);
+      c.fillStyle = col('#2a1a12'); circle(c, 0, 8, 4);
+      c.restore();
+    } else if (kind === 'stone') {
+      c.fillStyle = col('#8d8f91'); c.beginPath(); c.ellipse(0, 6, 20, 14, -0.2, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = col('#eeeeee'); c.lineWidth = 2; c.beginPath(); c.ellipse(0, 6, 14, 9, -0.2, 0, Math.PI * 2); c.stroke();
     } else if (kind === 'pearl') {
       c.fillStyle = col('#e9a2b8');
       c.beginPath(); c.moveTo(-24, 6); c.quadraticCurveTo(0, 30, 24, 6); c.closePath(); c.fill();
@@ -657,7 +693,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     }
   }
 
-  function proscenium(c, open, b, t) {
+  function proscenium(c, open, wind, t) {
     const frame = img('proscenium');
     if (frame) {
       // The painted frame is overscanned 1.3x so its columns sit off-screen
@@ -665,7 +701,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       // slides in behind it and hides behind the painted drapes when open.
       if (open < 0.995) curtainPanels(c, 150 + (640 - 150) * (1 - open), open, t, false);
       drawAsset(c, P, frame, 640, 745, 1664, 936);
-      if (b) vane(c, 640, 34, b, t);
+      if (wind) vane(c, 640, 34, wind, t);
       return;
     }
     curtainPanels(c, STAGE.left + (640 - STAGE.left) * (1 - open), open, t, true);
@@ -680,7 +716,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     for (let x = 80; x < 1280; x += 80) { c.fillRect(x - 2, 52, 4, 16); circle(c, x, 72, 6); }
     c.fillRect(0, 0, 1280, 8);
     // weathervane on the valance: the witch's wind
-    if (b) vane(c, 640, 30, b, t);
+    if (wind) vane(c, 640, 30, wind, t);
   }
 
   // The travelling curtain: two velvet panels of width w from each side; when
@@ -706,9 +742,9 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     }
   }
 
-  function vane(c, x, y, b, t) {
-    const spinning = b.wind.warn;
-    const target = b.wind.dir > 0 ? 0 : Math.PI;
+  function vane(c, x, y, wind, t) {
+    const spinning = wind.warn;
+    const target = wind.dir > 0 ? 0 : Math.PI;
     const a = spinning ? t * 9 : target;
     c.save(); c.translate(x, y);
     c.fillStyle = P.c(PAL.plum); c.beginPath(); c.ellipse(0, 0, 70, 22, 0, 0, Math.PI * 2); c.fill();
@@ -720,48 +756,48 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.restore();
   }
 
-  function hud(c, b, t) {
+  // spec = { lanterns, maxLanterns, pearls, progress (0..1, or null for no
+  // ribbon), keepsakes: [{ id, have }], wind? } from the act's hud(state).
+  function hud(c, spec, t) {
     // The HUD is painted on the stage floor, below the footlights; on the
     // delivered proscenium's patterned floor band it sits on plum plaques.
     c.save(); c.translate(0, 596);
+    const plaques = [[140, 390]];
+    if (spec.progress != null) plaques.push([450, 830]);
+    if (spec.keepsakes?.length) plaques.push([1140 - spec.keepsakes.length * 52 - 24, 1140]);
     if (img('proscenium')) {
       c.fillStyle = P.c(PAL.plum); c.strokeStyle = P.c(PAL.gold); c.lineWidth = 1.5;
-      for (const [x0, x1] of [[140, 390], [450, 830], [960, 1140]]) {
-        c.beginPath(); c.roundRect(x0, 84, x1 - x0, 40, 8); c.fill(); c.stroke();
-      }
+      for (const [x0, x1] of plaques) { c.beginPath(); c.roundRect(x0, 84, x1 - x0, 40, 8); c.fill(); c.stroke(); }
     }
-    hudItems(c, b, t);
+    hudItems(c, spec, t);
     c.restore();
   }
-  function hudItems(c, b, t) {
-    // lanterns = hull
-    for (let k = 0; k < TUNING.hull; k++) {
-      const lit = k < b.ship.hull;
+  function hudItems(c, spec, t) {
+    const max = spec.maxLanterns ?? 3;
+    for (let k = 0; k < max; k++) {
+      const lit = k < spec.lanterns;
       const x = 170 + k * 46, y = 104;
       c.fillStyle = P.c(PAL.woodDark); c.fillRect(x - 11, y - 17, 22, 5); c.fillRect(x - 11, y + 12, 22, 5);
       c.fillStyle = P.c(lit ? '#ffcf5c' : '#3b2a2a');
       c.globalAlpha = lit ? 0.9 + 0.1 * Math.sin(t * 7 + k) : 1;
       c.beginPath(); c.ellipse(x, y, 10, 13, 0, 0, Math.PI * 2); c.fill();
       c.globalAlpha = 1;
-      c.strokeStyle = P.c(PAL.woodDark); c.lineWidth = 2; 
     }
-    // pearls
     c.fillStyle = P.c('#efe9f2'); circle(c, 320, 104, 10);
     c.font = '700 24px "Josefin Sans", sans-serif'; c.textAlign = 'left';
-    c.fillStyle = P.c(PAL.cream); c.fillText('× ' + b.pearls, 336, 113);
-    // keepsakes
-    KEEPSAKES.forEach((k, i) => {
-      c.save(); c.translate(1000 + i * 52, 104); c.scale(0.7, 0.7);
-      keepsakeIcon(c, k, t, !b.keepsakes[k]);
+    c.fillStyle = P.c(PAL.cream); c.fillText('× ' + (spec.pearls || 0), 336, 113);
+    (spec.keepsakes || []).forEach((k, i, all) => {
+      c.save(); c.translate(1140 - (all.length - i) * 52 + 14, 104); c.scale(0.7, 0.7);
+      keepsakeIcon(c, k.id, t, !k.have);
       c.restore();
     });
-    // voyage ribbon
+    if (spec.progress == null) return;
     const x0 = 470, x1 = 810, y = 100;
     c.strokeStyle = P.c(PAL.cream); c.lineWidth = 3; c.setLineDash([8, 7]);
     c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke(); c.setLineDash([]);
     c.fillStyle = P.c(PAL.coral); c.fillRect(x1 - 3, y - 18, 6, 22);
     c.fillStyle = P.c(PAL.cream); c.beginPath(); c.moveTo(x1 - 3, y - 18); c.lineTo(x1 + 12, y - 13); c.lineTo(x1 - 3, y - 8); c.fill();
-    const sx = x0 + (x1 - x0) * b.progress;
+    const sx = x0 + (x1 - x0) * Math.min(1, spec.progress);
     c.fillStyle = P.c(PAL.wood); c.beginPath(); c.moveTo(sx - 12, y - 4); c.lineTo(sx + 12, y - 4); c.lineTo(sx + 8, y + 4); c.lineTo(sx - 8, y + 4); c.fill();
     c.fillStyle = P.c(PAL.cream); c.beginPath(); c.moveTo(sx, y - 20); c.lineTo(sx + 9, y - 6); c.lineTo(sx, y - 6); c.fill();
   }
@@ -772,8 +808,40 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y1); c.stroke();
   }
 
+  // Shared primitives for act drawing. kit.c is the context of the pass
+  // being painted (print or colour); always draw through it.
+  const kit = {
+    c: ctx, P, PAL, t: 0, ROWS, STAGE,
+    img,
+    // Draw a delivered image (bottom-centre anchor); false if not delivered.
+    asset(id, cx, by, w, h, extra = '') { const im = img(id); if (!im) return false; drawAsset(kit.c, P, im, cx, by, w, h, extra); return true; },
+    // Part of a delivered image: source rect in art pixels -> stage box.
+    assetCrop(id, sx, sy, sw, sh, dx, dy, dw, dh) { const im = img(id); if (!im) return false; kit.c.drawImage(passImage(P, im), sx, sy, sw, sh, dx, dy, dw, dh); return true; },
+    col: (hex) => P.c(hex),
+    wire: (x, y0, y1) => wire(kit.c, x, y0, y1),
+    circle: (x, y, r) => circle(kit.c, x, y, r),
+    star: (x, y, r) => star(kit.c, x, y, r),
+    cloud: (x, y, s, colr = PAL.lavender) => cloudFlat(kit.c, x, y, s, colr),
+    moon: (x, y, r) => moonFace(kit.c, x, y, r, kit.t),
+    sky: (b) => backdrop(kit.c, b, kit.t),
+    waves: (r, scrolled, yOff = 0) => { if (yOff) { kit.c.save(); kit.c.translate(0, yOff); } waves(kit.c, r, scrolled, kit.t); if (yOff) kit.c.restore(); },
+    lighthouse: (x, y, lit) => lighthouse(kit.c, x, y, kit.t, lit),
+    band: (k, title) => bandTrio(kit.c, k, title, kit.t),
+    keepsake: (kind, x, y, s = 1, empty = false) => { kit.c.save(); kit.c.translate(x, y); kit.c.scale(s, s); keepsakeIcon(kit.c, kind, kit.t, empty); kit.c.restore(); },
+    moonboat: (x, y, face = -1, s = 1) => moonboatAt(kit.c, x, y, face, s, kit.t),
+    voyage: (b, opts) => voyage(kit.c, b, kit.t, opts),
+    voyageEvent,
+    burst, text,
+    flash: (v = 1) => { fx.flash = Math.max(fx.flash, v); },
+    shake: (v = 0.4) => { fx.shake = Math.max(fx.shake, v); },
+    // A wash over the whole stage (for scene tints, whiteouts and the deep).
+    wash: (hex, alpha) => { kit.c.save(); kit.c.globalAlpha = alpha; kit.c.fillStyle = P.c(hex); kit.c.fillRect(0, 0, 1280, 720); kit.c.restore(); },
+    // An iris closing on (x, y): radius r (0 = black).
+    iris: (x, y, r) => { const c = kit.c; c.save(); c.fillStyle = '#000'; c.beginPath(); c.rect(0, 0, 1280, 720); c.arc(x, y, Math.max(0, r), 0, Math.PI * 2, true); c.fill('evenodd'); c.restore(); },
+  };
+
   return {
-    render, tick, onEvent,
+    render, tick, onEvent, kit,
     setLamp(v) { view_lamp = v; },
     clearFx() { fx.particles = []; fx.texts = []; fx.flash = 0; fx.shake = 0; witch.x = witch.tx = 1450; },
   };
@@ -787,7 +855,7 @@ const WAVE_ART = [
   { id: 'waves-front', x0: 152, len: 1899 },
 ];
 
-const LABEL = { tea: 'Tea leaves', pearl: 'Her pearl', rose: 'Sea rose' };
+const LABEL = { leaf: 'Tea leaf', tea: 'Tea leaves', pearl: 'Her pearl', rose: 'Sea rose', guitar: 'The guitar', stone: 'The stone' };
 
 function circle(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
 function star(c, x, y, r) {

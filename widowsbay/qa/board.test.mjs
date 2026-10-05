@@ -79,21 +79,21 @@ test('wind warns before it turns, and a headwind slows the voyage', () => {
   assert.ok(tail > head * 1.4, `tail ${tail} vs head ${head}`);
 });
 
-test('three keepsakes float by once each; all three light the lamp', () => {
+test('three tea leaves float by once each, and the voyage then lands', () => {
   const b = createBoard(8);
   b.spawnIn = 1e9; b.wind.next = 1e9;
   const seen = [];
   let guard = 0;
   while (b.phase !== 'done' && guard++ < 60 * 200) {
-    // steer onto any keepsake's row
+    // steer onto any leaf's row
     const k = b.pickups.find((p) => p.type === 'keepsake');
     const input = {};
     if (k && b.ship.rowT >= 1) { if (k.row < b.ship.row) input.rowUp = true; if (k.row > b.ship.row) input.rowDown = true; }
     step(b, 1 / 60, input);
-    for (const e of drain(b)) if (e.type === 'keepsake') seen.push(e.kind);
+    for (const e of drain(b)) { if (e.type === 'keepsake') seen.push(e.kind); if (e.type === 'landed') seen.push('landed'); }
   }
-  assert.deepEqual(seen, ['tea', 'pearl', 'rose']);
-  assert.equal(b.outcome, 'lamp');
+  assert.deepEqual(seen, ['leaf', 'leaf', 'leaf', 'landed']);
+  assert.equal(b.leaves, 3);
   assert.ok(b.progress === 1);
 });
 

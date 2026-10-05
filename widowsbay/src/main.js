@@ -1,5 +1,6 @@
 // Shell: title, act cards, play, pause, dialogs, settings, fullscreen.
-import { createBoard, step, KEEPSAKES } from './board.js';
+import { ACTS } from './acts/index.js';
+import { loadSave, carryInto, recordResult } from './save.js';
 import { createRenderer, loadAssets } from './art.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
@@ -67,11 +68,11 @@ loadAssets().then((a) => {
 });
 
 // ---------------------------------------------------------------- flow
-const INTRO = {
-  kicker: 'Act I', title: 'The Crossing', size: 130,
-  sub: 'The witch will turn the wind.\nBring home the tea leaves, the pearl and the sea rose.',
-  prompt: 'Press A or Space',
-};
+// Modes: title, playbill, intro (act card), play, over (retry card),
+// curtaincall. One act module (src/acts/) is on stage at a time.
+const save = loadSave();
+const params = new URLSearchParams(location.search);
+const QA = params.has('qa');
 
 function startGame() {
   if (S.mode !== 'title' || dialogs.length) return;
@@ -79,23 +80,40 @@ function startGame() {
   audio.unlock(); audio.startMusic(); audio.play('ui');
   $('#title').classList.add('opening');
   setTimeout(() => { $('#title').hidden = true; $('#title').classList.remove('opening'); }, 600);
-  beginAct();
+  const jump = QA && +params.get('act');
+  if (jump >= 1 && jump <= ACTS.length) return beginAct(jump - 1);
+  if (save.unlocked > 1) showPlaybill(); else beginAct(0);
 }
 
-function beginAct() {
+function carryFor(i) {
+  const carry = carryInto(save, i + 1);
+  // ?qa&act=N&carry=all starts a later act as if every keepsake were held.
+  if (QA && params.get('carry') === 'all') Object.assign(carry, { tea: 3, guitar: true, pearl: true, stone: true, sleepers: 6 });
+  if (QA && params.get('carry') === 'rose') Object.assign(carry, { tea: 3, guitar: true, rose: true, pearl: true, stone: true, sleepers: 12 });
+  return carry;
+}
+
+function beginAct(i) {
   renderer.clearFx();
-  renderer.setLamp(false);
-  S.board = createBoard((Math.random() * 2 ** 31) | 0);
+  S.actIndex = i; S.act = ACTS[i];
+  S.state = S.act.create({ seed: (Math.random() * 2 ** 31) | 0, carry: carryFor(i) });
   S.mode = 'intro'; S.modeT = 0;
   S.curtain = 0; S.curtainTarget = 0;
-  S.card = { ...INTRO, alpha: 0 };
+  S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120, sub: S.act.sub, prompt: 'Press A or Space', alpha: 0 };
   S.readyT = 0;
-  announce('Act One, The Crossing.');
+  announce(`${S.act.kicker}, ${S.act.title}.`);
+}
+
+function showPlaybill() {
+  S.mode = 'playbill'; S.modeT = 0; S.act = null; S.state = null; S.card = null;
+  S.curtainTarget = 0;
+  S.pb = Math.min(save.unlocked, ACTS.length) - 1;
+  announce('The playbill. Choose an act.');
 }
 
 function toTitle() {
   closeAllDialogs();
-  S.paused = false; S.mode = 'title'; S.board = null; S.card = null; S.curtainTarget = 0;
+  S.paused = false; S.mode = 'title'; S.act = null; S.state = null; S.card = null; S.curtainTarget = 0;
   $('#pause').hidden = true; $('#title').hidden = false; $('#touch').hidden = true;
   S.titleNav = false; clearNavFocus();
   audio.resume();
@@ -140,7 +158,7 @@ document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click
   if (a === 'resume') resume();
   if (a === 'instructions') openDialog($('#instructions'));
   if (a === 'settings') openDialog($('#settings'));
-  if (a === 'restart') { closeAllDialogs(); S.paused = false; beginAct(); }
+  if (a === 'restart') { closeAllDialogs(); S.paused = false; if (S.act) beginAct(S.actIndex); else showPlaybill(); }
   if (a === 'title') toTitle();
 }));
 $('#start').addEventListener('click', startGame);
@@ -231,14 +249,19 @@ function frame(now) {
   S.t += dt;
   const i = input.poll(dt);
   update(dt, i);
-  renderer.tick(S.paused ? 0 : dt, S.board);
-  renderer.render({
-    board: S.board, curtain: S.curtain, card: S.card, film: settings.film, t: S.t,
-    hud: S.mode === 'play' || S.mode === 'over' || S.mode === 'end',
-    // After the bay is reached the band rises through the trapdoor for a bow.
-    curtainCall: S.mode === 'end' ? Math.min(1, S.modeT / 1.4) : 0,
-  });
+  const view = currentView();
+  renderer.tick(S.paused ? 0 : dt, view);
+  renderer.render(view);
   requestAnimationFrame(frame);
+}
+
+function currentView() {
+  return {
+    act: S.act, state: S.state, curtain: S.curtain, card: S.card, film: settings.film, t: S.t,
+    hud: S.mode === 'play' || S.mode === 'over',
+    curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
+    scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,
+  };
 }
 
 function updateLoadbar() {
@@ -276,6 +299,15 @@ function update(dt, i) {
   S.modeT += dt;
   const go = i.padA || i.confirm || (i.leap && i.source === 'touch');
 
+  if (S.mode === 'playbill') {
+    const n = Math.min(save.unlocked, ACTS.length);
+    if (i.up) { S.pb = (S.pb + n - 1) % n; audio.play('ui'); }
+    if (i.down) { S.pb = (S.pb + 1) % n; audio.play('ui'); }
+    if (go && S.modeT > 0.3) beginAct(S.pb);
+    else if (i.padB || i.back) toTitle();
+    return;
+  }
+
   if (S.mode === 'intro') {
     S.card.alpha = Math.min(1, S.modeT * 2.5);
     // Hold the card until the song can play, showing its progress.
@@ -293,52 +325,85 @@ function update(dt, i) {
   if (S.mode === 'play') {
     if (i.pause && !S.paused) { pause(); return; }
     if (S.paused) return;
-    // Hold the ship still until the curtains are mostly open.
+    // Hold the player still until the curtains are mostly open.
     const ready = S.curtain > 0.9;
-    step(S.board, dt, ready ? { moveX: i.moveX, rowUp: i.up, rowDown: i.down, leap: i.leap } : {});
-    for (const e of S.board.events) handleEvent(e);
-    S.board.events.length = 0;
-    if (S.board.phase === 'wrecked' && S.board.phaseT > 2.2) {
+    const actInput = ready
+      ? { moveX: i.moveX, moveY: i.moveY, up: i.up, down: i.down, left: i.left, right: i.right, a: i.leap, aHeld: i.aHeld, b: i.padB || i.bPress, beat: audio.beat() }
+      : { moveX: 0, moveY: 0, beat: audio.beat() };
+    S.act.step(S.state, dt, actInput);
+    for (const e of S.state.events) handleEvent(e);
+    S.state.events.length = 0;
+    if (S.state.status === 'lost' && S.state.statusT > 0.2) {
       S.mode = 'over'; S.modeT = 0;
-      S.card = { bg: 'magenta', kicker: 'Act I', title: 'The Sea Keeps\nHer Own', size: 110, sub: `${S.board.pearls} pearls · ${keepsakeCount()} of 3 keepsakes`, prompt: 'Press A to sail again · B for the title', alpha: 0 };
-      announce('Shipwrecked. Press A to sail again.');
+      S.card = { bg: 'magenta', kicker: S.act.kicker, title: S.state.lostTitle || 'The Sea Keeps\nHer Own', size: 110,
+        sub: S.state.lostSub || '', prompt: 'Press A to try again · B for the playbill', alpha: 0 };
+      announce('The act is lost. Press A to try again.');
     }
-    if (S.board.phase === 'done') {
-      S.mode = 'end'; S.modeT = 0;
-      const lamp = S.board.outcome === 'lamp';
-      S.card = lamp
-        ? { kicker: 'Act I — Curtain', title: 'A Lamp in\nthe Window', size: 110, sub: `Score ${S.board.score} · ${S.board.pearls} pearls · all three keepsakes\nAct II, The Grotto, is still in rehearsal.`, prompt: 'Press A to sail again · B for the title', alpha: 0 }
-        : { kicker: 'Act I — Curtain', title: 'The Window\nis Dark', size: 110, sub: `Score ${S.board.score} · ${keepsakeCount()} of 3 keepsakes\nShe may not have waited. Bring all three next time.`, prompt: 'Press A to sail again · B for the title', alpha: 0 };
-      announce(lamp ? 'Act one complete. A lamp is burning in the window.' : 'Act one complete, but the window is dark.');
+    if (S.state.status === 'won' && S.state.statusT > 0.15) actWon();
+    return;
+  }
+
+  if (S.mode === 'over') {
+    S.card.alpha = Math.min(1, S.card.alpha + dt * 2);
+    if (S.card.alpha > 0.6) {
+      if (go) beginAct(S.actIndex);
+      else if (i.padB || i.back) showPlaybill();
     }
     return;
   }
 
-  if (S.mode === 'over' || S.mode === 'end') {
-    if (S.mode === 'end' && S.modeT < 3.2) { S.card.alpha = 0; return; } // the bay, then the band's bow
-    S.card.alpha = Math.min(1, S.card.alpha + dt * 2);
-    if (S.card.alpha > 0.6) {
-      if (go) beginAct();
-      else if (i.padB || i.back) toTitle();
-    }
+  if (S.mode === 'curtaincall') {
+    if (S.modeT > 6 || (go && S.modeT > 2)) showPlaybill();
   }
 }
 
-const keepsakeCount = () => KEEPSAKES.filter((k) => S.board.keepsakes[k]).length;
+function actWon() {
+  recordResult(save, S.act.id, S.state.result || {}, ACTS.length);
+  if (S.actIndex + 1 < ACTS.length) return beginAct(S.actIndex + 1);
+  // The whole play is done: the band's curtain call, then the playbill.
+  S.mode = 'curtaincall'; S.modeT = 0; S.act = null; S.state = null; S.curtainTarget = 1;
+  audio.play('done');
+  announce('Curtain call.');
+}
 
 function handleEvent(e) {
   audio.play(e.type);
-  renderer.onEvent(e, S.board);
+  renderer.onEvent(e, currentView());
   const rumble = settings.vibration && input.owner() !== null;
-  if (e.type === 'hit') { if (rumble) input.rumble(0.8, 0.5, 220); announce(`Hit. ${e.hull} lantern${e.hull === 1 ? '' : 's'} left.`); }
+  if (e.type === 'hit') { if (rumble) input.rumble(0.8, 0.5, 220); }
   if (e.type === 'wreck' && rumble) input.rumble(1, 1, 600);
-  if (e.type === 'strike' && rumble) input.rumble(0.3, 0.6, 120);
-  if (e.type === 'keepsake') announce(`Keepsake: ${{ tea: 'tea leaves', pearl: 'her pearl', rose: 'sea rose' }[e.kind]}.`);
-  if (e.type === 'windWarn') announce(e.to > 0 ? 'The wind is turning behind you.' : 'The wind is turning against you.');
-  if (e.type === 'arrive') {
-    announce("Widow's Bay in sight.");
-    renderer.setLamp(keepsakeCount() === KEEPSAKES.length);
-  }
+  if ((e.type === 'strike' || e.type === 'shipBreak') && rumble) input.rumble(0.4, 0.7, 160);
+  const msg = S.act?.announce?.(e);
+  if (msg) announce(msg);
+}
+
+// ---------------------------------------------------------------- shell scenes
+const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+function drawPlaybill(k, t) {
+  const c = k.c;
+  k.sky(null);
+  c.fillStyle = k.col('#f1e3c8'); c.fillRect(330, 70, 620, 580);
+  c.strokeStyle = k.col('#2a1424'); c.lineWidth = 3; c.strokeRect(344, 84, 592, 552); c.lineWidth = 1; c.strokeRect(352, 92, 576, 536);
+  c.textAlign = 'center'; c.fillStyle = k.col('#2a1424');
+  c.font = '54px Yesteryear, cursive'; c.fillText("Widow's Bay", 640, 160);
+  c.font = '700 15px "Josefin Sans", sans-serif'; c.fillText('A TOY THEATRE IN FIVE ACTS', 640, 188);
+  ACTS.forEach((a, n) => {
+    const y = 250 + n * 72, open = n < save.unlocked, sel = n === S.pb;
+    if (sel) { c.fillStyle = k.col('#e0127a'); c.globalAlpha = 0.18; c.fillRect(372, y - 34, 536, 60); c.globalAlpha = 1; }
+    c.fillStyle = k.col(open ? '#2a1424' : '#a99a86');
+    c.font = '700 16px "Josefin Sans", sans-serif'; c.textAlign = 'left'; c.fillText('ACT ' + ROMAN[n], 392, y - 6);
+    c.font = '34px Yesteryear, cursive'; c.fillText(open ? a.title : '· · ·', 470, y + 2);
+    c.textAlign = 'right'; c.font = '15px "Josefin Sans", sans-serif';
+    const best = save.best[a.id];
+    if (open && best != null) c.fillText('best ' + best, 888, y - 6);
+  });
+  c.textAlign = 'center'; c.font = '15px "Josefin Sans", sans-serif'; c.fillStyle = k.col('#2a1424');
+  c.fillText('Up / down to choose · A to begin · B for the title', 640, 612);
+}
+
+function drawCurtainCall(k, t) {
+  k.sky(null);
+  for (let r = 0; r < 3; r++) k.waves(r, t * 40);
 }
 
 // Start focused on Press Start so keyboard users can begin immediately.
