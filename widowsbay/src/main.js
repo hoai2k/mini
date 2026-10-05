@@ -6,6 +6,7 @@ import { createAudio } from './audio.js';
 import { createInput } from './input.js';
 import { createTouch, isTouchDevice } from './touch.js';
 import { createFit } from './fit.js';
+import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement } from './chrome.js';
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#stage');
@@ -18,6 +19,9 @@ const touch = TOUCH ? createTouch($('#touch')) : null;
 if (TOUCH) { document.documentElement.classList.add('touch'); input.attachTouch(touch); }
 // Size the stage to the space that's really visible (see src/fit.js).
 const fitter = createFit({ app: $('#app'), stage: canvas, touch: TOUCH });
+// Browser bars: fullscreen on the first tap in landscape where possible;
+// on iPhone Safari, a swipe-up to tuck the bars away (see src/chrome.js).
+const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' && !S.paused, hintEl: $('#bars-hint') });
 
 // ---------------------------------------------------------------- settings
 const SETTINGS_KEY = 'widowsbay.settings.v1';
@@ -188,7 +192,12 @@ document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click
 $('#start').addEventListener('click', startGame);
 $('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openDialog($('#instructions')); });
 $('#btn-settings').addEventListener('click', () => { audio.play('ui'); openDialog($('#settings')); });
-$('#btn-fullscreen').addEventListener('click', () => { audio.play('ui'); toggleFullscreen(); });
+$('#btn-fullscreen').addEventListener('click', () => {
+  audio.play('ui');
+  // iPhone Safari can't go fullscreen: point at the ways it can lose its bars.
+  if (chrome.scrollTrick) { const h = $('#bars-hint'); h.hidden = false; h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); announce(h.textContent); return; }
+  toggleFullscreen();
+});
 
 // ---------------------------------------------------------------- focus nav
 function focusables() {
@@ -244,13 +253,9 @@ window.addEventListener('keydown', (e) => {
 });
 
 // ---------------------------------------------------------------- fullscreen
-function requestFullscreen() {
-  const el = document.documentElement;
-  if (document.fullscreenElement || !el.requestFullscreen) return;
-  el.requestFullscreen({ navigationUI: 'hide' }).catch(() => { /* rejected: keep playing */ });
-}
+// Fullscreen helpers (with the webkit prefix iPad Safari needs) live in chrome.js.
 function toggleFullscreen() {
-  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  if (fullscreenElement()) exitFullscreen();
   else requestFullscreen();
 }
 
@@ -479,7 +484,7 @@ function drawCurtainCall(k, t) {
   for (let r = 0; r < 3; r++) k.waves(r, t * 40);
 }
 
-if (TOUCH) $('#title-hint').textContent = 'Tip: Add to Home Screen to play full screen';
+if (TOUCH) $('#title-hint').textContent = chrome.scrollTrick ? '' : 'Tip: Add to Home Screen to play full screen';
 // Start focused on Press Start so keyboard users can begin immediately.
 $('#start').focus({ preventScroll: true });
 requestAnimationFrame(frame);

@@ -223,3 +223,22 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   .loadbar { grid-column: 2; grid-row: 3; width: min(calc(var(--app-w, 100vw) * 0.32), 280px); }
   .hint { grid-column: 2; grid-row: 4; max-width: calc(var(--app-w, 100vw) * 0.36); text-align: center; font-size: 12px; }
 }
+
+/* iPhone Safari: the page is a little taller than the screen so a swipe up
+   tucks Safari's bars away (src/chrome.js). During play the touch controls
+   own every gesture, so nothing scrolls. */
+html.ios-scroll, html.ios-scroll body { height: auto; overflow-x: hidden; overflow-y: auto; }
+html.ios-scroll body { position: relative; inset: auto; touch-action: pan-y; }
+/* The game itself is fixed and takes no height, so a spacer makes the page
+   taller than the screen (100lvh: as tall as the screen with bars hidden). */
+html.ios-scroll body::after { content: ''; display: block; height: calc(100lvh + 160px); }
+html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow: hidden; touch-action: none; }
+#bars-hint { position: fixed; left: 50%; top: max(8px, env(safe-area-inset-top)); transform: translateX(-50%); z-index: 15;
+  background: #2a1424ee; border: 1px solid #d9b34a; color: var(--pink); padding: 7px 14px; border-radius: 3px;
+  font-size: 13px; letter-spacing: .03em; white-space: nowrap; pointer-events: none; }
+#bars-hint[hidden] { display: none; }
+#bars-hint .arrow { display: inline-block; animation: nudge 1.4s ease-in-out infinite; color: var(--gold); font-weight: 700; }
+@keyframes nudge { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { #bars-hint .arrow { animation: none; } }
+#bars-hint.flash { animation: hintflash .9s ease-in-out 2; }
+@keyframes hintflash { 50% { background: var(--magenta); border-color: var(--pink); } }

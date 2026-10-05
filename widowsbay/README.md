@@ -174,6 +174,16 @@ them.
   the band below it, clear of play.
 - **Touch extras.** Hits give a short vibration where supported (Settings,
   Vibration), and the film look starts on Gentle.
+- **Getting rid of the browser bars** (`src/chrome.js`):
+  - **Fullscreen API (Android, iPad, desktop).** A web page can only go
+    fullscreen from a tap, never from turning the device, so the first tap
+    after the device is in landscape requests fullscreen.
+  - **iPhone Safari.** It has no fullscreen for anything but video. It does
+    tuck its bars away in landscape when the page scrolls, so on iPhone Safari
+    the page is made a little taller than the screen. While the bars show
+    (title, cards, pause), a hint at the top says to swipe up, and the title's
+    Fullscreen button points at the same hint. During play the touch controls
+    own every gesture, so nothing scrolls.
 - **Add to Home Screen.** `manifest.webmanifest` and `icons/` make the game
   install as a full-screen, landscape app, which is how iPhones get full
   screen. The icons are cut from the logo for now; `app-icon` in the image
