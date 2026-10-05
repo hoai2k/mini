@@ -349,6 +349,16 @@ of the band dancing in the crowd, in black. It would make an overture: the
 title curtain could open on it for a few seconds before Act I. It isn't
 requested yet.
 
+## Optional expansions
+
+[`story-appendix.md`](story-appendix.md) gathers ideas from the
+expanded-world references (the full 1903 film): the witch's two faces (the
+pink glamour and the hooded crone), her red and teal imps, a betrothal
+prologue that explains the stolen pearl, the Fairy's Gifts to spend pearls
+on, a cast album, and three encores (the tower across the moat, the fire
+chariot chase, and the armoury revel set to the whole song). None of them is
+part of the five acts unless chosen.
+
 ## Build order
 
 1. The Act I ending: deck celebration, storm, wreck, sinking guitar. Also the

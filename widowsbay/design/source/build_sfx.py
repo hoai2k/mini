@@ -41,7 +41,9 @@ RAW = os.path.join(ROOT, 'design', 'source', 'sfx-raw')
 # measured from the raw generations: pearl's chime peaks at C9 (too bright for
 # the mix, so down an octave), the keepsake harp at B4 (a tritone against F),
 # the harbour bell's strongest partial just under E6.
-TUNE = {'pearl': -12, 'keepsake': 1, 'arrive': 1.48}
+TUNE = {'pearl': -12, 'keepsake': 1, 'arrive': 1.48,
+        # the ship's bell onto F; the lantern chime (6.6 kHz, too bright) down to A
+        'landho': -1.84, 'partyHit': -10.8}
 
 # id: (seconds, prompt influence, loop, prompt)
 SFX = {
@@ -87,6 +89,27 @@ SFX = {
                 'Heavy velvet theatre curtains drawn open on a creaking rope pulley.'),
     'ui': (0.5, 0.6, False,
            'A soft wooden click, like a small toy theatre lever.'),
+    # Act I ending: land ho, the deck party, the turn, the wreck, the guitar.
+    'landho': (1.8, 0.55, False,
+               "A ship's brass bell rung three times briskly, bright and joyful, with a little sea air."),
+    'cheer': (2.0, 0.5, False,
+              'A small theatre company of a dozen voices cheering and laughing on a wooden deck, a hatch '
+              'banging open, feet stamping.'),
+    'partyHit': (0.7, 0.6, False,
+                 'A single warm glass chime as a paper lantern lights, with a soft puff of confetti.'),
+    'revelry': (2.0, 0.5, False,
+                'A crowd of revellers on a ship give a big cheer with whistles and a tambourine shake.'),
+    'spirits': (3.0, 0.45, False,
+                'An eerie airy choir of ghostly voices made by a wet finger on glass rims, rising over a '
+                'theatre wind machine.'),
+    'shipBreak': (2.0, 0.5, False,
+                  'A wooden ship splitting in two: a huge timber crack, splintering planks, a mast groaning '
+                  'and falling.'),
+    'splash': (1.6, 0.5, False,
+               'Two heavy halves of a wooden ship plunging into the sea, a deep splash and churning water.'),
+    'guitarSink': (3.0, 0.45, False,
+                   'An acoustic guitar sinking underwater: one muffled, detuned strum heard through water, '
+                   'then slow rising bubbles.'),
 }
 
 
