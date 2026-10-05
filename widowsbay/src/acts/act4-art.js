@@ -30,17 +30,17 @@ export function drawOver(k, st) {
 export function onEvent(k, e, st) {
   const at = (x, y) => toScreen(st, x, y);
   const s = st.s;
-  if (e.type === 'pearl') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#efe9f2', 8); }
-  if (e.type === 'stoneFound') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#d9b34a', 18); k.text('The stone!', p.x, p.y - 40, true); }
-  if (e.type === 'hit') { k.shake(0.45); k.flash(0.25); const p = at(s.x, s.y - 60); k.burst(p.x, p.y, '#c8321e', 12); }
-  if (e.type === 'splash') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#9fb8b0', 20); }
-  if (e.type === 'acidSting') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#e07a5a', 14); }
-  if (e.type === 'hookSnag') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#f1e3c8', 10); }
+  if (e.type === 'pearl') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#efe9f2', 8, 'sparkle'); }
+  if (e.type === 'stoneFound') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#d9b34a', 18, 'sparkle'); k.text('The stone!', p.x, p.y - 40, true); }
+  if (e.type === 'hit') { k.shake(0.45); k.flash(0.25); const p = at(s.x, s.y - 60); k.burst(p.x, p.y, '#c8321e', 12, 'streak'); }
+  if (e.type === 'splash') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#9fb8b0', 20, 'drop'); }
+  if (e.type === 'acidSting') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#e07a5a', 14, 'bubble'); }
+  if (e.type === 'hookSnag') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#f1e3c8', 10, 'streak'); }
   if (e.type === 'whaleInhale') k.shake(0.2);
   if (e.type === 'swallowed') k.shake(0.6);
   if (e.type === 'daylight') k.flash(0.35);
-  if (e.type === 'beachSurf') { k.flash(0.9); k.burst(640, 480, '#ffffff', 24); }
-  if (e.type === 'tailSplash') k.burst(260, 470, '#ffffff', 26);
+  if (e.type === 'beachSurf') { k.flash(0.9); k.burst(640, 480, '#ffffff', 24, 'drop'); }
+  if (e.type === 'tailSplash') k.burst(260, 470, '#ffffff', 26, 'drop');
   if (e.type === 'revellerOut') k.text('♪', 960, 440);
 }
 

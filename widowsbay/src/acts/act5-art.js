@@ -32,31 +32,31 @@ export function drawOver(k, st) {
 export function onEvent(k, e, st) {
   const at = playerScreen(st);
   switch (e.type) {
-    case 'hit': k.shake(0.35); k.burst(at.x, at.y - 50, '#c8321e', 16); break;
-    case 'pearl': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y - 20, '#eef3ea', 8); k.text('+10', s.x, s.y - 60); break; }
-    case 'holdCrumble': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y, '#b8ad9a', 14); k.shake(0.2); break; }
-    case 'stoneGlance': k.burst(at.x + 30, at.y - 110, '#b8ad9a', 8); k.text('Sheltered', at.x, at.y - 130); break;
-    case 'giantStep': { const s = cliffScreen(st, e.foot ? LEGS[1] : LEGS[0], CLIFF.top - 100); k.burst(s.x, s.y, '#cfc0dc', 4); break; }
-    case 'clifftop': k.text("Widow's Bay", 640, 240, true); k.burst(at.x, at.y - 40, '#d9b34a', 18); break;
+    case 'hit': k.shake(0.35); k.burst(at.x, at.y - 50, '#c8321e', 14, 'streak'); break;
+    case 'pearl': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y - 20, '#eef3ea', 8, 'sparkle'); k.text('+10', s.x, s.y - 60); break; }
+    case 'holdCrumble': { const s = cliffScreen(st, e.x, e.y); k.burst(s.x, s.y, '#b8ad9a', 14, 'chip'); k.shake(0.2); break; }
+    case 'stoneGlance': k.burst(at.x + 30, at.y - 110, '#b8ad9a', 8, 'chip'); k.text('Sheltered', at.x, at.y - 130); break;
+    case 'giantStep': { const s = cliffScreen(st, e.foot ? LEGS[1] : LEGS[0], CLIFF.top - 100); k.burst(s.x, s.y, '#cfc0dc', 4, 'chip'); break; }
+    case 'clifftop': k.text("Widow's Bay", 640, 240, true); k.burst(at.x, at.y - 40, '#d9b34a', 18, 'sparkle'); break;
     case 'strike': k.flash(1); k.shake(0.5); break;
     case 'houseOpen': k.shake(0.3); break;
-    case 'beamCrash': k.burst(e.x, e.y - 10, '#3a2112', 14); k.burst(e.x, e.y - 20, '#e9a46a', 8); k.shake(0.25); break;
-    case 'debrisCrash': k.burst(e.x, e.y - 10, '#8d8f91', 14); k.shake(0.2); break;
+    case 'beamCrash': k.burst(e.x, e.y - 10, '#3a2112', 14, 'chip'); k.burst(e.x, e.y - 20, '#e9a46a', 8, 'sparkle'); k.shake(0.25); break;
+    case 'debrisCrash': k.burst(e.x, e.y - 10, '#8d8f91', 14, 'chip'); k.shake(0.2); break;
     case 'stoneThrow': k.text('The stone!', at.x, at.y - 130); break;
-    case 'shutterSmash': k.burst(870, 360, '#6b4024', 22); k.text('Shortcut!', 780, 300, true); k.shake(0.2); break;
+    case 'shutterSmash': k.burst(870, 360, '#6b4024', 22, 'chip'); k.text('Shortcut!', 780, 300, true); k.shake(0.2); break;
     case 'shutterLocked': k.text('Locked fast', 820, 330); break;
-    case 'liftHer': k.burst(HOUSE.beloved, HOUSE.floors[2] - 70, '#f3c6dc', 20); break;
-    case 'floorBreak': k.shake(0.6); k.burst(560, 560, '#3a2112', 24); k.burst(820, 440, '#e9a46a', 14); break;
-    case 'thud': k.burst(at.x, at.y, '#b98a5e', 10); break;
-    case 'houseFall': k.shake(0.8); k.burst(330, 300, '#e9a46a', 30); break;
+    case 'liftHer': k.burst(HOUSE.beloved, HOUSE.floors[2] - 70, '#f3c6dc', 20, 'sparkle'); break;
+    case 'floorBreak': k.shake(0.6); k.burst(560, 560, '#3a2112', 24, 'chip'); k.burst(820, 440, '#e9a46a', 14, 'sparkle'); break;
+    case 'thud': k.burst(at.x, at.y, '#b98a5e', 10, 'chip'); break;
+    case 'houseFall': k.shake(0.8); k.burst(330, 300, '#e9a46a', 30, 'sparkle'); k.burst(330, 340, '#6b4024', 20, 'chip'); break;
     case 'ending': break;
-    case 'moonboatRise': k.burst(900, 540, '#eef3ea', 26); break;
-    case 'witchClaim': k.burst(800, 520, '#f3c6dc', 20); break;
-    case 'lampLit': k.flash(0.3); k.burst(372, 268, '#d9b34a', 22); break;
-    case 'stonePlop': k.burst(990, 540, '#eef3ea', 18); break;
+    case 'moonboatRise': k.burst(900, 540, '#eef3ea', 26, 'drop'); break;
+    case 'witchClaim': k.burst(800, 520, '#f3c6dc', 20, 'sparkle'); break;
+    case 'lampLit': k.flash(0.3); k.burst(372, 268, '#d9b34a', 22, 'sparkle'); break;
+    case 'stonePlop': k.burst(990, 540, '#eef3ea', 18, 'drop'); break;
     case 'pageant': k.flash(0.4); break;
-    case 'pageantJoin': { const s = joinerSlot(e.n - 1); k.burst(s.x, 540, REVELLER_COLS[(e.n - 1) % 6], 8); break; }
-    case 'pageantApplause': for (const col of ['#f3c6dc', '#d9b34a', '#5f8c88', '#eef3ea']) k.burst(640, 260, col, 18); break;
+    case 'pageantJoin': { const s = joinerSlot(e.n - 1); k.burst(s.x, 540, REVELLER_COLS[(e.n - 1) % 6], 8, 'confetti'); break; }
+    case 'pageantApplause': for (const col of ['#f3c6dc', '#d9b34a', '#5f8c88', '#eef3ea']) k.burst(640, 260, col, 18, 'confetti'); break;
     default: break;
   }
 }

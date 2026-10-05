@@ -7,7 +7,7 @@ import * as art from './act1-art.js';
 
 // Ending timeline, seconds per phase. Each scene shows its moment and moves
 // on: the deck rises as soon as the ship's bell has rung.
-export const ENDING = { landho: 1.7, party: 6, turn: 4.4, wreck: 4.6, sink: 3.6, iris: 1.2 };
+export const ENDING = { landho: 1.7, party: 6, turn: 4.4, wreck: 4.6, sink: 5.0, iris: 1.2 };
 export const LANTERNS = 4; // paper lanterns lit on the beat during the party
 // Cues within the turn and the wreck (seconds into the phase).
 export const CUES = { strike: 1.2, shipBreak: 2.0, splash: 3.2 };

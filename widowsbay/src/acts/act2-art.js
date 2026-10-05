@@ -42,25 +42,30 @@ export function drawOver(k, st) {
 export function onEvent(k, e, st) {
   const s = st.sailor, x = s.x, y = sy(st, s.y);
   switch (e.type) {
-    case 'sailorWake': k.burst(x, y - 20, '#eef3ea', 14); break;
+    case 'sailorWake': k.burst(x, y - 20, '#eef3ea', 14, 'bubble'); break;
     case 'swimStart': k.text('Follow the guitar down', 640, 200, true); break;
-    case 'swimKick': k.burst(x - s.face * 70, y + 10, '#eef3ea', 6); break;
-    case 'conchBlow': k.burst(e.x, sy(st, e.y) - 30, '#d9b34a', 22); k.text('The conch sings! Wake the sleepers', 640, 200, true); break;
-    case 'sleeperWake': k.burst(e.x, sy(st, e.y) - 20, '#d9b34a', 14); k.text(`Awake ${e.n}`, e.x, sy(st, e.y) - 60); break;
-    case 'pearl': k.burst(e.x, sy(st, e.y), '#eef3ea', 10); k.text('+50', e.x, sy(st, e.y) - 40); break;
-    case 'hit': k.shake(0.35); k.burst(x, y, '#c8321e', 16); break;
+    case 'swimKick': k.burst(x - s.face * 70, y + 10, '#eef3ea', 6, 'bubble'); break;
+    case 'conchBlow': k.burst(e.x, sy(st, e.y) - 30, '#d9b34a', 22, 'sparkle'); k.text('The conch sings! Wake the sleepers', 640, 200, true); break;
+    case 'sleeperWake': k.burst(e.x, sy(st, e.y) - 20, '#d9b34a', 14, 'bubble'); k.burst(e.x, sy(st, e.y) - 20, '#d9b34a', 8, 'sparkle'); k.text(`Awake ${e.n}`, e.x, sy(st, e.y) - 60); break;
+    case 'pearl': k.burst(e.x, sy(st, e.y), '#eef3ea', 10, 'sparkle'); k.text('+50', e.x, sy(st, e.y) - 40); break;
+    case 'hit': k.shake(0.35); k.burst(x, y, '#c8321e', 12, 'streak'); k.burst(x, y, '#eef3ea', 8, 'bubble'); break;
     case 'airOut': k.text('Out of air!', x, y - 80, true); break;
     case 'airLow': k.text('Air low: find a vent', x, y - 80); break;
-    case 'airVent': k.burst(x, y - 30, '#eef3ea', 8); break;
-    case 'guitarCatch': k.burst(x, y, '#d9b34a', 26); k.text('The guitar!', x, y - 90, true); break;
-    case 'witchOffer': k.burst(WITCH_X - 50, sy(st, FLOOR) - 130, '#f3c6dc', 16); break;
-    case 'roseTake': k.flash(0.5); k.burst(x, y, '#e0127a', 24); break;
+    case 'airVent': k.burst(x, y - 30, '#eef3ea', 8, 'bubble'); break;
+    case 'guitarCatch': k.burst(x, y, '#d9b34a', 26, 'sparkle'); k.text('The guitar!', x, y - 90, true); break;
+    case 'witchOffer': k.burst(WITCH_X + WITCH_ROSE.x, sy(st, FLOOR) + 44 + WITCH_ROSE.y, '#f3c6dc', 16, 'sparkle'); break;
+    case 'roseTake': {
+      // the rose lands in his hands; her wand star scatters the spell that wakes them all
+      const wy = sy(st, FLOOR) + 44 + WITCH_WAND.y;
+      k.flash(0.5); k.burst(x, y, '#e0127a', 18, 'sparkle'); k.burst(WITCH_X + WITCH_WAND.x, wy, '#fff2b0', 26, 'sparkle');
+      break;
+    }
     case 'sleepersRise': k.text('Every sleeper wakes!', 640, 220, true); break;
     case 'witchLaugh': k.shake(0.25); k.text('Her laugh rings through the grotto', 640, 220); break;
-    case 'drown': k.burst(x, y - 20, '#eef3ea', 20); break;
+    case 'drown': k.burst(x, y - 20, '#eef3ea', 20, 'bubble'); break;
     case 'rideStart': break;
-    case 'ridePearl': k.burst(RIDE.boatX + 40, boatY(st) - 40, '#eef3ea', 10); k.text('+25', RIDE.boatX + 40, boatY(st) - 90); break;
-    case 'rideRow': k.burst(RIDE.boatX, boatY(st) + 10, '#eef3ea', 6); break;
+    case 'ridePearl': k.burst(RIDE.boatX + 40, boatY(st) - 40, '#eef3ea', 10, 'sparkle'); k.text('+25', RIDE.boatX + 40, boatY(st) - 90); break;
+    case 'rideRow': k.burst(RIDE.boatX, boatY(st) + 10, '#eef3ea', 6, 'drop'); break;
     default: break;
   }
 }
@@ -642,24 +647,60 @@ function witchFigure(k, x, by, bend, rose, t, wandUp = 0) {
   c.restore();
 }
 
+// Points on the delivered witch-stand art, drawn 150x242 from her feet: the
+// rose in her raised hand, the star of her wand and her lips.
+const WITCH_ROSE = { x: -63, y: -209 }, WITCH_WAND = { x: 31, y: -166 }, WITCH_LIPS = { x: -18, y: -218 };
+const rot = (p, a) => ({ x: p.x * Math.cos(a) - p.y * Math.sin(a), y: p.x * Math.sin(a) + p.y * Math.cos(a) });
+
+// The opening: she sinks down in front of the wreck shelf and stands on the
+// sea floor below it, so her face comes up beside the drowned sailor's; she
+// leans in and breathes a stream of bubbles into him; as he turns upright,
+// bubbles well up around him and carry her away.
+const SEA_FLOOR = 646;   // screen y of the rocky floor in front of the shelf (opening view)
 function openingWitch(k, st, t) {
   const pt = st.phaseT, c = k.c, s = st.sailor;
-  const down = easeOut((pt - 2.2) / 1.1), up = easeInOut((pt - 5.0) / 1.2);
+  const down = easeOut((pt - 2.2) / 1.1), up = easeInOut((pt - 4.9) / 1.5);
   if (down <= 0 || up >= 1) return;
-  const x = s.x + 185, by = lerp(-80, sy(st, SHELF_Y) + 2, down) - up * 700;
-  const bend = -0.22 * easeInOut((pt - 3.2) / 0.5) * (1 - easeInOut((pt - 4.7) / 0.4));
+  const face = { x: s.x + 60, y: sy(st, s.y) - 6 };         // his face, lying on his back
+  const lean = -0.1 * easeInOut((pt - 3.2) / 0.5) * (1 - up);
+  const lips = rot(WITCH_LIPS, -0.1);
+  const x = face.x + 60 - lips.x;                            // her lips beside his face
+  const by = lerp(-80, SEA_FLOOR, down) - up * 760;
   k.wire(x - 20, 0, by - 230); k.wire(x + 20, 0, by - 230);
-  witchFigure(k, x, by, bend, false, t);
-  // her breath: a drift of gold motes from her lips to his
-  if (pt > 3.5 && pt < 5.0) {
-    c.fillStyle = k.col('#ffe27a');
-    for (let i = 0; i < 8; i++) {
-      const f = (pt * 1.2 + i / 8) % 1;
-      c.globalAlpha = 0.8 * Math.sin(Math.PI * f);
-      k.circle(lerp(x - 50, s.x + 60, f), lerp(sy(st, s.y) - 150, sy(st, s.y) - 6, f) + Math.sin(f * 9 + i) * 6, 3);
+  witchFigure(k, x, by, lean, false, t);
+  // her breath: a stream of bubbles from her lips to his
+  if (pt > 3.5 && pt < 5.1) {
+    const from = rot(WITCH_LIPS, lean);
+    c.strokeStyle = k.col('#fff2c0'); c.lineWidth = 2; c.fillStyle = k.col('#ffe9a8');
+    for (let i = 0; i < 9; i++) {
+      const f = (pt * 1.1 + i / 9) % 1, r = 5 + (i % 3) * 2;
+      c.globalAlpha = 0.85 * Math.sin(Math.PI * f);
+      const bx = lerp(x + from.x - 6, face.x + 8, f), byy = lerp(by + from.y + 4, face.y - 4, f) + Math.sin(f * 9 + i) * 7;
+      c.beginPath(); c.arc(bx, byy, r, 0, Math.PI * 2); c.stroke();
+      c.beginPath(); c.arc(bx - r * 0.35, byy - r * 0.35, r * 0.25, 0, Math.PI * 2); c.fill();
     }
     c.globalAlpha = 1;
   }
+  // as he turns upright: bubbles well up around him and lift her away
+  if (pt > 4.85) risingBubbles(k, [face.x - 70, face.x + 40, x - 30, x + 30], face.y + 30, pt - 4.85, t);
+}
+
+// A column of bubbles rising from y0 across the x spans given (pairs), for
+// `age` seconds; drawn from time, so both passes match.
+function risingBubbles(k, spans, y0, age, t) {
+  const c = k.c;
+  c.save(); c.strokeStyle = k.col('#eef3ea'); c.fillStyle = k.col('#eef3ea'); c.lineWidth = 1.6;
+  for (let i = 0; i < 26; i++) {
+    const span = (i % (spans.length / 2)) * 2, a = spans[span], b = spans[span + 1];
+    const born = (i * 0.061) % 1.1, life = age - born;
+    if (life <= 0 || life > 1.6) continue;
+    const bx = a + ((i * 37) % 100) / 100 * (b - a) + Math.sin(t * 5 + i) * 8;
+    const byy = y0 - life * (150 + (i % 5) * 30), r = 3 + (i % 4) * 2 + life * 2;
+    c.globalAlpha = 0.8 * (1 - life / 1.6);
+    c.beginPath(); c.arc(bx, byy, r, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.arc(bx - r * 0.35, byy - r * 0.35, r * 0.25, 0, Math.PI * 2); c.fill();
+  }
+  c.restore();
 }
 
 function openingDragon(k, st, t) {
@@ -670,7 +711,8 @@ function openingDragon(k, st, t) {
 }
 
 function closeWitch(k, st, t) {
-  const pt = st.phaseT, c = k.c, by = sy(st, FLOOR) + 4;
+  // her hem on the dark cave floor, in front of the coral ground row
+  const pt = st.phaseT, c = k.c, by = sy(st, FLOOR) + 44;
   let y = by, rose = true, wand = 0;
   if (st.phase === 'offer') y = lerp(-60, by, easeOut(pt / 1.4));
   else if (st.choice === 'take') { rose = pt < 0.2; wand = easeInOut((pt - 0.3) / 0.4) * (1 - easeInOut((pt - 1.6) / 0.6)); }
@@ -681,11 +723,11 @@ function closeWitch(k, st, t) {
   // the rose drifting to his hands
   if (st.phase === 'choice' && st.choice === 'take' && pt < 1) {
     const s = st.sailor, f = easeInOut(pt / 1);
-    k.keepsake('rose', lerp(WITCH_X - 64, s.x, f), lerp(y - 132, sy(st, s.y) - 30, f), 0.6);
+    k.keepsake('rose', lerp(WITCH_X + WITCH_ROSE.x, s.x, f), lerp(y + WITCH_ROSE.y, sy(st, s.y) - 30, f), 0.6);
   }
   if (st.phase === 'choice' && st.choice === 'take' && pt > 0.6 && pt < 2) {
     c.save(); c.globalAlpha = 0.25 * Math.sin(Math.PI * (pt - 0.6) / 1.4); c.fillStyle = k.col('#ffe27a');
-    k.circle(WITCH_X + 50, y - 200, 80); c.restore();
+    k.circle(WITCH_X + WITCH_WAND.x, y + WITCH_WAND.y, 80); c.restore();
   }
 }
 

@@ -130,24 +130,75 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   function voyageEvent(e, b) {
     const s = b.ship;
     const sy = ROWS[effectiveRow(s)].y;
-    if (e.type === 'pearl') { burst(s.x, sy - 30, PAL.foam, 8); text('+10', s.x, sy - 70); }
-    if (e.type === 'keepsake') { burst(s.x, sy - 40, PAL.gold, 22); text(LABEL[e.kind], s.x, sy - 90, true); }
-    if (e.type === 'hit') { fx.shake = 0.35; burst(s.x, sy - 20, PAL.coral, 16); }
+    if (e.type === 'pearl') { burst(s.x, sy - 30, PAL.foam, 8, 'sparkle'); text('+10', s.x, sy - 70); }
+    if (e.type === 'keepsake') { burst(s.x, sy - 40, PAL.gold, 22, 'sparkle'); text(LABEL[e.kind], s.x, sy - 90, true); }
+    if (e.type === 'hit') { fx.shake = 0.35; burst(s.x, sy - 20, PAL.coral, 12, 'streak'); burst(s.x, sy - 20, PAL.wood, 8, 'chip'); }
     if (e.type === 'strike') fx.flash = 1;
-    if (e.type === 'wreck') { fx.shake = 0.8; burst(s.x, sy - 20, PAL.wood, 30); }
-    if (e.type === 'leap' || e.type === 'row') burst(s.x - 40, sy, PAL.foam, 5);
+    if (e.type === 'wreck') { fx.shake = 0.8; burst(s.x, sy - 20, PAL.wood, 30, 'chip'); }
+    if (e.type === 'leap' || e.type === 'row') burst(s.x - 40, sy, PAL.foam, 5, 'drop');
   }
-  function burst(x, y, color, n) {
+  // Bursts suit what happens (`kind`):
+  //   confetti  paper strips that spin, flip and flutter down (celebrations)
+  //   sparkle   twinkling four-point stars that drift and fade (magic, glints)
+  //   bubble    rings that rise and wobble (anything underwater)
+  //   drop      water droplets thrown up and falling (splashes, foam)
+  //   chip      splinters of wood or stone that tumble down (breakages)
+  //   streak    short sharp rays from the point (hits)
+  // A white confetti or sparkle burst takes the theatre's colours.
+  const CONFETTI = ['#f3c6dc', '#e0127a', '#d9b34a', '#5f8c88', '#f1e3c8', '#a9c4e0'];
+  const WHITE = new Set(['#eef3ea', '#ffffff', '#efe9f2', PAL.foam]);
+  const R = Math.random, pick = (a) => a[(R() * a.length) | 0];
+  function burst(x, y, color, n, kind = 'confetti') {
+    const mixed = WHITE.has(color);
     for (let i = 0; i < n; i++) {
-      const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 180;
-      fx.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, life: 0.6 + Math.random() * 0.5, color });
+      const a = R() * Math.PI * 2, base = { x, y, kind, rot: R() * 6.3, spin: (R() - 0.5) * 14, color, t: 0 };
+      if (kind === 'sparkle') {
+        const v = 30 + R() * 110;
+        fx.particles.push({ ...base, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 30, life: 0.7 + R() * 0.7, r: 5 + R() * 6,
+          color: mixed ? pick(['#fff2b0', '#f3c6dc', '#ffffff', '#d9b34a']) : R() < 0.7 ? color : '#fff2b0', tw: R() * 6.3 });
+      } else if (kind === 'bubble') {
+        fx.particles.push({ ...base, x: x + (R() - 0.5) * 50, y: y + (R() - 0.5) * 30, vx: (R() - 0.5) * 30, vy: -60 - R() * 90,
+          life: 0.9 + R() * 0.9, r: 2.5 + R() * 6, sway: R() * 6.3, color: '#eef3ea' });
+      } else if (kind === 'drop') {
+        const v = 120 + R() * 220, up = -Math.abs(Math.sin(a)) * v - 120;
+        fx.particles.push({ ...base, vx: Math.cos(a) * v * 0.7, vy: up, life: 0.6 + R() * 0.5, r: 2 + R() * 3, color: mixed ? '#eef3ea' : color });
+      } else if (kind === 'chip') {
+        const v = 80 + R() * 240;
+        fx.particles.push({ ...base, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 180, life: 0.7 + R() * 0.6, w: 4 + R() * 7, h: 2 + R() * 4,
+          color: R() < 0.8 ? color : '#3a2112' });
+      } else if (kind === 'streak') {
+        fx.particles.push({ ...base, a: a, len: 16 + R() * 22, d: 8, v: 260 + R() * 220, life: 0.32 + R() * 0.15 });
+      } else {
+        const v = 60 + R() * 200;
+        fx.particles.push({ ...base, kind: 'confetti', vx: Math.cos(a) * v, vy: Math.sin(a) * v - 140, life: 0.9 + R() * 0.7,
+          color: mixed ? pick(CONFETTI) : R() < 0.75 ? color : pick(['#d9b34a', '#f1e3c8']),
+          w: 6 + R() * 5, h: 3 + R() * 2.5, flip: R() * 6.3, flipV: 6 + R() * 8, sway: R() * 6.3 });
+      }
     }
   }
   function text(str, x, y, big = false) { fx.texts.push({ str, x, y, life: big ? 1.8 : 0.9, big }); }
 
   function tick(dt, view) {
     const b = view?.state?.board || null;
-    for (const p of fx.particles) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt; }
+    for (const p of fx.particles) {
+      p.life -= dt; p.t += dt;
+      if (p.kind === 'confetti') {
+        // paper: quick to slow in the air, falls gently and sways as it goes
+        const drag = Math.exp(-2.6 * dt);
+        p.vx *= drag; p.vy = p.vy * drag + 300 * dt;
+        p.x += (p.vx + Math.sin(p.sway += dt * 5) * 30) * dt; p.y += Math.min(p.vy, 150) * dt;
+        p.rot += p.spin * dt; p.flip += p.flipV * dt;
+      } else if (p.kind === 'sparkle') {
+        const drag = Math.exp(-2 * dt); p.vx *= drag; p.vy *= drag;
+        p.x += p.vx * dt; p.y += p.vy * dt; p.tw += dt * 12;
+      } else if (p.kind === 'bubble') {
+        p.x += (p.vx + Math.sin(p.sway += dt * 6) * 18) * dt; p.y += p.vy * dt; p.r += dt * 1.5;
+      } else if (p.kind === 'streak') {
+        p.d += p.v * dt; p.v *= Math.exp(-6 * dt);
+      } else { // drop, chip
+        p.vy += 900 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.spin * dt;
+      }
+    }
     fx.particles = fx.particles.filter((p) => p.life > 0);
     for (const t of fx.texts) { t.life -= dt; t.y -= 40 * dt; }
     fx.texts = fx.texts.filter((t) => t.life > 0);
@@ -672,7 +723,34 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   function particles(c) {
     for (const p of fx.particles) {
       c.globalAlpha = Math.min(1, p.life * 2);
-      c.fillStyle = P.c(p.color); c.fillRect(p.x - 3, p.y - 3, 6, 6);
+      c.save(); c.translate(p.x, p.y);
+      if (p.kind === 'confetti') {
+        const f = Math.cos(p.flip); // the strip turning over: thin edge-on, darker on its back
+        c.rotate(p.rot); c.scale(1, Math.max(0.12, Math.abs(f)));
+        c.fillStyle = P.c(p.color); c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        if (f < 0) { c.fillStyle = 'rgba(40,20,30,0.28)'; c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); }
+      } else if (p.kind === 'sparkle') {
+        const r = p.r * (0.55 + 0.45 * Math.abs(Math.sin(p.tw)));
+        c.rotate(p.rot * 0.2); c.fillStyle = P.c(p.color);
+        c.beginPath();
+        for (let k = 0; k < 8; k++) { const rr = k % 2 ? r * 0.22 : r, an = (k / 8) * Math.PI * 2; c.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); }
+        c.closePath(); c.fill();
+        c.globalAlpha *= 0.35; c.beginPath(); c.arc(0, 0, r * 0.6, 0, Math.PI * 2); c.fill();
+      } else if (p.kind === 'bubble') {
+        c.strokeStyle = P.c(p.color); c.lineWidth = 1.5; c.globalAlpha *= 0.85;
+        c.beginPath(); c.arc(0, 0, p.r, 0, Math.PI * 2); c.stroke();
+        c.fillStyle = P.c(p.color); c.globalAlpha *= 0.6; c.beginPath(); c.arc(-p.r * 0.35, -p.r * 0.35, p.r * 0.25, 0, Math.PI * 2); c.fill();
+      } else if (p.kind === 'drop') {
+        c.rotate(Math.atan2(p.vy, p.vx) - Math.PI / 2); c.fillStyle = P.c(p.color);
+        c.beginPath(); c.ellipse(0, 0, p.r, p.r * 1.8, 0, 0, Math.PI * 2); c.fill();
+      } else if (p.kind === 'chip') {
+        c.rotate(p.rot); c.fillStyle = P.c(p.color);
+        c.beginPath(); c.moveTo(-p.w / 2, -p.h / 2); c.lineTo(p.w / 2, -p.h / 3); c.lineTo(p.w / 3, p.h / 2); c.lineTo(-p.w / 2, p.h / 3); c.closePath(); c.fill();
+      } else if (p.kind === 'streak') {
+        c.rotate(p.a); c.strokeStyle = P.c(p.color); c.lineWidth = 3; c.lineCap = 'round';
+        c.beginPath(); c.moveTo(p.d, 0); c.lineTo(p.d + p.len * Math.min(1, p.life * 4), 0); c.stroke();
+      }
+      c.restore();
     }
     c.globalAlpha = 1;
     for (const t of fx.texts) {

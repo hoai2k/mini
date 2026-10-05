@@ -53,13 +53,13 @@ export function drawOver(k, st) {
 
 export function onEvent(k, e, st) {
   if (e.x != null) e = { ...e, x: e.x - st.cam };
-  if (e.type === 'pearl') { k.burst(e.x, e.y - 20, '#eef3ea', 8); k.text('+10', e.x, e.y - 60); }
-  if (e.type === 'spotted') { k.flash(0.55); k.shake(0.3); k.text('Spotted!', e.x, e.y - 200, true); k.burst(e.x, e.y - 80, '#e0127a', 14); }
-  if (e.type === 'guardBump') { k.shake(0.3); k.burst(e.x, e.y - 60, '#d9b34a', 12); }
-  if (e.type === 'sentryBite') { k.shake(0.4); k.burst(e.x, e.y - 30, '#c8321e', 16); }
+  if (e.type === 'pearl') { k.burst(e.x, e.y - 20, '#eef3ea', 8, 'sparkle'); k.text('+10', e.x, e.y - 60); }
+  if (e.type === 'spotted') { k.flash(0.55); k.shake(0.3); k.text('Spotted!', e.x, e.y - 200, true); k.burst(e.x, e.y - 80, '#e0127a', 14, 'streak'); }
+  if (e.type === 'guardBump') { k.shake(0.3); k.burst(e.x, e.y - 60, '#d9b34a', 12, 'streak'); }
+  if (e.type === 'sentryBite') { k.shake(0.4); k.burst(e.x, e.y - 30, '#c8321e', 14, 'streak'); }
   if (e.type === 'unseen') { k.text('Unseen +25', e.x, e.y - 190); }
   if (e.type === 'whalePass') { k.shake(0.25); }
-  if (e.type === 'pearlTaken') { const px = PEDESTAL.x - st.cam; k.burst(px, 260, '#eef3ea', 22); k.burst(px, 260, '#f3c6dc', 14); k.text('Her pearl', px - 60, 200, true); }
+  if (e.type === 'pearlTaken') { const px = PEDESTAL.x - st.cam; k.burst(px, 260, '#eef3ea', 22, 'sparkle'); k.burst(px, 260, '#f3c6dc', 14, 'sparkle'); k.text('Her pearl', px - 60, 200, true); }
   if (e.type === 'whaleTurn') k.shake(0.4);
   if (e.type === 'swallow') { k.shake(0.9); k.flash(0.4); }
 }

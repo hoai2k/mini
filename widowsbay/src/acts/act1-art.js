@@ -50,13 +50,13 @@ export function onEvent(k, e, st) {
   if (st.phase === 'voyage' || st.phase === 'landho') return k.voyageEvent(e, st.board);
   if (e.type === 'partyHit') {
     const x = lanternX(e.n - 1);
-    for (const c of LANTERN_COLS) k.burst(x, 170, c, 6);
+    for (const c of LANTERN_COLS) k.burst(x, 170, c, 6, 'confetti');
     k.text('♪', x, 140);
   }
-  if (e.type === 'revelry') { k.text('Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20); }
+  if (e.type === 'revelry') { k.text('Revelry!', 640, 260, true); for (const c of LANTERN_COLS) k.burst(640, 300, c, 20, 'confetti'); }
   if (e.type === 'strike') { k.flash(1); k.shake(0.5); }
-  if (e.type === 'shipBreak') { k.shake(0.8); k.burst(560, 470, '#6b4024', 30); }
-  if (e.type === 'splash') { k.burst(520, 520, '#eef3ea', 26); k.burst(620, 520, '#eef3ea', 26); }
+  if (e.type === 'shipBreak') { k.shake(0.8); k.burst(560, 470, '#6b4024', 30, 'chip'); }
+  if (e.type === 'splash') { k.burst(520, 520, '#eef3ea', 26, 'drop'); k.burst(620, 520, '#eef3ea', 26, 'drop'); }
 }
 
 // ---------------------------------------------------------------- party
@@ -262,6 +262,17 @@ function shipWreck(k, st, pt, t) {
 }
 
 // ---------------------------------------------------------------- the deep
+// Who sinks before the guitar: when (s into the scene), where, how they turn.
+// w is the art's width over its height.
+const FALLERS = [
+  { id: 'reveller-jester', x: 300, at: 0.0, spin: 1, tilt: 0.4, h: 150, w: 0.52, col: '#8a3f7a' },
+  { id: 'reveller-yellow', x: 920, at: 0.35, spin: -1, tilt: -0.3, h: 150, w: 0.52, col: '#e3c13b' },
+  { id: 'sailor-stand', x: 620, at: 0.6, spin: 0.7, tilt: 1.2, h: 170, w: 0.61, col: '#26304a' },
+  { id: 'reveller-shaggy', x: 460, at: 0.95, spin: -0.8, tilt: 0.2, h: 150, w: 0.52, col: '#6f9a4a' },
+  { id: 'reveller-lady', x: 1060, at: 1.25, spin: 1.1, tilt: -0.6, h: 150, w: 0.52, col: '#e7a6bd' },
+];
+const GUITAR_AT = 2.3;
+
 function sinking(k, st, pt, t) {
   const c = k.c;
   const g = c.createLinearGradient(0, 60, 0, 720);
@@ -278,14 +289,28 @@ function sinking(k, st, pt, t) {
     for (let y = 700; y > 420 + (i % 3) * 60; y -= 30) c.lineTo(x + Math.sin(t * 1.3 + y * 0.02 + i) * 22, y);
     c.stroke();
   }
-  // the guitar tumbling down, as in the video at 1:05
-  const gy = -120 + easeOut(pt / (ENDING.sink + ENDING.iris)) * 520, gx = 640 + Math.sin(t * 0.8) * 30;
+  // first the revellers and the sailor go down through the water, limp and
+  // turning slowly, trailing bubbles
+  for (const f of FALLERS) {
+    const k2 = (pt - f.at) / 2.6;
+    if (k2 <= 0 || k2 >= 1) continue;
+    const fy = -160 + k2 * 1000, fx = f.x + Math.sin(t * 0.9 + f.at * 3) * 26;
+    c.save(); c.translate(fx, fy); c.rotate(f.spin * k2 * 2.4 + f.tilt);
+    if (!k.asset(f.id, 0, f.h / 2, f.h * f.w, f.h)) figure(k, 0, f.h / 2, f.col, 0, f.h / 160);
+    c.restore();
+    c.fillStyle = k.col('#eef3ea');
+    for (let i = 0; i < 5; i++) { const by = fy - 70 - ((t * 70 + i * 40) % 200); c.globalAlpha = 0.45; k.circle(fx + Math.sin(t * 3 + i) * 10, by, 2 + (i % 3)); }
+    c.globalAlpha = 1;
+  }
+  // then the guitar tumbling down, as in the video at 1:05
+  const gk = clamp((pt - GUITAR_AT) / (ENDING.sink + ENDING.iris - GUITAR_AT), 0, 1);
+  const gy = -120 + easeOut(gk) * 520, gx = 640 + Math.sin(t * 0.8) * 30;
   c.save(); c.translate(gx, gy); c.rotate(0.6 + Math.sin(t * 0.7) * 0.25);
   if (!k.asset('guitar-sinking', 0, 130, 110, 260)) guitarStandin(k);
   c.restore();
   // bubbles
   c.fillStyle = k.col('#eef3ea');
-  for (let i = 0; i < 18; i++) {
+  if (gk > 0) for (let i = 0; i < 18; i++) {
     const by = 720 - ((t * 60 + i * 97) % 700), bx = gx - 60 + ((i * 53) % 120) + Math.sin(t * 2 + i) * 8;
     c.globalAlpha = 0.5; k.circle(bx, by, 3 + (i % 4));
   }
