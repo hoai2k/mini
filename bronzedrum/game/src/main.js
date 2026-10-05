@@ -1,7 +1,7 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
 import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, commandById, parsePattern } from './rhythm.js';
-import { createBattle, issueOrder, addFlourish, stepArmy, stepEnemies, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
+import { createBattle, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { Sound } from './audio.js';
 import { Input } from './input.js';
@@ -307,6 +307,11 @@ function feedback(text, color) {
   game.feedback = { text, color, t: songTime() };
 }
 
+/** A short confirmation under the drum for the reset and guard buttons. */
+function confirm(text, color) {
+  game.confirm = { text, color, t: songTime() };
+}
+
 input.on('drum', ({ drum, time }) => {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   const t = hitTime(time);
@@ -320,10 +325,15 @@ input.on('drum', ({ drum, time }) => {
 input.on('action', ({ action, time }) => {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   if (action === 'reset') {
-    for (const ev of game.reader.reset()) handleRhythm(ev);
+    // Clear the phrase: the dots tumble away and "Cleared" shows under the drum.
+    const shown = view().phraseView;
+    const events = game.reader.reset();
+    if (events.length && shown && !shown.done) renderer.clearDots(shown, songTime());
+    for (const ev of events) handleRhythm(ev);
   } else if (action === 'guard') {
+    // The shield wall: separate from the drum, timed to attacks in flight.
     const t = hitTime(time);
-    if (guard(game.battle, t)) {
+    if (guard(game.battle, Math.max(t, game.battle.time))) {
       sound.play('cmd-shield', sound.now, 0.7);
       input.rumble(40, 0.3);
       game.guards += 1;
@@ -406,7 +416,7 @@ function handleRhythm(ev) {
     feedback(`Nhị’s flourish ×${ev.count}`, P.lacquer);
     g.flourishTaught = true;
   } else if (ev.type === 'reset') {
-    if (ev.reason === 'manual') feedback('Rhythm cleared', P.paperShade);
+    if (ev.reason === 'manual') confirm('Cleared', P.paperShade);
     else if (ev.reason !== 'no-pattern' && ev.strokes >= 2) feedback(ev.reason === 'timeout' ? 'The rhythm fades' : 'Uneven — start again', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
   } else if (ev.type === 'comboLost') {
@@ -440,7 +450,7 @@ function hint(view) {
     return null;
   }
   const guardKey = { keyboard: 'Space', gamepad: 'A', pointer: 'tap the drum' }[input.device] || 'Space';
-  if (g.index > 0 && view.threats.length && g.blocks < 3 && !view.shieldsUp) return `“!” — guard (${guardKey}) as the red ring closes`;
+  if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return `Attack coming — shield (${guardKey}) while it is in the air`;
   if (g.index === 1 && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
     return `Triplets hit hardest — ${say('strike', 3)}`;
   }
@@ -473,12 +483,17 @@ function updatePlay(dt) {
     events.push(...stepEnemies(g.battle, g.nextHan * g.hanBeat));
     g.nextHan += 1;
   }
+  // Their blows land: deflected if the shield wall is up when they arrive.
+  if (!g.ended) events.push(...resolveIncoming(g.battle, t));
   if (events.length) renderer.spawn(events, view());
   for (const ev of events) {
     battleSound(ev);
     if (ev.type === 'trample') input.rumble(300, 1);
-    if (ev.type === 'wound' && !ev.shielded) input.rumble(80, 0.4);
-    if (ev.type === 'wound' && ev.block) g.blocks += 1;
+    if (ev.type === 'wound') input.rumble(80, 0.4);
+    if (ev.type === 'deflect') {
+      g.blocks += 1;
+      confirm('Defended', P.bronzeLight);
+    }
     if (ev.type === 'outcome') finish(ev.outcome);
   }
   renderer.draw(view(), dt);
@@ -501,11 +516,15 @@ function battleSound(ev) {
     case 'volley':
       sound.play('volley');
       break;
-    case 'bolts':
-      sound.play('bolts');
+    case 'launch':
+      if (ev.kind !== 'spear') sound.play('volley', sound.now, 0.6);
+      break;
+    case 'deflect':
+      sound.play('blocked');
       break;
     case 'wound':
-      sound.play(ev.shielded ? 'blocked' : 'wound');
+      sound.play(ev.kind === 'spear' ? 'hit-paper' : 'bolts', sound.now, 0.8);
+      sound.play('wound', sound.now, 0.6);
       break;
     case 'trample':
       if (!sound.play('trample')) sound.thud();
@@ -547,8 +566,10 @@ function view() {
     // The army's current cycle, so the animation can follow the drummed strokes.
     cycle: c && t >= c.start - 0.05 ? { start: c.start, u: c.u, command: c.command, strokes: c.pattern.strokes } : null,
     threats: aboutToAttack(g.battle),
-    nextHanAt: g.nextHan * g.hanBeat, // when the threatened blows land
-    hanBeat: g.hanBeat,
+    incoming: g.battle.incoming.length,
+    guardAt: g.battle.guardAt,
+    guardUntil: g.battle.guardUntil,
+    confirm: g.confirm,
     sustaining: !!(c && c.index > 0 && !r.phrase.length),
     inResponse: !!g.battle.order,
     responseCommand: g.battle.order ? g.battle.order.command : null,

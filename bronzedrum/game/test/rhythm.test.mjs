@@ -64,6 +64,14 @@ test('evenness, not a grid: small wobbles pass, big ones break the phrase', () =
   assert.ok(events.some((e) => e.type === 'reset' && e.reason === 'uneven'));
 });
 
+test('movement starts on tùng, attacks on cắc', () => {
+  for (const c of COMMANDS) {
+    const first = c.kind === 'move' ? 'L' : c.kind === 'attack' ? 'R' : null;
+    if (!first) continue;
+    for (const t of c.tiers) assert.equal(t[0], first, `${c.id}: ${t}`);
+  }
+});
+
 test('deep strokes are never played in quick succession', () => {
   for (const p of allPatterns()) {
     const deep = p.strokes.filter((s) => s.drum === 'L').map((s) => s.pos);

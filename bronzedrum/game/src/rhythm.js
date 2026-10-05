@@ -39,12 +39,13 @@ const CHAIN_WINDOW = 2; // beats after "ready" to keep the chain
 // Beats are separated by spaces; strokes in one beat share it evenly. The deep
 // centre stroke (L) needs room to ring, so two of them are always at least a
 // beat apart: quick pairs and triplets are played on the rim (R), at most
-// opening with a single deep stroke.
+// opening with a single deep stroke. The first stroke says what kind of order
+// it is: movement starts on the deep centre (L), attacks on the rim (R).
 export const COMMANDS = [
-  { id: 'march', name: 'Tiến', gloss: 'March', tiers: ['L L L R', 'L L LR R', 'L RRR L R'] },
-  { id: 'strike', name: 'Đánh', gloss: 'Strike', tiers: ['R R L R', 'RR R L R', 'RRR R L R'] },
-  { id: 'rally', name: 'Hô', gloss: 'Rally', tiers: ['R L L L', 'R LR L L', 'RRR L L L'] },
-  { id: 'charge', name: 'Voi', gloss: 'Elephant charge', tiers: ['L L R R', 'L L RR R', 'L L RRR RR'] },
+  { id: 'march', name: 'Tiến', gloss: 'March', kind: 'move', tiers: ['L L L R', 'L L LR R', 'L RRR L R'] },
+  { id: 'strike', name: 'Đánh', gloss: 'Strike', kind: 'attack', tiers: ['R R L R', 'RR R L R', 'RRR R L R'] },
+  { id: 'rally', name: 'Hô', gloss: 'Rally', kind: 'support', tiers: ['R L L L', 'R LR L L', 'RRR L L L'] },
+  { id: 'charge', name: 'Voi', gloss: 'Elephant charge', kind: 'attack', tiers: ['R L R L', 'R L RR L', 'RRR L RR L'] },
 ];
 
 /** Expand "L LL R ..." into strokes with positions in beats. */

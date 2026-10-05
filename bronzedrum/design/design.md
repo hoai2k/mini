@@ -23,7 +23,7 @@ Sources:
 | --- | --- | --- | --- | --- |
 | **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ← | F D A ← | left half of the screen |
 | **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad → | J K L → | right half of the screen |
-| **Guard** | the army's shields | A | Space | tap the bronze drum |
+| **Shield** | the army's shield wall | A | Space | tap the bronze drum |
 | **Reset the rhythm** | | Y | R / Backspace | (the phrase fades by itself) |
 
 The two leads' temperaments are built into the controls: Trắc holds the beat and
@@ -66,22 +66,29 @@ are Nhị's flourishes (+10% each, up to four).
 keeps the chain. Four in a row wakes the drum (*trống thức*), and every command
 becomes ×1.5 as strong.
 
-**The guard.** Defence is separate from the drum. A Han soldier about to strike
-shows a red "!" one beat of his war drum ahead, ringed by a circle that closes
-on the moment of impact. Guarding within 0.5 s before the blow takes ×0.35 of
-it; within 0.2 s, ×0.1 (a perfect block). The guard then needs about a second
-before it can be raised again. It neither reads nor changes the rhythm, the
-chain or the army's orders. Each Han soldier winds up for one beat before his
-first blow, so the warning always comes first.
+**The shield.** Defence is separate from the drum. Han attacks travel and can
+be seen coming: crossbow bolts fly for 0.9 s, the fort's volleys for 1.1 s, and
+a spearman draws back for 0.7 s before his thrust lands. Pressing shield raises
+a translucent dome rimmed with bronze shields over the whole army. It stays up
+at least 0.5 s, and in any case until everything already in the air has landed,
+so pressing while an attack is visibly on its way always deflects it fully.
+Feedback is "Defended" under the drum, a ringing sound and sparks. Raising the
+shield with nothing incoming makes it slower to be ready again (0.9 s against
+0.3 s). A red "!" marks a Han soldier winding up for his first blow.
+
+**Confirmations.** "Cleared" (Y) and "Defended" (a deflected attack) appear
+under the drum. When the rhythm is cleared, its dots tumble away.
 
 | Command | Tier I | Tier II | Tier III | Effect | Unlocked |
 | --- | --- | --- | --- | --- | --- |
 | Tiến · March | `L L L R` | `L L LR R` | `L RRR L R` | advance, stopping at the enemy line | ch. 1 |
 | Đánh · Strike | `R R L R` | `RR R L R` | `RRR R L R` | spears hit the front enemy; archers shoot | ch. 1 |
 | Hô · Rally | `R L L L` | `R LR L L` | `RRR L L L` | restore strength | ch. 3 |
-| Voi · Elephant charge | `L L R R` | `L L RR R` | `L L RRR RR` | only with the drum awake: trample everything near the elephant; spends the drum's spirit | ch. 3 |
+| Voi · Elephant charge | `R L R L` | `R L RR L` | `RRR L RR L` | only with the drum awake: trample everything near the elephant; spends the drum's spirit | ch. 3 |
 
-In the patterns, L is tùng and R is cắc. Spaces separate the four beats; letters
+In the patterns, L is tùng and R is cắc. The first stroke says what kind of
+order it is: movement (march) starts on tùng, attacks (strike, charge) on cắc.
+Rally is a support order. Spaces separate the four beats; letters
 written together share a beat. Chapter 1 allows tiers I and II, and the later
 chapters allow all three.
 
@@ -93,9 +100,10 @@ chapters allow all three.
 
 **Balance check.** The battle tests play every chapter with a scripted player
 who drums a phrase, waits for the answer, and starts the next at once.
-- A steady player using only tier I and guarding loosely (0.4 s early) wins all
-  three chapters with a fifth or more of the army left.
-- Higher tiers win faster, and sharper guarding (0.1 s) saves more of the army.
+- A steady player using only tier I and shielding each volley wins all three
+  chapters with most of the army left.
+- Without shielding, they still win with about 40% left.
+- Higher tiers win faster.
 - Sloppy drumming, fast or slow, still clears chapters 1 and 2.
 
 ## Structure for the full game

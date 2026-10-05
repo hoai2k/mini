@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createBattle, issueOrder, stepArmy, stepEnemies, addFlourish, commandPower, blocker,
-  guard, shieldsUp, aboutToAttack, GUARD, tempoFactor,
+  guard, shieldsUp, aboutToAttack, GUARD, FLIGHT, tempoFactor, resolveIncoming,
 } from '../src/battle.js';
 import { STAGES } from '../src/stages.js';
 import { COMMANDS, TIER_POWER } from '../src/rhythm.js';
@@ -52,51 +52,68 @@ test('stronger tiers and the waking drum raise power', () => {
 test('the Han wind up for a beat before their first blow, and show it', () => {
   const b = createBattle(stage('outpost'));
   b.army.x = 18; // the first crossbow (x 20) is in range
+  for (const e of b.enemies) if (e.type === 'spear') e.alive = false;
   const first = stepEnemies(b, 0.6);
-  assert.ok(!first.some((e) => e.type === 'wound'), 'no blow on the beat they engage');
+  assert.ok(!first.some((e) => e.type === 'launch'), 'nothing loosed on the beat they engage');
   assert.ok(aboutToAttack(b).length > 0, 'the warning shows');
-  const second = stepEnemies(b, 1.2);
-  assert.ok(second.some((e) => e.type === 'wound'));
+  assert.ok(stepEnemies(b, 1.2).some((e) => e.type === 'launch'));
 });
 
-/** Two outposts with the first crossbow winding up; the blow lands at t = 1.2. */
+/** An outpost where only the first crossbow is in play; it has wound up and looses at t = 1.2. */
 function windup() {
   const b = createBattle(stage('outpost'));
   b.army.x = 18;
+  for (const e of b.enemies) if (e.type === 'spear') e.alive = false;
   stepEnemies(b, 0.6);
   return b;
 }
 const lost = (b) => b.army.maxTroops - b.army.troops;
 
-test('the guard is timed to the blow: perfect, good, or too early', () => {
-  const open = windup();
-  stepEnemies(open, 1.2);
-  const perfect = windup();
-  assert.ok(guard(perfect, 1.2 - 0.1));
-  const pe = stepEnemies(perfect, 1.2);
-  assert.equal(pe.find((e) => e.type === 'wound').block, 'perfect');
-  const good = windup();
-  guard(good, 1.2 - 0.4);
-  stepEnemies(good, 1.2);
-  const early = windup();
-  guard(early, 1.2 - 0.7);
-  stepEnemies(early, 1.2);
-  assert.ok(lost(open) > 0);
-  assert.ok(Math.abs(lost(perfect) - lost(open) * GUARD.best) < 1e-9);
-  assert.ok(Math.abs(lost(good) - lost(open) * GUARD.good) < 1e-9);
-  assert.equal(lost(early), lost(open), 'raised too early, the shields are down again');
+test('attacks travel: launched on the Han beat, they land a moment later', () => {
+  const b = windup();
+  const ev = stepEnemies(b, 1.2);
+  const launch = ev.find((e) => e.type === 'launch');
+  assert.ok(launch, 'the bolts leave');
+  assert.ok(Math.abs(launch.arrive - (1.2 + FLIGHT.crossbow)) < 1e-9);
+  assert.equal(lost(b), 0, 'nothing lands at launch');
+  assert.equal(resolveIncoming(b, launch.arrive - 0.01).length, 0);
+  assert.ok(resolveIncoming(b, launch.arrive).some((e) => e.type === 'wound'));
+  assert.ok(lost(b) > 0);
 });
 
-test('the guard needs a moment to recover', () => {
-  const b = createBattle(stage('outpost'));
-  assert.ok(guard(b, 1));
-  assert.ok(shieldsUp(b, 1.3));
-  assert.ok(!guard(b, 1.3), 'still up / recovering');
-  assert.ok(!shieldsUp(b, 1 + GUARD.window + 0.01));
-  assert.ok(guard(b, 1 + GUARD.window + GUARD.recover));
+test('a shield raised while the attack is in the air deflects it', () => {
+  for (const delay of [0.05, 0.4, FLIGHT.crossbow - 0.05]) {
+    const b = windup();
+    stepEnemies(b, 1.2);
+    assert.ok(guard(b, 1.2 + delay));
+    const ev = resolveIncoming(b, 1.2 + FLIGHT.crossbow);
+    assert.ok(ev.some((e) => e.type === 'deflect'), `raised ${delay}s after launch`);
+    assert.equal(lost(b), 0);
+  }
 });
 
-test('the guard is separate from the drum: it does not touch the army’s order', () => {
+test('a shield raised too early has dropped again when the blow lands', () => {
+  const b = windup();
+  guard(b, 0.6);
+  stepEnemies(b, 1.2);
+  assert.ok(!shieldsUp(b, 1.2 + FLIGHT.crossbow));
+  assert.ok(resolveIncoming(b, 1.2 + FLIGHT.crossbow).some((e) => e.type === 'wound'));
+});
+
+test('raising the shield with nothing coming costs a longer recovery', () => {
+  const idle = createBattle(stage('outpost'));
+  assert.ok(guard(idle, 1));
+  assert.ok(!guard(idle, 1 + GUARD.up + GUARD.recover + 0.01), 'a whiff takes longer to recover');
+  assert.ok(guard(idle, 1 + GUARD.up + GUARD.whiff));
+  const b = windup();
+  stepEnemies(b, 1.2);
+  assert.ok(guard(b, 1.3));
+  const landed = 1.2 + FLIGHT.crossbow + 0.05;
+  assert.ok(shieldsUp(b, landed - 0.01), 'the wall stays up until the bolts land');
+  assert.ok(guard(b, landed + GUARD.recover), 'a real block recovers quickly');
+});
+
+test('the shield is separate from the drum: it does not touch the army’s order', () => {
   const b = createBattle(stage('outpost'));
   issueOrder(b, 'march', 1, 0.6);
   stepArmy(b, 0);
@@ -110,7 +127,10 @@ test('the guard is separate from the drum: it does not touch the army’s order'
 test('idling under fire loses the battle', () => {
   const b = createBattle(stage('outpost'));
   b.army.x = 22;
-  for (let i = 1; i < 2000 && !b.outcome; i++) stepEnemies(b, i * 0.6);
+  for (let i = 1; i < 2000 && !b.outcome; i++) {
+    stepEnemies(b, i * 0.6);
+    resolveIncoming(b, i * 0.6);
+  }
   assert.equal(b.outcome, 'lost');
 });
 
@@ -159,11 +179,13 @@ function playChapter(s, { u = 0.6, tier = 1, accuracy = 1, guarding = null } = {
   const advance = (until) => {
     while (nextHan * han <= until && !b.outcome) {
       const at = nextHan * han;
-      // A guarding player raises the guard this long before the blow lands.
-      if (guarding !== null && aboutToAttack(b).length) guard(b, at - guarding);
-      stepEnemies(b, at);
+      const launched = stepEnemies(b, at).filter((e) => e.type === 'launch');
+      // A guarding player raises the shield this long after a blow is loosed.
+      if (guarding !== null && launched.length) guard(b, at + guarding);
       nextHan += 1;
+      resolveIncoming(b, Math.min(until, nextHan * han));
     }
+    resolveIncoming(b, until);
   };
   for (let cycle = 0; cycle < 200 && !b.outcome; cycle++) {
     const spirit = accuracy === 1 && combo >= 4;
@@ -189,28 +211,26 @@ function playChapter(s, { u = 0.6, tier = 1, accuracy = 1, guarding = null } = {
   return b;
 }
 
-test('a steady drummer playing only tier I, guarding loosely, wins every chapter', () => {
+test('a steady drummer playing only tier I and shielding wins every chapter', () => {
   for (const s of STAGES) {
-    const b = playChapter(s, { tier: 1, guarding: 0.4 });
+    const b = playChapter(s, { tier: 1, guarding: 0.3 });
     assert.equal(b.outcome, 'won', s.id);
     assert.ok(b.army.troops >= b.army.maxTroops * 0.2, `${s.id}: ${b.army.troops.toFixed(1)} left`);
   }
 });
 
-test('harder rhythms and sharper guarding make it easier', () => {
+test('harder rhythms and the shield make it easier', () => {
   for (const s of STAGES.slice(1)) {
-    const plain = playChapter(s, { tier: 1, guarding: 0.4 });
-    const fancy = playChapter(s, { tier: 3, guarding: 0.4 });
-    const sharp = playChapter(s, { tier: 1, guarding: 0.1 });
+    const plain = playChapter(s, { tier: 1, guarding: 0.3 });
+    const fancy = playChapter(s, { tier: 3, guarding: 0.3 });
     const none = playChapter(s, { tier: 1 });
     assert.ok(fancy.time < plain.time, `${s.id}: harder tiers win faster`);
-    assert.ok(sharp.army.troops > plain.army.troops, `${s.id}: perfect blocks save more`);
-    assert.ok(plain.army.troops > none.army.troops, `${s.id}: guarding helps`);
+    assert.ok(plain.army.troops > none.army.troops, `${s.id}: shielding helps`);
   }
 });
 
 test('slow or fast, sloppy drumming still clears the first two chapters', () => {
   for (const u of [0.4, 0.9]) {
-    for (const s of STAGES.slice(0, 2)) assert.equal(playChapter(s, { u, accuracy: 0, guarding: 0.4 }).outcome, 'won', `${s.id} at ${u}`);
+    for (const s of STAGES.slice(0, 2)) assert.equal(playChapter(s, { u, accuracy: 0, guarding: 0.3 }).outcome, 'won', `${s.id} at ${u}`);
   }
 });

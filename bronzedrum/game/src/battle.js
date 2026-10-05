@@ -16,11 +16,14 @@ export const ENEMY_TYPES = {
 const MELEE_REACH = 3;
 const ARCHER_REACH = 12;
 const CONTACT_GAP = 1.5;
-// The guard: shields thrown up against a blow, timed to the blow itself and
-// separate from the drum (it neither reads nor changes the rhythm). Raised
-// within `window` seconds before a blow lands it takes most of it; within
-// `perfect` seconds, nearly all. Then a moment to recover.
-export const GUARD = { window: 0.5, perfect: 0.2, good: 0.35, best: 0.1, recover: 0.45 };
+// Attacks travel: a Han blow is launched on his war drum and lands a moment
+// later (seconds in flight), visible all the way. The guard (separate from
+// the drum) raises a shield wall over the whole army: for `up` seconds, and
+// in any case until every attack already in the air has landed, so raising
+// it while an attack is visibly on its way always deflects it. Raising it
+// with nothing incoming costs a longer recovery (`whiff`) than a real block.
+export const FLIGHT = { spear: 0.7, crossbow: 0.9, fort: 1.1 };
+export const GUARD = { up: 0.5, recover: 0.3, whiff: 0.9 };
 const SPEAR_HIT = 1.5; // every 2 Han beats in contact
 const BOLT_VOLLEY = 1.5; // every 4 Han beats in range
 const FORT_VOLLEY = 2.25;
@@ -38,7 +41,9 @@ export function createBattle(stage) {
     }),
     order: null, // { command, power, beat (0..3), flourishes, u }
     guardAt: -Infinity, // when the guard was last raised (seconds)
+    guardUntil: -Infinity,
     guardReadyAt: 0,
+    incoming: [], // attacks in flight: { from, kind, amount, launch, arrive }
     time: 0,
     tick: 0, // Han beats so far
     outcome: null, // 'won' | 'lost'
@@ -98,12 +103,17 @@ function damage(state, enemy, amount, events, source) {
   }
 }
 
+/** A Han blow leaves his hands; it lands FLIGHT seconds later. */
+function launch(state, e, amount, events) {
+  const attack = { from: e.id, kind: e.type, amount, launch: state.time, arrive: state.time + FLIGHT[e.type], x: e.x };
+  state.incoming.push(attack);
+  events.push({ type: 'launch', ...attack, to: state.army.x });
+}
+
 function hurtArmy(state, amount, events, source) {
-  const lead = state.time - state.guardAt; // how long before the blow the guard went up
-  const block = lead >= 0 && lead <= GUARD.window ? (lead <= GUARD.perfect ? 'perfect' : 'good') : null;
-  const dealt = amount * (block === 'perfect' ? GUARD.best : block === 'good' ? GUARD.good : 1);
+  const dealt = amount;
   state.army.troops = Math.max(0, state.army.troops - dealt);
-  events.push({ type: 'wound', amount: dealt, shielded: !!block, block, source });
+  events.push({ type: 'wound', amount: dealt, source });
 }
 
 function runOrder(state, events) {
@@ -167,7 +177,7 @@ function runEnemies(state, events) {
     if (e.type === 'spear') {
       if (dist <= CONTACT_GAP + 0.6) {
         if (e.cooldown === 0) {
-          hurtArmy(state, SPEAR_HIT, events, e.id);
+          launch(state, e, SPEAR_HIT, events);
           e.cooldown = 2;
         }
       } else if (dist <= 18) {
@@ -177,26 +187,41 @@ function runEnemies(state, events) {
       }
     } else if ((e.type === 'crossbow' && dist <= 14) || (e.type === 'fort' && dist <= 13)) {
       if (e.cooldown === 0) {
-        events.push({ type: 'bolts', from: e.x, to: front, enemy: e.type });
-        hurtArmy(state, e.type === 'fort' ? FORT_VOLLEY : BOLT_VOLLEY, events, e.id);
+        launch(state, e, e.type === 'fort' ? FORT_VOLLEY : BOLT_VOLLEY, events);
         e.cooldown = 4;
       }
     }
   }
 }
 
-/** Raise the guard at time t. Returns false while the army is still recovering. */
+/** Raise the shield wall at time t. Returns false while the army is still recovering. */
 export function guard(state, time) {
   if (state.outcome || time < state.guardReadyAt) return false;
+  const inFlight = state.incoming.filter((a) => a.arrive >= time);
   state.guardAt = time;
-  state.guardReadyAt = time + GUARD.window + GUARD.recover;
+  state.guardUntil = Math.max(time + GUARD.up, ...inFlight.map((a) => a.arrive + 0.05));
+  state.guardReadyAt = state.guardUntil + (inFlight.length ? GUARD.recover : GUARD.whiff);
   return true;
 }
 
-/** Whether the shields are up at time t: for the guard's window after it is raised. */
+/** Whether the shield wall is up at time t. */
 export function shieldsUp(state, time = state.time) {
-  const lead = time - state.guardAt;
-  return lead >= 0 && lead <= GUARD.window;
+  return time >= state.guardAt && time <= state.guardUntil;
+}
+
+/** Land every attack that has arrived by time t: deflected if the shields are up. */
+export function resolveIncoming(state, time) {
+  const events = [];
+  if (state.outcome) return events;
+  state.time = Math.max(state.time, time);
+  const landed = state.incoming.filter((a) => a.arrive <= time);
+  state.incoming = state.incoming.filter((a) => a.arrive > time);
+  for (const a of landed) {
+    if (shieldsUp(state, a.arrive)) events.push({ type: 'deflect', ...a });
+    else hurtArmy(state, a.amount, events, a.from);
+  }
+  checkOutcome(state, events);
+  return events;
 }
 
 /** Han who will strike on their next beat: the warning the guard answers. */
