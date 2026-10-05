@@ -74,21 +74,64 @@ test('echo: an unanswered call is played again', () => {
   assert.equal(s.update(15.5)[0].type, 'call');
 });
 
-test('casting: steady phrases pour, a drifting phrase cracks the mould', () => {
-  const c = new CastingSession({ drums: 2, pours: 2, tolerance: 0.12 });
-  assert.equal(c.pour({ u: 0.6 })[0].type, 'pour');
-  const cast = c.pour({ u: 0.63 });
-  assert.ok(cast.some((e) => e.type === 'cast'));
+test('casting: strokes at the pace fill one line; drums are checkpoints on it', () => {
+  const c = new CastingSession({ drums: 3, u: 0.8, perStroke: 0.05, perPhrase: 0.05 });
+  let t = 0;
+  const events = [];
+  // Keep drumming at the pace: the level climbs, passing 1/3 casts drum 1.
+  for (let i = 0; i < 7; i++) events.push(...c.stroke((t += 0.4), 0.8));
+  assert.ok(c.level > 1 / 3);
   assert.equal(c.cast, 1);
-  c.pour({ u: 0.6 });
-  const crack = c.pour({ u: 0.45 });
+  assert.equal(c.checkpoint, 1 / 3);
+  assert.ok(events.some((e) => e.type === 'cast' && e.drum === 0));
+  // Rushing sets the bronze back a little, never below the checkpoint.
+  const high = c.level;
+  const crack = c.stroke((t += 0.2), 0.55);
   assert.equal(crack[0].type, 'crack');
   assert.ok(crack[0].faster);
-  assert.equal(c.level, 0);
-  c.pour({ u: 0.46 });
-  const done = c.pour({ u: 0.47 });
-  assert.ok(done.some((e) => e.type === 'complete'));
+  assert.ok(c.level < high && c.level >= 1 / 3);
+  for (let i = 0; i < 5; i++) c.miss();
+  assert.equal(c.level, 1 / 3, 'repeated slips stop at the checkpoint');
+  assert.equal(c.cast, 1, 'a cast drum stays cast');
+});
+
+test('casting: each drum takes the pattern about two or three times', () => {
+  const c = new CastingSession({ drums: 3, u: 0.8 });
+  // One round of 'L RR L RR' is six strokes and an accepted phrase.
+  let rounds = 0;
+  while (c.cast === 0) {
+    for (let i = 0; i < 6; i++) c.stroke(i, 0.8);
+    c.phrase({ u: 0.8, accuracy: 1 });
+    rounds += 1;
+  }
+  assert.ok(rounds >= 2 && rounds <= 3, `${rounds} rounds for the first drum`);
+});
+
+test('casting: stopping lets the bronze sink slowly, never below the checkpoint', () => {
+  const c = new CastingSession({ drums: 3, u: 0.8, perStroke: 0.05, sink: 0.1 });
+  for (let i = 0; i < 8; i++) c.stroke(i * 0.4, 0.8); // past the first drum
+  const high = c.level;
+  c.update(3.0, 0.5); // within the idle allowance: no change
+  assert.equal(c.level, high);
+  for (let s = 0; s < 40; s++) c.update(4 + s * 0.5, 0.5);
+  assert.equal(c.level, 1 / 3, 'sinks back to the checkpoint and stops there');
+});
+
+test('casting: drumming on without stopping finishes; a broken phrase sets it back a little', () => {
+  const c = new CastingSession({ drums: 2, u: 0.8, perStroke: 0.06, perPhrase: 0.04, setback: 0.05 });
+  c.stroke(0, null);
+  c.stroke(0.8, 0.8);
+  c.miss();
+  assert.ok(Math.abs(c.level - 0.07) < 1e-9, 'set back by 0.05 from 0.12');
+  let t = 1;
+  const all = [];
+  while (!c.done && t < 60) {
+    all.push(...c.stroke((t += 0.4), 0.8));
+    if (Math.round(t * 10) % 32 === 0) all.push(...c.phrase({ u: 0.8, accuracy: 0.9 }));
+  }
   assert.ok(c.done);
+  assert.deepEqual(all.filter((e) => e.type === 'cast').map((e) => e.drum), [0, 1]);
+  assert.ok(all.some((e) => e.type === 'complete'));
 });
 
 test('waves arrive once each, when due', () => {
@@ -118,7 +161,7 @@ test('the chapters are in story order with a mode each', () => {
     const mode = s.mode || 'battle';
     assert.ok(['battle', 'echo', 'casting'].includes(mode), s.id);
     if (mode === 'echo') assert.ok(s.calls.length >= 4 && s.caller, s.id);
-    if (mode === 'casting') assert.ok(s.rhythm && s.drums && s.pours, s.id);
+    if (mode === 'casting') assert.ok(s.rhythm && s.drums && s.bpm, s.id);
     if (mode === 'battle') assert.ok(s.unlocked && s.unlocked.length, s.id);
   }
 });

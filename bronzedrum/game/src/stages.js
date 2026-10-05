@@ -61,11 +61,10 @@ export const STAGES = [
     title: 'Casting the Drums',
     subtitle: 'The foundry of Nhật Nam',
     intro:
-      'The metalworkers of Nhật Nam pour the bronze for the war drums. The bellows keep the furnace’s pace: drum the hammer rhythm with them, again and again. Each phrase in time pours, a phrase that rushes or drags cracks the mould.',
+      'The metalworkers of Nhật Nam pour the bronze for the war drums. The bellows keep the furnace’s pace: drum the hammer rhythm with them, round after round without stopping. Keep in time and the bronze rises, drum by drum; rush, drag or stumble and it spills back to the last drum cast.',
     rhythm: 'L RR L RR',
     bpm: 76, // the bellows' pace: heard as the guide rhythm, never shown as a number
     drums: 3,
-    pours: 3,
     tolerance: 0.14,
     troops: 0,
     elephant: false,

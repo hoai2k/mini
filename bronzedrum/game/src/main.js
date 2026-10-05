@@ -323,7 +323,7 @@ function startStage(i) {
     game.reader.patterns = [];
     game.session.nextCallAt = 2.2;
   } else if (game.mode === 'casting') {
-    game.session = new CastingSession({ drums: stage.drums, pours: stage.pours, tolerance: stage.tolerance, u: stage.bpm ? 60 / stage.bpm : null });
+    game.session = new CastingSession({ drums: stage.drums, u: 60 / stage.bpm, tolerance: stage.tolerance });
     // The guide: the foundry's drum plays the hammer rhythm at the pace to hold.
     game.guide = stage.bpm ? { u: 60 / stage.bpm, start: 2.5, next: 0, strokes: parsePattern(stage.rhythm) } : null;
     game.reader.patterns = [callPattern(stage.rhythm, 'cast')];
@@ -417,6 +417,17 @@ function strike(drum, time) {
   game.miss = null;
   const events = game.reader.hit(drum, t);
   game.miss = missView(events, trying, before, drum, t);
+  if (game.mode === 'casting') {
+    // The continuous pour: every stroke in time adds bronze, a broken phrase
+    // cracks back to the last cast drum (see CastingSession).
+    const done = events.find((e) => e.type === 'command');
+    const now = game.reader.progress();
+    let out = [];
+    if (done) out = game.session.stroke(songTime(), done.u);
+    else if (game.miss) out = game.session.miss();
+    else if (game.reader.phrase.length) out = game.session.stroke(songTime(), now ? now.u : null);
+    for (const e of out) handleMode(e);
+  }
   // A stroke just after the phrase timed out: it was too late.
   const f = game.faded;
   if (!game.miss && f && f.trying.u && songTime() - f.at < 1.2 * f.trying.u) {
@@ -548,7 +559,10 @@ function handleRhythm(ev) {
     g.clearShownAt = songTime() + 0.8;
     for (const e of g.session.answer(ev, songTime())) handleMode(e);
   } else if (ev.type === 'command' && g.mode === 'casting') {
-    for (const e of g.session.pour(ev)) handleMode(e);
+    // No pause between phrases: the next round can follow straight on.
+    g.reader.action = null;
+    g.reader.shown = null;
+    for (const e of g.session.phrase(ev)) handleMode(e);
   } else if (ev.type === 'command') {
     const c = commandById(ev.command);
     // With the elephant, a strike on a waking drum is the charge; it spends the drum.
@@ -635,17 +649,16 @@ function handleMode(e) {
       else if (stage.caller !== 'elegy') sound.play('lantern', sound.now + 0.1, 0.8);
       break;
     }
-    case 'pour':
-      confirm(`Steady — pour ${e.level} of ${e.of}`, P.bronzeLight);
-      sound.play('pour', sound.now, 0.8);
-      break;
     case 'crack':
-      confirm(e.faster ? 'Too fast — the mould cracks' : 'Too slow — the mould cracks', P.lacquer);
+      confirm(e.faster ? 'Rushing — some bronze spills' : e.slower ? 'Dragging — the bronze cools' : 'A little bronze spills', P.lacquer);
       sound.play('crack');
       g.crackAt = t;
       break;
     case 'cast':
       toast(`Drum ${e.drum + 1} is cast`);
+      confirm(`Drum ${e.drum + 1} cast!`, P.bronzeLight);
+      sound.play('pour', sound.now, 0.8);
+      g.castAt = { ...(g.castAt || {}), [e.drum]: t };
       sound.play('drum-wake', sound.now + 0.3, 0.6);
       renderer.wake(songTime() + 0.3, 'hud');
       break;
@@ -808,6 +821,7 @@ function updatePlay(dt) {
   }
   tickDemo();
   tickGuide();
+  if (g.mode === 'casting' && !g.ended) g.session.update(t, dt);
   if (g.mode === 'echo' && !g.ended) for (const e of g.session.update(t)) handleMode(e);
   // The Oath: holding A or Y stirs a breeze over the incense (drawn by the renderer).
   if (g.stage.caller === 'mourning') sound.setBreeze(input.held('guard') || input.held('reset') ? 0.7 : 0);
@@ -958,8 +972,9 @@ function view() {
     stage: g.stage,
     session: g.session,
     crackAt: g.crackAt,
-    pouring: g.mode === 'casting' && !!r.action && t >= r.action.start,
+    pouring: g.mode === 'casting' && g.session.lastStroke !== null && t - g.session.lastStroke < 0.6 && !g.session.done,
     guide: g.guide,
+    castAt: g.castAt,
     touch: input.device === 'touch',
     // The Oath: A blows one way over the incense, Y the other, while held.
     wind: g.stage.caller === 'mourning' && screen === 'play' ? { a: input.held('guard'), y: input.held('reset') } : null,
@@ -1080,6 +1095,9 @@ function pause(reason = '') {
   sound.suspend();
   sound.pauseMusic(true);
   $('#pause-reason').textContent = reason;
+  $('#pause-chapter').innerHTML = '<span class="num"></span><span class="name"></span>';
+  $('#pause-chapter .num').textContent = `Chapter ${game.index + 1}`;
+  $('#pause-chapter .name').textContent = game.stage.title;
   show('pause');
 }
 

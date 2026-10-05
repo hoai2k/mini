@@ -210,6 +210,21 @@ export class Renderer {
     this.fiberPattern = this.ctx.createPattern(this.fiber, 'repeat');
     this.layers = null;
     this.reduceMotion = false;
+    // Count save()/restore() per frame (checked at the end of draw()).
+    this.depth = 0;
+    this.depthLow = 0;
+    const ctx = this.ctx;
+    const save = ctx.save.bind(ctx);
+    const restore = ctx.restore.bind(ctx);
+    ctx.save = () => {
+      this.depth += 1;
+      save();
+    };
+    ctx.restore = () => {
+      this.depth -= 1;
+      this.depthLow = Math.min(this.depthLow, this.depth);
+      restore();
+    };
     this.pressed = {}; // touch button id -> time pressed
     this.kicks = { chau: -9, mo: -9 }; // when the companion drums were last struck
     this.taps = []; // touch points, drawn as brief rings
@@ -1388,6 +1403,7 @@ export class Renderer {
       const bx = fx + 92;
       const by = GROUND - 30;
       const open = 34 - 22 * push;
+      g.save();
       g.fillStyle = P.ink;
       g.fillRect(bx - 20, by - 3, 24, 6); // nozzle into the furnace
       g.fillStyle = '#6B4A32';
@@ -1424,9 +1440,23 @@ export class Renderer {
     // The moulds: the current one fills pour by pour; cast ones glow bronze.
     for (let i = 0; i < sess.drums; i++) {
       const x = 170 + i * 150;
-      const fill = i < sess.cast ? 1 : i === sess.cast ? sess.level / sess.pours : 0;
+      const fill = Math.max(0, Math.min(1, sess.level * sess.drums - i));
       const cracked = i === sess.cast && t - view.crackAt < 0.8;
       this.mould(x, GROUND, fill, cracked, i < sess.cast, t);
+      // A drum just cast: its rings burst from the mould, sparks fly up.
+      const since = t - (view.castAt?.[i] ?? -9);
+      if (since >= 0 && since < 1.4) {
+        this.wakeBurst(x, GROUND - 50, 300, since / 1.4);
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        for (let k = 0; k < 18; k++) {
+          const a = (k / 18) * Math.PI * 2 + i;
+          const d = 20 + since * (60 + (k % 4) * 25);
+          g.fillStyle = `rgba(255,${190 + (k % 3) * 20},90,${Math.max(0, 1 - since / 1.1)})`;
+          g.fillRect(x + Math.cos(a) * d, GROUND - 50 + Math.sin(a) * d * 0.7 - since * 40, 3, 3);
+        }
+        g.restore();
+      }
     }
     // The pour: a glowing stream from the crucible into the current mould.
     if (view.pouring && !sess.done) {
@@ -2222,6 +2252,8 @@ export class Renderer {
 
   draw(view, dt) {
     const g = this.ctx;
+    this.depth = 0;
+    this.depthLow = 0;
     this.frameDt = dt;
     const { battle, songTime: t } = view;
     const targetCam = (this.motion ? this.motion.front : battle.army.x * U) - ARMY_SCREEN_X;
@@ -2303,6 +2335,12 @@ export class Renderer {
     g.fillRect(0, 0, W, H);
     this.drawCelebration(t, dt);
     this.hud(view);
+    // Every save() must have its restore(): a stray restore() pops the
+    // camera and draws the rest of the scene in the wrong place.
+    if (this.depth !== 0 || this.depthLow < 0) {
+      if (!this.leakWarned) console.error(`Renderer: save()/restore() unbalanced in a frame (depth ${this.depth}, lowest ${this.depthLow})`);
+      this.leakWarned = true;
+    }
   }
 
   /**
@@ -2901,15 +2939,12 @@ export class Renderer {
       const words = { mourning: 'Incense lit', village: 'Villages answering', festival: 'Rhythms answered', elegy: 'Drums silent' };
       scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, sess.index / sess.calls.length, `${words[view.stage.caller] || 'Answered'} · ${sess.index} of ${sess.calls.length}`, P.bronzeLight));
     } else if (view.mode === 'casting') {
-      scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, (sess.cast + sess.level / sess.pours) / sess.drums, `Drums cast · ${sess.cast} of ${sess.drums}`, P.bronze));
+      scaled(W - 24, 22, () => this.pourLine(W - 304, 22, 280, sess, t));
       if (sess.u !== null) {
         g.font = font(600, 15);
         g.textAlign = 'left';
         g.fillStyle = P.paper;
-        if (touch || compact) {
-          g.fillText('Keep the bellows’ pace', 24, H - 18 - 22 * k);
-          g.fillText(`Pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
-        } else g.fillText(`Keep the bellows’ pace · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
+        g.fillText('Keep the bellows’ pace', 24, H - 18);
       }
     } else {
       scaled(24, 22, () => this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer));
@@ -3415,7 +3450,6 @@ export class Renderer {
     g.ellipse(tip.x, tip.y, r * 0.15, r * 0.13, -0.5, 0, Math.PI * 2);
     g.fill();
     g.restore();
-    g.restore();
   }
 
   /** The shield, reset and pause buttons, and the rings left by touches. */
@@ -3596,6 +3630,50 @@ export class Renderer {
       g.arc(x, y, r * 0.25, 0, Math.PI * 2);
       g.fill();
     }
+  }
+
+  /**
+   * The casting line: the bronze rising towards the last drum, with each
+   * drum a mark along it. Marks passed glow; the checkpoint the level can
+   * sink back to is the last one passed.
+   */
+  pourLine(x, y, w, sess, t) {
+    const g = this.ctx;
+    g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
+    g.textAlign = 'left';
+    g.fillStyle = P.paper;
+    g.fillText(`Drums cast · ${sess.cast} of ${sess.drums}`, x, y + 12);
+    const by = y + 20;
+    g.fillStyle = 'rgba(22,21,26,0.6)';
+    g.fillRect(x, by, w, 12);
+    // The banked part (to the checkpoint) solid, the part still at risk lighter.
+    g.fillStyle = P.bronze;
+    g.fillRect(x, by, w * sess.checkpoint, 12);
+    const grad = g.createLinearGradient(x + w * sess.checkpoint, 0, x + w * sess.level, 0);
+    grad.addColorStop(0, '#E8A04A');
+    grad.addColorStop(1, '#FFD08A');
+    g.fillStyle = grad;
+    g.fillRect(x + w * sess.checkpoint, by, w * Math.max(0, sess.level - sess.checkpoint), 12);
+    // The drums: marks on the line.
+    for (let i = 1; i <= sess.drums; i++) {
+      const mx = x + (w * i) / sess.drums;
+      const passed = i <= sess.cast;
+      g.fillStyle = passed ? P.bronzeLight : P.paperShade;
+      g.save();
+      if (passed) {
+        g.shadowColor = '#FFD08A';
+        g.shadowBlur = 8;
+      }
+      g.beginPath();
+      g.arc(mx - (i === sess.drums ? 6 : 0), by + 6, 7, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+      g.fillStyle = P.ink;
+      g.font = '700 9px "Be Vietnam Pro", system-ui, sans-serif';
+      g.textAlign = 'center';
+      g.fillText(String(i), mx - (i === sess.drums ? 6 : 0), by + 9);
+    }
+    g.textAlign = 'left';
   }
 
   bar(x, y, w, frac, label, color) {

@@ -5,10 +5,9 @@
 //           must be even; if matchTempo is set it must also be near the
 //           caller's speed. Used by The Oath, The Villages Answer, The
 //           Coronation and The Drums Are Melted.
-//  casting  The player repeats one rhythm at the furnace's pace (a guide
-//           rhythm plays it): each phrase within `tolerance` of that pace pours
-//           bronze, and a phrase that rushes or drags cracks the mould and
-//           starts that drum again. Casting the Drums.
+//  casting  The player drums one rhythm continuously at the furnace's pace
+//           (a guide plays it); the bronze rises along one line with drums as
+//           checkpoints on it. Casting the Drums (CastingSession).
 //  battle   (battle.js) — with `survive`, hold out while waves arrive.
 
 import { parsePattern } from './rhythm.js';
@@ -109,49 +108,104 @@ export class EchoSession {
   }
 }
 
+/**
+ * Casting the Drums: a continuous pour. The player drums the hammer rhythm
+ * round after round with the bellows (a guide plays it at the pace to hold,
+ * u seconds per beat). Every stroke that keeps the phrase going at that pace
+ * pours a little bronze, and each whole phrase in time a little more; the
+ * level climbs one line towards 1. The drums are thresholds on the line (at
+ * 1/3, 2/3 and 1 for three): passing one casts that drum and makes it a
+ * checkpoint. Each drum takes the pattern played about two and a half
+ * times. Stopping lets the bronze sink slowly back towards the last
+ * checkpoint; a broken phrase, or one that rushes or drags, sets it back a
+ * little (`setback`), never below the checkpoint. Times in seconds.
+ */
 export class CastingSession {
-  /**
-   * drums: how many to cast; pours: steady phrases per drum; tolerance:
-   * tempo drift allowed; u: the pace to hold (seconds per beat). Without u,
-   * the first phrase sets the pace and a crack resets it.
-   */
-  constructor({ drums = 3, pours = 3, tolerance = 0.12, u = null } = {}) {
+  constructor({ drums = 3, u = 0.79, tolerance = 0.14, perStroke = 0.018, perPhrase = 0.025, setback = 0.06, sink = 0.05, idleBeats = 1.6 } = {}) {
+    this.setback = setback;
     this.drums = drums;
-    this.pours = pours;
+    this.u = u;
     this.tolerance = tolerance;
-    this.fixed = u !== null;
-    this.cast = 0; // finished drums
-    this.level = 0; // pours into the current mould
-    this.u = u; // the pace to hold
+    this.perStroke = perStroke;
+    this.perPhrase = perPhrase;
+    this.sink = sink;
+    this.idleBeats = idleBeats;
+    this.level = 0; // 0..1 along the line
+    this.checkpoint = 0;
+    this.cast = 0; // drums finished
     this.cracks = 0;
+    this.lastStroke = null;
+    this.phrases = 0;
+    this.accuracy = 0; // summed accuracy of the phrases in time
   }
 
   get done() {
     return this.cast >= this.drums;
   }
 
-  /** A phrase was accepted at beat length u with this accuracy. */
-  pour(ev) {
+  /** The next threshold on the line. */
+  get next() {
+    return (this.cast + 1) / this.drums;
+  }
+
+  /** Too far from the pace? Returns 'fast', 'slow' or null. */
+  drift(u) {
+    if (!u) return null;
+    if (Math.abs(Math.log(u / this.u)) <= Math.log(1 + this.tolerance)) return null;
+    return u < this.u ? 'fast' : 'slow';
+  }
+
+  /** A stroke that continues the phrase; u is the phrase's tempo so far (null at first). */
+  stroke(t, u) {
     if (this.done) return [];
-    if (this.u === null) this.u = ev.u;
-    const drift = Math.abs(Math.log(ev.u / this.u));
-    if (drift > Math.log(1 + this.tolerance)) {
-      this.cracks += 1;
-      const lost = this.level;
-      const faster = ev.u < this.u;
-      this.level = 0;
-      if (!this.fixed) this.u = ev.u; // the new tempo is the one to hold from here
-      return [{ type: 'crack', drum: this.cast, lost, faster }];
-    }
-    this.level += 1;
-    const events = [{ type: 'pour', drum: this.cast, level: this.level, of: this.pours }];
-    if (this.level >= this.pours) {
+    const off = this.drift(u);
+    if (off) return this.crack(off);
+    this.lastStroke = t;
+    return this.add(this.perStroke);
+  }
+
+  /** A whole phrase accepted at tempo u with this accuracy. */
+  phrase(ev) {
+    if (this.done) return [];
+    const off = this.drift(ev.u);
+    if (off) return this.crack(off);
+    this.phrases += 1;
+    this.accuracy += ev.accuracy;
+    return this.add(this.perPhrase);
+  }
+
+  /** The phrase broke (a wrong or uneven stroke): a small setback. */
+  miss() {
+    if (this.done) return [];
+    return this.crack(null);
+  }
+
+  /** A slip: the bronze falls back a little, never below the last drum cast. */
+  crack(off) {
+    const before = this.level;
+    this.level = Math.max(this.checkpoint, this.level - this.setback);
+    const lost = before - this.level;
+    if (lost <= 0.001) return [];
+    this.cracks += 1;
+    return [{ type: 'crack', lost, faster: off === 'fast', slower: off === 'slow' }];
+  }
+
+  add(amount) {
+    const events = [];
+    this.level = Math.min(1, this.level + amount);
+    while (!this.done && this.level >= this.next - 1e-9) {
       this.cast += 1;
-      this.level = 0;
+      this.checkpoint = this.cast / this.drums;
       events.push({ type: 'cast', drum: this.cast - 1 });
-      if (this.done) events.push({ type: 'complete', cracks: this.cracks });
+      if (this.done) events.push({ type: 'complete', evenness: this.phrases ? this.accuracy / this.phrases : 1 });
     }
     return events;
+  }
+
+  /** Advance the clock: with no stroke for a while, the bronze sinks to the checkpoint. */
+  update(t, dt) {
+    if (this.done || this.lastStroke === null) return;
+    if (t - this.lastStroke > this.idleBeats * this.u) this.level = Math.max(this.checkpoint, this.level - this.sink * dt);
   }
 }
 

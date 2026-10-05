@@ -224,3 +224,9 @@ body.reduce-motion #bars-hint .arrow { animation: none; }
 #success .press-start { margin-top: 6px; display: inline-flex; align-items: center; gap: 12px; }
 #success .press-start .xb { font-size: 0.75em; }
 body.reduce-motion #success { transition: none; }
+
+/* The chapter being played, under 'Paused'. */
+.pause-chapter { margin: -2px 0 6px; text-align: center; font: 600 15px var(--sans); color: #5a4a35; }
+.pause-chapter .num { display: block; font: 700 11px var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--lacquer); }
+.pause-chapter .name { font: 700 20px var(--serif); color: var(--ink); }
+#pause .pause-chapter { grid-column: 1 / -1; }

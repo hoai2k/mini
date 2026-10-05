@@ -136,6 +136,8 @@ timestamp), so each light and the pointer's tap meet their sound.
 **Answering early.** In the call-and-answer chapters the player may answer as
 soon as they know the rhythm, during the call; the caller falls silent.
 
+**The pause menu** names the chapter being played.
+
 **Winning a chapter.** No menu: the scene celebrates in its own way (paper
 confetti over a battle or the coronation, lanterns rising when the villages
 answer, embers from the incense, the foundry and the elegy) as the drum's rings
@@ -151,9 +153,16 @@ at once (no army cycle to wait out).
 **Casting at the bellows' pace.** The foundry has a fixed pace (76 beats a
 minute, never shown as a number). Its own drum plays the hammer rhythm softly
 at that pace throughout, and the bellows beside the furnace squeeze on every
-beat as the fire flares, so the pace is heard and seen. Each phrase within 14%
-of it pours. Elsewhere, the confirmation after a command names its pace in
-words (quick, steady, slow) rather than BPM.
+beat as the fire flares, so the pace is heard and seen. The player drums the
+rhythm round after round without stopping. It is one continuous pour: every
+stroke at the pace raises the bronze along a single line, a whole round a
+little more, and the three drums are marks on that line, each reached after
+about two and a half rounds. Passing one casts that drum (its rings burst from
+the mould, sparks fly, "Drum 1 cast!") and makes it a checkpoint. A mistake, or
+a round that rushes or drags, spills a little (about half a round's worth),
+never below the last drum cast; stopping lets the bronze sink slowly back to
+it. Elsewhere, the confirmation after a command names its pace in words
+(quick, steady, slow) rather than BPM.
 
 **Focus.** The game goes silent whenever its tab or window is in the
 background, and a chapter in play pauses.
