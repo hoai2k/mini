@@ -1,2 +1,430 @@
-import { rehearsal } from './rehearsal.js';
-export default rehearsal({ id: 2, kicker: 'Act II', title: "The Sleepers' Grotto", sub: 'Wake the drowned. Follow the guitar down.', result: { keepsakes: { guitar: true } } });
+// Act II — The Sleepers' Grotto. The sailor wakes on the sea floor, swims
+// down through the grotto on a flying harness after the sinking guitar,
+// wakes the drowned revellers, and is offered the sea rose at the cave floor.
+// Then the moon-boat interlude carries him on to the Sea King's court.
+// Headless: drawing is in act2-art.js. Design: design/acts.md, Act II.
+import { clamp, lerp } from './shared.js';
+import * as art from './act2-art.js';
+
+// ---------------------------------------------------------------- tuning
+export const BEAT_LEN = 60 / 76.5;      // seconds per beat (for omens and fallbacks)
+export const WORLD_H = 4200;            // the descent, in stage pixels
+export const VIEW_H = 590;              // playfield height (y 60..650)
+export const CAM_MAX = WORLD_H - VIEW_H;
+export const FLOOR = 4150;              // the cave floor
+export const SHELF_Y = 470;             // the wreck shelf where the act opens
+export const BOUNDS = { x0: 215, x1: 1065, y0: 90 };
+export const REST = { x: 640, y: 4100 }; // where the guitar comes to rest
+
+export const TUNE = {
+  accel: 640, drag: 2.4, max: 220, drift: 22,
+  kick: 340, kickCD: 0.85,
+  air: 42,           // seconds of air from full
+  airRefill: 0.55,   // per second in a vent's bubbles
+  airAfterOut: 0.4,  // what is left after running out costs a lantern
+  ventH: 300, ventW: 52,
+  horn: 14,          // seconds a conch's song lasts
+  wakeR: 150,        // how close you must swim to wake a sleeper
+  grace: 1.6,
+  clamPearls: 3,     // pearls per clam before it is spent
+  eelReach: 300, eelGlow: 1.0, eelCD: 2.6,
+  guitarLead: 110,   // he can never get closer than this above the guitar
+};
+
+export const PHASE_LEN = { open: 6.4, choice: 3.4, ride: 20, iris: 1.4, drown: 2.0 };
+
+// ---------------------------------------------------------------- the set
+// Every position is in world pixels: x on the stage, y down the descent.
+const REVELLERS = ['reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady'];
+export const SLEEPERS = [
+  // the revellers lying on the wreck shelf beside the sailor
+  [300, 462], [440, 462], [830, 462], [985, 462],
+  // on ledges down the grotto
+  [290, 1600], [880, 1840], [960, 2650], [330, 2900], [870, 3090],
+  // on the cave floor (for the guitar)
+  [300, 4140], [455, 4140], [830, 4140],
+];
+export const CONCHES = [[700, 466], [420, 1470], [840, 2480]];
+export const VENTS = [[330, 980], [950, 1780], [330, 2590], [935, 3340]];
+// x, ledge top y, opens one beat in every `every`, on beats ≡ off
+export const CLAMS = [
+  [905, 840, 2, 0], [330, 1210, 2, 1], [640, 1660, 2, 0], [940, 2080, 3, 1],
+  [300, 2420, 3, 2], [860, 2860, 3, 0], [380, 3260, 3, 1], [900, 3720, 2, 1],
+];
+// hole x at the wall edge, y, side (+1 lunges right from the left wall)
+export const EELS = [
+  [215, 1320, 1], [1065, 1960, -1], [215, 2250, 1], [1065, 2720, -1], [215, 3130, 1], [1065, 3560, -1],
+];
+// centre x, y, swing x, bob y, speed, phase
+export const JELLIES = [
+  [560, 1020, 110, 25, 0.5, 0], [760, 1520, 150, 30, 0.45, 1.5], [480, 2150, 170, 30, 0.55, 3],
+  [700, 2560, 190, 35, 0.4, 0.7], [560, 3000, 160, 30, 0.5, 2.2], [700, 3800, 200, 25, 0.35, 4],
+];
+export const DRAGON = { cx: 640, cy: 3460, ax: 320, ay: 200, period: 16 };
+// The guitar's line down: [y, x] waypoints.
+const GUITAR_PATH = [[0, 880], [700, 760], [1300, 640], [1700, 520], [2100, 720], [2500, 560], [2900, 640], [3300, 640], [3700, 560], [4100, 640]];
+
+export const RIDE = { boatX: 470, speed: 300, pearls: 16 };
+
+// ---------------------------------------------------------------- helpers
+export const clamOpen = (cl, beat) => Math.floor(beat) % cl.every === cl.off;
+export function jellyPos(j, time) {
+  return { x: j.cx + j.ax * Math.sin(time * j.w + j.p), y: j.cy + j.ay * Math.sin(time * j.w * 1.7 + j.p) };
+}
+export function dragonPos(time) {
+  const a = (time / DRAGON.period) * Math.PI * 2;
+  return { x: DRAGON.cx + DRAGON.ax * Math.sin(a), y: DRAGON.cy + DRAGON.ay * Math.sin(2 * a), face: Math.cos(a) >= 0 ? 1 : -1 };
+}
+export function guitarX(y) {
+  for (let i = 1; i < GUITAR_PATH.length; i++) {
+    const [y1, x1] = GUITAR_PATH[i];
+    if (y <= y1) { const [y0, x0] = GUITAR_PATH[i - 1]; return lerp(x0, x1, clamp((y - y0) / (y1 - y0), 0, 1)); }
+  }
+  return GUITAR_PATH[GUITAR_PATH.length - 1][1];
+}
+// The eel's reach (0..1) for its state.
+export function eelExt(e) {
+  if (e.state === 'lunge') return clamp(e.t / 0.22, 0, 1);
+  if (e.state === 'hold') return 1;
+  if (e.state === 'back') return 1 - clamp(e.t / 0.5, 0, 1);
+  return 0;
+}
+// Ride pearls: when each enters (s) and on which row.
+function ridePearls() {
+  const rows = [1, 1, 0, 0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0, 0, 1];
+  return rows.map((row, i) => ({ at: 1.6 + i * 1.05, row, got: false }));
+}
+export const rideRowPos = (r) => (r.rowT >= 1 ? r.row : lerp(r.from, r.row, r.rowT));
+export const rideEffRow = (r) => (r.rowT > 0.5 ? r.row : r.from);
+export const ridePearlX = (p, rideT) => 1250 - (rideT - p.at) * RIDE.speed;
+
+// ---------------------------------------------------------------- module
+export default {
+  id: 2, key: 'grotto', kicker: 'Act II', title: "The Sleepers' Grotto", size: 110,
+  sub: 'Follow the sinking guitar down.\nSound the conch horns to wake the drowned.',
+  action: 'A: kick',
+
+  create({ carry = {} } = {}) {
+    return {
+      status: 'play', statusT: 0, events: [], result: null,
+      phase: 'open', phaseT: 0, t: 0, hzT: 0, beat: 0,
+      tea: (carry.tea || 0) >= 3,
+      sailor: { x: 570, y: 425, vx: 0, vy: 0, face: 1, kickCD: 0, kickT: 0, stroke: 0, strokeT: 0, grace: 0, wake: 0 },
+      cam: 0, air: 1, airLowed: false, inVent: false,
+      lanterns: 3, pearls: 0, score: 0, woken: 0,
+      hornT: 0,
+      guitar: { x: 880, y: -140, settled: false, held: false },
+      sleepers: SLEEPERS.map(([x, y], i) => ({ x, y, id: REVELLERS[i % 4], kind: i % 4, floor: y > FLOOR - 100, state: 'asleep', t: 0 })),
+      conches: CONCHES.map(([x, y]) => ({ x, y, used: false })),
+      clams: CLAMS.map(([x, y, every, off]) => ({ x, y, every, off, got: 0, lastBeat: null, wasOpen: false })),
+      eels: EELS.map(([x, y, side]) => ({ x, y, side, state: 'idle', t: 0, cd: 0 })),
+      jellies: JELLIES.map(([cx, cy, ax, ay, w, p]) => ({ cx, cy, ax, ay, w, p })),
+      vents: VENTS.map(([x, y]) => ({ x, y })),
+      omens: [],
+      offer: null, rose: false, choice: null, roseRisers: 0,
+      ride: null, lastSnap: null,
+    };
+  },
+
+  step(st, dt, input = {}) {
+    st.statusT += dt; st.t += dt;
+    st.beat = input.beat ?? st.t / BEAT_LEN;
+    if (st.status !== 'play') return;
+    st.phaseT += dt;
+    for (const sl of st.sleepers) if (sl.state === 'rising') sl.t += dt;
+    if (st.phase === 'open') return stepOpen(st);
+    if (st.phase === 'swim' || st.phase === 'offer') return stepSwim(st, dt, input);
+    if (st.phase === 'choice') return stepChoice(st, dt, input);
+    if (st.phase === 'ride') return stepRide(st, dt, input);
+    if (st.phase === 'iris') { if (st.phaseT >= PHASE_LEN.iris) win(st); return; }
+    if (st.phase === 'drown') {
+      st.sailor.y += 30 * dt;
+      if (st.phaseT >= PHASE_LEN.drown) { st.status = 'lost'; st.statusT = 0; }
+    }
+  },
+
+  hud(st) {
+    if (st.phase === 'open' || st.phase === 'iris' || st.phase === 'drown') return null;
+    const keepsakes = [{ id: 'guitar', have: st.guitar.held }, { id: 'rose', have: st.rose }];
+    const progress = st.phase === 'ride' ? clamp(st.phaseT / PHASE_LEN.ride, 0, 1)
+      : st.phase === 'swim' ? clamp((st.sailor.y - SHELF_Y) / (REST.y - SHELF_Y), 0, 1) : null;
+    return { lanterns: st.lanterns, maxLanterns: 3, pearls: st.pearls, progress, keepsakes };
+  },
+
+  announce(e) {
+    switch (e.type) {
+      case 'sailorWake': return 'The witch breathes life into the sailor. He wakes among the drowned.';
+      case 'swimStart': return 'Swim down after the guitar. Press A to kick. Sound the conch to wake the sleepers.';
+      case 'conchBlow': return 'The conch sings. Swim close to the sleepers to wake them.';
+      case 'sleeperWake': return `A sleeper wakes. ${e.n} woken.`;
+      case 'hit': return `Hit. ${e.lanterns} lantern${e.lanterns === 1 ? '' : 's'} left.`;
+      case 'airLow': return 'Air running low. Find a vent.';
+      case 'eelGlow': return 'Eyes glow in a hole.';
+      case 'guitarCatch': return 'You catch the guitar.';
+      case 'witchOffer': return 'The witch offers the sea rose. A to take it, B to refuse.';
+      case 'roseTake': return 'You take the sea rose. Every sleeper wakes.';
+      case 'witchLaugh': return 'You refuse the rose. The witch laughs.';
+      case 'rideStart': return 'The moon boat. Up and down to choose a row and gather pearls.';
+      case 'drown': return 'The sailor sinks.';
+      default: return null;
+    }
+  },
+
+  draw: art.draw, drawOver: art.drawOver, onEvent: art.onEvent,
+};
+
+// ---------------------------------------------------------------- opening
+function stepOpen(st) {
+  const pt = st.phaseT, s = st.sailor;
+  st.guitar.y = lerp(-140, 560, clamp(pt / 5.2, 0, 1));
+  st.guitar.x = guitarX(st.guitar.y);
+  once(st, 'oDragon', pt >= 0.6, { type: 'dragonPass' });
+  once(st, 'oBreath', pt >= 3.6, { type: 'witchBreath' });
+  once(st, 'oWake', pt >= 4.9, { type: 'sailorWake' });
+  s.wake = clamp((pt - 4.9) / 0.9, 0, 1);
+  if (pt >= PHASE_LEN.open) { setPhase(st, 'swim'); st.events.push({ type: 'swimStart' }); }
+}
+
+// ---------------------------------------------------------------- the descent
+function stepSwim(st, dt, input) {
+  const s = st.sailor, g = st.guitar, offering = st.phase === 'offer';
+  st.hzT += dt;
+  s.grace = Math.max(0, s.grace - dt);
+  s.kickCD = Math.max(0, s.kickCD - dt);
+  s.kickT = Math.max(0, s.kickT - dt);
+
+  // Swim: the stick pushes, the water drags, he drifts slowly down.
+  let mx = input.moveX || 0, my = input.moveY || 0;
+  const m = Math.hypot(mx, my); if (m > 1) { mx /= m; my /= m; }
+  s.vx += mx * TUNE.accel * dt; s.vy += (my * TUNE.accel + TUNE.drift) * dt;
+  const d = Math.exp(-TUNE.drag * dt); s.vx *= d; s.vy *= d;
+  let sp = Math.hypot(s.vx, s.vy);
+  if (sp > TUNE.max && s.kickT <= 0) { const k = lerp(1, TUNE.max / sp, clamp(dt * 8, 0, 1)); s.vx *= k; s.vy *= k; }
+  if (input.a && !offering && s.kickCD <= 0) {
+    let kx = mx, ky = my;
+    if (Math.hypot(kx, ky) < 0.2) { if (sp > 40) { kx = s.vx / sp; ky = s.vy / sp; } else { kx = 0; ky = 1; } }
+    const kl = Math.hypot(kx, ky) || 1;
+    s.vx += (kx / kl) * TUNE.kick; s.vy += (ky / kl) * TUNE.kick;
+    s.kickCD = TUNE.kickCD; s.kickT = 0.35;
+    st.events.push({ type: 'swimKick' });
+  }
+  s.x += s.vx * dt; s.y += s.vy * dt;
+  if (Math.abs(mx) > 0.2) s.face = Math.sign(mx); else if (Math.abs(s.vx) > 40) s.face = Math.sign(s.vx);
+  sp = Math.hypot(s.vx, s.vy);
+  s.strokeT += dt * (0.8 + sp / 110);
+  if (s.strokeT >= 0.7) { s.strokeT = 0; s.stroke ^= 1; if (s.stroke === 0 && sp > 90) st.events.push({ type: 'swimStroke' }); }
+
+  // The guitar sinks ahead, always just out of reach, until it rests.
+  if (!g.settled) {
+    const gap = g.y - s.y;
+    // It sets the pace: quicker when he is close behind, waiting when he lags.
+    g.y += (gap > 520 ? 12 : gap > 300 ? 28 : gap > 160 ? 42 : 52) * dt;
+    if (g.y >= REST.y) { g.y = REST.y; g.settled = true; st.events.push({ type: 'guitarSettle' }); }
+    g.x = lerp(g.x, guitarX(g.y), clamp(dt * 2, 0, 1));
+  } else if (!g.held) {
+    g.x = lerp(g.x, REST.x, clamp(dt * 2, 0, 1));
+    if (Math.hypot(s.x - g.x, s.y - g.y) < 90) {
+      g.held = true; st.score += 200;
+      st.events.push({ type: 'guitarCatch' });
+      setPhase(st, 'offer'); st.offer = { said: false };
+    }
+  }
+
+  // Bounds: the rock walls, the surface, the floor, and the guitar below.
+  keepInBounds(st);
+
+  // Camera: keep him a little above the middle, so you see what's below.
+  const target = clamp(s.y - 230, 0, CAM_MAX);
+  st.cam += (target - st.cam) * clamp(dt * 4, 0, 1);
+
+  // Air: drains, refills in a vent's bubbles; empty costs a lantern.
+  const vent = st.vents.some((v) => Math.abs(s.x - v.x) < TUNE.ventW && s.y < v.y + 10 && s.y > v.y - TUNE.ventH);
+  if (vent && !st.inVent) st.events.push({ type: 'airVent' });
+  st.inVent = vent;
+  if (!offering) {
+    if (vent) st.air = Math.min(1, st.air + TUNE.airRefill * dt);
+    else st.air = Math.max(0, st.air - dt / TUNE.air);
+    if (st.air < 0.25 && !st.airLowed) { st.airLowed = true; st.events.push({ type: 'airLow' }); }
+    if (st.air > 0.4) st.airLowed = false;
+    if (st.air <= 0 && hurt(st, 'airOut', s.x, s.y + 40)) st.air = TUNE.airAfterOut;
+  }
+
+  // Conch horns: swim into one to sound it.
+  for (const c of st.conches) {
+    if (!c.used && Math.hypot(s.x - c.x, s.y - (c.y - 25)) < 60) {
+      c.used = true; st.hornT = TUNE.horn; st.events.push({ type: 'conchBlow', x: c.x, y: c.y });
+    }
+  }
+  st.hornT = Math.max(0, st.hornT - dt);
+  // Sleepers wake as he passes, while the conch sings or the guitar is his.
+  if (st.hornT > 0 || g.held) {
+    for (const sl of st.sleepers) {
+      if (sl.state === 'asleep' && Math.hypot(s.x - sl.x, s.y - sl.y) < TUNE.wakeR) wake(st, sl, 'sleeperWake');
+    }
+  }
+
+  // Clams open on the beat, for one beat. Open: a pearl. Closed: solid.
+  const bi = Math.floor(st.beat);
+  let snap = false;
+  for (const cl of st.clams) {
+    const spent = cl.got >= TUNE.clamPearls;
+    const open = !spent && clamOpen(cl, st.beat);
+    if (cl.wasOpen && !open && Math.abs(cl.y - s.y) < 400) snap = true;
+    cl.wasOpen = open;
+    const ex = 60, ey = 34, cy = cl.y - 26;
+    const dx = (s.x - cl.x) / ex, dy = (s.y - cy) / ey, dd = Math.hypot(dx, dy);
+    if (dd >= 1) continue;
+    if (open) {
+      if (cl.lastBeat !== bi) {
+        cl.lastBeat = bi; cl.got++; st.pearls++; st.score += 50;
+        st.events.push({ type: 'pearl', x: cl.x, y: cy - 20 });
+      }
+    } else {
+      const nx = dd > 1e-6 ? dx / dd : 0, ny = dd > 1e-6 ? dy / dd : -1;
+      s.x = cl.x + nx * ex; s.y = cy + ny * ey;
+      const vn = s.vx * nx + s.vy * ny; // remove the push into the shell
+      if (vn < 0) { s.vx -= nx * vn; s.vy -= ny * vn; }
+    }
+  }
+  keepInBounds(st); // a shell may have pushed him
+  if (snap && st.lastSnap !== bi) { st.lastSnap = bi; st.events.push({ type: 'clamSnap' }); }
+
+  // Hazards. Harmless once the guitar is in his hands (the witch is near).
+  st.omens.length = 0;
+  for (const e of st.eels) stepEel(st, e, dt, offering);
+  if (!offering) {
+    for (const j of st.jellies) {
+      const p = jellyPos(j, st.hzT), cy = p.y + 18;
+      if (Math.hypot(s.x - p.x, s.y - cy) < 40) hurt(st, 'jellySting', p.x, cy);
+      else if (st.tea) {
+        const q = jellyPos(j, st.hzT + BEAT_LEN);
+        if (Math.hypot(s.x - q.x, s.y - (q.y + 18)) < 95) st.omens.push({ x: p.x, y: p.y - 46 });
+      }
+    }
+    const dp = dragonPos(st.hzT);
+    if (((s.x - dp.x) / 110) ** 2 + ((s.y - dp.y) / 40) ** 2 < 1) hurt(st, 'dragonBite', dp.x, dp.y);
+    else if (st.tea) {
+      const q = dragonPos(st.hzT + BEAT_LEN);
+      if (((s.x - q.x) / 170) ** 2 + ((s.y - q.y) / 85) ** 2 < 1) st.omens.push({ x: dp.x, y: dp.y - 70 });
+    }
+  }
+  if (st.phase === 'drown') return;
+
+  // The close: the witch comes down and offers the rose.
+  if (offering) {
+    const o = st.offer, pt = st.phaseT;
+    if (pt >= 1.6 && !o.said) { o.said = true; st.events.push({ type: 'witchOffer' }); }
+    if (pt >= 2.0) {
+      if (input.a) choose(st, 'take');
+      else if (input.b || s.y < FLOOR - 470) choose(st, 'refuse');
+    }
+  }
+}
+
+function keepInBounds(st) {
+  const s = st.sailor, g = st.guitar;
+  s.x = clamp(s.x, BOUNDS.x0, BOUNDS.x1);
+  const yMax = g.settled ? FLOOR - 30 : g.y - TUNE.guitarLead;
+  if (s.y > yMax) { s.y = yMax; s.vy = Math.min(0, s.vy); }
+  if (s.y < BOUNDS.y0) { s.y = BOUNDS.y0; s.vy = Math.max(0, s.vy); }
+}
+
+function stepEel(st, e, dt, calm) {
+  const s = st.sailor;
+  e.t += dt; e.cd = Math.max(0, e.cd - dt);
+  if (e.state === 'idle') {
+    if (!calm && e.cd <= 0 && Math.abs(s.y - e.y) < 170) { e.state = 'omen'; e.t = 0; }
+  } else if (e.state === 'omen') {
+    if (calm) { e.state = 'idle'; } else if (e.t >= BEAT_LEN) { e.state = 'glow'; e.t = 0; st.events.push({ type: 'eelGlow' }); }
+  } else if (e.state === 'glow') {
+    if (calm) { e.state = 'idle'; } else if (e.t >= TUNE.eelGlow) { e.state = 'lunge'; e.t = 0; st.events.push({ type: 'eelLunge' }); }
+  } else if (e.state === 'lunge') {
+    if (e.t >= 0.22) { e.state = 'hold'; e.t = 0; }
+  } else if (e.state === 'hold') {
+    if (e.t >= 0.45) { e.state = 'back'; e.t = 0; }
+  } else if (e.state === 'back') {
+    if (e.t >= 0.5) { e.state = 'idle'; e.t = 0; e.cd = TUNE.eelCD; }
+  }
+  if (st.tea && (e.state === 'omen' || e.state === 'glow')) st.omens.push({ x: e.x + e.side * 46, y: e.y - 44 });
+  const ext = eelExt(e);
+  if (ext > 0.25 && !calm) {
+    // The eel is a segment from the hole out to its head.
+    const hx = e.x + e.side * TUNE.eelReach * ext;
+    const lo = Math.min(e.x, hx), hi = Math.max(e.x, hx);
+    const px = clamp(s.x, lo, hi);
+    if (Math.hypot(s.x - px, s.y - e.y) < 38) hurt(st, 'eelBite', px, e.y);
+  }
+}
+
+// A hit costs a lantern, then grace. Returns true if it landed.
+function hurt(st, cause, fx, fy) {
+  const s = st.sailor;
+  if (s.grace > 0 || st.phase !== 'swim') return false;
+  st.lanterns--; s.grace = TUNE.grace;
+  const dx = s.x - fx, dy = s.y - fy, dl = Math.hypot(dx, dy) || 1;
+  s.vx += (dx / dl) * 260; s.vy += (dy / dl) * 260;
+  st.events.push({ type: cause, x: s.x, y: s.y });
+  st.events.push({ type: 'hit', lanterns: st.lanterns, cause });
+  if (st.lanterns <= 0) { setPhase(st, 'drown'); st.events.push({ type: 'drown' }); }
+  return true;
+}
+
+function wake(st, sl, type) {
+  sl.state = 'rising'; sl.t = 0; st.woken++; st.score += 100;
+  st.events.push({ type, x: sl.x, y: sl.y, n: st.woken });
+}
+
+// ---------------------------------------------------------------- the close
+function choose(st, choice) {
+  st.choice = choice; st.rose = choice === 'take';
+  setPhase(st, 'choice');
+  if (choice === 'take') st.events.push({ type: 'roseTake' });
+  else st.events.push({ type: 'witchLaugh' });
+}
+
+function stepChoice(st, dt, input) {
+  const s = st.sailor;
+  // He drifts, holding the guitar; the stick still nudges him.
+  s.vx += (input.moveX || 0) * 200 * dt; s.vy += (input.moveY || 0) * 200 * dt;
+  const d = Math.exp(-TUNE.drag * dt); s.vx *= d; s.vy *= d;
+  s.x = clamp(s.x + s.vx * dt, BOUNDS.x0, BOUNDS.x1); s.y = clamp(s.y + s.vy * dt, FLOOR - 560, FLOOR - 30);
+  s.strokeT += dt; if (s.strokeT >= 0.8) { s.strokeT = 0; s.stroke ^= 1; }
+  if (st.choice === 'take' && st.phaseT >= 0.7 && !st.massWoken) {
+    // With a wave of her wand she wakes every sleeper at once.
+    st.massWoken = true;
+    const left = st.sleepers.filter((sl) => sl.state === 'asleep');
+    st.roseRisers = left.filter((sl) => !sl.floor).length;
+    for (const sl of left) { sl.state = 'rising'; sl.t = 0; st.woken++; st.score += 100; }
+    st.events.push({ type: 'sleepersRise', n: left.length });
+  }
+  if (st.phaseT >= PHASE_LEN.choice) {
+    setPhase(st, 'ride');
+    st.ride = { row: 1, from: 1, rowT: 1, pearls: ridePearls() };
+    st.events.push({ type: 'rideStart' });
+  }
+}
+
+// ---------------------------------------------------------------- the ride
+function stepRide(st, dt, input) {
+  const r = st.ride, rt = st.phaseT;
+  if (r.rowT < 1) r.rowT = Math.min(1, r.rowT + dt / 0.3);
+  else if (input.up && r.row > 0) { r.from = r.row; r.row--; r.rowT = 0; st.events.push({ type: 'rideRow' }); }
+  else if (input.down && r.row < 2) { r.from = r.row; r.row++; r.rowT = 0; st.events.push({ type: 'rideRow' }); }
+  const row = rideEffRow(r);
+  for (const p of r.pearls) {
+    if (p.got || rt < p.at) continue;
+    if (p.row === row && Math.abs(ridePearlX(p, rt) - RIDE.boatX) < 55) {
+      p.got = true; st.pearls++; st.score += 25;
+      st.events.push({ type: 'ridePearl', row: p.row });
+    }
+  }
+  if (rt >= PHASE_LEN.ride) { setPhase(st, 'iris'); st.events.push({ type: 'irisOut' }); }
+}
+
+function win(st) {
+  st.status = 'won'; st.statusT = 0;
+  st.result = { keepsakes: { guitar: true, rose: st.rose }, sleepers: st.woken, score: st.score, pearls: st.pearls };
+}
+
+function setPhase(st, p) { st.phase = p; st.phaseT = 0; }
+function once(st, key, cond, ev) { if (cond && !st[key]) { st[key] = true; st.events.push(ev); } }
