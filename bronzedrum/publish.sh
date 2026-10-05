@@ -18,4 +18,6 @@ for item in "$here/game/assets"/*; do
   [ "$(basename "$item")" = "art" ] && continue
   cp -R "$item" "$out/assets/"
 done
+# The sound workbench, at <site>/bronzedrum/workbench/ (it finds the game's assets one level up).
+cp -R "$here/workbench" "$out/workbench"
 echo "published bronzedrum to $out/"

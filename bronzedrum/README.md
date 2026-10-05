@@ -32,6 +32,12 @@ up to hide the bars, or add the game to the home screen).
 - [`design/screens/`](design/screens/): screenshots of the prototype with the
   delivered art.
 - [`game/`](game/): the prototype itself, static ES modules with no build step.
+- [`workbench/`](workbench/): the sound workbench, published at
+  https://hoai2k.github.io/mini/bronzedrum/workbench/. It plays each chapter's
+  ambience next to its alternate takes (level-matched, with an optional drum
+  over them), every effect take and the music, and lets you mark each one and
+  copy the notes. Its catalogue, `sounds.json`, is written by `build_audio.py`;
+  `--alternates` makes the alternate beds and `--music-trial` the music experiment.
 
 ## Run and check
 
