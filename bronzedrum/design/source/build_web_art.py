@@ -55,6 +55,7 @@ TARGETS = {
     "hud-drum": ("scale=480:480", 88),
     "touch-buttons": ("scale=480:160", 88),
     "logo": ("scale=1200:-1", 88),
+    "ui-panel": ("scale=768:-1", 85),
     "card-garden": ("scale=800:-1", 80),
     "card-outpost": ("scale=800:-1", 80),
     "card-luylau": ("scale=800:-1", 80),

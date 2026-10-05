@@ -79,6 +79,8 @@ function show(id) {
   canvas.style.visibility = id === 'title' || id === 'select' ? 'hidden' : 'visible';
   document.body.classList.toggle('playing', id === 'play');
   if (id !== 'play') focusFirst(activeRoot());
+  // The browser may drop the canvas once a menu goes over it and the game stops drawing.
+  if (id !== 'play') requestAnimationFrame(redrawPaused);
 }
 
 function activeRoot() {
@@ -110,6 +112,9 @@ function openDialog(id) {
   $(`#${id}`).hidden = false;
   input.mode = 'menu';
   focusFirst($(`#${id}`));
+  // Open at the top, even when focus landed on a button further down.
+  $(`#${id} .panel`).scrollTop = 0;
+  requestAnimationFrame(redrawPaused);
 }
 
 function closeDialog() {
@@ -211,7 +216,16 @@ async function toggleFullscreen() {
     toast('Fullscreen is not available here');
   }
 }
-document.addEventListener('fullscreenchange', () => renderer.resize());
+// Resizing clears the canvas; while paused nothing else redraws it, so draw
+// the frozen scene again (Esc leaves fullscreen as it pauses, phones rotate).
+function redrawPaused() {
+  if (game && screen !== 'play' && screen !== 'title' && screen !== 'select') renderer.draw(view(), 0);
+}
+document.addEventListener('fullscreenchange', () => {
+  renderer.resize();
+  redrawPaused();
+});
+window.addEventListener('resize', redrawPaused);
 
 // ---------------------------------------------------------------- chapter select
 
@@ -925,6 +939,12 @@ async function boot() {
     $('#logo-img').alt = 'Bronze Drum';
     $('#logo-img').hidden = false;
     $('#logo-text').classList.add('visually-hidden');
+  }
+  // Dialogs are cut from the delivered paper sheet (BD-U04) when it is here.
+  const sheet = art.get('ui-panel');
+  if (sheet) {
+    document.documentElement.style.setProperty('--panel-art', `url("${sheet.src}")`);
+    document.body.classList.add('paper-panels');
   }
   // Cards built before the art arrived get their pictures now.
   document.querySelectorAll('#stage-cards .card-art').forEach((el, i) => {

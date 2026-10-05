@@ -252,7 +252,8 @@
       "file": "art/ui-panel.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": false
+      "runtime": true,
+      "web": "web/ui-panel.webp"
     },
     {
       "id": "ui-icons",

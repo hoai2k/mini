@@ -490,10 +490,10 @@ Icons for the two strokes and the five commands, for the HUD and the instruction
 
 ### BD-U04 · Dialog panel
 
-The paper sheet behind menus and dialogs, nine-sliced in the production build.
+The paper sheet behind the pause menu and the other dialogs, nine-sliced so the cut border keeps its shape at any size.
 
 - **Spec:** 1536x1024, transparent outside the sheet
-- **Status:** delivered · **Game id:** `ui-panel`
+- **Status:** delivered · **Stand-in:** `CSS .panel (plain paper)` · **Game id:** `ui-panel`
 - **File:** `bronzedrum/game/assets/art/ui-panel.png`
 - **Prompt:** A sheet of cream rice paper with a hand-cut decorative border: a band of tangential circles and small herons cut through near the edge, corners cut with a sun-star. Plain centre for text. Even light, soft fibres.
 
