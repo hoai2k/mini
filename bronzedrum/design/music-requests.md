@@ -37,6 +37,11 @@ Score for a game about the Trưng sisters' uprising in ancient Vietnam (40 CE), 
 | `mu-elegy` | The Drums Are Melted (ending) | The ending, after the last battle. | 58 BPM | about 3 min | requested |
 | `mu-victory` | Victory sting | Chapter won. | 100 BPM | about 8 s | requested |
 | `mu-defeat` | Defeat sting | Chapter lost. | 60 BPM | about 8 s | requested |
+| `mu-oath` | The Oath (funeral) | Under The Oath, the father's funeral, while the mourning drum calls. | 56 BPM | about 2 min, loopable | requested |
+| `mu-foundry` | Casting the Drums | Under Casting the Drums, in the foundry. | 92 BPM | about 2 min, loopable | requested |
+| `mu-villages` | The Villages Answer | Under The Villages Answer, at night along the river. | 90 BPM | about 2 min, loopable | requested |
+| `mu-coronation` | The Coronation at Mê Linh | Under The Coronation, the festival. | 116 BPM | about 2 min, loopable | requested |
+| `mu-mavien` | Mã Viện Returns | Battle loop for the hold-the-line chapter, at dusk. | 100 BPM | 16 bars = 38.40 s | requested |
 | `mu-anthem` | Song of the Two Queens (vocal song) | Trailer and end credits. | 84 BPM | about 3 min 30 s | requested |
 
 ## mu-title · Trống Đồng (title theme)
@@ -170,6 +175,66 @@ Chapter lost.
 - **File:** `bronzedrum/game/assets/music/mu-defeat.mp3`
 - **Style tags:** `short defeat sting, vietnamese, dan bau falling phrase, low drone, sorrowful, 8 seconds`
 - **Prompt:** An 8-second defeat sting: the monochord (đàn bầu) plays a single falling, bending phrase over a low drone, ending unresolved. Sorrowful but not hopeless. No percussion.
+
+## mu-oath · The Oath (funeral)
+
+Under The Oath, the father's funeral, while the mourning drum calls.
+
+- **Tempo / key:** 56 BPM, A minor pentatonic
+- **Length:** about 2 min, loopable
+- **Loop:** loop the whole track
+- **Shape:** Đàn bầu alone over a low drone and a soft bronze bell every few bars; a single woman's voice hums a lament in the second half. Very sparse, leaving room for the slow mourning drum and the player's answers.
+- **File:** `bronzedrum/game/assets/music/mu-oath.mp3`
+- **Style tags:** `vietnamese funeral lament, dan bau, low drone, soft bronze bell, female humming, sparse, slow, 56 bpm`
+- **Prompt:** A sparse funeral piece for a Vietnamese lord, ancient times. The monochord (đàn bầu) bends slow, grieving phrases over a low drone, a soft bronze bell rings every few bars, and in the second half a single woman's voice hums a lament. About 56 BPM, very slow and quiet, lots of space: a mourning drum and the player's drumming sit on top. No other percussion.
+
+## mu-foundry · Casting the Drums
+
+Under Casting the Drums, in the foundry.
+
+- **Tempo / key:** 92 BPM, D minor pentatonic
+- **Length:** about 2 min, loopable
+- **Loop:** loop the whole track
+- **Shape:** A low steady bowed drone like the furnace's breath, a đàn nguyệt figure, metallic shimmer from struck bronze bars; work-song humming from men's and women's voices.
+- **File:** `bronzedrum/game/assets/music/mu-foundry.mp3`
+- **Style tags:** `vietnamese work song, foundry, low drone, dan nguyet, metallic bronze shimmer, humming voices, steady, 92 bpm`
+- **Prompt:** Music for a night in an ancient bronze foundry. A low bowed drone breathes like the furnace, a moon lute (đàn nguyệt) plays a patient repeating figure, struck bronze bars add a metallic shimmer, and men's and women's voices hum a work song. Steady and warm, about 92 BPM, but with no drums on the beat: the player keeps the hammer rhythm on top.
+
+## mu-villages · The Villages Answer
+
+Under The Villages Answer, at night along the river.
+
+- **Tempo / key:** 90 BPM, G major pentatonic
+- **Length:** about 2 min, loopable
+- **Loop:** loop the whole track
+- **Shape:** Night insects and water in the colour; sáo trúc phrases calling from far away and answered by another flute nearer; soft đàn tranh harmonics.
+- **File:** `bronzedrum/game/assets/music/mu-villages.mp3`
+- **Style tags:** `vietnamese night music, two bamboo flutes call and answer, dan tranh harmonics, river at night, hopeful, sparse`
+- **Prompt:** Night along the Red River. One bamboo flute (sáo trúc) calls a short phrase from far away and a second flute, nearer, answers it, again and again, like villages calling to each other; soft zither (đàn tranh) harmonics shimmer underneath. Hopeful and sparse, leaving space for drum calls and answers. No percussion.
+
+## mu-coronation · The Coronation at Mê Linh
+
+Under The Coronation, the festival.
+
+- **Tempo / key:** 116 BPM, D major pentatonic
+- **Length:** about 2 min, loopable
+- **Loop:** loop the whole track
+- **Shape:** A festive ensemble: đàn tranh, sáo trúc, đàn nguyệt and small gongs in a bright dance; a women's chorus in quan họ style on the refrain.
+- **File:** `bronzedrum/game/assets/music/mu-coronation.mp3`
+- **Style tags:** `vietnamese festival music, joyful, dan tranh, sao truc, dan nguyet, small gongs, quan ho chorus, 116 bpm`
+- **Prompt:** A joyful festival piece for the crowning of two queens in ancient Vietnam. Zither, bamboo flute and moon lute play a bright dance tune, small gongs shimmer, and a women's chorus sings the refrain on vocables in the quan họ style. About 116 BPM, light and celebratory, without heavy drums: festival drummers and the player drum on top.
+
+## mu-mavien · Mã Viện Returns
+
+Battle loop for the hold-the-line chapter, at dusk.
+
+- **Tempo / key:** 100 BPM, E minor pentatonic
+- **Length:** 16 bars = 38.40 s
+- **Loop:** 16 bars from 0.000 s; loops at 38.400 s
+- **Shape:** Grave and urgent: a low brass-like bronze drone, a đàn nhị lament over tense đàn nguyệt ostinato, distant war horns; the title theme fragmented.
+- **File:** `bronzedrum/game/assets/music/mu-mavien.mp3`
+- **Style tags:** `vietnamese battle music, grave, urgent, dan nhi lament, dan nguyet ostinato, bronze drone, distant horns, 100 bpm`
+- **Prompt:** A grave, urgent loop for a last stand at a river ford as a great Han army arrives. A low bronze drone, a tense moon-lute (đàn nguyệt) ostinato, a two-string fiddle (đàn nhị) playing a broken, mournful form of the main theme, distant war horns. Exactly 100 BPM in 4/4, 16 bars, seamless loop from the downbeat. No drum kit or kick: the player drums.
 
 ## mu-anthem · Song of the Two Queens (vocal song)
 

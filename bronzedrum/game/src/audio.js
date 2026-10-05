@@ -185,10 +185,10 @@ export class Sound {
    * and softer, so the player can tell their own strokes from the answer.
    * Returns the source so a cancelled answer can be silenced.
    */
-  echo(drum, t, level) {
+  echo(drum, t, level, rate = 0.9) {
     if (!this.ctx || level <= 0) return null;
     const id = drum === 'L' ? 'drum-tung' : 'drum-cac';
-    const src = this.play(id, t, level, this.master, 0.9);
+    const src = this.play(id, t, level, this.master, rate);
     if (src) return src;
     // Stand-in: a short low tone.
     const o = this.ctx.createOscillator();

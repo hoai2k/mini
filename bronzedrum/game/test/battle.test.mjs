@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createBattle, orderFor, issueOrder, stepArmy, stepEnemies, addFlourish, commandPower, blocker,
+  createBattle, orderFor, spawnEnemy, issueOrder, stepArmy, stepEnemies, addFlourish, commandPower, blocker,
   guard, shieldsUp, aboutToAttack, GUARD, FLIGHT, tempoFactor, resolveIncoming,
 } from '../src/battle.js';
 import { STAGES } from '../src/stages.js';
+import { dueWaves } from '../src/modes.js';
 import { COMMANDS, TIER_POWER } from '../src/rhythm.js';
 
 const stage = (id) => STAGES.find((s) => s.id === id);
@@ -18,12 +19,14 @@ function order(state, command, power = 1, u = 0.6) {
   return events;
 }
 
-test('stages only unlock known commands, have a goal and a tier cap', () => {
+const BATTLES = STAGES.filter((s) => !s.mode || s.mode === 'battle');
+
+test('battle chapters only unlock known commands, have a goal and a tier cap', () => {
   const ids = new Set(COMMANDS.map((c) => c.id));
-  for (const s of STAGES) {
+  for (const s of BATTLES) {
     for (const c of s.unlocked) assert.ok(ids.has(c), `${s.id}: ${c}`);
     assert.ok(s.maxTier >= 1 && s.maxTier <= 3, s.id);
-    assert.ok(createBattle(s).enemies.some((e) => e.goal), s.id);
+    assert.ok(s.survive || createBattle(s).enemies.some((e) => e.goal), s.id);
     assert.deepEqual(s.unlocked, ['march', 'strike'], `${s.id}: two families`);
   }
 });
@@ -170,7 +173,9 @@ function playChapter(s, { u = 0.6, tier = 1, accuracy = 1, guarding = null } = {
   let t = 0;
   let combo = 0;
   let last = null;
+  const spawned = new Set();
   const advance = (until) => {
+    for (const w of dueWaves(s.waves || [], until, spawned)) for (const e of w.enemies) spawnEnemy(b, e.type, e.dx);
     while (nextHan * han <= until && !b.outcome) {
       const at = nextHan * han;
       const launched = stepEnemies(b, at).filter((e) => e.type === 'launch');
@@ -205,7 +210,7 @@ function playChapter(s, { u = 0.6, tier = 1, accuracy = 1, guarding = null } = {
 }
 
 test('a steady drummer playing only tier I and shielding wins every chapter', () => {
-  for (const s of STAGES) {
+  for (const s of BATTLES) {
     const b = playChapter(s, { tier: 1, guarding: 0.3 });
     assert.equal(b.outcome, 'won', s.id);
     assert.ok(b.army.troops >= b.army.maxTroops * 0.2, `${s.id}: ${b.army.troops.toFixed(1)} left`);
@@ -213,7 +218,7 @@ test('a steady drummer playing only tier I and shielding wins every chapter', ()
 });
 
 test('harder rhythms and the shield make it easier', () => {
-  for (const s of STAGES.slice(1)) {
+  for (const s of BATTLES.filter((x) => x.id !== 'garden' && !x.survive)) {
     const plain = playChapter(s, { tier: 1, guarding: 0.3 });
     const fancy = playChapter(s, { tier: 3, guarding: 0.3 });
     const none = playChapter(s, { tier: 1 });
@@ -224,6 +229,21 @@ test('harder rhythms and the shield make it easier', () => {
 
 test('slow or fast, sloppy drumming still clears the first two chapters', () => {
   for (const u of [0.4, 0.9]) {
-    for (const s of STAGES.slice(0, 2)) assert.equal(playChapter(s, { u, accuracy: 0, guarding: 0.3 }).outcome, 'won', `${s.id} at ${u}`);
+    for (const s of [stage('garden'), stage('outpost')]) assert.equal(playChapter(s, { u, accuracy: 0, guarding: 0.3 }).outcome, 'won', `${s.id} at ${u}`);
   }
+});
+
+test('holding the ford: won by surviving the time, lost if the army breaks', () => {
+  const s = stage('mavien');
+  const held = playChapter(s, { tier: 2, guarding: 0.3 });
+  assert.equal(held.outcome, 'won');
+  assert.ok(held.time >= s.survive);
+  assert.ok(held.enemies.length > s.enemies.length, 'the waves arrived');
+  const idle = createBattle(s);
+  for (let i = 1; i < 400 && !idle.outcome; i++) {
+    for (const e of [{ type: 'crossbow', dx: 10 }]) if (i % 10 === 0) spawnEnemy(idle, e.type, e.dx);
+    stepEnemies(idle, i * 0.6);
+    resolveIncoming(idle, i * 0.6);
+  }
+  assert.equal(idle.outcome, 'lost', 'standing still under fire loses before the time is up');
 });

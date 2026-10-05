@@ -1,8 +1,9 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
 import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, commandById, parsePattern } from './rhythm.js';
-import { createBattle, orderFor, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
+import { createBattle, orderFor, spawnEnemy, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
+import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
 import { Sound } from './audio.js';
 import { Input } from './input.js';
 import { Renderer } from './render.js';
@@ -33,6 +34,7 @@ function save(key, value) {
 const settings = load('settings', { volume: 80, echo: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
 // The prototype opens every chapter for review; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
+progress.unlocked = Math.max(progress.unlocked, STAGES.length);
 
 // ---------------------------------------------------------------- systems
 
@@ -208,20 +210,27 @@ document.addEventListener('fullscreenchange', () => renderer.resize());
 function buildCards() {
   const box = $('#stage-cards');
   box.innerHTML = '';
+  const intro = $('#stage-intro');
   STAGES.forEach((s, i) => {
     const b = document.createElement('button');
     b.className = 'card';
     b.dataset.nav = '';
     b.disabled = i >= progress.unlocked;
     const img = art.get(`card-${s.id}`);
-    b.innerHTML = `${img ? '<span class="card-art" aria-hidden="true"></span>' : ''}<span class="num">Chapter ${i + 1}</span><span class="name"></span><span class="sub"></span><span class="intro"></span>`;
+    b.innerHTML = `<span class="card-art${img ? '' : ' plain'}" aria-hidden="true"></span><span class="num">Chapter ${i + 1}</span><span class="name"></span><span class="sub"></span>`;
     if (img) b.querySelector('.card-art').style.backgroundImage = `url(${img.src})`;
     b.querySelector('.name').textContent = s.title;
     b.querySelector('.sub').textContent = s.subtitle;
-    b.querySelector('.intro').textContent = i < progress.unlocked ? s.intro : 'Win the chapter before to unlock.';
+    b.setAttribute('aria-description', s.intro);
+    const describe = () => {
+      intro.textContent = i < progress.unlocked ? s.intro : 'Win the chapter before to unlock.';
+    };
+    b.addEventListener('focus', describe);
+    b.addEventListener('mouseenter', describe);
     b.addEventListener('click', () => startStage(i));
     box.appendChild(b);
   });
+  intro.textContent = STAGES[0].intro;
 }
 
 function buildCommandTable() {
@@ -229,7 +238,7 @@ function buildCommandTable() {
   t.innerHTML = '<tr><th>Command</th><th>I</th><th>II · ×1.4</th><th>III · ×1.96</th></tr>';
   const effects = {
     march: 'Advance (stops at the enemy line).',
-    strike: 'Spears hit the front enemy; archers shoot. In chapter 3, with the drum awake, the war elephant charges instead: it tramples everything near it and spends the drum’s spirit.',
+    strike: 'Spears hit the front enemy; archers shoot. At Luy Lâu, with the drum awake, the war elephant charges instead: it tramples everything near it and spends the drum’s spirit.',
   };
   const cell = (text) =>
     text
@@ -263,7 +272,11 @@ function startStage(i) {
     index: i,
     stage,
     hanBeat: 60 / stage.bpm, // the Han war drum keeps the chapter's tempo
-    reader: new DrumReader({ unlocked: stage.unlocked, maxTier: stage.maxTier }),
+    mode: stage.mode || 'battle',
+    reader: new DrumReader({ unlocked: stage.unlocked || [], maxTier: stage.maxTier || 3 }),
+    session: null, // echo or casting session (modes.js)
+    spawned: new Set(), // hold-the-line waves already on the field
+    crackAt: -9,
     battle: createBattle(stage),
     clockStart: sound.now + 0.6,
     nextHan: 1,
@@ -279,6 +292,14 @@ function startStage(i) {
     guards: 0,
     blocks: 0,
   };
+  if (game.mode === 'echo') {
+    game.session = new EchoSession({ calls: stage.calls, matchTempo: stage.matchTempo, tolerance: stage.tolerance });
+    game.reader.patterns = [];
+    game.session.nextCallAt = 2.2;
+  } else if (game.mode === 'casting') {
+    game.session = new CastingSession({ drums: stage.drums, pours: stage.pours, tolerance: stage.tolerance });
+    game.reader.patterns = [callPattern(stage.rhythm, 'cast')];
+  }
   renderer.setStage(stage);
   sound.loadSamples().then(() => {
     if (game && game.stage === stage) sound.startAmbience(stage.ambience);
@@ -317,6 +338,10 @@ input.on('drum', ({ drum, time }) => {
   else sound.cac(undefined, game.reader.busy(t));
   renderer.hit(drum, songTime());
   input.rumble(drum === 'L' ? 50 : 30, drum === 'L' ? 0.6 : 0.3);
+  if (game.mode === 'echo' && game.session.listening(t)) {
+    feedback('Listen first — then answer', P.paperShade);
+    return;
+  }
   for (const ev of game.reader.hit(drum, t)) handleRhythm(ev);
 });
 
@@ -387,6 +412,10 @@ function handleRhythm(ev) {
   const g = game;
   if (ev.type === 'phraseStart') {
     endSustain();
+  } else if (ev.type === 'command' && g.mode === 'echo') {
+    for (const e of g.session.answer(ev, songTime())) handleMode(e);
+  } else if (ev.type === 'command' && g.mode === 'casting') {
+    for (const e of g.session.pour(ev)) handleMode(e);
   } else if (ev.type === 'command') {
     const c = commandById(ev.command);
     // With the elephant, a strike on a waking drum is the charge; it spends the drum.
@@ -413,14 +442,67 @@ function handleRhythm(ev) {
     else if (ev.reason !== 'no-pattern' && ev.strokes >= 2) feedback(ev.reason === 'timeout' ? 'The rhythm fades' : 'Uneven — start again', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
   } else if (ev.type === 'comboLost') {
-    if (ev.combo > 1) feedback('Chain broken', P.paperShade);
+    if (ev.combo > 1 && g.mode === 'battle') feedback('Chain broken', P.paperShade);
+  }
+}
+
+/** Echo and casting events: sounds, confirmations, the end of the chapter. */
+function handleMode(e) {
+  const g = game;
+  const t = songTime();
+  const stage = g.stage;
+  switch (e.type) {
+    case 'call': {
+      // The caller's drum plays the rhythm; the reader will only accept that rhythm.
+      g.reader.patterns = [e.call.pattern];
+      g.reader.phrase = [];
+      const voice = { mourning: 0.72, village: 1.08, festival: 1.18, elegy: 0.8 }[stage.caller] || 1;
+      for (const s of e.call.strokes) sound.echo(s.drum, g.clockStart + s.t, 0.75, voice);
+      if (e.call.label) feedback(`${e.call.label} calls`, P.paperShade);
+      break;
+    }
+    case 'yourTurn':
+      feedback('Your turn', P.paper);
+      break;
+    case 'repeat':
+      feedback('Again — listen', P.paperShade);
+      break;
+    case 'offTempo':
+      feedback(e.faster ? 'Too fast — match their speed' : 'Too slow — match their speed', P.lacquer);
+      g.reader.action = null;
+      g.reader.shown = null;
+      break;
+    case 'answered': {
+      const words = { mourning: 'An incense stick is lit', village: `${e.call.label || 'The village'} answers`, festival: 'The crowd roars', elegy: 'A drum falls silent' };
+      confirm(words[stage.caller] || 'Answered', P.bronzeLight);
+      if (stage.caller === 'festival') sound.play('crowd-cheer', sound.now + 0.2, 0.8);
+      else if (stage.caller !== 'elegy') sound.play('lantern', sound.now + 0.1, 0.8);
+      break;
+    }
+    case 'pour':
+      confirm(`Steady — pour ${e.level} of ${e.of}`, P.bronzeLight);
+      sound.play('pour', sound.now, 0.8);
+      break;
+    case 'crack':
+      confirm(e.faster ? 'Too fast — the mould cracks' : 'Too slow — the mould cracks', P.lacquer);
+      sound.play('crack');
+      g.crackAt = t;
+      break;
+    case 'cast':
+      toast(`Drum ${e.drum + 1} is cast`);
+      sound.play('drum-wake', sound.now + 0.3, 0.6);
+      break;
+    case 'complete':
+      g.evenness = e.evenness;
+      finish('won');
+      break;
   }
 }
 
 function hint(view) {
   const g = game;
   const t = view.songTime;
-  if (t < g.introUntil && g.index > 0) return g.stage.intro.split('. ')[0] + '.';
+  if (t < g.introUntil && g.stage.id !== 'garden') return g.stage.intro.split('. ')[0] + '.';
   if (!settings.hints) return null;
   const keys = {
     keyboard: { L: 'F', R: 'J' },
@@ -435,7 +517,19 @@ function hint(view) {
   const b = g.battle;
   const front = blocker(b);
   const near = front && front.x - b.army.x <= 4.6;
-  if (g.index === 0) {
+  if (g.mode === 'echo') {
+    const sess = g.session;
+    if (sess.phase === 'calling') return 'Listen to the call…';
+    if (sess.phase === 'answer' && sess.index === 0) return `Now answer it: the same rhythm, evenly (${keys.L} = tùng, ${keys.R} = cắc)`;
+    return null;
+  }
+  if (g.mode === 'casting') {
+    const sess = g.session;
+    if (sess.u === null) return `Drum the hammer rhythm at a speed you can hold: ${g.stage.rhythm.split(' ').map((b) => [...b].map((d) => keys[d]).join('')).join(' ')}`;
+    return `Hold ${Math.round(60 / sess.u)} BPM — every phrase the same speed`;
+  }
+  if (g.stage.id === 'mavien' && view.songTime < 20) return 'Hold the ford — strike the columns, shield every volley';
+  if (g.stage.id === 'garden') {
     if (g.commandsDone === 0) return `Drum evenly, at any speed — ${say('march')}`;
     if (near) return g.tiersUsed.has(2) ? `In reach — ${say('strike')}  or  ${say('strike', 2)}` : `In reach — ${say('strike')}`;
     if (!g.tiersUsed.has(2)) return `Stronger: two quick strokes share a beat — ${say('march', 2)}`;
@@ -444,11 +538,11 @@ function hint(view) {
   }
   const guardKey = { keyboard: 'Space', gamepad: 'A', pointer: 'tap the drum' }[input.device] || 'Space';
   if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return `Attack coming — shield (${guardKey}) while it is in the air`;
-  if (g.index === 1 && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
+  if (g.stage.id === 'outpost' && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
     return `Triplets hit hardest — ${say('strike', 3)}`;
   }
-  if (g.index === 2 && near && g.reader.spirit) return `The drum is awake — strike and the elephant charges: ${say('strike')}`;
-  if (g.index === 2 && !g.reader.spirit && g.commandsDone < 6) return 'Chain four commands to wake the drum — then a strike becomes the elephant charge';
+  if (g.stage.id === 'luylau' && near && g.reader.spirit) return `The drum is awake — strike and the elephant charges: ${say('strike')}`;
+  if (g.stage.id === 'luylau' && !g.reader.spirit && g.commandsDone < 6) return 'Chain four commands to wake the drum — then a strike becomes the elephant charge';
   return null;
 }
 
@@ -456,6 +550,16 @@ function updatePlay(dt) {
   const g = game;
   const t = songTime();
   for (const ev of g.reader.update(t)) handleRhythm(ev);
+  if (g.mode === 'echo' && !g.ended) for (const e of g.session.update(t)) handleMode(e);
+  if (g.mode !== 'battle') {
+    // No battle in echo and casting chapters: just the scene.
+    renderer.draw(view(), dt);
+    return;
+  }
+  // Hold the line: new columns arrive.
+  if (g.stage.waves) {
+    for (const w of dueWaves(g.stage.waves, t, g.spawned)) for (const e of w.enemies) spawnEnemy(g.battle, e.type, e.dx);
+  }
   // A sustained order rolls into its next cycle unless a new phrase began.
   const c = g.cycle;
   if (c && t >= c.start + 4 * c.u - 0.15 && !g.reader.phrase.length) {
@@ -548,6 +652,18 @@ function view() {
     }
   }
   if (c && t >= c.start) heron = Math.floor(beatFloat) % 4;
+  // Echo chapters: show the caller's rhythm as it is played, then wait for the answer.
+  if (g.mode === 'echo' && g.session.call) {
+    const call = g.session.call;
+    if (g.session.phase === 'calling') {
+      const played = call.strokes.filter((st) => st.t <= t).length;
+      phraseView = { pattern: call.pattern, filled: played, done: false, caller: true };
+      heron = played ? Math.floor(call.pattern.strokes[played - 1].pos) : -1;
+    } else if (g.session.phase === 'answer' && !phraseView) {
+      phraseView = { pattern: call.pattern, filled: 0, done: false };
+    }
+  }
+  if (g.mode === 'casting' && !phraseView) phraseView = { pattern: g.reader.patterns[0], filled: 0, done: false };
   const v = {
     battle: g.battle,
     songTime: t,
@@ -569,12 +685,29 @@ function view() {
     combo: r.combo,
     spirit: r.spirit,
     feedback: g.feedback,
-    unlocked: g.stage.unlocked,
-    maxTier: g.stage.maxTier,
+    unlocked: g.stage.unlocked || [],
+    maxTier: g.stage.maxTier || 3,
+    mode: g.mode,
+    stage: g.stage,
+    session: g.session,
+    crackAt: g.crackAt,
+    pouring: g.mode === 'casting' && !!r.action && t >= r.action.start,
   };
   v.hint = hint(v);
   return v;
 }
+
+const RESULTS = {
+  garden: 'The straw targets are down. The women know the drum.',
+  oath: 'The incense burns for your father. The sisters swear to drive out the Han.',
+  casting: 'Three bronze drums, cast true. They will carry across the delta.',
+  villages: 'Lanterns burn along the river from Phong Châu to Giao Chỉ. The villages will fight.',
+  outpost: 'The drum carries across the water. The ford is yours.',
+  luylau: 'Luy Lâu falls and the governor flees north. Sixty-five citadels are free.',
+  coronation: 'Trưng Trắc and Trưng Nhị are queens of the Lạc Việt.',
+  mavien: 'The ford held until Mê Linh was empty. The sisters’ army withdraws, still unbroken.',
+  elegy: 'The last drum falls silent. They will be cast into a bronze horse — but the rhythm is remembered. (End of the prototype.)',
+};
 
 function finish(outcome) {
   game.ended = true;
@@ -585,12 +718,12 @@ function finish(outcome) {
   }
   setTimeout(() => {
     if (!game || screen !== 'play') return;
-    $('#result-title').textContent = won ? 'Victory' : 'The line breaks';
+    const peaceful = game.mode !== 'battle';
+    $('#result-title').textContent = won ? (peaceful ? 'Chapter complete' : 'Victory') : 'The line breaks';
+    const even = game.evenness !== undefined ? ` Evenness: ${Math.round(game.evenness * 100)}%.` : '';
     $('#result-text').textContent = won
-      ? game.index === STAGES.length - 1
-        ? 'Luy Lâu falls and the governor flees north. The drum has spoken — for now. (End of the prototype.)'
-        : 'The drum carries across the water. More villages will answer.'
-      : 'The women fall back to regroup. Guard just before each blow lands — watch the red ring close.';
+      ? RESULTS[game.stage.id] + even
+      : 'The women fall back to regroup. Raise the shields while the bolts are in the air.';
     $('#result-next').hidden = !won || game.index >= STAGES.length - 1;
     show('result');
   }, 1600);
