@@ -111,7 +111,27 @@ export class Sound {
     bus.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.ambienceLevel), this.ctx.currentTime + 1.5);
     bus.connect(this.master);
     const src = this.play(id, this.now, 1, bus);
-    this.ambience = { src, bus };
+    this.ambience = { src, bus, layers: new Map() };
+  }
+
+  /**
+   * A second looping bed over the ambience whose level the scene sets as it
+   * goes (Drum Practice's fire, louder as the drumming builds). It stops with
+   * the ambience.
+   */
+  ambienceLayer(id, level) {
+    if (!this.ctx || !this.ambience || !this.samples.has(id)) return;
+    let layer = this.ambience.layers.get(id);
+    if (!layer) {
+      const gain = this.ctx.createGain();
+      gain.gain.value = 0;
+      gain.connect(this.ambience.bus);
+      layer = { gain, src: this.play(id, this.now, 1, gain), level: 0 };
+      this.ambience.layers.set(id, layer);
+    }
+    if (Math.abs(level - layer.level) < 0.01) return;
+    layer.level = level;
+    layer.gain.gain.setTargetAtTime(level, this.ctx.currentTime, 0.4);
   }
 
   stopAmbience() {
@@ -123,6 +143,7 @@ export class Sound {
     bus.gain.setValueAtTime(bus.gain.value, t);
     bus.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
     src.stop(t + 0.7);
+    for (const l of this.ambience.layers.values()) if (l.src) l.src.stop(t + 0.7);
     this.ambience = null;
   }
 

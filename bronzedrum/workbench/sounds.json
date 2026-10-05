@@ -18,7 +18,8 @@
           "file": "sfx/drum-tung-3.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "drum-cac",
@@ -40,7 +41,8 @@
           "file": "sfx/drum-cac-3.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "drum-chau",
@@ -58,7 +60,8 @@
           "file": "sfx/drum-chau-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "drum-mo",
@@ -76,7 +79,8 @@
           "file": "sfx/drum-mo-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "drum-wake",
@@ -90,7 +94,8 @@
           "file": "sfx/drum-wake.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "stumble",
@@ -104,7 +109,8 @@
           "file": "sfx/stumble.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-com-low",
@@ -122,7 +128,8 @@
           "file": "sfx/kit-com-low-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-com-high",
@@ -140,7 +147,8 @@
           "file": "sfx/kit-com-high-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-gong-low",
@@ -158,7 +166,8 @@
           "file": "sfx/kit-gong-low-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-gong-high",
@@ -176,7 +185,8 @@
           "file": "sfx/kit-gong-high-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-bamboo-low",
@@ -194,7 +204,8 @@
           "file": "sfx/kit-bamboo-low-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-bamboo-high",
@@ -208,7 +219,8 @@
           "file": "sfx/kit-bamboo-high-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-lan-drum",
@@ -226,7 +238,8 @@
           "file": "sfx/kit-lan-drum-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "kit-lan-cymbal",
@@ -244,7 +257,8 @@
           "file": "sfx/kit-lan-cymbal-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "call",
@@ -266,7 +280,8 @@
           "file": "sfx/call-3.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "cmd-march",
@@ -280,7 +295,8 @@
           "file": "sfx/cmd-march.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "cmd-strike",
@@ -294,7 +310,8 @@
           "file": "sfx/cmd-strike.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "cmd-shield",
@@ -308,7 +325,8 @@
           "file": "sfx/cmd-shield.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "cmd-rally",
@@ -322,7 +340,8 @@
           "file": "sfx/cmd-rally.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "cmd-charge",
@@ -336,7 +355,8 @@
           "file": "sfx/cmd-charge.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "volley",
@@ -350,7 +370,8 @@
           "file": "sfx/volley.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "bolts",
@@ -364,7 +385,8 @@
           "file": "sfx/bolts.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "hit-paper",
@@ -386,7 +408,8 @@
           "file": "sfx/hit-paper-3.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "hit-straw",
@@ -400,7 +423,8 @@
           "file": "sfx/hit-straw.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "defeat-han",
@@ -414,7 +438,8 @@
           "file": "sfx/defeat-han.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "fort-break",
@@ -428,7 +453,8 @@
           "file": "sfx/fort-break.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "trample",
@@ -442,7 +468,8 @@
           "file": "sfx/trample.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "wound",
@@ -456,7 +483,8 @@
           "file": "sfx/wound.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "blocked",
@@ -470,7 +498,8 @@
           "file": "sfx/blocked.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "ui-move",
@@ -484,12 +513,13 @@
           "file": "sfx/ui-move.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "ui-confirm",
       "group": "Interface",
-      "use": "Choosing a menu item.",
+      "use": "Choosing a menu item. Its tail carried a hiss (heard on the workbench): denoised and cut short after the knock.",
       "prompt": "A small hardwood clapper knock, clean and single, like a temple woodblock.",
       "kind": "hit",
       "gain": 0.6,
@@ -498,26 +528,28 @@
           "file": "sfx/ui-confirm.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "ui-back",
       "group": "Interface",
-      "use": "Closing a menu or dialog.",
+      "use": "Closing a menu or dialog. Too prominent (heard on the workbench): shortened, softened and played quieter.",
       "prompt": "A sheet of paper sliding softly across a wooden table, short.",
       "kind": "hit",
-      "gain": 0.5,
+      "gain": 0.3,
       "files": [
         {
           "file": "sfx/ui-back.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "ui-start",
       "group": "Interface",
-      "use": "Press Start.",
+      "use": "Press Start. It carries a faint static (heard on the workbench); three cleaner takes wait on the workbench as candidates.",
       "prompt": "A single resonant strike on a small bronze gong, ringing out.",
       "kind": "sting",
       "gain": 0.7,
@@ -525,6 +557,23 @@
         {
           "file": "sfx/ui-start.mp3",
           "rejected": null
+        }
+      ],
+      "candidates": [
+        {
+          "id": "ui-start-new-1",
+          "prompt": "A single strike of a soft mallet on a small bronze gong, ringing out clear and pure and fading to silence. Clean studio recording, close-miked, silent background, no hiss, no noise, no room rumble, no music.",
+          "file": "alt-sfx/ui-start-new-1.mp3"
+        },
+        {
+          "id": "ui-start-new-2",
+          "prompt": "A single strike of a soft mallet on a small bronze gong, ringing out clear and pure and fading to silence. Clean studio recording, close-miked, silent background, no hiss, no noise, no room rumble, no music.",
+          "file": "alt-sfx/ui-start-new-2.mp3"
+        },
+        {
+          "id": "ui-start-new-3",
+          "prompt": "A single strike of a soft mallet on a small bronze gong, ringing out clear and pure and fading to silence. Clean studio recording, close-miked, silent background, no hiss, no noise, no room rumble, no music.",
+          "file": "alt-sfx/ui-start-new-3.mp3"
         }
       ]
     },
@@ -540,7 +589,8 @@
           "file": "sfx/village-wakes.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "victory",
@@ -554,7 +604,8 @@
           "file": "sfx/victory.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "defeat",
@@ -568,7 +619,8 @@
           "file": "sfx/defeat.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "pour",
@@ -582,7 +634,8 @@
           "file": "sfx/pour.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "crack",
@@ -596,7 +649,8 @@
           "file": "sfx/crack.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "lantern",
@@ -610,7 +664,8 @@
           "file": "sfx/lantern.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "crowd-cheer",
@@ -624,7 +679,8 @@
           "file": "sfx/crowd-cheer.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "dancer-join",
@@ -642,7 +698,8 @@
           "file": "sfx/dancer-join-2.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "han-horn",
@@ -656,7 +713,8 @@
           "file": "sfx/han-horn.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "amb-garden",
@@ -670,7 +728,8 @@
           "file": "sfx/amb-garden.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "amb-river",
@@ -684,7 +743,8 @@
           "file": "sfx/amb-river.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "amb-foundry",
@@ -698,49 +758,83 @@
           "file": "sfx/amb-foundry.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "amb-village",
       "group": "Ambience",
-      "use": "The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked to one steady rate (a strong steady chirp would pull against the player's tempo); looped with a 3 s crossfade and lowered 6 dB.",
-      "prompt": "Field recording at night beside a slow river in the Vietnamese countryside: steady crickets chirping in the grass, frogs calling from the rice paddies, gentle water lapping against a wooden jetty. Calm, natural, recorded outdoors with a real microphone. No music, no voices, no hum, no wind howl.",
+      "use": "The Villages Answer bed, looped: the workbench take villages-frogs, chosen over the old cricket bed (muffled and metallic).",
+      "prompt": "Night on the Red River delta: a loud chorus of rice-paddy frogs and toads croaking, crickets, water lapping against bamboo boats. Calm.",
       "kind": "loop",
-      "gain": 0.45,
+      "gain": 0.55,
       "files": [
         {
           "file": "sfx/amb-village.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
-      "id": "amb-green",
+      "id": "amb-elegy",
       "group": "Ambience",
-      "use": "Drum Practice bed (the village green), looped. Nothing in it keeps a beat, so it never pulls against the player's own tempo.",
-      "prompt": "Field recording at dusk on a village green in the Vietnamese countryside: a bonfire crackling and popping close by, soft crickets in the grass, the low relaxed murmur of villagers talking far off, an occasional distant laugh. Calm, natural, recorded outdoors with a real microphone. No music, no drums, no clear words, no wind howl.",
+      "use": "The Drums Are Melted bed, looped: the workbench take elegy-dawn (the chapter used to borrow the river bed).",
+      "prompt": "A very quiet grey dawn by a still river: a single bird singing far away, soft wind, water barely lapping, the low distant roar of a furnace. Melancholy and sparse.",
       "kind": "loop",
-      "gain": 0.45,
+      "gain": 0.55,
       "files": [
         {
-          "file": "sfx/amb-green.mp3",
+          "file": "sfx/amb-elegy.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
-      "id": "amb-mourning",
+      "id": "amb-practice",
       "group": "Ambience",
-      "use": "The Oath (chapter 2) bed, looped. Chosen from six takes as the least synthetic (most noise-like spectrum); raised 10 dB under a soft limiter to sit with the other beds.",
-      "prompt": "Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and calm, no music, no electronic sounds.",
+      "use": "Drum Practice bed (the village green at dusk), looped: the workbench take practice-dusk-2.",
+      "prompt": "Dusk at the edge of a Vietnamese village: a soft breeze in bamboo, a water buffalo's wooden bell far off in the fields, a few birds settling for the night, a far-off frog. Peaceful. No insects. Real outdoor field recording, no music, no drums, no clear words.",
       "kind": "loop",
-      "gain": 0.45,
+      "gain": 0.55,
       "files": [
         {
-          "file": "sfx/amb-mourning.mp3",
+          "file": "sfx/amb-practice.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
+    },
+    {
+      "id": "amb-fire",
+      "group": "Ambience",
+      "use": "Drum Practice: the bonfire on the green, a second layer over the bed whose level follows the fire (louder as the drumming builds): the workbench take practice-fire-2.",
+      "prompt": "A bonfire crackling gently in the open at dusk, a soft breeze through palm leaves, distant frogs. Warm and calm. No insects. Real outdoor field recording, no music, no drums, no clear words.",
+      "kind": "loop",
+      "gain": 0.5,
+      "files": [
+        {
+          "file": "sfx/amb-fire.mp3",
+          "rejected": null
+        }
+      ],
+      "candidates": []
+    },
+    {
+      "id": "amb-coronation",
+      "group": "Ambience",
+      "use": "The Coronation bed, looped: the workbench take coronation-crowd, a festival crowd (the chapter used to borrow the dawn garden bed).",
+      "prompt": "A festive crowd in a village square in Vietnam on a sunny day: the lively murmur of hundreds of people, children laughing, vendors calling in the distance, cloth banners flapping in the breeze.",
+      "kind": "loop",
+      "gain": 0.5,
+      "files": [
+        {
+          "file": "sfx/amb-coronation.mp3",
+          "rejected": null
+        }
+      ],
+      "candidates": []
     },
     {
       "id": "breeze",
@@ -754,7 +848,8 @@
           "file": "sfx/breeze.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     },
     {
       "id": "amb-night",
@@ -768,7 +863,8 @@
           "file": "sfx/amb-night.mp3",
           "rejected": null
         }
-      ]
+      ],
+      "candidates": []
     }
   ],
   "music": [
@@ -832,27 +928,6 @@
       "measured": ""
     },
     {
-      "id": "oath-gecko",
-      "chapter": "oath",
-      "prompt": "Dusk in the courtyard of an old Vietnamese house: a tokay gecko calling a few times from the rafters, crickets starting up, a distant dog barking once, soft wind through banana leaves. Quiet and solemn. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/oath-gecko.mp3",
-      "measured": ""
-    },
-    {
-      "id": "oath-temple",
-      "chapter": "oath",
-      "prompt": "Evening in a quiet Vietnamese temple courtyard: cicadas fading as night falls, a soft breeze in a tall tree, a small wind bell tinkling now and then, a few crickets. Solemn and still. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/oath-temple.mp3",
-      "measured": ""
-    },
-    {
-      "id": "oath-wake",
-      "chapter": "oath",
-      "prompt": "Indoors at dusk in a wooden house during a funeral wake: a few mourners murmuring softly far away in another room, an oil lamp sputtering, crickets outside the open shutters. Very quiet and solemn. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/oath-wake.mp3",
-      "measured": "uneven: 22 dB swings"
-    },
-    {
       "id": "casting-furnace",
       "chapter": "casting",
       "prompt": "Night at an ancient open-air bronze foundry: a big charcoal furnace roaring and crackling, embers popping, molten metal hissing on wet clay, workers' voices murmuring far away. No machinery, no hammering. Real outdoor field recording, no music, no drums, no clear words.",
@@ -867,88 +942,11 @@
       "measured": ""
     },
     {
-      "id": "casting-workshop",
-      "chapter": "casting",
-      "prompt": "A village blacksmith's workshop at night, quiet between jobs: the fire breathing in the forge, coals settling and ticking, hot iron sizzling in a water trough now and then, a dog far off outside. No hammering. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/casting-workshop.mp3",
-      "measured": "uneven: 28 dB swings, loud sizzles a quarter of the time"
-    },
-    {
-      "id": "villages-frogs",
-      "chapter": "villages",
-      "prompt": "Night on the Red River delta: a loud chorus of rice-paddy frogs and toads croaking, crickets, water lapping against bamboo boats. Calm. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/villages-frogs.mp3",
-      "measured": "very even"
-    },
-    {
-      "id": "villages-boat",
-      "chapter": "villages",
-      "prompt": "Late night by a Vietnamese river: crickets close by, a night heron squawking once far away, the soft creak of a wooden boat on its rope, a gentle current. Sparse. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/villages-boat.mp3",
-      "measured": "a faint steady pulse about every 0.5 s (a creak or a croak): listen with Drum along"
-    },
-    {
-      "id": "villages-geckos",
-      "chapter": "villages",
-      "prompt": "Night in a stilt village on a river: geckos chirping on the walls, crickets in the grass, a breeze in the palms, distant frogs. Peaceful. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/villages-geckos.mp3",
-      "measured": "very even"
-    },
-    {
-      "id": "outpost-ford",
-      "chapter": "outpost",
-      "prompt": "Midday at a wide river ford in northern Vietnam: shallow water rushing over stones, wind gusting through tall elephant grass, a kingfisher calling, cicadas buzzing in the trees on the bank. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/outpost-ford.mp3",
-      "measured": "very even"
-    },
-    {
       "id": "outpost-cicadas",
       "chapter": "outpost",
       "prompt": "A hot afternoon on a riverbank: a loud shimmering chorus of cicadas in the trees, slow water flowing, wind in the reeds, a crow cawing far off. Real outdoor field recording, no music, no drums, no clear words.",
       "file": "alt/outpost-cicadas.mp3",
       "measured": ""
-    },
-    {
-      "id": "outpost-wind",
-      "chapter": "outpost",
-      "prompt": "A windy day on an open river plain: steady wind across reeds and grass, cloth banners flapping now and then, water slapping the bank, birds calling in the distance. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/outpost-wind.mp3",
-      "measured": ""
-    },
-    {
-      "id": "luylau-torches",
-      "chapter": "luylau",
-      "prompt": "Night outside the walls of an ancient town: torches crackling and fluttering in the wind, crickets and frogs in the moat, a dog barking inside the walls, wind along the ramparts. Tense and quiet. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/luylau-torches.mp3",
-      "measured": ""
-    },
-    {
-      "id": "luylau-moat",
-      "chapter": "luylau",
-      "prompt": "A warm tropical night beside a moat: deep bullfrogs croaking, crickets, insects buzzing, a faint wind, an owl hooting once far away. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/luylau-moat.mp3",
-      "measured": "a faint steady pulse about every 0.75 s (frogs)"
-    },
-    {
-      "id": "luylau-camp",
-      "chapter": "luylau",
-      "prompt": "The night camp of an army waiting outside a walled town: campfires crackling, the low murmur of many people talking quietly far off, a horse snorting, crickets. Calm but tense. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/luylau-camp.mp3",
-      "measured": ""
-    },
-    {
-      "id": "coronation-crowd",
-      "chapter": "coronation",
-      "prompt": "A festive crowd in a village square in Vietnam on a sunny day: the lively murmur of hundreds of people, children laughing, vendors calling in the distance, cloth banners flapping in the breeze. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/coronation-crowd.mp3",
-      "measured": ""
-    },
-    {
-      "id": "coronation-gate",
-      "chapter": "coronation",
-      "prompt": "Outside a palace gate during a celebration: a large happy crowd chattering, cheers rising and falling far off, birds overhead, wind in the flags. No gongs. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/coronation-gate.mp3",
-      "measured": "uneven: 25 dB swings, cheers rising a quarter of the time"
     },
     {
       "id": "coronation-market",
@@ -958,13 +956,6 @@
       "measured": "uneven: 25 dB swings"
     },
     {
-      "id": "mavien-army",
-      "chapter": "mavien",
-      "prompt": "Dusk at a river ford with a great army gathering across the water: the low rumble of thousands of feet far off, horses neighing, armour and weapons clinking, wind over the river. Ominous, no horns. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/mavien-army.mp3",
-      "measured": "uneven: 26 dB swings, a fast clatter"
-    },
-    {
       "id": "mavien-wind",
       "chapter": "mavien",
       "prompt": "Evening wind over a wide river at dusk: fast-flowing water, gusts in the reeds, crows calling, the faint distant murmur of a large crowd across the water. Grave and tense. Real outdoor field recording, no music, no drums, no clear words.",
@@ -972,45 +963,101 @@
       "measured": "very even: steady wind and water"
     },
     {
-      "id": "mavien-line",
+      "id": "oath-dusk-2",
+      "chapter": "oath",
+      "prompt": "A still dusk in a quiet countryside courtyard: a soft breeze through banana and bamboo leaves, a slow trickle of water from a stone basin, a distant bird calling once or twice. Calm and solemn. No insects, no hum. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/oath-dusk-2.mp3",
+      "measured": ""
+    },
+    {
+      "id": "oath-rain-2",
+      "chapter": "oath",
+      "prompt": "Light evening rain falling softly on a tiled roof and on broad leaves in a quiet courtyard, a few drips into a stone jar, gentle and steady. No thunder, no insects. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/oath-rain-2.mp3",
+      "measured": ""
+    },
+    {
+      "id": "oath-pond-2",
+      "chapter": "oath",
+      "prompt": "Dusk beside a still lotus pond: an occasional frog calling softly, water barely moving, a soft breeze in the reeds, a far-off bird. Sparse and quiet. No insects. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/oath-pond-2.mp3",
+      "measured": ""
+    },
+    {
+      "id": "luylau-frogs-2",
+      "chapter": "luylau",
+      "prompt": "Night beside the flooded rice paddies outside an old town: a chorus of frogs and toads croaking, a gentle wind, water lapping at the edge of a moat. Calm but watchful. No insects, no traffic. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/luylau-frogs-2.mp3",
+      "measured": ""
+    },
+    {
+      "id": "luylau-wind-2",
+      "chapter": "luylau",
+      "prompt": "A warm night wind blowing across open fields and through tall grass by a river, distant frogs, leaves rustling. No insects, no rumble. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/luylau-wind-2.mp3",
+      "measured": ""
+    },
+    {
+      "id": "mavien-river-2",
       "chapter": "mavien",
-      "prompt": "A riverbank at dusk before a battle: banners snapping in a strong wind, shields knocking softly, many people shifting nervously, a horse stamping, water beyond. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/mavien-line.mp3",
+      "prompt": "Dusk on the bank of a wide, slow river: calm flowing water, a cool wind through tall reeds, a few crows calling far off. Grave and quiet. No insects. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/mavien-river-2.mp3",
       "measured": ""
     },
     {
-      "id": "elegy-dawn",
-      "chapter": "elegy",
-      "prompt": "A very quiet grey dawn by a still river: a single bird singing far away, soft wind, water barely lapping, the low distant roar of a furnace. Melancholy and sparse. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/elegy-dawn.mp3",
+      "id": "coronation-crowd-2",
+      "chapter": "coronation",
+      "prompt": "A large festive crowd murmuring happily at a distance in an open square on a sunny day, steady and even, no single voice standing out, flags flapping softly in the wind. No cheering bursts. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/coronation-crowd-2.mp3",
       "measured": ""
     },
     {
-      "id": "elegy-embers",
-      "chapter": "elegy",
-      "prompt": "Dawn after a great fire: the soft tick and crackle of dying embers and cooling ash, a light wind, a few early birds, a river far off. Still and sad. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/elegy-embers.mp3",
+      "id": "oath-gecko-clean",
+      "chapter": "oath",
+      "prompt": "De-buzzed copy of the turned-down take oath-gecko (heard as: almost, but synthetic and metallic): the 200 Hz comb notched out.",
+      "file": "alt/oath-gecko-clean.mp3",
       "measured": ""
     },
     {
-      "id": "elegy-lotus",
-      "chapter": "elegy",
-      "prompt": "A misty dawn on a lotus lake: dew dripping from leaves, a heron's wingbeats, faint movement of water, a distant temple bell once. Peaceful and mournful. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/elegy-lotus.mp3",
+      "id": "oath-temple-clean",
+      "chapter": "oath",
+      "prompt": "De-buzzed copy of the turned-down take oath-temple (heard as: insects good, then metallic sounds): the 200 Hz comb notched out.",
+      "file": "alt/oath-temple-clean.mp3",
       "measured": ""
     },
     {
-      "id": "practice-village",
-      "chapter": "practice",
-      "prompt": "Dusk in a Vietnamese village: crickets and cicadas, a bonfire crackling, children laughing far off, a buffalo bell clonking in the fields, cooking pots clinking. Warm and relaxed. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/practice-village.mp3",
-      "measured": "uneven: 22 dB swings"
+      "id": "amb-night-clean",
+      "chapter": "luylau",
+      "prompt": "De-buzzed copy of Luy Lâu's bed amb-night (heard as: a bit synthetic): the 200 Hz comb notched out.",
+      "file": "alt/amb-night-clean.mp3",
+      "measured": ""
     },
     {
-      "id": "practice-festival",
-      "chapter": "practice",
-      "prompt": "An evening village gathering before a festival: a relaxed crowd chatting round a fire, laughter, crackling flames, crickets, a breeze in the palms. Real outdoor field recording, no music, no drums, no clear words.",
-      "file": "alt/practice-festival.mp3",
+      "id": "luylau-moat-clean",
+      "chapter": "luylau",
+      "prompt": "De-buzzed copy of the turned-down take luylau-moat (heard as: a synthetic buzz): the 200 Hz comb notched out.",
+      "file": "alt/luylau-moat-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "outpost-cicadas-clean",
+      "chapter": "outpost",
+      "prompt": "De-buzzed copy of the take outpost-cicadas (heard as: almost, but a bit synthetic): the 200 Hz comb notched out.",
+      "file": "alt/outpost-cicadas-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "amb-village-clean",
+      "chapter": "villages",
+      "prompt": "De-buzzed copy of the Villages bed amb-village (frogs, kept) (heard as: kept): the 200 Hz comb notched out.",
+      "file": "alt/amb-village-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "amb-garden-clean",
+      "chapter": "garden",
+      "prompt": "De-buzzed copy of the garden bed amb-garden (heard as: okay apart from loud birds (since tamed)): the 200 Hz comb notched out.",
+      "file": "alt/amb-garden-clean.mp3",
       "measured": ""
     }
   ],

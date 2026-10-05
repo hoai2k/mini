@@ -75,9 +75,9 @@ safe-area insets, because iOS Safari's 100vh ignores its own bars
   cut from BD-U02) install the game as a full-screen landscape app, which is
   how iPhones get true full screen.
 
-**The Oath.** Its ambience is a warm dusk breeze in a courtyard
-(`amb-mourning`, made with ElevenLabs), replacing the night bed with its
-metallic insects. Each answered call lights an incense stick: a flare of light,
+**The Oath.** It has no ambience. Every bed tried here sounded synthetic
+against the incense and the dusk, so the music carries the chapter alone, a
+little louder than elsewhere. Each answered call lights an incense stick: a flare of light,
 sparks and a ring, then a thicker first breath of smoke. Every lit stick sends
 up a ribbon of smoke that curls through a slow swirling flow and climbs into the
 sky as a thinning haze, so the column visibly thickens with each answer, and the
@@ -358,8 +358,10 @@ drum, and they walk in from the right to places round the fire. A deep stroke
 is a stamp with both arms up; a rim stroke is a hop with a flick to alternate
 sides. When the drumming stops for two seconds the groove drains and the
 dancers leave the way they came. Each new dancer is greeted by a shout and a clap
-(`dancer-join`). The bed is its own ambience (`amb-green`): the fire crackling,
-crickets, and villagers murmuring far off. Nothing in it keeps a beat.
+(`dancer-join`). The bed is a village edge at dusk (`amb-practice`): a breeze
+in bamboo, a buffalo bell far off, birds settling. Over it the bonfire crackles
+(`amb-fire`), quiet at first and rising with the fire as the drumming builds.
+Nothing in either keeps a beat.
 
 ## Structure for the full game
 

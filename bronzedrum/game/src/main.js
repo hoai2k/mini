@@ -351,7 +351,7 @@ function startStage(i) {
     if (game && game.stage === stage) {
       sound.startAmbience(stage.ambience);
       // A beatless bed under the chapter, quieter than the menus.
-      if (stage.music) sound.playMusic(stage.music, { level: 0.55 });
+      if (stage.music) sound.playMusic(stage.music, { level: stage.musicLevel ?? 0.55 });
     }
   });
   if (document.activeElement) document.activeElement.blur();
@@ -1178,7 +1178,7 @@ const PRACTICE = {
     intro: 'A partner drums a rhythm with as many strokes as the dots show; answer with any rhythm of the same length, and they come straight back with the next. Nothing is wrong: copy them, or answer in your own way.',
   },
 };
-for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-green', troops: 0, elephant: false, enemies: [] });
+for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-practice', troops: 0, elephant: false, enemies: [] });
 
 /** The practice modes' screen (from the title). */
 function openPractice() {
@@ -1408,6 +1408,8 @@ function updatePractice(dt) {
   // The drumming dies down when it stops: the dancers drift away.
   const quiet = t - g.lastSound > 2;
   g.energy = Math.max(0, g.energy - dt * (quiet ? 2.2 : 0.12));
+  // The fire on the green: its crackle rises with it as the drumming builds.
+  sound.ambienceLayer('amb-fire', 0.25 + 0.75 * Math.min(1, g.energy / 30));
   // A shout and a clap as each new dancer joins.
   const dancers = practiceDancers();
   if (dancers > g.dancers) sound.play('dancer-join', sound.now, 0.8);

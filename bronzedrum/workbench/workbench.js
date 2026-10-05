@@ -369,10 +369,34 @@ function buildChapters() {
   for (const ch of chapters) {
     const card = document.createElement('article');
     card.className = 'chapter';
-    card.innerHTML = '<header><h3></h3><span class="scene"></span></header><div class="rows"></div>';
+    card.innerHTML = '<header><h3></h3><span class="scene"></span></header><div class="chapter-body"><div class="looks"></div><div class="rows"></div></div>';
     card.querySelector('h3').textContent = ch.title;
     card.querySelector('.scene').textContent = ch.scene;
+    // What the chapter looks like while its bed plays (scenes/, from
+    // make-scenes.mjs), and its card art: judge the sound against the light.
+    const looks = card.querySelector('.looks');
+    const cardArt = `${root}assets/web/card-${ch.id === 'practice' ? 'practice-free' : ch.id}.webp`;
+    for (const [src, alt, cls] of [[`scenes/${ch.id}.webp`, `${ch.title}: the scene in the game`, 'shot'], [cardArt, `${ch.title}: chapter card art`, 'art']]) {
+      const a = document.createElement('a');
+      a.href = src;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.className = cls;
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = alt;
+      img.loading = 'lazy';
+      img.addEventListener('error', () => a.remove());
+      a.appendChild(img);
+      looks.appendChild(a);
+    }
     const rows = card.querySelector('.rows');
+    if (!ch.ambience) {
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = 'No ambience in the game: the music alone carries this chapter. The takes below are kept in case.';
+      rows.appendChild(p);
+    }
     if (ch.ambience) {
       rows.appendChild(bedRow({
         key: markKey('bed', `${ch.id}:${ch.ambience}`),
@@ -389,7 +413,7 @@ function buildChapters() {
       rows.appendChild(bedRow({
         key: markKey('alt', a.id),
         name: a.id,
-        tag: 'alternate',
+        tag: /-clean$/.test(a.id) ? 'de-buzzed copy' : /-2$/.test(a.id) ? 'new · round 2' : 'alternate',
         tagClass: 'alt',
         url: a.file,
         prompt: a.prompt,
@@ -449,6 +473,23 @@ function buildEffects() {
       row.appendChild(d);
       row.appendChild(noteField(markKey('sfx', s.id), label));
       rows.appendChild(row);
+      // Candidate takes waiting to replace this effect: each its own row to mark.
+      for (const c of s.candidates || []) {
+        const crow = document.createElement('div');
+        crow.className = 'row candidate';
+        const b = document.createElement('button');
+        b.className = 'take';
+        b.textContent = '▶';
+        b.setAttribute('aria-label', `Play candidate ${c.id}`);
+        b.addEventListener('click', () => playOnce(c.file, s.gain, b));
+        const cinfo = document.createElement('div');
+        cinfo.innerHTML = '<span class="name"></span><span class="tag alt">candidate</span><div class="meta"></div>';
+        cinfo.querySelector('.name').textContent = c.id;
+        cinfo.querySelector('.meta').textContent = `A possible replacement for ${s.id}`;
+        const clabel = `candidate ${c.id} (for ${s.id})`;
+        crow.append(b, cinfo, markControls(markKey('cand', c.id), clabel), noteField(markKey('cand', c.id), clabel));
+        rows.appendChild(crow);
+      }
     }
     box.appendChild(sec);
   }
@@ -539,7 +580,7 @@ async function boot() {
     catalogue = await (await fetch('sounds.json')).json();
     const { STAGES } = await import(`${root}src/stages.js`);
     chapters = STAGES.map((s) => ({ id: s.id, title: s.title, ambience: s.ambience, scene: SCENES[s.id] || s.subtitle }));
-    chapters.push({ id: 'practice', title: 'Drum Practice', ambience: 'amb-green', scene: SCENES.practice });
+    chapters.push({ id: 'practice', title: 'Drum Practice', ambience: 'amb-practice', scene: SCENES.practice });
   } catch (e) {
     status(`Could not load the sound catalogue: ${e.message}`);
     return;
@@ -565,6 +606,7 @@ $('#along').addEventListener('change', () => {
   alongBeat = 0;
 });
 $('#stop').addEventListener('click', stopAll);
+$('#stop-float').addEventListener('click', stopAll);
 $('#copy').addEventListener('click', async () => {
   const text = $('#summary').textContent;
   try {

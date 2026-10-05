@@ -51,7 +51,10 @@ export const STAGES = [
     troops: 0,
     elephant: false,
     sky: 'dusk',
-    ambience: 'amb-mourning',
+    // No ambience: every bed tried here sounded synthetic against the incense
+    // and the dusk, so the music carries the scene alone, a little louder.
+    ambience: null,
+    musicLevel: 0.75,
     enemies: [],
   },
   {
@@ -168,7 +171,7 @@ export const STAGES = [
     troops: 100,
     elephant: false,
     sky: 'day',
-    ambience: 'amb-garden',
+    ambience: 'amb-coronation',
     enemies: [],
   },
   {
@@ -221,7 +224,7 @@ export const STAGES = [
     troops: 0,
     elephant: false,
     sky: 'ash',
-    ambience: 'amb-river',
+    ambience: 'amb-elegy',
     enemies: [],
   },
 ];

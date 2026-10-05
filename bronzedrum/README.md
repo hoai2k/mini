@@ -38,6 +38,8 @@ up to hide the bars, or add the game to the home screen).
   over them), every effect take and the music, and lets you mark each one and
   copy the notes. Its catalogue, `sounds.json`, is written by `build_audio.py`;
   `--alternates` makes the alternate beds and `--music-trial` the music experiment.
+  `node workbench/make-scenes.mjs` recaptures the chapter scenes shown beside
+  the sounds (`workbench/scenes/`).
 
 ## Run and check
 

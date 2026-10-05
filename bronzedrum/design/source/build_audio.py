@@ -214,13 +214,18 @@ sfx(G, "ui-move",
     0.5, "Moving focus in menus.", kind="hit", gain=0.5)
 sfx(G, "ui-confirm",
     "A small hardwood clapper knock, clean and single, like a temple woodblock.",
-    0.5, "Choosing a menu item.", kind="hit", gain=0.6)
+    0.5, "Choosing a menu item. Its tail carried a hiss (heard on the workbench): denoised and cut "
+    "short after the knock.", kind="hit", gain=0.6,
+    post="afftdn=nr=20:nf=-45,atrim=0:0.2,afade=t=out:st=0.07:d=0.13")
 sfx(G, "ui-back",
     "A sheet of paper sliding softly across a wooden table, short.",
-    0.5, "Closing a menu or dialog.", kind="hit", gain=0.5)
+    0.5, "Closing a menu or dialog. Too prominent (heard on the workbench): shortened, softened "
+    "and played quieter.", kind="hit", gain=0.3,
+    post="atrim=0:0.3,lowpass=f=5500,afade=t=in:d=0.02,afade=t=out:st=0.08:d=0.22")
 sfx(G, "ui-start",
     "A single resonant strike on a small bronze gong, ringing out.",
-    2.5, "Press Start.", kind="sting", gain=0.7)
+    2.5, "Press Start. It carries a faint static (heard on the workbench); three cleaner takes "
+    "wait on the workbench as candidates.", kind="sting", gain=0.7)
 
 sfx(G, "village-wakes",
     "A riverside village wakes at night: a bronze gong struck once in the distance, then a "
@@ -285,28 +290,23 @@ sfx(G, "amb-foundry",
     20.0, "Casting the Drums bed, looped. Chosen from six takes as the least tonal (the old "
     "take had a steady hum that read as a machine); looped with a 3 s crossfade and raised "
     "7 dB under a soft limiter.", kind="loop", gain=0.45, post="lowpass=f=9000")
-sfx(G, "amb-village",
-    "Field recording at night beside a slow river in the Vietnamese countryside: steady "
-    "crickets chirping in the grass, frogs calling from the rice paddies, gentle water lapping "
-    "against a wooden jetty. Calm, natural, recorded outdoors with a real microphone. No music, "
-    "no voices, no hum, no wind howl.",
-    20.0, "The Villages Answer bed, looped. Chosen from six takes: the crickets are not locked "
-    "to one steady rate (a strong steady chirp would pull against the player's tempo); looped "
-    "with a 3 s crossfade and lowered 6 dB.", kind="loop", gain=0.45, post="lowpass=f=10000")
-sfx(G, "amb-green",
-    "Field recording at dusk on a village green in the Vietnamese countryside: a bonfire "
-    "crackling and popping close by, soft crickets in the grass, the low relaxed murmur of "
-    "villagers talking far off, an occasional distant laugh. Calm, natural, recorded outdoors "
-    "with a real microphone. No music, no drums, no clear words, no wind howl.",
-    20.0, "Drum Practice bed (the village green), looped. Nothing in it keeps a beat, so it never "
-    "pulls against the player's own tempo.", kind="loop", gain=0.45, post="lowpass=f=11000")
-sfx(G, "amb-mourning",
-    "Real outdoor ambience recording, evening in the countryside: a gentle crackling campfire "
-    "close by, soft crickets and cicadas fading at dusk, occasional distant bird. Natural and "
-    "calm, no music, no electronic sounds.",
-    20.0, "The Oath (chapter 2) bed, looped. Chosen from six takes as the least synthetic "
-    "(most noise-like spectrum); raised 10 dB under a soft limiter to sit with the other beds.",
-    kind="loop", gain=0.45, post="lowpass=f=9000")
+# Beds chosen on the workbench (alternate takes, levelled to ALT_LUFS).
+sfx(G, "amb-village", 'Night on the Red River delta: a loud chorus of rice-paddy frogs and toads croaking, crickets, water lapping against bamboo boats. Calm.',
+    20.0, "The Villages Answer bed, looped: the workbench take villages-frogs, chosen over the "
+    "old cricket bed (muffled and metallic).", kind="loop", gain=0.55, keep_level=True)
+sfx(G, "amb-elegy", 'A very quiet grey dawn by a still river: a single bird singing far away, soft wind, water barely lapping, the low distant roar of a furnace. Melancholy and sparse.',
+    20.0, "The Drums Are Melted bed, looped: the workbench take elegy-dawn (the chapter used to "
+    "borrow the river bed).", kind="loop", gain=0.55, keep_level=True)
+sfx(G, "amb-practice", "Dusk at the edge of a Vietnamese village: a soft breeze in bamboo, a water buffalo's wooden bell far off in the fields, a few birds settling for the night, a far-off frog. Peaceful. No insects. Real outdoor field recording, no music, no drums, no clear words.",
+    20.0, "Drum Practice bed (the village green at dusk), looped: the workbench take practice-dusk-2.",
+    kind="loop", gain=0.55, keep_level=True)
+sfx(G, "amb-fire", 'A bonfire crackling gently in the open at dusk, a soft breeze through palm leaves, distant frogs. Warm and calm. No insects. Real outdoor field recording, no music, no drums, no clear words.',
+    20.0, "Drum Practice: the bonfire on the green, a second layer over the bed whose level follows "
+    "the fire (louder as the drumming builds): the workbench take practice-fire-2.",
+    kind="loop", gain=0.5, keep_level=True)
+sfx(G, "amb-coronation", 'A festive crowd in a village square in Vietnam on a sunny day: the lively murmur of hundreds of people, children laughing, vendors calling in the distance, cloth banners flapping in the breeze.',
+    20.0, "The Coronation bed, looped: the workbench take coronation-crowd, a festival crowd (the "
+    "chapter used to borrow the dawn garden bed).", kind="loop", gain=0.5, keep_level=True)
 sfx(G, "breeze",
     "A soft, warm breeze blowing in gentle gusts through an open courtyard, rustling leaves "
     "lightly. Continuous, airy and natural, no whistling, no howling, no music.",
@@ -327,14 +327,23 @@ sfx(G, "amb-night",
 # that chapter's bed in the SFX list above.
 
 ALT_DIR = ROOT / "workbench" / "alt"
+# The buzz: the takes heard as metallic, synthetic or "radio buzz" all carry a
+# comb of steady tones at exact multiples of 200 Hz (with weaker ones at 100 Hz
+# steps), up to 15 dB over their neighbourhood; the takes kept have little.
+# A narrow notch at every 100 Hz step removes it and changes the loudness by
+# under 1 dB. DEBUZZ is applied to new takes that carry it and to the
+# de-buzzed copies below.
+DEBUZZ = ",".join(f"equalizer=f={100 * k}:t=h:w=6:g=-24" for k in range(1, 80))
 ALT_LUFS = -22.0
 ALTERNATES: list[dict] = []
 NO = " Real outdoor field recording, no music, no drums, no clear words."
 
 
-def alt(chapter, aid, prompt):
-    ALTERNATES.append(dict(chapter=chapter, id=aid, prompt=prompt + NO, seconds=20.0, influence=0.5,
-                           kind="loop", post="lowpass=f=11000", gain=0.45))
+def alt(chapter, aid, prompt, debuzz=False, derived_from=None):
+    """derived_from: a de-buzzed copy of an existing take (made once, not generated)."""
+    ALTERNATES.append(dict(chapter=chapter, id=aid, prompt=prompt + ("" if derived_from else NO), seconds=20.0,
+                           influence=0.5, kind="loop", gain=0.45, derived_from=derived_from,
+                           post="lowpass=f=11000" + ("," + DEBUZZ if debuzz else "")))
 
 
 alt("garden", "garden-birds",
@@ -347,17 +356,6 @@ alt("garden", "garden-pond",
 alt("garden", "garden-buffalo",
     "A quiet dawn courtyard in the Vietnamese countryside: doves cooing softly, distant roosters, a "
     "water buffalo's wooden bell clonking far off in the fields, leaves rustling. Sparse and peaceful.")
-alt("oath", "oath-gecko",
-    "Dusk in the courtyard of an old Vietnamese house: a tokay gecko calling a few times from the "
-    "rafters, crickets starting up, a distant dog barking once, soft wind through banana leaves. "
-    "Quiet and solemn.")
-alt("oath", "oath-temple",
-    "Evening in a quiet Vietnamese temple courtyard: cicadas fading as night falls, a soft breeze in "
-    "a tall tree, a small wind bell tinkling now and then, a few crickets. Solemn and still.")
-alt("oath", "oath-wake",
-    "Indoors at dusk in a wooden house during a funeral wake: a few mourners murmuring softly far "
-    "away in another room, an oil lamp sputtering, crickets outside the open shutters. Very quiet "
-    "and solemn.")
 alt("casting", "casting-furnace",
     "Night at an ancient open-air bronze foundry: a big charcoal furnace roaring and crackling, "
     "embers popping, molten metal hissing on wet clay, workers' voices murmuring far away. No "
@@ -366,71 +364,15 @@ alt("casting", "casting-charcoal",
     "A charcoal fire burning hot in a clay furnace outdoors at night: the deep steady roar of "
     "flames, the crackle and pop of charcoal, sparks, an occasional hiss of steam, crickets far "
     "off. No machinery, no rhythm.")
-alt("casting", "casting-workshop",
-    "A village blacksmith's workshop at night, quiet between jobs: the fire breathing in the forge, "
-    "coals settling and ticking, hot iron sizzling in a water trough now and then, a dog far off "
-    "outside. No hammering.")
-alt("villages", "villages-frogs",
-    "Night on the Red River delta: a loud chorus of rice-paddy frogs and toads croaking, crickets, "
-    "water lapping against bamboo boats. Calm.")
-alt("villages", "villages-boat",
-    "Late night by a Vietnamese river: crickets close by, a night heron squawking once far away, the "
-    "soft creak of a wooden boat on its rope, a gentle current. Sparse.")
-alt("villages", "villages-geckos",
-    "Night in a stilt village on a river: geckos chirping on the walls, crickets in the grass, a "
-    "breeze in the palms, distant frogs. Peaceful.")
-alt("outpost", "outpost-ford",
-    "Midday at a wide river ford in northern Vietnam: shallow water rushing over stones, wind "
-    "gusting through tall elephant grass, a kingfisher calling, cicadas buzzing in the trees on the bank.")
 alt("outpost", "outpost-cicadas",
     "A hot afternoon on a riverbank: a loud shimmering chorus of cicadas in the trees, slow water "
     "flowing, wind in the reeds, a crow cawing far off.")
-alt("outpost", "outpost-wind",
-    "A windy day on an open river plain: steady wind across reeds and grass, cloth banners flapping "
-    "now and then, water slapping the bank, birds calling in the distance.")
-alt("luylau", "luylau-torches",
-    "Night outside the walls of an ancient town: torches crackling and fluttering in the wind, "
-    "crickets and frogs in the moat, a dog barking inside the walls, wind along the ramparts. Tense "
-    "and quiet.")
-alt("luylau", "luylau-moat",
-    "A warm tropical night beside a moat: deep bullfrogs croaking, crickets, insects buzzing, a "
-    "faint wind, an owl hooting once far away.")
-alt("luylau", "luylau-camp",
-    "The night camp of an army waiting outside a walled town: campfires crackling, the low murmur "
-    "of many people talking quietly far off, a horse snorting, crickets. Calm but tense.")
-alt("coronation", "coronation-crowd",
-    "A festive crowd in a village square in Vietnam on a sunny day: the lively murmur of hundreds "
-    "of people, children laughing, vendors calling in the distance, cloth banners flapping in the breeze.")
-alt("coronation", "coronation-gate",
-    "Outside a palace gate during a celebration: a large happy crowd chattering, cheers rising and "
-    "falling far off, birds overhead, wind in the flags. No gongs.")
 alt("coronation", "coronation-market",
     "A sunny festival morning in a market square: a gentle bustle of people, footsteps, laughter, a "
     "rooster, sparrows, a light wind. Cheerful.")
-alt("mavien", "mavien-army",
-    "Dusk at a river ford with a great army gathering across the water: the low rumble of thousands "
-    "of feet far off, horses neighing, armour and weapons clinking, wind over the river. Ominous, no horns.")
 alt("mavien", "mavien-wind",
     "Evening wind over a wide river at dusk: fast-flowing water, gusts in the reeds, crows calling, "
     "the faint distant murmur of a large crowd across the water. Grave and tense.")
-alt("mavien", "mavien-line",
-    "A riverbank at dusk before a battle: banners snapping in a strong wind, shields knocking "
-    "softly, many people shifting nervously, a horse stamping, water beyond.")
-alt("elegy", "elegy-dawn",
-    "A very quiet grey dawn by a still river: a single bird singing far away, soft wind, water "
-    "barely lapping, the low distant roar of a furnace. Melancholy and sparse.")
-alt("elegy", "elegy-embers",
-    "Dawn after a great fire: the soft tick and crackle of dying embers and cooling ash, a light "
-    "wind, a few early birds, a river far off. Still and sad.")
-alt("elegy", "elegy-lotus",
-    "A misty dawn on a lotus lake: dew dripping from leaves, a heron's wingbeats, faint movement "
-    "of water, a distant temple bell once. Peaceful and mournful.")
-alt("practice", "practice-village",
-    "Dusk in a Vietnamese village: crickets and cicadas, a bonfire crackling, children laughing far "
-    "off, a buffalo bell clonking in the fields, cooking pots clinking. Warm and relaxed.")
-alt("practice", "practice-festival",
-    "An evening village gathering before a festival: a relaxed crowd chatting round a fire, "
-    "laughter, crackling flames, crickets, a breeze in the palms.")
 
 
 # Music trials: ElevenLabs' music model tried on a request, as an experiment
@@ -505,6 +447,83 @@ ALT_NOTES = {
 }
 
 
+# Takes heard on the workbench and turned down (the user's notes). What failed:
+# insects (crickets, cicadas, geckos) came out metallic or buzzing; voices and
+# laughter sounded artificial; anything with distinct events (horses, carts,
+# cheers) was not an ambience. What worked: frogs, flowing water, wind in
+# reeds, a sparse dawn bird, a furnace. The second round leans on those.
+ALT_REJECTED = {
+    "oath-gecko": "almost, but synthetic and metallic",
+    "oath-temple": "the insects were good, then metallic, synthetic sounds",
+    "oath-wake": "just a low buzz",
+    "casting-workshop": "too specific: events, not an ambience",
+    "villages-boat": "muffled",
+    "villages-geckos": "a metallic buzz",
+    "outpost-ford": "something synthetic in it",
+    "outpost-wind": "wind on a microphone",
+    "luylau-torches": "sounds like driving in a car",
+    "luylau-moat": "a synthetic buzz",
+    "luylau-camp": "radio buzz",
+    "coronation-gate": "too uneven: fire, children, random cheers",
+    "mavien-army": "not ambient: mostly horses",
+    "mavien-line": "not ambient: footsteps and carts",
+    "elegy-embers": "a highway in the distance behind the fire",
+    "elegy-lotus": "radio buzz",
+    "practice-village": "AI artefacts; the laughter is not natural",
+    "practice-festival": "not ambient: a person laughing close to the microphone",
+    "amb-mourning-clean": "still a high-pitched synthetic sound, de-buzzed or not (the Oath now has no ambience)",
+}
+
+alt("oath", "oath-dusk-2",
+    "A still dusk in a quiet countryside courtyard: a soft breeze through banana and bamboo "
+    "leaves, a slow trickle of water from a stone basin, a distant bird calling once or twice. "
+    "Calm and solemn. No insects, no hum.", debuzz=True)
+alt("oath", "oath-rain-2",
+    "Light evening rain falling softly on a tiled roof and on broad leaves in a quiet "
+    "courtyard, a few drips into a stone jar, gentle and steady. No thunder, no insects.", debuzz=True)
+alt("oath", "oath-pond-2",
+    "Dusk beside a still lotus pond: an occasional frog calling softly, water barely moving, a "
+    "soft breeze in the reeds, a far-off bird. Sparse and quiet. No insects.", debuzz=True)
+alt("luylau", "luylau-frogs-2",
+    "Night beside the flooded rice paddies outside an old town: a chorus of frogs and toads "
+    "croaking, a gentle wind, water lapping at the edge of a moat. Calm but watchful. No "
+    "insects, no traffic.", debuzz=True)
+alt("luylau", "luylau-wind-2",
+    "A warm night wind blowing across open fields and through tall grass by a river, distant "
+    "frogs, leaves rustling. No insects, no rumble.", debuzz=True)
+alt("mavien", "mavien-river-2",
+    "Dusk on the bank of a wide, slow river: calm flowing water, a cool wind through tall "
+    "reeds, a few crows calling far off. Grave and quiet. No insects.", debuzz=True)
+alt("coronation", "coronation-crowd-2",
+    "A large festive crowd murmuring happily at a distance in an open square on a sunny day, "
+    "steady and even, no single voice standing out, flags flapping softly in the wind. No "
+    "cheering bursts.")
+
+
+# Candidate takes of effects, for the workbench (not loaded by the game) until one is chosen.
+CANDIDATE_DIR = ROOT / "workbench" / "alt-sfx"
+CANDIDATES: list[dict] = [
+    dict(effect="ui-start", id=f"ui-start-new-{i}", seconds=2.5, influence=0.7, kind="sting",
+         prompt="A single strike of a soft mallet on a small bronze gong, ringing out clear and pure "
+                "and fading to silence. Clean studio recording, close-miked, silent background, no "
+                "hiss, no noise, no room rumble, no music.")
+    for i in (1, 2, 3)
+]
+
+
+for chapter, aid, source, heard in [
+    ("oath", "oath-gecko-clean", "the turned-down take oath-gecko", "almost, but synthetic and metallic"),
+    ("oath", "oath-temple-clean", "the turned-down take oath-temple", "insects good, then metallic sounds"),
+    ("luylau", "amb-night-clean", "Luy Lâu's bed amb-night", "a bit synthetic"),
+    ("luylau", "luylau-moat-clean", "the turned-down take luylau-moat", "a synthetic buzz"),
+    ("outpost", "outpost-cicadas-clean", "the take outpost-cicadas", "almost, but a bit synthetic"),
+    ("villages", "amb-village-clean", "the Villages bed amb-village (frogs, kept)", "kept"),
+    ("garden", "amb-garden-clean", "the garden bed amb-garden", "okay apart from loud birds (since tamed)"),
+]:
+    alt(chapter, aid, f"De-buzzed copy of {source} (heard as: {heard}): the 200 Hz comb notched out.",
+        derived_from=source)
+
+
 def alt_file(a):
     return ALT_DIR / f"{a['id']}.mp3"
 
@@ -533,6 +552,9 @@ def build_workbench():
     alts = [dict(id=a["id"], chapter=a["chapter"], prompt=a["prompt"], file=f"alt/{a['id']}.mp3",
                  measured=ALT_NOTES.get(a["id"], ""))
             for a in ALTERNATES if alt_file(a).exists()]
+    for e in sfx:
+        e["candidates"] = [dict(id=c["id"], prompt=c["prompt"], file=f"alt-sfx/{c['id']}.mp3")
+                           for c in CANDIDATES if c["effect"] == e["id"] and (CANDIDATE_DIR / f"{c['id']}.mp3").exists()]
     trials = [dict(id=t["id"], request=t["request"], prompt=t["prompt"], file=f"music-trials/{t['id']}.mp3")
               for t in MUSIC_TRIALS if trial_file(t).exists()]
     return json.dumps({"generatedBy": "bronzedrum/design/source/build_audio.py", "altLufs": ALT_LUFS,
@@ -949,6 +971,10 @@ def build_sfx_doc():
         note = ALT_NOTES.get(a["id"], "steady, nothing stands out")
         out.append(f"| {a['chapter']} | `{a['id']}` | {have}; measured: {note} | {a['prompt']} |")
     out.append("")
+    out.append("Turned down on the workbench (and removed), with the reason heard:\n")
+    for k, v in ALT_REJECTED.items():
+        out.append(f"- `{k}`: {v}.")
+    out.append("")
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -1109,7 +1135,7 @@ def main():
         force = set(args[args.index("--force") + 1].split(",")) if "--force" in args else set()
         for a in ALTERNATES:
             out = alt_file(a)
-            if out.exists() and a["id"] not in force:
+            if a["derived_from"] or (out.exists() and a["id"] not in force):
                 continue
             print(f"generating workbench/alt/{out.name} …", flush=True)
             generate(a, out, key)
