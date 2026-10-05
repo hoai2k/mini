@@ -38,16 +38,16 @@ for (const [id, e] of Object.entries(audio.sfx)) {
   }
 }
 const defined = readFileSync(join(root, '..', 'design', 'source', 'build_audio.py'), 'utf8');
-for (const m of source.matchAll(/(?:play|has|startAmbience)\('([a-z-]+)'/g)) {
+for (const m of source.matchAll(/(?:play|has|startAmbience|playMusic|musicOverlay)\('([a-z-]+)'/g)) {
   if (!defined.includes(`"${m[1]}"`)) {
     failed++;
     console.error(`code plays '${m[1]}', which build_audio.py does not define`);
   }
 }
-for (const m of readFileSync(join(root, 'src', 'stages.js'), 'utf8').matchAll(/ambience: '([a-z-]+)'/g)) {
+for (const m of readFileSync(join(root, 'src', 'stages.js'), 'utf8').matchAll(/(?:ambience|music): '([a-z-]+)'/g)) {
   if (!defined.includes(`"${m[1]}"`)) {
     failed++;
-    console.error(`stage ambience '${m[1]}' is not defined in build_audio.py`);
+    console.error(`stage sound '${m[1]}' is not defined in build_audio.py`);
   }
 }
 console.log(failed ? `${failed} problem(s)` : 'check ok');

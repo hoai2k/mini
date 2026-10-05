@@ -174,6 +174,11 @@ sfx(G, "crowd-cheer",
     "gongs ringing.",
     3.0, "The Coronation: the crowd answers each rhythm.", gain=0.7)
 
+sfx(G, "han-horn",
+    "Several ancient war horns made of buffalo horn blown together in the distance across a "
+    "river, a low ominous call that swells and fades, an army approaching.",
+    3.0, "Mã Viện Returns: a new Han column arrives.", gain=0.7)
+
 G = "Ambience"
 sfx(G, "amb-garden",
     "Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling "
@@ -195,243 +200,217 @@ sfx(G, "amb-night",
 
 # ------------------------------------------------------------------ music
 
-MUSIC_STYLE = (
-    "Score for a game about the Trưng sisters' uprising in ancient Vietnam (40 CE), staged as a "
-    "backlit paper-cut theatre. Intimate, folkloric and ceremonial rather than epic-orchestral. "
-    "Northern Vietnamese traditional instruments: đàn bầu (monochord, its bending voice is the "
-    "sisters' grief and longing), đàn tranh (16-string zither), sáo trúc (bamboo flute), đàn "
-    "nguyệt (moon lute), đàn nhị (two-string fiddle), bamboo percussion (song lang, mõ), and "
-    "bronze: gongs, bells and the low hum of a bronze drum. Voices in the manner of quan họ, the "
-    "call-and-response duet singing of Bắc Ninh, close to where the sisters lived: two women's "
-    "voices, unaccompanied or lightly accompanied."
+# ------------------------------------------------------------------ music
+#
+# The player drums at their own speed, so nothing that plays *during* a
+# chapter has a beat: those tracks are beatless beds and a swell. Melody and
+# metre belong to the menus, the results and the ending. Every prompt is
+# complete on its own: paste it as it stands.
+
+MUSIC_NOTE = (
+    "Bronze Drum is a rhythm game: the player drums at any speed they like (about 45 to 200 "
+    "BPM) and the army's drums answer at that speed. A second, fixed beat under the drumming "
+    "would fight it, so the music that plays during a chapter is beatless: free time, no pulse, "
+    "no percussion keeping time. Themes with melody and metre play only where nobody is "
+    "drumming: on the title, the chapter select, the results and the ending."
 )
 
-MUSIC_RULES = [
-    "The player is the drummer and sets their own speed: commands are judged on evenness, not "
-    "on a metronome, so the player may drum faster or slower than the music. The tempo given "
-    "for a battle track is the Han war drum, the beat on which the enemy strikes. Keep that "
-    "pulse soft and felt rather than hammered (sustained textures, melodic phrases, gentle "
-    "plucked ostinati), so drumming at another speed on top never clashes; leave the low and "
-    "low-mid range open: no kick drum, no accented percussion on the beat, no big taiko hits. "
-    "The player's bronze drum is the lead percussion.",
-    "In-battle tracks start exactly on the first downbeat at 0.000 s, with no pickup, no fade-in "
-    "and no silence, and loop seamlessly after the stated number of bars.",
-    "Each chapter has a second layer, the waking drum, at the same tempo, key and length. It is "
-    "played on top of the base when four commands chain, so it must sound right both alone and "
-    "layered.",
-    "Avoid generic \"Asian\" clichés, Chinese or Japanese instrument colour (guzheng, erhu, "
-    "shakuhachi, koto) for the Viet side, Western rock drums, EDM drops, and trailer-music "
-    "braams. Keep it acoustic and human.",
-    "Lyrics: none, unless a request says otherwise. Wordless vocables (\"ơi\", \"à ơi\", "
-    "\"hò\") are welcome.",
-]
+AVOID = (
+    "Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), "
+    "rock or trap drums, EDM drops and trailer-style braams."
+)
 
-# id, title, use, length, bpm, key, loop, structure, style tags (short), prompt, status
+# id, title, kind, when it plays, length, loop, style tags (short), prompt (complete)
 MUSIC: list[dict] = []
 
 
-def track(mid, title, use, length, bpm, key, loop, structure, tags, prompt, status="requested"):
-    MUSIC.append(dict(id=mid, title=title, use=use, length=length, bpm=bpm, key=key, loop=loop,
-                      structure=structure, tags=tags, prompt=prompt, status=status))
+def track(mid, title, kind, plays, length, loop, tags, prompt, status="requested"):
+    MUSIC.append(dict(id=mid, title=title, kind=kind, plays=plays, length=length, loop=loop,
+                      tags=tags, prompt=prompt, status=status))
 
 
-track("mu-title", "Trống Đồng (title theme)",
-      "Title screen and chapter select, looping.",
-      "about 90 s, loopable", 72, "D minor pentatonic (D–F–G–A–C)",
-      "loop the whole track; ends where it began",
-      "Solo sáo trúc states the main theme over slow đàn tranh arpeggios; a soft bronze gong "
-      "marks each phrase; a woman's voice hums the theme back, quan họ style; it returns to the "
-      "flute alone.",
-      "vietnamese traditional, sao truc bamboo flute, dan tranh zither, bronze gong, quan ho female voice, slow, intimate, folkloric, 72 bpm",
-      "A slow, intimate title theme for a Vietnamese folk-epic game. A bamboo flute (sáo trúc) "
-      "plays a proud but tender pentatonic melody over gently rippling 16-string zither (đàn "
-      "tranh) arpeggios. A soft bronze gong rings at the start of each phrase. Halfway through, a "
-      "solo female voice hums the melody back in the style of quan họ folk singing, then the "
-      "flute returns alone. Warm, candlelit, like a story about to be told. 72 BPM, D minor "
-      "pentatonic, acoustic, no drums.")
-track("mu-garden", "The Garden at Mê Linh (chapter 1)",
-      "Chapter 1 battle loop under the player's drumming.",
-      "16 bars = 41.74 s", 92, "G major pentatonic",
-      "16 bars from 0.000 s; loops at 41.739 s",
-      "Bars 1–8: đàn tranh ostinato on every beat, sáo trúc phrases answering in the gaps. Bars "
-      "9–16: đàn bầu takes the tune, playful, bending notes (Nhị's theme).",
-      "vietnamese folk, dan tranh, sao truc, dan bau, playful, light, 92 bpm, 4/4, no drums, game loop",
-      "A light, playful loop for the training chapter of a rhythm game set in an ancient "
-      "Vietnamese lord's garden at dawn. Exactly 92 BPM in 4/4, 16 bars, seamless loop, starting "
-      "on the downbeat. A clear zither (đàn tranh) ostinato marks every beat, the bamboo flute "
-      "answers in the gaps, and in the second half the monochord (đàn bầu) plays a cheeky, "
-      "bending melody, the younger sister's theme. Bright, green, morning birds in spirit. No "
-      "drums or bass on the beat: the player plays a bronze drum on top.")
-track("mu-garden-wake", "The Garden at Mê Linh: the drum wakes",
-      "Layer on top of mu-garden while the drum is awake.",
-      "16 bars = 41.74 s", 92, "G major pentatonic",
-      "same length and bar lines as mu-garden",
-      "Adds a second zither in counterpoint, a high flute descant and two women's voices "
-      "trading short calls (quan họ call-and-response), plus small bronze bells on beats 2 and 4.",
-      "vietnamese folk, quan ho call and response, bronze bells, flute descant, joyful, 92 bpm, layer",
-      "An extra layer for the training-chapter loop, same tempo (92 BPM), key (G major "
-      "pentatonic) and 16-bar length, to play on top when the player's drum chain 'wakes'. Two "
-      "women's voices trade short joyful calls in quan họ style, a high bamboo-flute descant "
-      "soars, a second zither adds counterpoint, small bronze bells ring on beats 2 and 4. "
-      "Sounds complete alone, fits exactly over the base. No low percussion.")
-track("mu-river", "The Outpost on the Hát River (chapter 2)",
-      "Chapter 2 battle loop.",
-      "16 bars = 40.00 s", 96, "A minor pentatonic",
-      "16 bars from 0.000 s; loops at 40.000 s",
-      "A tense đàn nguyệt ostinato in eighth notes; đàn nhị carries a determined melody; a low "
-      "bowed drone; a bronze gong every 4 bars.",
-      "vietnamese traditional, dan nguyet lute ostinato, dan nhi fiddle, tense, determined, river battle, 96 bpm, no drums",
-      "A tense, determined battle loop for a rhythm game: an army of ancient Vietnamese women "
-      "advances on an enemy outpost by a river. Exactly 96 BPM in 4/4, 16 bars, seamless loop "
-      "from the downbeat. A moon lute (đàn nguyệt) plays a driving eighth-note ostinato, a "
-      "two-string fiddle (đàn nhị) carries a resolute melody, a low drone underneath, a bronze "
-      "gong every four bars. Wind and water in the colour. No drum kit, no percussion on the "
-      "beat: the player drums.")
-track("mu-river-wake", "The Hát River: the drum wakes",
-      "Layer on top of mu-river while the drum is awake.",
-      "16 bars = 40.00 s", 96, "A minor pentatonic",
-      "same length and bar lines as mu-river",
-      "Adds a women's chorus in unison chant on vocables, đàn bầu answering the fiddle, and "
-      "ringing bronze bells.",
-      "vietnamese, women's chorus chant, dan bau, bronze bells, rising courage, 96 bpm, layer",
-      "An extra layer for the river-battle loop, same tempo (96 BPM), key (A minor pentatonic) "
-      "and 16-bar length. A chorus of women chants in unison on wordless vocables (hò, ơi), the "
-      "monochord (đàn bầu) answers the fiddle line, bronze bells ring out. Courage rising. Fits "
-      "exactly over the base, sounds complete alone, no low percussion.")
-track("mu-luylau", "The Citadel at Luy Lâu (chapter 3)",
-      "Chapter 3 battle loop, at night.",
-      "16 bars = 38.40 s", 100, "D minor pentatonic",
-      "16 bars from 0.000 s; loops at 38.400 s",
-      "Majestic and dark: low bronze gongs in a slow pattern, đàn tranh tremolo, a sáo trúc "
-      "theme that recalls the title, a low women's choir on long notes.",
-      "vietnamese epic folk, bronze gongs, dan tranh tremolo, bamboo flute, low female choir, night, majestic, 100 bpm",
-      "The climactic night battle loop of a game about the Trưng sisters storming a walled "
-      "citadel on war elephants. Exactly 100 BPM in 4/4, 16 bars, seamless loop from the "
-      "downbeat. Low bronze gongs in a slow, heavy pattern (not on every beat), a trembling "
-      "zither (đàn tranh) tremolo, the bamboo flute playing the main title melody in a darker, "
-      "nobler form, and a low women's choir on long notes. Moonlit, majestic, a little ominous. "
-      "No drum kit, no kick: the player drums on top.")
-track("mu-luylau-wake", "Luy Lâu: the drum wakes",
-      "Layer on top of mu-luylau while the drum is awake.",
-      "16 bars = 38.40 s", 100, "D minor pentatonic",
-      "same length and bar lines as mu-luylau",
-      "Full chorus in call-and-response, đàn bầu soaring above, bright bronze bells: triumph.",
-      "vietnamese epic folk, full women's chorus call and response, dan bau soaring, bronze bells, triumphant, 100 bpm, layer",
-      "An extra layer for the citadel-battle loop, same tempo (100 BPM), key (D minor "
-      "pentatonic) and 16-bar length. A full women's chorus in call and response, the monochord "
-      "(đàn bầu) soaring over it with long bends, bright bronze bells. Triumphant and fierce. "
-      "Fits exactly over the base, sounds complete alone, no low percussion.")
-track("mu-sisters", "Two Sisters (story theme)",
-      "Story scenes and the training years between chapters.",
-      "about 2 min", 66, "C major pentatonic",
-      "not looped",
-      "Two themes that meet: Trắc's on đàn tranh, steady and dignified; Nhị's on sáo trúc, "
-      "quick and free. They alternate, then play together.",
-      "vietnamese traditional duet, dan tranh and sao truc, tender, two themes intertwining, 66 bpm",
-      "A tender piece about two sisters with different temperaments. The 16-string zither "
-      "(đàn tranh) plays the elder sister's theme: steady, dignified, measured. The bamboo flute "
-      "(sáo trúc) plays the younger sister's theme: quick, playful, free. They take turns, tease "
-      "each other, then finally play together in harmony. Intimate, warm, a little bittersweet. "
-      "66 BPM, acoustic, no percussion.")
-track("mu-elegy", "The Drums Are Melted (ending)",
-      "The ending, after the last battle.",
-      "about 3 min", 58, "A minor pentatonic",
-      "not looped",
-      "Đàn bầu alone, then a quan họ duet lament (vocables only), a single bronze bell at the "
-      "end, letting the ring die out.",
-      "vietnamese lament, solo dan bau monochord, quan ho female duet, mournful, sparse, bronze bell ending",
-      "A sparse, mournful ending piece. The monochord (đàn bầu) plays alone, bending each note "
-      "like a voice holding back tears. Two women's voices enter in the quan họ folk style, "
-      "singing a lament on wordless vocables (à ơi). At the end a single bronze bell is struck "
-      "and left to ring until silence. It should feel like dawn on a river after a loss. Very "
-      "slow, about 58 BPM, no percussion.")
-track("mu-victory", "Victory sting",
-      "Chapter won.",
-      "about 8 s", 100, "D major pentatonic",
-      "not looped",
-      "A rising flute run and zither glissando onto one held chord, a bronze gong at the end.",
-      "short victory sting, vietnamese, sao truc run, dan tranh glissando, bronze gong, 8 seconds",
-      "An 8-second victory fanfare in Vietnamese folk style: a quick rising bamboo-flute run and "
-      "a sweeping zither glissando land on one bright held chord, closing with a ringing bronze "
-      "gong. Joyful, no drum kit.")
-track("mu-defeat", "Defeat sting",
-      "Chapter lost.",
-      "about 8 s", 60, "A minor pentatonic",
-      "not looped",
-      "A falling đàn bầu phrase over a low drone, ending unresolved.",
+GAME = ("for a video game about the Trưng sisters, who led an army of women in an uprising "
+        "against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre")
+BEATLESS = ("Completely beatless and in free time: no pulse, no metre, no drums or percussion "
+            "keeping time, so a player can drum on top at any speed. It must loop seamlessly: "
+            "end where it began, with no fade-out and no silence at either end.")
+
+# ---- menus
+
+track("mu-title", "Trống Đồng (title theme)", "theme",
+      "Title screen, looping.",
+      "about 90 s", True,
+      "vietnamese quan ho, sao truc flute, dan tranh zither, bronze gong, female voice, soft cinematic strings, 72 bpm, folk theme",
+      f"A slow, proud and tender title theme {GAME}. Traditional northern Vietnamese style "
+      "rooted in quan họ folk song from Bắc Ninh: a bamboo flute (sáo trúc) states the main "
+      "melody in D minor pentatonic over rippling 16-string zither (đàn tranh) arpeggios; a soft "
+      "bronze gong marks each phrase; halfway through a solo woman's voice sings the melody back "
+      "on wordless vocables (à ơi) in quan họ manner; a quiet bed of modern cinematic strings "
+      "swells underneath without taking over. 72 BPM in 4/4. About 90 seconds, built to loop: the "
+      f"last bar leads back into the first, no fade-out. No lyrics. {AVOID}")
+track("mu-select", "Two Sisters (chapter select)", "theme",
+      "Chapter-select screen, looping.",
+      "about 90 s", True,
+      "vietnamese folk duet, dan tranh and sao truc, two intertwining themes, gentle, light ambient pad, 66 bpm",
+      f"A tender theme about two sisters {GAME}. Traditional Vietnamese folk duet: the elder "
+      "sister's theme on the 16-string zither (đàn tranh) is steady, dignified and on the beat; "
+      "the younger sister's theme on the bamboo flute (sáo trúc) is quick, playful and bends "
+      "around the beat; they take turns, tease each other, then play together in harmony in C "
+      "major pentatonic. A light modern ambient pad gives warmth underneath. 66 BPM, gentle and "
+      "a little bittersweet. About 90 seconds, built to loop seamlessly with no fade-out. No "
+      f"percussion, no lyrics. {AVOID}")
+
+# ---- beds: under each chapter, beatless
+
+track("mu-bed-garden", "The Garden at Mê Linh (bed)", "bed",
+      "Under chapter 1, the training battle, quietly under the ambience.",
+      "about 2 min", True,
+      "beatless vietnamese ambient, dan tranh harmonics, sao truc free phrases, dawn garden, warm pad, no percussion",
+      f"A warm, hopeful beatless ambient bed {GAME}, for the sisters' training in their "
+      "father's garden at dawn. Traditional Vietnamese colour: a bamboo flute (sáo trúc) plays "
+      "short free-time phrases in G major pentatonic like birdsong, 16-string zither (đàn tranh) "
+      "harmonics shimmer and fade, a low warm modern synth pad holds a slowly changing chord. "
+      f"Morning light, green and gold, unhurried. {BEATLESS} About 2 minutes. No lyrics. {AVOID}")
+track("mu-bed-oath", "The Oath (bed)", "bed",
+      "Under chapter 2, the father's funeral, while the mourning drum calls.",
+      "about 2 min", True,
+      "beatless vietnamese funeral lament, dan bau monochord, ca tru female voice, low drone, soft bronze bell, sparse",
+      f"A sparse, grieving beatless bed {GAME}, for the funeral of the sisters' father. "
+      "Traditional northern Vietnamese mourning colour: the monochord (đàn bầu) bends slow "
+      "lamenting phrases in A minor pentatonic over a low drone; now and then a woman's voice in "
+      "the restrained, ornamented manner of ca trù hums a few notes; a soft bronze bell rings "
+      "rarely and is left to decay; a faint modern low string pad sits underneath. Very quiet, "
+      f"lots of space for a slow mourning drum on top. {BEATLESS} About 2 minutes. No words. {AVOID}")
+track("mu-bed-foundry", "Casting the Drums (bed)", "bed",
+      "Under chapter 3, in the foundry, while the player holds a steady hammer rhythm.",
+      "about 2 min", True,
+      "beatless vietnamese work song humming, ho, low drone, metallic bronze resonance, dan nguyet tremolo, foundry ambient",
+      f"A warm, glowing beatless bed {GAME}, for a night in an ancient bronze foundry where the "
+      "war drums are cast. Traditional Vietnamese colour: men's and women's voices hum a "
+      "free-time work song in the manner of hò, long notes rising and falling; a moon lute (đàn "
+      "nguyệt) adds soft tremolo phrases; struck bronze bars and bowls ring and are left to "
+      "resonate; a deep modern drone like the furnace's breath holds it together. Orange and "
+      f"bronze, patient and strong. {BEATLESS} About 2 minutes. No lyrics. {AVOID}")
+track("mu-bed-villages", "The Villages Answer (bed)", "bed",
+      "Under chapter 4, at night along the river, while village drummers call and the player answers.",
+      "about 2 min", True,
+      "beatless vietnamese night ambient, two sao truc flutes call and answer, ho song river song, dan tranh harmonics, pad",
+      f"A hopeful night-time beatless bed {GAME}, for villages along the Red River answering "
+      "the sisters' call one by one. Traditional Vietnamese colour: one bamboo flute (sáo trúc) "
+      "calls a short phrase from far away and a second, nearer flute answers, again and again; "
+      "between them a man's voice drifts a line of a river boat song (hò sông) in free time; "
+      "16-string zither (đàn tranh) harmonics glint like lantern light; a soft modern pad and "
+      f"faint water textures underneath. G major pentatonic, sparse. {BEATLESS} About 2 minutes. {AVOID}")
+track("mu-bed-river", "The Outpost on the Hát River (bed)", "bed",
+      "Under chapter 5, the river battle.",
+      "about 2 min", True,
+      "beatless vietnamese tense ambient, dan nhi fiddle, dan nguyet tremolo, low cinematic drone, wind, battle tension, no drums",
+      f"A tense, determined beatless bed {GAME}, for a battle at a river ford against a Han "
+      "outpost. Traditional Vietnamese colour: a two-string fiddle (đàn nhị) plays long resolute "
+      "phrases in A minor pentatonic; a moon lute (đàn nguyệt) shivers in unmeasured tremolo; a "
+      "deep modern cinematic drone and low strings rise and fall like wind over water. Urgent but "
+      f"never pulsing: the player's war drum is the only rhythm. {BEATLESS} About 2 minutes. No lyrics. {AVOID}")
+track("mu-bed-luylau", "The Citadel at Luy Lâu (bed)", "bed",
+      "Under chapter 6, the night attack on the citadel with the war elephant.",
+      "about 2 min", True,
+      "beatless vietnamese epic ambient, quan ho low female choir, cong chieng gong resonances, dan tranh tremolo, cinematic pad, night",
+      f"A majestic, dark beatless bed {GAME}, for the night assault on the Han citadel of Luy "
+      "Lâu with the sisters on a war elephant. Traditional Vietnamese colour: a low women's choir "
+      "holds long notes in the manner of quan họ; large bronze gongs (cồng chiêng) are struck "
+      "softly and left to ring, never in a pattern; a 16-string zither (đàn tranh) trembles; the "
+      "bamboo flute recalls the title theme in fragments; a wide modern cinematic pad under it "
+      f"all. Moonlit, D minor pentatonic. {BEATLESS} About 2 minutes. Wordless. {AVOID}")
+track("mu-bed-coronation", "The Coronation at Mê Linh (bed)", "bed",
+      "Under chapter 7, the festival, while festival drummers call and the player answers.",
+      "about 2 min", True,
+      "beatless vietnamese festive ambient, cheo theatre colours, dan nguyet flourishes, quan ho chorus swells, crowd joy, bright pad",
+      f"A joyful, glowing beatless bed {GAME}, for the festival when the two sisters are crowned "
+      "queens at Mê Linh. Traditional Vietnamese colour from chèo folk theatre and quan họ: a moon "
+      "lute (đàn nguyệt) plays bright unmeasured flourishes, a bamboo flute trills, a women's "
+      "chorus swells on joyful vocables and fades, small bells shimmer; a bright modern pad "
+      "carries it. D major pentatonic. Celebratory but without any beat: festival drummers and "
+      f"the player drum on top. {BEATLESS} About 2 minutes. {AVOID}")
+track("mu-bed-mavien", "Mã Viện Returns (bed)", "bed",
+      "Under chapter 8, holding the ford against Mã Viện's army.",
+      "about 2 min", True,
+      "beatless vietnamese grave cinematic, dan bau lament, dan nhi, distant war horns, low strings, last stand, no drums",
+      f"A grave, urgent beatless bed {GAME}, for the last stand at a river ford as the Han "
+      "general Mã Viện arrives with a great army. Traditional Vietnamese colour: the monochord "
+      "(đàn bầu) bends a broken, mournful form of the main theme; a two-string fiddle (đàn nhị) "
+      "answers; distant war horns call and fade; deep modern cinematic low strings and a dark "
+      f"pad swell and recede like an approaching army. E minor pentatonic. {BEATLESS} About 2 "
+      f"minutes. No lyrics. {AVOID}")
+track("mu-bed-elegy", "The Drums Are Melted (bed)", "bed",
+      "Under chapter 9, the epilogue, while the drums fall silent one by one.",
+      "about 2 min", True,
+      "beatless vietnamese lullaby hat ru, dan bau, hummed female voice, soft bronze bell, dawn, mournful, sparse",
+      f"A quiet, mournful beatless bed {GAME}, for the epilogue at grey dawn when the bronze "
+      "drums are gathered to be melted down. Traditional Vietnamese colour: a woman hums a "
+      "melody in the manner of a hát ru lullaby, slow and tender; the monochord (đàn bầu) answers "
+      "her with long bending notes; a single soft bronze bell rings now and then; a thin modern "
+      f"pad like morning mist underneath. A minor pentatonic. {BEATLESS} About 2 minutes. No words. {AVOID}")
+
+# ---- moments during play
+
+track("mu-wake", "The drum wakes (swell)", "swell",
+      "Once, over the chapter's bed, when four commands chain and the drum wakes.",
+      "15–20 s", False,
+      "vietnamese quan ho chorus swell, bronze shimmer, cinematic rise, beatless, 15 seconds, triumphant",
+      f"A 15 to 20 second rising swell {GAME}, played when the sisters' war drum 'wakes' in "
+      "battle. A women's chorus in the manner of quan họ rises on one joyful open vowel from soft "
+      "to full, bronze bells and gongs shimmer upward with it, a modern cinematic string swell "
+      "lifts underneath, and it all rings out and fades in the last few seconds. Beatless: no "
+      "drums or pulse, so it sits over the player's drumming. D major pentatonic, triumphant. "
+      f"{AVOID}")
+
+# ---- results
+
+track("mu-victory", "Victory sting", "sting",
+      "Results screen after a battle chapter is won.",
+      "about 8 s", False,
+      "short victory sting, vietnamese, sao truc run, dan tranh glissando, bronze gong, cinematic, 8 seconds",
+      f"An 8-second victory fanfare {GAME}. Traditional Vietnamese instruments with a modern "
+      "cinematic finish: a quick rising bamboo-flute (sáo trúc) run and a sweeping 16-string "
+      "zither (đàn tranh) glissando land on one bright held chord with soft strings, closing with "
+      f"a ringing bronze gong. D major pentatonic, joyful. No drum kit, no lyrics. {AVOID}")
+track("mu-complete", "Chapter complete sting", "sting",
+      "Results screen after a story chapter (no battle) is completed.",
+      "about 8 s", False,
+      "short gentle sting, vietnamese, dan tranh, sao truc, soft bronze bell, warm pad, peaceful, 8 seconds",
+      f"An 8-second gentle closing phrase {GAME}, for the end of a peaceful story chapter. A "
+      "16-string zither (đàn tranh) plays a short falling pentatonic phrase, a bamboo flute "
+      "(sáo trúc) answers with one held note, a soft bronze bell rings, and a warm modern pad "
+      f"settles on a calm major chord. Peaceful and satisfied, no drums, no lyrics. {AVOID}")
+track("mu-defeat", "Defeat sting", "sting",
+      "Results screen after a battle chapter is lost.",
+      "about 8 s", False,
       "short defeat sting, vietnamese, dan bau falling phrase, low drone, sorrowful, 8 seconds",
-      "An 8-second defeat sting: the monochord (đàn bầu) plays a single falling, bending phrase "
-      "over a low drone, ending unresolved. Sorrowful but not hopeless. No percussion.")
-track("mu-oath", "The Oath (funeral)",
-      "Under The Oath, the father's funeral, while the mourning drum calls.",
-      "about 2 min, loopable", 56, "A minor pentatonic",
-      "loop the whole track",
-      "Đàn bầu alone over a low drone and a soft bronze bell every few bars; a single woman's "
-      "voice hums a lament in the second half. Very sparse, leaving room for the slow mourning "
-      "drum and the player's answers.",
-      "vietnamese funeral lament, dan bau, low drone, soft bronze bell, female humming, sparse, slow, 56 bpm",
-      "A sparse funeral piece for a Vietnamese lord, ancient times. The monochord (đàn bầu) bends "
-      "slow, grieving phrases over a low drone, a soft bronze bell rings every few bars, and in "
-      "the second half a single woman's voice hums a lament. About 56 BPM, very slow and quiet, "
-      "lots of space: a mourning drum and the player's drumming sit on top. No other percussion.")
-track("mu-foundry", "Casting the Drums",
-      "Under Casting the Drums, in the foundry.",
-      "about 2 min, loopable", 92, "D minor pentatonic",
-      "loop the whole track",
-      "A low steady bowed drone like the furnace's breath, a đàn nguyệt figure, metallic "
-      "shimmer from struck bronze bars; work-song humming from men's and women's voices.",
-      "vietnamese work song, foundry, low drone, dan nguyet, metallic bronze shimmer, humming voices, steady, 92 bpm",
-      "Music for a night in an ancient bronze foundry. A low bowed drone breathes like the "
-      "furnace, a moon lute (đàn nguyệt) plays a patient repeating figure, struck bronze bars add "
-      "a metallic shimmer, and men's and women's voices hum a work song. Steady and warm, about "
-      "92 BPM, but with no drums on the beat: the player keeps the hammer rhythm on top.")
-track("mu-villages", "The Villages Answer",
-      "Under The Villages Answer, at night along the river.",
-      "about 2 min, loopable", 90, "G major pentatonic",
-      "loop the whole track",
-      "Night insects and water in the colour; sáo trúc phrases calling from far away and "
-      "answered by another flute nearer; soft đàn tranh harmonics.",
-      "vietnamese night music, two bamboo flutes call and answer, dan tranh harmonics, river at night, hopeful, sparse",
-      "Night along the Red River. One bamboo flute (sáo trúc) calls a short phrase from far "
-      "away and a second flute, nearer, answers it, again and again, like villages calling to each "
-      "other; soft zither (đàn tranh) harmonics shimmer underneath. Hopeful and sparse, leaving "
-      "space for drum calls and answers. No percussion.")
-track("mu-coronation", "The Coronation at Mê Linh",
-      "Under The Coronation, the festival.",
-      "about 2 min, loopable", 116, "D major pentatonic",
-      "loop the whole track",
-      "A festive ensemble: đàn tranh, sáo trúc, đàn nguyệt and small gongs in a bright dance; "
-      "a women's chorus in quan họ style on the refrain.",
-      "vietnamese festival music, joyful, dan tranh, sao truc, dan nguyet, small gongs, quan ho chorus, 116 bpm",
-      "A joyful festival piece for the crowning of two queens in ancient Vietnam. Zither, bamboo "
-      "flute and moon lute play a bright dance tune, small gongs shimmer, and a women's chorus "
-      "sings the refrain on vocables in the quan họ style. About 116 BPM, light and celebratory, "
-      "without heavy drums: festival drummers and the player drum on top.")
-track("mu-mavien", "Mã Viện Returns",
-      "Battle loop for the hold-the-line chapter, at dusk.",
-      "16 bars = 38.40 s", 100, "E minor pentatonic",
-      "16 bars from 0.000 s; loops at 38.400 s",
-      "Grave and urgent: a low brass-like bronze drone, a đàn nhị lament over tense đàn nguyệt "
-      "ostinato, distant war horns; the title theme fragmented.",
-      "vietnamese battle music, grave, urgent, dan nhi lament, dan nguyet ostinato, bronze drone, distant horns, 100 bpm",
-      "A grave, urgent loop for a last stand at a river ford as a great Han army arrives. A low "
-      "bronze drone, a tense moon-lute (đàn nguyệt) ostinato, a two-string fiddle (đàn nhị) "
-      "playing a broken, mournful form of the main theme, distant war horns. Exactly 100 BPM in "
-      "4/4, 16 bars, seamless loop from the downbeat. No drum kit or kick: the player drums.")
-track("mu-anthem", "Song of the Two Queens (vocal song)",
-      "Trailer and end credits.",
-      "about 3 min 30 s", 84, "D minor pentatonic",
-      "not looped",
-      "Verse (solo voice and đàn tranh), chorus (two voices, full ensemble with bronze drums), "
-      "bridge (đàn bầu solo), final chorus, quiet outro on the title theme.",
-      "vietnamese folk ballad, female duet quan ho influenced, dan tranh, dan bau, bronze drums in chorus, anthemic but intimate, 84 bpm",
-      "A folk ballad in Vietnamese about the Trưng sisters: two queens who rode elephants and "
-      "beat the bronze drum so the villages would rise. Verses sung by one woman over zither, "
-      "choruses by two women in close quan họ-style harmony with the full ensemble and deep "
-      "bronze drums, a monochord (đàn bầu) solo bridge, a final chorus, and an outro that returns "
-      "to the title theme on bamboo flute. 84 BPM. Lyrics: to be written with the author; until "
-      "then, sing on vocables.")
-
+      f"An 8-second defeat sting {GAME}: the monochord (đàn bầu) plays a single falling, "
+      "bending phrase over a low drone and a dark modern string pad, ending unresolved. "
+      f"Sorrowful but not hopeless. A minor pentatonic. No percussion, no lyrics. {AVOID}")
+track("mu-ending", "The Drums Are Melted (ending)", "piece",
+      "After the epilogue: the final results screen and the end of the game.",
+      "about 3 min", False,
+      "vietnamese lament, solo dan bau, quan ho female duet, ca tru colour, mournful, sparse, bronze bell ending",
+      f"A sparse, mournful ending piece {GAME}, after the bronze drums have been melted down "
+      "and the uprising has ended. The monochord (đàn bầu) plays alone at first, bending each "
+      "note like a voice holding back tears; two women's voices enter in the quan họ "
+      "call-and-response style with a touch of ca trù ornament, singing a lament on wordless "
+      "vocables (à ơi); a faint modern string pad joins near the end; finally a single bronze "
+      "bell is struck and left to ring into silence. Very slow, about 58 BPM, free and rubato, "
+      f"no percussion. It should feel like dawn on a river after a loss. {AVOID}")
+track("mu-anthem", "Song of the Two Queens (vocal song)", "song",
+      "Trailer and end credits; not used in the prototype.",
+      "about 3 min 30 s", False,
+      "vietnamese folk ballad, quan ho female duet, dan tranh, dan bau, bronze drums in chorus, modern cinematic folk, 84 bpm",
+      f"A folk ballad in Vietnamese {GAME}: two queens who rode elephants and beat the bronze "
+      "drum so the villages would rise. Traditional northern Vietnamese style with a modern "
+      "cinematic folk production: verses sung by one woman over 16-string zither (đàn tranh); "
+      "choruses by two women in close quan họ-style harmony with the full ensemble, deep bronze "
+      "drums and soft strings; a monochord (đàn bầu) solo bridge; a final chorus; an outro that "
+      "returns to the title melody on bamboo flute (sáo trúc). 84 BPM, D minor pentatonic. "
+      "Lyrics are still to be written with the author; until then sing on vocables (à ơi, hò). "
+      f"{AVOID}")
 
 # ------------------------------------------------------------------ helpers
 
@@ -523,11 +502,8 @@ def build_manifest():
     music_entries = {}
     for m in MUSIC:
         f = f"music/{m['id']}.mp3"
-        if m["status"] == "delivered" and (ROOT / "game" / "assets" / f).exists():
-            entry = {"file": f, "bpm": m["bpm"]}
-            if "bars" in m["loop"] or "same length" in m["loop"]:
-                entry["bars"] = 16
-            music_entries[m["id"]] = entry
+        if (ROOT / "game" / "assets" / f).exists():
+            music_entries[m["id"]] = {"file": f, "loop": m["loop"], "kind": m["kind"]}
     return json.dumps({"generatedBy": "bronzedrum/design/source/build_audio.py",
                        "sfx": sfx_entries, "music": music_entries}, indent=2, ensure_ascii=False) + "\n"
 
@@ -586,40 +562,36 @@ def build_music_doc():
         "rerun it.\n")
     out.append("## How to use this list\n")
     out.append(
-        "- Each request has **style tags** (short, for a generator's style field) and a full "
-        "**prompt** (for a description field, or both together).\n"
-        "- Battle loops must hold their exact tempo and length: the game starts each one with the "
-        "chapter, in time with the Han war drum, and the player drums on top at whatever speed "
-        "they like. Trim any silence before the first downbeat and cut the loop at the stated "
-        "time. If a generator drifts in tempo, regenerate rather than stretch.\n"
+        "- **Each prompt is complete on its own.** Paste the prompt as it stands; nothing needs "
+        "combining. The style tags are a short version for generators with a separate style "
+        "field, and are optional.\n"
         "- Save each finished track as `bronzedrum/game/assets/music/<id>.mp3` (or drop it in "
-        "`bronzedrum/intake/`). On integration the request is marked delivered and the game plays it.\n")
-    out.append("## The sound of the game\n")
-    out.append(MUSIC_STYLE + "\n")
-    out.append("**Rules for every track**\n")
-    for r in MUSIC_RULES:
-        out.append(f"- {r}")
-    out.append("")
-    out.append("**Leitmotifs.** The title theme (on sáo trúc) is the uprising itself and returns "
-               "in chapter 3 and the anthem. Trắc's theme is steady and on the beat (đàn tranh); "
-               "Nhị's bends and syncopates (đàn bầu or sáo trúc), just as her drum strokes fall "
-               "between the beats.\n")
+        "`bronzedrum/intake/`). The game plays a track as soon as its file is there.\n"
+        "- Tracks marked *loops* must loop seamlessly: trim any silence at the start and end. "
+        "The beds must stay beatless; if a generator adds a beat, regenerate.\n")
+    out.append("## Why most of the music has no beat\n")
+    out.append(MUSIC_NOTE + "\n")
+    out.append("**When each kind plays**\n")
+    out.append("- **Themes:** the title screen and the chapter select.\n"
+               "- **Beds:** under each chapter, quietly, beneath the ambience.\n"
+               "- **Swell:** once over the bed when the drum wakes.\n"
+               "- **Stings and the ending:** on the results screens.\n"
+               "- **Song:** trailer and credits.\n")
     out.append("## Summary\n")
-    out.append("| Id | Title | Use | Tempo | Length | Status |")
-    out.append("| --- | --- | --- | ---: | --- | --- |")
+    out.append("| Id | Title | Kind | When it plays | Length | Loops | Status |")
+    out.append("| --- | --- | --- | --- | --- | --- | --- |")
     for m in MUSIC:
-        out.append(f"| `{m['id']}` | {m['title']} | {m['use']} | {m['bpm']} BPM | {m['length']} | {m['status']} |")
+        out.append(f"| `{m['id']}` | {m['title']} | {m['kind']} | {m['plays']} | {m['length']} | {'yes' if m['loop'] else 'no'} | {m['status']} |")
     out.append("")
     for m in MUSIC:
         out.append(f"## {m['id']} · {m['title']}\n")
-        out.append(f"{m['use']}\n")
-        out.append(f"- **Tempo / key:** {m['bpm']} BPM, {m['key']}")
-        out.append(f"- **Length:** {m['length']}")
-        out.append(f"- **Loop:** {m['loop']}")
-        out.append(f"- **Shape:** {m['structure']}")
+        out.append(f"{m['plays']}\n")
+        out.append(f"- **Kind:** {m['kind']} · **Length:** {m['length']} · **Loops:** {'yes' if m['loop'] else 'no'}")
         out.append(f"- **File:** `bronzedrum/game/assets/music/{m['id']}.mp3`")
-        out.append(f"- **Style tags:** `{m['tags']}`")
-        out.append(f"- **Prompt:** {m['prompt']}\n")
+        out.append(f"- **Style tags (optional):** `{m['tags']}`")
+        out.append("")
+        out.append("**Prompt:**\n")
+        out.append(f"> {m['prompt']}\n")
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -629,10 +601,13 @@ def validate():
     mids = [m["id"] for m in MUSIC]
     assert len(mids) == len(set(mids)), "duplicate music id"
     for m in MUSIC:
-        if "bars" in m["length"]:
-            secs = float(m["length"].split("=")[1].strip().rstrip("s").strip())
-            assert abs(secs - 16 * 4 * 60 / m["bpm"]) < 0.01, f"{m['id']}: length does not match tempo"
         assert len(m["tags"]) <= 200, f"{m['id']}: style tags over 200 characters"
+        assert m["kind"] in ("theme", "bed", "swell", "sting", "piece", "song"), m["id"]
+        # Each prompt stands alone: it names the game, a Vietnamese style and what to avoid.
+        assert "Trưng sisters" in m["prompt"], f"{m['id']}: prompt does not say what it is for"
+        assert any(w in m["prompt"] for w in ("quan họ", "ca trù", "chèo", "hò", "hát ru", "đàn", "sáo")), m["id"]
+        if m["kind"] in ("bed", "swell"):
+            assert "beatless" in m["prompt"].lower() or "no drums" in m["prompt"].lower(), f"{m['id']}: beds must be beatless"
 
 
 def main():

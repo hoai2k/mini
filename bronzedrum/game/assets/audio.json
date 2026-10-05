@@ -211,6 +211,13 @@
       "gain": 0.7,
       "loop": false
     },
+    "han-horn": {
+      "files": [
+        "sfx/han-horn.mp3"
+      ],
+      "gain": 0.7,
+      "loop": false
+    },
     "amb-garden": {
       "files": [
         "sfx/amb-garden.mp3"

@@ -12,6 +12,10 @@ export class Sound {
     this.ambienceLevel = 0.6;
     this.samples = new Map(); // id -> { buffers, gain, loop }
     this.ambience = null;
+    this.musicLevel = 0.6;
+    this.musicFiles = new Map(); // id -> { file, loop } for tracks that exist
+    this.music = null; // { id, el, gain } now playing
+    this.base = 'assets/';
   }
 
   /** Fetch and decode every sample in the audio manifest. */
@@ -24,6 +28,7 @@ export class Sound {
       } catch {
         return;
       }
+      for (const [id, m] of Object.entries(manifest.music || {})) this.musicFiles.set(id, m);
       const entries = Object.entries(manifest.sfx || {});
       await Promise.all(
         entries.map(async ([id, e]) => {
@@ -83,6 +88,65 @@ export class Sound {
     bus.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
     src.stop(t + 0.7);
     this.ambience = null;
+  }
+
+  // ------------------------------------------------------------- music
+  // Tracks are long, so they stream through <audio> elements into a music bus
+  // instead of being decoded up front. A track with no file yet is silent.
+
+  setMusic(v) {
+    this.musicLevel = v;
+    if (this.music) this.music.gain.gain.setTargetAtTime(Math.max(0.0001, v * this.music.level), this.ctx.currentTime, 0.1);
+  }
+
+  /** Crossfade to a track. level scales it (beds sit under the ambience). */
+  playMusic(id, { level = 1, fade = 1.2 } = {}) {
+    if (!this.ctx) return;
+    if (this.music && this.music.id === id) return;
+    this.stopMusic(fade);
+    const m = this.musicFiles.get(id);
+    if (!m) return;
+    const el = new Audio(`${this.base}${m.file}`);
+    el.loop = !!m.loop;
+    el.crossOrigin = 'anonymous';
+    const src = this.ctx.createMediaElementSource(el);
+    const gain = this.ctx.createGain();
+    const t = this.ctx.currentTime;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.musicLevel * level), t + fade);
+    src.connect(gain).connect(this.master);
+    el.play().catch(() => {});
+    this.music = { id, el, gain, level };
+  }
+
+  stopMusic(fade = 0.8) {
+    if (!this.music || !this.ctx) return;
+    const { el, gain } = this.music;
+    const t = this.ctx.currentTime;
+    gain.gain.cancelScheduledValues(t);
+    gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + fade);
+    setTimeout(() => el.pause(), fade * 1000 + 50);
+    this.music = null;
+  }
+
+  /** A one-off over whatever is playing (the drum-wake swell). */
+  musicOverlay(id, level = 0.9) {
+    const m = this.musicFiles.get(id);
+    if (!this.ctx || !m) return;
+    const el = new Audio(`${this.base}${m.file}`);
+    const src = this.ctx.createMediaElementSource(el);
+    const gain = this.ctx.createGain();
+    gain.gain.value = this.musicLevel * level;
+    src.connect(gain).connect(this.master);
+    el.play().catch(() => {});
+  }
+
+  /** Pause and resume with the game (the audio clock suspends; elements do not). */
+  pauseMusic(paused) {
+    if (!this.music) return;
+    if (paused) this.music.el.pause();
+    else this.music.el.play().catch(() => {});
   }
 
   setAmbience(v) {
