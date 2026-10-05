@@ -49,8 +49,8 @@ export class Input {
       this.setDevice('pointer');
       // Tapping the bronze drum in the HUD raises the guard.
       const dx = ((e.clientX - r.left) / r.width - 0.5) * 1280;
-      const dy = ((e.clientY - r.top) / r.height - 640 / 720) * 720;
-      if (Math.hypot(dx, dy) < 80) {
+      const dy = ((e.clientY - r.top) / r.height - 628 / 720) * 720;
+      if (Math.hypot(dx, dy) < 72) {
         this.emit('action', { action: 'guard', time: e.timeStamp });
         e.preventDefault();
         return;

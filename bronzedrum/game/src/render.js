@@ -850,19 +850,12 @@ export class Renderer {
     this.hpBar(x, y - 126, e, 50);
   }
 
-  /**
-   * A cut-paper "!" over every Han about to strike, ringed by a circle that
-   * closes on the moment the blow lands: the cue for the guard. The ring
-   * brightens inside the guard's window and turns gold in the perfect one.
-   */
+  /** A cut-paper "!" over every Han winding up to strike. */
   threatMarks(view) {
     const g = this.ctx;
     const pulse = 0.85 + 0.15 * Math.sin(view.songTime * 14);
-    const left = Math.max(0, view.nextHanAt - view.songTime);
-    const frac = Math.min(1, left / view.hanBeat);
-    const ringColor = left <= GUARD.perfect ? P.bronzeLight : left <= GUARD.window ? P.paper : P.lacquer;
     for (const e of view.threats || []) {
-      const x = e.x * U + (e.type === 'fort' ? 90 : 0);
+      const x = (this.motion.enemies.get(e.id)?.x ?? e.x * U) + (e.type === 'fort' ? 90 : 0);
       const y = GROUND - (e.type === 'fort' ? 380 : e.type === 'crossbow' ? 112 : 130);
       g.save();
       g.translate(x, y);
@@ -881,15 +874,58 @@ export class Renderer {
       g.fillRect(-1.6, -11, 3.2, 9);
       g.fillRect(-1.6, 0, 3.2, 3);
       g.restore();
-      g.save();
-      g.strokeStyle = ringColor;
-      g.lineWidth = left <= GUARD.window ? 3 : 2;
-      g.globalAlpha = 0.9;
-      g.beginPath();
-      g.arc(x, y - 5, 16 + 30 * frac, 0, Math.PI * 2);
-      g.stroke();
-      g.restore();
     }
+  }
+
+  /**
+   * The shield wall: a translucent paper dome over the whole army, its rim
+   * a row of big overlapping bronze shields, glowing while the guard is up.
+   * Snaps up, fades down.
+   */
+  shieldWall(view) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const up = Math.min(1, (t - view.guardAt) / 0.12);
+    const down = Math.min(1, (view.guardUntil - t) / 0.15);
+    const a = Math.max(0, Math.min(up, down));
+    if (a <= 0) return;
+    const right = this.motion.front + 50;
+    const left = this.motion.crew.x - 110;
+    const lift = (1 - up) * 50;
+    const base = GROUND + 4;
+    const top = GROUND - 150 + lift;
+    const yAt = (x) => {
+      const k = (x - left) / (right - left);
+      return base - (base - top) * Math.sin(Math.PI * k) ** 0.6;
+    };
+    g.save();
+    // The dome: a glowing translucent sheet over everyone.
+    g.globalAlpha = a * 0.22;
+    g.fillStyle = P.bronzeLight;
+    g.beginPath();
+    g.moveTo(left, base);
+    for (let x = left; x <= right; x += 10) g.lineTo(x, yAt(x));
+    g.lineTo(right, base);
+    g.closePath();
+    g.fill();
+    g.globalAlpha = a * 0.8;
+    g.strokeStyle = P.bronzeLight;
+    g.lineWidth = 3;
+    g.shadowColor = P.bronzeLight;
+    g.shadowBlur = 18;
+    g.beginPath();
+    for (let x = left; x <= right; x += 10) (x === left ? g.moveTo : g.lineTo).call(g, x, yAt(x));
+    g.stroke();
+    g.restore();
+    // Big shields along the rim.
+    g.save();
+    g.globalAlpha = a;
+    const n = Math.max(6, Math.round((right - left) / 34));
+    for (let i = 0; i <= n; i++) {
+      const x = left + ((right - left) * i) / n;
+      this.roundShield(x, yAt(x) + 4, 24);
+    }
+    g.restore();
   }
 
   /** Knife cuts in a figure: light from the lamp shows through them. */
@@ -1144,13 +1180,23 @@ export class Renderer {
         this.scraps(ev.x * U, GROUND - 60, 26, [P.ironDark, P.iron, P.paper, P.straw]);
       } else if (ev.type === 'volley') {
         for (let i = 0; i < 6; i++) this.projectile(ev.from * U - i * 10, ev.to * U, t + i * 0.03, P.ink, 1);
-      } else if (ev.type === 'bolts') {
-        const n = ev.enemy === 'fort' ? 8 : 3;
-        for (let i = 0; i < n; i++) this.projectile(ev.from * U + 40, ev.to * U - 60 - i * 20, t + i * 0.04, P.ironDark, -1);
+      } else if (ev.type === 'launch') {
+        // The blow is visible all the way: bolts arc over, a spear lunges.
+        const dur = ev.arrive - ev.launch;
+        const to = this.motion.front - 10;
+        if (ev.kind === 'spear') {
+          const m = this.motion.enemies.get(ev.from);
+          if (m) m.lunge = { t0: ev.launch, t1: ev.arrive };
+        } else {
+          const n = ev.kind === 'fort' ? 6 : 3;
+          const fromX = ev.x * U + (ev.kind === 'fort' ? 110 : -20);
+          for (let i = 0; i < n; i++) this.projectile(fromX, to - i * 18, ev.launch + i * 0.03, P.ironDark, -1, dur, ev.kind === 'fort' ? 150 : 110);
+        }
+      } else if (ev.type === 'deflect') {
+        // Bolts and blades glance off the shields.
+        this.scraps(this.motion.front - 20, GROUND - 100, 10, [P.bronzeLight, P.paper, P.ironDark]);
       } else if (ev.type === 'wound') {
-        const ax = view.battle.army.x * U;
-        this.scraps(ax - 30, GROUND - 50, ev.shielded ? 3 : 8, ev.shielded ? [P.bronzeLight] : [P.lacquer, P.ink]);
-        if (ev.block) this.floaters.push({ x: ax, y: GROUND - 150, text: ev.block === 'perfect' ? 'perfect block!' : 'blocked', t, color: ev.block === 'perfect' ? P.bronzeLight : P.paper });
+        this.scraps(this.motion.front - 30, GROUND - 50, 8, [P.lacquer, P.ink]);
       } else if (ev.type === 'rally') {
         this.floaters.push({ x: view.battle.army.x * U - 120, y: GROUND - 170, text: `+${Math.round(ev.amount)}`, t, color: P.verdigris });
       } else if (ev.type === 'trample') {
@@ -1176,8 +1222,8 @@ export class Renderer {
     }
   }
 
-  projectile(fromX, toX, t0, color, dir) {
-    this.particles.push({ kind: 'arrow', fromX, toX, t0, dur: 0.45, color, dir });
+  projectile(fromX, toX, t0, color, dir, dur = 0.45, height = 120) {
+    this.particles.push({ kind: 'arrow', fromX, toX, t0, dur, color, dir, height });
   }
 
   // ---------------------------------------------------------------- frame
@@ -1218,13 +1264,14 @@ export class Renderer {
       g.globalAlpha = m.alpha;
       this.footShadow(x + (e.type === 'fort' ? 90 : 0), e.type === 'fort' ? 130 : 22);
       this.backlit();
-      const shown = { ...e, pose: { bob: m.bob, tilt: m.tilt } };
+      const shown = { ...e, pose: { bob: m.bob, tilt: m.tilt, lean: m.lean || 0 } };
       if (e.type === 'fort') this.fort(e, x, GROUND);
       else if (e.type === 'target') this.target(e, x, GROUND, t);
       else this.hanSoldier(shown, x, GROUND, t, beatPhase);
       g.restore();
     }
     this.army(view, dt);
+    if (view.shieldsUp || view.songTime <= view.guardUntil + 0.2) this.shieldWall(view);
     this.threatMarks(view);
     this.drawParticles(t, dt);
     g.restore();
@@ -1283,6 +1330,15 @@ export class Renderer {
     const gait = this.reduceMotion ? 0 : Math.min(1, speed / 40);
     m.bob = Math.abs(Math.sin(m.phase * Math.PI)) * 4 * gait + Math.sin(t * 2 + e.id) * 0.6;
     m.tilt = Math.sin(m.phase * Math.PI * 2) * 0.05 * gait;
+    m.lean = 0;
+    if (m.lunge && t <= m.lunge.t1 + 0.2) {
+      // A spear lunge: drawn back, then driven forward as the blow lands.
+      const k = Math.max(0, Math.min(1, (t - m.lunge.t0) / (m.lunge.t1 - m.lunge.t0)));
+      // Drawn well back for most of the flight (the cue), then driven home.
+      const drive = k < 0.75 ? -(k / 0.75) * 0.3 : ((k - 0.75) / 0.25) * 0.35;
+      m.tilt += -drive;
+      m.lean = -drive * 40;
+    }
     m.alpha = 1;
     return m;
   }
@@ -1415,12 +1471,20 @@ export class Renderer {
         const k = (t - p.t0) / p.dur;
         if (k < 0) return true;
         if (k > 1) return false;
+        const hgt = p.height || 120;
         const x = p.fromX + (p.toX - p.fromX) * k;
-        const y = GROUND - 80 - Math.sin(k * Math.PI) * 120;
-        const ang = Math.atan2(-Math.cos(k * Math.PI) * 120 * Math.PI, p.toX - p.fromX);
+        const y = GROUND - 90 - Math.sin(k * Math.PI) * hgt;
+        const ang = Math.atan2(-Math.cos(k * Math.PI) * hgt * Math.PI, p.toX - p.fromX);
         g.save();
         g.translate(x, y);
         g.rotate(ang);
+        if (p.dir < 0) {
+          // Han bolts: a faint light trail so they read against any sky.
+          g.fillStyle = this.sky.glow;
+          g.globalAlpha = 0.35;
+          g.fillRect(-34, -1.5, 22, 3);
+          g.globalAlpha = 1;
+        }
         g.fillStyle = p.color;
         g.fillRect(-14, -1, 28, 2);
         g.beginPath();
@@ -1470,8 +1534,8 @@ export class Renderer {
     const g = this.ctx;
     const t = view.songTime;
     const cx = W / 2;
-    const cy = H - 80;
-    const R = 64;
+    const cy = H - 92;
+    const R = 58;
     const beatInMeasure = view.heron; // lit heron: the army's beat, or the phrase's
     const beatPhase = view.beatFloat - Math.floor(view.beatFloat);
     const responding = view.inResponse;
@@ -1564,6 +1628,30 @@ export class Renderer {
     if (ph && ph.done) {
       const c = COMMANDS.find((k) => k.id === ph.pattern.command);
       g.fillText(`${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`, cx, slotY - 26);
+    }
+
+    // Dots tumbling away after a reset.
+    if (this.clearing && t - this.clearing.t < 0.5) {
+      const k = (t - this.clearing.t) / 0.5;
+      g.save();
+      g.globalAlpha = 1 - k;
+      g.translate(0, k * k * 40);
+      this.pattern(cx - 2 * 36, slotY, this.clearing.pattern, 11 * (1 - 0.4 * k), 36 + 30 * k, this.clearing.filled);
+      g.restore();
+    }
+
+    // Confirmations for the reset and guard buttons, under the drum.
+    if (view.confirm && t - view.confirm.t < 0.9) {
+      const k = (t - view.confirm.t) / 0.9;
+      g.save();
+      g.globalAlpha = k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3;
+      g.font = '700 18px "Be Vietnam Pro", system-ui, sans-serif';
+      g.textAlign = 'center';
+      g.fillStyle = view.confirm.color;
+      g.shadowColor = 'rgba(0,0,0,0.8)';
+      g.shadowBlur = 6;
+      g.fillText(view.confirm.text, cx, H - 10 - k * 4);
+      g.restore();
     }
 
     // Judgement text.
@@ -1673,6 +1761,11 @@ export class Renderer {
       }
     }
     g.globalAlpha = 1;
+  }
+
+  /** Start the reset animation for the phrase that was showing. */
+  clearDots(phraseView, t) {
+    this.clearing = { pattern: phraseView.pattern, filled: phraseView.filled, t };
   }
 
   glyph(x, y, d, r) {
