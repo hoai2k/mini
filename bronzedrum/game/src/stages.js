@@ -12,6 +12,7 @@
 export const STAGES = [
   {
     id: 'garden',
+    music: 'mu-bed-garden',
     title: 'The Garden at Mê Linh',
     subtitle: 'Training years',
     intro:
@@ -31,6 +32,7 @@ export const STAGES = [
   },
   {
     id: 'oath',
+    music: 'mu-bed-oath',
     mode: 'echo',
     title: 'The Oath',
     subtitle: 'The father’s funeral',
@@ -53,6 +55,7 @@ export const STAGES = [
   },
   {
     id: 'casting',
+    music: 'mu-bed-foundry',
     mode: 'casting',
     title: 'Casting the Drums',
     subtitle: 'The foundry of Nhật Nam',
@@ -70,6 +73,7 @@ export const STAGES = [
   },
   {
     id: 'villages',
+    music: 'mu-bed-villages',
     mode: 'echo',
     title: 'The Villages Answer',
     subtitle: 'A call along the river',
@@ -94,6 +98,7 @@ export const STAGES = [
   },
   {
     id: 'outpost',
+    music: 'mu-bed-river',
     title: 'The Outpost on the Hát River',
     subtitle: 'The drums answer',
     intro:
@@ -116,6 +121,7 @@ export const STAGES = [
   },
   {
     id: 'luylau',
+    music: 'mu-bed-luylau',
     title: 'The Citadel at Luy Lâu',
     subtitle: 'Gold armour, war elephants',
     intro:
@@ -141,6 +147,7 @@ export const STAGES = [
   },
   {
     id: 'coronation',
+    music: 'mu-bed-coronation',
     mode: 'echo',
     title: 'The Coronation at Mê Linh',
     subtitle: 'Two queens',
@@ -164,6 +171,7 @@ export const STAGES = [
   },
   {
     id: 'mavien',
+    music: 'mu-bed-mavien',
     title: 'Mã Viện Returns',
     subtitle: 'Hold the ford',
     intro:
@@ -193,6 +201,7 @@ export const STAGES = [
   },
   {
     id: 'elegy',
+    music: 'mu-bed-elegy',
     mode: 'echo',
     title: 'The Drums Are Melted',
     subtitle: 'Epilogue',
