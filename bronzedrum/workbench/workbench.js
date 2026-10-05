@@ -389,7 +389,7 @@ function buildChapters() {
       rows.appendChild(bedRow({
         key: markKey('alt', a.id),
         name: a.id,
-        tag: /-2$/.test(a.id) ? 'new · round 2' : 'alternate',
+        tag: /-clean$/.test(a.id) ? 'de-buzzed copy' : /-2$/.test(a.id) ? 'new · round 2' : 'alternate',
         tagClass: 'alt',
         url: a.file,
         prompt: a.prompt,

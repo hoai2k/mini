@@ -334,14 +334,23 @@ sfx(G, "amb-night",
 # that chapter's bed in the SFX list above.
 
 ALT_DIR = ROOT / "workbench" / "alt"
+# The buzz: the takes heard as metallic, synthetic or "radio buzz" all carry a
+# comb of steady tones at exact multiples of 200 Hz (with weaker ones at 100 Hz
+# steps), up to 15 dB over their neighbourhood; the takes kept have little.
+# A narrow notch at every 100 Hz step removes it and changes the loudness by
+# under 1 dB. DEBUZZ is applied to new takes that carry it and to the
+# de-buzzed copies below.
+DEBUZZ = ",".join(f"equalizer=f={100 * k}:t=h:w=6:g=-24" for k in range(1, 80))
 ALT_LUFS = -22.0
 ALTERNATES: list[dict] = []
 NO = " Real outdoor field recording, no music, no drums, no clear words."
 
 
-def alt(chapter, aid, prompt):
-    ALTERNATES.append(dict(chapter=chapter, id=aid, prompt=prompt + NO, seconds=20.0, influence=0.5,
-                           kind="loop", post="lowpass=f=11000", gain=0.45))
+def alt(chapter, aid, prompt, debuzz=False, derived_from=None):
+    """derived_from: a de-buzzed copy of an existing take (made once, not generated)."""
+    ALTERNATES.append(dict(chapter=chapter, id=aid, prompt=prompt + ("" if derived_from else NO), seconds=20.0,
+                           influence=0.5, kind="loop", gain=0.45, derived_from=derived_from,
+                           post="lowpass=f=11000" + ("," + DEBUZZ if debuzz else "")))
 
 
 alt("garden", "garden-birds",
@@ -474,23 +483,23 @@ ALT_REJECTED = {
 alt("oath", "oath-dusk-2",
     "A still dusk in a quiet countryside courtyard: a soft breeze through banana and bamboo "
     "leaves, a slow trickle of water from a stone basin, a distant bird calling once or twice. "
-    "Calm and solemn. No insects, no hum.")
+    "Calm and solemn. No insects, no hum.", debuzz=True)
 alt("oath", "oath-rain-2",
     "Light evening rain falling softly on a tiled roof and on broad leaves in a quiet "
-    "courtyard, a few drips into a stone jar, gentle and steady. No thunder, no insects.")
+    "courtyard, a few drips into a stone jar, gentle and steady. No thunder, no insects.", debuzz=True)
 alt("oath", "oath-pond-2",
     "Dusk beside a still lotus pond: an occasional frog calling softly, water barely moving, a "
-    "soft breeze in the reeds, a far-off bird. Sparse and quiet. No insects.")
+    "soft breeze in the reeds, a far-off bird. Sparse and quiet. No insects.", debuzz=True)
 alt("luylau", "luylau-frogs-2",
     "Night beside the flooded rice paddies outside an old town: a chorus of frogs and toads "
     "croaking, a gentle wind, water lapping at the edge of a moat. Calm but watchful. No "
-    "insects, no traffic.")
+    "insects, no traffic.", debuzz=True)
 alt("luylau", "luylau-wind-2",
     "A warm night wind blowing across open fields and through tall grass by a river, distant "
-    "frogs, leaves rustling. No insects, no rumble.")
+    "frogs, leaves rustling. No insects, no rumble.", debuzz=True)
 alt("mavien", "mavien-river-2",
     "Dusk on the bank of a wide, slow river: calm flowing water, a cool wind through tall "
-    "reeds, a few crows calling far off. Grave and quiet. No insects.")
+    "reeds, a few crows calling far off. Grave and quiet. No insects.", debuzz=True)
 alt("practice", "practice-fire-2",
     "A bonfire crackling gently in the open at dusk, a soft breeze through palm leaves, distant "
     "frogs. Warm and calm. No insects.")
@@ -513,6 +522,20 @@ CANDIDATES: list[dict] = [
                 "hiss, no noise, no room rumble, no music.")
     for i in (1, 2, 3)
 ]
+
+
+for chapter, aid, source, heard in [
+    ("oath", "amb-mourning-clean", "the Oath's bed amb-mourning", "machine noise"),
+    ("oath", "oath-gecko-clean", "the turned-down take oath-gecko", "almost, but synthetic and metallic"),
+    ("oath", "oath-temple-clean", "the turned-down take oath-temple", "insects good, then metallic sounds"),
+    ("luylau", "amb-night-clean", "Luy Lâu's bed amb-night", "a bit synthetic"),
+    ("luylau", "luylau-moat-clean", "the turned-down take luylau-moat", "a synthetic buzz"),
+    ("outpost", "outpost-cicadas-clean", "the take outpost-cicadas", "almost, but a bit synthetic"),
+    ("villages", "amb-village-clean", "the Villages bed amb-village (frogs, kept)", "kept"),
+    ("garden", "amb-garden-clean", "the garden bed amb-garden", "okay apart from loud birds (since tamed)"),
+]:
+    alt(chapter, aid, f"De-buzzed copy of {source} (heard as: {heard}): the 200 Hz comb notched out.",
+        derived_from=source)
 
 
 def alt_file(a):
@@ -1126,7 +1149,7 @@ def main():
         force = set(args[args.index("--force") + 1].split(",")) if "--force" in args else set()
         for a in ALTERNATES:
             out = alt_file(a)
-            if out.exists() and a["id"] not in force:
+            if a["derived_from"] or (out.exists() and a["id"] not in force):
                 continue
             print(f"generating workbench/alt/{out.name} …", flush=True)
             generate(a, out, key)

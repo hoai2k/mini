@@ -1010,6 +1010,76 @@
       "prompt": "A bonfire crackling gently in the open at dusk, a soft breeze through palm leaves, distant frogs. Warm and calm. No insects. Real outdoor field recording, no music, no drums, no clear words.",
       "file": "alt/practice-fire-2.mp3",
       "measured": ""
+    },
+    {
+      "id": "practice-dusk-2",
+      "chapter": "practice",
+      "prompt": "Dusk at the edge of a Vietnamese village: a soft breeze in bamboo, a water buffalo's wooden bell far off in the fields, a few birds settling for the night, a far-off frog. Peaceful. No insects. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/practice-dusk-2.mp3",
+      "measured": ""
+    },
+    {
+      "id": "coronation-crowd-2",
+      "chapter": "coronation",
+      "prompt": "A large festive crowd murmuring happily at a distance in an open square on a sunny day, steady and even, no single voice standing out, flags flapping softly in the wind. No cheering bursts. Real outdoor field recording, no music, no drums, no clear words.",
+      "file": "alt/coronation-crowd-2.mp3",
+      "measured": ""
+    },
+    {
+      "id": "amb-mourning-clean",
+      "chapter": "oath",
+      "prompt": "De-buzzed copy of the Oath's bed amb-mourning (heard as: machine noise): the 200 Hz comb notched out.",
+      "file": "alt/amb-mourning-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "oath-gecko-clean",
+      "chapter": "oath",
+      "prompt": "De-buzzed copy of the turned-down take oath-gecko (heard as: almost, but synthetic and metallic): the 200 Hz comb notched out.",
+      "file": "alt/oath-gecko-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "oath-temple-clean",
+      "chapter": "oath",
+      "prompt": "De-buzzed copy of the turned-down take oath-temple (heard as: insects good, then metallic sounds): the 200 Hz comb notched out.",
+      "file": "alt/oath-temple-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "amb-night-clean",
+      "chapter": "luylau",
+      "prompt": "De-buzzed copy of Luy Lâu's bed amb-night (heard as: a bit synthetic): the 200 Hz comb notched out.",
+      "file": "alt/amb-night-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "luylau-moat-clean",
+      "chapter": "luylau",
+      "prompt": "De-buzzed copy of the turned-down take luylau-moat (heard as: a synthetic buzz): the 200 Hz comb notched out.",
+      "file": "alt/luylau-moat-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "outpost-cicadas-clean",
+      "chapter": "outpost",
+      "prompt": "De-buzzed copy of the take outpost-cicadas (heard as: almost, but a bit synthetic): the 200 Hz comb notched out.",
+      "file": "alt/outpost-cicadas-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "amb-village-clean",
+      "chapter": "villages",
+      "prompt": "De-buzzed copy of the Villages bed amb-village (frogs, kept) (heard as: kept): the 200 Hz comb notched out.",
+      "file": "alt/amb-village-clean.mp3",
+      "measured": ""
+    },
+    {
+      "id": "amb-garden-clean",
+      "chapter": "garden",
+      "prompt": "De-buzzed copy of the garden bed amb-garden (heard as: okay apart from loud birds (since tamed)): the 200 Hz comb notched out.",
+      "file": "alt/amb-garden-clean.mp3",
+      "measured": ""
     }
   ],
   "musicTrials": [
