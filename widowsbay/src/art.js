@@ -876,6 +876,60 @@ function star(c, x, y, r) {
   c.closePath(); c.fill();
 }
 
+// ---------------------------------------------------------------- button prompts
+// Prompt text may name buttons as [A], [B], [MENU] or [LS]. They are drawn
+// for the input in use (`mode`): Xbox controller buttons ('pad'), key caps
+// ('key') or the on-screen touch buttons ('touch').
+const GLYPH_KEYS = { A: 'Space', B: 'Esc', MENU: 'Esc', LS: '← →' };
+const XBOX = { A: '#3fa535', B: '#d6262c', X: '#2a6fd6', Y: '#e8b320' };
+function glyphWidth(c, tok, mode, px) {
+  if (mode === 'key') { c.save(); c.font = `700 ${Math.round(px * 0.55)}px "Josefin Sans", sans-serif`; const w = c.measureText(GLYPH_KEYS[tok]).width; c.restore(); return w + px * 0.7; }
+  return px * 1.0;
+}
+function drawGlyph(c, tok, mode, cx, cy, px, col) {
+  const r = px * 0.44;
+  c.save(); c.globalAlpha = Math.min(1, c.globalAlpha * 1.6);
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  if (mode === 'key') {
+    c.font = `700 ${Math.round(px * 0.55)}px "Josefin Sans", sans-serif`;
+    const w = c.measureText(GLYPH_KEYS[tok]).width + px * 0.5, h = px * 0.82;
+    c.fillStyle = col('#f1e3c8'); c.strokeStyle = col('#2a1424'); c.lineWidth = Math.max(1.5, px * 0.06);
+    c.beginPath(); c.roundRect(cx - w / 2, cy - h / 2, w, h, px * 0.14); c.fill(); c.stroke();
+    c.fillStyle = col('#2a1424'); c.fillText(GLYPH_KEYS[tok], cx, cy + px * 0.03);
+  } else if (mode === 'touch') {
+    c.fillStyle = col('#b8862e'); c.strokeStyle = col('#f1e3c8'); c.lineWidth = Math.max(1.5, px * 0.06);
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); c.stroke();
+    c.fillStyle = col('#fff8e8'); c.font = `700 ${Math.round(px * 0.5)}px "Josefin Sans", sans-serif`;
+    c.fillText(tok === 'MENU' ? '❚❚' : tok === 'LS' ? '✥' : tok, cx, cy + px * 0.03);
+  } else {
+    // Xbox: A, B, X, Y in their colours; Menu and the left stick in charcoal.
+    const face = XBOX[tok];
+    c.fillStyle = col(face || '#36303a'); c.strokeStyle = col('#140a12'); c.lineWidth = Math.max(1.5, px * 0.07);
+    c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); c.stroke();
+    c.fillStyle = col('#ffffff'); c.strokeStyle = col('#ffffff');
+    if (face) { c.font = `700 ${Math.round(px * 0.52)}px "Josefin Sans", sans-serif`; c.fillText(tok, cx, cy + px * 0.04); }
+    else if (tok === 'MENU') { c.lineWidth = Math.max(1.2, px * 0.07); for (const dy of [-0.16, 0, 0.16]) { c.beginPath(); c.moveTo(cx - r * 0.45, cy + dy * px); c.lineTo(cx + r * 0.45, cy + dy * px); c.stroke(); } }
+    else { c.lineWidth = Math.max(1.2, px * 0.06); c.beginPath(); c.arc(cx, cy, r * 0.62, 0, Math.PI * 2); c.stroke(); c.font = `700 ${Math.round(px * 0.3)}px "Josefin Sans", sans-serif`; c.fillText('LS', cx, cy + px * 0.02); }
+  }
+  c.restore();
+}
+// Draw one line of prompt text centred on x (baseline y) with its button glyphs.
+export function richText(c, str, x, y, { px, mode = 'key', col = (h) => h } = {}) {
+  const parts = str.split(/\[(A|B|MENU|LS)\]/);
+  const gap = px * 0.18;
+  const widths = parts.map((p, i) => (i % 2 ? glyphWidth(c, p, mode, px) + gap * 2 : c.measureText(p).width));
+  const total = widths.reduce((a, b) => a + b, 0);
+  const align = c.textAlign;
+  let at = align === 'left' ? x : align === 'right' ? x - total : x - total / 2;
+  c.save(); c.textAlign = 'left';
+  parts.forEach((p, i) => {
+    if (i % 2) drawGlyph(c, p, mode, at + widths[i] / 2, y - px * 0.34, px, col);
+    else c.fillText(p, at, y);
+    at += widths[i];
+  });
+  c.restore();
+}
+
 // ---------------------------------------------------------------- intertitles
 // Cards copy the video's title cards: swash script in pale pink on plum or
 // magenta, inside a fine double rule.
@@ -890,13 +944,21 @@ export function drawCard(c, card, t) {
   c.lineWidth = 2;
   c.strokeRect(150, 70, 980, 580); c.strokeRect(162, 82, 956, 556);
   c.textAlign = 'center'; c.fillStyle = PAL.pink;
-  const lines = card.title.split('\n');
+  if (card.body) {
+    // A silent-film intertitle: a few lines of swash script, centred.
+    const px = card.size || 58, lines = card.body.split('\n'), lh = px * 1.12;
+    c.font = `${px}px Yesteryear, cursive`;
+    lines.forEach((l, i) => richText(c, l, 640, 372 + (i - (lines.length - 1) / 2) * lh, { px, mode: card.mode }));
+    c.fillStyle = PAL.pink; c.font = '700 22px "Josefin Sans", sans-serif';
+    c.fillText('· ✦ ·', 640, 140);
+  }
+  const lines = (card.title || '').split('\n');
   if (card.kicker) { c.font = '700 26px "Josefin Sans", sans-serif'; c.fillText(card.kicker.toUpperCase(), 640, 200 - (lines.length - 1) * 50); }
   c.font = `${card.size || 120}px Yesteryear, cursive`;
   lines.forEach((l, i) => c.fillText(l, 640, 330 + i * (card.size || 120) * 0.95 - (lines.length - 1) * 50));
   if (card.sub) {
     c.font = '700 24px "Josefin Sans", sans-serif';
-    card.sub.split('\n').forEach((l, i) => c.fillText(l, 640, 500 + i * 34));
+    card.sub.split('\n').forEach((l, i) => richText(c, l, 640, 500 + i * 34, { px: 24, mode: card.mode }));
   }
   if (card.loading != null) {
     // The song is still loading: a thin double-ruled bar where the prompt goes.
@@ -909,7 +971,7 @@ export function drawCard(c, card, t) {
   } else if (card.prompt) {
     c.globalAlpha = a * (0.55 + 0.45 * Math.sin(t * 3));
     c.font = '30px Yesteryear, cursive';
-    c.fillText(card.prompt, 640, 600);
+    richText(c, card.prompt, 640, 600, { px: 30, mode: card.mode });
   }
   c.restore();
 }

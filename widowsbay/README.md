@@ -62,6 +62,16 @@ A static page with no build step: canvas 2D plus Web Audio.
   [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md). A lost act resumes from its
   latest checkpoint (`src/acts/CONTRACT.md`, "Scenes and checkpoints").
 
+## Workbench
+
+[`workbench/`](workbench/README.md), published at
+https://hoai2k.github.io/mini/widowsbay/workbench/, plays every cutscene in the
+game in a big viewer for reviewing the choreography: Act I's land ho,
+celebration and wreck, Act II's opening, offer and ride, the whale swallowing
+the court, the beached whale, the storm, the three endings, the pageant and the
+curtain call. Pick a scene from the dropdown; play, pause, change speed, step
+frames or scrub, and copy a link to an exact moment (`#act1-ending@12.5`).
+
 ## Art
 
 All the art is delivered and drawn in the game: 118 images listed in
@@ -159,7 +169,7 @@ them.
 
   A hint names the gestures for the first few seconds of each act.
 - **The A button is on the right,** labelled with what it does in the current
-  scene: Leap, On the beat, Kick, Take, Hold: freeze, Leap / throw. A **B**
+  scene: Leap, On the beat, Kick, Take, Hide, Leap / throw. A **B**
   button appears only when the scene needs one (refusing the sea rose). Pause
   is at top right.
 - **Taps work everywhere else.** Tap a card to begin, tap a line of the

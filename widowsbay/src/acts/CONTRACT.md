@@ -31,6 +31,7 @@ export default {
   id: 2, kicker: 'Act II', title: "The Sleepers' Grotto", size: 110,
   sub: 'Card text, one or two short lines (\n between).',
   action: 'A: kick',                 // for the instructions
+  intertitle: 'Press [A] to …',      // optional: a silent-film card after the act card
   create({ seed, carry }) → state,
   step(state, dt, input),            // dt ≤ 0.05 s
   hud(state) → spec | null,
@@ -40,6 +41,11 @@ export default {
   onEvent(kit, event, state),        // optional: particles, flashes
 };
 ```
+
+**Button names in text.** In `sub` and `intertitle`, write `[A]`, `[B]`,
+`[MENU]` or `[LS]` for a button. The renderer draws it for the input in use:
+an Xbox button for a controller, a key cap for the keyboard, or the touch
+button on a phone or tablet. The intertitle is skipped on a retry.
 
 **`carry`** is what the player brings from earlier acts:
 `{ tea: 0..3, guitar, rose, pearl, stone, sleepers, score, pearls }`. The

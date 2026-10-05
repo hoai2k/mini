@@ -39,15 +39,18 @@ export const SCENES = [
 export const BEAT = 60 / 76.5;                  // fallback only; input.beat drives
 
 export const TUNE = {
-  walk: 104, rowTween: 0.26, grace: 1.6, lanterns: 3,
-  restAim: PEDESTAL.x, warn: 1.25, hold: 0.85, sweepSpeed: 300, lock: 0.75, rest: [1.4, 2.6],
-  aimRange: [340, 2720], search: 650, // patrol targets (beam centre x), near the sailor
-  cover: 56,                      // half-width of an attendant's cover
+  walk: 150, rowTween: 0.26, grace: 1.6, lanterns: 3,
+  // The gaze: dark for a while, then a warning (time to find a courtier), then
+  // the beam sweeps right across the stage from one wing and off the other.
+  firstDark: 4, warn: 3, sweepSpeed: 230, margin: 260, lock: 0.75, rest: [5, 8],
+  cover: 64,                      // half-width of an attendant's cover
   snapOpen: 0.38,                 // fraction of each beat the jaws are open
   whaleFirst: 20, whaleEvery: [20, 25], whaleDur: 5, whaleMask: [0.9, 4.0],
   fishDur: 4.2,
-  caught: 1.8, haul: 300, haulDur: 0.7,
+  caught: 1.8,
 };
+// Where the beam rests while the lantern is dark: nowhere on the floor.
+export const GAZE_OFF = -10000;
 
 // Win sequence, seconds per phase.
 export const OUTRO = { take: 1.3, turn: 2.0, lunge: 0.9, iris: 1.3 };
@@ -102,30 +105,43 @@ export function whaleX(t) {
 }
 export const fishX = (t) => lerp(1480, -220, t / TUNE.fishDur);
 
-// Advance the gaze. It rests (at first, and whenever the sailor is near the
-// throne, on the pedestal), then patrols: for each leg it
-// winds up (warn: the lantern pulses and a dotted arrow shows where it will
-// go), then sweeps there. The last leg returns it to the pedestal.
-// `emit` and `pick` are null when predicting.
-function stepGaze(g, dt, emit, pick) {
+// Advance the gaze. It stays dark, then winds up (warn: the lantern pulses and
+// an arrow along the floor shows which way it will come), then sweeps: the
+// beam enters from one wing, crosses the whole stage at a steady pace and
+// leaves by the other, so once it has passed you it is gone. Then dark again.
+// The sweep runs in floor x, fixed when the warning starts. `ctx` is
+// { cam, rand } in play and null when predicting (the omens), which can't
+// start a new sweep.
+function stepGaze(g, dt, emit, ctx) {
   if (g.lock > 0) { g.lock -= dt; return; }
   g.t += dt;
-  if (g.phase === 'rest') {
-    if (g.t >= g.dur && pick) { g.legs = pick(); toWarn(g, TUNE.warn, emit); }
+  if (g.phase === 'dark') {
+    if (g.t >= g.dur && ctx) {
+      g.dir = ctx.rand() < 0.5 ? 1 : -1;
+      const left = ctx.cam - TUNE.margin, right = ctx.cam + 1280 + TUNE.margin;
+      g.from = g.dir > 0 ? left : right; g.to = g.dir > 0 ? right : left;
+      g.phase = 'warn'; g.t = 0; g.dur = TUNE.warn;
+      if (emit) emit({ type: 'gazeTurn', dir: g.dir });
+    }
   } else if (g.phase === 'warn') {
-    if (g.t >= g.dur) { g.phase = 'sweep'; g.t = 0; g.from = g.aim; g.dur = Math.max(0.3, Math.abs(g.to - g.from) / TUNE.sweepSpeed); if (emit) emit({ type: 'gazeSweep' }); }
+    if (g.t >= g.dur) {
+      g.phase = 'sweep'; g.t = 0; g.aim = g.from; g.dur = Math.abs(g.to - g.from) / TUNE.sweepSpeed;
+      if (emit) emit({ type: 'gazeSweep' });
+    }
   } else if (g.phase === 'sweep') {
-    const k = clamp(g.t / g.dur, 0, 1);
-    g.aim = lerp(g.from, g.to, easeInOut(k));
-    if (k >= 1) {
-      if (g.legs.length) toWarn(g, TUNE.hold, emit);
-      else { g.phase = 'rest'; g.t = 0; g.dur = pick ? TUNE.rest[0] + pick(true) * (TUNE.rest[1] - TUNE.rest[0]) : 9; }
+    g.aim = lerp(g.from, g.to, clamp(g.t / g.dur, 0, 1));
+    if (g.t >= g.dur) {
+      g.phase = 'dark'; g.t = 0; g.aim = GAZE_OFF;
+      g.dur = ctx ? TUNE.rest[0] + ctx.rand() * (TUNE.rest[1] - TUNE.rest[0]) : 9;
     }
   }
 }
-function toWarn(g, dur, emit) {
-  g.phase = 'warn'; g.t = 0; g.dur = dur; g.to = g.legs.shift();
-  if (emit) emit({ type: 'gazeTurn', to: g.to });
+
+// Where the king and the lantern look (floor x): along the beam while it
+// sweeps, toward the wing it will come from while it winds up, else ahead.
+export function gazeLook(st) {
+  const g = st.gaze;
+  return g.phase === 'sweep' ? g.aim : g.phase === 'warn' ? g.from : st.cam + 640;
 }
 
 // Is a point on a groove in the beam, for this aim?
@@ -137,8 +153,10 @@ export function litAt(aim, row, x) {
 // ---------------------------------------------------------------- module
 export default {
   id: 3, key: 'court', kicker: 'Act III', title: "The Sea King's Court", size: 110,
-  sub: 'Hold A to freeze among the courtiers as the gaze sweeps.\nTake her pearl while the whale masks the hall.',
-  action: 'Hold A: freeze · A: take',
+  sub: "Cross the Sea King's hall to the treasury\nand take her pearl in the whale's shadow.",
+  // Shown as a silent-film intertitle after the act card ([A] is the A button).
+  intertitle: "Press [A] beside a courtier\nto hide from the Sea King's lantern.\n\nGather as many pearls as you can.",
+  action: 'A: hide · A: take',
   scenes: SCENES,
 
   // `from`: null, { scene } (scene select) or a checkpoint this act made
@@ -155,7 +173,7 @@ export default {
       courtiers: COURTIERS.map((c) => ({ ...c, x0: c.x, x1: c.x })),
       pearlsOnFloor: PEARLS.map(([row, x]) => ({ row, x, got: false })),
       sentries: SENTRIES.map((x) => ({ x, open: false })),
-      gaze: { phase: 'rest', t: 0, dur: 4, aim: TUNE.restAim, from: TUNE.restAim, to: TUNE.restAim, lock: 0, legs: [] },
+      gaze: { phase: 'dark', t: 0, dur: TUNE.firstDark, aim: GAZE_OFF, from: GAZE_OFF, to: GAZE_OFF, dir: 1, lock: 0 },
       whale: { t: -1, next: TUNE.whaleFirst, warned: false, passes: 0 },
       fish: { t: -1, next: TUNE.whaleFirst + 10 },
       masked: false, canTake: false, omens: [], unseenPass: false, cause: null,
@@ -171,7 +189,7 @@ export default {
     for (const i of from.got || []) if (st.pearlsOnFloor[i]) st.pearlsOnFloor[i].got = true;
     st.pearls = from.pearls | 0; st.score = from.score | 0;
     Object.assign(st.stats, from.stats || {});
-    st.gaze.dur = 5;                                  // the lantern rests a while first
+    st.gaze.dur = TUNE.firstDark + 1;                 // the lantern stays dark a while first
     st.whale.next = 14; st.fish.next = 26;
     st.checkpoint = { ...from, scene: k };
     return st;
@@ -223,7 +241,7 @@ export default {
   announce(e) {
     if (e.type === 'hit') return `Hit. ${e.lanterns} lantern${e.lanterns === 1 ? '' : 's'} left.`;
     if (e.type === 'spotted') return 'Spotted by the gaze lantern!';
-    if (e.type === 'gazeTurn') return 'The gaze lantern turns.';
+    if (e.type === 'gazeTurn') return `The Sea King's lantern turns ${e.dir > 0 ? 'from the left' : 'from the right'}. Hide beside a courtier!`;
     if (e.type === 'whaleNear') return 'The whale is coming.';
     if (e.type === 'whalePass') return 'The whale masks the hall. Go for the pearl!';
     if (e.type === 'pearlTaken') return 'You take her pearl.';
@@ -311,18 +329,17 @@ function play(st, dt, input, emit) {
     return;
   }
 
-  // Being hauled back after a spotting: no control for a moment.
-  const hauled = p.haulT != null && p.haulT < 1;
-  if (hauled) {
-    p.haulT = Math.min(1, p.haulT + dt / TUNE.haulDur);
-    p.x = lerp(p.haulFrom, p.haulTo, easeInOut(p.haulT));
-  }
-  // Freeze, walk, change groove.
+  // Hide: A strikes a courtier's pose and holds it until you move (or press
+  // A again); holding A keeps it too.
   const wasFrozen = p.frozen;
-  p.frozen = !!input.aHeld && !hauled;
+  const trying = !!(input.moveX || input.up || input.down);
+  if (input.a) p.pose = !p.pose;
+  if (trying && !input.aHeld) p.pose = false;
+  p.frozen = !!(p.pose || input.aHeld);
   if (p.frozen && !wasFrozen) { st.stats.freezes++; emit({ type: 'freeze' }); }
+  if (!p.frozen) p.pose = false;
   p.moving = false;
-  if (!p.frozen && !hauled) {
+  if (!p.frozen) {
     const mx = clamp(input.moveX || 0, -1, 1);
     p.moving = !!mx;
     if (mx) { p.x = clamp(p.x + mx * TUNE.walk * dt, XMIN, XMAX); p.face = mx > 0 ? 1 : -1; p.walk += Math.abs(mx) * dt; }
@@ -350,8 +367,7 @@ function play(st, dt, input, emit) {
   }
 
   // The gaze.
-  const pick = (rest) => (rest ? rand(st) : patrol(st));
-  stepGaze(g, dt, emit, pick);
+  stepGaze(g, dt, emit, { cam: st.cam, rand: () => rand(st) });
   p.hidden = p.frozen && st.courtiers.some((c) => c.kind !== 'guard' && c.row === r && Math.abs(c.x - p.x) < TUNE.cover * ROWSCALE[r]);
   p.lit = !st.masked && litAt(g.aim, r, p.x);
   if (st.masked) st.stats.maskedTime += dt;
@@ -362,9 +378,7 @@ function play(st, dt, input, emit) {
   if (p.lit && !p.hidden && p.grace <= 0) {
     g.lock = TUNE.lock; st.unseenPass = false;
     emit({ type: 'spotted', x: p.x, y: rowY(p) });
-    hit(st, 'gaze', emit);
-    // a seahorse guard's crook hauls him back toward the entrance
-    if (st.phase === 'play') { p.haulFrom = p.x; p.haulTo = Math.max(XMIN, p.x - TUNE.haul); p.haulT = 0; emit({ type: 'hauledBack' }); }
+    hit(st, 'gaze', emit); // the beam holds on him a moment, then sweeps on
   }
   // Guards bump; open jaws bite.
   for (const c of st.courtiers) {
@@ -382,7 +396,7 @@ function play(st, dt, input, emit) {
   st.omens.length = 0;
   if (st.carry.tea >= 3) {
     if (!p.lit && !st.masked) {
-      const ahead = { ...g, legs: g.legs.slice() };
+      const ahead = { ...g };
       stepGaze(ahead, BEAT, null, null);
       if (litAt(ahead.aim, r, p.x)) st.omens.push({ x: p.x, y: rowY(p) - 175 * ROWSCALE[r], kind: 'gaze' });
     }
@@ -391,24 +405,6 @@ function play(st, dt, input, emit) {
       for (const s of st.sentries) if (Math.abs(s.x + SENTRY_HEAD - p.x) < 210) st.omens.push({ x: s.x + SENTRY_HEAD, y: 528, kind: 'sentry' });
     }
   }
-}
-
-// A patrol of two or three legs that swing well across the hall, then home.
-function patrol(st) {
-  const lo = Math.max(TUNE.aimRange[0], st.p.x - TUNE.search), hi = Math.min(TUNE.aimRange[1], st.p.x + TUNE.search);
-  const legs = [];
-  let at = st.gaze.aim;
-  const count = 2 + (rand(st) < 0.5 ? 1 : 0);
-  for (let i = 0; i < count; i++) {
-    // somewhere near where the sailor is, but always a real swing
-    let x = lo + rand(st) * Math.max(0, hi - lo);
-    if (Math.abs(x - at) < 260) x = at + (at - lo > hi - at ? -1 : 1) * (260 + rand(st) * 120);
-    x = clamp(x, TUNE.aimRange[0], TUNE.aimRange[1]);
-    legs.push(Math.round(x)); at = x;
-  }
-  // Near the throne, it always comes home to rest on the pearl.
-  if (st.p.x > PEDESTAL.x - 900) legs.push(TUNE.restAim);
-  return legs;
 }
 
 function hit(st, cause, emit) {

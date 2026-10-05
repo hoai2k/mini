@@ -3,7 +3,7 @@
 // design/image-requests.md, Part C4; drawn here at half the listed pixels).
 import {
   ROWY, ROWSCALE, PEDESTAL, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, DAIS_Y, PAR, OUTRO,
-  beamOn, rowY, rowScale, whaleX, fishX, backX,
+  beamOn, rowY, rowScale, whaleX, fishX, backX, gazeLook,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 
@@ -136,7 +136,7 @@ function dais(k, st, t, bob) {
   }
   const by = DAIS_Y;
   // The king's eyes follow his beam.
-  const look = clamp((st.gaze.aim - st.cam - tx) / 600, -1, 1);
+  const look = clamp((gazeLook(st) - st.cam - tx) / 600, -1, 1);
   if (!k.asset('sea-king-throne', tx, by, 300, 310)) kingStandin(k, tx, by, look, bob);
   // the witch at his side
   if (!k.asset('witch-stand', wx, by + 2, 130, 210)) witchStandin(k, wx, by + 2, t);
@@ -215,7 +215,7 @@ function lanternStandin(k, st, t, lit, x) {
   c.beginPath(); c.ellipse(x, y, 34, 22, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = k.col('#f4f1ea');
   c.beginPath(); c.ellipse(x, y, 27, 15, 0, 0, Math.PI * 2); c.fill();
-  const look = clamp((st.gaze.aim - st.cam - x) / 700, -1, 1) * 12;
+  const look = clamp((gazeLook(st) - st.cam - x) / 700, -1, 1) * 12;
   c.fillStyle = k.col(st.masked ? '#8f8a86' : '#e0127a'); k.circle(x + look, y + 2, 9);
   c.fillStyle = k.col('#2a1424'); k.circle(x + look, y + 2, 4);
   // lid
@@ -558,7 +558,8 @@ function sleepZ(k, x, y, t) {
 function beam(k, st, t) {
   const c = k.c, g = st.gaze;
   if (st.phase !== 'play' && st.phase !== 'caught') return;
-  const blind = st.masked;
+  // The cone only shows while the beam sweeps; dark or winding up, the hall is dim.
+  const blind = st.masked || g.phase !== 'sweep';
   const spot = g.lock > 0 || st.phase === 'caught';
   const light = spot ? '#e0127a' : '#ffe9a8';
   c.save();
@@ -582,7 +583,7 @@ function beam(k, st, t) {
   }
   // the lantern's eye glows above the dimming
   const lx = backX(LANTERN_BX, st.cam);
-  c.globalAlpha = blind ? 0.2 : 0.55; c.fillStyle = k.col(light); k.circle(lx, LANTERN_Y, 12);
+  c.globalAlpha = st.masked || g.phase === 'dark' ? 0.2 : 0.55; c.fillStyle = k.col(light); k.circle(lx, LANTERN_Y, 12);
   c.restore();
 }
 
@@ -597,30 +598,26 @@ function beamPath(c, aim, cam, fresh = true) {
   c.closePath();
 }
 
-// The sweep is telegraphed: while the lantern winds up, a ghost of the beam
-// stands where it is going and a dotted arrow runs along the floor's front
-// edge; the arrow stays up while it sweeps.
+// The sweep is telegraphed: while the lantern winds up (and its eye pulses),
+// light gathers in the wing the beam will enter from and three chevrons there
+// point the way it will travel.
 function telegraph(k, st, t) {
   const c = k.c, g = st.gaze;
-  if (st.phase !== 'play' || (g.phase !== 'warn' && g.phase !== 'sweep')) return;
-  const warn = g.phase === 'warn', a = warn ? clamp(g.t / 0.25, 0, 1) : 0.5;
-  const cl = (x) => clamp(x, 170, 1110);
-  const from = cl(g.aim - st.cam), to = cl(g.to - st.cam);
-  const y = 624, dir = Math.sign(to - from) || 1;
-  c.save(); c.globalAlpha = a;
-  if (warn) {
-    // the ghost beam at the target
-    c.globalAlpha = a * 0.09; c.fillStyle = k.col('#fff2c0');
-    beamPath(c, g.to, st.cam); c.fill();
-    c.globalAlpha = a * 0.9; c.strokeStyle = k.col('#fff2c0'); c.lineWidth = 2; c.setLineDash([6, 8]);
-    beamPath(c, g.to, st.cam); c.stroke();
-    c.globalAlpha = a;
+  if (st.phase !== 'play' || g.phase !== 'warn') return;
+  const dir = g.dir || 1, wingIn = dir > 0 ? 170 : 1110, show = clamp(g.t / 0.25, 0, 1);
+  c.save();
+  // light gathers in the wing the beam will come from
+  const gl = c.createLinearGradient(wingIn, 0, wingIn + dir * 300, 0);
+  gl.addColorStop(0, k.col('#fff2c0')); gl.addColorStop(1, 'rgba(0,0,0,0)');
+  c.globalAlpha = 0.45 * clamp(g.t / g.dur, 0, 1) + 0.12; c.fillStyle = gl;
+  c.fillRect(Math.min(wingIn, wingIn + dir * 300), 300, 300, 330);
+  // and three chevrons, lighting in turn, point the way it will travel
+  c.fillStyle = k.col('#ffd75e'); c.strokeStyle = k.col('#2a1424'); c.lineWidth = 3; c.lineJoin = 'round';
+  for (let i = 0; i < 3; i++) {
+    const x = wingIn + dir * (50 + i * 50), cy = 500;
+    c.globalAlpha = show * (((t * 3 - i) % 3 + 3) % 3 < 1.2 ? 1 : 0.4);
+    c.beginPath(); c.moveTo(x - dir * 18, cy - 38); c.lineTo(x + dir * 20, cy); c.lineTo(x - dir * 18, cy + 38); c.lineTo(x - dir * 4, cy); c.closePath(); c.fill(); c.stroke();
   }
-  c.strokeStyle = k.col('#fff2c0'); c.lineWidth = 3; c.setLineDash([10, 10]);
-  c.lineDashOffset = -t * 40 * dir;
-  c.beginPath(); c.moveTo(from, y); c.lineTo(to, y); c.stroke(); c.setLineDash([]);
-  c.fillStyle = k.col('#fff2c0');
-  c.beginPath(); c.moveTo(to + dir * 14, y); c.lineTo(to - dir * 6, y - 10); c.lineTo(to - dir * 6, y + 10); c.fill();
   c.restore();
 }
 

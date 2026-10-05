@@ -235,11 +235,23 @@ The witch (`witch-stand`) stands at his side.
 - Along the **front groove**, the giant red sea creatures of the video's
   foreground (`2:00–2:25`) crouch as sentries (`sentry-creature-closed`,
   `sentry-creature-open`). Their jaws snap open on the beat.
-- The king's **gaze lantern** (`gaze-lantern`) sweeps a beam across the hall.
+- The king's **gaze lantern** (`gaze-lantern`) sweeps the hall every so
+  often. It stays dark for 5–8 s (4 s at the start). Then it gives a 3 s
+  warning: the lantern pulses, a glow gathers in one wing and an arrow runs
+  along the floor's front edge. Then its beam enters from that wing, crosses
+  the whole stage at a steady 230 px/s and leaves by the far wing. Once it
+  has passed you it is gone until the next warning. Caught in the light, you
+  lose a lantern; the beam holds on you a moment and then sweeps on.
 - You are the sailor on foot (`sailor-stand`, `sailor-walk-a`,
-  `sailor-walk-b`). **Up and down** change groove, and **left and right**
-  walk. **Hold A** to freeze in a courtier's pose (`sailor-crouch`): frozen
-  behind a passing attendant, you are hidden from the beam.
+  `sailor-walk-b`), walking at 150 px/s. **Up and down** change groove, and
+  **left and right** walk. **A** strikes a courtier's pose (`sailor-crouch`)
+  that holds until you move or press A again; holding A also works. Posed
+  beside a pink, blue or green attendant on your groove, you are hidden from
+  the beam.
+- The act opens with a silent-film intertitle after its card: "Press A
+  beside a courtier to hide from the Sea King's lantern. Gather as many
+  pearls as you can." The intertitle is shown in the A button of the input
+  in use.
 
 **The whale.** Every 20–25 s the giant whale (`whale-side`) glides across in
 front of the whole stage, a huge dark flat on a track (`2:15–2:25`). It masks

@@ -1,7 +1,7 @@
 // Shell: title, act cards, play, pause, dialogs, settings, fullscreen.
 import { ACTS } from './acts/index.js';
 import { loadSave, writeSave, carryInto, recordResult } from './save.js';
-import { createRenderer, loadAssets } from './art.js';
+import { createRenderer, loadAssets, richText } from './art.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
 import { createTouch, isTouchDevice } from './touch.js';
@@ -149,8 +149,9 @@ function beginAct(i, from = null) {
   const scene = from && S.act.scenes?.[from.scene | 0];
   S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120,
     sub: scene && (from.scene | 0) > 0 ? `${from.retry ? 'Carrying on from' : 'Scene'}: ${scene.name}` : S.act.sub,
-    prompt: TOUCH ? `Tap to begin · ${touchVerbHint(S.act)}` : 'Press A or Space', alpha: 0 };
+    prompts: { touch: `Tap to begin · ${touchVerbHint(S.act)}`, other: 'Press [A] to begin' }, alpha: 0 };
   S.readyT = 0;
+  S.skipIntertitle = !!from?.retry;
   announce(`${S.act.kicker}, ${S.act.title}.${scene && from.scene > 0 ? ' ' + scene.name + '.' : ''}`);
 }
 
@@ -169,7 +170,7 @@ function trackCheckpoint() {
 
 function showPlaybill() {
   S.mode = 'playbill'; S.modeT = 0; S.act = null; S.state = null; S.card = null;
-  S.curtainTarget = 0;
+  S.curtainTarget = 1; // the playbill hangs on the stage, so open the curtains on it
   S.pb = Math.min(save.unlocked, ACTS.length) - 1;
   announce('The playbill. Choose an act.');
 }
@@ -426,7 +427,16 @@ function musicMood() {
   return 'voyage';
 }
 
+// The input in use, for prompts: 'pad' (Xbox button glyphs), 'key' or 'touch'.
+function trackInputMode(i) {
+  if (i.keyAny) S.keySeen = true;
+  const mode = i.source === 'pad' ? 'pad' : i.source === 'touch' || (TOUCH && !S.keySeen) ? 'touch' : 'key';
+  if (mode !== S.inputMode) { S.inputMode = mode; syncTitleHint(); }
+  if (S.card?.prompts) { S.card.mode = mode; S.card.prompt = mode === 'touch' ? S.card.prompts.touch : S.card.prompts.other; }
+}
+
 function update(dt, i) {
+  trackInputMode(i);
   if (S.mode === 'title') updateLoadbar();
   const mood = musicMood();
   if (mood === 'song') audio.returnToSong(); else audio.setMood(mood);
@@ -438,11 +448,11 @@ function update(dt, i) {
 
   if (S.mode === 'title') {
     if (!S.titleNav) {
-      if (i.stickNav) { S.titleNav = true; focusEl($('#start')); $('#title-hint').textContent = 'A: select · Menu: start'; return; }
+      if (i.stickNav) { S.titleNav = true; focusEl($('#start')); syncTitleHint(); return; }
       if (i.anyPad) startGame();
     } else {
       if (i.padStart) return startGame();
-      if (i.padB) { S.titleNav = false; clearNavFocus(); document.activeElement?.blur(); $('#title-hint').textContent = 'Move left stick for options'; return; }
+      if (i.padB) { S.titleNav = false; clearNavFocus(); document.activeElement?.blur(); syncTitleHint(); return; }
       menuInput({ ...i, padB: false, back: false });
     }
     return;
@@ -473,7 +483,16 @@ function update(dt, i) {
     if (!songSettled()) { S.card.loading = songStatus().progress; S.readyT = 0; if (i.pause) pause(); return; }
     if (S.card.loading != null) { S.card.loading = null; announce('Ready.'); }
     S.readyT = (S.readyT || 0) + dt;
-    if ((go && S.readyT > 0.4) || S.readyT > 6) {
+    if ((go && S.readyT > 0.4) || S.readyT > (S.card.body ? 12 : 6)) {
+      // Some acts follow their card with a silent-film intertitle that
+      // introduces how they play (not on a retry).
+      if (S.act.intertitle && !S.card.body && !S.skipIntertitle) {
+        S.card = { body: S.act.intertitle, size: 56, alpha: 0,
+          prompts: { touch: 'Tap to begin', other: 'Press [A] to begin' } };
+        S.modeT = 0; S.readyT = 0;
+        announce(S.act.intertitle.replace(/\[A\]/g, 'A').replace(/\n+/g, ' '));
+        return;
+      }
       S.mode = 'play'; S.modeT = 0; S.card = null; S.curtainTarget = 1;
       audio.play('curtain');
     }
@@ -499,7 +518,7 @@ function update(dt, i) {
         sub: S.state.lostSub || '', alpha: 0 };
       const at = S.checkpoint && (S.checkpoint.scene | 0) > 0 ? S.act.scenes?.[S.checkpoint.scene | 0]?.name : null;
       const again = at ? `try again from ${at}` : 'try again';
-      S.card.prompt = TOUCH ? `Tap right to ${again} · tap left for the playbill` : `Press A to ${again} · B for the playbill`;
+      S.card.prompts = { touch: `Tap right to ${again} · tap left for the playbill`, other: `[A] ${again[0].toUpperCase() + again.slice(1)} · [B] The playbill` };
       announce(`The act is lost. Press A to ${again}.`);
     }
     if (S.state.status === 'won' && S.state.statusT > 0.15) actWon();
@@ -554,13 +573,13 @@ function touchVerb() {
   if (!st) return '';
   if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' ? 'On the beat' : '';
   if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? '' : 'Kick';
-  if (id === 3) return 'Hold: freeze';
+  if (id === 3) return S.state?.canTake ? 'Take' : 'Hide';
   if (id === 4) return 'Leap';
   if (id === 5) return st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / throw' : 'Leap';
   return '';
 }
 function touchVerbHint(act) {
-  return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick', 3: 'drag to walk, swipe to change groove, hold A to freeze',
+  return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick', 3: 'drag to walk, swipe to change groove, tap to hide',
     4: 'drag to walk, swipe up or tap to leap', 5: 'drag to climb, A to leap' }[act.id] || 'drag to move';
 }
 // Which touch scheme a scene uses: swipes for rows and floors, the stick for
@@ -569,7 +588,7 @@ function touchScheme() {
   const id = S.act?.id, ph = S.state?.phase;
   if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? 'Tap on the beat' : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
   if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Swipe ↕ to change row' } : { mode: 'stick', hint: 'Drag to swim' };
-  if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · hold A to freeze' };
+  if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
   if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };
   return { mode: 'stick', hint: 'Drag to climb' };
 }
@@ -609,8 +628,10 @@ function drawPlaybill(k, t) {
     const best = save.best[a.id];
     if (open && best != null) c.fillText('best ' + best, 888, y - 6);
   });
-  c.textAlign = 'center'; c.font = '15px "Josefin Sans", sans-serif'; c.fillStyle = k.col('#2a1424');
-  c.fillText('Up / down to choose · A to begin · B for the title', 640, 612);
+  c.textAlign = 'center'; c.font = '18px "Josefin Sans", sans-serif'; c.fillStyle = k.col('#2a1424');
+  const mode = S.inputMode;
+  richText(c, mode === 'touch' ? 'Tap an act to begin · tap outside for the title'
+    : mode === 'pad' ? '[LS] Choose · [A] Begin · [B] The title' : '↑ ↓ to choose · [A] to begin · [B] for the title', 640, 612, { px: 18, mode, col: k.col });
 }
 
 function drawCurtainCall(k, t) {
@@ -618,7 +639,16 @@ function drawCurtainCall(k, t) {
   for (let r = 0; r < 3; r++) k.waves(r, t * 40);
 }
 
-if (TOUCH) $('#title-hint').textContent = chrome.scrollTrick ? '' : 'Tip: Add to Home Screen to play full screen';
+// The title's hint, in the buttons of the input in use (Xbox glyphs on a pad).
+const glyph = (b) => `<span class="xb xb-${b.toLowerCase()}" aria-label="${b === 'LS' ? 'left stick' : b}">${b === 'MENU' ? '<i></i><i></i><i></i>' : b}</span>`;
+function syncTitleHint() {
+  const h = $('#title-hint');
+  if (S.inputMode === 'touch' || (TOUCH && S.inputMode !== 'pad')) { h.textContent = chrome.scrollTrick ? '' : 'Tip: Add to Home Screen to play full screen'; return; }
+  if (S.inputMode === 'pad') h.innerHTML = S.titleNav ? `${glyph('A')} Select · ${glyph('MENU')} Start` : `Move ${glyph('LS')} for options · ${glyph('A')} Start`;
+  else h.textContent = 'Press Enter to start · Tab for options';
+}
+S.inputMode = TOUCH ? 'touch' : 'key';
+syncTitleHint();
 // Start focused on Press Start so keyboard users can begin immediately.
 $('#start').focus({ preventScroll: true });
 requestAnimationFrame(frame);
