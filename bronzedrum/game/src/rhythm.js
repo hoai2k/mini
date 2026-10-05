@@ -36,12 +36,15 @@ export const PRECISION = { min: 0.72, max: 1 };
 const EARLY_GRACE = 0.25; // beats before "ready" that already start a phrase
 const CHAIN_WINDOW = 2; // beats after "ready" to keep the chain
 
-// Beats are separated by spaces; strokes in one beat share it evenly.
+// Beats are separated by spaces; strokes in one beat share it evenly. The deep
+// centre stroke (L) needs room to ring, so two of them are always at least a
+// beat apart: quick pairs and triplets are played on the rim (R), at most
+// opening with a single deep stroke.
 export const COMMANDS = [
-  { id: 'march', name: 'Tiến', gloss: 'March', tiers: ['L L L R', 'L L LL R', 'L LLL L R'] },
+  { id: 'march', name: 'Tiến', gloss: 'March', tiers: ['L L L R', 'L L LR R', 'L RRR L R'] },
   { id: 'strike', name: 'Đánh', gloss: 'Strike', tiers: ['R R L R', 'RR R L R', 'RRR R L R'] },
-  { id: 'rally', name: 'Hô', gloss: 'Rally', tiers: ['R L L L', 'R LL L L', 'R LLL L L'] },
-  { id: 'charge', name: 'Voi', gloss: 'Elephant charge', tiers: ['L L R R', 'LL L R R', 'LLL L RR R'] },
+  { id: 'rally', name: 'Hô', gloss: 'Rally', tiers: ['R L L L', 'R LR L L', 'RRR L L L'] },
+  { id: 'charge', name: 'Voi', gloss: 'Elephant charge', tiers: ['L L R R', 'L L RR R', 'L L RRR RR'] },
 ];
 
 /** Expand "L LL R ..." into strokes with positions in beats. */
