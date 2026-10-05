@@ -47,6 +47,8 @@ export function createBattle(stage) {
     time: 0,
     tick: 0, // Han beats so far
     outcome: null, // 'won' | 'lost'
+    survive: stage.survive || 0, // seconds to hold out, for a hold-the-line chapter
+    nextId: id,
   };
 }
 
@@ -236,9 +238,20 @@ export function aboutToAttack(state) {
   });
 }
 
+/** Bring a new Han soldier onto the field (hold-the-line waves), dx ahead of the army. */
+export function spawnEnemy(state, type, dx) {
+  const t = ENEMY_TYPES[type];
+  const e = { id: state.nextId++, type, x: state.army.x + dx, hp: t.hp, maxHp: t.hp, goal: false, cooldown: 0, alive: true };
+  state.enemies.push(e);
+  return e;
+}
+
 function checkOutcome(state, events) {
   if (state.outcome) return;
-  if (state.enemies.filter((e) => e.goal).every((e) => !e.alive)) state.outcome = 'won';
+  if (state.survive) {
+    if (state.army.troops <= 0) state.outcome = 'lost';
+    else if (state.time >= state.survive) state.outcome = 'won';
+  } else if (state.enemies.filter((e) => e.goal).every((e) => !e.alive)) state.outcome = 'won';
   else if (state.army.troops <= 0) state.outcome = 'lost';
   if (state.outcome) events.push({ type: 'outcome', outcome: state.outcome });
 }

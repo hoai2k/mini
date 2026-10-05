@@ -6,7 +6,7 @@ Processing: hits are trimmed so the sound starts on its transient (the drum stro
 
 Sound direction: real, acoustic and close — bronze, wood, bamboo, water, paper, voices. No synth tones, no music in the effects. Hits are paper tearing, never gore.
 
-**35 of 36 files in use.**
+**40 of 41 files in use.**
 
 Each generated file was checked by measuring its length, peak, level over time (50 ms windows) and the balance of energy below 200 Hz and above 2 kHz: a drum stroke must start on its loudest moment and be one stroke, a rim click must be bright and short. Takes that failed are kept out of the game:
 
@@ -62,10 +62,20 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `victory` | A chapter is won. (sting) | 4.5 s | 1/1 | A triumphant flourish on large bronze drums and gongs, building quickly and ending on one ringing gong stroke. |
 | `defeat` | A chapter is lost. (sting) | 4.5 s | 1/1 | A low bronze gong struck softly once, fading slowly with sorrow, a breath of wind after. |
 
+## Story chapters
+
+| Id | Use | Length | Files | Prompt |
+| --- | --- | ---: | --- | --- |
+| `pour` | Casting the Drums: a steady phrase pours bronze. (one-shot) | 2.5 s | 1/1 | Molten bronze poured from a clay crucible into a mould: a thick glugging pour with hissing steam and crackling. |
+| `crack` | Casting the Drums: a phrase that drifts cracks the mould. (one-shot) | 1.5 s | 1/1 | A clay casting mould cracking from the heat: one sharp crack, then crumbling pieces and a hiss of steam. |
+| `lantern` | The Oath and The Villages Answer: an answered call lights incense or lanterns. (one-shot) | 1.5 s | 1/1 | A paper lantern being lit at night: a soft whoosh of flame catching, then one small clear bronze bell. |
+| `crowd-cheer` | The Coronation: the crowd answers each rhythm. (one-shot) | 3.0 s | 1/1 | A festival crowd in an ancient village square cheering and clapping with joy, a few small gongs ringing. |
+
 ## Ambience
 
 | Id | Use | Length | Files | Prompt |
 | --- | --- | ---: | --- | --- |
 | `amb-garden` | Chapter 1 bed, looped. (loop) | 20.0 s | 1/1 | Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling water, a distant rooster, a light breeze through bamboo. Continuous, no music. |
 | `amb-river` | Chapter 2 bed, looped. (loop) | 20.0 s | 1/1 | Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons and birds. Continuous, no music, no drums. |
+| `amb-foundry` | Casting the Drums bed, looped. (loop) | 20.0 s | 1/1 | Inside an ancient bronze foundry at night: a roaring furnace, crackling charcoal, leather bellows breathing, distant hammering on metal. Continuous, no music. |
 | `amb-night` | Chapter 3 bed, looped. (loop) | 20.0 s | 1/1 | Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice paddies, distant torches crackling, a faint wind. Continuous, no music. |

@@ -156,6 +156,24 @@ sfx(G, "defeat",
     "A low bronze gong struck softly once, fading slowly with sorrow, a breath of wind after.",
     4.5, "A chapter is lost.", kind="sting")
 
+G = "Story chapters"
+sfx(G, "pour",
+    "Molten bronze poured from a clay crucible into a mould: a thick glugging pour with hissing "
+    "steam and crackling.",
+    2.5, "Casting the Drums: a steady phrase pours bronze.", gain=0.8)
+sfx(G, "crack",
+    "A clay casting mould cracking from the heat: one sharp crack, then crumbling pieces and a "
+    "hiss of steam.",
+    1.5, "Casting the Drums: a phrase that drifts cracks the mould.")
+sfx(G, "lantern",
+    "A paper lantern being lit at night: a soft whoosh of flame catching, then one small clear "
+    "bronze bell.",
+    1.5, "The Oath and The Villages Answer: an answered call lights incense or lanterns.", gain=0.7)
+sfx(G, "crowd-cheer",
+    "A festival crowd in an ancient village square cheering and clapping with joy, a few small "
+    "gongs ringing.",
+    3.0, "The Coronation: the crowd answers each rhythm.", gain=0.7)
+
 G = "Ambience"
 sfx(G, "amb-garden",
     "Peaceful dawn in a northern Vietnamese garden by a lotus pond: songbirds, gentle trickling "
@@ -165,6 +183,10 @@ sfx(G, "amb-river",
     "Daytime on the bank of a wide slow river: flowing water, wind in tall reeds, distant herons "
     "and birds. Continuous, no music, no drums.",
     20.0, "Chapter 2 bed, looped.", kind="loop", gain=0.45)
+sfx(G, "amb-foundry",
+    "Inside an ancient bronze foundry at night: a roaring furnace, crackling charcoal, leather "
+    "bellows breathing, distant hammering on metal. Continuous, no music.",
+    20.0, "Casting the Drums bed, looped.", kind="loop", gain=0.45)
 sfx(G, "amb-night",
     "Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice "
     "paddies, distant torches crackling, a faint wind. Continuous, no music.",
@@ -340,6 +362,62 @@ track("mu-defeat", "Defeat sting",
       "short defeat sting, vietnamese, dan bau falling phrase, low drone, sorrowful, 8 seconds",
       "An 8-second defeat sting: the monochord (đàn bầu) plays a single falling, bending phrase "
       "over a low drone, ending unresolved. Sorrowful but not hopeless. No percussion.")
+track("mu-oath", "The Oath (funeral)",
+      "Under The Oath, the father's funeral, while the mourning drum calls.",
+      "about 2 min, loopable", 56, "A minor pentatonic",
+      "loop the whole track",
+      "Đàn bầu alone over a low drone and a soft bronze bell every few bars; a single woman's "
+      "voice hums a lament in the second half. Very sparse, leaving room for the slow mourning "
+      "drum and the player's answers.",
+      "vietnamese funeral lament, dan bau, low drone, soft bronze bell, female humming, sparse, slow, 56 bpm",
+      "A sparse funeral piece for a Vietnamese lord, ancient times. The monochord (đàn bầu) bends "
+      "slow, grieving phrases over a low drone, a soft bronze bell rings every few bars, and in "
+      "the second half a single woman's voice hums a lament. About 56 BPM, very slow and quiet, "
+      "lots of space: a mourning drum and the player's drumming sit on top. No other percussion.")
+track("mu-foundry", "Casting the Drums",
+      "Under Casting the Drums, in the foundry.",
+      "about 2 min, loopable", 92, "D minor pentatonic",
+      "loop the whole track",
+      "A low steady bowed drone like the furnace's breath, a đàn nguyệt figure, metallic "
+      "shimmer from struck bronze bars; work-song humming from men's and women's voices.",
+      "vietnamese work song, foundry, low drone, dan nguyet, metallic bronze shimmer, humming voices, steady, 92 bpm",
+      "Music for a night in an ancient bronze foundry. A low bowed drone breathes like the "
+      "furnace, a moon lute (đàn nguyệt) plays a patient repeating figure, struck bronze bars add "
+      "a metallic shimmer, and men's and women's voices hum a work song. Steady and warm, about "
+      "92 BPM, but with no drums on the beat: the player keeps the hammer rhythm on top.")
+track("mu-villages", "The Villages Answer",
+      "Under The Villages Answer, at night along the river.",
+      "about 2 min, loopable", 90, "G major pentatonic",
+      "loop the whole track",
+      "Night insects and water in the colour; sáo trúc phrases calling from far away and "
+      "answered by another flute nearer; soft đàn tranh harmonics.",
+      "vietnamese night music, two bamboo flutes call and answer, dan tranh harmonics, river at night, hopeful, sparse",
+      "Night along the Red River. One bamboo flute (sáo trúc) calls a short phrase from far "
+      "away and a second flute, nearer, answers it, again and again, like villages calling to each "
+      "other; soft zither (đàn tranh) harmonics shimmer underneath. Hopeful and sparse, leaving "
+      "space for drum calls and answers. No percussion.")
+track("mu-coronation", "The Coronation at Mê Linh",
+      "Under The Coronation, the festival.",
+      "about 2 min, loopable", 116, "D major pentatonic",
+      "loop the whole track",
+      "A festive ensemble: đàn tranh, sáo trúc, đàn nguyệt and small gongs in a bright dance; "
+      "a women's chorus in quan họ style on the refrain.",
+      "vietnamese festival music, joyful, dan tranh, sao truc, dan nguyet, small gongs, quan ho chorus, 116 bpm",
+      "A joyful festival piece for the crowning of two queens in ancient Vietnam. Zither, bamboo "
+      "flute and moon lute play a bright dance tune, small gongs shimmer, and a women's chorus "
+      "sings the refrain on vocables in the quan họ style. About 116 BPM, light and celebratory, "
+      "without heavy drums: festival drummers and the player drum on top.")
+track("mu-mavien", "Mã Viện Returns",
+      "Battle loop for the hold-the-line chapter, at dusk.",
+      "16 bars = 38.40 s", 100, "E minor pentatonic",
+      "16 bars from 0.000 s; loops at 38.400 s",
+      "Grave and urgent: a low brass-like bronze drone, a đàn nhị lament over tense đàn nguyệt "
+      "ostinato, distant war horns; the title theme fragmented.",
+      "vietnamese battle music, grave, urgent, dan nhi lament, dan nguyet ostinato, bronze drone, distant horns, 100 bpm",
+      "A grave, urgent loop for a last stand at a river ford as a great Han army arrives. A low "
+      "bronze drone, a tense moon-lute (đàn nguyệt) ostinato, a two-string fiddle (đàn nhị) "
+      "playing a broken, mournful form of the main theme, distant war horns. Exactly 100 BPM in "
+      "4/4, 16 bars, seamless loop from the downbeat. No drum kit or kick: the player drums.")
 track("mu-anthem", "Song of the Two Queens (vocal song)",
       "Trailer and end credits.",
       "about 3 min 30 s", 84, "D minor pentatonic",

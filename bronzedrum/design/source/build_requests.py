@@ -126,6 +126,14 @@ SECTIONS = {
         "Sprite sheets for hits, projectiles and the drum waking. The prototype draws these "
         "procedurally; the sheets are for the production build.",
     ),
+    "story": (
+        "Story chapters",
+        "Art for the six chapters added after the first three: The Oath, Casting the Drums, The "
+        "Villages Answer, The Coronation at Mê Linh, Mã Viện Returns and The Drums Are Melted. "
+        "Same coloured-paper direction (BD-S02) and the same rules: Lạc Việt face right, Han "
+        "face left. Props are drawn at fixed sizes in quiet scenes, so they can carry more cut "
+        "detail than the battle sprites.",
+    ),
 }
 
 
@@ -516,6 +524,112 @@ req(F, "BD-F03", "fx-drum-wake", "The drum wakes",
     "background, like the bands of a bronze drum face expanding outward: tangential circles, "
     "flying herons and a sun-star at the centre. Bright glow through the cuts.")
 
+
+
+# ------------------------------------------------------------------ story chapters
+
+ST = "story"
+for sky, name, chapters, light in [
+    ("dusk", "dusk", "The Oath and Mã Viện Returns",
+     "a dusk sky: violet at the top, dusty rose in the middle, a large low sun as a cut 12-point "
+     "star sinking at the right, long scalloped paper clouds edged with light"),
+    ("foundry", "the foundry", "Casting the Drums",
+     "a night sky over a foundry: near-black at the top, deep red-brown haze near the horizon "
+     "lit orange from below by furnaces, embers cut as tiny holes drifting up, no moon"),
+    ("ash", "ash dawn", "The Drums Are Melted",
+     "a quiet dawn: ash grey at the top fading to warm cream at the horizon, a pale hazy sun, "
+     "thin streaks of cloud, a few herons far away"),
+]:
+    req(ST, f"BD-B1{['dusk', 'foundry', 'ash'].index(sky)}", f"sky-{sky}", f"Sky: {name}",
+        f"{chapters}. The furthest backdrop, like BD-B01 to BD-B03.",
+        "2560x1440, opaque; keep the lower third plain, it is covered by hills",
+        "stand-in", "Renderer.buildSky", f"art/sky-{sky}.png",
+        f"{STYLE} Backdrop of {light}. Sky only, no land.")
+
+for i, (cid, name, scene) in enumerate([
+    ("oath", "The Oath", "two sisters kneeling before their father's memorial altar at dusk, incense smoke rising, a mourning drum beside them"),
+    ("casting", "Casting the Drums", "metalworkers pouring glowing bronze from a crucible into drum moulds in a night foundry"),
+    ("villages", "The Villages Answer", "stilt villages along a river at night, lanterns lighting one after another, a drummer on a jetty"),
+    ("coronation", "The Coronation at Mê Linh", "two queens crowned before a palace gate at Mê Linh, festival drummers, lantern strings and banners"),
+    ("mavien", "Mã Viện Returns", "a Han general on horseback leading dense columns of soldiers to a river ford at dusk, Lạc Việt shields across the water"),
+    ("elegy", "The Drums Are Melted", "bronze drums lined up beside a furnace at grey dawn, a river and drifting lotus beyond"),
+]):
+    req(ST, f"BD-U{10 + i}", f"card-{cid}", f"Chapter card: {name}",
+        "Background band of the chapter-select card.",
+        "1600x900, opaque; the band is cropped from the middle, so keep the subject central",
+        "stand-in", "buildCards (plain paper)", f"art/card-{cid}.png",
+        f"{STYLE} A wide cut-paper vignette: {scene}.")
+
+PROP = (
+    "Single cut-paper object, side view, standing on the bottom edge, centred, transparent "
+    "background (PNG with alpha). If transparency is not possible, use a flat pure magenta "
+    "#FF00FF background with nothing else on it and no cast shadow."
+)
+for rid, asset, title, purpose, spec, prompt in [
+    ("BD-P01", "prop-altar", "Memorial altar", "The Oath: the father's altar; the game adds the incense sticks and smoke. Shown 170 px tall.",
+     "1024x1024. " + PROP,
+     "A Lạc Việt ancestral altar: a low dark wooden table with carved legs, a tall memorial "
+     "tablet with a rounded top standing on it, its inscription cut through so light shows, a "
+     "bronze bowl for incense in front, offerings of fruit. Ink black and bronze."),
+    ("BD-P02", "prop-mourning-drummer", "Mourning drummer", "The Oath: the caller, striking a funeral drum on a stand. Shown 160 px tall; the game bobs it on each stroke.",
+     "1536x1024, the drummer on the left facing right towards the drum. " + PROP,
+     "An old Lạc Việt man in mourning white robes and a plain headband beating a large dark "
+     "drum on a wooden stand with one long stick, solemn. Ink black with cream robes."),
+    ("BD-P03", "prop-festival-drummers", "Festival drummers", "The Coronation: the callers on a small stage. Shown 170 px tall.",
+     "1536x1024. " + PROP,
+     "Two joyful Lạc Việt drummers, a woman and a man in festival dress with feather crowns, "
+     "beating a big lacquer-red drum on a carved stand hung with tassels and streamers."),
+    ("BD-P04", "prop-village-house", "River village house", "The Villages Answer: one per village; the game hangs two lanterns from the eaves and lights them. Shown 130 px tall.",
+     "1024x1024. " + PROP,
+     "A Lạc Việt stilt house on a riverbank with a saddle-shaped roof like those on Dong Son "
+     "drums, a ladder, woven walls with lattice windows cut through, a small jetty. Dark "
+     "indigo-green paper, unlit."),
+    ("BD-P05", "prop-lantern", "Lit paper lantern", "A lit lantern, hung from the village houses once a village answers. Shown 26 px tall.",
+     "256x384. " + PROP,
+     "A round paper lantern glowing warm orange from inside, cut with a small sun-star, a red "
+     "tassel below, a short cord above."),
+    ("BD-P06", "prop-bronze-drum", "Bronze drum (standing)", "The Drums Are Melted: five stand in a row; the game greys out each as it falls silent. Shown 90 px tall.",
+     "1024x1024. " + PROP,
+     "A Dong Son bronze kettle drum seen from the side, slightly from above: a flat top with "
+     "the sun-star and rings, a bulging upper body, a waist and a flared foot, bands of herons "
+     "and boats in relief, four small handles, warm bronze."),
+    ("BD-P07", "prop-furnace", "Furnace and crucible", "Casting the Drums: the furnace the bronze is poured from. Shown 190 px tall.",
+     "1024x1024. " + PROP,
+     "An ancient clay foundry furnace with an arched mouth glowing orange, a clay crucible of "
+     "molten bronze held above it on a wooden frame, sparks cut as small holes. Dark clay, "
+     "orange glow."),
+    ("BD-P08", "prop-mould", "Drum mould", "Casting the Drums: an empty clay mould; the game fills it with glowing bronze, pour by pour. Shown 100 px tall.",
+     "1024x1024. " + PROP,
+     "A tall clay casting mould for a bronze drum, bound with rope, the sun-star pattern "
+     "stamped on its lid, a pouring cup at the top. Earthy brown clay."),
+    ("BD-P09", "prop-drum-cast", "Freshly cast drum", "Casting the Drums: shown once a mould is full. Shown 100 px tall.",
+     "1024x1024. " + PROP,
+     "A freshly cast bronze kettle drum still glowing faintly orange at the edges, clay mould "
+     "pieces broken away around its foot, the sun-star crisp on its top."),
+]:
+    req(ST, rid, asset, title, purpose, spec, "stand-in", "Renderer.scene", f"art/{asset}.png",
+        f"{STYLE} {prompt}")
+
+for rid, title, purpose, file, prompt in [
+    ("BD-M15", "The Oath: the father's funeral",
+     "Atmosphere for The Oath: grief turning into resolve.", "references/m15-oath.png",
+     "At dusk in a lord's house at Mê Linh, two young sisters in white mourning clothes kneel "
+     "before their father's memorial altar; incense smoke rises in cut-paper curls; an old "
+     "drummer beats a funeral drum; the elder sister's face is set and the younger's fierce. "
+     "Violet and rose light, one lacquer-red shape."),
+    ("BD-M16", "The coronation at Mê Linh",
+     "Atmosphere for The Coronation: the high point before the fall.", "references/m16-coronation.png",
+     "Trưng Trắc and Trưng Nhị crowned queens before the palace gate of Mê Linh, a festival "
+     "crowd of women and men with feather crowns, drummers on a stage, strings of glowing "
+     "lanterns and banners, herons overhead. Day light, cream, bronze and lacquer red, joyful."),
+    ("BD-M17", "Mã Viện at the ford",
+     "Atmosphere for Mã Viện Returns: the overwhelming army and the last stand.", "references/m17-mavien.png",
+     "At dusk, the Han general Mã Viện on a horse at the head of dense columns of soldiers "
+     "with halberds and crossbows coming down to a wide river ford; on the near bank a thin "
+     "line of Lạc Việt women raises star-cut shields. Grave, red-violet sky, iron grey and "
+     "lacquer red. The Han are dignified, not caricatured."),
+]:
+    req(ST, rid, None, title, purpose, "3840x2160, opaque", "reference", None, file, f"{STYLE} {prompt}")
 
 # ------------------------------------------------------------------ output
 

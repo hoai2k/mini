@@ -1,7 +1,13 @@
-// Stage data. Positions are in field units; the army starts at x = 0 and
-// the camera shows about 24 units across. bpm is the Han war drum's tempo
-// (how often the enemy acts); the player drums at any speed they like.
+// Stage data, in story order. Positions are in field units; the army starts
+// at x = 0 and the camera shows about 24 units across. bpm is the Han war
+// drum's tempo (how often the enemy acts); the player drums at any speed.
 // maxTier is the most intricate rhythm tier the chapter allows.
+//
+// mode: 'battle' (the default), 'echo' (answer a caller's rhythms; see
+// modes.js), 'casting' (repeat a rhythm at a steady tempo), or a battle with
+// `survive` seconds and `waves` (hold the line). Echo calls are four-beat
+// rhythms that keep the deep strokes (L) at least a beat apart, like the
+// commands.
 
 export const STAGES = [
   {
@@ -22,6 +28,69 @@ export const STAGES = [
       { type: 'target', x: 16 },
       { type: 'target', x: 23 },
     ],
+  },
+  {
+    id: 'oath',
+    mode: 'echo',
+    title: 'The Oath',
+    subtitle: 'The father’s funeral',
+    intro:
+      'The Han governor has executed the sisters’ father. At his funeral the mourning drum calls; answer each call evenly, and with each answer an incense stick is lit for him.',
+    caller: 'mourning',
+    calls: [
+      { text: 'L R L R', bpm: 56 },
+      { text: 'L R R L', bpm: 56 },
+      { text: 'L RR L R', bpm: 58 },
+      { text: 'L R LR R', bpm: 58 },
+      { text: 'L RRR L R', bpm: 60 },
+    ],
+    matchTempo: false,
+    troops: 0,
+    elephant: false,
+    sky: 'dusk',
+    ambience: 'amb-night',
+    enemies: [],
+  },
+  {
+    id: 'casting',
+    mode: 'casting',
+    title: 'Casting the Drums',
+    subtitle: 'The foundry of Nhật Nam',
+    intro:
+      'The metalworkers of Nhật Nam pour the bronze for the war drums. Drum the hammer rhythm again and again at one steady speed: each steady phrase pours, a phrase that drifts cracks the mould.',
+    rhythm: 'L RR L RR',
+    drums: 3,
+    pours: 3,
+    tolerance: 0.12,
+    troops: 0,
+    elephant: false,
+    sky: 'foundry',
+    ambience: 'amb-foundry',
+    enemies: [],
+  },
+  {
+    id: 'villages',
+    mode: 'echo',
+    title: 'The Villages Answer',
+    subtitle: 'A call along the river',
+    intro:
+      'At night the sisters’ drum calls along the Red River. Each village drummer answers with a rhythm of their own: echo it back evenly, at about their speed, and the village lights its lanterns and joins you.',
+    caller: 'village',
+    calls: [
+      { text: 'L R L R', bpm: 84, label: 'Phong Châu' },
+      { text: 'R R L R', bpm: 90, label: 'Chu Diên' },
+      { text: 'L RR L R', bpm: 92, label: 'Cửu Chân' },
+      { text: 'RR L R L', bpm: 96, label: 'Hợp Phố' },
+      { text: 'L R RRR L', bpm: 100, label: 'Nhật Nam' },
+      { text: 'RRR L RR L', bpm: 104, label: 'Giao Chỉ' },
+    ],
+    matchTempo: true,
+    tolerance: 0.3,
+    troops: 0,
+    elephant: false,
+    sky: 'night',
+    ambience: 'amb-night',
+    enemies: [],
   },
   {
     id: 'outpost',
@@ -69,5 +138,79 @@ export const STAGES = [
       { type: 'spear', x: 38 },
       { type: 'fort', x: 44, hp: 320 },
     ],
+  },
+  {
+    id: 'coronation',
+    mode: 'echo',
+    title: 'The Coronation at Mê Linh',
+    subtitle: 'Two queens',
+    intro:
+      'Sixty-five citadels are free and the sisters are proclaimed queens at Mê Linh. The festival drummers call ever richer rhythms: answer them, as evenly as you can, for the crowd.',
+    caller: 'festival',
+    calls: [
+      { text: 'L R L R', bpm: 112 },
+      { text: 'L RR L RR', bpm: 112 },
+      { text: 'RR L RR L', bpm: 116 },
+      { text: 'L RRR L RRR', bpm: 116 },
+      { text: 'RRR L RRR L', bpm: 120 },
+      { text: 'L RR RRR L', bpm: 120 },
+    ],
+    matchTempo: false,
+    troops: 100,
+    elephant: false,
+    sky: 'day',
+    ambience: 'amb-garden',
+    enemies: [],
+  },
+  {
+    id: 'mavien',
+    title: 'Mã Viện Returns',
+    subtitle: 'Hold the ford',
+    intro:
+      'Three years on, the Han general Mã Viện marches south with a great army. Hold the ford for ninety seconds while Mê Linh empties: strike the columns, and raise the shields against every volley.',
+    bpm: 100,
+    unlocked: ['march', 'strike'],
+    maxTier: 3,
+    troops: 120,
+    elephant: false,
+    sky: 'dusk',
+    ambience: 'amb-river',
+    survive: 90,
+    enemies: [
+      { type: 'spear', x: 10 },
+      { type: 'crossbow', x: 16 },
+    ],
+    // Columns arrive every few seconds, dx ahead of the army.
+    waves: [
+      { at: 10, enemies: [{ type: 'spear', dx: 14 }, { type: 'spear', dx: 16 }] },
+      { at: 20, enemies: [{ type: 'crossbow', dx: 15 }, { type: 'spear', dx: 13 }] },
+      { at: 30, enemies: [{ type: 'spear', dx: 13 }, { type: 'spear', dx: 15 }, { type: 'crossbow', dx: 18 }] },
+      { at: 42, enemies: [{ type: 'crossbow', dx: 14 }, { type: 'crossbow', dx: 17 }] },
+      { at: 52, enemies: [{ type: 'spear', dx: 12 }, { type: 'spear', dx: 14 }, { type: 'spear', dx: 16 }] },
+      { at: 64, enemies: [{ type: 'crossbow', dx: 14 }, { type: 'spear', dx: 12 }, { type: 'crossbow', dx: 18 }] },
+      { at: 76, enemies: [{ type: 'spear', dx: 12 }, { type: 'spear', dx: 13 }, { type: 'crossbow', dx: 16 }] },
+    ],
+  },
+  {
+    id: 'elegy',
+    mode: 'echo',
+    title: 'The Drums Are Melted',
+    subtitle: 'Epilogue',
+    intro:
+      'Mã Viện gathers the Lạc Việt drums to melt them down. Play them one last time: each rhythm you answer falls silent, until none are left.',
+    caller: 'elegy',
+    calls: [
+      { text: 'L R L R', bpm: 50 },
+      { text: 'L R R L', bpm: 50 },
+      { text: 'L RR L R', bpm: 48 },
+      { text: 'L R L R', bpm: 46 },
+      { text: 'L R R R', bpm: 44 },
+    ],
+    matchTempo: false,
+    troops: 0,
+    elephant: false,
+    sky: 'ash',
+    ambience: 'amb-river',
+    enemies: [],
   },
 ];

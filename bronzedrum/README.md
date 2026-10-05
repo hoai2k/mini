@@ -1,10 +1,13 @@
 # Bronze Drum (prototype)
 
-A drum-command rhythm-strategy game about the Trưng sisters, who raised an army of
+A drum-command rhythm game about the Trưng sisters, who raised an army of
 women against Han rule around 40 CE. It adapts Phong Nguyen's novel
-*Bronze Drum* and staged as a backlit paper-cut theatre.
+*Bronze Drum*, staged as a backlit paper-cut theatre.
 
-Play the prototype at https://hoai2k.github.io/mini/bronzedrum/.
+Play the prototype at https://hoai2k.github.io/mini/bronzedrum/. It has nine
+chapters in story order: four battles, four call-and-answer chapters (echo
+the caller's rhythm), and one casting chapter (hold a steady tempo).
+[`design/design.md`](design/design.md) lists them.
 
 - [`design/design.md`](design/design.md): the concept, the core loop, the art
   direction and the open questions.

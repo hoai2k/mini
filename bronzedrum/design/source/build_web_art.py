@@ -16,6 +16,7 @@ points at the copies.
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -52,6 +53,25 @@ TARGETS = {
     "card-garden": ("scale=800:-1", 80),
     "card-outpost": ("scale=800:-1", 80),
     "card-luylau": ("scale=800:-1", 80),
+    # Story chapters.
+    "sky-dusk": ("scale=-1:1080", 80),
+    "sky-foundry": ("scale=-1:1080", 80),
+    "sky-ash": ("scale=-1:1080", 80),
+    "card-oath": ("scale=800:-1", 80),
+    "card-casting": ("scale=800:-1", 80),
+    "card-villages": ("scale=800:-1", 80),
+    "card-coronation": ("scale=800:-1", 80),
+    "card-mavien": ("scale=800:-1", 80),
+    "card-elegy": ("scale=800:-1", 80),
+    "prop-altar": ("scale=-1:340", 85),
+    "prop-mourning-drummer": ("scale=-1:320", 85),
+    "prop-festival-drummers": ("scale=-1:340", 85),
+    "prop-village-house": ("scale=-1:260", 85),
+    "prop-lantern": ("scale=-1:64", 88),
+    "prop-bronze-drum": ("scale=-1:180", 85),
+    "prop-furnace": ("scale=-1:380", 85),
+    "prop-mould": ("scale=-1:200", 85),
+    "prop-drum-cast": ("scale=-1:200", 85),
 }
 
 
@@ -82,7 +102,12 @@ def main() -> int:
         bad = [a for a in TARGETS if (ART / f"{a}.png").exists() and not web_path(a).exists()]
         for a in bad:
             print(f"missing web copy: assets/web/{a}.webp (run build_web_art.py)")
-        return 1 if bad else 0
+        # Every image the game loads must have a size here, or it would load an unpublished master.
+        manifest = json.loads((ROOT / "game" / "assets" / "manifest.json").read_text(encoding="utf-8"))
+        untargeted = [a["id"] for a in manifest["assets"] if a.get("runtime") and a["id"] not in TARGETS]
+        for a in untargeted:
+            print(f"no web size for game image {a}: add it to TARGETS in build_web_art.py")
+        return 1 if bad or untargeted else 0
     for a in TARGETS:
         if a in missing_master:
             continue

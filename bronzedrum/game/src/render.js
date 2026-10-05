@@ -16,7 +16,7 @@ const GROUND = 500;
 const ARMY_SCREEN_X = 470;
 const STRIP_W = 2560;
 // How strongly delivered layers are washed toward each chapter's light.
-const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55 };
+const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55, dusk: 0.45, foundry: 0.6, ash: 0.5 };
 
 function rng(seed) {
   let s = seed >>> 0;
@@ -235,10 +235,10 @@ export class Renderer {
     grad.addColorStop(0.8, s.low);
     g.fillStyle = grad;
     g.fillRect(0, 0, W, H);
-    const night = kind === 'night';
-    const cx = night ? 930 : 860;
-    const cy = night ? 150 : 210;
-    const R = night ? 70 : 84;
+    const night = kind === 'night' || kind === 'foundry';
+    const cx = night ? 930 : kind === 'dusk' ? 980 : 860;
+    const cy = night ? 150 : kind === 'dusk' ? 330 : kind === 'ash' ? 180 : 210;
+    const R = night ? 70 : kind === 'dusk' ? 110 : 84;
     // The drum's rings, cut faintly into the sky around the sun or moon.
     g.save();
     g.strokeStyle = s.glow;
@@ -291,7 +291,16 @@ export class Renderer {
       crescent(g, 250, 120, 26, -0.6);
       g.restore();
     }
-    if (night) {
+    if (kind === 'foundry') {
+      // Embers drifting up from the furnaces instead of stars.
+      const r = rng(17);
+      for (let i = 0; i < 80; i++) {
+        g.globalAlpha = 0.3 + r() * 0.6;
+        g.fillStyle = r() < 0.5 ? '#FFB65C' : '#FF7A3A';
+        g.fillRect(r() * W, H * 0.25 + r() * H * 0.5, 2, 2);
+      }
+      g.globalAlpha = 1;
+    } else if (night) {
       const r = rng(11);
       g.fillStyle = P.moon;
       for (let i = 0; i < 90; i++) {
@@ -850,6 +859,338 @@ export class Renderer {
     this.hpBar(x, y - 126, e, 50);
   }
 
+  // ------------------------------------------------------------ chapter scenes
+  // Props for the story chapters, at fixed places in the world (the army does
+  // not move in them). Each prop draws its delivered art when there is some
+  // (ids in assets/manifest.json) and a paper-cut stand-in otherwise.
+
+  scene(view) {
+    const t = view.songTime;
+    const sess = view.session;
+    const call = sess && sess.call;
+    const callPulse = call && sess.phase === 'calling' ? this.strokePulse({ start: call.start, u: call.u, strokes: call.pattern.strokes }, t).pulse : 0;
+    const caller = view.stage.caller;
+    if (caller === 'mourning') {
+      this.altar(150, GROUND, sess.index, sess.calls.length, t);
+      this.callerDrum(560, GROUND, callPulse, 'mourning');
+    } else if (caller === 'village') {
+      sess.calls.forEach((c, i) => {
+        const x = 40 + i * 125;
+        const lit = i < sess.index;
+        const calling = i === sess.index && sess.phase === 'calling';
+        this.villageHouse(x, GROUND - 4, lit, calling ? callPulse : 0, t, i);
+      });
+    } else if (caller === 'festival') {
+      this.lanternString(-480, 820, 150, sess.index, sess.calls.length, t);
+      this.callerDrum(600, GROUND, callPulse, 'festival');
+    } else if (caller === 'elegy') {
+      sess.calls.forEach((c, i) => {
+        const x = 60 + i * 135;
+        const silent = i < sess.index;
+        const calling = i === sess.index && sess.phase === 'calling';
+        this.meltDrum(x, GROUND, silent, calling ? callPulse : 0, i === sess.index);
+      });
+    } else if (view.mode === 'casting') {
+      this.foundry(view, t);
+    }
+  }
+
+  /** A prop: delivered art when there is some, else the stand-in callback. */
+  prop(id, x, y, h, standIn, pose) {
+    const img = this.art.get(id);
+    if (img) {
+      this.sprite(img, x, y, h, pose || { bob: 0 });
+      return true;
+    }
+    standIn();
+    return false;
+  }
+
+  altar(x, y, lit, total, t) {
+    const g = this.ctx;
+    this.prop('prop-altar', x, y, 170, () => {
+      g.save();
+      g.fillStyle = P.ink;
+      g.fillRect(x - 70, y - 70, 140, 12); // table top
+      g.fillRect(x - 62, y - 58, 8, 58);
+      g.fillRect(x + 54, y - 58, 8, 58);
+      // The memorial tablet, its inscription cut out.
+      g.fillRect(x - 16, y - 140, 32, 70);
+      g.beginPath();
+      g.moveTo(x - 22, y - 140);
+      g.quadraticCurveTo(x, y - 160, x + 22, y - 140);
+      g.fill();
+      this.cutLight(g);
+      for (let k = 0; k < 5; k++) g.fillRect(x - 2, y - 132 + k * 11, 4, 6);
+      this.endCut(g);
+      g.restore();
+    });
+    // Incense sticks, one per answered call: lit ones glow and smoke.
+    for (let i = 0; i < total; i++) {
+      const sx = x - 40 + i * 20;
+      const on = i < lit;
+      g.fillStyle = P.ink;
+      g.fillRect(sx - 1, y - 100, 2, 30);
+      if (on) {
+        g.save();
+        g.fillStyle = '#FF8A3C';
+        g.shadowColor = '#FF8A3C';
+        g.shadowBlur = 8;
+        g.fillRect(sx - 1.5, y - 103, 3, 4);
+        g.restore();
+        g.save();
+        g.strokeStyle = 'rgba(242,232,213,0.35)';
+        g.lineWidth = 2;
+        g.beginPath();
+        for (let k = 0; k < 14; k++) {
+          const yy = y - 106 - k * 7;
+          const xx = sx + Math.sin(t * 1.4 + k * 0.6 + i) * (2 + k * 0.8);
+          k === 0 ? g.moveTo(xx, yy) : g.lineTo(xx, yy);
+        }
+        g.stroke();
+        g.restore();
+      }
+    }
+  }
+
+  /** The caller: a drummer at a standing drum, striking on the call's strokes. */
+  callerDrum(x, y, pulse, kind) {
+    const g = this.ctx;
+    const id = kind === 'mourning' ? 'prop-mourning-drummer' : 'prop-festival-drummers';
+    this.prop(id, x, y, kind === 'festival' ? 170 : 160, () => {
+      g.save();
+      g.fillStyle = P.ink;
+      // Drum on a stand.
+      g.fillRect(x - 6, y - 60, 4, 60);
+      g.fillRect(x + 34, y - 60, 4, 60);
+      g.fillStyle = kind === 'festival' ? P.lacquer : P.bronze;
+      g.beginPath();
+      g.ellipse(x + 16, y - 80, 30, 26, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = P.ink;
+      // Drummer, arm raised and brought down on the strokes.
+      const px = x - 40;
+      g.fillRect(px - 7, y - 58, 14, 58);
+      g.beginPath();
+      g.arc(px, y - 68, 9, 0, Math.PI * 2);
+      g.fill();
+      g.save();
+      g.translate(px + 5, y - 54);
+      g.rotate(-1.6 + pulse * 1.3);
+      g.fillRect(-2, 0, 4, 34);
+      g.restore();
+      g.restore();
+    }, { bob: pulse * 4 });
+    if (pulse > 0.05) {
+      g.save();
+      g.globalAlpha = pulse * 0.6;
+      g.strokeStyle = this.sky.glow;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(x + 16, y - 80, 36 + (1 - pulse) * 30, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+    }
+  }
+
+  /** A stilt house on the river; its lanterns light when the village answers. */
+  villageHouse(x, y, lit, pulse, t, i) {
+    const g = this.ctx;
+    this.prop('prop-village-house', x, y, 130, () => {
+      g.save();
+      g.fillStyle = this.sky.mid2;
+      for (const px of [-30, -10, 10, 30]) g.fillRect(x + px - 2, y - 50, 4, 50);
+      g.fillRect(x - 36, y - 76, 72, 28);
+      g.beginPath();
+      g.moveTo(x - 62, y - 108);
+      g.quadraticCurveTo(x, y - 66, x + 62, y - 108);
+      g.lineTo(x + 46, y - 74);
+      g.lineTo(x - 46, y - 74);
+      g.closePath();
+      g.fill();
+      g.restore();
+    });
+    // Lanterns: dark until the village answers, then warm and swaying.
+    for (const lx of [-40, 40]) {
+      const sway = Math.sin(t * 1.5 + i + lx) * 3;
+      g.save();
+      g.strokeStyle = P.ink;
+      g.beginPath();
+      g.moveTo(x + lx, y - 84);
+      g.lineTo(x + lx + sway, y - 64);
+      g.stroke();
+      const img = this.art.get('prop-lantern');
+      if (img && lit) this.sprite(img, x + lx + sway, y - 40, 26);
+      else {
+        g.fillStyle = lit ? '#F2A65A' : 'rgba(22,21,26,0.8)';
+        if (lit) {
+          g.shadowColor = '#FFC26A';
+          g.shadowBlur = 22;
+        }
+        g.beginPath();
+        g.ellipse(x + lx + sway, y - 56, 8, 11, 0, 0, Math.PI * 2);
+        g.fill();
+      }
+      g.restore();
+    }
+    if (pulse > 0.05) {
+      g.save();
+      g.globalAlpha = pulse * 0.7;
+      g.strokeStyle = this.sky.glow;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.arc(x, y - 90, 30 + (1 - pulse) * 40, 0, Math.PI * 2);
+      g.stroke();
+      g.restore();
+    }
+  }
+
+  /** A string of festival lanterns across the sky: one more lit per answer. */
+  lanternString(x0, x1, y, lit, total, t) {
+    const g = this.ctx;
+    g.save();
+    g.strokeStyle = P.ink;
+    g.lineWidth = 1.5;
+    g.beginPath();
+    for (let x = x0; x <= x1; x += 20) g.lineTo(x, y + Math.sin(((x - x0) / (x1 - x0)) * Math.PI) * 30);
+    g.stroke();
+    const n = total * 3;
+    for (let i = 0; i < n; i++) {
+      const x = x0 + ((i + 0.5) / n) * (x1 - x0);
+      const yy = y + Math.sin(((x - x0) / (x1 - x0)) * Math.PI) * 30 + 14 + Math.sin(t * 1.3 + i) * 2;
+      const on = i < lit * 3;
+      g.fillStyle = on ? (i % 2 ? P.lacquer : '#F2A65A') : 'rgba(22,21,26,0.7)';
+      if (on) {
+        g.shadowColor = '#FFC26A';
+        g.shadowBlur = 16;
+      } else g.shadowBlur = 0;
+      g.beginPath();
+      g.ellipse(x, yy, 9, 12, 0, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.restore();
+  }
+
+  /** One of the drums gathered to be melted: lit while it can still sound, grey once silent. */
+  meltDrum(x, y, silent, pulse, next) {
+    const g = this.ctx;
+    const img = this.art.get('prop-bronze-drum');
+    g.save();
+    if (silent) g.filter = 'grayscale(1) brightness(0.55)';
+    if (next && !silent) {
+      g.shadowColor = P.bronzeLight;
+      g.shadowBlur = 12 + pulse * 20;
+    }
+    if (img) this.sprite(img, x, y, 90, { bob: pulse * 3 });
+    else {
+      g.fillStyle = silent ? '#5a5650' : P.bronze;
+      g.beginPath();
+      g.moveTo(x - 40, y - 80);
+      g.lineTo(x + 40, y - 80);
+      g.quadraticCurveTo(x + 28, y - 40, x + 34, y);
+      g.lineTo(x - 34, y);
+      g.quadraticCurveTo(x - 28, y - 40, x - 40, y - 80);
+      g.fill();
+      g.fillStyle = silent ? '#77726a' : P.bronzeLight;
+      g.beginPath();
+      g.ellipse(x, y - 80, 40, 9, 0, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = P.ink;
+      for (let k = 0; k < 3; k++) g.fillRect(x - 32, y - 62 + k * 14, 64, 1.5);
+    }
+    g.restore();
+  }
+
+  /** The foundry: a furnace and crucible, three moulds filling as the bronze is poured. */
+  foundry(view, t) {
+    const g = this.ctx;
+    const sess = view.session;
+    const fx = -60;
+    this.prop('prop-furnace', fx, GROUND, 190, () => {
+      g.save();
+      g.fillStyle = P.ink;
+      g.beginPath();
+      g.moveTo(fx - 60, GROUND);
+      g.lineTo(fx - 40, GROUND - 150);
+      g.lineTo(fx + 40, GROUND - 150);
+      g.lineTo(fx + 60, GROUND);
+      g.fill();
+      g.fillStyle = '#FF8A3C';
+      g.shadowColor = '#FF8A3C';
+      g.shadowBlur = 30 + Math.sin(t * 6) * 8;
+      g.beginPath();
+      g.arc(fx, GROUND - 40, 20, Math.PI, 0);
+      g.fill();
+      g.restore();
+    });
+    // The moulds: the current one fills pour by pour; cast ones glow bronze.
+    for (let i = 0; i < sess.drums; i++) {
+      const x = 170 + i * 150;
+      const fill = i < sess.cast ? 1 : i === sess.cast ? sess.level / sess.pours : 0;
+      const cracked = i === sess.cast && t - view.crackAt < 0.8;
+      this.mould(x, GROUND, fill, cracked, i < sess.cast, t);
+    }
+    // The pour: a glowing stream from the crucible into the current mould.
+    if (view.pouring && !sess.done) {
+      const x = 170 + sess.cast * 150;
+      g.save();
+      g.strokeStyle = '#FFB65C';
+      g.shadowColor = '#FF8A3C';
+      g.shadowBlur = 18;
+      g.lineWidth = 5 + Math.sin(t * 30);
+      g.beginPath();
+      g.moveTo(fx + 30, GROUND - 120);
+      g.quadraticCurveTo(x - 40, GROUND - 170, x, GROUND - 70);
+      g.stroke();
+      g.restore();
+    }
+  }
+
+  mould(x, y, fill, cracked, cast, t) {
+    const g = this.ctx;
+    const done = this.art.get('prop-drum-cast');
+    if (cast && done) {
+      this.sprite(done, x, y, 100);
+      return;
+    }
+    const img = this.art.get('prop-mould');
+    if (img) this.sprite(img, x, y, 100);
+    else {
+      g.save();
+      g.fillStyle = '#5b4436';
+      g.beginPath();
+      g.moveTo(x - 50, y - 90);
+      g.lineTo(x + 50, y - 90);
+      g.lineTo(x + 44, y);
+      g.lineTo(x - 44, y);
+      g.closePath();
+      g.fill();
+      g.restore();
+    }
+    if (fill > 0) {
+      // Molten bronze rising inside: bright, then darkening as it sets.
+      g.save();
+      g.fillStyle = cast ? P.bronze : '#FFA24C';
+      g.shadowColor = '#FF8A3C';
+      g.shadowBlur = cast ? 6 : 20;
+      const hgt = 70 * fill;
+      g.fillRect(x - 34, y - 12 - hgt, 68, hgt);
+      g.restore();
+    }
+    if (cracked) {
+      g.save();
+      g.strokeStyle = P.paper;
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(x - 10, y - 90);
+      g.lineTo(x + 4, y - 60);
+      g.lineTo(x - 6, y - 40);
+      g.lineTo(x + 8, y - 10);
+      g.stroke();
+      g.restore();
+    }
+  }
+
   /** A cut-paper "!" over every Han winding up to strike. */
   threatMarks(view) {
     const g = this.ctx;
@@ -1252,6 +1593,7 @@ export class Renderer {
     // World space.
     g.save();
     g.translate(-this.cam, 0);
+    if (view.mode !== 'battle') this.scene(view);
     const beatPhase = view.beatFloat % 1;
     for (const e of battle.enemies) {
       const m = this.enemyMotion(e, t, dt);
@@ -1621,7 +1963,13 @@ export class Renderer {
     g.font = '600 15px "Be Vietnam Pro", system-ui, sans-serif';
     g.textAlign = 'center';
     g.fillStyle = P.paper;
-    if (ph && ph.done) {
+    if (ph && ph.caller) {
+      g.fillText('Listen…', cx, slotY - 26);
+    } else if (ph && !ph.done && view.mode === 'echo' && !ph.filled) {
+      g.fillText('Your turn — answer it', cx, slotY - 26);
+    } else if (ph && ph.done && view.mode !== 'battle') {
+      g.fillText(view.mode === 'casting' ? 'Pouring…' : 'Answered', cx, slotY - 26);
+    } else if (ph && ph.done) {
       const c = COMMANDS.find((k) => k.id === ph.pattern.command);
       const charging = view.cycle && view.cycle.command === 'charge';
       g.fillText(charging ? 'Voi! — the elephant charges' : `${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`, cx, slotY - 26);
@@ -1662,7 +2010,7 @@ export class Renderer {
     }
 
     // Combo and the waking drum.
-    if (view.combo > 1) {
+    if (view.combo > 1 && view.mode === 'battle') {
       g.font = '700 22px "Cormorant Garamond", Georgia, serif';
       g.textAlign = 'left';
       g.fillStyle = view.spirit ? P.bronzeLight : P.paper;
@@ -1672,7 +2020,7 @@ export class Renderer {
     // Command list: every unlocked command and tier, kept low and clear of
     // the field. The tier being played is lit.
     g.textAlign = 'left';
-    const list = COMMANDS.filter((c) => view.unlocked.includes(c.id));
+    const list = view.mode === 'battle' ? COMMANDS.filter((c) => view.unlocked.includes(c.id)) : [];
     const px = 22;
     const rowH = 22;
     const cellS = 12;
@@ -1697,10 +2045,28 @@ export class Renderer {
 
     // Troops and goal.
     const b = view.battle;
-    this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer);
-    const goals = b.enemies.filter((e) => e.goal);
-    const goalHp = goals.reduce((s, e) => s + Math.max(0, e.hp), 0) / goals.reduce((s, e) => s + e.maxHp, 0);
-    this.bar(W - 304, 22, 280, goalHp, goals[0].type === 'fort' ? 'Han fort' : 'Straw targets', P.iron);
+    const sess = view.session;
+    if (view.mode === 'echo') {
+      const words = { mourning: 'Incense lit', village: 'Villages answering', festival: 'Rhythms answered', elegy: 'Drums silent' };
+      this.bar(W - 304, 22, 280, sess.index / sess.calls.length, `${words[view.stage.caller] || 'Answered'} · ${sess.index} of ${sess.calls.length}`, P.bronzeLight);
+    } else if (view.mode === 'casting') {
+      this.bar(W - 304, 22, 280, (sess.cast + sess.level / sess.pours) / sess.drums, `Drums cast · ${sess.cast} of ${sess.drums}`, P.bronze);
+      if (sess.u !== null) {
+        g.font = '600 15px "Be Vietnam Pro", system-ui, sans-serif';
+        g.textAlign = 'left';
+        g.fillStyle = P.paper;
+        g.fillText(`Hold ${Math.round(60 / sess.u)} BPM · pour ${sess.level} of ${sess.pours} into this mould`, 24, H - 18);
+      }
+    } else {
+      this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer);
+      if (b.survive) {
+        this.bar(W - 304, 22, 280, Math.min(1, b.time / b.survive), `Hold the ford · ${Math.max(0, Math.ceil(b.survive - b.time))} s`, P.verdigris);
+      } else {
+        const goals = b.enemies.filter((e) => e.goal);
+        const goalHp = goals.reduce((s2, e) => s2 + Math.max(0, e.hp), 0) / goals.reduce((s2, e) => s2 + e.maxHp, 0);
+        this.bar(W - 304, 22, 280, goalHp, goals[0].type === 'fort' ? 'Han fort' : 'Straw targets', P.iron);
+      }
+    }
 
     if (view.hint) {
       g.font = '500 18px "Be Vietnam Pro", system-ui, sans-serif';

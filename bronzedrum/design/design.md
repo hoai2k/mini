@@ -96,16 +96,33 @@ the drum is awake becomes the charge: the elephant stomps on the drummed
 strokes and tramples everything near it, and the charge spends the drum's
 spirit. The women's cheer that was Rally's sound now plays when the drum wakes.
 
-**Chapters:**
+**Chapters** (in story order):
 
-1. The Garden at Mê Linh: training on straw targets.
-2. The Outpost on the Hát River: crossbows and a palisade.
-3. The Citadel at Luy Lâu: the war elephant at night.
+| # | Chapter | Mode | What the player does |
+| --- | --- | --- | --- |
+| 1 | The Garden at Mê Linh | battle | training on straw targets: march and strike, tiers I–II |
+| 2 | The Oath | echo | a slow mourning drum calls five rhythms; each even answer lights an incense stick for the father |
+| 3 | Casting the Drums | casting | repeat the hammer rhythm `L RR L RR` at one steady speed: each steady phrase pours, drifting more than ±12% from the first phrase's tempo cracks the mould; three drums |
+| 4 | The Villages Answer | echo, tempo | six village drummers call harder rhythms; echo each evenly at about their speed (±30%) to light its lanterns |
+| 5 | The Outpost on the Hát River | battle | crossbows and a palisade |
+| 6 | The Citadel at Luy Lâu | battle | the war elephant at night; a strike on a waking drum is the charge |
+| 7 | The Coronation at Mê Linh | echo | festival drummers call six rich rhythms; graded on evenness, no failing |
+| 8 | Mã Viện Returns | hold the line | Han columns arrive in waves; hold the ford for 90 s. Built around the shield |
+| 9 | The Drums Are Melted | echo | epilogue: each answered call silences one of five drums gathered for melting |
 
-**Balance check.** The battle tests play every chapter with a scripted player
+In the echo chapters the caller plays first and the player answers. Strokes
+during the call are ignored ("listen first"). An unanswered call is played
+again, and the chapter ends when every call has been answered, with the
+player's average evenness. Call rhythms follow the same deep-stroke rule as
+the commands. The reader accepts only the call's rhythm, so any even
+performance of it counts.
+
+**Balance check.** The battle tests play every battle chapter with a scripted player
 who drums a phrase, waits for the answer, and starts the next at once.
-- A steady player using only tier I and shielding each volley wins all three
-  chapters with most of the army left.
+- A steady player using only tier I and shielding each volley wins every battle
+  chapter with most of the army left.
+- Holding the ford needs the shield: without it a perfect drummer barely
+  survives, and with it most of the army does.
 - Without shielding, they still win with about 40% left.
 - Higher tiers win faster.
 - Sloppy drumming, fast or slow, still clears chapters 1 and 2.
@@ -118,6 +135,9 @@ The novel has two halves, and the game follows them:
   lessons, the sisters' friction, the father's death. These teach the rhythms
   through small scenes rather than battles. Nhị's off-beat flourishes come from
   her character here.
+Chapters 2–4 and 7–9 now cover the training years, the uprising and the
+ending in playable form. What remains for the full game:
+
 - **Part two, the uprising.** A campaign across the face of a bronze drum. Its
   rings are the regions to win over, and Mê Linh is the star at the centre.
   Each allied group (the mountain archers, the metalworkers of Nhật Nam, the

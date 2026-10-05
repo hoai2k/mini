@@ -183,6 +183,34 @@
       "gain": 1.0,
       "loop": false
     },
+    "pour": {
+      "files": [
+        "sfx/pour.mp3"
+      ],
+      "gain": 0.8,
+      "loop": false
+    },
+    "crack": {
+      "files": [
+        "sfx/crack.mp3"
+      ],
+      "gain": 1.0,
+      "loop": false
+    },
+    "lantern": {
+      "files": [
+        "sfx/lantern.mp3"
+      ],
+      "gain": 0.7,
+      "loop": false
+    },
+    "crowd-cheer": {
+      "files": [
+        "sfx/crowd-cheer.mp3"
+      ],
+      "gain": 0.7,
+      "loop": false
+    },
     "amb-garden": {
       "files": [
         "sfx/amb-garden.mp3"
@@ -193,6 +221,13 @@
     "amb-river": {
       "files": [
         "sfx/amb-river.mp3"
+      ],
+      "gain": 0.45,
+      "loop": true
+    },
+    "amb-foundry": {
+      "files": [
+        "sfx/amb-foundry.mp3"
       ],
       "gain": 0.45,
       "loop": true
