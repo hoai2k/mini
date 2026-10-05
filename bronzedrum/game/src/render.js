@@ -6,6 +6,7 @@
 import { PALETTE as P, SKIES } from './palette.js';
 import { COMMANDS, parsePattern } from './rhythm.js';
 import { GUARD } from './battle.js';
+import { drawRig } from './rig.js';
 
 const ROMAN = ['', 'I', 'II', 'III'];
 
@@ -1583,6 +1584,52 @@ export class Renderer {
     g.restore();
   }
 
+  /**
+   * Trưng Trắc's pose at this moment. Between strokes she holds the stick
+   * raised; on each tùng her forearm whips forward and down onto the drum
+   * (70 ms, the stroke has already been played) and lifts back over a third
+   * of a second, with the body leaning into it. The cape and sash ribbons
+   * hang on springs, so they trail the body and settle.
+   */
+  tracPose(view) {
+    const t = view.songTime;
+    const st = this.tracState || (this.tracState = { t, lean: 0, cape: { x: 0, v: 0 }, sashA: { x: 0, v: 0 }, sashB: { x: 0, v: 0 } });
+    const dt = Math.min(0.05, Math.max(0, t - st.t));
+    st.t = t;
+    const since = t - this.flash.L;
+    let s = 0; // 0 raised and ready, 1 struck
+    if (since >= 0 && since < 0.07) s = (since / 0.07) ** 2;
+    else if (since >= 0.07 && since < 0.42) s = 1 - (1 - (1 - (since - 0.07) / 0.35) ** 2);
+    s = Math.max(0, Math.min(1, s));
+    const calm = this.reduceMotion ? 0.3 : 1;
+    const lerp = (a, b) => a + (b - a) * s;
+    const breathe = Math.sin(t * 1.7) * 0.015 * calm;
+    const torso = lerp(0, 0.05) + breathe;
+    // Cloth follows on springs: it swings back as the body leans and bobs.
+    const bob = view.crewBob || 0;
+    const drive = { cape: -torso * 2.2 - bob * 0.02, sashA: -torso * 1.5 + bob * 0.03, sashB: -torso * 1.8 + bob * 0.025 };
+    for (const [k, target] of Object.entries(drive)) {
+      const m = st[k];
+      const a = 60 * (target - m.x) - 7 * m.v;
+      m.v += a * dt;
+      m.x += m.v * dt;
+    }
+    return {
+      torso,
+      head: lerp(0, 0.07) - breathe * 0.5,
+      capR: lerp(-0.2, 0),
+      armR: lerp(-2.6, -2.3),
+      // Clockwise over the top: 2.3 (raised behind) to 4.38, the beater on
+      // the drum's face in front of her (solved for the palanquin drum).
+      stick: lerp(2.3, 4.38),
+      capL: lerp(-0.35, -0.2),
+      foreL: lerp(-0.7, -0.4),
+      cape: st.cape.x,
+      sashA: 0.25 + st.sashA.x,
+      sashB: 0.2 + st.sashB.x,
+    };
+  }
+
   bronzeDrum(x, y, r, view) {
     const g = this.ctx;
     const pulse = view.spirit ? 0.5 + 0.5 * Math.sin(view.songTime * 8) : 0;
@@ -1611,7 +1658,10 @@ export class Renderer {
     const imgT = this.art.get('sister-trac');
     const imgN = this.art.get('sister-nhi');
     if (imgT && imgN) {
-      this.sprite(imgT, x - spread, y, 96, { bob: armL * 3 });
+      // Trắc as a jointed puppet when her rig is built (BD-R01), else her sprite.
+      const rigT = this.art.rig('sister-trac');
+      if (rigT) drawRig(g, rigT, x - spread, y, 96, this.tracPose(view));
+      else this.sprite(imgT, x - spread, y, 96, { bob: armL * 3 });
       this.sprite(imgN, x + spread, y, 96, { bob: armR * 3 });
       return;
     }

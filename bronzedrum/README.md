@@ -38,6 +38,7 @@ node scripts/check.mjs          # syntax and manifest ids
 python3 ../design/source/build_requests.py --check
 python3 ../design/source/build_audio.py --check
 python3 ../design/source/build_web_art.py --check
+python3 ../design/source/build_rigs.py --check
 ```
 
 ## Music
@@ -96,9 +97,17 @@ and sprite-sheet cells. Exports match the requested dimensions; larger canvases
 are resampled from the generator's native output rather than generated at native
 4K. Puppet sheets are artwork for future rigging, not animated rigs.
 
+Trưng Trắc is a jointed puppet cut from her part sheet (BD-R01).
+[`design/source/build_rigs.py`](design/source/build_rigs.py) holds each piece's
+box, its pin hole and the parent pin it hangs on (measured from the painted pin
+holes), and cuts the pieces into `game/assets/rigs/`. `src/rig.js` poses them:
+between strokes she holds the stick raised; on each tùng her forearm whips over
+onto the drum and lifts back, her body leans in, and her cape and sash ribbons
+trail on springs. The other three rig sheets are not cut yet.
+
 The manifest's `runtime` flag distinguishes the 50 images used by the prototype
-from the 6 delivered sheets it does not use yet: the four puppet-rig sheets
-(for jointed animation) and the glyph and icon sheets. They remain available
+from the 6 delivered sheets it does not use directly: the four puppet-rig sheets
+(cut into rigs instead) and the glyph and icon sheets. They remain available
 for production work without being downloaded at game startup. The effects
 sheets are in use: hits and deflections burst into the paper scraps (BD-F01,
 picked by colour), the arrows and bolts fly as BD-F02, and when the drum wakes
