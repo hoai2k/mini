@@ -295,6 +295,7 @@ const SUSTAIN_CYCLES = 2;
 
 function startStage(i) {
   hideSuccess();
+  stopDemo();
   const stage = STAGES[i];
   sound.start();
   sound.setKit(null);
@@ -416,7 +417,7 @@ function strike(drum, time) {
   renderer.hit(drum, songTime());
   input.rumble(drum === 'L' ? 50 : 30, drum === 'L' ? 0.6 : 0.3);
   // The player takes over: a demonstration stops at the first stroke.
-  if (game.demo && songTime() > game.demo.start - 0.3) game.demo = null;
+  if (game.demo && songTime() > game.demo.start - 0.3) stopDemo();
   const trying = game.reader.progress();
   if (trying) game.lastTry = trying.pattern;
   const before = game.reader.phrase.slice();
@@ -711,6 +712,9 @@ function rhythmTokens(text) {
 // at a steady tempo, then the player's turn. Drumming cuts it short.
 
 const DEMO_REPS = 2;
+// Repeating rhythms (the casting guide, the practice loop) are scheduled this
+// far ahead on the audio clock, so a slow frame or two cannot make them late.
+const LOOKAHEAD = 0.6;
 // Rhythms already demonstrated (kept between visits; load() merges objects, so read the list directly).
 const seenDemos = new Set((() => {
   try {
@@ -725,31 +729,40 @@ function startDemo(item, { again = false, u = 0.55 } = {}) {
   const g = game;
   const strokes = parsePattern(item.text);
   const prefix = again ? `Listen again — ${item.label}: ` : `Listen — ${item.label}: `;
-  g.demo = { text: prefix + rhythmTokens(item.text), tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, next: 0, key: item.key };
+  g.demo = { text: prefix + rhythmTokens(item.text), tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, key: item.key, sources: [] };
+  // Every stroke is scheduled on the audio clock now, so a slow frame cannot
+  // delay one: the pointer follows the same clock (heardTime) and stays on it.
+  for (let rep = 0; rep < DEMO_REPS; rep++) {
+    for (const s of strokes) {
+      const when = g.clockStart + g.demo.start + (rep * 5 + s.pos) * u;
+      g.demo.sources.push(s.drum === 'L' ? sound.tung(when) : sound.cac(when));
+    }
+  }
   if (!seenDemos.has(item.key)) {
     seenDemos.add(item.key);
     save('demos', [...seenDemos]);
   }
 }
 
-/** Sound the demonstration's strokes just ahead of time, and end it when done. */
+/** End the demonstration once it has played through. */
 function tickDemo() {
   const g = game;
   const d = g.demo;
+  if (d && songTime() > d.start + (d.reps * 5 - 1) * d.u + 0.4) g.demo = null;
+}
+
+/** Cut a demonstration short (the player drums, or leaves): silence the strokes still to come. */
+function stopDemo() {
+  const d = game && game.demo;
   if (!d) return;
-  const t = songTime();
-  const total = d.strokes.length * d.reps;
-  while (d.next < total) {
-    const rep = Math.floor(d.next / d.strokes.length);
-    const s = d.strokes[d.next % d.strokes.length];
-    const at = d.start + (rep * 5 + s.pos) * d.u;
-    if (at - t > 0.3) break;
-    const when = g.clockStart + Math.max(at, t);
-    if (s.drum === 'L') sound.tung(when);
-    else sound.cac(when);
-    d.next += 1;
+  for (const src of d.sources) {
+    try {
+      if (src) src.stop();
+    } catch {
+      /* already played */
+    }
   }
-  if (t > d.start + (d.reps * 5 - 1) * d.u + 0.4) g.demo = null;
+  game.demo = null;
 }
 
 /**
@@ -767,7 +780,7 @@ function tickGuide() {
     const round = Math.floor(d.next / n);
     const s = d.strokes[d.next % n];
     const at = d.start + (round * 4 + s.pos) * d.u;
-    if (at - t > 0.3) break;
+    if (at - t > LOOKAHEAD) break;
     if (at >= t - 0.05 && !g.demo) sound.echo(s.drum, g.clockStart + Math.max(at, t), 0.32, 0.82);
     d.next += 1;
   }
@@ -1369,7 +1382,7 @@ function updatePractice(dt) {
     while (true) {
       const st = L.strokes[g.loopNext % n];
       const at = L.start + Math.floor(g.loopNext / n) * L.period + st.pos * L.u;
-      if (at - t > 0.3) break;
+      if (at - t > LOOKAHEAD) break;
       if (at >= t - 0.05) {
         sound.echo(st.drum, g.clockStart + Math.max(at, t), 1, 0.97, g.loopBus);
         heard(st.drum, at, 'loop', 0.6);
