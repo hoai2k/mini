@@ -127,11 +127,11 @@ The key comes from the environment and is never committed. New effects for
 later acts go in the script's `SFX` table, with the same foley direction.
 
 **Music after the song.** Once the song has played through, period silent-film
-accompaniment follows it, chosen by the scene's mood. There are three pieces:
-a pianist for the voyage, tender and storm scenes; a café-concert band for the
-deck party, the court and other revels; and a harmonium for the grotto and the
-whale. The plan, the measurements and the prompts for the two pieces still to
-come are in [`design/music.md`](design/music.md). The song still opens every
+accompaniment follows it, chosen by the scene's mood. There are five pieces, one per mood:
+a pianist for the voyage, a café-concert band for the deck party, the court
+and other revels, a harmonium for the grotto and the whale, a stormy piano for
+the wreck and the fire, and a tender salon piece for the cliff, the endings
+and the playbill. The plan, the measurements and the prompts are in [`design/music.md`](design/music.md). The song still opens every
 visit and returns for the pageant and curtain call. Settings → "Period
 accompaniment" switches back to looping the song.
 

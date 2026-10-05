@@ -145,37 +145,35 @@ as now.
 
 ## Status
 
-**Delivered 5 October 2026, three of the five pieces**, one per prompt in the
-first round (the pianist, the café-concert band, the harmonium). They are in
-the game in `assets/audio/` and listed under `audio.period` in
-`assets/manifest.json`:
+**All five pieces are delivered** (5 October 2026), one per mood. They are in
+`assets/audio/` and listed under `audio.period` in `assets/manifest.json`:
 
-| File | Delivered as | Moods it covers | Measured |
+| File | Delivered as | Mood | Measured |
 | --- | --- | --- | --- |
-| `period-piano.mp3` | "Paris Cinema" | voyage, tender, storm | 2:09, B major, rubato |
-| `period-band.mp3` | "Festival March" | revel | 2:32, E♭ major, rubato |
-| `period-harmonium.mp3` | "Sea and Grotto Waltz" | deep | 2:05, C minor, rubato |
+| `period-piano.mp3` | "Paris Cinema" | voyage | 2:09, B major |
+| `period-band.mp3` | "Festival March" | revel | 2:32, E♭ major |
+| `period-harmonium.mp3` | "Sea and Grotto Waltz" | deep | 2:05, C minor |
+| `period-storm.mp3` | "The Shipwreck" | storm | 2:00, C minor |
+| `period-tender.mp3` | "Tender Evening" | tender | 3:00, D minor / F major |
 
-- **Loudness.** All three arrived at about −16 LUFS, against the song's
-  −9.9, so they were raised to about −12 LUFS (the dynamic piano lands at
-  −13.6) with a −1 dB true-peak limit. Their embedded cover images were
-  stripped.
-- **Beat.** None has a steady click: they're played with rubato, like real
-  accompanists. So `beat` is `null`, and while they play the game's beat-timed
-  machinery runs on a steady 76.5 BPM clock.
-- **Key.** None is in F, so the F-tuned sound effects aren't in key with them.
-  The clash is mild, and the music was left as delivered.
+- **Loudness.** They arrived at about −16 to −17 LUFS, against the song's
+  −9.9, and were raised to about −12 to −13.6 LUFS with a −1 dB true-peak
+  limit. Embedded cover images were stripped.
+- **Beat.** All are played with rubato, so none has a steady beat (`"beat":
+  null`). While they play, the game's beat-timed machinery runs on a steady
+  76.5 BPM clock.
+- **Key.** Only "Tender Evening" (D minor, the relative minor of F) sits in
+  the key of the song and the F-tuned sound effects; the others clash
+  mildly. The music was left as delivered.
 
 **Built:**
 
 - The song plays through once, then the piece for the scene's mood follows,
-  with no loop.
+  with no loop. When a piece ends, the piece for the current mood plays next;
+  with one piece per mood, that is the same piece again until the scene
+  changes.
 - A mood change crossfades over 2 s only when the playing piece doesn't suit
   the new mood.
 - The pageant and curtain call bring the song back.
 - Settings → "Period accompaniment" turns this off, and the song loops
   instead.
-
-**Still to generate:** separate `storm` and `tender` pieces
-(`period-piano-storm`, `period-piano-tender`, prompts above). Until then the
-pianist covers both, and those scenes repeat it.

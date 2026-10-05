@@ -488,9 +488,7 @@
         "status": "delivered",
         "file": "audio/period-piano.mp3",
         "moods": [
-          "voyage",
-          "tender",
-          "storm"
+          "voyage"
         ],
         "beat": null,
         "note": "\"Paris Cinema\": solo pianist, 2:09, B major, rubato (no steady beat). Normalised to about -13.6 LUFS."
@@ -512,6 +510,24 @@
         ],
         "beat": null,
         "note": "\"Sea and Grotto Waltz\": harmonium and piano, 2:05, C minor, rubato. About -12.1 LUFS."
+      },
+      "period-storm": {
+        "status": "delivered",
+        "file": "audio/period-storm.mp3",
+        "moods": [
+          "storm"
+        ],
+        "beat": null,
+        "note": "\"The Shipwreck\": stormy piano agitato, 2:00, C minor, rubato. About -12 LUFS."
+      },
+      "period-tender": {
+        "status": "delivered",
+        "file": "audio/period-tender.mp3",
+        "moods": [
+          "tender"
+        ],
+        "beat": null,
+        "note": "\"Tender Evening\": slow salon romance, 3:00, D minor / F major, rubato. About -12 LUFS."
       }
     }
   },
