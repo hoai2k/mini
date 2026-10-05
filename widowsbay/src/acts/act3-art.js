@@ -2,12 +2,13 @@
 // stand-in until its file is delivered (ids and sizes are in
 // design/image-requests.md, Part C4; drawn here at half the listed pixels).
 import {
-  ROWY, ROWSCALE, PEDESTAL, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, PAR, OUTRO,
+  ROWY, ROWSCALE, PEDESTAL, THRONE_BX, WITCH_BX, LANTERN_BX, LANTERN_Y, DAIS_Y, PAR, OUTRO,
   beamOn, rowY, rowScale, whaleX, fishX, backX,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 
 const FLOOR_TOP = 404;
+const BC_H = 900;               // drawn height of the delivered backcloth
 const GOWN = { green: '#9cc7a4', pink: '#f3c6dc', blue: '#a9c4e0' };
 const NAVY = '#26304a';
 
@@ -66,7 +67,10 @@ export function onEvent(k, e, st) {
 // ---------------------------------------------------------------- the hall
 function hall(k, st, t) {
   const c = k.c, off = -st.cam * PAR;
-  if (!k.asset('court-backcloth', 750 + off, 720, 1500, 720)) {
+  // The painted backcloth is centred on the throne, scaled so its dais (66%
+  // of the way down the painting) is where the throne stands; the floor strip
+  // covers its painted floor.
+  if (!k.asset('court-backcloth', backX(THRONE_BX, st.cam), DAIS_Y + 0.34 * BC_H, BC_H * 16 / 9, BC_H)) {
     const g = c.createLinearGradient(0, 60, 0, FLOOR_TOP);
     g.addColorStop(0, k.col('#1f3d40')); g.addColorStop(0.6, k.col('#3f6f6a')); g.addColorStop(1, k.col('#7aa39a'));
     c.fillStyle = g; c.fillRect(0, 0, 1280, FLOOR_TOP + 4);
@@ -102,8 +106,8 @@ function hall(k, st, t) {
     c.globalAlpha = 1;
   }
   // column wings, framing the hall
-  if (!k.asset('court-wing-left', 160, 720, 320, 720)) column(k, 150, 40, 660, 46, true);
-  if (!k.asset('court-wing-right', 1120, 720, 320, 720)) column(k, 1130, 40, 660, 46, true);
+  if (!k.asset('court-wing-left', 168, 700, 300, 675)) column(k, 150, 40, 660, 46, true);
+  if (!k.asset('court-wing-right', 1092, 700, 300, 675)) column(k, 1130, 40, 660, 46, true);
 }
 
 function column(k, x, top, bottom, w, lamp = false) {
@@ -125,10 +129,12 @@ function column(k, x, top, bottom, w, lamp = false) {
 // ---------------------------------------------------------------- the dais
 function dais(k, st, t, bob) {
   const c = k.c, tx = backX(THRONE_BX, st.cam), wx = backX(WITCH_BX, st.cam), lx = backX(LANTERN_BX, st.cam);
-  // raised steps
+  // raised steps (the delivered backcloth paints its own)
+  if (!k.img('court-backcloth')) {
   c.fillStyle = k.col('#6d4a6a'); c.fillRect(lx - 60, FLOOR_TOP - 34, wx - lx + 160, 34);
   c.fillStyle = k.col('#d9b34a'); c.fillRect(lx - 60, FLOOR_TOP - 36, wx - lx + 160, 5); c.fillRect(lx - 90, FLOOR_TOP - 6, wx - lx + 220, 6);
-  const by = FLOOR_TOP - 32;
+  }
+  const by = DAIS_Y;
   // The king's eyes follow his beam.
   const look = clamp((st.gaze.aim - st.cam - tx) / 600, -1, 1);
   if (!k.asset('sea-king-throne', tx, by, 300, 310)) kingStandin(k, tx, by, look, bob);
@@ -218,7 +224,10 @@ function lanternStandin(k, st, t, lit, x) {
 
 function pedestal(k, st, t) {
   const c = k.c, x = PEDESTAL.x, by = ROWY[0] - 10;
-  if (!k.asset('pearl-pedestal', x, by, 130, 170)) {
+  // a pool of treasury light marks it among the painted shells
+  c.save(); c.globalAlpha = 0.28 + 0.08 * Math.sin(t * 2);
+  c.fillStyle = k.col('#fff2c0'); c.beginPath(); c.ellipse(x, by - 80, 92, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
+  if (!k.asset('pearl-pedestal', x, by, PED_W, PED_H)) {
     c.fillStyle = k.col('#f1e3c8');
     c.beginPath(); c.moveTo(x - 30, by); c.lineTo(x - 16, by - 110); c.lineTo(x + 16, by - 110); c.lineTo(x + 30, by); c.fill();
     c.strokeStyle = k.col('#cbb89a'); c.lineWidth = 6; c.lineCap = 'round';
@@ -230,11 +239,14 @@ function pedestal(k, st, t) {
     for (let i = 0; i <= 6; i++) { const a = Math.PI + (i / 6) * Math.PI; c.beginPath(); c.moveTo(x, by - 112); c.lineTo(x + Math.cos(a) * 44, by - 112 + Math.sin(a) * 44); c.stroke(); }
     c.fillStyle = k.col('#e9cfd8'); c.fillRect(x - 46, by - 116, 92, 7);
   }
+  const art = !!k.img('pearl-pedestal'), py = pearlY(k, by);
   if (!st.taken) {
-    const py = by - 128 + Math.sin(t * 2) * 2;
-    c.save(); c.globalAlpha = 0.35 + 0.15 * Math.sin(t * 3);
-    c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 26); c.restore();
-    pearlAt(k, x, py, 15);
+    c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(t * 3);
+    c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 24); c.restore();
+    if (!art) pearlAt(k, x, py + Math.sin(t * 2) * 2, 15);
+  } else if (art) {
+    // the painted pearl is gone: the shell lies empty, the chain broken
+    c.fillStyle = k.col('#e7b3c4'); c.beginPath(); c.ellipse(x, py + 2, 17, 15, 0, 0, Math.PI * 2); c.fill();
   }
 }
 
@@ -242,8 +254,8 @@ function pedestal(k, st, t) {
 // with an A prompt; once taken it flies up into his hand.
 function pearlCue(k, st, t) {
   const c = k.c, x = PEDESTAL.x - st.cam, by = ROWY[0] - 10, p = st.p;
+  const py = pearlY(k, by);
   if (st.phase === 'play' && st.maskedBy === 'whale' && Math.abs(p.x - PEDESTAL.x) < 260) {
-    const py = by - 128;
     c.save(); c.globalAlpha = 0.5 + 0.3 * Math.sin(t * 8);
     c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 24); c.restore();
     pearlAt(k, x, py, 15);
@@ -255,11 +267,15 @@ function pearlCue(k, st, t) {
   }
   if (st.phase === 'take') {
     const f = easeOut(st.phaseT / 0.8), px = p.x - st.cam;
-    const sx = lerp(x, px, f), sy = lerp(by - 128, rowY(p) - 150 * rowScale(p), f) - Math.sin(f * Math.PI) * 50;
+    const sx = lerp(x, px, f), sy = lerp(py, rowY(p) - 150 * rowScale(p), f) - Math.sin(f * Math.PI) * 50;
     c.save(); c.globalAlpha = 0.5; c.fillStyle = k.col('#fff6e0'); k.circle(sx, sy, 26); c.restore();
     pearlAt(k, sx, sy, 15);
   }
 }
+
+// Where her pearl sits: in the delivered art it is 40% of the way down.
+const PED_W = 150, PED_H = 196;
+const pearlY = (k, by) => (k.img('pearl-pedestal') ? by - PED_H * 0.6 : by - 128);
 
 function pearlAt(k, x, y, r) {
   if (k.asset('pearl', x, y + r, r * 2, r * 2)) return;
@@ -271,9 +287,16 @@ function pearlAt(k, x, y, r) {
 // ---------------------------------------------------------------- the floor
 function floor(k, cam) {
   const c = k.c, x0 = cam, x1 = cam + 1280;
-  // the delivered strip tiles seamlessly, 1280 wide
-  let tiled = !!k.img('court-floor');
-  if (tiled) for (let x = Math.floor(x0 / 1280) * 1280; x < x1; x += 1280) k.asset('court-floor', x + 640, 650, 1280, 250);
+  // The delivered strip (2560 x 400, tiling 1280 wide) paints two grooves;
+  // the court needs three on Act I's rows, so the floor is laid from its
+  // plain marble bands with the seams under three brass grooves drawn here.
+  const tiled = !!k.img('court-floor');
+  if (tiled) {
+    for (let x = Math.floor(x0 / 1280) * 1280; x < x1; x += 1280) {
+      for (const [sy, sh, dy, dh] of FLOOR_BANDS) k.assetCrop('court-floor', 0, sy, 2560, sh, x, dy, 1281, dh);
+    }
+    grooves(k, x0);
+  }
   if (!tiled) {
     c.fillStyle = k.col('#e9c9c9'); c.fillRect(x0, FLOOR_TOP, 1280, 650 - FLOOR_TOP);
     // marble slabs, their seams raking toward the audience
@@ -285,15 +308,30 @@ function floor(k, cam) {
     c.fillStyle = k.col('#f1e3c8'); c.globalAlpha = 0.5;
     for (let x = Math.floor(x0 / 120) * 120; x < x1; x += 120) { const i = Math.round(x / 120), y = 455 + (((i % 3) + 3) % 3) * 70; c.beginPath(); c.ellipse(x + 30, y, 30, 6, 0.2, 0, Math.PI * 2); c.fill(); }
     c.globalAlpha = 1;
-    // the three brass-edged processional grooves
-    for (let r = 0; r < 3; r++) {
-      const y = ROWY[r], s = ROWSCALE[r];
-      c.fillStyle = k.col('#2a1424'); c.fillRect(x0, y - 3 * s, 1280, 8 * s);
-      c.fillStyle = k.col('#d9b34a'); c.fillRect(x0, y - 6 * s, 1280, 3 * s); c.fillRect(x0, y + 5 * s, 1280, 3 * s);
-    }
+    grooves(k, x0);
   }
   // the floor's front edge, where the sentries crouch
   c.fillStyle = k.col('#6d4a6a'); c.fillRect(x0, 640, 1280, 10);
+}
+
+// Source band (y, height) of the floor strip -> stage band (y, height).
+const FLOOR_BANDS = [
+  [0, 28, 398, 14],      // its gilded back edge
+  [160, 60, 412, 22],
+  [296, 96, 434, 80],
+  [156, 72, 514, 84],
+  [300, 54, 598, 52],
+];
+
+// The three brass-edged processional grooves.
+function grooves(k, x0) {
+  const c = k.c;
+  for (let r = 0; r < 3; r++) {
+    const y = ROWY[r], s = ROWSCALE[r];
+    c.fillStyle = k.col('#2a1424'); c.fillRect(x0, y - 4 * s, 1280, 9 * s);
+    c.fillStyle = k.col('#d9b34a'); c.fillRect(x0, y - 7 * s, 1280, 3 * s); c.fillRect(x0, y + 5 * s, 1280, 3 * s);
+    c.fillStyle = k.col('#9a7a2a'); c.fillRect(x0, y + 8 * s, 1280, 1.5);
+  }
 }
 
 function floorPearl(k, q, t) {
@@ -460,8 +498,8 @@ function sailorBow(k) {
 // ---------------------------------------------------------------- sentries
 function sentry(k, s, st, t) {
   const c = k.c, x = s.x, y = 652, asleep = st.carry.rose;
-  if (k.asset(s.open ? 'sentry-creature-open' : 'sentry-creature-closed', x, y, 190, 130)) {
-    if (asleep) sleepZ(k, x + 40, y - 110, t);
+  if (k.asset(s.open ? 'sentry-creature-open' : 'sentry-creature-closed', x, y + 12, 176, 120)) {
+    if (asleep) sleepZ(k, x + 56, y - 96, t);
     return;
   }
   // a crouching coral-red beast facing right, with a finned crest
@@ -678,14 +716,15 @@ function outro(k, st, t) {
   else { grow = 3.2; open = 1; }
   const W = 800 * grow, H = 600 * grow, cx = 640;
   // rising from below the floor, then lunging so its throat fills the stage
-  const by = grow <= 1 ? 720 + (1 - grow) * 260 : lerp(480, 400, (grow - 1) / 2.2) + 0.4 * H;
+  const throat = k.img('whale-mouth') ? 0.52 : 0.4; // throat centre, up from the bottom
+  const by = grow <= 1 ? 720 + (1 - grow) * 260 : lerp(720 - throat * 600, 400, (grow - 1) / 2.2) + throat * H;
   c.save(); c.globalAlpha = 1;
   if (!k.asset('whale-mouth', cx, by, W, H)) whaleMouthStandin(k, cx, by, W, H, open);
   c.restore();
   // the sailor and one courtier are pulled into the throat
   if (ph === 'lunge') {
     const f = easeInOut(st.phaseT / OUTRO.lunge), p = st.p;
-    const mx = cx, my = by - H * 0.45;
+    const mx = cx, my = by - H * throat;
     const sx = lerp(p.x - st.cam, mx, f), sy = lerp(rowY(p), my, f) - Math.sin(f * Math.PI) * 120, s = rowScale(p) * (1 - f * 0.8);
     c.save(); c.translate(sx, sy); c.rotate(f * 3); c.scale(s, s); if (!k.asset('sailor-crouch', 0, 0, 120, 150)) sailorBow(k); c.restore();
     const d = diver(st), g = clamp((st.phaseT - 0.15) / 0.7, 0, 1);

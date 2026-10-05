@@ -1,7 +1,7 @@
 // Headless checks for Act III, the Sea King's Court.
 // Run: node widowsbay/qa/act3.test.mjs
 import assert from 'node:assert/strict';
-import act, { TUNE, PEDESTAL, SENTRIES, OUTRO, CAM_MAX, litAt, effRow } from '../src/acts/act3.js';
+import act, { TUNE, PEDESTAL, SENTRIES, SENTRY_HEAD, OUTRO, CAM_MAX, LANTERN_BX, PAR, litAt, effRow } from '../src/acts/act3.js';
 
 const BEAT = 60 / 76.5, DT = 1 / 30;
 let n = 0;
@@ -113,7 +113,7 @@ test('sentries snap open on the beat; an open jaw costs a lantern', () => {
   assert.ok(openPh.length > 0);
   for (const p of openPh) assert.ok(p < TUNE.snapOpen + 1e-9);
   // stand on a sentry on the front groove through a beat
-  st.p.row = st.p.from = 2; st.p.x = SENTRIES[0];
+  st.p.row = st.p.from = 2; st.p.x = SENTRIES[0] + SENTRY_HEAD;
   const ev = run(st, BEAT * 1.1);
   assert.ok(types(ev).includes('sentryBite')); assert.equal(st.lanterns, 2);
 });
@@ -121,7 +121,7 @@ test('sentries snap open on the beat; an open jaw costs a lantern', () => {
 test('the rose keeps the sentries asleep', () => {
   const st = make({ rose: true }); calm(st);
   st.courtiers = st.courtiers.filter((c) => c.kind !== 'guard');
-  st.p.row = st.p.from = 2; st.p.x = SENTRIES[1];
+  st.p.row = st.p.from = 2; st.p.x = SENTRIES[1] + SENTRY_HEAD;
   const ev = run(st, BEAT * 6);
   assert.ok(!st.sentries.some((s) => s.open));
   assert.ok(!types(ev).includes('sentryBite')); assert.ok(!types(ev).includes('sentrySnap'));
@@ -217,7 +217,7 @@ test('the pearl: only in the whale\'s shadow; taking it grants the keepsake', ()
   st.gaze.aim = 200; st.p.row = st.p.from = 0; st.p.x = PEDESTAL.x; st.p.grace = 99;
   tick(st, { a: true });
   assert.equal(st.phase, 'play', 'not without the whale');
-  st.cam = CAM_MAX; st.fish.t = 2.17; tick(st, { a: true }); // the fish over the lantern is not enough
+  st.cam = CAM_MAX; st.fish.t = (1480 - (LANTERN_BX - CAM_MAX * PAR)) / 1700 * TUNE.fishDur; tick(st, { a: true }); // the fish over the lantern is not enough
   assert.equal(st.maskedBy, 'fish'); assert.equal(st.phase, 'play');
   st = make(); calm(st); st.courtiers = [];
   st.whale.t = 2; st.p.row = st.p.from = 1; st.p.x = PEDESTAL.x;

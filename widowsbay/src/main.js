@@ -54,7 +54,13 @@ const S = {
 };
 const dialogs = []; // stack of open dialog elements
 
-loadAssets().then((a) => {
+// Act I and the title load first; the other acts' art follows in the background.
+const FIRST_ART = ['logo', 'proscenium', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
+  'ship', 'witch-moonboat', 'rock', 'pearl', 'tea-leaf', 'keepsake-tea', 'lighthouse', 'lighthouse-lit', 'band-trio',
+  'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
+  'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];
+const showLogo = (logo) => { const el = $('#logo-img'); el.src = logo.src; el.alt = "Widow's Bay"; el.hidden = false; $('#logo').classList.add('has-img'); };
+loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => { if (id === 'logo') showLogo(im); } }).then((a) => {
   assets = a;
   const song = a.audio?.song;
   if (song?.status === 'delivered' && song.file) audio.setTrack('assets/' + song.file, song.loopStart, song.loopEnd);
@@ -63,8 +69,7 @@ loadAssets().then((a) => {
   audio.setSfx(sfx);
   assetsLoaded = true;
   renderer = createRenderer(canvas, assets);
-  const logo = assets.images.logo;
-  if (logo) { const el = $('#logo-img'); el.src = logo.src; el.alt = "Widow's Bay"; el.hidden = false; $('#logo').classList.add('has-img'); }
+  if (assets.images.logo) showLogo(assets.images.logo);
 });
 
 // ---------------------------------------------------------------- flow

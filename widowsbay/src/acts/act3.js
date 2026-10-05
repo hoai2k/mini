@@ -16,19 +16,23 @@ export const ROWY = [432, 512, 596];           // the three grooves (Act I's row
 export const ROWSCALE = [0.72, 0.86, 1.0];
 export const HALL_W = 3100, PAR = 0.12;
 export const CAM_MAX = HALL_W - 1280;
-export const XMIN = 190, XMAX = 2930;
+export const XMIN = 190, XMAX = 2730;
 export const START = { row: 2, x: 200 };
-export const PEDESTAL = { row: 0, x: 2900, reach: 46 };
-// Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR).
-export const THRONE_BX = 1018, WITCH_BX = 1168, LANTERN_BX = 818;
+export const PEDESTAL = { row: 0, x: 2700, reach: 46 };
+// Back-wall pieces, in screen x at cam 0 (screen x = BX - cam * PAR). The
+// throne stands on the backcloth's painted dais, which is centred on it.
+export const THRONE_BX = 800, WITCH_BX = 965, LANTERN_BX = 600;
+export const DAIS_Y = 372;                      // where the throne stands
 export const LANTERN_Y = 236;                   // the gaze lantern's eye
 export const SENTRIES = [470, 760, 1050, 1420, 1720, 2010, 2330, 2620]; // along the front groove
+// The sentries face right; their snapping head is this far right of centre.
+export const SENTRY_HEAD = 50, SENTRY_REACH = 42;
 export const BEAT = 60 / 76.5;                  // fallback only; input.beat drives
 
 export const TUNE = {
   walk: 104, rowTween: 0.26, grace: 1.6, lanterns: 3,
   restAim: PEDESTAL.x, warn: 1.25, hold: 0.85, sweepSpeed: 300, lock: 0.75, rest: [1.4, 2.6],
-  aimRange: [340, 2920], search: 650, // patrol targets (beam centre x), near the sailor
+  aimRange: [340, 2720], search: 650, // patrol targets (beam centre x), near the sailor
   cover: 56,                      // half-width of an attendant's cover
   snapOpen: 0.38,                 // fraction of each beat the jaws are open
   whaleFirst: 20, whaleEvery: [20, 25], whaleDur: 5, whaleMask: [0.9, 4.0],
@@ -45,17 +49,17 @@ const COURTIERS = [
   { kind: 'guard', row: 0, x: 1000, a: 820, b: 1300, step: 40, pat: 'SSRR', dir: -1 },
   { kind: 'blue', row: 0, x: 1500, a: 1220, b: 1900, step: 42, pat: 'SSSR', dir: 1 },
   { kind: 'guard', row: 0, x: 2000, a: 1820, b: 2240, step: 40, pat: 'SRSR', dir: -1 },
-  { kind: 'green', row: 0, x: 2400, a: 2150, b: 2760, step: 42, pat: 'SSRS', dir: 1 },
-  { kind: 'pink', row: 0, x: 2700, a: 2470, b: 2880, step: 40, pat: 'SSRR', dir: -1 },
+  { kind: 'green', row: 0, x: 2350, a: 2150, b: 2620, step: 42, pat: 'SSRS', dir: 1 },
+  { kind: 'pink', row: 0, x: 2500, a: 2380, b: 2620, step: 40, pat: 'SSRR', dir: -1 },
   { kind: 'green', row: 1, x: 300, a: 210, b: 780, step: 46, pat: 'SSSR', dir: 1 },
   { kind: 'guard', row: 1, x: 760, a: 620, b: 1020, step: 38, pat: 'SRSR', dir: 1 },
   { kind: 'pink', row: 1, x: 1300, a: 940, b: 1640, step: 44, pat: 'SSRS', dir: -1 },
   { kind: 'green', row: 1, x: 1900, a: 1540, b: 2200, step: 46, pat: 'SSSR', dir: 1 },
   { kind: 'guard', row: 1, x: 2300, a: 2120, b: 2520, step: 40, pat: 'SRSR', dir: -1 },
-  { kind: 'blue', row: 1, x: 2700, a: 2420, b: 2920, step: 44, pat: 'SSSR', dir: 1 },
+  { kind: 'blue', row: 1, x: 2560, a: 2380, b: 2720, step: 44, pat: 'SSSR', dir: 1 },
   { kind: 'blue', row: 2, x: 620, a: 230, b: 1120, step: 50, pat: 'SSSSR', dir: -1 },
   { kind: 'pink', row: 2, x: 1600, a: 1140, b: 2060, step: 48, pat: 'SSSR', dir: 1 },
-  { kind: 'green', row: 2, x: 2500, a: 2080, b: 2900, step: 48, pat: 'SSSSR', dir: -1 },
+  { kind: 'green', row: 2, x: 2450, a: 2080, b: 2720, step: 48, pat: 'SSSSR', dir: -1 },
 ];
 const PEARLS = [[2, 345], [1, 470], [0, 620], [2, 905], [1, 1160], [0, 1380], [2, 1570], [1, 1850], [0, 2060], [2, 2180], [1, 2450], [0, 2600]];
 
@@ -335,7 +339,7 @@ function play(st, dt, input, emit) {
     }
   }
   if (r === 2) for (const s of st.sentries) {
-    if (s.open && Math.abs(s.x - p.x) < 46 && p.grace <= 0) { emit({ type: 'sentryBite', x: p.x, y: rowY(p) }); hit(st, 'sentry', emit); }
+    if (s.open && Math.abs(s.x + SENTRY_HEAD - p.x) < SENTRY_REACH && p.grace <= 0) { emit({ type: 'sentryBite', x: p.x, y: rowY(p) }); hit(st, 'sentry', emit); }
   }
 
   // Tea-leaf omens, one beat ahead of each hazard.
@@ -348,7 +352,7 @@ function play(st, dt, input, emit) {
     }
     const ph = beatPhase(st.beat);
     if (!st.carry.rose && ph >= TUNE.snapOpen && r >= 1) {
-      for (const s of st.sentries) if (Math.abs(s.x - p.x) < 210) st.omens.push({ x: s.x, y: 560, kind: 'sentry' });
+      for (const s of st.sentries) if (Math.abs(s.x + SENTRY_HEAD - p.x) < 210) st.omens.push({ x: s.x + SENTRY_HEAD, y: 528, kind: 'sentry' });
     }
   }
 }

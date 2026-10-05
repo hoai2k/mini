@@ -334,6 +334,20 @@ ACTS = [
          f'Night. The stone house on the cliff with one dark window and a black silhouette in the doorway; '
          f'on the quay, {SAILOR} alone, throwing a small stone into the bay, rings spreading on the water.'),
     ]),
+    ('Additions after integration', 'Gaps found while fitting the delivered Part C art into the game (October 2026).', [
+        ('pearl-pedestal-empty', 'Pedestal, pearl taken', 260, 340, 'bottom centre', SPRITE,
+         'The same white coral pedestal and open scallop shell as pearl-pedestal, but the shell is empty: only the '
+         'broken fine gold chain lies in it. Same scale and framing as pearl-pedestal, so it can replace it in place '
+         'when the sailor takes the pearl (Act III).'),
+        ('court-floor-3', 'Court floor with three grooves', 2560, 400, 'top edge', STRIP,
+         'The same pink-and-cream marble stage floor as court-floor, but with exactly three parallel brass-edged '
+         'grooves running left to right, evenly spaced at about 25%, 50% and 80% of the strip height (the delivered '
+         'court-floor has only two, and Act III needs three processional rows).'),
+        ('band-guitarist-empty', 'Guitarist without the guitar', 400, 800, 'bottom centre', HALFTONE,
+         'The same band member as band-guitar (the centre of the trio in video-cover.jpg: long dark hair, pink '
+         'embroidered jacket, jeans, boots), standing facing front with empty hands raised in a bow, no guitar. '
+         'Used in the finale pageant when the guitar was not recovered in Act II.'),
+    ]),
 ]
 
 MOODS = [

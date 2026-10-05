@@ -154,8 +154,12 @@ function spirits(k, pt, t) {
 // ---------------------------------------------------------------- the wreck
 function wreck(k, st, pt, t) {
   const c = k.c, b = st.board;
-  k.voyage(b, { hideShip: true, beforeWave: (r) => { if (r === 1) shipWreck(k, st, pt, t); } });
-  // waterspout over the ship
+  // The waterspout stands behind the ship, which is lifted and broken in front of it.
+  k.voyage(b, { hideShip: true, beforeWave: (r) => { if (r === 1) { waterspout(k, pt, t); shipWreck(k, st, pt, t); } } });
+}
+
+function waterspout(k, pt, t) {
+  const c = k.c;
   const rise = easeOut(pt / 1.4) * (1 - easeInOut((pt - 4.6) / 1.2));
   if (rise > 0 && !k.asset('waterspout', 560, 560, 300 * rise, 550 * rise)) {
     // A twisting column of water, narrow at the sea and flaring into cloud.

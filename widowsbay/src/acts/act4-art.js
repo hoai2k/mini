@@ -326,8 +326,14 @@ function water(k, st, t, L, R) {
   // Before the inhale the water trembles.
   const amp = 4 + (st.breath.phase === 'cue' ? (b - 12) * 2.5 : 0);
   if (img(k, 'belly-water')) {
-    for (let x = Math.floor(L / 1280) * 1280; x < R; x += 1280) k.asset('belly-water', x + 640, y + 150 - 8, 1280, 150);
-    c.fillStyle = k.col('#262c33'); c.fillRect(L, y + 140, R - L, 1300 - y);
+    // The delivered strip (2560x300 art, drawn 1280x150) drifts slowly and
+    // bobs with the tremble; its own bottom rows are carried down to the
+    // floor, as Act I's wave strips are, so no flat slab shows below it.
+    const drift = (t * 18) % 1280, bob = Math.sin(t * 1.6) * amp * 0.5, top = y - 8 + bob;
+    for (let x = Math.floor((L - drift) / 1280) * 1280 + drift - 1280; x < R; x += 1280) {
+      k.assetCrop('belly-water', 0, 0, 2560, 300, x, top, 1281, 150);
+      k.assetCrop('belly-water', 0, 294, 2560, 6, x, top + 147, 1281, 1300 - (top + 147));
+    }
     return;
   }
   const g = c.createLinearGradient(0, y, 0, y + 260);

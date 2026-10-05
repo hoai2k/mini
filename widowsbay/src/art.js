@@ -34,8 +34,12 @@ export function painter() {
 }
 
 // ---------------------------------------------------------------- assets
-export async function loadAssets(base = 'assets/') {
-  const out = { slots: {}, images: {} };
+// Resolves as soon as the manifest is read. Images then load in two waves,
+// the `first` ids (what the opening needs) before the rest, and each one
+// appears in `out.images` the moment it arrives, so stand-ins give way to
+// art progressively. `out.ready` / `out.all` settle after each wave.
+export async function loadAssets(base = 'assets/', { first = [], onImage } = {}) {
+  const out = { slots: {}, images: {}, audio: {}, sfx: {}, ready: Promise.resolve(), all: Promise.resolve() };
   try {
     const res = await fetch(base + 'manifest.json');
     const m = await res.json();
@@ -43,13 +47,18 @@ export async function loadAssets(base = 'assets/') {
     out.audio = m.audio || {};
     out.sfx = m.sfx || {};
   } catch { return out; }
-  await Promise.all(Object.entries(out.slots).map(([id, s]) => new Promise((done) => {
-    if (s.status !== 'delivered' || !s.file) return done();
+  const load = (ids) => Promise.all(ids.map((id) => new Promise((done) => {
+    const s = out.slots[id];
+    if (!s || s.status !== 'delivered' || !s.file) return done();
     const img = new Image();
-    img.onload = () => { out.images[id] = img; done(); };
+    img.onload = () => { out.images[id] = img; onImage?.(id, img); done(); };
     img.onerror = () => done();
     img.src = base + s.file;
   })));
+  const early = first.filter((id) => out.slots[id]);
+  const rest = Object.keys(out.slots).filter((id) => !early.includes(id));
+  out.ready = load(early);
+  out.all = out.ready.then(() => load(rest));
   return out;
 }
 

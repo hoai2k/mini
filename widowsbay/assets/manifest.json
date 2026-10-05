@@ -79,368 +79,380 @@
       "note": "Not used in Act I (the witch-moonboat art includes her dragon); reserved for Act II, the grotto."
     },
     "sailor-stand": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-stand.webp"
     },
     "sailor-walk-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-walk-a.webp"
     },
     "sailor-walk-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-walk-b.webp"
     },
     "sailor-leap": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-leap.webp"
     },
     "sailor-crouch": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-crouch.webp"
     },
     "sailor-carry": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-carry.webp"
     },
     "beloved-stand": {
-      "status": "requested",
+      "status": "delivered",
       "file": "beloved-stand.webp"
     },
     "rival-silhouette": {
-      "status": "requested",
+      "status": "delivered",
       "file": "rival-silhouette.webp"
     },
     "witch-stand": {
-      "status": "requested",
+      "status": "delivered",
       "file": "witch-stand.webp"
     },
     "band-hat": {
-      "status": "requested",
+      "status": "delivered",
       "file": "band-hat.webp"
     },
     "band-guitar": {
-      "status": "requested",
+      "status": "delivered",
       "file": "band-guitar.webp"
     },
     "band-beard": {
-      "status": "requested",
+      "status": "delivered",
       "file": "band-beard.webp"
     },
     "tea-leaf": {
-      "status": "requested",
+      "status": "delivered",
       "file": "tea-leaf.webp"
     },
     "keepsake-stone": {
-      "status": "requested",
+      "status": "delivered",
       "file": "keepsake-stone.webp"
     },
     "playbill": {
-      "status": "requested",
+      "status": "delivered",
       "file": "playbill.webp"
     },
     "waterspout": {
-      "status": "requested",
+      "status": "delivered",
       "file": "waterspout.webp"
     },
     "grotto-backcloth": {
-      "status": "requested",
+      "status": "delivered",
       "file": "grotto-backcloth.webp"
     },
     "grotto-wing-left": {
-      "status": "requested",
+      "status": "delivered",
       "file": "grotto-wing-left.webp"
     },
     "grotto-wing-right": {
-      "status": "requested",
+      "status": "delivered",
       "file": "grotto-wing-right.webp"
     },
     "coral-flat-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "coral-flat-a.webp"
     },
     "coral-flat-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "coral-flat-b.webp"
     },
     "kelp-hanging": {
-      "status": "requested",
+      "status": "delivered",
       "file": "kelp-hanging.webp"
     },
     "fish-school": {
-      "status": "requested",
+      "status": "delivered",
       "file": "fish-school.webp"
     },
     "clam-open": {
-      "status": "requested",
+      "status": "delivered",
       "file": "clam-open.webp"
     },
     "clam-closed": {
-      "status": "requested",
+      "status": "delivered",
       "file": "clam-closed.webp"
     },
     "eel": {
-      "status": "requested",
+      "status": "delivered",
       "file": "eel.webp"
     },
     "eel-hole": {
-      "status": "requested",
+      "status": "delivered",
       "file": "eel-hole.webp"
     },
     "jellyfish": {
-      "status": "requested",
+      "status": "delivered",
       "file": "jellyfish.webp"
     },
     "air-vent": {
-      "status": "requested",
+      "status": "delivered",
       "file": "air-vent.webp"
     },
     "court-backcloth": {
-      "status": "requested",
+      "status": "delivered",
       "file": "court-backcloth.webp"
     },
     "court-wing-left": {
-      "status": "requested",
+      "status": "delivered",
       "file": "court-wing-left.webp"
     },
     "court-wing-right": {
-      "status": "requested",
+      "status": "delivered",
       "file": "court-wing-right.webp"
     },
     "court-floor": {
-      "status": "requested",
+      "status": "delivered",
       "file": "court-floor.webp"
     },
     "attendant-green": {
-      "status": "requested",
+      "status": "delivered",
       "file": "attendant-green.webp"
     },
     "attendant-pink": {
-      "status": "requested",
+      "status": "delivered",
       "file": "attendant-pink.webp"
     },
     "attendant-blue": {
-      "status": "requested",
+      "status": "delivered",
       "file": "attendant-blue.webp"
     },
     "seahorse-guard": {
-      "status": "requested",
+      "status": "delivered",
       "file": "seahorse-guard.webp"
     },
     "gaze-lantern": {
-      "status": "requested",
+      "status": "delivered",
       "file": "gaze-lantern.webp"
     },
     "pearl-pedestal": {
-      "status": "requested",
+      "status": "delivered",
       "file": "pearl-pedestal.webp"
     },
     "whale-side": {
-      "status": "requested",
+      "status": "delivered",
       "file": "whale-side.webp"
     },
     "whale-mouth": {
-      "status": "requested",
+      "status": "delivered",
       "file": "whale-mouth.webp"
     },
     "fish-large": {
-      "status": "requested",
+      "status": "delivered",
       "file": "fish-large.webp"
     },
     "belly-backcloth": {
-      "status": "requested",
+      "status": "delivered",
       "file": "belly-backcloth.webp"
     },
     "rib-arch": {
-      "status": "requested",
+      "status": "delivered",
       "file": "rib-arch.webp"
     },
     "belly-water": {
-      "status": "requested",
+      "status": "delivered",
       "file": "belly-water.webp"
     },
     "barrel": {
-      "status": "requested",
+      "status": "delivered",
       "file": "barrel.webp"
     },
     "crate": {
-      "status": "requested",
+      "status": "delivered",
       "file": "crate.webp"
     },
     "figurehead": {
-      "status": "requested",
+      "status": "delivered",
       "file": "figurehead.webp"
     },
     "piano": {
-      "status": "requested",
+      "status": "delivered",
       "file": "piano.webp"
     },
     "lantern-hanging": {
-      "status": "requested",
+      "status": "delivered",
       "file": "lantern-hanging.webp"
     },
     "cradle": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cradle.webp"
     },
     "whale-throat": {
-      "status": "requested",
+      "status": "delivered",
       "file": "whale-throat.webp"
     },
     "shore-rocks": {
-      "status": "requested",
+      "status": "delivered",
       "file": "shore-rocks.webp"
     },
     "whale-tail": {
-      "status": "requested",
+      "status": "delivered",
       "file": "whale-tail.webp"
     },
     "bay-backcloth": {
-      "status": "requested",
+      "status": "delivered",
       "file": "bay-backcloth.webp"
     },
     "bay-backcloth-fire": {
-      "status": "requested",
+      "status": "delivered",
       "file": "bay-backcloth-fire.webp"
     },
     "stone-house": {
-      "status": "requested",
+      "status": "delivered",
       "file": "stone-house.webp"
     },
     "staircase": {
-      "status": "requested",
+      "status": "delivered",
       "file": "staircase.webp"
     },
     "ladder": {
-      "status": "requested",
+      "status": "delivered",
       "file": "ladder.webp"
     },
     "beam-fall": {
-      "status": "requested",
+      "status": "delivered",
       "file": "beam-fall.webp"
     },
     "debris-stones": {
-      "status": "requested",
+      "status": "delivered",
       "file": "debris-stones.webp"
     },
     "flame-flat": {
-      "status": "requested",
+      "status": "delivered",
       "file": "flame-flat.webp"
     },
     "smoke-flat": {
-      "status": "requested",
+      "status": "delivered",
       "file": "smoke-flat.webp"
     },
     "harbour-quay": {
-      "status": "requested",
+      "status": "delivered",
       "file": "harbour-quay.webp"
     },
     "ending-lamp": {
-      "status": "requested",
+      "status": "delivered",
       "file": "ending-lamp.webp"
     },
     "ending-witch": {
-      "status": "requested",
+      "status": "delivered",
       "file": "ending-witch.webp"
     },
     "ending-dark": {
-      "status": "requested",
+      "status": "delivered",
       "file": "ending-dark.webp"
     },
     "keepsake-guitar": {
-      "status": "requested",
+      "status": "delivered",
       "file": "keepsake-guitar.webp"
     },
     "reveller-jester": {
-      "status": "requested",
+      "status": "delivered",
       "file": "reveller-jester.webp"
     },
     "sailor-swim-a": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-swim-a.webp"
     },
     "reveller-shaggy": {
-      "status": "requested",
+      "status": "delivered",
       "file": "reveller-shaggy.webp"
     },
     "sentry-creature-closed": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sentry-creature-closed.webp"
     },
     "reveller-lady": {
-      "status": "requested",
+      "status": "delivered",
       "file": "reveller-lady.webp"
     },
     "sailor-swim-b": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-swim-b.webp"
     },
     "sea-spirit": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sea-spirit.webp"
     },
     "deck-set": {
-      "status": "requested",
+      "status": "delivered",
       "file": "deck-set.webp"
     },
     "guitar-sinking": {
-      "status": "requested",
+      "status": "delivered",
       "file": "guitar-sinking.webp"
     },
     "sentry-creature-open": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sentry-creature-open.webp"
     },
     "cliff-face": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cliff-face.webp"
     },
     "sea-king-throne": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sea-king-throne.webp"
     },
     "reveller-yellow": {
-      "status": "requested",
+      "status": "delivered",
       "file": "reveller-yellow.webp"
     },
     "pageant-backcloth": {
-      "status": "requested",
+      "status": "delivered",
       "file": "pageant-backcloth.webp"
     },
     "ship-wreck-stern": {
-      "status": "requested",
+      "status": "delivered",
       "file": "ship-wreck-stern.webp"
     },
     "house-front": {
-      "status": "requested",
+      "status": "delivered",
       "file": "house-front.webp"
     },
     "whale-beached": {
-      "status": "requested",
+      "status": "delivered",
       "file": "whale-beached.webp"
     },
     "lantern-string": {
-      "status": "requested",
+      "status": "delivered",
       "file": "lantern-string.webp"
     },
     "pageant-dancers": {
-      "status": "requested",
+      "status": "delivered",
       "file": "pageant-dancers.webp"
     },
     "conch-horn": {
-      "status": "requested",
+      "status": "delivered",
       "file": "conch-horn.webp"
     },
     "ship-wreck-bow": {
-      "status": "requested",
+      "status": "delivered",
       "file": "ship-wreck-bow.webp"
     },
     "wreck-debris": {
-      "status": "requested",
+      "status": "delivered",
       "file": "wreck-debris.webp"
     },
     "band-legs-giant": {
-      "status": "requested",
+      "status": "delivered",
       "file": "band-legs-giant.webp"
+    },
+    "band-guitarist-empty": {
+      "status": "requested",
+      "file": "band-guitarist-empty.webp"
+    },
+    "pearl-pedestal-empty": {
+      "status": "requested",
+      "file": "pearl-pedestal-empty.webp"
+    },
+    "court-floor-3": {
+      "status": "requested",
+      "file": "court-floor-3.webp"
     }
   },
   "audio": {

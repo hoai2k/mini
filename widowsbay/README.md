@@ -136,7 +136,7 @@ song still opens every visit and returns for the pageant and curtain call.
 
 ```sh
 python3 widowsbay/design/source/build_act_requests.py --check   # Part C requests in sync
-node widowsbay/qa/board.test.mjs           # rules
+for t in board act2 act3 act4 act5; do node widowsbay/qa/$t.test.mjs; done   # rules, per act
 widowsbay/publish.sh local/pages/widowsbay  # what Pages deploys
 ```
 
