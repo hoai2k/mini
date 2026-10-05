@@ -39,6 +39,7 @@ MUSIC_LOOPS = Path(__file__).resolve().parent / "music-loops.json"
 MUSIC_LUFS = -17.0  # every track is matched to this integrated loudness
 AUDIO_MANIFEST = ROOT / "game" / "assets" / "audio.json"
 SFX_DOC = ROOT / "design" / "sound-effects.md"
+WORKBENCH = ROOT / "workbench" / "sounds.json"
 MUSIC_DOC = ROOT / "design" / "music-requests.md"
 API = "https://api.elevenlabs.io/v1/sound-generation"
 
@@ -307,6 +308,227 @@ sfx(G, "amb-night",
     "Night in the countryside outside a walled town: crickets, frogs croaking in flooded rice "
     "paddies, distant torches crackling, a faint wind. Continuous, no music.",
     20.0, "Chapter 3 bed, looped.", kind="loop", gain=0.45)
+
+
+# ------------------------------------------------------------------ alternate ambience takes
+#
+# Candidate beds for the chapters, to audition on the workbench
+# (bronzedrum/workbench/) next to the bed in use. Not loaded by the game: they
+# live in workbench/alt/, are generated with --alternates, and every take is
+# levelled to ALT_LUFS so takes compare fairly. When one is chosen, it becomes
+# that chapter's bed in the SFX list above.
+
+ALT_DIR = ROOT / "workbench" / "alt"
+ALT_LUFS = -22.0
+ALTERNATES: list[dict] = []
+NO = " Real outdoor field recording, no music, no drums, no clear words."
+
+
+def alt(chapter, aid, prompt):
+    ALTERNATES.append(dict(chapter=chapter, id=aid, prompt=prompt + NO, seconds=20.0, influence=0.5,
+                           kind="loop", post="lowpass=f=11000", gain=0.45))
+
+
+alt("garden", "garden-birds",
+    "Dawn in a garden in northern Vietnam: red-whiskered bulbuls and magpie-robins singing close "
+    "by, an Asian koel calling in the distance, a rooster far off, water trickling into a lotus pond.")
+alt("garden", "garden-pond",
+    "Early morning beside a lotus pond in a Vietnamese village: a frog plopping into the water now "
+    "and then, dragonflies buzzing past, sparrows chirping in the eaves, bamboo creaking softly in "
+    "a light breeze.")
+alt("garden", "garden-buffalo",
+    "A quiet dawn courtyard in the Vietnamese countryside: doves cooing softly, distant roosters, a "
+    "water buffalo's wooden bell clonking far off in the fields, leaves rustling. Sparse and peaceful.")
+alt("oath", "oath-gecko",
+    "Dusk in the courtyard of an old Vietnamese house: a tokay gecko calling a few times from the "
+    "rafters, crickets starting up, a distant dog barking once, soft wind through banana leaves. "
+    "Quiet and solemn.")
+alt("oath", "oath-temple",
+    "Evening in a quiet Vietnamese temple courtyard: cicadas fading as night falls, a soft breeze in "
+    "a tall tree, a small wind bell tinkling now and then, a few crickets. Solemn and still.")
+alt("oath", "oath-wake",
+    "Indoors at dusk in a wooden house during a funeral wake: a few mourners murmuring softly far "
+    "away in another room, an oil lamp sputtering, crickets outside the open shutters. Very quiet "
+    "and solemn.")
+alt("casting", "casting-furnace",
+    "Night at an ancient open-air bronze foundry: a big charcoal furnace roaring and crackling, "
+    "embers popping, molten metal hissing on wet clay, workers' voices murmuring far away. No "
+    "machinery, no hammering.")
+alt("casting", "casting-charcoal",
+    "A charcoal fire burning hot in a clay furnace outdoors at night: the deep steady roar of "
+    "flames, the crackle and pop of charcoal, sparks, an occasional hiss of steam, crickets far "
+    "off. No machinery, no rhythm.")
+alt("casting", "casting-workshop",
+    "A village blacksmith's workshop at night, quiet between jobs: the fire breathing in the forge, "
+    "coals settling and ticking, hot iron sizzling in a water trough now and then, a dog far off "
+    "outside. No hammering.")
+alt("villages", "villages-frogs",
+    "Night on the Red River delta: a loud chorus of rice-paddy frogs and toads croaking, crickets, "
+    "water lapping against bamboo boats. Calm.")
+alt("villages", "villages-boat",
+    "Late night by a Vietnamese river: crickets close by, a night heron squawking once far away, the "
+    "soft creak of a wooden boat on its rope, a gentle current. Sparse.")
+alt("villages", "villages-geckos",
+    "Night in a stilt village on a river: geckos chirping on the walls, crickets in the grass, a "
+    "breeze in the palms, distant frogs. Peaceful.")
+alt("outpost", "outpost-ford",
+    "Midday at a wide river ford in northern Vietnam: shallow water rushing over stones, wind "
+    "gusting through tall elephant grass, a kingfisher calling, cicadas buzzing in the trees on the bank.")
+alt("outpost", "outpost-cicadas",
+    "A hot afternoon on a riverbank: a loud shimmering chorus of cicadas in the trees, slow water "
+    "flowing, wind in the reeds, a crow cawing far off.")
+alt("outpost", "outpost-wind",
+    "A windy day on an open river plain: steady wind across reeds and grass, cloth banners flapping "
+    "now and then, water slapping the bank, birds calling in the distance.")
+alt("luylau", "luylau-torches",
+    "Night outside the walls of an ancient town: torches crackling and fluttering in the wind, "
+    "crickets and frogs in the moat, a dog barking inside the walls, wind along the ramparts. Tense "
+    "and quiet.")
+alt("luylau", "luylau-moat",
+    "A warm tropical night beside a moat: deep bullfrogs croaking, crickets, insects buzzing, a "
+    "faint wind, an owl hooting once far away.")
+alt("luylau", "luylau-camp",
+    "The night camp of an army waiting outside a walled town: campfires crackling, the low murmur "
+    "of many people talking quietly far off, a horse snorting, crickets. Calm but tense.")
+alt("coronation", "coronation-crowd",
+    "A festive crowd in a village square in Vietnam on a sunny day: the lively murmur of hundreds "
+    "of people, children laughing, vendors calling in the distance, cloth banners flapping in the breeze.")
+alt("coronation", "coronation-gate",
+    "Outside a palace gate during a celebration: a large happy crowd chattering, cheers rising and "
+    "falling far off, birds overhead, wind in the flags. No gongs.")
+alt("coronation", "coronation-market",
+    "A sunny festival morning in a market square: a gentle bustle of people, footsteps, laughter, a "
+    "rooster, sparrows, a light wind. Cheerful.")
+alt("mavien", "mavien-army",
+    "Dusk at a river ford with a great army gathering across the water: the low rumble of thousands "
+    "of feet far off, horses neighing, armour and weapons clinking, wind over the river. Ominous, no horns.")
+alt("mavien", "mavien-wind",
+    "Evening wind over a wide river at dusk: fast-flowing water, gusts in the reeds, crows calling, "
+    "the faint distant murmur of a large crowd across the water. Grave and tense.")
+alt("mavien", "mavien-line",
+    "A riverbank at dusk before a battle: banners snapping in a strong wind, shields knocking "
+    "softly, many people shifting nervously, a horse stamping, water beyond.")
+alt("elegy", "elegy-dawn",
+    "A very quiet grey dawn by a still river: a single bird singing far away, soft wind, water "
+    "barely lapping, the low distant roar of a furnace. Melancholy and sparse.")
+alt("elegy", "elegy-embers",
+    "Dawn after a great fire: the soft tick and crackle of dying embers and cooling ash, a light "
+    "wind, a few early birds, a river far off. Still and sad.")
+alt("elegy", "elegy-lotus",
+    "A misty dawn on a lotus lake: dew dripping from leaves, a heron's wingbeats, faint movement "
+    "of water, a distant temple bell once. Peaceful and mournful.")
+alt("practice", "practice-village",
+    "Dusk in a Vietnamese village: crickets and cicadas, a bonfire crackling, children laughing far "
+    "off, a buffalo bell clonking in the fields, cooking pots clinking. Warm and relaxed.")
+alt("practice", "practice-festival",
+    "An evening village gathering before a festival: a relaxed crowd chatting round a fire, "
+    "laughter, crackling flames, crickets, a breeze in the palms.")
+
+
+# Music trials: ElevenLabs' music model tried on a request, as an experiment
+# (it costs many credits, so one short take at a time). Kept in
+# workbench/music-trials/, levelled like the delivered tracks, for the user to
+# judge on the workbench; not used by the game.
+MUSIC_API = "https://api.elevenlabs.io/v1/music"
+TRIAL_DIR = ROOT / "workbench" / "music-trials"
+MUSIC_TRIALS: list[dict] = [
+    dict(id="mu-anthem-trial-1", request="mu-anthem", seconds=90,
+         prompt="A 90-second excerpt of a folk ballad sung in Vietnamese for a video game about the Trưng "
+                "sisters, two queens who led an army of women against Han rule in ancient Vietnam around 40 CE. "
+                "Traditional northern Vietnamese style with a modern cinematic folk production. Open with "
+                "16-string zither (đàn tranh) alone, then one verse sung by a single woman, gentle and proud, "
+                "then a chorus by two women in close quan họ-style harmony over deep bronze kettle drums, soft "
+                "strings and bamboo flute (sáo trúc). 84 BPM, D minor pentatonic. Sing on Vietnamese vocables "
+                "(à ơi, hò), no English. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, "
+                "shakuhachi), rock or trap drums, EDM drops and trailer-style braams."),
+    # The same song with no singing: the instruments may work even if the voices do not.
+    dict(id="mu-anthem-trial-2-instrumental", request="mu-anthem", seconds=90,
+         prompt="A 90-second instrumental folk piece, no vocals at all, for a video game about the Trưng "
+                "sisters, two queens who led an army of women against Han rule in ancient Vietnam around 40 CE. "
+                "Traditional northern Vietnamese instruments with a modern cinematic folk production. Open with "
+                "16-string zither (đàn tranh) alone; the monochord (đàn bầu) then plays a slow, proud, singing "
+                "melody; for the second half the bamboo flute (sáo trúc) answers it over deep bronze kettle drums, "
+                "a low gong and soft strings, rising to a warm full ensemble, then settles. 84 BPM, D minor "
+                "pentatonic. Instrumental only. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, "
+                "pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams."),
+]
+
+
+def trial_file(t):
+    return TRIAL_DIR / f"{t['id']}.mp3"
+
+
+def generate_music_trial(t, key):
+    body = {"prompt": t["prompt"], "music_length_ms": int(t["seconds"] * 1000), "model_id": "music_v1"}
+    req = urllib.request.Request(MUSIC_API, data=json.dumps(body).encode(), method="POST",
+                                 headers={"xi-api-key": key, "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=600) as res:
+            raw = res.read()
+    except urllib.error.HTTPError as e:
+        raise SystemExit(f"{t['id']}: ElevenLabs music returned {e.code}: {e.read()[:400]!r}")
+    out = trial_file(t)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(suffix=".mp3") as tmp:
+        tmp.write(raw)
+        tmp.flush()
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp.name, "-ac", "2", "-ar", "44100",
+                        "-b:a", "160k", str(out)], check=True)
+    level_to(out, MUSIC_LUFS)
+
+
+# What measuring each take found (level every 10 ms: the strongest repeating
+# pulse, and how far it swings between quiet and loud), shown on the workbench.
+ALT_NOTES = {
+    "garden-birds": "very uneven: 43 dB between its quiet and loud moments; may have near-silent gaps",
+    "casting-workshop": "uneven: 28 dB swings, loud sizzles a quarter of the time",
+    "coronation-gate": "uneven: 25 dB swings, cheers rising a quarter of the time",
+    "coronation-market": "uneven: 25 dB swings",
+    "oath-wake": "uneven: 22 dB swings",
+    "practice-village": "uneven: 22 dB swings",
+    "mavien-army": "uneven: 26 dB swings, a fast clatter",
+    "villages-boat": "a faint steady pulse about every 0.5 s (a creak or a croak): listen with Drum along",
+    "luylau-moat": "a faint steady pulse about every 0.75 s (frogs)",
+    "casting-furnace": "very even: a steady roar",
+    "mavien-wind": "very even: steady wind and water",
+    "villages-geckos": "very even",
+    "villages-frogs": "very even",
+    "outpost-ford": "very even",
+}
+
+
+def alt_file(a):
+    return ALT_DIR / f"{a['id']}.mp3"
+
+
+def level_to(path: Path, lufs: float):
+    """Bring a take to the given integrated loudness, peaks held under -1 dBFS."""
+    err = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path), "-af", "ebur128", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    measured = float([l for l in err.splitlines() if l.strip().startswith("I:")][-1].split()[1])
+    tmp = path.with_suffix(".tmp.mp3")
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(path), "-af",
+                    f"volume={lufs - measured:.2f}dB,alimiter=limit=0.89:level=false", "-ac", "2", "-ar", "44100",
+                    "-b:a", "128k", str(tmp)], check=True)
+    tmp.replace(path)
+
+
+def build_workbench():
+    """The workbench's catalogue: every effect and take, the music, and the alternate beds."""
+    def present(f):
+        return (ROOT / "game" / "assets" / f).exists()
+    sfx = [dict(id=s["id"], group=s["group"], use=s["use"], prompt=s["prompt"], kind=s["kind"], gain=s["gain"],
+                files=[dict(file=f, rejected=REJECTED.get(f)) for f in files_for(s) if present(f)])
+           for s in SFX]
+    music = [dict(id=m["id"], title=m["title"], kind=m["kind"], file=f"music/{m['id']}.mp3")
+             for m in MUSIC if present(f"music/{m['id']}.mp3")]
+    alts = [dict(id=a["id"], chapter=a["chapter"], prompt=a["prompt"], file=f"alt/{a['id']}.mp3",
+                 measured=ALT_NOTES.get(a["id"], ""))
+            for a in ALTERNATES if alt_file(a).exists()]
+    trials = [dict(id=t["id"], request=t["request"], prompt=t["prompt"], file=f"music-trials/{t['id']}.mp3")
+              for t in MUSIC_TRIALS if trial_file(t).exists()]
+    return json.dumps({"generatedBy": "bronzedrum/design/source/build_audio.py", "altLufs": ALT_LUFS,
+                       "sfx": sfx, "music": music, "alternates": alts, "musicTrials": trials}, indent=2, ensure_ascii=False) + "\n"
 
 
 # ------------------------------------------------------------------ music
@@ -704,6 +926,17 @@ def build_sfx_doc():
             kind = {"hit": "hit", "oneshot": "one-shot", "loop": "loop", "sting": "sting"}[s["kind"]]
             out.append(f"| `{s['id']}` | {s['use']} ({kind}) | {s['seconds']} s | {ftxt} | {s['prompt']} |")
         out.append("")
+    out.append("## Alternate ambience takes\n")
+    out.append(f"Candidate beds to audition on the workbench (`bronzedrum/workbench/`), each levelled to "
+               f"{ALT_LUFS:g} LUFS and kept in `workbench/alt/`, not loaded by the game. "
+               "`build_audio.py --alternates` makes any that are missing.\n")
+    out.append("| Chapter | Id | File | Prompt |")
+    out.append("| --- | --- | --- | --- |")
+    for a in ALTERNATES:
+        have = "yes" if alt_file(a).exists() else "not yet"
+        note = ALT_NOTES.get(a["id"], "steady, nothing stands out")
+        out.append(f"| {a['chapter']} | `{a['id']}` | {have}; measured: {note} | {a['prompt']} |")
+    out.append("")
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -831,6 +1064,8 @@ def process_music(force=False):
 def validate():
     ids = [s["id"] for s in SFX]
     assert len(ids) == len(set(ids)), "duplicate sfx id"
+    aids = [a["id"] for a in ALTERNATES]
+    assert len(aids) == len(set(aids)), "duplicate alternate id"
     mids = [m["id"] for m in MUSIC]
     assert len(mids) == len(set(mids)), "duplicate music id"
     for m in MUSIC:
@@ -857,13 +1092,31 @@ def main():
                     continue
                 print(f"generating {f} …", flush=True)
                 generate(s, out, key)
+    if "--alternates" in args:
+        key = api_key()
+        force = set(args[args.index("--force") + 1].split(",")) if "--force" in args else set()
+        for a in ALTERNATES:
+            out = alt_file(a)
+            if out.exists() and a["id"] not in force:
+                continue
+            print(f"generating workbench/alt/{out.name} …", flush=True)
+            generate(a, out, key)
+            level_to(out, ALT_LUFS)
+    if "--music-trial" in args:
+        key = api_key()
+        for t in MUSIC_TRIALS:
+            if trial_file(t).exists():
+                continue
+            print(f"generating workbench/music-trials/{trial_file(t).name} …", flush=True)
+            generate_music_trial(t, key)
     if "--music" in args:
         process_music(force="--force" in args)
     # A track is delivered once its processed file is in the game.
     for m in MUSIC:
         if (MUSIC_DIR / f"{m['id']}.mp3").exists():
             m["status"] = "delivered"
-    outputs = {SFX_DOC: build_sfx_doc(), MUSIC_DOC: build_music_doc(), AUDIO_MANIFEST: build_manifest()}
+    outputs = {SFX_DOC: build_sfx_doc(), MUSIC_DOC: build_music_doc(), AUDIO_MANIFEST: build_manifest(),
+               WORKBENCH: build_workbench()}
     if "--check" in args:
         stale = [p for p, t in outputs.items() if not p.exists() or p.read_text(encoding="utf-8") != t]
         for p in stale:
