@@ -19,30 +19,68 @@ Sources:
 
 ## Core loop (what the prototype tests)
 
-| Stroke | Who | Input |
-| --- | --- | --- |
-| **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ←, keys F D A ←, left half of the screen |
-| **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad →, keys J K L →, right half of the screen |
+| Action | Who | Controller | Keyboard | Touch |
+| --- | --- | --- | --- | --- |
+| **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ← | F D A ← | left half of the screen |
+| **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad → | J K L → | right half of the screen |
+| **Guard** | the army's shields | A | Space | tap the bronze drum |
+| **Reset the rhythm** | | Y | R / Backspace | (the phrase fades by itself) |
 
 The two leads' temperaments are built into the controls: Trắc holds the beat and
 Nhị decorates it.
 
-- **Command.** Play four strokes on four consecutive beats. The army answers
-  during the next four beats while the player rests.
-- **Flourish.** During the answer, rim strokes placed exactly between beats add
-  10% power each, up to four. Any other stroke during the answer is a stumble and
-  breaks the chain.
-- **Chain.** Starting the next command on the first beat after the answer keeps
-  the chain going. Four in a row wakes the drum (*trống thức*) and makes every
-  command 1.5× as strong.
+**No metronome; evenness.** A command is a four-beat rhythm, and the player
+plays it at any speed from about 45 to 200 BPM. The reader fits a tempo to the
+strokes and judges whether they are *even*: every gap must match the pattern at
+that tempo, within about ±37% ("perfect" within ±15%). The phrase fades as soon
+as no pattern can still be finished in time, or when a stroke breaks the rhythm.
+Y resets it at once.
 
-| Command | Pattern | Effect | Unlocked |
-| --- | --- | --- | --- |
-| Tiến · March | tùng tùng tùng cắc | advance, stopping at the enemy line | ch. 1 |
-| Đánh · Strike | cắc cắc tùng cắc | spears hit the front enemy; archers shoot | ch. 1 |
-| Thủ · Shields | cắc tùng cắc tùng | take 20% of the damage for three measures | ch. 2 |
-| Hô · Rally | cắc tùng tùng tùng | restore strength | ch. 3 |
-| Voi · Elephant charge | tùng tùng cắc cắc | only with the drum awake: trample everything near the elephant; spends the drum's spirit | ch. 3 |
+**Pairs, triplets and tiers.** A beat can hold one stroke, a pair (two) or a
+triplet (three). Every command has three tiers. Tier I is four plain strokes;
+tiers II and III add pairs and triplets.
+
+**Power.** Each tier is ×1.4 the one below (×1, ×1.4, ×1.96). Evenness scales
+power from ×0.72 at the edge of the window to ×1 when perfect, which covers
+almost the whole gap between tiers. A sloppy tier II still just beats a perfect
+tier I, and a sloppy tier III a perfect tier II. Power also scales with beat
+length (×1 at 100 BPM), so the army does the same work per second whether the
+player drums fast or slow: the Han keep their own war drum.
+
+**The answer.** When a rhythm is accepted, the army answers for four beats at
+the player's tempo:
+- The army's drums play the rhythm back.
+- The figures move on the drummed strokes: march steps, spear thrusts on tùng,
+  arrows loosed on cắc, the elephant's stomps.
+- The accepted pattern stays lit above the drum until it glows ready.
+
+A march or a strike carries on in the same rhythm for up to two more rounds, at
+reduced power (×0.6 and ×0.5), until the player starts the next phrase. Strokes
+during the answer don't start a phrase. Rim strokes between the answer's beats
+are Nhị's flourishes (+10% each, up to four).
+
+**Chain.** Starting the next command within two beats of the drum glowing ready
+keeps the chain. Four in a row wakes the drum (*trống thức*), and every command
+becomes ×1.5 as strong.
+
+**The guard.** Defence is separate from the drum. A Han soldier about to strike
+shows a red "!" one beat of his war drum ahead, ringed by a circle that closes
+on the moment of impact. Guarding within 0.5 s before the blow takes ×0.35 of
+it; within 0.2 s, ×0.1 (a perfect block). The guard then needs about a second
+before it can be raised again. It neither reads nor changes the rhythm, the
+chain or the army's orders. Each Han soldier winds up for one beat before his
+first blow, so the warning always comes first.
+
+| Command | Tier I | Tier II | Tier III | Effect | Unlocked |
+| --- | --- | --- | --- | --- | --- |
+| Tiến · March | `L L L R` | `L L LL R` | `L LLL L R` | advance, stopping at the enemy line | ch. 1 |
+| Đánh · Strike | `R R L R` | `RR R L R` | `RRR R L R` | spears hit the front enemy; archers shoot | ch. 1 |
+| Hô · Rally | `R L L L` | `R LL L L` | `R LLL L L` | restore strength | ch. 3 |
+| Voi · Elephant charge | `L L R R` | `LL L R R` | `LLL L RR R` | only with the drum awake: trample everything near the elephant; spends the drum's spirit | ch. 3 |
+
+In the patterns, L is tùng and R is cắc. Spaces separate the four beats; letters
+written together share a beat. Chapter 1 allows tiers I and II, and the later
+chapters allow all three.
 
 **Chapters:**
 
@@ -50,10 +88,12 @@ Nhị decorates it.
 2. The Outpost on the Hát River: crossbows and a palisade.
 3. The Citadel at Luy Lâu: the war elephant at night.
 
-**Balance check.** The battle tests play every chapter with a scripted drummer.
-A steady, accurate drummer wins all three with a quarter or more of the army
-left. A sloppy drummer (every stroke "good", never waking the drum) still clears
-chapters 1 and 2. Chapter 3 needs the waking drum.
+**Balance check.** The battle tests play every chapter with a scripted player
+who drums a phrase, waits for the answer, and starts the next at once.
+- A steady player using only tier I and guarding loosely (0.4 s early) wins all
+  three chapters with a fifth or more of the army left.
+- Higher tiers win faster, and sharper guarding (0.1 s) saves more of the army.
+- Sloppy drumming, fast or slow, still clears chapters 1 and 2.
 
 ## Structure for the full game
 
@@ -86,7 +126,8 @@ colour the paper carries before the full set is generated.
 
 - **Style.** White paper and lamplight, coloured papers, or shadow theatre
   (style frames S01–S03)?
-- **Music.** The drum carries the rhythm. Is there a score under it (đàn bầu,
-  đàn tranh, gongs), and does it follow each chapter's tempo?
+- **Music.** The player now sets the tempo. Should the score follow the
+  player's speed (stems that stretch, or a set of tempos), or stay with the Han
+  war drum as it does now?
 - **A cultural reader.** Someone Vietnamese should check the costumes, names and
   how the Han are portrayed before production art.

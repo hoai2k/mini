@@ -28,7 +28,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | `call` | Beats 1 and 3 of every answer, under the command's own sound. (hit) | 0.9 s | 3/3 | A group of women warriors shouting one short unison battle cry, 'Hô!', outdoors, fierce and together, a single shout. |
 | `cmd-march` | Tiến (march) answer. (one-shot) | 2.5 s | 1/1 | A company of barefoot soldiers marching in step through the shallow water of a rice paddy: rhythmic splashing and squelching footsteps. |
 | `cmd-strike` | Đánh (strike) answer. (one-shot) | 2.5 s | 1/1 | Bronze-tipped spears thrusting and clashing against wooden shields and armour, a short fierce skirmish of a small group, no voices. |
-| `cmd-shield` | Thủ (shields) answer. (one-shot) | 1.5 s | 1/1 | Many round wooden and hide shields raised together and locked with one heavy hollow thump. |
+| `cmd-shield` | The guard: shields thrown up against a blow (A / Space). (one-shot) | 1.5 s | 1/1 | Many round wooden and hide shields raised together and locked with one heavy hollow thump. |
 | `cmd-rally` | Hô (rally) answer. (one-shot) | 2.5 s | 1/1 | A group of women ululating and cheering together outdoors, a rallying cry rising and falling. |
 | `cmd-charge` | Voi (elephant charge) answer. (one-shot) | 3.0 s | 1/1 | A war elephant trumpets loudly, then charges: heavy thundering footsteps that shake the ground. |
 

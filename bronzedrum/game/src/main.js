@@ -1,7 +1,7 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
-import { DrumReader, COMMANDS, SPIRIT_COMBO } from './rhythm.js';
-import { createBattle, issueOrder, addFlourish, stepBeat, commandPower, blocker } from './battle.js';
+import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, commandById, parsePattern } from './rhythm.js';
+import { createBattle, issueOrder, addFlourish, stepArmy, stepEnemies, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { Sound } from './audio.js';
 import { Input } from './input.js';
@@ -30,7 +30,7 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, metronome: 50, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
+const settings = load('settings', { volume: 80, echo: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false });
 // The prototype opens every chapter for review; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
 
@@ -44,7 +44,6 @@ const input = new Input(canvas);
 
 function applySettings() {
   sound.setVolume(settings.volume / 100);
-  sound.metronome = settings.metronome / 100;
   sound.setAmbience(settings.ambience / 100);
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
@@ -227,19 +226,24 @@ function buildCards() {
 
 function buildCommandTable() {
   const t = $('#cmd-table');
-  t.innerHTML = '<tr><th>Drum</th><th>Command</th><th>Effect</th></tr>';
+  t.innerHTML = '<tr><th>Command</th><th>I</th><th>II · ×1.4</th><th>III · ×1.96</th></tr>';
   const effects = {
     march: 'Advance (stops at the enemy line).',
     strike: 'Spears hit the front enemy; archers shoot.',
-    shield: 'Take a fifth of the damage for three measures.',
     rally: 'Restore the army’s strength.',
     charge: 'Only when the drum is awake: the elephant tramples everything near it. The charge spends the drum’s spirit.',
   };
+  const cell = (text) =>
+    text
+      .split(' ')
+      .map((beat) => {
+        const dots = [...beat].map((d) => `<span class="${d === 'L' ? 'g-l' : 'g-r'}${beat.length > 1 ? ' sub' : ''}"></span>`).join('');
+        return beat.length > 1 ? `<span class="group g${beat.length}">${dots}</span>` : dots;
+      })
+      .join(' ');
   for (const c of COMMANDS) {
     const tr = document.createElement('tr');
-    const glyphs = [...c.pattern].map((d) => `<span class="${d === 'L' ? 'g-l' : 'g-r'}"></span>`).join(' ');
-    const words = [...c.pattern].map((d) => (d === 'L' ? 'tùng' : 'cắc')).join(' ');
-    tr.innerHTML = `<td>${glyphs}<br><small>${words}</small></td><td><strong>${c.name}</strong> · ${c.gloss}</td><td>${effects[c.id]}</td>`;
+    tr.innerHTML = `<td><strong>${c.name}</strong> · ${c.gloss}<br><small>${effects[c.id]}</small></td>${c.tiers.map((x) => `<td class="pat">${cell(x)}</td>`).join('')}`;
     t.appendChild(tr);
   }
 }
@@ -248,25 +252,34 @@ function buildCommandTable() {
 
 let game = null;
 
+// The army keeps a march or a strike going in the player's
+// groove for up to this many extra four-beat cycles, at reduced power, until
+// the next phrase starts. Rally and charge happen once.
+const SUSTAIN = { march: 0.6, strike: 0.5 };
+const SUSTAIN_CYCLES = 2;
+
 function startStage(i) {
   const stage = STAGES[i];
   sound.start();
-  const beatDur = 60 / stage.bpm;
   game = {
     index: i,
     stage,
-    beatDur,
-    reader: new DrumReader({ beatDur, unlocked: stage.unlocked }),
+    hanBeat: 60 / stage.bpm, // the Han war drum keeps the chapter's tempo
+    reader: new DrumReader({ unlocked: stage.unlocked, maxTier: stage.maxTier }),
     battle: createBattle(stage),
-    songStart: sound.now + 0.6,
-    nextTick: 0,
-    nextStep: 0,
-    pending: null,
+    clockStart: sound.now + 0.6,
+    nextHan: 1,
+    armyBeats: [], // { t, order? } on the player's beats
+    cycle: null, // the army's current four-beat cycle
+    echoes: [], // scheduled echo-drum sources, cancelled when a new phrase starts
     feedback: null,
     ended: false,
     introUntil: 7,
     commandsDone: 0,
+    tiersUsed: new Set(),
     flourishTaught: false,
+    guards: 0,
+    blocks: 0,
   };
   renderer.setStage(stage);
   sound.loadSamples().then(() => {
@@ -277,17 +290,17 @@ function startStage(i) {
 }
 
 function songTime() {
-  return sound.now - game.songStart;
+  return sound.now - game.clockStart;
 }
 
-/** Map an input timestamp (performance clock) onto the heard song clock. */
+/** Map an input timestamp (performance clock) onto the heard game clock. */
 function hitTime(perfMs) {
   const ctx = sound.ctx;
   let heard;
   const ts = ctx && ctx.getOutputTimestamp ? ctx.getOutputTimestamp() : null;
   if (ts && ts.performanceTime > 0) heard = ts.contextTime + (perfMs - ts.performanceTime) / 1000;
   else heard = sound.now - (performance.now() - perfMs) / 1000 - sound.latency;
-  return heard - game.songStart - settings.offset / 1000;
+  return heard - game.clockStart - settings.offset / 1000;
 }
 
 function feedback(text, color) {
@@ -298,53 +311,104 @@ input.on('drum', ({ drum, time }) => {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   const t = hitTime(time);
   if (drum === 'L') sound.tung();
-  else sound.cac(undefined, game.reader.inResponse(t));
+  else sound.cac(undefined, game.reader.busy(t));
   renderer.hit(drum, songTime());
   input.rumble(drum === 'L' ? 50 : 30, drum === 'L' ? 0.6 : 0.3);
   for (const ev of game.reader.hit(drum, t)) handleRhythm(ev);
 });
 
+input.on('action', ({ action, time }) => {
+  if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  if (action === 'reset') {
+    for (const ev of game.reader.reset()) handleRhythm(ev);
+  } else if (action === 'guard') {
+    const t = hitTime(time);
+    if (guard(game.battle, t)) {
+      sound.play('cmd-shield', sound.now, 0.7);
+      input.rumble(40, 0.3);
+      game.guards += 1;
+    }
+  }
+});
+
+/**
+ * Start one of the army's four-beat cycles at the player's tempo: four army
+ * beats, the command's sound, two shouts, and the echo drums replaying the
+ * pattern. Later cycles of a sustained order are quieter and weaker.
+ */
+function startCycle(c) {
+  const g = game;
+  g.cycle = c;
+  for (let k = 0; k < 4; k++) g.armyBeats.push({ t: c.start + k * c.u, order: k === 0 ? c : null });
+  const at = g.clockStart + c.start;
+  if (c.index === 0) {
+    if (sound.has('call')) {
+      sound.play(`cmd-${c.command}`, at);
+      sound.call(at);
+      sound.call(at + 2 * c.u);
+    } else {
+      for (let k = 0; k < 4; k++) sound.call(at + k * c.u, 1 + k * 0.06 + (c.spirit ? 0.2 : 0));
+    }
+  }
+  // The army's drums answer with the same pattern, at the same speed.
+  const level = (settings.echo / 100) * (c.index === 0 ? 0.55 : 0.4);
+  for (const s of c.pattern.strokes) {
+    const src = sound.echo(s.drum, at + s.pos * c.u, level);
+    if (src) g.echoes.push(src);
+  }
+}
+
+/** The player has started a new phrase: the army stops keeping the old groove. */
+function endSustain() {
+  const g = game;
+  const t = songTime();
+  g.armyBeats = g.armyBeats.filter((b) => b.t <= t);
+  for (const src of g.echoes) {
+    try {
+      src.stop();
+    } catch {
+      /* already finished */
+    }
+  }
+  g.echoes = [];
+  if (g.cycle && g.cycle.index > 0) g.battle.order = null;
+  g.cycle = null;
+}
+
 function handleRhythm(ev) {
   const g = game;
-  if (ev.type === 'hit') {
-    if (ev.grade === 'perfect') feedback('Perfect', P.bronzeLight);
-    else if (ev.grade === 'good') feedback('Good', P.paper);
-    else {
-      feedback('Off the beat', P.lacquer);
-      sound.miss();
-    }
+  if (ev.type === 'phraseStart') {
+    endSustain();
   } else if (ev.type === 'command') {
+    const c = commandById(ev.command);
     if (ev.command === 'charge') {
       // The elephant answers only a waking drum, and the charge spends it.
       if (!ev.spirit) {
         feedback('The elephant waits for the drum to wake', P.paperShade);
+        g.reader.action = null;
+        g.reader.shown = null;
         return;
       }
       g.reader.combo = 0;
     }
-    const power = commandPower(ev.accuracy, ev.spirit);
-    g.pending = { beat: ev.responseStart, command: ev.command, power };
-    const answer = g.songStart + ev.responseStart * g.beatDur;
-    if (sound.has('call')) {
-      // Samples: the command's own sound under two unison shouts.
-      sound.play(`cmd-${ev.command}`, answer);
-      sound.call(answer);
-      sound.call(answer + 2 * g.beatDur);
-    } else {
-      for (let k = 0; k < 4; k++) sound.call(answer + k * g.beatDur, 1 + k * 0.06 + (ev.spirit ? 0.2 : 0));
-    }
+    const power = commandPower(ev.accuracy, ev.spirit, TIER_POWER[ev.tier - 1]) * tempoFactor(ev.u);
+    startCycle({ command: ev.command, pattern: ev.pattern, tier: ev.tier, u: ev.u, start: ev.start, power, index: 0, spirit: ev.spirit });
+    const bpm = Math.round(60 / ev.u);
+    feedback(`${ev.even ? 'Even!' : 'Good'}  ${c.name} ${['', 'I', 'II', 'III'][ev.tier]} · ${bpm} BPM`, ev.even ? P.bronzeLight : P.paper);
     if (ev.spirit && ev.combo === SPIRIT_COMBO) {
       toast('Trống thức — the drum wakes!');
       sound.play('drum-wake');
     }
     g.commandsDone += 1;
+    g.tiersUsed.add(ev.tier);
   } else if (ev.type === 'flourish') {
     addFlourish(g.battle);
     feedback(`Nhị’s flourish ×${ev.count}`, P.lacquer);
     g.flourishTaught = true;
-  } else if (ev.type === 'stumble') {
-    feedback('Stumble — the army is answering', P.lacquer);
-    sound.miss();
+  } else if (ev.type === 'reset') {
+    if (ev.reason === 'manual') feedback('Rhythm cleared', P.paperShade);
+    else if (ev.reason !== 'no-pattern' && ev.strokes >= 2) feedback(ev.reason === 'timeout' ? 'The rhythm fades' : 'Uneven — start again', P.paperShade);
+    if (ev.reason === 'no-pattern') sound.miss();
   } else if (ev.type === 'comboLost') {
     if (ev.combo > 1) feedback('Chain broken', P.paperShade);
   }
@@ -360,22 +424,25 @@ function hint(view) {
     gamepad: { L: 'LB', R: 'RB' },
     pointer: { L: 'left', R: 'right' },
   }[input.device] || { L: 'F', R: 'J' };
-  const say = (id) => {
-    const c = COMMANDS.find((k) => k.id === id);
-    return `${c.name}: ${[...c.pattern].map((d) => keys[d]).join(' ')}`;
+  const say = (id, tier = 1) => {
+    const c = commandById(id);
+    const text = c.tiers[tier - 1].split(' ').map((beat) => [...beat].map((d) => keys[d]).join(input.device === 'pointer' ? '-' : '')).join(' ');
+    return `${c.name}${tier > 1 ? ' ' + ['', 'I', 'II', 'III'][tier] : ''}: ${text}`;
   };
   const b = g.battle;
   const front = blocker(b);
   const near = front && front.x - b.army.x <= 4.6;
   if (g.index === 0) {
-    if (g.commandsDone === 0) return `Drum on the beat — ${say('march')} (tùng tùng tùng cắc)`;
-    if (near) return `In reach — ${say('strike')}`;
-    if (g.commandsDone >= 3 && !g.flourishTaught) return `While they answer, tap ${keys.R} between beats for Nhị’s flourish`;
-    if (g.commandsDone < 4) return `Keep marching — ${say('march')}`;
+    if (g.commandsDone === 0) return `Drum evenly, at any speed — ${say('march')}`;
+    if (near) return g.tiersUsed.has(2) ? `In reach — ${say('strike')}  or  ${say('strike', 2)}` : `In reach — ${say('strike')}`;
+    if (!g.tiersUsed.has(2)) return `Stronger: two quick strokes share a beat — ${say('march', 2)}`;
+    if (g.commandsDone >= 3 && !g.flourishTaught) return `While they answer, tap ${keys.R} between their beats for Nhị’s flourish`;
     return null;
   }
+  const guardKey = { keyboard: 'Space', gamepad: 'A', pointer: 'tap the drum' }[input.device] || 'Space';
+  if (g.index > 0 && view.threats.length && g.blocks < 3 && !view.shieldsUp) return `“!” — guard (${guardKey}) as the red ring closes`;
   if (g.index === 1 && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
-    return `Crossbows! ${say('shield')}`;
+    return `Triplets hit hardest — ${say('strike', 3)}`;
   }
   if (g.index === 2 && b.army.troops < b.army.maxTroops * 0.5) return `Wounded — ${say('rally')}`;
   if (g.index === 2 && near && g.reader.spirit) return `The drum is awake — ${say('charge')}`;
@@ -385,27 +452,34 @@ function hint(view) {
 function updatePlay(dt) {
   const g = game;
   const t = songTime();
-  // Metronome, scheduled slightly ahead on the audio clock.
-  while (g.nextTick * g.beatDur < t + 0.15) {
-    sound.tick(g.songStart + g.nextTick * g.beatDur, g.nextTick % 4 === 0);
-    g.nextTick += 1;
-  }
   for (const ev of g.reader.update(t)) handleRhythm(ev);
-  // Step the battle on each beat.
-  while (g.nextStep * g.beatDur <= t && !g.ended) {
-    const beat = g.nextStep++;
-    if (g.pending && g.pending.beat === beat) {
-      issueOrder(g.battle, g.pending.command, g.pending.power);
-      g.pending = null;
-    }
-    const events = stepBeat(g.battle);
-    renderer.spawn(events, view());
-    for (const ev of events) {
-      battleSound(ev);
-      if (ev.type === 'trample') input.rumble(300, 1);
-      if (ev.type === 'wound' && !ev.shielded) input.rumble(80, 0.4);
-      if (ev.type === 'outcome') finish(ev.outcome);
-    }
+  // A sustained order rolls into its next cycle unless a new phrase began.
+  const c = g.cycle;
+  if (c && t >= c.start + 4 * c.u - 0.15 && !g.reader.phrase.length) {
+    const keep = SUSTAIN[c.command];
+    if (keep && c.index < SUSTAIN_CYCLES && !g.ended) {
+      startCycle({ ...c, start: c.start + 4 * c.u, power: (c.index === 0 ? c.power * keep : c.power), index: c.index + 1 });
+    } else if (t >= c.start + 4 * c.u) g.cycle = null;
+  }
+  const events = [];
+  // The army on the player's beats.
+  while (g.armyBeats.length && g.armyBeats[0].t <= t && !g.ended) {
+    const beat = g.armyBeats.shift();
+    if (beat.order) issueOrder(g.battle, beat.order.command, beat.order.power, beat.order.u);
+    events.push(...stepArmy(g.battle, beat.t));
+  }
+  // The Han on their war drum.
+  while (g.nextHan * g.hanBeat <= t && !g.ended && !g.battle.outcome) {
+    events.push(...stepEnemies(g.battle, g.nextHan * g.hanBeat));
+    g.nextHan += 1;
+  }
+  if (events.length) renderer.spawn(events, view());
+  for (const ev of events) {
+    battleSound(ev);
+    if (ev.type === 'trample') input.rumble(300, 1);
+    if (ev.type === 'wound' && !ev.shielded) input.rumble(80, 0.4);
+    if (ev.type === 'wound' && ev.block) g.blocks += 1;
+    if (ev.type === 'outcome') finish(ev.outcome);
   }
   renderer.draw(view(), dt);
 }
@@ -446,17 +520,43 @@ function battleSound(ev) {
 function view() {
   const g = game;
   const t = songTime();
+  const r = g.reader;
+  const c = g.cycle;
+  // The army's beat when it is answering; otherwise a slow idle sway.
+  const beatFloat = c ? (t - c.start) / c.u : t / 0.8;
+  let phraseView = null;
+  let heron = -1;
+  if (r.shown) {
+    phraseView = { pattern: r.shown.pattern, filled: Infinity, done: true, sustain: false };
+  } else if (r.phrase.length) {
+    const best = r.progress();
+    if (best) {
+      phraseView = { pattern: best.pattern, filled: r.phrase.length, done: false };
+      heron = Math.floor(best.pattern.strokes[r.phrase.length - 1].pos);
+    }
+  }
+  if (c && t >= c.start) heron = Math.floor(beatFloat) % 4;
   const v = {
     battle: g.battle,
     songTime: t,
-    beatFloat: t / g.beatDur,
-    phrase: g.reader.phrase.map((h) => h.drum),
+    beatFloat,
+    heron,
+    phraseView,
+    ready: !r.action && !r.phrase.length,
+    shieldsUp: shieldsUp(g.battle, t),
+    // The army's current cycle, so the animation can follow the drummed strokes.
+    cycle: c && t >= c.start - 0.05 ? { start: c.start, u: c.u, command: c.command, strokes: c.pattern.strokes } : null,
+    threats: aboutToAttack(g.battle),
+    nextHanAt: g.nextHan * g.hanBeat, // when the threatened blows land
+    hanBeat: g.hanBeat,
+    sustaining: !!(c && c.index > 0 && !r.phrase.length),
     inResponse: !!g.battle.order,
     responseCommand: g.battle.order ? g.battle.order.command : null,
-    combo: g.reader.combo,
-    spirit: g.reader.spirit,
+    combo: r.combo,
+    spirit: r.spirit,
     feedback: g.feedback,
     unlocked: g.stage.unlocked,
+    maxTier: g.stage.maxTier,
   };
   v.hint = hint(v);
   return v;
@@ -476,7 +576,7 @@ function finish(outcome) {
       ? game.index === STAGES.length - 1
         ? 'Luy Lâu falls and the governor flees north. The drum has spoken — for now. (End of the prototype.)'
         : 'The drum carries across the water. More villages will answer.'
-      : 'The women fall back to regroup. Listen to the beat and raise shields when the crossbows aim.';
+      : 'The women fall back to regroup. Guard just before each blow lands — watch the red ring close.';
     $('#result-next').hidden = !won || game.index >= STAGES.length - 1;
     show('result');
   }, 1600);
@@ -621,6 +721,6 @@ async function boot() {
 }
 
 // Debug hooks for automated checks.
-window.__bronzeDrum = { get game() { return game; }, startStage, STAGES, songTime: () => (game ? songTime() : null) };
+window.__bronzeDrum = { get game() { return game; }, renderer, startStage, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
 
 boot();

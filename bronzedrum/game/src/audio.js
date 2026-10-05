@@ -1,15 +1,14 @@
 // Sound. Effects are samples generated with ElevenLabs and listed in
 // assets/audio.json (built by design/source/build_audio.py); until a sample has
 // loaded, or if it is missing, a synthesised stand-in plays instead: a bronze
-// drum (deep "tùng" with an inharmonic metal ring, dry rim "cắc"), a soft
-// metronome and short army calls.
+// drum (deep "tùng" with an inharmonic metal ring, dry rim "cắc") and short
+// army calls.
 
 export class Sound {
   constructor() {
     this.ctx = null;
     this.master = null;
     this.volume = 0.8;
-    this.metronome = 0.5;
     this.ambienceLevel = 0.6;
     this.samples = new Map(); // id -> { buffers, gain, loop }
     this.ambience = null;
@@ -49,12 +48,13 @@ export class Sound {
   }
 
   /** Play a sample (a random variant) at audio time t. Returns false if it is not loaded. */
-  play(id, t = this.now, gain = 1, dest = this.master) {
+  play(id, t = this.now, gain = 1, dest = this.master, rate = 1) {
     const s = this.samples.get(id);
     if (!this.ctx || !s) return false;
     const src = this.ctx.createBufferSource();
     src.buffer = s.buffers[Math.floor(Math.random() * s.buffers.length)];
     src.loop = s.loop;
+    src.playbackRate.value = rate;
     const g = this.ctx.createGain();
     g.gain.value = s.gain * gain;
     src.connect(g).connect(dest);
@@ -180,9 +180,25 @@ export class Sound {
     this.tone('sine', 1243, t, 0.1 * k, 0.25);
   }
 
-  tick(t, accent) {
-    if (!this.ctx || this.metronome <= 0) return;
-    this.tone('sine', accent ? 1320 : 990, t, 0.12 * this.metronome, 0.04);
+  /**
+   * The army's drums echoing a stroke: the same bronze drum, a little lower
+   * and softer, so the player can tell their own strokes from the answer.
+   * Returns the source so a cancelled answer can be silenced.
+   */
+  echo(drum, t, level) {
+    if (!this.ctx || level <= 0) return null;
+    const id = drum === 'L' ? 'drum-tung' : 'drum-cac';
+    const src = this.play(id, t, level, this.master, 0.9);
+    if (src) return src;
+    // Stand-in: a short low tone.
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.frequency.value = drum === 'L' ? 95 : 1500;
+    this.env(g, t, 0.5 * level, drum === 'L' ? 0.3 : 0.06);
+    o.connect(g).connect(this.master);
+    o.start(t);
+    o.stop(t + 0.4);
+    return o;
   }
 
   /** The army answers: a short rising vocal shout. */

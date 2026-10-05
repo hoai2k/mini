@@ -1,5 +1,7 @@
 // Stage data. Positions are in field units; the army starts at x = 0 and
-// the camera shows about 24 units across.
+// the camera shows about 24 units across. bpm is the Han war drum's tempo
+// (how often the enemy acts); the player drums at any speed they like.
+// maxTier is the most intricate rhythm tier the chapter allows.
 
 export const STAGES = [
   {
@@ -10,6 +12,7 @@ export const STAGES = [
       'Before the war, the sisters learn the drum. Trắc keeps the deep centre, Nhị the rim. Teach the women to march and strike, then cut down the straw targets.',
     bpm: 92,
     unlocked: ['march', 'strike'],
+    maxTier: 2,
     troops: 60,
     elephant: false,
     sky: 'dawn',
@@ -25,9 +28,10 @@ export const STAGES = [
     title: 'The Outpost on the Hát River',
     subtitle: 'The drums answer',
     intro:
-      'Villages along the river have heard the drum. Break the Han outpost that guards the ford. Raise shields when the crossbows aim.',
+      'Villages along the river have heard the drum. Break the Han outpost that guards the ford. When a crossbow takes aim, guard just before the bolts land.',
     bpm: 96,
-    unlocked: ['march', 'strike', 'shield'],
+    unlocked: ['march', 'strike'],
+    maxTier: 3,
     troops: 100,
     elephant: false,
     sky: 'day',
@@ -48,7 +52,8 @@ export const STAGES = [
     intro:
       'The governor’s seat. The sisters ride the war elephant with the great drum on its back. Rally the wounded, and when the drum wakes, charge.',
     bpm: 100,
-    unlocked: ['march', 'strike', 'shield', 'rally', 'charge'],
+    unlocked: ['march', 'strike', 'rally', 'charge'],
+    maxTier: 3,
     troops: 120,
     elephant: true,
     sky: 'night',

@@ -94,6 +94,11 @@ body.reduce-motion .press-start { animation: none; }
 .g-l, .g-r { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin: 0 1px; }
 .g-l { background: var(--bronze-light); border: 1px solid var(--bronze); }
 .g-r { border: 3px solid var(--lacquer); }
+.g-l.sub, .g-r.sub { width: 10px; height: 10px; margin: 0; }
+.g-r.sub { border-width: 2px; }
+.group { display: inline-flex; gap: 2px; padding-bottom: 3px; border-bottom: 1.5px solid var(--ink); vertical-align: -3px; position: relative; }
+.group.g3::after { content: "3"; position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); font-size: 10px; }
+.cmd-table td.pat { white-space: nowrap; }
 .pad-diagram { color: var(--ink); background: var(--paper-shade); padding: 8px; }
 .pad-diagram svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
 .row { display: grid; grid-template-columns: 1fr 160px 48px; align-items: center; gap: 10px; font-weight: 600; }

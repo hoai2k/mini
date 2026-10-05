@@ -1,59 +1,125 @@
-// Drum reading: turns timed hits on the two drums into commands.
+// Drum reading: turns timed strokes on the two drums into commands.
 //
 // Trưng Trắc plays the deep centre of the drum ("tùng", L); Trưng Nhị plays
-// the rim ("cắc", R). A command is four hits on four consecutive beats. The
-// army answers during the next four beats (the response measure); in that
-// measure Trắc rests and Nhị may add rim flourishes on the off-beats. Any other
-// hit during the response breaks the rhythm. Chaining a new command on the
-// first beat after a response keeps the combo; four in a row wakes the drum.
+// the rim ("cắc", R). A command is a four-beat pattern. There is no fixed
+// metronome: the player sets the tempo, and what is judged is how *even* the
+// strokes are — every gap has to match the pattern's rhythm at the player's
+// own speed. A beat can hold one stroke, a pair (two strokes) or a triplet
+// (three); each command has three tiers, and the more intricate tiers are
+// stronger.
 //
-// Everything here is pure: times are seconds on the song clock, so the module
-// runs unchanged under node --test.
+// When a command is accepted the army answers for four beats at the player's
+// tempo (the action cycle). Strokes during the answer do not start a phrase;
+// rim strokes placed between the answer's beats are Nhị's flourishes. When the
+// answer ends the drum is ready again, and starting the next phrase within two
+// beats keeps the chain; four in a row wakes the drum.
+//
+// Everything here is pure (times in seconds), so it runs under node --test.
 
 export const TUNG = 'L';
 export const CAC = 'R';
 
-export const WINDOWS = { perfect: 0.07, good: 0.14 };
+/** Evenness windows, as |log2(actual gap / expected gap)|. */
+export const WINDOWS = {
+  perfect: 0.2, // about ±15%
+  good: 0.45, // about ±37%
+};
+/** Seconds per beat the player may drum at: about 200 down to 45 BPM. */
+export const TEMPO = { min: 0.3, max: 1.33 };
 export const SPIRIT_COMBO = 4;
 export const MAX_FLOURISHES = 4;
+// Each tier is 1.4× the one below, and precision (see PRECISION) spans just
+// under that ratio: the sloppiest playing of a tier still edges out a perfect
+// playing of the tier below, and everything between is down to evenness.
+export const TIER_POWER = [1, 1.4, 1.96];
+export const PRECISION = { min: 0.72, max: 1 };
+const EARLY_GRACE = 0.25; // beats before "ready" that already start a phrase
+const CHAIN_WINDOW = 2; // beats after "ready" to keep the chain
 
+// Beats are separated by spaces; strokes in one beat share it evenly.
 export const COMMANDS = [
-  { id: 'march', name: 'Tiến', gloss: 'March', pattern: 'LLLR' },
-  { id: 'strike', name: 'Đánh', gloss: 'Strike', pattern: 'RRLR' },
-  { id: 'shield', name: 'Thủ', gloss: 'Shields', pattern: 'RLRL' },
-  { id: 'rally', name: 'Hô', gloss: 'Rally', pattern: 'RLLL' },
-  { id: 'charge', name: 'Voi', gloss: 'Elephant charge', pattern: 'LLRR' },
+  { id: 'march', name: 'Tiến', gloss: 'March', tiers: ['L L L R', 'L L LL R', 'L LLL L R'] },
+  { id: 'strike', name: 'Đánh', gloss: 'Strike', tiers: ['R R L R', 'RR R L R', 'RRR R L R'] },
+  { id: 'rally', name: 'Hô', gloss: 'Rally', tiers: ['R L L L', 'R LL L L', 'R LLL L L'] },
+  { id: 'charge', name: 'Voi', gloss: 'Elephant charge', tiers: ['L L R R', 'LL L R R', 'LLL L RR R'] },
 ];
+
+/** Expand "L LL R ..." into strokes with positions in beats. */
+export function parsePattern(text) {
+  const strokes = [];
+  text.split(' ').forEach((beat, b) => {
+    [...beat].forEach((drum, i) => strokes.push({ drum, pos: b + i / beat.length }));
+  });
+  return strokes;
+}
+
+/** Every playable pattern: one per command and tier. */
+export function allPatterns(unlocked = COMMANDS.map((c) => c.id), maxTier = 3) {
+  const out = [];
+  for (const c of COMMANDS) {
+    if (!unlocked.includes(c.id)) continue;
+    c.tiers.slice(0, maxTier).forEach((text, i) => {
+      const strokes = parsePattern(text);
+      out.push({ command: c.id, tier: i + 1, text, strokes, drums: strokes.map((s) => s.drum).join('') });
+    });
+  }
+  return out;
+}
 
 export function commandById(id) {
   return COMMANDS.find((c) => c.id === id);
 }
 
-/** Snap a time to the nearest beat and grade the error. */
-export function judge(time, beatDur, windows = WINDOWS) {
-  const beat = Math.round(time / beatDur);
-  const error = time - beat * beatDur;
-  const abs = Math.abs(error);
-  const grade = abs <= windows.perfect ? 'perfect' : abs <= windows.good ? 'good' : 'miss';
-  return { beat, error, grade };
+/** Error of one gap: |log2(actual / expected)|. */
+function gapError(actual, expected) {
+  return Math.abs(Math.log2(Math.max(1e-6, actual) / expected));
 }
 
-/** Snap to the nearest half beat; `offbeat` is true on the "and" counts. */
-export function judgeHalf(time, beatDur, windows = WINDOWS) {
-  const half = Math.round(time / (beatDur / 2));
-  const error = time - half * (beatDur / 2);
-  return { half, offbeat: half % 2 !== 0, error, ok: Math.abs(error) <= windows.good };
+/**
+ * How well the strokes so far fit the start of a pattern, at whatever tempo
+ * they imply. Returns null when they cannot be this pattern.
+ */
+export function fit(pattern, strokes, windows = WINDOWS) {
+  const k = strokes.length;
+  if (k > pattern.strokes.length) return null;
+  for (let i = 0; i < k; i++) if (strokes[i].drum !== pattern.strokes[i].drum) return null;
+  const p = pattern.strokes;
+  if (k === 1) return { u: null, maxErr: 0, meanErr: 0, complete: k === p.length };
+  const u = (strokes[k - 1].t - strokes[0].t) / (p[k - 1].pos - p[0].pos);
+  if (u < TEMPO.min * 0.85 || u > TEMPO.max * 1.15) return null;
+  let maxErr = 0;
+  let sum = 0;
+  for (let i = 1; i < k; i++) {
+    const e = gapError(strokes[i].t - strokes[i - 1].t, u * (p[i].pos - p[i - 1].pos));
+    maxErr = Math.max(maxErr, e);
+    sum += e;
+  }
+  if (maxErr > windows.good) return null;
+  return { u, maxErr, meanErr: sum / (k - 1), complete: k === p.length };
+}
+
+/** Accuracy from 1 (every gap even) down to 0 (every gap at the edge of the window). */
+export function accuracyOf(meanErr, windows = WINDOWS) {
+  if (meanErr <= windows.perfect) return 1;
+  return Math.max(0, 1 - (meanErr - windows.perfect) / (windows.good - windows.perfect));
+}
+
+/** The power multiplier precision gives: ×0.72 at the edge, ×1 when even. */
+export function precisionFactor(accuracy) {
+  return PRECISION.min + (PRECISION.max - PRECISION.min) * accuracy;
 }
 
 export class DrumReader {
-  constructor({ beatDur, unlocked = COMMANDS.map((c) => c.id), windows = WINDOWS }) {
-    this.beatDur = beatDur;
+  constructor({ unlocked = COMMANDS.map((c) => c.id), maxTier = 3, windows = WINDOWS } = {}) {
     this.windows = windows;
-    this.unlocked = new Set(unlocked);
-    this.phrase = [];
+    this.patterns = allPatterns(unlocked, maxTier);
+    this.phrase = []; // { drum, t }
+    this.pending = null; // a complete match waiting to see whether a longer pattern follows
+    this.action = null; // { command, tier, pattern, u, start, ready }
+    this.shown = null; // the accepted pattern, kept on screen until ready
     this.combo = 0;
-    this.response = null; // { startBeat, endBeat } — endBeat exclusive
-    this.lastResponseEnd = null;
+    this.chainUntil = null; // the next phrase must start before this to chain
+    this.chainArmed = false;
     this.flourishes = 0;
   }
 
@@ -61,86 +127,148 @@ export class DrumReader {
     return this.combo >= SPIRIT_COMBO;
   }
 
-  /** True while `time` falls inside the army's response measure. */
-  inResponse(time) {
-    if (!this.response) return false;
-    const g = this.windows.good;
-    return time >= this.response.startBeat * this.beatDur - g && time < this.response.endBeat * this.beatDur - g;
+  /** The drum is busy with the army's answer at time t. */
+  busy(t) {
+    return !!this.action && t < this.action.ready - EARLY_GRACE * this.action.u;
   }
 
-  /** Register a hit; returns the events it caused. */
-  hit(drum, time) {
-    const events = [];
-    if (this.inResponse(time)) {
-      const h = judgeHalf(time, this.beatDur, this.windows);
-      if (drum === CAC && h.offbeat && h.ok && this.flourishes < MAX_FLOURISHES) {
-        this.flourishes += 1;
-        events.push({ type: 'flourish', count: this.flourishes, time });
-      } else {
-        events.push({ type: 'stumble', drum, time });
-        this.loseCombo(events);
-      }
-      return events;
+  /** Candidate patterns that the current phrase still fits. */
+  candidates() {
+    const out = [];
+    for (const p of this.patterns) {
+      const f = fit(p, this.phrase, this.windows);
+      if (f) out.push({ pattern: p, ...f });
     }
+    return out;
+  }
 
-    const j = judge(time, this.beatDur, this.windows);
-    events.push({ type: 'hit', drum, time, ...j });
-    if (j.grade === 'miss') {
-      this.phrase = [];
-      this.loseCombo(events);
-      return events;
-    }
-
+  /** Latest time the next stroke may come for any open candidate. */
+  deadline(cands = this.candidates()) {
     const last = this.phrase[this.phrase.length - 1];
-    if (last && j.beat === last.beat + 1) this.phrase.push({ drum, ...j });
-    else this.phrase = [{ drum, ...j }];
+    let latest = -Infinity;
+    for (const c of cands) {
+      if (c.complete) continue;
+      const k = this.phrase.length;
+      const gap = c.pattern.strokes[k].pos - c.pattern.strokes[k - 1].pos;
+      const u = c.u ?? TEMPO.max;
+      latest = Math.max(latest, last.t + u * gap * 2 ** this.windows.good);
+    }
+    return latest;
+  }
 
-    if (this.phrase.length >= 4) {
-      const four = this.phrase.slice(-4);
-      const pattern = four.map((h) => h.drum).join('');
-      const command = COMMANDS.find((c) => c.pattern === pattern && this.unlocked.has(c.id));
-      if (command) {
-        const startBeat = four[0].beat;
-        const accuracy = four.reduce((sum, h) => sum + (h.grade === 'perfect' ? 1 : 0.6), 0) / 4;
-        const chained = this.lastResponseEnd !== null && startBeat === this.lastResponseEnd;
-        this.combo = chained ? this.combo + 1 : 1;
-        this.response = { startBeat: j.beat + 1, endBeat: j.beat + 5 };
-        this.lastResponseEnd = this.response.endBeat;
-        this.flourishes = 0;
-        this.phrase = [];
-        events.push({
-          type: 'command',
-          command: command.id,
-          startBeat,
-          responseStart: this.response.startBeat,
-          accuracy,
-          combo: this.combo,
-          spirit: this.spirit,
-        });
+  hit(drum, t) {
+    const events = [];
+    if (this.busy(t)) {
+      // Nhị's flourish: a rim stroke between two of the answer's beats.
+      const a = this.action;
+      const phase = (((t - a.start) / a.u) % 1 + 1) % 1;
+      if (drum === CAC && t >= a.start - 0.25 * a.u && Math.abs(phase - 0.5) <= 0.22 && this.flourishes < MAX_FLOURISHES) {
+        this.flourishes += 1;
+        events.push({ type: 'flourish', count: this.flourishes, t });
       } else {
-        this.phrase = this.phrase.slice(-3);
+        events.push({ type: 'early', drum, t });
+      }
+      return events;
+    }
+
+    if (!this.phrase.length) {
+      // A new phrase. Starting soon after "ready" keeps the chain.
+      this.chainArmed = this.chainUntil !== null && t <= this.chainUntil;
+      this.shown = null;
+      events.push({ type: 'phraseStart', t, chained: this.chainArmed });
+    }
+    this.phrase.push({ drum, t });
+    events.push({ type: 'stroke', drum, t, index: this.phrase.length - 1 });
+
+    let cands = this.candidates();
+    if (!cands.length) {
+      // This stroke does not continue the phrase; maybe it starts a new one.
+      const dropped = this.phrase.length - 1;
+      this.phrase = [{ drum, t }];
+      this.pending = null;
+      cands = this.candidates();
+      if (dropped > 0) events.push({ type: 'reset', strokes: dropped, reason: 'uneven' });
+      if (!cands.length) {
+        this.phrase = [];
+        events.push({ type: 'reset', strokes: 1, reason: 'no-pattern' });
+        return events;
       }
     }
+    const complete = cands.filter((c) => c.complete).sort((a, b) => a.meanErr - b.meanErr);
+    const open = cands.filter((c) => !c.complete);
+    if (complete.length && !open.length) events.push(...this.accept(complete[0], t));
+    else this.pending = complete[0] || null;
     return events;
   }
 
-  /** Advance the clock: ends responses and drops a combo that was not chained. */
-  update(time) {
+  /** Advance the clock: accept a pending match, fade an abandoned phrase, end answers. */
+  update(t) {
     const events = [];
-    if (this.response && time >= this.response.endBeat * this.beatDur - this.windows.good) {
-      events.push({ type: 'responseEnd', endBeat: this.response.endBeat, flourishes: this.flourishes });
-      this.response = null;
+    if (this.phrase.length && t > this.deadline()) {
+      if (this.pending) events.push(...this.accept(this.pending, t));
+      else {
+        events.push({ type: 'reset', strokes: this.phrase.length, reason: 'timeout' });
+        this.phrase = [];
+      }
     }
-    if (this.combo > 0 && !this.response && this.lastResponseEnd !== null) {
-      const deadline = this.lastResponseEnd * this.beatDur + this.windows.good;
-      const startedChain = this.phrase.length > 0 && this.phrase[0].beat === this.lastResponseEnd;
-      if (time > deadline && !startedChain) this.loseCombo(events);
+    if (this.action && t >= this.action.ready) {
+      events.push({ type: 'ready', t: this.action.ready, command: this.action.command });
+      this.chainUntil = this.action.ready + CHAIN_WINDOW * this.action.u;
+      this.shown = null;
+      this.action = null;
+    }
+    if (this.combo > 0 && !this.action && !this.phrase.length && this.chainUntil !== null && t > this.chainUntil) {
+      events.push({ type: 'comboLost', combo: this.combo });
+      this.combo = 0;
+      this.chainUntil = null;
     }
     return events;
   }
 
-  loseCombo(events) {
-    if (this.combo > 0) events.push({ type: 'comboLost', combo: this.combo });
-    this.combo = 0;
+  accept(c, now) {
+    const p = c.pattern;
+    const t0 = this.phrase[0].t;
+    const u = c.u;
+    const accuracy = accuracyOf(c.meanErr, this.windows);
+    this.combo = this.chainArmed ? this.combo + 1 : 1;
+    this.chainUntil = null;
+    // The answer starts on the beat after the pattern's fourth.
+    const start = Math.max(t0 + 4 * u, now + 0.05);
+    this.action = { command: p.command, tier: p.tier, pattern: p, u, start, ready: start + 4 * u };
+    this.shown = { pattern: p, strokes: this.phrase.slice(), accuracy };
+    this.phrase = [];
+    this.pending = null;
+    this.flourishes = 0;
+    return [
+      {
+        type: 'command',
+        command: p.command,
+        tier: p.tier,
+        pattern: p,
+        u,
+        accuracy,
+        even: c.maxErr <= this.windows.perfect,
+        start,
+        ready: start + 4 * u,
+        combo: this.combo,
+        spirit: this.spirit,
+      },
+    ];
+  }
+
+  /** Drop the phrase being played (the player's reset button). */
+  reset() {
+    if (!this.phrase.length) return [];
+    const strokes = this.phrase.length;
+    this.phrase = [];
+    this.pending = null;
+    return [{ type: 'reset', strokes, reason: 'manual' }];
+  }
+
+  /** Strokes so far placed on the most likely pattern (for the HUD). */
+  progress() {
+    if (!this.phrase.length) return null;
+    const cands = this.candidates().sort((a, b) => a.meanErr - b.meanErr || a.pattern.strokes.length - b.pattern.strokes.length);
+    return cands[0] || null;
   }
 }
