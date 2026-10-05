@@ -32,11 +32,11 @@ Bronze Drum is a rhythm game: the player drums at any speed they like (about 45 
 
 | Id | Title | Priority | Kind | When it plays | Length | Loops | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `mu-title` | Trống Đồng (title theme) | core | theme | Title screen, looping. | about 90 s | yes | requested |
-| `mu-select` | Two Sisters (chapter select) | core | theme | Chapter-select screen, looping. | about 90 s | yes | requested |
-| `mu-bed-battle` | Battle bed (all battles) | core | bed | Under every battle chapter (the Garden, the Outpost, Luy Lâu, Mã Viện Returns) unless that chapter has its own bed. | about 2 min | yes | requested |
-| `mu-bed-story` | Story bed (all story chapters) | core | bed | Under every story chapter (the Oath, Casting the Drums, the Villages, the Coronation) unless that chapter has its own bed. | about 2 min | yes | requested |
-| `mu-ending` | The Drums Are Melted (ending) | core | piece | Under the epilogue (unless it has its own bed) and on the final results screen. | about 3 min | no | requested |
+| `mu-title` | Trống Đồng (title theme) | core | theme | Title screen, looping. | about 90 s | yes | delivered |
+| `mu-select` | Two Sisters (chapter select) | core | theme | Chapter-select screen, looping. | about 90 s | yes | delivered |
+| `mu-bed-battle` | Battle bed (all battles) | core | bed | Under every battle chapter (the Garden, the Outpost, Luy Lâu, Mã Viện Returns) unless that chapter has its own bed. | about 2 min | yes | delivered |
+| `mu-bed-story` | Story bed (all story chapters) | core | bed | Under every story chapter (the Oath, Casting the Drums, the Villages, the Coronation) unless that chapter has its own bed. | about 2 min | yes | delivered |
+| `mu-ending` | The Drums Are Melted (ending) | core | piece | Under the epilogue (unless it has its own bed) and on the final results screen. | about 3 min | no | delivered |
 | `mu-bed-oath` | The Oath (bed) | maybe | bed | Under chapter 2, the father's funeral, while the mourning drum calls. | about 2 min | yes | requested |
 | `mu-bed-garden` | The Garden at Mê Linh (bed) | optional | bed | Under chapter 1, the training battle, quietly under the ambience. | about 2 min | yes | requested |
 | `mu-bed-foundry` | Casting the Drums (bed) | optional | bed | Under chapter 3, in the foundry, while the player holds a steady hammer rhythm. | about 2 min | yes | requested |

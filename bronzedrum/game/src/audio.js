@@ -4,6 +4,40 @@
 // drum (deep "tùng" with an inharmonic metal ring, dry rim "cắc") and short
 // army calls.
 
+// Seconds a looping track crossfades into its next round.
+const MUSIC_XFADE = 3;
+
+/**
+ * Move a gain to `to` over `dur` seconds along an equal-power curve, taking
+ * over from whatever fade it is in the middle of.
+ */
+function glide(ctx, param, to, dur) {
+  const t = ctx.currentTime;
+  const from = param.value;
+  if (param.cancelAndHoldAtTime) param.cancelAndHoldAtTime(t);
+  else {
+    param.cancelScheduledValues(t);
+    param.setValueAtTime(from, t);
+  }
+  try {
+    param.setValueCurveAtTime(fadeCurve(from, to), t + 0.005, Math.max(0.02, dur));
+  } catch {
+    param.cancelScheduledValues(t);
+    param.setValueAtTime(from, t);
+    param.linearRampToValueAtTime(to, t + dur);
+  }
+}
+
+/** An equal-power fade from a to b (sine/cosine), so a crossfade never dips. */
+function fadeCurve(a, b, n = 64) {
+  const c = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * (Math.PI / 2);
+    c[i] = a > b ? b + (a - b) * Math.cos(x) : a + (b - a) * Math.sin(x);
+  }
+  return c;
+}
+
 export class Sound {
   constructor() {
     this.ctx = null;
@@ -96,12 +130,20 @@ export class Sound {
 
   setMusic(v) {
     this.musicLevel = v;
-    if (this.music) this.music.gain.gain.setTargetAtTime(Math.max(0.0001, v * this.music.level), this.ctx.currentTime, 0.1);
+    if (!this.music) return;
+    // Only the voice that is not fading out follows the slider.
+    const cur = this.music.current;
+    if (cur && !cur.out && !cur.el.paused) glide(this.ctx, cur.gain.gain, v * this.music.level, 0.15);
   }
 
   /**
    * Crossfade to a track. id may be a list: the first track whose file exists
    * plays (a chapter's own bed, else the shared one). level scales it.
+   *
+   * A looping track with loop points (from build_audio.py) never just
+   * restarts: just before loopEnd a second voice starts at loopStart and the
+   * two crossfade over MUSIC_XFADE seconds, so the track's own fade-out, its
+   * fade-in and the gap browsers leave when an MP3 loops are never heard.
    */
   playMusic(id, { level = 1, fade = 1.2 } = {}) {
     if (!this.ctx) return;
@@ -110,27 +152,85 @@ export class Sound {
     this.stopMusic(fade);
     const m = this.musicFiles.get(id);
     if (!m) return;
-    const el = new Audio(`${this.base}${m.file}`);
-    el.loop = !!m.loop;
+    const music = { id, m, level, voices: new Set(), current: null, next: null };
+    this.music = music;
+    music.current = this.voice(music, 0, fade);
+    music.timer = setInterval(() => this.loopTick(music), 100);
+  }
+
+  /** One playing copy of a track, from `from` seconds, fading in over `fade`. */
+  voice(music, from, fade, start = true) {
+    const el = new Audio(`${this.base}${music.m.file}${from ? `#t=${from}` : ''}`);
+    el.preload = 'auto';
+    // Without loop points, fall back to the element's own loop.
+    el.loop = !!music.m.loop && !music.m.loopEnd;
     el.crossOrigin = 'anonymous';
     const src = this.ctx.createMediaElementSource(el);
     const gain = this.ctx.createGain();
-    const t = this.ctx.currentTime;
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, this.musicLevel * level), t + fade);
+    gain.gain.value = 0.0001;
     src.connect(gain).connect(this.master);
-    el.play().catch(() => {});
-    this.music = { id, el, gain, level };
+    const v = { el, gain, from, out: false, endAt: Infinity };
+    music.voices.add(v);
+    if (start) this.startVoice(music, v, fade);
+    return v;
+  }
+
+  startVoice(music, v, fade) {
+    v.gain.gain.value = 0;
+    glide(this.ctx, v.gain.gain, this.musicLevel * music.level, fade);
+    if (v.from && Math.abs(v.el.currentTime - v.from) > 0.25) {
+      try {
+        v.el.currentTime = v.from;
+      } catch {
+        /* the #t= fragment already placed it */
+      }
+    }
+    v.el.play().catch(() => {});
+  }
+
+  fadeOutVoice(music, v, fade) {
+    v.out = true;
+    glide(this.ctx, v.gain.gain, 0, fade);
+    v.endAt = this.ctx.currentTime + fade + 0.05;
+  }
+
+  /** Hand a looping track over to its next voice, and retire faded voices. */
+  loopTick(music) {
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    const m = music.m;
+    const cur = music.current;
+    if (m.loop && m.loopEnd && cur && !cur.out && this.music === music) {
+      const left = m.loopEnd - cur.el.currentTime;
+      // Get the next copy loading a few seconds ahead, so it starts on time.
+      if (!music.next && left < MUSIC_XFADE + 6) music.next = this.voice(music, m.loopStart || 0, MUSIC_XFADE, false);
+      if (left <= MUSIC_XFADE && music.next) {
+        this.fadeOutVoice(music, cur, MUSIC_XFADE);
+        this.startVoice(music, music.next, MUSIC_XFADE);
+        music.current = music.next;
+        music.next = null;
+      }
+    }
+    for (const v of music.voices) {
+      if (this.ctx.currentTime >= v.endAt) {
+        v.el.pause();
+        v.el.removeAttribute('src');
+        music.voices.delete(v);
+      }
+    }
+    if (this.music !== music && !music.voices.size) clearInterval(music.timer);
   }
 
   stopMusic(fade = 0.8) {
     if (!this.music || !this.ctx) return;
-    const { el, gain } = this.music;
-    const t = this.ctx.currentTime;
-    gain.gain.cancelScheduledValues(t);
-    gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + fade);
-    setTimeout(() => el.pause(), fade * 1000 + 50);
+    const music = this.music;
+    for (const v of music.voices) {
+      if (v === music.next) {
+        music.voices.delete(v);
+        continue;
+      }
+      if (!v.out) this.fadeOutVoice(music, v, fade);
+    }
+    music.next = null;
     this.music = null;
   }
 
@@ -149,8 +249,14 @@ export class Sound {
   /** Pause and resume with the game (the audio clock suspends; elements do not). */
   pauseMusic(paused) {
     if (!this.music) return;
-    if (paused) this.music.el.pause();
-    else this.music.el.play().catch(() => {});
+    for (const v of this.music.voices) {
+      if (v === this.music.next) continue;
+      if (paused) v.el.pause();
+      else v.el.play().catch(() => {});
+    }
+    // The volume may have changed in Settings while paused.
+    const cur = this.music.current;
+    if (!paused && cur && !cur.out) glide(this.ctx, cur.gain.gain, this.musicLevel * this.music.level, 0.3);
   }
 
   setAmbience(v) {

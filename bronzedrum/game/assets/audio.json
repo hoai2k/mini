@@ -263,5 +263,44 @@
       "loop": true
     }
   },
-  "music": {}
+  "music": {
+    "mu-title": {
+      "file": "music/mu-title.mp3",
+      "loop": true,
+      "kind": "theme",
+      "duration": 88.4,
+      "loopEnd": 85.0,
+      "loopStart": 0.0
+    },
+    "mu-select": {
+      "file": "music/mu-select.mp3",
+      "loop": true,
+      "kind": "theme",
+      "duration": 153.0,
+      "loopEnd": 151.5,
+      "loopStart": 0.0
+    },
+    "mu-bed-battle": {
+      "file": "music/mu-bed-battle.mp3",
+      "loop": true,
+      "kind": "bed",
+      "duration": 118.16,
+      "loopEnd": 114.5,
+      "loopStart": 2.0
+    },
+    "mu-bed-story": {
+      "file": "music/mu-bed-story.mp3",
+      "loop": true,
+      "kind": "bed",
+      "duration": 122.0,
+      "loopEnd": 119.5,
+      "loopStart": 2.5
+    },
+    "mu-ending": {
+      "file": "music/mu-ending.mp3",
+      "loop": false,
+      "kind": "piece",
+      "duration": 179.96
+    }
+  }
 }
