@@ -301,145 +301,163 @@
       "id": "sky-dusk",
       "request": "BD-B10",
       "file": "art/sky-dusk.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sky-dusk.webp"
     },
     {
       "id": "sky-foundry",
       "request": "BD-B11",
       "file": "art/sky-foundry.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sky-foundry.webp"
     },
     {
       "id": "sky-ash",
       "request": "BD-B12",
       "file": "art/sky-ash.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/sky-ash.webp"
     },
     {
       "id": "card-oath",
       "request": "BD-U10",
       "file": "art/card-oath.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-oath.webp"
     },
     {
       "id": "card-casting",
       "request": "BD-U11",
       "file": "art/card-casting.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-casting.webp"
     },
     {
       "id": "card-villages",
       "request": "BD-U12",
       "file": "art/card-villages.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-villages.webp"
     },
     {
       "id": "card-coronation",
       "request": "BD-U13",
       "file": "art/card-coronation.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-coronation.webp"
     },
     {
       "id": "card-mavien",
       "request": "BD-U14",
       "file": "art/card-mavien.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-mavien.webp"
     },
     {
       "id": "card-elegy",
       "request": "BD-U15",
       "file": "art/card-elegy.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-elegy.webp"
     },
     {
       "id": "prop-altar",
       "request": "BD-P01",
       "file": "art/prop-altar.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-altar.webp"
     },
     {
       "id": "prop-mourning-drummer",
       "request": "BD-P02",
       "file": "art/prop-mourning-drummer.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-mourning-drummer.webp"
     },
     {
       "id": "prop-festival-drummers",
       "request": "BD-P03",
       "file": "art/prop-festival-drummers.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-festival-drummers.webp"
     },
     {
       "id": "prop-village-house",
       "request": "BD-P04",
       "file": "art/prop-village-house.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-village-house.webp"
     },
     {
       "id": "prop-lantern",
       "request": "BD-P05",
       "file": "art/prop-lantern.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-lantern.webp"
     },
     {
       "id": "prop-bronze-drum",
       "request": "BD-P06",
       "file": "art/prop-bronze-drum.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-bronze-drum.webp"
     },
     {
       "id": "prop-furnace",
       "request": "BD-P07",
       "file": "art/prop-furnace.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-furnace.webp"
     },
     {
       "id": "prop-mould",
       "request": "BD-P08",
       "file": "art/prop-mould.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-mould.webp"
     },
     {
       "id": "prop-drum-cast",
       "request": "BD-P09",
       "file": "art/prop-drum-cast.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "story",
-      "runtime": true
+      "runtime": true,
+      "web": "web/prop-drum-cast.webp"
     }
   ]
 }

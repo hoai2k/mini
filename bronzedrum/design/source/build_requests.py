@@ -543,7 +543,7 @@ for sky, name, chapters, light in [
     req(ST, f"BD-B1{['dusk', 'foundry', 'ash'].index(sky)}", f"sky-{sky}", f"Sky: {name}",
         f"{chapters}. The furthest backdrop, like BD-B01 to BD-B03.",
         "2560x1440, opaque; keep the lower third plain, it is covered by hills",
-        "stand-in", "Renderer.buildSky", f"art/sky-{sky}.png",
+        "delivered", "Renderer.buildSky", f"art/sky-{sky}.png",
         f"{STYLE} Backdrop of {light}. Sky only, no land.")
 
 for i, (cid, name, scene) in enumerate([
@@ -557,7 +557,7 @@ for i, (cid, name, scene) in enumerate([
     req(ST, f"BD-U{10 + i}", f"card-{cid}", f"Chapter card: {name}",
         "Background band of the chapter-select card.",
         "1600x900, opaque; the band is cropped from the middle, so keep the subject central",
-        "stand-in", "buildCards (plain paper)", f"art/card-{cid}.png",
+        "delivered", "buildCards (plain paper)", f"art/card-{cid}.png",
         f"{STYLE} A wide cut-paper vignette: {scene}.")
 
 PROP = (
@@ -607,7 +607,7 @@ for rid, asset, title, purpose, spec, prompt in [
      "A freshly cast bronze kettle drum still glowing faintly orange at the edges, clay mould "
      "pieces broken away around its foot, the sun-star crisp on its top."),
 ]:
-    req(ST, rid, asset, title, purpose, spec, "stand-in", "Renderer.scene", f"art/{asset}.png",
+    req(ST, rid, asset, title, purpose, spec, "delivered", "Renderer.scene", f"art/{asset}.png",
         f"{STYLE} {prompt}")
 
 for rid, title, purpose, file, prompt in [
@@ -629,7 +629,7 @@ for rid, title, purpose, file, prompt in [
      "line of Lạc Việt women raises star-cut shields. Grave, red-violet sky, iron grey and "
      "lacquer red. The Han are dignified, not caricatured."),
 ]:
-    req(ST, rid, None, title, purpose, "3840x2160, opaque", "reference", None, file, f"{STYLE} {prompt}")
+    req(ST, rid, None, title, purpose, "3840x2160, opaque", "delivered", None, file, f"{STYLE} {prompt}")
 
 # ------------------------------------------------------------------ output
 
