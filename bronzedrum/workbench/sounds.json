@@ -801,6 +801,12 @@
       "title": "The Drums Are Melted (ending)",
       "kind": "piece",
       "file": "music/mu-ending.mp3"
+    },
+    {
+      "id": "mu-anthem",
+      "title": "Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song)",
+      "kind": "song",
+      "file": "music/mu-anthem.mp3"
     }
   ],
   "alternates": [

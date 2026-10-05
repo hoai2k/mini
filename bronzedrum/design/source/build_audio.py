@@ -771,8 +771,11 @@ track("mu-ending", "The Drums Are Melted (ending)", "piece",
       "pentatonic. About 3 minutes. It should feel like dawn on a river after a loss. "
       f"{AVOID}",
       priority="core")
-track("mu-anthem", "Song of the Two Queens (vocal song)", "song",
-      "Trailer and end credits; not used in the prototype.",
+# Delivered: "Trống Đồng Vang Dới Đất Trời" (Bronze drums ring through earth
+# and sky) by hoai2k, 3 min, made outside ElevenLabs; the master is kept as
+# design/music-masters/mu-anthem.mp3.
+track("mu-anthem", "Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song)", "song",
+      "The Coronation's success moment (the two queens crowned); later the trailer and end credits.",
       "about 3 min 30 s", False,
       "vietnamese folk ballad, quan ho female duet, dan tranh, dan bau, bronze drums in chorus, modern cinematic folk, 84 bpm",
       f"A folk ballad in Vietnamese {GAME}: two queens who rode elephants and beat the bronze "

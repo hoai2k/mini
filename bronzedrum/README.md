@@ -58,7 +58,9 @@ python3 ../design/source/build_rigs.py --check
 
 The five core tracks are delivered: the title theme (`mu-title`), the chapter
 select (`mu-select`), the battle and story beds (`mu-bed-battle`,
-`mu-bed-story`) and the ending (`mu-ending`). The rest of
+`mu-bed-story`) and the ending (`mu-ending`). The anthem, the Song of the Two
+Queens (`mu-anthem`, *Trống Đồng Vang Dới Đất Trời*), plays on the
+Coronation's success moment. The rest of
 [`design/music-requests.md`](design/music-requests.md) is optional; each
 chapter falls back to the shared bed until its own arrives.
 

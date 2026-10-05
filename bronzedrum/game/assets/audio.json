@@ -407,6 +407,12 @@
       "loop": false,
       "kind": "piece",
       "duration": 179.96
+    },
+    "mu-anthem": {
+      "file": "music/mu-anthem.mp3",
+      "loop": false,
+      "kind": "song",
+      "duration": 178.79
     }
   }
 }

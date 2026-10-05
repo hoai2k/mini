@@ -50,7 +50,7 @@ Bronze Drum is a rhythm game: the player drums at any speed they like (about 45 
 | `mu-victory` | Victory sting | optional | sting | Results screen after a battle chapter is won. | about 8 s | no | requested |
 | `mu-complete` | Chapter complete sting | optional | sting | Results screen after a story chapter (no battle) is completed. | about 8 s | no | requested |
 | `mu-defeat` | Defeat sting | optional | sting | Results screen after a battle chapter is lost. | about 8 s | no | requested |
-| `mu-anthem` | Song of the Two Queens (vocal song) | optional | song | Trailer and end credits; not used in the prototype. | about 3 min 30 s | no | requested |
+| `mu-anthem` | Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song) | optional | song | The Coronation's success moment (the two queens crowned); later the trailer and end credits. | about 3 min 30 s | no | delivered |
 
 ## mu-title · Trống Đồng (title theme)
 
@@ -268,9 +268,9 @@ Results screen after a battle chapter is lost.
 
 > An 8-second defeat sting for a video game about the Trưng sisters, who led an army of women in an uprising against Han rule in ancient Vietnam around 40 CE, staged as a backlit paper-cut theatre: the monochord (đàn bầu) plays a single falling, bending phrase over a low drone and a dark modern string pad, ending unresolved. Sorrowful but not hopeless. A minor pentatonic. No percussion, no lyrics. Avoid Chinese or Japanese instrument colour (no guzheng, erhu, pipa, koto, shakuhachi), rock or trap drums, EDM drops and trailer-style braams.
 
-## mu-anthem · Song of the Two Queens (vocal song)
+## mu-anthem · Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song)
 
-Trailer and end credits; not used in the prototype.
+The Coronation's success moment (the two queens crowned); later the trailer and end credits.
 
 - **Priority:** optional · **Kind:** song · **Length:** about 3 min 30 s · **Loops:** no
 - **File:** `bronzedrum/game/assets/music/mu-anthem.mp3`

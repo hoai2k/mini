@@ -1097,7 +1097,9 @@ function finish(outcome) {
     setTimeout(() => {
       if (!game || screen !== 'play') return;
       const peaceful = game.mode !== 'battle';
-      sound.playMusic(game.stage.id === 'elegy' ? 'mu-ending' : peaceful ? 'mu-complete' : 'mu-victory', { fade: 0.3 });
+      // The two queens crowned: their song, Trống Đồng Vang Dới Đất Trời (mu-anthem).
+      const tune = { elegy: 'mu-ending', coronation: ['mu-anthem', 'mu-complete'] }[game.stage.id] || (peaceful ? 'mu-complete' : 'mu-victory');
+      sound.playMusic(tune, { fade: 0.3 });
       sound.play('drum-wake', sound.now, 0.7);
       game.success = { t: songTime() };
       renderer.celebrate(game.stage, songTime());
