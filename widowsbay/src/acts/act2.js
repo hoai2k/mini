@@ -64,6 +64,22 @@ export const DRAGON = { cx: 640, cy: 3460, ax: 320, ay: 200, period: 16 };
 // The guitar's line down: [y, x] waypoints.
 const GUITAR_PATH = [[0, 880], [700, 760], [1300, 640], [1700, 520], [2100, 720], [2500, 560], [2900, 640], [3300, 640], [3700, 560], [4100, 640]];
 
+// Scenes, for checkpoints and the scene select. Scenes 1-3 begin in the
+// bubbles of a vent partway down; `y` is where the sailor starts.
+export const SCENES = [
+  { name: 'The Wreck Shelf' },
+  { name: 'Into the Grotto', vent: 0 },
+  { name: 'The Deep Caves', vent: 2 },
+  { name: "The Dragon's Floor", vent: 3 },
+  { name: "The Witch's Offer" },
+  { name: 'The Moon-Boat Ride' },
+];
+// The descent scene a depth belongs to (0..3), by vent boundaries.
+const SCENE_Y = [0, 800, 2400, 3150]; // just above each scene's vent spot
+export const sceneAt = (y) => SCENE_Y.reduce((k, y0, i) => (y >= y0 ? i : k), 0);
+// Where the sailor stands in a vent's bubbles.
+const ventSpot = (i) => ({ x: VENTS[i][0], y: VENTS[i][1] - 120 });
+
 export const RIDE = { boatX: 470, speed: 300, pearls: 16 };
 
 // ---------------------------------------------------------------- helpers
@@ -103,9 +119,12 @@ export default {
   id: 2, key: 'grotto', kicker: 'Act II', title: "The Sleepers' Grotto", size: 110,
   sub: 'Follow the sinking guitar down.\nSound the conch horns to wake the drowned.',
   action: 'A: kick',
+  scenes: SCENES,
 
-  create({ carry = {} } = {}) {
-    return {
+  // `from` (optional): { scene } to start at a scene, plus the fields of a
+  // checkpoint this act made (see `snapshot`).
+  create({ carry = {}, from = null } = {}) {
+    const st = {
       status: 'play', statusT: 0, events: [], result: null,
       phase: 'open', phaseT: 0, t: 0, hzT: 0, beat: 0,
       tea: (carry.tea || 0) >= 3,
@@ -122,8 +141,39 @@ export default {
       vents: VENTS.map(([x, y]) => ({ x, y })),
       omens: [],
       offer: null, rose: false, choice: null, roseRisers: 0,
-      ride: null, lastSnap: null,
+      ride: null, lastSnap: null, checkpoint: null,
     };
+    const k = Math.max(0, Math.min(SCENES.length - 1, from?.scene | 0));
+    if (k <= 0) return st;
+    // Progress: a checkpoint's data, or nothing (zero score and pearls).
+    st.score = from.score ?? 0; st.pearls = from.pearls ?? 0; st.woken = from.woken ?? 0;
+    (from.sleepers || []).forEach((i) => { const sl = st.sleepers[i]; if (sl) { sl.state = 'rising'; sl.t = 6; } });
+    (from.conches || []).forEach((i) => { if (st.conches[i]) st.conches[i].used = true; });
+    (from.clams || []).forEach((n, i) => { if (st.clams[i]) st.clams[i].got = n; });
+    st.phase = 'swim'; st.phaseT = 0; st.hzT = 3; st.air = 1; st.lanterns = 3;
+    const s = st.sailor, g = st.guitar;
+    s.wake = 1; s.grace = TUNE.grace; // a moment to settle in; hazards start afresh
+    if (k <= 3) {
+      const v = ventSpot(SCENES[k].vent);
+      s.x = from.x ?? v.x; s.y = from.y ?? v.y;
+      g.y = Math.min(REST.y, Math.max(from.gy ?? 0, s.y + 160), s.y + 700); g.x = guitarX(g.y);
+      st.cam = clamp(s.y - 230, 0, CAM_MAX);
+      st.inVent = ventAt(st);
+    } else {
+      s.x = from.x ?? REST.x; s.y = from.y ?? REST.y - 40;
+      g.x = REST.x; g.y = REST.y; g.settled = true; g.held = true;
+      st.cam = CAM_MAX;
+      st.hornT = 0;
+      if (k === 4) { st.phase = 'offer'; st.offer = { said: false }; }
+      else {
+        st.choice = from.choice ?? 'refuse'; st.rose = st.choice === 'take';
+        if (st.rose) { st.massWoken = true; for (const sl of st.sleepers) if (sl.state === 'asleep') { sl.state = 'rising'; sl.t = 6; st.woken++; } }
+        st.phase = 'ride'; st.ride = { row: 1, from: 1, rowT: 1, pearls: ridePearls() };
+        st.events.push({ type: 'rideStart' });
+      }
+    }
+    st.checkpoint = { ...from, scene: k };
+    return st;
   },
 
   step(st, dt, input = {}) {
@@ -227,6 +277,7 @@ function stepSwim(st, dt, input) {
       g.held = true; st.score += 200;
       st.events.push({ type: 'guitarCatch' });
       setPhase(st, 'offer'); st.offer = { said: false };
+      st.checkpoint = snapshot(st, 4, s.x, Math.min(s.y, FLOOR - 60), REST.y);
     }
   }
 
@@ -238,8 +289,16 @@ function stepSwim(st, dt, input) {
   st.cam += (target - st.cam) * clamp(dt * 4, 0, 1);
 
   // Air: drains, refills in a vent's bubbles; empty costs a lantern.
-  const vent = st.vents.some((v) => Math.abs(s.x - v.x) < TUNE.ventW && s.y < v.y + 10 && s.y > v.y - TUNE.ventH);
-  if (vent && !st.inVent) st.events.push({ type: 'airVent' });
+  const vent = ventAt(st);
+  if (vent && !st.inVent) {
+    st.events.push({ type: 'airVent' });
+    // Each vent reached is a checkpoint: a retry starts in its bubbles.
+    if (!offering) {
+      const i = st.vents.findIndex((v) => Math.abs(s.x - v.x) < TUNE.ventW && s.y < v.y + 10 && s.y > v.y - TUNE.ventH);
+      const sp = ventSpot(i);
+      if (!st.checkpoint || (st.checkpoint.y ?? 0) <= sp.y) st.checkpoint = snapshot(st, sceneAt(sp.y), sp.x, sp.y, Math.max(g.y, sp.y + 160));
+    }
+  }
   st.inVent = vent;
   if (!offering) {
     if (vent) st.air = Math.min(1, st.air + TUNE.airRefill * dt);
@@ -319,6 +378,20 @@ function stepSwim(st, dt, input) {
       else if (input.b || s.y < FLOOR - 470) choose(st, 'refuse');
     }
   }
+}
+
+const ventAt = (st) => st.vents.some((v) => Math.abs(st.sailor.x - v.x) < TUNE.ventW && st.sailor.y < v.y + 10 && st.sailor.y > v.y - TUNE.ventH);
+
+// A checkpoint: plain JSON with everything create() needs to put him back.
+function snapshot(st, scene, x, y, gy) {
+  const idx = (list, f) => list.map((q, i) => (f(q) ? i : -1)).filter((i) => i >= 0);
+  return {
+    scene, x: Math.round(x), y: Math.round(y), gy: Math.round(gy),
+    score: st.score, pearls: st.pearls, woken: st.woken,
+    sleepers: idx(st.sleepers, (q) => q.state !== 'asleep'),
+    conches: idx(st.conches, (c) => c.used),
+    clams: st.clams.map((c) => c.got),
+  };
 }
 
 function keepInBounds(st) {
@@ -401,6 +474,7 @@ function stepChoice(st, dt, input) {
     setPhase(st, 'ride');
     st.ride = { row: 1, from: 1, rowT: 1, pearls: ridePearls() };
     st.events.push({ type: 'rideStart' });
+    st.checkpoint = { ...snapshot(st, 5, REST.x, REST.y - 40, REST.y), choice: st.choice };
   }
 }
 

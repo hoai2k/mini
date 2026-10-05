@@ -87,6 +87,36 @@ in Act II.
 Until the curtain is 90% open, the shell sends zero movement and no presses
 (the beat still comes).
 
+**Scenes and checkpoints.** Losing never sends the player back to the top
+of the act: the retry starts at the latest checkpoint. The same scenes make
+up the scene select in the menu.
+
+- `scenes`: the act's scenes in story order, `[{ name }, ...]`. Scene 0 is
+  the start of the act. A scene is a place worth starting from: just past a
+  key item, a new stretch of the stage, the start of a cutscene that leads
+  into the next part.
+- `create({ seed, carry, from })`. `from` is `null` (start of the act) or
+  `{ scene: k, ...data }`. With only `scene`, which is what the scene select
+  sends, start scene k with sensible defaults. The act's key items that lie
+  before scene k count as already gathered (Act I's leaves, Act II's guitar,
+  Act IV's stone, Act V's beloved when carrying her). Score, pearls and
+  optional extras start at zero. With data, which is a checkpoint the act
+  made itself, restore exactly that progress.
+- `state.checkpoint`: `null`, or `{ scene: k, ...data }`. Set it, as a new
+  object, whenever the player passes a point worth resuming from, such as
+  picking up a key item, reaching a new stretch or entering the next part.
+  `data` holds whatever `create` needs to put the player back there: what
+  they have gathered (for example which pearls are taken, which sleepers are
+  woken, whether they hold the stone), their score and pearls, and where to
+  stand. It must be plain JSON, with no Sets, functions or class instances,
+  because the shell copies it with `JSON.parse(JSON.stringify(...))` and
+  notes the highest scene reached in the save. The player resumes with full
+  lanterns; hazards start afresh. `create` from a checkpoint should set
+  `state.checkpoint` to that same checkpoint (`{ ...from, scene: k }`), so a
+  second loss returns to the same place.
+
+Test it in the browser with `?qa&act=N&scene=k`.
+
 **`hud(state)`** returns
 `{ lanterns, maxLanterns: 3, pearls, progress: 0..1 | null, keepsakes: [{ id, have }] }`,
 or `null` to hide the HUD (during cutscenes). Keepsake ids that have icons:

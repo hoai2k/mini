@@ -112,6 +112,19 @@ export function shoreTimes(n) {
   return { crawl, out, gap, slide, tail: slide + 1.4, end: slide + 5 };
 }
 
+// Scenes, for checkpoints and the scene select. Each begins on a fixed ledge
+// (`on`, standing at `x`) just past a lantern's stretch of the stage. The stone
+// lies before scene 5, so scene 5 starts with it gathered.
+export const SCENES = [
+  { name: 'The Belly', on: 'bank', x: 260 },
+  { name: 'The Rib Ledges', on: 'L1', x: 1320 },
+  { name: 'The Wreck Field', on: 'L3', x: 2940 },
+  { name: 'The Far Wreckage', on: 'L5', x: 3980 },
+  { name: 'The Ribcage', on: 'L6', x: 5450 },
+  { name: 'The Throat', on: 'lip', x: 5960 },
+];
+const STONE_SCENE = 5;
+
 // ---------------------------------------------------------------- machines
 const cyc = (beat) => ((beat % BREATH_BEATS) + BREATH_BEATS) % BREATH_BEATS;
 
@@ -161,7 +174,11 @@ export default {
   sub: 'Swallowed whole. Ride the wreckage up on the whale\'s breath\nand climb to the daylight in its throat.',
   action: 'A: leap',
 
-  create({ carry = {} } = {}) {
+  scenes: SCENES,
+
+  // `from` (optional): { scene } to start at a scene, or a checkpoint this act
+  // made: { scene, on, x, stone, got, pearls, score, hits }.
+  create({ carry = {}, from = null } = {}) {
     const st = {
       status: 'play', statusT: 0, events: [], result: null,
       phase: 'climb', phaseT: 0, t: 0, beat: 0, lastBeat: null,
@@ -174,10 +191,25 @@ export default {
       water: WATER.mean, breath: breath(0), tilt: 0, tiltV: 0,
       s: { x: 260, y: 300, vx: 0, vy: 0, face: 1, on: 'bank', onT: 0, coyote: 0, buffer: 0, safe: 'bank', walk: 0, air: false },
       cam: { x: 0, y: 0 },
-      best: 0,
+      best: 0, scene: 0, checkpoint: null,
     };
+    const k = Math.max(0, Math.min(SCENES.length - 1, from?.scene | 0));
+    if (k > 0 || from?.on) {
+      const sc = SCENES[k], on = from.on ?? sc.on, led = LEDGES.find((l) => l.id === on) || LEDGES.find((l) => l.id === sc.on);
+      const x = clamp(from.x ?? sc.x, led.x0 + 15, led.x1 - 15);
+      st.scene = k;
+      st.stone = from.stone ?? k >= STONE_SCENE;
+      for (const i of from.got || []) if (st.pearlsLeft[i]) st.pearlsLeft[i].got = true;
+      st.pearls = from.pearls ?? 0; st.score = from.score ?? 0; st.hits = from.hits ?? 0;
+      Object.assign(st.s, { x, y: led.y, on: led.id, safe: led.id, onT: 1 });
+      st.best = x; st.grace = GRACE;
+      st.checkpoint = { ...from, scene: k };
+    }
     settle(st, 0);
     for (const f of st.floaters) f.prevTop = f.top;
+    st.cam.x = clamp(st.s.x - 560, 0, W - 1280);
+    st.cam.y = clamp(Math.min(st.s.y, 440) - 300, CAM_Y_MIN, 0);
+    st.camInit = true;
     return st;
   },
 
@@ -310,6 +342,10 @@ function climb(st, dt, input) {
   s.x = clamp(s.x + s.vx * dt, WALL[0], WALL[1]);
   if (s.on && s.onT > 0.25) s.safe = s.on;
   st.best = Math.max(st.best, s.x);
+  // A new scene begins when the sailor stands on its ledge.
+  if (s.on && s.onT > 0.25) {
+    for (let k = SCENES.length - 1; k > st.scene; k--) if (s.on === SCENES[k].on) { st.scene = k; saveCheckpoint(st, k, SCENES[k].on, SCENES[k].x); break; }
+  }
 
   // Hazards: the deep water, the bare stomach floor, the hooks.
   const fy = floorY(s.x);
@@ -346,9 +382,17 @@ function climb(st, dt, input) {
   }
   if (!st.stone && Math.abs(STONE.x - s.x) < 40 && Math.abs(STONE.y - s.y) < 40) {
     st.stone = true; st.events.push({ type: 'stoneFound', x: STONE.x, y: STONE.y - 20 });
+    saveCheckpoint(st, st.scene, 'TS', STONE.x); // a retry stands by the stone's ledge, stone in hand
   }
   // The throat.
   if (s.on === 'lip' && s.x >= THROAT.enterX) { s.vx = 0; toPhase(st, 'throat'); }
+}
+
+// A plain-JSON checkpoint: a fixed ledge to stand on, and what has been gathered.
+function saveCheckpoint(st, scene, on, x) {
+  const got = [];
+  for (const p of st.pearlsLeft) if (p.got) got.push(p.i);
+  st.checkpoint = { scene, on, x, stone: st.stone, got, pearls: st.pearls, score: st.score, hits: st.hits };
 }
 
 function hurt(st, why) {

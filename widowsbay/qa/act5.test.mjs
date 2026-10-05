@@ -1,6 +1,6 @@
 // Headless checks for Act V — Widow's Bay. Run: node widowsbay/qa/act5.test.mjs
 import assert from 'node:assert/strict';
-import act, { BEAT_S, CLIFF, HOUSE, QUAY, T, pickHold, climberPos, holdY, endingFor } from '../src/acts/act5.js';
+import act, { SCENES, BEAT_S, CLIFF, HOUSE, QUAY, T, pickHold, climberPos, holdY, endingFor } from '../src/acts/act5.js';
 
 const DT = 1 / 60;
 let n = 0;
@@ -434,6 +434,81 @@ test('events get onEvent and announce without throwing', () => {
   for (const e of h.events) { types.add(e.type); act.onEvent(mockKit(), e, h.st); act.announce(e); }
   for (const t of ['rockScrape', 'leap', 'stoneWarn', 'stoneFall', 'clifftop', 'strike', 'fireRoar', 'houseOpen', 'fireCrackle', 'stoneThrow', 'shutterSmash', 'liftHer', 'floorBreak', 'carryStep', 'houseFall', 'ending', 'lampLit', 'pageant', 'pageantJoin', 'pageantApplause']) assert.ok(types.has(t), t);
   console.log('     events:', [...types].sort().join(' '));
+});
+
+// ---------------------------------------------------------------- scenes and checkpoints
+test('every scene creates, draws and steps idle without throwing', () => {
+  assert.equal(SCENES.length, 7);
+  assert.equal(act.scenes, SCENES);
+  for (let k = 0; k < SCENES.length; k++) {
+    const st = act.create({ seed: 3, carry: { tea: 3, stone: true, pearl: true, sleepers: 4 }, from: { scene: k } });
+    let time = 0;
+    for (let t = 0; t < 6; t += DT) { time += DT; act.step(st, DT, { beat: time / BEAT_S }); st.events.length = 0; if (st.status !== 'play') break; }
+    drawTwice(st, time, {});
+    assert.ok(st.lanterns >= 0 && st.lanterns <= 3, `scene ${k}`);
+  }
+});
+
+test('scenes start in the right place', () => {
+  const mk = (k, carry = {}) => act.create({ seed: 1, carry, from: { scene: k } });
+  assert.equal(mk(0).phase, 'cliff');
+  assert.equal(mk(1).phase, 'cliff');
+  assert.ok(mk(1).holds[mk(1).cl.at].y > 900 && mk(1).camY > 500);
+  const h = mk(2);
+  assert.equal(h.phase, 'house'); assert.equal(h.p.carry, false); assert.equal(h.open, 1); assert.equal(h.fire, 1);
+  assert.equal(h.p.f, 0); assert.equal(h.broke, false);
+  const c = mk(3);
+  assert.equal(c.phase, 'house'); assert.equal(c.p.carry, true); assert.equal(c.p.f, 2); assert.equal(c.broke, true);
+  assert.equal(c.conns.find((x) => x.id === 'stairs').on, false);
+  assert.equal(c.conns.find((x) => x.id === 'ladderDown').on, true);
+  assert.equal(mk(4).phase, 'quay'); assert.equal(mk(5).phase, 'ending'); assert.equal(mk(6).phase, 'pageant');
+  assert.equal(mk(4).checkpoint.scene, 4);
+});
+
+test('reaching halfway sets a checkpoint, and it restores', () => {
+  const h = sim();
+  h.until((s) => s.checkpoint, 120, cliffBot);
+  const cp = h.st.checkpoint;
+  assert.equal(cp.scene, 1);
+  JSON.parse(JSON.stringify(cp));
+  const st = act.create({ seed: 2, from: JSON.parse(JSON.stringify({ ...cp, score: 123, pearls: 2 })) });
+  assert.equal(st.cl.at, cp.hold); assert.equal(st.score, 123); assert.equal(st.pearls, 2);
+  assert.equal(st.checkpoint.scene, 1); assert.equal(st.lanterns, 3);
+});
+
+test('checkpoints are set entering the house, lifting her, the quay, the ending and the pageant', () => {
+  const plan = housePlan(true);
+  const h = sim({ stone: true });
+  const seen = [];
+  h.until((s) => s.status !== 'play', 240, (s) => {
+    if (s.checkpoint && seen[seen.length - 1] !== s.checkpoint.scene) seen.push(s.checkpoint.scene);
+    return s.phase === 'cliff' ? cliffBot(s) : houseBot(s, plan);
+  });
+  assert.deepEqual(seen, [1, 2, 3, 4, 5, 6]);
+});
+
+test('a create from the carry checkpoint holds her', () => {
+  const plan = housePlan(true);
+  const h = sim({ stone: true });
+  h.until((s) => s.checkpoint?.scene === 3, 240, (s) => (s.phase === 'cliff' ? cliffBot(s) : houseBot(s, plan)));
+  const cp = JSON.parse(JSON.stringify(h.st.checkpoint));
+  assert.equal(cp.stoneThrown, true);
+  const st = act.create({ seed: 5, from: cp });
+  assert.equal(st.p.carry, true); assert.equal(st.stoneThrown, true); assert.equal(st.shutter, 'broken');
+  assert.deepEqual(st.spans, h.st.spans); assert.equal(st.checkpoint.scene, 3);
+});
+
+test('ending and pageant scenes reach won, with the right tableau', () => {
+  for (const [carry, ending] of [[{}, 'dark'], [{ pearl: true }, 'lamp'], [{ rose: true, pearl: true }, 'witch']]) {
+    for (const k of [5, 6]) {
+      const st = act.create({ seed: 1, carry, from: { scene: k } });
+      assert.equal(st.ending, ending);
+      let time = 0;
+      for (let t = 0; t < 40 && st.status === 'play'; t += DT) { time += DT; act.step(st, DT, { beat: time / BEAT_S }); st.events.length = 0; }
+      assert.equal(st.status, 'won', `scene ${k} ${ending}`);
+      assert.equal(st.result.ending, ending);
+    }
+  }
 });
 
 console.log(`\n${n} tests passed`);

@@ -1,7 +1,7 @@
 // Headless checks for Act IV, The Whale's Road. Run: node widowsbay/qa/act4.test.mjs
 import assert from 'node:assert/strict';
 import act, {
-  BEAT_S, WATER, HOOKS, LEDGES, FLOATERS, breath, waterY, tilt, hookTip, platformOf, extent, shoreTimes, OUTRO,
+  BEAT_S, WATER, HOOKS, LEDGES, FLOATERS, breath, waterY, tilt, hookTip, platformOf, extent, shoreTimes, OUTRO, SCENES, PEARLS,
 } from '../src/acts/act4.js';
 
 let n = 0;
@@ -310,6 +310,77 @@ test('hud and announce', () => {
   assert.equal(h.maxLanterns, 3); assert.equal(h.lanterns, 3);
   assert.deepEqual(h.keepsakes, [{ id: 'stone', have: false }]);
   assert.match(act.announce({ type: 'hit', lanterns: 1 }), /1 lantern left/);
+});
+
+// ---------------------------------------------------------------- scenes and checkpoints
+test('scenes: each creates and stands idle for 6 s on something solid', () => {
+  assert.ok(SCENES.length >= 4 && SCENES.length <= 6 && act.scenes === SCENES);
+  assert.equal(SCENES[0].name, 'The Belly');
+  SCENES.forEach((sc, k) => {
+    const st = act.create({ seed: 1, carry: {}, from: k ? { scene: k } : null });
+    assert.equal(st.stone, k >= 5, `stone in scene ${k}`);
+    assert.equal(st.lanterns, 3);
+    const lanterns = () => st.lanterns;
+    // The lip has no hook-free spot (you walk on to the throat), so there only the grace is checked.
+    const secs = sc.on === 'lip' ? 1.4 : 6;
+    for (let i = 0; i < secs * 60; i++) {
+      act.step(st, DT, { beat: 2 + i * DT / BEAT_S });
+      assert.ok(st.s.on, `scene ${k} standing at ${i}`);
+      assert.equal(st.status, 'play');
+    }
+    assert.equal(st.s.on, sc.on);
+    assert.equal(st.hits, 0); assert.equal(lanterns(), 3);
+    assert.ok(Math.abs(st.cam.x - Math.max(0, Math.min(5020, st.s.x - 560))) < 5, 'camera framed');
+  });
+});
+
+test('scenes: reaching a scene start sets a checkpoint of plain JSON', () => {
+  SCENES.forEach((sc, k) => {
+    if (!k) return;
+    const r = runner({}, 0);
+    r.step();
+    const led = LEDGES.find((l) => l.id === sc.on);
+    Object.assign(r.st.s, { x: led.x0 + 20, y: led.y - 60, on: null, vy: 0 });
+    for (let i = 0; i < 90; i++) r.step();
+    assert.equal(r.st.checkpoint?.scene, k, `scene ${k}`);
+    assert.equal(r.st.checkpoint.on, sc.on);
+    assert.deepEqual(JSON.parse(JSON.stringify(r.st.checkpoint)), r.st.checkpoint);
+  });
+});
+
+test('scenes: a create from a checkpoint restores stone, pearls and position', () => {
+  const r = runner({}, 0);
+  r.step();
+  Object.assign(r.st.s, { x: 5465, y: -660, on: null, vy: 0 });
+  r.st.pearlsLeft[3].got = true; r.st.pearlsLeft[7].got = true; r.st.pearls = 2; r.st.hits = 1; r.st.scene = 4;
+  for (let i = 0; i < 60; i++) r.step();
+  const cp = JSON.parse(JSON.stringify(r.st.checkpoint));
+  assert.ok(r.st.stone && cp.stone && cp.on === 'TS');
+  assert.deepEqual(cp.got.slice(0, 2), [3, 7]);
+  const st = act.create({ seed: 1, carry: {}, from: cp });
+  assert.ok(st.stone);
+  assert.equal(st.pearls, cp.pearls); assert.equal(st.hits, 1);
+  assert.deepEqual(st.pearlsLeft.filter((p) => p.got).map((p) => p.i), cp.got);
+  assert.equal(st.s.on, 'TS'); assert.equal(Math.round(st.s.x), 5465);
+  assert.deepEqual(st.checkpoint, { ...cp, scene: 4 });
+  assert.equal(st.lanterns, 3);
+  for (let i = 0; i < 180; i++) act.step(st, DT, { beat: 3 + i * DT / BEAT_S });
+  assert.equal(st.s.on, 'TS');
+  assert.ok(PEARLS.length > 7);
+});
+
+test('scenes: the act can be won from the last scene, and from the Ribcage with the stone', () => {
+  const r = play(['lip'], {}, 0);
+  const st0 = act.create({ seed: 1, carry: {}, from: { scene: 5 } });
+  const r2 = { st: st0, t: 0, events: [] };
+  while (st0.status === 'play' && r2.t < 40) { r2.t += DT; act.step(st0, DT, { beat: r2.t / BEAT_S, moveX: 1 }); st0.events.length = 0; }
+  assert.equal(st0.status, 'won'); assert.equal(st0.result.keepsakes.stone, true);
+  void r;
+  // The scripted climber from scene 4 (the Ribcage) up to the throat.
+  const st4 = act.create({ seed: 1, carry: {}, from: { scene: 4 } }), bot = climber(['L6', 'T1', 'T2', 'T3', 'T4', 'T5', 'lip']);
+  let t4 = 0;
+  while (st4.status === 'play' && t4 < 200) { t4 += DT; act.step(st4, DT, { beat: 3 + t4 / BEAT_S, ...bot(st4) }); st4.events.length = 0; }
+  assert.equal(st4.status, 'won', `phase ${st4.phase} x ${Math.round(st4.s.x)}`);
 });
 
 console.log(`${n} tests passed`);

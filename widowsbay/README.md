@@ -57,12 +57,14 @@ A static page with no build step: canvas 2D plus Web Audio.
 - `src/audio.js`: the band's recording as the score, the generated foley
   effects and sea loop, and synthesised fallbacks for all of them.
 - `src/input.js` and `src/main.js`: controller, keyboard and touch input; the
-  title screen, act cards, pause menu, instructions and settings, following
-  [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md).
+  title screen, act cards, pause menu, instructions (a page per act, opening
+  on the act being played), scene select and settings, following
+  [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md). A lost act resumes from its
+  latest checkpoint (`src/acts/CONTRACT.md`, "Scenes and checkpoints").
 
 ## Art
 
-All the art is delivered and drawn in the game: 19 images listed in
+All the art is delivered and drawn in the game: 118 images listed in
 [`design/image-requests.md`](design/image-requests.md), which also records how
 each was checked and fitted. The game loads WebP copies from `assets/` (ids
 match `assets/manifest.json`). Full-size PNG originals, the 14 mood boards and

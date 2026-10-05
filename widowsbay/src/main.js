@@ -1,6 +1,6 @@
 // Shell: title, act cards, play, pause, dialogs, settings, fullscreen.
 import { ACTS } from './acts/index.js';
-import { loadSave, carryInto, recordResult } from './save.js';
+import { loadSave, writeSave, carryInto, recordResult } from './save.js';
 import { createRenderer, loadAssets } from './art.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
@@ -113,14 +113,19 @@ const QA = params.has('qa');
 
 function startGame() {
   if (S.mode !== 'title' || dialogs.length) return;
+  leaveTitle();
+  const jump = QA && +params.get('act');
+  if (jump >= 1 && jump <= ACTS.length) return beginAct(jump - 1, params.has('scene') ? { scene: +params.get('scene') } : null);
+  if (save.unlocked > 1) showPlaybill(); else beginAct(0);
+}
+
+// Raise the title curtain: fullscreen, audio and the band's song.
+function leaveTitle() {
   requestFullscreen();
   if (TOUCH) screen.orientation?.lock?.('landscape').catch(() => { /* not allowed here; the rotate card covers it */ });
   audio.unlock(); audio.startMusic(); audio.play('ui');
   $('#title').classList.add('opening');
   setTimeout(() => { $('#title').hidden = true; $('#title').classList.remove('opening'); }, 600);
-  const jump = QA && +params.get('act');
-  if (jump >= 1 && jump <= ACTS.length) return beginAct(jump - 1);
-  if (save.unlocked > 1) showPlaybill(); else beginAct(0);
 }
 
 function carryFor(i) {
@@ -131,16 +136,35 @@ function carryFor(i) {
   return carry;
 }
 
-function beginAct(i) {
+// Starts act i from the top, or `from` a scene ({ scene }) or a checkpoint
+// the act made earlier (src/acts/CONTRACT.md, "Scenes and checkpoints").
+function beginAct(i, from = null) {
   renderer.clearFx();
   S.actIndex = i; S.act = ACTS[i];
-  S.state = S.act.create({ seed: (Math.random() * 2 ** 31) | 0, carry: carryFor(i) });
+  S.state = S.act.create({ seed: (Math.random() * 2 ** 31) | 0, carry: carryFor(i), from: from ? { ...from } : null });
+  S.checkpoint = S.state.checkpoint ? JSON.parse(JSON.stringify(S.state.checkpoint)) : null;
+  S.cpRef = S.state.checkpoint;
   S.mode = 'intro'; S.modeT = 0;
   S.curtain = 0; S.curtainTarget = 0;
-  S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120, sub: S.act.sub,
+  const scene = from && S.act.scenes?.[from.scene | 0];
+  S.card = { kicker: S.act.kicker, title: S.act.title, size: S.act.size || 120,
+    sub: scene && (from.scene | 0) > 0 ? `${from.retry ? 'Carrying on from' : 'Scene'}: ${scene.name}` : S.act.sub,
     prompt: TOUCH ? `Tap to begin · ${touchVerbHint(S.act)}` : 'Press A or Space', alpha: 0 };
   S.readyT = 0;
-  announce(`${S.act.kicker}, ${S.act.title}.`);
+  announce(`${S.act.kicker}, ${S.act.title}.${scene && from.scene > 0 ? ' ' + scene.name + '.' : ''}`);
+}
+
+// The act sets state.checkpoint as the player passes a point worth resuming
+// from. Keep the latest (a retry starts there) and note how far each act has
+// been reached, for the scene select.
+function trackCheckpoint() {
+  const cp = S.state?.checkpoint;
+  if (!cp || cp === S.cpRef) return;
+  S.cpRef = cp;
+  S.checkpoint = JSON.parse(JSON.stringify(cp));
+  const id = S.act.id, k = cp.scene | 0;
+  save.scenes = save.scenes || {};
+  if (k > (save.scenes[id] ?? 0)) { save.scenes[id] = k; writeSave(save); }
 }
 
 function showPlaybill() {
@@ -173,11 +197,69 @@ function resume() {
 }
 
 // ---------------------------------------------------------------- dialogs
-function openDialog(el) {
+function openDialog(el, focusOn = null) {
   el.hidden = false;
   dialogs.push({ el, restore: document.activeElement });
-  const first = el.querySelector('[data-focus]');
-  focusEl(first);
+  focusEl(focusOn || el.querySelector('[data-focus]'));
+}
+
+// ---------------------------------------------------------------- instructions
+// One page per act; the dialog opens on the act being played (or chosen on
+// the playbill, or the furthest reached from the title).
+const insTabs = [...document.querySelectorAll('#instructions [role=tab]')];
+function showInsPage(n) {
+  for (const t of insTabs) t.setAttribute('aria-selected', String(+t.dataset.page === n));
+  for (const p of document.querySelectorAll('#instructions .ins-page')) p.hidden = +p.dataset.page !== n;
+  $('#ins-scroll').scrollTop = 0;
+}
+function openInstructions() {
+  const n = S.act ? S.act.id : S.mode === 'playbill' ? S.pb + 1 : save.unlocked > 1 ? Math.min(save.unlocked, ACTS.length) : 1;
+  showInsPage(n);
+  openDialog($('#instructions'), insTabs[n]);
+}
+for (const t of insTabs) {
+  t.addEventListener('click', () => showInsPage(+t.dataset.page));
+  t.addEventListener('focus', () => showInsPage(+t.dataset.page));
+}
+
+// ---------------------------------------------------------------- scene select
+// Every scene of a finished act, and the scenes reached so far in the next.
+function scenesReached(a) {
+  const last = (a.scenes?.length || 1) - 1;
+  return save.results[a.id] ? last : Math.min(last, save.scenes?.[a.id] ?? 0);
+}
+function openScenes() {
+  const list = $('#scene-list');
+  list.textContent = '';
+  let focus = null;
+  ACTS.forEach((a, i) => {
+    if (i >= save.unlocked) return;
+    const h = document.createElement('h3');
+    h.textContent = `${a.kicker} · ${a.title}`;
+    const grid = document.createElement('div'); grid.className = 'scene-grid';
+    const reached = scenesReached(a);
+    (a.scenes || [{ name: a.title }]).forEach((sc, k) => {
+      const b = document.createElement('button');
+      const open = k <= reached;
+      b.innerHTML = `<small>SCENE ${k + 1}</small>`;
+      b.append(open ? sc.name : '· · ·');
+      if (open) {
+        b.dataset.focus = '';
+        b.addEventListener('click', () => { audio.play('ui'); playScene(i, k); });
+        if (S.act ? i === S.actIndex && k <= (S.checkpoint?.scene | 0) : i === save.unlocked - 1) focus = b;
+      } else b.disabled = true;
+      grid.append(b);
+    });
+    list.append(h, grid);
+  });
+  $('#scene-note').textContent = save.unlocked < ACTS.length ? 'Play on to open more scenes.' : '';
+  openDialog($('#scenes'), focus);
+}
+function playScene(i, k) {
+  closeAllDialogs();
+  S.paused = false;
+  if (S.mode === 'title') leaveTitle();
+  beginAct(i, k > 0 ? { scene: k } : null);
 }
 function closeDialog() {
   const d = dialogs.pop();
@@ -195,13 +277,15 @@ document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click
   audio.play('ui');
   if (a === 'close') closeDialog();
   if (a === 'resume') resume();
-  if (a === 'instructions') openDialog($('#instructions'));
+  if (a === 'instructions') openInstructions();
+  if (a === 'scenes') openScenes();
   if (a === 'settings') openDialog($('#settings'));
   if (a === 'restart') { closeAllDialogs(); S.paused = false; if (S.act) beginAct(S.actIndex); else showPlaybill(); }
   if (a === 'title') toTitle();
 }));
 $('#start').addEventListener('click', startGame);
-$('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openDialog($('#instructions')); });
+$('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openInstructions(); });
+$('#btn-scenes').addEventListener('click', () => { audio.play('ui'); openScenes(); });
 $('#btn-settings').addEventListener('click', () => { audio.play('ui'); openDialog($('#settings')); });
 $('#btn-fullscreen').addEventListener('click', () => {
   audio.play('ui');
@@ -220,6 +304,7 @@ function focusEl(el, mark = true) {
   if (!el) return;
   clearNavFocus();
   el.focus({ preventScroll: true });
+  if (el.closest('.scroll') && !el.classList.contains('scroll')) el.scrollIntoView({ block: 'nearest' });
   if (mark) (el.closest('.slider') || el).classList.add('nav-focus');
 }
 function navMove(delta) {
@@ -245,6 +330,18 @@ function navAdjust(dir) {
 
 function menuInput(i) {
   const el = document.activeElement;
+  // Instructions tabs: left and right turn the page, down reads it.
+  if (el?.getAttribute('role') === 'tab') {
+    const n = insTabs.indexOf(el);
+    if (i.left || i.right) { focusEl(insTabs[(n + (i.left ? -1 : 1) + insTabs.length) % insTabs.length]); audio.play('ui'); return; }
+    if (i.down) { focusEl($('#ins-scroll')); return; }
+    if (i.up) return;
+  }
+  if (el?.id === 'ins-scroll' && i.up && el.scrollTop <= 0) { focusEl(insTabs.find((t) => t.getAttribute('aria-selected') === 'true')); return; }
+  if (el?.id === 'ins-scroll' && (i.left || i.right)) {
+    const n = insTabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+    showInsPage((n + (i.left ? -1 : 1) + insTabs.length) % insTabs.length); audio.play('ui'); return;
+  }
   if (el?.id === 'ins-scroll' && (i.up || i.down)) { el.scrollBy({ top: i.up ? -80 : 80 }); if (!(i.up && el.scrollTop <= 0) && !(i.down && el.scrollTop + el.clientHeight >= el.scrollHeight - 2)) return; }
   if (i.up) navMove(-1);
   if (i.down) navMove(1);
@@ -393,13 +490,17 @@ function update(dt, i) {
       ? { moveX: i.moveX, moveY: i.moveY, up: i.up, down: i.down, left: i.left, right: i.right, a: i.leap, aHeld: i.aHeld, b: i.padB || i.bPress || i.touchB, beat: audio.beat() }
       : { moveX: 0, moveY: 0, beat: audio.beat() };
     S.act.step(S.state, dt, actInput);
+    trackCheckpoint();
     for (const e of S.state.events) handleEvent(e);
     S.state.events.length = 0;
     if (S.state.status === 'lost' && S.state.statusT > 0.2) {
       S.mode = 'over'; S.modeT = 0;
       S.card = { bg: 'magenta', kicker: S.act.kicker, title: S.state.lostTitle || 'The Sea Keeps\nHer Own', size: 110,
-        sub: S.state.lostSub || '', prompt: TOUCH ? 'Tap right to try again · tap left for the playbill' : 'Press A to try again · B for the playbill', alpha: 0 };
-      announce('The act is lost. Press A to try again.');
+        sub: S.state.lostSub || '', alpha: 0 };
+      const at = S.checkpoint && (S.checkpoint.scene | 0) > 0 ? S.act.scenes?.[S.checkpoint.scene | 0]?.name : null;
+      const again = at ? `try again from ${at}` : 'try again';
+      S.card.prompt = TOUCH ? `Tap right to ${again} · tap left for the playbill` : `Press A to ${again} · B for the playbill`;
+      announce(`The act is lost. Press A to ${again}.`);
     }
     if (S.state.status === 'won' && S.state.statusT > 0.15) actWon();
     return;
@@ -408,8 +509,8 @@ function update(dt, i) {
   if (S.mode === 'over') {
     S.card.alpha = Math.min(1, S.card.alpha + dt * 2);
     if (S.card.alpha > 0.6) {
-      if (i.tap) { if (i.tap.x < 640) showPlaybill(); else beginAct(S.actIndex); }
-      else if (go) beginAct(S.actIndex);
+      if (i.tap) { if (i.tap.x < 640) showPlaybill(); else retry(); }
+      else if (go) retry();
       else if (i.padB || i.back) showPlaybill();
     }
     return;
@@ -420,7 +521,13 @@ function update(dt, i) {
   }
 }
 
+// After a loss: back to the latest checkpoint, or the top of the act.
+function retry() {
+  beginAct(S.actIndex, S.checkpoint ? { ...S.checkpoint, retry: true } : null);
+}
+
 function actWon() {
+  save.scenes = { ...(save.scenes || {}), [S.act.id]: (S.act.scenes?.length || 1) - 1 };
   recordResult(save, S.act.id, S.state.result || {}, ACTS.length);
   if (S.actIndex + 1 < ACTS.length) return beginAct(S.actIndex + 1);
   // The whole play is done: the band's curtain call, then the playbill.

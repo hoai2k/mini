@@ -118,6 +118,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .scroll { overflow: auto; padding-right: 8px; line-height: 1.45; font-size: 16px; }
 .scroll:focus-visible, .scroll.nav-focus { outline: 2px solid var(--magenta); outline-offset: 4px; }
 .scroll ul { padding-left: 20px; }
+.scroll h3 { font-family: "Yesteryear", cursive; font-weight: 400; font-size: 30px; margin: 4px 0 6px; }
+/* Instructions: one page per act, chosen by tabs */
+.tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.card .tabs button { padding: 6px 12px; font-size: 15px; text-align: center; }
+.card .tabs button[aria-selected="true"] { background: var(--magenta); border-color: var(--pink); color: #fff; }
+.ins-page[hidden] { display: none; }
+/* Scene select */
+.scene-list h3 { margin-top: 10px; }
+.scene-list h3:first-child { margin-top: 0; }
+.scene-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.card .scene-grid button { font-size: 15px; padding: 8px 10px; line-height: 1.2; }
+.card .scene-grid button small { display: block; font-weight: 400; opacity: .7; font-size: 12px; letter-spacing: .08em; }
+.card .scene-grid button:disabled { opacity: .4; cursor: default; }
 .scroll li { margin-bottom: 6px; }
 .map { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
 .map th, .map td { border-bottom: 1px solid #7d5470; padding: 6px 4px; text-align: left; }
@@ -178,6 +191,7 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
   .card { padding: 18px 20px 16px; gap: 10px; }
   .card h2 { font-size: 34px; }
   .card button, .slider { padding: 8px 12px; font-size: 16px; }
+  .card .tabs button { padding: 4px 10px; font-size: 14px; }
 }
 
 /* Portrait on a phone: a card asking to turn the device */

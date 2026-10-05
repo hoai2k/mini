@@ -1,7 +1,7 @@
 // Headless checks for Act III, the Sea King's Court.
 // Run: node widowsbay/qa/act3.test.mjs
 import assert from 'node:assert/strict';
-import act, { TUNE, PEDESTAL, SENTRIES, SENTRY_HEAD, OUTRO, CAM_MAX, LANTERN_BX, PAR, litAt, effRow } from '../src/acts/act3.js';
+import act, { TUNE, PEDESTAL, SENTRIES, SENTRY_HEAD, OUTRO, CAM_MAX, LANTERN_BX, PAR, litAt, effRow, SCENES } from '../src/acts/act3.js';
 
 const BEAT = 60 / 76.5, DT = 1 / 30;
 let n = 0;
@@ -257,6 +257,65 @@ test('tea omens appear a beat before the beam reaches you', () => {
   }
   assert.ok(sawHit && omenBefore);
   const none = make({ tea: 2 }); run(none, 20); assert.equal(none.omens.length, 0);
+});
+
+test('scenes: every scene creates, steps and starts safely', () => {
+  assert.equal(act.scenes, SCENES);
+  assert.equal(SCENES.length, 4);
+  SCENES.forEach((sc, k) => {
+    const st = act.create({ seed: 11, carry: {}, from: { scene: k } });
+    assert.ok(Math.abs(st.p.x - sc.x) < 1e-9 && st.p.row === sc.row);
+    assert.equal(st.lanterns, 3);
+    assert.ok(Math.abs(st.cam - Math.max(0, Math.min(CAM_MAX, sc.x - 560))) < 1e-9);
+    // no jaw or seahorse guard on top of the sailor
+    assert.ok(!st.courtiers.some((c) => c.kind === 'guard' && c.row === st.p.row && Math.abs(c.x - st.p.x) < 120));
+    for (const e of SENTRIES) assert.ok(Math.abs(e + SENTRY_HEAD - st.p.x) > 100);
+    const ev = run(st, 4);                 // standing still for a few seconds is safe
+    assert.equal(st.status, 'play'); assert.equal(st.lanterns, 3, `scene ${k} hit early`);
+    assert.ok(!types(ev).includes('gazeSweep'));
+    run(st, 8, () => ({ moveX: 1 }));
+    assert.ok(JSON.parse(JSON.stringify(st.checkpoint ?? null)) !== undefined);
+  });
+});
+
+test('checkpoints: crossing a boundary sets one; create restores it', () => {
+  const st = make({}, 5); calm(st);
+  assert.equal(st.checkpoint, null);
+  st.p.row = st.p.from = 2;
+  let seen = -1;
+  for (let t = 0; t < 60 && seen < 1; t += DT) { calm(st); tick(st, { moveX: 1 }); st.events.length = 0; if (st.checkpoint) seen = st.checkpoint.scene; st.lanterns = 3; st.p.grace = 1; }
+  assert.equal(seen, 1);
+  const cp = st.checkpoint;
+  assert.equal(cp.x, SCENES[1].x); assert.equal(cp.row, 2);
+  JSON.parse(JSON.stringify(cp));
+  // pick up a pearl, cross scene 2, then restore from it
+  st.pearlsOnFloor[5].got = true; st.pearls = 4; st.score = 123; st.stats.freezes = 3;
+  st.p.x = SCENES[2].x - 4; calm(st);
+  for (let t = 0; t < 1 && st.checkpoint.scene < 2; t += DT) { calm(st); tick(st, { moveX: 1 }); st.p.grace = 1; }
+  assert.equal(st.checkpoint.scene, 2);
+  const cp2 = JSON.parse(JSON.stringify(st.checkpoint));
+  const re = act.create({ seed: 9, carry: {}, from: cp2 });
+  assert.equal(re.p.x, SCENES[2].x); assert.equal(re.p.row, 2);
+  assert.ok(re.pearlsOnFloor[5].got && re.pearlsOnFloor[0].got && !re.pearlsOnFloor[11].got);
+  assert.deepEqual(re.pearlsOnFloor.map((q) => q.got), st.pearlsOnFloor.map((q) => q.got));
+  assert.equal(re.score, 123); assert.equal(re.pearls, 4); assert.equal(re.stats.freezes, 3);
+  assert.equal(re.lanterns, 3);
+  assert.deepEqual(re.checkpoint, { ...cp2, scene: 2 });
+  assert.equal(act.hud(re).pearls, 4);
+});
+
+test('a restored sailor has seconds before the first sweep, and the whale is not immediate', () => {
+  const re = act.create({ seed: 3, carry: {}, from: { scene: 3 } });
+  const ev = run(re, 4.5);
+  assert.ok(!types(ev).includes('gazeSweep') && re.lanterns === 3);
+  assert.ok(re.whale.t < 0 && re.whale.next > 5);
+});
+
+test('the act can be won from scene 3', () => {
+  const st = act.create({ seed: 7919, carry: { tea: 3 }, from: { scene: 3 } });
+  playBot(st);
+  assert.equal(st.status, 'won', `status ${st.status} at ${st.t.toFixed(1)} s, x ${st.p.x.toFixed(0)}`);
+  assert.deepEqual(st.result.keepsakes, { pearl: true });
 });
 
 const results = [];

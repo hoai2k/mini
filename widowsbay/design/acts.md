@@ -96,8 +96,15 @@ Acts last 90–130 s, about half the song each.
 ### Shared rules, all acts
 
 - Three lanterns of hull or heart; a hit costs one, then 1.6 s of grace.
-  Losing all three ends on the magenta "The Sea Keeps Her Own" card with a
-  retry.
+  Losing all three ends on the magenta "The Sea Keeps Her Own" card. The
+  retry carries on from the last checkpoint, not the top of the act: each act
+  is divided into scenes (just past a key item, a new stretch of the stage),
+  and the player resumes at the latest one with what they had gathered by
+  then and full lanterns. *Restart Act* in the pause menu goes back to the
+  top. See `src/acts/CONTRACT.md`, "Scenes and checkpoints".
+- **Scene select** (pause menu, and the film-strip button on the title)
+  starts any scene reached so far: every scene of a finished act, and the
+  scenes reached in the act in progress.
 - Pearls score everywhere.
 - Acts unlock in order. The playbill is the act select; progress and
   keepsakes are saved per act, in their own save slot.

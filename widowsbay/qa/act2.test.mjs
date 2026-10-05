@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import act, {
   BEAT_LEN, FLOOR, TUNE, PHASE_LEN, REST, SLEEPERS,
-  clamOpen, jellyPos, dragonPos, eelExt,
+  clamOpen, jellyPos, dragonPos, eelExt, SCENES, VENTS,
 } from '../src/acts/act2.js';
 
 let n = 0;
@@ -311,6 +311,89 @@ test('drawing code never runs in headless step (no DOM needed) and eelExt is san
   assert.equal(eelExt({ state: 'idle', t: 0 }), 0);
   assert.equal(eelExt({ state: 'hold', t: 0 }), 1);
   assert.ok(eelExt({ state: 'back', t: 0.25 }) > 0.4);
+});
+
+const fromScene = (k, from = {}) => {
+  const st = act.create({ seed: 1, carry: { tea: 3 }, from: { scene: k, ...from } });
+  st.clock = 0; st.log = []; return st;
+};
+
+test('every scene creates and steps for ten seconds without throwing', () => {
+  assert.equal(act.scenes, SCENES);
+  assert.equal(SCENES.length, 6);
+  for (let k = 0; k < SCENES.length; k++) {
+    const st = fromScene(k);
+    run(st, 10, {});
+    assert.ok(Number.isFinite(st.sailor.y) && Number.isFinite(st.cam), `scene ${k}`);
+    assert.ok(act.hud(st) === null || st.phase !== 'open');
+    if (k > 0) assert.notEqual(st.phase, 'open', `scene ${k} skips the opening`);
+    if (k === 0) assert.equal(st.checkpoint, null);
+  }
+});
+
+test('scenes 1-3 start in a vent, full air, guitar ahead and not held', () => {
+  for (let k = 1; k <= 3; k++) {
+    const st = fromScene(k);
+    assert.equal(st.phase, 'swim'); assert.equal(st.air, 1); assert.equal(st.lanterns, 3);
+    assert.ok(st.inVent, `scene ${k} in vent`);
+    assert.ok(st.guitar.y > st.sailor.y + 100 && !st.guitar.held && !st.guitar.settled);
+    assert.equal(st.checkpoint.scene, k);
+    assert.ok(Math.abs(st.cam - (st.sailor.y - 230)) < 1);
+  }
+});
+
+test('scene 4 holds the guitar in the offer; scene 5 is the ride', () => {
+  const o = fromScene(4);
+  assert.equal(o.phase, 'offer'); assert.ok(o.guitar.held && o.guitar.settled);
+  assert.ok(act.hud(o).keepsakes[0].have);
+  run(o, 2.2, {}); tick(o, { b: true }); assert.equal(o.phase, 'choice');
+  const r = fromScene(5);
+  assert.equal(r.phase, 'ride'); assert.ok(r.guitar.held && r.ride);
+  run(r, PHASE_LEN.ride + PHASE_LEN.iris + 0.2, {});
+  assert.equal(r.status, 'won');
+  const rr = fromScene(5, { choice: 'take', woken: 2, sleepers: [0, 1] });
+  assert.ok(rr.rose); assert.equal(rr.woken, 12);
+  assert.ok(rr.sleepers.every((q) => q.state === 'rising'));
+});
+
+test('passing a vent sets a checkpoint; create from it restores progress', () => {
+  const st = make(); skipOpening(st);
+  assert.equal(st.checkpoint, null);
+  // wake a sleeper, sound the first conch, take a pearl, then reach vent 0
+  st.hornT = 5; st.conches[0].used = true;
+  st.sailor.x = SLEEPERS[0][0]; st.sailor.y = SLEEPERS[0][1] - 30; st.guitar.y = 900;
+  tick(st); assert.ok(st.woken >= 1);
+  st.pearls = 3; st.score = 777; st.clams[1].got = 2;
+  Object.assign(st.sailor, { x: VENTS[0][0], y: VENTS[0][1] - 100, vx: 0, vy: 0 }); st.guitar.y = 1500;
+  tick(st);
+  const cp = st.checkpoint;
+  assert.ok(cp, 'checkpoint made'); assert.equal(cp.scene, 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(cp)), cp, 'plain JSON');
+  assert.equal(cp.pearls, 3); assert.equal(cp.score, st.score);
+  const woke = st.sleepers.map((q, i) => (q.state !== 'asleep' ? i : -1)).filter((i) => i >= 0);
+  assert.deepEqual(cp.sleepers, woke);
+  const re = act.create({ seed: 2, carry: { tea: 3 }, from: JSON.parse(JSON.stringify(cp)) });
+  assert.equal(re.phase, 'swim'); assert.equal(re.air, 1);
+  assert.equal(re.pearls, 3); assert.equal(re.score, cp.score); assert.equal(re.woken, cp.woken);
+  assert.deepEqual(re.sleepers.map((q, i) => (q.state !== 'asleep' ? i : -1)).filter((i) => i >= 0), woke);
+  assert.ok(re.conches[0].used && !re.conches[1].used);
+  assert.equal(re.clams[1].got, 2);
+  assert.equal(re.sailor.x, cp.x); assert.equal(re.sailor.y, cp.y);
+  assert.deepEqual(re.checkpoint, { ...cp, scene: 1 });
+  re.clock = 0; re.log = []; run(re, 5, {}); assert.equal(re.status, 'play');
+});
+
+test('later vents, the offer and the ride each make a checkpoint', () => {
+  const st = fromScene(1); st.clock = 0;
+  Object.assign(st.sailor, { x: VENTS[2][0], y: VENTS[2][1] - 100 }); st.guitar.y = 2900; st.inVent = false;
+  tick(st); assert.equal(st.checkpoint.scene, 2);
+  Object.assign(st.sailor, { x: VENTS[1][0], y: VENTS[1][1] - 100 }); st.inVent = false;
+  tick(st); assert.equal(st.checkpoint.scene, 2, 'an earlier vent never moves the checkpoint back');
+  const of = make(); skipOpening(of);
+  Object.assign(of.guitar, { y: REST.y, x: REST.x, settled: true }); Object.assign(of.sailor, { x: REST.x, y: REST.y - 40, vy: 0 });
+  tick(of); assert.equal(of.phase, 'offer'); assert.equal(of.checkpoint.scene, 4);
+  run(of, 2.2, {}); tick(of, { b: true }); run(of, PHASE_LEN.choice + 0.1, {});
+  assert.equal(of.phase, 'ride'); assert.equal(of.checkpoint.scene, 5); assert.equal(of.checkpoint.choice, 'refuse');
 });
 
 console.log(`\n${n} tests passed`);

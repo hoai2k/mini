@@ -107,6 +107,19 @@ export const T = { storm: 4.8, ending: 12, pageant: 11.5, iris: 1.6, defeat: 1.8
 
 const PROG = { cliff: [0, 0.45], up: [0.45, 0.7], carry: [0.7, 0.9], quay: [0.9, 1] };
 
+// Scenes, for checkpoints and the scene select.
+export const SCENES = [
+  { name: 'The Cliff Foot' },
+  { name: 'Halfway Up the Cliff' },
+  { name: 'The Burning House' },
+  { name: 'Carrying Her Down' },
+  { name: 'The Quay' },
+  { name: 'The Ending' },
+  { name: 'The Pageant' },
+];
+// The solid ledge about halfway up (the checkpoint hold).
+export const HALF = HOLDS.findIndex((h) => h.x === 900 && h.y === 1030);
+
 export function endingFor(carry = {}) {
   if (carry.rose) return 'witch';
   if (carry.pearl) return 'lamp';
@@ -117,12 +130,15 @@ export default {
   id: 5, kicker: 'Act V', title: "Widow's Bay", size: 120,
   sub: 'Climb the cliff to the stone house.\nCarry her out of the fire.',
   action: 'A: leap',
+  scenes: SCENES,
 
-  create({ seed = 1, carry = {} } = {}) {
+  // `from` (optional): { scene } to start at a scene, plus the fields of a
+  // checkpoint this act made (hold, taken, score, pearls, house state).
+  create({ seed = 1, carry = {}, from = null } = {}) {
     const holds = HOLDS.map((h) => ({ kind: 'hold', ...h, gone: false }));
     const start = holds.findIndex((h) => h.start);
-    return {
-      status: 'play', statusT: 0, events: [], result: null,
+    const st = {
+      status: 'play', statusT: 0, events: [], result: null, checkpoint: null,
       carry: { tea: 0, guitar: false, rose: false, pearl: false, stone: false, sleepers: 0, ...carry },
       omen: (carry.tea || 0) >= 3,
       ending: endingFor(carry),
@@ -144,6 +160,36 @@ export default {
       // quay, ending, pageant
       quayT: 0, joined: 0, sleepersShown: Math.min(12, Math.max(0, carry.sleepers || 0)),
     };
+    const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
+    if (k <= 0) return st;
+    st.score = from.score ?? 0;
+    st.pearls = from.pearls ?? 0;
+    if (k === 1) {
+      const i = from.hold ?? HALF;
+      st.cl = { at: i, from: i, moveT: 0, moveDur: 0, kind: null, crumbleT: 0 };
+      const taken = from.taken ?? holds.map((h, j) => (h.pearl && j <= i ? j : -1)).filter((j) => j >= 0);
+      for (const j of taken) holds[j].taken = true;
+      st.camY = clamp(holds[i].y - 250, 0, CLIFF.camMax);
+      st.nextRock = 3.2;
+    } else {
+      // The house, burning and open, with the stage camera at the clifftop.
+      Object.assign(st, { camY: CLIFF.top, cam0: CLIFF.top, fire: 1, open: 1, struck: true, opened: true, walkFromX: 500 });
+      st.cl.at = st.cl.from = holds.findIndex((h) => h.kind === 'top');
+      for (const h of holds) if (h.pearl) h.taken = true;
+      restoreHouse(st, from, k);
+      if (k === 2) { setPhase(st, 'house'); }
+      else if (k === 3) { setPhase(st, 'house'); }
+      else {
+        st.p = { ...st.p, x: k === 4 ? QUAY.x0 : QUAY.x1, y: QUAY.y, f: 0, conn: null, face: 1 };
+        if (k === 4) { setPhase(st, 'quay'); st.nextHaz = 1.2; }
+        else { st.quayT = 6; setPhase(st, k === 5 ? 'ending' : 'pageant'); }
+        st.ending = endingFor(carry);
+        if (k === 5) st.events.push({ type: 'ending', ending: st.ending });
+        if (k === 6) st.events.push({ type: 'pageant' });
+      }
+    }
+    st.checkpoint = { ...from, scene: k };
+    return st;
   },
 
   step(st, dt, input = {}) {
@@ -205,6 +251,38 @@ export default {
 // ---------------------------------------------------------------- shared
 function setPhase(st, ph) { st.phase = ph; st.phaseT = 0; }
 
+// The house state a checkpoint keeps, as plain JSON.
+function houseSnap(st) {
+  return {
+    spans: st.spans.map((f) => f.map((r) => [...r])),
+    conns: st.conns.map((c) => ({ id: c.id, on: c.on })),
+    stoneThrown: st.stoneThrown, shutter: st.shutter, shortcut: st.shortcut,
+    broke: st.broke, ladderDropT: st.ladderDropT == null ? null : Math.min(1, st.ladderDropT),
+  };
+}
+function checkpoint(st, scene, extra = {}) {
+  st.checkpoint = { scene, score: st.score, pearls: st.pearls, ...extra };
+}
+
+// Puts the house back as a scene (2: the start of the climb; 3 and later: she
+// is lifted and the way up has broken away) or as a checkpoint stored it.
+function restoreHouse(st, from, k) {
+  const H = HOUSE;
+  if (k >= 3) breakAway(st);
+  st.ladderDropT = k >= 3 ? 1 : null;
+  if (from.stoneThrown) { st.stoneThrown = true; st.shutter = 'broken'; st.shortcut = true; }
+  if (from.spans) st.spans = from.spans.map((f) => f.map((r) => [...r]));
+  if (from.conns) for (const c of st.conns) { const o = from.conns.find((x) => x.id === c.id); if (o) c.on = !!o.on; }
+  if (from.shutter) st.shutter = from.shutter;
+  if (from.shortcut != null) st.shortcut = from.shortcut;
+  if (from.broke != null) st.broke = from.broke;
+  if (from.ladderDropT !== undefined && from.spans) st.ladderDropT = from.ladderDropT;
+  st.conns.find((c) => c.id === 'ivy').on = st.shutter === 'broken' && !st.broke;
+  if (k >= 3) { st.p = { ...st.p, x: H.beloved, y: H.floors[2], f: 2, carry: true, face: -1 }; }
+  else st.p = { ...st.p, x: H.door, y: H.floors[0], f: 0 };
+  st.events.length = 0;
+}
+
 function hit(st, extra = {}) {
   if (st.inv > 0 || st.defeatT != null) return false;
   st.lanterns--;
@@ -265,6 +343,9 @@ function stepCliff(st, dt, input) {
   const h = st.holds[cl.at];
   if (arrived) {
     if (h.pearl && !h.taken) { h.taken = true; st.pearls++; st.score += 10; st.events.push({ type: 'pearl', x: h.x, y: h.y }); }
+    if ((st.checkpoint?.scene | 0) < 1 && h.y >= st.holds[HALF].y && h.kind !== 'top') {
+      checkpoint(st, 1, { hold: HALF, taken: st.holds.map((o, j) => (o.taken ? j : -1)).filter((j) => j >= 0) });
+    }
     if (h.kind === 'top') {
       st.score += 200; st.walkFromX = h.x;
       st.events.push({ type: 'clifftop' });
@@ -355,6 +436,7 @@ function stepStorm(st, dt) {
   st.rocks.length = 0;
   if (t >= T.storm) {
     setPhase(st, 'house');
+    checkpoint(st, 2, houseSnap(st));
     st.events.push({ type: 'fireCrackle' });
   }
 }
@@ -455,6 +537,7 @@ function stepHouse(st, dt, input) {
     st.score += 300;
     st.events.push({ type: 'liftHer' });
     breakAway(st);
+    checkpoint(st, 3, houseSnap(st));
   }
   // Out of the door with her.
   if (p.carry && p.f === 0 && p.x <= H.door + 4) {
@@ -462,6 +545,7 @@ function stepHouse(st, dt, input) {
     st.p = { ...p, x: QUAY.x0, y: QUAY.y, f: 0, conn: null, face: 1 };
     st.haz = []; st.nextHaz = 1.2;
     st.events.push({ type: 'houseFall' });
+    checkpoint(st, 4, houseSnap(st));
     return;
   }
   stepHazards(st, dt);
@@ -529,6 +613,7 @@ function stepQuay(st, dt, input) {
     setPhase(st, 'ending');
     st.haz = [];
     st.events.push({ type: 'ending', ending: st.ending });
+    checkpoint(st, 5, houseSnap(st));
     return;
   }
   stepHazards(st, dt);
@@ -548,6 +633,7 @@ function stepEnding(st) {
   if (st.phaseT >= T.ending) {
     setPhase(st, 'pageant');
     st.events.push({ type: 'pageant' });
+    checkpoint(st, 6, houseSnap(st));
   }
 }
 

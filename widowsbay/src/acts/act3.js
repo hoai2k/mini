@@ -27,6 +27,15 @@ export const LANTERN_Y = 236;                   // the gaze lantern's eye
 export const SENTRIES = [470, 760, 1050, 1420, 1720, 2010, 2330, 2620]; // along the front groove
 // The sentries face right; their snapping head is this far right of centre.
 export const SENTRY_HEAD = 50, SENTRY_REACH = 42;
+// Scenes: where a retry or the scene select starts. Each stands on the front
+// groove midway between two sentry jaws (heads at sentry x + SENTRY_HEAD), clear
+// of every courtier, and a checkpoint is set as the sailor crosses its x.
+export const SCENES = [
+  { name: 'The Hall Doors', x: START.x, row: START.row },
+  { name: 'Before the Throne', x: 955, row: 2 },
+  { name: "The Witch's Side", x: 1620, row: 2 },
+  { name: 'The Treasury Steps', x: 2220, row: 2 },
+];
 export const BEAT = 60 / 76.5;                  // fallback only; input.beat drives
 
 export const TUNE = {
@@ -130,8 +139,11 @@ export default {
   id: 3, key: 'court', kicker: 'Act III', title: "The Sea King's Court", size: 110,
   sub: 'Hold A to freeze among the courtiers as the gaze sweeps.\nTake her pearl while the whale masks the hall.',
   action: 'Hold A: freeze · A: take',
+  scenes: SCENES,
 
-  create({ seed = 1, carry = {} } = {}) {
+  // `from`: null, { scene } (scene select) or a checkpoint this act made
+  // ({ scene, x, row, got, score, pearls, stats }).
+  create({ seed = 1, carry = {}, from = null } = {}) {
     const st = {
       status: 'play', statusT: 0, events: [], result: null,
       phase: 'play', phaseT: 0, t: 0,
@@ -148,7 +160,20 @@ export default {
       fish: { t: -1, next: TUNE.whaleFirst + 10 },
       masked: false, canTake: false, omens: [], unseenPass: false, cause: null,
       stats: { freezes: 0, hiddenPasses: 0, maskedTime: 0, hits: 0 },
+      checkpoint: null,
     };
+    const k = clamp(from?.scene | 0, 0, SCENES.length - 1);
+    if (k <= 0 && !(from && from.x != null)) return st;
+    // Resume: stand in the scene's groove, lanterns full, hazards afresh but fair.
+    const x = clamp(from.x ?? SCENES[k].x, XMIN, XMAX), row = clamp(from.row ?? SCENES[k].row, 0, 2) | 0;
+    Object.assign(st.p, { x, row, from: row, rowT: 1, grace: 2.5 });
+    st.cam = camFor(x);
+    for (const i of from.got || []) if (st.pearlsOnFloor[i]) st.pearlsOnFloor[i].got = true;
+    st.pearls = from.pearls | 0; st.score = from.score | 0;
+    Object.assign(st.stats, from.stats || {});
+    st.gaze.dur = 5;                                  // the lantern rests a while first
+    st.whale.next = 14; st.fish.next = 26;
+    st.checkpoint = { ...from, scene: k };
     return st;
   },
 
@@ -309,6 +334,17 @@ function play(st, dt, input, emit) {
 
   // Pearls along the grooves.
   const r = effRow(p);
+  // Crossing a scene boundary is a checkpoint: a retry starts in the safe
+  // groove at that boundary with what has been gathered so far.
+  let reached = 0;
+  SCENES.forEach((sc, i) => { if (p.x >= sc.x) reached = i; });
+  if (reached > (st.checkpoint?.scene | 0)) {
+    st.checkpoint = {
+      scene: reached, x: SCENES[reached].x, row: SCENES[reached].row,
+      got: st.pearlsOnFloor.flatMap((q, i) => (q.got ? [i] : [])),
+      score: st.score, pearls: st.pearls, stats: { ...st.stats },
+    };
+  }
   for (const q of st.pearlsOnFloor) {
     if (!q.got && q.row === r && Math.abs(q.x - p.x) < 28) { q.got = true; st.pearls++; st.score += 10; emit({ type: 'pearl', x: q.x, y: ROWY[q.row] }); }
   }
