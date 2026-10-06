@@ -229,9 +229,12 @@ number before it reaches physics or rendering, and escape every name.
   The client's 50 ms presence throttle adds latency, but that's harmless
   because samples are stamped when created.
 - Receivers keep a short buffer per object and draw it at `now - D`. D adapts
-  to each sender: `clamp(lateness + sample spacing + 2 × jitter + 15 ms,
-  90 ms, 350 ms)`, using running averages and changing by at most 5% a
-  second. At 60 fps that lands around 110–150 ms.
+  to each sender: `clamp(lateness + min(0.15 s, sample spacing) + 2 × jitter
+  + 15 ms, 90 ms, 600 ms)`, using running averages. Set it outright before
+  the start, then let it grow by up to 15% a second and shrink by up to 5% a
+  second, and treat a single very late sample as an outlier. On a quick
+  network it lands around 110–150 ms. A fixed 350 ms cap was too low for a
+  slow connection and caused snaps.
 - When drawing time passes the newest sample, extrapolate with velocity and
   turn rate for 0.3 s. Then, in a racer, keep advancing along the track at
   the last speed for up to 3 s. That hides reconnects and host changes far
@@ -280,6 +283,31 @@ into at most one topic per 50 ms. The hidden cost is the lobby: each
 `watchRooms` poll is a full request (1,200 an hour per open lobby at the
 3 s default). Poll only while the lobby is visible, and consider 4–5 s.
 
+### Background tabs, locked phones and determinism
+
+- **A hidden tab stops running.** Browsers pause `requestAnimationFrame` and
+  slow timers right down, so a host in a background tab freezes every AI
+  object. Hand the room on after 2 s hidden, or at once on `pagehide`,
+  `freeze` or a phone. A long frame alone isn't proof of being hidden
+  (building a level can take seconds), so hand on only if the others have
+  moved on.
+- Guests give up on a host that has been silent for 4 s mid-game (longer in
+  menus). The host drives a guest's avatar as AI after 3 s without updates,
+  and hands it back from where it left it, so nothing snaps.
+- **`Math.random` isn't shared between pages.** Caches change how many random
+  numbers building a level uses, so a "next random number" differs between a
+  page that built the level before and one that didn't. Derive every gameplay
+  choice from the shared seed and a hash of the cycle number.
+- **Write timed hazards as `pos = f(t)`.** Never write `t0 = t` or add up
+  frame times: one 3-second frame on one screen shifts them for good.
+- **A slow frame can run two game steps with the same input**, so an
+  "item pressed" edge can fire twice. Clear input edges once per frame.
+- Let players who finish loading late play: the host drives them until they
+  are ready.
+- Room capacity counts sockets, including silent ones. When two people host
+  at once you simply get two rooms, but default titles can be identical, so
+  consider adding a short tag.
+
 ### Testing headless
 
 - Software WebGL ran three pages at 2.5–4 seconds per frame. A `?norender`
@@ -290,6 +318,15 @@ into at most one topic per 50 ms. The hidden cost is the lobby: each
 - When measuring smoothness, stamp samples with the `requestAnimationFrame`
   time. Stamping with `performance.now()` inside the recorder produces fake
   speed spikes.
+- Test through a small WebSocket proxy that adds delay (40–150 ms each way,
+  about 30 ms jitter, in order) and an occasional 300–600 ms stall. It finds
+  problems localhost never shows. Clock sync through the relay takes four
+  legs, so expect starts to agree only to within about a quarter of the
+  round trip.
+- The first time a headless page opens a screen full of 3D previews, it can
+  block for 20 s or more. Wait generously before calling a late message a
+  protocol bug, and keep animations out of the draw path so `?norender`
+  pages still advance.
 - Claude's cloud sandbox proxy can't open WebSockets (the production relay
   answers 426), so only the lobby can be checked against production from
   there. Chromium ignores proxy bypass lists for localhost, so use a PAC
