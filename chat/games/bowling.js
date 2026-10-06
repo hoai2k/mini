@@ -389,7 +389,7 @@ export default {
       const top = inset.top + stripH + 100;
       const bottom = h - inset.bottom - 6;
       const availH = Math.max(120, bottom - top);
-      const D0 = 400, near = -40;
+      const D0 = 400, near = -75;
       const F = Math.min(5.6 * w, 8.5 * availH);
       const K = availH / (1 / (D0 + near) - 1 / (D0 + DECK_END));
       const hy = top - K / (D0 + DECK_END);
