@@ -76,7 +76,10 @@ export const touch = {
     if (near(T.pause, 16)) return 'pause';
     if (mode === 'battle' && near(T.shield, 18)) return 'guard';
     if (mode === 'practice') {
-      if (near(T.kit, 16)) return 'kit';
+      // The arrows first: they sit close to the drum.
+      if (near(T.secondPrev, 8)) return 'secondPrev';
+      if (near(T.secondNext, 8)) return 'secondNext';
+      if (near(T.kit, 16)) return 'S'; // the secondary drum
       if (near(T.fewer, 14)) return 'fewer';
       if (near(T.more, 14)) return 'more';
     }
@@ -106,7 +109,7 @@ export const touch = {
   touched(x, y, target, t) {
     this.taps.push({ x, y, t, target });
     if (this.taps.length > 8) this.taps.shift();
-    if (['guard', 'reset', 'pause', 'kit', 'fewer', 'more'].includes(target)) this.pressed[target] = t;
+    if (['guard', 'reset', 'pause', 'S', 'secondPrev', 'secondNext', 'fewer', 'more'].includes(target)) this.pressed[target] = t;
   },
 
   /**

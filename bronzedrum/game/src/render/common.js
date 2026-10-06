@@ -29,6 +29,9 @@ export const TOUCH = {
   pause: { x: 640, y: 32, r: 24 },
   // Drum Practice: the kit (where the shield drum sits), fewer and more strokes beside the dots.
   kit: { x: 1170, y: 628, r: 62 },
+  // ‹ › beside it choose the secondary drum (kept clear of the screen's edge).
+  secondPrev: { x: 1094, y: 650, r: 22 },
+  secondNext: { x: 1246, y: 650, r: 22 },
   fewer: { x: 236, y: 518, r: 34 },
   more: { x: 1044, y: 518, r: 34 },
 };

@@ -512,6 +512,16 @@ export class Sound {
     if (bus && this.ctx) glide(this.ctx, bus.gain, to, dur);
   }
 
+  /** Drum Practice's secondary drum: one sample, with a short thud as its stand-in. */
+  secondStroke(sample, t = this.now, gain = 1, rate = 1, dest = this.master) {
+    if (!this.ctx) return null;
+    const src = this.play(sample, t, gain, dest, rate);
+    if (src) return src;
+    this.tone('sine', 130 * rate, t, 0.6 * gain, 0.3, 70, dest);
+    this.noiseBurst(t, 0.2 * gain, 0.06, 'bandpass', 900, 2, dest);
+    return null;
+  }
+
   /** Trắc's deep centre stroke. */
   tung(t = this.now, strong = false) {
     if (!this.ctx) return;

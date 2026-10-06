@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { transcribe, makeCall, practicePattern, PracticeSession, CallSession, riffOn, loopPosition, KITS, BEATS } from '../src/practice.js';
+import { transcribe, makeCall, practicePattern, PracticeSession, CallSession, riffOn, loopPosition, KITS, SECONDS, BEATS } from '../src/practice.js';
 
 const play = (times, drums = 'LRLRLRLRLRLR') => times.map((t, i) => ({ drum: drums[i % drums.length], t }));
 
@@ -259,4 +259,23 @@ test('an answer is read at about its call’s speed', () => {
   const a = ev.find((e) => e.type === 'answered').answer;
   assert.equal(a.text, 'L R L R');
   assert.ok(Math.abs(a.u - call.u) / call.u < 0.05);
+});
+
+test('the secondary drum (S) is part of the rhythm: read, looped and riffed on like the others', () => {
+  const st = [['L', 0], ['S', 0.5], ['R', 1], ['R', 1.25], ['S', 1.5]].map(([drum, t]) => ({ drum, t: t + 10 }));
+  assert.equal(transcribe(st).text, 'L S RR S');
+  const s = new PracticeSession({ mode: 'free', beats: 4 });
+  for (const x of st) s.stroke(x.drum, x.t);
+  for (let t = 10; t < 16; t += 0.05) s.update(t);
+  assert.equal(s.loop.text, 'L S RR S');
+  for (let i = 0; i < 20; i++) {
+    const r = riffOn('L S RR S', ((seed) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647))(i + 1));
+    assert.equal(r.text.split(' ').length, 4, r.text);
+  }
+});
+
+test('secondary drums: unique ids, the trống chầu first as the default, each with a sample and a face', () => {
+  assert.equal(SECONDS[0].id, 'chau');
+  assert.equal(new Set(SECONDS.map((d) => d.id)).size, SECONDS.length);
+  for (const d of SECONDS) assert.ok(d.sample && d.face && d.vn, d.id);
 });

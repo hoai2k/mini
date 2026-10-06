@@ -44,7 +44,7 @@ export class Renderer {
       restore();
     };
     this.pressed = {}; // touch button id -> time pressed
-    this.kicks = { chau: -9, mo: -9 }; // when the companion drums were last struck
+    this.kicks = { chau: -9, mo: -9, second: -9 }; // when the companion drums (and practice's secondary drum) were last struck
     this.taps = []; // touch points, drawn as brief rings
     this.resize();
     window.addEventListener('resize', () => this.resize());

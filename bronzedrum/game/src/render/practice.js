@@ -495,9 +495,10 @@ export const practice = {
     const p = view.practice;
     const lines = [
       `${p.keys.fewer} fewer · ${p.beats} beats · more ${p.keys.more}`,
-      `${p.keys.kit} ${p.kit.vn} · ${p.kit.name}`,
+      `${p.keys.second} ${p.second.vn} · ${p.keys.choose} another`,
       `${p.keys.clear} ${p.kind === 'free' ? 'clear and stop the loop' : 'clear'}`,
     ];
+    this.secondDrum(view, 768, H - 92, 30);
     const by = Math.min(k, 1.4);
     g.save();
     g.translate(0, H);
@@ -517,7 +518,34 @@ export const practice = {
     g.restore();
   },
 
-  /** Drum Practice on touch screens: the kit drum to swap kits, and − and + beside the dots. */
+  /**
+   * Drum Practice's secondary drum, beside the bronze drum: its face (shivering
+   * when struck) and its name. On touch it is a button; elsewhere the keys
+   * are in the controls box.
+   */
+  secondDrum(view, x, y, r, touch = false) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const second = view.practice.second;
+    const sh = this.shiver(this.kicks.second ?? -9, t, 4);
+    const hit = Math.max(0, 1 - (t - (this.kicks.second ?? -9)) / 0.25);
+    g.save();
+    g.translate(sh.dx, sh.dy);
+    g.shadowColor = hit > 0 ? P.verdigris : 'rgba(0,0,0,0.55)';
+    g.shadowBlur = 10 + 14 * hit;
+    this.kitFace(x, y, r, second.face);
+    g.restore();
+    g.save();
+    g.font = `700 ${touch ? 15 : 13}px "Be Vietnam Pro", system-ui, sans-serif`;
+    g.textAlign = 'center';
+    g.fillStyle = P.paper;
+    g.shadowColor = 'rgba(0,0,0,0.9)';
+    g.shadowBlur = 4;
+    g.fillText(second.vn, x, y - r - (touch ? 12 : 8));
+    g.restore();
+  },
+
+  /** Drum Practice on touch screens: the secondary drum, and − and + beside the dots. */
   practiceButtons(view) {
     const g = this.ctx;
     const t = view.songTime;
@@ -537,26 +565,23 @@ export const practice = {
       g.fillText(str, x, y);
       g.restore();
     };
-    // The kit: its own face, shivering when pressed.
-    const r = T.kit.r * press('kit');
-    const sh = this.shiver(this.pressed.kit ?? -9, t, 4);
-    g.save();
-    g.translate(sh.dx, sh.dy);
-    g.shadowColor = 'rgba(0,0,0,0.55)';
-    g.shadowBlur = 10;
-    if (p.kit.id === 'bronze') {
-      const img = this.art.get('hud-drum');
-      if (img) g.drawImage(img, T.kit.x - r, T.kit.y - r, r * 2, r * 2);
-      else {
-        g.fillStyle = P.bronze;
-        g.beginPath();
-        g.arc(T.kit.x, T.kit.y, r, 0, Math.PI * 2);
-        g.fill();
-      }
-    } else this.kitFace(T.kit.x, T.kit.y, r, p.kit.id);
-    g.restore();
-    text(p.kit.vn, T.kit.x, T.kit.y - T.kit.r - 26);
-    text('tap to change', T.kit.x, T.kit.y - T.kit.r - 8, 12);
+    // The secondary drum: tap it to strike it, ‹ › to choose another.
+    this.secondDrum(view, T.kit.x, T.kit.y, T.kit.r * press('S'), true);
+    for (const [id, sign] of [['secondPrev', '‹'], ['secondNext', '›']]) {
+      const { x, y, r } = T[id];
+      const rr = r * press(id);
+      g.save();
+      g.globalAlpha = 0.9;
+      g.fillStyle = P.indigo;
+      g.beginPath();
+      g.arc(x, y, rr, 0, Math.PI * 2);
+      g.fill();
+      g.strokeStyle = P.bronze;
+      g.lineWidth = 2;
+      g.stroke();
+      g.restore();
+      text(sign, x, y + 9, 26);
+    }
     // Fewer and more strokes.
     for (const [id, sign] of [['fewer', '−'], ['more', '+']]) {
       const pos = T[id];

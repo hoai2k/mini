@@ -710,6 +710,18 @@ export const hud = {
 
   glyph(x, y, d, r) {
     const g = this.ctx;
+    if (d === 'S') {
+      // Drum Practice's secondary drum: a verdigris diamond.
+      g.fillStyle = P.verdigris;
+      g.beginPath();
+      g.moveTo(x, y - r);
+      g.lineTo(x + r, y);
+      g.lineTo(x, y + r);
+      g.lineTo(x - r, y);
+      g.closePath();
+      g.fill();
+      return;
+    }
     if (d === 'L') {
       g.fillStyle = P.bronzeLight;
       g.beginPath();

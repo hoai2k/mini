@@ -30,6 +30,20 @@ export const KITS = [
   { id: 'lion', name: 'Lion-dance drum', vn: 'Trống lân · chũm chọe', L: 'kit-lan-drum', R: 'kit-lan-cymbal' },
 ];
 
+// The secondary drum (Y): one voice at a time, struck alongside the bronze
+// drum and part of the rhythm (drum 'S'); LB and RB choose it. face: the kit
+// face drawn for it (Renderer.kitFace).
+export const SECONDS = [
+  { id: 'chau', name: 'Barrel drum', vn: 'Trống chầu', sample: 'drum-chau', face: 'temple' },
+  { id: 'mo', name: 'Slit drum', vn: 'Mõ', sample: 'drum-mo', face: 'temple' },
+  { id: 'com', name: 'Rice drum', vn: 'Trống cơm', sample: 'kit-com-low', face: 'rice' },
+  { id: 'gong', name: 'Low gong', vn: 'Cồng', sample: 'kit-gong-low', face: 'gongs' },
+  { id: 'chieng', name: 'High gong', vn: 'Chiêng', sample: 'kit-gong-high', face: 'gongs' },
+  { id: 'bamboo', name: 'Bamboo', vn: 'Đàn t’rưng', sample: 'kit-bamboo-low', face: 'bamboo' },
+  { id: 'lan', name: 'Lion-dance drum', vn: 'Trống lân', sample: 'kit-lan-drum', face: 'lion' },
+  { id: 'choe', name: 'Cymbals', vn: 'Chũm chọe', sample: 'kit-lan-cymbal', face: 'lion' },
+];
+
 // Reading free strokes as a rhythm (transcribe). The strokes are laid on a
 // grid of beats at a steady tempo, the first stroke on the first beat. Each
 // beat is split into one, two or three slots, and slots may stay empty, so a
