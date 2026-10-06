@@ -277,7 +277,7 @@ add('History', 3, 'Which people used longships to sail from Scandinavia?', 'Viki
 add('History', 2, 'Which Egyptian boy king\'s tomb was found in 1922?', 'Tutankhamun', 'Ramses', 'Cleopatra', 'Khufu');
 add('History', 2, 'In which country did the Renaissance begin?', 'Italy', 'England', 'Spain', 'Germany');
 add('History', 2, 'Who wrote the play Romeo and Juliet?', 'William Shakespeare', 'Charles Dickens', 'Jane Austen', 'Mark Twain');
-add('History', 1, 'What did people use before electric lights, burning wax?', 'Candles', 'Batteries', 'Radios', 'Mirrors');
+add('History', 1, 'Before electric lights, what did people burn to see at night?', 'Candles', 'Batteries', 'Radios', 'Mirrors');
 add('History', 3, 'Which US president is shown on the penny (one-cent coin)?', 'Abraham Lincoln', 'George Washington', 'Thomas Jefferson', 'Franklin Roosevelt');
 
 // --- Tech ------------------------------------------------------------------
