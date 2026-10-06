@@ -15,13 +15,13 @@ const NAV_KEYS = {
 export const PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 const PAD_DRUM = { [PAD.X]: 'L', [PAD.LB]: 'L', [PAD.LT]: 'L', [PAD.LEFT]: 'L', [PAD.B]: 'R', [PAD.RB]: 'R', [PAD.RT]: 'R', [PAD.RIGHT]: 'R' };
 const PAD_NAV = { [PAD.UP]: 'up', [PAD.DOWN]: 'down', [PAD.LEFT]: 'left', [PAD.RIGHT]: 'right', [PAD.A]: 'confirm', [PAD.B]: 'back', [PAD.MENU]: 'menu' };
-// Drum Practice: LB and RB take strokes away and add them, Y and the d-pad's
-// up and down change the kit (they are drums elsewhere).
-const PAD_PRACTICE = { [PAD.LB]: 'fewer', [PAD.RB]: 'more', [PAD.Y]: 'kit', [PAD.UP]: 'kitPrev', [PAD.DOWN]: 'kit' };
+// Drum Practice: Y strikes the secondary drum and LB and RB choose it; the
+// d-pad's up and down add and take away beats (they are drums elsewhere).
+const PAD_PRACTICE = { [PAD.LB]: 'secondPrev', [PAD.RB]: 'secondNext', [PAD.UP]: 'more', [PAD.DOWN]: 'fewer' };
 const KEY_PRACTICE = {
-  Minus: 'fewer', NumpadSubtract: 'fewer', BracketLeft: 'fewer',
-  Equal: 'more', NumpadAdd: 'more', BracketRight: 'more',
-  ArrowUp: 'kitPrev', ArrowDown: 'kit',
+  Minus: 'fewer', NumpadSubtract: 'fewer', ArrowDown: 'fewer',
+  Equal: 'more', NumpadAdd: 'more', ArrowUp: 'more',
+  BracketLeft: 'secondPrev', BracketRight: 'secondNext',
 };
 const DEAD = 0.5;
 const REPEAT_FIRST = 0.38;
@@ -136,6 +136,12 @@ export class Input {
         e.preventDefault();
         return;
       }
+      // Drum Practice's secondary drum: G or H (Y on a controller).
+      if (this.practice && (e.code === 'KeyG' || e.code === 'KeyH')) {
+        this.emit('drum', { drum: 'S', time: e.timeStamp });
+        e.preventDefault();
+        return;
+      }
       if (this.practice && KEY_PRACTICE[e.code]) {
         this.emit('action', { action: KEY_PRACTICE[e.code], time: e.timeStamp });
         e.preventDefault();
@@ -208,7 +214,8 @@ export class Input {
       this.setDevice('gamepad');
       this.emit('padButton', i);
       if (this.mode === 'play') {
-        if (this.practice && PAD_PRACTICE[i]) this.emit('action', { action: PAD_PRACTICE[i], time: now });
+        if (this.practice && i === PAD.Y) this.emit('drum', { drum: 'S', time: now });
+        else if (this.practice && PAD_PRACTICE[i]) this.emit('action', { action: PAD_PRACTICE[i], time: now });
         else if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: now });
         else if (i === PAD.A) this.emit('action', { action: 'guard', time: now });
         else if (i === PAD.MENU || i === PAD.VIEW) this.emit('nav', 'menu');

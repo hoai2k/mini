@@ -691,22 +691,12 @@
       "file": "throat-lip.webp"
     },
     "cliff-face-tall-2": {
-      "status": "requested",
-      "file": "cliff-face-tall-2.webp",
-      "size": [
-        1400,
-        3600
-      ],
-      "anchor": "bottom centre"
+      "status": "delivered",
+      "file": "cliff-face-tall-2.webp"
     },
     "ending-dark-3": {
-      "status": "requested",
-      "file": "ending-dark-3.webp",
-      "size": [
-        2560,
-        1440
-      ],
-      "anchor": "full frame"
+      "status": "delivered",
+      "file": "ending-dark-3.webp"
     }
   },
   "audio": {

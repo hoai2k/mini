@@ -25,3 +25,6 @@
 
 # macOS metadata on external drives.
 ._*
+
+# Subagent worktrees (Claude Code); their work is merged through their branches.
+.claude/worktrees/
