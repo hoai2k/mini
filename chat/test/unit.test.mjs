@@ -67,8 +67,9 @@ test('every listed effect and game has a file', () => {
   const games = readdirSync(new URL('../games/', import.meta.url));
   for (const id of EFFECT_IDS) assert.ok(fx.includes(`${id}.js`), `effects/${id}.js`);
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
-  assert.equal(EFFECT_IDS.length, 20);
-  assert.equal(GAME_IDS.length, 10);
+  assert.equal(EFFECT_IDS.length, 70);
+  assert.equal(new Set(EFFECT_IDS).size, 70);
+  assert.equal(GAME_IDS.length, 20);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));

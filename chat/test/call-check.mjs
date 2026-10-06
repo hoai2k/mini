@@ -78,6 +78,17 @@ try {
   await b.screenshot({ path: `${outDir}call-bo-bubble-flying.png` });
   check(await until(b, () => [...document.querySelectorAll('.toast')].some(t => /popped a bubble on you/.test(t.textContent)), null, 6000), 'Ana’s bubble pops on Bo');
 
+  // Votes: Ana gives Bubble Blow a thumbs up from the effects strip; Bo sees it.
+  await a.click('#btn-effects');
+  await a.click('#fx-votes .vote[data-value="1"]');
+  await a.waitForTimeout(800);
+  await a.click('#btn-effects');
+  const seen = await b.evaluate(async () => {
+    await window.__chat.votes.refresh();
+    return window.__chat.votes.counts('fx-bubble');
+  });
+  check(seen.up >= 1, `a thumbs up is counted for everyone (${JSON.stringify(seen)})`);
+
   // Text chat.
   await b.click('#btn-chat');
   await b.fill('#chat-input', 'hello from Bo');

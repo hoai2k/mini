@@ -172,8 +172,8 @@ export function drawTemplate(ctx, face, img) {
 
 // A face for tests and for the effect preview when no camera face is found:
 // a head centred in a w x h canvas with eyes `scale` pixels apart.
-export function syntheticFace(w, h, { scale = Math.min(w, h) * 0.22, roll = 0, ...expr } = {}) {
-  const cx = w / 2, cy = h * 0.45;
+export function syntheticFace(w, h, { scale = Math.min(w, h) * 0.22, roll = 0, offsetX = 0, ...expr } = {}) {
+  const cx = w / 2 + offsetX * w, cy = h * 0.45;
   const P = (tx, ty) => {
     const s = scale / TEMPLATE.eyeDist;
     const x = (tx - 512) * s, y = (ty - 520) * s;

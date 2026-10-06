@@ -1,6 +1,6 @@
-# Bubble Chat intake
+# Games Chat intake
 
-Drop files for Bubble Chat here and ask for them to be integrated. Nothing in
+Drop files for Games Chat here and ask for them to be integrated. Nothing in
 this folder is published or loaded by the app.
 
 Save each image under the file name given in its **File** line in

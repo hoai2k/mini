@@ -13,7 +13,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `widowsbay/` | Widow's Bay | https://hoai2k.github.io/mini/widowsbay/ |
 | `bronzedrum/` | Bronze Drum | https://hoai2k.github.io/mini/bronzedrum/ |
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
-| `chat/` | Bubble Chat (video chat with face effects and minigames) | https://hoai2k.github.io/mini/chat/ |
+| `chat/` | Games Chat (video chat with face effects and minigames) | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |
 | `local/` | Ignored by Git: dependencies, caches and build output | — |

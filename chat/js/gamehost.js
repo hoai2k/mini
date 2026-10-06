@@ -121,6 +121,10 @@ export function createGameHost({ net, studio, mediaOf, toast, onOpen, onClose, i
       // For games with fullBleed: true, how many pixels at the top and bottom
       // the app's floating bars cover. Keep scores and key objects clear of them.
       insets,
+      // Phone tilt { x, y } (about -1..1) or null without a motion sensor;
+      // on iPhones call requestMotion() from a tap first.
+      tilt: () => studio.tilt?.() ?? null,
+      requestMotion: () => studio.requestMotion?.(),
       img,
       sfx,
       toast,

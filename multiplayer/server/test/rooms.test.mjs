@@ -141,3 +141,24 @@ test("a client flooding messages is disconnected", async () => {
   for (let i = 0; i < 400; i++) host.send({ t: "m", topic: "spam", d: i });
   assert.deepEqual(await host.next(m => m.t === "closed"), { t: "closed", reason: "rate_limited" });
 });
+
+test("votes: one vote per voter per item, changeable, with totals for everyone", async () => {
+  const game = `votes${Math.floor(Math.random() * 1e6)}`;
+  const cast = (item, voter, value) => fetch(`${BASE}/votes/${game}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ item, voter, value }),
+  });
+  assert.deepEqual(await (await cast("hoops", "voterA1", 1)).json(), { item: "hoops", up: 1, down: 0 });
+  await cast("hoops", "voterB2", -1);
+  await cast("hoops", "voterA1", 1); // the same vote again doesn't add
+  assert.deepEqual(await (await cast("hoops", "voterC3", 1)).json(), { item: "hoops", up: 2, down: 1 });
+  await cast("hoops", "voterB2", 1); // a changed mind
+  await cast("puppy", "voterA1", -1);
+  await cast("puppy", "voterA1", 0); // cleared
+  const { items } = await (await fetch(`${BASE}/votes/${game}`)).json();
+  assert.deepEqual(items, { hoops: { up: 3, down: 0 } });
+  assert.equal((await cast("bad item!", "voterA1", 1)).status, 400);
+  assert.equal((await cast("hoops", "voterA1", 5)).status, 400);
+  assert.equal((await fetch(`${BASE}/votes/${game}`, { headers: { Origin: "https://evil.example" } })).status, 403);
+});

@@ -1,6 +1,7 @@
-# Bubble Chat
+# Games Chat
 
-A video chat in the browser with 20 face effects and 10 minigames. Everyone
+A video chat in the browser with 70 face effects and backgrounds and 20
+minigames. Everyone
 who opens the page joins the same chat. It is tuned for two people (your
 friend fills the screen and you sit in the corner) and works for up to 16,
 although every extra person costs upload bandwidth (see "How calls work").
@@ -18,6 +19,10 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | `js/face.js` | MediaPipe Face Landmarker and selfie segmenter (loaded from jsDelivr), face geometry, the sticker face template |
 | `js/gamehost.js` | Minigame sessions: who is playing, per-player and shared state, messages |
 | `js/flyer.js`, `js/bubble-art.js` | The bubble that flies from one video to another and pops |
+| `js/votes.js` | Thumbs up and down, added up for everyone on the relay |
+| `js/motion.js` | Where I'm looking for 360 worlds: phone motion sensor, or head turn |
+| `effects/lib/world360.js` | Shared code for the eight 360 worlds |
+| `games/data/` | Trivia questions and the Word Blitz dictionary |
 | `js/sheet.js`, `js/icons.js` | Pull-down-to-close sheets; the control icons (mic and camera get a slash when off) |
 | `manifest.webmanifest`, `app-icon-*.png` | Home-screen install, which is how iPhones get full screen (stand-in icon until CH-U03 arrives) |
 | `js/gamepad.js`, `js/audio.js`, `js/assets.js`, `js/store.js` | Controller navigation, synthesised sounds, delivered art, saved settings and records |
@@ -47,22 +52,47 @@ button explains Add to Home Screen; the installed app opens full screen.
 
 ## Effects
 
-Bubble Blow (pucker to blow a bubble; relax and it flies to a friend's face
-and pops), Puppy, Heart Eyes, Dragon, Rainbow Mouth, Big Eyes, Bobblehead,
-Alien, Deal With It, Royalty, Fancy, Clown, Storm Cloud, Noodle Face, Swirl,
-Outer Space (replaces the room behind you), Under the Sea, 8-Bit, Comic Book
-and Heat Vision. Each is drawn onto the video I send, so friends see it
-without doing anything. Face gestures have a stand-in for when no face is
-tracked: hold Space, hold your own video, or hold RT.
+Effects are drawn onto the video I send, so friends see them without doing
+anything. Many react to the face; with no face tracked, hold Space, hold your
+own video, or hold RT instead.
+
+- **Stickers and characters:** Bubble Blow (pucker to blow a bubble that
+  flies to a friend's face and pops), Puppy, Kitty, Bunny, Heart Eyes, Dragon,
+  Rainbow Mouth, Alien, Deal With It, Royalty, Fancy, Clown, Flower Crown,
+  Devil, Angel, Pirate, Viking, Wizard, Butterflies, Glam, Waterworks, Hotdog,
+  Laser Eyes.
+- **360 worlds** (the room behind you is replaced; tilt the phone, or turn
+  your head on a laptop, to look around): Beach, Space, Reef, Forest, City,
+  Snow, Candy, Volcano.
+- **Backgrounds:** Outer Space, Under the Sea, Blur, Colour Pop, Neon Aura,
+  Disco, Code Rain, Sunset.
+- **Time:** Time Trails, Delay Ghost, Time Warp, Side Warp, Wobble Time, Stop
+  Motion, Clones, Motion Glow.
+- **Warps:** Big Eyes, Bobblehead, Noodle Face, Swirl, Tiny Face, Chubby
+  Cheeks, Baby Face, Mirror Face, Cyclops, Big Mouth, Fisheye.
+- **Filters:** 8-Bit, Comic Book, Heat Vision, Film Noir, VHS, Pop Art,
+  Kaleidoscope.
+- **Particles:** Storm Cloud, Snowfall, Confetti, Make It Rain, Fireworks.
 
 ## Games
 
-Hoops (flick shots, friends' shots fly as ghost balls, all-time total and best
-streak saved), Flappy Face (your face is the bird; open your mouth to flap),
-Air Hockey, Connect Four, Quick Draw, Staring Contest (blink detection), Copy
-Cat (match the expression), Rock Paper Scissors, Doodle Guess and Memory
-Match. Starting one shows friends an invite with a Join button. Records are
-kept per device in localStorage.
+Hoops, Flappy Face, Air Hockey, Connect Four, Quick Draw, Staring Contest,
+Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
+holes played together with friends' ghost balls), Bowling, Beach Bump (bump
+a ball between faces by nodding), Burger Stack (catch ingredients by moving
+your head), Asteroid Dodge (steer with your head or by tilting the phone),
+Don't Smile, Snake, Battleship, Trivia (351 questions in 12 categories) and
+Word Blitz (a Boggle-style word race on a 20,000-word dictionary). Starting
+one shows friends an invite with a Join button. Records are kept per device.
+
+## Thumbs up and down
+
+Every effect and game has 👍 and 👎 buttons: on the effects strip next to the
+effect's name, under each game card, and in the bar of a running game. Votes
+from everyone are added up on the relay (`/votes/chat`, one vote per browser
+per item, changeable), and Settings → Ratings lists every effect and game by
+score, so the ones nobody likes can be removed. Until the relay with the
+Votes object is deployed, each browser only sees its own votes.
 
 ## Running it locally
 
@@ -126,6 +156,13 @@ with its state (see `js/gamehost.js`).
 
 ## Known gaps
 
+- The relay update with the Votes object is deployed by
+  `.github/workflows/relay.yml` once the repository has the secrets
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (or by hand with
+  `npx wrangler deploy` in `multiplayer/server`). Until then votes are only
+  kept per browser.
+- The 360 worlds use the phone's motion sensor; iPhones ask for permission on
+  the first tap after picking one. Real-device sensor directions are untested.
 - No TURN relay, so some office and mobile networks can't connect video.
   Cloudflare's Realtime TURN would fix this but needs an API key held by a
   small Worker endpoint.

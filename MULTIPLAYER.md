@@ -36,7 +36,11 @@ game rules run in the browsers.
   It updates when players come and go. A room vanishes from it when its host
   leaves or when nobody is connected.
 
-There are no accounts, no stored game state and no anti-cheat. That suits
+There are no accounts, no stored game state and no anti-cheat. The one thing
+the relay does store is votes: `GET /votes/<game>` returns thumbs up and down
+totals per item, and `POST /votes/<game>` with `{ item, voter, value }`
+(value 1, -1 or 0) sets one browser's vote. Games Chat (`chat/js/votes.js`)
+uses it to rate its effects and games. That suits
 party games among friends. Don't use it for anything that needs secrets or
 fair competitive play.
 
@@ -356,8 +360,12 @@ every push to `main`.
 
 ## Deploying the relay
 
-Pushing to `main` doesn't deploy the relay. It's a Cloudflare Worker, so
-deploy it from a machine logged in to the Cloudflare account:
+Pushing a change under `multiplayer/server/` to `main` runs
+`.github/workflows/relay.yml`, which tests the relay and deploys it if the
+repository has the secrets `CLOUDFLARE_API_TOKEN` (a Cloudflare API token
+with the "Edit Cloudflare Workers" template) and `CLOUDFLARE_ACCOUNT_ID`.
+Without them the workflow only warns, and you deploy from a machine logged in
+to the Cloudflare account:
 
 ```sh
 cd multiplayer/server

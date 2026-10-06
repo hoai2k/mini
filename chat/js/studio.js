@@ -12,6 +12,7 @@
 import { loadLandmarker, loadSegmenter, faceFromResult } from './face.js';
 import { img } from './assets.js';
 import { sfx } from './audio.js';
+import { createMotion } from './motion.js';
 
 const MAX_W = 640;
 
@@ -48,12 +49,28 @@ uniform float u_mouthOpen;
 uniform float u_smile;
 uniform float u_pucker;
 uniform float u_browUp;
+uniform float u_yaw;
+uniform float u_pitch;
 // The camera image at canvas position uv (mirrored like a selfie).
 vec4 cam(vec2 uv) { return texture2D(u_tex, vec2(1.0 - uv.x, uv.y)); }
 // 1 where the person is, 0 for the room behind them (needs.segmentation).
 float personMask(vec2 uv) { return u_hasMask > 0.5 ? texture2D(u_mask, vec2(1.0 - uv.x, uv.y)).r : 1.0; }
 // The effect's background image, covering the canvas.
 vec4 bg(vec2 uv) { return texture2D(u_bg, uv); }
+// The 360 panorama in u_bg (equirectangular, 2:1) seen looking towards
+// (u_yaw, u_pitch) with a horizontal field of view of fov radians.
+vec4 pano(vec2 uv, float fov) {
+  float aspect = u_res.x / u_res.y;
+  float t = tan(fov * 0.5);
+  vec3 d = normalize(vec3((uv.x - 0.5) * 2.0 * t, -(uv.y - 0.5) * 2.0 * t / aspect, 1.0));
+  float cp = cos(u_pitch), sp = sin(u_pitch);
+  d = vec3(d.x, d.y * cp + d.z * sp, -d.y * sp + d.z * cp);
+  float cy = cos(u_yaw), sy = sin(u_yaw);
+  d = vec3(d.x * cy + d.z * sy, d.y, -d.x * sy + d.z * cy);
+  float u = atan(d.x, d.z) / 6.2831853 + 0.5;
+  float v = acos(clamp(d.y, -1.0, 1.0)) / 3.1415927;
+  return texture2D(u_bg, vec2(fract(u), v));
+}
 vec2 toPx(vec2 uv) { return uv * u_res; }
 vec2 toUv(vec2 px) { return px / u_res; }
 // Pulls pixels towards (amount > 0) or pushes them away from (amount < 0) a
@@ -109,7 +126,23 @@ export function createStudio() {
   let quad = null;
   let bgSource = null;
   let fakeFace = null;
+  const motion = createMotion();
+  // Per-frame canvases made on demand: the plain camera image, the person cut
+  // out of it, and a short history of both for the time effects.
+  const camCanvas = document.createElement('canvas');
+  const camCtx = camCanvas.getContext('2d', { willReadFrequently: false });
+  const personCanvas = document.createElement('canvas');
+  const personCtx = personCanvas.getContext('2d');
+  const maskCanvas = document.createElement('canvas');
+  const maskCtx = maskCanvas.getContext('2d');
+  let maskDrawn = -1;
+  let camFrameNo = -1, personFrameNo = -1;
+  const history = []; // { t, cam, person } newest last
+  const pool = [];
+  let lastHist = 0;
   let peerCount = 0;
+  let fakeMask = null; // tests: fn(w, h) -> Uint8Array mask in camera (unmirrored) space
+  let fakeView = null; // tests: { yaw, pitch }
   let faceStatus = 'idle'; // idle | loading | ready | failed
 
   function on(type, cb) {
@@ -282,6 +315,8 @@ export function createStudio() {
     uniform(prog, 'u_res', [w, h]);
     uniform(prog, 'u_time', frame.t);
     uniform(prog, 'u_hasMask', mask && fx.needs?.segmentation ? 1 : 0);
+    uniform(prog, 'u_yaw', frame.view?.yaw ?? 0);
+    uniform(prog, 'u_pitch', frame.view?.pitch ?? 0);
     const f = frame.face;
     uniform(prog, 'u_hasFace', f ? 1 : 0);
     if (f) {
@@ -329,6 +364,10 @@ export function createStudio() {
   }
 
   function track(now) {
+    if (fakeMask && effect?.needs?.segmentation) {
+      const data = fakeMask(256, 256, (now - start) / 1000);
+      mask = { data, w: 256, h: 256, version: (mask?.version ?? 0) + 1, uploaded: mask?.uploaded };
+    }
     if (fakeFace) {
       face = typeof fakeFace === 'function' ? fakeFace((now - start) / 1000, canvas.width, canvas.height) : fakeFace;
       return;
@@ -363,6 +402,100 @@ export function createStudio() {
     }
   }
 
+  // The mirrored camera image without any effect.
+  function cameraFrame(w, h) {
+    if (camFrameNo === frameNo) return camCanvas;
+    camFrameNo = frameNo;
+    if (camCanvas.width !== w || camCanvas.height !== h) {
+      camCanvas.width = w;
+      camCanvas.height = h;
+    }
+    if (camOn && video.readyState >= 2) {
+      camCtx.save();
+      camCtx.translate(w, 0);
+      camCtx.scale(-1, 1);
+      camCtx.drawImage(video, 0, 0, w, h);
+      camCtx.restore();
+    } else {
+      camCtx.drawImage(canvas, 0, 0, w, h);
+    }
+    return camCanvas;
+  }
+
+  // The camera image with the room made transparent, or null until the
+  // segmenter has produced a mask (needs.segmentation).
+  function personFrame(w, h) {
+    if (!mask) return null;
+    if (personFrameNo === frameNo) return personCanvas;
+    personFrameNo = frameNo;
+    if (maskDrawn !== mask.version) {
+      if (maskCanvas.width !== mask.w || maskCanvas.height !== mask.h) {
+        maskCanvas.width = mask.w;
+        maskCanvas.height = mask.h;
+      }
+      const img = maskCtx.createImageData(mask.w, mask.h);
+      for (let i = 0; i < mask.data.length; i++) img.data[i * 4 + 3] = mask.data[i];
+      maskCtx.putImageData(img, 0, 0);
+      maskDrawn = mask.version;
+    }
+    if (personCanvas.width !== w || personCanvas.height !== h) {
+      personCanvas.width = w;
+      personCanvas.height = h;
+    }
+    personCtx.globalCompositeOperation = 'copy';
+    personCtx.drawImage(cameraFrame(w, h), 0, 0);
+    personCtx.globalCompositeOperation = 'destination-in';
+    personCtx.save();
+    personCtx.translate(w, 0);
+    personCtx.scale(-1, 1);
+    personCtx.drawImage(maskCanvas, 0, 0, w, h);
+    personCtx.restore();
+    personCtx.globalCompositeOperation = 'source-over';
+    return personCanvas;
+  }
+
+  // Keeps up to needs.history seconds of half-size frames, 30 a second.
+  function record(fr) {
+    if (fr.t - lastHist < 1 / 31) return;
+    lastHist = fr.t;
+    const keep = Math.min(4, effect.needs.history);
+    const hw = Math.round(fr.w / 2), hh = Math.round(fr.h / 2);
+    while (history.length && history[0].t < fr.t - keep) pool.push(history.shift());
+    const entry = pool.pop() || { cam: document.createElement('canvas'), person: null };
+    if (entry.cam.width !== hw || entry.cam.height !== hh) {
+      entry.cam.width = hw;
+      entry.cam.height = hh;
+    }
+    entry.cam.getContext('2d').drawImage(cameraFrame(fr.w, fr.h), 0, 0, hw, hh);
+    const person = effect.needs.segmentation ? personFrame(fr.w, fr.h) : null;
+    if (person) {
+      entry.person ??= document.createElement('canvas');
+      if (entry.person.width !== hw || entry.person.height !== hh) {
+        entry.person.width = hw;
+        entry.person.height = hh;
+      }
+      const pc = entry.person.getContext('2d');
+      pc.clearRect(0, 0, hw, hh);
+      pc.drawImage(person, 0, 0, hw, hh);
+      entry.hasPerson = true;
+    } else {
+      entry.hasPerson = false;
+    }
+    entry.t = fr.t;
+    history.push(entry);
+  }
+
+  // The recorded frame closest to time t: { t, cam, person } (canvases at
+  // half size; person is null without a mask), or null before any.
+  function pastFrame(t) {
+    if (!history.length) return null;
+    let best = history[0];
+    for (const e of history) {
+      if (Math.abs(e.t - t) < Math.abs(best.t - t)) best = e;
+    }
+    return { t: best.t, cam: best.cam, person: best.hasPerson ? best.person : null };
+  }
+
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
@@ -382,9 +515,15 @@ export function createStudio() {
     input.pressed = input.held && !input.wasHeld;
     input.wasHeld = input.held;
 
+    const t = (now - start) / 1000;
+    const view = fakeView ? { ...fakeView, source: 'test' } : motion.view(face, dt);
     const fr = {
-      ctx, w, h, video, face, camOn,
-      t: (now - start) / 1000,
+      ctx, w, h, video, face, camOn, view,
+      camera: () => cameraFrame(w, h),
+      person: () => personFrame(w, h),
+      past: secondsAgo => pastFrame(t - secondsAgo),
+      history,
+      t,
       dt,
       input,
       peers: peerCount,
@@ -408,6 +547,7 @@ export function createStudio() {
         drawAvatar(w, h);
       }
     }
+    if (effect?.needs?.history) record(fr);
     if (effect?.draw) {
       try { effect.draw(ctx, fr); } catch (e) { console.error(`effect ${effect.id}`, e); }
     }
@@ -467,6 +607,9 @@ export function createStudio() {
       if (effect?.needs?.face || effect?.needs?.segmentation) faceWanted--;
       effect = fx;
       effectState = {};
+      history.forEach(e => pool.push(e));
+      history.length = 0;
+      motion.reset();
       bgSource = null;
       if (fx?.needs?.face || fx?.needs?.segmentation) faceWanted++;
       if (fx?.needs?.segmentation) ensureSegmenter();
@@ -478,6 +621,10 @@ export function createStudio() {
     setPeerCount(n) {
       peerCount = n;
     },
+    // Turns on the phone's motion sensor (iPhones need this from a tap).
+    requestMotion: () => motion.request(),
+    tilt: () => motion.tilt(),
+    get motionStatus() { return motion.status; },
     // Games that read my face call wantFace(true) while running.
     wantFace(yes) {
       faceWanted += yes ? 1 : -1;
@@ -485,6 +632,12 @@ export function createStudio() {
     // Tests and previews: a face object, or fn(t, w, h) -> face. null to stop.
     setFakeFace(f) {
       fakeFace = f;
+    },
+    setFakeMask(fn) {
+      fakeMask = fn;
+    },
+    setFakeView(v) {
+      fakeView = v;
     },
   };
 }
