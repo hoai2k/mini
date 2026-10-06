@@ -573,6 +573,37 @@ req(U_, "BD-U21", "hud-stick-nhi", "Close-up stick: Nhị's stick (the rim)",
     "stick is a thin dark wooden rod ending in a small round polished wooden knob, pointing to "
     "the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. "
     "No drum, nothing else in the image.")
+# Alternatives to BD-U20 and BD-U21, with the same wrist and head positions so
+# any can stand in for either: to choose between, or to vary by chapter.
+for rid, asset, who, corner, wrist, head, what in [
+    ("BD-U22", "hud-stick-trac-pestle", "Trắc", "bottom-left", "22% across and 78% down", "80% across and 20% down",
+     "a long plain wooden pole like a rice pestle, thick and smooth with a rounded blunt end, the "
+     "way drummers on the Đông Sơn drum friezes strike their drums"),
+    ("BD-U23", "hud-stick-trac-lacquer", "Trắc", "bottom-left", "22% across and 78% down", "80% across and 20% down",
+     "a ceremonial beater with a lacquer-red shaft banded in gold, and a round head wrapped in "
+     "cream cloth tied with red cord"),
+    ("BD-U24", "hud-stick-nhi-bamboo", "Nhị", "bottom-right", "78% across and 78% down", "20% across and 20% down",
+     "a slim stick of pale split bamboo with its nodes showing, the tip bound with a few turns of "
+     "red thread"),
+    ("BD-U25", "hud-stick-nhi-horn", "Nhị", "bottom-right", "78% across and 78% down", "20% across and 20% down",
+     "a dark hardwood stick with a small polished buffalo-horn tip, a tassel of red thread hanging "
+     "from the grip"),
+]:
+    trac = who == "Trắc"
+    req(U_, rid, asset, f"Close-up stick, another kind: {who}'s {asset.rsplit('-', 1)[1]}",
+        f"An alternative to {'BD-U20' if trac else 'BD-U21'}, drawn and animated the same way, so "
+        "one can be chosen, or the sticks can change from chapter to chapter.",
+        STICK_SPEC.format(corner=corner, wrist=wrist, head=head),
+        "planned", None, f"art/{asset}.png",
+        f"{STYLE} A close-up of one woman's forearm and hand gripping a drumstick, seen from just "
+        f"behind her shoulder, matching Trưng {'Trắc' if trac else 'Nhị'}'s puppet "
+        f"({'BD-R01' if trac else 'BD-R02'}): cream skin, "
+        + ("a wide cuff of bronze and gold bands at the wrist, the edge of a black and bronze sleeve "
+           if trac else "a brown and gold cuff cut with cream diamonds at the wrist, a lacquer-red "
+           "sleeve cut with white leaves ")
+        + f"where the forearm leaves the image at the {corner} corner. The stick is {what}, "
+        f"pointing to the upper {'right' if trac else 'left'}. Cut paper with crisp edges, lit from "
+        "behind, a soft glow along the rim. No drum, nothing else in the image.")
 req(U_, "BD-U16", "touch-buttons", "Touch buttons: the companion drums",
     "On phones and tablets the game draws on-screen buttons beside the big touch drum, made "
     "as the instruments that accompany a bronze drum in a temple or village hall. The shield "

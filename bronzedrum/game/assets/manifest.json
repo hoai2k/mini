@@ -291,6 +291,38 @@
       "runtime": true
     },
     {
+      "id": "hud-stick-trac-pestle",
+      "request": "BD-U22",
+      "file": "art/hud-stick-trac-pestle.png",
+      "status": "planned",
+      "section": "ui",
+      "runtime": false
+    },
+    {
+      "id": "hud-stick-trac-lacquer",
+      "request": "BD-U23",
+      "file": "art/hud-stick-trac-lacquer.png",
+      "status": "planned",
+      "section": "ui",
+      "runtime": false
+    },
+    {
+      "id": "hud-stick-nhi-bamboo",
+      "request": "BD-U24",
+      "file": "art/hud-stick-nhi-bamboo.png",
+      "status": "planned",
+      "section": "ui",
+      "runtime": false
+    },
+    {
+      "id": "hud-stick-nhi-horn",
+      "request": "BD-U25",
+      "file": "art/hud-stick-nhi-horn.png",
+      "status": "planned",
+      "section": "ui",
+      "runtime": false
+    },
+    {
       "id": "touch-buttons",
       "request": "BD-U16",
       "file": "art/touch-buttons.png",
