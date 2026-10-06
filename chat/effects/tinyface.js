@@ -12,8 +12,8 @@ vec4 effect(vec2 uv) {
   vec2 p = toPx(uv);
   // Centre of the features, a little below the eyes, so the whole inner face collapses.
   vec2 c = mix(u_nose, (u_eyeL + u_eyeR) * 0.5, 0.3);
-  p = bulge(p, c, 1.6 * u_scale, -2.4);
-  p = bulge(p, c, 0.9 * u_scale, -1.2);
+  p = bulge(p, c, 1.35 * u_scale, -1.7);
+  p = bulge(p, c, 1.0 * u_scale, -1.5);
   return cam(toUv(p));
 }`,
 };

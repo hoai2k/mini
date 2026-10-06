@@ -132,8 +132,8 @@ export default {
         return;
       }
       // Right ear (the viewer's right) flops clockwise, the left the other way.
-      ear(c, 420, 270, -0.08 - s.flop[0] * 1.5, -0.2 - s.flop[0] * 1.9, 330 - s.flop[0] * 30, 70);
-      ear(c, 604, 270, 0.1 + s.flop[1] * 1.5, 0.42 + s.flop[1] * 1.9, 330 - s.flop[1] * 30, 70);
+      ear(c, 420, 270, -0.08 - s.flop[0] * 0.95, -0.2 - s.flop[0] * 1.1, 300 - s.flop[0] * 20, 66);
+      ear(c, 604, 270, 0.1 + s.flop[1] * 0.95, 0.42 + s.flop[1] * 1.1, 300 - s.flop[1] * 20, 66);
       // The nose twitches in bursts.
       const burst = Math.max(0, Math.sin(f.t * 1.7)) > 0.5 ? 1 : 0;
       nose(c, 1 + burst * 0.14 * Math.sin(f.t * 34));

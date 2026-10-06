@@ -367,7 +367,7 @@ export default {
       // The timing ring: big far away, shrinking onto the face.
       if (isTarget && ringP != null) {
         const inWin = ringP <= 1 + LATE_MS / 1900 && ringP >= 1 - EARLY_MS / 1900;
-        const ringR = r * (1.12 + 1.9 * clamp(1 - ringP, 0, 1) * 1.0);
+        const ringR = r * (1.12 + 1.3 * clamp((1 - ringP) / 0.7, 0, 1));
         ctx.strokeStyle = inWin ? '#69db7c' : '#ffd43b';
         ctx.lineWidth = Math.max(3, r * 0.1);
         ctx.beginPath();
@@ -489,7 +489,7 @@ export default {
         drawFace(m, slot, lives, isTarget, isTarget ? ringP : null);
         if (m.id === sh.target && !sh.over && ringP != null && ringP > 0 && m.me) {
           // Prompt for my turn.
-          text('NOD! (or tap)', slot.x, slot.y - slot.r * 1.5 - ballR * 2.2, clamp(L.r * 0.4, 14, 26), '#fff');
+          text('NOD! (or tap)', clamp(slot.x, 80, w - 80), slot.y - slot.r * 1.5 - ballR * 2.2, clamp(L.r * 0.4, 14, 26), '#fff');
         }
         if (!m.me && slot) {
           ctx.font = `800 ${Math.max(10, L.r * 0.26)}px ${FONT}`;

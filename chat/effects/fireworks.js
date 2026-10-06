@@ -19,14 +19,14 @@ function burst(s, f, x, y, big) {
   const n = big ? 120 : 64;
   const hue = HUES[Math.floor(Math.random() * HUES.length)];
   const hue2 = (hue + 40 + Math.random() * 60) % 360;
-  const speed = (big ? 250 : 170) * k;
+  const speed = (big ? 290 : 200) * k;
   for (let i = 0; i < n; i++) {
     // Random point on a sphere, seen from the front: fills the disc like a 3D ball.
     const z = Math.random() * 2 - 1;
     const th = Math.random() * 6.283;
     const rr = Math.sqrt(1 - z * z);
     const v = speed * (0.92 + Math.random() * 0.16);
-    emit(s, x, y, Math.cos(th) * rr * v, Math.sin(th) * rr * v, 1.1 + Math.random() * 0.7, i % 3 === 0 ? hue2 : hue, (big ? 3.4 : 2.6) * k, 120 * k);
+    emit(s, x, y, Math.cos(th) * rr * v, Math.sin(th) * rr * v, 1.5 + Math.random() * 0.8, i % 3 === 0 ? hue2 : hue, (big ? 4.5 : 3.4) * k, 120 * k);
   }
   // White flash core.
   for (let i = 0; i < 6; i++) emit(s, x, y, (Math.random() - 0.5) * 60 * k, (Math.random() - 0.5) * 60 * k, 0.3, 50, 5 * k, 0);
@@ -88,7 +88,7 @@ export default {
       s.cool = 0.8;
       const x = face ? face.forehead.x : f.w / 2;
       const y0 = face ? face.forehead.y : f.h * 0.5;
-      const ty = Math.max(40 * k, (face ? face.forehead.y - face.scale * 2.4 : f.h * 0.2));
+      const ty = Math.max(110 * k, (face ? face.forehead.y - face.scale * 2.4 : f.h * 0.2));
       launch(s, f, x, y0, ty, true);
     }
     s.wasOpen = open;
@@ -141,7 +141,7 @@ export default {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       const a = Math.min(1, p.life / p.max * 1.6);
-      ctx.strokeStyle = `hsla(${p.hue},100%,${60 + 30 * a}%,${a})`;
+      ctx.strokeStyle = `hsla(${p.hue},100%,${52 + 18 * a}%,${a})`;
       ctx.lineWidth = p.size * (0.5 + a * 0.6);
       ctx.beginPath();
       ctx.moveTo(p.px - p.vx * dt * 1.5, p.py - p.vy * dt * 1.5);

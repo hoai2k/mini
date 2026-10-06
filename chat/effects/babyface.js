@@ -30,20 +30,20 @@ vec4 effect(vec2 uv) {
   d = vec2(cs * d.x - sn * d.y, sn * d.x + cs * d.y);
   float e = length(d / vec2(u_faceSize.x * 0.5, u_faceSize.y * 0.56));
   float skin = 1.0 - smoothstep(0.7, 1.05, e);
-  float o = 0.12 * u_scale;
+  float o = 0.05 * u_scale;
   vec3 b = c;
   b += cam(toUv(p + vec2(o, 0.0))).rgb;
   b += cam(toUv(p - vec2(o, 0.0))).rgb;
   b += cam(toUv(p + vec2(0.0, o))).rgb;
   b += cam(toUv(p - vec2(0.0, o))).rgb;
   b *= 0.2;
-  c = mix(c, mix(b, c, 0.25) * 1.06 + 0.03, skin * 0.8);
+  c = mix(c, mix(b, c, 0.25) * 1.06 + 0.03, skin * 0.7);
   // Rosy cheeks.
-  vec2 cl = mid - ex * (0.62 * u_scale) + ey * (1.15 * u_scale);
-  vec2 cr = mid + ex * (0.62 * u_scale) + ey * (1.15 * u_scale);
+  vec2 cl = mid - ex * (0.72 * u_scale) + ey * (0.9 * u_scale);
+  vec2 cr = mid + ex * (0.72 * u_scale) + ey * (0.9 * u_scale);
   float bl = max(1.0 - smoothstep(0.0, 0.5 * u_scale, length(px - cl)),
                  1.0 - smoothstep(0.0, 0.5 * u_scale, length(px - cr)));
-  c = mix(c, vec3(1.0, 0.35, 0.45), bl * 0.5);
+  c = mix(c, vec3(1.0, 0.35, 0.45), bl * 0.5 * (1.0 - smoothstep(0.8, 0.98, e)));
   return vec4(c, 1.0);
 }`,
 };

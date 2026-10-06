@@ -14,10 +14,10 @@ vec4 effect(vec2 uv) {
   vec2 ex = normalize(u_eyeR - u_eyeL);   // along the eye line
   vec2 ey = vec2(-ex.y, ex.x);            // towards the chin
   vec2 mid = (u_eyeL + u_eyeR) * 0.5;
-  float amt = 0.8 + 0.17 * u_puff;
-  float r = (1.0 + 0.3 * u_puff) * u_scale;
-  vec2 cl = mid - ex * (0.62 * u_scale) + ey * (1.15 * u_scale);
-  vec2 cr = mid + ex * (0.62 * u_scale) + ey * (1.15 * u_scale);
+  float amt = 0.88 + 0.08 * u_puff;
+  float r = (0.95 + 0.3 * u_puff) * u_scale;
+  vec2 cl = mid - ex * (0.72 * u_scale) + ey * (0.9 * u_scale);
+  vec2 cr = mid + ex * (0.72 * u_scale) + ey * (0.9 * u_scale);
   p = bulge(p, cl, r, amt);
   p = bulge(p, cr, r, amt);
   return cam(toUv(p));

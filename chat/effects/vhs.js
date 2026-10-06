@@ -33,7 +33,7 @@ vec4 effect(vec2 uv) {
   c *= 0.9 + 0.1 * sin(uv.y * u_res.y * 3.14159);
   // Noise, heavier in the tracking band.
   float n = hash(vec2(floor(uv.x * u_res.x / 2.0), line + floor(u_time * 30.0) * 17.0));
-  c += (n - 0.5) * (0.1 + 0.35 * inBand);
+  c += (n - 0.5) * (0.07 + 0.35 * inBand);
   // Bright noise streak at the bottom edge.
   float bot = smoothstep(0.95, 1.0, uv.y);
   c = mix(c, vec3(n), bot * 0.6);
