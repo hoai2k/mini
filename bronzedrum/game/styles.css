@@ -42,6 +42,7 @@ body.playing #app { touch-action: none; -webkit-user-select: none; user-select: 
 .logo-text .vn { font-size: clamp(22px, 3.4vw, 40px); letter-spacing: 0.32em; color: var(--bronze-light); }
 .logo-text .en { font-size: clamp(54px, 10vw, 128px); color: var(--paper); }
 .tagline { margin: 0; font-family: var(--serif); font-size: clamp(18px, 2.2vw, 26px); color: var(--paper-shade); }
+.credit { margin: -6px 0 0; font-family: var(--serif); font-style: italic; font-size: clamp(14px, 1.5vw, 18px); color: var(--paper-shade); opacity: 0.85; }
 .press-start {
   margin-top: 18px; font: 700 clamp(20px, 2.6vw, 30px) var(--serif); letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--ink); background: var(--paper); border: 0; padding: 12px 38px; cursor: pointer;
@@ -176,6 +177,8 @@ body.paper-panels .panel {
 /* Short screens (a phone held sideways): tighter panels, the pause and result
    buttons in two columns, everything scrollable. */
 @media (max-height: 480px) {
+  .title-block { gap: 8px; }
+  .title-block .press-start { margin-top: 8px; }
   .screen { padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
   .panel { gap: 6px; padding: 14px 18px; }
   body.paper-panels .panel { border-width: 24px; border-image-width: 24px; padding: 4px 10px 8px; }
