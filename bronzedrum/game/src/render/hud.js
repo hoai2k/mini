@@ -25,6 +25,8 @@ export const hud = {
   /**
    * Trắc's beater for each deep stroke, from the bottom left onto the
    * sun-star; Nhị's stick for each rim stroke, from the right onto the rim.
+   * A tap on the touch drum is struck where it landed instead (a rim tap on
+   * the left half brings Nhị's stick in from the left).
    * It is already sounding, so the stick arrives fast (45 ms), rests a
    * moment on the drum and lifts back out of frame (to 0.45 s).
    */
@@ -41,11 +43,23 @@ export const hud = {
       else if (since < 0.11) away = 0;
       else away = Math.min(1, (since - 0.11) / 0.3) ** 1.2;
       const L = STICK_LEN * R;
-      const ang = touch ? st.angTouch : st.ang;
-      const head = [cx + st.at[0] * R, cy + st.at[1] * R];
+      let ang = touch ? st.angTouch : st.ang;
+      let at = st.at;
+      let mirror = false;
+      const tap = touch && this.tapOnDrum(drum, this.flash[drum], cx, cy, R);
+      if (tap) {
+        at = tap;
+        // A rim tap on the left: Nhị's arm comes in mirrored, from the left.
+        if (drum === 'R' && tap[0] < 0) {
+          ang = Math.PI - ang;
+          mirror = true;
+        }
+      }
+      const head = [cx + at[0] * R, cy + at[1] * R];
       // Lifting: the stick tips back about the wrist and the arm draws back
       // along its own line, growing a little as it nears the eye.
-      const dir = ang + (drum === 'L' ? 0.7 : -0.7) * away;
+      const fromLeft = Math.cos(ang) > 0;
+      const dir = ang + (fromLeft ? 0.7 : -0.7) * away;
       const back = away * 1.6 * R;
       const wx = head[0] - Math.cos(ang) * (L + back);
       const wy = head[1] - Math.sin(ang) * (L + back);
@@ -54,7 +68,7 @@ export const hud = {
       g.globalAlpha = Math.min(1, (1 - away) * 2.2);
       g.translate(wx, wy);
       g.rotate(dir);
-      g.scale(grow, grow);
+      g.scale(grow, mirror ? -grow : grow);
       g.shadowColor = 'rgba(0,0,0,0.45)';
       g.shadowBlur = 10;
       g.shadowOffsetY = 8 + 10 * away;
@@ -81,6 +95,24 @@ export const hud = {
         g.restore();
       }
     }
+  },
+
+  /**
+   * Where on the drum the tap behind this stroke landed, in drum radii from
+   * the centre, or null when it was not a tap on the drum (a key, a button,
+   * or a thumb at the screen's edge). A centre tap lands where it was; a rim
+   * tap lands on the rim at its angle.
+   */
+  tapOnDrum(drum, at, cx, cy, R) {
+    const tap = (this.taps || []).findLast((p) => p.target === drum && Math.abs(p.t - at) < 0.05);
+    if (!tap) return null;
+    const dx = (tap.x - cx) / R;
+    const dy = (tap.y - cy) / R;
+    const d = Math.hypot(dx, dy);
+    if (d >= TOUCH.drum.reach) return null;
+    if (drum === 'L') return [dx, dy];
+    const a = Math.atan2(dy, dx);
+    return [Math.cos(a) * 0.92, Math.sin(a) * 0.92];
   },
 
   /** A paper-cut forearm and stick along +x, the wrist at the origin (until BD-U20/21 arrive). */

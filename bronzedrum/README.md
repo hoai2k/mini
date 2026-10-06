@@ -136,7 +136,9 @@ land on the drum. The elephant and spearwoman sheets are not cut yet.
 Over the HUD drum, the sisters' sticks are seen close up: on a deep stroke
 Trắc's beater swings in from the bottom left onto the sun-star, on a rim stroke
 Nhị's stick comes in from the right onto the rim, and each lifts away
-(`closeSticks` in `render/hud.js`). The pair is chosen under Settings,
+(`closeSticks` in `render/hud.js`). With a controller or keys they land on the
+sun-star and the right of the rim; a tap on the touch drum is struck where it
+landed, and a rim tap on the left half brings Nhị's arm in from the left. The pair is chosen under Settings,
 Drumsticks (`STICK_SETS`); all six sticks share one layout, and the drawn
 stand-in remains for a missing image.
 
