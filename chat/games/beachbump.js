@@ -536,8 +536,7 @@ export default {
 
     // Game over card with a Play again button.
     const card = document.createElement('div');
-    card.className = 'g-hud';
-    card.style.cssText = 'text-align:center;padding:16px 22px;border-radius:16px;background:rgba(40,10,70,0.88);';
+    card.style.cssText = 'text-align:center;padding:16px 22px;border-radius:16px;background:rgba(40,10,70,0.88);display:flex;flex-direction:column;align-items:center;gap:6px;';
     const title = document.createElement('div');
     title.className = 'g-big';
     title.textContent = 'Game over';

@@ -224,7 +224,7 @@ export default {
     ctx.translate(face.chin.x, face.chin.y + s.jaw * face.scale * 0.1);
     ctx.rotate(face.roll);
     ctx.scale(k, k);
-    ctx.translate(0, -20);
+    ctx.translate(0, 14);
     drawBeard(ctx, Math.max(-0.5, Math.min(0.5, s.sway + Math.sin(f.t * 2) * 0.03)), s.jaw);
     ctx.restore();
 

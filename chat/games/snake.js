@@ -618,7 +618,7 @@ export default {
       const me = mySnake();
       const len = me?.alive ? me.len : 0;
       if (lay.wide) {
-        const x = lay.sideX, top = inset.top + 22;
+        const x = lay.sideX, top = inset.top + 40;
         text(clock(), x, top, 30, '#fff', 'left', 900);
         text(`Length ${len}`, x, top + 30, 17, '#ffd43b');
         text(`Best ${best} · Rounds won ${wins}`, x, top + 52, 13, '#cdbfff');
