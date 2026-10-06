@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bubble Chat</title>
 <meta name="description" content="Video chat with silly face effects and minigames.">
-<meta name="theme-color" content="#2b1f4a">
+<meta name="theme-color" content="#1d1533">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bubble Chat">
+<link rel="apple-touch-icon" href="app-icon-180.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>">
 <script>
   // Cameras only work on secure pages, so move plain-HTTP visits to HTTPS.
@@ -41,66 +47,83 @@
   </div>
   <nav class="utility" aria-label="Options">
     <button class="icon-btn" data-open="instructions" aria-label="Instructions" title="Instructions">?</button>
-    <button class="icon-btn" data-open="settings" aria-label="Settings" title="Settings">⚙</button>
-    <button class="icon-btn" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">⛶</button>
+    <button class="icon-btn" data-open="settings" aria-label="Settings" title="Settings" data-icon="gear"></button>
+    <button class="icon-btn" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen" data-icon="expand"></button>
   </nav>
 </section>
 
-<!-- Call screen -->
+<!-- Call screen: the videos fill the screen and every control floats over them. -->
 <section id="call" class="screen" aria-label="Chat">
-  <header class="topbar">
-    <span class="brand">🫧 <span class="brand-name">Bubble Chat</span></span>
-    <span id="status" class="status" aria-live="polite">Connecting…</span>
-    <span class="spacer"></span>
-    <button class="icon-btn small" data-open="instructions" aria-label="Instructions" title="Instructions">?</button>
-    <button class="icon-btn small" data-open="settings" aria-label="Settings" title="Settings">⚙</button>
-    <button class="icon-btn small" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">⛶</button>
-  </header>
+  <div id="stage" class="stage" data-count="1"></div>
 
-  <div id="main" class="main">
-    <div id="stage" class="stage" data-count="1"></div>
-    <section id="game-panel" class="game-panel" hidden aria-label="Game">
-      <header class="game-head">
-        <span id="game-title" class="game-title"></span>
-        <span id="game-players" class="game-players"></span>
-        <button id="game-close" class="btn ghost" type="button">Leave game</button>
-      </header>
-      <div id="game-mount" class="game-mount"></div>
-    </section>
-  </div>
+  <section id="game-panel" class="game-panel" hidden aria-label="Game">
+    <div id="game-mount" class="game-mount"></div>
+  </section>
+
+  <header id="topbar" class="topbar">
+    <span id="status" class="pill status" aria-live="polite">Connecting…</span>
+    <span id="game-head" class="game-head" hidden>
+      <button id="game-close" class="pill btn-pill" type="button" aria-label="Leave game"><span aria-hidden="true">✕</span> <span id="game-title" class="game-title"></span></button>
+    </span>
+    <span class="spacer"></span>
+    <span class="top-actions">
+      <button class="round-btn" data-open="instructions" aria-label="Instructions" title="Instructions">?</button>
+      <button class="round-btn" data-open="settings" aria-label="Settings" title="Settings" data-icon="gear"></button>
+      <button class="round-btn" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen" data-icon="expand"></button>
+    </span>
+  </header>
 
   <div id="invites" class="invites" aria-live="polite"></div>
   <div id="effect-hint" class="effect-hint" hidden></div>
 
-  <div id="tray-effects" class="tray" hidden aria-label="Face effects">
-    <div class="tray-head"><h2>Face effects</h2><span id="face-status" class="muted"></span></div>
-    <span id="tray-hint" class="tray-hint" hidden></span>
-    <div id="effect-list" class="effect-list"></div>
+  <!-- Effects: a strip of lenses; whichever sits in the middle ring is on. -->
+  <div id="tray-effects" class="strip-wrap sheet" hidden aria-label="Face effects">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="strip-label"><span id="fx-name" class="fx-name">None</span><span id="tray-hint" class="tray-hint"></span><span id="face-status" class="muted"></span></div>
+    <div class="strip-ring" aria-hidden="true"></div>
+    <div id="effect-list" class="strip" role="listbox" aria-label="Face effects"></div>
   </div>
 
-  <div id="tray-games" class="tray" hidden aria-label="Games">
-    <div class="tray-head"><h2>Games</h2><span class="muted">Start one and friends can join</span></div>
-    <div id="session-list" class="session-list"></div>
-    <div id="game-list" class="game-list"></div>
+  <div id="tray-games" class="sheet panel-sheet" hidden aria-label="Games">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head"><h2>Games</h2><span class="muted">Start one and friends can join</span></div>
+    <div class="sheet-body">
+      <div id="session-list" class="session-list"></div>
+      <div id="game-list" class="game-list"></div>
+    </div>
   </div>
 
-  <aside id="chat-box" class="chat-box" hidden aria-label="Messages">
-    <div id="chat-log" class="chat-log" aria-live="polite"></div>
+  <aside id="chat-box" class="sheet panel-sheet chat-box" hidden aria-label="Messages">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head"><h2>Messages</h2></div>
+    <div id="chat-log" class="chat-log sheet-body" aria-live="polite"></div>
     <form id="chat-form" class="chat-form" autocomplete="off">
       <input id="chat-input" maxlength="200" placeholder="Say something…" aria-label="Message">
       <button class="btn" type="submit">Send</button>
     </form>
   </aside>
 
-  <nav class="controls" aria-label="Call controls">
-    <button id="btn-mic" class="ctrl" type="button" aria-pressed="true"><span class="ico">🎤</span><span class="lbl">Mic</span></button>
-    <button id="btn-cam" class="ctrl" type="button" aria-pressed="true"><span class="ico">📷</span><span class="lbl">Camera</span></button>
-    <button id="btn-effects" class="ctrl" type="button" aria-expanded="false"><span class="ico">✨</span><span class="lbl">Effects</span></button>
-    <button id="btn-games" class="ctrl" type="button" aria-expanded="false"><span class="ico">🎮</span><span class="lbl">Games</span><span id="games-badge" class="badge" hidden></span></button>
-    <button id="btn-chat" class="ctrl" type="button" aria-expanded="false"><span class="ico">💬</span><span class="lbl">Chat</span><span id="chat-badge" class="badge" hidden></span></button>
-    <button id="btn-leave" class="ctrl danger" type="button"><span class="ico">👋</span><span class="lbl">Leave</span></button>
+  <nav id="controls" class="controls" aria-label="Call controls">
+    <button id="btn-mic" class="ctrl" type="button" aria-pressed="true" aria-label="Microphone"><span class="ico" data-icon="mic"></span><span class="lbl">Mic</span></button>
+    <button id="btn-cam" class="ctrl" type="button" aria-pressed="true" aria-label="Camera"><span class="ico" data-icon="cam"></span><span class="lbl">Camera</span></button>
+    <button id="btn-effects" class="ctrl" type="button" aria-expanded="false"><span class="ico" data-icon="sparkles"></span><span class="lbl">Effects</span></button>
+    <button id="btn-games" class="ctrl" type="button" aria-expanded="false"><span class="ico" data-icon="games"></span><span class="lbl">Games</span><span id="games-badge" class="badge" hidden></span></button>
+    <button id="btn-chat" class="ctrl" type="button" aria-expanded="false"><span class="ico" data-icon="chat"></span><span class="lbl">Chat</span><span id="chat-badge" class="badge" hidden></span></button>
+    <button id="btn-leave" class="ctrl danger" type="button"><span class="ico" data-icon="leave"></span><span class="lbl">Leave</span></button>
   </nav>
 </section>
+
+<!-- iPhones have no fullscreen for web pages; the home-screen app is fullscreen. -->
+<dialog id="fullscreen-help" class="dialog" aria-labelledby="fs-title">
+  <form method="dialog" class="dialog-inner">
+    <h2 id="fs-title">Full screen on iPhone</h2>
+    <div class="dialog-scroll">
+      <p>Safari on iPhone doesn't let web pages go full screen. Add Bubble Chat to your Home Screen instead and open it from there: it fills the whole screen like an app.</p>
+      <p>Tap the <b>Share</b> button <span aria-hidden="true">(the square with an arrow)</span>, then <b>Add to Home Screen</b>.</p>
+    </div>
+    <div class="dialog-actions"><button class="btn" value="close">Got it</button></div>
+  </form>
+</dialog>
 
 <canvas id="fly" class="fly" aria-hidden="true"></canvas>
 <div id="toasts" class="toasts" aria-live="polite"></div>
@@ -112,9 +135,11 @@
     <div class="dialog-scroll" tabindex="0">
       <p>Bubble Chat puts everyone who opens this page in the same video chat. Pick a name, press Start and allow the camera and microphone.</p>
       <h3>Face effects</h3>
-      <p>Open <b>Effects</b> and pick one. Everyone sees your effect, because it is drawn on the video you send. Many react to your face: <b>pucker your lips</b> to blow a bubble that floats over and pops on your friend's face, <b>open your mouth</b> for the dragon's fire or the rainbow, <b>smile</b> for hearts or sunglasses, <b>raise your eyebrows</b> to drop the monocle. With no camera face, hold <b>Space</b> (or press and hold your own video) instead.</p>
+      <p>Open <b>Effects</b> and swipe the strip: whichever effect stops in the ring is on. Everyone sees your effect, because it is drawn on the video you send. Many react to your face: <b>pucker your lips</b> to blow a bubble that floats over and pops on your friend's face, <b>open your mouth</b> for the dragon's fire or the rainbow, <b>smile</b> for hearts or sunglasses, <b>raise your eyebrows</b> to drop the monocle. With no camera face, hold <b>Space</b> (or press and hold your own video) instead.</p>
       <h3>Games</h3>
       <p>Open <b>Games</b> and start one. Friends get a <b>Join</b> button. Scores and records are kept on this device.</p>
+      <h3>Sheets and your video</h3>
+      <p>Pull the Effects strip, the Games list or Messages down to peek at the video behind them; pull further, or flick, to close. With two people, drag your own video to any corner.</p>
       <h3>Controls</h3>
       <table class="keys">
         <tr><th>Action</th><th>Keyboard / pointer</th><th>Xbox controller</th></tr>
@@ -139,7 +164,7 @@
         </g>
       </svg>
       <h3>Good to know</h3>
-      <p>Calls go straight between browsers. On some strict networks (some offices and mobile carriers) the video can't connect; the chat and games still work.</p>
+      <p>On iPhone, web pages can't go full screen: add Bubble Chat to your Home Screen (Share, then Add to Home Screen) and open it from there. Calls go straight between browsers. On some strict networks (some offices and mobile carriers) the video can't connect; the chat and games still work.</p>
     </div>
     <div class="dialog-actions"><button class="btn" value="close" autofocus>Close</button></div>
   </form>

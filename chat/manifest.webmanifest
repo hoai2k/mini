@@ -1,0 +1,16 @@
+{
+  "name": "Bubble Chat",
+  "short_name": "Bubble Chat",
+  "description": "Video chat with silly face effects and minigames.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#1d1533",
+  "theme_color": "#1d1533",
+  "icons": [
+    { "src": "app-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "app-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

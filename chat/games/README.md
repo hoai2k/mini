@@ -20,6 +20,8 @@ export default {
   minPlayers: 2,             // shown in the picker; 1 means it can be played alone
   maxPlayers: 2,             // extra people who join watch
   needsFace: false,          // true: the studio tracks my face every frame
+  fullBleed: false,          // true: the game fills the whole screen, under the
+                             // floating top and bottom bars (see api.insets)
   create(api) {
     // build the UI inside api.el, start timers...
     return {
@@ -33,7 +35,8 @@ export default {
 ```
 
 `create` runs when I start or join a session. It must build everything inside
-`api.el` (an absolutely positioned box filling the game panel; size the canvas
+`api.el` (an absolutely positioned box filling the space between the app's
+top and bottom bars, or the whole screen for `fullBleed` games; size the canvas
 from it and handle resizes with a `ResizeObserver`). `destroy` runs when I
 leave the game, so stop every `requestAnimationFrame`, timer and listener.
 
@@ -53,6 +56,7 @@ leave the game, so stop every `requestAnimationFrame`, timer and listener.
 | `face()` | my tracked face (see `../effects/README.md`) or `null` |
 | `selfCanvas` | my live video canvas, effects included (for drawing my face into a game) |
 | `mediaOf(id)` | another player's `<video>` (or my canvas for my id), for drawing faces into the game |
+| `insets()` | `{ top, bottom }`: pixels the app's floating bars cover; only matters with `fullBleed`, where scores and key objects should stay clear of them |
 | `img(name)` | delivered artwork by asset name, or `null` until it arrives |
 | `sfx(name)` | `pop blow whoosh click score miss bounce win lose tick join leave zap fire bang flap honk` |
 | `toast(text)` | a short message at the bottom of the screen |

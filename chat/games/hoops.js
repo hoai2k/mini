@@ -10,7 +10,9 @@ const BALL_R = 0.12;
 const RIM = { y: 3.05, z: 4.6, r: 0.23 };
 const BOARD = { z: 4.9, x0: -0.9, x1: 0.9, y0: 2.85, y1: 3.95 };
 const START = { y: 1.1, z: 0.3 };
-const EYE = { x: 0, y: 1.75, z: -1.9 };
+// A camera well behind the ball with a long lens, so the ball and the hoop
+// both read large on a phone held upright.
+const EYE = { x: 0, y: 2.0, z: -3.5 };
 const STEP = 1 / 240;
 const SHOT_TIME = 3.2;
 
@@ -178,6 +180,7 @@ export default {
   minPlayers: 1,
   maxPlayers: 16,
   needsFace: false,
+  fullBleed: true,
 
   create(api) {
     const canvas = document.createElement('canvas');
@@ -197,7 +200,7 @@ export default {
     let charge = null;         // keyboard / controller charging { power, dir }
     let aim = 0;
     let shotsTaken = api.store.get('shots', 0);
-    let w = 0, h = 0, dpr = 1, cam = null, bgCache = null;
+    let w = 0, h = 0, dpr = 1, cam = null, bgCache = null, inset = { top: 0, bottom: 0 };
     let raf = 0, last = performance.now(), acc = 0, now = 0;
 
     api.setState({ streak, best: record.best, total: record.total });
@@ -210,8 +213,12 @@ export default {
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       // Fit the hoop and the ball: focal length from the smaller dimension.
-      const f = Math.min(h * 0.95, w * 1.25);
-      cam = { f, cx: w / 2, cy: h * 0.5 - f * 0.02 };
+      // Fit everything from the top of the backboard (0.232 f above the
+      // centre line) down to the ball (0.27 f below it) between the bars.
+      inset = api.insets ? api.insets() : { top: 0, bottom: 0 };
+      const avail = Math.max(120, h - inset.top - inset.bottom - 24);
+      const f = Math.min(avail / 0.51, w * 3.6);
+      cam = { f, cx: w / 2, cy: inset.top + 12 + (avail - 0.51 * f) / 2 + 0.232 * f };
       bgCache = null;
     }
     const ro = new ResizeObserver(resize);
@@ -281,7 +288,7 @@ export default {
       const dx = e.offsetX - drag.x, dy = e.offsetY - drag.y;
       drag = null;
       if (-dy < 25) return;
-      const power = -dy / (0.42 * h);
+      const power = -dy / (0.32 * h);
       let ratio = dx / -dy;
       if (Math.abs(ratio) < 0.05) ratio = 0;
       shoot(Math.max(0.5, Math.min(1.6, power)), ratio);
@@ -517,15 +524,16 @@ export default {
       ctx.font = '900 20px ui-rounded, system-ui, sans-serif';
       ctx.textAlign = 'left';
       const left = `Streak ${streak}`;
-      ctx.strokeText(left, 12, 28);
-      ctx.fillText(left, 12, 28);
+      const hudY = inset.top + 24;
+      ctx.strokeText(left, 14, hudY);
+      ctx.fillText(left, 14, hudY);
       ctx.textAlign = 'right';
       const right = `Best ${record.best} · Total ${record.total}`;
-      ctx.strokeText(right, w - 12, 28);
-      ctx.fillText(right, w - 12, 28);
+      ctx.strokeText(right, w - 14, hudY);
+      ctx.fillText(right, w - 14, hudY);
       ctx.font = '800 13px ui-rounded, system-ui, sans-serif';
       ctx.textAlign = 'left';
-      let y = 52;
+      let y = hudY + 22;
       for (const m of api.players()) {
         if (m.me) continue;
         const s = m.state || {};
@@ -540,8 +548,10 @@ export default {
         ctx.font = '900 18px ui-rounded, system-ui, sans-serif';
         ctx.fillStyle = '#fff';
         const hint = 'Flick the ball up to shoot (or hold Space / A)';
-        ctx.strokeText(hint, w / 2, h - 16);
-        ctx.fillText(hint, w / 2, h - 16);
+        const bp = project(cam, x0, START.y, START.z);
+        const hintY = bp.y - BALL_R * bp.s - 22;
+        ctx.strokeText(hint, w / 2, hintY);
+        ctx.fillText(hint, w / 2, hintY);
       }
     }
 
