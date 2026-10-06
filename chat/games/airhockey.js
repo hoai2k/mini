@@ -16,11 +16,11 @@ const UR = 0.045;           // puck radius
 const POST_R = 0.014;       // goal posts
 const WALL_E = 0.92;        // wall bounciness
 const PADDLE_E = 0.9;
-const FRICTION = 0.3;       // per second
+const FRICTION = 0.1;       // per second
 const MAX_SPEED = 2.6;      // puck
 const PADDLE_MAX = 3.4;     // paddle speed cap (units per second)
 const KEY_SPEED = 1.5;
-const SERVE_SPEED = 0.9;
+const SERVE_SPEED = 1.2;
 const WIN_SCORE = 7;
 const SEND_MS = 50;         // ~20 Hz
 
@@ -371,8 +371,7 @@ export default {
         if (e.type === 'keydown') {
           keys.add(k);
           touched = true;
-        }
-        else keys.delete(k);
+        } else keys.delete(k);
       } else if (e.type === 'keydown' && (e.code === 'Space' || e.code === 'Enter') && !winCard.hidden && roleOf() >= 0) {
         e.preventDefault();
         rematch();
@@ -642,9 +641,12 @@ export default {
       ctx.textAlign = align;
       ctx.textBaseline = 'middle';
       ctx.lineJoin = 'round';
-      ctx.lineWidth = Math.max(3, size * 0.2);
-      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      ctx.strokeText(str, x, y);
+      // Faint (alpha < 1) text is drawn without an outline, which would show through the fill.
+      if (alpha == null || alpha >= 1) {
+        ctx.lineWidth = Math.max(3, size * 0.2);
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.strokeText(str, x, y);
+      }
       ctx.fillStyle = color || '#fff';
       ctx.fillText(str, x, y);
       ctx.globalAlpha = 1;
@@ -696,9 +698,9 @@ export default {
         if (S.winner == null && wait > 0 && two()) {
           text(S.score[0] + S.score[1] === 0 ? 'Get ready!' : 'Serve!', cx, cy - tw * 0.3, clamp(tw * 0.09, 14, 40), 'center', '#ffd43b');
         }
-        if (flash && now < flash.until) text(flash.text, cx, cy + tw * 0.3, clamp(tw * 0.08, 13, 34), 'center', '#ffd43b', Math.min(1, (flash.until - now) * 2));
+        if (flash && now < flash.until) text(flash.text, cx, cy + tw * 0.3, clamp(tw * 0.08, 13, 34), 'center', '#ffd43b');
         if (role >= 0 && !touched && S.winner == null) {
-          text('Drag to move your paddle', cx, ty + tw * TH - tw * 0.4, clamp(tw * 0.045, 10, 16), 'center', '#fff', 0.7);
+          text('Drag to move your paddle', cx, ty + tw * TH - tw * 0.4, clamp(tw * 0.045, 10, 16), 'center', '#fff');
         }
       }
     }
