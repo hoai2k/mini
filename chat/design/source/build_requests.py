@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Bubble Chat image requests and the app's asset list.
+"""Generate the Games Chat image requests and the app's asset list.
 
 Edit the data in this file, then run:
 
@@ -84,6 +84,15 @@ SECTIONS = {
         "(bubbles, warps, colour filters, fire, rainbows, rain) are drawn by the app itself.",
     ),
     "games": ("Minigame art", "Sprites and backgrounds for the minigames."),
+    "worlds": (
+        "360° worlds",
+        "Panoramas for the 360° background effects: the room behind you is replaced by the world, "
+        "and tilting your phone (or turning your head on a laptop) looks around it. Each is a "
+        "full equirectangular panorama: 2:1, the horizon exactly at half height, the left and right "
+        "edges joining seamlessly, straight up at the top edge and straight down at the bottom. "
+        "Keep the band around the horizon interesting all the way round, since that is what "
+        "people see most. No people, no text.",
+    ),
     "icons": (
         "Effect and game icons",
         "One icon per face effect and per minigame, shown on the effect tray and the game "
@@ -98,7 +107,7 @@ REQUESTS: list[dict] = []
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,
         status="requested"):
     ext = "png" if alpha else "webp"
-    folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons"}[section]
+    folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "worlds": "worlds"}[section]
     file = f"assets/{folder}/{asset}.{ext}"
     style = STYLE if alpha else BG_STYLE
     if rid == "CH-U01":
@@ -116,12 +125,16 @@ def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, 
 
 
 # --- Brand -----------------------------------------------------------------
-req("ui", "CH-U01", "logo", "Title logo", "1600 x 640",
-    "The title screen logo above Press Start.",
-    "The words \"Bubble Chat\" as a chunky bubble-letter logo, the letters puffy and glossy like "
-    "blown bubble gum in pink, aqua and sunny yellow, with a translucent soap bubble floating off "
-    "the final t. Spell it exactly: Bubble Chat. Centred, wide landscape composition.",
-    "The words in the page's rounded font with a CSS gradient.")
+req("ui", "CH-U01", "logo", "Title logo", "1600 x 800",
+    "The title screen logo above Press Start, and the card on the game library page.",
+    "A bold, playful video-game logo reading \"Games Chat\" on two lines: \"GAMES\" large on top "
+    "and \"CHAT\" slightly smaller beneath it. Chunky rounded 3D letters with a thick dark-purple "
+    "outline, a bright top highlight and a soft inner gradient: GAMES in hot pink to sunny yellow, "
+    "CHAT in aqua to sky blue. The O-shaped counter of the A in GAMES is replaced by a small game "
+    "controller, and CHAT sits inside a rounded speech bubble whose tail points down-left. A few "
+    "sparkles, a see-through soap bubble and a tiny basketball float around the edges. Spell it "
+    "exactly: Games Chat. Centred, slight upward tilt, wide landscape composition with even margins.",
+    "The words in the page's rounded font with a gradient in the player's colour.")
 req("ui", "CH-U02", "title-bg", "Title background", "1920 x 1080",
     "Behind the title screen and the join form.",
     "A dreamy pastel sky full of floating translucent iridescent bubbles of many sizes, some "
@@ -130,8 +143,9 @@ req("ui", "CH-U02", "title-bg", "Title background", "1920 x 1080",
     "A CSS gradient with drifting canvas bubbles.", alpha=False)
 req("ui", "CH-U03", "icon", "App icon and favicon", "512 x 512",
     "The browser tab icon and the card on the game library page.",
-    "A single glossy pink bubble-gum bubble with a winking smiley face reflected in it, on a "
-    "rounded-square aqua badge. Bold and simple so it reads at 16 px.",
+    "A chunky game controller inside a rounded speech bubble, pink and yellow on a "
+    "rounded-square aqua badge, glossy, with a thick dark-purple outline. Bold and simple so it "
+    "reads at 16 px.",
     "An emoji favicon.")
 
 # --- Face effect stickers --------------------------------------------------
@@ -278,6 +292,129 @@ req("games", "CH-G12", "card-back", "Card back", "512 x 704",
     "a small bubble logo in the middle, symmetrical.",
     "A CSS pattern.")
 
+# --- Added in the second batch ------------------------------------------
+req("fx", "CH-F17", "flower-crown", "Flower crown", "1024 x 1024",
+    "Flower Crown: a ring of flowers on the head.",
+    "A lush crown of pink peonies, white daisies, small yellow roses and green leaves, resting "
+    "across the top of the head from about (300, 300) over (512, 220) to (724, 300), slightly "
+    "curved like a band seen from the front.",
+    "Canvas-drawn flowers.", face=True)
+req("fx", "CH-F18", "kitty", "Kitty ears, nose and whiskers", "1024 x 1024",
+    "Kitty: cat ears, a pink nose and whiskers.",
+    "Two pointed fluffy cat ears (grey tabby with pink insides) on top of the head at about "
+    "x = 360 and x = 664, a small pink triangular cat nose on the nose tip, and three thin white "
+    "whiskers fanning out on each cheek from beside the nose.",
+    "Canvas-drawn ears, nose and whiskers.", face=True)
+req("fx", "CH-F19", "bunny", "Bunny ears and nose", "1024 x 1024",
+    "Bunny: tall bunny ears and a twitchy nose.",
+    "Two tall upright white bunny ears with pink insides rising from the top of the head (bases "
+    "at about x = 420 and x = 604, tips reaching y = 0), one slightly bent, and a small pink "
+    "bunny nose on the nose tip.",
+    "Canvas-drawn ears and nose.", face=True)
+req("fx", "CH-F20", "devil", "Devil horns", "1024 x 1024",
+    "Devil: little red horns.",
+    "Two small glossy red devil horns curving up from the top of the head at about x = 400 and "
+    "x = 624, with a faint orange glow.",
+    "Canvas-drawn horns.", face=True)
+req("fx", "CH-F21", "halo", "Angel halo", "1024 x 1024",
+    "Angel: a glowing halo floating above the head.",
+    "A glowing golden halo ring seen slightly from the front, floating above the head centred at "
+    "(512, 140), about 360 px wide, with a soft warm glow.",
+    "A canvas-drawn halo.", face=True)
+req("fx", "CH-F22", "pirate", "Pirate hat and eyepatch", "1024 x 1024",
+    "Pirate: a tricorn hat and an eyepatch.",
+    "A black pirate tricorn hat with gold trim and a small white skull, sitting on the top of the "
+    "head (brim at y = 240), and a black eyepatch over the image-left eye (392, 520) with its "
+    "strap running diagonally across the forehead.",
+    "A canvas-drawn hat and patch.", face=True)
+req("fx", "CH-F23", "viking", "Viking helmet", "1024 x 1024",
+    "Viking: a horned helmet.",
+    "A round iron Viking helmet with riveted bands and two big curved ivory horns, the rim sitting "
+    "on the forehead at about y = 330, covering the top of the head.",
+    "A canvas-drawn helmet.", face=True)
+req("fx", "CH-F24", "wizard-hat", "Wizard hat", "1024 x 1024",
+    "Wizard: a tall starry hat.",
+    "A tall, slightly bent deep-blue wizard hat covered in small gold stars and moons, its wide "
+    "brim sitting on the top of the head at y = 260 and the tip reaching the top edge.",
+    "A canvas-drawn hat.", face=True)
+req("fx", "CH-F25", "butterfly", "Butterfly", "256 x 256",
+    "Butterflies: they flutter around your head and land on it.",
+    "One bright blue-and-pink butterfly seen from above with wings spread, centred.",
+    "A canvas-drawn butterfly.")
+req("fx", "CH-F26", "hotdog", "Dancing hotdog", "512 x 768",
+    "Hotdog: a dancing hotdog bops beside you.",
+    "A cheerful cartoon hotdog character standing upright, with a mustard squiggle, little arms "
+    "and legs mid-dance, big eyes and a wide grin, full body, centred.",
+    "A canvas-drawn hotdog.")
+req("fx", "CH-F27", "money", "Banknote", "256 x 128",
+    "Make It Rain: notes falling all around you.",
+    "One cartoon green banknote with a smiling bubble in the centre oval instead of a portrait, "
+    "slightly curled, filling the frame.",
+    "A canvas-drawn note.")
+req("fx", "CH-F28", "sunset", "Sunset backdrop", "1920 x 1080",
+    "Sunset: the room behind you becomes a glowing sunset, and you become a silhouette.",
+    "A huge orange and pink sunset over a calm sea, the sun just touching the horizon in the "
+    "centre, palm trees at the edges, warm glowing sky. Full-bleed.",
+    "A canvas-drawn sunset gradient.", alpha=False)
+
+WORLDS = [
+    ("world-beach", "Beach", "a tropical beach: turquoise sea, white sand, palm trees, a beach hut, a striped umbrella and a few seagulls, bright midday sky"),
+    ("world-space", "Space station", "inside a cosy cartoon space station with round windows looking out at Earth and the Moon, glowing control panels and floating snacks"),
+    ("world-reef", "Coral reef", "underwater on a colourful coral reef: sunbeams from above, fish schools, a turtle, kelp and pink and orange corals all around"),
+    ("world-forest", "Enchanted forest", "a glowing enchanted forest at dusk: giant mushrooms, fireflies, mossy trees and a winding path"),
+    ("world-city", "City rooftop", "a city rooftop at night: neon skyscrapers all around, string lights, a water tower and a starry sky"),
+    ("world-snow", "Snowy mountains", "a snowy mountain top: peaks in every direction, a cosy cabin, pine trees and a pink alpenglow sky"),
+    ("world-candy", "Candy land", "a candy land: lollipop trees, a chocolate river, gumdrop hills and candy-cane fences under a pastel sky"),
+    ("world-volcano", "Volcano island", "a volcano island: a smoking volcano with glowing lava rivers, black sand, dinosaur silhouettes and a red sky"),
+]
+for n, (asset, title, scene) in enumerate(WORLDS, 1):
+    req("worlds", f"CH-W{n:02d}", asset, f"{title} panorama", "4096 x 2048",
+        f"{title} 360: the world behind you that you look around by tilting the phone.",
+        f"A 360-degree equirectangular panorama of {scene}. Cartoon style, rich colour, everything "
+        "drawn as seen from a person standing in the middle.",
+        "A canvas-drawn panorama with a sky, a horizon and a few shapes.", alpha=False)
+
+req("games", "CH-G13", "golf-grass", "Mini golf turf", "512 x 512",
+    "Mini Golf: the putting surface (tiled).",
+    "Top-down bright green artificial putting turf with a fine mown stripe pattern, seamlessly "
+    "tileable on all four edges, no objects.",
+    "A canvas-drawn striped green.", alpha=False)
+req("games", "CH-G14", "bowling-lane", "Bowling lane", "1080 x 1920",
+    "Bowling: the lane, seen from behind the bowler looking down it.",
+    "A glossy wooden bowling lane in perspective from the bowler's end, gutters on both sides, "
+    "arrows on the boards, the pin deck lit at the far end near the top centre, neon bowling alley "
+    "walls. Leave the pin deck empty: the game draws the pins.",
+    "A canvas-drawn lane.", alpha=False)
+req("games", "CH-G15", "bowling-pin", "Bowling pin", "128 x 384",
+    "Bowling: each pin.",
+    "One classic white bowling pin with two red stripes around the neck, upright, centred.",
+    "A canvas-drawn pin.")
+for n, (asset, title, desc) in enumerate([
+    ("burger-bun-top", "Top bun", "a domed sesame-seed top bun"),
+    ("burger-bun-bottom", "Bottom bun", "a flat bottom bun"),
+    ("burger-patty", "Patty", "a juicy grilled beef patty with grill marks"),
+    ("burger-cheese", "Cheese", "a slice of melting yellow cheese with drips over the edges"),
+    ("burger-lettuce", "Lettuce", "a frilly green lettuce leaf"),
+    ("burger-tomato", "Tomato", "two red tomato slices side by side"),
+], 16):
+    req("games", f"CH-G{n:02d}", asset, title, "512 x 192",
+        "Burger Stack: an ingredient that falls and stacks.",
+        f"Side view of {desc}, filling the width, as part of a stacked cartoon burger.",
+        "A canvas-drawn ingredient.")
+req("games", "CH-G22", "asteroid", "Asteroid", "256 x 256",
+    "Asteroid Dodge: the rocks to dodge.",
+    "One lumpy grey-brown cartoon asteroid with craters, centred.",
+    "A canvas-drawn rock.")
+req("games", "CH-G23", "rocket", "Rocket ship", "256 x 256",
+    "Asteroid Dodge: your ship, which wears your face in its window.",
+    "A chunky cartoon rocket ship pointing up, red and white with fins and a flame, and a big empty "
+    "round porthole window in the middle (the app shows your face there).",
+    "A canvas-drawn rocket.")
+req("games", "CH-G24", "beach-ball", "Beach ball", "256 x 256",
+    "Beach Bump: the ball you bump between friends.",
+    "A classic six-panel beach ball in red, yellow, blue, white, green and orange, centred.",
+    "A canvas-drawn beach ball.")
+
 # --- Icons -----------------------------------------------------------------
 EFFECT_ICONS = [
     ("bubble", "Bubble Blow", "puckered cartoon lips blowing a big translucent iridescent bubble"),
@@ -313,19 +450,89 @@ GAME_ICONS = [
     ("memory", "Memory Match", "two face-up cards with matching hearts and one face-down card"),
     ("copycat", "Copy Cat", "a cartoon cat making a silly face in a mirror"),
 ]
+NEW_EFFECT_ICONS = [
+    ("echo", "Time Trails", "a face leaving a rainbow trail of see-through copies"),
+    ("delayghost", "Delay Ghost", "a person with a translucent ghost copy one step behind"),
+    ("timewarp", "Time Warp", "a face stretched by a glowing blue scan line sweeping down"),
+    ("timewarpside", "Side Warp", "a face smeared sideways by a vertical blue scan line"),
+    ("slitscan", "Wobble Time", "a face rippling in wavy horizontal bands"),
+    ("strobe", "Stop Motion", "a face in three jerky film frames"),
+    ("clones", "Clones", "three identical cartoon faces in a row"),
+    ("motionglow", "Motion Glow", "a waving hand leaving neon outline trails"),
+    ("beach360", "Beach 360", "a palm tree and a turquoise sea in a round 360 frame"),
+    ("space360", "Space 360", "Earth seen through a round space-station window"),
+    ("reef360", "Reef 360", "a coral reef with a turtle in a round frame"),
+    ("forest360", "Forest 360", "glowing mushrooms in a dark forest"),
+    ("city360", "City 360", "neon skyscrapers at night"),
+    ("snow360", "Snow 360", "snowy peaks and a cabin"),
+    ("candy360", "Candy 360", "lollipop trees and gumdrop hills"),
+    ("volcano360", "Volcano 360", "an erupting cartoon volcano"),
+    ("blurbg", "Blur", "a sharp face in front of a soft blurry room"),
+    ("colorpop", "Colour Pop", "a colourful face against a grey room"),
+    ("neonaura", "Neon Aura", "a dark silhouette outlined in glowing neon pink and cyan"),
+    ("disco", "Disco", "a glittering disco ball with coloured light beams"),
+    ("matrix", "Code Rain", "green falling code characters behind a silhouette"),
+    ("sunset", "Sunset", "a black silhouette against a huge orange sunset"),
+    ("tinyface", "Tiny Face", "a big head with a tiny squished face in the middle"),
+    ("chubby", "Chubby Cheeks", "a face with huge puffed-out round cheeks"),
+    ("babyface", "Baby Face", "a baby face with big eyes and a tiny nose"),
+    ("symmetry", "Mirror Face", "a face split down the middle and mirrored"),
+    ("cyclops", "Cyclops", "a cartoon face with one huge eye in the middle"),
+    ("bigmouth", "Big Mouth", "a face with an enormous grinning mouth"),
+    ("fisheye", "Fisheye", "a face bulging through a round fisheye lens"),
+    ("flowercrown", "Flower Crown", "a crown of pink peonies and daisies"),
+    ("kitty", "Kitty", "a cute cat face with whiskers"),
+    ("bunny", "Bunny", "a bunny face with tall ears"),
+    ("devil", "Devil", "a cheeky face with little red devil horns"),
+    ("angel", "Angel", "a smiling face with a golden halo"),
+    ("pirate", "Pirate", "a pirate tricorn hat and eyepatch"),
+    ("viking", "Viking", "a horned Viking helmet"),
+    ("wizard", "Wizard", "a starry blue wizard hat with sparkles"),
+    ("butterflies", "Butterflies", "blue and pink butterflies circling a head"),
+    ("makeup", "Glam", "a lipstick and a blush brush with sparkles"),
+    ("crying", "Waterworks", "a face crying two fountains of tears"),
+    ("hotdog", "Hotdog", "a dancing cartoon hotdog"),
+    ("noir", "Film Noir", "a black-and-white detective hat and film grain"),
+    ("vhs", "VHS", "a VHS tape with rainbow glitch lines"),
+    ("popart", "Pop Art", "four colourful pop-art copies of a face in a grid"),
+    ("kaleidoscope", "Kaleidoscope", "a colourful kaleidoscope star pattern"),
+    ("snow", "Snowfall", "big snowflakes falling"),
+    ("confetti", "Confetti", "a party popper bursting confetti"),
+    ("moneyrain", "Make It Rain", "green banknotes falling"),
+    ("lasereyes", "Laser Eyes", "a face shooting red laser beams from its eyes"),
+    ("fireworks", "Fireworks", "colourful fireworks bursting in a night sky"),
+]
+NEW_GAME_ICONS = [
+    ("minigolf", "Mini Golf", "a golf ball next to a flag in a hole on bright green turf"),
+    ("bowling", "Bowling", "a bowling ball crashing into white pins"),
+    ("beachbump", "Beach Bump", "a beach ball bouncing off a smiling face"),
+    ("burger", "Burger Stack", "a tall wobbly burger stack with a face peeking under it"),
+    ("asteroids", "Asteroid Dodge", "a rocket weaving between asteroids"),
+    ("dontsmile", "Don't Smile", "a straight face trying not to laugh, with a sweat drop"),
+    ("snake", "Snake", "two cartoon snakes racing for an apple"),
+    ("battleship", "Battleship", "a grey battleship and a red hit marker on a blue grid"),
+    ("trivia", "Trivia", "a big question mark on a quiz-show buzzer"),
+    ("wordblitz", "Word Blitz", "a 4x4 grid of letter tiles with a word path traced in gold"),
+]
 for i, (gid, name, subject) in enumerate(EFFECT_ICONS, 1):
     req("icons", f"CH-I{i:02d}", f"fx-{gid}", f"{name} icon", "256 x 256",
         f"The {name} button on the effect tray.", f"Icon of {subject}.", "An emoji.")
 for i, (gid, name, subject) in enumerate(GAME_ICONS, len(EFFECT_ICONS) + 1):
     req("icons", f"CH-I{i:02d}", f"game-{gid}", f"{name} icon", "256 x 256",
         f"The {name} card in the game picker.", f"Icon of {subject}.", "An emoji.")
+for i, (gid, name, subject) in enumerate(NEW_EFFECT_ICONS, 31):
+    req("icons", f"CH-I{i:02d}", f"fx-{gid}", f"{name} icon", "256 x 256",
+        f"The {name} button on the effect strip.", f"Icon of {subject}.", "An emoji.")
+for i, (gid, name, subject) in enumerate(NEW_GAME_ICONS, 31 + len(NEW_EFFECT_ICONS)):
+    req("icons", f"CH-I{i:02d}", f"game-{gid}", f"{name} icon", "256 x 256",
+        f"The {name} card in the game picker.", f"Icon of {subject}.", "An emoji.")
 
 
 def render_doc() -> str:
     lines = [
-        "# Bubble Chat: image requests",
+        "# Games Chat: image requests",
         "",
-        "Artwork for Bubble Chat in `chat/`. Generated from `source/build_requests.py`; edit the "
+        "Artwork for Games Chat in `chat/`. Generated from `source/build_requests.py`; edit the "
         "data there and rerun it, which also rewrites `chat/js/asset-list.js` and "
         "`face-template.png`.",
         "",
