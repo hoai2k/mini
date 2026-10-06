@@ -1022,6 +1022,7 @@ window.__chat = {
   get net() { return net; },
   get rtc() { return rtc; },
   get games() { return games; },
+  get votes() { return votes; },
   get tiles() { return tiles; },
   me,
   selectEffect: id => selectEffect(effects.find(e => e.id === id) || null),

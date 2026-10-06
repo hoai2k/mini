@@ -379,3 +379,7 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .ratings table { margin-bottom: 8px; }
 .ratings td:not(:first-child), .ratings th:not(:first-child) { text-align: right; width: 4.5em; }
 @media (max-width: 420px) { #call.has-game .vote-pill { display: none; } }
+@media (max-width: 420px) {
+  .colors { gap: 6px; }
+  .swatch { width: 30px; height: 30px; }
+}
