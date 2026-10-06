@@ -40,8 +40,8 @@ export const field = {
     // (the barrel drum and the mõ) between them and the archers.
     // The wider palanquin (BD-C14) needs more room in front of it.
     const wide = !battle.elephant && !!this.art.get('drum-palanquin');
-    const crewOffset = battle.elephant ? 460 : wide ? 500 : 445;
-    const compX = battle.elephant ? 200 : wide ? 225 : 170;
+    const crewOffset = battle.elephant ? 460 : wide ? 430 : 445;
+    const compX = battle.elephant ? 200 : wide ? 165 : 170;
     const cm = mm.crew;
     this.spring(cm, frontTarget - crewOffset, 2.6, dt);
 

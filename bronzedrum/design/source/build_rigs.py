@@ -56,6 +56,24 @@ RIGS = {
             "stick": {"box": (3096, 64, 3828, 1592), "pivot": (3380, 1524), "parent": "armR", "anchor": (3250, 1826), "z": 9},
         },
     },
+    "sister-nhi": {
+        "sheet": "rig-sister-nhi.png",
+        "height": 320,
+        "pieces": {
+            "skirt": {"box": (888, 2240, 3412, 4068), "pivot": (2200, 2301), "z": 3},
+            # Both feet point the way she faces (the right leg is mirrored).
+            "legL": {"box": (104, 2544, 684, 3844), "pivot": (580, 2650), "parent": "skirt", "anchor": (1980, 3000), "z": 2},
+            "legR": {"box": (3460, 2528, 4000, 3856), "pivot": (3576, 2630), "parent": "skirt", "anchor": (2420, 3020), "z": 2, "flip": True},
+            "torso": {"box": (1576, 1200, 2784, 2216), "pivot": (2198, 2154), "parent": "skirt", "anchor": (2200, 2301), "z": 5},
+            "head": {"box": (1308, 24, 2544, 1244), "pivot": (2210, 1144), "parent": "torso", "anchor": (2200, 1236), "z": 6},
+            # Two drumming arms: the upper arm with its long sleeve, and the
+            # forearm with the stick, pinned at the elbow.
+            "armL": {"box": (80, 536, 1236, 2316), "pivot": (1146, 600), "parent": "torso", "anchor": (1640, 1526), "z": 1},
+            "foreL": {"box": (188, 32, 944, 1216), "pivot": (440, 1100), "parent": "armL", "anchor": (830, 970), "z": 2},
+            "armR": {"box": (2844, 556, 4008, 2368), "pivot": (2936, 616), "parent": "torso", "anchor": (2716, 1526), "z": 7},
+            "foreR": {"box": (3428, 200, 3996, 1300), "pivot": (3650, 1190), "parent": "armR", "anchor": (3185, 975), "z": 8},
+        },
+    },
 }
 PAD = 6  # sheet pixels kept around each piece's box
 

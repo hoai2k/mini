@@ -2,7 +2,135 @@ import { PALETTE as P } from '../palette.js';
 import { COMMANDS, parsePattern } from '../rhythm.js';
 import { ROMAN, W, H, TOUCH, spanOf, leaf, star } from './common.js';
 
+// The close-up sticks over the HUD drum (BD-U20, BD-U21): each swings in to
+// its landing point on the stroke and lifts away. ang: the stick's direction
+// at contact, wrist to head (flatter on touch screens, where the big drum sits
+// low and a steep stick would leave its hand below the screen); at: the head's
+// landing point in drum radii from the centre; art: where the wrist and head
+// sit in the delivered image.
+const STICKS = {
+  L: { id: 'hud-stick-trac', ang: -0.7, angTouch: -0.2, at: [0, 0], art: { wrist: [0.22, 0.78], head: [0.8, 0.2] } },
+  R: { id: 'hud-stick-nhi', ang: Math.PI + 0.62, angTouch: Math.PI + 0.15, at: [0.9, -0.24], art: { wrist: [0.78, 0.78], head: [0.2, 0.2] } },
+};
+const STICK_LEN = 1.8; // wrist to head, in drum radii
+
 export const hud = {
+  /**
+   * Trắc's beater for each deep stroke, from the bottom left onto the
+   * sun-star; Nhị's stick for each rim stroke, from the right onto the rim.
+   * It is already sounding, so the stick arrives fast (45 ms), rests a
+   * moment on the drum and lifts back out of frame (to 0.45 s).
+   */
+  closeSticks(cx, cy, R, t, touch = false) {
+    const g = this.ctx;
+    for (const drum of ['L', 'R']) {
+      const since = t - this.flash[drum];
+      if (!(since >= 0 && since < 0.45)) continue;
+      const st = STICKS[drum];
+      // away: 0 on the drum, 1 lifted out of the way.
+      let away;
+      if (this.reduceMotion) away = since < 0.25 ? 0 : 1;
+      else if (since < 0.045) away = 1 - since / 0.045;
+      else if (since < 0.11) away = 0;
+      else away = Math.min(1, (since - 0.11) / 0.3) ** 1.2;
+      const L = STICK_LEN * R;
+      const ang = touch ? st.angTouch : st.ang;
+      const head = [cx + st.at[0] * R, cy + st.at[1] * R];
+      // Lifting: the stick tips back about the wrist and the arm draws back
+      // along its own line, growing a little as it nears the eye.
+      const dir = ang + (drum === 'L' ? 0.7 : -0.7) * away;
+      const back = away * 1.6 * R;
+      const wx = head[0] - Math.cos(ang) * (L + back);
+      const wy = head[1] - Math.sin(ang) * (L + back);
+      const grow = 1 + 0.18 * away;
+      g.save();
+      g.globalAlpha = Math.min(1, (1 - away) * 2.2);
+      g.translate(wx, wy);
+      g.rotate(dir);
+      g.scale(grow, grow);
+      g.shadowColor = 'rgba(0,0,0,0.45)';
+      g.shadowBlur = 10;
+      g.shadowOffsetY = 8 + 10 * away;
+      const img = this.art.get(st.id);
+      if (img) {
+        // The delivered close-up, turned so its wrist-to-head line is ours.
+        const a = st.art;
+        const iw = img.width;
+        const ih = img.height;
+        const dx = (a.head[0] - a.wrist[0]) * iw;
+        const dy = (a.head[1] - a.wrist[1]) * ih;
+        const k = L / Math.hypot(dx, dy);
+        g.rotate(-Math.atan2(dy, dx));
+        g.drawImage(img, -a.wrist[0] * iw * k, -a.wrist[1] * ih * k, iw * k, ih * k);
+      } else this.standinStick(L, R, drum);
+      g.restore();
+      // The landing point flashes on contact.
+      if (away === 0 && !this.reduceMotion) {
+        g.save();
+        g.globalAlpha = 0.7 * (1 - Math.min(1, (since - 0.045) / 0.065));
+        g.fillStyle = drum === 'L' ? P.paper : P.lacquer;
+        star(g, head[0], head[1], R * 0.32, R * 0.08, 8);
+        g.restore();
+      }
+    }
+  },
+
+  /** A paper-cut forearm and stick along +x, the wrist at the origin (until BD-U20/21 arrive). */
+  standinStick(L, R, drum) {
+    const g = this.ctx;
+    const trac = drum === 'L';
+    // Forearm, running back out of frame, with the sleeve's edge.
+    g.fillStyle = trac ? '#1A1714' : P.lacquer;
+    g.beginPath();
+    g.roundRect(-1.9 * R, -0.21 * R, 1.0 * R, 0.42 * R, 0.08 * R);
+    g.fill();
+    g.fillStyle = '#E9D6B4';
+    g.beginPath();
+    g.roundRect(-1.05 * R, -0.15 * R, 1.15 * R, 0.3 * R, 0.14 * R);
+    g.fill();
+    // The cuff at the wrist: bronze bands, a row of cut diamonds.
+    g.fillStyle = trac ? P.bronze : '#6B3F1E';
+    g.fillRect(-0.36 * R, -0.16 * R, 0.24 * R, 0.32 * R);
+    g.fillStyle = trac ? P.bronzeLight : P.paper;
+    for (let i = 0; i < 3; i++) {
+      g.save();
+      g.translate(-0.24 * R, (-0.09 + i * 0.09) * R);
+      g.rotate(Math.PI / 4);
+      g.fillRect(-0.025 * R, -0.025 * R, 0.05 * R, 0.05 * R);
+      g.restore();
+    }
+    // The stick, through the fist.
+    const th = (trac ? 0.1 : 0.065) * R;
+    g.fillStyle = '#4A2C17';
+    g.beginPath();
+    g.roundRect(-0.05 * R, -th / 2, L, th, th / 2);
+    g.fill();
+    g.fillStyle = '#E9D6B4';
+    g.beginPath();
+    g.ellipse(0.06 * R, 0, 0.15 * R, 0.13 * R, 0, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = 'rgba(74,44,23,0.6)';
+    g.lineWidth = Math.max(1, 0.02 * R);
+    for (let i = 0; i < 3; i++) {
+      g.beginPath();
+      g.moveTo((0.0 + i * 0.07) * R, -0.12 * R);
+      g.lineTo((0.0 + i * 0.07) * R, 0.0);
+      g.stroke();
+    }
+    // The head: Trắc's flat padded beater, Nhị's round knob.
+    g.fillStyle = trac ? '#8A5A2E' : '#5E3A1E';
+    g.beginPath();
+    if (trac) g.ellipse(L, 0, 0.11 * R, 0.21 * R, 0, 0, Math.PI * 2);
+    else g.arc(L, 0, 0.12 * R, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = trac ? P.bronzeLight : 'rgba(242,232,213,0.35)';
+    g.beginPath();
+    if (trac) g.ellipse(L - 0.02 * R, 0, 0.05 * R, 0.13 * R, 0, 0, Math.PI * 2);
+    else g.arc(L - 0.03 * R, -0.04 * R, 0.04 * R, 0, Math.PI * 2);
+    g.fill();
+  },
+
+
   hud(view) {
     // The success moment owns the screen: no play HUD under it.
     if (view.success) return;
@@ -112,6 +240,8 @@ export const hud = {
       if (q >= 0 && q <= 1) this.wakeBurst(cx, cy, R * 4.2, q);
     }
     g.restore();
+    // The sisters' sticks, close up, land where each stroke is struck.
+    if (kitId === 'bronze') this.closeSticks(cx, cy, R, t, touch);
 
     // The phrase: the accepted pattern stays filled until the drum is ready
     // again; while drumming, the likeliest pattern is shown with the strokes

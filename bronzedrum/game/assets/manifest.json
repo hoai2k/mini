@@ -278,7 +278,7 @@
       "id": "hud-stick-trac",
       "request": "BD-U20",
       "file": "art/hud-stick-trac.png",
-      "status": "planned",
+      "status": "stand-in",
       "section": "ui",
       "runtime": true
     },
@@ -286,7 +286,7 @@
       "id": "hud-stick-nhi",
       "request": "BD-U21",
       "file": "art/hud-stick-nhi.png",
-      "status": "planned",
+      "status": "stand-in",
       "section": "ui",
       "runtime": true
     },

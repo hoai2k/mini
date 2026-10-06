@@ -102,7 +102,11 @@ just behind the ranks: one with a trống chầu at her hip, one holding a mõ
 (requests BD-C11 and BD-C12; drawn stand-ins until delivered). The bronze
 drum answers the strokes, the barrel drum the shield and the mõ the reset.
 Each shivers when struck: the HUD drum and the palanquin on every stroke, the
-companion drummers and the touch buttons on a shield or a reset. Reduce motion
+companion drummers and the touch buttons on a shield or a reset.
+The sisters strike the drum on the palanquin with every stroke (Trắc the
+centre, Nhị the rim), and their sticks are seen close up over the HUD drum:
+Trắc's from the bottom left onto the sun-star, Nhị's from the right onto the
+rim (BD-U20 and BD-U21, with BD-U22 to BD-U25 as other kinds of stick). Reduce motion
 turns the shiver off. Text is drawn larger, taps
 buzz briefly if Vibration is on, and an upright phone pauses with a prompt to
 turn it sideways. The button faces are request BD-U16; until it is delivered
