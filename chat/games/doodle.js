@@ -608,6 +608,7 @@ export default {
     function syncNewcomers() {
       const ids = api.players().map(p => p.id);
       const fresh = ids.filter(id => !knownIds.has(id));
+      knownIds.clear();
       ids.forEach(id => knownIds.add(id));
       if (fresh.length && amDrawing() && strokes.length) {
         api.send('sync', { t: S().turn, strokes: packStrokes(strokes) });
@@ -668,7 +669,7 @@ export default {
         } else mk('div', 'g-big', 'Doodle Guess', card);
         if (!two) mk('div', '', 'Waiting for a friend to join…', card);
         else {
-          mk('div', '', 'Take turns drawing; guess the word fast for more points.', card).style.color = 'var(--muted)';
+          if (!s.final) mk('div', '', 'Take turns drawing; guess the word fast for more points.', card).style.color = 'var(--muted)';
           const b = mk('button', 'btn aqua', s.final ? 'Play again' : 'Start game', card);
           b.addEventListener('click', () => (api.isOwner() ? startGame() : api.send('start', {})));
         }
