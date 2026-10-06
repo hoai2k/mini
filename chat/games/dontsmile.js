@@ -217,7 +217,8 @@ export default {
     // --- layout --------------------------------------------------------------
     // Best grid for n tiles in the area above the controls.
     function layout(n) {
-      const top = 54, aw = w, ah = Math.max(60, h - CONTROLS_H - top);
+      // Tall panels keep a strip free for the joke cards.
+      const top = 54, aw = w, ah = Math.max(60, h - CONTROLS_H - top - (h > 560 ? 100 : 0));
       let bestL = null;
       for (let cols = 1; cols <= n; cols++) {
         const rows = Math.ceil(n / cols);

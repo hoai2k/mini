@@ -386,7 +386,7 @@ export default {
       inset = api.insets ? api.insets() : { top: 0, bottom: 0 };
       strip.style.top = `${inset.top + 4}px`;
       stripH = strip.offsetHeight || stripH;
-      const top = inset.top + stripH + 78;
+      const top = inset.top + stripH + 100;
       const bottom = h - inset.bottom - 6;
       const availH = Math.max(120, bottom - top);
       const D0 = 400, near = -40;
