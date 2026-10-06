@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gliders creature viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f3e6f0; font: 13px system-ui, sans-serif; color: #3a3350; }
+  canvas { display: block; }
+  #hud { position: fixed; left: 10px; bottom: 8px; background: rgba(255,255,255,0.7); padding: 6px 10px; border-radius: 8px; }
+  .label { position: fixed; transform: translateX(-50%); font-weight: 600; text-shadow: 0 1px 0 #fff; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="hud"></div>
+<script type="module">
+// Dev viewer for src/creatures.js.
+// Query params: ?variant=0..3  ?pose=glide|tuck|flare  ?view=back|side|top|front|three-quarter
+//               ?only=<id>  ?rotate=0|1  ?time=<seconds> (freeze time)  ?speed=<m/s>
+// Keys: 0-3 variant, T tuck, F flare, R rotate, V cycle view, arrows roll/pitch.
+import * as THREE from '../vendor/three.module.min.js';
+import { GLIDERS, createGlider } from '../src/creatures.js';
+
+const q = new URLSearchParams(location.search);
+let variant = Number(q.get('variant') || 0);
+let pose = q.get('pose') || 'glide';
+const views = ['three-quarter', 'back', 'side', 'top', 'front'];
+let view = q.get('view') || 'three-quarter';
+let rotate = q.get('rotate') ? q.get('rotate') === '1' : !q.has('view');
+const frozen = q.has('time') ? Number(q.get('time')) : null;
+const speed = Number(q.get('speed') || 45);
+const zoom = Number(q.get('zoom') || (q.get('only') && !q.get('only').includes(',') ? 1.5 : 1));
+const ids = q.get('only') ? q.get('only').split(',') : GLIDERS.map((g) => g.id);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.setScissorTest(true);
+document.body.appendChild(renderer.domElement);
+
+const cols = ids.length === 1 ? 1 : ids.length <= 2 ? 2 : 3;
+const rows = Math.ceil(ids.length / cols);
+const cells = [];
+const input = { roll: 0, pitch: 0 };
+
+function makeBackground() {
+  const c = document.createElement('canvas');
+  c.width = 4; c.height = 256;
+  const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 0, 256);
+  grd.addColorStop(0, '#bfe0ff');
+  grd.addColorStop(0.55, '#f6dff0');
+  grd.addColorStop(1, '#ffe9cf');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 4, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const bg = makeBackground();
+
+function build() {
+  for (const c of cells) { c.glider.dispose(); c.label.remove(); }
+  cells.length = 0;
+  ids.forEach((id, i) => {
+    const scene = new THREE.Scene();
+    scene.background = bg;
+    scene.fog = new THREE.Fog('#f2e4f2', 9, 30);
+    scene.add(new THREE.HemisphereLight('#d6ecff', '#f1d6c4', 1.5));
+    const sun = new THREE.DirectionalLight('#fff0d8', 2.6);
+    sun.position.set(-4, 9, -3);
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight('#c8d8ff', 0.6);
+    fill.position.set(5, 2, 6);
+    scene.add(fill);
+    const glider = createGlider(id, variant);
+    const holder = new THREE.Group();
+    holder.add(glider.object);
+    scene.add(holder);
+    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+    const label = document.createElement('div');
+    label.className = 'label';
+    const info = GLIDERS.find((g) => g.id === id);
+    label.textContent = `${info.name} — ${info.variantNames[variant]}`;
+    document.body.appendChild(label);
+    cells.push({ id, scene, glider, holder, camera, label, col: i % cols, row: Math.floor(i / cols) });
+  });
+  hud();
+}
+
+function placeCamera(cam) {
+  const d = 5.2 / zoom;
+  const p = {
+    back: [0, 2.0, -d],
+    side: [d, 0.6, 0],
+    top: [0, d * 1.05, -0.01],
+    front: [0, 1.0, d],
+    'three-quarter': [d * 0.62, d * 0.42, d * 0.68],
+  }[view] || [0, 2, -d];
+  cam.position.set(p[0], p[1], p[2]);
+  cam.lookAt(0, 0, -0.2);
+}
+
+function hud() {
+  document.getElementById('hud').textContent =
+    `variant ${variant} (0-3) · pose ${pose} (T/F) · view ${view} (V) · rotate ${rotate ? 'on' : 'off'} (R) · arrows roll/pitch`;
+}
+
+addEventListener('keydown', (e) => {
+  if (e.key >= '0' && e.key <= '3') { variant = Number(e.key); build(); }
+  else if (e.key === 't') pose = pose === 'tuck' ? 'glide' : 'tuck';
+  else if (e.key === 'f') pose = pose === 'flare' ? 'glide' : 'flare';
+  else if (e.key === 'r') rotate = !rotate;
+  else if (e.key === 'v') view = views[(views.indexOf(view) + 1) % views.length];
+  else if (e.key === 'ArrowLeft') input.roll = -1;
+  else if (e.key === 'ArrowRight') input.roll = 1;
+  else if (e.key === 'ArrowUp') input.pitch = 1;
+  else if (e.key === 'ArrowDown') input.pitch = -1;
+  hud();
+});
+addEventListener('keyup', (e) => {
+  if (e.key.startsWith('Arrow')) { input.roll = 0; input.pitch = 0; }
+});
+
+build();
+const clock = new THREE.Timer();
+let time = 0;
+function frame() {
+  clock.update();
+  const dt = Math.min(0.05, clock.getDelta());
+  time += dt;
+  const W = innerWidth;
+  const H = innerHeight;
+  renderer.setSize(W, H);
+  const cw = W / cols;
+  const ch = H / rows;
+  for (const c of cells) {
+    const t = frozen ?? time;
+    const state = { dt: frozen !== null ? 1 / 60 : dt, time: t, speed, tuck: pose === 'tuck' ? 1 : 0, flare: pose === 'flare' ? 1 : 0, roll: input.roll, pitch: input.pitch, yaw: 0 };
+    c.glider.update(state);
+    c.holder.rotation.y = rotate ? time * 0.4 : 0;
+    c.camera.aspect = cw / ch;
+    c.camera.updateProjectionMatrix();
+    placeCamera(c.camera);
+    const x = c.col * cw;
+    const y = H - (c.row + 1) * ch;
+    renderer.setViewport(x, y, cw, ch);
+    renderer.setScissor(x, y, cw, ch);
+    renderer.render(c.scene, c.camera);
+    c.label.style.left = `${x + cw / 2}px`;
+    c.label.style.top = `${c.row * ch + 8}px`;
+  }
+  requestAnimationFrame(frame);
+}
+// settle smoothed pose values before the first frame when frozen
+if (frozen !== null) for (const c of cells) for (let i = 0; i < 90; i++) c.glider.update({ dt: 1 / 60, time: frozen, speed, tuck: pose === 'tuck' ? 1 : 0, flare: pose === 'flare' ? 1 : 0 });
+frame();
+window.__ready = true;
+</script>
+</body>
+</html>

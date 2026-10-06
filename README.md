@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Gliders](https://hoai2k.github.io/mini/gliders/)** · [`gliders/`](gliders/README.md): Superflight-style gliding for one to four players
 - **[Games Chat](https://hoai2k.github.io/mini/chat/)** · [`chat/`](chat/README.md): video chat with face effects and minigames
 - **[Tank Wars](https://hoai2k.github.io/mini/tankwars/)** · [`tankwars/`](tankwars/README.md)
 - **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · [`hopper/`](hopper/README.md)
