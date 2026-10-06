@@ -282,12 +282,14 @@ document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click
   if (a === 'instructions') openInstructions();
   if (a === 'scenes') openScenes();
   if (a === 'settings') openDialog($('#settings'));
+  if (a === 'credits') openDialog($('#credits'), $('#credits [data-act=close]'));
   if (a === 'restart') { closeAllDialogs(); S.paused = false; if (S.act) beginAct(S.actIndex); else showPlaybill(); }
   if (a === 'title') toTitle();
 }));
 $('#start').addEventListener('click', startGame);
 $('#btn-instructions').addEventListener('click', () => { audio.play('ui'); openInstructions(); });
 $('#btn-scenes').addEventListener('click', () => { audio.play('ui'); openScenes(); });
+$('#btn-credits').addEventListener('click', () => { audio.play('ui'); openDialog($('#credits'), $('#credits [data-act=close]')); });
 $('#btn-settings').addEventListener('click', () => { audio.play('ui'); openDialog($('#settings')); });
 $('#btn-fullscreen').addEventListener('click', () => {
   audio.play('ui');

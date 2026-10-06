@@ -58,7 +58,7 @@ A static page with no build step: canvas 2D plus Web Audio.
   effects and sea loop, and synthesised fallbacks for all of them.
 - `src/input.js` and `src/main.js`: controller, keyboard and touch input; the
   title screen, act cards, pause menu, instructions (a page per act, opening
-  on the act being played), scene select and settings, following
+  on the act being played), scene select, credits and settings, following
   [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md). A lost act resumes from its
   latest checkpoint (`src/acts/CONTRACT.md`, "Scenes and checkpoints").
 

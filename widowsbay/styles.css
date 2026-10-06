@@ -268,3 +268,15 @@ html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow
 .xb-menu { display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; }
 .xb-menu i { display: block; width: .62em; height: 2px; background: #fff; }
 .xb-dpad { border-radius: 3px; width: auto; padding: 0 .35em; font-size: .7em; height: 2em; }
+
+/* Credits */
+.card.credits { width: min(520px, 100%); text-align: center; }
+.credits-list { text-align: center; }
+.cred-show { font-family: "Yesteryear", cursive; font-size: 40px; line-height: 1.05; margin: 0 0 14px; color: var(--pink); }
+.cred-show small { font: 700 13px "Josefin Sans", sans-serif; letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.credits-list dl { margin: 0; }
+.credits-list dt { font: 700 12px "Josefin Sans", sans-serif; letter-spacing: .16em; text-transform: uppercase; opacity: .75; margin-top: 16px; }
+.credits-list dd { margin: 4px 0 0; font-family: "Yesteryear", cursive; font-size: 30px; line-height: 1.15; }
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
+  .cred-show { font-size: 30px; } .credits-list dd { font-size: 24px; } .credits-list dt { margin-top: 10px; }
+}

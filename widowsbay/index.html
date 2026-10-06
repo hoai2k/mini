@@ -44,6 +44,9 @@
         <button class="icon" id="btn-scenes" data-focus aria-label="Scene select" data-tip="Scene select">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9h18M3 15h18M7 5v4M12 5v4M17 5v4M7 15v4M12 15v4M17 15v4"/></svg>
         </button>
+        <button class="icon" id="btn-credits" data-focus aria-label="Credits" data-tip="Credits">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg>
+        </button>
         <button class="icon" id="btn-settings" data-focus aria-label="Settings" data-tip="Settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>
         </button>
@@ -61,6 +64,7 @@
           <button data-focus data-act="resume">Resume</button>
           <button data-focus data-act="instructions">Instructions</button>
           <button data-focus data-act="settings">Settings</button>
+          <button data-focus data-act="credits">Credits</button>
           <button data-focus data-act="restart">Restart Act</button>
           <button data-focus data-act="scenes">Scene Select</button>
           <button data-focus data-act="title">Return to Title</button>
@@ -226,6 +230,27 @@
         <h2 id="scn-h">Scene Select</h2>
         <div class="scroll scene-list" id="scene-list"></div>
         <p class="note" id="scene-note"></p>
+        <div class="row"><button data-focus data-act="close">Close</button></div>
+      </div>
+    </section>
+
+    <!-- Credits -->
+    <section id="credits" class="layer dialog" role="dialog" aria-modal="true" aria-labelledby="cred-h" hidden>
+      <div class="card credits">
+        <h2 id="cred-h">Credits</h2>
+        <div class="scroll credits-list" tabindex="0" data-focus>
+          <p class="cred-show">Widow’s Bay<br><small>a toy theatre in five acts</small></p>
+          <dl>
+            <dt>Principal Game Designer</dt>
+            <dd>Hoai Nguyen</dd>
+            <dt>Main theme, “Widow’s Bay”</dt>
+            <dd>Langan, Frost &amp; Wane</dd>
+            <dt>The music video that inspired the game</dt>
+            <dd>Directed and edited by Nam Nguyen</dd>
+            <dt>After the film</dt>
+            <dd><em>Le Royaume des fées</em> (1903), Georges Méliès</dd>
+          </dl>
+        </div>
         <div class="row"><button data-focus data-act="close">Close</button></div>
       </div>
     </section>
