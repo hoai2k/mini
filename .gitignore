@@ -22,3 +22,6 @@
 **/qa/screens
 /hopper/design/qa
 **/__pycache__
+
+# Subagent worktrees (Claude Code); their work is merged through their branches.
+.claude/worktrees/
