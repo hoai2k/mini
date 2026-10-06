@@ -64,7 +64,7 @@
       "mode": "built-in imagegen",
       "prompt": "Use case: stylized-concept. Create a premium four-panel animation KEY POSE study for HOPPER THE GRASSHOPPER, landscape 1536x1024, four equal panels in a 2x2 layout on pale ivory. Input image is the canonical character identity. Keep EXACT green insect mecha anatomy, six legs including enormous hind legs, blue chest, cream mandible, red oval eyes and armor trim, gold joints and antennae, tiny black-haired boy with cream shirt navy shorts red scarf secured atop saddle. Same character proportions and scale across panels. 1970s anime cel animation ink style, clean broad shadows. Top left 'LAUNCH': right-facing profile rising diagonally right, enormous HIND legs snap straight BEHIND to left, four slender front support legs tuck, boy braced. Top right 'SPIN KICK': the body twists in midair, two gigantic serrated HIND tibiae sweep in a circular arc, supporting legs tucked, back legs clearly do the attack; no hand punches. Bottom left 'EYE LASERS': stable right-facing leap, two narrow red-white lasers originate directly in eyes and travel horizontally RIGHT. Bottom right 'STOMP': right-facing descending body, hind feet planted on a pale ground line with short impact burst, suspension compresses, boy safe. No other characters or enemies. Full figures, antennae contained, minimal speed lines. This is a pose-direction sheet, not a numbered sprite atlas. Do not redesign Hopper or his rider.",
       "reference_images": [
-        "/Users/hoai/Documents/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
+        "/Volumes/BACKUP/Backup/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
       ],
       "status": "concept for user review; not a production sprite atlas"
     },
@@ -75,7 +75,7 @@
       "mode": "built-in imagegen",
       "prompt": "Use case: logo-brand. Generate a finished isolated raster title logo for a premium 1970s anime robot adventure game. Text VERBATIM: 'HOPPER' enormous on first line, 'THE GRASSHOPPER' smaller on second line. Spell every letter correctly. Bold custom forward-slanted mechanical display lettering, broad readable shapes, emerald-green enamel faces, warm cream bevel highlights, narrow gold outline and deep navy extrusion, small red accent. Integrate two elegant gold grasshopper antennae above the H and a subtle red oval eye motif into the O, maintaining legibility. Compact strong silhouette, no full character, no slogan, no Japanese text, no watermarks. Transparent background with real alpha, no painted backdrop or checkerboard pattern. Landscape wide logo composition with generous safe margins, centered, polished crisp edges and a tiny amount of period cel texture, not a glossy modern 3D render. The reference is solely character color and shape identity; do not reproduce the reference sheet.",
       "reference_images": [
-        "/Users/hoai/Documents/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
+        "/Volumes/BACKUP/Backup/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
       ],
       "status": "concept for user review; not a production sprite atlas"
     },
@@ -86,7 +86,7 @@
       "mode": "built-in imagegen",
       "prompt": "Use case: logo-brand. Generate ONE square favicon/app icon master for HOPPER THE GRASSHOPPER using input image as character identity reference. 1024x1024. Extremely simplified symmetrical FRONT VIEW of the green mecha grasshopper head only, huge two RED oval eyes, small cream mandible, two SHORT gold antennae contained within frame. Thick navy contour, broad flat 1970s anime cel color shapes, no grain, no fine detail, no text or letters, no boy or body, no badge border. Dark navy solid square background; head fills about 80 percent width with comfortable safe margins. The silhouette must still read at 16 and 32 pixels. Emerald green, scarlet red, warm cream, gold and deep navy only. Precisely balanced and bold, derived from canonical head rather than a generic insect.",
       "reference_images": [
-        "/Users/hoai/Documents/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
+        "/Volumes/BACKUP/Backup/Games/mini/hopper/design/assets/hopper-canonical-v1.png"
       ],
       "status": "generated master for favicon and app icon exports"
     }

@@ -22,3 +22,6 @@
 **/qa/screens
 /hopper/design/qa
 **/__pycache__
+
+# macOS metadata on external drives.
+._*

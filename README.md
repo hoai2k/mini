@@ -16,3 +16,13 @@ is at https://hoai2k.github.io/mini/.
 
 Shared requirements for every game: [GAME_GUIDELINES.md](GAME_GUIDELINES.md).
 Online multiplayer for any game: [MULTIPLAYER.md](MULTIPLAYER.md).
+
+## Local workspace
+
+The working copy is `/Volumes/BACKUP/Backup/Games/mini`. The Macintosh HD copy
+was migrated here on October 5, 2026.
+
+Local assets and installed dependencies remain under `local/`, which is ignored
+by Git. Preserved older workspace files and loose updates are under
+`local/archive/migration-2026-10-05/`. The archive includes a migration report
+and a SHA-256 manifest of the original workspace.
