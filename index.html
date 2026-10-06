@@ -101,6 +101,20 @@
   .hopper .cover { background-image: url("hopper/assets/backgrounds/fields.webp"); }
   .widowsbay .cover { background: #2f1726 url("widowsbay/assets/logo.webp") center / cover; }
   .bronzedrum .cover { background-image: url("bronzedrum/assets/web/sky-dawn.webp"); }
+  .chat .cover {
+    background:
+      radial-gradient(circle at 28% 35%, rgba(255, 255, 255, 0.18) 0 9%, transparent 10%),
+      radial-gradient(circle at 74% 62%, rgba(63, 224, 208, 0.25) 0 14%, transparent 15%),
+      radial-gradient(circle at 60% 22%, rgba(255, 95, 162, 0.25) 0 7%, transparent 8%),
+      linear-gradient(160deg, #4a2f7a, #1d1533 60%, #1f5b6e);
+  }
+  .chat .cover strong {
+    font: 900 clamp(2rem, 7vw, 2.8rem) / 1 ui-rounded, "Nunito", system-ui, sans-serif;
+    background: linear-gradient(100deg, #ff5fa2, #ffb3d6 35%, #3fe0d0 65%, #ffd43b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
   .tankwars .cover {
     background:
       linear-gradient(rgba(0, 255, 0, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
@@ -128,6 +142,18 @@
   <!-- Newest game first, by when the game was made rather than when it joined
        this repo: Tank Wars is the oldest. A new game's card goes at the top. -->
   <section class="shelf" aria-label="Games">
+    <a class="game chat" href="chat/">
+      <div class="cover">
+        <span class="tag">Online</span>
+        <strong>Bubble Chat</strong>
+      </div>
+      <div class="info">
+        <h2>Bubble Chat</h2>
+        <p>Video chat with silly face effects (blow a bubble at your friend!) and ten quick minigames to play together.</p>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+
     <a class="game bronzedrum" href="bronzedrum/">
       <div class="cover">
         <span class="tag">Prototype</span>
