@@ -81,7 +81,7 @@ artistry artists arts artwork artworks asbestos ascend ascendant ascended ascend
 ascorbic ascot ascribed ash ashamed ashes ashore ashtray aside ask asked asker asking asks asleep asp
 asparagus aspartate aspect aspects aspen asphalt aspire aspirin aspiring assassin assassins assault assaulted
 assaults assay assays assemble assembled assembler assembly assent assert asserted asserting assertion
-assertive asserts assess assessed assesses assessing assessor assessors asset assets asshole assholes assign
+assertive asserts assess assessed assesses assessing assessor assessors asset assets assholes assign
 assigned assignee assigning assigns assist assistant assisted assisting assists associate assorted assume
 assumed assumes assuming assurance assure assured assures assuring aster asterisk asteroid asteroids asthma
 astral astray astrology astronaut astronomy astute asylum asymmetry ate atelier atheism atheist atheists
@@ -243,8 +243,8 @@ cleaner cleaners cleaning cleanly cleans cleanse cleanser cleansers cleansing cl
 cleared clearer clearing clearly clears cleats cleavage cleft clematis clement clergy cleric clerical clerk
 clerks clever cleverly cliche click clicked clicking clicks client clientele clients cliff cliffs climate
 climates climatic climax climb climbed climber climbers climbing climbs clinch cline cling clinging clinic
-clinical clinician clinics clip clipboard clipped clipper clippers clipping clippings clips clique clitoral
-clitoris cloak clock clocks clockwise clockwork clog clogged clogs clone cloned clones cloning close closed
+clinical clinician clinics clip clipboard clipped clipper clippers clipping clippings clips clique
+cloak clock clocks clockwise clockwork clog clogged clogs clone cloned clones cloning close closed
 closely closeness closeout closeouts closer closes closest closet closets closing closings closure closures
 clot cloth clothed clothes clothing cloths cloud clouds cloudy clout clove clover cloves clown clowns club
 clubbing clubhouse clubs clue clueless clues clumsy cluster clustered clusters clutch clutches clutter coach
@@ -363,7 +363,7 @@ diaphragm diaries diarrhea diarrhoea diary diaspora diazepam dice diced dichotom
 dictate dictated dictates dictation dictator dictators did dido die died dies diesel dieses diet dietary
 dieter dieting diets differ differed different differing differs difficult diffuse diffuser diffusion dig
 digest digested digestion digestive digests digger digging digit digital digitally digitized digits dignified
-dignity digs dike dilated dildoes dildos dilemma dilemmas diligence diligent dill dilute diluted dilution dim
+dignity digs dike dilated dilemma dilemmas diligence diligent dill dilute diluted dilution dim
 dime dimension dimes dimethyl diminish dimmer din dinar dinars dine diner diners ding dinghy dining dinner
 dinners dinosaur dinosaurs diocesan diocese diode diodes dioxide dioxin dip diploma diplomacy diplomas
 diplomat diplomats dipole dipped dipping dips dire direct directed directing direction directive directly
@@ -438,7 +438,7 @@ envelopes environ environs envisaged envision envoy envy enzymatic enzyme enzyme
 ephemera ephemeral epic epidemic epidemics epidermal epidural epilepsy epilogue epiphany episcopal episode
 episodes epistle epoch epoxy epsilon equal equality equalizer equally equals equate equates equation equations
 equator equine equinox equip equipment equipped equipping equitable equities equity era eradicate eras erase
-erased eraser erasing erasure erect erected erectile erections ergo ergonomic erica erode eroded eros erosion
+erased eraser erasing erasure erect erected ergo ergonomic erica erode eroded eros erosion
 errata erratic erred erroneous error errors erupted eruption eruptions escalade escalate escape escaped
 escapes escaping escort escorted escorts escrow esophagus esoteric espanol especial espionage esplanade
 espresso esprit esquire essay essays essence essences essential establish estate estates esteem esteemed ester

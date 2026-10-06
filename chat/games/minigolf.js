@@ -1095,7 +1095,7 @@ export default {
       for (const g of ghosts.values()) {
         if (g.gone || g.done) continue;
         ctx.globalAlpha = 0.85;
-        label(g.name, lay.ox + g.b.x * lay.sc, lay.oy + (g.b.y - 4) * lay.sc, g.color || '#fff', 11, 'center');
+        label(g.name, lay.ox + g.b.x * lay.sc, lay.oy + (g.b.y - 5) * lay.sc - 4, g.color || '#fff', 11, 'center');
         ctx.globalAlpha = 1;
       }
       for (const f of floaters) {

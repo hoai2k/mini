@@ -37,13 +37,13 @@ const CSS = `
 .wb-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wb-chip b { color: var(--sun); }
 .wb-body { position: relative; flex: 1; min-height: 0; display: flex; gap: 12px; padding: 4px 12px 10px; align-items: center; justify-content: center; }
-.wb-body.portrait { flex-direction: column; gap: 6px; }
+.wb-body.portrait { flex-direction: column; gap: 6px; justify-content: flex-start; }
 .wb-left { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .wb-cur { height: 1.9em; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.35em; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 .wb-cur.ok { color: #5bdc6f; }
 .wb-cur.bad { color: var(--danger); }
 .wb-cur.dup { color: var(--sun); }
-.wb-grid { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 6%; padding: 3.5%; border-radius: 18px; background: linear-gradient(160deg, #4b2f86, #2a1f4d); box-shadow: 0 6px 0 rgba(0,0,0,0.35), 0 10px 20px rgba(0,0,0,0.3); border: 3px solid rgba(200,184,255,0.35); touch-action: none; cursor: pointer; }
+.wb-grid { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 6%; padding: 3.5%; border-radius: 18px; background: linear-gradient(160deg, #4b2f86, #2a1f4d); box-shadow: 0 6px 0 rgba(0,0,0,0.35), 0 10px 20px rgba(0,0,0,0.3); border: 3px solid rgba(200,184,255,0.35); touch-action: none; cursor: pointer; }
 .wb-grid.veil .wb-t { color: transparent; }
 .wb-t { position: relative; display: grid; place-items: center; border-radius: 22%; background: linear-gradient(180deg, #fffdf2, #ffe9a8); color: #2a1f4d; font-weight: 900; font-size: var(--tf, 1.8rem); box-shadow: 0 3px 0 rgba(0,0,0,0.3); transition: transform 0.1s, background 0.12s; z-index: 1; }
 .wb-t small { font-size: 0.6em; }
@@ -62,7 +62,7 @@ const CSS = `
 .wb-line.dup polyline { stroke: #e0a800; }
 .wb-count { position: absolute; inset: 0; display: grid; place-items: center; z-index: 3; font-size: 4em; font-weight: 900; color: #fff; text-shadow: 0 3px 10px rgba(0,0,0,0.7); pointer-events: none; }
 .wb-right { flex: 1; min-width: 0; min-height: 0; align-self: stretch; display: flex; flex-direction: column; gap: 6px; }
-.wb-found-h { color: var(--muted); font-weight: 800; font-size: 0.85em; }
+.wb-found-h { color: var(--muted); font-weight: 800; font-size: 0.85em; text-align: left; }
 .wb-found { flex: 1; min-height: 0; overflow: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; }
 .wb-w { padding: 1px 9px; border-radius: 999px; background: rgba(255,255,255,0.14); font-weight: 800; text-transform: uppercase; font-size: 0.85em; }
 .wb-w b { color: var(--sun); margin-left: 4px; font-size: 0.85em; }
@@ -322,10 +322,10 @@ export default {
       tiles.forEach((t, i) => {
         t.replaceChildren();
         const b = board[i];
-        if (b === 'qu') {
-          t.append(document.createTextNode('Q'));
-          t.append(el('small', '', 'u'));
-        } else t.textContent = b.toUpperCase();
+        const letter = el('span');
+        if (b === 'qu') letter.append(document.createTextNode('Q'), el('small', '', 'u'));
+        else letter.textContent = b.toUpperCase();
+        t.append(letter);
       });
       foundEl.replaceChildren();
       api.setState({ round: s.round, score: 0, count: 0, words: '', fin: false });
@@ -442,7 +442,7 @@ export default {
     function extend(i) {
       if (i < 0) return;
       const at = path.indexOf(i);
-      if (path.length && at === path.length - 2) {
+      if (at >= 0 && at === path.length - 2) {
         path.pop();           // sliding back undoes the last tile
         moved = true;
         api.sfx('click');
@@ -714,7 +714,7 @@ export default {
       leftCol.hidden = over;
       right.hidden = over;
       if (!started) curText = 'Get ready…';
-      else if (curText === 'Get ready…') curText = '';
+      else if (curText === 'Get ready…') { curText = ''; if (!path.length && !typed && !flash) cur.textContent = ''; }
       if (!started && !path.length) cur.textContent = curText;
 
       if (over) {
