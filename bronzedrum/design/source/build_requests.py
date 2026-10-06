@@ -114,8 +114,10 @@ SECTIONS = {
     ),
     "rig": (
         "Puppet part sheets",
-        "For the production build: the same figures split into separate pieces so they can be "
-        "rigged and animated like shadow puppets. The prototype does not load these.",
+        "The same figures split into separate pieces so they can be rigged and animated like "
+        "shadow puppets. `design/source/build_rigs.py` cuts the sisters' sheets (BD-R01, BD-R02) "
+        "into the jointed puppets that beat the drum in the game; the elephant and the spearwoman "
+        "are not rigged yet.",
     ),
     "ui": (
         "Interface",
@@ -552,7 +554,7 @@ req(U_, "BD-U20", "hud-stick-trac", "Close-up stick: Trắc's beater (the centre
     "drum, 180 px over the big touch drum.",
     STICK_SPEC.format(corner="bottom-left", wrist="22% across and 78% down",
                       head="80% across and 20% down"),
-    "planned", "Renderer.closeSticks (a drawn stick)", "art/hud-stick-trac.png",
+    "stand-in", "Renderer.standinStick", "art/hud-stick-trac.png",
     f"{STYLE} A close-up of one woman's forearm and hand gripping a heavy wooden drum beater, "
     "seen from just behind her shoulder, matching Trưng Trắc's puppet (BD-R01): cream skin, a "
     "wide cuff of bronze and gold bands cut with dots and diamonds at the wrist, the edge of a "
@@ -565,7 +567,7 @@ req(U_, "BD-U21", "hud-stick-nhi", "Close-up stick: Nhị's stick (the rim)",
     "rim on every high stroke (cắc), then lift away. Drawn at the same size as BD-U20.",
     STICK_SPEC.format(corner="bottom-right", wrist="78% across and 78% down",
                       head="20% across and 20% down"),
-    "planned", "Renderer.closeSticks (a drawn stick)", "art/hud-stick-nhi.png",
+    "stand-in", "Renderer.standinStick", "art/hud-stick-nhi.png",
     f"{STYLE} A close-up of one woman's forearm and hand gripping a slender wooden drumstick, "
     "seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a "
     "brown and gold cuff cut with a row of cream diamonds at the wrist, a lacquer-red sleeve "

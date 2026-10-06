@@ -15,7 +15,7 @@ export const COMPACT = 0.7;
 export const ZOOM_BATTLE = 1.45;
 export const ZOOM_STORY = 1.2;
 export const ZOOM_EYE = 400; // the screen height the zoom's focus is drawn at
-export const ARMY_SCREEN_X = 530; // the front rank's place on screen, leaving room behind for the drums
+export const ARMY_SCREEN_X = 620; // the front rank's place on screen, leaving room behind for the whole drum palanquin
 export const STRIP_W = 2560;
 // How strongly delivered layers are washed toward each chapter's light.
 export const LAYER_TINT = { dawn: 0.35, day: 0.25, night: 0.55, dusk: 0.45, foundry: 0.6, ash: 0.5 };

@@ -54,6 +54,13 @@ TARGETS = {
     "straw-target": ("scale=-1:288", 85),
     "hud-drum": ("scale=480:480", 88),
     "touch-buttons": ("scale=480:160", 88),
+    # The close-up sticks: about 260 px across at most (the touch drum, lifting).
+    "hud-stick-trac": ("scale=512:512", 88),
+    "hud-stick-nhi": ("scale=512:512", 88),
+    "hud-stick-trac-pestle": ("scale=512:512", 88),
+    "hud-stick-trac-lacquer": ("scale=512:512", 88),
+    "hud-stick-nhi-bamboo": ("scale=512:512", 88),
+    "hud-stick-nhi-horn": ("scale=512:512", 88),
     # Effects: scraps drawn about 30 px, arrows about 50 px, the wake burst up to 420 px.
     "fx-scraps": ("scale=1024:-1", 85),
     "fx-projectiles": ("scale=512:-1", 85),

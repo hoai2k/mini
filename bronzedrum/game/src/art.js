@@ -9,7 +9,7 @@
 import { loadRig } from './rig.js';
 
 // Jointed puppets cut from the part sheets (design/source/build_rigs.py).
-const RIGS = ['sister-trac'];
+const RIGS = ['sister-trac', 'sister-nhi'];
 
 // Cut-out figures and props stand on the ground line; some images leave an
 // empty strip below the feet, which would leave them floating.

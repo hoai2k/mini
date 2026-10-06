@@ -2,6 +2,21 @@ import { PALETTE as P } from '../palette.js';
 import { drawRig } from '../rig.js';
 import { GROUND, rng, canvas, leaf, star } from './common.js';
 
+// The sisters' strikes (pose angles at the moment of contact). Away from the
+// palanquin they strike a drum in front of them; on it (BD-C14 drawn 190 px
+// tall, the sisters 96 px) they stand either side of the drum, and the angles
+// are solved by forward kinematics so the beater lands on the sun-star (the
+// top's centre, 20% of the palanquin's height above the deck) and Nhị's stick
+// on the near rim (9.6% of its width right of centre).
+const TRAC_STRIKE = { capR: 0, armR: -2.3, stick: 4.38 };
+const NHI_STRIKE = { armR: -0.7, foreR: -2.0 };
+const PALANQUIN = {
+  trac: -52,
+  nhi: 64,
+  tracStrike: { capR: 0.002, armR: -1.706, stick: 3.99 },
+  nhiStrike: { armR: -0.793, foreR: -2.372 },
+};
+
 export const figures = {
   /** A Lạc Việt warrior woman, facing right. */
   warrior(x, y, s, pose, t, archer) {
@@ -383,9 +398,8 @@ export const figures = {
         const sh = this.shiver(Math.max(this.flash.L, this.flash.R), t, 1.6);
         const bob = (view.crewBob || 0) - sh.dy;
         this.sprite(deck, x + sh.dx, y, H_, { bob });
-        const w = (deck.width / deck.height) * H_;
         const deckY = y + (deck.footMargin || 0) * H_ - 0.42 * H_ - bob;
-        this.sisters(x + sh.dx, deckY, armL, armR, view, 0.28 * w);
+        this.sisters(x + sh.dx, deckY, armL, armR, view, 30, PALANQUIN);
         return;
       }
       const img = this.art.get('drum-bearers');
@@ -520,7 +534,7 @@ export const figures = {
    * of a second, with the body leaning into it. The cape and sash ribbons
    * hang on springs, so they trail the body and settle.
    */
-  tracPose(view) {
+  tracPose(view, strike = TRAC_STRIKE) {
     const t = view.songTime;
     const st = this.tracState || (this.tracState = { t, lean: 0, cape: { x: 0, v: 0 }, sashA: { x: 0, v: 0 }, sashB: { x: 0, v: 0 } });
     const dt = Math.min(0.05, Math.max(0, t - st.t));
@@ -546,16 +560,41 @@ export const figures = {
     return {
       torso,
       head: lerp(0, 0.07) - breathe * 0.5,
-      capR: lerp(-0.2, 0),
-      armR: lerp(-2.6, -2.3),
-      // Clockwise over the top: 2.3 (raised behind) to 4.38, the beater on
-      // the drum's face in front of her (solved for the palanquin drum).
-      stick: lerp(2.3, 4.38),
+      capR: lerp(-0.2, strike.capR),
+      armR: lerp(-2.6, strike.armR),
+      // Clockwise over the top: 2.3 (raised behind) to the strike, the beater
+      // on the drum's face in front of her.
+      stick: lerp(2.3, strike.stick),
       capL: lerp(-0.35, -0.2),
       foreL: lerp(-0.7, -0.4),
       cape: st.cape.x,
       sashA: 0.25 + st.sashA.x,
       sashB: 0.2 + st.sashB.x,
+    };
+  },
+
+  /**
+   * Trưng Nhị's pose at this moment. Both sticks are held up between
+   * strokes (her part sheet's own pose); on each cắc her near arm whips
+   * down onto the rim and lifts back, on the same timing as Trắc, while the
+   * far stick flicks up as a counterweight.
+   */
+  nhiPose(view, strike = NHI_STRIKE) {
+    const t = view.songTime;
+    const since = t - this.flash.R;
+    let s = 0;
+    if (since >= 0 && since < 0.07) s = (since / 0.07) ** 2;
+    else if (since >= 0.07 && since < 0.42) s = 1 - (1 - (1 - (since - 0.07) / 0.35) ** 2);
+    s = Math.max(0, Math.min(1, s));
+    const calm = this.reduceMotion ? 0.3 : 1;
+    const sway = Math.sin(t * 1.9 + 1) * 0.02 * calm;
+    return {
+      torso: sway + 0.03 * s,
+      head: -sway * 0.6 + 0.05 * s,
+      armR: strike.armR * s,
+      foreR: strike.foreR * s,
+      armL: 0.2 * s,
+      foreL: -0.35 * s,
     };
   },
 
@@ -582,16 +621,34 @@ export const figures = {
     for (let k = 0; k < 3; k++) g.fillRect(x - r * 0.8, y - r * 0.55 + k * 9, r * 1.6, 1.5);
   },
 
-  sisters(x, y, armL, armR, view, spread = 30) {
+  /**
+   * The two sisters at (x, y), their feet: Trắc left, Nhị right, `spread`
+   * either side. On the palanquin (layout PALANQUIN) they stand by the drum
+   * and strike it: Trắc the sun-star, Nhị, turned to face it, the near rim.
+   */
+  sisters(x, y, armL, armR, view, spread = 30, layout = null) {
     const g = this.ctx;
     const imgT = this.art.get('sister-trac');
     const imgN = this.art.get('sister-nhi');
     if (imgT && imgN) {
-      // Trắc as a jointed puppet when her rig is built (BD-R01), else her sprite.
+      const tx = layout ? x + layout.trac : x - spread;
+      const nx = layout ? x + layout.nhi : x + spread;
+      // Each as a jointed puppet when her rig is built (BD-R01, BD-R02), else her sprite.
       const rigT = this.art.rig('sister-trac');
-      if (rigT) drawRig(g, rigT, x - spread, y, 96, this.tracPose(view));
-      else this.sprite(imgT, x - spread, y, 96, { bob: armL * 3 });
-      this.sprite(imgN, x + spread, y, 96, { bob: armR * 3 });
+      if (rigT) drawRig(g, rigT, tx, y, 96, this.tracPose(view, layout ? layout.tracStrike : TRAC_STRIKE));
+      else this.sprite(imgT, tx, y, 96, { bob: armL * 3 });
+      const rigN = this.art.rig('sister-nhi');
+      if (rigN) {
+        g.save();
+        if (layout) {
+          // Mirrored about her feet, so she faces the drum.
+          g.translate(nx, 0);
+          g.scale(-1, 1);
+          g.translate(-nx, 0);
+        }
+        drawRig(g, rigN, nx, y, 96, this.nhiPose(view, layout ? layout.nhiStrike : NHI_STRIKE));
+        g.restore();
+      } else this.sprite(imgN, nx, y, 96, { bob: armR * 3 });
       return;
     }
     const one = (sx, arm, side, gold) => {

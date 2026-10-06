@@ -120,15 +120,24 @@ draws stand-ins until they arrive.
 generation and correction prompts, references, native image sizes, export sizes,
 and sprite-sheet cells. Exports match the requested dimensions; larger canvases
 are resampled from the generator's native output rather than generated at native
-4K. Puppet sheets are artwork for future rigging, not animated rigs.
+4K.
 
-Trưng Trắc is a jointed puppet cut from her part sheet (BD-R01).
+Both sisters are jointed puppets cut from their part sheets (BD-R01, BD-R02).
 [`design/source/build_rigs.py`](design/source/build_rigs.py) holds each piece's
 box, its pin hole and the parent pin it hangs on (measured from the painted pin
-holes), and cuts the pieces into `game/assets/rigs/`. `src/rig.js` poses them:
-between strokes she holds the stick raised; on each tùng her forearm whips over
-onto the drum and lifts back, her body leans in, and her cape and sash ribbons
-trail on springs. The other three rig sheets are not cut yet.
+holes), and cuts the pieces into `game/assets/rigs/`. `src/rig.js` poses them.
+On the palanquin they stand either side of the drum: Trắc's beater comes down
+on the sun-star on each tùng, while her body leans in and her cape and sash
+ribbons trail on springs. Nhị turns to face the drum, and on each cắc her near
+stick whips down onto the rim while the far one flicks up. The strike angles in
+`render/figures.js` (`PALANQUIN`) are solved by forward kinematics so the heads
+land on the drum. The elephant and spearwoman sheets are not cut yet.
+
+Over the HUD drum, the sisters' sticks are seen close up: on a deep stroke
+Trắc's beater swings in from the bottom left onto the sun-star, on a rim stroke
+Nhị's stick comes in from the right onto the rim, and each lifts away
+(`closeSticks` in `render/hud.js`). They are drawn stand-ins until BD-U20 and
+BD-U21 arrive; BD-U22 to BD-U25 are other kinds of stick to the same layout.
 
 The manifest's `runtime` flag distinguishes the 56 images used by the prototype
 from the 6 delivered sheets it does not use directly: the four puppet-rig sheets
