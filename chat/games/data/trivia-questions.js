@@ -23,13 +23,13 @@ add('Animals', 2, 'What is a group of lions called?', 'A pride', 'A pack', 'A he
 add('Animals', 2, 'Which is the largest animal on Earth?', 'Blue whale', 'African elephant', 'Giraffe', 'Great white shark');
 add('Animals', 2, 'What do pandas mainly eat?', 'Bamboo', 'Fish', 'Berries', 'Grass');
 add('Animals', 2, 'How many hearts does an octopus have?', '3', '1', '2', '8');
-add('Animals', 2, 'Which animal can sleep standing up and has hooves?', 'Horse', 'Dog', 'Cat', 'Rabbit');
+add('Animals', 2, 'Which of these animals has hooves?', 'Horse', 'Dog', 'Cat', 'Rabbit');
 add('Animals', 2, 'What is a baby swan called?', 'Cygnet', 'Gosling', 'Duckling', 'Chick');
 add('Animals', 2, 'Which mammal can truly fly?', 'Bat', 'Flying squirrel', 'Sugar glider', 'Ostrich');
 add('Animals', 2, 'What colour is a polar bear\'s skin?', 'Black', 'White', 'Pink', 'Grey');
 add('Animals', 2, 'Which is the fastest land animal?', 'Cheetah', 'Lion', 'Horse', 'Greyhound');
 add('Animals', 2, 'A group of fish swimming together is called a what?', 'School', 'Flock', 'Herd', 'Litter');
-add('Animals', 3, 'What is the only mammal that lays eggs, besides the echidna?', 'Platypus', 'Armadillo', 'Beaver', 'Otter');
+add('Animals', 3, 'Which of these mammals lays eggs?', 'Platypus', 'Armadillo', 'Beaver', 'Otter');
 add('Animals', 3, 'Which animal has the longest lifespan among these?', 'Giant tortoise', 'Elephant', 'Parrot', 'Dolphin');
 add('Animals', 3, 'What do you call a male duck?', 'Drake', 'Gander', 'Cob', 'Tom');
 add('Animals', 3, 'How many stomachs does a cow have?', 'Four chambers', 'One', 'Two', 'Six');
@@ -37,7 +37,7 @@ add('Animals', 3, 'Which sea creature has three hearts and blue blood?', 'Octopu
 add('Animals', 3, 'What is a group of crows called?', 'A murder', 'A parliament', 'A gaggle', 'A colony');
 add('Animals', 1, 'What is a baby dog called?', 'Puppy', 'Kitten', 'Calf', 'Lamb');
 add('Animals', 1, 'Which animal has a long trunk?', 'Elephant', 'Rhino', 'Hippo', 'Camel');
-add('Animals', 2, 'Which animal is the national symbol of Australia on its coat of arms, along with the emu?', 'Kangaroo', 'Koala', 'Wombat', 'Dingo');
+add('Animals', 2, 'Which animal appears with the emu on Australia\'s coat of arms?', 'Kangaroo', 'Koala', 'Wombat', 'Dingo');
 add('Animals', 2, 'What do tadpoles grow into?', 'Frogs', 'Fish', 'Snakes', 'Lizards');
 
 // --- Space -----------------------------------------------------------------
@@ -63,10 +63,10 @@ add('Space', 3, 'What is the largest moon of Saturn?', 'Titan', 'Europa', 'Ganym
 add('Space', 3, 'What is the name of the dwarf planet that used to be the ninth planet?', 'Pluto', 'Ceres', 'Eris', 'Haumea');
 add('Space', 3, 'Which planet has the shortest day, spinning around in about 10 hours?', 'Jupiter', 'Earth', 'Mars', 'Mercury');
 add('Space', 1, 'What do we call the path a planet takes around the Sun?', 'Orbit', 'Circle', 'Loop', 'Track');
-add('Space', 2, 'Which is the farthest planet from the Sun?', 'Neptune', 'Uranus', 'Saturn', 'Pluto');
+add('Space', 2, 'Which is the farthest planet from the Sun?', 'Neptune', 'Uranus', 'Saturn', 'Jupiter');
 add('Space', 2, 'What is the name of the first artificial satellite launched in 1957?', 'Sputnik', 'Apollo', 'Voyager', 'Explorer');
 add('Space', 2, 'The Moon is about how many times smaller across than Earth?', 'About 4 times', 'About 40 times', 'About 2 times', 'About 400 times');
-add('Space', 1, 'What shape is the path of the Moon\'s phases, going from thin curve to round?', 'Crescent to full', 'Square to circle', 'Star to ball', 'Cube to sphere');
+add('Space', 1, 'What do we call the Moon when we see all of its lit side?', 'Full moon', 'New moon', 'Crescent moon', 'Quarter moon');
 
 // --- Food ------------------------------------------------------------------
 add('Food', 1, 'Which fruit is yellow and curved?', 'Banana', 'Apple', 'Grape', 'Pear');
@@ -78,14 +78,14 @@ add('Food', 1, 'What colour is a ripe tomato?', 'Red', 'Blue', 'Purple', 'White'
 add('Food', 1, 'Which drink comes from cows?', 'Milk', 'Juice', 'Tea', 'Cocoa');
 add('Food', 1, 'What do you get when you freeze water?', 'Ice', 'Steam', 'Snow globe', 'Dew');
 add('Food', 2, 'Which nut is used to make peanut butter?', 'Peanut', 'Almond', 'Walnut', 'Cashew');
-add('Food', 2, 'What is sushi traditionally wrapped around or served with?', 'Rice', 'Pasta', 'Potatoes', 'Noodles');
-add('Food', 2, 'Which country is the origin of the croissant\'s fame and baguettes?', 'France', 'Germany', 'Brazil', 'Japan');
+add('Food', 2, 'Which grain is sushi made with?', 'Rice', 'Pasta', 'Potatoes', 'Noodles');
+add('Food', 2, 'Which country is famous for the baguette?', 'France', 'Germany', 'Brazil', 'Japan');
 add('Food', 2, 'What is guacamole made from?', 'Avocado', 'Tomato', 'Spinach', 'Pumpkin');
 add('Food', 2, 'Which spice makes curry yellow?', 'Turmeric', 'Paprika', 'Cinnamon', 'Pepper');
 add('Food', 2, 'What fruit is dried to make raisins?', 'Grapes', 'Plums', 'Cherries', 'Apples');
 add('Food', 2, 'Which fruit has its seeds on the outside?', 'Strawberry', 'Banana', 'Orange', 'Cherry');
 add('Food', 2, 'Tofu is made from which bean?', 'Soybean', 'Black bean', 'Kidney bean', 'Green bean');
-add('Food', 2, 'What are the main ingredients of a classic guacamole chip dish\'s chips made from?', 'Corn', 'Rice', 'Oats', 'Barley');
+add('Food', 2, 'Tortilla chips are traditionally made from what?', 'Corn', 'Rice', 'Oats', 'Barley');
 add('Food', 3, 'Which country did the dish paella come from?', 'Spain', 'Italy', 'Mexico', 'Portugal');
 add('Food', 3, 'What is the most expensive spice by weight, from crocus flowers?', 'Saffron', 'Vanilla', 'Cardamom', 'Cloves');
 add('Food', 3, 'Which grain is used to make traditional Japanese sake?', 'Rice', 'Wheat', 'Corn', 'Barley');
@@ -110,7 +110,7 @@ add('Geography', 2, 'Which is the tallest mountain above sea level?', 'Mount Eve
 add('Geography', 2, 'What is the capital of Australia?', 'Canberra', 'Sydney', 'Melbourne', 'Perth');
 add('Geography', 2, 'Which desert is the largest hot desert in the world?', 'Sahara', 'Gobi', 'Kalahari', 'Mojave');
 add('Geography', 2, 'What is the capital of Canada?', 'Ottawa', 'Toronto', 'Vancouver', 'Montreal');
-add('Geography', 2, 'Which country has the most people living in it?', 'India', 'Brazil', 'Russia', 'Japan');
+add('Geography', 2, 'Which is the largest continent by area?', 'Asia', 'Africa', 'North America', 'Europe');
 add('Geography', 2, 'Which continent is the coldest?', 'Antarctica', 'Europe', 'North America', 'Asia');
 add('Geography', 2, 'What is the capital of Brazil?', 'Brasilia', 'Rio de Janeiro', 'Sao Paulo', 'Buenos Aires');
 add('Geography', 2, 'Which sea lies between Europe and Africa?', 'The Mediterranean', 'The Baltic', 'The Red Sea', 'The Caspian');
@@ -118,11 +118,11 @@ add('Geography', 3, 'Which is the smallest country in the world by area?', 'Vati
 add('Geography', 3, 'What is the longest mountain range on land?', 'The Andes', 'The Alps', 'The Rockies', 'The Himalayas');
 add('Geography', 3, 'Which river runs through Paris?', 'The Seine', 'The Thames', 'The Rhine', 'The Danube');
 add('Geography', 3, 'What is the capital of Egypt?', 'Cairo', 'Alexandria', 'Luxor', 'Giza');
-add('Geography', 3, 'Which country has the most islands in the world?', 'Sweden', 'Indonesia', 'Philippines', 'Canada');
+add('Geography', 3, 'Which is the largest country in the world by area?', 'Russia', 'Canada', 'China', 'United States');
 add('Geography', 3, 'Which is the deepest lake in the world?', 'Lake Baikal', 'Lake Superior', 'Lake Victoria', 'Lake Titicaca');
 add('Geography', 3, 'What is the capital of Turkey?', 'Ankara', 'Istanbul', 'Izmir', 'Antalya');
 add('Geography', 1, 'Which ocean is between Africa and Australia?', 'Indian Ocean', 'Atlantic Ocean', 'Arctic Ocean', 'Pacific Ocean');
-add('Geography', 2, 'Which country is both a country and a continent?', 'Australia', 'Greenland', 'Iceland', 'Antarctica');
+add('Geography', 2, 'Which ocean is the smallest?', 'Arctic Ocean', 'Indian Ocean', 'Atlantic Ocean', 'Pacific Ocean');
 add('Geography', 2, 'In which country would you find the Great Wall?', 'China', 'Japan', 'India', 'Mongolia');
 add('Geography', 2, 'What is the capital of Spain?', 'Madrid', 'Barcelona', 'Lisbon', 'Seville');
 add('Geography', 1, 'Which country is famous for the Eiffel Tower?', 'France', 'Italy', 'England', 'Germany');
@@ -155,7 +155,7 @@ add('Movies & TV', 1, 'In Aladdin, what does Aladdin find that holds a genie?', 
 add('Movies & TV', 2, 'Which superhero is also known as the Caped Crusader?', 'Batman', 'Superman', 'Spider-Man', 'Iron Man');
 add('Movies & TV', 2, 'Which Muppet is a green frog?', 'Kermit', 'Fozzie', 'Gonzo', 'Animal');
 add('Movies & TV', 2, 'What is the name of the fairy in Peter Pan?', 'Tinker Bell', 'Cinderella', 'Fauna', 'Flora');
-add('Movies & TV', 3, 'What is the name of the main character\'s lion cub friend in Born Free, the movie about Elsa?', 'Elsa', 'Nala', 'Aslan', 'Leo');
+add('Movies & TV', 3, 'In The Jungle Book, what kind of animal is Baloo?', 'A bear', 'A tiger', 'A panther', 'A wolf');
 add('Movies & TV', 2, 'What colour is the Cookie Monster from Sesame Street?', 'Blue', 'Red', 'Green', 'Yellow');
 add('Movies & TV', 2, 'Which Sesame Street character lives in a trash can?', 'Oscar the Grouch', 'Big Bird', 'Elmo', 'Bert');
 add('Movies & TV', 2, 'Which animated movie is about a rat who loves to cook in Paris?', 'Ratatouille', 'Flushed Away', 'Chef Mouse', 'Bolt');
@@ -163,12 +163,12 @@ add('Movies & TV', 2, 'Which animated movie is about a rat who loves to cook in 
 // --- Music -----------------------------------------------------------------
 add('Music', 1, 'How many strings does a standard guitar have?', '6', '4', '5', '8');
 add('Music', 1, 'Which instrument has black and white keys?', 'Piano', 'Drum', 'Flute', 'Violin');
-add('Music', 1, 'What do you call a person who sings in a group, leading the song?', 'Vocalist', 'Drummer', 'Conductor', 'Composer');
+add('Music', 1, 'What do you call the person who sings in a band?', 'Vocalist', 'Drummer', 'Conductor', 'Composer');
 add('Music', 1, 'Which instrument do you hit with sticks?', 'Drum', 'Harp', 'Trumpet', 'Clarinet');
-add('Music', 1, 'In the song, how many little ducks went out one day?', 'Five', 'Three', 'Seven', 'Ten');
-add('Music', 2, 'How many notes are in a musical octave scale (do-re-mi to the next do)?', '8', '5', '7', '12');
-add('Music', 2, 'Which instrument has pedals and strings and is played with the hands, found in orchestras, and looks like a triangle?', 'Harp', 'Cello', 'Banjo', 'Tuba');
-add('Music', 2, 'What is the name of a person who leads an orchestra?', 'Conductor', 'Director', 'Captain', 'Maestro Chief');
+add('Music', 1, 'In the nursery song, how many little ducks "went out one day"?', 'Five', 'Three', 'Seven', 'Ten');
+add('Music', 2, 'How many different letter names (A to G) are used for musical notes?', '7', '5', '8', '12');
+add('Music', 2, 'Which instrument, shaped like a big triangle, has many plucked strings and pedals?', 'Harp', 'Cello', 'Banjo', 'Tuba');
+add('Music', 2, 'What is the name of a person who leads an orchestra?', 'Conductor', 'Director', 'Captain', 'Producer');
 add('Music', 2, 'Which brass instrument slides in and out to change notes?', 'Trombone', 'Trumpet', 'Tuba', 'French horn');
 add('Music', 2, 'What is the biggest string instrument in a standard orchestra?', 'Double bass', 'Cello', 'Viola', 'Violin');
 add('Music', 2, 'The Beatles came from which English city?', 'Liverpool', 'London', 'Manchester', 'Leeds');
@@ -184,10 +184,10 @@ add('Music', 3, 'How many keys does a standard full-size piano have?', '88', '66
 add('Music', 3, 'Which Austrian composer wrote "Eine kleine Nachtmusik"?', 'Mozart', 'Schubert', 'Strauss', 'Haydn');
 add('Music', 1, 'What do you do with a violin bow?', 'Draw it across the strings', 'Blow into it', 'Hit the keys', 'Pluck the frets');
 add('Music', 1, 'Which instrument do you blow into and has a mouthpiece, played by pressing three valves?', 'Trumpet', 'Guitar', 'Drum', 'Harp');
-add('Music', 2, 'Which Disney song says "Hakuna Matata"?', 'The Lion King', 'Jungle Book', 'Tarzan', 'Aladdin');
-add('Music', 2, 'Which instrument has a slide and is a type of brass, but is very big and low pitched and shaped like a bell pointing up?', 'Tuba', 'Piccolo', 'Oboe', 'Violin');
+add('Music', 2, 'Which Disney movie has the song "Hakuna Matata"?', 'The Lion King', 'The Jungle Book', 'Tarzan', 'Aladdin');
+add('Music', 2, 'Which is the biggest and lowest-sounding brass instrument?', 'Tuba', 'Trumpet', 'French horn', 'Trombone');
 add('Music', 2, 'What is a group of four singers or players called?', 'A quartet', 'A trio', 'A quintet', 'A duo');
-add('Music', 3, 'Which scale pattern is "do re mi fa so la ti"?', 'Solfege', 'Morse', 'Rhythm', 'Chorus');
+add('Music', 3, 'What is the system of "do, re, mi, fa, so, la, ti" called?', 'Solfege', 'Morse code', 'Rhythm', 'Chorus');
 add('Music', 2, 'What is the lowest male singing voice type called?', 'Bass', 'Tenor', 'Alto', 'Soprano');
 
 // --- Sports ----------------------------------------------------------------
@@ -204,8 +204,8 @@ add('Sports', 2, 'How long is a marathon?', 'About 42 kilometres', 'About 10 kil
 add('Sports', 2, 'In which sport do you use a bat, a wicket and a bowler?', 'Cricket', 'Baseball', 'Softball', 'Rounders');
 add('Sports', 2, 'How many bases are on a baseball field (including home plate)?', '4', '3', '5', '6');
 add('Sports', 2, 'Which sport has a "love" score of zero?', 'Tennis', 'Golf', 'Football', 'Rowing');
-add('Sports', 2, 'In which sport would you perform a "pirouette" or "plie"?', 'Ballet', 'Skiing', 'Fencing', 'Boxing');
-add('Sports', 2, 'What colour belt is the highest basic rank in judo, other than the special red and white, 10th dan?', 'Black', 'Green', 'Blue', 'Orange');
+add('Sports', 2, 'Which sport has the positions goalkeeper, defender, midfielder and striker?', 'Soccer', 'Basketball', 'Volleyball', 'Tennis');
+add('Sports', 2, 'In martial arts like judo and karate, which belt colour shows an expert?', 'Black', 'White', 'Yellow', 'Green');
 add('Sports', 3, 'Which country hosted the first modern Olympic Games in 1896?', 'Greece', 'France', 'England', 'USA');
 add('Sports', 3, 'How many holes are on a standard golf course?', '18', '9', '12', '24');
 add('Sports', 3, 'What is the maximum score for a single dart throw (one dart)?', '60', '50', '100', '180');
@@ -222,7 +222,7 @@ add('Sports', 2, 'How many minutes is a standard professional soccer match, not 
 add('Sports', 2, 'In which sport do teams compete for the Stanley Cup?', 'Ice hockey', 'Basketball', 'Baseball', 'Lacrosse');
 
 // --- Science ---------------------------------------------------------------
-add('Science', 1, 'What do plants need from sunlight to make food?', 'Light', 'Rain', 'Wind', 'Soil only');
+add('Science', 1, 'What is the process plants use to make food from sunlight called?', 'Photosynthesis', 'Respiration', 'Digestion', 'Evaporation');
 add('Science', 1, 'What is water made of?', 'Hydrogen and oxygen', 'Hydrogen and carbon', 'Oxygen and nitrogen', 'Carbon and salt');
 add('Science', 1, 'Which part of your body pumps blood around it?', 'Heart', 'Lungs', 'Brain', 'Stomach');
 add('Science', 1, 'How many bones does a grown-up human have (about)?', '206', '106', '306', '56');
@@ -236,7 +236,6 @@ add('Science', 2, 'Which organ do you use to think?', 'Brain', 'Liver', 'Kidney'
 add('Science', 2, 'What is the closest star to Earth?', 'The Sun', 'Alpha Centauri', 'Polaris', 'Sirius');
 add('Science', 2, 'What force pulls things towards the ground?', 'Gravity', 'Magnetism', 'Static', 'Inertia');
 add('Science', 2, 'What are the three common states of matter?', 'Solid, liquid, gas', 'Hot, warm, cold', 'Big, medium, small', 'Fire, water, air');
-add('Science', 2, 'Which planet do we live on, in terms of type: rocky or gas?', 'Rocky', 'Gas', 'Ice only', 'Liquid');
 add('Science', 3, 'What is the chemical symbol for table salt?', 'NaCl', 'KCl', 'H2O', 'CO2');
 add('Science', 3, 'What is the powerhouse of the cell?', 'Mitochondria', 'Nucleus', 'Ribosome', 'Membrane');
 add('Science', 3, 'What is the speed of light, roughly?', '300,000 km per second', '3,000 km per second', '30,000 km per second', '3 million km per second');
@@ -247,29 +246,29 @@ add('Science', 3, 'Which scientist developed the theory of gravity after, as the
 add('Science', 3, 'What is the unit used to measure electric current?', 'Ampere', 'Volt', 'Watt', 'Ohm');
 add('Science', 1, 'What is frozen water called?', 'Ice', 'Steam', 'Fog', 'Mist');
 add('Science', 1, 'Which colour do you get by mixing blue and yellow paint?', 'Green', 'Orange', 'Purple', 'Brown');
-add('Science', 2, 'Which colours make up a rainbow? How many are there usually counted?', '7', '5', '6', '9');
-add('Science', 2, 'What is the name of the sticky blood part that helps cuts heal?', 'Platelets', 'Plasma', 'Marrow', 'Hormones');
+add('Science', 2, 'How many colours are traditionally counted in a rainbow?', '7', '5', '6', '9');
+add('Science', 2, 'Which tiny blood parts help your blood clot to close a cut?', 'Platelets', 'Red blood cells', 'Plasma', 'Bones');
 add('Science', 2, 'What does a thermometer measure?', 'Temperature', 'Weight', 'Speed', 'Distance');
 add('Science', 3, 'What do we call animals that eat only plants?', 'Herbivores', 'Carnivores', 'Omnivores', 'Insectivores');
 
 // --- History ---------------------------------------------------------------
 add('History', 1, 'Which ancient people built the pyramids of Giza?', 'Ancient Egyptians', 'Romans', 'Greeks', 'Vikings');
 add('History', 1, 'Who sailed across the Atlantic in 1492 with three ships?', 'Christopher Columbus', 'Marco Polo', 'Captain Cook', 'Magellan');
-add('History', 1, 'Which huge sea creatures-like boat sank in 1912 after hitting an iceberg?', 'The Titanic', 'The Mayflower', 'The Bismarck', 'The Santa Maria');
+add('History', 1, 'Which famous ship sank in 1912 after hitting an iceberg?', 'The Titanic', 'The Mayflower', 'The Bismarck', 'The Santa Maria');
 add('History', 1, 'What were castles mostly built to do?', 'Defend and protect', 'Grow food', 'Teach children', 'Store trains');
 add('History', 2, 'Which ancient civilization built the Colosseum?', 'The Romans', 'The Greeks', 'The Egyptians', 'The Persians');
 add('History', 2, 'Who was the first President of the United States?', 'George Washington', 'Abraham Lincoln', 'Thomas Jefferson', 'John Adams');
 add('History', 2, 'In which century did the Wright brothers make the first powered airplane flight?', '20th century', '19th century', '18th century', '21st century');
 add('History', 2, 'What was the name of the ship the Pilgrims sailed on in 1620?', 'The Mayflower', 'The Santa Maria', 'The Endeavour', 'The Beagle');
 add('History', 2, 'Which wall, built in Germany in 1961, divided a city until 1989?', 'The Berlin Wall', 'Hadrian\'s Wall', 'The Great Wall', 'The Western Wall');
-add('History', 2, 'Which empire was led by Julius Caesar?', 'The Roman Empire', 'The Greek Empire', 'The Ottoman Empire', 'The British Empire');
+add('History', 2, 'Julius Caesar was a famous leader of which ancient people?', 'The Romans', 'The Greeks', 'The Egyptians', 'The Persians');
 add('History', 2, 'Which queen ruled Britain for 63 years in the 1800s and gave her name to an era?', 'Queen Victoria', 'Queen Elizabeth I', 'Queen Anne', 'Queen Mary');
-add('History', 2, 'Who invented the telephone?', 'Alexander Graham Bell', 'Thomas Edison', 'Nikola Tesla', 'Samuel Morse');
+add('History', 2, 'Who is credited with patenting the first practical telephone?', 'Alexander Graham Bell', 'Thomas Edison', 'Nikola Tesla', 'Samuel Morse');
 add('History', 2, 'What did knights wear to protect their bodies?', 'Armour', 'Silk', 'Wool cloaks only', 'Leather aprons');
 add('History', 3, 'Which ancient wonder was a huge lighthouse in Egypt?', 'The Lighthouse of Alexandria', 'The Colossus', 'The Hanging Gardens', 'The Mausoleum');
 add('History', 3, 'Who was the first woman to fly solo across the Atlantic Ocean?', 'Amelia Earhart', 'Bessie Coleman', 'Harriet Quimby', 'Jean Batten');
 add('History', 3, 'In which year did the Second World War end?', '1945', '1939', '1950', '1918');
-add('History', 3, 'Which explorer was the first to sail around the world, his expedition completing the trip in 1522?', 'Ferdinand Magellan\'s expedition', 'Vasco da Gama', 'James Cook', 'Marco Polo');
+add('History', 3, 'Whose expedition was the first to sail all the way around the world, finishing in 1522?', 'Magellan\'s', 'Vasco da Gama\'s', 'James Cook\'s', 'Marco Polo\'s');
 add('History', 3, 'The ancient Olympic Games were held in honour of which god?', 'Zeus', 'Apollo', 'Poseidon', 'Ares');
 add('History', 3, 'Who painted the Mona Lisa?', 'Leonardo da Vinci', 'Michelangelo', 'Raphael', 'Vincent van Gogh');
 add('History', 3, 'The Great Fire of London took place in which year?', '1666', '1066', '1776', '1812');
@@ -295,15 +294,15 @@ add('Tech', 2, 'What does "HTML" make?', 'Web pages', 'Spreadsheets', 'Music fil
 add('Tech', 2, 'Which company created the Windows operating system?', 'Microsoft', 'Apple', 'Google', 'IBM');
 add('Tech', 2, 'What is the small blinking bar where you type called?', 'Cursor', 'Pointer', 'Folder', 'Dock');
 add('Tech', 2, 'What is the name for the programs that run on a phone?', 'Apps', 'Chips', 'Ports', 'Bytes');
-add('Tech', 3, 'Which scientist is known as a founder of modern computing and designed the early Analytical Engine?', 'Charles Babbage', 'Alan Turing', 'Bill Gates', 'Steve Jobs');
+add('Tech', 3, 'Who designed the Analytical Engine, an early idea for a computer, in the 1800s?', 'Charles Babbage', 'Alan Turing', 'Bill Gates', 'Steve Jobs');
 add('Tech', 3, 'What does "CPU" stand for?', 'Central Processing Unit', 'Computer Power Unit', 'Central Program Utility', 'Core Peripheral Unit');
 add('Tech', 3, 'What is the base number system that computers use?', 'Binary', 'Decimal', 'Roman', 'Hexagonal only');
 add('Tech', 3, 'What does "RAM" stand for?', 'Random Access Memory', 'Read And Move', 'Rapid Action Module', 'Run All Memory');
 add('Tech', 3, 'What year was the first iPhone released?', '2007', '1999', '2003', '2012');
-add('Tech', 3, 'Which programming language is named after a snake?', 'Python', 'Java', 'Ruby', 'Swift');
+add('Tech', 3, 'Which programming language shares its name with a large snake?', 'Python', 'Java', 'Ruby', 'Swift');
 add('Tech', 3, 'The World Wide Web was invented by whom?', 'Tim Berners-Lee', 'Bill Gates', 'Steve Wozniak', 'Larry Page');
 add('Tech', 3, 'What does "URL" stand for?', 'Uniform Resource Locator', 'Universal Reading Line', 'User Request Link', 'Unit Reference Label');
-add('Tech', 1, 'What do you call a robot-like machine that can do jobs, often with arms?', 'A robot', 'A kettle', 'A phone', 'A lamp');
+add('Tech', 1, 'What do you call a machine that can be programmed to do jobs, like a factory arm?', 'A robot', 'A kettle', 'A phone', 'A lamp');
 add('Tech', 1, 'What do you wear over your ears to listen to music privately?', 'Headphones', 'Goggles', 'Gloves', 'Helmet');
 add('Tech', 2, 'What do you call a computer program that helps you look at websites?', 'A browser', 'A router', 'A printer', 'A cable');
 add('Tech', 2, 'Which symbol is used in every email address?', '@', '#', '%', '&');
@@ -315,11 +314,11 @@ add('Tech', 2, 'What shape is a QR code?', 'A square pattern', 'A circle', 'A tr
 add('Nature', 1, 'What do trees give us that we need to breathe?', 'Oxygen', 'Smoke', 'Helium', 'Snow');
 add('Nature', 1, 'What falls from clouds when it rains?', 'Water', 'Sand', 'Feathers', 'Sugar');
 add('Nature', 1, 'What colour are most leaves in summer?', 'Green', 'Red', 'Blue', 'Black');
-add('Nature', 1, 'Which season comes after winter?', 'Spring', 'Summer', 'Autumn', 'Winter again');
+add('Nature', 1, 'Which season comes after winter?', 'Spring', 'Summer', 'Autumn', 'Monsoon');
 add('Nature', 1, 'What do seeds grow into?', 'Plants', 'Rocks', 'Clouds', 'Mud');
 add('Nature', 1, 'Which natural thing lights up the sky with a flash during a storm?', 'Lightning', 'Rainbow', 'Fog', 'Dew');
 add('Nature', 2, 'What is the biggest rainforest on Earth?', 'The Amazon', 'The Congo', 'Daintree', 'Sumatra');
-add('Nature', 2, 'What are baby trees called when they first grow?', 'Saplings', 'Cubs', 'Shoots only', 'Buds');
+add('Nature', 2, 'What is a young tree called?', 'A sapling', 'A cub', 'A calf', 'A pup');
 add('Nature', 2, 'Which gas makes up most of Earth\'s air?', 'Nitrogen', 'Oxygen', 'Carbon dioxide', 'Hydrogen');
 add('Nature', 2, 'Which natural feature is a mountain with lava coming out?', 'A volcano', 'A canyon', 'A glacier', 'A delta');
 add('Nature', 2, 'What do we call a large mass of moving ice?', 'A glacier', 'A geyser', 'A lagoon', 'A reef');
@@ -329,7 +328,7 @@ add('Nature', 2, 'What is the name of the huge coral system off Australia?', 'Th
 add('Nature', 3, 'What do you call the process where water turns to vapour and rises?', 'Evaporation', 'Condensation', 'Precipitation', 'Erosion');
 add('Nature', 3, 'Which tree produces acorns?', 'Oak', 'Pine', 'Maple', 'Birch');
 add('Nature', 3, 'Which is the tallest type of tree in the world?', 'Coast redwood', 'Oak', 'Baobab', 'Pine');
-add('Nature', 3, 'What is a group of trees growing together, bigger than a few, called?', 'A forest', 'A meadow', 'A prairie', 'A tundra');
+add('Nature', 3, 'What is a large area covered with many trees called?', 'A forest', 'A meadow', 'A prairie', 'A tundra');
 add('Nature', 3, 'What is the layer of Earth where we live called, the outer solid part?', 'The crust', 'The mantle', 'The core', 'The shell');
 add('Nature', 3, 'Which animals give us wool?', 'Sheep', 'Cows', 'Pigs', 'Horses');
 add('Nature', 3, 'What do we call the time of year when leaves fall from trees?', 'Autumn', 'Spring', 'Summer', 'Winter');
@@ -360,7 +359,6 @@ add('Words', 2, 'What is a word that means the opposite of another word called?'
 add('Words', 2, 'Which letter does the word "queen" start with?', 'Q', 'K', 'C', 'W');
 add('Words', 2, 'What is the plural of "goose"?', 'Geese', 'Gooses', 'Goose', 'Geeses');
 add('Words', 2, 'How many syllables are in the word "banana"?', '3', '2', '4', '5');
-add('Words', 3, 'What is the longest word you can type using only the top row of a standard keyboard (QWERTY...)?', 'Typewriter', 'Proprietor', 'Perpetuity', 'Repertoire');
 add('Words', 3, 'What do we call words like "buzz" and "bang" that sound like what they mean?', 'Onomatopoeia', 'Alliteration', 'Metaphor', 'Palindrome');
 add('Words', 3, 'Which of these words is a palindrome (reads the same backwards)?', 'Level', 'Table', 'Garden', 'Sunset');
 add('Words', 3, 'What do you call a phrase like "as busy as a bee"?', 'A simile', 'A rhyme', 'A riddle', 'A haiku');
@@ -377,7 +375,7 @@ add('Words', 2, 'Which word is a noun?', 'Pencil', 'Quickly', 'Jump', 'Beautiful
 
 // Cross-category extras: a few more easy and medium questions.
 add('Animals', 2, 'Which insect makes a glowing light at night?', 'Firefly', 'Ladybird', 'Moth', 'Dragonfly');
-add('Animals', 3, 'Which big cat is the only one that roars and has a mane in males, and lives in groups?', 'Lion', 'Leopard', 'Jaguar', 'Cheetah');
+add('Animals', 3, 'Which big cat has a thick mane (the males)?', 'Lion', 'Leopard', 'Jaguar', 'Cheetah');
 add('Space', 3, 'What is the name of the closest planet to Earth in size, often called Earth\'s twin?', 'Venus', 'Mars', 'Neptune', 'Mercury');
 add('Food', 3, 'Which of these is a citrus fruit?', 'Lime', 'Peach', 'Plum', 'Apple');
 add('Geography', 3, 'Which of these countries is in South America?', 'Peru', 'Spain', 'Kenya', 'Thailand');
