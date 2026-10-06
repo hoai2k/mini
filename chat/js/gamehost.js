@@ -11,7 +11,7 @@
 // games keep going. Game messages travel on the relay topic `g`.
 //
 // A game module (see games/README.md) is
-//   { id, name, emoji, blurb, minPlayers, maxPlayers, needsFace, create(api) }
+//   { id, name, emoji, blurb, minPlayers, maxPlayers, needsFace, fullBleed, create(api) }
 // and create(api) returns { destroy(), onMessage?(type, data, fromId),
 //                           onChange?(), onPad?(pad) }.
 
@@ -19,7 +19,7 @@ import { gameStore, randomId } from './store.js';
 import { sfx } from './audio.js';
 import { img } from './assets.js';
 
-export function createGameHost({ net, studio, mediaOf, toast, onOpen, onClose }) {
+export function createGameHost({ net, studio, mediaOf, toast, onOpen, onClose, insets = () => ({ top: 0, bottom: 0 }) }) {
   let current = null; // { game, sid, instance, api, el, lastShared }
   const games = new Map();
   let lastSig = '';
@@ -118,6 +118,9 @@ export function createGameHost({ net, studio, mediaOf, toast, onOpen, onClose })
       face: () => studio.face,
       selfCanvas: studio.canvas,
       mediaOf,
+      // For games with fullBleed: true, how many pixels at the top and bottom
+      // the app's floating bars cover. Keep scores and key objects clear of them.
+      insets,
       img,
       sfx,
       toast,

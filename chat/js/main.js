@@ -13,6 +13,8 @@ import { loadGames } from '../games/index.js';
 import { load, save, randomId } from './store.js';
 import { sfx, unlockAudio, setVolume } from './audio.js';
 import { assetUrl } from './assets.js';
+import { applyIcons, ICONS } from './icons.js';
+import { makeSheet } from './sheet.js';
 
 const COLORS = ['#ff5fa2', '#ff8c42', '#ffd43b', '#69db7c', '#3fe0d0', '#4dabf7', '#9775fa', '#f783ac'];
 const $ = sel => document.querySelector(sel);
@@ -73,21 +75,38 @@ function openDialog(id) {
   if (!d.open) d.showModal();
 }
 
-function toggleFullscreen() {
+const fullscreenSupported = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+const standalone = () => matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone === true;
+
+// iPhones have no fullscreen for web pages (only for videos); there the
+// button explains Add to Home Screen, which opens the app full screen.
+function toggleFullscreen(fromStart = false) {
   const doc = document;
   if (doc.fullscreenElement || doc.webkitFullscreenElement) {
     (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(doc);
-  } else {
-    const el = doc.documentElement;
-    const req = el.requestFullscreen || el.webkitRequestFullscreen;
-    try { req?.call(el)?.catch?.(() => {}); } catch {}
+    return;
   }
+  if (!fullscreenSupported()) {
+    if (!fromStart) openDialog('fullscreen-help');
+    return;
+  }
+  const el = doc.documentElement;
+  try {
+    if (el.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+    else el.webkitRequestFullscreen?.();
+  } catch {}
 }
 
 document.addEventListener('click', e => {
   const opener = e.target.closest('[data-open]');
   if (opener) openDialog(opener.dataset.open);
   if (e.target.closest('[data-action="fullscreen"]')) toggleFullscreen();
+});
+applyIcons();
+// Already running full screen from the home screen: no button needed.
+if (standalone()) document.querySelectorAll('[data-action="fullscreen"]').forEach(b => { b.hidden = true; });
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('[data-action="fullscreen"]').forEach(b => b.setAttribute('aria-pressed', String(!!document.fullscreenElement)));
 });
 
 // --- title screen ----------------------------------------------------------
@@ -165,7 +184,7 @@ async function start() {
   me.color = settings.color;
   saveSettings();
   unlockAudio();
-  if (matchMedia('(pointer: coarse)').matches === false) toggleFullscreen();
+  if (!standalone()) toggleFullscreen(true);
   $('#start-btn').disabled = true;
 
   $('#title').classList.remove('active');
@@ -265,24 +284,53 @@ function makeTile(id, media) {
   const flags = document.createElement('div');
   flags.className = 'flags';
   el.append(media, label, flags);
-  const rec = { id, el, media, label, flags, sig: '' };
+  const rec = { id, el, media, label, flags, sig: '', name: '' };
   tiles.set(id, rec);
   return rec;
 }
 
+// My own tile. Pressing and holding it is the Bubble Blow gesture; with two
+// people it floats in a corner, and dragging it moves it to another corner.
 function addSelfTile() {
   const rec = makeTile(me.id, studio.canvas);
-  rec.el.classList.add('self');
-  rec.el.title = 'Hold to blow a bubble (Bubble Blow)';
-  const hold = on => e => {
+  const el = rec.el;
+  el.classList.add('self');
+  el.dataset.corner = 'tr';
+  el.title = 'Hold to blow a bubble (Bubble Blow)';
+  let drag = null;
+  el.addEventListener('pointerdown', e => {
     if (e.button > 0) return;
-    studio.input.held = on;
+    el.setPointerCapture?.(e.pointerId);
+    drag = { x: e.clientX, y: e.clientY, moved: false, rect: el.getBoundingClientRect() };
+    studio.input.held = true;
+  });
+  el.addEventListener('pointermove', e => {
+    if (!drag || $('#stage').dataset.count !== '2' || games?.current) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < 10) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      studio.input.held = false;
+      el.classList.add('dragging');
+    }
+    el.style.transform = `translate(${dx}px, ${dy}px)`;
+  });
+  const up = e => {
+    if (!drag) return;
+    studio.input.held = false;
+    if (drag.moved) {
+      // Snap to the corner nearest to where it was dropped.
+      const cx = drag.rect.left + drag.rect.width / 2 + (e.clientX - drag.x);
+      const cy = drag.rect.top + drag.rect.height / 2 + (e.clientY - drag.y);
+      el.dataset.corner = (cy < innerHeight / 2 ? 't' : 'b') + (cx < innerWidth / 2 ? 'l' : 'r');
+      el.style.transform = '';
+      el.classList.remove('dragging');
+    }
+    drag = null;
   };
-  rec.el.addEventListener('pointerdown', hold(true));
-  rec.el.addEventListener('pointerup', hold(false));
-  rec.el.addEventListener('pointerleave', hold(false));
-  rec.el.addEventListener('pointercancel', hold(false));
-  $('#stage').append(rec.el);
+  el.addEventListener('pointerup', up);
+  el.addEventListener('pointercancel', up);
+  $('#stage').append(el);
   updateTileLabel(rec, { name: `${me.name} (you)`, color: me.color, mic: true, cam: true });
 }
 
@@ -290,16 +338,22 @@ function updateTileLabel(rec, p) {
   const sig = JSON.stringify([p.name, p.color, p.mic, p.cam, rec.state]);
   if (sig === rec.sig) return;
   rec.sig = sig;
+  rec.name = p.name || rec.name;
   rec.label.textContent = p.name || '…';
-  rec.label.style.setProperty('--c', p.color || '#ff5fa2');
+  rec.el.style.setProperty('--c', p.color || '#ff5fa2');
   rec.flags.textContent = '';
-  const flag = text => {
+  const flag = (text, cls) => {
     const f = document.createElement('span');
-    f.className = 'flag';
-    f.textContent = text;
+    f.className = `flag ${cls || ''}`;
+    if (cls === 'muted') {
+      f.innerHTML = ICONS.mic;
+      f.setAttribute('aria-label', 'Muted');
+    } else {
+      f.textContent = text;
+    }
     rec.flags.append(f);
   };
-  if (p.mic === false) flag('🔇');
+  if (p.mic === false) flag('', 'muted');
   if (rec.state && rec.state !== 'connected' && rec.id !== me.id) {
     flag(rec.state === 'failed' ? 'video can’t connect' : 'connecting…');
   }
@@ -336,7 +390,7 @@ function onPeers(peers) {
     if (id === me.id || peers.has(id)) continue;
     tiles.delete(id);
     rec.el.remove();
-    toast(`${JSON.parse(rec.sig || '["Someone"]')[0]} left`);
+    toast(`${rec.name || 'Someone'} left`);
     sfx('leave');
   }
   layout();
@@ -367,6 +421,16 @@ function layout() {
   const n = tiles.size;
   const stage = $('#stage');
   stage.dataset.count = n <= 6 ? String(n) : 'many';
+  // Tiles touching the top or bottom edge keep their labels clear of the
+  // floating bars.
+  requestAnimationFrame(() => {
+    const h = innerHeight;
+    for (const rec of tiles.values()) {
+      const r = rec.el.getBoundingClientRect();
+      rec.el.classList.toggle('top-row', r.top < 4);
+      rec.el.classList.toggle('bottom-row', r.bottom > h - 4);
+    }
+  });
   let wait = $('#waiting');
   if (n === 1) {
     if (!wait) {
@@ -380,6 +444,7 @@ function layout() {
     wait?.remove();
   }
 }
+addEventListener('resize', () => { if (started) layout(); });
 
 function updateStatus() {
   if (!net) return;
@@ -407,36 +472,40 @@ function updateDeviceButtons() {
   net?.setPresence({ cam: studio.camOn, mic: studio.micOn });
 }
 
-const trays = { effects: '#tray-effects', games: '#tray-games' };
+// The effects strip, the games sheet and the chat sheet share the space above
+// the controls, so opening one closes the others.
+const trays = { effects: '#tray-effects', games: '#tray-games', chat: '#chat-box' };
 function toggleTray(which, force) {
   for (const [k, sel] of Object.entries(trays)) {
     const open = k === which ? (force ?? $(sel).hidden) : false;
     $(sel).hidden = !open;
     $(`#btn-${k}`).setAttribute('aria-expanded', String(open));
   }
-  if (which === 'effects') renderEffectHint();
-  else if (studio?.effect) renderEffectHint(true);
-  if (which && !$(trays[which]).hidden) $(trays[which]).querySelector('button')?.focus({ preventScroll: true });
-}
-
-function toggleChat(force) {
-  const box = $('#chat-box');
-  const open = force ?? box.hidden;
-  box.hidden = !open;
-  $('#btn-chat').setAttribute('aria-expanded', String(open));
-  if (open) {
+  if (which === 'effects' && !$('#tray-effects').hidden) {
+    centerEffect(studio?.effect?.id ?? '', false);
+  } else if (studio?.effect) {
+    renderEffectHint(true);
+  }
+  if (which === 'chat' && !$('#chat-box').hidden) {
     chatUnread = 0;
     $('#chat-badge').hidden = true;
-    $('#chat-input').focus();
+    if (matchMedia('(pointer: fine)').matches) $('#chat-input').focus();
+  } else if (which === 'games' && !$('#tray-games').hidden) {
+    $('#tray-games').querySelector('button')?.focus({ preventScroll: true });
   }
+}
+
+function initSheets() {
+  makeSheet($('#tray-effects'), { onDismiss: () => toggleTray(null) });
+  makeSheet($('#tray-games'), { onDismiss: () => toggleTray(null), scroller: '.sheet-body' });
+  makeSheet($('#chat-box'), { onDismiss: () => toggleTray(null), scroller: '.chat-log' });
 }
 
 // Escape / controller B: close the topmost thing that is open.
 function back() {
   const dialog = document.querySelector('dialog[open]');
   if (dialog) return dialog.close();
-  if (!$('#tray-effects').hidden || !$('#tray-games').hidden) return toggleTray(null);
-  if (!$('#chat-box').hidden) return toggleChat(false);
+  if (Object.values(trays).some(sel => !$(sel).hidden)) return toggleTray(null);
   if (games?.current) return games.close();
 }
 
@@ -451,7 +520,8 @@ function initControls() {
   });
   $('#btn-effects').addEventListener('click', () => toggleTray('effects'));
   $('#btn-games').addEventListener('click', () => toggleTray('games'));
-  $('#btn-chat').addEventListener('click', () => toggleChat());
+  $('#btn-chat').addEventListener('click', () => toggleTray('chat'));
+  initSheets();
   $('#btn-leave').addEventListener('click', () => {
     rtc.closeAll();
     net.leave();
@@ -477,43 +547,83 @@ function initControls() {
 
 // --- effects ---------------------------------------------------------------
 
+// The effects strip: swipe it sideways and whichever lens stops in the ring
+// is put on, so you can preview each in turn. Tapping a lens scrolls it into
+// the ring.
 async function initEffects() {
   effects = await loadEffects();
   const list = $('#effect-list');
-  const none = { id: null, name: 'None', emoji: '🙂', hint: '' };
+  const none = { id: null, name: 'No effect', emoji: '🚫', hint: '' };
   for (const fx of [none, ...effects]) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'fx-btn';
+    b.className = 'fx-item';
     b.dataset.fx = fx.id ?? '';
-    b.setAttribute('aria-pressed', String(fx.id === null));
-    const ico = document.createElement('span');
-    ico.className = 'ico';
+    b.setAttribute('role', 'option');
+    b.setAttribute('aria-selected', String(fx.id === null));
+    b.setAttribute('aria-label', fx.name);
+    b.title = fx.hint || fx.name;
     const iconUrl = fx.id && assetUrl(`fx-${fx.id}`);
     if (iconUrl) {
       const im = document.createElement('img');
       im.src = iconUrl;
       im.alt = '';
-      ico.append(im);
+      b.append(im);
     } else {
-      ico.textContent = fx.emoji;
+      b.textContent = fx.emoji;
     }
-    const nm = document.createElement('span');
-    nm.className = 'nm';
-    nm.textContent = fx.name;
-    b.append(ico, nm);
-    b.title = fx.hint || fx.name;
-    b.addEventListener('click', () => selectEffect(fx.id ? fx : null));
+    b.addEventListener('click', () => centerEffect(b.dataset.fx, true));
+    b.addEventListener('focus', () => centerEffect(b.dataset.fx, true));
     list.append(b);
   }
+  let settle = 0;
+  list.addEventListener('scroll', () => {
+    clearTimeout(settle);
+    settle = setTimeout(pickCenteredEffect, 110);
+  }, { passive: true });
+  addEventListener('keydown', e => {
+    if ($('#tray-effects').hidden || /INPUT|TEXTAREA/.test(e.target?.tagName)) return;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const items = [...list.children];
+    const i = items.findIndex(b => b.getAttribute('aria-selected') === 'true');
+    const next = items[Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowLeft' ? -1 : 1)))];
+    centerEffect(next.dataset.fx, true);
+  });
   updateFaceStatus();
+}
+
+function centerEffect(id, smooth) {
+  const b = $(`#effect-list [data-fx="${id}"]`);
+  if (!b) return;
+  const list = $('#effect-list');
+  list.scrollTo({ left: b.offsetLeft - (list.clientWidth - b.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' });
+  if (!smooth) renderEffectHint();
+  // Selecting happens when the scroll settles; if it is already there, now.
+  clearTimeout(centerEffect.t);
+  centerEffect.t = setTimeout(pickCenteredEffect, smooth ? 450 : 30);
+}
+
+function pickCenteredEffect() {
+  const list = $('#effect-list');
+  const mid = list.getBoundingClientRect().left + list.clientWidth / 2;
+  let best = null, bestD = Infinity;
+  for (const b of list.children) {
+    const r = b.getBoundingClientRect();
+    const d = Math.abs(r.left + r.width / 2 - mid);
+    if (d < bestD) { bestD = d; best = b; }
+  }
+  if (!best) return;
+  const id = best.dataset.fx;
+  if ((studio.effect?.id ?? '') === id) return;
+  selectEffect(effects.find(e => e.id === id) || null);
 }
 
 let hintTimer = 0;
 function selectEffect(fx) {
   studio.setEffect(fx);
   net.setPresence({ fx: fx?.id ?? null });
-  document.querySelectorAll('.fx-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.fx === (fx?.id ?? ''))));
+  document.querySelectorAll('.fx-item').forEach(b => b.setAttribute('aria-selected', String(b.dataset.fx === (fx?.id ?? ''))));
   sfx('click');
   renderEffectHint(true);
 }
@@ -524,13 +634,13 @@ function renderEffectHint(flash) {
   let text = fx?.hint || '';
   if (fx?.needs?.face && studio.faceStatus === 'failed') text = `${fx.name}: face tracking isn't available in this browser`;
   else if (fx?.needs?.face && !studio.camOn) text = `${fx.name} needs your camera on`;
-  // Inside the open tray the hint sits under its title; otherwise it floats
-  // above the controls for a few seconds.
+  // With the strip open the name and hint sit above it; otherwise the hint
+  // floats above the controls for a few seconds.
   const trayOpen = !$('#tray-effects').hidden;
-  $('#tray-hint').textContent = text;
-  $('#tray-hint').hidden = !text;
+  $('#fx-name').textContent = fx?.name ?? 'No effect';
+  $('#tray-hint').textContent = text || (fx ? '' : 'Swipe to try an effect');
   el.textContent = text;
-  el.hidden = !text || trayOpen || flash === undefined;
+  el.hidden = !text || trayOpen || flash === undefined || !!games?.current;
   clearTimeout(hintTimer);
   if (!el.hidden) hintTimer = setTimeout(() => { el.hidden = true; }, 5000);
 }
@@ -540,8 +650,8 @@ function updateFaceStatus() {
   const s = studio.faceStatus;
   $('#face-status').textContent = !studio.hasCamera
     ? 'No camera: effects show on your initial'
-    : { idle: '', loading: 'Loading face tracking…', ready: 'Face tracking ready', failed: 'Face tracking unavailable' }[s];
-  document.querySelectorAll('.fx-btn').forEach(b => {
+    : { idle: '', loading: 'Loading face tracking…', ready: '', failed: 'Face tracking unavailable' }[s];
+  document.querySelectorAll('.fx-item').forEach(b => {
     const fx = effects.find(e => e.id === b.dataset.fx);
     b.classList.toggle('disabled', !!fx?.needs?.face && (s === 'failed' || !studio.hasCamera) && fx.id !== 'bubble');
   });
@@ -564,11 +674,18 @@ async function initGames() {
     net,
     studio,
     mediaOf: id => tiles.get(id)?.media ?? null,
+    // How much of a full-bleed game the floating bars cover, in pixels.
+    insets: () => ({
+      top: Math.ceil($('#topbar').getBoundingClientRect().bottom),
+      bottom: Math.ceil(innerHeight - $('#controls').getBoundingClientRect().top),
+    }),
     toast,
     onOpen: c => {
       $('#game-mount').append(c.el);
       $('#game-panel').hidden = false;
-      $('#main').classList.add('has-game');
+      $('#game-panel').classList.toggle('full-bleed', !!c.game.fullBleed);
+      $('#call').classList.add('has-game');
+      $('#game-head').hidden = false;
       $('#game-title').textContent = `${c.game.emoji} ${c.game.name}`;
       toggleTray(null);
       updateSessions();
@@ -576,7 +693,8 @@ async function initGames() {
     onClose: c => {
       c.el.remove();
       $('#game-panel').hidden = true;
-      $('#main').classList.remove('has-game');
+      $('#call').classList.remove('has-game');
+      $('#game-head').hidden = true;
       updateSessions();
     },
   });
@@ -606,7 +724,8 @@ async function initGames() {
     nm.textContent = g.name;
     const bl = document.createElement('span');
     bl.className = 'bl';
-    bl.textContent = `${g.blurb} ${g.minPlayers > 1 ? `${g.minPlayers}+ players.` : 'Solo or together.'}`;
+    bl.textContent = g.minPlayers > 1 ? `${g.minPlayers}+ players` : 'Solo or together';
+    b.title = g.blurb;
     txt.append(nm, bl);
     b.append(ico, txt);
     b.addEventListener('click', () => {
@@ -629,9 +748,6 @@ function updateSessions() {
   if (!games) return;
   const sessions = games.sessions();
   const sig = JSON.stringify(sessions.map(s => [s.sid, s.people.map(p => p.name)])) + (games.current?.sid ?? '');
-  if (games.current) {
-    $('#game-players').textContent = games.current.api.players().map(p => p.name).join(', ');
-  }
   if (sig === sessionsSig) return;
   sessionsSig = sig;
   const badge = $('#games-badge');
@@ -780,6 +896,7 @@ function initGamepad() {
     layer: () => document.querySelector('dialog[open]')
       || (!$('#tray-effects').hidden && $('#tray-effects'))
       || (!$('#tray-games').hidden && $('#tray-games'))
+      || (!$('#chat-box').hidden && $('#chat-box'))
       || document.querySelector('.screen.active'),
     onActive: () => {
       if (!started) $('#pad-hint').hidden = false;

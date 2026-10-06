@@ -18,6 +18,8 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | `js/face.js` | MediaPipe Face Landmarker and selfie segmenter (loaded from jsDelivr), face geometry, the sticker face template |
 | `js/gamehost.js` | Minigame sessions: who is playing, per-player and shared state, messages |
 | `js/flyer.js`, `js/bubble-art.js` | The bubble that flies from one video to another and pops |
+| `js/sheet.js`, `js/icons.js` | Pull-down-to-close sheets; the control icons (mic and camera get a slash when off) |
+| `manifest.webmanifest`, `app-icon-*.png` | Home-screen install, which is how iPhones get full screen (stand-in icon until CH-U03 arrives) |
 | `js/gamepad.js`, `js/audio.js`, `js/assets.js`, `js/store.js` | Controller navigation, synthesised sounds, delivered art, saved settings and records |
 | `js/asset-list.js` | Generated: which artwork has been delivered |
 | `effects/` | One file per face effect; see [`effects/README.md`](effects/README.md) |
@@ -26,6 +28,22 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | `test/` | Unit tests, previews and browser checks (below) |
 | `publish.sh` | Copies the app plus `multiplayer/client/mini-rooms.js` into the Pages output |
 | `intake/` | Drop box for delivered art |
+
+## Layout
+
+The videos fill the screen and every control floats over them: a status pill
+and buttons at the top, the call controls in a pill at the bottom. With two
+people your friend fills the screen and you float in a corner (drag yourself
+to another corner). Effects are a strip of lenses above the controls: swipe
+it, and whichever stops in the ring is put on. Games and Messages are bottom
+sheets. All three can be pulled down to peek at the video and closed by
+pulling further or flicking. An open game takes the whole screen between the
+two bars, and the videos shrink to bubbles in the top bar; games marked
+`fullBleed` (Hoops) draw under the bars too.
+
+Full screen: Android and desktop browsers go full screen on Start and with
+the top-right button. iPhone Safari has no full screen for web pages, so the
+button explains Add to Home Screen; the installed app opens full screen.
 
 ## Effects
 
@@ -68,6 +86,10 @@ itself to HTTPS.
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
+- `chat/publish.sh local/pages/chat && node chat/test/ui-check.mjs`: on a
+  phone-sized page, mouse and touch pulls on each sheet (a short pull peeks
+  and snaps back, a long one closes) and a sideways scroll of the effects
+  strip putting on the effect in the ring
 - `chat/publish.sh local/pages/chat && node chat/test/call-check.mjs`: two
   browsers against a local relay: video both ways, a bubble flying and
   popping, chat, and joining a game from an invite (needs `npm ci` in
@@ -116,6 +138,9 @@ with its state (see `js/gamehost.js`).
 - Face tracking and segmentation load MediaPipe from jsDelivr and Google
   Storage on first use (about 4 MB). Without them, face effects fall back to
   the hold gesture.
+- A real finger swipe on the effects strip hasn't been tested (headless
+  Chromium's synthetic touch gestures don't scroll it); the scroll-to-select
+  logic is tested with a sideways wheel scroll.
 - Against [`GAME_GUIDELINES.md`](../GAME_GUIDELINES.md): the title screen,
   Instructions (with a controller diagram), Settings and Fullscreen are in
   place and menus work with a controller. Pause doesn't apply to a live call.
