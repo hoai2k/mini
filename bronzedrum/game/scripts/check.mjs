@@ -7,7 +7,9 @@ import { join, dirname } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 let failed = 0;
-for (const f of readdirSync(join(root, 'src'))) {
+// Every source file under src/, including subfolders (src/render/), as paths relative to src/.
+const sourceFiles = readdirSync(join(root, 'src'), { recursive: true }).filter((f) => f.endsWith('.js')).sort();
+for (const f of sourceFiles) {
   try {
     execFileSync(process.execPath, ['--check', join(root, 'src', f)], { stdio: 'pipe' });
   } catch (e) {
@@ -16,7 +18,7 @@ for (const f of readdirSync(join(root, 'src'))) {
   }
 }
 const manifest = JSON.parse(readFileSync(join(root, 'assets', 'manifest.json'), 'utf8'));
-const source = readdirSync(join(root, 'src')).map((f) => readFileSync(join(root, 'src', f), 'utf8')).join('\n');
+const source = sourceFiles.map((f) => readFileSync(join(root, 'src', f), 'utf8')).join('\n');
 for (const a of manifest.assets.filter((x) => x.runtime !== false && (x.status === 'stand-in' || x.status === 'delivered'))) {
   // Ids are used literally or as `prefix-${...}` templates (sky-*, card-*).
   const prefix = a.id.split('-')[0];
@@ -58,7 +60,7 @@ for (const m of stageSounds.map((id) => [null, id])) {
 // A canvas filter drawn every frame is ruinously slow (it once made each
 // battle frame ten times slower) and Safari has none: make darker or tinted
 // copies once instead (Renderer.shaded).
-for (const f of ['render.js', 'rig.js']) {
+for (const f of ['render.js', 'rig.js', ...sourceFiles.filter((x) => x.startsWith('render/'))]) {
   const text = readFileSync(join(root, 'src', f), 'utf8');
   // Filters used once while building an offscreen layer are fine: they say so
   // on the line ('built once') or draw on the offscreen context `o`.
@@ -71,9 +73,14 @@ for (const f of ['render.js', 'rig.js']) {
 }
 // A class method overwritten by a property of the same name breaks every
 // later call to it (this.shake = t once replaced the renderer's shake()).
-for (const f of readdirSync(join(root, 'src'))) {
+// The Renderer's methods are spread over render.js and render/*.js, so those
+// files share one method list.
+const isRender = (f) => f === 'render.js' || f.startsWith('render/');
+const methodsOf = (src) => [...src.matchAll(/^  (?:async )?([a-zA-Z_]\w*)\([^)]*\) \{$/gm)].map((m) => m[1]).filter((n) => n !== 'constructor');
+const renderMethods = new Set(sourceFiles.filter(isRender).flatMap((f) => methodsOf(readFileSync(join(root, 'src', f), 'utf8'))));
+for (const f of sourceFiles) {
   const src = readFileSync(join(root, 'src', f), 'utf8');
-  const methods = new Set([...src.matchAll(/^  (?:async )?([a-zA-Z_]\w*)\([^)]*\) \{$/gm)].map((m) => m[1]).filter((n) => n !== 'constructor'));
+  const methods = isRender(f) ? renderMethods : new Set(methodsOf(src));
   for (const m of src.matchAll(/this\.(\w+) = /g)) {
     if (methods.has(m[1])) {
       failed++;
