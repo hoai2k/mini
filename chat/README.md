@@ -1,4 +1,4 @@
-# Bubble Chat
+# Games Chat
 
 A video chat in the browser with 20 face effects and 10 minigames. Everyone
 who opens the page joins the same chat. It is tuned for two people (your

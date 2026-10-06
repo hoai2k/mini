@@ -325,3 +325,57 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
    the next drag into a text drag and cancel it). */
 .topbar, .controls, .strip-wrap, .sheet-grip, .sheet-head, .stage, .game-card, .fx-item { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .fx-item img, .game-card img { -webkit-user-drag: none; }
+
+/* ---------- accent: everything highlighted takes the player's colour ---------- */
+:root {
+  --accent: #ff5fa2;
+  --on-accent: #fff;
+  --accent-hi: color-mix(in srgb, var(--accent) 62%, white);
+  --accent-lo: color-mix(in srgb, var(--accent) 62%, black);
+  --accent-soft: color-mix(in srgb, var(--accent) 38%, transparent);
+  --focus: var(--accent-hi);
+}
+#logo-text { background-image: linear-gradient(100deg, var(--accent), var(--accent-hi) 38%, #fff 52%, var(--accent-hi) 66%, var(--accent)); }
+.join-form { border-color: var(--accent-soft); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--accent-soft) inset; }
+.press-start {
+  background: linear-gradient(180deg, var(--accent-hi), var(--accent)); color: var(--on-accent);
+  box-shadow: 0 6px 0 var(--accent-lo), 0 10px 24px var(--accent-soft);
+}
+.press-start:active { box-shadow: 0 2px 0 var(--accent-lo); }
+.btn { background: var(--accent); color: var(--on-accent); box-shadow: 0 3px 0 var(--accent-lo); }
+.btn:active { box-shadow: 0 1px 0 var(--accent-lo); }
+.btn.ghost { color: #fff; }
+.ctrl[aria-expanded="true"] { background: var(--accent); color: var(--on-accent); }
+.badge { background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 2px var(--bg); }
+.strip-ring { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25), 0 0 18px var(--accent-soft); }
+.fx-item[aria-selected="true"] { background: var(--accent-soft); }
+.pill { border-color: var(--accent-soft); }
+.panel-sheet { border-color: var(--accent-soft); }
+.sheet-grip { background: var(--accent-hi); }
+.game-card:hover, .game-card:focus-visible { border-color: var(--accent); }
+.msg.mine { background: var(--accent-soft); }
+.chat-form input:focus, #name-input:focus, #set-name:focus { border-color: var(--accent); outline: none; }
+.fx-name { color: #fff; }
+.tile.self { --c: var(--accent); }
+.stage[data-count="2"] .tile.self { border-color: var(--accent-hi); }
+
+/* ---------- votes ---------- */
+.votes { display: inline-flex; gap: 6px; pointer-events: auto; }
+.vote {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.45); color: #fff; font-weight: 800; font-size: 0.85rem; text-shadow: none; line-height: 1.2;
+}
+.vote:hover { background: rgba(255, 255, 255, 0.15); }
+.vote[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.vote:active { transform: scale(0.94); }
+.votes.compact .vote { padding: 2px 8px; font-size: 0.78rem; }
+.fx-title { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.strip-label .votes { pointer-events: auto; }
+.vote-pill { padding: 4px 6px; }
+.vote-pill:empty { display: none; }
+.game-cell { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.game-cell .votes { justify-content: center; }
+.game-cell .game-card { flex: 1; }
+.ratings table { margin-bottom: 8px; }
+.ratings td:not(:first-child), .ratings th:not(:first-child) { text-align: right; width: 4.5em; }
+@media (max-width: 420px) { #call.has-game .vote-pill { display: none; } }

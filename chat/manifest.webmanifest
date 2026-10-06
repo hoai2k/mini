@@ -1,6 +1,6 @@
 {
-  "name": "Bubble Chat",
-  "short_name": "Bubble Chat",
+  "name": "Games Chat",
+  "short_name": "Games Chat",
   "description": "Video chat with silly face effects and minigames.",
   "start_url": "./",
   "scope": "./",

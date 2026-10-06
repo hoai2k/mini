@@ -22,6 +22,8 @@ export default {
   hint: 'Open your mouth!',  // one short line shown when the effect is picked
   needs: { face: true },     // face: track my face every frame
                              // segmentation: also compute a person mask
+                             // history: seconds of past frames to keep (max 4)
+                             // orientation: uses view (asks iPhones for motion access)
   start(state, info) {},     // optional; state is a fresh {} for this effect
   draw(ctx, frame) {},       // optional; Canvas 2D on top of the video
   stop(state) {},            // optional
@@ -45,6 +47,11 @@ export default {
 | `img(name)` | delivered artwork by asset name (`'puppy'`, `'heart'`…) or `null` until it arrives |
 | `sfx(name)` | play a sound: `pop blow whoosh click score miss bounce win lose tick join leave zap fire bang flap honk` |
 | `emit(type, data)` | send an event to the app (Bubble Blow uses `'bubble'`) |
+| `camera()` | a canvas holding this frame's mirrored camera image with no effect (made on first call each frame) |
+| `person()` | the same image with the room made transparent, or `null` until a mask exists (needs `segmentation`) |
+| `past(seconds)` | the recorded frame closest to that many seconds ago: `{ t, cam, person }` (half-size canvases; `person` only with `segmentation`), or `null` (needs `history`) |
+| `history` | every recorded frame, oldest first: `[{ t, cam, person }]` (needs `history`) |
+| `view` | where I'm looking for 360 worlds: `{ yaw, pitch, source }` in radians from the phone's motion sensor (`'sensor'`) or, without one, my head turn (`'head'`) |
 
 ## The face
 
@@ -94,8 +101,11 @@ canvas with y pointing down. The prelude (in `studio.js`) provides:
 - `bg(uv)`: the image returned by `background(frame)`;
 - `toPx(uv)`, `toUv(px)`, and `bulge(px, centre, radius, amount)`, a lens
   warp in pixels (amount > 0 magnifies, < 0 shrinks);
+- `pano(uv, fov)`: the 360 panorama in `u_bg` (equirectangular, 2:1) as seen
+  looking towards `u_yaw`, `u_pitch` (the frame's `view`) with a horizontal
+  field of view of `fov` radians;
 - uniforms in pixels: `u_res`, `u_eyeL`, `u_eyeR`, `u_nose`, `u_mouth`,
-  `u_center`, `u_faceSize`, `u_scale`, `u_roll`; expressions `u_mouthOpen`,
+  `u_center`, `u_faceSize`, `u_scale`, `u_roll`; `u_yaw`, `u_pitch`; expressions `u_mouthOpen`,
   `u_smile`, `u_pucker`, `u_browUp`; `u_time`; `u_hasFace` (0 or 1).
 
 Declare any extra uniforms in the shader and return their values from
@@ -105,6 +115,9 @@ Declare any extra uniforms in the shader and return their values from
 ## Previewing
 
 `../test/fx.html?fx=<id>` runs one effect on the camera with a synthetic face
-(add `&smile=1&mouthOpen=1&pucker=1&browUp=1&frown=1&roll=0.2&held=1`, or
-`&animate=1` to cycle expressions). `node chat/test/fx-shots.mjs [ids…]`
+(add `&smile=1&mouthOpen=1&pucker=1&browUp=1&frown=1&blinkL=1&blinkR=1&roll=0.2&held=1`,
+`&animate=1` to cycle expressions, `&move=1` to slide the head side to side,
+or `&yaw=1.2&pitch=0.3` to look around a 360 world). It also supplies a person
+mask that matches the drawn head and shoulders, since the real segmenter
+doesn't recognise the cartoon. `node chat/test/fx-shots.mjs [ids…] [--only=neutral,move,look,blink,…]`
 screenshots effects into `local/chat-shots/` with Chromium's fake camera.

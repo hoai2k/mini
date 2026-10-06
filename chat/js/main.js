@@ -1,4 +1,4 @@
-// Bubble Chat: the page. Wires the title screen, the shared room (net.js),
+// Games Chat: the page. Wires the title screen, the shared room (net.js),
 // the calls (rtc.js), my camera and effects (studio.js), the minigames
 // (gamehost.js) and the controls together.
 
@@ -15,6 +15,7 @@ import { sfx, unlockAudio, setVolume } from './audio.js';
 import { assetUrl } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
+import { createVotes, voteButtons } from './votes.js';
 
 const COLORS = ['#ff5fa2', '#ff8c42', '#ffd43b', '#69db7c', '#3fe0d0', '#4dabf7', '#9775fa', '#f783ac'];
 const $ = sel => document.querySelector(sel);
@@ -27,6 +28,18 @@ const settings = {
   ...load('settings', {}),
 };
 const saveSettings = () => save('settings', settings);
+
+// The player's colour accents the whole interface. Text on it is dark or
+// light depending on how bright the colour is.
+function applyAccent(color) {
+  const root = document.documentElement.style;
+  root.setProperty('--accent', color);
+  const n = parseInt(color.slice(1), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  root.setProperty('--on-accent', lum > 0.62 ? '#1d1533' : '#fff');
+}
+applyAccent(settings.color);
 setVolume(settings.volume);
 document.body.classList.toggle('reduce-motion', !!settings.reduceMotion);
 
@@ -34,7 +47,8 @@ document.body.classList.toggle('reduce-motion', !!settings.reduceMotion);
 // keeps their calls simple.
 const me = { id: randomId(), name: settings.name, color: settings.color };
 
-let studio = null, net = null, rtc = null, games = null, flyer = null;
+let studio = null, net = null, rtc = null, games = null, flyer = null, votes = null;
+let fxVotes = null, gameVotes = null;
 let effects = [];
 let started = false;
 const tiles = new Map(); // clientId -> tile record
@@ -62,6 +76,7 @@ function colorPicker(container, onPick) {
     b.setAttribute('aria-checked', String(c === settings.color));
     b.addEventListener('click', () => {
       settings.color = c;
+      applyAccent(c);
       container.querySelectorAll('.swatch').forEach(s => s.setAttribute('aria-checked', String(s === b)));
       onPick?.(c);
       saveSettings();
@@ -204,6 +219,7 @@ async function start() {
   updateFaceStatus();
 
   net = createNet({ game: 'chat', room: 'everyone', me });
+  votes = createVotes({ server: MiniRooms.defaultServer() });
   net.setPresence({ cam: studio.camOn, mic: studio.micOn, fx: null });
   rtc = createRtc({ net, stream: studio.stream });
   rtc.on('stream', onRemoteStream);
@@ -622,6 +638,12 @@ function pickCenteredEffect() {
 let hintTimer = 0;
 function selectEffect(fx) {
   studio.setEffect(fx);
+  // 360 worlds look around with the phone's motion sensor; iPhones only
+  // allow it after a tap, so ask on the next one.
+  if (fx?.needs?.orientation && studio.motionStatus === 'needs-permission') {
+    toast('Tap the screen, then tilt your phone to look around');
+    addEventListener('pointerup', () => studio.requestMotion(), { once: true });
+  }
   net.setPresence({ fx: fx?.id ?? null });
   document.querySelectorAll('.fx-item').forEach(b => b.setAttribute('aria-selected', String(b.dataset.fx === (fx?.id ?? ''))));
   sfx('click');
@@ -638,6 +660,14 @@ function renderEffectHint(flash) {
   // floats above the controls for a few seconds.
   const trayOpen = !$('#tray-effects').hidden;
   $('#fx-name').textContent = fx?.name ?? 'No effect';
+  if (votes) {
+    if (!fxVotes) {
+      fxVotes = voteButtons(votes, 'fx-none');
+      $('#fx-votes').append(fxVotes);
+    }
+    fxVotes.hidden = !fx;
+    if (fx) fxVotes.setItem(`fx-${fx.id}`);
+  }
   $('#tray-hint').textContent = text || (fx ? '' : 'Swipe to try an effect');
   el.textContent = text;
   el.hidden = !text || trayOpen || flash === undefined || !!games?.current;
@@ -687,6 +717,11 @@ async function initGames() {
       $('#call').classList.add('has-game');
       $('#game-head').hidden = false;
       $('#game-title').textContent = `${c.game.emoji} ${c.game.name}`;
+      if (!gameVotes) {
+        gameVotes = voteButtons(votes, 'game-none', { compact: true });
+        $('#game-votes').append(gameVotes);
+      }
+      gameVotes.setItem(`game-${c.game.id}`);
       toggleTray(null);
       updateSessions();
     },
@@ -732,7 +767,10 @@ async function initGames() {
       sfx('click');
       games.open(g.id);
     });
-    list.append(b);
+    const wrap = document.createElement('div');
+    wrap.className = 'game-cell';
+    wrap.append(b, voteButtons(votes, `game-${g.id}`, { compact: true }));
+    list.append(wrap);
   }
 
   net.onTopic('invite', (d, from) => {
@@ -845,7 +883,48 @@ function initChat() {
 
 // --- settings --------------------------------------------------------------
 
+// Everyone's thumbs, best first, so the ones nobody likes can be dropped.
+function renderRatings() {
+  const body = $('#ratings-body');
+  body.textContent = '';
+  if (!votes) {
+    $('#ratings-note').textContent = 'Join the chat to see the ratings.';
+    return;
+  }
+  $('#ratings-note').textContent = votes.shared
+    ? 'Totals from everyone who has voted. Vote with the thumbs on the effect strip, the game cards or the bar of a running game.'
+    : 'Shared totals aren’t available yet (the relay hasn’t been updated), so these are only your own votes.';
+  const groups = [
+    ['Effects', effects.map(f => ({ id: `fx-${f.id}`, name: `${f.emoji} ${f.name}` }))],
+    ['Games', [...(games?.games.values() ?? [])].map(g => ({ id: `game-${g.id}`, name: `${g.emoji} ${g.name}` }))],
+  ];
+  for (const [title, items] of groups) {
+    const h = document.createElement('h3');
+    h.textContent = title;
+    const table = document.createElement('table');
+    table.className = 'keys';
+    const head = table.insertRow();
+    for (const t of ['', '👍', '👎', 'Score']) {
+      const th = document.createElement('th');
+      th.textContent = t;
+      head.append(th);
+    }
+    const rows = items.map(it => ({ ...it, ...votes.counts(it.id) })).sort((a, b) => (b.up - b.down) - (a.up - a.down) || b.up - a.up);
+    for (const r of rows) {
+      const tr = table.insertRow();
+      for (const v of [r.name, r.up, r.down, r.up - r.down]) tr.insertCell().textContent = String(v);
+    }
+    body.append(h, table);
+  }
+}
+
 function initSettings() {
+  $('#open-ratings').addEventListener('click', async () => {
+    $('#settings').close();
+    await votes?.refresh();
+    renderRatings();
+    openDialog('ratings');
+  });
   const name = $('#set-name');
   const vol = $('#set-volume');
   const motion = $('#set-motion');

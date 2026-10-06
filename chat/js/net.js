@@ -60,7 +60,7 @@ export function createNet({ game, room: roomId, me, rooms = globalThis.MiniRooms
 
   function open(asHost) {
     const r = asHost
-      ? api.host(roomId, { title: 'Bubble Chat', name: me.name, capacity: 16 })
+      ? api.host(roomId, { title: 'Games Chat', name: me.name, capacity: 16 })
       : api.join(roomId, { name: me.name });
     room = r;
     knownPeerIds = new Set();

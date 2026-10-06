@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bubble Chat</title>
+<title>Games Chat</title>
 <meta name="description" content="Video chat with silly face effects and minigames.">
 <meta name="theme-color" content="#1d1533">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bubble Chat">
+<meta name="apple-mobile-web-app-title" content="Games Chat">
 <link rel="apple-touch-icon" href="app-icon-180.png">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
 <script>
   // Cameras only work on secure pages, so move plain-HTTP visits to HTTPS.
   if (location.protocol === 'http:' && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
@@ -31,7 +31,7 @@
   <div class="title-inner">
     <h1 id="logo" class="logo">
       <img id="logo-img" alt="" hidden>
-      <span id="logo-text">Bubble Chat</span>
+      <span id="logo-text">Games Chat</span>
     </h1>
     <p class="tagline">Video chat with silly faces and quick games. Everyone here joins the same chat.</p>
     <form id="join-form" class="join-form" autocomplete="off">
@@ -64,6 +64,7 @@
     <span id="status" class="pill status" aria-live="polite">Connecting…</span>
     <span id="game-head" class="game-head" hidden>
       <button id="game-close" class="pill btn-pill" type="button" aria-label="Leave game"><span aria-hidden="true">✕</span> <span id="game-title" class="game-title"></span></button>
+      <span id="game-votes" class="pill vote-pill"></span>
     </span>
     <span class="spacer"></span>
     <span class="top-actions">
@@ -79,7 +80,7 @@
   <!-- Effects: a strip of lenses; whichever sits in the middle ring is on. -->
   <div id="tray-effects" class="strip-wrap sheet" hidden aria-label="Face effects">
     <div class="sheet-grip" aria-hidden="true"></div>
-    <div class="strip-label"><span id="fx-name" class="fx-name">None</span><span id="tray-hint" class="tray-hint"></span><span id="face-status" class="muted"></span></div>
+    <div class="strip-label"><span class="fx-title"><span id="fx-name" class="fx-name">None</span><span id="fx-votes"></span></span><span id="tray-hint" class="tray-hint"></span><span id="face-status" class="muted"></span></div>
     <div class="strip-ring" aria-hidden="true"></div>
     <div id="effect-list" class="strip" role="listbox" aria-label="Face effects"></div>
   </div>
@@ -113,12 +114,23 @@
   </nav>
 </section>
 
+<dialog id="ratings" class="dialog" aria-labelledby="ratings-title">
+  <form method="dialog" class="dialog-inner">
+    <h2 id="ratings-title">Ratings</h2>
+    <div class="dialog-scroll">
+      <p id="ratings-note" class="muted"></p>
+      <div id="ratings-body" class="ratings"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn" value="close">Close</button></div>
+  </form>
+</dialog>
+
 <!-- iPhones have no fullscreen for web pages; the home-screen app is fullscreen. -->
 <dialog id="fullscreen-help" class="dialog" aria-labelledby="fs-title">
   <form method="dialog" class="dialog-inner">
     <h2 id="fs-title">Full screen on iPhone</h2>
     <div class="dialog-scroll">
-      <p>Safari on iPhone doesn't let web pages go full screen. Add Bubble Chat to your Home Screen instead and open it from there: it fills the whole screen like an app.</p>
+      <p>Safari on iPhone doesn't let web pages go full screen. Add Games Chat to your Home Screen instead and open it from there: it fills the whole screen like an app.</p>
       <p>Tap the <b>Share</b> button <span aria-hidden="true">(the square with an arrow)</span>, then <b>Add to Home Screen</b>.</p>
     </div>
     <div class="dialog-actions"><button class="btn" value="close">Got it</button></div>
@@ -133,7 +145,7 @@
   <form method="dialog" class="dialog-inner">
     <h2 id="instructions-title">How to play</h2>
     <div class="dialog-scroll" tabindex="0">
-      <p>Bubble Chat puts everyone who opens this page in the same video chat. Pick a name, press Start and allow the camera and microphone.</p>
+      <p>Games Chat puts everyone who opens this page in the same video chat. Pick a name, press Start and allow the camera and microphone.</p>
       <h3>Face effects</h3>
       <p>Open <b>Effects</b> and swipe the strip: whichever effect stops in the ring is on. Everyone sees your effect, because it is drawn on the video you send. Many react to your face: <b>pucker your lips</b> to blow a bubble that floats over and pops on your friend's face, <b>open your mouth</b> for the dragon's fire or the rainbow, <b>smile</b> for hearts or sunglasses, <b>raise your eyebrows</b> to drop the monocle. With no camera face, hold <b>Space</b> (or press and hold your own video) instead.</p>
       <h3>Games</h3>
@@ -164,7 +176,7 @@
         </g>
       </svg>
       <h3>Good to know</h3>
-      <p>On iPhone, web pages can't go full screen: add Bubble Chat to your Home Screen (Share, then Add to Home Screen) and open it from there. Calls go straight between browsers. On some strict networks (some offices and mobile carriers) the video can't connect; the chat and games still work.</p>
+      <p>On iPhone, web pages can't go full screen: add Games Chat to your Home Screen (Share, then Add to Home Screen) and open it from there. Calls go straight between browsers. On some strict networks (some offices and mobile carriers) the video can't connect; the chat and games still work.</p>
     </div>
     <div class="dialog-actions"><button class="btn" value="close" autofocus>Close</button></div>
   </form>
@@ -178,6 +190,7 @@
       <div class="field"><span>Your colour</span><div class="colors" id="set-colors" role="radiogroup" aria-label="Your colour"></div></div>
       <label class="field range"><span>Sound effects</span><input id="set-volume" type="range" min="0" max="1" step="0.05"></label>
       <label class="field check"><input id="set-motion" type="checkbox"><span>Reduce motion</span></label>
+      <div class="field"><span>Ratings</span><button id="open-ratings" class="btn ghost" type="button">See everyone's thumbs up and down</button></div>
     </div>
     <div class="dialog-actions"><button class="btn" value="close">Done</button></div>
   </form>

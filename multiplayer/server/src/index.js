@@ -5,6 +5,9 @@
 //   WS   /room/<game>/<roomId>?name=...    join a room
 //   WS   /room/<game>/<roomId>?host=1&title=...&capacity=8
 //                                          open a new room as its host
+//   GET  /votes/<game>                     thumbs up/down totals per item (JSON)
+//   POST /votes/<game>  {item, voter, value: 1 | -1 | 0}
+//                                          set (or clear) one voter's vote
 //
 // Each room is one Durable Object (`Room`). It relays two kinds of message
 // between the players in it, mirroring the presence/topics model the games
@@ -50,8 +53,13 @@ function originAllowed(request, env) {
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
 };
+const ITEM_RE = /^[A-Za-z0-9_-]{1,40}$/;
+const VOTER_RE = /^[A-Za-z0-9_-]{6,40}$/;
+const MAX_ITEMS = 500;
+const VOTE_RATE = 120; // writes per minute per IP
 
 const clean = (s, max) => String(s ?? "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, max);
 
@@ -60,13 +68,32 @@ export default {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS });
     const parts = url.pathname.split("/").filter(Boolean);
-    if ((parts[0] === "lobby" || parts[0] === "room") && !originAllowed(request, env)) {
+    if ((parts[0] === "lobby" || parts[0] === "room" || parts[0] === "votes") && !originAllowed(request, env)) {
       return new Response("Origin not allowed", { status: 403, headers: CORS });
     }
 
     if (parts[0] === "lobby" && parts.length === 2 && NAME_RE.test(parts[1])) {
       const rooms = await env.LOBBY.getByName(parts[1]).list();
       return Response.json({ rooms }, { headers: { ...CORS, "Cache-Control": "no-store" } });
+    }
+
+    if (parts[0] === "votes" && parts.length === 2 && NAME_RE.test(parts[1])) {
+      const votes = env.VOTES.getByName(parts[1]);
+      if (request.method === "GET") {
+        return Response.json({ items: await votes.totals() }, { headers: { ...CORS, "Cache-Control": "no-store" } });
+      }
+      if (request.method === "POST") {
+        let body;
+        try { body = await request.json(); } catch { body = null; }
+        const value = body?.value;
+        if (!body || !ITEM_RE.test(String(body.item)) || !VOTER_RE.test(String(body.voter)) || ![1, -1, 0].includes(value)) {
+          return Response.json({ error: "bad_vote" }, { status: 400, headers: CORS });
+        }
+        const ip = request.headers.get("CF-Connecting-IP") || "local";
+        const result = await votes.cast(String(body.item), String(body.voter), value, ip);
+        return Response.json(result, { status: result.error ? 429 : 200, headers: CORS });
+      }
+      return new Response("Method not allowed", { status: 405, headers: CORS });
     }
 
     if (parts[0] === "room" && parts.length === 3 && NAME_RE.test(parts[1]) && NAME_RE.test(parts[2])) {
@@ -262,5 +289,62 @@ export class Lobby extends DurableObject {
     return this.ctx.storage.sql
       .exec("SELECT id, title, count, capacity, updated FROM rooms ORDER BY updated DESC LIMIT 50")
       .toArray();
+  }
+}
+
+// One Votes object per game keeps everyone's thumbs up and down, one vote per
+// voter per item (voter IDs are random per browser, so this counts browsers,
+// not people). Totals are what the game shows; its owners use them to decide
+// what to keep.
+export class Votes extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.rates = new Map();
+    ctx.blockConcurrencyWhile(async () => {
+      this.ctx.storage.sql.exec(`CREATE TABLE IF NOT EXISTS votes (
+        item TEXT NOT NULL,
+        voter TEXT NOT NULL,
+        value INTEGER NOT NULL,
+        updated INTEGER NOT NULL,
+        PRIMARY KEY (item, voter)
+      )`);
+    });
+  }
+
+  totals() {
+    const items = {};
+    for (const row of this.ctx.storage.sql.exec(
+      "SELECT item, SUM(value = 1) AS up, SUM(value = -1) AS down FROM votes GROUP BY item"
+    )) {
+      items[row.item] = { up: row.up, down: row.down };
+    }
+    return items;
+  }
+
+  cast(item, voter, value, ip) {
+    const now = Date.now();
+    let rate = this.rates.get(ip);
+    if (!rate || now - rate.start > 60_000) this.rates.set(ip, rate = { start: now, count: 0 });
+    if (++rate.count > VOTE_RATE) return { error: "rate_limited" };
+    if (this.rates.size > 5000) this.rates.clear();
+
+    const known = this.ctx.storage.sql.exec("SELECT 1 FROM votes WHERE item = ? LIMIT 1", item).toArray().length > 0;
+    if (!known && value !== 0) {
+      const count = this.ctx.storage.sql.exec("SELECT COUNT(DISTINCT item) AS n FROM votes").one().n;
+      if (count >= MAX_ITEMS) return { error: "too_many_items" };
+    }
+    if (value === 0) {
+      this.ctx.storage.sql.exec("DELETE FROM votes WHERE item = ? AND voter = ?", item, voter);
+    } else {
+      this.ctx.storage.sql.exec(
+        `INSERT INTO votes (item, voter, value, updated) VALUES (?, ?, ?, ?)
+         ON CONFLICT(item, voter) DO UPDATE SET value = excluded.value, updated = excluded.updated`,
+        item, voter, value, now
+      );
+    }
+    const row = this.ctx.storage.sql.exec(
+      "SELECT COALESCE(SUM(value = 1), 0) AS up, COALESCE(SUM(value = -1), 0) AS down FROM votes WHERE item = ?", item
+    ).one();
+    return { item, up: row.up, down: row.down };
   }
 }

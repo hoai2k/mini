@@ -12,8 +12,12 @@ const outDir = fileURLToPath(new URL('../../local/chat-shots/', import.meta.url)
 await mkdir(outDir, { recursive: true });
 
 const { EFFECT_IDS } = await import('../effects/index.js');
-const ids = process.argv.slice(2).length ? process.argv.slice(2) : EFFECT_IDS;
-const EXPRESSIONS = { neutral: '', smile: '&smile=1', open: '&mouthOpen=1', pucker: '&pucker=1&held=1', brows: '&browUp=1', frown: '&frown=1', tilt: '&roll=0.35&smile=0.6' };
+const named = process.argv.slice(2).filter(a => !a.startsWith('--'));
+const ids = named.length ? named : EFFECT_IDS;
+const ALL = { neutral: '', smile: '&smile=1', open: '&mouthOpen=1', pucker: '&pucker=1&held=1', brows: '&browUp=1', frown: '&frown=1', tilt: '&roll=0.35&smile=0.6', move: '&move=1', look: '&yaw=1.2&pitch=0.25', blink: '&blinkL=1&blinkR=1' };
+// --only=neutral,move picks which expressions to shoot.
+const only = process.argv.find(a => a.startsWith('--only='))?.slice(7).split(',');
+const EXPRESSIONS = Object.fromEntries(Object.entries(ALL).filter(([k]) => (only ? only.includes(k) : !['move', 'look', 'blink'].includes(k))));
 
 const server = await serve(chatDir);
 const browser = await launch();

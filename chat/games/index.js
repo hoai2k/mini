@@ -13,6 +13,16 @@ export const GAME_IDS = [
   'rps',
   'doodle',
   'memory',
+  'minigolf',
+  'bowling',
+  'beachbump',
+  'burger',
+  'asteroids',
+  'dontsmile',
+  'snake',
+  'battleship',
+  'trivia',
+  'wordblitz',
 ];
 
 export async function loadGames() {

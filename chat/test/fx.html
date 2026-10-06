@@ -91,11 +91,33 @@
       e[which] = Math.min(1, (t % 2) * 1.5);
       currentExpr = e;
     } else {
-      currentExpr = expr;
+      currentExpr = { ...expr };
     }
+    // ?move=1 slides the head side to side, for the time effects.
+    if (q.get('move') === '1') currentExpr.offsetX = Math.sin(t * 2.2) * 0.25;
     return syntheticFace(w, h, currentExpr);
   });
   studio.input.held = q.get('held') === '1';
+  // A person mask matching the drawn head and shoulders, for background and
+  // time effects (the real segmenter doesn't recognise the cartoon).
+  studio.setFakeMask((mw, mh, t) => {
+    const f = syntheticFace(640, 480, currentExpr);
+    const data = new Uint8Array(mw * mh);
+    const sx = mw / 640, sy = mh / 480;
+    // Mask space is the camera's (unmirrored) image.
+    const cx = (640 - f.center.x) * sx, cy = f.center.y * sy;
+    const rx = f.scale * 1.05 * sx, ry = f.scale * 1.45 * sy;
+    for (let y = 0; y < mh; y++) {
+      for (let x = 0; x < mw; x++) {
+        const dx = (x - cx) / rx, dy = (y - cy) / ry;
+        const head = dx * dx + dy * dy < 1;
+        const body = y > cy + ry * 0.8 && Math.abs(x - cx) < rx * (0.5 + (y - cy - ry * 0.8) / (mh * 0.25));
+        data[y * mw + x] = head || body ? 255 : 0;
+      }
+    }
+    return data;
+  });
+  if (q.has('yaw') || q.has('pitch')) studio.setFakeView({ yaw: num('yaw'), pitch: num('pitch') });
   const effects = await loadEffects();
   const fx = effects.find(e => e.id === q.get('fx'));
   studio.setEffect(fx || null);
