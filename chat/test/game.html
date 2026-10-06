@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Game harness</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { overflow: auto; }
+  .seats { display: flex; gap: 12px; padding: 12px; align-items: flex-start; flex-wrap: wrap; }
+  .seat { width: var(--seat-w, 460px); display: flex; flex-direction: column; gap: 8px; }
+  .seat-head { display: flex; gap: 8px; align-items: center; font-weight: 800; }
+  .seat-head video, .seat-head canvas { width: 80px; height: 60px; border-radius: 8px; object-fit: cover; }
+  .seat .panel { position: relative; height: var(--seat-h, 440px); background: var(--panel-solid); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  .seat .log { font-size: 12px; color: var(--muted); min-height: 3em; }
+  .expr { display: flex; gap: 4px; flex-wrap: wrap; }
+  .expr button { font-size: 12px; padding: 2px 8px; border-radius: 8px; border: 1px solid var(--line); background: #332; }
+  .expr button[aria-pressed="true"] { background: #a36; }
+</style>
+</head>
+<body>
+<div class="seats" id="seats"></div>
+<script type="module">
+  // Runs one game with ?n= simulated players side by side, connected through
+  // an in-memory relay. Seat 1 starts the session and the others join it.
+  // ?expr=0 hides the face-expression buttons. See games/README.md.
+  import { createFakeRooms } from './fake-rooms.js';
+  import { createNet } from '../js/net.js';
+  import { createStudio } from '../js/studio.js';
+  import { createGameHost } from '../js/gamehost.js';
+  import { syntheticFace } from '../js/face.js';
+  import { loadGames } from '../games/index.js';
+
+  const q = new URLSearchParams(location.search);
+  const gameId = q.get('game');
+  const n = parseInt(q.get('n') || '2', 10);
+  if (q.get('w')) document.documentElement.style.setProperty('--seat-w', q.get('w') + 'px');
+  if (q.get('h')) document.documentElement.style.setProperty('--seat-h', q.get('h') + 'px');
+  const fake = createFakeRooms({ latency: parseInt(q.get('latency') || '30', 10) });
+  const games = await loadGames();
+  window.loadedGames = games.map(g => g.id);
+  const COLORS = ['#ff5fa2', '#3fe0d0', '#ffd43b', '#9775fa', '#69db7c', '#ff8c42'];
+  const NAMES = ['Ana', 'Bo', 'Cy', 'Di', 'Ed', 'Fay'];
+  const seats = [];
+  window.seats = seats;
+  window.errors = [];
+  addEventListener('error', e => window.errors.push(String(e.message)));
+
+  for (let i = 0; i < n; i++) {
+    const me = { id: `client${i + 1}`, name: NAMES[i], color: COLORS[i] };
+    const studio = createStudio();
+    studio.setAvatar(me.name, me.color);
+    const expr = {};
+    studio.setFakeFace((t, w, h) => syntheticFace(w, h, expr));
+    const net = createNet({ game: 'chat', room: 'harness', me, rooms: fake });
+    const el = document.createElement('div');
+    el.className = 'seat';
+    el.innerHTML = `<div class="seat-head"></div><div class="expr"></div><div class="panel"></div><div class="log"></div>`;
+    el.querySelector('.seat-head').append(studio.canvas, document.createTextNode(`Seat ${i + 1}: ${me.name}`));
+    for (const k of ['smile', 'mouthOpen', 'pucker', 'browUp', 'frown', 'blinkL', 'blinkR', 'cheekPuff']) {
+      const b = document.createElement('button');
+      b.textContent = k;
+      b.setAttribute('aria-pressed', 'false');
+      b.onclick = () => {
+        expr[k] = expr[k] ? 0 : 1;
+        b.setAttribute('aria-pressed', String(!!expr[k]));
+      };
+      el.querySelector('.expr').append(b);
+    }
+    if (q.get('expr') === '0') el.querySelector('.expr').hidden = true;
+    document.getElementById('seats').append(el);
+    const log = el.querySelector('.log');
+    const seat = { i, me, net, studio, expr, el, log: [] };
+    const gh = createGameHost({
+      net,
+      studio,
+      mediaOf: id => seats.find(s => s.me.id === id)?.studio.canvas ?? null,
+      toast: text => { seat.log.push(text); log.textContent = seat.log.slice(-3).join(' · '); },
+      onOpen: c => el.querySelector('.panel').append(c.el),
+      onClose: c => c.el.remove(),
+    });
+    gh.register(games);
+    seat.gh = gh;
+    seat.pad = pad => gh.current?.instance.onPad?.({ x: 0, y: 0, rx: 0, ry: 0, pressed: [], edge: () => false, a: false, b: false, xBtn: false, yBtn: false, up: false, down: false, left: false, right: false, rt: 0, lt: 0, ...pad });
+    seats.push(seat);
+  }
+
+  const start = () => {
+    seats[0].gh.open(gameId);
+    const joinLater = seat => {
+      const s = seat.gh.sessions().find(x => x.id === gameId);
+      if (s) seat.gh.join(s);
+      else setTimeout(() => joinLater(seat), 150);
+    };
+    seats.slice(1).forEach((seat, k) => setTimeout(() => joinLater(seat), 300 + k * 200));
+  };
+  // Wait until every seat is connected to the fake relay.
+  const wait = () => (seats.every(s => s.net.status === 'connected') ? setTimeout(start, 200) : setTimeout(wait, 50));
+  if (q.get('autostart') !== '0') wait();
+  window.ready = true;
+</script>
+</body>
+</html>

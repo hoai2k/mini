@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bubble Chat</title>
+<meta name="description" content="Video chat with silly face effects and minigames.">
+<meta name="theme-color" content="#2b1f4a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>">
+<script>
+  // Cameras only work on secure pages, so move plain-HTTP visits to HTTPS.
+  if (location.protocol === 'http:' && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+    location.replace('https:' + location.href.slice(5));
+  }
+</script>
+<link rel="stylesheet" href="styles.css">
+<script src="mini-rooms.js"></script>
+<script type="module" src="js/main.js"></script>
+</head>
+<body>
+<canvas id="bg-bubbles" aria-hidden="true"></canvas>
+
+<!-- Title screen -->
+<section id="title" class="screen active" aria-labelledby="logo-text">
+  <div class="title-inner">
+    <h1 id="logo" class="logo">
+      <img id="logo-img" alt="" hidden>
+      <span id="logo-text">Bubble Chat</span>
+    </h1>
+    <p class="tagline">Video chat with silly faces and quick games. Everyone here joins the same chat.</p>
+    <form id="join-form" class="join-form" autocomplete="off">
+      <label class="field">
+        <span>Your name</span>
+        <input id="name-input" name="name" maxlength="20" required placeholder="Type your name">
+      </label>
+      <div class="colors" role="radiogroup" aria-label="Your colour" id="color-picker"></div>
+      <button id="start-btn" class="press-start" type="submit">Press Start</button>
+      <p class="fine">Your browser will ask to use your camera and microphone.</p>
+    </form>
+    <p class="pad-hint" id="pad-hint" hidden>Move left stick for options</p>
+  </div>
+  <nav class="utility" aria-label="Options">
+    <button class="icon-btn" data-open="instructions" aria-label="Instructions" title="Instructions">?</button>
+    <button class="icon-btn" data-open="settings" aria-label="Settings" title="Settings">⚙</button>
+    <button class="icon-btn" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">⛶</button>
+  </nav>
+</section>
+
+<!-- Call screen -->
+<section id="call" class="screen" aria-label="Chat">
+  <header class="topbar">
+    <span class="brand">🫧 <span class="brand-name">Bubble Chat</span></span>
+    <span id="status" class="status" aria-live="polite">Connecting…</span>
+    <span class="spacer"></span>
+    <button class="icon-btn small" data-open="instructions" aria-label="Instructions" title="Instructions">?</button>
+    <button class="icon-btn small" data-open="settings" aria-label="Settings" title="Settings">⚙</button>
+    <button class="icon-btn small" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">⛶</button>
+  </header>
+
+  <div id="main" class="main">
+    <div id="stage" class="stage" data-count="1"></div>
+    <section id="game-panel" class="game-panel" hidden aria-label="Game">
+      <header class="game-head">
+        <span id="game-title" class="game-title"></span>
+        <span id="game-players" class="game-players"></span>
+        <button id="game-close" class="btn ghost" type="button">Leave game</button>
+      </header>
+      <div id="game-mount" class="game-mount"></div>
+    </section>
+  </div>
+
+  <div id="invites" class="invites" aria-live="polite"></div>
+  <div id="effect-hint" class="effect-hint" hidden></div>
+
+  <div id="tray-effects" class="tray" hidden aria-label="Face effects">
+    <div class="tray-head"><h2>Face effects</h2><span id="face-status" class="muted"></span></div>
+    <span id="tray-hint" class="tray-hint" hidden></span>
+    <div id="effect-list" class="effect-list"></div>
+  </div>
+
+  <div id="tray-games" class="tray" hidden aria-label="Games">
+    <div class="tray-head"><h2>Games</h2><span class="muted">Start one and friends can join</span></div>
+    <div id="session-list" class="session-list"></div>
+    <div id="game-list" class="game-list"></div>
+  </div>
+
+  <aside id="chat-box" class="chat-box" hidden aria-label="Messages">
+    <div id="chat-log" class="chat-log" aria-live="polite"></div>
+    <form id="chat-form" class="chat-form" autocomplete="off">
+      <input id="chat-input" maxlength="200" placeholder="Say something…" aria-label="Message">
+      <button class="btn" type="submit">Send</button>
+    </form>
+  </aside>
+
+  <nav class="controls" aria-label="Call controls">
+    <button id="btn-mic" class="ctrl" type="button" aria-pressed="true"><span class="ico">🎤</span><span class="lbl">Mic</span></button>
+    <button id="btn-cam" class="ctrl" type="button" aria-pressed="true"><span class="ico">📷</span><span class="lbl">Camera</span></button>
+    <button id="btn-effects" class="ctrl" type="button" aria-expanded="false"><span class="ico">✨</span><span class="lbl">Effects</span></button>
+    <button id="btn-games" class="ctrl" type="button" aria-expanded="false"><span class="ico">🎮</span><span class="lbl">Games</span><span id="games-badge" class="badge" hidden></span></button>
+    <button id="btn-chat" class="ctrl" type="button" aria-expanded="false"><span class="ico">💬</span><span class="lbl">Chat</span><span id="chat-badge" class="badge" hidden></span></button>
+    <button id="btn-leave" class="ctrl danger" type="button"><span class="ico">👋</span><span class="lbl">Leave</span></button>
+  </nav>
+</section>
+
+<canvas id="fly" class="fly" aria-hidden="true"></canvas>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<!-- Dialogs -->
+<dialog id="instructions" class="dialog" aria-labelledby="instructions-title">
+  <form method="dialog" class="dialog-inner">
+    <h2 id="instructions-title">How to play</h2>
+    <div class="dialog-scroll" tabindex="0">
+      <p>Bubble Chat puts everyone who opens this page in the same video chat. Pick a name, press Start and allow the camera and microphone.</p>
+      <h3>Face effects</h3>
+      <p>Open <b>Effects</b> and pick one. Everyone sees your effect, because it is drawn on the video you send. Many react to your face: <b>pucker your lips</b> to blow a bubble that floats over and pops on your friend's face, <b>open your mouth</b> for the dragon's fire or the rainbow, <b>smile</b> for hearts or sunglasses, <b>raise your eyebrows</b> to drop the monocle. With no camera face, hold <b>Space</b> (or press and hold your own video) instead.</p>
+      <h3>Games</h3>
+      <p>Open <b>Games</b> and start one. Friends get a <b>Join</b> button. Scores and records are kept on this device.</p>
+      <h3>Controls</h3>
+      <table class="keys">
+        <tr><th>Action</th><th>Keyboard / pointer</th><th>Xbox controller</th></tr>
+        <tr><td>Move between buttons</td><td>Tab, arrow keys</td><td>D-pad or left stick</td></tr>
+        <tr><td>Press a button</td><td>Enter, Space, click or tap</td><td>A</td></tr>
+        <tr><td>Close a tray, dialog or game</td><td>Escape</td><td>B</td></tr>
+        <tr><td>Effects / Games</td><td>E / G</td><td>X / Y</td></tr>
+        <tr><td>Mute mic</td><td>M</td><td>View</td></tr>
+        <tr><td>Bubble without face tracking</td><td>Hold Space or your video</td><td>Hold RT</td></tr>
+      </table>
+      <svg class="pad-diagram" viewBox="0 0 360 200" role="img" aria-label="Xbox controller: left stick and D-pad move focus, A presses, B closes, X opens effects, Y opens games, View mutes, right trigger blows a bubble">
+        <path d="M70 60 Q180 30 290 60 Q345 75 340 140 Q335 190 290 180 Q255 170 235 140 L125 140 Q105 170 70 180 Q25 190 20 140 Q15 75 70 60Z" fill="#3a2d63" stroke="#c8b8ff" stroke-width="3"/>
+        <circle cx="105" cy="95" r="18" fill="#21183d" stroke="#c8b8ff" stroke-width="2"/>
+        <rect x="128" y="118" width="12" height="34" rx="2" fill="#21183d"/><rect x="117" y="129" width="34" height="12" rx="2" fill="#21183d"/>
+        <circle cx="255" cy="80" r="9" fill="#ffd43b"/><circle cx="237" cy="98" r="9" fill="#4dabf7"/><circle cx="273" cy="98" r="9" fill="#ff6b6b"/><circle cx="255" cy="116" r="9" fill="#69db7c"/>
+        <circle cx="160" cy="88" r="6" fill="#21183d"/><rect x="262" y="34" width="44" height="12" rx="6" fill="#21183d"/>
+        <g font-size="11" fill="#fff" font-family="system-ui">
+          <text x="4" y="30">Stick / D-pad: move</text><text x="250" y="16">RT: bubble</text>
+          <text x="282" y="122">B: close</text><text x="232" y="146">A: press</text>
+          <text x="200" y="72">Y: games</text><text x="180" y="112">X: fx</text>
+          <text x="120" y="70">View: mute</text>
+        </g>
+      </svg>
+      <h3>Good to know</h3>
+      <p>Calls go straight between browsers. On some strict networks (some offices and mobile carriers) the video can't connect; the chat and games still work.</p>
+    </div>
+    <div class="dialog-actions"><button class="btn" value="close" autofocus>Close</button></div>
+  </form>
+</dialog>
+
+<dialog id="settings" class="dialog" aria-labelledby="settings-title">
+  <form method="dialog" class="dialog-inner">
+    <h2 id="settings-title">Settings</h2>
+    <div class="dialog-scroll">
+      <label class="field"><span>Your name</span><input id="set-name" maxlength="20"></label>
+      <div class="field"><span>Your colour</span><div class="colors" id="set-colors" role="radiogroup" aria-label="Your colour"></div></div>
+      <label class="field range"><span>Sound effects</span><input id="set-volume" type="range" min="0" max="1" step="0.05"></label>
+      <label class="field check"><input id="set-motion" type="checkbox"><span>Reduce motion</span></label>
+    </div>
+    <div class="dialog-actions"><button class="btn" value="close">Done</button></div>
+  </form>
+</dialog>
+</body>
+</html>

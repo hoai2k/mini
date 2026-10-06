@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Effect preview</title>
+<style>
+  body { margin: 0; background: #222; color: #eee; font: 14px system-ui; }
+  canvas { display: block; max-width: 100%; }
+  #info { padding: 6px 10px; }
+</style>
+</head>
+<body>
+<div id="info">loading…</div>
+<div id="out"></div>
+<script type="module">
+  // Preview one effect with a synthetic face on top of the camera (or the
+  // avatar card when there is no camera). See effects/README.md.
+  import { createStudio } from '../js/studio.js';
+  import { syntheticFace } from '../js/face.js';
+  import { loadEffects } from '../effects/index.js';
+
+  const q = new URLSearchParams(location.search);
+  const num = k => (q.has(k) ? parseFloat(q.get(k)) : 0);
+  let currentExpr = {};
+
+  // Unless ?face=0, the "camera" is a drawn cartoon face that sits exactly
+  // where the synthetic face says, so stickers and warps have a face to act on.
+  if (q.get('face') !== '0') {
+    const src = document.createElement('canvas');
+    src.width = 640;
+    src.height = 480;
+    const c = src.getContext('2d');
+    const drawFace = () => {
+      const f = syntheticFace(640, 480, currentExpr);
+      c.fillStyle = '#6d8fb3';
+      c.fillRect(0, 0, 640, 480);
+      c.fillStyle = '#4b6584';
+      for (let i = 0; i < 640; i += 80) c.fillRect(i, 380, 40, 100);
+      // The studio mirrors the camera, so draw the face mirrored here.
+      c.save();
+      c.translate(640, 0);
+      c.scale(-1, 1);
+      const s = f.scale / 240;
+      c.translate(f.eyeMid.x, f.eyeMid.y);
+      c.rotate(f.roll);
+      c.scale(s, s);
+      c.translate(-512, -520);
+      c.fillStyle = '#3b2a20';
+      c.beginPath(); c.ellipse(512, 470, 270, 300, 0, Math.PI, 0); c.fill();
+      c.fillStyle = '#f2c4a0';
+      c.beginPath(); c.ellipse(512, 560, 240, 330, 0, 0, Math.PI * 2); c.fill();
+      c.fillRect(440, 860, 144, 200);
+      c.fillStyle = '#fff';
+      for (const x of [392, 632]) {
+        c.beginPath(); c.ellipse(x, 520, 50, 26 * (1 - (currentExpr.blinkL ?? 0)), 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = '#3a2a1a'; c.beginPath(); c.arc(x, 520, 16, 0, Math.PI * 2); c.fill(); c.fillStyle = '#fff';
+      }
+      c.strokeStyle = '#3b2a20'; c.lineWidth = 12;
+      const lift = (currentExpr.browUp ?? 0) * 40 - (currentExpr.frown ?? 0) * 20;
+      for (const x of [392, 632]) { c.beginPath(); c.moveTo(x - 60, 455 - lift); c.lineTo(x + 60, 455 - lift); c.stroke(); }
+      c.strokeStyle = '#c98b6a'; c.lineWidth = 8;
+      c.beginPath(); c.moveTo(512, 560); c.lineTo(490, 640); c.lineTo(530, 640); c.stroke();
+      const open = currentExpr.mouthOpen ?? 0, pucker = currentExpr.pucker ?? 0, smile = currentExpr.smile ?? 0;
+      c.fillStyle = '#7a2230';
+      c.beginPath();
+      c.ellipse(512, 740 + open * 30, 90 * (1 - pucker * 0.65) + smile * 25, 12 + open * 60 + pucker * 18, 0, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+      requestAnimationFrame(drawFace);
+    };
+    drawFace();
+    const fake = src.captureStream(30);
+    navigator.mediaDevices.getUserMedia = async () => fake;
+  }
+
+  const studio = createStudio();
+  document.getElementById('out').append(studio.canvas);
+  studio.setAvatar('Test', '#7a5cff');
+  if (q.get('camera') !== '0') await studio.startDevices();
+  studio.setPeerCount(num('peers'));
+  const expr = {
+    smile: num('smile'), mouthOpen: num('mouthOpen'), pucker: num('pucker'), browUp: num('browUp'),
+    frown: num('frown'), cheekPuff: num('cheekPuff'), blinkL: num('blinkL'), blinkR: num('blinkR'),
+    roll: num('roll'),
+  };
+  const cycle = ['smile', 'mouthOpen', 'pucker', 'browUp', 'frown'];
+  studio.setFakeFace((t, w, h) => {
+    if (q.get('animate') === '1') {
+      const which = cycle[Math.floor(t / 2) % cycle.length];
+      const e = { roll: Math.sin(t) * 0.15 };
+      e[which] = Math.min(1, (t % 2) * 1.5);
+      currentExpr = e;
+    } else {
+      currentExpr = expr;
+    }
+    return syntheticFace(w, h, currentExpr);
+  });
+  studio.input.held = q.get('held') === '1';
+  const effects = await loadEffects();
+  const fx = effects.find(e => e.id === q.get('fx'));
+  studio.setEffect(fx || null);
+  const events = [];
+  studio.on('fx-event', e => events.push(e));
+  window.fxEvents = events;
+  document.getElementById('info').textContent = fx ? `${fx.emoji} ${fx.name}: ${fx.hint}` : `no effect "${q.get('fx')}" (loaded: ${effects.map(e => e.id).join(', ')})`;
+  window.loadedEffects = effects.map(e => e.id);
+  window.ready = true;
+</script>
+</body>
+</html>
