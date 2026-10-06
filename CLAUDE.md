@@ -13,6 +13,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `widowsbay/` | Widow's Bay | https://hoai2k.github.io/mini/widowsbay/ |
 | `bronzedrum/` | Bronze Drum | https://hoai2k.github.io/mini/bronzedrum/ |
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
+| `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen) | https://hoai2k.github.io/mini/gliders/ |
 | `chat/` | Bubble Chat (video chat with face effects and minigames) | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |
@@ -87,7 +88,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`). The user drops files there for
+`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#2b1f4a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Gliders">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <title>Gliders</title>
+  <meta name="description" content="Glide through colourful floating structures as a flying squirrel, a Microraptor, a flying fish and more. One to four players on one screen.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="stage" aria-label="Gliders"></canvas>
+    <div id="title-bg" aria-hidden="true"></div>
+
+    <!-- Title -->
+    <section id="title" class="screen" aria-labelledby="logo-text">
+      <div class="title-block">
+        <img id="logo-img" alt="Gliders" hidden>
+        <h1 id="logo-text" class="logo-text" aria-label="Gliders"><span>G</span><span>L</span><span>I</span><span>D</span><span>E</span><span>R</span><span>S</span></h1>
+        <p class="tagline">Glide close. Bank big. Don’t crash.</p>
+        <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
+        <p class="hint" id="title-hint">Move left stick for options</p>
+      </div>
+      <div class="corner-buttons">
+        <button class="icon-btn" data-nav data-open="instructions" aria-label="Instructions" title="Instructions">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9a5 5 0 0 1 5 5v11H8a3 3 0 0 1-3-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 9h6M9 13h6" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Instructions</span>
+        </button>
+        <button class="icon-btn" data-nav data-open="settings" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Settings</span>
+        </button>
+        <button class="icon-btn" data-nav data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Fullscreen</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Lobby: join and choose gliders -->
+    <section id="lobby" class="screen" hidden aria-labelledby="lobby-title">
+      <header class="screen-head">
+        <h2 id="lobby-title">Choose your gliders</h2>
+        <p class="muted" id="lobby-hint">Controllers: press <span class="xb xb-a">A</span> to join · Keyboard: <kbd>Space</kbd> (WASD side) or <kbd>Enter</kbd> (arrow keys side)</p>
+      </header>
+      <div id="slots" class="slots"></div>
+      <footer class="screen-foot">
+        <button class="text-btn" data-nav data-action="title">Back</button>
+        <button class="text-btn" data-nav data-action="join-keyboard" id="join-kb">Join with keyboard</button>
+        <button class="text-btn primary" data-nav data-action="lobby-continue" id="lobby-continue">Continue</button>
+      </footer>
+    </section>
+
+    <!-- Level select -->
+    <section id="levels" class="screen" hidden aria-labelledby="levels-title">
+      <header class="screen-head">
+        <h2 id="levels-title">Choose a sky</h2>
+        <div class="options">
+          <button class="cycle" data-nav data-cycle="mode" id="opt-mode"><span class="cycle-label">Scoring</span><span class="cycle-value"></span></button>
+          <button class="cycle" data-nav data-cycle="length" id="opt-length"><span class="cycle-label">Round</span><span class="cycle-value"></span></button>
+        </div>
+      </header>
+      <div class="levels-body">
+        <div id="level-grid" class="level-grid"></div>
+        <aside class="level-info" aria-live="polite">
+          <h3 id="level-name"></h3>
+          <p id="level-blurb" class="muted"></p>
+          <h4>Best scores</h4>
+          <ol id="level-scores" class="scores"></ol>
+        </aside>
+      </div>
+      <footer class="screen-foot">
+        <button class="text-btn" data-nav data-action="lobby">Back</button>
+        <span class="muted foot-hint">Choose a sky to fly it · <span class="xb xb-y">Y</span> / <kbd>R</kbd> new random seed</span>
+      </footer>
+    </section>
+
+    <!-- In play -->
+    <div id="hud" hidden>
+      <div id="views"></div>
+      <div id="hud-timer" class="hud-timer"></div>
+      <div id="spare" class="spare" hidden></div>
+      <div id="countdown" class="countdown" hidden></div>
+      <div id="banner" class="banner" hidden></div>
+    </div>
+
+    <section id="pause" class="screen modal" hidden aria-labelledby="pause-title">
+      <div class="panel">
+        <h2 id="pause-title">Paused</h2>
+        <p id="pause-reason" class="muted"></p>
+        <button class="menu-btn" data-nav data-action="resume">Resume</button>
+        <button class="menu-btn" data-nav data-open="instructions">Instructions</button>
+        <button class="menu-btn" data-nav data-open="settings">Settings</button>
+        <button class="menu-btn" data-nav data-action="restart">Restart round</button>
+        <button class="menu-btn" data-nav data-action="end-round">End round now</button>
+        <button class="menu-btn" data-nav data-action="levels">Choose another sky</button>
+        <button class="menu-btn" data-nav data-action="title">Return to title</button>
+      </div>
+    </section>
+
+    <section id="results" class="screen modal" hidden aria-labelledby="results-title">
+      <div class="panel wide">
+        <h2 id="results-title">Results</h2>
+        <p id="results-level" class="muted"></p>
+        <ol id="results-list" class="results-list"></ol>
+        <div class="row-buttons">
+          <button class="menu-btn" data-nav data-action="restart">Fly again</button>
+          <button class="menu-btn" data-nav data-action="levels">Choose another sky</button>
+          <button class="menu-btn" data-nav data-action="lobby">Change gliders</button>
+          <button class="menu-btn" data-nav data-action="title">Title</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="instructions" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="ins-title">
+      <div class="panel wide">
+        <h2 id="ins-title">How to glide</h2>
+        <div class="scroll" id="ins-scroll" tabindex="0">
+          <p><strong>Objective.</strong> Score the most points in the round. Everyone flies the same sky at the same time, one view each.</p>
+          <p><strong>Fly close.</strong> Flying near any block fills your <em>combo</em>: the closer and faster, the faster it fills. Your contrails glow and the surface lights up in your colour while it counts.</p>
+          <p><strong>Tricks raise the multiplier</strong> (+1 each) while you are close: <b>Thread</b> a gap with blocks on both sides, fly a <b>Tunnel</b>, <b>Skim</b> a surface very close, fly <b>Upside down</b>, go at <b>Blazing</b> speed, or keep the <b>Flow</b> going for six seconds.</p>
+          <p><strong>Bank it.</strong> Fly clear of everything for two seconds and the combo times the multiplier is banked into your score. Touch a block first and the whole combo is lost. Dive into the clouds below or fly off the edge and you are sent back to the start, combo banked.</p>
+          <p><strong>Scoring modes.</strong> <b>Best run</b> (as in Superflight): a crash ends your run and you start again from the top; your score is your best run of the round. <b>Score attack</b>: everything you bank counts; a crash only loses the open combo.</p>
+          <p><strong>Flying.</strong> Dive to gain speed; climbing spends it, and too slow you stall and the nose drops. Bank to turn, and pull up while banked to turn tighter. Tuck in to dive faster; flare out to brake and float.</p>
+          <h3>Xbox controller</h3>
+          <div class="pad-diagram" aria-hidden="true">
+            <svg viewBox="0 0 640 300">
+              <path d="M180 70 Q320 40 460 70 Q540 80 570 190 Q590 270 530 270 Q490 270 460 220 L180 220 Q150 270 110 270 Q50 270 70 190 Q100 80 180 70 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+              <rect x="150" y="36" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="185" y="49" text-anchor="middle" font-size="12" fill="currentColor">LB</text>
+              <rect x="420" y="36" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="455" y="49" text-anchor="middle" font-size="12" fill="currentColor">RB</text>
+              <rect x="160" y="10" width="50" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="185" y="25" text-anchor="middle" font-size="12" fill="currentColor">LT</text>
+              <rect x="430" y="10" width="50" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="455" y="25" text-anchor="middle" font-size="12" fill="currentColor">RT</text>
+              <circle cx="190" cy="125" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="190" y="129" text-anchor="middle" font-size="11" fill="currentColor">L stick</text>
+              <path d="M240 175h16v-16h16v16h16v16h-16v16h-16v-16h-16z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="380" cy="190" r="20" fill="none" stroke="currentColor" stroke-width="2"/><text x="380" y="194" text-anchor="middle" font-size="10" fill="currentColor">R stick</text>
+              <circle cx="450" cy="100" r="15" fill="#e8b830"/><text x="450" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#1b1430">Y</text>
+              <circle cx="420" cy="128" r="15" fill="#3d7bd9"/><text x="420" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">X</text>
+              <circle cx="480" cy="128" r="15" fill="#d9443d"/><text x="480" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">B</text>
+              <circle cx="450" cy="156" r="15" fill="#4caf50"/><text x="450" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A</text>
+              <rect x="300" y="110" width="16" height="10" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="308" y="104" text-anchor="middle" font-size="10" fill="currentColor">View</text>
+              <rect x="330" y="110" width="16" height="10" rx="4" fill="currentColor"/><text x="338" y="104" text-anchor="middle" font-size="10" fill="currentColor">Menu</text>
+              <g font-size="13" fill="currentColor">
+                <line x1="168" y1="125" x2="40" y2="110" stroke="currentColor"/><text x="6" y="98" font-weight="700">Pitch and roll</text>
+                <line x1="160" y1="20" x2="40" y2="20" stroke="currentColor"/><text x="6" y="16">LT · flare (brake)</text>
+                <line x1="480" y1="20" x2="600" y2="20" stroke="currentColor"/><text x="500" y="16">RT · tuck (dive)</text>
+                <line x1="150" y1="45" x2="40" y2="50" stroke="currentColor"/><text x="6" y="64">LB · RB · rudder</text>
+                <line x1="465" y1="160" x2="600" y2="200" stroke="currentColor"/><text x="520" y="216">A · tuck</text>
+                <line x1="405" y1="128" x2="380" y2="240" stroke="currentColor"/><text x="350" y="256">X · flare</text>
+                <line x1="380" y1="210" x2="330" y2="290" stroke="currentColor"/><text x="230" y="296">R stick ◀ ▶ · rudder</text>
+                <line x1="338" y1="100" x2="338" y2="76" stroke="currentColor"/><text x="300" y="70">Menu · pause</text>
+                <line x1="248" y1="200" x2="160" y2="290" stroke="currentColor"/><text x="40" y="296">D-pad · pitch and roll</text>
+              </g>
+            </svg>
+          </div>
+          <table class="map-table">
+            <tr><th>Action</th><th>Controller</th><th>Keyboard, WASD side</th><th>Keyboard, arrows side</th></tr>
+            <tr><td>Nose down / up</td><td>Left stick ▲ ▼ (or D-pad)</td><td>W / S</td><td>↑ / ↓</td></tr>
+            <tr><td>Roll left / right</td><td>Left stick ◀ ▶ (or D-pad)</td><td>A / D</td><td>← / →</td></tr>
+            <tr><td>Tuck in and dive</td><td>RT or <span class="xb xb-a">A</span></td><td>Space</td><td>Right Shift or /</td></tr>
+            <tr><td>Flare out and brake</td><td>LT or <span class="xb xb-x">X</span></td><td>Left Shift or C</td><td>Right Ctrl or '</td></tr>
+            <tr><td>Rudder</td><td>LB · RB, right stick ◀ ▶</td><td>Q / E</td><td>, / .</td></tr>
+            <tr><td>Pause</td><td>Menu or View</td><td colspan="2">Esc or P</td></tr>
+            <tr><td>Menus</td><td>Left stick / D-pad, <span class="xb xb-a">A</span> confirm, <span class="xb xb-b">B</span> back</td><td colspan="2">Arrows or WASD, Enter or Space, Esc; or the mouse</td></tr>
+          </table>
+          <p><strong>Joining.</strong> On the glider screen each player presses <span class="xb xb-a">A</span> on their own controller (or Space / Enter on the keyboard) to join. Then ◀ ▶ picks a glider, ▲ ▼ its colours, <span class="xb xb-y">Y</span> (F or \ on the keyboard) inverts the nose controls, and <span class="xb xb-a">A</span> again is ready. <span class="xb xb-b">B</span> steps back. Up to four players.</p>
+          <p class="muted">Pitch follows a plane by default: pull the stick back to pull the nose up. Invert it per player on the glider screen. Flight assist (Settings) gently levels the wings when you let go of the stick.</p>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Close</button>
+      </div>
+    </section>
+
+    <section id="settings" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="set-title">
+      <div class="panel">
+        <h2 id="set-title">Settings</h2>
+        <div class="scroll settings-list">
+          <label class="row">Volume <input type="range" min="0" max="100" step="5" data-nav data-setting="volume"><output></output></label>
+          <label class="row">Music <input type="range" min="0" max="100" step="5" data-nav data-setting="music"><output></output></label>
+          <label class="row">Sound effects <input type="range" min="0" max="100" step="5" data-nav data-setting="sfx"><output></output></label>
+          <label class="row">Flight assist <input type="range" min="0" max="2" step="1" data-nav data-setting="assist"><output></output></label>
+          <label class="row">Camera distance <input type="range" min="0" max="2" step="1" data-nav data-setting="camera"><output></output></label>
+          <label class="row">Field of view <input type="range" min="60" max="95" step="1" data-nav data-setting="fov"><output></output></label>
+          <label class="row">Graphics <input type="range" min="0" max="2" step="1" data-nav data-setting="quality"><output></output></label>
+          <label class="row check">Contrails <input type="checkbox" data-nav data-setting="trails"></label>
+          <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
+          <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Done</button>
+      </div>
+    </section>
+
+    <section id="confirm" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div class="panel">
+        <h2 id="confirm-title">Are you sure?</h2>
+        <p id="confirm-text" class="muted"></p>
+        <button class="menu-btn" data-nav data-action="confirm-yes">Yes</button>
+        <button class="menu-btn" data-nav data-action="close">No</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

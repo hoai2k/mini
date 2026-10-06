@@ -1,11 +1,66 @@
 # Gliders
 
 A Superflight-style gliding game for one to four players on one screen. Pick a
-glider (flying squirrel, Microraptor, flying fish, Draco lizard, flying frog or
-paradise tree snake) and dive through colourful floating block structures,
-scoring by flying close to surfaces and banking the combo before you crash.
+glider (flying squirrel, Microraptor, flying fish, Draco lizard, Wallace's
+flying frog or paradise tree snake) and dive through skies of colourful
+floating block structures. Flying close to the blocks fills your combo, tricks
+raise the multiplier, and clearing everything for two seconds banks it. Crash
+first and the combo is lost. Everyone flies the same sky at once, each in their
+own split-screen view, and the highest score when the clock runs out wins.
 
-The game is being built; the image requests are ready:
-[`design/image-requests.md`](design/image-requests.md), generated from
-[`design/source/build_requests.py`](design/source/build_requests.py).
-Drop generated images in [`intake/`](intake/README.md).
+Play it at https://hoai2k.github.io/mini/gliders/.
+
+- [`design/design.md`](design/design.md): the rules, scoring, flight model,
+  sky generator, gliders and controls.
+- [`design/image-requests.md`](design/image-requests.md): the image requests
+  (logo, title background, icon, glider portraits), generated from
+  [`design/source/build_requests.py`](design/source/build_requests.py), which
+  also writes `game/src/asset-list.js`. Edit the data there and rerun it.
+  Generated images go in [`intake/`](intake/README.md).
+- [`game/`](game/): the game, static ES modules with no build step. Three.js
+  r186 is vendored as `game/vendor/three.module.min.js` (MIT, licence beside it).
+
+| File | What it is |
+| --- | --- |
+| `game/src/main.js` | Screens, menus and navigation, lobby, level select, split-screen play, HUD, results |
+| `game/src/levels.js` | Seeded sky generator: palettes, formation kinds, the ten named skies, Daily and Random |
+| `game/src/world.js` | Collision and proximity: oriented boxes in a grid, distance and ray queries |
+| `game/src/flight.js` | The flight model |
+| `game/src/scoring.js` | Combo, tricks, multiplier, banking and crashes; the two modes |
+| `game/src/scene.js` | Rendering: block shader, sky, clouds, contrails, speed streaks, shadow, crash burst, split layout |
+| `game/src/creatures.js` | The six procedural gliders and their animation |
+| `game/src/input.js` | Controllers (up to four) and the two keyboard sides |
+| `game/src/audio.js` | Synthesised sound and music |
+| `game/src/store.js` | Saved settings and best scores |
+| `game/tools/creatures.html` | Dev viewer for the gliders (`?only=`, `?variant=`, `?pose=`, `?view=`); not published |
+
+## Controls
+
+| Action | Controller | Keyboard, WASD side | Keyboard, arrows side |
+| --- | --- | --- | --- |
+| Nose down / up | Left stick ▲ ▼ (pull back: nose up) or D-pad | W / S | ↑ / ↓ |
+| Roll | Left stick ◀ ▶ or D-pad | A / D | ← / → |
+| Tuck and dive | RT or A | Space | Right Shift or / |
+| Flare and brake | LT or X | Left Shift or C | Right Ctrl or ' |
+| Rudder | LB · RB, right stick | Q / E | , / . |
+| Pause | Menu or View | Esc or P | Esc or P |
+
+On the glider screen each player joins with A (or Space / Enter), then ◀ ▶
+glider, ▲ ▼ colours, Y (F / \ on keyboards) inverts pitch, A ready, B back.
+
+## Run and check
+
+```sh
+cd gliders/game
+python3 -m http.server 8124        # then open http://localhost:8124/
+node --test test/*.test.mjs        # levels, collision, flight, scoring, gliders
+node scripts/browser-check.mjs     # in Chromium: title → lobby (4 simulated controllers)
+                                   # → level select → play → pause → results; keyboard round
+python3 ../design/source/build_requests.py --check
+```
+
+`publish.sh` copies the game into the Pages output (`local/pages/gliders`).
+The browser check simulates Xbox controllers by replacing
+`navigator.getGamepads`; it runs with `?dt=0.05` so the slow software
+renderer still advances the clock. Testing with real Xbox controllers is
+still outstanding.
