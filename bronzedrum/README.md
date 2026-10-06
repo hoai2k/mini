@@ -105,16 +105,15 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-82 of the 88 requests have generated artwork, including BD-C14, the wider drum
+All 88 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets
 (BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in
-`design/references/` and 62 game images in `game/assets/art/`. The set follows
+`design/references/` and 68 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 
-Six are open: BD-U20 and BD-U21, close-ups of the sisters' forearms and sticks
-that swing onto the HUD drum on each stroke, and BD-U22 to BD-U25, other kinds of
-stick drawn to the same positions, to choose from or vary by chapter. The game
-draws stand-ins until they arrive.
+BD-U20 and BD-U21 are delivered close-ups of the sisters' forearms and sticks
+that swing onto the HUD drum on each stroke. BD-U22 to BD-U25 are delivered
+alternatives, available to choose from or vary by chapter.
 
 [`design/image-deliveries.json`](design/image-deliveries.json) records the exact
 generation and correction prompts, references, native image sizes, export sizes,
@@ -136,20 +135,21 @@ land on the drum. The elephant and spearwoman sheets are not cut yet.
 Over the HUD drum, the sisters' sticks are seen close up: on a deep stroke
 Trắc's beater swings in from the bottom left onto the sun-star, on a rim stroke
 Nhị's stick comes in from the right onto the rim, and each lifts away
-(`closeSticks` in `render/hud.js`). They are drawn stand-ins until BD-U20 and
-BD-U21 arrive; BD-U22 to BD-U25 are other kinds of stick to the same layout.
+(`closeSticks` in `render/hud.js`). BD-U20 and BD-U21 replace the stand-ins;
+BD-U22 to BD-U25 are other kinds of stick to the same layout.
 
-The manifest's `runtime` flag distinguishes the 56 images used by the prototype
-from the 6 delivered sheets it does not use directly: the four puppet-rig sheets
-(cut into rigs instead) and the glyph and icon sheets. They remain available
+The manifest's `runtime` flag distinguishes the 58 images used by the prototype
+from the 10 delivered assets it does not use directly: the four puppet-rig sheets
+(cut into rigs instead), the glyph and icon sheets, and the four alternative
+close-up sticks. They remain available
 for production work without being downloaded at game startup. The effects
 sheets are in use: hits and deflections burst into the paper scraps (BD-F01,
 picked by colour), the arrows and bolts fly as BD-F02, and when the drum wakes
 its rings (BD-F03) spread from the drum.
 
 The PNGs in `game/assets/art/` are the masters, kept at the requested sizes.
-The game loads WebP copies scaled to the size it actually draws them at (4.6 MB
-in all). Only these copies are published. After
+The game loads WebP copies scaled to the size it actually draws them at (6.0 MB
+in all, including the alternative sticks). Only these copies are published. After
 delivering or replacing art, rerun
 [`design/source/build_web_art.py`](design/source/build_web_art.py) and then
 `build_requests.py`. The renderer also tints the painted parallax layers to

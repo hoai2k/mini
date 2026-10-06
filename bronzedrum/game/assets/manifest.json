@@ -278,23 +278,25 @@
       "id": "hud-stick-trac",
       "request": "BD-U20",
       "file": "art/hud-stick-trac.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/hud-stick-trac.webp"
     },
     {
       "id": "hud-stick-nhi",
       "request": "BD-U21",
       "file": "art/hud-stick-nhi.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "ui",
-      "runtime": true
+      "runtime": true,
+      "web": "web/hud-stick-nhi.webp"
     },
     {
       "id": "hud-stick-trac-pestle",
       "request": "BD-U22",
       "file": "art/hud-stick-trac-pestle.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "ui",
       "runtime": false
     },
@@ -302,7 +304,7 @@
       "id": "hud-stick-trac-lacquer",
       "request": "BD-U23",
       "file": "art/hud-stick-trac-lacquer.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "ui",
       "runtime": false
     },
@@ -310,7 +312,7 @@
       "id": "hud-stick-nhi-bamboo",
       "request": "BD-U24",
       "file": "art/hud-stick-nhi-bamboo.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "ui",
       "runtime": false
     },
@@ -318,7 +320,7 @@
       "id": "hud-stick-nhi-horn",
       "request": "BD-U25",
       "file": "art/hud-stick-nhi-horn.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "ui",
       "runtime": false
     },

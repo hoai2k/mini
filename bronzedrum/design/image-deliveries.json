@@ -1662,6 +1662,103 @@
       ],
       "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A long, low ceremonial wooden palanquin carried on two poles by four Lac Viet women in feather crowns, walking right, the poles on their shoulders. On its flat deck, in the middle, a large Dong Son bronze drum banded with rings, its top a sun-star. The two ends of the deck are empty and level, room for two people to stand and drum. The deck's edge is carved with a band of herons and boats in cut detail. Ink-black bearers and wood, a warm bronze drum.\nPRODUCTION SPRITE GEOMETRY, mandatory: 2400x1200, transparent. The deck's top is one straight, level line at exactly 42% of the height measured up from the bottom edge (58% down from the top), spanning the middle 80% of the width. The drum sits on the deck in the middle third. Two empty standing places on the deck, centred at 22% and 78% of the width and each about 16% wide, with nothing drawn above the deck there (no railing taller than 3% of the height, no canopy, no posts). Four bearers carry the poles on their shoulders, the poles just under the deck, their feet on the bottom edge. One cut-paper group, side profile, full bodies, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.\nCanvas aspect 2:1, exported at 2400x1200. Treat the full canvas as a coordinate grid: deck top at y=696 (58% down), from x=240 to x=2160. Empty standing zones x=336..720 and x=1680..2064, everything above y=696 in these zones is TRANSPARENT. Bronze drum entirely within x=800..1600, resting on the deck. Four women bearers all BELOW the deck, facing right; heads and feather crowns below y=696; feet at y=1200, mid-stride. No sisters or riders on the deck: the game overlays them separately. The upper part of the canvas is intentionally mostly empty alpha; do NOT crop it away or vertically centre the group. No ground, scenery, cast shadow, exterior glow, canopy, poles above deck or railing. Flat side elevation, no perspective tilting of deck. Only one group asset.",
       "correctionPrompt": "Correct the layout of this transparent paper-cut palanquin sprite. Keep its style, bronze drum and exactly four right-facing women bearers. The current deck is too short, and the bearers' heads intrude above it. EXTEND THE FLAT DECK to span from 10% to 90% of canvas width. Its top edge must lie at exactly 58% down the full 2:1 canvas height. The drum remains centred in the middle third resting on this edge. SHRINK AND LOWER ALL FOUR BEARERS so their entire bodies, heads and feather crowns fit BELOW this deck line, carrying shoulder poles immediately under the platform. Feet reach the bottom edge. Space four bearers under the deck rather than outside it. Completely clear everything above the deck in the left standing zone (14% to 30% width) and right standing zone (70% to 86% width). These two empty deck portions must remain visible and level for the game to overlay the sisters. No riders, canopy, scenery, glow or shadow. True transparent background. Do not trim the intentionally empty upper canvas. Precision side elevation sprite, 2400x1200 export."
+    },
+    {
+      "id": "BD-U20",
+      "file": "game/assets/art/hud-stick-trac.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-06",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full square canvas; preserve transparent background and corner entry",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a heavy wooden drum beater, seen from just behind her shoulder, matching Trưng Trắc's puppet (BD-R01): cream skin, a wide cuff of bronze and gold bands cut with dots and diamonds at the wrist, the edge of a black and bronze sleeve where the forearm leaves the image at the bottom-left corner. The beater is a stout dark wooden shaft with a flat round padded head wrapped in bronze-brown cloth, pointing to the upper right. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.\nExact production layout: 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-left corner, cut off clean by the edge; the wrist sits at 22% across and 78% down; the centre of the stick's striking head sits at 80% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.\nSquare full canvas retained. Wrist joint centred at (225,799), striking head centre at (819,205) on a 1024x1024 grid. The forearm enters diagonally from the bottom-left corner and is cut by both left and bottom canvas edges. One hand only, gripping the shaft. No full person, drum, backdrop, shadows outside the silhouette, or opaque halo. Keep transparent holes and outer background truly alpha. Do not trim or centre the group.",
+      "correctionPrompt": "Edit only the placement of this transparent forearm-and-beater sprite, preserving its design, paper texture, hand, bronze cuff and heavy bronze-brown cloth head. Square canvas. Move the WRIST JOINT (the skin-to-cuff junction where hand attaches to forearm) left so its centre lies exactly at 22% across and 78% down the image. Move the centre of the circular STRIKING HEAD to exactly 80% across and 20% down. Adjust the shaft length/angle as necessary to connect hand and head. Forearm still exits the bottom-left corner, cut clean by the bottom and left edges. These anchors must be honoured relative to the FULL canvas, not the artwork bounding box. Keep background truly transparent. No drum, no other objects, no glow halo, no cast shadow."
+    },
+    {
+      "id": "BD-U21",
+      "file": "game/assets/art/hud-stick-nhi.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-06",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full square canvas; preserve transparent background and corner entry",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a slender wooden drumstick, seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a brown and gold cuff cut with a row of cream diamonds at the wrist, a lacquer-red sleeve cut with white leaves where the forearm leaves the image at the bottom-right corner. The stick is a thin dark wooden rod ending in a small round polished wooden knob, pointing to the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.\nExact production layout: 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-right corner, cut off clean by the edge; the wrist sits at 78% across and 78% down; the centre of the stick's striking head sits at 20% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.\nSquare full canvas retained. Wrist joint centred at (799,799), tiny striking knob centre at (205,205) on a 1024x1024 grid. Forearm enters diagonally from the bottom-right corner and is cut cleanly by the right and bottom canvas edges. One hand only, gripping slender stick. Knob is small, not a padded mallet. No full person, drum, backdrop, external shadows or opaque halo. True alpha. Do not trim or centre the group."
+    },
+    {
+      "id": "BD-U22",
+      "file": "game/assets/art/hud-stick-trac-pestle.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-06",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full square canvas; preserve transparent background and corner entry",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Trắc's puppet (BD-R01): cream skin, a wide cuff of bronze and gold bands at the wrist, the edge of a black and bronze sleeve where the forearm leaves the image at the bottom-left corner. The stick is a long plain wooden pole like a rice pestle, thick and smooth with a rounded blunt end, the way drummers on the Đông Sơn drum friezes strike their drums, pointing to the upper right. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.\nExact production layout: 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-left corner, cut off clean by the edge; the wrist sits at 22% across and 78% down; the centre of the stick's striking head sits at 80% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.\nSquare full canvas retained. Wrist joint at (225,799), blunt striking end centred at (819,205) on a 1024x1024 grid. Forearm enters from bottom-left and meets both canvas edges. Single hand gripping a plain wooden pestle, no full person, no drum, background, cast shadow or external glow halo. Genuine alpha. Keep the wrist and striking tip at the specified points. Do not trim or centre the group."
+    },
+    {
+      "id": "BD-U23",
+      "file": "game/assets/art/hud-stick-trac-lacquer.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-06",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full square canvas; preserve transparent background and corner entry",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Trắc's puppet (BD-R01): cream skin, a wide cuff of bronze and gold bands at the wrist, the edge of a black and bronze sleeve where the forearm leaves the image at the bottom-left corner. The stick is a ceremonial beater with a lacquer-red shaft banded in gold, and a round head wrapped in cream cloth tied with red cord, pointing to the upper right. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.\nExact production layout: 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-left corner, cut off clean by the edge; the wrist sits at 22% across and 78% down; the centre of the stick's striking head sits at 80% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.\nSquare full canvas retained. Wrist joint at (225,799), round cream-cloth striking head centred at (819,205) on a 1024x1024 grid. Forearm enters from bottom-left and meets both canvas edges. Single hand gripping lacquer-red and gold ceremonial beater. No full person, drum, background, cast shadow or external glow halo. Genuine alpha. Do not trim or centre the group."
+    },
+    {
+      "id": "BD-U24",
+      "file": "game/assets/art/hud-stick-nhi-bamboo.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-06",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full square canvas; preserve transparent background and corner entry",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a brown and gold cuff cut with cream diamonds at the wrist, a lacquer-red sleeve cut with white leaves where the forearm leaves the image at the bottom-right corner. The stick is a slim stick of pale split bamboo with its nodes showing, the tip bound with a few turns of red thread, pointing to the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.\nExact production layout: 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-right corner, cut off clean by the edge; the wrist sits at 78% across and 78% down; the centre of the stick's striking head sits at 20% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.\nSquare full canvas retained. Wrist joint at (799,799), bamboo striking tip centred at (205,205) on a 1024x1024 grid. Forearm enters from bottom-right and meets both canvas edges. Single hand gripping thin bamboo, red bound tip. No full person, drum, backdrop, cast shadow or opaque external halo. Genuine alpha. Do not trim or centre the group."
+    },
+    {
+      "id": "BD-U25",
+      "file": "game/assets/art/hud-stick-nhi-horn.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-06",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full square canvas; preserve transparent background and corner entry",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a brown and gold cuff cut with cream diamonds at the wrist, a lacquer-red sleeve cut with white leaves where the forearm leaves the image at the bottom-right corner. The stick is a dark hardwood stick with a small polished buffalo-horn tip, a tassel of red thread hanging from the grip, pointing to the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.\nExact production layout: 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-right corner, cut off clean by the edge; the wrist sits at 78% across and 78% down; the centre of the stick's striking head sits at 20% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.\nSquare full canvas retained. Wrist joint at (799,799), small horn striking tip centred at (205,205) on a 1024x1024 grid. Forearm enters from bottom-right and meets both canvas edges. Single hand gripping dark hardwood stick with small horn tip and red tassel at grip. No full person, drum, backdrop, cast shadow or opaque external halo. Genuine alpha. Do not trim or centre the group."
     }
   ]
 }
