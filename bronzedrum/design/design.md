@@ -106,7 +106,9 @@ companion drummers and the touch buttons on a shield or a reset.
 The sisters strike the drum on the palanquin with every stroke (Trắc the
 centre, Nhị the rim), and their sticks are seen close up over the HUD drum:
 Trắc's from the bottom left onto the sun-star, Nhị's from the right onto the
-rim (BD-U20 and BD-U21, with BD-U22 to BD-U25 as other kinds of stick). Reduce motion
+rim (BD-U20 and BD-U21). Settings, Drumsticks swaps in other pairs: Folk, a
+pestle-like pole and a bamboo stick (BD-U22, BD-U24), or Ceremonial, a
+lacquered beater and a horn-tipped stick (BD-U23, BD-U25). Reduce motion
 turns the shiver off. Text is drawn larger, taps
 buzz briefly if Vibration is on, and an upright phone pauses with a prompt to
 turn it sideways. The button faces are request BD-U16; until it is delivered

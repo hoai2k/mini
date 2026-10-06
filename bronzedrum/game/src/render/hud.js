@@ -13,6 +13,13 @@ const STICKS = {
   R: { id: 'hud-stick-nhi', ang: Math.PI + 0.62, angTouch: Math.PI + 0.15, at: [0.9, -0.24], art: { wrist: [0.78, 0.78], head: [0.2, 0.2] } },
 };
 const STICK_LEN = 1.8; // wrist to head, in drum radii
+// The pairs of sticks the player can choose in Settings (Drumsticks): the
+// first is BD-U20/21, the others BD-U22 to BD-U25, all drawn to one layout.
+const STICK_SETS = [
+  { L: 'hud-stick-trac', R: 'hud-stick-nhi' },
+  { L: 'hud-stick-trac-pestle', R: 'hud-stick-nhi-bamboo' },
+  { L: 'hud-stick-trac-lacquer', R: 'hud-stick-nhi-horn' },
+];
 
 export const hud = {
   /**
@@ -51,7 +58,8 @@ export const hud = {
       g.shadowColor = 'rgba(0,0,0,0.45)';
       g.shadowBlur = 10;
       g.shadowOffsetY = 8 + 10 * away;
-      const img = this.art.get(st.id);
+      const set = STICK_SETS[this.stickSet] || STICK_SETS[0];
+      const img = this.art.get(set[drum]) || this.art.get(st.id);
       if (img) {
         // The delivered close-up, turned so its wrist-to-head line is ours.
         const a = st.art;

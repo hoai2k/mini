@@ -34,9 +34,12 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4 });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0 });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
 const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
+// The sisters' close-up sticks over the drum (render/hud.js STICK_SETS).
+const STICK_NAMES = ['Carved', 'Folk', 'Ceremonial'];
+const SETTING_NAMES = { difficulty: DIFFICULTY_NAMES, sticks: STICK_NAMES };
 function applyDifficulty() {
   setDifficulty(DIFFICULTIES[settings.difficulty] || 'medium');
   setBeatCount(settings.beats);
@@ -62,13 +65,14 @@ function applySettings() {
   sound.setMusic(settings.music / 100);
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
+  renderer.stickSet = settings.sticks;
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
     if (el.type === 'checkbox') el.checked = settings[k];
     else {
       el.value = settings[k];
-      el.nextElementSibling.textContent = k === 'difficulty' ? DIFFICULTY_NAMES[settings[k]] : settings[k];
+      el.nextElementSibling.textContent = SETTING_NAMES[k] ? SETTING_NAMES[k][settings[k]] : settings[k];
     }
   }
   // Mid-chapter the rhythms stay as they are until the next chapter starts.

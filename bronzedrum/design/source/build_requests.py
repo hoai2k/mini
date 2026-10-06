@@ -593,10 +593,11 @@ for rid, asset, who, corner, wrist, head, what in [
 ]:
     trac = who == "Trắc"
     req(U_, rid, asset, f"Close-up stick, another kind: {who}'s {asset.rsplit('-', 1)[1]}",
-        f"An alternative to {'BD-U20' if trac else 'BD-U21'}, drawn and animated the same way, so "
-        "one can be chosen, or the sticks can change from chapter to chapter.",
+        f"An alternative to {'BD-U20' if trac else 'BD-U21'}, drawn and animated the same way: "
+        "the player picks a pair under Settings, Drumsticks (Folk: BD-U22 and BD-U24; "
+        "Ceremonial: BD-U23 and BD-U25).",
         STICK_SPEC.format(corner=corner, wrist=wrist, head=head),
-        "delivered", None, f"art/{asset}.png",
+        "delivered", "Renderer.standinStick", f"art/{asset}.png",
         f"{STYLE} A close-up of one woman's forearm and hand gripping a drumstick, seen from just "
         f"behind her shoulder, matching Trưng {'Trắc' if trac else 'Nhị'}'s puppet "
         f"({'BD-R01' if trac else 'BD-R02'}): cream skin, "

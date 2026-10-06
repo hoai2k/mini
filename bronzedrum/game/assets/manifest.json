@@ -298,7 +298,8 @@
       "file": "art/hud-stick-trac-pestle.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": false
+      "runtime": true,
+      "web": "web/hud-stick-trac-pestle.webp"
     },
     {
       "id": "hud-stick-trac-lacquer",
@@ -306,7 +307,8 @@
       "file": "art/hud-stick-trac-lacquer.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": false
+      "runtime": true,
+      "web": "web/hud-stick-trac-lacquer.webp"
     },
     {
       "id": "hud-stick-nhi-bamboo",
@@ -314,7 +316,8 @@
       "file": "art/hud-stick-nhi-bamboo.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": false
+      "runtime": true,
+      "web": "web/hud-stick-nhi-bamboo.webp"
     },
     {
       "id": "hud-stick-nhi-horn",
@@ -322,7 +325,8 @@
       "file": "art/hud-stick-nhi-horn.png",
       "status": "delivered",
       "section": "ui",
-      "runtime": false
+      "runtime": true,
+      "web": "web/hud-stick-nhi-horn.webp"
     },
     {
       "id": "touch-buttons",
