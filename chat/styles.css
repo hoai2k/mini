@@ -383,3 +383,6 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
   .colors { gap: 6px; }
   .swatch { width: 30px; height: 30px; }
 }
+/* Secondary actions (Join, Ready) stay aqua so they stand apart from the accent. */
+.btn.aqua { background: var(--aqua); color: #102; box-shadow: 0 3px 0 #1f9389; }
+.btn.aqua:active { box-shadow: 0 1px 0 #1f9389; }
