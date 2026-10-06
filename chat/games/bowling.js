@@ -716,25 +716,25 @@ export default {
         ctx.stroke();
       }
       // Wood approach and lane.
-      const p0 = proj(0, -60, 0), p1 = proj(0, DECK_END, 0);
+      const p0 = proj(0, -140, 0), p1 = proj(0, DECK_END, 0);
       const wood = ctx.createLinearGradient(0, p1.y, 0, p0.y);
       wood.addColorStop(0, '#f2c27a');
       wood.addColorStop(0.5, '#e0a35a');
       wood.addColorStop(1, '#c98a46');
       ctx.fillStyle = wood;
-      quad(-LANE_HALF, -60, LANE_HALF, DECK_END);
+      quad(-LANE_HALF, -140, LANE_HALF, DECK_END);
       ctx.fill();
       // Gutters.
       for (const sg of [-1, 1]) {
         const x0 = sg > 0 ? LANE_HALF : -30, x1 = sg > 0 ? 30 : -LANE_HALF;
         ctx.fillStyle = '#3b3f55';
-        quad(x0, -60, x1, DECK_END);
+        quad(x0, -140, x1, DECK_END);
         ctx.fill();
         ctx.fillStyle = 'rgba(0,0,0,0.35)';
-        quad(sg > 0 ? LANE_HALF + 2 : -30 + 2, -60, sg > 0 ? 30 - 2 : -LANE_HALF - 2, DECK_END);
+        quad(sg > 0 ? LANE_HALF + 2 : -30 + 2, -140, sg > 0 ? 30 - 2 : -LANE_HALF - 2, DECK_END);
         ctx.fill();
         ctx.fillStyle = '#8a8fa8';
-        quad(sg > 0 ? 30 : -33, -60, sg > 0 ? 33 : -30, DECK_END);
+        quad(sg > 0 ? 30 : -33, -140, sg > 0 ? 33 : -30, DECK_END);
         ctx.fill();
       }
       // Boards.
@@ -742,7 +742,7 @@ export default {
       ctx.lineWidth = 1;
       for (let k = 0; k <= 13; k++) {
         const x = -LANE_HALF + (k * LANE_HALF * 2) / 13;
-        const a = proj(x, -60, 0), b = proj(x, DECK_END, 0);
+        const a = proj(x, -140, 0), b = proj(x, DECK_END, 0);
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
@@ -774,7 +774,7 @@ export default {
       gl.addColorStop(0.6, 'rgba(255,255,255,0.18)');
       gl.addColorStop(1, 'rgba(255,255,255,0.02)');
       ctx.fillStyle = gl;
-      quad(-8, -60, 8, DECK_END);
+      quad(-8, -140, 8, DECK_END);
       ctx.fill();
       // Pin deck, pit and foul line.
       ctx.fillStyle = 'rgba(255,255,255,0.12)';
@@ -1060,8 +1060,9 @@ export default {
       sync();
       if (clock - lastOwnerTick > 0.25) { lastOwnerTick = clock; ownerTick(); }
       update(dt);
-      render();
+      sync();
       updateStrip();
+      render();
       raf = requestAnimationFrame(frame);
     }
     sync();

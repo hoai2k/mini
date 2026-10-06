@@ -92,7 +92,7 @@ for (const hl of HOLES) {
 // --- physics -------------------------------------------------------------
 
 function newBall(x, y) {
-  return { x, y, vx: 0, vy: 0, moving: false, sink: false, cool: 0 };
+  return { x, y, vx: 0, vy: 0, moving: false, sink: false, lock: false };
 }
 
 function inPoly(pts, x, y) {
@@ -155,7 +155,6 @@ function stepBall(hl, b, t) {
   if (!b.moving || b.sink) return null;
   let ev = null;
   const note = e => { if (!ev || RANK[e] > RANK[ev]) ev = e; };
-  if (b.cool > 0) b.cool -= STEP;
 
   // Slopes push, sand drags.
   let ax = 0, ay = 0;
@@ -229,20 +228,27 @@ function stepBall(hl, b, t) {
     }
   }
 
-  // Teleports (both ends work, with a short cooldown after a jump).
-  if (b.cool <= 0) {
+  // Teleports (both ends work). A ball that has just jumped, or rests on a
+  // pad, stays locked until it rolls clear of every pad.
+  if (hl.tele.length) {
+    let on = false;
     for (const tp of hl.tele) {
       for (const [from, to] of [[tp.a, tp.b], [tp.b, tp.a]]) {
+        if (on) break;
         if (Math.hypot(b.x - from.x, b.y - from.y) < tp.r) {
-          b.x = to.x;
-          b.y = to.y;
-          b.vx *= 0.7;
-          b.vy *= 0.7;
-          b.cool = 0.7;
-          note('tele');
+          on = true;
+          if (!b.lock) {
+            b.x = to.x;
+            b.y = to.y;
+            b.vx *= 0.7;
+            b.vy *= 0.7;
+            b.lock = true;
+            note('tele');
+          }
         }
       }
     }
+    if (!on) b.lock = false;
   }
 
   // Safety net: outside the course or inside an island.
@@ -328,6 +334,13 @@ export default {
     }
 
     // --- layout ---------------------------------------------------------
+    // The current hole's box plus a margin, so small holes are drawn larger.
+    function bounds() {
+      if (!hole) return { x0: 0, y0: 0, x1: W, y1: H };
+      let x0 = W, y0 = H, x1 = 0, y1 = 0;
+      for (const [x, y] of hole.poly) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+      return { x0: x0 - 6, y0: y0 - 6, x1: x1 + 6, y1: y1 + 6 };
+    }
     function resize() {
       const r = api.el.getBoundingClientRect();
       dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -339,8 +352,10 @@ export default {
       const top = inset.top + 46;
       const bottom = h - inset.bottom - 36;
       const availH = Math.max(80, bottom - top);
-      const s = Math.max(0.5, Math.min((w - 12) / W, availH / H));
-      lay = { sc: s, ox: (w - W * s) / 2, oy: top + (availH - H * s) / 2 };
+      const bd = bounds();
+      const bw = bd.x1 - bd.x0, bh = bd.y1 - bd.y0;
+      const s = Math.max(0.5, Math.min((w - 12) / bw, availH / bh));
+      lay = { sc: s, ox: (w - bw * s) / 2 - bd.x0 * s, oy: top + (availH - bh * s) / 2 - bd.y0 * s };
       layerCache = null;
     }
     const ro = new ResizeObserver(resize);
@@ -374,6 +389,7 @@ export default {
       layerCache = null;
       if (holeIdx < 9) {
         hole = HOLES[holeIdx];
+        resize();
         ball = newBall(hole.tee.x, hole.tee.y);
         lastPos = { x: hole.tee.x, y: hole.tee.y };
         strokes = 0;
@@ -445,7 +461,6 @@ export default {
       ball.vx = Math.cos(angle) * v;
       ball.vy = Math.sin(angle) * v;
       ball.moving = true;
-      ball.cool = 0;
       strokes++;
       totalPutts++;
       api.store.set('putts', totalPutts);
@@ -701,8 +716,9 @@ export default {
 
       // Ground around the hole.
       g.fillStyle = 'rgba(14,52,36,0.92)';
+      const bd = bounds();
       g.beginPath();
-      g.roundRect(-3, -3, W + 6, H + 6, 6);
+      g.roundRect(bd.x0, bd.y0, bd.x1 - bd.x0, bd.y1 - bd.y0, 6);
       g.fill();
       g.strokeStyle = 'rgba(255,255,255,0.12)';
       g.lineWidth = 0.6;
