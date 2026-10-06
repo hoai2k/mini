@@ -81,7 +81,6 @@ export default {
     for (const p of s.ps) {
       if (!p.on) continue;
       p.life += dt;
-      const ox = p.x, oy = p.y;
       p.vy += G * dt * (p.kind ? 0.7 : 1);
       p.x += p.vx * dt;
       p.y += p.vy * dt;
@@ -115,7 +114,7 @@ export default {
       ctx.strokeStyle = '#7cc4ff';
       ctx.lineWidth = p.r * 2;
       ctx.beginPath();
-      ctx.moveTo(ox - p.vx * dt * 1.2, oy - p.vy * dt * 1.2);
+      ctx.moveTo(p.x - p.vx * 0.045, p.y - p.vy * 0.045);
       ctx.lineTo(p.x, p.y);
       ctx.stroke();
       ctx.strokeStyle = '#eaf7ff';

@@ -409,8 +409,7 @@ export default {
       g.floaters = g.floaters.filter(f => f.t < 1.2);
       g.shake = Math.max(0, g.shake - dt);
       // Camera drops as the stack climbs, so the top stays in view.
-      const room = baseY() - inset.top - itemH() * 4.5;
-      const wantCam = Math.max(0, hh - room * 0.55);
+      const wantCam = Math.max(0, hh - (baseY() - inset.top) * 0.5);
       g.camY += (wantCam - g.camY) * Math.min(1, dt * 4);
     }
 
