@@ -105,15 +105,16 @@ manifest check, then publishes the game.
 
 ## Delivered art
 
-82 of the 84 requests have generated artwork, including BD-C14, the wider drum
+82 of the 88 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets
 (BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in
 `design/references/` and 62 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
 
-Two are open: BD-U20 and BD-U21, close-ups of the sisters' forearms and sticks
-that swing onto the HUD drum on each stroke. The game draws stand-ins until they
-arrive.
+Six are open: BD-U20 and BD-U21, close-ups of the sisters' forearms and sticks
+that swing onto the HUD drum on each stroke, and BD-U22 to BD-U25, other kinds of
+stick drawn to the same positions, to choose from or vary by chapter. The game
+draws stand-ins until they arrive.
 
 [`design/image-deliveries.json`](design/image-deliveries.json) records the exact
 generation and correction prompts, references, native image sizes, export sizes,

@@ -54,11 +54,11 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Backgrounds | 9 | 0 | 0 | 0 | 9 |
 | Characters and units | 13 | 0 | 0 | 0 | 13 |
 | Puppet part sheets | 4 | 0 | 0 | 0 | 4 |
-| Interface | 11 | 0 | 2 | 0 | 9 |
+| Interface | 15 | 0 | 6 | 0 | 9 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
 | Story chapters | 22 | 0 | 0 | 0 | 22 |
 | Drum Practice | 5 | 0 | 0 | 0 | 5 |
-| **total** | **84** | **0** | **2** | **0** | **82** |
+| **total** | **88** | **0** | **6** | **0** | **82** |
 
 ## Style frames: choose the direction first (3)
 
@@ -467,7 +467,7 @@ Separate pieces of the spearwoman for puppet rigging.
 - **File:** `bronzedrum/game/assets/art/rig-unit-spear.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sheet of separate cut-paper puppet parts for the spearwoman, matching the in-game figure: head with crown, torso, arms, spear, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.
 
-## Interface (11)
+## Interface (15)
 
 The title logo, the drum-face HUD, chapter cards and interface pieces.
 
@@ -533,6 +533,42 @@ Over the HUD drum, Trưng Nhị's forearm and stick swing in from the right and 
 - **Status:** planned, not loaded yet · **Stand-in:** `Renderer.closeSticks (a drawn stick)` · **Game id:** `hud-stick-nhi`
 - **File:** `bronzedrum/game/assets/art/hud-stick-nhi.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a slender wooden drumstick, seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a brown and gold cuff cut with a row of cream diamonds at the wrist, a lacquer-red sleeve cut with white leaves where the forearm leaves the image at the bottom-right corner. The stick is a thin dark wooden rod ending in a small round polished wooden knob, pointing to the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.
+
+### BD-U22 · Close-up stick, another kind: Trắc's pestle
+
+An alternative to BD-U20, drawn and animated the same way, so one can be chosen, or the sticks can change from chapter to chapter.
+
+- **Spec:** 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-left corner, cut off clean by the edge; the wrist sits at 22% across and 78% down; the centre of the stick's striking head sits at 80% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.
+- **Status:** planned, not loaded yet · **Game id:** `hud-stick-trac-pestle`
+- **File:** `bronzedrum/game/assets/art/hud-stick-trac-pestle.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Trắc's puppet (BD-R01): cream skin, a wide cuff of bronze and gold bands at the wrist, the edge of a black and bronze sleeve where the forearm leaves the image at the bottom-left corner. The stick is a long plain wooden pole like a rice pestle, thick and smooth with a rounded blunt end, the way drummers on the Đông Sơn drum friezes strike their drums, pointing to the upper right. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.
+
+### BD-U23 · Close-up stick, another kind: Trắc's lacquer
+
+An alternative to BD-U20, drawn and animated the same way, so one can be chosen, or the sticks can change from chapter to chapter.
+
+- **Spec:** 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-left corner, cut off clean by the edge; the wrist sits at 22% across and 78% down; the centre of the stick's striking head sits at 80% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.
+- **Status:** planned, not loaded yet · **Game id:** `hud-stick-trac-lacquer`
+- **File:** `bronzedrum/game/assets/art/hud-stick-trac-lacquer.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Trắc's puppet (BD-R01): cream skin, a wide cuff of bronze and gold bands at the wrist, the edge of a black and bronze sleeve where the forearm leaves the image at the bottom-left corner. The stick is a ceremonial beater with a lacquer-red shaft banded in gold, and a round head wrapped in cream cloth tied with red cord, pointing to the upper right. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.
+
+### BD-U24 · Close-up stick, another kind: Nhị's bamboo
+
+An alternative to BD-U21, drawn and animated the same way, so one can be chosen, or the sticks can change from chapter to chapter.
+
+- **Spec:** 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-right corner, cut off clean by the edge; the wrist sits at 78% across and 78% down; the centre of the stick's striking head sits at 20% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.
+- **Status:** planned, not loaded yet · **Game id:** `hud-stick-nhi-bamboo`
+- **File:** `bronzedrum/game/assets/art/hud-stick-nhi-bamboo.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a brown and gold cuff cut with cream diamonds at the wrist, a lacquer-red sleeve cut with white leaves where the forearm leaves the image at the bottom-right corner. The stick is a slim stick of pale split bamboo with its nodes showing, the tip bound with a few turns of red thread, pointing to the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.
+
+### BD-U25 · Close-up stick, another kind: Nhị's horn
+
+An alternative to BD-U21, drawn and animated the same way, so one can be chosen, or the sticks can change from chapter to chapter.
+
+- **Spec:** 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-right corner, cut off clean by the edge; the wrist sits at 78% across and 78% down; the centre of the stick's striking head sits at 20% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.
+- **Status:** planned, not loaded yet · **Game id:** `hud-stick-nhi-horn`
+- **File:** `bronzedrum/game/assets/art/hud-stick-nhi-horn.png`
+- **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a brown and gold cuff cut with cream diamonds at the wrist, a lacquer-red sleeve cut with white leaves where the forearm leaves the image at the bottom-right corner. The stick is a dark hardwood stick with a small polished buffalo-horn tip, a tassel of red thread hanging from the grip, pointing to the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.
 
 ### BD-U16 · Touch buttons: the companion drums
 
