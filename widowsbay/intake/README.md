@@ -9,6 +9,10 @@ this folder is published or loaded by the game.
   `../design/generated/<id>-original.png`, the game gets a WebP copy in
   `../assets/`, and its slot in `../assets/manifest.json` is set to
   `delivered`.
+- **Animation loops (Part D of the image requests):** a folder per loop,
+  `anims/<id>/`, holding the source clip and `notes.txt` (where it came
+  from), plus the prepared sheet and JSON if you made them. See
+  [`../design/image-requests.md`](../design/image-requests.md), Part D.
 - **Video stills and other references:** put them in `references/`, named
   `video-<mm>m<ss>s-<subject>.jpg`. They move to `../design/references/`.
 - **The song or its stems:** any common audio format. The song moves to
