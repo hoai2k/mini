@@ -152,6 +152,7 @@ export default {
     const ui = document.createElement('div');
     ui.className = 'g-center';
     ui.style.pointerEvents = 'none';
+    ui.style.gap = '8px';
     api.el.append(canvas, ui);
     const ctx = canvas.getContext('2d');
 
@@ -366,7 +367,7 @@ export default {
           const out = [];
           const title = document.createElement('div');
           title.className = 'g-big';
-          title.style.cssText = `font-family:${POSTER};color:#ffd43b;text-shadow:0 3px 0 #2a1206,0 0 12px #2a1206;font-size:clamp(2rem,9vw,4rem);letter-spacing:.03em`;
+          title.style.cssText = `font-family:${POSTER};color:#ffd43b;text-shadow:0 3px 0 #2a1206,0 0 12px #2a1206;font-size:clamp(1.4rem,min(9vw,11vh),4rem);line-height:1.05;letter-spacing:.03em`;
           title.textContent = sh.phase === 'over' ? `${nameOf(sh, sh.matchWinner)} wins the showdown!` : 'QUICK DRAW';
           out.push(title);
           if (list.length < 2) {
@@ -553,7 +554,7 @@ export default {
       } else if (sh.phase === 'result') {
         renderResult(sh, t);
       }
-      hud(sh);
+      if (sh.phase !== 'lobby') hud(sh);
     }
 
     // --- loop ------------------------------------------------------------------
