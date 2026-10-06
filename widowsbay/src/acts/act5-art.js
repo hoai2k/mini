@@ -268,7 +268,7 @@ const CLIFF_ART_SEA = (k) => !!(k.img('cliff-face-tall-2') || k.img('cliff-face-
 // cliff-face-tall-2 (third round) is requested with a level top and a full-
 // width face, so it is drawn at its own proportions when it arrives.
 const TALL1 = { id: 'cliff-face-tall', x0: 213, w: 868, topArtY: 110 };
-const TALL2 = { id: 'cliff-face-tall-2', x0: 230, w: 820, topArtY: 60 };
+const TALL2 = { id: 'cliff-face-tall-2', x0: 230, w: 820, topArtY: 12 };
 let TALL = TALL1;
 const tallScale = () => (CLIFF.top + 30) / (3600 - TALL.topArtY);
 const tallH = () => 3600 * tallScale();
@@ -900,7 +900,7 @@ function endingScene(k, st, t) {
     else if (e === 'lamp') lampEnding(k, st, t, pt);
     else darkEnding(k, st, t, pt);
   }
-  caption(k, CAPTIONS[e], easeInOut((pt - 1.0) / 1.0));
+  caption(k, CAPTIONS[e], easeInOut((pt - 1.0) / 1.0), (e === 'dark' && k.img('ending-dark-3') && CAPTION_AT.dark) || {});
   k.wash('#1a0f18', easeInOut((pt - (T.ending - 1.0)) / 1.0));
 }
 
@@ -965,17 +965,21 @@ function darkEnding(k, st, t, pt) {
 }
 
 // An intertitle-style caption: plum card, fine double rule, pink script.
-function caption(k, [title, sub], a) {
+// The caption plaque, centred on cx with its top at y (by default over the
+// centre of the sky; the dark ending's painting puts the house there, so its
+// caption sits in the sky at the right, between the moon and the sailor).
+const CAPTION_AT = { dark: { cx: 870, y: 178, w: 528, sub: 12.5 } };
+function caption(k, [title, sub], a, at = {}) {
   if (a <= 0) return;
-  const c = k.c;
+  const c = k.c, { cx = 770, y = 84, w = 660, sub: px = 15 } = at, x = cx - w / 2;
   c.save(); c.globalAlpha = a * 0.94;
-  c.fillStyle = k.col('#2a1424'); c.fillRect(440, 84, 660, 112);
+  c.fillStyle = k.col('#2a1424'); c.fillRect(x, y, w, 112);
   c.strokeStyle = k.col('#c79ab7'); c.lineWidth = 1.5;
-  c.strokeRect(446, 90, 648, 100); c.strokeRect(452, 96, 636, 88);
+  c.strokeRect(x + 6, y + 6, w - 12, 100); c.strokeRect(x + 12, y + 12, w - 24, 88);
   c.globalAlpha = a;
   c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
-  c.font = '54px Yesteryear, cursive'; c.fillText(title, 770, 146);
-  c.font = '700 15px "Josefin Sans", sans-serif'; c.fillText(sub.toUpperCase(), 770, 174);
+  c.font = '54px Yesteryear, cursive'; c.fillText(title, cx, y + 62);
+  c.font = `700 ${px}px "Josefin Sans", sans-serif`; c.fillText(sub.toUpperCase(), cx, y + 90);
   c.restore();
 }
 
