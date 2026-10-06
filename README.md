@@ -26,3 +26,6 @@ Local assets and installed dependencies remain under `local/`, which is ignored
 by Git. Preserved older workspace files and loose updates are under
 `local/archive/migration-2026-10-05/`. The archive includes a migration report
 and a SHA-256 manifest of the original workspace.
+
+The redundant earlier BACKUP repo snapshot was removed after verifying that
+its Git history, source files, and assets are preserved in this workspace.
