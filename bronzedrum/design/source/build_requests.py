@@ -538,6 +538,41 @@ req(U_, "BD-U05", "ui-icons", "Utility icons",
     "Three cut-paper icons in rice-paper cream on a transparent background: an open scroll "
     "(instructions), a bronze drum seen from above with a small gear cut in it (settings), four "
     "corner brackets (fullscreen). Bold and simple, readable at 26 pixels.")
+# The close-up sticks: the sisters' forearms and drumsticks seen from the
+# player's place behind the drum, swinging onto the HUD drum on each stroke.
+STICK_SPEC = ("1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick "
+              "on the diagonal: the forearm leaves the image at the {corner} corner, cut off clean "
+              "by the edge; the wrist sits at {wrist}; the centre of the stick's striking head sits "
+              "at {head}. The game turns it about the wrist and lands the head on the drum, so keep "
+              "those three points where they are given.")
+req(U_, "BD-U20", "hud-stick-trac", "Close-up stick: Trắc's beater (the centre)",
+    "Over the HUD drum, Trưng Trắc's forearm and beater swing in from the bottom left and "
+    "land on the sun-star at the centre on every deep stroke (tùng), then lift away. Drawn "
+    "about 1.8 times the drum's radius from wrist to head: about 105 px over the desktop "
+    "drum, 180 px over the big touch drum.",
+    STICK_SPEC.format(corner="bottom-left", wrist="22% across and 78% down",
+                      head="80% across and 20% down"),
+    "planned", "Renderer.closeSticks (a drawn stick)", "art/hud-stick-trac.png",
+    f"{STYLE} A close-up of one woman's forearm and hand gripping a heavy wooden drum beater, "
+    "seen from just behind her shoulder, matching Trưng Trắc's puppet (BD-R01): cream skin, a "
+    "wide cuff of bronze and gold bands cut with dots and diamonds at the wrist, the edge of a "
+    "black and bronze sleeve where the forearm leaves the image at the bottom-left corner. The "
+    "beater is a stout dark wooden shaft with a flat round padded head wrapped in bronze-brown "
+    "cloth, pointing to the upper right. Cut paper with crisp edges, lit from behind, a soft "
+    "glow along the rim. No drum, nothing else in the image.")
+req(U_, "BD-U21", "hud-stick-nhi", "Close-up stick: Nhị's stick (the rim)",
+    "Over the HUD drum, Trưng Nhị's forearm and stick swing in from the right and strike the "
+    "rim on every high stroke (cắc), then lift away. Drawn at the same size as BD-U20.",
+    STICK_SPEC.format(corner="bottom-right", wrist="78% across and 78% down",
+                      head="20% across and 20% down"),
+    "planned", "Renderer.closeSticks (a drawn stick)", "art/hud-stick-nhi.png",
+    f"{STYLE} A close-up of one woman's forearm and hand gripping a slender wooden drumstick, "
+    "seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a "
+    "brown and gold cuff cut with a row of cream diamonds at the wrist, a lacquer-red sleeve "
+    "cut with white leaves where the forearm leaves the image at the bottom-right corner. The "
+    "stick is a thin dark wooden rod ending in a small round polished wooden knob, pointing to "
+    "the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. "
+    "No drum, nothing else in the image.")
 req(U_, "BD-U16", "touch-buttons", "Touch buttons: the companion drums",
     "On phones and tablets the game draws on-screen buttons beside the big touch drum, made "
     "as the instruments that accompany a bronze drum in a temple or village hall. The shield "
