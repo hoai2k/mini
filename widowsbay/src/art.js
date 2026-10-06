@@ -931,12 +931,27 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   function hudItems(c, spec, t) {
     const max = spec.maxLanterns ?? 3;
     for (let k = 0; k < max; k++) {
-      const lit = k < spec.lanterns;
-      const x = 170 + k * 46, y = 104;
+      // Lanterns may be fractional (Act I's pearls mend them): a part-mended
+      // lantern is lit from the bottom up by its fraction.
+      const fill = Math.max(0, Math.min(1, spec.lanterns - k)), lit = fill >= 0.999;
+      const x = 188 + k * 42, y = 104;
       const lamp = img(lit ? 'hud-lantern-lit' : 'hud-lantern-out');
       if (lamp) {
-        c.globalAlpha = lit ? 0.9 + 0.1 * Math.sin(t * 7 + k) : 1;
-        drawAsset(c, P, lamp, x, y + 16, 24, 32);
+        // At 24 px the lit and dark art look alike, so a lit lantern (or the
+        // lit part of a part-mended one) glows, and a dark one is dimmed.
+        const glow = (amt) => {
+          const g = c.createRadialGradient(x, y + 2, 1, x, y + 2, 20);
+          g.addColorStop(0, P.mode === 'lum' ? 'rgba(255,245,215,0.85)' : 'rgba(255,200,90,0.85)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+          c.globalAlpha = amt * (0.85 + 0.15 * Math.sin(t * 7 + k)); c.fillStyle = g; c.fillRect(x - 20, y - 18, 40, 40);
+        };
+        if (lit) { glow(1); c.globalAlpha = 1; drawAsset(c, P, lamp, x, y + 16, 24, 32); }
+        else {
+          c.globalAlpha = 0.55; drawAsset(c, P, lamp, x, y + 16, 24, 32, 'brightness(0.6)');
+          if (fill > 0 && img('hud-lantern-lit')) {
+            c.save(); c.beginPath(); c.rect(x - 20, y + 16 - 32 * fill, 40, 32 * fill + 4); c.clip();
+            glow(0.8); c.globalAlpha = 1; drawAsset(c, P, img('hud-lantern-lit'), x, y + 16, 24, 32); c.restore();
+          }
+        }
         c.globalAlpha = 1;
         continue;
       }
@@ -944,6 +959,10 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       c.fillStyle = P.c(lit ? '#ffcf5c' : '#3b2a2a');
       c.globalAlpha = lit ? 0.9 + 0.1 * Math.sin(t * 7 + k) : 1;
       c.beginPath(); c.ellipse(x, y, 10, 13, 0, 0, Math.PI * 2); c.fill();
+      if (!lit && fill > 0) {
+        c.save(); c.beginPath(); c.rect(x - 11, y + 13 - 26 * fill, 22, 26 * fill); c.clip();
+        c.fillStyle = P.c('#ffcf5c'); c.beginPath(); c.ellipse(x, y, 10, 13, 0, 0, Math.PI * 2); c.fill(); c.restore();
+      }
       c.globalAlpha = 1;
     }
     if (!drawArt(c, 'pearl', 320, 118, 26, 26)) { c.fillStyle = P.c('#efe9f2'); circle(c, 320, 104, 10); }

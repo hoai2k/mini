@@ -206,6 +206,12 @@ them.
 The controls, the rotate card and the home-screen icons use the delivered C8
 art; CSS draws the controls if it is missing.
 
+## Tuning
+
+[`src/game_config.js`](src/game_config.js) holds the numbers meant for
+tweaking by hand: for now Act I's lanterns of hull and how many pearls mend
+one (`pearlsPerLantern`, 10). Edit it and reload; the tests read it too.
+
 ## Checks
 
 ```sh

@@ -117,6 +117,28 @@ test('an idle voyage is survivable in rough length and never walls off all rows'
 });
 
 
+test('pearls mend the hull: pearlsPerLantern pearls survive one more hit (src/game_config.js)', () => {
+  const N = TUNING.pearlsPerLantern;
+  assert.ok(N > 0, 'healing is on in the config');
+  const pearlAt = (b) => b.pickups.push({ type: 'pearl', row: b.ship.row, x: b.ship.x, t: 0 });
+  const hitNow = (b) => { b.ship.invuln = 0; b.hazards.push({ type: 'bolt', row: effectiveRow(b.ship), x: b.ship.x, t: 0, state: 'strike' }); step(b, 1 / 60, {}); b.hazards = []; };
+  const b = createBoard(5); b.spawnIn = 1e9; b.wind.next = 1e9;
+  for (let i = 0; i < TUNING.hull - 1; i++) hitNow(b);
+  assert.equal(b.ship.hull, 1);
+  for (let i = 0; i < N; i++) { pearlAt(b); step(b, 1 / 60, {}); }
+  assert.equal(b.ship.hull, 2, `${N} pearls mend one lantern`);
+  hitNow(b); assert.equal(b.phase, 'sail', 'survives the extra hit');
+  hitNow(b); assert.equal(b.phase, 'wrecked', 'and the next one sinks it');
+  // never above the full hull
+  const f = createBoard(6); f.spawnIn = 1e9; f.wind.next = 1e9;
+  for (let i = 0; i < N * 2; i++) { pearlAt(f); step(f, 1 / 60, {}); }
+  assert.equal(f.ship.hull, TUNING.hull);
+  // part-mended: half the pearls give half a lantern
+  const h = createBoard(7); h.spawnIn = 1e9; h.wind.next = 1e9; hitNow(h);
+  for (let i = 0; i < N / 2; i++) { pearlAt(h); step(h, 1 / 60, {}); }
+  assert.ok(Math.abs(h.ship.hull - (TUNING.hull - 0.5)) < 1e-6);
+});
+
 // ---------------------------------------------------------------- Act I's ending
 const { default: act1, ENDING, LANTERNS, SPOTS } = await import('../src/acts/act1.js');
 const { beatHit } = await import('../src/acts/shared.js');

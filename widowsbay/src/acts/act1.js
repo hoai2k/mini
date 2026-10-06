@@ -115,15 +115,16 @@ export default {
     const b = st.board;
     const leaves = Array.from({ length: LEAVES }, (_, i) => ({ id: 'leaf', have: i < b.leaves }));
     if (st.phase === 'voyage' || st.phase === 'landho') {
-      return { lanterns: b.ship.hull, maxLanterns: 3, pearls: b.pearls, progress: b.progress, keepsakes: leaves,
+      return { lanterns: b.ship.hull, maxLanterns: TUNING.hull, pearls: b.pearls, progress: b.progress, keepsakes: leaves,
         wind: st.phase === 'voyage' ? { dir: b.wind.dir, warn: b.wind.warn } : null };
     }
-    if (st.phase === 'party') return { lanterns: b.ship.hull, maxLanterns: 3, pearls: b.pearls, progress: null, keepsakes: leaves };
+    if (st.phase === 'party') return { lanterns: b.ship.hull, maxLanterns: TUNING.hull, pearls: b.pearls, progress: null, keepsakes: leaves };
     return null;
   },
 
   announce(e) {
-    if (e.type === 'hit') return `Hit. ${e.hull} lantern${e.hull === 1 ? '' : 's'} left.`;
+    if (e.type === 'hit') { const n = Math.round(e.hull * 10) / 10; return `Hit. ${n} lantern${n === 1 ? '' : 's'} left.`; }
+    if (e.type === 'pearl' && e.mended) return `A lantern mended: ${Math.floor(e.hull)} whole.`;
     if (e.type === 'keepsake') return `Tea leaf ${e.n} of 3.`;
     if (e.type === 'windWarn') return e.to > 0 ? 'The wind is turning behind you.' : 'The wind is turning against you.';
     if (e.type === 'arrive') return "Widow's Bay in sight.";

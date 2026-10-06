@@ -117,7 +117,10 @@ Acts last 90–130 s, about half the song each.
 ## Act I — The Crossing (built; ending to change)
 
 As built: three cranked wave rows, rocks rising through trapdoors, the
-witch's lightning, the shifting wind, pearls, and the voyage ribbon.
+witch's lightning, the shifting wind, pearls, and the voyage ribbon. Pearls
+mend the hull: each restores 1/`pearlsPerLantern` of a lantern (10 by
+default, so ten pearls survive one more hit), never above full. The number
+is in `src/game_config.js`.
 
 **Keepsakes.** The three keepsakes become three **tea leaves** (`tea-leaf`),
 which complete the reading in the cup (`keepsake-tea`). The pearl and the

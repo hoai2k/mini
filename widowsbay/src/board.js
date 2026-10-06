@@ -2,6 +2,8 @@
 // rules can be simulated headless (qa/board.test.mjs). The renderer reads the
 // state; the shell drains `events` for sound, haptics and announcements.
 
+import CONFIG from './game_config.js';
+
 export const STAGE = { left: 120, right: 1160, width: 1280, height: 720 };
 // Three cranked wave rows, back to front. `y` is the waterline of the row.
 export const ROWS = [
@@ -18,7 +20,8 @@ export const TUNING = {
   shipMin: 210, shipMax: 930, shipSpeed: 280,
   rowTween: 0.22,
   leapTime: 0.78, leapHeight: 96, leapClear: 26,
-  hull: 3, invuln: 1.6,
+  hull: CONFIG.act1.lanterns, invuln: 1.6,
+  pearlsPerLantern: CONFIG.act1.pearlsPerLantern, // each pearl mends 1/n of a lantern (src/game_config.js)
   wind: { tail: 1.25, head: 0.72, pushTail: 22, pushHead: -60, every: [10, 15], warn: 2.2, first: 13 },
   rock: { warn: 0.95, hitW: 44 },
   bolt: { warn: 1.35, strike: 0.32, hitW: 62, from: 0.1 },
@@ -146,7 +149,13 @@ export function step(b, dt, input) {
     p.t += dt; p.x -= px;
     if (!p.taken && p.row === row && Math.abs(p.x - s.x) < 46 && b.phase === 'sail') {
       p.taken = true;
-      if (p.type === 'pearl') { b.pearls++; b.score += 10; emit(b, 'pearl'); }
+      if (p.type === 'pearl') {
+        b.pearls++; b.score += 10;
+        // A pearl mends part of a lantern (the hull may be fractional).
+        const n = TUNING.pearlsPerLantern, was = s.hull;
+        if (n > 0 && s.hull < TUNING.hull) s.hull = Math.min(TUNING.hull, Math.round((s.hull + 1 / n) * 1e6) / 1e6);
+        emit(b, 'pearl', { hull: s.hull, mended: Math.floor(s.hull) > Math.floor(was) });
+      }
       else { b.leaves++; b.score += 100; emit(b, 'keepsake', { kind: p.kind, n: b.leaves }); }
     }
   }
@@ -155,7 +164,7 @@ export function step(b, dt, input) {
   // The voyage ends a moment after arrival; Act I's ending takes over then.
   if (b.phase === 'arrive' && b.phaseT >= TUNING.arriveTime) {
     b.phase = 'done';
-    b.score += s.hull * 50;
+    b.score += Math.round(s.hull * 50);
     emit(b, 'landed');
   }
   return b;
