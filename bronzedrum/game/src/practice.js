@@ -30,149 +30,128 @@ export const KITS = [
   { id: 'lion', name: 'Lion-dance drum', vn: 'Trống lân · chũm chọe', L: 'kit-lan-drum', R: 'kit-lan-cymbal' },
 ];
 
-// Transcription costs, in squared log2 units of timing error: a little extra
-// for every pair, triplet and rest, so plain beats win a tie.
-// A deep stroke (L) inside a pair or triplet costs extra too: deep strokes
-// open beats, so an even stream L R R L R R reads as triplets, not pairs.
-const COST = { pair: 0.02, triplet: 0.045, rest: 0.15, sub: 0.3, deepInside: 0.06, prior: 0.2 };
+// Reading free strokes as a rhythm (transcribe). The strokes are laid on a
+// grid of beats at a steady tempo, the first stroke on the first beat. Each
+// beat is split into one, two or three slots, and slots may stay empty, so a
+// rhythm can hold rests: a silent beat ("-"), or a silent slot inside a beat
+// (".R", an off-beat stroke; "R.R"). Every choice has a small cost and the
+// cheapest reading wins:
+//  - timing: how far each stroke sits from its slot, in beats, squared;
+//  - halves cost a little, thirds a lot: strokes are read as plain beats and
+//    pairs unless only triplets fit them;
+//  - a silent beat or slot costs a little, so a rhythm is not read as a
+//    slower one full of rests;
+//  - a deep stroke (L) off the start of its beat costs a little: deep strokes
+//    open beats.
+// Tempo: every tempo on a fine grid, then refined. A tempo already in the air
+// (a loop playing, the partner's call) can be preferred (prior), or required
+// to within a range (uMin, uMax): an answer is drummed at about its call's
+// speed.
+const COST = { half: 0.006, third: 0.04, emptySlot: 0.012, restBeat: 0.02, deepOff: 0.012, prior: 0.2 };
 const U_MIN = TEMPO.min * 0.9;
 const U_MAX = TEMPO.max * 1.05;
 
+/** The best reading of the strokes at tempo u: each beat's division and slots, and the cost. */
+function readAt(strokes, u, open) {
+  const t0 = strokes[0].t;
+  const beats = new Map(); // beat -> [{ x, i }]
+  strokes.forEach((s, i) => {
+    const x = (s.t - t0) / u;
+    // A stroke a little early for a beat (up to a sixth) belongs to that beat.
+    const b = Math.floor(x + 1 / 6);
+    if (!beats.has(b)) beats.set(b, []);
+    beats.get(b).push({ x: x - b, i });
+  });
+  const last = Math.max(...beats.keys());
+  let cost = 0;
+  const cells = new Map(); // beat -> { d, slots: [k per stroke], idx: [stroke index] }
+  for (const [b, list] of beats) {
+    const lastBeat = b === last;
+    let best = null;
+    for (const d of [1, 2, 3]) {
+      if (list.length > d) continue;
+      const slots = list.map((q) => Math.min(d - 1, Math.max(0, Math.round(q.x * d))));
+      if (new Set(slots).size !== slots.length) continue;
+      let c = d === 2 ? COST.half : d === 3 ? COST.third : 0;
+      list.forEach((q, n) => {
+        const e = q.x - slots[n] / d;
+        c += e * e;
+        if (slots[n] > 0 && strokes[q.i].drum === 'L') c += COST.deepOff;
+      });
+      // Empty slots: none charged after the last stroke of a rhythm still being drummed.
+      const top = open && lastBeat ? Math.max(...slots) + 1 : d;
+      c += (top - list.length) * COST.emptySlot;
+      if (!best || c < best.c) best = { c, d, slots, idx: list.map((q) => q.i) };
+    }
+    if (!best) return null;
+    cost += best.c;
+    cells.set(b, best);
+  }
+  cost += (last + 1 - beats.size) * COST.restBeat;
+  return { cost, cells, last };
+}
+
 /**
- * Read free strokes ([{ drum, t }], in order) as a rhythm: beats of one, two
- * or three strokes, at most one silent beat between two beats, at a steady
- * tempo. Returns { u, beats, strokes: [{ drum, pos }], text, cost }, with
- * pos in beats from the first stroke; text is "L RR L" with "-" for a rest.
+ * Read free strokes ([{ drum, t }], in order) as a rhythm at a steady tempo
+ * (see above). Options: open (still being drummed), prior (a tempo to prefer),
+ * uMin and uMax (the tempos allowed). Returns { u, beats, strokes: [{ drum,
+ * pos, div }], text, cost }, pos in beats from the first stroke; text is
+ * "L RR .R -": beats apart, "." a silent slot, "-" a silent beat.
  */
-export function transcribe(strokes, { open = false, prior = null } = {}) {
+export function transcribe(strokes, { open = false, prior = null, uMin = U_MIN, uMax = U_MAX } = {}) {
   const n = strokes.length;
   if (!n) return null;
-  if (n === 1) return finish(strokes, [{ start: 0, size: 1, gap: 0, div: 1 }], 0.6, 0);
+  if (n === 1) return finish(strokes, { cells: new Map([[0, { d: 1, slots: [0], idx: [0] }]]), last: 0 }, 0.6, 0);
+  const score = (u) => {
+    const r = readAt(strokes, u, open);
+    if (!r) return null;
+    r.cost += prior ? COST.prior * Math.log2(u / prior) ** 2 : 0;
+    r.u = u;
+    return r;
+  };
   let best = null;
-  // Try every tempo on a fine grid; for each, the best grouping by dynamic
-  // programming. Then refine the tempo for that grouping. With `open` (a
-  // rhythm still being drummed) the last group may be the start of a bigger
-  // one: two strokes so far of a triplet are judged as a triplet's.
-  for (let u = U_MIN; u <= U_MAX; u *= 1.02) {
-    const groups = group(strokes, u, open);
-    if (!groups) continue;
-    const fit = refine(strokes, groups.groups);
-    // A tempo already playing (the loop, the partner) is the likelier one:
-    // L R at a slow tempo and L R R at twice the speed are otherwise the same.
-    if (prior) fit.cost += COST.prior * Math.log2(fit.u / prior) ** 2;
-    if (!best || fit.cost < best.cost) best = { ...fit, groups: groups.groups };
+  const lo = Math.max(U_MIN, uMin);
+  const hi = Math.min(U_MAX, uMax);
+  for (let u = lo; u <= hi; u *= 1.015) {
+    const r = score(u);
+    if (r && (!best || r.cost < best.cost)) best = r;
   }
   if (!best) return null;
-  return finish(strokes, best.groups, best.u, best.cost);
+  // Refine the tempo around the best.
+  for (let u = best.u * 0.985; u <= best.u * 1.015; u *= 1.002) {
+    const r = u >= lo && u <= hi ? score(u) : null;
+    if (r && r.cost < best.cost) best = r;
+  }
+  return finish(strokes, best, best.u, best.cost);
 }
 
-/** Best grouping at tempo u: dp over strokes; each group has a size and a gap (1 or 2 beats) before it. */
-function group(strokes, u, open = false) {
-  const n = strokes.length;
-  // dp[i]: the best cost with strokes 0..i-1 grouped; back[i]: the last of those groups.
-  const dp = new Array(n + 1).fill(Infinity);
-  const back = new Array(n + 1).fill(null);
-  dp[0] = 0;
-  for (let i = 0; i < n; i++) {
-    if (dp[i] === Infinity) continue;
-    for (const size of [1, 2, 3]) {
-      const j = i + size;
-      if (j > n) break;
-      const gaps = i === 0 ? [0] : [1, 2];
-      // How the beat is divided: as many slots as strokes, or, for an open
-      // last group, more slots still to be filled.
-      const divs = open && j === n ? [1, 2, 3].filter((d) => d >= size) : [size];
-      for (const gap of gaps) for (const div of divs) {
-        let c = dp[i] + (div === 2 ? COST.pair : div === 3 ? COST.triplet : 0) + (gap === 2 ? COST.rest : 0);
-        for (let m = 1; m < size; m++) if (strokes[i + m].drum === 'L') c += COST.deepInside;
-        if (i > 0) {
-          // The onset gap from the previous group's onset.
-          const e = Math.log2(Math.max(1e-6, strokes[i].t - strokes[back[i].start].t) / (gap * u));
-          c += e * e;
-        }
-        // The quick strokes inside this group, against an even split of the beat.
-        let ok = true;
-        for (let m = 1; m < size; m++) {
-          const since = strokes[i + m].t - strokes[i].t;
-          if (since <= 0 || since > 0.95 * u) {
-            ok = false;
-            break;
-          }
-          const e = Math.log2(since / ((m / div) * u));
-          c += COST.sub * e * e;
-        }
-        if (!ok) continue;
-        if (c < dp[j]) {
-          dp[j] = c;
-          back[j] = { start: i, size, gap, div };
-        }
-      }
-    }
-  }
-  if (dp[n] === Infinity) return null;
-  const groups = [];
-  for (let j = n; j > 0; j = back[j].start) groups.unshift({ start: back[j].start, size: back[j].size, gap: back[j].gap, div: back[j].div });
-  return { groups, cost: dp[n] };
-}
-
-/** The tempo that best fits a grouping (geometric mean of onset gaps per beat), and its cost. */
-function refine(strokes, groups) {
-  let sum = 0;
-  let count = 0;
-  for (let k = 1; k < groups.length; k++) {
-    const beats = groups[k].gap;
-    sum += Math.log2((strokes[groups[k].start].t - strokes[groups[k - 1].start].t) / beats);
-    count += 1;
-  }
-  let u;
-  if (count) u = 2 ** (sum / count);
-  else {
-    // One beat only: its own strokes give the tempo.
-    const g = groups[0];
-    u = g.size > 1 ? ((strokes[g.start + g.size - 1].t - strokes[g.start].t) * g.div) / (g.size - 1) : 0.6;
-  }
-  u = Math.min(TEMPO.max, Math.max(TEMPO.min, u));
-  let cost = 0;
-  groups.forEach((g, k) => {
-    cost += g.div === 2 ? COST.pair : g.div === 3 ? COST.triplet : 0;
-    for (let m = 1; m < g.size; m++) if (strokes[g.start + m].drum === 'L') cost += COST.deepInside;
-    if (g.gap === 2) cost += COST.rest;
-    if (k > 0) {
-      const e = Math.log2((strokes[g.start].t - strokes[groups[k - 1].start].t) / (g.gap * u));
-      cost += e * e;
-    }
-    for (let m = 1; m < g.size; m++) {
-      const e = Math.log2(Math.max(1e-6, strokes[g.start + m].t - strokes[g.start].t) / ((m / g.div) * u));
-      cost += COST.sub * e * e;
-    }
-  });
-  return { u, cost };
-}
-
-function finish(strokes, groups, u, cost) {
+function finish(strokes, reading, u, cost) {
   const out = [];
   const text = [];
-  let beat = 0;
-  groups.forEach((g, k) => {
-    if (k > 0) beat += g.gap;
-    if (g.gap === 2) text.push('-');
-    const drums = [];
-    const div = g.div || g.size;
-    for (let m = 0; m < g.size; m++) {
-      out.push({ drum: strokes[g.start + m].drum, pos: beat + m / div, div });
-      drums.push(strokes[g.start + m].drum);
+  for (let b = 0; b <= reading.last; b++) {
+    const cell = reading.cells.get(b);
+    if (!cell) {
+      text.push('-');
+      continue;
     }
-    text.push(drums.join(''));
-  });
-  return { u, beats: beat + 1, strokes: out, text: text.join(' '), cost };
+    const slots = Array(cell.d).fill('.');
+    cell.idx.forEach((i, n) => {
+      slots[cell.slots[n]] = strokes[i].drum;
+      out.push({ drum: strokes[i].drum, pos: b + cell.slots[n] / cell.d, div: cell.d });
+    });
+    text.push(slots.join(''));
+  }
+  return { u, beats: reading.last + 1, strokes: out, text: text.join(' '), cost };
 }
 
-/** Pattern text to strokes, with "-" for a silent beat. */
+/** Pattern text to strokes: "-" a silent beat, "." a silent slot inside a beat. */
 export function practicePattern(text) {
   const strokes = [];
   text.split(' ').forEach((beat, b) => {
     if (beat === '-') return;
-    [...beat].forEach((drum, i) => strokes.push({ drum, pos: b + i / beat.length }));
+    [...beat].forEach((drum, i) => {
+      if (drum !== '.') strokes.push({ drum, pos: b + i / beat.length, div: beat.length });
+    });
   });
   return { text, strokes, beats: text.split(' ').length };
 }
@@ -225,7 +204,7 @@ export class PracticeSession {
 
   /** The rhythm drummed so far, read (for the dots), or null. */
   get partial() {
-    return this.phrase.length ? transcribe(this.phrase, { open: true, prior: this.prior }) : null;
+    return this.phrase.length ? transcribe(this.phrase, { open: true, ...this.readOptions() }) : null;
   }
 
   /** The tempo already in the air: the loop's, or the partner's. */
@@ -241,7 +220,7 @@ export class PracticeSession {
    */
   phraseEnd() {
     if (this.phrase.length < 2) return Infinity;
-    const r = transcribe(this.phrase, { open: true, prior: this.prior });
+    const r = transcribe(this.phrase, { open: true, ...this.readOptions() });
     if (!r) return Infinity;
     return this.phrase[0].t + (this.beats - 0.12) * r.u;
   }
@@ -260,20 +239,52 @@ export class PracticeSession {
       this.nextCallAt = Infinity;
       this.waitUntil = Infinity;
     }
+    // A lone stroke long before this one was a stray: start the rhythm here.
+    if (this.phrase.length === 1 && t - this.phrase[0].t > 1.6) this.phrase = [];
     this.phrase.push({ drum, t });
     return events;
   }
 
-  /** The rhythm is complete: read it, hold it to its beats, loop it or answer with it. */
-  complete(t) {
-    const r = transcribe(this.phrase, { prior: this.prior });
-    const first = this.phrase[0].t;
-    this.phrase = [];
-    if (!r) return [{ type: 'abandon', t }];
+  /** How to read the player's strokes: the tempo in the air is preferred. */
+  readOptions() {
+    return { prior: this.prior };
+  }
+
+  /**
+   * Lock the rhythm in: read what was drummed and fit it to the beats set.
+   * A stroke or two before the rhythm (a stray hit, then the rhythm proper)
+   * may be left out if the rest reads much better without them; strokes past
+   * the last beat are left out (they start the next rhythm); beats left
+   * silent at the end are rests. Too little to be a rhythm (fewer than half
+   * the beats struck: a few extra hits after the last one, in enthusiasm) is
+   * no rhythm: null.
+   */
+  lockIn() {
+    const opts = this.readOptions();
+    let best = null;
+    for (let k = 0; k <= 2 && this.phrase.length - k >= 2; k++) {
+      const r = transcribe(this.phrase.slice(k), opts);
+      if (!r) continue;
+      const score = r.cost + 0.2 * k + 0.08 * Math.max(0, r.beats - this.beats);
+      if (!best || score < best.score) best = { r, k, score };
+    }
+    if (!best) return null;
+    const { r, k } = best;
     const strokes = r.strokes.filter((s) => s.pos < this.beats);
+    const filled = new Set(strokes.map((s) => Math.floor(s.pos))).size;
+    if (filled < Math.max(2, Math.ceil(this.beats / 2))) return null;
     const beatsText = r.text.split(' ').slice(0, this.beats);
     while (beatsText.length < this.beats) beatsText.push('-'); // the beats left silent
-    const rhythm = { strokes, text: beatsText.join(' '), beats: this.beats, u: r.u };
+    return { strokes, text: beatsText.join(' '), beats: this.beats, u: r.u, first: this.phrase[k].t };
+  }
+
+  /** The rhythm is complete: lock it in, then loop it or answer with it. */
+  complete(t) {
+    const rhythm = this.lockIn();
+    this.phrase = [];
+    if (!rhythm) return [{ type: 'abandon', t }];
+    const r = rhythm;
+    const first = rhythm.first;
     this.loops += 1;
     // The beat after the rhythm: where the loop or the partner comes in.
     let start = first + this.beats * r.u;
@@ -451,19 +462,28 @@ export class CallSession extends PracticeSession {
       this.waitUntil = Infinity;
       this.leadUntil = Infinity;
     }
+    // A lone stroke long before this one was a stray: start the rhythm here.
+    if (this.phrase.length === 1 && t - this.phrase[0].t > 1.6) this.phrase = [];
     this.phrase.push({ drum, t });
     return events;
   }
 
+  /** An answer is drummed at about its call's speed: read it within 35% of it. */
+  readOptions() {
+    if (this.phase === 'answer' && this.call) return { prior: this.call.u, uMin: this.call.u / 1.35, uMax: this.call.u * 1.35 };
+    return { prior: this.prior };
+  }
+
   complete(t) {
-    const r = transcribe(this.phrase, { prior: this.prior });
-    const first = this.phrase[0].t;
+    const rhythm = this.lockIn();
     this.phrase = [];
-    if (!r) return [{ type: 'abandon', t }];
-    const strokes = r.strokes.filter((s) => s.pos < this.beats);
-    const beatsText = r.text.split(' ').slice(0, this.beats);
-    while (beatsText.length < this.beats) beatsText.push('-');
-    const rhythm = { strokes, text: beatsText.join(' '), beats: this.beats, u: r.u, first };
+    if (!rhythm) {
+      if (this.phase === 'answer' && this.call) this.waitUntil = t + 0.6 + 4 * this.call.u;
+      return [{ type: 'abandon', t }];
+    }
+    const r = rhythm;
+    const strokes = rhythm.strokes;
+    const first = rhythm.first;
     this.loops += 1;
     const next = first + this.beats * r.u; // the beat after it
     if (this.phase === 'lead') {

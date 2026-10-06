@@ -29,15 +29,20 @@ test('with a loop playing, a rhythm opening with a pair or a triplet reads at th
   assert.equal(exact, 120);
 });
 
-test('quick strokes share a beat as pairs and triplets', () => {
+test('quick strokes share a beat as pairs; triplets only where nothing else fits', () => {
   assert.equal(transcribe(play([0, 0.6, 1.2, 1.5], 'LRRR')).text, 'L R RR');
-  assert.equal(transcribe(play([0, 0.6, 0.8, 1.0, 1.2], 'LRRRL')).text, 'L RRR L');
   // Too quick for plain beats (over 200 BPM): read as pairs.
   assert.equal(transcribe(play([0, 0.2, 0.4, 0.6], 'LRLR')).text, 'LR LR');
+  // An even stream reads as pairs, not triplets…
+  assert.equal(transcribe(play([0, 0.25, 0.5, 0.75, 1.0, 1.25], 'LRRLRR')).text, 'LR RL RR');
+  // …but three strokes in a beat the quarters have already set are a triplet.
+  assert.equal(transcribe(play([0, 0.6, 1.2, 1.8, 2.0, 2.2, 2.4], 'LRLRRRL')).text, 'L R L RRR L');
 });
 
-test('a held beat is a rest, and a little unevenness is forgiven', () => {
+test('rests: a silent beat, and a silent slot inside a beat; a little unevenness is forgiven', () => {
   assert.equal(transcribe(play([0, 0.5, 1.5, 2.0])).text, 'L R - L R');
+  // An off-beat stroke: a rest, then an eighth.
+  assert.equal(transcribe(play([0, 0.5, 1.25, 1.5], 'LRRL')).text, 'L R .R L');
   const r = transcribe(play([0, 0.52, 0.97, 1.27, 1.5, 2.03], 'LRRRLR'));
   assert.equal(r.text, 'L R RR L R');
 });
@@ -63,7 +68,7 @@ function drum(s, strokes, tail = 0) {
   return ev;
 }
 
-test('free play: a rhythm of four beats loops from the beat after it; four triplets are twelve strokes', () => {
+test('free play: a rhythm of four beats loops from the beat after it, triplets included', () => {
   const s = new PracticeSession({ mode: 'free', beats: 4 });
   let ev = drum(s, [['L', 10], ['R', 10.5], ['L', 11], ['R', 11.5]], 0.5);
   const loop = ev.find((e) => e.type === 'loop').loop;
@@ -71,15 +76,10 @@ test('free play: a rhythm of four beats loops from the beat after it; four tripl
   assert.ok(Math.abs(loop.start - 12) < 0.02, 'starts on the beat after the fourth');
   assert.ok(Math.abs(loop.period - 2) < 0.02);
   assert.equal(loopPosition(loop, 12.6).played, 2);
-  // Four beats of triplets, with no loop playing yet (a loop's tempo is
-  // preferred: an even stream at twice its speed reads as its pairs).
-  const trip = [];
-  for (let b = 0; b < 4; b++) for (let m = 0; m < 3; m++) trip.push([m ? 'R' : 'L', 20 + b * 0.75 + m * 0.25]);
+  // Plain beats, then a triplet in the last beat.
   s.clear(19);
-  ev = drum(s, trip, 1);
-  const t3 = ev.find((e) => e.type === 'loop').loop;
-  assert.equal(t3.text, 'LRR LRR LRR LRR');
-  assert.equal(t3.strokes.length, 12);
+  ev = drum(s, [['L', 20], ['R', 20.6], ['L', 21.2], ['R', 21.8], ['R', 22.0], ['R', 22.2]], 1);
+  assert.equal(ev.find((e) => e.type === 'loop').loop.text, 'L R L RRR');
 });
 
 test('free play: a closing pair is waited for; a new rhythm quiets the loop and replaces it', () => {
@@ -231,4 +231,32 @@ test('call and answer: answered late, the exchange plays back and the partner ca
   assert.ok(!ev.some((e) => e.type === 'yourTurn'));
   assert.ok(ev.some((e) => e.type === 'takeover'));
   assert.equal(ev.filter((e) => e.type === 'call').length, 1);
+});
+
+test('a few extra hits after a rhythm, in enthusiasm, do not replace the loop', () => {
+  const s = new PracticeSession({ mode: 'free', beats: 4 });
+  drum(s, rhythmAt('L R L R', 0, 0.5), 0.5);
+  const loop = s.loop;
+  assert.equal(loop.text, 'L R L R');
+  // Two more hits just after the rhythm, then nothing.
+  const ev = drum(s, [['R', 2.05], ['L', 2.3]], 3);
+  assert.ok(ev.some((e) => e.type === 'abandon'));
+  assert.ok(!ev.some((e) => e.type === 'loop'));
+  assert.equal(s.loop, loop, 'the loop plays on');
+});
+
+test('a stray hit well before the rhythm is left out', () => {
+  const s = new PracticeSession({ mode: 'free', beats: 4 });
+  const ev = drum(s, [['R', 0], ...rhythmAt('L R L RR', 2.5, 0.5)], 0.8);
+  assert.equal(ev.find((e) => e.type === 'loop').loop.text, 'L R L RR');
+});
+
+test('an answer is read at about its call’s speed', () => {
+  const s = new CallSession({ beats: 4 });
+  const call = s.update(2).find((e) => e.type === 'call').call;
+  // Even strokes a beat apart at the call's tempo: plain beats, not eighths of a slower beat.
+  const ev = drum(s, rhythmAt('L R L R', call.end, call.u), 1);
+  const a = ev.find((e) => e.type === 'answered').answer;
+  assert.equal(a.text, 'L R L R');
+  assert.ok(Math.abs(a.u - call.u) / call.u < 0.05);
 });
