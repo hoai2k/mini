@@ -326,28 +326,36 @@ On the title screen, under Press Start, is a mode with no right or wrong: the
 drum, a choice of instruments, and dancers. It is for learning the core skill,
 an even beat with pairs and triplets inside it, without a chapter at stake.
 
-**Free drumming.** A rhythm is counted in beats: 2 to 12, set with LB and RB
+**Free drumming.** A rhythm is counted in beats: 2 to 12, set with D-pad ▲ ▼
 (− and +, or the buttons beside the dots on touch), four by default like a
 command. Each beat may hold one, two or three strokes, or none, so four
 beats of triplets are twelve strokes. The player drums at any tempo, and the
-strokes are read as beats (`transcribe` in `practice.js`). The reading tries
-every tempo and groups the strokes to fit it best. A pair, a triplet, a rest,
-or a deep stroke inside a beat costs a little extra, so plain beats and deep
-strokes on the beat win a tie. While the rhythm is being drummed, its last
-group may still grow, so two quick strokes are judged as the start of a
-triplet as well as a pair. The dots show the reading as ghosts, which may
-regroup.
+strokes are read on a grid of beats (`transcribe` in `practice.js`): every
+tempo is tried, each beat split into one, two or three slots, and slots may
+stay empty, so rhythms hold rests (a silent beat, written `-`, or a silent slot
+inside a beat, `.`). Each choice has a cost (`COST`): a pair costs a little, a
+triplet a lot more, so strokes read as plain beats and eighths unless they
+plainly fall in threes; an empty slot, a silent beat and a deep stroke off its
+beat cost a little; straying from the tempo already in the air (`prior`) costs
+too. While the rhythm is being drummed its last beat may still fill, and the
+dots show the reading as ghosts, which may regroup.
 
 The rhythm is complete just before the beat after its last beat, at the tempo
-its strokes have set, so a closing pair or triplet still fits. Beats left
-silent at the end are rests. It then settles into solid dots and the drum
-crew plays it back from that next beat, round after round.
+its strokes have set, so a closing pair or triplet still fits. It is then
+locked in (`lockIn`): what was heard is fitted to the number of beats. Up to
+two leading strokes may be dropped (at a cost, so only when that fits much
+better), and a lone stroke well before the next is dropped outright; strokes
+past the last beat, drummed in enthusiasm, are left out; silent beats at the
+end are rests. A reading that fills fewer than half the beats is not taken.
+It settles into solid dots and the drum crew plays it back from the next beat,
+round after round.
 
 A rhythm that opens with a pair or a triplet cannot be told from faster plain
 beats until a tempo is known. Once a loop is playing (or a partner), its tempo
-is preferred, and a test drums 120 random rhythms against a loop and reads
-every one exactly. Drumming a new rhythm quiets the old loop, and the new one
-takes over once complete. A (Space, a swipe) stops the loop.
+is preferred, and a test drums 300 random rhythms against a loop and reads all
+but the two even triplet streams exactly (those read as eighths, by design).
+Drumming a new rhythm quiets the old loop, and the new one takes over once
+complete. A (Space, a swipe) stops the loop.
 
 **Call and answer** (`CallSession`). The partner drums a call; the player
 answers with any rhythm of the same length. The exchange is then played back,
@@ -362,20 +370,23 @@ follows depends on the answer:
 - **Late:** after the playback the partner takes the initiative and calls
   again.
 
-An unanswered call is played again.
+An answer is read at the call's tempo, give or take about a third
+(`readOptions`), so it cannot be mistaken for a rhythm twice as fast. An
+unanswered call is played again.
 
-**Kits.** Y, or ↑ and ↓ (the kit drum at the bottom right on touch), cycles
-through six pairs of instruments, low voice for Trắc's stroke and high for
-Nhị's:
-- the bronze drum;
-- the barrel drum and mõ;
-- the rice drum (trống cơm);
-- gongs (cồng chiêng);
-- bamboo (đàn t’rưng);
-- the lion-dance drum and cymbals.
+**The secondary drum.** The bronze drum stays the main drum. Beside it sits a
+secondary drum, struck with Y (G or H; the small drum at the bottom right on
+touch), and its strokes are part of the rhythm (drum `S`, a verdigris diamond
+in the dots). LB and RB ([ and ], or ‹ › on touch) choose it from `SECONDS` in
+`practice.js`: the barrel drum (trống chầu, the default, the drum that keeps
+time for a performance), the mõ, the rice drum, low and high gongs, bamboo,
+the lion-dance drum and cymbals. The loop, the replay, the partner's calls and
+riffs play its strokes on it. The choice is remembered.
 
-The loop and the partner play on the same kit. The HUD drum shows the kit's
-face. The kit and the stroke count are remembered.
+**Code.** `practice.js` holds the rhythm logic (reading, lock-in, the sessions)
+and is tested on its own; `practice-play.js` is the shell's side (screens,
+sound, scheduling the loop and partner), handed what it needs by `main.js`;
+`render/practice.js` draws the green, the dots and the controls.
 
 **The green.** The scene is the dusk sky and strips with a communal house
 (đình), a lantern string, and a fire right of centre. The fire burns higher as

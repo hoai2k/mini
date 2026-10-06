@@ -11,8 +11,9 @@ the caller's rhythm), and one casting chapter (keep pace with the bellows).
 
 **Drum Practice**, on the title screen, has no right or wrong. In free drumming
 the crew loops whatever rhythm you drum and dancers gather. In call and answer
-a partner trades rhythms with you. You can set the length (2 to 12 strokes) and
-swap the bronze drum for one of five other kits.
+a partner trades rhythms with you. You can set the length (2 to 12 beats, rests
+allowed) and play a secondary drum alongside the bronze one: the barrel drum by
+default, or a mõ, rice drum, gong, bamboo, lion-dance drum or cymbals.
 
 It plays with a controller, a keyboard, a mouse, or on a phone or tablet held
 sideways, where the bronze drum becomes the instrument: tap its centre and its rim.
