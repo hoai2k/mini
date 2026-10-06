@@ -28,8 +28,7 @@
       <div class="title-block">
         <img id="logo-img" alt="" hidden>
         <h1 id="logo-text" class="logo-text"><span class="vn">Trống Đồng</span><span class="en">Bronze Drum</span></h1>
-        <p class="tagline">Two sisters. One drum. An army of women.</p>
-        <p class="credit">Inspired by the novel written by Phong Nguyen</p>
+        <p class="tagline">Inspired by the novel written by Phong Nguyen</p>
         <button id="press-start" class="press-start" data-nav>Press Start</button>
         <button id="practice-start" class="practice-start" data-nav data-action="practice">Drum Practice</button>
         <p class="hint" id="title-hint">Move left stick for options</p>
@@ -174,7 +173,28 @@
         <label class="row check">Show hints <input type="checkbox" data-nav data-setting="hints"></label>
         <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
         <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
+        <button class="menu-btn" data-nav data-open="credits">Credits</button>
         <button class="menu-btn" data-nav data-action="close">Done</button>
+      </div>
+    </section>
+
+    <section id="credits" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="credits-title">
+      <div class="panel wide">
+        <h2 id="credits-title">Credits</h2>
+        <div class="scroll" tabindex="0">
+          <p class="credits-lead">Inspired by the novel <em>Bronze Drum</em> written by Phong Nguyen (2022), and adapted with the author’s blessing.</p>
+          <dl class="credits">
+            <dt>History</dt><dd>The uprising of the Trưng sisters against the Han, <span class="nowrap">40–43 CE</span></dd>
+            <dt>Game</dt><dd>hoai2k</dd>
+            <dt>Song of the Two Queens</dt><dd><em>Trống Đồng Vang Dới Đất Trời</em> by hoai2k</dd>
+            <dt>Music</dt><dd>Made with Suno</dd>
+            <dt>Sound effects and ambience</dt><dd>Made with ElevenLabs</dd>
+            <dt>Art direction</dt><dd>Backlit hand-cut paper, and the friezes on Đông Sơn bronze drums</dd>
+            <dt>Code</dt><dd>Written with Claude Code</dd>
+            <dt>Fonts</dt><dd>Cormorant Garamond by Christian Thalmann; Be Vietnam Pro by Lâm Bảo, Tony Le and Việt Anh Nguyễn. Both under the SIL Open Font License.</dd>
+          </dl>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Close</button>
       </div>
     </section>
 
