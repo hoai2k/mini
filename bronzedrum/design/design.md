@@ -310,6 +310,19 @@ spirit. The women's cheer that was Rally's sound now plays when the drum wakes.
 | 8 | Mã Viện Returns | hold the line | Han columns arrive in waves; hold the ford for 90 s. Built around the shield |
 | 9 | The Drums Are Melted | echo | epilogue: each answered call silences one of five drums gathered for melting |
 
+**The garden is the tutorial.** A "Lessons" list sits at the top left and
+ticks off each lesson as the player does it, with a word of praise and a
+chime: march; block the stones; a stronger march (tier II); strike; Nhị's
+flourish; cut down the targets. The hint line always names the current
+lesson. When the block lesson comes up, two village children run in from the
+right, stop a few paces ahead of the army (they keep that distance as it
+moves) and lob stones. The stones do no harm; holding the block (A) while a
+stone is in the air makes the women raise their forearms over their faces
+(the garden has no shield wall) and knocks the stone aside. Two blocks pass
+the lesson and the children run back off the way they came. Children are
+"ghost" enemies: marches pass them, strikes ignore them, and they never count
+towards winning or losing.
+
 In the echo chapters the caller plays first and the player answers. Strokes
 during the call are ignored ("listen first"). An unanswered call is played
 again, and the chapter ends when every call has been answered, with the

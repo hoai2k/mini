@@ -147,6 +147,54 @@ export const hud = {
     return [Math.cos(a) * 0.92, Math.sin(a) * 0.92];
   },
 
+  /**
+   * The first chapter's lessons: the list at the top left under the army's
+   * bar (done ticked, the current one marked), and the praise for a lesson
+   * just done, large in the middle of the field for a moment.
+   */
+  lessons(view, k = 1) {
+    const g = this.ctx;
+    const t = view.songTime;
+    const L = view.lessons;
+    const by = Math.min(k, 1.3);
+    g.save();
+    g.translate(24, 58);
+    g.scale(by, by);
+    const rowH = 21;
+    g.fillStyle = 'rgba(22,21,26,0.5)';
+    g.beginPath();
+    g.roundRect(-8, -4, 232, L.list.length * rowH + 30, 8);
+    g.fill();
+    g.font = '700 12px "Be Vietnam Pro", system-ui, sans-serif';
+    g.textAlign = 'left';
+    g.fillStyle = P.paperShade;
+    g.fillText('LESSONS', 0, 12);
+    L.list.forEach((l, i) => {
+      const y = 32 + i * rowH;
+      g.font = `${l.current ? 700 : 500} 14px "Be Vietnam Pro", system-ui, sans-serif`;
+      g.fillStyle = l.done ? P.bronzeLight : l.current ? P.paper : 'rgba(242,232,213,0.5)';
+      g.fillText(l.done ? '✓' : l.current ? '▸' : '·', 2, y);
+      g.fillText(l.name, 22, y);
+    });
+    g.restore();
+    // Praise for the lesson just done.
+    const pr = L.praise;
+    if (pr) {
+      const q = (t - pr.t) / 2.2;
+      const a = q < 0.1 ? q / 0.1 : q > 0.75 ? Math.max(0, 1 - (q - 0.75) / 0.25) : 1;
+      const rise = this.reduceMotion ? 0 : (1 - Math.min(1, q * 4)) * 14;
+      g.save();
+      g.globalAlpha = a;
+      g.textAlign = 'center';
+      g.font = `700 ${Math.round(30 * Math.min(k, 1.2))}px "Cormorant Garamond", Georgia, serif`;
+      g.shadowColor = 'rgba(0,0,0,0.85)';
+      g.shadowBlur = 8;
+      g.fillStyle = P.bronzeLight;
+      g.fillText(`✓  ${pr.text}`, W / 2, 190 + rise);
+      g.restore();
+    }
+  },
+
   /** A paper-cut forearm and stick along +x, the wrist at the origin (until BD-U20/21 arrive). */
   standinStick(L, R, drum) {
     const g = this.ctx;
@@ -546,6 +594,8 @@ export const hud = {
         scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, goalHp, goals[0].type === 'fort' ? 'Han fort' : 'Straw targets', P.iron));
       }
     }
+
+    if (view.lessons) this.lessons(view, k);
 
     if (view.hint) {
       // Larger on touch and small screens, never wider than the screen: a
