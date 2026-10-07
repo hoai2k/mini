@@ -22,16 +22,31 @@ to these files so an image generator can look at them.
 | --- | --- | --- |
 | [`cover-golden-book-1974.jpg`](cover-golden-book-1974.jpg) | The front cover of the Golden Book edition: the title in yellow on a black arch; the Trollusk (blue-grey cap, yellow "STAMPS" bib) runs through a wood while the bat-winged Bombanat grabs his snout; the shaggy yellow monster with a fork and a napkin behind is the Yalapappus; a red bird peeping out at bottom right | [Ken Priebe, "Picture Book Inspiration: Mercer Mayer", 2023](https://kenpriebe.substack.com/p/picture-book-inspiration-mercer-mayer) |
 | [`title-page.jpg`](title-page.jpg) | The title page: a leafy frame; the Trollusk at bottom left in a crumpled blue-green checked top hat with a coil of tubing round it, a yellow bag lettered "MY STAMPS" at his side; the Grithix peeking round a tree at right (horned snout, tusk, one droopy eye, pink claws gripping the bark). A reader's inscription in ink | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
-| [`pages-06-07-sally-ann-and-mailbox.jpg`](pages-06-07-sally-ann-and-mailbox.jpg) | Pages 6–7, the opening: the text page with an ornamental drop capital "O" made of a little winged dragon with a fish tail; and **Sally Ann**, barefoot, with long wavy light-brown hair and a big pink bow, a white blouse and red-checked overall shorts, on tiptoe posting the letter in a grey rural mailbox with a red flag, on a post lettered "219 FIDDLE ST.", by a picket fence and a dustbin under leafy trees. The Trollusk, in his checked top hat with his "MY STAMPS" bag, peers from behind a gnarled tree; a frog at the foot of the path | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
+| [`pages-06-07-sally-ann-and-mailbox.jpg`](pages-06-07-sally-ann-and-mailbox.jpg) | Pages 6–7, the opening: the text page with an ornamental drop capital "O" made of a little winged dragon with a fish tail; and **Sally Ann**, barefoot, with long wavy light-brown hair and a big pink bow, a white blouse and red-checked overall shorts, on tiptoe posting the letter in a grey rural mailbox with a red flag, on a post lettered "219 FADDLE ST.", by a picket fence and a dustbin under leafy trees. The Trollusk, in his checked top hat with his "MY STAMPS" bag, peers from behind a gnarled tree; a frog at the foot of the path | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`pages-22-23-typhoonigator-full.jpg`](pages-22-23-typhoonigator-full.jpg) | Pages 22–23, "By morning, the Wild-'n-Windy Typhoonigator was full ... it had to let go": a vast grey-brown cloud across the spread with a face at right (one droopy heavy-lidded eye, a big fleshy pink nose and lips) and puffy clawed cloud hands; inside the cloud, the captain and four crew, fish, an oar, a hat and a wrecked ship. Below, the sea is gone: a bare sea floor with stranded boats, a pier, a billboard ("GARRY'S GARAGE") and coral-like rocks | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`pages-36-37-mailman-yalapappus-grithix.jpg`](pages-36-37-mailman-yalapappus-grithix.jpg) | Pages 36–37, the epilogue: the official mailman (goggles, helmet, ochre jacket) rides off on a motorcycle loaded with mail, past a "PETE'S PLACE BURGERS" stand and a "YOU ARE NOW LEAVING THE EDGE OF NOWHERE" sign; the **Yalapappus** (the text names him: huge, curly ochre fur, tusks, a napkin round his neck) lies wailing with his fists in the air; the Trollusk wails by the arched official mailbox flagged "EMPTY"; the Grithix walks off with the Bombanat under his arm and his net over his shoulder | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`pages-16-17-grumley-netted.jpg`](pages-16-17-grumley-netted.jpg) | Pages 16–17: the Grumley, clutching the Bombanat, hauled up out of the sea in the fishing boat's net on a crane; the fishing boat *Peg* with its bearded crew and a crate of fish; text: "But before the Bombanat-Munching Grumley could slither down into the sea for a nice Bombanat lunch—SNAP—he was snagged by a big fishing net and hauled wiggly-squiggly on board a fishing boat." | A photo the owner shared (from an online listing) |
 | [`pages-18-19-ice-ferg.png`](pages-18-19-ice-ferg.png) | Pages 18–19: the Furious-Floating Ice-Ferg, a craggy iceberg of cracked lilac-white slabs with icicles and sea lions on its ledges, one small dark eye in a crevice; the Bombanat flies over it; the *Peg* goes down with the spectacled Grumley aboard while the captain and crew, in blue-grey caps and coats, pile into a pink rubber raft. Text: "But before the fishing boat could reach land, it was struck by a Furious-Floating Ice-Ferg. SCRUNNCCCHHH!! As the ship went down, the captain quickly stuffed a note into a bottle. He pushed in the letter for good measure, and then threw it into the ocean." | Added by the owner |
+| [`bombanat-over-the-goo.jpg`](bombanat-over-the-goo.jpg) | The Bombanat flying over the Blue Ocean of Bubbley Goo by moonlight, the letter in his teeth: dark shaggy body, mauve bat wings, red striped cap with a yellow **propeller**, striped necktie, a curling pink tail; in the goo, a scowling fish, a giant eye, a tentacle and a bathtub; a rocky coast with a "PIZZA" billboard and a windmill | [The Haunted Closet, 2008](https://the-haunted-closet.blogspot.com/2008/11/past-edge-of-nowhere.html) |
+| [`bombanat-and-pony-express-boy.jpg`](bombanat-and-pony-express-boy.jpg) | The clearest Bombanat: flying past a boy in a cowboy hat pulling a "PONY XPRES" wagon, by a red barn | [Flickr, wotatopia](https://www.flickr.com/photos/wotatopia/4697435735/) |
+| [`grumley-grabs-bombanat-page.jpg`](grumley-grabs-bombanat-page.jpg) | The page where the Grumley grabs the Bombanat (2001 edition): his huge spectacled face close up, fangs and long pink tongue, tentacles; text "But before he could find a nice place to settle down and eat the letter, a Bombanat-Munching Grumley reached up out of the goo and grabbed him." | [AbeBooks listing 32486352676](https://www.abebooks.com/Monster-After-Another-Mercer-Mayer-Brighter/32486352676/bd) |
+| [`grumley-in-the-goo.jpg`](grumley-in-the-goo.jpg) | The Grumley waist-deep in the dark goo: shaggy olive-ochre fur, a crown of white horns, round spectacles on a pink nose, a fanged underbite, two spiny **crab arms** whose claws have eyes and teeth, and octopus tentacles (one holding a toothbrush); a shark fin | [The Haunted Closet, 2008](https://the-haunted-closet.blogspot.com/2008/11/past-edge-of-nowhere.html) |
+| [`fishing-boat-peg-detail.jpg`](fishing-boat-peg-detail.jpg) | The bow of the fishing boat: pale teal hull, pink rail and the nameplate PEG; a fisherman with a rod and a gull on the rail; a sea creature below eating carrots | [The Haunted Closet, 2008](https://the-haunted-closet.blogspot.com/2008/11/past-edge-of-nowhere.html) |
+| [`ice-ferg-seals-detail.jpg`](ice-ferg-seals-detail.jpg) | Detail of the Ice-Ferg: white and pale-blue ice with icicle drips, olive-yellow whiskered seals on its ledges, one falling off | [Flickr, wotatopia](https://www.flickr.com/photos/wotatopia/4697433619/) |
+| [`captain-throws-bottle.jpg`](captain-throws-bottle.jpg) | The captain in the pink raft about to throw the green bottle labelled "HELP! OUR SHIP SANK...": long nose, long white beard blown sideways, grey cap and coat, a polka-dot hanky; three hooded fishermen; the Grumley squeezed in beside them | [Vintage Children's Books My Kid Loves, 2008](https://www.vintagechildrensbooksmykidloves.com/2008/04/one-monster-after-another.html) (via the Wayback Machine) |
+| [`yalapappus-bottle-on-head.jpg`](yalapappus-bottle-on-head.jpg) | The bottle lands on the Yalapappus's head (KER-PLOP): he sits sulking, a woolly yellow-green bulldog of a monster with droopy ears, tusks, a pink nose and a napkin with a knife and fork; curtains of goo drip from the jungle above, with a pink fish and a pink octopus falling | [Vintage Children's Books My Kid Loves, 2008](https://www.vintagechildrensbooksmykidloves.com/2008/04/one-monster-after-another.html) (via the Wayback Machine) |
+| [`yalapappus-munching.jpg`](yalapappus-munching.jpg) | The Yalapappus munching in the jungle, napkin on | [Flickr, wotatopia](https://www.flickr.com/photos/wotatopia/4697432873/) |
+| [`trollusk-snatches-from-yalapappus.jpg`](trollusk-snatches-from-yalapappus.jpg) | The Trollusk sneaks up on the Yalapappus (a pink octopus on his head) as he holds the letter on his fork; the envelope reads "Sally Ann, 219 Faddle St." with a red stamp | [Flickr, wotatopia](https://www.flickr.com/photos/wotatopia/4698066062/) |
+| [`trollusk-and-yalapappus-running.jpg`](trollusk-and-yalapappus-running.jpg) | Vignette: the Trollusk runs off with the letter in his snerk, stamps flying from his bag; the Yalapappus chases with knife and fork, a pink octopus clinging on; a toad, and the Bombanat far off | [Vintage Children's Books My Kid Loves, 2008](https://www.vintagechildrensbooksmykidloves.com/2008/04/one-monster-after-another.html) (via the Wayback Machine) |
+| [`grithix-nets-bombanat-page.jpg`](grithix-nets-bombanat-page.jpg) | The FLIP-FLOP page (1993 Rainbird edition): the Grithix with the Bombanat in his net (green bow tie, magenta robe with gold buttons, a teal scaly **shell** on his back); the Yalapappus and the Trollusk peek from behind a tree; text "...he was snared in a net, caught, FLIP-FLOP, by the Bombanat-Collecting Grithix." | [Bookbot listing](https://bookbot.it/g/8513676) |
+| [`grithix-mailbox-scan.jpg`](grithix-mailbox-scan.jpg) | A flat scan of the Grithix-at-the-mailbox page, cleaner than the photo | [The Haunted Closet, 2008](https://the-haunted-closet.blogspot.com/2008/11/past-edge-of-nowhere.html) |
+| [`girl-walking-with-letter.jpg`](girl-walking-with-letter.jpg) | A girl in a yellow straw hat and yellow jacket, with a basket and the letter, walking away down a country path toward a pink-roofed house; a monster's snout at the edge. Which girl, and which page, is **not confirmed** | [Flickr, wotatopia](https://www.flickr.com/photos/wotatopia/4697437469/) |
+| [`sign-to-nowhere.jpg`](sign-to-nowhere.jpg) | A signpost: "TO NOWHERE and BACKAGAIN" | [The Haunted Closet, 2008](https://the-haunted-closet.blogspot.com/2008/11/past-edge-of-nowhere.html) |
 | [`back-cover-grithix.jpg`](back-cover-grithix.jpg) | The back cover: the Grithix alone in a wood, swinging his butterfly net; the clearest view of him (see below) | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`endpapers.jpg`](endpapers.jpg) | The endpapers, across both boards: the Trollusk, under leaves, reads a little pink book; a red bird sits in a gnarled tree with faces in its knots | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`cover-2001-reissue.jpg`](cover-2001-reissue.jpg) | The same cover art, cropped, on the 2001 reissue with a violet title panel | [Open Library cover 833553](https://covers.openlibrary.org/b/id/833553-L.jpg) |
 | [`typhoonigator-spread.jpg`](typhoonigator-spread.jpg) | The spread at page 20: the Wild-'n-Windy Typhoonigator, a storm-cloud face, sucking the sea up in a spout; the captain's bottle ("HELP!! OUR SHIP SANK ... Captain") bobbing; the crew in a pink rubber raft with an S.O.S. flag; the text band below | Ken Priebe, as above |
-| [`mailbox-girl-and-trollusk.jpg`](mailbox-girl-and-trollusk.jpg) | A girl in glasses walks barefoot past a porch reading a letter, while a monster in a cap hides under a "MAIL" box in the flowerbed. The blog captions it as Lucy Jane getting her letter; whether it is Lucy Jane at the end or Sally Ann at the start is **not confirmed** | [The Little Book Review, 2013](https://little-book-review.com/2013/07/24/one-monster-after-another-1974/) |
+| [`mailbox-girl-and-trollusk.jpg`](mailbox-girl-and-trollusk.jpg) | (Higher-resolution copy from Vintage Children's Books My Kid Loves.) A girl in glasses walks barefoot past a porch reading a letter, while a monster in a cap hides under a "MAIL" box in the flowerbed. The blog captions it as Lucy Jane getting her letter; whether it is Lucy Jane at the end or Sally Ann at the start is **not confirmed** | [The Little Book Review, 2013](https://little-book-review.com/2013/07/24/one-monster-after-another-1974/) |
 | [`bedtime-book-trollusk.jpg`](bedtime-book-trollusk.jpg) | **Another book**, *Little Monster's Bedtime Book* (1978): "The Stamp-Collecting Trollusk" rhyme page, the Trollusk in a blue top hat looking through a stamp album | Ken Priebe, as above |
 | [`bedtime-book-typhoonigator.jpg`](bedtime-book-typhoonigator.jpg) | **Another book**, *Little Monster's Bedtime Book*: the Typhoonigator as a cloud with a face, blowing, over a "ROAD TO NOWHERE" sign | Ken Priebe, as above |
 | [`grithix-mailbox-page.jpg`](grithix-mailbox-page.jpg) | A full-page picture near the end: the Bombanat-Collecting Grithix, with the Bombanat in the net over his shoulder, stands at the official-looking mailbox, where the letter (addressed in a child's hand, "Sally Ann" legible) sticks out of the slot; the Yalapappus peers over the top of the mailbox and the Trollusk hides in the bushes beside it, as the text has the three of them watch helplessly | Photographed from the owner's copy of the book |
@@ -149,17 +164,21 @@ requests are ours and should be checked against the Internet Archive scan.
   tubing looped round it as a hatband, and a yellow shoulder bag lettered "MY
   STAMPS" (on the cover only "STAMPS" shows, so it reads like a bib). This is
   the monster in the middle of the cover.
-- **Letter-Eating Bombanat** (cover; identified by inference, as the flying
-  monster that seizes the Trollusk). Huge mauve bat wings with clawed tips, a
-  long pink crocodile-like snout full of little fangs, a sly frowning eye, a
-  tuft of dark fur on the chest, a red-and-white striped necktie or collar, a
-  pink striped cap with a yellow flower on top, and clawed feet.
-- **Bombanat-Munching Grumley** (pages 16–17). A big round shaggy sea
-  monster in ochre-orange fur, head and body one great hairy ball with a
-  crest of spiky tufts on top, small round wire spectacles on a big nose, a
-  wide grin full of teeth, and a mass of long orange octopus tentacles with
-  pale suckers. He clutches the Bombanat in his tentacles as the fishing
-  boat's net hauls him up out of the sea on a crane.
+- **Letter-Eating Bombanat** (cover; `bombanat-over-the-goo.jpg`;
+  `bombanat-and-pony-express-boy.jpg`, the clearest). A small, dark, shaggy
+  body with huge lilac-mauve bat wings with clawed tips, a long pink
+  crocodile-like snout full of little fangs and a sly frowning eye, a red
+  striped cap with a yellow propeller on top, a red-and-white striped
+  necktie, clawed pink feet, and a thin curling pink tail.
+- **Bombanat-Munching Grumley** (pages 16–17; `grumley-in-the-goo.jpg`,
+  the clearest; `grumley-grabs-bombanat-page.jpg`). A big shaggy sea
+  monster in olive-ochre to orange fur, head and body one great hairy mass
+  with a crown of white horns on top, heavy scowling brows, small round wire
+  spectacles on a pink nose, a fanged underbite (a huge mouth with a long pink
+  tongue when it opens), a mass of octopus tentacles with ringed suckers, and
+  two long spiny **crab arms** ending in claws that have eyes and teeth of
+  their own. He clutches the Bombanat as the fishing boat's net hauls him up
+  on a crane, and later rides in the raft with the crew.
 - **The fishing boat, the *Peg*** (pages 16–17). A stout teal hull with
   portholes and PEG on the bow, a wooden wheelhouse, a crane and net, a crate
   of green fish on deck; bearded fishermen in blue-grey caps and oilskins.
@@ -172,14 +191,17 @@ requests are ours and should be checked against the Internet Archive scan.
 - **Furious-Floating Ice-Ferg** (pages 18–19). Not a cartoon face on a
   berg: a huge craggy iceberg built of great cracked slabs, pale lilac-white
   and blue, with jagged icicles hanging from its ledges and brown sea lions
-  lounging on them. The only sign of life is one small dark eye glaring from
+  lounging on them (olive-yellow, whiskered, in the detail photo). The only sign of life is one small dark eye glaring from
   a crevice in the middle. (A toothy, spiky head with an eye peeks over the
   top edge of the left page; whether it belongs to the Ice-Ferg is unclear.)
 - **Paper-Munching Yalapappus** (cover, the yellow monster at the left;
-  confirmed by the text of pages 36–37, which names him in the picture). A big shaggy monster in
-  curly ochre-yellow fur, with a broad squashed face, a wide grinning mouth,
-  two great tusks, a heavy pink upper lip and snout, heavy-lidded eyes, a
-  white napkin tied at the neck and a fork held up, ready to munch. On the
+  confirmed by the text of pages 36–37, which names him in the picture;
+  `yalapappus-bottle-on-head.jpg` is the clearest). A big woolly monster in
+  curly ochre to yellow-green fur, with a bulldog's squashed face, droopy
+  ears, a wide mouth with two great tusks, a heavy pink upper lip and nose,
+  heavy-lidded eyes, a white napkin tied at the neck, and a fork (and
+  sometimes a knife) in his pink paws. From the bottle on, a little pink
+  octopus rides on his head. On the
   Grithix's page the same ochre-furred face, bulging-eyed and fanged, peers
   over the top of the mailbox, where the text puts the Yalapappus.
 - **Bombanat-Collecting Grithix** (Grithix page). Tall, upright and stout,
@@ -188,17 +210,17 @@ requests are ours and should be checked against the Internet Archive scan.
   brow, two long white tusks curving up from the lower jaw, a small
   half-lidded eye with a pleased, sly look, and one long floppy ear or horn
   curling back from the top of his head. He wears a long, ragged magenta-pink
-  robe to the ground, buttoned down the front, and a short scaly shawl or
-  collar in blue-green, with small yellow spots, over his shoulders (the back
-  cover shows it round both shoulders). Pink clawed hands, big pink feet with long white talons,
+  robe to the ground with gold buttons down the front, a green bow tie, and a
+  teal scaly **shell** on his back, dotted with small yellow spots, that shows
+  over both shoulders (`grithix-nets-bombanat-page.jpg`; the back cover). Pink clawed hands, big pink feet with long white talons,
   and a long pink tail ending in a spiked ball like a mace. His butterfly net
   has a yellow pole and hoop and a dark mesh bag; the Bombanat is in it, grey
-  winged here, with its flower cap and striped necktie.
+  winged here, with its propeller cap and striped necktie.
 - **The official-looking mailbox** (Grithix page; pages 36–37). A squat,
   riveted metal box in grey-mauve with an arched top and a slot, standing in
   the scrub; after the mailman has been, a little flag on it reads "EMPTY".
 - **Sally Ann's mailbox** (pages 6–7). A grey rural mailbox with a rounded
-  top and a red flag, on a wooden post lettered "219 FIDDLE ST.", by a picket
+  top and a red flag, on a wooden post lettered "219 FADDLE ST.", by a picket
   fence.
 - **Sally Ann** (pages 6–7). About eight, barefoot, with long wavy
   light-brown hair tied with a big pink bow, a white short-sleeved blouse and
@@ -208,5 +230,12 @@ requests are ours and should be checked against the Internet Archive scan.
   top and a pink skirt, barefoot.
 - **The official mailman** (pages 36–37). Small, in a round helmet and
   goggles and an ochre jacket, riding an old motorcycle loaded with mail.
-- **The captain and crew** (page-20 spread). Bearded sailors in grey caps and
-  coats, rowing a pink rubber raft with an S.O.S. flag.
+- **The captain and crew** (page-20 spread; `captain-throws-bottle.jpg`).
+  The captain has a long nose, a long white beard, a grey cap and coat and a
+  polka-dot hanky in his pocket; the crew are hooded fishermen in grey. They
+  row a pink rubber raft with an S.O.S. flag.
+- **The edge of Nowhere** (`yalapappus-bottle-on-head.jpg`,
+  `trollusk-snatches-from-yalapappus.jpg`, `sign-to-nowhere.jpg`, pages
+  36–37). A jungly place of palms and ferns, with curtains of goo dripping
+  from above (everything the Typhoonigator let go), and signposts: "TO
+  NOWHERE and BACKAGAIN", "YOU ARE NOW LEAVING THE EDGE OF NOWHERE".
