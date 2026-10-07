@@ -368,17 +368,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 body.reduce-motion .press-start, body.reduce-motion .result-medal { animation: none; }
 
-/* The painted rosettes (assets/ui/medals.png, three in a row), once delivered. */
+/* The painted rosettes (assets/ui/medals.png), cut out by main.js once delivered. */
 .medal-art .medal.m1, .medal-art .medal.m2, .medal-art .medal.m3,
 .medal-art .result-medal.m1, .medal-art .result-medal.m2, .medal-art .result-medal.m3,
 .medal-art .dot.m1, .medal-art .dot.m2, .medal-art .dot.m3 {
-  background: url('assets/ui/medals.png') no-repeat 0 0 / 300% 100%;
+  background: var(--medal-1) center / contain no-repeat;
   border: none;
   border-radius: 0;
   color: transparent;
 }
-.medal-art .m2.medal, .medal-art .m2.result-medal, .medal-art .m2.dot { background-position: 50% 0; }
-.medal-art .m3.medal, .medal-art .m3.result-medal, .medal-art .m3.dot { background-position: 100% 0; }
-.medal-art .medal { width: 40px; height: 40px; top: 2px; right: 2px; }
-.medal-art .result-medal.m1, .medal-art .result-medal.m2, .medal-art .result-medal.m3 { width: 150px; height: 150px; }
-.medal-art .dot.m1, .medal-art .dot.m2, .medal-art .dot.m3 { width: 1.3em; height: 1.3em; vertical-align: -0.3em; }
+.medal-art .m2.medal, .medal-art .m2.result-medal, .medal-art .m2.dot { background-image: var(--medal-2); }
+.medal-art .m3.medal, .medal-art .m3.result-medal, .medal-art .m3.dot { background-image: var(--medal-3); }
+.medal-art .medal { width: 36px; height: 48px; top: 2px; right: 4px; }
+.medal-art .result-medal.m1, .medal-art .result-medal.m2, .medal-art .result-medal.m3 { width: 120px; height: 160px; }
+.medal-art .dot.m1, .medal-art .dot.m2, .medal-art .dot.m3 { width: 1.2em; height: 1.6em; vertical-align: -0.5em; }
