@@ -222,7 +222,19 @@ async function start() {
 
   net = createNet({ game: 'chat', room: 'everyone', me });
   votes = createVotes({ server: MiniRooms.defaultServer() });
-  net.setPresence({ cam: studio.camOn, mic: studio.micOn, fx: null });
+  net.setPresence({ cam: studio.camOn, mic: studio.micOn, away: studio.away, fx: null });
+  // Pause the camera and microphone while the tab is in the background or the
+  // window loses focus; they come back as they were (unless muted) on return.
+  const syncAway = () => {
+    const away = document.hidden || !document.hasFocus();
+    if (away === studio.away) return;
+    studio.setAway(away);
+    updateDeviceButtons();
+  };
+  document.addEventListener('visibilitychange', syncAway);
+  window.addEventListener('blur', syncAway);
+  window.addEventListener('focus', syncAway);
+  syncAway();
   // Test hooks: ?rtcdrop=1 withholds ICE candidates so calls can't connect,
   // ?rtcfast=0.2 runs the call watchdog's timers five times faster.
   const q = new URLSearchParams(location.search);
@@ -363,7 +375,7 @@ function addSelfTile() {
 }
 
 function updateTileLabel(rec, p) {
-  const sig = JSON.stringify([p.name, p.color, p.mic, p.cam, rec.quality]);
+  const sig = JSON.stringify([p.name, p.color, p.mic, p.cam, p.away, rec.quality]);
   if (sig === rec.sig) return;
   rec.sig = sig;
   rec.name = p.name || rec.name;
@@ -381,7 +393,8 @@ function updateTileLabel(rec, p) {
     }
     rec.flags.append(f);
   };
-  if (p.mic === false) flag('', 'muted');
+  if (p.away) flag('Away', 'away');
+  else if (p.mic === false) flag('', 'muted');
   if (rec.quality) {
     const q = document.createElement('span');
     q.className = `flag bars q${rec.quality}`;
@@ -644,7 +657,7 @@ function renderConnection() {
   table.append(
     row('Chat relay', { connected: 'Connected', connecting: 'Connecting…', reconnecting: 'Reconnecting…', full: 'Full' }[net?.status] || 'Offline'),
     row('Relay server for video (TURN)', rtc?.turn ? 'Available' : 'Not set up (direct connections only)'),
-    row('Camera / microphone', `${studio?.hasCamera ? (studio.camOn ? 'on' : 'off') : 'none'} / ${studio?.hasMic ? (studio.micOn ? 'on' : 'off') : 'none'}`),
+    row('Camera / microphone', `${studio?.hasCamera ? (studio.camOn ? 'on' : 'off') : 'none'} / ${studio?.hasMic ? (studio.micOn ? 'on' : 'off') : 'none'}${studio?.away ? ' (paused: tab in background)' : ''}`),
   );
   body.append(table);
   const others = [...tiles.values()].filter(r => r.id !== me.id);
@@ -698,7 +711,7 @@ function updateDeviceButtons() {
   mic.disabled = !studio.hasMic;
   cam.disabled = !studio.hasCamera;
   updateTileLabel(tiles.get(me.id), { name: `${me.name} (you)`, color: me.color, mic: studio.micOn, cam: studio.camOn });
-  net?.setPresence({ cam: studio.camOn, mic: studio.micOn });
+  net?.setPresence({ cam: studio.camOn, mic: studio.micOn, away: studio.away });
 }
 
 // The effects strip, the games sheet and the chat sheet share the space above

@@ -76,7 +76,9 @@ own video, or hold RT instead.
 
 ## Games
 
-Hoops, Flappy Face, Air Hockey, Connect Four, Quick Draw, Staring Contest,
+Hoops (laid out like Messenger's: a big hoop, the ball at the bottom, and any
+swipe roughly at the hoop goes in), Flappy Face (your face is the bird; tap to
+flap), Air Hockey, Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
 holes played together with friends' ghost balls), Bowling, Beach Bump (bump
 a ball between faces by nodding), Burger Stack (catch ingredients by moving
@@ -116,6 +118,8 @@ itself to HTTPS.
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
+- `node chat/test/hoops-play.mjs`: six real swipes on a phone-sized Hoops,
+  straight and crooked, short and long, all of which must score
 - `chat/publish.sh local/pages/chat && node chat/test/conn-check.mjs`: a
   working call turns the pill green with signal bars and a route in the
   Connection panel; calls that can't connect (`?rtcdrop=1&rtcfast=0.2`) go
@@ -127,8 +131,8 @@ itself to HTTPS.
   strip putting on the effect in the ring
 - `chat/publish.sh local/pages/chat && node chat/test/call-check.mjs`: two
   browsers against a local relay: video both ways, a bubble flying and
-  popping, chat, and joining a game from an invite (needs `npm ci` in
-  `multiplayer/server`)
+  popping, chat, joining a game from an invite, and a background tab pausing
+  the camera and mic (needs `npm ci` in `multiplayer/server`)
 
 `test/fx.html?fx=<id>` and `test/game.html?game=<id>&n=2` are also handy by
 hand.
@@ -148,6 +152,10 @@ hand.
   restarts; it keeps retrying every 30 s in the background), "Reconnecting…"
   when a working call drops, and "Bo's video has paused" when frames stop
   arriving. Connected tiles show signal bars from round trip and loss.
+- While the tab is in the background or the window loses focus, the camera
+  and microphone pause: friends see your initial with "away" and an Away
+  flag on your tile. They come back when you return, except whichever you
+  had muted.
 - If the browser won't start a friend's video with sound, the video plays
   muted and a "Tap to hear your friends" button appears.
 
