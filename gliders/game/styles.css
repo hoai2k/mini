@@ -55,7 +55,16 @@ kbd {
 .muted { color: var(--muted); }
 
 /* ---------- Title ---------- */
+/* With the key art behind it, the logo sits at the top and Press Start low,
+   leaving the middle band open for the gliders in the picture. */
+#title.art { justify-content: stretch; background: linear-gradient(180deg, rgba(30, 16, 60, 0.28), transparent 26%, transparent 70%, rgba(30, 16, 60, 0.4)); }
+#title.art .title-block { flex: 1; margin: 0; padding: max(10px, 2.5vh) 16px max(70px, 11vh); gap: 6px; }
+#title.art #logo-img { width: min(58vw, 640px, 70vh * 2.5); }
+#title.art .title-spacer { flex: 1; }
+.pause-logo { display: block; width: min(260px, 70%); margin: -4px auto 2px; }
 #title { align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 42%, rgba(30, 16, 60, 0.0) 30%, rgba(30, 16, 60, 0.35) 100%); }
+.title-spacer { display: none; }
+#title.art .title-spacer { display: block; }
 .title-block { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: -4vh; padding: 0 16px; text-align: center; }
 #logo-img { width: min(76vw, 860px); height: auto; filter: drop-shadow(0 10px 24px rgba(20, 8, 50, 0.45)); }
 .logo-text {
@@ -492,3 +501,7 @@ body.pointer [data-nav]:focus-visible:not(.nav-focus) { outline: none !important
   .logo-text span, .press-start { animation: none; }
 }
 .reduce-motion .logo-text span, .reduce-motion .press-start { animation: none; }
+@media (max-height: 500px) {
+  #title.art #logo-img { width: min(44vw, 380px); }
+  #title.art .title-block { padding-bottom: max(56px, 9vh); }
+}

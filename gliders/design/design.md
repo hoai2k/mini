@@ -121,8 +121,12 @@ synthesised. If the recordings are missing, synthesised wind stands in.
 
 ## Art
 
-Everything in play is built in code. Generated images are requested in
-[`image-requests.md`](image-requests.md): the logo, the title background, the
-app icon and a portrait badge per glider. Until they arrive the game uses
-stand-ins: the logo in the page font, a live flyover behind the title, a
-drawn SVG icon, and portraits rendered from the 3D models.
+Everything in play is built in code. The generated images
+([`image-requests.md`](image-requests.md)) are all delivered: the logo (title
+screen, pause menu, library card), the title key art (title screen, library
+card), the app icon (tab and home screen, scaled into `game/icons/`) and a
+portrait badge per glider (HUD and results). The key art places its gliders in
+the upper middle, so with it the title screen sets the logo at the top and
+Press Start low, leaving the middle band to the picture. If an image is
+missing the game falls back to its stand-in: the logo in the page font, a live
+flyover behind the title, and portraits rendered from the 3D models.

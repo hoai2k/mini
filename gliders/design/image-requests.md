@@ -46,7 +46,7 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 
 - **File:** `gliders/game/assets/ui/icon.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Browser tab, home-screen icon (scaled to 512, 192 and 180 px) and the HUD's pause badge.
+- **Used for:** Browser tab, home-screen icon (scaled to 512, 192 and 180 px).
 - **Stand-in until delivered:** A drawn SVG icon: a white glider silhouette on a coral-to-violet rounded square.
 - **Status:** delivered
 

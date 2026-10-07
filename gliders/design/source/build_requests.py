@@ -115,7 +115,7 @@ REQUESTS = [
         "key": "icon",
         "file": "assets/ui/icon.png",
         "size": "1024 x 1024, transparent",
-        "used": "Browser tab, home-screen icon (scaled to 512, 192 and 180 px) and the HUD's pause badge.",
+        "used": "Browser tab, home-screen icon (scaled to 512, 192 and 180 px).",
         "standin": "A drawn SVG icon: a white glider silhouette on a coral-to-violet rounded square.",
         "status": "delivered",
         "prompt": ART_STYLE + " App icon: a stylised flying squirrel seen from below and slightly "
