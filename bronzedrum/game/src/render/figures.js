@@ -17,6 +17,19 @@ const PALANQUIN = {
   nhiStrike: { armR: -0.793, foreR: -2.372 },
 };
 
+/**
+ * A sister's stroke, 0 (raised, ready) to 1 (on the drum), `since` seconds
+ * after it sounded. It is drawn after the sound, so the stick is on the drum
+ * from the first frame rather than swinging down late; it rests there for
+ * 50 ms and lifts back over 0.35 s.
+ */
+function strikeEnvelope(since) {
+  if (!(since >= 0)) return 0;
+  if (since < 0.05) return 1;
+  if (since < 0.4) return (1 - (since - 0.05) / 0.35) ** 2;
+  return 0;
+}
+
 export const figures = {
   /** A Lạc Việt warrior woman, facing right. */
   warrior(x, y, s, pose, t, archer) {
@@ -529,9 +542,8 @@ export const figures = {
 
   /**
    * Trưng Trắc's pose at this moment. Between strokes she holds the stick
-   * raised; on each tùng her forearm whips forward and down onto the drum
-   * (70 ms, the stroke has already been played) and lifts back over a third
-   * of a second, with the body leaning into it. The cape and sash ribbons
+   * raised; on each tùng her beater is on the drum at once (strikeEnvelope)
+   * and lifts back over a third of a second, with the body leaning into it. The cape and sash ribbons
    * hang on springs, so they trail the body and settle.
    */
   tracPose(view, strike = TRAC_STRIKE) {
@@ -540,10 +552,7 @@ export const figures = {
     const dt = Math.min(0.05, Math.max(0, t - st.t));
     st.t = t;
     const since = t - this.flash.L;
-    let s = 0; // 0 raised and ready, 1 struck
-    if (since >= 0 && since < 0.07) s = (since / 0.07) ** 2;
-    else if (since >= 0.07 && since < 0.42) s = 1 - (1 - (1 - (since - 0.07) / 0.35) ** 2);
-    s = Math.max(0, Math.min(1, s));
+    const s = strikeEnvelope(since); // 0 raised and ready, 1 struck
     const calm = this.reduceMotion ? 0.3 : 1;
     const lerp = (a, b) => a + (b - a) * s;
     const breathe = Math.sin(t * 1.7) * 0.015 * calm;
@@ -582,10 +591,7 @@ export const figures = {
   nhiPose(view, strike = NHI_STRIKE) {
     const t = view.songTime;
     const since = t - this.flash.R;
-    let s = 0;
-    if (since >= 0 && since < 0.07) s = (since / 0.07) ** 2;
-    else if (since >= 0.07 && since < 0.42) s = 1 - (1 - (1 - (since - 0.07) / 0.35) ** 2);
-    s = Math.max(0, Math.min(1, s));
+    const s = strikeEnvelope(since);
     const calm = this.reduceMotion ? 0.3 : 1;
     const sway = Math.sin(t * 1.9 + 1) * 0.02 * calm;
     return {

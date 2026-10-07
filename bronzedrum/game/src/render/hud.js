@@ -27,21 +27,24 @@ export const hud = {
    * sun-star; Nhị's stick for each rim stroke, from the right onto the rim.
    * A tap on the touch drum is struck where it landed instead (a rim tap on
    * the left half brings Nhị's stick in from the left).
-   * It is already sounding, so the stick arrives fast (45 ms), rests a
-   * moment on the drum and lifts back out of frame (to 0.45 s).
+   * The stroke is already sounding when it is drawn, so the stick is on the
+   * drum from the first frame (no swing in, which would only show late),
+   * rests there for 50 ms and springs back up to a ready pose over the drum.
+   * It stays at the ready while the drumming goes on and fades out after
+   * 2.5 s without a stroke on its side.
    */
   closeSticks(cx, cy, R, t, touch = false) {
     const g = this.ctx;
     for (const drum of ['L', 'R']) {
       const since = t - this.flash[drum];
-      if (!(since >= 0 && since < 0.45)) continue;
+      if (!(since >= 0 && since < 3)) continue;
       const st = STICKS[drum];
-      // away: 0 on the drum, 1 lifted out of the way.
+      // away: 0 on the drum, 1 at the ready (an ease-out, quick off the drum).
       let away;
-      if (this.reduceMotion) away = since < 0.25 ? 0 : 1;
-      else if (since < 0.045) away = 1 - since / 0.045;
-      else if (since < 0.11) away = 0;
-      else away = Math.min(1, (since - 0.11) / 0.3) ** 1.2;
+      if (since < 0.05) away = 0;
+      else if (this.reduceMotion) away = since < 0.12 ? 0 : 1;
+      else away = 1 - (1 - Math.min(1, (since - 0.05) / 0.22)) ** 3;
+      const shown = since < 2.5 ? 1 : 1 - (since - 2.5) / 0.5;
       const L = STICK_LEN * R;
       let ang = touch ? st.angTouch : st.ang;
       let at = st.at;
@@ -59,13 +62,13 @@ export const hud = {
       // Lifting: the stick tips back about the wrist and the arm draws back
       // along its own line, growing a little as it nears the eye.
       const fromLeft = Math.cos(ang) > 0;
-      const dir = ang + (fromLeft ? 0.7 : -0.7) * away;
-      const back = away * 1.6 * R;
+      const dir = ang + (fromLeft ? 0.45 : -0.45) * away;
+      const back = away * 0.7 * R;
       const wx = head[0] - Math.cos(ang) * (L + back);
       const wy = head[1] - Math.sin(ang) * (L + back);
-      const grow = 1 + 0.18 * away;
+      const grow = 1 + 0.1 * away;
       g.save();
-      g.globalAlpha = Math.min(1, (1 - away) * 2.2);
+      g.globalAlpha = shown;
       g.translate(wx, wy);
       g.rotate(dir);
       g.scale(grow, mirror ? -grow : grow);
@@ -87,9 +90,9 @@ export const hud = {
       } else this.standinStick(L, R, drum);
       g.restore();
       // The landing point flashes on contact.
-      if (away === 0 && !this.reduceMotion) {
+      if (since < 0.11 && !this.reduceMotion) {
         g.save();
-        g.globalAlpha = 0.7 * (1 - Math.min(1, (since - 0.045) / 0.065));
+        g.globalAlpha = 0.7 * (1 - since / 0.11);
         g.fillStyle = drum === 'L' ? P.paper : P.lacquer;
         star(g, head[0], head[1], R * 0.32, R * 0.08, 8);
         g.restore();
