@@ -3,9 +3,9 @@
 A game made from Mercer Mayer's *One Monster After Another* (Golden Press,
 1974). Sally Ann posts a letter to her best friend Lucy Jane, and before the
 mailman comes it is stolen by one monster after another. In the game you
-**are** each monster in turn: you play a short challenge doing what that
-monster does in the book, and at the end of it the letter is snatched from
-you by the next monster, and you become that one. The story, the monsters and
+**are** each monster in turn, as it tries to snatch the letter from the
+monster that has it: you play the snatch, celebrate with the prize, and then
+the next monster is spotted eyeing it, and you become that one. The story, the monsters and
 the book's look are in [`../reference/README.md`](../reference/README.md).
 
 It is for school-age kids, at about the level of Mario Party minigames: one
@@ -19,10 +19,12 @@ chapter, and a weak score still passes the letter along. What you collect is
 - **The letter is the hero.** It is on screen in every chapter, it shows each
   monster's handling (a nibbled corner, a goo stain, a soggy edge, a torn-off
   stamp), and the route map between chapters traces where it has been.
-- **The hand-off is the moment.** Every chapter ends the same way the book's
-  pages do: "But before the ___ could ___, a ___ came along and ___ the
-  letter." A short animated snatch, the new monster's name card, and you are
-  it.
+- **Every chapter is a snatch.** You play the monster trying to get the
+  letter from whoever has it, and the holder fights to keep it. Get it, and
+  you celebrate.
+- **The cliffhanger is the hand-off.** Mid-celebration, the camera finds the
+  next monster eyeing the prize, the way the book's pages turn: "But before
+  the ___ could ___, ..." Its name card comes up, and you are it.
 - **Passing the letter is passing the controller.** With two to four
   players, each chapter belongs to the next player in turn. The hand-off
   screen says whose turn it is ("Player 2, you are the Letter-Eating
@@ -46,10 +48,14 @@ chapter, and a weak score still passes the letter along. What you collect is
      a letter to eat, a Bombanat lunch), and in party mode whose turn it is.
    - *How to play:* the goal, the controls for the device in use, and the
      postmark targets. Any button starts.
-   - *Play:* a 3-2-1 count, the challenge, then "SNATCH!" as the next monster
-     arrives.
-   - *Hand-off:* the snatch (a few seconds, skippable), the postmarks stamped
-     on the envelope, the route map with one more step drawn on it.
+   - *Eyeing the prize:* a short scene (skippable) of the new monster
+     watching the holder with the letter, from hiding.
+   - *Play:* a 3-2-1 count, then the snatch: get the letter from the holder.
+     "SNATCH!" when you do.
+   - *Celebrate:* your monster's victory with the letter, while the postmarks
+     are stamped on the envelope and the route map draws one more step.
+   - *Spotted:* mid-celebration, the camera finds the next monster eyeing the
+     prize, and the next chapter's name card follows.
 5. **Epilogue.** The Grithix mails the letter; the mailman rides up on his
    official-looking motorcycle ("Unhand that official mailbox!") and rides
    away with it; Lucy Jane opens her mailbox and finds the letter, a little
@@ -80,127 +86,180 @@ shown on the results, but postmarks still count).
 
 ## The chapters
 
-Scores are whole numbers; the postmark targets live in the game's monster
-data and are tuned so that one postmark comes on a first try, two take some
-practice and three are a stretch. Every challenge gets harder the longer it
-runs.
+Every chapter is one snatch from the book, played as the monster doing the
+snatching, in the book's order. Nine snatches, seven monsters: the Trollusk
+and the Bombanat each come back for a rematch, as they do in the book, with
+a new twist on their game. Scores are whole numbers; the postmark targets live
+in the game's monster data and are tuned so that one postmark comes on a first
+try, two take some practice and three are a stretch.
 
-### 1. The Stamp-Collecting Trollusk: Before the Mailman Comes (45 s)
+The holder always fights to keep the letter (it runs, dodges, flaps, hides),
+and gets cleverer the longer the chapter runs. Each chapter has a time limit;
+if it runs out before the snatch, the holder stumbles at the last moment and
+the letter is snatched anyway, for no postmarks (the book never stops, and
+neither does the game). Score is mostly time to spare, plus each chapter's
+own bonus.
 
-*In the book:* he creeps up to Sally Ann's mailbox before the mailman comes,
-steals the letter and gabbles away with a smirk on his snerk.
+### 1. The Stamp-Collecting Trollusk snatches it from the mailbox (45 s)
 
-A side-on street of porches and flowerbeds, the mailbox at the far end and
-the mailman's motorcycle puttering closer along the top of the screen as the
-clock runs. Move the Trollusk from bush to bush toward the mailbox; hold A to
-duck into a flowerbed. Neighbours, a dog and Sally Ann at her window look out
-now and then (a little "eye" warning first): caught moving in the open and the
-Trollusk scuttles back to the last bush. Reach the mailbox, press A to grab
-the letter, and gabble back to the woods. Loose stamps blow along the street:
-picking them up on the way is the bonus. Score: seconds to spare plus stamps.
-Later, lookers look more often and with less warning.
+*In the book:* Sally Ann posts her letter; before the mailman comes, the
+Trollusk creeps up to the mailbox, steals it and gabbles away with a smirk on
+his snerk.
 
-*Snatch:* the Letter-Eating Bombanat flies out of Nowhere and snaps it up.
+*Eyeing the prize:* the Trollusk peeks round a gnarled tree as Sally Ann
+posts the letter and skips back indoors.
 
-### 2. The Letter-Eating Bombanat: Over the Bubbley Goo (45 s)
+A side-on country lane: the picket fence, gnarled trees, flowerbeds, and Sally
+Ann's mailbox at the far end, with the mailman's motorcycle puttering closer
+along the top of the screen as the clock runs. Move the Trollusk from cover
+to cover toward the mailbox; hold A to duck into a flowerbed. Sally Ann at her
+window, a dozing neighbour and a dog look out now and then (a little eye
+warning first): caught moving in the open and the Trollusk scuttles back to
+the last cover. Reach the mailbox and press A to grab the letter before the
+mailman gets there. Bonus: loose stamps blowing along the lane.
 
-*In the book:* he flies off with the letter over the Blue Ocean of Bubbley
-Goo, looking for somewhere to sit down and eat it.
+*Celebrate:* he hugs the letter, sniffs the stamp and does a gabbling jig.
 
-A side-scrolling flight. Press A to flap; let go to glide down. Goo bubbles
-rise from the sea and pop, flinging blobs up; a hit sticks goo to your wings
-and drags you down for a moment. Scraps of paper (old tickets, a menu, a
-paper hat) float on the wind: snap them up as snacks. Score: distance flown
-plus snacks. Later the bubbles come faster and the wind gusts.
+### 2. The Letter-Eating Bombanat snatches it from the Trollusk (45 s)
 
-*Snatch:* as he dips to land, a Bombanat-Munching Grumley reaches up out of
-the goo and grabs him, letter and all.
+*In the book:* before the Trollusk can tear off the stamp, the Bombanat flies
+out of Nowhere and snaps up the letter.
 
-### 3. The Bombanat-Munching Grumley: A Nice Bombanat Lunch (45 s)
+*Eyeing the prize:* high in a tree, the Bombanat licks his snout as the
+Trollusk sits down to work the stamp off.
 
-*In the book:* he grabs the Bombanat out of the air from the goo and means to
-slither down into the sea for a nice Bombanat lunch.
+A side-scrolling flight over the wood. The Trollusk, warned, gabbles off
+along the ground with the letter in his snerk, ducking under branches and
+logs. Press A to flap, let go to glide, and hold the stick down to dive;
+swoop low over him and the snap is automatic when your jaws reach the letter.
+Branches and the Trollusk's flailing paws knock you back up. Bonus: the
+Trollusk's dropped stamps snapped up on the way.
 
-The Grumley, a shaggy orange octopus of a monster in round spectacles, lurks
-in the goo with only his eyes showing; Bombanats flit and swoop overhead in
-loops. Move left and right under them and press A to lunge up and grab with a
-tentacle. A Bombanat caught is popped in the lunch basket on the shore;
-a miss leaves the Grumley spluttering in the goo for a moment. Some Bombanats
-are decoys (a kite, a flapping umbrella) that cost a point. Score: Bombanats
-caught. Later they fly faster and the decoys look more like Bombanats.
+*Celebrate:* a loop-the-loop, the letter in his teeth, and off over the Blue
+Ocean of Bubbley Goo to find somewhere to eat it.
 
-*Snatch:* SNAP! As in the book, a big fishing net snags the Grumley and hauls
-him wiggly-squiggly on board a fishing boat, the *Peg*, Bombanat, letter and
+### 3. The Bombanat-Munching Grumley snatches it from the Bombanat (45 s)
+
+*In the book:* the Bombanat flies over the Blue Ocean of Bubbley Goo; the
+Grumley reaches up out of the goo and grabs it, letter and all.
+
+*Eyeing the prize:* two spectacled eyes rise from the goo and follow the
+Bombanat across the sky.
+
+The goo seen side-on. The Grumley lurks with only his eyes above the goo;
+move left and right, sinking out of sight, and press A to lunge up with a
+tentacle. The letter Bombanat (the one in the red-and-white necktie) swoops
+and dips among other Bombanats, looking for somewhere to land; each lunge
+that misses warns it off for a while. Grabbing a plain Bombanat costs time;
+the letter Bombanat is the one. Bonus: plain Bombanats grabbed for lunch
+along the way, popped into the lunch basket on the shore.
+
+*Celebrate:* napkin on, fork up... and SNAP! A big fishing net snags him and
+hauls him wiggly-squiggly aboard the fishing boat *Peg*, Bombanat, letter and
 all.
 
-### 4. The Furious-Floating Ice-Ferg: Furious Floating (45 s)
+### 4. The Furious-Floating Ice-Ferg wrecks the fishing boat (45 s)
 
-*In the book:* the fishing boat carrying the netted Grumley and the letter is
-struck by a Furious-Floating Ice-Ferg as it nears land, SCRUNNCCCHHH!!
+*In the book:* before the fishing boat can reach land, a Furious-Floating
+Ice-Ferg strikes it, SCRUNNCCCHHH!! As it goes down, the captain stuffs a
+note into a bottle, pushes in the letter for good measure and throws it into
+the ocean.
 
-You are the Ice-Ferg, a craggy iceberg in a terrible temper with one beady
-eye glaring from a crevice and sea lions dozing on its ledges, seen from
-above. Charge too hard and a sea lion slides off with a splash.
-Steer with the stick; you drift with the currents (arrows on the water), and
-hold A to huff up a head of fury and charge. The captain's fishing boat, the
-*Peg*, with the Grumley's tentacles flopping over its side, zigzags toward
-the harbour at the top of the screen; bump it before it gets there. Little
-rowing boats cross your path: bump one and you lose fury. Score:
-seconds to spare when the ship is struck, plus a bonus for a full-fury
-charge. Later the ship turns more sharply and the currents get stronger.
+*Eyeing the prize:* one beady eye opens in a crevice of the ice as the *Peg*
+chugs past with the Grumley's tentacles over its side.
 
-*Snatch:* as the ship goes down (the crew paddle away safely in their pink
-raft), the captain stuffs a note into a bottle, pushes in the letter for good
-measure and throws it into the ocean.
+The sea from above. Steer the Ice-Ferg; it drifts with the currents (arrows
+of foam on the water), and holding A huffs up a head of fury for a charge.
+The *Peg* zigzags for the harbour at the top of the screen; strike it before
+it gets there. Little rowing boats cross your path: bump one and you lose
+fury, and a charge too hard sends a sea lion sliding off your ledges. Bonus:
+a strike at full fury.
 
-### 5. The Wild-'n-Windy Typhoonigator: Suck It All Up (50 s)
+*Celebrate:* the eye glares in triumph, the sea lions clap their flippers,
+and the captain's bottle bobs away on the waves.
 
-*In the book:* it storms along sucking up everything in its path, the whole
-Blue Ocean of Bubbley Goo and the bottle too, until it is so full of fishing
-boats, bottles and bubbly goo that it has to let go.
+### 5. The Wild-'n-Windy Typhoonigator sucks it up out of the sea (45 s)
 
-Two parts. *Inhale (40 s):* the sea scrolls below; steer the Typhoonigator's
-spout and hold A to suck. Bottles, fish, buoys and goo score; the captain's
-bottle (a red-and-white label) is worth the most and must be among the haul.
-A fullness meter rises; let go of A to stop it bursting early. *Let go
-(10 s):* morning comes, and the Typhoonigator lets go. Move it over the edge
-of Nowhere, where the Yalapappus trundles to and fro, and press A to drop the
-bottle; the nearer his head, the bigger the bonus (KER-PLOP). Score: haul
-plus drop bonus.
+*In the book:* the Typhoonigator comes storming along, sucking up everything
+in its path, the whole Blue Ocean of Bubbley Goo and the bottle too.
 
-*Snatch:* the bottle breaks, tinkle-plinkle, right on the Yalapappus's head.
+*Eyeing the prize:* the storm cloud's face turns, sniffing, toward a bottle
+bobbing far below.
 
-### 6. The Paper-Munching Yalapappus: Munch and Chase (45 s)
+The sea from above, scrolling. Steer the Typhoonigator's spout and hold A to
+suck. The captain's bottle (the red-and-white label) bobs among other
+bottles, fish, buoys and rowing boats, drifting away from the spout; get it
+in. Everything else sucked up fills the fullness meter, and a full
+Typhoonigator slows down, so suck carefully. Bonus: how little else you
+swallowed on the way.
 
-*In the book:* he gleefully munches the Captain's note, but before he can
-munch the letter the Trollusk snatches it in his snerk and runs away, and the
-Yalapappus trundles after him, shouting and loudly grimming.
+*Celebrate:* a great swirling burp of satisfaction, and away it storms, so
+full by morning that it has to let go.
 
-Two parts. *Munch (8 s):* mash A to munch the Captain's note before the
-Trollusk arrives; every bite scores. *Chase (the rest):* a side-scrolling
-chase across the bumpy land at the edge of Nowhere. The Yalapappus runs on
-his own; press A to hop over rocks and holes, and steer up and down between
-lanes for paper scraps to munch on the run. A bump slows him. A gap meter
-shows how close the Trollusk is. Score: munches plus how much of the gap was
-closed. Later the ground gets rougher.
+### 6. The Paper-Munching Yalapappus catches it at the edge of Nowhere (45 s)
 
-*Snatch:* suddenly, out of the sky swoops the Letter-Eating Bombanat: SNIP!
+*In the book:* down falls the bottle, KER-PLOP, right on the head of the
+Yalapappus, who lives on the edge of Nowhere. It breaks, tinkle-plinkle, and
+he gleefully munches the Captain's note.
 
-### 7. The Bombanat-Collecting Grithix: Net Them All (45 s)
+*Eyeing the prize:* the Yalapappus, napkin on and fork up, looks up hungrily
+as the swollen Typhoonigator groans overhead.
 
-*In the book:* the Grithix, a Bombanat collector, nets everyone, FLIP-FLOP,
-and does what anybody should do with a lost letter: he mails it.
+Side-on at the edge of Nowhere. The Typhoonigator lets go: fishing boats,
+fish, bottles and blobs of goo rain down. Trundle left and right (A to hop)
+to catch the captain's bottle on your head, KER-PLOP, while dodging the rest;
+a boat or a fish on the head dazes you for a moment. Then mash A to munch the
+Captain's note. Bonus: paper scraps caught and munched on the way.
 
-Bombanats flutter around a clearing in loops and dives; one wears the
-red-and-white necktie and carries the letter. Move the Grithix and press A to
-swing his net. Each Bombanat netted goes in a collecting jar; the letter
-Bombanat is worth five, and once netted, the letter can be posted: carry it
-to the official-looking mailbox at the side while the Trollusk and the
-Yalapappus try to trip you (step around them). Posting it early ends the game
-with a time bonus; staying to net more is the gamble. Score: Bombanats netted
-plus the posting bonus. Later the Bombanats fly in bigger flocks.
+*Celebrate:* he pats his tummy, napkin flapping, and reaches for the letter
+for afters.
 
-*Then:* the epilogue, with the mailman and Lucy Jane.
+### 7. The Stamp-Collecting Trollusk snatches it back (45 s)
+
+*In the book:* before the Yalapappus can munch the letter, the Trollusk, who
+just happens to be passing by, snatches it in his snerk and runs away, and
+the Yalapappus trundles after him, shouting and loudly grimming.
+
+*Eyeing the prize:* the Trollusk's hat and snerk rise slowly behind a rock.
+
+The Trollusk's rematch, with a new twist: first the snatch, then the
+getaway. Creep up behind the munching Yalapappus as in chapter 1 (freeze when
+he looks round), press A to snatch, and then run a side-scrolling getaway
+across the bumpy ground with the Yalapappus trundling after you, A to hop
+rocks and holes. Score: time to the snatch plus how far ahead you stay.
+
+*Celebrate:* he waves the letter over his head at the puffing Yalapappus.
+
+### 8. The Letter-Eating Bombanat snatches it again (30 s)
+
+*In the book:* suddenly, out of the sky swoops the Bombanat, SNIP!
+
+*Eyeing the prize:* a mauve wing-shadow sweeps across the ground.
+
+The Bombanat's rematch, short and fast: swoop on the running Trollusk as in
+chapter 2, but now the Yalapappus is stomping along behind, waving his paws
+at anything in reach, and the ground is open with nowhere to hide.
+
+*Celebrate:* a smug glide... straight toward a waiting butterfly net.
+
+### 9. The Bombanat-Collecting Grithix nets them all, and mails it (60 s)
+
+*In the book:* by way of a net, everyone is caught, FLIP-FLOP, by the
+Bombanat-Collecting Grithix, who does what anybody should do with a lost
+letter: he mails it.
+
+*Eyeing the prize:* the Grithix peeks round a tree, net raised, smiling.
+
+A clearing in the wood. The Bombanat with the letter, the Trollusk and the
+Yalapappus scramble about; move the Grithix and press A to swing his net,
+FLIP-FLOP. Net the Bombanat to get the letter, then carry it to the
+official-looking mailbox while the Trollusk and the Yalapappus try to trip
+you (step round them, or net them too). Bonus: everyone netted before
+posting.
+
+*Celebrate:* he drops the letter in the slot, dusts off his hands, and
+doesn't care a snickle. And who is eyeing the official mailbox? The official
+mailman, for the epilogue.
 
 ## Look and sound
 
@@ -264,13 +323,13 @@ The rigs, and the animations each needs:
 
 | Monster | Master view | Animations |
 | --- | --- | --- |
-| Stamp-Collecting Trollusk | Side view facing right, standing on his two short legs | Idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, the grab, the gabbling run cycle, being snatched from, wailing |
-| Letter-Eating Bombanat | Side view facing right in flight, wings spread level | The flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck flapping, struggling when grabbed, netted |
-| Bombanat-Munching Grumley | Three-quarter view facing right, rising out of the goo with his tentacles spread | Lurking, rising, tentacles curling and waving, the lunge and grab, the miss and splutter, the lunch dance, being netted and hauled up |
-| Furious-Floating Ice-Ferg | Front three-quarter view from high above, floating, the waterline along its bottom edge | Drifting and bobbing, huffing up, the charge, the crash, the dazed bump |
-| Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Churning cloud, sucking, swelling as it fills, letting go, the morning sag |
-| Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | The trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing |
-| Bombanat-Collecting Grithix | Side view facing right, standing upright, the net over his shoulder | The stride cycle with a swinging tail, the net swing in three beats, the slam, posting the letter, tripping, the stroll home |
+| Stamp-Collecting Trollusk | Side view facing right, standing on his two short legs | Eyeing the prize, celebrating, idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, the grab, the gabbling run cycle, being snatched from, wailing |
+| Letter-Eating Bombanat | Side view facing right in flight, wings spread level | Eyeing the prize, celebrating, the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck flapping, struggling when grabbed, netted |
+| Bombanat-Munching Grumley | Three-quarter view facing right, rising out of the goo with his tentacles spread | Eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the lunge and grab, the miss and splutter, the lunch dance, being netted and hauled up |
+| Furious-Floating Ice-Ferg | Front three-quarter view from a little above, floating, the waterline along its bottom edge | Eyeing the prize, celebrating, drifting and bobbing, the glaring eye, huffing up, the charge, the crash, the dazed wobble, and the sea lions dozing, startling and sliding off |
+| Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Eyeing the prize, celebrating, churning cloud, sucking, swelling as it fills, letting go, the morning sag |
+| Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | Eyeing the prize, celebrating, the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing |
+| Bombanat-Collecting Grithix | Side view facing right, standing upright, the net over his shoulder | Eyeing the prize, celebrating, the stride cycle with a swinging tail, the net swing in three beats, the slam, posting the letter, tripping, the stroll home |
 
 The people (the girls, the mailman, the captain and crew, the neighbours and
 their dog) are small and move little, so they are whole sprites drawn from
@@ -281,5 +340,5 @@ chapter.
 
 - All four players at once on one screen in the challenges that suit it (the
   Grumley's lunch, the Grithix's net), Mario Party style.
-- A second Trollusk and Bombanat round, as in the book, where they win the
-  letter back for a moment.
+- A versus mode for two players: one plays the snatcher, the other the
+  holder trying to keep the letter, swapping sides each chapter.
