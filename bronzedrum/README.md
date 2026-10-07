@@ -10,7 +10,8 @@ the caller's rhythm), and one casting chapter (keep pace with the bellows).
 [`design/design.md`](design/design.md) lists them.
 
 **Drum Practice**, on the title screen, has no right or wrong. In free drumming
-the crew loops whatever rhythm you drum and dancers gather. In call and answer
+the crew loops whatever rhythm you drum, until you clear it, while you play
+along and dancers gather. In call and answer
 a partner trades rhythms with you. You can set the length (2 to 12 beats, rests
 allowed) and play a secondary drum alongside the bronze one: the barrel drum by
 default, or a mõ, rice drum, gong, bamboo, lion-dance drum or cymbals.

@@ -208,6 +208,7 @@ export class PracticeSession {
     this.rnd = rnd;
     this.phrase = []; // the player's strokes so far: { drum, t }
     this.loop = null; // free: { strokes, text, beats, u, start, period }
+    this.lastU = null; // free: the tempo of the last loop, after A cleared it
     this.call = null; // call: { strokes: [{ drum, pos, t }], text, beats, u, start, end }
     this.answer = null; // call: the last answer, transcribed
     this.u = 0.6; // the partner's tempo: follows the player's
@@ -223,7 +224,7 @@ export class PracticeSession {
 
   /** The tempo already in the air: the loop's, or the partner's. */
   get prior() {
-    if (this.mode === 'free') return this.loop ? this.loop.u : null;
+    if (this.mode === 'free') return this.loop ? this.loop.u : this.lastU;
     return this.call ? this.call.u : null;
   }
 
@@ -240,9 +241,14 @@ export class PracticeSession {
   }
 
   stroke(drum, t) {
+    // Free drumming: once a rhythm loops it stays until A clears it, and
+    // strokes over it are the player drumming along, not a new rhythm.
+    if (this.mode === 'free' && this.loop) return [{ type: 'playAlong', drum, t }];
     const events = [];
-    // A stroke past the end of the rhythm completes it and starts the next.
+    // A stroke past the end of the rhythm completes it. In call mode it starts
+    // the next; in free drumming the rhythm now loops and it plays along.
     if (this.phrase.length && t >= this.phraseEnd()) events.push(...this.complete(t));
+    if (this.mode === 'free' && this.loop) return [...events, { type: 'playAlong', drum, t }];
     if (!this.phrase.length) {
       events.push({ type: 'phraseStart', t });
       // Answering during the call cuts it short.
@@ -357,11 +363,18 @@ export class PracticeSession {
     return events;
   }
 
-  /** A: clear the dots, and in free play stop the loop. */
+  /**
+   * A: clear the dots, and in free play stop the loop (the only way to: until
+   * then strokes play along with it). Its tempo is kept to read the next
+   * rhythm by.
+   */
   clear(t) {
     this.phrase = [];
     const had = !!this.loop;
-    if (this.mode === 'free') this.loop = null;
+    if (this.mode === 'free') {
+      if (this.loop) this.lastU = this.loop.u;
+      this.loop = null;
+    }
     return [{ type: 'clear', t, stopped: had }];
   }
 }

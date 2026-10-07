@@ -21,8 +21,8 @@ Sources:
 
 | Action | Who | Controller | Keyboard | Mouse | Touch |
 | --- | --- | --- | --- | --- | --- |
-| **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ← | F D A ← | left half of the screen | the big drum's centre, or the left side |
-| **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad → | J K L → | right half of the screen | the red rim ring, or the right side |
+| **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | X | F D A ← | left half of the screen | the big drum's centre, or the left side |
+| **cắc**, the rim | Trưng Nhị, the younger: fierce and free | B | J K L → | right half of the screen | the red rim ring, or the right side |
 | **Shield and clear** | the army's shield wall; clears the rhythm dots | A | Space | click the bronze drum | Shield drum (trống chầu), or swipe the drum to clear |
 
 **Phones and tablets.** A touch switches the HUD to a touch layout; mouse and
@@ -358,11 +358,15 @@ It settles into solid dots and the drum crew plays it back from the next beat,
 round after round.
 
 A rhythm that opens with a pair or a triplet cannot be told from faster plain
-beats until a tempo is known. Once a loop is playing (or a partner), its tempo
-is preferred, and a test drums 300 random rhythms against a loop and reads all
-but the two even triplet streams exactly (those read as eighths, by design).
-Drumming a new rhythm quiets the old loop, and the new one takes over once
-complete. A (Space, a swipe) stops the loop.
+beats until a tempo is known. A tempo already in the air is preferred (the
+partner's, or in free drumming the loop just cleared), and a test drums 300
+random rhythms at such a tempo and reads all but the two even triplet streams
+exactly (those read as eighths, by design).
+
+Once a rhythm loops it stays: strokes drummed over it are playing along (they
+sound, move the dancers and feed the fire, but are not read as a rhythm), and
+only A (Space, a swipe) stops it. The next rhythm drummed then becomes the
+loop.
 
 **Call and answer** (`CallSession`). The partner drums a call; the player
 answers with any rhythm of the same length. The exchange is then played back,
