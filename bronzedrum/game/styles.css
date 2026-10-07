@@ -239,6 +239,29 @@ body.reduce-motion #bars-hint .arrow { animation: none; }
 .xb-a { background: #EADBC0; color: var(--ink); box-shadow: inset 0 0 0 0.1em var(--bronze); }
 .xb-y { background: var(--paper-shade); color: var(--ink); }
 
+/* A chapter's opening: its story on a card over the still scene. */
+#opening {
+  position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: radial-gradient(ellipse 75% 65% at 50% 50%, rgba(14, 12, 18, 0.78), rgba(14, 12, 18, 0.4));
+  opacity: 0; transition: opacity 0.5s ease-out;
+}
+#opening.show { opacity: 1; }
+#opening .opening-card {
+  max-width: 760px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  transform: translateY(14px); transition: transform 0.6s ease-out;
+}
+#opening.show .opening-card { transform: none; }
+#opening .opening-num { margin: 0; font: 700 14px var(--sans); letter-spacing: 0.22em; text-transform: uppercase; color: var(--bronze-light); }
+#opening h2 {
+  margin: 0; font: 700 clamp(30px, 5vw, 58px) var(--serif); color: var(--paper); line-height: 1.05;
+  text-shadow: 0 0 24px rgba(246, 217, 160, 0.55), 3px 5px 0 rgba(0, 0, 0, 0.55);
+}
+#opening .opening-story { margin: 4px 0 0; font: italic 600 clamp(18px, 2.4vw, 25px)/1.4 var(--serif); color: var(--paper); text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9); }
+#opening .opening-goal { margin: 0; max-width: 620px; font: 500 clamp(14px, 1.6vw, 17px)/1.45 var(--sans); color: var(--paper-shade); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9); }
+#opening .press-start { margin-top: 8px; display: inline-flex; align-items: center; gap: 12px; }
+#opening .press-start .xb { font-size: 0.75em; }
+body.reduce-motion #opening, body.reduce-motion #opening .opening-card { transition: none; }
+
 /* The success moment: over the celebrating scene, low on the screen, with a
    single button. Restart and the chapter list are in the pause menu. */
 #success {

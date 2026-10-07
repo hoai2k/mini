@@ -91,6 +91,8 @@ const focusMemory = new Map();
 
 function show(id) {
   for (const s of ['title', 'select', 'practice', 'pause', 'result']) $(`#${s}`).hidden = s !== id;
+  // A chapter's opening card shows only over its scene (not over the pause menu).
+  $('#opening').hidden = !(id === 'play' && game && game.opening);
   if (id === 'title' || id === 'select' || id === 'practice' || id === 'result') hideSuccess();
   // Menu music: the title theme, and the two sisters' theme on the chapter select.
   if (id === 'title') sound.playMusic('mu-title');
@@ -264,16 +266,16 @@ function buildCards() {
     if (img) b.querySelector('.card-art').style.backgroundImage = `url(${img.src})`;
     b.querySelector('.name').textContent = s.title;
     b.querySelector('.sub').textContent = s.subtitle;
-    b.setAttribute('aria-description', s.intro);
+    b.setAttribute('aria-description', `${s.story} ${s.goal}`);
     const describe = () => {
-      intro.textContent = i < progress.unlocked ? s.intro : 'Win the chapter before to unlock.';
+      intro.textContent = i < progress.unlocked ? `${s.story} ${s.goal}` : 'Win the chapter before to unlock.';
     };
     b.addEventListener('focus', describe);
     b.addEventListener('mouseenter', describe);
     b.addEventListener('click', () => startStage(i));
     box.appendChild(b);
   });
-  intro.textContent = STAGES[0].intro;
+  intro.textContent = `${STAGES[0].story} ${STAGES[0].goal}`;
 }
 
 function buildCommandTable() {
@@ -308,8 +310,9 @@ let game = null;
 const SUSTAIN = { march: 0.6, strike: 0.5 };
 const SUSTAIN_CYCLES = 2;
 
-function startStage(i, custom = null) {
+function startStage(i, custom = null, { opening = true } = {}) {
   hideSuccess();
+  hideOpening();
   stopDemo();
   const stage = custom || STAGES[i];
   sound.start();
@@ -366,6 +369,42 @@ function startStage(i, custom = null) {
   });
   if (document.activeElement) document.activeElement.blur();
   show('play');
+  // A chapter opens on its story: the clock waits until the player begins.
+  if (opening && stage.story) showOpening();
+}
+
+// ---------------------------------------------------------------- opening
+// Each chapter opens on a card over its scene: the chapter, two sentences of
+// its story, and what to do. Nothing moves until the player begins (A, Space,
+// a drum stroke, a tap or a click); then the chapter's clock starts afresh.
+
+function showOpening() {
+  const g = game;
+  g.opening = true;
+  $('#opening-num').textContent = `Chapter ${g.index + 1}`;
+  $('#opening-title').textContent = g.stage.title;
+  $('#opening-story').textContent = g.stage.story;
+  $('#opening-goal').textContent = g.stage.goal;
+  const el = $('#opening');
+  el.hidden = false;
+  requestAnimationFrame(() => el.classList.add('show'));
+}
+
+function hideOpening() {
+  const el = $('#opening');
+  el.classList.remove('show');
+  el.hidden = true;
+}
+
+/** Begin the chapter: the card goes and the clock starts from now. */
+function beginChapter() {
+  const g = game;
+  if (!g || !g.opening) return;
+  g.opening = false;
+  g.openingView = null;
+  hideOpening();
+  sound.play('ui-confirm');
+  g.clockStart = sound.now + 0.6;
 }
 
 /**
@@ -444,6 +483,7 @@ input.on('action', ({ action, time }) => {
 input.on('touch', ({ x, y, time }) => {
   // On the success moment only its button goes on (a stray tap should not).
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  if (game.opening) return beginChapter();
   // Training: a tap on a level or a rhythm chooses it.
   const pick = game.training && renderer.trainingTarget(x, y, game.training);
   if (pick) return act(pick, time);
@@ -463,6 +503,7 @@ input.on('swipe', ({ x0, y0, x, y, time }) => {
 
 function strike(drum, time) {
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  if (game.opening) return beginChapter();
   if (game.mode === 'practice') return practiceStrike(drum, time);
   const t = hitTime(time);
   if (drum === 'L') sound.tung();
@@ -539,6 +580,7 @@ function act(action, time) {
     return;
   }
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  if (game.opening) return beginChapter();
   if (game.mode === 'practice') return practiceAct(action);
   if (game.training && trainingAct(action)) return;
   // One button, A (Space, the shield drum): it always clears the rhythm dots,
@@ -867,7 +909,7 @@ function tickGuide() {
 function hint(view) {
   const g = game;
   const t = view.songTime;
-  if (t < g.introUntil && g.stage.id !== 'garden') return g.stage.intro.split('. ')[0] + '.';
+  if (t < g.introUntil && g.stage.id !== 'garden') return g.stage.goal.split('. ')[0].replace(/\.?$/, '.');
   // A demonstration under way replaces the hint (see startDemo).
   if (g.demo) return g.demo.text;
   if (!settings.hints) return null;
@@ -923,6 +965,12 @@ function hint(view) {
 function updatePlay(dt) {
   const g = game;
   if (g.mode === 'practice') return updatePractice(dt);
+  if (g.opening) {
+    // The scene as it stands, still: nothing advances until the player begins.
+    if (!g.openingView) g.openingView = { ...view(), hint: null }; // the card says it
+    renderer.draw(g.openingView, dt);
+    return;
+  }
   const t = songTime();
   // Note the phrase before the clock moves on: if it times out, a stroke that
   // comes just after was the late one (see strike).
@@ -1262,7 +1310,7 @@ const TRAINING_STAGE = {
   mode: 'echo',
   title: 'Training',
   subtitle: 'The chapters’ rhythms, level by level',
-  intro: 'Play each rhythm back after your partner. The levels run from plain beats to triplet runs.',
+  goal: 'Play each rhythm back after your partner. The levels run from plain beats to triplet runs.',
   caller: 'training',
   calls: [],
   asDesigned: true,
@@ -1412,7 +1460,7 @@ function action(name) {
       sound.resume();
       if (game.practice === 'training') return startTraining();
       if (game.practice) return startPractice(game.practice);
-      return startStage(game.index);
+      return startStage(game.index, null, { opening: false });
     case 'next':
       return startStage(game.index + 1);
     case 'select':
@@ -1462,6 +1510,11 @@ function pressStart() {
   show('select');
 }
 
+// The opening card: a click anywhere on it begins the chapter.
+$('#opening').addEventListener('click', (e) => {
+  e.stopPropagation();
+  beginChapter();
+});
 $('#success-next').addEventListener('click', (e) => {
   e.stopPropagation();
   continueOn();
@@ -1621,6 +1674,6 @@ async function boot() {
 }
 
 // Debug hooks for automated checks.
-window.__bronzeDrum = { get game() { return game; }, renderer, sound, input, startStage, startPractice, finish, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
+window.__bronzeDrum = { get game() { return game; }, renderer, sound, input, startStage, begin: () => beginChapter(), startPractice, finish, STAGES, songTime: () => (game ? songTime() : null), threats: () => (game ? aboutToAttack(game.battle) : []) };
 
 boot();

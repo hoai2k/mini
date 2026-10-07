@@ -3,6 +3,8 @@
 // drum's tempo (how often the enemy acts); the player drums at any speed.
 // maxTier is the most intricate rhythm tier the chapter allows.
 //
+// story: two sentences that set the scene (the chapter's opening card);
+// goal: what to do in it (the card, the chapter list, the first caption).
 // mode: 'battle' (the default), 'echo' (answer a caller's rhythms; see
 // modes.js), 'casting' (repeat a rhythm at a steady tempo), or a battle with
 // `survive` seconds and `waves` (hold the line). Echo calls are four-beat
@@ -16,8 +18,10 @@ export const STAGES = [
     music: ['mu-bed-garden', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'The Garden at Mê Linh',
     subtitle: 'Training years',
-    intro:
-      'Before the war, the sisters learn the drum. Trắc keeps the deep centre, Nhị the rim. Teach the women to march and strike, then cut down the straw targets.',
+    story:
+      'Mê Linh, in the years before the war. In their father’s garden Trưng Trắc and Trưng Nhị learn the language of the bronze drum, and the women of the village drill to its call among the straw targets.',
+    goal:
+      'Trắc keeps the deep centre, Nhị the rim. Teach the women to march and strike, then cut down the straw targets.',
     bpm: 92,
     unlocked: ['march', 'strike'],
     maxTier: 2,
@@ -37,8 +41,10 @@ export const STAGES = [
     mode: 'echo',
     title: 'The Oath',
     subtitle: 'The father’s funeral',
-    intro:
-      'The Han governor has executed the sisters’ father. At his funeral the mourning drum calls; answer each call evenly, and with each answer an incense stick is lit for him.',
+    story:
+      'The Han governor has put the sisters’ father to death for defying him. At his funeral the mourning drum sounds through the dusk, and the sisters answer it beat for beat, vowing to drive the Han from their land.',
+    goal:
+      'Answer each call of the mourning drum evenly; with each answer an incense stick is lit for him.',
     caller: 'mourning',
     calls: [
       { text: 'L R L R', bpm: 56 },
@@ -63,8 +69,10 @@ export const STAGES = [
     mode: 'casting',
     title: 'Casting the Drums',
     subtitle: 'The foundry of Nhật Nam',
-    intro:
-      'The metalworkers of Nhật Nam pour the bronze for the war drums. The bellows keep the furnace’s pace: drum the hammer rhythm with them, round after round without stopping. Keep in time and the bronze rises, drum by drum; rush, drag or stumble and it spills back to the last drum cast.',
+    story:
+      'A rising needs a voice that carries from valley to valley. In the foundries of Nhật Nam the smiths pour bronze for new war drums, and every hammer stroke must keep the bellows’ pace.',
+    goal:
+      'Drum the hammer rhythm with the bellows, round after round without stopping. Keep in time and the bronze rises, drum by drum; rush, drag or stumble and it spills back to the last drum cast.',
     rhythm: 'L RR L RR',
     bpm: 76, // the bellows' pace: heard as the guide rhythm, never shown as a number
     drums: 3,
@@ -81,8 +89,10 @@ export const STAGES = [
     mode: 'echo',
     title: 'The Villages Answer',
     subtitle: 'A call along the river',
-    intro:
-      'At night the sisters’ drum calls along the Red River. Each village drummer answers with a rhythm of their own: echo it back evenly, at about their speed, and the village lights its lanterns and joins you.',
+    story:
+      'Night falls on the Red River. The sisters’ drum calls from village to village, and in each one a drummer steps out with a rhythm of their own, waiting to hear whether the call is true.',
+    goal:
+      'Echo each village drummer’s rhythm back evenly, at about their speed, and the village lights its lanterns and joins you.',
     caller: 'village',
     calls: [
       { text: 'L R L R', bpm: 84, label: 'Phong Châu' },
@@ -106,8 +116,10 @@ export const STAGES = [
     music: ['mu-bed-river', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'The Outpost on the Hát River',
     subtitle: 'The drums answer',
-    intro:
-      'Villages along the river have heard the drum. Break the Han outpost that guards the ford. When a crossbow takes aim, guard just before the bolts land.',
+    story:
+      'The rising begins at the Hát River, where a Han outpost guards the ford. For the first time the sisters’ army marches to the drum, straight at the crossbows on the palisade.',
+    goal:
+      'Break the Han outpost that guards the ford. When a crossbow takes aim, guard just before the bolts land.',
     bpm: 96,
     unlocked: ['march', 'strike'],
     maxTier: 3,
@@ -129,8 +141,10 @@ export const STAGES = [
     music: ['mu-bed-luylau', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'The Citadel at Luy Lâu',
     subtitle: 'Gold armour, war elephants',
-    intro:
-      'The governor’s seat. The sisters ride the war elephant with the great drum on its back. Wake the drum, then strike: the elephant charges.',
+    story:
+      'Word of the victory runs ahead of the army to Luy Lâu, the Han governor’s seat, where soldiers in gold armour man the walls. The sisters ride into battle on a war elephant, the great drum on its back.',
+    goal:
+      'Wake the drum, then strike: the elephant charges.',
     bpm: 100,
     unlocked: ['march', 'strike'],
     maxTier: 3,
@@ -156,8 +170,10 @@ export const STAGES = [
     mode: 'echo',
     title: 'The Coronation at Mê Linh',
     subtitle: 'Two queens',
-    intro:
-      'Sixty-five citadels are free and the sisters are proclaimed queens at Mê Linh. The festival drummers call ever richer rhythms: answer them, as evenly as you can, for the crowd.',
+    story:
+      'The governor has fled north, and sixty-five citadels have opened their gates. At Mê Linh the people proclaim Trưng Trắc and Trưng Nhị their queens, and the festival drummers play into the night.',
+    goal:
+      'The festival drummers call ever richer rhythms: answer them, as evenly as you can, for the crowd.',
     caller: 'festival',
     calls: [
       { text: 'L R L R', bpm: 112 },
@@ -179,8 +195,10 @@ export const STAGES = [
     music: ['mu-bed-mavien', 'mu-bed-battle'], // its own bed if delivered, else the shared one
     title: 'Mã Viện Returns',
     subtitle: 'Hold the ford',
-    intro:
-      'Three years on, the Han general Mã Viện marches south with a great army. Hold the ford for ninety seconds while Mê Linh empties: strike the columns, and raise the shields against every volley.',
+    story:
+      'Three years on, the Han emperor sends his general Mã Viện south with a great army. At the ford the last of the sisters’ soldiers must hold the line while Mê Linh empties behind them.',
+    goal:
+      'Hold the ford for ninety seconds: strike the columns, and raise the shields against every volley.',
     bpm: 100,
     unlocked: ['march', 'strike'],
     maxTier: 3,
@@ -210,8 +228,10 @@ export const STAGES = [
     mode: 'echo',
     title: 'The Drums Are Melted',
     subtitle: 'Epilogue',
-    intro:
-      'Mã Viện gathers the Lạc Việt drums to melt them down. Play them one last time: each rhythm you answer falls silent, until none are left.',
+    story:
+      'Mã Viện gathers the bronze drums of the Lạc Việt to melt them down, so their voices can never again call the people to rise. Before the fire takes them, the last drummers play them one final time.',
+    goal:
+      'Answer each drum’s rhythm one last time: each one you answer falls silent, until none are left.',
     caller: 'elegy',
     calls: [
       { text: 'L R L R', bpm: 50 },

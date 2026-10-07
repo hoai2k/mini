@@ -327,6 +327,16 @@ who drums a phrase, waits for the answer, and starts the next at once.
 - Higher tiers win faster.
 - Sloppy drumming, fast or slow, still clears chapters 1 and 2.
 
+## Opening each chapter
+
+Each chapter opens on a card over its still scene: the chapter's number and
+title, two sentences of its story (`story` in `stages.js`) and what to do in it
+(`goal`). Nothing moves until the player begins (A, Space, a drum stroke, a tap
+or a click); then the chapter's clock starts from zero. Restarting a chapter
+from the pause menu skips the card. The chapter list shows the story and the
+goal for the chapter in focus, and the goal's first sentence is the opening
+caption once play begins.
+
 ## Drum Practice
 
 On the title screen, under Press Start, is a mode with no right or wrong: the
