@@ -7,14 +7,17 @@ out wins.
 
 ## The loop
 
-1. Launch from high above the sky, diving through the start gate.
-2. Fly close to the floating structures. Proximity fills a **combo pot**; the
-   closer and faster, the faster it fills.
+1. Launch from high above the edge of a vast field of floating rock islands,
+   diving in over the tallest of them.
+2. Fly close to the rock. Proximity fills a **combo pot**; the closer and
+   faster, the faster it fills.
 3. Tricks while close raise the **multiplier** by one each.
 4. Clear every surface for **two seconds** and the pot times the multiplier is
    **banked**. Hit anything first and the combo is lost.
-5. Dive into the cloud sea or fly off the edge and you are sent back to the
-   start, with the combo banked.
+5. Fly through a **portal** (a tumbling ring of purple cubes) for 1000 points
+   and a fresh dive from the top, combo banked.
+6. Dive into the mist below or fly far out past the islands and you are sent
+   back to the top, combo banked.
 
 ### Tricks
 
@@ -42,32 +45,75 @@ per sky and mode are saved in the browser.
 
 ## Flight model
 
-`game/src/flight.js`. An arcade glider with real energy: gravity, quadratic
-drag, and lift that swings the velocity toward the nose at a rate that grows
-with speed. Hands off at a level attitude it settles to about 26 m/s with a
-glide ratio near 7; a steep dive reaches about 80 m/s and tucked about 115.
-Climbing spends speed; below about 20 m/s the glider stalls and the nose drops.
-Banking turns the glider (a coordinated turn around world up), and pitching in
-a bank tightens it. Optional flight assist levels the wings when the stick is
-released. Movement is substepped so fast gliders never pass through thin beams.
+`game/src/flight.js`. A glider with real lift, so you feel the forces:
+
+- Lift grows with the square of airspeed and with the angle of attack (the nose
+  above the flight path), up to about 6.6 G, and pulls along the wing's up
+  axis. Drag grows with angle of attack, so hard pulls bleed energy.
+- The stick asks for an angle of attack around a trim angle; the airflow turns
+  the nose to it. Hands off, the glider settles at about 35 m/s with a glide
+  ratio near 10. Pushing over dives at negative G (75 m/s in four seconds);
+  tucked, dives reach about 160 m/s.
+- Pulling up at speed is heavy: at 80 m/s full back stick is about 6.5 G and
+  swoops you up 60 m in two seconds while speed drains. Too slow, past the
+  stall angle, lift collapses and the nose drops until you have speed again.
+- Banking tilts the lift, so you turn and sink unless you pull; the nose
+  weathervanes into the airflow. Optional flight assist levels the wings.
+- **Updrafts** rise along the cliffs of the larger islands (motes drift up in
+  them): up to about 17 m/s² of lift, with buffeting.
+
+The forces are felt, not just simulated. The camera is pushed against the G
+(the glider climbs in the frame in a hard pull, floats under negative G), the
+view narrows under heavy G and widens with speed, the edges grey out under
+heavy G and flush red under negative G, a bright rush gathers at the edges at
+full speed, and the camera buffets with speed, G, closeness to the rock and
+rising air. Controllers rumble with the same, and the wind loads up and
+gusts. Reduce motion tones all of the camera effects down. Movement is
+substepped so fast gliders never pass through rock.
 
 ## Skies
 
-`game/src/levels.js`. Each sky is a seed, a palette and a mix of formation
-kinds: arches and aqueducts, frame runs (some twisting or curving), tunnels with
-windows, towers with open cage storeys and cantilevers, spire forests, split
-mesas with canyons and bridges, beam lattices, spiral stairs, walls with holes,
-block rings and megaliths. Formations are scattered through a cylinder about
-430 m across and 420 m tall without overlapping, then some are joined by long
-beams. A gate under the launch point frames the way in, and the launch lane is
-kept clear. Ten named skies, a Daily sky (seeded from the date) and a Random
-sky (a five-letter seed; Y or R rolls a new one).
+`game/src/levels.js`. Superflight's worlds are huge floating islands of chunky
+cubes, mountainous and stacked, with cliffs, tunnels and holes, above a white
+mist; flying into the mist or too far out takes you to a new world. Gliders
+matches that scale: each world is a field about 2.5 km across and 1.2 km tall.
 
-Rendering (`game/src/scene.js`): one instanced mesh of boxes. A shader bevels
-their edges, darkens them toward the depths, adds a glow on night palettes,
-and lights up the surface near a scoring player in that player's colour. A
-gradient sky with a sun, a drifting fbm cloud sea, and linear fog in the
-horizon colour so distant blocks dissolve into the sky.
+- **Islands** are voxel masses (cubes of 14, 11 or 7 m for big, medium and
+  small islands): an irregular outline, a top shaped as a mesa, peak, ridge or
+  terraces, and an underside that tapers into hanging spurs. Tunnels wander
+  right through, holes are punched through cliffs, canyons split some mesas,
+  spires rise from the tops, and loose rocks drift alongside. Only the surface
+  cubes are kept, slightly jittered in size and place so the rock reads as
+  rough, with cohesive caps, darker undersides and faint strata.
+- About four big, a dozen or more medium and a couple of dozen small islands
+  per world, some stacked above others with gaps of 55 m or more to fly
+  between. About 50,000 cubes in all.
+- **Rock materials.** Superflight's seeds differ in character as much as in
+  colour: players describe "needle town", "flat wide channels", "tons of flat
+  floating platforms", "hollow shelves", "large columns with tiny spaces",
+  "one large mountain with lots of holes" and "tons of windows". Each world
+  here mixes one to three materials, each a 3D noise rule inside the island
+  outlines: **massive** (thick, smooth), **craggy** (ridged noise pushing
+  spikes out and biting in), **sponge** (windows everywhere), **wispy** (thin
+  curling sheets, finer cubes), **needles** (noise stretched tall), **shelves**
+  (noise squashed flat: stacked platforms) and **columns** (great pillars with
+  narrow gaps). Materials also change the cube size and the outline (tall for
+  needles and columns, flat for shelves, wide for wispy). Random and Daily
+  skies roll their own mix; some palettes are monochrome (Ash) or two-tone
+  silhouettes (Mint Silhouette).
+- **Distant giants**: a ring of huge islands 2.6 to 4.6 km out, scenery only,
+  softened by the haze, so the world seems to go on.
+- **Updrafts** (see above) and three **portals** in open air near the rock.
+- Styles: archipelago, spires, canyon, stacks, caverns and peaks. Twelve named
+  skies, a Daily sky (seeded from the date) and Random skies.
+
+Rendering (`game/src/scene.js`): one instanced mesh per island so islands out
+of view are skipped. The rock shader bevels each cube and lights it near a
+scoring player. Haze thickens with distance and with depth, so the islands'
+undersides sink into the mist. A gradient sky with a sun turns to haze at the
+horizon and to bright mist below it, and painted greyscale cloud layers are
+tinted in when delivered. Three drifting sheets of mist lie below the islands.
+Low graphics shortens the view to 2.8 km with thicker haze.
 
 ## Gliders
 

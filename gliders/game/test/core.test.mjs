@@ -1,10 +1,10 @@
 // Pure modules: the seeded levels, the collision world, flight and scoring.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LEVELS, buildLevel, seededLevel, dailyLevel, FORMATION_KINDS, rotY, rotX, mul, apply } from '../src/levels.js';
+import { LEVELS, STYLES, buildLevel, seededLevel, dailyLevel, rotY, rotX, mul, apply } from '../src/levels.js';
 import { World } from '../src/world.js';
 import { createFlyer, placeFlyer, stepFlight, advance, FLIGHT } from '../src/flight.js';
-import { createScore, updateScore, crash, finish, SCORING } from '../src/scoring.js';
+import { createScore, updateScore, crash, finish, portalBonus, SCORING } from '../src/scoring.js';
 import { createRng } from '../src/rng.js';
 
 const I = (o = {}) => ({ pitch: 0, roll: 0, yaw: 0, tuck: 0, flare: 0, ...o });
@@ -24,30 +24,35 @@ test('rotation matrices are orthonormal and compose', () => {
 });
 
 for (const def of LEVELS) {
-  test(`level ${def.id}: deterministic, bounded, launch lane clear`, () => {
+  test(`world ${def.id}: deterministic, vast, launch clear`, () => {
     const a = buildLevel(def), b = buildLevel(def);
     assert.equal(a.boxes.length, b.boxes.length);
-    assert.deepEqual(a.boxes[17], b.boxes[17]);
-    assert.ok(a.boxes.length > 300 && a.boxes.length < 4000, `box count ${a.boxes.length}`);
-    assert.ok(a.formations.length >= def.count * 0.7, `formations ${a.formations.length}/${def.count}`);
-    for (const box of a.boxes) {
-      for (const v of [...box.c, ...box.h, ...box.m]) assert.ok(Number.isFinite(v));
-      assert.ok(box.c[1] < a.bounds.top + 80 && box.c[1] > -60, `box at y ${box.c[1]}`);
-    }
-    const w = new World(a.boxes);
-    // The first three seconds of a hands-off glide from the spawn hit nothing.
+    assert.deepEqual(a.boxes[1717], b.boxes[1717]);
+    assert.ok(a.boxes.length > 20000 && a.boxes.length < 130000, `box count ${a.boxes.length}`);
+    assert.ok(a.parts.length >= 25, `islands ${a.parts.length}`);
+    // Vast: the islands spread over kilometres and a kilometre of height.
+    const xs = a.parts.map((p) => p.cx), ys = a.parts.map((p) => p.cy);
+    assert.ok(Math.max(...xs) - Math.min(...xs) > 1600, 'field width');
+    assert.ok(Math.max(...ys) - Math.min(...ys) > 600, 'field height');
+    assert.ok(a.backdrop.length > 3000, 'distant islands');
+    assert.ok(a.updrafts.length >= 6, 'updrafts');
+    assert.ok(a.portals.length >= 2, 'portals');
+    for (const box of a.boxes) for (const v of [...box.c, ...box.h]) assert.ok(Number.isFinite(v));
+    // The first four seconds of a hands-off glide from the spawn hit nothing.
     const f = createFlyer();
     placeFlyer(f, a.spawn.pos, a.spawn.yaw, a.spawn.pitch);
-    assert.equal(advance(f, I(), 3, w), false);
-    assert.ok(w.nearest(...a.spawn.pos, 30) > 25);
+    assert.equal(advance(f, I(), 4, a.world), false);
+    assert.ok(a.world.nearest(...a.spawn.pos, 60) > 50);
+    // Portals float in open air.
+    for (const p of a.portals) assert.ok(a.world.nearest(p.x, p.y, p.z, 60) > 15);
   });
 }
 
-test('seeded and daily levels build', () => {
+test('seeded and daily worlds build', () => {
   const lv = buildLevel(seededLevel('ABCDE'));
-  assert.ok(lv.boxes.length > 300);
+  assert.ok(lv.boxes.length > 20000);
   assert.equal(buildLevel(dailyLevel(new Date(2026, 9, 6))).boxes.length, buildLevel(dailyLevel(new Date(2026, 9, 6))).boxes.length);
-  assert.ok(FORMATION_KINDS.length >= 10);
+  assert.ok(Object.keys(STYLES).length >= 5);
 });
 
 test('world distance and raycast agree with a rotated box', () => {
@@ -61,38 +66,65 @@ test('world distance and raycast agree with a rotated box', () => {
   assert.equal(w.nearest(500, 500, 500, 10), Infinity);
 });
 
-test('flight: a level glide settles to a steady speed and sinks gently', () => {
+test('flight: hands off, the glider settles into a steady glide', () => {
   const f = createFlyer();
-  placeFlyer(f, [0, 2000, 0], 0, 0);
-  for (let t = 0; t < 20; t += 1 / 120) stepFlight(f, I(), 1 / 120);
-  assert.ok(f.speed > 18 && f.speed < 40, `speed ${f.speed}`);
-  assert.ok(f.pos.z > 300, 'travels forward');
-  assert.ok(2000 - f.pos.y < f.pos.z / 3, 'glide ratio better than 3');
+  placeFlyer(f, [0, 3000, 0], 0, 0);
+  for (let t = 0; t < 30; t += 1 / 120) stepFlight(f, I(), 1 / 120);
+  assert.ok(f.speed > 28 && f.speed < 45, `speed ${f.speed}`);
+  assert.ok(Math.abs(f.g - 1) < 0.2, `G ${f.g}`);
+  const drop = 3000 - f.pos.y;
+  assert.ok(f.pos.z / drop > 6, `glide ratio ${f.pos.z / drop}`);
 });
 
-test('flight: diving gains speed, tucking more, climbing spends it', () => {
+test('flight: diving gains speed, tucking more; pulling up at speed is heavy G and climbs', () => {
   const dive = (tuck) => {
     const f = createFlyer();
-    placeFlyer(f, [0, 3000, 0], 0, 1.2);
-    for (let t = 0; t < 8; t += 1 / 120) stepFlight(f, I({ tuck }), 1 / 120);
+    placeFlyer(f, [0, 5000, 0], 0, 0);
+    for (let t = 0; t < 6; t += 1 / 120) stepFlight(f, I({ pitch: -1, tuck }), 1 / 120);
     return f.speed;
   };
-  assert.ok(dive(0) > 60);
-  assert.ok(dive(1) > dive(0) + 10);
+  assert.ok(dive(0) > 75, `dive ${dive(0)}`);
+  assert.ok(dive(1) > dive(0) + 8, `tucked ${dive(1)}`);
   const f = createFlyer();
-  placeFlyer(f, [0, 1000, 0], 0, 0);
-  for (let t = 0; t < 1.5; t += 1 / 120) stepFlight(f, I({ pitch: 1 }), 1 / 120);
-  assert.ok(f.speed < FLIGHT.launchSpeed - 10);
-  assert.ok(f.pos.y > 1000);
+  placeFlyer(f, [0, 1000, 0], 0, 0, 80);
+  let maxG = 0;
+  for (let t = 0; t < 1.5; t += 1 / 120) {
+    stepFlight(f, I({ pitch: 1 }), 1 / 120);
+    maxG = Math.max(maxG, f.g);
+  }
+  assert.ok(maxG > 5, `max G ${maxG}`);
+  assert.ok(f.pos.y > 1030, 'swoops up');
+  assert.ok(f.speed < 70, 'spends speed');
+});
+
+test('flight: too slow, it stalls and the nose drops', () => {
+  const f = createFlyer();
+  placeFlyer(f, [0, 3000, 0], 0, -0.6, 20);
+  let minFwdY = 1;
+  for (let t = 0; t < 6; t += 1 / 120) {
+    stepFlight(f, I({ pitch: 1 }), 1 / 120);
+    minFwdY = Math.min(minFwdY, f.forward.y);
+  }
+  assert.ok(minFwdY < -0.2, `nose dropped to ${minFwdY}`);
 });
 
 test('flight: banking turns toward the low wing', () => {
   const f = createFlyer();
   placeFlyer(f, [0, 1000, 0], 0, 0);
-  for (let t = 0; t < 0.3; t += 1 / 120) stepFlight(f, I({ roll: 1 }), 1 / 120);
-  for (let t = 0; t < 2; t += 1 / 120) stepFlight(f, I(), 1 / 120, { assist: 0 });
+  for (let t = 0; t < 0.35; t += 1 / 120) stepFlight(f, I({ roll: 1 }), 1 / 120);
+  for (let t = 0; t < 1; t += 1 / 120) stepFlight(f, I({ pitch: 0.3 }), 1 / 120, { assist: 0 });
   // Right wing (-X) down: heading swings toward -X.
   assert.ok(f.forward.x < -0.3, `forward.x ${f.forward.x}`);
+});
+
+test('flight: an updraft lifts the glider', () => {
+  const run = (updraft) => {
+    const f = createFlyer();
+    placeFlyer(f, [0, 1000, 0], 0, 0);
+    for (let t = 0; t < 3; t += 1 / 120) stepFlight(f, I(), 1 / 120, { updraft });
+    return f.pos.y;
+  };
+  assert.ok(run(14) > run(0) + 25);
 });
 
 test('flight: crashing into a wall is detected without tunnelling', () => {
@@ -144,4 +176,15 @@ test('scoring: a crash loses the pot; best mode keeps the best run', () => {
   t.mult = 2;
   finish(t);
   assert.equal(t.score, 520);
+});
+
+test('scoring: a portal banks the combo and adds 1000 flat', () => {
+  const s = createScore('best');
+  s.pot = 100;
+  s.mult = 3;
+  const ev = portalBonus(s);
+  assert.equal(s.score, 1300);
+  assert.equal(s.pot, 0);
+  assert.equal(s.mult, 1);
+  assert.ok(ev.some((e) => e.type === 'bank') && ev.some((e) => e.type === 'portal'));
 });

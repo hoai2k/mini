@@ -82,16 +82,24 @@ const ok = (msg) => console.log('ok:', msg);
 if (shots) await mkdir(shots, { recursive: true });
 
 async function newPage() {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   await page.addInitScript(FAKE_PADS);
-  await page.goto(url + '?dt=0.05');
+  // Low graphics keeps the software renderer's frames bearable.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem('gliders.settings.v1', JSON.stringify({ quality: 2 }));
+    } catch {
+      /* ignore */
+    }
+  });
+  await page.goto(url + '?dt=0.1');
   await page.waitForFunction(() => window.__gliders && window.__gliders.screen === 'title');
   return { page, errors };
 }
-const shot = async (page, name) => shots && page.screenshot({ path: join(shots, name + '.png') });
+const shot = async (page, name) => shots && page.screenshot({ path: join(shots, name + '.png'), timeout: 300000 });
 // Wait for the game to run n more frames (software WebGL is slow and uneven).
 const frames = (page, n = 2) => page.evaluate((n) => new Promise((r) => {
   const start = window.__gliders.frames;
@@ -134,7 +142,7 @@ const screen = (page) => page.evaluate(() => window.__gliders.screen);
   await tap(page, 0, 0);
   await page.waitForTimeout(500);
   (await screen(page)) === 'play' ? ok('A on a sky starts the round') : fail('round did not start');
-  await page.waitForFunction(() => window.__gliders.round?.phase === 'play', null, { timeout: 120000 });
+  await page.waitForFunction(() => window.__gliders.round?.phase === 'play', null, { timeout: 900000 });
   await shot(page, '04-countdown-end');
   // Fly: everyone dives a little, rolls in different directions.
   await page.evaluate(() => {
@@ -169,8 +177,8 @@ const screen = (page) => page.evaluate(() => window.__gliders.screen);
   await tap(page, 2, 1); // B
   !(await page.evaluate(() => window.__gliders.paused)) ? ok('B resumes') : fail('B did not resume');
   await tap(page, 0, 9);
-  await page.click('[data-action="end-round"]');
-  await page.waitForFunction(() => window.__gliders.layers.includes('results'), null, { timeout: 120000 }).catch(() => {});
+  await page.evaluate(() => document.querySelector('[data-action="end-round"]').click());
+  await page.waitForFunction(() => window.__gliders.layers.includes('results'), null, { timeout: 900000 }).catch(() => {});
   (await page.evaluate(() => window.__gliders.layers.includes('results'))) ? ok('End round now → results') : fail('no results');
   await shot(page, '07-results');
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors (controllers)');
@@ -198,7 +206,7 @@ const screen = (page) => page.evaluate(() => window.__gliders.screen);
   await frames(page, 2);
   await page.keyboard.press('Enter');
   await frames(page, 3);
-  await page.waitForFunction(() => window.__gliders.round?.phase === 'play', null, { timeout: 120000 });
+  await page.waitForFunction(() => window.__gliders.round?.phase === 'play', null, { timeout: 900000 });
   (await screen(page)) === 'play' ? ok('Enter flies the focused sky') : fail('keyboard round did not start');
   await page.keyboard.down('KeyW');
   await frames(page, 20);

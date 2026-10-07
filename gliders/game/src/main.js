@@ -2,10 +2,9 @@
 // results), controller-first menus, split-screen rendering and the HUD.
 
 import * as THREE from '../vendor/three.module.min.js';
-import { LEVELS, PALETTES, buildLevel, dailyLevel, seededLevel, randomSeedText } from './levels.js';
-import { World } from './world.js';
+import { LEVELS, PALETTES, STYLES, buildLevel, dailyLevel, seededLevel, randomSeedText } from './levels.js';
 import { createFlyer, placeFlyer, advance } from './flight.js';
-import { createScore, updateScore, crash, finish, bank, SCORING } from './scoring.js';
+import { createScore, updateScore, crash, finish, bank, portalBonus, SCORING } from './scoring.js';
 import { createLevelScene, Trail, Streaks, createShadow, Burst, splitLayout, MAX_PLAYERS } from './scene.js';
 import { GLIDERS, VARIANTS, createGlider } from './creatures.js';
 import { createInput, BTN } from './input.js';
@@ -129,10 +128,30 @@ function useLevel(def) {
     detachDemo();
   }
   const data = buildLevel(def);
-  const world = new World(data.boxes);
-  const scene = createLevelScene(data);
+  const world = data.world;
+  const scene = createLevelScene(data, skyTextures());
+  scene.setDetail(settings.quality === 2);
   state.level = { def, data, world, scene, demoPath: null };
   return state.level;
+}
+
+// The painted sky layers, once delivered (greyscale, tiling).
+let skyTex = null;
+function skyTextures() {
+  if (skyTex) return skyTex;
+  skyTex = {};
+  const load = (key, name) => {
+    const file = asset(key);
+    if (!file) return;
+    const t = new THREE.TextureLoader().load(file);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = 4;
+    skyTex[name] = t;
+  };
+  load('sky.horizon', 'band');
+  load('sky.wisps', 'wisps');
+  load('sky.mist', 'mist');
+  return skyTex;
 }
 
 // ---------------------------------------------------------------- previews and portraits
@@ -652,15 +671,6 @@ function buildLevelGrid() {
   syncOptions();
 }
 
-const MIX_BLURB = {
-  balanced: 'A bit of everything: arches, frames, towers and tunnels.',
-  spires: 'Forests of thin spires and tall towers to slalom through.',
-  canyon: 'Split mesas with narrow canyons and long tunnels.',
-  gates: 'Runs of frames and rings to thread one after another.',
-  lattice: 'Open lattices of beams: gaps everywhere.',
-  halls: 'Long halls and tunnels with windows in their walls.',
-  ruins: 'Arches, aqueducts and broken walls.',
-};
 let previewTimer = 0;
 function selectLevelCard(i, commit) {
   const def = gridDefs[i];
@@ -669,7 +679,7 @@ function selectLevelCard(i, commit) {
   settings.levelId = def.id;
   saveSettings(settings);
   $('#level-name').textContent = def.random ? 'Random · ' + state.randomSeed : def.name;
-  $('#level-blurb').textContent = MIX_BLURB[def.mix] || '';
+  $('#level-blurb').textContent = STYLES[def.style]?.blurb || '';
   const list = bestScores(def.id, settings.mode);
   $('#level-scores').innerHTML = list.length
     ? list.slice(0, 6).map((e) => `<li>${fmt(e.score)} <span class="who">· ${e.player} · ${GLIDERS.find((g) => g.id === e.glider)?.name || ''}</span></li>`).join('')
@@ -761,15 +771,16 @@ function startRound() {
     L.scene.scene.add(p.shadow);
     p.burst = new Burst([p.model.palette.primary, p.model.palette.secondary, p.model.palette.accent, p.color]);
     L.scene.scene.add(p.burst.mesh);
-    p.camera = new THREE.PerspectiveCamera(settings.fov, 1, 0.1, 3000);
+    p.camera = new THREE.PerspectiveCamera(settings.fov, 1, 0.1, viewFar());
     p.camera.layers.enable(1 + i);
     p.cam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0), shake: 0, fov: settings.fov };
     p.input = { pitch: 0, roll: 0, yaw: 0, tuck: 0, flare: 0 };
+    p.feel = { g: 1, updraft: 0, rumbleIn: 0, t: Math.random() * 100 };
     p.portrait = portraitURL(p.gliderId, p.variant);
     spawn(p, true);
   });
   // An overview camera for the spare quarter with three players.
-  state.overview = new THREE.PerspectiveCamera(50, 1, 1, 4000);
+  state.overview = new THREE.PerspectiveCamera(50, 1, 1, 12000);
   buildHud();
   resize();
   showScreen('play');
@@ -861,6 +872,28 @@ function doCrash(p) {
   p.cam.shake = settings.reduceMotion ? 0 : 0.6;
 }
 
+// Rising air: strongest at an updraft's core, fading at its edge and ends.
+function updraftAt(L, pos) {
+  let a = 0;
+  for (const u of L.data.updrafts) {
+    if (pos.y < u.y0 - 30 || pos.y > u.y1) continue;
+    const d = Math.hypot(pos.x - u.x, pos.z - u.z);
+    if (d > u.r * 2.2) continue;
+    const ends = clamp((pos.y - u.y0 + 30) / 80, 0, 1) * clamp((u.y1 - pos.y) / 120, 0, 1);
+    a += u.strength * Math.exp(-((d / u.r) ** 2)) * ends;
+  }
+  return a;
+}
+
+function enterPortal(p) {
+  handleEvents(p, portalBonus(p.score));
+  pop(p, 'PORTAL  +1000', 'bank');
+  audio.portal();
+  if (settings.vibration) input.rumble(p.device, 0.6, 1, 300);
+  message(p, 'Portal!<small>+1000 · a fresh dive from the top</small>', false, 1.6);
+  spawn(p);
+}
+
 function sendBack(p, why) {
   handleEvents(p, bank(p.score));
   message(p, why, false, 1.4);
@@ -876,7 +909,9 @@ function updatePlayer(p, dt, time) {
     const raw = live ? input.flight(p.device, p.invert) : { pitch: 0, roll: 0, yaw: 0, tuck: 0, flare: 0 };
     p.input = raw;
     if (live) {
-      if (advance(f, raw, dt, L.world, { assist: ASSIST[settings.assist] })) {
+      const up = updraftAt(L, f.pos);
+      p.feel.updraft = up;
+      if (advance(f, raw, dt, L.world, { assist: ASSIST[settings.assist], updraft: up })) {
         doCrash(p);
       } else {
         const dist = L.world.nearest(f.pos.x, f.pos.y, f.pos.z, SCORING.proximity + 1, _probe);
@@ -889,9 +924,11 @@ function updatePlayer(p, dt, time) {
         handleEvents(p, updateScore(p.score, { dist, speed: f.speed, probes, inverted: f.up.y < -0.3 }, dt));
         const b = L.data.bounds;
         const r = Math.hypot(f.pos.x, f.pos.z);
-        if (f.pos.y < b.floor) sendBack(p, 'Cloud dive');
-        else if (r > b.edge || f.pos.y > b.ceiling) sendBack(p, 'Out of bounds');
-        else if (r > b.radius + 110) message(p, 'Turn back<small>the sky ends ahead</small>', false, 0.2);
+        const portal = L.data.portals.find((q) => Math.hypot(f.pos.x - q.x, f.pos.y - q.y, f.pos.z - q.z) < q.r);
+        if (portal) enterPortal(p);
+        else if (f.pos.y < b.floor) sendBack(p, 'Into the mist<small>back to the top</small>');
+        else if (r > b.edge || f.pos.y > b.ceiling) sendBack(p, 'Too far out<small>back to the top</small>');
+        else if (r > b.radius + 400) message(p, 'Turn back<small>the islands are behind you</small>', false, 0.2);
       }
     }
   } else {
@@ -927,35 +964,73 @@ function updatePlayer(p, dt, time) {
     p.shadow.scale.set(s, s, 1);
     p.shadow.material.opacity = clamp(1 - down / 90, 0, 1) * 0.9;
   }
+  // Felt G, smoothed; it drives the camera, the vignette, rumble and wind.
+  const g = p.alive ? f.g : 1;
+  p.feel.g += (g - p.feel.g) * (1 - Math.exp(-dt * 8));
+  if (!p.alive) p.feel.updraft = 0;
+  if (settings.vibration && p.alive && state.round.phase === 'play') {
+    p.feel.rumbleIn -= dt;
+    if (p.feel.rumbleIn <= 0) {
+      p.feel.rumbleIn = 0.1;
+      const strong = clamp((p.feel.g - 2) / 4.5, 0, 1) * 0.7 + clamp(p.feel.updraft / 16, 0, 1) * 0.3;
+      const weak = clamp((f.speed - 50) / 100, 0, 1) * 0.35 + close * 0.35 + clamp(-p.feel.g / 3, 0, 1) * 0.3;
+      if (strong + weak > 0.04) input.rumble(p.device, strong, weak, 130);
+    }
+  }
   updateCamera(p, dt);
 }
 
+const _cx = new THREE.Vector3();
+const _cy = new THREE.Vector3();
+const _cz = new THREE.Vector3();
 function updateCamera(p, dt) {
   const f = p.flyer;
   const c = p.cam;
-  const dist = CAM_DIST[settings.camera];
+  const motion = settings.reduceMotion ? 0.2 : 1;
+  const G = p.feel.g;
   if (p.alive) {
-    const vdir = _v.copy(f.vel).normalize();
-    const dir = _v2.copy(f.forward).lerp(vdir, 0.55).normalize();
-    const up = new THREE.Vector3().copy(WORLD_UP).lerp(f.up, 0.5).normalize();
-    const desired = new THREE.Vector3().copy(f.pos).addScaledVector(dir, -dist).addScaledVector(up, dist * 0.26);
-    // Keep the camera out of the blocks behind.
+    // Further back as speed builds, so the world rushes past; a little closer in a hard pull.
+    const dist = CAM_DIST[settings.camera] * (1 + clamp((f.speed - 40) / 140, 0, 0.3)) * (1 - clamp((G - 3) / 10, 0, 0.12));
+    const vdir = _cz.copy(f.vel).normalize();
+    const dir = _v2.copy(f.forward).lerp(vdir, 0.6).normalize();
+    const up = new THREE.Vector3().copy(WORLD_UP).lerp(f.up, 0.55).normalize();
+    const desired = new THREE.Vector3().copy(f.pos).addScaledVector(dir, -dist).addScaledVector(up, dist * 0.24);
+    // G pushes the camera against the pull: under heavy G the glider climbs in
+    // the frame, as if you were pressed down into your seat; negative G floats it.
+    desired.addScaledVector(f.up, -clamp((G - 1) * 0.2, -0.7, 1.5) * (dist / 4.6) * (0.5 + 0.5 * motion));
+    // Keep the camera out of the rock behind.
     const back = desired.clone().sub(f.pos);
     const bl = back.length();
     back.divideScalar(bl);
     const hit = state.level.world.raycast(f.pos.x, f.pos.y, f.pos.z, back.x, back.y, back.z, bl);
     if (hit < bl) desired.copy(f.pos).addScaledVector(back, Math.max(1.2, hit - 0.5));
-    c.pos.lerp(desired, 1 - Math.exp(-dt * 9));
-    c.look.lerp(_v.copy(f.pos).addScaledVector(f.forward, 6), 1 - Math.exp(-dt * 14));
-    const roll = settings.reduceMotion ? 0.12 : 0.5;
+    c.pos.lerp(desired, 1 - Math.exp(-dt * 7.5));
+    c.look.lerp(_v.copy(f.pos).addScaledVector(vdir, 9), 1 - Math.exp(-dt * 12));
+    const roll = settings.reduceMotion ? 0.12 : 0.6;
     c.up.lerp(_v.copy(WORLD_UP).lerp(f.up, roll).normalize(), 1 - Math.exp(-dt * 6)).normalize();
-    const fovTarget = settings.fov + (settings.reduceMotion ? 0 : clamp((f.speed - 30) * 0.22, 0, 22));
+    // Field of view widens with speed and narrows a little under heavy G.
+    const fovTarget = settings.fov + motion * (clamp((f.speed - 30) * 0.26, 0, 30) - clamp((G - 2) * 1.6, 0, 8) + clamp(-G * 2, 0, 5));
     c.fov += (fovTarget - c.fov) * (1 - Math.exp(-dt * 3));
   } else {
     c.look.lerp(f.pos, 1 - Math.exp(-dt * 4));
   }
   const cam = p.camera;
   cam.position.copy(c.pos);
+  // Buffeting: rises with speed, G, closeness to rock and rising air.
+  p.feel.t += dt;
+  const t = p.feel.t;
+  const buffet = p.alive
+    ? motion * (clamp((f.speed - 55) / 95, 0, 1) * 0.07 + clamp((G - 2.5) / 4, 0, 1) * 0.06 + p.score.closeness * clamp(f.speed / 80, 0, 1) * 0.05 + clamp(p.feel.updraft / 15, 0, 1) * 0.08)
+    : 0;
+  if (buffet > 0.001) {
+    cam.up.copy(c.up);
+    cam.lookAt(c.look);
+    _cx.setFromMatrixColumn(cam.matrix, 0);
+    _cy.setFromMatrixColumn(cam.matrix, 1);
+    const nx = Math.sin(t * 21.7) + Math.sin(t * 37.3) * 0.6 + Math.sin(t * 59.1) * 0.3;
+    const ny = Math.sin(t * 19.3 + 1.3) + Math.sin(t * 41.9) * 0.6 + Math.sin(t * 67.7) * 0.3;
+    cam.position.addScaledVector(_cx, nx * buffet).addScaledVector(_cy, ny * buffet);
+  }
   if (c.shake > 0) {
     c.shake = Math.max(0, c.shake - dt);
     cam.position.x += (Math.random() - 0.5) * c.shake;
@@ -996,17 +1071,19 @@ function updatePlay(dt, time) {
     round.overAt -= dt;
     if (round.overAt <= 0 && !state.layers.includes('results')) showResults();
   }
-  let maxSpeed = 0, maxClose = 0, maxFlare = 0;
+  let maxSpeed = 0, maxClose = 0, maxFlare = 0, maxG = 1, maxUp = 0;
   for (const p of state.players) {
     updatePlayer(p, dt, time);
     if (p.alive) {
       maxSpeed = Math.max(maxSpeed, p.flyer.speed);
       maxFlare = Math.max(maxFlare, p.input.flare || 0);
+      if (Math.abs(p.feel.g - 1) > Math.abs(maxG - 1)) maxG = p.feel.g;
+      maxUp = Math.max(maxUp, p.feel.updraft);
     }
     maxClose = Math.max(maxClose, p.alive ? p.score.closeness : 0);
   }
   // Wind blows from the countdown on, so the launch already sounds like flight.
-  audio.flight(maxSpeed, maxClose, round.phase !== 'over', maxFlare);
+  audio.flight(maxSpeed, maxClose, round.phase !== 'over', maxFlare, maxG, maxUp);
   updateHud();
 }
 
@@ -1097,6 +1174,7 @@ function buildHud() {
     el.innerHTML = `<div class="pv-top"><img class="pv-badge" alt="" src="${p.portrait}"><div>
         <div class="pv-name">P${p.slot + 1} · ${g.name}</div><div class="pv-score">0</div><div class="pv-sub"></div></div></div>
       <div class="pv-combo off"><div class="pv-pot">0<span class="pv-mult">×1</span></div><div class="pv-bankbar"><i></i></div></div>
+      <div class="pv-rush"></div><div class="pv-vig"></div><div class="pv-red"></div>
       <div class="pv-pops"></div><div class="pv-msg" hidden></div><div class="pv-speed"></div>`;
     root.appendChild(el);
     p.hud = {
@@ -1110,6 +1188,9 @@ function buildHud() {
       pops: $('.pv-pops', el),
       msg: $('.pv-msg', el),
       speed: $('.pv-speed', el),
+      vig: $('.pv-vig', el),
+      red: $('.pv-red', el),
+      rush: $('.pv-rush', el),
       last: {},
       msgUntil: 0,
     };
@@ -1163,6 +1244,17 @@ function updateHud() {
       h.barFill.style.width = (away ? (s.away / SCORING.bankDelay) * 100 : s.closeness * 100).toFixed(1) + '%';
     }
     setText(h, 'speed', h.speed, p.alive ? `${Math.round(p.flyer.speed * 3.6)} km/h` : '');
+    // Greying at the edges under heavy G, a red flush under negative G, and a
+    // bright rush at the edges at full speed.
+    const G = p.feel?.g ?? 1;
+    const motion = settings.reduceMotion ? 0.4 : 1;
+    const op = (el, v) => {
+      const t = v.toFixed(2);
+      if (el._op !== t) el.style.opacity = el._op = t;
+    };
+    op(h.vig, clamp((G - 2.6) / 3.4, 0, 0.8) * motion);
+    op(h.red, clamp((-G - 0.6) / 2.5, 0, 0.45) * motion);
+    op(h.rush, (p.alive ? clamp((p.flyer.speed - 70) / 80, 0, 1) * 0.5 : 0) * motion);
     if (!p.alive && round.phase === 'play' && state.time >= h.msgUntil) message(p, 'Respawning…', false, 0.1);
     if (!h.msg.hidden && state.time > h.msgUntil) h.msg.hidden = true;
   }
@@ -1212,7 +1304,7 @@ function detachDemo() {
     demo = null;
   }
 }
-const attractCam = new THREE.PerspectiveCamera(55, 1, 0.1, 4000);
+const attractCam = new THREE.PerspectiveCamera(55, 1, 0.1, 12000);
 function renderAttract(time, dt) {
   const L = state.level || useLevel(findLevelDef(settings.levelId));
   if (!L.demoPath) L.demoPath = findDemoPath(L);
@@ -1259,7 +1351,7 @@ function renderAttract(time, dt) {
     cam.lookAt(0, L.data.bounds.top * 0.38, 0);
   }
   cam.fov = 55;
-  cam.far = 4000;
+  cam.far = 12000;
   cam.updateProjectionMatrix();
   L.scene.update(time);
   L.scene.prepareView(cam);
@@ -1318,7 +1410,14 @@ function syncSettingsUI() {
     if (out) out.textContent = SETTING_LABELS[k] ? SETTING_LABELS[k][settings[k]] : k === 'fov' ? settings[k] + '°' : settings[k];
   }
 }
+// How far the cameras see: the whole world, or less on Low graphics.
+const viewFar = () => (settings.quality === 2 ? 2800 : 12000);
 function applySettings() {
+  state.level?.scene.setDetail(settings.quality === 2);
+  for (const p of state.players) if (p.camera) {
+    p.camera.far = viewFar();
+    p.camera.updateProjectionMatrix();
+  }
   audio.setVolumes({ master: settings.volume / 100, music: settings.music / 100, sfx: settings.sfx / 100 });
   document.body.classList.toggle('reduce-motion', !!settings.reduceMotion);
   resize();
