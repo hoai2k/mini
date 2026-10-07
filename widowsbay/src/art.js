@@ -5,7 +5,7 @@
 // is cut from. Procedural stand-ins draw everything until delivered art
 // (assets/manifest.json) replaces a slot.
 
-import { animationFrame, validAnimation, idleFrameId } from './animation.js';
+import { animationFrame, validAnimation, idleFrameId, idlePose } from './animation.js';
 
 import { ROWS, STAGE, TUNING, rowPos, leapHeight, effectiveRow } from './board.js';
 
@@ -166,6 +166,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   const stars = Array.from({ length: 70 }, (_, i) => ({ x: (i * 397) % 1040 + 120, y: (i * 151) % 260 + 60, p: i * 1.7 }));
   const img = (id) => assets.images[id];
   let extraAnimations = false;
+  let filmAmp = 1;   // how strongly the people's film idle moves (Film look)
 
   // Act events: the act's own onEvent, which may call kit.voyageEvent (Act I).
   function onEvent(e, view) {
@@ -267,6 +268,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   function render(view) {
     extraAnimations = view.extraAnimations === true;
     const { t, film } = view;
+    filmAmp = film === 'off' ? 0.35 : film === 'gentle' ? 0.6 : 1;
     if (film !== 'off' && ++reg.n % 5 === 0) {
       const m = film === 'full' ? 3 : 1.4;
       reg.x = (Math.random() - 0.5) * m * 2; reg.y = (Math.random() - 0.5) * m * 2;
@@ -474,7 +476,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // The band as a halftone cut-out. title: standing at the left in front of
   // the closed curtain. Curtain call: rising through the centre trapdoor.
   function bandTrio(c, k, title, t) {
-    const art = img(idleId('band-trio', t));
+    const art = img('band-trio');
     if (!art) return;
     const e = 1 - (1 - Math.min(1, k)) ** 3;
     const size = title ? 330 : 300;
@@ -482,7 +484,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const yb = title ? 708 : 660 + (1 - e) * 300;
     c.save();
     if (!title) { c.beginPath(); c.rect(0, 0, 1280, 662); c.clip(); }
-    drawAsset(c, P, art, x, yb + size * 0.013, size, size);
+    drawIdle(c, 'band-trio', t, x, yb + size * 0.013, size, size);
     c.restore();
   }
 
@@ -1028,6 +1030,17 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // The people's old-film idle frame for this moment (the still when Extra
   // Animations is off or no idle frames are delivered).
   const idleId = (id, time, step) => (extraAnimations ? idleFrameId(id, time, (f) => !!img(f), step) : id);
+  // A person drawn with the film idle (frames plus the film tricks in
+  // idlePose) when Extra Animations is on; the plain still otherwise.
+  function drawIdle(c, id, time, cx, by, w, h, step) {
+    if (!img(id)) return false;
+    if (!extraAnimations) { drawAsset(c, P, img(id), cx, by, w, h); return true; }
+    const pose = idlePose(id, time, { step, amp: filmAmp, w, h });
+    c.save(); c.translate(cx + pose.dx, by + pose.dy); c.rotate(pose.rot); c.scale(1, pose.sy);
+    drawAsset(c, P, img(idleId(id, pose.time, step)), 0, 0, w, h);
+    c.restore();
+    return true;
+  }
 
   function drawAnimation(c, id, time, cx, by, w, h) {
     if (!extraAnimations) return false;
@@ -1050,8 +1063,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     anim(id, time, cx, by, w, h) { return drawAnimation(kit.c, id, time, cx, by, w, h); },
     // A person's still, flicked with its idle frames when Extra Animations is
     // on (see idleFrameId); false if the still isn't delivered.
-    idle(id, time, cx, by, w, h, step) { return kit.asset(idleId(id, time, step), cx, by, w, h); },
-    idleId: (id, time, step) => idleId(id, time, step),
+    idle(id, time, cx, by, w, h, step) { return drawIdle(kit.c, id, time, cx, by, w, h, step); },
     // Draw a delivered image (bottom-centre anchor); false if not delivered.
     asset(id, cx, by, w, h, extra = '') { const im = img(id); if (!im) return false; drawAsset(kit.c, P, im, cx, by, w, h, extra); return true; },
     // Part of a delivered image: source rect in art pixels -> stage box.

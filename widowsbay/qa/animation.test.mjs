@@ -37,3 +37,22 @@ console.log('animation timing, musical cycles, rectangles and invalid-sheet fall
   assert.equal(idleFrameId('x', 1.5 * 0.6, both, 0.6), 'x-idle-b');
 }
 console.log('old-film idle frame order passed');
+// The film tricks: deterministic, bounded, still at amp 0, and the uneven
+// cranking never moves a frame change by more than a third of a step.
+{
+  const { idlePose, FILM_IDLE, IDLE_STEP } = await import('../src/animation.js');
+  assert.deepEqual(idlePose('x', 1.234, { h: 420, w: 220 }), idlePose('x', 1.234, { h: 420, w: 220 }));
+  assert.deepEqual(idlePose('x', 2, { amp: 0 }), { time: 2, dx: 0, dy: 0, rot: 0, sy: 1 });
+  let moved = false;
+  for (let t = 0; t < 20; t += 0.05) {
+    const p = idlePose('reveller-yellow', t, { h: 420, w: 220 });
+    assert.ok(Math.abs(p.dx) <= FILM_IDLE.boilPx * 420 + 1e-9 && Math.abs(p.rot) <= FILM_IDLE.boilRot + FILM_IDLE.sway + 1e-9);
+    assert.ok(Math.abs(p.sy - 1) <= FILM_IDLE.breath + 1e-9 && Math.abs(p.time - t) <= FILM_IDLE.crank * IDLE_STEP + 1e-9);
+    if (Math.abs(p.dx) > 0.2) moved = true;
+  }
+  assert.ok(moved, 'the boil moves');
+  const wide = idlePose('pageant-dancers', 1, { h: 315, w: 720 }), tall = idlePose('pageant-dancers', 1, { h: 720, w: 315 });
+  assert.ok(Math.abs(wide.rot) < Math.abs(tall.rot), 'wide groups rock less');
+  assert.notDeepEqual(idlePose('a', 1, { h: 400 }), idlePose('b', 1, { h: 400 }), 'each figure moves on its own');
+}
+console.log('film idle tricks passed');

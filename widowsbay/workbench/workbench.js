@@ -149,7 +149,7 @@ const SCENES = [
   },
   {
     id: 'extra-animations', act: null, title: 'Extra Animations · everything', max: 12, draw: drawAnimGallery,
-    note: 'Everything Extra Animations adds, side by side, drawn by the game\'s own kit: the jellyfish loop (assets/anims/) and each person\'s old-film idle, the still flicked with its generated frames A, B, A, C (requests in design/image-requests.md, C15). Until a person\'s idle frames arrive the still stands alone and the label says so. This page shows them whatever the Extra Animations box says; tick the box to see them in place in the other scenes.',
+    note: 'Everything Extra Animations adds, side by side, drawn by the game\'s own kit: the jellyfish loop (assets/anims/) and each person\'s old-film idle: film tricks on the still (uneven cranking, a boil every twelfth of a second, a slow sway on the feet, a breath; src/animation.js idlePose), plus the generated frames flicked A, B, A, C once they arrive (requests in design/image-requests.md, C15). Each label says which frames are in. The Film look menu scales the tricks. This page shows them whatever the Extra Animations box says; tick the box to see them in place in the other scenes.',
     create: () => null,
     input: () => ({}),
     end: (st, t) => t >= 12,
@@ -192,7 +192,7 @@ function drawAnimGallery(k, t) {
         k.idle(it.id, t, cx, by, im.width * s, im.height * s, it.step);
       }
       const n = ['b', 'c'].filter((f) => k.img(`${it.id}-idle-${f}`)).length;
-      sub = n ? (n === 2 ? 'idle A B A C' : 'idle, 1 of 2 frames') : 'awaiting idle frames';
+      sub = 'film tricks' + (n ? (n === 2 ? ' + frames A B A C' : ' + 1 of 2 frames') : ' only (frames awaited)');
     }
     c.fillStyle = k.col('#f1e3c8'); c.font = '600 14px "Josefin Sans", sans-serif'; c.textAlign = 'center';
     c.fillText(label, cx, by + 16);

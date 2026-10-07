@@ -422,7 +422,10 @@ motion loops looked good in the gallery but didn't sit right in the game, so
 for people they give way to an old-film idle: the delivered still plus two
 generated variants (`<id>-idle-b`, `<id>-idle-c`), flicked A, B, A, C. Each
 prompt names its still; attach it as the image reference so the frames line
-up. Only the jellyfish loop stays from Part D.
+up. Only the jellyfish loop stays from Part D. The game also layers film
+tricks on each person (uneven cranking, a boil, a slow sway on the feet, a
+breath; `src/animation.js`, `idlePose`), so the still alone already moves
+and the two frames only need small changes.
 
 ---
 
@@ -1632,7 +1635,7 @@ Second-round art that works but needs another pass (found integrating it, Octobe
 
 ### C15. Fourth round: idle frames for the people
 
-Old-film idle loops for the watched characters, replacing the Part D motion loops for people (the jellyfish loop stays). Each character gets two extra frames, `-idle-b` and `-idle-c`; the delivered still is frame A, and the game plays A, B, A, C at about two to three frames a second (on the half-beat for the dancers and the band), like a figure in a hand-cranked 1903 film. They play when Settings → Extra Animations is on; until both frames arrive the still stands alone. **Attach the delivered still named in each prompt as the image reference** and change only what the prompt says.
+Old-film idle loops for the watched characters, replacing the Part D motion loops for people (the jellyfish loop stays). Each character gets two extra frames, `-idle-b` and `-idle-c`; the delivered still is frame A, and the game plays A, B, A, C at about two to three frames a second (on the half-beat for the dancers and the band), like a figure in a hand-cranked 1903 film. They play when Settings → Extra Animations is on, on top of film tricks the game already applies to the still (uneven cranking, a tiny boil every twelfth of a second, a slow sway on the feet and a breath), so even the still alone moves and two frames are enough; keep each change small. **Attach the delivered still named in each prompt as the image reference** and change only what the prompt says.
 
 | Id | Size | Anchor |
 | --- | --- | --- |

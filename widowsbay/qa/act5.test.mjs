@@ -386,7 +386,6 @@ function mockKit(images = {}) {
     assetCrop: (id, ...a) => { rec('crop', !!images[id])(id, ...a); return !!images[id]; },
     // Extra Animations off, as in the game by default: a person's idle is the still.
     idle: (id, time, ...a) => kit.asset(id, ...a.slice(0, 4)),
-    idleId: (id) => id,
   };
   for (const k of ['wire', 'circle', 'star', 'cloud', 'moon', 'sky', 'waves', 'lighthouse', 'band', 'keepsake', 'moonboat', 'wash', 'iris']) kit[k] = rec(k);
   for (const k of ['burst', 'text', 'flash', 'shake']) kit[k] = () => {};

@@ -118,6 +118,13 @@ function person(k, x, by, h, o, pose = {}) {
 }
 
 // Delivered art faces right; flip it for face -1.
+// A person with the film idle (kit.idle), mirrored when facing left.
+function idleFlip(k, id, time, x, by, w, h, face = 1) {
+  if (!k.img(id)) return false;
+  const c = k.c;
+  c.save(); c.translate(x, by); c.scale(face, 1); k.idle(id, time, 0, 0, w, h); c.restore();
+  return true;
+}
 function artFlip(k, id, x, by, w, h, face = 1) {
   if (!k.img(id)) return false;
   const c = k.c;
@@ -1030,7 +1037,7 @@ function pageantScene(k, st, t) {
     const hop = walk >= 1 ? ((Math.floor(beat) + i) % 2) * bob * 8 : Math.abs(Math.sin(since * 9)) * 6;
     const face = walk < 1 ? -s.side : 1;
     // the delivered revellers (220 x 420 each), cycled when more than four join
-    if (!artFlip(k, k.idleId(REVELLER_ART[i % REVELLER_ART.length], beat * 60 / 76.5 + i * 0.13), x, 618 - hop, REVELLER_H * 220 / 420, REVELLER_H, face)) {
+    if (!idleFlip(k, REVELLER_ART[i % REVELLER_ART.length], beat * 60 / 76.5 + i * 0.13, x, 618 - hop, REVELLER_H * 220 / 420, REVELLER_H, face)) {
       person(k, x, 618 - hop, 142, revellerCostume(i), { face, arms: walk >= 1 ? 'v' : 'down', step: walk < 1 ? Math.sin(since * 12) : 0 });
     }
   }
