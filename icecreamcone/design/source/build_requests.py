@@ -86,7 +86,30 @@ SECTIONS = {
         "One background per minigame. The game draws the birds and everything that moves on top, "
         "so each scene leaves the play area quiet, as its prompt says.",
     ),
+    "sprite": (
+        "Sprites and variants",
+        "What the minigames need beyond one still portrait per bird, found while building them "
+        "and checking them with the first art. A portrait can only breathe and hop, so a bird "
+        "that steps, grows, sings or changes shows that with these variants; and the props each "
+        "game still draws in code (scoops, hats, cars, stones, hiding places) get painted "
+        "versions so nothing drawn in code sits on top of a painted scene. Every variant must "
+        "match its delivered portrait exactly in design, colours and line (the portrait in "
+        "game/assets/birds/ is the reference), drawn at the same scale and facing left.",
+    ),
 }
+
+# A sheet of separate sprites: the game cuts them apart by their transparent gaps.
+SHEET = (
+    "A sprite sheet of separate objects on one transparent background, evenly spaced in the grid "
+    "the prompt gives, each object centred in its cell with clear empty space all round it (no "
+    "object touching another or the edge), all lit the same way from the upper left, no cast "
+    "shadows. " + ALPHA
+)
+VARIANT = (
+    "Exactly the same bird as in its delivered portrait (same design, proportions, colours, "
+    "line and texture; use that portrait image as the reference), at the same scale, facing "
+    "left, with only the change described. "
+)
 
 # Each bird: id (also the file name), name, the reference photo in
 # icecreamcone/reference/, the portrait description and its minigame scene.
@@ -379,6 +402,116 @@ for n, b in enumerate(BIRDS, 1):
         "status": "delivered",
         "ref": b["ref"],
         "prompt": STYLE + " " + SCENE + b["scene"] + " " + REF_SCENE.format(b["ref"]),
+    })
+
+
+def asset(path: str) -> str:
+    return REF_URL.replace("reference/", "game/" + path)
+
+
+SPRITES = [
+    ("IC-P01", "Scoop Stack props", "sprites.scoops", "assets/sprites/scoops.png", "2048 x 1024, transparent",
+     "Scoop Stack: the falling ice creams and the things that knock them off.",
+     "Scoops, a cherry, a pickle and a sock drawn in code.",
+     STYLE + " " + SHEET + " A 5 x 2 grid of ten objects, each about 300 px across: seven single round "
+     "lumpy scoops of ice cream with no cone (strawberry pink, lemon yellow, vanilla cream, chocolate "
+     "brown, mint green, pistachio, blueberry), seen from the side, soft and slightly melting at the "
+     "bottom edge; one glossy red cherry with a stem and a tiny gold sparkle; one green dill pickle; "
+     "one striped wool sock. Lumpy, crosshatched shadows, like the scoops on the Coot's cover."),
+    ("IC-P02", "Coot walking and looking up", "sprites.cootPoses", "assets/sprites/coot-poses.png", "2048 x 1024, transparent",
+     "Scoop Stack: the Coot runs left and right, and looks up at the falling scoops.",
+     "The portrait, hopping.",
+     STYLE + " " + VARIANT + " The Ice-Cream Cone Coot (" + asset("assets/birds/coot.png") + ") in "
+     "two poses side by side on one sheet, each in its own half: left, mid-stride with its left leg "
+     "reaching forward; right, standing with its head tipped back looking straight up, beak pointing "
+     "to the sky, so a scoop can land on its head. " + ALPHA),
+    ("IC-P03", "Cupadee, empty cup facing up", "sprites.cupadeeOpen", "assets/sprites/cupadee-open.png", "1024 x 1024, transparent",
+     "Tea Time: the game paints the tea inside the cup and a fill line on it.",
+     "The game's own cup drawn over the portrait.",
+     STYLE + " " + VARIANT + " The Cupadee (" + asset("assets/birds/cupadee.png") + ") standing with "
+     "its cup upright and level, not tipped, the rim seen slightly from above as a wide open ellipse "
+     "so the whole empty white inside of the cup is visible, ready to be filled. " + ALPHA),
+    ("IC-P04", "Teapot", "sprites.teapot", "assets/sprites/teapot.png", "1024 x 1024, transparent",
+     "Tea Time: the teapot that tips and pours.",
+     "A teapot drawn in code.",
+     STYLE + " An old-fashioned round china teapot with a long curved spout pointing to the left, a "
+     "rose pattern and a domed lid with a knob, level (not pouring), hanging from a short loop of "
+     "string on its handle. Centred, filling about 70% of the frame. " + ALPHA),
+    ("IC-P05", "Say Cheese hiding places", "sprites.hides", "assets/sprites/hides.png", "2048 x 1024, transparent",
+     "Say Cheese: the foreground pieces the rare birds peek out from behind. Each is drawn over "
+     "the meadow scene, with the bird between the scene and it.",
+     "Bushes, a wall, a tree, a gate pillar, a hedge and grass drawn in code.",
+     STYLE + " " + SHEET + " A 3 x 2 grid of six foreground pieces matching the meadow scene ("
+     + asset("assets/scenes/shuttercluck.webp") + "), each cut out cleanly at its base: a round "
+     "leafy bush; a low mossy dry-stone wall section; an old tree trunk with a dark knothole halfway "
+     "up (only the trunk, cut off above the knothole); a square stone gate pillar with a ball on "
+     "top; a clipped hedge section; a clump of tall meadow grass and wildflowers."),
+    ("IC-P06", "Gullfinch singing", "sprites.gullfinchSing", "assets/sprites/gullfinch-sing.png", "1024 x 1024, transparent",
+     "Wind and Sing: the Gullfinch's pose for each note the player hits.",
+     "The portrait, breathing.",
+     STYLE + " " + VARIANT + " The Gramophone Gullfinch (" + asset("assets/birds/gullfinch.png")
+     + ") in full song: beak wide open, head thrown back a little, crest feathers flared, a few small "
+     "ink musical notes drifting out of the horn. " + ALPHA),
+    ("IC-P07", "Plume growing, four stages", "sprites.plumeGrowth", "assets/sprites/plume-growth.png", "2048 x 1024, transparent",
+     "Bloom: the plant in each Flowerpot Plume's pot as it is watered, from sprout to the book's "
+     "towering bloom, and wilted.",
+     "An ink stem, leaves and flower drawn in code over the portrait.",
+     STYLE + " " + SHEET + " A 4 x 1 row of four plants only (no pot, no bird), each growing up from "
+     "a small mound of soil at the bottom centre of its cell, all at the same scale: 1) a short stem "
+     "with four leaves; 2) a taller stem with leaves and a closed pink bud; 3) the full bloom from "
+     "the book (" + REF_URL + "flowerpot-plume.jpg ): a tall leafy stem topped by a huge rounded "
+     "flower head of many petals in rose, slate blue, ochre and mauve; 4) the same tall plant "
+     "wilted, the stem bent over and the flower drooping, leaves curled and brownish."),
+    ("IC-P08", "Bobolinks, one boot at a time", "sprites.bobolinkBoots", "assets/sprites/bobolink-boots.png", "2048 x 1024, transparent",
+     "Left Foot, Right Foot: each boot steps on its own.",
+     "The pair's portrait hopping as one.",
+     STYLE + " " + VARIANT + " The Highbutton Bobolinks (" + asset("assets/birds/bobolinks.png")
+     + ") as two separate single boots on one sheet, each in its own half: left half, the left boot "
+     "alone, standing; right half, the right boot alone, standing. Same boot design as the pair, "
+     "each a bird with its eye and its long white beak open upward. " + ALPHA),
+    ("IC-P09", "Stepping stones", "sprites.stones", "assets/sprites/stones.png", "2048 x 1024, transparent",
+     "Left Foot, Right Foot: the stones across the moonlit stream.",
+     "Flat discs drawn in code.",
+     STYLE + " " + SHEET + " A 3 x 2 grid of six flat, rounded river stepping stones seen from a "
+     "low side angle, wet on top and catching pale moonlight, with a thin ring of dark water "
+     "ripple around each base, for a night scene (" + asset("assets/scenes/bobolinks.webp") + ")."),
+    ("IC-P10", "Newsprint scraps", "sprites.scraps", "assets/sprites/scraps.png", "2048 x 1024, transparent",
+     "Hot off the Press: the scraps the letters are printed on as they flutter down.",
+     "Paper rectangles drawn in code.",
+     STYLE + " " + SHEET + " A 4 x 2 grid of eight small torn scraps of old newspaper, each roughly "
+     "square with ragged torn edges, slightly curled, with faint grey columns of tiny print and a "
+     "blank cream patch in the middle (the game prints a big letter there)."),
+    ("IC-P11", "Hats", "sprites.hats", "assets/sprites/hats.png", "2048 x 1024, transparent",
+     "Spot the Dodo: the hats on the shop counter that the Dodo hides under.",
+     "Hats drawn in code.",
+     STYLE + " " + SHEET + " A 3 x 1 row of three gentleman's hats seen from the side, sitting on "
+     "their brims: a black bowler with a plum band, a tall black top hat with a grey band, and a "
+     "brown bowler with a faded green band. Each about the same width."),
+    ("IC-P12", "Old cars", "sprites.cars", "assets/sprites/cars.png", "2048 x 1024, transparent",
+     "Safe Crossing: the cars that stop and go at the Crow's light.",
+     "Simple cars drawn in code.",
+     STYLE + " " + SHEET + " A 2 x 2 grid of four small rounded 1930s motor cars in side view, all "
+     "facing left (the game mirrors them for the other lane): dusty pink, pale blue, mustard yellow "
+     "and sage green, with running boards, round headlamps and spoked wheels, for a small-town "
+     "street (" + asset("assets/scenes/crow.webp") + ")."),
+    ("IC-P13", "Little crossing birds", "sprites.chicks", "assets/sprites/chicks.png", "2048 x 1024, transparent",
+     "Safe Crossing: the little birds that wait on the pavement and cross on red.",
+     "Small ink birds drawn in code.",
+     STYLE + " " + SHEET + " A 3 x 2 grid of six small round sparrow-like birds facing left, in soft "
+     "browns, buffs and dusty pinks with round staring eyes and thin legs, in the book's odd, "
+     "gentle way: three standing waiting, two mid-step walking, one flapping off in a fright."),
+    ("IC-U06", "Medals", "medals", "assets/ui/medals.png", "2048 x 1024, transparent",
+     "The result card, the field guide's tabs and the gathering page.",
+     "Coloured circles.",
+     STYLE + " " + SHEET + " A 3 x 1 row of three round prize rosettes with short ribbon tails, "
+     "hand-drawn in ink and watercolour: bronze (warm brown-orange), silver (cool grey) and gold "
+     "(warm yellow ochre), each with a tiny ice-cream cone embossed in the centre. No text."),
+]
+for sid, name, key, file, size, used, standin, prompt in SPRITES:
+    REQUESTS.append({
+        "id": sid, "section": "sprite" if sid.startswith("IC-P") else "ui", "name": name, "key": key,
+        "file": file, "size": size, "used": used, "standin": standin, "status": "requested",
+        "prompt": prompt,
     })
 
 

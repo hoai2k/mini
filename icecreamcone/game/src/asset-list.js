@@ -101,5 +101,61 @@ export const ASSETS = {
   "scene.crow": {
     "file": "assets/scenes/crow.webp",
     "delivered": true
+  },
+  "sprites.scoops": {
+    "file": "assets/sprites/scoops.png",
+    "delivered": false
+  },
+  "sprites.cootPoses": {
+    "file": "assets/sprites/coot-poses.png",
+    "delivered": false
+  },
+  "sprites.cupadeeOpen": {
+    "file": "assets/sprites/cupadee-open.png",
+    "delivered": false
+  },
+  "sprites.teapot": {
+    "file": "assets/sprites/teapot.png",
+    "delivered": false
+  },
+  "sprites.hides": {
+    "file": "assets/sprites/hides.png",
+    "delivered": false
+  },
+  "sprites.gullfinchSing": {
+    "file": "assets/sprites/gullfinch-sing.png",
+    "delivered": false
+  },
+  "sprites.plumeGrowth": {
+    "file": "assets/sprites/plume-growth.png",
+    "delivered": false
+  },
+  "sprites.bobolinkBoots": {
+    "file": "assets/sprites/bobolink-boots.png",
+    "delivered": false
+  },
+  "sprites.stones": {
+    "file": "assets/sprites/stones.png",
+    "delivered": false
+  },
+  "sprites.scraps": {
+    "file": "assets/sprites/scraps.png",
+    "delivered": false
+  },
+  "sprites.hats": {
+    "file": "assets/sprites/hats.png",
+    "delivered": false
+  },
+  "sprites.cars": {
+    "file": "assets/sprites/cars.png",
+    "delivered": false
+  },
+  "sprites.chicks": {
+    "file": "assets/sprites/chicks.png",
+    "delivered": false
+  },
+  "medals": {
+    "file": "assets/ui/medals.png",
+    "delivered": false
   }
 };
