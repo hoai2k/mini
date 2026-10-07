@@ -201,6 +201,16 @@
     </section>
 
     <!-- A chapter won: the scene celebrates (Renderer.celebrate) under this. -->
+    <!-- A chapter's opening: its story over the still scene (main.js showOpening). -->
+    <section id="opening" hidden aria-live="polite">
+      <div class="opening-card">
+        <p id="opening-num" class="opening-num"></p>
+        <h2 id="opening-title"></h2>
+        <p id="opening-story" class="opening-story"></p>
+        <p id="opening-goal" class="opening-goal"></p>
+        <button id="opening-begin" class="press-start"><span class="label">Begin</span> <span class="xb xb-a" aria-hidden="true">A</span></button>
+      </div>
+    </section>
     <section id="success" hidden aria-live="polite">
       <h2 id="success-title"></h2>
       <p id="success-text"></p>

@@ -102,8 +102,10 @@ async function open(throttle = 1, scale = 2) {
   const costs = [];
   for (const [kind, arg] of scenes) {
     await page.evaluate(([k, a]) => {
-      if (k === 'stage') window.__bronzeDrum.startStage(a);
-      else {
+      if (k === 'stage') {
+        window.__bronzeDrum.startStage(a);
+        window.__bronzeDrum.begin(); // past the chapter's opening card
+      } else {
         window.__bronzeDrum.startPractice(a);
         window.__bronzeDrum.game.energy = 32; // all six dancers
       }
@@ -149,6 +151,7 @@ async function open(throttle = 1, scale = 2) {
       return play(id, t, ...rest);
     };
     B.startStage(0);
+    B.begin(); // past the chapter's opening card
     const iv = setInterval(() => {
       const g = B.game;
       if (g && g.demo && !window.__demo) {
