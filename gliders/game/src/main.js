@@ -77,6 +77,7 @@ const state = {
   time: 0,
 };
 window.__gliders = state;
+state.audio = audio;
 
 // ---------------------------------------------------------------- fullscreen
 const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -836,6 +837,7 @@ function handleEvents(p, events) {
     if (e.type === 'bonus') {
       pop(p, `${e.kind === 'INVERTED' ? 'UPSIDE DOWN' : e.kind}  ×${e.mult}`);
       audio.bonus(e.mult);
+      if (e.kind === 'THREAD' || e.kind === 'TUNNEL') audio.passBy(p.flyer.speed);
       if (settings.vibration) input.rumble(p.device, 0.1, 0.4, 70);
     } else if (e.type === 'bank') {
       pop(p, '+' + fmt(e.amount), 'bank');
@@ -994,13 +996,17 @@ function updatePlay(dt, time) {
     round.overAt -= dt;
     if (round.overAt <= 0 && !state.layers.includes('results')) showResults();
   }
-  let maxSpeed = 0, maxClose = 0;
+  let maxSpeed = 0, maxClose = 0, maxFlare = 0;
   for (const p of state.players) {
     updatePlayer(p, dt, time);
-    if (p.alive) maxSpeed = Math.max(maxSpeed, p.flyer.speed);
+    if (p.alive) {
+      maxSpeed = Math.max(maxSpeed, p.flyer.speed);
+      maxFlare = Math.max(maxFlare, p.input.flare || 0);
+    }
     maxClose = Math.max(maxClose, p.alive ? p.score.closeness : 0);
   }
-  audio.flight(maxSpeed, maxClose, round.phase === 'play');
+  // Wind blows from the countdown on, so the launch already sounds like flight.
+  audio.flight(maxSpeed, maxClose, round.phase !== 'over', maxFlare);
   updateHud();
 }
 
@@ -1452,6 +1458,8 @@ function frame(nowMs) {
     const coverTitle = state.screen === 'title' && asset('titleBg') && !state.layers.length;
     if (!coverTitle) renderAttract(now, dt);
     if (state.screen === 'lobby') renderLobbyPreviews(now, dt);
+    // A soft breeze under the menus, as if hanging in the sky.
+    audio.flight(24, 0, true);
   }
   input.endFrame();
   requestAnimationFrame(frame);
