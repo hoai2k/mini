@@ -106,8 +106,9 @@ export const field = {
       }
       bob *= u.alpha;
       const y = GROUND - row * 7;
-      const covering = view.stage.guard === 'cover';
-      this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive && !covering, cover: shielded && alive && covering, raise: thrust > 0.3, alpha: u.alpha, dim: row === 1 }, t, archer);
+      // A stone that got through: the women flinch, forearms over their faces.
+      const covering = !shielded && alive && view.songTime < (view.coverUntil || 0);
+      this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive, cover: covering, raise: thrust > 0.3, alpha: u.alpha, dim: row === 1 }, t, archer);
     }
     g.restore();
   },

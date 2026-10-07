@@ -393,7 +393,7 @@ The back line. Shown 92 px tall.
 
 ### BD-C15 · Village children throwing stones
 
-The first chapter's lesson in blocking: two children run in from the right, stop a little way ahead of the women and lob small stones at them until the player blocks, then run off the way they came (the game flips them). The game draws the stones. Shown 74 px tall, so keep the shapes bold and the poses easy to read.
+The first chapter's last lesson, blocking: once the targets are down two children run in from the right, stop a little way ahead of the women and lob small stones at them until the player blocks, then run off the way they came (the game flips them). The game draws the stones. Shown 74 px tall, so keep the shapes bold and the poses easy to read.
 
 - **Spec:** 1536x1024, transparent; a grid of 4 columns (poses) by 2 rows (children), 384x512 cells, each child standing on the bottom of its cell, facing LEFT, centred. Columns: 1 running, one leg forward; 2 running, the other leg forward; 3 one arm drawn far back with a stone in the hand; 4 the throw, arm flung forward, hand open. Row 1 a boy with a shaved head and a topknot, in a loincloth; row 2 a girl with her hair in two short tufts, in a wrapped skirt. Same scale in every cell. transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
 - **Status:** stand-in in the prototype · **Stand-in:** `Renderer.child (drawn children)` · **Game id:** `children-sheet`
@@ -402,7 +402,7 @@ The first chapter's lesson in blocking: two children run in from the right, stop
 
 ### BD-C16 · Spearwoman covering her face
 
-The spearwoman of BD-C05 blocking the children's stones in the first chapter: shown in place of her usual figure while the player holds the block (A). Shown 92 px tall, the same size and stance as BD-C05, so the two can swap without a jump.
+The spearwoman of BD-C05 flinching from the children's stones in the first chapter: shown in place of her usual figure for a moment when a stone gets past the shields. Shown 92 px tall, the same size and stance as BD-C05, so the two can swap without a jump.
 
 - **Spec:** 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
 - **Status:** stand-in in the prototype · **Stand-in:** `Renderer.warrior (a drawn forearm)` · **Game id:** `unit-spear-cover`
@@ -411,7 +411,7 @@ The spearwoman of BD-C05 blocking the children's stones in the first chapter: sh
 
 ### BD-C17 · Archer covering her face
 
-The archer of BD-C06 blocking the children's stones in the first chapter: shown in place of her usual figure while the player holds the block (A). Shown 92 px tall, the same size and stance as BD-C06, so the two can swap without a jump.
+The archer of BD-C06 flinching from the children's stones in the first chapter: shown in place of her usual figure for a moment when a stone gets past the shields. Shown 92 px tall, the same size and stance as BD-C06, so the two can swap without a jump.
 
 - **Spec:** 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
 - **Status:** stand-in in the prototype · **Stand-in:** `Renderer.warrior (a drawn forearm)` · **Game id:** `unit-archer-cover`

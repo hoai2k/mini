@@ -293,3 +293,17 @@ test('the village children run in, lob harmless stones that a block deflects, ne
   assert.ok(events.some((e) => e.type === 'childrenGone'));
   assert.equal(s.outcome, null, 'the chapter goes on');
 });
+
+test('a held battle is not won with every target down until the hold is released', async () => {
+  const B = await import('../src/battle.js');
+  const { STAGES } = await import('../src/stages.js');
+  const s = B.createBattle(STAGES[0]);
+  s.hold = true;
+  for (const e of s.enemies) if (e.goal) e.alive = false;
+  B.stepEnemies(s, 0.65);
+  assert.equal(s.outcome, null, 'held open');
+  s.hold = false;
+  const events = B.stepEnemies(s, 1.3);
+  assert.equal(s.outcome, 'won');
+  assert.ok(events.some((e) => e.type === 'outcome'));
+});

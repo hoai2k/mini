@@ -300,7 +300,7 @@ function checkOutcome(state, events) {
   if (state.survive) {
     if (state.army.troops <= 0) state.outcome = 'lost';
     else if (state.time >= state.survive) state.outcome = 'won';
-  } else if (state.enemies.filter((e) => e.goal).every((e) => !e.alive)) state.outcome = 'won';
+  } else if (!state.hold && state.enemies.filter((e) => e.goal).every((e) => !e.alive)) state.outcome = 'won';
   else if (state.army.troops <= 0) state.outcome = 'lost';
   if (state.outcome) events.push({ type: 'outcome', outcome: state.outcome });
 }

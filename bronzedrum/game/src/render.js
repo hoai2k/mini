@@ -144,8 +144,7 @@ export class Renderer {
       g.restore();
     }
     this.army(view, dt);
-    // (In the garden the block is the women covering their faces: no shield wall.)
-    if ((view.shieldsUp || view.songTime <= view.guardUntil + 0.2) && view.stage.guard !== 'cover') this.shieldWall(view);
+    if (view.shieldsUp || view.songTime <= view.guardUntil + 0.2) this.shieldWall(view);
     this.threatMarks(view);
     this.drawParticles(t, dt);
     // The drum waking: its rings spread from the drum the sisters play.
