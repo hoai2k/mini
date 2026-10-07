@@ -186,56 +186,77 @@ test('a riff keeps the length and the first beat, changes something, and keeps d
   }
 });
 
-test('call and answer: answered in time, the exchange plays back on the beat and it is your turn; you lead and the partner riffs', () => {
+test('call and answer: the partner calls, the answer completes an exchange that loops under any strokes until A', () => {
   const s = new CallSession({ beats: 4 });
   const call = s.update(2).find((e) => e.type === 'call').call;
   const u = call.u;
   // Answer right on the beat after the call, at its tempo.
-  let ev = drum(s, rhythmAt('L RR L R', call.end, u), 0);
-  ev.push(...drum(s, [], 0));
-  let clock = call.end + 4 * u;
-  const run = (until) => {
-    const out = [];
-    for (; clock < until; clock += 0.01) out.push(...s.update(clock));
-    return out;
-  };
-  ev.push(...run(call.end + 4 * u + 0.2));
-  const answered = ev.find((e) => e.type === 'answered');
-  assert.ok(answered && answered.inTime, 'on time');
-  const replay = ev.find((e) => e.type === 'replay').replay;
-  assert.ok(Math.abs(replay.start - (call.end + 4 * u)) < 0.05, 'the playback follows on the next beat');
-  assert.equal(replay.parts[0].strokes.length, call.strokes.length);
-  assert.equal(replay.parts[1].strokes.length, 5);
-  ev = run(replay.end + 0.05);
-  assert.ok(ev.some((e) => e.type === 'yourTurn'));
+  let ev = drum(s, rhythmAt('L RR L R', call.end, u), 1.2);
+  assert.equal(ev.find((e) => e.type === 'answered').answer.text, 'L RR L R');
+  const ex = ev.find((e) => e.type === 'exchange');
+  assert.ok(ex, 'the exchange starts');
+  assert.equal(s.phase, 'loop');
+  const L = s.loop;
+  assert.equal(L.beats, 8);
+  assert.ok(Math.abs(L.period - 8 * u) < 1e-9);
+  // The answer sets the beat: the call comes round again right after it.
+  assert.ok(Math.abs(L.start + L.period - (call.end + 4 * u)) < 0.02);
+  assert.deepEqual([...new Set(L.strokes.filter((x) => x.pos < 4).map((x) => x.who))], ['partner']);
+  assert.deepEqual([...new Set(L.strokes.filter((x) => x.pos >= 4).map((x) => x.who))], ['you']);
+  // Drumming over it plays along: no new rhythm, no new call, the loop stays.
+  const t1 = L.start + 3 * L.period;
+  ev = drum(s, rhythmAt('R R R R', t1, u), 10);
+  assert.ok(ev.every((e) => e.type === 'playAlong'), JSON.stringify(ev));
+  assert.equal(s.loop, L);
+  // A clears it and hands the call to the player.
+  ev = s.clear(t1 + 12);
+  assert.equal(ev[0].stopped, true);
+  assert.equal(ev.find((e) => e.type === 'turn').starter, 'you');
+  assert.equal(s.loop, null);
   assert.equal(s.phase, 'lead');
-  // Lead a call on the beat; the partner riffs on it from the next beat.
-  ev = drum(s, rhythmAt('L R L RR', replay.end, u), 0);
-  clock = replay.end + 4 * u;
-  ev.push(...run(replay.end + 4 * u + 0.05));
-  const riff = ev.find((e) => e.type === 'riff').riff;
+});
+
+test('call and answer: the player calls, the partner riffs on it, and that loops; the next clear hands the call back', () => {
+  const s = new CallSession({ beats: 4 });
+  s.update(2);
+  s.clear(3); // the player's turn
+  const u = 0.55;
+  // No call comes while the player is to call, however long they wait.
+  assert.ok(!drum(s, [], 0).length);
+  for (let t = 3; t < 20; t += 0.05) assert.ok(!s.update(t).some((e) => e.type === 'call'));
+  let ev = drum(s, rhythmAt('L R L RR', 20, u), 1.2);
   assert.equal(ev.find((e) => e.type === 'led').lead.text, 'L R L RR');
-  assert.equal(riff.beats, 4);
+  const riff = ev.find((e) => e.type === 'riff').riff;
   assert.notEqual(riff.text, 'L R L RR');
-  assert.ok(Math.abs(riff.start - (replay.end + 4 * u)) < 0.05);
-  // Wait instead of leading again: the partner takes over with a new call.
-  ev = run(riff.end + 3 * u);
-  assert.ok(ev.some((e) => e.type === 'takeover'));
+  assert.ok(Math.abs(riff.start - (20 + 4 * u)) < 0.02, 'the riff comes in on the next beat');
+  const L = s.loop;
+  assert.equal(L.start, 20);
+  assert.deepEqual([...new Set(L.strokes.filter((x) => x.pos < 4).map((x) => x.who))], ['you']);
+  assert.deepEqual([...new Set(L.strokes.filter((x) => x.pos >= 4).map((x) => x.who))], ['partner']);
+  assert.equal(L.strokes.filter((x) => x.pos >= 4)[0].drum, 'L', 'the riff keeps the first beat');
+  // Strokes over it play along.
+  ev = drum(s, rhythmAt('R L', 30, u), 5);
+  assert.ok(ev.every((e) => e.type === 'playAlong'));
+  // The next clear: the partner calls again.
+  ev = s.clear(40);
+  assert.equal(ev.find((e) => e.type === 'turn').starter, 'partner');
+  ev = [];
+  for (let t = 40; t < 42; t += 0.05) ev.push(...s.update(t));
   assert.ok(ev.some((e) => e.type === 'call'));
   assert.equal(s.phase, 'call');
 });
 
-test('call and answer: answered late, the exchange plays back and the partner calls again', () => {
+test('call and answer: clearing before an answer still hands over the call; a late answer still makes the exchange', () => {
   const s = new CallSession({ beats: 3 });
   const call = s.update(2).find((e) => e.type === 'call').call;
-  const ev = drum(s, rhythmAt('R R L', call.end + 1.5, 0.6), 0);
-  let clock = call.end + 1.5 + 3 * 0.6;
-  for (const end = clock + 8; clock < end; clock += 0.01) ev.push(...s.update(clock));
-  assert.equal(ev.find((e) => e.type === 'answered').inTime, false);
-  assert.ok(ev.some((e) => e.type === 'replay'));
-  assert.ok(!ev.some((e) => e.type === 'yourTurn'));
-  assert.ok(ev.some((e) => e.type === 'takeover'));
-  assert.equal(ev.filter((e) => e.type === 'call').length, 1);
+  const ev = drum(s, rhythmAt('R R L', call.end + 1.5, call.u), 1.2);
+  assert.ok(ev.some((e) => e.type === 'exchange'));
+  assert.ok(Math.abs(s.loop.start + s.loop.period - (call.end + 1.5 + 3 * call.u)) < 0.02, 'the answer, late, sets the beat');
+  const s2 = new CallSession({ beats: 3 });
+  s2.update(2);
+  const cleared = s2.clear(2.5);
+  assert.ok(cleared.some((e) => e.type === 'cutCall'), 'the call being played stops');
+  assert.equal(cleared.find((e) => e.type === 'turn').starter, 'you');
 });
 
 test('a few extra hits after a rhythm, in enthusiasm, do not replace the loop', () => {
