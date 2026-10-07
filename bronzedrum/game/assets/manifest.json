@@ -167,25 +167,28 @@
       "id": "children-sheet",
       "request": "BD-C15",
       "file": "art/children-sheet.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/children-sheet.webp"
     },
     {
       "id": "unit-spear-cover",
       "request": "BD-C16",
       "file": "art/unit-spear-cover.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/unit-spear-cover.webp"
     },
     {
       "id": "unit-archer-cover",
       "request": "BD-C17",
       "file": "art/unit-archer-cover.png",
-      "status": "stand-in",
+      "status": "delivered",
       "section": "cast",
-      "runtime": true
+      "runtime": true,
+      "web": "web/unit-archer-cover.webp"
     },
     {
       "id": "han-spear",
@@ -608,9 +611,10 @@
       "id": "card-practice-training",
       "request": "BD-U26",
       "file": "art/card-practice-training.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "practice",
-      "runtime": true
+      "runtime": true,
+      "web": "web/card-practice-training.webp"
     },
     {
       "id": "prop-dinh",

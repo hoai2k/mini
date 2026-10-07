@@ -52,13 +52,13 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 | Style frames: choose the direction first | 3 | 0 | 0 | 0 | 3 |
 | Inspiration and atmosphere | 14 | 0 | 0 | 0 | 14 |
 | Backgrounds | 9 | 0 | 0 | 0 | 9 |
-| Characters and units | 16 | 3 | 0 | 0 | 13 |
+| Characters and units | 16 | 0 | 0 | 0 | 16 |
 | Puppet part sheets | 4 | 0 | 0 | 0 | 4 |
 | Interface | 15 | 0 | 0 | 0 | 15 |
 | Effects | 3 | 0 | 0 | 0 | 3 |
 | Story chapters | 22 | 0 | 0 | 0 | 22 |
-| Drum Practice | 6 | 0 | 1 | 0 | 5 |
-| **total** | **92** | **3** | **1** | **0** | **88** |
+| Drum Practice | 6 | 0 | 0 | 0 | 6 |
+| **total** | **92** | **0** | **0** | **0** | **92** |
 
 ## Style frames: choose the direction first (3)
 
@@ -396,7 +396,7 @@ The back line. Shown 92 px tall.
 The first chapter's lesson in blocking: two children run in from the right, stop a little way ahead of the women and lob small stones at them until the player blocks, then run off the way they came (the game flips them). The game draws the stones. Shown 74 px tall, so keep the shapes bold and the poses easy to read.
 
 - **Spec:** 1536x1024, transparent; a grid of 4 columns (poses) by 2 rows (children), 384x512 cells, each child standing on the bottom of its cell, facing LEFT, centred. Columns: 1 running, one leg forward; 2 running, the other leg forward; 3 one arm drawn far back with a stone in the hand; 4 the throw, arm flung forward, hand open. Row 1 a boy with a shaved head and a topknot, in a loincloth; row 2 a girl with her hair in two short tufts, in a wrapped skirt. Same scale in every cell. transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
-- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.child (drawn children)` · **Game id:** `children-sheet`
+- **Status:** delivered · **Stand-in:** `Renderer.child (drawn children)` · **Game id:** `children-sheet`
 - **File:** `bronzedrum/game/assets/art/children-sheet.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sprite sheet of two cheeky Lạc Việt village children, about seven years old, in profile facing left, on a grid of 4 columns by 2 rows: row 1 a barefoot boy with a shaved head and a little topknot, in a loincloth; row 2 a barefoot girl with two short tufts of hair, in a wrapped skirt with a lacquer-red sash. Columns: running with one leg forward; running with the other leg forward; winding up with one arm drawn far back, a small stone in the hand; the throw, arm flung forward, hand open. Ink-black silhouettes with fine cut details, mischievous rather than menacing.
 
@@ -405,7 +405,7 @@ The first chapter's lesson in blocking: two children run in from the right, stop
 The spearwoman of BD-C05 blocking the children's stones in the first chapter: shown in place of her usual figure while the player holds the block (A). Shown 92 px tall, the same size and stance as BD-C05, so the two can swap without a jump.
 
 - **Spec:** 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
-- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.warrior (a drawn forearm)` · **Game id:** `unit-spear-cover`
+- **Status:** delivered · **Stand-in:** `Renderer.warrior (a drawn forearm)` · **Game id:** `unit-spear-cover`
 - **File:** `bronzedrum/game/assets/art/unit-spear-cover.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The same Lac Viet woman as BD-C05, in profile facing right, standing as in BD-C05 but flinching from thrown stones: her spear held upright in her right hand, her left forearm raised across her face, elbow out, head ducked behind it. Feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.
 
@@ -414,7 +414,7 @@ The spearwoman of BD-C05 blocking the children's stones in the first chapter: sh
 The archer of BD-C06 blocking the children's stones in the first chapter: shown in place of her usual figure while the player holds the block (A). Shown 92 px tall, the same size and stance as BD-C06, so the two can swap without a jump.
 
 - **Spec:** 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.
-- **Status:** stand-in in the prototype · **Stand-in:** `Renderer.warrior (a drawn forearm)` · **Game id:** `unit-archer-cover`
+- **Status:** delivered · **Stand-in:** `Renderer.warrior (a drawn forearm)` · **Game id:** `unit-archer-cover`
 - **File:** `bronzedrum/game/assets/art/unit-archer-cover.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The same Lac Viet woman as BD-C06, in profile facing right, standing as in BD-C06 but flinching from thrown stones: her bow lowered in her left hand, her right forearm raised across her face, elbow out, head ducked behind it. Feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.
 
@@ -893,7 +893,7 @@ Background band of the card on the Drum Practice screen.
 Background band of the Training card on the Drum Practice screen (a third card beside Free drumming and Call and answer), where the player practises the game's rhythms level by level.
 
 - **Spec:** 1600x900, opaque; the band is cropped from the middle, so keep the subject central
-- **Status:** planned, not loaded yet · **Stand-in:** `buildPracticeCards (plain paper)` · **Game id:** `card-practice-training`
+- **Status:** delivered · **Stand-in:** `buildPracticeCards (plain paper)` · **Game id:** `card-practice-training`
 - **File:** `bronzedrum/game/assets/art/card-practice-training.png`
 - **Prompt:** Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: an old drum master and a young feather-crowned drummer kneeling at a bronze drum in a courtyard at dusk, the master's stick raised to show a stroke while the student watches, a row of smaller drums and wooden beaters laid out in order along a low lacquer-red bench behind them, lanterns overhead.
 

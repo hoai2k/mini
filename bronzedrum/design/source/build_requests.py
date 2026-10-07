@@ -462,7 +462,7 @@ req(C, "BD-C15", "children-sheet", "Village children throwing stones",
     "in the hand; 4 the throw, arm flung forward, hand open. Row 1 a boy with a shaved head and "
     "a topknot, in a loincloth; row 2 a girl with her hair in two short tufts, in a wrapped "
     "skirt. Same scale in every cell. " + CUTOUT.replace("Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, ", ""),
-    "stand-in", "Renderer.child (drawn children)", "art/children-sheet.png",
+    "delivered", "Renderer.child (drawn children)", "art/children-sheet.png",
     f"{STYLE} A sprite sheet of two cheeky Lạc Việt village children, about seven years old, "
     "in profile facing left, on a grid of 4 columns by 2 rows: row 1 a barefoot boy with a "
     "shaved head and a little topknot, in a loincloth; row 2 a barefoot girl with two short "
@@ -483,7 +483,7 @@ for rid, asset, who, base, what in [
         "in place of her usual figure while the player holds the block (A). Shown 92 px tall, "
         f"the same size and stance as {base}, so the two can swap without a jump.",
         "1024x1536. " + CUTOUT,
-        "stand-in", "Renderer.warrior (a drawn forearm)", f"art/{asset}.png",
+        "delivered", "Renderer.warrior (a drawn forearm)", f"art/{asset}.png",
         f"{STYLE} The same Lac Viet woman as {base}, in profile facing right, standing as in "
         f"{base} but flinching from thrown stones: {what}. Feather crown, wrapped skirt, a "
         "lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.")
@@ -842,7 +842,7 @@ req(PR, "BD-U26", "card-practice-training", "Practice card: Training",
     "Free drumming and Call and answer), where the player practises the game's rhythms level "
     "by level.",
     "1600x900, opaque; the band is cropped from the middle, so keep the subject central",
-    "planned", "buildPracticeCards (plain paper)", "art/card-practice-training.png",
+    "delivered", "buildPracticeCards (plain paper)", "art/card-practice-training.png",
     f"{STYLE} A wide cut-paper vignette: an old drum master and a young feather-crowned "
     "drummer kneeling at a bronze drum in a courtyard at dusk, the master's stick raised to "
     "show a stroke while the student watches, a row of smaller drums and wooden beaters laid "

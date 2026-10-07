@@ -1759,6 +1759,127 @@
       ],
       "exportOperation": "resample full square canvas; preserve transparent background and corner entry",
       "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A close-up of one woman's forearm and hand gripping a drumstick, seen from just behind her shoulder, matching Trưng Nhị's puppet (BD-R02): cream skin, a brown and gold cuff cut with cream diamonds at the wrist, a lacquer-red sleeve cut with white leaves where the forearm leaves the image at the bottom-right corner. The stick is a dark hardwood stick with a small polished buffalo-horn tip, a tassel of red thread hanging from the grip, pointing to the upper left. Cut paper with crisp edges, lit from behind, a soft glow along the rim. No drum, nothing else in the image.\nExact production layout: 1024x1024, transparent (or flat magenta #FF00FF, keyed out). One forearm and stick on the diagonal: the forearm leaves the image at the bottom-right corner, cut off clean by the edge; the wrist sits at 78% across and 78% down; the centre of the stick's striking head sits at 20% across and 20% down. The game turns it about the wrist and lands the head on the drum, so keep those three points where they are given.\nSquare full canvas retained. Wrist joint at (799,799), small horn striking tip centred at (205,205) on a 1024x1024 grid. Forearm enters from bottom-right and meets both canvas edges. Single hand gripping dark hardwood stick with small horn tip and red tassel at grip. No full person, drum, backdrop, cast shadow or opaque external halo. Genuine alpha. Do not trim or centre the group."
+    },
+    {
+      "id": "BD-C15",
+      "file": "game/assets/art/children-sheet.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1536,
+        1024
+      ],
+      "exportSize": [
+        1536,
+        1024
+      ],
+      "exportOperation": "trim each alpha cell, apply one common scale, centre and bottom-align on 384x512 sprite cells",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A sprite sheet of two cheeky Lạc Việt village children, about seven years old, in profile facing left, on a grid of 4 columns by 2 rows: row 1 a barefoot boy with a shaved head and a little topknot, in a loincloth; row 2 a barefoot girl with two short tufts of hair, in a wrapped skirt with a lacquer-red sash. Columns: running with one leg forward; running with the other leg forward; winding up with one arm drawn far back, a small stone in the hand; the throw, arm flung forward, hand open. Ink-black silhouettes with fine cut details, mischievous rather than menacing.\nOutput specification: 1536x1024, transparent; a grid of 4 columns (poses) by 2 rows (children), 384x512 cells, each child standing on the bottom of its cell, facing LEFT, centred. Columns: 1 running, one leg forward; 2 running, the other leg forward; 3 one arm drawn far back with a stone in the hand; 4 the throw, arm flung forward, hand open. Row 1 a boy with a shaved head and a topknot, in a loincloth; row 2 a girl with her hair in two short tufts, in a wrapped skirt. Same scale in every cell. transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.\nExactly EIGHT full-body child figures on a landscape 3:2 canvas, 4 columns by 2 rows. All noses face LEFT. Exactly one child per cell, with generous transparent margins: hands, hair, stones and feet must never cross cell boundaries. No visible grid or labels. Same boy identity in first row, same girl identity in second row. Columns 1 and 2 show clearly alternating leftward running strides. Column 3 has throwing arm stretched behind towards RIGHT with a small stone. Column 4 has arm extended forwards towards LEFT and an open empty hand. No extra flying stones, scenery, ground, cast shadows, exterior glows or watermark. Pure true alpha background.",
+      "frames": [
+        [
+          0,
+          0,
+          384,
+          512
+        ],
+        [
+          384,
+          0,
+          384,
+          512
+        ],
+        [
+          768,
+          0,
+          384,
+          512
+        ],
+        [
+          1152,
+          0,
+          384,
+          512
+        ],
+        [
+          0,
+          512,
+          384,
+          512
+        ],
+        [
+          384,
+          512,
+          384,
+          512
+        ],
+        [
+          768,
+          512,
+          384,
+          512
+        ],
+        [
+          1152,
+          512,
+          384,
+          512
+        ]
+      ]
+    },
+    {
+      "id": "BD-C16",
+      "file": "game/assets/art/unit-spear-cover.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "copy native portrait canvas, retaining reference placement and generated alpha",
+      "prompt": "Edit the reference spearwoman into a protective blocking pose for the same game character. Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The same Lac Viet woman as BD-C05, in profile facing right, standing as in BD-C05 but flinching from thrown stones: her spear held upright in her right hand, her left forearm raised across her face, elbow out, head ducked behind it. Feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.\nOutput: 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.\nPreserve her exact identity, right-facing profile, feather crown, skirt design, red sash, jewellery, body proportions, spear, foot positions and full-canvas placement from the reference. Change only the lowered free LEFT arm: lift its forearm across her face with elbow out, and duck her head slightly behind that forearm. Her RIGHT hand continues holding the upright spear. Keep legs and body stance fixed so it swaps seamlessly with the reference. The raised forearm clearly protects her face. True alpha outside the figure; remove the reference's exterior hazy glow and shadow. Keep all feet and spear tip visible. No stones, scenery, ground or other figures.",
+      "correctionPrompt": "Image 1 is the blocking pose to correct. Image 2 is the ORIGINAL spearwoman and fixes the layout. Correct only the arm and weapon layout in image 1: restore the upright spear to the RIGHT side of the canvas, exactly as in image 2, held in the same raised right hand at the original grip position. The spear must remain at about 67% of canvas width. Her other, free arm, originally lowered on the left side in image 2, bends UP to cover her face: elbow points left, forearm crosses horizontally in front of her eyes, head ducks behind it. Preserve original feet positions, body scale, skirt, red sash and feather crown. No new weapon, no second spear, no raised arm on the right. Right-facing full-body figure, 1024x1536 portrait canvas. Remove all hazy illumination outside the figure and spear: true transparent background and cutouts, no scenery, ground, cast shadows or glow.",
+      "references": [
+        "game/assets/art/unit-spear.png"
+      ]
+    },
+    {
+      "id": "BD-C17",
+      "file": "game/assets/art/unit-archer-cover.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "copy native portrait canvas, retaining reference placement and generated alpha",
+      "prompt": "Edit this reference archer into a protective blocking pose for the SAME character. Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. The same Lac Viet woman as BD-C06, in profile facing right, standing as in BD-C06 but flinching from thrown stones: her bow lowered in her left hand, her right forearm raised across her face, elbow out, head ducked behind it. Feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.\nOutput: 1024x1536. Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow.\nPreserve identity, right-facing profile, feather crown, skirt, jewellery, lacquer-red sash, feet positions and character scale within the 1024x1536 canvas. LOWER the bow: she holds it down beside her in her left hand. Her RIGHT forearm goes across her face, elbow out, head ducked behind it, clearly blocking stones. No nocked arrow and no shooting pose. Keep lower body stance and feet unchanged so this image swaps with the original without a jump. Full figure with all equipment inside canvas. True alpha outside the silhouette; remove the reference's hazy exterior glow and cast shadow. No stones, scenery, ground, other people or text.",
+      "references": [
+        "game/assets/art/unit-archer.png"
+      ]
+    },
+    {
+      "id": "BD-U26",
+      "file": "game/assets/art/card-practice-training.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample opaque vignette to requested 1600x900 canvas",
+      "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: an old drum master and a young feather-crowned drummer kneeling at a bronze drum in a courtyard at dusk, the master's stick raised to show a stroke while the student watches, a row of smaller drums and wooden beaters laid out in order along a low lacquer-red bench behind them, lanterns overhead.\nOutput specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central\nLandscape 16:9 composition. Keep the master, student, raised beater and bronze drum readable in the middle horizontal band, since the menu uses a shallow central crop. Opaque dusk courtyard scene with lanterns, no text, labels, borders or watermark. Create only this requested card image."
     }
   ]
 }
