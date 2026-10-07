@@ -146,7 +146,7 @@
               <li><strong>Clams</strong> open for one beat on their own rhythm: swim in while one is open for a pearl. A closed clam is solid.</li>
               <li><strong>Hazards:</strong> eels lunge from holes whose eyes glow first; jellyfish drift and sting; the red dragon patrols the deep cave. Each costs a lantern. With the full tea reading, an omen glints a beat before each strikes.</li>
               <li><strong>The witch’s offer.</strong> On the cave floor she holds out the sea rose. <span class="xb xb-a">A</span> takes it, waking every sleeper at once, but it binds you to her. <span class="xb xb-b">B</span>, or swimming away, refuses.</li>
-              <li><strong>The moon-boat ride</strong> follows: nothing can hurt you. Change row to gather the pearls.</li>
+              <li><strong>The moon-boat ride</strong> follows, played like Act I’s voyage: nothing can hurt you. Sail forward and back, change row, and leap for the pearls that float high.</li>
             </ul>
             <table class="map">
               <thead><tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Phone / tablet</th></tr></thead>
@@ -154,7 +154,9 @@
                 <tr><td>Swim</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span></td><td>Arrows or W A S D</td><td>The stick that appears under your thumb on the left</td></tr>
                 <tr><td>Kick</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button</td></tr>
                 <tr><td>Take the rose / refuse</td><td><span class="xb xb-a">A</span> / <span class="xb xb-b">B</span></td><td>Space / X or Backspace</td><td>A / B buttons</td></tr>
+                <tr><td>Sail (the ride)</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> left, right</td><td>← → or A D</td><td>Drag left / right</td></tr>
                 <tr><td>Change row (the ride)</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> up, down</td><td>↑ ↓ or W S</td><td>Swipe up / down</td></tr>
+                <tr><td>Leap (the ride)</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button or tap</td></tr>
               </tbody>
             </table>
           </div>
@@ -166,7 +168,8 @@
               <li><strong>The Sea King’s lantern</strong> sweeps the hall every so often. First it glows and an arrow runs along the floor to show which side it will come from; then its beam crosses the whole stage and leaves by the far side. Caught in the light, you lose a lantern.</li>
               <li><strong>Hide:</strong> press <span class="xb xb-a">A</span> beside a pink, blue or green courtier on your groove to strike a courtly pose; you stay posed until you move. The beam passes you by, and once it has gone it is gone until the next warning. The seahorse guards give no cover, and walking into one costs a lantern.</li>
               <li><strong>The red sentries</strong> crouch along the front groove and snap their jaws on every beat. Step past between snaps, or use the middle and back grooves. If you took the witch’s rose, they sleep.</li>
-              <li><strong>The whale</strong> glides across the hall every 20–25 s and blinds the lantern while it passes. The pearl can only be taken in its shadow: stand at the pedestal and press <span class="xb xb-a">A</span>. A passing fish blinds the lantern too, for a moment.</li>
+              <li><strong>The whale</strong> glides across the hall every 20–25 s and blinds the lantern while it passes. While it passes the lantern can’t see you anywhere. A passing fish blinds the lantern too, for a moment.</li>
+              <li><strong>Her pearl</strong> rests on the pedestal at the far right end of the hall. Walk up to it on any groove to take it and end the act.</li>
               <li><strong>Pearls</strong> lie along the grooves; walk over them on their groove.</li>
               <li>With the full tea reading, an omen glints a beat before the beam or a jaw reaches you.</li>
             </ul>
@@ -176,7 +179,7 @@
                 <tr><td>Walk</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> left, right</td><td>← → or A D</td><td>Drag left / right</td></tr>
                 <tr><td>Change groove</td><td><span class="xb xb-ls" aria-label="left stick">LS</span> / <span class="xb xb-dpad">D-pad</span> up, down</td><td>↑ ↓ or W S</td><td>Swipe up / down</td></tr>
                 <tr><td>Hide (strike a pose)</td><td><span class="xb xb-a">A</span>; move to step out</td><td>Space, Z or J</td><td>A button or tap; drag to step out</td></tr>
-                <tr><td>Take the pearl</td><td><span class="xb xb-a">A</span></td><td>Space, Z or J</td><td>A button or tap</td></tr>
+                <tr><td>Take the pearl</td><td colspan="3">Walk up to the pedestal at the far right</td></tr>
               </tbody>
             </table>
           </div>
@@ -264,6 +267,7 @@
           <label class="slider">Effects <input type="range" min="0" max="10" step="1" data-focus data-key="sfx"></label>
           <button data-focus data-key="period" class="toggle">Period accompaniment: <span></span></button>
           <button data-focus data-key="film" class="toggle">Film look: <span></span></button>
+          <button data-focus data-key="extraAnimations" class="toggle">Extra Animations: <span></span></button>
           <button data-focus data-key="vibration" class="toggle">Vibration: <span></span></button>
         </div>
         <div class="row"><button data-focus data-act="close">Close</button></div>

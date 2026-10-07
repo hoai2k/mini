@@ -98,7 +98,10 @@ function safeClock(x, y) {
   return best;
 }
 
-export const RIDE = { boatX: 470, speed: 300, pearls: 16 };
+// The moon-boat ride plays like Act I's voyage: sail forward and back within
+// the stage, change row, leap. Some pearls float high and need a leap.
+export const RIDE = { boatX: 470, speed: 300, pearls: 16, minX: 210, maxX: 930, sail: 280,
+  leapTime: 0.78, leapHeight: 96, highAt: 44 };
 
 // ---------------------------------------------------------------- helpers
 export const clamOpen = (cl, beat) => Math.floor(beat) % cl.every === cl.off;
@@ -126,8 +129,11 @@ export function eelExt(e) {
 // Ride pearls: when each enters (s) and on which row.
 function ridePearls() {
   const rows = [1, 1, 0, 0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0, 0, 1];
-  return rows.map((row, i) => ({ at: 1.6 + i * 1.05, row, got: false }));
+  const high = new Set([4, 9, 13]);
+  return rows.map((row, i) => ({ at: 1.6 + i * 1.05, row, high: high.has(i), got: false }));
 }
+const newRide = () => ({ x: RIDE.boatX, row: 1, from: 1, rowT: 1, leapT: 0, pearls: ridePearls() });
+export const rideLeapH = (r) => (r.leapT > 0 ? Math.sin(Math.PI * (1 - r.leapT / RIDE.leapTime)) * RIDE.leapHeight : 0);
 export const rideRowPos = (r) => (r.rowT >= 1 ? r.row : lerp(r.from, r.row, r.rowT));
 export const rideEffRow = (r) => (r.rowT > 0.5 ? r.row : r.from);
 export const ridePearlX = (p, rideT) => 1250 - (rideT - p.at) * RIDE.speed;
@@ -187,7 +193,7 @@ export default {
       else {
         st.choice = from.choice ?? 'refuse'; st.rose = st.choice === 'take';
         if (st.rose) { st.massWoken = true; for (const sl of st.sleepers) if (sl.state === 'asleep') { sl.state = 'rising'; sl.t = 6; st.woken++; } }
-        st.phase = 'ride'; st.ride = { row: 1, from: 1, rowT: 1, pearls: ridePearls() };
+        st.phase = 'ride'; st.ride = newRide();
         st.events.push({ type: 'rideStart' });
       }
     }
@@ -233,7 +239,7 @@ export default {
       case 'witchOffer': return 'The witch offers the sea rose. A to take it, B to refuse.';
       case 'roseTake': return 'You take the sea rose. Every sleeper wakes.';
       case 'witchLaugh': return 'You refuse the rose. The witch laughs.';
-      case 'rideStart': return 'The moon boat. Up and down to choose a row and gather pearls.';
+      case 'rideStart': return 'The moon boat. Sail, change row and leap to gather the pearls.';
       case 'drown': return 'The sailor sinks.';
       default: return null;
     }
@@ -498,7 +504,7 @@ function stepChoice(st, dt, input) {
   }
   if (st.phaseT >= PHASE_LEN.choice) {
     setPhase(st, 'ride');
-    st.ride = { row: 1, from: 1, rowT: 1, pearls: ridePearls() };
+    st.ride = newRide();
     st.events.push({ type: 'rideStart' });
     st.checkpoint = { ...snapshot(st, 5, REST.x, REST.y - 40, REST.y), choice: st.choice };
   }
@@ -510,12 +516,15 @@ function stepRide(st, dt, input) {
   if (r.rowT < 1) r.rowT = Math.min(1, r.rowT + dt / 0.3);
   else if (input.up && r.row > 0) { r.from = r.row; r.row--; r.rowT = 0; st.events.push({ type: 'rideRow' }); }
   else if (input.down && r.row < 2) { r.from = r.row; r.row++; r.rowT = 0; st.events.push({ type: 'rideRow' }); }
-  const row = rideEffRow(r);
+  r.x = clamp(r.x + (input.moveX || 0) * RIDE.sail * dt, RIDE.minX, RIDE.maxX);
+  if (r.leapT > 0) { r.leapT = Math.max(0, r.leapT - dt); if (r.leapT === 0) st.events.push({ type: 'rideLand' }); }
+  else if (input.a) { r.leapT = RIDE.leapTime; st.events.push({ type: 'leap' }); }
+  const row = rideEffRow(r), h = rideLeapH(r);
   for (const p of r.pearls) {
     if (p.got || rt < p.at) continue;
-    if (p.row === row && Math.abs(ridePearlX(p, rt) - RIDE.boatX) < 55) {
+    if (p.row === row && Math.abs(ridePearlX(p, rt) - r.x) < 55 && (!p.high || h >= RIDE.highAt)) {
       p.got = true; st.pearls++; st.score += 25;
-      st.events.push({ type: 'ridePearl', row: p.row });
+      st.events.push({ type: 'ridePearl', row: p.row, high: p.high });
     }
   }
   if (rt >= PHASE_LEN.ride) { setPhase(st, 'iris'); st.events.push({ type: 'irisOut' }); }

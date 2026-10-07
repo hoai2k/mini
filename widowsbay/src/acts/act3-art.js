@@ -6,7 +6,6 @@ import {
   beamOn, rowY, rowScale, whaleX, fishX, backX, gazeLook,
 } from './act3.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
-import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 
 const FLOOR_TOP = 404;
 const BC_H = 900;               // drawn height of the delivered backcloth
@@ -252,21 +251,16 @@ function pedestal(k, st, t) {
   }
 }
 
-// Over the whale: the pearl shows through its shadow when it can be taken,
-// with an A prompt; once taken it flies up into his hand.
+// Over the whale: the pedestal pearl glows as he nears it (walking up to it
+// takes it); once taken it flies up into his hand.
 function pearlCue(k, st, t) {
   const c = k.c, x = PEDESTAL.x - st.cam, by = ROWY[0] - 10, p = st.p;
   const py = pearlY(k, by);
-  if (st.phase === 'play' && st.maskedBy === 'whale' && Math.abs(p.x - PEDESTAL.x) < 260) {
-    c.save(); c.globalAlpha = 0.5 + 0.3 * Math.sin(t * 8);
-    c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 24); c.restore();
+  // The goal glows as he nears it, so the pedestal reads as the way out.
+  if (st.phase === 'play' && Math.abs(p.x - PEDESTAL.x) < 700) {
+    c.save(); c.globalAlpha = 0.45 + 0.3 * Math.sin(t * 5);
+    c.fillStyle = k.col('#fff6e0'); k.circle(x, py, 26); c.restore();
     pearlAt(k, x, py, 15);
-    if (st.canTake) {
-      // the A button glyph for the input in use (the kit may name it; keys otherwise)
-      c.save(); c.textAlign = 'center'; c.fillStyle = k.col('#f3c6dc');
-      richText(c, '[A]', x, py - 46 + 34 * 0.34, { px: 34, mode: k.inputMode || 'key', col: k.col });
-      c.restore();
-    }
   }
   if (st.phase === 'take') {
     const f = easeOut(st.phaseT / 0.8), px = p.x - st.cam;

@@ -30,7 +30,7 @@ Play it at https://hoai2k.github.io/mini/gliders/.
 | `game/src/scene.js` | Rendering: block shader, sky, clouds, contrails, speed streaks, shadow, crash burst, split layout |
 | `game/src/creatures.js` | The six procedural gliders and their animation |
 | `game/src/input.js` | Controllers (up to four) and the two keyboard sides |
-| `game/src/audio.js` | Synthesised sound and music |
+| `game/src/audio.js` | Layered recorded wind (by speed and proximity), whooshes, crash; synthesised chimes and music |
 | `game/src/store.js` | Saved settings and best scores |
 | `game/tools/creatures.html` | Dev viewer for the gliders (`?only=`, `?variant=`, `?pose=`, `?view=`); not published |
 
@@ -57,7 +57,13 @@ node --test test/*.test.mjs        # levels, collision, flight, scoring, gliders
 node scripts/browser-check.mjs     # in Chromium: title → lobby (4 simulated controllers)
                                    # → level select → play → pause → results; keyboard round
 python3 ../design/source/build_requests.py --check
+python3 ../design/source/build_audio.py --check
 ```
+
+The sound effects (wind loops, whooshes, crash) are generated with ElevenLabs
+by `design/source/build_audio.py` into `game/assets/audio/`; see
+[`design/sound-effects.md`](design/sound-effects.md). It needs ffmpeg and a key
+in `ELEVENLABS_API_KEY` (never committed); `--force <id>` remakes one.
 
 `publish.sh` copies the game into the Pages output (`local/pages/gliders`).
 The browser check simulates Xbox controllers by replacing

@@ -37,5 +37,17 @@ export const ASSETS = {
   "portrait.snake": {
     "file": "assets/portraits/snake.png",
     "delivered": true
+  },
+  "sky.horizon": {
+    "file": "assets/sky/horizon.png",
+    "delivered": true
+  },
+  "sky.wisps": {
+    "file": "assets/sky/wisps.png",
+    "delivered": true
+  },
+  "sky.mist": {
+    "file": "assets/sky/mist.png",
+    "delivered": true
   }
 };

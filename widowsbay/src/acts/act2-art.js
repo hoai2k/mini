@@ -5,7 +5,7 @@
 // draw the same shapes, so all motion comes from state and `t`.
 import {
   CAM_MAX, FLOOR, SHELF_Y, REST, TUNE, PHASE_LEN, DRAGON, RIDE,
-  clamOpen, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, ROSE_CUES,
+  clamOpen, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, rideLeapH, ROSE_CUES,
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 
@@ -34,8 +34,8 @@ export function drawOver(k, st) {
     const s = st.sailor;
     k.iris(s.x, sy(st, s.y), 760 * (1 - easeInOut((pt - (PHASE_LEN.choice - 0.6)) / 0.6)));
   }
-  if (ph === 'ride' && pt < 0.8) k.iris(RIDE.boatX, 420, 760 * easeInOut(pt / 0.8));
-  if (ph === 'iris') k.iris(RIDE.boatX, boatY(st) - 40, 760 * (1 - easeInOut(pt / PHASE_LEN.iris)));
+  if (ph === 'ride' && pt < 0.8) k.iris(boatX(st), 420, 760 * easeInOut(pt / 0.8));
+  if (ph === 'iris') k.iris(boatX(st), boatY(st) - 40, 760 * (1 - easeInOut(pt / PHASE_LEN.iris)));
   if (st.status === 'won') k.iris(640, 400, 0);
 }
 
@@ -63,8 +63,9 @@ export function onEvent(k, e, st) {
     case 'witchLaugh': k.shake(0.25); k.text('Her laugh rings through the grotto', 640, 220); break;
     case 'drown': k.burst(x, y - 20, '#eef3ea', 20, 'bubble'); break;
     case 'rideStart': break;
-    case 'ridePearl': k.burst(RIDE.boatX + 40, boatY(st) - 40, '#eef3ea', 10, 'sparkle'); k.text('+25', RIDE.boatX + 40, boatY(st) - 90); break;
-    case 'rideRow': k.burst(RIDE.boatX, boatY(st) + 10, '#eef3ea', 6, 'drop'); break;
+    case 'ridePearl': k.burst(boatX(st) + 40, boatY(st) - 40, '#eef3ea', 10, 'sparkle'); k.text('+25', boatX(st) + 40, boatY(st) - 90); break;
+    case 'rideRow': k.burst(boatX(st), boatY(st) + 10, '#eef3ea', 6, 'drop'); break;
+    case 'rideLand': k.burst(boatX(st), rowY(st) + 10, '#eef3ea', 10, 'drop'); break;
     default: break;
   }
 }
@@ -492,7 +493,7 @@ function eel(k, st, e, t) {
 function jelly(k, x, y, t) {
   const c = k.c, top = y - 30;
   k.wire(x, 0, top);
-  if (k.asset('jellyfish', x, top + 140, 90, 140)) return;
+  if (k.anim?.('anim-jellyfish', t, x, top + 140, 90, 140) || k.asset('jellyfish', x, top + 140, 90, 140)) return;
   c.strokeStyle = k.col('#e0127a'); c.lineWidth = 4; c.lineCap = 'round'; c.globalAlpha = 0.8;
   for (let i = 0; i < 4; i++) {
     const tx = x - 21 + i * 14;
@@ -511,7 +512,7 @@ function jelly(k, x, y, t) {
 function dragon(k, x, y, face, t) {
   const c = k.c;
   c.save(); c.translate(x, y); c.scale(-face, 1); // the art faces left
-  if (!k.asset('sea-dragon', 0, 48, 240, 96)) {
+  if (!k.anim?.('anim-sea-dragon', t, 0, 48, 240, 96) && !k.asset('sea-dragon', 0, 48, 240, 96)) {
     const sw = Math.sin(t * 5) * 8;
     c.fillStyle = k.col('#c8321e');
     c.beginPath(); c.moveTo(-110, -6);
@@ -659,9 +660,10 @@ function aura(k, st, t) {
 
 // ---------------------------------------------------------------- the witch
 const WITCH_X = 1000;
-function witchFigure(k, x, by, bend, rose, t, wandUp = 0) {
+function witchFigure(k, x, by, bend, rose, t, wandUp = 0, spellTime = null) {
   const c = k.c;
   c.save(); c.translate(x, by); c.rotate(bend);
+  if (spellTime !== null && k.anim?.('anim-witch-wand', spellTime, 0, 0, 150, 242)) { c.restore(); return; }
   if (k.asset('witch-stand', 0, 0, 150, 242)) { c.restore(); return; }
   // pink robes
   c.fillStyle = k.col('#f3c6dc');
@@ -763,7 +765,7 @@ function closeWitch(k, st, t) {
   else { rose = true; y = by - easeInOut((pt - 1.4) / 1.6) * 760; }
   k.wire(WITCH_X - 20, 0, y - 236); k.wire(WITCH_X + 20, 0, y - 236);
   const laugh = st.phase === 'choice' && st.choice === 'refuse' ? Math.sin(pt * 26) * 0.05 * (pt < 1.4 ? 1 : 0) : 0;
-  witchFigure(k, WITCH_X, y, laugh, rose, t, wand);
+  witchFigure(k, WITCH_X, y, laugh, rose, t, wand, st.phase === 'choice' && st.choice === 'take' ? pt : null);
   const taking = st.phase === 'choice' && st.choice === 'take';
   // first the wand glows: the spell begins (and only then)
   if (taking && pt < ROSE_CUES.fly) {
@@ -855,13 +857,16 @@ function airGauge(k, st) {
 }
 
 // ---------------------------------------------------------------- the ride
-function boatY(st) {
+const boatX = (st) => st.ride?.x ?? RIDE.boatX;
+// The boat's waterline on its row, and its height with any leap.
+function rowY(st) {
   const r = st.ride;
   if (!r) return 512;
   const rp = rideRowPos(r), r0 = Math.floor(rp), r1 = Math.min(2, r0 + 1);
   const ROWS = [432, 512, 596];
   return lerp(ROWS[r0], ROWS[r1], rp - r0) - 34;
 }
+const boatY = (st) => rowY(st) - (st.ride ? rideLeapH(st.ride) : 0);
 
 function ride(k, st, t) {
   const c = k.c, r = st.ride, rt = st.phase === 'ride' ? st.phaseT : PHASE_LEN.ride + st.phaseT;
@@ -905,19 +910,26 @@ function ride(k, st, t) {
       if (p.got || p.row !== row || rt < p.at) continue;
       const x = ridePearlX(p, rt);
       if (x < -40 || x > 1320) continue;
-      const py = [432, 512, 596][row] - 36 + Math.sin(t * 3 + p.at) * 5;
+      const py = [432, 512, 596][row] - 36 - (p.high ? RIDE.leapHeight * 0.8 : 0) + Math.sin(t * 3 + p.at) * 5;
       c.save(); c.globalAlpha = 0.3 + 0.15 * Math.sin(t * 5 + p.at); c.fillStyle = k.col('#d9b34a'); k.circle(x, py, 26); c.restore();
       if (!k.asset('pearl', x, py + 22, 44, 44)) { c.fillStyle = k.col('#f7f2fa'); k.circle(x, py, 15); c.fillStyle = k.col('#ffffff'); k.circle(x - 5, py - 5, 5); }
     }
-    if (row === rowNow) boat(k, st, by, t);
+    if (row === rowNow) {
+      // the boat's shadow stays on the water while it leaps
+      const lh = rideLeapH(r);
+      if (lh > 4) { c.save(); c.globalAlpha = 0.25 * (1 - lh / RIDE.leapHeight / 2); c.fillStyle = k.col('#0d1c22'); c.beginPath(); c.ellipse(boatX(st) - 10, rowY(st) + 24, 120, 12, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
+      boat(k, st, by, t);
+    }
     k.waves(row, scrolled);
   }
   k.wash('#2f5552', 0.38);
-  if (rt < 4) label(k, 'Up and down: choose a row. Gather the pearls.', 640, 140, 22, '#f1e3c8');
+  if (rt < 4) label(k, 'Sail, change row and leap to gather the pearls.', 640, 140, 22, '#f1e3c8');
 }
 
 function boat(k, st, y, t) {
-  const c = k.c, x = RIDE.boatX;
+  const c = k.c, x = boatX(st), lh = st.ride ? rideLeapH(st.ride) : 0;
+  // a leap tips the bow up a little, as Act I's ship does
+  if (lh > 0) { c.save(); c.translate(x, y); c.rotate(-0.12 * Math.sin(Math.PI * lh / RIDE.leapHeight / 2)); c.translate(-x, -y); }
   k.moonboat(x, y, -1, 0.9);
   // the sailor rides in the stern of the crescent, guitar on his knee
   const sx = x - 84, syy = y + Math.sin(t * 2.1) * 6 + 4;
@@ -938,4 +950,5 @@ function boat(k, st, y, t) {
     c.restore();
   }
   if (st.rose) { if (seated) k.keepsake('rose', sx - 24 + 18, syy + 6 - 62, 0.4); else k.keepsake('rose', sx + 8, syy - 66, 0.4); }
+  if (lh > 0) c.restore();
 }

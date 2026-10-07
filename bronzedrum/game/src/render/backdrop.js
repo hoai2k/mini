@@ -1,5 +1,5 @@
 import { PALETTE as P, SKIES } from '../palette.js';
-import { W, H, GROUND, STRIP_W, LAYER_TINT, rng, canvas, cutLayer, crescent, leaf, star } from './common.js';
+import { W, H, GROUND, STRIP_W, LAYER_TINT, rng, canvas, cutLayer, crescent, leaf, star, haze } from './common.js';
 
 export const backdrop = {
   buildSky(kind) {
@@ -377,6 +377,76 @@ export const backdrop = {
     }
     this.lit.set(key, c);
     return c;
+  },
+
+  /**
+   * The far scenery (the sky, the far karst and the karst with the haze over
+   * each) composited into one screen-sized canvas. They scroll at 7% and 15%
+   * of the camera, so the composite is redrawn only when one of them has
+   * moved by a device pixel (or the chapter, the size or the art changes) and
+   * most frames draw it once instead of painting five screens of layers.
+   */
+  farBackdrop(skyImg) {
+    const px = this.pixel;
+    const key = [this.stage.sky, px, this.canvas.width, this.canvas.height, skyImg ? 1 : 0,
+      this.art.get('layer-karst-far') ? 1 : 0, this.art.get('layer-karst') ? 1 : 0,
+      Math.round(this.cam * 0.07 * px), Math.round(this.cam * 0.15 * px)].join();
+    if (this.farKey !== key) {
+      this.farKey = key;
+      if (!this.far || this.far.width !== Math.round(W * px) || this.far.height !== Math.round(H * px)) {
+        this.far = canvas(Math.round(W * px), Math.round(H * px));
+      }
+      const g = this.far.getContext('2d');
+      const main = this.ctx;
+      this.ctx = g; // layer() and strip() draw on this.ctx
+      try {
+        g.setTransform(px, 0, 0, px, 0, 0);
+        g.clearRect(0, 0, W, H);
+        g.drawImage(skyImg || this.layers.sky, 0, 0, W, H);
+        this.layer('layer-karst-far', this.layers.karstFar, 0.07);
+        haze(g, this.sky.low, 220, 400, 0.3);
+        this.layer('layer-karst', this.layers.karst, 0.15);
+        haze(g, this.sky.low, 260, GROUND - 30, 0.3);
+      } finally {
+        this.ctx = main;
+      }
+    }
+    return this.far;
+  },
+
+  /**
+   * The paper fibre and the vignette over the whole scene, baked once (per
+   * size and fibre image) into one image drawn with 'multiply': one screen
+   * painted instead of two. The fibre multiplies at 22%; the vignette darkens
+   * toward the edges, which multiply reproduces (its colour is near black).
+   */
+  overlay() {
+    const px = this.pixel;
+    const fiberImg = this.art.get('paper-fiber');
+    const key = `${px}@${this.canvas.width}x${this.canvas.height}@${fiberImg ? fiberImg.src : 'drawn'}`;
+    if (this.overlayKey !== key) {
+      this.overlayKey = key;
+      const c = canvas(Math.round(W * px), Math.round(H * px));
+      const g = c.getContext('2d');
+      g.setTransform(px, 0, 0, px, 0, 0);
+      g.fillStyle = '#fff';
+      g.fillRect(0, 0, W, H);
+      // Fibre at 22%: white where the paper is plain, darker in the fibres.
+      g.globalAlpha = 0.22;
+      g.fillStyle = g.createPattern(fiberImg || this.fiber, 'repeat');
+      g.globalCompositeOperation = 'multiply';
+      g.fillRect(0, 0, W, H);
+      // The vignette: light falling off at the edge of a lightbox.
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = 'source-over';
+      const v = g.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.95);
+      v.addColorStop(0, 'rgba(0,0,0,0)');
+      v.addColorStop(1, 'rgba(10,8,12,0.55)');
+      g.fillStyle = v;
+      g.fillRect(0, 0, W, H);
+      this.overlayImg = c;
+    }
+    return this.overlayImg;
   },
 
   layer(id, fallback, factor) {

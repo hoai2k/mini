@@ -8,8 +8,11 @@
 // index.mjs); CHROMIUM_PATH points at a Chromium binary if Playwright has none.
 //
 //  1. Frame cost: every chapter and Drum Practice draws with no errors, and no
-//     scene costs more than 2.5 times the cheapest (a per-frame canvas filter once
-//     made battles ten times slower than the rest).
+//     scene's frames take more than 2.5 times the quickest scene's (a per-frame
+//     canvas filter once made battles ten times slower than the rest). Frames
+//     are timed from one to the next, so the painting the browser does after
+//     draw() returns counts too, and the game's automatic resolution step-down
+//     is switched off so every scene is drawn at the same size.
 //  2. Demonstration timing: with the CPU slowed six times, every stroke of a
 //     demonstration plays exactly when the pointer reaches it.
 //  3. Title selection: the selected title button looks different from the
@@ -85,13 +88,15 @@ async function open(throttle = 1, scale = 2) {
   await page.click('#press-start');
   await page.waitForTimeout(800);
   await page.evaluate(() => {
-    const r = window.__bronzeDrum.renderer;
-    const draw = r.draw.bind(r);
-    r.draw = (v, dt) => {
-      const a = performance.now();
-      draw(v, dt);
-      window.__cost.push(performance.now() - a);
+    window.__bronzeDrum.renderer.autoResolution = false;
+    window.__cost = [];
+    let last = performance.now();
+    const tick = (now) => {
+      window.__cost.push(now - last);
+      last = now;
+      requestAnimationFrame(tick);
     };
+    requestAnimationFrame(tick);
   });
   const scenes = [...Array(9).keys()].map((i) => ['stage', i]).concat([['practice', 'free'], ['practice', 'call']]);
   const costs = [];
@@ -119,8 +124,8 @@ async function open(throttle = 1, scale = 2) {
       fail(`${name} drew no frames in 2.5 s`);
       continue;
     }
-    console.log(`  draw ${name.padEnd(16)} ${c.toFixed(1)} ms`);
-    if (!(c <= cheapest * 2.5)) fail(`${name} draws in ${c.toFixed(1)} ms, over 2.5× the cheapest scene (${cheapest.toFixed(1)} ms)`);
+    console.log(`  frame ${name.padEnd(16)} ${c.toFixed(1)} ms`);
+    if (!(c <= cheapest * 2.5)) fail(`${name} frames take ${c.toFixed(1)} ms, over 2.5× the quickest scene (${cheapest.toFixed(1)} ms)`);
   }
   for (const e of errors) fail(`page error: ${e}`);
   await ctx.close();

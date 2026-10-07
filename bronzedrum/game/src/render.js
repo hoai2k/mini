@@ -24,10 +24,12 @@ export class Renderer {
     this.particles = [];
     this.floaters = [];
     this.flash = { L: -9, R: -9 };
-    this.fiber = fiberTexture();
-    this.fiberPattern = this.ctx.createPattern(this.fiber, 'repeat');
+    this.fiber = fiberTexture(); // the drawn paper fibre, until the delivered one arrives
     this.layers = null;
     this.reduceMotion = false;
+    this.showSticks = false; // the close-up sticks in the chapters (Settings)
+    this.autoResolution = true; // main.js lowers dprCap when frames run slow
+    this.dprCap = 2;
     // Count save()/restore() per frame (checked at the end of draw()).
     this.depth = 0;
     this.depthLow = 0;
@@ -53,7 +55,7 @@ export class Renderer {
   resize() {
     // Phones and tablets: a lower pixel ratio keeps the frame rate up.
     const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2, this.dprCap);
     const rect = this.canvas.getBoundingClientRect();
     const scale = Math.min(rect.width / W, rect.height / H) || 1;
     this.canvas.width = Math.round(W * scale * dpr);
@@ -61,8 +63,6 @@ export class Renderer {
     this.pixel = scale * dpr;
     this.cssScale = scale;
     this.compact = scale < COMPACT;
-    this.fiberPattern = this.ctx.createPattern(this.fiber, 'repeat');
-    this.fiberFrom = null; // the delivered fibre is patterned again after a resize
   }
 
   setStage(stage) {
@@ -112,13 +112,10 @@ export class Renderer {
     }
     const skyArt = this.art.get(`sky-${this.stage.sky}`);
     const skyImg = skyArt ? this.litLayer(`sky-${this.stage.sky}`, skyArt) : null;
-    g.drawImage(skyImg || this.layers.sky, 0, 0, W, H);
+    // Panels from back to front, with the lamp's haze between them: the far
+    // ones (which a hit's shake leaves still) cached as one image.
+    g.drawImage(this.farBackdrop(skyImg), 0, 0, W, H);
     g.translate(sx, 0);
-    // Panels from back to front, with the lamp's haze between them.
-    this.layer('layer-karst-far', this.layers.karstFar, 0.07);
-    haze(g, this.sky.low, 220, 400, 0.3);
-    this.layer('layer-karst', this.layers.karst, 0.15);
-    haze(g, this.sky.low, 260, GROUND - 30, 0.3);
     this.layer('layer-grove', this.layers.grove, 0.45);
     haze(g, this.sky.glow, GROUND - 60, GROUND + 10, 0.12);
     this.layer('layer-paddy', this.layers.paddy, 1);
@@ -159,27 +156,12 @@ export class Renderer {
 
     this.layer('layer-reeds', this.layers.reeds, 1.25);
     g.setTransform(this.pixel, 0, 0, this.pixel, 0, 0);
-    // Paper fibre over everything, as if the whole scene were one sheet.
-    // (The pattern and the gradient are made once, not every frame.)
-    const fiberImg = this.art.get('paper-fiber');
-    if (fiberImg && this.fiberFrom !== fiberImg) {
-      this.fiberFrom = fiberImg;
-      this.fiberPattern = g.createPattern(fiberImg, 'repeat');
-    }
+    // Paper fibre over everything, as if the whole scene were one sheet, and
+    // the vignette: baked into one image (Renderer.overlay).
     g.save();
     g.globalCompositeOperation = 'multiply';
-    g.globalAlpha = 0.22;
-    g.fillStyle = this.fiberPattern;
-    g.fillRect(0, 0, W, H);
+    g.drawImage(this.overlay(), 0, 0, W, H);
     g.restore();
-    // Vignette, like light falling off at the edge of a lightbox.
-    if (!this.vignette) {
-      this.vignette = g.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.95);
-      this.vignette.addColorStop(0, 'rgba(0,0,0,0)');
-      this.vignette.addColorStop(1, 'rgba(10,8,12,0.55)');
-    }
-    g.fillStyle = this.vignette;
-    g.fillRect(0, 0, W, H);
     this.drawCelebration(t, dt);
     this.hud(view);
     // Every save() must have its restore(): a stray restore() pops the

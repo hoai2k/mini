@@ -77,6 +77,7 @@ const state = {
   time: 0,
 };
 window.__gliders = state;
+state.audio = audio;
 
 // ---------------------------------------------------------------- fullscreen
 const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -836,6 +837,7 @@ function handleEvents(p, events) {
     if (e.type === 'bonus') {
       pop(p, `${e.kind === 'INVERTED' ? 'UPSIDE DOWN' : e.kind}  ×${e.mult}`);
       audio.bonus(e.mult);
+      if (e.kind === 'THREAD' || e.kind === 'TUNNEL') audio.passBy(p.flyer.speed);
       if (settings.vibration) input.rumble(p.device, 0.1, 0.4, 70);
     } else if (e.type === 'bank') {
       pop(p, '+' + fmt(e.amount), 'bank');
@@ -994,13 +996,17 @@ function updatePlay(dt, time) {
     round.overAt -= dt;
     if (round.overAt <= 0 && !state.layers.includes('results')) showResults();
   }
-  let maxSpeed = 0, maxClose = 0;
+  let maxSpeed = 0, maxClose = 0, maxFlare = 0;
   for (const p of state.players) {
     updatePlayer(p, dt, time);
-    if (p.alive) maxSpeed = Math.max(maxSpeed, p.flyer.speed);
+    if (p.alive) {
+      maxSpeed = Math.max(maxSpeed, p.flyer.speed);
+      maxFlare = Math.max(maxFlare, p.input.flare || 0);
+    }
     maxClose = Math.max(maxClose, p.alive ? p.score.closeness : 0);
   }
-  audio.flight(maxSpeed, maxClose, round.phase === 'play');
+  // Wind blows from the countdown on, so the launch already sounds like flight.
+  audio.flight(maxSpeed, maxClose, round.phase !== 'over', maxFlare);
   updateHud();
 }
 
@@ -1038,13 +1044,18 @@ function showResults() {
       const rank = recordScore(def.id, round.mode, { score: Math.round(p.score.score), glider: p.gliderId, variant: p.variant, player: 'P' + (p.slot + 1), date: Date.now() });
       if (rank === 0) anyRecord = true;
       const s = p.score;
-      return `<li class="${place === 1 && state.players.length > 1 ? 'first' : ''}" style="--pc:${p.color}">
+      return `<li class="${place === 1 && state.players.length > 1 && p.score.score > 0 ? 'first' : ''}" style="--pc:${p.color}">
         <span class="place">${place}</span><img src="${p.portrait}" alt="">
         <div><div class="who">P${p.slot + 1} · ${g.name}</div><div class="stats">Biggest bank ${fmt(s.bestBank)} · best ×${s.bestMult} · ${s.banks} banked · ${s.crashes} crash${s.crashes === 1 ? '' : 'es'}</div></div>
         <span class="score">${fmt(s.score)}${rank === 0 ? '<span class="record">New record!</span>' : rank > 0 ? `<span class="record">#${rank + 1} on this sky</span>` : ''}</span></li>`;
     })
     .join('');
-  $('#results-title').textContent = state.players.length > 1 ? `P${ranked[0].slot + 1} wins!` : anyRecord ? 'New record!' : 'Results';
+  const top = ranked[0].score.score;
+  const tied = ranked.filter((p) => p.score.score === top).length;
+  $('#results-title').textContent =
+    state.players.length > 1
+      ? top <= 0 ? 'No score this time' : tied > 1 ? `A ${tied}-way tie!` : `P${ranked[0].slot + 1} wins!`
+      : anyRecord ? 'New record!' : 'Results';
   if (anyRecord) audio.record();
   openLayer('results');
   audio.silenceFlight();
@@ -1143,7 +1154,7 @@ function updateHud() {
     setText(h, 'score', h.score, fmt(s.score));
     const sub = round.mode === 'best' ? (s.best > 0 ? `best run · this run ${fmt(s.run)}` : 'this run') : 'banked';
     setText(h, 'sub', h.sub, sub);
-    const comboOn = s.pot > 0;
+    const comboOn = s.pot >= 1;
     h.combo.classList.toggle('off', !comboOn);
     if (comboOn) {
       setText(h, 'pot', h.pot, `${fmt(s.pot)}<span class="pv-mult">×${s.mult}</span>`);
@@ -1420,9 +1431,15 @@ input.on('connect', (i) => {
     img.src = logo;
     img.hidden = false;
     $('#logo-text').hidden = true;
+    const small = $('#pause-logo');
+    small.src = logo;
+    small.hidden = false;
   }
   const bg = asset('titleBg');
-  if (bg) $('#title-bg').style.backgroundImage = `url(${bg})`;
+  if (bg) {
+    $('#title-bg').style.backgroundImage = `url(${bg})`;
+    $('#title').classList.add('art');
+  }
 })();
 
 // ---------------------------------------------------------------- main loop
@@ -1452,6 +1469,8 @@ function frame(nowMs) {
     const coverTitle = state.screen === 'title' && asset('titleBg') && !state.layers.length;
     if (!coverTitle) renderAttract(now, dt);
     if (state.screen === 'lobby') renderLobbyPreviews(now, dt);
+    // A soft breeze under the menus, as if hanging in the sky.
+    audio.flight(24, 0, true);
   }
   input.endFrame();
   requestAnimationFrame(frame);

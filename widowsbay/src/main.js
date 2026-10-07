@@ -27,8 +27,9 @@ const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' &
 const SETTINGS_KEY = 'widowsbay.settings.v1';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Touch devices start on the gentler film look (lighter on a phone's GPU and battery).
-const settings = { period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true };
+const settings = { period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true, extraAnimations: false };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* storage unavailable */ }
+settings.extraAnimations = settings.extraAnimations === true;
 const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* ignore */ } };
 const FILM = { full: 'Full', gentle: 'Gentle', off: 'Off' };
 function syncSettingsUI() {
@@ -38,6 +39,7 @@ function syncSettingsUI() {
     else if (k === 'film') el.querySelector('span').textContent = FILM[settings.film];
     else if (k === 'vibration') el.querySelector('span').textContent = settings.vibration ? 'On' : 'Off';
     else if (k === 'period') el.querySelector('span').textContent = settings.period ? 'On' : 'Off';
+    else if (k === 'extraAnimations') el.querySelector('span').textContent = settings.extraAnimations ? 'On' : 'Off';
   }
   audio.setVolumes(settings.music / 10, settings.sfx / 10);
 }
@@ -47,6 +49,7 @@ for (const el of document.querySelectorAll('#settings [data-key]')) {
   else el.addEventListener('click', () => {
     if (k === 'film') settings.film = { full: 'gentle', gentle: 'off', off: 'full' }[settings.film];
     if (k === 'vibration') settings.vibration = !settings.vibration;
+    if (k === 'extraAnimations') settings.extraAnimations = !settings.extraAnimations;
     if (k === 'period') { settings.period = !settings.period; audio.setPeriodOn(settings.period); }
     syncSettingsUI(); saveSettings(); audio.play('ui');
   });
@@ -398,7 +401,7 @@ function frame(now) {
 
 function currentView() {
   return {
-    act: S.act, state: S.state, curtain: S.curtain, card: S.card, film: settings.film, t: S.t,
+    act: S.act, state: S.state, curtain: S.curtain, card: S.card, film: settings.film, extraAnimations: settings.extraAnimations === true, t: S.t,
     hud: S.mode === 'play' || S.mode === 'over',
     curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
     scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,
@@ -578,14 +581,14 @@ function touchVerb() {
   const st = S.state, id = S.act?.id;
   if (!st) return '';
   if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' ? 'On the beat' : '';
-  if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? '' : 'Kick';
+  if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? 'Leap' : 'Kick';
   if (id === 3) return S.state?.canTake ? 'Take' : 'Hide';
   if (id === 4) return 'Leap';
   if (id === 5) return st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / throw' : 'Leap';
   return '';
 }
 function touchVerbHint(act) {
-  return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick', 3: 'drag to walk, swipe to change groove, tap to hide',
+  return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick; on the moon boat, drag to sail, swipe to change row, tap to leap', 3: 'drag to walk, swipe to change groove, tap to hide',
     4: 'drag to walk, swipe up or tap to leap', 5: 'drag to climb, A to leap' }[act.id] || 'drag to move';
 }
 // Which touch scheme a scene uses: swipes for rows and floors, the stick for
@@ -593,7 +596,7 @@ function touchVerbHint(act) {
 function touchScheme() {
   const id = S.act?.id, ph = S.state?.phase;
   if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? 'Tap on the beat' : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
-  if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Swipe ↕ to change row' } : { mode: 'stick', hint: 'Drag to swim' };
+  if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' } : { mode: 'stick', hint: 'Drag to swim' };
   if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
   if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };
   return { mode: 'stick', hint: 'Drag to climb' };

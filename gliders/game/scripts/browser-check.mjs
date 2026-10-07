@@ -22,7 +22,7 @@ import { join, dirname, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
 const shotsArg = process.argv.indexOf('--shots');
 const shots = shotsArg > 0 ? process.argv[shotsArg + 1] : null;
 
@@ -155,6 +155,10 @@ const screen = (page) => page.evaluate(() => window.__gliders.screen);
   await page.evaluate(() => [0, 1, 2, 3].forEach((i) => window.__pad(i, { axes: [0.1 * i, 0.15, 0, 0], buttons: { 6: 0, 7: 0 } })));
   await frames(page, 60);
   await shot(page, '05-four-players');
+  const snd = await page.evaluate(() => window.__gliders.audio.debug());
+  snd.recordedWind && Object.values(snd.layers).some((g) => g > 0.05) && snd.bus > 0.3
+    ? ok('recorded wind loaded and playing: ' + JSON.stringify(snd.layers))
+    : fail('recorded wind not playing: ' + JSON.stringify(snd));
   console.log('  ms per frame: update ' + (await page.evaluate(() => window.__gliders.updateMs.toFixed(1))) + ', render ' + (await page.evaluate(() => window.__gliders.renderMs.toFixed(0))));
   const r = await page.evaluate(() => ({ time: window.__gliders.round.time, players: window.__gliders.players.map((p) => ({ alive: p.alive, speed: p.flyer.speed, y: p.flyer.pos.y, score: p.score.score, crashes: p.score.crashes })) }));
   r.time > 3 ? ok(`round clock runs (${r.time.toFixed(1)} s)`) : fail('round clock stuck at ' + r.time);

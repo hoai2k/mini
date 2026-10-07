@@ -100,14 +100,33 @@ streaks appear past 45 m/s; contrails from the wingtips glow and widen while
 a combo is open. Reduce motion turns off the roll, the FOV kick and the
 crash shake.
 
-Sound is synthesised (`game/src/audio.js`): wind that rises with speed, a
-whoosh while close to a surface, chimes for tricks, an arpeggio for a bank, a
-thud for a crash, and a slow generative ambient score.
+Wind is the heart of the sound, as in Superflight. Five loops generated with
+ElevenLabs ([`sound-effects.md`](sound-effects.md), made by
+`source/build_audio.py`) are layered in `game/src/audio.js`:
+
+| Layer | Behaviour |
+| --- | --- |
+| `wind-glide` | Soft bed, full below about 30 m/s, a fifth of that by 70 |
+| `wind-fast` | Steady rush from about 25 m/s, eases off in the fastest dives |
+| `wind-dive` | Howling roar from 65 m/s, full by 115 |
+| `wind-close` | Bright rush that rises as you skim a surface |
+| `flutter` | Membrane flutter, rising with speed and when you flare |
+
+The beds are pitched up a little with speed, and a low-pass filter opens from
+dull to full as you speed up. In split screen the wind follows the fastest
+player. A pass-by whoosh plays when you thread a gap or clear a tunnel, and a
+recorded thump when you crash. The menus keep a soft breeze. Chimes for tricks
+and banks, the countdown, menu ticks and the slow ambient score are
+synthesised. If the recordings are missing, synthesised wind stands in.
 
 ## Art
 
-Everything in play is built in code. Generated images are requested in
-[`image-requests.md`](image-requests.md): the logo, the title background, the
-app icon and a portrait badge per glider. Until they arrive the game uses
-stand-ins: the logo in the page font, a live flyover behind the title, a
-drawn SVG icon, and portraits rendered from the 3D models.
+Everything in play is built in code. The generated images
+([`image-requests.md`](image-requests.md)) are all delivered: the logo (title
+screen, pause menu, library card), the title key art (title screen, library
+card), the app icon (tab and home screen, scaled into `game/icons/`) and a
+portrait badge per glider (HUD and results). The key art places its gliders in
+the upper middle, so with it the title screen sets the logo at the top and
+Press Start low, leaving the middle band to the picture. If an image is
+missing the game falls back to its stand-in: the logo in the page font, a live
+flyover behind the title, and portraits rendered from the 3D models.

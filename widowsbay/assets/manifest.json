@@ -1351,5 +1351,73 @@
       "file": "sfx/pageantApplause.mp3",
       "loop": false
     }
+  },
+  "anims": {
+    "anim-band-giant": {
+      "status": "delivered",
+      "file": "anims/anim-band-giant.webp",
+      "meta": "anims/anim-band-giant.json",
+      "method": "tracked music-video footage"
+    },
+    "anim-band-play": {
+      "status": "delivered",
+      "file": "anims/anim-band-play.webp",
+      "meta": "anims/anim-band-play.json",
+      "method": "tracked footage"
+    },
+    "anim-jellyfish": {
+      "status": "delivered",
+      "file": "anims/anim-jellyfish.webp",
+      "meta": "anims/anim-jellyfish.json",
+      "method": "painted-puppet deformation"
+    },
+    "anim-pageant-dancers": {
+      "status": "delivered",
+      "file": "anims/anim-pageant-dancers.webp",
+      "meta": "anims/anim-pageant-dancers.json",
+      "method": "painted-puppet deformation"
+    },
+    "anim-reveller-jester": {
+      "status": "delivered",
+      "file": "anims/anim-reveller-jester.webp",
+      "meta": "anims/anim-reveller-jester.json",
+      "method": "painted-puppet deformation"
+    },
+    "anim-reveller-lady": {
+      "status": "delivered",
+      "file": "anims/anim-reveller-lady.webp",
+      "meta": "anims/anim-reveller-lady.json",
+      "method": "tracked footage"
+    },
+    "anim-reveller-shaggy": {
+      "status": "delivered",
+      "file": "anims/anim-reveller-shaggy.webp",
+      "meta": "anims/anim-reveller-shaggy.json",
+      "method": "painted-puppet deformation"
+    },
+    "anim-reveller-yellow": {
+      "status": "delivered",
+      "file": "anims/anim-reveller-yellow.webp",
+      "meta": "anims/anim-reveller-yellow.json",
+      "method": "painted-puppet deformation"
+    },
+    "anim-sea-dragon": {
+      "status": "delivered",
+      "file": "anims/anim-sea-dragon.webp",
+      "meta": "anims/anim-sea-dragon.json",
+      "method": "painted-puppet deformation"
+    },
+    "anim-sea-spirit": {
+      "status": "delivered",
+      "file": "anims/anim-sea-spirit.webp",
+      "meta": "anims/anim-sea-spirit.json",
+      "method": "painted-puppet deformation"
+    },
+    "anim-witch-wand": {
+      "status": "delivered",
+      "file": "anims/anim-witch-wand.webp",
+      "meta": "anims/anim-witch-wand.json",
+      "method": "painted-puppet deformation"
+    }
   }
 }

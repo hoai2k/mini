@@ -83,7 +83,7 @@ function deckScene(k, st, deck, t) {
   if (!k.asset('deck-set', 640, base + 10, 1280, 500)) deckStandin(k, base);
   // Everyone on the deck, back to front.
   const items = [{ y: BAND.y, f: () => {
-    if (!k.asset('band-trio', BAND.x, BAND.y + off, BAND.s, BAND.s)) {
+    if (!k.anim?.('anim-band-play', beat * 60 / 76.5, BAND.x, BAND.y + off, BAND.s * 1.65, BAND.s) && !k.asset('band-trio', BAND.x, BAND.y + off, BAND.s, BAND.s)) {
       for (const [dx, col] of [[-50, '#2b2b2b'], [0, '#e9e1d0'], [50, '#5a4a3a']]) figure(k, BAND.x + dx, BAND.y + off, col, bob * 0.5, 0.9);
     }
   } }];
@@ -93,7 +93,7 @@ function deckScene(k, st, deck, t) {
     items.push({ y: p.y, f: () => {
       // Clipped at the hatches' front edge, so a figure below it is down the hole.
       c.save(); c.beginPath(); c.rect(0, 0, 1280, LIP + off); c.clip();
-      if (!k.asset(r.id, p.x, p.y + off, 110 * p.s, 210 * p.s)) figure(k, p.x, p.y + off, r.col, 0, p.s);
+      if (!k.anim?.(r.id.replace('reveller-', 'anim-reveller-'), beat * 60 / 76.5, p.x, p.y + off, 110 * p.s, 210 * p.s) && !k.asset(r.id, p.x, p.y + off, 110 * p.s, 210 * p.s)) figure(k, p.x, p.y + off, r.col, 0, p.s);
       c.restore();
     } });
   });
@@ -222,7 +222,7 @@ function spirits(k, pt, t) {
     if (rise <= 0) continue;
     const x = 260 + i * 250 + Math.sin(t * 0.9 + i) * 20, y = 760 - rise * 360;
     c.save(); c.globalAlpha = 0.55 * (1 - easeInOut((pt - 3.2) / 1.2));
-    if (!k.asset('sea-spirit', x, y, 150, 300)) {
+    if (!k.anim?.('anim-sea-spirit', t, x, y - 150, 150, 300) && !k.asset('sea-spirit', x, y, 150, 300)) {
       c.fillStyle = k.col('#ffffff');
       c.beginPath(); c.moveTo(x - 40, y); c.quadraticCurveTo(x - 50, y - 160, x, y - 230); c.quadraticCurveTo(x + 50, y - 160, x + 40, y);
       c.quadraticCurveTo(x, y - 30, x - 40, y); c.fill();

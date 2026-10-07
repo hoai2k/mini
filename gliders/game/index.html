@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Gliders">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/ui/icon.png" type="image/png">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <title>Gliders</title>
   <meta name="description" content="Glide through colourful floating structures as a flying squirrel, a Microraptor, a flying fish and more. One to four players on one screen.">
@@ -27,6 +27,7 @@
       <div class="title-block">
         <img id="logo-img" alt="Gliders" hidden>
         <h1 id="logo-text" class="logo-text" aria-label="Gliders"><span>G</span><span>L</span><span>I</span><span>D</span><span>E</span><span>R</span><span>S</span></h1>
+        <div class="title-spacer"></div>
         <p class="tagline">Glide close. Bank big. Don’t crash.</p>
         <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
         <p class="hint" id="title-hint">Move left stick for options</p>
@@ -96,6 +97,7 @@
 
     <section id="pause" class="screen modal" hidden aria-labelledby="pause-title">
       <div class="panel">
+        <img class="pause-logo" id="pause-logo" alt="" hidden>
         <h2 id="pause-title">Paused</h2>
         <p id="pause-reason" class="muted"></p>
         <button class="menu-btn" data-nav data-action="resume">Resume</button>

@@ -34,7 +34,7 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0 });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0, showSticks: false });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
 const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
 // The sisters' close-up sticks over the drum (render/hud.js STICK_SETS).
@@ -66,6 +66,7 @@ function applySettings() {
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
   renderer.stickSet = settings.sticks;
+  renderer.showSticks = settings.showSticks;
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
@@ -363,8 +364,36 @@ function startStage(i) {
   show('play');
 }
 
+/**
+ * The game clock: seconds since the chapter's clock started. Sounds are
+ * scheduled on the audio clock, but that clock only moves once per audio
+ * buffer (every 3 ms in Chrome, and 10-40 ms in other browsers, on Bluetooth
+ * and on many phones), so anything drawn from it stutters and a 50 ms stick
+ * stroke can fall between two frames. So the game reads the performance clock
+ * instead, locked to the audio clock: each time the audio clock steps, the
+ * offset between the two is nudged a tenth of the way toward it. A jump of
+ * more than 80 ms (a new chapter, a resume, a stall) relocks at once, and
+ * while the audio is suspended the audio clock is used as it is.
+ */
+const smoothClock = { game: null, offset: 0, seen: -1, last: -Infinity };
 function songTime() {
-  return sound.now - game.clockStart;
+  const raw = sound.now - game.clockStart;
+  const ctx = sound.ctx;
+  if (!ctx || ctx.state !== 'running') {
+    smoothClock.game = null;
+    return raw;
+  }
+  const p = performance.now() / 1000;
+  const c = smoothClock;
+  if (c.game !== game || Math.abs(p + c.offset - raw) > 0.08) {
+    Object.assign(c, { game, offset: raw - p, seen: sound.now, last: -Infinity });
+  } else if (sound.now !== c.seen) {
+    c.seen = sound.now;
+    c.offset += (raw - (p + c.offset)) * 0.1;
+  }
+  // Never backwards: the nudges are smaller than a frame.
+  c.last = Math.max(c.last, p + c.offset);
+  return c.last;
 }
 
 /**
@@ -1339,7 +1368,25 @@ window.addEventListener('focus', () => background(document.hidden));
 
 const portraitTouch = window.matchMedia('(orientation: portrait) and (pointer: coarse)');
 let last = performance.now();
+// Adaptive sharpness: a late frame shows every stroke late, so when play runs
+// below about 50 fps (the median frame over two seconds above 20 ms) the canvas drops
+// half a step of pixel ratio, down to 1, until the frame rate holds.
+const frameTimes = [];
+function watchFrameRate(ms) {
+  if (!renderer.autoResolution || screen !== 'play' || dialogs.length || document.hidden || ms > 200) return;
+  frameTimes.push(ms);
+  if (frameTimes.reduce((a, b) => a + b, 0) < 2000 || frameTimes.length < 20) return;
+  const median = [...frameTimes].sort((a, b) => a - b)[frameTimes.length >> 1];
+  frameTimes.length = 0;
+  const dpr = renderer.pixel / renderer.cssScale;
+  if (median > 20 && dpr > 1.01) {
+    renderer.dprCap = Math.max(1, dpr - 0.5);
+    renderer.resize();
+    console.info(`Bronze Drum: frames take ${median.toFixed(1)} ms; drawing at pixel ratio ${renderer.dprCap} to keep up`);
+  }
+}
 function frame(now) {
+  watchFrameRate(now - last);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   input.poll();

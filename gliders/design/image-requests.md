@@ -12,7 +12,7 @@ Artwork for Gliders in `gliders/`. Generated from `source/build_requests.py`; ed
 
 ## Status
 
-0 requested, 9 delivered, 9 in total.
+0 requested, 12 delivered, 12 in total.
 
 ## Brand
 
@@ -46,7 +46,7 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 
 - **File:** `gliders/game/assets/ui/icon.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Browser tab, home-screen icon (scaled to 512, 192 and 180 px) and the HUD's pause badge.
+- **Used for:** Browser tab, home-screen icon (scaled to 512, 192 and 180 px).
 - **Stand-in until delivered:** A drawn SVG icon: a white glider silhouette on a coral-to-violet rounded square.
 - **Status:** delivered
 
@@ -128,4 +128,44 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. A paradise tree snake (Chrysopelea paradisi) gliding: its body flattened into a ribbon and bent into a wide S-shaped wave, black scales edged in bright green with a row of red-orange spots along the back, head raised and looking forward. One continuous slender flattened body, with no wings, fins, limbs or separate membranes. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+## Sky and mist layers
+
+Greyscale layers the game tints to each sky's own colours, so one set serves every palette: white means cloud, black means clear. Each must tile seamlessly as the prompt says (left edge meeting right edge, and top meeting bottom for the square tiles); small seams are blended on integration.
+
+### GL-S01 · Horizon cloud band
+
+- **File:** `gliders/game/assets/sky/horizon.png`
+- **Size:** 4096 x 1024, greyscale
+- **Used for:** Wrapped all the way round the horizon behind the distant islands: banks of towering cumulus and haze that make the sky feel endless. Tinted to each sky's horizon colour.
+- **Stand-in until delivered:** The plain gradient sky.
+- **Status:** delivered
+
+```text
+Soft painterly cloud study for a game's sky, rendered in pure greyscale: white cloud on a pure black background, where brightness means cloud density and black means empty sky (the game uses the brightness as transparency and tints it). No colour, no sun, no land, no horizon line, no text, no watermark. Soft volumetric light within the clouds, gentle edges, no hard outlines. A very wide panoramic band of distant cloud banks seen level from high altitude: soft towering cumulus and layered haze along the bottom half, thinning into faint wisps toward the top, fading to pure black at the very top edge. The bottom quarter is an almost solid bright haze bank. Varied rhythm along its length (taller towers here, low rolling banks there). It must tile seamlessly left-to-right: the right edge continues exactly into the left edge. 4:1 aspect ratio, 4096 x 1024.
+```
+
+### GL-S02 · High wisps
+
+- **File:** `gliders/game/assets/sky/wisps.png`
+- **Size:** 2048 x 2048, greyscale
+- **Used for:** Thin high cloud drifting across the upper sky dome, faint and slow. Tinted toward white or each sky's zenith colour.
+- **Stand-in until delivered:** The plain gradient sky.
+- **Status:** delivered
+
+```text
+Soft painterly cloud study for a game's sky, rendered in pure greyscale: white cloud on a pure black background, where brightness means cloud density and black means empty sky (the game uses the brightness as transparency and tints it). No colour, no sun, no land, no horizon line, no text, no watermark. Soft volumetric light within the clouds, gentle edges, no hard outlines. Thin high-altitude cirrus and altocumulus wisps seen from below: delicate streaks, mackerel ripples and feathery trails scattered with plenty of empty black sky between them (about a third covered). A square tile that repeats seamlessly in both directions: edges continue exactly into the opposite edges. 2048 x 2048.
+```
+
+### GL-S03 · Cloud sea from above
+
+- **File:** `gliders/game/assets/sky/mist.png`
+- **Size:** 2048 x 2048, greyscale
+- **Used for:** The sea of mist below the islands, seen from above and drifting slowly; it fills the depths you dive toward. Tinted to each sky's mist colour.
+- **Stand-in until delivered:** Procedural noise clouds.
+- **Status:** delivered
+
+```text
+Soft painterly cloud study for a game's sky, rendered in pure greyscale: white cloud on a pure black background, where brightness means cloud density and black means empty sky (the game uses the brightness as transparency and tints it). No colour, no sun, no land, no horizon line, no text, no watermark. Soft volumetric light within the clouds, gentle edges, no hard outlines. Looking straight down onto an endless sea of soft cloud tops from high above: billowing rounded puffs and gentle valleys between them, lit softly from one side so the puffs have bright tops and slightly darker grey hollows. Mostly covered (bright) with only small darker gaps. A square tile that repeats seamlessly in both directions: edges continue exactly into the opposite edges. 2048 x 2048.
 ```
