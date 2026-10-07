@@ -52,11 +52,21 @@ export class Input {
       if (this.padIndex === null) this.padIndex = e.gamepad.index;
       this.armed = false;
       this.emit('device', { type: 'connected' });
+      // A controller has no events, only state to poll. Polled once a frame,
+      // a stroke would wait for the next frame (up to 17 ms at 60 fps, 33 ms
+      // when the frame rate dips) before it sounds, so it is also polled
+      // every 4 ms between frames (the frame loop still calls poll() too).
+      if (!this.fastPoll) this.fastPoll = setInterval(() => this.poll(), 4);
     });
     window.addEventListener('gamepaddisconnected', (e) => {
       if (e.gamepad.index === this.padIndex) {
         this.padIndex = null;
         this.emit('device', { type: 'disconnected' });
+      }
+      const any = navigator.getGamepads && [...navigator.getGamepads()].some(Boolean);
+      if (!any && this.fastPoll) {
+        clearInterval(this.fastPoll);
+        this.fastPoll = null;
       }
     });
     // Mouse: the left and right halves of the canvas are the two drummers, and
@@ -202,6 +212,9 @@ export class Input {
     const p = this.pad();
     if (!p) return;
     const now = performance.now();
+    // When the controller's state last changed (same clock as performance.now()),
+    // so a stroke is timed from the press rather than from when it was polled.
+    const stamp = p.timestamp > 0 && p.timestamp <= now && now - p.timestamp < 50 ? p.timestamp : now;
     const pressed = p.buttons.map((b) => b.pressed || b.value > 0.5);
     if (!this.armed) {
       // Wait until every button is released so a held press does not fire.
@@ -214,10 +227,10 @@ export class Input {
       this.setDevice('gamepad');
       this.emit('padButton', i);
       if (this.mode === 'play') {
-        if (this.practice && i === PAD.Y) this.emit('drum', { drum: 'S', time: now });
-        else if (this.practice && PAD_PRACTICE[i]) this.emit('action', { action: PAD_PRACTICE[i], time: now });
-        else if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: now });
-        else if (i === PAD.A) this.emit('action', { action: 'guard', time: now });
+        if (this.practice && i === PAD.Y) this.emit('drum', { drum: 'S', time: stamp });
+        else if (this.practice && PAD_PRACTICE[i]) this.emit('action', { action: PAD_PRACTICE[i], time: stamp });
+        else if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: stamp });
+        else if (i === PAD.A) this.emit('action', { action: 'guard', time: stamp });
         else if (i === PAD.MENU || i === PAD.VIEW) this.emit('nav', 'menu');
       } else if (PAD_NAV[i]) {
         this.emit('nav', PAD_NAV[i]);
