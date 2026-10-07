@@ -40,6 +40,7 @@ button { cursor: pointer; }
 /* ---------- title ---------- */
 #title { align-items: center; justify-content: center; padding: 24px 16px 96px; }
 #title.has-bg { background: center / cover no-repeat; }
+#title.has-bg .tagline { color: #24163c; font-weight: 600; }
 .title-inner { width: min(520px, 100%); text-align: center; position: relative; }
 .logo { margin: 0 0 8px; line-height: 1; }
 .logo img { width: min(520px, 92vw); height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)); }
