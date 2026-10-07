@@ -877,6 +877,15 @@
         440
       ],
       "anchor": "top centre (his hands)"
+    },
+    "clam-open-empty": {
+      "status": "requested",
+      "file": "clam-open-empty.webp",
+      "size": [
+        240,
+        200
+      ],
+      "anchor": "bottom centre"
     }
   },
   "audio": {

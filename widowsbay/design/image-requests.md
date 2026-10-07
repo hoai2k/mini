@@ -432,8 +432,12 @@ intake; [review A/B/C and the A/B/A/C sequence](generated/round-4/index.html).
 Full-size originals, exact prompts and delivered-frame references are preserved.
 
 **Also requested, 7 October 2026:** two Act IV frames for the new ledge
-hang ([C16](#c16-fourth-round-act-iv-ledge-hang)), `sailor-hang` and
+hang ([C17](#c17-fourth-round-act-iv-ledge-hang)), `sailor-hang` and
 `sailor-pullup`. Until they arrive the game uses `sailor-leap` for both.
+
+**And for Act II:** `clam-open-empty`
+([C16](#c16-fourth-round-act-ii-regrowing-clams)), the open clam without
+its pearl, so each clam can regrow its pearl in view.
 
 ---
 
@@ -441,7 +445,7 @@ hang ([C16](#c16-fourth-round-act-iv-ledge-hang)), `sailor-hang` and
 
 ## Part C — Acts II to V and the shared cast
 
-The rest of the game, designed in [`acts.md`](acts.md): 175 game assets and 8 mood boards. Every prompt below is complete; paste it as it stands. Sizes are 2× game units, as in Part B. Name each file by its id (for example `sailor-stand.png`) and drop it in [`../intake/`](../intake/README.md). The ids are already listed as `requested` in `assets/manifest.json`.
+The rest of the game, designed in [`acts.md`](acts.md): 176 game assets and 8 mood boards. Every prompt below is complete; paste it as it stands. Sizes are 2× game units, as in Part B. Name each file by its id (for example `sailor-stand.png`) and drop it in [`../intake/`](../intake/README.md). The ids are already listed as `requested` in `assets/manifest.json`.
 
 Times such as "video 0:25" refer to `references/video-frames/frame-025s.jpg`; attach those frames as image references when generating. Characters must match the delivered mood boards: the sailor `mood-sailor-1`, the witch `mood-witch-1`, and the band `band-trio` / `video-cover.jpg`. Generate `mood-beloved` first so the beloved stays consistent across her three appearances.
 
@@ -1774,7 +1778,21 @@ Old-film idle loops for the watched characters, replacing the Part D motion loop
 
 > One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `pageant-dancers` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: every dancer steps to the side on the other foot, arms open at shoulder height. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
-### C16. Fourth round: Act IV ledge hang
+### C16. Fourth round: Act II regrowing clams
+
+Each clam in the grotto now regrows its pearl once, growing from a seed while the clam is open, so the game needs the open clam without its pearl and draws the growing pearl itself. Until it arrives the game patches the pearl out of `clam-open`.
+
+| Id | Size | Anchor |
+| --- | --- | --- |
+| `clam-open-empty` | 240 × 200 | bottom centre |
+
+#### `clam-open-empty` — Giant clam, open and empty
+
+240 × 200 px, anchor bottom centre.
+
+> The same giant fluted clam as clam-open (attach it as the image reference), wide open, at exactly the same scale, framing and position, with the same shell, colours and lip, but EMPTY: no pearl, the pink fluted inside and the lower lip visible where the pearl sat. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### C17. Fourth round: Act IV ledge hang
 
 The Whale's Road lets the sailor catch the edge of a piece of wreckage he just missed, hang, and pull himself back up. Match `sailor-stand` and `sailor-leap` (attach them as image references): the same man, coat, cap and scale, so the frames sit beside the walk and leap. The game draws the leap sprite as a stand-in until these arrive.
 

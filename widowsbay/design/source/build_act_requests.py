@@ -617,6 +617,12 @@ ACTS = [
         *[(f'{base}-idle-{fr}', f'{name}, idle frame {fr.upper()}', w, h, 'bottom centre', style, f'{IDLE.format(base=base)} {move}')
           for base, name, w, h, style, moves in IDLE_PEOPLE for fr, move in zip('bc', moves)],
     ]),
+    ('Fourth round: Act II regrowing clams', 'Each clam in the grotto now regrows its pearl once, growing from a seed while the clam is open, so the game needs the open clam without its pearl and draws the growing pearl itself. Until it arrives the game patches the pearl out of `clam-open`.', [
+        ('clam-open-empty', 'Giant clam, open and empty', 240, 200, 'bottom centre', SPRITE,
+         'The same giant fluted clam as clam-open (attach it as the image reference), wide open, at exactly the same '
+         'scale, framing and position, with the same shell, colours and lip, but EMPTY: no pearl, the pink fluted '
+         'inside and the lower lip visible where the pearl sat.'),
+    ]),
     ('Fourth round: Act IV ledge hang', 'The Whale\'s Road lets the sailor catch the edge of a piece of wreckage he just missed, hang, and pull himself back up. Match `sailor-stand` and `sailor-leap` (attach them as image references): the same man, coat, cap and scale, so the frames sit beside the walk and leap. The game draws the leap sprite as a stand-in until these arrive.', [
         ('sailor-hang', 'Sailor hanging from an edge', 220, 440, 'top centre (his hands)', SPRITE,
          f'Full figure of {SAILOR}, hanging at full stretch by both hands from a ledge edge, seen in profile facing '
