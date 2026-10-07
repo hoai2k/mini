@@ -736,8 +736,18 @@ const OVERLAY = {
   },
   plume(g, t, pose) {
     const growth = pose.growth ?? 0;
-    if (growth > 0.2) {
-      const [x, y] = at('plume', 0.518, 0.293);
+    const [sx, sy] = at('plume', 0.518, 0.293);
+    if (art('sprites.plumeGrowth')) {
+      // The painted stages share one scale: the whole cell is drawn, its soil
+      // mound (3% above the cell's foot) on the pot's soil.
+      const stage = (pose.wilt || 0) > 0.5 ? 3 : growth < 0.35 ? 0 : growth < 0.75 ? 1 : 2;
+      g.save();
+      g.translate(sx, sy);
+      g.rotate(Math.sin(t * 1.5) * 0.02);
+      drawSprite(g, 'sprites.plumeGrowth', stage, 0, 0.033 * 420, { h: 420, whole: true });
+      g.restore();
+    } else if (growth > 0.2) {
+      const [x, y] = [sx, sy];
       g.save();
       g.translate(x, y + 235);
       plumePlant(g, t, pose);
@@ -770,11 +780,27 @@ export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false,
     // The portrait faces left too; it breathes and hops instead of articulating.
     const p = PORTRAIT[id];
     g.scale(1, 1 + Math.sin(t * 2) * 0.012);
-    if (pose.lift) {
+    if (pose.lift && !art('sprites.bobolinkBoots')) {
       g.translate(0, -10);
       g.rotate(pose.lift * 0.04);
     }
-    g.drawImage(img, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
+    const v = variant(id, pose);
+    if (id === 'bobolinks' && art('sprites.bobolinkBoots')) {
+      // Each boot on its own, so one can step while the other stands.
+      const boot = (i, dx, dy, up) => {
+        const c = spriteCell('sprites.bobolinkBoots', i).cell;
+        g.save();
+        g.translate(dx, dy - (up ? 26 : 0));
+        if (up) g.rotate(-0.08);
+        g.drawImage(art('sprites.bobolinkBoots'), c.x, c.y, c.w, c.h, -0.55 * p.u, -0.97 * p.u, p.u, p.u);
+        g.restore();
+      };
+      boot(1, 70, -10, pose.lift > 0);
+      boot(0, -45, 0, pose.lift < 0);
+    } else if (v) {
+      const c = spriteCell(v[0], v[1]).cell;
+      g.drawImage(art(v[0]), c.x, c.y, c.w, c.h, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
+    } else g.drawImage(img, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
     OVERLAY[id]?.(g, t, pose);
   } else {
     seedBase = BOIL ? Math.floor(t * 5) % 3 * 0.37 : 0;
@@ -782,6 +808,15 @@ export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false,
     seedBase = 0;
   }
   g.restore();
+}
+
+// A painted variant of the portrait for this pose, as [sheet, cell], or null.
+// The variants are painted at the portrait's own scale and framing.
+function variant(id, pose) {
+  if (id === 'coot' && pose.frame && art('sprites.cootPoses')) return ['sprites.cootPoses', pose.frame === 'lookup' ? 1 : 0];
+  if (id === 'gullfinch' && (pose.sing || 0) > 0.5 && art('sprites.gullfinchSing')) return ['sprites.gullfinchSing', 0];
+  if (id === 'cupadee' && pose.open && art('sprites.cupadeeOpen')) return ['sprites.cupadeeOpen', 0];
+  return null;
 }
 
 // A dark ink silhouette of a bird, for pages not yet spotted.
@@ -800,6 +835,90 @@ export function drawSilhouette(g, id, opts) {
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.drawImage(c, 0, 0);
   g.restore();
+}
+
+// ---------- sprite sheets ----------
+// Each delivered sheet is an even grid (columns x rows), read row by row.
+// `drawSprite` draws one cell, trimmed to what is painted in it, standing on
+// (x, y) or centred there; it returns false while the sheet is not delivered
+// so the caller draws its stand-in instead.
+export const SHEETS = {
+  'sprites.scoops': [5, 2], // strawberry, lemon, vanilla, chocolate, mint, pistachio, blueberry, cherry, pickle, sock
+  'sprites.cootPoses': [2, 1], // mid-stride, looking up
+  'sprites.cupadeeOpen': [1, 1],
+  'sprites.teapot': [1, 1],
+  'sprites.hides': [3, 2], // bush, wall, trunk with knothole, gate pillar, hedge, tall grass
+  'sprites.gullfinchSing': [1, 1],
+  'sprites.plumeGrowth': [4, 1], // sprout, bud, bloom, wilted
+  'sprites.bobolinkBoots': [2, 1], // left boot, right boot
+  'sprites.stones': [3, 2],
+  'sprites.scraps': [4, 2],
+  'sprites.hats': [3, 1], // black bowler, top hat, brown bowler
+  'sprites.cars': [2, 2], // pink, blue, mustard, sage; all facing left
+  'sprites.chicks': [3, 2], // standing x3, walking x2, flying
+  medals: [3, 1], // bronze, silver, gold
+};
+
+const trims = new Map();
+// The cell's rectangle in the image, and the painted part of it (alpha > 24).
+export function spriteCell(key, i) {
+  const img = art(key);
+  const grid = SHEETS[key];
+  if (!img || !grid) return null;
+  const id = key + '#' + i;
+  if (trims.has(id)) return trims.get(id);
+  const [cols, rows] = grid;
+  const cw = img.width / cols;
+  const ch = img.height / rows;
+  const cx = (i % cols) * cw;
+  const cy = Math.floor(i / cols) * ch;
+  let box = { x: cx, y: cy, w: cw, h: ch };
+  try {
+    const k = 0.25; // measure at a quarter size
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(cw * k));
+    c.height = Math.max(1, Math.round(ch * k));
+    const h = c.getContext('2d', { willReadFrequently: true });
+    h.drawImage(img, cx, cy, cw, ch, 0, 0, c.width, c.height);
+    const d = h.getImageData(0, 0, c.width, c.height).data;
+    let x0 = c.width, y0 = c.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        if (d[(y * c.width + x) * 4 + 3] > 24) {
+          if (x < x0) x0 = x;
+          if (x > x1) x1 = x;
+          if (y < y0) y0 = y;
+          if (y > y1) y1 = y;
+        }
+      }
+    }
+    if (x1 >= 0) box = { x: cx + x0 / k, y: cy + y0 / k, w: (x1 - x0 + 1) / k, h: (y1 - y0 + 1) / k };
+  } catch {
+    /* no canvas reads: use the whole cell */
+  }
+  const cell = { img, cell: { x: cx, y: cy, w: cw, h: ch }, trim: box };
+  trims.set(id, cell);
+  return cell;
+}
+
+// opts: h or w (drawn size of the painted part), anchor 'bottom' | 'center',
+// flip, rot, alpha. With `whole: true` the full cell is drawn and sized
+// instead of its painted part (for stages that must share one scale).
+export function drawSprite(g, key, i, x, y, { h, w, anchor = 'bottom', flip = false, rot = 0, alpha = 1, whole = false } = {}) {
+  const s = spriteCell(key, i);
+  if (!s) return false;
+  const r = whole ? s.cell : s.trim;
+  const k = h ? h / r.h : w ? w / r.w : 1;
+  g.save();
+  g.translate(x, y);
+  if (rot) g.rotate(rot);
+  if (flip) g.scale(-1, 1);
+  if (alpha < 1) g.globalAlpha *= alpha;
+  const dw = r.w * k;
+  const dh = r.h * k;
+  g.drawImage(s.img, r.x, r.y, r.w, r.h, -dw / 2, anchor === 'bottom' ? -dh : -dh / 2, dw, dh);
+  g.restore();
+  return true;
 }
 
 // ---------- paper and scenes ----------

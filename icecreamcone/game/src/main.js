@@ -59,6 +59,7 @@ async function loadArt() {
       ),
   );
   setArt(map);
+  document.body.classList.toggle('medal-art', map.has('medals'));
   if (map.has('logo')) {
     $('#logo-img').src = ASSETS.logo.file;
     $('#logo-img').hidden = false;
@@ -466,7 +467,7 @@ function finish() {
   md.className = 'result-medal m' + m;
   md.textContent = m ? MEDAL_NAMES[m] : 'Try again!';
   $('#result-title').textContent = m === 3 ? 'Gold!' : m ? 'Well done!' : 'Time!';
-  $('#result-score').textContent = `${score} ${b.score}`;
+  $('#result-score').textContent = `${score} ${b.score}` + (m ? ` · ${MEDAL_NAMES[m]}` : '');
   const next = b.medals[m];
   $('#result-best').textContent = (isBest && score > 0 ? 'A new best! ' : `Best: ${best(b.id)}. `) + (next !== undefined ? `${MEDAL_NAMES[m + 1]} at ${next}.` : 'The best there is.');
   const extra = $('#result-extra');
