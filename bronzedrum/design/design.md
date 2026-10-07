@@ -114,8 +114,10 @@ rim (BD-U20 and BD-U21). On the touch drum each lands where it was tapped. Setti
 pestle-like pole and a bamboo stick (BD-U22, BD-U24), or Ceremonial, a
 lacquered beater and a horn-tipped stick (BD-U23, BD-U25). Reduce motion
 turns the shiver off. Text is drawn larger, taps
-buzz briefly if Vibration is on, and an upright phone pauses with a prompt to
-turn it sideways. The button faces are request BD-U16; until it is delivered
+buzz briefly if Vibration is on, and an upright phone holds the game behind a
+screen of its own (not the pause menu) asking for it to be turned sideways;
+the game carries on by itself once it is, and the screen's Menu button opens
+the pause menu. The button faces are request BD-U16; until it is delivered
 the renderer draws them.
 
 The two leads' temperaments are built into the controls: Trắc holds the beat and
