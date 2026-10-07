@@ -17,5 +17,8 @@ export const beatPhase = (beat) => ((beat % 1) + 1) % 1;
 
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const lerp = (a, b, k) => a + (b - a) * k;
+// The look of anything used up or taken (a spent clam, a sounded conch):
+// drained of colour and dimmed, so it plainly can't be used again.
+export const SPENT = 'grayscale(0.85) brightness(0.55)';
 export const easeOut = (k) => 1 - (1 - clamp(k, 0, 1)) ** 3;
 export const easeInOut = (k) => { k = clamp(k, 0, 1); return k * k * (3 - 2 * k); };

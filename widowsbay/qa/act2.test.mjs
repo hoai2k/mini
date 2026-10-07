@@ -214,7 +214,7 @@ test('tea-leaf omens show one beat early with the full reading, never without', 
   }
 });
 
-test('clams open on the beat for one beat; closed is solid, open gives a pearl', () => {
+test('clams open on the beat for one beat; closed is solid, open gives its one pearl, then stays shut', () => {
   const st = make(); skipOpening(st);
   const cl = st.clams[0];
   // follows the beat: open exactly on beats ≡ off (mod every)
@@ -236,6 +236,10 @@ test('clams open on the beat for one beat; closed is solid, open gives a pearl',
   for (let i = 0; i < 10; i++) { st.sailor.x = cl.x; st.sailor.y = cl.y - 30; tick(st, {}); }
   assert.equal(st.pearls, p0 + 1, 'one pearl per opening');
   assert.ok(count(st, 'clamSnap') >= 1);
+  // spent: it never opens again and gives no more pearls
+  for (let i = 0; i < cl.every * 4 / DT * BEAT_LEN; i++) { st.sailor.x = cl.x; st.sailor.y = cl.y - 30; tick(st, {}); }
+  assert.equal(st.pearls, p0 + 1, 'no pearl reappears');
+  assert.equal(cl.got, 1);
 });
 
 test('air drains, refills in a vent, and running out costs a lantern', () => {
