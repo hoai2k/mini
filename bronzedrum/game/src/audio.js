@@ -71,7 +71,8 @@ export class Sound {
           for (const f of e.files) {
             try {
               const data = await (await fetch(`${base}${f}`)).arrayBuffer();
-              buffers.push(await this.ctx.decodeAudioData(data));
+              const buf = await this.ctx.decodeAudioData(data);
+              buffers.push(e.loop ? buf : this.trimLead(buf));
             } catch {
               /* a missing or broken file falls back to the stand-in */
             }
@@ -387,6 +388,32 @@ export class Sound {
     this.out.gain.cancelScheduledValues(t);
     this.out.gain.setValueAtTime(0, t);
     this.out.gain.linearRampToValueAtTime(1, t + 0.25);
+  }
+
+  /**
+   * A one-shot sample without the silence before its attack. MP3 files carry
+   * about 25 ms of encoder and decoder padding at the start; Chrome removes it
+   * while decoding, but not every browser does, and a drum stroke that starts
+   * 25 ms late feels late. Anything quieter than -50 dB before the first sound
+   * is cut, keeping half a millisecond.
+   */
+  trimLead(buf) {
+    const n = buf.length;
+    let first = n;
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < Math.min(first, n); i++) {
+        if (Math.abs(d[i]) > 0.003) {
+          first = i;
+          break;
+        }
+      }
+    }
+    const cut = first - Math.round(buf.sampleRate * 0.0005);
+    if (cut < buf.sampleRate * 0.001 || cut >= n) return buf;
+    const out = this.ctx.createBuffer(buf.numberOfChannels, n - cut, buf.sampleRate);
+    for (let c = 0; c < buf.numberOfChannels; c++) out.copyToChannel(buf.getChannelData(c).subarray(cut), c);
+    return out;
   }
 
   get now() {

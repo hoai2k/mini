@@ -49,7 +49,7 @@ cd bronzedrum/game
 python3 -m http.server 8123     # then open http://localhost:8123/
 node --test test/*.test.mjs     # rhythm reader, chapters, battles, practice
 node scripts/check.mjs          # syntax, manifest ids, no per-frame canvas filters
-node scripts/browser-check.mjs  # in Chromium: frame cost per scene, demonstration
+node scripts/browser-check.mjs  # in Chromium: frame time per scene, demonstration
                                 # timing under a slow CPU, title selection
 python3 ../design/source/build_requests.py --check
 python3 ../design/source/build_audio.py --check
@@ -102,6 +102,29 @@ the reason. The game falls back to its synthesised sounds for anything missing.
 `bronzedrum/publish.sh local/pages/bronzedrum` copies the game into the Pages
 output. The workflow in `.github/workflows/pages.yml` runs the tests and the
 manifest check, then publishes the game.
+
+## Responsiveness
+
+A stroke must be heard and seen the moment it is played, so the frame loop is
+kept light and every clock is read precisely:
+
+- **One smooth clock.** Sounds are scheduled on the audio clock, but it only
+  advances once per audio buffer (every 3 ms in Chrome, 10-40 ms elsewhere), so
+  `songTime()` in `main.js` reads the performance clock locked to it. Pictures
+  drawn from it move evenly, and a stroke's time is exact.
+- **Strokes land on the first frame.** The close-up sticks and the sisters on
+  the palanquin are drawn on the drum from the first frame after a stroke, then
+  lift away (a swing in would only show after the sound).
+- **Controllers between frames.** A controller is polled every 4 ms as well as
+  once a frame, and a stroke is timed from the controller's own timestamp.
+- **Samples start on the attack.** Leading silence (MP3 padding, which not
+  every browser removes) is cut from one-shot samples when they load.
+- **Fewer full-screen layers.** The far scenery (sky, far karst, karst, haze)
+  is cached as one image, redrawn only when its slow parallax moves a pixel,
+  and the paper fibre and vignette are baked into one overlay: about 5 screens
+  painted per frame instead of 9.
+- **Resolution follows the frame rate.** If play runs below about 50 fps for
+  two seconds, the canvas drops half a step of pixel ratio (to no less than 1).
 
 ## Delivered art
 
