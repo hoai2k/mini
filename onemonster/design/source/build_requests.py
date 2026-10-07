@@ -41,10 +41,16 @@ STYLE = (
 # Where the reference photos of the book live once pushed (onemonster/reference/).
 REF_URL = "https://raw.githubusercontent.com/hoai2k/mini/main/onemonster/reference/"
 REF = (
-    "Match the design of this monster in the reference photo of the book, " + REF_URL + "{0} , "
-    "keeping its shapes, colours and proportions, but as a clean new full-colour drawing of the "
-    "monster alone (no book, page, hands, other monsters or printed text)."
+    "Match the design of this monster in the reference photos of the book, {0}, keeping its "
+    "shapes, colours and proportions, but as a clean new full-colour drawing of the monster "
+    "alone (no book, page, hands, other monsters or printed text)."
 )
+
+
+def ref_text(m: dict) -> str:
+    if m.get("refs"):
+        return REF.format(" , ".join(REF_URL + f for f in m["refs"]) + " ")
+    return REF_STYLE.format(m["style"])
 REF_STYLE = (
     "No picture of this monster from the book was available, so the design here is our own: "
     "draw it as a monster from the same book, matching the drawing style, palette and mood of "
@@ -159,39 +165,41 @@ SECTIONS = {
     ),
 }
 
-# Each monster: id (also the file name), name, the reference photo in
-# onemonster/reference/, whether that photo shows this monster ("seen") or only
-# the style (False), "shaggy": False for monsters that are not furry beasts,
-# the portrait description and its chapter scene. Order is
-# the order the letter meets them in the book; see onemonster/reference/README.md.
+# Each monster: id (also the file name), name, "refs": the reference photos in
+# onemonster/reference/ that show it (the first also sets the style of its
+# scene and props), or "style" naming a photo for style only when no picture of
+# it is known; "shaggy": False for monsters that are not furry beasts; the look,
+# its chapter scene and the game it plays. Order is the order the letter meets
+# them in the book; see onemonster/reference/README.md.
 MONSTERS = [
     {
         "id": "trollusk",
         "name": "The Stamp-Collecting Trollusk",
-        "ref": "cover-golden-book-1974.jpg",
-        "seen": True,
-        "look": "The Stamp-Collecting Trollusk, as on the book's cover: a squat, shaggy monster "
-        "covered in long dark-brown fur, with a long pink pig-like snout, one white tusk, big "
-        "pointed pink ears, small sly eyes and pink clawed hands and feet. He wears a squashed "
-        "blue-grey cap with a coil of thin blue-green tubing looped round it, and a yellow bib lettered STAMPS across his chest (the only lettering "
-        "allowed). He is tiptoeing, hunched and sneaky, a little envelope clutched to his chest "
-        "with a smirk on his snout.",
-        "scene": "A sunny small-town street seen side-on: a row of wooden porches with turned "
-        "posts, hanging flower baskets, flowerbeds and low bushes spaced along the bottom third, "
-        "a picket fence, and a blue curbside mailbox on a post at the far right. Leafy trees and a "
-        "pale lilac sky above. Keep the ground strip along the bottom clear to walk on.",
+        "refs": ["title-page.jpg", "pages-06-07-sally-ann-and-mailbox.jpg", "cover-golden-book-1974.jpg"],
+        "look": "The Stamp-Collecting Trollusk, as in the book: a squat, shaggy monster covered "
+        "in long dark-brown fur, with a long pink pig-like snout (his snerk) with a big round "
+        "nostril, one white tusk, big pointed pink ears, small sly eyes and pink clawed hands "
+        "and feet. He wears a crumpled blue-green checked top hat, squashed down, with a coil of "
+        "thin blue-green tubing looped round it as a hatband, and a yellow shoulder bag on a "
+        "strap lettered MY STAMPS (the only lettering allowed). He is tiptoeing, hunched and "
+        "sneaky, a little envelope clutched to his chest, with a smirk on his snout.",
+        "scene": "A leafy country lane seen side-on, as on the book's opening page: a dirt path "
+        "along the bottom third, a white picket fence, gnarled old trees with faces in their "
+        "knots, flowerbeds, low bushes and a dustbin spaced along it, and at the far right a "
+        "grey rural mailbox with a red flag on a wooden post. Leafy branches overhead and a pale "
+        "lilac sky. Keep the path along the bottom clear to walk on.",
         "used": "Before the Mailman Comes, the sneaking game",
     },
     {
         "id": "bombanat",
         "name": "The Letter-Eating Bombanat",
-        "ref": "cover-golden-book-1974.jpg",
-        "seen": True,
+        "refs": ["cover-golden-book-1974.jpg", "grithix-mailbox-page.jpg"],
         "look": "The Letter-Eating Bombanat, the bat-winged flier on the book's cover: huge mauve "
         "bat wings with thin finger bones and little claws at the tips, a long pink "
         "crocodile-like snout full of small sharp teeth, a sly frowning eye, a tuft of dark fur "
-        "on the chest, a red-and-white striped necktie, a pink striped cap with a yellow flower "
-        "on top, and clawed pink feet. Flying with wings spread, a white envelope in his teeth.",
+        "on the chest, a red-and-white striped necktie, a pink striped cap with a yellow "
+        "four-petalled flower on top, and clawed pink feet. Flying with wings spread, a white "
+        "envelope in his teeth.",
         "scene": "The Blue Ocean of Bubbley Goo seen side-on: a thick, glossy blue-and-teal sea "
         "of goo along the bottom quarter, full of round bubbles of every size, some swelling, "
         "some popping, under a wide pale mauve sky with long curling clouds. A far-off shore on "
@@ -201,15 +209,13 @@ MONSTERS = [
     {
         "id": "grumley",
         "name": "The Bombanat-Munching Grumley",
-        "ref": "cover-golden-book-1974.jpg",
-        "seen": False,
-        "look": "The Bombanat-Munching Grumley, a sea monster who lives in the Blue Ocean of "
-        "Bubbley Goo: a huge, lumpy, warty body in slimy sea-green and teal, with straggly "
-        "weed-like hair hanging over a low brow, two bulging greedy eyes set high on top of his "
-        "head (so he can lurk with only his eyes above the goo), a broad pink snout, a wide "
-        "grinning frog-like mouth with two great white tusks, and long arms ending in big "
-        "webbed pink paws. Show him rising chest-deep out of glossy blue goo, dripping, reaching "
-        "up with one paw.",
+        "refs": ["pages-16-17-grumley-netted.jpg"],
+        "look": "The Bombanat-Munching Grumley, as on pages 16-17 of the book: a big round "
+        "shaggy sea monster in ochre-orange fur, its head and body one great hairy ball with a "
+        "crest of spiky tufts on top, a big nose wearing small round wire spectacles, a wide "
+        "grinning mouth full of teeth, and a mass of long orange octopus tentacles with pale "
+        "suckers instead of arms and legs. Show him rising out of glossy blue goo, dripping, "
+        "tentacles reaching up.",
         "scene": "Close to the surface of the Blue Ocean of Bubbley Goo: glossy blue-and-teal goo "
         "with bubbles across the bottom third, a small rocky shore at the left edge with a "
         "picnic basket and a checked cloth, and a big open lilac sky above with a few curling "
@@ -220,8 +226,7 @@ MONSTERS = [
         "id": "iceferg",
         "shaggy": False,
         "name": "The Furious-Floating Ice-Ferg",
-        "ref": "typhoonigator-spread.jpg",
-        "seen": False,
+        "style": "pages-22-23-typhoonigator-full.jpg",
         "look": "The Furious-Floating Ice-Ferg: a craggy iceberg in a terrible temper, its "
         "pale-blue and white ice drawn in crosshatched facets, with a furious face in the front: "
         "two glaring eyes under a jutting frowning brow of ice, a scowling mouth with icicle "
@@ -230,20 +235,19 @@ MONSTERS = [
         "scene": "The open sea seen from high above: slate-blue and teal water drawn as rows of "
         "curling strokes, a few streaks of foam and long current lines, a harbour with a "
         "lighthouse and jetty along the top edge, and scattered rocks near the sides. Keep the "
-        "middle of the sea open, because the iceberg and the ships move there.",
+        "middle of the sea open, because the iceberg and the boats move there.",
         "used": "Furious Floating, the ramming game",
     },
     {
         "id": "typhoonigator",
         "shaggy": False,
         "name": "The Wild-'n-Windy Typhoonigator",
-        "ref": "typhoonigator-spread.jpg",
-        "seen": True,
-        "look": "The Wild-'n-Windy Typhoonigator, as on the book's page-20 spread: a storm cloud "
-        "with a face, its body and hair billowing grey-brown and lilac cloud, clawed cloud hands "
-        "at either side, two bulging round eyes with small pupils under heavy wrinkled brows, a "
-        "long fleshy pink nose and huge pink lips pursed to suck. Below the lips, the top of a "
-        "streaked blue-grey water spout.",
+        "refs": ["typhoonigator-spread.jpg", "pages-22-23-typhoonigator-full.jpg"],
+        "look": "The Wild-'n-Windy Typhoonigator, as on the book's pages 20-23: a storm cloud "
+        "with a face, its body and hair billowing grey-brown and lilac cloud, puffy clawed cloud "
+        "hands at either side, two bulging round eyes with small pupils under heavy wrinkled "
+        "brows, a long fleshy pink nose and huge pink lips pursed to suck. Below the lips, the "
+        "top of a streaked blue-grey water spout.",
         "scene": "A wide stormy sea seen from above at a slant: slate-blue and teal water drawn "
         "as rows of curling strokes, spray and foam, a heavy lilac-and-grey sky at the top, and "
         "at the far right a strip of bumpy brown land with a signpost, the edge of Nowhere. Keep "
@@ -253,57 +257,55 @@ MONSTERS = [
     {
         "id": "yalapappus",
         "name": "The Paper-Munching Yalapappus",
-        "ref": "cover-golden-book-1974.jpg",
-        "note": "That the cover's yellow monster is the Yalapappus is the owner's reading of "
-        "the book; the shaggy ochre monster peering over the mailbox in grithix-mailbox-page.jpg, "
-        "where the text puts the Yalapappus, matches it.",
-        "seen": True,
-        "look": "The Paper-Munching Yalapappus, as the big shaggy monster at the left of the "
-        "book's cover: a huge, round, lumpy body of curly ochre-yellow fur, a broad squashed face "
-        "with a wide grinning mouth and two great white tusks, a broad pink snout and heavy "
-        "upper lip, heavy-lidded greedy eyes, short stumpy legs with big pink clawed feet, a "
-        "white napkin tied round his neck and a big fork held up in one pink paw, ready to munch. "
-        "He is trundling along at a run, a scrap of paper half-munched in his mouth.",
-        "scene": "The edge of Nowhere seen side-on: bumpy, scrubby brown-and-ochre ground with "
-        "rocks, holes and tufts of grass along the bottom third, a crooked signpost, a few bare "
-        "twisted trees, and a wide pale lilac sky with curling clouds. Keep the ground strip "
-        "clear for running and the sky open above it.",
+        "refs": ["pages-36-37-mailman-yalapappus-grithix.jpg", "cover-golden-book-1974.jpg"],
+        "look": "The Paper-Munching Yalapappus, as in the book (the big shaggy monster at the "
+        "left of the cover): a huge, round, lumpy body of curly ochre-yellow fur, a broad "
+        "squashed face with a wide grinning mouth and two great white tusks, a broad pink snout "
+        "and heavy upper lip, heavy-lidded greedy eyes, short stumpy legs with big pink clawed "
+        "feet, a white napkin tied round his neck and a big fork held up in one pink paw, ready "
+        "to munch. He is trundling along at a run, a scrap of paper half-munched in his mouth.",
+        "scene": "The edge of Nowhere seen side-on, as on the book's pages 36-37: bumpy, "
+        "scrubby brown-and-ochre ground with rocks, holes and tufts of grass along the bottom "
+        "third, a crooked blank wooden signpost nailed to a tree, a lone palm tree, a winding "
+        "road and rolling hills far off, and a wide pale lilac sky with curling clouds. Keep the "
+        "ground strip clear for running and the sky open above it.",
         "used": "Munch and Chase, the chasing game",
     },
     {
         "id": "grithix",
         "name": "The Bombanat-Collecting Grithix",
-        "ref": "grithix-mailbox-page.jpg",
-        "seen": True,
-        "look": "The Bombanat-Collecting Grithix, as on his page of the book: a tall, upright, "
-        "stout monster with pale pinkish hide drawn in fine lines (not furry); a big long head "
-        "with a heavy snout like a rhinoceros's, a row of three blunt horns along the top of the "
-        "snout and a blunt horn on the brow, two long white tusks curving up from the lower jaw, "
-        "a small half-lidded eye with a sly, pleased look and a smirk, and one long floppy ear "
-        "or horn curling back from the top of the head. He wears a long, ragged magenta-pink "
-        "robe down to his feet, held up by a strap with a big button, and carries a big scaly "
-        "blue-grey bag with small yellow spots on a strap under his near arm. Big pink clawed "
+        "refs": ["back-cover-grithix.jpg", "grithix-mailbox-page.jpg", "title-page.jpg"],
+        "look": "The Bombanat-Collecting Grithix, as in the book (the back cover shows him "
+        "best): a tall, upright, stout monster with pale pinkish hide drawn in fine lines (not "
+        "furry); a big long head with a heavy snout like a rhinoceros's, a row of blunt horns "
+        "along the top of the snout and a blunt horn on the brow, two long white tusks curving "
+        "up from the lower jaw, a small half-lidded eye with a sly, pleased look and a smirk, "
+        "and one long floppy ear or horn curling back from the top of the head. He wears a long "
+        "magenta-pink robe down to his feet, buttoned down the front, with a short scaly "
+        "blue-green shawl dotted with small yellow spots over his shoulders. Big pink clawed "
         "hands, big pink clawed feet with long white talons, and a long pink tail ending in a "
-        "spiked ball like a mace. Over his shoulder, a butterfly net on a long yellow pole with "
-        "a round yellow hoop and a dark mesh bag.",
+        "spiked ball like a mace. He carries a butterfly net on a long yellow pole with a round "
+        "yellow hoop and a dark mesh bag.",
         "scene": "A clearing in a thick wood: gnarled trees and dense ferns and leaves framing "
         "the left, right and top edges, a mossy floor across the bottom third, and an "
         "official-looking mailbox at the right edge, a squat riveted grey-mauve metal box with an "
-        "arched top and a mail slot, as on the Grithix's page. Keep the middle of the "
-        "clearing open, because Bombanats fly through it and the Grithix runs about.",
+        "arched top and a mail slot, as in the book. Keep the middle of the clearing open, "
+        "because Bombanats fly through it and the Grithix runs about.",
         "used": "Net Them All, the netting game",
     },
 ]
+for _m in MONSTERS:
+    _m["ref"] = (_m.get("refs") or [_m.get("style")])[0]
 
 # One-word reminders of what each monster is, for the prompts that show them together.
 WHAT = {
-    "trollusk": "a shaggy brown troll with a pink pig snout, a cap and a yellow STAMPS bib",
+    "trollusk": "a shaggy brown troll with a pink pig snout, a checked top hat and a yellow stamp bag",
     "bombanat": "a bat-winged monster with a long toothy snout and a striped necktie",
-    "grumley": "a warty sea-green goo monster with eyes on top of his head and tusks",
+    "grumley": "a shaggy orange octopus-like monster in round spectacles",
     "iceferg": "a furious iceberg with a face",
     "typhoonigator": "a storm cloud with a face and big pink lips",
     "yalapappus": "a huge shaggy ochre monster with tusks, a napkin and a fork",
-    "grithix": "a tall horn-snouted pink monster in a long magenta robe, with a butterfly net and a spiked tail",
+    "grithix": "a tall horn-snouted pink monster in a long magenta robe and scaly shawl, with a butterfly net and a spiked tail",
 }
 
 # How each monster is built for animation. "view" is the master view the game
@@ -317,8 +319,8 @@ RIGS = {
         "view": "side view facing right, standing on his two short legs",
         "views": "a front view, a back view, and a three-quarter view facing right",
         "parts": [
-            "the torso with the yellow STAMPS bib, no head, arms or legs",
-            "the head with the cap, the far ear, the eyes and the upper snout with its tusk, but no lower jaw and no near ear",
+            "the torso, no head, arms, legs or bag",
+            "the head with the far ear, the eyes and the upper snout with its tusk, but no lower jaw, no near ear and no hat",
             "the lower jaw, mouth closed in a smirk",
             "the near ear",
             "the near upper arm",
@@ -329,7 +331,8 @@ RIGS = {
             "the near shin and foot",
             "the far thigh",
             "the far shin and foot",
-            "the blue-grey cap alone, so it can bounce and fly off",
+            "the checked top hat with its coiled hatband, alone, so it can bounce and fly off",
+            "the yellow MY STAMPS bag with its strap, so it can swing",
         ],
         "swaps": [
             "the lower jaw dropped wide open, gabbling",
@@ -346,11 +349,11 @@ RIGS = {
             "standing idle, smug",
             "sneaking on tiptoe, near leg forward",
             "sneaking on tiptoe, far leg forward",
-            "ducked down low in a crouch, curled up small to hide, only the cap and snout showing above his back",
+            "ducked down low in a crouch, curled up small to hide, only the hat and snout showing above his back",
             "reaching up high with both hands to grab",
             "gabbling away at a run, near leg forward, a letter clamped in his snout",
             "gabbling away at a run, both feet off the ground",
-            "jolted in surprise as something snatches from above, cap flying off",
+            "jolted in surprise as something snatches from above, hat flying off",
             "scuttling back in a fright, arms flung up",
             "sitting and wailing, head thrown back",
         ],
@@ -399,39 +402,39 @@ RIGS = {
         "flapping, struggling when grabbed, netted",
     },
     "grumley": {
-        "view": "three-quarter view facing right, from the waist up, as he rises out of the goo "
-        "(draw no goo)",
-        "views": "a front view of the whole monster standing on a shore (feet and all), and a "
-        "side view facing right from the waist up",
+        "view": "three-quarter view facing right, rising out of the goo with his tentacles "
+        "spread (draw no goo)",
+        "views": "a front view with all the tentacles spread, and a side view facing right",
         "parts": [
-            "the torso from the waist up, its bottom edge drawn complete and round (the game hides it under the goo)",
-            "the head with the eyes, brows and broad snout, but no lower jaw and no weedy hair",
-            "the lower jaw with the two great tusks, mouth closed in a grin",
-            "the straggly weed-like hair, so it can sway and drip",
-            "the near upper arm",
-            "the near forearm and open webbed paw, reaching",
-            "the far upper arm",
-            "the far forearm and open webbed paw",
+            "the great hairy head-and-body ball with the eyes and nose, but no mouth, no spectacles, no hair crest and no tentacles",
+            "the wide grinning mouth with its teeth, closed",
+            "the small round wire spectacles alone",
+            "the crest of spiky hair tufts on top, so it can bristle",
+            "one long near tentacle drawn out straight and flat, tapering from base to tip, suckers along its underside (the game bends it)",
+            "one long far tentacle drawn the same way, a shade darker",
+            "one short tentacle drawn out straight, tapering",
         ],
         "swaps": [
-            "the lower jaw wide open, ready to munch",
-            "the lower jaw chomping, cheeks bulging",
-            "the eye area only, eyes heavy-lidded and greedy",
+            "the mouth wide open, ready to munch",
+            "the mouth chomping, cheeks bulging",
+            "the eye area only, eyes greedy behind the spectacles",
             "the eye area only, eyes squeezed shut and spluttering",
             "the eye area only, eyes crossed and dazed",
-            "the near paw clenched shut, grabbing",
-            "dripping blobs of blue goo to lay over the head and shoulders",
+            "the spectacles knocked crooked",
+            "a tentacle tip curled tight round nothing, grabbing",
+            "dripping blobs of blue goo to lay over the head",
         ],
         "poses": [
-            "lurking, only the eyes on top of his head above the goo line, the rest sunk below",
-            "rising out of the goo, dripping",
-            "lunging straight up, the near arm stretched as high as it goes",
-            "holding a clenched fist up in triumph",
-            "spluttering after a miss, goo on his face",
-            "rubbing his belly and licking his lips, looking forward to lunch",
-            "startled by a SNAP, jaw dropped",
+            "lurking, only the spectacled eyes and hair crest above the goo line, the rest sunk below",
+            "rising out of the goo, dripping, tentacles spreading",
+            "lunging straight up, two tentacles stretched as high as they go",
+            "holding a tentacle up in triumph, its tip curled tight",
+            "spluttering after a miss, goo on his spectacles",
+            "rubbing his middle with two tentacles and licking his lips, looking forward to lunch",
+            "snagged in a big fishing net and hauled up wiggly-squiggly, tentacles everywhere",
         ],
-        "anims": "lurking, rising, the lunge and grab, the miss and splutter, the lunch dance, the SNAP",
+        "anims": "lurking, rising, tentacles curling and waving, the lunge and grab, the miss "
+        "and splutter, the lunch dance, being netted and hauled up",
     },
     "iceferg": {
         "view": "front three-quarter view from high above, floating, the waterline along its "
@@ -544,7 +547,7 @@ RIGS = {
         "view": "side view facing right, standing upright, the net over his shoulder",
         "views": "a front view, a back view, and a three-quarter view facing right",
         "parts": [
-            "the torso and the long magenta robe down to the hem, with the strap and button, no head, arms, feet or tail",
+            "the torso and the long magenta robe down to the hem, buttoned, with the scaly shawl over the shoulders, no head, arms, feet or tail",
             "the head with the horns, the eye and the upper snout, but no lower jaw and no floppy ear",
             "the lower jaw with the two long tusks, mouth closed in a smirk",
             "the long floppy ear or horn from the top of the head",
@@ -557,7 +560,6 @@ RIGS = {
             "the loose lower edge of the robe, so it can swing as he walks",
             "the long tail without its end",
             "the spiked ball at the end of the tail",
-            "the scaly blue-grey bag with its strap",
             "the long yellow pole of the net",
             "the yellow hoop and the empty net bag",
         ],
@@ -711,20 +713,19 @@ SECTIONS = {
 
 for i, m in enumerate(MONSTERS, start=1):
     rig = RIGS[m["id"]]
-    ref = REF.format(m["ref"]) if m["seen"] else REF_STYLE.format(m["ref"])
-    ref = ref.replace("as a clean new full-colour drawing of the monster alone",
-                      "as clean new full-colour drawings of the monster alone")
+    ref = ref_text(m).replace("as a clean new full-colour drawing of the monster alone",
+                              "as clean new full-colour drawings of the monster alone")
     look = STYLE + " " + (MONSTER + " " if m.get("shaggy", True) else "") + m["look"]
     # The look describes a lively pose for the portrait; the sprites use only the
     # design, with the pose given by each request.
     design = " (Use this description for the design only; the pose is given below.) "
-    note = m.get("note") or (None if m["seen"] else "No picture of this monster was found: the "
+    note = m.get("note") or (None if m.get("refs") else "No picture of this monster was found: the "
                              "design is ours. Check the Internet Archive scan and adjust the "
                              "prompt before generating.")
     base = f"assets/monsters/{m['id']}/"
     sheet_id, parts_id = f"OM-C{i:02d}", f"OM-R{i:02d}"
     from_sheet = FROM_SHEET.format(sheet_id, f"onemonster/game/{base}model-sheet.png")
-    common = {"section": m["id"], "status": "requested", "ref": m["ref"]}
+    common = {"section": m["id"], "status": "requested", "ref": m.get("refs") or m["ref"]}
     pc, pr = grid(len(rig["parts"]))
     sc, sr = grid(len(rig["swaps"]))
     kc, kr = grid(len(rig["poses"]))
@@ -810,22 +811,24 @@ REQUESTS += [
         "used": "Not shown in the game: the canonical look of the people, for their sprites and "
         "the story pages.",
         "standin": "None needed.",
-        "ref": "mailbox-girl-and-trollusk.jpg",
+        "ref": ["pages-06-07-sally-ann-and-mailbox.jpg", "mailbox-girl-and-trollusk.jpg",
+                "pages-36-37-mailman-yalapappus-grithix.jpg", "typhoonigator-spread.jpg"],
         "status": "requested",
-        "note": "Sally Ann's and the mailman's looks are ours; Lucy Jane follows the girl in the "
-        "reference photo, whose identity is not confirmed.",
+        "note": "Lucy Jane is taken to be the girl in glasses in mailbox-girl-and-trollusk.jpg, "
+        "since Sally Ann (pages 6-7) looks different; not confirmed.",
         "prompt": STYLE + " A character model sheet for an animated game: the one definitive "
         "design of each of these people, drawn in a row, each shown twice side by side (a "
         "front view and a side view facing right), all at the same scale, standing in a calm "
-        "neutral pose. 1. Sally Ann, a girl of about eight with short curly red hair, freckles, "
-        "a green dress and white socks. 2. Lucy Jane, a girl of about eight with long wavy brown "
-        "hair, round glasses, a white top and a pink skirt, barefoot, as the girl in the "
-        "reference photo. 3. The mailman, short and stern, in a blue uniform, peaked cap and "
-        "goggles, with a mail satchel. 4. The ship's captain, bearded, in a grey cap and long "
-        "grey coat, as the sailors on the book's page-20 spread ( " + REF_URL
+        "neutral pose. 1. Sally Ann, a barefoot girl of about eight with long wavy light-brown hair tied with a big pink bow, a white short-sleeved blouse and red-checked overall shorts, as on the book's pages 6-7 ( " + REF_URL
+        + "pages-06-07-sally-ann-and-mailbox.jpg ). 2. Lucy Jane, a barefoot girl of about eight "
+        "with long wavy brown hair, round glasses, a white top and a pink skirt, as the girl in "
+        + REF_URL + "mailbox-girl-and-trollusk.jpg . 3. The official mailman, small and stern, in "
+        "a round helmet with goggles and an ochre jacket, with a mail satchel, as on the book's "
+        "pages 36-37 ( " + REF_URL + "pages-36-37-mailman-yalapappus-grithix.jpg ). 4. The "
+        "captain of the fishing boat, bearded, in a blue-grey cap and long blue-grey oilskin "
+        "coat, as the sailors on the book's page-20 spread ( " + REF_URL
         + "typhoonigator-spread.jpg ). Even, flat lighting and clean washes; wide gaps between "
-        "the figures; no labels, no ground line. " + ALPHA + " "
-        + REF_SCENE.format("mailbox-girl-and-trollusk.jpg"),
+        "the figures; no labels, no ground line. " + ALPHA,
     },
     {
         "id": "OM-K08",
@@ -846,7 +849,7 @@ REQUESTS += [
         "writing at a desk. 3. A plump neighbour lady in a rocking chair on a porch step, peering "
         "over her spectacles. 4. The same neighbour, dozing. 5. A scruffy little dog, ears up, "
         "staring. 6. The same dog, curled up asleep. 7. The mailman riding his official-looking "
-        "old motorcycle with a sidecar of mail sacks, side view facing left, wheels round. 8. The "
+        "old motorcycle piled with mail sacks, side view facing left, wheels round. 8. The "
         "same, mid-bounce, exhaust puffing. 9. The captain standing in a pink rubber raft, "
         "throwing a bottle overarm. 10. Two bearded sailors paddling the pink rubber raft with an "
         "S.O.S. flag, as on the book's page-20 spread, paddles forward. 11. The same, paddles "
@@ -863,8 +866,8 @@ PROPS = [
         "a yellow postage stamp with a scalloped edge, curling",
         "a round leafy bush",
         "a long low flowerbed of tulips and daisies",
-        "a blue curbside mailbox on a post with its little red flag down",
-        "the same mailbox with the flag up and the door open",
+        "Sally Ann's grey rural mailbox with a rounded top, on a wooden post, its red flag down",
+        "the same mailbox with the red flag up and the door open",
         "an eye-shaped warning bubble with a startled eye in it",
     ]),
     ("bombanat", "", [
@@ -887,10 +890,10 @@ PROPS = [
         "a ring of goo splash, seen side-on",
     ]),
     ("iceferg", "seen from high above", [
-        "the captain's little steamship, sailing",
-        "the same ship tilted and sinking, bow up",
-        "a small red fishing boat",
-        "a small green fishing boat with a net",
+        "the captain's fishing boat, the Peg, as on the book's pages 16-17: a stout teal hull with portholes, a wooden wheelhouse, a crane with a net, sailing",
+        "the same boat tilted and sinking, bow up",
+        "a small red rowing boat",
+        "a small green rowing boat with a fisherman",
         "a curving current arrow drawn in the water as foam",
         "a white splash ring",
     ]),
@@ -967,16 +970,16 @@ REQUESTS += [
         "file": "assets/story/prologue.webp",
         "size": "1920 x 1080, opaque",
         "used": "The opening page of the journey.",
-        "standin": "The street scene with a girl and the mailbox drawn in code.",
-        "ref": "mailbox-girl-and-trollusk.jpg",
+        "standin": "The lane with a girl and the mailbox drawn in code.",
+        "ref": "pages-06-07-sally-ann-and-mailbox.jpg",
         "status": "requested",
-        "note": "Which girl the reference photo shows is not confirmed; Sally Ann's look here is ours.",
-        "prompt": STYLE + " " + STORY + "A girl of about eight with short curly red hair, "
-        "freckles, a green dress and white socks stands on tiptoe at a blue curbside mailbox in "
-        "front of a wooden porch with turned posts and hanging flower baskets, posting a white "
-        "envelope. Behind the flowerbed, half hidden, the pink snout and pointed ears of a "
-        "shaggy brown monster in a blue-grey cap peek out, watching the letter. Morning light, a "
-        "pale lilac sky. " + REF_SCENE.format("mailbox-girl-and-trollusk.jpg"),
+        "prompt": STYLE + " " + STORY + "As on the book's pages 6-7 (a new picture of the same "
+        "moment, not a copy): Sally Ann, a barefoot girl of about eight with long wavy light-brown hair tied with a big pink bow, a white short-sleeved blouse and red-checked overall shorts, stands on tiptoe "
+        "posting a white envelope into a grey rural mailbox with a red flag on a wooden post, "
+        "beside a white picket fence on a leafy country lane. Behind a gnarled old tree in the "
+        "foreground, half hidden, " + WHAT["trollusk"] + " peeks out, watching the letter. Morning "
+        "light, a pale lilac sky. Draw the characters from the attached model sheets where you "
+        "have them. " + REF_SCENE.format("pages-06-07-sally-ann-and-mailbox.jpg"),
     },
     {
         "id": "OM-P02",
@@ -987,16 +990,17 @@ REQUESTS += [
         "size": "1920 x 1080, opaque",
         "used": "The epilogue page where the mailman takes the letter.",
         "standin": "A mailbox and a motorcycle drawn in code.",
-        "ref": "cover-golden-book-1974.jpg",
+        "ref": "pages-36-37-mailman-yalapappus-grithix.jpg",
         "status": "requested",
-        "prompt": STYLE + " " + STORY + "At the edge of a wood, a stern little mailman in a "
-        "blue uniform, peaked cap and goggles roars up on an official-looking old motorcycle "
-        "with a sidecar full of mail sacks, one arm raised and pointing. In front of an "
+        "prompt": STYLE + " " + STORY + "At the edge of Nowhere, a stern little mailman in a "
+        "round helmet, goggles and an ochre jacket roars up on an official-looking old motorcycle "
+        "piled with mail sacks, one arm raised and pointing. In front of an "
         "official-looking mailbox (a squat riveted grey-mauve metal box with an arched top), three monsters freeze in the act of trying to carry the "
         "mailbox off: " + WHAT["trollusk"] + "; " + WHAT["yalapappus"] + "; "
         + WHAT["bombanat"] + ". At the side, " + WHAT["grithix"] + " walks off home with a "
-        "netted Bombanat under one arm, not caring a bit. "
-        + REF_SCENE.format("cover-golden-book-1974.jpg"),
+        "netted Bombanat under one arm, not caring a bit. Draw the characters from the attached "
+        "model sheets where you have them. "
+        + REF_SCENE.format("pages-36-37-mailman-yalapappus-grithix.jpg"),
     },
     {
         "id": "OM-P03",
@@ -1018,6 +1022,10 @@ REQUESTS += [
         + REF_SCENE.format("mailbox-girl-and-trollusk.jpg"),
     },
 ]
+
+
+def refs(r: dict) -> list[str]:
+    return r["ref"] if isinstance(r["ref"], list) else [r["ref"]]
 
 
 def asset_list() -> str:
@@ -1051,9 +1059,9 @@ def document() -> str:
         "alpha, use a flat pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.",
         "4. Opaque images are listed as `.webp`; PNG or JPEG is fine too, they are converted on integration.",
         "5. Nothing here blocks the game: every image has a stand-in drawn in code until it arrives.",
-        "6. Each request names a reference photo of the book in `onemonster/reference/`, and its "
-        "prompt links to it. Give that photo to the image generator along with the prompt where "
-        "it can take an image; the prompt's link works once the photo is on `main`.",
+        "6. Each request names one or more reference photos of the book in `onemonster/reference/`, "
+        "and its prompt links to them. Give those photos to the image generator along with the prompt where "
+        "it can take images; the prompt's links work once the photos are on `main`.",
         "7. **Canonical first.** Each monster has five requests. Make its model sheet (`OM-C`) "
         "first and settle the design there, from the book's reference photo. Then make the other "
         "four (portrait `OM-M`, parts `OM-R`, swaps `OM-F`, key poses `OM-K`) with the model "
@@ -1072,9 +1080,9 @@ def document() -> str:
         "9. If a generator struggles with a whole sheet, split it: make the first half of the "
         "list and the second half as two images, saved as `parts-1.png` and `parts-2.png` (and "
         "so on), each in the same order and at the same scale.",
-        "10. Two monsters (the Grumley and the Ice-Ferg) are not in any photo we "
-        "have, and their designs are ours; their model sheets say so under **Note**. If you can "
-        "look at the book (the Internet Archive lends a scan), adjust those prompts to match first.",
+        "10. One monster, the Ice-Ferg, is not in any photo we have, and its design is "
+        "ours; its model sheet says so under **Note**. If you can look at its page of the book "
+        "(the Internet Archive lends a scan), adjust that prompt to match first.",
         "11. Order of work: the model sheets, then the portraits, then the parts and swaps, then "
         "the key poses, props, scenes and story pages. The game keeps its stand-ins for anything "
         "not yet delivered.",
@@ -1094,7 +1102,7 @@ def document() -> str:
                 f"- **Size:** {r['size']}",
                 f"- **Used for:** {r['used']}",
                 f"- **Stand-in until delivered:** {r['standin']}",
-                *([f"- **Reference:** [`reference/{r['ref']}`](../reference/{r['ref']})"] if r.get("ref") else []),
+                *([f"- **Reference:** " + ", ".join(f"[`reference/{f}`](../reference/{f})" for f in refs(r))] if r.get("ref") else []),
                 *([f"- **Note:** {r['note']}"] if r.get("note") else []),
                 f"- **Status:** {r['status']}",
                 "",
@@ -1107,6 +1115,12 @@ def document() -> str:
 
 
 def main() -> int:
+    missing = sorted({f for r in REQUESTS if r.get("ref") for f in refs(r)
+                      if not (ROOT / "reference" / f).exists()})
+    for f in missing:
+        print(f"missing reference photo: onemonster/reference/{f}")
+    if missing:
+        return 1
     outputs = {DOC: document(), ASSET_LIST: asset_list()}
     if "--check" in sys.argv:
         stale = [p for p, text in outputs.items() if not p.exists() or p.read_text() != text]
