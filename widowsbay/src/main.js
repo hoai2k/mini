@@ -578,14 +578,14 @@ function touchVerb() {
   const st = S.state, id = S.act?.id;
   if (!st) return '';
   if (id === 1) return st.phase === 'voyage' ? 'Leap' : st.phase === 'party' ? 'On the beat' : '';
-  if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? '' : 'Kick';
+  if (id === 2) return st.phase === 'offer' ? 'Take' : st.phase === 'ride' ? 'Leap' : 'Kick';
   if (id === 3) return S.state?.canTake ? 'Take' : 'Hide';
   if (id === 4) return 'Leap';
   if (id === 5) return st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Leap / throw' : 'Leap';
   return '';
 }
 function touchVerbHint(act) {
-  return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick', 3: 'drag to walk, swipe to change groove, tap to hide',
+  return { 1: 'drag to sail, swipe to change row, tap to leap', 2: 'drag to swim, A to kick; on the moon boat, drag to sail, swipe to change row, tap to leap', 3: 'drag to walk, swipe to change groove, tap to hide',
     4: 'drag to walk, swipe up or tap to leap', 5: 'drag to climb, A to leap' }[act.id] || 'drag to move';
 }
 // Which touch scheme a scene uses: swipes for rows and floors, the stick for
@@ -593,7 +593,7 @@ function touchVerbHint(act) {
 function touchScheme() {
   const id = S.act?.id, ph = S.state?.phase;
   if (id === 1) return { mode: 'swipe', hint: ph === 'party' ? 'Tap on the beat' : 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' };
-  if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Swipe ↕ to change row' } : { mode: 'stick', hint: 'Drag to swim' };
+  if (id === 2) return ph === 'ride' ? { mode: 'swipe', hint: 'Drag ↔ to sail · swipe ↕ to change row · tap to leap' } : { mode: 'stick', hint: 'Drag to swim' };
   if (id === 3) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe ↕ to change groove · tap to hide' };
   if (id === 4) return { mode: 'swipe', hint: 'Drag ↔ to walk · swipe up or tap to leap', flickUpIsA: true };
   return { mode: 'stick', hint: 'Drag to climb' };

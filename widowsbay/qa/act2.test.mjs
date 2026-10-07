@@ -1,7 +1,7 @@
 // Headless checks for Act II, The Sleepers' Grotto. Run: node widowsbay/qa/act2.test.mjs
 import assert from 'node:assert/strict';
 import act, {
-  BEAT_LEN, FLOOR, TUNE, PHASE_LEN, REST, SLEEPERS,
+  BEAT_LEN, FLOOR, TUNE, PHASE_LEN, REST, SLEEPERS, RIDE, ridePearlX,
   clamOpen, jellyPos, dragonPos, eelExt, SCENES, VENTS,
 } from '../src/acts/act2.js';
 
@@ -283,7 +283,7 @@ test('the guitar stays out of reach until it rests on the floor', () => {
   assert.ok(minGap >= 99, `closest ${minGap}`);
 });
 
-test('the ride: up and down choose the row, pearls gather, nothing is lost', () => {
+test('the ride: up and down choose the row, sail and leap as in Act I, pearls gather, nothing is lost', () => {
   const st = make(); skipOpening(st);
   st.guitar.y = REST.y; st.guitar.x = REST.x; st.guitar.settled = true; st.sailor.x = REST.x; st.sailor.y = REST.y - 40; st.cam = 3610;
   tick(st, {}); run(st, 2.2, {}); tick(st, { b: true });
@@ -294,17 +294,43 @@ test('the ride: up and down choose the row, pearls gather, nothing is lost', () 
   run(st, 0.4, {}); tick(st, { up: true }); assert.equal(st.ride.row, 0, 'clamped');
   tick(st, { down: true }); run(st, 0.4, {}); tick(st, { down: true });
   assert.equal(st.ride.row, 2);
-  // follow the pearls: steer to the row of the next one
+  // follow the pearls: steer to the row of the next one, leap for the high ones
   run(st, PHASE_LEN.ride, (s) => {
     if (s.phase !== 'ride') return {};
-    const next = s.ride.pearls.find((p) => !p.got && 1250 - (s.phaseT - p.at) * 300 > 420);
-    if (!next || s.ride.rowT < 1) return {};
-    return { up: next.row < s.ride.row, down: next.row > s.ride.row };
+    const next = s.ride.pearls.find((p) => !p.got && ridePearlX(p, s.phaseT) > s.ride.x - 50);
+    if (!next) return {};
+    const dx = ridePearlX(next, s.phaseT) - s.ride.x;
+    const leap = next.high && next.row === s.ride.row && dx > 90 && dx < 130;
+    if (s.ride.rowT < 1) return { a: leap };
+    return { up: next.row < s.ride.row, down: next.row > s.ride.row, a: leap };
   });
-  assert.ok(st.pearls - p0 >= 12, `ride pearls ${st.pearls - p0}`);
+  assert.ok(st.pearls - p0 >= 10, `ride pearls ${st.pearls - p0}`);
+  assert.ok(st.ride.pearls.filter((p) => p.high && p.got).length >= 2, 'leapt for high pearls');
   assert.equal(st.lanterns, lanterns);
   run(st, PHASE_LEN.iris + 0.1, {});
   assert.equal(st.status, 'won');
+});
+
+test('the ride: sailing is bounded; a high pearl needs a leap', () => {
+  const st = make(); skipOpening(st);
+  st.guitar.y = REST.y; st.guitar.x = REST.x; st.guitar.settled = true; st.sailor.x = REST.x; st.sailor.y = REST.y - 40; st.cam = 3610;
+  tick(st, {}); run(st, 2.2, {}); tick(st, { b: true });
+  run(st, PHASE_LEN.choice + 0.1, {});
+  const r = st.ride;
+  for (const p of r.pearls) { p.got = true; }
+  assert.ok(r.pearls.some((p) => p.high), 'some pearls float high');
+  const x0 = r.x;
+  run(st, 0.5, { moveX: 1 }); assert.ok(r.x > x0 + 100, 'sails forward');
+  run(st, 4, { moveX: -1 }); assert.equal(r.x, RIDE.minX, 'clamped at the left');
+  run(st, 4, { moveX: 1 }); assert.equal(r.x, RIDE.maxX, 'clamped at the right');
+  const hi = r.pearls.find((p) => p.high); hi.got = false; hi.row = r.row;
+  hi.at = st.phaseT + 0.5 - (1250 - r.x) / RIDE.speed;
+  run(st, 1.2, {});
+  assert.equal(hi.got, false, 'passes overhead without a leap');
+  const hi2 = r.pearls.filter((p) => p.high)[1]; hi2.got = false; hi2.row = r.row;
+  hi2.at = st.phaseT + 0.4 - (1250 - r.x) / RIDE.speed;
+  tick(st, { a: true }); run(st, 0.8, {});
+  assert.equal(hi2.got, true, 'a leap takes it');
 });
 
 test('drawing code never runs in headless step (no DOM needed) and eelExt is sane', () => {
