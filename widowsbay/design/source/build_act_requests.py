@@ -51,6 +51,48 @@ WITCH = ('the sea witch (long black hair, flowing rose-pink robes, a small gold 
 BELOVED = ('the beloved (a young woman with dark auburn hair pinned up, a cream lace dress and a rose-pink '
            'shawl, a fine gold chain at her throat with its pendant pearl missing)')
 
+# Fourth round: idle frames. Frame A is the delivered still; B and C are the
+# same figure with one small movement each (see the section blurb).
+IDLE = ('One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `{base}` '
+        'as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas '
+        'size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the '
+        'head within a few pixels of where it is, so the frames can be flicked between without the figure '
+        'jumping. Change only this:')
+IDLE_PEOPLE = [
+    ('band-trio', 'The band trio', 900, 900, HALFTONE, (
+        'the guitarist\'s strumming hand is down across the strings; the member in the hat tilts his head to '
+        'the left; the bearded singer leans a little to the left with his mouth open on a note.',
+        'the guitarist\'s strumming hand is up above the strings; the member in the hat shifts his weight to '
+        'his other foot, one hand at the hat brim; the bearded singer leans a little to the right, head tilted.')),
+    ('band-beard', 'The bearded band member', 400, 800, HALFTONE, (
+        'he leans in slightly, head tipped forward, mouth wide on a note.',
+        'he leans back slightly, chin raised, eyes closed, shoulders lifted.')),
+    ('reveller-yellow', 'The reveller in yellow', 220, 420, SPRITE, (
+        'the other knee is raised and the arms are swapped, mid-step of the same jig.',
+        'both feet down, knees bent, arms flung up high, as if landing from a hop.')),
+    ('reveller-shaggy', 'The shaggy sea-creature reveller', 260, 440, SPRITE, (
+        'the arms are lowered to shoulder height and the fringe strands swing out to the left.',
+        'the arms are raised high and the fringe strands swing out to the right.')),
+    ('reveller-jester', 'The harlequin reveller', 220, 420, SPRITE, (
+        'the opposite leg is kicked out and the belled cap tips the other way.',
+        'standing on both feet with a small bow, one arm swept across the body, bells swinging.')),
+    ('reveller-lady', 'The lady reveller in stripes', 220, 420, SPRITE, (
+        'she holds her skirt out to the other side and points the opposite toe.',
+        'both feet together on tiptoe, skirt lifted in both hands, the hat feathers bobbing.')),
+    ('sea-spirit', 'The sea spirit', 300, 600, SPRITE.replace(
+        'stencil-tinted colour: sepia-grey line and tone with translucent washes of', 'pale ghostly white with only the faintest washes of'), (
+        'the arms are a little lower and the veil billows out to the left; the spray at her feet curls the other way.',
+        'the arms are a little higher and the veil billows out to the right; the spray rises a little.')),
+    ('witch-stand', 'The witch', 260, 420, SPRITE, (
+        'her head turns very slightly toward the viewer and her hair drifts as if in a current; the hand with '
+        'the sea rose stays where it is.',
+        'the wand in her other hand is lifted a little, its star glinting, and her robes ripple at the hem; the '
+        'hand with the sea rose stays where it is.')),
+    ('pageant-dancers', 'The line of pageant dancers', 1600, 700, SPRITE, (
+        'every dancer rises on pointe with her arms raised in a high curve above her head.',
+        'every dancer steps to the side on the other foot, arms open at shoulder height.')),
+]
+
 # (id, title, width, height, anchor, style, description)
 ACTS = [
     ('Shared cast and screens', 'Characters who appear in several acts, and the act-select playbill.', [
@@ -570,6 +612,10 @@ ACTS = [
          f'doorway. On the quay in front at the right of centre, {SAILOR} alone, throwing a small stone into the bay, '
          'rings spreading on the water. Replaces ending-dark-2, which paints a castle and puts the doorway under the '
          'left drape.'),
+    ]),
+    ('Fourth round: idle frames for the people', 'Old-film idle loops for the watched characters, replacing the Part D motion loops for people (the jellyfish loop stays). Each character gets two extra frames, `-idle-b` and `-idle-c`; the delivered still is frame A, and the game plays A, B, A, C at about two to three frames a second (on the half-beat for the dancers and the band), like a figure in a hand-cranked 1903 film. They play when Settings → Extra Animations is on; until both frames arrive the still stands alone. **Attach the delivered still named in each prompt as the image reference** and change only what the prompt says.', [
+        *[(f'{base}-idle-{fr}', f'{name}, idle frame {fr.upper()}', w, h, 'bottom centre', style, f'{IDLE.format(base=base)} {move}')
+          for base, name, w, h, style, moves in IDLE_PEOPLE for fr, move in zip('bc', moves)],
     ]),
 ]
 

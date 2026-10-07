@@ -413,8 +413,16 @@ are sized in intake, ready for integration. See the
   the ending's caption moves into the sky at the right, between the moon and
   the sailor, so it covers neither.
 
-Every image request is delivered. Originals of the third round are in
+Originals of the third round are in
 [`generated/round-3/originals/`](generated/round-3/originals/).
+
+**Fourth round requested, 7 October 2026:** idle frames for the people
+([C15](#c15-fourth-round-idle-frames-for-the-people)), 18 images. The Part D
+motion loops looked good in the gallery but didn't sit right in the game, so
+for people they give way to an old-film idle: the delivered still plus two
+generated variants (`<id>-idle-b`, `<id>-idle-c`), flicked A, B, A, C. Each
+prompt names its still; attach it as the image reference so the frames line
+up. Only the jellyfish loop stays from Part D.
 
 ---
 
@@ -422,7 +430,7 @@ Every image request is delivered. Originals of the third round are in
 
 ## Part C — Acts II to V and the shared cast
 
-The rest of the game, designed in [`acts.md`](acts.md): 155 game assets and 8 mood boards. Every prompt below is complete; paste it as it stands. Sizes are 2× game units, as in Part B. Name each file by its id (for example `sailor-stand.png`) and drop it in [`../intake/`](../intake/README.md). The ids are already listed as `requested` in `assets/manifest.json`.
+The rest of the game, designed in [`acts.md`](acts.md): 173 game assets and 8 mood boards. Every prompt below is complete; paste it as it stands. Sizes are 2× game units, as in Part B. Name each file by its id (for example `sailor-stand.png`) and drop it in [`../intake/`](../intake/README.md). The ids are already listed as `requested` in `assets/manifest.json`.
 
 Times such as "video 0:25" refer to `references/video-frames/frame-025s.jpg`; attach those frames as image references when generating. Characters must match the delivered mood boards: the sailor `mood-sailor-1`, the witch `mood-witch-1`, and the band `band-trio` / `video-cover.jpg`. Generate `mood-beloved` first so the beloved stays consistent across her three appearances.
 
@@ -1622,6 +1630,139 @@ Second-round art that works but needs another pass (found integrating it, Octobe
 
 > Night. The stone cottage on the cliff (two storeys of pale stone hung with ivy and pink roses, one window, a green wooden door; the same house as house-front), standing between 15% and 45% of the width so the theatre drapes do not hide it: its window dark, and a black silhouette of another figure in its lit doorway. On the quay in front at the right of centre, the returning sailor (a weathered, grey-bearded seaman in a navy pea coat, flat navy cap, red neckerchief, grey trousers and black boots; match mood-sailor-1) alone, throwing a small stone into the bay, rings spreading on the water. Replaces ending-dark-2, which paints a castle and puts the doorway under the left drape. A painted toy-theatre tableau seen square-on, full bleed to every edge, scene painting in the manner of Georges Méliès' 1903 film Le Royaume des fées; early-1900s stencil-tinted colour: sepia-grey tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 slightly out of register; faint film grain; no lettering.
 
+### C15. Fourth round: idle frames for the people
+
+Old-film idle loops for the watched characters, replacing the Part D motion loops for people (the jellyfish loop stays). Each character gets two extra frames, `-idle-b` and `-idle-c`; the delivered still is frame A, and the game plays A, B, A, C at about two to three frames a second (on the half-beat for the dancers and the band), like a figure in a hand-cranked 1903 film. They play when Settings → Extra Animations is on; until both frames arrive the still stands alone. **Attach the delivered still named in each prompt as the image reference** and change only what the prompt says.
+
+| Id | Size | Anchor |
+| --- | --- | --- |
+| `band-trio-idle-b` | 900 × 900 | bottom centre |
+| `band-trio-idle-c` | 900 × 900 | bottom centre |
+| `band-beard-idle-b` | 400 × 800 | bottom centre |
+| `band-beard-idle-c` | 400 × 800 | bottom centre |
+| `reveller-yellow-idle-b` | 220 × 420 | bottom centre |
+| `reveller-yellow-idle-c` | 220 × 420 | bottom centre |
+| `reveller-shaggy-idle-b` | 260 × 440 | bottom centre |
+| `reveller-shaggy-idle-c` | 260 × 440 | bottom centre |
+| `reveller-jester-idle-b` | 220 × 420 | bottom centre |
+| `reveller-jester-idle-c` | 220 × 420 | bottom centre |
+| `reveller-lady-idle-b` | 220 × 420 | bottom centre |
+| `reveller-lady-idle-c` | 220 × 420 | bottom centre |
+| `sea-spirit-idle-b` | 300 × 600 | bottom centre |
+| `sea-spirit-idle-c` | 300 × 600 | bottom centre |
+| `witch-stand-idle-b` | 260 × 420 | bottom centre |
+| `witch-stand-idle-c` | 260 × 420 | bottom centre |
+| `pageant-dancers-idle-b` | 1600 × 700 | bottom centre |
+| `pageant-dancers-idle-c` | 1600 × 700 | bottom centre |
+
+#### `band-trio-idle-b` — The band trio, idle frame B
+
+900 × 900 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `band-trio` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the guitarist's strumming hand is down across the strings; the member in the hat tilts his head to the left; the bearded singer leans a little to the left with his mouth open on a note. Flat toy-theatre cut-out seen square-on: a black-and-white halftone photograph with soft hand-tinted washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88, halftone dots visible, a pale card edge around the figure; no lettering; transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `band-trio-idle-c` — The band trio, idle frame C
+
+900 × 900 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `band-trio` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the guitarist's strumming hand is up above the strings; the member in the hat shifts his weight to his other foot, one hand at the hat brim; the bearded singer leans a little to the right, head tilted. Flat toy-theatre cut-out seen square-on: a black-and-white halftone photograph with soft hand-tinted washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88, halftone dots visible, a pale card edge around the figure; no lettering; transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `band-beard-idle-b` — The bearded band member, idle frame B
+
+400 × 800 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `band-beard` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: he leans in slightly, head tipped forward, mouth wide on a note. Flat toy-theatre cut-out seen square-on: a black-and-white halftone photograph with soft hand-tinted washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88, halftone dots visible, a pale card edge around the figure; no lettering; transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `band-beard-idle-c` — The bearded band member, idle frame C
+
+400 × 800 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `band-beard` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: he leans back slightly, chin raised, eyes closed, shoulders lifted. Flat toy-theatre cut-out seen square-on: a black-and-white halftone photograph with soft hand-tinted washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88, halftone dots visible, a pale card edge around the figure; no lettering; transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-yellow-idle-b` — The reveller in yellow, idle frame B
+
+220 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-yellow` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the other knee is raised and the arms are swapped, mid-step of the same jig. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-yellow-idle-c` — The reveller in yellow, idle frame C
+
+220 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-yellow` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: both feet down, knees bent, arms flung up high, as if landing from a hop. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-shaggy-idle-b` — The shaggy sea-creature reveller, idle frame B
+
+260 × 440 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-shaggy` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the arms are lowered to shoulder height and the fringe strands swing out to the left. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-shaggy-idle-c` — The shaggy sea-creature reveller, idle frame C
+
+260 × 440 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-shaggy` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the arms are raised high and the fringe strands swing out to the right. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-jester-idle-b` — The harlequin reveller, idle frame B
+
+220 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-jester` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the opposite leg is kicked out and the belled cap tips the other way. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-jester-idle-c` — The harlequin reveller, idle frame C
+
+220 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-jester` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: standing on both feet with a small bow, one arm swept across the body, bells swinging. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-lady-idle-b` — The lady reveller in stripes, idle frame B
+
+220 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-lady` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: she holds her skirt out to the other side and points the opposite toe. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `reveller-lady-idle-c` — The lady reveller in stripes, idle frame C
+
+220 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `reveller-lady` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: both feet together on tiptoe, skirt lifted in both hands, the hat feathers bobbing. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sea-spirit-idle-b` — The sea spirit, idle frame B
+
+300 × 600 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `sea-spirit` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the arms are a little lower and the veil billows out to the left; the spray at her feet curls the other way. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s pale ghostly white with only the faintest washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `sea-spirit-idle-c` — The sea spirit, idle frame C
+
+300 × 600 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `sea-spirit` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the arms are a little higher and the veil billows out to the right; the spray rises a little. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s pale ghostly white with only the faintest washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-stand-idle-b` — The witch, idle frame B
+
+260 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `witch-stand` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: her head turns very slightly toward the viewer and her hair drifts as if in a current; the hand with the sea rose stays where it is. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `witch-stand-idle-c` — The witch, idle frame C
+
+260 × 420 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `witch-stand` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: the wand in her other hand is lifted a little, its star glinting, and her robes ripple at the hem; the hand with the sea rose stays where it is. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `pageant-dancers-idle-b` — The line of pageant dancers, idle frame B
+
+1600 × 700 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `pageant-dancers` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: every dancer rises on pointe with her arms raised in a high curve above her head. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `pageant-dancers-idle-c` — The line of pageant dancers, idle frame C
+
+1600 × 700 px, anchor bottom centre.
+
+> One frame of a short idle loop, like a figure in a hand-cranked 1903 film. Use the delivered `pageant-dancers` as the image reference and copy it exactly: the same figure, costume, colours, linework, scale, canvas size and framing, with the feet (or lowest point) in exactly the same place on the bottom edge and the head within a few pixels of where it is, so the frames can be flicked between without the figure jumping. Change only this: every dancer steps to the side on the other foot, arms open at shoulder height. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge; early-1900s stencil-tinted colour: sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e and grotto teal #5f8c88 laid slightly out of register; no cast shadow; no lettering; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
 <!-- PART C END -->
 
 ---
@@ -1762,6 +1903,12 @@ other tools with pip. Work in a scratch folder, not the repository.
       `design/generated/anims/<id>/`.
 
 ### D4. Status
+
+**7 October 2026:** in the game only `anim-jellyfish` remains. The people
+loops (band, giant, revellers, sea spirit, witch, pageant dancers) and the
+dragon are withdrawn: they read well on their own but not in place. The
+people get two-frame old-film idles instead (Part C, C15). The withdrawn
+sheets stay in the review gallery below.
 
 All eleven Part D motion assets are delivered and registered in the manifest.
 They are opt-in through **Settings → Extra Animations**, default **Off**. The
