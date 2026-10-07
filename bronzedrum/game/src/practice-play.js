@@ -19,7 +19,7 @@ export function createPractice(ctx) {
       id: 'practice-free',
       title: 'Free drumming',
       subtitle: 'Drum anything; the crew plays it back',
-      intro: 'Drum any rhythm of four beats (or as many as you set), one, two or three strokes a beat. The drum crew plays it back again and again, and dancers gather at the fire. Drum a new one at any time: the old rhythm quiets while you play and the new one takes over. Pairs, triplets, pauses: anything goes.',
+      intro: 'Drum any rhythm of four beats (or as many as you set), one, two or three strokes a beat. The drum crew plays it back again and again, and dancers gather at the fire. Drum along with it as long as you like; it keeps going until you clear it with A (Space, or a swipe), and then the next rhythm you drum takes its place. Pairs, triplets, pauses: anything goes.',
     },
     call: {
       id: 'practice-call',
@@ -188,13 +188,6 @@ export function createPractice(ctx) {
     const g = ctx.game;
     const level = (settings.echo / 100) * 0.9 + 0.1;
     switch (e.type) {
-      case 'phraseStart':
-        // The old loop quiets while a new rhythm is drummed.
-        if (g.loopBus) sound.fadeBus(g.loopBus, 0.22 * level, 0.25);
-        break;
-      case 'abandon':
-        if (g.loopBus) sound.fadeBus(g.loopBus, level, 0.5);
-        break;
       case 'loop': {
         if (g.loopBus) {
           const old = g.loopBus;
