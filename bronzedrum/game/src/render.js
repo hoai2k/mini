@@ -24,11 +24,13 @@ export class Renderer {
     this.cam = 0;
     this.particles = [];
     this.floaters = [];
-    this.flash = { L: -9, R: -9 };
+    this.flash = { L: -9, R: -9 }; // the player's strokes: the drum and the close-up sticks
+    this.crewFlash = { L: -9, R: -9 }; // the sisters' strokes in the scene
+    this.crewQueue = []; // { drum, t } strokes the sisters play later (crewStroke)
+    this.crewFollowsReplay = false; // in battle the sisters play the replay, not the player's strokes
     this.fiber = fiberTexture(); // the drawn paper fibre, until the delivered one arrives
     this.layers = null;
     this.reduceMotion = false;
-    this.showSticks = false; // the close-up sticks in the chapters (Settings)
     this.autoResolution = true; // main.js lowers dprCap when frames run slow
     this.dprCap = 2;
     // Count save()/restore() per frame (checked at the end of draw()).
@@ -81,6 +83,8 @@ export class Renderer {
     // Each chapter opens on the wide shot; small screens move in once it starts.
     this.zoom = { z: 1, x: W / 2, y: ZOOM_EYE, started: false };
     this.flash = { L: -9, R: -9 };
+    this.crewFlash = { L: -9, R: -9 };
+    this.crewQueue = [];
     this.layers = {
       sky: this.buildSky(stage.sky),
       karstFar: this.buildKarst(true),
@@ -96,6 +100,11 @@ export class Renderer {
     this.depth = 0;
     this.depthLow = 0;
     this.frameDt = dt;
+    // The sisters' strokes that are due.
+    while (this.crewQueue.length && this.crewQueue[0].t <= view.songTime) {
+      const s = this.crewQueue.shift();
+      this.crewFlash[s.drum] = s.t;
+    }
     const { battle, songTime: t } = view;
     const targetCam = (this.motion ? this.motion.front : battle.army.x * U) - ARMY_SCREEN_X;
     this.cam += (targetCam - this.cam) * Math.min(1, dt * 4);
@@ -226,6 +235,18 @@ export class Renderer {
 
   hit(drum, t) {
     this.flash[drum] = t;
+    if (!this.crewFollowsReplay) this.crewFlash[drum] = t;
+  }
+
+  /** The sisters strike `drum` at song time `t` (the battle replay); in time order. */
+  crewStroke(drum, t) {
+    this.crewQueue.push({ drum, t });
+    this.crewQueue.sort((a, b) => a.t - b.t);
+  }
+
+  /** Drop the sisters' strokes still to come (a new phrase cut the replay short). */
+  cancelCrew(after) {
+    this.crewQueue = this.crewQueue.filter((s) => s.t <= after);
   }
 }
 

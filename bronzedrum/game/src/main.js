@@ -35,7 +35,7 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0, showSticks: false });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0 });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
 const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
 // The sisters' close-up sticks over the drum (render/hud.js STICK_SETS).
@@ -67,7 +67,6 @@ function applySettings() {
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
   renderer.stickSet = settings.sticks;
-  renderer.showSticks = settings.showSticks;
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
@@ -364,6 +363,8 @@ function startStage(i, custom = null, { opening = true } = {}) {
     game.reader.patterns = [callPattern(game.rhythm, 'cast')];
   }
   renderer.setStage(stage);
+  // In battle the sisters play each command back as the army acts (startCycle).
+  renderer.crewFollowsReplay = game.mode === 'battle';
   sound.loadSamples().then(() => {
     if (game && game.stage === stage) {
       sound.startAmbience(stage.ambience);
@@ -646,6 +647,8 @@ function startCycle(c) {
   for (const s of c.pattern.strokes) {
     const src = sound.echo(s.drum, at + s.pos * c.u, level, first ? 1 : 0.9);
     if (src) g.echoes.push(src);
+    // The sisters on the palanquin play it as the army moves off.
+    if (first) renderer.crewStroke(s.drum, c.start + s.pos * c.u);
   }
 }
 
@@ -662,6 +665,7 @@ function endSustain() {
     }
   }
   g.echoes = [];
+  renderer.cancelCrew(t);
   if (g.cycle && g.cycle.index > 0) g.battle.order = null;
   g.cycle = null;
 }

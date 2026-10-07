@@ -103,9 +103,12 @@ just behind the ranks: one with a trống chầu at her hip, one holding a mõ
 drum answers the strokes, the barrel drum the shield and the mõ the reset.
 Each shivers when struck: the HUD drum and the palanquin on every stroke, the
 companion drummers and the touch buttons on a shield or a reset.
-The sisters strike the drum on the palanquin with every stroke (Trắc the
-centre, Nhị the rim), and their sticks can be seen close up over the HUD drum (always in Drum
-Practice; in the chapters only with Settings, Show drumsticks, off by default):
+The sisters strike the drum (Trắc the centre, Nhị the rim). In the battle
+chapters the player's strokes show only as the close-up sticks over the HUD
+drum; the sisters on the palanquin stay still and then play the rhythm as the
+army acts on it, with the replay. In the other chapters they strike with each
+of the player's strokes. The close-up sticks show in the battle chapters and
+in Drum Practice and Training, not in the other chapters:
 Trắc's from the bottom left onto the sun-star, Nhị's from the right onto the
 rim (BD-U20 and BD-U21). On the touch drum each lands where it was tapped. Settings, Drumsticks swaps in other pairs: Folk, a
 pestle-like pole and a bamboo stick (BD-U22, BD-U24), or Ceremonial, a

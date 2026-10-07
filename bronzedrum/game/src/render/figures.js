@@ -489,8 +489,8 @@ export const figures = {
   drumCrew(x, y, view) {
     const g = this.ctx;
     const t = view.songTime;
-    const armL = Math.max(0, 1 - (t - this.flash.L) * 6);
-    const armR = Math.max(0, 1 - (t - this.flash.R) * 6);
+    const armL = Math.max(0, 1 - (t - this.crewFlash.L) * 6);
+    const armR = Math.max(0, 1 - (t - this.crewFlash.R) * 6);
     if (view.battle.elephant) {
       const charging = view.battle.order && view.battle.order.command === 'charge';
       // The elephant's gait comes from how fast it is actually moving.
@@ -512,7 +512,7 @@ export const figures = {
         // The request fixes the deck's top at 42% of the height up from the
         // bottom, and their standing places at 22% and 78% of the width.
         const H_ = 190;
-        const sh = this.shiver(Math.max(this.flash.L, this.flash.R), t, 1.6);
+        const sh = this.shiver(Math.max(this.crewFlash.L, this.crewFlash.R), t, 1.6);
         const bob = (view.crewBob || 0) - sh.dy;
         this.sprite(deck, x + sh.dx, y, H_, { bob });
         const deckY = y + (deck.footMargin || 0) * H_ - 0.42 * H_ - bob;
@@ -525,7 +525,7 @@ export const figures = {
         // the palanquin, a step nearer than the bearers, and strike up at it.
         // (Standing on the deck they read as floating over the bearers' heads.)
         // The palanquin jolts a little with each stroke on the drum.
-        const sh = this.shiver(Math.max(this.flash.L, this.flash.R), t, 1.6);
+        const sh = this.shiver(Math.max(this.crewFlash.L, this.crewFlash.R), t, 1.6);
         const bob = (view.crewBob || 0) - sh.dy;
         this.sprite(img, x + sh.dx, y, 150, { bob });
         this.footShadow(x - 46, 22, y + 10);
@@ -655,7 +655,7 @@ export const figures = {
     const st = this.tracState || (this.tracState = { t, lean: 0, cape: { x: 0, v: 0 }, sashA: { x: 0, v: 0 }, sashB: { x: 0, v: 0 } });
     const dt = Math.min(0.05, Math.max(0, t - st.t));
     st.t = t;
-    const since = t - this.flash.L;
+    const since = t - this.crewFlash.L;
     const s = strikeEnvelope(since); // 0 raised and ready, 1 struck
     const calm = this.reduceMotion ? 0.3 : 1;
     const lerp = (a, b) => a + (b - a) * s;
@@ -694,7 +694,7 @@ export const figures = {
    */
   nhiPose(view, strike = NHI_STRIKE) {
     const t = view.songTime;
-    const since = t - this.flash.R;
+    const since = t - this.crewFlash.R;
     const s = strikeEnvelope(since);
     const calm = this.reduceMotion ? 0.3 : 1;
     const sway = Math.sin(t * 1.9 + 1) * 0.02 * calm;
