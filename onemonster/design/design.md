@@ -35,10 +35,12 @@ chapter, and a weak score still passes the letter along. What you collect is
 
 1. **Title.** The logo, Press Start, and the Instructions, Settings and
    Fullscreen buttons at the bottom right (see `GAME_GUIDELINES.md`).
-2. **Choose.** *The Journey* (play every chapter in order), or *One Monster*
-   (replay any chapter already reached). Then the number of players (1 to 4)
-   and, for more than one, who joins: each player presses A on their own
-   controller, or a single controller is shared and passed.
+2. **Choose.** *The Journey* (play every chapter in order, alone or with
+   up to four players taking turns), *Snatch & Keep* (the journey for two
+   players head to head, below), or *One Monster* (replay any chapter already
+   reached, alone or head to head). For more than one player, each presses A
+   on their own controller to join, or a single controller is shared and
+   passed.
 3. **Prologue.** A picture-book page in the book's layout (big painting
    above, a white text band below with a drop capital): Sally Ann writes her
    letter and puts it in the mailbox. Any button turns the page.
@@ -74,8 +76,9 @@ Every challenge uses the same small set of inputs, so kids learn them once.
 | Pause | Menu or View | Esc or P | The pause button, top right |
 | Menus | Left stick / D-pad, A, B | Arrows, Enter, Esc | Click |
 
-In party mode with several controllers, only the current player's controller
-plays; the others can pause. With one shared controller, the hand-off screen
+In the turn-taking journey with several controllers, only the current
+player's controller plays; the others can pause. In Snatch & Keep both
+players play at once (see below). With one shared controller, the hand-off screen
 waits for a fresh press, so a button held while passing it over does nothing.
 If the playing controller disconnects, the game pauses and asks for it back
 (or for any controller to take over).
@@ -83,6 +86,48 @@ If the playing controller disconnects, the game pauses and asks for it back
 Settings: music and sound volume, vibration on or off, reduced motion, and
 **Gentle mode** (slower hazards and longer timers for younger players; it is
 shown on the results, but postmarks still count).
+
+## Two-player versus
+
+*Snatch & Keep* is the journey for two players head to head: in every
+chapter one player is the **snatcher** and the other the **holder**, the one
+with the letter trying to keep it, and the sides swap each chapter. Player 1
+snatches in the odd chapters and player 2 in the even ones, so over the nine
+chapters each player is both the Trollusk who sneaks and the mailbox's
+lookouts who watch for him.
+
+- **Winning a chapter.** The snatcher scores by getting the letter, with
+  postmarks for time to spare as in the journey. The holder scores by
+  keeping it: postmarks for how long they held out, and the full three if the
+  clock runs out (then, as in the book, the holder fumbles it in the
+  hand-off scene and the story goes on). The celebration belongs to whoever
+  won the chapter: the snatcher with the letter, or the holder with a
+  raspberry at the snatcher. At the end, the most postmarks wins.
+- **Fair sides.** Each chapter is tuned so that two players of the same skill
+  win about half the time each way; the tuning lives in the chapter data.
+  Each player can turn on Gentle mode for themselves, which helps only them.
+- **The same game alone.** In the solo journey the holder is played by the
+  computer through the same holder controls, so every holder below is an AI
+  in one-player and a player in versus, and the two never drift apart.
+- **Devices.** Two controllers, one each. Or one keyboard shared: player 1
+  on WASD and Space, player 2 on the arrow keys and Enter. On a touch screen
+  the screen splits in two (left half and right half), each player steering
+  by dragging in their half and tapping to act there. The chapter intro shows
+  each player their own controls and their side's goal.
+
+What the holder does in each chapter (and the AI does alone):
+
+| # | Snatcher | Holder | The holder's controls |
+| --- | --- | --- | --- |
+| 1 | Trollusk | The lookouts (Sally Ann at her window, the dozing neighbour, the dog) | Move a spotlight-eye between the three lookouts; press A to make one look out (the eye warning shows first, so it can be read); each lookout needs a moment to rest after looking. The mailman puttering along the top is the holder's clock |
+| 2 | Bombanat | Trollusk, running through the wood | Steer the scurry left and right along the ground, A to hop logs, down to duck under branches and hide the letter under his hat |
+| 3 | Grumley | Bombanat, looking for somewhere to land | Fly (A to flap) among the plain Bombanats; the goo bubbles show where the Grumley is lurking, if you watch closely |
+| 4 | Ice-Ferg | The *Peg*, the captain at the wheel | Steer the boat for the harbour; A for a burst of steam that cannot be used again for a few seconds |
+| 5 | Typhoonigator | The captain's bottle, adrift | Steer the bottle with the waves; A to bob under the surface for a moment (the spout can't suck what it can't reach) |
+| 6 | Yalapappus | Typhoonigator, letting go | Steer the cloud above; A drops the next thing in its belly (boats, fish, goo); the bottle is somewhere in the queue, shown to the holder only, and the holder decides where to drop it |
+| 7 | Trollusk | Yalapappus, munching, then chasing | While munching, A to look round (red light, green light); after the snatch, chase the Trollusk: steer, A to hop |
+| 8 | Bombanat | Trollusk, running across open ground | As in chapter 2, but in the open; the Yalapappus stomps behind on his own |
+| 9 | Grithix | Bombanat with the letter | Fly about the clearing, A to flap; other monsters scramble on their own; once netted, the holder takes the Trollusk and trips the Grithix on his way to the mailbox |
 
 ## The chapters
 
@@ -261,6 +306,69 @@ posting.
 doesn't care a snickle. And who is eyeing the official mailbox? The official
 mailman, for the epilogue.
 
+## How each creature moves
+
+Moving is the toy. Each creature gets its own way of getting about, with its
+own weight and timing, and it should be fun just to steer it round an empty
+screen before any goal is added. All of it is tuned by feel in the game's
+monster data (speeds, springs, squash amounts), and the animation is driven by
+the movement, never the other way round: speed sets the stride or the beat,
+turning tilts the body, landing squashes it.
+
+- **The Stamp-Collecting Trollusk: tiptoe, freeze, scurry.**
+  *Tiptoe* is slow, high-kneed and hunched, the snerk leading, each step
+  placed with a little wobble; it is silent. *Freeze* (let go of the stick)
+  snaps him into a disguise pose, holding a leafy twig in front of his face
+  with his hat poking over it; a lookout who catches him frozen is not fooled
+  for long, but for a moment. *Scurry* (holding the stick) is a gabbling
+  sprint, legs a blur, arms windmilling, the MY STAMPS bag swinging and the
+  hat bouncing on his head, with a skid and a dust puff on every turn. He
+  hops low and lands with a squash.
+- **The Letter-Eating Bombanat: flap, glide, dive, wing-walk.** Each press
+  of A is one wing beat that lifts him (rapid presses climb, a held glide
+  sinks slowly), with momentum, so a well-timed series of beats feels like
+  swimming through the air. Pulling down tucks the wings for a steep dive
+  that gains speed, and pulling up out of it trades the speed for height in a
+  swoop. Too slow and he stalls into a frantic flutter. On the ground he
+  wing-walks like a bat, hobbling on his wrist claws, which is slow and
+  undignified and very funny. The necktie streams behind him.
+- **The Bombanat-Munching Grumley: lurk, glide, lunge.** Under the goo he
+  glides in any direction with only his spectacled eyes and hair crest above
+  the surface, leaving a V-shaped wake and a trail of bubbles; he can sink
+  out of sight entirely (and bubbles give him away). The lunge shoots a
+  tentacle up out of the goo, stretching to three times its length and
+  snapping back like a spring; a full lunge throws his whole head and body up
+  out of the goo in a splash. All his tentacles wave lazily all the time.
+- **The Furious-Floating Ice-Ferg: drift, huff, charge.** Heavy and slow:
+  it turns ponderously, carries its momentum, and drifts with the currents,
+  so steering is about planning ahead. Holding A huffs it up, swelling, with
+  freezing mist pouring off it and its eye narrowing; letting go launches the
+  charge, a surge across the water that leaves a wake and rocks everything
+  nearby. It bobs and wobbles at rest, and the sea lions on its ledges react
+  to everything it does: they doze, sit up in alarm, cling on, and slide off
+  with a splash if it charges too hard.
+- **The Wild-'n-Windy Typhoonigator: roll and suck.** It rolls across the
+  sky as a churning mass of cloud: the loose puffs orbit and tumble round its
+  face, and the spout below sways and lags behind it like a hose, so the
+  bottom of the spout swings wide on turns. Holding A sucks: the cloud
+  inhales, the cheeks hollow, a vortex spins up on the water, and things
+  spiral up the spout. As it fills it swells and slows, its cheeks bulging.
+- **The Paper-Munching Yalapappus: trundle and roll.** His trundle is a
+  bouncy waddle: his round furry body bobs up and down on stumpy legs that
+  go too fast, the napkin flapping. Running downhill or holding A at speed
+  tucks him into a ball and he rolls, bowling along and bouncing off rocks,
+  and unrolls with a dizzy wobble. His hop is a big jump with a huge squash on
+  landing that shakes the ground.
+- **The Bombanat-Collecting Grithix: stride, swing, vault.** He strides with
+  long, unhurried steps, his robe swishing and the spiked ball on his tail
+  swinging for balance. The net swing comes in three beats (wind-up, sweep,
+  slam), and the slam, FLIP-FLOP, shakes the screen. Holding A while moving
+  plants the net pole and pole-vaults him over an obstacle (or a monster)
+  in a long, slow arc, robe billowing.
+- **The holders that are not monsters.** Sally Ann's lookouts lean out, yawn
+  and settle back; the *Peg* rolls on the swell, puffs smoke and leans into
+  its turns; the captain's bottle bobs, spins and ducks under the waves.
+
 ## Look and sound
 
 - The book's look: dense pen-and-ink with crosshatching and furry,
@@ -323,13 +431,13 @@ The rigs, and the animations each needs:
 
 | Monster | Master view | Animations |
 | --- | --- | --- |
-| Stamp-Collecting Trollusk | Side view facing right, standing on his two short legs | Eyeing the prize, celebrating, idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, the grab, the gabbling run cycle, being snatched from, wailing |
-| Letter-Eating Bombanat | Side view facing right in flight, wings spread level | Eyeing the prize, celebrating, the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck flapping, struggling when grabbed, netted |
-| Bombanat-Munching Grumley | Three-quarter view facing right, rising out of the goo with his tentacles spread | Eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the lunge and grab, the miss and splutter, the lunch dance, being netted and hauled up |
-| Furious-Floating Ice-Ferg | Front three-quarter view from a little above, floating, the waterline along its bottom edge | Eyeing the prize, celebrating, drifting and bobbing, the glaring eye, huffing up, the charge, the crash, the dazed wobble, and the sea lions dozing, startling and sliding off |
-| Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Eyeing the prize, celebrating, churning cloud, sucking, swelling as it fills, letting go, the morning sag |
-| Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | Eyeing the prize, celebrating, the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing |
-| Bombanat-Collecting Grithix | Side view facing right, standing upright, the net over his shoulder | Eyeing the prize, celebrating, the stride cycle with a swinging tail, the net swing in three beats, the slam, posting the letter, tripping, the stroll home |
+| Stamp-Collecting Trollusk | Side view facing right, standing on his two short legs | Eyeing the prize, celebrating, idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, the grab, the gabbling run cycle, being snatched from, wailing, the freeze in disguise, the skid |
+| Letter-Eating Bombanat | Side view facing right in flight, wings spread level | Eyeing the prize, celebrating, the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck flapping, struggling when grabbed, netted, the stall flutter, the swoop out of a dive, the wing-walk |
+| Bombanat-Munching Grumley | Three-quarter view facing right, rising out of the goo with his tentacles spread | Eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the lunge and grab, the miss and splutter, the lunch dance, being netted and hauled up, gliding with a wake, the full lunge |
+| Furious-Floating Ice-Ferg | Front three-quarter view from a little above, floating, the waterline along its bottom edge | Eyeing the prize, celebrating, drifting and bobbing, the glaring eye, huffing up, the charge, the crash, the dazed wobble, and the sea lions dozing, startling and sliding off, the sea lions clinging on |
+| Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Eyeing the prize, celebrating, churning cloud, sucking, swelling as it fills, letting go, the morning sag, rolling along with the spout swinging |
+| Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | Eyeing the prize, celebrating, the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing, rolling up into a ball and unrolling dizzy |
+| Bombanat-Collecting Grithix | Side view facing right, standing upright, the net over his shoulder | Eyeing the prize, celebrating, the stride cycle with a swinging tail, the net swing in three beats, the slam, posting the letter, tripping, the stroll home, the pole-vault |
 
 The people (the girls, the mailman, the captain and crew, the neighbours and
 their dog) are small and move little, so they are whole sprites drawn from
@@ -340,5 +448,3 @@ chapter.
 
 - All four players at once on one screen in the challenges that suit it (the
   Grumley's lunch, the Grithix's net), Mario Party style.
-- A versus mode for two players: one plays the snatcher, the other the
-  holder trying to keep the letter, swapping sides each chapter.
