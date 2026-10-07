@@ -43,6 +43,10 @@ TARGETS = {
     "sister-trac": ("scale=-1:384", 85),
     "sister-nhi": ("scale=-1:384", 85),
     "unit-spear": ("scale=-1:384", 85),
+    "unit-spear-cover": ("scale=-1:384", 85),
+    "unit-archer-cover": ("scale=-1:384", 85),
+    # Four poses by two children, each shown 58 px tall: cells twice that.
+    "children-sheet": ("scale=-1:256", 85),
     "unit-archer": ("scale=-1:384", 85),
     "han-spear": ("scale=-1:384", 85),
     "han-crossbow": ("scale=-1:384", 85),

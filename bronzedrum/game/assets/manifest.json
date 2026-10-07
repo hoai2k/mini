@@ -164,6 +164,30 @@
       "web": "web/unit-archer.webp"
     },
     {
+      "id": "children-sheet",
+      "request": "BD-C15",
+      "file": "art/children-sheet.png",
+      "status": "planned",
+      "section": "cast",
+      "runtime": true
+    },
+    {
+      "id": "unit-spear-cover",
+      "request": "BD-C16",
+      "file": "art/unit-spear-cover.png",
+      "status": "planned",
+      "section": "cast",
+      "runtime": true
+    },
+    {
+      "id": "unit-archer-cover",
+      "request": "BD-C17",
+      "file": "art/unit-archer-cover.png",
+      "status": "planned",
+      "section": "cast",
+      "runtime": true
+    },
+    {
       "id": "han-spear",
       "request": "BD-C07",
       "file": "art/han-spear.png",
