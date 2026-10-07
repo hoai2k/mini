@@ -313,8 +313,8 @@ export const hud = {
     }
     g.restore();
     // The sisters' sticks, close up, land where each stroke is struck.
-    // (In the chapters only when Show drumsticks is on; always in Drum Practice.)
-    if (kitId === 'bronze' && (view.practice || this.showSticks)) this.closeSticks(cx, cy, R, t, touch);
+    // (In the chapters only when Show drumsticks is on; always in Drum Practice and Training.)
+    if (kitId === 'bronze' && (view.practice || view.training || this.showSticks)) this.closeSticks(cx, cy, R, t, touch);
 
     // The phrase: the accepted pattern stays filled until the drum is ready
     // again; while drumming, the likeliest pattern is shown with the strokes
@@ -523,6 +523,8 @@ export const hud = {
     const sess = view.session;
     if (view.mode === 'practice') {
       if (!touch) this.practiceControls(view, k);
+    } else if (view.training) {
+      this.trainingPanel(view);
     } else if (view.mode === 'echo') {
       const words = { mourning: 'Incense lit', village: 'Villages answering', festival: 'Rhythms answered', elegy: 'Drums silent' };
       scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, sess.index / sess.calls.length, `${words[view.stage.caller] || 'Answered'} · ${sess.index} of ${sess.calls.length}`, P.bronzeLight));
