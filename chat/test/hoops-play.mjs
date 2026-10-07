@@ -1,7 +1,8 @@
 // Plays Hoops on a phone-sized screen with a mouse standing in for a finger:
 // picks the ball up, checks it follows the finger, carries it around and
 // tosses it with flicks of different speeds and directions, all of which
-// should score, and checks the hoop moves after five shots.
+// should score, flicks straight from the ball, and checks the hoop moves
+// after five shots.
 //   node chat/test/hoops-play.mjs
 // Pictures land in local/chat-shots/hoops-*.png.
 import { mkdir } from 'node:fs/promises';
@@ -85,6 +86,32 @@ for (const [i, t] of tosses.entries()) {
     check(Math.hypot(v.hoop.x - spot0.x, v.hoop.y - spot0.y) > 5, `the hoop moves after five shots (spot ${v.spot})`);
     await page.screenshot({ path: `${outDir}hoops-moved.png` });
   }
+}
+
+// A quick flick straight from the ball: the ball rides up with the finger,
+// leaves from where it was let go, and carries on up into the hoop.
+{
+  await page.waitForFunction(() => window.seats[0].gh.current.instance._view().ready, null, { timeout: 8000 });
+  const before = await total();
+  const v = await view();
+  const x = box.x + v.ball.x, y = box.y + v.ball.y;
+  const aimX = ((v.hoop.x - v.ball.x) / (v.ball.y - v.hoop.y)) * 120;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + aimX / 2, y - 60);
+  await pause(20);
+  const mid = await view();
+  const lag = Math.hypot(mid.ball.x + box.x - (x + aimX / 2), mid.ball.y + box.y - (y - 60));
+  check(lag < 3, `mid-flick the ball is under the finger (${lag.toFixed(1)} px off)`);
+  await page.mouse.move(x + aimX, y - 120);
+  await page.mouse.up();
+  const after = await view();
+  const gap = Math.hypot(after.ball.x + box.x - (x + aimX), after.ball.y + box.y - (y - 120));
+  check(after.flying && gap < 40, `the ball flies on from where it was let go (${gap.toFixed(1)} px from the finger)`);
+  await pause(120);
+  check((await view()).ball.y < after.ball.y, 'and keeps going up');
+  await pause(2300);
+  check((await total()) === before + 1, `a quick flick from the ball scores (${JSON.stringify((await view()).lastToss)})`);
 }
 
 // A toss far off to the side misses.

@@ -77,7 +77,9 @@ own video, or hold RT instead.
 ## Games
 
 Hoops (laid out like Messenger's: a big hoop and the ball at the bottom; pick
-the ball up, carry it and toss it, and any toss roughly at the hoop goes in;
+the ball up, carry it and toss it, or just flick it straight off its spot; it
+moves with your finger and flies on from where you let go, and any toss
+roughly at the hoop goes in;
 the hoop moves every five shots), Flappy Face (your face is the bird; tap to
 flap), Air Hockey, Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
@@ -121,7 +123,9 @@ itself to HTTPS.
   players side by side (`test/game.html`)
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops, picks the ball up
   (it must follow the pointer), carries it and tosses it seven ways that must
-  all score, checks the hoop moves after five shots, a wild toss misses and
+  all score, flicks straight from the ball (it must ride under the finger and
+  fly on from the release point), checks the hoop moves after five shots, a
+  wild toss misses and
   letting go without a toss puts the ball back
 - `chat/publish.sh local/pages/chat && node chat/test/conn-check.mjs`: a
   working call turns the pill green with signal bars and a route in the

@@ -234,7 +234,7 @@ export default {
     let streak = 0;
     let ball = null;           // my shot in flight
     const held = { x: REST.x, y: REST.y, z: REST.z }; // the ball when not flying
-    let grab = null;           // finger holding the ball: { id, ox, oy, sx, sy, samples }
+    let grab = null;           // finger holding the ball: { id, ox, oy, near, sx, sy, samples }
     let resetAt = 0;           // time the next ball appears
     let swish = 0;             // net animation timer
     const ghosts = [];         // friends' shots in flight
@@ -348,13 +348,14 @@ export default {
       if (grab || ball || move) return;
       canvas.setPointerCapture?.(e.pointerId);
       // Touching the ball holds it where you touched it; touching elsewhere
-      // pulls it to your finger.
+      // pulls it quickly over to your finger.
       const b = project(cam, held.x, held.y, held.z);
       const near = Math.hypot(e.offsetX - b.x, e.offsetY - b.y) < BALL_R * b.s * 1.6;
       grab = {
         id: e.pointerId,
-        ox: near ? b.x - e.offsetX : 0,
-        oy: near ? b.y - e.offsetY : 0,
+        ox: b.x - e.offsetX,
+        oy: b.y - e.offsetY,
+        near,
         sx: e.offsetX, sy: e.offsetY,
         samples: [{ t: performance.now(), x: e.offsetX, y: e.offsetY }],
       };
@@ -371,6 +372,9 @@ export default {
       if (!grab || e.pointerId !== grab.id) return;
       onMove(e);
       const s = grab.samples;
+      const { ox, oy } = grab;
+      // The ball leaves from exactly where the finger let go of it.
+      const from = toWorld(grab.sx + ox, grab.sy + oy);
       grab = null;
       // The toss: finger velocity over the last ~0.1 s, in metres per second
       // at the ball.
@@ -378,12 +382,16 @@ export default {
       const dt = Math.max(0.016, (b.t - a.t) / 1000);
       const scale = (REST.z - EYE.z) / cam.f;
       const up = ((a.y - b.y) / dt) * scale;
-      if (up < MIN_SPEED || now < resetAt) return; // just put down
+      if (up < MIN_SPEED || now < resetAt) {
+        Object.assign(held, from); // just put down; it drifts back
+        return;
+      }
       const side = ((b.x - a.x) / dt) * scale;
-      // Compare the toss with the line from the ball to the hoop on screen.
-      const from = { ...held };
-      const p = project(cam, from.x, from.y, from.z), q = project(cam, hoop.x, hoop.y, hoop.z);
-      const ideal = (q.x - p.x) / Math.max(1, p.y - q.y);
+      // Compare the toss with the line from where the flick began to the
+      // hoop on screen.
+      Object.assign(held, from);
+      const q = project(cam, hoop.x, hoop.y, hoop.z);
+      const ideal = (q.x - (a.x + ox)) / Math.max(1, a.y + oy - q.y);
       lastToss = { from, power: up / GOOD_SPEED, aim: side / up - ideal };
       shoot(from, Math.min(3.4, up / GOOD_SPEED), side / up - ideal);
     }
@@ -429,13 +437,19 @@ export default {
         if (charge.power > CHARGE_MAX) { charge.power = CHARGE_MAX; charge.dir = -1; }
         if (charge.power < 0.3) { charge.power = 0.3; charge.dir = 1; }
       }
-      // The held ball follows the finger closely; let go without a toss and
-      // it drifts back to its spot.
-      if (!ball) {
-        const target = grab ? toWorld(grab.sx + grab.ox, grab.sy + grab.oy) : REST;
-        const k = 1 - Math.exp(-dt * (grab ? 35 : 8));
-        held.x += (target.x - held.x) * k;
-        held.y += (target.y - held.y) * k;
+      // The held ball moves with the finger; let go without a toss and it
+      // drifts back to its spot.
+      if (!ball && grab) {
+        if (!grab.near) {
+          const k = Math.exp(-dt * 25);
+          grab.ox *= k;
+          grab.oy *= k;
+        }
+        Object.assign(held, toWorld(grab.sx + grab.ox, grab.sy + grab.oy));
+      } else if (!ball) {
+        const k = 1 - Math.exp(-dt * 8);
+        held.x += (REST.x - held.x) * k;
+        held.y += (REST.y - held.y) * k;
       }
       if (move) {
         move.t = Math.min(1, move.t + dt / 0.7);
