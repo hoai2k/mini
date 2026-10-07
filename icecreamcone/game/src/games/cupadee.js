@@ -1,0 +1,625 @@
+// Cupadee: Tea Time.
+//
+// A row of Cupadees walks in under the hanging teapot, one at a time. Hold
+// the action to tip the pot and pour; let go when the tea reaches the line
+// on the cup. The stream takes a moment to fall, so the tea still in the air
+// lands after you let go: let go a touch early. Close to the line scores,
+// right on it is Perfect, and Perfects in a row build a combo. Fill past the
+// brim and it spills: no points, a squawk, and the combo is gone. Later cups
+// are smaller (they fill faster), bob up and down, or stroll on under the
+// spout while you pour. Score: points.
+
+import { drawBird, scene, band, blob, poly, wash, ink, hatch, eye, label, PAL, INK } from '../draw.js';
+import { clamp, approach } from './index.js';
+
+const DURATION = 45;
+const GROUND = 830;
+const GRAVITY = 2600;
+const FLOW = 0.42; // cup-fulls (of a big cup) per second at full tip
+
+// The teapot hangs from a cord; it tips about its middle.
+const POT_X = 830;
+const POT_Y = 205;
+const SPOUT = [-150, 6]; // the spout's tip, in the pot's own units
+const POT_TIP = -0.5; // radians at full tip
+
+function spoutAt(a) {
+  const c = Math.cos(a);
+  const s = Math.sin(a);
+  return { x: POT_X + SPOUT[0] * c - SPOUT[1] * s, y: POT_Y + SPOUT[0] * s + SPOUT[1] * c };
+}
+const STREAM_X = spoutAt(POT_TIP).x - 4; // where the stream comes down
+const QUEUE_GAP = 300;
+
+// Cup geometry, in the stand-in Cupadee's units (draw.js): the cup is drawn
+// about (0, -225) from the feet, rim at -55, bottom at 60.
+const CUP = [[-90, -55], [90, -55], [70, 40], [40, 60], [-40, 60], [-70, 40]];
+const LEVEL = (f) => 52 - f * 104; // tea surface height in cup units, 0 empty .. 1 brim
+const halfWidth = (y) => (y < 40 ? 90 - ((y + 55) / 95) * 20 : 70 - ((y - 40) / 20) * 30);
+
+const SIZES = {
+  big: { size: 440, cap: 1 },
+  small: { size: 360, cap: 0.64 },
+  tiny: { size: 300, cap: 0.45 },
+};
+
+const GRADES = [
+  { name: 'Perfect!', within: 0.04, points: 100, color: '#c0407a' },
+  { name: 'Great!', within: 0.09, points: 60, color: '#4a7a3a' },
+  { name: 'Good', within: 0.16, points: 30, color: INK },
+];
+
+export default function create(env) {
+  const { W, H, rng, sfx } = env;
+  const g = {
+    time: DURATION,
+    score: 0,
+    done: false,
+    elapsed: 0,
+    tip: 0, // 0..1, how far the pot is tipped
+    pouring: false,
+    birds: [], // { x, y, size, cap, motion, line, fill, state, ... }
+    parcels: [], // falling tea: { x, y, vx, vy, vol }
+    drops: [], // splashes
+    puddles: [],
+    pops: [], // popping text
+    made: 0, // Cupadees sent in so far
+    served: 0,
+    perfects: 0,
+    spills: 0,
+    streak: 0,
+    bestStreak: 0,
+    flash: 0,
+    pourSound: 0,
+    streamX: STREAM_X, // where the stream lands (for tests and bots)
+  };
+
+  // The front bird: the first one not yet done.
+  const front = () => g.birds.find((b) => b.state === 'walk' || b.state === 'serve') || null;
+
+  function makeBird() {
+    const n = g.made++;
+    const p = Math.min(1, n / 14);
+    let size = 'big';
+    let motion = 'still';
+    let line = 0.72;
+    if (n >= 3) {
+      line = 0.6 + rng() * 0.25;
+      const r = rng();
+      if (n >= 9 && r < 0.3) size = 'tiny';
+      else if (n >= 4 && r < 0.65) size = 'small';
+      const m = rng();
+      if (n >= 6 && m < 0.25 + p * 0.2) motion = 'bob';
+      else if (n >= 8 && m < 0.45 + p * 0.25) motion = 'stroll';
+    }
+    if (n === 4) size = 'small';
+    if (n === 6) motion = 'bob';
+    if (n === 8) motion = 'stroll';
+    const S = SIZES[size];
+    g.birds.push({
+      x: Math.max(W + 220, ...g.birds.map((b) => b.x + QUEUE_GAP)),
+      size: S.size,
+      cap: S.cap,
+      kind: size,
+      motion,
+      line,
+      fill: 0,
+      state: 'queue',
+      phase: rng() * 6,
+      walk: 0,
+      hop: 0,
+      squash: 0,
+      tilt: 0,
+      wait: 0,
+      settle: 0,
+      patience: 5.5 - p * 1.5,
+      grade: null,
+    });
+  }
+
+  // Where the front of the cup's rim is, in the world.
+  function rim(b) {
+    const s = b.size / 400;
+    return { x: b.x, y: b.y - 280 * s * (1 - b.squash) + b.hop, half: 84 * s };
+  }
+
+  function pop(text, x, y, color = INK, size = 46) {
+    g.pops.push({ text, x, y, color, size, life: 1.3 });
+  }
+
+  function splash(x, y, n, spread = 1) {
+    for (let i = 0; i < n; i++) {
+      g.drops.push({ x, y, vx: (rng() - 0.5) * 420 * spread, vy: -150 - rng() * 320, life: 0.6 + rng() * 0.4, r: 3 + rng() * 4 });
+    }
+  }
+
+  function judge(b) {
+    b.state = 'done';
+    b.doneT = 0;
+    const r = rim(b);
+    if (b.fill <= 0.001) {
+      g.streak = 0;
+      b.grade = 'thirsty';
+      pop('Thirsty…', r.x, r.y - 90, '#8a6a5a', 40);
+      sfx('wrong');
+      return;
+    }
+    g.served++;
+    const err = Math.abs(b.fill - b.line);
+    const grade = GRADES.find((gr) => err <= gr.within);
+    if (!grade) {
+      g.streak = 0;
+      const pts = b.fill > 0.25 ? 10 : 0;
+      g.score += pts;
+      b.grade = 'miss';
+      pop(b.fill < b.line ? 'A bit low' : 'A bit high', r.x, r.y - 90, '#8a6a5a', 40);
+      if (pts) pop(`+${pts}`, r.x + 10, r.y - 140, '#8a6a5a', 34);
+      sfx('tick');
+      return;
+    }
+    let pts = grade.points;
+    if (grade.points >= 60) {
+      g.streak++;
+      g.bestStreak = Math.max(g.bestStreak, g.streak);
+      pts += Math.min(g.streak - 1, 5) * 10;
+    } else g.streak = 0;
+    if (grade.points === 100) {
+      g.perfects++;
+      g.flash = 0.18;
+      sfx('right');
+      env.vibrate?.(40);
+      for (let i = 0; i < 14; i++) {
+        const a = (i / 14) * Math.PI * 2;
+        g.drops.push({ x: r.x, y: r.y - 20, vx: Math.cos(a) * 320, vy: Math.sin(a) * 320 - 120, life: 0.7, r: 5, star: true });
+      }
+    } else sfx('ding', { pitch: grade.points >= 60 ? 4 : 0 });
+    g.score += pts;
+    b.grade = grade.name;
+    pop(grade.name, r.x, r.y - 100, grade.color, grade.points === 100 ? 64 : 50);
+    pop(`+${pts}`, r.x + 10, r.y - 160, grade.color, 38);
+    if (g.streak >= 2) pop(`Combo ×${g.streak}`, r.x, r.y - 215, PAL.magenta, 30);
+  }
+
+  function spill(b) {
+    b.state = 'done';
+    b.doneT = 0;
+    b.grade = 'spill';
+    g.spills++;
+    g.served++;
+    g.streak = 0;
+    const r = rim(b);
+    splash(r.x - r.half * 0.6, r.y, 18, 1.4);
+    g.puddles.push({ x: r.x - 40, w: 60, life: 4 });
+    pop('Spilt!', r.x, r.y - 100, '#b8624a', 58);
+    sfx('splash');
+    sfx('squawk');
+    env.vibrate?.(90);
+    if (!env.reduceMotion) g.flash = 0.12;
+  }
+
+  for (let i = 0; i < 3; i++) makeBird();
+
+  g.update = (dt, input) => {
+    if (g.done) return;
+    g.elapsed += dt;
+    g.time = Math.max(0, DURATION - g.elapsed);
+    if (g.time <= 0) {
+      g.done = true;
+      return;
+    }
+
+    // Pour: the pot tips while the action is held.
+    g.pouring = !!input.action;
+    g.tip = approach(g.tip, g.pouring ? 1 : 0, g.pouring ? 14 : 11, dt);
+    const flow = g.tip > 0.25 ? FLOW * Math.min(1, (g.tip - 0.25) / 0.6) : 0;
+    if (flow > 0) {
+      const sp = spoutAt(POT_TIP * g.tip);
+      g.parcels.push({ x: sp.x, y: sp.y, vx: -30, vy: 220, vol: flow * dt });
+      g.pourSound -= dt;
+      if (g.pourSound <= 0) {
+        sfx('pour');
+        g.pourSound = 0.09;
+      }
+    }
+
+    // The birds: the front one walks under the spout; the others queue.
+    let k = 0;
+    let ahead = null;
+    for (const b of g.birds) {
+      const s = b.size / 400;
+      b.phase += dt;
+      b.y = GROUND;
+      if (b.state === 'queue' || b.state === 'walk') {
+        if (b.state === 'queue' && k === 0) b.state = 'walk';
+        // stand under the spout, or keep a bird's length behind the one ahead
+        let stop = b.motion === 'stroll' && k === 0 ? STREAM_X + 110 * s : STREAM_X + k * QUEUE_GAP;
+        if (k > 0 && ahead) stop = Math.max(stop, ahead.x + QUEUE_GAP * (0.5 + s * 0.45));
+        const speed = 620;
+        const dx = stop - b.x;
+        b.x += Math.sign(dx) * Math.min(Math.abs(dx), speed * dt);
+        b.walk = Math.abs(dx) > 1 ? b.walk + dt * 11 : 0;
+        if (k === 0 && Math.abs(dx) < 1) {
+          b.state = 'serve';
+          b.wait = 0;
+        }
+        k++;
+      } else if (b.state === 'serve') {
+        k++;
+        b.wait += dt;
+        if (b.motion === 'stroll') {
+          b.x -= (34 + Math.min(1, g.elapsed / DURATION) * 26) * dt;
+          b.walk += dt * 4;
+        } else b.walk = 0;
+        if (b.motion === 'bob') b.squash = Math.sin(b.phase * 3.4) * 0.075;
+        // Settled: the pot is up and no tea is still falling.
+        const falling = g.parcels.length > 0 || g.tip > 0.25;
+        if (b.fill >= 1) spill(b);
+        else if (b.fill > 0 && !falling) {
+          b.settle += dt;
+          if (b.settle > 0.35) judge(b);
+        } else {
+          b.settle = 0;
+          if (b.fill === 0 && b.wait > b.patience) judge(b);
+          if (b.motion === 'stroll' && b.x < STREAM_X - rim(b).half - 20) judge(b);
+        }
+      } else if (b.state === 'done') {
+        b.doneT += dt;
+        b.squash = approach(b.squash, 0, 8, dt);
+        if (b.grade === 'spill') b.tilt = approach(b.tilt, -0.55, 10, dt);
+        else if (b.grade !== 'thirsty' && b.grade !== 'miss') b.tilt = Math.sin(b.doneT * 9) * 0.06 * Math.max(0, 1 - b.doneT * 2);
+        if (b.doneT > 0.55) b.state = 'leave';
+      } else if (b.state === 'leave') {
+        b.tilt = approach(b.tilt, 0, 5, dt);
+        b.x -= 700 * dt;
+        b.walk += dt * 12;
+      }
+      b.hop = b.walk ? -Math.abs(Math.sin(b.walk)) * 12 * s : 0;
+      if (b.state !== 'done' && b.state !== 'leave') ahead = b;
+    }
+    g.birds = g.birds.filter((b) => b.x > -260);
+    while (g.birds.filter((b) => b.state !== 'leave').length < 3) makeBird();
+
+    // The falling tea: into the front cup, or onto the floor.
+    const fb = g.birds.find((b) => b.state === 'serve' || b.state === 'walk');
+    const r = fb ? rim(fb) : null;
+    for (const p of g.parcels) {
+      const py = p.y;
+      p.vy += GRAVITY * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (r && fb.state === 'serve' && py < r.y && p.y >= r.y && Math.abs(p.x - r.x) < r.half) {
+        p.dead = true;
+        fb.fill += p.vol / fb.cap;
+        if (rng() < 0.08) g.drops.push({ x: p.x, y: r.y, vx: (rng() - 0.5) * 120, vy: -120 - rng() * 80, life: 0.3, r: 3 });
+      } else if (p.y >= GROUND - 4) {
+        p.dead = true;
+        if (rng() < 0.3) splash(p.x, GROUND - 4, 1, 0.5);
+        const pud = g.puddles.find((q) => Math.abs(q.x - p.x) < 50);
+        if (pud) {
+          pud.w = Math.min(90, pud.w + 0.6);
+          pud.life = 4;
+        } else g.puddles.push({ x: p.x, w: 16, life: 4 });
+      }
+    }
+    g.parcels = g.parcels.filter((p) => !p.dead);
+
+    for (const d of g.drops) {
+      d.vy += 1400 * dt;
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+      d.life -= dt;
+    }
+    g.drops = g.drops.filter((d) => d.life > 0 && d.y < H);
+    for (const q of g.puddles) q.life -= dt * 0.5;
+    g.puddles = g.puddles.filter((q) => q.life > 0);
+    for (const p of g.pops) {
+      p.life -= dt;
+      p.y -= 40 * dt;
+    }
+    g.pops = g.pops.filter((p) => p.life > 0);
+    g.flash = Math.max(0, g.flash - dt);
+  };
+
+  g.hud = () => (g.streak >= 2 ? `Cups ${g.served} · Combo ×${g.streak}` : `Cups ${g.served}`);
+  g.summary = () => [
+    `${g.served} cup${g.served === 1 ? '' : 's'} poured: ${g.perfects} perfect, ${g.spills} spilt.`,
+    g.bestStreak >= 2 ? `Best combo: ${g.bestStreak} in a row.` : 'Line up a few Perfects in a row for a combo.',
+  ];
+
+  // ---------- drawing ----------
+
+  // The same transform drawBird uses, up to the cup's own centre.
+  function toCup(c, b) {
+    const s = b.size / 400;
+    c.translate(b.x, b.y + b.hop);
+    if (b.rot) c.rotate(b.rot);
+    c.scale(s * (1 + b.squash * 0.6), s * (1 - b.squash));
+    c.translate(0, -225);
+    c.rotate(b.tilt);
+  }
+
+  // The tea seen through the glaze, and the fill line, drawn over the bird.
+  function drawCup(c, b, t, isFront) {
+    c.save();
+    toCup(c, b);
+    const lvl = LEVEL(clamp(b.fill, 0, 1));
+    // porcelain, a little see-through
+    poly(c, CUP, 2, 0);
+    c.save();
+    c.clip();
+    c.fillStyle = 'rgba(250,244,226,0.82)';
+    c.fillRect(-100, -60, 200, 130);
+    if (b.fill > 0) {
+      const wob = b.state === 'serve' && g.tip > 0.3 ? Math.sin(t * 22) * 2.5 : 0;
+      c.beginPath();
+      c.moveTo(-100, lvl + wob);
+      c.quadraticCurveTo(0, lvl - wob * 2, 100, lvl + wob);
+      c.lineTo(100, 70);
+      c.lineTo(-100, 70);
+      c.closePath();
+      c.fillStyle = '#9a5a2a';
+      c.globalAlpha = 0.85;
+      c.fill();
+      c.globalAlpha = 1;
+      c.beginPath();
+      c.ellipse(0, lvl, halfWidth(lvl), 6, 0, 0, Math.PI * 2);
+      c.fillStyle = '#c08a50';
+      c.fill();
+    }
+    // the glaze and the pink band, washed over the tea
+    c.fillStyle = 'rgba(239,217,106,0.32)';
+    c.fillRect(-100, -60, 200, 130);
+    poly(c, [[-100, -50], [100, -50], [100, -30], [-100, -30]], 3, 0);
+    c.fillStyle = 'rgba(217,164,160,0.55)';
+    c.fill();
+    c.restore();
+    poly(c, CUP, 2, 0.8);
+    ink(c, 3);
+    // the fill line: dashed across the cup, with a solid tick out each side
+    const ly = LEVEL(b.line);
+    const hw = halfWidth(ly);
+    const pulse = isFront && b.state === 'serve' ? 1 + Math.sin(t * 8) * 0.25 : 1;
+    c.save();
+    c.setLineDash([12, 8]);
+    c.beginPath();
+    c.moveTo(-hw + 4, ly);
+    c.lineTo(hw - 4, ly);
+    ink(c, isFront ? 4 : 2.5, '#b8303a');
+    c.restore();
+    for (const d of [-1, 1]) {
+      c.beginPath();
+      c.moveTo(d * (hw - 2), ly);
+      c.lineTo(d * (hw + 20), ly);
+      ink(c, 5 * pulse, '#b8303a');
+      c.beginPath();
+      c.arc(d * (hw + 24), ly, 5 * pulse, 0, Math.PI * 2);
+      c.fillStyle = '#b8303a';
+      c.fill();
+    }
+    // the painted eye sits on the cup
+    eye(c, -40, -5, 13);
+    c.restore();
+  }
+
+  function drawPot(c, t) {
+    const a = POT_TIP * g.tip;
+    // the cord
+    c.beginPath();
+    c.moveTo(POT_X + 30, 0);
+    c.quadraticCurveTo(POT_X + 34 + a * 20, 60, POT_X + Math.sin(a) * -95, POT_Y - 95 * Math.cos(a));
+    ink(c, 2);
+    c.save();
+    c.translate(POT_X, POT_Y);
+    c.rotate(a);
+    // handle (behind)
+    c.beginPath();
+    c.ellipse(108, -4, 38, 46, 0, -Math.PI * 0.55, Math.PI * 0.55);
+    c.lineWidth = 16;
+    c.strokeStyle = '#dfe4e2';
+    c.stroke();
+    ink(c, 2);
+    // spout
+    poly(c, [[-80, 20], [-118, -2], [-152, 0], [-146, 12], [-116, 16], [-86, 48]], 4, 1);
+    wash(c, '#dfe4e2');
+    ink(c);
+    // body
+    blob(c, 0, 18, 112, 82, 3, 0.03, 22);
+    wash(c, '#e6ebe8');
+    ink(c, 2.8);
+    blob(c, 0, 18, 112, 82, 3, 0.03, 22);
+    hatch(c, -40, -60, 120, 100, 9, 0.18, 1);
+    // a band of mauve flowers
+    poly(c, [[-108, 8], [108, 8], [106, 34], [-106, 34]], 6, 0.6);
+    c.save();
+    blob(c, 0, 18, 112, 82, 3, 0.03, 22);
+    c.clip();
+    poly(c, [[-120, 8], [120, 8], [120, 34], [-120, 34]], 6, 0.6);
+    wash(c, PAL.mauve, 0.7);
+    for (let i = -4; i <= 4; i++) {
+      c.beginPath();
+      c.arc(i * 24, 21, 6, 0, Math.PI * 2);
+      c.fillStyle = PAL.lemon;
+      c.fill();
+      ink(c, 1);
+    }
+    c.restore();
+    // lid and knob
+    blob(c, 0, -62, 64, 14, 8, 0.04);
+    wash(c, '#dfe4e2');
+    ink(c, 2);
+    blob(c, 0, -82, 13, 12, 9, 0.05);
+    wash(c, PAL.mauve);
+    ink(c, 2);
+    c.restore();
+    // steam curls when the pot is upright
+    c.save();
+    c.globalAlpha = 0.35 * (1 - g.tip);
+    for (let i = 0; i < 2; i++) {
+      const sx = POT_X - 160 + i * 14;
+      const ph = t * 1.5 + i * 2;
+      c.beginPath();
+      c.moveTo(sx, POT_Y - 10);
+      for (let j = 1; j < 6; j++) c.lineTo(sx + Math.sin(ph + j) * 8, POT_Y - 10 - j * 14);
+      ink(c, 1.6);
+    }
+    c.restore();
+  }
+
+  function drawStream(c) {
+    if (!g.parcels.length) return;
+    // join parcels that left the spout one after another
+    c.save();
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+    for (const [w, col] of [[12, '#8a4e22'], [5, '#c08a50']]) {
+      c.beginPath();
+      let prev = null;
+      for (const p of g.parcels) {
+        if (prev && Math.abs(p.y - prev.y) < 60) c.lineTo(p.x, p.y);
+        else c.moveTo(p.x, p.y);
+        prev = p;
+      }
+      c.lineWidth = w * Math.max(0.5, g.tip);
+      c.strokeStyle = col;
+      c.stroke();
+    }
+    c.restore();
+  }
+
+  g.draw = (c, t) => {
+    scene(c, 'cupadee', W, H, (c) => {
+      // a quiet parlour: striped wallpaper, a picture rail, floorboards
+      band(c, 0, 0, W, 760, PAL.lemon, 0.22, 1);
+      c.save();
+      c.globalAlpha = 0.12;
+      for (let x = 30; x < W; x += 90) {
+        c.fillStyle = PAL.dusty;
+        c.fillRect(x, 120, 22, 640);
+      }
+      c.restore();
+      c.beginPath();
+      c.moveTo(0, 118);
+      c.lineTo(W, 122);
+      ink(c, 2);
+      // a little framed picture of a bird on the wall
+      poly(c, [[1250, 230], [1440, 230], [1440, 420], [1250, 420]], 2);
+      wash(c, '#ece2c8');
+      ink(c, 3);
+      poly(c, [[1268, 248], [1422, 248], [1422, 402], [1268, 402]], 3, 1);
+      wash(c, PAL.sage, 0.5);
+      ink(c, 1.5);
+      c.beginPath();
+      c.moveTo(1345, 230);
+      c.lineTo(1345, 122);
+      ink(c, 1.2);
+      blob(c, 1345, 330, 34, 26, 5);
+      wash(c, PAL.slate, 0.6);
+      ink(c, 1.5);
+      c.beginPath();
+      c.moveTo(1312, 326);
+      c.lineTo(1280, 332);
+      c.moveTo(1345, 356);
+      c.lineTo(1338, 392);
+      c.moveTo(1352, 356);
+      c.lineTo(1362, 392);
+      ink(c, 1.5);
+      // skirting and floor
+      band(c, 0, 760, W, 140, PAL.wafer, 0.5, 3);
+      c.beginPath();
+      c.moveTo(0, 760);
+      c.lineTo(W, 756);
+      ink(c, 2.4);
+      c.save();
+      c.globalAlpha = 0.3;
+      for (let y = 790; y < H; y += 34) {
+        c.beginPath();
+        c.moveTo(0, y);
+        c.lineTo(W, y + 3);
+        ink(c, 1.2);
+      }
+      c.restore();
+    });
+
+    // where to stand: a little mark under the spout
+    c.save();
+    c.globalAlpha = 0.35;
+    blob(c, STREAM_X, GROUND + 6, 70, 10, 4, 0.08);
+    c.fillStyle = PAL.ochre;
+    c.fill();
+    c.restore();
+
+    for (const q of g.puddles) {
+      c.save();
+      c.globalAlpha = Math.min(0.8, q.life);
+      blob(c, q.x, GROUND + 2, q.w, 7, q.x, 0.15);
+      wash(c, '#9a5a2a');
+      ink(c, 1);
+      c.restore();
+    }
+
+    // the queue, back to front
+    const order = g.birds.slice().reverse();
+    const fb = front();
+    for (const b of order) {
+      const pose = { fill: 0, tip: 0.22 - Math.sin(t * 1.6) * 0.03 + b.tilt };
+      b.rot = b.walk ? Math.sin(b.walk) * 0.05 : 0;
+      drawBird(c, 'cupadee', { x: b.x, y: b.y + b.hop, size: b.size, t, pose, rot: b.rot, squash: b.squash });
+      drawCup(c, b, t, b === fb);
+      if (b === fb && b.state === 'serve' && b.fill === 0 && b.wait > b.patience * 0.55) {
+        const r = rim(b);
+        label(c, '?', r.x - r.half - 30, r.y - 60 + Math.sin(t * 6) * 4, { size: 54, color: '#b8624a', weight: 800 });
+      }
+    }
+
+    drawStream(c);
+    drawPot(c, t);
+
+    for (const d of g.drops) {
+      c.save();
+      c.globalAlpha = clamp(d.life * 2, 0, 1);
+      if (d.star) {
+        c.translate(d.x, d.y);
+        c.rotate(d.life * 6);
+        poly(c, [[0, -10], [3, -3], [10, 0], [3, 3], [0, 10], [-3, 3], [-10, 0], [-3, -3]], 1, 0);
+        c.fillStyle = PAL.lemon;
+        c.fill();
+        ink(c, 1.2);
+      } else {
+        c.beginPath();
+        c.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        c.fillStyle = '#9a5a2a';
+        c.fill();
+      }
+      c.restore();
+    }
+
+    for (const p of g.pops) {
+      const k = Math.min(1, (1.3 - p.life) * 8);
+      c.save();
+      c.globalAlpha = Math.min(1, p.life * 2);
+      c.translate(p.x, p.y);
+      c.scale(0.6 + 0.4 * k + (k < 1 ? 0.15 : 0), 0.6 + 0.4 * k + (k < 1 ? 0.15 : 0));
+      c.lineWidth = 7;
+      c.strokeStyle = 'rgba(250,244,228,0.9)';
+      c.font = `800 ${p.size}px Fraunces, Georgia, serif`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.strokeText(p.text, 0, 0);
+      label(c, p.text, 0, 0, { size: p.size, color: p.color, weight: 800 });
+      c.restore();
+    }
+
+    if (g.flash > 0) {
+      c.fillStyle = `rgba(255,250,235,${env.reduceMotion ? g.flash * 0.6 : g.flash * 1.6})`;
+      c.fillRect(0, 0, W, H);
+    }
+    if (g.elapsed < 3.5) {
+      c.save();
+      c.globalAlpha = Math.min(1, 3.5 - g.elapsed);
+      label(c, 'Hold to pour · let go at the line', W / 2, 860, { size: 34, weight: 600, color: INK });
+      c.restore();
+    }
+  };
+
+  return g;
+}

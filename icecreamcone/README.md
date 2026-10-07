@@ -3,24 +3,58 @@
 A field guide of rare birds from Arnold Lobel's *The Ice-Cream Cone Coot and
 Other Rare Birds* (1971), with a Mario Party-style minigame for each bird:
 catch scoops as the Ice-Cream Cone Coot, pour tea into the Cupadee, take
-pictures as the Shuttercluck, and so on through ten birds.
+pictures as the Shuttercluck, and so on through ten birds. Each game lasts 30
+to 60 seconds and awards a bronze, silver or gold medal; a medal opens the
+next page of the guide.
 
-The game is being built. Until it is published:
+Play it at https://hoai2k.github.io/mini/icecreamcone/. It sits behind the
+shared invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one
+in the `hoai2k.github.io` repository), which is off on localhost.
 
 - [`design/design.md`](design/design.md): the flow, the controls and the ten
   minigames.
-- [`design/image-requests.md`](design/image-requests.md): the image requests
-  (logo, title, paper, ten bird portraits, ten minigame scenes), generated from
-  [`design/source/build_requests.py`](design/source/build_requests.py), which
-  also writes `game/src/asset-list.js`. Edit the data there and rerun it.
-  All 25 requested images are delivered in [`game/assets/`](game/assets/).
-  Generation prompts, references and file checksums are recorded in
-  [`design/image-deliveries.json`](design/image-deliveries.json). Future
-  image drops go in [`intake/`](intake/README.md).
+- [`design/image-requests.md`](design/image-requests.md): the image requests,
+  generated from [`design/source/build_requests.py`](design/source/build_requests.py),
+  which also writes `game/src/asset-list.js`. Edit the data there and rerun it.
+  The first 25 images are delivered in [`game/assets/`](game/assets/), with
+  their prompts and checksums in [`design/image-deliveries.json`](design/image-deliveries.json).
+  New image drops go in [`intake/`](intake/README.md).
 - [`reference/`](reference/README.md): photos of the book's pages and notes on
-  its style and its birds, for the image generator. They are reference only and
-  are never published.
+  its style and its birds, for the image generator. Reference only; never
+  published.
+
+| File | What it is |
+| --- | --- |
+| `game/src/main.js` | Screens, menus and navigation, the guide, bird pages, running a minigame (count-in, HUD, pause, results, medals) |
+| `game/src/birds.js` | The ten birds: names, rhymes, goals, tips, medal targets |
+| `game/src/games/*.js` | One minigame per bird; `games/index.js` documents the contract they share |
+| `game/src/draw.js` | Ink-and-wash drawing: the stand-in birds, how each delivered portrait is placed, and what is drawn over it (lamps, growth, blinks) |
+| `game/src/input.js` | Controllers, keyboard, mouse and touch, as one small set of actions |
+| `game/src/audio.js` | Synthesised sound effects and music-box tunes |
+| `game/src/store.js` | Saved settings and best scores |
+
+## Controls
+
+| Action | Controller | Keyboard | Mouse or touch |
+| --- | --- | --- | --- |
+| Move | Left stick or D-pad | Arrow keys or WASD | Point: the game follows |
+| Action (press or hold) | A or RT | Space or Enter | Click or tap, hold to hold |
+| Left / right step (Bobolinks) | LB / RB or D-pad ◀ ▶ | ← / → | Tap the left or right half |
+| Wind the spring (Gullfinch) | Spin the left stick | Tap Space or ← → between notes | Drag in circles |
+| Pause | Menu or View | Esc or P | The pause button |
+
+## Run and check
 
 ```sh
-python3 icecreamcone/design/source/build_requests.py --check
+cd icecreamcone/game
+python3 -m http.server 8125        # then open http://localhost:8125/ (?all opens every page)
+node --test test/*.test.mjs        # birds, every minigame idle and mashed, a bot per game
+node scripts/browser-check.mjs     # in Chromium: title → guide → page → play → pause → result,
+                                   # keyboard round, then every minigame to its result card
+python3 ../design/source/build_requests.py --check
 ```
+
+`publish.sh` copies the game into the Pages output (`local/pages/icecreamcone`).
+The browser check simulates an Xbox controller by replacing
+`navigator.getGamepads` and runs with `?dt=0.05`. Testing with a real Xbox
+controller, and listening to the synthesised sound, are still outstanding.

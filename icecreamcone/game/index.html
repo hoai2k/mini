@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#f4ecd8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Coot">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <title>The Ice-Cream Cone Coot</title>
+  <meta name="description" content="A field guide of rare birds, with a minigame for each: catch scoops as the Ice-Cream Cone Coot, pour tea for the Cupadee, take pictures as the Shuttercluck.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Questrial&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="stage" aria-hidden="true"></canvas>
+
+    <!-- Title -->
+    <section id="title" class="screen" aria-labelledby="logo-text">
+      <div class="title-block">
+        <img id="logo-img" alt="The Ice-Cream Cone Coot and Other Rare Birds" hidden>
+        <h1 id="logo-text" class="logo-text"><span class="l1">The Ice-Cream Cone Coot</span><span class="l2">and Other Rare Birds</span></h1>
+        <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
+        <p class="hint" id="title-hint">Move left stick for options</p>
+      </div>
+      <div class="corner-buttons">
+        <button class="icon-btn" data-nav data-open="instructions" aria-label="Instructions" title="Instructions">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9a5 5 0 0 1 5 5v11H8a3 3 0 0 1-3-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 9h6M9 13h6" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Instructions</span>
+        </button>
+        <button class="icon-btn" data-nav data-open="settings" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Settings</span>
+        </button>
+        <button class="icon-btn" data-nav data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Fullscreen</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- The field guide: one card per bird -->
+    <section id="guide" class="screen" hidden aria-labelledby="guide-title">
+      <header class="screen-head">
+        <h2 id="guide-title">A Field Guide to Rare Birds</h2>
+        <p class="muted" id="guide-count"></p>
+      </header>
+      <div id="cards" class="cards"></div>
+      <footer class="screen-foot">
+        <button class="text-btn" data-nav data-action="title">Back</button>
+        <button class="text-btn" data-nav data-action="gathering" id="gathering-btn" hidden>All the birds together</button>
+        <button class="text-btn" data-nav data-open="settings">Settings</button>
+      </footer>
+    </section>
+
+    <!-- A bird's page -->
+    <section id="page" class="screen" hidden aria-labelledby="page-name">
+      <div class="page-text">
+        <p class="page-number" id="page-number"></p>
+        <h2 id="page-name"></h2>
+        <p class="muted page-object" id="page-object"></p>
+        <div class="rhyme" id="page-rhyme"></div>
+        <div class="page-game">
+          <h3 id="page-game"></h3>
+          <p id="page-goal"></p>
+          <p class="medal-line" id="page-best"></p>
+        </div>
+        <div class="row-buttons">
+          <button class="menu-btn primary" data-nav data-action="play">Play</button>
+          <button class="menu-btn" data-nav data-action="read">Read to me</button>
+          <button class="menu-btn" data-nav data-action="guide">Back to the guide</button>
+        </div>
+        <p class="muted foot-hint" id="page-hint">◀ ▶ turn the page</p>
+      </div>
+    </section>
+
+    <!-- In play -->
+    <div id="hud" hidden>
+      <div class="hud-left"><span id="hud-game"></span><span id="hud-status"></span></div>
+      <div id="hud-timer" class="hud-timer"></div>
+      <button class="icon-btn hud-pause" data-action="pause" aria-label="Pause" title="Pause">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3"/></svg>
+      </button>
+      <div id="countdown" class="countdown" hidden></div>
+    </div>
+
+    <section id="howto" class="screen modal" hidden aria-labelledby="howto-title">
+      <div class="panel">
+        <h2 id="howto-title"></h2>
+        <p id="howto-goal"></p>
+        <ul id="howto-controls" class="controls-list"></ul>
+        <ul id="howto-tips" class="tips"></ul>
+        <p class="medal-targets" id="howto-medals"></p>
+        <button class="menu-btn primary" data-nav data-action="begin" id="howto-go">Start</button>
+        <button class="menu-btn" data-nav data-action="page">Back</button>
+      </div>
+    </section>
+
+    <section id="pause" class="screen modal" hidden aria-labelledby="pause-title">
+      <div class="panel">
+        <h2 id="pause-title">Paused</h2>
+        <p id="pause-reason" class="muted"></p>
+        <button class="menu-btn" data-nav data-action="resume">Resume</button>
+        <button class="menu-btn" data-nav data-action="howto">How to play</button>
+        <button class="menu-btn" data-nav data-open="instructions">Instructions</button>
+        <button class="menu-btn" data-nav data-open="settings">Settings</button>
+        <button class="menu-btn" data-nav data-action="restart">Restart</button>
+        <button class="menu-btn" data-nav data-action="quit-page">Back to the bird’s page</button>
+        <button class="menu-btn" data-nav data-action="quit-title">Return to title</button>
+      </div>
+    </section>
+
+    <section id="result" class="screen modal" hidden aria-labelledby="result-title">
+      <div class="panel">
+        <h2 id="result-title">Time!</h2>
+        <div class="result-medal" id="result-medal" aria-hidden="true"></div>
+        <p class="result-score" id="result-score"></p>
+        <p class="muted" id="result-best"></p>
+        <div id="result-extra" class="muted"></div>
+        <div class="row-buttons">
+          <button class="menu-btn primary" data-nav data-action="restart">Play again</button>
+          <button class="menu-btn" data-nav data-action="next" id="result-next">Next bird</button>
+          <button class="menu-btn" data-nav data-action="guide">Back to the guide</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="gathering" class="screen" hidden aria-labelledby="gathering-title">
+      <header class="screen-head gathering-head">
+        <h2 id="gathering-title">All the rare birds, together at last</h2>
+        <p class="muted" id="gathering-count"></p>
+      </header>
+      <footer class="screen-foot">
+        <button class="text-btn" data-nav data-action="guide">Back to the guide</button>
+      </footer>
+    </section>
+
+    <section id="instructions" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="ins-title">
+      <div class="panel wide">
+        <h2 id="ins-title">How to play</h2>
+        <div class="scroll" id="ins-scroll" tabindex="0">
+          <p><strong>The field guide.</strong> Every page is one of the rare birds from Arnold Lobel’s book. Meet the bird, then play its game: each one is a short challenge, 30 to 60 seconds, doing what that bird’s object does.</p>
+          <p><strong>Medals.</strong> Your score earns a bronze, silver or gold medal. A medal of any kind opens the next bird’s page. Gold on every bird is the big goal. When every bird has a medal, they all gather on the last page.</p>
+          <p><strong>Every game uses the same few controls:</strong> move, and one action button. The card before each game tells you what they do there.</p>
+          <h3>Xbox controller</h3>
+          <div class="pad-diagram" aria-hidden="true">
+            <svg viewBox="0 0 640 300">
+              <path d="M180 70 Q320 40 460 70 Q540 80 570 190 Q590 270 530 270 Q490 270 460 220 L180 220 Q150 270 110 270 Q50 270 70 190 Q100 80 180 70 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+              <rect x="150" y="36" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="185" y="49" text-anchor="middle" font-size="12" fill="currentColor">LB</text>
+              <rect x="420" y="36" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="455" y="49" text-anchor="middle" font-size="12" fill="currentColor">RB</text>
+              <rect x="430" y="10" width="50" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="455" y="25" text-anchor="middle" font-size="12" fill="currentColor">RT</text>
+              <circle cx="190" cy="125" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="190" y="129" text-anchor="middle" font-size="11" fill="currentColor">L stick</text>
+              <path d="M240 175h16v-16h16v16h16v16h-16v16h-16v-16h-16z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="450" cy="100" r="15" fill="#e8b830"/><text x="450" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#1b1430">Y</text>
+              <circle cx="420" cy="128" r="15" fill="#3d7bd9"/><text x="420" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">X</text>
+              <circle cx="480" cy="128" r="15" fill="#d9443d"/><text x="480" y="133" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">B</text>
+              <circle cx="450" cy="156" r="15" fill="#4caf50"/><text x="450" y="161" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A</text>
+              <rect x="300" y="110" width="16" height="10" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="308" y="104" text-anchor="middle" font-size="10" fill="currentColor">View</text>
+              <rect x="330" y="110" width="16" height="10" rx="4" fill="currentColor"/><text x="338" y="104" text-anchor="middle" font-size="10" fill="currentColor">Menu</text>
+              <g font-size="13" fill="currentColor">
+                <line x1="168" y1="125" x2="40" y2="110" stroke="currentColor"/><text x="6" y="98" font-weight="700">Move · spin to wind</text>
+                <line x1="248" y1="200" x2="160" y2="290" stroke="currentColor"/><text x="40" y="296">D-pad · move, left / right step</text>
+                <line x1="150" y1="45" x2="40" y2="50" stroke="currentColor"/><text x="6" y="64">LB · left step</text>
+                <line x1="490" y1="45" x2="600" y2="50" stroke="currentColor"/><text x="520" y="64">RB · right step</text>
+                <line x1="480" y1="20" x2="600" y2="20" stroke="currentColor"/><text x="520" y="16">RT · action</text>
+                <line x1="465" y1="160" x2="600" y2="200" stroke="currentColor"/><text x="520" y="216" font-weight="700">A · action</text>
+                <line x1="495" y1="128" x2="600" y2="140" stroke="currentColor"/><text x="545" y="136">B · back</text>
+                <line x1="338" y1="100" x2="338" y2="76" stroke="currentColor"/><text x="300" y="70">Menu · pause</text>
+              </g>
+            </svg>
+          </div>
+          <table class="map-table">
+            <tr><th>Action</th><th>Controller</th><th>Keyboard</th><th>Mouse or touch</th></tr>
+            <tr><td>Move</td><td>Left stick or D-pad</td><td>Arrow keys or WASD</td><td>Point: the game follows</td></tr>
+            <tr><td>Action (press or hold)</td><td><span class="xb xb-a">A</span> or RT</td><td>Space or Enter</td><td>Click or tap, hold to hold</td></tr>
+            <tr><td>Left / right step (Bobolinks)</td><td>LB / RB or D-pad ◀ ▶</td><td>← / → or A / D</td><td>Tap the left or right half</td></tr>
+            <tr><td>Wind the spring (Gullfinch)</td><td>Spin the left stick</td><td>Tap Space between notes</td><td>Drag in circles</td></tr>
+            <tr><td>Pause</td><td>Menu or View</td><td>Esc or P</td><td>The pause button, top right</td></tr>
+            <tr><td>Menus</td><td>Left stick / D-pad, <span class="xb xb-a">A</span> choose, <span class="xb xb-b">B</span> back</td><td>Arrows, Enter, Esc</td><td>Click</td></tr>
+          </table>
+          <p class="muted">In the field guide and on a bird’s page, ◀ ▶ (or LB / RB) turn the pages.</p>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Close</button>
+      </div>
+    </section>
+
+    <section id="settings" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="set-title">
+      <div class="panel">
+        <h2 id="set-title">Settings</h2>
+        <div class="scroll settings-list">
+          <label class="row">Volume <input type="range" min="0" max="100" step="5" data-nav data-setting="volume"><output></output></label>
+          <label class="row">Music <input type="range" min="0" max="100" step="5" data-nav data-setting="music"><output></output></label>
+          <label class="row">Sound effects <input type="range" min="0" max="100" step="5" data-nav data-setting="sfx"><output></output></label>
+          <label class="row check">Read each page aloud <input type="checkbox" data-nav data-setting="readAloud"></label>
+          <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
+          <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
+          <button class="menu-btn" data-nav data-action="reset-progress">Forget my medals…</button>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Done</button>
+      </div>
+    </section>
+
+    <section id="confirm" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div class="panel">
+        <h2 id="confirm-title">Are you sure?</h2>
+        <p id="confirm-text" class="muted"></p>
+        <button class="menu-btn" data-nav data-action="confirm-yes">Yes</button>
+        <button class="menu-btn" data-nav data-action="close">No</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script type="module" src="src/boot.js"></script>
+</body>
+</html>
