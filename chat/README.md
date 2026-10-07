@@ -116,6 +116,11 @@ itself to HTTPS.
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
+- `chat/publish.sh local/pages/chat && node chat/test/conn-check.mjs`: a
+  working call turns the pill green with signal bars and a route in the
+  Connection panel; calls that can't connect (`?rtcdrop=1&rtcfast=0.2`) go
+  from connecting to retrying to "can't connect" with Try again, and the
+  pill turns red
 - `chat/publish.sh local/pages/chat && node chat/test/ui-check.mjs`: on a
   phone-sized page, mouse and touch pulls on each sheet (a short pull peeks
   and snaps back, a long one closes) and a sideways scroll of the effects
@@ -127,6 +132,24 @@ itself to HTTPS.
 
 `test/fx.html?fx=<id>` and `test/game.html?game=<id>&n=2` are also handy by
 hand.
+
+## Connection status
+
+- The status pill at the top left has a dot: green when the chat relay and
+  every call are working, amber (pulsing) while something is connecting,
+  red when a call can't connect. Tap it for the Connection panel: the chat
+  relay, whether a TURN relay server is available, and for each person the
+  call state, the route (direct or through the relay server), round trip,
+  their frame rate and bit rate, packet loss and retries, with a Reconnect
+  button and Copy report (paste it into a bug report).
+- Each friend's tile says what the call is doing: "Connecting to Bo…",
+  "Still connecting… trying another way" (after 10 s the call restarts ICE),
+  "Can't connect video with Bo" with a Try again button (after two failed
+  restarts; it keeps retrying every 30 s in the background), "Reconnecting…"
+  when a working call drops, and "Bo's video has paused" when frames stop
+  arriving. Connected tiles show signal bars from round trip and loss.
+- If the browser won't start a friend's video with sound, the video plays
+  muted and a "Tap to hear your friends" button appears.
 
 ## How calls work
 
@@ -141,6 +164,13 @@ hand.
   the video can't connect, though chat and games still work.
 - **What I send** is the studio canvas (camera plus effect) captured at 30 fps,
   plus my microphone.
+- **TURN.** Direct connections fail on many mobile networks and strict
+  routers. The relay's `GET /turn` hands out short-lived Cloudflare Realtime
+  TURN credentials when the Worker has the secrets `TURN_KEY_ID` and
+  `TURN_KEY_API_TOKEN` (create a TURN key in the Cloudflare dashboard under
+  Realtime → TURN Server, then `npx wrangler secret put TURN_KEY_ID` and
+  `npx wrangler secret put TURN_KEY_API_TOKEN` in `multiplayer/server`).
+  Without them it returns STUN servers only.
 
 | Topic | Sent by | Meaning |
 | --- | --- | --- |
@@ -163,9 +193,9 @@ with its state (see `js/gamehost.js`).
   kept per browser.
 - The 360 worlds use the phone's motion sensor; iPhones ask for permission on
   the first tap after picking one. Real-device sensor directions are untested.
-- No TURN relay, so some office and mobile networks can't connect video.
-  Cloudflare's Realtime TURN would fix this but needs an API key held by a
-  small Worker endpoint.
+- Until the relay is deployed with the TURN secrets above, calls between
+  some networks (mobile data, strict routers, offices) can't connect video;
+  the tile then says so and chat and games still work.
 - Every person uploads one copy of their video per other person, so more
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.

@@ -5,6 +5,10 @@
 //   WS   /room/<game>/<roomId>?name=...    join a room
 //   WS   /room/<game>/<roomId>?host=1&title=...&capacity=8
 //                                          open a new room as its host
+//   GET  /turn                             ICE servers for WebRTC calls (JSON): STUN
+//                                          always, plus Cloudflare TURN when the
+//                                          TURN_KEY_ID and TURN_KEY_API_TOKEN
+//                                          secrets are set
 //   GET  /votes/<game>                     thumbs up/down totals per item (JSON)
 //   POST /votes/<game>  {item, voter, value: 1 | -1 | 0}
 //                                          set (or clear) one voter's vote
@@ -60,6 +64,36 @@ const ITEM_RE = /^[A-Za-z0-9_-]{1,40}$/;
 const VOTER_RE = /^[A-Za-z0-9_-]{6,40}$/;
 const MAX_ITEMS = 500;
 const VOTE_RATE = 120; // writes per minute per IP
+const STUN_ONLY = [{ urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] }];
+const TURN_TTL_S = 24 * 3600;
+let turnCache = null; // { at, iceServers } shared by requests on this isolate
+
+// Short-lived TURN credentials from Cloudflare Realtime, so calls still
+// connect when a direct path between two browsers is blocked (mobile data,
+// strict routers, offices). Cached for an hour; each lasts a day.
+async function iceServers(env) {
+  if (!env.TURN_KEY_ID || !env.TURN_KEY_API_TOKEN) return { iceServers: STUN_ONLY, turn: false };
+  if (turnCache && Date.now() - turnCache.at < 3600_000) return { iceServers: turnCache.iceServers, turn: true };
+  try {
+    const res = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${env.TURN_KEY_ID}/credentials/generate-ice-servers`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.TURN_KEY_API_TOKEN}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ttl: TURN_TTL_S }),
+    });
+    if (!res.ok) throw new Error(`TURN credentials: ${res.status}`);
+    const data = await res.json();
+    // Browsers block port 53, so those URLs would only time out.
+    const servers = (data.iceServers || []).map(s => ({
+      ...s,
+      urls: (Array.isArray(s.urls) ? s.urls : [s.urls]).filter(u => !/:53(\?|$)/.test(u)),
+    })).filter(s => s.urls.length);
+    turnCache = { at: Date.now(), iceServers: servers };
+    return { iceServers: servers, turn: true };
+  } catch (e) {
+    console.error(e);
+    return { iceServers: STUN_ONLY, turn: false };
+  }
+}
 
 const clean = (s, max) => String(s ?? "").replace(/[\u0000-\u001f]/g, "").trim().slice(0, max);
 
@@ -68,13 +102,17 @@ export default {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS });
     const parts = url.pathname.split("/").filter(Boolean);
-    if ((parts[0] === "lobby" || parts[0] === "room" || parts[0] === "votes") && !originAllowed(request, env)) {
+    if ((parts[0] === "lobby" || parts[0] === "room" || parts[0] === "votes" || parts[0] === "turn") && !originAllowed(request, env)) {
       return new Response("Origin not allowed", { status: 403, headers: CORS });
     }
 
     if (parts[0] === "lobby" && parts.length === 2 && NAME_RE.test(parts[1])) {
       const rooms = await env.LOBBY.getByName(parts[1]).list();
       return Response.json({ rooms }, { headers: { ...CORS, "Cache-Control": "no-store" } });
+    }
+
+    if (parts[0] === "turn" && parts.length === 1) {
+      return Response.json(await iceServers(env), { headers: { ...CORS, "Cache-Control": "no-store" } });
     }
 
     if (parts[0] === "votes" && parts.length === 2 && NAME_RE.test(parts[1])) {
