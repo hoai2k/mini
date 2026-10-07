@@ -153,10 +153,10 @@ export function litAt(aim, row, x) {
 // ---------------------------------------------------------------- module
 export default {
   id: 3, key: 'court', kicker: 'Act III', title: "The Sea King's Court", size: 110,
-  sub: "Cross the Sea King's hall to the treasury\nand take her pearl in the whale's shadow.",
+  sub: "Cross the Sea King's hall to the treasury\nand take her pearl from its pedestal.",
   // Shown as a silent-film intertitle after the act card ([A] is the A button).
-  intertitle: "Press [A] beside a courtier\nto hide from the Sea King's lantern.\n\nGather as many pearls as you can.",
-  action: 'A: hide · A: take',
+  intertitle: "Press [A] beside a courtier\nto hide from the Sea King's lantern.\n\nTake her pearl from the pedestal\nat the far end of the hall.",
+  action: 'A: hide',
   scenes: SCENES,
 
   // `from`: null, { scene } (scene select) or a checkpoint this act made
@@ -243,7 +243,7 @@ export default {
     if (e.type === 'spotted') return 'Spotted by the gaze lantern!';
     if (e.type === 'gazeTurn') return `The Sea King's lantern turns ${e.dir > 0 ? 'from the left' : 'from the right'}. Hide beside a courtier!`;
     if (e.type === 'whaleNear') return 'The whale is coming.';
-    if (e.type === 'whalePass') return 'The whale masks the hall. Go for the pearl!';
+    if (e.type === 'whalePass') return 'The whale masks the hall: the lantern cannot see you.';
     if (e.type === 'pearlTaken') return 'You take her pearl.';
     if (e.type === 'swallow') return 'The whale swallows the court.';
     return null;
@@ -317,12 +317,11 @@ function play(st, dt, input, emit) {
   p.grace = Math.max(0, p.grace - dt);
   if (p.rowT < 1) p.rowT = Math.min(1, p.rowT + dt / TUNE.rowTween);
 
-  // Take the pearl.
-  const atPedestal = effRow(p) === PEDESTAL.row && Math.abs(p.x - PEDESTAL.x) < PEDESTAL.reach;
-  // The pearl can only be lifted in the whale's shadow, and the whale is
-  // there to turn and swallow the court the moment it is taken.
-  st.canTake = atPedestal && st.maskedBy === 'whale';
-  if (input.a && st.canTake) {
+  // Take the pearl: walking up to the pedestal at the far right, on any
+  // groove, takes it (the act's goal; no button, no waiting). The whale then
+  // rises to swallow the court.
+  st.canTake = p.x >= PEDESTAL.x - PEDESTAL.reach;
+  if (st.canTake) {
     st.taken = true; st.phase = 'take'; st.phaseT = 0; p.frozen = false;
     st.score += 300 + st.lanterns * 100;
     emit({ type: 'pearlTaken' });

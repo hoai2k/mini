@@ -269,7 +269,8 @@ the hall for about three seconds, and while it passes the gaze can't find
 you: dash. A large fish (`fish-large`) swims the same track on smaller passes.
 
 **Goal.** Reach the treasury pedestal beside the throne (`pearl-pedestal`) and
-take **her pearl**. If you took the rose, the sentries stay asleep. If you
+take **her pearl**: walking up to it on any groove takes it, no button
+needed, and the pedestal pearl glows as you near it. If you took the rose, the sentries stay asleep. If you
 refused it, they snap faster.
 
 **Hand-off.** As you take the pearl, the whale turns to face the audience

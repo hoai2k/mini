@@ -2,6 +2,8 @@
 // Run: node widowsbay/qa/act3.test.mjs
 import assert from 'node:assert/strict';
 import act, { TUNE, PEDESTAL, SENTRIES, SENTRY_HEAD, OUTRO, CAM_MAX, LANTERN_BX, PAR, GAZE_OFF, litAt, effRow, SCENES } from '../src/acts/act3.js';
+// A spot in the far hall, clear of the pedestal (reaching it takes the pearl).
+const SPOT = PEDESTAL.x - 300;
 
 const BEAT = 60 / 76.5, DT = 1 / 30;
 let n = 0;
@@ -21,24 +23,19 @@ const beamAt = (st, x) => Object.assign(st.gaze, { phase: 'sweep', t: 0, dur: 1e
 // gets closest to the pedestal. It uses only the act's public inputs.
 const ACTIONS = [{ moveX: 1 }, { moveX: -1 }, {}, { aHeld: true }, { up: true }, { down: true }];
 const FOLLOW = [{ moveX: 1 }, { moveX: -1 }, {}, { aHeld: true }];
-// Head for the pedestal when the whale is coming or masking; otherwise wait
-// a little way off, out of the light that rests on the pearl.
-const whaleSoon = (st) => (st.whale.t < 0 ? st.whale.next < 2.2 : st.whale.t < TUNE.whaleMask[1] - 0.6);
+// Head for the pedestal: reaching it on any groove takes the pearl.
 const goal = (st) => {
   if (st.phase !== 'play' && st.phase !== 'caught') return 1e6;
-  const tx = whaleSoon(st) ? PEDESTAL.x : PEDESTAL.x - 330;
-  const d = Math.abs(st.p.x - tx);
-  return -d - (d < 400 ? effRow(st.p) * 150 : 0) - (st.p.rowT < 1 ? 40 : 0);
+  return -Math.abs(st.p.x - PEDESTAL.x) - (st.p.rowT < 1 ? 40 : 0);
 };
 function sim(st, plan) {
   const s = structuredClone(st); s.events = [];
   let lost = 0, v = 0;
   const go = (inp, sec) => {
     for (let t = 0; t < sec && s.status === 'play'; t += DT) {
-      const atP = effRow(s.p) === 0 && Math.abs(s.p.x - PEDESTAL.x) < PEDESTAL.reach;
       const once = t === 0 ? inp : { ...inp, up: false, down: false };
       const before = s.lanterns;
-      act.step(s, DT, { beat: (s.t + DT) / BEAT, ...once, a: atP && s.canTake });
+      act.step(s, DT, { beat: (s.t + DT) / BEAT, ...once });
       lost += before - s.lanterns;
     }
   };
@@ -61,8 +58,7 @@ function playBot(st, maxSec = 240) {
   const log = { freezes: 0, maskedMoves: 0 };
   for (let t = 0; t < maxSec && st.status === 'play'; t += DT) {
     if (t >= next) { cur = plan(st) || {}; next = t + 0.2; held = 0; }
-    const atP = effRow(st.p) === 0 && Math.abs(st.p.x - PEDESTAL.x) < PEDESTAL.reach;
-    const inp = { ...cur, a: atP && st.canTake };
+    const inp = { ...cur };
     if (held > 0) { inp.up = false; inp.down = false; }
     held++;
     if (st.masked && inp.moveX) log.maskedMoves++;
@@ -132,30 +128,30 @@ test('the rose keeps the sentries asleep', () => {
 
 test('the beam spots you unless hidden with an attendant; grace protects', () => {
   // in the beam, standing: spotted
-  let st = make(); calm(st); beamAt(st, PEDESTAL.x);
+  let st = make(); calm(st); beamAt(st, SPOT);
   st.courtiers = [];
-  st.p.row = st.p.from = 0; st.p.x = PEDESTAL.x - 20;
+  st.p.row = st.p.from = 0; st.p.x = SPOT - 20;
   let ev = run(st, 0.1);
   assert.ok(types(ev).includes('spotted')); assert.equal(st.lanterns, 2);
-  assert.ok(Math.abs(st.p.x - (PEDESTAL.x - 20)) < 1, 'no longer hauled back into the beam\'s path');
+  assert.ok(Math.abs(st.p.x - (SPOT - 20)) < 1, 'no longer hauled back into the beam\'s path');
   ev = run(st, 1.0);
   assert.equal(st.lanterns, 2, 'grace after a hit');
   ev = run(st, 0.7);
   assert.equal(st.lanterns, 1, 'grace runs out (the beam is held still here)');
   // frozen alone in the beam: still spotted
-  st = make(); calm(st); beamAt(st, PEDESTAL.x); st.courtiers = [];
-  st.p.row = st.p.from = 0; st.p.x = PEDESTAL.x - 20;
+  st = make(); calm(st); beamAt(st, SPOT); st.courtiers = [];
+  st.p.row = st.p.from = 0; st.p.x = SPOT - 20;
   run(st, 0.1, () => ({ aHeld: true }));
   assert.equal(st.lanterns, 2);
   // hidden beside an attendant in the beam
-  st = make(); calm(st); beamAt(st, PEDESTAL.x);
-  st.courtiers = [{ kind: 'pink', row: 0, x: PEDESTAL.x - 20, x0: PEDESTAL.x - 20, x1: PEDESTAL.x - 20, a: 0, b: 2000, step: 0, pat: 'R', dir: 1 }];
-  st.p.row = st.p.from = 0; st.p.x = PEDESTAL.x - 20;
+  st = make(); calm(st); beamAt(st, SPOT);
+  st.courtiers = [{ kind: 'pink', row: 0, x: SPOT - 20, x0: SPOT - 20, x1: SPOT - 20, a: 0, b: 2000, step: 0, pat: 'R', dir: 1 }];
+  st.p.row = st.p.from = 0; st.p.x = SPOT - 20;
   ev = run(st, 2, () => ({ aHeld: true }));
   assert.equal(st.lanterns, 3); assert.ok(st.p.hidden);
   // a guard is no cover
   st = make(); calm(st);
-  const gx = PEDESTAL.x; beamAt(st, gx);
+  const gx = SPOT; beamAt(st, gx);
   st.courtiers = [{ kind: 'guard', row: 1, x: gx, x0: gx, x1: gx, a: 0, b: 9000, step: 0, pat: 'R', dir: 1 }];
   st.p.row = st.p.from = 1; st.p.x = gx - 38; // overlapping for cover, clear of a bump
   assert.ok(litAt(gx, 1, st.p.x));
@@ -234,7 +230,7 @@ test('the whale passes every 20-25 s and blinds the gaze for about 3 s', () => {
   for (let i = 1; i < starts.length; i++) { const d = starts[i] - starts[i - 1]; assert.ok(d >= 19.9 && d <= 25.2, `gap ${d}`); }
   for (const m of maskRuns) assert.ok(m > 2.7 && m < 3.4, `mask ${m}`);
   // standing in the rest beam during a pass is safe
-  const s2 = make(); s2.p.row = s2.p.from = 0; s2.p.x = PEDESTAL.x - 20; s2.courtiers = [];
+  const s2 = make(); s2.p.row = s2.p.from = 0; s2.p.x = SPOT - 20; s2.courtiers = [];
   s2.whale.next = 0.01; s2.gaze.dur = 1e9;
   run(s2, 1.2); // let the whale arrive (first 0.9 s is the entrance)
   const before = s2.lanterns; s2.p.grace = 0;
@@ -260,19 +256,16 @@ test('pearls along the grooves score', () => {
   assert.ok(st.pearls >= 2); assert.equal(st.score, st.pearls * 10);
 });
 
-test('the pearl: only in the whale\'s shadow; taking it grants the keepsake', () => {
+test('the pearl: reaching the pedestal on any groove takes it and grants the keepsake', () => {
   let st = make(); calm(st); st.courtiers = [];
-  st.gaze.aim = 200; st.p.row = st.p.from = 0; st.p.x = PEDESTAL.x; st.p.grace = 99;
-  tick(st, { a: true });
-  assert.equal(st.phase, 'play', 'not without the whale');
-  st.cam = CAM_MAX; st.fish.t = (1480 - (LANTERN_BX - CAM_MAX * PAR)) / 1700 * TUNE.fishDur; tick(st, { a: true }); // the fish over the lantern is not enough
-  assert.equal(st.maskedBy, 'fish'); assert.equal(st.phase, 'play');
+  st.p.row = st.p.from = 2; st.p.x = PEDESTAL.x - PEDESTAL.reach - 40; st.p.grace = 99;
+  tick(st, {});
+  assert.equal(st.phase, 'play', 'not from short of the pedestal');
+  run(st, 1, () => ({ moveX: 1 }));
+  assert.equal(st.phase, 'take', 'walking up to it on the front groove takes it, no button, no whale');
   st = make(); calm(st); st.courtiers = [];
-  st.whale.t = 2; st.p.row = st.p.from = 1; st.p.x = PEDESTAL.x;
-  tick(st, { a: true });
-  assert.equal(st.phase, 'play', 'not from the wrong groove');
-  st.p.row = st.p.from = 0;
-  tick(st, { a: true });
+  st.p.row = st.p.from = 0; st.p.x = PEDESTAL.x; st.p.grace = 99;
+  tick(st, {});
   assert.equal(st.phase, 'take'); assert.ok(st.events.some((e) => e.type === 'pearlTaken'));
   assert.equal(act.hud(st).keepsakes.find((k) => k.id === 'pearl').have, true);
   const ev = run(st, 10);
@@ -368,13 +361,12 @@ test('the act can be won from scene 3', () => {
 
 const results = [];
 for (const [seed, carry] of [[7919, { tea: 3 }], [15838, {}], [23757, { rose: true }], [63352, { tea: 3 }], [71271, { rose: true, tea: 3 }]]) {
-  test(`winnable by the planner with freezes and a whale pass (seed ${seed}, ${carry.rose ? 'rose' : 'no rose'})`, () => {
+  test(`winnable by the planner (seed ${seed}, ${carry.rose ? 'rose' : 'no rose'})`, () => {
     const st = make(carry, seed);
     playBot(st);
     results.push({ seed, rose: !!carry.rose, time: st.t.toFixed(1), lanterns: st.lanterns, freezes: st.stats.freezes, unseen: st.stats.hiddenPasses, whales: st.whale.passes, pearls: st.pearls, score: st.result?.score });
     assert.equal(st.status, 'won', `status ${st.status} at ${st.t.toFixed(1)} s, x ${st.p.x.toFixed(0)} row ${st.p.row}`);
     assert.deepEqual(st.result.keepsakes, { pearl: true });
-    assert.ok(st.stats.maskedTime > 0 && st.whale.passes >= 1, 'used a whale pass');
   });
 }
 console.table(results);
