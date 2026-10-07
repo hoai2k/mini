@@ -205,14 +205,73 @@ plus the posting bonus. Later the Bombanats fly in bigger flocks.
   lilac skies, olive and teal greens, ochre, slate seas, pink snouts). Story
   pages copy the book's layout: a big painting above a white text band with a
   drop capital. The title uses a chunky, bouncy display face in yellow.
-- Until the art arrives, every monster is drawn in code from simple shapes in
-  the book's colours, with a wobbly ink outline, and every scene is a simple
-  painted-in-code version of the same place.
+- Until the art arrives, every monster is its stand-in rig (below) with each
+  piece drawn in code from simple shapes in the book's colours, with a wobbly
+  ink outline, and every scene is a simple painted-in-code version of the
+  same place.
 - Text in the game is our own, in the book's rhythm ("But before the ...")
   and using its names; the book's text is not reproduced.
 - Sound is synthesised in the browser: a bouncy oom-pah tune for the
   journey, a sound for each monster (gabble, flap, slurp, creak, whoosh,
   munch, swish), and a rubber-stamp THUNK for each postmark.
+
+## Sprites and animation
+
+Every character starts from one **canonical model sheet**: its master view
+large, with smaller front, back or three-quarter views beside it. Every other
+image of that monster (the name-card portrait, the sprite sheets, its
+appearance on story pages) is generated with the model sheet attached, so it
+stays the same monster throughout. The requests are in
+[`image-requests.md`](image-requests.md), five per monster: model sheet
+(`OM-C`), portrait (`OM-M`), parts (`OM-R`), swaps (`OM-F`) and key poses
+(`OM-K`).
+
+Monsters move as **cut-out rigs** rather than frame-by-frame sprites, which
+is what keeps them smooth:
+
+- **Parts.** The parts sheet takes the monster apart in its master view: body,
+  head, jaw, ears, each limb segment, wings, tail ends, cap, net. Each piece is
+  drawn past its joint with a rounded end, so it can swing without a gap.
+  On integration the sheet is keyed and cut into pieces in the order the
+  request lists, and each piece gets a pivot and a parent in a rig file,
+  `game/src/rigs/<monster>.js`, fitted by laying the pieces back over the
+  model sheet's master view.
+- **Motion.** The game animates the rig in code every frame: each piece's
+  rotation, offset and scale are tweened between key poses with easing, so
+  the movement is smooth at any frame rate. On top go the touches that make
+  it feel alive: follow-through on ears, tie ends, napkins and nets (springs
+  that lag their parent), squash and stretch on landings and lunges, a
+  breathing bob, and blinks on a random timer. Facing left is the rig
+  mirrored.
+- **Swaps.** What rotation cannot do is drawn: a wing at the top or bottom of
+  its beat, an open or chomping jaw, eyes alarmed, shut or dizzy, a clenched
+  paw. A swap replaces its piece for a frame or a few, in the same place and
+  scale. The Bombanat's flap, for one, rotates its wings and swaps through
+  raised, level and swept-down shapes, cross-fading for a frame at each
+  change.
+- **Key poses.** The key-poses sheet is the target each animation is fitted
+  to (the sneak cycle's two steps, the lunge, the swing), and the stills of
+  the snatch at each hand-off.
+- **Stand-ins.** Each rig exists before its art does: the same skeleton with
+  its pieces drawn in code. Animation is built and tuned on the stand-ins,
+  and a delivered parts sheet drops in with no change to the animation.
+
+The rigs, and the animations each needs:
+
+| Monster | Master view | Animations |
+| --- | --- | --- |
+| Stamp-Collecting Trollusk | Side view facing right, standing on his two short legs | Idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, the grab, the gabbling run cycle, being snatched from, wailing |
+| Letter-Eating Bombanat | Side view facing right in flight, wings spread level | The flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck flapping, struggling when grabbed, netted |
+| Bombanat-Munching Grumley | Three-quarter view facing right, from the waist up, rising out of the goo | Lurking, rising, the lunge and grab, the miss and splutter, the lunch dance, the SNAP |
+| Furious-Floating Ice-Ferg | Front three-quarter view from high above, floating, the waterline along its bottom edge | Drifting and bobbing, huffing up, the charge, the crash, the dazed bump |
+| Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Churning cloud, sucking, swelling as it fills, letting go, the morning sag |
+| Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | The trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing |
+| Bombanat-Collecting Grithix | Side view facing right, standing, holding the net upright | The stride cycle, the net swing in three beats, the slam, posting the letter, tripping, the stroll home |
+
+The people (the girls, the mailman, the captain and crew, the neighbours and
+their dog) are small and move little, so they are whole sprites drawn from
+one shared cast model sheet; the props of each chapter come on one sheet per
+chapter.
 
 ## Later
 
