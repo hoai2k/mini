@@ -449,6 +449,44 @@ req(C, "BD-C06", "unit-archer", "Archer",
     "delivered", "Renderer.warrior", "art/unit-archer.png",
     f"{STYLE} A Lac Viet woman archer in profile facing right, drawing a bow, a short feather "
     "crown, quiver on her back, a lacquer-red sash. Ink-black silhouette with fine cut details.")
+# The Garden at Mê Linh's lesson in blocking: village children run in and
+# pelt the women with stones; A raises their forearms in front of their faces.
+req(C, "BD-C15", "children-sheet", "Village children throwing stones",
+    "The first chapter's lesson in blocking: two children run in from the right, stop a little "
+    "way ahead of the women and lob small stones at them until the player blocks, then run off "
+    "the way they came (the game flips them). The game draws the stones. Shown 58 px tall, so "
+    "keep the shapes bold and the poses easy to read.",
+    "1536x1024, transparent; a grid of 4 columns (poses) by 2 rows (children), 384x512 cells, "
+    "each child standing on the bottom of its cell, facing LEFT, centred. Columns: 1 running, "
+    "one leg forward; 2 running, the other leg forward; 3 one arm drawn far back with a stone "
+    "in the hand; 4 the throw, arm flung forward, hand open. Row 1 a boy with a shaved head and "
+    "a topknot, in a loincloth; row 2 a girl with her hair in two short tufts, in a wrapped "
+    "skirt. Same scale in every cell. " + CUTOUT.replace("Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, ", ""),
+    "planned", "Renderer.child (drawn children)", "art/children-sheet.png",
+    f"{STYLE} A sprite sheet of two cheeky Lạc Việt village children, about seven years old, "
+    "in profile facing left, on a grid of 4 columns by 2 rows: row 1 a barefoot boy with a "
+    "shaved head and a little topknot, in a loincloth; row 2 a barefoot girl with two short "
+    "tufts of hair, in a wrapped skirt with a lacquer-red sash. Columns: running with one leg "
+    "forward; running with the other leg forward; winding up with one arm drawn far back, a "
+    "small stone in the hand; the throw, arm flung forward, hand open. Ink-black silhouettes "
+    "with fine cut details, mischievous rather than menacing.")
+for rid, asset, who, base, what in [
+    ("BD-C16", "unit-spear-cover", "Spearwoman", "BD-C05",
+     "her spear held upright in her right hand, her left forearm raised across her face, "
+     "elbow out, head ducked behind it"),
+    ("BD-C17", "unit-archer-cover", "Archer", "BD-C06",
+     "her bow lowered in her left hand, her right forearm raised across her face, elbow out, "
+     "head ducked behind it"),
+]:
+    req(C, rid, asset, f"{who} covering her face",
+        f"The {who.lower()} of {base} blocking the children's stones in the first chapter: shown "
+        "in place of her usual figure while the player holds the block (A). Shown 92 px tall, "
+        f"the same size and stance as {base}, so the two can swap without a jump.",
+        "1024x1536. " + CUTOUT,
+        "planned", "Renderer.warrior (a drawn forearm)", f"art/{asset}.png",
+        f"{STYLE} The same Lac Viet woman as {base}, in profile facing right, standing as in "
+        f"{base} but flinching from thrown stones: {what}. Feather crown, wrapped skirt, a "
+        "lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.")
 req(C, "BD-C07", "han-spear", "Han spearman",
     "Advances and attacks at close range. Shown 96 px tall.",
     "1024x1536. Faces left. " + CUTOUT,
