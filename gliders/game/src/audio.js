@@ -2,12 +2,24 @@
 // a surface, chimes for tricks and banks, a thud for a crash, menu ticks, and
 // a slow generative ambient score.
 
+import { SOUNDS } from './audio-list.js';
+
 const PENTA = [0, 2, 4, 7, 9];
+const WIND_LAYERS = ['wind-glide', 'wind-fast', 'wind-dive', 'wind-close', 'flutter'];
+const smooth = (a, b, x) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 
 export function createAudio() {
   let ctx = null;
   let master, music, sfx, windGain, windFilter, whooshGain, whooshFilter;
   let musicTimer = null;
+  // Recorded sounds (ElevenLabs), decoded once the context exists.
+  const buffers = {};
+  let windBus = null, windTone = null;
+  const layers = {}; // id -> { src, gain }
+  let recordedWind = false;
   const vol = { master: 0.8, music: 0.5, sfx: 0.8 };
 
   function noiseBuffer(seconds = 2) {
@@ -64,6 +76,61 @@ export function createAudio() {
     whooshGain.gain.value = 0;
     whoosh.connect(whooshFilter).connect(whooshGain).connect(sfx);
     whoosh.start(0, 1.1);
+    loadSounds();
+    return true;
+  }
+
+  async function loadSounds() {
+    await Promise.all(
+      Object.entries(SOUNDS).map(async ([id, s]) => {
+        const list = await Promise.all(
+          s.files.map(async (f) => {
+            try {
+              const res = await fetch(f.startsWith('assets/') ? f : 'assets/audio/' + f);
+              return await ctx.decodeAudioData(await res.arrayBuffer());
+            } catch {
+              return null;
+            }
+          }),
+        );
+        buffers[id] = list.filter(Boolean);
+      }),
+    );
+    if (!WIND_LAYERS.every((id) => buffers[id]?.length)) return;
+    // The recorded wind: five loops through one filter that opens with speed.
+    windTone = ctx.createBiquadFilter();
+    windTone.type = 'lowpass';
+    windTone.frequency.value = 2000;
+    windTone.Q.value = 0.4;
+    windBus = ctx.createGain();
+    windBus.gain.value = 0;
+    windTone.connect(windBus).connect(sfx);
+    for (const id of WIND_LAYERS) {
+      const src = ctx.createBufferSource();
+      src.buffer = buffers[id][0];
+      src.loop = true;
+      const gain = ctx.createGain();
+      gain.gain.value = 0;
+      src.connect(gain).connect(id === 'wind-close' || id === 'flutter' ? windBus : windTone);
+      src.start(0, Math.random() * src.buffer.duration);
+      layers[id] = { src, gain };
+    }
+    recordedWind = true;
+    // The synthesised wind steps aside.
+    windGain.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+    whooshGain.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+  }
+
+  function sample(id, { gain = 1, rate = 1 } = {}) {
+    const list = buffers[id];
+    if (!ctx || !list?.length) return false;
+    const src = ctx.createBufferSource();
+    src.buffer = list[Math.floor(Math.random() * list.length)];
+    src.playbackRate.value = rate;
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    src.connect(g).connect(sfx);
+    src.start();
     return true;
   }
 
@@ -139,6 +206,15 @@ export function createAudio() {
 
   return {
     unlock: ensure,
+    // For the browser check: which wind is playing and how loud each layer is.
+    debug() {
+      return {
+        recordedWind,
+        loaded: Object.fromEntries(Object.entries(buffers).map(([k, v]) => [k, v.length])),
+        layers: Object.fromEntries(Object.entries(layers).map(([k, v]) => [k, +v.gain.gain.value.toFixed(3)])),
+        bus: windBus ? +windBus.gain.value.toFixed(3) : 0,
+      };
+    },
     setVolumes(v) {
       Object.assign(vol, v);
       applyVolumes();
@@ -152,10 +228,31 @@ export function createAudio() {
       clearInterval(musicTimer);
       musicTimer = null;
     },
-    // Called every frame in play: speed 0..150, closeness 0..1 (the most of any player).
-    flight(speed, closeness, active) {
+    // Called every frame in play: speed 0..150 m/s, closeness 0..1 and flare 0..1
+    // (the most of any player). The wind is the heart of the sound: three beds
+    // crossfaded by speed, pitched up a little as you go faster, a rush that
+    // rises near surfaces and a membrane flutter that rises with speed and flare.
+    flight(speed, closeness, active, flare = 0) {
       if (!ctx) return;
       const t = ctx.currentTime;
+      if (recordedWind) {
+        const on = active ? 1 : 0;
+        const set = (id, g, rate, tc = 0.12) => {
+          layers[id].gain.gain.setTargetAtTime(g * on, t, tc);
+          layers[id].src.playbackRate.setTargetAtTime(rate, t, 0.25);
+        };
+        const glide = 1 - smooth(30, 70, speed) * 0.8;
+        const fast = smooth(22, 55, speed) * (1 - smooth(95, 130, speed) * 0.45);
+        const dive = smooth(65, 115, speed);
+        set('wind-glide', glide * 0.9, 0.88 + speed / 500);
+        set('wind-fast', fast, 0.86 + speed / 330);
+        set('wind-dive', dive * 1.1, 0.88 + speed / 450);
+        set('wind-close', Math.pow(closeness, 1.3) * (0.35 + smooth(20, 70, speed) * 0.9), 0.9 + closeness * 0.25 + speed / 600, 0.05);
+        set('flutter', smooth(35, 100, speed) * 0.35 + flare * 0.45, 0.8 + speed / 220 + flare * 0.1);
+        windBus.gain.setTargetAtTime(on * (0.35 + 0.65 * smooth(10, 100, speed)), t, 0.2);
+        windTone.frequency.setTargetAtTime(700 + 15000 * Math.pow(smooth(15, 115, speed), 1.4), t, 0.15);
+        return;
+      }
       const k = active ? Math.min(1, speed / 110) : 0;
       windGain.gain.setTargetAtTime(0.03 + k * 0.32, t, 0.15);
       windFilter.frequency.setTargetAtTime(250 + k * 1600, t, 0.2);
@@ -166,6 +263,11 @@ export function createAudio() {
       if (!ctx) return;
       windGain.gain.setTargetAtTime(0, ctx.currentTime, 0.2);
       whooshGain.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
+      if (windBus) windBus.gain.setTargetAtTime(0, ctx.currentTime, 0.25);
+    },
+    // A pass-by whoosh (threading a gap, clearing a tunnel).
+    passBy(speed) {
+      sample('whoosh', { gain: 0.8, rate: 0.85 + Math.min(speed, 120) / 300 });
     },
     bonus(mult) {
       const base = 72 + Math.min(mult, 14);
@@ -179,6 +281,10 @@ export function createAudio() {
     },
     crash() {
       if (!ctx) return;
+      if (sample('crash', { gain: 1.1, rate: 0.9 + Math.random() * 0.2 })) {
+        tone(90, { type: 'sine', dur: 0.4, gain: 0.25, glide: 0.5 });
+        return;
+      }
       tone(110, { type: 'sine', dur: 0.5, gain: 0.5, glide: 0.4 });
       tone(70, { type: 'triangle', dur: 0.7, gain: 0.3, glide: 0.5 });
       const src = ctx.createBufferSource();

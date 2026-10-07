@@ -100,9 +100,24 @@ streaks appear past 45 m/s; contrails from the wingtips glow and widen while
 a combo is open. Reduce motion turns off the roll, the FOV kick and the
 crash shake.
 
-Sound is synthesised (`game/src/audio.js`): wind that rises with speed, a
-whoosh while close to a surface, chimes for tricks, an arpeggio for a bank, a
-thud for a crash, and a slow generative ambient score.
+Wind is the heart of the sound, as in Superflight. Five loops generated with
+ElevenLabs ([`sound-effects.md`](sound-effects.md), made by
+`source/build_audio.py`) are layered in `game/src/audio.js`:
+
+| Layer | Behaviour |
+| --- | --- |
+| `wind-glide` | Soft bed, full below about 30 m/s, a fifth of that by 70 |
+| `wind-fast` | Steady rush from about 25 m/s, eases off in the fastest dives |
+| `wind-dive` | Howling roar from 65 m/s, full by 115 |
+| `wind-close` | Bright rush that rises as you skim a surface |
+| `flutter` | Membrane flutter, rising with speed and when you flare |
+
+The beds are pitched up a little with speed, and a low-pass filter opens from
+dull to full as you speed up. In split screen the wind follows the fastest
+player. A pass-by whoosh plays when you thread a gap or clear a tunnel, and a
+recorded thump when you crash. The menus keep a soft breeze. Chimes for tricks
+and banks, the countdown, menu ticks and the slow ambient score are
+synthesised. If the recordings are missing, synthesised wind stands in.
 
 ## Art
 
