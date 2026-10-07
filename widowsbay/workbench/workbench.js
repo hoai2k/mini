@@ -148,8 +148,8 @@ const SCENES = [
     end: (st, t) => t >= 7,
   },
   {
-    id: 'extra-animations', act: null, title: 'Extra Animations · every loop', max: 12, draw: drawAnimGallery,
-    note: 'Every delivered Part D loop side by side (assets/anims/), drawn by the game\'s own kit.anim at its musical timing. One-shot loops (the witch\'s wand) replay every couple of seconds. This page shows them whatever the Extra Animations box says; tick that box to see them in place in the other scenes (the band, revellers, sea spirit, jellyfish, dragon, witch, giant and pageant).',
+    id: 'extra-animations', act: null, title: 'Extra Animations · everything', max: 12, draw: drawAnimGallery,
+    note: 'Everything Extra Animations adds, side by side, drawn by the game\'s own kit: the jellyfish loop (assets/anims/) and each person\'s old-film idle, the still flicked with its generated frames A, B, A, C (requests in design/image-requests.md, C15). Until a person\'s idle frames arrive the still stands alone and the label says so. This page shows them whatever the Extra Animations box says; tick the box to see them in place in the other scenes.',
     create: () => null,
     input: () => ({}),
     end: (st, t) => t >= 12,
@@ -163,21 +163,40 @@ function drawCurtainCall(k, t) {
   for (let r = 0; r < 3; r++) k.waves(r, t * 40);
 }
 
-// Every delivered loop in a grid with its id, as the game draws it.
+// The people with old-film idle frames (design/image-requests.md, C15), and
+// the step each uses in the game (half a beat unless given).
+const IDLE_PEOPLE = [['band-trio'], ['band-beard'], ['reveller-yellow'], ['reveller-shaggy'], ['reveller-jester'],
+  ['reveller-lady'], ['sea-spirit', 0.55], ['witch-stand', 0.5], ['pageant-dancers']];
+// Every Extra Animation in a grid with its id, as the game draws it: the
+// delivered loops (the jellyfish) and each person's idle frames.
 function drawAnimGallery(k, t) {
-  const c = k.c, ids = Object.keys(assets?.anims || {}).sort();
+  const c = k.c, loops = Object.keys(assets?.anims || {}).sort();
+  const items = [...loops.map((id) => ({ id, loop: true })), ...IDLE_PEOPLE.map(([id, step]) => ({ id, step }))];
   c.fillStyle = k.col('#16282c'); c.fillRect(0, 0, 1280, 720);
-  if (!ids.length) { c.fillStyle = k.col('#f1e3c8'); c.font = '24px "Josefin Sans", sans-serif'; c.textAlign = 'center'; c.fillText('No animation loops delivered.', 640, 360); return; }
-  const cols = 4, rows = Math.ceil(ids.length / cols), x0 = 170, x1 = 1110, y0 = 110, y1 = 640;
+  const cols = 4, rows = Math.ceil(items.length / cols), x0 = 170, x1 = 1110, y0 = 90, y1 = 622;
   const cw = (x1 - x0) / cols, ch = (y1 - y0) / rows;
-  ids.forEach((id, i) => {
-    const meta = assets.anims[id].meta, col = i % cols, row = Math.floor(i / cols);
-    const cx = x0 + cw * (col + 0.5), by = y0 + ch * (row + 1) - 26;
-    const time = meta.loop === 'once' ? t % (animationDuration(meta) + 0.8) : t;
-    const centre = meta.anchor === 'centre';
-    k.anim(id, time, cx, centre ? by - (ch - 40) / 2 : by, cw - 18, ch - 40);
+  items.forEach((it, i) => {
+    const col = i % cols, row = Math.floor(i / cols);
+    const cx = x0 + cw * (col + 0.5), by = y0 + ch * (row + 1) - 30, bw = cw - 18, bh = ch - 46;
+    const label = it.id.replace(/^anim-/, '');
+    let sub;
+    if (it.loop) {
+      const meta = assets.anims[it.id].meta;
+      const time = meta.loop === 'once' ? t % (animationDuration(meta) + 0.8) : t;
+      k.anim(it.id, time, cx, meta.anchor === 'centre' ? by - bh / 2 : by, bw, bh);
+      sub = 'loop';
+    } else {
+      const im = k.img(it.id);
+      if (im) {
+        const s = Math.min(bw / im.width, bh / im.height);
+        k.idle(it.id, t, cx, by, im.width * s, im.height * s, it.step);
+      }
+      const n = ['b', 'c'].filter((f) => k.img(`${it.id}-idle-${f}`)).length;
+      sub = n ? (n === 2 ? 'idle A B A C' : 'idle, 1 of 2 frames') : 'awaiting idle frames';
+    }
     c.fillStyle = k.col('#f1e3c8'); c.font = '600 14px "Josefin Sans", sans-serif'; c.textAlign = 'center';
-    c.fillText(id.replace(/^anim-/, ''), cx, by + 18);
+    c.fillText(label, cx, by + 16);
+    c.font = '13px "Josefin Sans", sans-serif'; c.globalAlpha = 0.7; c.fillText(sub, cx, by + 32); c.globalAlpha = 1;
   });
 }
 

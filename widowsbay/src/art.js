@@ -5,7 +5,7 @@
 // is cut from. Procedural stand-ins draw everything until delivered art
 // (assets/manifest.json) replaces a slot.
 
-import { animationFrame, validAnimation } from './animation.js';
+import { animationFrame, validAnimation, idleFrameId } from './animation.js';
 
 import { ROWS, STAGE, TUNING, rowPos, leapHeight, effectiveRow } from './board.js';
 
@@ -474,7 +474,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   // The band as a halftone cut-out. title: standing at the left in front of
   // the closed curtain. Curtain call: rising through the centre trapdoor.
   function bandTrio(c, k, title, t) {
-    const art = img('band-trio');
+    const art = img(idleId('band-trio', t));
     if (!art) return;
     const e = 1 - (1 - Math.min(1, k)) ** 3;
     const size = title ? 330 : 300;
@@ -482,8 +482,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const yb = title ? 708 : 660 + (1 - e) * 300;
     c.save();
     if (!title) { c.beginPath(); c.rect(0, 0, 1280, 662); c.clip(); }
-    if (!drawAnimation(c, 'anim-band-play', t, x + (title ? 75 : 0), yb + size * 0.013, size * (title ? 1 : 1.3), size))
-      drawAsset(c, P, art, x, yb + size * 0.013, size, size);
+    drawAsset(c, P, art, x, yb + size * 0.013, size, size);
     c.restore();
   }
 
@@ -1026,6 +1025,10 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y1); c.stroke();
   }
 
+  // The people's old-film idle frame for this moment (the still when Extra
+  // Animations is off or no idle frames are delivered).
+  const idleId = (id, time, step) => (extraAnimations ? idleFrameId(id, time, (f) => !!img(f), step) : id);
+
   function drawAnimation(c, id, time, cx, by, w, h) {
     if (!extraAnimations) return false;
     const record = assets.anims?.[id];
@@ -1045,6 +1048,10 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c: ctx, P, PAL, t: 0, ROWS, STAGE,
     img,
     anim(id, time, cx, by, w, h) { return drawAnimation(kit.c, id, time, cx, by, w, h); },
+    // A person's still, flicked with its idle frames when Extra Animations is
+    // on (see idleFrameId); false if the still isn't delivered.
+    idle(id, time, cx, by, w, h, step) { return kit.asset(idleId(id, time, step), cx, by, w, h); },
+    idleId: (id, time, step) => idleId(id, time, step),
     // Draw a delivered image (bottom-centre anchor); false if not delivered.
     asset(id, cx, by, w, h, extra = '') { const im = img(id); if (!im) return false; drawAsset(kit.c, P, im, cx, by, w, h, extra); return true; },
     // Part of a delivered image: source rect in art pixels -> stage box.

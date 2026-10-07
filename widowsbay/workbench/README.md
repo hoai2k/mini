@@ -8,10 +8,10 @@ dropdown (the choice is in the URL hash, `#act1-ending`, and `#act1-ending@12.5`
 opens at 12.5 s). Controls: play/pause, restart, speed, frame stepping, a scrub
 slider (it re-simulates from the start at a fixed 1/60 s step and seed, so it is
 deterministic), sound effects, HUD, film look, and **Extra Animations**
-(remembered between visits), which plays the Part D loops in place of the still
-cut-outs as the game's setting does. The last scene, *Extra Animations · every
-loop* (`#extra-animations`), shows every delivered loop side by side whatever
-that box says. Keys: Space, R, Left/Right
+(remembered between visits), which plays the jellyfish loop and the people's old-film
+idle frames as the game's setting does. The last scene, *Extra Animations ·
+everything* (`#extra-animations`), shows the jellyfish loop and each person's
+old-film idle frames side by side whatever that box says. Keys: Space, R, Left/Right
 (Shift for one second). The timeline lists each phase with the time it begins.
 
 **Add a cutscene:** add an entry to `SCENES` in `workbench.js`: an `id`, a

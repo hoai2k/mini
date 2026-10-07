@@ -37,3 +37,16 @@ export function animationFrame(meta, seconds) {
   }
   return { index: frame, sx: frame % meta.cols * meta.frameW, sy: Math.floor(frame / meta.cols) * meta.frameH, sw: meta.frameW, sh: meta.frameH };
 }
+
+// Old-film idle for the people: the delivered still is frame A and its two
+// generated variants (<id>-idle-b, <id>-idle-c) are flicked A, B, A, C, one
+// frame per `step` seconds (half a beat by default), like a figure in a
+// hand-cranked film. `has(id)` says whether a frame is delivered; with
+// neither variant the still stands alone.
+export const IDLE_STEP = 30 / 76.5;
+export function idleFrameId(id, time, has, step = IDLE_STEP) {
+  const b = has(id + '-idle-b') ? id + '-idle-b' : null, c = has(id + '-idle-c') ? id + '-idle-c' : null;
+  if ((!b && !c) || !Number.isFinite(time) || !(step > 0)) return id;
+  const seq = [id, b || c, id, c || b];
+  return seq[((Math.floor(time / step) % 4) + 4) % 4];
+}

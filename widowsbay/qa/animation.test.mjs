@@ -23,3 +23,17 @@ const pp={...base,frames:4,cols:4,loop:'pingpong',fps:6};
 assert.deepEqual(Array.from({length:7},(_,i)=>animationFrame(pp,i/6+1e-8).index),[0,1,2,3,2,1,0]);
 assert.equal(animationFrame({...base,frames:1,loop:'pingpong'},100).index,0);
 console.log('animation timing, musical cycles, rectangles and invalid-sheet fallback passed');
+// Old-film idles: A, B, A, C on the half-beat; one variant alone is A, B, A, B;
+// none leaves the still.
+{
+  const { idleFrameId, IDLE_STEP } = await import('../src/animation.js');
+  const both = (f) => ['x', 'x-idle-b', 'x-idle-c'].includes(f), onlyB = (f) => f === 'x' || f === 'x-idle-b';
+  const at = (has, i) => idleFrameId('x', (i + 0.5) * IDLE_STEP, has);
+  assert.deepEqual([0, 1, 2, 3, 4].map((i) => at(both, i)), ['x', 'x-idle-b', 'x', 'x-idle-c', 'x']);
+  assert.deepEqual([0, 1, 2, 3].map((i) => at(onlyB, i)), ['x', 'x-idle-b', 'x', 'x-idle-b']);
+  assert.equal(idleFrameId('x', 1.3, (f) => f === 'x'), 'x');
+  assert.equal(idleFrameId('x', NaN, both), 'x');
+  assert.equal(idleFrameId('x', -0.5 * IDLE_STEP, both), 'x-idle-c');
+  assert.equal(idleFrameId('x', 1.5 * 0.6, both, 0.6), 'x-idle-b');
+}
+console.log('old-film idle frame order passed');
