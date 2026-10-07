@@ -77,6 +77,7 @@ export class Renderer {
     this.wakes = [];
     this.incenseState = null;
     this.celebration = null;
+    this.clearing = null; // the last chapter's cleared dots (its clock was not this one's)
     this.wokenAt = {};
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
