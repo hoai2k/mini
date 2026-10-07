@@ -312,6 +312,35 @@ into at most one topic per 50 ms. The hidden cost is the lobby: each
   at once you simply get two rooms, but default titles can be identical, so
   consider adding a short tag.
 
+### Leaving and coming back as the same player
+
+- **Make identity outlive the page.** An ID made up per page load turns any
+  real leave (Leave, reload, a closed tab, a phone dropping the page) into a
+  new person who has lost their avatar and score. Keep the ID in
+  `localStorage`, but never let two tabs of one browser share it. Give each
+  open tab a numbered slot held with the Web Locks API
+  (`navigator.locks.request(name, { ifAvailable: true }, …)` with a callback
+  that never resolves; the browser releases it when the tab closes). Fall back
+  to `localStorage` heartbeats. Each slot has its own ID and its own record of
+  the last room.
+- **Remember the room by its base ID**, so a "Rejoin" entry still finds it
+  after host migration (`<base>-g<n>`).
+- **Don't let a returning screen drive its avatars until the host lets go.**
+  It builds the level fresh, so its avatars start at the start line and would
+  teleport. If the game is under way, keep them as remote copies until the
+  host's state stops listing them as AI-driven. The host takes them over as
+  soon as the ID reappears and releases them once the screen is playing.
+  Build only after the clock has synced, since "under way" depends on it.
+- When an avatar you were simulating becomes a remote copy, seed its buffer
+  with your own current state stamped one render delay in the past, so it
+  doesn't freeze and then snap.
+- The returning screen restores its own choices (saved with the room record).
+  The host only keeps what is keyed by ID: scores, grid places and join order.
+  A new host after migration must rebuild any multi-round state, such as a
+  points table, from its guest copy.
+- If extrapolation switches method (straight line, then along the track),
+  blend between them over half a second or so, or the switch shows as a jump.
+
 ### Testing headless
 
 - Software WebGL ran three pages at 2.5–4 seconds per frame. A `?norender`
