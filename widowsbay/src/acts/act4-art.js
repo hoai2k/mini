@@ -3,7 +3,7 @@
 // (ids and sizes in design/image-requests.md, Part C5; drawn at about half).
 import {
   W, CAM_Y_MIN, PIVOT, THROAT, STONE, HOOKS, LANTERN_XS, OUTRO,
-  floorY, hookTip, hookAngle, shoreTimes, toScreen, extent,
+  floorY, hookTip, hookAngle, shoreTimes, toScreen, extent, platformOf, HANG,
 } from './act4.js';
 import { clamp, easeOut, easeInOut } from './shared.js';
 
@@ -35,6 +35,8 @@ export function onEvent(k, e, st) {
   if (e.type === 'hit') { k.shake(0.45); k.flash(0.25); const p = at(s.x, s.y - 60); k.burst(p.x, p.y, '#c8321e', 12, 'streak'); }
   if (e.type === 'splash') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#9fb8b0', 20, 'drop'); }
   if (e.type === 'acidSting') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#e07a5a', 14, 'bubble'); }
+  if (e.type === 'grab') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#9fb8b0', 6, 'drop'); }
+  if (e.type === 'climbUp') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#f1e3c8', 6, 'chip'); }
   if (e.type === 'hookSnag') { const p = at(e.x, e.y); k.burst(p.x, p.y, '#f1e3c8', 10, 'streak'); }
   if (e.type === 'whaleInhale') k.shake(0.2);
   if (e.type === 'swallowed') k.shake(0.6);
@@ -445,6 +447,7 @@ function sailor(k, st, t) {
   const c = k.c, s = st.s;
   if (st.phase === 'throat') c.globalAlpha = 1 - easeInOut(st.phaseT / OUTRO.throat) * 0.6;
   if (st.grace > 0 && Math.floor(t * 14) % 2) c.globalAlpha = 0.35;
+  if (s.hang) { hanging(k, st); c.globalAlpha = 1; return; }
   const frame = !s.on ? 'leap' : Math.abs(s.vx) > 30 ? (Math.floor(s.walk / 38) % 2 ? 'walk-a' : 'walk-b') : 'stand';
   c.save(); c.translate(s.x, s.y);
   if (st.phase === 'down') c.rotate(Math.min(1.4, st.phaseT * 1.2) * -s.face);
@@ -454,10 +457,30 @@ function sailor(k, st, t) {
   c.globalAlpha = 1;
 }
 
+// Hanging from an edge (sailor-hang, hands at its top centre), then hauling
+// himself over it (sailor-pullup, its ledge line 25% up). The leap sprite
+// stands in for both until they are delivered.
+function hanging(k, st) {
+  const c = k.c, s = st.s, h = s.hang, e = extent(platformOf(st, h.id));
+  const kClimb = h.climb < 0 ? -1 : Math.min(1, h.climb / HANG.climb);
+  c.save();
+  if (kClimb < 0) {
+    c.translate(s.x, s.y); c.scale(s.face, 1);
+    if (!k.asset('sailor-hang', 0, 0, 67, 134)) drawSailor(k, 'leap', -20);
+  } else if (kClimb < 0.75 && k.img('sailor-pullup')) {
+    c.translate(s.x, e.y + 91 * 0.25); c.scale(s.face, 1);
+    k.asset('sailor-pullup', 0, 0, 79, 91);
+  } else {
+    c.translate(s.x, s.y); c.scale(s.face, 1);
+    drawSailor(k, kClimb < 0.75 ? 'leap' : 'stand');
+  }
+  c.restore();
+}
+
 // The sailor at the origin (feet), facing right, 110 tall.
-function drawSailor(k, frame) {
+function drawSailor(k, frame, dy = 0) {
   const id = 'sailor-' + frame, w = frame === 'leap' ? 79 : 67;
-  if (k.asset(id, 0, 0, w, 110)) return;
+  if (k.asset(id, 0, dy, w, 110)) return;
   const c = k.c;
   const legs = { stand: [[-6, 0], [6, 0]], 'walk-a': [[-16, 0], [14, 0]], 'walk-b': [[10, 0], [-8, 0]], leap: [[-18, -10], [16, -22]] }[frame];
   c.lineCap = 'round';

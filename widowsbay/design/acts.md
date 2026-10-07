@@ -296,6 +296,11 @@ water rises, then falls.
 **Play.** A climb across floating platforms.
 
 - **Left and right** walk. **A** leaps (`sailor-leap`).
+- **Catching an edge.** Falling just past the side of a platform he rose
+  above (a missed landing, not one he walked off), he grabs its edge and hangs
+  (`sailor-hang`), safe from the water; toward it, up or A hauls him over
+  (`sailor-pullup`), and he climbs on his own after 0.7 s; away or down lets
+  go. Tuning in `HANG` (`src/acts/act4.js`).
 - Stand on the wreckage, ride it up as the water rises, and work toward the
   throat (`whale-throat`), where daylight shows.
 - **The stone** (`keepsake-stone`) lies on the highest rib ledge.
