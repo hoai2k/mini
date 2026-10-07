@@ -127,6 +127,8 @@ document.addEventListener('fullscreenchange', () => {
 // --- title screen ----------------------------------------------------------
 
 function initTitle() {
+  const favicon = assetUrl('icon');
+  if (favicon) $('#favicon').href = favicon;
   const logo = assetUrl('logo');
   if (logo) {
     $('#logo-img').src = logo;

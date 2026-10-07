@@ -7,610 +7,808 @@ export const ASSET_LIST = {
   },
   "title-bg": {
     "file": "assets/ui/title-bg.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "icon": {
     "file": "assets/ui/icon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "puppy": {
     "file": "assets/fx/puppy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "puppy-tongue": {
     "file": "assets/fx/puppy-tongue.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        409,
+        710,
+        206,
+        298,
+        450,
+        740,
+        124,
+        220
+      ]
+    ]
   },
   "alien-antennae": {
-    "file": "assets/fx/alien-antennae.png",
-    "status": "requested"
+    "file": "assets/fx/alien-antennae-v2.png",
+    "status": "delivered",
+    "templateRects": [
+      [
+        0,
+        0,
+        512,
+        512,
+        180,
+        0,
+        300,
+        240
+      ],
+      [
+        512,
+        0,
+        512,
+        512,
+        544,
+        0,
+        300,
+        240
+      ]
+    ]
   },
   "heart": {
-    "file": "assets/fx/heart.png",
-    "status": "requested"
+    "file": "assets/fx/heart-v2.png",
+    "status": "delivered"
   },
   "sunglasses": {
     "file": "assets/fx/sunglasses.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        63,
+        423,
+        898,
+        169,
+        230,
+        466,
+        564,
+        107
+      ]
+    ]
   },
   "crown": {
     "file": "assets/fx/crown.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        48,
+        103,
+        928,
+        589,
+        260,
+        10,
+        504,
+        230
+      ]
+    ]
   },
   "mustache": {
     "file": "assets/fx/mustache.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        63,
+        523,
+        898,
+        247,
+        300,
+        648,
+        424,
+        88
+      ]
+    ]
   },
   "monocle": {
     "file": "assets/fx/monocle.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        0,
+        0,
+        1024,
+        1024,
+        209,
+        202,
+        666,
+        666
+      ]
+    ]
   },
   "clown": {
     "file": "assets/fx/clown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "dragon-horns": {
     "file": "assets/fx/dragon-horns.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        55,
+        87,
+        915,
+        446,
+        240,
+        0,
+        544,
+        236
+      ]
+    ]
   },
   "storm-cloud": {
     "file": "assets/fx/storm-cloud.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "lightning": {
     "file": "assets/fx/lightning.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fish-1": {
     "file": "assets/fx/fish-1.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fish-2": {
     "file": "assets/fx/fish-2.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fish-3": {
     "file": "assets/fx/fish-3.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "space": {
     "file": "assets/fx/space.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "basketball": {
     "file": "assets/games/basketball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "hoop": {
     "file": "assets/games/hoop.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "court": {
-    "file": "assets/games/court.webp",
-    "status": "requested"
+    "file": "assets/games/court-v2.webp",
+    "status": "delivered"
   },
   "flappy-sky": {
     "file": "assets/games/flappy-sky.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "flappy-pipe": {
     "file": "assets/games/flappy-pipe.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "wings": {
     "file": "assets/games/wings.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "quickdraw": {
     "file": "assets/games/quickdraw.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "rps-rock": {
     "file": "assets/games/rps-rock.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "rps-paper": {
     "file": "assets/games/rps-paper.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "rps-scissors": {
     "file": "assets/games/rps-scissors.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "airhockey-table": {
-    "file": "assets/games/airhockey-table.webp",
-    "status": "requested"
+    "file": "assets/games/airhockey-table-v2.webp",
+    "status": "delivered"
   },
   "card-back": {
     "file": "assets/games/card-back.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "flower-crown": {
     "file": "assets/fx/flower-crown.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        89,
+        180,
+        848,
+        405,
+        260,
+        90,
+        504,
+        190
+      ]
+    ]
   },
   "kitty": {
-    "file": "assets/fx/kitty.png",
-    "status": "requested"
+    "file": "assets/fx/kitty-v2.png",
+    "status": "delivered",
+    "templateRects": [
+      [
+        0,
+        0,
+        1024,
+        450,
+        150,
+        0,
+        724,
+        300
+      ],
+      [
+        0,
+        450,
+        1024,
+        574,
+        0,
+        450,
+        1024,
+        574
+      ]
+    ]
   },
   "bunny": {
-    "file": "assets/fx/bunny.png",
-    "status": "requested"
+    "file": "assets/fx/bunny-v2.png",
+    "status": "delivered",
+    "templateRects": [
+      [
+        0,
+        0,
+        1024,
+        480,
+        170,
+        0,
+        684,
+        240
+      ],
+      [
+        0,
+        480,
+        1024,
+        544,
+        0,
+        450,
+        1024,
+        544
+      ]
+    ]
   },
   "devil": {
     "file": "assets/fx/devil.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        294,
+        132,
+        436,
+        184,
+        320,
+        35,
+        384,
+        200
+      ]
+    ]
   },
   "halo": {
     "file": "assets/fx/halo.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        228,
+        116,
+        570,
+        176,
+        300,
+        30,
+        424,
+        110
+      ]
+    ]
   },
   "pirate": {
     "file": "assets/fx/pirate.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "viking": {
     "file": "assets/fx/viking.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        90,
+        116,
+        844,
+        508,
+        200,
+        0,
+        624,
+        260
+      ]
+    ]
   },
   "wizard-hat": {
     "file": "assets/fx/wizard-hat.png",
-    "status": "requested"
+    "status": "delivered",
+    "templateRects": [
+      [
+        156,
+        6,
+        712,
+        563,
+        250,
+        0,
+        524,
+        250
+      ]
+    ]
   },
   "butterfly": {
     "file": "assets/fx/butterfly.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "hotdog": {
     "file": "assets/fx/hotdog.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "money": {
     "file": "assets/fx/money.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "sunset": {
     "file": "assets/fx/sunset.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-beach": {
     "file": "assets/worlds/world-beach.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-space": {
     "file": "assets/worlds/world-space.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-reef": {
     "file": "assets/worlds/world-reef.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-forest": {
     "file": "assets/worlds/world-forest.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-city": {
     "file": "assets/worlds/world-city.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-snow": {
     "file": "assets/worlds/world-snow.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-candy": {
     "file": "assets/worlds/world-candy.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "world-volcano": {
     "file": "assets/worlds/world-volcano.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "golf-grass": {
     "file": "assets/games/golf-grass.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "bowling-lane": {
     "file": "assets/games/bowling-lane.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "bowling-pin": {
     "file": "assets/games/bowling-pin.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-bun-top": {
     "file": "assets/games/burger-bun-top.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-bun-bottom": {
     "file": "assets/games/burger-bun-bottom.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-patty": {
-    "file": "assets/games/burger-patty.png",
-    "status": "requested"
+    "file": "assets/games/burger-patty-v2.png",
+    "status": "delivered"
   },
   "burger-cheese": {
-    "file": "assets/games/burger-cheese.png",
-    "status": "requested"
+    "file": "assets/games/burger-cheese-v2.png",
+    "status": "delivered"
   },
   "burger-lettuce": {
     "file": "assets/games/burger-lettuce.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "burger-tomato": {
     "file": "assets/games/burger-tomato.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "asteroid": {
     "file": "assets/games/asteroid.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "rocket": {
     "file": "assets/games/rocket.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "beach-ball": {
     "file": "assets/games/beach-ball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-bubble": {
     "file": "assets/icons/fx-bubble.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-bigeyes": {
     "file": "assets/icons/fx-bigeyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-bobblehead": {
     "file": "assets/icons/fx-bobblehead.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-noodle": {
     "file": "assets/icons/fx-noodle.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-swirl": {
     "file": "assets/icons/fx-swirl.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-pixel": {
     "file": "assets/icons/fx-pixel.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-comic": {
     "file": "assets/icons/fx-comic.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-thermal": {
     "file": "assets/icons/fx-thermal.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-space": {
     "file": "assets/icons/fx-space.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-underwater": {
     "file": "assets/icons/fx-underwater.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-puppy": {
     "file": "assets/icons/fx-puppy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-alien": {
     "file": "assets/icons/fx-alien.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-hearteyes": {
     "file": "assets/icons/fx-hearteyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-dealwithit": {
     "file": "assets/icons/fx-dealwithit.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-crown": {
     "file": "assets/icons/fx-crown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-fancy": {
     "file": "assets/icons/fx-fancy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-clown": {
     "file": "assets/icons/fx-clown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-dragon": {
     "file": "assets/icons/fx-dragon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-rainbow": {
     "file": "assets/icons/fx-rainbow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-storm": {
     "file": "assets/icons/fx-storm.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-hoops": {
     "file": "assets/icons/game-hoops.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-flappy": {
     "file": "assets/icons/game-flappy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-stare": {
     "file": "assets/icons/game-stare.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-quickdraw": {
     "file": "assets/icons/game-quickdraw.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-rps": {
     "file": "assets/icons/game-rps.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-connect4": {
     "file": "assets/icons/game-connect4.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-airhockey": {
     "file": "assets/icons/game-airhockey.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-doodle": {
     "file": "assets/icons/game-doodle.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-memory": {
     "file": "assets/icons/game-memory.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-copycat": {
     "file": "assets/icons/game-copycat.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-echo": {
     "file": "assets/icons/fx-echo.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-delayghost": {
     "file": "assets/icons/fx-delayghost.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-timewarp": {
     "file": "assets/icons/fx-timewarp.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-timewarpside": {
     "file": "assets/icons/fx-timewarpside.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-slitscan": {
     "file": "assets/icons/fx-slitscan.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-strobe": {
     "file": "assets/icons/fx-strobe.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-clones": {
     "file": "assets/icons/fx-clones.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-motionglow": {
     "file": "assets/icons/fx-motionglow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-beach360": {
     "file": "assets/icons/fx-beach360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-space360": {
     "file": "assets/icons/fx-space360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-reef360": {
     "file": "assets/icons/fx-reef360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-forest360": {
     "file": "assets/icons/fx-forest360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-city360": {
     "file": "assets/icons/fx-city360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-snow360": {
     "file": "assets/icons/fx-snow360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-candy360": {
     "file": "assets/icons/fx-candy360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-volcano360": {
     "file": "assets/icons/fx-volcano360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-blurbg": {
     "file": "assets/icons/fx-blurbg.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-colorpop": {
     "file": "assets/icons/fx-colorpop.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-neonaura": {
     "file": "assets/icons/fx-neonaura.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-disco": {
     "file": "assets/icons/fx-disco.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-matrix": {
     "file": "assets/icons/fx-matrix.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-sunset": {
     "file": "assets/icons/fx-sunset.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-tinyface": {
     "file": "assets/icons/fx-tinyface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-chubby": {
     "file": "assets/icons/fx-chubby.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-babyface": {
     "file": "assets/icons/fx-babyface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-symmetry": {
     "file": "assets/icons/fx-symmetry.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-cyclops": {
     "file": "assets/icons/fx-cyclops.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-bigmouth": {
     "file": "assets/icons/fx-bigmouth.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-fisheye": {
     "file": "assets/icons/fx-fisheye.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-flowercrown": {
     "file": "assets/icons/fx-flowercrown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-kitty": {
     "file": "assets/icons/fx-kitty.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-bunny": {
     "file": "assets/icons/fx-bunny.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-devil": {
     "file": "assets/icons/fx-devil.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-angel": {
     "file": "assets/icons/fx-angel.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-pirate": {
     "file": "assets/icons/fx-pirate.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-viking": {
     "file": "assets/icons/fx-viking.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-wizard": {
     "file": "assets/icons/fx-wizard.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-butterflies": {
     "file": "assets/icons/fx-butterflies.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-makeup": {
     "file": "assets/icons/fx-makeup.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-crying": {
     "file": "assets/icons/fx-crying.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-hotdog": {
     "file": "assets/icons/fx-hotdog.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-noir": {
     "file": "assets/icons/fx-noir.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-vhs": {
     "file": "assets/icons/fx-vhs.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-popart": {
     "file": "assets/icons/fx-popart.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-kaleidoscope": {
     "file": "assets/icons/fx-kaleidoscope.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-snow": {
     "file": "assets/icons/fx-snow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-confetti": {
     "file": "assets/icons/fx-confetti.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-moneyrain": {
     "file": "assets/icons/fx-moneyrain.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-lasereyes": {
     "file": "assets/icons/fx-lasereyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-fireworks": {
     "file": "assets/icons/fx-fireworks.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-minigolf": {
     "file": "assets/icons/game-minigolf.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-bowling": {
     "file": "assets/icons/game-bowling.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-beachbump": {
     "file": "assets/icons/game-beachbump.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-burger": {
     "file": "assets/icons/game-burger.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-asteroids": {
     "file": "assets/icons/game-asteroids.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-dontsmile": {
     "file": "assets/icons/game-dontsmile.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-snake": {
     "file": "assets/icons/game-snake.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-battleship": {
     "file": "assets/icons/game-battleship.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-trivia": {
     "file": "assets/icons/game-trivia.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-wordblitz": {
     "file": "assets/icons/game-wordblitz.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };

@@ -1,7 +1,7 @@
 // Loads delivered artwork listed in asset-list.js. Anything not delivered (or
 // failing to load) returns null, and callers draw their stand-in instead.
 //
-//   img('puppy')      // HTMLImageElement once loaded, else null
+//   img('puppy')      // image or positioned template canvas once loaded, else null
 //   icon('fx-puppy')  // same, for icons
 //   assetUrl('logo')  // URL of a delivered asset, else null
 
@@ -25,7 +25,20 @@ export function img(name) {
     if (url) {
       const el = new Image();
       el.decoding = 'async';
-      el.onload = () => { rec.ready = true; };
+      el.onload = () => {
+        const rects = ASSET_LIST[name].templateRects;
+        if (rects) {
+          // Generated stickers retain their source pixels. Position their parts
+          // against the shared face guide once, before the effects draw them.
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 1024;
+          const ctx = canvas.getContext('2d');
+          for (const rect of rects) ctx.drawImage(el, ...rect);
+          canvas.dirty = true;
+          rec.el = canvas;
+        }
+        rec.ready = true;
+      };
       el.src = url;
       rec.el = el;
     }

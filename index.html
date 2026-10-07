@@ -108,13 +108,7 @@
       radial-gradient(circle at 60% 22%, rgba(255, 95, 162, 0.25) 0 7%, transparent 8%),
       linear-gradient(160deg, #4a2f7a, #1d1533 60%, #1f5b6e);
   }
-  .chat .cover strong {
-    font: 900 clamp(2rem, 7vw, 2.8rem) / 1 ui-rounded, "Nunito", system-ui, sans-serif;
-    background: linear-gradient(100deg, #ff5fa2, #ffb3d6 35%, #3fe0d0 65%, #ffd43b);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
+  .chat .cover .game-logo { width: 88%; height: auto; position: relative; }
   .gliders .cover {
     background: url("gliders/assets/ui/title-bg.webp") center / cover;
     overflow: hidden;
@@ -162,7 +156,7 @@
     <a class="game chat" href="chat/">
       <div class="cover">
         <span class="tag">Online</span>
-        <strong>Games Chat</strong>
+        <img class="game-logo" src="chat/assets/ui/logo-v3.png" alt="Games Chat">
       </div>
       <div class="info">
         <h2>Games Chat</h2>

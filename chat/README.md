@@ -170,11 +170,12 @@ with its state (see `js/gamehost.js`).
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.
 - Scores and records live on each device, not in a shared leaderboard.
-- Artwork: the approved blue/green/purple title logo is delivered. Other artwork
-  uses drawn stand-ins until reviewed deliveries are accepted in
-  `design/generated/deliveries.json`. Original and alternate logos are preserved
-  as `assets/ui/logo.png` and `assets/ui/logo-v2.png`; the active logo is
-  `assets/ui/logo-v3.png`. The manifest records the built-in imagegen prompts.
+- Artwork: all 153 image requests are delivered. The approved blue/green/purple
+  logo is `assets/ui/logo-v3.png`; the original and second version remain at
+  `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
+  records current files and built-in imagegen prompts. `generation-history.json`
+  preserves earlier candidates. Face stickers with placement corrections are
+  positioned against the face guide by `js/assets.js` using `templateRects`.
 - Face tracking and segmentation load MediaPipe from jsDelivr and Google
   Storage on first use (about 4 MB). Without them, face effects fall back to
   the hold gesture.
