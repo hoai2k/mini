@@ -416,7 +416,7 @@ are sized in intake, ready for integration. See the
 Originals of the third round are in
 [`generated/round-3/originals/`](generated/round-3/originals/).
 
-**Fourth round requested, 7 October 2026:** idle frames for the people
+**Fourth round delivered, 7 October 2026:** idle frames for the people
 ([C15](#c15-fourth-round-idle-frames-for-the-people)), 18 images. The Part D
 motion loops looked good in the gallery but didn't sit right in the game, so
 for people they give way to an old-film idle: the delivered still plus two
@@ -426,6 +426,10 @@ up. Only the jellyfish loop stays from Part D. The game also layers film
 tricks on each person (uneven cranking, a boil, a slow sway on the feet, a
 breath; `src/animation.js`, `idlePose`), so the still alone already moves
 and the two frames only need small changes.
+
+All 18 C15 images are generated and in the game. The PNGs are also retained in
+intake; [review A/B/C and the A/B/A/C sequence](generated/round-4/index.html).
+Full-size originals, exact prompts and delivered-frame references are preserved.
 
 ---
 
