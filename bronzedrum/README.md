@@ -114,7 +114,7 @@ kept light and every clock is read precisely:
   drawn from it move evenly, and a stroke's time is exact.
 - **Strokes land on the first frame.** The close-up sticks and the sisters on
   the palanquin are drawn on the drum from the first frame after a stroke, then
-  lift away (a swing in would only show after the sound).
+  lift back to the ready (a swing in would only show after the sound).
 - **Controllers between frames.** A controller is polled every 4 ms as well as
   once a frame, and a stroke is timed from the controller's own timestamp.
 - **Samples start on the attack.** Leading silence (MP3 padding, which not
@@ -157,8 +157,11 @@ stick whips down onto the rim while the far one flicks up. The strike angles in
 land on the drum. The elephant and spearwoman sheets are not cut yet.
 
 Over the HUD drum, the sisters' sticks are seen close up: on a deep stroke
-Trắc's beater swings in from the bottom left onto the sun-star, on a rim stroke
-Nhị's stick comes in from the right onto the rim, and each lifts away
+Trắc's beater comes down from the bottom left onto the sun-star, on a rim stroke
+Nhị's stick comes in from the right, sideways and a little from above, onto the
+rim. Height above the drum is drawn as depth (a raised stick is larger, turned
+up about the wrist, its shadow further below it). Each waits raised while the
+strokes keep coming and drops away below the screen 0.8 s after its last one
 (`closeSticks` in `render/hud.js`). With a controller or keys they land on the
 sun-star and the right of the rim; a tap on the touch drum is struck where it
 landed, and a rim tap on the left half brings Nhị's arm in from the left. The pair is chosen under Settings,

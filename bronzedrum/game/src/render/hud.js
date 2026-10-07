@@ -9,10 +9,16 @@ import { ROMAN, W, H, TOUCH, spanOf, leaf, star } from './common.js';
 // landing point in drum radii from the centre; art: where the wrist and head
 // sit in the delivered image.
 const STICKS = {
-  L: { id: 'hud-stick-trac', ang: -0.7, angTouch: -0.2, at: [0, 0], art: { wrist: [0.22, 0.78], head: [0.8, 0.2] } },
-  R: { id: 'hud-stick-nhi', ang: Math.PI + 0.62, angTouch: Math.PI + 0.15, at: [0.9, -0.24], art: { wrist: [0.78, 0.78], head: [0.2, 0.2] } },
+  // tip: how far it turns up when raised (radians); back: how far the arm
+  // draws back (drum radii); grow: how much larger it looks when raised.
+  L: { id: 'hud-stick-trac', ang: -0.7, angTouch: -0.2, tip: 0.32, back: 0.05, grow: 0.2, at: [0, 0], art: { wrist: [0.22, 0.78], head: [0.8, 0.2] } },
+  R: { id: 'hud-stick-nhi', ang: Math.PI + 0.62, angTouch: Math.PI + 0.15, tip: 0.22, back: 0.45, grow: 0.12, at: [0.9, -0.24], art: { wrist: [0.78, 0.78], head: [0.2, 0.2] } },
 };
 const STICK_LEN = 1.8; // wrist to head, in drum radii
+// The close-up sticks wait at the ready this long after their last stroke,
+// then drop away below the screen, gone at STICK_GONE (seconds).
+const STICK_IDLE = 0.8;
+const STICK_GONE = 1.15;
 // The pairs of sticks the player can choose in Settings (Drumsticks): the
 // first is BD-U20/21, the others BD-U22 to BD-U25, all drawn to one layout.
 const STICK_SETS = [
@@ -27,24 +33,31 @@ export const hud = {
    * sun-star; Nhị's stick for each rim stroke, from the right onto the rim.
    * A tap on the touch drum is struck where it landed instead (a rim tap on
    * the left half brings Nhị's stick in from the left).
+   *
+   * The sticks are seen from behind the drum, so height above its face reads
+   * as depth: a raised stick is drawn larger, pivoted up about the wrist, with
+   * its shadow fallen further below it on the drum. A stroke therefore comes
+   * down onto the face: Trắc's beater descends onto the centre, Nhị's stick
+   * comes in from the side and a little from above onto the rim.
+   *
    * The stroke is already sounding when it is drawn, so the stick is on the
-   * drum from the first frame (no swing in, which would only show late),
-   * rests there for 50 ms and springs back up to a ready pose over the drum.
-   * It stays at the ready while the drumming goes on and fades out after
-   * 2.5 s without a stroke on its side.
+   * drum from the first frame (a swing in would only show late), rests there
+   * for 50 ms and springs back up to the ready. While strokes keep coming it
+   * waits there; 0.8 s after its last stroke it drops away below the screen.
    */
   closeSticks(cx, cy, R, t, touch = false) {
     const g = this.ctx;
     for (const drum of ['L', 'R']) {
       const since = t - this.flash[drum];
-      if (!(since >= 0 && since < 3)) continue;
+      if (!(since >= 0 && since < STICK_GONE)) continue;
       const st = STICKS[drum];
-      // away: 0 on the drum, 1 at the ready (an ease-out, quick off the drum).
-      let away;
-      if (since < 0.05) away = 0;
-      else if (this.reduceMotion) away = since < 0.12 ? 0 : 1;
-      else away = 1 - (1 - Math.min(1, (since - 0.05) / 0.22)) ** 3;
-      const shown = since < 2.5 ? 1 : 1 - (since - 2.5) / 0.5;
+      // lift: 0 on the drum, 1 raised at the ready (an ease-out, quick off the drum).
+      let lift;
+      if (since < 0.05) lift = 0;
+      else if (this.reduceMotion) lift = since < 0.12 ? 0 : 1;
+      else lift = 1 - (1 - Math.min(1, (since - 0.05) / 0.18)) ** 3;
+      // drop: 0 in play, 1 gone below the screen (an ease-in, slow to leave).
+      const drop = since < STICK_IDLE ? 0 : ((since - STICK_IDLE) / (STICK_GONE - STICK_IDLE)) ** 2;
       const L = STICK_LEN * R;
       let ang = touch ? st.angTouch : st.ang;
       let at = st.at;
@@ -59,22 +72,31 @@ export const hud = {
         }
       }
       const head = [cx + at[0] * R, cy + at[1] * R];
-      // Lifting: the stick tips back about the wrist and the arm draws back
-      // along its own line, growing a little as it nears the eye.
+      // Raised: the stick turns up about the wrist (head higher on the
+      // screen), the arm draws back along its line (for Nhị's sideways
+      // stroke), and it grows as it nears the eye.
       const fromLeft = Math.cos(ang) > 0;
-      const dir = ang + (fromLeft ? 0.45 : -0.45) * away;
-      const back = away * 0.7 * R;
-      const wx = head[0] - Math.cos(ang) * (L + back);
-      const wy = head[1] - Math.sin(ang) * (L + back);
-      const grow = 1 + 0.1 * away;
+      const dir = ang + (fromLeft ? -st.tip : st.tip) * lift;
+      const back = st.back * R * lift;
+      const grow = 1 + st.grow * lift;
+      let wx = head[0] - Math.cos(ang) * (L + back);
+      let wy = head[1] - Math.sin(ang) * (L + back);
+      if (drop > 0) {
+        // Down and out of the frame: far enough that the head (its highest
+        // point) clears the bottom edge.
+        const topY = Math.min(wy, wy + Math.sin(dir) * L * grow) - 0.4 * R * grow;
+        wy += drop * Math.max(0, H - topY + 8);
+      }
       g.save();
-      g.globalAlpha = shown;
       g.translate(wx, wy);
       g.rotate(dir);
       g.scale(grow, mirror ? -grow : grow);
-      g.shadowColor = 'rgba(0,0,0,0.45)';
-      g.shadowBlur = 10;
-      g.shadowOffsetY = 8 + 10 * away;
+      // The shadow on the drum falls further below the stick the higher it is.
+      // (Shadow offsets are in canvas pixels, not drawing units.)
+      g.shadowColor = `rgba(0,0,0,${0.5 - 0.15 * lift})`;
+      g.shadowBlur = (6 + 12 * lift) * this.pixel;
+      g.shadowOffsetX = (fromLeft ? -4 : 4) * lift * this.pixel;
+      g.shadowOffsetY = (5 + 0.3 * R * lift) * this.pixel;
       const set = STICK_SETS[this.stickSet] || STICK_SETS[0];
       const img = this.art.get(set[drum]) || this.art.get(st.id);
       if (img) {
