@@ -106,6 +106,26 @@ try {
   await a.screenshot({ path: `${outDir}call-ana-hoops.png` });
   await b.screenshot({ path: `${outDir}call-bo-hoops.png` });
 
+  // Ana switches tabs: her camera and microphone pause and Bo sees "Away".
+  // She mutes while away; on return the camera comes back but the mic stays off.
+  const setHidden = hidden => a.evaluate(hidden => {
+    Object.defineProperty(document, 'hidden', { get: () => hidden, configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  }, hidden);
+  const tracks = () => a.evaluate(() => {
+    const s = window.__chat.studio;
+    return { away: s.away, cam: s.video.srcObject.getVideoTracks().every(t => t.enabled), mic: s.stream.getAudioTracks().every(t => t.enabled) };
+  });
+  check(JSON.stringify(await tracks()) === '{"away":false,"cam":true,"mic":true}', 'Ana’s camera and mic are on while her tab is in front');
+  await setHidden(true);
+  check(JSON.stringify(await tracks()) === '{"away":true,"cam":false,"mic":false}', 'a background tab pauses the camera and mic');
+  check(await until(b, () => !!document.querySelector('.tile .flag.away'), null, 8000), 'Bo sees Ana as away');
+  await a.evaluate(() => document.querySelector('#btn-mic').click());
+  await setHidden(false);
+  check(JSON.stringify(await tracks()) === '{"away":false,"cam":true,"mic":false}', 'coming back turns the camera on and keeps the mute');
+  check(await until(b, () => !document.querySelector('.tile .flag.away') && !!document.querySelector('.tile .flag.muted'), null, 8000), 'Bo sees Ana back, muted');
+  await a.evaluate(() => document.querySelector('#btn-mic').click());
+
   // Bo leaves; Ana is alone again.
   await b.click('#btn-leave');
   await b.close();

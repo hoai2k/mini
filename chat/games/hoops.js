@@ -1,4 +1,7 @@
-// Hoops: flick the ball up at the hoop. Every basket adds to your all-time
+// Hoops: flick the ball up at the hoop, laid out like Messenger's basketball
+// game: a big hoop near the top, the ball near the bottom, a long lens so the
+// ball only shrinks a little on its way up, and a forgiving aim (any swipe
+// roughly towards the hoop and roughly the right length goes in). Every basket adds to your all-time
 // total, which is kept on this device, and consecutive baskets build a
 // streak. Friends in the session see each of your shots as a see-through
 // ghost ball in your colour, and you see theirs. Shots are simulated with the
@@ -7,25 +10,36 @@
 
 const G = 9.8;
 const BALL_R = 0.12;
-const RIM = { y: 3.05, z: 4.6, r: 0.23 };
-const BOARD = { z: 4.9, x0: -0.9, x1: 0.9, y0: 2.85, y1: 3.95 };
-const START = { y: 1.1, z: 0.3 };
-// A camera well behind the ball with a long lens, so the ball and the hoop
-// both read large on a phone held upright.
-const EYE = { x: 0, y: 2.0, z: -3.5 };
+const RIM = { y: 3.05, z: 2.4, r: 0.23 };
+// The backboard matches the delivered art: it reaches 0.36 m above the rim,
+// 0.08 m below it and 0.35 m to each side.
+const BOARD = { z: 2.78, x0: -0.35, x1: 0.35, y0: 2.97, y1: 3.41 };
+const START = { y: 1.9, z: 0 };
+// A camera far behind the ball with a long lens: the ball and the hoop are
+// both big, and the ball is only about a third smaller at the rim.
+const EYE = { x: 0, y: 2.3, z: -6 };
 const STEP = 1 / 240;
 const SHOT_TIME = 3.2;
+// Forgiveness: swipes within AIM_SLACK of the ideal direction (sideways per
+// unit up) fly dead centre, and any length between POWER_LO and POWER_HI
+// reaches the rim.
+const AIM_SLACK = 0.14;
+const POWER_LO = 0.3, POWER_HI = 2;
+const CHARGE_MAX = 2.8; // top of the Space / controller power meter
 
 // --- physics -------------------------------------------------------------
 
 // Initial velocity that carries the ball from (x0, START) to the target point
-// with a high arc, so it drops into the rim from above.
+// with a high arc, so it drops into the rim from above. `aim` is how far the
+// swipe was off the ideal direction (sideways per unit up); `power` is the
+// swipe length, 1 being a good one.
 function solveShot(x0, power, aim) {
-  const k = 1 + (power - 1) * 0.3;
-  const tz = START.z + (RIM.z - START.z) * k;
-  const tx = x0 + aim * (RIM.z - START.z) * 0.5 + (0 - x0) * 0.85;
+  const off = Math.sign(aim) * Math.max(0, Math.abs(aim) - AIM_SLACK);
+  const long = power < POWER_LO ? power - POWER_LO : power > POWER_HI ? power - POWER_HI : 0;
+  const tz = RIM.z + long * 1.2;
+  const tx = off * 1.1;
   const ty = RIM.y + 0.02;
-  const apex = RIM.y + 0.9;
+  const apex = RIM.y + 0.6;
   const vy = Math.sqrt(2 * G * (apex - START.y));
   const t = vy / G + Math.sqrt((2 * (apex - ty)) / G);
   return [(tx - x0) / t, vy, (tz - START.z) / t];
@@ -89,7 +103,7 @@ function stepBall(b) {
     b.vx *= 0.8;
     b.vz *= 0.8;
   }
-  if (b.t > SHOT_TIME || (b.t > 0.6 && b.y < 1.0 && b.vy < 0)) b.done = true;
+  if (b.t > SHOT_TIME || (b.t > 0.6 && b.y < 1.3 && b.vy < 0)) b.done = true;
   return event;
 }
 
@@ -176,7 +190,7 @@ export default {
   id: 'hoops',
   name: 'Hoops',
   emoji: '🏀',
-  blurb: 'Flick to shoot. Friends’ shots fly as ghosts. Your total is saved.',
+  blurb: 'Swipe up to shoot. Friends’ shots fly as ghosts. Your total is saved.',
   minPlayers: 1,
   maxPlayers: 16,
   needsFace: false,
@@ -212,13 +226,15 @@ export default {
       h = Math.max(1, r.height);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
-      // Fit the hoop and the ball: focal length from the smaller dimension.
-      // Fit everything from the top of the backboard (0.232 f above the
-      // centre line) down to the ball (0.27 f below it) between the bars.
+      // Fit from the top of the backboard down to the ball between the bars
+      // (and the score line), with the rim at most 44% of the width. Spare
+      // height goes mostly below the hoop, so the ball sits near the bottom.
       inset = api.insets ? api.insets() : { top: 0, bottom: 0 };
-      const avail = Math.max(120, h - inset.top - inset.bottom - 24);
-      const f = Math.min(avail / 0.51, w * 3.6);
-      cam = { f, cx: w / 2, cy: inset.top + 12 + (avail - 0.51 * f) / 2 + 0.232 * f };
+      const top = inset.top + 40, avail = Math.max(120, h - top - inset.bottom - 16);
+      const up = (BOARD.y1 + 0.04 - EYE.y) / (RIM.z - EYE.z);
+      const down = (EYE.y - START.y + BALL_R * 1.2) / (START.z - EYE.z);
+      const f = Math.min(avail / (up + down), (0.44 * w * (RIM.z - EYE.z)) / (2 * RIM.r));
+      cam = { f, cx: w / 2, cy: top + (avail - (up + down) * f) * 0.3 + up * f };
       bgCache = null;
     }
     const ro = new ResizeObserver(resize);
@@ -270,7 +286,7 @@ export default {
       ball = null;
       resetAt = now + 0.35;
       // After five in a row you start shooting from different spots.
-      x0 = streak >= 5 ? Math.round((Math.random() * 1.4 - 0.7) * 100) / 100 : 0;
+      x0 = streak >= 5 ? Math.round((Math.random() * 0.5 - 0.25) * 100) / 100 : 0;
     }
 
     // --- input -------------------------------------------------------------
@@ -288,10 +304,11 @@ export default {
       const dx = e.offsetX - drag.x, dy = e.offsetY - drag.y;
       drag = null;
       if (-dy < 25) return;
-      const power = -dy / (0.32 * h);
-      let ratio = dx / -dy;
-      if (Math.abs(ratio) < 0.05) ratio = 0;
-      shoot(Math.max(0.5, Math.min(1.6, power)), ratio);
+      // Compare the swipe with the line from the ball to the hoop on screen.
+      const from = project(cam, x0, START.y, START.z), to = project(cam, 0, RIM.y, RIM.z);
+      const ideal = (to.x - from.x) / (from.y - to.y);
+      const power = -dy / (0.5 * (from.y - to.y));
+      shoot(Math.max(0.2, Math.min(2.5, power)), dx / -dy - ideal);
     }
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
@@ -328,8 +345,8 @@ export default {
     // --- loop --------------------------------------------------------------
     function update(dt) {
       if (charge) {
-        charge.power += charge.dir * dt * 0.9;
-        if (charge.power > 1.6) { charge.power = 1.6; charge.dir = -1; }
+        charge.power += charge.dir * dt * 1.6;
+        if (charge.power > CHARGE_MAX) { charge.power = CHARGE_MAX; charge.dir = -1; }
         if (charge.power < 0.3) { charge.power = 0.3; charge.dir = 1; }
       }
       acc += dt;
@@ -504,11 +521,10 @@ export default {
         const mh = h * 0.4, mx = w - 26, my = h * 0.5 - mh / 2;
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
         ctx.fillRect(mx, my, 14, mh);
-        const ideal = my + mh - (1 / 1.6) * mh;
         ctx.fillStyle = 'rgba(105,219,124,0.5)';
-        ctx.fillRect(mx, ideal - mh * 0.04, 14, mh * 0.08);
+        ctx.fillRect(mx, my + mh * (1 - POWER_HI / CHARGE_MAX), 14, mh * ((POWER_HI - POWER_LO) / CHARGE_MAX));
         ctx.fillStyle = '#ffd43b';
-        const ph = (charge.power / 1.6) * mh;
+        const ph = (charge.power / CHARGE_MAX) * mh;
         ctx.fillRect(mx + 3, my + mh - ph, 8, ph);
         const a = project(cam, x0, START.y, START.z);
         ctx.strokeStyle = 'rgba(255,255,255,0.7)';
@@ -547,13 +563,15 @@ export default {
       }
       if (shotsTaken === 0 && !ball) {
         ctx.textAlign = 'center';
-        ctx.font = '900 18px ui-rounded, system-ui, sans-serif';
         ctx.fillStyle = '#fff';
-        const hint = 'Flick the ball up to shoot (or hold Space / A)';
         const bp = project(cam, x0, START.y, START.z);
-        const hintY = bp.y - BALL_R * bp.s - 22;
-        ctx.strokeText(hint, w / 2, hintY);
-        ctx.fillText(hint, w / 2, hintY);
+        const hintY = bp.y - BALL_R * bp.s - 34;
+        ctx.font = '900 20px ui-rounded, system-ui, sans-serif';
+        ctx.strokeText('Swipe up to shoot', w / 2, hintY);
+        ctx.fillText('Swipe up to shoot', w / 2, hintY);
+        ctx.font = '800 13px ui-rounded, system-ui, sans-serif';
+        ctx.strokeText('or hold Space / A', w / 2, hintY + 18);
+        ctx.fillText('or hold Space / A', w / 2, hintY + 18);
       }
     }
 

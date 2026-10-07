@@ -1,8 +1,9 @@
-// Flappy Face: your own face is the bird. Open your mouth (or tap, Space,
-// controller A) to flap and fly through the candy pillars. Everyone in the
-// session flies the same course: the owner puts a numeric seed in shared
-// state and the gaps are derived from it, so each run replays the same
-// pillars. Friends show up as translucent ghost birds at the horizontal
+// Flappy Face: your own face is the bird. Tap (or Space, controller A) to
+// flap and fly through the candy pillars. Face tracking only crops your face
+// into the bird; it does not steer, since mouth flaps were too unreliable.
+// Everyone in the session flies the same course: the owner puts a numeric
+// seed in shared state and the gaps are derived from it, so each run replays
+// the same pillars. Friends show up as translucent ghost birds at the horizontal
 // offset that matches how far each of them has flown.
 
 // World units: the play field is always H units tall, whatever the panel size,
@@ -20,8 +21,6 @@ const FIRST = 520;          // x of the first pillar
 const GAP_MIN = 70 + GAP / 2;
 const GAP_MAX = FLOOR - 70 - GAP / 2;
 const MAX_STEP = 150;       // biggest change in gap height between pillars
-const MOUTH_ON = 0.45;
-const MOUTH_OFF = 0.3;
 const PUBLISH_MS = 100;
 
 const FONT = 'ui-rounded, system-ui, sans-serif';
@@ -148,7 +147,7 @@ export default {
   id: 'flappy',
   name: 'Flappy Face',
   emoji: '🐤',
-  blurb: 'Your face is the bird. Open your mouth to flap through candy pillars.',
+  blurb: 'Your face is the bird. Tap to flap through candy pillars.',
   minPlayers: 1,
   maxPlayers: 16,
   needsFace: true,
@@ -185,7 +184,6 @@ export default {
     let deadT = 0;
     let flapT = 0;             // wing flap boost, decays
     let wingPhase = 0;
-    let mouthWas = false;
     let padWas = false;
     let course = null;
     let published = '';
@@ -322,14 +320,6 @@ export default {
     }
 
     function update(dt) {
-      // Face: opening the mouth is a flap (rising edge with hysteresis).
-      const f = api.face();
-      const m = f ? f.mouthOpen : 0;
-      if (m > MOUTH_ON && !mouthWas) {
-        mouthWas = true;
-        if (mode !== 'over') flap();
-      } else if (m < MOUTH_OFF) mouthWas = false;
-
       flapT = Math.max(0, flapT - dt * 3);
       wingPhase += dt * (mode === 'ready' ? 5 : 4 + 22 * flapT);
 
@@ -599,8 +589,8 @@ export default {
       if (mode === 'ready') {
         const fs = clamp(unit * 0.06, 15, 28);
         const ready = currentCourse();
-        text(ready ? 'Open your mouth or tap to flap' : 'Getting the course ready…', w / 2, h * 0.3, fs, 'center');
-        if (ready && !api.face()) text('(no face found: tap, Space or A works too)', w / 2, h * 0.3 + fs * 1.4, fs * 0.6, 'center', '#ffe8a3');
+        text(ready ? 'Tap to flap' : 'Getting the course ready…', w / 2, h * 0.3, fs, 'center');
+        if (ready) text('(Space or A works too)', w / 2, h * 0.3 + fs * 1.4, fs * 0.6, 'center', '#ffe8a3');
       }
     }
 

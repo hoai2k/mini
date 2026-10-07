@@ -109,6 +109,14 @@ export function createStudio() {
   let micTrack = null;
   let camOn = false;
   let micOn = false;
+  // While the tab is in the background the camera and microphone are paused
+  // without changing the user's own on/off choices, which come back with it.
+  let away = false;
+  const camLive = () => camOn && !away;
+  function applyTracks() {
+    camStream?.getVideoTracks().forEach(t => { t.enabled = camLive(); });
+    if (micTrack) micTrack.enabled = micOn && !away;
+  }
   let effect = null;
   let effectState = {};
   let face = null;
@@ -182,6 +190,7 @@ export function createStudio() {
       video.srcObject = camStream;
       try { await video.play(); } catch {}
       camOn = true;
+      vt.enabled = camLive();
       result.camera = true;
       ensureFace();
     }
@@ -189,6 +198,7 @@ export function createStudio() {
       micTrack = at;
       out.addTrack(at);
       micOn = true;
+      at.enabled = micOn && !away;
       result.mic = true;
     }
     return result;
@@ -360,7 +370,7 @@ export function createStudio() {
     ctx.font = `800 ${Math.round(h * 0.32)}px ui-rounded, system-ui, sans-serif`;
     ctx.fillText((avatar.name || '?').trim().charAt(0).toUpperCase(), w / 2, h * 0.45);
     ctx.font = `700 ${Math.round(h * 0.07)}px ui-rounded, system-ui, sans-serif`;
-    ctx.fillText(avatar.name || '', w / 2, h * 0.78);
+    ctx.fillText(away ? `${avatar.name || ''} · away` : avatar.name || '', w / 2, h * 0.78);
   }
 
   function track(now) {
@@ -372,7 +382,7 @@ export function createStudio() {
       face = typeof fakeFace === 'function' ? fakeFace((now - start) / 1000, canvas.width, canvas.height) : fakeFace;
       return;
     }
-    if (!camOn || video.readyState < 2) {
+    if (!camLive() || video.readyState < 2) {
       face = null;
       return;
     }
@@ -410,7 +420,7 @@ export function createStudio() {
       camCanvas.width = w;
       camCanvas.height = h;
     }
-    if (camOn && video.readyState >= 2) {
+    if (camLive() && video.readyState >= 2) {
       camCtx.save();
       camCtx.translate(w, 0);
       camCtx.scale(-1, 1);
@@ -501,7 +511,7 @@ export function createStudio() {
     last = now;
     frameNo++;
 
-    if (camOn && video.videoWidth) {
+    if (camLive() && video.videoWidth) {
       const w = Math.min(MAX_W, video.videoWidth);
       const h = Math.round((w * video.videoHeight) / video.videoWidth);
       if (canvas.width !== w || canvas.height !== h) {
@@ -518,7 +528,7 @@ export function createStudio() {
     const t = (now - start) / 1000;
     const view = fakeView ? { ...fakeView, source: 'test' } : motion.view(face, dt);
     const fr = {
-      ctx, w, h, video, face, camOn, view,
+      ctx, w, h, video, face, camOn: camLive(), view,
       camera: () => cameraFrame(w, h),
       person: () => personFrame(w, h),
       past: secondsAgo => pastFrame(t - secondsAgo),
@@ -533,11 +543,11 @@ export function createStudio() {
       emit: (type, data) => emit('fx-event', { type, data }),
     };
 
-    const showCam = camOn || fakeFace;
+    const showCam = camLive() || (fakeFace && !away);
     if (!showCam) {
       drawAvatar(w, h);
-    } else if (!(effect?.shader && camOn && gl && runShader(effect, fr))) {
-      if (camOn) {
+    } else if (!(effect?.shader && camLive() && gl && runShader(effect, fr))) {
+      if (camLive()) {
         ctx.save();
         ctx.translate(w, 0);
         ctx.scale(-1, 1);
@@ -591,14 +601,20 @@ export function createStudio() {
     setCamera(onOff) {
       if (!camStream) return false;
       camOn = onOff;
-      camStream.getVideoTracks().forEach(t => { t.enabled = onOff; });
+      applyTracks();
       return camOn;
     },
     setMic(onOff) {
       if (!micTrack) return false;
       micOn = onOff;
-      micTrack.enabled = onOff;
+      applyTracks();
       return micOn;
+    },
+    get away() { return away; },
+    // Pauses the camera and microphone while the tab is in the background.
+    setAway(yes) {
+      away = !!yes;
+      applyTracks();
     },
     setEffect(fx) {
       if (effect?.stop) {

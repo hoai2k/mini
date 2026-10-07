@@ -33,16 +33,21 @@ test('expressions come through from blendshapes', () => {
   assert.ok(f.wink > 0.5);
 });
 
-test('a well-judged Hoops shot goes in and a weak one misses', () => {
+test('Hoops is forgiving: rough swipes go in, wild ones miss', () => {
   const run = (power, aim, x0 = 0) => {
     const b = hoops.newBall(x0, hoops.solveShot(x0, power, aim));
     while (!b.done) hoops.stepBall(b);
     return b.scored;
   };
-  assert.equal(run(1, 0), true);
-  assert.equal(run(1, 0, 0.7), true);
-  assert.equal(run(0.7, 0), false);
-  assert.equal(run(1, 0.3), false);
+  // Any length from short to long, a little off line, from the middle or a side spot.
+  for (const x0 of [0, 0.25]) {
+    for (const power of [0.3, 0.6, 1, 1.5, 2]) {
+      for (const aim of [-0.25, -0.1, 0, 0.1, 0.25]) assert.equal(run(power, aim, x0), true, `power ${power} aim ${aim} x0 ${x0}`);
+    }
+  }
+  assert.equal(run(0.1, 0), false);
+  assert.equal(run(1, 0.45), false);
+  assert.equal(run(1, -0.45), false);
 });
 
 test('Hoops physics is deterministic, so ghosts replay exactly', () => {
