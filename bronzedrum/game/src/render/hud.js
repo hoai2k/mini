@@ -10,9 +10,12 @@ import { ROMAN, W, H, TOUCH, spanOf, leaf, star } from './common.js';
 // sit in the delivered image.
 const STICKS = {
   // tip: how far it turns up when raised (radians); back: how far the arm
-  // draws back (drum radii); grow: how much larger it looks when raised.
-  L: { id: 'hud-stick-trac', ang: -0.7, angTouch: -0.2, tip: 0.32, back: 0.05, grow: 0.2, at: [0, 0], art: { wrist: [0.22, 0.78], head: [0.8, 0.2] } },
-  R: { id: 'hud-stick-nhi', ang: Math.PI + 0.62, angTouch: Math.PI + 0.15, tip: 0.22, back: 0.45, grow: 0.12, at: [0.9, -0.24], art: { wrist: [0.78, 0.78], head: [0.2, 0.2] } },
+  // draws back along its line, and side: how far it swings out sideways
+  // (drum radii); grow: how much larger it looks when raised. Nhị's stick
+  // comes up steeply from the bottom right and meets the drum's far right
+  // edge almost along the rim, so its stroke is a swing in from the side.
+  L: { id: 'hud-stick-trac', ang: -0.7, angTouch: -0.2, tip: 0.32, back: 0.05, side: 0, grow: 0.2, at: [0, 0], art: { wrist: [0.22, 0.78], head: [0.8, 0.2] } },
+  R: { id: 'hud-stick-nhi', ang: -1.95, angTouch: Math.PI + 0.3, tip: 0.2, back: 0.1, side: 0.45, grow: 0.12, at: [0.97, -0.04], atTouch: [0.95, -0.2], art: { wrist: [0.78, 0.78], head: [0.2, 0.2] } },
 };
 const STICK_LEN = 1.8; // wrist to head, in drum radii
 // The close-up sticks wait at the ready this long after their last stroke,
@@ -60,15 +63,19 @@ export const hud = {
       const drop = since < STICK_IDLE ? 0 : ((since - STICK_IDLE) / (STICK_GONE - STICK_IDLE)) ** 2;
       const L = STICK_LEN * R;
       let ang = touch ? st.angTouch : st.ang;
-      let at = st.at;
-      let mirror = false;
+      let at = (touch && st.atTouch) || st.at;
+      // The art shows Trắc's right hand and Nhị's left; mirrored across the
+      // stick's line, the hand on the left of the drum is a left hand and the
+      // one on the right a right hand.
+      let mirror = true;
       const tap = touch && this.tapOnDrum(drum, this.flash[drum], cx, cy, R);
       if (tap) {
         at = tap;
-        // A rim tap on the left: Nhị's arm comes in mirrored, from the left.
+        // A rim tap on the left: Nhị's arm comes in mirrored, from the left
+        // (a left hand again).
         if (drum === 'R' && tap[0] < 0) {
           ang = Math.PI - ang;
-          mirror = true;
+          mirror = false;
         }
       }
       const head = [cx + at[0] * R, cy + at[1] * R];
@@ -79,7 +86,7 @@ export const hud = {
       const dir = ang + (fromLeft ? -st.tip : st.tip) * lift;
       const back = st.back * R * lift;
       const grow = 1 + st.grow * lift;
-      let wx = head[0] - Math.cos(ang) * (L + back);
+      let wx = head[0] - Math.cos(ang) * (L + back) + (fromLeft ? -1 : 1) * st.side * R * lift;
       let wy = head[1] - Math.sin(ang) * (L + back);
       if (drop > 0) {
         // Down and out of the frame: far enough that the head (its highest

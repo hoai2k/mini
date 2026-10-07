@@ -158,8 +158,9 @@ land on the drum. The elephant and spearwoman sheets are not cut yet.
 
 Over the HUD drum, the sisters' sticks are seen close up: on a deep stroke
 Trắc's beater comes down from the bottom left onto the sun-star, on a rim stroke
-Nhị's stick comes in from the right, sideways and a little from above, onto the
-rim. Height above the drum is drawn as depth (a raised stick is larger, turned
+Nhị's stick, held up steeply from the bottom right, swings in sideways onto the
+drum's far right edge, almost along the rim. The arms are mirrored from the art,
+so the left of the drum shows a left hand and the right a right hand. Height above the drum is drawn as depth (a raised stick is larger, turned
 up about the wrist, its shadow further below it). Each waits raised while the
 strokes keep coming and drops away below the screen 0.8 s after its last one
 (`closeSticks` in `render/hud.js`). With a controller or keys they land on the
