@@ -24,7 +24,7 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | `effects/lib/world360.js` | Shared code for the eight 360 worlds |
 | `games/data/` | Trivia questions and the Word Blitz dictionary |
 | `js/sheet.js`, `js/icons.js` | Pull-down-to-close sheets; the control icons (mic and camera get a slash when off) |
-| `manifest.webmanifest`, `app-icon-*.png` | Home-screen install, which is how iPhones get full screen (stand-in icon until CH-U03 arrives) |
+| `manifest.webmanifest`, `app-icon-*.png` | Home-screen install, which is how iPhones get full screen (made from the delivered app icon, CH-U03) |
 | `js/gamepad.js`, `js/audio.js`, `js/assets.js`, `js/store.js` | Controller navigation, synthesised sounds, delivered art, saved settings and records |
 | `js/asset-list.js` | Generated: which artwork has been delivered |
 | `effects/` | One file per face effect; see [`effects/README.md`](effects/README.md) |
@@ -200,11 +200,15 @@ with its state (see `js/gamehost.js`).
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.
 - Scores and records live on each device, not in a shared leaderboard.
-- Artwork: the approved blue/green/purple title logo is delivered. Other artwork
-  uses drawn stand-ins until reviewed deliveries are accepted in
-  `design/generated/deliveries.json`. Original and alternate logos are preserved
-  as `assets/ui/logo.png` and `assets/ui/logo-v2.png`; the active logo is
-  `assets/ui/logo-v3.png`. The manifest records the built-in imagegen prompts.
+- Artwork: 27 of 153 images are delivered and in use (see
+  `design/image-requests.md`); the rest are drawn stand-ins. Deliveries are
+  reviewed in `design/generated/deliveries.json`: four from the first batch
+  were rejected and re-requested with clearer prompts (CH-F03 corrupt file,
+  CH-G03 gym with people in it, CH-G05 pillar too thin, CH-G11 table with
+  paddles painted on). The crown and mustache were refitted to the face
+  template on integration, and Hoops is calibrated to the delivered hoop.
+  The active logo is `assets/ui/logo-v3.png` (`logo.png` and `logo-v2.png`
+  are earlier versions).
 - Face tracking and segmentation load MediaPipe from jsDelivr and Google
   Storage on first use (about 4 MB). Without them, face effects fall back to
   the hold gesture.

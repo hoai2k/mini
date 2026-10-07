@@ -7,19 +7,19 @@ export const ASSET_LIST = {
   },
   "title-bg": {
     "file": "assets/ui/title-bg.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "icon": {
     "file": "assets/ui/icon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "puppy": {
     "file": "assets/fx/puppy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "puppy-tongue": {
     "file": "assets/fx/puppy-tongue.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "alien-antennae": {
     "file": "assets/fx/alien-antennae.png",
@@ -27,63 +27,63 @@ export const ASSET_LIST = {
   },
   "heart": {
     "file": "assets/fx/heart.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "sunglasses": {
     "file": "assets/fx/sunglasses.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "crown": {
     "file": "assets/fx/crown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "mustache": {
     "file": "assets/fx/mustache.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "monocle": {
     "file": "assets/fx/monocle.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "clown": {
     "file": "assets/fx/clown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "dragon-horns": {
     "file": "assets/fx/dragon-horns.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "storm-cloud": {
     "file": "assets/fx/storm-cloud.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "lightning": {
     "file": "assets/fx/lightning.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fish-1": {
     "file": "assets/fx/fish-1.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fish-2": {
     "file": "assets/fx/fish-2.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fish-3": {
     "file": "assets/fx/fish-3.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "space": {
     "file": "assets/fx/space.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "basketball": {
     "file": "assets/games/basketball.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "hoop": {
     "file": "assets/games/hoop.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "court": {
     "file": "assets/games/court.webp",
@@ -91,7 +91,7 @@ export const ASSET_LIST = {
   },
   "flappy-sky": {
     "file": "assets/games/flappy-sky.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "flappy-pipe": {
     "file": "assets/games/flappy-pipe.png",
@@ -99,23 +99,23 @@ export const ASSET_LIST = {
   },
   "wings": {
     "file": "assets/games/wings.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "quickdraw": {
     "file": "assets/games/quickdraw.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "rps-rock": {
     "file": "assets/games/rps-rock.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "rps-paper": {
     "file": "assets/games/rps-paper.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "rps-scissors": {
     "file": "assets/games/rps-scissors.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "airhockey-table": {
     "file": "assets/games/airhockey-table.webp",
@@ -123,7 +123,7 @@ export const ASSET_LIST = {
   },
   "card-back": {
     "file": "assets/games/card-back.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "flower-crown": {
     "file": "assets/fx/flower-crown.png",

@@ -11,7 +11,8 @@
     ],
     "original_file": "assets/ui/logo.png",
     "original_prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No other text, no watermark, no photorealism. A bold, playful video-game logo reading \"Games Chat\" on two lines: \"GAMES\" large on top and \"CHAT\" slightly smaller beneath it. Chunky rounded 3D letters with a thick dark-purple outline, a bright top highlight and a soft inner gradient: GAMES in hot pink to sunny yellow, CHAT in aqua to sky blue. The O-shaped counter of the A in GAMES is replaced by a small game controller, and CHAT sits inside a rounded speech bubble whose tail points down-left. A few sparkles, a see-through soap bubble and a tiny basketball float around the edges. Spell it exactly: Games Chat. Centred, slight upward tilt, wide landscape composition with even margins. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
-    "accepted": true
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-U02",
@@ -22,7 +23,9 @@
     "source_size": [
       1672,
       941
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-U03",
@@ -33,7 +36,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F01",
@@ -44,7 +49,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F02",
@@ -55,7 +62,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F03",
@@ -66,7 +75,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": false,
+    "review": "rejected: The file is corrupt (it starts with 4,096 zero bytes and no image decoder can read it). Regenerate and save again."
   },
   {
     "id": "CH-F04",
@@ -77,7 +88,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F05",
@@ -88,7 +101,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F06",
@@ -99,7 +114,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "Integrated: refitted onto the face template (scaled to 500 px wide, band resting at the top of the head) since the delivery covered the eyes."
   },
   {
     "id": "CH-F07",
@@ -110,7 +127,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "Integrated: refitted onto the face template (scaled to 470 px wide, centred at 512, 690) since the delivery ran past both cheeks."
   },
   {
     "id": "CH-F08",
@@ -121,7 +140,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F09",
@@ -132,7 +153,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F10",
@@ -143,7 +166,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F11",
@@ -154,7 +179,9 @@
     "source_size": [
       1774,
       887
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F12",
@@ -165,7 +192,9 @@
     "source_size": [
       887,
       1774
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F13",
@@ -176,7 +205,9 @@
     "source_size": [
       1536,
       1024
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F14",
@@ -187,7 +218,9 @@
     "source_size": [
       1536,
       1024
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F15",
@@ -198,7 +231,9 @@
     "source_size": [
       1536,
       1024
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-F16",
@@ -209,7 +244,9 @@
     "source_size": [
       1672,
       941
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-U01-v2",
@@ -231,7 +268,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-G02",
@@ -242,7 +281,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "Integrated: the rim sits at x 222-802, y 505 rather than the requested 352-672, y 640; games/hoops.js is calibrated to the art."
   },
   {
     "id": "CH-G03",
@@ -253,7 +294,9 @@
     "source_size": [
       1448,
       1086
-    ]
+    ],
+    "accepted": false,
+    "review": "rejected: Shows a group of people taking a selfie, not an empty gym; it would sit behind the hoop. Regenerate with no people."
   },
   {
     "id": "CH-G04",
@@ -264,7 +307,9 @@
     "source_size": [
       1672,
       941
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-G05",
@@ -275,7 +320,9 @@
     "source_size": [
       753,
       2089
-    ]
+    ],
+    "accepted": false,
+    "review": "rejected: A thin pole in the middle of a mostly empty canvas; the game draws pillars as wide as the image, so the pillar must fill the whole width."
   },
   {
     "id": "CH-U01-v3",
@@ -297,7 +344,9 @@
     "source_size": [
       1774,
       887
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-G07",
@@ -308,7 +357,9 @@
     "source_size": [
       1586,
       992
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-G08",
@@ -319,7 +370,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-G09",
@@ -330,7 +383,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-G10",
@@ -341,7 +396,9 @@
     "source_size": [
       1254,
       1254
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   },
   {
     "id": "CH-G11",
@@ -352,7 +409,9 @@
     "source_size": [
       992,
       1586
-    ]
+    ],
+    "accepted": false,
+    "review": "rejected: Paddles and a puck are painted on the table, which duplicates the ones the game draws. Regenerate an empty table."
   },
   {
     "id": "CH-G12",
@@ -363,6 +422,8 @@
     "source_size": [
       1070,
       1470
-    ]
+    ],
+    "accepted": true,
+    "review": "accepted after review"
   }
 ]
