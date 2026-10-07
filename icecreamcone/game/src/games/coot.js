@@ -6,7 +6,7 @@
 // topples. Pickles and socks knock off the top scoop; a golden cherry counts
 // three. Score: the tallest stack built (counting cherries as three).
 
-import { drawBird, birdPoint, scene, band, blob, scoop as scoopPath, wash, ink, poly, label, PAL, INK } from '../draw.js';
+import { drawBird, birdPoint, drawSprite, scene, band, blob, scoop as scoopPath, wash, ink, poly, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 
 const DURATION = 45;
@@ -179,7 +179,12 @@ export default function create(env) {
   g.hud = () => `Stack ${height()} · Best ${g.score}`;
   g.summary = () => [g.topples ? `Your stack toppled ${g.topples} time${g.topples > 1 ? 's' : ''}.` : 'Not a single topple!'];
 
+  // The painted scoops and things (sprites.scoops), or drawn in code.
+  const CELL = { cherry: 7, pickle: 8, sock: 9 };
   function drawItem(c, kind, color, x, y, a, r = R) {
+    const cell = kind === 'scoop' ? FLAVOURS.indexOf(color) : CELL[kind];
+    const spin = kind === 'scoop' ? a * 0.2 : a;
+    if (cell >= 0 && drawSprite(c, 'sprites.scoops', cell, x, y, { w: r * (kind === 'scoop' ? 2.5 : 2.2), anchor: 'center', rot: spin })) return;
     c.save();
     c.translate(x, y);
     c.rotate(a * 0.2);
@@ -269,7 +274,12 @@ export default function create(env) {
       }
     }
 
-    drawBird(c, 'coot', { x: g.x, y: GROUND, size: BIRD_SIZE, t, pose: {} });
+    // Running: step between the portrait and the mid-stride pose. Standing
+    // under a falling scoop with nothing on its head: look up at it.
+    g.walked = (g.walked || 0) + Math.abs(g.vx) * 0.016;
+    const above = !g.stack.length && g.items.some((it) => Math.abs(it.x - (g.x + HEAD_DX)) < 120 && it.y < GROUND + HEAD_DY - 40 && it.y > 200);
+    const frame = Math.abs(g.vx) > 60 ? (Math.floor(g.walked / 60) % 2 ? 'stride' : null) : above ? 'lookup' : null;
+    drawBird(c, 'coot', { x: g.x, y: GROUND, size: BIRD_SIZE, t, pose: { frame } });
 
     // the stack
     let x = g.x + HEAD_DX;

@@ -9,7 +9,7 @@
 // find is worth 50 plus 10 a round (60 in the first, 130 in the last), plus
 // up to 40 for answering quickly.
 
-import { drawBird, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
 
 const COUNTER = 650; // where the hats sit
@@ -29,6 +29,8 @@ const ROUNDS = [
   { n: 5, moves: 12, dur: 0.31, show: 1.0, answer: 4, fake: 0.2, double: 0.3, ring: 0.2 },
   { n: 5, moves: 14, dur: 0.28, show: 0.9, answer: 4, fake: 0.2, double: 0.35, ring: 0.25 },
 ];
+// One painted hat design for all the hats of a round (the sprites in hats.png).
+const HAT_CELL = [0, 2, 1, 0, 1, 2, 0, 1];
 const STYLES = ['bowler', 'bowler', 'bowler', 'top', 'top', 'bowler', 'top', 'top'];
 
 const slotX = (i, n) => 800 + (i - (n - 1) / 2) * (n > 4 ? 280 : n > 3 ? 320 : 360);
@@ -286,6 +288,11 @@ export default function create(env) {
     c.translate(h.x, h.y - lift);
     c.scale(h.s * HS, h.s * HS);
     c.rotate(h.lift * -0.12);
+    const cell = HAT_CELL[g.round % HAT_CELL.length];
+    if (drawSprite(c, 'sprites.hats', cell, 0, 4, { w: cell === 1 ? 176 : 192 })) {
+      c.restore();
+      return;
+    }
     const body = '#4a3e3a';
     const band = PAL.mauve;
     if (style === 'top') {

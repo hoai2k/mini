@@ -6,7 +6,7 @@ import * as audio from './audio.js';
 import { loadSettings, saveSettings, loadProgress, recordScore, resetProgress } from './store.js';
 import { BIRDS, medalFor, MEDAL_NAMES } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
-import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
+import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, spriteCell, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
 
 const W = 1600;
@@ -59,6 +59,18 @@ async function loadArt() {
       ),
   );
   setArt(map);
+  if (map.has('medals')) {
+    // Cut each rosette out of the sheet for the CSS (--medal-1 .. --medal-3).
+    for (let i = 0; i < 3; i++) {
+      const c = spriteCell('medals', i);
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(c.trim.w / 2);
+      cv.height = Math.round(c.trim.h / 2);
+      cv.getContext('2d').drawImage(c.img, c.trim.x, c.trim.y, c.trim.w, c.trim.h, 0, 0, cv.width, cv.height);
+      document.documentElement.style.setProperty(`--medal-${i + 1}`, `url(${cv.toDataURL()})`);
+    }
+    document.body.classList.add('medal-art');
+  }
   if (map.has('logo')) {
     $('#logo-img').src = ASSETS.logo.file;
     $('#logo-img').hidden = false;
@@ -466,7 +478,7 @@ function finish() {
   md.className = 'result-medal m' + m;
   md.textContent = m ? MEDAL_NAMES[m] : 'Try again!';
   $('#result-title').textContent = m === 3 ? 'Gold!' : m ? 'Well done!' : 'Time!';
-  $('#result-score').textContent = `${score} ${b.score}`;
+  $('#result-score').textContent = `${score} ${b.score}` + (m ? ` · ${MEDAL_NAMES[m]}` : '');
   const next = b.medals[m];
   $('#result-best').textContent = (isBest && score > 0 ? 'A new best! ' : `Best: ${best(b.id)}. `) + (next !== undefined ? `${MEDAL_NAMES[m + 1]} at ${next}.` : 'The best there is.');
   const extra = $('#result-extra');
