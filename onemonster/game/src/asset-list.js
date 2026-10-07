@@ -4,7 +4,7 @@
 export const ASSETS = {
   "logo": {
     "file": "assets/ui/logo.png",
-    "delivered": false
+    "delivered": true
   },
   "titleBg": {
     "file": "assets/ui/title-bg.webp",
@@ -24,11 +24,11 @@ export const ASSETS = {
   },
   "monster.trollusk.sheet": {
     "file": "assets/monsters/trollusk/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.trollusk.portrait": {
     "file": "assets/monsters/trollusk/portrait.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.trollusk.parts": {
     "file": "assets/monsters/trollusk/parts.png",
@@ -44,11 +44,11 @@ export const ASSETS = {
   },
   "monster.bombanat.sheet": {
     "file": "assets/monsters/bombanat/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.bombanat.portrait": {
     "file": "assets/monsters/bombanat/portrait.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.bombanat.parts": {
     "file": "assets/monsters/bombanat/parts.png",
@@ -64,7 +64,7 @@ export const ASSETS = {
   },
   "monster.grumley.sheet": {
     "file": "assets/monsters/grumley/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grumley.portrait": {
     "file": "assets/monsters/grumley/portrait.png",
@@ -84,7 +84,7 @@ export const ASSETS = {
   },
   "monster.iceferg.sheet": {
     "file": "assets/monsters/iceferg/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.iceferg.portrait": {
     "file": "assets/monsters/iceferg/portrait.png",
@@ -104,11 +104,11 @@ export const ASSETS = {
   },
   "monster.typhoonigator.sheet": {
     "file": "assets/monsters/typhoonigator/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.typhoonigator.portrait": {
     "file": "assets/monsters/typhoonigator/portrait.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.typhoonigator.parts": {
     "file": "assets/monsters/typhoonigator/parts.png",
@@ -124,11 +124,11 @@ export const ASSETS = {
   },
   "monster.yalapappus.sheet": {
     "file": "assets/monsters/yalapappus/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.yalapappus.portrait": {
     "file": "assets/monsters/yalapappus/portrait.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.yalapappus.parts": {
     "file": "assets/monsters/yalapappus/parts.png",
@@ -144,11 +144,11 @@ export const ASSETS = {
   },
   "monster.grithix.sheet": {
     "file": "assets/monsters/grithix/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grithix.portrait": {
     "file": "assets/monsters/grithix/portrait.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grithix.parts": {
     "file": "assets/monsters/grithix/parts.png",
@@ -164,7 +164,7 @@ export const ASSETS = {
   },
   "cast.sheet": {
     "file": "assets/cast/model-sheet.png",
-    "delivered": false
+    "delivered": true
   },
   "cast.sprites": {
     "file": "assets/cast/sprites.png",

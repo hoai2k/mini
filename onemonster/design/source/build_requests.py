@@ -1085,6 +1085,18 @@ REQUESTS += [
 ]
 
 
+
+# Generated assets are recorded after visual review and file validation.
+DELIVERIES = ROOT / "design" / "image-deliveries.json"
+if DELIVERIES.exists():
+    delivered_ids = {r["id"] for r in json.loads(DELIVERIES.read_text())["delivered"]}
+    for request in REQUESTS:
+        if request["id"] in delivered_ids:
+            if not (ROOT / "game" / request["file"]).is_file():
+                raise ValueError(f"Missing delivered asset: {request['file']}")
+            request["status"] = "delivered"
+
+
 def refs(r: dict) -> list[str]:
     return r["ref"] if isinstance(r["ref"], list) else [r["ref"]]
 
