@@ -78,6 +78,18 @@
       </div>
     </section>
 
+    <section id="rotate" class="screen" hidden aria-labelledby="rotate-title" aria-live="polite">
+      <div class="rotate-card">
+        <svg class="rotate-phone" viewBox="0 0 120 120" aria-hidden="true">
+          <g class="phone"><rect x="40" y="18" width="40" height="72" rx="7"/><circle cx="60" cy="81" r="3"/></g>
+          <path class="arrow" d="M28 92 A42 42 0 0 1 22 52" /><path class="arrow-head" d="M16 58 L22 48 L29 57" />
+        </svg>
+        <h2 id="rotate-title">Turn your device sideways</h2>
+        <p>The drum runs along the bottom and the battle above it, so Bronze Drum needs the width. The game is waiting and carries on as soon as you turn it.</p>
+        <button class="menu-btn" data-nav data-action="menu">Menu</button>
+      </div>
+    </section>
+
     <section id="result" class="screen modal" hidden aria-labelledby="result-title">
       <div class="panel">
         <h2 id="result-title"></h2>
@@ -161,6 +173,8 @@
     <section id="settings" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="set-title">
       <div class="panel">
         <h2 id="set-title">Settings</h2>
+        <label class="row">Style <input type="range" min="0" max="1" step="1" data-nav data-setting="style" aria-describedby="style-note"><output></output></label>
+        <p id="style-note" class="muted setting-note">Shadow puppets: backlit cut-paper figures. Water puppets: lacquered wooden puppets wading in a village pond, as in Vietnamese water puppetry (múa rối nước). Water-puppet art is drawn from the shadow puppets until its own arrives.</p>
         <label class="row">Difficulty <input type="range" min="0" max="2" step="1" data-nav data-setting="difficulty" aria-describedby="difficulty-note"><output></output></label>
         <p id="difficulty-note" class="muted setting-note">Easy: plain beats and pairs, no triplets. Medium: as designed. Hard: rests, inside pairs and triplets too. Takes effect when a chapter starts.</p>
         <label class="row">Number of beats <input type="range" min="3" max="8" step="1" data-nav data-setting="beats" aria-describedby="beats-note"><output></output></label>

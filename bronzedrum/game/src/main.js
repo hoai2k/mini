@@ -9,7 +9,7 @@ import { catalogue, levelRhythms, LEVELS } from './training.js';
 import { Sound } from './audio.js';
 import { Input, PAD } from './input.js';
 import { Renderer } from './render.js';
-import { Art } from './art.js';
+import { Art, STYLES } from './art.js';
 import { PALETTE as P } from './palette.js';
 import { createFit } from './fit.js';
 import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, canFullscreen } from './chrome.js';
@@ -35,12 +35,14 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0 });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0, style: 0 });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
 const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
 // The sisters' close-up sticks over the drum (render/hud.js STICK_SETS).
 const STICK_NAMES = ['Carved', 'Folk', 'Ceremonial'];
-const SETTING_NAMES = { difficulty: DIFFICULTY_NAMES, sticks: STICK_NAMES };
+// The look (art.js STYLES): the shadow puppets, or the water puppets.
+const STYLE_NAMES = ['Shadow puppets', 'Water puppets'];
+const SETTING_NAMES = { difficulty: DIFFICULTY_NAMES, sticks: STICK_NAMES, style: STYLE_NAMES };
 function applyDifficulty() {
   setDifficulty(DIFFICULTIES[settings.difficulty] || 'medium');
   setBeatCount(settings.beats);
@@ -60,6 +62,16 @@ const canvas = $('#stage');
 const renderer = new Renderer(canvas, art);
 const input = new Input(canvas);
 
+/** Settings, Style: the art and everything baked from it follow at once. */
+function applyStyle() {
+  const style = STYLES[settings.style] || 'shadow';
+  document.body.dataset.style = style;
+  if (art.style === style) return;
+  art.style = style;
+  renderer.restyle();
+  applyStyleArt();
+}
+
 function applySettings() {
   sound.setVolume(settings.volume / 100);
   sound.setAmbience(settings.ambience / 100);
@@ -67,6 +79,7 @@ function applySettings() {
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
   renderer.stickSet = settings.sticks;
+  applyStyle();
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
@@ -89,7 +102,7 @@ const dialogs = []; // open dialog ids, top last
 const focusMemory = new Map();
 
 function show(id) {
-  for (const s of ['title', 'select', 'practice', 'pause', 'result']) $(`#${s}`).hidden = s !== id;
+  for (const s of ['title', 'select', 'practice', 'pause', 'result', 'rotate']) $(`#${s}`).hidden = s !== id;
   // A chapter's opening card shows only over its scene (not over the pause menu).
   $('#opening').hidden = !(id === 'play' && game && game.opening);
   if (id === 'title' || id === 'select' || id === 'practice' || id === 'result') hideSuccess();
@@ -1339,7 +1352,7 @@ function finish(outcome) {
 }
 
 function pause(reason = '') {
-  if (screen !== 'play' || !game || (game.ended && !game.success)) return;
+  if ((screen !== 'play' && screen !== 'rotate') || !game || (game.ended && !game.success)) return;
   sound.suspend();
   sound.pauseMusic(true);
   $('#pause-reason').textContent = reason;
@@ -1350,6 +1363,18 @@ function pause(reason = '') {
   $('#pause [data-action="restart"]').textContent = game.practice ? 'Start over' : 'Restart chapter';
   $('#pause [data-action="select"]').textContent = game.practice ? 'Practice modes' : 'Chapters';
   show('pause');
+}
+
+/**
+ * A phone or tablet held upright mid-game: the game holds (as a pause does)
+ * behind a screen of its own asking for the device to be turned, and carries
+ * on by itself once it is (frame()). Its Menu button opens the pause menu.
+ */
+function holdForRotation() {
+  if (!game || (game.ended && !game.success)) return;
+  sound.suspend();
+  sound.pauseMusic(true);
+  show('rotate');
 }
 
 function resume() {
@@ -1555,6 +1580,8 @@ function action(name) {
   switch (name) {
     case 'resume':
       return resume();
+    case 'menu':
+      return pause();
     case 'restart':
       sound.resume();
       if (game.practice === 'training') return startTraining();
@@ -1648,6 +1675,7 @@ input.on('nav', (dir) => {
     return;
   }
   if (screen === 'pause' && (dir === 'menu' || dir === 'back')) return resume();
+  if (screen === 'rotate' && (dir === 'menu' || dir === 'back')) return pause();
   if (screen === 'title') {
     if (input.device === 'gamepad' && !titleNav) return; // handled by padButton: any button starts
     if (dir === 'menu') return pressStart();
@@ -1722,7 +1750,8 @@ function frame(now) {
   last = now;
   input.poll();
   // A phone or tablet held upright: the drum and the field need the width.
-  if (screen === 'play' && !dialogs.length && portraitTouch.matches) pause('Turn your device sideways to play.');
+  if (screen === 'play' && !dialogs.length && portraitTouch.matches) holdForRotation();
+  else if (screen === 'rotate' && !portraitTouch.matches) resume();
   if (game && screen === 'play') updatePlay(dt);
   requestAnimationFrame(frame);
 }
@@ -1757,18 +1786,20 @@ async function boot() {
     $('#logo-img').hidden = false;
     $('#logo-text').classList.add('visually-hidden');
   }
+  applyStyleArt();
+}
+
+/** The art in the page itself (the panels and the cards), in the current style. */
+function applyStyleArt() {
   // Dialogs are cut from the delivered paper sheet (BD-U04) when it is here.
   const sheet = art.get('ui-panel');
-  if (sheet) {
-    document.documentElement.style.setProperty('--panel-art', `url("${sheet.src}")`);
-    document.body.classList.add('paper-panels');
-  }
-  // Cards built before the art arrived get their pictures now.
+  if (sheet) document.documentElement.style.setProperty('--panel-art', `url("${sheet.src}")`);
+  document.body.classList.toggle('paper-panels', !!sheet);
+  // Cards built before the art arrived (or in the other style) get their pictures now.
   document.querySelectorAll('#stage-cards .card-art').forEach((el, i) => {
     const img = art.get(`card-${STAGES[i].id}`);
-    if (!img) return;
-    el.classList.remove('plain');
-    el.style.backgroundImage = `url(${img.src})`;
+    el.classList.toggle('plain', !img);
+    el.style.backgroundImage = img ? `url(${img.src})` : '';
   });
 }
 

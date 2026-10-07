@@ -451,7 +451,7 @@ export const hud = {
     }
 
     // Dots tumbling away after a reset.
-    if (this.clearing && t - this.clearing.t < 0.5) {
+    if (this.clearing && t >= this.clearing.t && t - this.clearing.t < 0.5) {
       const q = (t - this.clearing.t) / 0.5;
       g.save();
       g.globalAlpha = 1 - q;

@@ -1,7 +1,7 @@
 // Headless checks for Act IV, The Whale's Road. Run: node widowsbay/qa/act4.test.mjs
 import assert from 'node:assert/strict';
 import act, {
-  BEAT_S, WATER, HOOKS, LEDGES, FLOATERS, breath, waterY, tilt, hookTip, platformOf, extent, shoreTimes, OUTRO, SCENES, PEARLS,
+  BEAT_S, WATER, HOOKS, LEDGES, FLOATERS, breath, waterY, tilt, hookTip, platformOf, extent, shoreTimes, OUTRO, SCENES, PEARLS, SAILOR, HANG,
 } from '../src/acts/act4.js';
 
 let n = 0;
@@ -159,14 +159,65 @@ test('wreckage slots never overlap their neighbours', () => {
   }
 });
 
-test('the tilt tips a sailor standing still off a barrel', () => {
+test('standing still on wreckage, he rides it through the tilt and never slips off', () => {
+  for (const id of ['F1', 'F3', 'F4', 'F5', 'F13']) {
+    const st = act.create({ carry: {} });
+    act.step(st, DT, { beat: 1 });
+    const f = platformOf(st, id);
+    Object.assign(st.s, { x: f.x, y: f.top, on: id, vx: 0, vy: 0 });
+    st.hooks = []; st.grace = 1e9;
+    let off = 0, moved = 0;
+    for (let i = 0; i < 1200; i++) {
+      act.step(st, DT, { beat: 1 + i * DT / BEAT_S });
+      if (st.s.on !== id) off++;
+      moved = Math.max(moved, Math.abs(st.s.x - f.x));
+    }
+    assert.equal(off, 0, `${id}: slipped off`);
+    assert.ok(moved < 1, `${id}: drifted ${moved.toFixed(1)} px on the wreckage`);
+  }
+});
+
+test('a leap that just misses a platform catches its edge, hangs, and climbs back on', () => {
+  // Leap for F2 from F1 but fall just short of its left edge.
+  const setup = () => {
+    const st = act.create({ carry: {} });
+    act.step(st, DT, { beat: 1 }); st.events.length = 0; st.grace = 1e9;
+    const f = platformOf(st, 'F2'), e = extent(f);
+    Object.assign(st.s, { x: e.x0 - SAILOR.hw * 0.75 - 20, y: e.y - 60, vx: 0, vy: 50, on: null, peak: e.y - 60, left: 'F1', noGrab: 0, hang: null });
+    return st;
+  };
+  let st = setup(), b = 1;
+  const go = (n, inp = {}) => { for (let i = 0; i < n; i++) { b += DT / BEAT_S; act.step(st, DT, { beat: b, ...inp }); } };
+  go(30);
+  assert.ok(st.s.hang && st.s.hang.id === 'F2' && st.s.hang.side === -1, 'caught F2 by its left edge');
+  assert.ok(st.events.some((e) => e.type === 'grab'));
+  assert.equal(st.lanterns, 3, 'hanging over the water is safe');
+  go(10, { moveX: 1 }); go(40);
+  assert.equal(st.s.on, 'F2', 'pressed toward it: climbed on');
+  assert.ok(st.events.some((e) => e.type === 'climbUp'));
+  // Left alone, he climbs on his own.
+  st = setup(); b = 1; go(30 + Math.ceil((HANG.auto + HANG.climb) / DT) + 4);
+  assert.equal(st.s.on, 'F2', 'climbed on unaided');
+  // Away lets go, and he doesn't catch it again at once.
+  st = setup(); b = 1; go(30); go(3, { moveX: -1 });
+  assert.equal(st.s.hang, null, 'let go');
+  go(8);
+  assert.ok(!st.s.hang && st.s.on !== 'F2');
+});
+
+test('walking off an edge on purpose drops him; nothing overhead is caught', () => {
   const st = act.create({ carry: {} });
-  act.step(st, DT, { beat: 1 });
-  const f1 = platformOf(st, 'F1');
-  Object.assign(st.s, { x: f1.x, y: f1.top, on: 'F1', vx: 0, vy: 0 });
-  let fell = false;
-  for (let i = 0; i < 300 && !fell; i++) { act.step(st, DT, { beat: 1 + i * DT / BEAT_S }); if (!st.s.on || st.s.on !== 'F1') fell = true; }
-  assert.ok(fell);
+  act.step(st, DT, { beat: 1 }); st.grace = 1e9;
+  const f = platformOf(st, 'F3'), e = extent(f);
+  Object.assign(st.s, { x: e.x1 - 5, y: e.y, on: 'F3', vx: 0, vy: 0 });
+  let grabbed = false, b = 1;
+  for (let i = 0; i < 60; i++) { b += DT / BEAT_S; act.step(st, DT, { beat: b, moveX: i < 12 ? 1 : 0 }); if (st.s.hang) grabbed = true; }
+  assert.ok(!grabbed, 'no grab on the platform he walked off');
+  // Leaping up beside a ledge he never rises above: no grab.
+  const s2 = act.create({ carry: {} }); act.step(s2, DT, { beat: 1 }); s2.grace = 1e9;
+  const lp = platformOf(s2, 'LP');
+  Object.assign(s2.s, { x: lp.x0 - 30, y: lp.y + 140, vx: 0, vy: 0, on: null, peak: lp.y + 140, left: 'L2', hang: null });
+  for (let i = 0; i < 30; i++) { act.step(s2, DT, { beat: 1 + i * DT / BEAT_S }); assert.ok(!s2.s.hang, 'no grab from below'); }
 });
 
 test('the first ledge needs the high tide', () => {

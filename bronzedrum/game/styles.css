@@ -26,6 +26,18 @@ body.playing #app { touch-action: none; -webkit-user-select: none; user-select: 
 
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; }
 .modal { background: rgba(14, 12, 18, 0.62); backdrop-filter: blur(3px); }
+/* A phone held upright mid-game: a screen of its own, not the pause menu. */
+#rotate { background: var(--ink); text-align: center; z-index: 30; }
+#rotate .rotate-card { max-width: 340px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+#rotate h2 { margin: 0; font: 700 30px var(--serif); color: var(--paper); }
+#rotate p { margin: 0; color: var(--paper-shade); line-height: 1.45; }
+#rotate .menu-btn { margin-top: 10px; min-width: 160px; }
+.rotate-phone { width: 120px; height: 120px; }
+.rotate-phone .phone { fill: none; stroke: var(--bronze-light); stroke-width: 4; transform-origin: 60px 54px; animation: rotate-phone 2.4s ease-in-out infinite; }
+.rotate-phone .phone circle { fill: var(--bronze-light); stroke: none; }
+.rotate-phone .arrow, .rotate-phone .arrow-head { fill: none; stroke: var(--lacquer); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes rotate-phone { 0%, 25% { transform: rotate(0deg); } 55%, 100% { transform: rotate(-90deg); } }
+body.reduce-motion .rotate-phone .phone { animation: none; transform: rotate(-90deg); }
 .dialog { z-index: 5; }
 
 /* Title: a backlit paper panel. */
@@ -128,6 +140,13 @@ body.paper-panels .panel {
   padding: 8px 14px 12px; filter: drop-shadow(8px 10px 0 rgba(0, 0, 0, 0.35));
 }
 .panel h2 { text-align: center; }
+/* Water puppets (Settings, Style): panels of black lacquer edged in vermilion
+   and gold leaf, until the lacquer panel (BD-WU04) is delivered. */
+body[data-style="water"] .panel {
+  background: #1C1412; color: var(--paper); clip-path: none; border-radius: 4px;
+  box-shadow: inset 0 0 0 3px var(--lacquer), inset 0 0 0 6px #1C1412, inset 0 0 0 7px var(--bronze-light), 10px 12px 0 rgba(0, 0, 0, 0.4);
+}
+body[data-style="water"].paper-panels .panel { background: #1C1412 padding-box; box-shadow: none; border-radius: 0; }
 .panel h2::after { content: ""; display: block; width: 64px; height: 3px; margin: 8px auto 0; background: var(--bronze); clip-path: polygon(0 40%, 100% 0, 96% 100%, 4% 70%); }
 .panel.wide { width: min(860px, 100%); }
 .panel h2 { margin: 0 0 6px; font: 700 34px var(--serif); }

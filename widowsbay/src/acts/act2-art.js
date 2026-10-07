@@ -7,7 +7,7 @@ import {
   CAM_MAX, FLOOR, SHELF_Y, REST, TUNE, PHASE_LEN, DRAGON, RIDE,
   clamOpen, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, rideLeapH, ROSE_CUES,
 } from './act2.js';
-import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
+import { clamp, lerp, easeOut, easeInOut, beatPhase, SPENT } from './shared.js';
 
 const TAU = Math.PI * 2;
 const sy = (st, wy) => wy - st.cam + 60;           // world y -> stage y
@@ -348,7 +348,7 @@ function clam(k, st, cl) {
   const open = !spent && clamOpen(cl, st.beat);
   const ph = beatPhase(st.beat);
   const o = open ? Math.min(1, ph / 0.1) * Math.min(1, (1 - ph) / 0.12) : 0;
-  if (k.asset(o > 0.4 ? 'clam-open' : 'clam-closed', x, y, 120, 100, spent ? 'brightness(0.6)' : '')) return;
+  if (k.asset(o > 0.4 ? 'clam-open' : 'clam-closed', x, y, 120, 100, spent ? SPENT : '')) return;
   const shell = spent ? '#7b7584' : '#cfc0dc', rib = spent ? '#5a5464' : '#8a7aa0';
   // inside and pearl
   if (o > 0) {
@@ -374,7 +374,7 @@ function conch(k, st, cn, t) {
     c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 4); c.fillStyle = k.col('#d9b34a');
     k.circle(x, y - 30, 46); c.restore();
   }
-  if (k.asset('conch-horn', x, y, 80, 70, cn.used ? 'brightness(0.65)' : '')) return;
+  if (k.asset('conch-horn', x, y, 80, 70, cn.used ? SPENT : '')) return;
   c.fillStyle = k.col(cn.used ? '#9a8a90' : '#f3c6dc');
   c.beginPath(); c.moveTo(x - 38, y - 18); c.quadraticCurveTo(x - 10, y - 62, x + 36, y - 34); c.lineTo(x + 30, y - 4); c.quadraticCurveTo(x - 10, y + 2, x - 38, y - 18); c.fill();
   c.fillStyle = k.col('#f1e3c8'); c.beginPath(); c.ellipse(x + 20, y - 20, 12, 16, 0.3, 0, TAU); c.fill();

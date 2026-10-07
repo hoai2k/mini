@@ -8,8 +8,16 @@
 
 import { loadRig } from './rig.js';
 
-// Jointed puppets cut from the part sheets (design/source/build_rigs.py).
-const RIGS = ['sister-trac', 'sister-nhi'];
+// Jointed puppets cut from the part sheets (design/source/build_rigs.py),
+// and their water-puppet twins once those sheets are cut.
+const RIGS = ['sister-trac', 'sister-nhi', 'wp-sister-trac', 'wp-sister-nhi'];
+
+// The looks (Settings, Style). The water puppets' images are the shadow
+// puppets' twins under a 'wp-' id (build_requests.py, BD-W); a twin not yet
+// delivered falls back to the shadow-puppet image, except these, which the
+// renderer draws for itself in the water style rather than show paper.
+export const STYLES = ['shadow', 'water'];
+const DRAWN_IN_WATER = new Set(['paper-fiber', 'fx-scraps', 'ui-panel']);
 
 // Cut-out figures and props stand on the ground line; some images leave an
 // empty strip below the feet, which would leave them floating.
@@ -40,6 +48,7 @@ export class Art {
     this.images = new Map();
     this.entries = [];
     this.rigs = new Map();
+    this.style = 'shadow';
   }
 
   async load(base = 'assets/') {
@@ -51,7 +60,9 @@ export class Art {
       this.entries = [];
     }
     const delivered = this.entries.filter((a) => a.status === 'delivered' && a.runtime !== false && a.file);
-    const rigs = RIGS.map(async (id) => {
+    // A water twin's rig is cut only once its part sheet is delivered.
+    const sheets = new Set(this.entries.filter((a) => a.status === 'delivered').map((a) => a.id));
+    const rigs = RIGS.filter((id) => !id.startsWith('wp-') || sheets.has(`wp-rig-${id.slice(3)}`)).map(async (id) => {
       const r = await loadRig(base, id);
       if (r) this.rigs.set(id, r);
     });
@@ -61,7 +72,8 @@ export class Art {
           new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
-              if (FIGURES.has(a.section)) img.footMargin = footMargin(img);
+              const section = a.base ? (this.entries.find((b) => b.id === a.base) || a).section : a.section;
+              if (FIGURES.has(section)) img.footMargin = footMargin(img);
               this.images.set(a.id, img);
               resolve();
             };
@@ -74,11 +86,26 @@ export class Art {
 
   /** A jointed puppet, or null to draw the figure's whole sprite. */
   rig(id) {
+    if (this.style === 'water') {
+      // The water twin's own rig; its whole sprite if it has none yet; else the shadow puppet's rig.
+      if (this.rigs.has(`wp-${id}`)) return this.rigs.get(`wp-${id}`);
+      if (this.images.has(`wp-${id}`)) return null;
+    }
     return this.rigs.get(id) || null;
   }
 
-  /** The delivered image for an id, or null to use the stand-in. */
+  /** The delivered image for an id in the current style, or null to use the stand-in. */
   get(id) {
+    if (this.style === 'water') {
+      const twin = this.images.get(`wp-${id}`);
+      if (twin) return twin;
+      if (DRAWN_IN_WATER.has(id)) return null;
+    }
+    return this.images.get(id) || null;
+  }
+
+  /** The delivered image for an id itself, whatever the style. */
+  own(id) {
     return this.images.get(id) || null;
   }
 }

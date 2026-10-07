@@ -423,7 +423,8 @@ export const backdrop = {
   overlay() {
     const px = this.pixel;
     const fiberImg = this.art.get('paper-fiber');
-    const key = `${px}@${this.canvas.width}x${this.canvas.height}@${fiberImg ? fiberImg.src : 'drawn'}`;
+    const water = this.style === 'water';
+    const key = `${px}@${this.canvas.width}x${this.canvas.height}@${fiberImg ? fiberImg.src : 'drawn'}@${this.style}`;
     if (this.overlayKey !== key) {
       this.overlayKey = key;
       const c = canvas(Math.round(W * px), Math.round(H * px));
@@ -432,10 +433,13 @@ export const backdrop = {
       g.fillStyle = '#fff';
       g.fillRect(0, 0, W, H);
       // Fibre at 22%: white where the paper is plain, darker in the fibres.
-      g.globalAlpha = 0.22;
-      g.fillStyle = g.createPattern(fiberImg || this.fiber, 'repeat');
-      g.globalCompositeOperation = 'multiply';
-      g.fillRect(0, 0, W, H);
+      // (Water puppets: no paper; the lacquer texture when it is delivered.)
+      if (fiberImg || !water) {
+        g.globalAlpha = water ? 0.12 : 0.22;
+        g.fillStyle = g.createPattern(fiberImg || this.fiber, 'repeat');
+        g.globalCompositeOperation = 'multiply';
+        g.fillRect(0, 0, W, H);
+      }
       // The vignette: light falling off at the edge of a lightbox.
       g.globalAlpha = 1;
       g.globalCompositeOperation = 'source-over';

@@ -26,7 +26,7 @@ export const TUNE = {
   horn: 14,          // seconds a conch's song lasts
   wakeR: 150,        // how close you must swim to wake a sleeper
   grace: 1.6,
-  clamPearls: 3,     // pearls per clam before it is spent
+  clamPearls: 1,     // pearls per clam: once taken it stays shut and grey
   eelReach: 300, eelGlow: 1.0, eelCD: 2.6,
   guitarLead: 110,   // he can never get closer than this above the guitar
 };

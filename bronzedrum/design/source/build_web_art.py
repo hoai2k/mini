@@ -104,6 +104,12 @@ TARGETS = {
     "drum-palanquin": ("scale=-1:400", 85),
 }
 
+# The water-puppet twins (build_requests.py, BD-W): each at its shadow-puppet image's size.
+for _base in list(TARGETS):
+    if _base not in ("hud-drum", "touch-buttons", "logo") and not _base.startswith(("hud-stick", "kit-")):
+        TARGETS["wp-" + _base] = TARGETS[_base]
+TARGETS["wp-water"] = ("scale=2048:-1", 80)
+
 
 def web_path(asset_id: str) -> Path:
     return WEB / f"{asset_id}.webp"

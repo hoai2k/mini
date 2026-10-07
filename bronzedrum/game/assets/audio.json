@@ -238,7 +238,7 @@
       "files": [
         "sfx/ui-back.mp3"
       ],
-      "gain": 0.3,
+      "gain": 0.15,
       "loop": false
     },
     "ui-start": {

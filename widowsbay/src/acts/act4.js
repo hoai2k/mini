@@ -2,7 +2,7 @@
 // whale, as the whole set rocks on its cradle and the whale breathes every
 // four bars. Then the beaching on the pink shore. Design: design/acts.md.
 // Headless: drawing is in act4-art.js.
-import { clamp, easeInOut } from './shared.js';
+import { clamp, lerp, easeInOut } from './shared.js';
 import * as art from './act4-art.js';
 
 export const BEAT_S = 60 / 76.5;     // fallback beat length if no beat comes in
@@ -14,7 +14,13 @@ export const TILT = 0.055;           // radians, the cradle's main swing
 export const PIVOT = { x: 640, y: 800 }; // screen point the set rocks about
 export const CAM_Y_MIN = -860;
 export const SAILOR = { hw: 16, h: 110 };
-export const PHYS = { g: 2000, jump: 820, cut: 2600, walk: 280, accG: 2400, accA: 1500, fall: 1100, coyote: 0.1, buffer: 0.13, slip: 950, slide: 2000, damp: 1.6 };
+// Catching an edge he just missed: falling past a platform's side within
+// `reach` of where he could have landed, with its top between his chest and
+// just above his raised hands, he grabs it and hangs (`drop` below its top,
+// feet to hands). Toward it, up or A climbs (`climb` s); he climbs on his own
+// after `auto` s; away or down lets go (no re-grab for `regrab` s).
+export const HANG = { reach: 34, hi: 1.2, lo: 0.5, off: 12, drop: 130, climb: 0.4, auto: 0.7, regrab: 0.35 };
+export const PHYS = { g: 2000, jump: 820, cut: 2600, walk: 280, accG: 2400, accA: 1500, fall: 1100, coyote: 0.1, buffer: 0.13, slide: 2000, damp: 1.6 };
 export const GRACE = 1.6;
 export const HOOK_R = 18;
 
@@ -188,7 +194,7 @@ export default {
       floaters: FLOATERS.map((f) => ({ ...f, x: f.home, v: 0, top: 0, prevTop: 0, grounded: false })),
       pearlsLeft: PEARLS.map(([x, y], i) => ({ i, x, y, got: false })),
       water: WATER.mean, breath: breath(0), tilt: 0, tiltV: 0,
-      s: { x: 260, y: 300, vx: 0, vy: 0, face: 1, on: 'bank', onT: 0, coyote: 0, buffer: 0, safe: 'bank', walk: 0, air: false },
+      s: { x: 260, y: 300, vx: 0, vy: 0, face: 1, on: 'bank', onT: 0, coyote: 0, buffer: 0, safe: 'bank', walk: 0, air: false, hang: null, noGrab: 0 },
       cam: { x: 0, y: 0 },
       best: 0, scene: 0, checkpoint: null,
     };
@@ -298,12 +304,16 @@ function climb(st, dt, input) {
   const s = st.s;
   st.grace = Math.max(0, st.grace - dt);
   const mx = clamp(input.moveX || 0, -1, 1);
+  s.noGrab = Math.max(0, (s.noGrab || 0) - dt);
+  if (s.hang) hangOn(st, dt, input, mx);
+  else {
   if (Math.abs(mx) > 0.15) s.face = Math.sign(mx);
 
-  // Carried by the platform underfoot; wet wreckage slips downhill.
+  // Carried by the platform underfoot: he rides the wreckage as it slides and
+  // never slips on it, so a safe landing stays safe until he walks off.
   let cur = s.on ? platformOf(st, s.on) : null;
   if (cur) {
-    if (cur.home != null) { s.x += cur.dx; s.x += PHYS.slip * Math.sin(st.tilt) * dt * (Math.abs(mx) > 0.15 ? 0.4 : 1); }
+    if (cur.home != null) s.x += cur.dx;
     const e = extent(cur);
     if (s.x < e.x0 - SAILOR.hw * 0.75 || s.x > e.x1 + SAILOR.hw * 0.75) { s.on = null; s.coyote = PHYS.coyote; cur = null; }
     else { s.y = e.y; s.vy = 0; s.onT += dt; }
@@ -319,7 +329,9 @@ function climb(st, dt, input) {
     s.vy = -PHYS.jump; s.on = null; cur = null; s.coyote = 0; s.buffer = 0; s.air = true;
     st.events.push({ type: 'leap' });
   }
-  // Fall and land.
+  // Fall and land (remembering the highest his feet reach in the air).
+  if (cur) { s.peak = s.y; s.left = cur.id; }
+  else s.peak = Math.min(s.peak ?? s.y, s.y);
   if (!cur) {
     const g = s.vy < 0 && !input.aHeld ? PHYS.cut : PHYS.g;
     s.vy = Math.min(PHYS.fall, s.vy + g * dt);
@@ -336,9 +348,11 @@ function climb(st, dt, input) {
           break;
         }
       }
+      if (!s.on) tryGrab(st);
     }
   }
-  s.x = clamp(s.x + s.vx * dt, WALL[0], WALL[1]);
+  if (!s.hang) s.x = clamp(s.x + s.vx * dt, WALL[0], WALL[1]);
+  }
   if (s.on && s.onT > 0.25) s.safe = s.on;
   st.best = Math.max(st.best, s.x);
   // A new scene begins when the sailor stands on its ledge.
@@ -348,13 +362,13 @@ function climb(st, dt, input) {
 
   // Hazards: the deep water, the bare stomach floor, the hooks.
   const fy = floorY(s.x);
-  if (!s.on && s.y > st.water + 26 && st.water < fy - 4) {
+  if (!s.on && !s.hang && s.y > st.water + 26 && st.water < fy - 4) {
     st.events.push({ type: 'splash', x: s.x, y: st.water });
     hurt(st, 'deep');
     if (st.phase === 'climb') respawn(st);
     return;
   }
-  if (!s.on && s.y >= fy) {
+  if (!s.on && !s.hang && s.y >= fy) {
     st.events.push({ type: 'acidSting', x: s.x, y: fy });
     hurt(st, 'floor');
     if (st.phase === 'climb') respawn(st);
@@ -367,7 +381,7 @@ function climb(st, dt, input) {
     if ((tip.x - nx) ** 2 + (tip.y - ny) ** 2 < HOOK_R * HOOK_R && st.grace <= 0) {
       st.events.push({ type: 'hookSnag', x: tip.x, y: tip.y });
       hurt(st, 'hook');
-      s.vx = (s.x < tip.x ? -1 : 1) * 320; s.vy = -420; s.on = null;
+      s.vx = (s.x < tip.x ? -1 : 1) * 320; s.vy = -420; s.on = null; s.hang = null; s.noGrab = HANG.regrab;
       return;
     }
   }
@@ -401,8 +415,62 @@ function hurt(st, why) {
   if (st.lanterns <= 0) { toPhase(st, 'down'); st.s.vy = -200; st.events.push({ type: 'swallowed' }); }
 }
 
+// Falling just past a platform's side: catch its edge.
+function tryGrab(st) {
+  const s = st.s;
+  if (s.vy < 0 || s.noGrab > 0) return;
+  const land = SAILOR.hw * 0.75;
+  // Only an edge his feet rose above in this fall or leap (a landing he
+  // missed, not something overhead he never reached), and never the one he
+  // just stepped or leapt from: walking off an edge drops him.
+  for (const p of [...st.ledges, ...st.floaters]) {
+    if (p.kind === 'lip') continue;
+    const e = extent(p);
+    if (e.y < s.y - SAILOR.h * HANG.hi || e.y > s.y - SAILOR.h * HANG.lo || s.peak > e.y + 4 || p.id === s.left) continue;
+    const side = s.x < e.x0 - land && s.x >= e.x0 - land - HANG.reach ? -1
+      : s.x > e.x1 + land && s.x <= e.x1 + land + HANG.reach ? 1 : 0;
+    if (!side) continue;
+    s.hang = { id: p.id, side, t: 0, climb: -1 };
+    s.vx = 0; s.vy = 0; s.air = false; s.face = -side;
+    placeHanging(st);
+    st.events.push({ type: 'grab', x: side < 0 ? e.x0 : e.x1, y: e.y });
+    return;
+  }
+}
+// Where a hanging (or climbing) sailor is, following the platform as it moves.
+function placeHanging(st) {
+  const s = st.s, h = s.hang, e = extent(platformOf(st, h.id));
+  const edge = h.side < 0 ? e.x0 : e.x1;
+  const hx = edge + h.side * HANG.off, hy = e.y + HANG.drop;
+  if (h.climb < 0) { s.x = hx; s.y = hy; return; }
+  const k = Math.min(1, h.climb / HANG.climb), up = Math.min(1, k / 0.7), over = Math.max(0, (k - 0.5) / 0.5);
+  s.x = lerp(hx, edge - h.side * (SAILOR.hw + 6), over * over * (3 - 2 * over));
+  s.y = lerp(hy, e.y, up * (2 - up));
+}
+function hangOn(st, dt, input, mx) {
+  const s = st.s, h = s.hang;
+  h.t += dt;
+  if (h.climb >= 0) {
+    h.climb += dt;
+    placeHanging(st);
+    if (h.climb >= HANG.climb) {
+      s.on = h.id; s.onT = 0; s.vx = 0; s.vy = 0; s.hang = null; s.coyote = 0;
+      st.events.push({ type: 'climbUp', x: s.x, y: s.y });
+    }
+    return;
+  }
+  placeHanging(st);
+  const toward = mx * h.side < -0.15, away = mx * h.side > 0.5;
+  if (input.down || away) { // let go
+    s.hang = null; s.vy = 0; s.vx = h.side * 60; s.noGrab = HANG.regrab; s.air = true;
+    return;
+  }
+  if (h.t > 0.12 && (toward || input.up || input.a || h.t >= HANG.auto)) { h.climb = 0; st.events.push({ type: 'pullUp' }); }
+}
+
 function respawn(st) {
   const s = st.s, p = platformOf(st, s.safe) || platformOf(st, 'bank'), e = extent(p);
+  s.hang = null;
   s.x = (e.x0 + e.x1) / 2; s.y = e.y; s.vx = 0; s.vy = 0; s.on = p.id; s.onT = 0; s.air = false;
   st.events.push({ type: 'respawn', x: s.x, y: s.y });
 }

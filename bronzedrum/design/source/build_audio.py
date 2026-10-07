@@ -220,7 +220,7 @@ sfx(G, "ui-confirm",
 sfx(G, "ui-back",
     "A sheet of paper sliding softly across a wooden table, short.",
     0.5, "Closing a menu or dialog. Too prominent (heard on the workbench): shortened, softened "
-    "and played quieter.", kind="hit", gain=0.3,
+    "and played quieter, then halved again (still too loud in play).", kind="hit", gain=0.15,
     post="atrim=0:0.3,lowpass=f=5500,afade=t=in:d=0.02,afade=t=out:st=0.08:d=0.22")
 sfx(G, "ui-start",
     "A single resonant strike on a small bronze gong, ringing out.",

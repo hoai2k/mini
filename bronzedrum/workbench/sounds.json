@@ -534,10 +534,10 @@
     {
       "id": "ui-back",
       "group": "Interface",
-      "use": "Closing a menu or dialog. Too prominent (heard on the workbench): shortened, softened and played quieter.",
+      "use": "Closing a menu or dialog. Too prominent (heard on the workbench): shortened, softened and played quieter, then halved again (still too loud in play).",
       "prompt": "A sheet of paper sliding softly across a wooden table, short.",
       "kind": "hit",
-      "gain": 0.3,
+      "gain": 0.15,
       "files": [
         {
           "file": "sfx/ui-back.mp3",

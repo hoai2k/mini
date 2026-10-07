@@ -13,6 +13,7 @@ import { hud } from './render/hud.js';
 import { training } from './render/training.js';
 import { touch } from './render/touch.js';
 import { practice } from './render/practice.js';
+import { pond } from './render/pond.js';
 
 export { W, H, U, TOUCH } from './render/common.js';
 
@@ -76,6 +77,7 @@ export class Renderer {
     this.wakes = [];
     this.incenseState = null;
     this.celebration = null;
+    this.clearing = null; // the last chapter's cleared dots (its clock was not this one's)
     this.wokenAt = {};
     this.floaters = [];
     this.lit = new Map(); // layers lit and scaled for this chapter only
@@ -85,6 +87,12 @@ export class Renderer {
     this.flash = { L: -9, R: -9 };
     this.crewFlash = { L: -9, R: -9 };
     this.crewQueue = [];
+    this.buildLayers();
+  }
+
+  /** The looks of the panels for this chapter (drawn ones where no art is delivered). */
+  buildLayers() {
+    const stage = this.stage;
     this.layers = {
       sky: this.buildSky(stage.sky),
       karstFar: this.buildKarst(true),
@@ -93,6 +101,19 @@ export class Renderer {
       paddy: this.buildPaddy(),
       reeds: this.buildReeds(),
     };
+  }
+
+  /** 'shadow' or 'water' (Settings, Style; the art follows it). */
+  get style() {
+    return this.art.style;
+  }
+
+  /** The style changed: everything baked from the art is baked again. */
+  restyle() {
+    this.lit = new Map();
+    this.farKey = null;
+    this.overlayKey = null;
+    if (this.stage) this.buildLayers();
   }
 
   draw(view, dt) {
@@ -129,6 +150,8 @@ export class Renderer {
     this.layer('layer-grove', this.layers.grove, 0.45);
     haze(g, this.sky.glow, GROUND - 60, GROUND + 10, 0.12);
     this.layer('layer-paddy', this.layers.paddy, 1);
+    const water = this.style === 'water';
+    if (water) this.lanternString(t);
 
     // World space.
     g.save();
@@ -163,7 +186,10 @@ export class Renderer {
       const cx = this.motion.crew.x;
       this.wakeBurst(cx, battle.elephant ? GROUND - 200 : GROUND - 80, 420, k);
     }
+    // The water puppets wade: the pond over their feet (render/pond.js).
+    if (water) this.pond(t);
     g.restore();
+    if (water) this.reflection();
 
     this.layer('layer-reeds', this.layers.reeds, 1.25);
     g.setTransform(this.pixel, 0, 0, this.pixel, 0, 0);
@@ -251,4 +277,4 @@ export class Renderer {
 }
 
 // The methods live in ./render/*.js, grouped by what they draw.
-Object.assign(Renderer.prototype, backdrop, figures, story, field, hud, touch, practice, training);
+Object.assign(Renderer.prototype, backdrop, figures, story, field, hud, touch, practice, training, pond);

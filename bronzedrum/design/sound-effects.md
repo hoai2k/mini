@@ -68,7 +68,7 @@ Each generated file was checked by measuring its length, peak, level over time (
 | --- | --- | ---: | --- | --- |
 | `ui-move` | Moving focus in menus. (hit) | 0.5 s | 1/1 | A soft rustle of a single sheet of rice paper being turned, very short and quiet. |
 | `ui-confirm` | Choosing a menu item. Its tail carried a hiss (heard on the workbench): denoised and cut short after the knock. (hit) | 0.5 s | 1/1 | A small hardwood clapper knock, clean and single, like a temple woodblock. |
-| `ui-back` | Closing a menu or dialog. Too prominent (heard on the workbench): shortened, softened and played quieter. (hit) | 0.5 s | 1/1 | A sheet of paper sliding softly across a wooden table, short. |
+| `ui-back` | Closing a menu or dialog. Too prominent (heard on the workbench): shortened, softened and played quieter, then halved again (still too loud in play). (hit) | 0.5 s | 1/1 | A sheet of paper sliding softly across a wooden table, short. |
 | `ui-start` | Press Start. It carries a faint static (heard on the workbench); three cleaner takes wait on the workbench as candidates. (sting) | 2.5 s | 1/1 | A single resonant strike on a small bronze gong, ringing out. |
 | `village-wakes` | The Villages Answer: a village answers and lights its lanterns. (sting) | 3.0 s | 1/1 | A riverside village wakes at night: a bronze gong struck once in the distance, then a small crowd of villagers calling out joyfully together, and a hand drum rolling briefly in answer, all echoing over the water. |
 

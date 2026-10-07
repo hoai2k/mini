@@ -617,6 +617,19 @@ ACTS = [
         *[(f'{base}-idle-{fr}', f'{name}, idle frame {fr.upper()}', w, h, 'bottom centre', style, f'{IDLE.format(base=base)} {move}')
           for base, name, w, h, style, moves in IDLE_PEOPLE for fr, move in zip('bc', moves)],
     ]),
+    ('Fourth round: Act IV ledge hang', 'The Whale\'s Road lets the sailor catch the edge of a piece of wreckage he just missed, hang, and pull himself back up. Match `sailor-stand` and `sailor-leap` (attach them as image references): the same man, coat, cap and scale, so the frames sit beside the walk and leap. The game draws the leap sprite as a stand-in until these arrive.', [
+        ('sailor-hang', 'Sailor hanging from an edge', 220, 440, 'top centre (his hands)', SPRITE,
+         f'Full figure of {SAILOR}, hanging at full stretch by both hands from a ledge edge, seen in profile facing '
+         'right: both hands together gripping at the very top centre of the canvas, arms straight up above his head, '
+         'body hanging straight down, the toes of his boots just touching an unseen wall in front of him, cap still '
+         'on. Effortful but determined. The top of his fingers touches the top edge of the canvas; nothing else of '
+         'the ledge is drawn.'),
+        ('sailor-pullup', 'Sailor pulling himself up', 260, 300, 'ledge line 25% up from the bottom, centred', SPRITE,
+         f'Full figure of {SAILOR}, seen in profile facing right, mid-way through hauling himself up over a ledge: '
+         'both forearms and his right knee planted on a level, unseen ledge top that runs across the canvas 25% up '
+         'from the bottom edge; his chest and head above that line, leaning forward; his left leg still dangling '
+         'below it. Nothing of the ledge itself is drawn, only the man.'),
+    ]),
 ]
 
 MOODS = [

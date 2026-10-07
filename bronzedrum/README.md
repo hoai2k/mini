@@ -132,6 +132,11 @@ kept light and every clock is read precisely:
 
 ## Delivered art
 
+Settings, Style chooses between the shadow puppets and the water puppets (see
+`design/design.md`, Two looks). The water puppets' images are requested as
+BD-W01 onwards and load under `wp-` ids; until each arrives the game shows
+the shadow-puppet image in its place, under the drawn pond.
+
 All 92 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets
 (BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in

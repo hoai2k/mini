@@ -206,7 +206,9 @@ from a harness like a Victorian flying ballet (`sailor-swim-a` and
 - **Air.** A gauge drains slowly. Air vents (`air-vent`) refill it while you
   hover in the bubbles.
 - **Pearls** sit in giant clams (`clam-open`, `clam-closed`) that open on
-  the beat for one beat. Inside means a pearl; a closed clam is solid.
+  the beat for one beat. Inside means a pearl; a closed clam is solid. Each
+  holds one pearl: taken, it stays shut and greyed (`SPENT` in
+  `src/acts/shared.js`, the look of anything used up), as does a sounded conch.
 - **Hazards:** eels (`eel`) dart from holes whose eyes glow first
   (`eel-hole`), and jellyfish (`jellyfish`) drift on their wires. The red
   dragon patrols the lowest third in a slow figure of eight.
@@ -294,6 +296,11 @@ water rises, then falls.
 **Play.** A climb across floating platforms.
 
 - **Left and right** walk. **A** leaps (`sailor-leap`).
+- **Catching an edge.** Falling just past the side of a platform he rose
+  above (a missed landing, not one he walked off), he grabs its edge and hangs
+  (`sailor-hang`), safe from the water; toward it, up or A hauls him over
+  (`sailor-pullup`), and he climbs on his own after 0.7 s; away or down lets
+  go. Tuning in `HANG` (`src/acts/act4.js`).
 - Stand on the wreckage, ride it up as the water rises, and work toward the
   throat (`whale-throat`), where daylight shows.
 - **The stone** (`keepsake-stone`) lies on the highest rib ledge.

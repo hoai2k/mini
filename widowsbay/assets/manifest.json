@@ -859,6 +859,24 @@
         700
       ],
       "anchor": "bottom centre"
+    },
+    "sailor-pullup": {
+      "status": "requested",
+      "file": "sailor-pullup.webp",
+      "size": [
+        260,
+        300
+      ],
+      "anchor": "ledge line 25% up from the bottom, centred"
+    },
+    "sailor-hang": {
+      "status": "requested",
+      "file": "sailor-hang.webp",
+      "size": [
+        220,
+        440
+      ],
+      "anchor": "top centre (his hands)"
     }
   },
   "audio": {

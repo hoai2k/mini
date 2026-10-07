@@ -114,8 +114,10 @@ rim (BD-U20 and BD-U21). On the touch drum each lands where it was tapped. Setti
 pestle-like pole and a bamboo stick (BD-U22, BD-U24), or Ceremonial, a
 lacquered beater and a horn-tipped stick (BD-U23, BD-U25). Reduce motion
 turns the shiver off. Text is drawn larger, taps
-buzz briefly if Vibration is on, and an upright phone pauses with a prompt to
-turn it sideways. The button faces are request BD-U16; until it is delivered
+buzz briefly if Vibration is on, and an upright phone holds the game behind a
+screen of its own (not the pause menu) asking for it to be turned sideways;
+the game carries on by itself once it is, and the screen's Menu button opens
+the pause menu. The button faces are request BD-U16; until it is delivered
 the renderer draws them.
 
 The two leads' temperaments are built into the controls: Trắc holds the beat and
@@ -370,13 +372,22 @@ tempo is tried, each beat split into one, two or three slots, and slots may
 stay empty, so rhythms hold rests (a silent beat, written `-`, or a silent slot
 inside a beat, `.`). Each choice has a cost (`COST`): a pair costs a little, a
 triplet a lot more, so strokes read as plain beats and eighths unless they
-plainly fall in threes; an empty slot, a silent beat and a deep stroke off its
-beat cost a little; straying from the tempo already in the air (`prior`) costs
-too. While the rhythm is being drummed its last beat may still fill, and the
+plainly fall in threes; a deep stroke off its beat costs a little; straying from the tempo already in the air (`prior`) costs
+too. Rests are read only when the rhythm being copied has them (a partner's
+call with a rest in it): then an empty slot or a silent beat costs a little,
+and otherwise ten times as much, so uneven drumming reads as the plain beats
+and pairs it almost certainly was rather than as rests. A finished rhythm read
+shorter than the beats set would end in silent beats, so those count as rests
+too (otherwise `L R L R L R` drummed a little unevenly read as three pairs at
+half the tempo and three silent beats). Measured with simulated players
+(steady drift, uneven strokes up to ±12% of a beat), plain rhythms now read
+right 95% of the time, against 72% before, and with a rest 2% against 25%. While the rhythm is being drummed its last beat may still fill, and the
 dots show the reading as ghosts, which may regroup.
 
 The rhythm is complete just before the beat after its last beat, at the tempo
-its strokes have set, so a closing pair or triplet still fits. It is then
+its strokes have set, so a closing pair or triplet still fits. With no rests to
+copy, a last beat still unstruck waits almost half a beat longer, so a dragged
+final stroke ends the rhythm instead of leaving a rest and starting the next. It is then
 locked in (`lockIn`): what was heard is fitted to the number of beats. Up to
 two leading strokes may be dropped (at a cost, so only when that fits much
 better), and a lone stroke well before the next is dropped outright; strokes
@@ -497,6 +508,27 @@ collars, skirt bands, the lamellar slots of Han armour. Hits tear paper scraps
 loose instead of drawing blood. The moon changes every chapter.
 [image-requests.md](image-requests.md) has three style frames to settle how much
 colour the paper carries before the full set is generated.
+
+## Two looks: shadow puppets and water puppets
+
+Settings, Style switches the whole game between two looks, at once and
+mid-chapter. **Shadow puppets** is the look above. **Water puppets** stages the
+same game as Vietnamese water puppetry (múa rối nước): lacquered wooden
+puppets wading in a village pond, lacquer-painted scenery, red lanterns
+strung overhead. Every image with the shadow-puppet look has a water-puppet
+twin in the requests (BD-W, game id `wp-` + the shadow image's id, same size
+and composition), and `art.js` hands out the twin in the water style. A twin
+not yet delivered falls back to its shadow-puppet image, except the paper
+fibre, the paper scraps and the paper panel, which the water style draws for
+itself. The game draws the water style's own pieces (`render/pond.js`): the
+pond over the feet and shins of everything standing on the ground, with the
+scene mirrored faintly in it and rings of ripples round each figure (in place
+of the foot shadows), the lantern string, and splashes and chips of lacquered
+wood instead of paper scraps. Figures are lit from the front, with a soft
+shadow behind instead of the backlight's glow, and the menu panels are black
+lacquer edged in vermilion and gold. The sisters' jointed rigs stay the
+shadow puppets' until the water twins' part sheets are cut; once the twin
+sprite of a sister arrives and before her rig does, she is drawn whole.
 
 ## Open questions
 
