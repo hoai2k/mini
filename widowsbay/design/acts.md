@@ -207,7 +207,9 @@ from a harness like a Victorian flying ballet (`sailor-swim-a` and
   hover in the bubbles.
 - **Pearls** sit in giant clams (`clam-open`, `clam-closed`) that open on
   the beat for one beat. Inside means a pearl; a closed clam is solid. Each
-  holds one pearl: taken, it stays shut and greyed (`SPENT` in
+  gives its pearl, rests shut (`clamRest`), then regrows one more that grows
+  only while the clam is open, in view (`clamGrow`, drawn in
+  `clam-open-empty`); taken again, it stays shut and greyed (`SPENT` in
   `src/acts/shared.js`, the look of anything used up), as does a sounded conch.
 - **Hazards:** eels (`eel`) dart from holes whose eyes glow first
   (`eel-hole`), and jellyfish (`jellyfish`) drift on their wires. The red

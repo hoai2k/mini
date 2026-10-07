@@ -26,7 +26,9 @@ export const TUNE = {
   horn: 14,          // seconds a conch's song lasts
   wakeR: 150,        // how close you must swim to wake a sleeper
   grace: 1.6,
-  clamPearls: 1,     // pearls per clam: once taken it stays shut and grey
+  clamPearls: 2,     // pearls per clam: its own, then one regrown; then it stays shut and grey
+  clamRest: 6,       // s a clam stays shut after its first pearl is taken
+  clamGrow: 2.4,     // s of being open (about three openings) to regrow a pearl
   eelReach: 300, eelGlow: 1.0, eelCD: 2.6,
   guitarLead: 110,   // he can never get closer than this above the guitar
 };
@@ -105,6 +107,12 @@ export const RIDE = { boatX: 470, speed: 300, pearls: 16, minX: 210, maxX: 930, 
 
 // ---------------------------------------------------------------- helpers
 export const clamOpen = (cl, beat) => Math.floor(beat) % cl.every === cl.off;
+export const clamSpent = (cl) => cl.got >= TUNE.clamPearls;
+// Open now: on its beat, unless spent or resting (but a clam just emptied
+// stays open to the end of that beat rather than snapping on him).
+export const clamIsOpen = (cl, beat) => clamOpen(cl, beat) && (cl.lastBeat === Math.floor(beat) || (!clamSpent(cl) && cl.rest <= 0));
+// Its pearl can be taken: the first, or a regrown one at full size.
+export const clamRipe = (cl) => !clamSpent(cl) && (cl.got === 0 || cl.grow >= 1);
 export function jellyPos(j, time) {
   return { x: j.cx + j.ax * Math.sin(time * j.w + j.p), y: j.cy + j.ay * Math.sin(time * j.w * 1.7 + j.p) };
 }
@@ -159,7 +167,7 @@ export default {
       guitar: { x: 880, y: -140, settled: false, held: false },
       sleepers: SLEEPERS.map(([x, y], i) => ({ x, y, id: REVELLERS[i % 4], kind: i % 4, floor: y > FLOOR - 100, state: 'asleep', t: 0 })),
       conches: CONCHES.map(([x, y]) => ({ x, y, used: false })),
-      clams: CLAMS.map(([x, y, every, off]) => ({ x, y, every, off, got: 0, lastBeat: null, wasOpen: false })),
+      clams: CLAMS.map(([x, y, every, off]) => ({ x, y, every, off, got: 0, lastBeat: null, wasOpen: false, rest: 0, grow: 0 })),
       eels: EELS.map(([x, y, side]) => ({ x, y, side, state: 'idle', t: 0, cd: 0 })),
       jellies: JELLIES.map(([cx, cy, ax, ay, w, p]) => ({ cx, cy, ax, ay, w, p })),
       vents: VENTS.map(([x, y]) => ({ x, y })),
@@ -174,6 +182,7 @@ export default {
     (from.sleepers || []).forEach((i) => { const sl = st.sleepers[i]; if (sl) { sl.state = 'rising'; sl.t = 6; } });
     (from.conches || []).forEach((i) => { if (st.conches[i]) st.conches[i].used = true; });
     (from.clams || []).forEach((n, i) => { if (st.clams[i]) st.clams[i].got = n; });
+    (from.clamGrow || []).forEach((g, i) => { if (st.clams[i]) st.clams[i].grow = g; });
     st.phase = 'swim'; st.phaseT = 0; st.hzT = 3; st.air = 1; st.lanterns = 3;
     const s = st.sailor, g = st.guitar;
     s.wake = 1; s.grace = TUNE.grace; // a moment to settle in; hazards start afresh
@@ -348,19 +357,22 @@ function stepSwim(st, dt, input) {
   }
 
   // Clams open on the beat, for one beat. Open: a pearl. Closed: solid.
+  // Taken, a clam rests shut, then regrows its pearl once, growing only
+  // while it is open (in view); taken again, it is spent.
   const bi = Math.floor(st.beat);
   let snap = false;
   for (const cl of st.clams) {
-    const spent = cl.got >= TUNE.clamPearls;
-    const open = !spent && clamOpen(cl, st.beat);
+    cl.rest = Math.max(0, cl.rest - dt);
+    const open = clamIsOpen(cl, st.beat);
+    if (open && cl.got > 0 && cl.grow < 1 && cl.lastBeat !== bi) cl.grow = Math.min(1, cl.grow + dt / TUNE.clamGrow);
     if (cl.wasOpen && !open && Math.abs(cl.y - s.y) < 400) snap = true;
     cl.wasOpen = open;
     const ex = 60, ey = 48, cy = cl.y - 48; // the painted shell spans y -96..0
     const dx = (s.x - cl.x) / ex, dy = (s.y - cy) / ey, dd = Math.hypot(dx, dy);
     if (dd >= 1) continue;
     if (open) {
-      if (cl.lastBeat !== bi) {
-        cl.lastBeat = bi; cl.got++; st.pearls++; st.score += 50;
+      if (cl.lastBeat !== bi && clamRipe(cl)) {
+        cl.lastBeat = bi; cl.got++; st.pearls++; st.score += 50; cl.grow = 0; cl.rest = TUNE.clamRest;
         st.events.push({ type: 'pearl', x: cl.x, y: cy - 20 });
       }
     } else {
@@ -416,6 +428,7 @@ function snapshot(st, scene, x, y, gy) {
     sleepers: idx(st.sleepers, (q) => q.state !== 'asleep'),
     conches: idx(st.conches, (c) => c.used),
     clams: st.clams.map((c) => c.got),
+    clamGrow: st.clams.map((c) => Math.round(c.grow * 100) / 100),
   };
 }
 

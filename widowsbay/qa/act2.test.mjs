@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import act, {
   BEAT_LEN, FLOOR, TUNE, PHASE_LEN, REST, SLEEPERS, RIDE, ridePearlX,
-  clamOpen, jellyPos, dragonPos, eelExt, SCENES, VENTS,
+  clamOpen, clamIsOpen, clamSpent, jellyPos, dragonPos, eelExt, SCENES, VENTS,
 } from '../src/acts/act2.js';
 
 let n = 0;
@@ -214,7 +214,7 @@ test('tea-leaf omens show one beat early with the full reading, never without', 
   }
 });
 
-test('clams open on the beat for one beat; closed is solid, open gives its one pearl, then stays shut', () => {
+test('clams open on the beat for one beat; closed is solid, open gives a pearl, it rests, regrows one in view, then is spent', () => {
   const st = make(); skipOpening(st);
   const cl = st.clams[0];
   // follows the beat: open exactly on beats ≡ off (mod every)
@@ -236,10 +236,25 @@ test('clams open on the beat for one beat; closed is solid, open gives its one p
   for (let i = 0; i < 10; i++) { st.sailor.x = cl.x; st.sailor.y = cl.y - 30; tick(st, {}); }
   assert.equal(st.pearls, p0 + 1, 'one pearl per opening');
   assert.ok(count(st, 'clamSnap') >= 1);
-  // spent: it never opens again and gives no more pearls
-  for (let i = 0; i < cl.every * 4 / DT * BEAT_LEN; i++) { st.sailor.x = cl.x; st.sailor.y = cl.y - 30; tick(st, {}); }
-  assert.equal(st.pearls, p0 + 1, 'no pearl reappears');
-  assert.equal(cl.got, 1);
+  // rests shut, then regrows one pearl, growing only while open, then is spent
+  const hold = () => { st.sailor.x = cl.x; st.sailor.y = cl.y - 30; st.sailor.vx = st.sailor.vy = 0; };
+  let openDuringRest = false;
+  for (let t = 0; t < TUNE.clamRest - 0.2; t += DT) { hold(); tick(st, {}); const b = st.clock / BEAT_LEN; if (Math.floor(b) !== cl.lastBeat && clamIsOpen(cl, b)) openDuringRest = true; }
+  assert.ok(!openDuringRest, 'shut while it rests');
+  assert.equal(st.pearls, p0 + 1);
+  let maxGrowShut = 0, sawSmall = false;
+  for (let t = 0; t < 60 && st.pearls === p0 + 1; t += DT) {
+    const before = cl.grow, wasOpen = clamIsOpen(cl, (st.clock + DT) / BEAT_LEN);
+    hold(); tick(st, {});
+    if (!wasOpen && cl.got === 1) maxGrowShut = Math.max(maxGrowShut, cl.grow - before);
+    if (wasOpen && cl.grow > 0 && cl.grow < 1) sawSmall = true;
+  }
+  assert.ok(sawSmall, 'a small pearl shows while it grows');
+  assert.equal(maxGrowShut, 0, 'it grows only while open');
+  assert.equal(st.pearls, p0 + 2, 'the regrown pearl, once full size');
+  assert.ok(clamSpent(cl));
+  for (let i = 0; i < cl.every * 6 / DT * BEAT_LEN; i++) { hold(); tick(st, {}); }
+  assert.equal(st.pearls, p0 + 2, 'spent: no more pearls');
 });
 
 test('air drains, refills in a vent, and running out costs a lantern', () => {

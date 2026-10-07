@@ -5,7 +5,7 @@
 // draw the same shapes, so all motion comes from state and `t`.
 import {
   CAM_MAX, FLOOR, SHELF_Y, REST, TUNE, PHASE_LEN, DRAGON, RIDE,
-  clamOpen, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, rideLeapH, ROSE_CUES,
+  clamOpen, clamIsOpen, clamSpent, clamRipe, jellyPos, dragonPos, eelExt, rideRowPos, ridePearlX, rideLeapH, ROSE_CUES,
 } from './act2.js';
 import { clamp, lerp, easeOut, easeInOut, beatPhase, SPENT } from './shared.js';
 
@@ -344,10 +344,19 @@ function vent(k, st, v, t) {
 function clam(k, st, cl) {
   const c = k.c, x = cl.x, y = sy(st, cl.y);
   ledge(k, st, x, cl.y, 150);
-  const spent = cl.got >= TUNE.clamPearls;
-  const open = !spent && clamOpen(cl, st.beat);
+  const spent = clamSpent(cl) && cl.lastBeat !== Math.floor(st.beat);
+  const open = clamIsOpen(cl, st.beat);
   const ph = beatPhase(st.beat);
   const o = open ? Math.min(1, ph / 0.1) * Math.min(1, (1 - ph) / 0.12) : 0;
+  // What's inside: its first pearl, a regrown one (full, or growing while
+  // open), or nothing (just emptied).
+  const taken = cl.lastBeat === Math.floor(st.beat);
+  const pearlK = taken ? 0 : clamRipe(cl) ? 1 : cl.got > 0 ? cl.grow : 0;
+  if (o > 0.4 && pearlK < 1 && k.img('clam-open')) {
+    if (!k.asset('clam-open-empty', x, y, 120, 100)) emptyClamStandin(k, x, y);
+    if (pearlK > 0) growingPearl(k, x, y, pearlK);
+    return;
+  }
   if (k.asset(o > 0.4 ? 'clam-open' : 'clam-closed', x, y, 120, 100, spent ? SPENT : '')) return;
   const shell = spent ? '#7b7584' : '#cfc0dc', rib = spent ? '#5a5464' : '#8a7aa0';
   // inside and pearl
@@ -365,6 +374,28 @@ function clam(k, st, cl) {
   c.strokeStyle = k.col(rib); c.lineWidth = 2;
   for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(0, -2); c.lineTo(i * 22, -18 + Math.abs(i) * 6 + o * 6); c.stroke(); }
   c.restore();
+}
+
+// The pearl in clam-open sits at art (120, 117), radius 31, in a 240 x 200
+// sprite drawn at 120 x 100: (x, y - 41), radius 15.5 on stage.
+const CLAM_PEARL = { dy: -41, r: 15.5 };
+// Until clam-open-empty is delivered: clam-open with its pearl patched out by
+// a mirrored piece of the pink inside from just beside it.
+function emptyClamStandin(k, x, y) {
+  const c = k.c, { dy, r } = CLAM_PEARL;
+  k.asset('clam-open', x, y, 120, 100);
+  c.save(); c.beginPath(); c.ellipse(x, y + dy, r + 2, r + 1, 0, 0, Math.PI * 2); c.clip();
+  c.translate(x, 0); c.scale(-1, 1); c.translate(-x, 0);
+  k.assetCrop('clam-open', 27, 85, 62, 66, x - r - 2, y + dy - r - 2, 2 * r + 4, 2 * r + 4);
+  c.restore();
+}
+// A regrowing pearl: from a seed to full size, resting on the lower lip.
+function growingPearl(k, x, y, g) {
+  const c = k.c, { dy, r } = CLAM_PEARL, rr = r * (0.25 + 0.75 * g), cy = y + dy + r - rr;
+  if (!k.asset('pearl', x, cy + rr * 1.45, rr * 2.9, rr * 2.9)) {
+    c.fillStyle = k.col('#f7f2fa'); k.circle(x, cy, rr);
+    c.fillStyle = k.col('#ffffff'); k.circle(x - rr * 0.35, cy - rr * 0.35, rr * 0.3);
+  }
 }
 
 function conch(k, st, cn, t) {
