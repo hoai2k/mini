@@ -6,16 +6,16 @@
 // topples. Pickles and socks knock off the top scoop; a golden cherry counts
 // three. Score: the tallest stack built (counting cherries as three).
 
-import { drawBird, scene, band, blob, scoop as scoopPath, wash, ink, poly, label, PAL, INK } from '../draw.js';
+import { drawBird, birdPoint, scene, band, blob, scoop as scoopPath, wash, ink, poly, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 
 const DURATION = 45;
 const GROUND = 840;
 const BIRD_SIZE = 300;
 const K = BIRD_SIZE / 400;
-// The top of the Coot's head, relative to its feet (from the stand-in drawing).
-const HEAD_DX = -115 * K;
-const HEAD_DY = -390 * K;
+// The top of the Coot's head, relative to its feet: the portrait's once it is
+// delivered, the stand-in's until then. Read when the game starts.
+const head = () => birdPoint('coot', 'head').map((v) => v * K);
 const R = 30; // scoop radius
 const STEP = R * 1.45; // height of each scoop in the stack
 const TOPPLE = 46; // how far the stack's balance point may lean, in px
@@ -23,6 +23,7 @@ const TOPPLE = 46; // how far the stack's balance point may lean, in px
 const FLAVOURS = [PAL.strawberry, PAL.lemon, '#f3ead2', '#8a5a3a', PAL.mint, '#b8c878', '#9aa8d8'];
 
 export default function create(env) {
+  const [HEAD_DX, HEAD_DY] = head();
   const { W, H, rng, sfx } = env;
   const g = {
     time: DURATION,

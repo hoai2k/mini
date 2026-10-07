@@ -415,34 +415,7 @@ const BIRD_DRAW = {
     const wilt = pose.wilt || 0;
     leg(g, -25, -60, -30, 0, PAL.orange, 3.5);
     leg(g, 25, -60, 28, 0, PAL.orange, 3.5);
-    // the plant: a stem that rises with growth and droops with wilt
-    const h = 30 + growth * 230;
-    const sway = Math.sin(t * 1.5) * 4 + wilt * 60;
-    const top = [sway, -235 - h];
-    g.beginPath(); g.moveTo(0, -235); g.quadraticCurveTo(sway * 0.2, -235 - h * 0.5, top[0], top[1]);
-    ink(g, 5, PAL.green);
-    for (let i = 1; i <= Math.floor(growth * 7) + 1; i++) {
-      const s = i / 8;
-      const lx = sway * 0.2 * s * 2;
-      const ly = -235 - h * s;
-      for (const d of [-1, 1]) {
-        blob(g, lx + d * 18, ly + 4 + wilt * 8, 16, 7, i * 3 + d, 0.1, 10);
-        wash(g, PAL.sage); ink(g, 1.2);
-      }
-    }
-    if (growth > 0.55) {
-      const bud = Math.min(1, (growth - 0.55) / 0.45);
-      const petals = bud > 0.9 ? 14 : 5;
-      const R = 14 + bud * 60;
-      const cols = [PAL.strawberry, PAL.slate, PAL.ochre, PAL.mauve, PAL.dusty];
-      for (let i = 0; i < petals; i++) {
-        const a = (i / petals) * Math.PI * 2 + t * 0.2;
-        blob(g, top[0] + Math.cos(a) * R * 0.55, top[1] + Math.sin(a) * R * 0.45 - R * 0.3, R * 0.42, R * 0.3, i + 50, 0.1, 10);
-        wash(g, cols[i % cols.length]); ink(g, 1.2);
-      }
-      blob(g, top[0], top[1] - R * 0.3, R * 0.25, R * 0.22, 77);
-      wash(g, PAL.lemon); ink(g, 1.2);
-    }
+    plumePlant(g, t, pose);
     // tufts in the pot
     plume(g, -10, -238, -1.9, 30, PAL.lemon, 0.6, 1);
     plume(g, 10, -238, -1.2, 26, PAL.lemon, -0.6, 2);
@@ -653,6 +626,41 @@ const BIRD_DRAW = {
   },
 };
 
+// The Flowerpot Plume's plant, rising from the soil at (0, -235): shared by
+// the stand-in and drawn over the delivered portrait.
+function plumePlant(g, t, pose) {
+  const growth = pose.growth ?? 0.15;
+  const wilt = pose.wilt || 0;
+  // the plant: a stem that rises with growth and droops with wilt
+  const h = 30 + growth * 230;
+  const sway = Math.sin(t * 1.5) * 4 + wilt * 60;
+  const top = [sway, -235 - h];
+  g.beginPath(); g.moveTo(0, -235); g.quadraticCurveTo(sway * 0.2, -235 - h * 0.5, top[0], top[1]);
+  ink(g, 5, PAL.green);
+  for (let i = 1; i <= Math.floor(growth * 7) + 1; i++) {
+    const s = i / 8;
+    const lx = sway * 0.2 * s * 2;
+    const ly = -235 - h * s;
+    for (const d of [-1, 1]) {
+      blob(g, lx + d * 18, ly + 4 + wilt * 8, 16, 7, i * 3 + d, 0.1, 10);
+      wash(g, PAL.sage); ink(g, 1.2);
+    }
+  }
+  if (growth > 0.55) {
+    const bud = Math.min(1, (growth - 0.55) / 0.45);
+    const petals = bud > 0.9 ? 14 : 5;
+    const R = 14 + bud * 60;
+    const cols = [PAL.strawberry, PAL.slate, PAL.ochre, PAL.mauve, PAL.dusty];
+    for (let i = 0; i < petals; i++) {
+      const a = (i / petals) * Math.PI * 2 + t * 0.2;
+      blob(g, top[0] + Math.cos(a) * R * 0.55, top[1] + Math.sin(a) * R * 0.45 - R * 0.3, R * 0.42, R * 0.3, i + 50, 0.1, 10);
+      wash(g, cols[i % cols.length]); ink(g, 1.2);
+    }
+    blob(g, top[0], top[1] - R * 0.3, R * 0.25, R * 0.22, 77);
+    wash(g, PAL.lemon); ink(g, 1.2);
+  }
+}
+
 // Blinks now and then: the eye is drawn, or a closed line.
 function blink(g, t, drawEye) {
   const phase = (t * 0.37) % 4;
@@ -667,9 +675,88 @@ function blink(g, t, drawEye) {
 
 export const STANDIN_BIRDS = Object.keys(BIRD_DRAW);
 
-// Where each portrait's feet are, as a share of the image height from the top,
-// so a delivered portrait stands on the same ground as its stand-in.
-const PORTRAIT_FEET = 0.9;
+// How each delivered portrait sits in the 400-unit bird space: `cx` and `feet`
+// are the point between its feet as shares of the image, and `u` is the
+// image's size in bird units, chosen so each portrait stands about as tall as
+// its stand-in (the games place things by the stand-in's geometry). Measured
+// from the delivered images.
+const PORTRAIT = {
+  bobolinks: { cx: 0.48, feet: 0.97, u: 325 },
+  coot: { cx: 0.55, feet: 0.93, u: 448 },
+  crow: { cx: 0.52, feet: 0.93, u: 500 },
+  cupadee: { cx: 0.55, feet: 0.93, u: 372 },
+  dodo: { cx: 0.5, feet: 0.87, u: 325 },
+  gullfinch: { cx: 0.42, feet: 0.96, u: 485 },
+  peeper: { cx: 0.55, feet: 0.97, u: 415 },
+  piffle: { cx: 0.5, feet: 0.94, u: 391 },
+  plume: { cx: 0.5, feet: 0.93, u: 377 },
+  shuttercluck: { cx: 0.55, feet: 0.87, u: 414 },
+};
+
+// A point on a portrait (shares of the image) in bird units.
+function at(id, fx, fy) {
+  const p = PORTRAIT[id];
+  return [(fx - p.cx) * p.u, (fy - p.feet) * p.u];
+}
+
+// Named points a game can ask for, in bird units from the feet, for whichever
+// drawing is showing (the portrait once delivered, else the stand-in).
+const POINTS = {
+  coot: { head: { standin: [-115, -390], portrait: [0.537, 0.05] } },
+};
+export function birdPoint(id, name) {
+  const p = POINTS[id]?.[name];
+  if (!p) return [0, 0];
+  return art('bird.' + id) ? at(id, ...p.portrait) : p.standin;
+}
+
+// What a portrait can't show by itself: lit lamps, growth, a blink.
+const OVERLAY = {
+  crow(g, t, pose) {
+    const lamps = { red: [0.141, '#ff5a40'], amber: [0.219, '#ffc040'], green: [0.3, '#70e080'] };
+    const l = lamps[pose.light];
+    if (!l) return;
+    const [x, y] = at('crow', 0.51, l[0]);
+    const grd = g.createRadialGradient(x, y, 2, x, y, 46);
+    grd.addColorStop(0, l[1]);
+    grd.addColorStop(0.35, l[1] + 'aa');
+    grd.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grd;
+    g.beginPath();
+    g.arc(x, y, 46, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.arc(x, y, 14, 0, Math.PI * 2);
+    g.fillStyle = l[1];
+    g.fill();
+    g.beginPath();
+    g.arc(x - 4, y - 4, 4, 0, Math.PI * 2);
+    g.fillStyle = 'rgba(255,255,240,0.85)';
+    g.fill();
+  },
+  plume(g, t, pose) {
+    const growth = pose.growth ?? 0;
+    if (growth > 0.2) {
+      const [x, y] = at('plume', 0.518, 0.293);
+      g.save();
+      g.translate(x, y + 235);
+      plumePlant(g, t, pose);
+      g.restore();
+    }
+    if (pose.soggy) {
+      g.fillStyle = 'rgba(90,130,170,0.7)';
+      for (let i = 0; i < 4; i++) g.fillRect(-60 + i * 35, -60 + ((t * 80 + i * 20) % 40), 4, 8);
+    }
+  },
+  shuttercluck(g, t, pose) {
+    if (!pose.click) return;
+    const [x, y] = at('shuttercluck', 0.453, 0.527);
+    g.beginPath();
+    g.arc(x, y, 34 * Math.min(1, pose.click * 6), 0, Math.PI * 2);
+    g.fillStyle = '#1e1e24';
+    g.fill();
+  },
+};
 
 export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false, pose = {}, rot = 0, squash = 0 } = {}) {
   g.save();
@@ -679,12 +766,16 @@ export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false,
   g.scale(flip ? -s : s, s * (1 - squash));
   if (squash) g.scale(1 + squash * 0.6, 1);
   const img = art('bird.' + id);
-  if (img && !pose.standin) {
-    // The portrait faces left too; it breathes and bobs instead of articulating.
-    const h = 400 / PORTRAIT_FEET;
-    const breathe = 1 + Math.sin(t * 2) * 0.012;
-    g.scale(1, breathe);
-    g.drawImage(img, -h / 2, -400, h, h);
+  if (img && !pose.standin && PORTRAIT[id]) {
+    // The portrait faces left too; it breathes and hops instead of articulating.
+    const p = PORTRAIT[id];
+    g.scale(1, 1 + Math.sin(t * 2) * 0.012);
+    if (pose.lift) {
+      g.translate(0, -10);
+      g.rotate(pose.lift * 0.04);
+    }
+    g.drawImage(img, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
+    OVERLAY[id]?.(g, t, pose);
   } else {
     seedBase = BOIL ? Math.floor(t * 5) % 3 * 0.37 : 0;
     BIRD_DRAW[id]?.(g, t, pose);
@@ -700,7 +791,7 @@ export function drawSilhouette(g, id, opts) {
   c.height = g.canvas.height;
   const h = c.getContext('2d');
   h.setTransform(g.getTransform());
-  drawBird(h, id, { ...opts, pose: { ...(opts.pose || {}), standin: true } });
+  drawBird(h, id, opts);
   h.setTransform(1, 0, 0, 1, 0, 0);
   h.globalCompositeOperation = 'source-in';
   h.fillStyle = 'rgba(70,55,45,0.85)';
