@@ -76,8 +76,9 @@ own video, or hold RT instead.
 
 ## Games
 
-Hoops (laid out like Messenger's: a big hoop, the ball at the bottom, and any
-swipe roughly at the hoop goes in), Flappy Face (your face is the bird; tap to
+Hoops (laid out like Messenger's: a big hoop and the ball at the bottom; pick
+the ball up, carry it and toss it, and any toss roughly at the hoop goes in;
+the hoop moves every five shots), Flappy Face (your face is the bird; tap to
 flap), Air Hockey, Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
 holes played together with friends' ghost balls), Bowling, Beach Bump (bump
@@ -118,8 +119,10 @@ itself to HTTPS.
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
-- `node chat/test/hoops-play.mjs`: six real swipes on a phone-sized Hoops,
-  straight and crooked, short and long, all of which must score
+- `node chat/test/hoops-play.mjs`: on a phone-sized Hoops, picks the ball up
+  (it must follow the pointer), carries it and tosses it seven ways that must
+  all score, checks the hoop moves after five shots, a wild toss misses and
+  letting go without a toss puts the ball back
 - `chat/publish.sh local/pages/chat && node chat/test/conn-check.mjs`: a
   working call turns the pill green with signal bars and a route in the
   Connection panel; calls that can't connect (`?rtcdrop=1&rtcfast=0.2`) go

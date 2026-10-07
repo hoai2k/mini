@@ -1,58 +1,84 @@
-// Hoops: flick the ball up at the hoop, laid out like Messenger's basketball
-// game: a big hoop near the top, the ball near the bottom, a long lens so the
-// ball only shrinks a little on its way up, and a forgiving aim (any swipe
-// roughly towards the hoop and roughly the right length goes in). Every basket adds to your all-time
-// total, which is kept on this device, and consecutive baskets build a
-// streak. Friends in the session see each of your shots as a see-through
-// ghost ball in your colour, and you see theirs. Shots are simulated with the
-// same deterministic physics everywhere, so a ghost goes in exactly when the
-// real shot did.
+// Hoops: pick up the ball and toss it at the hoop, laid out like Messenger's
+// basketball game: a big hoop near the top, the ball near the bottom and a
+// long lens, so the ball only shrinks a little on its way up. The ball follows
+// your finger while you hold it and flies from wherever you let go, with the
+// speed and direction of your toss; the shot is helped along so that a toss
+// roughly at the hoop and roughly hard enough goes in. Every five shots the
+// hoop moves somewhere else.
+//
+// Every basket adds to your all-time total, kept on this device, and baskets
+// in a row build a streak. Friends see each of your shots as a see-through
+// ghost ball in your colour, and you see theirs: shots carry where they
+// started, their velocity and where the thrower's hoop was, and replay with
+// the same deterministic physics, shifted so they fly at your hoop.
 
 const G = 9.8;
 const BALL_R = 0.12;
-const RIM = { y: 3.05, z: 2.4, r: 0.23 };
-// The backboard matches the delivered art: it reaches 0.36 m above the rim,
-// 0.08 m below it and 0.35 m to each side.
-const BOARD = { z: 2.78, x0: -0.35, x1: 0.35, y0: 2.97, y1: 3.41 };
-const START = { y: 1.9, z: 0 };
-// A camera far behind the ball with a long lens: the ball and the hoop are
-// both big, and the ball is only about a third smaller at the rim.
+const RIM_R = 0.23;
+// Where the hoop can be (rim centre, metres). It starts at the first and
+// moves to another every SHOTS_PER_SPOT shots.
+const SPOTS = [
+  { x: 0, y: 3.05, z: 2.4 },
+  { x: -0.15, y: 3.05, z: 2.2 },
+  { x: 0.15, y: 3.1, z: 2.6 },
+  { x: -0.1, y: 3.15, z: 2.8 },
+  { x: 0.12, y: 2.95, z: 2.1 },
+  { x: 0.15, y: 3.0, z: 2.3 },
+  { x: -0.15, y: 3.1, z: 2.5 },
+];
+const SHOTS_PER_SPOT = 5;
+// The ball's resting spot, and the box it can be carried around in.
+const REST = { x: 0, y: 1.9, z: 0 };
+const HOLD = { x0: -0.6, x1: 0.6, y0: 1.45, y1: 2.7 };
+// A camera far behind the ball with a long lens.
 const EYE = { x: 0, y: 2.3, z: -6 };
 const STEP = 1 / 240;
 const SHOT_TIME = 3.2;
-// Forgiveness: swipes within AIM_SLACK of the ideal direction (sideways per
-// unit up) fly dead centre, and any length between POWER_LO and POWER_HI
-// reaches the rim.
+// Forgiveness: tosses within AIM_SLACK of the ideal direction (sideways per
+// unit up) fly dead centre, and any toss speed between POWER_LO and POWER_HI
+// times GOOD_SPEED reaches the rim. Slower than MIN_SPEED isn't a throw.
 const AIM_SLACK = 0.14;
-const POWER_LO = 0.3, POWER_HI = 2;
-const CHARGE_MAX = 2.8; // top of the Space / controller power meter
+const POWER_LO = 0.3, POWER_HI = 2.6;
+const GOOD_SPEED = 3.5;  // m/s upwards at the ball, about a brisk flick
+const MIN_SPEED = 0.8;
+const CHARGE_MAX = 3.2;  // top of the Space / controller power meter
+
+// The backboard matches the delivered art: it reaches 0.36 m above the rim,
+// 0.08 m below it and 0.35 m to each side, 0.38 m behind the rim's centre.
+function boardOf(hoop) {
+  return { z: hoop.z + 0.38, x0: hoop.x - 0.35, x1: hoop.x + 0.35, y0: hoop.y - 0.08, y1: hoop.y + 0.36 };
+}
 
 // --- physics -------------------------------------------------------------
 
-// Initial velocity that carries the ball from (x0, START) to the target point
-// with a high arc, so it drops into the rim from above. `aim` is how far the
-// swipe was off the ideal direction (sideways per unit up); `power` is the
-// swipe length, 1 being a good one.
-function solveShot(x0, power, aim) {
+// Initial velocity that carries the ball from `from` into `hoop` with a high
+// arc, so it drops in from above. `aim` is how far the toss was off the ideal
+// direction (sideways per unit up); `power` is its speed, 1 being a good one.
+function solveShot(from, power, aim, hoop) {
   const off = Math.sign(aim) * Math.max(0, Math.abs(aim) - AIM_SLACK);
   const long = power < POWER_LO ? power - POWER_LO : power > POWER_HI ? power - POWER_HI : 0;
-  const tz = RIM.z + long * 1.2;
-  const tx = off * 1.1;
-  const ty = RIM.y + 0.02;
-  const apex = RIM.y + 0.6;
-  const vy = Math.sqrt(2 * G * (apex - START.y));
+  const tz = hoop.z + long * 1.2;
+  const tx = hoop.x + off * 1.1;
+  const ty = hoop.y + 0.02;
+  const apex = Math.max(hoop.y + 0.6, from.y + 0.5);
+  const vy = Math.sqrt(2 * G * (apex - from.y));
   const t = vy / G + Math.sqrt((2 * (apex - ty)) / G);
-  return [(tx - x0) / t, vy, (tz - START.z) / t];
+  return [(tx - from.x) / t, vy, (tz - from.z) / t];
 }
 
-function newBall(x0, v) {
-  return { x: x0, y: START.y, z: START.z, vx: v[0], vy: v[1], vz: v[2], t: 0, scored: false, done: false, spin: 0, hits: 0 };
+function newBall(from, v, hoop) {
+  return {
+    x: from.x, y: from.y, z: from.z, vx: v[0], vy: v[1], vz: v[2],
+    hoop: { x: hoop.x, y: hoop.y, z: hoop.z }, board: boardOf(hoop),
+    t: 0, scored: false, done: false, spin: 0, hits: 0,
+  };
 }
 
 // Advances a ball by one fixed step. Returns 'rim', 'board', 'score' or null.
 function stepBall(b) {
   let event = null;
   const py = b.y;
+  const H = b.hoop, B = b.board;
   b.vy -= G * STEP;
   b.x += b.vx * STEP;
   b.y += b.vy * STEP;
@@ -61,8 +87,8 @@ function stepBall(b) {
   b.spin += STEP * 8;
 
   // Backboard.
-  if (b.vz > 0 && b.z + BALL_R > BOARD.z && b.z - BALL_R < BOARD.z && b.x > BOARD.x0 && b.x < BOARD.x1 && b.y > BOARD.y0 && b.y < BOARD.y1) {
-    b.z = BOARD.z - BALL_R;
+  if (b.vz > 0 && b.z + BALL_R > B.z && b.z - BALL_R < B.z && b.x > B.x0 && b.x < B.x1 && b.y > B.y0 && b.y < B.y1) {
+    b.z = B.z - BALL_R;
     b.vz = -b.vz * 0.55;
     b.vx *= 0.85;
     b.vy *= 0.9;
@@ -70,16 +96,16 @@ function stepBall(b) {
   }
 
   // Rim: a thin ring; push the ball off the nearest point on it.
-  const rx = b.x, rz = b.z - RIM.z;
+  const rx = b.x - H.x, rz = b.z - H.z;
   const len = Math.hypot(rx, rz) || 1e-6;
-  const qx = (rx / len) * RIM.r, qz = RIM.z + (rz / len) * RIM.r;
-  const dx = b.x - qx, dy = b.y - RIM.y, dz = b.z - qz;
+  const qx = H.x + (rx / len) * RIM_R, qz = H.z + (rz / len) * RIM_R;
+  const dx = b.x - qx, dy = b.y - H.y, dz = b.z - qz;
   const d = Math.hypot(dx, dy, dz);
   const reach = BALL_R + 0.012;
   if (d < reach) {
     const nx = dx / d, ny = dy / d, nz = dz / d;
     b.x = qx + nx * reach;
-    b.y = RIM.y + ny * reach;
+    b.y = H.y + ny * reach;
     b.z = qz + nz * reach;
     const vn = b.vx * nx + b.vy * ny + b.vz * nz;
     if (vn < 0) {
@@ -92,7 +118,7 @@ function stepBall(b) {
   }
 
   // Through the hoop: crossing the rim plane going down, inside the ring.
-  if (!b.scored && py >= RIM.y && b.y < RIM.y && b.vy < 0 && Math.hypot(b.x, b.z - RIM.z) < RIM.r - BALL_R * 0.35) {
+  if (!b.scored && py >= H.y && b.y < H.y && b.vy < 0 && Math.hypot(b.x - H.x, b.z - H.z) < RIM_R - BALL_R * 0.35) {
     b.scored = true;
     event = 'score';
   }
@@ -110,6 +136,7 @@ function stepBall(b) {
 // --- drawing helpers -----------------------------------------------------
 
 function project(cam, x, y, z) {
+  // Screen position and scale of a world point.
   const zc = z - EYE.z;
   return { x: cam.cx + ((x - EYE.x) / zc) * cam.f, y: cam.cy - ((y - EYE.y) / zc) * cam.f, s: cam.f / zc };
 }
@@ -190,7 +217,7 @@ export default {
   id: 'hoops',
   name: 'Hoops',
   emoji: '🏀',
-  blurb: 'Swipe up to shoot. Friends’ shots fly as ghosts. Your total is saved.',
+  blurb: 'Pick up the ball and toss it. Friends’ shots fly as ghosts. Your total is saved.',
   minPlayers: 1,
   maxPlayers: 16,
   needsFace: false,
@@ -199,21 +226,28 @@ export default {
   create(api) {
     const canvas = document.createElement('canvas');
     canvas.className = 'g-canvas';
+    canvas.style.touchAction = 'none';
     api.el.append(canvas);
     const ctx = canvas.getContext('2d');
 
     const record = { total: api.store.get('total', 0), best: api.store.get('best', 0) };
     let streak = 0;
     let ball = null;           // my shot in flight
-    let x0 = 0;                // where my next shot starts
+    const held = { x: REST.x, y: REST.y, z: REST.z }; // the ball when not flying
+    let grab = null;           // finger holding the ball: { id, ox, oy, sx, sy, samples }
     let resetAt = 0;           // time the next ball appears
     let swish = 0;             // net animation timer
     const ghosts = [];         // friends' shots in flight
-    const floaters = [];       // floating "+1" texts
-    let drag = null;
+    const floaters = [];       // floating texts
     let charge = null;         // keyboard / controller charging { power, dir }
     let aim = 0;
     let shotsTaken = api.store.get('shots', 0);
+    let sessionShots = 0;
+    let lastToss = null;       // for tests
+    // The hoop: where it is drawn now, and a move in progress.
+    let spot = 0;
+    const hoop = { ...SPOTS[0] };
+    let move = null;           // { from, to, t }
     let w = 0, h = 0, dpr = 1, cam = null, bgCache = null, inset = { top: 0, bottom: 0 };
     let raf = 0, last = performance.now(), acc = 0, now = 0;
 
@@ -226,14 +260,16 @@ export default {
       h = Math.max(1, r.height);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
-      // Fit from the top of the backboard down to the ball between the bars
-      // (and the score line), with the rim at most 44% of the width. Spare
-      // height goes mostly below the hoop, so the ball sits near the bottom.
+      // Fit from the highest backboard top any spot has down to the resting
+      // ball between the bars (and the score line), with the rim at most 44%
+      // of the width at the nearest spot. Spare height goes mostly below the
+      // hoop, so the ball sits near the bottom.
       inset = api.insets ? api.insets() : { top: 0, bottom: 0 };
       const top = inset.top + 40, avail = Math.max(120, h - top - inset.bottom - 16);
-      const up = (BOARD.y1 + 0.04 - EYE.y) / (RIM.z - EYE.z);
-      const down = (EYE.y - START.y + BALL_R * 1.2) / (START.z - EYE.z);
-      const f = Math.min(avail / (up + down), (0.44 * w * (RIM.z - EYE.z)) / (2 * RIM.r));
+      const up = Math.max(...SPOTS.map(s => (boardOf(s).y1 + 0.04 - EYE.y) / (s.z - EYE.z)));
+      const down = (EYE.y - REST.y + BALL_R * 1.2) / (REST.z - EYE.z);
+      const near = Math.min(...SPOTS.map(s => s.z)) - EYE.z;
+      const f = Math.min(avail / (up + down), (0.44 * w * near) / (2 * RIM_R));
       cam = { f, cx: w / 2, cy: top + (avail - (up + down) * f) * 0.3 + up * f };
       bgCache = null;
     }
@@ -249,7 +285,7 @@ export default {
       c.height = Math.round(h * dpr);
       const g = c.getContext('2d');
       g.scale(dpr, dpr);
-      const floorY = project(cam, 0, 0, RIM.z + 0.4).y;
+      const floorY = project(cam, 0, 0, SPOTS[0].z + 0.4).y;
       if (art) {
         const s = Math.max(w / art.width, h / art.height);
         g.drawImage(art, (w - art.width * s) / 2, (h - art.height * s) / 2, art.width * s, art.height * s);
@@ -260,14 +296,18 @@ export default {
       return c;
     }
 
-    function shoot(power, aimRatio) {
-      if (ball || now < resetAt) return;
-      const v = solveShot(x0, power, aimRatio);
-      ball = newBall(x0, v);
+    const ready = () => !ball && !move && now >= resetAt;
+
+    function shoot(from, power, aimRatio) {
+      if (!ready()) return false;
+      const v = solveShot(from, power, aimRatio, hoop);
+      ball = newBall(from, v, hoop);
       shotsTaken++;
+      sessionShots++;
       api.store.set('shots', shotsTaken);
-      api.send('shot', { x0, v });
+      api.send('shot', { p: [from.x, from.y, from.z], v, hoop: [hoop.x, hoop.y, hoop.z] });
       api.sfx('whoosh');
+      return true;
     }
 
     function finishShot() {
@@ -285,35 +325,72 @@ export default {
       api.setState({ streak, best: record.best, total: record.total });
       ball = null;
       resetAt = now + 0.35;
-      // After five in a row you start shooting from different spots.
-      x0 = streak >= 5 ? Math.round((Math.random() * 0.5 - 0.25) * 100) / 100 : 0;
+      Object.assign(held, REST);
+      if (sessionShots % SHOTS_PER_SPOT === 0) {
+        let next = spot;
+        while (next === spot) next = Math.floor(Math.random() * SPOTS.length);
+        spot = next;
+        move = { from: { ...hoop }, to: SPOTS[next], t: 0 };
+      }
     }
 
     // --- input -------------------------------------------------------------
+    // Where a screen point is on the plane the ball is carried in.
+    function toWorld(sx, sy) {
+      const zc = REST.z - EYE.z;
+      return {
+        x: Math.max(HOLD.x0, Math.min(HOLD.x1, EYE.x + ((sx - cam.cx) * zc) / cam.f)),
+        y: Math.max(HOLD.y0, Math.min(HOLD.y1, EYE.y - ((sy - cam.cy) * zc) / cam.f)),
+        z: REST.z,
+      };
+    }
     function onDown(e) {
+      if (grab || ball || move) return;
       canvas.setPointerCapture?.(e.pointerId);
-      drag = { x: e.offsetX, y: e.offsetY, cx: e.offsetX, cy: e.offsetY, t: performance.now() };
+      // Touching the ball holds it where you touched it; touching elsewhere
+      // pulls it to your finger.
+      const b = project(cam, held.x, held.y, held.z);
+      const near = Math.hypot(e.offsetX - b.x, e.offsetY - b.y) < BALL_R * b.s * 1.6;
+      grab = {
+        id: e.pointerId,
+        ox: near ? b.x - e.offsetX : 0,
+        oy: near ? b.y - e.offsetY : 0,
+        sx: e.offsetX, sy: e.offsetY,
+        samples: [{ t: performance.now(), x: e.offsetX, y: e.offsetY }],
+      };
     }
     function onMove(e) {
-      if (!drag) return;
-      drag.cx = e.offsetX;
-      drag.cy = e.offsetY;
+      if (!grab || e.pointerId !== grab.id) return;
+      grab.sx = e.offsetX;
+      grab.sy = e.offsetY;
+      const t = performance.now();
+      grab.samples.push({ t, x: e.offsetX, y: e.offsetY });
+      while (grab.samples.length > 2 && t - grab.samples[0].t > 120) grab.samples.shift();
     }
     function onUp(e) {
-      if (!drag) return;
-      const dx = e.offsetX - drag.x, dy = e.offsetY - drag.y;
-      drag = null;
-      if (-dy < 25) return;
-      // Compare the swipe with the line from the ball to the hoop on screen.
-      const from = project(cam, x0, START.y, START.z), to = project(cam, 0, RIM.y, RIM.z);
-      const ideal = (to.x - from.x) / (from.y - to.y);
-      const power = -dy / (0.5 * (from.y - to.y));
-      shoot(Math.max(0.2, Math.min(2.5, power)), dx / -dy - ideal);
+      if (!grab || e.pointerId !== grab.id) return;
+      onMove(e);
+      const s = grab.samples;
+      grab = null;
+      // The toss: finger velocity over the last ~0.1 s, in metres per second
+      // at the ball.
+      const a = s[0], b = s[s.length - 1];
+      const dt = Math.max(0.016, (b.t - a.t) / 1000);
+      const scale = (REST.z - EYE.z) / cam.f;
+      const up = ((a.y - b.y) / dt) * scale;
+      if (up < MIN_SPEED || now < resetAt) return; // just put down
+      const side = ((b.x - a.x) / dt) * scale;
+      // Compare the toss with the line from the ball to the hoop on screen.
+      const from = { ...held };
+      const p = project(cam, from.x, from.y, from.z), q = project(cam, hoop.x, hoop.y, hoop.z);
+      const ideal = (q.x - p.x) / Math.max(1, p.y - q.y);
+      lastToss = { from, power: up / GOOD_SPEED, aim: side / up - ideal };
+      shoot(from, Math.min(3.4, up / GOOD_SPEED), side / up - ideal);
     }
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerup', onUp);
-    canvas.addEventListener('pointercancel', () => { drag = null; });
+    canvas.addEventListener('pointercancel', () => { grab = null; });
 
     const typing = e => /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName);
     function onKey(e) {
@@ -322,7 +399,7 @@ export default {
         e.preventDefault();
         if (e.type === 'keydown' && !charge && !e.repeat) charge = { power: 0.3, dir: 1 };
         if (e.type === 'keyup' && charge) {
-          shoot(charge.power, aim);
+          shoot({ ...held }, charge.power, aim);
           charge = null;
         }
       } else if (e.type === 'keydown' && (e.code === 'ArrowLeft' || e.code === 'ArrowRight')) {
@@ -334,12 +411,15 @@ export default {
     window.addEventListener('keyup', onKey);
 
     // --- network -----------------------------------------------------------
+    const vec3 = a => Array.isArray(a) && a.length === 3 && a.every(Number.isFinite);
     api.on('shot', (data, from) => {
-      if (!data || !Array.isArray(data.v) || data.v.length !== 3 || !data.v.every(Number.isFinite)) return;
+      if (!data || !vec3(data.v) || !vec3(data.p) || !vec3(data.hoop)) return;
       const p = api.players().find(m => m.id === from);
       if (!p || ghosts.length > 20) return;
-      const x = Math.max(-1, Math.min(1, Number(data.x0) || 0));
-      ghosts.push({ ball: newBall(x, data.v), name: p.name, color: p.color });
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      const start = { x: clamp(data.p[0], -1, 1), y: clamp(data.p[1], 0.5, 3), z: clamp(data.p[2], -1, 1) };
+      const theirs = { x: clamp(data.hoop[0], -1, 1), y: clamp(data.hoop[1], 2, 4), z: clamp(data.hoop[2], 1, 4) };
+      ghosts.push({ ball: newBall(start, data.v, theirs), name: p.name, color: p.color });
     });
 
     // --- loop --------------------------------------------------------------
@@ -349,6 +429,20 @@ export default {
         if (charge.power > CHARGE_MAX) { charge.power = CHARGE_MAX; charge.dir = -1; }
         if (charge.power < 0.3) { charge.power = 0.3; charge.dir = 1; }
       }
+      // The held ball follows the finger closely; let go without a toss and
+      // it drifts back to its spot.
+      if (!ball) {
+        const target = grab ? toWorld(grab.sx + grab.ox, grab.sy + grab.oy) : REST;
+        const k = 1 - Math.exp(-dt * (grab ? 35 : 8));
+        held.x += (target.x - held.x) * k;
+        held.y += (target.y - held.y) * k;
+      }
+      if (move) {
+        move.t = Math.min(1, move.t + dt / 0.7);
+        const e = move.t * move.t * (3 - 2 * move.t);
+        for (const k of ['x', 'y', 'z']) hoop[k] = move.from[k] + (move.to[k] - move.from[k]) * e;
+        if (move.t >= 1) move = null;
+      }
       acc += dt;
       while (acc >= STEP) {
         acc -= STEP;
@@ -357,14 +451,14 @@ export default {
           if (ev === 'score') {
             swish = 0.5;
             api.sfx('score');
-            floaters.push({ text: streak + 1 > 1 ? `${streak + 1} in a row!` : 'Swish!', x: 0, y: RIM.y - 0.3, t: 0, color: '#ffd43b' });
+            floaters.push({ text: streak + 1 > 1 ? `${streak + 1} in a row!` : 'Swish!', dx: 0, t: 0, color: '#ffd43b' });
           } else if (ev === 'rim' || ev === 'board') {
             api.sfx('bounce');
           }
           if (ball.done) finishShot();
         }
         for (const g of ghosts) {
-          if (stepBall(g.ball) === 'score') floaters.push({ text: `+1 ${g.name}`, x: g.ball.x, y: RIM.y - 0.2, t: 0, color: g.color });
+          if (stepBall(g.ball) === 'score') floaters.push({ text: `+1 ${g.name}`, dx: g.ball.x - g.ball.hoop.x, t: 0, color: g.color });
         }
       }
       for (let i = ghosts.length - 1; i >= 0; i--) if (ghosts[i].ball.done) ghosts.splice(i, 1);
@@ -374,8 +468,8 @@ export default {
 
     function drawHoop(front) {
       const art = api.img('hoop');
-      const L = project(cam, -RIM.r, RIM.y, RIM.z);
-      const R = project(cam, RIM.r, RIM.y, RIM.z);
+      const L = project(cam, hoop.x - RIM_R, hoop.y, hoop.z);
+      const R = project(cam, hoop.x + RIM_R, hoop.y, hoop.z);
       if (art) {
         // Where the rim sits in the delivered art (measured from the image):
         // its widest points run from x 222 to 802 at y 505, and everything
@@ -386,23 +480,24 @@ export default {
         else ctx.drawImage(art, 0, 500, 1024, 524, x, y + 500 * s, 1024 * s, 524 * s);
         return;
       }
-      const back = project(cam, 0, RIM.y, RIM.z + RIM.r);
-      const frontPt = project(cam, 0, RIM.y, RIM.z - RIM.r);
+      const back = project(cam, hoop.x, hoop.y, hoop.z + RIM_R);
+      const frontPt = project(cam, hoop.x, hoop.y, hoop.z - RIM_R);
       const cx = (L.x + R.x) / 2, rx = (R.x - L.x) / 2;
       const cy = (back.y + frontPt.y) / 2, ry = Math.max(2, (frontPt.y - back.y) / 2);
-      const netDrop = project(cam, 0, RIM.y - 0.45, RIM.z).y - cy;
+      const netDrop = project(cam, hoop.x, hoop.y - 0.45, hoop.z).y - cy;
       const sway = Math.sin(swish * 30) * swish * 6;
       if (!front) {
         // Backboard.
-        const a = project(cam, BOARD.x0, BOARD.y1, BOARD.z);
-        const b = project(cam, BOARD.x1, BOARD.y0, BOARD.z);
+        const B = boardOf(hoop);
+        const a = project(cam, B.x0, B.y1, B.z);
+        const b = project(cam, B.x1, B.y0, B.z);
         ctx.fillStyle = 'rgba(255,255,255,0.92)';
         ctx.strokeStyle = '#8a93a6';
         ctx.lineWidth = Math.max(2, cam.f * 0.006);
         ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
         ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
-        const s1 = project(cam, -0.3, RIM.y + 0.45, BOARD.z);
-        const s2 = project(cam, 0.3, RIM.y + 0.03, BOARD.z);
+        const s1 = project(cam, hoop.x - 0.15, hoop.y + 0.3, B.z);
+        const s2 = project(cam, hoop.x + 0.15, hoop.y + 0.03, B.z);
         ctx.strokeStyle = '#e8413a';
         ctx.lineWidth = Math.max(2, cam.f * 0.008);
         ctx.strokeRect(s1.x, s1.y, s2.x - s1.x, s2.y - s1.y);
@@ -441,9 +536,10 @@ export default {
       }
     }
 
-    function drawBall(b, alpha, tint) {
+    // Draws a ball at a world position (ghosts arrive already shifted to my hoop).
+    function drawBall(b, alpha, tint, lift = 1) {
       const p = project(cam, b.x, b.y, b.z);
-      const r = BALL_R * p.s;
+      const r = BALL_R * p.s * lift;
       ctx.save();
       ctx.globalAlpha = alpha;
       const art = api.img('basketball');
@@ -472,17 +568,21 @@ export default {
       ctx.drawImage(background(), 0, 0, w, h);
       drawHoop(false);
 
-      // Balls behind the rim's front edge draw before the front of the hoop.
-      const all = ghosts.map(g => ({ b: g.ball, alpha: 0.42, tint: g.color, name: g.name }));
+      // Friends' shots fly at my hoop: shift each by the gap between hoops.
+      const all = ghosts.map(g => {
+        const b = g.ball;
+        return { b: { x: b.x + hoop.x - b.hoop.x, y: b.y + hoop.y - b.hoop.y, z: b.z + hoop.z - b.hoop.z, vy: b.vy, spin: b.spin }, alpha: 0.42, tint: g.color, name: g.name };
+      });
       const waiting = !ball && now >= resetAt;
-      const mine = ball || (waiting ? newBall(x0, [0, 0, 0]) : null);
-      if (mine) all.push({ b: mine, alpha: 1, tint: null, name: null });
+      const mine = ball || (waiting ? { ...held, vy: 0, spin: 0 } : null);
+      if (mine) all.push({ b: mine, alpha: 1, tint: null, name: null, lift: grab ? 1.06 : 1 });
       all.sort((a, c) => c.b.z - a.b.z);
-      const inside = e => e.b.z > RIM.z - RIM.r - BALL_R && e.b.y < RIM.y + BALL_R * 2 && e.b.vy < 0;
+      // Balls behind the rim's front edge draw before the front of the hoop.
+      const inside = e => e.b.z > hoop.z - RIM_R - BALL_R && e.b.y < hoop.y + BALL_R * 2 && e.b.vy < 0;
       for (const e of all.filter(inside)) drawBall(e.b, e.alpha, e.tint);
       drawHoop(true);
       for (const e of all.filter(e => !inside(e))) {
-        const { p, r } = drawBall(e.b, e.alpha, e.tint);
+        const { p, r } = drawBall(e.b, e.alpha, e.tint, e.lift);
         if (e.name) {
           ctx.globalAlpha = 0.8;
           ctx.fillStyle = e.tint;
@@ -494,7 +594,7 @@ export default {
       }
 
       for (const f of floaters) {
-        const p = project(cam, f.x, f.y + f.t * 0.6, RIM.z);
+        const p = project(cam, hoop.x + f.dx, hoop.y - 0.3 + f.t * 0.6, hoop.z);
         ctx.globalAlpha = Math.max(0, 1 - f.t / 1.2);
         ctx.fillStyle = f.color;
         ctx.strokeStyle = 'rgba(0,0,0,0.6)';
@@ -506,17 +606,7 @@ export default {
         ctx.globalAlpha = 1;
       }
 
-      // Drag line and power meter.
-      if (drag) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-        ctx.setLineDash([6, 6]);
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(drag.x, drag.y);
-        ctx.lineTo(drag.cx, drag.cy);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
+      // Power meter for Space / controller A.
       if (charge) {
         const mh = h * 0.4, mx = w - 26, my = h * 0.5 - mh / 2;
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
@@ -526,7 +616,7 @@ export default {
         ctx.fillStyle = '#ffd43b';
         const ph = (charge.power / CHARGE_MAX) * mh;
         ctx.fillRect(mx + 3, my + mh - ph, 8, ph);
-        const a = project(cam, x0, START.y, START.z);
+        const a = project(cam, held.x, held.y, held.z);
         ctx.strokeStyle = 'rgba(255,255,255,0.7)';
         ctx.lineWidth = 3;
         ctx.beginPath();
@@ -561,14 +651,14 @@ export default {
         ctx.fillText(line, 12, y);
         y += 18;
       }
-      if (shotsTaken === 0 && !ball) {
+      if (shotsTaken < 2 && !ball && !grab) {
         ctx.textAlign = 'center';
         ctx.fillStyle = '#fff';
-        const bp = project(cam, x0, START.y, START.z);
+        const bp = project(cam, held.x, held.y, held.z);
         const hintY = bp.y - BALL_R * bp.s - 34;
         ctx.font = '900 20px ui-rounded, system-ui, sans-serif';
-        ctx.strokeText('Swipe up to shoot', w / 2, hintY);
-        ctx.fillText('Swipe up to shoot', w / 2, hintY);
+        ctx.strokeText('Grab the ball and toss it', w / 2, hintY);
+        ctx.fillText('Grab the ball and toss it', w / 2, hintY);
         ctx.font = '800 13px ui-rounded, system-ui, sans-serif';
         ctx.strokeText('or hold Space / A', w / 2, hintY + 18);
         ctx.fillText('or hold Space / A', w / 2, hintY + 18);
@@ -586,6 +676,11 @@ export default {
     raf = requestAnimationFrame(frame);
 
     return {
+      // For tests: where the ball and hoop are, in page pixels of the canvas.
+      _view() {
+        const b = ball || held, p = project(cam, b.x, b.y, b.z), q = project(cam, hoop.x, hoop.y, hoop.z);
+        return { ball: { x: p.x, y: p.y }, hoop: { x: q.x, y: q.y }, spot, flying: !!ball, held: !!grab, ready: ready(), lastToss };
+      },
       destroy() {
         cancelAnimationFrame(raf);
         ro.disconnect();
@@ -596,7 +691,7 @@ export default {
         aim = Math.max(-0.5, Math.min(0.5, pad.x * 0.5));
         if (pad.pressed[0] && !charge) charge = { power: 0.3, dir: 1 };
         if (!pad.pressed[0] && charge) {
-          shoot(charge.power, aim);
+          shoot({ ...held }, charge.power, aim);
           charge = null;
         }
       },
@@ -605,4 +700,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _physics = { solveShot, newBall, stepBall, RIM };
+export const _physics = { solveShot, newBall, stepBall, SPOTS, REST };
