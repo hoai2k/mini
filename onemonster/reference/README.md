@@ -26,6 +26,7 @@ to these files so an image generator can look at them.
 | [`pages-22-23-typhoonigator-full.jpg`](pages-22-23-typhoonigator-full.jpg) | Pages 22–23, "By morning, the Wild-'n-Windy Typhoonigator was full ... it had to let go": a vast grey-brown cloud across the spread with a face at right (one droopy heavy-lidded eye, a big fleshy pink nose and lips) and puffy clawed cloud hands; inside the cloud, the captain and four crew, fish, an oar, a hat and a wrecked ship. Below, the sea is gone: a bare sea floor with stranded boats, a pier, a billboard ("GARRY'S GARAGE") and coral-like rocks | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`pages-36-37-mailman-yalapappus-grithix.jpg`](pages-36-37-mailman-yalapappus-grithix.jpg) | Pages 36–37, the epilogue: the official mailman (goggles, helmet, ochre jacket) rides off on a motorcycle loaded with mail, past a "PETE'S PLACE BURGERS" stand and a "YOU ARE NOW LEAVING THE EDGE OF NOWHERE" sign; the **Yalapappus** (the text names him: huge, curly ochre fur, tusks, a napkin round his neck) lies wailing with his fists in the air; the Trollusk wails by the arched official mailbox flagged "EMPTY"; the Grithix walks off with the Bombanat under his arm and his net over his shoulder | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`pages-16-17-grumley-netted.jpg`](pages-16-17-grumley-netted.jpg) | Pages 16–17: the Grumley, clutching the Bombanat, hauled up out of the sea in the fishing boat's net on a crane; the fishing boat *Peg* with its bearded crew and a crate of fish; text: "But before the Bombanat-Munching Grumley could slither down into the sea for a nice Bombanat lunch—SNAP—he was snagged by a big fishing net and hauled wiggly-squiggly on board a fishing boat." | A photo the owner shared (from an online listing) |
+| [`pages-18-19-ice-ferg.png`](pages-18-19-ice-ferg.png) | Pages 18–19: the Furious-Floating Ice-Ferg, a craggy iceberg of cracked lilac-white slabs with icicles and sea lions on its ledges, one small dark eye in a crevice; the Bombanat flies over it; the *Peg* goes down with the spectacled Grumley aboard while the captain and crew, in blue-grey caps and coats, pile into a pink rubber raft. Text: "But before the fishing boat could reach land, it was struck by a Furious-Floating Ice-Ferg. SCRUNNCCCHHH!! As the ship went down, the captain quickly stuffed a note into a bottle. He pushed in the letter for good measure, and then threw it into the ocean." | Added by the owner |
 | [`back-cover-grithix.jpg`](back-cover-grithix.jpg) | The back cover: the Grithix alone in a wood, swinging his butterfly net; the clearest view of him (see below) | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`endpapers.jpg`](endpapers.jpg) | The endpapers, across both boards: the Trollusk, under leaves, reads a little pink book; a red bird sits in a gnarled tree with faces in its knots | [eBay product page 2165564](https://www.ebay.com/p/2165564), a seller's listing photos |
 | [`cover-2001-reissue.jpg`](cover-2001-reissue.jpg) | The same cover art, cropped, on the 2001 reissue with a violet title panel | [Open Library cover 833553](https://covers.openlibrary.org/b/id/833553-L.jpg) |
@@ -38,7 +39,7 @@ to these files so an image generator can look at them.
 
 A scan of the 1993 Rainbird edition can be borrowed from the Internet
 Archive: https://archive.org/details/onemonsteraftera00maye (a free account
-is needed). It is the place to look for the monster not pictured here, the Ice-Ferg.
+is needed). It is the place to check anything the photos here leave unclear.
 
 ## The story
 
@@ -136,7 +137,7 @@ no contemporary professional review was found.
 ## The monsters
 
 What each looks like, as far as the pictures show. Where no picture was
-found (the Ice-Ferg), it says so; those designs in the image
+found, it says so; those designs in the image
 requests are ours and should be checked against the Internet Archive scan.
 
 - **Stamp-Collecting Trollusk** (cover; title page; pages 6–7; the
@@ -168,7 +169,12 @@ requests are ours and should be checked against the Internet Archive scan.
   heavy-lidded eye when full), a long fleshy pink nose and huge pink lips
   sucking up the sea in a tall spout of streaked blue-grey water. When full it
   stretches across the whole sky, with everything it swallowed showing inside.
-- **Furious-Floating Ice-Ferg**. No picture found.
+- **Furious-Floating Ice-Ferg** (pages 18–19). Not a cartoon face on a
+  berg: a huge craggy iceberg built of great cracked slabs, pale lilac-white
+  and blue, with jagged icicles hanging from its ledges and brown sea lions
+  lounging on them. The only sign of life is one small dark eye glaring from
+  a crevice in the middle. (A toothy, spiky head with an eye peeks over the
+  top edge of the left page; whether it belongs to the Ice-Ferg is unclear.)
 - **Paper-Munching Yalapappus** (cover, the yellow monster at the left;
   confirmed by the text of pages 36–37, which names him in the picture). A big shaggy monster in
   curly ochre-yellow fur, with a broad squashed face, a wide grinning mouth,
