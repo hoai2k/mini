@@ -193,7 +193,7 @@ Bombanat across the sky.
 
 The goo seen side-on. The Grumley lurks with only his eyes above the goo;
 move left and right, sinking out of sight, and press A to lunge up with a
-tentacle. The letter Bombanat (the one in the red-and-white necktie) swoops
+crab claw. The letter Bombanat (the one in the red-and-white necktie) swoops
 and dips among other Bombanats, looking for somewhere to land; each lunge
 that misses warns it off for a while. Grabbing a plain Bombanat costs time;
 the letter Bombanat is the one. Bonus: plain Bombanats grabbed for lunch
@@ -331,14 +331,17 @@ turning tilts the body, landing squashes it.
   that gains speed, and pulling up out of it trades the speed for height in a
   swoop. Too slow and he stalls into a frantic flutter. On the ground he
   wing-walks like a bat, hobbling on his wrist claws, which is slow and
-  undignified and very funny. The necktie streams behind him.
+  undignified and very funny. The necktie and his thin tail stream behind him, and the propeller on his cap
+  spins with every beat, faster as he climbs.
 - **The Bombanat-Munching Grumley: lurk, glide, lunge.** Under the goo he
-  glides in any direction with only his spectacled eyes and hair crest above
+  glides in any direction with only his horns and spectacled eyes above
   the surface, leaving a V-shaped wake and a trail of bubbles; he can sink
   out of sight entirely (and bubbles give him away). The lunge shoots a
-  tentacle up out of the goo, stretching to three times its length and
-  snapping back like a spring; a full lunge throws his whole head and body up
-  out of the goo in a splash. All his tentacles wave lazily all the time.
+  spiny crab arm up out of the goo, stretching to three times its length, the
+  claw (which has its own little eyes and teeth) snapping shut at the top, and
+  then springing back; a full lunge throws his whole head and body up out of
+  the goo in a splash. His tentacles wave lazily all the time, and the claws
+  click open and shut while he waits.
 - **The Furious-Floating Ice-Ferg: drift, huff, charge.** Heavy and slow:
   it turns ponderously, carries its momentum, and drifts with the currents,
   so steering is about planning ahead. Holding A huffs it up, swelling, with
@@ -357,7 +360,8 @@ turning tilts the body, landing squashes it.
   bouncy waddle: his round furry body bobs up and down on stumpy legs that
   go too fast, the napkin flapping. Running downhill or holding A at speed
   tucks him into a ball and he rolls, bowling along and bouncing off rocks,
-  and unrolls with a dizzy wobble. His hop is a big jump with a huge squash on
+  and unrolls with a dizzy wobble. From chapter 6 on, a little pink octopus
+  rides on his head and clings on for dear life. His hop is a big jump with a huge squash on
   landing that shakes the ground.
 - **The Bombanat-Collecting Grithix: stride, swing, vault.** He strides with
   long, unhurried steps, his robe swishing and the spiked ball on his tail
@@ -433,7 +437,7 @@ The rigs, and the animations each needs:
 | --- | --- | --- |
 | Stamp-Collecting Trollusk | Side view facing right, standing on his two short legs | Eyeing the prize, celebrating, idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, the grab, the gabbling run cycle, being snatched from, wailing, the freeze in disguise, the skid |
 | Letter-Eating Bombanat | Side view facing right in flight, wings spread level | Eyeing the prize, celebrating, the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck flapping, struggling when grabbed, netted, the stall flutter, the swoop out of a dive, the wing-walk |
-| Bombanat-Munching Grumley | Three-quarter view facing right, rising out of the goo with his tentacles spread | Eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the lunge and grab, the miss and splutter, the lunch dance, being netted and hauled up, gliding with a wake, the full lunge |
+| Bombanat-Munching Grumley | Three-quarter view facing right, rising out of the goo with his tentacles spread | Eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the claw lunge and snap, the miss and splutter, the lunch dance, being netted and hauled up, gliding with a wake, the full lunge |
 | Furious-Floating Ice-Ferg | Front three-quarter view from a little above, floating, the waterline along its bottom edge | Eyeing the prize, celebrating, drifting and bobbing, the glaring eye, huffing up, the charge, the crash, the dazed wobble, and the sea lions dozing, startling and sliding off, the sea lions clinging on |
 | Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Eyeing the prize, celebrating, churning cloud, sucking, swelling as it fills, letting go, the morning sag, rolling along with the spout swinging |
 | Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | Eyeing the prize, celebrating, the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing, rolling up into a ball and unrolling dizzy |

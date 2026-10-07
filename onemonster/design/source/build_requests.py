@@ -175,7 +175,7 @@ MONSTERS = [
     {
         "id": "trollusk",
         "name": "The Stamp-Collecting Trollusk",
-        "refs": ["title-page.jpg", "pages-06-07-sally-ann-and-mailbox.jpg", "cover-golden-book-1974.jpg"],
+        "refs": ["title-page.jpg", "trollusk-snatches-from-yalapappus.jpg", "trollusk-and-yalapappus-running.jpg", "pages-06-07-sally-ann-and-mailbox.jpg"],
         "look": "The Stamp-Collecting Trollusk, as in the book: a squat, shaggy monster covered "
         "in long dark-brown fur, with a long pink pig-like snout (his snerk) with a big round "
         "nostril, one white tusk, big pointed pink ears, small sly eyes and pink clawed hands "
@@ -193,13 +193,13 @@ MONSTERS = [
     {
         "id": "bombanat",
         "name": "The Letter-Eating Bombanat",
-        "refs": ["cover-golden-book-1974.jpg", "grithix-mailbox-page.jpg"],
-        "look": "The Letter-Eating Bombanat, the bat-winged flier on the book's cover: huge mauve "
-        "bat wings with thin finger bones and little claws at the tips, a long pink "
-        "crocodile-like snout full of small sharp teeth, a sly frowning eye, a tuft of dark fur "
-        "on the chest, a red-and-white striped necktie, a pink striped cap with a yellow "
-        "four-petalled flower on top, and clawed pink feet. Flying with wings spread, a white "
-        "envelope in his teeth.",
+        "refs": ["bombanat-and-pony-express-boy.jpg", "bombanat-over-the-goo.jpg", "cover-golden-book-1974.jpg"],
+        "look": "The Letter-Eating Bombanat, as in the book: a small, dark, shaggy body with huge "
+        "lilac-mauve bat wings with thin finger bones and little claws at the tips, a long pink "
+        "crocodile-like snout full of small sharp teeth, a sly frowning eye, a red striped cap "
+        "with a little yellow propeller on top, a red-and-white striped necktie, clawed pink "
+        "feet and a thin curling pink tail. Flying with wings spread, a white envelope in his "
+        "teeth.",
         "scene": "A wood seen side-on, wide enough to scroll: a mossy floor with fallen logs and "
         "roots along the bottom quarter, gnarled trees with faces in their knots, low branches "
         "and clusters of leaves, and patches of pale mauve sky between the treetops; far off at "
@@ -210,13 +210,13 @@ MONSTERS = [
     {
         "id": "grumley",
         "name": "The Bombanat-Munching Grumley",
-        "refs": ["pages-16-17-grumley-netted.jpg"],
-        "look": "The Bombanat-Munching Grumley, as on pages 16-17 of the book: a big round "
-        "shaggy sea monster in ochre-orange fur, its head and body one great hairy ball with a "
-        "crest of spiky tufts on top, a big nose wearing small round wire spectacles, a wide "
-        "grinning mouth full of teeth, and a mass of long orange octopus tentacles with pale "
-        "suckers instead of arms and legs. Show him rising out of glossy blue goo, dripping, "
-        "tentacles reaching up.",
+        "refs": ["grumley-in-the-goo.jpg", "grumley-grabs-bombanat-page.jpg", "pages-16-17-grumley-netted.jpg"],
+        "look": "The Bombanat-Munching Grumley, as in the book: a big shaggy sea monster in "
+        "olive-ochre fur shading to orange, his head and body one great hairy mass with a crown "
+        "of white horns on top, heavy scowling brows, small round wire spectacles on a pink "
+        "nose, and a fanged underbite; below, a tangle of octopus tentacles with ringed "
+        "suckers, and two long spiny crab arms ending in big claws that have little eyes and "
+        "teeth of their own. Show him rising out of glossy dark goo, dripping, claws raised.",
         "scene": "Close to the surface of the Blue Ocean of Bubbley Goo: glossy blue-and-teal goo "
         "with bubbles across the bottom third, a small rocky shore at the left edge with a "
         "picnic basket and a checked cloth, and a big open lilac sky above with a few curling "
@@ -227,13 +227,13 @@ MONSTERS = [
         "id": "iceferg",
         "shaggy": False,
         "name": "The Furious-Floating Ice-Ferg",
-        "refs": ["pages-18-19-ice-ferg.png"],
+        "refs": ["pages-18-19-ice-ferg.png", "ice-ferg-seals-detail.jpg"],
         "look": "The Furious-Floating Ice-Ferg, as on the book's pages 18-19: a huge, craggy "
         "iceberg built of great cracked slabs and blocks of ice, pale lilac-white and pale blue, "
         "drawn in fine ink with crosshatched shadows, jagged icicles hanging from its ledges, and "
         "deep cracks between the slabs; in a crevice in the middle of it, a single small, dark, "
         "beady eye glares out, the only sign that it is alive and in a terrible temper. A couple "
-        "of brown sea lions lounge on its ledges. Choppy dark sea drawn as rows of curling "
+        "of olive-yellow whiskered sea lions lounge on its ledges. Choppy dark sea drawn as rows of curling "
         "strokes laps round its base.",
         "scene": "The open sea seen from high above: slate-blue and teal water drawn as rows of "
         "curling strokes, a few streaks of foam and long current lines, a harbour with a "
@@ -260,32 +260,34 @@ MONSTERS = [
     {
         "id": "yalapappus",
         "name": "The Paper-Munching Yalapappus",
-        "refs": ["pages-36-37-mailman-yalapappus-grithix.jpg", "cover-golden-book-1974.jpg"],
-        "look": "The Paper-Munching Yalapappus, as in the book (the big shaggy monster at the "
-        "left of the cover): a huge, round, lumpy body of curly ochre-yellow fur, a broad "
-        "squashed face with a wide grinning mouth and two great white tusks, a broad pink snout "
-        "and heavy upper lip, heavy-lidded greedy eyes, short stumpy legs with big pink clawed "
-        "feet, a white napkin tied round his neck and a big fork held up in one pink paw, ready "
-        "to munch. He is trundling along at a run, a scrap of paper half-munched in his mouth.",
-        "scene": "The edge of Nowhere seen side-on, as on the book's pages 36-37: bumpy, "
-        "scrubby brown-and-ochre ground with rocks, holes and tufts of grass along the bottom "
-        "third, a crooked blank wooden signpost nailed to a tree, a lone palm tree, a winding "
-        "road and rolling hills far off, and a wide pale lilac sky with curling clouds. Keep the "
-        "ground strip clear for running and the sky open above it.",
+        "refs": ["yalapappus-bottle-on-head.jpg", "yalapappus-munching.jpg", "pages-36-37-mailman-yalapappus-grithix.jpg", "cover-golden-book-1974.jpg"],
+        "look": "The Paper-Munching Yalapappus, as in the book: a huge, round, lumpy monster "
+        "of curly woolly fur, ochre shading to yellow-green, with a bulldog's squashed face, "
+        "droopy ears, a wide mouth with two great white tusks, a heavy pink upper lip and nose, "
+        "heavy-lidded greedy eyes, short stumpy legs with big pink feet, a white napkin tied "
+        "round his neck and a big fork in one pink paw, ready to munch. He is trundling along "
+        "at a run, a scrap of paper half-munched in his mouth.",
+        "scene": "The edge of Nowhere seen side-on, as in the book: a jungly place of palms, "
+        "ferns and gnarled trees, with curtains of blue goo dripping from the branches above, "
+        "bumpy ochre ground with rocks, holes and tufts of grass along the bottom third, a "
+        "crooked blank wooden signpost nailed to a tree, and rolling hills and a winding road "
+        "far off under a pale lilac sky. Keep the ground strip clear for running and the middle "
+        "open for things falling.",
         "used": "the catching game (chapter 6) and the Trollusk's getaway (chapter 7)",
     },
     {
         "id": "grithix",
         "name": "The Bombanat-Collecting Grithix",
-        "refs": ["back-cover-grithix.jpg", "grithix-mailbox-page.jpg", "title-page.jpg"],
+        "refs": ["back-cover-grithix.jpg", "grithix-nets-bombanat-page.jpg", "grithix-mailbox-scan.jpg", "title-page.jpg"],
         "look": "The Bombanat-Collecting Grithix, as in the book (the back cover shows him "
         "best): a tall, upright, stout monster with pale pinkish hide drawn in fine lines (not "
         "furry); a big long head with a heavy snout like a rhinoceros's, a row of blunt horns "
         "along the top of the snout and a blunt horn on the brow, two long white tusks curving "
         "up from the lower jaw, a small half-lidded eye with a sly, pleased look and a smirk, "
         "and one long floppy ear or horn curling back from the top of the head. He wears a long "
-        "magenta-pink robe down to his feet, buttoned down the front, with a short scaly "
-        "blue-green shawl dotted with small yellow spots over his shoulders. Big pink clawed "
+        "magenta-pink robe down to his feet with gold buttons down the front and a green bow "
+        "tie, and on his back a teal scaly shell dotted with small yellow spots, showing over "
+        "both shoulders. Big pink clawed "
         "hands, big pink clawed feet with long white talons, and a long pink tail ending in a "
         "spiked ball like a mace. He carries a butterfly net on a long yellow pole with a round "
         "yellow hoop and a dark mesh bag.",
@@ -310,12 +312,12 @@ CHAPTERS = {
 # One-word reminders of what each monster is, for the prompts that show them together.
 WHAT = {
     "trollusk": "a shaggy brown troll with a pink pig snout, a checked top hat and a yellow stamp bag",
-    "bombanat": "a bat-winged monster with a long toothy snout and a striped necktie",
-    "grumley": "a shaggy orange octopus-like monster in round spectacles",
+    "bombanat": "a dark shaggy bat-winged monster with a long toothy snout, a propeller cap and a striped necktie",
+    "grumley": "a shaggy horned goo monster in round spectacles, with tentacles and crab claws",
     "iceferg": "a craggy iceberg with one glaring eye in a crevice and sea lions on its ledges",
     "typhoonigator": "a storm cloud with a face and big pink lips",
-    "yalapappus": "a huge shaggy ochre monster with tusks, a napkin and a fork",
-    "grithix": "a tall horn-snouted pink monster in a long magenta robe and scaly shawl, with a butterfly net and a spiked tail",
+    "yalapappus": "a huge woolly bulldog-faced monster with tusks, a napkin and a fork",
+    "grithix": "a tall horn-snouted pink monster in a long magenta robe and a scaly shell, with a butterfly net and a spiked tail",
 }
 
 # How each monster is built for animation. "view" is the master view the game
@@ -381,9 +383,11 @@ RIGS = {
         "the wings folded",
         "parts": [
             "the body with the chest tuft and the knot of the striped necktie, no head, wings or legs",
-            "the head with the striped cap and its flower, the eye and the upper snout with its teeth, but no lower jaw",
+            "the head with the striped cap, the eye and the upper snout with its teeth, but no lower jaw and no propeller",
             "the lower jaw with its teeth, mouth closed",
             "the loose end of the striped necktie, so it can flutter",
+            "the little yellow propeller from the top of the cap, seen side-on, so it can spin",
+            "the thin curling pink tail",
             "the near wing, spread level",
             "the far wing, spread level, partly hidden in the master view but drawn whole here",
             "the near leg and clawed foot",
@@ -427,17 +431,22 @@ RIGS = {
         "spread (draw no goo)",
         "views": "a front view with all the tentacles spread, and a side view facing right",
         "parts": [
-            "the great hairy head-and-body ball with the eyes and nose, but no mouth, no spectacles, no hair crest and no tentacles",
-            "the wide grinning mouth with its teeth, closed",
+            "the great hairy head-and-body mass with the horns, brows, eyes and nose, but no lower jaw, no spectacles, no crab arms and no tentacles",
+            "the lower jaw with its fanged underbite, closed",
             "the small round wire spectacles alone",
-            "the crest of spiky hair tufts on top, so it can bristle",
+            "the near crab arm, long and spiny, without its claw",
+            "the near claw, open, with its own little eye and teeth",
+            "the far crab arm, without its claw",
+            "the far claw, open",
             "one long near tentacle drawn out straight and flat, tapering from base to tip, suckers along its underside (the game bends it)",
             "one long far tentacle drawn the same way, a shade darker",
             "one short tentacle drawn out straight, tapering",
         ],
         "swaps": [
-            "the mouth wide open, ready to munch",
-            "the mouth chomping, cheeks bulging",
+            "the jaw dropped wide open, the long pink tongue out, ready to munch",
+            "the jaw chomping, cheeks bulging",
+            "the near claw snapped shut",
+            "the far claw snapped shut",
             "the eye area only, eyes greedy behind the spectacles",
             "the eye area only, eyes squeezed shut and spluttering",
             "the eye area only, eyes crossed and dazed",
@@ -446,19 +455,19 @@ RIGS = {
             "dripping blobs of blue goo to lay over the head",
         ],
         "poses": [
-            "lurking, only the spectacled eyes and hair crest above the goo line, the rest sunk below",
+            "lurking, only the horns, the brows and the spectacled eyes above the goo line, the rest sunk below",
             "rising out of the goo, dripping, tentacles spreading",
-            "lunging straight up, two tentacles stretched as high as they go",
-            "holding a tentacle up in triumph, its tip curled tight",
+            "lunging straight up, both claws stretched as high as they go",
+            "holding a claw up in triumph, snapped shut",
             "spluttering after a miss, goo on his spectacles",
-            "rubbing his middle with two tentacles and licking his lips, looking forward to lunch",
+            "rubbing his middle with a tentacle and licking his lips, looking forward to lunch",
             "snagged in a big fishing net and hauled up wiggly-squiggly, tentacles everywhere",
-            "eyeing the prize: only the spectacled eyes and hair crest above the goo, peering up",
-            "celebrating: holding a Bombanat aloft in one tentacle, beaming",
-            "gliding under the goo: only the eyes and hair crest showing, a V-shaped wake behind",
+            "eyeing the prize: only the horns and spectacled eyes above the goo, peering up",
+            "celebrating: holding a Bombanat aloft in one claw, beaming",
+            "gliding under the goo: only the horns and eyes showing, a V-shaped wake behind",
             "a full lunge: his whole head and body thrown up out of the goo, tentacles flying",
         ],
-        "anims": "eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the lunge and grab, the miss "
+        "anims": "eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the claw lunge and snap, the miss "
         "and splutter, the lunch dance, being netted and hauled up, gliding with a wake, the full lunge",
     },
     "iceferg": {
@@ -472,8 +481,8 @@ RIGS = {
             "the overhanging slab of ice just above the eye, like a brow, so it can scowl",
             "a cluster of icicles from a ledge, so it can shiver",
             "a second, larger cluster of icicles",
-            "a brown sea lion lounging on a ledge",
-            "a brown sea lion sitting up, flippers raised",
+            "an olive-yellow sea lion lounging on a ledge",
+            "an olive-yellow sea lion sitting up, flippers raised",
             "three chips of ice, flying apart",
             "a puff of freezing mist, so it can huff",
         ],
@@ -544,12 +553,14 @@ RIGS = {
         "views": "a front view, a back view, and a three-quarter view facing right",
         "parts": [
             "the round shaggy body, no head, arms or legs",
-            "the head with the eyes, the snout and the upper lip, but no lower jaw",
+            "the head with the eyes, the snout, the far ear and the upper lip, but no lower jaw and no near ear",
             "the lower jaw with the two great tusks, mouth closed",
             "the white napkin tied at the neck, so it can flap",
             "the near arm and paw, open",
             "the far arm and paw, gripping",
             "the big fork alone",
+            "the near droopy ear",
+            "the little pink octopus that rides on his head from chapter 6 on, its tentacles loose",
             "the near stumpy leg and big clawed foot",
             "the far stumpy leg and big clawed foot",
         ],
@@ -584,7 +595,7 @@ RIGS = {
         "view": "side view facing right, standing upright, the net over his shoulder",
         "views": "a front view, a back view, and a three-quarter view facing right",
         "parts": [
-            "the torso and the long magenta robe down to the hem, buttoned, with the scaly shawl over the shoulders, no head, arms, feet or tail",
+            "the torso and the long magenta robe down to the hem, with its gold buttons and the green bow tie, no head, arms, feet or tail",
             "the head with the horns, the eye and the upper snout, but no lower jaw and no floppy ear",
             "the lower jaw with the two long tusks, mouth closed in a smirk",
             "the long floppy ear or horn from the top of the head",
@@ -597,6 +608,7 @@ RIGS = {
             "the loose lower edge of the robe, so it can swing as he walks",
             "the long tail without its end",
             "the spiked ball at the end of the tail",
+            "the teal scaly shell on his back",
             "the long yellow pole of the net",
             "the yellow hoop and the empty net bag",
         ],
@@ -854,7 +866,7 @@ REQUESTS += [
         "the story pages.",
         "standin": "None needed.",
         "ref": ["pages-06-07-sally-ann-and-mailbox.jpg", "mailbox-girl-and-trollusk.jpg",
-                "pages-36-37-mailman-yalapappus-grithix.jpg", "typhoonigator-spread.jpg"],
+                "pages-36-37-mailman-yalapappus-grithix.jpg", "captain-throws-bottle.jpg"],
         "status": "requested",
         "note": "Lucy Jane is taken to be the girl in glasses in mailbox-girl-and-trollusk.jpg, "
         "since Sally Ann (pages 6-7) looks different; not confirmed.",
@@ -867,9 +879,9 @@ REQUESTS += [
         + REF_URL + "mailbox-girl-and-trollusk.jpg . 3. The official mailman, small and stern, in "
         "a round helmet with goggles and an ochre jacket, with a mail satchel, as on the book's "
         "pages 36-37 ( " + REF_URL + "pages-36-37-mailman-yalapappus-grithix.jpg ). 4. The "
-        "captain of the fishing boat, bearded, in a blue-grey cap and long blue-grey oilskin "
-        "coat, as the sailors on the book's page-20 spread ( " + REF_URL
-        + "typhoonigator-spread.jpg ). Even, flat lighting and clean washes; wide gaps between "
+        "captain of the fishing boat, with a long nose, a long white beard, a grey cap and "
+        "coat and a polka-dot hanky in his pocket, as in " + REF_URL
+        + "captain-throws-bottle.jpg . Even, flat lighting and clean washes; wide gaps between "
         "the figures; no labels, no ground line. " + ALPHA,
     },
     {
