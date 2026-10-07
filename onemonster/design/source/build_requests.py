@@ -226,12 +226,14 @@ MONSTERS = [
         "id": "iceferg",
         "shaggy": False,
         "name": "The Furious-Floating Ice-Ferg",
-        "style": "pages-22-23-typhoonigator-full.jpg",
-        "look": "The Furious-Floating Ice-Ferg: a craggy iceberg in a terrible temper, its "
-        "pale-blue and white ice drawn in crosshatched facets, with a furious face in the front: "
-        "two glaring eyes under a jutting frowning brow of ice, a scowling mouth with icicle "
-        "teeth, little puffs of cold steam from its nostrils, and the dark underwater part of it "
-        "showing below a band of choppy sea.",
+        "refs": ["pages-18-19-ice-ferg.png"],
+        "look": "The Furious-Floating Ice-Ferg, as on the book's pages 18-19: a huge, craggy "
+        "iceberg built of great cracked slabs and blocks of ice, pale lilac-white and pale blue, "
+        "drawn in fine ink with crosshatched shadows, jagged icicles hanging from its ledges, and "
+        "deep cracks between the slabs; in a crevice in the middle of it, a single small, dark, "
+        "beady eye glares out, the only sign that it is alive and in a terrible temper. A couple "
+        "of brown sea lions lounge on its ledges. Choppy dark sea drawn as rows of curling "
+        "strokes laps round its base.",
         "scene": "The open sea seen from high above: slate-blue and teal water drawn as rows of "
         "curling strokes, a few streaks of foam and long current lines, a harbour with a "
         "lighthouse and jetty along the top edge, and scattered rocks near the sides. Keep the "
@@ -302,7 +304,7 @@ WHAT = {
     "trollusk": "a shaggy brown troll with a pink pig snout, a checked top hat and a yellow stamp bag",
     "bombanat": "a bat-winged monster with a long toothy snout and a striped necktie",
     "grumley": "a shaggy orange octopus-like monster in round spectacles",
-    "iceferg": "a furious iceberg with a face",
+    "iceferg": "a craggy iceberg with one glaring eye in a crevice and sea lions on its ledges",
     "typhoonigator": "a storm cloud with a face and big pink lips",
     "yalapappus": "a huge shaggy ochre monster with tusks, a napkin and a fork",
     "grithix": "a tall horn-snouted pink monster in a long magenta robe and scaly shawl, with a butterfly net and a spiked tail",
@@ -437,38 +439,39 @@ RIGS = {
         "and splutter, the lunch dance, being netted and hauled up",
     },
     "iceferg": {
-        "view": "front three-quarter view from high above, floating, the waterline along its "
-        "bottom edge",
+        "view": "front three-quarter view from a little above, floating, the waterline along "
+        "its bottom edge",
         "views": "a side view showing the big dark underwater part below the waterline, and a "
         "view from straight above",
         "parts": [
-            "the iceberg alone, with its face area left as smooth ice (no brow, eyes or mouth)",
-            "the jutting frowning brow of ice",
-            "the near eye white, without its pupil",
-            "the far eye white, without its pupil",
-            "one round pupil (the game uses it for both eyes)",
-            "the scowling mouth, closed",
-            "a puff of cold steam, small",
-            "a puff of cold steam, large",
+            "the iceberg alone, with its crevice empty (no eye) and no sea lions",
+            "the beady eye in its crevice, open and glaring",
+            "the overhanging slab of ice just above the eye, like a brow, so it can scowl",
+            "a cluster of icicles from a ledge, so it can shiver",
+            "a second, larger cluster of icicles",
+            "a brown sea lion lounging on a ledge",
+            "a brown sea lion sitting up, flippers raised",
             "three chips of ice, flying apart",
+            "a puff of freezing mist, so it can huff",
         ],
         "swaps": [
-            "the brow raised and bunched up as it huffs up its fury",
-            "the brow pulled furiously low",
-            "the mouth roaring wide open with icicle teeth",
-            "the mouth gritted, teeth bared",
-            "the mouth wobbly and dazed",
-            "both eyes squeezed shut",
-            "a crack pattern to lay over the ice after a crash",
+            "the eye narrowed to a furious slit",
+            "the eye wide and startled",
+            "the eye shut tight",
+            "the brow slab tilted down in a scowl",
+            "a jagged crack that opens across the ice below the eye like a roaring mouth (our own addition, for the charge)",
+            "a web of fresh cracks to lay over the ice after the crash",
+            "a sea lion sliding off, flippers flailing",
         ],
         "poses": [
-            "drifting and sulking",
-            "huffing up, swollen, steam blasting from its nostrils",
-            "charging forward, leaning in, roaring",
-            "the crash, eyes squeezed shut, ice chips flying",
-            "bumped and dazed, deflated",
+            "drifting and sulking, sea lions dozing on its ledges",
+            "huffing up, freezing mist pouring off it, the sea lions sitting up in alarm",
+            "charging forward, leaning in, its crack-mouth open",
+            "the crash, SCRUNNCCCHHH, ice chips flying, a sea lion tumbling off",
+            "bumped and dazed, wobbling, cracks across its face",
         ],
-        "anims": "drifting and bobbing, huffing up, the charge, the crash, the dazed bump",
+        "anims": "drifting and bobbing, the glaring eye, huffing up, the charge, the crash, "
+        "the dazed wobble, and the sea lions dozing, startling and sliding off",
     },
     "typhoonigator": {
         "view": "front view from a little above, the water spout falling from its lips",
@@ -1080,9 +1083,8 @@ def document() -> str:
         "9. If a generator struggles with a whole sheet, split it: make the first half of the "
         "list and the second half as two images, saved as `parts-1.png` and `parts-2.png` (and "
         "so on), each in the same order and at the same scale.",
-        "10. One monster, the Ice-Ferg, is not in any photo we have, and its design is "
-        "ours; its model sheet says so under **Note**. If you can look at its page of the book "
-        "(the Internet Archive lends a scan), adjust that prompt to match first.",
+        "10. Every monster's design now comes from a photo of the book. Where a prompt adds "
+        "something of our own (the Ice-Ferg's crack-mouth, for one), it says so.",
         "11. Order of work: the model sheets, then the portraits, then the parts and swaps, then "
         "the key poses, props, scenes and story pages. The game keeps its stand-ins for anything "
         "not yet delivered.",

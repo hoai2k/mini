@@ -138,7 +138,9 @@ all.
 *In the book:* the fishing boat carrying the netted Grumley and the letter is
 struck by a Furious-Floating Ice-Ferg as it nears land, SCRUNNCCCHHH!!
 
-You are the Ice-Ferg, an iceberg in a terrible temper, seen from above.
+You are the Ice-Ferg, a craggy iceberg in a terrible temper with one beady
+eye glaring from a crevice and sea lions dozing on its ledges, seen from
+above. Charge too hard and a sea lion slides off with a splash.
 Steer with the stick; you drift with the currents (arrows on the water), and
 hold A to huff up a head of fury and charge. The captain's fishing boat, the
 *Peg*, with the Grumley's tentacles flopping over its side, zigzags toward
