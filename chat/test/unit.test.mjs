@@ -33,26 +33,30 @@ test('expressions come through from blendshapes', () => {
   assert.ok(f.wink > 0.5);
 });
 
-test('Hoops is forgiving: rough swipes go in, wild ones miss', () => {
-  const run = (power, aim, x0 = 0) => {
-    const b = hoops.newBall(x0, hoops.solveShot(x0, power, aim));
+test('Hoops is forgiving: rough tosses go in, wild ones miss', () => {
+  const run = (power, aim, from = hoops.REST, hoop = hoops.SPOTS[0]) => {
+    const b = hoops.newBall(from, hoops.solveShot(from, power, aim, hoop), hoop);
     while (!b.done) hoops.stepBall(b);
     return b.scored;
   };
-  // Any length from short to long, a little off line, from the middle or a side spot.
-  for (const x0 of [0, 0.25]) {
-    for (const power of [0.3, 0.6, 1, 1.5, 2]) {
-      for (const aim of [-0.25, -0.1, 0, 0.1, 0.25]) assert.equal(run(power, aim, x0), true, `power ${power} aim ${aim} x0 ${x0}`);
+  // Any reasonable speed, a little off line, let go anywhere, at every hoop spot.
+  const froms = [hoops.REST, { x: -0.5, y: 1.6, z: 0 }, { x: 0.5, y: 2.5, z: 0 }];
+  for (const hoop of hoops.SPOTS) {
+    for (const from of froms) {
+      for (const power of [0.3, 1, 2.6]) {
+        for (const aim of [-0.2, 0, 0.2]) assert.equal(run(power, aim, from, hoop), true, `power ${power} aim ${aim} from ${JSON.stringify(from)} hoop ${JSON.stringify(hoop)}`);
+      }
     }
   }
   assert.equal(run(0.1, 0), false);
-  assert.equal(run(1, 0.45), false);
-  assert.equal(run(1, -0.45), false);
+  assert.equal(run(1, 0.5), false);
+  assert.equal(run(1, -0.5), false);
 });
 
 test('Hoops physics is deterministic, so ghosts replay exactly', () => {
-  const v = hoops.solveShot(0.2, 1.17, 0.05);
-  const a = hoops.newBall(0.2, v), b = hoops.newBall(0.2, v);
+  const from = { x: 0.2, y: 2.1, z: 0 }, hoop = hoops.SPOTS[2];
+  const v = hoops.solveShot(from, 1.17, 0.05, hoop);
+  const a = hoops.newBall(from, v, hoop), b = hoops.newBall(from, v, hoop);
   while (!a.done) hoops.stepBall(a);
   while (!b.done) hoops.stepBall(b);
   assert.deepEqual(a, b);
