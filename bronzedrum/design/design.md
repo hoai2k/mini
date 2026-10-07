@@ -372,13 +372,22 @@ tempo is tried, each beat split into one, two or three slots, and slots may
 stay empty, so rhythms hold rests (a silent beat, written `-`, or a silent slot
 inside a beat, `.`). Each choice has a cost (`COST`): a pair costs a little, a
 triplet a lot more, so strokes read as plain beats and eighths unless they
-plainly fall in threes; an empty slot, a silent beat and a deep stroke off its
-beat cost a little; straying from the tempo already in the air (`prior`) costs
-too. While the rhythm is being drummed its last beat may still fill, and the
+plainly fall in threes; a deep stroke off its beat costs a little; straying from the tempo already in the air (`prior`) costs
+too. Rests are read only when the rhythm being copied has them (a partner's
+call with a rest in it): then an empty slot or a silent beat costs a little,
+and otherwise ten times as much, so uneven drumming reads as the plain beats
+and pairs it almost certainly was rather than as rests. A finished rhythm read
+shorter than the beats set would end in silent beats, so those count as rests
+too (otherwise `L R L R L R` drummed a little unevenly read as three pairs at
+half the tempo and three silent beats). Measured with simulated players
+(steady drift, uneven strokes up to ±12% of a beat), plain rhythms now read
+right 95% of the time, against 72% before, and with a rest 2% against 25%. While the rhythm is being drummed its last beat may still fill, and the
 dots show the reading as ghosts, which may regroup.
 
 The rhythm is complete just before the beat after its last beat, at the tempo
-its strokes have set, so a closing pair or triplet still fits. It is then
+its strokes have set, so a closing pair or triplet still fits. With no rests to
+copy, a last beat still unstruck waits almost half a beat longer, so a dragged
+final stroke ends the rhythm instead of leaving a rest and starting the next. It is then
 locked in (`lockIn`): what was heard is fitted to the number of beats. Up to
 two leading strokes may be dropped (at a cost, so only when that fits much
 better), and a lone stroke well before the next is dropped outright; strokes

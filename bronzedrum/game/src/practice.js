@@ -62,11 +62,16 @@ export const SECONDS = [
 // to within a range (uMin, uMax): an answer is drummed at about its call's
 // speed.
 const COST = { half: 0.006, third: 0.04, emptySlot: 0.012, restBeat: 0.02, deepOff: 0.012, prior: 0.2 };
+// Rests are read only when the rhythm being copied has them (rests: true);
+// otherwise they cost this much more, so uneven strokes read as the plain
+// beats and pairs they almost certainly were.
+const NO_RESTS = 10;
 const U_MIN = TEMPO.min * 0.9;
 const U_MAX = TEMPO.max * 1.05;
 
 /** The best reading of the strokes at tempo u: each beat's division and slots, and the cost. */
-function readAt(strokes, u, open) {
+function readAt(strokes, u, open, rests = true, target = 0) {
+  const k = rests ? 1 : NO_RESTS;
   const t0 = strokes[0].t;
   const beats = new Map(); // beat -> [{ x, i }]
   strokes.forEach((s, i) => {
@@ -94,14 +99,16 @@ function readAt(strokes, u, open) {
       });
       // Empty slots: none charged after the last stroke of a rhythm still being drummed.
       const top = open && lastBeat ? Math.max(...slots) + 1 : d;
-      c += (top - list.length) * COST.emptySlot;
+      c += (top - list.length) * COST.emptySlot * k;
       if (!best || c < best.c) best = { c, d, slots, idx: list.map((q) => q.i) };
     }
     if (!best) return null;
     cost += best.c;
     cells.set(b, best);
   }
-  cost += (last + 1 - beats.size) * COST.restBeat;
+  cost += (last + 1 - beats.size) * COST.restBeat * k;
+  // A finished rhythm shorter than the beats set ends in silent beats: rests too.
+  if (target && !open) cost += Math.max(0, target - last - 1) * COST.restBeat * k;
   return { cost, cells, last };
 }
 
@@ -112,12 +119,12 @@ function readAt(strokes, u, open) {
  * pos, div }], text, cost }, pos in beats from the first stroke; text is
  * "L RR .R -": beats apart, "." a silent slot, "-" a silent beat.
  */
-export function transcribe(strokes, { open = false, prior = null, uMin = U_MIN, uMax = U_MAX } = {}) {
+export function transcribe(strokes, { open = false, prior = null, uMin = U_MIN, uMax = U_MAX, rests = false, beats = 0 } = {}) {
   const n = strokes.length;
   if (!n) return null;
   if (n === 1) return finish(strokes, { cells: new Map([[0, { d: 1, slots: [0], idx: [0] }]]), last: 0 }, 0.6, 0);
   const score = (u) => {
-    const r = readAt(strokes, u, open);
+    const r = readAt(strokes, u, open, rests, beats);
     if (!r) return null;
     r.cost += prior ? COST.prior * Math.log2(u / prior) ** 2 : 0;
     r.u = u;
@@ -231,13 +238,23 @@ export class PracticeSession {
   /**
    * When the rhythm being drummed is complete: just before the beat after its
    * last, at the tempo its strokes have set (a closing pair or triplet still
-   * fits in). Unknown until two strokes have set a tempo.
+   * fits in). Unknown until two strokes have set a tempo. With no rests to
+   * copy, a last beat still unstruck waits a little longer (a late stroke
+   * is the last beat dragged, not a rest and the start of the next rhythm).
    */
   phraseEnd() {
     if (this.phrase.length < 2) return Infinity;
-    const r = transcribe(this.phrase, { open: true, ...this.readOptions() });
+    const opts = this.readOptions();
+    const r = transcribe(this.phrase, { open: true, ...opts });
     if (!r) return Infinity;
-    return this.phrase[0].t + (this.beats - 0.12) * r.u;
+    const end = this.phrase[0].t + (this.beats - 0.12) * r.u;
+    if (opts.rests || r.beats >= this.beats) return end;
+    // Every beat already struck (read as a finished rhythm without rests, at
+    // the tempo it was drummed): complete on time. Otherwise the last beat is
+    // still to come, a little late perhaps: wait almost half a beat more.
+    const done = transcribe(this.phrase, { ...opts, beats: this.beats });
+    if (done && done.beats === this.beats && done.cost < 0.06) return this.phrase[0].t + (this.beats - 0.12) * Math.max(r.u, done.u);
+    return end + 0.45 * r.u;
   }
 
   stroke(drum, t) {
@@ -283,7 +300,7 @@ export class PracticeSession {
     const opts = this.readOptions();
     let best = null;
     for (let k = 0; k <= 2 && this.phrase.length - k >= 2; k++) {
-      const r = transcribe(this.phrase.slice(k), opts);
+      const r = transcribe(this.phrase.slice(k), { ...opts, beats: this.beats });
       if (!r) continue;
       const score = r.cost + 0.2 * k + 0.08 * Math.max(0, r.beats - this.beats);
       if (!best || score < best.score) best = { r, k, score };
@@ -487,9 +504,12 @@ export class CallSession extends PracticeSession {
     return events;
   }
 
-  /** An answer is drummed at about its call's speed: read it within 35% of it. */
+  /**
+   * An answer is drummed at about its call's speed: read it within 35% of
+   * it, with rests only if the call has them.
+   */
   readOptions() {
-    if (this.phase === 'answer' && this.call) return { prior: this.call.u, uMin: this.call.u / 1.35, uMax: this.call.u * 1.35 };
+    if (this.phase === 'answer' && this.call) return { prior: this.call.u, uMin: this.call.u / 1.35, uMax: this.call.u * 1.35, rests: /[-.]/.test(this.call.text) };
     return { prior: this.prior };
   }
 

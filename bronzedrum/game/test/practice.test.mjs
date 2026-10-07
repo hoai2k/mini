@@ -39,12 +39,29 @@ test('quick strokes share a beat as pairs; triplets only where nothing else fits
   assert.equal(transcribe(play([0, 0.6, 1.2, 1.8, 2.0, 2.2, 2.4], 'LRLRRRL')).text, 'L R L RRR L');
 });
 
-test('rests: a silent beat, and a silent slot inside a beat; a little unevenness is forgiven', () => {
-  assert.equal(transcribe(play([0, 0.5, 1.5, 2.0])).text, 'L R - L R');
+test('rests, when the rhythm copied has them: a silent beat, and a silent slot inside a beat; a little unevenness is forgiven', () => {
+  assert.equal(transcribe(play([0, 0.5, 1.5, 2.0]), { rests: true }).text, 'L R - L R');
   // An off-beat stroke: a rest, then an eighth.
-  assert.equal(transcribe(play([0, 0.5, 1.25, 1.5], 'LRRL')).text, 'L R .R L');
+  assert.equal(transcribe(play([0, 0.5, 1.25, 1.5], 'LRRL'), { rests: true }).text, 'L R .R L');
   const r = transcribe(play([0, 0.52, 0.97, 1.27, 1.5, 2.03], 'LRRRLR'));
   assert.equal(r.text, 'L R RR L R');
+});
+
+test('otherwise no rests: the same strokes read as plain beats and pairs', () => {
+  for (const [times, drums] of [[[0, 0.5, 1.5, 2.0], 'LRLR'], [[0, 0.5, 1.25, 1.5], 'LRRL'], [[0, 0.45, 1.1, 1.62, 2.0], 'LLLRL']]) {
+    const r = transcribe(play(times, drums));
+    assert.ok(!/[-.]/.test(r.text), `${r.text} has a rest`);
+    assert.equal(r.strokes.length, times.length);
+  }
+});
+
+test('an answer may have rests only when its call does', () => {
+  const s = new CallSession({ beats: 4 });
+  s.phase = 'answer';
+  s.call = { u: 0.5, text: 'L L L R' };
+  assert.equal(s.readOptions().rests, false);
+  s.call = { u: 0.5, text: 'L - L R' };
+  assert.equal(s.readOptions().rests, true);
 });
 
 test('every stroke keeps its drum and order', () => {
