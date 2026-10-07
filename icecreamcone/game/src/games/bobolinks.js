@@ -12,6 +12,7 @@
 
 import { drawBird, scene, blob, wash, ink, poly, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
+import { birdById } from '../birds.js';
 
 const DURATION = 40;
 const STUMBLE = 0.6; // seconds the boots wobble after a splash
@@ -22,7 +23,8 @@ const AHEAD = 9; // stones kept queued
 // Layout: an oval night vignette, like the book's round picture.
 const OV = { x: 770, y: 468, rx: 650, ry: 418 };
 const HORIZON = 318;
-const NEAR = 860; // the stone under the boots
+const NEAR = 868; // the stone under the boots
+const BOOTS = 250; // the boots' drawn size
 const LANE = 160; // half the distance between the lanes, up close
 const STRIP = { x: 1500, y: 170, h: 470 };
 const PADS = [
@@ -176,7 +178,7 @@ export default function create(env) {
         if (side === s.side) stepOn(side);
         else {
           g.wrong++;
-          splash(side < 0 ? 'Wrong foot!' : 'Wrong foot!');
+          splash('Wrong foot!');
         }
       }
       // The target sinks while you wait.
@@ -200,7 +202,7 @@ export default function create(env) {
     g.scroll = approach(g.scroll, 0, 16, dt);
     if (g.scroll < 0.002) g.scroll = 0;
     g.hop = Math.max(0, g.hop - dt / 0.2);
-    const target = OV.x + (g.under.side || 0) * 70;
+    const target = OV.x + (g.under.side || 0) * LANE * 0.55;
     g.bootX = approach(g.bootX, target, 18, dt);
     g.sing = Math.max(0, g.sing - dt * 0.8);
     g.shake = Math.max(0, g.shake - dt);
@@ -238,7 +240,7 @@ export default function create(env) {
 
   // Where stone `d` of the path is: d = 0 under the boots, 1 the next...
   function stonePos(d, side) {
-    const s = 1 / (1 + Math.max(-0.6, d) * 0.5);
+    const s = 1 / (1 + Math.max(-0.4, d) * 0.75);
     const y = HORIZON + (NEAR - HORIZON) * s;
     // the path drifts a little left and right with distance, like a real ford
     const drift = Math.sin(d * 0.9 + 1) * 40 * (1 - s);
@@ -357,13 +359,16 @@ export default function create(env) {
       c.lineTo(x + 40 * s, y);
       ink(c, 1.5 * s, 'rgba(180,200,230,0.18)');
     }
-    for (let i = 0; i < 14; i++) {
-      const y = HORIZON + 8 + i * 24 + i * i * 1.2;
-      const w = 20 + i * 6 + Math.sin(t * 2 + i) * 8;
-      c.beginPath();
-      c.moveTo(mx - w + Math.sin(t + i) * 10, y);
-      c.lineTo(mx + w + Math.sin(t + i) * 10, y);
-      ink(c, 2 + i * 0.3, `rgba(242,224,138,${0.35 - i * 0.02})`);
+    for (let i = 0; i < 16; i++) {
+      const y = HORIZON + 8 + i * 22 + i * i * 1.1;
+      const w = 16 + i * 5;
+      for (let j = -1; j <= 1; j++) {
+        const x = mx + j * w * 1.3 + Math.sin(t * 1.4 + i * 1.7 + j) * 12;
+        c.beginPath();
+        c.moveTo(x - w * 0.5, y);
+        c.lineTo(x + w * 0.5, y + Math.sin(i + j) * 2);
+        ink(c, 2 + i * 0.25, `rgba(242,224,138,${(0.34 - i * 0.018) * (j ? 0.6 : 1)})`);
+      }
     }
     c.restore();
     // the far bank: a dark line of bushes and reeds
@@ -375,6 +380,29 @@ export default function create(env) {
     c.fillRect(0, HORIZON - 8, W, 14);
     reeds(c, t, 160, 500, HORIZON + 8, 0.7, 1);
     reeds(c, t, 1180, 1420, HORIZON + 6, 0.6, 2);
+    // a gnarled branch reaching in from the left, as in the book
+    c.beginPath();
+    c.moveTo(60, 250);
+    c.bezierCurveTo(220, 205, 300, 240, 420, 190);
+    c.bezierCurveTo(470, 170, 520, 178, 560, 150);
+    ink(c, 22, '#0e1218');
+    c.beginPath();
+    c.moveTo(300, 226);
+    c.quadraticCurveTo(350, 270, 420, 280);
+    c.moveTo(420, 190);
+    c.quadraticCurveTo(450, 130, 520, 110);
+    c.moveTo(200, 222);
+    c.quadraticCurveTo(230, 160, 210, 120);
+    ink(c, 7, '#0e1218');
+    for (const [lx, ly, a] of [[420, 280, 0.4], [520, 110, -0.5], [210, 120, -1.4], [560, 150, 0.2], [470, 262, 0.9]]) {
+      c.save();
+      c.translate(lx, ly);
+      c.rotate(a);
+      blob(c, 10, 0, 16, 6, lx, 0.1, 10);
+      c.fillStyle = '#3a4a2e';
+      c.fill();
+      c.restore();
+    }
     // near reeds at the sides
     reeds(c, t, 120, 330, 850, 1.6, 3);
     reeds(c, t, 1220, 1420, 850, 1.6, 4);
@@ -427,7 +455,7 @@ export default function create(env) {
 
   function drawStrip(c) {
     // progress across the stream, with the medal marks
-    const max = Math.max(120, g.score + 10);
+    const max = Math.max(birdById('bobolinks').medals[2] * 1.15, g.score + 10);
     const { x, y, h } = STRIP;
     const yAt = (v) => y + h - (h * Math.min(v, max)) / max;
     label(c, 'Far bank', x, y - 36, { size: 22, weight: 700 });
@@ -437,7 +465,7 @@ export default function create(env) {
     poly(c, [[x - 12, yAt(g.score)], [x + 12, yAt(g.score)], [x + 12, y + h], [x - 12, y + h]], 10, 0.6);
     wash(c, PAL.mauve, 0.9);
     ink(c, 1.4);
-    const medals = [[45, '#c08a5a'], [75, '#b0b0b8'], [105, '#e0b840']];
+    const medals = birdById('bobolinks').medals.map((v, i) => [v, ['#c08a5a', '#b0b0b8', '#e0b840'][i]]);
     for (const [v, col] of medals) {
       const my = yAt(v);
       c.beginPath();
@@ -481,12 +509,303 @@ export default function create(env) {
       c.restore();
     }
 
-    // the boots
-    const under = stonePos(g.scroll, g.under.side);
-    const lift = g.hop > 0 ? (g.hopSide || 0) : g.pending ? g.pending.side : 0;
-    const hopY = g.hop > 0 ? -Math.sin(Math.PI * g.hop) * 46 : 0;
-    const wobble = g.stumble > 0 && !env.reduceMotion ? Math.sin(g.stumble * 40) * 0.08 : 0;
-    drawBird(c, 'bobolinks', { x: g.bootX, y: Math.min(under.y, NEAR) - 4 + hopY, size: 330, t, rot: wobble, pose: { lift, sing: Math.max(g.sing, g.stumble > 0 ? 0 : 0) } });
+    for (const d of g.drops) {
+      d.life -= dt;
+      d.vy += 900 * dt;
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+    }
+    g.drops = g.drops.filter((d) => d.life > 0);
+    for (const r of g.rings) {
+      r.life -= dt * 1.4;
+      r.r += dt * 120;
+    }
+    g.rings = g.rings.filter((r) => r.life > 0);
+  };
+
+  g.hud = () => (g.streak >= 3 ? `Stones ${g.score} · streak ${g.streak}` : `Stones ${g.score}`);
+  g.summary = () => {
+    const lines = [`Longest run without a splash: ${g.best} stones.`];
+    const slips = [];
+    if (g.wrong) slips.push(`${g.wrong} wrong step${g.wrong > 1 ? 's' : ''}`);
+    if (g.sunk) slips.push(`${g.sunk} stone${g.sunk > 1 ? 's' : ''} sank`);
+    lines.push(slips.length ? slips.join(', ') + '.' : 'Not a single splash!');
+    return lines;
+  };
+
+  // ---------- drawing ----------
+
+  // Where stone `d` of the path is: d = 0 under the boots, 1 the next...
+  function stonePos(d, side) {
+    const s = 1 / (1 + Math.max(-0.4, d) * 0.75);
+    const y = HORIZON + (NEAR - HORIZON) * s;
+    // the path drifts a little left and right with distance, like a real ford
+    const drift = Math.sin(d * 0.9 + 1) * 40 * (1 - s);
+    return { x: OV.x + drift + (side || 0) * LANE * s, y, s };
+  }
+
+  function drawStone(c, st, d, isNext, t) {
+    const p = stonePos(d, st.side);
+    if (p.y < HORIZON - 4) return;
+    const sink = isNext ? st.sink : 0;
+    const wide = st.side === 0;
+    const rx = (wide ? 250 : 112) * p.s;
+    const ry = 40 * p.s;
+    const bob = Math.sin(t * 2 + st.wob) * 2 * p.s;
+    const y = p.y + bob + sink * 22 * p.s;
+    const alpha = clamp((p.y - HORIZON) / 60, 0, 1);
+    c.save();
+    c.globalAlpha = alpha;
+    // the water dark around it
+    c.fillStyle = 'rgba(10,16,30,0.35)';
+    c.beginPath();
+    c.ellipse(p.x, y + ry * 0.5, rx * 1.12, ry * 0.9, 0, 0, Math.PI * 2);
+    c.fill();
+    // the stone: a lumpy top and a darker side
+    blob(c, p.x, y + ry * 0.35, rx, ry * 1.05, st.wob * 10, 0.05, 18);
+    wash(c, '#4a5060', 1);
+    ink(c, 2 * p.s + 0.6, '#14181f');
+    blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
+    wash(c, COL[st.side], 1);
+    ink(c, 2.2 * p.s + 0.6, '#14181f');
+    blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
+    hatch(c, p.x - rx, y - ry, p.x + rx, y + ry, 8, 0.12);
+    // the sinking water line creeping over the stone
+    if (sink > 0.05) {
+      c.save();
+      c.globalAlpha = alpha * Math.min(0.8, sink);
+      c.beginPath();
+      c.ellipse(p.x, y + ry * 0.2, rx * 1.05, ry * (0.3 + sink), 0, 0, Math.PI * 2);
+      c.fillStyle = '#2c4468';
+      c.fill();
+      c.restore();
+    }
+    // the mark: an arrow (or two) and a letter
+    const k = p.s * (isNext ? 1.15 : 1);
+    const mark = (dir, mx) => {
+      c.save();
+      c.translate(mx, y);
+      c.scale(k, k * 0.55);
+      poly(c, [[dir * 46, 0], [dir * 6, -30], [dir * 6, -13], [-dir * 34, -13], [-dir * 34, 13], [dir * 6, 13], [dir * 6, 30]], 3, 0.8);
+      c.fillStyle = '#2a2a36';
+      c.fill();
+      c.restore();
+    };
+    if (wide) {
+      mark(-1, p.x - rx * 0.45);
+      mark(1, p.x + rx * 0.45);
+      label(c, 'BOTH', p.x, y - 2, { size: Math.max(12, 34 * k), color: '#2a2a36', weight: 800 });
+    } else mark(st.side, p.x);
+    if (isNext) {
+      // the target: a pale ring, and a shrinking arc for the time left
+      c.beginPath();
+      c.ellipse(p.x, y, rx * 1.18, ry * 1.45, 0, 0, Math.PI * 2);
+      ink(c, 3, 'rgba(250,240,200,0.7)');
+      c.beginPath();
+      c.ellipse(p.x, y, rx * 1.18, ry * 1.45, 0, -Math.PI / 2, -Math.PI / 2 + (1 - sink) * Math.PI * 2);
+      ink(c, 6, sink > 0.65 ? '#f08a6a' : '#f4e8b8');
+    }
+    c.restore();
+  }
+
+  function drawNight(c, t) {
+    // paper, then the oval night vignette
+    c.save();
+    c.beginPath();
+    c.ellipse(OV.x, OV.y, OV.rx, OV.ry, 0, 0, Math.PI * 2);
+    c.clip();
+    const sky = c.createLinearGradient(0, OV.y - OV.ry, 0, HORIZON);
+    sky.addColorStop(0, '#1a2130');
+    sky.addColorStop(1, '#2c3a50');
+    c.fillStyle = sky;
+    c.fillRect(0, 0, W, HORIZON + 10);
+    // stars
+    c.fillStyle = 'rgba(250,240,200,0.6)';
+    for (let i = 0; i < 26; i++) {
+      const sx = 200 + ((i * 397) % 1150);
+      const sy = 70 + ((i * 131) % 200);
+      const tw = 1.2 + Math.sin(t * 1.3 + i) * 0.6;
+      c.fillRect(sx, sy, tw, tw);
+    }
+    // the small moon, top right
+    const mx = 1080;
+    const my = 150;
+    const glow = c.createRadialGradient(mx, my, 10, mx, my, 120);
+    glow.addColorStop(0, 'rgba(250,236,150,0.45)');
+    glow.addColorStop(1, 'rgba(250,236,150,0)');
+    c.fillStyle = glow;
+    c.fillRect(mx - 130, my - 130, 260, 260);
+    blob(c, mx, my, 30, 30, 5, 0.03);
+    wash(c, '#f2e08a', 1);
+    ink(c, 1.5, '#8a7a3a');
+    // the water
+    const water = c.createLinearGradient(0, HORIZON, 0, OV.y + OV.ry);
+    water.addColorStop(0, '#2a3c58');
+    water.addColorStop(1, '#16223a');
+    c.fillStyle = water;
+    c.fillRect(0, HORIZON, W, H);
+    // moonlight on the water, and ripples drifting by with the current
+    c.save();
+    for (let i = 0; i < 40; i++) {
+      const row = i / 40;
+      const y = HORIZON + 10 + Math.pow(row, 1.6) * 560;
+      const s = 0.3 + row;
+      const x = ((i * 233 + t * (30 + row * 90)) % 1500) + 20;
+      c.beginPath();
+      c.moveTo(x, y);
+      c.lineTo(x + 40 * s, y);
+      ink(c, 1.5 * s, 'rgba(180,200,230,0.18)');
+    }
+    for (let i = 0; i < 16; i++) {
+      const y = HORIZON + 8 + i * 22 + i * i * 1.1;
+      const w = 16 + i * 5;
+      for (let j = -1; j <= 1; j++) {
+        const x = mx + j * w * 1.3 + Math.sin(t * 1.4 + i * 1.7 + j) * 12;
+        c.beginPath();
+        c.moveTo(x - w * 0.5, y);
+        c.lineTo(x + w * 0.5, y + Math.sin(i + j) * 2);
+        ink(c, 2 + i * 0.25, `rgba(242,224,138,${(0.34 - i * 0.018) * (j ? 0.6 : 1)})`);
+      }
+    }
+    c.restore();
+    // the far bank: a dark line of bushes and reeds
+    blob(c, 300, HORIZON + 2, 420, 34, 1, 0.08, 20);
+    c.fillStyle = '#141a22';
+    c.fill();
+    blob(c, 1150, HORIZON, 380, 26, 2, 0.08, 20);
+    c.fill();
+    c.fillRect(0, HORIZON - 8, W, 14);
+    reeds(c, t, 160, 500, HORIZON + 8, 0.7, 1);
+    reeds(c, t, 1180, 1420, HORIZON + 6, 0.6, 2);
+    // a gnarled branch reaching in from the left, as in the book
+    c.beginPath();
+    c.moveTo(60, 250);
+    c.bezierCurveTo(220, 205, 300, 240, 420, 190);
+    c.bezierCurveTo(470, 170, 520, 178, 560, 150);
+    ink(c, 22, '#0e1218');
+    c.beginPath();
+    c.moveTo(300, 226);
+    c.quadraticCurveTo(350, 270, 420, 280);
+    c.moveTo(420, 190);
+    c.quadraticCurveTo(450, 130, 520, 110);
+    c.moveTo(200, 222);
+    c.quadraticCurveTo(230, 160, 210, 120);
+    ink(c, 7, '#0e1218');
+    for (const [lx, ly, a] of [[420, 280, 0.4], [520, 110, -0.5], [210, 120, -1.4], [560, 150, 0.2], [470, 262, 0.9]]) {
+      c.save();
+      c.translate(lx, ly);
+      c.rotate(a);
+      blob(c, 10, 0, 16, 6, lx, 0.1, 10);
+      c.fillStyle = '#3a4a2e';
+      c.fill();
+      c.restore();
+    }
+    // near reeds at the sides
+    reeds(c, t, 120, 330, 850, 1.6, 3);
+    reeds(c, t, 1220, 1420, 850, 1.6, 4);
+    c.restore();
+    // the vignette's edge, like a watercolour circle
+    c.beginPath();
+    c.ellipse(OV.x, OV.y, OV.rx, OV.ry, 0, 0, Math.PI * 2);
+    c.save();
+    c.globalAlpha = 0.6;
+    ink(c, 10, 'rgba(36,48,63,0.4)');
+    c.restore();
+    ink(c, 2.6);
+  }
+
+  function reeds(c, t, x0, x1, base, s, seed) {
+    for (let i = 0; i < 9; i++) {
+      const x = x0 + ((x1 - x0) * i) / 8 + Math.sin(seed * 9 + i * 3) * 12;
+      const h = (60 + ((i * 37 + seed * 11) % 50)) * s;
+      const sway = Math.sin(t * 0.8 + i + seed) * 6 * s;
+      c.beginPath();
+      c.moveTo(x, base);
+      c.quadraticCurveTo(x + sway * 0.3, base - h * 0.6, x + sway, base - h);
+      ink(c, 2.2 * s, '#0e1218');
+      if (i % 3 === 1) {
+        blob(c, x + sway, base - h - 8 * s, 4 * s, 12 * s, i + seed, 0.05, 8);
+        c.fillStyle = '#2a2018';
+        c.fill();
+      }
+    }
+  }
+
+  function drawPads(c) {
+    // the left and right foot buttons, at the paper's corners
+    for (const p of PADS) {
+      const f = g.padFlash[p.side];
+      const r = 74 + f * 8;
+      blob(c, p.x, p.y, r, r, p.side + 3, 0.04, 18);
+      wash(c, f > 0 ? '#f0d890' : COL[p.side], 0.85);
+      ink(c, 2.6);
+      c.save();
+      c.translate(p.x, p.y - 12);
+      c.scale(1.2, 0.95);
+      poly(c, [[p.side * 46, 0], [p.side * 6, -30], [p.side * 6, -13], [-p.side * 34, -13], [-p.side * 34, 13], [p.side * 6, 13], [p.side * 6, 30]], 3, 0.8);
+      c.fillStyle = '#2a2a36';
+      c.fill();
+      c.restore();
+      label(c, p.side < 0 ? 'Left' : 'Right', p.x, p.y + 40, { size: 26, weight: 800 });
+    }
+  }
+
+  function drawStrip(c) {
+    // progress across the stream, with the medal marks
+    const max = Math.max(birdById('bobolinks').medals[2] * 1.15, g.score + 10);
+    const { x, y, h } = STRIP;
+    const yAt = (v) => y + h - (h * Math.min(v, max)) / max;
+    label(c, 'Far bank', x, y - 36, { size: 22, weight: 700 });
+    poly(c, [[x - 12, y], [x + 12, y], [x + 12, y + h], [x - 12, y + h]], 9, 1);
+    wash(c, '#9ab0c8', 0.6);
+    ink(c, 2.2);
+    poly(c, [[x - 12, yAt(g.score)], [x + 12, yAt(g.score)], [x + 12, y + h], [x - 12, y + h]], 10, 0.6);
+    wash(c, PAL.mauve, 0.9);
+    ink(c, 1.4);
+    const medals = birdById('bobolinks').medals.map((v, i) => [v, ['#c08a5a', '#b0b0b8', '#e0b840'][i]]);
+    for (const [v, col] of medals) {
+      const my = yAt(v);
+      c.beginPath();
+      c.moveTo(x - 20, my);
+      c.lineTo(x + 20, my);
+      ink(c, 2);
+      c.beginPath();
+      c.arc(x - 34, my, 10, 0, Math.PI * 2);
+      c.fillStyle = g.score >= v ? col : 'rgba(250,244,228,0.9)';
+      c.fill();
+      ink(c, 1.8, col);
+    }
+    // a little boot marker
+    const by = yAt(g.score);
+    blob(c, x + 28, by, 14, 10, 4, 0.05, 10);
+    wash(c, PAL.mauve, 1);
+    ink(c, 1.8);
+    label(c, String(g.score), x + 6, y + h + 30, { size: 34, weight: 800 });
+  }
+
+  g.draw = (c, t) => {
+    const shake = g.shake > 0 ? Math.sin(t * 70) * 10 * g.shake : 0;
+    scene(c, 'bobolinks', W, H, () => {});
+    c.save();
+    c.translate(shake, 0);
+    drawNight(c, t);
+
+    c.save();
+    c.beginPath();
+    c.ellipse(OV.x, OV.y, OV.rx, OV.ry, 0, 0, Math.PI * 2);
+    c.clip();
+    // the stones, far to near; the one under the boots, then the queue
+    for (let i = g.stones.length - 1; i >= 0; i--) drawStone(c, g.stones[i], i + 1 + g.scroll, i === 0, t);
+    drawStone(c, g.under, g.scroll, false, t);
+    for (const r of g.rings) {
+      c.save();
+      c.globalAlpha = r.life * 0.7;
+      c.beginPath();
+      c.ellipse(r.x, r.y, r.r * 1.6, r.r * 0.5, 0, 0, Math.PI * 2);
+      ink(c, 2.5, '#c8d8f0');
+      c.restore();
+    }
+
     for (const d of g.drops) {
       c.save();
       c.globalAlpha = clamp(d.life * 1.5, 0, 1);
@@ -497,6 +816,12 @@ export default function create(env) {
       c.restore();
     }
     c.restore();
+    // the boots stand over the frame's edge, like the book's birds
+    const under = stonePos(g.scroll, g.under.side);
+    const lift = g.hop > 0 ? (g.hopSide || 0) : g.pending ? g.pending.side : 0;
+    const hopY = g.hop > 0 ? -Math.sin(Math.PI * g.hop) * 46 : 0;
+    const wobble = g.stumble > 0 && !env.reduceMotion ? Math.sin(g.stumble * 40) * 0.08 : 0;
+    drawBird(c, 'bobolinks', { x: g.bootX, y: Math.min(under.y, NEAR) - 4 + hopY, size: BOOTS, t, rot: wobble, pose: { lift, sing: g.sing } });
     c.restore();
 
     drawPads(c);

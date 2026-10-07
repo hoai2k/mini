@@ -14,7 +14,7 @@ import { clamp, approach } from './index.js';
 
 const DURATION = 45;
 const BENCH = 790; // where the Plumes' feet stand
-const SIZE = 300;
+const SIZE = 340;
 const K = SIZE / 400;
 const POT_TOP = BENCH - 240 * K; // where the rain reaches the soil
 const POT_HALF = 80 * K + 14; // how wide a pot catches the rain
@@ -26,6 +26,7 @@ const PANELS = ['#efd96a', '#f3e2a0', '#ea8fb0', '#a9b88a', '#d9a4a0'];
 const GROW = 0.3; // growth per second while watered (a bloom takes about 3 s)
 const SOAK = 0.27; // soak per second of watering; soggy at 1
 const SOGGY = 2;
+const DAMP = 0.45; // below this dryness a Plume keeps growing slowly by itself
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -105,8 +106,8 @@ export default function create(env) {
     if (g.raining) {
       g.dropT -= dt;
       while (g.dropT <= 0) {
-        g.dropT += 1 / 55;
-        g.drops.push({ x: g.x + (rng() - 0.5) * 70, y: ROSE_Y + rng() * 10, vx: (rng() - 0.5) * 40, vy: 650 + rng() * 80 });
+        g.dropT += 1 / 100;
+        g.drops.push({ x: g.x + (rng() - 0.5) * 84, y: ROSE_Y + rng() * 10, vx: (rng() - 0.5) * 40, vy: 880 + rng() * 80 });
       }
       g.soundT -= dt;
       if (g.soundT <= 0) {
@@ -164,8 +165,8 @@ export default function create(env) {
       } else {
         p.soak = Math.max(0, p.soak - 0.35 * dt);
         p.dry = Math.min(1, p.dry + dryRate() * p.thirst * dt);
-        if (p.dry < 0.5) p.growth += 0.035 * dt; // damp soil: a little growth on its own
-        else if (p.dry >= 1) p.growth -= 0.16 * dt;
+        if (p.dry < DAMP) p.growth += 0.14 * dt; // damp soil: a little growth on its own
+        else if (p.dry >= 1) p.growth -= 0.2 * dt;
         else if (p.dry > 0.75) p.growth -= 0.06 * dt;
         p.growth = Math.max(0.06, p.growth);
       }
@@ -361,7 +362,7 @@ export default function create(env) {
     // rain behind the plants' faces, in front of the panels
     c.fillStyle = '#2f6f7a';
     for (const d of g.drops) {
-      teardrop(c, d.x, d.y, 4.2);
+      teardrop(c, d.x, d.y, 5.5);
       c.fill();
     }
 

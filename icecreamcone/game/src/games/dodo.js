@@ -5,15 +5,17 @@
 // front and one behind), and when they stop you pick the hat it is under.
 // Eight rounds: three hats, then four, then five, with more and faster
 // swaps; later rounds add feints (two hats start to swap and think better of
-// it), two swaps at once and three hats going round in a ring. Score: 100 for
-// each find, plus up to 50 for answering quickly.
+// it), two swaps at once and three hats going round in a ring. Score: each
+// find is worth 50 plus 10 a round (60 in the first, 130 in the last), plus
+// up to 40 for answering quickly.
 
 import { drawBird, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
 
-const COUNTER = 640; // where the hats sit
-const HAT_W = 190;
-const LIFT = 150;
+const COUNTER = 650; // where the hats sit
+const HS = 1.3; // the hats' size
+const HAT_W = 190 * HS;
+const LIFT = 170;
 
 // Each round: hats, moves, seconds per move, how long the Dodo is shown,
 // and the chance of a feint, a double swap or a ring of three.
@@ -29,7 +31,7 @@ const ROUNDS = [
 ];
 const STYLES = ['bowler', 'bowler', 'bowler', 'top', 'top', 'bowler', 'top', 'top'];
 
-const slotX = (i, n) => 800 + (i - (n - 1) / 2) * (n > 4 ? 250 : n > 3 ? 290 : 330);
+const slotX = (i, n) => 800 + (i - (n - 1) / 2) * (n > 4 ? 280 : n > 3 ? 320 : 360);
 const ease = (p) => p * p * (3 - 2 * p);
 
 export default function create(env) {
@@ -55,6 +57,7 @@ export default function create(env) {
     shake: 0,
     stickWas: 0,
     repeat: 0,
+    results: [], // which rounds were won, for the counter
   };
 
   const R = () => ROUNDS[g.round];
@@ -131,17 +134,18 @@ export default function create(env) {
     const took = r.answer - g.answerLeft;
     const h = hatAt(slot);
     g.right = !!(h && h.dodo);
+    g.results[g.round] = g.right;
     if (g.right) {
-      const bonus = Math.round((50 * clamp(g.answerLeft / r.answer, 0, 1)) / 5) * 5;
-      const pts = 100 + bonus;
+      const bonus = Math.round((40 * clamp(g.answerLeft / r.answer, 0, 1)) / 5) * 5;
+      const pts = 50 + 10 * (g.round + 1) + bonus;
       g.score += pts;
       g.found++;
       g.quickest = Math.min(g.quickest, took);
-      g.pops.push({ x: slotX(slot, r.n), y: COUNTER - 290, text: `+${pts}`, sub: bonus >= 40 ? 'Quick eye!' : 'Found it!', color: '#3a6a2a', life: 1.4 });
+      g.pops.push({ x: slotX(slot, r.n), y: COUNTER - 330, text: `+${pts}`, sub: bonus >= 30 ? 'Quick eye!' : 'Found it!', color: '#3a6a2a', life: 1.4 });
       sfx('right');
       for (let i = 0; i < 16; i++) g.bits.push({ x: slotX(slot, r.n), y: COUNTER - 60, vx: (rng() - 0.5) * 700, vy: -300 - rng() * 400, a: rng() * 6, va: (rng() - 0.5) * 10, life: 1.4 });
     } else {
-      g.pops.push({ x: slotX(Math.max(0, slot), r.n), y: COUNTER - 290, text: slot < 0 ? 'Too slow!' : 'Not there!', sub: '', color: '#b0402a', life: 1.4 });
+      g.pops.push({ x: slotX(Math.max(0, slot), r.n), y: COUNTER - 330, text: slot < 0 ? 'Too slow!' : 'Not there!', sub: '', color: '#b0402a', life: 1.4 });
       sfx('wrong');
       g.shake = 0.35;
       env.vibrate?.(80);
@@ -280,7 +284,7 @@ export default function create(env) {
     const lift = h.lift * LIFT;
     c.save();
     c.translate(h.x, h.y - lift);
-    c.scale(h.s, h.s);
+    c.scale(h.s * HS, h.s * HS);
     c.rotate(h.lift * -0.12);
     const body = '#4a3e3a';
     const band = PAL.mauve;
@@ -320,15 +324,15 @@ export default function create(env) {
     }
     // the brim
     c.beginPath();
-    c.ellipse(0, -4, HAT_W / 2, 16, 0, 0, Math.PI * 2);
+    c.ellipse(0, -4, 95, 16, 0, 0, Math.PI * 2);
     wash(c, '#3e3430');
     ink(c);
     c.restore();
   }
 
   function drawDodo(c, h, t) {
-    const hop = h.lift > 0.5 ? Math.abs(Math.sin(t * 9)) * 10 : 0;
-    drawBird(c, 'dodo', { x: h.x, y: COUNTER - hop, size: 120, t });
+    const hop = h.lift > 0.5 && !env.reduceMotion ? Math.abs(Math.sin(t * 9)) * 14 : 0;
+    drawBird(c, 'dodo', { x: h.x, y: COUNTER - hop, size: 190, t });
   }
 
   function shop(c) {
@@ -351,9 +355,25 @@ export default function create(env) {
     for (let i = 0; i < 16; i++) {
       const x = 100 + i * 90 + Math.sin(i * 3) * 10;
       if (i % 3 === 1) {
-        poly(c, [[x - 30, 298], [x + 30, 298], [x + 30, 210 + (i % 2) * 20], [x - 30, 210 + (i % 2) * 20]], i + 10, 1.2);
-        wash(c, cols[i % cols.length], 0.7);
-        ink(c, 1.6);
+        const kind = Math.floor(i / 3) % 3;
+        if (kind === 0) {
+          // a teacup on its saucer
+          c.beginPath(); c.ellipse(x, 296, 40, 6, 0, 0, Math.PI * 2); wash(c, '#f2eee0'); ink(c, 1.4);
+          poly(c, [[x - 30, 250], [x + 30, 250], [x + 22, 290], [x - 22, 290]], i + 10, 1);
+          wash(c, PAL.lemon, 0.85); ink(c, 1.6);
+          c.beginPath(); c.ellipse(x + 34, 266, 10, 12, 0, -Math.PI / 2, Math.PI / 2); ink(c, 3, INK);
+        } else if (kind === 1) {
+          // a flowerpot with a sprout
+          c.beginPath(); c.moveTo(x, 236); c.quadraticCurveTo(x + 8, 210, x - 4, 192); ink(c, 3, PAL.green);
+          blob(c, x + 10, 206, 10, 5, i, 0.1, 8); wash(c, PAL.sage); ink(c, 1.2);
+          poly(c, [[x - 30, 236], [x + 30, 236], [x + 22, 296], [x - 22, 296]], i + 10, 1);
+          wash(c, PAL.dusty, 0.9); ink(c, 1.6);
+        } else {
+          // a buttoned boot
+          poly(c, [[x - 10, 210], [x + 18, 210], [x + 20, 284], [x + 30, 296], [x - 34, 296], [x - 32, 282], [x - 12, 276]], i + 10, 1);
+          wash(c, PAL.mauve, 0.85); ink(c, 1.6);
+          for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(x + 12, 222 + k * 14, 3, 0, Math.PI * 2); c.fillStyle = '#efe6d0'; c.fill(); }
+        }
       } else {
         blob(c, x, 260, 26, 38, i + 20, 0.03, 14);
         c.save(); c.globalAlpha = 0.5; c.fillStyle = '#f2eee0'; c.fill(); c.restore();
@@ -429,7 +449,7 @@ export default function create(env) {
     if (g.phase === 'pick') {
       const x = slotX(g.sel, r.n);
       const bob = env.reduceMotion ? 0 : Math.sin(t * 8) * 8;
-      const y = COUNTER - 220 + bob;
+      const y = COUNTER - 250 + bob;
       poly(c, [[x - 30, y - 50], [x + 30, y - 50], [x + 30, y], [x + 54, y], [x, y + 50], [x - 54, y], [x - 30, y]], 5, 1.2);
       wash(c, PAL.strawberry);
       ink(c, 2.6);
@@ -483,22 +503,15 @@ export default function create(env) {
 
     // the round counter: eight little notes along the bottom
     for (let i = 0; i < ROUNDS.length; i++) {
-      const x = W / 2 + (i - 3.5) * 56;
-      poly(c, [[x - 20, 846], [x + 20, 846], [x + 20, 870], [x - 20, 870]], i + 60, 1);
-      const won = g.results?.[i];
-      wash(c, i < g.round ? (won ? '#c9d48a' : '#d8c8b8') : '#f2eee0', 0.9);
-      ink(c, i === g.round ? 3 : 1.4);
-      if (i < g.round) label(c, won ? '1' : '×', x, 859, { size: 18, weight: 800, color: won ? '#556030' : '#a04030' });
+      const x = W / 2 + (i - 3.5) * 80;
+      const y = 840 - (i === g.round && !env.reduceMotion ? Math.abs(Math.sin(t * 4)) * 6 : 0);
+      poly(c, [[x - 32, y - 20], [x + 32, y - 20], [x + 32, y + 20], [x - 32, y + 20]], i + 60, 1);
+      const won = g.results[i];
+      wash(c, i < g.round ? (won ? '#c9d48a' : '#d8c8b8') : '#f2eee0', 0.95);
+      ink(c, i === g.round ? 3.5 : 1.6);
+      label(c, i < g.round ? (won ? '1' : '×') : String(i + 1), x, y + 1, { size: 26, weight: 800, color: i < g.round ? (won ? '#556030' : '#a04030') : 'rgba(59,43,32,0.45)' });
     }
   };
 
-  // remember which rounds were won, for the counter
-  const choose0 = choose;
-  g.results = [];
-  choose = undefined; // eslint-disable-line no-func-assign
-  return wrap();
-
-  function wrap() {
-    return g;
-  }
+  return g;
 }
