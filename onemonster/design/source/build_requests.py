@@ -188,7 +188,7 @@ MONSTERS = [
         "knots, flowerbeds, low bushes and a dustbin spaced along it, and at the far right a "
         "grey rural mailbox with a red flag on a wooden post. Leafy branches overhead and a pale "
         "lilac sky. Keep the path along the bottom clear to walk on.",
-        "used": "Before the Mailman Comes, the sneaking game",
+        "used": "the sneaking game (chapter 1)",
     },
     {
         "id": "bombanat",
@@ -200,11 +200,12 @@ MONSTERS = [
         "on the chest, a red-and-white striped necktie, a pink striped cap with a yellow "
         "four-petalled flower on top, and clawed pink feet. Flying with wings spread, a white "
         "envelope in his teeth.",
-        "scene": "The Blue Ocean of Bubbley Goo seen side-on: a thick, glossy blue-and-teal sea "
-        "of goo along the bottom quarter, full of round bubbles of every size, some swelling, "
-        "some popping, under a wide pale mauve sky with long curling clouds. A far-off shore on "
-        "the horizon. Keep the whole sky open, because the Bombanat flies through it.",
-        "used": "Over the Bubbley Goo, the flying game",
+        "scene": "A wood seen side-on, wide enough to scroll: a mossy floor with fallen logs and "
+        "roots along the bottom quarter, gnarled trees with faces in their knots, low branches "
+        "and clusters of leaves, and patches of pale mauve sky between the treetops; far off at "
+        "the right, through the trees, a glimpse of the glossy blue Ocean of Bubbley Goo. Keep "
+        "the band above the ground open, because the Bombanat swoops through it.",
+        "used": "the swooping game (chapters 2 and 8)",
     },
     {
         "id": "grumley",
@@ -220,7 +221,7 @@ MONSTERS = [
         "with bubbles across the bottom third, a small rocky shore at the left edge with a "
         "picnic basket and a checked cloth, and a big open lilac sky above with a few curling "
         "clouds. Keep the sky open, because Bombanats fly through it.",
-        "used": "A Nice Bombanat Lunch, the grabbing game",
+        "used": "the grabbing game (chapter 3)",
     },
     {
         "id": "iceferg",
@@ -238,7 +239,7 @@ MONSTERS = [
         "curling strokes, a few streaks of foam and long current lines, a harbour with a "
         "lighthouse and jetty along the top edge, and scattered rocks near the sides. Keep the "
         "middle of the sea open, because the iceberg and the boats move there.",
-        "used": "Furious Floating, the ramming game",
+        "used": "the ramming game (chapter 4)",
     },
     {
         "id": "typhoonigator",
@@ -254,7 +255,7 @@ MONSTERS = [
         "as rows of curling strokes, spray and foam, a heavy lilac-and-grey sky at the top, and "
         "at the far right a strip of bumpy brown land with a signpost, the edge of Nowhere. Keep "
         "the middle open, because the Typhoonigator and the flotsam move there.",
-        "used": "Suck It All Up, the inhaling game",
+        "used": "the sucking-up game (chapter 5)",
     },
     {
         "id": "yalapappus",
@@ -271,7 +272,7 @@ MONSTERS = [
         "third, a crooked blank wooden signpost nailed to a tree, a lone palm tree, a winding "
         "road and rolling hills far off, and a wide pale lilac sky with curling clouds. Keep the "
         "ground strip clear for running and the sky open above it.",
-        "used": "Munch and Chase, the chasing game",
+        "used": "the catching game (chapter 6) and the Trollusk's getaway (chapter 7)",
     },
     {
         "id": "grithix",
@@ -293,11 +294,18 @@ MONSTERS = [
         "official-looking mailbox at the right edge, a squat riveted grey-mauve metal box with an "
         "arched top and a mail slot, as in the book. Keep the middle of the clearing open, "
         "because Bombanats fly through it and the Grithix runs about.",
-        "used": "Net Them All, the netting game",
+        "used": "the netting game (chapter 9)",
     },
 ]
 for _m in MONSTERS:
     _m["ref"] = (_m.get("refs") or [_m.get("style")])[0]
+
+# The chapters of design.md in which each monster is the one doing the snatching.
+CHAPTERS = {
+    "trollusk": "chapters 1 and 7", "bombanat": "chapters 2 and 8", "grumley": "chapter 3",
+    "iceferg": "chapter 4", "typhoonigator": "chapter 5", "yalapappus": "chapter 6",
+    "grithix": "chapter 9",
+}
 
 # One-word reminders of what each monster is, for the prompts that show them together.
 WHAT = {
@@ -358,8 +366,10 @@ RIGS = {
             "jolted in surprise as something snatches from above, hat flying off",
             "scuttling back in a fright, arms flung up",
             "sitting and wailing, head thrown back",
+            "peeking round a tree trunk, eyeing the prize, sly and greedy",
+            "celebrating: hugging a letter to his chest and doing a gabbling jig, one foot kicked up",
         ],
-        "anims": "idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, "
+        "anims": "eyeing the prize, celebrating, idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, "
         "the grab, the gabbling run cycle, being snatched from, wailing",
     },
     "bombanat": {
@@ -399,8 +409,10 @@ RIGS = {
             "grabbed from below, wriggling and flapping wildly",
             "tangled in a butterfly net, wings crumpled",
             "perched with the wings folded, sly",
+            "perched on a branch, eyeing the prize below, licking his snout",
+            "celebrating: a loop-the-loop, a letter in his teeth",
         ],
-        "anims": "the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck "
+        "anims": "eyeing the prize, celebrating, the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck "
         "flapping, struggling when grabbed, netted",
     },
     "grumley": {
@@ -434,8 +446,10 @@ RIGS = {
             "spluttering after a miss, goo on his spectacles",
             "rubbing his middle with two tentacles and licking his lips, looking forward to lunch",
             "snagged in a big fishing net and hauled up wiggly-squiggly, tentacles everywhere",
+            "eyeing the prize: only the spectacled eyes and hair crest above the goo, peering up",
+            "celebrating: holding a Bombanat aloft in one tentacle, beaming",
         ],
-        "anims": "lurking, rising, tentacles curling and waving, the lunge and grab, the miss "
+        "anims": "eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the lunge and grab, the miss "
         "and splutter, the lunch dance, being netted and hauled up",
     },
     "iceferg": {
@@ -469,8 +483,10 @@ RIGS = {
             "charging forward, leaning in, its crack-mouth open",
             "the crash, SCRUNNCCCHHH, ice chips flying, a sea lion tumbling off",
             "bumped and dazed, wobbling, cracks across its face",
+            "eyeing the prize: the beady eye just opening in its crevice, sly",
+            "celebrating: the eye glaring in triumph, the sea lions clapping their flippers",
         ],
-        "anims": "drifting and bobbing, the glaring eye, huffing up, the charge, the crash, "
+        "anims": "eyeing the prize, celebrating, drifting and bobbing, the glaring eye, huffing up, the charge, the crash, "
         "the dazed wobble, and the sea lions dozing, startling and sliding off",
     },
     "typhoonigator": {
@@ -506,8 +522,10 @@ RIGS = {
             "bloated full and round, fishing boats and bottles poking out of the cloud",
             "letting go, blowing everything out",
             "a small exhausted wisp at morning",
+            "eyeing the prize: the face turned down, sniffing, the eyes narrowed",
+            "celebrating: a great swirling burp, the cloud billowing out happily",
         ],
-        "anims": "churning cloud, sucking, swelling as it fills, letting go, the morning sag",
+        "anims": "eyeing the prize, celebrating, churning cloud, sucking, swelling as it fills, letting go, the morning sag",
     },
     "yalapappus": {
         "view": "side view facing right, standing on his two stumpy legs",
@@ -543,8 +561,10 @@ RIGS = {
             "bonked on the head, dizzy, a bump rising",
             "running and shouting, fist raised",
             "sitting and wailing",
+            "looking up hungrily, napkin on and fork raised, eyeing the prize",
+            "celebrating: patting his tummy, napkin flapping, grinning",
         ],
-        "anims": "the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing",
+        "anims": "eyeing the prize, celebrating, the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing",
     },
     "grithix": {
         "view": "side view facing right, standing upright, the net over his shoulder",
@@ -584,8 +604,10 @@ RIGS = {
             "posting a letter into a mailbox",
             "tripping and stumbling",
             "strolling home not caring a snickle, a netted Bombanat under one arm",
+            "peeking round a tree, net raised, smiling, eyeing the prize",
+            "celebrating: dusting off his hands after posting a letter, not caring a snickle",
         ],
-        "anims": "the stride cycle with a swinging tail, the net swing in three beats, the slam, "
+        "anims": "eyeing the prize, celebrating, the stride cycle with a swinging tail, the net swing in three beats, the slam, "
         "posting the letter, tripping, the stroll home",
     },
 }
@@ -704,7 +726,7 @@ SECTIONS = {
     **{
         m["id"]: (
             m["name"].replace("The ", ""),
-            f"Chapter {i}, {m['used']}. Make the model sheet ({f'OM-C{i:02d}'}) first and settle "
+            f"The snatcher in {CHAPTERS[m['id']]} (see design.md). Make the model sheet ({f'OM-C{i:02d}'}) first and settle "
             "the design on it; then attach it to each of the other four requests, which are all "
             "drawn from it. The portrait is the name card; the parts, swaps and poses are the "
             f"sprites the game animates. The animations: {RIGS[m['id']]['anims']}.",
@@ -753,7 +775,7 @@ for i, m in enumerate(MONSTERS, start=1):
             "key": f"monster.{m['id']}.portrait",
             "file": base + "portrait.png",
             "size": "1024 x 1024, transparent",
-            "used": f"The name card of chapter {i} and the chapter select.",
+            "used": "The monster's name card and its place in the chapter select.",
             "standin": "The monster's stand-in rig, drawn in code, posed on the card.",
             "prompt": look + " " + from_sheet + PORTRAIT + " " + ref,
         },
@@ -891,6 +913,7 @@ PROPS = [
         "a wicker picnic basket, empty, lid open",
         "the same basket heaped full",
         "a ring of goo splash, seen side-on",
+        "the fishing boat's big net hanging from a crane hook, open, side-on",
     ]),
     ("iceferg", "seen from high above", [
         "the captain's fishing boat, the Peg, as on the book's pages 16-17: a stout teal hull with portholes, a wooden wheelhouse, a crane with a net, sailing",
@@ -920,6 +943,10 @@ PROPS = [
         "a paper bag",
         "the captain's note, a rolled scrap with scribbles (no readable words)",
         "a broken bottle, glass flying",
+        "the captain's bottle falling, side-on, with its red-and-white label",
+        "a small fishing boat tumbling down, side-on",
+        "a fish falling, flapping",
+        "a falling blob of blue goo",
     ]),
     ("grithix", "", [
         "the official-looking mailbox: a squat riveted grey-mauve metal box with an arched top and a mail slot, as on the Grithix's page of the book",
