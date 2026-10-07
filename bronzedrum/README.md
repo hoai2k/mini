@@ -130,11 +130,14 @@ kept light and every clock is read precisely:
 
 ## Delivered art
 
-All 88 requests have generated artwork, including BD-C14, the wider drum
+88 of the 89 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets
 (BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in
 `design/references/` and 68 game images in `game/assets/art/`. The set follows
 the coloured-paper direction (BD-S02).
+
+One is open: BD-U26, the card art for Drum Practice's Training mode; the card
+is plain paper until it arrives.
 
 BD-U20 and BD-U21 are delivered close-ups of the sisters' forearms and sticks
 that swing onto the HUD drum on each stroke. BD-U22 to BD-U25 are delivered

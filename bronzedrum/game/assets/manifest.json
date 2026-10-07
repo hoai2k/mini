@@ -581,6 +581,14 @@
       "web": "web/card-practice-call.webp"
     },
     {
+      "id": "card-practice-training",
+      "request": "BD-U26",
+      "file": "art/card-practice-training.png",
+      "status": "planned",
+      "section": "practice",
+      "runtime": true
+    },
+    {
       "id": "prop-dinh",
       "request": "BD-P11",
       "file": "art/prop-dinh.png",
