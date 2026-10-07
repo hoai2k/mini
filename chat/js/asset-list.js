@@ -2,8 +2,8 @@
 // Assets with status "delivered" are loaded; the rest use the app's stand-ins.
 export const ASSET_LIST = {
   "logo": {
-    "file": "assets/ui/logo.png",
-    "status": "requested"
+    "file": "assets/ui/logo-v3.png",
+    "status": "delivered"
   },
   "title-bg": {
     "file": "assets/ui/title-bg.webp",

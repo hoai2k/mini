@@ -1,0 +1,368 @@
+[
+  {
+    "id": "CH-U01",
+    "file": "assets/ui/logo-v3.png",
+    "size": "1600 x 800",
+    "prompt": "Edit the reference Games Chat logo. Change ONLY its color palette; keep the exact clean lettering, integrated controller A, two-line arrangement, rounded speech bubble, silhouette and transparent background. Use exclusively blue, green and purple hues: GAMES transitions from rich violet through cobalt blue into turquoise; CHAT in fresh mint green into teal; bubble in blue-violet; outlines deep indigo. Controller buttons in mint, teal, blue and violet. Subtle pale cool highlights, tasteful satin shading. Absolutely no orange, pink, red, yellow or magenta anywhere, including gradients, reflections and buttons. Text stays exactly GAMES CHAT. Full logo with generous clear margins on wide 1600 x 800 transparent PNG canvas. Fun but refined.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1774,
+      887
+    ],
+    "original_file": "assets/ui/logo.png",
+    "original_prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No other text, no watermark, no photorealism. A bold, playful video-game logo reading \"Games Chat\" on two lines: \"GAMES\" large on top and \"CHAT\" slightly smaller beneath it. Chunky rounded 3D letters with a thick dark-purple outline, a bright top highlight and a soft inner gradient: GAMES in hot pink to sunny yellow, CHAT in aqua to sky blue. The O-shaped counter of the A in GAMES is replaced by a small game controller, and CHAT sits inside a rounded speech bubble whose tail points down-left. A few sparkles, a see-through soap bubble and a tiny basketball float around the edges. Spell it exactly: Games Chat. Centred, slight upward tilt, wide landscape composition with even margins. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "accepted": true
+  },
+  {
+    "id": "CH-U02",
+    "file": "assets/ui/title-bg.webp",
+    "size": "1920 x 1080",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A dreamy pastel sky full of floating translucent iridescent bubbles of many sizes, some holding tiny reflections of smiling faces, soft lilac to aqua gradient, lots of calm empty space in the middle third for the logo and buttons. Full-bleed background, no border.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1672,
+      941
+    ]
+  },
+  {
+    "id": "CH-U03",
+    "file": "assets/ui/icon.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A chunky game controller inside a rounded speech bubble, pink and yellow on a rounded-square aqua badge, glossy, with a thick dark-purple outline. Bold and simple so it reads at 16 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F01",
+    "file": "assets/fx/puppy.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Two floppy brown-and-cream puppy ears hanging from the top of the head on either side, and a shiny black puppy nose centred on the nose tip. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F02",
+    "file": "assets/fx/puppy-tongue.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A long pink cartoon puppy tongue with a centre crease, its top edge at the mouth centre (512, 740), hanging straight down to about y = 960. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F03",
+    "file": "assets/fx/alien-antennae.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Two springy lime-green alien antennae with glowing magenta ball tips, rising from the top of the head at about x = 420 and x = 604 and curving outwards to the top corners. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F04",
+    "file": "assets/fx/heart.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. One plump glossy red cartoon heart, centred, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F05",
+    "file": "assets/fx/sunglasses.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Black 8-bit pixel-art \"deal with it\" sunglasses with white pixel glints, the lenses centred on the two eyes and the bar across the brow line. Crisp square pixels. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F06",
+    "file": "assets/fx/crown.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A jewelled golden cartoon crown with five points and red, blue and green gems, its base band sitting on the top of the head at y = 220 and the points rising to about y = 20. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F07",
+    "file": "assets/fx/mustache.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A grand dark-brown curly handlebar mustache centred at (512, 692), between the nose tip and the mouth, the curls reaching out to about x = 300 and x = 724. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F08",
+    "file": "assets/fx/monocle.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A gold-rimmed monocle with a glassy highlight, its ring centred on the image-right eye (632, 520) with a radius of about 80 px, and a thin gold chain hanging down to (700, 900). Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F09",
+    "file": "assets/fx/clown.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A big curly rainbow clown afro covering the top and sides of the head (from y = 60 down to about y = 560 at the sides, leaving the face open), and a shiny round red clown nose centred on the nose tip. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F10",
+    "file": "assets/fx/dragon-horns.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Two curved ivory-and-orange dragon horns rising from the top of the head at about x = 400 and x = 624, sweeping back and outwards, with small scaly ridges. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-F11",
+    "file": "assets/fx/storm-cloud.png",
+    "size": "768 x 384",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A fluffy dark-grey cartoon rain cloud with a grumpy face, slightly flat on the bottom, centred and filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1774,
+      887
+    ]
+  },
+  {
+    "id": "CH-F12",
+    "file": "assets/fx/lightning.png",
+    "size": "256 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. One zig-zag cartoon lightning bolt in electric yellow with a white core, top at the top centre, tip at the bottom centre. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      887,
+      1774
+    ]
+  },
+  {
+    "id": "CH-F13",
+    "file": "assets/fx/fish-1.png",
+    "size": "384 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A round orange-and-white clownfish swimming to the right, side view, centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "CH-F14",
+    "file": "assets/fx/fish-2.png",
+    "size": "384 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A slim electric-blue tang fish with a yellow tail swimming to the right, side view, centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "CH-F15",
+    "file": "assets/fx/fish-3.png",
+    "size": "384 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A puffy spotted yellow pufferfish swimming to the right, side view, centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "id": "CH-F16",
+    "file": "assets/fx/space.webp",
+    "size": "1280 x 720",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A cheerful cartoon outer-space scene: deep violet space, scattered stars, a ringed pink planet in the upper left, a small smiling moon on the right and a distant rocket. Keep the centre darker and calmer, since a person sits in front of it. Full-bleed, no border.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1672,
+      941
+    ]
+  },
+  {
+    "id": "CH-U01-v2",
+    "file": "assets/ui/logo-v2.png",
+    "size": "1600 x 800",
+    "prompt": "Use case: logo-brand. Asset type: alternate Games Chat title logo, transparent PNG, wide 2:1 canvas, generous margins. Use the reference as the existing brand, create a more sophisticated but still fun second version. Exact wording GAMES on first line, CHAT on second. Clean custom rounded geometric sans lettering with excellent spacing and a confident silhouette; playful subtle asymmetric rhythm, refined proportions. Keep coral pink, warm yellow and aqua with a dark plum outline, but restrained smooth gradients and very shallow dimensional shading, satin rather than exaggerated plastic gloss. The CHAT line sits in one simple elegant rounded speech bubble with a small down-left tail. A small integrated controller detail is okay but keep every letter legible. Remove all floating basketballs, stars, splash marks and decorative bubbles. Contemporary friendly social gaming identity, fun for adults as well as children. Only the logo, no extra text or watermark. Transparent background. Preserve the original only as a reference, do not replicate its busy decoration. Output 1600 x 800.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1774,
+      887
+    ]
+  },
+  {
+    "id": "CH-G01",
+    "file": "assets/games/basketball.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A classic orange basketball with black seams, seen straight on, centred, filling the frame. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-G02",
+    "file": "assets/games/hoop.png",
+    "size": "1024 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A basketball hoop seen straight on: a white backboard with a red square, an orange rim seen slightly from below whose front edge runs from (352, 640) to (672, 640), and a white net hanging below the rim to about y = 900. The backboard spans roughly x = 192 to 832 and y = 220 to 700. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-G03",
+    "file": "assets/games/court.webp",
+    "size": "1600 x 1200",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A bright cartoon school gym: polished wooden floor in the bottom quarter, padded blue walls, a row of high windows with sunlight, bleachers at the sides. Plain and slightly blurred in the upper middle, where the hoop is drawn. Full-bleed, no border.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1448,
+      1086
+    ]
+  },
+  {
+    "id": "CH-G04",
+    "file": "assets/games/flappy-sky.webp",
+    "size": "1920 x 1080",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A cheerful cartoon sky with puffy clouds and a low line of green hills and a little town along the bottom. Seamless horizontally: the left and right edges must join with no seam.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1672,
+      941
+    ]
+  },
+  {
+    "id": "CH-G05",
+    "file": "assets/games/flappy-pipe.png",
+    "size": "256 x 1024",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A tall candy-striped pillar with a wider cap at the top, standing upright, filling the frame, the shaft able to repeat vertically. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      753,
+      2089
+    ]
+  },
+  {
+    "id": "CH-U01-v3",
+    "file": "assets/ui/logo-v3.png",
+    "size": "1600 x 800",
+    "prompt": "Edit the reference Games Chat logo. Change ONLY its color palette; keep the exact clean lettering, integrated controller A, two-line arrangement, rounded speech bubble, silhouette and transparent background. Use exclusively blue, green and purple hues: GAMES transitions from rich violet through cobalt blue into turquoise; CHAT in fresh mint green into teal; bubble in blue-violet; outlines deep indigo. Controller buttons in mint, teal, blue and violet. Subtle pale cool highlights, tasteful satin shading. Absolutely no orange, pink, red, yellow or magenta anywhere, including gradients, reflections and buttons. Text stays exactly GAMES CHAT. Full logo with generous clear margins on wide 1600 x 800 transparent PNG canvas. Fun but refined.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1774,
+      887
+    ]
+  },
+  {
+    "id": "CH-G06",
+    "file": "assets/games/wings.png",
+    "size": "768 x 384",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A pair of fluffy white cartoon bird wings spread out to the left and right, with an empty round gap about 256 px wide in the middle where a face will go. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1774,
+      887
+    ]
+  },
+  {
+    "id": "CH-G07",
+    "file": "assets/games/quickdraw.webp",
+    "size": "1600 x 1000",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A cartoon Wild West main street at high noon seen down the middle: saloon and general store on either side, a tumbleweed, a big bright sun, empty dusty road in the centre. Full-bleed.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1586,
+      992
+    ]
+  },
+  {
+    "id": "CH-G08",
+    "file": "assets/games/rps-rock.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A cartoon fist (rock) seen from the back of the hand, centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-G09",
+    "file": "assets/games/rps-paper.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A cartoon open flat hand (paper), palm facing the viewer, centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-G10",
+    "file": "assets/games/rps-scissors.png",
+    "size": "512 x 512",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A cartoon hand making a V with two fingers (scissors), centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "id": "CH-G11",
+    "file": "assets/games/airhockey-table.webp",
+    "size": "1000 x 1600",
+    "prompt": "Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A glossy arcade air-hockey table seen from directly above: icy white-blue surface with tiny air holes, a red centre line and centre circle, goal slots at the top and bottom centre about 36% of the width, and a neon rim along all four edges. Flat top-down view, no perspective, full-bleed.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      992,
+      1586
+    ]
+  },
+  {
+    "id": "CH-G12",
+    "file": "assets/games/card-back.png",
+    "size": "512 x 704",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. The back of a playing card with rounded corners: a bright aqua and pink bubble pattern with a small bubble logo in the middle, symmetrical. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1070,
+      1470
+    ]
+  }
+]

@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-153 requested, 153 in total.
+1 delivered, 152 requested, 153 in total.
 
 ## Brand
 
@@ -34,14 +34,14 @@ The title screen and the browser tab.
 
 ### CH-U01 · Title logo
 
-- **File:** `chat/assets/ui/logo.png`
+- **File:** `chat/assets/ui/logo-v3.png`
 - **Size:** 1600 x 800, transparent
 - **Used for:** The title screen logo above Press Start, and the card on the game library page.
 - **Stand-in until delivered:** The words in the page's rounded font with a gradient in the player's colour.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No other text, no watermark, no photorealism. A bold, playful video-game logo reading "Games Chat" on two lines: "GAMES" large on top and "CHAT" slightly smaller beneath it. Chunky rounded 3D letters with a thick dark-purple outline, a bright top highlight and a soft inner gradient: GAMES in hot pink to sunny yellow, CHAT in aqua to sky blue. The O-shaped counter of the A in GAMES is replaced by a small game controller, and CHAT sits inside a rounded speech bubble whose tail points down-left. A few sparkles, a see-through soap bubble and a tiny basketball float around the edges. Spell it exactly: Games Chat. Centred, slight upward tilt, wide landscape composition with even margins. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Edit the reference Games Chat logo. Change ONLY its color palette; keep the exact clean lettering, integrated controller A, two-line arrangement, rounded speech bubble, silhouette and transparent background. Use exclusively blue, green and purple hues: GAMES transitions from rich violet through cobalt blue into turquoise; CHAT in fresh mint green into teal; bubble in blue-violet; outlines deep indigo. Controller buttons in mint, teal, blue and violet. Subtle pale cool highlights, tasteful satin shading. Absolutely no orange, pink, red, yellow or magenta anywhere, including gradients, reflections and buttons. Text stays exactly GAMES CHAT. Full logo with generous clear margins on wide 1600 x 800 transparent PNG canvas. Fun but refined.
 ```
 
 ### CH-U02 · Title background

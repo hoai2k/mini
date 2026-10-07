@@ -101,6 +101,10 @@ SECTIONS = {
     ),
 }
 
+DELIVERIES_FILE = ROOT / "design" / "generated" / "deliveries.json"
+DELIVERIES = {r["id"]: r for r in json.loads(DELIVERIES_FILE.read_text())
+              if r.get("accepted")} if DELIVERIES_FILE.exists() else {}
+
 REQUESTS: list[dict] = []
 
 
@@ -119,6 +123,11 @@ def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, 
         parts.append(ICON)
     elif alpha:
         parts.append(ALPHA)
+    delivery = DELIVERIES.get(rid)
+    if delivery:
+        file = delivery["file"]
+        parts = [delivery["prompt"]]
+        status = "delivered"
     REQUESTS.append(dict(section=section, id=rid, asset=asset, title=title, size=size,
                          purpose=purpose, prompt=" ".join(parts), standin=standin, file=file,
                          face=face, status=status))
