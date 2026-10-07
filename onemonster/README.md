@@ -29,6 +29,14 @@ soon" placeholder (`game/index.html`, behind the shared invite gate in
   story, style and monsters, for the image generator. They are reference only
   and are never published.
 
+
+Generated artwork lives in `game/assets/`. The built-in image generator's
+prompt set, delivered files and checksums are recorded in
+[`design/image-deliveries.json`](design/image-deliveries.json); the request
+builder reads that record to update delivery status and the game's asset list.
+The character parts, swaps and poses are raw sheets. Slicing their sprites and
+fitting animation pivots will happen when the game rigs are implemented.
+
 Checks:
 
 ```sh

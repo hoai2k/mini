@@ -8,19 +8,19 @@ export const ASSETS = {
   },
   "titleBg": {
     "file": "assets/ui/title-bg.webp",
-    "delivered": false
+    "delivered": true
   },
   "icon": {
     "file": "assets/ui/icon.png",
-    "delivered": false
+    "delivered": true
   },
   "letter": {
     "file": "assets/ui/letter.png",
-    "delivered": false
+    "delivered": true
   },
   "postmark": {
     "file": "assets/ui/postmark.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.trollusk.sheet": {
     "file": "assets/monsters/trollusk/model-sheet.png",
@@ -32,15 +32,15 @@ export const ASSETS = {
   },
   "monster.trollusk.parts": {
     "file": "assets/monsters/trollusk/parts.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.trollusk.swaps": {
     "file": "assets/monsters/trollusk/swaps.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.trollusk.poses": {
     "file": "assets/monsters/trollusk/poses.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.bombanat.sheet": {
     "file": "assets/monsters/bombanat/model-sheet.png",
@@ -52,15 +52,15 @@ export const ASSETS = {
   },
   "monster.bombanat.parts": {
     "file": "assets/monsters/bombanat/parts.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.bombanat.swaps": {
     "file": "assets/monsters/bombanat/swaps.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.bombanat.poses": {
     "file": "assets/monsters/bombanat/poses.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grumley.sheet": {
     "file": "assets/monsters/grumley/model-sheet.png",
@@ -68,19 +68,19 @@ export const ASSETS = {
   },
   "monster.grumley.portrait": {
     "file": "assets/monsters/grumley/portrait.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grumley.parts": {
     "file": "assets/monsters/grumley/parts.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grumley.swaps": {
     "file": "assets/monsters/grumley/swaps.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grumley.poses": {
     "file": "assets/monsters/grumley/poses.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.iceferg.sheet": {
     "file": "assets/monsters/iceferg/model-sheet.png",
@@ -88,19 +88,19 @@ export const ASSETS = {
   },
   "monster.iceferg.portrait": {
     "file": "assets/monsters/iceferg/portrait.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.iceferg.parts": {
     "file": "assets/monsters/iceferg/parts.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.iceferg.swaps": {
     "file": "assets/monsters/iceferg/swaps.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.iceferg.poses": {
     "file": "assets/monsters/iceferg/poses.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.typhoonigator.sheet": {
     "file": "assets/monsters/typhoonigator/model-sheet.png",
@@ -112,15 +112,15 @@ export const ASSETS = {
   },
   "monster.typhoonigator.parts": {
     "file": "assets/monsters/typhoonigator/parts.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.typhoonigator.swaps": {
     "file": "assets/monsters/typhoonigator/swaps.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.typhoonigator.poses": {
     "file": "assets/monsters/typhoonigator/poses.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.yalapappus.sheet": {
     "file": "assets/monsters/yalapappus/model-sheet.png",
@@ -132,15 +132,15 @@ export const ASSETS = {
   },
   "monster.yalapappus.parts": {
     "file": "assets/monsters/yalapappus/parts.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.yalapappus.swaps": {
     "file": "assets/monsters/yalapappus/swaps.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.yalapappus.poses": {
     "file": "assets/monsters/yalapappus/poses.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grithix.sheet": {
     "file": "assets/monsters/grithix/model-sheet.png",
@@ -152,15 +152,15 @@ export const ASSETS = {
   },
   "monster.grithix.parts": {
     "file": "assets/monsters/grithix/parts.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grithix.swaps": {
     "file": "assets/monsters/grithix/swaps.png",
-    "delivered": false
+    "delivered": true
   },
   "monster.grithix.poses": {
     "file": "assets/monsters/grithix/poses.png",
-    "delivered": false
+    "delivered": true
   },
   "cast.sheet": {
     "file": "assets/cast/model-sheet.png",
@@ -168,74 +168,74 @@ export const ASSETS = {
   },
   "cast.sprites": {
     "file": "assets/cast/sprites.png",
-    "delivered": false
+    "delivered": true
   },
   "props.trollusk": {
     "file": "assets/props/trollusk.png",
-    "delivered": false
+    "delivered": true
   },
   "props.bombanat": {
     "file": "assets/props/bombanat.png",
-    "delivered": false
+    "delivered": true
   },
   "props.grumley": {
     "file": "assets/props/grumley.png",
-    "delivered": false
+    "delivered": true
   },
   "props.iceferg": {
     "file": "assets/props/iceferg.png",
-    "delivered": false
+    "delivered": true
   },
   "props.typhoonigator": {
     "file": "assets/props/typhoonigator.png",
-    "delivered": false
+    "delivered": true
   },
   "props.yalapappus": {
     "file": "assets/props/yalapappus.png",
-    "delivered": false
+    "delivered": true
   },
   "props.grithix": {
     "file": "assets/props/grithix.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.trollusk": {
     "file": "assets/scenes/trollusk.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.bombanat": {
     "file": "assets/scenes/bombanat.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.grumley": {
     "file": "assets/scenes/grumley.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.iceferg": {
     "file": "assets/scenes/iceferg.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.typhoonigator": {
     "file": "assets/scenes/typhoonigator.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.yalapappus": {
     "file": "assets/scenes/yalapappus.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.grithix": {
     "file": "assets/scenes/grithix.webp",
-    "delivered": false
+    "delivered": true
   },
   "story.prologue": {
     "file": "assets/story/prologue.webp",
-    "delivered": false
+    "delivered": true
   },
   "story.mailman": {
     "file": "assets/story/mailman.webp",
-    "delivered": false
+    "delivered": true
   },
   "story.lucyjane": {
     "file": "assets/story/lucyjane.webp",
-    "delivered": false
+    "delivered": true
   }
 };
