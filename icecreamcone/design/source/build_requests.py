@@ -1,0 +1,463 @@
+#!/usr/bin/env python3
+"""Generate the Ice-Cream Cone Coot image requests and the game's asset list.
+
+Edit the data in this file, then run:
+
+    python3 icecreamcone/design/source/build_requests.py          # write
+    python3 icecreamcone/design/source/build_requests.py --check  # verify up to date
+
+Outputs:
+    icecreamcone/design/image-requests.md   the request document
+    icecreamcone/game/src/asset-list.js     what the game loads
+
+Statuses:
+    requested  the game draws its own stand-in and does not try to load the file
+    delivered  the file is in icecreamcone/game/assets/ and the game loads it in place
+               of the stand-in
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+DOC = ROOT / "design" / "image-requests.md"
+ASSET_LIST = ROOT / "game" / "src" / "asset-list.js"
+
+# The look every image shares: an old picture book, ink and watercolour.
+STYLE = (
+    "Children's picture-book illustration in the style of Arnold Lobel's 1971 book The "
+    "Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate "
+    "crosshatching and stippling, soft transparent watercolour washes in a slightly faded "
+    "early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and "
+    "mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. "
+    "Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, "
+    "no border, no UI."
+)
+
+# Where the reference photos of the book live once pushed (icecreamcone/reference/).
+REF_URL = "https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/reference/"
+REF = (
+    "Match the design of this bird in the reference photo of the book, " + REF_URL + "{0} , "
+    "keeping its shapes, colours and proportions, but as a clean new full-colour painting of "
+    "the bird alone (no book, page, hands or printed text)."
+)
+REF_SCENE = (
+    "For the drawing style, palette and mood, look at the reference photo of the book, "
+    + REF_URL + "{0} ."
+)
+
+BIRD = (
+    "The bird IS the object: a real, clearly recognisable everyday object that has come alive as "
+    "a bird, with a round staring eye with a dot pupil, a long pointed beak, little wings or "
+    "plumes, and long, thin, knobbly bird legs ending in spiky claws, growing naturally out of "
+    "it, so the object's shape still reads at a glance. Calm and a little odd, not a cartoon "
+    "mascot: no human expression, no smile."
+)
+
+ALPHA = (
+    "Transparent background (PNG with alpha). If transparency is not possible, use a flat pure "
+    "magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on "
+    "integration."
+)
+
+PORTRAIT = (
+    "Full-body portrait of the bird alone, standing in a three-quarter view facing left, filling "
+    "about 80% of a square frame, centred, with a clean silhouette that still reads at 96 px. "
+    "Only a small soft shadow under the feet. " + ALPHA
+)
+
+SCENE = (
+    "Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of "
+    "birds, people and animals (the game draws them on top). "
+)
+
+SECTIONS = {
+    "ui": ("Brand", "The title screen, the browser tab, the game library card and the book's paper."),
+    "bird": (
+        "Bird portraits",
+        "One portrait per bird. Each is shown large on the bird's page in the field guide and is "
+        "the bird itself in its minigame, where the game moves, tilts and squashes it.",
+    ),
+    "scene": (
+        "Minigame scenes",
+        "One background per minigame. The game draws the birds and everything that moves on top, "
+        "so each scene leaves the play area quiet, as its prompt says.",
+    ),
+}
+
+# Each bird: id (also the file name), name, the reference photo in
+# icecreamcone/reference/, the portrait description and its minigame scene.
+# Order is the order of the field guide. The descriptions follow the book's own
+# drawings; see icecreamcone/reference/README.md.
+BIRDS = [
+    {
+        "id": "coot",
+        "name": "The Ice-Cream Cone Coot",
+        "ref": "cover-ice-cream-cone-coot.jpg",
+        "look": "The Ice-Cream Cone Coot, as on the book's cover: its body is a golden waffle "
+        "ice-cream cone lying on its side, tip pointing back and down, crowned with a big lumpy "
+        "lemon-yellow scoop (tiny brown speckles) as its chest and back. A thin neck striped red "
+        "and yellow like a candy straw curves up to a head that is a pink strawberry scoop, with "
+        "one big pale-blue round eye and a beak that is a small waffle cone pointing forward. "
+        "Three orange wafer fingers tipped with magenta bobbles stick out behind the head as a "
+        "crest. A little mint-green and pistachio drip where cone meets scoop. Two long thin legs "
+        "striped pink and white, ending in spiky magenta bird feet.",
+        "scene": "A sunny seaside promenade in summer: a striped ice-cream cart with an awning at "
+        "the far right edge, a pale wide sky with a few soft clouds over a calm sea, and a flat "
+        "wooden boardwalk running along the bottom fifth. Keep the whole upper two-thirds open, "
+        "plain sky, because ice-cream scoops fall through it.",
+        "used": "Scoop Stack, the scoop-catching game",
+    },
+    {
+        "id": "cupadee",
+        "name": "The Cupadee",
+        "ref": "cupadee-and-shuttercluck.jpg",
+        "look": "The Cupadee: a pale-yellow china teacup with a dusty-pink band around its rim is "
+        "its body, tipped slightly forward. Its round eye with a dot pupil is on the side of the "
+        "cup, a long sharp ochre beak points forward and down from the cup's front, and the cup's "
+        "curly handle is at the back with a little tuft of yellow tail feathers. It stands on two "
+        "very long, thin, knobbly legs with spiky claws.",
+        "scene": "A tea table in a sunny old-fashioned kitchen: a lace-edged tablecloth across the "
+        "bottom third, a window with a geranium, a dresser with plates far behind. Keep the "
+        "tabletop and the space above it clear, because the teapot and the Cupadee go there.",
+        "used": "Tea Time, the pouring game",
+    },
+    {
+        "id": "shuttercluck",
+        "name": "The Shuttercluck",
+        "ref": "cupadee-and-shuttercluck.jpg",
+        "look": "The Shuttercluck: its body is a boxy old 1930s camera in dark brown-black "
+        "leatherette with a little viewfinder and a winding knob on top. Its single big round "
+        "lens, ringed in yellow, is its one staring eye on the front. A long, tapering tan beak "
+        "sticks straight out of the camera's side, curly pink plumes rise from the top as a crest "
+        "and curl out of the back as a tail, and it stands on two short scaly orange legs with "
+        "grey claws.",
+        "scene": "A quiet meadow at midday: tall grass along the bottom, a low mossy stone wall, two "
+        "round bushes, a hollow old tree with a knothole, a hedge and a wooden gate, spread evenly "
+        "across the picture with sky above, so there are many places a bird might peek out from.",
+        "used": "Say Cheese, the photograph game",
+    },
+    {
+        "id": "gullfinch",
+        "name": "The Gramophone Gullfinch",
+        "ref": "gramophone-gullfinch.jpg",
+        "look": "The Gramophone Gullfinch, in olive and mustard yellow: a huge fluted brass "
+        "gramophone horn flares out behind its head like a giant flower, a small green-grey finch "
+        "head with a round eye and a spray of long curved yellow crest feathers sits where the "
+        "horn narrows, a neck of overlapping scaly feathers curves down to its body, which is a "
+        "square record-player box with a black record and a tone arm on top and a crank handle on "
+        "the side. It stands on one long, thin yellow leg with long claws, the other leg raised.",
+        "scene": "A cosy old parlour in the evening: patterned wallpaper, a fringed lamp, an "
+        "armchair, a rug and a little table, all around the edges. Keep the centre and the lower "
+        "middle open, plain wall and floor, for the gramophone and the notes that float to it.",
+        "used": "Wind and Sing, the music game",
+    },
+    {
+        "id": "plume",
+        "name": "The Flowerpot Plume",
+        "ref": "flowerpot-plume.jpg",
+        "look": "The Flowerpot Plume: a dusty-pink terracotta flowerpot is its body, with a small "
+        "ochre-yellow face on the upper front of the pot (one round eye, a short magenta beak), "
+        "a little pink wing on its side, a pink tail tuft at the back, and two short orange legs. "
+        "A small yellow-green sprout of leaves grows from the soil at the top of the pot, which "
+        "is its head.",
+        "scene": "A sunny cottage garden: a long wooden potting bench runs across the lower third, "
+        "a brick wall with climbing roses behind it, open sky above. Keep the bench top and the "
+        "sky above it clear, because the pots and the watering can go there.",
+        "used": "Bloom, the watering game",
+    },
+    {
+        "id": "bobolinks",
+        "name": "The Highbutton Bobolinks",
+        "ref": "highbutton-bobolinks.jpg",
+        "look": "The Highbutton Bobolinks: a pair of old-fashioned ladies' high-button boots in "
+        "dusty mauve-pink leather with a row of small round buttons, cream soles and little "
+        "heels. Each boot is a bird: a round yellow eye near the top and a long white pointed "
+        "beak opening upward out of the boot's top, singing. The two stand side by side, one "
+        "slightly behind the other, as a left and a right.",
+        "scene": "A night stream through woods seen from the side: dark blue-black sky with a "
+        "small glowing yellow moon, gnarled branches at the edges, dark water across the lower "
+        "half catching the moonlight. Keep the water's surface open, without stones, because the "
+        "game places the stepping stones.",
+        "used": "Left Foot, Right Foot, the stepping-stone game",
+    },
+    {
+        "id": "peeper",
+        "name": "The Newspaper Peeper",
+        "ref": "newspaper-peeper.jpg",
+        "look": "The Newspaper Peeper: its body is a folded sheet of old newspaper standing "
+        "upright, covered in columns of tiny grey print, a bold headline and two small printed "
+        "photos; long torn strips of newspaper curl up and back from the top as its crest and "
+        "tail. A pale-yellow bird head with a round eye and a long thin open beak leans out "
+        "from the top-left corner, and it stands on two yellow legs with long claws.",
+        "scene": "An old print shop: a big iron printing press at the left edge, drying sheets "
+        "pegged on lines along the top, wooden type cases on the far wall, a plank floor along "
+        "the bottom. Keep the middle open, because letters flutter through it.",
+        "used": "Hot off the Press, the letter-catching game",
+    },
+    {
+        "id": "piffle",
+        "name": "The Pincushion Piffle",
+        "ref": "pincushion-piffle.jpg",
+        "look": "The Pincushion Piffle: a plump round olive-ochre pincushion body bristling with "
+        "pins along its back like a crest: pearl-headed pins in rose, cream and plum, long "
+        "needles, hatpins and two safety pins. A silver thimble with a lacy dimpled pattern sits "
+        "on the front like a little hat, a short pointed tail sticks out at the back, and it "
+        "walks on two thin dark legs.",
+        "scene": "A sewing table seen from above at a slight angle: a patterned quilt laid across "
+        "it, a tape measure, a spool of red thread and a pair of scissors at the edges. Keep the "
+        "middle of the quilt open, because the stitching path is drawn there.",
+        "used": "Stitch in Time, the sewing game",
+    },
+    {
+        "id": "dodo",
+        "name": "The Dollarbill Dodo",
+        "ref": "dollarbill-dodo.jpg",
+        "look": "The Dollarbill Dodo: its body is a long, flat, green-yellow paper banknote held "
+        "level like a plank, with ornate engraved borders, scrolls and a numeral 1 in each corner "
+        "(an invented note, not a real currency, no portrait). Curly yellow-green feather tufts "
+        "at the back end, a long two-pointed yellow beak at the front, and two thin yellow legs "
+        "underneath.",
+        "scene": "A shop counter in an old general store: a polished wooden counter top across "
+        "the lower third, a brass till at the far left, shelves of jars behind. Keep the counter "
+        "top clear, because the hats the Dodo hides under go there.",
+        "used": "Spot the Dodo, the shell game",
+    },
+    {
+        "id": "crow",
+        "name": "The Safecrossing Crow",
+        "ref": "endpapers-all-birds.jpg",
+        "look": "The Safecrossing Crow, as in the bottom right of the book's endpapers: its head "
+        "is an old-fashioned dark-green cast-iron traffic signal lantern with a knob on top, "
+        "little spikes at the sides and three round lamps (red, amber, green) in a column, a "
+        "short pointed beak and a tuft of orange tail feathers. The lantern sits on a long thin "
+        "black pole that is its neck, and it stands on two very long, thin black legs with pink "
+        "spiky feet. Show all three lamps dim and unlit, because the game lights them.",
+        "scene": "A small-town street crossing seen from slightly above: a road runs straight "
+        "across the middle of the picture from left to right, with a striped zebra crossing in "
+        "its centre, a pavement in the foreground at the bottom and another along the far side, "
+        "old shop fronts and a tree behind. The road and pavements are empty of cars and people.",
+        "used": "Safe Crossing, the traffic game",
+    },
+]
+
+OBJECTS = {
+    "coot": "an ice-cream cone with strawberry and lemon scoops",
+    "cupadee": "a yellow teacup",
+    "shuttercluck": "an old box camera",
+    "gullfinch": "a wind-up gramophone",
+    "plume": "a terracotta flowerpot with a blooming plume",
+    "bobolinks": "a pair of pink high-button boots",
+    "peeper": "a newspaper",
+    "piffle": "a pincushion full of pins",
+    "dodo": "a banknote",
+    "crow": "a traffic light on stilt legs",
+}
+ALL_BIRDS = "; ".join(f"{b['name'][4:] if b['name'].startswith('The ') else b['name']} ({OBJECTS[b['id']]})" for b in BIRDS)
+
+REQUESTS = [
+    {
+        "id": "IC-U01",
+        "section": "ui",
+        "name": "Title logo",
+        "key": "logo",
+        "file": "assets/ui/logo.png",
+        "size": "1600 x 800, transparent",
+        "used": "The title screen above Press Start, and the card on the game library page.",
+        "standin": "The title set in the page's serif font in brown ink.",
+        "ref": "cover-ice-cream-cone-coot.jpg",
+        "status": "requested",
+        "prompt": "A hand-lettered picture-book title in brown ink and watercolour, like the "
+        "cover of an early-1970s children's book: old-fashioned, slightly wobbly serif letters "
+        "with fine crosshatched shading, filled with soft washes of strawberry pink, vanilla cream "
+        "and waffle-cone ochre. Two lines, spelled exactly: a large first line \"The Ice-Cream Cone "
+        "Coot\" and a smaller second line \"and Other Rare Birds\". A tiny ink drawing of a coot "
+        "whose body is an ice-cream cone stands at the end of the second line. For the lettering "
+        "and the coot, see the book's cover: " + REF_URL + "cover-ice-cream-cone-coot.jpg . Wide landscape "
+        "composition, the lettering filling about 85% of the width, even margins, no other text. "
+        + ALPHA,
+    },
+    {
+        "id": "IC-U02",
+        "section": "ui",
+        "name": "Title background",
+        "key": "titleBg",
+        "file": "assets/ui/title-bg.webp",
+        "size": "1920 x 1080, opaque",
+        "used": "Full-screen behind the title screen; also the cover of the game library card.",
+        "standin": "A painted-in-code landscape of hills under a pale sky.",
+        "ref": "endpapers-all-birds.jpg",
+        "status": "requested",
+        "prompt": STYLE + " A wide, dreamy landscape at golden hour: gentle rolling hills, a "
+        "winding path, a split-rail fence and a few round trees, a pale peach and slate-blue sky. "
+        "Small in the middle distance, rare birds made of everyday objects go about their day: a "
+        "teacup bird on long legs, a camera bird, a pair of pink high-button boots singing on a "
+        "fence, a traffic-light crow on stilt legs, a newspaper bird. Keep the upper-middle "
+        "half calm and open (plain sky) for the title, and the bottom-right corner quiet for "
+        "buttons. Full-bleed 16:9.",
+    },
+    {
+        "id": "IC-U03",
+        "section": "ui",
+        "name": "App icon and favicon",
+        "key": "icon",
+        "file": "assets/ui/icon.png",
+        "size": "1024 x 1024, transparent",
+        "used": "Browser tab, home-screen icon (scaled to 512, 192 and 180 px).",
+        "standin": "A drawn icon: an ice-cream cone with a coot's head on a cream tile.",
+        "ref": "cover-ice-cream-cone-coot.jpg",
+        "status": "requested",
+        "prompt": STYLE.replace("No text, no lettering, no watermark, no border, no UI.", "")
+        + "App icon: the Ice-Cream Cone Coot from the book's cover (" + REF_URL
+        + "cover-ice-cream-cone-coot.jpg ): its pink strawberry-scoop head with the big pale-blue "
+        "eye, waffle-cone beak and orange wafer crest, and the top of its striped neck, on a rounded-square cream paper tile with a thin brown "
+        "ink border. Bold and simple, readable at 48 px; the bird fills about 75% of the tile. No "
+        "text. Transparent corners outside the rounded square (PNG with alpha), or flat magenta "
+        "#FF00FF corners if transparency is not possible.",
+    },
+    {
+        "id": "IC-U04",
+        "section": "ui",
+        "name": "Paper texture",
+        "key": "paper",
+        "file": "assets/ui/paper.webp",
+        "size": "1024 x 1024, opaque, tiling",
+        "used": "The pages of the field guide, behind every page and card.",
+        "standin": "A flat cream colour with a faint drawn grain.",
+        "status": "requested",
+        "prompt": "A flat scan of plain, slightly aged cream watercolour paper: soft natural "
+        "grain, very faint fibres, a few barely-there warm speckles, even lighting, no folds, no "
+        "stains, no vignette, nothing drawn on it. A square tile that repeats seamlessly in both "
+        "directions: each edge continues exactly into the opposite edge.",
+    },
+    {
+        "id": "IC-U05",
+        "section": "ui",
+        "name": "All the birds together",
+        "key": "gathering",
+        "file": "assets/ui/gathering.webp",
+        "size": "1920 x 1080, opaque",
+        "used": "The last page of the field guide, shown once every bird has been spotted.",
+        "standin": "Every bird's portrait (or stand-in) drawn together on a hillside.",
+        "ref": "endpapers-all-birds.jpg",
+        "status": "requested",
+        "prompt": STYLE + " " + BIRD + " A crowded, happy gathering of all the rare birds "
+        "together for a group portrait, each clearly visible: "
+        + ALL_BIRDS + ". Packed and lively like the book's endpapers (" + REF_URL + "endpapers-all-birds.jpg ), "
+        "on a pale lemon-yellow ground with a grassy strip along the bottom. Full-bleed 16:9.",
+    },
+]
+
+for n, b in enumerate(BIRDS, 1):
+    REQUESTS.append({
+        "id": f"IC-B{n:02d}",
+        "section": "bird",
+        "name": b["name"],
+        "key": f"bird.{b['id']}",
+        "file": f"assets/birds/{b['id']}.png",
+        "size": "1024 x 1024, transparent",
+        "used": f"The bird's page, and the bird itself in {b['used']}.",
+        "standin": "The bird drawn in code from simple shapes in ink and wash.",
+        "status": "requested",
+        "ref": b["ref"],
+        "prompt": STYLE + " " + BIRD + " " + b["look"] + " " + PORTRAIT + " " + REF.format(b["ref"]),
+    })
+
+for n, b in enumerate(BIRDS, 1):
+    REQUESTS.append({
+        "id": f"IC-S{n:02d}",
+        "section": "scene",
+        "name": b["name"].replace("The ", "") + " scene",
+        "key": f"scene.{b['id']}",
+        "file": f"assets/scenes/{b['id']}.webp",
+        "size": "1920 x 1080, opaque",
+        "used": f"Behind {b['used']}.",
+        "standin": "A simple painted-in-code version of the same place.",
+        "status": "requested",
+        "ref": b["ref"],
+        "prompt": STYLE + " " + SCENE + b["scene"] + " " + REF_SCENE.format(b["ref"]),
+    })
+
+
+def asset_list() -> str:
+    data = {
+        r["key"]: {"file": r["file"], "delivered": r["status"] == "delivered"} for r in REQUESTS
+    }
+    return (
+        "// Generated by icecreamcone/design/source/build_requests.py. Do not edit by hand:\n"
+        "// change the data there and rerun it. A delivered asset is loaded in place of\n"
+        "// its stand-in; a requested one is not loaded at all.\n"
+        "export const ASSETS = " + json.dumps(data, indent=2) + ";\n"
+    )
+
+
+def document() -> str:
+    delivered = sum(r["status"] == "delivered" for r in REQUESTS)
+    out = [
+        "# The Ice-Cream Cone Coot: image requests",
+        "",
+        "Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from "
+        "`source/build_requests.py`; edit the data there and rerun it, which also rewrites "
+        "`icecreamcone/game/src/asset-list.js`.",
+        "",
+        "## How to use this list",
+        "",
+        "1. Each prompt is complete on its own: paste it as it stands. The shared style text is already in every prompt.",
+        "2. Save each image under the file name in its **File** line and drop it in `icecreamcone/intake/`. On integration "
+        "it moves to that path under `icecreamcone/game/`, its status flips to `delivered` and the game loads it in place "
+        "of its stand-in.",
+        "3. The logo, icon and bird portraits need transparency. If the generator cannot produce alpha, use a flat "
+        "pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.",
+        "4. Opaque images are listed as `.webp`; PNG or JPEG is fine too, they are converted on integration.",
+        "5. Nothing here blocks the game: every image has a stand-in drawn in code until it arrives.",
+        "6. Each request names a reference photo of the book in `icecreamcone/reference/`, and its "
+        "prompt links to it. Give that photo to the image generator along with the prompt where "
+        "it can take an image; the prompt's link works once the photo is on `main`.",
+        "7. The bird portraits matter most, since each one is both the bird's page and the bird in its "
+        "game. If you only make some, start there.",
+        "",
+        "## Status",
+        "",
+        f"{len(REQUESTS) - delivered} requested, {delivered} delivered, {len(REQUESTS)} in total.",
+        "",
+    ]
+    for key, (title, blurb) in SECTIONS.items():
+        out += [f"## {title}", "", blurb, ""]
+        for r in (r for r in REQUESTS if r["section"] == key):
+            out += [
+                f"### {r['id']} · {r['name']}",
+                "",
+                f"- **File:** `icecreamcone/game/{r['file']}`",
+                f"- **Size:** {r['size']}",
+                f"- **Used for:** {r['used']}",
+                f"- **Stand-in until delivered:** {r['standin']}",
+                *( [f"- **Reference:** [`reference/{r['ref']}`](../reference/{r['ref']})"] if r.get("ref") else [] ),
+                f"- **Status:** {r['status']}",
+                "",
+                "```text",
+                r["prompt"],
+                "```",
+                "",
+            ]
+    return "\n".join(out).rstrip() + "\n"
+
+
+def main() -> int:
+    outputs = {DOC: document(), ASSET_LIST: asset_list()}
+    if "--check" in sys.argv:
+        stale = [p for p, text in outputs.items() if not p.exists() or p.read_text() != text]
+        for p in stale:
+            print(f"out of date: {p.relative_to(ROOT.parent)} (rerun build_requests.py)")
+        return 1 if stale else 0
+    for p, text in outputs.items():
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text)
+        print(f"wrote {p.relative_to(ROOT.parent)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
