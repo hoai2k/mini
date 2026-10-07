@@ -121,27 +121,29 @@ the goo and grabs him, letter and all.
 *In the book:* he grabs the Bombanat out of the air from the goo and means to
 slither down into the sea for a nice Bombanat lunch.
 
-The Grumley lurks in the goo with only his eyes showing; Bombanats flit and
-swoop overhead in loops. Move left and right under them and press A to lunge
-up and grab. A Bombanat caught is popped in the lunch basket on the shore;
+The Grumley, a shaggy orange octopus of a monster in round spectacles, lurks
+in the goo with only his eyes showing; Bombanats flit and swoop overhead in
+loops. Move left and right under them and press A to lunge up and grab with a
+tentacle. A Bombanat caught is popped in the lunch basket on the shore;
 a miss leaves the Grumley spluttering in the goo for a moment. Some Bombanats
 are decoys (a kite, a flapping umbrella) that cost a point. Score: Bombanats
 caught. Later they fly faster and the decoys look more like Bombanats.
 
-*Snatch:* SNAP! The letter drops from the struggling Bombanat onto the deck of
-a passing ship. *(How the book gets the letter from the Grumley to the ship
-is not in the text we have; check the scan and match it if it is better.)*
+*Snatch:* SNAP! As in the book, a big fishing net snags the Grumley and hauls
+him wiggly-squiggly on board a fishing boat, the *Peg*, Bombanat, letter and
+all.
 
 ### 4. The Furious-Floating Ice-Ferg: Furious Floating (45 s)
 
-*In the book:* the ship carrying the letter is struck by a Furious-Floating
-Ice-Ferg as it nears land, SCRUNNCCCHHH!!
+*In the book:* the fishing boat carrying the netted Grumley and the letter is
+struck by a Furious-Floating Ice-Ferg as it nears land, SCRUNNCCCHHH!!
 
 You are the Ice-Ferg, an iceberg in a terrible temper, seen from above.
 Steer with the stick; you drift with the currents (arrows on the water), and
-hold A to huff up a head of fury and charge. The captain's ship zigzags
-toward the harbour at the top of the screen; bump it before it gets there.
-Little fishing boats cross your path: bump one and you lose fury. Score:
+hold A to huff up a head of fury and charge. The captain's fishing boat, the
+*Peg*, with the Grumley's tentacles flopping over its side, zigzags toward
+the harbour at the top of the screen; bump it before it gets there. Little
+rowing boats cross your path: bump one and you lose fury. Score:
 seconds to spare when the ship is struck, plus a bonus for a full-fury
 charge. Later the ship turns more sharply and the currents get stronger.
 
@@ -262,7 +264,7 @@ The rigs, and the animations each needs:
 | --- | --- | --- |
 | Stamp-Collecting Trollusk | Side view facing right, standing on his two short legs | Idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, the grab, the gabbling run cycle, being snatched from, wailing |
 | Letter-Eating Bombanat | Side view facing right in flight, wings spread level | The flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck flapping, struggling when grabbed, netted |
-| Bombanat-Munching Grumley | Three-quarter view facing right, from the waist up, rising out of the goo | Lurking, rising, the lunge and grab, the miss and splutter, the lunch dance, the SNAP |
+| Bombanat-Munching Grumley | Three-quarter view facing right, rising out of the goo with his tentacles spread | Lurking, rising, tentacles curling and waving, the lunge and grab, the miss and splutter, the lunch dance, being netted and hauled up |
 | Furious-Floating Ice-Ferg | Front three-quarter view from high above, floating, the waterline along its bottom edge | Drifting and bobbing, huffing up, the charge, the crash, the dazed bump |
 | Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Churning cloud, sucking, swelling as it fills, letting go, the morning sag |
 | Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | The trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing |
