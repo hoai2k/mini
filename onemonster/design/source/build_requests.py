@@ -173,7 +173,7 @@ MONSTERS = [
         "look": "The Stamp-Collecting Trollusk, as on the book's cover: a squat, shaggy monster "
         "covered in long dark-brown fur, with a long pink pig-like snout, one white tusk, big "
         "pointed pink ears, small sly eyes and pink clawed hands and feet. He wears a squashed "
-        "blue-grey cap and a yellow bib lettered STAMPS across his chest (the only lettering "
+        "blue-grey cap with a coil of thin blue-green tubing looped round it, and a yellow bib lettered STAMPS across his chest (the only lettering "
         "allowed). He is tiptoeing, hunched and sneaky, a little envelope clutched to his chest "
         "with a smirk on his snout.",
         "scene": "A sunny small-town street seen side-on: a row of wooden porches with turned "
@@ -202,19 +202,19 @@ MONSTERS = [
         "id": "grumley",
         "name": "The Bombanat-Munching Grumley",
         "ref": "cover-golden-book-1974.jpg",
-        "seen": True,
-        "look": "The Bombanat-Munching Grumley, as the big shaggy monster at the left of the "
-        "book's cover: a huge, round, lumpy body of curly ochre-yellow fur, a wide grinning mouth "
-        "with two great white tusks, a broad pink snout, heavy-lidded greedy eyes, a white napkin "
-        "tied round his neck and a big fork held up in one pink paw, ready for lunch. Show him "
-        "rising chest-deep out of glossy blue goo, dripping, reaching up with his free paw.",
+        "seen": False,
+        "look": "The Bombanat-Munching Grumley, a sea monster who lives in the Blue Ocean of "
+        "Bubbley Goo: a huge, lumpy, warty body in slimy sea-green and teal, with straggly "
+        "weed-like hair hanging over a low brow, two bulging greedy eyes set high on top of his "
+        "head (so he can lurk with only his eyes above the goo), a broad pink snout, a wide "
+        "grinning frog-like mouth with two great white tusks, and long arms ending in big "
+        "webbed pink paws. Show him rising chest-deep out of glossy blue goo, dripping, reaching "
+        "up with one paw.",
         "scene": "Close to the surface of the Blue Ocean of Bubbley Goo: glossy blue-and-teal goo "
         "with bubbles across the bottom third, a small rocky shore at the left edge with a "
         "picnic basket and a checked cloth, and a big open lilac sky above with a few curling "
         "clouds. Keep the sky open, because Bombanats fly through it.",
         "used": "A Nice Bombanat Lunch, the grabbing game",
-        "note": "That the cover's yellow monster is the Grumley is inferred from his napkin and "
-        "fork, not confirmed; check the Internet Archive scan.",
     },
     {
         "id": "iceferg",
@@ -254,12 +254,16 @@ MONSTERS = [
         "id": "yalapappus",
         "name": "The Paper-Munching Yalapappus",
         "ref": "cover-golden-book-1974.jpg",
-        "seen": False,
-        "look": "The Paper-Munching Yalapappus: a round, pear-shaped, shaggy monster in mottled "
-        "mauve and dusty-pink fur, on short stumpy legs with big pink paws, with a wide flat "
-        "munching mouth full of square teeth, a little pink snout, droopy ears, round "
-        "heavy-lidded eyes and a tuft of hair on top. He is trundling along at a run, a scrap of "
-        "paper half-munched in his mouth.",
+        "note": "That the cover's yellow monster is the Yalapappus is the owner's reading of "
+        "the book; the shaggy ochre monster peering over the mailbox in grithix-mailbox-page.jpg, "
+        "where the text puts the Yalapappus, matches it.",
+        "seen": True,
+        "look": "The Paper-Munching Yalapappus, as the big shaggy monster at the left of the "
+        "book's cover: a huge, round, lumpy body of curly ochre-yellow fur, a broad squashed face "
+        "with a wide grinning mouth and two great white tusks, a broad pink snout and heavy "
+        "upper lip, heavy-lidded greedy eyes, short stumpy legs with big pink clawed feet, a "
+        "white napkin tied round his neck and a big fork held up in one pink paw, ready to munch. "
+        "He is trundling along at a run, a scrap of paper half-munched in his mouth.",
         "scene": "The edge of Nowhere seen side-on: bumpy, scrubby brown-and-ochre ground with "
         "rocks, holes and tufts of grass along the bottom third, a crooked signpost, a few bare "
         "twisted trees, and a wide pale lilac sky with curling clouds. Keep the ground strip "
@@ -269,15 +273,23 @@ MONSTERS = [
     {
         "id": "grithix",
         "name": "The Bombanat-Collecting Grithix",
-        "ref": "forest-spread-unidentified.jpg",
-        "seen": False,
-        "look": "The Bombanat-Collecting Grithix: a tall, gangly, long-armed monster in olive "
-        "and sage-green fur with a long knobbly nose, bushy eyebrows over beady pleased eyes, a "
-        "satchel of glass collecting jars across his chest and a big butterfly net held high in "
-        "one long pink hand, mid-swing.",
+        "ref": "grithix-mailbox-page.jpg",
+        "seen": True,
+        "look": "The Bombanat-Collecting Grithix, as on his page of the book: a tall, upright, "
+        "stout monster with pale pinkish hide drawn in fine lines (not furry); a big long head "
+        "with a heavy snout like a rhinoceros's, a row of three blunt horns along the top of the "
+        "snout and a blunt horn on the brow, two long white tusks curving up from the lower jaw, "
+        "a small half-lidded eye with a sly, pleased look and a smirk, and one long floppy ear "
+        "or horn curling back from the top of the head. He wears a long, ragged magenta-pink "
+        "robe down to his feet, held up by a strap with a big button, and carries a big scaly "
+        "blue-grey bag with small yellow spots on a strap under his near arm. Big pink clawed "
+        "hands, big pink clawed feet with long white talons, and a long pink tail ending in a "
+        "spiked ball like a mace. Over his shoulder, a butterfly net on a long yellow pole with "
+        "a round yellow hoop and a dark mesh bag.",
         "scene": "A clearing in a thick wood: gnarled trees and dense ferns and leaves framing "
         "the left, right and top edges, a mossy floor across the bottom third, and an "
-        "official-looking blue mailbox on a post at the right edge. Keep the middle of the "
+        "official-looking mailbox at the right edge, a squat riveted grey-mauve metal box with an "
+        "arched top and a mail slot, as on the Grithix's page. Keep the middle of the "
         "clearing open, because Bombanats fly through it and the Grithix runs about.",
         "used": "Net Them All, the netting game",
     },
@@ -287,11 +299,11 @@ MONSTERS = [
 WHAT = {
     "trollusk": "a shaggy brown troll with a pink pig snout, a cap and a yellow STAMPS bib",
     "bombanat": "a bat-winged monster with a long toothy snout and a striped necktie",
-    "grumley": "a huge shaggy ochre monster with tusks, a napkin and a fork",
+    "grumley": "a warty sea-green goo monster with eyes on top of his head and tusks",
     "iceferg": "a furious iceberg with a face",
     "typhoonigator": "a storm cloud with a face and big pink lips",
-    "yalapappus": "a round shaggy mauve paper-muncher",
-    "grithix": "a tall green monster with a butterfly net",
+    "yalapappus": "a huge shaggy ochre monster with tusks, a napkin and a fork",
+    "grithix": "a tall horn-snouted pink monster in a long magenta robe, with a butterfly net and a spiked tail",
 }
 
 # How each monster is built for animation. "view" is the master view the game
@@ -393,14 +405,13 @@ RIGS = {
         "side view facing right from the waist up",
         "parts": [
             "the torso from the waist up, its bottom edge drawn complete and round (the game hides it under the goo)",
-            "the head with the eyes, brows and broad snout, but no lower jaw",
+            "the head with the eyes, brows and broad snout, but no lower jaw and no weedy hair",
             "the lower jaw with the two great tusks, mouth closed in a grin",
-            "the white napkin tied at the neck, so it can flap",
+            "the straggly weed-like hair, so it can sway and drip",
             "the near upper arm",
-            "the near forearm and open paw, reaching",
+            "the near forearm and open webbed paw, reaching",
             "the far upper arm",
-            "the far forearm and paw, gripping",
-            "the big fork alone",
+            "the far forearm and open webbed paw",
         ],
         "swaps": [
             "the lower jaw wide open, ready to munch",
@@ -412,12 +423,12 @@ RIGS = {
             "dripping blobs of blue goo to lay over the head and shoulders",
         ],
         "poses": [
-            "lurking, only the eyes and brow above the goo line, the rest sunk below",
+            "lurking, only the eyes on top of his head above the goo line, the rest sunk below",
             "rising out of the goo, dripping",
             "lunging straight up, the near arm stretched as high as it goes",
             "holding a clenched fist up in triumph",
             "spluttering after a miss, goo on his face",
-            "fork raised, napkin on, licking his lips",
+            "rubbing his belly and licking his lips, looking forward to lunch",
             "startled by a SNAP, jaw dropped",
         ],
         "anims": "lurking, rising, the lunge and grab, the miss and splutter, the lunch dance, the SNAP",
@@ -496,15 +507,15 @@ RIGS = {
         "view": "side view facing right, standing on his two stumpy legs",
         "views": "a front view, a back view, and a three-quarter view facing right",
         "parts": [
-            "the round body, no head, arms or legs",
-            "the head with the eyes, the little snout and the far ear, but no lower jaw, no near ear and no tuft",
-            "the lower jaw with its square teeth, mouth closed",
-            "the near droopy ear",
-            "the springy tuft of hair on top",
-            "the near arm and paw",
-            "the far arm and paw",
-            "the near stumpy leg and big paw",
-            "the far stumpy leg and big paw",
+            "the round shaggy body, no head, arms or legs",
+            "the head with the eyes, the snout and the upper lip, but no lower jaw",
+            "the lower jaw with the two great tusks, mouth closed",
+            "the white napkin tied at the neck, so it can flap",
+            "the near arm and paw, open",
+            "the far arm and paw, gripping",
+            "the big fork alone",
+            "the near stumpy leg and big clawed foot",
+            "the far stumpy leg and big clawed foot",
         ],
         "swaps": [
             "the lower jaw wide open",
@@ -514,14 +525,15 @@ RIGS = {
             "the eye area only, eyes furious",
             "the eye area only, eyes swirling and dizzy",
             "the eye area only, eyes shut (a blink)",
+            "the near paw clenched in a fist",
         ],
         "poses": [
-            "standing idle, contented",
+            "standing idle, contented, fork up",
             "trundling, near leg forward",
             "trundling, far leg forward",
             "hopping, in the air, legs tucked",
             "landing, squashed flat",
-            "sitting and gleefully munching a paper",
+            "sitting with the napkin on, gleefully munching a paper off the fork",
             "bonked on the head, dizzy, a bump rising",
             "running and shouting, fist raised",
             "sitting and wailing",
@@ -529,46 +541,47 @@ RIGS = {
         "anims": "the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing",
     },
     "grithix": {
-        "view": "side view facing right, standing, holding the net upright",
+        "view": "side view facing right, standing upright, the net over his shoulder",
         "views": "a front view, a back view, and a three-quarter view facing right",
         "parts": [
-            "the torso with the satchel of collecting jars, no head, arms or legs",
-            "the head with the bushy brows, beady eyes and knobbly nose, mouth closed in a pleased smile",
+            "the torso and the long magenta robe down to the hem, with the strap and button, no head, arms, feet or tail",
+            "the head with the horns, the eye and the upper snout, but no lower jaw and no floppy ear",
+            "the lower jaw with the two long tusks, mouth closed in a smirk",
+            "the long floppy ear or horn from the top of the head",
             "the near upper arm",
-            "the near forearm",
-            "the near hand, gripping",
+            "the near forearm and gripping hand",
             "the far upper arm",
-            "the far forearm",
-            "the far hand, open",
-            "the near thigh",
-            "the near shin and foot",
-            "the far thigh",
-            "the far shin and foot",
-            "the long wooden handle of the net",
-            "the hoop and the empty net bag",
-            "one empty glass collecting jar with a cork",
+            "the far forearm and open hand",
+            "the near foot and ankle, as it shows below the robe",
+            "the far foot and ankle",
+            "the loose lower edge of the robe, so it can swing as he walks",
+            "the long tail without its end",
+            "the spiked ball at the end of the tail",
+            "the scaly blue-grey bag with its strap",
+            "the long yellow pole of the net",
+            "the yellow hoop and the empty net bag",
         ],
         "swaps": [
-            "the net bag full, sagging with something heavy and wriggling",
-            "the mouth area only, open in an AHA",
-            "the mouth area only, a calm smirk that doesn't care a snickle",
-            "the eye area only, eyes narrowed and taking aim",
-            "the eye area only, eyes closed and contented",
+            "the net bag full, sagging with a tangled Bombanat",
+            "the lower jaw dropped open in an AHA",
+            "the lower jaw in a calm smirk that doesn't care a snickle",
+            "the eye area only, eye narrowed and taking aim",
+            "the eye area only, eye closed and contented",
             "the far hand holding a letter (no letter drawn), ready to post it",
         ],
         "poses": [
-            "standing idle with the net",
-            "striding, near leg forward",
-            "striding, far leg forward",
+            "standing idle with the net over his shoulder",
+            "striding, near foot forward, tail swinging",
+            "striding, far foot forward",
             "winding up a swing, the net drawn back",
             "the swing, the net sweeping through",
             "slamming the net down, FLIP-FLOP",
-            "posting a letter at a mailbox slot",
+            "posting a letter into a mailbox",
             "tripping and stumbling",
-            "strolling home not caring a snickle, something tucked under one arm",
+            "strolling home not caring a snickle, a netted Bombanat under one arm",
         ],
-        "anims": "the stride cycle, the net swing in three beats, the slam, posting the letter, "
-        "tripping, the stroll home",
+        "anims": "the stride cycle with a swinging tail, the net swing in three beats, the slam, "
+        "posting the letter, tripping, the stroll home",
     },
 }
 
@@ -903,7 +916,7 @@ PROPS = [
         "a broken bottle, glass flying",
     ]),
     ("grithix", "", [
-        "an official-looking blue mailbox on a post, with a mail slot and an eagle badge (no lettering)",
+        "the official-looking mailbox: a squat riveted grey-mauve metal box with an arched top and a mail slot, as on the Grithix's page of the book",
         "a glass collecting jar, empty, corked",
         "the same jar with a small angry mauve bat-winged monster inside",
         "a clump of ferns for the foreground",
@@ -979,7 +992,7 @@ REQUESTS += [
         "prompt": STYLE + " " + STORY + "At the edge of a wood, a stern little mailman in a "
         "blue uniform, peaked cap and goggles roars up on an official-looking old motorcycle "
         "with a sidecar full of mail sacks, one arm raised and pointing. In front of an "
-        "official-looking blue mailbox, three monsters freeze in the act of trying to carry the "
+        "official-looking mailbox (a squat riveted grey-mauve metal box with an arched top), three monsters freeze in the act of trying to carry the "
         "mailbox off: " + WHAT["trollusk"] + "; " + WHAT["yalapappus"] + "; "
         + WHAT["bombanat"] + ". At the side, " + WHAT["grithix"] + " walks off home with a "
         "netted Bombanat under one arm, not caring a bit. "
@@ -1059,7 +1072,7 @@ def document() -> str:
         "9. If a generator struggles with a whole sheet, split it: make the first half of the "
         "list and the second half as two images, saved as `parts-1.png` and `parts-2.png` (and "
         "so on), each in the same order and at the same scale.",
-        "10. Some monsters (the Ice-Ferg, the Yalapappus, the Grithix) are not in any photo we "
+        "10. Two monsters (the Grumley and the Ice-Ferg) are not in any photo we "
         "have, and their designs are ours; their model sheets say so under **Note**. If you can "
         "look at the book (the Internet Archive lends a scan), adjust those prompts to match first.",
         "11. Order of work: the model sheets, then the portraits, then the parts and swaps, then "

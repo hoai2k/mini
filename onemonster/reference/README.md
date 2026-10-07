@@ -19,18 +19,19 @@ to these files so an image generator can look at them.
 
 | File | What it shows | Source |
 | --- | --- | --- |
-| [`cover-golden-book-1974.jpg`](cover-golden-book-1974.jpg) | The front cover of the Golden Book edition: the title in yellow on a black arch; the Trollusk (blue-grey cap, yellow "STAMPS" bib) runs through a wood while the bat-winged Bombanat grabs his snout; a shaggy yellow monster with a fork and a napkin (probably the Grumley) behind; a red bird peeping out at bottom right | [Ken Priebe, "Picture Book Inspiration: Mercer Mayer", 2023](https://kenpriebe.substack.com/p/picture-book-inspiration-mercer-mayer) |
+| [`cover-golden-book-1974.jpg`](cover-golden-book-1974.jpg) | The front cover of the Golden Book edition: the title in yellow on a black arch; the Trollusk (blue-grey cap, yellow "STAMPS" bib) runs through a wood while the bat-winged Bombanat grabs his snout; the shaggy yellow monster with a fork and a napkin behind is the Yalapappus; a red bird peeping out at bottom right | [Ken Priebe, "Picture Book Inspiration: Mercer Mayer", 2023](https://kenpriebe.substack.com/p/picture-book-inspiration-mercer-mayer) |
 | [`cover-2001-reissue.jpg`](cover-2001-reissue.jpg) | The same cover art, cropped, on the 2001 reissue with a violet title panel | [Open Library cover 833553](https://covers.openlibrary.org/b/id/833553-L.jpg) |
 | [`typhoonigator-spread.jpg`](typhoonigator-spread.jpg) | The spread at page 20: the Wild-'n-Windy Typhoonigator, a storm-cloud face, sucking the sea up in a spout; the captain's bottle ("HELP!! OUR SHIP SANK ... Captain") bobbing; the crew in a pink rubber raft with an S.O.S. flag; the text band below | Ken Priebe, as above |
 | [`mailbox-girl-and-trollusk.jpg`](mailbox-girl-and-trollusk.jpg) | A girl in glasses walks barefoot past a porch reading a letter, while a monster in a cap hides under a "MAIL" box in the flowerbed. The blog captions it as Lucy Jane getting her letter; whether it is Lucy Jane at the end or Sally Ann at the start is **not confirmed** | [The Little Book Review, 2013](https://little-book-review.com/2013/07/24/one-monster-after-another-1974/) |
 | [`bedtime-book-trollusk.jpg`](bedtime-book-trollusk.jpg) | **Another book**, *Little Monster's Bedtime Book* (1978): "The Stamp-Collecting Trollusk" rhyme page, the Trollusk in a blue top hat looking through a stamp album | Ken Priebe, as above |
 | [`bedtime-book-typhoonigator.jpg`](bedtime-book-typhoonigator.jpg) | **Another book**, *Little Monster's Bedtime Book*: the Typhoonigator as a cloud with a face, blowing, over a "ROAD TO NOWHERE" sign | Ken Priebe, as above |
+| [`grithix-mailbox-page.jpg`](grithix-mailbox-page.jpg) | A full-page picture near the end: the Bombanat-Collecting Grithix, with the Bombanat in the net over his shoulder, stands at the official-looking mailbox, where the letter (addressed in a child's hand, "Sally Ann" legible) sticks out of the slot; the Yalapappus peers over the top of the mailbox and the Trollusk hides in the bushes beside it, as the text has the three of them watch helplessly | Photographed from the owner's copy of the book |
 | [`forest-spread-unidentified.jpg`](forest-spread-unidentified.jpg) | A wordless forest spread (perhaps endpapers): a monster in a blue-grey cap, like the Trollusk, reads a pink book under the leaves; a red bird in a gnarled tree. The post does not say which book it is from: **unidentified**, use for style only | Ken Priebe, as above |
 
 A scan of the 1993 Rainbird edition can be borrowed from the Internet
 Archive: https://archive.org/details/onemonsteraftera00maye (a free account
-is needed). It is the place to look for the monsters not pictured here: the
-Grumley, the Ice-Ferg, the Yalapappus and the Grithix, and the mailman.
+is needed). It is the place to look for the monsters not pictured here, the
+Grumley and the Ice-Ferg, and for the mailman.
 
 ## The story
 
@@ -129,24 +130,45 @@ checked against the Internet Archive scan.
   monster with dark-brown fur, a long pink pig-like snout (his "snerk"), a
   tusk, big pointed pink ears and pink hands and feet with claws. On the cover
   he wears a squashed blue-grey cap and a yellow bib lettered "STAMPS"; in the
-  Bedtime Book, a battered blue top hat, poring over a stamp album.
+  Bedtime Book, a battered blue top hat, poring over a stamp album. A coil
+  of thin blue-green tubing is looped round the cap, on the cover and on the
+  Grithix's page, where he hides in the bushes by the mailbox. The bib says
+  STAMPS, which is why the capped monster in the middle of the cover is taken
+  to be him and not the Grumley.
 - **Letter-Eating Bombanat** (cover; identified by inference, as the flying
   monster that seizes the Trollusk). Huge mauve bat wings with clawed tips, a
   long pink crocodile-like snout full of little fangs, a sly frowning eye, a
   tuft of dark fur on the chest, a red-and-white striped necktie or collar, a
   pink striped cap with a yellow flower on top, and clawed feet.
-- **Bombanat-Munching Grumley** (cover, probably). A big shaggy monster in
-  ochre-yellow fur, with a wide grinning mouth, two great tusks, a white
-  napkin tied at the neck and a fork held up, ready for lunch. That this is
-  the Grumley is inferred from the napkin and fork, not confirmed.
+- **Bombanat-Munching Grumley**. No picture found; the design in the image
+  requests is ours (a warty sea-green goo monster with eyes on top of his
+  head, so that he can lurk with only his eyes above the goo).
 - **Wild-'n-Windy Typhoonigator** (page-20 spread). A storm cloud with a
   face: billowing grey-brown and lilac cloud for a body and hair, clawed cloud
   hands, two bulging round eyes under heavy brows, a long pink nose and huge
   pink lips sucking up the sea in a tall spout of streaked blue-grey water.
 - **Furious-Floating Ice-Ferg**. No picture found.
-- **Paper-Munching Yalapappus**. No picture found. The text gives him paws
-  and has him trundle.
-- **Bombanat-Collecting Grithix**. No picture found. The text gives him a net.
+- **Paper-Munching Yalapappus** (cover, the yellow monster at the left, as
+  the owner reads the book; the Grithix page agrees). A big shaggy monster in
+  curly ochre-yellow fur, with a broad squashed face, a wide grinning mouth,
+  two great tusks, a heavy pink upper lip and snout, heavy-lidded eyes, a
+  white napkin tied at the neck and a fork held up, ready to munch. On the
+  Grithix's page the same ochre-furred face, bulging-eyed and fanged, peers
+  over the top of the mailbox, where the text puts the Yalapappus.
+- **Bombanat-Collecting Grithix** (Grithix page). Tall, upright and stout,
+  with pale pinkish hide drawn in fine lines rather than fur. A big long head
+  with a rhinoceros-like snout carrying a row of blunt horns, a horn on the
+  brow, two long white tusks curving up from the lower jaw, a small
+  half-lidded eye with a pleased, sly look, and one long floppy ear or horn
+  curling back from the top of his head. He wears a long, ragged magenta-pink
+  robe to the ground, held by a strap with a big button, and carries a big
+  scaly blue-grey thing with small yellow spots under his arm (it reads as a
+  bag on a strap). Pink clawed hands, big pink feet with long white talons,
+  and a long pink tail ending in a spiked ball like a mace. His butterfly net
+  has a yellow pole and hoop and a dark mesh bag; the Bombanat is in it, grey
+  winged here, with its flower cap and striped necktie.
+- **The official-looking mailbox** (Grithix page). A squat, riveted metal box
+  in grey-mauve with an arched top and a slot, standing in the scrub.
 - **The girls and the mailman.** The girl in the mailbox picture has long
   wavy brown hair, round glasses, a white top and a pink skirt, and is
   barefoot. The mailman (on an official-looking motorcycle) is not pictured
