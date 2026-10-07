@@ -10,6 +10,7 @@ import { figures } from './render/figures.js';
 import { story } from './render/story.js';
 import { field } from './render/field.js';
 import { hud } from './render/hud.js';
+import { training } from './render/training.js';
 import { touch } from './render/touch.js';
 import { practice } from './render/practice.js';
 
@@ -228,4 +229,4 @@ export class Renderer {
 }
 
 // The methods live in ./render/*.js, grouped by what they draw.
-Object.assign(Renderer.prototype, backdrop, figures, story, field, hud, touch, practice);
+Object.assign(Renderer.prototype, backdrop, figures, story, field, hud, touch, practice, training);

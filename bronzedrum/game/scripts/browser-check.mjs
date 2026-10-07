@@ -98,7 +98,7 @@ async function open(throttle = 1, scale = 2) {
     };
     requestAnimationFrame(tick);
   });
-  const scenes = [...Array(9).keys()].map((i) => ['stage', i]).concat([['practice', 'free'], ['practice', 'call']]);
+  const scenes = [...Array(9).keys()].map((i) => ['stage', i]).concat([['practice', 'free'], ['practice', 'call'], ['practice', 'training']]);
   const costs = [];
   for (const [kind, arg] of scenes) {
     await page.evaluate(([k, a]) => {

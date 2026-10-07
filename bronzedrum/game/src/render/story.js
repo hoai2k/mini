@@ -24,6 +24,9 @@ export const story = {
         this.villageHouse(x, GROUND - 4, lit, calling ? callPulse : 0, t, i);
         this.villageWake(x, GROUND - 4, t - ((this.wokenAt || {})[i] ?? -99));
       });
+    } else if (caller === 'training') {
+      // Training: the partner's drum, on the right of the field.
+      this.callerDrum(470, GROUND, callPulse, 'festival');
     } else if (caller === 'festival') {
       this.lanternString(-480, 820, 150, sess.index, sess.calls.length, t);
       this.callerDrum(600, GROUND, callPulse, 'festival');

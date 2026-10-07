@@ -68,6 +68,11 @@ const TIERS = {
   },
 };
 let difficulty = 'medium';
+
+/** A command's three tiers as designed (Medium, four beats), for Training's catalogue. */
+export function designedTiers(id) {
+  return TIERS[id] ? TIERS[id].medium.slice() : [];
+}
 // Number of beats (Settings): how long commands and calls are. Four by
 // default; fitBeats stretches or shrinks every rhythm to it.
 export const BEAT_RANGE = { min: 3, max: 8 }; // two beats cannot hold three distinct tiers on Easy

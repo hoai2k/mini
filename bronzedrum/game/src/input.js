@@ -20,6 +20,10 @@ const PAD_NAV = { [PAD.UP]: 'up', [PAD.DOWN]: 'down', [PAD.LEFT]: 'left', [PAD.R
 // Drum Practice: Y strikes the secondary drum and LB and RB choose it; the
 // d-pad's up and down add and take away beats.
 const PAD_PRACTICE = { [PAD.LB]: 'secondPrev', [PAD.RB]: 'secondNext', [PAD.UP]: 'more', [PAD.DOWN]: 'fewer' };
+// Training (Drum Practice): the d-pad (the arrow keys) chooses the level (◀ ▶)
+// and the rhythm (▲ ▼). There the arrow keys do not drum.
+const PAD_TRAINING = { [PAD.LEFT]: 'levelPrev', [PAD.RIGHT]: 'levelNext', [PAD.UP]: 'rhythmPrev', [PAD.DOWN]: 'rhythmNext' };
+const KEY_TRAINING = { ArrowLeft: 'levelPrev', ArrowRight: 'levelNext', ArrowUp: 'rhythmPrev', ArrowDown: 'rhythmNext' };
 const KEY_PRACTICE = {
   Minus: 'fewer', NumpadSubtract: 'fewer', ArrowDown: 'fewer',
   Equal: 'more', NumpadAdd: 'more', ArrowUp: 'more',
@@ -35,6 +39,8 @@ export class Input {
     this.handlers = { drum: [], nav: [], device: [], padButton: [], stick: [], action: [], touch: [], swipe: [] };
     this.mode = 'menu'; // 'menu' | 'play'
     this.practice = false; // Drum Practice: the extra controls above
+    this.training = false; // Training: the d-pad and arrows choose the level and the rhythm
+    this.pointerPick = null; // (x, y) -> true if a click there chose something (Training)
     this.device = 'keyboard';
     this.padIndex = null;
     this.prev = [];
@@ -77,6 +83,11 @@ export class Input {
       if (this.mode !== 'play' || e.pointerType === 'touch' || e.pointerType === 'pen') return;
       const r = target.getBoundingClientRect();
       this.setDevice('pointer');
+      // Training's tabs and list take clicks before the drum does.
+      if (this.pointerPick && this.pointerPick(((e.clientX - r.left) / r.width) * 1280, ((e.clientY - r.top) / r.height) * 720)) {
+        e.preventDefault();
+        return;
+      }
       const dx = ((e.clientX - r.left) / r.width - 0.5) * 1280;
       const dy = ((e.clientY - r.top) / r.height - 628 / 720) * 720;
       if (Math.hypot(dx, dy) < 72) {
@@ -143,6 +154,11 @@ export class Input {
     }
     this.setDevice('keyboard');
     if (this.mode === 'play') {
+      if (this.training && KEY_TRAINING[e.code]) {
+        this.emit('action', { action: KEY_TRAINING[e.code], time: e.timeStamp });
+        e.preventDefault();
+        return;
+      }
       if (DRUM_KEYS[e.code]) {
         this.emit('drum', { drum: DRUM_KEYS[e.code], time: e.timeStamp });
         e.preventDefault();
@@ -229,7 +245,8 @@ export class Input {
       this.setDevice('gamepad');
       this.emit('padButton', i);
       if (this.mode === 'play') {
-        if (this.practice && i === PAD.Y) this.emit('drum', { drum: 'S', time: stamp });
+        if (this.training && PAD_TRAINING[i]) this.emit('action', { action: PAD_TRAINING[i], time: stamp });
+        else if (this.practice && i === PAD.Y) this.emit('drum', { drum: 'S', time: stamp });
         else if (this.practice && PAD_PRACTICE[i]) this.emit('action', { action: PAD_PRACTICE[i], time: stamp });
         else if (PAD_DRUM[i]) this.emit('drum', { drum: PAD_DRUM[i], time: stamp });
         else if (i === PAD.A) this.emit('action', { action: 'guard', time: stamp });

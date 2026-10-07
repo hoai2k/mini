@@ -27,6 +27,12 @@ export function createPractice(ctx) {
       subtitle: 'Trade rhythms with a partner',
       intro: 'Your partner drums a call and you answer with any rhythm of the same number of beats. The call and your answer then play together, again and again, and you can drum along. Clear it with A (Space, or a swipe) and it is your turn to call: your partner answers with a riff on your rhythm. Each clear hands the call to the other side.',
     },
+    training: {
+      id: 'practice-training',
+      title: 'Training',
+      subtitle: 'The chapters’ rhythms, level by level',
+      intro: 'Every rhythm the chapters ask for, numbered and sorted into five levels, from plain beats to triplet runs. Choose a level (◀ ▶) and a rhythm (▲ ▼); your partner plays it and you play it back, judged as in the game. Each rhythm you play well leads on to the next.',
+    },
   };
   for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-practice', troops: 0, elephant: false, enemies: [] });
 
@@ -82,12 +88,16 @@ export function createPractice(ctx) {
   }
 
   function startPractice(kind) {
+    // Training is an answering chapter of its own (main.js).
+    if (kind === 'training') return ctx.startTraining();
     hideSuccess();
     if (ctx.game && ctx.game.practice) stopPractice();
     const stage = PRACTICE[kind];
     sound.start();
     sound.setKit(null);
     input.practice = true;
+    input.training = false;
+    input.pointerPick = null;
     ctx.game = {
       index: -1,
       stage,

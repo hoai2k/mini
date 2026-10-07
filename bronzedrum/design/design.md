@@ -392,6 +392,26 @@ once more while the army acts, in the player's own drum, and its dots light
 stroke by stroke with it; a sustained round after that is the army's drums,
 lower and softer.
 
+**Training** (`training.js`, wired in `main.js`). Every rhythm the chapters
+ask the player to drum, in one numbered catalogue: the battle commands' tiers up
+to each chapter's highest, the answering chapters' calls and the casting
+rhythm, as designed (Medium, four beats). A rhythm used in several places is one
+entry listing each use and chapter; entries are numbered in the order the game
+first asks for them, so a number names the same rhythm whatever the settings.
+Each is sorted by its shape into one of five levels: Steady (plain beats), Pairs
+(one pair), Pair runs (two pairs or more, or opening on a pair), Triplets (one
+triplet) and Triplet runs (triplets with pairs, two triplets, or opening on
+one). `LEVEL_OVERRIDES` moves a numbered rhythm to another level by hand.
+
+The screen shows the levels as tabs across the top (◀ ▶, or a tap or click)
+and the level's rhythms down the left (▲ ▼): number, dots, uses, and how often
+each was played well or missed this visit. It runs as an answering chapter of
+its own: the partner plays the rhythm at its chapter's tempo, the player plays
+it back, the reader judges it as in the game, a miss is told and counted, and a
+rhythm played well leads on to the next (round again at the end of the level).
+A plays it again. The point is to practise what the chapters ask, and to tune
+which chapters ask for which rhythms, by number.
+
 **The secondary drum.** The bronze drum stays the main drum. Beside it sits a
 secondary drum, struck with Y (G or H; the small drum at the bottom right on
 touch), and its strokes are part of the rhythm (drum `S`, a verdigris diamond

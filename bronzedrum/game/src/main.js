@@ -5,6 +5,7 @@ import { createBattle, orderFor, spawnEnemy, issueOrder, addFlourish, stepArmy, 
 import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
 import { createPractice } from './practice-play.js';
+import { catalogue, levelRhythms, LEVELS } from './training.js';
 import { Sound } from './audio.js';
 import { Input, PAD } from './input.js';
 import { Renderer } from './render.js';
@@ -307,16 +308,19 @@ let game = null;
 const SUSTAIN = { march: 0.6, strike: 0.5 };
 const SUSTAIN_CYCLES = 2;
 
-function startStage(i) {
+function startStage(i, custom = null) {
   hideSuccess();
   stopDemo();
-  const stage = STAGES[i];
+  const stage = custom || STAGES[i];
   sound.start();
   sound.setKit(null);
   input.practice = false;
+  input.training = false;
+  input.pointerPick = null;
   applyDifficulty();
-  // The rhythm this chapter plays, at the chosen difficulty (calls, the hammer rhythm).
-  const rhythm = (text) => fitBeats(rhythmFor(text));
+  // The rhythm this chapter plays, at the chosen difficulty (calls, the hammer
+  // rhythm); Training plays them as designed.
+  const rhythm = (text) => (stage.asDesigned ? text : fitBeats(rhythmFor(text)));
   game = {
     index: i,
     stage,
@@ -440,6 +444,9 @@ input.on('action', ({ action, time }) => {
 input.on('touch', ({ x, y, time }) => {
   // On the success moment only its button goes on (a stray tap should not).
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
+  // Training: a tap on a level or a rhythm chooses it.
+  const pick = game.training && renderer.trainingTarget(x, y, game.training);
+  if (pick) return act(pick, time);
   const target = renderer.touchTarget(x, y, game.mode);
   renderer.touched(x, y, target, songTime());
   if (target === 'L' || target === 'R' || target === 'S') strike(target, time);
@@ -533,6 +540,7 @@ function act(action, time) {
   }
   if (screen !== 'play' || dialogs.length || !game || game.ended) return;
   if (game.mode === 'practice') return practiceAct(action);
+  if (game.training && trainingAct(action)) return;
   // One button, A (Space, the shield drum): it always clears the rhythm dots,
   // and in a battle it also raises the shield wall. In chapters with no
   // shields it is just the clear, with a knock on the wooden slit drum (mõ).
@@ -662,6 +670,12 @@ function handleRhythm(ev) {
     }
     if (ev.reason === 'manual' && !g.quietClear) confirm('Cleared', P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
+    // Training: a try that does not make the rhythm is told plainly.
+    if (g.training && ev.reason !== 'manual' && (ev.strokes || 0) >= 1 && g.session.call) {
+      trainingTally(g.session.call.n, false);
+      const why = { uneven: 'uneven', timeout: 'too slow to finish', 'no-pattern': 'not this rhythm' }[ev.reason] || 'not quite';
+      confirm(`Not quite (${why}) — try again`, P.lacquer);
+    }
   } else if (ev.type === 'comboLost') {
     if (ev.combo > 1 && g.mode === 'battle') feedback('Chain broken', P.paperShade);
   }
@@ -682,6 +696,7 @@ function handleMode(e) {
       // Kept so an early answer can silence the rest of the call.
       g.callSources = e.call.strokes.map((s) => ({ at: g.clockStart + s.t, src: sound.echo(s.drum, g.clockStart + s.t, 0.75, voice) }));
       if (e.call.label) feedback(`${e.call.label} calls`, P.paperShade);
+      if (g.training) feedback(`Rhythm ${e.call.n} — listen`, P.paperShade);
       break;
     }
     case 'yourTurn':
@@ -708,6 +723,12 @@ function handleMode(e) {
           }
         }
       }
+      if (g.training) {
+        trainingTally(e.call.n, true);
+        confirm(`Rhythm ${e.call.n}: well played · ${Math.round(e.accuracy * 100)}% even`, P.bronzeLight);
+        sound.play('lantern', sound.now + 0.1, 0.6);
+        break;
+      }
       const words = { mourning: 'An incense stick is lit', village: `${e.call.label || 'The village'} answers`, festival: 'The crowd roars', elegy: 'A drum falls silent' };
       confirm(words[stage.caller] || 'Answered', P.bronzeLight);
       if (stage.caller === 'festival') sound.play('crowd-cheer', sound.now + 0.2, 0.8);
@@ -733,6 +754,12 @@ function handleMode(e) {
       renderer.wake(songTime() + 0.3, 'hud');
       break;
     case 'complete':
+      if (g.training) {
+        // The end of the level: round again from its first rhythm.
+        toast(`Level ${g.training.level} · ${LEVELS[g.training.level - 1].name}: every rhythm played. Again from the top.`);
+        trainingSelect(g.training.level, 0, 1.6);
+        break;
+      }
       g.evenness = e.evenness;
       finish('won');
       break;
@@ -1098,6 +1125,21 @@ function view() {
   v.heard = heardTime();
   v.success = !!g.success;
   v.miss = g.miss && t - g.miss.t < 1.1 ? g.miss : null;
+  if (g.training) {
+    const tr = g.training;
+    v.training = {
+      levels: LEVELS,
+      level: tr.level,
+      entries: tr.entries,
+      current: Math.min(g.session.index, tr.entries.length - 1),
+      calling: g.session.phase === 'calling',
+      tally: tr.tally,
+      keys: trainingKeys(),
+      touch: input.device === 'touch',
+    };
+    // The levels and the list say what to do: no other hint.
+    if (t >= g.introUntil) v.hint = null;
+  }
   return v;
 }
 
@@ -1209,6 +1251,123 @@ function resume() {
   show('play');
 }
 
+// ---------------------------------------------------------------- training
+// Drum Practice's Training: the chapters' rhythms (training.js), level by
+// level, each called and answered as in an answering chapter. ◀ ▶ choose the
+// level, ▲ ▼ the rhythm (or taps and clicks on the tabs and the list); A
+// plays the rhythm again. A rhythm answered leads on to the next.
+
+const TRAINING_STAGE = {
+  id: 'training',
+  mode: 'echo',
+  title: 'Training',
+  subtitle: 'The chapters’ rhythms, level by level',
+  intro: 'Play each rhythm back after your partner. The levels run from plain beats to triplet runs.',
+  caller: 'training',
+  calls: [],
+  asDesigned: true,
+  matchTempo: false,
+  troops: 0,
+  elephant: false,
+  sky: 'dusk',
+  ambience: 'amb-practice',
+  bpm: 84,
+  enemies: [],
+};
+let trainingAt = { level: 1, index: 0 }; // where Training was left, for Start over
+
+function startTraining(level = trainingAt.level, index = trainingAt.index) {
+  startStage(-1, { ...TRAINING_STAGE });
+  game.practice = 'training';
+  game.training = { level, entries: [], all: catalogue(), tally: {} };
+  game.introUntil = 0; // the levels and the list explain themselves
+  input.training = true;
+  // A click on the tabs or the list chooses; anywhere else it drums.
+  input.pointerPick = (x, y) => {
+    const pick = renderer.trainingTarget(x, y, game && game.training);
+    if (!pick) return false;
+    act(pick);
+    return true;
+  };
+  trainingSelect(level, index, 2.2);
+}
+
+/** Train on a level, from one of its rhythms: the caller starts on it after `delay` seconds. */
+function trainingSelect(level, index = 0, delay = 0.6) {
+  const g = game;
+  const tr = g.training;
+  const entries = levelRhythms(level, tr.all);
+  tr.level = level;
+  tr.entries = entries;
+  index = Math.max(0, Math.min(entries.length - 1, index));
+  trainingAt = { level, index };
+  // Whatever the old caller was still playing stops.
+  for (const c of g.callSources || []) {
+    if (c.src && c.at > sound.now + 0.02) {
+      try {
+        c.src.stop();
+      } catch {
+        /* already finished */
+      }
+    }
+  }
+  g.callSources = [];
+  g.stage.calls = entries.map((e) => ({ text: e.text, bpm: e.bpm, n: e.n }));
+  g.session = new EchoSession({ calls: g.stage.calls, matchTempo: false, pause: 0.6 });
+  g.session.index = index;
+  g.session.nextCallAt = songTime() + delay;
+  g.reader.patterns = [];
+  g.reader.phrase = [];
+  g.reader.shown = null;
+  g.reader.action = null;
+}
+
+/** Training's choices; true when the action was one of them. */
+function trainingAct(action) {
+  const g = game;
+  const tr = g.training;
+  const n = LEVELS.length;
+  const pick = /^(level|rhythm):(\d+)$/.exec(action);
+  if (action === 'levelPrev' || action === 'levelNext') {
+    sound.play('ui-move');
+    trainingSelect(((tr.level - 1 + (action === 'levelNext' ? 1 : n - 1)) % n) + 1, 0);
+  } else if (action === 'rhythmPrev' || action === 'rhythmNext') {
+    const m = tr.entries.length;
+    sound.play('ui-move');
+    trainingSelect(tr.level, (g.session.index + (action === 'rhythmNext' ? 1 : m - 1)) % m);
+  } else if (pick) {
+    sound.play('ui-move');
+    if (pick[1] === 'level') trainingSelect(Number(pick[2]), 0);
+    else trainingSelect(tr.level, Number(pick[2]));
+  } else if (action === 'guard' || action === 'reset') {
+    // A: hear the rhythm again.
+    sound.play('drum-mo', sound.now, 0.6);
+    renderer.kick('mo', songTime());
+    trainingSelect(tr.level, g.session.index, 0.3);
+  } else return false;
+  return true;
+}
+
+/** How Training's controls are shown for the device in use, as rich-text tokens. */
+function trainingKeys() {
+  return {
+    gamepad: '⟨k:◀⟩ ⟨k:▶⟩ level · ⟨k:▲⟩ ⟨k:▼⟩ rhythm · ⟨A⟩ hear it again',
+    touch: 'Tap a level or a rhythm · swipe the drum to hear it again',
+    pointer: 'Click a level or a rhythm · Space: hear it again',
+  }[input.device] || '⟨k:←⟩ ⟨k:→⟩ level · ⟨k:↑⟩ ⟨k:↓⟩ rhythm · Space: hear it again';
+}
+
+/** Count a success or a miss at a rhythm, for its row in the list. */
+function trainingTally(n, ok) {
+  const t = game.training.tally;
+  const e = t[n] || (t[n] = { ok: 0, miss: 0, at: -9 });
+  const now = songTime();
+  if (ok) e.ok += 1;
+  // One try is one miss, however many strokes in it go astray.
+  else if (now - e.at > 1) e.miss += 1;
+  if (!ok) e.at = now;
+}
+
 // ---------------------------------------------------------------- drum practice
 // In practice-play.js; it reads and replaces the current game through ctx.game.
 
@@ -1240,6 +1399,7 @@ const { openPractice, startPractice, stopPractice, practiceStrike, practiceAct, 
   hideSuccess,
   strokeKeys,
   LOOKAHEAD,
+  startTraining: (...a) => startTraining(...a),
 });
 
 // ---------------------------------------------------------------- actions
@@ -1250,6 +1410,7 @@ function action(name) {
       return resume();
     case 'restart':
       sound.resume();
+      if (game.practice === 'training') return startTraining();
       if (game.practice) return startPractice(game.practice);
       return startStage(game.index);
     case 'next':
@@ -1260,6 +1421,8 @@ function action(name) {
       sound.stopAmbience();
       if (game && game.practice) {
         stopPractice();
+        input.training = false;
+        input.pointerPick = null;
         game = null;
         return show('practice');
       }
@@ -1270,6 +1433,8 @@ function action(name) {
       sound.resume();
       sound.stopAmbience();
       if (game && game.practice) stopPractice();
+      input.training = false;
+      input.pointerPick = null;
       game = null;
       titleNav = false;
       return show('title');
