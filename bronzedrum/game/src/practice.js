@@ -208,6 +208,7 @@ export class PracticeSession {
     this.rnd = rnd;
     this.phrase = []; // the player's strokes so far: { drum, t }
     this.loop = null; // free: { strokes, text, beats, u, start, period }
+    this.lastU = null; // free: the tempo of the last loop, after A cleared it
     this.call = null; // call: { strokes: [{ drum, pos, t }], text, beats, u, start, end }
     this.answer = null; // call: the last answer, transcribed
     this.u = 0.6; // the partner's tempo: follows the player's
@@ -223,7 +224,7 @@ export class PracticeSession {
 
   /** The tempo already in the air: the loop's, or the partner's. */
   get prior() {
-    if (this.mode === 'free') return this.loop ? this.loop.u : null;
+    if (this.mode === 'free') return this.loop ? this.loop.u : this.lastU;
     return this.call ? this.call.u : null;
   }
 
@@ -240,9 +241,14 @@ export class PracticeSession {
   }
 
   stroke(drum, t) {
+    // Free drumming: once a rhythm loops it stays until A clears it, and
+    // strokes over it are the player drumming along, not a new rhythm.
+    if (this.mode === 'free' && this.loop) return [{ type: 'playAlong', drum, t }];
     const events = [];
-    // A stroke past the end of the rhythm completes it and starts the next.
+    // A stroke past the end of the rhythm completes it. In call mode it starts
+    // the next; in free drumming the rhythm now loops and it plays along.
     if (this.phrase.length && t >= this.phraseEnd()) events.push(...this.complete(t));
+    if (this.mode === 'free' && this.loop) return [...events, { type: 'playAlong', drum, t }];
     if (!this.phrase.length) {
       events.push({ type: 'phraseStart', t });
       // Answering during the call cuts it short.
@@ -357,11 +363,18 @@ export class PracticeSession {
     return events;
   }
 
-  /** A: clear the dots, and in free play stop the loop. */
+  /**
+   * A: clear the dots, and in free play stop the loop (the only way to: until
+   * then strokes play along with it). Its tempo is kept to read the next
+   * rhythm by.
+   */
   clear(t) {
     this.phrase = [];
     const had = !!this.loop;
-    if (this.mode === 'free') this.loop = null;
+    if (this.mode === 'free') {
+      if (this.loop) this.lastU = this.loop.u;
+      this.loop = null;
+    }
     return [{ type: 'clear', t, stopped: had }];
   }
 }
@@ -416,65 +429,57 @@ export function riffOn(text, rnd = Math.random) {
  *  riff       { riff }: the partner's answer to it (strokes with times)
  *  takeover   the partner takes the initiative (a call follows)
  */
+/**
+ * Call and answer. One side calls a rhythm of the set number of beats and the
+ * other answers it; the two are then played as one exchange, call and answer,
+ * round after round, until A clears it. The turn to call alternates: it begins
+ * with the partner, and each clear hands it to the other side.
+ *   - The partner calls (repeating the call until it is answered); the player
+ *     answers with any rhythm of the same length, read at the call's speed.
+ *   - The player calls; the partner answers with a riff on it (riffOn) from
+ *     the next beat.
+ * While an exchange plays, strokes are the player drumming along: heard, but
+ * not read as a rhythm. The exchange is kept as a loop (this.loop: strokes
+ * across both halves, each marked with who plays it), drummed by the same
+ * code as free drumming's.
+ */
 export class CallSession extends PracticeSession {
   constructor(opts = {}) {
     super({ ...opts, mode: 'call' });
-    this.phase = 'wait'; // 'call' | 'answer' | 'replay' | 'lead' | 'riff' | 'wait'
-    this.replay = null;
-    this.lead = null; // the player's last call, read
-    this.riff = null; // the partner's answer to it
-    this.leadUntil = Infinity; // past this with no stroke, the partner takes over
-    this.inTime = false;
+    this.starter = 'partner'; // who calls next: 'partner' | 'you'
+    this.phase = 'wait'; // 'wait' (for the partner's call) | 'call' | 'answer' | 'lead' | 'loop'
+    this.exchange = null; // { first, call, answer }: the rhythms of the loop, each { who, text, strokes }
   }
 
-  /** The tempo in the air: the riff's while the player leads, else the call's. */
+  /** The tempo in the air: the call's while answering, else the last exchange's. */
   get prior() {
-    const p = this.phase === 'lead' || this.phase === 'riff' ? this.riff : this.call;
-    return p ? p.u : null;
-  }
-
-  /** The partner's row: the call being made, or the riff answering the player. */
-  get partner() {
-    return this.phase === 'lead' || this.phase === 'riff' ? this.riff : this.call;
-  }
-
-  /** The window around the beat after a rhythm in which a reply is on time. */
-  onTime(first, end, u) {
-    return Math.abs(first - end) <= 0.45 * u;
+    if (this.phase === 'answer' && this.call) return this.call.u;
+    return this.loop ? this.loop.u : this.lastU;
   }
 
   startCall(start, again = false) {
     const ev = super.startCall(start, again);
     this.phase = 'call';
-    this.leadUntil = Infinity;
     return ev;
   }
 
   stroke(drum, t) {
+    // Over the exchange, or before the partner's first call: drumming along.
+    if (this.phase === 'loop' || this.phase === 'wait') return [{ type: 'playAlong', drum, t }];
     const events = [];
-    if (this.phase === 'replay') {
-      // Leading may start right as the playback ends; strokes before that only sound.
-      if (!(this.inTime && t >= this.replay.end - 0.45 * this.replay.u)) return events;
-      this.phase = 'lead';
+    if (this.phase === 'call') {
+      // Answering during the call cuts it short.
+      if (t < this.call.end - 0.45 * this.call.u) {
+        events.push({ type: 'cutCall', t });
+        this.call.end = t;
+      }
+      this.phase = 'answer';
     }
-    if (this.phase === 'riff' && t < this.riff.end - 0.45 * this.riff.u) {
-      // Leading again over the partner's riff: it falls silent.
-      events.push({ type: 'cutCall', t });
-      this.riff.end = t;
-      this.phase = 'lead';
-    }
-    if (this.phase === 'riff') this.phase = 'lead';
-    if (this.phase === 'call' && t < this.call.end - 0.45 * this.call.u) {
-      events.push({ type: 'cutCall', t });
-      this.call.end = t;
-    }
-    if (this.phase === 'call' || this.phase === 'wait') this.phase = 'answer';
     if (this.phrase.length && t >= this.phraseEnd()) events.push(...this.complete(t));
+    if (this.phase === 'loop') return [...events, { type: 'playAlong', drum, t }];
     if (!this.phrase.length) {
       events.push({ type: 'phraseStart', t });
-      this.nextCallAt = Infinity;
       this.waitUntil = Infinity;
-      this.leadUntil = Infinity;
     }
     // A lone stroke long before this one was a stray: start the rhythm here.
     if (this.phrase.length === 1 && t - this.phrase[0].t > 1.6) this.phrase = [];
@@ -488,6 +493,7 @@ export class CallSession extends PracticeSession {
     return { prior: this.prior };
   }
 
+  /** The player's rhythm is complete: it answers the partner's call, or is the call the partner answers. */
   complete(t) {
     const rhythm = this.lockIn();
     this.phrase = [];
@@ -495,42 +501,40 @@ export class CallSession extends PracticeSession {
       if (this.phase === 'answer' && this.call) this.waitUntil = t + 0.6 + 4 * this.call.u;
       return [{ type: 'abandon', t }];
     }
-    const r = rhythm;
-    const strokes = rhythm.strokes;
-    const first = rhythm.first;
     this.loops += 1;
-    const next = first + this.beats * r.u; // the beat after it
+    const n = this.beats;
+    const mark = (strokes, who, offset) => strokes.map((s) => ({ drum: s.drum, pos: s.pos + offset, who }));
+    let first;
+    let second;
+    let origin;
+    let u;
+    const events = [];
     if (this.phase === 'lead') {
-      // The player led: the partner riffs on it from the next beat, at the player's tempo.
-      this.lead = rhythm;
-      this.u = Math.min(0.85, Math.max(0.42, r.u));
-      const p = riffOn(rhythm.text, this.rnd);
-      const start = Math.max(next, t + 0.03);
-      this.riff = { strokes: p.strokes.map((s) => ({ ...s, t: start + s.pos * r.u })), text: p.text, beats: p.beats, u: r.u, start, end: start + p.beats * r.u };
-      this.phase = 'riff';
-      // Wait a moment after the riff for the player to lead again, then take over.
-      this.leadUntil = this.riff.end + 2 * r.u;
-      return [{ type: 'led', lead: rhythm }, { type: 'riff', riff: this.riff }];
+      // The player called: the partner riffs on it from the next beat, at the player's tempo.
+      u = rhythm.u;
+      origin = rhythm.first;
+      const riff = riffOn(rhythm.text, this.rnd);
+      first = { who: 'you', text: rhythm.text, strokes: mark(rhythm.strokes, 'you', 0) };
+      second = { who: 'partner', text: riff.text, strokes: mark(riff.strokes, 'partner', n) };
+      events.push({ type: 'led', lead: rhythm }, { type: 'riff', riff: { text: riff.text, start: origin + n * u, u } });
+    } else {
+      // The player answered the partner's call. The answer sets the beat: the
+      // call is heard again a round before it, so the exchange runs on.
+      u = this.call.u;
+      origin = rhythm.first - n * u;
+      first = { who: 'partner', text: this.call.text, strokes: mark(this.call.strokes, 'partner', 0) };
+      second = { who: 'you', text: rhythm.text, strokes: mark(rhythm.strokes, 'you', n) };
+      this.answer = { ...rhythm, at: t };
+      events.push({ type: 'answered', answer: this.answer });
     }
-    // The player answered the partner's call.
-    const call = this.call;
-    this.inTime = this.onTime(first, call.end, call.u);
-    this.answer = { ...rhythm, at: t };
-    const u = call.u;
-    const start = this.inTime ? Math.max(next, t + 0.03) : t + 0.6;
-    const at = (s, base) => ({ drum: s.drum, pos: s.pos, t: base + s.pos * u });
-    this.replay = {
-      start,
-      u,
-      end: start + 2 * this.beats * u,
-      parts: [
-        { who: 'partner', strokes: call.strokes.map((s) => at(s, start)) },
-        { who: 'you', strokes: strokes.map((s) => at(s, start + this.beats * u)) },
-      ],
-    };
-    this.phase = 'replay';
-    if (!this.inTime) this.u = Math.min(0.85, Math.max(0.42, r.u));
-    return [{ type: 'answered', answer: this.answer, inTime: this.inTime }, { type: 'replay', replay: this.replay }];
+    this.exchange = { first, second };
+    this.loop = { strokes: [...first.strokes, ...second.strokes], text: `${first.text} | ${second.text}`, beats: 2 * n, u, start: origin, period: 2 * n * u };
+    this.u = Math.min(0.85, Math.max(0.42, u));
+    this.phase = 'loop';
+    this.nextCallAt = Infinity;
+    this.waitUntil = Infinity;
+    events.push({ type: 'exchange', loop: this.loop, exchange: this.exchange });
+    return events;
   }
 
   update(t) {
@@ -547,39 +551,45 @@ export class CallSession extends PracticeSession {
       this.phase = 'answer';
       this.waitUntil = this.call.end + Math.max(5, 8 * this.call.u);
     }
+    // An unanswered call is played again, until it is answered or cleared.
     if (this.phase === 'answer' && t >= this.waitUntil) events.push(...this.startCall(t + 0.1, true));
-    if (this.phase === 'replay' && t >= this.replay.end) {
-      if (this.inTime) {
-        // On the beat: the player's turn to lead, and a few beats to begin.
-        this.phase = 'lead';
-        this.leadUntil = this.replay.end + Math.max(3, 4 * this.replay.u);
-        events.push({ type: 'yourTurn', at: this.replay.end });
-      } else {
-        events.push({ type: 'takeover', t }, ...this.startCall(this.replay.end + this.u));
-      }
+    return events;
+  }
+
+  /** Back to the start of the turn: the partner about to call, or waiting for the player's call. */
+  restartTurn(t) {
+    this.phrase = [];
+    if (this.loop) this.lastU = this.loop.u;
+    this.loop = null;
+    this.exchange = null;
+    this.answer = null;
+    this.waitUntil = Infinity;
+    const events = [];
+    if (this.call && this.call.end > t) {
+      this.call.end = t;
+      events.push({ type: 'cutCall', t });
     }
-    if (this.phase === 'riff' && t >= this.riff.end) this.phase = 'lead';
-    if (this.phase === 'lead' && t >= this.leadUntil) {
-      // The player waited: the partner takes the initiative, on the beat.
-      const u = this.riff ? this.riff.u : this.u;
-      events.push({ type: 'takeover', t }, ...this.startCall(t + 0.05 + u * 0.5));
+    if (this.starter === 'partner') {
+      this.phase = 'wait';
+      this.nextCallAt = t + 0.8;
+    } else {
+      this.phase = 'lead';
+      this.nextCallAt = Infinity;
     }
     return events;
   }
 
   setBeats(n, t) {
-    const events = super.setBeats(n, t);
-    if (events.length) {
-      this.phase = 'wait';
-      this.replay = null;
-      this.riff = null;
-      this.leadUntil = Infinity;
-    }
-    return events;
+    const b = clampBeats(n);
+    if (b === this.beats) return [];
+    this.beats = b;
+    return [{ type: 'beats', beats: b }, ...this.restartTurn(t)];
   }
 
+  /** A: stop the exchange (or the turn under way) and hand the call to the other side. */
   clear(t) {
-    this.phrase = [];
-    return [{ type: 'clear', t, stopped: false }];
+    const stopped = !!this.loop;
+    this.starter = this.starter === 'partner' ? 'you' : 'partner';
+    return [{ type: 'clear', t, stopped }, ...this.restartTurn(t), { type: 'turn', starter: this.starter }];
   }
 }

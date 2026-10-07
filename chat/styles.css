@@ -40,7 +40,6 @@ button { cursor: pointer; }
 /* ---------- title ---------- */
 #title { align-items: center; justify-content: center; padding: 24px 16px 96px; }
 #title.has-bg { background: center / cover no-repeat; }
-#title.has-bg .tagline { color: #24163c; font-weight: 600; }
 .title-inner { width: min(520px, 100%); text-align: center; position: relative; }
 .logo { margin: 0 0 8px; line-height: 1; }
 .logo img { width: min(520px, 92vw); height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)); }
@@ -387,3 +386,39 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 /* Secondary actions (Join, Ready) stay aqua so they stand apart from the accent. */
 .btn.aqua { background: var(--aqua); color: #102; box-shadow: 0 3px 0 #1f9389; }
 .btn.aqua:active { box-shadow: 0 1px 0 #1f9389; }
+
+/* ---------- connection status ---------- */
+.status { cursor: pointer; gap: 8px; }
+.status .dot { width: 9px; height: 9px; border-radius: 50%; background: #69db7c; box-shadow: 0 0 8px #69db7c; flex: none; }
+.status[data-level="busy"] .dot { background: var(--sun); box-shadow: 0 0 8px var(--sun); animation: pulse 1.2s ease-in-out infinite; }
+.status[data-level="warn"] .dot { background: var(--sun); box-shadow: 0 0 8px var(--sun); animation: pulse 0.8s ease-in-out infinite; }
+.status[data-level="bad"] .dot { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.status[data-level="bad"] { color: #ffb3bb; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+.call-status {
+  position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 24px; text-align: center; background: rgba(13, 10, 24, 0.62); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.call-status[hidden] { display: none; }
+.call-status[data-phase="frozen"] { background: rgba(13, 10, 24, 0.35); justify-content: flex-end; padding-bottom: calc(var(--bottom-ui) + 12px); }
+.call-status strong { font-size: 1.1rem; }
+.call-status .sub { color: var(--muted); font-size: 0.9rem; max-width: 28em; }
+.call-status .call-icon { font-size: 2rem; }
+.call-status .btn { margin-top: 6px; }
+.spinner { width: 34px; height: 34px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.stage[data-count="2"] .tile.self .call-status, #call.has-game .call-status { display: none; }
+.flag.bars { display: inline-flex; align-items: flex-end; gap: 2px; padding: 0 9px; }
+.flag.bars i { display: block; width: 4px; border-radius: 1px; background: rgba(255, 255, 255, 0.3); }
+.flag.bars i:nth-child(1) { height: 6px; }
+.flag.bars i:nth-child(2) { height: 10px; }
+.flag.bars i:nth-child(3) { height: 14px; }
+.flag.bars.q3 i { background: #69db7c; }
+.flag.bars.q2 i:nth-child(-n+2) { background: var(--sun); }
+.flag.bars.q1 i:nth-child(1) { background: var(--danger); }
+.tap-to-hear { position: fixed; z-index: 30; left: 0; right: 0; margin: 0 auto; width: max-content; top: calc(var(--top-ui) + 6px); cursor: pointer; font-size: 1rem; }
+.conn th { width: 45%; color: var(--muted); font-weight: 700; }
+.btn.ghost { background: transparent; color: #fff; box-shadow: none; border: 1px solid var(--line); }
+.btn.ghost:hover { background: rgba(255, 255, 255, 0.08); }
+/* The delivered title background is light: keep the tagline readable on it. */
+#title.has-bg .tagline { display: inline-block; padding: 6px 14px; border-radius: 14px; color: #fff; background: rgba(29, 21, 51, 0.62); }

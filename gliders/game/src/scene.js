@@ -1,7 +1,9 @@
-// Rendering a level: one instanced mesh of blocks with a shader that bevels
-// their edges, darkens them toward the depths and lights them up near a
-// player; a gradient sky with a sun; a drifting sea of clouds below; fog that
-// melts the distance into the sky.
+// Rendering a world: one instanced mesh of cubes per island (so islands out of
+// view are skipped), with a shader that bevels each cube's edges and lights the
+// rock near a scoring player; the distant giants; a gradient sky with a sun,
+// optional painted cloud layers, and haze that thickens with distance and with
+// depth, so the islands' undersides sink into the mist; layered sheets of mist
+// below; rising motes in the updrafts; and the portals.
 
 import * as THREE from '../vendor/three.module.min.js';
 
@@ -9,66 +11,68 @@ export const MAX_PLAYERS = 4;
 
 const col = (hex) => new THREE.Color(hex);
 
-function blockMaterial(level, uniforms) {
-  const mat = new THREE.MeshStandardMaterial({ roughness: 0.82, metalness: 0.0, toneMapped: false });
+// The haze, shared by the rock and the mist sheets: distance haze in the
+// horizon colour, and mist that thickens toward the depths.
+const ATMOS = `
+  uniform vec3 uFogColor;
+  uniform vec3 uMistColor;
+  uniform float uFogDensity;
+  uniform vec2 uMist; // top, bottom
+  vec3 atmos(vec3 color, vec3 wp, float extra) {
+    float d = distance(wp, cameraPosition);
+    float fd = 1.0 - exp(-pow(d * uFogDensity, 1.3));
+    float h = smoothstep(uMist.x, uMist.y, wp.y);
+    float hf = h * (0.35 + 0.65 * smoothstep(30.0, 600.0, d)) + extra;
+    vec3 fogc = mix(uFogColor, uMistColor, clamp(smoothstep(uMist.x + 200.0, uMist.y, wp.y) * 0.85 + 0.15 * h, 0.0, 1.0));
+    return mix(color, fogc, clamp(max(fd, hf), 0.0, 1.0));
+  }`;
+
+function rockMaterial(uniforms) {
+  const mat = new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0.0, toneMapped: false, fog: false });
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
-      .replace(
-        '#include <common>',
-        `#include <common>
+      .replace('#include <common>', `#include <common>
         varying vec3 vBoxLocal;
         varying vec3 vBoxScale;
-        varying vec3 vWorldPos;`,
-      )
-      .replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
+        varying vec3 vWorldPos;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
         vBoxLocal = position;
         vBoxScale = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
-        vWorldPos = (modelMatrix * instanceMatrix * vec4(position, 1.0)).xyz;`,
-      );
+        vWorldPos = (modelMatrix * instanceMatrix * vec4(position, 1.0)).xyz;`);
     shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        `#include <common>
+      .replace('#include <common>', `#include <common>
         varying vec3 vBoxLocal;
         varying vec3 vBoxScale;
         varying vec3 vWorldPos;
-        uniform vec2 uHeight;
         uniform float uGlow;
         uniform vec4 uPlayers[${MAX_PLAYERS}];
-        uniform vec3 uPlayerColors[${MAX_PLAYERS}];`,
-      )
-      .replace(
-        '#include <color_fragment>',
-        `#include <color_fragment>
+        uniform vec3 uPlayerColors[${MAX_PLAYERS}];
+        ${ATMOS}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
         {
           vec3 e = (0.5 - abs(vBoxLocal)) * vBoxScale;
           float mn = min(e.x, min(e.y, e.z));
           float mx = max(e.x, max(e.y, e.z));
           float mid = e.x + e.y + e.z - mn - mx;
-          float bevel = 1.0 - smoothstep(0.0, 0.55, mid);
-          float crease = 1.0 - smoothstep(0.0, 0.07, mid);
-          diffuseColor.rgb *= mix(1.0, 1.18, bevel) * mix(1.0, 0.82, crease);
-          float h = smoothstep(uHeight.x, uHeight.y, vWorldPos.y);
-          diffuseColor.rgb *= mix(0.68, 1.04, h);
-        }`,
-      )
-      .replace(
-        '#include <emissivemap_fragment>',
-        `#include <emissivemap_fragment>
+          float edge = max(vBoxScale.x, 4.0) * 0.06;
+          float bevel = 1.0 - smoothstep(0.0, edge, mid);
+          float crease = 1.0 - smoothstep(0.0, edge * 0.15, mid);
+          diffuseColor.rgb *= mix(1.0, 1.14, bevel) * mix(1.0, 0.84, crease);
+        }`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         totalEmissiveRadiance += diffuseColor.rgb * uGlow;
         for (int i = 0; i < ${MAX_PLAYERS}; i++) {
           if (uPlayers[i].w > 0.0) {
             float d = distance(vWorldPos, uPlayers[i].xyz);
-            float g = 1.0 - smoothstep(0.0, 10.0, d);
+            float g = 1.0 - smoothstep(0.0, 12.0, d);
             totalEmissiveRadiance += uPlayerColors[i] * g * g * 0.55 * uPlayers[i].w;
           }
-        }`,
-      );
+        }`)
+      .replace('#include <dithering_fragment>', `gl_FragColor.rgb = atmos(gl_FragColor.rgb, vWorldPos, 0.0);
+        #include <dithering_fragment>`);
   };
-  mat.customProgramCacheKey = () => 'gliders-blocks';
+  mat.customProgramCacheKey = () => 'gliders-rock';
   return mat;
 }
 
@@ -84,34 +88,57 @@ const skyFrag = `
   uniform vec3 uTop;
   uniform vec3 uHorizon;
   uniform vec3 uFog;
+  uniform vec3 uMistColor;
   uniform vec3 uSunDir;
   uniform vec3 uSun;
+  uniform float uTime;
+  uniform sampler2D uBand;
+  uniform sampler2D uWisps;
+  uniform float uHasBand;
+  uniform float uHasWisps;
   void main() {
-    float y = vDir.y;
-    vec3 c = mix(uHorizon, uTop, pow(smoothstep(0.0, 0.85, y), 0.75));
-    c = mix(c, uFog, smoothstep(0.12, -0.02, y));
-    float s = max(dot(vDir, uSunDir), 0.0);
-    c += uSun * (pow(s, 600.0) * 1.4 + pow(s, 24.0) * 0.22 + pow(s, 4.0) * 0.07);
+    vec3 d = normalize(vDir);
+    float y = d.y;
+    vec3 c = mix(uHorizon, uTop, pow(smoothstep(0.0, 0.9, y), 0.7));
+    // Toward and below the horizon: haze, then the bright mist far below.
+    c = mix(c, uFog, smoothstep(0.14, 0.0, y));
+    c = mix(c, uMistColor, smoothstep(0.0, -0.35, y));
+    float s = max(dot(d, uSunDir), 0.0);
+    vec3 sunGlow = uSun * (pow(s, 900.0) * 1.6 + pow(s, 32.0) * 0.25 + pow(s, 5.0) * 0.08);
+    // Painted layers (greyscale: brightness is cloud).
+    if (uHasWisps > 0.5 && y > 0.02) {
+      vec2 uv = d.xz / (y + 0.12) * 0.22 + vec2(uTime * 0.0015, uTime * 0.0007);
+      float w = texture2D(uWisps, uv).r * smoothstep(0.02, 0.3, y) * 0.55;
+      c = mix(c, mix(vec3(1.0), uHorizon, 0.25) + sunGlow * 0.5, w);
+    }
+    if (uHasBand > 0.5) {
+      float u = atan(d.z, d.x) / 6.2831853 * 2.0 + uTime * 0.0004;
+      float v = clamp((y + 0.06) / 0.42, 0.0, 1.0);
+      float b = texture2D(uBand, vec2(u, v)).r * step(y, 0.36) * smoothstep(-0.08, -0.02, y);
+      vec3 cloud = mix(uMistColor, uHorizon, 0.35) * (0.92 + 0.18 * smoothstep(0.0, 0.3, y)) + sunGlow * 0.6;
+      c = mix(c, cloud, b * 0.9);
+    }
+    c += sunGlow;
     gl_FragColor = vec4(c, 1.0);
     #include <colorspace_fragment>
   }`;
 
-const cloudVert = `
+const mistVert = `
   varying vec3 vWorld;
-  #include <fog_pars_vertex>
   void main() {
     vec4 wp = modelMatrix * vec4(position, 1.0);
     vWorld = wp.xyz;
-    vec4 mvPosition = viewMatrix * wp;
-    gl_Position = projectionMatrix * mvPosition;
-    #include <fog_vertex>
+    gl_Position = projectionMatrix * viewMatrix * wp;
   }`;
-const cloudFrag = `
+const mistFrag = `
   varying vec3 vWorld;
-  uniform vec3 uCloud;
   uniform vec3 uShadow;
   uniform float uTime;
-  #include <fog_pars_fragment>
+  uniform float uSeed;
+  uniform float uOpacity;
+  uniform sampler2D uTex;
+  uniform float uHasTex;
+  ${ATMOS}
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   float noise(vec2 p) {
     vec2 i = floor(p), f = fract(p);
@@ -124,39 +151,49 @@ const cloudFrag = `
     return v;
   }
   void main() {
-    vec2 p = vWorld.xz * 0.006 + vec2(uTime * 0.01, uTime * 0.004);
-    float n = fbm(p + fbm(p * 0.5 + uTime * 0.006));
-    float puff = smoothstep(0.3, 0.75, n);
-    vec3 c = mix(uShadow, uCloud, 0.35 + 0.65 * puff);
-    gl_FragColor = vec4(c, 1.0);
+    vec2 p = vWorld.xz * 0.0018 + vec2(uTime * 0.004 + uSeed, uTime * 0.0017 - uSeed);
+    float n;
+    if (uHasTex > 0.5) n = texture2D(uTex, p * 0.5).r * 0.75 + texture2D(uTex, p * 0.21 + 0.37).r * 0.45 - 0.1;
+    else n = fbm(p + fbm(p * 0.45 + uSeed));
+    float puff = smoothstep(0.28, 0.78, n);
+    vec3 c = mix(uShadow, uMistColor, 0.45 + 0.55 * puff);
+    c = atmos(c, vWorld, 0.0);
+    float d = distance(vWorld.xz, cameraPosition.xz);
+    float a = uOpacity * (0.35 + 0.65 * puff) * (1.0 - smoothstep(4500.0, 6000.0, d));
+    gl_FragColor = vec4(c, a);
     #include <colorspace_fragment>
-    #include <fog_fragment>
   }`;
 
-export function createLevelScene(level) {
-  const pal = level.palette;
-  const scene = new THREE.Scene();
-  const fogColor = col(pal.fog);
-  scene.fog = new THREE.Fog(fogColor, 140, 1150);
-  scene.background = fogColor;
+const moteVert = `
+  attribute vec4 aCol; // x, z, base y, height
+  attribute vec4 aMote; // radius, phase, speed, angle
+  uniform float uTime;
+  varying float vA;
+  void main() {
+    float t = fract(aMote.y + uTime * aMote.z / aCol.w);
+    float ang = aMote.w + uTime * 0.25;
+    vec3 p = vec3(aCol.x + cos(ang) * aMote.x, aCol.z + t * aCol.w, aCol.y + sin(ang) * aMote.x);
+    vec4 mv = viewMatrix * vec4(p, 1.0);
+    gl_Position = projectionMatrix * mv;
+    gl_PointSize = clamp(260.0 / -mv.z, 1.0, 9.0);
+    vA = smoothstep(0.0, 0.12, t) * (1.0 - smoothstep(0.75, 1.0, t)) * (1.0 - smoothstep(500.0, 1100.0, -mv.z));
+  }`;
+const moteFrag = `
+  uniform vec3 uColor;
+  varying float vA;
+  void main() {
+    vec2 q = gl_PointCoord - 0.5;
+    float a = (1.0 - smoothstep(0.2, 0.5, length(q))) * vA * 0.75;
+    gl_FragColor = vec4(uColor, a);
+  }`;
 
-  const uniforms = {
-    uHeight: { value: new THREE.Vector2(-40, level.bounds.top) },
-    uGlow: { value: pal.glow ? 0.32 : 0.0 },
-    uPlayers: { value: Array.from({ length: MAX_PLAYERS }, () => new THREE.Vector4()) },
-    uPlayerColors: { value: Array.from({ length: MAX_PLAYERS }, () => new THREE.Color()) },
-  };
-
-  // Blocks.
-  const geo = new THREE.BoxGeometry(1, 1, 1);
-  const mat = blockMaterial(level, uniforms);
-  const n = level.boxes.length;
-  const mesh = new THREE.InstancedMesh(geo, mat, n);
+function islandMesh(boxes, start, end, geo, mat, colors) {
+  const n = end - start;
+  const mesh = new THREE.InstancedMesh(geo, mat, Math.max(1, n));
   const m4 = new THREE.Matrix4();
-  const colors = pal.blocks.map(col);
   const c = new THREE.Color();
   for (let i = 0; i < n; i++) {
-    const b = level.boxes[i];
+    const b = boxes[start + i];
     const M = b.m;
     m4.set(
       M[0] * b.h[0] * 2, M[3] * b.h[1] * 2, M[6] * b.h[2] * 2, b.c[0],
@@ -168,74 +205,186 @@ export function createLevelScene(level) {
     c.copy(colors[b.color % colors.length]).multiplyScalar(b.shade);
     mesh.setColorAt(i, c);
   }
+  mesh.count = n;
   mesh.instanceMatrix.needsUpdate = true;
-  mesh.instanceColor.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   mesh.computeBoundingSphere();
-  mesh.frustumCulled = false;
-  scene.add(mesh);
+  return mesh;
+}
+
+// textures: optional { band, wisps, mist } (THREE.Texture) from the painted sky layers.
+export function createLevelScene(level, textures = {}) {
+  const pal = level.palette;
+  const scene = new THREE.Scene();
+  const fogColor = col(pal.fog);
+  const mistColor = col(pal.mist || pal.fog);
+  // Trails and other effects use three's own fog, matched to the haze.
+  scene.fog = new THREE.FogExp2(fogColor, 1 / 3200);
+  scene.background = mistColor;
+
+  const atmos = {
+    uFogColor: { value: fogColor },
+    uMistColor: { value: mistColor },
+    uFogDensity: { value: 1 / 3000 },
+    uMist: { value: new THREE.Vector2(level.bounds.mist + 330, level.bounds.mist - 30) },
+  };
+  const uniforms = {
+    ...atmos,
+    uGlow: { value: pal.glow ? 0.32 : 0.0 },
+    uPlayers: { value: Array.from({ length: MAX_PLAYERS }, () => new THREE.Vector4()) },
+    uPlayerColors: { value: Array.from({ length: MAX_PLAYERS }, () => new THREE.Color()) },
+  };
+
+  // The islands: one mesh each, so the renderer can skip those out of view.
+  const geo = new THREE.BoxGeometry(1, 1, 1);
+  const mat = rockMaterial(uniforms);
+  const colors = pal.blocks.map(col);
+  const meshes = [];
+  for (const part of level.parts) {
+    if (part.end <= part.start) continue;
+    const mesh = islandMesh(level.boxes, part.start, part.end, geo, mat, colors);
+    scene.add(mesh);
+    meshes.push(mesh);
+  }
+  if (level.backdrop?.length) {
+    const far = islandMesh(level.backdrop, 0, level.backdrop.length, geo, mat, colors);
+    scene.add(far);
+    meshes.push(far);
+  }
 
   // Light: a cool sky fill and a warm low sun.
-  const sunDir = new THREE.Vector3(0.55, 0.62, 0.35).normalize();
-  const hemi = new THREE.HemisphereLight(col(pal.hemi[0]), col(pal.hemi[1]), 1.55);
-  scene.add(hemi);
-  const sun = new THREE.DirectionalLight(col(pal.sun), 2.1);
+  const sunDir = new THREE.Vector3(0.55, 0.5, 0.35).normalize();
+  scene.add(new THREE.HemisphereLight(col(pal.hemi[0]), col(pal.hemi[1]), 1.5));
+  const sun = new THREE.DirectionalLight(col(pal.sun), 2.2);
   sun.position.copy(sunDir).multiplyScalar(100);
   scene.add(sun);
   scene.add(sun.target);
 
   // Sky dome (drawn at infinity, follows the camera).
-  const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 32, 16),
-    new THREE.ShaderMaterial({
-      vertexShader: skyVert,
-      fragmentShader: skyFrag,
-      side: THREE.BackSide,
-      depthWrite: false,
-      uniforms: {
-        uTop: { value: col(pal.sky[0]) },
-        uHorizon: { value: col(pal.sky[1]) },
-        uFog: { value: fogColor },
-        uSunDir: { value: sunDir },
-        uSun: { value: col(pal.sun) },
-      },
-    }),
-  );
+  const blank = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1);
+  blank.needsUpdate = true;
+  const skyU = {
+    uTop: { value: col(pal.sky[0]) },
+    uHorizon: { value: col(pal.sky[1]) },
+    uFog: { value: fogColor },
+    uMistColor: { value: mistColor },
+    uSunDir: { value: sunDir },
+    uSun: { value: col(pal.sun) },
+    uTime: { value: 0 },
+    uBand: { value: textures.band || blank },
+    uWisps: { value: textures.wisps || blank },
+    uHasBand: { value: textures.band ? 1 : 0 },
+    uHasWisps: { value: textures.wisps ? 1 : 0 },
+  };
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(10, 48, 24), new THREE.ShaderMaterial({ vertexShader: skyVert, fragmentShader: skyFrag, side: THREE.BackSide, depthWrite: false, uniforms: skyU }));
   sky.renderOrder = -10;
   sky.frustumCulled = false;
   scene.add(sky);
 
-  // The sea of clouds below.
-  const cloudShadow = col(pal.cloud).lerp(col(pal.hemi[1]), 0.35).multiplyScalar(0.86);
-  const clouds = new THREE.Mesh(
-    new THREE.PlaneGeometry(9000, 9000, 1, 1),
-    new THREE.ShaderMaterial({
-      vertexShader: cloudVert,
-      fragmentShader: cloudFrag,
-      fog: true,
-      uniforms: THREE.UniformsUtils.merge([
-        THREE.UniformsLib.fog,
-        { uCloud: { value: col(pal.cloud) }, uShadow: { value: cloudShadow }, uTime: { value: 0 } },
-      ]),
-    }),
-  );
-  clouds.rotation.x = -Math.PI / 2;
-  clouds.position.y = level.bounds.floor - 20;
-  clouds.frustumCulled = false;
-  scene.add(clouds);
+  // Sheets of mist below, stacked so diving toward them feels deep.
+  const shadow = mistColor.clone().lerp(col(pal.hemi[1]), 0.3).multiplyScalar(0.84);
+  const mists = [];
+  const mistPlane = new THREE.PlaneGeometry(14000, 14000, 1, 1);
+  [
+    { y: level.bounds.mist + 60, o: 0.45, seed: 0.0 },
+    { y: level.bounds.mist + 10, o: 0.6, seed: 3.7 },
+    { y: level.bounds.mist - 45, o: 0.92, seed: 7.1 },
+  ].forEach((l, i) => {
+    const m = new THREE.Mesh(
+      mistPlane,
+      new THREE.ShaderMaterial({
+        vertexShader: mistVert,
+        fragmentShader: mistFrag,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        uniforms: { ...atmos, uShadow: { value: shadow }, uTime: { value: 0 }, uSeed: { value: l.seed }, uOpacity: { value: l.o }, uTex: { value: textures.mist || blank }, uHasTex: { value: textures.mist ? 1 : 0 } },
+      }),
+    );
+    m.rotation.x = -Math.PI / 2;
+    m.position.y = l.y;
+    m.renderOrder = 5 - i;
+    m.frustumCulled = false;
+    scene.add(m);
+    mists.push(m);
+  });
+
+  // Motes rising in the updrafts.
+  let motes = null;
+  if (level.updrafts?.length) {
+    const per = 70;
+    const n = level.updrafts.length * per;
+    const aCol = new Float32Array(n * 4), aMote = new Float32Array(n * 4);
+    let r = 1;
+    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+    level.updrafts.forEach((u, k) => {
+      for (let i = 0; i < per; i++) {
+        const j = (k * per + i) * 4;
+        aCol.set([u.x, u.z, u.y0, u.y1 - u.y0], j);
+        aMote.set([u.r * Math.sqrt(rnd()), rnd(), 14 + rnd() * 18, rnd() * Math.PI * 2], j);
+      }
+    });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    g.setAttribute('aCol', new THREE.BufferAttribute(aCol, 4));
+    g.setAttribute('aMote', new THREE.BufferAttribute(aMote, 4));
+    motes = new THREE.Points(g, new THREE.ShaderMaterial({ vertexShader: moteVert, fragmentShader: moteFrag, transparent: true, depthWrite: false, uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(1, 1, 1) } } }));
+    motes.frustumCulled = false;
+    scene.add(motes);
+  }
+
+  // Portals: tumbling rings of purple cubes around a glowing heart.
+  const portals = [];
+  const portalMat = new THREE.MeshStandardMaterial({ color: 0x9b4dff, emissive: 0x7a2cff, emissiveIntensity: 0.9, roughness: 0.4, toneMapped: false });
+  const coreMat = new THREE.MeshBasicMaterial({ color: 0xe0b8ff, transparent: true, opacity: 0.35, depthWrite: false, toneMapped: false });
+  for (const p of level.portals || []) {
+    const group = new THREE.Group();
+    group.position.set(p.x, p.y, p.z);
+    group.rotation.y = p.yaw;
+    const cubes = new THREE.InstancedMesh(geo, portalMat, 40);
+    const m4 = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    for (let i = 0; i < 40; i++) {
+      const a = (i / 40) * Math.PI * 2;
+      const ring = i % 2 ? p.r * 1.12 : p.r;
+      const s = 1.2 + ((i * 7) % 5) * 0.35;
+      q.setFromEuler(new THREE.Euler(a * 3, a * 2, a));
+      m4.compose(new THREE.Vector3(Math.cos(a) * ring, Math.sin(a) * ring, ((i * 13) % 7) - 3), q, new THREE.Vector3(s, s, s));
+      cubes.setMatrixAt(i, m4);
+    }
+    const core = new THREE.Mesh(new THREE.CircleGeometry(p.r * 0.95, 40), coreMat);
+    core.material.side = THREE.DoubleSide;
+    group.add(cubes, core);
+    scene.add(group);
+    portals.push({ group, cubes, core });
+  }
 
   const playerSlots = uniforms.uPlayers.value;
   return {
     scene,
-    mesh,
+    meshes,
     fogColor,
     // Call before rendering each view.
     prepareView(camera) {
       sky.position.copy(camera.position);
-      clouds.position.x = camera.position.x;
-      clouds.position.z = camera.position.z;
+      for (const m of mists) {
+        m.position.x = camera.position.x;
+        m.position.z = camera.position.z;
+      }
     },
     update(time) {
-      clouds.material.uniforms.uTime.value = time;
+      skyU.uTime.value = time;
+      for (const m of mists) m.material.uniforms.uTime.value = time;
+      if (motes) motes.material.uniforms.uTime.value = time;
+      portals.forEach((p, i) => {
+        p.cubes.rotation.z = time * 0.6 + i;
+        p.core.material.opacity = 0.28 + 0.12 * Math.sin(time * 3 + i);
+      });
+    },
+    // Low graphics: a shorter view with thicker haze to hide where it ends.
+    setDetail(low) {
+      atmos.uFogDensity.value = low ? 1 / 1500 : 1 / 3000;
+      scene.fog.density = low ? 1 / 1600 : 1 / 3200;
     },
     setPlayerGlow(i, pos, color, strength) {
       if (!pos) {
@@ -248,11 +397,22 @@ export function createLevelScene(level) {
     dispose() {
       geo.dispose();
       mat.dispose();
+      meshes.forEach((m) => m.dispose());
       sky.geometry.dispose();
       sky.material.dispose();
-      clouds.geometry.dispose();
-      clouds.material.dispose();
-      mesh.dispose();
+      mistPlane.dispose();
+      mists.forEach((m) => m.material.dispose());
+      blank.dispose();
+      if (motes) {
+        motes.geometry.dispose();
+        motes.material.dispose();
+      }
+      portalMat.dispose();
+      coreMat.dispose();
+      portals.forEach((p) => {
+        p.cubes.dispose();
+        p.core.geometry.dispose();
+      });
     },
   };
 }

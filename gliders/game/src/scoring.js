@@ -164,6 +164,16 @@ export function crash(s, events = []) {
   return events;
 }
 
+// Through a portal: the open combo is banked and 1000 points added flat.
+export function portalBonus(s, events = []) {
+  bank(s, events);
+  s.run += 1000;
+  s.total += 1000;
+  events.push({ type: 'portal', amount: 1000 });
+  refresh(s);
+  return events;
+}
+
 // The round is over: bank whatever is open (a combo in flight counts).
 export function finish(s, events = []) {
   bank(s, events);

@@ -19,13 +19,13 @@ export function createPractice(ctx) {
       id: 'practice-free',
       title: 'Free drumming',
       subtitle: 'Drum anything; the crew plays it back',
-      intro: 'Drum any rhythm of four beats (or as many as you set), one, two or three strokes a beat. The drum crew plays it back again and again, and dancers gather at the fire. Drum a new one at any time: the old rhythm quiets while you play and the new one takes over. Pairs, triplets, pauses: anything goes.',
+      intro: 'Drum any rhythm of four beats (or as many as you set), one, two or three strokes a beat. The drum crew plays it back again and again, and dancers gather at the fire. Drum along with it as long as you like; it keeps going until you clear it with A (Space, or a swipe), and then the next rhythm you drum takes its place. Pairs, triplets, pauses: anything goes.',
     },
     call: {
       id: 'practice-call',
       title: 'Call and answer',
       subtitle: 'Trade rhythms with a partner',
-      intro: 'Your partner drums a call and you answer with any rhythm of the same number of beats; then the two are played back. Answer on the beat and it is your turn to lead: your partner answers your call with a riff on it. Wait, and they lead again. Nothing is wrong: copy them, or answer in your own way.',
+      intro: 'Your partner drums a call and you answer with any rhythm of the same number of beats. The call and your answer then play together, again and again, and you can drum along. Clear it with A (Space, or a swipe) and it is your turn to call: your partner answers with a riff on your rhythm. Each clear hands the call to the other side.',
     },
   };
   for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-practice', troops: 0, elephant: false, enemies: [] });
@@ -188,13 +188,6 @@ export function createPractice(ctx) {
     const g = ctx.game;
     const level = (settings.echo / 100) * 0.9 + 0.1;
     switch (e.type) {
-      case 'phraseStart':
-        // The old loop quiets while a new rhythm is drummed.
-        if (g.loopBus) sound.fadeBus(g.loopBus, 0.22 * level, 0.25);
-        break;
-      case 'abandon':
-        if (g.loopBus) sound.fadeBus(g.loopBus, level, 0.5);
-        break;
       case 'loop': {
         if (g.loopBus) {
           const old = g.loopBus;
@@ -242,43 +235,26 @@ export function createPractice(ctx) {
         break;
       }
       case 'answered':
-        g.doneAt = songTime();
-        confirm(e.inTime ? 'In time!' : 'Answered', P.bronzeLight);
-        break;
-      case 'replay': {
-        // The exchange played back: the partner's call in their voice, then the
-        // player's answer in the player's own drum.
-        if (g.callBus) g.callBus.disconnect();
-        g.callBus = sound.bus(0.85);
-        const [them, you] = e.replay.parts;
-        for (const st of them.strokes) {
-          voice(st.drum, g.clockStart + st.t, 1, 1.07, g.callBus);
-          heard(st.drum, st.t, 'partner', 0.4);
-        }
-        for (const st of you.strokes) {
-          voice(st.drum, g.clockStart + st.t, 0.9, 1, g.callBus);
-          heard(st.drum, st.t, 'loop', 0.4);
-        }
-        break;
-      }
-      case 'yourTurn':
-        confirm('Your turn: lead a call', P.bronzeLight);
-        break;
       case 'led':
         g.doneAt = songTime();
         break;
-      case 'riff': {
-        // The partner answers the player's call with a riff on it.
-        if (g.callBus) g.callBus.disconnect();
-        g.callBus = sound.bus(0.85);
-        for (const st of e.riff.strokes) {
-          voice(st.drum, g.clockStart + st.t, 1, 1.07, g.callBus);
-          heard(st.drum, st.t, 'partner', 0.5);
+      case 'exchange': {
+        // The exchange loops: the partner's half in their voice, the player's
+        // in their own drum (the loop scheduler in updatePractice).
+        if (g.callBus) {
+          const old = g.callBus;
+          sound.fadeBus(old, 0, 0.2);
+          setTimeout(() => old.disconnect(), 600);
+          g.callBus = null;
         }
+        if (g.loopBus) g.loopBus.disconnect();
+        g.loopBus = sound.bus(level);
+        g.loopNext = 0;
+        confirm('Again and again', P.bronzeLight);
         break;
       }
-      case 'takeover':
-        confirm('Your partner leads', P.paperShade);
+      case 'turn':
+        confirm(e.starter === 'you' ? 'Your turn to call' : 'Your partner calls next', P.bronzeLight);
         break;
     }
   }
@@ -297,8 +273,10 @@ export function createPractice(ctx) {
         const at = L.start + Math.floor(g.loopNext / n) * L.period + st.pos * L.u;
         if (at - t > LOOKAHEAD) break;
         if (at >= t - 0.05) {
-          voice(st.drum, g.clockStart + Math.max(at, t), 1, 0.97, g.loopBus);
-          heard(st.drum, at, 'loop', 0.6);
+          // In call and answer the partner's half is in their voice.
+          const partner = st.who === 'partner';
+          voice(st.drum, g.clockStart + Math.max(at, t), 1, partner ? 1.07 : 0.97, g.loopBus);
+          heard(st.drum, at, partner ? 'partner' : 'loop', 0.6);
         }
         g.loopNext += 1;
       }
@@ -321,45 +299,57 @@ export function createPractice(ctx) {
   }
 
   /**
-   * What call and answer shows: the partner's row above (their call, their riff
-   * on the player's call, or the call in the playback) and the player's below
-   * (the answer, the player's call, or what is being drummed), with a playhead
-   * on what is sounding, and a heading for the moment.
+   * What call and answer shows: the partner's row above and the player's
+   * below. While the exchange loops, the half that is sounding lights stroke
+   * by stroke and the other waits, dimmed. Before that: the partner's call
+   * and the answer being drummed, or the player's own call being drummed.
    */
   function callRows(s, t) {
     const played = (strokes, end = Infinity) => strokes.filter((st) => st.t <= Math.min(t, end)).length;
     const asPattern = (r) => ({ strokes: r.strokes, beats: r.beats, text: r.text });
     const drumming = s.phrase.length ? { entering: true } : null;
-    const phase = s.phase;
-    if (phase === 'replay' && s.replay) {
-      const [them, you] = s.replay.parts;
-      const a = played(them.strokes);
-      const b = played(you.strokes);
+    const beatOf = () => `beat ${Math.min(s.beats, s.partial ? s.partial.beats : 1)} of ${s.beats}`;
+    if (s.phase === 'loop' && s.exchange && s.loop) {
+      const L = s.loop;
+      const n = s.beats;
+      const into = ((((t - L.start) % L.period) + L.period) % L.period) / L.u; // beats into the round
+      const row = (half, offset) => {
+        const strokes = half.strokes.map((st) => ({ drum: st.drum, pos: st.pos - offset }));
+        const k = into - offset;
+        const sounding = t >= L.start + offset * L.u && k >= 0 && k < n;
+        return {
+          pattern: { strokes, beats: n },
+          played: sounding ? strokes.filter((st) => st.pos <= k).length : strokes.length,
+          glow: sounding,
+          dim: !sounding,
+          label: half.who === 'partner' ? 'Partner' : 'You',
+        };
+      };
+      const { first, second } = s.exchange;
+      const a = row(first, 0);
+      const b = row(second, n);
+      const [partner, you] = first.who === 'partner' ? [a, b] : [b, a];
       return {
-        top: { pattern: { strokes: them.strokes, beats: s.beats }, played: a, glow: a > 0 && b === 0, label: 'Partner' },
-        bottom: { pattern: { strokes: you.strokes, beats: s.beats }, played: b, glow: b > 0, label: 'You' },
-        heading: 'Played back',
+        top: partner,
+        bottom: you,
+        heading: first.who === 'partner' ? 'Call and answer, again and again' : 'Your call and its answer, again and again',
         headingColor: P.bronzeLight,
       };
     }
-    if (phase === 'lead' || phase === 'riff') {
-      const riff = s.riff;
-      const sounding = riff && t >= riff.start && t < riff.end;
+    if (s.phase === 'lead') {
       return {
-        top: riff ? { pattern: asPattern(riff), played: played(riff.strokes, riff.end), glow: sounding, dim: !sounding && !!drumming, label: 'Partner' } : null,
-        bottom: drumming || (s.lead ? { pattern: s.lead, flash: true, dim: !!riff && t >= riff.end, label: 'You lead' } : null),
-        heading: drumming
-          ? `Your call: beat ${Math.min(s.beats, s.partial ? s.partial.beats : 1)} of ${s.beats}`
-          : sounding ? 'Your partner answers…' : s.lead ? 'Lead again, or wait for your partner' : 'Your turn: lead a call',
-        headingColor: !drumming && !sounding && !s.lead ? P.bronzeLight : P.paper,
+        top: null,
+        bottom: drumming,
+        heading: drumming ? `Your call: ${beatOf()}` : `Your turn: call any ${s.beats} beats`,
+        headingColor: drumming ? P.paper : P.bronzeLight,
       };
     }
     const call = s.call;
-    const calling = !!call && t >= call.start - 0.05 && t < call.end && !s.phrase.length;
+    const calling = !!call && s.phase === 'call' && t >= call.start - 0.05 && t < call.end && !s.phrase.length;
     return {
-      top: call ? { pattern: asPattern(call), played: played(call.strokes, call.end), glow: calling } : null,
-      bottom: drumming || null,
-      heading: calling ? 'Listen…' : drumming ? `Beat ${Math.min(s.beats, s.partial ? s.partial.beats : 1)} of ${s.beats}` : call ? `Answer with any ${s.beats} beats` : 'Your partner is ready…',
+      top: call && s.phase !== 'wait' ? { pattern: asPattern(call), played: played(call.strokes, call.end), glow: calling, label: 'Partner' } : null,
+      bottom: drumming,
+      heading: calling ? 'Listen…' : drumming ? `Your answer: ${beatOf()}` : call && s.phase !== 'wait' ? `Answer with any ${s.beats} beats` : 'Your partner is about to call…',
     };
   }
 

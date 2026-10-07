@@ -3,7 +3,7 @@
 // (gamehost.js) and the controls together.
 
 import { createNet } from './net.js';
-import { createRtc } from './rtc.js';
+import { createRtc, STUN_SERVERS } from './rtc.js';
 import { createStudio } from './studio.js';
 import { createGameHost } from './gamehost.js';
 import { createGamepad } from './gamepad.js';
@@ -223,9 +223,19 @@ async function start() {
   net = createNet({ game: 'chat', room: 'everyone', me });
   votes = createVotes({ server: MiniRooms.defaultServer() });
   net.setPresence({ cam: studio.camOn, mic: studio.micOn, fx: null });
-  rtc = createRtc({ net, stream: studio.stream });
+  // Test hooks: ?rtcdrop=1 withholds ICE candidates so calls can't connect,
+  // ?rtcfast=0.2 runs the call watchdog's timers five times faster.
+  const q = new URLSearchParams(location.search);
+  rtc = createRtc({
+    net,
+    stream: studio.stream,
+    iceServers: STUN_SERVERS,
+    test: { dropCandidates: q.get('rtcdrop') === '1', timeScale: parseFloat(q.get('rtcfast')) || 1 },
+  });
   rtc.on('stream', onRemoteStream);
   rtc.on('state', onCallState);
+  rtc.on('info', onCallInfo);
+  loadIceServers();
   net.on('peers', onPeers);
   net.on('status', updateStatus);
 
@@ -302,7 +312,7 @@ function makeTile(id, media) {
   const flags = document.createElement('div');
   flags.className = 'flags';
   el.append(media, label, flags);
-  const rec = { id, el, media, label, flags, sig: '', name: '' };
+  const rec = { id, el, media, label, flags, sig: '', name: '', phase: null };
   tiles.set(id, rec);
   return rec;
 }
@@ -353,7 +363,7 @@ function addSelfTile() {
 }
 
 function updateTileLabel(rec, p) {
-  const sig = JSON.stringify([p.name, p.color, p.mic, p.cam, rec.state]);
+  const sig = JSON.stringify([p.name, p.color, p.mic, p.cam, rec.quality]);
   if (sig === rec.sig) return;
   rec.sig = sig;
   rec.name = p.name || rec.name;
@@ -372,8 +382,13 @@ function updateTileLabel(rec, p) {
     rec.flags.append(f);
   };
   if (p.mic === false) flag('', 'muted');
-  if (rec.state && rec.state !== 'connected' && rec.id !== me.id) {
-    flag(rec.state === 'failed' ? 'video can’t connect' : 'connecting…');
+  if (rec.quality) {
+    const q = document.createElement('span');
+    q.className = `flag bars q${rec.quality}`;
+    q.setAttribute('aria-label', ['', 'Poor connection', 'Fair connection', 'Good connection'][rec.quality]);
+    q.title = q.getAttribute('aria-label');
+    for (let i = 1; i <= 3; i++) q.append(document.createElement('i'));
+    rec.flags.append(q);
   }
 }
 
@@ -388,7 +403,9 @@ function onPeers(peers) {
       v.playsInline = true;
       v.setAttribute('playsinline', '');
       rec = makeTile(id, v);
-      rec.state = 'new';
+      rec.overlay = document.createElement('div');
+      rec.overlay.className = 'call-status';
+      rec.el.append(rec.overlay);
       const stream = rtc.streamOf(id);
       if (stream) v.srcObject = stream;
       $('#stage').insertBefore(rec.el, tiles.get(me.id).el);
@@ -403,6 +420,7 @@ function onPeers(peers) {
       sfx('join');
     }
     updateTileLabel(rec, p);
+    if (rec.phase === null) onCallInfo(id, rtc.info(id));
   }
   for (const [id, rec] of tiles) {
     if (id === me.id || peers.has(id)) continue;
@@ -420,19 +438,126 @@ function onRemoteStream(id, stream) {
   const rec = tiles.get(id);
   if (!rec) return;
   if (rec.media.srcObject !== stream) rec.media.srcObject = stream;
-  rec.media.play?.().catch(() => {
-    // Autoplay with sound was blocked: play on the next tap anywhere.
-    toast('Tap anywhere to hear your friends');
-    addEventListener('pointerdown', () => rec.media.play().catch(() => {}), { once: true });
+  playRemote(rec);
+}
+
+// Browsers may refuse to start a video with sound until the page is tapped.
+// Then play it muted (so the picture shows) and offer a tap to hear.
+function playRemote(rec) {
+  const v = rec.media;
+  v.play?.().catch(() => {
+    v.muted = true;
+    v.play().catch(() => {});
+    showTapToHear();
   });
 }
 
-function onCallState(id, state) {
+function showTapToHear() {
+  if ($('#tap-to-hear')) return;
+  const b = document.createElement('button');
+  b.id = 'tap-to-hear';
+  b.type = 'button';
+  b.className = 'pill tap-to-hear';
+  b.textContent = '🔈 Tap to hear your friends';
+  b.addEventListener('click', () => {
+    for (const rec of tiles.values()) {
+      if (rec.id === me.id) continue;
+      rec.media.muted = false;
+      rec.media.play?.().catch(() => {});
+    }
+    b.remove();
+  });
+  document.body.append(b);
+}
+
+function onCallState() {
+  updateStatus();
+}
+
+const PHASE_TEXT = {
+  connecting: name => [`Connecting to ${name}…`, ''],
+  retrying: name => [`Still connecting to ${name}…`, 'Trying another way'],
+  failed: name => [`Can't connect video with ${name}`, rtc?.turn
+    ? 'Your networks are blocking the call. Chat and games still work.'
+    : 'Your networks are blocking a direct connection. Chat and games still work.'],
+  reconnecting: name => [`Reconnecting to ${name}…`, 'The connection dropped'],
+  frozen: name => [`${name}'s video has paused`, 'Waiting for their picture'],
+};
+
+// Shows how each call is doing on its tile, and in the status pill.
+function onCallInfo(id, info) {
   const rec = tiles.get(id);
-  if (!rec) return;
-  rec.state = state;
-  const p = net.peers.get(id);
-  if (p) updateTileLabel(rec, p);
+  if (!rec || rec.id === me.id) return;
+  const prev = rec.phase;
+  rec.phase = info.phase;
+  rec.info = info;
+  const name = rec.name || 'your friend';
+  const ov = rec.overlay;
+  if (ov) {
+    const text = PHASE_TEXT[info.phase]?.(name);
+    ov.hidden = !text;
+    ov.dataset.phase = info.phase;
+    if (text && (ov.dataset.sig !== text.join('|'))) {
+      ov.dataset.sig = text.join('|');
+      ov.textContent = '';
+      const spin = document.createElement('span');
+      spin.className = info.phase === 'failed' ? 'call-icon' : 'spinner';
+      if (info.phase === 'failed') spin.textContent = '⚠️';
+      const t = document.createElement('strong');
+      t.textContent = text[0];
+      ov.append(spin, t);
+      if (text[1]) {
+        const sub = document.createElement('span');
+        sub.className = 'sub';
+        sub.textContent = text[1];
+        ov.append(sub);
+      }
+      if (info.phase === 'failed' || info.phase === 'retrying') {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn';
+        b.textContent = 'Try again';
+        b.addEventListener('click', () => {
+          rtc.retry(id);
+          toast(`Trying again with ${name}…`);
+        });
+        ov.append(b);
+      }
+    }
+  }
+  // Signal bars from round-trip time and packet loss.
+  let quality = 0;
+  if (info.phase === 'connected') {
+    const rtt = info.rttMs ?? 0, loss = info.loss ?? 0;
+    quality = rtt > 600 || loss > 8 ? 1 : rtt > 250 || loss > 3 ? 2 : 3;
+  }
+  if (quality !== rec.quality) {
+    rec.quality = quality;
+    const p = net.peers.get(id);
+    if (p) updateTileLabel(rec, p);
+  }
+  if (prev && prev !== info.phase) {
+    if (info.phase === 'connected' && (prev === 'retrying' || prev === 'failed' || prev === 'reconnecting')) toast(`Video connected with ${name}`);
+    if (info.phase === 'failed') toast(`Can't connect video with ${name}`);
+    if (info.phase === 'connected') playRemote(rec);
+  }
+  updateStatus();
+  if ($('#connection')?.open) renderConnection();
+}
+
+// TURN credentials come from the relay (multiplayer/server, GET /turn). Until
+// they arrive, or if the relay has none, calls use STUN only.
+async function loadIceServers() {
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 5000);
+    const res = await fetch(`${MiniRooms.defaultServer()}/turn`, { signal: ctrl.signal, cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    if (Array.isArray(data.iceServers) && data.iceServers.length) rtc.setIceServers(data.iceServers);
+  } catch (e) {
+    console.info('no TURN servers from the relay; calls use STUN only', e);
+  }
 }
 
 function layout() {
@@ -464,18 +589,104 @@ function layout() {
 }
 addEventListener('resize', () => { if (started) layout(); });
 
+// The status pill: the relay connection, then the calls. Green when
+// everything works, amber while something is connecting, red when stuck.
 function updateStatus() {
   if (!net) return;
   const el = $('#status');
   const n = net.peers.size;
-  const text = {
-    connecting: 'Connecting…',
-    reconnecting: 'Reconnecting…',
-    full: 'The chat is full (16 people). Retrying…',
-    connected: n === 0 ? 'Just you so far' : `${n + 1} here`,
-  }[net.status];
-  el.textContent = text;
-  el.classList.toggle('warn', net.status !== 'connected');
+  let level = 'ok', text;
+  if (net.status !== 'connected') {
+    level = net.status === 'connecting' ? 'busy' : 'warn';
+    text = {
+      connecting: 'Connecting…',
+      reconnecting: 'Reconnecting to the chat…',
+      full: 'The chat is full (16 people). Retrying…',
+    }[net.status] || 'Offline';
+  } else if (n === 0) {
+    text = 'Just you so far';
+  } else {
+    const phases = [...tiles.values()].filter(r => r.id !== me.id).map(r => r.phase || 'connecting');
+    const failed = phases.filter(p => p === 'failed').length;
+    const pending = phases.filter(p => p !== 'connected').length;
+    text = `${n + 1} here`;
+    if (failed) {
+      level = 'bad';
+      text += ' · no video';
+    } else if (pending) {
+      level = 'busy';
+      text += ' · connecting…';
+    }
+  }
+  el.textContent = '';
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  el.append(dot, document.createTextNode(text));
+  el.dataset.level = level;
+  el.classList.toggle('warn', level !== 'ok');
+}
+
+// The connection panel: what the chat relay and every call are doing.
+function renderConnection() {
+  const body = $('#connection-body');
+  body.textContent = '';
+  const row = (k, v) => {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.textContent = k;
+    const td = document.createElement('td');
+    td.textContent = v;
+    tr.append(th, td);
+    return tr;
+  };
+  const table = document.createElement('table');
+  table.className = 'keys conn';
+  table.append(
+    row('Chat relay', { connected: 'Connected', connecting: 'Connecting…', reconnecting: 'Reconnecting…', full: 'Full' }[net?.status] || 'Offline'),
+    row('Relay server for video (TURN)', rtc?.turn ? 'Available' : 'Not set up (direct connections only)'),
+    row('Camera / microphone', `${studio?.hasCamera ? (studio.camOn ? 'on' : 'off') : 'none'} / ${studio?.hasMic ? (studio.micOn ? 'on' : 'off') : 'none'}`),
+  );
+  body.append(table);
+  const others = [...tiles.values()].filter(r => r.id !== me.id);
+  if (!others.length) {
+    const p = document.createElement('p');
+    p.className = 'muted';
+    p.textContent = 'Nobody else is here yet.';
+    body.append(p);
+  }
+  for (const rec of others) {
+    const i = rtc.info(rec.id);
+    const h = document.createElement('h3');
+    h.textContent = rec.name || 'Someone';
+    const t = document.createElement('table');
+    t.className = 'keys conn';
+    const phaseText = { connecting: 'Connecting…', retrying: 'Still connecting (retrying)', failed: "Can't connect", connected: 'Connected', reconnecting: 'Reconnecting…', frozen: 'Connected, video paused' }[i.phase] || i.phase;
+    t.append(row('Video call', phaseText));
+    if (i.route) t.append(row('Route', i.route === 'relay' ? 'Through the relay server' : 'Direct'));
+    if (i.rttMs != null) t.append(row('Round trip', `${i.rttMs} ms`));
+    if (i.fps != null) t.append(row('Their video', `${i.fps} fps, ${i.kbpsIn ?? 0} kbit/s in`));
+    if (i.kbpsOut != null) t.append(row('My video to them', `${i.kbpsOut} kbit/s`));
+    if (i.loss != null) t.append(row('Packet loss', `${i.loss}%`));
+    if (i.restarts) t.append(row('Retries', String(i.restarts)));
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn ghost';
+    b.textContent = `Reconnect video with ${rec.name || 'them'}`;
+    b.addEventListener('click', () => {
+      rtc.retry(rec.id);
+      renderConnection();
+    });
+    body.append(h, t, b);
+  }
+}
+
+function connectionReport() {
+  const lines = [`Games Chat connection report ${new Date().toISOString()}`, `relay: ${net?.status}`, `turn: ${rtc?.turn}`, `ua: ${navigator.userAgent}`];
+  for (const rec of tiles.values()) {
+    if (rec.id === me.id) continue;
+    lines.push(`${rec.name}: ${JSON.stringify(rtc.info(rec.id))}`);
+  }
+  return lines.join('\n');
 }
 
 // --- controls --------------------------------------------------------------
@@ -528,6 +739,19 @@ function back() {
 }
 
 function initControls() {
+  $('#status').addEventListener('click', () => {
+    renderConnection();
+    openDialog('connection');
+  });
+  $('#copy-report').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(connectionReport());
+      toast('Copied the connection report');
+    } catch {
+      toast("Couldn't copy here");
+    }
+  });
+  setInterval(() => { if ($('#connection').open) renderConnection(); }, 2000);
   $('#btn-mic').addEventListener('click', () => {
     studio.setMic(!studio.micOn);
     updateDeviceButtons();

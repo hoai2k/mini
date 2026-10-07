@@ -326,6 +326,10 @@ body.pointer [data-nav]:focus-visible:not(.nav-focus) { outline: none !important
 #views { position: absolute; inset: 0; }
 .pv { position: absolute; overflow: hidden; }
 .pv::after { content: ''; position: absolute; inset: 0; border: 2px solid rgba(20, 12, 44, 0.6); pointer-events: none; }
+.pv-vig, .pv-red, .pv-rush { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.pv-vig { background: radial-gradient(ellipse at center, transparent 38%, rgba(12, 6, 24, 0.55) 72%, rgba(8, 4, 16, 0.92) 100%); }
+.pv-red { background: radial-gradient(ellipse at center, rgba(255, 40, 60, 0.08) 30%, rgba(200, 20, 40, 0.5) 100%); }
+.pv-rush { background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 255, 255, 0.28) 85%, rgba(255, 255, 255, 0.55) 100%); }
 .pv-top { position: absolute; top: 10px; left: 12px; display: flex; gap: 10px; align-items: center; }
 .pv-badge {
   width: clamp(40px, 5vw, 60px);

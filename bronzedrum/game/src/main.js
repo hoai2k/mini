@@ -583,10 +583,14 @@ function startCycle(c) {
       for (let k = 0; k < 4; k++) sound.call(at + k * c.u, 1 + k * 0.06 + (c.spirit ? 0.2 : 0));
     }
   }
-  // The army's drums answer with the same pattern, at the same speed.
-  const level = (settings.echo / 100) * (c.index === 0 ? 0.55 : 0.4);
+  // The drum crew plays the rhythm once more while the army acts: the
+  // player's own drum, clearly (the dots light along with it, view()); a
+  // sustained round after it is the army's drums keeping the groove, lower
+  // and softer.
+  const first = c.index === 0;
+  const level = (settings.echo / 100) * (first ? 0.85 : 0.4);
   for (const s of c.pattern.strokes) {
-    const src = sound.echo(s.drum, at + s.pos * c.u, level);
+    const src = sound.echo(s.drum, at + s.pos * c.u, level, first ? 1 : 0.9);
     if (src) g.echoes.push(src);
   }
 }
@@ -1007,6 +1011,16 @@ function view() {
   let heron = -1;
   if (r.shown) {
     phraseView = { pattern: r.shown.pattern, filled: Infinity, done: true, sustain: false };
+    // The rhythm played once more while the army acts: each dot pops as its
+    // stroke sounds (heard time, so the pop meets the sound).
+    if (c && c.index === 0 && c.pattern === r.shown.pattern) {
+      const h = heardTime();
+      let at = -1;
+      c.pattern.strokes.forEach((st, i) => {
+        if (h >= c.start + st.pos * c.u) at = i;
+      });
+      if (at >= 0) phraseView.pop = { i: at, k: Math.max(0, 1 - (h - (c.start + c.pattern.strokes[at].pos * c.u)) / 0.18) };
+    }
   } else if (r.phrase.length) {
     const best = r.progress();
     if (best) {

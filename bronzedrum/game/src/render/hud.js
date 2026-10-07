@@ -381,7 +381,7 @@ export const hud = {
       g.stroke();
       g.restore();
     } else if (ph) {
-      this.pattern(cx - (spanOf(ph.pattern) / 2) * cell, slotY, ph.pattern, dotR, cell, ph.filled, ph.done);
+      this.pattern(cx - (spanOf(ph.pattern) / 2) * cell, slotY, ph.pattern, dotR, cell, ph.filled, ph.done, false, 1, ph.pop);
     } else {
       // Empty slots, one per beat (Number of beats; four by default).
       const n = view.beats || 4;
@@ -826,7 +826,7 @@ export const hud = {
     return x + beat * cell + cell / 2 + (n === 1 ? 0 : (inner - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95));
   },
 
-  pattern(x, y, pattern, r, cell, filled = Infinity, glow = false, small = false, alpha = 1) {
+  pattern(x, y, pattern, r, cell, filled = Infinity, glow = false, small = false, alpha = 1, pop = null) {
     const g = this.ctx;
     const strokes = pattern.strokes;
     // Each beat's division: its slots, silent ones included.
@@ -873,7 +873,9 @@ export const hud = {
       const beat = Math.floor(s.pos);
       const n = perBeat[beat];
       const inner = s.pos - beat;
-      const rr = n === 1 ? r : n === 2 ? r * 0.72 : r * 0.62;
+      // pop: the stroke being played back right now swells and fades back.
+      const swell = pop && pop.i === i ? 1 + 0.35 * pop.k : 1;
+      const rr = (n === 1 ? r : n === 2 ? r * 0.72 : r * 0.62) * swell;
       const sx = x + beat * cell + cell / 2 + (n === 1 ? 0 : (inner - (n - 1) / (2 * n)) * cell * (small ? 1.05 : 0.95));
       g.globalAlpha = (i < filled ? 1 : 0.28) * alpha;
       if (glow && i < filled && !small) {

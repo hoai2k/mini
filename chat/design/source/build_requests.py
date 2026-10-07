@@ -172,7 +172,8 @@ req("fx", "CH-F03", "alien-antennae", "Alien antennae", "1024 x 1024",
     "Alien: two wobbly antennae on top of the head (the app also tints the face green and "
     "enlarges the eyes).",
     "Two springy lime-green alien antennae with glowing magenta ball tips, rising from the top "
-    "of the head at about x = 420 and x = 604 and curving outwards to the top corners.",
+    "of the head at about x = 420 and x = 604 and curving outwards to the top corners. "
+    "(Regeneration: the first file delivered was corrupt and could not be opened.)",
     "Canvas-drawn antennae.", face=True)
 req("fx", "CH-F04", "heart", "Heart", "256 x 256",
     "Heart Eyes: covers each eye and floats up when you smile. Memory Match uses it too.",
@@ -252,9 +253,10 @@ req("games", "CH-G02", "hoop", "Hoop and backboard", "1024 x 1024",
     "A canvas-drawn backboard, rim and net.")
 req("games", "CH-G03", "court", "Gym background", "1600 x 1200",
     "Hoops: behind the hoop.",
-    "A bright cartoon school gym: polished wooden floor in the bottom quarter, padded blue walls, "
-    "a row of high windows with sunlight, bleachers at the sides. Plain and slightly blurred in "
-    "the upper middle, where the hoop is drawn. Full-bleed, no border.",
+    "An EMPTY bright cartoon school gym with no people or characters at all: polished wooden "
+    "floor in the bottom quarter, padded blue walls, a row of high windows with sunlight, empty "
+    "bleachers at the sides. No basketball hoop and no ball (the game draws its own). Plain and "
+    "slightly blurred in the upper middle, where the hoop is drawn. Full-bleed, no border.",
     "A canvas-drawn wall and floor.", alpha=False)
 req("games", "CH-G04", "flappy-sky", "Flappy sky", "1920 x 1080",
     "Flappy Face: the scrolling background.",
@@ -263,8 +265,10 @@ req("games", "CH-G04", "flappy-sky", "Flappy sky", "1920 x 1080",
     "A canvas-drawn sky and hills.", alpha=False)
 req("games", "CH-G05", "flappy-pipe", "Flappy pillar", "256 x 1024",
     "Flappy Face: the obstacles (the game flips it for the pillars hanging from the top).",
-    "A tall candy-striped pillar with a wider cap at the top, standing upright, filling the "
-    "frame, the shaft able to repeat vertically.",
+    "A tall, thick candy-striped pillar (pink and white diagonal stripes) with a slightly wider "
+    "glossy cap at the top, standing upright. The shaft must fill the full 256 px width of the "
+    "canvas from edge to edge (the cap may be the full width and the shaft at least 85% of it), "
+    "and run from the top edge to the bottom edge. It is a chunky obstacle, not a thin pole.",
     "Canvas-drawn pillars.")
 req("games", "CH-G06", "wings", "Wings", "768 x 384",
     "Flappy Face: a pair of wings either side of your face, which is the bird.",
@@ -290,9 +294,10 @@ req("games", "CH-G10", "rps-scissors", "Scissors hand", "512 x 512",
     "The ✌️ emoji.")
 req("games", "CH-G11", "airhockey-table", "Air hockey table", "1000 x 1600",
     "Air Hockey: the table, seen from above, portrait.",
-    "A glossy arcade air-hockey table seen from directly above: icy white-blue surface with tiny "
-    "air holes, a red centre line and centre circle, goal slots at the top and bottom centre "
-    "about 36% of the width, and a neon rim along all four edges. Flat top-down view, no "
+    "An EMPTY glossy arcade air-hockey table seen from directly above: icy white-blue surface "
+    "with tiny air holes, a red centre line and centre circle, goal slots at the top and bottom "
+    "centre about 36% of the width, and a neon rim along all four edges. No paddles, no "
+    "mallets and no puck anywhere on it (the game draws its own). Flat top-down view, no "
     "perspective, full-bleed.",
     "A canvas-drawn table.", alpha=False)
 req("games", "CH-G12", "card-back", "Card back", "512 x 704",

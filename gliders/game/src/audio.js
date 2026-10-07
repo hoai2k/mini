@@ -34,14 +34,17 @@ export function createAudio() {
     return b;
   }
 
+  // Muted while the tab is hidden or the window is not focused.
+  let away = typeof document !== 'undefined' && (document.hidden || !document.hasFocus());
   function ensure() {
     if (ctx) {
-      if (ctx.state === 'suspended') ctx.resume();
+      if (ctx.state === 'suspended' && !away) ctx.resume();
       return true;
     }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
     ctx = new AC();
+    if (away) ctx.suspend().catch(() => {});
     master = ctx.createGain();
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14;
@@ -204,8 +207,23 @@ export function createAudio() {
     }
   }
 
+  function setAway(v) {
+    away = v;
+    if (!ctx) return;
+    if (away) ctx.suspend().catch(() => {});
+    else ctx.resume().catch(() => {});
+  }
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => setAway(document.hidden || !document.hasFocus()));
+    addEventListener('blur', () => setAway(true));
+    addEventListener('focus', () => setAway(document.hidden));
+  }
+
   return {
     unlock: ensure,
+    get muted() {
+      return away || !ctx || ctx.state !== 'running';
+    },
     // For the browser check: which wind is playing and how loud each layer is.
     debug() {
       return {
@@ -232,7 +250,7 @@ export function createAudio() {
     // (the most of any player). The wind is the heart of the sound: three beds
     // crossfaded by speed, pitched up a little as you go faster, a rush that
     // rises near surfaces and a membrane flutter that rises with speed and flare.
-    flight(speed, closeness, active, flare = 0) {
+    flight(speed, closeness, active, flare = 0, g = 1, updraft = 0) {
       if (!ctx) return;
       const t = ctx.currentTime;
       if (recordedWind) {
@@ -241,16 +259,20 @@ export function createAudio() {
           layers[id].gain.gain.setTargetAtTime(g * on, t, tc);
           layers[id].src.playbackRate.setTargetAtTime(rate, t, 0.25);
         };
+        // Heavy G loads the wind (the roar and flutter rise, pitch sags a
+        // touch); an updraft gusts.
+        const load = smooth(1.6, 6, g);
+        const gust = smooth(2, 15, updraft);
         const glide = 1 - smooth(30, 70, speed) * 0.8;
-        const fast = smooth(22, 55, speed) * (1 - smooth(95, 130, speed) * 0.45);
-        const dive = smooth(65, 115, speed);
+        const fast = smooth(22, 55, speed) * (1 - smooth(110, 150, speed) * 0.4) + gust * 0.5;
+        const dive = smooth(65, 125, speed) + load * 0.5;
         set('wind-glide', glide * 0.9, 0.88 + speed / 500);
-        set('wind-fast', fast, 0.86 + speed / 330);
-        set('wind-dive', dive * 1.1, 0.88 + speed / 450);
+        set('wind-fast', Math.min(1.3, fast), 0.86 + speed / 330 - load * 0.05 + gust * 0.06);
+        set('wind-dive', Math.min(1.5, dive * 1.1), 0.88 + speed / 450 - load * 0.06);
         set('wind-close', Math.pow(closeness, 1.3) * (0.35 + smooth(20, 70, speed) * 0.9), 0.9 + closeness * 0.25 + speed / 600, 0.05);
-        set('flutter', smooth(35, 100, speed) * 0.35 + flare * 0.45, 0.8 + speed / 220 + flare * 0.1);
-        windBus.gain.setTargetAtTime(on * (0.35 + 0.65 * smooth(10, 100, speed)), t, 0.2);
-        windTone.frequency.setTargetAtTime(700 + 15000 * Math.pow(smooth(15, 115, speed), 1.4), t, 0.15);
+        set('flutter', smooth(35, 110, speed) * 0.35 + flare * 0.45 + load * 0.4 + gust * 0.35, 0.8 + speed / 220 + flare * 0.1 + load * 0.15);
+        windBus.gain.setTargetAtTime(on * (0.35 + 0.65 * smooth(10, 110, speed) + load * 0.15), t, 0.15);
+        windTone.frequency.setTargetAtTime(700 + 15000 * Math.pow(smooth(15, 125, Math.max(speed, speed * (1 + load * 0.3))), 1.4), t, 0.12);
         return;
       }
       const k = active ? Math.min(1, speed / 110) : 0;
@@ -264,6 +286,12 @@ export function createAudio() {
       windGain.gain.setTargetAtTime(0, ctx.currentTime, 0.2);
       whooshGain.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
       if (windBus) windBus.gain.setTargetAtTime(0, ctx.currentTime, 0.25);
+    },
+    // Through a portal: a rising shimmer and a whoosh.
+    portal() {
+      if (!ctx) return;
+      [60, 67, 72, 79, 84, 91].forEach((n, i) => tone(midi(n), { type: 'sine', dur: 0.9, gain: 0.09, when: i * 0.05, glide: 1.5 }));
+      sample('whoosh', { gain: 1, rate: 0.7 });
     },
     // A pass-by whoosh (threading a gap, clearing a tunnel).
     passBy(speed) {

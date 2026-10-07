@@ -2162,5 +2162,31 @@
     ],
     "original_file": "assets/fx/alien-antennae.png",
     "original_prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Two springy lime-green alien antennae with glowing magenta ball tips, rising from the top of the head at about x = 420 and x = 604 and curving outwards to the top corners. Draw it on the face template (`chat/design/face-template.png`): a 1024 x 1024 canvas for a head looking straight at the camera, eye centres at (392, 520) and (632, 520), nose tip at (512, 640), mouth centre at (512, 740), chin at (512, 880) and top of head at (512, 220). Only the sticker is drawn: no face, no head, no skin. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration."
+  },
+  {
+    "id": "CH-G05",
+    "file": "assets/games/flappy-pipe-v2.png",
+    "size": "256 x 1024",
+    "prompt": "A game obstacle sprite for Flappy Face. Thick straight vertical rectangular candy-striped pillar with pink and white diagonal stripes, glossy cartoon cel shading and dark outline. Very tall narrow canvas 256 x 1024. The shaft MUST occupy the full width edge-to-edge, at least 90% of canvas width at EVERY height. A slightly wider rounded cap at top touches both side edges. The straight solid shaft continues to the bottom edge. No ornamental narrowed waist, no pedestal, no transparent side gaps except tiny round top corners. Transparency only outside the silhouette. Game physics treats the entire width as solid. No text. Rework the reference thin pole to this thick wall-like pillar.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      793,
+      1983
+    ],
+    "accepted": true,
+    "review": "Accepted after regeneration addressing remote review."
+  },
+  {
+    "id": "CH-G03",
+    "file": "assets/games/court-v3.webp",
+    "size": "1600 x 1200",
+    "prompt": "Remove the basketball backboard, hoop, net and all its ceiling support bars entirely. Reconstruct the plain gym wall and high windows behind it. The game draws its own hoop, so the background must contain NO hoop or basketball equipment, NO people, NO ball. Keep the empty bright cartoon gym, wooden floor, blue padded walls, windows, sunlight, bleachers, same perspective and colors. Wide 1600 x 1200 opaque backdrop.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1448,
+      1086
+    ],
+    "accepted": true,
+    "review": "Accepted after regeneration addressing remote review."
   }
 ]

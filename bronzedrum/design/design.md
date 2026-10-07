@@ -21,8 +21,8 @@ Sources:
 
 | Action | Who | Controller | Keyboard | Mouse | Touch |
 | --- | --- | --- | --- | --- | --- |
-| **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | LB / LT / X / D-pad ← | F D A ← | left half of the screen | the big drum's centre, or the left side |
-| **cắc**, the rim | Trưng Nhị, the younger: fierce and free | RB / RT / B / D-pad → | J K L → | right half of the screen | the red rim ring, or the right side |
+| **tùng**, the deep centre | Trưng Trắc, the elder: steady and disciplined | X | F D A ← | left half of the screen | the big drum's centre, or the left side |
+| **cắc**, the rim | Trưng Nhị, the younger: fierce and free | B | J K L → | right half of the screen | the red rim ring, or the right side |
 | **Shield and clear** | the army's shield wall; clears the rhythm dots | A | Space | click the bronze drum | Shield drum (trống chầu), or swipe the drum to clear |
 
 **Phones and tablets.** A touch switches the HUD to a touch layout; mouse and
@@ -358,28 +358,39 @@ It settles into solid dots and the drum crew plays it back from the next beat,
 round after round.
 
 A rhythm that opens with a pair or a triplet cannot be told from faster plain
-beats until a tempo is known. Once a loop is playing (or a partner), its tempo
-is preferred, and a test drums 300 random rhythms against a loop and reads all
-but the two even triplet streams exactly (those read as eighths, by design).
-Drumming a new rhythm quiets the old loop, and the new one takes over once
-complete. A (Space, a swipe) stops the loop.
+beats until a tempo is known. A tempo already in the air is preferred (the
+partner's, or in free drumming the loop just cleared), and a test drums 300
+random rhythms at such a tempo and reads all but the two even triplet streams
+exactly (those read as eighths, by design).
 
-**Call and answer** (`CallSession`). The partner drums a call; the player
-answers with any rhythm of the same length. The exchange is then played back,
-the call in the partner's voice and the answer in the player's drum. What
-follows depends on the answer:
-- **On the beat after the call** (within about half a beat): everything keeps
-  that beat, and it is the player's turn to lead. The player drums a call and
-  the partner answers it from the next beat with a riff (`riffOn`): the same
-  first beat, with one or two later beats divided differently. The player may
-  lead again at once, even over the riff. Waiting two beats after the riff
-  hands the lead back to the partner, with a new call on the beat.
-- **Late:** after the playback the partner takes the initiative and calls
-  again.
+Once a rhythm loops it stays: strokes drummed over it are playing along (they
+sound, move the dancers and feed the fire, but are not read as a rhythm), and
+only A (Space, a swipe) stops it. The next rhythm drummed then becomes the
+loop.
+
+**Call and answer** (`CallSession`). One side calls a rhythm and the other
+answers it; then the two play as one exchange, call and answer, round after
+round, until A (Space, a swipe) clears it. The turn to call alternates: the
+partner calls first, and each clear hands the call to the other side.
+- **The partner calls:** the player answers with any rhythm of the same
+  length. The answer sets the beat of the exchange (the call comes round again
+  right after it). An unanswered call is played again.
+- **The player calls:** the partner answers from the next beat with a riff
+  (`riffOn`): the same first beat, with one or two later beats divided
+  differently, at the player's tempo.
+
+While the exchange plays, strokes are drumming along: heard (they move the
+dancers and the fire) but not read as a rhythm. The exchange is kept as a loop
+whose strokes are marked by who plays them, so the free-drumming loop code
+drums it: the partner's half in their voice, the player's in their own drum.
 
 An answer is read at the call's tempo, give or take about a third
-(`readOptions`), so it cannot be mistaken for a rhythm twice as fast. An
-unanswered call is played again.
+(`readOptions`), so it cannot be mistaken for a rhythm twice as fast.
+
+**In the chapters,** once a command is accepted the drum crew plays the rhythm
+once more while the army acts, in the player's own drum, and its dots light
+stroke by stroke with it; a sustained round after that is the army's drums,
+lower and softer.
 
 **The secondary drum.** The bronze drum stays the main drum. Beside it sits a
 secondary drum, struck with Y (G or H; the small drum at the bottom right on

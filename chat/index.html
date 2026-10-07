@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Games Chat">
 <link rel="apple-touch-icon" href="app-icon-180.png">
-<link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link id="favicon" rel="icon" type="image/png" href="app-icon-192.png">
 <script>
   // Cameras only work on secure pages, so move plain-HTTP visits to HTTPS.
   if (location.protocol === 'http:' && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
@@ -61,7 +61,7 @@
   </section>
 
   <header id="topbar" class="topbar">
-    <span id="status" class="pill status" aria-live="polite">Connecting…</span>
+    <button id="status" class="pill status" type="button" aria-live="polite" title="Connection details">Connecting…</button>
     <span id="game-head" class="game-head" hidden>
       <button id="game-close" class="pill btn-pill" type="button" aria-label="Leave game"><span aria-hidden="true">✕</span> <span id="game-title" class="game-title"></span></button>
       <span id="game-votes" class="pill vote-pill"></span>
@@ -113,6 +113,17 @@
     <button id="btn-leave" class="ctrl danger" type="button"><span class="ico" data-icon="leave"></span><span class="lbl">Leave</span></button>
   </nav>
 </section>
+
+<dialog id="connection" class="dialog" aria-labelledby="connection-title">
+  <form method="dialog" class="dialog-inner">
+    <h2 id="connection-title">Connection</h2>
+    <div class="dialog-scroll" id="connection-body"></div>
+    <div class="dialog-actions">
+      <button id="copy-report" class="btn ghost" type="button">Copy report</button>
+      <button class="btn" value="close">Close</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="ratings" class="dialog" aria-labelledby="ratings-title">
   <form method="dialog" class="dialog-inner">

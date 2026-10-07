@@ -360,11 +360,13 @@ export default {
       const L = project(cam, -RIM.r, RIM.y, RIM.z);
       const R = project(cam, RIM.r, RIM.y, RIM.z);
       if (art) {
-        // Rim front edge in the art runs from x 352 to 672 at y 640.
-        const s = (R.x - L.x) / 320;
-        const x = L.x - 352 * s, y = L.y - 640 * s;
+        // Where the rim sits in the delivered art (measured from the image):
+        // its widest points run from x 222 to 802 at y 505, and everything
+        // from y 500 down (front of the rim and the net) is drawn over the ball.
+        const s = (R.x - L.x) / 580;
+        const x = L.x - 222 * s, y = L.y - 505 * s;
         if (!front) ctx.drawImage(art, x, y, 1024 * s, 1024 * s);
-        else ctx.drawImage(art, 0, 630, 1024, 394, x, y + 630 * s, 1024 * s, 394 * s);
+        else ctx.drawImage(art, 0, 500, 1024, 524, x, y + 500 * s, 1024 * s, 524 * s);
         return;
       }
       const back = project(cam, 0, RIM.y, RIM.z + RIM.r);

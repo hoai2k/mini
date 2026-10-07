@@ -23,7 +23,7 @@ Play it at https://hoai2k.github.io/mini/gliders/.
 | File | What it is |
 | --- | --- |
 | `game/src/main.js` | Screens, menus and navigation, lobby, level select, split-screen play, HUD, results |
-| `game/src/levels.js` | Seeded sky generator: palettes, formation kinds, the ten named skies, Daily and Random |
+| `game/src/levels.js` | Seeded world generator: voxel rock islands, materials, styles, palettes, updrafts, portals; the twelve named skies, Daily and Random |
 | `game/src/world.js` | Collision and proximity: oriented boxes in a grid, distance and ray queries |
 | `game/src/flight.js` | The flight model |
 | `game/src/scoring.js` | Combo, tricks, multiplier, banking and crashes; the two modes |
@@ -32,6 +32,7 @@ Play it at https://hoai2k.github.io/mini/gliders/.
 | `game/src/input.js` | Controllers (up to four) and the two keyboard sides |
 | `game/src/audio.js` | Layered recorded wind (by speed and proximity), whooshes, crash; synthesised chimes and music |
 | `game/src/store.js` | Saved settings and best scores |
+| `game/tools/world.html` | Dev viewer for a world: one frame from `?level=` or `?seed=`, `?view=` overview, launch or close; not published |
 | `game/tools/creatures.html` | Dev viewer for the gliders (`?only=`, `?variant=`, `?pose=`, `?view=`); not published |
 
 ## Controls

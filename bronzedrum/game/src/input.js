@@ -13,10 +13,12 @@ const NAV_KEYS = {
 
 // Standard gamepad mapping.
 export const PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
-const PAD_DRUM = { [PAD.X]: 'L', [PAD.LB]: 'L', [PAD.LT]: 'L', [PAD.LEFT]: 'L', [PAD.B]: 'R', [PAD.RB]: 'R', [PAD.RT]: 'R', [PAD.RIGHT]: 'R' };
+// Only X and B strike the drum (Y the secondary drum in Drum Practice): the
+// shoulder buttons, triggers and d-pad do not, so a resting finger cannot.
+const PAD_DRUM = { [PAD.X]: 'L', [PAD.B]: 'R' };
 const PAD_NAV = { [PAD.UP]: 'up', [PAD.DOWN]: 'down', [PAD.LEFT]: 'left', [PAD.RIGHT]: 'right', [PAD.A]: 'confirm', [PAD.B]: 'back', [PAD.MENU]: 'menu' };
 // Drum Practice: Y strikes the secondary drum and LB and RB choose it; the
-// d-pad's up and down add and take away beats (they are drums elsewhere).
+// d-pad's up and down add and take away beats.
 const PAD_PRACTICE = { [PAD.LB]: 'secondPrev', [PAD.RB]: 'secondNext', [PAD.UP]: 'more', [PAD.DOWN]: 'fewer' };
 const KEY_PRACTICE = {
   Minus: 'fewer', NumpadSubtract: 'fewer', ArrowDown: 'fewer',

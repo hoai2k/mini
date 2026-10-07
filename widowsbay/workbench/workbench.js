@@ -5,6 +5,8 @@ import { ACTS } from '../src/acts/index.js';
 import { createRenderer, loadAssets } from '../src/art.js';
 import { createAudio } from '../src/audio.js';
 import { beatHit } from '../src/acts/shared.js';
+import { animationDuration } from '../src/animation.js';
+import * as A2 from '../src/acts/act2.js';
 import * as A3 from '../src/acts/act3.js';
 import * as A5 from '../src/acts/act5.js';
 
@@ -64,30 +66,33 @@ const SCENES = [
   })),
   ...['refuse', 'take'].map((choice) => ({
     id: 'act2-ride-' + choice, act: 2, title: `Act II · The moon-boat ride (${choice === 'take' ? 'rose taken' : 'rose refused'})`, max: 40,
-    note: `Scene 5 (${choice === 'take' ? 'the sleepers have risen' : 'the rose refused'}): the whole ride and the iris. A small autopilot rows to the pearls (up/down).`,
+    note: `Scene 5 (${choice === 'take' ? 'the sleepers have risen' : 'the rose refused'}): the whole ride and the iris. A small autopilot changes row for the pearls and leaps for the high ones.`,
     create: () => mk(2, { from: { scene: 5, choice } }),
     input: ({ st }) => {
       const r = st.ride;
-      if (!r || st.phase !== 'ride' || r.rowT < 1) return {};
-      const next = r.pearls.find((p) => !p.got && p.at + 0.6 > st.phaseT);
-      if (!next || next.row === r.row) return {};
-      return next.row < r.row ? { up: true } : { down: true };
+      if (!r || st.phase !== 'ride') return {};
+      const next = r.pearls.find((p) => !p.got && A2.ridePearlX(p, st.phaseT) > r.x - 50);
+      if (!next) return {};
+      const dx = A2.ridePearlX(next, st.phaseT) - r.x;
+      const a = next.high && next.row === r.row && dx > 90 && dx < 130;
+      if (r.rowT < 1 || next.row === r.row) return { a };
+      return next.row < r.row ? { up: true, a } : { down: true, a };
     },
     end: (st) => st.status === 'won',
   })),
   {
     id: 'act3-whale', act: 3, title: 'Act III · The whale swallows the court', max: 12,
-    note: 'Direct state setup: the sailor is put on the pedestal (row and x from act3.js) with the whale 0 s into its pass, so it masks the hall; he takes the pearl once the mask opens (A at whale.t 1.2): take, turn, lunge, iris. Lanterns and grace are topped up.',
+    note: 'Direct state setup: the sailor is put 180 px short of the pedestal with the whale 0 s into its pass; he walks up to the pedestal under the whale and takes the pearl: take, turn, lunge, iris. Lanterns and grace are topped up.',
     create: () => {
       const st = mk(3, { from: { scene: 3 } });
       const { PEDESTAL, camFor } = A3;
-      Object.assign(st.p, { x: PEDESTAL.x, row: PEDESTAL.row, from: PEDESTAL.row, rowT: 1, grace: 999 });
+      Object.assign(st.p, { x: PEDESTAL.x - 180, row: PEDESTAL.row, from: PEDESTAL.row, rowT: 1, grace: 999 });
       if (camFor) st.cam = camFor(PEDESTAL.x);
       st.whale.t = 0; st.whale.passes = 1; st.whale.warned = true;
       st.events.push({ type: 'whalePass' });
       return st;
     },
-    input: ({ st }) => ({ a: st.phase === 'play' && st.whale.t >= 1.2 }),
+    input: ({ st }) => ({ moveX: st.phase === 'play' && st.whale.t >= 0.6 ? 1 : 0 }),
     end: (st) => st.status === 'won',
   },
   ...[[8, 'with 8 woken sleepers'], [0, 'with none woken']].map(([n, label]) => ({
@@ -142,6 +147,13 @@ const SCENES = [
     input: () => ({}),
     end: (st, t) => t >= 7,
   },
+  {
+    id: 'extra-animations', act: null, title: 'Extra Animations · every loop', max: 12, draw: drawAnimGallery,
+    note: 'Every delivered Part D loop side by side (assets/anims/), drawn by the game\'s own kit.anim at its musical timing. One-shot loops (the witch\'s wand) replay every couple of seconds. This page shows them whatever the Extra Animations box says; tick that box to see them in place in the other scenes (the band, revellers, sea spirit, jellyfish, dragon, witch, giant and pageant).',
+    create: () => null,
+    input: () => ({}),
+    end: (st, t) => t >= 12,
+  },
 ];
 const BY_ID = Object.fromEntries(SCENES.map((s) => [s.id, s]));
 
@@ -151,10 +163,30 @@ function drawCurtainCall(k, t) {
   for (let r = 0; r < 3; r++) k.waves(r, t * 40);
 }
 
+// Every delivered loop in a grid with its id, as the game draws it.
+function drawAnimGallery(k, t) {
+  const c = k.c, ids = Object.keys(assets?.anims || {}).sort();
+  c.fillStyle = k.col('#16282c'); c.fillRect(0, 0, 1280, 720);
+  if (!ids.length) { c.fillStyle = k.col('#f1e3c8'); c.font = '24px "Josefin Sans", sans-serif'; c.textAlign = 'center'; c.fillText('No animation loops delivered.', 640, 360); return; }
+  const cols = 4, rows = Math.ceil(ids.length / cols), x0 = 170, x1 = 1110, y0 = 110, y1 = 640;
+  const cw = (x1 - x0) / cols, ch = (y1 - y0) / rows;
+  ids.forEach((id, i) => {
+    const meta = assets.anims[id].meta, col = i % cols, row = Math.floor(i / cols);
+    const cx = x0 + cw * (col + 0.5), by = y0 + ch * (row + 1) - 26;
+    const time = meta.loop === 'once' ? t % (animationDuration(meta) + 0.8) : t;
+    const centre = meta.anchor === 'centre';
+    k.anim(id, time, cx, centre ? by - (ch - 40) / 2 : by, cw - 18, ch - 40);
+    c.fillStyle = k.col('#f1e3c8'); c.font = '600 14px "Josefin Sans", sans-serif'; c.textAlign = 'center';
+    c.fillText(id.replace(/^anim-/, ''), cx, by + 18);
+  });
+}
+
 // ---------------------------------------------------------------- setup
 const canvas = $('#stage');
 const audio = createAudio();
-const ui = { sound: $('#sound'), hud: $('#hud'), loop: $('#loop'), lanterns: $('#lanterns'), film: $('#film'), scrub: $('#scrub') };
+const ui = { sound: $('#sound'), hud: $('#hud'), loop: $('#loop'), lanterns: $('#lanterns'), film: $('#film'), anims: $('#anims'), scrub: $('#scrub') };
+// The Extra Animations box is remembered between visits (the game's setting is separate).
+try { ui.anims.checked = localStorage.getItem('widowsbay.workbench.anims') === '1'; } catch { /* storage is optional */ }
 let renderer = null;
 let assets = null;
 let dirty = true;
@@ -193,8 +225,9 @@ function setView() {
   view.t = sim.f * DT;
   view.hud = ui.hud.checked;
   view.film = ui.film.value;
-  view.curtainCall = d.act ? 0 : Math.min(1, view.t / 1.4);
-  view.scene = d.act ? null : drawCurtainCall;
+  view.extraAnimations = ui.anims.checked || d.draw === drawAnimGallery;
+  view.curtainCall = d.act || d.draw ? 0 : Math.min(1, view.t / 1.4);
+  view.scene = d.act ? null : d.draw || drawCurtainCall;
 }
 
 function restart() {
@@ -318,6 +351,10 @@ sel.addEventListener('change', () => { location.hash = sel.value; });
 ui.sound.addEventListener('change', () => { if (ui.sound.checked) { audio.unlock(); audio.resume(); } });
 ui.hud.addEventListener('change', () => { setView(); dirty = true; });
 ui.film.addEventListener('change', () => { setView(); dirty = true; });
+ui.anims.addEventListener('change', () => {
+  try { localStorage.setItem('widowsbay.workbench.anims', ui.anims.checked ? '1' : '0'); } catch { /* storage is optional */ }
+  setView(); dirty = true;
+});
 ui.lanterns.addEventListener('change', () => { const t = sim.f * DT; load(sim.def.id, t); });
 $('#link').addEventListener('click', () => {
   const h = `#${sim.def.id}@${(sim.f * DT).toFixed(1)}`;

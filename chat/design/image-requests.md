@@ -438,14 +438,14 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 
 ### CH-G03 · Gym background
 
-- **File:** `chat/assets/games/court-v2.webp`
+- **File:** `chat/assets/games/court-v3.webp`
 - **Size:** 1600 x 1200, opaque
 - **Used for:** Hoops: behind the hoop.
 - **Stand-in until delivered:** A canvas-drawn wall and floor.
 - **Status:** delivered
 
 ```text
-Remove every person, every foreground basketball and every body part. Show ONLY an empty friendly cartoon basketball gym: polished floor, bleachers and distant walls. Leave a spacious empty centre for the live game hoop and ball. No people or characters anywhere. Preserve cartoon style, colors and viewpoint.
+Remove the basketball backboard, hoop, net and all its ceiling support bars entirely. Reconstruct the plain gym wall and high windows behind it. The game draws its own hoop, so the background must contain NO hoop or basketball equipment, NO people, NO ball. Keep the empty bright cartoon gym, wooden floor, blue padded walls, windows, sunlight, bleachers, same perspective and colors. Wide 1600 x 1200 opaque backdrop.
 ```
 
 ### CH-G04 · Flappy sky
@@ -462,14 +462,14 @@ Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, s
 
 ### CH-G05 · Flappy pillar
 
-- **File:** `chat/assets/games/flappy-pipe.png`
+- **File:** `chat/assets/games/flappy-pipe-v2.png`
 - **Size:** 256 x 1024, transparent
 - **Used for:** Flappy Face: the obstacles (the game flips it for the pillars hanging from the top).
 - **Stand-in until delivered:** Canvas-drawn pillars.
 - **Status:** delivered
 
 ```text
-Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A tall candy-striped pillar with a wider cap at the top, standing upright, filling the frame, the shaft able to repeat vertically. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+A game obstacle sprite for Flappy Face. Thick straight vertical rectangular candy-striped pillar with pink and white diagonal stripes, glossy cartoon cel shading and dark outline. Very tall narrow canvas 256 x 1024. The shaft MUST occupy the full width edge-to-edge, at least 90% of canvas width at EVERY height. A slightly wider rounded cap at top touches both side edges. The straight solid shaft continues to the bottom edge. No ornamental narrowed waist, no pedestal, no transparent side gaps except tiny round top corners. Transparency only outside the silhouette. Game physics treats the entire width as solid. No text. Rework the reference thin pole to this thick wall-like pillar.
 ```
 
 ### CH-G06 · Wings

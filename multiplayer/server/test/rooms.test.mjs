@@ -162,3 +162,12 @@ test("votes: one vote per voter per item, changeable, with totals for everyone",
   assert.equal((await cast("hoops", "voterA1", 5)).status, 400);
   assert.equal((await fetch(`${BASE}/votes/${game}`, { headers: { Origin: "https://evil.example" } })).status, 403);
 });
+
+test("turn: STUN servers always, TURN only when its secrets are set", async () => {
+  const res = await fetch(`${BASE}/turn`);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.turn, false);
+  assert.ok(body.iceServers.some(s => s.urls.some(u => u.startsWith("stun:"))));
+  assert.equal((await fetch(`${BASE}/turn`, { headers: { Origin: "https://evil.example" } })).status, 403);
+});

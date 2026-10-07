@@ -81,35 +81,11 @@ export const ASSET_LIST = {
   },
   "crown": {
     "file": "assets/fx/crown.png",
-    "status": "delivered",
-    "templateRects": [
-      [
-        48,
-        103,
-        928,
-        589,
-        260,
-        10,
-        504,
-        230
-      ]
-    ]
+    "status": "delivered"
   },
   "mustache": {
     "file": "assets/fx/mustache.png",
-    "status": "delivered",
-    "templateRects": [
-      [
-        63,
-        523,
-        898,
-        247,
-        300,
-        648,
-        424,
-        88
-      ]
-    ]
+    "status": "delivered"
   },
   "monocle": {
     "file": "assets/fx/monocle.png",
@@ -180,7 +156,7 @@ export const ASSET_LIST = {
     "status": "delivered"
   },
   "court": {
-    "file": "assets/games/court-v2.webp",
+    "file": "assets/games/court-v3.webp",
     "status": "delivered"
   },
   "flappy-sky": {
@@ -188,7 +164,7 @@ export const ASSET_LIST = {
     "status": "delivered"
   },
   "flappy-pipe": {
-    "file": "assets/games/flappy-pipe.png",
+    "file": "assets/games/flappy-pipe-v2.png",
     "status": "delivered"
   },
   "wings": {
