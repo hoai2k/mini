@@ -642,6 +642,536 @@
       "section": "practice",
       "runtime": true,
       "web": "web/kit-faces.webp"
+    },
+    {
+      "id": "wp-water",
+      "request": "BD-W02",
+      "file": "art/wp-water.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true
+    },
+    {
+      "id": "wp-sky-dawn",
+      "request": "BD-WB01",
+      "file": "art/wp-sky-dawn.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sky-dawn"
+    },
+    {
+      "id": "wp-sky-day",
+      "request": "BD-WB02",
+      "file": "art/wp-sky-day.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sky-day"
+    },
+    {
+      "id": "wp-sky-night",
+      "request": "BD-WB03",
+      "file": "art/wp-sky-night.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sky-night"
+    },
+    {
+      "id": "wp-layer-karst-far",
+      "request": "BD-WB09",
+      "file": "art/wp-layer-karst-far.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "layer-karst-far"
+    },
+    {
+      "id": "wp-layer-karst",
+      "request": "BD-WB04",
+      "file": "art/wp-layer-karst.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "layer-karst"
+    },
+    {
+      "id": "wp-layer-grove",
+      "request": "BD-WB05",
+      "file": "art/wp-layer-grove.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "layer-grove"
+    },
+    {
+      "id": "wp-layer-paddy",
+      "request": "BD-WB06",
+      "file": "art/wp-layer-paddy.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "layer-paddy"
+    },
+    {
+      "id": "wp-layer-reeds",
+      "request": "BD-WB07",
+      "file": "art/wp-layer-reeds.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "layer-reeds"
+    },
+    {
+      "id": "wp-paper-fiber",
+      "request": "BD-WB08",
+      "file": "art/wp-paper-fiber.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "paper-fiber"
+    },
+    {
+      "id": "wp-sky-dusk",
+      "request": "BD-WB10",
+      "file": "art/wp-sky-dusk.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sky-dusk"
+    },
+    {
+      "id": "wp-sky-foundry",
+      "request": "BD-WB11",
+      "file": "art/wp-sky-foundry.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sky-foundry"
+    },
+    {
+      "id": "wp-sky-ash",
+      "request": "BD-WB12",
+      "file": "art/wp-sky-ash.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sky-ash"
+    },
+    {
+      "id": "wp-sister-trac",
+      "request": "BD-WC01",
+      "file": "art/wp-sister-trac.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sister-trac"
+    },
+    {
+      "id": "wp-sister-nhi",
+      "request": "BD-WC02",
+      "file": "art/wp-sister-nhi.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "sister-nhi"
+    },
+    {
+      "id": "wp-war-elephant",
+      "request": "BD-WC03",
+      "file": "art/wp-war-elephant.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "war-elephant"
+    },
+    {
+      "id": "wp-drum-bearers",
+      "request": "BD-WC04",
+      "file": "art/wp-drum-bearers.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "drum-bearers"
+    },
+    {
+      "id": "wp-drum-palanquin",
+      "request": "BD-WC14",
+      "file": "art/wp-drum-palanquin.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "drum-palanquin"
+    },
+    {
+      "id": "wp-drummer-chau",
+      "request": "BD-WC11",
+      "file": "art/wp-drummer-chau.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "drummer-chau"
+    },
+    {
+      "id": "wp-drummer-mo",
+      "request": "BD-WC12",
+      "file": "art/wp-drummer-mo.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "drummer-mo"
+    },
+    {
+      "id": "wp-unit-spear",
+      "request": "BD-WC05",
+      "file": "art/wp-unit-spear.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "unit-spear"
+    },
+    {
+      "id": "wp-unit-archer",
+      "request": "BD-WC06",
+      "file": "art/wp-unit-archer.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "unit-archer"
+    },
+    {
+      "id": "wp-children-sheet",
+      "request": "BD-WC15",
+      "file": "art/wp-children-sheet.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "children-sheet"
+    },
+    {
+      "id": "wp-unit-spear-cover",
+      "request": "BD-WC16",
+      "file": "art/wp-unit-spear-cover.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "unit-spear-cover"
+    },
+    {
+      "id": "wp-unit-archer-cover",
+      "request": "BD-WC17",
+      "file": "art/wp-unit-archer-cover.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "unit-archer-cover"
+    },
+    {
+      "id": "wp-han-spear",
+      "request": "BD-WC07",
+      "file": "art/wp-han-spear.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "han-spear"
+    },
+    {
+      "id": "wp-han-crossbow",
+      "request": "BD-WC08",
+      "file": "art/wp-han-crossbow.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "han-crossbow"
+    },
+    {
+      "id": "wp-fort-palisade",
+      "request": "BD-WC09",
+      "file": "art/wp-fort-palisade.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "fort-palisade"
+    },
+    {
+      "id": "wp-straw-target",
+      "request": "BD-WC10",
+      "file": "art/wp-straw-target.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "straw-target"
+    },
+    {
+      "id": "wp-rig-sister-trac",
+      "request": "BD-WR01",
+      "file": "art/wp-rig-sister-trac.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": false,
+      "base": "rig-sister-trac"
+    },
+    {
+      "id": "wp-rig-sister-nhi",
+      "request": "BD-WR02",
+      "file": "art/wp-rig-sister-nhi.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": false,
+      "base": "rig-sister-nhi"
+    },
+    {
+      "id": "wp-ui-panel",
+      "request": "BD-WU04",
+      "file": "art/wp-ui-panel.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "ui-panel"
+    },
+    {
+      "id": "wp-card-garden",
+      "request": "BD-WU06",
+      "file": "art/wp-card-garden.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-garden"
+    },
+    {
+      "id": "wp-card-outpost",
+      "request": "BD-WU07",
+      "file": "art/wp-card-outpost.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-outpost"
+    },
+    {
+      "id": "wp-card-luylau",
+      "request": "BD-WU08",
+      "file": "art/wp-card-luylau.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-luylau"
+    },
+    {
+      "id": "wp-card-oath",
+      "request": "BD-WU10",
+      "file": "art/wp-card-oath.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-oath"
+    },
+    {
+      "id": "wp-card-casting",
+      "request": "BD-WU11",
+      "file": "art/wp-card-casting.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-casting"
+    },
+    {
+      "id": "wp-card-villages",
+      "request": "BD-WU12",
+      "file": "art/wp-card-villages.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-villages"
+    },
+    {
+      "id": "wp-card-coronation",
+      "request": "BD-WU13",
+      "file": "art/wp-card-coronation.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-coronation"
+    },
+    {
+      "id": "wp-card-mavien",
+      "request": "BD-WU14",
+      "file": "art/wp-card-mavien.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-mavien"
+    },
+    {
+      "id": "wp-card-elegy",
+      "request": "BD-WU15",
+      "file": "art/wp-card-elegy.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-elegy"
+    },
+    {
+      "id": "wp-card-practice-free",
+      "request": "BD-WU17",
+      "file": "art/wp-card-practice-free.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-practice-free"
+    },
+    {
+      "id": "wp-card-practice-call",
+      "request": "BD-WU18",
+      "file": "art/wp-card-practice-call.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-practice-call"
+    },
+    {
+      "id": "wp-card-practice-training",
+      "request": "BD-WU26",
+      "file": "art/wp-card-practice-training.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "card-practice-training"
+    },
+    {
+      "id": "wp-fx-scraps",
+      "request": "BD-WF01",
+      "file": "art/wp-fx-scraps.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "fx-scraps"
+    },
+    {
+      "id": "wp-fx-projectiles",
+      "request": "BD-WF02",
+      "file": "art/wp-fx-projectiles.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "fx-projectiles"
+    },
+    {
+      "id": "wp-fx-drum-wake",
+      "request": "BD-WF03",
+      "file": "art/wp-fx-drum-wake.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "fx-drum-wake"
+    },
+    {
+      "id": "wp-prop-altar",
+      "request": "BD-WP01",
+      "file": "art/wp-prop-altar.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-altar"
+    },
+    {
+      "id": "wp-prop-mourning-drummer",
+      "request": "BD-WP02",
+      "file": "art/wp-prop-mourning-drummer.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-mourning-drummer"
+    },
+    {
+      "id": "wp-prop-festival-drummers",
+      "request": "BD-WP03",
+      "file": "art/wp-prop-festival-drummers.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-festival-drummers"
+    },
+    {
+      "id": "wp-prop-village-house",
+      "request": "BD-WP04",
+      "file": "art/wp-prop-village-house.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-village-house"
+    },
+    {
+      "id": "wp-prop-lantern",
+      "request": "BD-WP05",
+      "file": "art/wp-prop-lantern.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-lantern"
+    },
+    {
+      "id": "wp-prop-bronze-drum",
+      "request": "BD-WP06",
+      "file": "art/wp-prop-bronze-drum.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-bronze-drum"
+    },
+    {
+      "id": "wp-prop-furnace",
+      "request": "BD-WP07",
+      "file": "art/wp-prop-furnace.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-furnace"
+    },
+    {
+      "id": "wp-prop-mould",
+      "request": "BD-WP08",
+      "file": "art/wp-prop-mould.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-mould"
+    },
+    {
+      "id": "wp-prop-drum-cast",
+      "request": "BD-WP09",
+      "file": "art/wp-prop-drum-cast.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-drum-cast"
+    },
+    {
+      "id": "wp-han-general",
+      "request": "BD-WP10",
+      "file": "art/wp-han-general.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "han-general"
+    },
+    {
+      "id": "wp-prop-dinh",
+      "request": "BD-WP11",
+      "file": "art/wp-prop-dinh.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "prop-dinh"
+    },
+    {
+      "id": "wp-dancer-sheet",
+      "request": "BD-WC13",
+      "file": "art/wp-dancer-sheet.png",
+      "status": "planned",
+      "section": "water",
+      "runtime": true,
+      "base": "dancer-sheet"
     }
   ]
 }
