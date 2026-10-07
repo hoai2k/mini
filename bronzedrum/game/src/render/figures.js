@@ -444,6 +444,8 @@ export const figures = {
 
   /** The shadow a backlit figure throws forward onto the ground. */
   footShadow(x, w, y = GROUND) {
+    // Water puppets cast none on the pond: rings of ripples instead (Renderer.pond).
+    if (this.style === 'water') return this.ripple(x, w);
     const g = this.ctx;
     g.save();
     g.fillStyle = 'rgba(0,0,0,0.35)';
@@ -479,6 +481,14 @@ export const figures = {
   /** Light from behind spills round a figure's edge. */
   backlit() {
     const g = this.ctx;
+    if (this.style === 'water') {
+      // Lit from the front by lanterns: a soft shadow behind, no glow.
+      g.shadowColor = 'rgba(0,0,0,0.35)';
+      g.shadowBlur = 6;
+      g.shadowOffsetX = 3;
+      g.shadowOffsetY = 2;
+      return;
+    }
     g.shadowColor = this.sky.glow;
     g.shadowBlur = 9;
     g.shadowOffsetX = 0;

@@ -498,6 +498,27 @@ loose instead of drawing blood. The moon changes every chapter.
 [image-requests.md](image-requests.md) has three style frames to settle how much
 colour the paper carries before the full set is generated.
 
+## Two looks: shadow puppets and water puppets
+
+Settings, Style switches the whole game between two looks, at once and
+mid-chapter. **Shadow puppets** is the look above. **Water puppets** stages the
+same game as Vietnamese water puppetry (múa rối nước): lacquered wooden
+puppets wading in a village pond, lacquer-painted scenery, red lanterns
+strung overhead. Every image with the shadow-puppet look has a water-puppet
+twin in the requests (BD-W, game id `wp-` + the shadow image's id, same size
+and composition), and `art.js` hands out the twin in the water style. A twin
+not yet delivered falls back to its shadow-puppet image, except the paper
+fibre, the paper scraps and the paper panel, which the water style draws for
+itself. The game draws the water style's own pieces (`render/pond.js`): the
+pond over the feet and shins of everything standing on the ground, with the
+scene mirrored faintly in it and rings of ripples round each figure (in place
+of the foot shadows), the lantern string, and splashes and chips of lacquered
+wood instead of paper scraps. Figures are lit from the front, with a soft
+shadow behind instead of the backlight's glow, and the menu panels are black
+lacquer edged in vermilion and gold. The sisters' jointed rigs stay the
+shadow puppets' until the water twins' part sheets are cut; once the twin
+sprite of a sister arrives and before her rig does, she is drawn whole.
+
 ## Open questions
 
 - **Style.** White paper and lamplight, coloured papers, or shadow theatre

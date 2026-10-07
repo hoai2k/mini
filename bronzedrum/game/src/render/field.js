@@ -567,6 +567,11 @@ export const field = {
         g.restore();
         return p.life > 0;
       }
+      if (this.style === 'water') {
+        this.splashBit(p);
+        g.restore();
+        return p.life > 0;
+      }
       g.fillStyle = p.c;
       g.beginPath();
       g.moveTo(-p.s, -p.s * 0.4);
