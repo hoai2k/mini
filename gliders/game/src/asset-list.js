@@ -40,14 +40,14 @@ export const ASSETS = {
   },
   "sky.horizon": {
     "file": "assets/sky/horizon.png",
-    "delivered": false
+    "delivered": true
   },
   "sky.wisps": {
     "file": "assets/sky/wisps.png",
-    "delivered": false
+    "delivered": true
   },
   "sky.mist": {
     "file": "assets/sky/mist.png",
-    "delivered": false
+    "delivered": true
   }
 };

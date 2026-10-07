@@ -236,7 +236,7 @@ REQUESTS = [
         "size": "4096 x 1024, greyscale",
         "used": "Wrapped all the way round the horizon behind the distant islands: banks of towering cumulus and haze that make the sky feel endless. Tinted to each sky's horizon colour.",
         "standin": "The plain gradient sky.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": SKY_STYLE + " A very wide panoramic band of distant cloud banks seen level from "
         "high altitude: soft towering cumulus and layered haze along the bottom half, thinning into "
         "faint wisps toward the top, fading to pure black at the very top edge. The bottom quarter is "
@@ -253,7 +253,7 @@ REQUESTS = [
         "size": "2048 x 2048, greyscale",
         "used": "Thin high cloud drifting across the upper sky dome, faint and slow. Tinted toward white or each sky's zenith colour.",
         "standin": "The plain gradient sky.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": SKY_STYLE + " Thin high-altitude cirrus and altocumulus wisps seen from below: "
         "delicate streaks, mackerel ripples and feathery trails scattered with plenty of empty black "
         "sky between them (about a third covered). A square tile that repeats seamlessly in both "
@@ -268,7 +268,7 @@ REQUESTS = [
         "size": "2048 x 2048, greyscale",
         "used": "The sea of mist below the islands, seen from above and drifting slowly; it fills the depths you dive toward. Tinted to each sky's mist colour.",
         "standin": "Procedural noise clouds.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": SKY_STYLE + " Looking straight down onto an endless sea of soft cloud tops from "
         "high above: billowing rounded puffs and gentle valleys between them, lit softly from one "
         "side so the puffs have bright tops and slightly darker grey hollows. Mostly covered "

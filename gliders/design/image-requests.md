@@ -12,7 +12,7 @@ Artwork for Gliders in `gliders/`. Generated from `source/build_requests.py`; ed
 
 ## Status
 
-3 requested, 9 delivered, 12 in total.
+0 requested, 12 delivered, 12 in total.
 
 ## Brand
 
@@ -140,7 +140,7 @@ Greyscale layers the game tints to each sky's own colours, so one set serves eve
 - **Size:** 4096 x 1024, greyscale
 - **Used for:** Wrapped all the way round the horizon behind the distant islands: banks of towering cumulus and haze that make the sky feel endless. Tinted to each sky's horizon colour.
 - **Stand-in until delivered:** The plain gradient sky.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Soft painterly cloud study for a game's sky, rendered in pure greyscale: white cloud on a pure black background, where brightness means cloud density and black means empty sky (the game uses the brightness as transparency and tints it). No colour, no sun, no land, no horizon line, no text, no watermark. Soft volumetric light within the clouds, gentle edges, no hard outlines. A very wide panoramic band of distant cloud banks seen level from high altitude: soft towering cumulus and layered haze along the bottom half, thinning into faint wisps toward the top, fading to pure black at the very top edge. The bottom quarter is an almost solid bright haze bank. Varied rhythm along its length (taller towers here, low rolling banks there). It must tile seamlessly left-to-right: the right edge continues exactly into the left edge. 4:1 aspect ratio, 4096 x 1024.
@@ -152,7 +152,7 @@ Soft painterly cloud study for a game's sky, rendered in pure greyscale: white c
 - **Size:** 2048 x 2048, greyscale
 - **Used for:** Thin high cloud drifting across the upper sky dome, faint and slow. Tinted toward white or each sky's zenith colour.
 - **Stand-in until delivered:** The plain gradient sky.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Soft painterly cloud study for a game's sky, rendered in pure greyscale: white cloud on a pure black background, where brightness means cloud density and black means empty sky (the game uses the brightness as transparency and tints it). No colour, no sun, no land, no horizon line, no text, no watermark. Soft volumetric light within the clouds, gentle edges, no hard outlines. Thin high-altitude cirrus and altocumulus wisps seen from below: delicate streaks, mackerel ripples and feathery trails scattered with plenty of empty black sky between them (about a third covered). A square tile that repeats seamlessly in both directions: edges continue exactly into the opposite edges. 2048 x 2048.
@@ -164,7 +164,7 @@ Soft painterly cloud study for a game's sky, rendered in pure greyscale: white c
 - **Size:** 2048 x 2048, greyscale
 - **Used for:** The sea of mist below the islands, seen from above and drifting slowly; it fills the depths you dive toward. Tinted to each sky's mist colour.
 - **Stand-in until delivered:** Procedural noise clouds.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Soft painterly cloud study for a game's sky, rendered in pure greyscale: white cloud on a pure black background, where brightness means cloud density and black means empty sky (the game uses the brightness as transparency and tints it). No colour, no sun, no land, no horizon line, no text, no watermark. Soft volumetric light within the clouds, gentle edges, no hard outlines. Looking straight down onto an endless sea of soft cloud tops from high above: billowing rounded puffs and gentle valleys between them, lit softly from one side so the puffs have bright tops and slightly darker grey hollows. Mostly covered (bright) with only small darker gaps. A square tile that repeats seamlessly in both directions: edges continue exactly into the opposite edges. 2048 x 2048.
