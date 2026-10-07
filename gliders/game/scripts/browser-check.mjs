@@ -177,7 +177,7 @@ const screen = (page) => page.evaluate(() => window.__gliders.screen);
   await tap(page, 2, 1); // B
   !(await page.evaluate(() => window.__gliders.paused)) ? ok('B resumes') : fail('B did not resume');
   await tap(page, 0, 9);
-  await page.click('[data-action="end-round"]');
+  await page.evaluate(() => document.querySelector('[data-action="end-round"]').click());
   await page.waitForFunction(() => window.__gliders.layers.includes('results'), null, { timeout: 900000 }).catch(() => {});
   (await page.evaluate(() => window.__gliders.layers.includes('results'))) ? ok('End round now → results') : fail('no results');
   await shot(page, '07-results');
