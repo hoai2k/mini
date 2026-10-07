@@ -452,7 +452,7 @@ req(C, "BD-C06", "unit-archer", "Archer",
 # The Garden at Mê Linh's lesson in blocking: village children run in and
 # pelt the women with stones; A raises their forearms in front of their faces.
 req(C, "BD-C15", "children-sheet", "Village children throwing stones",
-    "The first chapter's lesson in blocking: two children run in from the right, stop a little "
+    "The first chapter's last lesson, blocking: once the targets are down two children run in from the right, stop a little "
     "way ahead of the women and lob small stones at them until the player blocks, then run off "
     "the way they came (the game flips them). The game draws the stones. Shown 74 px tall, so "
     "keep the shapes bold and the poses easy to read.",
@@ -479,8 +479,8 @@ for rid, asset, who, base, what in [
      "head ducked behind it"),
 ]:
     req(C, rid, asset, f"{who} covering her face",
-        f"The {who.lower()} of {base} blocking the children's stones in the first chapter: shown "
-        "in place of her usual figure while the player holds the block (A). Shown 92 px tall, "
+        f"The {who.lower()} of {base} flinching from the children's stones in the first chapter: "
+        "shown in place of her usual figure for a moment when a stone gets past the shields. Shown 92 px tall, "
         f"the same size and stance as {base}, so the two can swap without a jump.",
         "1024x1536. " + CUTOUT,
         "delivered", "Renderer.warrior (a drawn forearm)", f"art/{asset}.png",

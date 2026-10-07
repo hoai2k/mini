@@ -348,7 +348,10 @@ function startStage(i, custom = null, { opening = true } = {}) {
     guards: 0,
     blocks: 0,
   };
-  if (stage.lessons) game.lessons = { done: new Set(), praise: null, blocked: 0, kids: false };
+  if (stage.lessons) {
+    game.lessons = { done: new Set(), praise: null, blocked: 0, kids: false };
+    game.battle.hold = true; // the chapter waits for the last lesson, the children (updatePlay)
+  }
   if (game.mode === 'echo') {
     game.session = new EchoSession({ calls: stage.calls.map((c) => ({ ...c, text: rhythm(c.text) })), matchTempo: stage.matchTempo, tolerance: stage.tolerance, pause: stage.settle ?? 0.4 });
     game.reader.patterns = [];
@@ -1006,8 +1009,10 @@ function updatePlay(dt) {
     renderer.draw(view(), dt);
     return;
   }
-  // The garden's lesson in blocking: the children come once it is due.
-  if (g.lessons && !g.lessons.kids && lessonNow() === 'block') {
+  // The garden's last lesson: with the targets down, the children come
+  // throwing stones (the chapter is held open until they have run off).
+  if (g.lessons && !g.lessons.kids && g.battle.enemies.filter((e) => e.goal).every((e) => !e.alive)) {
+    lessonDone('targets', 'The targets are down!');
     g.lessons.kids = true;
     spawnChildren(g.battle, 16, 6.5);
     feedback('Village children come running…', P.paperShade);
@@ -1058,8 +1063,11 @@ function updatePlay(dt) {
       confirm('Defended', P.bronzeLight);
     }
     if (ev.type === 'wound' && ev.source !== undefined && g.battle.enemies.find((e) => e.id === ev.source)?.type === 'children') {
+      g.coverUntil = t + 0.7; // the women throw up their arms against it
       feedback('Ouch! Block the stones while they fly', P.lacquer);
     }
+    // Both children gone off screen: the chapter can end.
+    if (ev.type === 'childrenGone' && g.lessons && passed('block') && !g.battle.enemies.some((e) => e.type === 'children' && e.alive)) g.battle.hold = false;
     if (ev.type === 'outcome') finish(ev.outcome);
   }
   renderer.draw(view(), dt);
@@ -1169,6 +1177,7 @@ function view() {
     incoming: g.battle.incoming.length,
     guardAt: g.battle.guardAt,
     guardUntil: g.battle.guardUntil,
+    coverUntil: g.coverUntil || 0,
     confirm: g.confirm,
     sustaining: !!(c && c.index > 0 && !r.phrase.length),
     inResponse: !!g.battle.order,
@@ -1353,18 +1362,24 @@ function resume() {
 
 const LESSONS = [
   { id: 'march', name: 'March' },
-  { id: 'block', name: 'Block the stones' },
   { id: 'march2', name: 'A stronger march' },
   { id: 'strike', name: 'Strike' },
   { id: 'flourish', name: 'Nhị’s flourish' },
   { id: 'targets', name: 'Cut down the targets' },
+  { id: 'block', name: 'Block the stones' },
 ];
 
-/** The first lesson not yet done ('targets' last, done with the chapter). */
+/** The lesson to teach now: the block while the children are here, else the first not yet done. */
 function lessonNow() {
   const L = game.lessons;
+  if (L.kids && !passed('block')) return 'block';
   const next = LESSONS.find((l) => !L.done.has(l.id));
   return next ? next.id : null;
+}
+
+/** Whether the garden lesson `id` is done. */
+function passed(id) {
+  return game.lessons.done.has(id);
 }
 
 /** A lesson done: ticked off, with praise and a chime. Once only. */

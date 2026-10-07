@@ -312,14 +312,16 @@ spirit. The women's cheer that was Rally's sound now plays when the drum wakes.
 
 **The garden is the tutorial.** A "Lessons" list sits at the top left and
 ticks off each lesson as the player does it, with a word of praise and a
-chime: march; block the stones; a stronger march (tier II); strike; Nhị's
-flourish; cut down the targets. The hint line always names the current
-lesson. When the block lesson comes up, two village children run in from the
-right, stop a few paces ahead of the army (they keep that distance as it
-moves) and lob stones. The stones do no harm; holding the block (A) while a
-stone is in the air makes the women raise their forearms over their faces
-(the garden has no shield wall) and knocks the stone aside. Two blocks pass
-the lesson and the children run back off the way they came. Children are
+chime: march; a stronger march (tier II); strike; Nhị's flourish; cut down
+the targets; block the stones. The hint line always names the current
+lesson. When the last target falls the chapter stays open: two village
+children run in from the right, stop a few paces ahead of the army (they
+keep that distance as it moves) and lob stones. Holding the block (A) while a
+stone is in the air raises the shield wall, as in battle, and knocks the
+stone aside. A stone that gets through does no harm, but the women flinch
+with their forearms over their faces. Two blocks pass the lesson; the
+children run back off the way they came, and once they are gone the chapter
+is won. Children are
 "ghost" enemies: marches pass them, strikes ignore them, and they never count
 towards winning or losing.
 
