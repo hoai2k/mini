@@ -342,7 +342,7 @@ function controlLines(b) {
     move: { controller: 'Left stick or D-pad', keyboard: 'Arrow keys or WASD', pointer: 'Move the mouse or your finger' },
     action: { controller: 'A', keyboard: 'Space', pointer: 'Click or tap' },
     steps: { controller: 'LB / RB (or D-pad ◀ ▶)', keyboard: '← / →', pointer: 'Tap the left or right half' },
-    wind: { controller: 'Spin the left stick', keyboard: 'Tap Space between notes', pointer: 'Drag in circles' },
+    wind: { controller: 'Spin the left stick', keyboard: 'Tap Space (or ← →) between notes', pointer: 'Drag in circles' },
   };
   const C = (key) => by[key][k] || by[key].keyboard;
   const lines = {
@@ -353,7 +353,7 @@ function controlLines(b) {
     plume: [`Move the watering can: ${C('move')}`, `Water: hold ${C('action')}`],
     bobolinks: [`Step: ${C('steps')}`],
     peeper: [`Move: ${C('move')}`],
-    piffle: [`Steer: ${C('move')}`, `Sew faster: hold ${C('action')}`],
+    piffle: [`Steer: ${C('move')}`, k === 'pointer' ? 'Sew faster: hold high up the quilt' : `Sew faster: hold ${C('action')}`],
     dodo: [`Choose a hat: ${C('move')}`, `Pick it: ${C('action')}`],
     crow: [`Switch the light: ${C('action')}`],
   };

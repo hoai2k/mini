@@ -11,42 +11,44 @@ const steer = (game, p) => {
 };
 const ok = (p) => p.soggy <= 0 && p.bloomT <= 0 && p.soak < 0.85;
 
-// A beginner: waters the tallest Plume until it blooms or starts to sweat,
-// then moves on to the next tallest.
-function focus() {
+// A gardener: waters the tallest Plume until it blooms or starts to sweat,
+// then moves on to the next tallest. `skill` slows its hand and sometimes
+// sends it to a Plume at random.
+function gardener(skill = 1, seed = 1) {
+  let r = seed * 7919;
+  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let target = null;
   return (game) => {
-    if (!target || !ok(target)) target = game.plants.filter(ok).sort((a, b) => b.growth - a.growth)[0] || null;
-    return target ? steer(game, target) : {};
-  };
-}
-
-// A gardener: finishes Plumes close to bloom, and otherwise goes round
-// giving a sip to any that are drying out, so they keep growing by themselves.
-function juggler(finishAt = 0.8, sipAt = 0.3) {
-  let target = null;
-  let sipping = false;
-  return (game) => {
-    if (target && (!ok(target) || (sipping && target.dry < 0.02 && target.growth < finishAt))) target = null;
-    if (!target) {
-      const cands = game.plants.filter(ok);
-      const fin = cands.filter((p) => p.growth >= finishAt).sort((a, b) => b.growth - a.growth)[0];
-      const sip = cands.filter((p) => p.dry > sipAt).sort((a, b) => Math.abs(a.x - game.x) - Math.abs(b.x - game.x))[0];
-      target = fin || sip || cands.sort((a, b) => b.growth - a.growth)[0] || null;
-      sipping = !fin && !!sip;
+    if (!target || !ok(target)) {
+      const cands = game.plants.filter(ok).sort((a, b) => b.growth - a.growth);
+      target = (rnd() < skill ? cands[0] : cands[Math.floor(rnd() * cands.length)]) || null;
     }
-    return target ? steer(game, target) : {};
+    if (!target) return {};
+    const o = steer(game, target);
+    return { ...o, x: o.x * (0.4 + 0.6 * skill) };
   };
 }
 
-test('plume: a beginner earns bronze, a juggling gardener gold; idle earns nothing', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: focus() }).game.score);
-  const gardener = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: juggler() }).game.score);
+// Holding the water on and sweeping back and forth along the bench.
+const sweeper = () => {
+  let d = 1;
+  return (game) => {
+    if (game.x > 1450) d = -1;
+    if (game.x < 150) d = 1;
+    return { x: d, action: true };
+  };
+};
+
+test('plume: a beginner earns bronze, a good gardener more; sweeping and idling do not pay', () => {
+  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: gardener(0.3, seed) }).game.score);
+  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: gardener(1, seed) }).game.score);
+  const sweep = [1, 2].map((seed) => run(create, { seed, bot: sweeper() }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('plume beginner', beginner, 'gardener', gardener, 'idle', idle, 'medals', medals);
+  console.log('plume beginner', beginner, 'good', good, 'sweep', sweep, 'idle', idle, 'medals', medals);
   assert.equal(idle, 0);
   assert.ok(Math.min(...beginner) >= medals[0], `beginner ${beginner}`);
-  assert.ok(Math.max(...gardener) >= medals[2], `gardener ${gardener}`);
+  assert.ok(Math.min(...good) > Math.max(...beginner) - 1, `good ${good}`);
+  assert.ok(Math.max(...sweep) < Math.min(...good), `sweep ${sweep}`);
 });
 
 test('plume: watering one Plume too long makes it soggy', () => {

@@ -5,11 +5,13 @@
 // pipe above. Move it left and right and hold the action to water the Plume
 // beneath it. A watered Plume grows from sprout to bud to full bloom; each
 // bloom scores one and the Plume starts again as a sprout. Between waterings
-// the pots dry out (faster as time goes on): a Plume kept damp grows a little
-// on its own, but a dry one wilts and loses its growth. Water one too long
-// and its pot goes soggy: it stops growing for a moment. Score: blooms.
+// the pots dry out (faster as time goes on), and a dry Plume wilts and loses
+// the growth it had. Water one too long and its pot goes soggy: it stops
+// growing for a moment, so keep moving along the bench. Growth comes from
+// the drops that land in the pot, so rain spilt between pots is wasted.
+// Score: blooms.
 
-import { drawBird, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, scene, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 
 const DURATION = 45;
@@ -26,12 +28,8 @@ const PANELS = ['#efd96a', '#f3e2a0', '#ea8fb0', '#a9b88a', '#d9a4a0'];
 const GROW = 0.3; // growth per second while watered (a bloom takes about 3 s)
 const SOAK = 0.27; // soak per second of watering; soggy at 1
 const SOGGY = 2;
-const DAMP = 0.45; // below this dryness a Plume keeps growing slowly by itself
-const PASSIVE = 0.14; // growth per second in damp soil, without watering
+const DROPS = 100; // drops per second; each one is 1 / DROPS seconds' worth of water
 const DRINK = 2.5; // how fast watering takes the dryness away
-const THIRSTY = 1; // a Plume drier than this drinks before it grows
-
-export const TUNE = { PASSIVE, DRINK, THIRSTY, DAMP };
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -92,6 +90,22 @@ export default function create(env) {
     env.vibrate?.(30);
   }
 
+  // A drop of water reaches a Plume's pot: it drinks, grows, and soaks.
+  function drink(p, amount) {
+    if (p.bloomT > 0 || p.soggy > 0) return;
+    p.dry = Math.max(0, p.dry - DRINK * amount);
+    p.soak += SOAK * amount;
+    p.growth += GROW * amount;
+    if (p.soak >= 1) {
+      p.soggy = SOGGY;
+      p.soak = 0.55;
+      g.soggies++;
+      pop('Soggy!', p.x, POT_TOP - 60, PAL.slate, 48);
+      sfx('splash');
+      env.vibrate?.(60);
+    }
+  }
+
   g.update = (dt, input) => {
     if (g.done) return;
     g.elapsed += dt;
@@ -111,7 +125,7 @@ export default function create(env) {
     if (g.raining) {
       g.dropT -= dt;
       while (g.dropT <= 0) {
-        g.dropT += 1 / 100;
+        g.dropT += 1 / DROPS;
         g.drops.push({ x: g.x + (rng() - 0.5) * 84, y: ROSE_Y + rng() * 10, vx: (rng() - 0.5) * 40, vy: 880 + rng() * 80 });
       }
       g.soundT -= dt;
@@ -130,6 +144,7 @@ export default function create(env) {
         if (p) {
           d.dead = true;
           p.wet = 0.15;
+          drink(p, 1 / DROPS);
           if (rng() < 0.15) g.bits.push({ kind: 'splash', x: d.x, y: POT_TOP, vx: (rng() - 0.5) * 160, vy: -100 - rng() * 120, life: 0.35 });
         }
       }
@@ -155,23 +170,10 @@ export default function create(env) {
         p.soggy -= dt;
         p.dry = 0;
         if (watered && p.shake <= 0) p.shake = 0.3;
-      } else if (watered) {
-        p.dry = Math.max(0, p.dry - DRINK * dt);
-        p.soak += SOAK * dt;
-        if (p.dry < THIRSTY) p.growth += GROW * dt;
-        if (p.soak >= 1) {
-          p.soggy = SOGGY;
-          p.soak = 0.55;
-          g.soggies++;
-          pop('Soggy!', p.x, POT_TOP - 60, PAL.slate, 48);
-          sfx('splash');
-          env.vibrate?.(60);
-        }
-      } else {
+      } else if (!watered) {
         p.soak = Math.max(0, p.soak - 0.35 * dt);
         p.dry = Math.min(1, p.dry + dryRate() * p.thirst * dt);
-        if (p.dry < DAMP) p.growth += PASSIVE * dt; // damp soil: a little growth on its own
-        else if (p.dry >= 1) p.growth -= 0.2 * dt;
+        if (p.dry >= 1) p.growth -= 0.2 * dt;
         else if (p.dry > 0.75) p.growth -= 0.06 * dt;
         p.growth = Math.max(0.06, p.growth);
       }

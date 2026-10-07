@@ -223,7 +223,6 @@ export function createInput(target) {
       const ky = (k('down') ? 1 : 0) - (k('up') ? 1 : 0);
       if (kx || dpadX) x = kx || dpadX;
       if (ky || dpadY) y = ky || dpadY;
-      // The stick's own sideways flick counts as a step, for the Bobolinks.
       if (pointer.pressed) {
         if (pointer.side < 0) left = true;
         else right = true;
