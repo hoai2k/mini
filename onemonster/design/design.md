@@ -239,7 +239,7 @@ is what keeps them smooth:
 - **Motion.** The game animates the rig in code every frame: each piece's
   rotation, offset and scale are tweened between key poses with easing, so
   the movement is smooth at any frame rate. On top go the touches that make
-  it feel alive: follow-through on ears, tie ends, napkins and nets (springs
+  it feel alive: follow-through on ears, tie ends, napkins, robes, tails and nets (springs
   that lag their parent), squash and stretch on landings and lunges, a
   breathing bob, and blinks on a random timer. Facing left is the rig
   mirrored.
@@ -266,7 +266,7 @@ The rigs, and the animations each needs:
 | Furious-Floating Ice-Ferg | Front three-quarter view from high above, floating, the waterline along its bottom edge | Drifting and bobbing, huffing up, the charge, the crash, the dazed bump |
 | Wild-'n-Windy Typhoonigator | Front view from a little above, the water spout falling from its lips | Churning cloud, sucking, swelling as it fills, letting go, the morning sag |
 | Paper-Munching Yalapappus | Side view facing right, standing on his two stumpy legs | The trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing |
-| Bombanat-Collecting Grithix | Side view facing right, standing, holding the net upright | The stride cycle, the net swing in three beats, the slam, posting the letter, tripping, the stroll home |
+| Bombanat-Collecting Grithix | Side view facing right, standing upright, the net over his shoulder | The stride cycle with a swinging tail, the net swing in three beats, the slam, posting the letter, tripping, the stroll home |
 
 The people (the girls, the mailman, the captain and crew, the neighbours and
 their dog) are small and move little, so they are whole sprites drawn from
