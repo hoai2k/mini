@@ -104,58 +104,58 @@ export const ASSETS = {
   },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.cootPoses": {
     "file": "assets/sprites/coot-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.cupadeeOpen": {
     "file": "assets/sprites/cupadee-open.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.teapot": {
     "file": "assets/sprites/teapot.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.hides": {
     "file": "assets/sprites/hides.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.gullfinchSing": {
     "file": "assets/sprites/gullfinch-sing.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.plumeGrowth": {
     "file": "assets/sprites/plume-growth.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.bobolinkBoots": {
     "file": "assets/sprites/bobolink-boots.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.stones": {
     "file": "assets/sprites/stones.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.scraps": {
     "file": "assets/sprites/scraps.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.hats": {
     "file": "assets/sprites/hats.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.cars": {
     "file": "assets/sprites/cars.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.chicks": {
     "file": "assets/sprites/chicks.png",
-    "delivered": false
+    "delivered": true
   },
   "medals": {
     "file": "assets/ui/medals.png",
-    "delivered": false
+    "delivered": true
   }
 };

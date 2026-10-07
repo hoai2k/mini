@@ -507,10 +507,16 @@ SPRITES = [
      "hand-drawn in ink and watercolour: bronze (warm brown-orange), silver (cool grey) and gold "
      "(warm yellow ochre), each with a tiny ice-cream cone embossed in the centre. No text."),
 ]
+# Delivered IDs are explicit so future sprite requests retain their stand-ins.
+DELIVERED_SPRITES = {
+    "IC-P01", "IC-P02", "IC-P03", "IC-P04", "IC-P05", "IC-P06", "IC-P07",
+    "IC-P08", "IC-P09", "IC-P10", "IC-P11", "IC-P12", "IC-P13", "IC-U06",
+}
 for sid, name, key, file, size, used, standin, prompt in SPRITES:
     REQUESTS.append({
         "id": sid, "section": "sprite" if sid.startswith("IC-P") else "ui", "name": name, "key": key,
-        "file": file, "size": size, "used": used, "standin": standin, "status": "requested",
+        "file": file, "size": size, "used": used, "standin": standin,
+        "status": "delivered" if sid in DELIVERED_SPRITES else "requested",
         "prompt": prompt,
     })
 
