@@ -154,6 +154,10 @@ export const ASSETS = {
     "file": "assets/sprites/chicks.png",
     "delivered": true
   },
+  "sprites.tree": {
+    "file": "assets/sprites/tree.png",
+    "delivered": false
+  },
   "medals": {
     "file": "assets/ui/medals.png",
     "delivered": true

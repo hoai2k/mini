@@ -500,6 +500,17 @@ SPRITES = [
      STYLE + " " + SHEET + " A 3 x 2 grid of six small round sparrow-like birds facing left, in soft "
      "browns, buffs and dusty pinks with round staring eyes and thin legs, in the book's odd, "
      "gentle way: three standing waiting, two mid-step walking, one flapping off in a fright."),
+    ("IC-P14", "Knothole tree, whole", "sprites.tree", "assets/sprites/tree.png", "1024 x 1536, transparent",
+     "Say Cheese: the hiding place a bird peeks out of through the knothole. The trunk in IC-P05 "
+     "is cut off flat at the top, which looks sawn off against the open sky, so the game fades it "
+     "out; a whole tree replaces it.",
+     "The trunk from IC-P05, faded out at the top.",
+     STYLE + " A whole old oak tree standing alone, cut out cleanly at its base: a gnarled trunk "
+     "with one dark, round knothole about a third of the way up (big enough for a small bird to "
+     "peek out of), and a full rounded crown of leaves with a few branches showing, in the same "
+     "style and colours as the meadow scene (" + asset("assets/scenes/shuttercluck.webp") + ") and "
+     "the trunk in " + asset("assets/sprites/hides.png") + ". The tree fills the frame from the "
+     "roots at the bottom edge to the crown near the top, centred. " + ALPHA),
     ("IC-U06", "Medals", "medals", "assets/ui/medals.png", "2048 x 1024, transparent",
      "The result card, the field guide's tabs and the gathering page.",
      "Coloured circles.",

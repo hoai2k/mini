@@ -14,7 +14,7 @@ Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from `sou
 
 ## Status
 
-0 requested, 39 delivered, 39 in total.
+1 requested, 39 delivered, 40 in total.
 
 ## Brand
 
@@ -522,4 +522,16 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six small round sparrow-like birds facing left, in soft browns, buffs and dusty pinks with round staring eyes and thin legs, in the book's odd, gentle way: three standing waiting, two mid-step walking, one flapping off in a fright.
+```
+
+### IC-P14 · Knothole tree, whole
+
+- **File:** `icecreamcone/game/assets/sprites/tree.png`
+- **Size:** 1024 x 1536, transparent
+- **Used for:** Say Cheese: the hiding place a bird peeks out of through the knothole. The trunk in IC-P05 is cut off flat at the top, which looks sawn off against the open sky, so the game fades it out; a whole tree replaces it.
+- **Stand-in until delivered:** The trunk from IC-P05, faded out at the top.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A whole old oak tree standing alone, cut out cleanly at its base: a gnarled trunk with one dark, round knothole about a third of the way up (big enough for a small bird to peek out of), and a full rounded crown of leaves with a few branches showing, in the same style and colours as the meadow scene (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/scenes/shuttercluck.webp) and the trunk in https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/sprites/hides.png. The tree fills the frame from the roots at the bottom edge to the crown near the top, centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
