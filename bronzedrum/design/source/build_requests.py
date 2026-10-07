@@ -799,6 +799,16 @@ for rid, cid, name, scene in [
         "1600x900, opaque; the band is cropped from the middle, so keep the subject central",
         "delivered", "buildPracticeCards (plain paper)", f"art/card-{cid}.png",
         f"{STYLE} A wide cut-paper vignette: {scene}.")
+req(PR, "BD-U26", "card-practice-training", "Practice card: Training",
+    "Background band of the Training card on the Drum Practice screen (a third card beside "
+    "Free drumming and Call and answer), where the player practises the game's rhythms level "
+    "by level.",
+    "1600x900, opaque; the band is cropped from the middle, so keep the subject central",
+    "planned", "buildPracticeCards (plain paper)", "art/card-practice-training.png",
+    f"{STYLE} A wide cut-paper vignette: an old drum master and a young feather-crowned "
+    "drummer kneeling at a bronze drum in a courtyard at dusk, the master's stick raised to "
+    "show a stroke while the student watches, a row of smaller drums and wooden beaters laid "
+    "out in order along a low lacquer-red bench behind them, lanterns overhead.")
 req(PR, "BD-P11", "prop-dinh", "The communal house (đình)",
     "The back of the practice green: a village communal house, dim against the dusk sky, its "
     "lattice lit from inside. Shown 230 px tall, centred about two thirds of the way across the "
