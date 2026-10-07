@@ -14,7 +14,7 @@ export const TILT = 0.055;           // radians, the cradle's main swing
 export const PIVOT = { x: 640, y: 800 }; // screen point the set rocks about
 export const CAM_Y_MIN = -860;
 export const SAILOR = { hw: 16, h: 110 };
-export const PHYS = { g: 2000, jump: 820, cut: 2600, walk: 280, accG: 2400, accA: 1500, fall: 1100, coyote: 0.1, buffer: 0.13, slip: 950, slide: 2000, damp: 1.6 };
+export const PHYS = { g: 2000, jump: 820, cut: 2600, walk: 280, accG: 2400, accA: 1500, fall: 1100, coyote: 0.1, buffer: 0.13, slide: 2000, damp: 1.6 };
 export const GRACE = 1.6;
 export const HOOK_R = 18;
 
@@ -300,10 +300,11 @@ function climb(st, dt, input) {
   const mx = clamp(input.moveX || 0, -1, 1);
   if (Math.abs(mx) > 0.15) s.face = Math.sign(mx);
 
-  // Carried by the platform underfoot; wet wreckage slips downhill.
+  // Carried by the platform underfoot: he rides the wreckage as it slides and
+  // never slips on it, so a safe landing stays safe until he walks off.
   let cur = s.on ? platformOf(st, s.on) : null;
   if (cur) {
-    if (cur.home != null) { s.x += cur.dx; s.x += PHYS.slip * Math.sin(st.tilt) * dt * (Math.abs(mx) > 0.15 ? 0.4 : 1); }
+    if (cur.home != null) s.x += cur.dx;
     const e = extent(cur);
     if (s.x < e.x0 - SAILOR.hw * 0.75 || s.x > e.x1 + SAILOR.hw * 0.75) { s.on = null; s.coyote = PHYS.coyote; cur = null; }
     else { s.y = e.y; s.vy = 0; s.onT += dt; }

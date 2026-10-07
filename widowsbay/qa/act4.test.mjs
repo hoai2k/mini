@@ -159,14 +159,22 @@ test('wreckage slots never overlap their neighbours', () => {
   }
 });
 
-test('the tilt tips a sailor standing still off a barrel', () => {
-  const st = act.create({ carry: {} });
-  act.step(st, DT, { beat: 1 });
-  const f1 = platformOf(st, 'F1');
-  Object.assign(st.s, { x: f1.x, y: f1.top, on: 'F1', vx: 0, vy: 0 });
-  let fell = false;
-  for (let i = 0; i < 300 && !fell; i++) { act.step(st, DT, { beat: 1 + i * DT / BEAT_S }); if (!st.s.on || st.s.on !== 'F1') fell = true; }
-  assert.ok(fell);
+test('standing still on wreckage, he rides it through the tilt and never slips off', () => {
+  for (const id of ['F1', 'F3', 'F4', 'F5', 'F13']) {
+    const st = act.create({ carry: {} });
+    act.step(st, DT, { beat: 1 });
+    const f = platformOf(st, id);
+    Object.assign(st.s, { x: f.x, y: f.top, on: id, vx: 0, vy: 0 });
+    st.hooks = []; st.grace = 1e9;
+    let off = 0, moved = 0;
+    for (let i = 0; i < 1200; i++) {
+      act.step(st, DT, { beat: 1 + i * DT / BEAT_S });
+      if (st.s.on !== id) off++;
+      moved = Math.max(moved, Math.abs(st.s.x - f.x));
+    }
+    assert.equal(off, 0, `${id}: slipped off`);
+    assert.ok(moved < 1, `${id}: drifted ${moved.toFixed(1)} px on the wreckage`);
+  }
 });
 
 test('the first ledge needs the high tide', () => {
