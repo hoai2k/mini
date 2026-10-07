@@ -10,7 +10,7 @@
 //
 // Score: the stones crossed in 40 seconds.
 
-import { drawBird, scene, blob, wash, ink, poly, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, spriteCell, scene, blob, wash, ink, poly, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 import { birdById } from '../birds.js';
 
@@ -267,22 +267,38 @@ export default function create(env) {
     const alpha = clamp((p.y - HORIZON) / 60, 0, 1);
     c.save();
     c.globalAlpha = alpha;
-    // the water dark around it
-    c.fillStyle = 'rgba(10,16,30,0.35)';
-    c.beginPath();
-    c.ellipse(p.x, y + ry * 0.5, rx * 1.12, ry * 0.9, 0, 0, Math.PI * 2);
-    c.fill();
-    // the stone: a lumpy top and a darker side
-    blob(c, p.x, y + ry * 0.35, rx, ry * 1.05, st.wob * 10, 0.05, 18);
-    wash(c, '#4a5060', 1);
-    ink(c, 2 * p.s + 0.6, '#14181f');
-    blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
-    wash(c, COL[st.side], 1);
-    ink(c, 2.2 * p.s + 0.6, '#14181f');
-    blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
-    hatch(c, p.x - rx, y - ry, p.x + rx, y + ry, 8, 0.12);
+    const painted = !!spriteCell('sprites.stones', 0);
+    if (painted) {
+      // painted stones (two side by side for a double); they sink and fade
+      const cell = Math.floor(st.wob * 1000) % 6;
+      const one = (cx, w, k) => {
+        const sc = spriteCell('sprites.stones', k);
+        const h = (w * sc.trim.h) / sc.trim.w;
+        const drop = sink * (h * 0.45);
+        drawSprite(c, 'sprites.stones', k, cx, y + h * 0.62 + drop, { w, alpha: 1 - sink * 0.55 });
+      };
+      if (wide) {
+        one(p.x - rx * 0.5, rx * 1.35, cell);
+        one(p.x + rx * 0.5, rx * 1.35, (cell + 3) % 6);
+      } else one(p.x, rx * 2.5, cell);
+    } else {
+      // the water dark around it
+      c.fillStyle = 'rgba(10,16,30,0.35)';
+      c.beginPath();
+      c.ellipse(p.x, y + ry * 0.5, rx * 1.12, ry * 0.9, 0, 0, Math.PI * 2);
+      c.fill();
+      // the stone: a lumpy top and a darker side
+      blob(c, p.x, y + ry * 0.35, rx, ry * 1.05, st.wob * 10, 0.05, 18);
+      wash(c, '#4a5060', 1);
+      ink(c, 2 * p.s + 0.6, '#14181f');
+      blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
+      wash(c, COL[st.side], 1);
+      ink(c, 2.2 * p.s + 0.6, '#14181f');
+      blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
+      hatch(c, p.x - rx, y - ry, p.x + rx, y + ry, 8, 0.12);
+    }
     // the sinking water line creeping over the stone
-    if (sink > 0.05) {
+    if (sink > 0.05 && !painted) {
       c.save();
       c.globalAlpha = alpha * Math.min(0.8, sink);
       c.beginPath();
@@ -298,6 +314,12 @@ export default function create(env) {
       c.translate(mx, y);
       c.scale(k, k * 0.55);
       poly(c, [[dir * 46, 0], [dir * 6, -30], [dir * 6, -13], [-dir * 34, -13], [-dir * 34, 13], [dir * 6, 13], [dir * 6, 30]], 3, 0.8);
+      if (painted) {
+        c.lineJoin = 'round';
+        c.lineWidth = 7;
+        c.strokeStyle = 'rgba(250,240,200,0.9)';
+        c.stroke();
+      }
       c.fillStyle = '#2a2a36';
       c.fill();
       c.restore();
@@ -305,7 +327,7 @@ export default function create(env) {
     if (wide) {
       mark(-1, p.x - rx * 0.45);
       mark(1, p.x + rx * 0.45);
-      label(c, 'BOTH', p.x, y - 2, { size: Math.max(12, 34 * k), color: '#2a2a36', weight: 800 });
+      label(c, 'BOTH', p.x, y - 2, { size: Math.max(12, 34 * k), color: painted ? '#fbf0c8' : '#2a2a36', weight: 800 });
     } else mark(st.side, p.x);
     if (isNext) {
       // the target: a pale ring, and a shrinking arc for the time left
@@ -563,22 +585,38 @@ export default function create(env) {
     const alpha = clamp((p.y - HORIZON) / 60, 0, 1);
     c.save();
     c.globalAlpha = alpha;
-    // the water dark around it
-    c.fillStyle = 'rgba(10,16,30,0.35)';
-    c.beginPath();
-    c.ellipse(p.x, y + ry * 0.5, rx * 1.12, ry * 0.9, 0, 0, Math.PI * 2);
-    c.fill();
-    // the stone: a lumpy top and a darker side
-    blob(c, p.x, y + ry * 0.35, rx, ry * 1.05, st.wob * 10, 0.05, 18);
-    wash(c, '#4a5060', 1);
-    ink(c, 2 * p.s + 0.6, '#14181f');
-    blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
-    wash(c, COL[st.side], 1);
-    ink(c, 2.2 * p.s + 0.6, '#14181f');
-    blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
-    hatch(c, p.x - rx, y - ry, p.x + rx, y + ry, 8, 0.12);
+    const painted = !!spriteCell('sprites.stones', 0);
+    if (painted) {
+      // painted stones (two side by side for a double); they sink and fade
+      const cell = Math.floor(st.wob * 1000) % 6;
+      const one = (cx, w, k) => {
+        const sc = spriteCell('sprites.stones', k);
+        const h = (w * sc.trim.h) / sc.trim.w;
+        const drop = sink * (h * 0.45);
+        drawSprite(c, 'sprites.stones', k, cx, y + h * 0.62 + drop, { w, alpha: 1 - sink * 0.55 });
+      };
+      if (wide) {
+        one(p.x - rx * 0.5, rx * 1.35, cell);
+        one(p.x + rx * 0.5, rx * 1.35, (cell + 3) % 6);
+      } else one(p.x, rx * 2.5, cell);
+    } else {
+      // the water dark around it
+      c.fillStyle = 'rgba(10,16,30,0.35)';
+      c.beginPath();
+      c.ellipse(p.x, y + ry * 0.5, rx * 1.12, ry * 0.9, 0, 0, Math.PI * 2);
+      c.fill();
+      // the stone: a lumpy top and a darker side
+      blob(c, p.x, y + ry * 0.35, rx, ry * 1.05, st.wob * 10, 0.05, 18);
+      wash(c, '#4a5060', 1);
+      ink(c, 2 * p.s + 0.6, '#14181f');
+      blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
+      wash(c, COL[st.side], 1);
+      ink(c, 2.2 * p.s + 0.6, '#14181f');
+      blob(c, p.x, y, rx * 0.96, ry, st.wob * 10 + 3, 0.05, 18);
+      hatch(c, p.x - rx, y - ry, p.x + rx, y + ry, 8, 0.12);
+    }
     // the sinking water line creeping over the stone
-    if (sink > 0.05) {
+    if (sink > 0.05 && !painted) {
       c.save();
       c.globalAlpha = alpha * Math.min(0.8, sink);
       c.beginPath();
@@ -594,6 +632,12 @@ export default function create(env) {
       c.translate(mx, y);
       c.scale(k, k * 0.55);
       poly(c, [[dir * 46, 0], [dir * 6, -30], [dir * 6, -13], [-dir * 34, -13], [-dir * 34, 13], [dir * 6, 13], [dir * 6, 30]], 3, 0.8);
+      if (painted) {
+        c.lineJoin = 'round';
+        c.lineWidth = 7;
+        c.strokeStyle = 'rgba(250,240,200,0.9)';
+        c.stroke();
+      }
       c.fillStyle = '#2a2a36';
       c.fill();
       c.restore();
@@ -601,7 +645,7 @@ export default function create(env) {
     if (wide) {
       mark(-1, p.x - rx * 0.45);
       mark(1, p.x + rx * 0.45);
-      label(c, 'BOTH', p.x, y - 2, { size: Math.max(12, 34 * k), color: '#2a2a36', weight: 800 });
+      label(c, 'BOTH', p.x, y - 2, { size: Math.max(12, 34 * k), color: painted ? '#fbf0c8' : '#2a2a36', weight: 800 });
     } else mark(st.side, p.x);
     if (isNext) {
       // the target: a pale ring, and a shrinking arc for the time left

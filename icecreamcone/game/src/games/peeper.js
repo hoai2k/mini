@@ -8,7 +8,7 @@
 // letters fall faster and sway wider as time goes on, with more wrong ones
 // among them. Score: one a letter, plus each finished word's length.
 
-import { drawBird, scene, band, blob, poly, wash, ink, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 const DURATION = 45;
@@ -232,6 +232,12 @@ export default function create(env) {
     c.translate(x, y);
     c.rotate(rot);
     c.globalAlpha = alpha;
+    // the painted scrap, with the letter printed in its blank patch
+    if (drawSprite(c, 'sprites.scraps', seed % 8, 0, 0, { w: 132, anchor: 'center' })) {
+      label(c, ch, 0, 3, { size: 54, weight: 800, color: INK, font: 'Georgia, "Times New Roman", serif' });
+      c.restore();
+      return;
+    }
     const pts = [];
     const n = 14;
     for (let i = 0; i < n; i++) {
