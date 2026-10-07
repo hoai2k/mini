@@ -12,7 +12,7 @@ Artwork for Gliders in `gliders/`. Generated from `source/build_requests.py`; ed
 
 ## Status
 
-9 requested, 0 delivered, 9 in total.
+0 requested, 9 delivered, 9 in total.
 
 ## Brand
 
@@ -24,7 +24,7 @@ The title screen, the browser tab and the game library card.
 - **Size:** 1600 x 640, transparent
 - **Used for:** The title screen above Press Start, the pause menu header, and the card on the game library page.
 - **Stand-in until delivered:** The word GLIDERS set in the page's font, each letter a different block colour.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 A polished video-game title logo. Clean, bold, slightly italic geometric letterforms with a subtle bevel, as if cut from the same coloured blocks as the game's world: each letter a different colour of the palette coral, tangerine, butter yellow, mint, teal, periwinkle, lilac, with a thin white highlight on the top edges and a soft deep-indigo outline and drop shadow so it reads on both a bright sky and a dark screen. No other text, no watermark. The single word "GLIDERS" in capitals, spelled exactly G-L-I-D-E-R-S. A soft swoosh of contrail curves from under the G up and over the word to end in a small sparkle above the final S, as if something just glided past. Wide landscape composition, the word filling about 85% of the width, even margins. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -36,7 +36,7 @@ A polished video-game title logo. Clean, bold, slightly italic geometric letterf
 - **Size:** 1920 x 1080, opaque
 - **Used for:** Full-screen behind the title screen; also the cover of the game library card.
 - **Stand-in until delivered:** A live flyover of the first level with a glider circling through it.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. The world of Gliders: huge abstract structures of clean geometric blocks (towers, arches, hollow frames, tunnels, slabs and spires) floating in an endless soft sky above a sea of clouds, in the style of the game Superflight. The blocks are flat-coloured with crisp edges and soft light, in a vivid but harmonious palette (coral, tangerine, butter yellow, mint, teal, periwinkle, lilac), fading into pastel atmospheric haze with distance. A wide establishing view: in the middle distance a flying squirrel and a four-winged Microraptor glide side by side through a tall coral and teal arch, trailing thin glowing contrails (one aqua, one gold), while a flying fish with its blue pectoral fins spread skims past a tangerine tower in the foreground on the right. Bright late-afternoon light, peach and lavender sky, clouds far below. Keep the upper-middle third calm and open (soft sky and distant blocks only) for the logo, and the bottom-right corner quiet for buttons. Full-bleed 16:9, no border.
@@ -48,7 +48,7 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 - **Size:** 1024 x 1024, transparent
 - **Used for:** Browser tab, home-screen icon (scaled to 512, 192 and 180 px) and the HUD's pause badge.
 - **Stand-in until delivered:** A drawn SVG icon: a white glider silhouette on a coral-to-violet rounded square.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. App icon: a stylised flying squirrel seen from below and slightly behind, gliding up and to the right with its membrane fully spread, over a single mint-green block arch, on a rounded-square tile with a coral-to-violet sky gradient. Bold, simple, readable at 48 px; the squirrel fills about 70% of the tile. The rounded square fills the frame with transparent corners. Transparent corners (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -64,7 +64,7 @@ One badge per playable glider. The models in play are built in code; these badge
 - **Size:** 512 x 512, transparent
 - **Used for:** The Flying Squirrel badge.
 - **Stand-in until delivered:** A snapshot of the in-game 3D model, taken when the game loads.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. A northern flying squirrel (Glaucomys) with soft grey-brown back fur, cream belly, big dark glossy eyes, its furry gliding membrane stretched taut between wrists and ankles, flat fluffy tail streaming behind. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, wings or fins fully spread, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -76,7 +76,7 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 - **Size:** 512 x 512, transparent
 - **Used for:** The Microraptor badge.
 - **Stand-in until delivered:** A snapshot of the in-game 3D model, taken when the game loads.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. A Microraptor gui, the small four-winged feathered dinosaur: long flight feathers on both arms and legs forming four wings, a long tail ending in a feather fan, toothed narrow snout, iridescent glossy black plumage with blue-green sheen, alert amber eye. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, wings or fins fully spread, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -88,7 +88,7 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 - **Size:** 512 x 512, transparent
 - **Used for:** The Flying Fish badge.
 - **Stand-in until delivered:** A snapshot of the in-game 3D model, taken when the game loads.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. A flying fish (Exocoetidae): streamlined body, deep cobalt-blue back fading to silver belly, huge translucent blue pectoral fins spread like wings with fine fin rays, smaller pelvic fins spread too, forked tail with a longer lower lobe, a few water droplets flying off. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, wings or fins fully spread, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -100,7 +100,7 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 - **Size:** 512 x 512, transparent
 - **Used for:** The Draco Lizard badge.
 - **Stand-in until delivered:** A snapshot of the in-game 3D model, taken when the game loads.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. A Draco volans flying lizard: slender mottled brown-green body, long thin tail, its rib-supported patagium wings spread wide on both sides, bright orange with black bars and yellow edges, small yellow throat dewlap extended. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, wings or fins fully spread, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -112,7 +112,7 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 - **Size:** 512 x 512, transparent
 - **Used for:** The Flying Frog badge.
 - **Stand-in until delivered:** A snapshot of the in-game 3D model, taken when the game loads.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. Wallace's flying frog: bright leaf-green back, yellow flanks, large dark gold-rimmed eyes, all four limbs splayed with enormous webbed feet, the webbing black with yellow streaks, used as parachutes, skin flaps along the forearms. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, wings or fins fully spread, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
@@ -124,8 +124,8 @@ Polished stylised 3D render, like key art for an indie flying game: soft global 
 - **Size:** 512 x 512, transparent
 - **Used for:** The Paradise Tree Snake badge.
 - **Stand-in until delivered:** A snapshot of the in-game 3D model, taken when the game loads.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
-Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. A paradise tree snake (Chrysopelea paradisi) gliding: its body flattened into a ribbon and bent into a wide S-shaped wave, black scales edged in bright green with a row of red-orange spots along the back, head raised and looking forward. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, wings or fins fully spread, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Polished stylised 3D render, like key art for an indie flying game: soft global illumination, gentle rim light, clean shapes, rich but not garish colour, strong sense of speed and depth. The animals are appealing stylised versions of the real species, anatomically recognisable, not cartoon mascots with human expressions. No text, no watermark, no UI, no photographic noise. A paradise tree snake (Chrysopelea paradisi) gliding: its body flattened into a ribbon and bent into a wide S-shaped wave, black scales edged in bright green with a row of red-orange spots along the back, head raised and looking forward. One continuous slender flattened body, with no wings, fins, limbs or separate membranes. Character badge for the player HUD and results podium: the animal alone, gliding toward the viewer at a three-quarter angle from slightly above, filling about 85% of a square frame, centred, with a clean silhouette that reads at 64 px. Lit by a warm sun from the upper left with a cool sky fill. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```

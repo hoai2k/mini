@@ -4,38 +4,38 @@
 export const ASSETS = {
   "logo": {
     "file": "assets/ui/logo.png",
-    "delivered": false
+    "delivered": true
   },
   "titleBg": {
     "file": "assets/ui/title-bg.webp",
-    "delivered": false
+    "delivered": true
   },
   "icon": {
     "file": "assets/ui/icon.png",
-    "delivered": false
+    "delivered": true
   },
   "portrait.squirrel": {
     "file": "assets/portraits/squirrel.png",
-    "delivered": false
+    "delivered": true
   },
   "portrait.microraptor": {
     "file": "assets/portraits/microraptor.png",
-    "delivered": false
+    "delivered": true
   },
   "portrait.flyingfish": {
     "file": "assets/portraits/flyingfish.png",
-    "delivered": false
+    "delivered": true
   },
   "portrait.draco": {
     "file": "assets/portraits/draco.png",
-    "delivered": false
+    "delivered": true
   },
   "portrait.frog": {
     "file": "assets/portraits/frog.png",
-    "delivered": false
+    "delivered": true
   },
   "portrait.snake": {
     "file": "assets/portraits/snake.png",
-    "delivered": false
+    "delivered": true
   }
 };

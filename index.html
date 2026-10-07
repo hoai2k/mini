@@ -116,22 +116,10 @@
     color: transparent;
   }
   .gliders .cover {
-    background:
-      linear-gradient(transparent 62%, rgba(255, 255, 255, 0.35)),
-      linear-gradient(180deg, #6fa8ff, #ffd3e6 75%, #f6d6ea);
+    background: url("gliders/assets/ui/title-bg.webp") center / cover;
     overflow: hidden;
   }
-  .gliders .cover i { position: absolute; bottom: 0; border-radius: 3px 3px 0 0; box-shadow: inset -6px 0 0 rgba(0, 0, 0, 0.12); }
-  .gliders .cover strong {
-    position: relative;
-    font: 800 clamp(2.2rem, 7vw, 3rem) / 1 ui-rounded, "Nunito", system-ui, sans-serif;
-    font-style: italic;
-    color: #fff;
-    letter-spacing: 0.04em;
-    -webkit-text-stroke: 2px #2a1a55;
-    paint-order: stroke fill;
-    text-shadow: 0 5px 0 #2a1a55;
-  }
+  .gliders .cover .game-logo { width: 85%; height: auto; position: relative; }
   .tankwars .cover {
     background:
       linear-gradient(rgba(0, 255, 0, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
@@ -162,12 +150,7 @@
     <a class="game gliders" href="gliders/">
       <div class="cover">
         <span class="tag">1–4 players</span>
-        <i style="left:8%;width:9%;height:46%;background:#ff6b6b"></i>
-        <i style="left:21%;width:6%;height:30%;background:#ffd75e"></i>
-        <i style="left:66%;width:10%;height:58%;background:#3fb6c8"></i>
-        <i style="left:80%;width:7%;height:36%;background:#b18cff"></i>
-        <i style="left:42%;width:14%;height:16%;background:#5fd3a8"></i>
-        <strong>GLIDERS</strong>
+        <img class="game-logo" src="gliders/assets/ui/logo.png" alt="Gliders">
       </div>
       <div class="info">
         <h2>Gliders</h2>

@@ -84,7 +84,7 @@ REQUESTS = [
         "size": "1600 x 640, transparent",
         "used": "The title screen above Press Start, the pause menu header, and the card on the game library page.",
         "standin": "The word GLIDERS set in the page's font, each letter a different block colour.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": LOGO_STYLE + " The single word \"GLIDERS\" in capitals, spelled exactly G-L-I-D-E-R-S. "
         "A soft swoosh of contrail curves from under the G up and over the word to end in a small "
         "sparkle above the final S, as if something just glided past. Wide landscape composition, "
@@ -99,7 +99,7 @@ REQUESTS = [
         "size": "1920 x 1080, opaque",
         "used": "Full-screen behind the title screen; also the cover of the game library card.",
         "standin": "A live flyover of the first level with a glider circling through it.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " " + WORLD + " A wide establishing view: in the middle distance a "
         "flying squirrel and a four-winged Microraptor glide side by side through a tall coral "
         "and teal arch, trailing thin glowing contrails (one aqua, one gold), while a flying fish "
@@ -117,7 +117,7 @@ REQUESTS = [
         "size": "1024 x 1024, transparent",
         "used": "Browser tab, home-screen icon (scaled to 512, 192 and 180 px) and the HUD's pause badge.",
         "standin": "A drawn SVG icon: a white glider silhouette on a coral-to-violet rounded square.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " App icon: a stylised flying squirrel seen from below and slightly "
         "behind, gliding up and to the right with its membrane fully spread, over a single "
         "mint-green block arch, on a rounded-square tile with a coral-to-violet sky gradient. "
@@ -133,7 +133,7 @@ REQUESTS = [
         "size": "512 x 512, transparent",
         "used": "The Flying Squirrel badge.",
         "standin": "A snapshot of the in-game 3D model, taken when the game loads.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " A northern flying squirrel (Glaucomys) with soft grey-brown back "
         "fur, cream belly, big dark glossy eyes, its furry gliding membrane stretched taut between "
         "wrists and ankles, flat fluffy tail streaming behind. " + PORTRAIT,
@@ -147,7 +147,7 @@ REQUESTS = [
         "size": "512 x 512, transparent",
         "used": "The Microraptor badge.",
         "standin": "A snapshot of the in-game 3D model, taken when the game loads.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " A Microraptor gui, the small four-winged feathered dinosaur: long "
         "flight feathers on both arms and legs forming four wings, a long tail ending in a "
         "feather fan, toothed narrow snout, iridescent glossy black plumage with blue-green sheen, "
@@ -162,7 +162,7 @@ REQUESTS = [
         "size": "512 x 512, transparent",
         "used": "The Flying Fish badge.",
         "standin": "A snapshot of the in-game 3D model, taken when the game loads.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " A flying fish (Exocoetidae): streamlined body, deep cobalt-blue back "
         "fading to silver belly, huge translucent blue pectoral fins spread like wings with fine "
         "fin rays, smaller pelvic fins spread too, forked tail with a longer lower lobe, a few "
@@ -177,7 +177,7 @@ REQUESTS = [
         "size": "512 x 512, transparent",
         "used": "The Draco Lizard badge.",
         "standin": "A snapshot of the in-game 3D model, taken when the game loads.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " A Draco volans flying lizard: slender mottled brown-green body, long "
         "thin tail, its rib-supported patagium wings spread wide on both sides, bright orange "
         "with black bars and yellow edges, small yellow throat dewlap extended. " + PORTRAIT,
@@ -191,7 +191,7 @@ REQUESTS = [
         "size": "512 x 512, transparent",
         "used": "The Flying Frog badge.",
         "standin": "A snapshot of the in-game 3D model, taken when the game loads.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " Wallace's flying frog: bright leaf-green back, yellow flanks, large "
         "dark gold-rimmed eyes, all four limbs splayed with enormous webbed feet, the webbing "
         "black with yellow streaks, used as parachutes, skin flaps along the forearms. " + PORTRAIT,
@@ -205,11 +205,12 @@ REQUESTS = [
         "size": "512 x 512, transparent",
         "used": "The Paradise Tree Snake badge.",
         "standin": "A snapshot of the in-game 3D model, taken when the game loads.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": ART_STYLE + " A paradise tree snake (Chrysopelea paradisi) gliding: its body "
         "flattened into a ribbon and bent into a wide S-shaped wave, black scales edged in "
         "bright green with a row of red-orange spots along the back, head raised and looking "
-        "forward. " + PORTRAIT,
+        "forward. One continuous slender flattened body, with no wings, fins, limbs or separate membranes. "
+        + PORTRAIT.replace("wings or fins fully spread, ", ""),
     },
 ]
 
