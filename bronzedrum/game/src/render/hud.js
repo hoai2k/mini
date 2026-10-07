@@ -313,7 +313,8 @@ export const hud = {
     }
     g.restore();
     // The sisters' sticks, close up, land where each stroke is struck.
-    if (kitId === 'bronze') this.closeSticks(cx, cy, R, t, touch);
+    // (In the chapters only when Show drumsticks is on; always in Drum Practice.)
+    if (kitId === 'bronze' && (view.practice || this.showSticks)) this.closeSticks(cx, cy, R, t, touch);
 
     // The phrase: the accepted pattern stays filled until the drum is ready
     // again; while drumming, the likeliest pattern is shown with the strokes

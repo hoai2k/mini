@@ -156,7 +156,8 @@ stick whips down onto the rim while the far one flicks up. The strike angles in
 `render/figures.js` (`PALANQUIN`) are solved by forward kinematics so the heads
 land on the drum. The elephant and spearwoman sheets are not cut yet.
 
-Over the HUD drum, the sisters' sticks are seen close up: on a deep stroke
+Over the HUD drum, the sisters' sticks can be seen close up (always in Drum
+Practice; in the chapters when Settings, Show drumsticks is on, off by default): on a deep stroke
 Trắc's beater comes down from the bottom left onto the sun-star, on a rim stroke
 Nhị's stick, held up steeply from the bottom right, swings in sideways onto the
 drum's far right edge, almost along the rim. The arms are mirrored from the art,

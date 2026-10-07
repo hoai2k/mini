@@ -27,6 +27,7 @@ export class Renderer {
     this.fiber = fiberTexture(); // the drawn paper fibre, until the delivered one arrives
     this.layers = null;
     this.reduceMotion = false;
+    this.showSticks = false; // the close-up sticks in the chapters (Settings)
     this.autoResolution = true; // main.js lowers dprCap when frames run slow
     this.dprCap = 2;
     // Count save()/restore() per frame (checked at the end of draw()).

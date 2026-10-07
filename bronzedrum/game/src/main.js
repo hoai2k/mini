@@ -34,7 +34,7 @@ function save(key, value) {
   }
 }
 
-const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0 });
+const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0, showSticks: false });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
 const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
 // The sisters' close-up sticks over the drum (render/hud.js STICK_SETS).
@@ -66,6 +66,7 @@ function applySettings() {
   input.vibration = settings.vibration;
   renderer.reduceMotion = settings.reduceMotion;
   renderer.stickSet = settings.sticks;
+  renderer.showSticks = settings.showSticks;
   document.body.classList.toggle('reduce-motion', settings.reduceMotion);
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
