@@ -106,7 +106,8 @@ export const field = {
       }
       bob *= u.alpha;
       const y = GROUND - row * 7;
-      this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive, raise: thrust > 0.3, alpha: u.alpha, dim: row === 1 }, t, archer);
+      const covering = view.stage.guard === 'cover';
+      this.warrior(u.x, y, 1 - row * 0.06, { bob, thrust, tilt, lean: thrust * 7, shield: shielded && alive && !covering, cover: shielded && alive && covering, raise: thrust > 0.3, alpha: u.alpha, dim: row === 1 }, t, archer);
     }
     g.restore();
   },
@@ -269,14 +270,25 @@ export const field = {
         if (ev.kind === 'spear') {
           const m = this.motion.enemies.get(ev.from);
           if (m) m.lunge = { t0: ev.launch, t1: ev.arrive };
+        } else if (ev.kind === 'children') {
+          // A stone, lobbed high and slow.
+          const m = this.motion.enemies.get(ev.from);
+          if (m) m.threw = ev.launch;
+          this.particles.push({ kind: 'stone', fromX: ev.x * U - 14, toX: to + 10, t0: ev.launch, dur, spin: (Math.random() - 0.5) * 18, r: 3 + Math.random() * 1.5 });
         } else {
           const n = ev.kind === 'fort' ? 6 : 3;
           const fromX = ev.x * U + (ev.kind === 'fort' ? 110 : -20);
           for (let i = 0; i < n; i++) this.projectile(fromX, to - i * 18, ev.launch + i * 0.03, P.ironDark, -1, dur, ev.kind === 'fort' ? 150 : 110);
         }
+      } else if (ev.type === 'deflect' && ev.kind === 'children') {
+        // A stone bounces off a raised forearm: a little grit.
+        this.scraps(this.motion.front - 10, GROUND - 80, 4, [P.paperShade, P.ink]);
       } else if (ev.type === 'deflect') {
         // Bolts and blades glance off the shields.
         this.scraps(this.motion.front - 20, GROUND - 100, 10, [P.bronzeLight, P.paper, P.ironDark]);
+      } else if (ev.type === 'wound' && ev.amount === 0) {
+        // A harmless stone: it only stings.
+        this.scraps(this.motion.front - 10, GROUND - 70, 3, [P.paperShade, P.ink]);
       } else if (ev.type === 'wound') {
         this.scraps(this.motion.front - 30, GROUND - 50, 8, [P.lacquer, P.ink]);
       } else if (ev.type === 'trample') {
@@ -477,6 +489,27 @@ export const field = {
   drawParticles(t, dt) {
     const g = this.ctx;
     this.particles = this.particles.filter((p) => {
+      if (p.kind === 'stone') {
+        // The children's stones: a high, slow lob, tumbling.
+        const k = (t - p.t0) / p.dur;
+        if (k < 0) return true;
+        if (k > 1) return false;
+        const x = p.fromX + (p.toX - p.fromX) * k;
+        const y = GROUND - 50 - Math.sin(k * Math.PI) * 130 + k * -30;
+        g.save();
+        g.translate(x, y);
+        g.rotate(p.spin * (t - p.t0));
+        g.fillStyle = '#6E6A63';
+        g.beginPath();
+        g.ellipse(0, 0, p.r * 1.25, p.r, 0, 0, Math.PI * 2);
+        g.fill();
+        g.fillStyle = 'rgba(242,232,213,0.55)';
+        g.beginPath();
+        g.ellipse(-p.r * 0.35, -p.r * 0.3, p.r * 0.45, p.r * 0.3, 0, 0, Math.PI * 2);
+        g.fill();
+        g.restore();
+        return true;
+      }
       if (p.kind === 'arrow') {
         const k = (t - p.t0) / p.dur;
         if (k < 0) return true;

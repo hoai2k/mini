@@ -139,11 +139,13 @@ export class Renderer {
       const shown = { ...e, pose: { bob: m.bob, tilt: m.tilt, lean: m.lean || 0 } };
       if (e.type === 'fort') this.fort(e, x, GROUND);
       else if (e.type === 'target') this.target(e, x, GROUND, t);
+      else if (e.type === 'children') this.child(e, x, GROUND, t, m);
       else this.hanSoldier(shown, x, GROUND, t, beatPhase);
       g.restore();
     }
     this.army(view, dt);
-    if (view.shieldsUp || view.songTime <= view.guardUntil + 0.2) this.shieldWall(view);
+    // (In the garden the block is the women covering their faces: no shield wall.)
+    if ((view.shieldsUp || view.songTime <= view.guardUntil + 0.2) && view.stage.guard !== 'cover') this.shieldWall(view);
     this.threatMarks(view);
     this.drawParticles(t, dt);
     // The drum waking: its rings spread from the drum the sisters play.

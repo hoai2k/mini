@@ -23,6 +23,8 @@ export const STAGES = [
     goal:
       'Trắc keeps the deep centre, Nhị the rim. Teach the women to march and strike, then cut down the straw targets.',
     bpm: 92,
+    lessons: true, // teaches as it goes (main.js LESSONS), with the children's stones
+    guard: 'cover', // the block is forearms over faces, not the shield wall (stones, not bolts)
     unlocked: ['march', 'strike'],
     maxTier: 2,
     troops: 60,

@@ -247,3 +247,49 @@ test('holding the ford: won by surviving the time, lost if the army breaks', () 
   }
   assert.equal(idle.outcome, 'lost', 'standing still under fire loses before the time is up');
 });
+
+test('the village children run in, lob harmless stones that a block deflects, never stop the army, and run off when dismissed', async () => {
+  const B = await import('../src/battle.js');
+  const { STAGES } = await import('../src/stages.js');
+  const s = B.createBattle(STAGES[0]);
+  const kids = B.spawnChildren(s, 16, 6.5);
+  assert.equal(kids.length, 2);
+  const troops = s.army.troops;
+  const events = [];
+  let time = 0;
+  const beat = 0.65;
+  const step = () => {
+    time += beat;
+    events.push(...B.stepEnemies(s, time), ...B.resolveIncoming(s, time));
+  };
+  for (let i = 0; i < 12; i++) step();
+  assert.ok(kids.every((k) => Math.abs(k.x - (s.army.x + k.standOff)) < 0.6), 'at their places');
+  const stones = events.filter((e) => e.type === 'launch' && e.kind === 'children');
+  assert.ok(stones.length >= 2, 'stones thrown');
+  assert.equal(s.army.troops, troops, 'stones do no harm');
+  // Blocking while a stone is in the air deflects it.
+  let deflected = 0;
+  for (let i = 0; i < 12; i++) {
+    if (s.incoming.length) B.guard(s, time);
+    step();
+    deflected = events.filter((e) => e.type === 'deflect' && e.kind === 'children').length;
+    if (deflected) break;
+  }
+  assert.ok(deflected >= 1, 'a stone blocked');
+  // They are out of the fight: a march passes them, a strike does not touch them.
+  B.issueOrder(s, 'march', 2);
+  for (let k = 0; k < 4; k++) B.stepArmy(s, time);
+  assert.ok(s.army.x > 0 && s.army.x < STAGES[0].enemies[0].x, 'the army moves on, up to the first target');
+  B.issueOrder(s, 'strike', 3);
+  for (let k = 0; k < 4; k++) B.stepArmy(s, time);
+  assert.ok(kids.every((k) => k.alive && k.hp === 1), 'untouched');
+  // As the army moves on they keep their distance ahead of it.
+  for (let i = 0; i < 6; i++) step();
+  assert.ok(kids.every((k) => k.x > s.army.x + 5), 'still ahead of the army');
+  // Dismissed, they run off and are gone.
+  B.dismissChildren(s);
+  for (let i = 0; i < 30; i++) step();
+  assert.ok(kids.every((k) => !k.alive));
+  assert.ok(events.some((e) => e.type === 'childrenGone'));
+  assert.equal(s.outcome, null, 'the chapter goes on');
+});

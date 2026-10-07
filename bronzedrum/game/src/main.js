@@ -1,7 +1,7 @@
 // Shell and game loop: title, chapter select, play, pause, results.
 
 import { DrumReader, COMMANDS, SPIRIT_COMBO, TIER_POWER, DIFFICULTIES, commandById, parsePattern, rhythmFor, setDifficulty, fitBeats, beatsOf, setBeatCount, getBeatCount } from './rhythm.js';
-import { createBattle, orderFor, spawnEnemy, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
+import { createBattle, orderFor, spawnEnemy, spawnChildren, dismissChildren, issueOrder, addFlourish, stepArmy, stepEnemies, resolveIncoming, commandPower, tempoFactor, blocker, guard, shieldsUp, aboutToAttack } from './battle.js';
 import { STAGES } from './stages.js';
 import { EchoSession, CastingSession, callPattern, dueWaves } from './modes.js';
 import { createPractice } from './practice-play.js';
@@ -348,6 +348,7 @@ function startStage(i, custom = null, { opening = true } = {}) {
     guards: 0,
     blocks: 0,
   };
+  if (stage.lessons) game.lessons = { done: new Set(), praise: null, blocked: 0, kids: false };
   if (game.mode === 'echo') {
     game.session = new EchoSession({ calls: stage.calls.map((c) => ({ ...c, text: rhythm(c.text) })), matchTempo: stage.matchTempo, tolerance: stage.tolerance, pause: stage.settle ?? 0.4 });
     game.reader.patterns = [];
@@ -697,10 +698,14 @@ function handleRhythm(ev) {
     }
     g.commandsDone += 1;
     g.tiersUsed.add(ev.tier);
+    if (ev.command === 'march') lessonDone('march', 'The women march!');
+    if (ev.command === 'march' && ev.tier >= 2) lessonDone('march2', 'Two quick strokes in one beat: a stronger march!');
+    if (ev.command === 'strike') lessonDone('strike', 'A strike! Spears and arrows fly.');
   } else if (ev.type === 'flourish') {
     addFlourish(g.battle);
     feedback(`Nhị’s flourish ×${ev.count}`, P.lacquer);
     g.flourishTaught = true;
+    lessonDone('flourish', 'Nhị’s flourish: the answer hits harder!');
   } else if (ev.type === 'reset') {
     // Three uneven tries in a row at a rhythm: play it again for them.
     if ((ev.reason === 'uneven' || ev.reason === 'timeout') && ev.strokes >= 2) {
@@ -945,12 +950,23 @@ function hint(view) {
     return 'Keep the bellows’ pace — every phrase in time with them';
   }
   if (g.stage.id === 'mavien' && view.songTime < 20) return 'Hold the ford — strike the columns, shield every volley';
-  if (g.stage.id === 'garden') {
-    if (g.commandsDone === 0) return touch ? `Tap the drum evenly (● centre, ○ rim) — ${say('march')}` : `Drum evenly, at any speed — ${say('march')}`;
-    if (near) return g.tiersUsed.has(2) ? `In reach — ${say('strike')}  or  ${say('strike', 2)}` : `In reach — ${say('strike')}`;
-    if (!g.tiersUsed.has(2)) return `Stronger: two quick strokes share a beat — ${say('march', 2)}`;
-    if (g.commandsDone >= 3 && !g.flourishTaught) return `While they answer, tap ${touch ? 'the rim' : keys.R} between their beats for Nhị’s flourish`;
-    return null;
+  if (g.lessons) {
+    // The garden's lessons, one at a time (lessonNow).
+    const guardKey = { keyboard: 'Space', gamepad: '⟨A⟩', pointer: 'click the drum', touch: 'the Shield button' }[input.device] || 'Space';
+    switch (lessonNow()) {
+      case 'march':
+        return touch ? `Tap the drum evenly (● centre, ○ rim) — ${say('march')}` : `Drum evenly, at any speed — ${say('march')}`;
+      case 'block':
+        return `Stones! Block with ${guardKey} while a stone is in the air`;
+      case 'march2':
+        return `Stronger: two quick strokes share a beat — ${say('march', 2)}`;
+      case 'strike':
+        return near ? `In reach — ${say('strike')}` : `March on to the targets — ${say('march')}`;
+      case 'flourish':
+        return `While they answer, tap ${touch ? 'the rim' : keys.R} between their beats for Nhị’s flourish`;
+      default:
+        return near ? (g.tiersUsed.has(2) ? `In reach — ${say('strike')}  or  ${say('strike', 2)}` : `In reach — ${say('strike')}`) : `March on to the next target — ${say('march')}`;
+    }
   }
   const guardKey = { keyboard: 'Space', gamepad: '⟨A⟩', pointer: 'tap the drum', touch: 'the Shield button' }[input.device] || 'Space';
   if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return `Attack coming — shield (${guardKey}) while it is in the air`;
@@ -990,6 +1006,12 @@ function updatePlay(dt) {
     renderer.draw(view(), dt);
     return;
   }
+  // The garden's lesson in blocking: the children come once it is due.
+  if (g.lessons && !g.lessons.kids && lessonNow() === 'block') {
+    g.lessons.kids = true;
+    spawnChildren(g.battle, 16, 6.5);
+    feedback('Village children come running…', P.paperShade);
+  }
   // Hold the line: new columns arrive.
   if (g.stage.waves) {
     for (const w of dueWaves(g.stage.waves, t, g.spawned)) {
@@ -1024,9 +1046,19 @@ function updatePlay(dt) {
     battleSound(ev);
     if (ev.type === 'trample') input.rumble(300, 1);
     if (ev.type === 'wound') input.rumble(80, 0.4);
-    if (ev.type === 'deflect') {
+    if (ev.type === 'deflect' && ev.kind === 'children') {
+      // The lesson in blocking: two stones blocked and the children give up.
+      g.lessons.blocked += 1;
+      if (g.lessons.blocked >= 2) {
+        lessonDone('block', 'Blocked! The children run off, laughing.');
+        dismissChildren(g.battle);
+      } else confirm('Blocked! Once more', P.bronzeLight);
+    } else if (ev.type === 'deflect') {
       g.blocks += 1;
       confirm('Defended', P.bronzeLight);
+    }
+    if (ev.type === 'wound' && ev.source !== undefined && g.battle.enemies.find((e) => e.id === ev.source)?.type === 'children') {
+      feedback('Ouch! Block the stones while they fly', P.lacquer);
     }
     if (ev.type === 'outcome') finish(ev.outcome);
   }
@@ -1051,15 +1083,22 @@ function battleSound(ev) {
       sound.play('volley');
       break;
     case 'launch':
-      if (ev.kind !== 'spear') sound.play('volley', sound.now, 0.6);
+      if (ev.kind === 'children') sound.play('volley', sound.now, 0.2);
+      else if (ev.kind !== 'spear') sound.play('volley', sound.now, 0.6);
       break;
     case 'deflect':
-      sound.play('blocked');
+      sound.play('blocked', sound.now, ev.kind === 'children' ? 0.6 : 1);
       break;
-    case 'wound':
+    case 'wound': {
+      // A stone from the children only stings.
+      if (enemy(ev.source)?.type === 'children') {
+        sound.play('hit-paper', sound.now, 0.4);
+        break;
+      }
       sound.play(ev.kind === 'spear' ? 'hit-paper' : 'bolts', sound.now, 0.8);
       sound.play('wound', sound.now, 0.6);
       break;
+    }
     case 'trample':
       if (!sound.play('trample')) sound.thud();
       break;
@@ -1173,6 +1212,13 @@ function view() {
   v.heard = heardTime();
   v.success = !!g.success;
   v.miss = g.miss && t - g.miss.t < 1.1 ? g.miss : null;
+  if (g.lessons) {
+    const now = lessonNow();
+    v.lessons = {
+      list: LESSONS.map((l) => ({ name: l.name, done: g.lessons.done.has(l.id), current: l.id === now })),
+      praise: g.lessons.praise && t - g.lessons.praise.t < 2.2 ? g.lessons.praise : null,
+    };
+  }
   if (g.training) {
     const tr = g.training;
     v.training = {
@@ -1297,6 +1343,40 @@ function resume() {
   sound.resume();
   sound.pauseMusic(false);
   show('play');
+}
+
+// ---------------------------------------------------------------- the garden's lessons
+// The first chapter teaches as it goes: one lesson at a time in the hint, a
+// list of them at the top left, and each one ticked off with a word of praise
+// the moment it is done. The lesson in blocking brings village children who
+// throw stones until two are blocked; then they run off.
+
+const LESSONS = [
+  { id: 'march', name: 'March' },
+  { id: 'block', name: 'Block the stones' },
+  { id: 'march2', name: 'A stronger march' },
+  { id: 'strike', name: 'Strike' },
+  { id: 'flourish', name: 'Nhị’s flourish' },
+  { id: 'targets', name: 'Cut down the targets' },
+];
+
+/** The first lesson not yet done ('targets' last, done with the chapter). */
+function lessonNow() {
+  const L = game.lessons;
+  const next = LESSONS.find((l) => !L.done.has(l.id));
+  return next ? next.id : null;
+}
+
+/** A lesson done: ticked off, with praise and a chime. Once only. */
+function lessonDone(id, praise) {
+  const g = game;
+  if (!g.lessons || g.lessons.done.has(id)) return;
+  // Blocking is learnt from the children: it counts only once they are here.
+  if (id === 'block' && !g.lessons.kids) return;
+  g.lessons.done.add(id);
+  g.lessons.praise = { text: praise, t: songTime() };
+  sound.play('ui-confirm', sound.now, 0.9);
+  sound.play('lantern', sound.now + 0.08, 0.5);
 }
 
 // ---------------------------------------------------------------- training

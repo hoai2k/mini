@@ -454,7 +454,7 @@ req(C, "BD-C06", "unit-archer", "Archer",
 req(C, "BD-C15", "children-sheet", "Village children throwing stones",
     "The first chapter's lesson in blocking: two children run in from the right, stop a little "
     "way ahead of the women and lob small stones at them until the player blocks, then run off "
-    "the way they came (the game flips them). The game draws the stones. Shown 58 px tall, so "
+    "the way they came (the game flips them). The game draws the stones. Shown 74 px tall, so "
     "keep the shapes bold and the poses easy to read.",
     "1536x1024, transparent; a grid of 4 columns (poses) by 2 rows (children), 384x512 cells, "
     "each child standing on the bottom of its cell, facing LEFT, centred. Columns: 1 running, "
@@ -462,7 +462,7 @@ req(C, "BD-C15", "children-sheet", "Village children throwing stones",
     "in the hand; 4 the throw, arm flung forward, hand open. Row 1 a boy with a shaved head and "
     "a topknot, in a loincloth; row 2 a girl with her hair in two short tufts, in a wrapped "
     "skirt. Same scale in every cell. " + CUTOUT.replace("Single cut-paper figure, side profile, full body, feet on the bottom edge, centred, ", ""),
-    "planned", "Renderer.child (drawn children)", "art/children-sheet.png",
+    "stand-in", "Renderer.child (drawn children)", "art/children-sheet.png",
     f"{STYLE} A sprite sheet of two cheeky Lạc Việt village children, about seven years old, "
     "in profile facing left, on a grid of 4 columns by 2 rows: row 1 a barefoot boy with a "
     "shaved head and a little topknot, in a loincloth; row 2 a barefoot girl with two short "
@@ -483,7 +483,7 @@ for rid, asset, who, base, what in [
         "in place of her usual figure while the player holds the block (A). Shown 92 px tall, "
         f"the same size and stance as {base}, so the two can swap without a jump.",
         "1024x1536. " + CUTOUT,
-        "planned", "Renderer.warrior (a drawn forearm)", f"art/{asset}.png",
+        "stand-in", "Renderer.warrior (a drawn forearm)", f"art/{asset}.png",
         f"{STYLE} The same Lac Viet woman as {base}, in profile facing right, standing as in "
         f"{base} but flinching from thrown stones: {what}. Feather crown, wrapped skirt, a "
         "lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.")

@@ -11,6 +11,9 @@ export const ENEMY_TYPES = {
   spear: { hp: 30, goal: false, faction: 'han' },
   crossbow: { hp: 20, goal: false, faction: 'han' },
   fort: { hp: 200, goal: true, faction: 'han' },
+  // The first chapter's lesson in blocking: village children who lob stones.
+  // A ghost is out of the fight: the army neither stops at it nor hits it.
+  children: { hp: 1, goal: false, faction: 'village', ghost: true },
 };
 
 const MELEE_REACH = 3;
@@ -22,7 +25,7 @@ const CONTACT_GAP = 1.5;
 // in any case until every attack already in the air has landed, so raising
 // it while an attack is visibly on its way always deflects it. Raising it
 // with nothing incoming costs a longer recovery (`whiff`) than a real block.
-export const FLIGHT = { spear: 0.7, crossbow: 0.9, fort: 1.1 };
+export const FLIGHT = { spear: 0.7, crossbow: 0.9, fort: 1.1, children: 1.0 };
 export const GUARD = { up: 0.5, recover: 0.1, whiff: 0.2 }; // quick to raise again: it is also the rhythm's clear
 const SPEAR_HIT = 1.5; // every 2 Han beats in contact
 const BOLT_VOLLEY = 1.5; // every 4 Han beats in range
@@ -83,7 +86,13 @@ export function addFlourish(state) {
   if (state.order) state.order.flourishes += 1;
 }
 
+/** The living enemies the army fights (not the children). */
 function living(state) {
+  return state.enemies.filter((e) => e.alive && !ENEMY_TYPES[e.type].ghost);
+}
+
+/** Everyone on the field who acts on the war drum's beat, the children included. */
+function actors(state) {
   return state.enemies.filter((e) => e.alive);
 }
 
@@ -162,10 +171,20 @@ function runOrder(state, events) {
 
 function runEnemies(state, events) {
   const front = state.army.x;
-  for (const e of living(state)) {
+  for (const e of actors(state)) {
     const dist = e.x - front;
     e.cooldown = Math.max(0, e.cooldown - 1);
+    if (e.type === 'children' && e.fleeing) {
+      // Off the way they came, and gone once out of sight.
+      e.x += 1.6;
+      if (dist > 26) {
+        e.alive = false;
+        events.push({ type: 'childrenGone', target: e.id });
+      }
+      continue;
+    }
     const inReach =
+      (e.type === 'children' && Math.abs(e.x - (front + e.standOff)) < 0.6) ||
       (e.type === 'spear' && dist <= CONTACT_GAP + 0.6) ||
       (e.type === 'crossbow' && dist <= 14) ||
       (e.type === 'fort' && dist <= 13);
@@ -185,6 +204,15 @@ function runEnemies(state, events) {
         const ahead = living(state).filter((o) => o !== e && o.x < e.x && o.x > front);
         const stop = ahead.length ? Math.max(...ahead.map((o) => o.x)) + 0.9 : front + CONTACT_GAP;
         e.x = Math.max(stop, e.x - 0.8);
+      }
+    } else if (e.type === 'children') {
+      // Keep their distance ahead of the army (backing off as it marches),
+      // then a stone every three beats (harmless).
+      const stand = front + e.standOff;
+      if (Math.abs(e.x - stand) >= 0.6) e.x += Math.max(-1.2, Math.min(1.2, stand - e.x));
+      else if (e.cooldown === 0) {
+        launch(state, e, 0, events);
+        e.cooldown = 3;
       }
     } else if ((e.type === 'crossbow' && dist <= 14) || (e.type === 'fort' && dist <= 13)) {
       if (e.cooldown === 0) {
@@ -231,6 +259,7 @@ export function aboutToAttack(state) {
   return state.enemies.filter((e) => {
     if (!e.alive || e.cooldown > 1) return false;
     const dist = e.x - front;
+    if (e.type === 'children') return !e.fleeing && Math.abs(e.x - (front + e.standOff)) < 0.6;
     if (e.type === 'spear') return dist <= CONTACT_GAP + 0.6;
     if (e.type === 'crossbow') return dist <= 14;
     if (e.type === 'fort') return dist <= 13;
@@ -244,6 +273,26 @@ export function spawnEnemy(state, type, dx) {
   const e = { id: state.nextId++, type, x: state.army.x + dx, hp: t.hp, maxHp: t.hp, goal: false, cooldown: 0, alive: true };
   state.enemies.push(e);
   return e;
+}
+
+/**
+ * The village children run in from dx ahead of the army and keep `stand`
+ * ahead of it to throw (the first chapter's lesson in blocking).
+ */
+export function spawnChildren(state, dx = 16, stand = 6.5) {
+  const out = [];
+  for (const [k, off] of [[0, 0], [1, 1.1]]) {
+    const e = spawnEnemy(state, 'children', dx + off);
+    e.standOff = stand + off; // how far ahead of the army they stand
+    e.child = k; // which child: 0 the boy, 1 the girl
+    out.push(e);
+  }
+  return out;
+}
+
+/** The children have had enough: they turn and run off. */
+export function dismissChildren(state) {
+  for (const e of state.enemies) if (e.type === 'children' && e.alive) e.fleeing = true;
 }
 
 function checkOutcome(state, events) {

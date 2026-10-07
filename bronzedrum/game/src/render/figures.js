@@ -34,11 +34,16 @@ export const figures = {
   /** A Lạc Việt warrior woman, facing right. */
   warrior(x, y, s, pose, t, archer) {
     const g = this.ctx;
-    const art = this.art.get(archer ? 'unit-archer' : 'unit-spear');
+    // Covering her face (the garden's block): her own figure for it when
+    // delivered (BD-C16, BD-C17), else her usual one ducking behind a drawn forearm.
+    const coverArt = pose.cover && this.art.get(archer ? 'unit-archer-cover' : 'unit-spear-cover');
+    const art = coverArt || this.art.get(archer ? 'unit-archer' : 'unit-spear');
     const img = art && pose.dim ? this.shaded(art) : art;
     if (img) {
-      this.sprite(img, x, y, 92 * s, pose);
+      const p = pose.cover && !coverArt ? { ...pose, bob: (pose.bob || 0) - 3, tilt: (pose.tilt || 0) - 0.06 } : pose;
+      this.sprite(img, x, y, 92 * s, p);
       if (pose.shield) this.roundShield(x + 14 * s + (pose.lean || 0), y - 40 * s - (pose.bob || 0), 11 * s, pose.alpha);
+      if (pose.cover && !coverArt) this.coverArm(x + (pose.lean || 0), y - (p.bob || 0), s, pose.alpha);
       return;
     }
     g.save();
@@ -151,6 +156,105 @@ export const figures = {
       byImg[key] = c;
     }
     return c;
+  },
+
+  /** A forearm raised across a figure's face (feet at x, y; s its scale). */
+  coverArm(x, y, s, alpha = 1) {
+    const g = this.ctx;
+    g.save();
+    if (alpha !== undefined) g.globalAlpha *= alpha;
+    g.strokeStyle = P.ink;
+    g.lineCap = 'round';
+    g.lineWidth = 6.5 * s;
+    g.beginPath();
+    g.moveTo(x + 16 * s, y - 56 * s); // the elbow, out in front
+    g.lineTo(x + 9 * s, y - 80 * s); // the hand, over the brow
+    g.stroke();
+    g.fillStyle = P.lacquer; // a red cuff at the wrist
+    g.beginPath();
+    g.arc(x + 11 * s, y - 73 * s, 3 * s, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  },
+
+  /**
+   * One of the village children (BD-C15 sheet, or a drawn silhouette): running
+   * in, winding up on the beat before a throw, throwing, and running off
+   * (flipped). Faces left, towards the army, until fleeing.
+   */
+  child(e, x, y, t, m) {
+    const g = this.ctx;
+    const moving = Math.abs(m.v || 0) > 6;
+    const threwAgo = m.threw !== undefined ? t - m.threw : 9;
+    let pose = 0; // 0, 1 running strides; 2 winding up; 3 the throw
+    if (threwAgo >= 0 && threwAgo < 0.3) pose = 3;
+    else if (!e.fleeing && !moving && e.cooldown === 1) pose = 2;
+    else if (moving) pose = Math.floor(t * 8 + e.id) % 2;
+    else pose = 0;
+    const H = 74;
+    const bob = moving ? Math.abs(Math.sin(t * 16 + e.id)) * 3 : 0;
+    const sheet = this.art.get('children-sheet');
+    g.save();
+    g.translate(x, y - bob);
+    if (e.fleeing) g.scale(-1, 1); // running off the way they came
+    if (sheet) {
+      const cw = sheet.width / 4;
+      const ch = sheet.height / 2;
+      const w = (cw / ch) * H;
+      g.drawImage(sheet, pose * cw, (e.child || 0) * ch, cw, ch, -w / 2, -H, w, H);
+      g.restore();
+      return;
+    }
+    // Drawn stand-in, facing left: a small ink silhouette.
+    g.scale(1.3, 1.3);
+    g.fillStyle = P.ink;
+    g.strokeStyle = P.ink;
+    g.lineCap = 'round';
+    const stride = pose === 0 ? 1 : pose === 1 ? -1 : 0;
+    g.lineWidth = 4;
+    g.beginPath(); // legs
+    g.moveTo(0, -20);
+    g.lineTo(-7 * stride - 2, 0);
+    g.moveTo(0, -20);
+    g.lineTo(7 * stride + 2, 0);
+    g.stroke();
+    g.beginPath(); // body
+    g.moveTo(-6, -20);
+    g.lineTo(6, -20);
+    g.lineTo(4, -38);
+    g.lineTo(-4, -38);
+    g.fill();
+    g.beginPath(); // head
+    g.arc(-1, -45, 6.5, 0, Math.PI * 2);
+    g.fill();
+    if (e.child) {
+      // The girl's two tufts and her red sash.
+      g.beginPath();
+      g.arc(3, -51, 2.6, 0, Math.PI * 2);
+      g.arc(-5, -51, 2.6, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = P.lacquer;
+      g.fillRect(-6, -24, 12, 3);
+    } else {
+      g.beginPath(); // the boy's topknot
+      g.arc(0, -53, 2.8, 0, Math.PI * 2);
+      g.fill();
+    }
+    // The throwing arm: back with a stone, then flung forward.
+    g.lineWidth = 3.5;
+    g.beginPath();
+    g.moveTo(0, -34);
+    if (pose === 2) g.lineTo(12, -44);
+    else if (pose === 3) g.lineTo(-14, -40);
+    else g.lineTo(-6 * stride, -24);
+    g.stroke();
+    if (pose === 2) {
+      g.fillStyle = '#6E6A63';
+      g.beginPath();
+      g.arc(13, -46, 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.restore();
   },
 
   /** A round hide shield with a cut star, raised in front of a warrior. */
