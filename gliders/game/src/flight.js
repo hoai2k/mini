@@ -1,43 +1,51 @@
-// The flight model: an arcade glider with real energy. Diving trades height for
-// speed and climbing spends it; lift steers the velocity toward where the nose
-// points, faster the faster you go, so a slow glider mushes and stalls while a
-// fast one carves. Bank to turn; pull up in a bank to turn tighter.
+// The flight model: a glider with real lift. Lift grows with the square of the
+// airspeed and with the angle of attack (how far the nose is above the flight
+// path), up to a structural limit, and it pulls along the wing's up axis. So a
+// fast glider pulling up feels heavy G and swoops high, while a slow one mushes,
+// sinks and, past the stall angle, drops its nose and falls until it has speed
+// again. Banking tilts the lift and turns you; the nose follows the airflow.
+//
+// The stick commands angle of attack around a trim angle, so hands off the
+// glider settles into a steady glide of about 35 m/s, and pushing over dives
+// steeply. Drag rises with angle of attack, so hard pulls bleed energy.
 //
 // Body axes: forward is local +Z, up +Y, the glider's right wing local -X.
 // Inputs: pitch +1 nose up, roll +1 roll right, yaw +1 nose right,
 // tuck 0..1 (fold in and dive), flare 0..1 (spread out and brake).
+// After each step, f.g is the felt G-load (lift over gravity) and f.aoa the
+// angle of attack.
 
 import * as THREE from '../vendor/three.module.min.js';
 
 export const FLIGHT = {
-  gravity: 14,
-  lift: 3.2, // how fast the velocity swings toward the nose, at liftSpeed and above
-  liftSpeed: 20,
-  dragQ: 0.0015,
-  dragL: 0.3,
-  induced: 0.07, // speed lost per radian the path is bent
-  pitchRate: 2.1,
-  rollRate: 3.6,
-  yawRate: 0.9,
-  bankTurn: 1.25,
-  levelAssist: 1.4,
-  weathervane: 0.9,
-  tuckLift: 0.55,
-  tuckDrag: 0.5,
-  flareLift: 1.45,
-  flareDrag: 2.8,
+  gravity: 17,
+  cl: 0.15, // lift per (m/s)^2 per radian of angle of attack
+  maxLift: 112, // m/s^2: about 6.6 G
+  stallAoa: 0.42,
+  cd0: 0.0011,
+  cdi: 0.03,
+  trimAoa: 0.09,
+  pullAoa: 0.38, // added at full back stick
+  pushAoa: 0.3, // taken away at full forward stick
+  pitchStiff: 6.5,
+  yawStiff: 4,
+  rollRate: 3.3,
+  yawRate: 0.8,
+  levelAssist: 1.5,
+  tuckLift: 0.72,
+  tuckDrag: 0.55,
+  flareLift: 1.25,
+  flareDrag: 3.4,
   radius: 0.5,
-  launchSpeed: 34,
-  maxSpeed: 150,
+  launchSpeed: 38,
+  maxSpeed: 165,
 };
 
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
 const _q = new THREE.Quaternion();
-const _v = new THREE.Vector3();
 const _d = new THREE.Vector3();
-const _b = new THREE.Vector3();
 
 export function createFlyer() {
   return {
@@ -49,7 +57,9 @@ export function createFlyer() {
     up: new THREE.Vector3(0, 1, 0),
     right: new THREE.Vector3(-1, 0, 0),
     bank: 0,
-    turnRate: 0,
+    aoa: 0,
+    g: 1,
+    accel: new THREE.Vector3(),
     smoothIn: { pitch: 0, roll: 0, yaw: 0, tuck: 0, flare: 0 },
   };
 }
@@ -75,7 +85,10 @@ function rotateLocal(f, axis, angle) {
   if (angle) f.quat.multiply(_q.setFromAxisAngle(axis, angle));
 }
 
-// One fixed step. `opts.assist` 0..1 scales the auto-levelling.
+const _l = new THREE.Vector3();
+
+// One fixed step. opts.assist 0..1 scales the auto-levelling; opts.updraft is
+// extra upward acceleration (m/s^2) from rising air.
 export function stepFlight(f, input, dt, opts = {}) {
   const P = FLIGHT;
   const s = f.smoothIn;
@@ -88,62 +101,54 @@ export function stepFlight(f, input, dt, opts = {}) {
   s.tuck += (input.tuck - s.tuck) * kt;
   s.flare += (input.flare - s.flare) * kt;
 
-  const speed = f.vel.length();
-  const authority = THREE.MathUtils.clamp(speed / 26, 0.4, 1.15);
-
-  // Steering in the body frame.
-  rotateLocal(f, X, -s.pitch * P.pitchRate * authority * (1 + s.flare * 0.3) * dt);
-  rotateLocal(f, Z, s.roll * P.rollRate * dt);
-  rotateLocal(f, Y, -s.yaw * P.yawRate * authority * dt);
+  let speed = f.vel.length();
+  if (speed < 0.01) f.vel.copy(f.forward).multiplyScalar((speed = 0.01));
+  _d.copy(f.vel).divideScalar(speed);
   updateAxes(f);
+  // Angle of attack (velocity below the nose is positive) and sideslip.
+  const aoa = Math.atan2(-_d.dot(f.up), _d.dot(f.forward));
+  const slip = Math.atan2(_d.dot(f.right), _d.dot(f.forward));
+  f.aoa = aoa;
+  const authority = THREE.MathUtils.clamp(speed / 24, 0.2, 1.4);
 
-  // Banking turns the glider around the world's up axis.
-  const lift01 = THREE.MathUtils.clamp(speed / P.liftSpeed, 0, 1);
-  const turn = P.bankTurn * f.right.y * lift01 * (1 - Math.abs(f.forward.y) * 0.7);
-  if (turn) f.quat.premultiply(_q.setFromAxisAngle(Y, turn * dt));
-  f.turnRate = turn;
+  // Pitch: the stick asks for an angle of attack; the airflow turns the nose to it.
+  const bankComp = Math.min(0.12, 0.05 * (1 / Math.max(0.35, Math.cos(f.bank)) - 1));
+  let cmd = P.trimAoa + bankComp - s.tuck * 0.06 + s.flare * 0.1;
+  cmd += s.pitch > 0 ? s.pitch * P.pullAoa : s.pitch * P.pushAoa;
+  const q = P.pitchStiff * authority * (cmd - aoa) + s.pitch * 0.5 * (1.4 - authority);
+  rotateLocal(f, X, -q * dt);
+  // Roll is direct; the nose weathervanes into the sideslip.
+  rotateLocal(f, Z, s.roll * P.rollRate * dt);
+  rotateLocal(f, Y, (-s.yaw * P.yawRate + P.yawStiff * authority * slip * -1) * dt);
+  updateAxes(f);
 
   // Optional level assist: gently roll the wings level when not rolling.
   const assist = opts.assist ?? 1;
   if (assist > 0 && Math.abs(input.roll) < 0.15 && Math.abs(f.forward.y) < 0.85) {
     rotateLocal(f, Z, -f.bank * P.levelAssist * assist * dt);
   }
-
-  // Stall: below lift speed the nose falls toward where the glider is going.
-  if (speed > 0.1) {
-    _d.copy(f.vel).divideScalar(speed);
-    const wv = P.weathervane * (1 - lift01) * (1 - lift01) * 3 * dt;
-    updateAxes(f);
-    _v.crossVectors(f.forward, _d);
-    const sinA = _v.length();
-    if (sinA > 1e-5) {
-      _v.divideScalar(sinA);
-      const ang = Math.min(Math.asin(Math.min(1, sinA)), wv);
-      f.quat.premultiply(_q.setFromAxisAngle(_v, ang));
-    }
-  }
   f.quat.normalize();
   updateAxes(f);
 
-  // Gravity.
-  f.vel.y -= P.gravity * dt;
-  let sp = f.vel.length();
+  // Forces: lift along the wing's up (square to the airflow), drag against it.
+  const a = Math.atan2(-_d.dot(f.up), _d.dot(f.forward));
+  const stall = Math.abs(a) <= P.stallAoa ? 1 : Math.max(0.25, 1 - (Math.abs(a) - P.stallAoa) * 3);
+  const clMul = (1 - s.tuck * (1 - P.tuckLift)) * (1 + s.flare * (P.flareLift - 1));
+  let lift = P.cl * clMul * stall * speed * speed * a;
+  lift = THREE.MathUtils.clamp(lift, -P.maxLift * 0.6, P.maxLift);
+  _l.copy(f.up).addScaledVector(_d, -f.up.dot(_d));
+  const ll = _l.length();
+  if (ll > 1e-6) _l.divideScalar(ll);
+  const cdMul = (1 - s.tuck * (1 - P.tuckDrag)) * (1 + s.flare * (P.flareDrag - 1));
+  const drag = (P.cd0 + P.cdi * a * a) * cdMul * speed * speed;
 
-  // Lift: swing the velocity toward the nose, costing a little speed.
-  const liftK = P.lift * lift01 * lift01 * (1 - s.tuck * (1 - P.tuckLift)) * (1 + s.flare * (P.flareLift - 1));
-  if (sp > 0.01) {
-    _d.copy(f.vel).divideScalar(sp);
-    _b.copy(_d);
-    _d.lerp(f.forward, Math.min(1, liftK * dt)).normalize();
-    const bent = _b.angleTo(_d);
-    sp *= 1 - P.induced * bent;
-    // Drag.
-    const dragMul = (1 - s.tuck * (1 - P.tuckDrag)) * (1 + s.flare * (P.flareDrag - 1));
-    sp -= (P.dragQ * sp * sp + P.dragL) * dragMul * dt;
-    sp = THREE.MathUtils.clamp(sp, 0.5, P.maxSpeed);
-    f.vel.copy(_d).multiplyScalar(sp);
-  }
-  f.speed = sp;
+  f.accel.set(0, -P.gravity + (opts.updraft || 0), 0).addScaledVector(_l, lift).addScaledVector(_d, -drag);
+  f.vel.addScaledVector(f.accel, dt);
+  speed = f.vel.length();
+  if (speed > P.maxSpeed) f.vel.multiplyScalar(P.maxSpeed / speed);
+  f.speed = Math.min(speed, P.maxSpeed);
+  // Felt G: lift plus any updraft push, over gravity (1 in a level glide).
+  f.g = (lift + (opts.updraft || 0) * Math.max(0, f.up.y)) / P.gravity;
   f.pos.addScaledVector(f.vel, dt);
 }
 
