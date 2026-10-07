@@ -72,6 +72,57 @@ PORTRAIT = (
     "96 px. Only a small soft shadow under it. " + ALPHA
 )
 
+# Every sprite of a character is drawn from its canonical model sheet, so the
+# character stays the same from the name card to the last animation frame.
+FROM_SHEET = (
+    "Draw it from this character's canonical model sheet, request {0} (file {1}): attach that "
+    "image and match it exactly, with the same design, proportions, colours, line weight and "
+    "clothing. Where the two disagree, the model sheet wins over this description. "
+)
+
+CANONICAL = (
+    "A character model sheet (turnaround) for an animated game: the one definitive design of "
+    "this character, which every other picture and sprite of it will be drawn from. On the left, "
+    "large and filling the full height: {0}, in a calm neutral pose, with every limb, wing "
+    "and moving part held a little away from the body so each joint can be read. On the right, smaller and all at the same scale as each other: {1}. Every view shows "
+    "exactly the same character, with identical proportions, colours and clothing. Even, flat "
+    "lighting and clean, even washes, so the colours are easy to match later. Wide gaps between "
+    "the views, no labels, no arrows, no ground line. "
+)
+
+GRID = (
+    "Lay them out in a grid of {0} columns and {1} rows, in the order listed, from left to right "
+    "and top to bottom, one per cell and centred in it, with plenty of clear background around "
+    "each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide "
+    "lines, outlines around the cells or shadows. "
+)
+
+PARTS = (
+    "A sprite parts sheet for cut-out (skeletal) animation, for a game that moves and rotates "
+    "each piece on its own. Draw the character in the master view of the model sheet, {0}, at "
+    "the same scale, then take it apart into the separate pieces below. Each piece is drawn "
+    "complete and unbroken, in the same orientation it has in the master view (do not turn it "
+    "to fit the cell). Where two pieces join, draw each one a little past the joint with a "
+    "rounded, fully drawn end (fur, skin, cloth or cloud), so the join stays hidden when the "
+    "piece swings, and draw what lies under a piece (a body under its arm, a head under its ear) "
+    "complete, with no hole or cut line. Draw the far-side pieces a shade darker than the near "
+    "ones, as they are in shadow. "
+)
+
+SWAPS = (
+    "Replacement sprite pieces for cut-out animation. Each one is drawn to sit exactly in the "
+    "place of the piece it replaces on the parts sheet, at the same scale and in the same master "
+    "view ({0}), so the game can swap it in for a frame or two. For the matching pieces, see "
+    "this character's parts sheet, request {1}; attach it too where you can. "
+)
+
+POSES = (
+    "Key poses for animating this character: the whole character in each pose, all at the same "
+    "scale as the master view of the model sheet ({0}), with exactly the same design. They are "
+    "the poses the game's animations move through, and the stills it shows in the hand-off "
+    "between chapters, so make each one clear, lively and readable as a silhouette. "
+)
+
 SCENE = (
     "Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of "
     "monsters, people and animals (the game draws them on top). "
@@ -85,11 +136,16 @@ STORY = (
 
 SECTIONS = {
     "ui": ("Brand", "The title screen, the browser tab, the game library card, the letter and the postmark."),
-    "monster": (
-        "Monster portraits",
-        "One portrait per monster, in the order the letter meets them. Each is shown large on the "
-        "monster's name card and is the monster itself in its chapter, where the game moves, tilts "
-        "and squashes it.",
+    # One section per monster is added after MONSTERS, below.
+    "cast": (
+        "Supporting cast",
+        "The people in the story: the girls, the mailman, the captain and crew, and the "
+        "neighbours who look out in chapter 1. A model sheet first, then their small sprites.",
+    ),
+    "prop": (
+        "Props",
+        "The things that move in each chapter and are not monsters, one sheet per chapter. The "
+        "game cuts each sheet into separate sprites on integration.",
     ),
     "scene": (
         "Chapter scenes",
@@ -238,6 +294,296 @@ WHAT = {
     "grithix": "a tall green monster with a butterfly net",
 }
 
+# How each monster is built for animation. "view" is the master view the game
+# shows it in, "views" the smaller views on its model sheet; "parts" are the
+# pieces of its cut-out rig, "swaps" the replacement pieces swapped in for a
+# frame or two, and "poses" the key poses its animations move through. "anims"
+# lists those animations for the design document. Parts are listed parent
+# before child; the rig (pivots and parents) is fitted on integration.
+RIGS = {
+    "trollusk": {
+        "view": "side view facing right, standing on his two short legs",
+        "views": "a front view, a back view, and a three-quarter view facing right",
+        "parts": [
+            "the torso with the yellow STAMPS bib, no head, arms or legs",
+            "the head with the cap, the far ear, the eyes and the upper snout with its tusk, but no lower jaw and no near ear",
+            "the lower jaw, mouth closed in a smirk",
+            "the near ear",
+            "the near upper arm",
+            "the near forearm and open clawed hand",
+            "the far upper arm",
+            "the far forearm and open clawed hand",
+            "the near thigh",
+            "the near shin and foot",
+            "the far thigh",
+            "the far shin and foot",
+            "the blue-grey cap alone, so it can bounce and fly off",
+        ],
+        "swaps": [
+            "the lower jaw dropped wide open, gabbling",
+            "the lower jaw clenched in a toothy grin",
+            "the eye area only, eyes half-lidded and sly",
+            "the eye area only, eyes wide and alarmed",
+            "the eye area only, eyes shut (a blink)",
+            "the near hand pinching, as if holding the corner of a letter (no letter drawn)",
+            "the near hand clenched in a fist",
+            "the near foot on tiptoe",
+            "the whole head turned to face the viewer, startled, as when he is caught",
+        ],
+        "poses": [
+            "standing idle, smug",
+            "sneaking on tiptoe, near leg forward",
+            "sneaking on tiptoe, far leg forward",
+            "ducked down low in a crouch, curled up small to hide, only the cap and snout showing above his back",
+            "reaching up high with both hands to grab",
+            "gabbling away at a run, near leg forward, a letter clamped in his snout",
+            "gabbling away at a run, both feet off the ground",
+            "jolted in surprise as something snatches from above, cap flying off",
+            "scuttling back in a fright, arms flung up",
+            "sitting and wailing, head thrown back",
+        ],
+        "anims": "idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, "
+        "the grab, the gabbling run cycle, being snatched from, wailing",
+    },
+    "bombanat": {
+        "view": "side view facing right in flight, wings spread level",
+        "views": "a front view in flight with both wings spread, and a side view perched with "
+        "the wings folded",
+        "parts": [
+            "the body with the chest tuft and the knot of the striped necktie, no head, wings or legs",
+            "the head with the striped cap and its flower, the eye and the upper snout with its teeth, but no lower jaw",
+            "the lower jaw with its teeth, mouth closed",
+            "the loose end of the striped necktie, so it can flutter",
+            "the near wing, spread level",
+            "the far wing, spread level, partly hidden in the master view but drawn whole here",
+            "the near leg and clawed foot",
+            "the far leg and clawed foot",
+        ],
+        "swaps": [
+            "the near wing raised high at the top of the upstroke",
+            "the near wing swept down at the bottom of the downstroke, the membrane cupped",
+            "the near wing folded against the body",
+            "the far wing raised high",
+            "the far wing swept down",
+            "the far wing folded",
+            "the near wing spread level and splattered with dripping blue goo",
+            "the lower jaw snapped wide open",
+            "the eye area only, eye wide in alarm",
+            "the eye area only, eye shut (a blink)",
+            "the near foot with its claws clutched shut",
+        ],
+        "poses": [
+            "gliding, wings spread level",
+            "flapping, wings at the top of the stroke",
+            "flapping, wings at the bottom of the stroke",
+            "swooping down in a steep dive, wings swept back",
+            "snapping a letter up in the jaws",
+            "dipping to land, feet thrust forward, wings braking",
+            "grabbed from below, wriggling and flapping wildly",
+            "tangled in a butterfly net, wings crumpled",
+            "perched with the wings folded, sly",
+        ],
+        "anims": "the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck "
+        "flapping, struggling when grabbed, netted",
+    },
+    "grumley": {
+        "view": "three-quarter view facing right, from the waist up, as he rises out of the goo "
+        "(draw no goo)",
+        "views": "a front view of the whole monster standing on a shore (feet and all), and a "
+        "side view facing right from the waist up",
+        "parts": [
+            "the torso from the waist up, its bottom edge drawn complete and round (the game hides it under the goo)",
+            "the head with the eyes, brows and broad snout, but no lower jaw",
+            "the lower jaw with the two great tusks, mouth closed in a grin",
+            "the white napkin tied at the neck, so it can flap",
+            "the near upper arm",
+            "the near forearm and open paw, reaching",
+            "the far upper arm",
+            "the far forearm and paw, gripping",
+            "the big fork alone",
+        ],
+        "swaps": [
+            "the lower jaw wide open, ready to munch",
+            "the lower jaw chomping, cheeks bulging",
+            "the eye area only, eyes heavy-lidded and greedy",
+            "the eye area only, eyes squeezed shut and spluttering",
+            "the eye area only, eyes crossed and dazed",
+            "the near paw clenched shut, grabbing",
+            "dripping blobs of blue goo to lay over the head and shoulders",
+        ],
+        "poses": [
+            "lurking, only the eyes and brow above the goo line, the rest sunk below",
+            "rising out of the goo, dripping",
+            "lunging straight up, the near arm stretched as high as it goes",
+            "holding a clenched fist up in triumph",
+            "spluttering after a miss, goo on his face",
+            "fork raised, napkin on, licking his lips",
+            "startled by a SNAP, jaw dropped",
+        ],
+        "anims": "lurking, rising, the lunge and grab, the miss and splutter, the lunch dance, the SNAP",
+    },
+    "iceferg": {
+        "view": "front three-quarter view from high above, floating, the waterline along its "
+        "bottom edge",
+        "views": "a side view showing the big dark underwater part below the waterline, and a "
+        "view from straight above",
+        "parts": [
+            "the iceberg alone, with its face area left as smooth ice (no brow, eyes or mouth)",
+            "the jutting frowning brow of ice",
+            "the near eye white, without its pupil",
+            "the far eye white, without its pupil",
+            "one round pupil (the game uses it for both eyes)",
+            "the scowling mouth, closed",
+            "a puff of cold steam, small",
+            "a puff of cold steam, large",
+            "three chips of ice, flying apart",
+        ],
+        "swaps": [
+            "the brow raised and bunched up as it huffs up its fury",
+            "the brow pulled furiously low",
+            "the mouth roaring wide open with icicle teeth",
+            "the mouth gritted, teeth bared",
+            "the mouth wobbly and dazed",
+            "both eyes squeezed shut",
+            "a crack pattern to lay over the ice after a crash",
+        ],
+        "poses": [
+            "drifting and sulking",
+            "huffing up, swollen, steam blasting from its nostrils",
+            "charging forward, leaning in, roaring",
+            "the crash, eyes squeezed shut, ice chips flying",
+            "bumped and dazed, deflated",
+        ],
+        "anims": "drifting and bobbing, huffing up, the charge, the crash, the dazed bump",
+    },
+    "typhoonigator": {
+        "view": "front view from a little above, the water spout falling from its lips",
+        "views": "a side view facing right with the spout, and a view from high above",
+        "parts": [
+            "the big billowing cloud mass of the body and hair, with no face features, hands or spout",
+            "a loose round puff of cloud, large",
+            "a loose round puff of cloud, medium",
+            "a loose curling wisp of cloud",
+            "the near clawed cloud hand, open",
+            "the far clawed cloud hand, open",
+            "both heavy wrinkled brows together",
+            "both bulging eye whites, without pupils",
+            "one small round pupil (the game uses it for both eyes)",
+            "the long fleshy pink nose",
+            "the huge pink lips pursed to suck",
+            "the top of the water spout, where it meets the lips",
+            "a straight length of the streaked water spout that repeats seamlessly from top to bottom",
+            "the ring of spray where the spout meets the sea",
+        ],
+        "swaps": [
+            "the lips with the cheeks puffed out, blowing",
+            "the lips stretched round and stuffed full, cheeks bulging",
+            "the lips open in a relieved O",
+            "the brows strained and bunched",
+            "the brows drooping and sleepy",
+            "the near hand clenched, grabbing",
+            "the far hand clenched, grabbing",
+        ],
+        "poses": [
+            "storming along, sucking hard",
+            "bloated full and round, fishing boats and bottles poking out of the cloud",
+            "letting go, blowing everything out",
+            "a small exhausted wisp at morning",
+        ],
+        "anims": "churning cloud, sucking, swelling as it fills, letting go, the morning sag",
+    },
+    "yalapappus": {
+        "view": "side view facing right, standing on his two stumpy legs",
+        "views": "a front view, a back view, and a three-quarter view facing right",
+        "parts": [
+            "the round body, no head, arms or legs",
+            "the head with the eyes, the little snout and the far ear, but no lower jaw, no near ear and no tuft",
+            "the lower jaw with its square teeth, mouth closed",
+            "the near droopy ear",
+            "the springy tuft of hair on top",
+            "the near arm and paw",
+            "the far arm and paw",
+            "the near stumpy leg and big paw",
+            "the far stumpy leg and big paw",
+        ],
+        "swaps": [
+            "the lower jaw wide open",
+            "the lower jaw chomping, cheeks bulging, a scrap of paper sticking out",
+            "the lower jaw dropped, shouting",
+            "the eye area only, eyes gleeful",
+            "the eye area only, eyes furious",
+            "the eye area only, eyes swirling and dizzy",
+            "the eye area only, eyes shut (a blink)",
+        ],
+        "poses": [
+            "standing idle, contented",
+            "trundling, near leg forward",
+            "trundling, far leg forward",
+            "hopping, in the air, legs tucked",
+            "landing, squashed flat",
+            "sitting and gleefully munching a paper",
+            "bonked on the head, dizzy, a bump rising",
+            "running and shouting, fist raised",
+            "sitting and wailing",
+        ],
+        "anims": "the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing",
+    },
+    "grithix": {
+        "view": "side view facing right, standing, holding the net upright",
+        "views": "a front view, a back view, and a three-quarter view facing right",
+        "parts": [
+            "the torso with the satchel of collecting jars, no head, arms or legs",
+            "the head with the bushy brows, beady eyes and knobbly nose, mouth closed in a pleased smile",
+            "the near upper arm",
+            "the near forearm",
+            "the near hand, gripping",
+            "the far upper arm",
+            "the far forearm",
+            "the far hand, open",
+            "the near thigh",
+            "the near shin and foot",
+            "the far thigh",
+            "the far shin and foot",
+            "the long wooden handle of the net",
+            "the hoop and the empty net bag",
+            "one empty glass collecting jar with a cork",
+        ],
+        "swaps": [
+            "the net bag full, sagging with something heavy and wriggling",
+            "the mouth area only, open in an AHA",
+            "the mouth area only, a calm smirk that doesn't care a snickle",
+            "the eye area only, eyes narrowed and taking aim",
+            "the eye area only, eyes closed and contented",
+            "the far hand holding a letter (no letter drawn), ready to post it",
+        ],
+        "poses": [
+            "standing idle with the net",
+            "striding, near leg forward",
+            "striding, far leg forward",
+            "winding up a swing, the net drawn back",
+            "the swing, the net sweeping through",
+            "slamming the net down, FLIP-FLOP",
+            "posting a letter at a mailbox slot",
+            "tripping and stumbling",
+            "strolling home not caring a snickle, something tucked under one arm",
+        ],
+        "anims": "the stride cycle, the net swing in three beats, the slam, posting the letter, "
+        "tripping, the stroll home",
+    },
+}
+
+
+def grid(n: int) -> tuple[int, int]:
+    cols = 1
+    while cols * cols < n:
+        cols += 1
+    return cols, -(-n // cols)
+
+
+def numbered(items: list[str]) -> str:
+    return " ".join(f"{i}. {s[0].upper() + s[1:]}." for i, s in enumerate(items, start=1))
+
+
 REQUESTS = [
     {
         "id": "OM-U01",
@@ -335,24 +681,253 @@ REQUESTS = [
     },
 ]
 
+SECTIONS = {
+    "ui": SECTIONS["ui"],
+    **{
+        m["id"]: (
+            m["name"].replace("The ", ""),
+            f"Chapter {i}, {m['used']}. Make the model sheet ({f'OM-C{i:02d}'}) first and settle "
+            "the design on it; then attach it to each of the other four requests, which are all "
+            "drawn from it. The portrait is the name card; the parts, swaps and poses are the "
+            f"sprites the game animates. The animations: {RIGS[m['id']]['anims']}.",
+        )
+        for i, m in enumerate(MONSTERS, start=1)
+    },
+    **{k: v for k, v in SECTIONS.items() if k != "ui"},
+}
+
 for i, m in enumerate(MONSTERS, start=1):
+    rig = RIGS[m["id"]]
     ref = REF.format(m["ref"]) if m["seen"] else REF_STYLE.format(m["ref"])
-    REQUESTS.append({
-        "id": f"OM-M{i:02d}",
-        "section": "monster",
-        "name": m["name"].replace("The ", ""),
-        "key": f"monster.{m['id']}",
-        "file": f"assets/monsters/{m['id']}.png",
-        "size": "1024 x 1024, transparent",
-        "used": f"The name card of chapter {i}, and the monster itself in {m['used']}.",
-        "standin": "The monster drawn in code from simple shapes with a wobbly ink outline.",
+    ref = ref.replace("as a clean new full-colour drawing of the monster alone",
+                      "as clean new full-colour drawings of the monster alone")
+    look = STYLE + " " + (MONSTER + " " if m.get("shaggy", True) else "") + m["look"]
+    # The look describes a lively pose for the portrait; the sprites use only the
+    # design, with the pose given by each request.
+    design = " (Use this description for the design only; the pose is given below.) "
+    note = m.get("note") or (None if m["seen"] else "No picture of this monster was found: the "
+                             "design is ours. Check the Internet Archive scan and adjust the "
+                             "prompt before generating.")
+    base = f"assets/monsters/{m['id']}/"
+    sheet_id, parts_id = f"OM-C{i:02d}", f"OM-R{i:02d}"
+    from_sheet = FROM_SHEET.format(sheet_id, f"onemonster/game/{base}model-sheet.png")
+    common = {"section": m["id"], "status": "requested", "ref": m["ref"]}
+    pc, pr = grid(len(rig["parts"]))
+    sc, sr = grid(len(rig["swaps"]))
+    kc, kr = grid(len(rig["poses"]))
+    REQUESTS += [
+        {
+            **common,
+            "id": sheet_id,
+            "name": "Model sheet (canonical)",
+            "key": f"monster.{m['id']}.sheet",
+            "file": base + "model-sheet.png",
+            "size": "2048 x 1024, transparent",
+            "used": "Not shown in the game: the canonical design that every other image of this "
+            "monster is drawn from, and the guide for fitting its sprite rig.",
+            "standin": "None needed.",
+            "note": note,
+            "prompt": look + design + CANONICAL.format(rig["view"], rig["views"]) + ALPHA + " " + ref,
+        },
+        {
+            **common,
+            "id": f"OM-M{i:02d}",
+            "name": "Portrait",
+            "key": f"monster.{m['id']}.portrait",
+            "file": base + "portrait.png",
+            "size": "1024 x 1024, transparent",
+            "used": f"The name card of chapter {i} and the chapter select.",
+            "standin": "The monster's stand-in rig, drawn in code, posed on the card.",
+            "prompt": look + " " + from_sheet + PORTRAIT + " " + ref,
+        },
+        {
+            **common,
+            "id": parts_id,
+            "name": "Sprite parts",
+            "key": f"monster.{m['id']}.parts",
+            "file": base + "parts.png",
+            "size": "2048 x 2048, transparent",
+            "used": f"The pieces of the monster's cut-out rig, moved and rotated by the game in "
+            f"{m['used']} and in the hand-offs.",
+            "standin": "The same rig with each piece drawn in code from simple shapes with a "
+            "wobbly ink outline.",
+            "prompt": look + design + from_sheet + PARTS.format(rig["view"])
+            + f"The {len(rig['parts'])} pieces: " + numbered(rig["parts"]) + " "
+            + GRID.format(pc, pr) + ALPHA,
+        },
+        {
+            **common,
+            "id": f"OM-F{i:02d}",
+            "name": "Sprite swaps",
+            "key": f"monster.{m['id']}.swaps",
+            "file": base + "swaps.png",
+            "size": "2048 x 2048, transparent",
+            "used": "Swapped in over the rig's pieces for a frame or two: the shapes rotation "
+            "cannot make, such as mouths, blinks, expressions" + (", wing beats" if "wing" in str(rig["swaps"]) else "") + ".",
+            "standin": "Drawn-in-code versions of the same pieces.",
+            "prompt": look + design + from_sheet + SWAPS.format(rig["view"], parts_id)
+            + f"The {len(rig['swaps'])} pieces: " + numbered(rig["swaps"]) + " "
+            + GRID.format(sc, sr) + ALPHA,
+        },
+        {
+            **common,
+            "id": f"OM-K{i:02d}",
+            "name": "Key poses",
+            "key": f"monster.{m['id']}.poses",
+            "file": base + "poses.png",
+            "size": "2048 x 2048, transparent",
+            "used": "The targets the rig's animations are fitted to, and the stills of the "
+            "snatch and hand-off.",
+            "standin": "The stand-in rig posed in code.",
+            "prompt": look + design + from_sheet + POSES.format(rig["view"])
+            + f"The {len(rig['poses'])} poses: " + numbered(rig["poses"]) + " "
+            + GRID.format(kc, kr) + ALPHA,
+        },
+    ]
+
+CAST_SHEET = "onemonster/game/assets/cast/model-sheet.png"
+REQUESTS += [
+    {
+        "id": "OM-C08",
+        "section": "cast",
+        "name": "Supporting cast model sheet (canonical)",
+        "key": "cast.sheet",
+        "file": "assets/cast/model-sheet.png",
+        "size": "2048 x 1024, transparent",
+        "used": "Not shown in the game: the canonical look of the people, for their sprites and "
+        "the story pages.",
+        "standin": "None needed.",
+        "ref": "mailbox-girl-and-trollusk.jpg",
         "status": "requested",
+        "note": "Sally Ann's and the mailman's looks are ours; Lucy Jane follows the girl in the "
+        "reference photo, whose identity is not confirmed.",
+        "prompt": STYLE + " A character model sheet for an animated game: the one definitive "
+        "design of each of these people, drawn in a row, each shown twice side by side (a "
+        "front view and a side view facing right), all at the same scale, standing in a calm "
+        "neutral pose. 1. Sally Ann, a girl of about eight with short curly red hair, freckles, "
+        "a green dress and white socks. 2. Lucy Jane, a girl of about eight with long wavy brown "
+        "hair, round glasses, a white top and a pink skirt, barefoot, as the girl in the "
+        "reference photo. 3. The mailman, short and stern, in a blue uniform, peaked cap and "
+        "goggles, with a mail satchel. 4. The ship's captain, bearded, in a grey cap and long "
+        "grey coat, as the sailors on the book's page-20 spread ( " + REF_URL
+        + "typhoonigator-spread.jpg ). Even, flat lighting and clean washes; wide gaps between "
+        "the figures; no labels, no ground line. " + ALPHA + " "
+        + REF_SCENE.format("mailbox-girl-and-trollusk.jpg"),
+    },
+    {
+        "id": "OM-K08",
+        "section": "cast",
+        "name": "Supporting cast sprites",
+        "key": "cast.sprites",
+        "file": "assets/cast/sprites.png",
+        "size": "2048 x 2048, transparent",
+        "used": "The lookers in chapter 1, the mailman's motorcycle along the top of chapter 1 and "
+        "the epilogue, and the captain and crew in the chapter 4 hand-off.",
+        "standin": "Small figures drawn in code.",
+        "ref": "typhoonigator-spread.jpg",
+        "status": "requested",
+        "prompt": STYLE + " Small game sprites of the people in the story, drawn from the "
+        "supporting cast model sheet, request OM-C08 (file " + CAST_SHEET + "): attach that image "
+        "and match it exactly. Each sprite is complete on its own: 1. Sally Ann in an open window "
+        "frame with curtains, looking out sharply. 2. The same window, Sally Ann turned away, "
+        "writing at a desk. 3. A plump neighbour lady in a rocking chair on a porch step, peering "
+        "over her spectacles. 4. The same neighbour, dozing. 5. A scruffy little dog, ears up, "
+        "staring. 6. The same dog, curled up asleep. 7. The mailman riding his official-looking "
+        "old motorcycle with a sidecar of mail sacks, side view facing left, wheels round. 8. The "
+        "same, mid-bounce, exhaust puffing. 9. The captain standing in a pink rubber raft, "
+        "throwing a bottle overarm. 10. Two bearded sailors paddling the pink rubber raft with an "
+        "S.O.S. flag, as on the book's page-20 spread, paddles forward. 11. The same, paddles "
+        "back. 12. Lucy Jane walking along reading a letter. " + GRID.format(4, 3) + ALPHA,
+    },
+]
+
+# The props of each chapter: the view they are drawn in, then the sprites on its sheet.
+PROPS = [
+    ("trollusk", "", [
+        "a red postage stamp with a scalloped edge",
+        "a green postage stamp with a scalloped edge",
+        "a blue postage stamp with a scalloped edge, flipping in the wind",
+        "a yellow postage stamp with a scalloped edge, curling",
+        "a round leafy bush",
+        "a long low flowerbed of tulips and daisies",
+        "a blue curbside mailbox on a post with its little red flag down",
+        "the same mailbox with the flag up and the door open",
+        "an eye-shaped warning bubble with a startled eye in it",
+    ]),
+    ("bombanat", "", [
+        "a bubble of blue goo, small",
+        "a bubble, medium",
+        "a bubble, large and swelling",
+        "a bubble bursting, with spray",
+        "a flung blob of goo",
+        "an old torn ticket",
+        "a paper menu",
+        "a folded paper hat",
+        "a crumpled newspaper page",
+    ]),
+    ("grumley", "", [
+        "a red-and-white diamond kite with a tail, as a decoy",
+        "a black umbrella flapping open, as a decoy",
+        "the same umbrella blown inside-out",
+        "a wicker picnic basket, empty, lid open",
+        "the same basket heaped full",
+        "a ring of goo splash, seen side-on",
+    ]),
+    ("iceferg", "seen from high above", [
+        "the captain's little steamship, sailing",
+        "the same ship tilted and sinking, bow up",
+        "a small red fishing boat",
+        "a small green fishing boat with a net",
+        "a curving current arrow drawn in the water as foam",
+        "a white splash ring",
+    ]),
+    ("typhoonigator", "seen from above", [
+        "the captain's glass bottle, corked, with a red-and-white label and a rolled note inside",
+        "a plain green bottle",
+        "a plain brown bottle",
+        "a silver fish",
+        "a striped fish",
+        "a red-and-white buoy",
+        "a tiny fishing boat, tumbling",
+        "a blob of blue goo",
+    ]),
+    ("yalapappus", "side-on", [
+        "a round grey rock",
+        "a jagged brown rock",
+        "the near edge of a hole in the bumpy ground",
+        "the far edge of the same hole",
+        "a torn scrap of paper",
+        "a crumpled paper ball",
+        "a paper bag",
+        "the captain's note, a rolled scrap with scribbles (no readable words)",
+        "a broken bottle, glass flying",
+    ]),
+    ("grithix", "", [
+        "an official-looking blue mailbox on a post, with a mail slot and an eagle badge (no lettering)",
+        "a glass collecting jar, empty, corked",
+        "the same jar with a small angry mauve bat-winged monster inside",
+        "a clump of ferns for the foreground",
+        "a gnarled root to trip over",
+    ]),
+]
+
+for i, (mid, view, items) in enumerate(PROPS, start=1):
+    m = next(m for m in MONSTERS if m["id"] == mid)
+    REQUESTS.append({
+        "id": f"OM-X{i:02d}",
+        "section": "prop",
+        "name": m["name"].replace("The ", "") + " props",
+        "key": f"props.{mid}",
+        "file": f"assets/props/{mid}.png",
+        "size": "2048 x 2048, transparent",
+        "used": f"The moving things in {m['used']}.",
+        "standin": "The same things drawn in code.",
         "ref": m["ref"],
-        "note": m.get("note") or (None if m["seen"] else "No picture of this monster was found: "
-                                  "the design is ours. Check the Internet Archive scan and adjust "
-                                  "the prompt before generating."),
-        "prompt": STYLE + " " + (MONSTER + " " if m.get("shaggy", True) else "") + m["look"] + " "
-        + PORTRAIT + " " + ref,
+        "status": "requested",
+        "prompt": STYLE + " A sheet of separate small game sprites, each one complete on its own "
+        "and drawn at the same scale as the others" + (f", {view}" if view else "") + ": "
+        + numbered(items) + " " + GRID.format(*grid(len(items)))
+        + ALPHA + " " + REF_SCENE.format(m["ref"]),
     })
 
 for i, m in enumerate(MONSTERS, start=1):
@@ -459,18 +1034,37 @@ def document() -> str:
         "2. Save each image under the file name in its **File** line and drop it in `onemonster/intake/`. On integration "
         "it moves to that path under `onemonster/game/`, its status flips to `delivered` and the game loads it in place "
         "of its stand-in.",
-        "3. The logo, icon, letter, postmark and monster portraits need transparency. If the generator cannot produce "
+        "3. Every sprite needs transparency (all the `.png` files). If the generator cannot produce "
         "alpha, use a flat pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.",
         "4. Opaque images are listed as `.webp`; PNG or JPEG is fine too, they are converted on integration.",
         "5. Nothing here blocks the game: every image has a stand-in drawn in code until it arrives.",
         "6. Each request names a reference photo of the book in `onemonster/reference/`, and its "
         "prompt links to it. Give that photo to the image generator along with the prompt where "
         "it can take an image; the prompt's link works once the photo is on `main`.",
-        "7. Some monsters (the Ice-Ferg, the Yalapappus, the Grithix) are not in any photo we "
-        "have, and their designs are ours; their requests say so under **Note**. If you can look "
-        "at the book (the Internet Archive lends a scan), adjust those prompts to match first.",
-        "8. The monster portraits matter most, since each one is both the name card and the "
-        "monster in its chapter. If you only make some, start there.",
+        "7. **Canonical first.** Each monster has five requests. Make its model sheet (`OM-C`) "
+        "first and settle the design there, from the book's reference photo. Then make the other "
+        "four (portrait `OM-M`, parts `OM-R`, swaps `OM-F`, key poses `OM-K`) with the model "
+        "sheet attached, so every image of the monster is the same monster. Do the same for the "
+        "people (`OM-C08`, then `OM-K08`). If a later image drifts from the sheet, regenerate it "
+        "rather than the sheet.",
+        "8. **The sprites are cut-out rigs.** The parts sheet takes the monster apart (wings, jaw, "
+        "ears, limbs, cap, net) and the game moves and rotates each piece on its own, so the "
+        "animation is smooth at any frame rate without drawing every frame. The swaps sheet "
+        "holds the shapes rotation cannot make (a wing at the top of its beat, an open jaw, a "
+        "blink), swapped in for a frame or two. The key poses are the targets the animations are "
+        "fitted to, and the stills of each hand-off. Pieces must be at the same scale as the "
+        "model sheet's master view and laid out in the grid and order the prompt gives; the "
+        "pieces are cut apart and named in that order on integration, and their pivots are "
+        "fitted then.",
+        "9. If a generator struggles with a whole sheet, split it: make the first half of the "
+        "list and the second half as two images, saved as `parts-1.png` and `parts-2.png` (and "
+        "so on), each in the same order and at the same scale.",
+        "10. Some monsters (the Ice-Ferg, the Yalapappus, the Grithix) are not in any photo we "
+        "have, and their designs are ours; their model sheets say so under **Note**. If you can "
+        "look at the book (the Internet Archive lends a scan), adjust those prompts to match first.",
+        "11. Order of work: the model sheets, then the portraits, then the parts and swaps, then "
+        "the key poses, props, scenes and story pages. The game keeps its stand-ins for anything "
+        "not yet delivered.",
         "",
         "## Status",
         "",
