@@ -8,7 +8,7 @@
 // wholly inside it scores most, rarer birds score more, and two birds in one
 // photo score a bonus. Ten shots; the photos are kept along the bottom.
 
-import { drawBird, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK, PAPER } from '../draw.js';
+import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK, PAPER } from '../draw.js';
 import { clamp, approach } from './index.js';
 
 const SHOTS = 10;
@@ -55,6 +55,20 @@ const SPOTS = [
   { kind: 'grass', x0: 640, x1: 980, line: 708, pad: 18, size: 270 },
 ];
 
+// The same six places when the painted hide sprites are delivered: `cell` is
+// the sprite in sprites.hides, `cx`/`gy`/`h` where it stands (centre, ground,
+// painted height). The trunk's knothole is measured on the painted sprite.
+const ART_SPOTS = [
+  { kind: 'bush', x0: 170, x1: 330, line: 430, pad: 14, size: 220, cell: 0, cx: 250, gy: 690, h: 300 },
+  { kind: 'wall', x0: 480, x1: 790, line: 562, pad: 6, size: 190, cell: 1, cx: 640, gy: 702, h: 200 },
+  { kind: 'knot', x: 986, y: 416, r: 50, rx: 44, ry: 66, size: 150, cell: 2, cx: 940, gy: 690, h: 400 },
+  { kind: 'gate', post: 1235, ground: 690, size: 210, cell: 3, cx: 1290, gy: 696, h: 290 },
+  { kind: 'hedge', x0: 1400, x1: 1480, line: 560, pad: 12, size: 230, cell: 4, cx: 1470, gy: 712, h: 220 },
+  { kind: 'grass', x0: 640, x1: 980, line: 668, pad: 18, size: 270, cell: 5, cx: 810, gy: 800, h: 290 },
+];
+const painted = () => !!spriteCell('sprites.hides', 0);
+const S = () => (painted() ? ART_SPOTS : SPOTS);
+
 export default function create(env) {
   const { W, H, rng, sfx } = env;
   const g = {
@@ -85,7 +99,7 @@ export default function create(env) {
 
   // Where a bird's feet are, given how far out it is (e, 0..1).
   function feet(b) {
-    const sp = SPOTS[b.spot];
+    const sp = S()[b.spot];
     const s = sp.size / 400;
     const box = BOX[b.id];
     const h = -box.top * s;
@@ -93,7 +107,7 @@ export default function create(env) {
     if (sp.kind === 'knot') {
       const px = sp.x - box.hx * s;
       const py = sp.y - box.hy * s + 6;
-      return { x: px, y: py + (1 - e) * (sp.r * 2 + 30) };
+      return { x: px, y: py + (1 - e) * ((sp.ry || sp.r) * 2 + 30) };
     }
     if (sp.kind === 'gate') {
       const hidden = sp.post - box.x0 * s + 6;
@@ -108,7 +122,7 @@ export default function create(env) {
 
   // The rectangle a bird there can be seen in.
   function clipBox(sp) {
-    if (sp.kind === 'knot') return { x0: sp.x - sp.r, x1: sp.x + sp.r, y0: sp.y - sp.r, y1: sp.y + sp.r };
+    if (sp.kind === 'knot') return { x0: sp.x - (sp.rx || sp.r), x1: sp.x + (sp.rx || sp.r), y0: sp.y - (sp.ry || sp.r), y1: sp.y + (sp.ry || sp.r) };
     if (sp.kind === 'gate') return { x0: 0, x1: sp.post, y0: 0, y1: sp.ground + 30 };
     return { x0: 0, x1: W, y0: 0, y1: sp.line + sp.pad };
   }
@@ -121,7 +135,7 @@ export default function create(env) {
 
   // The part of the bird you can see, in logical pixels.
   function subject(b) {
-    const sp = SPOTS[b.spot];
+    const sp = S()[b.spot];
     const s = sp.size / 400;
     const f = feet(b);
     const box = boxOf(b);
@@ -150,10 +164,10 @@ export default function create(env) {
   g.quality = quality;
 
   function spawnBird() {
-    const free = SPOTS.map((_, i) => i).filter((i) => !busy.has(i));
+    const free = S().map((_, i) => i).filter((i) => !busy.has(i));
     if (!free.length) return;
     const spot = free[Math.floor(rng() * free.length)];
-    const sp = SPOTS[spot];
+    const sp = S()[spot];
     const d = diff();
     const roll = rng();
     const tier = roll < 0.1 + d * 0.12 ? 2 : roll < 0.45 + d * 0.1 ? 1 : 0;
@@ -360,13 +374,13 @@ export default function create(env) {
   }
 
   function drawBirdsAt(c, i, t) {
-    const sp = SPOTS[i];
+    const sp = S()[i];
     for (const b of g.birds) {
       if (b.spot !== i || b.e <= 0) continue;
       const f = feet(b);
       c.save();
       c.beginPath();
-      if (sp.kind === 'knot') c.ellipse(sp.x, sp.y, sp.r, sp.r * 1.1, 0, 0, Math.PI * 2);
+      if (sp.kind === 'knot') c.ellipse(sp.x, sp.y, sp.rx || sp.r, sp.ry || sp.r * 1.1, 0, 0, Math.PI * 2);
       else {
         const r = clipBox(sp);
         c.rect(r.x0, r.y0, r.x1 - r.x0, r.y1 - r.y0);
@@ -389,6 +403,71 @@ export default function create(env) {
     c.fill();
     c.restore();
     wash(c, color, 0.95);
+  }
+
+  // The painted trunk is cut off flat at the top of its picture; fade the cut
+  // into the sky so it doesn't look sawn off.
+  let trunkImg = null;
+  function drawTrunk(c, sp, dx) {
+    const cell = spriteCell('sprites.hides', sp.cell);
+    if (!trunkImg && typeof document !== 'undefined') {
+      try {
+        const k = 0.6;
+        const o = document.createElement('canvas');
+        o.width = Math.round(cell.trim.w * k);
+        o.height = Math.round(cell.trim.h * k);
+        const h = o.getContext('2d');
+        h.drawImage(cell.img, cell.trim.x, cell.trim.y, cell.trim.w, cell.trim.h, 0, 0, o.width, o.height);
+        const gr = h.createLinearGradient(0, 0, 0, o.height * 0.3);
+        gr.addColorStop(0, 'rgba(0,0,0,1)');
+        gr.addColorStop(1, 'rgba(0,0,0,0)');
+        h.globalCompositeOperation = 'destination-out';
+        h.fillStyle = gr;
+        h.fillRect(0, 0, o.width, o.height * 0.3);
+        trunkImg = o;
+      } catch {
+        trunkImg = false;
+      }
+    }
+    if (!trunkImg) return void drawSprite(c, 'sprites.hides', sp.cell, sp.cx + dx, sp.gy, { h: sp.h });
+    const k = sp.h / trunkImg.height;
+    c.drawImage(trunkImg, sp.cx + dx - (trunkImg.width * k) / 2, sp.gy - sp.h, trunkImg.width * k, sp.h);
+  }
+
+  // The painted hides, back to front. Each is drawn after the birds of its
+  // place, so they peek out from behind (the trunk's bird from inside the hole).
+  function drawHides(c, t) {
+    const sway = (i) => rustleOf(i, t);
+    const hide = (i, rot = 0) => {
+      const sp = S()[i];
+      const r = sway(i);
+      const h = sp.h;
+      const dx = r.dx;
+      drawBirdsAt(c, i, t);
+      // the sprite stands on its ground line; rustle shakes it sideways
+      drawSprite(c, 'sprites.hides', sp.cell, sp.cx + dx, sp.gy, { h, rot: r.on && !env.reduceMotion ? rot * Math.sin(t * 45 + i) : 0 });
+      return r;
+    };
+    let r;
+    // the trunk first: its bird sits inside the knothole (drawn over the dark
+    // hole, then the sprite is drawn with the hole cut open by drawing it first)
+    {
+      const sp = S()[2];
+      r = sway(2);
+      drawTrunk(c, sp, r.dx);
+      drawBirdsAt(c, 2, t);
+      if (r.on) rustleMarks(c, sp.x, sp.y - sp.ry - 30, r.b, t);
+    }
+    r = hide(1, 0.01);
+    if (r.on) rustleMarks(c, r.b.x, S()[1].line - 50, r.b, t);
+    r = hide(4, 0.008);
+    if (r.on) rustleMarks(c, r.b.x, S()[4].line - 60, r.b, t);
+    r = hide(0, 0.01);
+    if (r.on) rustleMarks(c, r.b.x, S()[0].line - 60, r.b, t);
+    r = hide(3, 0.006);
+    if (r.on) rustleMarks(c, S()[3].cx - 150, 470, r.b, t);
+    r = hide(5, 0.02);
+    if (r.on) rustleMarks(c, r.b.x, S()[5].line - 70, r.b, t);
   }
 
   function drawWorld(c, t) {
@@ -431,8 +510,13 @@ export default function create(env) {
       c.restore();
     });
 
+    if (painted()) {
+      drawHides(c, t);
+      return;
+    }
+
     // the old tree and its knothole
-    const k = SPOTS[2];
+    const k = S()[2];
     const tr = rustleOf(2, t);
     poly(c, [[985, 690], [1000, 420], [990, 160], [1010, 0], [1120, 0], [1110, 180], [1125, 430], [1150, 690]], 1, 2);
     wash(c, '#8a7058');

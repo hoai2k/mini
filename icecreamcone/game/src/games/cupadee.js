@@ -9,7 +9,7 @@
 // are smaller (they fill faster), bob up and down, or stroll on under the
 // spout while you pour. Score: points.
 
-import { drawBird, scene, band, blob, poly, wash, ink, hatch, eye, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, art, scene, band, blob, poly, wash, ink, hatch, eye, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 
 const DURATION = 45;
@@ -19,8 +19,14 @@ const FLOW = 0.42; // cup-fulls (of a big cup) per second at full tip
 
 // The teapot hangs from a cord; it tips about its middle.
 const POT_X = 830;
-const POT_Y = 205;
-const SPOUT = [-150, 6]; // the spout's tip, in the pot's own units
+const POT_Y = 230;
+// The painted teapot (1024px cell), drawn at POT_K about its middle (the
+// pivot, in image px); its spout tip and cord loop measured from the image.
+const POT_K = 0.38;
+const POT_PIVOT = [590, 600];
+const potPoint = (px, py) => [(px - POT_PIVOT[0]) * POT_K, (py - POT_PIVOT[1]) * POT_K];
+const SPOUT = potPoint(128, 392); // the spout's tip, in the pot's own units
+const POT_LOOP = potPoint(805, 165); // the top of the cord loop
 const POT_TIP = -0.5; // radians at full tip
 
 function spoutAt(a) {
@@ -30,6 +36,20 @@ function spoutAt(a) {
 }
 const STREAM_X = spoutAt(POT_TIP).x - 4; // where the stream comes down
 const QUEUE_GAP = 300;
+
+// The painted open cup (cupadee-open.png, 1024px): its inside rim ellipse in
+// image px, turned into bird units (PORTRAIT.cupadee: cx 0.55, feet 0.93, u 372).
+const toBird = (px, py) => [(px / 1024 - 0.55) * 372, (py / 1024 - 0.93) * 372];
+const [IN_X, IN_Y] = toBird(560, 168);
+const IN_RX = (186 / 1024) * 372;
+const IN_RY = (44 / 1024) * 372;
+const painted = () => !!(art('bird.cupadee') && art('sprites.cupadeeOpen'));
+// The tea's surface as the ellipse seen from above at fill f (0 empty .. 1 brim):
+// it grows from a pool at the back of the cup to the full rim.
+const surface = (f) => {
+  const k = 0.3 + 0.7 * f;
+  return { x: IN_X, y: IN_Y + (1 - f) * IN_RY * 0.55, rx: IN_RX * k, ry: IN_RY * k };
+};
 
 // Cup geometry, in the stand-in Cupadee's units (draw.js): the cup is drawn
 // about (0, -225) from the feet, rim at -55, bottom at 60.
@@ -120,6 +140,7 @@ export default function create(env) {
   // Where the front of the cup's rim is, in the world.
   function rim(b) {
     const s = b.size / 400;
+    if (painted()) return { x: b.x + IN_X * s, y: b.y + IN_Y * s * (1 - b.squash) + b.hop, half: IN_RX * 0.95 * s };
     return { x: b.x, y: b.y - 280 * s * (1 - b.squash) + b.hop, half: 84 * s };
   }
 
@@ -334,8 +355,58 @@ export default function create(env) {
     c.translate(b.x, b.y + b.hop);
     if (b.rot) c.rotate(b.rot);
     c.scale(s * (1 + b.squash * 0.6), s * (1 - b.squash));
+    if (painted()) return;
     c.translate(0, -225);
     c.rotate(b.tilt);
+  }
+
+  // The tea inside the painted cup's rim, and the fill line on it.
+  function drawTea(c, b, t, isFront) {
+    c.save();
+    toCup(c, b);
+    const E = { x: IN_X, y: IN_Y, rx: IN_RX, ry: IN_RY };
+    c.beginPath();
+    c.ellipse(E.x, E.y, E.rx * 0.98, E.ry * 0.96, 0, 0, Math.PI * 2);
+    c.clip();
+    if (b.fill > 0) {
+      const f = clamp(b.fill, 0, 1);
+      const sf = surface(f);
+      const wob = b.state === 'serve' && g.tip > 0.3 ? Math.sin(t * 22) * 1.6 : 0;
+      // the wall of tea down the far side, then the surface
+      c.beginPath();
+      c.ellipse(sf.x, sf.y + sf.ry * 0.25, sf.rx, sf.ry, 0, 0, Math.PI * 2);
+      c.fillStyle = '#7a4420';
+      c.globalAlpha = 0.9;
+      c.fill();
+      c.beginPath();
+      c.ellipse(sf.x, sf.y - wob * 0.5, sf.rx * 0.92, sf.ry * 0.82, 0, 0, Math.PI * 2);
+      c.fillStyle = '#b87a40';
+      c.fill();
+      c.beginPath();
+      c.ellipse(sf.x - sf.rx * 0.25, sf.y - sf.ry * 0.2 - wob, sf.rx * 0.35, sf.ry * 0.28, 0, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(255,235,190,0.45)';
+      c.fill();
+      c.globalAlpha = 1;
+    }
+    c.restore();
+    // the fill line: a dashed ring on the inside of the cup, at the line's height
+    c.save();
+    toCup(c, b);
+    const L = surface(b.line);
+    const pulse = isFront && b.state === 'serve' ? 1 + Math.sin(t * 8) * 0.25 : 1;
+    c.beginPath();
+    c.ellipse(E.x, E.y, E.rx * 0.98, E.ry * 0.96, 0, 0, Math.PI * 2);
+    c.clip();
+    c.setLineDash([11, 7]);
+    c.beginPath();
+    c.ellipse(L.x, L.y, L.rx, L.ry, 0, 0, Math.PI * 2);
+    c.lineWidth = (isFront ? 4.5 : 3) * pulse;
+    c.strokeStyle = 'rgba(250,244,226,0.9)';
+    c.stroke();
+    c.lineWidth = isFront ? 3 : 2;
+    c.strokeStyle = '#b8303a';
+    c.stroke();
+    c.restore();
   }
 
   // The tea seen through the glaze, and the fill line, drawn over the bird.
@@ -403,14 +474,24 @@ export default function create(env) {
 
   function drawPot(c, t) {
     const a = POT_TIP * g.tip;
+    const pot = art('sprites.teapot');
     // the cord
+    const lx = pot ? POT_LOOP[0] : 0;
+    const ly = pot ? POT_LOOP[1] : -95;
     c.beginPath();
-    c.moveTo(POT_X + 30, 0);
-    c.quadraticCurveTo(POT_X + 34 + a * 20, 60, POT_X + Math.sin(a) * -95, POT_Y - 95 * Math.cos(a));
+    c.moveTo(POT_X + lx, 0);
+    c.quadraticCurveTo(POT_X + lx + 4 + a * 20, (POT_Y + ly) / 2, POT_X + lx * Math.cos(a) - ly * Math.sin(a), POT_Y + lx * Math.sin(a) + ly * Math.cos(a));
     ink(c, 2);
     c.save();
     c.translate(POT_X, POT_Y);
     c.rotate(a);
+    if (drawSprite(c, 'sprites.teapot', 0, (512 - POT_PIVOT[0]) * POT_K, (512 - POT_PIVOT[1]) * POT_K, { h: 1024 * POT_K, anchor: 'center', whole: true })) {
+      c.restore();
+      drawSteam(c, t);
+      return;
+    }
+    // the stand-in, moved so its spout tip lands on the painted one
+    c.translate(SPOUT[0] + 150, SPOUT[1] - 6);
     // handle (behind)
     c.beginPath();
     c.ellipse(108, -4, 38, 46, 0, -Math.PI * 0.55, Math.PI * 0.55);
@@ -451,15 +532,19 @@ export default function create(env) {
     wash(c, PAL.mauve);
     ink(c, 2);
     c.restore();
+    drawSteam(c, t);
+  }
+
+  function drawSteam(c, t) {
     // steam curls when the pot is upright
     c.save();
     c.globalAlpha = 0.35 * (1 - g.tip);
     for (let i = 0; i < 2; i++) {
-      const sx = POT_X - 160 + i * 14;
+      const sx = POT_X + SPOUT[0] + 4 + i * 14;
       const ph = t * 1.5 + i * 2;
       c.beginPath();
-      c.moveTo(sx, POT_Y - 10);
-      for (let j = 1; j < 6; j++) c.lineTo(sx + Math.sin(ph + j) * 8, POT_Y - 10 - j * 14);
+      c.moveTo(sx, POT_Y + SPOUT[1] - 10);
+      for (let j = 1; j < 6; j++) c.lineTo(sx + Math.sin(ph + j) * 8, POT_Y + SPOUT[1] - 10 - j * 14);
       ink(c, 1.6);
     }
     c.restore();
@@ -561,10 +646,13 @@ export default function create(env) {
     const order = g.birds.slice().reverse();
     const fb = front();
     for (const b of order) {
-      const pose = { fill: 0, tip: 0.22 - Math.sin(t * 1.6) * 0.03 + b.tilt };
-      b.rot = b.walk ? Math.sin(b.walk) * 0.05 : 0;
+      const pose = { fill: 0, tip: 0.22 - Math.sin(t * 1.6) * 0.03 + b.tilt, open: true };
+      const wobble = b.walk ? Math.sin(b.walk) * 0.05 : 0;
+      const pa = painted();
+      b.rot = pa ? wobble + b.tilt * 0.5 : wobble; // painted: the whole bird tips, about its feet
       drawBird(c, 'cupadee', { x: b.x, y: b.y + b.hop, size: b.size, t, pose, rot: b.rot, squash: b.squash });
-      drawCup(c, b, t, b === fb);
+      if (pa) drawTea(c, b, t, b === fb);
+      else drawCup(c, b, t, b === fb);
       if (b === fb && b.state === 'serve' && b.fill === 0 && b.wait > b.patience * 0.55) {
         const r = rim(b);
         label(c, '?', r.x - r.half - 30, r.y - 60 + Math.sin(t * 6) * 4, { size: 54, color: '#b8624a', weight: 800 });

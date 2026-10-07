@@ -10,7 +10,7 @@
 // are still on the crossing is a near miss: the cars brake hard and it costs
 // three. Arrivals come faster as time goes on. Score: crossings.
 
-import { drawBird, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
 
 const DURATION = 45;
@@ -344,6 +344,24 @@ export default function create(env) {
     c.translate(x, y + (car.leaving ? -car.leaving * 30 * (car.lane ? 1 : -1) : 0));
     c.scale(d, 1);
     const jig = car.v > 20 ? Math.sin(t * 18 + car.bob) * 1.2 : 0;
+    if (spriteCell('sprites.cars', 0)) {
+      // painted car (faces left; the scale(d) above is undone for it)
+      c.save();
+      c.globalAlpha *= 0.22;
+      c.fillStyle = INK;
+      c.beginPath();
+      c.ellipse(0, 8, 84, 8, 0, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+      drawSprite(c, 'sprites.cars', Math.max(0, CAR_COLS.indexOf(car.color)) % 4, 0, 8 + jig, { w: 168, flip: true });
+      // brake lights: lit while stopping, at the tail
+      if (car.v < 200 && !car.committed) {
+        c.beginPath();
+        c.arc(-80, -32 + jig, 5, 0, Math.PI * 2);
+        c.fillStyle = '#e04a3a';
+        c.fill();
+      }
+    } else {
     // shadow
     c.save();
     c.globalAlpha *= 0.2;
@@ -392,6 +410,7 @@ export default function create(env) {
       c.fillStyle = '#e04a3a';
       c.fill();
     }
+    }
     c.restore();
     if (!car.leaving) meter(c, x, y - 104, car.wait / car.patience, t);
     if (car.honked && car.wait > car.patience * 0.6 && !car.leaving) {
@@ -424,6 +443,19 @@ export default function create(env) {
       c.ellipse(b.x, b.y + 2, 14 * s, 4 * s, 0, 0, Math.PI * 2);
       c.fill();
       c.restore();
+    }
+    if (spriteCell('sprites.chicks', 0)) {
+      // painted chick: faces left, so flip when heading right
+      const walking = b.state === 'cross' || b.state === 'gone';
+      const cell = flying ? 5 : walking ? 3 + (Math.sin(b.hop * 0.8) > 0 ? 1 : 0) : Math.abs(Math.floor(b.sx)) % 3;
+      const k = 0.072 * s;
+      const h = spriteCell('sprites.chicks', cell).trim.h * k;
+      const rot = b.state === 'leave' ? 0.1 * b.face : 0;
+      if (flying) drawSprite(c, 'sprites.chicks', cell, b.x, b.y - 20 * s + Math.sin(t * 30 + b.hop) * 2, { h, anchor: 'center', flip: b.face > 0, rot });
+      else drawSprite(c, 'sprites.chicks', cell, b.x, b.y + hop, { h, flip: b.face > 0 });
+      c.restore();
+      if (b.state === 'wait') meter(c, b.x, b.y - 56 * b.size, b.wait / b.patience, t);
+      return;
     }
     c.translate(b.x, b.y + hop);
     c.scale(s * b.face, s);
