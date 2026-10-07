@@ -22,32 +22,180 @@ export const ASSETS = {
     "file": "assets/ui/postmark.png",
     "delivered": false
   },
-  "monster.trollusk": {
-    "file": "assets/monsters/trollusk.png",
+  "monster.trollusk.sheet": {
+    "file": "assets/monsters/trollusk/model-sheet.png",
     "delivered": false
   },
-  "monster.bombanat": {
-    "file": "assets/monsters/bombanat.png",
+  "monster.trollusk.portrait": {
+    "file": "assets/monsters/trollusk/portrait.png",
     "delivered": false
   },
-  "monster.grumley": {
-    "file": "assets/monsters/grumley.png",
+  "monster.trollusk.parts": {
+    "file": "assets/monsters/trollusk/parts.png",
     "delivered": false
   },
-  "monster.iceferg": {
-    "file": "assets/monsters/iceferg.png",
+  "monster.trollusk.swaps": {
+    "file": "assets/monsters/trollusk/swaps.png",
     "delivered": false
   },
-  "monster.typhoonigator": {
-    "file": "assets/monsters/typhoonigator.png",
+  "monster.trollusk.poses": {
+    "file": "assets/monsters/trollusk/poses.png",
     "delivered": false
   },
-  "monster.yalapappus": {
-    "file": "assets/monsters/yalapappus.png",
+  "monster.bombanat.sheet": {
+    "file": "assets/monsters/bombanat/model-sheet.png",
     "delivered": false
   },
-  "monster.grithix": {
-    "file": "assets/monsters/grithix.png",
+  "monster.bombanat.portrait": {
+    "file": "assets/monsters/bombanat/portrait.png",
+    "delivered": false
+  },
+  "monster.bombanat.parts": {
+    "file": "assets/monsters/bombanat/parts.png",
+    "delivered": false
+  },
+  "monster.bombanat.swaps": {
+    "file": "assets/monsters/bombanat/swaps.png",
+    "delivered": false
+  },
+  "monster.bombanat.poses": {
+    "file": "assets/monsters/bombanat/poses.png",
+    "delivered": false
+  },
+  "monster.grumley.sheet": {
+    "file": "assets/monsters/grumley/model-sheet.png",
+    "delivered": false
+  },
+  "monster.grumley.portrait": {
+    "file": "assets/monsters/grumley/portrait.png",
+    "delivered": false
+  },
+  "monster.grumley.parts": {
+    "file": "assets/monsters/grumley/parts.png",
+    "delivered": false
+  },
+  "monster.grumley.swaps": {
+    "file": "assets/monsters/grumley/swaps.png",
+    "delivered": false
+  },
+  "monster.grumley.poses": {
+    "file": "assets/monsters/grumley/poses.png",
+    "delivered": false
+  },
+  "monster.iceferg.sheet": {
+    "file": "assets/monsters/iceferg/model-sheet.png",
+    "delivered": false
+  },
+  "monster.iceferg.portrait": {
+    "file": "assets/monsters/iceferg/portrait.png",
+    "delivered": false
+  },
+  "monster.iceferg.parts": {
+    "file": "assets/monsters/iceferg/parts.png",
+    "delivered": false
+  },
+  "monster.iceferg.swaps": {
+    "file": "assets/monsters/iceferg/swaps.png",
+    "delivered": false
+  },
+  "monster.iceferg.poses": {
+    "file": "assets/monsters/iceferg/poses.png",
+    "delivered": false
+  },
+  "monster.typhoonigator.sheet": {
+    "file": "assets/monsters/typhoonigator/model-sheet.png",
+    "delivered": false
+  },
+  "monster.typhoonigator.portrait": {
+    "file": "assets/monsters/typhoonigator/portrait.png",
+    "delivered": false
+  },
+  "monster.typhoonigator.parts": {
+    "file": "assets/monsters/typhoonigator/parts.png",
+    "delivered": false
+  },
+  "monster.typhoonigator.swaps": {
+    "file": "assets/monsters/typhoonigator/swaps.png",
+    "delivered": false
+  },
+  "monster.typhoonigator.poses": {
+    "file": "assets/monsters/typhoonigator/poses.png",
+    "delivered": false
+  },
+  "monster.yalapappus.sheet": {
+    "file": "assets/monsters/yalapappus/model-sheet.png",
+    "delivered": false
+  },
+  "monster.yalapappus.portrait": {
+    "file": "assets/monsters/yalapappus/portrait.png",
+    "delivered": false
+  },
+  "monster.yalapappus.parts": {
+    "file": "assets/monsters/yalapappus/parts.png",
+    "delivered": false
+  },
+  "monster.yalapappus.swaps": {
+    "file": "assets/monsters/yalapappus/swaps.png",
+    "delivered": false
+  },
+  "monster.yalapappus.poses": {
+    "file": "assets/monsters/yalapappus/poses.png",
+    "delivered": false
+  },
+  "monster.grithix.sheet": {
+    "file": "assets/monsters/grithix/model-sheet.png",
+    "delivered": false
+  },
+  "monster.grithix.portrait": {
+    "file": "assets/monsters/grithix/portrait.png",
+    "delivered": false
+  },
+  "monster.grithix.parts": {
+    "file": "assets/monsters/grithix/parts.png",
+    "delivered": false
+  },
+  "monster.grithix.swaps": {
+    "file": "assets/monsters/grithix/swaps.png",
+    "delivered": false
+  },
+  "monster.grithix.poses": {
+    "file": "assets/monsters/grithix/poses.png",
+    "delivered": false
+  },
+  "cast.sheet": {
+    "file": "assets/cast/model-sheet.png",
+    "delivered": false
+  },
+  "cast.sprites": {
+    "file": "assets/cast/sprites.png",
+    "delivered": false
+  },
+  "props.trollusk": {
+    "file": "assets/props/trollusk.png",
+    "delivered": false
+  },
+  "props.bombanat": {
+    "file": "assets/props/bombanat.png",
+    "delivered": false
+  },
+  "props.grumley": {
+    "file": "assets/props/grumley.png",
+    "delivered": false
+  },
+  "props.iceferg": {
+    "file": "assets/props/iceferg.png",
+    "delivered": false
+  },
+  "props.typhoonigator": {
+    "file": "assets/props/typhoonigator.png",
+    "delivered": false
+  },
+  "props.yalapappus": {
+    "file": "assets/props/yalapappus.png",
+    "delivered": false
+  },
+  "props.grithix": {
+    "file": "assets/props/grithix.png",
     "delivered": false
   },
   "scene.trollusk": {

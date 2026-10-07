@@ -17,7 +17,9 @@ soon" placeholder (`game/index.html`, behind the shared invite gate in
 - [`design/design.md`](design/design.md): the flow, the controls and the
   seven monster challenges.
 - [`design/image-requests.md`](design/image-requests.md): the image requests
-  (logo, title, icon, the letter, the monsters, the scenes), generated from
+  (logo, title, icon and letter; for each monster a canonical model sheet and,
+  drawn from it, a portrait and the sprite parts, swaps and key poses of its
+  animation rig; the people, the props, the scenes and the story pages), generated from
   [`design/source/build_requests.py`](design/source/build_requests.py), which
   also writes `game/src/asset-list.js`. Edit the data there and rerun it.
   Generated images go in [`intake/`](intake/README.md).
