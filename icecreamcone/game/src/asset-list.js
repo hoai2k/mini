@@ -4,102 +4,102 @@
 export const ASSETS = {
   "logo": {
     "file": "assets/ui/logo.png",
-    "delivered": false
+    "delivered": true
   },
   "titleBg": {
     "file": "assets/ui/title-bg.webp",
-    "delivered": false
+    "delivered": true
   },
   "icon": {
     "file": "assets/ui/icon.png",
-    "delivered": false
+    "delivered": true
   },
   "paper": {
     "file": "assets/ui/paper.webp",
-    "delivered": false
+    "delivered": true
   },
   "gathering": {
     "file": "assets/ui/gathering.webp",
-    "delivered": false
+    "delivered": true
   },
   "bird.coot": {
     "file": "assets/birds/coot.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.cupadee": {
     "file": "assets/birds/cupadee.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.shuttercluck": {
     "file": "assets/birds/shuttercluck.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.gullfinch": {
     "file": "assets/birds/gullfinch.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.plume": {
     "file": "assets/birds/plume.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.bobolinks": {
     "file": "assets/birds/bobolinks.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.peeper": {
     "file": "assets/birds/peeper.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.piffle": {
     "file": "assets/birds/piffle.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.dodo": {
     "file": "assets/birds/dodo.png",
-    "delivered": false
+    "delivered": true
   },
   "bird.crow": {
     "file": "assets/birds/crow.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.coot": {
     "file": "assets/scenes/coot.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.cupadee": {
     "file": "assets/scenes/cupadee.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.shuttercluck": {
     "file": "assets/scenes/shuttercluck.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.gullfinch": {
     "file": "assets/scenes/gullfinch.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.plume": {
     "file": "assets/scenes/plume.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.bobolinks": {
     "file": "assets/scenes/bobolinks.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.peeper": {
     "file": "assets/scenes/peeper.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.piffle": {
     "file": "assets/scenes/piffle.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.dodo": {
     "file": "assets/scenes/dodo.webp",
-    "delivered": false
+    "delivered": true
   },
   "scene.crow": {
     "file": "assets/scenes/crow.webp",
-    "delivered": false
+    "delivered": true
   }
 };

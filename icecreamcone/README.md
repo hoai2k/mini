@@ -13,7 +13,10 @@ The game is being built. Until it is published:
   (logo, title, paper, ten bird portraits, ten minigame scenes), generated from
   [`design/source/build_requests.py`](design/source/build_requests.py), which
   also writes `game/src/asset-list.js`. Edit the data there and rerun it.
-  Generated images go in [`intake/`](intake/README.md).
+  All 25 requested images are delivered in [`game/assets/`](game/assets/).
+  Generation prompts, references and file checksums are recorded in
+  [`design/image-deliveries.json`](design/image-deliveries.json). Future
+  image drops go in [`intake/`](intake/README.md).
 - [`reference/`](reference/README.md): photos of the book's pages and notes on
   its style and its birds, for the image generator. They are reference only and
   are never published.

@@ -269,7 +269,7 @@ REQUESTS = [
         "used": "The title screen above Press Start, and the card on the game library page.",
         "standin": "The title set in the page's serif font in brown ink.",
         "ref": "cover-ice-cream-cone-coot.jpg",
-        "status": "requested",
+        "status": "delivered",
         "prompt": "A hand-lettered picture-book title in brown ink and watercolour, like the "
         "cover of an early-1970s children's book: old-fashioned, slightly wobbly serif letters "
         "with fine crosshatched shading, filled with soft washes of strawberry pink, vanilla cream "
@@ -290,7 +290,7 @@ REQUESTS = [
         "used": "Full-screen behind the title screen; also the cover of the game library card.",
         "standin": "A painted-in-code landscape of hills under a pale sky.",
         "ref": "endpapers-all-birds.jpg",
-        "status": "requested",
+        "status": "delivered",
         "prompt": STYLE + " A wide, dreamy landscape at golden hour: gentle rolling hills, a "
         "winding path, a split-rail fence and a few round trees, a pale peach and slate-blue sky. "
         "Small in the middle distance, rare birds made of everyday objects go about their day: a "
@@ -309,7 +309,7 @@ REQUESTS = [
         "used": "Browser tab, home-screen icon (scaled to 512, 192 and 180 px).",
         "standin": "A drawn icon: an ice-cream cone with a coot's head on a cream tile.",
         "ref": "cover-ice-cream-cone-coot.jpg",
-        "status": "requested",
+        "status": "delivered",
         "prompt": STYLE.replace("No text, no lettering, no watermark, no border, no UI.", "")
         + "App icon: the Ice-Cream Cone Coot from the book's cover (" + REF_URL
         + "cover-ice-cream-cone-coot.jpg ): its pink strawberry-scoop head with the big pale-blue "
@@ -327,7 +327,7 @@ REQUESTS = [
         "size": "1024 x 1024, opaque, tiling",
         "used": "The pages of the field guide, behind every page and card.",
         "standin": "A flat cream colour with a faint drawn grain.",
-        "status": "requested",
+        "status": "delivered",
         "prompt": "A flat scan of plain, slightly aged cream watercolour paper: soft natural "
         "grain, very faint fibres, a few barely-there warm speckles, even lighting, no folds, no "
         "stains, no vignette, nothing drawn on it. A square tile that repeats seamlessly in both "
@@ -343,7 +343,7 @@ REQUESTS = [
         "used": "The last page of the field guide, shown once every bird has been spotted.",
         "standin": "Every bird's portrait (or stand-in) drawn together on a hillside.",
         "ref": "endpapers-all-birds.jpg",
-        "status": "requested",
+        "status": "delivered",
         "prompt": STYLE + " " + BIRD + " A crowded, happy gathering of all the rare birds "
         "together for a group portrait, each clearly visible: "
         + ALL_BIRDS + ". Packed and lively like the book's endpapers (" + REF_URL + "endpapers-all-birds.jpg ), "
@@ -361,7 +361,7 @@ for n, b in enumerate(BIRDS, 1):
         "size": "1024 x 1024, transparent",
         "used": f"The bird's page, and the bird itself in {b['used']}.",
         "standin": "The bird drawn in code from simple shapes in ink and wash.",
-        "status": "requested",
+        "status": "delivered",
         "ref": b["ref"],
         "prompt": STYLE + " " + BIRD + " " + b["look"] + " " + PORTRAIT + " " + REF.format(b["ref"]),
     })
@@ -376,7 +376,7 @@ for n, b in enumerate(BIRDS, 1):
         "size": "1920 x 1080, opaque",
         "used": f"Behind {b['used']}.",
         "standin": "A simple painted-in-code version of the same place.",
-        "status": "requested",
+        "status": "delivered",
         "ref": b["ref"],
         "prompt": STYLE + " " + SCENE + b["scene"] + " " + REF_SCENE.format(b["ref"]),
     })
