@@ -5,6 +5,8 @@
 // is cut from. Procedural stand-ins draw everything until delivered art
 // (assets/manifest.json) replaces a slot.
 
+import { animationFrame, validAnimation } from './animation.js';
+
 import { ROWS, STAGE, TUNING, rowPos, leapHeight, effectiveRow } from './board.js';
 
 export const PAL = {
@@ -60,13 +62,15 @@ function testArt(id, s) {
 const TEST_ART = typeof location !== 'undefined' && /[?&]qa\b/.test(location.search) && /[?&]testart\b/.test(location.search);
 
 export async function loadAssets(base = 'assets/', { first = [], onImage } = {}) {
-  const out = { slots: {}, images: {}, audio: {}, sfx: {}, ready: Promise.resolve(), all: Promise.resolve() };
+  const out = { slots: {}, images: {}, anims: {}, audio: {}, sfx: {}, ready: Promise.resolve(), all: Promise.resolve() };
+  let animationSlots = {};
   try {
     const res = await fetch(base + 'manifest.json');
     const m = await res.json();
     out.slots = m.slots || {};
     out.audio = m.audio || {};
     out.sfx = m.sfx || {};
+    animationSlots = m.anims || {};
   } catch { return out; }
   const load = (ids) => Promise.all(ids.map((id) => new Promise((done) => {
     const s = out.slots[id];
@@ -80,7 +84,24 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
   const early = first.filter((id) => out.slots[id]);
   const rest = Object.keys(out.slots).filter((id) => !early.includes(id));
   out.ready = load(early);
-  out.all = out.ready.then(() => load(rest));
+  const loadAnimations = async () => {
+    await Promise.all(Object.entries(animationSlots).map(async ([id, slot]) => {
+      if (slot.status !== 'delivered' || !slot.file || !slot.meta) return;
+      try {
+        const response = await fetch(base + slot.meta);
+        if (!response.ok) return;
+        const meta = await response.json();
+        if (!validAnimation(meta)) return;
+        await new Promise((done) => {
+          const image = new Image();
+          image.onload = () => { if (validAnimation(meta, image)) out.anims[id] = { image, meta }; done(); };
+          image.onerror = done;
+          image.src = base + slot.file;
+        });
+      } catch { /* A missing/bad loop leaves its still-art fallback in place. */ }
+    }));
+  };
+  out.all = out.ready.then(() => Promise.all([load(rest), loadAnimations()]));
   return out;
 }
 
@@ -144,6 +165,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   let dyeOff = { x: 0, y: 0 };
   const stars = Array.from({ length: 70 }, (_, i) => ({ x: (i * 397) % 1040 + 120, y: (i * 151) % 260 + 60, p: i * 1.7 }));
   const img = (id) => assets.images[id];
+  let extraAnimations = false;
 
   // Act events: the act's own onEvent, which may call kit.voyageEvent (Act I).
   function onEvent(e, view) {
@@ -243,6 +265,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
 
   // view = { board, curtain(0 closed..1 open), card, film: 'full'|'gentle'|'off', t }
   function render(view) {
+    extraAnimations = view.extraAnimations === true;
     const { t, film } = view;
     if (film !== 'off' && ++reg.n % 5 === 0) {
       const m = film === 'full' ? 3 : 1.4;
@@ -459,7 +482,8 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     const yb = title ? 708 : 660 + (1 - e) * 300;
     c.save();
     if (!title) { c.beginPath(); c.rect(0, 0, 1280, 662); c.clip(); }
-    drawAsset(c, P, art, x, yb + size * 0.013, size, size);
+    if (!drawAnimation(c, 'anim-band-play', t, x + (title ? 75 : 0), yb + size * 0.013, size * (title ? 1 : 1.3), size))
+      drawAsset(c, P, art, x, yb + size * 0.013, size, size);
     c.restore();
   }
 
@@ -1002,11 +1026,25 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.beginPath(); c.moveTo(x, y0); c.lineTo(x, y1); c.stroke();
   }
 
+  function drawAnimation(c, id, time, cx, by, w, h) {
+    if (!extraAnimations) return false;
+    const record = assets.anims?.[id];
+    if (!record) return false;
+    const frame = animationFrame(record.meta, time);
+    if (!frame) return false;
+    const scale = Math.min(w / frame.sw, h / frame.sh);
+    const dw = frame.sw * scale, dh = frame.sh * scale;
+    const y = record.meta.anchor === 'centre' ? by - dh / 2 : by - dh;
+    c.drawImage(passImage(P, record.image), frame.sx, frame.sy, frame.sw, frame.sh, cx - dw / 2, y, dw, dh);
+    return true;
+  }
+
   // Shared primitives for act drawing. kit.c is the context of the pass
   // being painted (print or colour); always draw through it.
   const kit = {
     c: ctx, P, PAL, t: 0, ROWS, STAGE,
     img,
+    anim(id, time, cx, by, w, h) { return drawAnimation(kit.c, id, time, cx, by, w, h); },
     // Draw a delivered image (bottom-centre anchor); false if not delivered.
     asset(id, cx, by, w, h, extra = '') { const im = img(id); if (!im) return false; drawAsset(kit.c, P, im, cx, by, w, h, extra); return true; },
     // Part of a delivered image: source rect in art pixels -> stage box.

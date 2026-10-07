@@ -493,7 +493,7 @@ function eel(k, st, e, t) {
 function jelly(k, x, y, t) {
   const c = k.c, top = y - 30;
   k.wire(x, 0, top);
-  if (k.asset('jellyfish', x, top + 140, 90, 140)) return;
+  if (k.anim?.('anim-jellyfish', t, x, top + 140, 90, 140) || k.asset('jellyfish', x, top + 140, 90, 140)) return;
   c.strokeStyle = k.col('#e0127a'); c.lineWidth = 4; c.lineCap = 'round'; c.globalAlpha = 0.8;
   for (let i = 0; i < 4; i++) {
     const tx = x - 21 + i * 14;
@@ -512,7 +512,7 @@ function jelly(k, x, y, t) {
 function dragon(k, x, y, face, t) {
   const c = k.c;
   c.save(); c.translate(x, y); c.scale(-face, 1); // the art faces left
-  if (!k.asset('sea-dragon', 0, 48, 240, 96)) {
+  if (!k.anim?.('anim-sea-dragon', t, 0, 48, 240, 96) && !k.asset('sea-dragon', 0, 48, 240, 96)) {
     const sw = Math.sin(t * 5) * 8;
     c.fillStyle = k.col('#c8321e');
     c.beginPath(); c.moveTo(-110, -6);
@@ -660,9 +660,10 @@ function aura(k, st, t) {
 
 // ---------------------------------------------------------------- the witch
 const WITCH_X = 1000;
-function witchFigure(k, x, by, bend, rose, t, wandUp = 0) {
+function witchFigure(k, x, by, bend, rose, t, wandUp = 0, spellTime = null) {
   const c = k.c;
   c.save(); c.translate(x, by); c.rotate(bend);
+  if (spellTime !== null && k.anim?.('anim-witch-wand', spellTime, 0, 0, 150, 242)) { c.restore(); return; }
   if (k.asset('witch-stand', 0, 0, 150, 242)) { c.restore(); return; }
   // pink robes
   c.fillStyle = k.col('#f3c6dc');
@@ -764,7 +765,7 @@ function closeWitch(k, st, t) {
   else { rose = true; y = by - easeInOut((pt - 1.4) / 1.6) * 760; }
   k.wire(WITCH_X - 20, 0, y - 236); k.wire(WITCH_X + 20, 0, y - 236);
   const laugh = st.phase === 'choice' && st.choice === 'refuse' ? Math.sin(pt * 26) * 0.05 * (pt < 1.4 ? 1 : 0) : 0;
-  witchFigure(k, WITCH_X, y, laugh, rose, t, wand);
+  witchFigure(k, WITCH_X, y, laugh, rose, t, wand, st.phase === 'choice' && st.choice === 'take' ? pt : null);
   const taking = st.phase === 'choice' && st.choice === 'take';
   // first the wand glows: the spell begins (and only then)
   if (taking && pt < ROSE_CUES.fly) {

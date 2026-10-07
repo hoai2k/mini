@@ -212,7 +212,7 @@ function hugeGuitarist(k, st, t) {
   const c = k.c, x = 1400 - show * 270;
   const sway = Math.sin(Math.PI * (st.beat || 0)) * 0.025;
   c.save(); c.translate(x, 740); c.rotate(-0.12 + sway);
-  if (!k.asset('band-beard', 0, 260, 440, 880)) {
+  if (!k.anim?.('anim-band-giant', (st.beat || 0) * 60 / 76.5, 0, 260, 440, 880) && !k.asset('band-beard', 0, 260, 440, 880)) {
     if (!trioCrop(k, 'beard', -230, -700, 460, 704)) {
       person(k, 0, 0, 760, { coat: '#e9e1d0', legs: '#4a2a3a', beard: '#3a2a20', hair: '#3a2a20' }, { arms: 'out' });
       c.fillStyle = k.col('#2a1a12'); c.fillRect(-260, -420, 340, 26);
@@ -1006,7 +1006,7 @@ function pageantScene(k, st, t) {
   if (dIn > 0) {
     c.save(); c.beginPath(); c.rect(0, 0, 1280, 566); c.clip();
     const yb = 566 + (1 - dIn) * 200 - bob * 6;
-    if (!k.asset('pageant-dancers', 640, yb, 720, 315)) {
+    if (!k.anim?.('anim-pageant-dancers', beat * 60 / 76.5, 640, yb, 720, 315) && !k.asset('pageant-dancers', 640, yb, 720, 315)) {
       for (let i = 0; i < 5; i++) dancer(k, 380 + i * 130, yb, 130, ((Math.floor(beat) + i) % 2) * bob);
     }
     c.restore();
@@ -1030,7 +1030,7 @@ function pageantScene(k, st, t) {
     const hop = walk >= 1 ? ((Math.floor(beat) + i) % 2) * bob * 8 : Math.abs(Math.sin(since * 9)) * 6;
     const face = walk < 1 ? -s.side : 1;
     // the delivered revellers (220 x 420 each), cycled when more than four join
-    if (!artFlip(k, REVELLER_ART[i % REVELLER_ART.length], x, 618 - hop, REVELLER_H * 220 / 420, REVELLER_H, face)) {
+    if (!animFlip(k, REVELLER_ART[i % REVELLER_ART.length].replace('reveller-', 'anim-reveller-'), beat * 60 / 76.5, x, 618 - hop, REVELLER_H * 220 / 420, REVELLER_H, face) && !artFlip(k, REVELLER_ART[i % REVELLER_ART.length], x, 618 - hop, REVELLER_H * 220 / 420, REVELLER_H, face)) {
       person(k, x, 618 - hop, 142, revellerCostume(i), { face, arms: walk >= 1 ? 'v' : 'down', step: walk < 1 ? Math.sin(since * 12) : 0 });
     }
   }
@@ -1047,7 +1047,7 @@ function pageantScene(k, st, t) {
       k.asset('band-hat', -82, 2, 104, 208);
       k.asset('band-beard', 82, 2, 104, 208);
       k.asset('band-guitarist-empty', 0, 4, 108, 216);
-    } else if (!k.asset('band-trio', 0, 2, 250, 250)) {
+    } else if (!k.anim?.('anim-band-play', beat * 60 / 76.5, 0, 2, 350, 250) && !k.asset('band-trio', 0, 2, 250, 250)) {
       for (const [dx, col] of [[-50, '#2b2b2b'], [0, '#e9e1d0'], [50, '#5a4a3a']]) person(k, dx, 0, 200, { coat: col, legs: '#4a2a3a', hair: '#3a2112' });
     }
     c.restore();
@@ -1137,3 +1137,8 @@ function seaKing(k, x, by, t) {
 }
 
 export const _forTests = { CAPTIONS, joinerSlot };
+
+function animFlip(k, id, time, x, by, w, h, face) {
+  const c = k.c; c.save(); c.translate(x, by); c.scale(face, 1);
+  const drawn = k.anim?.(id, time, 0, 0, w, h); c.restore(); return drawn;
+}

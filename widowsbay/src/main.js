@@ -27,8 +27,9 @@ const chrome = createChrome({ touch: TOUCH, isPlaying: () => S.mode === 'play' &
 const SETTINGS_KEY = 'widowsbay.settings.v1';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // Touch devices start on the gentler film look (lighter on a phone's GPU and battery).
-const settings = { period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true };
+const settings = { period: true, music: 7, sfx: 8, film: reduced || matchMedia('(pointer: coarse)').matches ? 'gentle' : 'full', vibration: true, extraAnimations: false };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch { /* storage unavailable */ }
+settings.extraAnimations = settings.extraAnimations === true;
 const saveSettings = () => { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* ignore */ } };
 const FILM = { full: 'Full', gentle: 'Gentle', off: 'Off' };
 function syncSettingsUI() {
@@ -38,6 +39,7 @@ function syncSettingsUI() {
     else if (k === 'film') el.querySelector('span').textContent = FILM[settings.film];
     else if (k === 'vibration') el.querySelector('span').textContent = settings.vibration ? 'On' : 'Off';
     else if (k === 'period') el.querySelector('span').textContent = settings.period ? 'On' : 'Off';
+    else if (k === 'extraAnimations') el.querySelector('span').textContent = settings.extraAnimations ? 'On' : 'Off';
   }
   audio.setVolumes(settings.music / 10, settings.sfx / 10);
 }
@@ -47,6 +49,7 @@ for (const el of document.querySelectorAll('#settings [data-key]')) {
   else el.addEventListener('click', () => {
     if (k === 'film') settings.film = { full: 'gentle', gentle: 'off', off: 'full' }[settings.film];
     if (k === 'vibration') settings.vibration = !settings.vibration;
+    if (k === 'extraAnimations') settings.extraAnimations = !settings.extraAnimations;
     if (k === 'period') { settings.period = !settings.period; audio.setPeriodOn(settings.period); }
     syncSettingsUI(); saveSettings(); audio.play('ui');
   });
@@ -398,7 +401,7 @@ function frame(now) {
 
 function currentView() {
   return {
-    act: S.act, state: S.state, curtain: S.curtain, card: S.card, film: settings.film, t: S.t,
+    act: S.act, state: S.state, curtain: S.curtain, card: S.card, film: settings.film, extraAnimations: settings.extraAnimations === true, t: S.t,
     hud: S.mode === 'play' || S.mode === 'over',
     curtainCall: S.mode === 'curtaincall' ? Math.min(1, S.modeT / 1.4) : 0,
     scene: S.mode === 'playbill' ? drawPlaybill : S.mode === 'curtaincall' ? drawCurtainCall : null,

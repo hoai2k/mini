@@ -27,7 +27,8 @@ The requests live in four parts:
 - **Part D — animation loops.** Short moving loops for the characters the
   player watches (the band, the revellers, the spirits, the witch's spell),
   cut out of the video footage or made with image-to-video, with the steps
-  to prepare each one for the game. Requested; none delivered yet.
+  to prepare each one for the game. Eleven motion assets are delivered; see
+  [the animation gallery](generated/anims/loops/index.html).
 
 Drop finished images, named by id, in [`widowsbay/intake/`](../intake/README.md)
 and ask for them to be integrated.
@@ -1625,7 +1626,7 @@ Second-round art that works but needs another pass (found integrating it, Octobe
 
 ---
 
-## Part D — animation loops (requested, not yet built)
+## Part D — animation loops (delivered, 6 October 2026)
 
 Short loops of moving characters, played as sprite sheets in place of a
 still cut-out. They suit the characters the player **watches** (the band,
@@ -1646,10 +1647,16 @@ There are two ways to make a loop:
   motion. Don't generate frames one by one with an image model: the
   character drifts between frames and the loop shimmers.
 
-The game has no animation player yet. When the first loop arrives, the shell
-gets a small `kit.anim(id, t, cx, bottomY, w, h)` helper. It picks a frame by
-time (or by the song's beat for `beat` loops), and each act falls back to its
-still sprite when a loop is missing.
+For the offline delivery on 6 October, the user asked not to use Runway.
+Eight loops therefore use continuous deformation of the existing painted
+cut-outs. This is a puppet-animation alternative, not image-to-video or
+independent generation of successive frames. Three loops retain tracked
+motion from the music video or source film.
+
+The shell now has `kit.anim(id, t, cx, bottomY, w, h)`, with musical-period
+timing, preserved frame aspect ratios and still-art fallback for missing or
+invalid sheets. The initial deliveries include both footage loops and painted
+puppet alternatives, following the user’s request to avoid Runway.
 
 ### D1. The loops
 
@@ -1756,5 +1763,18 @@ other tools with pip. Work in a scratch folder, not the repository.
 
 ### D4. Status
 
-All of Part D is requested. None is delivered, and the animation helper is
-not built yet: it will be built with the first delivered loop (the pilot).
+All eleven Part D motion assets are delivered and registered in the manifest.
+They are opt-in through **Settings → Extra Animations**, default **Off**. The
+review gallery always previews them independently of that setting.
+Three are tracked footage (the band, the isolated bearded performer, and a
+pink-clad lady’s hand flourish); eight are continuously deformed painted
+cut-outs. These painted alternatives were built offline, without an
+image-to-video service or independent frame generation. The pageant footage
+matte was rejected because it lost costume sections.
+
+See the [review gallery](generated/anims/loops/index.html) at 1× and 0.25×,
+including every-frame contact sheets, source clips and method notes. The lady
+is a gesture/sway pilot rather than a full dance, and the giant is soft at
+large display sizes. Sheets target roughly 8 MB decoded and remain below
+1.5 MB WebP. Larger painted groups reduce spatial resolution to meet that
+budget. The offline preparation checkpoint remains preserved separately.
