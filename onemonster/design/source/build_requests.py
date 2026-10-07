@@ -354,6 +354,7 @@ RIGS = {
             "the near hand clenched in a fist",
             "the near foot on tiptoe",
             "the whole head turned to face the viewer, startled, as when he is caught",
+            "the near hand holding up a leafy twig as a disguise",
         ],
         "poses": [
             "standing idle, smug",
@@ -368,9 +369,11 @@ RIGS = {
             "sitting and wailing, head thrown back",
             "peeking round a tree trunk, eyeing the prize, sly and greedy",
             "celebrating: hugging a letter to his chest and doing a gabbling jig, one foot kicked up",
+            "frozen in disguise: a leafy twig held in front of his face, only the hat poking over it",
+            "skidding round on a turn mid-scurry, dust flying",
         ],
         "anims": "eyeing the prize, celebrating, idle breathing, the tiptoe sneak cycle, ducking, the fright and scuttle back, "
-        "the grab, the gabbling run cycle, being snatched from, wailing",
+        "the grab, the gabbling run cycle, being snatched from, wailing, the freeze in disguise, the skid",
     },
     "bombanat": {
         "view": "side view facing right in flight, wings spread level",
@@ -411,9 +414,13 @@ RIGS = {
             "perched with the wings folded, sly",
             "perched on a branch, eyeing the prize below, licking his snout",
             "celebrating: a loop-the-loop, a letter in his teeth",
+            "wing-walking on the ground like a bat, hobbling on his wrist claws, near side forward",
+            "wing-walking, far side forward",
+            "stalled in mid-air, fluttering frantically",
+            "pulling up out of a dive into a swoop, wings wide",
         ],
         "anims": "eyeing the prize, celebrating, the flap cycle, gliding, diving and swooping, the snap, landing, goo-stuck "
-        "flapping, struggling when grabbed, netted",
+        "flapping, struggling when grabbed, netted, the stall flutter, the swoop out of a dive, the wing-walk",
     },
     "grumley": {
         "view": "three-quarter view facing right, rising out of the goo with his tentacles "
@@ -448,9 +455,11 @@ RIGS = {
             "snagged in a big fishing net and hauled up wiggly-squiggly, tentacles everywhere",
             "eyeing the prize: only the spectacled eyes and hair crest above the goo, peering up",
             "celebrating: holding a Bombanat aloft in one tentacle, beaming",
+            "gliding under the goo: only the eyes and hair crest showing, a V-shaped wake behind",
+            "a full lunge: his whole head and body thrown up out of the goo, tentacles flying",
         ],
         "anims": "eyeing the prize, celebrating, lurking, rising, tentacles curling and waving, the lunge and grab, the miss "
-        "and splutter, the lunch dance, being netted and hauled up",
+        "and splutter, the lunch dance, being netted and hauled up, gliding with a wake, the full lunge",
     },
     "iceferg": {
         "view": "front three-quarter view from a little above, floating, the waterline along "
@@ -476,6 +485,7 @@ RIGS = {
             "a jagged crack that opens across the ice below the eye like a roaring mouth (our own addition, for the charge)",
             "a web of fresh cracks to lay over the ice after the crash",
             "a sea lion sliding off, flippers flailing",
+            "a sea lion clinging on tight, eyes wide",
         ],
         "poses": [
             "drifting and sulking, sea lions dozing on its ledges",
@@ -487,7 +497,7 @@ RIGS = {
             "celebrating: the eye glaring in triumph, the sea lions clapping their flippers",
         ],
         "anims": "eyeing the prize, celebrating, drifting and bobbing, the glaring eye, huffing up, the charge, the crash, "
-        "the dazed wobble, and the sea lions dozing, startling and sliding off",
+        "the dazed wobble, and the sea lions dozing, startling and sliding off, the sea lions clinging on",
     },
     "typhoonigator": {
         "view": "front view from a little above, the water spout falling from its lips",
@@ -516,6 +526,7 @@ RIGS = {
             "the brows drooping and sleepy",
             "the near hand clenched, grabbing",
             "the far hand clenched, grabbing",
+            "the lips with the cheeks sucked hollow, inhaling hard",
         ],
         "poses": [
             "storming along, sucking hard",
@@ -524,8 +535,9 @@ RIGS = {
             "a small exhausted wisp at morning",
             "eyeing the prize: the face turned down, sniffing, the eyes narrowed",
             "celebrating: a great swirling burp, the cloud billowing out happily",
+            "rolling along at speed, cloud puffs streaming behind, the spout swinging wide",
         ],
-        "anims": "eyeing the prize, celebrating, churning cloud, sucking, swelling as it fills, letting go, the morning sag",
+        "anims": "eyeing the prize, celebrating, churning cloud, sucking, swelling as it fills, letting go, the morning sag, rolling along with the spout swinging",
     },
     "yalapappus": {
         "view": "side view facing right, standing on his two stumpy legs",
@@ -550,6 +562,7 @@ RIGS = {
             "the eye area only, eyes swirling and dizzy",
             "the eye area only, eyes shut (a blink)",
             "the near paw clenched in a fist",
+            "the whole Yalapappus tucked into a round furry ball, napkin and paws wrapped in, for rolling (the game spins it)",
         ],
         "poses": [
             "standing idle, contented, fork up",
@@ -563,8 +576,9 @@ RIGS = {
             "sitting and wailing",
             "looking up hungrily, napkin on and fork raised, eyeing the prize",
             "celebrating: patting his tummy, napkin flapping, grinning",
+            "unrolling, dizzy and wobbling",
         ],
-        "anims": "eyeing the prize, celebrating, the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing",
+        "anims": "eyeing the prize, celebrating, the trundle cycle, the hop and landing, munching, the bonk, the shouting chase, wailing, rolling up into a ball and unrolling dizzy",
     },
     "grithix": {
         "view": "side view facing right, standing upright, the net over his shoulder",
@@ -606,9 +620,12 @@ RIGS = {
             "strolling home not caring a snickle, a netted Bombanat under one arm",
             "peeking round a tree, net raised, smiling, eyeing the prize",
             "celebrating: dusting off his hands after posting a letter, not caring a snickle",
+            "pole-vaulting: the net pole planted, swinging up off the ground",
+            "pole-vaulting: at the top of the arc, robe billowing, tail streaming",
+            "landing from the vault, knees bent",
         ],
         "anims": "eyeing the prize, celebrating, the stride cycle with a swinging tail, the net swing in three beats, the slam, "
-        "posting the letter, tripping, the stroll home",
+        "posting the letter, tripping, the stroll home, the pole-vault",
     },
 }
 
@@ -922,6 +939,7 @@ PROPS = [
         "a small green rowing boat with a fisherman",
         "a curving current arrow drawn in the water as foam",
         "a white splash ring",
+        "the Peg leaning into a turn, a puff of steam from its funnel",
     ]),
     ("typhoonigator", "seen from above", [
         "the captain's glass bottle, corked, with a red-and-white label and a rolled note inside",
@@ -932,6 +950,7 @@ PROPS = [
         "a red-and-white buoy",
         "a tiny fishing boat, tumbling",
         "a blob of blue goo",
+        "the captain's bottle half under a wave, only its neck showing",
     ]),
     ("yalapappus", "side-on", [
         "a round grey rock",
