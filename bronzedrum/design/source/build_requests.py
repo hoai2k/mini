@@ -144,6 +144,17 @@ SECTIONS = {
         "are delivered the game draws paper-cut stand-ins, so each piece replaces one drawing "
         "and must keep its proportions.",
     ),
+    "water": (
+        "Water puppets (alternate style)",
+        "The alternate look, chosen in Settings, Style: Vietnamese water puppetry (mua roi "
+        "nuoc). Each request mirrors one shadow-puppet image (BD-WC01 mirrors BD-C01), at the "
+        "same size and composition, so the two swap without touching the layout; give the "
+        "generator the delivered shadow-puppet image as a reference where it takes one. The "
+        "figures are carved, lacquered wooden puppets that wade in a pond the game draws along "
+        "the ground; the scenery is lacquer painting. Generate the style frame (BD-W01) first. "
+        "Until a piece arrives the game shows the shadow-puppet image in its place, under the "
+        "drawn pond and lacquer grade.",
+    ),
 }
 
 
@@ -895,6 +906,146 @@ req(PR, "BD-U19", "kit-faces", "Practice kits: drum faces",
     "head of a lion-dance drum with a lacquer-red rim and a gold ring, a small brass cymbal "
     "at its edge. Bold shapes that read at 100 pixels.")
 
+# ------------------------------------------------------------------ water puppets
+
+# The alternate style (Settings, Style): Vietnamese water puppetry. Every
+# image above that carries the shadow-puppet look gets a water-puppet twin,
+# BD-W + its own id (BD-C01 -> BD-WC01), game id wp- + its own (sister-trac ->
+# wp-sister-trac). In the water style the game loads the twin when it is
+# delivered and falls back to the shadow-puppet image until then.
+
+WT = "water"
+
+WATER_STYLE = (
+    "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond "
+    "in front of a water pavilion. The figures are puppets carved from light fig wood and "
+    "finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with "
+    "gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy "
+    "cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a "
+    "wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting "
+    "(son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, "
+    "crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze "
+    "drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long "
+    "boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, "
+    "lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: "
+    "black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green "
+    "and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no "
+    "photorealism, no 3D render look, no text, no watermark."
+)
+
+WATER_CUTOUT = (
+    "Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom "
+    "edge, centred, transparent background (PNG with alpha). If transparency is not possible, "
+    "use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The "
+    "game draws the pond's surface over the feet and shins, so the figure seems to wade."
+)
+
+TRANSLATE = (
+    "Carry the subject over into water-puppet form: where the description mentions paper, cut "
+    "holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer "
+    "colours, painted patterns and gold or silver leaf instead."
+)
+
+# Base request -> a subject that replaces its own (for pieces whose subject is the paper itself).
+WATER_SUBJECTS = {
+    "BD-B08": (
+        "Seamless tileable texture of a polished lacquer surface: deep black-brown with a soft "
+        "gloss, very faint gold-leaf flecks and a few hairline crackles of eggshell, even "
+        "lighting, no objects. It is laid thinly over the whole screen, so keep it quiet."),
+    "BD-U04": (
+        "A lacquered wooden panel: a black lacquer field framed by a carved vermilion border of "
+        "tangential circles and small herons picked out in gold leaf, a sun-star in each corner. "
+        "Plain centre for text. Soft gloss, even light."),
+    "BD-F01": (
+        "Sixteen small water splashes and flying wood chips on a transparent background: "
+        "crowns of spray, single droplets, a ring of ripples seen from the side, small chips of "
+        "vermilion and black lacquered wood, a lotus petal. Bright, clear water edged with "
+        "light; each piece centred in its cell."),
+    "BD-F02": (
+        "Four carved wooden projectiles in a row on a transparent background, all pointing "
+        "right, lacquered like puppet props: a Lac Viet arrow with a gold-leaf head and red "
+        "fletching, the same arrow with a short trail of droplets, a short Han crossbow bolt in "
+        "iron-grey lacquer, the same bolt with a trail of droplets."),
+    "BD-F03": (
+        "A radially symmetric burst of water rising from the pond, seen from above: concentric "
+        "rings of ripples and spray in gold and jade, flying herons in gold leaf circling a "
+        "sun-star at the centre, like the bands of a bronze drum face. Bright and joyful."),
+    "BD-P11": (
+        "A Lac Viet communal house (dinh) seen from the side with its water pavilion (thuy dinh) "
+        "standing in the pond in front: the long low hall on wooden stilts under a huge "
+        "saddle-shaped roof whose two ends sweep up like a boat's prow; before it, the small "
+        "pavilion on posts in the water, its curved tiled roof, its front hung with a bamboo "
+        "screen behind which the puppeteers stand. Black lacquer, vermilion pillars, gold leaf."),
+}
+
+# Titles and purposes for the pieces whose subject changes with the medium.
+WATER_TITLES = {
+    "BD-B08": ("Lacquer texture", "Laid thinly over the whole screen in place of the paper fibre."),
+    "BD-U04": ("Lacquer panel", "The panel behind menus and dialogs."),
+    "BD-F01": ("Splashes and wood chips sheet", "Hits and defeats burst into splashes and chips of lacquered wood."),
+    "BD-F02": ("Projectiles sheet", "Arrows and crossbow bolts in flight."),
+    "BD-F03": ("Burst from the pond (the drum waking)", "The burst when the drum's spirit wakes."),
+    "BD-P11": ("Communal house and water pavilion", "Drum Practice's backdrop: the village's communal house with its water pavilion in the pond."),
+}
+
+# Every image with the shadow-puppet look, in the order of the list above.
+WATER_BASES = [
+    "BD-B01", "BD-B02", "BD-B03", "BD-B09", "BD-B04", "BD-B05", "BD-B06", "BD-B07", "BD-B08",
+    "BD-B10", "BD-B11", "BD-B12",
+    "BD-C01", "BD-C02", "BD-C03", "BD-C04", "BD-C14", "BD-C11", "BD-C12", "BD-C05", "BD-C06",
+    "BD-C15", "BD-C16", "BD-C17", "BD-C07", "BD-C08", "BD-C09", "BD-C10",
+    "BD-R01", "BD-R02",
+    "BD-U04", "BD-U06", "BD-U07", "BD-U08", "BD-U10", "BD-U11", "BD-U12", "BD-U13", "BD-U14",
+    "BD-U15", "BD-U17", "BD-U18", "BD-U26",
+    "BD-F01", "BD-F02", "BD-F03",
+    "BD-P01", "BD-P02", "BD-P03", "BD-P04", "BD-P05", "BD-P06", "BD-P07", "BD-P08", "BD-P09",
+    "BD-P10", "BD-P11", "BD-C13",
+]
+
+req(WT, "BD-W01", None, "Style frame: water puppets",
+    "Generate this first. The same moment as the style frames BD-S01 to BD-S03 (the army "
+    "marching on a Han palisade at dusk, the sisters and the drum behind it), staged as a "
+    "water-puppet show, to settle the look before the rest of this section.",
+    "2560x1440, opaque",
+    "planned", None, "references/w01-water-puppet-frame.png",
+    f"{WATER_STYLE} A water-puppet performance at dusk seen from the audience's bank: across "
+    "the pond, lacquered wooden puppets of feather-crowned Lac Viet women with spears and bows "
+    "wade through the water towards a Han wooden palisade on the right, behind them a palanquin "
+    "puppet carrying a bronze drum with two puppet sisters striking it. Behind the pond a "
+    "small water pavilion with a curved tiled roof and a bamboo screen, painted lacquer scenery "
+    "of karst peaks and areca palms, red lanterns strung above, gold reflections and ripples on "
+    "the water.")
+req(WT, "BD-W02", "wp-water", "The pond's surface",
+    "Water style only: the pond the puppets wade in, drawn as a band along the ground line over "
+    "their feet and shins, scrolling with the nearest layer. Until it arrives the game draws "
+    "the water itself.",
+    "4096x512, opaque, seamless horizontally: the left and right edges must join with no "
+    "visible seam. The top edge is the water line, seen almost edge-on.",
+    "planned", "Renderer.pond (drawn water)", "art/wp-water.png",
+    f"{WATER_STYLE} A long seamless strip of pond water seen almost edge-on from the audience's "
+    "bank: deep green-brown water with gold and vermilion lantern reflections broken into "
+    "horizontal ripples, a few floating lotus leaves, a bright thin highlight along the water "
+    "line at the top edge. No figures, no shore.")
+
+_BY_ID = {r["id"]: r for r in REQUESTS}
+for base_id in WATER_BASES:
+    b = _BY_ID[base_id]
+    rid = "BD-W" + base_id.removeprefix("BD-")
+    asset = "wp-" + b["asset"]
+    spec = b["spec"].replace(CUTOUT, WATER_CUTOUT).replace("cut-paper", "carved and lacquered wooden")
+    spec = spec.rstrip(".") + f". Keep the composition, pose, proportions and framing of the shadow-puppet version ({b['file']}), so the two swap in the game; give it to the generator as a reference image if it takes one."
+    if base_id in WATER_SUBJECTS:
+        prompt = f"{WATER_STYLE} {WATER_SUBJECTS[base_id]}"
+    else:
+        subject = b["prompt"].replace(STYLE, "").strip()
+        prompt = f"{WATER_STYLE} {TRANSLATE} {subject}"
+    title, purpose = WATER_TITLES.get(base_id, (b["title"], b["purpose"]))
+    req(WT, rid, asset, f"Water puppets: {title}",
+        f"The water-puppet version of {base_id}, shown in its place when Settings, Style is "
+        f"Water puppets. {purpose}",
+        spec, "planned", b["standin"] and f"{b['asset']} (the shadow-puppet image)", f"art/{asset}.png", prompt)
+    REQUESTS[-1]["base"] = b["asset"]
+
 # ------------------------------------------------------------------ output
 
 STATUS_TEXT = {
@@ -924,7 +1075,9 @@ def build_doc() -> str:
         "`bronzedrum/intake/` (or straight into `bronzedrum/game/assets/` and "
         "`bronzedrum/design/`). On integration the request's status flips to `delivered` and "
         "the game loads the file in place of its procedural stand-in.\n"
-        "5. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure "
+        "5. The **water puppets** section (BD-W01 onwards) is an alternate look for the whole "
+        "game, chosen in Settings, Style. Start with its style frame, BD-W01.\n"
+        "6. Cutouts need transparency. If the generator cannot produce alpha, use a flat pure "
         "magenta `#FF00FF` background as the prompts say; it is keyed out on integration.\n")
     out.append("## Art direction\n")
     out.append(
@@ -999,6 +1152,8 @@ def build_manifest() -> str:
             continue
         entry = {"id": r["asset"], "request": r["id"], "file": r["file"], "status": r["status"],
                  "section": r["section"], "runtime": bool(r["standin"])}
+        if r.get("base"):
+            entry["base"] = r["base"]  # the shadow-puppet image this water-puppet one replaces
         # The game loads the web copy made by build_web_art.py, not the master.
         if entry["runtime"] and (ROOT / "game" / "assets" / "web" / f"{r['asset']}.webp").exists():
             entry["web"] = f"web/{r['asset']}.webp"
