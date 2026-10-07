@@ -27,6 +27,11 @@ const GROW = 0.3; // growth per second while watered (a bloom takes about 3 s)
 const SOAK = 0.27; // soak per second of watering; soggy at 1
 const SOGGY = 2;
 const DAMP = 0.45; // below this dryness a Plume keeps growing slowly by itself
+const PASSIVE = 0.14; // growth per second in damp soil, without watering
+const DRINK = 2.5; // how fast watering takes the dryness away
+const THIRSTY = 1; // a Plume drier than this drinks before it grows
+
+export const TUNE = { PASSIVE, DRINK, THIRSTY, DAMP };
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -151,9 +156,9 @@ export default function create(env) {
         p.dry = 0;
         if (watered && p.shake <= 0) p.shake = 0.3;
       } else if (watered) {
-        p.dry = Math.max(0, p.dry - 2.5 * dt);
+        p.dry = Math.max(0, p.dry - DRINK * dt);
         p.soak += SOAK * dt;
-        p.growth += GROW * dt;
+        if (p.dry < THIRSTY) p.growth += GROW * dt;
         if (p.soak >= 1) {
           p.soggy = SOGGY;
           p.soak = 0.55;
@@ -165,7 +170,7 @@ export default function create(env) {
       } else {
         p.soak = Math.max(0, p.soak - 0.35 * dt);
         p.dry = Math.min(1, p.dry + dryRate() * p.thirst * dt);
-        if (p.dry < DAMP) p.growth += 0.14 * dt; // damp soil: a little growth on its own
+        if (p.dry < DAMP) p.growth += PASSIVE * dt; // damp soil: a little growth on its own
         else if (p.dry >= 1) p.growth -= 0.2 * dt;
         else if (p.dry > 0.75) p.growth -= 0.06 * dt;
         p.growth = Math.max(0.06, p.growth);

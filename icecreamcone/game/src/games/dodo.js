@@ -454,27 +454,27 @@ export default function create(env) {
       wash(c, PAL.strawberry);
       ink(c, 2.6);
       const k = clamp(g.answerLeft / r.answer, 0, 1);
-      label(c, 'Which hat?', W / 2, 150, { size: 54, weight: 800 });
+      label(c, 'Which hat?', W / 2, 118, { size: 54, weight: 800 });
       c.save();
       c.beginPath();
-      c.rect(W / 2 - 200, 190, 400, 18);
+      c.rect(W / 2 - 200, 156, 400, 18);
       c.fillStyle = 'rgba(59,43,32,0.12)';
       c.fill();
       c.beginPath();
-      c.rect(W / 2 - 200, 190, 400 * k, 18);
+      c.rect(W / 2 - 200, 156, 400 * k, 18);
       c.fillStyle = k < 0.3 ? '#c0503a' : PAL.olive;
       c.fill();
       c.beginPath();
-      c.rect(W / 2 - 200, 190, 400, 18);
+      c.rect(W / 2 - 200, 156, 400, 18);
       ink(c, 2);
       c.restore();
     } else if (g.phase === 'show') {
-      label(c, 'Watch the Dodo!', W / 2, 150, { size: 54, weight: 800 });
+      label(c, 'Watch the Dodo!', W / 2, 118, { size: 54, weight: 800 });
     } else if (g.phase === 'setup') {
-      label(c, `Round ${g.round + 1}`, W / 2, 150, { size: 60, weight: 800 });
-      label(c, `${r.n} hats`, W / 2, 205, { size: 34, weight: 600, color: '#6a5a4a' });
+      label(c, `Round ${g.round + 1}`, W / 2, 112, { size: 60, weight: 800 });
+      label(c, `${r.n} hats`, W / 2, 162, { size: 34, weight: 600, color: '#6a5a4a' });
     } else if (g.phase === 'shuffle') {
-      label(c, 'Keep your eye on it…', W / 2, 150, { size: 44, weight: 700, color: '#6a5a4a' });
+      label(c, 'Keep your eye on it…', W / 2, 118, { size: 44, weight: 700, color: '#6a5a4a' });
     }
 
     // banknote confetti after a find

@@ -98,9 +98,9 @@ export default function create(env) {
     winding: 0, // how hard the crank turned lately, 0..1
     windT: 0, // crank angle for the meter's key
     wobble: 0, // record wow while sagging
-    flash: 0,
     nextBass: 0,
     dragA: null,
+    clicks: 0,
     lowWarned: false,
   };
 
@@ -152,7 +152,7 @@ export default function create(env) {
     const k = winScale();
     const a = Math.abs(offset);
     const nd = needle();
-    if (a <= PERFECT * k || a <= GOOD * k) {
+    if (a <= GOOD * k) {
       const perfect = a <= PERFECT * k;
       n.state = 'hit';
       n.grade = perfect ? 'perfect' : 'good';
@@ -203,7 +203,12 @@ export default function create(env) {
     g.spring = Math.min(1, g.spring + amount);
     g.winding = Math.min(1, g.winding + amount * 12);
     g.windT += amount * 40;
-    if (Math.floor(g.windT / 1.6) !== Math.floor((g.windT - amount * 40) / 1.6) && before < 1) sfx('wind');
+    // a ratchet click for each tap, and every little way round when spinning
+    g.clicks += amount;
+    if (before < 1 && (amount >= WIND_TAP * 0.8 || g.clicks > 0.03)) {
+      g.clicks = 0;
+      sfx('wind');
+    }
     if (before < SAG && g.spring >= SAG) pop('Back in tune!', CX, CY + RREC + 18, '#5a7a2a', 40);
   }
 
@@ -240,7 +245,8 @@ export default function create(env) {
       g.dragA = a;
     } else g.dragA = null;
     wind(turn * WIND_RAD);
-    if (input.left || input.right) wind(WIND_TAP * 0.8);
+    // (A tap on the screen also reads as a step; that's only the action here.)
+    if ((input.left || input.right) && input.kind !== 'pointer') wind(WIND_TAP * 0.8);
 
     // The action: play the note at the needle, or wind between notes.
     const next = notes.find((n) => n.state === 'wait');
@@ -256,7 +262,7 @@ export default function create(env) {
 
     if (g.spring < SAG && !g.lowWarned) {
       g.lowWarned = true;
-      pop('Wind me up!', METER.x + METER.w / 2 - 60, METER.y - 50, PAL.brick, 40);
+      pop('Wind me up!', CX, CY + RREC + 18, PAL.brick, 44, 'spring');
     }
     if (g.spring > SAG + 0.15) g.lowWarned = false;
 

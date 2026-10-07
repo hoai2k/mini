@@ -60,6 +60,7 @@ export default function create(env) {
     padFlash: { [-1]: 0, 1: 0 },
     shake: 0,
     lastSide: 1,
+    stickX: 0,
   };
 
   // ---------- the stones ----------
@@ -115,7 +116,7 @@ export default function create(env) {
     g.rings.push({ x: p.x, y: p.y, r: 30, life: 0.8 });
     if (side === 0) pop('Both feet!', OV.x, NEAR - 290, '#b06a9a', 46, 'judge');
     if (g.streak > 0 && g.streak % 10 === 0) {
-      pop(`${g.streak} in a row!`, OV.x, HORIZON + 70, '#e8d27a', 48, 'streak');
+      pop(`${g.streak} in a row!`, OV.x, HORIZON - 70, '#e8d27a', 48, 'streak');
       sfx('ding', { pitch: Math.min(12, g.streak / 5) });
       g.sing = 1;
     }
@@ -124,7 +125,7 @@ export default function create(env) {
   function splash(why) {
     g.stumble = STUMBLE;
     g.pending = null;
-    if (g.streak >= 5) pop('Streak lost', OV.x, HORIZON + 70, PAL.strawberry, 34, 'streak');
+    if (g.streak >= 5) pop('Streak lost', OV.x, HORIZON - 70, PAL.strawberry, 34, 'streak');
     g.streak = 0;
     const p = stonePos(1, g.stones[0].side);
     splashAt(p.x, p.y);
@@ -148,6 +149,13 @@ export default function create(env) {
 
     let L = !!input.left;
     let R = !!input.right;
+    // A sideways flick of the controller's stick steps too.
+    const sx = input.kind === 'controller' ? input.x || 0 : 0;
+    if (!L && !R) {
+      if (sx < -0.6 && g.stickX >= -0.6) L = true;
+      if (sx > 0.6 && g.stickX <= 0.6) R = true;
+    }
+    g.stickX = sx;
     if (L) g.padFlash[-1] = 1;
     if (R) g.padFlash[1] = 1;
 
@@ -488,10 +496,9 @@ export default function create(env) {
 
   g.draw = (c, t) => {
     const shake = g.shake > 0 ? Math.sin(t * 70) * 10 * g.shake : 0;
-    scene(c, 'bobolinks', W, H, () => {});
     c.save();
     c.translate(shake, 0);
-    drawNight(c, t);
+    scene(c, 'bobolinks', W, H, (c) => drawNight(c, t));
 
     c.save();
     c.beginPath();
@@ -785,10 +792,9 @@ export default function create(env) {
 
   g.draw = (c, t) => {
     const shake = g.shake > 0 ? Math.sin(t * 70) * 10 * g.shake : 0;
-    scene(c, 'bobolinks', W, H, () => {});
     c.save();
     c.translate(shake, 0);
-    drawNight(c, t);
+    scene(c, 'bobolinks', W, H, (c) => drawNight(c, t));
 
     c.save();
     c.beginPath();
@@ -845,7 +851,7 @@ export default function create(env) {
     // the next step, said out loud for the first few stones
     if (g.score < 4 && g.stumble <= 0) {
       const s = g.stones[0].side;
-      label(c, s === 0 ? 'Both feet!' : s < 0 ? 'Left foot!' : 'Right foot!', OV.x, HORIZON + 70, { size: 40, color: '#f4ecd8', weight: 800 });
+      label(c, s === 0 ? 'Both feet!' : s < 0 ? 'Left foot!' : 'Right foot!', OV.x, HORIZON - 70, { size: 40, color: '#f4ecd8', weight: 800 });
     }
   };
 
