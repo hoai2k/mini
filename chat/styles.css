@@ -420,3 +420,5 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .conn th { width: 45%; color: var(--muted); font-weight: 700; }
 .btn.ghost { background: transparent; color: #fff; box-shadow: none; border: 1px solid var(--line); }
 .btn.ghost:hover { background: rgba(255, 255, 255, 0.08); }
+/* The delivered title background is light: keep the tagline readable on it. */
+#title.has-bg .tagline { display: inline-block; padding: 6px 14px; border-radius: 14px; color: #fff; background: rgba(29, 21, 51, 0.62); }
