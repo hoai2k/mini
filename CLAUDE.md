@@ -15,6 +15,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
 | `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen) | https://hoai2k.github.io/mini/gliders/ |
 | `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each) | https://hoai2k.github.io/mini/icecreamcone/ |
+| `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster in turn as the letter is passed on); reference and design so far, behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
 | `chat/` | Games Chat (video chat with face effects and minigames) | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |
@@ -30,7 +31,8 @@ from `sites/`, `multiplayer/` and `local/`:
   playable build into `local/pages/<folder>/`. Add a step for it to
   `.github/workflows/pages.yml`, a link in the root `README.md`, a card at the
   front of the game library page (`index.html`, newest game first by
-  when it was made, so Tank Wars stays last), and a row in the table above.
+  when it was made, so Tank Wars comes after the others, with only Gliders
+  below it, placed last at the owner's request), and a row in the table above.
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
@@ -89,7 +91,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`). The user drops files there for
+`widowsbay/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.

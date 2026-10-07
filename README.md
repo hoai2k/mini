@@ -6,6 +6,7 @@ is at https://hoai2k.github.io/mini/.
 ## Games
 
 - **[The Ice-Cream Cone Coot](https://hoai2k.github.io/mini/icecreamcone/)** · [`icecreamcone/`](icecreamcone/README.md): a field guide of rare birds, with a minigame for each
+- **[One Monster After Another](https://hoai2k.github.io/mini/onemonster/)** · [`onemonster/`](onemonster/README.md): coming soon
 - **[Gliders](https://hoai2k.github.io/mini/gliders/)** · [`gliders/`](gliders/README.md): Superflight-style gliding for one to four players
 - **[Games Chat](https://hoai2k.github.io/mini/chat/)** · [`chat/`](chat/README.md): video chat with face effects and minigames
 - **[Tank Wars](https://hoai2k.github.io/mini/tankwars/)** · [`tankwars/`](tankwars/README.md)
