@@ -128,7 +128,7 @@ export default function create(env) {
       return { x: 0, y: 0 };
     }
     if (inS.actionPressed) {
-      if (phase === 'carry' && !letter && near(gx, MAIL) < 150) {
+      if (phase === 'carry' && !letter && near(gx, MAIL) < 130) {
         gx.mode = 'post'; gx.modeT = 0; postT = 0; env.sfx('page');
         return { x: 0, y: 0 };
       }
@@ -190,10 +190,11 @@ export default function create(env) {
         // Just tripped him (or sprawled): run off and gloat.
         goal = { x: o.x + (o.x - gx.x), y: o.y + (o.y - gx.y) };
       } else {
-        // Get in his way: between him and the mailbox, then go for his feet.
+        // Guard the way to the mailbox (or the dropped letter), then go for his feet.
         const aim = letter || MAIL;
-        const ix = gx.x + (aim.x - gx.x) * 0.35, iy = gx.y + (aim.y - gx.y) * 0.35;
-        goal = d < 240 ? { x: gx.x, y: gx.y } : { x: ix, y: iy };
+        const k = letter ? 0.45 : o === tro ? 0.3 : 0.55;
+        const ix = aim.x + (gx.x - aim.x) * k, iy = aim.y + (gx.y - aim.y) * k + (o === tro ? -50 : 50);
+        goal = d < 260 ? { x: gx.x, y: gx.y } : { x: ix, y: iy };
         if (d < 165 && gx.mode !== 'vault' && env.rng() < dt * (2 + 3 * env.skill)) act = true;
       }
       const gx2 = goal.x - o.x, gy2 = goal.y - o.y, gd = Math.hypot(gx2, gy2);
@@ -263,8 +264,16 @@ export default function create(env) {
 
       const gin = grithixInput(inS, dt);
       let bin = { x: 0, y: 0 };
-      if (phase === 'net') bin = env.versus ? (inH || {}) : aiHolder(chase, brain, env.skill, dt);
-      else {
+      if (phase === 'net') {
+        bin = env.versus ? (inH || {}) : aiHolder(chase, brain, env.skill, dt);
+        // A canny Bombanat keeps away from the mailbox side of the clearing:
+        // caught there, the letter would be posted in a moment.
+        if (!env.versus && !chase.tug && bomb.mode === 'move' && !bomb.hidden && bomb.x > 1100) {
+          bin = { ...bin, x: (bin.x || 0) - (bomb.x - 1100) / 300 };
+          const m = Math.hypot(bin.x, bin.y || 0);
+          if (m > 1) { bin.x /= m; bin.y = (bin.y || 0) / m; }
+        }
+      } else {
         // The chase kit carries on with a stand-in holder far away, so the
         // net's sweep and slam work as before.
         ghost.x = gx.x < 920 ? B.x1 : B.x0; ghost.y = gx.y < 785 ? B.y1 : B.y0;
@@ -359,7 +368,7 @@ export default function create(env) {
       g.save();
       if (shake > 0 && !env.reduceMotion) g.translate((Math.random() - 0.5) * 18 * shake, (Math.random() - 0.5) * 14 * shake);
       art.drawScene(g, 'scenes/grithix', W, H);
-      if (phase === 'carry' && !self.done) mailboxGlow(g, tt, near(gx, MAIL) < 150 && !letter);
+      if (phase === 'carry' && !self.done) mailboxGlow(g, tt, near(gx, MAIL) < 130 && !letter);
       const things = [
         ...cover.map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawCover(g, k, tt) })),
         ...obstacles.map((o) => ({ y: o.y + o.ry, draw: () => art.drawSprite(g, art.prop('grithix', 5), o.x, o.y + o.ry + 10, { height: 85, flip: o.x > 1100 }) })),
