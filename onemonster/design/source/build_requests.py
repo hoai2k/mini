@@ -1082,9 +1082,10 @@ REQUESTS += [
         "glasses, a white top and a pink skirt, barefoot, walks away from a plain blue mailbox on a "
         "post (no lettering) in front of a wooden porch with flower baskets, "
         "reading a crumpled, goo-stained, nibbled letter with a calm, slightly bored face. All "
-        "around her, unseen, the monsters from the story peek out of the bushes, the trees and "
-        "the sky: " + "; ".join(WHAT[m["id"]] for m in MONSTERS) + ". Each of them appears "
-        "exactly once, and nobody else: no mailman, no captain, no second girl. Warm afternoon light. "
+        "around her, unseen, only the three monsters chasing the letter peek out of the bushes, the trees and "
+        "the sky: " + "; ".join(WHAT[mid] for mid in ("trollusk", "bombanat", "yalapappus")) + ". Each of them appears "
+        "exactly once. No Grumley, Ice-Ferg, Typhoonigator, Grithix or other monster; "
+        "no mailman, no captain, no second girl. Warm afternoon light. "
         + REF_SCENE.format("mailbox-girl-and-trollusk.jpg"),
     },
 ]
@@ -1107,12 +1108,8 @@ if DELIVERIES.exists():
 # at one scale or apart, so those sheets are kept but not used (the Yalapappus's
 # swaps sheet stays: the game rolls him up with its ball).
 NOT_USED = {f"OM-R{i:02d}" for i in range(1, 8)} | {f"OM-F{i:02d}" for i in range(1, 8)} - {"OM-F06"}
-REDO = {
-    "OM-U02": "The delivered picture shows all seven monsters; the title must show only the "
-    "Trollusk, the Bombanat and the Yalapappus, so the others stay a surprise. Until it "
-    "arrives the game composes a stand-in from the Bombanat's scene and the three's key poses.",
-    "OM-P03": "The delivered page draws the mailman twice; every character must appear once.",
-}
+REDO = {}
+
 for request in REQUESTS:
     if request["id"] in NOT_USED:
         request["status"] = "delivered, not used (the game animates from the key poses)"

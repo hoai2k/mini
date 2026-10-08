@@ -58,8 +58,9 @@ IMAGES = [("assets/ui/logo.png", "ui/logo.webp", 1600),
           ("assets/ui/icon.png", "ui/icon.webp", 512),
           ("assets/ui/letter.png", "ui/letter.webp", 384),
           ("assets/ui/postmark.png", "ui/postmark.webp", 384)]
-# ui/title-bg.webp is composed by compose_title.py until OM-U02 is regenerated
-# (the delivered picture shows all seven monsters); then export it here again.
+# Use the delivered title painting; compose a fallback only for a redo request.
+if "OM-U02" not in br.REDO:
+    IMAGES.append(("assets/ui/title-bg.webp", "ui/title-bg.webp", 1920))
 IMAGES += [(f"assets/monsters/{m['id']}/portrait.png", f"portraits/{m['id']}.webp", 768)
            for m in br.MONSTERS]
 IMAGES += [(f"assets/scenes/{m['id']}.webp", f"scenes/{m['id']}.webp", 1920) for m in br.MONSTERS]
@@ -198,7 +199,7 @@ def main() -> int:
             im.save(GAME / rel, "WEBP", quality=86, method=6)
         manifest["images"][dst.rsplit(".", 1)[0]] = {"src": rel, "w": im.width, "h": im.height}
     # Derived images: composed or cut from the sprites above.
-    for mod in (compose_title, scene_front):
+    for mod in ((compose_title,) if "OM-U02" in br.REDO else ()) + (scene_front,):
         out, w, h = mod.build(write)
         rel = out.relative_to(GAME).as_posix()
         manifest["images"][rel[len("sprites/"):].rsplit(".", 1)[0]] = {"src": rel, "w": w, "h": h}

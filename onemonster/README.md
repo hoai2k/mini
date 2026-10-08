@@ -35,7 +35,7 @@ the `hoai2k.github.io` repository), which is off on localhost.
 | `game/src/chasedraw.js` | Stamina rings, the tug bar, rustling cover, chase sounds |
 | `game/src/art.js`, `monsters.js` | Loading the sprites; drawing the monsters from their key poses with squash, lean, bob and shadows |
 | `game/src/engine/` | Input (controllers, split keyboard, touch), synthesised audio, saved settings |
-| `game/sprites/`, `game/src/sprites.js` | The web sprites and their manifest, cut from `game/assets/` by `tools/build_sprites.py` (rectangles checked by hand in `tools/slices.json`). It also runs `tools/compose_title.py` (a stand-in title background with only the three cover monsters, until OM-U02 is regenerated) and `tools/scene_front.py` (chapter 1's fence and trees, drawn over the mailman) |
+| `game/sprites/`, `game/src/sprites.js` | The web sprites and their manifest, cut from `game/assets/` by `tools/build_sprites.py` (rectangles checked by hand in `tools/slices.json`). It exports the delivered title painting (or runs `tools/compose_title.py` when a title redo is pending) and runs `tools/scene_front.py` (chapter 1's fence and trees, drawn over the mailman) |
 
 ## Controls
 
