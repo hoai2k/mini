@@ -411,6 +411,38 @@ def asset(path: str) -> str:
     return REF_URL.replace("reference/", "game/" + path)
 
 
+# Scoop Stack's camera pulls back as the stack grows (to half size), so it
+# needs the seaside painted far wider and taller than one screen: the
+# delivered scene is the bottom-centre of this one. At full zoom-out the view
+# is all of it; at zoom 1 it is exactly the old scene, the region 25%-75%
+# across and 46.7%-96.7% down (see WIDE in game/src/games/coot.js).
+REQUESTS.append({
+    "id": "IC-S11",
+    "section": "scene",
+    "name": "Ice-Cream Cone Coot scene, wide",
+    "key": "scene.cootWide",
+    "file": "assets/scenes/coot-wide.webp",
+    "size": "3840 x 2160, opaque",
+    "used": "Scoop Stack, once the stack grows tall: the camera pulls back over it, so the "
+    "seaside shrinks with the Coot instead of the Coot shrinking on a fixed backdrop.",
+    "standin": "The delivered scene stays fixed and only the Coot and its scoops shrink.",
+    "status": "requested",
+    "ref": "cover-ice-cream-cone-coot.jpg",
+    "prompt": STYLE + " " + SCENE + "The same sunny seaside promenade as the existing scene ("
+    + asset("assets/scenes/coot.webp") + "), seen from twice as far away: extend that picture "
+    "outwards on every side, keeping it unchanged, as if the camera had pulled straight back. "
+    "The existing picture must sit, at exactly half the width and half the height of this one, "
+    "in the region from 25% to 75% across and from 46.7% to 96.7% down, with the boardwalk, the "
+    "railing, the sea's horizon and the ice-cream cart all continuing seamlessly out of it at the "
+    "same height. Below it, a little more of the near boardwalk planks fills the bottom 3.3%. To "
+    "the left and right, the promenade goes on: more railing posts, the boardwalk, the sea and the "
+    "far headland with its lighthouse on the left, and a bench or a lamp post on the right. Above "
+    "it, a tall, open, pale summer sky with a few soft clouds, seagulls far off and nothing else, "
+    "because ice-cream scoops fall through all of it. Keep the horizon a straight level line. "
+    "Wide 16:9.",
+})
+
+
 SPRITES = [
     ("IC-P01", "Scoop Stack props", "sprites.scoops", "assets/sprites/scoops.png", "2048 x 1024, transparent",
      "Scoop Stack: the falling ice creams and the things that knock them off.",
