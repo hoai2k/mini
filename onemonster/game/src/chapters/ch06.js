@@ -23,8 +23,8 @@ const X0 = 150, X1 = 1770; // where he can go
 const CX0 = 260, CX1 = 1660; // where the cloud can go
 const CLOUD_Y = 225; // the Typhoonigator's middle
 const MOUTH_Y = 330; // where things fall from
-const HEAD = 205; // head height above the feet
-const BALL_R = 76; // half the rolled ball's height
+const HEAD = 200; // head height above the feet
+const BALL_R = 84; // half the rolled ball's height
 
 // The things in the Typhoonigator's belly: prop number, height on screen, hit
 // radius, gravity factor, spin.
@@ -55,10 +55,10 @@ export default function create(env) {
   const y = {
     x: 360, vx: 0, z: 0, vz: 0, facing: 1,
     mode: 'walk', // walk | ball | dizzy | dazed | kerplop | munch
-    modeT: 0, dazeT: 0.95, invuln: 0, sticky: 0, landT: 0, rollDust: 0, stepD: 0,
+    modeT: 0, dazeT: 0.95, pushT: 0, invuln: 0, sticky: 0, landT: 0, rollDust: 0, stepD: 0,
   };
   const yc = art.makeCreature('yalapappus', y.x, GY);
-  yc.sizeK = 0.9;
+  yc.sizeK = 1;
   // ---------- the Typhoonigator ----------
   const cl = { x: 1200, vx: 0, letgo: 0, suck: 0, lastDrop: 0, cool: 0 };
   const tc = art.makeCreature('typhoonigator', cl.x, CLOUD_Y);
@@ -66,6 +66,8 @@ export default function create(env) {
   art.setAnim(tc, 'bloated');
 
   const fx = makeFx();
+  const say0 = fx.say;
+  fx.say = (str, x, yy) => say0(str, Math.max(240, Math.min(W - 240, x)), yy);
   const items = []; // falling, lying and sucked-up things
   const puddles = []; // goo on the ground
   const parts = []; // dust, glass, crumbs
@@ -87,7 +89,7 @@ export default function create(env) {
   if (env.versus) queue.splice(2 + Math.floor(rng() * 3), 0, 'bottle');
   // The computer holder's plan.
   const ai = {
-    bottleAt: 11 + rng() * 6 + skill * 3 - (gentleS ? 2 : 0), // seconds in
+    bottleAt: 14 + rng() * 5 + skill * 3 - (gentleS ? 2 : 0), // seconds in
     plan: null, side: 1, tx: cl.x, wait: 0,
     nextJunk: 1.4,
   };
@@ -145,6 +147,13 @@ export default function create(env) {
     }
   }
 
+  function hop() {
+    y.vz = y.sticky > 0 ? 640 : 830;
+    art.kick(yc, -0.45);
+    env.sfx('flap');
+    puff(y.x, GY, 4);
+  }
+
   function canCatch() { return y.mode === 'walk'; }
   function headY() { return GY - y.z - (y.mode === 'ball' ? BALL_R * 2 - 6 : HEAD); }
 
@@ -161,12 +170,7 @@ export default function create(env) {
       const target = ix * 480 * stickK;
       const acc = 2600;
       y.vx += Math.max(-acc * dt, Math.min(acc * dt, target - y.vx));
-      if (inS.actionPressed && y.z === 0) {
-        y.vz = y.sticky > 0 ? 640 : 830;
-        art.kick(yc, -0.45);
-        env.sfx('flap');
-        puff(y.x, GY, 4);
-      }
+      if (inS.actionPressed && y.z === 0) hop();
       if (inS.sprint && Math.abs(y.vx) > 220 && y.z === 0 && y.sticky <= 0) {
         y.mode = 'ball'; y.modeT = 0;
         env.sfx('swoosh');
@@ -204,6 +208,7 @@ export default function create(env) {
       }
     }
     const ox = y.x;
+    let blocked = false;
     y.x += y.vx * dt;
     // Rocks: hop over them; the ball bounces off; walking stops at them.
     for (const r of ROCKS) {
@@ -219,10 +224,16 @@ export default function create(env) {
             art.kick(yc, 0.5);
             puff(y.x - side * 40, GY, 5);
             fx.say('Boing!', y.x, GY - 220);
-          } else y.vx = 0;
+          } else {
+            y.vx = 0;
+            // Pushing into a rock for a moment hops it, for the little ones.
+            if (y.mode === 'walk' && Math.sign(ix) === -side) blocked = true;
+          }
         }
       }
     }
+    y.pushT = blocked ? y.pushT + dt : 0;
+    if (y.pushT > 0.3 && y.z === 0) { y.pushT = 0; hop(); }
     if (y.x < X0) { y.x = X0; y.vx = y.mode === 'ball' ? Math.abs(y.vx) * 0.5 : 0; }
     if (y.x > X1) { y.x = X1; y.vx = y.mode === 'ball' ? -Math.abs(y.vx) * 0.5 : 0; }
     // Goo puddles stick.
@@ -453,7 +464,7 @@ export default function create(env) {
     self.done = true;
     self.outcome = outcome;
     // Scraps and the munch count a little towards the postmarks (marksFor).
-    self.bonus = Math.min(1.6, (scraps + munchBonus) * 0.4);
+    self.bonus = Math.min(0.8, (scraps + munchBonus) * 0.2);
     if (outcome === 'snatched') self.time = caughtAt ?? self.time;
   }
 
@@ -600,7 +611,7 @@ export default function create(env) {
   }
 
   function drawMunchMeter(g) {
-    const cx = y.x, cy = GY - 330;
+    const cx = Math.max(220, Math.min(W - 220, y.x)), cy = GY - 330;
     g.save();
     g.fillStyle = 'rgba(248,241,224,0.92)';
     g.strokeStyle = '#33241a';

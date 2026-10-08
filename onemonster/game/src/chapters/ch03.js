@@ -35,8 +35,8 @@ export const TUNE = {
   // The fliers.
   bx0: 560, bx1: 1860, topY: 120,
   gravity: 560, flapV: 360, glideSink: 150, diveSink: 480, flatSink: 70,
-  flapCost: 0.05, flapCd: 0.2, dartV: 900, dartT: 0.3, dartCd: 1.4, dartCost: 0.12,
-  regenLanded: 0.5, regenLow: 0.14, regenHigh: 0, windedT: 1.8,
+  flapCost: 0.04, flapCd: 0.2, dartV: 900, dartT: 0.3, dartCd: 1.4, dartCost: 0.12,
+  regenLanded: 0.6, regenLow: 0.2, regenHigh: 0, windedT: 1.8,
   letterSpeed: 400, plainSpeed: 290, warnT: 3,
 };
 
@@ -69,7 +69,7 @@ function stepFlier(env, b, inp, dt, gentle) {
   b.warnT = Math.max(0, b.warnT - dt);
   b.flapT += dt;
   const ix = clamp(inp.x || 0, -1, 1), iy = clamp(inp.y || 0, -1, 1);
-  const speed = (b.letter ? T.letterSpeed : T.plainSpeed) * (b.winded > 0 ? 0.6 : 1);
+  const speed = (b.letter ? T.letterSpeed : T.plainSpeed) * (b.winded > 0 ? 0.8 : 1);
   // Dart: a quick burst sideways.
   const sprintEdge = inp.sprint && !b.wasSprint;
   b.wasSprint = !!inp.sprint;
@@ -123,25 +123,37 @@ function aiFlier(env, b, G, skill, dt) {
   const br = b.brain;
   const rng = env.rng;
   // Spotting the Grumley: easy when he moves (wake, bubbles), hard when still.
-  if (rng() < G.vis * (1.2 + 3 * skill) * dt) { br.known = G.x; br.knownAge = 0; }
+  const rate = G.vis < 0.11 ? G.vis * (1 + 3 * skill) : G.vis * (2.5 + 5 * skill);
+  if (rng() < rate * dt) { br.known = G.x; br.knownAge = 0; }
   br.knownAge += dt;
-  const conf = Math.max(0, 1 - br.knownAge / (2 + 3 * skill));
+  const conf = Math.max(0, 1 - br.knownAge / (3 + 5 * skill));
   const alt = altOf(b);
   if (b.warnT > 0 && br.state !== 'flee') {
     br.state = 'flee';
+    br.fleeT = 0;
     br.T = b.warnT;
     br.tx = clamp(b.x + (b.x >= G.x ? 1 : -1) * 520, TUNE.bx0 + 40, TUNE.bx1 - 40);
     if (Math.abs(br.tx - b.x) < 200) br.tx = clamp(b.x - (b.x >= G.x ? 1 : -1) * 520, TUNE.bx0 + 40, TUNE.bx1 - 40);
   }
   br.T -= dt;
   let dart = false;
+  const pickSpot = () => {
+    let best = null, bestS = -1e9;
+    for (let i = 0; i < 7; i++) {
+      const x = 640 + rng() * 1160;
+      const d = Math.abs(x - br.known);
+      const sc = (conf > 0 ? (Math.min(d, 700) - (d < 450 ? 400 : 0)) * conf * (0.4 + skill) : 0) + rng() * 260 - Math.abs(x - b.x) * 0.15;
+      if (sc > bestS) { bestS = sc; best = x; }
+    }
+    return best;
+  };
   const toCruise = (T) => { br.state = 'cruise'; br.T = T; br.wander = 0; br.alarm = -1; };
   switch (br.state) {
     case 'cruise': {
       br.wander = (br.wander ?? 0) - dt;
       if (br.wander <= 0) {
         br.wander = 1.5 + rng() * 2;
-        br.ta = 330 + rng() * 230;
+        br.ta = 460 + rng() * 160;
         let tx = TUNE.bx0 + 60 + rng() * (TUNE.bx1 - TUNE.bx0 - 120);
         // Keep away from where the Grumley was seen.
         if (conf > 0.2 && Math.abs(tx - br.known) < 300 && rng() < skill) tx = clamp(br.known + (tx >= br.known ? 1 : -1) * 420, TUNE.bx0 + 40, TUNE.bx1 - 40);
@@ -149,21 +161,19 @@ function aiFlier(env, b, G, skill, dt) {
       }
       if (br.T <= 0 || b.st < 0.3) {
         // Hungry or tired: pick somewhere to land, away from a known Grumley.
-        let best = null, bestS = -1e9;
-        for (let i = 0; i < 7; i++) {
-          const x = 640 + rng() * 1160;
-          const sc = (conf > 0 ? Math.min(Math.abs(x - br.known), 700) * conf * (0.4 + skill) : 0) + rng() * 260 - Math.abs(x - b.x) * 0.15;
-          if (sc > bestS) { bestS = sc; best = x; }
-        }
         br.state = 'dip';
-        br.tx = best;
+        br.tx = pickSpot();
         br.T = 9;
         br.alarm = -1;
+        br.replan = 1;
       }
       break;
     }
     case 'dip':
-      br.ta = Math.abs(b.x - br.tx) < 260 ? -60 : 160;
+      // Seen him near the landing spot? Choose another.
+      br.replan -= dt;
+      if (br.replan <= 0 && br.knownAge < 1 && Math.abs(br.known - br.tx) < 300 && rng() < 0.3 + 0.7 * skill) { br.tx = pickSpot(); br.replan = 1; }
+      br.ta = Math.abs(b.x - br.tx) < 200 ? -60 : Math.max(450, Math.min(alt, 600));
       if (b.landed) { br.state = 'rest'; br.T = 1.4 + rng() * 1.6; env.sfx('munch'); }
       else if (br.T <= 0) toCruise(3);
       break;
@@ -176,13 +186,18 @@ function aiFlier(env, b, G, skill, dt) {
       // Away from where the Grumley is thought to be: high while there is
       // breath to climb, else skimming low, and down to rest once well clear.
       const gx = br.knownAge < 3 ? br.known : G.x;
-      let side = b.x >= gx ? 1 : -1;
-      if (Math.abs(clamp(gx + side * 650, TUNE.bx0 + 40, TUNE.bx1 - 40) - gx) < 350 && Math.abs(b.x - gx) < 250) side = -side;
-      br.tx = clamp(gx + side * 650, TUNE.bx0 + 40, TUNE.bx1 - 40);
-      const clear = Math.abs(b.x - gx) > 480;
-      br.ta = b.st < 0.35 ? (clear ? -60 : 110) : 560;
+      // Head for whichever side has more room, crossing over him high if need be.
+      const txs = [-1, 1].map((sd) => clamp(gx + sd * 650, TUNE.bx0 + 40, TUNE.bx1 - 40));
+      const away = b.x >= gx ? 1 : 0;
+      br.tx = Math.abs(txs[away] - gx) > 280 || b.st < 0.4 ? txs[away] : txs[1 - away];
+      const dxg = Math.abs(b.x - gx);
+      const clear = dxg > 480;
+      // How high is safe: he shows how far his claw would reach.
+      const safe = clamp((G.reach || TUNE.reachMax) - (G.y - restY(b)) + 80, 200, 620);
+      br.ta = dxg < 320 ? safe : b.st < 0.5 ? (clear ? -60 : 170) : Math.min(320, safe);
       if (Math.abs(gx - b.x) < 260 && b.dartCd <= 0) dart = true;
-      if (b.landed && b.warnT <= 0) { br.state = 'rest'; br.T = 1 + rng(); }
+      br.fleeT = (br.fleeT || 0) + dt;
+      if (b.landed && clear && br.fleeT > 0.8 && b.warnT <= 0) { br.state = 'rest'; br.T = 1 + rng(); }
       else if (br.T <= 0 && b.warnT <= 0) toCruise(2.5 + rng() * 3);
       break;
     }
@@ -190,14 +205,19 @@ function aiFlier(env, b, G, skill, dt) {
   if (br.state !== 'flee') {
     // Spotted close by? React after a moment, unless it misses it on purpose.
     // High up, only a Grumley right below is worth a fuss.
-    const range = (alt > 300 ? 140 : 220) + 240 * skill;
+    const range = (b.landed ? 320 : alt > 300 ? 140 : 220) + 240 * skill;
     const near = br.knownAge < 0.8 && Math.abs(br.known - b.x) < range;
-    if (br.knownAge > 1.5) br.alarm = -1;
-    if (near && br.alarm < 0) br.alarm = rng() < 0.08 + (1 - skill) * 0.25 ? 99 : 0.4 - 0.3 * skill + rng() * 0.2;
+    br.ignore = Math.max(0, (br.ignore || 0) - dt);
+    if (near && br.alarm < 0 && br.ignore <= 0) {
+      // Now and then it simply doesn't notice, for a moment.
+      if (rng() < (0.08 + (1 - skill) * 0.25) * (1 - G.vis * 0.6)) br.ignore = 0.5 + rng() * 0.6;
+      else br.alarm = 0.4 - 0.3 * skill + rng() * 0.2;
+    }
     if (br.alarm >= 0) {
       br.alarm -= dt;
       if (br.alarm <= 0) {
         br.state = 'flee';
+        br.fleeT = 0;
         br.T = 1.8 + rng();
         br.tx = clamp(b.x + (b.x >= br.known ? 1 : -1) * 520, TUNE.bx0 + 40, TUNE.bx1 - 40);
         if (Math.abs(br.tx - b.x) < 200) br.tx = clamp(b.x - (b.x >= br.known ? 1 : -1) * 520, TUNE.bx0 + 40, TUNE.bx1 - 40);
@@ -206,8 +226,18 @@ function aiFlier(env, b, G, skill, dt) {
     }
   }
   // Turn the plan into holder controls.
-  const x = clamp((br.tx - b.x) / 150, -1, 1);
-  const flap = alt < br.ta - 25 && b.vy > 0 && b.flapCd <= 0;
+  let x = clamp((br.tx - b.x) / 150, -1, 1);
+  if (dart) {
+    // Dart away from him, unless that is into the edge.
+    const gx = br.knownAge < 3 ? br.known : G.x;
+    const away = b.x >= gx ? 1 : -1;
+    if ((away > 0 ? TUNE.bx1 - b.x : b.x - TUNE.bx0) > 200) x = away;
+    else dart = false;
+  }
+  // Well below where it wants to be: climb steeply before going anywhere.
+  const low = alt < br.ta - 150;
+  if (low && !dart && br.state !== 'flee') x *= 0.35;
+  const flap = alt < br.ta - 25 && (b.vy > (low ? -150 : 0) || b.landed) && b.flapCd <= 0;
   const y = alt > br.ta + 60 ? 1 : 0;
   return { x, y, action: false, actionPressed: flap, sprint: dart && !b.wasSprint };
 }
@@ -234,7 +264,7 @@ export default function create(env) {
   const birds = [L];
   const lanes = [800, 840, 930];
   for (let i = 0; i < 3; i++) birds.push(makeFlier(env, { letter: false, x: 700 + i * 420 + rng() * 120, y: 200 + rng() * 300, lane: lanes[i] }));
-  for (const b of birds) b.brain.T = 1.5 + rng() * 4;
+  for (const b of birds) { b.brain.T = 1.5 + rng() * 4; b.brain.known = G.x; b.brain.knownAge = 0; }
   L.brain.T = 3.5;
   const decoys = [];
   let decoyT = 4 + rng() * 3;
@@ -304,6 +334,7 @@ export default function create(env) {
     const k = depthK(G.y);
     let tvx = 0, tvy = 0;
     G.sprinting = false;
+    G.reach = reachNow();
     if (G.mode === 'lurk') {
       const ix = clamp(inS.x || 0, -1, 1), iy = clamp(inS.y || 0, -1, 1);
       const m = Math.hypot(ix, iy);
@@ -321,9 +352,9 @@ export default function create(env) {
     const sp = Math.hypot(G.vx, G.vy);
     if (Math.abs(G.vx) > 30) G.facing = Math.sign(G.vx);
     G.still = sp < 25 && G.mode === 'lurk' ? G.still + dt : 0;
-    // Patience charges the reach: fully while still, slowly while gliding,
-    // not at all while sprinting.
-    if (G.mode === 'lurk') G.charge += dt * (G.sprinting && sp > 120 ? 0 : sp > 25 ? 0.5 : 1);
+    // Patience charges the reach: it builds while he keeps still, a little
+    // while he creeps, and ebbs away while he glides fast or sprints.
+    if (G.mode === 'lurk') G.charge = clamp(G.charge + dt * (G.sprinting && sp > 120 ? -1.5 : sp > 150 ? -0.6 : sp > 25 ? 0.3 : 1), 0, T.chargeTime);
     // How easy he is to spot: still and sunk, hardly; gliding, plainly;
     // sprinting, his bubbles boil up all round him.
     G.vis = G.mode !== 'lurk' ? 1 : G.sprinting && sp > 120 ? 1 : sp > 25 ? 0.12 + 0.45 * Math.min(1, sp / T.gSpeed) : G.still > 1 ? 0.04 : 0.1;

@@ -18,19 +18,19 @@ import { marksFor } from './index.js';
 export const TUNE = {
   time: 45,
   ferg: {
-    radius: 105, accel: 150, drag: 0.55, maxSpeed: 140,
+    radius: 105, accel: 130, drag: 0.55, maxSpeed: 130,
     huffAccelK: 0.45, rideK: 2.6, rideAccelK: 0.3,
-    furyTime: 1.5, furyTimeGentle: 1.15, minFury: 0.15,
+    furyTime: 1.5, furyTimeGentle: 1.15, minFury: 0.2,
     chargeMin: 430, chargeAdd: 520, chargeDur: 0.5, chargeDurAdd: 0.35,
-    recover: 0.9, recoverAdd: 0.7, dazed: 2, lions: 3,
+    windup: 0.26, recover: 1.1, recoverAdd: 0.8, dazed: 2, lions: 3,
   },
   peg: {
-    radius: 55, cruise: 46, cruiseGentleS: 40, cruiseGentleH: 52, turn: 1.5,
-    steamImpulse: 320, steamDecay: 2.2, steamCd: 3.2, steamCdGentle: 2.6, puffed: 2, puffedCruise: 14,
+    radius: 55, cruise: 42, cruiseGentleS: 36, cruiseGentleH: 48, turn: 1.5,
+    steamImpulse: 420, steamDecay: 2.6, steamCd: 3.2, steamCdGentle: 2.6, puffed: 2, puffedCruise: 14,
     currentK: 0.35,
   },
   hitSpeed: 240, // a charge must still be going this fast to strike
-  hitReach: 140, // centre to centre, for a strike
+  hitReach: 130, // centre to centre, for a strike
 };
 
 const HARBOUR = { x: 1320, y: 305, r: 100, shallow: 250 }; // too shallow for an iceberg inside `shallow`
@@ -45,7 +45,7 @@ const ROCKS = [
 const LANES = [
   { x0: 360, y0: 820, x1: 1560, y1: 700, w: 115, s: 80 },
   { x0: 1600, y0: 565, x1: 520, y1: 470, w: 110, s: 75 },
-  { x0: 420, y0: 365, x1: 980, y1: 320, w: 100, s: 85 },
+  { x0: 330, y0: 345, x1: 830, y1: 305, w: 95, s: 85 },
 ].map((l) => {
   const dx = l.x1 - l.x0, dy = l.y1 - l.y0, len = Math.hypot(dx, dy);
   return { ...l, len, ux: dx / len, uy: dy / len, ang: Math.atan2(dy, dx) };
@@ -105,7 +105,7 @@ export default function create(env) {
   const rng = env.rng;
 
   const ferg = {
-    x: 430, y: 610, vx: 0, vy: 0, mode: 'drift', modeT: 0, fury: 0, launchFury: 0,
+    x: 1560, y: 700, vx: 0, vy: 0, mode: 'drift', modeT: 0, fury: 0, launchFury: 0,
     aimX: 1, aimY: 0, cdx: 0, cdy: 0, chargeT: 0, chargeDur: 0, chargeSp: 0, charges: 0,
     lions: F.lions, riding: false, bumpCd: 0, fullSaid: false, rideSaid: 0,
   };
@@ -115,7 +115,7 @@ export default function create(env) {
   const cruise = env.gentle[1] ? P.cruiseGentleH : env.gentle[0] ? P.cruiseGentleS : P.cruise;
   const steamCdMax = env.gentle[1] ? P.steamCdGentle : P.steamCd;
   const peg = {
-    x: 900, y: 1010, hd: -Math.PI / 2, sp: cruise, vx: 0, vy: 0, nvx: 0, nvy: 0,
+    x: 720, y: 1012, hd: -Math.PI / 2, sp: cruise, vx: 0, vy: 0, nvx: 0, nvy: 0,
     steamCd: 1, puffed: 0, steamT: 0, turnRate: 0, rock: 0, sink: 0, bumpCd: 0,
   };
 
@@ -123,12 +123,13 @@ export default function create(env) {
   const side = rng() < 0.5 ? 1 : -1;
   const jit = () => (rng() - 0.5) * 120;
   const waypoints = [
-    { x: 970 + side * 230 + jit(), y: 830 + jit() * 0.4 },
-    { x: 970 - side * 240 + jit(), y: 640 + jit() * 0.4 },
-    { x: 1000 + side * 160 + jit(), y: 470 + jit() * 0.3 },
+    // Each leg crosses a current lane the way it flows.
+    side > 0 ? { x: 1000 + jit() * 0.5, y: 870 + jit() * 0.3 } : { x: 540 + jit() * 0.5, y: 860 + jit() * 0.3 },
+    side > 0 ? { x: 1180 + jit() * 0.5, y: 620 + jit() * 0.2 } : { x: 880 + jit() * 0.5, y: 630 + jit() * 0.2 },
+    { x: 1020 + jit() * 0.5, y: 420 + jit() * 0.2 },
     { x: HARBOUR.x, y: HARBOUR.y },
   ];
-  const brain = { wp: 0, seenCharge: 0, dodgeAt: -1, dodgeDir: null, side: 1, sideT: 0 };
+  const brain = { wp: 0, seenCharge: 0, dodgeAt: -1, dodgeDir: null, side: 1, sideT: 0, best: 1e9, stuckT: 0 };
 
   const rowboats = ROWS.map((r, i) => spawnRow(r, i, i === 2 ? 6 : rng() * 2));
   function spawnRow(r, i, wait) {
@@ -240,13 +241,26 @@ export default function create(env) {
           ferg.chargeDur = F.chargeDur + F.chargeDurAdd * fury;
           ferg.chargeT = 0;
           ferg.charges++;
-          setMode('charge', ferg.chargeDur);
-          env.sfx('whoosh');
-          env.vibrate(50);
-          art.kick(fc, -0.5);
+          // A short rear-back first: the tell the captain can read.
+          setMode('windup', F.windup);
+          env.sfx('creak');
+          art.kick(fc, 0.4);
           if (Math.abs(ferg.cdx) > 0.2) fc.facing = Math.sign(ferg.cdx);
-          shake = Math.max(shake, env.reduceMotion ? 2 : 8 * fury);
         }
+      }
+    }
+    if (ferg.mode === 'windup') {
+      const k = Math.exp(-6 * dt);
+      ferg.vx *= k; ferg.vy *= k;
+      ferg.x += (ferg.vx + cur.x) * dt - ferg.cdx * 40 * dt;
+      ferg.y += (ferg.vy + cur.y) * dt - ferg.cdy * 40 * dt;
+      collide(ferg, F.radius, 0.3);
+      if (ferg.modeT <= 0) {
+        setMode('charge', ferg.chargeDur);
+        env.sfx('whoosh');
+        env.vibrate(50);
+        art.kick(fc, -0.5);
+        shake = Math.max(shake, env.reduceMotion ? 2 : 8 * ferg.launchFury);
       }
     }
     if (ferg.mode === 'charge') {
@@ -263,7 +277,7 @@ export default function create(env) {
         endCharge(false);
         setMode('recover', F.recover + F.recoverAdd * ferg.launchFury + 0.4);
       } else if (p >= 1) endCharge(true);
-    } else if (ferg.mode !== 'crash') {
+    } else if (ferg.mode !== 'crash' && ferg.mode !== 'windup') {
       ferg.riding = ridingWanted && ferg.mode === 'drift';
       if (ferg.riding) {
         accel *= F.rideAccelK;
@@ -296,7 +310,14 @@ export default function create(env) {
   function aiCaptain(dt) {
     const elapsed = total - self.time;
     let wp = waypoints[brain.wp];
-    if (brain.wp < waypoints.length - 1 && Math.hypot(wp.x - peg.x, wp.y - peg.y) < 90) { brain.wp++; wp = waypoints[brain.wp]; }
+    // Next waypoint when reached, or when the iceberg sits on it.
+    if (brain.wp < waypoints.length - 1 && (Math.hypot(wp.x - peg.x, wp.y - peg.y) < 90 || Math.hypot(wp.x - ferg.x, wp.y - ferg.y) < 230)) {
+      brain.wp++; wp = waypoints[brain.wp]; brain.best = 1e9;
+    }
+    // Getting nowhere (the iceberg in the way): grow bolder and squeeze past.
+    const wd = Math.hypot(wp.x - peg.x, wp.y - peg.y);
+    if (wd < brain.best - 15) { brain.best = wd; brain.stuckT = 0; } else brain.stuckT += dt;
+    const bold = 1 + Math.max(0, brain.stuckT - 2) * 0.8;
     let dx = wp.x - peg.x, dy = wp.y - peg.y;
     let d = Math.hypot(dx, dy) || 1;
     dx /= d; dy /= d;
@@ -304,12 +325,13 @@ export default function create(env) {
     // Ahead of the boat it is rounded on the side with more sea; behind, outrun.
     const fx_ = peg.x - ferg.x, fy_ = peg.y - ferg.y, fd = Math.hypot(fx_, fy_) || 1;
     const huffing = ferg.mode === 'huff';
-    const R = (huffing ? 460 : 280) + elapsed * 3 * env.skill;
+    const R = (huffing ? 460 : 210) + elapsed * 3 * env.skill;
     const calm = ferg.mode === 'recover' || ferg.mode === 'dazed';
     brain.sideT -= dt;
     if (fd < R && !calm) {
-      let w = (1 - fd / R) * (huffing ? 2 : 1.1) * (0.5 + env.skill);
+      let w = (1 - fd / R) * (huffing ? 2 : 0.8) * (0.5 + env.skill);
       if (Math.hypot(peg.x - HARBOUR.x, peg.y - HARBOUR.y) < 300) w *= 0.3; // dash for it
+      if (!huffing) w /= bold;
       const ahead = (dx * -fx_ + dy * -fy_) / fd;
       if (ahead > 0.1) {
         const tx = -fy_ / fd, ty = fx_ / fd;
@@ -324,7 +346,7 @@ export default function create(env) {
         dx += (fx_ / fd) * w; dy += (fy_ / fd) * w;
       }
       // Huffing close by: steam clear before it charges (that spends the steam).
-      if (huffing && fd < 330 && peg.steamCd <= 0 && rng() < dt * (0.6 + 2.4 * env.skill) * (0.4 + ferg.fury)) {
+      if (huffing && fd < 330 && peg.steamCd <= 0 && rng() < dt * 1.2 * (1 - env.skill) * (0.4 + ferg.fury)) {
         brain.dodgeAt = t; brain.dodgeDir = { x: fx_ / fd, y: fy_ / fd };
       }
     }
@@ -338,7 +360,7 @@ export default function create(env) {
     if (peg.y > BOUNDS.y1 - 30) dy -= 1;
     // A charge coming: maybe dodge with a burst of steam.
     let action = false;
-    if (ferg.mode === 'charge' && brain.seenCharge !== ferg.charges) {
+    if ((ferg.mode === 'windup' || ferg.mode === 'charge') && brain.seenCharge !== ferg.charges) {
       brain.seenCharge = ferg.charges;
       const p = clamp(0.25 + 0.6 * env.skill + (env.gentle[1] ? 0.15 : 0) + 0.1 * (elapsed / total), 0, 0.95);
       if (rng() < p) {
@@ -560,7 +582,7 @@ export default function create(env) {
 
   function animFerg(dt) {
     const m = ferg.mode;
-    if (m === 'huff') art.setAnim(fc, 'huff');
+    if (m === 'huff' || m === 'windup') art.setAnim(fc, 'huff');
     else if (m === 'charge') art.setAnim(fc, 'charge');
     else if (m === 'crash') art.setAnim(fc, 'crash');
     else if (m === 'recover' || m === 'dazed') art.setAnim(fc, 'dazed');
@@ -738,23 +760,25 @@ export default function create(env) {
     const wob = Math.sin(tt * 5) * 6;
     g.beginPath(); g.ellipse(ferg.x, ferg.y + 35, 140 + wob + ferg.fury * 20, 30 + wob * 0.3, 0, 0, Math.PI * 2); g.stroke();
     g.restore();
-    if (ferg.mode === 'huff') drawAim(g, tt);
+    if (ferg.mode === 'huff' || ferg.mode === 'windup') drawAim(g, tt);
     art.drawCreature(g, fc, tt, { reduceMotion: env.reduceMotion, shadow: false });
   }
 
   function drawAim(g, tt) {
-    const reach = chargeReach(ferg.fury);
-    const x0 = ferg.x + ferg.aimX * 120, y0 = ferg.y + ferg.aimY * 60;
-    const x1 = ferg.x + ferg.aimX * reach, y1 = ferg.y + ferg.aimY * reach;
+    const wind = ferg.mode === 'windup';
+    const reach = chargeReach(wind ? ferg.launchFury : ferg.fury);
+    const ax = wind ? ferg.cdx : ferg.aimX, ay = wind ? ferg.cdy : ferg.aimY;
+    const x0 = ferg.x + ax * 120, y0 = ferg.y + ay * 60;
+    const x1 = ferg.x + ax * reach, y1 = ferg.y + ay * reach;
     g.save();
-    g.strokeStyle = ferg.fury >= 1 ? '#ff6b4a' : 'rgba(255,250,235,0.85)';
+    g.strokeStyle = wind || ferg.fury >= 1 ? '#ff6b4a' : 'rgba(255,250,235,0.85)';
     g.lineWidth = 10;
     g.lineCap = 'round';
     g.setLineDash([4, 22]);
     g.lineDashOffset = -tt * 80;
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
     g.setLineDash([]);
-    const a = Math.atan2(ferg.aimY, ferg.aimX);
+    const a = Math.atan2(ay, ax);
     g.translate(x1, y1);
     g.rotate(a);
     g.fillStyle = g.strokeStyle;

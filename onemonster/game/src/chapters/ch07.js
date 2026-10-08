@@ -92,6 +92,16 @@ export function exitSign(g, x, y, text, t, dir = 1) {
 
 export const near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
+// A tug between two worn-out monsters mashing equally could last for ever:
+// the rope slowly slides toward whoever is ahead, faster the longer it goes.
+export function tugTiebreak(chase, dt) {
+  const tg = chase.tug;
+  if (!tg) return;
+  const lead = tg.v - 0.5;
+  const k = 0.12 + Math.max(0, tg.t - 2.5) * 0.12;
+  tg.v = clamp(tg.v + (Math.sign(lead) || 1) * k * dt, 0.001, 0.999);
+}
+
 // ---------- chapter 7 ----------
 
 const SEAT0 = { x: 640, y: 905 };
@@ -200,7 +210,8 @@ export default function create(env) {
     look = 'return';
     lookT = 0;
     tro.mode = 'dazed'; tro.modeT = 0; tro.vx = tro.vy = 0;
-    tro.x = clamp(Math.max(tro.x, yal.x) + 160, bounds.x0, bounds.x1);
+    tro.x = clamp(seat.x + 620, bounds.x0, bounds.x1);
+    tro.y = clamp(tro.y, Y0, Y1);
     yal.mode = 'move';
     env.sfx('munch'); env.sfx('aww');
     fx.say('He grabbed it back!', yal.x, yal.y - 260);
@@ -288,6 +299,7 @@ export default function create(env) {
         // Yalapappus munches on, contented.
         if (self.outcome === 'snatched') {
           tro.x += 420 * dt; tc.x = tro.x; tc.facing = 1;
+          followCamera(dt);
           art.setAnim(tc, 'celebrate'); art.animate(tc, dt);
           art.setAnim(yc, 'wail'); art.animate(yc, dt);
         } else {
@@ -306,7 +318,7 @@ export default function create(env) {
         // The snatch: Action right next to him while he isn't looking.
         const d = near(yal, tro);
         // (Not while he's looking, nor while he's up and after you: then Action dodges.)
-        const busy = look === 'munch' || look === 'warn' || look === 'return' || (look === 'alarm' && (yal.mode === 'stumble' || yal.mode === 'dazed'));
+        const busy = look === 'munch' || look === 'warn' || look === 'return' || (look === 'alarm' && yal.mode === 'stumble');
         if (inS.actionPressed && busy && !chase.tug && tro.mode === 'move' && d < 150) {
           snatch();
           tin.actionPressed = false;
@@ -329,6 +341,10 @@ export default function create(env) {
         if (!chase.tug && (yal.sprinting || ballT > 0)) yin.actionPressed = false;
       }
 
+      // Caught sneaking up on him at his own seat, the big Yalapappus has the
+      // stronger grip: break free fast or be flung away.
+      if (chase.tug && phase === 'sneak') chase.tug.v = Math.min(0.999, chase.tug.v + 0.2 * dt);
+      tugTiebreak(chase, dt);
       const ev = stepChase(chase, yin, tin, dt);
       eventFx(env, ev, fx);
       if (ev.some((e) => e.type === 'grab')) { art.kick(tc, 0.4); shake = 0.25; }
@@ -364,6 +380,9 @@ export default function create(env) {
         self.bonus = 0;
       }
 
+      // The camera: on the sneak, both of them; on the getaway, ahead of the Trollusk.
+      followCamera(dt);
+
       // Animation.
       yc.x = yal.x; yc.y = yal.y; tc.x = tro.x; tc.y = tro.y;
       art.animate(yc, dt, yal.vx, yal.vy);
@@ -374,12 +393,16 @@ export default function create(env) {
     draw(g, tt) {
       g.save();
       if (shake > 0 && !env.reduceMotion) g.translate((Math.random() - 0.5) * 16 * shake, (Math.random() - 0.5) * 12 * shake);
-      art.drawScene(g, 'scenes/yalapappus', W, H);
-      // The hole's far edge first, then everything back to front.
-      art.drawSprite(g, art.prop('yalapappus', 4), hole.x, hole.y - 6, { height: 70, ay: 1 });
+      drawScrollingScene(g, camX);
+      g.translate(-camX, 0);
+      const vis = (x, r = 300) => x > camX - r && x < camX + W + r;
+      // The holes' far edges first, then everything back to front.
+      for (const o of holes) if (vis(o.x)) art.drawSprite(g, art.prop('yalapappus', 4), o.x, o.y - 4, { height: 66 });
+      if (vis(EXIT_X)) exitPost(g, EXIT_X + 40, 860, tt);
       const things = [
-        ...cover.map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawCover(g, k, tt) })),
-        { y: hole.y + hole.ry, draw: () => art.drawSprite(g, art.prop('yalapappus', 3), hole.x, hole.y + hole.ry + 14, { height: 70 }) },
+        ...cover.filter((k) => vis(k.x)).map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawCover(g, k, tt) })),
+        ...holes.filter((o) => vis(o.x)).map((o) => ({ y: o.y, draw: () => art.drawSprite(g, art.prop('yalapappus', 3), o.x, o.y + o.ry + 16, { height: 66 }) })),
+        ...rocks.filter((o) => vis(o.x)).map((o) => ({ y: o.y + o.ry, draw: () => art.drawSprite(g, art.prop('yalapappus', 2), o.x, o.y + o.ry, { height: 120 }) })),
         { y: tro.y, draw: () => drawTro(g, tt) },
         { y: yal.y, draw: () => drawYal(g, tt) },
       ].sort((a, b) => a.y - b.y);
@@ -390,10 +413,10 @@ export default function create(env) {
       }
       if (phase === 'sneak' && look === 'warn') eyeBubble(g, yal.x + yal.facing * 80, yal.y - 260, lookT / warnTime(), tt);
       if (phase === 'sneak' && look === 'look') eyeOpen(g, yal.x + yal.facing * 80, yal.y - 260, tt);
-      if (phase === 'getaway' && !self.done) exitSign(g, 1700, 760, 'Away!', tt);
       if (chase.tug) tugBar(g, chase, (yal.x + tro.x) / 2, Math.min(yal.y, tro.y) - 340, ['Got you!', 'Break free!']);
       fx.draw(g);
       g.restore();
+      if (phase === 'getaway' && !self.done && EXIT_X - camX > W - 100) exitSign(g, W - 170, 740, 'Away!', tt);
       if (hint.t > 0 && !self.done) hintLine(g, hint.text, W, 150, Math.min(1, hint.t * 2));
     },
     marks() {
@@ -402,17 +425,24 @@ export default function create(env) {
     },
     hud() {
       if (self.done) return '';
-      if (phase === 'getaway') return 'Get away! →';
+      if (phase === 'getaway') return `Away in ${Math.max(0, Math.ceil((EXIT_X - tro.x) / 100))} m →`;
       return look === 'look' || look === 'warn' ? 'FREEZE!' : look === 'alarm' ? 'Run and hide!' : 'Creep up and snatch';
     },
   };
+
+  let munchT = 0;
+  function followCamera(dt) {
+    const target = phase === 'getaway' || self.done ? tro.x - 760 : (tro.x + yal.x) / 2 - W / 2;
+    const want = clamp(target, 0, EXIT_X + 260 - W);
+    camX += (want - camX) * (1 - Math.exp(-5 * dt));
+  }
 
   function animYal(c, m) {
     const sp = Math.hypot(m.vx, m.vy);
     c.facing = m.facing;
     if (phase === 'sneak' && (look === 'munch' || look === 'warn' || look === 'look') && m.mode === 'move' && sp < 30) {
       art.setAnim(c, look === 'munch' ? 'munch' : look === 'warn' ? 'idle' : 'eye');
-      if (look === 'munch' && Math.floor(t * 1.6) !== Math.floor((t - 1 / 60) * 1.6) && env.rng() < 0.5) env.sfx('munch');
+      if (look === 'munch') { munchT -= 1 / 60; if (munchT <= 0) { munchT = 0.6 + Math.random() * 0.5; env.sfx('munch'); } }
       return;
     }
     if (m.mode === 'grabbing') art.setAnim(c, 'shout');
@@ -478,5 +508,39 @@ function eyeOpen(g, x, y, t) {
   g.font = '800 30px Fraunces, Georgia, serif';
   g.textAlign = 'center';
   g.fillText('LOOKING!', 0, -50);
+  g.restore();
+}
+
+// The bumpy ground runs on: the scene, tiled, every other copy mirrored so the
+// edges meet.
+function drawScrollingScene(g, camX) {
+  const img = art.image('scenes/yalapappus');
+  const W = 1920, H = 1080;
+  if (!img) { art.drawScene(g, 'scenes/yalapappus', W, H); return; }
+  const i0 = Math.floor(camX / W);
+  for (let i = i0; i <= i0 + 1; i++) {
+    const x = i * W - camX;
+    g.save();
+    if (i % 2) { g.translate(x + W, 0); g.scale(-1, 1); } else g.translate(x, 0);
+    g.drawImage(img, 0, 0, W, H);
+    g.restore();
+  }
+}
+
+// The way out: a signpost with the letter's way pointing on.
+function exitPost(g, x, y, t) {
+  g.save();
+  g.translate(x, y);
+  g.fillStyle = '#8a6a44'; g.strokeStyle = '#33241a'; g.lineWidth = 5;
+  g.fillRect(-10, -200, 20, 200); g.strokeRect(-10, -200, 20, 200);
+  g.translate(0, -170);
+  g.rotate(Math.sin(t * 2) * 0.03);
+  g.fillStyle = '#d9b77a';
+  g.beginPath(); g.moveTo(-90, -34); g.lineTo(80, -34); g.lineTo(120, 0); g.lineTo(80, 34); g.lineTo(-90, 34); g.closePath();
+  g.fill(); g.stroke();
+  g.fillStyle = '#33241a';
+  g.font = '800 30px Fraunces, Georgia, serif';
+  g.textAlign = 'center';
+  g.fillText('AWAY', 0, 11);
   g.restore();
 }

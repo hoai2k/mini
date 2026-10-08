@@ -36,7 +36,7 @@ function smartBot() {
       if (d < 560) action = true; // huff while closing in
       if (ferg.mode === 'huff') {
         const sp = TUNE.ferg.chargeMin + TUNE.ferg.chargeAdd * ferg.fury;
-        const lead = d / sp;
+        const lead = d / sp + TUNE.ferg.windup;
         mx = peg.x + peg.vx * lead - ferg.x;
         my = peg.y + peg.vy * lead - ferg.y;
         const reach = chargeReach(ferg.fury);
@@ -70,14 +70,14 @@ function spamBot(rng) {
 }
 
 function rate(makeBot, n = 40, opts = {}) {
-  let wins = 0, bonus = 0;
+  let wins = 0, bonus = 0, time = 0;
   for (let seed = 1; seed <= n; seed++) {
     const env = makeEnv({ seed, ...opts });
     const ch = run(create(env), makeBot(env));
-    if (ch.outcome === 'snatched') wins++;
+    if (ch.outcome === 'snatched') { wins++; time += 45 - ch.time; }
     if (ch.bonus) bonus++;
   }
-  return { wins: wins / n, bonus: bonus / n };
+  return { wins: wins / n, bonus: bonus / n, strikeAt: +(time / Math.max(1, wins)).toFixed(1) };
 }
 
 test('chapter 4: planning ahead and charging at the right moment usually strikes the Peg', () => {
@@ -92,11 +92,11 @@ test('chapter 4: charging blindly usually fails', () => {
   assert.ok(r.wins <= 0.35, `spam bot won ${r.wins}`);
 });
 
-test('chapter 4: a skilled captain dodges more than a clumsy one', () => {
+test('chapter 4: a skilled captain holds out longer than a clumsy one', () => {
   const lo = rate(() => smartBot(), 30, { skill: 0 });
   const hi = rate(() => smartBot(), 30, { skill: 1 });
-  console.log('smart bot vs skill 0 / 1', lo.wins, hi.wins);
-  assert.ok(lo.wins >= hi.wins);
+  console.log('smart bot vs skill 0 / 1', lo, hi);
+  assert.ok(hi.strikeAt > lo.strikeAt);
 });
 
 test('chapter 4: left alone, the Peg reaches the harbour before the clock runs out', () => {
@@ -125,15 +125,23 @@ test('chapter 4: in versus the captain steers, and steam shoves the boat', () =>
 });
 
 test('chapter 4: a straight-line captain in versus is not unbeatable, nor a sure thing', () => {
-  // The captain heads straight for the harbour, steaming away from charges.
+  // The captain heads for the harbour, edges off the line of a huffing
+  // iceberg's aim and steams sideways when it rears back to charge.
   const captain = () => {
     let held = false;
     return (ch) => {
       const { peg, ferg, HARBOUR } = ch;
       let x = HARBOUR.x - peg.x, y = HARBOUR.y - peg.y;
+      const m0 = Math.hypot(x, y) || 1;
+      x /= m0; y /= m0;
       let action = false;
-      if (ferg.mode === 'charge') {
-        const s = Math.sign(ferg.cdx * (peg.y - ferg.y) - ferg.cdy * (peg.x - ferg.x)) || 1;
+      const rx = peg.x - ferg.x, ry = peg.y - ferg.y, rd = Math.hypot(rx, ry) || 1;
+      if (ferg.mode === 'huff' && rd < 600) {
+        const s = Math.sign(ferg.aimX * ry - ferg.aimY * rx) || 1;
+        x += -ferg.aimY * s * 1.5; y += ferg.aimX * s * 1.5;
+      }
+      if (ferg.mode === 'windup' || ferg.mode === 'charge') {
+        const s = Math.sign(ferg.cdx * ry - ferg.cdy * rx) || 1;
         x = -ferg.cdy * s; y = ferg.cdx * s; action = true;
       }
       const m = Math.hypot(x, y) || 1;
