@@ -2,7 +2,7 @@
   "logo": {
     "id": "HK-U01",
     "file": "assets/ui/logo.png",
-    "delivered": false
+    "delivered": true
   },
   "icon": {
     "id": "HK-U02",
@@ -12,17 +12,17 @@
   "lineDrawings": {
     "id": "HK-U03",
     "file": "assets/ui/line-drawings.png",
-    "delivered": false
+    "delivered": true
   },
   "threads": {
     "id": "HK-U04",
     "file": "assets/ui/threads.png",
-    "delivered": false
+    "delivered": true
   },
   "viriditas.composition": {
     "id": "HK-T01-A",
     "file": "assets/tableaux/viriditas/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "viriditas.ground": {
     "id": "HK-T01-B",
@@ -32,7 +32,7 @@
   "viriditas.pieces": {
     "id": "HK-T01-C",
     "file": "assets/tableaux/viriditas/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the large violet sun disc",
       "the tallest teal tree, trunk and branches, from the ground to the top",
@@ -51,12 +51,12 @@
   "night-quilt.composition": {
     "id": "HK-T02-A",
     "file": "assets/tableaux/night-quilt/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "night-quilt.ground": {
     "id": "HK-T02-B",
     "file": "assets/tableaux/night-quilt/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "night-quilt.pieces": {
     "id": "HK-T02-C",
@@ -77,17 +77,17 @@
   "golden-lady.composition": {
     "id": "HK-T03-A",
     "file": "assets/tableaux/golden-lady/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "golden-lady.ground": {
     "id": "HK-T03-B",
     "file": "assets/tableaux/golden-lady/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "golden-lady.pieces": {
     "id": "HK-T03-C",
     "file": "assets/tableaux/golden-lady/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "her head and neck, without the hair",
       "her orange-gold hair, as one piece",
@@ -102,17 +102,17 @@
   "black-tree.composition": {
     "id": "HK-T04-A",
     "file": "assets/tableaux/black-tree/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "black-tree.ground": {
     "id": "HK-T04-B",
     "file": "assets/tableaux/black-tree/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "black-tree.pieces": {
     "id": "HK-T04-C",
     "file": "assets/tableaux/black-tree/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the black tree, trunk and branches",
       "a large black leaf",
@@ -128,17 +128,17 @@
   "two-moons.composition": {
     "id": "HK-T05-A",
     "file": "assets/tableaux/two-moons/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "two-moons.ground": {
     "id": "HK-T05-B",
     "file": "assets/tableaux/two-moons/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "two-moons.pieces": {
     "id": "HK-T05-C",
     "file": "assets/tableaux/two-moons/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the left pale moon",
       "the right pale moon",
@@ -152,12 +152,12 @@
   "dancers.composition": {
     "id": "HK-T06-A",
     "file": "assets/tableaux/dancers/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "dancers.ground": {
     "id": "HK-T06-B",
     "file": "assets/tableaux/dancers/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "dancers.pieces": {
     "id": "HK-T06-C",
@@ -176,17 +176,17 @@
   "man-and-woman.composition": {
     "id": "HK-T07-A",
     "file": "assets/tableaux/man-and-woman/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "man-and-woman.ground": {
     "id": "HK-T07-B",
     "file": "assets/tableaux/man-and-woman/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "man-and-woman.pieces": {
     "id": "HK-T07-C",
     "file": "assets/tableaux/man-and-woman/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the man, seated, facing right",
       "the woman, seated, facing left",
@@ -201,17 +201,17 @@
   "blue-lady.composition": {
     "id": "HK-T08-A",
     "file": "assets/tableaux/blue-lady/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "blue-lady.ground": {
     "id": "HK-T08-B",
     "file": "assets/tableaux/blue-lady/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "blue-lady.pieces": {
     "id": "HK-T08-C",
     "file": "assets/tableaux/blue-lady/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the reclining woman, her face, body and hair as one piece",
       "the small pale moon",
@@ -224,17 +224,17 @@
   "crowd.composition": {
     "id": "HK-T09-A",
     "file": "assets/tableaux/crowd/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "crowd.ground": {
     "id": "HK-T09-B",
     "file": "assets/tableaux/crowd/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "crowd.pieces": {
     "id": "HK-T09-C",
     "file": "assets/tableaux/crowd/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the large face with wide open eyes",
       "the single floating eye",
@@ -250,17 +250,17 @@
   "silk-bird.composition": {
     "id": "HK-T10-A",
     "file": "assets/tableaux/silk-bird/composition.webp",
-    "delivered": false
+    "delivered": true
   },
   "silk-bird.ground": {
     "id": "HK-T10-B",
     "file": "assets/tableaux/silk-bird/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "silk-bird.pieces": {
     "id": "HK-T10-C",
     "file": "assets/tableaux/silk-bird/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the silk bird with the face in its breast",
       "a long gold ribbon loop",
@@ -274,7 +274,7 @@
   "chain.moon": {
     "id": "HK-M01",
     "file": "assets/chains/moon.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "a pale yellow crescent moon with a sleeping face",
       "a round pale moon, the sleeping face turned to the front",
@@ -298,7 +298,7 @@
   "chain.face": {
     "id": "HK-M03",
     "file": "assets/chains/face.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "a pale oval face with closed eyes, drawn in one dark line on cream cloth",
       "the same face waking, eyes half open",
@@ -322,7 +322,7 @@
   "chain.figure": {
     "id": "HK-M05",
     "file": "assets/chains/figure.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "a red silhouette of a standing figure, cut from one piece of cloth, no face",
       "a blue printed dancer, arms raised",
@@ -334,7 +334,7 @@
   "chain.flower": {
     "id": "HK-M06",
     "file": "assets/chains/flower.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "a pink fabric rose with layered petals",
       "a violet bloom, opening",
@@ -346,71 +346,71 @@
   "texture.indigo-batik": {
     "id": "HK-X01",
     "file": "assets/textures/indigo-batik.webp",
-    "delivered": false
+    "delivered": true
   },
   "texture.rust-paisley": {
     "id": "HK-X02",
     "file": "assets/textures/rust-paisley.webp",
-    "delivered": false
+    "delivered": true
   },
   "texture.gold-damask": {
     "id": "HK-X03",
     "file": "assets/textures/gold-damask.webp",
-    "delivered": false
+    "delivered": true
   },
   "texture.turquoise-satin": {
     "id": "HK-X04",
     "file": "assets/textures/turquoise-satin.webp",
-    "delivered": false
+    "delivered": true
   },
   "texture.black-lace": {
     "id": "HK-X05",
     "file": "assets/textures/black-lace.webp",
-    "delivered": false
+    "delivered": true
   },
   "texture.brown-netting": {
     "id": "HK-X06",
     "file": "assets/textures/brown-netting.webp",
-    "delivered": false
+    "delivered": true
   },
   "texture.green-silk": {
     "id": "HK-X07",
     "file": "assets/textures/green-silk.webp",
-    "delivered": false
+    "delivered": true
   },
   "texture.ultramarine-canvas": {
     "id": "HK-X08",
     "file": "assets/textures/ultramarine-canvas.webp",
-    "delivered": false
+    "delivered": true
   },
   "mask.torn-paper": {
     "id": "HK-D01",
     "file": "assets/masks/torn-paper.png",
-    "delivered": false
+    "delivered": true
   },
   "mask.watercolour-bloom": {
     "id": "HK-D02",
     "file": "assets/masks/watercolour-bloom.png",
-    "delivered": false
+    "delivered": true
   },
   "mask.seams": {
     "id": "HK-D03",
     "file": "assets/masks/seams.png",
-    "delivered": false
+    "delivered": true
   },
   "mask.unravel": {
     "id": "HK-D04",
     "file": "assets/masks/unravel.png",
-    "delivered": false
+    "delivered": true
   },
   "mask.swirl": {
     "id": "HK-D05",
     "file": "assets/masks/swirl.png",
-    "delivered": false
+    "delivered": true
   },
   "mask.stitch-line": {
     "id": "HK-D06",
     "file": "assets/masks/stitch-line.png",
-    "delivered": false
+    "delivered": true
   }
 }

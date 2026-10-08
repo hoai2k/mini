@@ -699,8 +699,59 @@ for key, name, how in MASKS:
         "prompt": MASK.format(how),
     })
 
+DELIVERED_IDS = {
+    "HK-D01",
+    "HK-D02",
+    "HK-D03",
+    "HK-D04",
+    "HK-D05",
+    "HK-D06",
+    "HK-M01",
+    "HK-M03",
+    "HK-M05",
+    "HK-M06",
+    "HK-T01-A",
+    "HK-T01-C",
+    "HK-T02-A",
+    "HK-T02-B",
+    "HK-T03-A",
+    "HK-T03-B",
+    "HK-T03-C",
+    "HK-T04-A",
+    "HK-T04-B",
+    "HK-T04-C",
+    "HK-T05-A",
+    "HK-T05-B",
+    "HK-T05-C",
+    "HK-T06-A",
+    "HK-T06-B",
+    "HK-T07-A",
+    "HK-T07-B",
+    "HK-T07-C",
+    "HK-T08-A",
+    "HK-T08-B",
+    "HK-T08-C",
+    "HK-T09-A",
+    "HK-T09-B",
+    "HK-T09-C",
+    "HK-T10-A",
+    "HK-T10-B",
+    "HK-T10-C",
+    "HK-U01",
+    "HK-U03",
+    "HK-U04",
+    "HK-X01",
+    "HK-X02",
+    "HK-X03",
+    "HK-X04",
+    "HK-X05",
+    "HK-X06",
+    "HK-X07",
+    "HK-X08",
+}
+
 for r in REQUESTS:
-    r.setdefault("status", "requested")
+    r.setdefault("status", "delivered" if r["id"] in DELIVERED_IDS else "requested")
 
 
 def refs(r: dict) -> list[str]:

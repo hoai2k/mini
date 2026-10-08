@@ -7,8 +7,8 @@ controls nudge a single moon, some swirl the whole picture, and small moves
 set up the large ones. The colour comes from her fibercollages, quilts and
 paintings, and the interface from the fluid line of her drawings.
 
-So far this folder holds the reference material, the design and the image
-requests. Nothing is published yet; a `publish.sh` and a card in the game
+So far this folder holds the reference material, the design, the image
+requests and 48 generated images. Nothing is published yet; a `publish.sh` and a card in the game
 library come with the first playable build.
 
 - [`reference/`](reference/README.md): 33 photos of 28 of her works and two of
@@ -27,6 +27,11 @@ library come with the first playable build.
   Generated images go in [`intake/`](intake/README.md).
 - [`intake/`](intake/README.md): drop box for new photos of her work and
   anything else for this project.
+- [`game/assets/`](game/assets/README.md): 48 delivered images and 66 extracted
+  tableau pieces. Six requests were rejected by the image service and remain
+  requested. [Image preview](design/generated-preview.jpg),
+  [piece preview](design/pieces-preview.jpg), and
+  [delivery records](design/image-deliveries.json) give the outputs and limits.
 
 Checks:
 
