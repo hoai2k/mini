@@ -339,6 +339,7 @@ export default function create(env) {
   }
 
   const self = {
+    focus: () => [tc, ...(env.versus ? LOOKOUTS : [])], // what the camera frames: the snatcher (then the lookouts)
     time: total,
     done: false,
     outcome: null,

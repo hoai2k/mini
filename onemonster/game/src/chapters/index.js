@@ -32,6 +32,9 @@
 //     outcome                   'snatched' (the snatcher got the letter) or 'kept'
 //     marks()                   [snatcher postmarks 0..3, holder postmarks 0..3]
 //     hud?()                    a short status line, e.g. "Stamps 3"
+//     focus?()                  [snatcher, holder?, ...] as { x, y } in the
+//                               1920 x 1080 frame: what the shell's camera
+//                               follows on a narrow screen (a phone upright)
 //     outroTime?                seconds of outro after done before the celebration
 //                               (default 1.4), for a longer story beat
 //   }

@@ -325,3 +325,55 @@ body.reduce-motion .press-start, body.reduce-motion .banner, body.reduce-motion 
   #card, #celebrate, #final { align-items: center; justify-content: flex-end; }
   .card-panel, .cel-panel { width: 100%; }
 }
+
+/* ---------- phones ---------- */
+
+html, body { overscroll-behavior: none; touch-action: manipulation; }
+.menu-btn, .text-btn { min-height: 44px; }
+/* "Move left stick" means nothing on a touch screen. */
+@media (hover: none) and (pointer: coarse) { #title-hint { display: none; } }
+
+/* Upright: the clock moves beside the pause button, clear of the status box. */
+@media (max-aspect-ratio: 1/1) {
+  .hud-left { max-width: calc(100% - 210px); }
+  #hud-status { font-size: 1rem; }
+  .hud-timer { left: auto; right: calc(max(14px, env(safe-area-inset-right)) + 66px); transform: none; padding: 0 14px; min-width: 0; }
+}
+
+/* Short screens (a phone on its side): tighter panels, so the buttons that
+   matter stay on screen without scrolling. */
+@media (max-height: 520px) {
+  body { font-size: 16px; }
+  .screen { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .menu-col, .panel { padding: 10px 16px; }
+  .menu-col h2, .panel h2, .cel-panel h2, .screen-head h2 { font-size: 1.4rem; margin-bottom: 2px; }
+  .menu-btn { padding: 5px 14px; margin: 5px 0; font-size: 1rem; }
+  .menu-btn small { font-size: 0.78rem; }
+  .row-buttons { margin-top: 6px; gap: 8px; }
+  #pause .panel { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; width: min(620px, 100%); }
+  #pause .panel h2, #pause .panel p, #pause .panel .primary { grid-column: 1 / -1; }
+  #pause .panel p:empty { display: none; }
+  .card-panel { width: min(1000px, 78%); padding: 8px 16px; display: flex; flex-direction: column; }
+  .card-eyeing { font-size: 0.95rem; margin-bottom: 4px; }
+  .card-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; gap: 12px; }
+  #card-portrait { width: 96px; }
+  #card-name { font-size: 1.4rem; }
+  .card-text p, .controls-list { font-size: 0.9rem; margin: 2px 0; }
+  .card-panel > .row-buttons { flex: 0 0 auto; }
+  .cel-panel { width: min(720px, 70%); padding: 8px 16px; }
+  .cel-line { font-size: 0.95rem; margin: 2px 0 4px; }
+  .card-body { flex-direction: row; align-items: flex-start; }
+  .cel-panel p { margin: 2px 0; }
+  .cel-panel .row-buttons .menu-btn { white-space: nowrap; padding-inline: 10px; }
+  .envelope { width: 96px; }
+  .envelope.big { width: 150px; }
+  .cel-marks { font-size: 1.05rem; }
+  .story-band { padding-top: 8px; padding-bottom: max(8px, env(safe-area-inset-bottom)); min-height: 0; }
+  .story-text { font-size: 0.98rem; }
+  .story-text::first-letter { font-size: 2.6em; }
+  .icon-btn { width: 48px; height: 48px; }
+  .cards { grid-auto-rows: minmax(110px, 1fr); overflow-y: auto; }
+}
+@media (max-height: 520px) and (max-width: 900px), (max-height: 520px) and (max-aspect-ratio: 4/3) {
+  .card-panel, .cel-panel { width: 100%; }
+}

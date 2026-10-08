@@ -281,6 +281,7 @@ export default function create(env) {
   }
 
   const self = {
+    focus: () => [{ x: tro.x - camX, y: tro.y }, { x: yal.x - camX, y: yal.y }], // what the camera frames (on screen): the snatcher, then the holder
     time: total,
     done: false,
     outcome: null,

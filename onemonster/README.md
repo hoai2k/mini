@@ -50,6 +50,13 @@ In Snatch & Keep, each player uses their own controller, or one half of the
 keyboard (player 1: WASD, Space, left Shift; player 2: arrows, Enter, right
 Shift), or one half of a touch screen.
 
+On a narrow screen (a phone held upright) the scene keeps its full height and
+at least 1000 of its 1920 units of width, and the camera follows the player's
+monster across it (each chapter's `focus()`); in Snatch & Keep it frames both
+players, pulling back as far as it must. The touch buttons keep one size, set
+by the screen's short side, in the bottom-right corner clear of the notch.
+Leaving the tab or the window pauses play and suspends all sound.
+
 ## Run and check
 
 ```sh

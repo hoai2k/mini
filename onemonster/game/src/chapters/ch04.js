@@ -496,6 +496,7 @@ export default function create(env) {
   }
 
   const self = {
+    focus: () => [ferg, peg], // what the camera frames: the snatcher, then the holder
     time: total,
     done: false,
     outcome: null,
