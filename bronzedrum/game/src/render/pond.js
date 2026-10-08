@@ -115,6 +115,7 @@ export const pond = {
     const g = this.ctx;
     const span = 260;
     const off = (((this.cam * 0.8) % span) + span) % span;
+    const img = this.art.own('wp-prop-lantern');
     g.save();
     g.strokeStyle = 'rgba(22,21,26,0.8)';
     g.lineWidth = 1.5;
@@ -129,6 +130,14 @@ export const pond = {
       g.beginPath();
       g.arc(lx, ly + 12, 24, 0, Math.PI * 2);
       g.fill();
+      if (img) {
+        // The delivered lantern (BD-WP05), hung from the lowest point of the string.
+        // (The picture keeps a wide glow round the lantern, so it is drawn large.)
+        const h = 72;
+        const w = (img.width / img.height) * h;
+        g.drawImage(img, lx - w / 2, 34 + (ly - 46), w, h);
+        continue;
+      }
       g.fillStyle = '#B8322A';
       g.beginPath();
       g.ellipse(lx, ly + 12, 10, 13, 0, 0, Math.PI * 2);
