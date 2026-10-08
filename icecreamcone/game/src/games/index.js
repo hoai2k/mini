@@ -20,6 +20,10 @@
 //     time?: number           seconds left, if the game is timed (shown in the HUD)
 //     hud?(): string          a short status line for the HUD, e.g. "Shots 7"
 //     summary?(): string[]    extra lines for the results card
+//     focus?(): number        on a narrow (portrait) screen, the x the view
+//                             follows (default the middle)
+//     span?: number           and how much of the width it must keep in view
+//                             (default 760)
 //   }
 //
 //   input = {                 from input.js `state()`, every frame

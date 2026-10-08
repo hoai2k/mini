@@ -75,8 +75,31 @@ function resize() {
   const ch = canvas.clientHeight;
   canvas.width = Math.round(cw * dpr);
   canvas.height = Math.round(ch * dpr);
+  view = { cw, ch, dpr };
+  fitView();
+}
+
+// The whole scene, letterboxed: for the menus, and for play on wide screens.
+function fitView() {
+  const { cw, ch, dpr } = view;
   const s = Math.min(cw / W, ch / H);
   view = { s, ox: (cw - W * s) / 2, oy: (ch - H * s) / 2, cw, ch, dpr };
+}
+
+// In play on a narrow (portrait) screen, fitting the whole 1600-wide scene
+// would make it tiny. Instead the scene keeps a playable size, at least the
+// game's `span` across, and the view follows the game's `focus` left and
+// right, never past the scene's edges.
+let camX = W / 2;
+function playView(dt) {
+  const { cw, ch, dpr } = view;
+  const gm = S.game;
+  const span = gm?.span || 760;
+  const s = Math.min(ch / H, Math.max(cw / W, cw / span));
+  const want = gm?.focus ? gm.focus() : W / 2;
+  camX = Math.abs(want - camX) > W ? want : camX + (want - camX) * Math.min(1, dt * 6);
+  const ox = Math.min(0, Math.max(cw - W * s, cw / 2 - camX * s));
+  view = { s, ox: W * s <= cw ? (cw - W * s) / 2 : ox, oy: (ch - H * s) / 2, cw, ch, dpr };
 }
 addEventListener('resize', resize);
 document.addEventListener('fullscreenchange', resize);
@@ -436,7 +459,6 @@ function pause(reason = '') {
   S.paused = true;
   $('#pause-reason').textContent = reason;
   $('#pause').hidden = false;
-  audio.suspend(false);
   input.lockHeld();
   focusFirst();
 }
@@ -823,9 +845,10 @@ function frame(now) {
 
 // ---------- rendering ----------
 
-function render() {
+function render(dt = 0) {
   const t = S.t;
   if (S.screen === 'play' && S.game) {
+    playView(dt);
     logical();
     g.save();
     g.beginPath();
@@ -840,6 +863,7 @@ function render() {
     updateHud();
     return;
   }
+  fitView();
   logical();
   if (S.screen === 'title') renderTitle(t);
   else if (S.screen === 'page') renderPage(t);
@@ -879,9 +903,31 @@ function renderTitle(t) {
   });
 }
 
+// A bird on its own page, gently doing its thing.
+function pagePose(t) {
+  return { growth: (Math.sin(t * 0.5) + 1) / 2, light: ['green', 'amber', 'red'][Math.floor(t / 1.6) % 3], fill: (Math.sin(t * 0.8) + 1) / 2, sing: Math.abs(Math.sin(t * 2)), click: (t % 3) < 0.2 ? (t % 3) : 0, lift: Math.sin(t * 2) > 0.6 ? -1 : Math.sin(t * 2) < -0.6 ? 1 : 0, wind: 1 };
+}
+
 function renderPage(t) {
   const b = BIRDS[S.bird];
   const portrait = view.cw < view.ch;
+  if (portrait) {
+    // Upright phone: the text fills the lower part of the page, so the bird
+    // is drawn at a good size in the space above it, in screen pixels.
+    const top = $('.page-text').getBoundingClientRect().top;
+    const area = Math.max(80, top - 16);
+    const size = Math.min(area * 0.92, view.cw * 0.9);
+    g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    g.save();
+    g.globalAlpha = 0.35;
+    g.fillStyle = b.color;
+    g.beginPath();
+    g.ellipse(view.cw / 2, area * 0.5 + 8, Math.min(view.cw * 0.45, size * 0.7), area * 0.46, 0, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+    drawBird(g, b.id, { x: view.cw / 2 + size * 0.06, y: 8 + area * 0.97, size, t, pose: pagePose(t) });
+    return;
+  }
   g.save();
   // a soft wash behind the bird, like a page's colour
   const cx = portrait ? W / 2 : W * 0.29;
@@ -893,7 +939,7 @@ function renderPage(t) {
   g.fill();
   g.restore();
   const size = portrait ? 520 : 640;
-  const pose = { growth: (Math.sin(t * 0.5) + 1) / 2, light: ['green', 'amber', 'red'][Math.floor(t / 1.6) % 3], fill: (Math.sin(t * 0.8) + 1) / 2, sing: Math.abs(Math.sin(t * 2)), click: (t % 3) < 0.2 ? (t % 3) : 0, lift: Math.sin(t * 2) > 0.6 ? -1 : Math.sin(t * 2) < -0.6 ? 1 : 0, wind: 1 };
+  const pose = pagePose(t);
   drawBird(g, b.id, { x: cx + size * 0.06, y: cy + size * 0.55, size, t, pose });
 }
 
@@ -919,10 +965,21 @@ function renderGathering(t) {
 
 // ---------- pausing on focus loss and controller loss ----------
 
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) pause('The game paused while you were away.');
-});
-addEventListener('blur', () => pause('The game paused while you were away.'));
+// Away from the tab (hidden, or the window not focused): pause, and silence
+// everything, music, effects and reading aloud. Back again: the sound
+// returns (the game stays paused until you resume).
+function away() {
+  pause('The game paused while you were away.');
+  audio.suspend(true);
+  try { speechSynthesis.cancel(); } catch { /* no speech */ }
+}
+function returned() {
+  if (!document.hidden && document.hasFocus()) audio.suspend(false);
+}
+document.addEventListener('visibilitychange', () => (document.hidden ? away() : returned()));
+addEventListener('blur', away);
+addEventListener('focus', returned);
+addEventListener('pageshow', returned);
 addEventListener('gamepaddisconnected', () => {
   if (input.kind === 'controller') pause('The controller disconnected. Reconnect it, or carry on with the keyboard or touch.');
 });

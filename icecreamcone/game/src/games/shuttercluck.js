@@ -815,5 +815,10 @@ export default function create(env) {
     }
   };
 
+  // For a narrow (portrait) screen: what the view follows, and how much of
+  // the width it must keep in view.
+  g.focus = () => g.fx;
+  g.span = 760;
+
   return g;
 }
