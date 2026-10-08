@@ -861,7 +861,7 @@
       "anchor": "bottom centre"
     },
     "sailor-pullup": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-pullup.webp",
       "size": [
         260,
@@ -870,7 +870,7 @@
       "anchor": "ledge line 25% up from the bottom, centred"
     },
     "sailor-hang": {
-      "status": "requested",
+      "status": "delivered",
       "file": "sailor-hang.webp",
       "size": [
         220,
@@ -879,7 +879,7 @@
       "anchor": "top centre (his hands)"
     },
     "clam-open-empty": {
-      "status": "requested",
+      "status": "delivered",
       "file": "clam-open-empty.webp",
       "size": [
         240,

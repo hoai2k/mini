@@ -431,13 +431,15 @@ All 18 C15 images are generated and in the game. The PNGs are also retained in
 intake; [review A/B/C and the A/B/A/C sequence](generated/round-4/index.html).
 Full-size originals, exact prompts and delivered-frame references are preserved.
 
-**Also requested, 7 October 2026:** two Act IV frames for the new ledge
+**Also delivered, 8 October 2026:** two Act IV frames for the new ledge
 hang ([C17](#c17-fourth-round-act-iv-ledge-hang)), `sailor-hang` and
-`sailor-pullup`. Until they arrive the game uses `sailor-leap` for both.
+`sailor-pullup`. They are generated and registered in the game.
 
-**And for Act II:** `clam-open-empty`
+**And delivered for Act II:** `clam-open-empty`
 ([C16](#c16-fourth-round-act-ii-regrowing-clams)), the open clam without
 its pearl, so each clam can regrow its pearl in view.
+
+See the [C16–C17 delivery gallery and prompts](generated/ledge-additions/index.html).
 
 ---
 
