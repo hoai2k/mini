@@ -192,6 +192,9 @@ export default function create(env) {
       parts.push({ k: 'chip', x: (ferg.x + peg.x) / 2, y: (ferg.y + peg.y) / 2 - 40, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 200, t: 0, life: 0.9 + rng() * 0.5, r: 6 + rng() * 10, spin: rng() * 6 });
     }
     splashRing(peg.x, peg.y, 220);
+    // The blow shoves the boat clear of the ice, so it is seen going down.
+    const bx = peg.x - ferg.x + ferg.cdx * 40, by = peg.y - ferg.y + ferg.cdy * 40, bd = Math.hypot(bx, by) || 1;
+    peg.nvx = (bx / bd) * 420; peg.nvy = (by / bd) * 420;
   }
 
   // ---------- the Ice-Ferg ----------
@@ -599,11 +602,19 @@ export default function create(env) {
   function outro(dt) {
     outT += dt;
     if (self.outcome === 'snatched') {
-      peg.sink = Math.min(1, outT / 2.6);
+      peg.sink = Math.min(1, outT / 4);
+      const kk = Math.exp(-3 * dt);
+      peg.x += peg.nvx * dt; peg.y += peg.nvy * dt; peg.nvx *= kk; peg.nvy *= kk;
       if (outT > 0.9) art.setAnim(fc, 'celebrate');
       if (rng() < dt * 12 && peg.sink < 1) parts.push({ k: 'bubble', x: peg.x + (rng() - 0.5) * 90, y: peg.y + (rng() - 0.5) * 40, vx: 0, vy: -30, t: 0, life: 0.8, r: 5 + rng() * 8 });
-      if (outT > 1.4 && !bottle) { bottle = { x: peg.x + 40, y: peg.y + 10, a: 1 }; env.sfx('splash'); env.sfx('tinkle'); }
-      if (bottle) { bottle.x += 45 * dt; bottle.y += 10 * dt; }
+      if (outT > 1.4 && !bottle) {
+        const bx = peg.x - ferg.x, by = peg.y - ferg.y, bd = Math.hypot(bx, by) || 1;
+        bottle = { x: peg.x + (bx / bd) * 60, y: peg.y + (by / bd) * 30, vx: (bx / bd) * 70, vy: (by / bd) * 35, a: 1 };
+        splashRing(bottle.x, bottle.y, 80);
+        env.sfx('splash'); env.sfx('tinkle');
+        say('A bottle!', bottle.x, bottle.y - 100);
+      }
+      if (bottle) { bottle.x += bottle.vx * dt; bottle.y += bottle.vy * dt; }
     } else {
       // The Peg chugs into the harbour; the Ice-Ferg sulks.
       const dx = HARBOUR.x - peg.x, dy = HARBOUR.y - 10 - peg.y, d = Math.hypot(dx, dy);
@@ -683,7 +694,7 @@ export default function create(env) {
       const a = 1 - w.t / 1.8;
       const spread = (w.big ? 70 : 34) + w.t * (w.big ? 60 : 50) * w.w;
       const r = (w.big ? 9 : 5) * (0.6 + a);
-      g.globalAlpha = a * 0.55;
+      g.globalAlpha = a * (w.big ? 0.32 : 0.55);
       for (const s of [-1, 1]) {
         g.beginPath();
         g.ellipse(w.x + w.nx * spread * s, w.y + w.ny * spread * s * 0.6, r * 1.6, r, 0, 0, Math.PI * 2);
@@ -725,7 +736,7 @@ export default function create(env) {
     const leaning = !self.done && (peg.steamT > 0 || Math.abs(peg.turnRate) > 1.1);
     let item = leaning ? 7 : 1;
     let alpha = 1, h = 150, y = peg.y + Math.sin(tt * 2.6) * 3;
-    if (self.outcome === 'snatched') { item = 2; alpha = 1 - peg.sink * 0.9; h = 150 * (1 - peg.sink * 0.35); y += peg.sink * 25; }
+    if (self.outcome === 'snatched') { item = 2; alpha = 1 - peg.sink * 0.75; h = 160 * (1 - peg.sink * 0.4); y += peg.sink * 25; }
     else if (self.outcome === 'kept' && peg.steamT > 0) item = 7;
     // The steam-recharge ring under the boat.
     if (!self.done) {
@@ -788,9 +799,9 @@ export default function create(env) {
 
   function drawMeters(g) {
     // Fury bar and the sea lions above the iceberg.
-    const x = ferg.x, y = ferg.y - 300;
+    const x = ferg.x, y = ferg.y - 290;
     g.save();
-    if (ferg.mode === 'huff' || ferg.fury > 0) {
+    if (ferg.mode === 'huff') {
       const w = 170;
       g.fillStyle = 'rgba(248,241,224,0.92)';
       g.strokeStyle = '#33241a';
@@ -806,6 +817,12 @@ export default function create(env) {
       g.fillStyle = '#33241a';
       g.fillText('FURY', x, y - 22);
     }
+    g.globalAlpha = 0.85;
+    g.fillStyle = 'rgba(248,241,224,0.85)';
+    g.strokeStyle = '#33241a';
+    g.lineWidth = 3;
+    roundRect(g, x - 66, y + 14, 132, 40, 18);
+    g.fill(); g.stroke();
     for (let i = 0; i < F.lions; i++) {
       const lx = x - 40 + i * 40, ly = y + 34;
       g.globalAlpha = i < ferg.lions ? 1 : 0.3;
@@ -834,7 +851,7 @@ export default function create(env) {
     const k = p.t / p.life;
     g.save();
     if (p.k === 'mist' || p.k === 'steam') {
-      g.globalAlpha = (1 - k) * (p.k === 'mist' ? 0.55 : 0.75);
+      g.globalAlpha = (1 - k) * (p.k === 'mist' ? 0.32 : 0.6);
       g.fillStyle = p.k === 'mist' ? '#eef6fb' : '#f6eef0';
       g.beginPath(); g.arc(p.x, p.y, p.r * (1 + k), 0, Math.PI * 2); g.fill();
     } else if (p.k === 'chip') {
