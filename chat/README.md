@@ -262,7 +262,7 @@ with its state (see `js/gamehost.js`).
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.
 - Scores and records live on each device, not in a shared leaderboard.
-- Artwork: all 153 image requests are delivered. The approved blue/green/purple
+- Artwork: all 158 image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
   records current files and built-in imagegen prompts. `generation-history.json`

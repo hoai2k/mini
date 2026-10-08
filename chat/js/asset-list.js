@@ -789,22 +789,22 @@ export const ASSET_LIST = {
   },
   "fx-kid": {
     "file": "assets/icons/fx-kid.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-manface": {
     "file": "assets/icons/fx-manface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-womanface": {
     "file": "assets/icons/fx-womanface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-thinner": {
     "file": "assets/icons/fx-thinner.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx-fatter": {
     "file": "assets/icons/fx-fatter.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };

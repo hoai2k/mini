@@ -2188,5 +2188,70 @@
     ],
     "accepted": true,
     "review": "Accepted after regeneration addressing remote review."
+  },
+  {
+    "id": "CH-I91",
+    "file": "assets/icons/fx-kid.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a cheerful child's face with big eyes and freckles. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Accepted: checked cartoon badge style, requested subject, arrow directions and transparency."
+  },
+  {
+    "id": "CH-I92",
+    "file": "assets/icons/fx-manface.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a grown man's face with a square jaw and stubble. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Accepted: checked cartoon badge style, requested subject, arrow directions and transparency."
+  },
+  {
+    "id": "CH-I93",
+    "file": "assets/icons/fx-womanface.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a woman's face with long lashes, rosy cheeks and red lips. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Accepted: checked cartoon badge style, requested subject, arrow directions and transparency."
+  },
+  {
+    "id": "CH-I94",
+    "file": "assets/icons/fx-thinner.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a tall skinny face squeezed between two inward arrows. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Accepted: checked cartoon badge style, requested subject, arrow directions and transparency."
+  },
+  {
+    "id": "CH-I95",
+    "file": "assets/icons/fx-fatter.png",
+    "size": "256 x 256",
+    "prompt": "Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a wide round face stretched between two outward arrows. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Accepted: checked cartoon badge style, requested subject, arrow directions and transparency."
   }
 ]
