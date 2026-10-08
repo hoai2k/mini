@@ -311,13 +311,13 @@ function fillList(sel, lines) {
 // letter, and the snatcher eyeing it (or celebrating).
 function buildTableau(c, mood) {
   // The card and the celebration panels sit low: the creatures stand above them.
-  const sn = art.makeCreature(c.snatcher, 760, 820);
+  const sn = art.makeCreature(c.snatcher, 600, 840);
   sn.facing = -1;
   art.setAnim(sn, mood === 'eye' ? 'eye' : 'celebrate');
   sn.sizeK = 1.2;
   let ho = null;
   if (MONSTERS[c.holder]) {
-    ho = art.makeCreature(c.holder, 300, 860);
+    ho = art.makeCreature(c.holder, 230, 880);
     const first = Object.keys(MONSTERS[c.holder].anims)[0];
     art.setAnim(ho, mood === 'kept' ? 'celebrate' : first);
     ho.sizeK = 1.1;
@@ -338,7 +338,7 @@ function drawTableau(t, dt) {
   // The letter, floating where it is.
   const lt = art.image('ui/letter');
   if (lt) {
-    const lx = mood === 'eye' ? 330 : 700;
+    const lx = mood === 'eye' ? 260 : 700;
     const ly = (mood === 'eye' ? 420 : 360) + (settings.reduceMotion ? 0 : Math.sin(t * 2) * 10);
     g.save(); g.translate(lx, ly); g.rotate(Math.sin(t * 1.3) * 0.1); g.drawImage(lt, -60, -60, 120, 120); g.restore();
   }
@@ -346,11 +346,11 @@ function drawTableau(t, dt) {
 
 function drawHolderThing(c, t) {
   if (c.holder === 'lookouts') {
-    art.drawSprite(g, art.prop('trollusk', 7), 300, 860, { height: 380 });
+    art.drawSprite(g, art.prop('trollusk', 7), 230, 880, { height: 380 });
   } else if (c.holder === 'peg') {
-    art.drawSprite(g, art.prop('iceferg', 1), 320, 640 + Math.sin(t * 1.5) * 8, { height: 380, ay: 0.5 });
+    art.drawSprite(g, art.prop('iceferg', 1), 240, 640 + Math.sin(t * 1.5) * 8, { height: 380, ay: 0.5 });
   } else if (c.holder === 'bottle') {
-    art.drawSprite(g, art.prop('typhoonigator', 1), 320, 700 + Math.sin(t * 1.8) * 12, { height: 200, ay: 0.5, rot: Math.sin(t) * 0.2 });
+    art.drawSprite(g, art.prop('typhoonigator', 1), 240, 700 + Math.sin(t * 1.8) * 12, { height: 200, ay: 0.5, rot: Math.sin(t) * 0.2 });
   }
 }
 
