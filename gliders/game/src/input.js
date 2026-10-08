@@ -1,7 +1,8 @@
 // Input: up to four Xbox controllers plus two keyboard sets, polled each frame.
 //
-// Devices are named 'pad0'..'pad3' (by gamepad index), 'kb1' (WASD side) and
-// 'kb2' (arrow keys side). Menus listen to every device; in play each player
+// Devices are named 'pad0'..'pad3' (by gamepad index), 'kb1' (WASD side),
+// 'kb2' (arrow keys side) and 'touch' (the on-screen stick and buttons, whose
+// state main.js writes into input.touch). Menus listen to every device; in play each player
 // owns one device.
 
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, LS: 10, RS: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
@@ -23,6 +24,9 @@ export function createInput() {
   const listeners = { connect: [], disconnect: [], key: [] };
   let lastDevice = 'kb1';
   let lastKind = 'keyboard';
+  let lastTouch = false; // the last pointer was a finger
+  // The on-screen controls: stick x (roll) and y (down pulls the nose up), -1..1.
+  const touch = { x: 0, y: 0, tuck: 0, flare: 0, yaw: 0 };
 
   addEventListener('keydown', (e) => {
     if (e.repeat) return;
@@ -33,7 +37,10 @@ export function createInput() {
   });
   addEventListener('keyup', (e) => keys.delete(e.code));
   addEventListener('blur', () => keys.clear());
-  addEventListener('pointerdown', () => (lastKind = 'pointer'));
+  addEventListener('pointerdown', (e) => {
+    lastKind = 'pointer';
+    lastTouch = e.pointerType === 'touch';
+  });
   addEventListener('gamepadconnected', (e) => listeners.connect.forEach((fn) => fn(e.gamepad.index)));
   addEventListener('gamepaddisconnected', (e) => {
     pads.delete(e.gamepad.index);
@@ -53,6 +60,10 @@ export function createInput() {
     get lastDevice() {
       return lastDevice;
     },
+    get lastTouch() {
+      return lastTouch;
+    },
+    touch,
     padIndexes() {
       return [...pads.keys()];
     },
@@ -135,12 +146,21 @@ export function createInput() {
         return (map[action] || []).some((b) => api.padPressed(i, b));
       }
       const set = KB[dev];
+      if (!set) return false;
       const keyMap = { next: set.right, prev: set.left, up: set.up, down: set.down };
       return api.anyKeyPressed(keyMap[action] || set[action] || []);
     },
     // Flight controls for one device. invert flips pitch.
     flight(dev, invert) {
       const out = { pitch: 0, roll: 0, yaw: 0, tuck: 0, flare: 0 };
+      if (dev === 'touch') {
+        out.roll = curve(touch.x);
+        out.pitch = curve(touch.y) * (invert ? -1 : 1);
+        out.yaw = touch.yaw;
+        out.tuck = touch.tuck;
+        out.flare = touch.flare;
+        return out;
+      }
       if (dev.startsWith('pad')) {
         const p = pads.get(+dev.slice(3));
         if (!p) return out;

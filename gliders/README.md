@@ -46,6 +46,10 @@ Play it at https://hoai2k.github.io/mini/gliders/.
 | Rudder | LB · RB, right stick | Q / E | , / . |
 | Pause | Menu or View | Esc or P | Esc or P |
 
+On a phone or tablet one player flies by touch: tap Press Start (or a free slot
+on the glider screen), then drag on the left half of the screen to steer (down
+pulls the nose up), hold Tuck or Flare on the right, and tap ⏸ to pause.
+
 On the glider screen each player joins with A (or Space / Enter), then ◀ ▶
 glider, ▲ ▼ colours, Y (F / \ on keyboards) inverts pitch, A ready, B back.
 
@@ -56,7 +60,8 @@ cd gliders/game
 python3 -m http.server 8124        # then open http://localhost:8124/
 node --test test/*.test.mjs        # levels, collision, flight, scoring, gliders
 node scripts/browser-check.mjs     # in Chromium: title → lobby (4 simulated controllers)
-                                   # → level select → play → pause → results; keyboard round
+                                   # → level select → play → pause → results; keyboard round;
+                                   # touch round on a phone-sized screen, blur pauses and mutes
 python3 ../design/source/build_requests.py --check
 python3 ../design/source/build_audio.py --check
 ```

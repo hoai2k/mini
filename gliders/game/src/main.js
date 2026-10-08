@@ -415,6 +415,7 @@ function showScreen(id) {
     const i = Math.max(0, defs.findIndex((d) => d.id === settings.levelId));
     requestAnimationFrame(() => focusEl($(`[data-level="${i}"]`), input.lastKind !== 'pointer'));
   }
+  syncTouch();
 }
 
 // ---------------------------------------------------------------- title
@@ -426,6 +427,7 @@ function startGame(via) {
   if (!state.players.length) {
     if (via?.startsWith?.('pad')) joinDevice(via);
     else if (via === 'keyboard') joinDevice('kb1');
+    else if (via === 'pointer' && touchUI()) joinDevice('touch');
     else if (!input.padIndexes().length) joinDevice('kb1');
   }
   audio.confirm();
@@ -461,7 +463,9 @@ function runMenu(now, pads) {
 
 // ---------------------------------------------------------------- lobby
 const DEVICES = () => [...input.padIndexes().map((i) => 'pad' + i), 'kb1', 'kb2'];
-const deviceLabel = (d) => (d.startsWith('pad') ? `Controller ${+d.slice(3) + 1}` : d === 'kb1' ? 'Keyboard · WASD' : 'Keyboard · arrows');
+const deviceLabel = (d) => (d === 'touch' ? 'Touch' : d.startsWith('pad') ? `Controller ${+d.slice(3) + 1}` : d === 'kb1' ? 'Keyboard · WASD' : 'Keyboard · arrows');
+// A touch screen: menus say "tap" and a tap joins the on-screen controls.
+const touchUI = () => input.lastTouch || matchMedia('(pointer: coarse)').matches;
 
 function joinDevice(dev) {
   if (state.players.length >= MAX_PLAYERS || state.players.some((p) => p.device === dev)) return null;
@@ -512,9 +516,14 @@ function renderSlots() {
     el.className = 'slot' + (p ? ' joined' : '') + (p?.ready ? ' ready' : '');
     el.style.setProperty('--pc', PLAYER_COLORS[i]);
     if (!p) {
+      const tap = touchUI() && !state.players.some((q) => q.device === 'touch');
       el.innerHTML = `<span class="slot-tag">P${i + 1}</span>
-        <div class="slot-empty"><span class="xb xb-a big-a">A</span><strong>Press A to join</strong>
-        <span class="muted">or Space / Enter on a keyboard</span></div>`;
+        <div class="slot-empty"><span class="xb xb-a big-a">A</span><strong>${tap ? 'Tap to join' : 'Press A to join'}</strong>
+        <span class="muted">${tap ? 'or press A on a controller' : 'or Space / Enter on a keyboard'}</span></div>`;
+      if (tap) {
+        el.classList.add('tappable');
+        el.addEventListener('click', () => joinDevice('touch'));
+      }
     } else {
       const g = GLIDERS.find((x) => x.id === p.gliderId);
       const swatches = Array.from({ length: VARIANTS }, (_, v) => `<button class="swatch${v === p.variant ? ' on' : ''}" data-variant="${v}" aria-label="Colours ${v + 1}"></button>`).join('');
@@ -525,7 +534,7 @@ function renderSlots() {
           <div class="slot-latin">${g.latin}</div>
           <div class="slot-blurb">${g.blurb}</div>
           <div class="slot-variants">${swatches}</div>
-          <div class="slot-foot"><span>${p.invert ? '<span class="invert-flag">Inverted</span>' : 'Pull back: nose up'} · <span class="xb xb-y">Y</span></span>
+          <div class="slot-foot"><button class="slot-invert" aria-label="Invert pitch">${p.invert ? '<span class="invert-flag">Inverted</span>' : 'Pull back: nose up'} · <span class="xb xb-y">Y</span></button>
           <button class="slot-ready-btn">${p.ready ? 'Ready!' : 'Ready?'}</button></div>
         </div>`;
       $$('.slot-arrow', el).forEach((b) => b.addEventListener('click', () => cycleGlider(p, +b.dataset.d)));
@@ -536,6 +545,7 @@ function renderSlots() {
         renderSlots();
       }));
       $('.slot-ready-btn', el).addEventListener('click', () => setReady(p, !p.ready));
+      $('.slot-invert', el).addEventListener('click', () => toggleInvert(p));
       // Swatch colours come from the glider's palette for that variant.
       const swatchEls = $$('.swatch', el);
       for (let v = 0; v < VARIANTS; v++) {
@@ -547,6 +557,12 @@ function renderSlots() {
     root.appendChild(el);
   }
   const n = state.players.length;
+  const touchIn = state.players.some((q) => q.device === 'touch');
+  $('#join-kb').textContent = touchUI() ? 'Join with touch' : 'Join with keyboard';
+  const hint = $('#lobby-hint');
+  hint._html ??= hint.innerHTML;
+  hint.innerHTML = touchUI() && !touchIn ? 'Tap a free slot to fly by touch · Controllers: press <span class="xb xb-a">A</span> to join' : hint._html;
+  $('#join-kb').hidden = touchUI() && touchIn;
   $('#lobby-continue').disabled = false;
   $('#lobby-continue').textContent = n ? (n === 1 ? 'Continue · 1 player' : `Continue · ${n} players`) : 'Continue';
 }
@@ -562,6 +578,12 @@ function variantPalette(id, v) {
   return variantPalettes.get(key);
 }
 
+function toggleInvert(p) {
+  p.invert = !p.invert;
+  rememberChoice(p);
+  audio.move();
+  renderSlots();
+}
 function setReady(p, ready) {
   p.ready = ready;
   ready ? audio.confirm() : audio.back();
@@ -569,7 +591,7 @@ function setReady(p, ready) {
   if (ready && state.players.every((q) => q.ready)) lobbyContinue();
 }
 function lobbyContinue() {
-  if (!state.players.length) joinDevice(input.padIndexes().length ? 'pad' + input.padIndexes()[0] : 'kb1');
+  if (!state.players.length) joinDevice(input.padIndexes().length ? 'pad' + input.padIndexes()[0] : touchUI() ? 'touch' : 'kb1');
   for (const p of state.players) p.ready = true;
   setTimeout(() => state.screen === 'lobby' && showScreen('levels'), 250);
 }
@@ -587,12 +609,8 @@ function updateLobby(now) {
     else if (input.devicePressed(dev, 'prev')) cycleGlider(p, -1);
     else if (input.devicePressed(dev, 'up')) cycleVariant(p, -1);
     else if (input.devicePressed(dev, 'down')) cycleVariant(p, 1);
-    else if (input.devicePressed(dev, 'alt')) {
-      p.invert = !p.invert;
-      rememberChoice(p);
-      audio.move();
-      renderSlots();
-    } else if (input.devicePressed(dev, 'ready')) setReady(p, !p.ready);
+    else if (input.devicePressed(dev, 'alt')) toggleInvert(p);
+    else if (input.devicePressed(dev, 'ready')) setReady(p, !p.ready);
     else if (input.devicePressed(dev, 'leave')) {
       if (p.ready) setReady(p, false);
       else leaveSlot(p);
@@ -1038,10 +1056,23 @@ function updateCamera(p, dt) {
   }
   cam.up.copy(c.up);
   cam.lookAt(c.look);
-  if (Math.abs(cam.fov - c.fov) > 0.01) {
-    cam.fov = c.fov;
+  const fov = viewFov(c.fov, cam.aspect, state.players.length === 1);
+  if (Math.abs(cam.fov - fov) > 0.01) {
+    cam.fov = fov;
     cam.updateProjectionMatrix();
   }
+}
+
+// The field of view setting is vertical, tuned for a 16:9 screen. A portrait
+// view keeps at least the width a square view would show (rather than a
+// narrow slot); a lone view wider than 16:9 (a phone held sideways) keeps the
+// width a 16:9 view shows, so the glider and the rock are not shrunk into a
+// stretched fishbowl.
+function viewFov(fov, aspect, solo) {
+  const t = Math.tan(THREE.MathUtils.degToRad(fov) / 2);
+  if (aspect < 1) return Math.min(100, THREE.MathUtils.radToDeg(2 * Math.atan(t / aspect)));
+  if (solo && aspect > 16 / 9) return THREE.MathUtils.radToDeg(2 * Math.atan((t * 16) / 9 / aspect));
+  return fov;
 }
 
 function updatePlay(dt, time) {
@@ -1141,6 +1172,7 @@ function showResults() {
 function pause(reason = '') {
   if (!state.round || state.paused || state.round.phase === 'over') return;
   state.paused = true;
+  releaseTouch();
   $('#pause-reason').textContent = reason;
   audio.silenceFlight();
   openLayer('pause');
@@ -1161,6 +1193,73 @@ function updatePlayInput(now) {
     pause();
   }
 }
+
+// ---------------------------------------------------------------- touch controls
+// One player can fly by touch: a floating stick on the left half (drag down to
+// pull the nose up, as with a controller stick; invert per player in the
+// lobby), tuck and flare buttons on the right, and a pause button.
+const STICK_R = 56;
+const touchEl = $('#touch');
+const stickEl = $('#touch-stick');
+const ringEl = $('.touch-ring', stickEl);
+const knobEl = $('.touch-knob', stickEl);
+const stick = { id: null, x: 0, y: 0 };
+function releaseStick() {
+  stick.id = null;
+  input.touch.x = input.touch.y = 0;
+  ringEl.style.left = ringEl.style.top = knobEl.style.transform = '';
+  stickEl.classList.remove('on');
+}
+function releaseTouch() {
+  releaseStick();
+  input.touch.tuck = input.touch.flare = 0;
+  $$('.touch-btn').forEach((b) => b.classList.remove('on'));
+}
+function syncTouch() {
+  const on = state.screen === 'play' && !!state.round && state.players.some((p) => p.device === 'touch');
+  if (!on) releaseTouch();
+  touchEl.hidden = !on;
+}
+stickEl.addEventListener('pointerdown', (e) => {
+  if (stick.id !== null) return;
+  e.preventDefault();
+  stick.id = e.pointerId;
+  stickEl.setPointerCapture?.(e.pointerId);
+  stick.x = e.clientX;
+  stick.y = e.clientY;
+  const r = stickEl.getBoundingClientRect();
+  ringEl.style.left = e.clientX - r.left + 'px';
+  ringEl.style.top = e.clientY - r.top + 'px';
+  stickEl.classList.add('on');
+});
+stickEl.addEventListener('pointermove', (e) => {
+  if (e.pointerId !== stick.id) return;
+  let dx = e.clientX - stick.x, dy = e.clientY - stick.y;
+  const d = Math.hypot(dx, dy);
+  if (d > STICK_R) {
+    dx *= STICK_R / d;
+    dy *= STICK_R / d;
+  }
+  knobEl.style.transform = `translate(${dx}px, ${dy}px)`;
+  const axis = (v) => (Math.abs(v) < 0.08 ? 0 : clamp((v - Math.sign(v) * 0.08) / 0.92, -1, 1));
+  input.touch.x = axis(dx / STICK_R);
+  input.touch.y = axis(dy / STICK_R);
+});
+for (const type of ['pointerup', 'pointercancel']) stickEl.addEventListener(type, (e) => e.pointerId === stick.id && releaseStick());
+for (const b of $$('.touch-btn')) {
+  const k = b.dataset.touch;
+  b.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    b.setPointerCapture?.(e.pointerId);
+    input.touch[k] = 1;
+    b.classList.add('on');
+  });
+  for (const type of ['pointerup', 'pointercancel']) b.addEventListener(type, () => {
+    input.touch[k] = 0;
+    b.classList.remove('on');
+  });
+}
+touchEl.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // ---------------------------------------------------------------- HUD
 function buildHud() {
@@ -1490,15 +1589,20 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'join-keyboard':
-      if (!joinDevice('kb1')) joinDevice('kb2');
+      if (touchUI()) joinDevice('touch');
+      else if (!joinDevice('kb1')) joinDevice('kb2');
+      break;
+    case 'pause':
+      pause();
       break;
     case 'lobby-continue':
       lobbyContinue();
       break;
   }
 });
-addEventListener('pointerdown', () => {
+addEventListener('pointerdown', (e) => {
   document.body.classList.add('pointer');
+  document.body.classList.toggle('touch-ui', touchUI() || e.pointerType === 'touch');
   $$('.nav-focus').forEach((e) => e.classList.remove('nav-focus'));
 });
 for (const type of ['keydown', 'keyup']) addEventListener(type, (e) => {
@@ -1575,6 +1679,7 @@ function frame(nowMs) {
   requestAnimationFrame(frame);
 }
 
+document.body.classList.toggle('touch-ui', touchUI());
 syncSettingsUI();
 applySettings();
 resize();

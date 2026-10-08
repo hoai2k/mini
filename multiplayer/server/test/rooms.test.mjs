@@ -79,7 +79,12 @@ test("host opens a room, it shows in the lobby, guests relay presence and topics
   const guest = connect(`/room/testgame/${id}?name=Bob`);
   const gHello = await guest.next(m => m.t === "welcome");
   assert.equal(gHello.host, false);
-  assert.deepEqual(gHello.peers[hello.you], { tanks: [{ id: "h1" }] });
+  // The host's state reaches the guest in its welcome, or, if the relay handles
+  // the guest's arrival first, as the broadcast that follows.
+  const hostState = gHello.peers[hello.you] && Object.keys(gHello.peers[hello.you]).length
+    ? gHello.peers[hello.you]
+    : (await guest.next(m => m.t === "p" && m.from === hello.you)).d;
+  assert.deepEqual(hostState, { tanks: [{ id: "h1" }] });
   const joined = await host.next(m => m.t === "join");
   assert.equal(joined.from, gHello.you);
 

@@ -12,6 +12,8 @@
 //     round clock runs, frames stay under budget.
 //  5. Menu pauses, B resumes; End round now shows the results.
 //  6. A one-player keyboard round: Enter starts, Space readies, Enter flies.
+//  7. A phone held sideways: a tap joins P1 on touch, the lobby fits, the
+//     stick and Tuck fly, blur pauses and mutes, Resume and pause by tap.
 //
 // Screenshots go to --shots (default: none). Playwright is found as the
 // `playwright` package, at PLAYWRIGHT_MODULE, or in /opt/node-tools.
@@ -220,6 +222,65 @@ const screen = (page) => page.evaluate(() => window.__gliders.screen);
   (await page.evaluate(() => window.__gliders.paused)) ? ok('Esc pauses') : fail('Esc did not pause');
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors (keyboard)');
   await page.close();
+}
+
+// ---- 7: one player by touch on a phone held sideways; sound and play stop
+// when the window loses focus.
+{
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  page.setDefaultTimeout(300000);
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.addInitScript(() => localStorage.setItem('gliders.settings.v1', JSON.stringify({ quality: 2 })));
+  await page.goto(url + '?dt=0.1');
+  await page.waitForFunction(() => window.__gliders && window.__gliders.screen === 'title');
+  await frames(page, 4);
+  const fingerTap = async (sel) => {
+    const b = await page.locator(sel).first().boundingBox();
+    await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2);
+    await frames(page, 3);
+  };
+  await fingerTap('#press-start');
+  const devs = await page.evaluate(() => window.__gliders.players.map((p) => p.device));
+  devs.join() === 'touch' ? ok('a tap on Press Start joins P1 on touch') : fail('touch start joined: ' + devs);
+  const wide = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight);
+  wide ? ok('the lobby fits the phone without scrolling the page') : fail('the page overflows the phone');
+  await fingerTap('#lobby-continue');
+  await page.waitForFunction(() => window.__gliders.screen === 'levels');
+  await frames(page, 3);
+  await fingerTap('.level-card');
+  await page.waitForFunction(() => window.__gliders.round?.phase === 'play', null, { timeout: 900000 });
+  (await page.isVisible('#touch-stick')) ? ok('touch controls shown in play') : fail('no touch controls');
+  const b = await page.locator('#touch-stick').boundingBox();
+  const cdp = await ctx.newCDPSession(page);
+  const x = b.x + b.width / 2, y = b.y + b.height / 2;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + 50, y: y + 40, id: 1 }] });
+  await frames(page, 3);
+  const tin = await page.evaluate(() => window.__gliders.players[0].input);
+  tin.roll > 0.3 && tin.pitch > 0.2 ? ok(`dragging the stick rolls and pulls up (${tin.roll.toFixed(2)}, ${tin.pitch.toFixed(2)})`) : fail('stick input: ' + JSON.stringify(tin));
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await frames(page, 2);
+  const tuck = await page.locator('.touch-btn.tuck').boundingBox();
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: tuck.x + 30, y: tuck.y + 30, id: 2 }] });
+  await frames(page, 3);
+  const held = await page.evaluate(() => window.__gliders.players[0].input);
+  held.tuck === 1 && held.roll === 0 ? ok('holding Tuck tucks; the released stick centres') : fail('tuck input: ' + JSON.stringify(held));
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await frames(page, 2);
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await frames(page, 2);
+  const away = await page.evaluate(() => ({ paused: window.__gliders.paused, muted: window.__gliders.audio.muted }));
+  away.paused && away.muted ? ok('losing focus pauses and silences the game') : fail('blur: ' + JSON.stringify(away));
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await fingerTap('#pause [data-action="resume"]');
+  (await page.evaluate(() => !window.__gliders.paused)) ? ok('tapping Resume resumes') : fail('Resume tap failed');
+  await fingerTap('#touch-pause');
+  (await page.evaluate(() => window.__gliders.paused)) ? ok('the pause button pauses') : fail('pause button failed');
+  await shot(page, '09-touch-pause');
+  errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors (touch)');
+  await ctx.close();
 }
 
 await browser.close();
