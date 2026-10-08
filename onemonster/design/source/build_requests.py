@@ -687,12 +687,16 @@ REQUESTS = [
         "status": "requested",
         "prompt": STYLE + " A wide wooded landscape like the book's cover: tangled trees and "
         "dense leafy undergrowth at the sides and bottom, distant hills, and a dusty lilac and "
-        "pink sky. A chain of monsters chases a single white envelope across the picture from "
-        "left to right, each one grabbing for it: "
-        + "; ".join(WHAT[m["id"]] for m in MONSTERS)
-        + ". The monsters are small, in the lower third and at the sides. Keep the upper-middle "
-        "half calm and open (plain sky) for the title, and the bottom-right corner quiet for "
-        "buttons. Full-bleed 16:9. " + REF_SCENE.format("cover-golden-book-1974.jpg"),
+        "pink sky. Exactly three monsters, the three on the book's cover, chase a single white "
+        "envelope across the picture from left to right, each one grabbing for it: "
+        + "; ".join(WHAT[k] for k in ("trollusk", "bombanat", "yalapappus"))
+        + ". No other monsters anywhere in the picture: the rest of the story's monsters are a "
+        "surprise. (At most, far off on the horizon and barely perceptible, a cloud that is "
+        "almost shaped like a face, and a pale iceberg; nothing a child would notice at first "
+        "glance, and no other creature at all.) The monsters are small, in the lower third and "
+        "at the sides. Keep the upper-middle half calm and open (plain sky) for the title, and "
+        "the bottom-right corner quiet for buttons. Full-bleed 16:9. "
+        + REF_SCENE.format("cover-golden-book-1974.jpg"),
     },
     {
         "id": "OM-U03",
@@ -1104,6 +1108,9 @@ if DELIVERIES.exists():
 # swaps sheet stays: the game rolls him up with its ball).
 NOT_USED = {f"OM-R{i:02d}" for i in range(1, 8)} | {f"OM-F{i:02d}" for i in range(1, 8)} - {"OM-F06"}
 REDO = {
+    "OM-U02": "The delivered picture shows all seven monsters; the title must show only the "
+    "Trollusk, the Bombanat and the Yalapappus, so the others stay a surprise. Until it "
+    "arrives the game composes a stand-in from the Bombanat's scene and the three's key poses.",
     "OM-P03": "The delivered page draws the mailman twice; every character must appear once.",
 }
 for request in REQUESTS:
