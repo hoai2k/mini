@@ -1665,6 +1665,14 @@ document.addEventListener('click', (e) => {
   else action(el.dataset.action);
 });
 $('#press-start').addEventListener('click', pressStart);
+// A setting's (i): a tap shows or hides its tip (hover does on a mouse); it never changes the setting.
+document.addEventListener('click', (e) => {
+  const tip = e.target.closest && e.target.closest('.info');
+  for (const other of document.querySelectorAll('.info.open')) if (other !== tip) other.classList.remove('open');
+  if (!tip) return;
+  e.preventDefault();
+  tip.classList.toggle('open');
+});
 for (const el of document.querySelectorAll('[data-setting]')) {
   const ev = el.type === 'checkbox' ? 'change' : 'input';
   el.addEventListener(ev, () => {
