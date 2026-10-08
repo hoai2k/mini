@@ -173,12 +173,9 @@
     <section id="settings" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="set-title">
       <div class="panel">
         <h2 id="set-title">Settings</h2>
-        <label class="row choice">Style <select data-nav data-setting="style" aria-describedby="style-note"><option value="0">Shadow puppets</option><option value="1">Water puppets</option></select></label>
-        <p id="style-note" class="muted setting-note">Shadow puppets: backlit cut-paper figures. Water puppets: lacquered wooden puppets wading in a village pond, as in Vietnamese water puppetry (múa rối nước).</p>
-        <label class="row">Difficulty <input type="range" min="0" max="2" step="1" data-nav data-setting="difficulty" aria-describedby="difficulty-note"><output></output></label>
-        <p id="difficulty-note" class="muted setting-note">Easy: plain beats and pairs, no triplets. Medium: as designed. Hard: rests, inside pairs and triplets too. Takes effect when a chapter starts.</p>
-        <label class="row">Number of beats <input type="range" min="3" max="8" step="1" data-nav data-setting="beats" aria-describedby="beats-note"><output></output></label>
-        <p id="beats-note" class="muted setting-note">How long every command and call is: four by default. Fewer is easier to remember, more is harder. Takes effect when a chapter starts.</p>
+        <label class="row choice"><span>Style <span class="info" tabindex="0" data-tip="Shadow puppets: backlit cut-paper figures. Water puppets: lacquered wooden puppets wading in a village pond, as in Vietnamese water puppetry (múa rối nước).">i<span id="style-note" class="visually-hidden">Shadow puppets: backlit cut-paper figures. Water puppets: lacquered wooden puppets wading in a village pond, as in Vietnamese water puppetry (múa rối nước).</span></span></span> <select data-nav data-setting="style" aria-describedby="style-note"><option value="0">Shadow puppets</option><option value="1">Water puppets</option></select></label>
+        <label class="row"><span>Difficulty <span class="info" tabindex="0" data-tip="Easy: plain beats and pairs, no triplets. Medium: as designed. Hard: rests, inside pairs and triplets too. Takes effect when a chapter starts.">i<span id="difficulty-note" class="visually-hidden">Easy: plain beats and pairs, no triplets. Medium: as designed. Hard: rests, inside pairs and triplets too. Takes effect when a chapter starts.</span></span></span> <input type="range" min="0" max="2" step="1" data-nav data-setting="difficulty" aria-describedby="difficulty-note"><output></output></label>
+        <label class="row"><span>Number of beats <span class="info" tabindex="0" data-tip="How long every command and call is: four by default. Fewer is easier to remember, more is harder. Takes effect when a chapter starts.">i<span id="beats-note" class="visually-hidden">How long every command and call is: four by default. Fewer is easier to remember, more is harder. Takes effect when a chapter starts.</span></span></span> <input type="range" min="3" max="8" step="1" data-nav data-setting="beats" aria-describedby="beats-note"><output></output></label>
         <label class="row">Volume <input type="range" min="0" max="100" step="5" data-nav data-setting="volume"><output></output></label>
         <label class="row">Army drums <input type="range" min="0" max="100" step="5" data-nav data-setting="echo"><output></output></label>
         <label class="row">Music <input type="range" min="0" max="100" step="5" data-nav data-setting="music"><output></output></label>
@@ -187,8 +184,7 @@
         <label class="row check">Show hints <input type="checkbox" data-nav data-setting="hints"></label>
         <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
         <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
-        <label class="row">Drumsticks <input type="range" min="0" max="2" step="1" data-nav data-setting="sticks" aria-describedby="sticks-note"><output></output></label>
-        <p id="sticks-note" class="muted setting-note">The sisters’ sticks seen close up over the drum, in the battle chapters and in Drum Practice. Carved: a carved beater and a slim stick. Folk: a pestle-like pole and a bamboo stick. Ceremonial: a lacquered beater and a horn-tipped stick.</p>
+        <label class="row choice"><span>Drumsticks <span class="info up" tabindex="0" data-tip="The sisters’ sticks seen close up over the drum, in the battle chapters and in Drum Practice. Carved: a carved beater and a slim stick. Folk: a pestle-like pole and a bamboo stick. Ceremonial: a lacquered beater and a horn-tipped stick.">i<span id="sticks-note" class="visually-hidden">The sisters’ sticks seen close up over the drum, in the battle chapters and in Drum Practice. Carved: a carved beater and a slim stick. Folk: a pestle-like pole and a bamboo stick. Ceremonial: a lacquered beater and a horn-tipped stick.</span></span></span> <select data-nav data-setting="sticks" aria-describedby="sticks-note"><option value="0">Carved</option><option value="1">Folk</option><option value="2">Ceremonial</option></select></label>
         <button class="menu-btn" data-nav data-open="credits">Credits</button>
         <button class="menu-btn" data-nav data-action="close">Done</button>
       </div>
@@ -198,12 +194,12 @@
       <div class="panel wide">
         <h2 id="credits-title">Credits</h2>
         <div class="scroll" tabindex="0">
-          <p class="credits-lead">Inspired by the novel <em>Bronze Drum</em> written by Phong Nguyen (2022)</p>
           <dl class="credits">
+            <dt>Story and inspiration</dt><dd>The novel <em>Bronze Drum</em>, written by Phong Nguyen (2022)</dd>
             <dt>Principal Game Designer</dt><dd>Hoai Nguyen</dd>
             <dt>Music</dt><dd>Emulated traditional Vietnamese folk by Hoai Nguyen, made using Suno</dd>
             <dt>Sound effects and ambience</dt><dd>Made with ElevenLabs</dd>
-            <dt>Art direction</dt><dd>Backlit hand-cut paper, and the friezes on Đông Sơn bronze drums</dd>
+            <dt>Artwork</dt><dd>Made with ChatGPT ImageGen</dd>
             <dt>Code</dt><dd>Written with Claude Code</dd>
             <dt>Fonts</dt><dd>Cormorant Garamond by Christian Thalmann; Be Vietnam Pro by Lâm Bảo, Tony Le and Việt Anh Nguyễn. Both under the SIL Open Font License.</dd>
             <dt>History</dt><dd>The uprising of the Trưng sisters against the Han, <span class="nowrap">40–43 CE</span></dd>

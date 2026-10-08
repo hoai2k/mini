@@ -167,7 +167,6 @@ body[data-style="water"].paper-panels .panel { background: #1C1412 padding-box; 
 .panel .menu-btn:focus-visible, .panel .menu-btn.nav-focus { outline-offset: 2px; }
 .scroll { overflow-y: auto; max-height: 64vh; padding-right: 8px; line-height: 1.5; }
 .scroll p { margin: 0 0 10px; }
-.credits-lead { font: italic 600 20px/1.35 var(--serif); text-align: center; }
 .credits { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 8px 18px; margin: 14px 0 6px; }
 .credits dt { font-weight: 700; color: var(--bronze-light); text-align: right; }
 .credits dd { margin: 0; }
@@ -187,13 +186,30 @@ body.paper-panels .credits dt { color: var(--lacquer); }
 /* A rest: a short dash in the place of the silent stroke. */
 .g-rest { display: inline-block; width: 12px; height: 3px; margin: 0 2px; vertical-align: 3px; background: currentColor; opacity: 0.55; border-radius: 2px; }
 .g-rest.sub { width: 8px; margin: 0 1px; }
-.setting-note { margin: -4px 0 6px; font-size: 13px; }
+.row > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+/* A setting's explanation: a subtle (i), its tip shown on hover, focus or a tap. */
+.info {
+  display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid currentColor; color: color-mix(in srgb, currentColor 45%, transparent); font: italic 700 11px/1 var(--serif); cursor: help; flex: none;
+}
+.info:hover, .info:focus-visible, .info.open { color: inherit; outline: none; }
+.row:has(.info:hover, .info:focus-visible, .info.open) { z-index: 30; }
+.info::after {
+  content: attr(data-tip); position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30;
+  padding: 8px 10px; border-radius: 4px; background: var(--ink); color: var(--paper); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  font: 500 13px/1.4 var(--sans); font-style: normal; text-align: left; white-space: normal;
+  opacity: 0; visibility: hidden; transition: opacity 0.15s; pointer-events: none;
+}
+.info:hover::after, .info:focus-visible::after, .info.open::after { opacity: 1; visibility: visible; }
+body[data-style="water"] .info::after { background: var(--paper); color: var(--ink); }
+/* Near the bottom of the panel the tip opens upward. */
+.info.up::after { top: auto; bottom: calc(100% + 6px); }
 .group { display: inline-flex; gap: 2px; padding-bottom: 3px; border-bottom: 1.5px solid var(--ink); vertical-align: -3px; position: relative; }
 .group.g3::after { content: "3"; position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); font-size: 10px; }
 .cmd-table td.pat { white-space: nowrap; }
 .pad-diagram { color: var(--ink); background: var(--paper-shade); padding: 8px; }
 .pad-diagram svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
-.row { display: grid; grid-template-columns: 1fr 160px 48px; align-items: center; gap: 10px; font-weight: 600; }
+.row { position: relative; display: grid; grid-template-columns: 1fr 140px minmax(48px, auto); align-items: center; gap: 10px; font-weight: 600; }
 .row.check { grid-template-columns: 1fr auto; }
 .row.choice { grid-template-columns: 1fr auto; }
 .row select {
