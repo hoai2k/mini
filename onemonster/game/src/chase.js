@@ -259,7 +259,7 @@ export function aiHolder(c, brain, skill, dt) {
   const nearCover = c.cover.slice().sort((a, b) => len(a.x - h.x, a.y - h.y) - len(b.x - h.x, b.y - h.y))[0];
   if (brain.goal && brain.t > brain.until) brain.goal = null;
   if (!brain.goal) {
-    if (nearCover && h.canHide && (h.st < 0.6 || (d > 650 && brain.t > 4)) && d > 380 && len(nearCover.x - s.x, nearCover.y - s.y) > 420) {
+    if (nearCover && h.canHide && (h.st < 0.6 || d > 650) && d > 380 && len(nearCover.x - s.x, nearCover.y - s.y) > 420) {
       brain.goal = { x: nearCover.x, y: nearCover.y, hide: true }; brain.until = brain.t + 2 + c.rng() * 2;
     } else {
       // Run away, bending toward open space and away from walls.
