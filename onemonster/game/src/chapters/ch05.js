@@ -27,13 +27,14 @@ const persp = (y) => 0.6 + 0.4 * Math.max(0, Math.min(1, (y - 400) / 640));
 
 // Tuning (ground units, seconds, fractions of a full tummy).
 export const TUNE = {
-  speed: 330, sprint: 520, accel: 1500,
+  speed: 250, sprint: 410, accel: 1100,
   bloatedAt: 0.72, bloatedSlow: 0.62, burpSlow: 0.35, burpTime: 1.6, burpTo: 0.55,
-  radius: 190, sprintRadius: 255, spinUp: 3.2, spinDown: 5,
-  water: 0.012, sprintWater: 0.024, // fullness per second of sucking, just sea water
-  liftAfter: 0.25, liftTime: 0.55,
-  bottleSpeed: 130, bottleAccel: 420, duck: 0.8, duckCd: 2.5, bottlePull: 0.85,
-  junk: 16,
+  radius: 190, sprintRadius: 255, spinUp: 1.8, spinDown: 4,
+  water: 0.018, sprintWater: 0.03, // fullness per second of sucking, just sea water
+  capture: 40, liftAt: 0.75, liftAfter: 0.45, liftTime: 0.55,
+  footK: 16, footC: 6, // the spout's foot on a spring: it lags and swings wide
+  bottleSpeed: 140, bottleAccel: 480, duck: 0.8, duckCd: 2.5, bottlePull: 0.5, suckSlow: 0.6,
+  junk: 22,
 };
 
 // Flotsam: [prop item, height on screen at the front, weight in the tummy].
@@ -73,13 +74,18 @@ export default function create(env) {
     const kind = KINDS[Math.floor(rng() * KINDS.length)];
     items.push({ kind, x, y, vx: 0, vy: 0, rot: (rng() - 0.5) * 0.6, spinV: (rng() - 0.5) * 0.8, state: 'float', spin: 0, lt: 0, ph: rng() * 6 });
   }
-  for (let i = 0; i < TUNE.junk; i++) {
+  // A few bits drift along with the bottle, so it hides among them.
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + rng(), r = 110 + rng() * 120;
+    spawnJunk(bottle.x + Math.cos(a) * r, clamp(bottle.y + Math.sin(a) * r * K, SEA.y0 + 10, SEA.y1 - 10));
+  }
+  for (let i = 6; i < TUNE.junk; i++) {
     let x, y, n = 0;
     do {
       y = lerp(SEA.y0 + 20, SEA.y1 - 10, rng());
       x = lerp(SEA.x0 + 30, seaX1(y) - 30, rng());
       n++;
-    } while (n < 20 && (gdist(x, y, bottle.x, bottle.y) < 200 || gdist(x, y, p.x, p.y) < 260));
+    } while (n < 20 && (gdist(x, y, bottle.x, bottle.y) < 120 || gdist(x, y, p.x, p.y) < 260));
     spawnJunk(x, y);
   }
 
@@ -113,12 +119,13 @@ export default function create(env) {
       let top = sprint ? TUNE.sprint : TUNE.speed;
       if (self.full > TUNE.bloatedAt) top *= TUNE.bloatedSlow;
       if (burpT > 0) top *= TUNE.burpSlow;
+      top *= lerp(1, TUNE.suckSlow, power);
       const ix = clamp(inS.x || 0, -1, 1), iy = clamp(inS.y || 0, -1, 1);
       const il = Math.hypot(ix, iy) > 1 ? Math.hypot(ix, iy) : 1;
       steer(p, (ix / il) * top, (iy / il) * top, TUNE.accel, dt);
       move(p, dt, true);
       // The foot follows on a spring, so it swings wide on turns.
-      spring(foot, p.x, p.y, 38, 9, dt);
+      spring(foot, p.x, p.y, TUNE.footK, TUNE.footC, dt);
       const mx0 = p.x, my0 = p.y - lift(p.y) * 0.5;
       spring(mid, mx0, my0, 22, 7, dt);
 
@@ -275,7 +282,7 @@ export default function create(env) {
     const tan = power * k * (60 + 200 * f);
     o.vx += (nx * rad - ny * tan - o.vx) * Math.min(1, dt * 8);
     o.vy += (ny * rad + nx * tan - o.vy) * Math.min(1, dt * 8);
-    if (d < 36 && power > 0.6) o.spin += dt; else o.spin = Math.max(0, o.spin - dt * 0.5);
+    if (d < TUNE.capture && power > TUNE.liftAt) o.spin += dt; else o.spin = Math.max(0, o.spin - dt * 0.5);
     return o.spin >= TUNE.liftAfter;
   }
 
@@ -336,12 +343,12 @@ export default function create(env) {
       if (b.duck <= 0) { env.sfx('bubble'); splashes.push({ x: b.x, y: b.y, t: 0, k: 0.6 }); }
     }
     if (inp?.actionPressed && b.duck <= 0 && b.cd <= 0) {
-      b.duck = duckTime; b.cd = duckTime + duckCd; b.spin = 0;
+      b.duck = duckTime; b.cd = duckCd; b.spin = 0;
       env.sfx('splash');
       splashes.push({ x: b.x, y: b.y, t: 0, k: 0.8 });
       if (power > 0.3 && gdist(b.x, b.y, foot.x, foot.y) < radius() * 1.1) fx.say('Ducked!', b.x, b.y - 110);
     }
-    const top = (TUNE.bottleSpeed + (hg ? 20 : 0)) * (b.duck > 0 ? 0.5 : 1);
+    const top = (TUNE.bottleSpeed + (hg ? 20 : 0)) * (b.duck > 0 ? 0.9 : 1);
     const ix = clamp(inp?.x || 0, -1, 1), iy = clamp(inp?.y || 0, -1, 1);
     const il = Math.max(1, Math.hypot(ix, iy));
     const [cx, cy] = current(b.x, b.y);
@@ -399,8 +406,7 @@ export default function create(env) {
   function mouth() {
     const [mx, my] = MOUTH[cloud.anim] || MOUTH.suck;
     const sz = art.creatureSize(cloud);
-    const w = sz.w * (cloud.sizeK || 1) / (cloud.sizeK || 1); // creatureSize already scales by sizeK
-    return { x: cloud.x + (mx - 0.5) * w * cloud.facing, y: cloud.y + (my - 0.5) * sz.h };
+    return { x: cloud.x + (mx - 0.5) * sz.w * cloud.facing, y: cloud.y + (my - 0.5) * sz.h };
   }
   function spoutEnd(M) {
     const u = 0.4 + 0.6 * power;
@@ -542,7 +548,7 @@ export default function create(env) {
       if (b.cd > 0 && env.versus) {
         // The holder sees when it can duck again.
         g.save(); g.strokeStyle = 'rgba(40,25,20,0.5)'; g.lineWidth = 5;
-        g.beginPath(); g.arc(b.x, y - 110 * pk, 14, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - b.cd / (duckTime + duckCd))); g.stroke(); g.restore();
+        g.beginPath(); g.arc(b.x, y - 110 * pk, 14, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - b.cd / duckCd)); g.stroke(); g.restore();
       }
     }
   }

@@ -18,7 +18,7 @@ import { marksFor } from './index.js';
 export const TUNE = {
   time: 45,
   ferg: {
-    radius: 105, accel: 175, drag: 0.55, maxSpeed: 165,
+    radius: 105, accel: 150, drag: 0.55, maxSpeed: 140,
     huffAccelK: 0.45, rideK: 2.6, rideAccelK: 0.3,
     furyTime: 1.5, furyTimeGentle: 1.15, minFury: 0.15,
     chargeMin: 430, chargeAdd: 520, chargeDur: 0.5, chargeDurAdd: 0.35,
@@ -26,13 +26,14 @@ export const TUNE = {
   },
   peg: {
     radius: 55, cruise: 46, cruiseGentleS: 40, cruiseGentleH: 52, turn: 1.5,
-    steamImpulse: 270, steamDecay: 2.2, steamCd: 3.2, steamCdGentle: 2.6, puffed: 2, puffedCruise: 14,
-    currentK: 0.5,
+    steamImpulse: 320, steamDecay: 2.2, steamCd: 3.2, steamCdGentle: 2.6, puffed: 2, puffedCruise: 14,
+    currentK: 0.35,
   },
   hitSpeed: 240, // a charge must still be going this fast to strike
+  hitReach: 140, // centre to centre, for a strike
 };
 
-const HARBOUR = { x: 1320, y: 305, r: 100 };
+const HARBOUR = { x: 1320, y: 305, r: 100, shallow: 250 }; // too shallow for an iceberg inside `shallow`
 const BOUNDS = { x0: 170, x1: 1765, y0: 265, y1: 1035 };
 // Rocks and shore from the scene, as circles (x, y, r).
 const ROCKS = [
@@ -44,7 +45,7 @@ const ROCKS = [
 const LANES = [
   { x0: 360, y0: 820, x1: 1560, y1: 700, w: 115, s: 80 },
   { x0: 1600, y0: 565, x1: 520, y1: 470, w: 110, s: 75 },
-  { x0: 430, y0: 355, x1: 1160, y1: 300, w: 100, s: 85 },
+  { x0: 420, y0: 365, x1: 980, y1: 320, w: 100, s: 85 },
 ].map((l) => {
   const dx = l.x1 - l.x0, dy = l.y1 - l.y0, len = Math.hypot(dx, dy);
   return { ...l, len, ux: dx / len, uy: dy / len, ang: Math.atan2(dy, dx) };
@@ -127,7 +128,7 @@ export default function create(env) {
     { x: 1000 + side * 160 + jit(), y: 470 + jit() * 0.3 },
     { x: HARBOUR.x, y: HARBOUR.y },
   ];
-  const brain = { wp: 0, seenCharge: 0, dodgeAt: -1, dodgeDir: null };
+  const brain = { wp: 0, seenCharge: 0, dodgeAt: -1, dodgeDir: null, side: 1, sideT: 0 };
 
   const rowboats = ROWS.map((r, i) => spawnRow(r, i, i === 2 ? 6 : rng() * 2));
   function spawnRow(r, i, wait) {
@@ -278,6 +279,14 @@ export default function create(env) {
       ferg.x += (ferg.vx + cur.x * ck) * dt;
       ferg.y += (ferg.vy + cur.y * ck) * dt;
       collide(ferg, F.radius, 0.3);
+      // The harbour shallows push the iceberg back out.
+      const hx = ferg.x - HARBOUR.x, hy = ferg.y - HARBOUR.y, hd = Math.hypot(hx, hy) || 1;
+      if (hd < HARBOUR.shallow) {
+        const k2 = (HARBOUR.shallow - hd) * 4 * dt;
+        ferg.x += (hx / hd) * k2; ferg.y += (hy / hd) * k2;
+        const vn = ferg.vx * hx / hd + ferg.vy * hy / hd;
+        if (vn < 0) { ferg.vx -= vn * hx / hd * 0.5; ferg.vy -= vn * hy / hd * 0.5; }
+      }
     }
     if (ferg.mode !== 'charge' && ferg.mode !== 'crash' && sm > 0.3 && Math.abs(sx) > 0.2 && ferg.mode !== 'huff') fc.facing = Math.sign(sx);
     if (ferg.mode === 'huff' && Math.abs(ferg.aimX) > 0.2) fc.facing = Math.sign(ferg.aimX);
@@ -291,12 +300,33 @@ export default function create(env) {
     let dx = wp.x - peg.x, dy = wp.y - peg.y;
     let d = Math.hypot(dx, dy) || 1;
     dx /= d; dy /= d;
-    // Keep away from the iceberg, more when it is huffing; warier as time goes on.
+    // Keep clear of the iceberg, more when it is huffing; warier as time goes on.
+    // Ahead of the boat it is rounded on the side with more sea; behind, outrun.
     const fx_ = peg.x - ferg.x, fy_ = peg.y - ferg.y, fd = Math.hypot(fx_, fy_) || 1;
-    const R = (ferg.mode === 'huff' ? 470 : 300) + elapsed * 3 * env.skill;
-    if (fd < R && ferg.mode !== 'recover' && ferg.mode !== 'dazed') {
-      const w = (1 - fd / R) * (ferg.mode === 'huff' ? 2.2 : 1.2) * (0.5 + env.skill);
-      dx += (fx_ / fd) * w; dy += (fy_ / fd) * w;
+    const huffing = ferg.mode === 'huff';
+    const R = (huffing ? 460 : 280) + elapsed * 3 * env.skill;
+    const calm = ferg.mode === 'recover' || ferg.mode === 'dazed';
+    brain.sideT -= dt;
+    if (fd < R && !calm) {
+      let w = (1 - fd / R) * (huffing ? 2 : 1.1) * (0.5 + env.skill);
+      if (Math.hypot(peg.x - HARBOUR.x, peg.y - HARBOUR.y) < 300) w *= 0.3; // dash for it
+      const ahead = (dx * -fx_ + dy * -fy_) / fd;
+      if (ahead > 0.1) {
+        const tx = -fy_ / fd, ty = fx_ / fd;
+        if (!(brain.sideT > 0)) {
+          const room = (q) => Math.min(q.x - BOUNDS.x0, BOUNDS.x1 - q.x, q.y - BOUNDS.y0, BOUNDS.y1 - q.y) - (ROCKS.some(([x, y, r]) => Math.hypot(q.x - x, q.y - y) < r + 70) ? 300 : 0);
+          brain.side = room({ x: peg.x + tx * 220, y: peg.y + ty * 220 }) >= room({ x: peg.x - tx * 220, y: peg.y - ty * 220 }) ? 1 : -1;
+          brain.sideT = 2;
+        }
+        dx += tx * brain.side * w * 1.6 + (fx_ / fd) * w * 0.4;
+        dy += ty * brain.side * w * 1.6 + (fy_ / fd) * w * 0.4;
+      } else {
+        dx += (fx_ / fd) * w; dy += (fy_ / fd) * w;
+      }
+      // Huffing close by: steam clear before it charges (that spends the steam).
+      if (huffing && fd < 330 && peg.steamCd <= 0 && rng() < dt * (0.6 + 2.4 * env.skill) * (0.4 + ferg.fury)) {
+        brain.dodgeAt = t; brain.dodgeDir = { x: fx_ / fd, y: fy_ / fd };
+      }
     }
     // Keep off the rocks and the edges.
     for (const [x, y, r] of ROCKS) {
@@ -312,7 +342,7 @@ export default function create(env) {
       brain.seenCharge = ferg.charges;
       const p = clamp(0.25 + 0.6 * env.skill + (env.gentle[1] ? 0.15 : 0) + 0.1 * (elapsed / total), 0, 0.95);
       if (rng() < p) {
-        brain.dodgeAt = t + 0.28 - 0.18 * env.skill;
+        brain.dodgeAt = t + 0.25 - 0.2 * env.skill;
         // Sideways from the line of the charge, on the side the boat is already.
         const cr = ferg.cdx * fy_ - ferg.cdy * fx_;
         const s = cr >= 0 ? 1 : -1;
@@ -324,6 +354,11 @@ export default function create(env) {
       if (peg.steamCd <= 0) action = true;
       if (t > brain.dodgeAt + 0.6 || peg.steamCd > 0.5) brain.dodgeDir = null;
     }
+    // Allow for the current (steer a little into it).
+    d = Math.hypot(dx, dy) || 1;
+    const cur = currentAt(peg.x, peg.y);
+    dx = (dx / d) * cruise - cur.x * P.currentK;
+    dy = (dy / d) * cruise - cur.y * P.currentK;
     d = Math.hypot(dx, dy) || 1;
     return { x: dx / d, y: dy / d, action, actionPressed: action, actionReleased: false, sprint: false };
   }
@@ -459,7 +494,8 @@ export default function create(env) {
       const dx = peg.x - ferg.x, dy = peg.y - ferg.y, d = Math.hypot(dx, dy) || 1;
       if (d < F.radius + P.radius) {
         const sp = Math.hypot(ferg.vx, ferg.vy);
-        if (ferg.mode === 'charge' && sp >= TUNE.hitSpeed) strike();
+        if (ferg.mode === 'charge' && sp >= TUNE.hitSpeed && d < TUNE.hitReach) strike();
+        else if (ferg.mode === 'charge' && sp >= TUNE.hitSpeed) { /* a near thing: keep charging */ }
         else {
           const nx = dx / d, ny = dy / d, push = F.radius + P.radius - d;
           peg.x += nx * push; peg.y += ny * push;
@@ -592,6 +628,11 @@ export default function create(env) {
   }
 
   function drawHarbour(g, tt) {
+    g.save();
+    g.globalAlpha = 0.14;
+    g.fillStyle = '#bff0e6';
+    g.beginPath(); g.ellipse(HARBOUR.x, HARBOUR.y, HARBOUR.shallow, HARBOUR.shallow * 0.55, 0, 0, Math.PI * 2); g.fill();
+    g.restore();
     const p = 1 + Math.sin(tt * 3) * 0.06;
     g.save();
     g.translate(HARBOUR.x, HARBOUR.y);
