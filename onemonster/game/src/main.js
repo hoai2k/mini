@@ -269,7 +269,8 @@ async function showCard(ci) {
   const c = chapterOf(ci);
   const M = MONSTERS[c.snatcher];
   S.factory = null;
-  const keys = [`${c.snatcher}.poses`, c.scene, `props.${c.props}`, 'portraits/' + c.snatcher, 'cast', 'ui/letter', 'ui/postmark'];
+  const keys = [`${c.snatcher}.poses`, c.scene, 'portraits/' + c.snatcher, 'cast', 'ui/letter', 'ui/postmark', 'yalapappus.swaps',
+    ...['trollusk', 'bombanat', 'grumley', 'iceferg', 'typhoonigator', 'yalapappus', 'grithix'].map((p) => `props.${p}`)];
   if (MONSTERS[c.holder]) keys.push(`${c.holder}.poses`);
   art.preload(keys);
   loadChapter(c.file).then((f) => { if (S.ci === ci) S.factory = f; });
@@ -309,19 +310,20 @@ function fillList(sel, lines) {
 // The picture behind the card and the celebration: the holder with the
 // letter, and the snatcher eyeing it (or celebrating).
 function buildTableau(c, mood) {
-  const sn = art.makeCreature(c.snatcher, 1450, 820);
+  // The card and the celebration panels sit low: the creatures stand above them.
+  const sn = art.makeCreature(c.snatcher, 1480, 560);
   sn.facing = -1;
   art.setAnim(sn, mood === 'eye' ? 'eye' : 'celebrate');
-  sn.sizeK = 1.5;
+  sn.sizeK = 1.2;
   let ho = null;
   if (MONSTERS[c.holder]) {
-    ho = art.makeCreature(c.holder, 520, 820);
+    ho = art.makeCreature(c.holder, 460, 560);
     const first = Object.keys(MONSTERS[c.holder].anims)[0];
     art.setAnim(ho, mood === 'kept' ? 'celebrate' : first);
-    ho.sizeK = 1.3;
+    ho.sizeK = 1.1;
   }
-  if (mood === 'celebrate') { sn.x = W / 2; sn.facing = 1; sn.sizeK = 1.8; ho = null; }
-  if (mood === 'kept') { sn.alpha = 0.0; if (ho) { ho.x = W / 2; ho.sizeK = 1.7; } }
+  if (mood === 'celebrate') { sn.x = 330; sn.y = 1000; sn.facing = 1; sn.sizeK = 1.7; ho = null; }
+  if (mood === 'kept') { sn.alpha = 0.0; if (ho) { ho.x = 330; ho.y = 1000; ho.sizeK = 1.6; } }
   S.tableau = { c, sn, ho, mood };
 }
 
@@ -336,19 +338,19 @@ function drawTableau(t, dt) {
   // The letter, floating where it is.
   const lt = art.image('ui/letter');
   if (lt) {
-    const lx = mood === 'celebrate' ? W / 2 + 160 : mood === 'kept' ? W / 2 + 140 : 640;
-    const ly = (mood === 'eye' ? 560 : 420) + (settings.reduceMotion ? 0 : Math.sin(t * 2) * 10);
+    const lx = mood === 'eye' ? 680 : 560;
+    const ly = (mood === 'eye' ? 300 : 520) + (settings.reduceMotion ? 0 : Math.sin(t * 2) * 10);
     g.save(); g.translate(lx, ly); g.rotate(Math.sin(t * 1.3) * 0.1); g.drawImage(lt, -60, -60, 120, 120); g.restore();
   }
 }
 
 function drawHolderThing(c, t) {
   if (c.holder === 'lookouts') {
-    art.drawSprite(g, art.prop('trollusk', 7), 560, 860, { height: 380 });
+    art.drawSprite(g, art.prop('trollusk', 7), 520, 600, { height: 360 });
   } else if (c.holder === 'peg') {
-    art.drawSprite(g, art.prop('iceferg', 1), 560, 760 + Math.sin(t * 1.5) * 8, { height: 380, ay: 0.5 });
+    art.drawSprite(g, art.prop('iceferg', 1), 520, 380 + Math.sin(t * 1.5) * 8, { height: 380, ay: 0.5 });
   } else if (c.holder === 'bottle') {
-    art.drawSprite(g, art.prop('typhoonigator', 1), 560, 760 + Math.sin(t * 1.8) * 12, { height: 200, ay: 0.5, rot: Math.sin(t) * 0.2 });
+    art.drawSprite(g, art.prop('typhoonigator', 1), 520, 420 + Math.sin(t * 1.8) * 12, { height: 200, ay: 0.5, rot: Math.sin(t) * 0.2 });
   }
 }
 

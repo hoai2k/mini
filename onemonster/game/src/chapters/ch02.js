@@ -93,7 +93,19 @@ export function chaseChapter(env, opts) {
         ...obstacles.map((o) => ({ y: o.y + o.ry, draw: () => o.draw?.(g) })),
         ...extras.map((e) => ({ y: e.y, draw: () => e.draw(g, tt) })),
         { y: h.y, draw: () => {
-          if (h.hidden) return; // hidden in the bush: nobody sees him
+          if (h.hidden) {
+            // Hidden in the bush. Alone against the computer, his hat pops up
+            // over it now and then: a fair clue for young players. In versus
+            // nobody sees him.
+            if (env.versus || (tt % 3.2) > 0.7) return;
+            hc.z = 0;
+            const z0 = hc.y;
+            hc.y = h.y - (h.inCover?.h || 150) * 0.55;
+            art.setAnim(hc, 'duck');
+            art.drawCreature(g, hc, tt, { reduceMotion: env.reduceMotion, shadow: false });
+            hc.y = z0;
+            return;
+          }
           staminaRing(g, h, h.x, h.y, 50, '#f2c53d');
           art.drawCreature(g, hc, tt, { reduceMotion: env.reduceMotion });
         } },
