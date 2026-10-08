@@ -195,6 +195,14 @@ body.paper-panels .credits dt { color: var(--lacquer); }
 .pad-diagram svg { width: 100%; height: auto; display: block; font-family: var(--sans); }
 .row { display: grid; grid-template-columns: 1fr 160px 48px; align-items: center; gap: 10px; font-weight: 600; }
 .row.check { grid-template-columns: 1fr auto; }
+.row.choice { grid-template-columns: 1fr auto; }
+.row select {
+  font: 600 15px var(--sans); color: var(--ink); background: var(--paper); border: 2px solid var(--bronze);
+  border-radius: 4px; padding: 5px 30px 5px 10px; cursor: pointer; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--lacquer) 50%), linear-gradient(135deg, var(--lacquer) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px; background-repeat: no-repeat;
+}
+.row select:focus-visible, .row select.nav-focus { outline: 3px solid var(--focus); outline-offset: 2px; }
 .row input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--lacquer); }
 .row input[type="range"] { accent-color: var(--lacquer); }
 .row output { text-align: right; font-variant-numeric: tabular-nums; }

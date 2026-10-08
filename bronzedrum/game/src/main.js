@@ -84,6 +84,7 @@ function applySettings() {
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
     if (el.type === 'checkbox') el.checked = settings[k];
+    else if (el.tagName === 'SELECT') el.value = String(settings[k]);
     else {
       el.value = settings[k];
       el.nextElementSibling.textContent = SETTING_NAMES[k] ? SETTING_NAMES[k][settings[k]] : settings[k];
@@ -174,6 +175,8 @@ function move(dir) {
     cur.dispatchEvent(new Event('input', { bubbles: true }));
     return;
   }
+  // A dropdown: left and right step through its choices (a controller cannot open it).
+  if (cur && cur.tagName === 'SELECT' && (dir === 'left' || dir === 'right')) return cycleSelect(cur, dir === 'left' ? -1 : 1);
   if (dir === 'down' || dir === 'up') {
     const scroller = root.querySelector('.scroll');
     if (scroller && cur && cur.dataset.action === 'close' && dir === 'up' && scroller.scrollTop > 0) {
@@ -215,8 +218,16 @@ function move(dir) {
   }
 }
 
+/** The next (or previous) choice of a dropdown, wrapping round. */
+function cycleSelect(el, step) {
+  const n = el.options.length;
+  el.selectedIndex = (el.selectedIndex + step + n) % n;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 function activate(el) {
   if (!el) return;
+  if (el.tagName === 'SELECT') return cycleSelect(el, 1);
   if (el.type === 'checkbox') {
     el.checked = !el.checked;
     el.dispatchEvent(new Event('change', { bubbles: true }));
