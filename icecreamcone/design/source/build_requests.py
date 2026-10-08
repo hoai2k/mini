@@ -426,7 +426,7 @@ REQUESTS.append({
     "used": "Scoop Stack, once the stack grows tall: the camera pulls back over it, so the "
     "seaside shrinks with the Coot instead of the Coot shrinking on a fixed backdrop.",
     "standin": "The delivered scene stays fixed and only the Coot and its scoops shrink.",
-    "status": "requested",
+    "status": "delivered",
     "ref": "cover-ice-cream-cone-coot.jpg",
     "prompt": STYLE + " " + SCENE + "The same sunny seaside promenade as the existing scene ("
     + asset("assets/scenes/coot.webp") + "), seen from twice as far away: extend that picture "

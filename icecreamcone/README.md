@@ -16,11 +16,13 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 - [`design/image-requests.md`](design/image-requests.md): the image requests,
   generated from [`design/source/build_requests.py`](design/source/build_requests.py),
   which also writes `game/src/asset-list.js`. Edit the data there and rerun it.
-  All 39 images are delivered in [`game/assets/`](game/assets/). The first
+  All 39 active image requests are delivered in [`game/assets/`](game/assets/). The first
   25 images have prompts and checksums in
   [`design/image-deliveries.json`](design/image-deliveries.json); the 14
   gameplay sprites and the medal sheet (no longer used) are recorded with their grid layouts in
   [`design/image-deliveries-round-2.json`](design/image-deliveries-round-2.json).
+  The expanded seaside for Scoop Stack is recorded in
+  [`design/image-deliveries-wide.json`](design/image-deliveries-wide.json).
   New image drops go in [`intake/`](intake/README.md).
 - [`reference/`](reference/README.md): photos of the book's pages and notes on
   its style and its birds, for the image generator. Reference only; never

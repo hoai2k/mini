@@ -14,7 +14,7 @@ Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from `sou
 
 ## Status
 
-1 requested, 38 delivered, 1 retired, 40 in total.
+0 requested, 39 delivered, 1 retired, 40 in total.
 
 ## Brand
 
@@ -371,7 +371,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 - **Used for:** Scoop Stack, once the stack grows tall: the camera pulls back over it, so the seaside shrinks with the Coot instead of the Coot shrinking on a fixed backdrop.
 - **Stand-in until delivered:** The delivered scene stays fixed and only the Coot and its scoops shrink.
 - **Reference:** [`reference/cover-ice-cream-cone-coot.jpg`](../reference/cover-ice-cream-cone-coot.jpg)
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). The same sunny seaside promenade as the existing scene (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/scenes/coot.webp), seen from twice as far away: extend that picture outwards on every side, keeping it unchanged, as if the camera had pulled straight back. The existing picture must sit, at exactly half the width and half the height of this one, in the region from 25% to 75% across and from 46.7% to 96.7% down, with the boardwalk, the railing, the sea's horizon and the ice-cream cart all continuing seamlessly out of it at the same height. Below it, a little more of the near boardwalk planks fills the bottom 3.3%. To the left and right, the promenade goes on: more railing posts, the boardwalk, the sea and the far headland with its lighthouse on the left, and a bench or a lamp post on the right. Above it, a tall, open, pale summer sky with a few soft clouds, seagulls far off and nothing else, because ice-cream scoops fall through all of it. Keep the horizon a straight level line. Wide 16:9.
