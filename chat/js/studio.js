@@ -152,6 +152,14 @@ export function createStudio() {
   let fakeMask = null; // tests: fn(w, h) -> Uint8Array mask in camera (unmirrored) space
   let fakeView = null; // tests: { yaw, pitch }
   let faceStatus = 'idle'; // idle | loading | ready | failed
+  // How the video loop is coping, for the Connection panel and its report.
+  // Face tracking that runs slow is thinned out (every 2nd or 3rd frame) so
+  // it can't starve the page; a gap of over 0.7 s between frames while the
+  // tab is in front is counted as a freeze.
+  const perf = { fps: 0, frameMs: 0, trackMs: 0, every: 1, stalls: 0, worst: 0, worstAt: 0, worstFx: '' };
+  let shownAt = performance.now();
+  document.addEventListener('visibilitychange', () => { shownAt = performance.now(); });
+  const ema = (old, v, k = 0.1) => (old ? old + (v - old) * k : v);
 
   function on(type, cb) {
     if (!listeners.has(type)) listeners.set(type, new Set());
@@ -166,32 +174,63 @@ export function createStudio() {
 
   // --- camera and microphone ---------------------------------------------
 
-  async function startDevices() {
-    const result = { camera: false, mic: false, error: null };
-    const tryGet = async constraints => {
-      try { return await navigator.mediaDevices.getUserMedia(constraints); } catch (e) { result.error = e; return null; }
-    };
+  // Starts (or restarts) whichever of the camera and microphone isn't
+  // running. Never hangs: iPhones can leave getUserMedia unanswered while
+  // another app (a phone or video call) holds the microphone, so each step
+  // gives up after a while and reports why. A stream that turns up after
+  // giving up is stopped again; Try again asks afresh.
+  async function startDevices({ timeoutMs = 8000 } = {}) {
+    const result = { camera: !!camStream, mic: !!micTrack, error: null };
+    const timeout = (p, ms, onLate) => new Promise(resolve => {
+      let done = false;
+      const t = setTimeout(() => {
+        done = true;
+        const e = new Error('The camera or microphone did not start in time.');
+        e.name = 'Timeout';
+        result.error = e;
+        resolve(null);
+      }, ms);
+      p.then(v => {
+        if (done) return onLate?.(v);
+        done = true;
+        clearTimeout(t);
+        resolve(v);
+      }, e => {
+        if (done) return;
+        done = true;
+        clearTimeout(t);
+        result.error = e;
+        resolve(null);
+      });
+    });
+    const stopLate = st => st?.getTracks?.().forEach(t => t.stop());
+    const tryGet = c => timeout(navigator.mediaDevices.getUserMedia(c), timeoutMs, stopLate);
     if (!navigator.mediaDevices?.getUserMedia) {
       result.error = new Error('This browser cannot use a camera here (it needs HTTPS).');
       return result;
     }
+    const wantV = !camStream, wantA = !micTrack;
+    if (!wantV && !wantA) return result;
     const videoC = { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } };
     const audioC = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
-    let s = await tryGet({ video: videoC, audio: audioC });
-    if (!s) {
+    let s = await tryGet({ video: wantV && videoC, audio: wantA && audioC });
+    // One of the two may work on its own (no camera, say), unless the
+    // browser simply never answered.
+    if (!s && wantV && wantA && result.error?.name !== 'Timeout') {
       const v = await tryGet({ video: videoC });
       const a = await tryGet({ audio: audioC });
       s = new MediaStream([...(v?.getTracks() ?? []), ...(a?.getTracks() ?? [])]);
     }
-    const vt = s.getVideoTracks()[0];
-    const at = s.getAudioTracks()[0];
+    const vt = s?.getVideoTracks()[0];
+    const at = s?.getAudioTracks()[0];
     if (vt) {
       camStream = new MediaStream([vt]);
       video.srcObject = camStream;
-      try { await video.play(); } catch {}
+      await Promise.race([video.play().catch(() => {}), new Promise(r => setTimeout(r, 3000))]);
       camOn = true;
       vt.enabled = camLive();
       result.camera = true;
+      vt.addEventListener('ended', () => lost('camera', vt));
       ensureFace();
     }
     if (at) {
@@ -200,8 +239,24 @@ export function createStudio() {
       micOn = true;
       at.enabled = micOn && !away;
       result.mic = true;
+      at.addEventListener('ended', () => lost('mic', at));
     }
+    if (result.camera && result.mic) result.error = null;
     return result;
+  }
+
+  // A device taken away mid-call (another app grabbed it, or it was
+  // unplugged): forget it so Try again can start it afresh.
+  function lost(kind, track) {
+    if (kind === 'camera' && camStream?.getVideoTracks()[0] === track) {
+      camStream = null;
+      camOn = false;
+    } else if (kind === 'mic' && micTrack === track) {
+      out.removeTrack(track);
+      micTrack = null;
+      micOn = false;
+    } else return;
+    emit('device-lost', kind);
   }
 
   function ensureFace() {
@@ -389,14 +444,20 @@ export function createStudio() {
     // Every frame while an effect or game needs it, otherwise a few times a
     // second so friends' bubbles know where my face is.
     if (faceWanted <= 0 && frameNo % 6 !== 0) return;
+    if (faceWanted > 0 && frameNo % perf.every !== 0) return;
     const ts = Math.max(lastTs + 1, Math.round(now));
     lastTs = ts;
     if (landmarker) {
+      const t0 = performance.now();
       try {
         face = faceFromResult(landmarker.detectForVideo(video, ts), canvas.width, canvas.height, face);
       } catch (e) {
         face = null;
       }
+      const ms = performance.now() - t0;
+      perf.trackMs = ema(perf.trackMs, ms);
+      if (ms > 500) console.warn(`face tracking took ${Math.round(ms)} ms`);
+      perf.every = ms > 500 || perf.trackMs > 40 ? 3 : perf.trackMs > 25 ? 2 : perf.trackMs < 15 ? 1 : perf.every;
     }
     if (segmenter && effect?.needs?.segmentation) {
       try {
@@ -507,9 +568,19 @@ export function createStudio() {
   }
 
   function frame(now) {
-    const dt = Math.min(0.1, (now - last) / 1000);
+    const gap = now - last;
+    const dt = Math.min(0.1, gap / 1000);
     last = now;
     frameNo++;
+    if (!document.hidden && now - shownAt > 1500 && frameNo > 30) {
+      perf.fps = ema(perf.fps, 1000 / Math.max(1, gap), 0.05);
+      if (gap > 700) {
+        perf.stalls++;
+        if (gap > perf.worst) Object.assign(perf, { worst: gap, worstAt: Date.now(), worstFx: effect?.id || 'no effect' });
+        console.warn(`video loop stalled for ${Math.round(gap)} ms (${effect?.id || 'no effect'})`);
+      }
+    }
+    const frameStart = performance.now();
 
     if (camLive() && video.videoWidth) {
       const w = Math.min(MAX_W, video.videoWidth);
@@ -562,6 +633,7 @@ export function createStudio() {
       try { effect.draw(ctx, fr); } catch (e) { console.error(`effect ${effect.id}`, e); }
     }
     emit('frame', fr);
+    perf.frameMs = ema(perf.frameMs, performance.now() - frameStart);
   }
 
   let rafId = 0, timerId = 0;
@@ -587,6 +659,7 @@ export function createStudio() {
     on,
     get face() { return face; },
     get faceStatus() { return faceStatus; },
+    get perf() { return perf; },
     get camOn() { return camOn; },
     get micOn() { return micOn; },
     get hasCamera() { return !!camStream; },

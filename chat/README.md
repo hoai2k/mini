@@ -38,17 +38,21 @@ Play it at https://hoai2k.github.io/mini/chat/.
 
 The videos fill the screen and every control floats over them: a status pill
 and buttons at the top, the call controls in a pill at the bottom. With two
-people your friend fills the screen and you float in a corner (drag yourself
-to another corner). Effects are a strip of lenses above the controls: swipe
-it, and whichever stops in the ring is put on. Games and Messages are bottom
+people your friend fills the screen and you float in a corner: tap the small
+video to swap the two, drag it to another corner. Effects are a strip of
+lenses above the controls: swipe it, and whichever stops in the ring is put
+on. Drag the strip up (or tap its grip) for a grid of every effect with
+names that scrolls up and down; pull the grid down to go back to the strip. Games and Messages are bottom
 sheets. All three can be pulled down to peek at the video and closed by
 pulling further or flicking. An open game takes the whole screen between the
 two bars, and the videos shrink to bubbles in the top bar; games marked
 `fullBleed` (Hoops) draw under the bars too.
 
-Full screen: Android and desktop browsers go full screen on Start and with
-the top-right button. iPhone Safari has no full screen for web pages, so the
-button explains Add to Home Screen; the installed app opens full screen.
+Full screen: Start and the top-right button ask for full screen with
+whichever API the browser has (the prefixed one too, which iPhone Safari
+offers without reporting it as enabled). Only if the page doesn't go full
+screen does the button explain Add to Home Screen; the installed app opens
+full screen.
 
 ## Effects
 
@@ -61,8 +65,9 @@ own video, or hold RT instead.
   Rainbow Mouth, Alien, Deal With It, Royalty, Fancy, Clown, Flower Crown,
   Devil, Angel, Pirate, Viking, Wizard, Butterflies, Glam, Waterworks, Hotdog,
   Laser Eyes.
-- **360 worlds** (the room behind you is replaced; tilt the phone, or turn
-  your head on a laptop, to look around): Beach, Space, Reef, Forest, City,
+- **360 worlds** (the room behind you is replaced; turn all the way round
+  with the phone and tilt it up and down, or turn your head on a laptop, to
+  look around): Beach, Space, Reef, Forest, City,
   Snow, Candy, Volcano.
 - **Backgrounds:** Outer Space, Under the Sea, Blur, Colour Pop, Neon Aura,
   Disco, Code Rain, Sunset.
@@ -81,12 +86,13 @@ the ball up, carry it and toss it, or just flick it straight off its spot; it
 moves with your finger and flies on from where you let go, and any toss
 roughly at the hoop goes in;
 the hoop moves every five shots), Flappy Face (your face is the bird; tap to
-flap), Air Hockey, Connect Four, Quick Draw, Staring Contest,
+flap), Air Hockey (your paddle keeps its distance from your finger, so you
+can drag from below it), Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
 holes played together with friends' ghost balls), Bowling, Beach Bump (bump
 a ball between faces by nodding), Burger Stack (catch ingredients by moving
 your head), Asteroid Dodge (steer with your head or by tilting the phone),
-Don't Smile, Snake, Battleship, Trivia (351 questions in 12 categories) and
+Don't Smile, Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
 Word Blitz (a Boggle-style word race on a 20,000-word dictionary). Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
@@ -121,6 +127,8 @@ itself to HTTPS.
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
+- `node chat/test/trivia-check.mjs`: two players answer and the question
+  closes straight away rather than waiting out its clock
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops, picks the ball up
   (it must follow the pointer), carries it and tosses it seven ways that must
   all score, flicks straight from the ball (it must ride under the finger and
@@ -163,6 +171,16 @@ hand.
   and microphone pause: friends see your initial with "away" and an Away
   flag on your tile. They come back when you return, except whichever you
   had muted.
+- The camera and microphone start alongside joining, never before it, and
+  each request gives up after 8 s (iPhones can leave it unanswered while a
+  phone or video call holds the microphone). If they don't start, a dialog
+  says why (busy in another app, blocked for the site, not found, or didn't
+  answer) with Try again; the mic and camera buttons also try again. A
+  device taken away mid-call (a phone call starting) is reported the same way.
+- The Connection panel and its report include the video loop: frame rate,
+  time per frame, face tracking time, and any freezes (a gap over 0.7 s
+  with the tab in front) with the effect that was on. Slow face tracking
+  is thinned to every second or third frame so it can't starve the page.
 - If the browser won't start a friend's video with sound, the video plays
   muted and a "Tap to hear your friends" button appears.
 
@@ -207,7 +225,10 @@ with its state (see `js/gamehost.js`).
   `npx wrangler deploy` in `multiplayer/server`). Until then votes are only
   kept per browser.
 - The 360 worlds use the phone's motion sensor; iPhones ask for permission on
-  the first tap after picking one. Real-device sensor directions are untested.
+  the first tap after picking one. The view follows the direction the back of
+  the phone points (worked out from the full orientation, so holding the
+  phone upright doesn't jam it); this is checked on simulated readings only,
+  not yet on a real phone.
 - Until the relay is deployed with the TURN secrets above, calls between
   some networks (mobile data, strict routers, offices) can't connect video;
   the tile then says so and chat and games still work.

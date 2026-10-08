@@ -234,7 +234,7 @@ export default {
     let padDir = { x: 0, y: 0 };
     let padWas = false;
     let wasOwner = false;
-    let dragging = false;
+    let dragging = null;        // { dx, dy }: paddle minus finger, kept for the whole drag
     let touched = false;        // hides the hint once I have moved
     let lastScore = null;
     let lastWinner = null;
@@ -340,21 +340,25 @@ export default {
     });
 
     // --- input -----------------------------------------------------------
+    // The paddle keeps its distance from the finger for the whole drag, so
+    // you can drag from below it (or anywhere) and still see it.
     function onDown(e) {
-      if (roleOf() < 0) return;
+      const role = roleOf();
+      if (role < 0) return;
       canvas.setPointerCapture?.(e.pointerId);
-      dragging = true;
+      const p = toTable(e), pad = pads[role];
+      dragging = { dx: pad.x - p.x, dy: pad.y - p.y };
       touched = true;
       onMove(e);
     }
     function onMove(e) {
       if (!dragging) return;
       const p = toTable(e);
-      target.x = p.x;
-      target.y = p.y;
+      target.x = p.x + dragging.dx;
+      target.y = p.y + dragging.dy;
     }
     function onUp() {
-      dragging = false;
+      dragging = null;
     }
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);
@@ -700,7 +704,7 @@ export default {
         }
         if (flash && now < flash.until) text(flash.text, cx, cy + tw * 0.3, clamp(tw * 0.08, 13, 34), 'center', '#ffd43b');
         if (role >= 0 && !touched && S.winner == null) {
-          text('Drag to move your paddle', cx, ty + tw * TH - tw * 0.4, clamp(tw * 0.045, 10, 16), 'center', '#fff');
+          text('Drag anywhere to move your paddle', cx, ty + tw * TH - tw * 0.4, clamp(tw * 0.045, 10, 16), 'center', '#fff');
         }
       }
     }

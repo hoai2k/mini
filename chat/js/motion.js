@@ -30,6 +30,23 @@ export function createMotion() {
 
   const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
 
+  // Which way the back of the phone points, from the sensor's Euler angles
+  // (alpha about the vertical, beta about the phone's x, gamma about its y):
+  // heading clockwise from the sensor's reference direction, and elevation
+  // above the horizon. Working from the direction rather than alpha alone
+  // keeps turning on the spot right while the phone is held upright, where
+  // alpha and gamma swing wildly (gimbal lock at beta = 90 degrees).
+  function lookDirection(o) {
+    const a = o.alpha * DEG, b = o.beta * DEG, g = o.gamma * DEG;
+    const cA = Math.cos(a), sA = Math.sin(a), cB = Math.cos(b), sB = Math.sin(b), cG = Math.cos(g), sG = Math.sin(g);
+    // Third column of the device-to-earth rotation (the screen's normal),
+    // negated: the direction out of the back of the phone.
+    const x = -(cA * sG + cG * sA * sB);
+    const y = -(sA * sG - cA * cG * sB);
+    const z = -(cB * cG);
+    return { heading: Math.atan2(x, y), elevation: Math.asin(Math.max(-1, Math.min(1, z))) };
+  }
+
   return {
     get status() { return sensor ? 'on' : status; },
     // iPhones ask for permission, which must come from a tap.
@@ -68,15 +85,12 @@ export function createMotion() {
     view(face, dt) {
       let ty = yaw, tp = pitch, source = 'none';
       if (sensor) {
-        origin ??= { ...sensor };
-        // Screen rotation changes which sensor axis is "up".
-        const angle = (screen.orientation?.angle ?? globalThis.orientation ?? 0) | 0;
-        const turn = wrap((sensor.alpha - origin.alpha) * DEG);
-        let tilt = (sensor.beta - origin.beta) * DEG;
-        if (angle === 90) tilt = -(sensor.gamma - origin.gamma) * DEG;
-        else if (angle === -90 || angle === 270) tilt = (sensor.gamma - origin.gamma) * DEG;
-        ty = turn;
-        tp = Math.max(-1.3, Math.min(1.3, tilt));
+        // Turning around (a full 360) pans the world; tilting the phone up
+        // and down looks up and down, level when the phone is upright.
+        const d = lookDirection(sensor);
+        origin ??= d;
+        ty = wrap(d.heading - origin.heading);
+        tp = Math.max(-1.3, Math.min(1.3, d.elevation));
         source = 'sensor';
       } else if (face) {
         // Head turn: how far the nose sits from the middle of the eyes.

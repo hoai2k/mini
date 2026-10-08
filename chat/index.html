@@ -137,11 +137,19 @@
 </dialog>
 
 <!-- iPhones have no fullscreen for web pages; the home-screen app is fullscreen. -->
+<dialog id="devices" class="dialog" aria-labelledby="devices-title">
+  <form method="dialog" class="dialog-inner">
+    <h2 id="devices-title">Camera and microphone</h2>
+    <div class="dialog-scroll"><p id="devices-msg"></p><p class="muted">You can keep chatting and playing meanwhile.</p></div>
+    <div class="dialog-actions"><button class="btn ghost" value="close">Continue without</button><button id="devices-retry" class="btn" value="retry">Try again</button></div>
+  </form>
+</dialog>
+
 <dialog id="fullscreen-help" class="dialog" aria-labelledby="fs-title">
   <form method="dialog" class="dialog-inner">
-    <h2 id="fs-title">Full screen on iPhone</h2>
+    <h2 id="fs-title">Full screen</h2>
     <div class="dialog-scroll">
-      <p>Safari on iPhone doesn't let web pages go full screen. Add Games Chat to your Home Screen instead and open it from there: it fills the whole screen like an app.</p>
+      <p>This browser didn't let the page go full screen. Add Games Chat to your Home Screen instead and open it from there: it fills the whole screen like an app.</p>
       <p>Tap the <b>Share</b> button <span aria-hidden="true">(the square with an arrow)</span>, then <b>Add to Home Screen</b>.</p>
     </div>
     <div class="dialog-actions"><button class="btn" value="close">Got it</button></div>
@@ -162,7 +170,7 @@
       <h3>Games</h3>
       <p>Open <b>Games</b> and start one. Friends get a <b>Join</b> button. Scores and records are kept on this device.</p>
       <h3>Sheets and your video</h3>
-      <p>Pull the Effects strip, the Games list or Messages down to peek at the video behind them; pull further, or flick, to close. With two people, drag your own video to any corner.</p>
+      <p>Drag the Effects strip up to see every effect in a grid; pull the grid down to go back to the strip. Pull the strip, the Games list or Messages down to peek at the video behind them; pull further, or flick, to close. With two people, tap the small video to swap it with the big one, and drag it to any corner.</p>
       <h3>Controls</h3>
       <table class="keys">
         <tr><th>Action</th><th>Keyboard / pointer</th><th>Xbox controller</th></tr>

@@ -161,7 +161,7 @@ export default {
     let destroyed = false;
     let timer = 0;
     let lastSig = '';
-    let myPick = null;         // { round, qIndex, choice }: my answer, shown before the owner echoes it
+    let myPick = null;         // { round, qIndex, choice, ms, sentAt }: my answer, shown before the owner echoes it
     let myVote = null;         // { round, idx }
     let announced = '';        // phase key whose sound/record was already handled
     let lastTickSec = -1;
@@ -291,7 +291,7 @@ export default {
       if (s.answers[api.me.id] !== undefined || (myPick && myPick.round === s.round && myPick.qIndex === s.qIndex)) return;
       if (Date.now() > s.startedAt + QTIME) return;
       const ms = clamp(Date.now() - s.startedAt, 0, QTIME);
-      myPick = { round: s.round, qIndex: s.qIndex, choice };
+      myPick = { round: s.round, qIndex: s.qIndex, choice, ms, sentAt: Date.now() };
       api.sfx('pop');
       const d = { round: s.round, qIndex: s.qIndex, choice, ms };
       if (api.isOwner()) applyAnswer(api.me.id, d);
@@ -623,8 +623,21 @@ export default {
     }
 
     // --- run ---------------------------------------------------------------------
+    // An answer the owner hasn't recorded yet (lost, or it arrived before
+    // the owner had moved on to this question) is sent again, so the
+    // question can close as soon as everyone has answered.
+    function resendAnswer() {
+      const s = sharedNow();
+      if (!myPick || !s || api.isOwner() || s.phase !== 'question') return;
+      if (myPick.round !== s.round || myPick.qIndex !== s.qIndex || s.answers[api.me.id] !== undefined) return;
+      if (Date.now() - myPick.sentAt < 700) return;
+      myPick.sentAt = Date.now();
+      api.send('answer', { round: s.round, qIndex: s.qIndex, choice: myPick.choice, ms: myPick.ms });
+    }
+
     timer = setInterval(() => {
       if (destroyed) return;
+      resendAnswer();
       ownerTick();
       refresh();
     }, 50);

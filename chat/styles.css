@@ -110,23 +110,24 @@ button { cursor: pointer; }
 .tile .flag { display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.55); font-size: 0.8rem; font-weight: 700; }
 .tile .flag.muted { background: rgba(255, 92, 108, 0.9); }
 .tile .flag svg { width: 18px; height: 18px; }
-.tile.self { cursor: pointer; touch-action: none; }
-.stage[data-count="1"] .tile.self .name, .stage[data-count="2"] .tile:not(.self) .name { top: calc(var(--top-ui) - 2px); }
+.tile.self, .tile.pip { cursor: pointer; touch-action: none; }
+.stage[data-count="1"] .tile.self .name, .stage[data-count="2"] .tile:not(.pip) .name { top: calc(var(--top-ui) - 2px); }
 
 .stage[data-count="1"], .stage[data-count="2"] { grid-template: 1fr / 1fr; }
-/* Two people: they fill the screen, I float in a corner (drag me to another). */
-.stage[data-count="2"] .tile.self {
+/* Two people: one fills the screen, the other (normally me) floats in a
+   corner: tap it to swap, drag it to another corner. */
+.stage[data-count="2"] .tile.pip {
   position: absolute; z-index: 3; width: min(30vw, 190px); aspect-ratio: 3 / 4; border-radius: 18px;
   border: 2px solid rgba(255, 255, 255, 0.9); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
   top: var(--top-ui); right: 12px; transition: top 0.25s ease, left 0.25s ease, right 0.25s ease, bottom 0.25s ease;
 }
-.stage[data-count="2"] .tile.self.dragging { transition: none; }
-.stage[data-count="2"] .tile.self[data-corner="tl"] { right: auto; left: 12px; }
-.stage[data-count="2"] .tile.self[data-corner="bl"] { right: auto; left: 12px; top: auto; bottom: var(--bottom-ui); }
-.stage[data-count="2"] .tile.self[data-corner="br"] { top: auto; bottom: var(--bottom-ui); }
-.stage[data-count="2"] .tile.self .name { top: auto; bottom: 8px; left: 8px; font-size: 0.75rem; }
-.stage[data-count="2"] .tile.self .flags { bottom: auto; top: 8px; right: 8px; }
-@media (orientation: landscape) { .stage[data-count="2"] .tile.self { aspect-ratio: 4 / 3; width: min(24vw, 240px); } }
+.stage[data-count="2"] .tile.pip.dragging { transition: none; }
+.stage[data-count="2"] .tile.pip[data-corner="tl"] { right: auto; left: 12px; }
+.stage[data-count="2"] .tile.pip[data-corner="bl"] { right: auto; left: 12px; top: auto; bottom: var(--bottom-ui); }
+.stage[data-count="2"] .tile.pip[data-corner="br"] { top: auto; bottom: var(--bottom-ui); }
+.stage[data-count="2"] .tile.pip .name { top: auto; bottom: 8px; left: 8px; font-size: 0.75rem; }
+.stage[data-count="2"] .tile.pip .flags { bottom: auto; top: 8px; right: 8px; }
+@media (orientation: landscape) { .stage[data-count="2"] .tile.pip { aspect-ratio: 4 / 3; width: min(24vw, 240px); } }
 .stage[data-count="3"], .stage[data-count="4"] { grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; }
 .stage[data-count="5"], .stage[data-count="6"] { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; }
 .stage[data-count="many"] { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); grid-auto-rows: minmax(120px, 1fr); overflow: auto; }
@@ -177,6 +178,7 @@ button { cursor: pointer; }
 .ctrl:hover { background: rgba(255, 255, 255, 0.18); }
 .ctrl:active { transform: scale(0.94); }
 .ctrl:disabled { opacity: 0.45; }
+.ctrl.missing { opacity: 0.55; }
 .slash, .slash-bg { display: none; }
 .slash-bg { stroke: var(--slash-bg, #d93a4e); stroke-width: 5.5; }
 [aria-pressed="false"] .slash, [aria-pressed="false"] .slash-bg, .flag.muted .slash, .flag.muted .slash-bg { display: inline; }
@@ -225,6 +227,24 @@ button { cursor: pointer; }
 .fx-item[aria-selected="true"] { transform: scale(1.06); background: rgba(255, 255, 255, 0.22); }
 .fx-item.disabled { opacity: 0.45; }
 .fx-item:focus-visible { outline-offset: 6px; }
+.fx-item { position: relative; }
+.fx-label { display: none; }
+.strip-wrap .sheet-grip { cursor: pointer; }
+
+/* Dragged up, the strip becomes a grid of every effect with names. */
+.strip-wrap.grid { background: rgba(12, 8, 26, 0.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 22px 22px 0 0; }
+.strip-wrap.grid .strip-ring { display: none; }
+.strip-wrap.grid .strip {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); justify-items: center; row-gap: 30px; column-gap: 6px;
+  overflow-x: hidden; overflow-y: auto; scroll-snap-type: none; touch-action: pan-y; overscroll-behavior: contain;
+  max-height: min(56vh, 520px); padding: 10px 14px 34px;
+}
+.strip-wrap.grid .fx-item { scroll-snap-align: none; width: 64px; height: 64px; font-size: 1.8rem; }
+.strip-wrap.grid .fx-item img { width: 50px; height: 50px; }
+.strip-wrap.grid .fx-label {
+  display: block; position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); width: 84px;
+  font-size: 0.7rem; font-weight: 800; line-height: 1.1; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 .game-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
 .game-card {
@@ -270,7 +290,7 @@ button { cursor: pointer; }
   position: fixed; inset: auto; top: calc(var(--safe-t) + 10px); right: 62px; z-index: 21; display: flex; gap: 6px; background: none;
   max-width: 46vw; overflow: hidden; flex-direction: row-reverse;
 }
-#call.has-game .stage .tile, #call.has-game .stage[data-count="2"] .tile.self {
+#call.has-game .stage .tile, #call.has-game .stage[data-count="2"] .tile.pip {
   position: relative; inset: auto; width: 42px; height: 42px; aspect-ratio: auto; flex: none; border-radius: 50%;
   border: 2px solid var(--c, rgba(255, 255, 255, 0.8)); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
@@ -357,7 +377,7 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .chat-form input:focus, #name-input:focus, #set-name:focus { border-color: var(--accent); outline: none; }
 .fx-name { color: #fff; }
 .tile.self { --c: var(--accent); }
-.stage[data-count="2"] .tile.self { border-color: var(--accent-hi); }
+.stage[data-count="2"] .tile.self.pip { border-color: var(--accent-hi); }
 
 /* ---------- votes ---------- */
 .votes { display: inline-flex; gap: 6px; pointer-events: auto; }
@@ -407,7 +427,7 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .call-status .btn { margin-top: 6px; }
 .spinner { width: 34px; height: 34px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.stage[data-count="2"] .tile.self .call-status, #call.has-game .call-status { display: none; }
+.stage[data-count="2"] .tile.pip .call-status, #call.has-game .call-status { display: none; }
 .flag.bars { display: inline-flex; align-items: flex-end; gap: 2px; padding: 0 9px; }
 .flag.bars i { display: block; width: 4px; border-radius: 1px; background: rgba(255, 255, 255, 0.3); }
 .flag.bars i:nth-child(1) { height: 6px; }

@@ -6,10 +6,14 @@
 // scrolls sideways).
 //
 //   makeSheet(el, { onDismiss })   // onDismiss() should hide the sheet
+//
+// Optional: onExpand() runs when the sheet is dragged or flicked up (while
+// canExpand() says so), and while collapsible() is true a shorter pull down
+// calls onCollapse() instead of sliding the sheet away.
 
 const START_PX = 8;
 
-export function makeSheet(el, { onDismiss, scroller = null } = {}) {
+export function makeSheet(el, { onDismiss, scroller = null, onExpand = null, canExpand = () => true, collapsible = () => false, onCollapse = null } = {}) {
   let start = null; // { x, y, t, dragging }
   let dy = 0;
 
@@ -22,7 +26,7 @@ export function makeSheet(el, { onDismiss, scroller = null } = {}) {
     if (target.closest('input, textarea, select')) return;
     const s = scrollParent(target);
     if (s && s.scrollTop > 0) return; // let the list scroll back up first
-    start = { x, y, t: performance.now(), dragging: false, last: y, lastT: performance.now(), v: 0 };
+    start = { x, y, t: performance.now(), dragging: false, up: false, last: y, lastT: performance.now(), v: 0 };
   }
 
   function move(x, y, e) {
@@ -30,8 +34,10 @@ export function makeSheet(el, { onDismiss, scroller = null } = {}) {
     const ddx = x - start.x, ddy = y - start.y;
     if (!start.dragging) {
       if (Math.abs(ddx) > START_PX && Math.abs(ddx) > Math.abs(ddy)) { start = null; return; }
-      if (ddy < START_PX) return;
+      const up = onExpand && canExpand() && ddy < -START_PX;
+      if (ddy < START_PX && !up) return;
       start.dragging = true;
+      start.up = up;
       el.classList.add('dragging');
     }
     e.preventDefault?.();
@@ -39,19 +45,30 @@ export function makeSheet(el, { onDismiss, scroller = null } = {}) {
     start.v = (y - start.last) / Math.max(1, now - start.lastT);
     start.last = y;
     start.lastT = now;
-    dy = Math.max(0, ddy);
-    el.style.transform = `translateY(${dy}px)`;
+    // Pulling up stretches a little, as a hint that letting go opens it up.
+    dy = start.up ? Math.min(0, ddy) : Math.max(0, ddy);
+    el.style.transform = `translateY(${start.up ? dy * 0.3 : dy}px)`;
   }
 
   function end() {
     if (!start) return;
     const dragged = start.dragging;
     const flick = start.v > 0.6;
+    const up = start.up, flickUp = start.v < -0.5;
     start = null;
     el.classList.remove('dragging');
     if (!dragged) return;
+    if (up) {
+      el.style.transform = '';
+      if (dy < -50 || (flickUp && dy < -20)) onExpand();
+      dy = 0;
+      return;
+    }
     const h = el.getBoundingClientRect().height;
-    if (dy > h * 0.35 || (flick && dy > 30)) {
+    if (collapsible()) {
+      el.style.transform = '';
+      if (dy > Math.min(90, h * 0.35) || (flick && dy > 30)) onCollapse?.();
+    } else if (dy > h * 0.35 || (flick && dy > 30)) {
       el.style.transform = `translateY(${h + 40}px)`;
       let done = false;
       const finish = () => {

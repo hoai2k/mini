@@ -121,6 +121,9 @@ export function createNet({ game, room: roomId, me, rooms = globalThis.MiniRooms
       if (!prev || (data.ts || 0) >= (prev.ts || 0)) fresh.set(data.id, data);
     }
     for (const [id, data] of fresh) {
+      // Never step back to an older presence that arrived late.
+      const had = peers.get(id);
+      if (had && (had.ts || 0) > (data.ts || 0)) continue;
       peers.set(id, data);
       lastSeen.set(id, now);
     }
