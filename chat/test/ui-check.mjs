@@ -15,7 +15,7 @@ for (const touch of [false, true]) {
   // Synthesised gestures must land inside the real headless window (800 x 600).
   const ctx = await browser.newContext({ viewport: { width: 390, height: touch ? 590 : 844 }, hasTouch: touch, isMobile: touch, permissions: ['camera', 'microphone'] });
   const p = await ctx.newPage();
-  p.on('pageerror', e => console.log('ERR', e.message));
+  p.on('pageerror', e => console.log('ERR', e.message, e.stack?.split('\n').slice(0,3).join(' | ')));
   await p.goto(`${server.url}/chat/?rooms=http://127.0.0.1:1`);
   await p.fill('#name-input', 'Ana'); await p.click('#start-btn'); await p.waitForTimeout(1200);
   const cdp = touch ? await ctx.newCDPSession(p) : null;
@@ -40,14 +40,21 @@ for (const touch of [false, true]) {
     await p.waitForTimeout(600);
     return { mid, hidden: await sheet.isHidden() };
   };
-  for (const [btn, sel] of [['#btn-games', '#tray-games'], ['#btn-effects', '#tray-effects'], ['#btn-chat', '#chat-box']]) {
-    await p.click(btn); await p.waitForTimeout(400);
+  // Messages opens from Settings; the others from the bottom row.
+  const openIt = async btn => {
+    if (btn !== 'chat') return p.click(btn);
+    await p.click('#topbar [data-open="settings"]');
+    await p.waitForTimeout(200);
+    await p.click('#open-chat');
+  };
+  for (const [btn, sel] of [['#btn-games', '#tray-games'], ['#btn-effects', '#tray-effects'], ['#btn-accessories', '#tray-effects'], ['#btn-backgrounds', '#tray-effects'], ['chat', '#chat-box']]) {
+    await openIt(btn); await p.waitForTimeout(400);
     const small = await drag(sel, 0.2);
     const big = await drag(sel, 0.6);
     const ok = small.mid.includes('translateY') && !small.hidden && big.hidden;
     if (!ok) fails++;
     console.log(`${ok ? 'ok  ' : 'FAIL'} ${touch ? 'touch' : 'mouse'} ${sel}: peek ${small.mid} snaps back=${!small.hidden}, long pull closes=${big.hidden}`);
-    if (!big.hidden) await p.click(btn);
+    if (!big.hidden) await p.evaluate(() => window.__chat.toggleTray(null));
   }
   {
     // Drag the effects strip up into the grid, scroll it, pick an effect,
@@ -130,7 +137,7 @@ for (const mode of ['busy', 'hang']) {
     };
   }, mode);
   const p = await ctx.newPage();
-  p.on('pageerror', e => console.log('ERR', e.message));
+  p.on('pageerror', e => console.log('ERR', e.message, e.stack?.split('\n').slice(0,3).join(' | ')));
   await p.goto(`${server.url}/chat/?rooms=http://127.0.0.1:1`);
   await p.fill('#name-input', 'Ana'); await p.click('#start-btn');
   const shown = await p.waitForFunction(() => document.querySelector('#devices').open, null, { timeout: 15000 }).then(() => true, () => false);

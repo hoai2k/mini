@@ -36,17 +36,32 @@ Play it at https://hoai2k.github.io/mini/chat/.
 
 ## Layout
 
-The videos fill the screen and every control floats over them: a status pill
-and buttons at the top, the call controls in a pill at the bottom. With two
-people your friend fills the screen and you float in a corner: tap the small
-video to swap the two, drag it to another corner. Effects are a strip of
-lenses above the controls: swipe it, and whichever stops in the ring is put
-on. Drag the strip up (or tap its grip) for a grid of every effect with
-names that scrolls up and down; pull the grid down to go back to the strip. Games and Messages are bottom
-sheets. All three can be pulled down to peek at the video and closed by
-pulling further or flicking. An open game takes the whole screen between the
-two bars, and the videos shrink to bubbles in the top bar; games marked
-`fullBleed` (Hoops) draw under the bars too.
+The videos fill the screen and every control floats over them, kept small
+so the picture stays clear:
+
+- **Top:** the status pill on the left; microphone, camera, settings and full
+  screen on the right. Settings also holds How to play, Messages (unread
+  counts show on the settings button) and Leave the call; your name there is
+  tapped to change it.
+- **Videos:** names show only for a moment (when someone arrives, renames or
+  the videos swap); connection messages show while connecting and then go.
+  With two people your friend fills the screen and you float in a corner:
+  tap the small video to swap the two, drag it to another corner. When your
+  friend is big and has an effect on, a download button puts it on you too.
+- **Bottom row:** Favorites, Effects, Accessories, Backgrounds and Games.
+  Picking one slides it to the left (the others fold away; tap it again for
+  the whole row) and the space to its right shows what's on: its name,
+  thumbs, ⓘ (how it works) and share (offers it to everyone, who get a Try
+  it button). Effects, Accessories and Backgrounds are strips of lenses:
+  swipe one and whichever stops in the ring is put on. Favorites is a strip
+  of everything you gave a thumbs up (effects and games); tap one to use it.
+  Drag a strip up (or tap its grip) for a grid that scrolls up and down;
+  pull the grid down to go back to the strip. Games and Messages are bottom
+  sheets. Everything can be pulled down to peek at the video and closed by
+  pulling further or flicking.
+- An open game takes the whole screen between the two bars, and the videos
+  shrink to bubbles in the top bar; games marked `fullBleed` (Hoops) draw
+  under the bars too.
 
 Full screen: Start and the top-right button ask for full screen with
 whichever API the browser has (the prefixed one too, which iPhone Safari
@@ -57,7 +72,12 @@ full screen.
 ## Effects
 
 Effects are drawn onto the video I send, so friends see them without doing
-anything. Many react to the face; with no face tracked, hold Space, hold your
+anything. They're split into three tabs (`effects/index.js` lists which go
+where): **Effects** (warps, colour, time tricks, drawn particles),
+**Accessories** (pictures in front of you: hats, ears, horns, masks, hearts)
+and **Backgrounds** (new backdrops and the 360 worlds). Bright backgrounds
+and worlds lift a dim camera image to match them. Sound effects play at half
+the level the slider sets, so they sit under the conversation. Many react to the face; with no face tracked, hold Space, hold your
 own video, or hold RT instead.
 
 - **Stickers and characters:** Bubble Blow (pucker to blow a bubble that
@@ -168,9 +188,10 @@ hand.
   when a working call drops, and "Bo's video has paused" when frames stop
   arriving. Connected tiles show signal bars from round trip and loss.
 - While the tab is in the background or the window loses focus, the camera
-  and microphone pause: friends see your initial with "away" and an Away
-  flag on your tile. They come back when you return, except whichever you
-  had muted.
+  pauses: friends see your initial with "away" and an Away flag on your
+  tile. On a computer the microphone pauses too; on a phone it stays on (you
+  may just be glancing at another app). They come back when you return,
+  except whichever you had muted.
 - The camera and microphone start alongside joining, never before it, and
   each request gives up after 8 s (iPhones can leave it unanswered while a
   phone or video call holds the microphone). If they don't start, a dialog
@@ -209,6 +230,7 @@ hand.
 | --- | --- | --- |
 | `sig` | anyone, to one peer | WebRTC offers, answers and ICE candidates |
 | `bubble` | the blower | A Bubble Blow bubble leaving my mouth for a friend (`to`) |
+| `fxshare` | the sharer | An effect offered to everyone (`{ fx }`); each gets a Try it button |
 | `chat` | anyone | A text message |
 | `invite` | whoever starts a game | Shows friends a Join button |
 | `g` | session members | Game messages, filtered by session ID |

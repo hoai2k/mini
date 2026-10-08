@@ -103,8 +103,28 @@ try {
   });
   check(seen.up >= 1, `a thumbs up is counted for everyone (${JSON.stringify(seen)})`);
 
+  // Download: Bo puts Ana's effect on himself from the button over her video.
+  await a.evaluate(() => window.__chat.selectEffect('crown'));
+  check(await until(b, () => { const g = document.querySelector('#grab-fx'); return g && !g.hidden && g.dataset.fx === 'crown'; }, null, 8000), 'Bo sees a button to use Ana’s effect');
+  await b.click('#grab-fx');
+  check(await b.evaluate(() => window.__chat.studio.effect?.id === 'crown'), 'the download button puts Ana’s effect on Bo');
+  // Share: Ana offers Swirl to everyone; Bo accepts.
+  await a.evaluate(() => window.__chat.selectEffect('swirl'));
+  await a.click('#btn-effects');
+  await a.click('#fx-share');
+  await a.click('#btn-effects');
+  check(await until(b, () => [...document.querySelectorAll('.invite')].some(i => /shared .*Swirl/.test(i.textContent)), null, 8000), 'Bo gets Ana’s shared effect');
+  await b.waitForTimeout(600);
+  const offers = await b.evaluate(() => [...document.querySelectorAll('.invite')].map(i => i.textContent));
+  check(offers.length === 1, `exactly one offer arrives (${JSON.stringify(offers)})`);
+  await b.click('.invite:has-text("Swirl") button.btn.aqua');
+  check(await b.evaluate(() => window.__chat.studio.effect?.id === 'swirl'), 'accepting the share puts it on');
+  await a.evaluate(() => window.__chat.selectEffect(null));
+  await b.evaluate(() => window.__chat.selectEffect(null));
+
   // Text chat.
-  await b.click('#btn-chat');
+  await b.click('#topbar [data-open="settings"]');
+  await b.click('#open-chat');
   await b.fill('#chat-input', 'hello from Bo');
   await b.press('#chat-input', 'Enter');
   check(await until(a, () => document.querySelector('#chat-log')?.textContent.includes('hello from Bo')), 'chat message arrives');
@@ -112,8 +132,8 @@ try {
   // A game: Ana starts Hoops, Bo joins from the invite.
   await a.click('#btn-games');
   await a.click('.game-card:has-text("Hoops")');
-  check(await until(b, () => !!document.querySelector('.invite button.btn.aqua')), 'Bo gets an invite');
-  await b.click('.invite button.btn.aqua');
+  check(await until(b, () => [...document.querySelectorAll('.invite')].some(i => /started/.test(i.textContent))), 'Bo gets an invite');
+  await b.click('.invite:has-text("started") button.btn.aqua');
   check(await until(b, () => window.__chat.games.current?.api.players().length === 2), 'Bo joins Ana’s Hoops session');
   check(await until(a, () => window.__chat.games.current?.api.players().length === 2), 'Ana sees Bo in the session');
   await a.waitForTimeout(800);
@@ -141,6 +161,7 @@ try {
   await a.evaluate(() => document.querySelector('#btn-mic').click());
 
   // Bo leaves; Ana is alone again.
+  await b.click('#topbar [data-open="settings"]');
   await b.click('#btn-leave');
   await b.close();
   check(await until(a, () => window.__chat.net.peers.size === 0, null, 15000), 'Ana sees Bo leave');

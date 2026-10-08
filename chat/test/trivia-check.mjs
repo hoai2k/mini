@@ -11,7 +11,6 @@ const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
 await page.goto(`${server.url}/test/game.html?game=trivia&n=2&expr=0`);
 await page.waitForFunction(() => window.ready === true);
 await page.waitForTimeout(3500);
-const phase = i => page.evaluate(i => window.seats[i].gh.current.api.shared()?.phase, i);
 const click = (i, k) => page.evaluate(([i, k]) => {
   const b = [...window.seats[i].el.querySelectorAll('.panel button')];
   b[b.length - 4 + k].click();
@@ -26,7 +25,8 @@ await click(0, 1);
 const closed = await page.waitForFunction(() => window.seats[0].gh.current.api.shared()?.phase === 'reveal', null, { timeout: 20000 }).then(() => true, () => false);
 const ms = Date.now() - t0;
 const answers = await page.evaluate(() => Object.keys(window.seats[0].gh.current.api.shared()?.answers || {}).length);
-const ok = closed && ms < 4000 && answers === 2 && (await phase(1)) === 'reveal';
+const both = await page.waitForFunction(() => window.seats[1].gh.current.api.shared()?.phase === 'reveal', null, { timeout: 3000 }).then(() => true, () => false);
+const ok = closed && ms < 4000 && answers === 2 && both;
 console.log(`${ok ? 'ok  ' : 'FAIL'} the question closes once both have answered (${ms} ms, ${answers} answers)`);
 await browser.close();
 server.close();

@@ -208,10 +208,7 @@ button { cursor: pointer; }
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.35) 40%, rgba(0, 0, 0, 0.35));
 }
 .strip-wrap .sheet-grip { margin-top: 4px; }
-.strip-label { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 16px 2px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7); pointer-events: none; }
 .fx-name { font-weight: 900; font-size: 1.15rem; }
-.tray-hint { color: var(--sun); font-weight: 800; font-size: 0.9rem; min-height: 1.2em; }
-.strip-label .muted { font-size: 0.8rem; }
 .strip {
   display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 12px calc(50% - 36px) 12px; scrollbar-width: none;
   touch-action: pan-x; overscroll-behavior-x: contain;
@@ -261,10 +258,6 @@ button { cursor: pointer; }
 .session { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(63, 224, 208, 0.12); border: 1px solid rgba(63, 224, 208, 0.4); }
 .session .who { flex: 1; font-weight: 700; }
 
-.effect-hint {
-  position: fixed; left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 32px); bottom: calc(var(--bottom-ui) + 8px); z-index: 15;
-  padding: 6px 14px; border-radius: 999px; background: rgba(0, 0, 0, 0.6); font-weight: 800; font-size: 0.9rem; pointer-events: none; text-align: center;
-}
 .invites { position: fixed; top: var(--top-ui); right: 12px; z-index: 25; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; max-width: calc(100% - 24px); }
 .invite { display: flex; gap: 10px; align-items: center; padding: 8px 8px 8px 14px; border-radius: 999px; background: rgba(28, 19, 52, 0.92); border: 1px solid var(--aqua); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35); font-weight: 700; }
 
@@ -284,10 +277,10 @@ button { cursor: pointer; }
 .game-root { position: absolute; inset: 0; overflow: hidden; }
 .game-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
 #call.has-game .status { display: none; }
-#call.has-game .top-actions [data-open] { display: none; }
+#call.has-game .top-actions #btn-cam, #call.has-game .top-actions [data-action="fullscreen"] { display: none; }
 #call.has-game .topbar { background: linear-gradient(rgba(0, 0, 0, 0.5), transparent); }
 #call.has-game .stage {
-  position: fixed; inset: auto; top: calc(var(--safe-t) + 10px); right: 62px; z-index: 21; display: flex; gap: 6px; background: none;
+  position: fixed; inset: auto; top: calc(var(--safe-t) + 10px); right: 112px; z-index: 21; display: flex; gap: 6px; background: none;
   max-width: 46vw; overflow: hidden; flex-direction: row-reverse;
 }
 #call.has-game .stage .tile, #call.has-game .stage[data-count="2"] .tile.pip {
@@ -340,6 +333,11 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
   .ctrl { width: 50px; }
   .controls { gap: 4px; padding: 6px; }
 }
+/* Five buttons with longer names: a little wider, a little smaller type. */
+.controls .ctrl { width: 66px; }
+.controls .ctrl .lbl { font-size: 0.6rem; letter-spacing: -0.01em; white-space: nowrap; }
+.controls { gap: 4px; }
+@media (max-width: 370px) { .controls .ctrl { width: 60px; } .controls .ctrl .lbl { font-size: 0.55rem; } }
 .game-card .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 /* Floating UI is dragged and tapped, never selected (a selection would turn
    the next drag into a text drag and cancel it). */
@@ -389,8 +387,6 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .vote[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .vote:active { transform: scale(0.94); }
 .votes.compact .vote { padding: 2px 8px; font-size: 0.78rem; }
-.fx-title { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.strip-label .votes { pointer-events: auto; }
 .vote-pill { padding: 4px 6px; }
 .vote-pill:empty { display: none; }
 .game-cell { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
@@ -442,3 +438,69 @@ body.reduce-motion * { animation-duration: 0.01ms !important; transition: none !
 .btn.ghost:hover { background: rgba(255, 255, 255, 0.08); }
 /* The delivered title background is light: keep the tagline readable on it. */
 #title.has-bg .tagline { display: inline-block; padding: 6px 14px; border-radius: 14px; color: #fff; background: rgba(29, 21, 51, 0.62); }
+
+/* ---------- names, top buttons, bottom row ---------- */
+
+/* Names show on the videos only for a moment (see flashName). */
+.tile .name { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
+.tile.show-name .name { opacity: 1; }
+
+/* Mic and camera sit at the top beside settings; off reads as crossed out. */
+.round-btn { position: relative; }
+.round-btn .ico { display: grid; place-items: center; }
+.dev-btn[aria-pressed="false"] { background: #d93a4e; --slash-bg: #d93a4e; border-color: transparent; }
+.dev-btn.missing { opacity: 0.55; }
+.round-btn .badge { top: -4px; right: -4px; }
+.round-btn.small { width: 34px; height: 34px; font-size: 0.9rem; }
+
+/* The bottom row: picking a button slides it left, the others fold away and
+   the space to its right says what is on. */
+.controls { transition: width 0.25s ease; }
+.controls .ctrl { transition: transform 0.08s, background 0.15s, color 0.15s, width 0.25s ease, padding 0.25s ease, opacity 0.2s ease, margin 0.25s ease; overflow: hidden; }
+.controls[data-tab] { left: 8px; right: 8px; width: auto; max-width: 760px; }
+.controls[data-tab] .ctrl[aria-expanded="false"] { width: 0; padding-left: 0; padding-right: 0; margin-left: -6px; opacity: 0; pointer-events: none; }
+.controls[data-tab] .ctrl[aria-expanded="true"]::after {
+  content: "‹"; position: absolute; left: 4px; top: 50%; transform: translateY(-62%); font-weight: 900; font-size: 1.1rem; opacity: 0.55;
+}
+.controls[data-tab] .ctrl[aria-expanded="true"] { animation: slide-left 0.25s ease; }
+@keyframes slide-left { from { transform: translateX(40px); } to { transform: none; } }
+.ctrl-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 6px; animation: info-in 0.25s ease; }
+@keyframes info-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.ctrl-info[hidden] { display: none; }
+.info-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.info-name { font-weight: 900; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-sub { font-size: 0.75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-actions { display: flex; align-items: center; gap: 4px; flex: none; }
+.info-actions[hidden] { display: none; }
+.mini-btn { width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.12); color: #fff; display: grid; place-items: center; flex: none; }
+.mini-btn svg { width: 20px; height: 20px; }
+.mini-btn:active { transform: scale(0.94); }
+@media (prefers-reduced-motion: reduce) { .controls .ctrl, .ctrl-info { transition: none; animation: none; } }
+body.reduce-motion .controls .ctrl, body.reduce-motion .ctrl-info { transition: none; animation: none; }
+
+/* With nothing above the strip any more it sits right on the bottom row. */
+.strip-wrap { padding-bottom: 0; }
+
+/* Favorites: a plain strip (tap to use), a grid when dragged up. */
+.strip-wrap.favs .strip { scroll-snap-type: none; padding: 12px 16px; justify-content: safe center; }
+.strip-wrap.favs .fx-item[aria-selected="true"] { box-shadow: 0 0 0 3px var(--accent); }
+.strip-wrap.favs .fx-item.is-game { border-radius: 20px; }
+.fav-empty { margin: 4px 16px 14px; text-align: center; font-weight: 800; color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7); }
+
+/* Put a friend's effect on me too. */
+.grab-fx {
+  position: fixed; right: 12px; bottom: calc(var(--bottom-ui) + 10px); z-index: 18; display: flex; align-items: center; gap: 4px;
+  padding: 8px 12px 8px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.2); background: var(--glass); color: #fff;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.grab-fx[hidden] { display: none; }
+.grab-fx svg { width: 20px; height: 20px; }
+.grab-fx .emoji { font-size: 1.3rem; line-height: 1; }
+#call:has(#tray-effects:not([hidden])) .grab-fx, #call:has(#tray-favs:not([hidden])) .grab-fx,
+#call:has(#tray-games:not([hidden])) .grab-fx, #call:has(#chat-box:not([hidden])) .grab-fx { display: none; }
+
+/* Settings: Messages and Leave only during a call; the name is tapped to edit. */
+body:not(.in-call) .field.in-call { display: none; }
+.name-show { align-self: flex-start; padding: 8px 14px; border-radius: 12px; border: 1px dashed var(--line); background: rgba(255, 255, 255, 0.06); color: #fff; font-weight: 800; font-size: 1rem; }
+.badge-host { position: relative; }
+.btn.danger { background: #d93a4e; color: #fff; }
