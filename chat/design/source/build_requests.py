@@ -528,6 +528,14 @@ NEW_GAME_ICONS = [
     ("trivia", "Trivia", "a big question mark on a quiz-show buzzer"),
     ("wordblitz", "Word Blitz", "a 4x4 grid of letter tiles with a word path traced in gold"),
 ]
+# Third batch: face and body reshaping.
+MORE_EFFECT_ICONS = [
+    ("kid", "Kid", "a cheerful child's face with big eyes and freckles"),
+    ("manface", "Man", "a grown man's face with a square jaw and stubble"),
+    ("womanface", "Woman", "a woman's face with long lashes, rosy cheeks and red lips"),
+    ("thinner", "Thinner", "a tall skinny face squeezed between two inward arrows"),
+    ("fatter", "Fatter", "a wide round face stretched between two outward arrows"),
+]
 for i, (gid, name, subject) in enumerate(EFFECT_ICONS, 1):
     req("icons", f"CH-I{i:02d}", f"fx-{gid}", f"{name} icon", "256 x 256",
         f"The {name} button on the effect tray.", f"Icon of {subject}.", "An emoji.")
@@ -540,6 +548,9 @@ for i, (gid, name, subject) in enumerate(NEW_EFFECT_ICONS, 31):
 for i, (gid, name, subject) in enumerate(NEW_GAME_ICONS, 31 + len(NEW_EFFECT_ICONS)):
     req("icons", f"CH-I{i:02d}", f"game-{gid}", f"{name} icon", "256 x 256",
         f"The {name} card in the game picker.", f"Icon of {subject}.", "An emoji.")
+for i, (gid, name, subject) in enumerate(MORE_EFFECT_ICONS, 31 + len(NEW_EFFECT_ICONS) + len(NEW_GAME_ICONS)):
+    req("icons", f"CH-I{i:02d}", f"fx-{gid}", f"{name} icon", "256 x 256",
+        f"The {name} button on the effect strip.", f"Icon of {subject}.", "An emoji.")
 
 
 def render_doc() -> str:
