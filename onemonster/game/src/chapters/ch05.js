@@ -39,12 +39,13 @@ export const TUNE = {
 
 // Flotsam: [prop item, height on screen at the front, weight in the tummy].
 const JUNK = {
-  2: [74, 0.09], 3: [74, 0.09], 4: [58, 0.08], 5: [62, 0.08], 6: [66, 0.11], 7: [112, 0.16], 8: [58, 0.07],
+  2: [92, 0.09], 3: [92, 0.09], 4: [74, 0.08], 5: [78, 0.08], 6: [84, 0.11], 7: [140, 0.16], 8: [72, 0.07],
 };
 const KINDS = [2, 3, 4, 5, 6, 7, 8, 4, 5, 2];
 
-// Where the mouth is on each pose, as a fraction of the sprite (facing right).
-const MOUTH = { suck: [0.73, 0.45], roll: [0.83, 0.45], bloated: [0.62, 0.43], letgo: [0.62, 0.45], celebrate: [0.55, 0.45], eye: [0.72, 0.5], wisp: [0.6, 0.45] };
+// Where the spout leaves each pose (the tip of the spray drawn on the sprite,
+// or the lips when it has none), as a fraction of the sprite, facing right.
+const MOUTH = { suck: [0.78, 0.84], roll: [0.84, 0.86], bloated: [0.6, 0.5], letgo: [0.72, 0.78], celebrate: [0.72, 0.82], eye: [0.6, 0.88], wisp: [0.55, 0.8] };
 
 const gdist = (ax, ay, bx, by) => Math.hypot(ax - bx, (ay - by) / K) / persp((ay + by) / 2);
 const lerp = (a, b, u) => a + (b - a) * u;
@@ -57,6 +58,7 @@ export default function create(env) {
   const duckTime = TUNE.duck + (hg ? 0.2 : 0);
   const duckCd = TUNE.duckCd - (hg ? 0.5 : 0);
   const fx = makeFx();
+  const say = (text, x, y) => fx.say(text, clamp(x, 260, W - 260), Math.max(230, y));
   let t = 0;
 
   // The point on the sea under the cloud (steered), and the spout's foot (lags).
@@ -172,7 +174,7 @@ export default function create(env) {
       if (floating < TUNE.junk - 3 && rng() < dt * 0.8) spawnJunk(SEA.x0 - 30, lerp(SEA.y0 + 20, SEA.y1 - 10, rng()));
 
       // ---- full up: burp ----
-      if (self.full > TUNE.bloatedAt && !warned) { warned = true; fx.say('Getting full!', cloudX(), cloudY() - 210); env.sfx('creak'); }
+      if (self.full > TUNE.bloatedAt && !warned) { warned = true; say('Getting full!', cloudX(), cloudY() - 210); env.sfx('creak'); }
       if (self.full >= 1 && burpT <= 0) burp();
       if (burpT > 0) {
         burpT -= dt;
@@ -181,7 +183,7 @@ export default function create(env) {
 
       // ---- animation ----
       const big = self.full > TUNE.bloatedAt ? 1 + (self.full - TUNE.bloatedAt) * 0.7 : 1;
-      cloud.sizeK = 0.86 * persp(p.y) * big;
+      cloud.sizeK = 1.15 * persp(p.y) * big;
       cloud.x = cloudX(); cloud.y = cloudY();
       art.animate(cloud, dt, p.vx, p.vy);
       if (burpT > 0) art.setAnim(cloud, 'letgo');
@@ -194,7 +196,7 @@ export default function create(env) {
       if (bottle.state === 'gone') {
         self.done = true; self.outcome = 'snatched';
         env.sfx('snatch'); env.sfx('cheer'); env.vibrate(160);
-        fx.say('Got it!', cloud.x, cloud.y - 220);
+        say('Got it!', cloud.x, cloud.y - 220);
         art.kick(cloud, 0.6);
       } else if (self.time <= 0) {
         self.done = true; self.outcome = 'kept';
@@ -232,7 +234,7 @@ export default function create(env) {
     marks() {
       return marksFor({ snatched: self.outcome === 'snatched', spareFrac: self.time / total, heldFrac: (total - self.time) / total, bonus: self.bonus });
     },
-    hud: () => `Tummy ${Math.round(Math.min(1, self.full) * 100)}% · Junk ${self.junk}`,
+    hud: () => `Junk swallowed ${self.junk}`,
   };
 
   // ---------- movement on the slanted sea ----------
@@ -292,7 +294,7 @@ export default function create(env) {
     art.kick(cloud, 0.35);
     if (t - lastSlurp > 0.25) { env.sfx('slurp'); lastSlurp = t; }
     env.sfx('bubble');
-    fx.say(['Gulp!', 'Slurp!', 'Glug!'][self.junk % 3], cloudX() + (rng() - 0.5) * 120, cloudY() - 200);
+    say(['Gulp!', 'Slurp!', 'Glug!'][self.junk % 3], cloudX() + (rng() - 0.5) * 120, cloudY() - 200);
   }
 
   function burp() {
@@ -302,7 +304,7 @@ export default function create(env) {
     env.sfx('burp');
     env.vibrate(120);
     art.kick(cloud, -0.6);
-    fx.say('Too full! BURP!', cloudX(), cloudY() - 230);
+    say('Too full! BURP!', cloudX(), cloudY() - 230);
     const M = mouth();
     const n = 3 + Math.floor(rng() * 3);
     for (let i = 0; i < n; i++) {
@@ -346,7 +348,7 @@ export default function create(env) {
       b.duck = duckTime; b.cd = duckCd; b.spin = 0;
       env.sfx('splash');
       splashes.push({ x: b.x, y: b.y, t: 0, k: 0.8 });
-      if (power > 0.3 && gdist(b.x, b.y, foot.x, foot.y) < radius() * 1.1) fx.say('Ducked!', b.x, b.y - 110);
+      if (power > 0.3 && gdist(b.x, b.y, foot.x, foot.y) < radius() * 1.1) say('Ducked!', b.x, b.y - 110);
     }
     const top = (TUNE.bottleSpeed + (hg ? 20 : 0)) * (b.duck > 0 ? 0.9 : 1);
     const ix = clamp(inp?.x || 0, -1, 1), iy = clamp(inp?.y || 0, -1, 1);
@@ -400,7 +402,7 @@ export default function create(env) {
 
   // ---------- where things are on screen ----------
 
-  function lift(y) { return 330 * persp(y); }
+  function lift(y) { return 380 * persp(y); }
   function cloudX() { return p.x; }
   function cloudY() { return p.y - lift(p.y); }
   function mouth() {
@@ -409,7 +411,7 @@ export default function create(env) {
     return { x: cloud.x + (mx - 0.5) * sz.w * cloud.facing, y: cloud.y + (my - 0.5) * sz.h };
   }
   function spoutEnd(M) {
-    const u = 0.4 + 0.6 * power;
+    const u = 0.75 + 0.25 * power;
     return { x: lerp(M.x, foot.x, u), y: lerp(M.y, foot.y, u) };
   }
   function bez(A, C, B, u) {
@@ -487,20 +489,23 @@ export default function create(env) {
     const rx = R * pk, ry = R * pk * K;
     g.save();
     g.translate(foot.x, foot.y);
-    g.globalAlpha = 0.25 * power;
+    g.globalAlpha = 0.35 * power;
     g.fillStyle = '#16304a';
     g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); g.fill();
     g.globalAlpha = 0.45 * power;
     g.fillStyle = '#0d1d2e';
     g.beginPath(); g.ellipse(0, 0, rx * 0.25, ry * 0.25, 0, 0, Math.PI * 2); g.fill();
     g.lineCap = 'round';
-    for (let i = 0; i < 4; i++) {
-      const k = 1 - i * 0.2;
-      const a0 = tt * (5 + i) * (env.reduceMotion ? 0.3 : 1) + i * 1.7;
-      g.globalAlpha = (0.55 - i * 0.08) * power;
-      g.strokeStyle = '#eef5fb';
-      g.lineWidth = 6 - i;
-      g.beginPath(); g.ellipse(0, 0, rx * k, ry * k, 0, a0, a0 + 3.6); g.stroke();
+    for (let i = 0; i < 5; i++) {
+      const k = 1 - i * 0.17;
+      const a0 = tt * (4 + i * 1.5) * (env.reduceMotion ? 0.3 : 1) + i * 1.7;
+      g.globalAlpha = (0.85 - i * 0.1) * power;
+      g.strokeStyle = i % 2 ? '#cfe0ee' : '#f6fbff';
+      g.lineWidth = (9 - i) * pk;
+      g.beginPath(); g.ellipse(0, 0, rx * k, ry * k, 0, a0, a0 + 3.4); g.stroke();
+      g.strokeStyle = 'rgba(20,40,60,0.6)';
+      g.lineWidth = 3 * pk;
+      g.beginPath(); g.ellipse(0, 0, rx * k * 0.93, ry * k * 0.93, 0, a0 + 0.4, a0 + 2.6); g.stroke();
     }
     g.restore();
   }
@@ -532,16 +537,16 @@ export default function create(env) {
     const glint = t < 4 ? 1 : Math.max(0, Math.sin(tt * 3)) * 0.6;
     if (glint > 0.05 && b.duck <= 0) {
       g.save(); g.globalAlpha = 0.5 * glint; g.strokeStyle = '#f2c53d'; g.lineWidth = 5;
-      g.beginPath(); g.ellipse(b.x, b.y, 62 * pk, 22 * pk, 0, 0, Math.PI * 2); g.stroke();
+      g.beginPath(); g.ellipse(b.x, b.y, 78 * pk, 26 * pk, 0, 0, Math.PI * 2); g.stroke();
       g.restore();
     }
     if (b.duck > 0) {
-      if (!art.drawSprite(g, art.prop('typhoonigator', 9), b.x, y + 6, { height: 100 * pk, ay: 0.85 })) {
+      if (!art.drawSprite(g, art.prop('typhoonigator', 9), b.x, y + 6, { height: 126 * pk, ay: 0.85 })) {
         g.save(); g.fillStyle = '#7fa6c0'; g.beginPath(); g.ellipse(b.x, y - 10, 40 * pk, 18 * pk, 0, 0, Math.PI * 2); g.fill(); g.restore();
       }
     } else {
-      ring(g, b.x, b.y + 4, 44 * pk);
-      if (!art.drawSprite(g, art.prop('typhoonigator', 1), b.x, y, { height: 86 * pk, ay: 0.8, rot: b.rot })) {
+      ring(g, b.x, b.y + 4, 54 * pk);
+      if (!art.drawSprite(g, art.prop('typhoonigator', 1), b.x, y, { height: 112 * pk, ay: 0.8, rot: b.rot })) {
         g.save(); g.fillStyle = '#e8e2d0'; g.strokeStyle = '#c8443a'; g.lineWidth = 6;
         g.beginPath(); g.ellipse(b.x, y - 30 * pk, 22 * pk, 40 * pk, b.rot, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
       }
@@ -559,7 +564,7 @@ export default function create(env) {
     const u = it.lt / TUNE.liftTime;
     const q = bez(M, C, F, 1 - u);
     const wob = Math.sin(it.lt * 18) * 22 * (1 - u);
-    const h = (it.kind === 1 ? 86 : JUNK[it.kind][0]) * persp(foot.y) * (1 - 0.55 * u);
+    const h = (it.kind === 1 ? 112 : JUNK[it.kind][0]) * persp(foot.y) * (1 - 0.55 * u);
     g.save(); g.globalAlpha = 1 - u * 0.4;
     art.drawSprite(g, art.prop('typhoonigator', it.kind), q.x + wob, q.y, { height: h, ay: 0.5, rot: it.rot });
     g.restore();
@@ -607,7 +612,7 @@ export default function create(env) {
   }
 
   function drawMeter(g, tt) {
-    const x = 40, y = 170, w = 380, h = 34;
+    const x = 30, y = 232, w = 380, h = 34;
     const f = Math.min(1, self.full);
     g.save();
     g.font = '800 30px Fraunces, Georgia, serif';
