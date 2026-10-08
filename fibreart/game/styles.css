@@ -148,11 +148,21 @@ html, body {
   pointer-events: auto;
   width: 2.8rem;
   height: 2.8rem;
-  opacity: 0.8;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
 }
+/* Nothing shows over the picture while playing. The pause and on-screen
+   controls switches appear only for a moment when the mouse moves or the
+   screen is tapped, for players with no Menu or Esc to reach the pause menu. */
+#hud.reveal .hud-pause, #hud.reveal .hud-pad { opacity: 0.85; pointer-events: auto; }
+#hud.reveal .hud-pad[aria-pressed='true'] { opacity: 1; }
+/* Hints while playing (captions, player chips, the controls line) only when
+   the player has turned them on in Settings. */
+#hud:not(.hints) .caption, #hud:not(.hints) .players, #hud:not(.hints) .play-hint { display: none; }
 /* The on-screen controls' switch: only on touch screens. */
 .hud-pad { right: calc(max(1rem, env(safe-area-inset-right)) + 3.5rem); display: none; }
-.hud-pad[aria-pressed='true'] { opacity: 1; background: #fff8e8; }
+.hud-pad[aria-pressed='true'] { background: #fff8e8; }
 @media (pointer: coarse) { .hud-pad { display: grid; } }
 #hud.touch .hud-pad { display: grid; }
 .play-hint {
