@@ -459,37 +459,29 @@ stays the same monster throughout. The requests are in
 (`OM-C`), portrait (`OM-M`), parts (`OM-R`), swaps (`OM-F`) and key poses
 (`OM-K`).
 
-Monsters move as **cut-out rigs** rather than frame-by-frame sprites, which
-is what keeps them smooth:
+Monsters animate from their **key poses**, with the life added in code:
 
-- **Parts.** The parts sheet takes the monster apart in its master view: body,
-  head, jaw, ears, each limb segment, wings, tail ends, cap, net. Each piece is
-  drawn past its joint with a rounded end, so it can swing without a gap.
-  On integration the sheet is keyed and cut into pieces in the order the
-  request lists, and each piece gets a pivot and a parent in a rig file,
-  `game/src/rigs/<monster>.js`, fitted by laying the pieces back over the
-  model sheet's master view.
-- **Motion.** The game animates the rig in code every frame: each piece's
-  rotation, offset and scale are tweened between key poses with easing, so
-  the movement is smooth at any frame rate. On top go the touches that make
-  it feel alive: follow-through on ears, tie ends, napkins, robes, tails and nets (springs
-  that lag their parent), squash and stretch on landings and lunges, a
-  breathing bob, and blinks on a random timer. Facing left is the rig
-  mirrored.
-- **Swaps.** What rotation cannot do is drawn: a wing at the top or bottom of
-  its beat, an open or chomping jaw, eyes alarmed, shut or dizzy, a clenched
-  paw. A swap replaces its piece for a frame or a few, in the same place and
-  scale. The Bombanat's flap, for one, rotates its wings and swaps through
-  raised, level and swept-down shapes, cross-fading for a frame at each
-  change.
-- **Key poses.** The key-poses sheet is the target each animation is fitted
-  to (the sneak cycle's two steps, the lunge, the swing), and the stills of
-  the snatch at each hand-off.
-- **Stand-ins.** Each rig exists before its art does: the same skeleton with
-  its pieces drawn in code. Animation is built and tuned on the stand-ins,
-  and a delivered parts sheet drops in with no change to the animation.
+- **Poses.** Each monster's key-poses sheet is cut into single sprites by
+  `onemonster/tools/build_sprites.py` (by hand-checked rectangles in
+  `onemonster/tools/slices.json` where the sheet is crowded), trimmed, scaled
+  to game size and saved as WebP in `game/sprites/`. `game/src/monsters.js`
+  names each pose and builds the animations from them: two-pose walk and run
+  cycles stepped by the distance travelled, wing beats timed by the flapping,
+  single poses for actions (dive, lunge, slam, wail).
+- **Motion in code.** The game adds squash and stretch (a spring kicked on
+  landings, grabs and lunges), a lean into the direction of travel, a breathing
+  bob, shakes for struggles, spins for the Yalapappus's ball and the Bombanat's
+  loop, and a soft shadow; facing left is the sprite mirrored.
+- **Why not cut-out rigs.** The first plan was rigs of separate parts (wings,
+  jaws, limbs) moved and rotated in code. The delivered parts and swaps sheets,
+  checked in the game, could not do it: the generator fused pieces together
+  (heads drawn with their jaws), mixed scales on one sheet and drew "swaps" as
+  whole heads. Those sheets are kept but not used, except the Yalapappus rolled
+  into a ball.
+- **Stand-ins.** Anything missing is drawn as a simple ink shape, so the game
+  always runs.
 
-The rigs, and the animations each needs:
+The animations each monster needs:
 
 | Monster | Master view | Animations |
 | --- | --- | --- |
