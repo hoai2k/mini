@@ -6,8 +6,9 @@ import { usesText } from '../training.js';
 // the chosen level's rhythms down the left, numbered, each with its dots and
 // where the chapters use it. The tabs and the rows are also tap and click
 // targets (trainingTarget).
-const TABS = { y: 14, h: 40, w: 204, gap: 8, yTouch: 64 }; // below the pause button on touch
-const LIST = { x: 16, y: 120, w: 452, head: 30, rowH: 62, foot: 50 };
+// Nine levels: the tabs are numbers; the list's head names the level and says what is in it.
+const TABS = { y: 14, h: 40, w: 52, gap: 8, yTouch: 64 }; // below the pause button on touch
+const LIST = { x: 16, y: 120, w: 452, head: 62, rowH: 62, foot: 50 };
 
 function tabX(i, n) {
   const total = n * TABS.w + (n - 1) * TABS.gap;
@@ -62,7 +63,7 @@ export const training = {
         g.stroke();
       }
       g.fillStyle = on ? P.ink : P.paper;
-      g.fillText(`${i + 1} · ${lv.name}`, x + TABS.w / 2, ty + 26);
+      g.fillText(`${i + 1}`, x + TABS.w / 2, ty + 26);
     });
     // The level's rhythms.
     const rows = tr.entries.length;
@@ -73,9 +74,19 @@ export const training = {
     g.fill();
     const lv = tr.levels[tr.level - 1];
     g.textAlign = 'left';
-    g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
+    g.font = '700 15px "Be Vietnam Pro", system-ui, sans-serif';
+    g.fillStyle = P.paper;
+    g.fillText(`Level ${tr.level} · ${lv.name}`, LIST.x + 14, LIST.y + 22);
+    // What the level holds, on up to two lines.
+    g.font = '500 12px "Be Vietnam Pro", system-ui, sans-serif';
     g.fillStyle = P.paperShade;
-    g.fillText(`Level ${tr.level} · ${lv.about}`, LIST.x + 14, LIST.y + 21);
+    const lines = [''];
+    for (const word of lv.about.split(' ')) {
+      const next = lines[lines.length - 1] ? `${lines[lines.length - 1]} ${word}` : word;
+      if (g.measureText(next).width > LIST.w - 28 && lines[lines.length - 1]) lines.push(word);
+      else lines[lines.length - 1] = next;
+    }
+    lines.slice(0, 2).forEach((l, k) => g.fillText(l, LIST.x + 14, LIST.y + 40 + k * 15));
     tr.entries.forEach((e, i) => {
       const y = LIST.y + LIST.head + i * LIST.rowH;
       const cur = i === tr.current;
