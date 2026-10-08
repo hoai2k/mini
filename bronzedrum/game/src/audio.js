@@ -169,14 +169,20 @@ export class Sound {
    * two crossfade over MUSIC_XFADE seconds, so the track's own fade-out, its
    * fade-in and the gap browsers leave when an MP3 loops are never heard.
    */
-  playMusic(id, { level = 1, fade = 1.2 } = {}) {
+  /** The menus (title, chapter select, practice modes): the anthem, round and round. */
+  menuMusic() {
+    this.playMusic('mu-anthem', { loop: true });
+  }
+
+  playMusic(id, { level = 1, fade = 1.2, loop = null } = {}) {
     if (!this.ctx) return;
     if (Array.isArray(id)) id = id.find((x) => this.musicFiles.has(x)) || id[0];
     if (this.music && this.music.id === id) return;
     this.stopMusic(fade);
     const m = this.musicFiles.get(id);
     if (!m) return;
-    const music = { id, m, level, voices: new Set(), current: null, next: null };
+    // loop: play a track that does not loop by itself round and round (the anthem on the menus).
+    const music = { id, m: loop === null ? m : { ...m, loop }, level, voices: new Set(), current: null, next: null };
     this.music = music;
     music.current = this.voice(music, 0, fade);
     music.timer = setInterval(() => this.loopTick(music), 100);

@@ -40,7 +40,7 @@ export function createPractice(ctx) {
   function openPractice() {
     sound.start();
     sound.loadSamples().then(() => {
-      if (ctx.screen === 'practice') sound.playMusic('mu-select');
+      if (ctx.screen === 'practice') sound.menuMusic();
     });
     enterFullscreen();
     buildPracticeCards();

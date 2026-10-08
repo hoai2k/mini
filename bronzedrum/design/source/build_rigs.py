@@ -75,6 +75,12 @@ RIGS = {
         },
     },
 }
+# The water puppets' part sheets (BD-WR01, BD-WR02) were drawn to the same
+# layout as the shadow puppets' (checked: same size, outlines 94-95% the
+# same), so they are cut with the same boxes and pins.
+for _name in ("sister-trac", "sister-nhi"):
+    RIGS[f"wp-{_name}"] = {**RIGS[_name], "sheet": f"wp-rig-{_name}.png"}
+
 PAD = 6  # sheet pixels kept around each piece's box
 
 

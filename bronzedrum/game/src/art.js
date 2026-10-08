@@ -1,6 +1,6 @@
 // Delivered artwork. assets/manifest.json (generated from
 // design/source/build_requests.py) lists every requested image. Entries whose
-// status is "delivered" are loaded; everything else is drawn
+// status is "delivered" (or "regenerate") are loaded; everything else is drawn
 // by the procedural paper-cut stand-ins in render.js. Delivered production
 // sheets with runtime: false are reserved for later builds. The game loads
 // the scaled WebP copy (a.web, from design/source/build_web_art.py) when there
@@ -59,9 +59,11 @@ export class Art {
     } catch {
       this.entries = [];
     }
-    const delivered = this.entries.filter((a) => a.status === 'delivered' && a.runtime !== false && a.file);
+    // 'regenerate': delivered, with a new take wanted; the current file is used until then.
+    const loaded = (a) => a.status === 'delivered' || a.status === 'regenerate';
+    const delivered = this.entries.filter((a) => loaded(a) && a.runtime !== false && a.file);
     // A water twin's rig is cut only once its part sheet is delivered.
-    const sheets = new Set(this.entries.filter((a) => a.status === 'delivered').map((a) => a.id));
+    const sheets = new Set(this.entries.filter(loaded).map((a) => a.id));
     const rigs = RIGS.filter((id) => !id.startsWith('wp-') || sheets.has(`wp-rig-${id.slice(3)}`)).map(async (id) => {
       const r = await loadRig(base, id);
       if (r) this.rigs.set(id, r);

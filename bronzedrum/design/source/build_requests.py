@@ -17,6 +17,8 @@ Statuses:
     planned    requested for a later build; the prototype does not load it
     reference  inspiration and direction only; lives in design/references/
     delivered  the file is in the repository and the game loads it
+    regenerate delivered, but a new take is wanted (the request says why and
+               its prompt is revised); the game keeps loading the current file
 """
 
 from __future__ import annotations
@@ -975,7 +977,10 @@ WATER_SUBJECTS = {
         "standing in the pond in front: the long low hall on wooden stilts under a huge "
         "saddle-shaped roof whose two ends sweep up like a boat's prow; before it, the small "
         "pavilion on posts in the water, its curved tiled roof, its front hung with a bamboo "
-        "screen behind which the puppeteers stand. Black lacquer, vermilion pillars, gold leaf."),
+        "screen behind which the puppeteers stand. The pavilion is the point of the picture: draw "
+        "it clearly, in front of the hall's right half, its roof reaching about half the hall's "
+        "height, its posts standing in a strip of pond water along the bottom edge. Black "
+        "lacquer, vermilion pillars, gold leaf."),
 }
 
 # Titles and purposes for the pieces whose subject changes with the medium.
@@ -987,6 +992,28 @@ WATER_TITLES = {
     "BD-F03": ("Burst from the pond (the drum waking)", "The burst when the drum's spirit wakes."),
     "BD-P11": ("Communal house and water pavilion", "Drum Practice's backdrop: the village's communal house with its water pavilion in the pond."),
 }
+
+# Water figures delivered as recoloured cut-paper (traced from the shadow
+# sprites: flat, with cut-out holes) instead of carved puppets like the style
+# frame's. Regenerated with PUPPET below; the delivered take stays in the game
+# until then.
+TRACED = "The first take traced the shadow-puppet sprite: a flat cut-paper figure in lacquer colours, not a carved wooden puppet like those of the style frame BD-W01."
+REDO = {rid: TRACED for rid in (
+    "BD-C01", "BD-C02", "BD-C14", "BD-C11", "BD-C12", "BD-C05", "BD-C06", "BD-C15", "BD-C16",
+    "BD-C17", "BD-C07", "BD-C08", "BD-P02", "BD-P03", "BD-P10", "BD-C13", "BD-R01", "BD-R02")}
+REDO["BD-P11"] = "The first take is the communal house alone, recoloured: the water pavilion in the pond in front of it, which the prompt asks for, is missing."
+
+PUPPET = (
+    "Match the puppets of the water-puppet style frame BD-W01 "
+    "(bronzedrum/design/references/w01-water-puppet-frame.png; give it to the generator as the "
+    "style reference): each figure a carved wooden doll with a large round head, a smooth glossy "
+    "face painted pale with rosy cheeks, arched black brows and a small calm smile, carved hair "
+    "and headdress, a sturdy body and rounded limbs with visible round joint pegs at the "
+    "shoulders, elbows and hips, the costume carved in low relief and painted in glossy lacquer "
+    "with gold-leaf trim, warm highlights on the wet lacquer. From the shadow-puppet image take "
+    "only the pose, the facing and the framing; do not copy its flat cut-paper patterns, its "
+    "cut-out holes or its silhouette look."
+)
 
 # Every image with the shadow-puppet look, in the order of the list above.
 WATER_BASES = [
@@ -1033,18 +1060,28 @@ for base_id in WATER_BASES:
     rid = "BD-W" + base_id.removeprefix("BD-")
     asset = "wp-" + b["asset"]
     spec = b["spec"].replace(CUTOUT, WATER_CUTOUT).replace("cut-paper", "carved and lacquered wooden")
-    spec = spec.rstrip(".") + f". Keep the composition, pose, proportions and framing of the shadow-puppet version ({b['file']}), so the two swap in the game; give it to the generator as a reference image if it takes one."
+    redo = REDO.get(base_id)
+    if redo and base_id in ("BD-R01", "BD-R02"):
+        spec = spec.rstrip(".") + f". Lay the pieces out exactly as on the first water take (art/{asset}.png): every piece at the same place and about the same size, so the rig's measured cuts still fit."
+    elif redo and base_id == "BD-P11":
+        spec = spec.rstrip(".") + f". Keep the size and the ground line of the shadow-puppet version ({b['file']}), but not its composition: the water pavilion stands in front of the hall."
+    elif redo and base_id not in WATER_SUBJECTS:
+        spec = spec.rstrip(".") + f". Keep the pose, facing, framing and size of the shadow-puppet version ({b['file']}) so the two swap in the game, but not its look: see the prompt."
+    else:
+        spec = spec.rstrip(".") + f". Keep the composition, pose, proportions and framing of the shadow-puppet version ({b['file']}), so the two swap in the game; give it to the generator as a reference image if it takes one."
     if base_id in WATER_SUBJECTS:
         prompt = f"{WATER_STYLE} {WATER_SUBJECTS[base_id]}"
     else:
         subject = b["prompt"].replace(STYLE, "").strip()
-        prompt = f"{WATER_STYLE} {TRANSLATE} {subject}"
+        prompt = f"{WATER_STYLE} {PUPPET if redo else TRANSLATE} {subject}"
     title, purpose = WATER_TITLES.get(base_id, (b["title"], b["purpose"]))
     req(WT, rid, asset, f"Water puppets: {title}",
         f"The water-puppet version of {base_id}, shown in its place when Settings, Style is "
         f"Water puppets. {purpose}",
-        spec, "delivered", b["standin"] and f"{b['asset']} (the shadow-puppet image)", f"art/{asset}.png", prompt)
+        spec, "regenerate" if redo else "delivered", b["standin"] and f"{b['asset']} (the shadow-puppet image)", f"art/{asset}.png", prompt)
     REQUESTS[-1]["base"] = b["asset"]
+    if redo:
+        REQUESTS[-1]["redo"] = redo
 
 # ------------------------------------------------------------------ output
 
@@ -1053,6 +1090,7 @@ STATUS_TEXT = {
     "planned": "planned, not loaded yet",
     "reference": "reference only",
     "delivered": "delivered",
+    "regenerate": "delivered; regenerate (the game keeps the current file until the new one arrives)",
 }
 
 
@@ -1115,12 +1153,12 @@ def build_doc() -> str:
         out.append(f"| {k} | `{v}` |")
     out.append("")
     out.append("## Summary\n")
-    out.append("| Section | Requests | Stand-in | Planned | Reference | Delivered |")
-    out.append("| --- | ---: | ---: | ---: | ---: | ---: |")
-    totals = [0, 0, 0, 0, 0]
+    out.append("| Section | Requests | Stand-in | Planned | Reference | Delivered | Regenerate |")
+    out.append("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
+    totals = [0, 0, 0, 0, 0, 0]
     for key, (title, _) in SECTIONS.items():
         rows = [r for r in REQUESTS if r["section"] == key]
-        counts = [len(rows)] + [sum(r["status"] == s for r in rows) for s in ("stand-in", "planned", "reference", "delivered")]
+        counts = [len(rows)] + [sum(r["status"] == s for r in rows) for s in ("stand-in", "planned", "reference", "delivered", "regenerate")]
         totals = [a + b for a, b in zip(totals, counts)]
         out.append(f"| {title} | " + " | ".join(str(c) for c in counts) + " |")
     out.append("| **total** | " + " | ".join(f"**{c}**" for c in totals) + " |")
@@ -1139,6 +1177,8 @@ def build_doc() -> str:
             if r["asset"]:
                 status += f" · **Game id:** `{r['asset']}`"
             out.append(f"- **Status:** {status}")
+            if r.get("redo"):
+                out.append(f"- **Regenerate because:** {r['redo']}")
             where = "bronzedrum/design/" if not r["asset"] else "bronzedrum/game/assets/"
             out.append(f"- **File:** `{where}{r['file']}`")
             out.append(f"- **Prompt:** {r['prompt']}\n")
@@ -1171,7 +1211,7 @@ def validate() -> None:
         assert r["section"] in SECTIONS, r["id"]
         if r["status"] == "stand-in":
             assert r["asset"] and r["standin"], f"{r['id']}: a stand-in needs a game id and a stand-in"
-        if r["status"] == "delivered":
+        if r["status"] in ("delivered", "regenerate"):
             base = ROOT / "game" / "assets" if r["asset"] else ROOT / "design"
             assert (base / r["file"]).exists(), f"{r['id']}: delivered file missing"
 
