@@ -153,7 +153,7 @@ function aiFlier(env, b, G, skill, dt) {
       br.wander = (br.wander ?? 0) - dt;
       if (br.wander <= 0) {
         br.wander = 1.5 + rng() * 2;
-        br.ta = 460 + rng() * 160;
+        br.ta = b.letter ? 460 + rng() * 160 : 220 + rng() * 260; // plain ones dawdle lower
         let tx = TUNE.bx0 + 60 + rng() * (TUNE.bx1 - TUNE.bx0 - 120);
         // Keep away from where the Grumley was seen.
         if (conf > 0.2 && Math.abs(tx - br.known) < 300 && rng() < skill) tx = clamp(br.known + (tx >= br.known ? 1 : -1) * 420, TUNE.bx0 + 40, TUNE.bx1 - 40);
@@ -357,7 +357,7 @@ export default function create(env) {
     if (G.mode === 'lurk') G.charge = clamp(G.charge + dt * (G.sprinting && sp > 120 ? -1.5 : sp > 150 ? -0.6 : sp > 25 ? 0.3 : 1), 0, T.chargeTime);
     // How easy he is to spot: still and sunk, hardly; gliding, plainly;
     // sprinting, his bubbles boil up all round him.
-    G.vis = G.mode !== 'lurk' ? 1 : G.sprinting && sp > 120 ? 1 : sp > 25 ? 0.12 + 0.45 * Math.min(1, sp / T.gSpeed) : G.still > 1 ? 0.04 : 0.1;
+    G.vis = G.mode !== 'lurk' ? 1 : G.sprinting && sp > 120 ? 1 : sp > 150 ? 0.3 + 0.4 * Math.min(1, sp / T.gSpeed) : sp > 25 ? 0.09 : G.still > 1 ? 0.04 : 0.08;
     // Bubbles and wake.
     G.bubbleT -= dt;
     if (G.bubbleT <= 0) {

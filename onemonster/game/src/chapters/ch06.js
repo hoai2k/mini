@@ -570,7 +570,10 @@ export default function create(env) {
     const n = Math.min(5, queue.length);
     const sz = 58, gap = 66;
     const w = n * gap + 24;
-    const x0 = Math.max(16, Math.min(W - w - 16, cl.x - w / 2));
+    let x0 = Math.max(16, Math.min(W - w - 16, cl.x - w / 2));
+    // Keep clear of the clock at the top middle.
+    const c0 = W / 2 - 170, c1 = W / 2 + 170;
+    if (x0 < c1 && x0 + w > c0) x0 = cl.x < W / 2 ? c0 - w - 10 : c1 + 10;
     const y0 = 18;
     g.save();
     g.fillStyle = 'rgba(248,241,224,0.88)';
@@ -788,7 +791,7 @@ function hint(g, text, W) {
   g.lineWidth = 8;
   g.strokeStyle = 'rgba(248,241,224,0.95)';
   g.fillStyle = '#33241a';
-  g.strokeText(text, W / 2, 150);
-  g.fillText(text, W / 2, 150);
+  g.strokeText(text, W / 2, 540);
+  g.fillText(text, W / 2, 540);
   g.restore();
 }

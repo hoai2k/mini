@@ -48,8 +48,8 @@ export default function create(env) {
     holderSize: 0.82,
     flyHeight: 230,
     bounds: { x0: 130, x1: 1790, y0: 815, y1: 1040 },
-    snatcher: { x: 1650, y: 840, speed: 290, sprint: 520, accel: 900, flies: true, canHide: false, lungeRange: 460, lungeSpeed: 1000, radius: 44 },
-    holder: { x: 900, y: 930, speed: 285, sprint: 495, accel: 2600, radius: 40 },
+    snatcher: { x: 1650, y: 840, speed: 290, sprint: 520, accel: 900, flies: true, canHide: false, lungeRange: 400, lungeSpeed: 980, lungeCooldown: 1.9, stumbleTime: 1.2, grabRange: 56, radius: 42 },
+    holder: { x: 900, y: 930, speed: 295, sprint: 505, accel: 2600, radius: 40, regen: 0.2 },
     // Open ground: two rocks to crouch behind, nothing else.
     cover: [
       { x: 560, y: 880, sheet: 'yalapappus', item: 1, h: 130, rx: 82, ry: 34 },
@@ -90,7 +90,7 @@ export default function create(env) {
         }
         // Swat at a Bombanat that comes down low near him.
         const low = s.mode === 'lunge' || s.mode === 'grabbing' || (self.sc.z ?? 300) < 140;
-        if (low && near(yal, s) < 210 && yal.swatCool <= 0) { yal.state = 'swat'; yal.T = 0; yal.facing = Math.sign(s.x - yal.x) || yal.facing; }
+        if (low && near(yal, s) < 300 && yal.swatCool <= 0) { yal.state = 'swat'; yal.T = 0; yal.facing = Math.sign(s.x - yal.x) || yal.facing; }
       } else if (yal.state === 'hold') {
         // He holds the Trollusk up; mashing Action wriggles out sooner.
         yal.vx = yal.vy = 0;
@@ -110,7 +110,7 @@ export default function create(env) {
         if (yal.T > 0.22 && !yal.hit) {
           yal.hit = true;
           const low = s.mode === 'lunge' || s.mode === 'grabbing' || (self.sc.z ?? 300) < 160;
-          if (low && near(yal, s) < 260) {
+          if (low && near(yal, s) < 350) {
             // WHAP! The Bombanat tumbles; a tug in progress comes apart.
             if (chase.tug) { chase.tug = null; h.mode = 'move'; h.modeT = 0; }
             s.mode = 'stumble'; s.modeT = -0.4; s.vx = (Math.sign(s.x - yal.x) || 1) * 500; s.vy = 0;
@@ -197,19 +197,22 @@ export default function create(env) {
     const o = aiHolder(chase, brain, env.skill, dt);
     if (chase.tug || h.mode !== 'move') return o;
     const dx = h.x - yal.x, dy = h.y - yal.y, d = Math.hypot(dx, dy) || 1;
-    const wary = 260 + 200 * env.skill;
-    if (d < wary && yal.state === 'stomp' && !o.actionPressed) {
-      // Away from both of them, and back toward open ground: no getting
-      // pinned against the edge between the two.
-      const s = chase.s;
-      const bx = h.x - s.x, by = h.y - s.y, bd = Math.hypot(bx, by) || 1;
-      const cx = 960 - h.x, cy = 930 - h.y, cd = Math.hypot(cx, cy) || 1;
-      let x = (bx / bd) * (300 / Math.max(bd, 150)) + (dx / d) * (420 / Math.max(d, 120)) + (cx / cd) * 0.5;
-      let y = (by / bd) * (300 / Math.max(bd, 150)) + (dy / d) * (420 / Math.max(d, 120)) + (cy / cd) * 0.5;
-      const m = Math.hypot(x, y) || 1;
-      o.x = x / m; o.y = y / m;
-      if (d < 160 && h.st > 0.2) o.sprint = true;
-    }
+    if (o.actionPressed || yal.state === 'hold') return o;
+    const s = chase.s;
+    const bd = Math.hypot(h.x - s.x, h.y - s.y);
+    const ready = yal.state === 'stomp' && yal.cool <= 0;
+    let gx = 0, gy = 0;
+    if (ready && d < 150) {
+      // Too close to those paws: step away.
+      gx = dx / d; gy = dy / d;
+      if (d < 110 && h.st > 0.2) o.sprint = true;
+    } else if (d > 300 && bd < 520 && h.st < 0.7 && env.rng() < 0.5 + 0.5 * env.skill) {
+      // Tired, with the Bombanat about: shelter near the Yalapappus (at a
+      // respectful distance), where a dive gets swatted.
+      gx = -dx / d; gy = -dy / d;
+    } else return o;
+    const m = Math.hypot(gx * 1.5 + (o.x || 0), gy * 1.5 + (o.y || 0)) || 1;
+    o.x = (gx * 1.5 + (o.x || 0)) / m; o.y = (gy * 1.5 + (o.y || 0)) / m;
     return o;
   }
   return ch;
