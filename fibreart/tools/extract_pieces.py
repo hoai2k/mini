@@ -5,6 +5,7 @@ The reviewed component selections describe the actual sheets, not an assumed gri
 Run from any directory after changing a sheet only after reviewing its selections.
 """
 import json
+import argparse
 import re
 import runpy
 from pathlib import Path
@@ -15,6 +16,10 @@ from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parents[1]
 SELECTIONS = {
+    'HK-T02-C': [[1], [2], [3], [5], [7], [6], [10], [12], [11]],
+    'HK-T06-C': [[1], [2], [3], [4], [6], [5], [7]],
+    'HK-M02': [[4], [3], [2], [1], [5]],
+    'HK-M04': [[1], [5], [3], [2], [4]],
     'HK-T01-C': [[4], [1], [2], [3], [6], [5], [7], [8], [9], [10], [13], [12, 14, 15, 16]],
     'HK-T03-C': [[1], [2], [3], [5], [4], [6], [7], [9]],
     'HK-T04-C': [[1], [3], [2], [6], [4], [5], [7], [9], [8]],
@@ -27,15 +32,21 @@ SELECTIONS = {
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--only', nargs='+', help='Review and rebuild only these request IDs; preserve other cuts.')
+    args = parser.parse_args()
     requests = runpy.run_path(str(ROOT / 'design/source/build_requests.py'))['REQUESTS']
-    result = {}
+    manifest = ROOT / 'game/assets/pieces.json'
+    result = json.loads(manifest.read_text()) if args.only and manifest.exists() else {}
     for request in requests:
         if request['id'] not in SELECTIONS:
+            continue
+        if args.only and request['id'] not in args.only:
             continue
         path = ROOT / 'game' / request['file']
         image = Image.open(path).convert('RGBA')
         pixels = np.array(image)
-        labels, _ = ndimage.label(ndimage.binary_dilation(pixels[:, :, 3] > 32, iterations=3))
+        labels, _ = ndimage.label(ndimage.binary_dilation(pixels[:, :, 3] > 32, iterations=1 if request['section'] == 'chain' else 3))
         objects = ndimage.find_objects(labels)
         selections = SELECTIONS[request['id']]
         assert len(selections) == len(request['pieces'])
@@ -62,7 +73,7 @@ def main():
         for label, owner in owners.items():
             lookup[label] = owner
         rows = []
-        directory = path.parent / 'pieces'
+        directory = path.parent / (path.stem if request['section'] == 'chain' else 'pieces')
         directory.mkdir(exist_ok=True)
         for index, name in enumerate(request['pieces']):
             mask = lookup[labels] == index
@@ -77,7 +88,7 @@ def main():
             rows.append({'name': name, 'file': str(destination.relative_to(ROOT / 'game')),
                          'sheetBounds': list(bounds), 'size': [bounds[2]-bounds[0], bounds[3]-bounds[1]]})
         result[request['key']] = rows
-    (ROOT / 'game/assets/pieces.json').write_text(json.dumps(result, indent=2) + '\n')
+    manifest.write_text(json.dumps(result, indent=2) + '\n')
     print(f"Extracted {sum(map(len, result.values()))} pieces from {len(result)} sheets.")
 
 

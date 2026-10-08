@@ -49,10 +49,11 @@ across the picture when it is larger than the screen.
   `build_web.py` makes `game/web/` (Pillow, NumPy, SciPy).
 - [`intake/`](intake/README.md): the drop box for new images and photos.
 
-Stand-ins until the retried requests arrive: the Moons and hearts and The
-dancers pieces are cut by colour from their compositions, the Viriditas ground
-is a blurred wash of its composition, the icon is the moon chain's crescent on
-indigo batik, and there is no tree or bird morph chain yet.
+All 60 image requests are delivered. The generated icon, Viriditas ground,
+Moons and hearts and Dancers pieces, and tree and bird morph chains now replace
+the earlier stand-ins. Animation assets and control drawings are included.
+See [`design/checkpoint.md`](design/checkpoint.md) for the saved work state and
+remaining review items.
 
 ## Run and check
 

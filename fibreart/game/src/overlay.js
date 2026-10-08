@@ -140,7 +140,9 @@ export function createOverlay(canvas, base = 'web/') {
       y = Math.min(H - 0.7, Math.max(0.7, y));
       const fade = Math.min(1, pin.t * 3, (4.5 - pin.t) * 1.5);
       ctx.globalAlpha = fade;
-      const img = lines.get(GLYPH[inputKind(pin.input)]);
+      const kind = inputKind(pin.input);
+      const control = ['LB', 'RB'].includes(pin.input) ? 'shoulder' : pin.input.startsWith('D') ? 'dpad' : kind;
+      const img = lines.get(control) || lines.get(GLYPH[kind]);
       ctx.fillStyle = 'rgba(250, 244, 230, 0.92)';
       ctx.beginPath();
       ctx.ellipse(x, y, 0.62, 0.5, 0, 0, Math.PI * 2);

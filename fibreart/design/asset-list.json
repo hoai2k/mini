@@ -7,7 +7,7 @@
   "icon": {
     "id": "HK-U02",
     "file": "assets/ui/icon.png",
-    "delivered": false
+    "delivered": true
   },
   "lineDrawings": {
     "id": "HK-U03",
@@ -22,7 +22,7 @@
   "controlDrawings": {
     "id": "HK-U05",
     "file": "assets/ui/control-drawings.png",
-    "delivered": false
+    "delivered": true
   },
   "viriditas.composition": {
     "id": "HK-T01-A",
@@ -32,7 +32,7 @@
   "viriditas.ground": {
     "id": "HK-T01-B",
     "file": "assets/tableaux/viriditas/ground.webp",
-    "delivered": false
+    "delivered": true
   },
   "viriditas.pieces": {
     "id": "HK-T01-C",
@@ -66,7 +66,7 @@
   "night-quilt.pieces": {
     "id": "HK-T02-C",
     "file": "assets/tableaux/night-quilt/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the crescent moon with the sleeping face",
       "the round moon with the sleeping face in profile",
@@ -167,7 +167,7 @@
   "dancers.pieces": {
     "id": "HK-T06-C",
     "file": "assets/tableaux/dancers/pieces.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "the leaping blue dancer",
       "the turning red dancer",
@@ -291,7 +291,7 @@
   "chain.tree": {
     "id": "HK-M02",
     "file": "assets/chains/tree.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "a bare black appliqu\u00e9 tree with curving branches",
       "the same tree budding, small green buds along the branches",
@@ -315,7 +315,7 @@
   "chain.bird": {
     "id": "HK-M04",
     "file": "assets/chains/bird.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "a silk bird in magenta and cobalt, wings spread",
       "the bird folding its wings, its body lengthening",
@@ -421,7 +421,7 @@
   "anim.drift": {
     "id": "HK-A01",
     "file": "assets/anim/drift.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "orange",
       "red-orange",
@@ -440,12 +440,12 @@
   "anim.blink.golden-lady": {
     "id": "HK-A02",
     "file": "assets/anim/blink-golden-lady.png",
-    "delivered": false
+    "delivered": true
   },
   "anim.blink.crowd": {
     "id": "HK-A03",
     "file": "assets/anim/blink-crowd.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "01",
       "04",
@@ -456,7 +456,7 @@
   "anim.blink.black-tree": {
     "id": "HK-A04",
     "file": "assets/anim/blink-black-tree.png",
-    "delivered": false,
+    "delivered": true,
     "pieces": [
       "05",
       "07"
@@ -465,6 +465,6 @@
   "anim.bird": {
     "id": "HK-A05",
     "file": "assets/anim/bird-viriditas.png",
-    "delivered": false
+    "delivered": true
   }
 }

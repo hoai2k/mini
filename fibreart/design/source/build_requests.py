@@ -740,6 +740,18 @@ for key, name, how in MASKS:
     })
 
 DELIVERED_IDS = {
+    "HK-A01",
+    "HK-A02",
+    "HK-A03",
+    "HK-A04",
+    "HK-A05",
+    "HK-U02",
+    "HK-U05",
+    "HK-T01-B",
+    "HK-T02-C",
+    "HK-T06-C",
+    "HK-M02",
+    "HK-M04",
     "HK-D01",
     "HK-D02",
     "HK-D03",

@@ -15,6 +15,7 @@
 //
 // Screenshots go to --shots (default: none). Playwright is found as the
 // `playwright` package, at PLAYWRIGHT_MODULE, or in /opt/node-tools.
+// Set PLAYWRIGHT_EXECUTABLE_PATH to use an already installed Chromium browser.
 
 import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
@@ -75,7 +76,7 @@ async function main() {
   await new Promise((r) => server.listen(0, r));
   const url = `http://localhost:${server.address().port}/`;
   const { chromium } = await playwright();
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
+  const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));

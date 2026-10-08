@@ -1,10 +1,11 @@
 # Fibre Art assets
 
-48 generated images from the requests in `../../design/image-requests.md`:
-ten compositions, nine grounds, eight transparent piece sheets, the title,
-interface drawings and threads, four morph chains, eight fabric swatches and
-six greyscale dissolve maps. The game loads optimised copies made from these
-by `../../tools/build_web.py` into `../web/`; these full-size files are not published.
+60 generated images from the requests in `../../design/image-requests.md`:
+ten compositions, ten grounds, ten transparent piece sheets, the title and icon,
+interface and control drawings and threads, six morph chains, eight fabric
+swatches, six greyscale dissolve maps and five animation requests. The game loads
+optimised copies made from these by `../../tools/build_web.py` into `../web/`;
+these full-size files are not published.
 
 The built-in image generator used the local artwork references. Grounds and
 piece sheets used their generated composition as the reference. Files were
@@ -14,8 +15,8 @@ preserved. Dissolve maps are opaque single-channel greyscale, spanning 0–255.
 
 `../../design/image-deliveries.json` records prompts, references, native and
 saved dimensions, hashes, and failed requests. `../../design/generated-preview.jpg`
-shows the generated images; `../../design/pieces-preview.jpg` shows all 66
-extracted tableau pieces. The extracted paths, names and sheet coordinates
+shows the generated images; `../../design/pieces-preview.jpg` shows all 82
+extracted tableau pieces. Ten new tree and bird morph stages are also extracted. The extracted paths, names and sheet coordinates
 are in `pieces.json`, in request order. Rebuild those cuts with
 `python3 fibreart/tools/extract_pieces.py` (Pillow, NumPy, SciPy); review the
 component selections whenever a sheet changes. These are approximate generated
@@ -25,14 +26,7 @@ Fabric swatches have the requested appearance, but repeat-edge continuity is
 approximate; seams can remain visible, especially in lace and paisley. Check
 them with the intended wrapping/sampling before using them as large fills.
 
-Six requests remain undelivered because the image service rejected their
-inputs with category `other`, without a more specific explanation:
-
-- HK-U02: app icon.
-- HK-T01-B: Viriditas ground.
-- HK-T02-C: Moons and hearts pieces.
-- HK-T06-C: Dancers pieces.
-- HK-M02: tree morph chain.
-- HK-M04: bird morph chain.
-
-Their request and asset-list statuses remain requested/false.
+All requests are delivered. The six previously rejected requests were retried
+successfully; their earlier failures remain in the delivery records. Generated
+blink and wing replacements approximately match the original sprites, but are
+not pixel-identical outside the edited area. Review their transitions in play.

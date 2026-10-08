@@ -938,5 +938,377 @@
         531
       ]
     }
+  ],
+  "night-quilt.pieces": [
+    {
+      "name": "the crescent moon with the sleeping face",
+      "file": "assets/tableaux/night-quilt/pieces/01-the-crescent-moon-with-the-sleeping-face.png",
+      "sheetBounds": [
+        88,
+        59,
+        617,
+        719
+      ],
+      "size": [
+        529,
+        660
+      ]
+    },
+    {
+      "name": "the round moon with the sleeping face in profile",
+      "file": "assets/tableaux/night-quilt/pieces/02-the-round-moon-with-the-sleeping-face-in-profile.png",
+      "sheetBounds": [
+        738,
+        59,
+        1349,
+        675
+      ],
+      "size": [
+        611,
+        616
+      ]
+    },
+    {
+      "name": "the upper red heart with its white embroidery",
+      "file": "assets/tableaux/night-quilt/pieces/03-the-upper-red-heart-with-its-white-embroidery.png",
+      "sheetBounds": [
+        1364,
+        60,
+        2016,
+        695
+      ],
+      "size": [
+        652,
+        635
+      ]
+    },
+    {
+      "name": "the lower red heart with its white embroidery",
+      "file": "assets/tableaux/night-quilt/pieces/04-the-lower-red-heart-with-its-white-embroidery.png",
+      "sheetBounds": [
+        37,
+        707,
+        721,
+        1336
+      ],
+      "size": [
+        684,
+        629
+      ]
+    },
+    {
+      "name": "the pale yellow stitched hand",
+      "file": "assets/tableaux/night-quilt/pieces/05-the-pale-yellow-stitched-hand.png",
+      "sheetBounds": [
+        731,
+        728,
+        1325,
+        1361
+      ],
+      "size": [
+        594,
+        633
+      ]
+    },
+    {
+      "name": "a cluster of small red and yellow batik flowers",
+      "file": "assets/tableaux/night-quilt/pieces/06-a-cluster-of-small-red-and-yellow-batik-flowers.png",
+      "sheetBounds": [
+        1336,
+        721,
+        2017,
+        1323
+      ],
+      "size": [
+        681,
+        602
+      ]
+    },
+    {
+      "name": "one indigo block from the middle of the quilt, as a square of cloth with its stitched edge",
+      "file": "assets/tableaux/night-quilt/pieces/07-one-indigo-block-from-the-middle-of-the-quilt-as-a-square-of-cloth-with.png",
+      "sheetBounds": [
+        34,
+        1324,
+        674,
+        2020
+      ],
+      "size": [
+        640,
+        696
+      ]
+    },
+    {
+      "name": "a strip of red and orange batik border",
+      "file": "assets/tableaux/night-quilt/pieces/08-a-strip-of-red-and-orange-batik-border.png",
+      "sheetBounds": [
+        685,
+        1491,
+        1395,
+        1899
+      ],
+      "size": [
+        710,
+        408
+      ]
+    },
+    {
+      "name": "a small white batik star",
+      "file": "assets/tableaux/night-quilt/pieces/09-a-small-white-batik-star.png",
+      "sheetBounds": [
+        1476,
+        1423,
+        1931,
+        1892
+      ],
+      "size": [
+        455,
+        469
+      ]
+    }
+  ],
+  "dancers.pieces": [
+    {
+      "name": "the leaping blue dancer",
+      "file": "assets/tableaux/dancers/pieces/01-the-leaping-blue-dancer.png",
+      "sheetBounds": [
+        14,
+        91,
+        751,
+        708
+      ],
+      "size": [
+        737,
+        617
+      ]
+    },
+    {
+      "name": "the turning red dancer",
+      "file": "assets/tableaux/dancers/pieces/02-the-turning-red-dancer.png",
+      "sheetBounds": [
+        705,
+        129,
+        1360,
+        707
+      ],
+      "size": [
+        655,
+        578
+      ]
+    },
+    {
+      "name": "a pair of blue dancers holding hands",
+      "file": "assets/tableaux/dancers/pieces/03-a-pair-of-blue-dancers-holding-hands.png",
+      "sheetBounds": [
+        1315,
+        201,
+        2043,
+        678
+      ],
+      "size": [
+        728,
+        477
+      ]
+    },
+    {
+      "name": "a red dancer reaching up",
+      "file": "assets/tableaux/dancers/pieces/04-a-red-dancer-reaching-up.png",
+      "sheetBounds": [
+        33,
+        681,
+        733,
+        1511
+      ],
+      "size": [
+        700,
+        830
+      ]
+    },
+    {
+      "name": "the round red sun",
+      "file": "assets/tableaux/dancers/pieces/05-the-round-red-sun.png",
+      "sheetBounds": [
+        743,
+        845,
+        1305,
+        1389
+      ],
+      "size": [
+        562,
+        544
+      ]
+    },
+    {
+      "name": "the tall blue plant with curling leaves",
+      "file": "assets/tableaux/dancers/pieces/06-the-tall-blue-plant-with-curling-leaves.png",
+      "sheetBounds": [
+        1521,
+        735,
+        1966,
+        1533
+      ],
+      "size": [
+        445,
+        798
+      ]
+    },
+    {
+      "name": "the small quilted window, as an empty frame",
+      "file": "assets/tableaux/dancers/pieces/07-the-small-quilted-window-as-an-empty-frame.png",
+      "sheetBounds": [
+        33,
+        1516,
+        692,
+        2009
+      ],
+      "size": [
+        659,
+        493
+      ]
+    }
+  ],
+  "chain.tree": [
+    {
+      "name": "a bare black appliqu\u00e9 tree with curving branches",
+      "file": "assets/chains/tree/01-a-bare-black-appliqu-tree-with-curving-branches.png",
+      "sheetBounds": [
+        466,
+        76,
+        847,
+        653
+      ],
+      "size": [
+        381,
+        577
+      ]
+    },
+    {
+      "name": "the same tree budding, small green buds along the branches",
+      "file": "assets/chains/tree/02-the-same-tree-budding-small-green-buds-along-the-branches.png",
+      "sheetBounds": [
+        877,
+        55,
+        1273,
+        650
+      ],
+      "size": [
+        396,
+        595
+      ]
+    },
+    {
+      "name": "a tree with orange silk leaves",
+      "file": "assets/chains/tree/03-a-tree-with-orange-silk-leaves.png",
+      "sheetBounds": [
+        1288,
+        40,
+        1696,
+        653
+      ],
+      "size": [
+        408,
+        613
+      ]
+    },
+    {
+      "name": "a slender teal tree with clusters of red-orange berries",
+      "file": "assets/chains/tree/04-a-slender-teal-tree-with-clusters-of-red-orange-berries.png",
+      "sheetBounds": [
+        1735,
+        20,
+        2159,
+        661
+      ],
+      "size": [
+        424,
+        641
+      ]
+    },
+    {
+      "name": "a single budding branch, as if held in a hand",
+      "file": "assets/chains/tree/05-a-single-budding-branch-as-if-held-in-a-hand.png",
+      "sheetBounds": [
+        2213,
+        83,
+        2544,
+        626
+      ],
+      "size": [
+        331,
+        543
+      ]
+    }
+  ],
+  "chain.bird": [
+    {
+      "name": "a silk bird in magenta and cobalt, wings spread",
+      "file": "assets/chains/bird/01-a-silk-bird-in-magenta-and-cobalt-wings-spread.png",
+      "sheetBounds": [
+        495,
+        152,
+        975,
+        543
+      ],
+      "size": [
+        480,
+        391
+      ]
+    },
+    {
+      "name": "the bird folding its wings, its body lengthening",
+      "file": "assets/chains/bird/02-the-bird-folding-its-wings-its-body-lengthening.png",
+      "sheetBounds": [
+        930,
+        223,
+        1354,
+        517
+      ],
+      "size": [
+        424,
+        294
+      ]
+    },
+    {
+      "name": "a fish of patterned blue cloth",
+      "file": "assets/chains/bird/03-a-fish-of-patterned-blue-cloth.png",
+      "sheetBounds": [
+        1339,
+        202,
+        1753,
+        500
+      ],
+      "size": [
+        414,
+        298
+      ]
+    },
+    {
+      "name": "a fish of brown netting with orange stitching",
+      "file": "assets/chains/bird/04-a-fish-of-brown-netting-with-orange-stitching.png",
+      "sheetBounds": [
+        1760,
+        185,
+        2171,
+        511
+      ],
+      "size": [
+        411,
+        326
+      ]
+    },
+    {
+      "name": "a long orange silk leaf, its veins the fish's stitches",
+      "file": "assets/chains/bird/05-a-long-orange-silk-leaf-its-veins-the-fish-s-stitches.png",
+      "sheetBounds": [
+        2168,
+        205,
+        2509,
+        506
+      ],
+      "size": [
+        341,
+        301
+      ]
+    }
   ]
 }

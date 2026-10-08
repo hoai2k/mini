@@ -52,6 +52,8 @@ CHAINS = {
     "face": ["face"],
     "figure": ["figure"],
     "flower": ["flower", "berries"],
+    "tree": ["tree", "bud"],
+    "bird": ["bird", "fish", "leaf"],
 }
 
 # Per scene: name, the colour of its threads and wash, and each piece as
@@ -80,6 +82,17 @@ SCENES = {
         "name": "Moons and hearts",
         "wash": "#0d1440",
         "thread": "#5fb4ff",
+        "pieces": [
+            (0.24, 0.27, 0.165, "moon"),
+            (0.77, 0.53, 0.235, "moon"),
+            (0.44, 0.25, 0.215, "heart"),
+            (0.155, 0.67, 0.21, "heart"),
+            (0.30, 0.59, 0.175, "hand"),
+            (0.285, 0.785, 0.17, "flower"),
+            (0.50, 0.63, 0.25, "panel"),
+            (0.80, 0.86, 0.22, "band"),
+            (0.79, 0.16, 0.10, "star"),
+        ],
         # Stand-ins cut from the composition: (box x0, y0, x1, y1, key, kind).
         "cut": [
             (0.155, 0.08, 0.32, 0.46, "yellow", "moon"),
@@ -141,6 +154,15 @@ SCENES = {
         "name": "The dancers",
         "wash": "#8c1010",
         "thread": "#2f5fd0",
+        "pieces": [
+            (0.25, 0.24, 0.375, "figure"),
+            (0.575, 0.27, 0.235, "figure"),
+            (0.275, 0.685, 0.405, "figure"),
+            (0.575, 0.27, 0.235, "figure"),
+            (0.347, 0.11, 0.099, "sun"),
+            (0.826, 0.46, 0.228, "tree"),
+            (0.625, 0.705, 0.24, "panel"),
+        ],
         "cut": [
             (0.065, 0.02, 0.44, 0.46, "blue", "figure"),
             (0.455, 0.035, 0.69, 0.50, "red", "figure"),
@@ -313,7 +335,8 @@ def build_scene(key: str, spec: dict, write: bool) -> dict:
             silk = Image.open(SRC / "textures" / "green-silk.webp").convert("RGB").resize(wash.size)
             save_webp(Image.blend(wash, silk, 0.18), out / "ground.webp", 80)
     pieces = []
-    if "cut" in spec:
+    extracted = json.loads((SRC / "pieces.json").read_text())
+    if "cut" in spec and f"{key}.pieces" not in extracted:
         standin.append("pieces")
         for i, (x0, y0, x1, y1, ckey, kind) in enumerate(spec["cut"], 1):
             im, (px0, py0, px1, py1) = cut_piece(comp, (x0, y0, x1, y1), ckey)
@@ -327,7 +350,7 @@ def build_scene(key: str, spec: dict, write: bool) -> dict:
             if write:
                 save_webp(fit(im, PIECE_MAX), out / f"{i:02d}.webp", 84)
     else:
-        rows = json.loads((SRC / "pieces.json").read_text())[f"{key}.pieces"]
+        rows = extracted[f"{key}.pieces"]
         assert len(rows) == len(spec["pieces"]), key
         for i, (row, (cx, cy, w, kind)) in enumerate(zip(rows, spec["pieces"]), 1):
             pw, ph = row["size"]
@@ -358,9 +381,19 @@ def build_scene(key: str, spec: dict, write: bool) -> dict:
 
 def build_chains(write: bool) -> dict:
     chains = {}
+    extracted = json.loads((SRC / "pieces.json").read_text())
     for chain in CHAINS:
         path = SRC / "chains" / f"{chain}.png"
         if not path.exists():
+            continue
+        if f"chain.{chain}" in extracted:
+            stages = []
+            for n, row in enumerate(extracted[f"chain.{chain}"], 1):
+                stage = Image.open(ROOT / "game" / row["file"]).convert("RGBA")
+                stages.append({"file": f"chains/{chain}-{n}.webp", "aspect": round(stage.height / stage.width, 4)})
+                if write:
+                    save_webp(fit(stage, CHAIN_MAX), OUT / "chains" / f"{chain}-{n}.webp", 84)
+            chains[chain] = stages
             continue
         im = Image.open(path).convert("RGBA")
         # Five stages evenly spaced along the row; trim each to what is drawn.
@@ -460,20 +493,27 @@ def build_ui(write: bool) -> dict:
     ui = {"logo": "ui/logo.webp", "lines": []}
     if write:
         save_webp(fit(Image.open(SRC / "ui" / "logo.png").convert("RGBA"), 1400), OUT / "ui" / "logo.webp", 88)
-        # Icon stand-in until HK-U02 arrives: the moon chain's crescent on indigo batik.
-        moon = Image.open(OUT / "chains" / "moon-1.webp").convert("RGBA")
-        tile = Image.open(SRC / "textures" / "indigo-batik.webp").convert("RGBA").resize((512, 512))
-        mask = Image.new("L", (512, 512), 0)
-        ImageDraw.Draw(mask).rounded_rectangle((8, 8, 503, 503), 96, fill=255)
-        moon = fit(moon, 380)
-        tile.alpha_composite(moon, ((512 - moon.width) // 2, (512 - moon.height) // 2))
-        icon = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
-        icon.paste(tile, (0, 0), mask)
-        ImageDraw.Draw(icon).rounded_rectangle((26, 26, 485, 485), 80, outline=(95, 180, 255, 255), width=5)
+        if (SRC / "ui" / "icon.png").exists():
+            icon = Image.open(SRC / "ui" / "icon.png").convert("RGBA")
+        else:
+            moon = Image.open(OUT / "chains" / "moon-1.webp").convert("RGBA")
+            tile = Image.open(SRC / "textures" / "indigo-batik.webp").convert("RGBA").resize((512, 512))
+            mask = Image.new("L", (512, 512), 0)
+            ImageDraw.Draw(mask).rounded_rectangle((8, 8, 503, 503), 96, fill=255)
+            moon = fit(moon, 380)
+            tile.alpha_composite(moon, ((512 - moon.width) // 2, (512 - moon.height) // 2))
+            icon = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+            icon.paste(tile, (0, 0), mask)
+            ImageDraw.Draw(icon).rounded_rectangle((26, 26, 485, 485), 80, outline=(95, 180, 255, 255), width=5)
         (OUT / "icons").mkdir(parents=True, exist_ok=True)
         for size in (512, 192, 180, 48):
             icon.resize((size, size), Image.LANCZOS).save(OUT / "icons" / f"icon-{size}.png")
     ui["lines"] = build_sheet(SRC / "ui" / "line-drawings.png", LINE_DRAWINGS, "ui/lines", write, rows_first=False)
+    controls = SRC / "ui" / "control-drawings.png"
+    if controls.exists():
+        names = ["stick", "trigger", "button", "shoulder", "dpad", "controller", "controllers", "moon-controller"]
+        for name, cell in zip(names, cut_grid(controls, 4, 2, "ui/controls", write)):
+            ui["lines"].append({"name": name, **cell})
     return ui
 
 
@@ -481,7 +521,12 @@ def main() -> int:
     write = "--check" not in sys.argv and "--data" not in sys.argv
     data_only = "--data" in sys.argv
     if write and OUT.exists():
-        shutil.rmtree(OUT)
+        # macOS can remove an AppleDouble sidecar when its owning file is unlinked.
+        def cleanup_error(function, path, exception):
+            if isinstance(exception[1], FileNotFoundError) and Path(path).name.startswith('._'):
+                return
+            raise exception[1]
+        shutil.rmtree(OUT, onerror=cleanup_error)
     scenes = [build_scene(k, v, write) for k, v in SCENES.items()]
     chains = build_chains(write)
     data = {
