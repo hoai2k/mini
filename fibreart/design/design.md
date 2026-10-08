@@ -184,19 +184,59 @@ WebGL2 on a single canvas.
 
 ## Stand-ins
 
-Until the art arrives, the prototype can cut stand-ins from the reference
-photos: each reference picture as a ground, with rectangles and ovals cut
-from it as pieces. That is enough to test the verbs, the bindings and the
-feel. Textures and masks can be procedural noise.
+Where a request is still undelivered, `tools/build_web.py` makes a stand-in
+and marks the scene's `standin` list in `web/scenes.json`:
+
+- **Moons and hearts, The dancers (pieces):** cut by colour from each
+  composition (yellow moons and hand, red hearts, blue and red dancers), or as a
+  rectangle or disc for the blocks and the sun. They hold up nearly as well as
+  generated pieces, because the compositions draw each motif as a clean shape
+  on a plain ground.
+- **Viriditas (ground):** a blurred wash of the composition over the green silk.
+  It keeps the colours but loses the dense wood, so the scene reads thin.
+- **Icon:** the moon chain's crescent on indigo batik.
+- **Tree and bird chains:** none yet; trees and birds turn over instead of
+  changing.
+
+## What playing it with the art showed
+
+Played through every scene in Chromium with a simulated controller (see
+`game/scripts/browser-check.mjs`; screenshots were reviewed by eye):
+
+- **The pieces hold up.** Bent on 24 × 24 meshes, stretched to twice their
+  size, turned and swirled, the cut-cloth pieces stay readable, and their
+  frayed edges hide the seams of the mesh. The open question about hard
+  stretching is answered: stretch stays.
+- **Each scene reassembles into its composition.** With homes placed by eye,
+  pieces over the ground come very close to the generated composition, so the
+  cross-fade into the finished picture when everything is still is gentle.
+  The pieces are not pixel matches, which is fine for a collage.
+- **The large swirl is a whirlpool of cloth.** At full reach it twists the
+  whole picture and shows the backing fabric at the edges. It is dramatic; it
+  is clamped by its own unwinding spring, and Reduce motion halves it.
+- **Scene changes are the most striking moment.** Halfway through a dissolve
+  the two pictures interleave through the torn-paper or unravelling mask (the
+  night quilt's moons in the Viriditas wood, the Golden Lady breaking through
+  the quilt), which is the organic morphing the game is after. A traveller
+  piece carries across and grows into its chain partner.
+- **Turning a panel over** shows the scene's fabric (green silk, indigo batik)
+  as a block of pure pattern, which reads as part of the quilt.
+- **Layering needed a rule:** sky pieces (bands, clouds, suns) draw behind the
+  rest, or the comet band covers the two moons.
+- **Pinned drawings crowd** when several controls are found at once; at most
+  four show. The hand, spool and needle drawings stand in for the controls
+  themselves, which led to request HK-U05.
 
 ## Open questions
 
-- Whether generated pieces hold up when stretched hard: if not, keep stretch
-  modest and lean on morph and dissolve.
 - How many large controls a scene should have, and how hidden their setups
   should be, before finding them stops feeling like discovery and starts
-  feeling random.
-- Sound: probably a soft bed per tableau, with plucked, bowed or sewing-machine
-  sounds for the verbs. Not requested yet.
+  feeling random. Each player now has one large control (sometimes two) and the
+  small one that sets it up; this wants playing with real people.
+- Whether the card of controls found should say how to wake a large control
+  (it does now) or leave that to be discovered.
+- Sound is made in the browser (a held chord per scene, plucks, a rush for big
+  movements). Recorded sounds (plucked strings, a sewing machine, cloth) could
+  replace it; not requested yet.
 - Online multiplayer through `multiplayer/` could let several people shape
   one collage from different places; not planned for the first build.

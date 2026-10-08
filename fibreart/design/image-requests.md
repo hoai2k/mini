@@ -15,7 +15,7 @@ Artwork for Fibre Art, the shifting collage in `fibreart/` (see [`design.md`](de
 
 ## Status
 
-6 requested, 48 delivered, 54 in total.
+7 requested, 48 delivered, 55 in total.
 
 ## Brand and interface
 
@@ -72,6 +72,20 @@ A sheet of small line drawings in the style of Hanneke de Neve's pen drawings: e
 
 ```text
 A sheet of real sewing thread and stitches photographed flat, for a game that cuts each one out and bends it along a path. Each item lies in a perfectly straight horizontal line across almost the full width of the sheet, one above the other with wide gaps, nothing touching. In order from top to bottom: 1. A running stitch in white cotton thread, even dashes as if sewn through cloth that is not there. 2. A running stitch in bright blue thread. 3. A machine zigzag stitch in orange thread. 4. A couched gold thread, a thick gold cord held down by tiny cross stitches. 5. A loose length of red embroidery thread, lying straight, slightly twisted. 6. A length of white thread with a frayed end on the right. 7. A narrow ribbon of rose silk, lying straight and flat. 8. A narrow ribbon of turquoise satin, lying straight and flat. Even soft light, no shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### HK-U05 · Line drawings of the controls
+
+- **File:** `fibreart/game/assets/ui/control-drawings.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** The small drawing pinned beside a piece when a control is found, and the card of controls found.
+- **Stand-in until delivered:** The hand, spool and needle from the line drawings (HK-U03).
+- **Reference:** [`drawing-embrace-with-boots.jpg`](../reference/mixed-media/drawing-embrace-with-boots.jpg)
+- **Note:** Attach HK-U03 (assets/ui/line-drawings.png) so the line matches.
+- **Status:** requested
+
+```text
+A sheet of small line drawings in the same hand as the attached sheet of line drawings: each one a single fluid, unbroken dark brown-black ink line, drawn fast with a fine pen, no shading and no colour fill, slightly wobbly and human, never mechanical. Lay them out in a grid of 4 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The drawings, in order: 1. A thumbstick seen from above at an angle, a round cap on a short stem, with a curved arrow circling it. 2. A trigger seen from the side, a curved paddle being pressed by one fingertip. 3. A single round button being pressed by a fingertip, small lines radiating from it. 4. A long rounded shoulder button pressed by a fingertip. 5. A cross-shaped D-pad seen from above, one arm pressed. 6. A hand holding a game controller loosely, seen from above, drawn in one line. 7. Two hands each holding a controller, side by side. 8. A thread running from a controller to a small crescent moon, as if the controller pulls the moon on a string. No letters or symbols on the controls. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/drawing-embrace-with-boots.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ## Tableaux

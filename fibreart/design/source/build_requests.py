@@ -606,6 +606,38 @@ REQUESTS: list[dict] = [
     },
 ]
 
+# Asked for after the first play: the pin beside a found control borrowed a
+# hand, a spool and a needle; these say plainly which kind of control it was.
+REQUESTS.append({
+    "id": "HK-U05",
+    "section": "ui",
+    "name": "Line drawings of the controls",
+    "key": "controlDrawings",
+    "file": "assets/ui/control-drawings.png",
+    "size": "2048 x 1024, transparent",
+    "used": "The small drawing pinned beside a piece when a control is found, and the card of controls found.",
+    "standin": "The hand, spool and needle from the line drawings (HK-U03).",
+    "ref": ["mixed-media/drawing-embrace-with-boots.jpg"],
+    "note": "Attach HK-U03 (assets/ui/line-drawings.png) so the line matches.",
+    "prompt": "A sheet of small line drawings in the same hand as the attached sheet of line drawings: "
+    "each one a single fluid, unbroken dark brown-black ink line, drawn fast with a fine pen, no "
+    "shading and no colour fill, slightly wobbly and human, never mechanical. "
+    + GRID.format(4, 2)
+    + "The drawings, in order: " + numbered([
+        "a thumbstick seen from above at an angle, a round cap on a short stem, with a curved arrow circling it",
+        "a trigger seen from the side, a curved paddle being pressed by one fingertip",
+        "a single round button being pressed by a fingertip, small lines radiating from it",
+        "a long rounded shoulder button pressed by a fingertip",
+        "a cross-shaped D-pad seen from above, one arm pressed",
+        "a hand holding a game controller loosely, seen from above, drawn in one line",
+        "two hands each holding a controller, side by side",
+        "a thread running from a controller to a small crescent moon, as if the controller pulls the moon on a string",
+    ])
+    + " No letters or symbols on the controls. "
+    + LOOK.format(links(["mixed-media/drawing-embrace-with-boots.jpg"]))
+    + " " + ALPHA,
+})
+
 for t in TABLEAUX:
     n = f"{t['n']:02d}"
     look = LOOK.format(links(t["refs"]))

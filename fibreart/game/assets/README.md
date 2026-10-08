@@ -3,7 +3,8 @@
 48 generated images from the requests in `../../design/image-requests.md`:
 ten compositions, nine grounds, eight transparent piece sheets, the title,
 interface drawings and threads, four morph chains, eight fabric swatches and
-six greyscale dissolve maps. There is no playable build yet.
+six greyscale dissolve maps. The game loads optimised copies made from these
+by `../../tools/build_web.py` into `../web/`; these full-size files are not published.
 
 The built-in image generator used the local artwork references. Grounds and
 piece sheets used their generated composition as the reference. Files were

@@ -1,40 +1,67 @@
 # Fibre Art
 
-Fibre Art is a shifting collage after the work of Hanneke de Neve, a Dutch-born artist in
-New Jersey and a friend of the repository owner. Each scene is one of her
-pictures built as a live patchwork, and the controllers reach into it: some
-controls nudge a single moon, some swirl the whole picture, and small moves
-set up the large ones. The colour comes from her fibercollages, quilts and
-paintings, and the interface from the fluid line of her drawings.
+A shifting collage after the work of Hanneke de Neve, a Dutch-born artist in
+New Jersey and a friend of the repository owner. Published at
+https://hoai2k.github.io/mini/fibreart/.
 
-So far this folder holds the reference material, the design, the image
-requests and 48 generated images. Nothing is published yet; a `publish.sh` and a card in the game
-library come with the first playable build.
+Each scene is one of her pictures rebuilt as a live patchwork: a ground cut
+into panels, with pieces of cloth laid on it. Every stick, trigger and button
+is tied to something in the picture, some to a single moon or face, a few to
+the whole picture. Small moves set up the large ones: a large control is
+centred on one piece, and its reach grows as that piece is brought to the
+middle, sewn to others or brought to its partner. Large effects rearrange the
+picture or carry it into the next scene, and the controls are dealt again.
+Nothing to win or lose; left alone, the pieces drift home and the painting
+settles back into view. One to four controllers, plus keyboard and mouse.
 
-- [`reference/`](reference/README.md): 33 photos of 28 of her works and two of
-  her (fibre and textile, paintings, drawings and collage), a catalogue with
-  sources, her statement, sampled palettes and style notes on colour and line.
-  Reference only, never published.
-- [`design/design.md`](design/design.md): the scenes, the layers, the verbs,
-  and how the controls work (finding the large ones, setting them up with the
-  small ones).
-- [`design/image-requests.md`](design/image-requests.md): the image requests
-  (for each of ten scenes a composition, its ground and its pieces; morph
-  chains; fabric textures; dissolve masks; the title, icon, line drawings and
-  threads), generated from
-  [`design/source/build_requests.py`](design/source/build_requests.py), which
-  also writes `design/asset-list.json`. Edit the data there and rerun it.
-  Generated images go in [`intake/`](intake/README.md).
-- [`intake/`](intake/README.md): drop box for new photos of her work and
-  anything else for this project.
-- [`game/assets/`](game/assets/README.md): 48 delivered images and 66 extracted
-  tableau pieces. Six requests were rejected by the image service and remain
-  requested. [Image preview](design/generated-preview.jpg),
-  [piece preview](design/pieces-preview.jpg), and
-  [delivery records](design/image-deliveries.json) give the outputs and limits.
+## Layout
 
-Checks:
+- [`game/`](game/): the game, static ES modules with no build step.
+  - `index.html`, `styles.css`; `src/main.js` (shell, menus, players, pointer),
+    `src/collage.js` (the rules: pieces, panels, bindings, verbs, setups, scene
+    changes; no DOM, tested in Node), `src/render.js` (WebGL2: pieces as
+    bendable meshes, one shared swirl/tide/ripple field, mask dissolves),
+    `src/overlay.js` (stitched outlines, threads, pinned drawings),
+    `src/input.js` (one player per controller, keyboard as another),
+    `src/audio.js` (sound made in the browser).
+  - `web/`: the optimised art the game loads and `web/scenes.json` (every
+    scene's pieces, their homes in the composition, kinds and morph chains),
+    written by [`tools/build_web.py`](tools/build_web.py) from `assets/`.
+  - `assets/`: the full-size delivered images (not published); see
+    [`game/assets/README.md`](game/assets/README.md).
+  - `test/`: Node tests of the rules; `scripts/browser-check.mjs`: a Playwright
+    run with a simulated Xbox controller that plays every scene.
+- [`design/design.md`](design/design.md): the scenes, layers, verbs and how
+  the controls work, and what playing it with the delivered art showed.
+- [`design/image-requests.md`](design/image-requests.md): the image requests,
+  generated from [`design/source/build_requests.py`](design/source/build_requests.py)
+  (which also writes `design/asset-list.json`). Edit the data there and rerun it.
+  [Image preview](design/generated-preview.jpg), [piece preview](design/pieces-preview.jpg),
+  [delivery records](design/image-deliveries.json).
+- [`reference/`](reference/README.md): photos of 28 of her works, a catalogue
+  with sources, her statement, palettes and style notes. Reference only.
+- [`tools/`](tools/): `extract_pieces.py` cuts the delivered piece sheets;
+  `build_web.py` makes `game/web/` (Pillow, NumPy, SciPy).
+- [`intake/`](intake/README.md): the drop box for new images and photos.
+
+Stand-ins until the retried requests arrive: the Moons and hearts and The
+dancers pieces are cut by colour from their compositions, the Viriditas ground
+is a blurred wash of its composition, the icon is the moon chain's crescent on
+indigo batik, and there is no tree or bird morph chain yet.
+
+## Run and check
+
+Serve `fibreart/game/` with any static server and open it, for example
+`python3 -m http.server -d fibreart/game 8000`.
 
 ```sh
+node --test fibreart/game/test/*.test.mjs
 python3 fibreart/design/source/build_requests.py --check
+python3 fibreart/tools/build_web.py --check      # after changing art or piece homes, rerun without --check
+(cd fibreart/game && node scripts/browser-check.mjs --shots /tmp/fibreart-shots)
+fibreart/publish.sh local/pages/fibreart
 ```
+
+Browsers: current Chrome, Edge, Firefox and Safari with WebGL 2. Controller
+play was checked with a simulated Xbox controller in Chromium; testing with a
+real controller is still outstanding.
