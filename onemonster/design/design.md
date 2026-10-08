@@ -162,8 +162,14 @@ Ann's mailbox at the far end, with the mailman's motorcycle puttering closer
 along the top of the screen as the clock runs. Move the Trollusk from cover
 to cover toward the mailbox; hold A to duck into a flowerbed. Sally Ann at her
 window, a dozing neighbour and a dog look out now and then (a little eye
-warning first): caught moving in the open and the Trollusk scuttles back to
-the last cover. Reach the mailbox and press A to grab the letter before the
+warning first), each over the ring of lane drawn when the eye warns; only his
+feet inside that ring count. Caught moving in the open and the Trollusk
+scuttles back to the last cover. When a ring warns over him, A (with the stick,
+or anywhere in the open) is a quick dash out of it or into a bush: loud, with a
+1.6 s recharge and a skid at the end, and any ready lookout whose ring he lands
+in turns to look at once (so land in a bush). It beats a warning, never a look.
+The third postmark is for a snatch nobody saw.
+Reach the mailbox and press A to grab the letter before the
 mailman gets there. Bonus: loose stamps blowing along the lane.
 
 *Celebrate:* he hugs the letter, sniffs the stamp and does a gabbling jig.

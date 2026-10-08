@@ -43,7 +43,27 @@ export const LOOKOUTS = [
 const SNEAK = 175;
 const SPRINT = 400;
 const SPOT_PENALTY = 2; // seconds
+// The dash (Action with the stick, or Action in the open): a quick burst out of a
+// stretch that is about to be looked at. It is loud: it has a cooldown, he skids
+// to a stop afterwards, and any lookout ready in the ring he lands in turns to
+// look, so it saves him from a warning but not from a look. Land in a bush.
+export const DASH = { speed: 1150, time: 0.2, skid: 0.3, cooldown: 1.6, alert: 0.12 };
 const MAIL_ROAD = { x0: -140, x1: 1665, y: 512 };
+
+// The ring a lookout watches: one ellipse, used both to draw it and to judge
+// whether his feet are inside it, so what you see is what they see.
+export function zoneEllipse(L) {
+  const [z0, z1] = L.zone;
+  return { cx: (z0 + z1) / 2, cy: (LANE.y0 + LANE.y1) / 2 + 8, rx: (z1 - z0) / 2, ry: (LANE.y1 - LANE.y0) / 2 + 60 };
+}
+
+export function inZone(L, x, y) {
+  const e = zoneEllipse(L);
+  const dx = (x - e.cx) / e.rx, dy = (y - e.cy) / e.ry;
+  return dx * dx + dy * dy <= 1;
+}
+
+const atMailbox = (x, y) => Math.hypot(x - MAILBOX.grabX, (y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR;
 
 function inCoverOf(x, y) {
   for (const k of COVER) {
@@ -64,6 +84,7 @@ export default function create(env) {
     mode: 'free', // 'free' | 'scuttle' | 'grab'
     cover: COVER[0], lastCover: COVER[0], ducking: false, frozen: false, sprinting: false, moving: false,
     safeT: 0, freezeUses: 0, stepT: 0, noiseT: 0,
+    dashT: 0, skidT: 0, dashCd: 0, dashX: 1, dashY: 0,
   };
   const look = LOOKOUTS.map((L, i) => ({
     ...L, i, state: 'rest', t: 0, restFor: 0.7 + i * 0.35, judged: false, survived: false, spotted: 0, grace: 0,
@@ -72,6 +93,7 @@ export default function create(env) {
   const stamps = [];
   const ai = { nextT: 1.0 + env.rng() * 1.2 };
   const holder = { sel: 1, prevX: 0, deny: 0 };
+  let spots = 0; // the third postmark is for a snatch nobody saw
   let alert = 0; // 0..1: noise makes the lookouts sharper
   let stampT = 3 + env.rng() * 2;
   let t = 0;
@@ -94,6 +116,7 @@ export default function create(env) {
 
   function spot(L, why) {
     L.spotted = 1.2;
+    spots++;
     env.sfx('caught');
     env.sfx('gabble');
     env.vibrate(80);
@@ -109,9 +132,9 @@ export default function create(env) {
   // Is the Trollusk seen by this lookout right now? Judged every frame of a look.
   function judge(L) {
     if (tr.mode !== 'free' || tr.safeT > 0) return;
-    if (tr.x < L.zone[0] || tr.x > L.zone[1]) return;
+    if (!inZone(L, tr.x, tr.y)) return;
     if (L.grace > 0) return;
-    if (tr.sprinting && tr.moving) return spot(L, 'Heard you!');
+    if (tr.dashT > 0 || (tr.sprinting && tr.moving)) return spot(L, 'Heard you!');
     if (tr.cover) {
       if (tr.ducking) return;
       // Standing tall in a bush is safe, unless the noise has them on edge.
@@ -170,7 +193,7 @@ export default function create(env) {
     if (!ready.length) return;
     // Where he will be when the warning is over (a keen lookout reads his heading).
     const px = tr.x + tr.vx * warnTime() * env.skill;
-    const watching = ready.filter((L) => px >= L.zone[0] && px <= L.zone[1]);
+    const watching = ready.filter((L) => inZone(L, px, tr.y));
     let pick;
     if (watching.length && env.rng() < 0.35 + 0.5 * env.skill) pick = watching[Math.floor(env.rng() * watching.length)];
     else pick = ready[Math.floor(env.rng() * ready.length)];
@@ -207,11 +230,50 @@ export default function create(env) {
       }
       tr.cover = inCoverOf(tr.x, tr.y);
       tr.moving = true; tr.sprinting = false; tr.ducking = false; tr.frozen = false;
+      tr.dashT = 0; tr.skidT = 0;
       return;
     }
+    tr.dashCd = Math.max(0, tr.dashCd - dt);
     let ix = inS?.x || 0, iy = inS?.y || 0;
     const m = Math.hypot(ix, iy);
     if (m > 1) { ix /= m; iy /= m; }
+    // Action dashes: with the stick pushed anywhere, or in the open with it still
+    // (then straight ahead). In cover with the stick still it ducks; at the mailbox it grabs.
+    if (inS?.actionPressed && tr.dashT <= 0 && !atMailbox(tr.x, tr.y) && (m > 0.3 || !tr.cover)) {
+      if (tr.dashCd > 0) env.sfx('back');
+      else {
+        const d = m > 0.3 ? 1 : 0;
+        tr.dashX = d ? ix / Math.hypot(ix, iy) : (tc.facing || 1); tr.dashY = d ? iy / Math.hypot(ix, iy) : 0;
+        tr.dashT = DASH.time; tr.dashCd = DASH.cooldown;
+        alert = Math.min(1, alert + DASH.alert);
+        art.kick(tc, -0.45); env.sfx('swoosh'); env.sfx('step');
+        noise.push({ x: tr.x - tr.dashX * 40, y: tr.y - 20, t: 0, s: 1 });
+      }
+    }
+    if (tr.dashT > 0 || tr.skidT > 0) {
+      if (tr.dashT > 0) {
+        tr.dashT -= dt;
+        tr.vx = tr.dashX * DASH.speed; tr.vy = tr.dashY * DASH.speed * 0.7;
+        if (tr.dashT <= 0) {
+          tr.skidT = DASH.skid;
+          // The thud of his landing: a lookout whose ring he lands in turns to look, if she can.
+          for (const L of look) if (inZone(L, tr.x, tr.y) && press(L)) fx.say('What was that?', L.x, L.y - L.h - 40);
+        }
+      } else {
+        tr.skidT -= dt;
+        const a = 1 - Math.exp(-16 * dt);
+        tr.vx -= tr.vx * a; tr.vy -= tr.vy * a;
+      }
+      tr.x = clamp(tr.x + tr.vx * dt, LANE.x0, LANE.x1);
+      tr.y = clamp(tr.y + tr.vy * dt, LANE.y0, LANE.y1);
+      tr.moving = tr.dashT > 0; tr.sprinting = false; tr.ducking = false;
+      const was = tr.cover;
+      tr.cover = inCoverOf(tr.x, tr.y);
+      if (tr.cover) tr.lastCover = tr.cover;
+      if (tr.cover && tr.cover !== was) { env.sfx('rustle'); tr.cover.shake = 0.8; }
+      tr.frozen = !tr.cover && tr.dashT <= 0;
+      return;
+    }
     const wantDuck = !!inS?.action && !!tr.cover;
     tr.ducking = wantDuck;
     const active = m > 0.2 && !wantDuck;
@@ -282,6 +344,7 @@ export default function create(env) {
     total,
     tr, look, stamps, holder, // for tests and the bot
     get alert() { return alert; },
+    get spots() { return spots; },
     press: (i) => press(look[i]),
     update(dt, inS, inH) {
       t += dt;
@@ -303,7 +366,7 @@ export default function create(env) {
       stepStamps(dt);
       animTrollusk(dt);
       // The grab: at the mailbox, Action.
-      if (tr.mode === 'free' && inS?.actionPressed && Math.hypot(tr.x - MAILBOX.grabX, (tr.y - MAILBOX.grabY) * 0.6) < MAILBOX.grabR) {
+      if (tr.mode === 'free' && inS?.actionPressed && tr.dashT <= 0 && atMailbox(tr.x, tr.y)) {
         self.done = true;
         self.outcome = 'snatched';
         tr.mode = 'grab';
@@ -341,11 +404,13 @@ export default function create(env) {
       fx.draw(g);
       if (t < 3.2 && !self.done) hint(g, env.versus
         ? 'Trollusk: creep from cover to cover · Lookouts: pick one, then look out!'
-        : 'Creep from cover to cover. Watch for the eye! Let go to freeze.', W);
+        : 'Creep from cover to cover. Watch for the eye! A: dash out of the ring.', W);
     },
     marks() {
       const elapsed = total - self.time;
-      return marksFor({ snatched: self.outcome === 'snatched', spareFrac: self.time / total, heldFrac: elapsed / total, bonus: self.bonus / 4 });
+      const m = marksFor({ snatched: self.outcome === 'snatched', spareFrac: self.time / total, heldFrac: elapsed / total, bonus: self.bonus / 4 });
+      if (spots > 0) m[0] = Math.min(m[0], 2);
+      return m;
     },
     hud: () => `Stamps ${self.bonus}/4`,
   };
@@ -354,6 +419,7 @@ export default function create(env) {
     tc.x = tr.x; tc.y = tr.y;
     if (tr.mode === 'scuttle') art.setAnim(tc, 'scuttle');
     else if (tr.ducking) art.setAnim(tc, 'duck');
+    else if (tr.dashT > 0) art.setAnim(tc, 'run');
     else if (tr.sprinting) art.setAnim(tc, 'run');
     else if (tr.moving) art.setAnim(tc, 'sneak');
     else if (tr.frozen) art.setAnim(tc, 'freeze');
@@ -379,6 +445,15 @@ export default function create(env) {
 
   function drawTrollusk(g, tt) {
     art.drawCreature(g, tc, tt, { reduceMotion: env.reduceMotion });
+    if (tr.dashCd > 0 && tr.mode === 'free' && !self.done) {
+      // The dash recharging: a little ring at his feet that fills back up.
+      g.save();
+      g.lineWidth = 6; g.strokeStyle = 'rgba(51,36,26,0.35)';
+      g.beginPath(); g.arc(tr.x, tr.y + 34, 16, 0, Math.PI * 2); g.stroke();
+      g.strokeStyle = '#f2c53d';
+      g.beginPath(); g.arc(tr.x, tr.y + 34, 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - tr.dashCd / DASH.cooldown)); g.stroke();
+      g.restore();
+    }
     if (tr.frozen && tr.mode === 'free') {
       // How much his twig is still worth: leaves left on a little sprig.
       const left = Math.max(0, 4 - tr.freezeUses);
@@ -472,10 +547,11 @@ export default function create(env) {
     for (const L of look) {
       if (L.state !== 'warn' && L.state !== 'look') continue;
       const [z0, z1] = L.zone;
+      const e = zoneEllipse(L);
       g.save();
       if (L.state === 'warn') {
         g.globalAlpha = 0.6 + 0.3 * Math.sin(tt * 18);
-        g.beginPath(); g.ellipse((z0 + z1) / 2, (LANE.y0 + LANE.y1) / 2 + 8, (z1 - z0) / 2, (LANE.y1 - LANE.y0) / 2 + 20, 0, 0, Math.PI * 2);
+        g.beginPath(); g.ellipse(e.cx, e.cy, e.rx, e.ry, 0, 0, Math.PI * 2);
         g.fillStyle = 'rgba(242,197,61,0.14)';
         g.fill();
         g.setLineDash([26, 18]);
@@ -487,15 +563,21 @@ export default function create(env) {
         g.stroke();
       } else {
         const ex = L.x, ey = L.y - L.h * 0.72;
-        const gr = g.createLinearGradient(0, ey, 0, LANE.y1);
-        gr.addColorStop(0, 'rgba(255,236,150,0.25)');
-        gr.addColorStop(1, 'rgba(255,236,150,0.42)');
+        // A faint beam from the eye down to the ring; only the ring itself counts.
+        const gr = g.createLinearGradient(0, ey, 0, e.cy);
+        gr.addColorStop(0, 'rgba(255,236,150,0.08)');
+        gr.addColorStop(1, 'rgba(255,236,150,0.22)');
         g.fillStyle = gr;
-        g.beginPath(); g.moveTo(ex - 18, ey); g.lineTo(ex + 18, ey); g.lineTo(z1, LANE.y1 + 30); g.lineTo(z0, LANE.y1 + 30); g.closePath(); g.fill();
-        g.globalAlpha = 0.5;
-        g.lineWidth = 5;
+        g.beginPath(); g.moveTo(ex - 18, ey); g.lineTo(ex + 18, ey); g.lineTo(e.cx + e.rx * 0.6, e.cy); g.lineTo(e.cx - e.rx * 0.6, e.cy); g.closePath(); g.fill();
+        g.beginPath(); g.ellipse(e.cx, e.cy, e.rx, e.ry, 0, 0, Math.PI * 2);
+        g.fillStyle = L.spotted > 0 ? 'rgba(200,68,58,0.2)' : 'rgba(255,236,150,0.3)';
+        g.fill();
+        g.lineWidth = 10;
+        g.strokeStyle = 'rgba(51,36,26,0.55)';
+        g.stroke();
+        g.lineWidth = 6;
         g.strokeStyle = L.spotted > 0 ? '#c8443a' : '#f2c53d';
-        g.beginPath(); g.ellipse((z0 + z1) / 2, (LANE.y0 + LANE.y1) / 2 + 8, (z1 - z0) / 2, (LANE.y1 - LANE.y0) / 2 + 20, 0, 0, Math.PI * 2); g.stroke();
+        g.stroke();
       }
       g.restore();
     }
