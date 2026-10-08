@@ -142,29 +142,31 @@ async function open(throttle = 1, scale = 2) {
   await page.click('#press-start');
   await page.waitForTimeout(800);
   await (await ctx.newCDPSession(page)).send('Emulation.setCPUThrottlingRate', { rate: 6 });
+  // The demonstration is read as its strokes are scheduled (startDemo sets
+  // game.demo, then schedules every stroke through sound.play). A timer polling
+  // for game.demo missed it: under the throttle the frames keep the main thread
+  // busy, and a 5 ms interval could go 15 s without running, longer than the
+  // demonstration lasts.
   await page.evaluate(() => {
     const B = window.__bronzeDrum;
     window.__plays = [];
     const play = B.sound.play.bind(B.sound);
     B.sound.play = (id, t, ...rest) => {
-      if (id === 'drum-tung' || id === 'drum-cac') window.__plays.push(t);
+      const g = B.game;
+      if ((id === 'drum-tung' || id === 'drum-cac') && g && g.demo) {
+        if (!window.__demo) window.__demo = { start: g.demo.start, u: g.demo.u, strokes: g.demo.strokes, reps: g.demo.reps, beats: g.demo.beats, clock: g.clockStart };
+        window.__plays.push(t);
+      }
       return play(id, t, ...rest);
     };
     B.startStage(0);
     B.begin(); // past the chapter's opening card
-    const iv = setInterval(() => {
-      const g = B.game;
-      if (g && g.demo && !window.__demo) {
-        window.__demo = { start: g.demo.start, u: g.demo.u, strokes: g.demo.strokes, reps: g.demo.reps, clock: g.clockStart };
-        clearInterval(iv);
-      }
-    }, 5);
   });
   await page.waitForFunction(() => window.__demo, null, { timeout: 60000 });
   const d = await page.evaluate(() => window.__demo);
   const plays = await page.evaluate(() => window.__plays);
   const want = [];
-  for (let r = 0; r < d.reps; r++) for (const s of d.strokes) want.push(d.clock + d.start + (r * 5 + s.pos) * d.u);
+  for (let r = 0; r < d.reps; r++) for (const s of d.strokes) want.push(d.clock + d.start + (r * (d.beats + 1) + s.pos) * d.u);
   const off = want.map((w, i) => (plays[i] === undefined ? Infinity : Math.abs(plays[i] - w) * 1000));
   console.log(`  demonstration strokes off by ${off.map((o) => o.toFixed(0)).join(', ')} ms`);
   if (off.some((o) => o > 5)) fail('a demonstration stroke is not scheduled on its beat');
