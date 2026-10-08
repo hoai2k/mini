@@ -67,12 +67,14 @@ chapter, and a weak score still passes the letter along. What you collect is
 
 ## Controls
 
-Every challenge uses the same small set of inputs, so kids learn them once.
+Every challenge uses the same small set of inputs, so kids learn them once:
+move, one action button, and sprint for the chases.
 
 | Action | Controller | Keyboard | Mouse / touch |
 | --- | --- | --- | --- |
 | Move / steer | Left stick or D-pad | Arrow keys or WASD | Point (the monster follows the pointer) |
 | Action (press or hold) | A | Space or Enter | Click or tap (hold to hold) |
+| Sprint (hold) | B | Shift (player 2 in versus: right Shift) | The sprint button, bottom left |
 | Pause | Menu or View | Esc or P | The pause button, top right |
 | Menus | Left stick / D-pad, A, B | Arrows, Enter, Esc | Click |
 
@@ -110,7 +112,8 @@ lookouts who watch for him.
   computer through the same holder controls, so every holder below is an AI
   in one-player and a player in versus, and the two never drift apart.
 - **Devices.** Two controllers, one each. Or one keyboard shared: player 1
-  on WASD and Space, player 2 on the arrow keys and Enter. On a touch screen
+  on WASD, Space and left Shift, player 2 on the arrow keys, Enter and right
+  Shift. On a touch screen
   the screen splits in two (left half and right half), each player steering
   by dragging in their half and tapping to act there. The chapter intro shows
   each player their own controls and their side's goal.
@@ -306,6 +309,61 @@ posting.
 doesn't care a snickle. And who is eyeing the official mailbox? The official
 mailman, for the epilogue.
 
+## Chases
+
+Chapters 2, 7, 8 and 9 are chases, and chapter 3 borrows from them. A chase
+has to be a contest of wits, not of who presses a button first: every move
+has an answer, and every move costs something. The same chase kit runs every
+chase, with each creature's own speed, weight and moves.
+
+**The moves.**
+
+- **Run and sprint.** The stick runs. Holding **Sprint** (B, Shift, or the
+  sprint button on a touch screen) is much faster but drains a stamina
+  meter, shown as a ring round the creature's feet. Stamina comes back while
+  walking or hiding, slowly, and faster standing still. Run it dry and the
+  creature is *winded*: slow for a couple of seconds, panting. Sprinting is
+  how you close a gap or open one, and the meter is how you know when the
+  other side can't.
+- **Hide.** Cover (bushes, logs, rocks, flowerbeds, a tree to circle) stands
+  about the play area. A holder who stops inside cover vanishes: the computer
+  snatcher loses sight of them and goes to where it last saw them. Moving
+  inside cover makes it rustle, so creeping is a giveaway; sitting still is
+  safe but gets you nowhere and the clock is the snatcher's enemy, not yours.
+  In versus, where both players see the same screen, some cover rustles on
+  its own (the wind, a bird) so the snatcher still has to guess.
+- **Lunge** (snatcher: A at a distance). A fast committed dash or dive at the
+  holder, longer for the Bombanat's dive and the Grithix's net swing. If it
+  misses, the snatcher stumbles and can't lunge again for a moment. A lunge is
+  the way to catch a holder who is sprinting in a straight line.
+- **Dodge** (holder: A). A quick sidestep, hop or duck, with a cooldown. A
+  dodge timed against a lunge makes it miss and buys a stumble's worth of
+  time; a dodge wasted leaves the holder open.
+- **Grab and break free.** A snatcher who reaches the holder (or lands a
+  lunge) grabs them, and a tug starts: a bar between them, each mashing A to
+  pull their way, and tilting the stick against the other's pull doubles the
+  effect. Stamina counts: a winded holder is easy to hold, a fresh one hard.
+  If the snatcher wins, it's the snatch. If the holder wins, they break free,
+  the snatcher is dazed for a moment, and the holder gets a head start.
+- **Obstacles.** Logs, rocks and holes slow some creatures and not others:
+  the small Trollusk hops a log the Yalapappus has to go round, while the
+  Yalapappus rolled into a ball bowls through bushes. The Bombanat can't dive
+  through leaves, and the Grithix can pole-vault what he can't step over.
+
+**Why no move always wins.** Sprinting wins a straight race but runs out;
+lunging catches a sprinter but a dodge beats it; dodging beats a lunge but
+not a patient snatcher who walks up and grabs; grabbing ends in a tug that
+stamina decides, so the snatcher wants the holder tired first and the holder
+wants to rest in cover first. Hiding beats a snatcher who is far away, not one
+who saw you go in. Each creature leans on different moves, so each chase feels
+different.
+
+**The computer holder** (solo play) runs the same kit: it keeps its distance,
+breaks line of sight through cover, rests when it can, sprints when the
+snatcher sprints, and dodges lunges with a skill that rises through the
+chapter (and stays lower in Gentle mode). It is beatable by pressure,
+patience and ambush, and it makes mistakes on purpose now and then.
+
 ## How each creature moves
 
 Moving is the toy. Each creature gets its own way of getting about, with its
@@ -401,37 +459,29 @@ stays the same monster throughout. The requests are in
 (`OM-C`), portrait (`OM-M`), parts (`OM-R`), swaps (`OM-F`) and key poses
 (`OM-K`).
 
-Monsters move as **cut-out rigs** rather than frame-by-frame sprites, which
-is what keeps them smooth:
+Monsters animate from their **key poses**, with the life added in code:
 
-- **Parts.** The parts sheet takes the monster apart in its master view: body,
-  head, jaw, ears, each limb segment, wings, tail ends, cap, net. Each piece is
-  drawn past its joint with a rounded end, so it can swing without a gap.
-  On integration the sheet is keyed and cut into pieces in the order the
-  request lists, and each piece gets a pivot and a parent in a rig file,
-  `game/src/rigs/<monster>.js`, fitted by laying the pieces back over the
-  model sheet's master view.
-- **Motion.** The game animates the rig in code every frame: each piece's
-  rotation, offset and scale are tweened between key poses with easing, so
-  the movement is smooth at any frame rate. On top go the touches that make
-  it feel alive: follow-through on ears, tie ends, napkins, robes, tails and nets (springs
-  that lag their parent), squash and stretch on landings and lunges, a
-  breathing bob, and blinks on a random timer. Facing left is the rig
-  mirrored.
-- **Swaps.** What rotation cannot do is drawn: a wing at the top or bottom of
-  its beat, an open or chomping jaw, eyes alarmed, shut or dizzy, a clenched
-  paw. A swap replaces its piece for a frame or a few, in the same place and
-  scale. The Bombanat's flap, for one, rotates its wings and swaps through
-  raised, level and swept-down shapes, cross-fading for a frame at each
-  change.
-- **Key poses.** The key-poses sheet is the target each animation is fitted
-  to (the sneak cycle's two steps, the lunge, the swing), and the stills of
-  the snatch at each hand-off.
-- **Stand-ins.** Each rig exists before its art does: the same skeleton with
-  its pieces drawn in code. Animation is built and tuned on the stand-ins,
-  and a delivered parts sheet drops in with no change to the animation.
+- **Poses.** Each monster's key-poses sheet is cut into single sprites by
+  `onemonster/tools/build_sprites.py` (by hand-checked rectangles in
+  `onemonster/tools/slices.json` where the sheet is crowded), trimmed, scaled
+  to game size and saved as WebP in `game/sprites/`. `game/src/monsters.js`
+  names each pose and builds the animations from them: two-pose walk and run
+  cycles stepped by the distance travelled, wing beats timed by the flapping,
+  single poses for actions (dive, lunge, slam, wail).
+- **Motion in code.** The game adds squash and stretch (a spring kicked on
+  landings, grabs and lunges), a lean into the direction of travel, a breathing
+  bob, shakes for struggles, spins for the Yalapappus's ball and the Bombanat's
+  loop, and a soft shadow; facing left is the sprite mirrored.
+- **Why not cut-out rigs.** The first plan was rigs of separate parts (wings,
+  jaws, limbs) moved and rotated in code. The delivered parts and swaps sheets,
+  checked in the game, could not do it: the generator fused pieces together
+  (heads drawn with their jaws), mixed scales on one sheet and drew "swaps" as
+  whole heads. Those sheets are kept but not used, except the Yalapappus rolled
+  into a ball.
+- **Stand-ins.** Anything missing is drawn as a simple ink shape, so the game
+  always runs.
 
-The rigs, and the animations each needs:
+The animations each monster needs:
 
 | Monster | Master view | Animations |
 | --- | --- | --- |
