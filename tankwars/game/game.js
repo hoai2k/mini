@@ -72,6 +72,14 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => keysDown[e.code] = false);
 window.addEventListener('blur', () => { for (let k in keysDown) keysDown[k] = false; });
 
+// Leaving the tab or window pauses a local match (online matches keep running for the others).
+// The game makes no sound, so there is no audio to silence here.
+function pauseWhenAway() {
+    if (state === 'PLAYING' && !currentOnlineRoom && pauseMenu.classList.contains('hidden') && typeof window.togglePause === 'function') window.togglePause();
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseWhenAway(); });
+window.addEventListener('blur', pauseWhenAway);
+
 // Mouse Trajectory Capture Listeners
 window.addEventListener('mousemove', e => {
     mouseX = e.clientX;
@@ -354,9 +362,9 @@ class Tank {
             const scaledMouseX = (mouseX - rect.left) * (canvas.width / rect.width);
             const scaledMouseY = (mouseY - rect.top) * (canvas.height / rect.height);
             
-            // Rescale to accounting game maps setup dimension matrix bounds
-            const gameWorldMouseX = scaledMouseX * ((cfg.cols * TILE) / 800);
-            const gameWorldMouseY = scaledMouseY * ((cfg.rows * TILE) / 600);
+            // Undo the current view (fit-to-canvas on desktop, follow camera on phones)
+            const gameWorldMouseX = (scaledMouseX - view.ox) / view.sx;
+            const gameWorldMouseY = (scaledMouseY - view.oy) / view.sy;
             
             this.cannonAngle = Math.atan2(gameWorldMouseY - this.y, gameWorldMouseX - this.x);
             if (fire) this.shoot();
@@ -849,16 +857,52 @@ function checkEnd() {
     }, 1000); 
 }
 
+// World-to-canvas transform. Desktop draws the whole arena into the 800x600 canvas.
+// Phones fill the screen instead and follow the local tank(s) at a readable scale,
+// scrolling over the arena (clamped to its edges) rather than shrinking it.
+const MOBILE_MIN_TILE_PX = 38;
+let view = { sx: 1, sy: 1, ox: 0, oy: 0 }, cam = { x: 0, y: 0, ready: false };
+function updateView(localTanks) {
+    const W = cfg.cols * TILE, H = cfg.rows * TILE;
+    if (!isMobile) {
+        if (canvas.width !== 800 || canvas.height !== 600) { canvas.width = 800; canvas.height = 600; }
+        view = { sx: 800 / W, sy: 600 / H, ox: 0, oy: 0 }; return;
+    }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), cw = canvas.clientWidth || window.innerWidth, ch = canvas.clientHeight || window.innerHeight;
+    const bw = Math.round(cw * dpr), bh = Math.round(ch * dpr);
+    if (canvas.width !== bw || canvas.height !== bh) { canvas.width = bw; canvas.height = bh; }
+    const fit = Math.min(cw / W, ch / H);
+    let s = Math.max(fit, MOBILE_MIN_TILE_PX / TILE), tx = W / 2, ty = H / 2;
+    const followed = localTanks.filter(t => t.alive).length ? localTanks.filter(t => t.alive) : localTanks;
+    if (followed.length > 0 && state !== 'MENU') {
+        const xs = followed.map(t => t.x), ys = followed.map(t => t.y);
+        const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+        tx = (minX + maxX) / 2; ty = (minY + maxY) / 2;
+        // Couch play on one screen: zoom out (never below the whole-arena fit) to keep everyone in view.
+        if (followed.length > 1) s = Math.max(fit, Math.min(s, cw / (maxX - minX + TILE * 6), ch / (maxY - minY + TILE * 6)));
+    }
+    const vw = cw / s, vh = ch / s;
+    const cx = W <= vw ? W / 2 : Math.min(Math.max(tx, vw / 2), W - vw / 2);
+    const cy = H <= vh ? H / 2 : Math.min(Math.max(ty, vh / 2), H - vh / 2);
+    // Ease toward the target; snap on the first frame and on warps/respawns across the map.
+    if (!cam.ready || Math.hypot(cx - cam.x, cy - cam.y) > Math.max(vw, vh) / 2) { cam.x = cx; cam.y = cy; cam.ready = true; }
+    else { cam.x = lerp(cam.x, cx, 0.15); cam.y = lerp(cam.y, cy, 0.15); }
+    const k = s * dpr;
+    view = { sx: k, sy: k, ox: bw / 2 - cam.x * k, oy: bh / 2 - cam.y * k };
+}
+
 function loop() { 
-    ctx.clearRect(0, 0, 800, 600); processMenuNavigation(); renderHUD();
+    processMenuNavigation(); renderHUD();
     const ts = Array.from(world.tanks.values()), h = ts.filter(t => !t.isAI), lh = h.filter(t => t.inputSet), side = (window.innerWidth - canvas.offsetWidth) / 2;
     const useR = side < 170, hasS = h.length > 1, hasT = hasS && h.length > 4, hasB = hasS && h.length > 0;
-    let vha = (useR && hasS && state === 'PLAYING') ? (hasT ? 2 : 1) * 8 : 0;
+    let vha = (useR && hasS && state === 'PLAYING' && !isMobile) ? (hasT ? 2 : 1) * 8 : 0;
     if (vha > 0 && hasB && !hasT) document.body.classList.add('top-align'); else if (state !== 'PAUSED') document.body.classList.remove('top-align');
-    if (state === 'PLAYING') canvas.style.height = `min(73.5vw, ${98 - vha}vh)`;
+    if (state === 'PLAYING' && !isMobile) canvas.style.height = `min(73.5vw, ${98 - vha}vh)`;
+    updateView(lh);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     ctx.save();
-    ctx.scale(800 / (cfg.cols * TILE), 600 / (cfg.rows * TILE));
+    ctx.setTransform(view.sx, 0, 0, view.sy, view.ox, view.oy);
 
     ctx.fillStyle = "rgba(0, 255, 0, 0.08)"; 
     if (world.map?.length > 0) { 
@@ -964,6 +1008,10 @@ function registerJoystick(zoneId, thumbId, isRightStick) {
 
     zone.addEventListener('touchend', stopTouch);
     zone.addEventListener('touchcancel', stopTouch);
+    // A touch can be lost without touchend when the page is hidden; let the stick go.
+    const release = () => { if (activeTouchId !== null) stopTouch({ changedTouches: [{ identifier: activeTouchId }] }); };
+    window.addEventListener('blur', release);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
 
     function handleTouch(t) {
         const rect = zone.getBoundingClientRect();
