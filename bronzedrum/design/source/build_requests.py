@@ -1007,7 +1007,7 @@ req(WT, "BD-W01", None, "Style frame: water puppets",
     "marching on a Han palisade at dusk, the sisters and the drum behind it), staged as a "
     "water-puppet show, to settle the look before the rest of this section.",
     "2560x1440, opaque",
-    "planned", None, "references/w01-water-puppet-frame.png",
+    "delivered", None, "references/w01-water-puppet-frame.png",
     f"{WATER_STYLE} A water-puppet performance at dusk seen from the audience's bank: across "
     "the pond, lacquered wooden puppets of feather-crowned Lac Viet women with spears and bows "
     "wade through the water towards a Han wooden palisade on the right, behind them a palanquin "
@@ -1021,7 +1021,7 @@ req(WT, "BD-W02", "wp-water", "The pond's surface",
     "the water itself.",
     "4096x512, opaque, seamless horizontally: the left and right edges must join with no "
     "visible seam. The top edge is the water line, seen almost edge-on.",
-    "planned", "Renderer.pond (drawn water)", "art/wp-water.png",
+    "delivered", "Renderer.pond (drawn water)", "art/wp-water.png",
     f"{WATER_STYLE} A long seamless strip of pond water seen almost edge-on from the audience's "
     "bank: deep green-brown water with gold and vermilion lantern reflections broken into "
     "horizontal ripples, a few floating lotus leaves, a bright thin highlight along the water "
@@ -1043,7 +1043,7 @@ for base_id in WATER_BASES:
     req(WT, rid, asset, f"Water puppets: {title}",
         f"The water-puppet version of {base_id}, shown in its place when Settings, Style is "
         f"Water puppets. {purpose}",
-        spec, "planned", b["standin"] and f"{b['asset']} (the shadow-puppet image)", f"art/{asset}.png", prompt)
+        spec, "delivered", b["standin"] and f"{b['asset']} (the shadow-puppet image)", f"art/{asset}.png", prompt)
     REQUESTS[-1]["base"] = b["asset"]
 
 # ------------------------------------------------------------------ output

@@ -133,15 +133,16 @@ kept light and every clock is read precisely:
 ## Delivered art
 
 Settings, Style chooses between the shadow puppets and the water puppets (see
-`design/design.md`, Two looks). The water puppets' images are requested as
-BD-W01 onwards and load under `wp-` ids; until each arrives the game shows
-the shadow-puppet image in its place, under the drawn pond.
+`design/design.md`, Two looks). All 60 water-puppet images (BD-W01 onwards)
+are delivered and load under `wp-` ids: carved wooden figures, lacquer scenery,
+a pond strip, chapter cards and effects. Their alignment stays within the
+water assets; the default shadow-puppet images, rigs and placement code are unchanged.
 
-All 92 requests have generated artwork, including BD-C14, the wider drum
+All 152 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets
-(BD-U17 to BD-U19, BD-P11, BD-C13): 20 style and direction images in
-`design/references/` and 72 game images in `game/assets/art/`. The set follows
-the coloured-paper direction (BD-S02).
+(BD-U17 to BD-U19, BD-P11, BD-C13): 21 style and direction images in
+`design/references/` and 131 game images in `game/assets/art/`. The shadow set follows
+the coloured-paper direction (BD-S02); the water set follows BD-W01.
 
 BD-U26 supplies the card art for Drum Practice's Training mode. The first
 chapter's lesson in blocking uses BD-C15 (village children throwing stones) and
@@ -185,17 +186,18 @@ landed, and a rim tap on the left half brings Nhị's arm in from the left. The 
 Drumsticks (`STICK_SETS`); all six sticks share one layout, and the drawn
 stand-in remains for a missing image.
 
-The manifest's `runtime` flag distinguishes the 66 images used by the prototype
-from the 6 delivered sheets it does not use directly: the four puppet-rig sheets
-(cut into rigs instead) and the glyph and icon sheets. They remain available
+The manifest's `runtime` flag distinguishes the 123 images used by the prototype
+from the 8 delivered sheets it does not use directly: six puppet part sheets
+(the water sisters' sheets are ready for their own rigging) and the glyph and
+icon sheets. They remain available
 for production work without being downloaded at game startup. The effects
 sheets are in use: hits and deflections burst into the paper scraps (BD-F01,
 picked by colour), the arrows and bolts fly as BD-F02, and when the drum wakes
 its rings (BD-F03) spread from the drum.
 
 The PNGs in `game/assets/art/` are the masters, kept at the requested sizes.
-The game loads WebP copies scaled to the size it actually draws them at (6.0 MB
-in all). Only these copies are published. After
+The game loads WebP copies scaled to the size it actually draws them at (14.0 MB
+in all for both styles). Only these copies are published. After
 delivering or replacing art, rerun
 [`design/source/build_web_art.py`](design/source/build_web_art.py) and then
 `build_requests.py`. The renderer also tints the painted parallax layers to

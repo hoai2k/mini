@@ -4,7 +4,8 @@
   "notes": [
     "Export dimensions are resampled from the native imagegen sizes; these are not native 4K generations.",
     "Puppet sheets are artwork for future rigging, not animated rigs.",
-    "Puppet and effects sheets and planned UI pieces are delivered but are not runtime assets of this prototype."
+    "Puppet and effects sheets and planned UI pieces are delivered but are not runtime assets of this prototype.",
+    "The water-puppet set BD-W01 onwards uses carved wooden figures and son-mai lacquer scenery; shadow-puppet masters are retained."
   ],
   "images": [
     {
@@ -1880,6 +1881,1400 @@
       ],
       "exportOperation": "resample opaque vignette to requested 1600x900 canvas",
       "prompt": "Hand-cut paper art. Flat silhouettes cut with a knife from thick handmade rice paper and white fibre sheets, with intricate cut-out holes (leaf veins, crescents, scallops, lattice) that let light through. Lit from behind: light glows through the cuts and each layer casts a soft shadow on the layer behind it. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures in profile, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folkloric, intimate and ceremonial. Limited palette: rice paper cream, ink black, night indigo, bronze, verdigris and lacquer red. No painterly gradients except the glow of the backlight, no photorealism, no 3D render look, no text, no watermark. A wide cut-paper vignette: an old drum master and a young feather-crowned drummer kneeling at a bronze drum in a courtyard at dusk, the master's stick raised to show a stroke while the student watches, a row of smaller drums and wooden beaters laid out in order along a low lacquer-red bench behind them, lanterns overhead.\nOutput specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central\nLandscape 16:9 composition. Keep the master, student, raised beater and bronze drum readable in the middle horizontal band, since the menu uses a shallow central crop. Opaque dusk courtyard scene with lanterns, no text, labels, borders or watermark. Create only this requested card image."
+    },
+    {
+      "id": "BD-W01",
+      "file": "design/references/w01-water-puppet-frame.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. A water-puppet performance at dusk seen from the audience's bank: across the pond, lacquered wooden puppets of feather-crowned Lac Viet women with spears and bows wade through the water towards a Han wooden palisade on the right, behind them a palanquin puppet carrying a bronze drum with two puppet sisters striking it. Behind the pond a small water pavilion with a curved tiled roof and a bamboo screen, painted lacquer scenery of karst peaks and areca palms, red lanterns strung above, gold reflections and ripples on the water.\nOutput specification: 2560x1440, opaque. Landscape 16:9, fully opaque. Establish the production art direction for this game: painted lacquer folk theatre, clearly carved puppet joints and faces, layered lacquer scenery, warm red lantern light, calm green-brown pond. The Lac Viet army faces RIGHT toward the Han palisade. No captions or lettering."
+    },
+    {
+      "id": "BD-W02",
+      "file": "game/assets/art/wp-water.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        4096,
+        512
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts; export matching repeat-edge gutters with a 32-pixel transition",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. A long seamless strip of pond water seen almost edge-on from the audience's bank: deep green-brown water with gold and vermilion lantern reflections broken into horizontal ripples, a few floating lotus leaves, a bright thin highlight along the water line at the top edge. No figures, no shore.\nProduction specification: 4096x512, opaque, seamless horizontally: the left and right edges must join with no visible seam. The top edge is the water line, seen almost edge-on.\nReference roles: the reference establishes the lacquer art style only; create only the requested water surface strip.\nNo typography. Opaque full-bleed asset. For the water strip, fill every pixel with water, a thin horizontal waterline at the top, no empty sky. Preserve repeatable left/right edge patterns."
+    },
+    {
+      "id": "BD-WB01",
+      "file": "game/assets/art/wp-sky-dawn.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Backdrop of a dawn sky: indigo at the top, rose in the middle, warm bronze near the horizon; the sun as a cut 12-point star low on the right with a glowing halo; a few long scalloped paper clouds. Sky only, no land.\nOutput specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sky-dawn.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference image fixes the sky composition only. Translate paper into painted Vietnamese lacquer, gold leaf and crushed eggshell. SKY ONLY: no land, pond, water, people, puppets, houses or foreground objects. Entire lower third is plain sky and remains visually quiet, covered by game scenery. No silhouetted/paper-cut rendering. Wide 16:9, fully opaque.",
+      "references": [
+        "game/assets/art/sky-dawn.png"
+      ]
+    },
+    {
+      "id": "BD-WB02",
+      "file": "game/assets/art/wp-sky-day.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Backdrop of a hazy daylight sky: pale verdigris at the top fading to cream at the horizon; the sun as a cut 12-point star at upper right; long scalloped paper clouds. Sky only, no land.\nOutput specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sky-day.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference image fixes the sky composition only. Translate paper into painted Vietnamese lacquer, gold leaf and crushed eggshell. SKY ONLY: no land, pond, water, people, puppets, houses or foreground objects. Entire lower third is plain sky and remains visually quiet, covered by game scenery. No silhouetted/paper-cut rendering. Wide 16:9, fully opaque.",
+      "references": [
+        "game/assets/art/sky-day.png"
+      ]
+    },
+    {
+      "id": "BD-WB03",
+      "file": "game/assets/art/wp-sky-night.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Backdrop of a night sky: deep indigo, a large full moon at upper right with crater shapes cut out of it, a scatter of small stars, a few long indigo paper clouds. Sky only, no land.\nProduction specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sky-night.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the exact layer layout and negative space. Use painted Vietnamese lacquer and leaf, not paper or a black silhouette. SKY ONLY. No land, pond, figures, buildings or props. Lower third quiet plain sky.\nNo text or labels.",
+      "references": [
+        "game/assets/art/sky-night.png"
+      ]
+    },
+    {
+      "id": "BD-WB09",
+      "file": "game/assets/art/wp-layer-karst-far.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "register scenery vertical alpha band to the shadow reference; resample to requested canvas; export matching repeat-edge gutters with a 32-pixel transition",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A long horizontal strip of distant limestone karst peaks with rounded tops, cut from one pale, misty violet-grey sheet that lets a lot of light through, with a dotted seam of tiny cut holes following the inside of each peak and thin mist bands cut across.\nProduction specification: 5120x1440. Peaks between 25% and 52% of the height; the base solid to the bottom edge. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/layer-karst-far.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the exact layer layout and negative space. Use painted Vietnamese lacquer and leaf, not paper or a black silhouette. Exactly this isolated parallax scenery strip. True alpha above and between the scenery shapes. No sky, figures, drums or extra pond scene. Left and right edges join at the same height and colour, with continuous repeating foliage/peaks.\nNo text or labels.",
+      "references": [
+        "game/assets/art/layer-karst-far.png"
+      ]
+    },
+    {
+      "id": "BD-WB04",
+      "file": "game/assets/art/wp-layer-karst.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "register scenery vertical alpha band to the shadow reference; resample to requested canvas; export matching repeat-edge gutters with a 32-pixel transition",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A long horizontal strip of steep limestone karst peaks with rounded tops, cut from one sheet of paper in a single muted indigo-violet, with thin mist bands and small flying herons cut out of it so the light shows through. Flat silhouette, no interior shading.\nProduction specification: 5120x1440. Peaks between 10% and 60% of the height; the base solid to the bottom edge. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/layer-karst.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the exact layer layout and negative space. Use painted Vietnamese lacquer and leaf, not paper or a black silhouette. Exactly this isolated parallax scenery strip. True alpha above and between the scenery shapes. No sky, figures, drums or extra pond scene. Left and right edges join at the same height and colour, with continuous repeating foliage/peaks.\nNo text or labels.",
+      "references": [
+        "game/assets/art/layer-karst.png"
+      ]
+    },
+    {
+      "id": "BD-WB05",
+      "file": "game/assets/art/wp-layer-grove.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "register scenery vertical alpha band to the shadow reference; resample to requested canvas; export matching repeat-edge gutters with a 32-pixel transition",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A long horizontal strip of areca palms, clumps of bamboo and stilt houses with saddle-shaped roofs like those on Dong Son drums, cut from one dark indigo-green sheet; leaf veins and lattice windows cut out so the light shows through.\nProduction specification: 5120x1440. Tree bases on a solid band at 63-71% of the height; tallest crowns at about 25%. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/layer-grove.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the exact layer layout and negative space. Use painted Vietnamese lacquer and leaf, not paper or a black silhouette. Exactly this isolated parallax scenery strip. True alpha above and between the scenery shapes. No sky, figures, drums or extra pond scene. Left and right edges join at the same height and colour, with continuous repeating foliage/peaks.\nNo text or labels.",
+      "references": [
+        "game/assets/art/layer-grove.png"
+      ]
+    },
+    {
+      "id": "BD-WB06",
+      "file": "game/assets/art/wp-layer-paddy.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2173,
+        724
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "register scenery vertical alpha band to the shadow reference; resample to requested canvas; export matching repeat-edge gutters with a 32-pixel transition",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A long horizontal strip of flooded rice paddies seen from the side, one dark sheet with a softly scalloped top edge; rows of thin horizontal slits cut through it suggest water catching light between rows of rice.\nProduction specification: 5120x1440. Top edge a gentle scalloped line at 69% of the height; solid below, with the water slits kept faint so the HUD reads over it. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/layer-paddy.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference only for exact layout and scale. Translate all paper surfaces to painted lacquer and gold or eggshell. Single isolated repeating scenery strip, same vertical band position as reference. True alpha in empty space. No sky, figures or extra scene. Match left/right repeat boundaries.\nNo text, watermark, ground shadow or backlighting.",
+      "references": [
+        "game/assets/art/layer-paddy.png"
+      ]
+    },
+    {
+      "id": "BD-WB07",
+      "file": "game/assets/art/wp-layer-reeds.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2173,
+        724
+      ],
+      "exportSize": [
+        5120,
+        1440
+      ],
+      "exportOperation": "register scenery vertical alpha band to the shadow reference; resample to requested canvas; export matching repeat-edge gutters with a 32-pixel transition",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A long horizontal strip of reeds, grasses and lotus pads rising from the bottom edge, ink-black silhouettes with very fine cut detail, sparse with gaps between clumps.\nProduction specification: 5120x1440. Reeds rising from the bottom edge up to about 25% of the height; sparse enough that most of the bottom stays open. Seamless horizontally: the left and right edges must join with no visible seam. Transparent above the silhouette (PNG with alpha); the game layers it over the sky. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/layer-reeds.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference only for exact layout and scale. Translate all paper surfaces to painted lacquer and gold or eggshell. Single isolated repeating scenery strip, same vertical band position as reference. True alpha in empty space. No sky, figures or extra scene. Match left/right repeat boundaries.\nNo text, watermark, ground shadow or backlighting.",
+      "references": [
+        "game/assets/art/layer-reeds.png"
+      ]
+    },
+    {
+      "id": "BD-WB08",
+      "file": "game/assets/art/wp-paper-fiber.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts; export matching repeat-edge gutters with a 32-pixel transition",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Seamless tileable texture of a polished lacquer surface: deep black-brown with a soft gloss, very faint gold-leaf flecks and a few hairline crackles of eggshell, even lighting, no objects. It is laid thinly over the whole screen, so keep it quiet.\nProduction specification: 1024x1024, opaque, tileable in both directions. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/paper-fiber.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference only for exact layout and scale. Translate all paper surfaces to painted lacquer and gold or eggshell. Quiet seamless lacquer texture only: no objects, no scenery, no large highlights.\nNo text, watermark, ground shadow or backlighting.",
+      "references": [
+        "game/assets/art/paper-fiber.png"
+      ]
+    },
+    {
+      "id": "BD-WB10",
+      "file": "game/assets/art/wp-sky-dusk.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Backdrop of a dusk sky: violet at the top, dusty rose in the middle, a large low sun as a cut 12-point star sinking at the right, long scalloped paper clouds edged with light. Sky only, no land.\nProduction specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sky-dusk.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the sky composition. Paint it in Vietnamese lacquer and gold/eggshell leaf. SKY ONLY: no people, puppet figures, land, pond, water, buildings, props, lantern objects, or foreground. Quiet plain lower third. Fully opaque 16:9. No lettering.",
+      "references": [
+        "game/assets/art/sky-dusk.png"
+      ]
+    },
+    {
+      "id": "BD-WB11",
+      "file": "game/assets/art/wp-sky-foundry.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Backdrop of a night sky over a foundry: near-black at the top, deep red-brown haze near the horizon lit orange from below by furnaces, embers cut as tiny holes drifting up, no moon. Sky only, no land.\nProduction specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sky-foundry.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the sky composition. Paint it in Vietnamese lacquer and gold/eggshell leaf. SKY ONLY: no people, puppet figures, land, pond, water, buildings, props, lantern objects, or foreground. Quiet plain lower third. Fully opaque 16:9. No lettering.",
+      "references": [
+        "game/assets/art/sky-foundry.png"
+      ]
+    },
+    {
+      "id": "BD-WB12",
+      "file": "game/assets/art/wp-sky-ash.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        2560,
+        1440
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Backdrop of a quiet dawn: ash grey at the top fading to warm cream at the horizon, a pale hazy sun, thin streaks of cloud, a few herons far away. Sky only, no land.\nProduction specification: 2560x1440, opaque; keep the lower third plain, it is covered by hills. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sky-ash.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the sky composition. Paint it in Vietnamese lacquer and gold/eggshell leaf. SKY ONLY: no people, puppet figures, land, pond, water, buildings, props, lantern objects, or foreground. Quiet plain lower third. Fully opaque 16:9. No lettering.",
+      "references": [
+        "game/assets/art/sky-ash.png"
+      ]
+    },
+    {
+      "id": "BD-WC01",
+      "file": "game/assets/art/wp-sister-trac.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Trung Trac, a Lac Viet noblewoman and war leader, standing in profile facing right, both hands gripping a long drumstick raised for a strike. Gold armour of small plates over a wrapped skirt, a tall crown of feathers, hair in a high knot. Composed and upright. Bronze and ink-black paper, her armour cut with rings and small stars.\nProduction specification: 1024x1536. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sister-trac.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nThe reference is the layout/pose guide, not the material style. Keep every body part, foot, crown and prop at the same relative position. Fully carved fig-wood water puppet with glossy coloured lacquer, rounded painted face, round peg joints. One sister only, no drum or additional people. True transparent background. FULL BODY including feet: do not submerge, crop or draw water around legs; the game overlays the pond itself. No scenery, pedestal, exterior glow or cast shadow. Faces RIGHT.",
+      "references": [
+        "game/assets/art/sister-trac.png"
+      ]
+    },
+    {
+      "id": "BD-WC02",
+      "file": "game/assets/art/wp-sister-nhi.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Trung Nhi, a young Lac Viet war leader, in profile facing right, mid-swing with a short drumstick in each hand, body turning with energy. Gold armour over a lacquer-red wrapped skirt, a crown of feathers with flowers tucked in, vines and birds cut into her sleeves. Lively and fierce.\nProduction specification: 1024x1536. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/sister-nhi.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nThe reference is the layout/pose guide, not the material style. Keep every body part, foot, crown and prop at the same relative position. Fully carved fig-wood water puppet with glossy coloured lacquer, rounded painted face, round peg joints. One sister only, no drum or additional people. True transparent background. FULL BODY including feet: do not submerge, crop or draw water around legs; the game overlays the pond itself. No scenery, pedestal, exterior glow or cast shadow. Faces RIGHT.",
+      "references": [
+        "game/assets/art/sister-nhi.png"
+      ]
+    },
+    {
+      "id": "BD-WC03",
+      "file": "game/assets/art/wp-war-elephant.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1448,
+        1086
+      ],
+      "exportSize": [
+        2048,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. An Asian war elephant walking right in profile, an empty open howdah with a lacquer-red rail on its back, a caparison cut with concentric rings and a sun-star, tusks and trunk curled forward. Ink-black paper with red and bronze inlays.\nProduction specification: 2048x1536. Empty howdah floor at about 70% of the height above the feet, centred slightly behind the middle. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/war-elephant.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nThe reference is the layout/pose guide, not the material style. Keep every body part, foot, crown and prop at the same relative position. Fully carved fig-wood water puppet with glossy coloured lacquer, rounded painted face, round peg joints. One elephant with its EMPTY howdah, no riders. True transparent background. FULL BODY including feet: do not submerge, crop or draw water around legs; the game overlays the pond itself. No scenery, pedestal, exterior glow or cast shadow. Faces RIGHT.",
+      "references": [
+        "game/assets/art/war-elephant.png"
+      ]
+    },
+    {
+      "id": "BD-WC04",
+      "file": "game/assets/art/wp-drum-bearers.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        2048,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Four Lac Viet women in feather crowns carry a low wooden palanquin on poles, walking right; on it sits a large bronze drum, its side banded with rings and its top a sun-star. The deck is empty apart from the drum. Ink-black figures, a bronze drum.\nProduction specification: 2048x1024. Platform deck at about 35% of the height. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/drum-bearers.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference as an exact layout template; change only the material and puppet style. Carved lacquered wooden faces and peg-jointed limbs, fully coloured. Preserve full bodies and feet. Exactly four right-facing women carrying the one central drum, no extra people on the deck. True alpha background, no water, scenery, floor, platform pedestal, cast shadow or glow.",
+      "references": [
+        "game/assets/art/drum-bearers.png"
+      ]
+    },
+    {
+      "id": "BD-WC14",
+      "file": "game/assets/art/wp-drum-palanquin.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        2400,
+        1200
+      ],
+      "exportOperation": "resample canvas with transparent top registration so deck meets the 58% standing anchor",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A long, low ceremonial wooden palanquin carried on two poles by four Lac Viet women in feather crowns, walking right, the poles on their shoulders. On its flat deck, in the middle, a large Dong Son bronze drum banded with rings, its top a sun-star. The two ends of the deck are empty and level, room for two people to stand and drum. The deck's edge is carved with a band of herons and boats in cut detail. Ink-black bearers and wood, a warm bronze drum.\nProduction specification: 2400x1200, transparent. The deck's top is one straight, level line at exactly 42% of the height measured up from the bottom edge (58% down from the top), spanning the middle 80% of the width. The drum sits on the deck in the middle third. Two empty standing places on the deck, centred at 22% and 78% of the width and each about 16% wide, with nothing drawn above the deck there (no railing taller than 3% of the height, no canopy, no posts). Four bearers carry the poles on their shoulders, the poles just under the deck, their feet on the bottom edge. One carved and lacquered wooden group, side profile, full bodies, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/drum-palanquin.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference as an exact layout template; change only the material and puppet style. Carved lacquered wooden faces and peg-jointed limbs, fully coloured. Preserve full bodies and feet. CRITICAL: deck top at 58% down the full canvas; empty standing zones at 22% and 78% width. Four bearers entirely below the deck, central drum only, no sisters drawn. Upper canvas intentionally empty. True alpha background, no water, scenery, floor, platform pedestal, cast shadow or glow.",
+      "deckTop": 696,
+      "standingPoints": [
+        [
+          528,
+          696
+        ],
+        [
+          1872,
+          696
+        ]
+      ],
+      "references": [
+        "game/assets/art/drum-palanquin.png"
+      ]
+    },
+    {
+      "id": "BD-WC11",
+      "file": "game/assets/art/wp-drummer-chau.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Lac Viet woman drummer walking in profile facing right, a trống chầu slung at her hip on a strap: a small barrel drum lacquered red with a bronze band, its pale buffalo-hide head facing forward. Her right hand raises a wooden beater with a red tip. Short feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.\nProduction specification: 1024x1536. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/drummer-chau.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference as an exact layout template; change only the material and puppet style. Carved lacquered wooden faces and peg-jointed limbs, fully coloured. Preserve full bodies and feet. One right-facing barrel drummer in the reference's pose. True alpha background, no water, scenery, floor, platform pedestal, cast shadow or glow.",
+      "references": [
+        "game/assets/art/drummer-chau.png"
+      ]
+    },
+    {
+      "id": "BD-WC12",
+      "file": "game/assets/art/wp-drummer-mo.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Lac Viet woman walking in profile facing right, holding out a mõ in her left hand: a small round wooden slit drum of dark polished wood with a long slit cut across its front. Her right hand lifts a short wooden mallet. Short feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with the mõ in warm brown, fine cut details in the feathers.\nProduction specification: 1024x1536. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/drummer-mo.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference is an exact pose and framing guide; translate it into a rounded carved fig-wood puppet, glossy lacquer vermilion/black/jade/gold, painted face, rosy cheeks and visible joint pegs. Preserve foot positions, equipment and direction: faces RIGHT. One figure only. Full body and all weapons visible, no cropped tips. True transparent background and gaps, no pond, scenery, ground plane, glow or shadows outside the figure. The game adds water over the shins.",
+      "references": [
+        "game/assets/art/drummer-mo.png"
+      ]
+    },
+    {
+      "id": "BD-WC05",
+      "file": "game/assets/art/wp-unit-spear.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Lac Viet woman warrior in profile facing right, holding a long bronze-headed spear upright, a feather crown fanning backwards, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.\nProduction specification: 1024x1536. Spear held upright. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/unit-spear.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference is an exact pose and framing guide; translate it into a rounded carved fig-wood puppet, glossy lacquer vermilion/black/jade/gold, painted face, rosy cheeks and visible joint pegs. Preserve foot positions, equipment and direction: faces RIGHT. One figure only. Full body and all weapons visible, no cropped tips. True transparent background and gaps, no pond, scenery, ground plane, glow or shadows outside the figure. The game adds water over the shins.",
+      "references": [
+        "game/assets/art/unit-spear.png"
+      ]
+    },
+    {
+      "id": "BD-WC06",
+      "file": "game/assets/art/wp-unit-archer.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Lac Viet woman archer in profile facing right, drawing a bow, a short feather crown, quiver on her back, a lacquer-red sash. Ink-black silhouette with fine cut details.\nProduction specification: 1024x1536. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/unit-archer.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference is an exact pose and framing guide; translate it into a rounded carved fig-wood puppet, glossy lacquer vermilion/black/jade/gold, painted face, rosy cheeks and visible joint pegs. Preserve foot positions, equipment and direction: faces RIGHT. One figure only. Full body and all weapons visible, no cropped tips. True transparent background and gaps, no pond, scenery, ground plane, glow or shadows outside the figure. The game adds water over the shins.",
+      "references": [
+        "game/assets/art/unit-archer.png"
+      ]
+    },
+    {
+      "id": "BD-WC15",
+      "file": "game/assets/art/wp-children-sheet.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1536,
+        1024
+      ],
+      "exportSize": [
+        1536,
+        1024
+      ],
+      "exportOperation": "trim alpha per cell, fit on exact sprite grid; shared scale and bottom baseline for figures",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A sprite sheet of two cheeky Lạc Việt village children, about seven years old, in profile facing left, on a grid of 4 columns by 2 rows: row 1 a barefoot boy with a shaved head and a little topknot, in a loincloth; row 2 a barefoot girl with two short tufts of hair, in a wrapped skirt with a lacquer-red sash. Columns: running with one leg forward; running with the other leg forward; winding up with one arm drawn far back, a small stone in the hand; the throw, arm flung forward, hand open. Ink-black silhouettes with fine cut details, mischievous rather than menacing.\nProduction specification: 1536x1024, transparent; a grid of 4 columns (poses) by 2 rows (children), 384x512 cells, each child standing on the bottom of its cell, facing LEFT, centred. Columns: 1 running, one leg forward; 2 running, the other leg forward; 3 one arm drawn far back with a stone in the hand; 4 the throw, arm flung forward, hand open. Row 1 a boy with a shaved head and a topknot, in a loincloth; row 2 a girl with her hair in two short tufts, in a wrapped skirt. Same scale in every cell. transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/children-sheet.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact framing and poses; transform paper figures into fully coloured lacquered wooden puppets, rosy painted faces and peg joints. Exactly EIGHT children, 4 columns by 2 rows, all LEFT-facing. Consistent identities and scale per row; distinct alternating run poses, then wind-up and released throw. No figure crosses a cell boundary. Full bodies and feet, true transparent background. No water, stones outside figures, scenery, floor, shadow, exterior glow or labels.",
+      "frames": [
+        [
+          0,
+          0,
+          384,
+          512
+        ],
+        [
+          384,
+          0,
+          384,
+          512
+        ],
+        [
+          768,
+          0,
+          384,
+          512
+        ],
+        [
+          1152,
+          0,
+          384,
+          512
+        ],
+        [
+          0,
+          512,
+          384,
+          512
+        ],
+        [
+          384,
+          512,
+          384,
+          512
+        ],
+        [
+          768,
+          512,
+          384,
+          512
+        ],
+        [
+          1152,
+          512,
+          384,
+          512
+        ]
+      ],
+      "references": [
+        "game/assets/art/children-sheet.png"
+      ]
+    },
+    {
+      "id": "BD-WC16",
+      "file": "game/assets/art/wp-unit-spear-cover.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. The same Lac Viet woman as BD-C05, in profile facing right, standing as in BD-C05 but flinching from thrown stones: her spear held upright in her right hand, her left forearm raised across her face, elbow out, head ducked behind it. Feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.\nProduction specification: 1024x1536. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/unit-spear-cover.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact framing and poses; transform paper figures into fully coloured lacquered wooden puppets, rosy painted faces and peg joints. Exactly one RIGHT-facing warrior. Preserve the protective forearm across her face, feet and weapon position from the reference. Full bodies and feet, true transparent background. No water, stones outside figures, scenery, floor, shadow, exterior glow or labels.",
+      "references": [
+        "game/assets/art/unit-spear-cover.png"
+      ]
+    },
+    {
+      "id": "BD-WC17",
+      "file": "game/assets/art/wp-unit-archer-cover.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. The same Lac Viet woman as BD-C06, in profile facing right, standing as in BD-C06 but flinching from thrown stones: her bow lowered in her left hand, her right forearm raised across her face, elbow out, head ducked behind it. Feather crown, wrapped skirt, a lacquer-red sash. Ink-black silhouette with fine cut details in the feathers.\nProduction specification: 1024x1536. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/unit-archer-cover.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact framing and poses; transform paper figures into fully coloured lacquered wooden puppets, rosy painted faces and peg joints. Exactly one RIGHT-facing warrior. Preserve the protective forearm across her face, feet and weapon position from the reference. Full bodies and feet, true transparent background. No water, stones outside figures, scenery, floor, shadow, exterior glow or labels.",
+      "references": [
+        "game/assets/art/unit-archer-cover.png"
+      ]
+    },
+    {
+      "id": "BD-WC07",
+      "file": "game/assets/art/wp-han-spear.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. An Eastern Han Chinese soldier, 1st century, in profile facing left, holding a ji halberd upright, lamellar armour shown as rows of small cut slots, a soft cap. Iron grey and dark grey paper. An ordinary soldier, no caricature.\nProduction specification: 1024x1536. Faces left. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/han-spear.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact pose, scale, layout and framing. Convert paper to carved wooden puppet props and figures with glossy lacquer and gold leaf, preserving period kit. One full-body Han soldier, facing LEFT, with painted ordinary human features and peg joints; keep the reference's weapon and stance. True transparent background. No extra figures, scenery, pond, floor, cast shadow, haze or exterior glow.",
+      "references": [
+        "game/assets/art/han-spear.png"
+      ]
+    },
+    {
+      "id": "BD-WC08",
+      "file": "game/assets/art/wp-han-crossbow.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        1024,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. An Eastern Han Chinese crossbowman, 1st century, kneeling in profile facing left, aiming a bronze-triggered crossbow, lamellar armour as rows of small cut slots. Iron grey and dark grey paper, no caricature.\nProduction specification: 1024x1536. Faces left. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/han-crossbow.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact pose, scale, layout and framing. Convert paper to carved wooden puppet props and figures with glossy lacquer and gold leaf, preserving period kit. One full-body Han soldier, facing LEFT, with painted ordinary human features and peg joints; keep the reference's weapon and stance. True transparent background. No extra figures, scenery, pond, floor, cast shadow, haze or exterior glow.",
+      "references": [
+        "game/assets/art/han-crossbow.png"
+      ]
+    },
+    {
+      "id": "BD-WC09",
+      "file": "game/assets/art/wp-fort-palisade.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Han frontier fort seen from the side: a wall of pointed timber stakes, a gate on the left, a two-storey watchtower with a tiled roof and a pennant, lattice windows cut through. Dark iron-grey paper.\nProduction specification: 2048x2048. Gate on the left side, facing the army. Single carved and lacquered wooden structure, side view, base on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/fort-palisade.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact pose, scale, layout and framing. Convert paper to carved wooden puppet props and figures with glossy lacquer and gold leaf, preserving period kit. The palisade, closed gate, watchtower and flags only, arranged as in the reference. True transparent background. No extra figures, scenery, pond, floor, cast shadow, haze or exterior glow.",
+      "references": [
+        "game/assets/art/fort-palisade.png"
+      ]
+    },
+    {
+      "id": "BD-WC10",
+      "file": "game/assets/art/wp-straw-target.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A straw training dummy on a wooden post with a crossbar, bound with rope in three places. Straw-coloured paper with ink-black post and ropes.\nProduction specification: 1024x1024. Single carved and lacquered wooden object, side view, base on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/straw-target.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference as a STRICT layout template, translating the surfaces into carved wood, glossy lacquer, gold leaf and painted patterns. Exactly one straw-target puppet prop, T-shaped as shown, no scenery. True transparent background, no pond, backdrop, shadow or halo.",
+      "references": [
+        "game/assets/art/straw-target.png"
+      ]
+    },
+    {
+      "id": "BD-WR01",
+      "file": "game/assets/art/wp-rig-sister-trac.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        4096,
+        4096
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A sheet of separate cut-paper puppet parts for Trung Trac, matching the in-game figure: head with crown, torso, upper and lower arms, hands with drumstick, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.\nProduction specification: 4096x4096, transparent; pieces laid out apart with space between, each with a little overlap at the joints. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/rig-sister-trac.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference as a STRICT layout template, translating the surfaces into carved wood, glossy lacquer, gold leaf and painted patterns. PART SHEET ONLY, not an assembled puppet. Preserve exactly the reference's separate pieces and their positions, proportions and round joint holes. Clear transparent gaps between pieces, no overlap. Keep head, torso, skirt, both upper arms, both forearms, legs and all reference cape/sash pieces. No extra parts or labels. True transparent background, no pond, backdrop, shadow or halo.",
+      "references": [
+        "game/assets/art/rig-sister-trac.png"
+      ]
+    },
+    {
+      "id": "BD-WR02",
+      "file": "game/assets/art/wp-rig-sister-nhi.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        4096,
+        4096
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A sheet of separate cut-paper puppet parts for Trung Nhi, matching the in-game figure: head with crown, torso, upper and lower arms, two hands with drumsticks, skirt, legs. Each piece is whole and flat, laid out with space between, joints rounded so they overlap when assembled.\nProduction specification: 4096x4096, transparent; pieces laid out apart with space between, each with a little overlap at the joints. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/rig-sister-nhi.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nUse the reference as a STRICT layout template, translating the surfaces into carved wood, glossy lacquer, gold leaf and painted patterns. PART SHEET ONLY, not an assembled puppet. Preserve exactly the reference's separate pieces and their positions, proportions and round joint holes. Clear transparent gaps between pieces, no overlap. Keep head, torso, skirt, both upper arms, both forearms, legs and all reference cape/sash pieces. No extra parts or labels. True transparent background, no pond, backdrop, shadow or halo.",
+      "references": [
+        "game/assets/art/rig-sister-nhi.png"
+      ]
+    },
+    {
+      "id": "BD-WU04",
+      "file": "game/assets/art/wp-ui-panel.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1536,
+        1024
+      ],
+      "exportSize": [
+        1536,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. A lacquered wooden panel: a black lacquer field framed by a carved vermilion border of tangential circles and small herons picked out in gold leaf, a sun-star in each corner. Plain centre for text. Soft gloss, even light.\nProduction specification: 1536x1024, transparent outside the sheet. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/ui-panel.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes framing and layout. Render as traditional lacquer-painted scenery and carved water puppets; retain the original subject and composition but replace paper, silhouettes, cut holes and backlight with painted detail, carved forms and warm front lighting. Menu panel only. Plain BLACK LACQUER centre for text, vermilion and gold carved border. True alpha outside the panel. No writing.",
+      "references": [
+        "game/assets/art/ui-panel.png"
+      ]
+    },
+    {
+      "id": "BD-WU06",
+      "file": "game/assets/art/wp-card-garden.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: two sisters practising with drumsticks beside a lotus pond and straw targets in a lord's garden, dawn. Main shapes on the right half, the left half mostly open sky or water.\nProduction specification: 1600x900, opaque; keep the left half quiet for text. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-garden.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes framing and layout. Render as traditional lacquer-painted scenery and carved water puppets; retain the original subject and composition but replace paper, silhouettes, cut holes and backlight with painted detail, carved forms and warm front lighting. Opaque landscape 16:9 chapter-card vignette. Keep principal subjects within the central horizontal band for the menu crop. No lettering, labels, extra border or watermark.",
+      "references": [
+        "game/assets/art/card-garden.png"
+      ]
+    },
+    {
+      "id": "BD-WU07",
+      "file": "game/assets/art/wp-card-outpost.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: women warriors with shields advancing on a Han timber outpost across a river ford, daylight. Main shapes on the right half, the left half mostly open sky or water.\nProduction specification: 1600x900, opaque; keep the left half quiet for text. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-outpost.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes framing and layout. Render as traditional lacquer-painted scenery and carved water puppets; retain the original subject and composition but replace paper, silhouettes, cut holes and backlight with painted detail, carved forms and warm front lighting. Opaque landscape 16:9 chapter-card vignette. Keep principal subjects within the central horizontal band for the menu crop. No lettering, labels, extra border or watermark.",
+      "references": [
+        "game/assets/art/card-outpost.png"
+      ]
+    },
+    {
+      "id": "BD-WU08",
+      "file": "game/assets/art/wp-card-luylau.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: the sisters on a war elephant with a bronze drum before a walled citadel under a full moon. Main shapes on the right half, the left half mostly open sky or water.\nProduction specification: 1600x900, opaque; keep the left half quiet for text. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-luylau.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nThe reference fixes the scene composition and framing. Keep those subjects and story action, translating the people to fully coloured carved lacquer water puppets with painted faces and peg joints. Paint the scenery with Vietnamese lacquer, gold/silver leaf and eggshell details, no cut-paper silhouettes or backlight. Opaque 16:9 card vignette, principal subject central for a shallow horizontal crop. No text, captions, labels or watermark.",
+      "references": [
+        "game/assets/art/card-luylau.png"
+      ]
+    },
+    {
+      "id": "BD-WU10",
+      "file": "game/assets/art/wp-card-oath.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: two sisters kneeling before their father's memorial altar at dusk, incense smoke rising, a mourning drum beside them.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-oath.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nThe reference fixes the scene composition and framing. Keep those subjects and story action, translating the people to fully coloured carved lacquer water puppets with painted faces and peg joints. Paint the scenery with Vietnamese lacquer, gold/silver leaf and eggshell details, no cut-paper silhouettes or backlight. Opaque 16:9 card vignette, principal subject central for a shallow horizontal crop. No text, captions, labels or watermark.",
+      "references": [
+        "game/assets/art/card-oath.png"
+      ]
+    },
+    {
+      "id": "BD-WU11",
+      "file": "game/assets/art/wp-card-casting.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: metalworkers pouring glowing bronze from a crucible into drum moulds in a night foundry.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-casting.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nThe reference fixes the scene composition and framing. Keep those subjects and story action, translating the people to fully coloured carved lacquer water puppets with painted faces and peg joints. Paint the scenery with Vietnamese lacquer, gold/silver leaf and eggshell details, no cut-paper silhouettes or backlight. Opaque 16:9 card vignette, principal subject central for a shallow horizontal crop. No text, captions, labels or watermark.",
+      "references": [
+        "game/assets/art/card-casting.png"
+      ]
+    },
+    {
+      "id": "BD-WU12",
+      "file": "game/assets/art/wp-card-villages.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: stilt villages along a river at night, lanterns lighting one after another, a drummer on a jetty.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-villages.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nThe reference fixes the scene composition and framing. Keep those subjects and story action, translating the people to fully coloured carved lacquer water puppets with painted faces and peg joints. Paint the scenery with Vietnamese lacquer, gold/silver leaf and eggshell details, no cut-paper silhouettes or backlight. Opaque 16:9 card vignette, principal subject central for a shallow horizontal crop. No text, captions, labels or watermark.",
+      "references": [
+        "game/assets/art/card-villages.png"
+      ]
+    },
+    {
+      "id": "BD-WU13",
+      "file": "game/assets/art/wp-card-coronation.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: two queens crowned before a palace gate at Mê Linh, festival drummers, lantern strings and banners.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-coronation.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the original story composition, figures and framing. Convert carved-looking paper to fully coloured lacquered wooden puppet theatre and son-mai lacquer scenery, gold/silver leaf and eggshell. Keep the mood of the original chapter, including its solemnity where appropriate. Opaque landscape 16:9, central-band subject suitable for the menu crop. No text, labels, borders or watermark.",
+      "references": [
+        "game/assets/art/card-coronation.png"
+      ]
+    },
+    {
+      "id": "BD-WU14",
+      "file": "game/assets/art/wp-card-mavien.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: a Han general on horseback leading dense columns of soldiers to a river ford at dusk, Lạc Việt shields across the water.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-mavien.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the original story composition, figures and framing. Convert carved-looking paper to fully coloured lacquered wooden puppet theatre and son-mai lacquer scenery, gold/silver leaf and eggshell. Keep the mood of the original chapter, including its solemnity where appropriate. Opaque landscape 16:9, central-band subject suitable for the menu crop. No text, labels, borders or watermark.",
+      "references": [
+        "game/assets/art/card-mavien.png"
+      ]
+    },
+    {
+      "id": "BD-WU15",
+      "file": "game/assets/art/wp-card-elegy.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: bronze drums lined up beside a furnace at grey dawn, a river and drifting lotus beyond.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-elegy.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the original story composition, figures and framing. Convert carved-looking paper to fully coloured lacquered wooden puppet theatre and son-mai lacquer scenery, gold/silver leaf and eggshell. Keep the mood of the original chapter, including its solemnity where appropriate. Opaque landscape 16:9, central-band subject suitable for the menu crop. No text, labels, borders or watermark.",
+      "references": [
+        "game/assets/art/card-elegy.png"
+      ]
+    },
+    {
+      "id": "BD-WU17",
+      "file": "game/assets/art/wp-card-practice-free.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: feather-crowned Lạc Việt dancers circling a fire on a village green at dusk, a bronze drum beside them, a communal house with a sweeping saddle roof behind, lanterns overhead.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-practice-free.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the practice scene composition. Retain its drumming or teaching action, but all people are carved fig-wood water puppets with peg joints, painted faces and glossy lacquer; scenery is painted son-mai lacquer with gold and eggshell details. Opaque 16:9 card, principal subjects readable within the middle horizontal band for a shallow menu crop. No paper silhouettes, text, labels or watermark.",
+      "references": [
+        "game/assets/art/card-practice-free.png"
+      ]
+    },
+    {
+      "id": "BD-WU18",
+      "file": "game/assets/art/wp-card-practice-call.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: two drummers facing each other across a fire, one at a bronze drum and one at a lacquer-red festival drum, trading rhythms while villagers watch, dusk.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-practice-call.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the practice scene composition. Retain its drumming or teaching action, but all people are carved fig-wood water puppets with peg joints, painted faces and glossy lacquer; scenery is painted son-mai lacquer with gold and eggshell details. Opaque 16:9 card, principal subjects readable within the middle horizontal band for a shallow menu crop. No paper silhouettes, text, labels or watermark.",
+      "references": [
+        "game/assets/art/card-practice-call.png"
+      ],
+      "correctionPrompt": "Remove ONLY the tiny stray signature/watermark lettering at the extreme bottom-right corner of this water-puppet card artwork. Reconstruct the underlying dark green/red lacquer surface naturally. Preserve every other part of the image exactly: drummers, drums, villagers, flames, sky, scenery, colours, composition and 16:9 crop. No added writing, no signature, no watermark anywhere."
+    },
+    {
+      "id": "BD-WU26",
+      "file": "game/assets/art/wp-card-practice-training.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "exportSize": [
+        1600,
+        900
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A wide cut-paper vignette: an old drum master and a young feather-crowned drummer kneeling at a bronze drum in a courtyard at dusk, the master's stick raised to show a stroke while the student watches, a row of smaller drums and wooden beaters laid out in order along a low lacquer-red bench behind them, lanterns overhead.\nProduction specification: 1600x900, opaque; the band is cropped from the middle, so keep the subject central. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/card-practice-training.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the practice scene composition. Retain its drumming or teaching action, but all people are carved fig-wood water puppets with peg joints, painted faces and glossy lacquer; scenery is painted son-mai lacquer with gold and eggshell details. Opaque 16:9 card, principal subjects readable within the middle horizontal band for a shallow menu crop. No paper silhouettes, text, labels or watermark.",
+      "references": [
+        "game/assets/art/card-practice-training.png"
+      ]
+    },
+    {
+      "id": "BD-WF01",
+      "file": "game/assets/art/wp-fx-scraps.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        2048,
+        512
+      ],
+      "exportOperation": "trim alpha per cell, fit on exact sprite grid; shared scale and bottom baseline for figures",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Sixteen small water splashes and flying wood chips on a transparent background: crowns of spray, single droplets, a ring of ripples seen from the side, small chips of vermilion and black lacquered wood, a lotus petal. Bright, clear water edged with light; each piece centred in its cell.\nProduction specification: 2048x512, transparent; sixteen scraps on a 128 px grid. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/fx-scraps.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference establishes the sprite layout, not the old paper subject. EXACTLY sixteen separate small effects in ONE horizontal row, one per equal 128-pixel-wide cell. Alternate small water splash crowns, droplets, ripple rings, red/black/gold wood chips and lotus petals. Entire effect fits within its cell; generous empty alpha around each, no overlap. True alpha background, no scene, water plane, ground, text, grid or cast shadow.",
+      "frames": [
+        [
+          0,
+          0,
+          128,
+          512
+        ],
+        [
+          128,
+          0,
+          128,
+          512
+        ],
+        [
+          256,
+          0,
+          128,
+          512
+        ],
+        [
+          384,
+          0,
+          128,
+          512
+        ],
+        [
+          512,
+          0,
+          128,
+          512
+        ],
+        [
+          640,
+          0,
+          128,
+          512
+        ],
+        [
+          768,
+          0,
+          128,
+          512
+        ],
+        [
+          896,
+          0,
+          128,
+          512
+        ],
+        [
+          1024,
+          0,
+          128,
+          512
+        ],
+        [
+          1152,
+          0,
+          128,
+          512
+        ],
+        [
+          1280,
+          0,
+          128,
+          512
+        ],
+        [
+          1408,
+          0,
+          128,
+          512
+        ],
+        [
+          1536,
+          0,
+          128,
+          512
+        ],
+        [
+          1664,
+          0,
+          128,
+          512
+        ],
+        [
+          1792,
+          0,
+          128,
+          512
+        ],
+        [
+          1920,
+          0,
+          128,
+          512
+        ]
+      ],
+      "references": [
+        "game/assets/art/fx-scraps.png"
+      ]
+    },
+    {
+      "id": "BD-WF02",
+      "file": "game/assets/art/wp-fx-projectiles.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        2172,
+        724
+      ],
+      "exportSize": [
+        1024,
+        256
+      ],
+      "exportOperation": "trim alpha per cell, fit on exact sprite grid; shared scale and bottom baseline for figures",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Four carved wooden projectiles in a row on a transparent background, all pointing right, lacquered like puppet props: a Lac Viet arrow with a gold-leaf head and red fletching, the same arrow with a short trail of droplets, a short Han crossbow bolt in iron-grey lacquer, the same bolt with a trail of droplets.\nProduction specification: 1024x256, transparent; four pieces in a row. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/fx-projectiles.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference establishes the sprite layout, not the old paper subject. Exactly four separate right-pointing projectiles in one row of four equal square cells. Keep every arrow, bolt and its droplets inside its own cell. True alpha background, no scene, water plane, ground, text, grid or cast shadow.",
+      "frames": [
+        [
+          0,
+          0,
+          256,
+          256
+        ],
+        [
+          256,
+          0,
+          256,
+          256
+        ],
+        [
+          512,
+          0,
+          256,
+          256
+        ],
+        [
+          768,
+          0,
+          256,
+          256
+        ]
+      ],
+      "references": [
+        "game/assets/art/fx-projectiles.png"
+      ]
+    },
+    {
+      "id": "BD-WF03",
+      "file": "game/assets/art/wp-fx-drum-wake.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        2048,
+        2048
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. A radially symmetric burst of water rising from the pond, seen from above: concentric rings of ripples and spray in gold and jade, flying herons in gold leaf circling a sun-star at the centre, like the bands of a bronze drum face. Bright and joyful.\nProduction specification: 2048x2048, transparent; one ring pattern, radially symmetric. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/fx-drum-wake.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference establishes the sprite layout, not the old paper subject. One centred radially symmetrical ripple-and-spray burst, with gold/jade rings and herons around the sun-star. Open transparent gaps between the water rings and outside the circular effect. True alpha background, no scene, water plane, ground, text, grid or cast shadow.",
+      "references": [
+        "game/assets/art/fx-drum-wake.png"
+      ]
+    },
+    {
+      "id": "BD-WP01",
+      "file": "game/assets/art/wp-prop-altar.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Lạc Việt ancestral altar: a low dark wooden table with carved legs, a tall memorial tablet with a rounded top standing on it, its inscription cut through so light shows, a bronze bowl for incense in front, offerings of fruit. Ink black and bronze.\nProduction specification: 1024x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-altar.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the exact prop/group layout, framing and proportions. Translate into carved fig wood with painted faces, glossy coloured lacquer, gold leaf and eggshell, keeping the original pose and equipment. Altar/tablet/offerings group only. Use ornamental patterns rather than any lettering on the tablet. True alpha background; full objects and feet visible, no water, scenery, ground, cast shadow, glow, text or watermark.",
+      "references": [
+        "game/assets/art/prop-altar.png"
+      ]
+    },
+    {
+      "id": "BD-WP02",
+      "file": "game/assets/art/wp-prop-mourning-drummer.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1536,
+        1024
+      ],
+      "exportSize": [
+        1536,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. An old Lạc Việt man in mourning white robes and a plain headband beating a large dark drum on a wooden stand with one long stick, solemn. Ink black with cream robes.\nProduction specification: 1536x1024, the drummer on the left facing right towards the drum. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-mourning-drummer.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the exact prop/group layout, framing and proportions. Translate into carved fig wood with painted faces, glossy coloured lacquer, gold leaf and eggshell, keeping the original pose and equipment. One mourning drummer and one drum, cream-white mourning costume, solemn pose. True alpha background; full objects and feet visible, no water, scenery, ground, cast shadow, glow, text or watermark.",
+      "references": [
+        "game/assets/art/prop-mourning-drummer.png"
+      ]
+    },
+    {
+      "id": "BD-WP03",
+      "file": "game/assets/art/wp-prop-festival-drummers.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1536,
+        1024
+      ],
+      "exportSize": [
+        1536,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. Two joyful Lạc Việt drummers, a woman and a man in festival dress with feather crowns, beating a big lacquer-red drum on a carved stand hung with tassels and streamers.\nProduction specification: 1536x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-festival-drummers.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the exact prop/group layout, framing and proportions. Translate into carved fig wood with painted faces, glossy coloured lacquer, gold leaf and eggshell, keeping the original pose and equipment. Exactly two joyful drummers flanking one festival barrel drum, same poses as reference. True alpha background; full objects and feet visible, no water, scenery, ground, cast shadow, glow, text or watermark.",
+      "references": [
+        "game/assets/art/prop-festival-drummers.png"
+      ]
+    },
+    {
+      "id": "BD-WP04",
+      "file": "game/assets/art/wp-prop-village-house.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Lạc Việt stilt house on a riverbank with a saddle-shaped roof like those on Dong Son drums, a ladder, woven walls with lattice windows cut through, a small jetty. Dark indigo-green paper, unlit.\nProduction specification: 1024x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-village-house.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the object's exact shape, size, framing and placement. Transform paper to carved and lacquered wooden puppet prop, using vermilion, black, jade, gold/eggshell painted detail. One isolated object only, same view as reference. True transparent background and gaps. No scenery, pond, base pedestal, extra people, cast shadow, exterior halo or lettering. Keep whole object visible.",
+      "references": [
+        "game/assets/art/prop-village-house.png"
+      ]
+    },
+    {
+      "id": "BD-WP05",
+      "file": "game/assets/art/wp-prop-lantern.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1024,
+        1536
+      ],
+      "exportSize": [
+        256,
+        384
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A round paper lantern glowing warm orange from inside, cut with a small sun-star, a red tassel below, a short cord above.\nProduction specification: 256x384. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-lantern.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the object's exact shape, size, framing and placement. Transform paper to carved and lacquered wooden puppet prop, using vermilion, black, jade, gold/eggshell painted detail. One isolated object only, same view as reference. True transparent background and gaps. No scenery, pond, base pedestal, extra people, cast shadow, exterior halo or lettering. Keep whole object visible.",
+      "references": [
+        "game/assets/art/prop-lantern.png"
+      ]
+    },
+    {
+      "id": "BD-WP06",
+      "file": "game/assets/art/wp-prop-bronze-drum.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A Dong Son bronze kettle drum seen from the side, slightly from above: a flat top with the sun-star and rings, a bulging upper body, a waist and a flared foot, bands of herons and boats in relief, four small handles, warm bronze.\nProduction specification: 1024x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-bronze-drum.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes the object's exact shape, size, framing and placement. Transform paper to carved and lacquered wooden puppet prop, using vermilion, black, jade, gold/eggshell painted detail. One isolated object only, same view as reference. True transparent background and gaps. No scenery, pond, base pedestal, extra people, cast shadow, exterior halo or lettering. Keep whole object visible.",
+      "references": [
+        "game/assets/art/prop-bronze-drum.png"
+      ]
+    },
+    {
+      "id": "BD-WP07",
+      "file": "game/assets/art/wp-prop-furnace.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. An ancient clay foundry furnace with an arched mouth glowing orange, a clay crucible of molten bronze held above it on a wooden frame, sparks cut as small holes. Dark clay, orange glow.\nProduction specification: 1024x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-furnace.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact object shape, framing and proportions. Recreate as one carved and lacquered wooden water-puppet theatre prop, painted in black, vermilion, ochre and jade with gold-leaf motifs. Preserve the reference's foundry/casting details and any molten glow only inside the prop. True transparent background, no scenery, pond, people, extra pedestal, exterior haze, shadow, text or watermark. Keep entire object visible.",
+      "references": [
+        "game/assets/art/prop-furnace.png"
+      ]
+    },
+    {
+      "id": "BD-WP08",
+      "file": "game/assets/art/wp-prop-mould.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A tall clay casting mould for a bronze drum, bound with rope, the sun-star pattern stamped on its lid, a pouring cup at the top. Earthy brown clay.\nProduction specification: 1024x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-mould.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact object shape, framing and proportions. Recreate as one carved and lacquered wooden water-puppet theatre prop, painted in black, vermilion, ochre and jade with gold-leaf motifs. Preserve the reference's foundry/casting details and any molten glow only inside the prop. True transparent background, no scenery, pond, people, extra pedestal, exterior haze, shadow, text or watermark. Keep entire object visible.",
+      "references": [
+        "game/assets/art/prop-mould.png"
+      ]
+    },
+    {
+      "id": "BD-WP09",
+      "file": "game/assets/art/wp-prop-drum-cast.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1024,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A freshly cast bronze kettle drum still glowing faintly orange at the edges, clay mould pieces broken away around its foot, the sun-star crisp on its top.\nProduction specification: 1024x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-drum-cast.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes exact object shape, framing and proportions. Recreate as one carved and lacquered wooden water-puppet theatre prop, painted in black, vermilion, ochre and jade with gold-leaf motifs. Preserve the reference's foundry/casting details and any molten glow only inside the prop. True transparent background, no scenery, pond, people, extra pedestal, exterior haze, shadow, text or watermark. Keep entire object visible.",
+      "references": [
+        "game/assets/art/prop-drum-cast.png"
+      ]
+    },
+    {
+      "id": "BD-WP10",
+      "file": "game/assets/art/wp-han-general.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "exportSize": [
+        1536,
+        1536
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. The Eastern Han general Mã Viện, 1st century, an old but upright commander on a dark warhorse in profile facing left, lamellar armour cut as rows of small slots, a crested helmet with a red plume, one hand raised to signal the advance, a long red banner on a pole behind him. Iron grey, black and lacquer red. Dignified and formidable, not caricatured.\nProduction specification: 1536x1536. Faces left. Single carved and lacquered wooden figure on horseback, side profile, hooves on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow: the game adds its own shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/han-general.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes framing and composition; transform materials into glossy coloured lacquered fig wood, carved forms, painted faces and peg joints. Exactly one upright elderly Han general on one dark wooden puppet horse, BOTH facing LEFT. Keep signalling hand, helmet, red banner, tack and feet positions, no other soldiers. Full figures/objects with feet and stilts visible, genuine transparent background. No ground plane, pond, scenery, shadow or outside glow.",
+      "references": [
+        "game/assets/art/han-general.png"
+      ]
+    },
+    {
+      "id": "BD-WP11",
+      "file": "game/assets/art/wp-prop-dinh.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1774,
+        887
+      ],
+      "exportSize": [
+        2048,
+        1024
+      ],
+      "exportOperation": "resample full canvas to requested dimensions, retaining alpha for cutouts",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. A Lac Viet communal house (dinh) seen from the side with its water pavilion (thuy dinh) standing in the pond in front: the long low hall on wooden stilts under a huge saddle-shaped roof whose two ends sweep up like a boat's prow; before it, the small pavilion on posts in the water, its curved tiled roof, its front hung with a bamboo screen behind which the puppeteers stand. Black lacquer, vermilion pillars, gold leaf.\nProduction specification: 2048x1024. Single carved and lacquered wooden object, side view, standing on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/prop-dinh.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes framing and composition; transform materials into glossy coloured lacquered fig wood, carved forms, painted faces and peg joints. The long communal hall PLUS its small water-puppet pavilion standing before it, with a bamboo-screen front. Preserve the reference's broad saddle roof and scale. Buildings only, no water or landscape. Full figures/objects with feet and stilts visible, genuine transparent background. No ground plane, pond, scenery, shadow or outside glow.",
+      "references": [
+        "game/assets/art/prop-dinh.png"
+      ]
+    },
+    {
+      "id": "BD-WC13",
+      "file": "game/assets/art/wp-dancer-sheet.png",
+      "mode": "built-in imagegen",
+      "generatedOn": "2026-10-07",
+      "nativeSize": [
+        1086,
+        1448
+      ],
+      "exportSize": [
+        1536,
+        2048
+      ],
+      "exportOperation": "trim alpha per cell, fit on exact sprite grid; shared scale and bottom baseline for figures",
+      "prompt": "Vietnamese water puppetry (mua roi nuoc) of the Red River delta, played on a village pond in front of a water pavilion. The figures are puppets carved from light fig wood and finished in glossy traditional lacquer: vermilion, black, ochre yellow and jade green, with gold and silver leaf. Naive, rounded carved faces with painted arched eyebrows, rosy cheeks and calm smiles; chunky simplified limbs with visible round pegs at the joints; a wet sheen on the lacquer. Scenery is painted in the style of Vietnamese lacquer painting (son mai): deep black and brown-red grounds, layered vermilion, gold and silver leaf, crushed eggshell for the whites, polished to a soft gloss. Motifs from Dong Son bronze drums (a 12-point sun-star, concentric rings, flying herons, feather-crowned figures, long boats, stilt houses with saddle roofs) and northern Vietnamese plants (areca palms, bamboo, lotus, rice). Folk, joyful and ceremonial, lit from the front by warm lanterns. Palette: black lacquer, vermilion, cinnabar red, gold leaf, ochre yellow, eggshell cream, jade green and deep green-brown pond water. No paper cut-outs, no silhouettes, no backlight, no photorealism, no 3D render look, no text, no watermark. Carry the subject over into water-puppet form: where the description mentions paper, cut holes, cut details, silhouettes or light through the cuts, use carved wood, lacquer colours, painted patterns and gold or silver leaf instead. A sprite sheet of feather-crowned Lạc Việt dancers like the figures on the face of a Đông Sơn bronze drum, in profile facing right, on a grid of 3 columns by 4 rows. Each row is one dancer, each column a pose: 1 standing at rest, arms low; 2 stamping, knees bent, both arms thrown up high; 3 hopping on one foot, one wrist flicked out to the side. Row 1 a woman with a tall feather crown and a wrapped skirt; row 2 a man in a loincloth with a feather crown; row 3 a woman holding a long feather in each hand; row 4 a man with a small hand drum. Ink-black silhouettes with lacquer-red sashes and fine cut details in the feathers.\nProduction specification: 1536x2048, transparent; a grid of 3 columns (poses) by 4 rows (dancers), 512x512 cells, each figure standing on the bottom of its cell, facing right, centred. Rows: a woman with a tall feather crown; a man in a loincloth with a feather crown; a woman holding two feathers; a man with a small hand drum. Same scale in every cell. Single carved and lacquered wooden puppet, side profile, full body, feet on the bottom edge, centred, transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow. The game draws the pond's surface over the feet and shins, so the figure seems to wade. Keep the composition, pose, proportions and framing of the shadow-puppet version (art/dancer-sheet.png), so the two swap in the game; give it to the generator as a reference image if it takes one.\nReference fixes framing and composition; transform materials into glossy coloured lacquered fig wood, carved forms, painted faces and peg joints. Exactly TWELVE separate dancers: 3 columns x 4 rows, one per 512x512 cell. All face RIGHT, consistent identities per row. Columns: rest, stamp with arms up, hop with wrist flick. Keep generous transparent margins including raised feathers, hands and crowns; no crossing cell boundaries. Same scale and baseline in every cell. No grid or labels. Full figures/objects with feet and stilts visible, genuine transparent background. No ground plane, pond, scenery, shadow or outside glow.",
+      "frames": [
+        [
+          0,
+          0,
+          512,
+          512
+        ],
+        [
+          512,
+          0,
+          512,
+          512
+        ],
+        [
+          1024,
+          0,
+          512,
+          512
+        ],
+        [
+          0,
+          512,
+          512,
+          512
+        ],
+        [
+          512,
+          512,
+          512,
+          512
+        ],
+        [
+          1024,
+          512,
+          512,
+          512
+        ],
+        [
+          0,
+          1024,
+          512,
+          512
+        ],
+        [
+          512,
+          1024,
+          512,
+          512
+        ],
+        [
+          1024,
+          1024,
+          512,
+          512
+        ],
+        [
+          0,
+          1536,
+          512,
+          512
+        ],
+        [
+          512,
+          1536,
+          512,
+          512
+        ],
+        [
+          1024,
+          1536,
+          512,
+          512
+        ]
+      ],
+      "references": [
+        "game/assets/art/dancer-sheet.png"
+      ]
     }
   ]
 }

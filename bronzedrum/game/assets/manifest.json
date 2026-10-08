@@ -647,267 +647,296 @@
       "id": "wp-water",
       "request": "BD-W02",
       "file": "art/wp-water.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
-      "runtime": true
+      "runtime": true,
+      "web": "web/wp-water.webp"
     },
     {
       "id": "wp-sky-dawn",
       "request": "BD-WB01",
       "file": "art/wp-sky-dawn.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sky-dawn"
+      "base": "sky-dawn",
+      "web": "web/wp-sky-dawn.webp"
     },
     {
       "id": "wp-sky-day",
       "request": "BD-WB02",
       "file": "art/wp-sky-day.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sky-day"
+      "base": "sky-day",
+      "web": "web/wp-sky-day.webp"
     },
     {
       "id": "wp-sky-night",
       "request": "BD-WB03",
       "file": "art/wp-sky-night.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sky-night"
+      "base": "sky-night",
+      "web": "web/wp-sky-night.webp"
     },
     {
       "id": "wp-layer-karst-far",
       "request": "BD-WB09",
       "file": "art/wp-layer-karst-far.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "layer-karst-far"
+      "base": "layer-karst-far",
+      "web": "web/wp-layer-karst-far.webp"
     },
     {
       "id": "wp-layer-karst",
       "request": "BD-WB04",
       "file": "art/wp-layer-karst.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "layer-karst"
+      "base": "layer-karst",
+      "web": "web/wp-layer-karst.webp"
     },
     {
       "id": "wp-layer-grove",
       "request": "BD-WB05",
       "file": "art/wp-layer-grove.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "layer-grove"
+      "base": "layer-grove",
+      "web": "web/wp-layer-grove.webp"
     },
     {
       "id": "wp-layer-paddy",
       "request": "BD-WB06",
       "file": "art/wp-layer-paddy.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "layer-paddy"
+      "base": "layer-paddy",
+      "web": "web/wp-layer-paddy.webp"
     },
     {
       "id": "wp-layer-reeds",
       "request": "BD-WB07",
       "file": "art/wp-layer-reeds.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "layer-reeds"
+      "base": "layer-reeds",
+      "web": "web/wp-layer-reeds.webp"
     },
     {
       "id": "wp-paper-fiber",
       "request": "BD-WB08",
       "file": "art/wp-paper-fiber.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "paper-fiber"
+      "base": "paper-fiber",
+      "web": "web/wp-paper-fiber.webp"
     },
     {
       "id": "wp-sky-dusk",
       "request": "BD-WB10",
       "file": "art/wp-sky-dusk.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sky-dusk"
+      "base": "sky-dusk",
+      "web": "web/wp-sky-dusk.webp"
     },
     {
       "id": "wp-sky-foundry",
       "request": "BD-WB11",
       "file": "art/wp-sky-foundry.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sky-foundry"
+      "base": "sky-foundry",
+      "web": "web/wp-sky-foundry.webp"
     },
     {
       "id": "wp-sky-ash",
       "request": "BD-WB12",
       "file": "art/wp-sky-ash.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sky-ash"
+      "base": "sky-ash",
+      "web": "web/wp-sky-ash.webp"
     },
     {
       "id": "wp-sister-trac",
       "request": "BD-WC01",
       "file": "art/wp-sister-trac.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sister-trac"
+      "base": "sister-trac",
+      "web": "web/wp-sister-trac.webp"
     },
     {
       "id": "wp-sister-nhi",
       "request": "BD-WC02",
       "file": "art/wp-sister-nhi.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "sister-nhi"
+      "base": "sister-nhi",
+      "web": "web/wp-sister-nhi.webp"
     },
     {
       "id": "wp-war-elephant",
       "request": "BD-WC03",
       "file": "art/wp-war-elephant.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "war-elephant"
+      "base": "war-elephant",
+      "web": "web/wp-war-elephant.webp"
     },
     {
       "id": "wp-drum-bearers",
       "request": "BD-WC04",
       "file": "art/wp-drum-bearers.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "drum-bearers"
+      "base": "drum-bearers",
+      "web": "web/wp-drum-bearers.webp"
     },
     {
       "id": "wp-drum-palanquin",
       "request": "BD-WC14",
       "file": "art/wp-drum-palanquin.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "drum-palanquin"
+      "base": "drum-palanquin",
+      "web": "web/wp-drum-palanquin.webp"
     },
     {
       "id": "wp-drummer-chau",
       "request": "BD-WC11",
       "file": "art/wp-drummer-chau.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "drummer-chau"
+      "base": "drummer-chau",
+      "web": "web/wp-drummer-chau.webp"
     },
     {
       "id": "wp-drummer-mo",
       "request": "BD-WC12",
       "file": "art/wp-drummer-mo.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "drummer-mo"
+      "base": "drummer-mo",
+      "web": "web/wp-drummer-mo.webp"
     },
     {
       "id": "wp-unit-spear",
       "request": "BD-WC05",
       "file": "art/wp-unit-spear.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "unit-spear"
+      "base": "unit-spear",
+      "web": "web/wp-unit-spear.webp"
     },
     {
       "id": "wp-unit-archer",
       "request": "BD-WC06",
       "file": "art/wp-unit-archer.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "unit-archer"
+      "base": "unit-archer",
+      "web": "web/wp-unit-archer.webp"
     },
     {
       "id": "wp-children-sheet",
       "request": "BD-WC15",
       "file": "art/wp-children-sheet.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "children-sheet"
+      "base": "children-sheet",
+      "web": "web/wp-children-sheet.webp"
     },
     {
       "id": "wp-unit-spear-cover",
       "request": "BD-WC16",
       "file": "art/wp-unit-spear-cover.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "unit-spear-cover"
+      "base": "unit-spear-cover",
+      "web": "web/wp-unit-spear-cover.webp"
     },
     {
       "id": "wp-unit-archer-cover",
       "request": "BD-WC17",
       "file": "art/wp-unit-archer-cover.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "unit-archer-cover"
+      "base": "unit-archer-cover",
+      "web": "web/wp-unit-archer-cover.webp"
     },
     {
       "id": "wp-han-spear",
       "request": "BD-WC07",
       "file": "art/wp-han-spear.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "han-spear"
+      "base": "han-spear",
+      "web": "web/wp-han-spear.webp"
     },
     {
       "id": "wp-han-crossbow",
       "request": "BD-WC08",
       "file": "art/wp-han-crossbow.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "han-crossbow"
+      "base": "han-crossbow",
+      "web": "web/wp-han-crossbow.webp"
     },
     {
       "id": "wp-fort-palisade",
       "request": "BD-WC09",
       "file": "art/wp-fort-palisade.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "fort-palisade"
+      "base": "fort-palisade",
+      "web": "web/wp-fort-palisade.webp"
     },
     {
       "id": "wp-straw-target",
       "request": "BD-WC10",
       "file": "art/wp-straw-target.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "straw-target"
+      "base": "straw-target",
+      "web": "web/wp-straw-target.webp"
     },
     {
       "id": "wp-rig-sister-trac",
       "request": "BD-WR01",
       "file": "art/wp-rig-sister-trac.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": false,
       "base": "rig-sister-trac"
@@ -916,7 +945,7 @@
       "id": "wp-rig-sister-nhi",
       "request": "BD-WR02",
       "file": "art/wp-rig-sister-nhi.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": false,
       "base": "rig-sister-nhi"
@@ -925,253 +954,281 @@
       "id": "wp-ui-panel",
       "request": "BD-WU04",
       "file": "art/wp-ui-panel.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "ui-panel"
+      "base": "ui-panel",
+      "web": "web/wp-ui-panel.webp"
     },
     {
       "id": "wp-card-garden",
       "request": "BD-WU06",
       "file": "art/wp-card-garden.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-garden"
+      "base": "card-garden",
+      "web": "web/wp-card-garden.webp"
     },
     {
       "id": "wp-card-outpost",
       "request": "BD-WU07",
       "file": "art/wp-card-outpost.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-outpost"
+      "base": "card-outpost",
+      "web": "web/wp-card-outpost.webp"
     },
     {
       "id": "wp-card-luylau",
       "request": "BD-WU08",
       "file": "art/wp-card-luylau.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-luylau"
+      "base": "card-luylau",
+      "web": "web/wp-card-luylau.webp"
     },
     {
       "id": "wp-card-oath",
       "request": "BD-WU10",
       "file": "art/wp-card-oath.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-oath"
+      "base": "card-oath",
+      "web": "web/wp-card-oath.webp"
     },
     {
       "id": "wp-card-casting",
       "request": "BD-WU11",
       "file": "art/wp-card-casting.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-casting"
+      "base": "card-casting",
+      "web": "web/wp-card-casting.webp"
     },
     {
       "id": "wp-card-villages",
       "request": "BD-WU12",
       "file": "art/wp-card-villages.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-villages"
+      "base": "card-villages",
+      "web": "web/wp-card-villages.webp"
     },
     {
       "id": "wp-card-coronation",
       "request": "BD-WU13",
       "file": "art/wp-card-coronation.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-coronation"
+      "base": "card-coronation",
+      "web": "web/wp-card-coronation.webp"
     },
     {
       "id": "wp-card-mavien",
       "request": "BD-WU14",
       "file": "art/wp-card-mavien.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-mavien"
+      "base": "card-mavien",
+      "web": "web/wp-card-mavien.webp"
     },
     {
       "id": "wp-card-elegy",
       "request": "BD-WU15",
       "file": "art/wp-card-elegy.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-elegy"
+      "base": "card-elegy",
+      "web": "web/wp-card-elegy.webp"
     },
     {
       "id": "wp-card-practice-free",
       "request": "BD-WU17",
       "file": "art/wp-card-practice-free.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-practice-free"
+      "base": "card-practice-free",
+      "web": "web/wp-card-practice-free.webp"
     },
     {
       "id": "wp-card-practice-call",
       "request": "BD-WU18",
       "file": "art/wp-card-practice-call.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-practice-call"
+      "base": "card-practice-call",
+      "web": "web/wp-card-practice-call.webp"
     },
     {
       "id": "wp-card-practice-training",
       "request": "BD-WU26",
       "file": "art/wp-card-practice-training.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "card-practice-training"
+      "base": "card-practice-training",
+      "web": "web/wp-card-practice-training.webp"
     },
     {
       "id": "wp-fx-scraps",
       "request": "BD-WF01",
       "file": "art/wp-fx-scraps.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "fx-scraps"
+      "base": "fx-scraps",
+      "web": "web/wp-fx-scraps.webp"
     },
     {
       "id": "wp-fx-projectiles",
       "request": "BD-WF02",
       "file": "art/wp-fx-projectiles.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "fx-projectiles"
+      "base": "fx-projectiles",
+      "web": "web/wp-fx-projectiles.webp"
     },
     {
       "id": "wp-fx-drum-wake",
       "request": "BD-WF03",
       "file": "art/wp-fx-drum-wake.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "fx-drum-wake"
+      "base": "fx-drum-wake",
+      "web": "web/wp-fx-drum-wake.webp"
     },
     {
       "id": "wp-prop-altar",
       "request": "BD-WP01",
       "file": "art/wp-prop-altar.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-altar"
+      "base": "prop-altar",
+      "web": "web/wp-prop-altar.webp"
     },
     {
       "id": "wp-prop-mourning-drummer",
       "request": "BD-WP02",
       "file": "art/wp-prop-mourning-drummer.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-mourning-drummer"
+      "base": "prop-mourning-drummer",
+      "web": "web/wp-prop-mourning-drummer.webp"
     },
     {
       "id": "wp-prop-festival-drummers",
       "request": "BD-WP03",
       "file": "art/wp-prop-festival-drummers.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-festival-drummers"
+      "base": "prop-festival-drummers",
+      "web": "web/wp-prop-festival-drummers.webp"
     },
     {
       "id": "wp-prop-village-house",
       "request": "BD-WP04",
       "file": "art/wp-prop-village-house.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-village-house"
+      "base": "prop-village-house",
+      "web": "web/wp-prop-village-house.webp"
     },
     {
       "id": "wp-prop-lantern",
       "request": "BD-WP05",
       "file": "art/wp-prop-lantern.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-lantern"
+      "base": "prop-lantern",
+      "web": "web/wp-prop-lantern.webp"
     },
     {
       "id": "wp-prop-bronze-drum",
       "request": "BD-WP06",
       "file": "art/wp-prop-bronze-drum.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-bronze-drum"
+      "base": "prop-bronze-drum",
+      "web": "web/wp-prop-bronze-drum.webp"
     },
     {
       "id": "wp-prop-furnace",
       "request": "BD-WP07",
       "file": "art/wp-prop-furnace.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-furnace"
+      "base": "prop-furnace",
+      "web": "web/wp-prop-furnace.webp"
     },
     {
       "id": "wp-prop-mould",
       "request": "BD-WP08",
       "file": "art/wp-prop-mould.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-mould"
+      "base": "prop-mould",
+      "web": "web/wp-prop-mould.webp"
     },
     {
       "id": "wp-prop-drum-cast",
       "request": "BD-WP09",
       "file": "art/wp-prop-drum-cast.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-drum-cast"
+      "base": "prop-drum-cast",
+      "web": "web/wp-prop-drum-cast.webp"
     },
     {
       "id": "wp-han-general",
       "request": "BD-WP10",
       "file": "art/wp-han-general.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "han-general"
+      "base": "han-general",
+      "web": "web/wp-han-general.webp"
     },
     {
       "id": "wp-prop-dinh",
       "request": "BD-WP11",
       "file": "art/wp-prop-dinh.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "prop-dinh"
+      "base": "prop-dinh",
+      "web": "web/wp-prop-dinh.webp"
     },
     {
       "id": "wp-dancer-sheet",
       "request": "BD-WC13",
       "file": "art/wp-dancer-sheet.png",
-      "status": "planned",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
-      "base": "dancer-sheet"
+      "base": "dancer-sheet",
+      "web": "web/wp-dancer-sheet.webp"
     }
   ]
 }
