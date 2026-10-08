@@ -327,7 +327,7 @@ export default function create(env) {
       drawZones(g, tt);
       // The mailbox: painted in the scene; open with the flag up once robbed.
       if (self.outcome === 'snatched') {
-        art.drawSprite(g, art.prop('trollusk', 8), MAILBOX.x + 8, MAILBOX.y + 6, { height: 360 });
+        drawOpenMailbox(g);
       }
       const things = [
         ...COVER.map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawBush(g, k, tt) })),
@@ -372,7 +372,7 @@ export default function create(env) {
       art.setAnim(tc, 'wail');
       art.animate(tc, dt);
     }
-    for (const L of look) if (L.state === 'warn') L.state = 'ready';
+    for (const L of look) if (L.state === 'warn' || L.state === 'look') { L.state = 'rest'; L.t = 0; }
   }
 
   // ---------- drawing ----------
@@ -400,6 +400,27 @@ export default function create(env) {
       g.beginPath(); g.ellipse(k.x + shake, k.y - k.h * 0.3, k.rx, k.h * 0.6, 0, 0, Math.PI * 2); g.fill(); g.stroke();
       g.restore();
     }
+  }
+
+  // The painted mailbox's door (its right end) dropped open, the box empty.
+  function drawOpenMailbox(g) {
+    g.save();
+    g.lineWidth = 5;
+    g.strokeStyle = '#2b2622';
+    g.fillStyle = '#2b2622';
+    g.beginPath();
+    g.moveTo(1846, 576); g.lineTo(1846, 506);
+    g.quadraticCurveTo(1848, 472, 1870, 472);
+    g.quadraticCurveTo(1892, 472, 1894, 506);
+    g.lineTo(1894, 576); g.closePath(); g.fill();
+    // The door hangs down from its hinge.
+    g.fillStyle = '#9aa0a6';
+    g.beginPath();
+    g.moveTo(1846, 578); g.lineTo(1896, 578); g.lineTo(1902, 648);
+    g.quadraticCurveTo(1876, 676, 1852, 650); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#6d7277';
+    g.fillRect(1866, 640, 14, 10);
+    g.restore();
   }
 
   // Sally Ann's house: a clapboard wall with her window, up behind the fence.
@@ -467,8 +488,8 @@ export default function create(env) {
       } else {
         const ex = L.x, ey = L.y - L.h * 0.72;
         const gr = g.createLinearGradient(0, ey, 0, LANE.y1);
-        gr.addColorStop(0, 'rgba(255,236,150,0.05)');
-        gr.addColorStop(1, 'rgba(255,236,150,0.30)');
+        gr.addColorStop(0, 'rgba(255,236,150,0.25)');
+        gr.addColorStop(1, 'rgba(255,236,150,0.42)');
         g.fillStyle = gr;
         g.beginPath(); g.moveTo(ex - 18, ey); g.lineTo(ex + 18, ey); g.lineTo(z1, LANE.y1 + 30); g.lineTo(z0, LANE.y1 + 30); g.closePath(); g.fill();
         g.globalAlpha = 0.5;
