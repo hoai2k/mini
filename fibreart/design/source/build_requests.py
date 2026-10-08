@@ -3,16 +3,16 @@
 
 Edit the data in this file, then run:
 
-    python3 hanneke/design/source/build_requests.py          # write
-    python3 hanneke/design/source/build_requests.py --check  # verify up to date
+    python3 fibreart/design/source/build_requests.py          # write
+    python3 fibreart/design/source/build_requests.py --check  # verify up to date
 
 Outputs:
-    hanneke/design/image-requests.md   the request document
-    hanneke/design/asset-list.json     what the game loads, with each piece's name
+    fibreart/design/image-requests.md   the request document
+    fibreart/design/asset-list.json     what the game loads, with each piece's name
 
 Statuses:
     requested  the game cuts a stand-in from the reference photos (or draws noise)
-    delivered  the file is in hanneke/game/assets/ and the game loads it
+    delivered  the file is in fibreart/game/assets/ and the game loads it
 """
 
 from __future__ import annotations
@@ -25,8 +25,8 @@ ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / "design" / "image-requests.md"
 ASSET_LIST = ROOT / "design" / "asset-list.json"
 
-# Where the reference photos live on main (hanneke/reference/).
-REF_URL = "https://raw.githubusercontent.com/hoai2k/mini/main/hanneke/reference/"
+# Where the reference photos live on main (fibreart/reference/).
+REF_URL = "https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/"
 
 # The look every picture shares, from the style notes in reference/README.md.
 STYLE = (
@@ -776,7 +776,7 @@ def document() -> str:
     out = [
         "# Fibre Art: image requests",
         "",
-        "Artwork for Fibre Art, the shifting collage in `hanneke/` (see [`design.md`](design.md)). "
+        "Artwork for Fibre Art, the shifting collage in `fibreart/` (see [`design.md`](design.md)). "
         "Generated from `source/build_requests.py`; edit the data there and rerun it, which also "
         "rewrites `asset-list.json`.",
         "",
@@ -784,14 +784,14 @@ def document() -> str:
         "",
         "1. Each prompt is complete on its own: paste it as it stands. The shared style text is already in every prompt.",
         "2. **Give the generator the reference photos.** Every request names photos of Hanneke's own work in "
-        "`hanneke/reference/`, and its prompt links to them. Attach them where the generator takes images: "
+        "`fibreart/reference/`, and its prompt links to them. Attach them where the generator takes images: "
         "they matter more than the words.",
         "3. **Composition first.** Each scene has three requests. Make the composition (`-A`) first and settle it: "
         "it is a finished picture in its own right, and the reference for the rest. Then make the ground (`-B`) and "
         "the pieces (`-C`) with the composition attached, so the pieces match it in shape, colour and scale. If a "
         "piece drifts from the composition, regenerate the piece, not the composition.",
-        "4. Save each image under the file name in its **File** line and drop it in `hanneke/intake/`. On "
-        "integration it moves to that path under `hanneke/game/`, its status flips to `delivered`, and the pieces "
+        "4. Save each image under the file name in its **File** line and drop it in `fibreart/intake/`. On "
+        "integration it moves to that path under `fibreart/game/`, its status flips to `delivered`, and the pieces "
         "on a sheet are cut apart and named in the order the prompt lists them.",
         "5. Transparent images are `.png`. If the generator cannot produce alpha, use a flat pure magenta "
         "`#FF00FF` background as the prompts say; it is keyed out on integration. Opaque images are listed as "
@@ -815,7 +815,7 @@ def document() -> str:
             out += [
                 f"### {r['id']} · {r['name']}",
                 "",
-                f"- **File:** `hanneke/game/{r['file']}`",
+                f"- **File:** `fibreart/game/{r['file']}`",
                 f"- **Size:** {r['size']}",
                 f"- **Used for:** {r['used']}",
                 f"- **Stand-in until delivered:** {r['standin']}",
@@ -838,7 +838,7 @@ def main() -> int:
         print(f"duplicate request id: {i}")
     missing = sorted({f for r in REQUESTS for f in refs(r) if not (ROOT / "reference" / f).exists()})
     for f in missing:
-        print(f"missing reference photo: hanneke/reference/{f}")
+        print(f"missing reference photo: fibreart/reference/{f}")
     if missing or dupes:
         return 1
     outputs = {DOC: document(), ASSET_LIST: asset_list()}
