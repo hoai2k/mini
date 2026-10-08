@@ -798,6 +798,7 @@ async function boot() {
     const at = Math.max(0, data.scenes.findIndex((s) => s.key === first));
     game = createGame(data.scenes, { chains: data.chains, seed, scene: at });
     game.driftFiles = data.drift || [];
+    if (data.music) audio.setSong(`web/${data.music.file}`, data.music.root);
     applySettings();
     await renderer.loadScene(game.scene, data.chains, data.drift);
     renderer.loadScene(data.scenes[(game.index + 1) % data.scenes.length], data.chains, data.drift);
@@ -810,7 +811,7 @@ async function boot() {
   setupTouchPad();
   show('title');
   hint();
-  window.fibreart = { game: () => game, frame: () => renderer.frame, ui, input, start, shift: (how) => shift(game, how), W, H, radius };
+  window.fibreart = { game: () => game, frame: () => renderer.frame, ui, input, start, shift: (how) => shift(game, how), W, H, radius, audio };
   requestAnimationFrame(frame);
 }
 

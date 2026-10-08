@@ -107,6 +107,9 @@ async function main() {
   // Any button starts.
   check(await pressUntil(0, () => window.fibreart.ui.screen === 'play', 20000).then(() => true, () => false), 'a controller button starts play');
   check(await G(() => window.fibreart.game().players.some((p) => p.id === 'pad0')), 'the controller is player 1');
+  // The song starts with play and keeps going.
+  const songAt = await page.waitForFunction(() => window.fibreart.audio.songPlaying, null, { timeout: 20000 }).then(() => true, () => false);
+  check(songAt, 'the song plays');
   await shot('02-play-start');
   const fps = await G(() => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => (++n < 20 ? requestAnimationFrame(f) : res(Math.round(20000 / (performance.now() - t0)))); requestAnimationFrame(f); }));
   console.log(`  ${fps} frames a second in this browser (software WebGL)`);

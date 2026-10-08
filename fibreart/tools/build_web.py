@@ -15,6 +15,7 @@ optimised WebP copies to game/web/, which is what publish.sh ships:
     web/tableaux/<scene>/NN.webp            each piece, with alpha
     web/chains/<chain>-N.webp               each stage of a morph chain
     web/textures/<name>.webp, web/masks/<name>.webp, web/ui/*, web/icons/*
+    web/audio/aksak-folk-dance.mp3          the song (needs ffmpeg)
     web/scenes.json                         every scene, piece home, kind and chain
 
 Where a request is still undelivered the tool makes a stand-in and says so in
@@ -532,6 +533,31 @@ def build_life(scenes: list[dict], write: bool) -> list[dict]:
     return drift
 
 
+# The game's song, from the owner (game/assets/audio/). The web copy is a
+# 128 kbps MP3 without the embedded cover art; ffmpeg makes it.
+MUSIC = {
+    "source": "audio/aksak-folk-dance.mp3",
+    "file": "audio/aksak-folk-dance.mp3",
+    "title": "Aksak Folk Dance",
+    "artist": "hoai2k",
+    "key": "C minor",  # measured from the recording; the plucks and chimes play in it
+    "root": 60,
+}
+
+
+def build_music(write: bool) -> dict | None:
+    src = SRC / MUSIC["source"]
+    if not src.exists():
+        return None
+    if write:
+        import subprocess
+        (OUT / "audio").mkdir(parents=True, exist_ok=True)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-map", "0:a", "-map_metadata", "-1",
+                        "-metadata", f"title={MUSIC['title']}", "-metadata", f"artist={MUSIC['artist']}",
+                        "-c:a", "libmp3lame", "-b:a", "128k", "-ar", "44100", str(OUT / MUSIC["file"])], check=True)
+    return {k: v for k, v in MUSIC.items() if k != "source"}
+
+
 def build_ui(write: bool) -> dict:
     ui = {"logo": "ui/logo.webp", "lines": []}
     if write:
@@ -581,6 +607,7 @@ def main() -> int:
         "ui": build_ui(write) if write else json.loads((OUT / "scenes.json").read_text())["ui"],
     }
     data["drift"] = build_life(scenes, write)
+    data["music"] = build_music(write)
     if write:
         for t in TEXTURES:
             save_webp(Image.open(SRC / "textures" / f"{t}.webp").convert("RGB").resize((512, 512), Image.LANCZOS), OUT / "textures" / f"{t}.webp", 80)

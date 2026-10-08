@@ -1411,5 +1411,12 @@
    "file": "anim/drift-12.webp",
    "aspect": 1.107
   }
- ]
+ ],
+ "music": {
+  "file": "audio/aksak-folk-dance.mp3",
+  "title": "Aksak Folk Dance",
+  "artist": "hoai2k",
+  "key": "C minor",
+  "root": 60
+ }
 }
