@@ -14,7 +14,7 @@ the crew loops whatever rhythm you drum, until you clear it, while you play
 along and dancers gather. In call and answer
 you and a partner take turns to call a rhythm and answer it, and the exchange
 plays on until you clear it. Training lists every rhythm the chapters
-use, numbered and sorted into five levels of difficulty, to practise one at a
+use (plus a few of its own), numbered and sorted into nine levels of difficulty, to practise one at a
 time (`src/training.js`; `LEVEL_OVERRIDES` there moves a rhythm to another level). You can set the length (2 to 12 beats, rests
 allowed) and play a secondary drum alongside the bronze one: the barrel drum by
 default, or a mõ, rice drum, gong, bamboo, lion-dance drum or cymbals.

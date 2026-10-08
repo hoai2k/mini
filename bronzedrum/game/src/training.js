@@ -12,34 +12,69 @@
 import { STAGES } from './stages.js';
 import { COMMANDS, designedTiers } from './rhythm.js';
 
+// Nine levels. A "group" is a pair or a triplet (a beat split in two or
+// three); a group is mixed when it switches drums inside (LR, LRR: the deep
+// stroke can only open one). A switch beside a group is a change of drum
+// between the group and the stroke just before it or just after it.
 export const LEVELS = [
   { name: 'Steady', about: 'one stroke on every beat' },
-  { name: 'Pairs', about: 'one beat split in two' },
-  { name: 'Pair runs', about: 'two pairs or more, or opening on a pair' },
-  { name: 'Triplets', about: 'one beat split in three' },
-  { name: 'Triplet runs', about: 'triplets with pairs, two triplets, or opening on one' },
+  { name: 'A pair', about: 'one pair, everything on one drum' },
+  { name: 'Switching', about: 'one pair on one drum; the drums switch between beats' },
+  { name: 'Turns', about: 'one triplet on one drum, or one pair that switches drums inside; no switch just before or after it' },
+  { name: 'Around', about: 'one triplet, or a pair that switches inside, with a switch beside it; or two pairs or more' },
+  { name: 'Runs', about: 'two triplets or more, or pairs back to back (not together)' },
+  { name: 'Mixed triplets', about: 'a triplet that switches drums inside' },
+  { name: 'Pairs and triplets', about: 'pairs and triplets together, each on one drum' },
+  { name: 'Everything', about: 'pairs and triplets together, switching drums inside them' },
 ];
 
 /**
- * Levels set by hand, rhythm number -> level (1 to 5), over the one worked out
+ * Levels set by hand, rhythm number -> level (1 to 9), over the one worked out
  * from the rhythm's shape (levelOf). Tuning notes go here.
  */
 export const LEVEL_OVERRIDES = {};
 
+/**
+ * Rhythms for Training alone (no chapter uses them), so every level has
+ * something to practise; numbered after the chapters' rhythms. Each keeps the
+ * deep-stroke rule (rhythm.js): deep strokes a beat apart, groups on the rim
+ * with at most a deep stroke opening them.
+ */
+export const TRAINING_ONLY = ['R RR R R', 'R R R RR', 'R RRR R L', 'L LR R L', 'L LRR L R', 'R LRR R L', 'L LR RRR L', 'L RR LRR R'];
+
 /** The tempo a rhythm is played at in Training when no call gives one (beats per minute). */
 export const TRAINING_BPM = 84;
 
-/** The level a rhythm's shape puts it at, 1 to 5 (see LEVELS). */
+/** The level a rhythm's shape puts it at, 1 to 9 (see LEVELS). */
 export function levelOf(text) {
-  const beats = text.split(' ');
-  const pairs = beats.filter((b) => b.length === 2).length;
-  const triplets = beats.filter((b) => b.length === 3).length;
-  const opens = beats[0].length;
-  if (triplets >= 2 || (triplets && (pairs || opens === 3))) return 5;
-  if (triplets) return 4;
-  if (pairs >= 2 || opens === 2) return 3;
-  if (pairs) return 2;
-  return 1;
+  const beats = text.split(' ').filter((b) => b !== '-');
+  const groups = [];
+  beats.forEach((b, i) => {
+    if (b.length < 2) return;
+    const before = i > 0 ? beats[i - 1].slice(-1) : null;
+    const after = i < beats.length - 1 ? beats[i + 1][0] : null;
+    groups.push({
+      i,
+      size: b.length,
+      mixed: new Set(b).size > 1,
+      // A switch of drum just before or just after the group.
+      beside: (before !== null && before !== b[0]) || (after !== null && after !== b.slice(-1)),
+    });
+  });
+  const pairs = groups.filter((g) => g.size === 2);
+  const triplets = groups.filter((g) => g.size === 3);
+  if (!groups.length) return 1;
+  if (pairs.length && triplets.length) return groups.some((g) => g.mixed) ? 9 : 8;
+  if (triplets.length) {
+    if (triplets.some((g) => g.mixed)) return 7;
+    if (triplets.length >= 2) return 6;
+    return triplets[0].beside ? 5 : 4;
+  }
+  if (pairs.some((g, k) => k > 0 && g.i === pairs[k - 1].i + 1)) return 6; // back to back
+  if (pairs.length >= 2) return 5;
+  const p = pairs[0];
+  if (p.mixed) return p.beside ? 5 : 4;
+  return new Set(beats.join('')).size === 1 ? 2 : 3;
 }
 
 const ROMAN = ['', 'I', 'II', 'III'];
@@ -74,6 +109,7 @@ export function catalogue() {
     for (const call of st.calls || []) add(call.text, { ch, what: call.label ? `${call.label}’s call` : 'Call' }, call.bpm);
     if (st.rhythm) add(st.rhythm, { ch, what: 'Casting' }, st.bpm);
   });
+  for (const text of TRAINING_ONLY) add(text, { ch: null, what: 'Training only' });
   for (const e of out) {
     e.level = LEVEL_OVERRIDES[e.n] || levelOf(e.text);
     e.bpm = e.bpm || TRAINING_BPM;
@@ -81,7 +117,7 @@ export function catalogue() {
   return out;
 }
 
-/** The rhythms of one level (1 to 5), in number order. */
+/** The rhythms of one level (1 to 9), in number order. */
 export function levelRhythms(level, all = catalogue()) {
   return all.filter((e) => e.level === level);
 }
@@ -93,14 +129,18 @@ export function levelRhythms(level, all = catalogue()) {
 export function usesText(e) {
   const by = new Map();
   for (const u of e.uses) {
+    if (u.ch === null) {
+      by.set(u.what, by.get(u.what) || []);
+      continue;
+    }
     const chs = by.get(u.what) || [];
     if (!chs.includes(u.ch)) chs.push(u.ch);
     by.set(u.what, chs);
   }
-  return [...by].map(([what, chs]) => `${what} · ch ${chs.join(', ')}`).join(' — ');
+  return [...by].map(([what, chs]) => (chs.length ? `${what} · ch ${chs.join(', ')}` : what)).join(' — ');
 }
 
-/** The earliest chapter that asks for a rhythm. */
+/** The earliest chapter that asks for a rhythm (Infinity for Training's own). */
 export function firstChapter(e) {
-  return Math.min(...e.uses.map((u) => u.ch));
+  return Math.min(...e.uses.map((u) => (u.ch === null ? Infinity : u.ch)));
 }

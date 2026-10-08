@@ -437,13 +437,32 @@ to each chapter's highest, the answering chapters' calls and the casting
 rhythm, as designed (Medium, four beats). A rhythm used in several places is one
 entry listing each use and chapter; entries are numbered in the order the game
 first asks for them, so a number names the same rhythm whatever the settings.
-Each is sorted by its shape into one of five levels: Steady (plain beats), Pairs
-(one pair), Pair runs (two pairs or more, or opening on a pair), Triplets (one
-triplet) and Triplet runs (triplets with pairs, two triplets, or opening on
-one). `LEVEL_OVERRIDES` moves a numbered rhythm to another level by hand.
+Each is sorted by its shape (`levelOf`) into one of nine levels. A group is a
+pair or a triplet; it is mixed when it switches drums inside (LR, LRR), and a
+switch beside it is a change of drum between it and the stroke just before or
+just after it.
 
-The screen shows the levels as tabs across the top (◀ ▶, or a tap or click)
-and the level's rhythms down the left (▲ ▼): number, dots, uses, and how often
+1. **Steady:** quarter notes only.
+2. **A pair:** one pair, and the whole rhythm on one drum.
+3. **Switching:** one pair on one drum; the drums switch between beats.
+4. **Turns:** one triplet on one drum, or one mixed pair, with no switch beside
+   it (`L LR R`, not `L LR L`).
+5. **Around:** one triplet or one mixed pair with a switch beside it, or two
+   pairs or more.
+6. **Runs:** two triplets or more, or pairs back to back; never pairs and
+   triplets together.
+7. **Mixed triplets:** a triplet that switches drums inside.
+8. **Pairs and triplets:** both together, each on one drum.
+9. **Everything:** pairs and triplets together, switching drums inside them.
+
+The chapters' rhythms leave levels 2, 7 and 9 empty, so Training adds eight
+rhythms of its own (`TRAINING_ONLY`, numbered after the chapters', marked
+"Training only"), each keeping the deep-stroke rule. `LEVEL_OVERRIDES` moves a
+numbered rhythm to another level by hand.
+
+The screen shows the levels as numbered tabs across the top (◀ ▶, or a tap or
+click), the level's name and what it holds at the head of its list, and the
+level's rhythms down the left (▲ ▼): number, dots, uses, and how often
 each was played well or missed this visit. It runs as an answering chapter of
 its own: the partner plays the rhythm at its chapter's tempo, the player plays
 it back, the reader judges it as in the game, a miss is told and counted, and a

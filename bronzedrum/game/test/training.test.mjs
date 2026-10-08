@@ -5,14 +5,21 @@ import { STAGES } from '../src/stages.js';
 import { setDifficulty, setBeatCount, designedTiers } from '../src/rhythm.js';
 
 test('levels: plain beats, a pair, pair runs, a triplet, triplet runs', () => {
-  assert.equal(levelOf('L R L R'), 1);
-  assert.equal(levelOf('L RR L R'), 2);
-  assert.equal(levelOf('L RR L RR'), 3);
-  assert.equal(levelOf('RR L R L'), 3, 'opening on a pair');
-  assert.equal(levelOf('L RRR L R'), 4);
-  assert.equal(levelOf('RRR L RR L'), 5);
-  assert.equal(levelOf('L RRR L RRR'), 5);
-  assert.equal(levelOf('RRR L R L'), 5, 'opening on a triplet');
+  assert.equal(levelOf('L R L R'), 1, 'all quarter notes');
+  assert.equal(levelOf('R RR R R'), 2, 'one pair, all one drum');
+  assert.equal(levelOf('L RR L R'), 3, 'one pair on one drum, switches between beats');
+  assert.equal(levelOf('RR L R L'), 3);
+  assert.equal(levelOf('L L LR R'), 4, 'a pair switching inside, no switch beside it');
+  assert.equal(levelOf('R RRR R L'), 4, 'a triplet on one drum, no switch beside it');
+  assert.equal(levelOf('L R LR R'), 5, 'a switching pair with a switch just before it');
+  assert.equal(levelOf('L LR L R'), 5, 'and just after it (L LR L, not L LR R)');
+  assert.equal(levelOf('L RRR L R'), 5, 'a triplet among switching beats');
+  assert.equal(levelOf('L RR L RR'), 5, 'two pairs');
+  assert.equal(levelOf('L RRR L RRR'), 6, 'two triplets');
+  assert.equal(levelOf('L RR RR L'), 6, 'pairs back to back');
+  assert.equal(levelOf('L LRR L R'), 7, 'a triplet switching inside');
+  assert.equal(levelOf('RRR L RR L'), 8, 'pairs and triplets, each on one drum');
+  assert.equal(levelOf('L LR RRR L'), 9, 'pairs and triplets, one switching inside');
 });
 
 test('the catalogue holds every rhythm the chapters ask for, once, numbered in order of first use', () => {
@@ -27,7 +34,7 @@ test('the catalogue holds every rhythm the chapters ask for, once, numbered in o
       for (const id of st.unlocked) for (const t of designedTiers(id).slice(0, st.maxTier)) assert.ok(texts.has(t), t);
     }
   });
-  // First uses come in chapter order.
+  // First uses come in chapter order (Training's own rhythms after them all).
   const firsts = all.map(firstChapter);
   assert.deepEqual(firsts, [...firsts].sort((a, b) => a - b));
   assert.equal(all[0].text, 'L L L R');
