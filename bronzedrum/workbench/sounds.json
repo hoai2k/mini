@@ -504,10 +504,10 @@
     {
       "id": "ui-move",
       "group": "Interface",
-      "use": "Moving focus in menus.",
+      "use": "Moving focus in menus. Halved (too prominent while browsing).",
       "prompt": "A soft rustle of a single sheet of rice paper being turned, very short and quiet.",
       "kind": "hit",
-      "gain": 0.5,
+      "gain": 0.25,
       "files": [
         {
           "file": "sfx/ui-move.mp3",
@@ -519,10 +519,10 @@
     {
       "id": "ui-confirm",
       "group": "Interface",
-      "use": "Choosing a menu item. Its tail carried a hiss (heard on the workbench): denoised and cut short after the knock.",
+      "use": "Choosing a menu item. Its tail carried a hiss (heard on the workbench): denoised and cut short after the knock. Played quieter (too prominent while browsing).",
       "prompt": "A small hardwood clapper knock, clean and single, like a temple woodblock.",
       "kind": "hit",
-      "gain": 0.6,
+      "gain": 0.35,
       "files": [
         {
           "file": "sfx/ui-confirm.mp3",

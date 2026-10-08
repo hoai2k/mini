@@ -1,8 +1,12 @@
-// Sound, made in the browser: a soft held chord for each scene, plucked notes
-// for button actions, a breathy rush that follows swirls and tides, and a few
-// chimes when a control is found or the picture moves on. Nothing to download.
+// Sound: the game's song (web/audio/, looping under every scene), plucked
+// notes for button actions, a breathy rush that follows swirls and tides, and
+// a few chimes when a control is found or the picture moves on, all in the
+// song's key so they play along with it. If the song cannot load, a soft held
+// chord made in the browser stands in for it, one per scene.
 
 const SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+// With the song (Aksak Folk Dance, in C minor): the minor pentatonic.
+const MINOR = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24];
 // One root per scene, so each picture has its own key.
 const ROOTS = [57, 50, 55, 52, 59, 53, 48, 45, 54, 60];
 const hz = (m) => 440 * 2 ** ((m - 69) / 12);
@@ -15,6 +19,10 @@ export function createAudio() {
   let rushGain;
   let rushFilter;
   let drone = null;
+  // The song: an <audio> element routed through the music volume.
+  let song = null; // { el, root } once it plays; null until then or if it failed
+  let songWanted = null; // { url, root } from setSong
+  let songFailed = false;
   const vol = { volume: 0.8, music: 0.6, sfx: 0.8 };
   // False while the page is hidden or the window is in the background: the
   // context stays suspended and nothing new is scheduled until it is back.
@@ -24,6 +32,7 @@ export function createAudio() {
     if (!active) return false;
     if (ctx) {
       if (ctx.state === 'suspended') ctx.resume();
+      startSong();
       return true;
     }
     const AC = globalThis.AudioContext || globalThis.webkitAudioContext;
@@ -52,8 +61,53 @@ export function createAudio() {
     noise.connect(rushFilter).connect(rushGain).connect(sfx);
     noise.start();
     apply();
+    startSong();
     return true;
   }
+
+  // Start the song once there is a context to play it through (after a tap,
+  // click or key: browsers do not allow sound before one).
+  function startSong() {
+    if (!ctx || songFailed || !songWanted) return;
+    if (song) {
+      if (song.el.paused && active) playSong();
+      return;
+    }
+    const el = new Audio();
+    el.src = songWanted.url;
+    el.loop = true;
+    el.preload = 'auto';
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    try {
+      ctx.createMediaElementSource(el).connect(gain).connect(music);
+    } catch {
+      songFailed = true;
+      return;
+    }
+    song = { el, gain, root: songWanted.root };
+    el.addEventListener('error', () => {
+      // No song after all: back to the chords made in the browser.
+      songFailed = true;
+      song = null;
+      if (lastScene !== null) scene(lastScene);
+    });
+    playSong();
+  }
+
+  function playSong() {
+    const { el, gain } = song;
+    el.play().then(() => {
+      gain.gain.setTargetAtTime(0.75, ctx.currentTime, 1.5);
+      if (drone) {
+        const old = drone;
+        drone = null;
+        old.gain.gain.setTargetAtTime(0, ctx.currentTime, 1);
+        setTimeout(() => old.oscs.forEach((o) => o.stop()), 4000);
+      }
+    }).catch(() => { /* blocked until the next gesture: ensure() tries again */ });
+  }
+  let lastScene = null;
 
   function apply() {
     if (!ctx) return;
@@ -64,7 +118,10 @@ export function createAudio() {
   }
 
   function scene(index) {
+    lastScene = index;
     if (!ensure()) return;
+    // The song carries every scene; the chords only stand in without it.
+    if (songWanted && !songFailed) return;
     const t = ctx.currentTime;
     if (drone) {
       const old = drone;
@@ -105,8 +162,10 @@ export function createAudio() {
 
   function note(step, { length = 0.9, level = 0.3, type = 'triangle', octave = 0, when = 0 } = {}) {
     if (!ensure()) return;
-    const root = drone ? drone.root : 57;
-    const m = root + 12 * octave + SCALE[((step % SCALE.length) + SCALE.length) % SCALE.length];
+    const withSong = songWanted && !songFailed;
+    const root = withSong ? songWanted.root : drone ? drone.root : 57;
+    const scale = withSong ? MINOR : SCALE;
+    const m = root + 12 * octave + scale[((step % scale.length) + scale.length) % scale.length];
     const t = ctx.currentTime + when;
     const o = ctx.createOscillator();
     o.type = type;
@@ -128,7 +187,18 @@ export function createAudio() {
       if (!ctx) return;
       if (on) ctx.resume().catch(() => {});
       else ctx.suspend().catch(() => {});
+      // The song waits where it was, rather than running on in silence.
+      if (song) {
+        if (on) song.el.play().catch(() => {});
+        else song.el.pause();
+      }
     },
+    // The game's song: plays from the first gesture, loops under every scene.
+    setSong(url, root = 60) {
+      songWanted = { url, root };
+      startSong();
+    },
+    get songPlaying() { return !!song && !song.el.paused; },
     set(v) {
       Object.assign(vol, v);
       apply();

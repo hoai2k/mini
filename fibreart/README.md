@@ -28,11 +28,12 @@ across the picture when it is larger than the screen.
     `src/life.js` (wind, gusts, blowing leaves, breathing, blinking: the
     pictures' small life), `src/overlay.js` (stitched outlines, threads, pinned drawings),
     `src/input.js` (one player per controller, keyboard as another),
-    `src/audio.js` (sound made in the browser).
+    `src/audio.js` (the song, *Aksak Folk Dance* by hoai2k, looping under
+    every scene, and plucks and chimes made in the browser in its key, C minor).
   - `web/`: the optimised art the game loads and `web/scenes.json` (every
     scene's pieces, their homes in the composition, kinds and morph chains),
     written by [`tools/build_web.py`](tools/build_web.py) from `assets/`.
-  - `assets/`: the full-size delivered images (not published); see
+  - `assets/`: the full-size delivered images and the original song (not published); see
     [`game/assets/README.md`](game/assets/README.md).
   - `test/`: Node tests of the rules; `scripts/browser-check.mjs`: a Playwright
     run with a simulated Xbox controller that plays every scene.

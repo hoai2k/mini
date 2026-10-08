@@ -169,9 +169,14 @@ export class Sound {
    * two crossfade over MUSIC_XFADE seconds, so the track's own fade-out, its
    * fade-in and the gap browsers leave when an MP3 loops are never heard.
    */
-  /** The menus (title, chapter select, practice modes): the anthem, round and round. */
+  /** The menus (title, chapter select): the anthem, round and round. */
   menuMusic() {
     this.playMusic('mu-anthem', { loop: true });
+  }
+
+  /** Drum Practice's screen of modes: the old menu theme (the two sisters); the drumming itself has none. */
+  practiceMusic() {
+    this.playMusic('mu-select');
   }
 
   playMusic(id, { level = 1, fade = 1.2, loop = null } = {}) {

@@ -107,8 +107,10 @@ function show(id) {
   // A chapter's opening card shows only over its scene (not over the pause menu).
   $('#opening').hidden = !(id === 'play' && game && game.opening);
   if (id === 'title' || id === 'select' || id === 'practice' || id === 'result') hideSuccess();
-  // Menu music: the anthem, on the title, the chapter select and the practice modes.
-  if (id === 'title' || id === 'select' || id === 'practice') sound.menuMusic();
+  // Menu music: the anthem on the title and the chapter select; Drum Practice's
+  // own screen keeps the old menu theme (the two sisters), not the anthem.
+  if (id === 'title' || id === 'select') sound.menuMusic();
+  if (id === 'practice') sound.practiceMusic();
   screen = id;
   input.mode = id === 'play' ? 'play' : 'menu';
   canvas.style.visibility = id === 'title' || id === 'select' || id === 'practice' ? 'hidden' : 'visible';

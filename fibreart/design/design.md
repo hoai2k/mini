@@ -288,8 +288,12 @@ Played through every scene in Chromium with a simulated controller (see
   small one that sets it up; this wants playing with real people.
 - Whether the card of controls found should say how to wake a large control
   (it does now) or leave that to be discovered.
-- Sound is made in the browser (a held chord per scene, plucks, a rush for big
-  movements). Recorded sounds (plucked strings, a sewing machine, cloth) could
-  replace it; not requested yet.
+- Sound: the owner's song, *Aksak Folk Dance* (a Suno piece by hoai2k, 4:34,
+  in C minor), loops under every scene from Press Start; the Music slider sets
+  its level, and it pauses while the page is in the background. The plucks,
+  chimes and the rush of big movements are made in the browser, in the song's
+  key (C minor pentatonic) so they play along with it. If the song cannot load,
+  a held chord per scene stands in. Recorded sounds (plucked strings, a sewing
+  machine, cloth) could replace the made ones; not requested yet.
 - Online multiplayer through `multiplayer/` could let several people shape
   one collage from different places; not planned for the first build.

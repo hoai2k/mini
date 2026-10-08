@@ -224,14 +224,14 @@
       "files": [
         "sfx/ui-move.mp3"
       ],
-      "gain": 0.5,
+      "gain": 0.25,
       "loop": false
     },
     "ui-confirm": {
       "files": [
         "sfx/ui-confirm.mp3"
       ],
-      "gain": 0.6,
+      "gain": 0.35,
       "loop": false
     },
     "ui-back": {
