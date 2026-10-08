@@ -215,7 +215,8 @@ export class Sound {
         /* the #t= fragment already placed it */
       }
     }
-    v.el.play().catch(() => {});
+    // In the background it waits: setFocused(true) starts it.
+    if (this.focused !== false) v.el.play().catch(() => {});
   }
 
   fadeOutVoice(music, v, fade) {
@@ -273,7 +274,7 @@ export class Sound {
     const gain = this.ctx.createGain();
     gain.gain.value = this.musicLevel * level;
     src.connect(gain).connect(this.master);
-    el.play().catch(() => {});
+    if (this.focused !== false) el.play().catch(() => {});
   }
 
   /** Pause and resume with the game (the audio clock suspends; elements do not). */
@@ -283,7 +284,7 @@ export class Sound {
     for (const v of this.music.voices) {
       if (v === this.music.next) continue;
       if (paused) v.el.pause();
-      else v.el.play().catch(() => {});
+      else if (this.focused !== false) v.el.play().catch(() => {});
     }
     // The volume may have changed in Settings while paused.
     const cur = this.music.current;
@@ -352,13 +353,30 @@ export class Sound {
       this.noise = this.makeNoise();
       this.setVolume(this.volume);
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.ctx.state === 'suspended' && this.focused !== false) this.ctx.resume();
   }
 
-  /** Mute everything while the game's tab or window is not focused. */
+  /**
+   * Silence everything while the game's tab or window is not focused: fade
+   * out, then stop the audio clock (no sound, no scheduled strokes, no music
+   * loop ticking over), and pause the music elements. On return only what was
+   * running comes back: a clock stopped by the pause menu stays stopped.
+   */
   setFocused(focused) {
+    if (this.focused === focused) return;
     this.focused = focused;
     if (!this.focusGain) return;
+    if (!focused) {
+      this.focusHeld = this.ctx.state === 'running' && !this.paused;
+      clearTimeout(this.focusTimer);
+      this.focusTimer = setTimeout(() => {
+        if (this.focused === false && this.ctx.state === 'running') this.ctx.suspend();
+      }, 100);
+    } else {
+      clearTimeout(this.focusTimer);
+      if (this.focusHeld && !this.paused) this.ctx.resume();
+      this.focusHeld = false;
+    }
     const t = this.ctx.currentTime;
     const g = this.focusGain.gain;
     g.cancelScheduledValues(t);
@@ -376,7 +394,11 @@ export class Sound {
 
   /** Pause: fade out over a few milliseconds, then stop the audio clock. */
   async suspend() {
-    if (!this.ctx || this.ctx.state !== 'running') return;
+    if (!this.ctx) return;
+    this.paused = true;
+    // Already stopped for the background: it stays stopped when focus returns.
+    if (this.focusHeld) this.focusHeld = false;
+    if (this.ctx.state !== 'running') return;
     const t = this.ctx.currentTime;
     this.out.gain.cancelScheduledValues(t);
     this.out.gain.setValueAtTime(this.out.gain.value, t);
@@ -388,8 +410,12 @@ export class Sound {
   /** Resume: restart the clock and fade back in, so nothing starts on a hard edge. */
   async resume() {
     if (!this.ctx) return;
+    this.paused = false;
     if (this.suspending) await this.suspending;
-    await this.ctx.resume();
+    // In the background the clock stays stopped until focus returns.
+    if (this.focused === false) {
+      this.focusHeld = true;
+    } else await this.ctx.resume();
     const t = this.ctx.currentTime;
     this.out.gain.cancelScheduledValues(t);
     this.out.gain.setValueAtTime(0, t);

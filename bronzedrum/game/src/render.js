@@ -62,7 +62,10 @@ export class Renderer {
     const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2, this.dprCap);
     const rect = this.canvas.getBoundingClientRect();
     const scale = Math.min(rect.width / W, rect.height / H) || 1;
-    this.canvas.width = Math.round(W * scale * dpr);
+    // A canvas wider than 16:9 (a phone, src/fit.js): the 1280 x 720 layout
+    // sits in the middle and the scene fills the margins `ex` either side.
+    this.ex = Math.max(0, (rect.width / scale - W) / 2);
+    this.canvas.width = Math.round((W + 2 * this.ex) * scale * dpr);
     this.canvas.height = Math.round(H * scale * dpr);
     this.pixel = scale * dpr;
     this.cssScale = scale;
@@ -132,8 +135,9 @@ export class Renderer {
     let sx = 0;
     if (this.shake && t < this.shake && !this.reduceMotion) sx = (Math.random() - 0.5) * 10;
 
-    g.setTransform(this.pixel, 0, 0, this.pixel, 0, 0);
-    g.clearRect(0, 0, W, H);
+    const ex = this.ex || 0;
+    g.setTransform(this.pixel, 0, 0, this.pixel, ex * this.pixel, 0);
+    g.clearRect(-ex, 0, W + 2 * ex, H);
     // The camera: wide, or moved in on the action on a small screen.
     const zm = this.updateZoom(view, dt);
     if (zm.z > 1.001) {
@@ -192,12 +196,12 @@ export class Renderer {
     if (water) this.reflection();
 
     this.layer('layer-reeds', this.layers.reeds, 1.25);
-    g.setTransform(this.pixel, 0, 0, this.pixel, 0, 0);
+    g.setTransform(this.pixel, 0, 0, this.pixel, ex * this.pixel, 0);
     // Paper fibre over everything, as if the whole scene were one sheet, and
     // the vignette: baked into one image (Renderer.overlay).
     g.save();
     g.globalCompositeOperation = 'multiply';
-    g.drawImage(this.overlay(), 0, 0, W, H);
+    g.drawImage(this.overlay(), -ex, 0, W + 2 * ex, H);
     g.restore();
     this.drawCelebration(t, dt);
     this.hud(view);
@@ -213,7 +217,9 @@ export class Renderer {
    * The small-screen camera. It opens wide to set the scene, then once the
    * action starts (the first stroke, or five seconds in) eases in: on the
    * gap between the army's front and the nearest enemy in a battle, on the
-   * middle of the stage otherwise. Never shows past the painted edges.
+   * middle of the stage otherwise. Never shows past the painted edges: on a
+   * screen wider than 16:9 it is always moved in at least far enough for the
+   * scene to fill the width (Renderer.ex).
    */
   updateZoom(view, dt) {
     const zm = this.zoom || (this.zoom = { z: 1, x: W / 2, y: ZOOM_EYE, started: false });
@@ -233,12 +239,18 @@ export class Renderer {
         x = near - front < 760 ? (front + near) / 2 - 40 : front + 120;
       }
     }
+    const half = W / 2 + (this.ex || 0); // half the width on screen
+    const least = half / (W / 2);
+    // Moved in only to fill the width: the ground stays where it is, above the dots.
+    if (z < least) y = GROUND - (GROUND - ZOOM_EYE) / least;
+    z = Math.max(z, least);
     // Keep the view inside the painted scene.
-    x = Math.min(W - W / 2 / z, Math.max(W / 2 / z, x));
+    const clampX = (v, zz) => Math.min(W - half / zz, Math.max(half / zz, v));
+    x = clampX(x, z);
     y = Math.min(H - (H - ZOOM_EYE) / z, Math.max(ZOOM_EYE / z, y));
     const k = 1 - Math.exp(-dt * (this.reduceMotion ? 6 : 1.8));
-    zm.z += (z - zm.z) * k;
-    zm.x += (x - zm.x) * k;
+    zm.z = Math.max(least, zm.z + (z - zm.z) * k);
+    zm.x = clampX(zm.x + (x - zm.x) * k, zm.z);
     zm.y += (y - zm.y) * k;
     return zm;
   }
