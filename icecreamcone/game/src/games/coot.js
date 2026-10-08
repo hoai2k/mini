@@ -55,6 +55,20 @@ export default function create(env) {
     return { x, y };
   }
 
+  // What a falling thing can touch: the Coot's head, and each scoop in the
+  // stack, as circles.
+  function contacts() {
+    let x = g.x + HEAD_DX;
+    let y = GROUND + HEAD_DY;
+    const out = [{ x: x - R * 0.2, y: y + R * 1.1, r: R * 1.35 }];
+    for (let i = 0; i < g.stack.length; i++) {
+      x += g.stack[i].dx + Math.sin(g.sway) * STEP * 0.4 * (i + 1) / Math.max(1, g.stack.length);
+      y -= STEP;
+      out.push({ x, y: y + R * 0.3, r: R });
+    }
+    return out;
+  }
+
   // Where the stack's weight sits, relative to the head: the mean of each
   // scoop's offset, plus the sway.
   function balance() {
@@ -133,12 +147,15 @@ export default function create(env) {
     }
 
     const top = topPos();
+    const parts = contacts();
     for (const it of g.items) {
       it.y += it.vy * dt;
       it.a += it.spin * dt;
       if (it.dead) continue;
       const dx = it.x - top.x;
-      if (it.y >= top.y - R && it.y <= top.y + R * 0.6 && Math.abs(dx) < R * 1.7) {
+      // Anything that touches the stack or the Coot's head is caught, even a
+      // glancing touch on the side: it settles on top, on the side it touched.
+      if (parts.some((p) => Math.hypot(it.x - p.x, it.y - p.y) < p.r + R * 0.4)) {
         it.dead = true;
         if (it.kind === 'pickle' || it.kind === 'sock') {
           if (g.stack.length) {

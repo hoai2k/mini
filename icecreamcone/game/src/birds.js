@@ -12,7 +12,7 @@ export const BIRDS = [
     goal: 'Catch the scoops on the Coot’s head and build the tallest stack you can.',
     tips: ['A scoop lands where it touches: catch it in the middle to keep the stack straight.', 'Pickles and socks knock off the top scoop.', 'A golden cherry counts as three.'],
     score: 'scoops in your tallest stack',
-    medals: [8, 15, 22],
+    medals: [14, 26, 40],
     tune: 'play',
     color: '#e98aa8',
   },

@@ -15,13 +15,13 @@ import { drawBird, scene, blob, poly, wash, ink, hatch, label, PAL, INK } from '
 import { clamp, approach } from './index.js';
 
 const DURATION = 45;
-const BENCH = 790; // where the Plumes' feet stand
-const SIZE = 340;
+const BENCH = 628; // where the Plumes' feet stand: on top of the painted potting bench
+const SIZE = 290;
 const K = SIZE / 400;
 const POT_TOP = BENCH - 240 * K; // where the rain reaches the soil
 const POT_HALF = 80 * K + 14; // how wide a pot catches the rain
-const ROSE_Y = 214; // the rose's face
-const PIPE_Y = 84;
+const ROSE_Y = 160; // the rose's face
+const PIPE_Y = 60;
 const SLOTS = [224, 512, 800, 1088, 1376];
 const PANELS = ['#efd96a', '#f3e2a0', '#ea8fb0', '#a9b88a', '#d9a4a0'];
 

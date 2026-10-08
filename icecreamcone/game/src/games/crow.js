@@ -14,12 +14,13 @@ import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, h
 import { clamp, lerp } from './index.js';
 
 const DURATION = 45;
-const ROAD_TOP = 480;
-const ROAD_BOT = 745;
+// The road, pavements and zebra crossing as painted in the scene.
+const ROAD_TOP = 445;
+const ROAD_BOT = 698;
 const KERB = ROAD_TOP - 70; // the back of the far pavement, where the houses stand
 const MID = (ROAD_TOP + ROAD_BOT) / 2;
-const CX0 = 700; // the zebra crossing, left and right edges
-const CX1 = 860;
+const CX0 = 630; // the zebra crossing, left and right edges
+const CX1 = 970;
 const LANE_Y = [MID - 52, ROAD_BOT - 50]; // where each lane's wheels run
 const LANE_DIR = [-1, 1]; // the far lane drives left, the near lane right
 const CAR_LEN = 150;
@@ -448,7 +449,7 @@ export default function create(env) {
       // painted chick: faces left, so flip when heading right
       const walking = b.state === 'cross' || b.state === 'gone';
       const cell = flying ? 5 : walking ? 3 + (Math.sin(b.hop * 0.8) > 0 ? 1 : 0) : Math.abs(Math.floor(b.sx)) % 3;
-      const k = 0.072 * s;
+      const k = 0.1 * s;
       const h = spriteCell('sprites.chicks', cell).trim.h * k;
       const rot = b.state === 'leave' ? 0.1 * b.face : 0;
       if (flying) drawSprite(c, 'sprites.chicks', cell, b.x, b.y - 20 * s + Math.sin(t * 30 + b.hop) * 2, { h, anchor: 'center', flip: b.face > 0, rot });
