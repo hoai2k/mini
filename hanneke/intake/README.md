@@ -1,6 +1,6 @@
-# Hanneke intake
+# Fibre Art intake
 
-Drop files for the Hanneke project here and ask for them to be integrated.
+Drop files for Fibre Art (the `hanneke/` folder) here and ask for them to be integrated.
 Nothing in this folder is published.
 
 Photos of Hanneke de Neve's work go to [`../reference/`](../reference/README.md):

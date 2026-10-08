@@ -16,7 +16,7 @@ from `sites/`, `multiplayer/` and `local/`:
 | `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen) | https://hoai2k.github.io/mini/gliders/ |
 | `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each) | https://hoai2k.github.io/mini/icecreamcone/ |
 | `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, alone or two players head to head); behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
-| `hanneke/` | Hanneke (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures); reference, design and image requests so far, not yet published | — |
+| `hanneke/` | Fibre Art (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures); reference, design and image requests so far, not yet published | — |
 | `chat/` | Games Chat (video chat with face effects and minigames) | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |

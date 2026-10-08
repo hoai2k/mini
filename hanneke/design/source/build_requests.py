@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Hanneke image requests and the game's asset list.
+"""Generate the Fibre Art image requests and the game's asset list.
 
 Edit the data in this file, then run:
 
@@ -521,9 +521,9 @@ REQUESTS: list[dict] = [
         "used": "The title screen above Press Start, and the card on the game library page.",
         "standin": "The title set in a hand-drawn style in code.",
         "ref": ["mixed-media/watercolor-face-with-handwriting.jpg", "fibre/fibercollage-moons-and-hearts.jpg"],
-        "prompt": "A title for a game, spelled exactly \"Hanneke\", written in one flowing line "
+        "prompt": "A title for a game, spelled exactly \"Fibre Art\", written in one flowing line "
         "of dark red thread as if stitched into cloth, the loops of the letters like her "
-        "looping handwriting, with a few loose thread ends. Beneath the word, a short row of "
+        "looping handwriting, with a few loose thread ends. Beneath the words, a short row of "
         "small cut-cloth motifs sewn on with running stitch: a pale yellow crescent moon with "
         "a sleeping face, a red heart, a teal tree, a violet sun. Wide landscape composition "
         "filling about 85% of the width, no other text. " + LOOK.format(links(
@@ -723,9 +723,9 @@ def asset_list() -> str:
 def document() -> str:
     delivered = sum(r["status"] == "delivered" for r in REQUESTS)
     out = [
-        "# Hanneke: image requests",
+        "# Fibre Art: image requests",
         "",
-        "Artwork for the Hanneke shifting collage in `hanneke/` (see [`design.md`](design.md)). "
+        "Artwork for Fibre Art, the shifting collage in `hanneke/` (see [`design.md`](design.md)). "
         "Generated from `source/build_requests.py`; edit the data there and rerun it, which also "
         "rewrites `asset-list.json`.",
         "",

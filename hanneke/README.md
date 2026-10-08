@@ -1,6 +1,6 @@
-# Hanneke
+# Fibre Art
 
-A shifting collage after the work of Hanneke de Neve, a Dutch-born artist in
+Fibre Art is a shifting collage after the work of Hanneke de Neve, a Dutch-born artist in
 New Jersey and a friend of the repository owner. Each scene is one of her
 pictures built as a live patchwork, and the controllers reach into it: some
 controls nudge a single moon, some swirl the whole picture, and small moves

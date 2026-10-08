@@ -1,4 +1,4 @@
-# Hanneke: design
+# Fibre Art: design
 
 A shifting collage. The screen is one of Hanneke de Neve's pictures, built as
 a live patchwork: a painted or quilted ground with cut pieces laid on it

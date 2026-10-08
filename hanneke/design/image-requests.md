@@ -1,6 +1,6 @@
-# Hanneke: image requests
+# Fibre Art: image requests
 
-Artwork for the Hanneke shifting collage in `hanneke/` (see [`design.md`](design.md)). Generated from `source/build_requests.py`; edit the data there and rerun it, which also rewrites `asset-list.json`.
+Artwork for Fibre Art, the shifting collage in `hanneke/` (see [`design.md`](design.md)). Generated from `source/build_requests.py`; edit the data there and rerun it, which also rewrites `asset-list.json`.
 
 ## How to use this list
 
@@ -31,7 +31,7 @@ The title, the icon, and the pieces of the interface drawn in her line.
 - **Status:** requested
 
 ```text
-A title for a game, spelled exactly "Hanneke", written in one flowing line of dark red thread as if stitched into cloth, the loops of the letters like her looping handwriting, with a few loose thread ends. Beneath the word, a short row of small cut-cloth motifs sewn on with running stitch: a pale yellow crescent moon with a sleeping face, a red heart, a teal tree, a violet sun. Wide landscape composition filling about 85% of the width, no other text. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/hanneke/reference/mixed-media/watercolor-face-with-handwriting.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/hanneke/reference/fibre/fibercollage-moons-and-hearts.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+A title for a game, spelled exactly "Fibre Art", written in one flowing line of dark red thread as if stitched into cloth, the loops of the letters like her looping handwriting, with a few loose thread ends. Beneath the words, a short row of small cut-cloth motifs sewn on with running stitch: a pale yellow crescent moon with a sleeping face, a red heart, a teal tree, a violet sun. Wide landscape composition filling about 85% of the width, no other text. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/hanneke/reference/mixed-media/watercolor-face-with-handwriting.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/hanneke/reference/fibre/fibercollage-moons-and-hearts.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### HK-U02 · App icon and favicon
