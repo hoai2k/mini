@@ -86,6 +86,11 @@ async function main() {
   const wait = (ms) => page.waitForTimeout(ms);
   const btn = (i, v) => page.evaluate(([i, v]) => { const b = window.__pad.buttons[i]; b.pressed = v > 0.5; b.value = v; }, [i, v]);
   const tap = async (i, ms = 350) => { await btn(i, 1); await wait(ms); await btn(i, 0); await wait(250); };
+  // Hold a button until the game has seen it (frames are slow in software WebGL).
+  const pressUntil = async (i, fn, timeout = 30000, arg = null) => {
+    await btn(i, 1);
+    try { await page.waitForFunction(fn, arg, { timeout }); } finally { await btn(i, 0); await wait(300); }
+  };
   const axes = (a) => page.evaluate((a) => { window.__pad.axes = a; }, a);
   const G = (fn, a) => page.evaluate(fn, a);
 
@@ -99,9 +104,7 @@ async function main() {
   await shot('01-title');
 
   // Any button starts.
-  await tap(0);
-  await wait(600);
-  check(await G(() => window.fibreart.ui.screen === 'play'), 'a controller button starts play');
+  check(await pressUntil(0, () => window.fibreart.ui.screen === 'play', 20000).then(() => true, () => false), 'a controller button starts play');
   check(await G(() => window.fibreart.game().players.some((p) => p.id === 'pad0')), 'the controller is player 1');
   await shot('02-play-start');
   const fps = await G(() => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => (++n < 20 ? requestAnimationFrame(f) : res(Math.round(20000 / (performance.now() - t0)))); requestAnimationFrame(f); }));
@@ -124,7 +127,9 @@ async function main() {
   await axes([0, 0, -0.9, 0.3]); await wait(900); await axes([0, 0, 0, 0]);
   await btn(6, 1); await wait(900); await btn(6, 0);
   await btn(7, 1); await wait(900); await btn(7, 0);
-  for (const [i] of inputs) await tap(i);
+  for (const [i, name] of inputs) {
+    await pressUntil(i, (n) => window.fibreart.game().players.find((p) => p.id === 'pad0').bindings[n].found, 20000, name).catch(() => {});
+  }
   await wait(300);
   await shot('03-every-input');
   const found = await G(() => Object.values(window.fibreart.game().players.find((p) => p.id === 'pad0').bindings).filter((b) => b.found).length);
@@ -142,9 +147,9 @@ async function main() {
   await axes([0.8, 0.2, 0, 0]);
   await wait(700);
   await shot('04-swirl');
-  await wait(1600);
+  const swirled = await page.waitForFunction(() => window.fibreart.game().rearranged > 0, null, { timeout: 60000 }).then(() => true, () => false);
   await axes([0, 0, 0, 0]);
-  check(await G(() => window.fibreart.game().rearranged > 0), 'an awake swirl rearranges the picture');
+  check(swirled, 'an awake swirl rearranges the picture');
   await wait(800);
   await shot('05-after-swirl');
 
@@ -160,39 +165,32 @@ async function main() {
   await btn(7, 1);
   await wait(900);
   await shot('06-pour');
-  await wait(900);
+  const poured = await page.waitForFunction((b) => window.fibreart.game().index !== b, before, { timeout: 60000 }).then(() => true, () => false);
   await btn(7, 0);
   await wait(900);
   await shot('07-dissolving');
-  check(await G(() => window.fibreart.game().index) !== before, 'an awake pour carries the picture into the next scene');
+  check(poured, 'an awake pour carries the picture into the next scene');
   await wait(3000);
 
   // Pause, the card, back.
-  await tap(9);
-  await wait(300);
-  check(await G(() => window.fibreart.ui.modals.includes('pause')), 'Menu pauses');
+  const ok = (fn) => fn.then(() => true, () => false);
+  check(await ok(pressUntil(9, () => window.fibreart.ui.modals.includes('pause'))), 'Menu pauses');
   await shot('08-pause');
-  await tap(1);
-  await wait(300);
-  check(await G(() => !window.fibreart.ui.modals.length && !window.fibreart.ui.paused), 'B resumes');
-  await tap(8);
-  await wait(300);
-  check(await G(() => window.fibreart.ui.modals.includes('card')), 'View opens the card of controls found');
+  check(await ok(pressUntil(1, () => !window.fibreart.ui.modals.length && !window.fibreart.ui.paused)), 'B resumes');
+  check(await ok(pressUntil(8, () => window.fibreart.ui.modals.includes('card'))), 'View opens the card of controls found');
   await shot('09-card');
-  await tap(1);
-  await wait(300);
+  await ok(pressUntil(1, () => !window.fibreart.ui.modals.length));
 
   // Disconnect pauses; reconnect, resume.
   await G(() => { window.__padOn = false; });
-  await wait(900);
+  await page.waitForFunction(() => window.fibreart.ui.paused, null, { timeout: 20000 }).catch(() => {});
   check(await G(() => window.fibreart.ui.paused && /disconnected/.test(window.fibreart.ui.pauseReason)), 'a disconnected controller pauses');
   await G(() => { window.__padOn = true; });
   await page.waitForFunction(() => window.fibreart.input.pads().length > 0);
   await wait(300);
   const state = () => G(() => JSON.stringify({ paused: window.fibreart.ui.paused, modals: window.fibreart.ui.modals, reason: window.fibreart.ui.pauseReason, pads: window.fibreart.input.pads(), players: window.fibreart.game().players.map((p) => p.id) }));
   console.log('  reconnected:', await state());
-  await tap(1, 600);
-  await wait(400);
+  await pressUntil(1, () => !window.fibreart.ui.paused, 20000).catch(() => {});
   console.log('  after B:', await state());
   check(await G(() => !window.fibreart.ui.paused), 'after reconnecting, B resumes');
   if (await G(() => window.fibreart.ui.paused)) await page.click('#pause [data-action="resume"]');

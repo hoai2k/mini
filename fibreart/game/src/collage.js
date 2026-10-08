@@ -63,6 +63,8 @@ export function makePieces(scene) {
       kind: p.kind,
       chain: p.chain || null,
       file: p.file,
+      blink: p.blink || null, // a closed-eyes swap, once delivered
+      poses: p.poses || null, // swaps for a bird's wings, once delivered
       w,
       h: w * p.aspect,
       home: { x, y, rot: 0 },
@@ -242,7 +244,7 @@ export function createGame(scenes, opts = {}) {
     events: [],
     time: 0,
     quiet: 0, // seconds since anyone touched anything
-    settled: 0, // 0..1 how far the finished composition shows through
+    settled: 0, // 0..1 how settled the picture is: every piece home and still
     sceneTime: 0,
     transition: null, // { from: {scene, pieces, panels}, t, mask }
     travellers: [],

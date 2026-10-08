@@ -182,6 +182,35 @@ WebGL2 on a single canvas.
   grown rather than faded.
 - Threads are strokes along splines, textured from the stitch sheet.
 
+## Life
+
+The pictures are never quite still (`game/src/life.js`). Life changes only how
+a piece is drawn, never where it is, so the controls, setups and homes are
+untouched, and it runs under everything the players do.
+
+- **Wind.** Each scene has its own wind (Viriditas the most, the crowd hardly
+  any). A wandering breeze, and every 6 to 15 seconds a gust that sweeps across
+  the picture from the left as a travelling front.
+- **Trees, reeds, buds and flowers** bend from the base, more at the top, and
+  lean further as a gust passes. **Loose leaves** lift from the trees or blow in
+  from the left on a gust and tumble across (in the four windy outdoor scenes).
+  Single leaves, clouds and ribbons on the ground are nudged by the gust and
+  spring back.
+- **People.** Faces tilt and settle, bodies and figures breathe; the dancers sway
+  and rise as if dancing in place. Hair moves with the wind.
+- **Sky.** Clouds drift and swell, suns and moons glow, stars twinkle.
+- **Others.** Hearts beat twice and rest, fish swim and wiggle, ribbons and the
+  comet band ripple, Blue Lady's water moves, the floating eye blinks, the bird
+  bobs and hops, the reaching hand reaches.
+- **Swaps from art.** Closed eyes for the open-eyed faces (blinks) and the
+  bird's wing poses come from the requests in the Life section of
+  `image-requests.md`; until they arrive the faces only breathe and tilt.
+- **Reduce motion** scales all of it to a third and stops the blowing leaves.
+
+The finished composition used to fade in under the pieces when everything was
+home and still; with the pieces alive it showed as ghosts, so it is gone. The
+pieces over the ground already read as the painting.
+
 ## Stand-ins
 
 Where a request is still undelivered, `tools/build_web.py` makes a stand-in
@@ -208,9 +237,8 @@ Played through every scene in Chromium with a simulated controller (see
   frayed edges hide the seams of the mesh. The open question about hard
   stretching is answered: stretch stays.
 - **Each scene reassembles into its composition.** With homes placed by eye,
-  pieces over the ground come very close to the generated composition, so the
-  cross-fade into the finished picture when everything is still is gentle.
-  The pieces are not pixel matches, which is fine for a collage.
+  pieces over the ground come very close to the generated composition. The
+  pieces are not pixel matches, which is fine for a collage.
 - **The large swirl is a whirlpool of cloth.** At full reach it twists the
   whole picture and shows the backing fabric at the edges. It is dramatic; it
   is clamped by its own unwinding spring, and Reduce motion halves it.

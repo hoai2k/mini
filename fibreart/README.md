@@ -11,8 +11,9 @@ the whole picture. Small moves set up the large ones: a large control is
 centred on one piece, and its reach grows as that piece is brought to the
 middle, sewn to others or brought to its partner. Large effects rearrange the
 picture or carry it into the next scene, and the controls are dealt again.
-Nothing to win or lose; left alone, the pieces drift home and the painting
-settles back into view. One to four controllers, plus keyboard and mouse.
+Nothing to win or lose; left alone, the pieces drift home. The pictures are
+never quite still: wind gusts bend the trees and blow leaves across, and the
+people breathe and tilt their heads. One to four controllers, plus keyboard and mouse.
 
 ## Layout
 
@@ -21,7 +22,8 @@ settles back into view. One to four controllers, plus keyboard and mouse.
     `src/collage.js` (the rules: pieces, panels, bindings, verbs, setups, scene
     changes; no DOM, tested in Node), `src/render.js` (WebGL2: pieces as
     bendable meshes, one shared swirl/tide/ripple field, mask dissolves),
-    `src/overlay.js` (stitched outlines, threads, pinned drawings),
+    `src/life.js` (wind, gusts, blowing leaves, breathing, blinking: the
+    pictures' small life), `src/overlay.js` (stitched outlines, threads, pinned drawings),
     `src/input.js` (one player per controller, keyboard as another),
     `src/audio.js` (sound made in the browser).
   - `web/`: the optimised art the game loads and `web/scenes.json` (every
