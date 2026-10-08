@@ -76,6 +76,12 @@ it's high enough, level with the top, it is pushed up onto the stack.
 Clinging scoops weigh on their side of the balance: they can tip the stack,
 or steady one that leans the other way.
 
+As the stack grows the view zooms out, so there is always a good stretch of
+sky above the top scoop, and new scoops start just above the top of the
+view: a tall stack gets the same warning as a short one. The painted
+seaside stays put while the Coot and its scoops shrink towards the
+boardwalk; the view zooms back in slowly after a topple.
+
 ### 2. Cupadee: Tea Time (45 s)
 
 A row of Cupadees walks in under the teapot one at a time. Hold the action
