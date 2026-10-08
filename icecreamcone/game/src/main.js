@@ -1,12 +1,12 @@
 // The shell: screens, menus and navigation, the field guide, the bird pages,
-// and running a minigame (count-in, HUD, pause, results and medals).
+// and running a minigame (count-in, HUD, pause, results and best scores).
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
 import { loadSettings, saveSettings, loadProgress, recordScore, resetProgress } from './store.js';
-import { BIRDS, medalFor, MEDAL_NAMES } from './birds.js';
+import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
-import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, spriteCell, PAL, INK } from './draw.js';
+import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
 
 const W = 1600;
@@ -59,18 +59,6 @@ async function loadArt() {
       ),
   );
   setArt(map);
-  if (map.has('medals')) {
-    // Cut each rosette out of the sheet for the CSS (--medal-1 .. --medal-3).
-    for (let i = 0; i < 3; i++) {
-      const c = spriteCell('medals', i);
-      const cv = document.createElement('canvas');
-      cv.width = Math.round(c.trim.w / 2);
-      cv.height = Math.round(c.trim.h / 2);
-      cv.getContext('2d').drawImage(c.img, c.trim.x, c.trim.y, c.trim.w, c.trim.h, 0, 0, cv.width, cv.height);
-      document.documentElement.style.setProperty(`--medal-${i + 1}`, `url(${cv.toDataURL()})`);
-    }
-    document.body.classList.add('medal-art');
-  }
   if (map.has('logo')) {
     $('#logo-img').src = ASSETS.logo.file;
     $('#logo-img').hidden = false;
@@ -130,8 +118,7 @@ function show(screen) {
     fillPage();
     audio.playMusic(BIRDS[S.bird].tune === 'night' ? 'night' : 'menu');
   } else if (screen === 'gathering') {
-    const golds = BIRDS.filter((b) => medalFor(b, best(b.id)) === 3).length;
-    $('#gathering-count').textContent = `${golds} of ${BIRDS.length} gold medals`;
+    $('#gathering-count').textContent = `Every one of the ${BIRDS.length} rare birds, spotted.`;
     audio.playMusic('menu');
     focusFirst();
   }
@@ -221,20 +208,20 @@ function moveFocus(dx, dy) {
 // ---------- the guide ----------
 
 const best = (id) => progress[id]?.best || 0;
-const medalOf = (i) => medalFor(BIRDS[i], best(BIRDS[i].id));
-const unlocked = (i) => ALL_OPEN || i === 0 || medalOf(i - 1) >= 1;
+const passed = (i) => passes(BIRDS[i], best(BIRDS[i].id));
+const unlocked = (i) => ALL_OPEN || i === 0 || passed(i - 1);
 
 function buildGuide() {
   const wrap = $('#cards');
   wrap.textContent = '';
   BIRDS.forEach((b, i) => {
     const open = unlocked(i);
-    const m = medalOf(i);
+    const hi = best(b.id);
     const card = document.createElement('button');
     card.className = 'card' + (open ? '' : ' locked');
     card.dataset.nav = '';
     card.dataset.bird = i;
-    card.setAttribute('aria-label', open ? `${b.name}${m ? ', ' + MEDAL_NAMES[m] + ' medal' : ''}` : `Page ${i + 1}, not yet spotted`);
+    card.setAttribute('aria-label', open ? `${b.name}${hi ? ', best ' + hi : ''}` : `Page ${i + 1}, not yet spotted`);
     const cv = document.createElement('canvas');
     cv.setAttribute('aria-hidden', 'true');
     const name = document.createElement('span');
@@ -242,19 +229,12 @@ function buildGuide() {
     name.textContent = open ? b.name.replace(/^The /, '') : 'Not yet spotted';
     const sub = document.createElement('span');
     sub.className = 'card-sub';
-    sub.textContent = open ? b.game : `Page ${i + 1}`;
+    sub.textContent = open ? (hi ? `${b.game} · best ${hi}` : b.game) : `Page ${i + 1}`;
     card.append(cv, name, sub);
-    if (m) {
-      const md = document.createElement('span');
-      md.className = 'medal m' + m;
-      md.textContent = ['', 'B', 'S', 'G'][m];
-      md.setAttribute('aria-hidden', 'true');
-      card.append(md);
-    }
     card.addEventListener('click', () => {
       audio.unlock();
       if (!open) {
-        toast(`Win a medal on page ${i} to open this one.`);
+        toast(`Score ${BIRDS[i - 1].pass} on page ${i} to open this one.`);
         audio.sfx('back');
         return;
       }
@@ -264,10 +244,9 @@ function buildGuide() {
     });
     wrap.append(card);
   });
-  const medals = BIRDS.filter((b, i) => medalOf(i) > 0).length;
-  const golds = BIRDS.filter((b, i) => medalOf(i) === 3).length;
-  $('#guide-count').textContent = `${medals} of ${BIRDS.length} birds spotted · ${golds} gold`;
-  $('#gathering-btn').hidden = medals < BIRDS.length && !ALL_OPEN;
+  const spotted = BIRDS.filter((b, i) => passed(i)).length;
+  $('#guide-count').textContent = `${spotted} of ${BIRDS.length} birds spotted`;
+  $('#gathering-btn').hidden = spotted < BIRDS.length && !ALL_OPEN;
   const target = wrap.children[Math.min(S.bird, BIRDS.length - 1)];
   target?.focus();
 }
@@ -297,6 +276,12 @@ function drawCards(t) {
 
 // ---------- a bird's page ----------
 
+// What it takes to open the next page (or, on the last page, to finish).
+function goalLine(b) {
+  const i = BIRDS.indexOf(b);
+  return i + 1 < BIRDS.length ? `Score ${b.pass} to open the next page` : `Score ${b.pass} to spot every bird`;
+}
+
 function fillPage() {
   const b = BIRDS[S.bird];
   $('#page-number').textContent = `Page ${S.bird + 1} of ${BIRDS.length}`;
@@ -311,10 +296,7 @@ function fillPage() {
   }
   $('#page-game').textContent = b.game;
   $('#page-goal').textContent = b.goal;
-  const m = medalOf(S.bird);
-  $('#page-best').innerHTML = best(b.id)
-    ? `Best: ${best(b.id)} ${b.score} · <span class="dot m${m}"></span>${MEDAL_NAMES[m]}`
-    : `Bronze ${b.medals[0]} · Silver ${b.medals[1]} · Gold ${b.medals[2]}`;
+  $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
   focusFirst();
   if (settings.readAloud) readAloud();
 }
@@ -422,7 +404,7 @@ function showHowto() {
     li.textContent = l;
     tips.append(li);
   }
-  $('#howto-medals').innerHTML = ['Bronze', 'Silver', 'Gold'].map((n, k) => `<span><span class="dot m${k + 1}"></span>${n} ${b.medals[k]}</span>`).join('');
+  $('#howto-score').textContent = [passed(S.bird) ? '' : goalLine(b), best(b.id) ? `Your best: ${best(b.id)}` : ''].filter(Boolean).join(' · ');
   $('#howto-go').textContent = pad() ? 'Start (A)' : input.kind === 'pointer' ? 'Start' : 'Start (Space)';
   $('#howto').hidden = false;
   $('#pause').hidden = true;
@@ -469,18 +451,13 @@ function resume() {
 function finish() {
   const b = BIRDS[S.bird];
   const score = Math.round(S.game.score);
-  const before = medalOf(S.bird);
-  const isBest = recordScore(progress, b.id, score);
-  const m = medalFor(b, score);
-  const now = medalOf(S.bird);
+  const before = passed(S.bird);
+  const record = recordScore(progress, b.id, score) && score > 0;
+  const now = passed(S.bird);
   S.phase = 'result';
-  const md = $('#result-medal');
-  md.className = 'result-medal m' + m;
-  md.textContent = m ? MEDAL_NAMES[m] : 'Try again!';
-  $('#result-title').textContent = m === 3 ? 'Gold!' : m ? 'Well done!' : 'Time!';
-  $('#result-score').textContent = `${score} ${b.score}` + (m ? ` · ${MEDAL_NAMES[m]}` : '');
-  const next = b.medals[m];
-  $('#result-best').textContent = (isBest && score > 0 ? 'A new best! ' : `Best: ${best(b.id)}. `) + (next !== undefined ? `${MEDAL_NAMES[m + 1]} at ${next}.` : 'The best there is.');
+  $('#result-title').textContent = record ? 'New World Record!' : 'Time!';
+  $('#result-score').textContent = `${score} ${b.score}`;
+  $('#result-best').textContent = [record ? '' : `Best: ${best(b.id)}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
   const extra = $('#result-extra');
   extra.textContent = '';
   for (const line of S.game.summary?.() || []) {
@@ -488,13 +465,13 @@ function finish() {
     p.textContent = line;
     extra.append(p);
   }
-  if (before === 0 && now > 0 && S.bird + 1 < BIRDS.length) {
+  if (!before && now && S.bird + 1 < BIRDS.length) {
     const p = document.createElement('p');
     p.innerHTML = `<strong>A new page is open: ${BIRDS[S.bird + 1].name}!</strong>`;
     extra.append(p);
   }
   const nextBtn = $('#result-next');
-  const allDone = BIRDS.every((_, i) => medalOf(i) > 0);
+  const allDone = BIRDS.every((_, i) => passed(i));
   if (S.bird + 1 < BIRDS.length) {
     nextBtn.textContent = 'Next bird';
     nextBtn.disabled = !unlocked(S.bird + 1);
@@ -503,7 +480,7 @@ function finish() {
     nextBtn.disabled = !allDone;
   }
   $('#result').hidden = false;
-  audio.sfx('medal', { level: m });
+  audio.sfx('medal', { level: record ? 2 : now ? 1 : 0 });
   input.lockHeld();
   focusFirst();
 }
@@ -588,11 +565,11 @@ function act(action, el) {
       break;
     }
     case 'reset-progress':
-      confirm('Forget all medals?', 'Every bird’s best score is cleared, and only the first page stays open.', () => {
+      confirm('Forget all scores?', 'Every bird’s best score is cleared, and only the first page stays open.', () => {
         resetProgress();
         progress = loadProgress();
         if (S.screen === 'guide') buildGuide();
-        toast('Medals forgotten.');
+        toast('Scores forgotten.');
       });
       break;
   }
@@ -934,16 +911,6 @@ function renderGathering(t) {
       const x = 180 + i * 310 + (r ? 140 : 0);
       const y = r ? 860 : 520;
       drawBird(g, b.id, { x, y, size: r ? 330 : 280, t: t + i * 0.7 + r, pose: { growth: 1, light: 'green', fill: 0.7, sing: 0.6 } });
-      const m = medalOf(BIRDS.indexOf(b));
-      if (m) {
-        g.beginPath();
-        g.arc(x + 70, y - (r ? 330 : 280) + 20, 18, 0, Math.PI * 2);
-        g.fillStyle = ['', '#b77a4a', '#9aa0a8', '#d8a62a'][m];
-        g.fill();
-        g.lineWidth = 2;
-        g.strokeStyle = INK;
-        g.stroke();
-      }
     });
   });
   label(g, '', W / 2, 60);

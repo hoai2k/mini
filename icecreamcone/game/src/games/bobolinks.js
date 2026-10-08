@@ -484,8 +484,9 @@ export default function create(env) {
   }
 
   function drawStrip(c) {
-    // progress across the stream, with the medal marks
-    const max = Math.max(birdById('bobolinks').medals[2] * 1.15, g.score + 10);
+    // progress across the stream, with a mark at the score that opens the
+    // next page
+    const max = Math.max(birdById('bobolinks').pass * 2.4, g.score + 10);
     const { x, y, h } = STRIP;
     const yAt = (v) => y + h - (h * Math.min(v, max)) / max;
     label(c, 'Far bank', x, y - 36, { size: 22, weight: 700 });
@@ -495,8 +496,7 @@ export default function create(env) {
     poly(c, [[x - 12, yAt(g.score)], [x + 12, yAt(g.score)], [x + 12, y + h], [x - 12, y + h]], 10, 0.6);
     wash(c, PAL.mauve, 0.9);
     ink(c, 1.4);
-    const medals = birdById('bobolinks').medals.map((v, i) => [v, ['#c08a5a', '#b0b0b8', '#e0b840'][i]]);
-    for (const [v, col] of medals) {
+    for (const [v, col] of [[birdById('bobolinks').pass, '#e0b840']]) {
       const my = yAt(v);
       c.beginPath();
       c.moveTo(x - 20, my);

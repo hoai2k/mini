@@ -1,28 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { BIRDS, medalFor } from '../src/birds.js';
+import { BIRDS, passes } from '../src/birds.js';
 import { run } from './harness.mjs';
 
-test('every bird has its page data and rising medal targets', () => {
+test('every bird has its page data and a score to pass', () => {
   const ids = new Set();
   for (const b of BIRDS) {
     assert.ok(!ids.has(b.id), `duplicate id ${b.id}`);
     ids.add(b.id);
     for (const k of ['name', 'object', 'game', 'goal', 'score', 'color']) assert.ok(b[k], `${b.id}.${k}`);
     assert.equal(b.rhyme.length, 4, `${b.id} rhyme has four lines`);
-    assert.equal(b.medals.length, 3);
-    assert.ok(b.medals[0] > 0 && b.medals[0] < b.medals[1] && b.medals[1] < b.medals[2], `${b.id} medals rise`);
+    assert.ok(Number.isInteger(b.pass) && b.pass > 0, `${b.id} has a score to pass`);
   }
   assert.equal(BIRDS.length, 10);
 });
 
-test('medalFor counts thresholds', () => {
-  const b = { medals: [10, 20, 30] };
-  assert.equal(medalFor(b, 0), 0);
-  assert.equal(medalFor(b, 10), 1);
-  assert.equal(medalFor(b, 29), 2);
-  assert.equal(medalFor(b, 30), 3);
+test('passes compares with the score to pass', () => {
+  const b = { pass: 10 };
+  assert.equal(passes(b, 9), false);
+  assert.equal(passes(b, 10), true);
 });
 
 // Every minigame that exists must run to its end with no input and with
@@ -43,7 +40,7 @@ for (const b of BIRDS) {
       });
       assert.ok(mash.game.done, 'mashed game ends');
       assert.ok(Number.isFinite(mash.game.score) && mash.game.score >= 0, 'mashed score is a number');
-      assert.ok(idle.game.score < b.medals[1], 'doing nothing does not earn silver');
+      assert.ok(idle.game.score < b.pass, 'doing nothing does not pass');
       if (typeof mash.game.hud === 'function') assert.equal(typeof mash.game.hud(), 'string');
       if (typeof mash.game.summary === 'function') assert.ok(Array.isArray(mash.game.summary()));
     }

@@ -4,7 +4,7 @@ import create from '../src/games/gullfinch.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'gullfinch').medals;
+const pass = BIRDS.find((b) => b.id === 'gullfinch').pass;
 
 // A player with human timing: aims at each note with a normally distributed
 // error of `sd` seconds, now and then misses one outright (`lapse`), and
@@ -33,15 +33,15 @@ function player({ sd = 0.05, lapse = 0.04, windBelow = 0.5, seed = 7 } = {}) {
   };
 }
 
-test('gullfinch: a beginner earns at least bronze; idle earns nothing', () => {
+test('gullfinch: a beginner opens the next page; idle earns nothing', () => {
   const scores = [1, 2, 3].map((seed) => run(create, { seed, bot: player({ sd: 0.09, lapse: 0.08, seed: seed * 11 }) }).game.score);
   const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: player({ seed: seed * 13 }) }).game.score);
   const sharp = [1, 2, 3].map((seed) => run(create, { seed, bot: player({ sd: 0.03, lapse: 0.01, seed: seed * 5 }) }).game.score);
   const lazy = run(create, { seed: 1, bot: player({ windBelow: 0 }) }).game.score;
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('gullfinch beginner', scores, 'steady', steady, 'sharp', sharp, 'never winds', lazy, 'idle', idle, 'medals', medals);
+  console.log('gullfinch beginner', scores, 'steady', steady, 'sharp', sharp, 'never winds', lazy, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
-  assert.ok(Math.min(...scores) >= medals[0], `beginner ${scores}`);
+  assert.ok(Math.min(...scores) >= pass, `beginner ${scores}`);
   const mean = steady.reduce((a, b) => a + b, 0) / steady.length;
   assert.ok(lazy < mean * 0.85, `winding pays: ${lazy} vs ${mean}`);
 });
@@ -49,7 +49,7 @@ test('gullfinch: a beginner earns at least bronze; idle earns nothing', () => {
 test('gullfinch: mashing the action plays nothing well', () => {
   let k = 0;
   const { game } = run(create, { seed: 2, bot: () => ({ action: k++ % 4 < 2 }) });
-  assert.ok(game.score < medals[0], `mash ${game.score}`);
+  assert.ok(game.score < pass, `mash ${game.score}`);
 });
 
 test('gullfinch: a tap far from any note winds the spring', () => {

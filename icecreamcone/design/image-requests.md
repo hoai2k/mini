@@ -14,7 +14,7 @@ Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from `sou
 
 ## Status
 
-0 requested, 39 delivered, 39 in total.
+0 requested, 38 delivered, 1 retired, 39 in total.
 
 ## Brand
 
@@ -88,9 +88,9 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/ui/medals.png`
 - **Size:** 2048 x 1024, transparent
-- **Used for:** The result card, the field guide's tabs and the gathering page.
-- **Stand-in until delivered:** Coloured circles.
-- **Status:** delivered
+- **Used for:** Nothing any more: the game dropped medals for a best score and New World Records. Kept, delivered, in case it is wanted again; the game does not load it.
+- **Stand-in until delivered:** None.
+- **Status:** retired
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 1 row of three round prize rosettes with short ribbon tails, hand-drawn in ink and watercolour: bronze (warm brown-orange), silver (cool grey) and gold (warm yellow ochre), each with a tiny ice-cream cone embossed in the centre. No text.

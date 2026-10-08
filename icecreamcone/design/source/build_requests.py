@@ -14,6 +14,8 @@ Statuses:
     requested  the game draws its own stand-in and does not try to load the file
     delivered  the file is in icecreamcone/game/assets/ and the game loads it in place
                of the stand-in
+    retired    delivered once, no longer used: the file stays, the game does not
+               load it
 """
 
 from __future__ import annotations
@@ -501,8 +503,9 @@ SPRITES = [
      "browns, buffs and dusty pinks with round staring eyes and thin legs, in the book's odd, "
      "gentle way: three standing waiting, two mid-step walking, one flapping off in a fright."),
     ("IC-U06", "Medals", "medals", "assets/ui/medals.png", "2048 x 1024, transparent",
-     "The result card, the field guide's tabs and the gathering page.",
-     "Coloured circles.",
+     "Nothing any more: the game dropped medals for a best score and New World Records. "
+     "Kept, delivered, in case it is wanted again; the game does not load it.",
+     "None.",
      STYLE + " " + SHEET + " A 3 x 1 row of three round prize rosettes with short ribbon tails, "
      "hand-drawn in ink and watercolour: bronze (warm brown-orange), silver (cool grey) and gold "
      "(warm yellow ochre), each with a tiny ice-cream cone embossed in the centre. No text."),
@@ -512,11 +515,13 @@ DELIVERED_SPRITES = {
     "IC-P01", "IC-P02", "IC-P03", "IC-P04", "IC-P05", "IC-P06", "IC-P07",
     "IC-P08", "IC-P09", "IC-P10", "IC-P11", "IC-P12", "IC-P13", "IC-U06",
 }
+# Delivered but no longer used: the file stays, the game does not load it.
+RETIRED = {"IC-U06"}
 for sid, name, key, file, size, used, standin, prompt in SPRITES:
     REQUESTS.append({
         "id": sid, "section": "sprite" if sid.startswith("IC-P") else "ui", "name": name, "key": key,
         "file": file, "size": size, "used": used, "standin": standin,
-        "status": "delivered" if sid in DELIVERED_SPRITES else "requested",
+        "status": "retired" if sid in RETIRED else "delivered" if sid in DELIVERED_SPRITES else "requested",
         "prompt": prompt,
     })
 
@@ -535,6 +540,7 @@ def asset_list() -> str:
 
 def document() -> str:
     delivered = sum(r["status"] == "delivered" for r in REQUESTS)
+    retired = sum(r["status"] == "retired" for r in REQUESTS)
     out = [
         "# The Ice-Cream Cone Coot: image requests",
         "",
@@ -560,7 +566,7 @@ def document() -> str:
         "",
         "## Status",
         "",
-        f"{len(REQUESTS) - delivered} requested, {delivered} delivered, {len(REQUESTS)} in total.",
+        f"{len(REQUESTS) - delivered - retired} requested, {delivered} delivered, {retired} retired, {len(REQUESTS)} in total.",
         "",
     ]
     for key, (title, blurb) in SECTIONS.items():

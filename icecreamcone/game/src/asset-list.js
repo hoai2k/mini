@@ -156,6 +156,6 @@ export const ASSETS = {
   },
   "medals": {
     "file": "assets/ui/medals.png",
-    "delivered": true
+    "delivered": false
   }
 };

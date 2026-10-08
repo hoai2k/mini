@@ -7,9 +7,6 @@
   --accent-2: #d9a25a;
   --focus: #c0407a;
   --panel: rgba(250, 244, 228, 0.97);
-  --bronze: #b77a4a;
-  --silver: #9aa0a8;
-  --gold: #d8a62a;
   --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --sans: 'Questrial', 'Century Gothic', 'Avenir', system-ui, sans-serif;
 }
@@ -194,22 +191,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .card .card-sub { font-size: 0.75rem; color: var(--muted); }
 .card.locked { background: var(--paper-2); }
 .card.locked .card-name { color: var(--muted); }
-.medal {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid var(--ink);
-  display: grid;
-  place-items: center;
-  font: 800 0.7rem var(--sans);
-  color: #fff;
-}
-.medal.m1 { background: var(--bronze); }
-.medal.m2 { background: var(--silver); }
-.medal.m3 { background: var(--gold); }
 
 /* ---------- page ---------- */
 
@@ -230,7 +211,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .page-game { border-top: 1.5px dashed var(--muted); padding-top: 8px; }
 .page-game h3 { font-size: 1.3rem; }
 .page-game p { margin: 2px 0; }
-.medal-line { font-weight: 700; }
+.goal-line { font-weight: 700; }
 .foot-hint { font-size: 0.85rem; margin: 4px 0 0; }
 @media (max-width: 760px), (max-aspect-ratio: 1/1) {
   #page { flex-direction: column; justify-content: flex-end; }
@@ -310,30 +291,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .controls-list, .tips { text-align: left; padding-left: 1.2em; margin: 8px 0; }
 .controls-list li { margin: 3px 0; }
 .tips { color: var(--muted); font-size: 0.95rem; }
-.medal-targets { font-weight: 700; }
-.medal-targets span { margin: 0 6px; white-space: nowrap; }
-.dot { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; border: 1.5px solid var(--ink); vertical-align: -0.05em; margin-right: 4px; }
-.dot.m1 { background: var(--bronze); }
-.dot.m2 { background: var(--silver); }
-.dot.m3 { background: var(--gold); }
-.result-medal {
-  width: 110px;
-  height: 110px;
-  margin: 6px auto;
-  border-radius: 50%;
-  border: 3px solid var(--ink);
-  display: grid;
-  place-items: center;
-  font: 800 1.1rem var(--serif);
-  color: #fff;
-  background: var(--paper-2);
-  animation: pop 0.5s ease-out;
-}
-.result-medal.m0 { color: var(--muted); }
-.result-medal.m1 { background: var(--bronze); }
-.result-medal.m2 { background: var(--silver); }
-.result-medal.m3 { background: var(--gold); }
-@keyframes pop { from { transform: scale(0.3) rotate(-30deg); } 70% { transform: scale(1.1); } }
 .result-score { font: 800 1.6rem var(--serif); margin: 4px 0; }
 
 .scroll { overflow-y: auto; text-align: left; flex: 1; min-height: 0; padding-right: 6px; }
@@ -364,21 +321,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .press-start { animation: none; }
-  .result-medal { animation: none; }
-}
-body.reduce-motion .press-start, body.reduce-motion .result-medal { animation: none; }
-
-/* The painted rosettes (assets/ui/medals.png), cut out by main.js once delivered. */
-.medal-art .medal.m1, .medal-art .medal.m2, .medal-art .medal.m3,
-.medal-art .result-medal.m1, .medal-art .result-medal.m2, .medal-art .result-medal.m3,
-.medal-art .dot.m1, .medal-art .dot.m2, .medal-art .dot.m3 {
-  background: var(--medal-1) center / contain no-repeat;
-  border: none;
-  border-radius: 0;
-  color: transparent;
-}
-.medal-art .m2.medal, .medal-art .m2.result-medal, .medal-art .m2.dot { background-image: var(--medal-2); }
-.medal-art .m3.medal, .medal-art .m3.result-medal, .medal-art .m3.dot { background-image: var(--medal-3); }
-.medal-art .medal { width: 36px; height: 48px; top: 2px; right: 4px; }
-.medal-art .result-medal.m1, .medal-art .result-medal.m2, .medal-art .result-medal.m3 { width: 120px; height: 160px; }
-.medal-art .dot.m1, .medal-art .dot.m2, .medal-art .dot.m3 { width: 1.2em; height: 1.6em; vertical-align: -0.5em; }
+  }
+body.reduce-motion .press-start, body.reduce-motion 
+.menu-btn:disabled, .text-btn:disabled { opacity: 0.45; cursor: default; }

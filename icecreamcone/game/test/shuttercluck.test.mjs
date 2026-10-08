@@ -4,7 +4,7 @@ import create from '../src/games/shuttercluck.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'shuttercluck').medals;
+const pass = BIRDS.find((b) => b.id === 'shuttercluck').pass;
 const VALUE = [60, 100, 180];
 
 // A good photographer: swing to the most valuable bird in view (or the
@@ -42,14 +42,14 @@ function photographer({ greed = 0.85, speed = 1 } = {}) {
   };
 }
 
-test('shuttercluck: a good photographer earns at least bronze; idle earns nothing', () => {
+test('shuttercluck: a good photographer opens the next page; idle earns nothing', () => {
   const scores = [1, 2, 3, 4, 5].map((seed) => run(create, { seed, bot: photographer() }).game.score);
   const slow = [1, 2, 3].map((seed) => run(create, { seed, bot: photographer({ greed: 0.6, speed: 0.6 }) }).game.score);
   const idle = run(create, { seed: 1 });
   assert.equal(idle.game.score, 0);
   assert.ok(idle.game.done && idle.t <= 61, 'idle ends on the safety clock');
-  assert.ok(Math.min(...scores) >= medals[0], `photographer ${scores}`);
-  console.log('shuttercluck photographer scores', scores, 'slow', slow, 'medals', medals);
+  assert.ok(Math.min(...scores) >= pass, `photographer ${scores}`);
+  console.log('shuttercluck photographer scores', scores, 'slow', slow, 'pass', pass);
 });
 
 test('shuttercluck: ten shots end the game, and an empty frame scores nothing', () => {

@@ -70,7 +70,7 @@
         <div class="page-game">
           <h3 id="page-game"></h3>
           <p id="page-goal"></p>
-          <p class="medal-line" id="page-best"></p>
+          <p class="goal-line" id="page-best"></p>
         </div>
         <div class="row-buttons">
           <button class="menu-btn primary" data-nav data-action="play">Play</button>
@@ -97,7 +97,7 @@
         <p id="howto-goal"></p>
         <ul id="howto-controls" class="controls-list"></ul>
         <ul id="howto-tips" class="tips"></ul>
-        <p class="medal-targets" id="howto-medals"></p>
+        <p class="goal-line" id="howto-score"></p>
         <button class="menu-btn primary" data-nav data-action="begin" id="howto-go">Start</button>
         <button class="menu-btn" data-nav data-action="page">Back</button>
       </div>
@@ -120,7 +120,6 @@
     <section id="result" class="screen modal" hidden aria-labelledby="result-title">
       <div class="panel">
         <h2 id="result-title">Time!</h2>
-        <div class="result-medal" id="result-medal" aria-hidden="true"></div>
         <p class="result-score" id="result-score"></p>
         <p class="muted" id="result-best"></p>
         <div id="result-extra" class="muted"></div>
@@ -147,7 +146,7 @@
         <h2 id="ins-title">How to play</h2>
         <div class="scroll" id="ins-scroll" tabindex="0">
           <p><strong>The field guide.</strong> Every page is one of the rare birds from Arnold Lobel’s book. Meet the bird, then play its game: each one is a short challenge, 30 to 60 seconds, doing what that bird’s object does.</p>
-          <p><strong>Medals.</strong> Your score earns a bronze, silver or gold medal. A medal of any kind opens the next bird’s page. Gold on every bird is the big goal. When every bird has a medal, they all gather on the last page.</p>
+          <p><strong>Scores.</strong> Each game keeps your best score. Reach the score on its page to open the next bird’s page; beat your best for a New World Record. When every bird has been spotted, they all gather on the last page.</p>
           <p><strong>Every game uses the same few controls:</strong> move, and one action button. The card before each game tells you what they do there.</p>
           <h3>Xbox controller</h3>
           <div class="pad-diagram" aria-hidden="true">
@@ -201,7 +200,7 @@
           <label class="row check">Read each page aloud <input type="checkbox" data-nav data-setting="readAloud"></label>
           <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
           <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
-          <button class="menu-btn" data-nav data-action="reset-progress">Forget my medals…</button>
+          <button class="menu-btn" data-nav data-action="reset-progress">Forget my scores…</button>
         </div>
         <button class="menu-btn" data-nav data-action="close">Done</button>
       </div>

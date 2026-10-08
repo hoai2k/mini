@@ -4,7 +4,7 @@ import create from '../src/games/cupadee.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'cupadee').medals;
+const pass = BIRDS.find((b) => b.id === 'cupadee').pass;
 
 // A pourer that watches the cup and the tea still falling, and lets go when
 // the whole lot will reach the line. `err` is how far off its judgement is
@@ -23,14 +23,14 @@ function pourer(err = 0, seed = 1) {
   };
 }
 
-test('cupadee: a decent pourer earns bronze, a sharp one gold; idle earns nothing', () => {
+test('cupadee: a decent pourer opens the next page, a sharp one far more; idle earns nothing', () => {
   const decent = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: pourer(0.14, seed) }).game.score);
   const sharp = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: pourer(0.04, seed) }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('cupadee decent', decent, 'sharp', sharp, 'idle', idle, 'medals', medals);
+  console.log('cupadee decent', decent, 'sharp', sharp, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
-  assert.ok(Math.min(...decent) >= medals[0], `decent ${decent}`);
-  assert.ok(Math.max(...sharp) >= medals[2], `sharp ${sharp}`);
+  assert.ok(Math.min(...decent) >= pass, `decent ${decent}`);
+  assert.ok(Math.max(...sharp) >= pass * 2.5, `sharp ${sharp}`);
 });
 
 test('cupadee: holding on too long spills the cup and breaks the combo', () => {

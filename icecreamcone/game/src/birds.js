@@ -1,6 +1,6 @@
 // The field guide: one entry per bird, in the order of the book's pages.
 // The rhymes are the game's own, not the book's verses.
-// `medals` are the scores for bronze, silver and gold in the bird's minigame.
+// `pass` is the score in the bird's minigame that opens the next page.
 
 export const BIRDS = [
   {
@@ -12,7 +12,7 @@ export const BIRDS = [
     goal: 'Catch the scoops on the Coot’s head and build the tallest stack you can.',
     tips: ['A scoop lands where it touches: catch it in the middle to keep the stack straight.', 'One that hits the side clings, then slips. Lean the stack away from it, or run towards it, to hold it on; catch another on top of it to push it up.', 'Pickles and socks knock scoops off. A golden cherry counts as three.'],
     score: 'scoops in your tallest stack',
-    medals: [10, 18, 27],
+    pass: 10,
     tune: 'play',
     color: '#e98aa8',
   },
@@ -25,7 +25,7 @@ export const BIRDS = [
     goal: 'Hold to pour, and let go when the tea reaches the line.',
     tips: ['Right on the line is perfect.', 'Overfill and it spills: no points for that cup.', 'Later Cupadees are smaller, faster and bouncier.', 'The tea takes a moment to fall: let go just before the line.'],
     score: 'points',
-    medals: [600, 1100, 1600],
+    pass: 600,
     tune: 'menu',
     color: '#e8d27a',
   },
@@ -38,7 +38,7 @@ export const BIRDS = [
     goal: 'Birds peek out of their hiding places. Frame them and take their picture.',
     tips: ['Watch for a rustle: a bird is about to peek out.', 'A bird in the middle of the frame scores most; rare birds score more.', 'You have ten shots.'],
     score: 'points',
-    medals: [500, 900, 1300],
+    pass: 500,
     tune: 'menu',
     color: '#c97b8c',
   },
@@ -51,7 +51,7 @@ export const BIRDS = [
     goal: 'Press as each note reaches the needle, and keep the spring wound up.',
     tips: ['Spin the stick (or drag in circles, or tap between notes, not just before one) to wind the spring.', 'A run-down spring makes the song slow and sad, and the notes harder to hit.', 'Long streaks score a bonus.'],
     score: 'points',
-    medals: [1500, 2600, 3600],
+    pass: 1500,
     tune: null,
     color: '#b5a642',
   },
@@ -64,7 +64,7 @@ export const BIRDS = [
     goal: 'Move the watering can and hold to water. Bring each Plume to full bloom.',
     tips: ['Each full bloom scores, then the Plume starts again.', 'A dry Plume wilts and loses its growth.', 'Too much water and it gets soggy and stops for a moment.', 'Rain that misses the pots is wasted: keep the can over a Plume.'],
     score: 'blooms',
-    medals: [7, 10, 12],
+    pass: 7,
     tune: 'menu',
     color: '#d99a8a',
   },
@@ -77,7 +77,7 @@ export const BIRDS = [
     goal: 'Step on each stone with the matching foot to cross the stream.',
     tips: ['Left stone: left foot. Right stone: right foot.', 'A wrong step splashes and costs a moment.', 'Double stones need both feet at once.', 'The stone you’re about to step on sinks if you wait too long.'],
     score: 'stones',
-    medals: [45, 75, 105],
+    pass: 45,
     tune: 'night',
     color: '#b88aa0',
   },
@@ -90,7 +90,7 @@ export const BIRDS = [
     goal: 'Catch the letters of the word in order as they flutter down.',
     tips: ['The next letter you need is underlined.', 'A wrong letter smudges the word and costs a point.', 'Letters you’ll need soon are already falling.'],
     score: 'points',
-    medals: [18, 32, 48],
+    pass: 18,
     tune: 'play',
     color: '#c9c09a',
   },
@@ -103,7 +103,7 @@ export const BIRDS = [
     goal: 'Steer the needle along the dotted seam as the quilt scrolls by.',
     tips: ['Stitches on the line score; stitches off it don’t.', 'Hold the action to sew faster, if you dare.', 'Every 25 neat stitches in a row earns 5 more.'],
     score: 'stitches',
-    medals: [120, 200, 280],
+    pass: 120,
     tune: 'menu',
     color: '#a89a52',
   },
@@ -116,7 +116,7 @@ export const BIRDS = [
     goal: 'Watch the hat the Dodo hides under as they shuffle, then pick it.',
     tips: ['More hats, and faster shuffles, every round.', 'Later rounds are worth more, and some swaps are only pretend.', 'Pick quickly for a bonus.'],
     score: 'points',
-    medals: [450, 700, 950],
+    pass: 450,
     tune: 'play',
     color: '#b8c46a',
   },
@@ -129,7 +129,7 @@ export const BIRDS = [
     goal: 'Switch the light so the cars and the little birds take turns to cross.',
     tips: ['Green lets the cars go; red lets the birds cross.', 'Anyone who waits too long gives up and leaves, and that costs a point.', 'Switching to green while birds are crossing is a near miss: they fly off, and it costs three points.'],
     score: 'crossings',
-    medals: [40, 62, 80],
+    pass: 40,
     tune: 'play',
     color: '#5e7a5a',
   },
@@ -137,13 +137,5 @@ export const BIRDS = [
 
 export const birdById = (id) => BIRDS.find((b) => b.id === id);
 
-// 0 none, 1 bronze, 2 silver, 3 gold.
-export function medalFor(bird, score) {
-  let m = 0;
-  bird.medals.forEach((t, i) => {
-    if (score >= t) m = i + 1;
-  });
-  return m;
-}
-
-export const MEDAL_NAMES = ['No medal', 'Bronze', 'Silver', 'Gold'];
+// Does a score open the next page?
+export const passes = (bird, score) => score >= bird.pass;

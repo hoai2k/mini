@@ -8,7 +8,9 @@ what its object does. What the book looks like is in
 
 It is for school-age kids, at about the level of Mario Party minigames: easy
 to pick up, short (30 to 60 seconds), with a real score to beat. Each game
-awards a bronze, silver or gold medal, and gets harder the longer it runs.
+keeps your best score, has one score to reach to open the next page, and gets
+harder the longer it runs. There are no medals or grades: beating your best
+says "New World Record!" and nothing more specific.
 
 ## Flow
 
@@ -16,22 +18,25 @@ awards a bronze, silver or gold medal, and gets harder the longer it runs.
    Fullscreen buttons (see `GAME_GUIDELINES.md`).
 2. **The field guide.** A spread of pages, one per bird. A bird you haven't
    met yet shows as an ink silhouette marked "Not yet spotted". The first
-   bird is open from the start; each medal opens the next page. The medal
-   you've won sits on the bird's tab.
+   bird is open from the start; reaching a bird's score opens the next page.
+   Each tab shows your best score.
 3. **The bird's page.** The bird large on cream paper, gently alive (it
    breathes, blinks, shuffles, does its thing now and then), with its name and
    a short rhyme in the game's own words (not the book's verses). "Read to
    me" speaks the rhyme. "Play" goes to the game.
 4. **How to play.** A card with the goal, the controls for the device you are
-   using, and the medal targets. Any button starts.
+   using, the score that opens the next page (until you've reached it) and
+   your best. Any button starts.
 5. **Play.** A 3-2-1 count, the game, then "Time!".
-6. **Result.** Your score, the medal it earns, your best, and the next medal's
-   target. Options: Play again, Next bird, Back to the guide.
-7. **The gathering.** When every bird has a medal, a final page shows them all
+6. **Result.** Your score, under "New World Record!" when it beats your best
+   (otherwise "Time!" and your best), and the score that opens the next page
+   if you haven't reached it yet. Options: Play again, Next bird, Back to the
+   guide.
+7. **The gathering.** When every bird has been spotted, a final page shows them all
    together, like the book's endpapers. Any bird can be replayed at any time.
 
-Medals: bronze opens the next bird. Gold on everything is the long goal; the
-field guide counts gold medals on its cover.
+The score to reach is the same for everyone and fairly gentle; beating your
+own best is the long game.
 
 ## Controls
 
@@ -47,9 +52,8 @@ Every minigame uses the same small set of inputs, so kids learn them once.
 
 ## The minigames
 
-Scores are whole numbers. The medal targets are in `game/src/birds.js` and
-are tuned so that bronze comes on a first try, silver takes some practice and
-gold is a real stretch.
+Scores are whole numbers. The score that opens the next page (`pass`) is in
+`game/src/birds.js`, tuned so it comes within a try or two.
 
 ### 1. Ice-Cream Cone Coot: Scoop Stack (45 s)
 
