@@ -76,11 +76,14 @@ it's high enough, level with the top, it is pushed up onto the stack.
 Clinging scoops weigh on their side of the balance: they can tip the stack,
 or steady one that leans the other way.
 
-As the stack grows the view zooms out, so there is always a good stretch of
+As the stack grows the view makes room, so there is always a good stretch of
 sky above the top scoop, and new scoops start just above the top of the
-view: a tall stack gets the same warning as a short one. The painted
-seaside stays put while the Coot and its scoops shrink towards the
-boardwalk; the view zooms back in slowly after a topple.
+view: a tall stack gets the same warning as a short one. First the Coot
+steps back along the boardwalk, a little smaller with distance; then the
+camera pulls back over the wide seaside painting (IC-S11), so the whole
+scene shrinks together, down to half size. Until that painting arrives the
+seaside stays put and only the Coot and its scoops shrink. The view closes
+in again slowly after a topple.
 
 ### 2. Cupadee: Tea Time (45 s)
 
