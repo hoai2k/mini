@@ -375,9 +375,15 @@ function toggleFullscreen() {
 }
 
 // ---------------------------------------------------------------- pause triggers
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { if (S.mode === 'play') pause(); audio.suspend(); } else audio.resume();
-});
+// A hidden tab or an unfocused window pauses play and silences every sound
+// (the one AudioContext carries the song, the sea loop and the effects);
+// sound returns once the page is both visible and focused again.
+function syncAway() {
+  if (document.hidden || !document.hasFocus()) { if (S.mode === 'play') pause(); audio.suspend(); } else audio.resume();
+}
+document.addEventListener('visibilitychange', syncAway);
+addEventListener('blur', syncAway);
+addEventListener('focus', syncAway);
 input.on('disconnect', (pad, wasOwner) => {
   if (wasOwner && S.mode === 'play') pause('Controller disconnected — reconnect it, or carry on with keys or touch.');
 });
