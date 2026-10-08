@@ -76,11 +76,35 @@ export const EFFECT_IDS = [
   'fireworks',
 ];
 
+// The three tabs. Backgrounds replace or change what's behind you (new
+// backdrops and the 360 worlds). Accessories add pictures in front: hats,
+// ears, horns, masks, hearts and the like. Effects are everything else:
+// warps, colour, time tricks and particles drawn on the fly.
+export const BACKGROUND_IDS = new Set([
+  'space', 'underwater', 'sunset', 'blurbg', 'colorpop', 'neonaura', 'disco', 'matrix',
+  'beach360', 'space360', 'reef360', 'forest360', 'city360', 'snow360', 'candy360', 'volcano360',
+]);
+export const ACCESSORY_IDS = new Set([
+  'puppy', 'kitty', 'bunny', 'hearteyes', 'dragon', 'alien', 'dealwithit', 'crown', 'fancy', 'clown',
+  'flowercrown', 'devil', 'angel', 'pirate', 'viking', 'wizard', 'hotdog', 'butterflies', 'storm', 'moneyrain',
+]);
+
+// Effects that put you in front of a bright scene: a dim camera image is
+// brightened to match it.
+export const BRIGHTEN_IDS = new Set([
+  'underwater', 'sunset', 'beach360', 'reef360', 'forest360', 'city360', 'snow360', 'candy360', 'disco',
+]);
+
 export async function loadEffects() {
   const results = await Promise.allSettled(EFFECT_IDS.map(id => import(`./${id}.js`)));
   const effects = [];
   results.forEach((r, i) => {
-    if (r.status === 'fulfilled' && r.value?.default?.id === EFFECT_IDS[i]) effects.push(r.value.default);
+    if (r.status === 'fulfilled' && r.value?.default?.id === EFFECT_IDS[i]) {
+      const fx = r.value.default;
+      fx.kind = BACKGROUND_IDS.has(fx.id) ? 'backgrounds' : ACCESSORY_IDS.has(fx.id) ? 'accessories' : 'effects';
+      if (BRIGHTEN_IDS.has(fx.id)) fx.brighten = true;
+      effects.push(fx);
+    }
     else console.warn(`effect ${EFFECT_IDS[i]} not loaded`, r.reason ?? 'wrong id');
   });
   return effects;

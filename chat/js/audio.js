@@ -6,6 +6,9 @@ import { load } from './store.js';
 
 let ctx = null;
 let volume = load('settings', {}).volume ?? 0.6;
+// Every effect plays at this share of the slider's level: the sounds sit
+// quietly under the conversation.
+const MASTER = 0.5;
 
 export function setVolume(v) {
   volume = v;
@@ -28,7 +31,7 @@ function tone({ freq = 440, to = freq, type = 'sine', dur = 0.15, gain = 0.3, de
   osc.frequency.setValueAtTime(freq, t0);
   osc.frequency.exponentialRampToValueAtTime(Math.max(1, to), t0 + dur);
   g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(gain * volume, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * volume * MASTER), t0 + 0.01);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   osc.connect(g).connect(ctx.destination);
   osc.start(t0);
@@ -47,7 +50,7 @@ function noise({ dur = 0.2, gain = 0.3, freq = 1200, delay = 0 }) {
   filter.type = 'bandpass';
   filter.frequency.value = freq;
   const g = ctx.createGain();
-  g.gain.value = gain * volume;
+  g.gain.value = gain * volume * MASTER;
   src.connect(filter).connect(g).connect(ctx.destination);
   src.start(t0);
 }

@@ -51,8 +51,15 @@ uniform float u_pucker;
 uniform float u_browUp;
 uniform float u_yaw;
 uniform float u_pitch;
-// The camera image at canvas position uv (mirrored like a selfie).
-vec4 cam(vec2 uv) { return texture2D(u_tex, vec2(1.0 - uv.x, uv.y)); }
+uniform float u_gain;
+// The camera image at canvas position uv (mirrored like a selfie). For
+// effects marked brighten, a dim image is lifted (u_gain > 1) with a curve
+// that leaves white white.
+vec4 cam(vec2 uv) {
+  vec4 c = texture2D(u_tex, vec2(1.0 - uv.x, uv.y));
+  c.rgb = c.rgb * u_gain / (1.0 + (u_gain - 1.0) * c.rgb);
+  return c;
+}
 // 1 where the person is, 0 for the room behind them (needs.segmentation).
 float personMask(vec2 uv) { return u_hasMask > 0.5 ? texture2D(u_mask, vec2(1.0 - uv.x, uv.y)).r : 1.0; }
 // The effect's background image, covering the canvas.
@@ -111,11 +118,14 @@ export function createStudio() {
   let micOn = false;
   // While the tab is in the background the camera and microphone are paused
   // without changing the user's own on/off choices, which come back with it.
-  let away = false;
+  // On phones the microphone stays on while away (you may just be glancing
+  // at another app); only the camera pauses.
+  let away = false, keepMicAway = false;
   const camLive = () => camOn && !away;
+  const micLive = () => micOn && !(away && !keepMicAway);
   function applyTracks() {
     camStream?.getVideoTracks().forEach(t => { t.enabled = camLive(); });
-    if (micTrack) micTrack.enabled = micOn && !away;
+    if (micTrack) micTrack.enabled = micLive();
   }
   let effect = null;
   let effectState = {};
@@ -160,6 +170,29 @@ export function createStudio() {
   let shownAt = performance.now();
   document.addEventListener('visibilitychange', () => { shownAt = performance.now(); });
   const ema = (old, v, k = 0.1) => (old ? old + (v - old) * k : v);
+  // Brightness of the camera image, measured a few times a second while an
+  // effect that wants brightening is on: gain lifts the middle of the frame
+  // (where you are) towards mid-grey, at most 2.4 times.
+  let gain = 1, gainFrame = 0;
+  const lumaCanvas = document.createElement('canvas');
+  lumaCanvas.width = 24;
+  lumaCanvas.height = 18;
+  const lumaCtx = lumaCanvas.getContext('2d', { willReadFrequently: true });
+  function measureGain() {
+    if (!effect?.brighten || !camLive() || video.readyState < 2 || frameNo - gainFrame < 8) return;
+    gainFrame = frameNo;
+    try {
+      lumaCtx.drawImage(video, 0, 0, 24, 18);
+      const d = lumaCtx.getImageData(5, 3, 14, 12).data;
+      let sum = 0;
+      for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+      const mean = sum / (d.length / 4) / 255;
+      // Solve the curve for the gain that takes the mean to 0.45.
+      const target = 0.45;
+      const want = mean > 0.01 ? (target * (1 - mean)) / (mean * (1 - target)) : 2.4;
+      gain += (Math.max(1, Math.min(2.4, want)) - gain) * 0.3;
+    } catch {}
+  }
 
   function on(type, cb) {
     if (!listeners.has(type)) listeners.set(type, new Set());
@@ -237,7 +270,7 @@ export function createStudio() {
       micTrack = at;
       out.addTrack(at);
       micOn = true;
-      at.enabled = micOn && !away;
+      at.enabled = micLive();
       result.mic = true;
       at.addEventListener('ended', () => lost('mic', at));
     }
@@ -379,6 +412,7 @@ export function createStudio() {
 
     uniform(prog, 'u_res', [w, h]);
     uniform(prog, 'u_time', frame.t);
+    uniform(prog, 'u_gain', fx.brighten ? gain : 1);
     uniform(prog, 'u_hasMask', mask && fx.needs?.segmentation ? 1 : 0);
     uniform(prog, 'u_yaw', frame.view?.yaw ?? 0);
     uniform(prog, 'u_pitch', frame.view?.pitch ?? 0);
@@ -592,6 +626,7 @@ export function createStudio() {
     }
     const w = canvas.width, h = canvas.height;
     track(now);
+    measureGain();
 
     input.pressed = input.held && !input.wasHeld;
     input.wasHeld = input.held;
@@ -685,10 +720,12 @@ export function createStudio() {
     },
     get away() { return away; },
     // Pauses the camera and microphone while the tab is in the background.
-    setAway(yes) {
+    setAway(yes, { keepMic = false } = {}) {
       away = !!yes;
+      keepMicAway = keepMic;
       applyTracks();
     },
+    get micLive() { return !!micTrack && micLive(); },
     setEffect(fx) {
       if (effect?.stop) {
         try { effect.stop(effectState); } catch (e) { console.error(e); }

@@ -120,7 +120,10 @@ function toggleFullscreen(fromStart = false) {
 
 document.addEventListener('click', e => {
   const opener = e.target.closest('[data-open]');
-  if (opener) openDialog(opener.dataset.open);
+  if (opener) {
+    opener.closest('dialog')?.close();
+    openDialog(opener.dataset.open);
+  }
   if (e.target.closest('[data-action="fullscreen"]')) toggleFullscreen();
 });
 applyIcons();
@@ -212,6 +215,7 @@ async function start() {
 
   $('#title').classList.remove('active');
   $('#call').classList.add('active');
+  document.body.classList.add('in-call');
 
   studio = createStudio();
   studio.setAvatar(me.name, me.color);
@@ -234,7 +238,8 @@ async function start() {
   const syncAway = () => {
     const away = document.hidden || !document.hasFocus();
     if (away === studio.away) return;
-    studio.setAway(away);
+    // Phones keep the microphone on while you glance at another app.
+    studio.setAway(away, { keepMic: matchMedia('(pointer: coarse)').matches });
     updateDeviceButtons();
   };
   document.addEventListener('visibilitychange', syncAway);
@@ -356,6 +361,7 @@ function updatePip() {
     else delete rec.el.dataset.corner;
   }
   $('#stage').classList.toggle('swapped', two && swapped);
+  updateGrabButton();
 }
 
 // Pressing and holding my own tile is the Bubble Blow gesture, wherever it is.
@@ -394,6 +400,7 @@ function tileGestures(rec) {
     } else if (e.type === 'pointerup' && el.classList.contains('pip') && !games?.current && performance.now() - drag.t < 350) {
       swapped = !swapped;
       layout();
+      for (const t of tiles.values()) flashName(t, 2000);
     }
     drag = null;
   };
@@ -409,10 +416,19 @@ function addSelfTile() {
   updateTileLabel(rec, { name: `${me.name} (you)`, color: me.color, mic: true, cam: true });
 }
 
+// Names show on the videos only for a moment (when someone arrives, renames
+// or the videos swap), leaving the picture clear.
+function flashName(rec, ms = 3500) {
+  rec.el.classList.add('show-name');
+  clearTimeout(rec.nameTimer);
+  rec.nameTimer = setTimeout(() => rec.el.classList.remove('show-name'), ms);
+}
+
 function updateTileLabel(rec, p) {
   const sig = JSON.stringify([p.name, p.color, p.mic, p.cam, p.away, rec.quality]);
   if (sig === rec.sig) return;
   rec.sig = sig;
+  if (p.name && p.name !== rec.name) flashName(rec);
   rec.name = p.name || rec.name;
   rec.label.textContent = p.name || '…';
   rec.el.style.setProperty('--c', p.color || '#ff5fa2');
@@ -443,6 +459,7 @@ function updateTileLabel(rec, p) {
 function onPeers(peers) {
   rtc.sync([...peers.keys()]);
   studio.setPeerCount(peers.size);
+  queueMicrotask(updateGrabButton);
   for (const [id, p] of peers) {
     let rec = tiles.get(id);
     if (!rec) {
@@ -794,40 +811,76 @@ function updateDeviceButtons() {
   net?.setPresence({ cam: studio.camOn, mic: studio.micOn, away: studio.away });
 }
 
-// The effects strip, the games sheet and the chat sheet share the space above
-// the controls, so opening one closes the others.
-const trays = { effects: '#tray-effects', games: '#tray-games', chat: '#chat-box' };
+// The bottom row (Favorites, Effects, Backgrounds, Games) and Messages share
+// the space above the controls, so opening one closes the others. The picked
+// button slides to the left (tap it again for the whole row) and the space
+// to its right shows what is on, so nothing needs to sit above the strip.
+const KINDS = ['effects', 'accessories', 'backgrounds'];
+const trays = { favs: '#tray-favs', effects: '#tray-effects', accessories: '#tray-effects', backgrounds: '#tray-effects', games: '#tray-games', chat: '#chat-box' };
+const TABS = ['favs', ...KINDS, 'games'];
+let openTab = null;
 function toggleTray(which, force) {
-  for (const [k, sel] of Object.entries(trays)) {
-    const open = k === which ? (force ?? $(sel).hidden) : false;
-    $(sel).hidden = !open;
-    $(`#btn-${k}`).setAttribute('aria-expanded', String(open));
-  }
-  if ($('#tray-effects').hidden && effectGrid) setEffectGrid(false);
-  if (which === 'effects' && !$('#tray-effects').hidden) {
-    centerEffect(studio?.effect?.id ?? '', false);
-  } else if (studio?.effect) {
-    renderEffectHint(true);
-  }
-  if (which === 'chat' && !$('#chat-box').hidden) {
+  const open = which && (force ?? openTab !== which);
+  const next = open ? which : null;
+  const prev = openTab;
+  openTab = next;
+  for (const sel of new Set(Object.values(trays))) $(sel).hidden = !next || trays[next] !== sel;
+  for (const k of TABS) $(`#btn-${k}`).setAttribute('aria-expanded', String(k === next));
+  const ctrls = $('#controls');
+  if (TABS.includes(next)) ctrls.dataset.tab = next;
+  else delete ctrls.dataset.tab;
+  $('#ctrl-info').hidden = !TABS.includes(next);
+  for (const [k, g] of Object.entries(grids)) if (g.on && (next !== k && !(k === 'effects' && KINDS.includes(next)))) setGrid(k, false);
+  if (KINDS.includes(next)) {
+    if (prev !== next && grids.effects.on) setGrid('effects', false);
+    showKind(next);
+  } else if (next === 'favs') {
+    renderFavorites();
+  } else if (next === 'chat') {
     chatUnread = 0;
-    $('#chat-badge').hidden = true;
+    updateChatBadge();
     if (matchMedia('(pointer: fine)').matches) $('#chat-input').focus();
-  } else if (which === 'games' && !$('#tray-games').hidden) {
+  } else if (next === 'games') {
     $('#tray-games').querySelector('button')?.focus({ preventScroll: true });
   }
+  renderInfo();
 }
 
+// A strip that can be dragged up into a grid (and pulled back down).
+const grids = { effects: { on: false, tray: '#tray-effects', list: '#effect-list' }, favs: { on: false, tray: '#tray-favs', list: '#fav-list' } };
+function setGrid(key, on) {
+  const g = grids[key];
+  g.on = on;
+  $(g.tray).classList.toggle('grid', on);
+  const list = $(g.list);
+  if (on) {
+    list.scrollLeft = 0;
+    const sel = list.querySelector('[aria-selected="true"]:not([hidden])');
+    list.scrollTop = 0;
+    if (sel) list.scrollTop = Math.max(0, sel.offsetTop - list.clientHeight / 2 + sel.offsetHeight / 2);
+  } else {
+    list.scrollTop = 0;
+    if (key === 'effects') centerEffect(studio?.effect?.id ?? '', false, false);
+  }
+}
+const effectGrid = () => grids.effects.on;
+
 function initSheets() {
-  makeSheet($('#tray-effects'), {
-    onDismiss: () => toggleTray(null),
-    scroller: '#effect-list',
-    onExpand: () => setEffectGrid(true),
-    canExpand: () => !effectGrid,
-    collapsible: () => effectGrid,
-    onCollapse: () => setEffectGrid(false),
-  });
-  $('#tray-effects .sheet-grip').addEventListener('click', () => setEffectGrid(!effectGrid));
+  for (const key of Object.keys(grids)) {
+    const g = grids[key];
+    makeSheet($(g.tray), {
+      onDismiss: () => toggleTray(null),
+      scroller: g.list,
+      onExpand: () => setGrid(key, true),
+      // A short favourites list has nothing more to show in a grid.
+      canExpand: () => !g.on && (key !== 'favs' || $(g.list).scrollWidth > $(g.list).clientWidth + 8),
+      collapsible: () => g.on,
+      onCollapse: () => setGrid(key, false),
+    });
+    $(`${g.tray} .sheet-grip`).addEventListener('click', () => {
+      if (g.on || key !== 'favs' || $(g.list).scrollWidth > $(g.list).clientWidth + 8) setGrid(key, !g.on);
+    });
+  }
   makeSheet($('#tray-games'), { onDismiss: () => toggleTray(null), scroller: '.sheet-body' });
   makeSheet($('#chat-box'), { onDismiss: () => toggleTray(null), scroller: '.chat-log' });
 }
@@ -836,7 +889,7 @@ function initSheets() {
 function back() {
   const dialog = document.querySelector('dialog[open]');
   if (dialog) return dialog.close();
-  if (Object.values(trays).some(sel => !$(sel).hidden)) return toggleTray(null);
+  if (openTab) return toggleTray(null);
   if (games?.current) return games.close();
 }
 
@@ -865,9 +918,14 @@ function initControls() {
     studio.setCamera(!studio.camOn);
     updateDeviceButtons();
   });
-  $('#btn-effects').addEventListener('click', () => toggleTray('effects'));
-  $('#btn-games').addEventListener('click', () => toggleTray('games'));
-  $('#btn-chat').addEventListener('click', () => toggleTray('chat'));
+  for (const k of TABS) $(`#btn-${k}`).addEventListener('click', () => toggleTray(k));
+  $('#open-chat').addEventListener('click', () => {
+    $('#settings').close();
+    toggleTray('chat', true);
+  });
+  $('#chat-close').addEventListener('click', () => toggleTray(null));
+  $('#fx-info').addEventListener('click', () => showEffectInfo(studio.effect));
+  $('#fx-share').addEventListener('click', shareEffect);
   initSheets();
   $('#btn-leave').addEventListener('click', () => {
     rtc.closeAll();
@@ -878,79 +936,123 @@ function initControls() {
   const typing = e => /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName);
   addEventListener('keydown', e => {
     if (e.key === 'Escape') return back();
-    if (typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (typing(e) || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('dialog[open]')) return;
     if (games?.current && e.code === 'Space') return; // games use Space
+    const key = e.key.toLowerCase();
     if (e.code === 'Space' && !e.repeat) {
       studio.input.held = true;
       if (document.activeElement === document.body || !document.activeElement?.matches('button')) e.preventDefault();
-    } else if (e.key === 'e' || e.key === 'E') toggleTray('effects');
-    else if (e.key === 'g' || e.key === 'G') toggleTray('games');
-    else if (e.key === 'm' || e.key === 'M') $('#btn-mic').click();
+    } else if (key === 'e') toggleTray('effects');
+    else if (key === 'a') toggleTray('accessories');
+    else if (key === 'b') toggleTray('backgrounds');
+    else if (key === 'g') toggleTray('games');
+    else if (key === 'f') toggleTray('favs');
+    else if (key === 'm') $('#btn-mic').click();
   });
   addEventListener('keyup', e => {
     if (e.code === 'Space') studio.input.held = false;
   });
 }
 
+// What the space beside the picked button says: the effect that's on (with
+// its thumbs, ⓘ and share) or a line about the tab.
+function renderInfo() {
+  if (!openTab || openTab === 'chat') return;
+  const fx = studio?.effect;
+  const name = $('#info-name'), sub = $('#info-sub');
+  let showFx = false;
+  if (KINDS.includes(openTab)) {
+    showFx = !!fx && fx.kind === openTab;
+    name.textContent = showFx ? `${fx.emoji} ${fx.name}` : { effects: 'Effects', accessories: 'Accessories', backgrounds: 'Backgrounds' }[openTab];
+    sub.textContent = faceStatusText() || (showFx ? '' : 'Swipe to try one');
+  } else if (openTab === 'favs') {
+    const n = favoriteItems().length;
+    showFx = !!fx && votes?.mine(`fx-${fx.id}`) === 1;
+    name.textContent = showFx ? `${fx.emoji} ${fx.name}` : 'Favorites';
+    sub.textContent = n ? (showFx ? '' : 'Tap one to use it') : 'Thumbs up things to keep them here';
+  } else if (openTab === 'games') {
+    name.textContent = 'Games';
+    sub.textContent = 'Start one and friends can join';
+  }
+  sub.hidden = !sub.textContent;
+  if (votes) {
+    if (!fxVotes) {
+      fxVotes = voteButtons(votes, 'fx-none', { compact: true });
+      $('#fx-votes').append(fxVotes);
+    }
+    if (fx) fxVotes.setItem(`fx-${fx.id}`);
+  }
+  $('#info-actions').hidden = !showFx;
+}
+
+function faceStatusText() {
+  if (!studio) return '';
+  if (!studio.hasCamera) return 'No camera: effects show on your initial';
+  return { idle: '', loading: 'Loading face tracking…', ready: '', failed: 'Face tracking unavailable' }[studio.faceStatus];
+}
+
 // --- effects ---------------------------------------------------------------
 
-// The effects strip: swipe it sideways and whichever lens stops in the ring
-// is put on, so you can preview each in turn. Tapping a lens scrolls it into
-// the ring. Dragging the strip up opens every effect as a grid that scrolls
-// up and down (tap one to put it on); pulling the grid down goes back to the
-// strip.
-let effectGrid = false;
-function setEffectGrid(on) {
-  effectGrid = on;
-  const tray = $('#tray-effects');
-  tray.classList.toggle('grid', on);
+// Effects, Accessories and Backgrounds share one strip, each showing its own kind: swipe
+// it sideways and whichever lens stops in the ring is put on, so you can
+// preview each in turn. Tapping a lens scrolls it into the ring. Dragging
+// the strip up opens them all as a grid that scrolls up and down (tap one to
+// put it on); pulling the grid down goes back to the strip.
+let quietUntil = 0; // programmatic scrolling of the strip mustn't pick an effect
+
+function showKind(kind) {
   const list = $('#effect-list');
-  if (on) {
-    list.scrollLeft = 0;
-    const sel = list.querySelector('[aria-selected="true"]');
-    list.scrollTop = 0;
-    if (sel) list.scrollTop = Math.max(0, sel.offsetTop - list.clientHeight / 2 + sel.offsetHeight / 2);
-  } else {
-    list.scrollTop = 0;
-    centerEffect(studio?.effect?.id ?? '', false);
+  list.dataset.kind = kind;
+  for (const b of list.children) {
+    const fx = effects.find(e => e.id === b.dataset.fx);
+    b.hidden = !!fx && fx.kind !== kind;
   }
+  const fx = studio?.effect;
+  // Showing the other tab doesn't take off what's on: centre "none" quietly.
+  centerEffect(fx?.kind === kind ? fx.id : '', false, false);
 }
+
+function effectButton(fx, onClick) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'fx-item';
+  b.setAttribute('aria-label', fx.name);
+  b.title = fx.name;
+  const iconUrl = fx.icon;
+  if (iconUrl) {
+    const im = document.createElement('img');
+    im.src = iconUrl;
+    im.alt = '';
+    b.append(im);
+  } else {
+    b.textContent = fx.emoji;
+  }
+  const label = document.createElement('span');
+  label.className = 'fx-label';
+  label.textContent = fx.name;
+  b.append(label);
+  b.addEventListener('click', onClick);
+  return b;
+}
+
 async function initEffects() {
   effects = await loadEffects();
   const list = $('#effect-list');
-  const none = { id: null, name: 'No effect', emoji: '🚫', hint: '' };
+  const none = { id: null, name: 'No effect', emoji: '🚫' };
   for (const fx of [none, ...effects]) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'fx-item';
+    const b = effectButton({ ...fx, icon: fx.id && assetUrl(`fx-${fx.id}`) }, () => {
+      if (effectGrid()) selectEffect(effects.find(e => e.id === b.dataset.fx) || null);
+      else centerEffect(b.dataset.fx, true);
+    });
     b.dataset.fx = fx.id ?? '';
     b.setAttribute('role', 'option');
     b.setAttribute('aria-selected', String(fx.id === null));
-    b.setAttribute('aria-label', fx.name);
-    b.title = fx.hint || fx.name;
-    const iconUrl = fx.id && assetUrl(`fx-${fx.id}`);
-    if (iconUrl) {
-      const im = document.createElement('img');
-      im.src = iconUrl;
-      im.alt = '';
-      b.append(im);
-    } else {
-      b.textContent = fx.emoji;
-    }
-    const label = document.createElement('span');
-    label.className = 'fx-label';
-    label.textContent = fx.name;
-    b.append(label);
-    b.addEventListener('click', () => {
-      if (effectGrid) selectEffect(effects.find(e => e.id === b.dataset.fx) || null);
-      else centerEffect(b.dataset.fx, true);
-    });
-    b.addEventListener('focus', () => { if (!effectGrid) centerEffect(b.dataset.fx, true); });
+    b.addEventListener('focus', () => { if (!effectGrid()) centerEffect(b.dataset.fx, true); });
     list.append(b);
   }
   let settle = 0;
   list.addEventListener('scroll', () => {
-    if (effectGrid) return;
+    if (effectGrid() || performance.now() < quietUntil) return;
     clearTimeout(settle);
     settle = setTimeout(pickCenteredEffect, 110);
   }, { passive: true });
@@ -958,34 +1060,43 @@ async function initEffects() {
     if ($('#tray-effects').hidden || /INPUT|TEXTAREA/.test(e.target?.tagName)) return;
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
-    const items = [...list.children];
+    const items = [...list.children].filter(b => !b.hidden);
     const i = items.findIndex(b => b.getAttribute('aria-selected') === 'true');
     const next = items[Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowLeft' ? -1 : 1)))];
-    if (effectGrid) {
+    if (effectGrid()) {
       selectEffect(effects.find(fx => fx.id === next.dataset.fx) || null);
       next.scrollIntoView({ block: 'nearest' });
     } else centerEffect(next.dataset.fx, true);
   });
+  votes?.onChange(() => {
+    if (openTab === 'favs') renderFavorites();
+    renderInfo();
+  });
+  net.onTopic('fxshare', (d, from) => {
+    const fx = effects.find(e => e.id === d?.fx);
+    if (fx) showEffectOffer(from, fx);
+  });
   updateFaceStatus();
 }
 
-function centerEffect(id, smooth) {
+// Scrolls a lens into the ring; with select, it's put on once the scroll settles.
+function centerEffect(id, smooth, select = true) {
   const b = $(`#effect-list [data-fx="${id}"]`);
   if (!b) return;
   const list = $('#effect-list');
+  if (!select) quietUntil = performance.now() + (smooth ? 600 : 250);
   list.scrollTo({ left: b.offsetLeft - (list.clientWidth - b.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' });
-  if (!smooth) renderEffectHint();
-  // Selecting happens when the scroll settles; if it is already there, now.
   clearTimeout(centerEffect.t);
-  centerEffect.t = setTimeout(pickCenteredEffect, smooth ? 450 : 30);
+  if (select) centerEffect.t = setTimeout(pickCenteredEffect, smooth ? 450 : 30);
 }
 
 function pickCenteredEffect() {
-  if (effectGrid) return;
+  if (effectGrid() || $('#tray-effects').hidden) return;
   const list = $('#effect-list');
   const mid = list.getBoundingClientRect().left + list.clientWidth / 2;
   let best = null, bestD = Infinity;
   for (const b of list.children) {
+    if (b.hidden) continue;
     const r = b.getBoundingClientRect();
     const d = Math.abs(r.left + r.width / 2 - mid);
     if (d < bestD) { bestD = d; best = b; }
@@ -993,6 +1104,8 @@ function pickCenteredEffect() {
   if (!best) return;
   const id = best.dataset.fx;
   if ((studio.effect?.id ?? '') === id) return;
+  // "None" in one tab only takes off an effect of that tab.
+  if (!id && studio.effect && studio.effect.kind !== list.dataset.kind) return;
   selectEffect(effects.find(e => e.id === id) || null);
 }
 
@@ -1015,53 +1128,156 @@ function askForMotion() {
   addEventListener('click', motionAsk, true);
 }
 
-let hintTimer = 0;
 function selectEffect(fx) {
   studio.setEffect(fx);
   // 360 worlds look around with the phone's motion sensor; iPhones only
   // allow it after a tap, so ask on the next one.
   if (fx?.needs?.orientation) askForMotion();
+  if (fx?.needs?.face && studio.faceStatus === 'failed') toast(`${fx.name}: face tracking isn't available in this browser`);
+  else if (fx?.needs?.face && !studio.camOn) toast(`${fx.name} needs your camera on`);
   net.setPresence({ fx: fx?.id ?? null });
-  document.querySelectorAll('.fx-item').forEach(b => b.setAttribute('aria-selected', String(b.dataset.fx === (fx?.id ?? ''))));
+  document.querySelectorAll('.fx-item[data-fx]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.fx === (fx?.id ?? ''))));
+  document.querySelectorAll('#fav-list .fx-item').forEach(b => b.setAttribute('aria-selected', String(b.dataset.item === `fx-${fx?.id}`)));
+  // Put on from elsewhere (favourites, a share, a friend's): bring the strip along.
+  const list = $('#effect-list');
+  if (!$('#tray-effects').hidden && !effectGrid() && fx?.kind === list.dataset.kind) centerEffect(fx.id, true, false);
   sfx('click');
-  renderEffectHint(true);
+  renderInfo();
+  updateGrabButton();
 }
 
-function renderEffectHint(flash) {
-  const fx = studio?.effect;
-  const el = $('#effect-hint');
-  let text = fx?.hint || '';
-  if (fx?.needs?.face && studio.faceStatus === 'failed') text = `${fx.name}: face tracking isn't available in this browser`;
-  else if (fx?.needs?.face && !studio.camOn) text = `${fx.name} needs your camera on`;
-  // With the strip open the name and hint sit above it; otherwise the hint
-  // floats above the controls for a few seconds.
-  const trayOpen = !$('#tray-effects').hidden;
-  $('#fx-name').textContent = fx?.name ?? 'No effect';
-  if (votes) {
-    if (!fxVotes) {
-      fxVotes = voteButtons(votes, 'fx-none');
-      $('#fx-votes').append(fxVotes);
-    }
-    fxVotes.hidden = !fx;
-    if (fx) fxVotes.setItem(`fx-${fx.id}`);
+// ⓘ: how the effect that's on works, from its hint and what it needs.
+function showEffectInfo(fx) {
+  if (!fx) return;
+  $('#fx-about-title').textContent = `${fx.emoji} ${fx.name}`;
+  const body = $('#fx-about-body');
+  body.textContent = '';
+  const p = text => {
+    const el = document.createElement('p');
+    el.textContent = text;
+    body.append(el);
+  };
+  if (fx.hint) p(`${fx.hint}.`.replace(/\.\.$/, '.').replace(/([!?])\.$/, '$1'));
+  const n = fx.needs || {};
+  if (n.face) p('It follows your face, so keep your face in view of the camera. With no face found, hold Space or press and hold your own video instead.');
+  if (n.segmentation) p('It cuts you out from the room behind you. It works best with good light and some space between you and the wall.');
+  if (n.orientation) p('Turn all the way round with your phone, and tilt it up and down, to look around the world. On a laptop, turn your head instead.');
+  if (n.history) p(`It replays the last ${n.history < 1 ? 'moment' : `${n.history} seconds`} of your video, so move around to see it.`);
+  if (fx.brighten) p('A dim camera image is brightened to match the scene.');
+  p('Everyone sees it, because it is drawn on the video you send. Tap share to offer it to them too.');
+  openDialog('fx-about');
+}
+
+// Share: offer the effect that's on to everyone.
+function shareEffect() {
+  const fx = studio.effect;
+  if (!fx) return;
+  net.send('fxshare', { fx: fx.id });
+  toast(`Shared ${fx.emoji} ${fx.name} with everyone`);
+}
+
+function showEffectOffer(from, fx) {
+  const el = document.createElement('div');
+  el.className = 'invite';
+  const text = document.createElement('span');
+  text.textContent = `${nameOf(from)} shared ${fx.emoji} ${fx.name}`;
+  const yes = document.createElement('button');
+  yes.type = 'button';
+  yes.className = 'btn aqua';
+  yes.textContent = 'Try it';
+  yes.addEventListener('click', () => {
+    el.remove();
+    selectEffect(fx);
+  });
+  const no = document.createElement('button');
+  no.type = 'button';
+  no.className = 'btn ghost';
+  no.textContent = '✕';
+  no.setAttribute('aria-label', 'No thanks');
+  no.addEventListener('click', () => el.remove());
+  el.append(text, yes, no);
+  $('#invites').append(el);
+  sfx('join');
+  setTimeout(() => el.remove(), 15000);
+}
+
+// With a friend's video big, a button to put their effect on me too.
+function updateGrabButton() {
+  let btn = $('#grab-fx');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'grab-fx';
+    btn.type = 'button';
+    btn.className = 'grab-fx';
+    btn.hidden = true;
+    btn.innerHTML = `${ICONS.download}<span class="emoji"></span>`;
+    btn.addEventListener('click', () => {
+      const fx = effects.find(e => e.id === btn.dataset.fx);
+      if (fx) {
+        selectEffect(fx);
+        toast(`You've got ${fx.emoji} ${fx.name} on too`);
+      }
+    });
+    $('#call').append(btn);
   }
-  $('#tray-hint').textContent = text || (fx ? '' : 'Swipe to try an effect');
-  el.textContent = text;
-  el.hidden = !text || trayOpen || flash === undefined || !!games?.current;
-  clearTimeout(hintTimer);
-  if (!el.hidden) hintTimer = setTimeout(() => { el.hidden = true; }, 5000);
+  const friend = tiles.size === 2 && !swapped && !games?.current ? [...tiles.keys()].find(id => id !== me.id) : null;
+  const fxId = friend ? net?.peers.get(friend)?.fx : null;
+  const fx = fxId && effects.find(e => e.id === fxId);
+  const show = !!fx && studio?.effect?.id !== fx.id;
+  btn.hidden = !show;
+  if (show) {
+    btn.dataset.fx = fx.id;
+    btn.querySelector('.emoji').textContent = fx.emoji;
+    btn.setAttribute('aria-label', `Put ${nameOf(friend)}'s ${fx.name} on me`);
+    btn.title = `Put ${nameOf(friend)}'s ${fx.name} on me too`;
+  }
+}
+
+// --- favourites --------------------------------------------------------------
+
+// Everything I gave a thumbs up that still exists, effects first.
+function favoriteItems() {
+  if (!votes) return [];
+  const out = [];
+  for (const fx of effects) if (votes.mine(`fx-${fx.id}`) === 1) out.push({ item: `fx-${fx.id}`, fx });
+  for (const g of games?.games.values() ?? []) if (votes.mine(`game-${g.id}`) === 1) out.push({ item: `game-${g.id}`, game: g });
+  return out;
+}
+
+function renderFavorites() {
+  const list = $('#fav-list');
+  const items = favoriteItems();
+  const sig = items.map(i => i.item).join(',');
+  if (list.dataset.sig !== sig) {
+    list.dataset.sig = sig;
+    list.textContent = '';
+    for (const it of items) {
+      const src = it.fx || it.game;
+      const b = effectButton({ name: src.name, emoji: src.emoji, icon: assetUrl(it.fx ? `fx-${src.id}` : `game-${src.id}`) }, () => {
+        if (it.fx) selectEffect(studio.effect?.id === it.fx.id ? null : it.fx);
+        else {
+          sfx('click');
+          games.open(it.game.id);
+        }
+      });
+      b.dataset.item = it.item;
+      if (it.game) b.classList.add('is-game');
+      b.setAttribute('aria-selected', String(it.fx && studio.effect?.id === it.fx.id));
+      list.append(b);
+    }
+  }
+  $('#fav-empty').hidden = items.length > 0;
+  if (!items.length && grids.favs.on) setGrid('favs', false);
 }
 
 function updateFaceStatus() {
   if (!studio) return;
   const s = studio.faceStatus;
-  $('#face-status').textContent = !studio.hasCamera
-    ? 'No camera: effects show on your initial'
-    : { idle: '', loading: 'Loading face tracking…', ready: '', failed: 'Face tracking unavailable' }[s];
-  document.querySelectorAll('.fx-item').forEach(b => {
+  document.querySelectorAll('#effect-list .fx-item').forEach(b => {
     const fx = effects.find(e => e.id === b.dataset.fx);
     b.classList.toggle('disabled', !!fx?.needs?.face && (s === 'failed' || !studio.hasCamera) && fx.id !== 'bubble');
   });
+  renderInfo();
 }
 
 // A released bubble: send it to a friend (a random one when there are several).
@@ -1101,6 +1317,7 @@ async function initGames() {
       gameVotes.setItem(`game-${c.game.id}`);
       toggleTray(null);
       updateSessions();
+      updateGrabButton();
     },
     onClose: c => {
       c.el.remove();
@@ -1108,6 +1325,7 @@ async function initGames() {
       $('#call').classList.remove('has-game');
       $('#game-head').hidden = true;
       updateSessions();
+      updateGrabButton();
     },
   });
   games.register(await loadGames());
@@ -1235,6 +1453,15 @@ function addMessage(text, from, color) {
   log.scrollTop = log.scrollHeight;
 }
 
+// Unread messages show on the settings button (where Messages lives) and on
+// the Messages button inside settings.
+function updateChatBadge() {
+  for (const id of ['#chat-badge', '#settings-badge']) {
+    $(id).hidden = !chatUnread;
+    $(id).textContent = String(chatUnread);
+  }
+}
+
 function initChat() {
   $('#chat-form').addEventListener('submit', e => {
     e.preventDefault();
@@ -1250,8 +1477,7 @@ function initChat() {
     addMessage(d.text.slice(0, 200), from, net.peers.get(from)?.color);
     if ($('#chat-box').hidden) {
       chatUnread++;
-      $('#chat-badge').hidden = false;
-      $('#chat-badge').textContent = String(chatUnread);
+      updateChatBadge();
       toast(`${nameOf(from)}: ${d.text.slice(0, 60)}`);
     }
     sfx('tick');
@@ -1319,8 +1545,28 @@ function initSettings() {
     }
     saveSettings();
   });
+  // The name shows as text; tapping it turns it into a field to change it.
+  const nameShow = $('#set-name-show');
+  nameShow.addEventListener('click', () => {
+    nameShow.hidden = true;
+    name.hidden = false;
+    name.focus();
+    name.select();
+  });
+  name.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      $('#set-name-text').textContent = name.value.trim() || settings.name;
+      name.hidden = true;
+      nameShow.hidden = false;
+      nameShow.focus();
+    }
+  });
   document.querySelectorAll('[data-open="settings"]').forEach(b => b.addEventListener('click', () => {
     name.value = settings.name;
+    name.hidden = true;
+    nameShow.hidden = false;
+    $('#set-name-text').textContent = settings.name || 'Pick a name';
     vol.value = settings.volume;
     motion.checked = !!settings.reduceMotion;
     colorPicker($('#set-colors'), c => {
@@ -1403,4 +1649,5 @@ window.__chat = {
   get tiles() { return tiles; },
   me,
   selectEffect: id => selectEffect(effects.find(e => e.id === id) || null),
+  toggleTray: (k, force) => toggleTray(k, force),
 };
