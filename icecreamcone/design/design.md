@@ -57,8 +57,19 @@ Scoops fall from the sky. Move the Coot left and right to catch them on its
 head. Each scoop lands where it touches, so the stack leans; a stack that
 leans too far topples and is lost, and you start again from the cone. Your
 score is the tallest stack you build. Falling pickles and socks knock off
-the top scoop. Scoops fall faster as time goes on, and a golden cherry is
-worth three.
+a scoop. Scoops fall faster as time goes on, and a golden cherry is worth
+three.
+
+A scoop that hits the side of the stack (or the Coot's head) clings there for
+a moment, then slips down. How long it holds follows the physics: a stack
+leaning away from it holds it longer, since that side faces up, and one
+leaning towards it sheds it sooner; running towards its side presses it on,
+running away peels it off, and a wobbling stack shakes it loose. A slipping
+scoop comes to rest on a scoop that juts out below it, or on another
+clinging scoop. A scoop that lands on a clinging one props it up, and if
+it's high enough, level with the top, it is pushed up onto the stack.
+Clinging scoops weigh on their side of the balance: they can tip the stack,
+or steady one that leans the other way.
 
 ### 2. Cupadee: Tea Time (45 s)
 
