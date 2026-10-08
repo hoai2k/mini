@@ -1,0 +1,807 @@
+// Chapter 4: the Furious-Floating Ice-Ferg strikes the fishing boat Peg
+// (design.md, chapter 4, "Two-player versus" and "How each creature moves").
+// The sea from high above: currents of foam run across it in lanes, the Peg
+// zigzags from the bottom of the screen for the harbour by the lighthouse, and
+// the Ice-Ferg drifts, huffs up fury (hold Action) and charges (let go).
+// A charge that hits the Peg is SCRUNNCCCHHH: the snatch. A charge that misses
+// leaves the iceberg dazed for a moment. Little rowing boats cross: bumping one
+// costs fury and a sea lion slides off; lose all three and the Ice-Ferg is
+// dazed. Sprint rides a current lane (fast, but it hardly turns).
+// The holder is the Peg's captain: steer, and Action for a burst of steam that
+// shoves the boat the way the stick points, then must build up again.
+
+import * as art from '../art.js';
+import { makeFx, roundRect } from '../chasedraw.js';
+import { marksFor } from './index.js';
+
+// Tuning: the numbers that make the chapter fair (logical px and seconds).
+export const TUNE = {
+  time: 45,
+  ferg: {
+    radius: 105, accel: 175, drag: 0.55, maxSpeed: 165,
+    huffAccelK: 0.45, rideK: 2.6, rideAccelK: 0.3,
+    furyTime: 1.5, furyTimeGentle: 1.15, minFury: 0.15,
+    chargeMin: 430, chargeAdd: 520, chargeDur: 0.5, chargeDurAdd: 0.35,
+    recover: 0.9, recoverAdd: 0.7, dazed: 2, lions: 3,
+  },
+  peg: {
+    radius: 55, cruise: 46, cruiseGentleS: 40, cruiseGentleH: 52, turn: 1.5,
+    steamImpulse: 270, steamDecay: 2.2, steamCd: 3.2, steamCdGentle: 2.6, puffed: 2, puffedCruise: 14,
+    currentK: 0.5,
+  },
+  hitSpeed: 240, // a charge must still be going this fast to strike
+};
+
+const HARBOUR = { x: 1320, y: 305, r: 100 };
+const BOUNDS = { x0: 170, x1: 1765, y0: 265, y1: 1035 };
+// Rocks and shore from the scene, as circles (x, y, r).
+const ROCKS = [
+  [130, 220, 120], [300, 200, 75], [80, 510, 95], [60, 720, 95], [120, 900, 250], [380, 1010, 125], [540, 1070, 60],
+  [1850, 330, 150], [1690, 370, 45], [1870, 430, 120], [1860, 880, 150], [1720, 880, 55], [1760, 1040, 70],
+  [1040, 205, 55], [1150, 195, 60],
+];
+// The current lanes: foam runs from (x0, y0) to (x1, y1).
+const LANES = [
+  { x0: 360, y0: 820, x1: 1560, y1: 700, w: 115, s: 80 },
+  { x0: 1600, y0: 565, x1: 520, y1: 470, w: 110, s: 75 },
+  { x0: 430, y0: 355, x1: 1160, y1: 300, w: 100, s: 85 },
+].map((l) => {
+  const dx = l.x1 - l.x0, dy = l.y1 - l.y0, len = Math.hypot(dx, dy);
+  return { ...l, len, ux: dx / len, uy: dy / len, ang: Math.atan2(dy, dx) };
+});
+// The rowing boats' crossings: y, and where the open water is.
+const ROWS = [{ y: 455, xa: 330, xb: 1640 }, { y: 715, xa: 360, xb: 1620 }, { y: 590, xa: 230, xb: 1720 }];
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
+export function currentAt(x, y) {
+  let cx = 0, cy = 0, best = -1, bestF = 0;
+  LANES.forEach((l, i) => {
+    const t = ((x - l.x0) * l.ux + (y - l.y0) * l.uy) / l.len;
+    if (t < -0.05 || t > 1.05) return;
+    const px = l.x0 + l.ux * l.len * t, py = l.y0 + l.uy * l.len * t;
+    const d = Math.hypot(x - px, y - py);
+    const f = Math.max(0, 1 - (d / l.w) ** 2) * clamp(Math.min(t + 0.05, 1.05 - t) / 0.15, 0, 1);
+    if (f <= 0) return;
+    cx += l.ux * l.s * f; cy += l.uy * l.s * f;
+    if (f > bestF) { bestF = f; best = i; }
+  });
+  return { x: cx, y: cy, lane: best, f: bestF };
+}
+
+// Keep a body in the bounds and out of the rocks; returns true if it hit.
+function collide(b, r, bounce = 0.3) {
+  let hit = false;
+  if (b.x < BOUNDS.x0) { b.x = BOUNDS.x0; if (b.vx < 0) b.vx *= -bounce; hit = true; }
+  if (b.x > BOUNDS.x1) { b.x = BOUNDS.x1; if (b.vx > 0) b.vx *= -bounce; hit = true; }
+  if (b.y < BOUNDS.y0) { b.y = BOUNDS.y0; if (b.vy < 0) b.vy *= -bounce; hit = true; }
+  if (b.y > BOUNDS.y1) { b.y = BOUNDS.y1; if (b.vy > 0) b.vy *= -bounce; hit = true; }
+  for (const [x, y, rr] of ROCKS) {
+    const dx = b.x - x, dy = b.y - y, d = Math.hypot(dx, dy), min = rr + r * 0.8;
+    if (d < min && d > 0.01) {
+      const nx = dx / d, ny = dy / d;
+      b.x = x + nx * min; b.y = y + ny * min;
+      const vn = b.vx * nx + b.vy * ny;
+      if (vn < 0) { b.vx -= (1 + bounce) * vn * nx; b.vy -= (1 + bounce) * vn * ny; }
+      hit = true;
+    }
+  }
+  return hit;
+}
+
+// How far a charge of this fury carries (the aim arrow shows it).
+export function chargeReach(fury) {
+  const F = TUNE.ferg;
+  return (F.chargeMin + F.chargeAdd * fury) * (F.chargeDur + F.chargeDurAdd * fury) * (5 / 6);
+}
+
+export default function create(env) {
+  const { W, H } = env;
+  const F = TUNE.ferg, P = TUNE.peg;
+  const total = TUNE.time + (env.gentle[0] ? 10 : 0);
+  const fx = makeFx();
+  const rng = env.rng;
+
+  const ferg = {
+    x: 430, y: 610, vx: 0, vy: 0, mode: 'drift', modeT: 0, fury: 0, launchFury: 0,
+    aimX: 1, aimY: 0, cdx: 0, cdy: 0, chargeT: 0, chargeDur: 0, chargeSp: 0, charges: 0,
+    lions: F.lions, riding: false, bumpCd: 0, fullSaid: false, rideSaid: 0,
+  };
+  const fc = art.makeCreature('iceferg', ferg.x, ferg.y);
+  fc.sizeK = 0.85;
+
+  const cruise = env.gentle[1] ? P.cruiseGentleH : env.gentle[0] ? P.cruiseGentleS : P.cruise;
+  const steamCdMax = env.gentle[1] ? P.steamCdGentle : P.steamCd;
+  const peg = {
+    x: 900, y: 1010, hd: -Math.PI / 2, sp: cruise, vx: 0, vy: 0, nvx: 0, nvy: 0,
+    steamCd: 1, puffed: 0, steamT: 0, turnRate: 0, rock: 0, sink: 0, bumpCd: 0,
+  };
+
+  // The AI captain's zigzag for the harbour.
+  const side = rng() < 0.5 ? 1 : -1;
+  const jit = () => (rng() - 0.5) * 120;
+  const waypoints = [
+    { x: 970 + side * 230 + jit(), y: 830 + jit() * 0.4 },
+    { x: 970 - side * 240 + jit(), y: 640 + jit() * 0.4 },
+    { x: 1000 + side * 160 + jit(), y: 470 + jit() * 0.3 },
+    { x: HARBOUR.x, y: HARBOUR.y },
+  ];
+  const brain = { wp: 0, seenCharge: 0, dodgeAt: -1, dodgeDir: null };
+
+  const rowboats = ROWS.map((r, i) => spawnRow(r, i, i === 2 ? 6 : rng() * 2));
+  function spawnRow(r, i, wait) {
+    const dir = rng() < 0.5 ? 1 : -1;
+    return { row: r, i, x: dir > 0 ? r.xa : r.xb, y: r.y + (rng() - 0.5) * 40, vx: dir * (60 + rng() * 30), vy: 0, push: 0, pvx: 0, pvy: 0,
+      item: rng() < 0.5 ? 3 : 4, alpha: 0, wait, rock: 0, out: false };
+  }
+
+  const wakes = []; // foam left behind: { x, y, nx, ny, t, w }
+  const parts = []; // mist, chips, bubbles, sea lions, splash rings
+  let wakeT = 0;
+  let t = 0;
+  let shake = 0;
+  let bottle = null;
+
+  function say(s, x, y) { fx.say(s, x, y); }
+  function setMode(m, d = 0) { ferg.mode = m; ferg.modeT = d; }
+
+  function splashRing(x, y, size = 120) { parts.push({ k: 'ring', x, y, t: 0, life: 0.9, size }); }
+  function lionOff() {
+    ferg.lions = Math.max(0, ferg.lions - 1);
+    const dir = rng() < 0.5 ? -1 : 1;
+    parts.push({ k: 'lion', x: ferg.x + dir * 40, y: ferg.y - 150, vx: dir * 160, vy: -120, t: 0, life: 0.8, dir });
+    env.sfx('splash');
+    if (ferg.lions === 0) {
+      setMode('dazed', F.dazed);
+      ferg.fury = 0;
+      say('Dazed!', ferg.x, ferg.y - 280);
+      env.sfx('bonk');
+    }
+  }
+
+  function endCharge(missed) {
+    ferg.vx *= 0.25; ferg.vy *= 0.25;
+    const fury = ferg.launchFury;
+    if (missed) {
+      say('Missed!', ferg.x, ferg.y - 280);
+      env.sfx('splash');
+      splashRing(ferg.x + ferg.cdx * 80, ferg.y + 10, 170);
+      if (fury >= 0.95 && ferg.lions > 0) lionOff(); // charged too hard
+    }
+    if (ferg.mode === 'charge') setMode('recover', F.recover + F.recoverAdd * fury);
+    ferg.fury = 0;
+  }
+
+  function strike() {
+    setMode('crash', 99);
+    ferg.vx = 0; ferg.vy = 0;
+    self.done = true;
+    self.outcome = 'snatched';
+    if (ferg.launchFury >= 0.95) { self.bonus = 1; say('Full fury!', ferg.x, ferg.y - 330); }
+    say('SCRUNNCCCHHH!!', (ferg.x + peg.x) / 2, Math.min(ferg.y, peg.y) - 200);
+    env.sfx('crunch');
+    env.sfx('splash');
+    env.vibrate(220);
+    art.kick(fc, 0.6);
+    shake = env.reduceMotion ? 6 : 26;
+    for (let i = 0; i < 18; i++) {
+      const a = rng() * Math.PI * 2, s = 150 + rng() * 350;
+      parts.push({ k: 'chip', x: (ferg.x + peg.x) / 2, y: (ferg.y + peg.y) / 2 - 40, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 200, t: 0, life: 0.9 + rng() * 0.5, r: 6 + rng() * 10, spin: rng() * 6 });
+    }
+    splashRing(peg.x, peg.y, 220);
+  }
+
+  // ---------- the Ice-Ferg ----------
+  function stepFerg(dt, inp) {
+    const sx = clamp(inp.x || 0, -1, 1), sy = clamp(inp.y || 0, -1, 1);
+    const sm = Math.hypot(sx, sy);
+    if (sm > 0.3) { ferg.aimX = sx / sm; ferg.aimY = sy / sm; }
+    const cur = currentAt(ferg.x, ferg.y);
+    ferg.modeT -= dt;
+    ferg.bumpCd -= dt;
+    let accel = F.accel;
+    const ridingWanted = inp.sprint && cur.lane >= 0 && cur.f > 0.25 && (ferg.vx * cur.x + ferg.vy * cur.y >= -20 || sx * cur.x + sy * cur.y > 0);
+
+    if (ferg.mode === 'recover' || ferg.mode === 'dazed') {
+      if (ferg.modeT <= 0) {
+        if (ferg.mode === 'dazed' && ferg.lions === 0) { ferg.lions = F.lions; say('Back on!', ferg.x, ferg.y - 280); }
+        setMode('drift');
+      } else accel *= 0.15;
+    }
+    if (ferg.mode === 'drift' && inp.action) {
+      setMode('huff');
+      env.sfx('creak');
+      art.kick(fc, -0.25);
+      ferg.fullSaid = false;
+    }
+    if (ferg.mode === 'huff') {
+      ferg.fury = Math.min(1, ferg.fury + dt / (env.gentle[0] ? F.furyTimeGentle : F.furyTime));
+      accel *= F.huffAccelK;
+      if (ferg.fury >= 1 && !ferg.fullSaid) {
+        ferg.fullSaid = true;
+        say('Full fury!', ferg.x, ferg.y - 300);
+        env.sfx('creak'); env.vibrate(40);
+        art.kick(fc, 0.3);
+      }
+      if (rng() < dt * 22) {
+        const a = rng() * Math.PI * 2;
+        parts.push({ k: 'mist', x: ferg.x + Math.cos(a) * 90, y: ferg.y - 60 - rng() * 140, vx: Math.cos(a) * 60, vy: -20 - rng() * 30, t: 0, life: 1.1, r: 18 + rng() * 22 });
+      }
+      if (!inp.action) {
+        if (ferg.fury < F.minFury) { setMode('drift'); ferg.fury = 0; env.sfx('steam'); }
+        else {
+          // Launch the charge.
+          const fury = ferg.fury;
+          ferg.launchFury = fury;
+          ferg.cdx = ferg.aimX; ferg.cdy = ferg.aimY;
+          ferg.chargeSp = F.chargeMin + F.chargeAdd * fury;
+          ferg.chargeDur = F.chargeDur + F.chargeDurAdd * fury;
+          ferg.chargeT = 0;
+          ferg.charges++;
+          setMode('charge', ferg.chargeDur);
+          env.sfx('whoosh');
+          env.vibrate(50);
+          art.kick(fc, -0.5);
+          if (Math.abs(ferg.cdx) > 0.2) fc.facing = Math.sign(ferg.cdx);
+          shake = Math.max(shake, env.reduceMotion ? 2 : 8 * fury);
+        }
+      }
+    }
+    if (ferg.mode === 'charge') {
+      ferg.chargeT += dt;
+      const p = clamp(ferg.chargeT / ferg.chargeDur, 0, 1);
+      const sp = ferg.chargeSp * (1 - 0.5 * p * p);
+      ferg.vx = ferg.cdx * sp; ferg.vy = ferg.cdy * sp;
+      ferg.x += (ferg.vx + cur.x) * dt;
+      ferg.y += (ferg.vy + cur.y) * dt;
+      if (collide(ferg, F.radius, 0.2)) {
+        say('Bonk!', ferg.x, ferg.y - 280);
+        env.sfx('bonk');
+        art.kick(fc, 0.5);
+        endCharge(false);
+        setMode('recover', F.recover + F.recoverAdd * ferg.launchFury + 0.4);
+      } else if (p >= 1) endCharge(true);
+    } else if (ferg.mode !== 'crash') {
+      ferg.riding = ridingWanted && ferg.mode === 'drift';
+      if (ferg.riding) {
+        accel *= F.rideAccelK;
+        if (t - ferg.rideSaid > 4) { ferg.rideSaid = t; env.sfx('whoosh'); }
+      }
+      ferg.vx += sx * accel * dt;
+      ferg.vy += sy * accel * dt;
+      const k = Math.exp(-F.drag * dt);
+      ferg.vx *= k; ferg.vy *= k;
+      const sp = Math.hypot(ferg.vx, ferg.vy);
+      if (sp > F.maxSpeed) { ferg.vx *= F.maxSpeed / sp; ferg.vy *= F.maxSpeed / sp; }
+      const ck = ferg.riding ? F.rideK : 1;
+      ferg.x += (ferg.vx + cur.x * ck) * dt;
+      ferg.y += (ferg.vy + cur.y * ck) * dt;
+      collide(ferg, F.radius, 0.3);
+    }
+    if (ferg.mode !== 'charge' && ferg.mode !== 'crash' && sm > 0.3 && Math.abs(sx) > 0.2 && ferg.mode !== 'huff') fc.facing = Math.sign(sx);
+    if (ferg.mode === 'huff' && Math.abs(ferg.aimX) > 0.2) fc.facing = Math.sign(ferg.aimX);
+  }
+
+  // ---------- the Peg ----------
+  function aiCaptain(dt) {
+    const elapsed = total - self.time;
+    let wp = waypoints[brain.wp];
+    if (brain.wp < waypoints.length - 1 && Math.hypot(wp.x - peg.x, wp.y - peg.y) < 90) { brain.wp++; wp = waypoints[brain.wp]; }
+    let dx = wp.x - peg.x, dy = wp.y - peg.y;
+    let d = Math.hypot(dx, dy) || 1;
+    dx /= d; dy /= d;
+    // Keep away from the iceberg, more when it is huffing; warier as time goes on.
+    const fx_ = peg.x - ferg.x, fy_ = peg.y - ferg.y, fd = Math.hypot(fx_, fy_) || 1;
+    const R = (ferg.mode === 'huff' ? 470 : 300) + elapsed * 3 * env.skill;
+    if (fd < R && ferg.mode !== 'recover' && ferg.mode !== 'dazed') {
+      const w = (1 - fd / R) * (ferg.mode === 'huff' ? 2.2 : 1.2) * (0.5 + env.skill);
+      dx += (fx_ / fd) * w; dy += (fy_ / fd) * w;
+    }
+    // Keep off the rocks and the edges.
+    for (const [x, y, r] of ROCKS) {
+      const ex = peg.x - x, ey = peg.y - y, e = Math.hypot(ex, ey);
+      if (e < r + 140) { const w = (1 - (e - r) / 140) * 1.5; dx += (ex / e) * w; dy += (ey / e) * w; }
+    }
+    if (peg.x < BOUNDS.x0 + 100) dx += 1;
+    if (peg.x > BOUNDS.x1 - 100) dx -= 1;
+    if (peg.y > BOUNDS.y1 - 30) dy -= 1;
+    // A charge coming: maybe dodge with a burst of steam.
+    let action = false;
+    if (ferg.mode === 'charge' && brain.seenCharge !== ferg.charges) {
+      brain.seenCharge = ferg.charges;
+      const p = clamp(0.25 + 0.6 * env.skill + (env.gentle[1] ? 0.15 : 0) + 0.1 * (elapsed / total), 0, 0.95);
+      if (rng() < p) {
+        brain.dodgeAt = t + 0.28 - 0.18 * env.skill;
+        // Sideways from the line of the charge, on the side the boat is already.
+        const cr = ferg.cdx * fy_ - ferg.cdy * fx_;
+        const s = cr >= 0 ? 1 : -1;
+        brain.dodgeDir = { x: -ferg.cdy * s, y: ferg.cdx * s };
+      }
+    }
+    if (brain.dodgeDir && t >= brain.dodgeAt) {
+      dx = brain.dodgeDir.x * 3 + dx * 0.3; dy = brain.dodgeDir.y * 3 + dy * 0.3;
+      if (peg.steamCd <= 0) action = true;
+      if (t > brain.dodgeAt + 0.6 || peg.steamCd > 0.5) brain.dodgeDir = null;
+    }
+    d = Math.hypot(dx, dy) || 1;
+    return { x: dx / d, y: dy / d, action, actionPressed: action, actionReleased: false, sprint: false };
+  }
+
+  function stepPeg(dt, inp) {
+    const sx = clamp(inp.x || 0, -1, 1), sy = clamp(inp.y || 0, -1, 1);
+    const sm = Math.hypot(sx, sy);
+    peg.steamCd -= dt;
+    peg.puffed -= dt;
+    peg.steamT -= dt;
+    peg.bumpCd -= dt;
+    if (sm > 0.3) {
+      const want = Math.atan2(sy, sx);
+      const diff = wrap(want - peg.hd);
+      const rate = P.turn * (peg.steamT > 0 ? 1.6 : 1);
+      const turn = clamp(diff, -rate * dt, rate * dt);
+      peg.hd = wrap(peg.hd + turn);
+      peg.turnRate = turn / dt;
+    } else peg.turnRate *= Math.exp(-6 * dt);
+    if (inp.actionPressed && peg.steamCd <= 0) {
+      const ux = sm > 0.3 ? sx / sm : Math.cos(peg.hd), uy = sm > 0.3 ? sy / sm : Math.sin(peg.hd);
+      peg.nvx += ux * P.steamImpulse; peg.nvy += uy * P.steamImpulse;
+      peg.steamCd = steamCdMax;
+      peg.puffed = P.puffed;
+      peg.steamT = 0.7;
+      env.sfx('steam');
+      env.sfx('horn');
+      for (let i = 0; i < 6; i++) parts.push({ k: 'steam', x: peg.x, y: peg.y - 40, vx: (rng() - 0.5) * 80 - ux * 60, vy: -40 - rng() * 60 - uy * 60, t: 0, life: 1.2, r: 16 + rng() * 14 });
+    }
+    const target = peg.puffed > 0 && peg.steamT <= 0 ? P.puffedCruise : cruise;
+    peg.sp += (target - peg.sp) * (1 - Math.exp(-1.5 * dt));
+    const k = Math.exp(-P.steamDecay * dt);
+    peg.nvx *= k; peg.nvy *= k;
+    const cur = currentAt(peg.x, peg.y);
+    peg.vx = Math.cos(peg.hd) * peg.sp + peg.nvx + cur.x * P.currentK;
+    peg.vy = Math.sin(peg.hd) * peg.sp + peg.nvy + cur.y * P.currentK;
+    peg.x += peg.vx * dt;
+    peg.y += peg.vy * dt;
+    const b = { x: peg.x, y: peg.y, vx: peg.nvx, vy: peg.nvy };
+    if (collide(b, P.radius, 0.4)) { peg.x = b.x; peg.y = b.y; peg.nvx = b.vx; peg.nvy = b.vy; }
+    peg.rock += dt;
+  }
+
+  // ---------- rowing boats ----------
+  function stepRows(dt) {
+    for (let i = 0; i < rowboats.length; i++) {
+      const b = rowboats[i];
+      if (b.wait > 0) { b.wait -= dt; continue; }
+      b.x += (b.vx + b.pvx) * dt;
+      b.y += b.pvy * dt;
+      const kk = Math.exp(-2 * dt);
+      b.pvx *= kk; b.pvy *= kk;
+      b.y += (b.row.y - b.y) * (1 - Math.exp(-0.5 * dt));
+      b.rock = Math.max(0, b.rock - dt);
+      b.bump = Math.max(0, (b.bump || 0) - dt);
+      const atEnd = b.vx > 0 ? b.x > b.row.xb : b.x < b.row.xa;
+      b.alpha = clamp(b.alpha + (atEnd ? -dt : dt) * 1.5, 0, 1);
+      if (atEnd && b.alpha <= 0) { rowboats[i] = spawnRow(b.row, b.i, 1.5 + rng() * 3); continue; }
+      if (b.alpha < 0.5) continue;
+      // The Peg pushes them aside.
+      const pd = Math.hypot(b.x - peg.x, b.y - peg.y);
+      if (pd < P.radius + 50 && pd > 0.1) { b.pvx += ((b.x - peg.x) / pd) * 100; b.pvy += ((b.y - peg.y) / pd) * 100; b.rock = 0.5; }
+      // The Ice-Ferg bumps into them.
+      const fd = Math.hypot(b.x - ferg.x, b.y - ferg.y);
+      if (fd < F.radius + 45 && fd > 0.1 && b.bump <= 0 && ferg.mode !== 'crash') {
+        const nx = (b.x - ferg.x) / fd, ny = (b.y - ferg.y) / fd;
+        b.pvx += nx * 240; b.pvy += ny * 240; b.rock = 1; b.bump = 1.2;
+        ferg.vx = -nx * 60; ferg.vy = -ny * 60;
+        if (ferg.mode === 'charge') endCharge(false);
+        if (ferg.mode === 'huff') setMode('drift');
+        ferg.fury = Math.max(0, ferg.fury - 0.5);
+        art.kick(fc, 0.35);
+        env.sfx('bonk');
+        say('Splash!', b.x, b.y - 120);
+        splashRing(b.x, b.y, 110);
+        lionOff();
+      }
+    }
+  }
+
+  // ---------- foam ----------
+  function stepFoam(dt) {
+    wakeT -= dt;
+    if (wakeT <= 0) {
+      wakeT = 0.07;
+      const psp = Math.hypot(peg.vx, peg.vy);
+      if (!self.done || self.outcome === 'kept') {
+        const ux = Math.cos(peg.hd), uy = Math.sin(peg.hd);
+        wakes.push({ x: peg.x - ux * 60, y: peg.y - uy * 60, nx: -uy, ny: ux, t: 0, w: 0.5 + psp / 120 });
+      }
+      const fsp = Math.hypot(ferg.vx, ferg.vy);
+      if (fsp > 30 && ferg.mode !== 'crash') {
+        const ux = ferg.vx / fsp, uy = ferg.vy / fsp;
+        wakes.push({ x: ferg.x - ux * 90, y: ferg.y + 15 - uy * 50, nx: -uy, ny: ux, t: 0, w: 0.6 + fsp / 220, big: true });
+      }
+    }
+    for (const w of wakes) w.t += dt;
+    while (wakes.length && wakes[0].t > 1.8) wakes.shift();
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.t += dt;
+      if (p.vx !== undefined) {
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        if (p.k === 'chip' || p.k === 'lion') p.vy += 900 * dt;
+        else { p.vx *= Math.exp(-1.5 * dt); p.vy *= Math.exp(-1.5 * dt); }
+      }
+      if (p.k === 'lion' && p.t >= p.life && !p.splashed) { p.splashed = true; splashRing(p.x, p.y, 90); }
+      if (p.t > p.life) parts.splice(i, 1);
+    }
+  }
+
+  const self = {
+    time: total,
+    done: false,
+    outcome: null,
+    bonus: 0,
+    ferg, peg, rowboats, fc, TUNE, HARBOUR,
+    update(dt, inS, inH) {
+      t += dt;
+      fx.update(dt);
+      shake = Math.max(0, shake - dt * 40);
+      if (self.done) {
+        outro(dt);
+        stepFoam(dt);
+        return;
+      }
+      self.time = Math.max(0, self.time - dt);
+      stepFerg(dt, inS || {});
+      const hin = env.versus && inH ? inH : aiCaptain(dt);
+      stepPeg(dt, hin);
+      stepRows(dt);
+      // Iceberg meets boat.
+      const dx = peg.x - ferg.x, dy = peg.y - ferg.y, d = Math.hypot(dx, dy) || 1;
+      if (d < F.radius + P.radius) {
+        const sp = Math.hypot(ferg.vx, ferg.vy);
+        if (ferg.mode === 'charge' && sp >= TUNE.hitSpeed) strike();
+        else {
+          const nx = dx / d, ny = dy / d, push = F.radius + P.radius - d;
+          peg.x += nx * push; peg.y += ny * push;
+          if (peg.bumpCd <= 0) {
+            peg.nvx += nx * 120; peg.nvy += ny * 120;
+            ferg.vx *= 0.4; ferg.vy *= 0.4;
+            peg.bumpCd = 0.8;
+            env.sfx('thump');
+            say('Bump!', peg.x, peg.y - 110);
+            art.kick(fc, 0.2);
+            if (ferg.mode === 'charge') endCharge(false);
+          }
+        }
+      }
+      if (!self.done && Math.hypot(peg.x - HARBOUR.x, peg.y - HARBOUR.y) < HARBOUR.r) {
+        self.done = true;
+        self.outcome = 'kept';
+        env.sfx('horn');
+        env.sfx('cheer');
+        say('Safe in the harbour!', HARBOUR.x, HARBOUR.y - 120);
+      } else if (!self.done && self.time <= 0) {
+        self.done = true;
+        self.outcome = 'kept';
+        env.sfx('horn');
+      }
+      animFerg(dt);
+      stepFoam(dt);
+    },
+    draw(g, tt) {
+      g.save();
+      if (shake > 0) g.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+      art.drawScene(g, 'scenes/iceferg', W, H);
+      drawLanes(g, tt);
+      drawHarbour(g, tt);
+      drawWakes(g);
+      for (const p of parts) if (p.k === 'ring') drawRing(g, p);
+      const things = [
+        ...rowboats.filter((b) => b.wait <= 0 && b.alpha > 0).map((b) => ({ y: b.y, draw: () => drawRow(g, b, tt) })),
+        { y: peg.y, draw: () => drawPeg(g, tt) },
+        { y: ferg.y + 30, draw: () => drawFerg(g, tt) },
+      ];
+      if (bottle) things.push({ y: bottle.y, draw: () => art.drawSprite(g, art.prop('typhoonigator', 1), bottle.x, bottle.y + Math.sin(tt * 4) * 5, { height: 70, ay: 0.7, rot: Math.sin(tt * 2.3) * 0.5, alpha: bottle.a }) });
+      things.sort((a, b) => a.y - b.y);
+      for (const th of things) th.draw();
+      for (const p of parts) if (p.k !== 'ring') drawPart(g, p);
+      if (!self.done) drawMeters(g);
+      fx.draw(g);
+      g.restore();
+      if (t < 3.5 && !self.done) hint(g, env.versus
+        ? 'Ice-Ferg: hold Action to huff, let go to CHARGE! · Peg: steer for the harbour, Action for steam!'
+        : 'Hold Action to huff up fury, let go to CHARGE the Peg before it reaches the harbour!', W);
+    },
+    marks() {
+      const elapsed = total - self.time;
+      return marksFor({ snatched: self.outcome === 'snatched', spareFrac: self.time / total, heldFrac: elapsed / total, bonus: self.bonus });
+    },
+    hud() {
+      const lions = 'Sea lions ' + ferg.lions;
+      return self.bonus ? `${lions} · Full fury!` : lions;
+    },
+  };
+
+  function animFerg(dt) {
+    const m = ferg.mode;
+    if (m === 'huff') art.setAnim(fc, 'huff');
+    else if (m === 'charge') art.setAnim(fc, 'charge');
+    else if (m === 'crash') art.setAnim(fc, 'crash');
+    else if (m === 'recover' || m === 'dazed') art.setAnim(fc, 'dazed');
+    else art.setAnim(fc, 'drift');
+    fc.sizeK = 0.85 * (1 + (m === 'huff' ? 0.07 * ferg.fury : 0));
+    const f = fc.facing;
+    art.animate(fc, dt, 0, 0);
+    fc.facing = f;
+    fc.lean = 0; // seen from a slant: never tilt it
+    fc.x = ferg.x; fc.y = ferg.y + 45;
+  }
+
+  let outT = 0;
+  function outro(dt) {
+    outT += dt;
+    if (self.outcome === 'snatched') {
+      peg.sink = Math.min(1, outT / 2.6);
+      if (outT > 0.9) art.setAnim(fc, 'celebrate');
+      if (rng() < dt * 12 && peg.sink < 1) parts.push({ k: 'bubble', x: peg.x + (rng() - 0.5) * 90, y: peg.y + (rng() - 0.5) * 40, vx: 0, vy: -30, t: 0, life: 0.8, r: 5 + rng() * 8 });
+      if (outT > 1.4 && !bottle) { bottle = { x: peg.x + 40, y: peg.y + 10, a: 1 }; env.sfx('splash'); env.sfx('tinkle'); }
+      if (bottle) { bottle.x += 45 * dt; bottle.y += 10 * dt; }
+    } else {
+      // The Peg chugs into the harbour; the Ice-Ferg sulks.
+      const dx = HARBOUR.x - peg.x, dy = HARBOUR.y - 10 - peg.y, d = Math.hypot(dx, dy);
+      if (d > 4) { peg.hd += wrap(Math.atan2(dy, dx) - peg.hd) * Math.min(1, dt * 2); peg.x += (dx / d) * Math.min(d, 40 * dt); peg.y += (dy / d) * Math.min(d, 40 * dt); }
+      peg.rock += dt;
+      peg.steamT = Math.sin(outT * 3) > 0.6 ? 0.2 : 0;
+      if (rng() < dt * 3) parts.push({ k: 'steam', x: peg.x, y: peg.y - 50, vx: (rng() - 0.5) * 40, vy: -60, t: 0, life: 1.2, r: 14 + rng() * 10 });
+      art.setAnim(fc, 'dazed');
+      ferg.x += ferg.vx * dt; ferg.y += ferg.vy * dt;
+      ferg.vx *= Math.exp(-2 * dt); ferg.vy *= Math.exp(-2 * dt);
+      fc.x = ferg.x; fc.y = ferg.y + 45;
+    }
+    const f = fc.facing;
+    art.animate(fc, dt, 0, 0);
+    fc.facing = f;
+    fc.lean = 0;
+  }
+
+  // ---------- drawing ----------
+  function drawLanes(g, tt) {
+    for (const l of LANES) {
+      // Streaks of foam running along the lane.
+      g.save();
+      g.strokeStyle = 'rgba(240,248,250,0.5)';
+      g.lineCap = 'round';
+      g.lineWidth = 5;
+      for (let i = 0; i < 9; i++) {
+        const ph = ((tt * l.s) / l.len + i / 9 + i * 0.037) % 1;
+        const off = (((i * 37) % 7) - 3) * (l.w / 5);
+        const x = l.x0 + l.ux * l.len * ph - l.uy * off, y = l.y0 + l.uy * l.len * ph + l.ux * off;
+        g.globalAlpha = Math.sin(ph * Math.PI) * 0.7;
+        g.beginPath();
+        g.moveTo(x, y);
+        g.lineTo(x - l.ux * 46, y - l.uy * 46);
+        g.stroke();
+      }
+      g.restore();
+      for (let i = 0; i < 4; i++) {
+        const ph = ((tt * l.s * 0.6) / l.len + i / 4) % 1;
+        const x = l.x0 + l.ux * l.len * ph, y = l.y0 + l.uy * l.len * ph;
+        art.drawSprite(g, art.prop('iceferg', 5), x, y, { height: 74, ax: 0.5, ay: 0.5, rot: l.ang, alpha: Math.sin(ph * Math.PI) * 0.85 });
+      }
+    }
+  }
+
+  function drawHarbour(g, tt) {
+    const p = 1 + Math.sin(tt * 3) * 0.06;
+    g.save();
+    g.translate(HARBOUR.x, HARBOUR.y);
+    g.scale(p, p * 0.55);
+    g.setLineDash([18, 14]);
+    g.lineDashOffset = -tt * 30;
+    g.lineWidth = 7;
+    g.strokeStyle = 'rgba(255,240,170,0.9)';
+    g.beginPath(); g.arc(0, 0, HARBOUR.r, 0, Math.PI * 2); g.stroke();
+    g.restore();
+    g.save();
+    g.font = '800 30px Fraunces, Georgia, serif';
+    g.textAlign = 'center';
+    g.lineWidth = 7;
+    g.strokeStyle = '#33241a';
+    g.fillStyle = '#f8f1e0';
+    g.strokeText('Harbour', HARBOUR.x, HARBOUR.y + 12);
+    g.fillText('Harbour', HARBOUR.x, HARBOUR.y + 12);
+    g.restore();
+  }
+
+  function drawWakes(g) {
+    g.save();
+    g.fillStyle = '#f4fbfb';
+    for (const w of wakes) {
+      const a = 1 - w.t / 1.8;
+      const spread = (w.big ? 70 : 34) + w.t * (w.big ? 60 : 50) * w.w;
+      const r = (w.big ? 9 : 5) * (0.6 + a);
+      g.globalAlpha = a * 0.55;
+      for (const s of [-1, 1]) {
+        g.beginPath();
+        g.ellipse(w.x + w.nx * spread * s, w.y + w.ny * spread * s * 0.6, r * 1.6, r, 0, 0, Math.PI * 2);
+        g.fill();
+      }
+      if (w.t < 0.5) {
+        g.globalAlpha = (0.5 - w.t) * 0.7;
+        g.beginPath(); g.ellipse(w.x, w.y, r * 2.4, r * 1.2, 0, 0, Math.PI * 2); g.fill();
+      }
+    }
+    g.restore();
+  }
+
+  function drawRing(g, p) {
+    const k = p.t / p.life;
+    art.drawSprite(g, art.prop('iceferg', 6), p.x, p.y, { height: p.size * (0.6 + k * 0.7), ay: 0.6, sy: 0.7, alpha: 1 - k });
+  }
+
+  // A boat sprite drawn bow-first along heading a (the sheet's boats point down-right).
+  function boatSprite(g, sp, x, y, a, h, base, extra = {}) {
+    const flip = Math.cos(a) < 0;
+    const rot = flip ? wrap(a - (Math.PI - base)) : wrap(a - base);
+    art.drawSprite(g, sp, x, y, { height: h, ay: 0.5, flip, rot: rot * 0.75, ...extra });
+  }
+
+  function drawRow(g, b, tt) {
+    const rockA = Math.sin(tt * 9 + b.i) * 0.25 * b.rock + Math.sin(tt * 2 + b.i * 2) * 0.04;
+    const a = b.vx > 0 ? 0 : Math.PI;
+    g.save();
+    g.globalAlpha = 0.25 * b.alpha;
+    g.fillStyle = '#f4fbfb';
+    g.beginPath(); g.ellipse(b.x - Math.sign(b.vx) * 40, b.y + 6, 30 + Math.sin(tt * 6 + b.i) * 6, 8, 0, 0, Math.PI * 2); g.fill();
+    g.restore();
+    boatSprite(g, art.prop('iceferg', b.item), b.x, b.y, a + rockA, 105, 0.55, { alpha: b.alpha });
+  }
+
+  function drawPeg(g, tt) {
+    const roll = Math.sin(tt * 2.2) * 0.04 + clamp(peg.turnRate, -1.5, 1.5) * 0.05;
+    const leaning = !self.done && (peg.steamT > 0 || Math.abs(peg.turnRate) > 1.1);
+    let item = leaning ? 7 : 1;
+    let alpha = 1, h = 150, y = peg.y + Math.sin(tt * 2.6) * 3;
+    if (self.outcome === 'snatched') { item = 2; alpha = 1 - peg.sink * 0.9; h = 150 * (1 - peg.sink * 0.35); y += peg.sink * 25; }
+    else if (self.outcome === 'kept' && peg.steamT > 0) item = 7;
+    // The steam-recharge ring under the boat.
+    if (!self.done) {
+      g.save();
+      g.translate(peg.x, peg.y + 40);
+      g.scale(1, 0.4);
+      g.lineWidth = 9;
+      g.strokeStyle = 'rgba(30,40,60,0.3)';
+      g.beginPath(); g.arc(0, 0, 70, 0, Math.PI * 2); g.stroke();
+      const f = peg.steamCd <= 0 ? 1 : 1 - peg.steamCd / steamCdMax;
+      g.strokeStyle = peg.steamCd <= 0 ? '#f8f1e0' : '#9fb4c0';
+      g.beginPath(); g.arc(0, 0, 70, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); g.stroke();
+      g.restore();
+    }
+    boatSprite(g, art.prop('iceferg', item), peg.x, y, peg.hd + roll, h, 0.5, { alpha });
+    if (!art.prop('iceferg', item)) {
+      g.save(); g.fillStyle = '#2f7f7a'; g.strokeStyle = '#33241a'; g.lineWidth = 4;
+      g.translate(peg.x, peg.y); g.rotate(peg.hd);
+      g.beginPath(); g.ellipse(0, 0, 70, 30, 0, 0, Math.PI * 2); g.fill(); g.stroke(); g.restore();
+    }
+  }
+
+  function drawFerg(g, tt) {
+    // A dark skirt of water where the ice sits, and a ring of foam that grows with fury.
+    g.save();
+    g.globalAlpha = 0.25;
+    g.fillStyle = '#1c3448';
+    g.beginPath(); g.ellipse(ferg.x, ferg.y + 35, 140, 34, 0, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 0.5 + ferg.fury * 0.4;
+    g.strokeStyle = '#f4fbfb';
+    g.lineWidth = 4 + ferg.fury * 6;
+    const wob = Math.sin(tt * 5) * 6;
+    g.beginPath(); g.ellipse(ferg.x, ferg.y + 35, 140 + wob + ferg.fury * 20, 30 + wob * 0.3, 0, 0, Math.PI * 2); g.stroke();
+    g.restore();
+    if (ferg.mode === 'huff') drawAim(g, tt);
+    art.drawCreature(g, fc, tt, { reduceMotion: env.reduceMotion, shadow: false });
+  }
+
+  function drawAim(g, tt) {
+    const reach = chargeReach(ferg.fury);
+    const x0 = ferg.x + ferg.aimX * 120, y0 = ferg.y + ferg.aimY * 60;
+    const x1 = ferg.x + ferg.aimX * reach, y1 = ferg.y + ferg.aimY * reach;
+    g.save();
+    g.strokeStyle = ferg.fury >= 1 ? '#ff6b4a' : 'rgba(255,250,235,0.85)';
+    g.lineWidth = 10;
+    g.lineCap = 'round';
+    g.setLineDash([4, 22]);
+    g.lineDashOffset = -tt * 80;
+    g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    g.setLineDash([]);
+    const a = Math.atan2(ferg.aimY, ferg.aimX);
+    g.translate(x1, y1);
+    g.rotate(a);
+    g.fillStyle = g.strokeStyle;
+    g.beginPath(); g.moveTo(22, 0); g.lineTo(-16, -18); g.lineTo(-16, 18); g.closePath(); g.fill();
+    g.restore();
+  }
+
+  function drawMeters(g) {
+    // Fury bar and the sea lions above the iceberg.
+    const x = ferg.x, y = ferg.y - 300;
+    g.save();
+    if (ferg.mode === 'huff' || ferg.fury > 0) {
+      const w = 170;
+      g.fillStyle = 'rgba(248,241,224,0.92)';
+      g.strokeStyle = '#33241a';
+      g.lineWidth = 4;
+      roundRect(g, x - w / 2 - 6, y - 14, w + 12, 28, 12);
+      g.fill(); g.stroke();
+      const f = ferg.fury;
+      g.fillStyle = f >= 1 ? (Math.floor(t * 10) % 2 ? '#ff6b4a' : '#c8443a') : f > 0.6 ? '#e2873a' : '#7fb3d0';
+      roundRect(g, x - w / 2, y - 8, Math.max(8, w * f), 16, 8);
+      g.fill();
+      g.font = '800 22px Fraunces, Georgia, serif';
+      g.textAlign = 'center';
+      g.fillStyle = '#33241a';
+      g.fillText('FURY', x, y - 22);
+    }
+    for (let i = 0; i < F.lions; i++) {
+      const lx = x - 40 + i * 40, ly = y + 34;
+      g.globalAlpha = i < ferg.lions ? 1 : 0.3;
+      seaLion(g, lx, ly, 0.6, 0);
+    }
+    g.restore();
+  }
+
+  function seaLion(g, x, y, k, rot) {
+    g.save();
+    g.translate(x, y);
+    g.rotate(rot);
+    g.scale(k, k);
+    g.fillStyle = '#9a6a3a';
+    g.strokeStyle = '#33241a';
+    g.lineWidth = 4;
+    g.beginPath(); g.ellipse(0, 6, 24, 16, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.beginPath(); g.arc(6, -14, 13, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.fillStyle = '#33241a';
+    g.beginPath(); g.arc(10, -17, 2.5, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(17, -10, 5, 3.5, 0, 0, Math.PI * 2); g.fill();
+    g.restore();
+  }
+
+  function drawPart(g, p) {
+    const k = p.t / p.life;
+    g.save();
+    if (p.k === 'mist' || p.k === 'steam') {
+      g.globalAlpha = (1 - k) * (p.k === 'mist' ? 0.55 : 0.75);
+      g.fillStyle = p.k === 'mist' ? '#eef6fb' : '#f6eef0';
+      g.beginPath(); g.arc(p.x, p.y, p.r * (1 + k), 0, Math.PI * 2); g.fill();
+    } else if (p.k === 'chip') {
+      g.globalAlpha = 1 - k;
+      g.translate(p.x, p.y);
+      g.rotate(p.spin * p.t * 3);
+      g.fillStyle = '#eef3fb';
+      g.strokeStyle = '#5b7a9a';
+      g.lineWidth = 3;
+      g.beginPath(); g.moveTo(-p.r, 0); g.lineTo(0, -p.r); g.lineTo(p.r, p.r * 0.4); g.closePath(); g.fill(); g.stroke();
+    } else if (p.k === 'bubble') {
+      g.globalAlpha = 1 - k;
+      g.strokeStyle = '#f4fbfb';
+      g.lineWidth = 3;
+      g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.stroke();
+    } else if (p.k === 'lion' && p.t < p.life) {
+      seaLion(g, p.x, p.y, 1, p.dir * p.t * 5);
+    }
+    g.restore();
+  }
+
+  return self;
+}
+
+function hint(g, text, W) {
+  g.save();
+  g.font = '700 36px Fraunces, Georgia, serif';
+  g.textAlign = 'center';
+  g.lineWidth = 8;
+  g.strokeStyle = 'rgba(248,241,224,0.95)';
+  g.fillStyle = '#33241a';
+  g.strokeText(text, W / 2, 150);
+  g.fillText(text, W / 2, 150);
+  g.restore();
+}
