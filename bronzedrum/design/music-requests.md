@@ -33,7 +33,7 @@ Bronze Drum is a rhythm game: the player drums at any speed they like (about 45 
 | Id | Title | Priority | Kind | When it plays | Length | Loops | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `mu-title` | Trống Đồng (title theme) | core | theme | Under chapter 4, The Villages Answer, until its own bed arrives (it was the title theme; the anthem took the menus). Its quan họ call and answer suits the chapter, and measured its pulse is no stronger than the shared beds'. | about 90 s | yes | delivered |
-| `mu-select` | Two Sisters (chapter select) | core | theme | Under chapter 1, the Garden, until its own bed arrives (it was the chapter-select theme; the anthem took the menus): the two sisters practising. Measured, its pulse is no stronger than the shared beds'. | about 90 s | yes | delivered |
+| `mu-select` | Two Sisters (chapter select) | core | theme | Under chapter 1, the Garden, until its own bed arrives (it was the chapter-select theme; the anthem took the menus): the two sisters practising. Measured, its pulse is no stronger than the shared beds'. Also on Drum Practice's screen of modes. | about 90 s | yes | delivered |
 | `mu-bed-battle` | Battle bed (all battles) | core | bed | Under every battle chapter (the Garden, the Outpost, Luy Lâu, Mã Viện Returns) unless that chapter has its own bed. | about 2 min | yes | delivered |
 | `mu-bed-story` | Story bed (all story chapters) | core | bed | Under every story chapter (the Oath, Casting the Drums, the Villages, the Coronation) unless that chapter has its own bed. | about 2 min | yes | delivered |
 | `mu-ending` | The Drums Are Melted (ending) | core | piece | Under the epilogue (unless it has its own bed) and on the final results screen. | about 3 min | no | delivered |
@@ -50,7 +50,7 @@ Bronze Drum is a rhythm game: the player drums at any speed they like (about 45 
 | `mu-victory` | Victory sting | optional | sting | Results screen after a battle chapter is won. | about 8 s | no | requested |
 | `mu-complete` | Chapter complete sting | optional | sting | Results screen after a story chapter (no battle) is completed. | about 8 s | no | requested |
 | `mu-defeat` | Defeat sting | optional | sting | Results screen after a battle chapter is lost. | about 8 s | no | requested |
-| `mu-anthem` | Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song) | optional | song | The menus (title, chapter select, practice modes), round and round, and the Coronation's success moment (the two queens crowned); later the trailer and end credits. | about 3 min 30 s | no | delivered |
+| `mu-anthem` | Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song) | optional | song | The menus (title and chapter select), round and round, and the Coronation's success moment (the two queens crowned); later the trailer and end credits. | about 3 min 30 s | no | delivered |
 
 ## mu-title · Trống Đồng (title theme)
 
@@ -66,7 +66,7 @@ Under chapter 4, The Villages Answer, until its own bed arrives (it was the titl
 
 ## mu-select · Two Sisters (chapter select)
 
-Under chapter 1, the Garden, until its own bed arrives (it was the chapter-select theme; the anthem took the menus): the two sisters practising. Measured, its pulse is no stronger than the shared beds'.
+Under chapter 1, the Garden, until its own bed arrives (it was the chapter-select theme; the anthem took the menus): the two sisters practising. Measured, its pulse is no stronger than the shared beds'. Also on Drum Practice's screen of modes.
 
 - **Priority:** core · **Kind:** theme · **Length:** about 90 s · **Loops:** yes
 - **File:** `bronzedrum/game/assets/music/mu-select.mp3`
@@ -270,7 +270,7 @@ Results screen after a battle chapter is lost.
 
 ## mu-anthem · Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song)
 
-The menus (title, chapter select, practice modes), round and round, and the Coronation's success moment (the two queens crowned); later the trailer and end credits.
+The menus (title and chapter select), round and round, and the Coronation's success moment (the two queens crowned); later the trailer and end credits.
 
 - **Priority:** optional · **Kind:** song · **Length:** about 3 min 30 s · **Loops:** no
 - **File:** `bronzedrum/game/assets/music/mu-anthem.mp3`

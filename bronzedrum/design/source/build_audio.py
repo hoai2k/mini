@@ -211,11 +211,11 @@ sfx(G, "blocked",
 G = "Interface"
 sfx(G, "ui-move",
     "A soft rustle of a single sheet of rice paper being turned, very short and quiet.",
-    0.5, "Moving focus in menus.", kind="hit", gain=0.5)
+    0.5, "Moving focus in menus. Halved (too prominent while browsing).", kind="hit", gain=0.25)
 sfx(G, "ui-confirm",
     "A small hardwood clapper knock, clean and single, like a temple woodblock.",
     0.5, "Choosing a menu item. Its tail carried a hiss (heard on the workbench): denoised and cut "
-    "short after the knock.", kind="hit", gain=0.6,
+    "short after the knock. Played quieter (too prominent while browsing).", kind="hit", gain=0.35,
     post="afftdn=nr=20:nf=-45,atrim=0:0.2,afade=t=out:st=0.07:d=0.13")
 sfx(G, "ui-back",
     "A sheet of paper sliding softly across a wooden table, short.",
@@ -618,7 +618,7 @@ track("mu-title", "Trống Đồng (title theme)", "theme",
 track("mu-select", "Two Sisters (chapter select)", "theme",
       "Under chapter 1, the Garden, until its own bed arrives (it was the chapter-select theme; "
       "the anthem took the menus): the two sisters practising. Measured, its pulse is no "
-      "stronger than the shared beds'.",
+      "stronger than the shared beds'. Also on Drum Practice's screen of modes.",
       "about 90 s", True,
       "vietnamese folk duet, dan tranh and sao truc, two intertwining themes, gentle, light ambient pad, 66 bpm",
       f"A tender theme about two sisters {GAME}. Traditional Vietnamese folk duet: the elder "
@@ -809,7 +809,7 @@ track("mu-ending", "The Drums Are Melted (ending)", "piece",
 # and sky) by hoai2k, 3 min, made outside ElevenLabs; the master is kept as
 # design/music-masters/mu-anthem.mp3.
 track("mu-anthem", "Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song)", "song",
-      "The menus (title, chapter select, practice modes), round and round, and the Coronation's "
+      "The menus (title and chapter select), round and round, and the Coronation's "
       "success moment (the two queens crowned); later the trailer and end credits.",
       "about 3 min 30 s", False,
       "vietnamese folk ballad, quan ho female duet, dan tranh, dan bau, bronze drums in chorus, modern cinematic folk, 84 bpm",

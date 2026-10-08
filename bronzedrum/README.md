@@ -67,10 +67,10 @@ The five core tracks are delivered: the title theme (`mu-title`), the chapter
 select (`mu-select`), the battle and story beds (`mu-bed-battle`,
 `mu-bed-story`) and the ending (`mu-ending`). The anthem, the Song of the Two
 Queens (`mu-anthem`, *Trống Đồng Vang Dới Đất Trời*), plays round and round on
-the menus (title, chapter select, practice modes) and on the Coronation's
-success moment. The two old menu themes moved into chapters, each in place of
-its shared bed until the chapter's own bed arrives: `mu-select` (the two
-sisters) under the Garden, and `mu-title` (quan họ call and answer) under The
+the menus (title, chapter select) and on the Coronation's success moment.
+The two old menu themes moved into chapters, each in place of its shared bed
+until the chapter's own bed arrives: `mu-select` (the two sisters) under the
+Garden, and on Drum Practice's screen of modes (the drumming itself has no music), and `mu-title` (quan họ call and answer) under The
 Villages Answer. Measured, neither has a stronger pulse than the shared beds
 (onset autocorrelation 0.52 and 0.58, against 0.53 and 0.76), so neither
 fights the player's tempo. The rest of
