@@ -228,9 +228,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ---------- the chapter card ---------- */
 
-#card { align-items: center; justify-content: flex-end; }
+#card { align-items: flex-end; justify-content: center; }
 .card-panel {
-  width: min(1100px, 100%); max-height: 100%; overflow: auto;
+  width: min(1000px, 60%); max-height: 100%; overflow: auto;
   background: var(--panel); border: 2.5px solid var(--ink); border-radius: 18px 16px 20px 15px;
   padding: 14px 22px; box-shadow: 4px 6px 0 rgba(51, 36, 26, 0.3);
 }
@@ -271,9 +271,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ---------- celebrate ---------- */
 
-#celebrate, #final { align-items: center; justify-content: flex-end; }
+#celebrate, #final { align-items: flex-end; justify-content: center; }
 .cel-panel {
-  width: min(720px, 100%); background: var(--panel); border: 2.5px solid var(--ink);
+  width: min(720px, 56%); background: var(--panel); border: 2.5px solid var(--ink);
   border-radius: 18px 16px 20px 15px; padding: 14px 22px; box-shadow: 4px 6px 0 rgba(51, 36, 26, 0.3);
   text-align: center; max-height: 100%; overflow: auto;
 }
@@ -319,3 +319,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) { .press-start, .banner, .marks img { animation: none; } }
 body.reduce-motion .press-start, body.reduce-motion .banner, body.reduce-motion .marks img { animation: none; }
+
+/* Narrow or tall screens: the panels take the full width at the bottom. */
+@media (max-width: 900px), (max-aspect-ratio: 4/3) {
+  #card, #celebrate, #final { align-items: center; justify-content: flex-end; }
+  .card-panel, .cel-panel { width: 100%; }
+}

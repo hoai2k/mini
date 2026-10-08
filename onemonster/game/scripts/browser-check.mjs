@@ -101,6 +101,45 @@ for (const n of chapters) {
   console.log(`chapter ${n}: paused=${paused} screen=${st.screen} outcome=${st.outcome}`);
 }
 
+// Snatch & Keep: two players join on the split keyboard and play a chapter head to head.
+if (chapters.includes(2)) {
+  await page.evaluate(() => __onemonster.show('modes'));
+  await wait(300);
+  await page.click('[data-action="versus"]', { force: true });
+  await wait(300);
+  await page.keyboard.press('Space');
+  await wait(150);
+  await page.keyboard.press('Enter');
+  await wait(300);
+  await shot('v-1-join');
+  const ready = await page.evaluate(() => __onemonster.S.join.map((j) => j && j[0]));
+  await page.click('#versus-go', { force: true });
+  await wait(600);
+  await page.click('[data-action="story-next"]', { force: true });
+  await wait(1500);
+  await shot('v-2-card');
+  await page.evaluate(() => __onemonster.showCard(1));
+  await wait(1200);
+  await page.evaluate(() => __onemonster.begin());
+  await wait(3600);
+  for (let i = 0; i < 10; i++) {
+    await page.keyboard.down(i % 2 ? 'KeyD' : 'KeyA');
+    await page.keyboard.down(i % 2 ? 'ArrowLeft' : 'ArrowRight');
+    await wait(250);
+    await page.keyboard.press('Space');
+    await page.keyboard.press('Enter');
+    await page.keyboard.up(i % 2 ? 'KeyD' : 'KeyA');
+    await page.keyboard.up(i % 2 ? 'ArrowLeft' : 'ArrowRight');
+  }
+  await shot('v-3-play');
+  await page.evaluate(() => { const c = __onemonster.S.chapter; if (!c.done) c.time = 0.3; });
+  await page.waitForFunction(() => __onemonster.S.screen === 'celebrate', null, { timeout: 15000 }).catch(() => {});
+  await wait(1200);
+  await shot('v-4-celebrate');
+  const tally = await page.evaluate(() => __onemonster.S.tally);
+  console.log(`versus: joined=${JSON.stringify(ready)} tally=${JSON.stringify(tally)}`);
+}
+
 console.log(errors.length ? 'ERRORS:\n' + [...new Set(errors)].join('\n') : 'no errors');
 await browser.close();
 server.close();
