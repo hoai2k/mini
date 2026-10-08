@@ -11,6 +11,16 @@ const NAV_KEYS = {
   Enter: 'confirm', Space: 'confirm', Escape: 'back', Backspace: 'back',
 };
 
+/**
+ * A pointer event in the game's 1280 x 720 layout. The canvas is drawn at one
+ * scale both ways, and when it is wider than 16:9 (a phone, src/fit.js) the
+ * layout sits in its middle, so x can run below 0 or past 1280.
+ */
+function toLogical(e, r) {
+  const s = r.height / 720 || 1;
+  return { x: (e.clientX - r.left - r.width / 2) / s + 640, y: (e.clientY - r.top) / s };
+}
+
 // Standard gamepad mapping.
 export const PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 // Only X and B strike the drum (Y the secondary drum in Drum Practice): the
@@ -84,11 +94,12 @@ export class Input {
       const r = target.getBoundingClientRect();
       this.setDevice('pointer');
       // Training's tabs and list take clicks before the drum does.
-      if (this.pointerPick && this.pointerPick(((e.clientX - r.left) / r.width) * 1280, ((e.clientY - r.top) / r.height) * 720)) {
+      const p = toLogical(e, r);
+      if (this.pointerPick && this.pointerPick(p.x, p.y)) {
         e.preventDefault();
         return;
       }
-      const dx = ((e.clientX - r.left) / r.width - 0.5) * 1280;
+      const dx = p.x - 640;
       const dy = ((e.clientY - r.top) / r.height - 628 / 720) * 720;
       if (Math.hypot(dx, dy) < 72) {
         this.emit('action', { action: 'guard', time: e.timeStamp });
@@ -103,10 +114,7 @@ export class Input {
     // pass the point on in the canvas's 1280 x 720 coordinates. Listening on
     // the whole app lets the letterbox beside the canvas take thumb taps too.
     const app = target.parentElement || target;
-    const logical = (e) => {
-      const r = target.getBoundingClientRect();
-      return { x: ((e.clientX - r.left) / r.width) * 1280, y: ((e.clientY - r.top) / r.height) * 720 };
-    };
+    const logical = (e) => toLogical(e, target.getBoundingClientRect());
     const fingers = new Map(); // pointerId -> where and when it landed
     app.addEventListener('pointerdown', (e) => {
       if (this.mode !== 'play' || (e.pointerType !== 'touch' && e.pointerType !== 'pen')) return;
