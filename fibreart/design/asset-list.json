@@ -19,6 +19,11 @@
     "file": "assets/ui/threads.png",
     "delivered": true
   },
+  "controlDrawings": {
+    "id": "HK-U05",
+    "file": "assets/ui/control-drawings.png",
+    "delivered": false
+  },
   "viriditas.composition": {
     "id": "HK-T01-A",
     "file": "assets/tableaux/viriditas/composition.webp",

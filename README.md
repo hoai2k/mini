@@ -5,6 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
+- **[Fibre Art](https://hoai2k.github.io/mini/fibreart/)** · [`fibreart/`](fibreart/README.md): a shifting collage after the fibre art of Hanneke de Neve
 - **[The Ice-Cream Cone Coot](https://hoai2k.github.io/mini/icecreamcone/)** · [`icecreamcone/`](icecreamcone/README.md): a field guide of rare birds, with a minigame for each
 - **[One Monster After Another](https://hoai2k.github.io/mini/onemonster/)** · [`onemonster/`](onemonster/README.md)
 - **[Gliders](https://hoai2k.github.io/mini/gliders/)** · [`gliders/`](gliders/README.md): Superflight-style gliding for one to four players

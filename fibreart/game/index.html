@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#160d2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Fibre Art">
+  <link rel="icon" href="web/icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="web/icons/icon-180.png">
+  <title>Fibre Art</title>
+  <meta name="description" content="A shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: reach into her pictures with a controller and move, stretch, swirl and dissolve their parts.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Questrial&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <canvas id="overlay" aria-label="The collage"></canvas>
+
+    <section id="loading" class="screen">
+      <p class="loading-text">Laying out the cloth…</p>
+    </section>
+
+    <section id="title" class="screen" hidden aria-labelledby="logo-text">
+      <div class="title-block">
+        <img id="logo-img" src="web/ui/logo.webp" alt="">
+        <h1 id="logo-text" class="visually-hidden">Fibre Art</h1>
+        <p class="byline">a shifting collage after the work of Hanneke de Neve</p>
+        <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
+        <p class="hint" id="title-hint">Move left stick for options</p>
+      </div>
+      <div class="corner-buttons">
+        <button class="icon-btn" data-nav data-open="instructions" aria-label="Instructions" title="Instructions">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9a5 5 0 0 1 5 5v11H8a3 3 0 0 1-3-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 9h6M9 13h6" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Instructions</span>
+        </button>
+        <button class="icon-btn" data-nav data-open="settings" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Settings</span>
+        </button>
+        <button class="icon-btn" data-nav data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span class="btn-label">Fullscreen</span>
+        </button>
+      </div>
+    </section>
+
+    <div id="hud" hidden>
+      <div id="caption" class="caption" aria-live="polite"></div>
+      <div id="players" class="players"></div>
+      <button class="icon-btn hud-pause" data-action="pause" aria-label="Pause" title="Pause">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3"/></svg>
+      </button>
+      <p id="play-hint" class="play-hint"></p>
+    </div>
+
+    <section id="card" class="screen modal" hidden aria-labelledby="card-title">
+      <div class="panel wide">
+        <h2 id="card-title">Controls found in this picture</h2>
+        <div id="card-body" class="scroll" tabindex="0"></div>
+        <button class="menu-btn" data-nav data-action="close">Back to the picture</button>
+      </div>
+    </section>
+
+    <section id="pause" class="screen modal" hidden aria-labelledby="pause-title">
+      <div class="panel">
+        <h2 id="pause-title">Paused</h2>
+        <p id="pause-reason" class="muted"></p>
+        <button class="menu-btn" data-nav data-action="resume">Resume</button>
+        <button class="menu-btn" data-nav data-action="card">Controls found</button>
+        <button class="menu-btn" data-nav data-open="instructions">Instructions</button>
+        <button class="menu-btn" data-nav data-open="settings">Settings</button>
+        <button class="menu-btn" data-nav data-action="next-scene">Next picture</button>
+        <button class="menu-btn" data-nav data-action="quit-title">Return to title</button>
+      </div>
+    </section>
+
+    <section id="instructions" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="ins-title">
+      <div class="panel wide">
+        <h2 id="ins-title">How to play</h2>
+        <div class="scroll" id="ins-scroll" tabindex="0">
+          <p><strong>Each picture is one of Hanneke de Neve's works</strong>, rebuilt as a live patchwork: a ground, with cut pieces of cloth laid on it. Reach in and move it.</p>
+          <p><strong>Every stick, trigger and button is tied to something in the picture.</strong> Some do small things: a moon slides, a face tilts, a heart swells. A few do big things: the whole picture swirls, a tide runs through it, the next picture pours in. Nothing tells you which is which, so try them. Once you have found a control, the piece it moves stays outlined in your thread colour.</p>
+          <p><strong>Small moves set up the big ones.</strong> A big control is centred on one piece, and how far it reaches depends on the picture: bring that piece to the middle, sew other pieces to it, or bring it to the piece it belongs with. A dotted ring round it shows its reach and tightens as it gets ready. When it wakes, lean on it: big effects can carry every piece somewhere new, or carry you into the next picture. Then there are new controls to find.</p>
+          <p><strong>There is nothing to win or lose.</strong> Leave the picture alone and the pieces drift home, and the painting settles back into view.</p>
+          <p><strong>Up to four players.</strong> Each controller is a player with its own thread colour and its own controls; the keyboard and mouse are one more. One player can set up what another sets off.</p>
+          <h3>Xbox controller</h3>
+          <div class="pad-diagram" aria-hidden="true">
+            <svg viewBox="0 0 640 310">
+              <path d="M180 80 Q320 50 460 80 Q540 90 570 200 Q590 280 530 280 Q490 280 460 230 L180 230 Q150 280 110 280 Q50 280 70 200 Q100 90 180 80 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+              <rect x="140" y="20" width="56" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="168" y="35" text-anchor="middle" font-size="12" fill="currentColor">LT</text>
+              <rect x="444" y="20" width="56" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="472" y="35" text-anchor="middle" font-size="12" fill="currentColor">RT</text>
+              <rect x="150" y="48" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="185" y="61" text-anchor="middle" font-size="12" fill="currentColor">LB</text>
+              <rect x="420" y="48" width="70" height="18" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="455" y="61" text-anchor="middle" font-size="12" fill="currentColor">RB</text>
+              <circle cx="190" cy="135" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="190" y="139" text-anchor="middle" font-size="11" fill="currentColor">L</text>
+              <circle cx="400" cy="195" r="22" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="400" y="199" text-anchor="middle" font-size="11" fill="currentColor">R</text>
+              <path d="M232 185h16v-16h16v16h16v16h-16v16h-16v-16h-16z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="460" cy="110" r="15" fill="#e8b830"/><text x="460" y="115" text-anchor="middle" font-size="14" font-weight="700" fill="#1b1430">Y</text>
+              <circle cx="430" cy="138" r="15" fill="#3d7bd9"/><text x="430" y="143" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">X</text>
+              <circle cx="490" cy="138" r="15" fill="#d9443d"/><text x="490" y="143" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">B</text>
+              <circle cx="460" cy="166" r="15" fill="#4caf50"/><text x="460" y="171" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A</text>
+              <rect x="296" y="122" width="16" height="10" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="330" y="122" width="16" height="10" rx="4" fill="currentColor"/>
+              <g font-size="13" fill="currentColor">
+                <line x1="168" y1="135" x2="40" y2="128" stroke="currentColor"/><text x="4" y="118" font-weight="700">L stick · a piece, a panel</text><text x="4" y="148">or the whole picture</text>
+                <line x1="400" y1="218" x2="420" y2="292" stroke="currentColor"/><text x="350" y="306" font-weight="700">R stick · the same: try it</text>
+                <line x1="248" y1="210" x2="150" y2="300" stroke="currentColor"/><text x="4" y="306">D-pad · next piece of the same kind</text>
+                <line x1="140" y1="30" x2="60" y2="16" stroke="currentColor"/><text x="4" y="12">LT / RT · hold: fade, bloom, pour</text>
+                <line x1="150" y1="57" x2="60" y2="70" stroke="currentColor"/><text x="4" y="84">LB / RB · press</text>
+                <line x1="505" y1="138" x2="560" y2="150" stroke="currentColor"/><text x="520" y="166">A B X Y · press:</text><text x="520" y="182">change, hop, sew,</text><text x="520" y="198">swap, scatter…</text>
+                <line x1="304" y1="120" x2="290" y2="96" stroke="currentColor"/><text x="232" y="92">View · controls found</text>
+                <line x1="338" y1="120" x2="380" y2="96" stroke="currentColor"/><text x="360" y="92">Menu · pause</text>
+              </g>
+            </svg>
+          </div>
+          <table class="map-table">
+            <tr><th>Control</th><th>Controller</th><th>Keyboard</th></tr>
+            <tr><td>Something in the picture (moves, turns, stretches, swirls)</td><td>Left stick, right stick</td><td>W A S D, arrow keys</td></tr>
+            <tr><td>Something to hold (fade, bloom, pour, unravel)</td><td>LT, RT</td><td>Q, E</td></tr>
+            <tr><td>Something to press (change, hop, sew, swap, scatter)</td><td><span class="xb xb-a">A</span> <span class="xb xb-b">B</span> <span class="xb xb-x">X</span> <span class="xb xb-y">Y</span>, LB, RB</td><td>K L J I, Z, C</td></tr>
+            <tr><td>Move the last control to the next piece of its kind</td><td>D-pad</td><td>[ and ]</td></tr>
+            <tr><td>Show the controls found</td><td>View</td><td>Tab</td></tr>
+            <tr><td>Pause</td><td>Menu</td><td>Esc or P</td></tr>
+            <tr><td>Menus</td><td>Left stick or D-pad, <span class="xb xb-a">A</span> choose, <span class="xb xb-b">B</span> back</td><td>Arrows, Enter, Esc</td></tr>
+          </table>
+          <p><strong>Mouse or touch:</strong> drag a piece to move it, double-click or double-tap it to make it bloom. The mouse wheel over a piece stretches it; with Shift held it turns it.</p>
+          <p class="muted">The pictures were generated after photos of Hanneke de Neve's fibercollages, quilts, tapestries and paintings, with her blessing.</p>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Close</button>
+      </div>
+    </section>
+
+    <section id="settings" class="screen modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="set-title">
+      <div class="panel">
+        <h2 id="set-title">Settings</h2>
+        <div class="scroll settings-list">
+          <label class="row">Volume <input type="range" min="0" max="100" step="5" data-nav data-setting="volume"><output></output></label>
+          <label class="row">Music <input type="range" min="0" max="100" step="5" data-nav data-setting="music"><output></output></label>
+          <label class="row">Sound effects <input type="range" min="0" max="100" step="5" data-nav data-setting="sfx"><output></output></label>
+          <label class="row check">Outline found controls <input type="checkbox" data-nav data-setting="hints"></label>
+          <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
+          <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
+        </div>
+        <button class="menu-btn" data-nav data-action="close">Done</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
