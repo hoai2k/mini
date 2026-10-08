@@ -55,7 +55,21 @@
       <button class="icon-btn hud-pause" data-action="pause" aria-label="Pause" title="Pause">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3"/></svg>
       </button>
+      <button class="icon-btn hud-pad" data-action="touchpad" aria-label="On-screen controls" title="On-screen controls" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10a4 4 0 0 1 4 4v1.5a3.5 3.5 0 0 1-6.3 2.1L14 14.5h-4l-.7 1.1A3.5 3.5 0 0 1 3 13.5V12a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10.5v3M6.5 12h3" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>
+      </button>
       <p id="play-hint" class="play-hint"></p>
+      <div id="touchpad" class="touchpad" hidden>
+        <div class="tp-stick" data-stick="LS" aria-label="Left stick"><i></i></div>
+        <div class="tp-right">
+          <div class="tp-buttons">
+            <button data-tp="LT">LT</button><button data-tp="Y" class="xb-y">Y</button><button data-tp="RT">RT</button>
+            <button data-tp="X" class="xb-x">X</button><span></span><button data-tp="B" class="xb-b">B</button>
+            <button data-tp="LB">LB</button><button data-tp="A" class="xb-a">A</button><button data-tp="RB">RB</button>
+          </div>
+          <div class="tp-stick" data-stick="RS" aria-label="Right stick"><i></i></div>
+        </div>
+      </div>
     </div>
 
     <section id="card" class="screen modal" hidden aria-labelledby="card-title">
@@ -127,7 +141,8 @@
             <tr><td>Pause</td><td>Menu</td><td>Esc or P</td></tr>
             <tr><td>Menus</td><td>Left stick or D-pad, <span class="xb xb-a">A</span> choose, <span class="xb xb-b">B</span> back</td><td>Arrows, Enter, Esc</td></tr>
           </table>
-          <p><strong>Mouse or touch:</strong> drag a piece to move it, double-click or double-tap it to make it bloom. The mouse wheel over a piece stretches it; with Shift held it turns it.</p>
+          <p><strong>Mouse or touch:</strong> drag a piece to move it, double-click or double-tap it to make it bloom. The mouse wheel over a piece stretches it; with Shift held it turns it. On a touch screen, hold a piece and pinch with a second finger to stretch it, or twist to turn it.</p>
+          <p><strong>On a phone or tablet</strong>, the controller button at the top shows on-screen sticks and buttons that work like the controller's. When the picture is bigger than the screen, drag the cloth around it to look about; the view also follows the pieces you move.</p>
           <p class="muted">The pictures were generated after photos of Hanneke de Neve's fibercollages, quilts, tapestries and paintings, with her blessing.</p>
         </div>
         <button class="menu-btn" data-nav data-action="close">Close</button>

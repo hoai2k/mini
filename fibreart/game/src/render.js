@@ -256,6 +256,10 @@ export function createRenderer(canvas, base = 'web/') {
 
   let view = [1, 1, 0, 0];
   let frame = { x: 0, y: 0, w: 1, h: 1 };
+  // The point of the picture at the middle of the screen. Only matters when the
+  // picture is larger than the screen (a phone held upright): then the view
+  // pans across it, clamped to its edges.
+  const centre = { x: W / 2, y: H / 2 };
   function resize() {
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const cw = Math.max(1, Math.round(canvas.clientWidth * dpr));
@@ -265,12 +269,20 @@ export function createRenderer(canvas, base = 'web/') {
       canvas.height = ch;
     }
     // Fit the 16:9 picture inside the screen with a small margin of backing cloth.
+    // On a tall, narrow screen that would leave a thin strip, so the picture
+    // keeps at least half the screen's height and the view pans across it.
     const margin = 0.965;
-    const s = Math.min(cw / W, ch / H) * margin;
+    const s = Math.max(Math.min(cw / W, ch / H) * margin, Math.min((ch * 0.5) / H, cw / W * 2.2));
     const pw = W * s;
     const ph = H * s;
-    frame = { x: (cw - pw) / 2 / dpr, y: (ch - ph) / 2 / dpr, w: pw / dpr, h: ph / dpr, scale: s / dpr };
-    view = [(2 * s) / cw, (-2 * s) / ch, -pw / cw, ph / ch];
+    const hw = cw / 2 / s;
+    const hh = ch / 2 / s;
+    centre.x = pw <= cw ? W / 2 : Math.max(hw, Math.min(W - hw, centre.x));
+    centre.y = ph <= ch ? H / 2 : Math.max(hh, Math.min(H - hh, centre.y));
+    const x0 = cw / 2 - centre.x * s;
+    const y0 = ch / 2 - centre.y * s;
+    frame = { x: x0 / dpr, y: y0 / dpr, w: pw / dpr, h: ph / dpr, scale: s / dpr, pans: pw > cw || ph > ch };
+    view = [(2 * s) / cw, (-2 * s) / ch, (2 * x0) / cw - 1, 1 - (2 * y0) / ch];
     gl.viewport(0, 0, cw, ch);
   }
 
@@ -408,5 +420,5 @@ export function createRenderer(canvas, base = 'web/') {
     }
   }
 
-  return { gl, load, loadScene, render, resize, get frame() { return frame; }, BACKING };
+  return { gl, load, loadScene, render, resize, centre, get frame() { return frame; }, BACKING };
 }
