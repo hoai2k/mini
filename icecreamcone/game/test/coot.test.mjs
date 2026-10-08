@@ -127,9 +127,10 @@ test('coot: a tall stack zooms the view out, keeping sky above it, and scoops st
   assert.equal(g.zoom, 1, 'no zoom with an empty head');
   for (let i = 0; i < 18; i++) g.stack.push({ dx: 0, color: '#fff', kind: 'scoop', count: 1 });
   step(g, 3);
-  assert.ok(g.zoom < 0.8, `zoomed out (${g.zoom.toFixed(2)})`);
+  assert.ok(g.zoom * g.depth < 0.8, `zoomed out (${g.zoom.toFixed(2)} x ${g.depth.toFixed(2)})`);
+  assert.ok(g.depth < 1, 'the Coot stepped back along the boardwalk');
   const top = g.column().at(-1).y;
-  const viewTop = 840 - 840 / g.zoom;
+  const viewTop = g.viewTop();
   assert.ok(top - viewTop > 300, `sky above the stack: ${Math.round(top - viewTop)} px`);
   g.spawn = 0;
   g.update(1 / 60, blank());

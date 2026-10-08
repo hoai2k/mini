@@ -15,7 +15,7 @@
 // onto the stack. Clinging scoops weigh on their side of the balance, so they
 // can tip the stack, or steady it.
 
-import { drawBird, birdPoint, drawSprite, scene, band, blob, scoop as scoopPath, wash, ink, poly, label, PAL, INK } from '../draw.js';
+import { drawBird, birdPoint, drawSprite, scene, art, band, blob, scoop as scoopPath, wash, ink, poly, label, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 
 const DURATION = 45;
@@ -28,12 +28,20 @@ const head = () => birdPoint('coot', 'head').map((v) => v * K);
 const R = 30; // scoop radius
 const STEP = R * 1.45; // height of each scoop in the stack
 const TOPPLE = 46; // how far the stack's balance point may lean, in px
-// The camera zooms out as the stack grows, about the middle of the boardwalk,
-// so there is always this much sky (in world px) above the top scoop, and new
-// scoops start just above the top of the view: the same warning however tall
-// the stack. The painted scene stays put; the Coot and its scoops shrink.
+// As the stack grows the view makes room, so there is always this much sky
+// (in world px) above the top scoop, and new scoops start just above the top
+// of the view: the same warning however tall the stack. First the Coot steps
+// back along the boardwalk, smaller with distance (DEPTH); then the camera
+// pulls back about the middle of the boardwalk. With the wide seaside
+// (scene.cootWide) the whole scene pulls back with it, down to half size; until
+// that painting arrives the scene stays put and only what moves shrinks.
 const HEADROOM = 400;
-const MIN_ZOOM = 0.38;
+const DEPTH = { near: 1, far: 0.82, back: 36 }; // smallest size, and how far up the boardwalk
+// Where the wide painting sits in world units: the delivered scene (0..1600 x
+// 0..900) is its region 25%-75% across and 46.7%-96.7% down.
+const WIDE = { x: -800, y: -840, w: 3200, h: 1800 };
+const wide = () => art('scene.cootWide');
+const minZoom = () => (wide() ? 0.5 : 0.46);
 
 const FLAVOURS = [PAL.strawberry, PAL.lemon, '#f3ead2', '#8a5a3a', PAL.mint, '#b8c878', '#9aa8d8'];
 
@@ -55,7 +63,8 @@ export default function create(env) {
     splats: [],
     spawn: 0.6,
     elapsed: 0,
-    zoom: 1,
+    zoom: 1, // the camera
+    depth: 1, // how far back along the boardwalk the Coot stands (1 front)
     flash: 0,
     topples: 0,
   };
@@ -250,11 +259,13 @@ export default function create(env) {
     return y;
   }
   function zoomFor() {
-    return clamp(GROUND / (GROUND - stackTop() + HEADROOM), MIN_ZOOM, 1);
+    return clamp(GROUND / (GROUND - stackTop() + HEADROOM), DEPTH.far * minZoom(), 1);
   }
   // The top of the view, and a pointer's x, in world units at this zoom.
-  const viewTop = () => GROUND - GROUND / g.zoom;
-  const toWorldX = (x) => W / 2 + (x - W / 2) / g.zoom;
+  // Where the Coot's feet are drawn, as he steps back along the boardwalk.
+  const groundY = () => GROUND - ((1 - g.depth) / (1 - DEPTH.far)) * DEPTH.back;
+  const viewTop = () => GROUND + (GROUND - GROUND / g.zoom - groundY()) / g.depth;
+  const toWorldX = (x) => W / 2 + (x - W / 2) / (g.zoom * g.depth);
 
   function spawnItem() {
     const t = g.elapsed / DURATION;
@@ -296,9 +307,13 @@ export default function create(env) {
     g.swayV += (-g.sway * 14 - g.swayV * 3.2 - clamp(ax, -6000, 6000) * 0.00009 * Math.min(n, 12)) * dt;
     g.sway += g.swayV * dt;
     cling(dt, ax);
-    // Zoom out quickly as the stack climbs, back in slowly after a topple.
+    // Make room quickly as the stack climbs, and close in slowly after a
+    // topple: stepping back takes the first part, the camera the rest.
     const want = zoomFor();
-    g.zoom = approach(g.zoom, want, want < g.zoom ? 3 : 0.7, dt);
+    const depth = clamp(1 - (1 - want) * 0.7, DEPTH.far, DEPTH.near);
+    const zoom = clamp(want / depth, minZoom(), 1);
+    g.depth = approach(g.depth, depth, depth < g.depth ? 3 : 0.7, dt);
+    g.zoom = approach(g.zoom, zoom, zoom < g.zoom ? 3 : 0.7, dt);
     if (n && Math.abs(balance()) > TOPPLE) topple();
 
     // Spawn: faster as time goes on.
@@ -363,6 +378,7 @@ export default function create(env) {
 
   // For tests: where things are.
   g.column = column;
+  g.viewTop = () => viewTop();
   g.clingPos = (c) => clingPos(c);
 
   g.hud = () => `Stack ${height()}` + (g.clingers.length ? ` +${g.clingers.length} hanging on` : '') + ` · Best ${g.score}`;
@@ -412,8 +428,21 @@ export default function create(env) {
     c.restore();
   }
 
+  // The camera: pulled back about the middle of the boardwalk.
+  function camera(c) {
+    c.translate(W / 2, GROUND);
+    c.scale(g.zoom, g.zoom);
+    c.translate(-W / 2, -GROUND);
+  }
+
   g.draw = (c, t) => {
-    scene(c, 'coot', W, H, (c) => {
+    const big = wide();
+    if (big) {
+      c.save();
+      camera(c);
+      c.drawImage(big, WIDE.x, WIDE.y, WIDE.w, WIDE.h);
+      c.restore();
+    } else scene(c, 'coot', W, H, (c) => {
       band(c, 0, 0, W, 520, PAL.sky, 0.5, 1);
       band(c, 0, 470, W, 120, PAL.slate, 0.35, 2);
       band(c, 0, 800, W, 100, PAL.wafer, 0.55, 3);
@@ -437,10 +466,12 @@ export default function create(env) {
       }
     });
 
-    // Everything that moves is drawn zoomed about the middle of the boardwalk.
+    // Everything that moves: through the camera, then stepped back along the
+    // boardwalk (feet at groundY, smaller by depth).
     c.save();
-    c.translate(W / 2, GROUND);
-    c.scale(g.zoom, g.zoom);
+    camera(c);
+    c.translate(W / 2, groundY());
+    c.scale(g.depth, g.depth);
     c.translate(-W / 2, -GROUND);
 
     // splats on the boardwalk
