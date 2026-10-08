@@ -56,23 +56,6 @@ export default {
           p.kind = 0;
         }
       }
-      // Watery shine on the lower lids and wet streaks down the cheeks.
-      ctx.save();
-      for (const side of [-1, 1]) {
-        const eye = side < 0 ? face.eyeL : face.eyeR;
-        const g = ctx.createLinearGradient(0, eye.y, 0, eye.y + sc * 1.1);
-        g.addColorStop(0, 'rgba(190,230,255,0.55)');
-        g.addColorStop(1, 'rgba(190,230,255,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.ellipse(eye.x + side * sc * 0.12, eye.y + sc * 0.45, sc * 0.09, sc * 0.55, side * 0.15, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(210,240,255,0.5)';
-        ctx.beginPath();
-        ctx.ellipse(eye.x, eye.y + sc * 0.17, sc * 0.26, sc * 0.05, face.roll, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.restore();
     }
 
     // Move and draw the tears: blue-white streaks following their motion.

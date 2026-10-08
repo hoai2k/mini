@@ -92,11 +92,11 @@ try {
   await b.screenshot({ path: `${outDir}call-bo-bubble-flying.png` });
   check(await until(b, () => [...document.querySelectorAll('.toast')].some(t => /popped a bubble on you/.test(t.textContent)), null, 6000), 'Ana’s bubble pops on Bo');
 
-  // Votes: Ana gives Bubble Blow a thumbs up from the effects strip; Bo sees it.
-  await a.click('#btn-effects');
+  // Votes: Ana gives Bubble Blow a thumbs up from the Accessories strip; Bo sees it.
+  await a.click('#btn-accessories');
   await a.click('#fx-votes .vote[data-value="1"]');
   await a.waitForTimeout(800);
-  await a.click('#btn-effects');
+  await a.click('#btn-accessories');
   const seen = await b.evaluate(async () => {
     await window.__chat.votes.refresh();
     return window.__chat.votes.counts('fx-bubble');
@@ -134,14 +134,17 @@ try {
   await a.click('.game-card:has-text("Hoops")');
   check(await until(b, () => [...document.querySelectorAll('.invite')].some(i => /started/.test(i.textContent))), 'Bo gets an invite');
   await b.click('.invite:has-text("started") button.btn.aqua');
-  check(await until(b, () => window.__chat.games.current?.api.players().length === 2), 'Bo joins Ana’s Hoops session');
+  const joined = await until(b, () => window.__chat.games.current?.api.players().length === 2);
+  if (!joined) console.log('DEBUG', await b.evaluate(() => ({ cur: window.__chat.games.current?.game.id, players: window.__chat.games.current?.api.players().map(p => p.name), sessions: window.__chat.games.sessions().map(s => s.sid), toasts: [...document.querySelectorAll('.toast')].map(t => t.textContent), invites: [...document.querySelectorAll('.invite')].map(i => i.textContent) })));
+  check(joined, 'Bo joins Ana’s Hoops session');
   check(await until(a, () => window.__chat.games.current?.api.players().length === 2), 'Ana sees Bo in the session');
   await a.waitForTimeout(800);
   await a.screenshot({ path: `${outDir}call-ana-hoops.png` });
   await b.screenshot({ path: `${outDir}call-bo-hoops.png` });
 
-  // Ana switches tabs: her camera and microphone pause and Bo sees "Away".
-  // She mutes while away; on return the camera comes back but the mic stays off.
+  // Ana switches tabs: her camera pauses, her mic stays on, the app's sounds
+  // go quiet and Bo sees "Away". She mutes while away; on return the camera
+  // comes back and the mic stays muted.
   const setHidden = hidden => a.evaluate(hidden => {
     Object.defineProperty(document, 'hidden', { get: () => hidden, configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
@@ -152,11 +155,13 @@ try {
   });
   check(JSON.stringify(await tracks()) === '{"away":false,"cam":true,"mic":true}', 'Ana’s camera and mic are on while her tab is in front');
   await setHidden(true);
-  check(JSON.stringify(await tracks()) === '{"away":true,"cam":false,"mic":false}', 'a background tab pauses the camera and mic');
+  check(JSON.stringify(await tracks()) === '{"away":true,"cam":false,"mic":true}', 'a background tab pauses the camera but keeps the mic');
+  check(await a.evaluate(() => window.__chat.sfxMuted()), 'and quiets the app’s sound effects');
   check(await until(b, () => !!document.querySelector('.tile .flag.away'), null, 8000), 'Bo sees Ana as away');
   await a.evaluate(() => document.querySelector('#btn-mic').click());
   await setHidden(false);
   check(JSON.stringify(await tracks()) === '{"away":false,"cam":true,"mic":false}', 'coming back turns the camera on and keeps the mute');
+  check(!(await a.evaluate(() => window.__chat.sfxMuted())), 'and the sound effects come back');
   check(await until(b, () => !document.querySelector('.tile .flag.away') && !!document.querySelector('.tile .flag.muted'), null, 8000), 'Bo sees Ana back, muted');
   await a.evaluate(() => document.querySelector('#btn-mic').click());
 

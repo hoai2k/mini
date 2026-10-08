@@ -74,12 +74,19 @@ export const EFFECT_IDS = [
   'confetti',
   'moneyrain',
   'fireworks',
+  // Third batch: face and body reshaping.
+  'kid',
+  'manface',
+  'womanface',
+  'thinner',
+  'fatter',
 ];
 
 // The three tabs. Backgrounds replace or change what's behind you (new
-// backdrops and the 360 worlds). Accessories add pictures in front: hats,
-// ears, horns, masks, hearts and the like. Effects are everything else:
-// warps, colour, time tricks and particles drawn on the fly.
+// backdrops and the 360 worlds). Accessories add things in front of you:
+// hats, ears, horns, masks, hearts, rainbows, tears, snow, bubbles and the
+// like. Effects are everything else: warps, reshaping, colour, time tricks
+// and particles.
 export const BACKGROUND_IDS = new Set([
   'space', 'underwater', 'sunset', 'blurbg', 'colorpop', 'neonaura', 'disco', 'matrix',
   'beach360', 'space360', 'reef360', 'forest360', 'city360', 'snow360', 'candy360', 'volcano360',
@@ -87,6 +94,7 @@ export const BACKGROUND_IDS = new Set([
 export const ACCESSORY_IDS = new Set([
   'puppy', 'kitty', 'bunny', 'hearteyes', 'dragon', 'alien', 'dealwithit', 'crown', 'fancy', 'clown',
   'flowercrown', 'devil', 'angel', 'pirate', 'viking', 'wizard', 'hotdog', 'butterflies', 'storm', 'moneyrain',
+  'rainbow', 'snow', 'crying', 'bubble',
 ]);
 
 // Effects that put you in front of a bright scene: a dim camera image is
