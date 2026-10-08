@@ -508,6 +508,14 @@ SECTIONS = {
         "Greyscale maps that decide how one image wears away into another. The game can make "
         "plain noise ones itself; these give the dissolves her materials.",
     ),
+    "anim": (
+        "Life",
+        "Small extra pictures that make the scenes feel alive: loose leaves and petals that blow "
+        "across on a gust, eyes that close for a blink, a bird's wings. Most of the life is "
+        "made in code (trees bending in the wind, breathing, drifting clouds, swimming fish); "
+        "these are the parts code cannot fake. Each swap is drawn exactly over the piece it "
+        "replaces, so attach that piece.",
+    ),
 }
 
 REQUESTS: list[dict] = [
@@ -822,6 +830,98 @@ for r in REQUESTS:
     r["attach"] = RETRY[r["id"]]
     r["note"] = (r.get("note", "") + " Retry: the first attempt was rejected by the image service (category other). This "
                  "prompt leaves out the artist's name and the photos of her work; attach the images listed under Attach instead.").strip()
+
+SWAP = (
+    "Replacement pieces for animation, each drawn to sit exactly in place of the attached "
+    "original piece: the same size, framing, outline, colours, cloth and stitching, the same "
+    "pose and the same position in its cell, with only the change described. Laid over the "
+    "original, everything but that change must line up. "
+)
+
+
+def anim(id_, name, key, file, size, used, standin, attach, prompt, refs_=None, pieces=None):
+    return {
+        "id": id_, "section": "anim", "name": name, "key": key, "file": file, "size": size,
+        "used": used, "standin": standin, "ref": refs_ or [], "attach": attach,
+        "note": "Attach the files listed under Attach; they are the pieces this matches.",
+        "prompt": prompt, **({"pieces": pieces} if pieces else {}),
+    }
+
+
+P = "game/assets/tableaux/"
+REQUESTS += [
+    anim(
+        "HK-A01", "Loose leaves and petals", "anim.drift", "assets/anim/drift.png", "2048 x 1024, transparent",
+        "Single leaves and petals blown across the windy scenes (Viriditas, The Golden Lady, "
+        "The black tree, Man and woman) on each gust, turning as they go.",
+        "The single leaves from The black tree and Man and woman.",
+        [P + "man-and-woman/pieces/07-a-single-orange-silk-leaf.png", P + "black-tree/pieces/03-a-large-ochre-leaf.png",
+         P + "viriditas/pieces/12-a-patch-of-orange-fallen-leaves.png"],
+        STYLE + " A sheet of single small cut-cloth leaves and petals, each one loose and whole, "
+        "lying flat, seen from straight above, with frayed edges and a line of stitching for its "
+        "vein, for a game that blows them across the picture. " + GRID.format(6, 2) + "In order: "
+        + numbered([
+            "an orange silk leaf", "a red-orange silk leaf, slightly curled", "a saffron leaf",
+            "an ochre leaf", "a cream leaf with a brown stitched vein", "a black leaf with a white stitched vein",
+            "a small yellow-green leaf", "a teal leaf", "a pink rose petal", "a red petal",
+            "a single red-orange berry with a short stem", "a white blossom with five petals",
+        ])
+        + " Each about the same size. " + LOOK.format(links(["fibre/fibercollage-black-tree-and-faces.jpg", "paintings/viriditas.jpg"]))
+        + " " + ALPHA,
+        refs_=["fibre/fibercollage-black-tree-and-faces.jpg", "paintings/viriditas.jpg"],
+        pieces=["orange", "red-orange", "saffron", "ochre", "cream", "black", "yellow-green", "teal",
+                "rose petal", "red petal", "berry", "blossom"],
+    ),
+    anim(
+        "HK-A02", "The Golden Lady blinks", "anim.blink.golden-lady", "assets/anim/blink-golden-lady.png", "1024 x 1024, transparent",
+        "Her face for a moment with her eyes closed, every few seconds, so she breathes and blinks instead of staring.",
+        "No blink: she breathes and tilts her head.",
+        [P + "golden-lady/pieces/01-her-head-and-neck-without-the-hair.png"],
+        STYLE + " " + SWAP + "The piece: her head and neck, without the hair. The change: her eyes "
+        "are closed, drawn as two calm downward curves with lashes in the same dark line, as if she "
+        "is blinking. One piece, centred. " + LOOK.format(links(["paintings/the-golden-lady-detail-face.jpg"])) + " " + ALPHA,
+        refs_=["paintings/the-golden-lady-detail-face.jpg"],
+    ),
+    anim(
+        "HK-A03", "The crowd blinks", "anim.blink.crowd", "assets/anim/blink-crowd.png", "2048 x 1024, transparent",
+        "The open-eyed faces of the crowd blink now and then, each on its own rhythm.",
+        "No blink: the faces breathe and tilt.",
+        [P + "crowd/pieces/01-the-large-face-with-wide-open-eyes.png", P + "crowd/pieces/04-an-ochre-face-looking-left.png",
+         P + "crowd/pieces/05-a-dusty-blue-face-looking-up.png", P + "crowd/pieces/08-a-small-pale-face-smiling.png"],
+        STYLE + " " + SWAP + GRID.format(4, 1) + "The pieces, each with its eyes closed as if blinking, "
+        "drawn as calm downward curves in the same dark line: " + numbered([
+            "the large face with wide open eyes", "the ochre face looking left",
+            "the dusty blue face looking up", "the small pale smiling face",
+        ]) + " " + LOOK.format(links(["paintings/painting-crowd-of-faces.jpg"])) + " " + ALPHA,
+        refs_=["paintings/painting-crowd-of-faces.jpg"],
+        pieces=["01", "04", "05", "08"],
+    ),
+    anim(
+        "HK-A04", "The black tree blinks", "anim.blink.black-tree", "assets/anim/blink-black-tree.png", "2048 x 1024, transparent",
+        "The two open-eyed women of The black tree blink now and then.",
+        "No blink: they breathe and tilt.",
+        [P + "black-tree/pieces/05-the-face-with-long-dark-hair.png", P + "black-tree/pieces/07-the-dark-face-with-the-gold-mask-like-look.png"],
+        STYLE + " " + SWAP + GRID.format(2, 1) + "The pieces, each with its eyes closed as if "
+        "blinking, drawn as calm downward curves in the same line: " + numbered([
+            "the face with long dark hair", "the dark face with the gold mask-like look",
+        ]) + " " + LOOK.format(links(["fibre/fibercollage-black-tree-and-faces.jpg"])) + " " + ALPHA,
+        refs_=["fibre/fibercollage-black-tree-and-faces.jpg"],
+        pieces=["05", "07"],
+    ),
+    anim(
+        "HK-A05", "The bird's wings", "anim.bird", "assets/anim/bird-viriditas.png", "2048 x 1024, transparent",
+        "The small teal bird in Viriditas flicks its wings and ruffles now and then on its branch.",
+        "The bird hops and tilts instead.",
+        [P + "viriditas/pieces/11-a-small-bird-of-stitched-teal-silk-among-the-branches.png"],
+        STYLE + " " + SWAP + GRID.format(3, 1) + "The changes, in order: " + numbered([
+            "its wings half open, lifted a little off its back, as if about to fly",
+            "its wings fully raised above its back, feathers spread",
+            "its feathers ruffled and its head turned to look back over its shoulder",
+        ]) + " Its feet stay on the same spot in every one. "
+        + LOOK.format(links(["paintings/viriditas.jpg"])) + " " + ALPHA,
+        refs_=["paintings/viriditas.jpg"],
+    ),
+]
 
 for r in REQUESTS:
     r.setdefault("status", "delivered" if r["id"] in DELIVERED_IDS else "requested")

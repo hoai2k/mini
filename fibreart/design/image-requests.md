@@ -15,7 +15,7 @@ Artwork for Fibre Art, the shifting collage in `fibreart/` (see [`design.md`](de
 
 ## Status
 
-7 requested, 48 delivered, 55 in total.
+12 requested, 48 delivered, 60 in total.
 
 ## Brand and interface
 
@@ -768,4 +768,83 @@ A greyscale dissolve map for a game shader, square, opaque, no colour at all: pu
 
 ```text
 A greyscale dissolve map for a game shader, square, opaque, no colour at all: pure white is where an image disappears first and pure black where it disappears last, with every shade of grey between, so that as a threshold sweeps from white to black the image wears away in this way: from one side to the other along a wavering line of running stitches, dashes of white ahead of the edge. Use the full range from pure white to pure black, with smooth gradients inside the shapes and fine, crisp detail along their edges. Nothing else in the image, no texture of paper or cloth, no text. 
+```
+
+## Life
+
+Small extra pictures that make the scenes feel alive: loose leaves and petals that blow across on a gust, eyes that close for a blink, a bird's wings. Most of the life is made in code (trees bending in the wind, breathing, drifting clouds, swimming fish); these are the parts code cannot fake. Each swap is drawn exactly over the piece it replaces, so attach that piece.
+
+### HK-A01 · Loose leaves and petals
+
+- **File:** `fibreart/game/assets/anim/drift.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Single leaves and petals blown across the windy scenes (Viriditas, The Golden Lady, The black tree, Man and woman) on each gust, turning as they go.
+- **Stand-in until delivered:** The single leaves from The black tree and Man and woman.
+- **Reference:** [`fibercollage-black-tree-and-faces.jpg`](../reference/fibre/fibercollage-black-tree-and-faces.jpg), [`viriditas.jpg`](../reference/paintings/viriditas.jpg)
+- **Attach:** [`07-a-single-orange-silk-leaf.png`](../game/assets/tableaux/man-and-woman/pieces/07-a-single-orange-silk-leaf.png), [`03-a-large-ochre-leaf.png`](../game/assets/tableaux/black-tree/pieces/03-a-large-ochre-leaf.png), [`12-a-patch-of-orange-fallen-leaves.png`](../game/assets/tableaux/viriditas/pieces/12-a-patch-of-orange-fallen-leaves.png)
+- **Note:** Attach the files listed under Attach; they are the pieces this matches.
+- **Status:** requested
+
+```text
+Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of single small cut-cloth leaves and petals, each one loose and whole, lying flat, seen from straight above, with frayed edges and a line of stitching for its vein, for a game that blows them across the picture. Lay them out in a grid of 6 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. In order: 1. An orange silk leaf. 2. A red-orange silk leaf, slightly curled. 3. A saffron leaf. 4. An ochre leaf. 5. A cream leaf with a brown stitched vein. 6. A black leaf with a white stitched vein. 7. A small yellow-green leaf. 8. A teal leaf. 9. A pink rose petal. 10. A red petal. 11. A single red-orange berry with a short stem. 12. A white blossom with five petals. Each about the same size. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### HK-A02 · The Golden Lady blinks
+
+- **File:** `fibreart/game/assets/anim/blink-golden-lady.png`
+- **Size:** 1024 x 1024, transparent
+- **Used for:** Her face for a moment with her eyes closed, every few seconds, so she breathes and blinks instead of staring.
+- **Stand-in until delivered:** No blink: she breathes and tilts her head.
+- **Reference:** [`the-golden-lady-detail-face.jpg`](../reference/paintings/the-golden-lady-detail-face.jpg)
+- **Attach:** [`01-her-head-and-neck-without-the-hair.png`](../game/assets/tableaux/golden-lady/pieces/01-her-head-and-neck-without-the-hair.png)
+- **Note:** Attach the files listed under Attach; they are the pieces this matches.
+- **Status:** requested
+
+```text
+Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. Replacement pieces for animation, each drawn to sit exactly in place of the attached original piece: the same size, framing, outline, colours, cloth and stitching, the same pose and the same position in its cell, with only the change described. Laid over the original, everything but that change must line up. The piece: her head and neck, without the hair. The change: her eyes are closed, drawn as two calm downward curves with lashes in the same dark line, as if she is blinking. One piece, centred. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-face.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### HK-A03 · The crowd blinks
+
+- **File:** `fibreart/game/assets/anim/blink-crowd.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** The open-eyed faces of the crowd blink now and then, each on its own rhythm.
+- **Stand-in until delivered:** No blink: the faces breathe and tilt.
+- **Reference:** [`painting-crowd-of-faces.jpg`](../reference/paintings/painting-crowd-of-faces.jpg)
+- **Attach:** [`01-the-large-face-with-wide-open-eyes.png`](../game/assets/tableaux/crowd/pieces/01-the-large-face-with-wide-open-eyes.png), [`04-an-ochre-face-looking-left.png`](../game/assets/tableaux/crowd/pieces/04-an-ochre-face-looking-left.png), [`05-a-dusty-blue-face-looking-up.png`](../game/assets/tableaux/crowd/pieces/05-a-dusty-blue-face-looking-up.png), [`08-a-small-pale-face-smiling.png`](../game/assets/tableaux/crowd/pieces/08-a-small-pale-face-smiling.png)
+- **Note:** Attach the files listed under Attach; they are the pieces this matches.
+- **Status:** requested
+
+```text
+Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. Replacement pieces for animation, each drawn to sit exactly in place of the attached original piece: the same size, framing, outline, colours, cloth and stitching, the same pose and the same position in its cell, with only the change described. Laid over the original, everything but that change must line up. Lay them out in a grid of 4 columns and 1 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, each with its eyes closed as if blinking, drawn as calm downward curves in the same dark line: 1. The large face with wide open eyes. 2. The ochre face looking left. 3. The dusty blue face looking up. 4. The small pale smiling face. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-crowd-of-faces.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### HK-A04 · The black tree blinks
+
+- **File:** `fibreart/game/assets/anim/blink-black-tree.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** The two open-eyed women of The black tree blink now and then.
+- **Stand-in until delivered:** No blink: they breathe and tilt.
+- **Reference:** [`fibercollage-black-tree-and-faces.jpg`](../reference/fibre/fibercollage-black-tree-and-faces.jpg)
+- **Attach:** [`05-the-face-with-long-dark-hair.png`](../game/assets/tableaux/black-tree/pieces/05-the-face-with-long-dark-hair.png), [`07-the-dark-face-with-the-gold-mask-like-look.png`](../game/assets/tableaux/black-tree/pieces/07-the-dark-face-with-the-gold-mask-like-look.png)
+- **Note:** Attach the files listed under Attach; they are the pieces this matches.
+- **Status:** requested
+
+```text
+Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. Replacement pieces for animation, each drawn to sit exactly in place of the attached original piece: the same size, framing, outline, colours, cloth and stitching, the same pose and the same position in its cell, with only the change described. Laid over the original, everything but that change must line up. Lay them out in a grid of 2 columns and 1 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, each with its eyes closed as if blinking, drawn as calm downward curves in the same line: 1. The face with long dark hair. 2. The dark face with the gold mask-like look. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### HK-A05 · The bird's wings
+
+- **File:** `fibreart/game/assets/anim/bird-viriditas.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** The small teal bird in Viriditas flicks its wings and ruffles now and then on its branch.
+- **Stand-in until delivered:** The bird hops and tilts instead.
+- **Reference:** [`viriditas.jpg`](../reference/paintings/viriditas.jpg)
+- **Attach:** [`11-a-small-bird-of-stitched-teal-silk-among-the-branches.png`](../game/assets/tableaux/viriditas/pieces/11-a-small-bird-of-stitched-teal-silk-among-the-branches.png)
+- **Note:** Attach the files listed under Attach; they are the pieces this matches.
+- **Status:** requested
+
+```text
+Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. Replacement pieces for animation, each drawn to sit exactly in place of the attached original piece: the same size, framing, outline, colours, cloth and stitching, the same pose and the same position in its cell, with only the change described. Laid over the original, everything but that change must line up. Lay them out in a grid of 3 columns and 1 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The changes, in order: 1. Its wings half open, lifted a little off its back, as if about to fly. 2. Its wings fully raised above its back, feathers spread. 3. Its feathers ruffled and its head turned to look back over its shoulder. Its feet stay on the same spot in every one. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```

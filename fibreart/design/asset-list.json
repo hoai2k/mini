@@ -417,5 +417,54 @@
     "id": "HK-D06",
     "file": "assets/masks/stitch-line.png",
     "delivered": true
+  },
+  "anim.drift": {
+    "id": "HK-A01",
+    "file": "assets/anim/drift.png",
+    "delivered": false,
+    "pieces": [
+      "orange",
+      "red-orange",
+      "saffron",
+      "ochre",
+      "cream",
+      "black",
+      "yellow-green",
+      "teal",
+      "rose petal",
+      "red petal",
+      "berry",
+      "blossom"
+    ]
+  },
+  "anim.blink.golden-lady": {
+    "id": "HK-A02",
+    "file": "assets/anim/blink-golden-lady.png",
+    "delivered": false
+  },
+  "anim.blink.crowd": {
+    "id": "HK-A03",
+    "file": "assets/anim/blink-crowd.png",
+    "delivered": false,
+    "pieces": [
+      "01",
+      "04",
+      "05",
+      "08"
+    ]
+  },
+  "anim.blink.black-tree": {
+    "id": "HK-A04",
+    "file": "assets/anim/blink-black-tree.png",
+    "delivered": false,
+    "pieces": [
+      "05",
+      "07"
+    ]
+  },
+  "anim.bird": {
+    "id": "HK-A05",
+    "file": "assets/anim/bird-viriditas.png",
+    "delivered": false
   }
 }
