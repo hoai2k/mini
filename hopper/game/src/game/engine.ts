@@ -1422,8 +1422,11 @@ export class Engine {
       this.leadTimer = 0;
       this.leadDistance = 0;
     }
+    // The lead never puts Hopper nearer the edge than three tenths of the
+    // view: unchanged on any landscape screen, shorter on a portrait phone.
+    const lead = Math.min(330, this.renderer.viewport.width * 0.3);
     this.cameraLead +=
-      (this.leadDirection * 330 - this.cameraLead) * Math.min(1, dt * 1.35);
+      (this.leadDirection * lead - this.cameraLead) * Math.min(1, dt * 1.35);
     const b = this.combat.boss,
       targetZoom = b.active
         ? clamp(

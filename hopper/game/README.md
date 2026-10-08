@@ -37,6 +37,8 @@ The original 2D edition's controls:
 | Instructions        | View                             | — (pause menu)  |
 | Menu confirm / back | A / B                            | Enter / Escape  |
 
+On a phone or tablet (a coarse pointer) on-screen touch controls appear during play: a floating stick on the left half of the screen, and A / X / RT buttons on the right in 2D (in 3D also LT, RB, LS, Y and LB, with a drag on the right half turning the camera). Each button presses the keyboard key it stands for (`app/touch-controls.tsx`, `InputManager.touchKey`). In portrait the 2D camera shows a 660-unit stretch instead of the landscape 1,100, so Hopper stays a readable size and the camera follows him along it; the 3D camera widens its vertical field of view in portrait.
+
 The 3D edition's controls:
 
 | Action                         | Xbox                                    | Keyboard            |

@@ -30,6 +30,7 @@ import {
   type GameEngine,
 } from '@/src/game/game-engine';
 import { Engine3D } from '@/src/game3d/engine3d';
+import { TouchControls } from './touch-controls';
 
 // The 3D URL opens the edition selector; the regular page starts in 2D.
 const showEditionOptions =
@@ -375,6 +376,8 @@ export default function Home() {
     window.addEventListener('blur', leave);
     window.addEventListener('focus', background);
     document.addEventListener('visibilitychange', leave);
+    // A page opened in a background tab starts silent.
+    if (document.hidden) a.setBackground(true);
     const loop = (now: number) => {
       const dt = Math.min(0.05, (now - previous) / 1000);
       previous = now;
@@ -976,6 +979,9 @@ export default function Home() {
       )}
       {screen !== 'title' && screen !== 'select' && hud && (
         <>
+          {screen === 'playing' && (
+            <TouchControls input={input} edition={edition} />
+          )}
           <div className="hud" inert={screen !== 'playing'}>
             <div className="pilot-badge">
               <Image

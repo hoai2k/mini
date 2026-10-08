@@ -114,6 +114,7 @@ export class GameAudio {
           if (
             this.disposed ||
             !this.wantsMusic ||
+            this.background ||
             this.selectedTrack() !== selected
           ) {
             if (!selected.paused) selected.pause();
