@@ -159,8 +159,9 @@ posts the letter and skips back indoors.
 
 A side-on country lane: the picket fence, gnarled trees, flowerbeds, and Sally
 Ann's mailbox at the far end, with the mailman's motorcycle puttering closer
-along the top of the screen as the clock runs. Move the Trollusk from cover
-to cover toward the mailbox; hold A to duck into a flowerbed. Sally Ann at her
+along the road behind the fence (only his top shows over the pickets, and he
+passes behind the trees and the house) as the clock runs. Move the Trollusk
+from cover to cover toward the mailbox; hold A to duck into a flowerbed. Sally Ann at her
 window, a dozing neighbour and a dog look out now and then (a little eye
 warning first), each over the ring of lane drawn when the eye warns; only his
 feet inside that ring count. Caught moving in the open and the Trollusk
@@ -448,6 +449,11 @@ turning tilts the body, landing squashes it.
   piece drawn in code from simple shapes in the book's colours, with a wobbly
   ink outline, and every scene is a simple painted-in-code version of the
   same place.
+- No spoilers outside the story: the title screen, the menus and the game
+  library card show only the three monsters from the book's cover (the
+  Trollusk, the Bombanat and the Yalapappus). The Grumley, the Ice-Ferg, the
+  Typhoonigator and the Grithix appear first in their own chapters; the
+  chapter list hides a chapter's monster until the journey reaches it.
 - Text in the game is our own, in the book's rhythm ("But before the ...")
   and using its names; the book's text is not reproduced.
 - Sound is synthesised in the browser: a bouncy oom-pah tune for the

@@ -269,7 +269,7 @@ async function showCard(ci) {
   const c = chapterOf(ci);
   const M = MONSTERS[c.snatcher];
   S.factory = null;
-  const keys = [`${c.snatcher}.poses`, c.scene, 'portraits/' + c.snatcher, 'cast', 'ui/letter', 'ui/postmark', 'yalapappus.swaps',
+  const keys = [`${c.snatcher}.poses`, c.scene, `${c.scene}-front`, 'portraits/' + c.snatcher, 'cast', 'ui/letter', 'ui/postmark', 'yalapappus.swaps',
     ...['trollusk', 'bombanat', 'grumley', 'iceferg', 'typhoonigator', 'yalapappus', 'grithix'].map((p) => `props.${p}`)];
   if (MONSTERS[c.holder]) keys.push(`${c.holder}.poses`);
   art.preload(keys);
