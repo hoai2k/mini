@@ -40,6 +40,8 @@ export function createInput() {
   const padListeners = [];
   let kind = 'keyboard';
   let keyboardUsed = false;
+  // The on-screen controls (for touch): written by the shell, read with the keyboard.
+  const touchPad = { LS: [0, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set() };
 
   const setKind = (k) => {
     if (k === kind) return;
@@ -62,6 +64,7 @@ export function createInput() {
 
   const api = {
     get kind() { return kind; },
+    touchPad,
     onKind(fn) { listeners.push(fn); },
     onPads(fn) { padListeners.push(fn); },
     pads() { return [...pads.keys()]; },
@@ -91,6 +94,7 @@ export function createInput() {
     },
     endFrame() {
       pressed.clear();
+      touchPad.pressed.clear();
     },
     // Everything currently held is stale until released (after a screen change).
     lockHeld() {
@@ -156,12 +160,14 @@ export function createInput() {
         const n = Math.hypot(x, y) || 1;
         return [x / n, y / n];
       };
+      const tp = touchPad;
+      const either = (a, b) => (a[0] || a[1] ? a : b);
       const kb = {
-        LS: axis(KEYMAP.LS),
-        RS: axis(KEYMAP.RS),
-        LT: k(KEYMAP.LT),
-        RT: k(KEYMAP.RT),
-        pressed: new Set(PLAY_BUTTONS.filter((n) => pressed.has(KEYMAP[n]))),
+        LS: either(axis(KEYMAP.LS), tp.LS),
+        RS: either(axis(KEYMAP.RS), tp.RS),
+        LT: Math.max(k(KEYMAP.LT), tp.LT),
+        RT: Math.max(k(KEYMAP.RT), tp.RT),
+        pressed: new Set(PLAY_BUTTONS.filter((n) => pressed.has(KEYMAP[n]) || tp.pressed.has(n))),
         dpad: pressed.has(KEYMAP.prev) ? -1 : pressed.has(KEYMAP.next) ? 1 : 0,
       };
       const used = kb.LS[0] || kb.LS[1] || kb.RS[0] || kb.RS[1] || kb.LT || kb.RT || kb.pressed.size || kb.dpad;

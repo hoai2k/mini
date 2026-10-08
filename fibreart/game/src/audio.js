@@ -16,8 +16,12 @@ export function createAudio() {
   let rushFilter;
   let drone = null;
   const vol = { volume: 0.8, music: 0.6, sfx: 0.8 };
+  // False while the page is hidden or the window is in the background: the
+  // context stays suspended and nothing new is scheduled until it is back.
+  let active = true;
 
   function ensure() {
+    if (!active) return false;
     if (ctx) {
       if (ctx.state === 'suspended') ctx.resume();
       return true;
@@ -118,6 +122,13 @@ export function createAudio() {
 
   return {
     unlock: ensure,
+    // Silence everything while the page is hidden or unfocused; resume after.
+    setActive(on) {
+      active = on;
+      if (!ctx) return;
+      if (on) ctx.resume().catch(() => {});
+      else ctx.suspend().catch(() => {});
+    },
     set(v) {
       Object.assign(vol, v);
       apply();

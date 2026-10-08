@@ -51,6 +51,8 @@ const ui = {
   captionTimer: 0,
 };
 
+const coarse = matchMedia('(pointer: coarse)').matches;
+
 const KEY_NAMES = { LS: 'W A S D', RS: 'Arrows', LT: 'Q', RT: 'E', A: 'K', B: 'L', X: 'J', Y: 'I', LB: 'Z', RB: 'C' };
 
 // ---- Screens, dialogs and focus ----------------------------------------
@@ -144,6 +146,9 @@ function start() {
   input.lockHeld();
   syncPlayers(true);
   if (!game.players.length) addPlayer(game, 'kb');
+  // On a touch screen with no controller, start with the on-screen controls.
+  if (ui.touchPad === undefined) ui.touchPad = coarse && !input.pads().length;
+  showTouchPad(ui.touchPad);
   audio.scene(game.index);
   caption();
   hint();
@@ -199,12 +204,15 @@ function hint() {
     ? 'Try every stick, trigger and button · View: controls found · Menu: pause'
     : k === 'keyboard'
       ? 'W A S D, arrows, Q E, I J K L, Z C · Tab: controls found · Esc: pause'
-      : 'Drag the pieces · double-tap one to make it bloom';
-  $('#title-hint').textContent = k === 'controller' ? 'Move left stick for options' : 'Press Enter or click Press Start';
+      : k === 'touch'
+        ? 'Drag the pieces · double-tap one to make it bloom · pinch one to stretch it'
+        : 'Drag the pieces · double-click one to make it bloom · wheel to stretch it';
+  $('#title-hint').textContent = k === 'controller' ? 'Move left stick for options' : k === 'touch' || coarse ? 'Tap Press Start' : 'Press Enter or click Press Start';
 }
 
 function playerLabel(pl) {
-  return pl.id === 'kb' ? 'Keyboard' : `Player ${Number(pl.id.slice(3)) + 1}`;
+  if (pl.id === 'kb') return input.kind === 'touch' || ui.touchPad ? 'You' : 'Keyboard';
+  return `Player ${Number(pl.id.slice(3)) + 1}`;
 }
 
 function chips() {
@@ -230,7 +238,7 @@ function fillCard() {
     sec.style.setProperty('--c', pl.colour);
     const items = INPUTS.map((inp) => {
       const b = pl.bindings[inp];
-      const key = pl.id === 'kb' ? KEY_NAMES[inp] : inp;
+      const key = pl.id === 'kb' && !ui.touchPad ? KEY_NAMES[inp] : inp;
       if (!b?.found) return `<li class="unfound"><kbd>${key}</kbd> not found yet</li>`;
       const big = b.scale === 'large';
       let text = describe(game, b);
@@ -317,17 +325,37 @@ function pieceAt(pt) {
   return null;
 }
 
+// One finger on a piece drags it; a second finger pinches it (stretch) and
+// twists it (turn). A finger on the cloth around the pieces pans the view when
+// the picture is larger than the screen.
 function setupPointer() {
   const cv = $('#overlay');
   let lastTap = 0;
+  const touches = new Map(); // pointerId -> { x, y } in CSS pixels
+  const spread = () => {
+    const [a, b] = [...touches.values()];
+    return { d: Math.hypot(b.x - a.x, b.y - a.y) || 1, a: Math.atan2(b.y - a.y, b.x - a.x) };
+  };
   cv.addEventListener('pointerdown', (e) => {
     if (ui.screen !== 'play' || ui.modals.length) return;
     audio.unlock();
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { cv.setPointerCapture(e.pointerId); } catch { /* fine */ }
+    if (ui.drag && touches.size === 2) {
+      // Second finger: pinch and twist the piece being held.
+      const { d, a } = spread();
+      const p = ui.drag.p;
+      ui.drag.pinch = { d, a, sx: p.sx, sy: p.sy, rot: p.rot, tsx: p.sx, tsy: p.sy, trot: p.rot };
+      return;
+    }
+    if (touches.size > 1) return;
     const pt = toWorld(e);
     const p = pieceAt(pt);
-    if (!p) return;
-    ui.drag = { p, id: e.pointerId, x: pt.x, y: pt.y, ox: pt.x - p.x, oy: pt.y - p.y };
-    try { cv.setPointerCapture(e.pointerId); } catch { /* fine */ }
+    if (!p) {
+      ui.pan = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      return;
+    }
+    ui.drag = { p, id: e.pointerId, cx: e.clientX, cy: e.clientY, ox: pt.x - p.x, oy: pt.y - p.y };
     const now = performance.now();
     if (now - lastTap < 320) {
       p.vbloom += 2.6;
@@ -336,13 +364,36 @@ function setupPointer() {
     lastTap = now;
   });
   cv.addEventListener('pointermove', (e) => {
-    if (!ui.drag || ui.drag.id !== e.pointerId) return;
-    const pt = toWorld(e);
-    ui.drag.x = pt.x;
-    ui.drag.y = pt.y;
+    if (!touches.has(e.pointerId)) return;
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ui.pan && ui.pan.id === e.pointerId) {
+      const s = renderer.frame.scale;
+      renderer.centre.x -= (e.clientX - ui.pan.x) / s;
+      renderer.centre.y -= (e.clientY - ui.pan.y) / s;
+      ui.pan.x = e.clientX;
+      ui.pan.y = e.clientY;
+      ui.panAt = performance.now();
+      return;
+    }
+    if (!ui.drag) return;
+    const pin = ui.drag.pinch;
+    if (pin && touches.size >= 2) {
+      const { d, a } = spread();
+      pin.tsx = pin.sx * (d / pin.d);
+      pin.tsy = pin.sy * (d / pin.d);
+      pin.trot = pin.rot + a - pin.a;
+    }
+    if (ui.drag.id === e.pointerId) {
+      ui.drag.cx = e.clientX;
+      ui.drag.cy = e.clientY;
+    }
   });
   const up = (e) => {
-    if (ui.drag && ui.drag.id === e.pointerId) ui.drag = null;
+    touches.delete(e.pointerId);
+    if (ui.pan && ui.pan.id === e.pointerId) ui.pan = null;
+    if (!ui.drag) return;
+    if (ui.drag.id === e.pointerId) ui.drag = null;
+    else ui.drag.pinch = null;
   };
   cv.addEventListener('pointerup', up);
   cv.addEventListener('pointercancel', up);
@@ -355,6 +406,111 @@ function setupPointer() {
     if (e.shiftKey) p.vrot += d * 1.2;
     else { p.vsx += d * 0.9; p.vsy += d * 0.9; }
   }, { passive: false });
+}
+
+// When the picture is larger than the screen, the view follows what is being
+// moved: a dragged piece near the screen's edge pulls the view along, and
+// otherwise the view drifts towards the pieces that are moving fastest.
+function followView(dt) {
+  const f = renderer.frame;
+  if (!f.pans || ui.screen !== 'play') return;
+  const c = renderer.centre;
+  if (ui.drag) {
+    const edge = (v, size) => {
+      const m = size * 0.18;
+      return v < m ? (v - m) / m : v > size - m ? (v - (size - m)) / m : 0;
+    };
+    c.x += edge(ui.drag.cx, innerWidth) * 7 * dt;
+    c.y += edge(ui.drag.cy, innerHeight) * 5 * dt;
+    return;
+  }
+  if (ui.pan || performance.now() - (ui.panAt || 0) < 2500) return;
+  let wx = 0;
+  let wy = 0;
+  let wsum = 0;
+  for (const p of game.pieces) {
+    const v = Math.hypot(p.vx, p.vy);
+    if (v < 0.6 || p.alpha < 0.3) continue;
+    wx += p.x * v;
+    wy += p.y * v;
+    wsum += v;
+  }
+  if (wsum < 1) return;
+  const k = 1 - Math.exp(-dt * 1.5);
+  c.x += (wx / wsum - c.x) * k;
+  c.y += (wy / wsum - c.y) * k;
+}
+
+// ---- On-screen controls (touch) ------------------------------------------
+
+function showTouchPad(on) {
+  ui.touchPad = on;
+  $('#touchpad').hidden = !on;
+  $('#hud').classList.toggle('pad-on', on);
+  $('.hud-pad').setAttribute('aria-pressed', String(on));
+  if (!on) releaseTouchPad();
+}
+
+function releaseTouchPad() {
+  const tp = input.touchPad;
+  tp.LS = [0, 0];
+  tp.RS = [0, 0];
+  tp.LT = 0;
+  tp.RT = 0;
+  for (const el of $$('#touchpad .down')) el.classList.remove('down');
+  for (const k of $$('#touchpad .tp-stick i')) k.style.transform = '';
+}
+
+function setupTouchPad() {
+  const tp = input.touchPad;
+  for (const el of $$('#touchpad .tp-stick')) {
+    const name = el.dataset.stick;
+    const knob = el.querySelector('i');
+    let id = null;
+    const move = (e) => {
+      const r = el.getBoundingClientRect();
+      const rad = r.width / 2;
+      let x = (e.clientX - r.left - rad) / rad;
+      let y = (e.clientY - r.top - rad) / rad;
+      const m = Math.hypot(x, y);
+      if (m > 1) { x /= m; y /= m; }
+      tp[name] = [x, y];
+      knob.style.transform = `translate(${x * rad * 0.6}px, ${y * rad * 0.6}px)`;
+    };
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      audio.unlock();
+      id = e.pointerId;
+      try { el.setPointerCapture(id); } catch { /* fine */ }
+      move(e);
+    });
+    el.addEventListener('pointermove', (e) => { if (e.pointerId === id) move(e); });
+    const up = (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      tp[name] = [0, 0];
+      knob.style.transform = '';
+    };
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  }
+  for (const el of $$('#touchpad [data-tp]')) {
+    const name = el.dataset.tp;
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      audio.unlock();
+      try { el.setPointerCapture(e.pointerId); } catch { /* fine */ }
+      el.classList.add('down');
+      if (name === 'LT' || name === 'RT') tp[name] = 1;
+      else tp.pressed.add(name);
+    });
+    const up = () => {
+      el.classList.remove('down');
+      if (name === 'LT' || name === 'RT') tp[name] = 0;
+    };
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  }
 }
 
 // ---- The frame -------------------------------------------------------------
@@ -382,12 +538,21 @@ function frame(now) {
       chips();
     }
     if (ui.drag) {
+      // Re-read the finger each frame: the view may have panned under it.
+      const pt = toWorld({ clientX: ui.drag.cx, clientY: ui.drag.cy });
       const p = ui.drag.p;
-      p.vx = (ui.drag.x - ui.drag.ox - p.x) * 10;
-      p.vy = (ui.drag.y - ui.drag.oy - p.y) * 10;
+      p.vx = (pt.x - ui.drag.ox - p.x) * 10;
+      p.vy = (pt.y - ui.drag.oy - p.y) * 10;
+      const pin = ui.drag.pinch;
+      if (pin) {
+        p.vsx = (pin.tsx - p.sx) * 10;
+        p.vsy = (pin.tsy - p.sy) * 10;
+        p.vrot = (pin.trot - p.rot) * 10;
+      }
     }
     step(game, dt, inputs);
     feedback(inputs);
+    followView(dt);
   }
   for (const e of game.events) overlay.event(e, game);
   game.events.length = 0;
@@ -537,6 +702,7 @@ function wire() {
       case 'start': return start();
       case 'fullscreen': return toggleFullscreen();
       case 'pause': return pause();
+      case 'touchpad': return showTouchPad(!ui.touchPad);
       case 'resume': return closeAllAndResume();
       case 'close': return closeModal();
       case 'card': return openModal('card');
@@ -566,11 +732,21 @@ function wire() {
       applySettings();
     });
   }
+  // Sound only while the page is visible and focused.
+  const syncAudio = () => audio.setActive(!document.hidden && document.hasFocus());
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) pause('Paused while the page was hidden.');
+    syncAudio();
   });
-  addEventListener('blur', () => pause('Paused while the window was in the background.'));
-  input.onKind(() => {
+  addEventListener('blur', () => {
+    pause('Paused while the window was in the background.');
+    audio.setActive(false);
+    releaseTouchPad();
+  });
+  addEventListener('focus', () => audio.setActive(!document.hidden));
+  addEventListener('pageshow', syncAudio);
+  input.onKind((k) => {
+    $('#hud').classList.toggle('touch', k === 'touch');
     hint();
     refreshFocus();
   });
@@ -602,9 +778,10 @@ async function boot() {
     return;
   }
   setupPointer();
+  setupTouchPad();
   show('title');
   hint();
-  window.fibreart = { game: () => game, ui, input, start, shift: (how) => shift(game, how), W, H, radius };
+  window.fibreart = { game: () => game, frame: () => renderer.frame, ui, input, start, shift: (how) => shift(game, how), W, H, radius };
   requestAnimationFrame(frame);
 }
 
