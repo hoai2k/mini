@@ -102,6 +102,10 @@ export const ASSETS = {
     "file": "assets/scenes/crow.webp",
     "delivered": true
   },
+  "scene.cootWide": {
+    "file": "assets/scenes/coot-wide.webp",
+    "delivered": false
+  },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
     "delivered": true
