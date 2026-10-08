@@ -136,7 +136,7 @@ TABLEAUX = [
         "key": "viriditas",
         "name": "Viriditas",
         "after": "her painting Viriditas",
-        "refs": ["paintings/viriditas.jpg", "paintings/viriditas-with-artist.jpg"],
+        "refs": ["paintings/viriditas.jpg"],
         "scene": "A dense wood of slender trees under a dark sky, after her painting Viriditas "
         "(Hildegard of Bingen's word for the greening life force). Acid yellow and yellow-green "
         "light fills the spaces between thin, wavering teal and bottle-green trunks; clusters "
@@ -166,7 +166,7 @@ TABLEAUX = [
         "key": "night-quilt",
         "name": "Moons and hearts",
         "after": "her fibercollage of moons and hearts",
-        "refs": ["fibre/fibercollage-moons-and-hearts.jpg", "fibre/painted-fabric-three-moons-with-artist.jpg"],
+        "refs": ["fibre/fibercollage-moons-and-hearts.jpg"],
         "scene": "A night quilt of patchwork blocks, after her fibercollage of moons and "
         "hearts: deep indigo and black blocks bordered by red and orange batik and printed "
         "cotton, stitched together with bright blue running stitch and zigzag. On the dark "
@@ -471,7 +471,7 @@ TEXTURES = [
     ("black-lace", "White lace on black", "white floral lace laid over black cotton", "fibre/quilt-two-moons-blue-satin.jpg"),
     ("brown-netting", "Brown netting", "coarse brown netting over dark felt, with a few loose orange threads", "fibre/fibercollage-netting-and-pink-silk.jpg"),
     ("green-silk", "Yellow-green painted silk", "silk painted in acid yellow and yellow-green washes with soft teal blooms", "paintings/viriditas.jpg"),
-    ("ultramarine-canvas", "Ultramarine painted canvas", "canvas painted in deep ultramarine with visible brush marks", "fibre/painted-fabric-three-moons-with-artist.jpg"),
+    ("ultramarine-canvas", "Ultramarine painted canvas", "canvas painted in deep ultramarine with visible brush marks", "paintings/painting-embrace-in-blue.jpg"),
 ]
 
 MASKS = [
@@ -750,6 +750,47 @@ DELIVERED_IDS = {
     "HK-X08",
 }
 
+# Requests the image service rejected on the first try ("input rejected by
+# safety system; category other"). The retry leaves out the artist's name and
+# the photos of her work (two of which showed her), and attaches images already
+# generated for this game instead, which passed.
+ASSET_URL = "https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/"
+PLAIN_STYLE = STYLE.replace(
+    "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes "
+    "fibercollages, quilts, tapestries and paintings:",
+    "Original artwork in a contemporary fibre-art style of fibercollages, quilts, tapestries and paintings:",
+)
+RETRY = {
+    "HK-U02": ["game/assets/chains/moon.png", "game/assets/textures/indigo-batik.webp"],
+    "HK-T01-B": ["game/assets/tableaux/viriditas/composition.webp"],
+    "HK-T02-C": ["game/assets/tableaux/night-quilt/composition.webp"],
+    "HK-T06-C": ["game/assets/tableaux/dancers/composition.webp"],
+    "HK-M02": [
+        "game/assets/tableaux/viriditas/pieces/02-the-tallest-teal-tree-trunk-and-branches-from-the-ground-to-the-top.png",
+        "game/assets/tableaux/black-tree/pieces/01-the-black-tree-trunk-and-branches.png",
+        "game/assets/tableaux/man-and-woman/pieces/05-the-larger-bare-tree.png",
+    ],
+    "HK-M04": [
+        "game/assets/tableaux/silk-bird/pieces/01-the-silk-bird-with-the-face-in-its-breast.png",
+        "game/assets/tableaux/blue-lady/pieces/03-the-fish-of-patterned-blue-cloth.png",
+        "game/assets/tableaux/silk-bird/pieces/06-the-netting-fish-with-orange-stitching.png",
+        "game/assets/tableaux/man-and-woman/pieces/07-a-single-orange-silk-leaf.png",
+    ],
+}
+for r in REQUESTS:
+    if r["id"] not in RETRY:
+        continue
+    prompt = r["prompt"].replace(STYLE, PLAIN_STYLE).replace("in the style of Hanneke de Neve's pen drawings", "in a fluid pen-drawing style")
+    cut = prompt.find("For the style, materials and palette, look at her work")
+    if cut >= 0:
+        end = prompt.find(" .", cut) + 2
+        prompt = prompt[:cut] + "Match the look of these images, made earlier for the same game: " + " , ".join(ASSET_URL + f for f in RETRY[r["id"]]) + " ." + prompt[end:]
+    r["prompt"] = prompt
+    r["ref"] = []
+    r["attach"] = RETRY[r["id"]]
+    r["note"] = (r.get("note", "") + " Retry: the first attempt was rejected by the image service (category other). This "
+                 "prompt leaves out the artist's name and the photos of her work; attach the images listed under Attach instead.").strip()
+
 for r in REQUESTS:
     r.setdefault("status", "delivered" if r["id"] in DELIVERED_IDS else "requested")
 
@@ -820,6 +861,7 @@ def document() -> str:
                 f"- **Used for:** {r['used']}",
                 f"- **Stand-in until delivered:** {r['standin']}",
                 *([f"- **Reference:** " + ", ".join(f"[`{f.split('/')[-1]}`](../reference/{f})" for f in refs(r))] if refs(r) else []),
+                *([f"- **Attach:** " + ", ".join(f"[`{f.split('/')[-1]}`](../{f})" for f in r["attach"])] if r.get("attach") else []),
                 *([f"- **Note:** {r['note']}"] if r.get("note") else []),
                 f"- **Status:** {r['status']}",
                 "",
