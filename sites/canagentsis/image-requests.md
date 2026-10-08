@@ -1,20 +1,20 @@
 # Canagentsis — image requests
 
-Images the band page would use if generated. The page works without them;
+Requested source images for the band page, generated with the built-in image tool. The page works without them;
 each one replaces a drawn placeholder or adds a section that is text-only
-today. Drop finished files in `sites/images/` with the file name given, and
+today. Finished files live in `sites/images/` with the file names below;
 the page can be updated to take them. Match the delivered photograph
 (`Canagentsis_2.png`): sepia albumen-print look, foxed edges, soft focus, late
 1880s costume and rigging, with modern Toronto visible only where noted.
 
 | # | File name | Size | Used for | Status |
 |---|-----------|------|----------|--------|
-| 1 | `canagentsis_crest.png` | 1024 × 1024, transparent | Site badge and favicon: a Victorian ship's-company crest | open |
-| 2 | `canagentsis_portraits.png` | 2048 × 1024 | Five tintype portraits for the crew cards | open |
-| 3 | `canagentsis_broadside.png` | 1086 × 1448 (portrait) | A printed playbill for the "Sailings" section | open |
-| 4 | `canagentsis_chart.png` | 2048 × 1024 | A nautical chart of the voyage, as a section backdrop | open |
-| 5 | `canagentsis_tavern.png` | 1448 × 1086 | Second photograph: the band playing below decks or in a harbour tavern | open |
-| 6 | `canagentsis_paper.png` | 1024 × 1024, tileable | Aged-paper texture for the page background | open |
+| 1 | `canagentsis_crest.png` | 1024 × 1024, transparent | Site badge and favicon: a Victorian ship's-company crest | generated |
+| 2 | `canagentsis_portraits.png` | 2048 × 1024 | Five tintype portraits for the crew cards | generated |
+| 3 | `canagentsis_broadside.png` | 1086 × 1448 (portrait) | A printed playbill for the "Sailings" section | generated |
+| 4 | `canagentsis_chart.png` | 2048 × 1024 | A nautical chart of the voyage, as a section backdrop | generated |
+| 5 | `canagentsis_tavern.png` | 1448 × 1086 | Second photograph: the band playing below decks or in a harbour tavern | generated |
+| 6 | `canagentsis_paper.png` | 1024 × 1024, tileable | Aged-paper texture for the page background | generated |
 
 ## 1. Crest
 
