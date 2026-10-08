@@ -61,7 +61,8 @@ const SPOTS = [
 const ART_SPOTS = [
   { kind: 'bush', x0: 170, x1: 330, line: 430, pad: 14, size: 220, cell: 0, cx: 250, gy: 690, h: 300 },
   { kind: 'wall', x0: 480, x1: 790, line: 562, pad: 6, size: 190, cell: 1, cx: 640, gy: 702, h: 200 },
-  { kind: 'knot', x: 986, y: 416, r: 50, rx: 44, ry: 66, size: 150, cell: 2, cx: 940, gy: 690, h: 400 },
+  // The knothole is the one painted in the scene's own oak, at the left edge.
+  { kind: 'knot', x: 139, y: 292, r: 30, rx: 27, ry: 70, size: 120, inScene: true },
   { kind: 'gate', post: 1235, ground: 690, size: 210, cell: 3, cx: 1290, gy: 696, h: 290 },
   { kind: 'hedge', x0: 1400, x1: 1480, line: 560, pad: 12, size: 230, cell: 4, cx: 1470, gy: 712, h: 220 },
   { kind: 'grass', x0: 640, x1: 980, line: 668, pad: 18, size: 270, cell: 5, cx: 810, gy: 800, h: 290 },
@@ -454,7 +455,7 @@ export default function create(env) {
     {
       const sp = S()[2];
       r = sway(2);
-      drawTrunk(c, sp, r.dx);
+      if (!sp.inScene) drawTrunk(c, sp, r.dx);
       drawBirdsAt(c, 2, t);
       if (r.on) rustleMarks(c, sp.x, sp.y - sp.ry - 30, r.b, t);
     }

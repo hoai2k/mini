@@ -13,7 +13,9 @@ import { drawBird, drawSprite, art, scene, band, blob, poly, wash, ink, hatch, e
 import { clamp, approach } from './index.js';
 
 const DURATION = 45;
-const GROUND = 830;
+// The Cupadees walk along the top of the table in the painted scene (its
+// top runs from y 565 at the back to 690 at the front edge).
+const GROUND = 655;
 const GRAVITY = 2600;
 const FLOW = 0.42; // cup-fulls (of a big cup) per second at full tip
 
@@ -58,9 +60,9 @@ const LEVEL = (f) => 52 - f * 104; // tea surface height in cup units, 0 empty .
 const halfWidth = (y) => (y < 40 ? 90 - ((y + 55) / 95) * 20 : 70 - ((y - 40) / 20) * 30);
 
 const SIZES = {
-  big: { size: 440, cap: 1 },
-  small: { size: 360, cap: 0.64 },
-  tiny: { size: 300, cap: 0.45 },
+  big: { size: 350, cap: 1 },
+  small: { size: 290, cap: 0.64 },
+  tiny: { size: 240, cap: 0.45 },
 };
 
 const GRADES = [
