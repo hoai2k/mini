@@ -411,8 +411,6 @@ export default function create(env) {
       Lg.caught = 'letter';
       L.mode = 'grabbed';
       setMode('won');
-      env.sfx('snatch');
-      fx.say('SNATCHED!', G.x, Lg.tip - 60);
       splash(G.x, G.y - 10, 16, 1.2);
       self.done = true;
       self.outcome = 'snatched';
@@ -488,6 +486,7 @@ export default function create(env) {
   }
 
   const self = {
+    get outroTime() { return self.outcome === 'snatched' ? 3.0 : 1.4; },
     time: total,
     done: false,
     outcome: null,
@@ -532,7 +531,6 @@ export default function create(env) {
       if (self.time <= 0) {
         self.done = true;
         self.outcome = 'kept';
-        env.sfx('aww');
       }
     },
     draw(g, tt) {
@@ -587,47 +585,45 @@ export default function create(env) {
     outroT += dt;
     if (self.outcome === 'snatched') {
       const c = G.c;
-      if (outroT < 1.4) art.setAnim(c, 'triumph');
-      else if (outroT < 2.7) {
-        if (c.anim !== 'celebrate') { env.sfx('cheer'); art.kick(c, 0.4); }
-        art.setAnim(c, 'celebrate');
-      } else if (!net) {
-        net = { y: -420, phase: 'down' };
-        env.sfx('swoosh');
-      }
-      if (net) {
-        if (net.phase === 'down') {
-          net.y += 900 * dt;
-          if (net.y >= G.y - 180) {
-            net.phase = 'up';
-            art.setAnim(c, 'netted');
-            art.kick(c, 0.6);
-            env.sfx('snap');
-            env.vibrate(80);
-            fx.say('SNAP!', G.x, G.y - 380);
-            splash(G.x, G.y - 10, 14, 1);
-          }
-        } else {
-          c.z += 330 * dt;
+      // Three seconds (outroTime): triumph, a beaming celebration, and then,
+      // as in the book, SNAP! the fishing net comes down and hauls him up.
+      if (!net && outroT >= 1.0) { net = { y: -380, phase: 'down' }; env.sfx('swoosh'); }
+      if (!net || net.phase === 'down') {
+        if (outroT < 0.8) art.setAnim(c, 'triumph');
+        else {
+          if (c.anim !== 'celebrate') { env.sfx('cheer'); art.kick(c, 0.4); }
+          art.setAnim(c, 'celebrate');
         }
       }
+      if (!net) { /* the net is still to come */ } else if (net.phase === 'down') {
+        net.y += 800 * dt;
+        if (net.y >= G.y - 180) {
+          net.phase = 'up';
+          art.setAnim(c, 'netted');
+          art.kick(c, 0.6);
+          env.sfx('snap');
+          env.vibrate(80);
+          fx.say('SNAP!', G.x, G.y - 420);
+          splash(G.x, G.y - 10, 14, 1);
+        }
+      } else c.z += 330 * dt;
       art.animate(c, dt, 0, 0);
     } else {
       // The Bombanat loops the loop and flies off with the letter.
       const c = L.c;
-      if (outroT < 1.3) art.setAnim(c, 'celebrate');
+      if (outroT < 0.7) art.setAnim(c, 'celebrate');
       else {
         art.setAnim(c, 'flap');
         L.x += 420 * dt;
         L.y -= 260 * dt;
       }
-      art.animate(c, dt, outroT < 1.3 ? 0 : 420, 0);
+      art.animate(c, dt, outroT < 0.7 ? 0 : 420, 0);
       art.setAnim(G.c, 'splutter');
       art.animate(G.c, dt, 0, 0);
     }
   }
   // The letter Bombanat is in the Grumley's celebrate and netted poses.
-  const hideLetter = () => self.outcome === 'snatched' && outroT >= 1.4;
+  const hideLetter = () => self.outcome === 'snatched' && outroT >= 0.5;
 
   // ---------- drawing ----------
 
@@ -798,13 +794,13 @@ export default function create(env) {
 
   function drawNet(g) {
     const c = G.c;
-    const y = net.phase === 'down' ? net.y : G.y - 180 - c.z;
+    const top = net.phase === 'down' ? net.y - 280 : G.y - 290 * depthK(G.y) - c.z;
     g.save();
     g.strokeStyle = '#3a2a1e';
     g.lineWidth = 5;
-    g.beginPath(); g.moveTo(G.x, -10); g.lineTo(G.x, y - 260); g.stroke();
+    g.beginPath(); g.moveTo(G.x, -10); g.lineTo(G.x, top); g.stroke();
     g.restore();
-    if (net.phase === 'down') art.drawSprite(g, art.prop('grumley', 7), G.x, y, { height: 300 });
+    if (net.phase === 'down') art.drawSprite(g, art.prop('grumley', 7), G.x, net.y, { height: 300 });
   }
 
   function drawDrops(g) {

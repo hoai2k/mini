@@ -764,7 +764,7 @@ function frame(now) {
     S.chapter.update(dt, input.player(0).state(), versus ? input.player(1).state() : null);
     if (S.chapter.done) {
       S.phase = 'over';
-      S.overT = 1.4;
+      S.overT = S.chapter.outroTime ?? 1.4;
       const b = $('#banner');
       b.hidden = false;
       b.textContent = S.chapter.outcome === 'snatched' ? 'SNATCH!' : versus ? 'KEPT IT!' : 'TIME!';

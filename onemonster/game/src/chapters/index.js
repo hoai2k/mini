@@ -32,6 +32,8 @@
 //     outcome                   'snatched' (the snatcher got the letter) or 'kept'
 //     marks()                   [snatcher postmarks 0..3, holder postmarks 0..3]
 //     hud?()                    a short status line, e.g. "Stamps 3"
+//     outroTime?                seconds of outro after done before the celebration
+//                               (default 1.4), for a longer story beat
 //   }
 //
 // Draw creatures with art.js (makeCreature, setAnim, animate, drawCreature),
