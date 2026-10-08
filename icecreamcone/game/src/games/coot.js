@@ -28,6 +28,12 @@ const head = () => birdPoint('coot', 'head').map((v) => v * K);
 const R = 30; // scoop radius
 const STEP = R * 1.45; // height of each scoop in the stack
 const TOPPLE = 46; // how far the stack's balance point may lean, in px
+// The camera zooms out as the stack grows, about the middle of the boardwalk,
+// so there is always this much sky (in world px) above the top scoop, and new
+// scoops start just above the top of the view: the same warning however tall
+// the stack. The painted scene stays put; the Coot and its scoops shrink.
+const HEADROOM = 400;
+const MIN_ZOOM = 0.38;
 
 const FLAVOURS = [PAL.strawberry, PAL.lemon, '#f3ead2', '#8a5a3a', PAL.mint, '#b8c878', '#9aa8d8'];
 
@@ -49,6 +55,7 @@ export default function create(env) {
     splats: [],
     spawn: 0.6,
     elapsed: 0,
+    zoom: 1,
     flash: 0,
     topples: 0,
   };
@@ -236,6 +243,19 @@ export default function create(env) {
     g.clingers = g.clingers.filter((c) => !c.gone);
   }
 
+  // The highest point of the stack (or of a clinging scoop), in world y.
+  function stackTop() {
+    let y = topPos().y - R;
+    for (const c of g.clingers) y = Math.min(y, clingPos(c).y - R);
+    return y;
+  }
+  function zoomFor() {
+    return clamp(GROUND / (GROUND - stackTop() + HEADROOM), MIN_ZOOM, 1);
+  }
+  // The top of the view, and a pointer's x, in world units at this zoom.
+  const viewTop = () => GROUND - GROUND / g.zoom;
+  const toWorldX = (x) => W / 2 + (x - W / 2) / g.zoom;
+
   function spawnItem() {
     const t = g.elapsed / DURATION;
     const roll = rng();
@@ -244,7 +264,7 @@ export default function create(env) {
     else if (roll > 0.955) kind = 'cherry';
     g.items.push({
       x: 160 + rng() * (W - 320),
-      y: -40,
+      y: viewTop() - 40,
       vy: 230 + t * 260 + rng() * 60,
       kind,
       color: FLAVOURS[Math.floor(rng() * FLAVOURS.length)],
@@ -264,7 +284,7 @@ export default function create(env) {
 
     // Move: follow the pointer, or run with the stick.
     const prev = g.x;
-    if (input.pointer.active) g.x = approach(g.x, input.pointer.x - HEAD_DX, 10, dt);
+    if (input.pointer.active) g.x = approach(g.x, toWorldX(input.pointer.x) - HEAD_DX, 10, dt);
     else g.x += input.x * 820 * dt;
     g.x = clamp(g.x, 140, W - 140);
     const vx = (g.x - prev) / Math.max(dt, 1e-4);
@@ -276,6 +296,9 @@ export default function create(env) {
     g.swayV += (-g.sway * 14 - g.swayV * 3.2 - clamp(ax, -6000, 6000) * 0.00009 * Math.min(n, 12)) * dt;
     g.sway += g.swayV * dt;
     cling(dt, ax);
+    // Zoom out quickly as the stack climbs, back in slowly after a topple.
+    const want = zoomFor();
+    g.zoom = approach(g.zoom, want, want < g.zoom ? 3 : 0.7, dt);
     if (n && Math.abs(balance()) > TOPPLE) topple();
 
     // Spawn: faster as time goes on.
@@ -414,6 +437,12 @@ export default function create(env) {
       }
     });
 
+    // Everything that moves is drawn zoomed about the middle of the boardwalk.
+    c.save();
+    c.translate(W / 2, GROUND);
+    c.scale(g.zoom, g.zoom);
+    c.translate(-W / 2, -GROUND);
+
     // splats on the boardwalk
     for (const s of g.splats) {
       c.save();
@@ -427,7 +456,7 @@ export default function create(env) {
     // the best-so-far marker
     if (g.score > 2) {
       const y = GROUND + HEAD_DY - g.score * STEP;
-      if (y > 40) {
+      if (y > viewTop() + 40) {
         c.save();
         c.setLineDash([10, 10]);
         c.globalAlpha = 0.4;
@@ -482,6 +511,7 @@ export default function create(env) {
       drawItem(c, it.kind, it.color, it.x, it.y, it.a);
     }
     for (const b of g.bits) drawItem(c, b.kind, b.color, b.x, b.y, b.spin, b.r);
+    c.restore();
     if (g.flash > 0 && !env.reduceMotion) {
       c.fillStyle = `rgba(255,255,255,${g.flash})`;
       c.fillRect(0, 0, W, H);

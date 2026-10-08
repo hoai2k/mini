@@ -120,3 +120,18 @@ test('coot: a scoop cupped by a clinging scoop near the top is pushed up onto th
   assert.equal(g.stack.length, before + 1, 'the new scoop is on top');
   assert.equal(g.clingers.length, 1, 'and the one that cupped it is still holding on');
 });
+
+test('coot: a tall stack zooms the view out, keeping sky above it, and scoops start above the view', () => {
+  const g = quiet();
+  g.update(1 / 60, blank());
+  assert.equal(g.zoom, 1, 'no zoom with an empty head');
+  for (let i = 0; i < 18; i++) g.stack.push({ dx: 0, color: '#fff', kind: 'scoop', count: 1 });
+  step(g, 3);
+  assert.ok(g.zoom < 0.8, `zoomed out (${g.zoom.toFixed(2)})`);
+  const top = g.column().at(-1).y;
+  const viewTop = 840 - 840 / g.zoom;
+  assert.ok(top - viewTop > 300, `sky above the stack: ${Math.round(top - viewTop)} px`);
+  g.spawn = 0;
+  g.update(1 / 60, blank());
+  assert.ok(g.items.length && g.items.at(-1).y < viewTop, 'a new scoop starts above the view');
+});
