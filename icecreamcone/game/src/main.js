@@ -455,7 +455,8 @@ function finish() {
   const record = recordScore(progress, b.id, score) && score > 0;
   const now = passed(S.bird);
   S.phase = 'result';
-  $('#result-title').textContent = record ? 'New World Record!' : 'Time!';
+  // A best that still falls short of the next page is only a personal one.
+  $('#result-title').textContent = !record ? 'Time!' : passes(b, score) ? 'New World Record!' : 'Personal Best!';
   $('#result-score').textContent = `${score} ${b.score}`;
   $('#result-best').textContent = [record ? '' : `Best: ${best(b.id)}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
   const extra = $('#result-extra');
