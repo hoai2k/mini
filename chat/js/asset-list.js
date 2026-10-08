@@ -786,5 +786,25 @@ export const ASSET_LIST = {
   "game-wordblitz": {
     "file": "assets/icons/game-wordblitz.png",
     "status": "delivered"
+  },
+  "fx-kid": {
+    "file": "assets/icons/fx-kid.png",
+    "status": "requested"
+  },
+  "fx-manface": {
+    "file": "assets/icons/fx-manface.png",
+    "status": "requested"
+  },
+  "fx-womanface": {
+    "file": "assets/icons/fx-womanface.png",
+    "status": "requested"
+  },
+  "fx-thinner": {
+    "file": "assets/icons/fx-thinner.png",
+    "status": "requested"
+  },
+  "fx-fatter": {
+    "file": "assets/icons/fx-fatter.png",
+    "status": "requested"
   }
 };
