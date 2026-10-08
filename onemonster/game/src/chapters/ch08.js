@@ -48,7 +48,7 @@ export default function create(env) {
     holderSize: 0.82,
     flyHeight: 230,
     bounds: { x0: 130, x1: 1790, y0: 815, y1: 1040 },
-    snatcher: { x: 1650, y: 840, speed: 290, sprint: 520, accel: 900, flies: true, canHide: false, lungeRange: 400, lungeSpeed: 980, lungeCooldown: 1.9, stumbleTime: 1.2, grabRange: 56, radius: 42 },
+    snatcher: { x: 1650, y: 840, speed: 290, sprint: 520, accel: 900, flies: true, canHide: false, lungeRange: 400, lungeSpeed: 980, lungeCooldown: 1.9, stumbleTime: 1.2, grabRange: 56, radius: 42, drain: 0.55, windedTime: 2.3 },
     holder: { x: 900, y: 930, speed: 295, sprint: 505, accel: 2600, radius: 40, regen: 0.2 },
     // Open ground: two rocks to crouch behind, nothing else.
     cover: [
@@ -81,7 +81,10 @@ export default function create(env) {
         yal.vy += ((dy / dd) * sp * 0.75 - yal.vy) * Math.min(1, dt * 4);
         if (dd < 20) { yal.vx *= 0.5; yal.vy *= 0.5; }
         // Grab the Trollusk if he comes within reach (not mid-dodge, not hidden).
-        if (d < 85 && yal.cool <= 0 && !h.hidden && h.mode === 'move' && !chase.tug) {
+        // (Not straight after a tug with the Bombanat: the flapping startles him.)
+        if (chase.tug) yal.startled = 1.0;
+        yal.startled = Math.max(0, (yal.startled || 0) - dt);
+        if (d < 85 && yal.cool <= 0 && yal.startled <= 0 && !h.hidden && h.mode === 'move' && !chase.tug) {
           yal.state = 'hold'; yal.T = 0; yal.holdT = env.gentle[1] ? 0.9 : 1.2;
           h.mode = 'grabbed'; h.modeT = 0; h.vx = h.vy = 0;
           env.sfx('thump'); env.vibrate(70);
@@ -184,7 +187,9 @@ export default function create(env) {
   ch.yal = yal;
   // The Trollusk's input in versus, so the hold can count his wriggles.
   const update = ch.update;
-  const brain = {};
+  // Some Trollusks think of sheltering by the Yalapappus, some don't (more of
+  // them the more skilled).
+  const brain = { shelter: env.rng() < 0.4 + 0.5 * env.skill };
   ch.update = (dt, inS, inH) => {
     if (!env.versus) inH = ch.done ? {} : holderAI(dt);
     ch.lastH = inH;
@@ -202,11 +207,11 @@ export default function create(env) {
     const bd = Math.hypot(h.x - s.x, h.y - s.y);
     const ready = yal.state === 'stomp' && yal.cool <= 0;
     let gx = 0, gy = 0;
-    if (ready && d < 150) {
+    if (ready && d < 200 + 60 * env.skill) {
       // Too close to those paws: step away.
       gx = dx / d; gy = dy / d;
-      if (d < 110 && h.st > 0.2) o.sprint = true;
-    } else if (d > 300 && bd < 520 && h.st < 0.7 && env.rng() < 0.5 + 0.5 * env.skill) {
+      if (d < 140 && h.st > 0.2) o.sprint = true;
+    } else if (d > 340 && bd < 520 && h.st < 0.7 && brain.shelter) {
       // Tired, with the Bombanat about: shelter near the Yalapappus (at a
       // respectful distance), where a dive gets swatted.
       gx = -dx / d; gy = -dy / d;

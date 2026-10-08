@@ -29,7 +29,7 @@ import { hintLine, letterMarker, tugTiebreak, near } from './ch07.js';
 const MAIL = { x: 1700, y: 765 }; // in front of the official mailbox's slot
 const B = { x0: 150, x1: 1690, y0: 645, y1: 915 };
 const VAULT = { time: 0.8, dist: 420, cost: 0.3, height: 170 };
-const WINDUP = 0.2;
+const WINDUP = 0.28;
 const JAR_TIME = 6;
 
 export default function create(env) {
@@ -49,11 +49,11 @@ export default function create(env) {
     { x: 1330, y: 815, rx: 95, ry: 24, hop: true, root: true },
   ];
   const gx = makeMover({
-    x: 300, y: 800, speed: 255, sprint: 255, accel: 1900, radius: 50, canHide: false, hopsLogs: false,
-    lungeRange: 290, lungeSpeed: 880, lungeTime: 0.23, lungeCooldown: 1.3, stumbleTime: 0.95, lungeCost: 0.24, grabRange: 70,
-    regen: 0.14, regenStill: 0.2,
+    x: 300, y: 800, speed: 240, sprint: 240, accel: 1900, radius: 50, canHide: false, hopsLogs: false,
+    lungeRange: 260, lungeSpeed: 880, lungeTime: 0.23, lungeCooldown: 1.3, stumbleTime: 0.95, lungeCost: 0.3, grabRange: 70,
+    regen: 0.11, regenStill: 0.13, windedTime: 2.0,
   });
-  const bomb = makeMover({ x: 1250, y: 760, speed: 285, sprint: 500, accel: 1100, radius: 40, flies: true, canHide: true, dodgeCooldown: 1.2, regen: 0.18 });
+  const bomb = makeMover({ x: 1250, y: 760, speed: 305, sprint: 520, accel: 1100, windedSpeed: 0.7, drain: 0.32, radius: 40, flies: true, canHide: true, dodgeCooldown: 1.2, dodgeCost: 0.2, regen: 0.2, regenStill: 0.5 });
   const ghost = makeMover({ x: B.x1, y: B.y0, canHide: false, flies: true });
   const chase = makeChase({ snatcher: gx, holder: bomb, bounds, cover, obstacles, rng: env.rng, gentle: env.gentle });
   const gc = art.makeCreature('grithix', gx.x, gx.y);
@@ -77,8 +77,8 @@ export default function create(env) {
 
   // The other two, scrambling about.
   const mk = (id, x, y, speed, size) => ({ id, x, y, vx: 0, vy: 0, facing: 1, speed, mode: 'run', T: 0, cool: 1.5, jarT: 0, goal: null, st: 1, c: Object.assign(art.makeCreature(id, x, y), { sizeK: size }) });
-  const tro = mk('trollusk', 600, 690, 245, 0.72);
-  const yal = mk('yalapappus', 1500, 860, 200, 0.78);
+  const tro = mk('trollusk', 600, 690, 260, 0.72);
+  const yal = mk('yalapappus', 1500, 860, 215, 0.78);
   const others = [tro, yal];
 
   const human = (o) => env.versus && phase === 'carry' && o === tro;
@@ -100,7 +100,7 @@ export default function create(env) {
     art.kick(gc, 0.6);
     // The letter flies out of his hand.
     const dir = env.rng() < 0.5 ? -1 : 1;
-    letter = { x: clamp(gx.x + dir * (130 + env.rng() * 60), B.x0, B.x1 - 40), y: clamp(gx.y + (env.rng() - 0.5) * 140, B.y0, B.y1), t: 0 };
+    letter = { x: clamp(gx.x + dir * (170 + env.rng() * 110), B.x0, B.x1 - 60), y: clamp(gx.y + (env.rng() - 0.5) * 140, B.y0, B.y1), t: 0 };
     postT = 0;
   }
 
@@ -195,13 +195,26 @@ export default function create(env) {
         const k = letter ? 0.45 : o === tro ? 0.3 : 0.55;
         const ix = aim.x + (gx.x - aim.x) * k, iy = aim.y + (gx.y - aim.y) * k + (o === tro ? -50 : 50);
         goal = d < 260 ? { x: gx.x, y: gx.y } : { x: ix, y: iy };
-        if (d < 165 && gx.mode !== 'vault' && env.rng() < dt * (2 + 3 * env.skill)) act = true;
+        if (d < 200 && gx.mode !== 'vault' && env.rng() < dt * (2.5 + 4 * env.skill)) act = true;
       }
       const gx2 = goal.x - o.x, gy2 = goal.y - o.y, gd = Math.hypot(gx2, gy2);
       if (gd > 8) { tx = gx2 / gd; ty = gy2 / gd; }
-      sprint = phase === 'carry' && o.cool <= 0 && d < 400 && o.st > 0.4;
+      sprint = phase === 'carry' && o.cool <= 0 && d < 520 && o.st > 0.3;
     }
-    if (o.mode === 'slide') {
+    // A net wound up nearby: hop aside (the computer ones read it as a player would).
+    if (!human(o) && gx.mode === 'windup' && o.sawWindup !== true && o.mode === 'run' && near(o, gx) < 280) {
+      o.sawWindup = true;
+      if (env.rng() < 0.25 + 0.5 * env.skill) {
+        const dx = o.x - gx.x, dy = o.y - gx.y, dd = Math.hypot(dx, dy) || 1;
+        const side = env.rng() < 0.5 ? -1 : 1;
+        o.mode = 'hop'; o.T = 0; o.vx = (-dy / dd * side * 0.6 + dx / dd * 0.8) * 650; o.vy = (dx / dd * side * 0.6 + dy / dd * 0.8) * 500;
+        env.sfx('dodge');
+      }
+    }
+    if (gx.mode !== 'windup') o.sawWindup = false;
+    if (o.mode === 'hop') {
+      if (o.T > 0.25) { o.mode = 'run'; o.T = 0; }
+    } else if (o.mode === 'slide') {
       if (o.T > 0.3) { o.mode = 'sprawl'; o.T = 0; env.sfx('stumble'); }
     } else if (o.mode === 'sprawl') {
       o.vx *= Math.exp(-10 * dt); o.vy *= Math.exp(-10 * dt);
@@ -226,10 +239,10 @@ export default function create(env) {
     o.y = clamp(o.y + o.vy * dt, B.y0, B.y1);
     if (Math.abs(o.vx) > 20) o.facing = Math.sign(o.vx);
     // Trip the Grithix: contact while he's on his feet (not in the air).
-    if (phase === 'carry' && o.mode !== 'sprawl' && o.cool < 1.2 && immune <= 0 && near(o, gx) < (o.mode === 'slide' ? 85 : 62)
+    if (phase === 'carry' && o.mode !== 'sprawl' && o.cool < 1.2 && immune <= 0 && near(o, gx) < (o.mode === 'slide' ? 90 : 68)
       && (gx.mode === 'move' || gx.mode === 'post' || gx.mode === 'windup' || gx.mode === 'stumble')) {
       trip();
-      o.cool = 2.6; o.mode = 'run'; o.T = 0;
+      o.cool = 2.1; o.mode = 'run'; o.T = 0;
       fx.say(o === tro ? 'Snerk!' : 'Grimm!', o.x, o.y - 200);
     }
   }
@@ -273,12 +286,26 @@ export default function create(env) {
           const m = Math.hypot(bin.x, bin.y || 0);
           if (m > 1) { bin.x /= m; bin.y = (bin.y || 0) / m; }
         }
+        // It sees the net wound up, as a player would, and backs off (saving
+        // its dodge for the sweep itself).
+        if (!env.versus && gx.mode === 'windup' && !brain.sawWindup && near(gx, bomb) < 300) {
+          brain.sawWindup = true;
+          if (env.rng() < 0.3 + 0.5 * env.skill) brain.backOff = 0.45;
+        }
+        if (gx.mode !== 'windup') brain.sawWindup = false;
+        brain.backOff = Math.max(0, (brain.backOff || 0) - dt);
+        if (!env.versus && brain.backOff > 0 && !chase.tug && !bin.actionPressed) {
+          const dx = bomb.x - gx.x, dy = bomb.y - gx.y, d = Math.hypot(dx, dy) || 1;
+          bin = { ...bin, x: dx / d, y: dy / d, sprint: bomb.st > 0.15 };
+        }
       } else {
         // The chase kit carries on with a stand-in holder far away, so the
         // net's sweep and slam work as before.
         ghost.x = gx.x < 920 ? B.x1 : B.x0; ghost.y = gx.y < 785 ? B.y1 : B.y0;
         ghost.vx = ghost.vy = 0; ghost.mode = 'move';
       }
+      // A netted Bombanat is slippery: the rope drifts a little its way.
+      if (chase.tug && phase === 'net') chase.tug.v = Math.max(0.001, chase.tug.v - 0.09 * dt);
       tugTiebreak(chase, dt);
       const ev = stepChase(chase, gin, bin, dt);
       eventFx(env, ev, fx);
@@ -288,10 +315,10 @@ export default function create(env) {
       stepVault(dt);
 
       // Trip / post timers (modes the kit leaves alone).
-      if (gx.mode === 'trip' && gx.modeT > 1.0) { gx.mode = 'move'; gx.modeT = 0; immune = 1.3; }
+      if (gx.mode === 'trip' && gx.modeT > 1.25) { gx.mode = 'move'; gx.modeT = 0; immune = 1.1; }
       if (gx.mode === 'post') {
         postT += dt;
-        if (postT > 0.55) {
+        if (postT > 0.8) {
           self.done = true; self.outcome = 'snatched';
           env.sfx('thunk'); env.sfx('cheer');
           fx.say('Posted!', MAIL.x - 60, MAIL.y - 330);
@@ -360,8 +387,8 @@ export default function create(env) {
         art.animate(o.c, dt, o.vx, o.vy);
         o.c.facing = o.facing;
         const sp = Math.hypot(o.vx, o.vy);
-        if (o.id === 'trollusk') art.setAnim(o.c, o.mode === 'slide' ? 'skid' : o.mode === 'sprawl' ? 'scuttle' : o.cool > 1.2 && phase === 'carry' ? 'celebrate' : sp > 300 ? 'run' : sp > 30 ? 'sneak' : 'idle');
-        else art.setAnim(o.c, o.mode === 'slide' ? 'ball' : o.mode === 'sprawl' ? 'dizzy' : o.cool > 1.2 && phase === 'carry' ? 'shout' : sp > 30 ? 'trundle' : 'idle');
+        if (o.id === 'trollusk') art.setAnim(o.c, o.mode === 'slide' || o.mode === 'hop' ? 'skid' : o.mode === 'sprawl' ? 'scuttle' : o.cool > 1.2 && phase === 'carry' ? 'celebrate' : sp > 300 ? 'run' : sp > 30 ? 'sneak' : 'idle');
+        else art.setAnim(o.c, o.mode === 'hop' ? 'hop' : o.mode === 'slide' ? 'ball' : o.mode === 'sprawl' ? 'dizzy' : o.cool > 1.2 && phase === 'carry' ? 'shout' : sp > 30 ? 'trundle' : 'idle');
       }
     },
     draw(g, tt) {
@@ -371,7 +398,7 @@ export default function create(env) {
       if (phase === 'carry' && !self.done) mailboxGlow(g, tt, near(gx, MAIL) < 130 && !letter);
       const things = [
         ...cover.map((k) => ({ y: k.y + k.ry * 0.9, draw: () => drawCover(g, k, tt) })),
-        ...obstacles.map((o) => ({ y: o.y + o.ry, draw: () => art.drawSprite(g, art.prop('grithix', 5), o.x, o.y + o.ry + 10, { height: 85, flip: o.x > 1100 }) })),
+        ...obstacles.map((o) => ({ y: o.y + o.ry, draw: () => art.drawSprite(g, art.prop('grithix', 5), o.x, o.y + o.ry + 12, { height: 115, flip: o.x > 1100 }) })),
         { y: gx.y, draw: () => drawGrithix(g, tt) },
         ...others.filter((o) => o.mode !== 'jar').map((o) => ({ y: o.y, draw: () => {
           if (human(o)) staminaRing(g, o, o.x, o.y, 44, '#f2c53d');
@@ -481,7 +508,7 @@ export default function create(env) {
 function mailboxGlow(g, t, ready) {
   const bob = Math.sin(t * 5) * 12;
   g.save();
-  g.translate(1765, 470 + bob);
+  g.translate(1765, 430 + bob);
   g.fillStyle = ready ? '#f2c53d' : '#f8f1e0';
   g.strokeStyle = '#33241a';
   g.lineWidth = 5;

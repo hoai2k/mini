@@ -37,7 +37,7 @@ export function makeMover(opts = {}) {
 // The tug of a grab: 0 = the holder breaks free, 1 = the snatcher has it.
 export function makeTug(snatcher, holder) {
   // A tired holder starts the tug nearer to losing it.
-  return { v: clamp(0.5 + (0.5 - holder.st) * 0.35, 0.25, 0.75), t: 0 };
+  return { v: clamp(0.5 + (0.5 - holder.st) * 0.12, 0.4, 0.6), t: 0 };
 }
 
 export function makeChase({ snatcher, holder, bounds, cover = [], obstacles = [], rng = Math.random, gentle = [false, false] }) {
@@ -71,7 +71,7 @@ function moveMover(c, m, inp, dt, gentle) {
     // A missed lunge ends in a sprawl: no drifting on toward the holder.
     const k = m.mode === 'stumble' ? 30 : 8;
     m.vx *= Math.exp(-k * dt); m.vy *= Math.exp(-k * dt);
-    const t = m.mode === 'stumble' ? m.stumbleTime * (gentle ? 0.7 : 1) : 1.1;
+    const t = m.mode === 'stumble' ? m.stumbleTime * (gentle ? 0.7 : 1) : 1.7;
     if (m.modeT > t) { m.mode = 'move'; m.modeT = 0; }
   } else if (m.mode === 'move') {
     m.sprinting = !!inp.sprint && im > 0.2 && m.winded <= 0 && m.st > 0;
@@ -163,8 +163,11 @@ export function stepChase(c, inS, inH, dt) {
     if (counted(h, inH.actionPressed)) pull -= 0.075 * (0.35 + 0.9 * h.st) * (c.gentle[1] ? 1.15 : 1);
     if ((inS.x || 0) * -ax > 0.5) pull += 0.12 * dt * (0.5 + s.st);
     if ((inH.x || 0) * ax > 0.5) pull -= 0.12 * dt * (0.5 + h.st);
-    c.tug.v = clamp(c.tug.v + pull, 0, 1);
     c.tug.t += dt;
+    // A stalled tug doesn't go on for ever: after 4 s the rope slides toward
+    // whoever has more breath left (a dead heat: the holder wriggles free).
+    if (c.tug.t > 4) pull += (s.st > h.st + 0.05 ? 1 : -1) * 0.05 * (c.tug.t - 4) * dt;
+    c.tug.v = clamp(c.tug.v + pull, 0, 1);
     h.st = Math.max(0, h.st - 0.05 * dt);
     s.st = Math.max(0, s.st - 0.05 * dt);
     if (pull) c.events.push({ type: 'tug' });
@@ -280,7 +283,7 @@ export function aiHolder(c, brain, skill, dt) {
   }
   if (gd > 5) { out.x = gx / gd; out.y = gy / gd; }
   // Sprint when the snatcher is close or sprinting, and we have breath.
-  out.sprint = h.st > 0.25 && (d < 300 || (s.sprinting && d < 500)) && c.rng() > (1 - skill) * 0.2;
+  out.sprint = h.st > 0.25 + 0.25 * skill && (d < 200 + 60 * (1 - skill) || (s.sprinting && d < 360)) && c.rng() > (1 - skill) * 0.2;
   // On purpose, now and then, a mistake: a moment's hesitation.
   if (c.rng() < dt * (1 - skill) * 0.8) brain.goal = { x: h.x, y: h.y }, brain.until = brain.t + 0.3;
   return out;
