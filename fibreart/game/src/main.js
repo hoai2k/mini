@@ -15,7 +15,7 @@ const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 
 const SETTINGS_KEY = 'fibreart.settings';
 const DEFAULTS = {
-  volume: 80, music: 60, sfx: 80, hints: true, vibration: true,
+  volume: 80, music: 60, sfx: 80, playHints: false, vibration: true,
   reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
 };
 function loadSettings() {
@@ -183,6 +183,11 @@ function quitToTitle() {
   input.lockHeld();
 }
 
+// Messages during play are hints too: shown only with hints on.
+function playToast(text, ms) {
+  if (settings.playHints) toast(text, ms);
+}
+
 function toast(text, ms = 2600) {
   const t = $('#toast');
   t.textContent = text;
@@ -209,6 +214,20 @@ function hint() {
         ? 'Drag the pieces · double-tap one to make it bloom · pinch one to stretch it'
         : 'Drag the pieces · double-click one to make it bloom · wheel to stretch it';
   $('#title-hint').textContent = k === 'controller' ? 'Move left stick for options' : k === 'touch' || coarse ? 'Tap Press Start' : 'Press Enter or click Press Start';
+}
+
+// The pause and on-screen controls switches stay out of sight while playing
+// and come up for a moment when the mouse moves or the screen is touched.
+function revealHud() {
+  if (ui.screen !== 'play' || ui.modals.length) return;
+  const hud = $('#hud');
+  hud.classList.add('reveal');
+  clearTimeout(ui.revealTimer);
+  const hide = () => {
+    if (hud.querySelector('.icon-btn:hover, .icon-btn:focus-visible')) ui.revealTimer = setTimeout(hide, 1000);
+    else hud.classList.remove('reveal');
+  };
+  ui.revealTimer = setTimeout(hide, 2500);
 }
 
 function playerLabel(pl) {
@@ -268,7 +287,9 @@ function fillSettings() {
 
 function applySettings() {
   audio.set({ volume: settings.volume / 100, music: settings.music / 100, sfx: settings.sfx / 100 });
-  if (overlay) overlay.hints = settings.hints;
+  // No interface over the picture unless the player asks for hints.
+  if (overlay) overlay.hints = settings.playHints;
+  $('#hud').classList.toggle('hints', !!settings.playHints);
   if (game) game.reduceMotion = settings.reduceMotion;
 }
 
@@ -286,7 +307,7 @@ function syncPlayers(quiet = false) {
     const id = `pad${i}`;
     if (!game.players.some((p) => p.id === id) && game.players.length < 5) {
       addPlayer(game, id);
-      if (!quiet) toast(`${playerLabel({ id })} joined`);
+      if (!quiet) playToast(`${playerLabel({ id })} joined`);
       chips();
     }
   }
@@ -574,7 +595,7 @@ function feedback(inputs) {
       chipsDirty = true;
       if (e.scale === 'large') {
         const pl = game.players.find((p) => p.id === e.player);
-        toast(`${playerLabel(pl)} found a big one: ${e.input === 'LS' || e.input === 'RS' ? 'a stick' : e.input === 'LT' || e.input === 'RT' ? 'a trigger' : 'a button'} that ${describe(game, pl.bindings[e.input])}`);
+        playToast(`${playerLabel(pl)} found a big one: ${e.input === 'LS' || e.input === 'RS' ? 'a stick' : e.input === 'LT' || e.input === 'RT' ? 'a trigger' : 'a button'} that ${describe(game, pl.bindings[e.input])}`);
       }
     } else if (e.type === 'link') audio.link();
     else if (e.type === 'morph') audio.pluck(e.stage + 4, 1);
@@ -582,7 +603,7 @@ function feedback(inputs) {
       audio.woke();
       for (const pl of game.players) vibrate(pl.id, 0.7, 300);
       chipsDirty = true;
-      toast('The picture rearranges itself. New controls to find.');
+      playToast('The picture rearranges itself. New controls to find.');
     } else if (e.type === 'shift') {
       audio.shift();
       audio.scene(game.index);
@@ -737,6 +758,10 @@ function wire() {
   }
   // Sound only while the page is visible and focused.
   const syncAudio = () => audio.setActive(!document.hidden && document.hasFocus());
+  addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'mouse' && (e.movementX || e.movementY)) revealHud();
+  });
+  addEventListener('pointerdown', revealHud);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) pause('Paused while the page was hidden.');
     syncAudio();

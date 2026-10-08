@@ -139,13 +139,25 @@ one small control that sets it up.
 
 ### Showing what is bound
 
-A found control's target is outlined with a running stitch in the player's
-thread colour, and a small line drawing in her style (a stick, a button, a
-trigger) is pinned near it for a few seconds. When a setup is close to
-waking a large control (the anchor nearly central, the panel nearly filled),
-the threads around it tighten and shimmer. The View card shows every binding
-found so far in this scene, with an Xbox controller diagram as the guidelines
-require; ones not yet found show as loose thread.
+Nothing is drawn over the picture while playing: no captions, counters,
+outlines or messages. The owner asked for this, to keep the player inside the
+picture. What has been found lives in menus: the View button (Tab on a
+keyboard) and the pause menu open the card of controls found in this scene,
+with how to wake each large one. The threads between sewn pieces still show,
+because they are stitches in the picture, not interface.
+
+The hints are still there for anyone who wants them, behind **Show hints
+while playing** in Settings (off by default). With it on: a found control's
+target is outlined with a running stitch in the player's thread colour; a
+small line drawing of the control (a stick, a trigger, a button) is pinned
+near it for a few seconds; a dotted ring round a large control's anchor shows
+its reach and tightens as its setup nears waking; player chips count what each
+player has found; the scene's name shows as it begins; and short messages
+mark a big find or a rearrangement.
+
+The pause and on-screen controls switches are out of sight while playing and
+come up for a moment when the mouse moves or the screen is touched, so a
+player with only a mouse or a touch screen can still reach the pause menu.
 
 **Players.** One to four controllers, each with its own thread colour (red,
 saffron, teal, violet) and its own bindings, dealt from targets the others
