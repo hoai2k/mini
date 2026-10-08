@@ -18,7 +18,7 @@ the owner has cleared the use of her work here.
 
 ## In her words
 
-From the statement on the [elevenland gallery](https://www.elevenland.com/hanneke/):
+From the statement on the [elevenland gallery](https://www.elevenland.com/fibreart/):
 
 > My fibercollages, paintings, watercolors and mixed media are figurative and
 > all linked. They depict an imaginary universe with landscapes, people, still
@@ -172,7 +172,7 @@ of area; adjust by eye):
 
 ## Sources
 
-- [elevenland.com/hanneke](https://www.elevenland.com/hanneke/): gallery and
+- [elevenland.com/hanneke](https://www.elevenland.com/fibreart/): gallery and
   artist's statement compiled by Hoai Nguyen; the 22 works marked elevenland
   and the portrait photo.
 - [Princeton Info, "Artist's Dreams See Light of Day at Princeton Club"](https://princetoninfo.com/coverstories/artists-dreams-see-light-of-day-at-princeton-club/)

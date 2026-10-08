@@ -1,0 +1,1152 @@
+{
+  "generator": "built-in image_gen",
+  "requests": [
+    {
+      "id": "HK-U01",
+      "file": "fibreart/game/assets/ui/logo.png",
+      "status": "delivered",
+      "prompt": "A title for a game, spelled exactly \"Fibre Art\", written in one flowing line of dark red thread as if stitched into cloth, the loops of the letters like her looping handwriting, with a few loose thread ends. Beneath the words, a short row of small cut-cloth motifs sewn on with running stitch: a pale yellow crescent moon with a sleeping face, a red heart, a teal tree, a violet sun. Wide landscape composition filling about 85% of the width, no other text. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg",
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg"
+      ],
+      "requestedSize": "1600 x 700, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        1600,
+        700
+      ],
+      "nativeSize": [
+        1895,
+        830
+      ],
+      "mode": "RGBA",
+      "sha256": "78d5b6b157bde4aefc7498191bc451df4bd184415049d3a20724b215ac0ad60c"
+    },
+    {
+      "id": "HK-U02",
+      "file": "fibreart/game/assets/ui/icon.png",
+      "status": "requested",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. App icon: a pale yellow crescent moon with a sleeping face, cut from cloth and sewn with visible stitches onto a rounded-square tile of deep indigo batik, a small red heart tucked in the crescent's curve, a running stitch in bright blue around the tile's edge. Bold and simple, readable at 48 px; the moon fills about 70% of the tile. Transparent corners outside the rounded square (PNG with alpha), or flat magenta #FF00FF corners if transparency is not possible. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg"
+      ],
+      "requestedSize": "1024 x 1024, transparent",
+      "generator": "built-in image_gen",
+      "failure": "image_gen input rejected by safety system; category other; no asset generated."
+    },
+    {
+      "id": "HK-U03",
+      "file": "fibreart/game/assets/ui/line-drawings.png",
+      "status": "delivered",
+      "prompt": "A sheet of small line drawings in the style of Hanneke de Neve's pen drawings: each one a single fluid, unbroken dark brown-black ink line, drawn fast with a fine pen, no shading and no colour fill. Lay them out in a grid of 4 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The drawings, in order: 1. A woman's face with closed eyes, an oval head on a long neck. 2. A woman's face with open almond eyes, looking out. 3. Two figures embracing. 4. A figure seen from behind at a window, arms open. 5. A hand reaching, fingers open. 6. A hand holding a needle with a loose thread. 7. A crescent moon with a sleeping face. 8. A heart with a small crown drawn inside. 9. A bare tree. 10. A bird in flight. 11. A pair of felt boots. 12. A spool of thread. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/drawing-embrace-with-boots.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-embrace-in-blue.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-woman-at-window.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/mixed-media/drawing-embrace-with-boots.jpg",
+        "fibreart/reference/paintings/painting-embrace-in-blue.jpg",
+        "fibreart/reference/mixed-media/watercolor-woman-at-window.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "9d539e7658bbcd6994d31b4389c2ec9ec059053afd9a56a78fe8ad1b76e4439e"
+    },
+    {
+      "id": "HK-U04",
+      "file": "fibreart/game/assets/ui/threads.png",
+      "status": "delivered",
+      "prompt": "A sheet of real sewing thread and stitches photographed flat, for a game that cuts each one out and bends it along a path. Each item lies in a perfectly straight horizontal line across almost the full width of the sheet, one above the other with wide gaps, nothing touching. In order from top to bottom: 1. A running stitch in white cotton thread, even dashes as if sewn through cloth that is not there. 2. A running stitch in bright blue thread. 3. A machine zigzag stitch in orange thread. 4. A couched gold thread, a thick gold cord held down by tiny cross stitches. 5. A loose length of red embroidery thread, lying straight, slightly twisted. 6. A length of white thread with a frayed end on the right. 7. A narrow ribbon of rose silk, lying straight and flat. 8. A narrow ribbon of turquoise satin, lying straight and flat. Even soft light, no shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg",
+        "fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg",
+        "fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "e6de6553421fb8a74b4fa675df8f4c82956383a9d4b4577ddca4d9822ef855f4"
+    },
+    {
+      "id": "HK-T01-A",
+      "file": "fibreart/game/assets/tableaux/viriditas/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A dense wood of slender trees under a dark sky, after her painting Viriditas (Hildegard of Bingen's word for the greening life force). Acid yellow and yellow-green light fills the spaces between thin, wavering teal and bottle-green trunks; clusters of small red-orange berries and buds hang from the branches; a large violet disc, a sun or moon, glows behind the trees; the sky at the top is deep purple and indigo with swirling darker strokes; olive and ochre undergrowth along the bottom, with a few orange marks like fallen leaves. Painted on silk with stitched lines along some of the trunks. The motifs that will move: the large violet sun disc; the tallest teal tree, trunk and branches, from the ground to the top; a second slender teal tree, leaning left; a third slender tree, bottle green, forked near the top; a short young tree with a few buds; a cluster of red-orange berries, large; a cluster of red-orange berries, medium; a cluster of red-orange berries, small; a single dark green bud on a curved stem; a swirl of dark purple sky, cut out like a cloud; a small bird of stitched teal silk among the branches; a patch of orange fallen leaves. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas-with-artist.jpg .",
+      "referenceImages": [
+        "fibreart/reference/paintings/viriditas.jpg",
+        "fibreart/reference/paintings/viriditas-with-artist.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "7db16b04487bfc19115f219b3112b912f517301015fcfd9351a09de56ce7db88"
+    },
+    {
+      "id": "HK-T01-B",
+      "file": "fibreart/game/assets/tableaux/viriditas/ground.webp",
+      "status": "requested",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T01-A (file assets/tableaux/viriditas/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the large violet sun disc; the tallest teal tree, trunk and branches, from the ground to the top; a second slender teal tree, leaning left; a third slender tree, bottle green, forked near the top; a short young tree with a few buds; a cluster of red-orange berries, large; a cluster of red-orange berries, medium; a cluster of red-orange berries, small; a single dark green bud on a curved stem; a swirl of dark purple sky, cut out like a cloud; a small bird of stitched teal silk among the branches; a patch of orange fallen leaves. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas-with-artist.jpg .",
+      "referenceImages": [
+        "fibreart/reference/paintings/viriditas.jpg",
+        "fibreart/reference/paintings/viriditas-with-artist.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "failure": "image_gen input rejected by safety system; category other; no asset generated."
+    },
+    {
+      "id": "HK-T01-C",
+      "file": "fibreart/game/assets/tableaux/viriditas/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T01-A (file assets/tableaux/viriditas/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 4 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The large violet sun disc. 2. The tallest teal tree, trunk and branches, from the ground to the top. 3. A second slender teal tree, leaning left. 4. A third slender tree, bottle green, forked near the top. 5. A short young tree with a few buds. 6. A cluster of red-orange berries, large. 7. A cluster of red-orange berries, medium. 8. A cluster of red-orange berries, small. 9. A single dark green bud on a curved stem. 10. A swirl of dark purple sky, cut out like a cloud. 11. A small bird of stitched teal silk among the branches. 12. A patch of orange fallen leaves. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas-with-artist.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/paintings/viriditas.jpg",
+        "fibreart/reference/paintings/viriditas-with-artist.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "ea7ae16af6f7f6c180ea2eba5c6e3e7c98aaef196d49ff9c742ce5cb4fdcd606",
+      "compositionReference": "fibreart/game/assets/tableaux/viriditas/composition.webp"
+    },
+    {
+      "id": "HK-T02-A",
+      "file": "fibreart/game/assets/tableaux/night-quilt/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A night quilt of patchwork blocks, after her fibercollage of moons and hearts: deep indigo and black blocks bordered by red and orange batik and printed cotton, stitched together with bright blue running stitch and zigzag. On the dark blocks: a pale yellow crescent moon with a sleeping face, a round pale yellow moon with a sleeping face in profile, and two red velvet hearts, each embroidered with a small white crown-like pattern. A pale yellow stitched hand reaches toward the lower heart. A few small batik flowers in red and yellow. The motifs that will move: the crescent moon with the sleeping face; the round moon with the sleeping face in profile; the upper red heart with its white embroidery; the lower red heart with its white embroidery; the pale yellow stitched hand; a cluster of small red and yellow batik flowers; one indigo block from the middle of the quilt, as a square of cloth with its stitched edge; a strip of red and orange batik border; a small white batik star. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg",
+        "fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "1fd13e6b90fd92e28bfc1c208941ab1903a18593fb6b2cf1f16e1b084ed8a8b1"
+    },
+    {
+      "id": "HK-T02-B",
+      "file": "fibreart/game/assets/tableaux/night-quilt/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T02-A (file assets/tableaux/night-quilt/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the crescent moon with the sleeping face; the round moon with the sleeping face in profile; the upper red heart with its white embroidery; the lower red heart with its white embroidery; the pale yellow stitched hand; a cluster of small red and yellow batik flowers; one indigo block from the middle of the quilt, as a square of cloth with its stitched edge; a strip of red and orange batik border; a small white batik star. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg",
+        "fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "3f157422acd324b2443a30f2c771f2212479476a14ba0fd7a7dbc137092af2dc",
+      "compositionReference": "fibreart/game/assets/tableaux/night-quilt/composition.webp"
+    },
+    {
+      "id": "HK-T02-C",
+      "file": "fibreart/game/assets/tableaux/night-quilt/pieces.png",
+      "status": "requested",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T02-A (file assets/tableaux/night-quilt/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The crescent moon with the sleeping face. 2. The round moon with the sleeping face in profile. 3. The upper red heart with its white embroidery. 4. The lower red heart with its white embroidery. 5. The pale yellow stitched hand. 6. A cluster of small red and yellow batik flowers. 7. One indigo block from the middle of the quilt, as a square of cloth with its stitched edge. 8. A strip of red and orange batik border. 9. A small white batik star. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg",
+        "fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "failure": "image_gen input rejected by safety system; category other; no asset generated."
+    },
+    {
+      "id": "HK-T03-A",
+      "file": "fibreart/game/assets/tableaux/golden-lady/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A young woman from the waist up, after her painting The Golden Lady, acrylic on silk: short orange-gold hair, a pale oval face with dark almond eyes and a small mouth, a long neck, a saffron-yellow dress with a V neck and loose sleeves, one hand on her hip. She stands a little left of centre, so the picture is wider than the original. Behind her a green field runs to a low horizon, a slim tree stands at the left edge, and the sky is soft lilac, pink and sky blue with tall smoky grey-violet and blue clouds rising on the right. Loose, wet brushwork; brown contour lines over the colour. The motifs that will move: her head and neck, without the hair; her orange-gold hair, as one piece; her body in the saffron dress, from the shoulders to the waist, with the arm on her hip; the slim tree at the left edge; the tallest smoky grey-violet cloud; a blue cloud; a pink cloud; a small pale sun low in the sky. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-acrylic-on-silk-2016.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-face.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-dress.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-sky.jpg .",
+      "referenceImages": [
+        "fibreart/reference/paintings/the-golden-lady-acrylic-on-silk-2016.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-face.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-dress.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-sky.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "e25abfb06561fc39aae63b8923ea71baa407425834a1232c37447ea8bb79b249"
+    },
+    {
+      "id": "HK-T03-B",
+      "file": "fibreart/game/assets/tableaux/golden-lady/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T03-A (file assets/tableaux/golden-lady/composition.webp), at exactly the same framing and scale, but with these motifs taken out: her head and neck, without the hair; her orange-gold hair, as one piece; her body in the saffron dress, from the shoulders to the waist, with the arm on her hip; the slim tree at the left edge; the tallest smoky grey-violet cloud; a blue cloud; a pink cloud; a small pale sun low in the sky. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-acrylic-on-silk-2016.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-face.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-dress.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-sky.jpg .",
+      "referenceImages": [
+        "fibreart/reference/paintings/the-golden-lady-acrylic-on-silk-2016.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-face.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-dress.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-sky.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "1ca560de79b2decea3268ad8083a113d0e123d5e451f79b4596c25caa7290fed",
+      "compositionReference": "fibreart/game/assets/tableaux/golden-lady/composition.webp"
+    },
+    {
+      "id": "HK-T03-C",
+      "file": "fibreart/game/assets/tableaux/golden-lady/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T03-A (file assets/tableaux/golden-lady/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. Her head and neck, without the hair. 2. Her orange-gold hair, as one piece. 3. Her body in the saffron dress, from the shoulders to the waist, with the arm on her hip. 4. The slim tree at the left edge. 5. The tallest smoky grey-violet cloud. 6. A blue cloud. 7. A pink cloud. 8. A small pale sun low in the sky. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-acrylic-on-silk-2016.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-face.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-dress.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-sky.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/paintings/the-golden-lady-acrylic-on-silk-2016.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-face.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-dress.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-sky.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "c3e13240160d709004c67d80a7748fe6e59ad2d0c9100a190fe4c8a383805213",
+      "compositionReference": "fibreart/game/assets/tableaux/golden-lady/composition.webp"
+    },
+    {
+      "id": "HK-T04-A",
+      "file": "fibreart/game/assets/tableaux/black-tree/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A wide fibercollage after her black tree and faces: a rust-red and cream patchwork ground, a large black appliqu\u00e9 tree with bare, curving branches and a few big leaf shapes in black, ochre and cream, three women's faces cut from cream and white cloth with dark drawn features (one with long dark hair, one pale with closed eyes, one dark-skinned with a gold mask-like look), a band of black and white piano-key stripes across the top, harlequin diamonds in red and cream on the right, and a small row of Dutch gabled houses. The motifs that will move: the black tree, trunk and branches; a large black leaf; a large ochre leaf; a cream leaf; the face with long dark hair; the pale face with closed eyes; the dark face with the gold mask-like look; the row of small gabled houses; a single red and cream harlequin diamond. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/collage-faces-tree-and-houses.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg",
+        "fibreart/reference/mixed-media/collage-faces-tree-and-houses.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "0a2224e91b90135fc4472326d1e3623f87db6341771c5f7fbc806e91120b15c3"
+    },
+    {
+      "id": "HK-T04-B",
+      "file": "fibreart/game/assets/tableaux/black-tree/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T04-A (file assets/tableaux/black-tree/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the black tree, trunk and branches; a large black leaf; a large ochre leaf; a cream leaf; the face with long dark hair; the pale face with closed eyes; the dark face with the gold mask-like look; the row of small gabled houses; a single red and cream harlequin diamond. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/collage-faces-tree-and-houses.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg",
+        "fibreart/reference/mixed-media/collage-faces-tree-and-houses.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "767016629ea551bb36eff88ec455ea9e42ce0a1b6221974376e464e02b6e3aca",
+      "compositionReference": "fibreart/game/assets/tableaux/black-tree/composition.webp"
+    },
+    {
+      "id": "HK-T04-C",
+      "file": "fibreart/game/assets/tableaux/black-tree/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T04-A (file assets/tableaux/black-tree/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The black tree, trunk and branches. 2. A large black leaf. 3. A large ochre leaf. 4. A cream leaf. 5. The face with long dark hair. 6. The pale face with closed eyes. 7. The dark face with the gold mask-like look. 8. The row of small gabled houses. 9. A single red and cream harlequin diamond. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/collage-faces-tree-and-houses.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg",
+        "fibreart/reference/mixed-media/collage-faces-tree-and-houses.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "5d3febb259f8bf87a80736912c62fa9965bb95e8a17006193187133eca6d8311",
+      "compositionReference": "fibreart/game/assets/tableaux/black-tree/composition.webp"
+    },
+    {
+      "id": "HK-T05-A",
+      "file": "fibreart/game/assets/tableaux/two-moons/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A quilt after her two moons bound in blue satin: a range of pointed mountains pieced from white lace and pale floral prints with violet and rose, under a night sky of indigo and navy, with a band of pale yellow and sky-blue stripes sweeping across the top like a comet's trail. Two large pale moons of white and silver cloth hang above the peaks, and a golden crescent of couched gold thread hangs between them. The whole quilt is bound in shiny turquoise satin. The motifs that will move: the left pale moon; the right pale moon; the golden crescent of couched thread; the lace mountain range, as one long piece; the striped band of pale yellow and sky blue; a single small lace peak, separate from the range; a small silver star. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg",
+        "fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "4c3081e1c80a90bf2fb5b0414de914d0a68b1274210c3b0f4b4bc1f988b73c35"
+    },
+    {
+      "id": "HK-T05-B",
+      "file": "fibreart/game/assets/tableaux/two-moons/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T05-A (file assets/tableaux/two-moons/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the left pale moon; the right pale moon; the golden crescent of couched thread; the lace mountain range, as one long piece; the striped band of pale yellow and sky blue; a single small lace peak, separate from the range; a small silver star. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg",
+        "fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "da54e88324af72b881341fb119c9b38bb2572e345eaa4bf1e0299b579eaeddb4",
+      "compositionReference": "fibreart/game/assets/tableaux/two-moons/composition.webp"
+    },
+    {
+      "id": "HK-T05-C",
+      "file": "fibreart/game/assets/tableaux/two-moons/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T05-A (file assets/tableaux/two-moons/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The left pale moon. 2. The right pale moon. 3. The golden crescent of couched thread. 4. The lace mountain range, as one long piece. 5. The striped band of pale yellow and sky blue. 6. A single small lace peak, separate from the range. 7. A small silver star. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg",
+        "fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "d8fd9381944dd3079c1a144788cd84148794364d36733ddf8568a6ade5eddb94",
+      "compositionReference": "fibreart/game/assets/tableaux/two-moons/composition.webp"
+    },
+    {
+      "id": "HK-T06-A",
+      "file": "fibreart/game/assets/tableaux/dancers/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A quilted panel after her red and blue dancers: a white and pale grey ground divided by red-printed borders into four or five compartments of different sizes, like rooms. In them, figures printed and painted in red and in cobalt blue dance, leap and turn, their limbs long and flowing; a round red sun in the top left compartment; a tall blue plant with curling leaves; a small framed window of quilted pale blue. A border of red and white triangles along the bottom. The motifs that will move: the leaping blue dancer; the turning red dancer; a pair of blue dancers holding hands; a red dancer reaching up; the round red sun; the tall blue plant with curling leaves; the small quilted window, as an empty frame. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-figure-and-rose.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg",
+        "fibreart/reference/fibre/quilt-red-figure-and-rose.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "5cfd13ec635cdd1b5d73ec7a382437ef5d13117f4f41b36fbe1dfea3a69bc58c"
+    },
+    {
+      "id": "HK-T06-B",
+      "file": "fibreart/game/assets/tableaux/dancers/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T06-A (file assets/tableaux/dancers/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the leaping blue dancer; the turning red dancer; a pair of blue dancers holding hands; a red dancer reaching up; the round red sun; the tall blue plant with curling leaves; the small quilted window, as an empty frame. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-figure-and-rose.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg",
+        "fibreart/reference/fibre/quilt-red-figure-and-rose.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "6ac0f98fae2b1f48799456fd9831fead8537aa1abb5602f3c9a5b8c709260126",
+      "compositionReference": "fibreart/game/assets/tableaux/dancers/composition.webp"
+    },
+    {
+      "id": "HK-T06-C",
+      "file": "fibreart/game/assets/tableaux/dancers/pieces.png",
+      "status": "requested",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T06-A (file assets/tableaux/dancers/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The leaping blue dancer. 2. The turning red dancer. 3. A pair of blue dancers holding hands. 4. A red dancer reaching up. 5. The round red sun. 6. The tall blue plant with curling leaves. 7. The small quilted window, as an empty frame. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-figure-and-rose.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg",
+        "fibreart/reference/fibre/quilt-red-figure-and-rose.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "failure": "image_gen input rejected by safety system; category other; no asset generated."
+    },
+    {
+      "id": "HK-T07-A",
+      "file": "fibreart/game/assets/tableaux/man-and-woman/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A tapestry after her Man and Woman: an old man and an old woman with grey and white hair sit facing each other across a table, their hands meeting in the middle, pieced from grey and mauve fabric with lace and white thread for their hair. A red patterned tablecloth with a looping scarlet ribbon runs along the bottom. Behind them a soft grey-rose ground with a little peaked house on the left, a large copper-gold sun of metallic cloth top left, and two bare brown trees on the right with orange leaves of silk. Scraps of lace and white embroidery here and there. The motifs that will move: the man, seated, facing right; the woman, seated, facing left; the copper-gold sun; the little peaked house; the larger bare tree; the smaller bare tree; a single orange silk leaf; the looping scarlet ribbon from the tablecloth. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-man-and-woman.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-embrace-in-blue.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/tapestry-man-and-woman.jpg",
+        "fibreart/reference/paintings/painting-embrace-in-blue.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "bf3a4ee557d49334b7d8c142f5a6e9c69d199be15bd3225de9e960fa9eceea11"
+    },
+    {
+      "id": "HK-T07-B",
+      "file": "fibreart/game/assets/tableaux/man-and-woman/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T07-A (file assets/tableaux/man-and-woman/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the man, seated, facing right; the woman, seated, facing left; the copper-gold sun; the little peaked house; the larger bare tree; the smaller bare tree; a single orange silk leaf; the looping scarlet ribbon from the tablecloth. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-man-and-woman.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-embrace-in-blue.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/tapestry-man-and-woman.jpg",
+        "fibreart/reference/paintings/painting-embrace-in-blue.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "20011b76ae1121e292be9c950e60af39ef7193ea0e538ecbeb615eeb6d83d6d0",
+      "compositionReference": "fibreart/game/assets/tableaux/man-and-woman/composition.webp"
+    },
+    {
+      "id": "HK-T07-C",
+      "file": "fibreart/game/assets/tableaux/man-and-woman/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T07-A (file assets/tableaux/man-and-woman/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The man, seated, facing right. 2. The woman, seated, facing left. 3. The copper-gold sun. 4. The little peaked house. 5. The larger bare tree. 6. The smaller bare tree. 7. A single orange silk leaf. 8. The looping scarlet ribbon from the tablecloth. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-man-and-woman.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-embrace-in-blue.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/tapestry-man-and-woman.jpg",
+        "fibreart/reference/paintings/painting-embrace-in-blue.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "2f3e09b43851ff1f2bed74a89781d3ceb13c60159399be6c8cc7981eea704805",
+      "compositionReference": "fibreart/game/assets/tableaux/man-and-woman/composition.webp"
+    },
+    {
+      "id": "HK-T08-A",
+      "file": "fibreart/game/assets/tableaux/blue-lady/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A night tapestry after her Blue Lady: a woman lies stretched out along the middle of the picture as if floating on a river, her body pieced from many blues, teals and slate greys of cotton, satin and corduroy, her face pale and calm with closed eyes, her long hair flowing behind her into the water. The ground is a dark ribbed blue-black, with ripples of stitched teal thread. A small pale moon above, a fish of patterned blue cloth below her, a few tall reeds at the right edge. The motifs that will move: the reclining woman, her face, body and hair as one piece; the small pale moon; the fish of patterned blue cloth; a cluster of tall reeds; a long ripple of stitched teal thread; a scrap of turquoise satin, like a wave crest. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-blue-lady.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-woman-at-window.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/tapestry-blue-lady.jpg",
+        "fibreart/reference/mixed-media/watercolor-woman-at-window.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "d5d7557d45ed22d8c1dd9867f0a49bed34c1a98e56dfc5bc87c059f66dd0ed28"
+    },
+    {
+      "id": "HK-T08-B",
+      "file": "fibreart/game/assets/tableaux/blue-lady/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T08-A (file assets/tableaux/blue-lady/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the reclining woman, her face, body and hair as one piece; the small pale moon; the fish of patterned blue cloth; a cluster of tall reeds; a long ripple of stitched teal thread; a scrap of turquoise satin, like a wave crest. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-blue-lady.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-woman-at-window.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/tapestry-blue-lady.jpg",
+        "fibreart/reference/mixed-media/watercolor-woman-at-window.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "ba66ca15166c26c5d76beac88836a198e0075e03da5e07930687a36e42431c65",
+      "compositionReference": "fibreart/game/assets/tableaux/blue-lady/composition.webp"
+    },
+    {
+      "id": "HK-T08-C",
+      "file": "fibreart/game/assets/tableaux/blue-lady/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T08-A (file assets/tableaux/blue-lady/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The reclining woman, her face, body and hair as one piece. 2. The small pale moon. 3. The fish of patterned blue cloth. 4. A cluster of tall reeds. 5. A long ripple of stitched teal thread. 6. A scrap of turquoise satin, like a wave crest. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-blue-lady.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-woman-at-window.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/tapestry-blue-lady.jpg",
+        "fibreart/reference/mixed-media/watercolor-woman-at-window.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "38db7747459df470ab932f8c09a3ca361f253750d5eacda8247948e49af1bcbc",
+      "compositionReference": "fibreart/game/assets/tableaux/blue-lady/composition.webp"
+    },
+    {
+      "id": "HK-T09-A",
+      "file": "fibreart/game/assets/tableaux/crowd/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A painting after her crowd of faces: dozens of small faces, oval heads on long necks with simple drawn features, some with eyes closed and some looking out, packed together in rose, ochre, cream, dusty blue and slate, filling the picture like a crowd seen from above or a field of flowers. A little right of centre, one much larger face with wide open eyes looks straight out. A single large eye floats at the left. Lines of looping handwriting, unreadable, drift across the top. The motifs that will move: the large face with wide open eyes; the single floating eye; a rose face with closed eyes; an ochre face looking left; a dusty blue face looking up; a cream face with a long neck; a slate face in profile; a small pale face, smiling; a pair of faces cheek to cheek. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-crowd-of-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg .",
+      "referenceImages": [
+        "fibreart/reference/paintings/painting-crowd-of-faces.jpg",
+        "fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "1442857ea0d368502e027f44bf59e9cf59a0599161c3ac300f15e9d3dc29d8bd"
+    },
+    {
+      "id": "HK-T09-B",
+      "file": "fibreart/game/assets/tableaux/crowd/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T09-A (file assets/tableaux/crowd/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the large face with wide open eyes; the single floating eye; a rose face with closed eyes; an ochre face looking left; a dusty blue face looking up; a cream face with a long neck; a slate face in profile; a small pale face, smiling; a pair of faces cheek to cheek. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-crowd-of-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg .",
+      "referenceImages": [
+        "fibreart/reference/paintings/painting-crowd-of-faces.jpg",
+        "fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "64bb3b72d99328bbd39dec3579f8d8902947ae8cefaaca78c66eaea50bb49389",
+      "compositionReference": "fibreart/game/assets/tableaux/crowd/composition.webp"
+    },
+    {
+      "id": "HK-T09-C",
+      "file": "fibreart/game/assets/tableaux/crowd/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T09-A (file assets/tableaux/crowd/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The large face with wide open eyes. 2. The single floating eye. 3. A rose face with closed eyes. 4. An ochre face looking left. 5. A dusty blue face looking up. 6. A cream face with a long neck. 7. A slate face in profile. 8. A small pale face, smiling. 9. A pair of faces cheek to cheek. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-crowd-of-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/paintings/painting-crowd-of-faces.jpg",
+        "fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "33abd4a995c2c944643de84e70f3c7cbc5ffdb54cb2fd1c3d338a19e9e77e49f",
+      "compositionReference": "fibreart/game/assets/tableaux/crowd/composition.webp"
+    },
+    {
+      "id": "HK-T10-A",
+      "file": "fibreart/game/assets/tableaux/silk-bird/composition.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A complete picture in landscape 16:9, full bleed, meant both as a finished artwork and as the key a game scene is built from: every motif named below will later be cut out and moved on its own, so give each one a clear, readable silhouette, keep the motifs apart from each other (touching at most at an edge, never overlapping much), and make each one a distinct piece of cloth or paint against the ground. A painted canvas after her silk bird: on a pale cream and grey ground, a large bird pieced from silk in magenta, cobalt, turquoise and violet flies left, its wings swept back; a small calm face is set in its breast like a locket. Long ribbons of colour (pale gold, rose, sky blue and lilac) swirl around it in loops, painted and stitched. Lower right, a fish of brown netting with orange stitching; a pink silk triangle in one corner. The motifs that will move: the silk bird with the face in its breast; a long gold ribbon loop; a rose ribbon loop; a sky-blue ribbon loop; a lilac ribbon loop; the netting fish with orange stitching; the pink silk triangle. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-silk-bird.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-silk-bird.jpg",
+        "fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "df466881bfcf2132c04dd677072f70e06c0439882a83a6fe75f1330a39ec5ce0"
+    },
+    {
+      "id": "HK-T10-B",
+      "file": "fibreart/game/assets/tableaux/silk-bird/ground.webp",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. The same picture as the attached composition, request HK-T10-A (file assets/tableaux/silk-bird/composition.webp), at exactly the same framing and scale, but with these motifs taken out: the silk bird with the face in its breast; a long gold ribbon loop; a rose ribbon loop; a sky-blue ribbon loop; a lilac ribbon loop; the netting fish with orange stitching; the pink silk triangle. Where each one was, continue the ground underneath as if it had never been there (the sky, the field, the patchwork, the stitching running on), with no gap, hole, outline or ghost of the removed shape. Everything else stays exactly as it is in the composition. Full bleed 16:9, opaque. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-silk-bird.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-silk-bird.jpg",
+        "fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg"
+      ],
+      "requestedSize": "1920 x 1080, opaque",
+      "generator": "built-in image_gen",
+      "size": [
+        1920,
+        1080
+      ],
+      "nativeSize": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "sha256": "74f77f1e2e4e01919c8aed0926fdbc5e3ddf504aad4ce139bcb4891d48445d2f",
+      "compositionReference": "fibreart/game/assets/tableaux/silk-bird/composition.webp"
+    },
+    {
+      "id": "HK-T10-C",
+      "file": "fibreart/game/assets/tableaux/silk-bird/pieces.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of separate cut-out pieces for a game that moves, stretches, turns and dissolves each one on its own. Draw each motif below exactly as it appears in the attached composition, request HK-T10-A (file assets/tableaux/silk-bird/composition.webp): same design, colours, materials, stitching and scale relative to each other, in the same orientation it has there (do not turn it to fit the cell). Each piece is complete and whole, including any part that was hidden behind another motif, with its own frayed or painted edge all round and a little of its stitching or thread running loose past the edge. Lay them out in a grid of 3 columns and 3 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The pieces, in order: 1. The silk bird with the face in its breast. 2. A long gold ribbon loop. 3. A rose ribbon loop. 4. A sky-blue ribbon loop. 5. A lilac ribbon loop. 6. The netting fish with orange stitching. 7. The pink silk triangle. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-silk-bird.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-silk-bird.jpg",
+        "fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg"
+      ],
+      "requestedSize": "2048 x 2048, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        2048,
+        2048
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "4427f094b93d58ac079958f81e2e748491b31cada277c912116ecc1164e7bee9",
+      "compositionReference": "fibreart/game/assets/tableaux/silk-bird/composition.webp"
+    },
+    {
+      "id": "HK-M01",
+      "file": "fibreart/game/assets/chains/moon.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A morph chain: one motif changing step by step into others, for a game that blends each stage into the next. 5 stages in one row from left to right, all at the same size and centred on the same point in their cells, each about as wide and tall as the others so one can grow out of the last. Each stage is a finished cut-cloth motif with stitched edges, and each shares something with its neighbours (the curve of an edge, a colour, a line of stitches, the closed eyes) so the change feels grown rather than swapped. The stages, in order: a pale yellow crescent moon with a sleeping face; a round pale moon, the sleeping face turned to the front; a violet sun disc of painted silk, the face fading into its glow; a copper-gold sun of metallic cloth with short stitched rays; a red velvet heart with a white embroidered crown, its top curves the sun's rays. Even spacing, plenty of clear background between them, nothing touching. No numbers, arrows or labels. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg",
+        "fibreart/reference/paintings/viriditas.jpg",
+        "fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg"
+      ],
+      "requestedSize": "3000 x 700, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        3000,
+        700
+      ],
+      "nativeSize": [
+        2146,
+        733
+      ],
+      "mode": "RGBA",
+      "sha256": "65e523745609cffe84d69060b2e34d0a8e3582a6f33c145de5308413b8d6420e"
+    },
+    {
+      "id": "HK-M02",
+      "file": "fibreart/game/assets/chains/tree.png",
+      "status": "requested",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A morph chain: one motif changing step by step into others, for a game that blends each stage into the next. 5 stages in one row from left to right, all at the same size and centred on the same point in their cells, each about as wide and tall as the others so one can grow out of the last. Each stage is a finished cut-cloth motif with stitched edges, and each shares something with its neighbours (the curve of an edge, a colour, a line of stitches, the closed eyes) so the change feels grown rather than swapped. The stages, in order: a bare black appliqu\u00e9 tree with curving branches; the same tree budding, small green buds along the branches; a tree with orange silk leaves; a slender teal tree with clusters of red-orange berries; a single budding branch, as if held in a hand. Even spacing, plenty of clear background between them, nothing touching. No numbers, arrows or labels. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/woman-with-branch-yellow-field.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-black-tree-and-faces.jpg",
+        "fibreart/reference/paintings/viriditas.jpg",
+        "fibreart/reference/paintings/woman-with-branch-yellow-field.jpg"
+      ],
+      "requestedSize": "3000 x 700, transparent",
+      "generator": "built-in image_gen",
+      "failure": "image_gen input rejected by safety system; category other; no asset generated."
+    },
+    {
+      "id": "HK-M03",
+      "file": "fibreart/game/assets/chains/face.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A morph chain: one motif changing step by step into others, for a game that blends each stage into the next. 5 stages in one row from left to right, all at the same size and centred on the same point in their cells, each about as wide and tall as the others so one can grow out of the last. Each stage is a finished cut-cloth motif with stitched edges, and each shares something with its neighbours (the curve of an edge, a colour, a line of stitches, the closed eyes) so the change feels grown rather than swapped. The stages, in order: a pale oval face with closed eyes, drawn in one dark line on cream cloth; the same face waking, eyes half open; the face with dark almond eyes wide open, looking out; the face turned three-quarters, gold hair beginning to show; a mask-like gold and ochre face, eyes closed again. Even spacing, plenty of clear background between them, nothing touching. No numbers, arrows or labels. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/painting-crowd-of-faces.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/the-golden-lady-detail-face.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/paintings/painting-crowd-of-faces.jpg",
+        "fibreart/reference/paintings/the-golden-lady-detail-face.jpg",
+        "fibreart/reference/mixed-media/watercolor-face-with-handwriting.jpg"
+      ],
+      "requestedSize": "3000 x 700, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        3000,
+        700
+      ],
+      "nativeSize": [
+        2146,
+        733
+      ],
+      "mode": "RGBA",
+      "sha256": "f6e042b33cdce30122aa23fa427fdf926de5aa0d8257078cb349b5827d1b7609"
+    },
+    {
+      "id": "HK-M04",
+      "file": "fibreart/game/assets/chains/bird.png",
+      "status": "requested",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A morph chain: one motif changing step by step into others, for a game that blends each stage into the next. 5 stages in one row from left to right, all at the same size and centred on the same point in their cells, each about as wide and tall as the others so one can grow out of the last. Each stage is a finished cut-cloth motif with stitched edges, and each shares something with its neighbours (the curve of an edge, a colour, a line of stitches, the closed eyes) so the change feels grown rather than swapped. The stages, in order: a silk bird in magenta and cobalt, wings spread; the bird folding its wings, its body lengthening; a fish of patterned blue cloth; a fish of brown netting with orange stitching; a long orange silk leaf, its veins the fish's stitches. Even spacing, plenty of clear background between them, nothing touching. No numbers, arrows or labels. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-silk-bird.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-silk-bird.jpg",
+        "fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg",
+        "fibreart/reference/fibre/tapestry-10-figure-sun-and-bird.jpg"
+      ],
+      "requestedSize": "3000 x 700, transparent",
+      "generator": "built-in image_gen",
+      "failure": "image_gen input rejected by safety system; category other; no asset generated."
+    },
+    {
+      "id": "HK-M05",
+      "file": "fibreart/game/assets/chains/figure.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A morph chain: one motif changing step by step into others, for a game that blends each stage into the next. 5 stages in one row from left to right, all at the same size and centred on the same point in their cells, each about as wide and tall as the others so one can grow out of the last. Each stage is a finished cut-cloth motif with stitched edges, and each shares something with its neighbours (the curve of an edge, a colour, a line of stitches, the closed eyes) so the change feels grown rather than swapped. The stages, in order: a red silhouette of a standing figure, cut from one piece of cloth, no face; a blue printed dancer, arms raised; a dancer turning, leaning over; a figure crouching, curled forward; a woman lying stretched out, pieced from blues, eyes closed. Even spacing, plenty of clear background between them, nothing touching. No numbers, arrows or labels. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-figure-and-rose.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-blue-lady.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-red-and-blue-dancers.jpg",
+        "fibreart/reference/fibre/quilt-red-figure-and-rose.jpg",
+        "fibreart/reference/fibre/tapestry-blue-lady.jpg"
+      ],
+      "requestedSize": "3000 x 700, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        3000,
+        700
+      ],
+      "nativeSize": [
+        2146,
+        733
+      ],
+      "mode": "RGBA",
+      "sha256": "75ce022083ddc1cdccb1bf02b1fb674248879e25f3505ba10255c96fe940ce2a"
+    },
+    {
+      "id": "HK-M06",
+      "file": "fibreart/game/assets/chains/flower.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A morph chain: one motif changing step by step into others, for a game that blends each stage into the next. 5 stages in one row from left to right, all at the same size and centred on the same point in their cells, each about as wide and tall as the others so one can grow out of the last. Each stage is a finished cut-cloth motif with stitched edges, and each shares something with its neighbours (the curve of an edge, a colour, a line of stitches, the closed eyes) so the change feels grown rather than swapped. The stages, in order: a pink fabric rose with layered petals; a violet bloom, opening; a cluster of red-orange berries; a cluster of small red and yellow batik flowers; a small red heart, stitched. Even spacing, plenty of clear background between them, nothing touching. No numbers, arrows or labels. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-figure-and-rose.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-red-figure-and-rose.jpg",
+        "fibreart/reference/paintings/viriditas.jpg",
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg"
+      ],
+      "requestedSize": "3000 x 700, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        3000,
+        700
+      ],
+      "nativeSize": [
+        2146,
+        733
+      ],
+      "mode": "RGBA",
+      "sha256": "8c80388344ac5e8879aefa577a2cda41918f31484d86ea948a0d904fbae158e4"
+    },
+    {
+      "id": "HK-X01",
+      "file": "fibreart/game/assets/textures/indigo-batik.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: deep indigo cotton batik with small pale crescent and dot patterns, slightly uneven dye. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "5c5b0506bb0bfd7dc5a3167cbca7bf24bb9691366ba960a0a14d2023c2ebd2f0",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible."
+    },
+    {
+      "id": "HK-X02",
+      "file": "fibreart/game/assets/textures/rust-paisley.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: rust red and orange printed paisley cotton with fine black detail. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-red-figure-and-rose.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-red-figure-and-rose.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "952bc98016a02a1d12dc4077883c48f5cb5e759e9a453dca0755d24051799df6",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible."
+    },
+    {
+      "id": "HK-X03",
+      "file": "fibreart/game/assets/textures/gold-damask.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: heavy olive-gold damask woven with large leafy scrolls on a dark ground. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-20-crouching-figure-on-damask.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/tapestry-20-crouching-figure-on-damask.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "b8a3f12ab975159a64071e2b8bc675eeaceab456ab4101cd8ac29b3fa43ec1e9",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible."
+    },
+    {
+      "id": "HK-X04",
+      "file": "fibreart/game/assets/textures/turquoise-satin.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: shiny turquoise satin with soft rippled highlights. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "9ed6f8608ccbc18893d3aac8294aa9567396703d9ca5ccf6be0948bd6751560d",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible."
+    },
+    {
+      "id": "HK-X05",
+      "file": "fibreart/game/assets/textures/black-lace.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: white floral lace laid over black cotton. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/quilt-two-moons-blue-satin.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "7b74705951f8c95cfab5c94ab9af4a2f5a26384957fcead7be1755b53bbe758f",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible."
+    },
+    {
+      "id": "HK-X06",
+      "file": "fibreart/game/assets/textures/brown-netting.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: coarse brown netting over dark felt, with a few loose orange threads. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/fibercollage-netting-and-pink-silk.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "e0c6f1207b9f7a184ffed108aeb7aefe7e0a5d4b5e0ce3d1a87059239e8e12ff",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible."
+    },
+    {
+      "id": "HK-X07",
+      "file": "fibreart/game/assets/textures/green-silk.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: silk painted in acid yellow and yellow-green washes with soft teal blooms. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/paintings/viriditas.jpg .",
+      "referenceImages": [
+        "fibreart/reference/paintings/viriditas.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "3dbb25cf9aa17c59658ff865ba7fad9a435162894c398d9d5d3002983522c68c",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible.",
+      "refinement": "Replace recognizable trees, branches, leaves, berries and violet discs with only abstract acid yellow and yellow-green washes and soft teal pigment blooms on silk. No figurative motifs, plants, red or violet. Preserve flat fabric weave and saturated colour. Seamless tile."
+    },
+    {
+      "id": "HK-X08",
+      "file": "fibreart/game/assets/textures/ultramarine-canvas.webp",
+      "status": "delivered",
+      "prompt": "A seamlessly tiling square texture of one fabric, photographed flat and straight on in even, soft light, filling the whole square with no edge, fold, shadow or vignette: it must repeat in both directions with no visible seam. The fabric: canvas painted in deep ultramarine with visible brush marks. Rich, saturated colour; the weave and thread visible up close. No motifs that read as a picture on their own. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg .",
+      "referenceImages": [
+        "fibreart/reference/fibre/painted-fabric-three-moons-with-artist.jpg"
+      ],
+      "requestedSize": "1024 x 1024, opaque, tiling",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "sha256": "b63e4621e5d1550e96cdb9f244b1aed4d8cbe22c09c1a8b49e4bfa15f44d2a0c",
+      "reviewNote": "Fabric appearance reviewed; edge continuity is approximate and repeat seams can be visible."
+    },
+    {
+      "id": "HK-D01",
+      "file": "fibreart/game/assets/masks/torn-paper.png",
+      "status": "delivered",
+      "prompt": "A greyscale dissolve map for a game shader, square, opaque, no colour at all: pure white is where an image disappears first and pure black where it disappears last, with every shade of grey between, so that as a threshold sweeps from white to black the image wears away in this way: torn along wandering rips, like collage paper being pulled away in strips from one corner. Use the full range from pure white to pure black, with smooth gradients inside the shapes and fine, crisp detail along their edges. Nothing else in the image, no texture of paper or cloth, no text. ",
+      "referenceImages": [],
+      "requestedSize": "1024 x 1024, greyscale",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "L",
+      "sha256": "d551d6320a056a734175065f1fd0ca8f49672667800a3f0ccb4cfc134c7c5951"
+    },
+    {
+      "id": "HK-D02",
+      "file": "fibreart/game/assets/masks/watercolour-bloom.png",
+      "status": "delivered",
+      "prompt": "A greyscale dissolve map for a game shader, square, opaque, no colour at all: pure white is where an image disappears first and pure black where it disappears last, with every shade of grey between, so that as a threshold sweeps from white to black the image wears away in this way: spreading outward from several points like wet watercolour blooms, with ragged, cauliflower edges. Use the full range from pure white to pure black, with smooth gradients inside the shapes and fine, crisp detail along their edges. Nothing else in the image, no texture of paper or cloth, no text. ",
+      "referenceImages": [],
+      "requestedSize": "1024 x 1024, greyscale",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "L",
+      "sha256": "9add8c2e23f00cd87a384fca491caaa962f1a619e81b924a3c7172e4ac41fd9a"
+    },
+    {
+      "id": "HK-D03",
+      "file": "fibreart/game/assets/masks/seams.png",
+      "status": "delivered",
+      "prompt": "A greyscale dissolve map for a game shader, square, opaque, no colour at all: pure white is where an image disappears first and pure black where it disappears last, with every shade of grey between, so that as a threshold sweeps from white to black the image wears away in this way: block by block along a patchwork of irregular rectangles, each block going in turn, the seams between them last. Use the full range from pure white to pure black, with smooth gradients inside the shapes and fine, crisp detail along their edges. Nothing else in the image, no texture of paper or cloth, no text. ",
+      "referenceImages": [],
+      "requestedSize": "1024 x 1024, greyscale",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "L",
+      "sha256": "16b363c00cd18bf7bda16bb8f893538b398ca662475b26023dee3e4f569426f3"
+    },
+    {
+      "id": "HK-D04",
+      "file": "fibreart/game/assets/masks/unravel.png",
+      "status": "delivered",
+      "prompt": "A greyscale dissolve map for a game shader, square, opaque, no colour at all: pure white is where an image disappears first and pure black where it disappears last, with every shade of grey between, so that as a threshold sweeps from white to black the image wears away in this way: thread by thread along long horizontal lines, like a woven cloth unravelling from the top. Use the full range from pure white to pure black, with smooth gradients inside the shapes and fine, crisp detail along their edges. Nothing else in the image, no texture of paper or cloth, no text. ",
+      "referenceImages": [],
+      "requestedSize": "1024 x 1024, greyscale",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "L",
+      "sha256": "54a5a7b37e1ef474ea8956ce1abf3e64e9be6d88425a088acf9906df37239d18"
+    },
+    {
+      "id": "HK-D05",
+      "file": "fibreart/game/assets/masks/swirl.png",
+      "status": "delivered",
+      "prompt": "A greyscale dissolve map for a game shader, square, opaque, no colour at all: pure white is where an image disappears first and pure black where it disappears last, with every shade of grey between, so that as a threshold sweeps from white to black the image wears away in this way: in a spiral from the centre outward, with the arms of the spiral wavering like a painted stroke. Use the full range from pure white to pure black, with smooth gradients inside the shapes and fine, crisp detail along their edges. Nothing else in the image, no texture of paper or cloth, no text. ",
+      "referenceImages": [],
+      "requestedSize": "1024 x 1024, greyscale",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "L",
+      "sha256": "a035286577c28c74f32f44140a17af1b49b2d66ece9ecffce94b463987c52bd7"
+    },
+    {
+      "id": "HK-D06",
+      "file": "fibreart/game/assets/masks/stitch-line.png",
+      "status": "delivered",
+      "prompt": "A greyscale dissolve map for a game shader, square, opaque, no colour at all: pure white is where an image disappears first and pure black where it disappears last, with every shade of grey between, so that as a threshold sweeps from white to black the image wears away in this way: from one side to the other along a wavering line of running stitches, dashes of white ahead of the edge. Use the full range from pure white to pure black, with smooth gradients inside the shapes and fine, crisp detail along their edges. Nothing else in the image, no texture of paper or cloth, no text. ",
+      "referenceImages": [],
+      "requestedSize": "1024 x 1024, greyscale",
+      "generator": "built-in image_gen",
+      "size": [
+        1024,
+        1024
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "L",
+      "sha256": "2a53014a294c83165c998f5effce7b14cdc3cd55c4ef7c52784687d6b3c7dca2"
+    }
+  ]
+}

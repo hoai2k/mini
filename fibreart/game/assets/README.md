@@ -16,7 +16,7 @@ saved dimensions, hashes, and failed requests. `../../design/generated-preview.j
 shows the generated images; `../../design/pieces-preview.jpg` shows all 66
 extracted tableau pieces. The extracted paths, names and sheet coordinates
 are in `pieces.json`, in request order. Rebuild those cuts with
-`python3 hanneke/tools/extract_pieces.py` (Pillow, NumPy, SciPy); review the
+`python3 fibreart/tools/extract_pieces.py` (Pillow, NumPy, SciPy); review the
 component selections whenever a sheet changes. These are approximate generated
 matches to the composition, not pixel-identical layers for reconstruction.
 

@@ -36,5 +36,5 @@ library come with the first playable build.
 Checks:
 
 ```sh
-python3 hanneke/design/source/build_requests.py --check
+python3 fibreart/design/source/build_requests.py --check
 ```
