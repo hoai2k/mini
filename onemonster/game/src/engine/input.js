@@ -37,7 +37,13 @@ export function createInput(target) {
   // the left half (versus player 1); zone 1 = right half (versus player 2).
   let touchZones = 1;
   let mapPointer = (cx, cy) => [cx, cy];
+  // Control space: the screen in units where its short side is 1080, so the
+  // buttons keep one size and sit in the bottom-right corner (or, in versus,
+  // the corner of each half), clear of the notch and the home bar.
   let viewW = 1920;
+  let viewH = 1080;
+  let insetR = 0;
+  let insetB = 0;
   const touches = new Map(); // pointerId -> { zone, role: 'stick'|'action'|'sprint', x0, y0, x, y }
   const touchState = [newTouch(), newTouch()];
   function newTouch() {
@@ -46,10 +52,11 @@ export function createInput(target) {
   // Button places in logical units, per zone layout (read by the HUD to draw them).
   function buttonsFor(zone) {
     const W = viewW;
-    const right = touchZones === 1 ? W : zone === 0 ? W / 2 : W;
+    const right = touchZones === 1 || zone === 1 ? W - insetR : W / 2;
+    const bottom = viewH - insetB;
     return {
-      action: { x: right - 150, y: 900, r: 92 },
-      sprint: { x: right - 330, y: 960, r: 70 },
+      action: { x: right - 150, y: bottom - 180, r: 92 },
+      sprint: { x: right - 330, y: bottom - 120, r: 70 },
     };
   }
 
@@ -186,7 +193,8 @@ export function createInput(target) {
     get kind() { return kind; },
     onKind(fn) { kindListeners.push(fn); },
     onPads(fn) { padListeners.push(fn); },
-    setPointerMap(fn, w) { mapPointer = fn; viewW = w || viewW; },
+    setPointerMap(fn) { mapPointer = fn; },
+    setControlSpace(w, h, right = 0, bottom = 0) { viewW = w; viewH = h; insetR = right; insetB = bottom; },
     setTouchZones(n) { touchZones = n; touches.clear(); },
     touchZones: () => touchZones,
     touchButtons: buttonsFor,

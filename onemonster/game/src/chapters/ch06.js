@@ -640,6 +640,7 @@ export default function create(env) {
   // ---------- the chapter ----------
 
   const self = {
+    focus: () => [{ x: y.x, y: GY }, { x: cl.x, y: CLOUD_Y }], // what the camera frames: the snatcher, then the holder
     time: total,
     done: false,
     outcome: null,

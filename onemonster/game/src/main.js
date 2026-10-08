@@ -55,7 +55,10 @@ const STORY = {
 
 // ---------- canvas sizing ----------
 
-let view = { s: 1, ox: 0, oy: 0, cw: 0, ch: 0, dpr: 1 };
+let view = { s: 1, ox: 0, oy: 0, cw: 0, ch: 0, dpr: 1, ui: 1 };
+const safeProbe = document.createElement('div');
+safeProbe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+document.body.append(safeProbe);
 function resize() {
   const dpr = Math.min(2, devicePixelRatio || 1);
   const cw = canvas.clientWidth;
@@ -63,23 +66,63 @@ function resize() {
   canvas.width = Math.round(cw * dpr);
   canvas.height = Math.round(ch * dpr);
   const s = Math.min(cw / W, ch / H);
-  view = { s, ox: (cw - W * s) / 2, oy: (ch - H * s) / 2, cw, ch, dpr };
+  // The touch controls keep one size, set by the short side of the screen, so
+  // they sit the same under the thumbs in portrait and landscape.
+  const ui = Math.min(cw, ch) / H;
+  view = { s, ox: (cw - W * s) / 2, oy: (ch - H * s) / 2, cw, ch, dpr, ui };
+  const cs = getComputedStyle(safeProbe);
+  input.setControlSpace(cw / ui, ch / ui, parseFloat(cs.paddingRight) / ui || 0, parseFloat(cs.paddingBottom) / ui || 0);
 }
 addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 120));
 document.addEventListener('fullscreenchange', resize);
+// Touches are read in control space (screen pixels / view.ui), not in the
+// scene, so a held stick does not drift while the camera moves.
 input.setPointerMap((cx, cy) => {
   const r = canvas.getBoundingClientRect();
-  return [(cx - r.left - view.ox) / view.s, (cy - r.top - view.oy) / view.s];
-}, W);
+  return [(cx - r.left) / view.ui, (cy - r.top) / view.ui];
+});
+
+// ---------- the play camera ----------
+// On a wide screen the whole 1920 x 1080 scene fits. On a narrow one (a phone
+// held upright) fitting it would shrink the monsters to specks, so the scene
+// keeps its full height and at least MIN_VIEW_W of its width, and the camera
+// follows the player's monster across it, clamped to the scene's edges. In
+// Snatch & Keep it frames both players, pulling back as far as it must.
+const MIN_VIEW_W = 1000;
+const cam = { x: W / 2, y: H / 2, s: 0, snap: true };
+function playView(dt) {
+  const { cw, ch } = view;
+  const fit = view.s;
+  const pts = (S.chapter.focus?.() || []).filter((p) => p && Number.isFinite(p.x));
+  const use = S.mode.kind === 'versus' ? pts : pts.slice(0, 1);
+  let wantW = MIN_VIEW_W;
+  if (use.length > 1) wantW = Math.max(wantW, Math.max(...use.map((p) => p.x)) - Math.min(...use.map((p) => p.x)) + 560);
+  let s = Math.max(fit, Math.min(ch / H, cw / wantW));
+  if (s < fit * 1.1) s = fit; // nearly fits: show it all
+  const fx = use.length ? use.reduce((a, p) => a + p.x, 0) / use.length : W / 2;
+  const fy = use.length ? use.reduce((a, p) => a + (p.y ?? H / 2), 0) / use.length : H / 2;
+  const k = cam.snap ? 1 : 1 - Math.exp(-5 * dt);
+  cam.snap = false;
+  cam.s += (s - cam.s) * k;
+  cam.x += (fx - cam.x) * k;
+  cam.y += (fy - cam.y) * k;
+  const vw = cw / cam.s;
+  const vh = ch / cam.s;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const ox = vw >= W ? (cw - W * cam.s) / 2 : -clamp(cam.x - vw / 2, 0, W - vw) * cam.s;
+  const oy = vh >= H ? (ch - H * cam.s) / 2 : -clamp(cam.y - vh / 2, 0, H - vh) * cam.s;
+  return { ...view, s: cam.s, ox, oy };
+}
 
 function paperFill() {
   g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   g.fillStyle = '#2a1f19';
   g.fillRect(0, 0, view.cw, view.ch);
 }
-function logical() {
+function logical(v = view) {
   paperFill();
-  g.setTransform(view.dpr * view.s, 0, 0, view.dpr * view.s, view.dpr * view.ox, view.dpr * view.oy);
+  g.setTransform(v.dpr * v.s, 0, 0, v.dpr * v.s, v.dpr * v.ox, v.dpr * v.oy);
 }
 // Cover the whole window with an image (title, story pages).
 function cover(img) {
@@ -387,6 +430,7 @@ function begin() {
   S.phase = 'count';
   S.count = 3.2;
   S.paused = false;
+  cam.snap = true;
   audio.playMusic(S.ci % 3 === 2 ? 'tense' : 'play');
   audio.sfx('count');
 }
@@ -791,12 +835,13 @@ function frame(now) {
 function render(dt) {
   const t = S.t;
   if (S.screen === 'play' && S.chapter) {
-    logical();
+    const pv = playView(dt);
+    logical(pv);
     g.save();
     g.beginPath(); g.rect(0, 0, W, H); g.clip();
-    S.chapter.draw(g, t);
-    drawTouchControls();
+    drawChapter(pv, t);
     g.restore();
+    drawTouchControls();
     updateHud();
     return;
   }
@@ -821,8 +866,31 @@ function render(dt) {
   }
 }
 
+// The chapters write their hint lines centred on the 1920-wide frame. When the
+// camera shows only part of it, those lines are moved to the middle of what is
+// on screen and shrunk to fit, so no chapter has to know about the camera.
+function drawChapter(v, t) {
+  const x0 = -v.ox / v.s;
+  const x1 = (v.cw - v.ox) / v.s;
+  if (x1 - x0 >= W - 1) { S.chapter.draw(g, t); return; }
+  const room = x1 - x0 - 60;
+  const fit = (fn) => function (text, x, y, maxW) {
+    if (x !== W / 2 || this.textAlign !== 'center') return fn.call(this, text, x, y, maxW);
+    const k = Math.min(1, room / Math.max(1, this.measureText(text).width));
+    this.save();
+    this.translate((x0 + x1) / 2, y);
+    this.scale(k, k);
+    fn.call(this, text, 0, 0);
+    this.restore();
+  };
+  g.fillText = fit(CanvasRenderingContext2D.prototype.fillText);
+  g.strokeText = fit(CanvasRenderingContext2D.prototype.strokeText);
+  try { S.chapter.draw(g, t); } finally { delete g.fillText; delete g.strokeText; }
+}
+
 function drawTouchControls() {
   if (input.kind !== 'touch') return;
+  g.setTransform(view.dpr * view.ui, 0, 0, view.dpr * view.ui, 0, 0);
   const zones = input.touchZones();
   const sticks = input.touchSticks();
   for (let z = 0; z < zones; z++) {
@@ -866,10 +934,20 @@ function updateHud() {
 
 // ---------- pausing on focus loss and controller loss ----------
 
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { pause('The game paused while you were away.'); audio.suspend(true); } else audio.suspend(false);
-});
-addEventListener('blur', () => pause('The game paused while you were away.'));
+// Hidden or unfocused: pause play and silence every sound; back again: the
+// sound comes back (play stays paused until resumed).
+let blurred = false;
+function syncAway() {
+  const away = document.hidden || blurred;
+  if (away) pause('The game paused while you were away.');
+  audio.suspend(away);
+}
+document.addEventListener('visibilitychange', syncAway);
+addEventListener('blur', () => { blurred = true; syncAway(); });
+addEventListener('focus', () => { blurred = false; syncAway(); });
+addEventListener('pageshow', () => { blurred = false; syncAway(); });
+addEventListener('pagehide', () => { blurred = true; syncAway(); });
+addEventListener('pointerdown', () => { if (blurred && !document.hidden) { blurred = false; syncAway(); } }, true);
 input.onPads(() => {
   if (S.screen !== 'play') return;
   const versus = S.mode.kind === 'versus';

@@ -249,6 +249,7 @@ export default function create(env) {
 
   // ---------- the chapter ----------
   const self = {
+    focus: () => [gx, bomb], // what the camera frames: the snatcher, then the holder
     time: total,
     done: false,
     outcome: null,

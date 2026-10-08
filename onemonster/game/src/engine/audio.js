@@ -7,6 +7,7 @@ let master, musicBus, sfxBus;
 let levels = { volume: 0.8, music: 0.5, sfx: 0.8 };
 let musicTimer = null;
 let currentTune = null;
+let away = false; // the tab is hidden or the window has lost focus: stay silent
 
 export function setLevels(s) {
   levels = { volume: s.volume / 100, music: s.music / 100, sfx: s.sfx / 100 };
@@ -17,7 +18,8 @@ export function setLevels(s) {
 }
 
 export function unlock() {
-  if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+  if (ctx) { if (ctx.state === 'suspended' && !away) ctx.resume(); return; }
+  if (away) return;
   try {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
   } catch { return; }
@@ -31,7 +33,11 @@ export function unlock() {
   if (currentTune) playMusic(currentTune, true);
 }
 
+// Silence everything while the page is away (hidden or unfocused), and carry on
+// where it left off when it is back. The music scheduler reads the context's
+// clock, which stops while suspended, so nothing piles up meanwhile.
 export function suspend(on) {
+  away = on;
   if (!ctx) return;
   if (on) ctx.suspend(); else ctx.resume();
 }

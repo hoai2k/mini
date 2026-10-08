@@ -486,6 +486,7 @@ export default function create(env) {
   }
 
   const self = {
+    focus: () => [G, L], // what the camera frames: the snatcher, then the holder
     get outroTime() { return self.outcome === 'snatched' ? 3.0 : 1.4; },
     time: total,
     done: false,

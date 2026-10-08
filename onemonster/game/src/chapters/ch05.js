@@ -98,6 +98,7 @@ export default function create(env) {
   let lastSlurp = 0;
 
   const self = {
+    focus: () => [p, bottle], // what the camera frames: the snatcher, then the holder
     time: total, done: false, outcome: null,
     full: 0, junk: 0, burps: 0, bonus: 3,
     p, foot, bottle, items, TUNE,

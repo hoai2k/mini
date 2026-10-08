@@ -30,6 +30,7 @@ export function chaseChapter(env, opts) {
   const extras = [];
 
   const self = {
+    focus: () => [sc, hc], // what the camera frames: the snatcher, then the holder
     time: total,
     done: false,
     outcome: null,
