@@ -90,26 +90,32 @@ function openDialog(id) {
   if (!d.open) d.showModal();
 }
 
-const fullscreenSupported = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
 const standalone = () => matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone === true;
+const fullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
 
-// iPhones have no fullscreen for web pages (only for videos); there the
-// button explains Add to Home Screen, which opens the app full screen.
+// Asks for full screen wherever the browser has a way to (including the
+// prefixed one iPhone Safari offers, which doesn't report itself as enabled).
+// Only if nothing happens is Add to Home Screen explained.
 function toggleFullscreen(fromStart = false) {
   const doc = document;
-  if (doc.fullscreenElement || doc.webkitFullscreenElement) {
-    (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(doc);
-    return;
-  }
-  if (!fullscreenSupported()) {
-    if (!fromStart) openDialog('fullscreen-help');
+  if (fullscreenElement()) {
+    try { (doc.exitFullscreen || doc.webkitExitFullscreen)?.call(doc)?.catch?.(() => {}); } catch {}
     return;
   }
   const el = doc.documentElement;
+  let asked = false;
   try {
-    if (el.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
-    else el.webkitRequestFullscreen?.();
+    if (el.requestFullscreen) {
+      el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
+      asked = true;
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+      asked = true;
+    }
   } catch {}
+  if (fromStart) return;
+  if (!asked) return openDialog('fullscreen-help');
+  setTimeout(() => { if (!fullscreenElement()) openDialog('fullscreen-help'); }, 900);
 }
 
 document.addEventListener('click', e => {
@@ -120,9 +126,9 @@ document.addEventListener('click', e => {
 applyIcons();
 // Already running full screen from the home screen: no button needed.
 if (standalone()) document.querySelectorAll('[data-action="fullscreen"]').forEach(b => { b.hidden = true; });
-document.addEventListener('fullscreenchange', () => {
-  document.querySelectorAll('[data-action="fullscreen"]').forEach(b => b.setAttribute('aria-pressed', String(!!document.fullscreenElement)));
-});
+const markFullscreen = () => document.querySelectorAll('[data-action="fullscreen"]').forEach(b => b.setAttribute('aria-pressed', String(!!fullscreenElement())));
+document.addEventListener('fullscreenchange', markFullscreen);
+document.addEventListener('webkitfullscreenchange', markFullscreen);
 
 // --- title screen ----------------------------------------------------------
 
@@ -212,12 +218,12 @@ async function start() {
   addSelfTile();
   layout();
 
-  const devices = await studio.startDevices();
-  if (!devices.camera && !devices.mic) toast('No camera or microphone: you can still chat and play.');
-  else if (!devices.camera) toast('No camera found: friends will see your initial.');
-  else if (!devices.mic) toast('No microphone found.');
   updateDeviceButtons();
   studio.on('face-status', updateFaceStatus);
+  studio.on('device-lost', kind => {
+    updateDeviceButtons();
+    showDeviceProblem({ lost: kind });
+  });
   updateFaceStatus();
 
   net = createNet({ game: 'chat', room: 'everyone', me });
@@ -248,6 +254,9 @@ async function start() {
   rtc.on('state', onCallState);
   rtc.on('info', onCallInfo);
   loadIceServers();
+  // The camera and microphone start alongside joining, so a device that is
+  // slow or busy never holds up the chat.
+  startDevices();
   net.on('peers', onPeers);
   net.on('status', updateStatus);
 
@@ -326,51 +335,77 @@ function makeTile(id, media) {
   el.append(media, label, flags);
   const rec = { id, el, media, label, flags, sig: '', name: '', phase: null };
   tiles.set(id, rec);
+  tileGestures(rec);
   return rec;
 }
 
-// My own tile. Pressing and holding it is the Bubble Blow gesture; with two
-// people it floats in a corner, and dragging it moves it to another corner.
-function addSelfTile() {
-  const rec = makeTile(me.id, studio.canvas);
+// With two people one video fills the screen and the other floats in a
+// corner (normally mine). Tapping the floating one swaps them; dragging it
+// moves it to another corner.
+let swapped = false;
+let pipCorner = 'tr';
+function updatePip() {
+  const two = tiles.size === 2;
+  if (!two) swapped = false;
+  const other = [...tiles.keys()].find(id => id !== me.id);
+  const pipId = two ? (swapped ? other : me.id) : null;
+  for (const rec of tiles.values()) {
+    const pip = rec.id === pipId;
+    rec.el.classList.toggle('pip', pip);
+    if (pip) rec.el.dataset.corner = pipCorner;
+    else delete rec.el.dataset.corner;
+  }
+  $('#stage').classList.toggle('swapped', two && swapped);
+}
+
+// Pressing and holding my own tile is the Bubble Blow gesture, wherever it is.
+function tileGestures(rec) {
   const el = rec.el;
-  el.classList.add('self');
-  el.dataset.corner = 'tr';
-  el.title = 'Hold to blow a bubble (Bubble Blow)';
+  const self = () => rec.id === me.id;
   let drag = null;
   el.addEventListener('pointerdown', e => {
-    if (e.button > 0) return;
+    if (e.button > 0 || e.target.closest('button')) return;
     el.setPointerCapture?.(e.pointerId);
-    drag = { x: e.clientX, y: e.clientY, moved: false, rect: el.getBoundingClientRect() };
-    studio.input.held = true;
+    drag = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, rect: el.getBoundingClientRect() };
+    if (self()) studio.input.held = true;
   });
   el.addEventListener('pointermove', e => {
-    if (!drag || $('#stage').dataset.count !== '2' || games?.current) return;
+    if (!drag || !el.classList.contains('pip') || games?.current) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 10) return;
     if (!drag.moved) {
       drag.moved = true;
-      studio.input.held = false;
+      if (self()) studio.input.held = false;
       el.classList.add('dragging');
     }
     el.style.transform = `translate(${dx}px, ${dy}px)`;
   });
   const up = e => {
     if (!drag) return;
-    studio.input.held = false;
+    if (self()) studio.input.held = false;
     if (drag.moved) {
       // Snap to the corner nearest to where it was dropped.
       const cx = drag.rect.left + drag.rect.width / 2 + (e.clientX - drag.x);
       const cy = drag.rect.top + drag.rect.height / 2 + (e.clientY - drag.y);
-      el.dataset.corner = (cy < innerHeight / 2 ? 't' : 'b') + (cx < innerWidth / 2 ? 'l' : 'r');
+      pipCorner = (cy < innerHeight / 2 ? 't' : 'b') + (cx < innerWidth / 2 ? 'l' : 'r');
+      el.dataset.corner = pipCorner;
       el.style.transform = '';
       el.classList.remove('dragging');
+    } else if (e.type === 'pointerup' && el.classList.contains('pip') && !games?.current && performance.now() - drag.t < 350) {
+      swapped = !swapped;
+      layout();
     }
     drag = null;
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
-  $('#stage').append(el);
+}
+
+function addSelfTile() {
+  const rec = makeTile(me.id, studio.canvas);
+  rec.el.classList.add('self');
+  rec.el.title = 'Hold to blow a bubble (Bubble Blow)';
+  $('#stage').append(rec.el);
   updateTileLabel(rec, { name: `${me.name} (you)`, color: me.color, mic: true, cam: true });
 }
 
@@ -577,6 +612,7 @@ function layout() {
   const n = tiles.size;
   const stage = $('#stage');
   stage.dataset.count = n <= 6 ? String(n) : 'many';
+  updatePip();
   // Tiles touching the top or bottom edge keep their labels clear of the
   // floating bars.
   requestAnimationFrame(() => {
@@ -657,6 +693,7 @@ function renderConnection() {
   table.append(
     row('Chat relay', { connected: 'Connected', connecting: 'Connecting…', reconnecting: 'Reconnecting…', full: 'Full' }[net?.status] || 'Offline'),
     row('Relay server for video (TURN)', rtc?.turn ? 'Available' : 'Not set up (direct connections only)'),
+    row('Video loop', perfText()),
     row('Camera / microphone', `${studio?.hasCamera ? (studio.camOn ? 'on' : 'off') : 'none'} / ${studio?.hasMic ? (studio.micOn ? 'on' : 'off') : 'none'}${studio?.away ? ' (paused: tab in background)' : ''}`),
   );
   body.append(table);
@@ -693,8 +730,18 @@ function renderConnection() {
   }
 }
 
+// Frame rate, time per frame and face tracking, and any freezes so far.
+function perfText() {
+  const p = studio?.perf;
+  if (!p) return '—';
+  let t = `${Math.round(p.fps)} fps · ${p.frameMs.toFixed(0)} ms a frame · face tracking ${p.trackMs.toFixed(0)} ms`;
+  if (p.every > 1) t += ` (every ${p.every} frames)`;
+  t += p.stalls ? ` · ${p.stalls} freeze${p.stalls > 1 ? 's' : ''}, longest ${(p.worst / 1000).toFixed(1)} s with ${p.worstFx} at ${new Date(p.worstAt).toLocaleTimeString()}` : ' · no freezes';
+  return t;
+}
+
 function connectionReport() {
-  const lines = [`Games Chat connection report ${new Date().toISOString()}`, `relay: ${net?.status}`, `turn: ${rtc?.turn}`, `ua: ${navigator.userAgent}`];
+  const lines = [`Games Chat connection report ${new Date().toISOString()}`, `relay: ${net?.status}`, `turn: ${rtc?.turn}`, `video loop: ${perfText()}`, `effect: ${studio?.effect?.id || 'none'}`, `ua: ${navigator.userAgent}`];
   for (const rec of tiles.values()) {
     if (rec.id === me.id) continue;
     lines.push(`${rec.name}: ${JSON.stringify(rtc.info(rec.id))}`);
@@ -704,12 +751,45 @@ function connectionReport() {
 
 // --- controls --------------------------------------------------------------
 
+// --- camera and microphone ---------------------------------------------------
+
+async function startDevices(retry = false) {
+  const r = await studio.startDevices();
+  updateDeviceButtons();
+  rtc?.setStream(studio.stream);
+  if (r.error && (!r.camera || !r.mic)) return showDeviceProblem(r);
+  $('#devices').open && $('#devices').close();
+  if (retry) toast(r.camera && r.mic ? 'Camera and microphone are on' : r.camera ? 'Camera is on' : 'Microphone is on');
+  else if (!r.camera && !r.mic) toast('No camera or microphone: you can still chat and play.');
+  else if (!r.camera) toast('No camera found: friends will see your initial.');
+  else if (!r.mic) toast('No microphone found.');
+}
+
+// Says why the camera or microphone isn't working, with Try again.
+function showDeviceProblem(r) {
+  const which = r.lost ? (r.lost === 'camera' ? 'Your camera' : 'Your microphone')
+    : !r.camera && !r.mic ? 'Your camera and microphone' : !r.camera ? 'Your camera' : 'Your microphone';
+  const n = r.error?.name;
+  let why;
+  if (r.lost) why = `${which} stopped, probably because another app (a phone or video call?) took it over. End that, then tap Try again.`;
+  else if (n === 'NotAllowedError' || n === 'SecurityError') why = `${which} ${which.includes('and') ? 'are' : 'is'} blocked for this site. Allow access in your browser's settings for this site, then tap Try again.`;
+  else if (n === 'NotReadableError' || n === 'AbortError' || n === 'TrackStartError') why = `${which} ${which.includes('and') ? 'are' : 'is'} busy in another app, probably a phone or video call. End that, then tap Try again.`;
+  else if (n === 'Timeout') why = `${which} didn't start. Another app, such as a phone or video call, may be using ${which.includes('and') ? 'them' : 'it'}. End that, then tap Try again.`;
+  else if (n === 'NotFoundError' || n === 'OverconstrainedError') why = `${which} wasn't found on this device.`;
+  else why = `${which} couldn't start${r.error?.message ? `: ${r.error.message}` : '.'}`;
+  $('#devices-msg').textContent = why;
+  $('#devices-title').textContent = r.lost ? `${r.lost === 'camera' ? 'Camera' : 'Microphone'} stopped` : 'Camera and microphone';
+  toast(why);
+  openDialog('devices');
+}
+
 function updateDeviceButtons() {
   const mic = $('#btn-mic'), cam = $('#btn-cam');
   mic.setAttribute('aria-pressed', String(studio.micOn));
   cam.setAttribute('aria-pressed', String(studio.camOn));
-  mic.disabled = !studio.hasMic;
-  cam.disabled = !studio.hasCamera;
+  // Without a device the button stays live: tapping it tries to start it.
+  mic.classList.toggle('missing', !studio.hasMic);
+  cam.classList.toggle('missing', !studio.hasCamera);
   updateTileLabel(tiles.get(me.id), { name: `${me.name} (you)`, color: me.color, mic: studio.micOn, cam: studio.camOn });
   net?.setPresence({ cam: studio.camOn, mic: studio.micOn, away: studio.away });
 }
@@ -723,6 +803,7 @@ function toggleTray(which, force) {
     $(sel).hidden = !open;
     $(`#btn-${k}`).setAttribute('aria-expanded', String(open));
   }
+  if ($('#tray-effects').hidden && effectGrid) setEffectGrid(false);
   if (which === 'effects' && !$('#tray-effects').hidden) {
     centerEffect(studio?.effect?.id ?? '', false);
   } else if (studio?.effect) {
@@ -738,7 +819,15 @@ function toggleTray(which, force) {
 }
 
 function initSheets() {
-  makeSheet($('#tray-effects'), { onDismiss: () => toggleTray(null) });
+  makeSheet($('#tray-effects'), {
+    onDismiss: () => toggleTray(null),
+    scroller: '#effect-list',
+    onExpand: () => setEffectGrid(true),
+    canExpand: () => !effectGrid,
+    collapsible: () => effectGrid,
+    onCollapse: () => setEffectGrid(false),
+  });
+  $('#tray-effects .sheet-grip').addEventListener('click', () => setEffectGrid(!effectGrid));
   makeSheet($('#tray-games'), { onDismiss: () => toggleTray(null), scroller: '.sheet-body' });
   makeSheet($('#chat-box'), { onDismiss: () => toggleTray(null), scroller: '.chat-log' });
 }
@@ -765,11 +854,14 @@ function initControls() {
     }
   });
   setInterval(() => { if ($('#connection').open) renderConnection(); }, 2000);
+  $('#devices-retry').addEventListener('click', () => startDevices(true));
   $('#btn-mic').addEventListener('click', () => {
+    if (!studio.hasMic) return startDevices(true);
     studio.setMic(!studio.micOn);
     updateDeviceButtons();
   });
   $('#btn-cam').addEventListener('click', () => {
+    if (!studio.hasCamera) return startDevices(true);
     studio.setCamera(!studio.camOn);
     updateDeviceButtons();
   });
@@ -804,7 +896,25 @@ function initControls() {
 
 // The effects strip: swipe it sideways and whichever lens stops in the ring
 // is put on, so you can preview each in turn. Tapping a lens scrolls it into
-// the ring.
+// the ring. Dragging the strip up opens every effect as a grid that scrolls
+// up and down (tap one to put it on); pulling the grid down goes back to the
+// strip.
+let effectGrid = false;
+function setEffectGrid(on) {
+  effectGrid = on;
+  const tray = $('#tray-effects');
+  tray.classList.toggle('grid', on);
+  const list = $('#effect-list');
+  if (on) {
+    list.scrollLeft = 0;
+    const sel = list.querySelector('[aria-selected="true"]');
+    list.scrollTop = 0;
+    if (sel) list.scrollTop = Math.max(0, sel.offsetTop - list.clientHeight / 2 + sel.offsetHeight / 2);
+  } else {
+    list.scrollTop = 0;
+    centerEffect(studio?.effect?.id ?? '', false);
+  }
+}
 async function initEffects() {
   effects = await loadEffects();
   const list = $('#effect-list');
@@ -827,12 +937,20 @@ async function initEffects() {
     } else {
       b.textContent = fx.emoji;
     }
-    b.addEventListener('click', () => centerEffect(b.dataset.fx, true));
-    b.addEventListener('focus', () => centerEffect(b.dataset.fx, true));
+    const label = document.createElement('span');
+    label.className = 'fx-label';
+    label.textContent = fx.name;
+    b.append(label);
+    b.addEventListener('click', () => {
+      if (effectGrid) selectEffect(effects.find(e => e.id === b.dataset.fx) || null);
+      else centerEffect(b.dataset.fx, true);
+    });
+    b.addEventListener('focus', () => { if (!effectGrid) centerEffect(b.dataset.fx, true); });
     list.append(b);
   }
   let settle = 0;
   list.addEventListener('scroll', () => {
+    if (effectGrid) return;
     clearTimeout(settle);
     settle = setTimeout(pickCenteredEffect, 110);
   }, { passive: true });
@@ -843,7 +961,10 @@ async function initEffects() {
     const items = [...list.children];
     const i = items.findIndex(b => b.getAttribute('aria-selected') === 'true');
     const next = items[Math.max(0, Math.min(items.length - 1, i + (e.key === 'ArrowLeft' ? -1 : 1)))];
-    centerEffect(next.dataset.fx, true);
+    if (effectGrid) {
+      selectEffect(effects.find(fx => fx.id === next.dataset.fx) || null);
+      next.scrollIntoView({ block: 'nearest' });
+    } else centerEffect(next.dataset.fx, true);
   });
   updateFaceStatus();
 }
@@ -860,6 +981,7 @@ function centerEffect(id, smooth) {
 }
 
 function pickCenteredEffect() {
+  if (effectGrid) return;
   const list = $('#effect-list');
   const mid = list.getBoundingClientRect().left + list.clientWidth / 2;
   let best = null, bestD = Infinity;
@@ -874,15 +996,31 @@ function pickCenteredEffect() {
   selectEffect(effects.find(e => e.id === id) || null);
 }
 
+// iPhones only hand out the motion sensor from a tap (Safari counts touchend
+// and click as taps, not pointerup), and say so if it was refused.
+let motionAsk = null;
+function askForMotion() {
+  const st = studio.motionStatus;
+  if (st === 'off') return toast('Motion access was refused: turn your head to look around, or reload to ask again');
+  if (st !== 'needs-permission' || motionAsk) return;
+  toast('Tap the screen, then turn around with your phone to look around');
+  motionAsk = async () => {
+    removeEventListener('touchend', motionAsk, true);
+    removeEventListener('click', motionAsk, true);
+    motionAsk = null;
+    const got = await studio.requestMotion();
+    if (got === 'off') toast('Motion access was refused: turn your head to look around instead');
+  };
+  addEventListener('touchend', motionAsk, true);
+  addEventListener('click', motionAsk, true);
+}
+
 let hintTimer = 0;
 function selectEffect(fx) {
   studio.setEffect(fx);
   // 360 worlds look around with the phone's motion sensor; iPhones only
   // allow it after a tap, so ask on the next one.
-  if (fx?.needs?.orientation && studio.motionStatus === 'needs-permission') {
-    toast('Tap the screen, then tilt your phone to look around');
-    addEventListener('pointerup', () => studio.requestMotion(), { once: true });
-  }
+  if (fx?.needs?.orientation) askForMotion();
   net.setPresence({ fx: fx?.id ?? null });
   document.querySelectorAll('.fx-item').forEach(b => b.setAttribute('aria-selected', String(b.dataset.fx === (fx?.id ?? ''))));
   sfx('click');

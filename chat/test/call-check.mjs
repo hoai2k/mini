@@ -68,6 +68,20 @@ try {
   check(await until(b, videoUp), 'Bo receives Ana’s video');
   check(await b.evaluate(() => document.querySelector('#stage').dataset.count === '2'), 'two-person layout');
 
+  // Tapping the small video swaps it with the big one, and back.
+  const pipOf = () => a.evaluate(() => {
+    const pip = document.querySelector('#stage .tile.pip');
+    return pip ? (pip.classList.contains('self') ? 'me' : 'friend') : null;
+  });
+  const before = await pipOf();
+  await a.click('#stage .tile.pip');
+  await a.waitForTimeout(300);
+  const swapped = await pipOf();
+  await a.screenshot({ path: `${outDir}call-ana-swapped.png` });
+  await a.click('#stage .tile.pip');
+  await a.waitForTimeout(300);
+  check(before === 'me' && swapped === 'friend' && (await pipOf()) === 'me', `tapping the small video swaps it with the big one and back (${before} → ${swapped})`);
+
   // Bubble Blow, driven by the "hold" fallback since the fake camera has no face.
   await a.evaluate(() => window.__chat.selectEffect('bubble'));
   await a.evaluate(() => { window.__chat.studio.input.held = true; });
