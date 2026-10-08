@@ -1126,6 +1126,11 @@ export const SPRITES = {
    "w": 1920,
    "h": 1080
   },
+  "scenes/trollusk-front": {
+   "src": "sprites/scenes/trollusk-front.webp",
+   "w": 1920,
+   "h": 1080
+  },
   "scenes/bombanat": {
    "src": "sprites/scenes/bombanat.webp",
    "w": 1920,

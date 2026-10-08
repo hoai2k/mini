@@ -48,7 +48,9 @@ const SPOT_PENALTY = 2; // seconds
 // to a stop afterwards, and any lookout ready in the ring he lands in turns to
 // look, so it saves him from a warning but not from a look. Land in a bush.
 export const DASH = { speed: 1150, time: 0.2, skid: 0.3, cooldown: 1.6, alert: 0.12 };
-const MAIL_ROAD = { x0: -140, x1: 1665, y: 512 };
+// The mailman's road runs just behind the picket fence and behind both trees:
+// the scene's foreground (scenes/trollusk-front) is drawn over him. He stops at the mailbox.
+const MAIL_ROAD = { x0: -140, x1: 1745, y: 615 };
 
 // The ring a lookout watches: one ellipse, used both to draw it and to judge
 // whether his feet are inside it, so what you see is what they see.
@@ -385,8 +387,10 @@ export default function create(env) {
     },
     draw(g, tt) {
       art.drawScene(g, 'scenes/trollusk', W, H);
-      drawHouse(g);
       drawMailman(g, tt);
+      const front = art.image('scenes/trollusk-front');
+      if (front) g.drawImage(front, 0, 0, W, H);
+      drawHouse(g);
       drawZones(g, tt);
       // The mailbox: painted in the scene; open with the flag up once robbed.
       if (self.outcome === 'snatched') {
