@@ -78,6 +78,9 @@ const BACKGROUNDS = [
   'purple',
 ];
 const clamp = (n: number, a = 0, b = 1) => Math.max(a, Math.min(b, n));
+/** World units across a portrait screen: Hopper about 1.7x the size the
+ * landscape fit would give him there, with a jump's reach still in view. */
+const PORTRAIT_SPAN = 660;
 const smooth = (n: number) => {
   n = clamp(n);
   return n * n * (3 - 2 * n);
@@ -195,7 +198,14 @@ export class Renderer {
     this.resize();
     const c = this.ctx,
       zoom = clamp(s.camera.zoom, 0.2, 3),
-      scale = Math.min(this.height / 900, this.width / 1100) * zoom;
+      scale =
+        Math.min(
+          this.height / 900,
+          // A portrait phone cannot fit the 1100-unit landscape width at a
+          // scale anything can be read at; it shows a narrower stretch at a
+          // playable size and the camera follows along it.
+          this.width / (this.width < this.height ? PORTRAIT_SPAN : 1100),
+        ) * zoom;
     this.viewport.width = this.width / scale;
     this.viewport.height = this.height / scale;
     this.bounds = {

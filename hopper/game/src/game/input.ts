@@ -62,6 +62,9 @@ export class InputManager {
   private canvas?: HTMLElement;
   private mouseDX = 0;
   private mouseDY = 0;
+  /** On-screen touch stick, -1..1 on each axis. */
+  private touchX = 0;
+  private touchY = 0;
   private readonly preventKeys = new Set([
     'ArrowLeft',
     'ArrowRight',
@@ -114,7 +117,9 @@ export class InputManager {
     this.blockedKeys.delete(event.code);
   };
   private onPointerDown = (event: PointerEvent) => {
-    if (event.button !== 0) return;
+    // A finger on the picture is not the mouse trigger: touch play has its
+    // own on-screen buttons, and the 3D camera is dragged with a finger.
+    if (event.button !== 0 || event.pointerType === 'touch') return;
     this.mouseHeld = true;
     this.mousePressed = true;
     this.modality = 'keyboard';
@@ -124,6 +129,8 @@ export class InputManager {
     this.mouseBlocked = false;
   };
   private onBlur = () => {
+    this.touchX = 0;
+    this.touchY = 0;
     this.keys.clear();
     this.newKeys.clear();
     this.blockedKeys.clear();
@@ -142,6 +149,32 @@ export class InputManager {
       this.mouseDY += event.movementY || 0;
     }
   };
+
+  /**
+   * On-screen touch controls. A touch button presses the keyboard key it
+   * stands for, so every action reaches the engines exactly as the keyboard
+   * does; the stick is analog like a controller's, and dragging the picture
+   * turns the 3D camera like the mouse does.
+   */
+  touchKey(code: string, down: boolean): void {
+    if (!this.gameKeys.has(code)) return;
+    if (down) {
+      if (!this.keys.has(code)) this.newKeys.add(code);
+      this.keys.add(code);
+      this.modality = 'keyboard';
+    } else {
+      this.keys.delete(code);
+      this.blockedKeys.delete(code);
+    }
+  }
+  touchStick(x: number, y: number): void {
+    this.touchX = Math.max(-1, Math.min(1, x));
+    this.touchY = Math.max(-1, Math.min(1, y));
+  }
+  touchLook(dx: number, dy: number): void {
+    this.mouseDX += dx;
+    this.mouseDY += dy;
+  }
 
   constructor(canvas?: HTMLElement) {
     this.canvas = canvas;
@@ -309,8 +342,8 @@ export class InputManager {
     const flat = this.layout === '2d';
     const keyboardY =
       Number(held('KeyS', 'ArrowDown')) - Number(held(...(flat ? ['ArrowUp'] : ['KeyW', 'ArrowUp'])));
-    const moveX = keyboardX || padX,
-      moveY = keyboardY || padY;
+    const moveX = keyboardX || this.touchX || padX,
+      moveY = keyboardY || this.touchY || padY;
     const frame: InputFrame = {
       moveX,
       moveY,

@@ -1176,9 +1176,25 @@ button:focus-visible,
   .corner-controls {
     bottom: 5%;
   }
+  /* Both editions' buttons share one row, so the pair never runs down into
+     the footer on a short landscape screen. */
+  .start-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+  .start-row .start-button {
+    height: 48px !important;
+    padding: 0 8px;
+    font-size: 17px !important;
+    letter-spacing: 2px !important;
+    gap: 10px !important;
+  }
+  /* Clear the corner controls at the foot, scrolling what does not fit. */
   .select-layout {
-    inset: 8% 5% 12%;
+    inset: 8% 5% calc(5% + 62px);
     gap: 30px;
+    overflow-y: auto;
   }
   .select-logo {
     display: none;
@@ -1427,4 +1443,238 @@ dialog.menu-panel {
   margin: 0;
   color: inherit;
   max-width: none;
+}
+/* Phones and tablets. A finger never scrolls, zooms or selects the game, and
+   nothing sits under a notch or the home indicator. */
+html,
+body {
+  overscroll-behavior: none;
+}
+.game-shell {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.game-shell canvas {
+  touch-action: none;
+}
+.touch-controls {
+  display: none;
+}
+@media (hover: none) and (pointer: coarse) {
+  .hud {
+    top: max(13px, env(safe-area-inset-top));
+    left: max(15px, env(safe-area-inset-left));
+    right: max(15px, env(safe-area-inset-right));
+  }
+  .hud-right button,
+  .corner-controls button {
+    width: 46px;
+    height: 46px;
+  }
+  .menu-list button {
+    min-height: 44px;
+  }
+  .stand-in-tag {
+    top: calc(max(13px, env(safe-area-inset-top)) + 54px);
+    right: max(15px, env(safe-area-inset-right));
+  }
+  .corner-controls {
+    right: max(4%, env(safe-area-inset-right));
+    bottom: max(5%, env(safe-area-inset-bottom));
+  }
+  .title-content {
+    left: max(3%, env(safe-area-inset-left));
+  }
+  .select-layout {
+    left: max(5%, env(safe-area-inset-left));
+    right: max(5%, env(safe-area-inset-right));
+  }
+  /* The pad and keyboard legends describe hardware a phone has not got; the
+     touch buttons carry the same A / X / RT names. */
+  .select-diagram,
+  .control-key-keyboard,
+  .game-bottom-row {
+    display: none;
+  }
+  /* The foot of the screen belongs to the touch controls, so the location,
+     hints and target readouts sit under the top HUD instead. */
+  .game-bottom {
+    left: max(15px, env(safe-area-inset-left));
+    right: max(15px, env(safe-area-inset-right));
+    top: calc(max(13px, env(safe-area-inset-top)) + 104px);
+    bottom: auto;
+  }
+  .touch-controls {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .touch-move,
+  .touch-look {
+    position: absolute;
+    bottom: 0;
+    top: 26%;
+    pointer-events: auto;
+    touch-action: none;
+  }
+  .touch-move {
+    left: 0;
+    width: 46%;
+  }
+  .touch-look {
+    right: 0;
+    width: 54%;
+  }
+  .touch-stick-hint {
+    position: absolute;
+    left: max(28px, env(safe-area-inset-left));
+    bottom: max(30px, env(safe-area-inset-bottom));
+    padding: 12px 18px;
+    border: 1px dashed #f5edcb55;
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #f6edccaa;
+    background: #17352c40;
+  }
+  .touch-stick {
+    position: absolute;
+    width: 128px;
+    height: 128px;
+    margin: -64px 0 0 -64px;
+    border-radius: 50%;
+    border: 2px solid #f5edcb66;
+    background: #17352c55;
+  }
+  .touch-stick i {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    border-radius: 50%;
+    background: #f6edcccc;
+    box-shadow: 0 2px 8px #0008;
+  }
+  .touch-buttons {
+    position: absolute;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    display: grid;
+    gap: 10px;
+    align-items: center;
+    justify-items: center;
+  }
+  .touch-2d .touch-buttons {
+    grid-template-areas:
+      '. rt'
+      'kick jump';
+  }
+  .touch-3d .touch-buttons {
+    grid-template-areas:
+      'lt rt rb'
+      'ls dive lb'
+      '. kick jump';
+    gap: 8px;
+  }
+  .touch-controls .touch-key {
+    pointer-events: auto;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid #f5edcb70;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    color: #162721;
+    opacity: 0.82;
+    box-shadow: 0 3px 10px #0007;
+  }
+  .touch-controls .touch-key small {
+    font-size: 7px;
+    font-weight: normal;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+  .touch-controls .touch-key:active {
+    opacity: 1;
+    transform: scale(0.94);
+  }
+  .touch-controls .touch-key.trigger {
+    border-radius: 16px;
+    background: #17352cb0;
+    color: var(--foreground);
+  }
+  .touch-controls .touch-key.jump {
+    grid-area: jump;
+    width: 76px;
+    height: 76px;
+    font-size: 24px;
+  }
+  .touch-key.kick {
+    grid-area: kick;
+  }
+  .touch-key.rt {
+    grid-area: rt;
+  }
+  .touch-key.lt {
+    grid-area: lt;
+  }
+  .touch-key.rb {
+    grid-area: rb;
+  }
+  .touch-key.ls {
+    grid-area: ls;
+  }
+  .touch-key.dive {
+    grid-area: dive;
+  }
+  .touch-key.lb {
+    grid-area: lb;
+  }
+  .touch-3d .touch-buttons .touch-key {
+    width: 52px;
+    height: 52px;
+    font-size: 15px;
+  }
+  .touch-3d .touch-buttons .touch-key.jump {
+    width: 64px;
+    height: 64px;
+  }
+}
+/* Short landscape phones: the location card would sit over the play, so it
+   goes; the area banner still names each chapter as it begins. */
+@media (hover: none) and (pointer: coarse) and (max-height: 600px) {
+  .game-bottom {
+    top: calc(max(13px, env(safe-area-inset-top)) + 72px);
+  }
+  .game-bottom .location {
+    display: none;
+  }
+  .select-screen .edition {
+    display: none;
+  }
+  .touch-3d .touch-buttons .touch-key {
+    width: 46px;
+    height: 46px;
+  }
+  .touch-3d .touch-buttons .touch-key.jump {
+    width: 58px;
+    height: 58px;
+  }
+  .touch-3d .touch-buttons {
+    gap: 6px;
+  }
 }

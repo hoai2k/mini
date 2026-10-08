@@ -968,8 +968,15 @@ export class Scene3D {
     for (const d of this.delivered) d.mixer?.update(dt);
     this.camera.position.set(cam.eye[0], cam.eye[1], cam.eye[2]);
     this.camera.lookAt(new Vector3(cam.target[0], cam.target[1], cam.target[2]));
-    if (Math.abs(this.camera.fov - cam.fov) > 0.05) {
-      this.camera.fov = cam.fov;
+    // The camera's fov is vertical, so a portrait screen would see a narrow
+    // slot of the world; open it up there (up to 1.5x the tangent) so the
+    // way ahead stays in view.
+    const fov =
+      this.camera.aspect < 1
+        ? (Math.atan(Math.tan((cam.fov * Math.PI) / 360) * Math.min(1.5, 1 / this.camera.aspect)) * 360) / Math.PI
+        : cam.fov;
+    if (Math.abs(this.camera.fov - fov) > 0.05) {
+      this.camera.fov = fov;
       this.camera.updateProjectionMatrix();
     }
     this.sun.position.set(cam.target[0] + 190, cam.target[1] + 760, cam.target[2] + 980);
