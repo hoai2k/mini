@@ -59,6 +59,9 @@ pixel-identical edits of the composition. Review transitions and visual fit in
 play. Fabric swatch seams may remain visible. Testing with real controllers and
 other browsers is outstanding. No image requests remain outstanding.
 
-Git emits non-monotonic-index errors for AppleDouble ._pack-*.idx metadata
-sidecars on this volume. Read and verification commands succeeded despite
-these messages; no real pack/index files were removed during recovery.
+During recovery, Git emitted non-monotonic-index errors for six AppleDouble
+._pack-*.idx metadata sidecars on this volume. Their AppleDouble signatures
+were verified, and they were moved to /private/tmp/fibre-git-appledouble-backup.
+Git status and history then ran without these errors. No real pack/index files
+were removed. The asset checkpoint commit is 4b4ec9d; it reached origin/main
+through merge commit 1c11c09, preserving incoming Gliders and multiplayer work.
