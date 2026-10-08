@@ -1206,5 +1206,22 @@
     "aspect": 1.0263
    }
   ]
- }
+ },
+ "drift": [
+  {
+   "file": "tableaux/man-and-woman/07.webp",
+   "aspect": 0.8702,
+   "standin": true
+  },
+  {
+   "file": "tableaux/black-tree/03.webp",
+   "aspect": 1.1636,
+   "standin": true
+  },
+  {
+   "file": "tableaux/black-tree/04.webp",
+   "aspect": 1.2372,
+   "standin": true
+  }
+ ]
 }

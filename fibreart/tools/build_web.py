@@ -403,6 +403,59 @@ def build_sheet(path: Path, names: list[str], folder: str, write: bool, rows_fir
     return out
 
 
+# Life: loose leaves for the gusts, and swaps for blinks and a bird's wings.
+# Until a sheet is delivered, the leaves are single leaves from the scenes and
+# there are no swaps (the game breathes and tilts the faces instead).
+DRIFT_STANDIN = ["tableaux/man-and-woman/07.webp", "tableaux/black-tree/03.webp", "tableaux/black-tree/04.webp"]
+# sheet, columns, rows, scene, piece numbers (1-based), field
+SWAPS = [
+    ("blink-golden-lady.png", 1, 1, "golden-lady", [1], "blink"),
+    ("blink-crowd.png", 4, 1, "crowd", [1, 4, 5, 8], "blink"),
+    ("blink-black-tree.png", 2, 1, "black-tree", [5, 7], "blink"),
+    ("bird-viriditas.png", 3, 1, "viriditas", [11, 11, 11], "poses"),
+]
+
+
+def cut_grid(path: Path, cols: int, rows: int, folder: str, write: bool) -> list[dict]:
+    im = Image.open(path).convert("RGBA")
+    out = []
+    for r in range(rows):
+        for c in range(cols):
+            cell = im.crop((round(c * im.width / cols), round(r * im.height / rows), round((c + 1) * im.width / cols), round((r + 1) * im.height / rows)))
+            bbox = cell.getchannel("A").point(lambda v: 255 if v > 32 else 0).getbbox()
+            if not bbox:
+                continue
+            cell = cell.crop(bbox)
+            name = f"{folder}-{len(out) + 1}.webp"
+            if write:
+                save_webp(fit(cell, PIECE_MAX), OUT / name, 84)
+            out.append({"file": name, "aspect": round(cell.height / cell.width, 4)})
+    return out
+
+
+def build_life(scenes: list[dict], write: bool) -> list[dict]:
+    if (SRC / "anim" / "drift.png").exists():
+        drift = cut_grid(SRC / "anim" / "drift.png", 6, 2, "anim/drift", write)
+    else:
+        drift = []
+        for f in DRIFT_STANDIN:
+            im = Image.open(OUT / f) if (OUT / f).exists() else None
+            drift.append({"file": f, "aspect": round(im.height / im.width, 4) if im else 1.0, "standin": True})
+    by_key = {s["key"]: s for s in scenes}
+    for sheet, cols, rows, key, numbers, field in SWAPS:
+        path = SRC / "anim" / sheet
+        if not path.exists():
+            continue
+        cells = cut_grid(path, cols, rows, f"anim/{path.stem}", write)
+        for n, cell in zip(numbers, cells):
+            piece = by_key[key]["pieces"][n - 1]
+            if field == "blink":
+                piece["blink"] = cell["file"]
+            else:
+                piece.setdefault("poses", []).append(cell["file"])
+    return drift
+
+
 def build_ui(write: bool) -> dict:
     ui = {"logo": "ui/logo.webp", "lines": []}
     if write:
@@ -439,6 +492,7 @@ def main() -> int:
         "masks": [f"masks/{m}.webp" for m in MASKS],
         "ui": build_ui(write) if write else json.loads((OUT / "scenes.json").read_text())["ui"],
     }
+    data["drift"] = build_life(scenes, write)
     if write:
         for t in TEXTURES:
             save_webp(Image.open(SRC / "textures" / f"{t}.webp").convert("RGB").resize((512, 512), Image.LANCZOS), OUT / "textures" / f"{t}.webp", 80)

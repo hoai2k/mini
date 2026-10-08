@@ -8,6 +8,7 @@ import { createRenderer } from './render.js';
 import { createOverlay } from './overlay.js';
 import { createInput, BTN, KEYMAP } from './input.js';
 import { createAudio } from './audio.js';
+import { updateLife } from './life.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -371,6 +372,7 @@ function frame(now) {
   if (ui.screen === 'title' && !ui.modals.length) {
     // The first picture turns slowly behind the title.
     step(game, dt, new Map());
+    updateLife(game, dt, settings.reduceMotion ? 0.3 : 1);
     const sun = game.pieces[0];
     game.field.swirls = [{ owner: 'title', x: sun.x, y: sun.y, r: 9, a: 0.22 * Math.sin(game.time * 0.32), va: 0 }];
     game.field.ripple = settings.reduceMotion ? 0 : 0.25;
@@ -387,6 +389,7 @@ function frame(now) {
       p.vy = (ui.drag.y - ui.drag.oy - p.y) * 10;
     }
     step(game, dt, inputs);
+    updateLife(game, dt, settings.reduceMotion ? 0.3 : 1);
     feedback(inputs);
   }
   for (const e of game.events) overlay.event(e, game);
@@ -421,7 +424,7 @@ function feedback(inputs) {
       for (const pl of game.players) vibrate(pl.id, 0.9, 500);
       caption();
       chipsDirty = true;
-      renderer.loadScene(game.scenes[(game.index + 1) % game.scenes.length], data.chains);
+      renderer.loadScene(game.scenes[(game.index + 1) % game.scenes.length], data.chains, data.drift);
     }
   }
   // Button presses pluck a note; bigger bindings, lower notes.
@@ -593,9 +596,10 @@ async function boot() {
     const first = new URLSearchParams(location.search).get('scene');
     const at = Math.max(0, data.scenes.findIndex((s) => s.key === first));
     game = createGame(data.scenes, { chains: data.chains, seed, scene: at });
+    game.driftFiles = data.drift || [];
     applySettings();
-    await renderer.loadScene(game.scene, data.chains);
-    renderer.loadScene(data.scenes[(game.index + 1) % data.scenes.length], data.chains);
+    await renderer.loadScene(game.scene, data.chains, data.drift);
+    renderer.loadScene(data.scenes[(game.index + 1) % data.scenes.length], data.chains, data.drift);
   } catch (err) {
     console.error(err);
     $('.loading-text').textContent = 'This browser cannot show the collage: it needs WebGL 2.';

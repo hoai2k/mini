@@ -1,9 +1,10 @@
 // WebGL2 drawing of the collage: the ground's panels, the pieces as bendable
 // meshes, one shared field (swirls, tide, ripple) that moves them all like one
-// cloth, mask dissolves for morphs, scene changes, pours and unravelling, and
-// the finished composition showing through when everything is still.
+// cloth, mask dissolves for morphs, scene changes, pours and unravelling, the
+// small life of every piece (life.js), and leaves blown across on a gust.
 
 import { W, H } from './collage.js';
+import { life, groundRipple } from './life.js';
 
 const VS = `#version 300 es
 precision highp float;
@@ -15,6 +16,8 @@ uniform float uFlip;
 uniform float uBloom;
 uniform float uSeed;
 uniform float uTime;
+uniform float uSway;  // wind: sideways bend at the top, anchored at the base
+uniform vec3 uWave;   // amplitude, cycles along the piece, speed
 uniform vec4 uSwirl[4];
 uniform int uSwirls;
 uniform float uTide;
@@ -28,6 +31,9 @@ void main() {
   // Cloth wobble: stronger toward the edges, so a blooming piece ruffles.
   float edge = length(aUV - 0.5) * 2.0;
   p += uBloom * 0.05 * uSize * edge * vec2(sin(aUV.y * 9.0 + uTime * 2.3 + uSeed), cos(aUV.x * 8.0 + uTime * 1.9 + uSeed));
+  float up = 1.0 - aUV.y;
+  p.x += uSway * up * up;
+  p.y += uWave.x * sin(aUV.x * uWave.y * 6.2832 - uTime * uWave.z + uSeed) * (0.35 + 0.65 * abs(aUV.x - 0.5) * 2.0);
   p.x *= uFlip;
   float c = cos(uRot), s = sin(uRot);
   vec2 w = uCenter + vec2(c * p.x - s * p.y, s * p.x + c * p.y);
@@ -241,8 +247,9 @@ export function createRenderer(canvas, base = 'web/') {
     ...Object.values(BACKING).map((t) => load(`textures/${t}.webp`, true)),
   ]);
 
-  function loadScene(scene, chains) {
-    const files = [scene.ground, scene.composition, ...scene.pieces.map((p) => p.file)];
+  function loadScene(scene, chains, drift = []) {
+    const files = [scene.ground, scene.composition, ...scene.pieces.map((p) => p.file), ...drift.map((d) => d.file)];
+    for (const p of scene.pieces) files.push(...(p.blink ? [p.blink] : []), ...(p.poses || []));
     for (const p of scene.pieces) if (p.chain && chains[p.chain]) for (const s of chains[p.chain]) files.push(s.file);
     return Promise.all([shared, ...files.map((f) => load(f))]);
   }
@@ -277,7 +284,7 @@ export function createRenderer(canvas, base = 'web/') {
     gl.uniform4fv(u.uSwirl, sw);
     gl.uniform1i(u.uSwirls, list.length);
     gl.uniform1f(u.uTide, field ? field.tide : 0);
-    gl.uniform1f(u.uRipple, field ? field.ripple : 0);
+    gl.uniform1f(u.uRipple, field ? field.ripple + (field.lifeRipple || 0) : 0);
   }
 
   function bind(unit, t, loc) {
@@ -300,6 +307,8 @@ export function createRenderer(canvas, base = 'web/') {
     gl.uniform1f(u.uHasFrom, o.from ? 1 : 0);
     gl.uniform1f(u.uBackMix, o.backMix || 0);
     gl.uniform1f(u.uTint, o.tint || 0);
+    gl.uniform1f(u.uSway, o.sway || 0);
+    gl.uniform3fv(u.uWave, o.wave || [0, 1, 1]);
     bind(0, o.tex, u.uTex);
     bind(1, o.from || blank, u.uFrom);
     gl.drawElements(gl.TRIANGLES, count, gl.UNSIGNED_SHORT, 0);
@@ -341,17 +350,30 @@ export function createRenderer(canvas, base = 'web/') {
         uv: [(pn.c - ox / 2) / 3, (pn.r - ox / 2) / 2, (1 + ox) / 3, (1 + ox) / 2], seed: pn.i,
       });
     }
+    const motion = game.reduceMotion ? 0.3 : 1;
     for (const p of [...pieces].sort((a, b) => (DEPTH[a.kind] || 0) - (DEPTH[b.kind] || 0))) {
-      const t = tex(stageFile(game.chains, p, p.stage));
+      const L = opts.still ? null : life(game, p, motion);
+      let file = stageFile(game.chains, p, p.stage);
+      if (L && L.swap >= 0 && p.stage < 0) file = p.blink || p.poses?.[L.swap] || file;
+      const t = tex(file);
       const from = p.morph < 1 ? tex(p.fromFile || stageFile(game.chains, p, p.fromStage)) : null;
       const sw = p.stage >= 0 ? Math.max(p.w, p.h) : p.w;
       const stage = p.stage >= 0 ? game.chains[p.chain]?.[p.stage] : null;
       const w = stage ? sw * 0.9 : p.w;
       const h = stage ? w * stage.aspect : p.h;
       drawQuad({
-        x: p.x, y: p.y, w: w * p.sx * (1 + p.bloom * 0.35), h: h * p.sy * (1 + p.bloom * 0.35), rot: p.rot, flip: p.flip,
-        bloom: p.bloom, seed: p.i * 1.7, alpha: p.alpha, tex: t, from, morph: p.morph, tint: 0,
+        x: p.x + (L?.dx || 0), y: p.y + (L?.dy || 0), w: w * p.sx * (L?.sx ?? 1) * (1 + p.bloom * 0.35), h: h * p.sy * (L?.sy ?? 1) * (1 + p.bloom * 0.35),
+        rot: p.rot + (L?.drot || 0), flip: p.flip, bloom: p.bloom, seed: p.i * 1.7, alpha: p.alpha, tex: t, from, morph: p.morph, tint: 0,
+        sway: L?.sway || 0, wave: L?.wave,
       });
+    }
+    // Loose leaves on the wind.
+    if (opts.drift && opts.drift.length && game.driftFiles?.length) {
+      for (const d of opts.drift) {
+        const f = game.driftFiles[d.tex % game.driftFiles.length];
+        const fade = Math.min(1, d.age * 2, (14 - d.age) / 2);
+        drawQuad({ x: d.x, y: d.y, w: d.size, h: d.size * (f.aspect || 1), rot: d.rot, flip: d.flip, tex: tex(f.file), alpha: fade, seed: d.seed });
+      }
     }
   }
 
@@ -376,20 +398,13 @@ export function createRenderer(canvas, base = 'web/') {
     const f = game.field;
     const tr = game.transition;
     const nextPour = game.scenes[(game.index + 1) % game.scenes.length].wash;
-    drawScene(game, game.scene, game.pieces, game.panels, f, { pour: f.pour, unravel: f.unravel, pourColour: nextPour, mask: 3 });
+    f.lifeRipple = groundRipple(game, game.reduceMotion ? 0.3 : 1);
+    drawScene(game, game.scene, game.pieces, game.panels, f, { pour: f.pour, unravel: f.unravel, pourColour: nextPour, mask: 3, drift: game.drift });
     if (tr) {
       const ease = tr.t * tr.t * (3 - 2 * tr.t);
       drawScene(game, tr.from.scene, tr.from.pieces.filter((p) => !game.travellers.some((t) => t.from === p)), tr.from.panels, tr.from.field, {
-        dissolve: ease, dissolveX: tr.x, dissolveY: tr.y, mask: tr.mask,
+        dissolve: ease, dissolveX: tr.x, dissolveY: tr.y, mask: tr.mask, still: true,
       });
-    }
-    // The finished picture shows through when everything is home and still.
-    if (game.settled > 0.01) {
-      setCommon(null, game.time);
-      gl.uniform1f(prog.u.uPour, 0);
-      gl.uniform1f(prog.u.uUnravel, 0);
-      gl.uniform1f(prog.u.uDissolve, 0);
-      drawQuad({ x: W / 2, y: H / 2, w: W, h: H, tex: tex(game.scene.composition), alpha: game.settled * 0.92 });
     }
   }
 
