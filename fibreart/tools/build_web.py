@@ -158,7 +158,7 @@ SCENES = {
             (0.25, 0.24, 0.375, "figure"),
             (0.575, 0.27, 0.235, "figure"),
             (0.275, 0.685, 0.405, "figure"),
-            (0.575, 0.27, 0.235, "figure"),
+            (0.625, 0.70, 0.105, "figure"),  # the reaching dancer, inside the quilted window
             (0.347, 0.11, 0.099, "sun"),
             (0.826, 0.46, 0.228, "tree"),
             (0.625, 0.705, 0.24, "panel"),
@@ -449,16 +449,57 @@ SWAPS = [
 ]
 
 
-def cut_grid(path: Path, cols: int, rows: int, folder: str, write: bool) -> list[dict]:
+def main_shape(cell: Image.Image) -> Image.Image:
+    """Keep the cell's largest shape (with the frays near it); drop slivers of neighbours."""
+    alpha = np.array(cell.getchannel("A")) > 32
+    labels, n = ndimage.label(ndimage.binary_dilation(alpha, iterations=6))
+    if n > 1:
+        sizes = ndimage.sum(alpha, labels, range(1, n + 1))
+        keep = labels == 1 + int(np.argmax(sizes))
+        arr = np.array(cell)
+        arr[:, :, 3] = np.where(keep, arr[:, :, 3], 0)
+        cell = Image.fromarray(arr)
+    return cell
+
+
+def align(orig: Image.Image, swap: Image.Image) -> Image.Image:
+    """Fit a swap (a blink, a wing pose) onto its original piece: the scale and
+    offset that best overlap their silhouettes, on a canvas the original's size,
+    so the game can draw it in the original's place without a jump."""
+    from scipy.signal import fftconvolve
+    small = 160 / max(orig.size)
+    oa = np.array(orig.getchannel("A").resize((max(1, round(orig.width * small)), max(1, round(orig.height * small))))) / 255.0
+    base = orig.width / swap.width
+    best = None
+    for k in np.linspace(0.82, 1.22, 21):
+        sw = max(1, round(swap.width * base * k * small))
+        sh = max(1, round(swap.height * base * k * small))
+        sa = np.array(swap.getchannel("A").resize((sw, sh))) / 255.0
+        overlap = fftconvolve(oa, sa[::-1, ::-1], mode="full")
+        i, j = np.unravel_index(int(np.argmax(overlap)), overlap.shape)
+        dice = 2 * overlap[i, j] / (oa.sum() + sa.sum())
+        if best is None or dice > best[0]:
+            best = (dice, k, (j - (sw - 1)) / small, (i - (sh - 1)) / small)
+    _, k, dx, dy = best
+    scaled = swap.resize((max(1, round(swap.width * base * k)), max(1, round(swap.height * base * k))), Image.LANCZOS)
+    canvas = Image.new("RGBA", orig.size, (0, 0, 0, 0))
+    canvas.paste(scaled, (round(dx), round(dy)), scaled)
+    return canvas
+
+
+def cut_grid(path: Path, cols: int, rows: int, folder: str, write: bool, fit_to: list | None = None) -> list[dict]:
     im = Image.open(path).convert("RGBA")
     out = []
     for r in range(rows):
         for c in range(cols):
             cell = im.crop((round(c * im.width / cols), round(r * im.height / rows), round((c + 1) * im.width / cols), round((r + 1) * im.height / rows)))
+            cell = main_shape(cell)
             bbox = cell.getchannel("A").point(lambda v: 255 if v > 32 else 0).getbbox()
             if not bbox:
                 continue
             cell = cell.crop(bbox)
+            if fit_to is not None and len(out) < len(fit_to):
+                cell = align(fit_to[len(out)], fit(cell, max(fit_to[len(out)].size) * 2))
             name = f"{folder}-{len(out) + 1}.webp"
             if write:
                 save_webp(fit(cell, PIECE_MAX), OUT / name, 84)
@@ -479,7 +520,9 @@ def build_life(scenes: list[dict], write: bool) -> list[dict]:
         path = SRC / "anim" / sheet
         if not path.exists():
             continue
-        cells = cut_grid(path, cols, rows, f"anim/{path.stem}", write)
+        # Each swap is fitted onto the web copy of the piece it replaces.
+        originals = [Image.open(OUT / by_key[key]["pieces"][n - 1]["file"]).convert("RGBA") for n in numbers]
+        cells = cut_grid(path, cols, rows, f"anim/{path.stem}", write, fit_to=originals)
         for n, cell in zip(numbers, cells):
             piece = by_key[key]["pieces"][n - 1]
             if field == "blink":

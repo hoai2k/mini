@@ -637,9 +637,9 @@
      "name": "a red dancer reaching up",
      "kind": "figure",
      "home": [
-      0.575,
-      0.27,
-      0.235
+      0.625,
+      0.7,
+      0.105
      ],
      "aspect": 1.1857,
      "chain": "figure"
@@ -1333,7 +1333,7 @@
    {
     "name": "button",
     "file": "ui/controls-3.webp",
-    "aspect": 0.7264
+    "aspect": 0.904
    },
    {
     "name": "shoulder",
@@ -1353,7 +1353,7 @@
    {
     "name": "controllers",
     "file": "ui/controls-7.webp",
-    "aspect": 0.5851
+    "aspect": 1.2018
    },
    {
     "name": "moon-controller",
@@ -1369,11 +1369,11 @@
   },
   {
    "file": "anim/drift-2.webp",
-   "aspect": 1.114
+   "aspect": 1.3018
   },
   {
    "file": "anim/drift-3.webp",
-   "aspect": 1.1594
+   "aspect": 1.3491
   },
   {
    "file": "anim/drift-4.webp",
@@ -1393,7 +1393,7 @@
   },
   {
    "file": "anim/drift-8.webp",
-   "aspect": 1.0652
+   "aspect": 1.2895
   },
   {
    "file": "anim/drift-9.webp",
@@ -1405,7 +1405,7 @@
   },
   {
    "file": "anim/drift-11.webp",
-   "aspect": 0.8537
+   "aspect": 1.276
   },
   {
    "file": "anim/drift-12.webp",

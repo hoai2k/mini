@@ -202,9 +202,12 @@ untouched, and it runs under everything the players do.
 - **Others.** Hearts beat twice and rest, fish swim and wiggle, ribbons and the
   comet band ripple, Blue Lady's water moves, the floating eye blinks, the bird
   bobs and hops, the reaching hand reaches.
-- **Swaps from art.** Closed eyes for the open-eyed faces (blinks) and the
-  bird's wing poses come from the requests in the Life section of
-  `image-requests.md`; until they arrive the faces only breathe and tilt.
+- **Swaps from art.** Closed eyes for the open-eyed faces (blinks, about every
+  four to seven seconds) and the bird's poses (a quick flap, and now and then a
+  ruffle with a look back) come from the Life requests. Generated swaps are
+  framed a little differently from the pieces they replace, so `build_web.py`
+  fits each one onto its original's silhouette (best scale and offset) before
+  saving it; without that, eyes and outlines visibly jumped.
 - **Reduce motion** scales all of it to a third and stops the blowing leaves.
 
 The finished composition used to fade in under the pieces when everything was
@@ -213,19 +216,12 @@ pieces over the ground already read as the painting.
 
 ## Stand-ins
 
-Where a request is still undelivered, `tools/build_web.py` makes a stand-in
-and marks the scene's `standin` list in `web/scenes.json`:
-
-- **Moons and hearts, The dancers (pieces):** cut by colour from each
-  composition (yellow moons and hand, red hearts, blue and red dancers), or as a
-  rectangle or disc for the blocks and the sun. They hold up nearly as well as
-  generated pieces, because the compositions draw each motif as a clean shape
-  on a plain ground.
-- **Viriditas (ground):** a blurred wash of the composition over the green silk.
-  It keeps the colours but loses the dense wood, so the scene reads thin.
-- **Icon:** the moon chain's crescent on indigo batik.
-- **Tree and bird chains:** none yet; trees and birds turn over instead of
-  changing.
+All 60 requests are delivered, so nothing is drawn as a stand-in now. The code
+for stand-ins stays in `tools/build_web.py` for any future request: pieces cut
+by colour from the composition, a blurred wash for a missing ground, an icon
+from the moon chain, single scene leaves for the gusts, and no swaps (faces
+only breathe and tilt). A scene's `standin` list in `web/scenes.json` says
+which are in use.
 
 ## What playing it with the art showed
 
@@ -254,6 +250,23 @@ Played through every scene in Chromium with a simulated controller (see
 - **Pinned drawings crowd** when several controls are found at once; at most
   four show. The hand, spool and needle drawings stand in for the controls
   themselves, which led to request HK-U05.
+
+### With the second round of art (all requests delivered)
+
+- **Moons and hearts and The dancers** now use generated pieces; they sit on
+  their compositions as closely as the colour-cut stand-ins did, with cleaner
+  edges. The dancers' fourth piece, a red dancer reaching up, has no place in
+  the composition, so she stands small inside the empty quilted window.
+- **Viriditas** has its real ground: the wood is dense and full, no longer thin.
+- **Blinks** close the eyes in place in The Golden Lady, the crowd and The black
+  tree once fitted; the bird's poses settle on its feet (raised wings are
+  clipped a little at the top of the piece's frame).
+- **Loose leaves and petals** blow across the windy scenes; a few sheet cells
+  carried slivers of their neighbours, so each cell keeps only its main shape.
+- **Tree and bird chains** let trees step from bare to budding to berried, and
+  birds, fish and single leaves change into one another.
+- The control drawings (a stick, a trigger, a button, a bumper, the D-pad) are
+  pinned beside newly found controls.
 
 ## Open questions
 

@@ -197,7 +197,10 @@ export function life(game, p, motion = 1) {
       out.dy = -0.03 * Math.abs(sin(t * 2.4 + seed));
       if (ph < 0.4) out.dy -= sin((ph / 0.4) * Math.PI) * 0.22;
       out.drot = 0.07 * sin(t * 1.3 + seed);
-      if (p.poses?.length && ph > 2 && ph < 2.6) out.swap = Math.floor((ph - 2) / 0.2) % p.poses.length;
+      // With its delivered poses: a quick flap (half open, raised, half open),
+      // and later a ruffle with a look back over its shoulder.
+      if (p.poses?.length >= 2 && ph > 2 && ph < 2.45) out.swap = [0, 1, 0][Math.floor((ph - 2) / 0.15)];
+      if (p.poses?.length >= 3 && ph > 4 && ph < 4.8) out.swap = 2;
       break;
     }
     case 'fish':

@@ -129,3 +129,16 @@ test('reduced motion shrinks every movement', () => {
   assert.ok(Math.abs(calm.sway) <= Math.abs(full.sway) * 0.31 + 1e-9);
   assert.ok(groundRipple(at('blue-lady'), 0.3) < groundRipple(at('blue-lady'), 1));
 });
+
+test('a bird with delivered poses flaps and later ruffles', () => {
+  const g = at('viriditas');
+  const bird = g.pieces.find((p) => p.kind === 'bird');
+  bird.poses = ['a', 'b', 'c'];
+  const seen = new Set();
+  for (let t = 0; t < 12; t += 0.01) {
+    g.time = t;
+    const s = life(g, bird).swap;
+    if (s >= 0) seen.add(s);
+  }
+  assert.deepEqual([...seen].sort(), [0, 1, 2]);
+});

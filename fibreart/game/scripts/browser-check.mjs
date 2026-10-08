@@ -198,11 +198,11 @@ async function main() {
 
   // Keyboard plays too.
   await page.keyboard.down('KeyD');
-  await wait(500);
+  const joined = await page.waitForFunction(() => window.fibreart.game().players.some((p) => p.id === 'kb'), null, { timeout: 20000 }).then(() => true, () => false);
   await page.keyboard.up('KeyD');
   await page.keyboard.press('KeyK');
   await wait(200);
-  check(await G(() => window.fibreart.game().players.some((p) => p.id === 'kb')), 'the keyboard joins as a player');
+  check(joined, 'the keyboard joins as a player');
 
   }
 

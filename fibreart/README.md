@@ -52,8 +52,9 @@ across the picture when it is larger than the screen.
 All 60 image requests are delivered. The generated icon, Viriditas ground,
 Moons and hearts and Dancers pieces, and tree and bird morph chains now replace
 the earlier stand-ins. Animation assets and control drawings are included.
-See [`design/checkpoint.md`](design/checkpoint.md) for the saved work state and
-remaining review items.
+All of it was checked in play; see "What playing it with the art showed" in
+[`design/design.md`](design/design.md). [`design/checkpoint.md`](design/checkpoint.md)
+records how the deliveries were saved.
 
 ## Run and check
 
