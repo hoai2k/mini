@@ -29,7 +29,8 @@ says "New World Record!" and nothing more specific.
    your best. Any button starts.
 5. **Play.** A 3-2-1 count, the game, then "Time!".
 6. **Result.** Your score, under "New World Record!" when it beats your best
-   (otherwise "Time!" and your best), and the score that opens the next page
+   and reaches the score that opens the next page ("Personal Best!" when it
+   beats your best but falls short; otherwise "Time!" and your best), and the score that opens the next page
    if you haven't reached it yet. Options: Play again, Next bird, Back to the
    guide.
 7. **The gathering.** When every bird has been spotted, a final page shows them all

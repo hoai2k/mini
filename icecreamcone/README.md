@@ -5,7 +5,7 @@ Other Rare Birds* (1971), with a Mario Party-style minigame for each bird:
 catch scoops as the Ice-Cream Cone Coot, pour tea into the Cupadee, take
 pictures as the Shuttercluck, and so on through ten birds. Each game lasts 30
 to 60 seconds and keeps your best score ("New World Record!" when you beat
-it); reaching a set score opens the next page of the guide.
+it, or "Personal Best!" while it's still short of opening the next page); reaching a set score opens the next page of the guide.
 
 Play it at https://hoai2k.github.io/mini/icecreamcone/. It sits behind the
 shared invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one
