@@ -15,7 +15,8 @@
 export const STAGES = [
   {
     id: 'garden',
-    music: ['mu-bed-garden', 'mu-bed-battle'], // its own bed if delivered, else the shared one
+    // Its own bed if delivered; else the sisters' theme that used to play on the chapter select.
+    music: ['mu-bed-garden', 'mu-select', 'mu-bed-battle'],
     title: 'The Garden at Mê Linh',
     subtitle: 'Training years',
     story:
@@ -86,7 +87,8 @@ export const STAGES = [
   },
   {
     id: 'villages',
-    music: ['mu-bed-villages', 'mu-bed-story'], // its own bed if delivered, else the shared one
+    // Its own bed if delivered; else the old title theme, quan ho (call-and-response singing) like the chapter.
+    music: ['mu-bed-villages', 'mu-title', 'mu-bed-story'],
     mode: 'echo',
     title: 'The Villages Answer',
     subtitle: 'A call along the river',

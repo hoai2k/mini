@@ -603,7 +603,9 @@ BEATLESS = ("Completely beatless and in free time: no pulse, no metre, no drums 
 # ---- menus
 
 track("mu-title", "Trống Đồng (title theme)", "theme",
-      "Title screen, looping.",
+      "Under chapter 4, The Villages Answer, until its own bed arrives (it was the title theme; "
+      "the anthem took the menus). Its quan họ call and answer suits the chapter, and measured "
+      "its pulse is no stronger than the shared beds'.",
       "about 90 s", True,
       "vietnamese quan ho, sao truc flute, dan tranh zither, bronze gong, female voice, soft cinematic strings, 72 bpm, folk theme",
       f"A slow, proud and tender title theme {GAME}. Traditional northern Vietnamese style "
@@ -614,7 +616,9 @@ track("mu-title", "Trống Đồng (title theme)", "theme",
       "swells underneath without taking over. 72 BPM in 4/4. About 90 seconds, built to loop: the "
       f"last bar leads back into the first, no fade-out. No lyrics. {AVOID}", priority="core")
 track("mu-select", "Two Sisters (chapter select)", "theme",
-      "Chapter-select screen, looping.",
+      "Under chapter 1, the Garden, until its own bed arrives (it was the chapter-select theme; "
+      "the anthem took the menus): the two sisters practising. Measured, its pulse is no "
+      "stronger than the shared beds'.",
       "about 90 s", True,
       "vietnamese folk duet, dan tranh and sao truc, two intertwining themes, gentle, light ambient pad, 66 bpm",
       f"A tender theme about two sisters {GAME}. Traditional Vietnamese folk duet: the elder "
@@ -805,7 +809,8 @@ track("mu-ending", "The Drums Are Melted (ending)", "piece",
 # and sky) by hoai2k, 3 min, made outside ElevenLabs; the master is kept as
 # design/music-masters/mu-anthem.mp3.
 track("mu-anthem", "Song of the Two Queens: Trống Đồng Vang Dới Đất Trời (vocal song)", "song",
-      "The Coronation's success moment (the two queens crowned); later the trailer and end credits.",
+      "The menus (title, chapter select, practice modes), round and round, and the Coronation's "
+      "success moment (the two queens crowned); later the trailer and end credits.",
       "about 3 min 30 s", False,
       "vietnamese folk ballad, quan ho female duet, dan tranh, dan bau, bronze drums in chorus, modern cinematic folk, 84 bpm",
       f"A folk ballad in Vietnamese {GAME}: two queens who rode elephants and beat the bronze "

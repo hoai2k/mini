@@ -66,8 +66,14 @@ python3 ../design/source/build_rigs.py --check
 The five core tracks are delivered: the title theme (`mu-title`), the chapter
 select (`mu-select`), the battle and story beds (`mu-bed-battle`,
 `mu-bed-story`) and the ending (`mu-ending`). The anthem, the Song of the Two
-Queens (`mu-anthem`, *Trống Đồng Vang Dới Đất Trời*), plays on the
-Coronation's success moment. The rest of
+Queens (`mu-anthem`, *Trống Đồng Vang Dới Đất Trời*), plays round and round on
+the menus (title, chapter select, practice modes) and on the Coronation's
+success moment. The two old menu themes moved into chapters, each in place of
+its shared bed until the chapter's own bed arrives: `mu-select` (the two
+sisters) under the Garden, and `mu-title` (quan họ call and answer) under The
+Villages Answer. Measured, neither has a stronger pulse than the shared beds
+(onset autocorrelation 0.52 and 0.58, against 0.53 and 0.76), so neither
+fights the player's tempo. The rest of
 [`design/music-requests.md`](design/music-requests.md) is optional; each
 chapter falls back to the shared bed until its own arrives.
 
@@ -134,9 +140,17 @@ kept light and every clock is read precisely:
 
 Settings, Style chooses between the shadow puppets and the water puppets (see
 `design/design.md`, Two looks). All 60 water-puppet images (BD-W01 onwards)
-are delivered and load under `wp-` ids: carved wooden figures, lacquer scenery,
-a pond strip, chapter cards and effects. Their alignment stays within the
-water assets; the default shadow-puppet images, rigs and placement code are unchanged.
+are delivered and load under `wp-` ids: lacquer scenery, a pond strip, chapter
+cards, props, effects and figures. The scenery, props and cards work as
+lacquer painting; the 18 figure images (the sisters and their part sheets,
+the army, the drummers, the children, the dancers, the Han) traced the shadow
+sprites and came out as cut-paper figures in lacquer colours rather than
+carved puppets like the style frame's, so their requests are marked
+`regenerate` with a revised prompt, as is the communal house (BD-WP11), whose
+water pavilion is missing. The game keeps loading the current takes until the
+new ones arrive. The water sisters' part sheets share the shadow sheets'
+layout, so `build_rigs.py` cuts them with the same measurements
+(`wp-sister-trac`, `wp-sister-nhi`) and the sisters drum in the water style too.
 
 All 152 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets
@@ -188,8 +202,8 @@ stand-in remains for a missing image.
 
 The manifest's `runtime` flag distinguishes the 123 images used by the prototype
 from the 8 delivered sheets it does not use directly: six puppet part sheets
-(the water sisters' sheets are ready for their own rigging) and the glyph and
-icon sheets. They remain available
+(four of them cut into the sisters' rigs, two for each style) and the glyph
+and icon sheets. They remain available
 for production work without being downloaded at game startup. The effects
 sheets are in use: hits and deflections burst into the paper scraps (BD-F01,
 picked by colour), the arrows and bolts fly as BD-F02, and when the drum wakes

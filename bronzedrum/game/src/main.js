@@ -106,9 +106,8 @@ function show(id) {
   // A chapter's opening card shows only over its scene (not over the pause menu).
   $('#opening').hidden = !(id === 'play' && game && game.opening);
   if (id === 'title' || id === 'select' || id === 'practice' || id === 'result') hideSuccess();
-  // Menu music: the title theme, and the two sisters' theme on the chapter select.
-  if (id === 'title') sound.playMusic('mu-title');
-  if (id === 'select' || id === 'practice') sound.playMusic('mu-select');
+  // Menu music: the anthem, on the title, the chapter select and the practice modes.
+  if (id === 'title' || id === 'select' || id === 'practice') sound.menuMusic();
   screen = id;
   input.mode = id === 'play' ? 'play' : 'menu';
   canvas.style.visibility = id === 'title' || id === 'select' || id === 'practice' ? 'hidden' : 'visible';
@@ -1629,7 +1628,7 @@ function pressStart() {
   sound.start();
   sound.loadSamples().then(() => {
     sound.play('ui-start');
-    if (screen === 'select') sound.playMusic('mu-select');
+    if (screen === 'select') sound.menuMusic();
   });
   enterFullscreen();
   buildCards();
