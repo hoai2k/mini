@@ -11,7 +11,7 @@ import { createFlyer } from './flyer.js';
 import { loadEffects } from '../effects/index.js';
 import { loadGames } from '../games/index.js';
 import { load, save, randomId } from './store.js';
-import { sfx, unlockAudio, setVolume } from './audio.js';
+import { sfx, unlockAudio, setVolume, setSfxMuted, sfxMuted } from './audio.js';
 import { assetUrl } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
@@ -233,13 +233,16 @@ async function start() {
   net = createNet({ game: 'chat', room: 'everyone', me });
   votes = createVotes({ server: MiniRooms.defaultServer() });
   net.setPresence({ cam: studio.camOn, mic: studio.micOn, away: studio.away, fx: null });
-  // Pause the camera and microphone while the tab is in the background or the
-  // window loses focus; they come back as they were (unless muted) on return.
+  // While the tab is in the background or the window loses focus the camera
+  // pauses (and comes back as it was on return); see syncAway below.
   const syncAway = () => {
     const away = document.hidden || !document.hasFocus();
     if (away === studio.away) return;
-    // Phones keep the microphone on while you glance at another app.
-    studio.setAway(away, { keepMic: matchMedia('(pointer: coarse)').matches });
+    // The microphone stays on (you may just be glancing at another app or
+    // window; talking carries on both ways), only the camera pauses, and the
+    // app's own sound effects go quiet.
+    studio.setAway(away, { keepMic: true });
+    setSfxMuted(away);
     updateDeviceButtons();
   };
   document.addEventListener('visibilitychange', syncAway);
@@ -1414,11 +1417,16 @@ function showInvite(from, d) {
   join.type = 'button';
   join.className = 'btn aqua';
   join.textContent = 'Join';
-  join.addEventListener('click', () => {
+  join.addEventListener('click', async () => {
     el.remove();
-    const s = games.sessions().find(x => x.sid === d.sid);
-    if (s) games.join(s);
-    else toast('That game has ended');
+    // The invite can arrive a moment before the presence that lists the
+    // game, so give it a couple of seconds to show up.
+    for (let i = 0; i < 25; i++) {
+      const s = games.sessions().find(x => x.sid === d.sid);
+      if (s) return games.join(s);
+      await new Promise(r => setTimeout(r, 100));
+    }
+    toast('That game has ended');
   });
   const x = document.createElement('button');
   x.type = 'button';
@@ -1650,4 +1658,5 @@ window.__chat = {
   me,
   selectEffect: id => selectEffect(effects.find(e => e.id === id) || null),
   toggleTray: (k, force) => toggleTray(k, force),
+  sfxMuted,
 };

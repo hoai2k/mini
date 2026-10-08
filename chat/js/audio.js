@@ -75,7 +75,16 @@ const SOUNDS = {
   honk: () => tone({ freq: 330, to: 300, dur: 0.25, gain: 0.3, type: 'square' }),
 };
 
+// While the page isn't in front, the app's own sounds stay quiet (friends'
+// voices are separate and keep playing).
+let muted = false;
+export function setSfxMuted(m) {
+  muted = !!m;
+}
+export const sfxMuted = () => muted;
+
 export function sfx(name) {
+  if (muted) return;
   if (!ctx || ctx.state !== 'running' || volume <= 0) return;
   try { SOUNDS[name]?.(); } catch {}
 }

@@ -1,6 +1,6 @@
 # Games Chat
 
-A video chat in the browser with 70 face effects and backgrounds and 20
+A video chat in the browser with 75 face effects and backgrounds and 20
 minigames. Everyone
 who opens the page joins the same chat. It is tuned for two people (your
 friend fills the screen and you sit in the corner) and works for up to 16,
@@ -74,7 +74,8 @@ full screen.
 Effects are drawn onto the video I send, so friends see them without doing
 anything. They're split into three tabs (`effects/index.js` lists which go
 where): **Effects** (warps, colour, time tricks, drawn particles),
-**Accessories** (pictures in front of you: hats, ears, horns, masks, hearts)
+**Accessories** (things in front of you: hats, ears, horns, masks, hearts,
+the rainbow, tears, snow and bubbles)
 and **Backgrounds** (new backdrops and the 360 worlds). Bright backgrounds
 and worlds lift a dim camera image to match them. Sound effects play at half
 the level the slider sets, so they sit under the conversation. Many react to the face; with no face tracked, hold Space, hold your
@@ -95,6 +96,9 @@ own video, or hold RT instead.
   Motion, Clones, Motion Glow.
 - **Warps:** Big Eyes, Bobblehead, Noodle Face, Swirl, Tiny Face, Chubby
   Cheeks, Baby Face, Mirror Face, Cyclops, Big Mouth, Fisheye.
+- **Reshaping:** Kid, Man, Woman (younger, squarer and stubbly, or slimmer
+  with lashes and lips), Thinner and Fatter (you squeezed or stretched
+  sideways from head to toe).
 - **Filters:** 8-Bit, Comic Book, Heat Vision, Film Noir, VHS, Pop Art,
   Kaleidoscope.
 - **Particles:** Storm Cloud, Snowfall, Confetti, Make It Rain, Fireworks.
@@ -189,9 +193,9 @@ hand.
   arriving. Connected tiles show signal bars from round trip and loss.
 - While the tab is in the background or the window loses focus, the camera
   pauses: friends see your initial with "away" and an Away flag on your
-  tile. On a computer the microphone pauses too; on a phone it stays on (you
-  may just be glancing at another app). They come back when you return,
-  except whichever you had muted.
+  tile. The microphone stays on and friends' voices keep playing, so talking
+  carries on both ways; only the app's own sound effects go quiet. The
+  camera comes back when you return, unless you had turned it off.
 - The camera and microphone start alongside joining, never before it, and
   each request gives up after 8 s (iPhones can leave it unanswered while a
   phone or video call holds the microphone). If they don't start, a dialog
