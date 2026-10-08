@@ -3,7 +3,9 @@
 // Scoops fall from the sky; move the Coot to catch them on its head. Each
 // scoop sits where it touched the one below, so an off-centre catch leans the
 // stack, and the Coot's own running sways it. Lean too far and the whole stack
-// topples. Pickles and socks knock scoops off; a golden cherry counts three.
+// spills: the scoops above its weak point slide off (all of them, if it
+// leans too far at the bottom). Pickles and socks knock scoops off; a golden
+// cherry counts three.
 // Score: the tallest stack built (counting cherries as three).
 //
 // A scoop that hits the side of the stack clings there for a moment, then
@@ -28,6 +30,11 @@ const head = () => birdPoint('coot', 'head').map((v) => v * K);
 const R = 30; // scoop radius
 const STEP = R * 1.45; // height of each scoop in the stack
 const TOPPLE = 46; // how far the stack's balance point may lean, in px
+const SINK = R * 0.45; // how far the bottom scoop settles into the Coot's head
+const BREAK = R * 1.4; // how far the scoops above may lean past one before they slide off
+// How high a scoop sits on the one below: lower the further off-centre it
+// landed, resting against its side.
+const rise = (dx) => Math.sqrt(Math.max(STEP * STEP - dx * dx, (R * 0.55) ** 2));
 // As the stack grows the view makes room, so there is always this much sky
 // (in world px) above the top scoop, and new scoops start just above the top
 // of the view: the same warning however tall the stack. First the Coot steps
@@ -66,7 +73,9 @@ export default function create(env) {
     zoom: 1, // the camera
     depth: 1, // how far back along the boardwalk the Coot stands (1 front)
     flash: 0,
-    topples: 0,
+    topples: 0, // times the whole stack fell
+    spilled: 0, // scoops that slid off
+    spillT: 0,
   };
 
   const height = () => g.stack.reduce((n, s) => n + s.count, 0);
@@ -80,7 +89,7 @@ export default function create(env) {
     const out = [{ x: x - R * 0.2, y: y + R * 1.1, r: R * 1.35 }];
     for (let i = 0; i < n; i++) {
       x += g.stack[i].dx + Math.sin(g.sway) * STEP * 0.4 * (i + 1) / Math.max(1, n);
-      y -= STEP;
+      y -= rise(g.stack[i].dx) - (i === 0 ? SINK : 0);
       out.push({ x, y: y + R * 0.3, r: R });
     }
     return out;
@@ -125,21 +134,54 @@ export default function create(env) {
     return sum / w + Math.sin(g.sway) * g.stack.length * 5;
   }
 
-  function topple() {
+  // Scoops from `from` up slide off towards `dir`; clinging scoops above the
+  // new top go with them. All of them gone is a topple.
+  function breakAt(from, dir) {
     const col = column();
-    const dir = Math.sign(balance() || 1);
-    g.stack.forEach((s, i) => {
-      const p = col[i + 1];
-      g.bits.push({ x: p.x, y: p.y, vx: dir * (120 + rng() * 200), vy: -200 - rng() * 200, color: s.color, kind: s.kind, r: R, spin: rng() * 6 });
+    const lost = g.stack.splice(from);
+    lost.forEach((s, i) => {
+      const p = col[from + i + 1];
+      g.bits.push({ x: p.x, y: p.y, vx: dir * (90 + i * 35 + rng() * 120), vy: -120 - rng() * 160, color: s.color, kind: s.kind, r: R, spin: dir * (2 + rng() * 4) });
     });
-    for (const c of g.clingers) shed(c, col, dir * (100 + rng() * 150));
-    g.stack = [];
-    g.clingers = [];
-    g.sway = 0;
-    g.swayV = 0;
-    g.topples++;
-    sfx('topple');
-    env.vibrate?.(120);
+    for (const c of g.clingers.filter((c) => c.lvl > from - 0.5)) {
+      c.gone = true;
+      shed(c, col, dir * (100 + rng() * 150));
+    }
+    g.clingers = g.clingers.filter((c) => !c.gone);
+    g.swayV *= 0.4;
+    g.spilled += lost.reduce((n, s) => n + s.count, 0);
+    if (!g.stack.length) {
+      g.sway = 0;
+      g.swayV = 0;
+      g.topples++;
+    }
+    sfx(lost.length > 2 || !g.stack.length ? 'topple' : 'plop');
+    env.vibrate?.(lost.length > 2 ? 120 : 50);
+  }
+
+  // Imbalance spills scoops, not necessarily all of them. The stack breaks at
+  // its weak point: the lowest scoop that the scoops above it lean past the
+  // edge of. Then, if the whole stack still leans too far on the Coot's head,
+  // scoops slide off the top one at a time until it steadies.
+  function spill(dt) {
+    g.spillT = Math.max(0, g.spillT - dt);
+    const n = g.stack.length;
+    if (!n) return;
+    const col = column();
+    for (let k = 0; k < n - 1; k++) {
+      let sum = 0;
+      for (let j = k + 1; j < n; j++) sum += col[j + 1].x;
+      const off = sum / (n - k - 1) - col[k + 1].x;
+      if (Math.abs(off) > BREAK) {
+        breakAt(k + 1, Math.sign(off));
+        return;
+      }
+    }
+    const b = balance();
+    if (Math.abs(b) > TOPPLE && g.spillT <= 0) {
+      breakAt(n - 1, Math.sign(b));
+      g.spillT = 0.12;
+    }
   }
 
   // A clinging scoop lets go and falls.
@@ -149,7 +191,8 @@ export default function create(env) {
   }
 
   function addTop(it, dx) {
-    g.stack.push({ dx: clamp(dx, -R * 1.2, R * 1.2), color: it.color, kind: it.kind, count: it.count });
+    // It stays exactly where it landed: no nudging back to the middle.
+    g.stack.push({ dx, color: it.color, kind: it.kind, count: it.count });
     g.swayV += dx * 0.012;
     sfx('catch', { pitch: Math.min(12, g.stack.length) });
     g.score = Math.max(g.score, height());
@@ -314,7 +357,7 @@ export default function create(env) {
     const zoom = clamp(want / depth, minZoom(), 1);
     g.depth = approach(g.depth, depth, depth < g.depth ? 3 : 0.7, dt);
     g.zoom = approach(g.zoom, zoom, zoom < g.zoom ? 3 : 0.7, dt);
-    if (n && Math.abs(balance()) > TOPPLE) topple();
+    spill(dt);
 
     // Spawn: faster as time goes on.
     g.spawn -= dt;
@@ -382,7 +425,9 @@ export default function create(env) {
   g.clingPos = (c) => clingPos(c);
 
   g.hud = () => `Stack ${height()}` + (g.clingers.length ? ` +${g.clingers.length} hanging on` : '') + ` · Best ${g.score}`;
-  g.summary = () => [g.topples ? `Your stack toppled ${g.topples} time${g.topples > 1 ? 's' : ''}.` : 'Not a single topple!'];
+  g.summary = () => [
+    g.topples ? `Your stack toppled ${g.topples} time${g.topples > 1 ? 's' : ''}.` : g.spilled ? `${g.spilled} scoop${g.spilled > 1 ? 's' : ''} slid off, but the stack held.` : 'Not a single scoop lost!',
+  ];
 
   // The painted scoops and things (sprites.scoops), or drawn in code.
   const CELL = { cherry: 7, pickle: 8, sock: 9 };
@@ -548,6 +593,11 @@ export default function create(env) {
       c.fillRect(0, 0, W, H);
     }
   };
+
+  // For a narrow (portrait) screen: what the view follows, and how much of
+  // the width it must keep in view.
+  g.focus = () => W / 2 + (g.x + HEAD_DX - W / 2) * g.zoom * g.depth;
+  g.span = 760;
 
   return g;
 }

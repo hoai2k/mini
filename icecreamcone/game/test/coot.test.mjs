@@ -25,15 +25,25 @@ test('coot: a careful chaser opens the next page; idle earns nothing', () => {
   console.log('coot chaser scores', scores, 'pass', pass);
 });
 
-test('coot: an off-centre stack topples', () => {
+test('coot: an off-centre stack spills from its weak point, keeping what is below it', () => {
   const game = create({ W: 1600, H: 900, rng: () => 0.5, sfx: () => {} });
-  for (let i = 0; i < 6; i++) game.stack.push({ dx: 30, color: '#fff', kind: 'scoop', count: 1 });
-  game.update(1 / 60, { x: 0, y: 0, action: false, actionPressed: false, actionReleased: false, left: false, right: false, spin: 0, pointer: { active: false } });
-  assert.equal(game.stack.length, 0);
+  game.spawn = 1e9;
+  // straight up for four, then a kink: the top two lean past the third scoop
+  for (const dx of [0, 0, 0, 0, 50, 30]) game.stack.push({ dx, color: '#fff', kind: 'scoop', count: 1 });
+  game.update(1 / 60, blank());
+  assert.equal(game.stack.length, 3, `kept the straight part (${game.stack.length})`);
+  assert.ok(game.spilled === 3 && game.topples === 0, `three slid off, not a topple (${game.spilled}, ${game.topples})`);
+});
+
+test('coot: a stack leaning too far on the head sheds from the top until it steadies', () => {
+  const game = create({ W: 1600, H: 900, rng: () => 0.5, sfx: () => {} });
+  game.spawn = 1e9;
+  for (let i = 0; i < 6; i++) game.stack.push({ dx: 18, color: '#fff', kind: 'scoop', count: 1 });
+  step(game, 2);
+  assert.ok(game.stack.length > 0 && game.stack.length < 6, `some left (${game.stack.length})`);
 });
 
 // ---------- clinging scoops ----------
-
 
 function quiet(seed = 1) {
   const g = create(env(seed));
@@ -41,9 +51,9 @@ function quiet(seed = 1) {
   return g;
 }
 const scoop = (x, y) => ({ x, y, vy: 300, kind: 'scoop', color: '#ea8fb0', spin: 0, a: 0 });
-const step = (g, s, inp = blank()) => {
+function step(g, s, inp = blank()) {
   for (let t = 0; t < s; t += 1 / 60) g.update(1 / 60, inp);
-};
+}
 
 test('coot: a scoop that hits the side of the stack clings there, then slips off', () => {
   const g = quiet();
@@ -135,4 +145,28 @@ test('coot: a tall stack zooms the view out, keeping sky above it, and scoops st
   g.spawn = 0;
   g.update(1 / 60, blank());
   assert.ok(g.items.length && g.items.at(-1).y < viewTop, 'a new scoop starts above the view');
+});
+
+test('coot: a scoop stays exactly where it lands, off-centre and lower', () => {
+  const g = quiet();
+  for (let i = 0; i < 3; i++) g.stack.push({ dx: 0, color: '#fff', kind: 'scoop', count: 1 });
+  g.update(1 / 60, blank());
+  const top = g.column().at(-1);
+  g.items.push(scoop(top.x + 38, top.y - 80));
+  step(g, 0.4);
+  assert.equal(g.stack.length, 4, 'caught on top');
+  assert.ok(Math.abs(g.stack[3].dx - 38) < 4, `kept its spot (dx ${g.stack[3].dx.toFixed(1)})`);
+  const col = g.column();
+  assert.ok(col[3].y - col[4].y < 43.5 - 10, 'and sits lower, against the side of the one below');
+});
+
+test('coot: the bottom scoop settles into the head', () => {
+  const g = quiet();
+  g.stack.push({ dx: 0, color: '#fff', kind: 'scoop', count: 1 });
+  g.stack.push({ dx: 0, color: '#fff', kind: 'scoop', count: 1 });
+  g.update(1 / 60, blank());
+  const col = g.column();
+  const headTop = col[0].y - 30 * 1.1;
+  const gap = headTop - col[1].y; // from the top of the head up to the bottom scoop's centre
+  assert.ok(gap < 25, `resting on the head, not floating above it (${gap.toFixed(1)} px)`);
 });
