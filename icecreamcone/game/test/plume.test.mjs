@@ -4,7 +4,7 @@ import create from '../src/games/plume.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'plume').medals;
+const pass = BIRDS.find((b) => b.id === 'plume').pass;
 const steer = (game, p) => {
   const d = p.x - game.x;
   return { x: Math.max(-1, Math.min(1, d / 40)), action: Math.abs(d) < 30 };
@@ -39,14 +39,14 @@ const sweeper = () => {
   };
 };
 
-test('plume: a beginner earns bronze, a good gardener more; sweeping and idling do not pay', () => {
+test('plume: a beginner opens the next page, a good gardener more; sweeping and idling do not pay', () => {
   const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: gardener(0.3, seed) }).game.score);
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: gardener(1, seed) }).game.score);
   const sweep = [1, 2].map((seed) => run(create, { seed, bot: sweeper() }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('plume beginner', beginner, 'good', good, 'sweep', sweep, 'idle', idle, 'medals', medals);
+  console.log('plume beginner', beginner, 'good', good, 'sweep', sweep, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= medals[0], `beginner ${beginner}`);
+  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
   assert.ok(Math.min(...good) > Math.max(...beginner) - 1, `good ${good}`);
   assert.ok(Math.max(...sweep) < Math.min(...good), `sweep ${sweep}`);
 });

@@ -4,7 +4,7 @@ import create from '../src/games/dodo.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'dodo').medals;
+const pass = BIRDS.find((b) => b.id === 'dodo').pass;
 
 // A sharp-eyed player: knows where the Dodo went, takes `react` seconds to
 // decide, then steps the marker over with the stick (one step per press).
@@ -22,18 +22,18 @@ function tracker(react = 0.6, missFrom = 99) {
 // Guesses at once, pressing the action as soon as it can.
 const guesser = (game) => ({ action: game.phase === 'pick' && game.pt > 0.15 });
 
-test('dodo: a sharp-eyed tracker earns at least bronze; idle earns nothing', () => {
+test('dodo: a sharp-eyed tracker opens the next page; idle earns nothing', () => {
   const sharp = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tracker() }).game.score);
   const tired = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tracker(1.2, 6) }).game.score);
   const guess = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: guesser }).game.score);
   const idle = run(create, { seed: 1 }).game;
   assert.equal(idle.score, 0);
   assert.ok(idle.done);
-  assert.ok(Math.min(...sharp) >= medals[0], `sharp ${sharp}`);
-  assert.ok(Math.min(...tired) >= medals[0], `tired ${tired}`);
+  assert.ok(Math.min(...sharp) >= pass, `sharp ${sharp}`);
+  assert.ok(Math.min(...tired) >= pass, `tired ${tired}`);
   const avgGuess = guess.reduce((a, b) => a + b) / guess.length;
-  assert.ok(avgGuess < medals[0], `guessing averages ${avgGuess}`);
-  console.log('dodo tracker scores', sharp, 'loses track from round 6', tired, 'guesser', guess, 'medals', medals);
+  assert.ok(avgGuess < pass, `guessing averages ${avgGuess}`);
+  console.log('dodo tracker scores', sharp, 'loses track from round 6', tired, 'guesser', guess, 'pass', pass);
 });
 
 test('dodo: the shuffle keeps exactly one Dodo and every hat in its own place', () => {

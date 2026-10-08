@@ -4,7 +4,7 @@ import create from '../src/games/piffle.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'piffle').medals;
+const pass = BIRDS.find((b) => b.id === 'piffle').pass;
 
 // A player who steers the stick toward where the seam will be in `look`
 // seconds, with a reaction `lag` (it sees the needle as it was a few frames
@@ -22,14 +22,14 @@ function sewer({ look = 0.12, lag = 6, dare = 0, gain = 30 } = {}) {
   };
 }
 
-test('piffle: a careful sewer earns at least bronze; idle earns little', () => {
+test('piffle: a careful sewer opens the next page; idle earns little', () => {
   const careful = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 12, gain: 45 }) }).game.score);
   const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 6, dare: 0.5 }) }).game.score);
   const bold = [1, 2, 3].map((seed) => run(create, { seed, bot: sewer({ lag: 4, dare: 1.2 }) }).game.score);
   const idle = [1, 2].map((seed) => run(create, { seed }).game.score);
-  console.log('piffle careful', careful, 'steady', steady, 'bold', bold, 'idle', idle, 'medals', medals);
-  assert.ok(Math.max(...idle) < medals[0], `idle ${idle}`);
-  assert.ok(Math.min(...careful) >= medals[0], `careful ${careful}`);
+  console.log('piffle careful', careful, 'steady', steady, 'bold', bold, 'idle', idle, 'pass', pass);
+  assert.ok(Math.max(...idle) < pass, `idle ${idle}`);
+  assert.ok(Math.min(...careful) >= pass, `careful ${careful}`);
 });
 
 test('piffle: a stitch on the seam scores, one off it does not', () => {

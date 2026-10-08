@@ -2,7 +2,7 @@
 //
 // THE CONTRACT. Each module default-exports `create(env)`, which returns a
 // game object. The shell (main.js) owns the count-in, the clock display,
-// pause, results and medals; a game only plays.
+// pause, results and best scores; a game only plays.
 //
 //   env = {
 //     W: 1600, H: 900,        logical canvas size; draw in these units

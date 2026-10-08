@@ -4,7 +4,7 @@ import create from '../src/games/crow.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'crow').medals;
+const pass = BIRDS.find((b) => b.id === 'crow').pass;
 
 // A signaller: gives the cars a few seconds of green, then lets the birds go
 // once a couple are waiting (or one is getting cross); goes back to green
@@ -35,10 +35,10 @@ test('crow: a signaller earns well; blind switching less; idle nothing', () => {
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: signaller() }).game.score);
   const lazy = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: blind(5) }).game.score);
   const idle = [1, 2].map((seed) => run(create, { seed }).game.score);
-  console.log('crow signaller', good, 'blind', lazy, 'idle', idle, 'medals', medals);
-  assert.ok(Math.max(...idle) < medals[0], `idle ${idle}`);
-  assert.ok(Math.min(...good) >= medals[0], `signaller ${good}`);
-  assert.ok(Math.max(...good) >= medals[1], `signaller ${good}`);
+  console.log('crow signaller', good, 'blind', lazy, 'idle', idle, 'pass', pass);
+  assert.ok(Math.max(...idle) < pass, `idle ${idle}`);
+  assert.ok(Math.min(...good) >= pass, `signaller ${good}`);
+  assert.ok(Math.max(...good) >= pass * 1.5, `signaller ${good}`);
   const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
   assert.ok(avg(good) > avg(lazy), 'watching the road beats switching blindly');
 });

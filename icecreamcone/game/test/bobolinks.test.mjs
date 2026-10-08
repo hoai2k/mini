@@ -4,7 +4,7 @@ import create from '../src/games/bobolinks.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'bobolinks').medals;
+const pass = BIRDS.find((b) => b.id === 'bobolinks').pass;
 
 // A player who looks at the next stone, takes `rt` seconds (give or take a
 // little) to step, and puts the wrong foot down now and then (`slip`).
@@ -41,19 +41,19 @@ function walker({ rt = 0.4, slip = 0.05, seed = 3 } = {}) {
   };
 }
 
-test('bobolinks: a careful walker earns at least bronze; idle earns nothing', () => {
+test('bobolinks: a careful walker opens the next page; idle earns nothing', () => {
   const beginner = [1, 2, 3].map((seed) => run(create, { seed, bot: walker({ rt: 0.6, slip: 0.08, seed }) }).game.score);
   const steady = [1, 2, 3].map((seed) => run(create, { seed, bot: walker({ rt: 0.42, slip: 0.05, seed }) }).game.score);
   const quick = [1, 2, 3].map((seed) => run(create, { seed, bot: walker({ rt: 0.3, slip: 0.03, seed }) }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('bobolinks beginner', beginner, 'steady', steady, 'quick', quick, 'idle', idle, 'medals', medals);
+  console.log('bobolinks beginner', beginner, 'steady', steady, 'quick', quick, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
-  assert.ok(Math.min(...beginner) >= medals[0], `beginner ${beginner}`);
+  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
 });
 
 test('bobolinks: mashing both feet gets nowhere', () => {
   const { game } = run(create, { seed: 1, bot: () => ({ left: true, right: true }) });
-  assert.ok(game.score < medals[0] / 3, `mash ${game.score}`);
+  assert.ok(game.score < pass / 3, `mash ${game.score}`);
 });
 
 test('bobolinks: the right foot steps, the wrong foot splashes, doubles need both', () => {

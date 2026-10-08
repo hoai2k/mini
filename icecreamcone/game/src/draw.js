@@ -856,7 +856,6 @@ export const SHEETS = {
   'sprites.hats': [3, 1], // black bowler, top hat, brown bowler
   'sprites.cars': [2, 2], // pink, blue, mustard, sage; all facing left
   'sprites.chicks': [3, 2], // standing x3, walking x2, flying
-  medals: [3, 1], // bronze, silver, gold
 };
 
 const trims = new Map();

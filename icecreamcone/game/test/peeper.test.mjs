@@ -4,7 +4,7 @@ import create from '../src/games/peeper.js';
 import { BIRDS } from '../src/birds.js';
 import { run, env, blank } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'peeper').medals;
+const pass = BIRDS.find((b) => b.id === 'peeper').pass;
 const CATCH_Y = 860 - 150;
 
 // A sharp reader: runs to where the next needed letter will be when it
@@ -27,13 +27,13 @@ function reader({ speed = 1, look = 1, react = 0 } = {}) {
   };
 }
 
-test('peeper: a sharp reader earns at least bronze; idle earns nothing', () => {
+test('peeper: a sharp reader opens the next page; idle earns nothing', () => {
   const sharp = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: reader() }).game.score);
   const slow = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: reader({ speed: 0.5, look: 0, react: 0.6 }) }).game.score);
   const idle = run(create, { seed: 1 }).game;
-  assert.ok(idle.score < medals[0], `idle ${idle.score}`);
-  assert.ok(Math.min(...sharp) >= medals[0], `sharp ${sharp}`);
-  console.log('peeper reader scores', sharp, 'slow', slow, 'idle', idle.score, 'medals', medals);
+  assert.ok(idle.score < pass, `idle ${idle.score}`);
+  assert.ok(Math.min(...sharp) >= pass, `sharp ${sharp}`);
+  console.log('peeper reader scores', sharp, 'slow', slow, 'idle', idle.score, 'pass', pass);
 });
 
 test('peeper: right letters stamp the word, wrong ones smudge, a word pays its length', () => {

@@ -4,7 +4,7 @@ import create from '../src/games/coot.js';
 import { BIRDS } from '../src/birds.js';
 import { run, blank, env } from './harness.mjs';
 
-const medals = BIRDS.find((b) => b.id === 'coot').medals;
+const pass = BIRDS.find((b) => b.id === 'coot').pass;
 
 // A good player: run under the lowest good scoop, and lean against the stack.
 function chaser(game) {
@@ -17,12 +17,12 @@ function chaser(game) {
   return { x: Math.max(-1, Math.min(1, d / 60)) };
 }
 
-test('coot: a careful chaser earns at least bronze; idle earns nothing', () => {
+test('coot: a careful chaser opens the next page; idle earns nothing', () => {
   const scores = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: chaser }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  assert.ok(idle < medals[0], `idle ${idle}`);
-  assert.ok(Math.max(...scores) >= medals[0], `chaser best ${scores}`);
-  console.log('coot chaser scores', scores, 'medals', medals);
+  assert.ok(idle < pass, `idle ${idle}`);
+  assert.ok(Math.max(...scores) >= pass, `chaser best ${scores}`);
+  console.log('coot chaser scores', scores, 'pass', pass);
 });
 
 test('coot: an off-centre stack topples', () => {
