@@ -126,7 +126,7 @@ export function createAudio() {
 
   function sample(id, { gain = 1, rate = 1 } = {}) {
     const list = buffers[id];
-    if (!ctx || !list?.length) return false;
+    if (!ctx || away || !list?.length) return false;
     const src = ctx.createBufferSource();
     src.buffer = list[Math.floor(Math.random() * list.length)];
     src.playbackRate.value = rate;
@@ -145,7 +145,9 @@ export function createAudio() {
   }
 
   function tone(freq, { type = 'sine', dur = 0.25, gain = 0.2, attack = 0.005, when = 0, dest = sfx, glide = 0 } = {}) {
-    if (!ctx) return;
+    // Nothing is scheduled while away: a suspended clock stands still, so
+    // notes queued then would all sound at once on return.
+    if (!ctx || away) return;
     const t = ctx.currentTime + when;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
@@ -171,7 +173,7 @@ export function createAudio() {
   ];
   let chordIndex = 0;
   function musicStep() {
-    if (!ctx) return;
+    if (!ctx || away) return;
     const chord = CHORDS[chordIndex++ % CHORDS.length];
     const t = ctx.currentTime;
     for (const n of chord) {
@@ -308,7 +310,7 @@ export function createAudio() {
       tone(midi(60), { type: 'sine', dur: 0.8, gain: 0.12 });
     },
     crash() {
-      if (!ctx) return;
+      if (!ctx || away) return;
       if (sample('crash', { gain: 1.1, rate: 0.9 + Math.random() * 0.2 })) {
         tone(90, { type: 'sine', dur: 0.4, gain: 0.25, glide: 0.5 });
         return;

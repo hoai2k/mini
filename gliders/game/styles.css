@@ -508,4 +508,104 @@ body.pointer [data-nav]:focus-visible:not(.nav-focus) { outline: none !important
 @media (max-height: 500px) {
   #title.art #logo-img { width: min(44vw, 380px); }
   #title.art .title-block { padding-bottom: max(56px, 9vh); }
+  .modal { padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+  .panel { padding: 12px 18px; gap: 6px; border-radius: 18px; overflow: auto; }
+  .panel h2 { font-size: 1.5rem; margin-bottom: 2px; }
+  .menu-btn { padding: 8px 16px; min-height: 44px; }
+}
+
+/* ---------- Touch ---------- */
+html, body { overscroll-behavior: none; touch-action: manipulation; }
+#stage, #hud { touch-action: none; }
+body.touch-ui #title-hint, body.touch-ui .foot-hint { display: none; }
+.slot.tappable { cursor: pointer; }
+.slot-invert { padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.touch { position: absolute; inset: 0; pointer-events: none; -webkit-touch-callout: none; }
+.touch-stick { position: absolute; left: 0; top: 22%; bottom: 0; width: 50%; pointer-events: auto; touch-action: none; }
+.touch-ring {
+  position: absolute;
+  left: calc(max(16px, env(safe-area-inset-left)) + 76px);
+  top: calc(100% - max(16px, env(safe-area-inset-bottom)) - 76px);
+  width: 128px;
+  height: 128px;
+  margin: -64px 0 0 -64px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.45);
+  background: rgba(20, 12, 44, 0.25);
+  display: grid;
+  place-items: center;
+  opacity: 0.7;
+}
+.touch-stick.on .touch-ring { opacity: 1; }
+.touch-knob { width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, 0.8); box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+.touch-btn, .touch-pause {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  background: rgba(20, 12, 44, 0.4);
+  color: #fff;
+  font: 700 1rem var(--display);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.touch-btn { width: 76px; height: 76px; bottom: max(16px, env(safe-area-inset-bottom)); }
+.touch-btn.tuck { right: max(16px, env(safe-area-inset-right)); background: rgba(95, 211, 168, 0.4); }
+.touch-btn.flare { right: calc(max(16px, env(safe-area-inset-right)) + 88px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 44px); background: rgba(140, 158, 255, 0.4); }
+.touch-btn.on { background: rgba(255, 255, 255, 0.55); color: #1b1430; }
+.touch-pause { width: 48px; height: 48px; top: max(10px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); }
+.touch-pause svg { width: 22px; height: 22px; }
+/* Fingers need bigger targets than a mouse. */
+@media (pointer: coarse) {
+  .slot-arrow { width: 44px; height: 44px; }
+  .swatch { width: 32px; height: 32px; }
+  .slot-ready-btn, .slot-invert, .text-btn, .cycle { min-height: 44px; }
+  .row input[type='range'] { height: 32px; }
+  .row input[type='checkbox'] { width: 30px; height: 30px; }
+}
+/* With the touch controls up, the speed readout moves clear of the buttons. */
+#hud:has(.touch:not([hidden])) .pv-speed { right: auto; left: 50%; transform: translateX(-50%); bottom: max(10px, env(safe-area-inset-bottom)); }
+
+/* ---------- Phones ---------- */
+/* The HUD keeps clear of notches and rounded corners. */
+.pv-top { top: max(10px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); }
+.hud-timer { top: max(8px, env(safe-area-inset-top)); }
+.pv-speed { right: max(12px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); }
+/* A narrow view has no room for the clock between the name and the edge: it moves right. */
+@media (max-width: 600px) {
+  .hud-timer { left: auto; right: max(12px, env(safe-area-inset-right)); transform: none; font-size: 1.1rem; }
+  #hud:has(.touch:not([hidden])) .hud-timer { right: calc(max(12px, env(safe-area-inset-right)) + 58px); }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Seven pause choices in two columns, so they fit a short screen. */
+  #pause .panel { width: min(560px, 100%); display: grid; grid-template-columns: 1fr 1fr; }
+  #pause .panel > :not(.menu-btn) { grid-column: 1 / -1; }
+  #pause .pause-logo { display: none; }
+}
+/* Held sideways: all four slots in one row, trimmed to what fits. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .screen-head { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: 4px; }
+  .screen-head h2 { font-size: 1.5rem; }
+  .screen-head p { margin-top: 2px; font-size: 0.85rem; }
+  .screen-foot { padding-top: 6px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .slots { grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; padding-top: 4px; padding-bottom: 4px; }
+  .slot { min-height: 0; border-radius: 16px; }
+  .slot-preview { min-height: 0; }
+  .slot-latin, .slot-blurb { display: none; }
+  .slot-info { padding: 6px 8px 8px; }
+  .slot-name { font-size: 1rem; }
+  .slot-tag { top: 6px; left: 10px; }
+  .slot-device { top: 9px; right: 10px; }
+  .slot-foot { flex-wrap: wrap; justify-content: center; }
+  .slot-empty { padding: 8px; gap: 6px; }
+  .slot-empty .big-a { font-size: 1.8rem; }
+  .options { margin-top: 4px; }
+}
+/* Held upright: two columns of slots without the long blurbs. */
+@media (max-width: 500px) and (orientation: portrait) {
+  .slot { min-height: 240px; }
+  .slot-blurb { display: none; }
+  .slot-foot { flex-wrap: wrap; justify-content: center; }
 }
