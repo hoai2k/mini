@@ -268,23 +268,23 @@ export const ASSETS = {
   },
   "sprites.niffyWalkers": {
     "file": "assets/sprites/niffy-walkers.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.niffyProps": {
     "file": "assets/sprites/niffy-props.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.parkKeeper": {
     "file": "assets/sprites/park-keeper.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.niffyDive": {
     "file": "assets/sprites/niffy-dive.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.niffyFly": {
     "file": "assets/sprites/niffy-fly.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.snippit": {
     "file": "assets/scenes/snippit.webp",
@@ -292,15 +292,15 @@ export const ASSETS = {
   },
   "sprites.balloons": {
     "file": "assets/sprites/balloons.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.snippitSnip": {
     "file": "assets/sprites/snippit-snip.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.snippitPoses": {
     "file": "assets/sprites/snippit-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.buttonbeaks": {
     "file": "assets/scenes/buttonbeaks.webp",
