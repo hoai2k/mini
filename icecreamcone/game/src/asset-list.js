@@ -808,31 +808,31 @@ export const ASSETS = {
   },
   "bookredo.buttonbeaks": {
     "file": "assets/book/buttonbeaks.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.keycrane": {
     "file": "assets/book/keycrane.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.snippit": {
     "file": "assets/book/snippit.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.garbagecanary": {
     "file": "assets/book/garbagecanary.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.steampressersparrow": {
     "file": "assets/book/steampressersparrow.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.wetweatherwren": {
     "file": "assets/book/wetweatherwren.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.glovedove": {
     "file": "assets/book/glovedove.webp",
-    "delivered": false
+    "delivered": true
   },
   "bookredo.titthrush": {
     "file": "assets/book/titthrush.webp",
