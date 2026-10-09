@@ -44,7 +44,7 @@ const ui = {
   modals: [], // open dialogs, top last
   titleNav: false,
   focus: 0,
-  repeatAt: 0,
+  stick: null, // the stick's menu direction and when it next repeats
   paused: false,
   missingPads: [],
   drag: null,
@@ -81,6 +81,9 @@ function openModal(id) {
   el.style.zIndex = String(20 + ui.modals.length);
   ui.focus = 0;
   input.lockHeld();
+  // A stick already held (moving a piece) waits to be let go before it moves the focus.
+  const [hx, hy] = input.leftStick();
+  ui.stick = Math.hypot(hx, hy) > 0.35 ? { dir: stickDirection(hx, hy), next: Infinity } : null;
   refreshFocus(true);
 }
 
@@ -691,6 +694,32 @@ function feedback(inputs) {
   if (chipsDirty) chips();
 }
 
+// The left stick in menus: which way it is pushed (the stronger axis), or
+// null in the middle, with a little hysteresis so it does not flicker.
+function stickDirection(sx, sy) {
+  const m = Math.hypot(sx, sy);
+  if (m < (ui.stick ? 0.35 : 0.55)) return null;
+  return Math.abs(sx) > Math.abs(sy) ? (sx > 0 ? 'right' : 'left') : sy > 0 ? 'down' : 'up';
+}
+
+// One step when the stick is pushed, then repeats while it is held.
+function stickRepeat(sx, sy, now) {
+  const d = stickDirection(sx, sy);
+  if (!d) {
+    ui.stick = null;
+    return null;
+  }
+  if (!ui.stick || ui.stick.dir !== d) {
+    ui.stick = { dir: d, next: now + 420 };
+    return d;
+  }
+  if (now >= ui.stick.next) {
+    ui.stick.next = now + 170;
+    return d;
+  }
+  return null;
+}
+
 function handleMenus(nav, now) {
   const items = navItems();
   const top = ui.modals.at(-1);
@@ -700,7 +729,8 @@ function handleMenus(nav, now) {
     if (!ui.titleNav && Math.hypot(sx, sy) > 0.5) {
       ui.titleNav = true;
       ui.focus = 0;
-      ui.repeatAt = now + 300;
+      // This push opens the options; it does not also move along them.
+      ui.stick = { dir: stickDirection(sx, sy), next: now + 420 };
       refreshFocus(true);
       return;
     }
@@ -723,32 +753,23 @@ function handleMenus(nav, now) {
     return;
   }
   if (!items.length && !top) return;
-  // Directional focus with a dead zone and a repeat delay.
+  // Directional focus. The stick steps like a key: once when pushed, then,
+  // held, again after a pause and at a steady pace; it resets when let go.
   const [sx, sy] = nav.stick;
+  const stickStep = stickRepeat(sx, sy, now);
+  const want = (d) => nav[d] || stickStep === d;
   // In a grid of pictures (the pause menu), up and down move a whole row.
-  const grid = items[ui.focus]?.closest('[data-cols]');
+  const cur = items[ui.focus];
+  const grid = cur?.closest('[data-cols]');
   const row = grid ? Number(grid.dataset.cols) : 1;
   let dir = 0;
-  if (nav.up) dir = -row;
-  else if (nav.left && !isRange(items[ui.focus])) dir = -1;
-  if (nav.down) dir = row;
-  else if (nav.right && !isRange(items[ui.focus])) dir = 1;
-  if (!dir && Math.abs(sy) > 0.6 && now > ui.repeatAt) {
-    dir = Math.sign(sy) * row;
-    ui.repeatAt = now + 260;
-  }
-  if (!dir && grid && Math.abs(sx) > 0.6 && now > ui.repeatAt) {
-    dir = Math.sign(sx);
-    ui.repeatAt = now + 260;
-  }
-  if (Math.abs(sy) < 0.3) ui.repeatAt = Math.min(ui.repeatAt, now);
-  const cur = items[ui.focus];
-  if (isRange(cur) && (nav.left || nav.right || (Math.abs(sx) > 0.6 && now > ui.repeatAt))) {
-    const d = nav.left || sx < -0.6 ? -1 : 1;
-    cur.value = Number(cur.value) + d * Number(cur.step || 1);
+  if (isRange(cur) && (want('left') || want('right'))) {
+    cur.value = Number(cur.value) + (want('left') ? -1 : 1) * Number(cur.step || 1);
     cur.dispatchEvent(new Event('input', { bubbles: true }));
-    if (Math.abs(sx) > 0.6) ui.repeatAt = now + 160;
-  }
+  } else if (want('left')) dir = -1;
+  else if (want('right')) dir = 1;
+  if (want('up')) dir = -row;
+  else if (want('down')) dir = row;
   if (dir && items.length) {
     ui.focus = (ui.focus + dir + items.length) % items.length;
     refreshFocus(true);

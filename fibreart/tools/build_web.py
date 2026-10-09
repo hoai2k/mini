@@ -583,6 +583,10 @@ def build_ui(write: bool) -> dict:
     if badges.exists():
         names = ["resume", "controls", "hint", "howto", "settings", "next", "title", "close"]
         ui["pause"] = {name: cell["file"] for name, cell in zip(names, cut_grid(badges, 4, 2, "ui/pause", write))}
+        # HK-U07 regenerates the close badge (a bold cloth X) once delivered.
+        close = SRC / "ui" / "close-badge.png"
+        if close.exists():
+            ui["pause"]["close"] = cut_grid(close, 1, 1, "ui/close", write)[0]["file"]
     controls = SRC / "ui" / "control-drawings.png"
     if controls.exists():
         names = ["stick", "trigger", "button", "shoulder", "dpad", "controller", "controllers", "moon-controller"]
