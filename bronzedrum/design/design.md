@@ -264,8 +264,8 @@ the player's tempo:
 
 A march or a strike carries on in the same rhythm for up to two more rounds, at
 reduced power (×0.6 and ×0.5), until the player starts the next phrase. Strokes
-during the answer don't start a phrase. Rim strokes between the answer's beats
-are Nhị's flourishes (+10% each, up to four).
+during the answer are ignored (Nhị's flourish, rim strokes between the
+answer's beats for extra power, was removed: it went unexplained and unused).
 
 **Chain.** Starting the next command within two beats of the drum glowing ready
 keeps the chain. Four in a row wakes the drum (*trống thức*), and every command
@@ -294,11 +294,22 @@ letters written together share a beat. Chapter 1 allows tiers I and II, and the
 later chapters allow all three. The first stroke says what kind of order it
 is: movement (march) starts on tùng, attacks (strike) on cắc.
 
+**Outnumbered.** The women should look outnumbered and still able to win.
+The rules count the Han in units, but each is drawn as a squad
+(`render/host.js`): a spear unit is six soldiers in two ranks, a crossbow unit
+five in a staggered line. As a unit is worn down its soldiers fall one by one
+and the rest close up. Behind the line stands the rest of the host, rank on
+rank of smaller, hazier soldiers that scroll slowly as far things do (always
+partly on screen) and thin as the Han are beaten, or, holding the ford, as the
+waves run out. A crossbow attack looses a volley of eight bolts (the fort
+ten), and the women's archers twelve arrows. Only the look changed: units,
+strength and damage are as before.
+
 **A stronger march crashes in.** A march advances 2 × its power each beat and
 stops at the enemy line, so a tier II or III march used to lose the ground it
 had left once it reached the line. Now, on the beat a stronger march arrives
 at the line, that leftover ground becomes a hit on the front enemy: 2 × the
-ground left × the march's power (flourishes included), so arriving early in a
+ground left × the march's power, so arriving early in a
 march hits hardest, at most about half a spear blow (`MARCH_HIT` in
 `battle.js`). It happens once, on arrival: a march begun at the line does not
 hit, and a tier I march never does.
@@ -326,7 +337,7 @@ spirit. The women's cheer that was Rally's sound now plays when the drum wakes.
 
 **The garden is the tutorial.** A "Lessons" list sits at the top left and
 ticks off each lesson as the player does it, with a word of praise and a
-chime: march; a stronger march (tier II); strike; Nhị's flourish; cut down
+chime: march; a stronger march (tier II); strike; cut down
 the targets; block the stones. The hint line always names the current
 lesson. When the last target falls the chapter stays open: two village
 children run in from the right, stop a few paces ahead of the army (they
@@ -528,8 +539,7 @@ The novel has two halves, and the game follows them:
 
 - **Part one, the training years.** Short, quiet chapters at home: the garden,
   lessons, the sisters' friction, the father's death. These teach the rhythms
-  through small scenes rather than battles. Nhị's off-beat flourishes come from
-  her character here.
+  through small scenes rather than battles.
 Chapters 2–4 and 7–9 now cover the training years, the uprising and the
 ending in playable form. What remains for the full game:
 

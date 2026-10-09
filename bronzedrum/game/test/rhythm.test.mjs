@@ -137,12 +137,12 @@ test('a complete match waits briefly when a longer pattern could still follow', 
   assert.equal(command(play(r2, 'L L L RR', 0, 0.6)).command, 'strike');
 });
 
-test('during the answer strokes are ignored, except Nhị’s flourishes between beats', () => {
+test('during the answer strokes are ignored', () => {
   const r = new DrumReader();
   const cmd = command(play(r, tier('march', 1), 0, 0.5));
   assert.ok(r.busy(cmd.start + 0.1));
   const f = r.hit('R', cmd.start + 0.5 * 0.5);
-  assert.equal(f[0].type, 'flourish');
+  assert.equal(f[0].type, 'early', 'a rim stroke between the answer’s beats too');
   const e = r.hit('L', cmd.start + 1 * 0.5);
   assert.equal(e[0].type, 'early');
   assert.equal(r.phrase.length, 0);
