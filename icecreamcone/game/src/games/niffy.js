@@ -11,12 +11,14 @@
 // cruising low snips quickly. Every snip scores one (a price tag two), and
 // the Niffy flies it off to its nest. A child's balloon string is not for
 // snipping (−1). A swoop at nothing makes people nearby hold on to their
-// things for a moment. Now and then the Park Keeper looks round (a red "!",
-// then his eye): while he looks, his noticing fills, slowly for a Niffy
-// high and still, fast for one low down, faster still for one swooping; full,
-// and he whistles and dazes it (no points lost). People come in steadily,
-// never bunched; they get quicker, and the Keeper looks round more often.
-// Score: snips.
+// things (longer if it snaps again); they relax three times as fast while
+// the Niffy is up in the top quarter of its range. Now and then the Park
+// Keeper looks round (a red "!", then his eye): while he looks, he notices
+// only movement: a Niffy keeping still is never seen, one flying about is
+// seen more the lower it is (high up, hardly at all), and a swoop is seen
+// fast. His noticing fills a ring; full, and he whistles and dazes the
+// Niffy (no points lost). People come in steadily, never bunched; they get
+// quicker, and the Keeper looks round more often. Score: snips.
 
 import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
@@ -39,6 +41,12 @@ const GROUND = 800; // the walkers' feet
 const AIM = 90; // a swoop goes for a thing whose blade-arrival spot is within this, across
 const AIM_FAST = 35; // or only this, when the Niffy is flying along at full speed
 const CLIMB = 420; // px a second the stick moves the cruising height
+const RELAX_Y = HIGH + 0.25 * (LOW - HIGH); // above this (the top quarter), wary people relax 3x as fast
+// The Keeper's noticing, per second while he looks:
+const STILL = 40; // px/s of movement (across plus up and down) that counts as keeping still
+const STILL_DRAIN = 0.15; // keeping still: it drains a little
+const MOVE_RATE = 1.6; // flying about flat out at the low line (scaled by lowness squared)
+const SWOOP_RATE = 1.8; // swooping, at any height (a swoop from high takes longer, so costs more)
 // Swoops take longer the further they have to go: down to the thing, and back
 // up to the cruising height.
 const downTime = (dy) => Math.max(0.14, Math.abs(dy) / 1050);
@@ -47,7 +55,7 @@ const SIZE = 210;
 const KEEPER_X = 1420;
 const GAP = 420; // the least room between two people walking the same way
 const WARY = 1.8; // seconds people hold on to their things after a snap at the air nearby
-const WARY_R = 170;
+const WARY_R = 240;
 const DAZE = 1.6; // seconds the Niffy is dazed after the Keeper's whistle
 // Where the blade's tip is, from the feet, in bird units (400 = the bird's
 // size): on the painting (the open blades' point, measured on the 1024 px
@@ -97,6 +105,7 @@ export default function create(env) {
     cruise: HOVER, // the height the Niffy cruises at, HIGH..LOW
     aimRef: W / 2, // where a press now would swoop for (the Niffy, or the pointer)
     speed: 0, // how fast the Niffy is flying along, smoothed
+    motion: 0, // how much it is moving, across and up or down, smoothed
     notice: 0, // the Keeper's noticing, 0..1: full, and he whistles
     walkers: [],
     flying: [], // snipped things on their way to the nest
@@ -221,7 +230,7 @@ export default function create(env) {
     for (const w of g.walkers) {
       if (Math.abs(w.x - g.x) < WARY_R) {
         if (w.wary > 0 && w.items.some((it) => !it.snipped)) holding = true;
-        w.wary = WARY;
+        w.wary = Math.min(2 * WARY, (w.wary || 0) + WARY); // snap again, and they hold on longer
         w.huh = 1;
       }
     }
@@ -306,7 +315,8 @@ export default function create(env) {
       w.x += w.vx * dt;
       w.phase += dt * Math.abs(w.vx) / 22;
       w.huh = Math.max(0, w.huh - dt);
-      w.wary = Math.max(0, w.wary - dt);
+      // people relax 3x as fast while the Niffy is up in the top part of the sky
+      w.wary = Math.max(0, w.wary - dt * (g.y <= RELAX_Y ? 3 : 1));
     }
     g.walkers = g.walkers.filter((w) => w.x > -200 && w.x < W + 200);
 
@@ -318,6 +328,7 @@ export default function create(env) {
     let moving = false;
     if (g.state === 'hover') {
       const was = g.x;
+      const wasC = g.cruise;
       if (input.pointer.active) {
         g.x = approach(g.x, input.pointer.x, 9, dt);
         g.cruise = clamp(approach(g.cruise, input.pointer.y, 6, dt), HIGH, LOW);
@@ -326,9 +337,12 @@ export default function create(env) {
         g.cruise = clamp(g.cruise + input.y * CLIMB * dt, HIGH, LOW);
       }
       g.x = clamp(g.x, 80, W - 80);
-      moving = Math.abs(g.x - was) > 0.6;
-      g.speed = approach(g.speed, Math.abs(g.x - was) / Math.max(dt, 1e-6), 12, dt);
-      if (moving) g.face = g.x < was ? -1 : 1;
+      const vx = Math.abs(g.x - was) / Math.max(dt, 1e-6);
+      g.speed = approach(g.speed, vx, 12, dt);
+      // how much it is moving, across and up or down (the hovering bob doesn't count)
+      g.motion = approach(g.motion, vx + Math.abs(g.cruise - wasC) / Math.max(dt, 1e-6), 15, dt);
+      moving = g.motion > STILL;
+      if (Math.abs(g.x - was) > 0.6) g.face = g.x < was ? -1 : 1;
       g.y = approach(g.y, g.cruise + Math.sin(g.elapsed * 3) * 8, 7, dt);
       g.aimRef = refFor(input);
       if (input.actionPressed && g.time > 0) startDive(input);
@@ -359,15 +373,19 @@ export default function create(env) {
       g.y = approach(g.y, Math.max(HIGH, g.cruise - 40), 5, dt);
       if (g.st > DAZE) g.state = 'hover';
     }
-    // The Keeper's noticing: while he looks, it rises slowly for a Niffy
-    // cruising high and still, fast for one low down, faster again while it
-    // swoops; it drains while he looks away. Full: he whistles.
-    const alt = clamp((g.y - HIGH) / (LOW - HIGH), 0, 2);
+    // The Keeper's noticing comes only from movement: while he looks, a
+    // Niffy keeping still is never noticed, at any height; one flying about
+    // is noticed more the lower it is (high up, hardly at all); a swoop is
+    // noticed fast. It drains while he looks away, and slowly while the
+    // Niffy keeps still under his eye. Full: he whistles.
     if (g.watching() && g.state !== 'dazed') {
-      let rate = lerp(0.18, 0.9, Math.min(1, alt)) + Math.max(0, alt - 1) * 0.8;
-      if (g.state === 'down' || g.state === 'up') rate *= 1.5;
-      else if (moving) rate += 0.1;
-      g.notice = Math.min(1, g.notice + rate * dt);
+      let rate = -STILL_DRAIN;
+      if (g.state === 'down' || g.state === 'up') rate = SWOOP_RATE;
+      else if (moving) {
+        const low = clamp((g.y - HIGH) / (LOW - HIGH), 0, 1);
+        rate = MOVE_RATE * low * low * Math.min(1, g.motion / 400);
+      }
+      g.notice = clamp(g.notice + rate * dt, 0, 1);
       if (g.notice >= 1) caught();
     } else {
       g.notice = Math.max(0, g.notice - (g.keeper.state === 'turning' ? 0.25 : 0.5) * dt);
@@ -599,16 +617,22 @@ export default function create(env) {
       }
     }
     if (w.wary > 0) {
-      // holding on: a stern little "!" over them for as long as it lasts,
-      // fading in its last moments
+      // holding on: a stern little "!" over them, shrinking and fading as
+      // they relax
       c.save();
-      c.globalAlpha = Math.min(1, w.wary * 3);
+      const left = Math.min(1, w.wary / WARY);
+      c.globalAlpha = Math.min(1, 0.35 + left);
       const jig = env.reduceMotion ? 0 : Math.sin(t * 14 + w.phase) * 3;
       const by = GROUND - 410 * s;
-      blob(c, w.x + jig, by, 24, 26, 43, 0.06);
+      const bs = 0.55 + 0.45 * left;
+      c.save();
+      c.translate(w.x + jig, by);
+      c.scale(bs, bs);
+      blob(c, 0, 0, 24, 26, 43, 0.06);
       wash(c, '#fbf8ee');
       ink(c, 2.4);
-      label(c, '!', w.x + jig, by + 2, { size: 40, color: PAL.brick, weight: 800 });
+      label(c, '!', 0, 2, { size: 40, color: PAL.brick, weight: 800 });
+      c.restore();
       if (w.huh > 0) {
         c.lineWidth = 6;
         c.strokeStyle = 'rgba(250,244,228,0.9)';
@@ -787,7 +811,8 @@ export default function create(env) {
     c.restore();
     // The Keeper's warning, right beside the Niffy (he may be off a narrow
     // screen): a red "!" as he turns, then a red eye while he looks.
-    if (g.keeper.state !== 'away' || g.notice > 0.02) warning(c, g.x + 100 * -g.face, g.y - 60, t, 1);
+    // (below it when it flies up near the top, clear of the clock)
+    if (g.keeper.state !== 'away' || g.notice > 0.02) warning(c, g.x + 100 * -g.face, g.y < 260 ? g.y + 110 : g.y - 60, t, 1);
     if (g.state === 'dazed') {
       for (let i = 0; i < 3; i++) {
         const a = t * 5 + (i * Math.PI * 2) / 3;
@@ -884,7 +909,7 @@ export default function create(env) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
       // Under the Niffy, clear of the clock, and whole on a phone.
-      hint(c, 'Fly along, higher or lower · press to swoop and snip', W / 2, 330, { focus: g.focus(), span: g.span, size: 36 });
+      hint(c, 'Fly along, higher or lower · press to swoop · keep still when he looks', W / 2, 330, { focus: g.focus(), span: g.span, size: 36 });
       c.restore();
     }
   };

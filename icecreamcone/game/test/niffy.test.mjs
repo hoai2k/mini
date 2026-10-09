@@ -10,11 +10,12 @@ const pass = entry.pass;
 // time the swoop takes from its height, and swoops when it is lined up and
 // the Keeper's back is turned. `aim` is how far off (pixels) it lines up;
 // `careless` the chance it ignores the Keeper, or a balloon, on any one
-// swoop. A `wary` one also doesn't start a swoop just as the Keeper is about
-// to turn, or next to a balloon, and uses its height: low (quick snips)
-// while his back is turned, up high as soon as he starts to turn. Others
-// keep the height they start at.
-function snipper({ aim = 0, careless = 0, wary = false, seed = 1, dip = 0 } = {}) {
+// swoop. Others keep the height they start at and fly about freely.
+// A `wary` one plays the Keeper: it cruises low (quick snips), keeps still
+// while he turns or looks, darts when his back is turned (but doesn't start
+// a swoop just as he is about to turn, or next to a balloon), and after a
+// miss climbs up out of the way so people relax sooner.
+function snipper({ aim = 0, careless = 0, wary = false, seed = 1 } = {}) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let off = 0;
@@ -22,10 +23,24 @@ function snipper({ aim = 0, careless = 0, wary = false, seed = 1, dip = 0 } = {}
   let wait = 0;
   return (game, t) => {
     const k = game.keeper;
-    // height: wary ones dive low while it is safe, climb when he turns
+    const away = k.state === 'away' && k.t > 0.6;
     let y = 0;
-    if (wary) y = k.state === 'away' && k.t > 0.6 ? 1 : -1;
-    else if (dip) y = game.cruise < game.HIGH + dip ? 1 : 0;
+    if (wary) {
+      if (!away) {
+        // keep still under his eye; but if something walks into the ring
+        // and he has hardly noticed it yet, one quick low swoop
+        if (game.state !== 'hover' || t < wait) return {};
+        const o = game.aim();
+        if (o && o.it.kind !== 'balloon' && game.notice < 0.25 && game.cruise > game.LOW - 20) {
+          wait = t + 0.15;
+          return { action: true };
+        }
+        return {};
+      }
+      const holding = game.walkers.some((w) => w.wary > 0 && Math.abs(w.x - game.x) < 260);
+      y = holding ? -1 : 1;
+      if (holding) return { y };
+    }
     if (game.state !== 'hover') return { y };
     if (t < wait) return { y };
     const safe = reckless || (k.state === 'away' && (!wary || k.t > 0.6));
@@ -64,14 +79,16 @@ test('niffy: a beginner opens the next page, a careful snipper more; idling and 
   const good = seeds.map((seed) => run(create, { seed, bot: snipper({ aim: 6, wary: true, seed }) }).game.score);
   const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: masher() }).game.score);
   const mashLow = [1, 2, 3].map((seed) => run(create, { seed, bot: masher(true) }).game.score);
+  // swooping over and over from one spot, as people walk under it
+  const camp = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: (g, t) => ({ y: seed % 2 ? 1 : 0, action: Math.floor(t * 60) % 6 < 3 }) }).game.score);
   const idle = run(create, { seed: 1 }).game;
-  console.log('niffy beginner', beginner, 'good', good, 'mash', mash, 'mashLow', mashLow, 'idle', idle.score, 'pass', pass);
+  console.log('niffy beginner', beginner, 'good', good, 'mash', mash, 'mashLow', mashLow, 'camp', camp, 'idle', idle.score, 'pass', pass);
   assert.equal(idle.score, 0);
   assert.ok(idle.done);
   assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
   const avg = (a) => a.reduce((x, y) => x + y) / a.length;
   assert.ok(avg(good) > avg(beginner) + 2, `good ${good}`);
-  assert.ok(Math.max(...mash, ...mashLow) < pass, `mashing must not open the next page: ${mash}`);
+  assert.ok(Math.max(...mash, ...mashLow, ...camp) < pass, `mashing must not open the next page: ${mash}`);
 });
 
 // A walker carrying one thing, set right under the Niffy.
@@ -108,6 +125,7 @@ test('niffy: a snap at the air makes the people nearby hold on to their things',
   const game = create(env(6));
   game.spawnT = 99;
   const w = walkerUnder(game, 'flower');
+  game.cruise = game.y = game.LOW; // low down, where people stay wary the full time
   w.x += 130; // out of the swoop's reach
   assert.equal(game.aim(), null);
   swoop(game);
@@ -163,29 +181,50 @@ test('niffy: the stick sets the cruising height, and a low swoop is quicker', ()
   assert.ok(game.downTime(1) >= 0.14);
 });
 
-// Holds the Niffy at a height while the Keeper watches; returns seconds until caught (or null).
-function watched(cruise, swooping = false) {
+// Holds the Niffy at a height while the Keeper watches, keeping still,
+// flying to and fro, or swooping; returns the noticing after 1 s.
+function watched(cruise, how = 'still') {
   const game = create(env(4));
   game.spawnT = 99;
+  game.walkers.length = 0;
   game.cruise = cruise;
   game.y = cruise;
   game.keeper.state = 'watch';
   game.keeper.t = 99;
-  for (let i = 0; i < 60 * 4; i++) {
-    game.update(1 / 60, blank({ action: swooping && i % 40 === 0, actionPressed: swooping && i % 40 === 0 }));
-    if (game.caught) return i / 60;
+  for (let i = 0; i < 60; i++) {
+    const sw = how === 'swoop' && i % 40 === 0;
+    game.update(1 / 60, blank({ x: how === 'move' ? (i % 60 < 30 ? 1 : -1) : 0, action: sw, actionPressed: sw }));
   }
-  return null;
+  return game.caught ? 1 : game.notice;
 }
 
-test('niffy: the Keeper notices a low Niffy fast, a high still one slowly, and a swooping one fastest', () => {
-  const high = watched(150);
-  const low = watched(385);
-  const swoop = watched(385, true);
-  console.log('niffy caught after: high', high, 'low', low, 'swooping', swoop);
-  assert.ok(high === null || high > 3, `high ${high}`); // a whole watch, up high and still
-  assert.ok(low !== null && low < 1.6, `low ${low}`);
-  assert.ok(swoop !== null && swoop < low, `swooping ${swoop}`);
+test('niffy: the Keeper notices only movement: still is safe anywhere, moving high hardly, moving low fast, swooping fast', () => {
+  const r = { stillHigh: watched(150), stillLow: watched(385), moveHigh: watched(150, 'move'), moveLow: watched(385, 'move'), swoopLow: watched(385, 'swoop'), swoopHigh: watched(150, 'swoop') };
+  console.log('niffy noticing after 1 s', r);
+  assert.equal(r.stillHigh, 0);
+  assert.equal(r.stillLow, 0);
+  assert.ok(r.moveHigh < 0.05, `moving high ${r.moveHigh}`);
+  assert.ok(r.moveLow > 0.8, `moving low ${r.moveLow}`);
+  assert.ok(r.swoopLow > 0.5 && r.swoopHigh > 0.8, `swooping ${r.swoopLow} ${r.swoopHigh}`);
+});
+
+test('niffy: people holding on relax three times as fast while the Niffy is up high', () => {
+  const relax = (cruise) => {
+    const game = create(env(5));
+    game.spawnT = 99;
+    game.cruise = game.y = cruise;
+    const w = walkerUnder(game, 'flower');
+    w.wary = 1.8;
+    let t = 0;
+    while (w.wary > 0 && t < 5) {
+      game.update(1 / 60, blank());
+      t += 1 / 60;
+    }
+    return t;
+  };
+  const high = relax(150);
+  const low = relax(385);
+  assert.ok(Math.abs(high - 0.6) < 0.05 && Math.abs(low - 1.8) < 0.05, `high ${high} low ${low}`);
 });
 
 test('niffy: being caught dazes the Niffy but costs no points, and the meter drains when he looks away', () => {
