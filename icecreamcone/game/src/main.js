@@ -3,15 +3,15 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { loadSettings, saveSettings, loadProgress, recordScore, resetProgress } from './store.js';
+import { loadSettings, saveSettings, loadProgress, recordScore, resetProgress, loadStickers, saveStickers, resetStickers } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
-import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, RESULT_TIME, RESULT_GUARD } from './reward.js';
-import { drawCelebration, sticker } from './celebrate.js';
-import './subjects.js';
-import { loadMoreBirds } from './more/index.js';
+import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, RESULT_TIME, RESULT_GUARD, spreadCount } from './reward.js';
+import { drawCelebration, sticker, drawStickerBook, stickerBookLayout, stickerSpot } from './celebrate.js';
+import { normalizeBook, emptyBook, backgrounds, cycle, shownBackground, placeOnSpread, moveSticker, drawOrder, PLAIN } from './stickerbook.js';
+import { SUBJECTS, SUBJECT_IDS } from './subjects.js';
 
 const W = 1600;
 const H = 900;
@@ -21,8 +21,6 @@ const FIXED_DT = Number(params.get('dt')) || 0; // for automated checks
 // that reaches its score plays the whole celebration, as if for the first time.
 const DEBUG = params.has('debug');
 const ALL_OPEN = DEBUG || params.has('all');
-// Preview: the book's other birds whose games are built but not yet in the guide.
-if (params.has('more')) BIRDS.push(...(await loadMoreBirds((params.get('more') || '').split(',').filter(Boolean))));
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#stage');
@@ -30,6 +28,11 @@ const g = canvas.getContext('2d');
 const input = createInput(canvas);
 let settings = loadSettings();
 let progress = loadProgress();
+const BIRD_IDS = BIRDS.map((b) => b.id);
+const SPREADS = spreadCount(BIRDS.length);
+// The sticker book: where the player has put each sticker, its picture and
+// the spread it is open at, kept from visit to visit.
+let book = normalizeBook(loadStickers(), BIRD_IDS, SPREADS);
 
 const S = {
   screen: 'loading',
@@ -136,7 +139,7 @@ function logical() {
 
 // ---------- screens and modals ----------
 
-const SCREENS = ['title', 'guide', 'page', 'gathering', 'celebrate'];
+const SCREENS = ['title', 'guide', 'page', 'gathering', 'celebrate', 'stickers'];
 
 function show(screen) {
   S.screen = screen;
@@ -151,6 +154,7 @@ function show(screen) {
   input.lockHeld();
   if (screen !== 'celebrate') S.cele = null;
   if (screen !== 'guide') S.unlock = null;
+  if (screen !== 'stickers') S.sb = null;
   if (screen === 'title') {
     S.titleUtil = false;
     $('#title-hint').hidden = false;
@@ -165,6 +169,9 @@ function show(screen) {
   } else if (screen === 'celebrate') {
     audio.playMusic('menu');
     document.activeElement?.blur?.();
+  } else if (screen === 'stickers') {
+    openStickerBook();
+    audio.playMusic('menu');
   } else if (screen === 'gathering') {
     $('#gathering-count').textContent = `Every one of the ${BIRDS.length} rare birds, spotted.`;
     audio.playMusic('menu');
@@ -262,30 +269,45 @@ function moveFocus(dx, dy) {
   }
   const r0 = cur.getBoundingClientRect();
   const c0 = [r0.left + r0.width / 2, r0.top + r0.height / 2];
-  let bestEl = null;
-  let bestScore = Infinity;
-  for (const e of items) {
-    if (e === cur) continue;
-    const r = e.getBoundingClientRect();
-    const c = [r.left + r.width / 2, r.top + r.height / 2];
-    const vx = c[0] - c0[0];
-    const vy = c[1] - c0[1];
-    const along = vx * dx + vy * dy;
-    if (along <= 4) continue;
-    const across = Math.abs(vx * dy - vy * dx);
-    const score = along + across * 2.2;
-    if (score < bestScore) {
-      bestScore = score;
-      bestEl = e;
+  // The nearest item that way, from `list`.
+  const nearest = (list) => {
+    let bestEl = null;
+    let bestScore = Infinity;
+    for (const e of list) {
+      if (e === cur) continue;
+      const r = e.getBoundingClientRect();
+      const c = [r.left + r.width / 2, r.top + r.height / 2];
+      const vx = c[0] - c0[0];
+      const vy = c[1] - c0[1];
+      const along = vx * dx + vy * dy;
+      if (along <= 4) continue;
+      const across = Math.abs(vx * dy - vy * dx);
+      const score = along + across * 2.2;
+      if (score < bestScore) {
+        bestScore = score;
+        bestEl = e;
+      }
     }
+    return bestEl;
+  };
+  // In a group (the guide's cards) the next one in it comes first: down goes
+  // to the next row, not to the buttons below, until the last row; past the
+  // end of a row, left and right go on to the next row.
+  const group = cur.closest('[data-nav-group]');
+  let bestEl = null;
+  if (group) {
+    const own = items.filter((e) => group.contains(e));
+    bestEl = nearest(own);
+    if (!bestEl && dx) bestEl = own[own.indexOf(cur) + dx] || null;
   }
+  bestEl ||= nearest(items);
   if (!bestEl) {
     // Nothing that way: step through the list in order instead.
     const i = items.indexOf(cur);
     const step = dx + dy > 0 ? 1 : -1;
     bestEl = items[(i + step + items.length) % items.length];
   }
-  bestEl.focus();
+  bestEl.focus({ preventScroll: true });
   bestEl.scrollIntoView?.({ block: 'nearest' });
   audio.sfx('move');
 }
@@ -330,7 +352,8 @@ function buildGuide() {
   $('#guide-count').textContent = `${spotted} of ${BIRDS.length} birds spotted`;
   $('#gathering-btn').hidden = spotted < BIRDS.length && !ALL_OPEN;
   const target = wrap.children[Math.min(S.bird, BIRDS.length - 1)];
-  target?.focus();
+  target?.focus({ preventScroll: true });
+  target?.scrollIntoView?.({ block: 'center' });
 }
 
 // A card's words, open or locked.
@@ -405,14 +428,25 @@ function endUnlock() {
   input.lockHeld();
 }
 
+// Only cards in view are drawn, and each only when something about it
+// changes (opened, resized); the chosen card, and one opening, every frame.
 function drawCards(t) {
-  for (const card of document.querySelectorAll('#cards .card')) {
+  const wrap = $('#cards');
+  const vr = wrap.getBoundingClientRect();
+  const dpr = view.dpr;
+  for (const card of wrap.querySelectorAll('.card')) {
     const cv = card.querySelector('canvas');
     const i = Number(card.dataset.bird);
-    const dpr = view.dpr;
     const w = cv.clientWidth;
     const h = cv.clientHeight;
     if (!w || !h) continue;
+    const r = card.getBoundingClientRect();
+    if (r.bottom < vr.top - 40 || r.top > vr.bottom + 40) continue; // drawn when it scrolls into view
+    const u = S.unlock?.i === i ? S.unlock : null;
+    const live = card === document.activeElement || !!u;
+    const key = `${unlocked(i)}|${w}|${h}|${dpr}`;
+    if (!live && cv._drawn === key) continue;
+    cv._drawn = live ? '' : key;
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
       cv.width = Math.round(w * dpr);
       cv.height = Math.round(h * dpr);
@@ -423,7 +457,6 @@ function drawCards(t) {
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const size = Math.min(h * 0.92, w * 1.0);
     const opts = { x: w / 2 + size * 0.08, y: h * 0.96, size, t: card === document.activeElement ? t : 0, pose: { growth: 0.2, light: 'green', fill: 0.6 } }; // the Plume as a sprout, so it fits its card
-    const u = S.unlock?.i === i ? S.unlock : null;
     if (u && settings.reduceMotion) {
       // no turning over: the shadow fades and the bird shows through
       const k = Math.max(0, Math.min(1, (u.t - UNLOCK.wait) / UNLOCK.flip));
@@ -587,6 +620,19 @@ async function startBird(i) {
   audio.playMusic(b.tune || 'play');
 }
 
+// The birds Shuttercluck photographs, decided as each round starts: our own
+// pocket birds, and the guide's birds whose pages are still closed. With
+// every page open (?debug, ?all) it is all of them, as before they joined
+// the guide, so there are plenty to find.
+function undiscovered() {
+  if (ALL_OPEN) return SUBJECT_IDS;
+  return SUBJECT_IDS.filter((id) => {
+    if (SUBJECTS[id].pocket) return true;
+    const i = BIRDS.findIndex((b) => b.id === id);
+    return i < 0 || !unlocked(i);
+  });
+}
+
 function newGame() {
   const b = BIRDS[S.bird];
   S.seed = (Date.now() & 0xffff) + 1;
@@ -597,6 +643,7 @@ function newGame() {
     sfx: audio.sfx,
     vibrate,
     reduceMotion: settings.reduceMotion,
+    subjects: b.id === 'shuttercluck' ? undiscovered() : undefined,
   });
   S.gameId = b.id;
 }
@@ -696,7 +743,7 @@ function leaveResult() {
 function celebrate(i) {
   const earned = new Set(BIRDS.map((_, j) => j).filter((j) => j !== i && passed(j)));
   const n = nextPage(i, BIRDS.length);
-  S.cele = { index: i, birds: BIRDS, earned, next: n >= 0 ? BIRDS[n] : null, t: 0, hold: 0, fired: new Set() };
+  S.cele = { index: i, birds: BIRDS, earned, next: n >= 0 ? BIRDS[n] : null, t: 0, hold: 0, fired: new Set(), pos: book.pos, bg: bookPicture() };
   // the stickers are cut out now, not in the middle of the show
   for (const b of BIRDS) sticker(b.id);
   show('celebrate');
@@ -770,6 +817,189 @@ function celebrationInput(dt) {
   }
 }
 
+// ---------- the sticker book ----------
+
+// The book, from the guide: the stickers earned, which the player can pick
+// up and put anywhere on their pages (the mouse or a finger drags them; the
+// stick or the arrows move a hand, and A or Space picks up and puts down),
+// a picture to put behind them (LB / RB, Q / E, or the arrows by its name),
+// and its two spreads to turn between (LT / RT, Page Up / Page Down, or the
+// arrows at the sides). Everything about it is saved.
+
+// With every page open (?debug, ?all) every sticker and picture is too.
+const earnedSet = () => new Set(BIRDS.map((_, i) => i).filter((i) => ALL_OPEN || passed(i)));
+const pictures = () => backgrounds(BIRD_IDS, (i) => ALL_OPEN || passed(i));
+// The picture behind the stickers: the bird's own painting for the book
+// (IC-B01..B28, drawn across both pages) once delivered, its game's scene
+// (pasted in) until then.
+const bookPicture = () => {
+  const bg = shownBackground(pictures(), book.bg);
+  if (bg === PLAIN) return null;
+  const own = ASSETS['book.' + bg]?.delivered && art('book.' + bg);
+  if (own) return { img: own, full: true };
+  const scene = art('scene.' + bg);
+  return scene ? { img: scene, full: false } : null;
+};
+const saveBook = () => saveStickers(book);
+const isWide = () => view.cw >= view.ch * 0.95;
+const sbLayout = () => stickerBookLayout(BIRDS.length, isWide(), book.spread);
+
+function openStickerBook() {
+  const wide = isWide();
+  S.sb = { held: null, hand: wide ? { x: 800, y: 470 } : { x: 450, y: 820 } };
+  document.activeElement?.blur?.();
+  fillStickerBook();
+  if (!earnedSet().size) toast('Reach a bird’s score to earn its sticker.');
+}
+
+function closeStickerBook() {
+  show('guide');
+  $('#stickers-btn')?.focus({ preventScroll: true });
+}
+
+// The words around the book: which pages, which picture, how to use it.
+function fillStickerBook() {
+  const from = sbLayout().from;
+  const to = sbLayout().to;
+  $('#sb-pages').textContent = SPREADS > 1 ? `Pages ${from + 1} to ${to} · ${book.spread + 1} of ${SPREADS}` : '';
+  const bg = shownBackground(pictures(), book.bg);
+  const b = BIRDS.find((x) => x.id === bg);
+  $('#sb-bg-name').textContent = b ? b.name : 'Plain page';
+  const n = pictures().length;
+  for (const el of document.querySelectorAll('.sb-bg .sb-arrow')) el.disabled = n < 2;
+  $('#sb-prev').disabled = book.spread <= 0;
+  $('#sb-next').disabled = book.spread >= SPREADS - 1;
+  stickerHint();
+}
+
+function stickerHint() {
+  const holding = !!S.sb?.held;
+  const text = pad()
+    ? holding ? 'A: put it down · B: put it back' : 'Stick: move the hand · A: pick up · LB RB: picture · LT RT: turn the page · B: close'
+    : input.kind === 'keyboard'
+      ? holding ? 'Space: put it down · Esc: put it back' : 'Arrows: move the hand · Space: pick up · Q E: picture · Page Up / Down: turn the page · Esc: close'
+      : 'Drag a sticker to put it anywhere on the pages';
+  const h = $('#sb-hint');
+  if (h.textContent !== text) h.textContent = text;
+}
+
+function turnPicture(d) {
+  const list = pictures();
+  if (list.length < 2) {
+    toast('Pass a bird’s game to have its picture for the book.');
+    return;
+  }
+  book.bg = cycle(list, shownBackground(list, book.bg), d);
+  saveBook();
+  audio.sfx('page');
+  fillStickerBook();
+  $('#sb-live').textContent = `Picture: ${$('#sb-bg-name').textContent}`;
+}
+
+function turnSpread(d) {
+  const to = Math.max(0, Math.min(SPREADS - 1, book.spread + d));
+  if (to === book.spread) return;
+  if (S.sb?.held) putBack();
+  book.spread = to;
+  saveBook();
+  audio.sfx('page');
+  fillStickerBook();
+  $('#sb-live').textContent = $('#sb-pages').textContent;
+}
+
+// The topmost earned sticker on this spread under (x, y), with its spot.
+function stickerAt(L, x, y) {
+  const earned = earnedSet();
+  const ids = L.slots.filter((sl) => earned.has(sl.i)).map((sl) => BIRDS[sl.i].id);
+  for (const id of drawOrder(ids, book.pos).reverse()) {
+    const i = BIRD_IDS.indexOf(id);
+    const at = stickerSpot(L, i, book.pos[id]);
+    const half = at.s * 0.42;
+    if (Math.abs(x - at.x) <= half && Math.abs(y - (at.y - at.s * 0.02)) <= half * 1.08) return { id, i, at };
+  }
+  return null;
+}
+
+function pickUp(hit, x, y, by) {
+  S.sb.held = { id: hit.id, i: hit.i, x: hit.at.x, y: hit.at.y, dx: hit.at.x - x, dy: hit.at.y - y, by };
+  audio.sfx('catch', { pitch: 5 });
+  stickerHint();
+}
+
+function putDown() {
+  const h = S.sb.held;
+  const L = sbLayout();
+  const sl = L.slots.find((s) => s.i === h.i);
+  moveSticker(book, h.id, placeOnSpread(L.pages, h.x, h.y, sl.s));
+  saveBook();
+  S.sb.held = null;
+  audio.sfx('plop');
+  vibrate(30);
+  stickerHint();
+}
+
+function putBack() {
+  S.sb.held = null;
+  audio.sfx('back');
+  stickerHint();
+}
+
+function stickerInput(dt) {
+  const sb = S.sb;
+  const n = input.nav();
+  const st = input.state();
+  const L = sbLayout();
+  stickerHint();
+  if (n.back) {
+    back();
+    return;
+  }
+  if (input.padPressed(BTN.LB) || input.keyPressed('KeyQ', 'BracketLeft')) turnPicture(-1);
+  if (input.padPressed(BTN.RB) || input.keyPressed('KeyE', 'BracketRight')) turnPicture(1);
+  if (input.padPressed(BTN.LT) || input.keyPressed('PageUp')) turnSpread(-1);
+  if (input.padPressed(BTN.RT) || input.keyPressed('PageDown')) turnSpread(1);
+
+  // the mouse or a finger: drag
+  const p = st.pointer;
+  if (input.kind === 'pointer') {
+    sb.hand = null;
+    if (p.pressed && !sb.held) {
+      const hit = stickerAt(L, p.x, p.y);
+      if (hit) pickUp(hit, p.x, p.y, 'pointer');
+    }
+    if (sb.held?.by === 'pointer') {
+      sb.held.x = p.x + sb.held.dx;
+      sb.held.y = p.y + sb.held.dy;
+      if (!p.down) putDown();
+    }
+    return;
+  }
+
+  // the stick, the D-pad or the arrows: the hand
+  const lw = isWide() ? W : H;
+  const lh = isWide() ? H : W;
+  if (!sb.hand) sb.hand = { x: lw / 2, y: lh / 2 };
+  const speed = 900;
+  sb.hand.x = Math.max(0, Math.min(lw, sb.hand.x + st.x * speed * dt));
+  sb.hand.y = Math.max(0, Math.min(lh, sb.hand.y + st.y * speed * dt));
+  if (sb.held) {
+    sb.held.by = 'hand';
+    sb.held.x = sb.hand.x;
+    sb.held.y = sb.hand.y;
+  }
+  if (n.confirm) {
+    if (sb.held) putDown();
+    else {
+      const hit = stickerAt(L, sb.hand.x, sb.hand.y);
+      if (hit) {
+        pickUp(hit, sb.hand.x, sb.hand.y, 'hand');
+        sb.held.x = sb.hand.x;
+        sb.held.y = sb.hand.y;
+      } else audio.sfx('back');
+    }
+  }
+}
+
 function vibrate(ms = 80) {
   if (!settings.vibration) return;
   for (const gp of navigator.getGamepads?.() || []) {
@@ -798,6 +1028,17 @@ function act(action, el) {
     case 'guide':
       try { speechSynthesis.cancel(); } catch { /* no speech */ }
       show('guide');
+      break;
+    case 'stickers':
+      show('stickers');
+      break;
+    case 'bg-prev':
+    case 'bg-next':
+      turnPicture(action === 'bg-next' ? 1 : -1);
+      break;
+    case 'spread-prev':
+    case 'spread-next':
+      turnSpread(action === 'spread-next' ? 1 : -1);
       break;
     case 'gathering':
       show('gathering');
@@ -829,9 +1070,11 @@ function act(action, el) {
       break;
     }
     case 'reset-progress':
-      confirm('Forget all scores?', 'Every bird’s best score is cleared, and only the first page stays open.', () => {
+      confirm('Forget all scores?', 'Every bird’s best score is cleared, only the first page stays open, and the sticker book is emptied.', () => {
         resetProgress();
         progress = loadProgress();
+        resetStickers();
+        book = emptyBook();
         if (S.screen === 'guide') buildGuide();
         toast('Scores forgotten.');
       });
@@ -898,6 +1141,11 @@ function back() {
     return;
   }
   audio.sfx('back');
+  if (S.screen === 'stickers') {
+    if (S.sb?.held) putBack();
+    else closeStickerBook();
+    return;
+  }
   if (S.screen === 'page') show('guide');
   else if (S.screen === 'guide' || S.screen === 'gathering') show(S.screen === 'gathering' ? 'guide' : 'title');
   else if (S.screen === 'title' && S.titleUtil) {
@@ -1028,6 +1276,13 @@ function menuInput(dt) {
     }
   }
 
+  // Y on the guide opens the sticker book.
+  if (S.screen === 'guide' && !S.modals.length && input.padPressed(BTN.Y)) {
+    audio.sfx('page');
+    show('stickers');
+    return;
+  }
+
   // Shoulder buttons and arrows turn the bird's pages.
   if (S.screen === 'page' && !S.modals.length) {
     if (input.padPressed(BTN.LB)) turnPage(-1);
@@ -1117,7 +1372,8 @@ function frame(now) {
     const n = input.nav();
     if (n.confirm || n.back || input.padAnyPressed() || input.state().actionPressed) endUnlock();
     else tickUnlock(dt);
-  } else menuInput(dt);
+  } else if (S.screen === 'stickers' && S.sb && !S.modals.length) stickerInput(dt);
+  else menuInput(dt);
   if (S.screen === 'page' && S.pageKind !== input.kind) {
     S.pageKind = input.kind;
     fillList($('#page-controls'), controlLines(BIRDS[S.bird]));
@@ -1152,6 +1408,10 @@ function render(dt = 0) {
     renderCelebration();
     return;
   }
+  if (S.screen === 'stickers' && S.sb) {
+    renderStickerBook(t);
+    return;
+  }
   fitView();
   logical();
   if (S.screen === 'title') renderTitle();
@@ -1163,15 +1423,29 @@ function render(dt = 0) {
 // The celebration has its own stage: 1600 x 900 on a wide screen, 900 x
 // 1600 on an upright one, so the book stays big on a phone either way.
 function renderCelebration() {
+  const { lw, lh, px, wide } = bookStage();
+  drawCelebration(g, S.cele, S.cele.t, { lw, lh, px, reduce: settings.reduceMotion, wide });
+}
+
+// The celebration's stage, set up for drawing (and for the pointer).
+function bookStage() {
   const { cw, ch, dpr } = view;
   const wide = cw >= ch * 0.95;
   const lw = wide ? W : H;
   const lh = wide ? H : W;
   const s = Math.min(cw / lw, ch / lh);
+  view = { ...view, s, ox: (cw - lw * s) / 2, oy: (ch - lh * s) / 2 };
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   paper(g, cw, ch);
-  g.setTransform(dpr * s, 0, 0, dpr * s, dpr * (cw - lw * s) / 2, dpr * (ch - lh * s) / 2);
-  drawCelebration(g, S.cele, S.cele.t, { lw, lh, px: dpr * s, reduce: settings.reduceMotion, wide });
+  g.setTransform(dpr * s, 0, 0, dpr * s, dpr * view.ox, dpr * view.oy);
+  return { lw, lh, px: dpr * s, wide };
+}
+
+// The sticker book, on the same stage.
+function renderStickerBook(t) {
+  const { lw, lh, px, wide } = bookStage();
+  const sb = S.sb;
+  drawStickerBook(g, { birds: BIRDS, earned: earnedSet(), book, held: sb.held, hand: input.kind === 'pointer' ? null : sb.hand, bg: bookPicture() }, { lw, lh, px, wide, t, reduce: settings.reduceMotion });
 }
 
 function updateHud() {
@@ -1284,13 +1558,16 @@ addEventListener('gamepadconnected', () => toast('Controller connected.'));
 // ---------- boot ----------
 
 applySettings();
+// Controller prompts (the guide's Y for the sticker book) show while one is in use.
+document.body.classList.toggle('pad', input.kind === 'controller');
+input.onKind((k) => document.body.classList.toggle('pad', k === 'controller'));
 resize();
 requestAnimationFrame((n) => {
   last = n;
   frame(n);
 });
 // For automated checks.
-globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progress() { return progress; } };
+globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progress() { return progress; }, get book() { return book; }, stickerLayout: () => stickerBookLayout(BIRDS.length, isWide(), book.spread), stage: () => ({ ...view }) };
 
 await loadArt();
 $('#loading').remove();

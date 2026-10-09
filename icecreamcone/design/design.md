@@ -16,12 +16,22 @@ says "New World Record!" and nothing more specific.
 
 1. **Title.** The logo, Press Start, and the Controls, Settings and
    Fullscreen buttons (see `GAME_GUIDELINES.md`).
-2. **The field guide.** A spread of pages, one per bird. A bird you haven't
-   met yet shows as an ink silhouette marked "Not yet spotted". The first
-   bird is open from the start; reaching a bird's score opens the next page.
-   Each tab shows your best score. The chosen card is unmistakable from the
-   sofa: it lifts and grows, ringed in pink with its name on a pink tab, its
-   bird comes alive, and the other cards fade back a little.
+2. **The field guide.** A card for each of the book's 28 birds, in order:
+   the ten below first, then the other 18 (the Milkbottle Midge to the Radio
+   Bird; their games are in [`more/`](more/)). A bird you haven't met yet
+   shows as an ink silhouette marked "Not yet spotted". The first bird is open
+   from the start; reaching a bird's score opens the next page. Each tab shows
+   your best score, and the heading counts the birds spotted ("3 of 28").
+   The cards sit seven to a row (five on a narrower screen, three on a phone
+   held upright) in a sheet that scrolls, its top and bottom edges fading
+   like paper running on; the chosen card is always scrolled into view. Down
+   goes to the card below, not to the buttons, until the last row; left and
+   right run on from the end of one row to the next. The chosen card is
+   unmistakable from the sofa: it lifts and grows, ringed in pink with its
+   name on a pink tab, its bird comes alive, and the other cards fade back a
+   little. Only the cards in view are drawn, and only the chosen one every
+   frame. Under the cards: Back, the Sticker Book (Y on a controller) and
+   Settings.
 3. **The bird's page.** The bird large on cream paper, gently alive (it
    breathes, blinks, shuffles, does its thing now and then), with its name, a
    short rhyme in the game's own words (not the book's verses), and how its
@@ -36,10 +46,13 @@ says "New World Record!" and nothing more specific.
    ink and watercolour: the bird's portrait pops in as a die-cut sticker (a
    cream margin following its outline, a cut edge, a shadow, a light sweeping
    across it) with its name; the field guide's sticker book opens under it,
-   two facing pages with a place for every bird in the guide's order, the
-   stickers already earned stuck in theirs and the rest pencilled outlines
-   with their page numbers; the new sticker flies to its place and sticks
-   with a slap and a puff ("A new page is open: ..."). Then the guide comes
+   at the spread with the bird's place: the book has two spreads of 14
+   (pages 1 to 14, 15 to 28), each two facing pages of seven places in the
+   guide's order (rows of 2, 3, 2 side by side, or 4, 3 one above the
+   other), the stickers already earned stuck in theirs (or wherever the
+   player has put them, over the picture chosen for the book) and the rest
+   pencilled outlines with their page numbers; the new sticker flies to its
+   place and sticks with a slap and a puff ("A new page is open: ..."). Then the guide comes
    back, the next card still locked; it turns over to show its bird, with a
    New tab, and is chosen, ready to play (after the last bird, the bird
    itself is chosen). Any press (A, Enter, Space, a click or tap) jumps to
@@ -53,7 +66,30 @@ says "New World Record!" and nothing more specific.
    the next page if you haven't reached it yet, and the game's own summary
    lines. It has no buttons: a little bar runs down, any press goes on
    sooner, and the guide comes back with the bird just played chosen.
-6. **The gathering.** When every bird has been spotted, a final page shows them all
+6. **The sticker book.** From the guide (its button, or Y), the book alone,
+   as large as the screen allows, with every sticker earned. Any sticker can
+   be picked up and put anywhere on the pages of its spread: dragged with the
+   mouse or a finger, or, with a controller or the keyboard, a little ink hand
+   moved with the stick or the arrows picks it up with A (Space) and puts it
+   down with A again; while carried it lifts with a shadow and follows. The
+   one put down goes on top of the pile; stickers may overlap; one let go off
+   the pages is kept just inside the nearer page. B (Esc) puts a carried
+   sticker back where it was, and otherwise closes the book. LB / RB (Q / E,
+   or the arrows by its name) change the picture behind the stickers: the
+   plain page, then a picture for each bird passed, in the guide's order,
+   named by the bird. Each bird has its own painting for the book (IC-B01 to
+   IC-B28, `book.<id>`: 2:1, a fold down the middle), drawn to the edges of
+   both pages, its left half on the left (or upper) page and its right half
+   on the other; until it arrives, the bird's game scene stands in, pasted in
+   across the spread with its edges fading into the paper. Over a picture
+   the headings and names sit on paper labels. LT / RT (Page Up / Page Down, or the arrows at the sides) turn
+   between the two spreads. Every place (kept as a share of its page, so it
+   stays put whether the book lies open side by side or one page above the
+   other), the pile's order, the picture and the spread are saved
+   (`icecreamcone.stickers.v1`) and kept from visit to visit; forgetting the
+   scores in Settings empties the book too. In ?debug and ?all every sticker
+   and picture is there.
+7. **The gathering.** When every bird has been spotted, a final page shows them all
    together, like the book's endpapers. Any bird can be replayed at any time.
 
 **The pause menu** has only buttons that do something: How to play, Settings,
@@ -81,7 +117,9 @@ Every minigame uses the same small set of inputs, so kids learn them once.
 
 ## The minigames
 
-Scores are whole numbers. The score that opens the next page (`pass`) is in
+These are the first ten; the other 18 (pages 11 to 28) are described in
+[`more/`](more/), one file per bird, with their guide entries in
+`game/src/more/`. Scores are whole numbers. The score that opens the next page (`pass`) is in
 `game/src/birds.js`, tuned so it comes within a try or two.
 
 ### 1. Ice-Cream Cone Coot: Scoop Stack (45 s)
@@ -122,12 +160,16 @@ bird squawk. Later cups are smaller, walk faster or bob up and down.
 
 ### 3. Shuttercluck: Say Cheese (10 photos)
 
-You are the Shuttercluck's eye. The undiscovered birds, the ones you don't
-play as, peek out of bushes, the wall, the tree and the gate for a moment:
-the book's 18 birds without a page (the Milkbottle Midge, the Key Crane, the
-Glove Dove, the Jackknife Niffy and the rest) and ten new ones of our own
-(see `game/src/subjects.js`). Each is drawn as a simple stand-in until its
-painting (IC-R01 to IC-R18, IC-N01 to IC-N10) arrives. Move the viewfinder and press the
+You are the Shuttercluck's eye. The as-yet-undiscovered birds peek out of
+bushes, the wall, the tree and the gate for a moment: ten of our own (the
+Hourglass Heron, the Spectacle Snipe and the rest, see
+`game/src/subjects.js`) and those of the book's 18 later birds (the Milkbottle
+Midge, the Key Crane, the Glove Dove...) whose pages in the guide are still
+closed, decided as each round starts. Once every page is open only our ten
+are left; in ?debug and ?all, with everything open, it is all 28 again. What
+a round scores depends on the birds' rarity, not on how many there are to
+find, so the score to reach stays the same. Each is drawn from its painting
+(IC-R01 to IC-R18, IC-N01 to IC-N10). Move the viewfinder and press the
 action to take a picture. A bird in the middle of the frame scores most;
 rarer birds score more. You have ten shots. The results show your photos.
 
@@ -200,5 +242,5 @@ near-miss that costs points.
 - Two to four players, Mario Party style: everyone plays the same minigame
   together on one screen or takes turns, with the gathering page as the
   scoreboard.
-- More birds from the book: the Waterglass Goose, the Wetweather Wren, the
-  Key Crane, the Jackknife Niffy and others.
+- The gathering page's painting shows the first ten birds; a gathering of
+  all 28 would need a new one.

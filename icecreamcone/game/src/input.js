@@ -164,6 +164,10 @@ export function createInput(target) {
       for (const p of pads.values()) if (padPressed(p, b)) return true;
       return false;
     },
+    // A key (by its code) that went down this frame.
+    keyPressed(...codes) {
+      return codes.some((c) => pressed.has(c));
+    },
     padAnyPressed() {
       for (const p of pads.values()) if (p.now.some((v, b) => v > 0.5 && !(p.prev[b] > 0.5) && !p.held.has(b))) return true;
       return false;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { roundOutcome, nextPage, selectAfter, stepAt, skipFrom, STEPS, END, bookLayout, pop, UNLOCK_TIME } from '../src/reward.js';
+import { roundOutcome, nextPage, selectAfter, stepAt, skipFrom, STEPS, END, bookLayout, spreadCount, spreadOf, PER_SPREAD, pop, UNLOCK_TIME } from '../src/reward.js';
 
 test('the first pass celebrates; every other round shows the result briefly', () => {
   assert.equal(roundOutcome({ wasPassed: false, isPassed: true, reached: true }), 'celebrate');
@@ -46,22 +46,35 @@ test('the pop overshoots and settles at full size', () => {
 test('the sticker book has a slot for every bird, inside its pages, not overlapping', () => {
   for (const n of [1, 2, 5, 10, 13, 28]) {
     for (const wide of [true, false]) {
-      const rect = wide ? { x: 200, y: 318, w: 1200, h: 548 } : { x: 80, y: 520, w: 740, h: 1010 };
-      const L = bookLayout(n, rect, wide);
-      assert.equal(L.slots.length, n);
-      assert.equal(L.pages.length, 2);
-      L.slots.forEach((s, i) => {
-        const p = L.pages[s.page];
-        assert.ok(s.s > 0);
-        assert.ok(s.x - s.s / 2 >= p.x - 0.01 && s.x + s.s / 2 <= p.x + p.w + 0.01, `slot ${i} of ${n} across`);
-        assert.ok(s.y - s.s / 2 >= p.y - 0.01 && s.y + s.s / 2 <= p.y + p.h + 0.01, `slot ${i} of ${n} down`);
-        for (const o of L.slots.slice(i + 1)) {
-          const apart = Math.abs(o.x - s.x) >= (o.s + s.s) / 2 - 0.01 || Math.abs(o.y - s.y) >= (o.s + s.s) / 2 - 0.01;
-          assert.ok(apart, `slots overlap (${n}, ${wide})`);
-        }
-      });
-      // the first half on the first page, in order
-      assert.equal(L.slots.filter((s) => s.page === 0).length, Math.ceil(n / 2));
+      const rect = wide ? { x: 150, y: 285, w: 1300, h: 565 } : { x: 80, y: 520, w: 740, h: 1010 };
+      const seen = [];
+      for (let sp = 0; sp < spreadCount(n); sp++) {
+        const L = bookLayout(n, rect, wide, sp);
+        assert.equal(L.pages.length, 2);
+        assert.ok(L.to - L.from <= PER_SPREAD);
+        assert.equal(L.slots.length, L.to - L.from);
+        L.slots.forEach((s, j) => {
+          seen.push(s.i);
+          assert.equal(spreadOf(s.i, n), sp, `bird ${s.i} is on its spread`);
+          const p = L.pages[s.page];
+          assert.ok(s.s > 0);
+          assert.ok(s.x - s.s / 2 >= p.x - 0.01 && s.x + s.s / 2 <= p.x + p.w + 0.01, `slot ${s.i} of ${n} across`);
+          assert.ok(s.y - s.s / 2 >= p.y - 0.01 && s.y + s.s / 2 <= p.y + p.h + 0.01, `slot ${s.i} of ${n} down`);
+          for (const o of L.slots.slice(j + 1)) {
+            const apart = Math.abs(o.x - s.x) >= (o.s + s.s) / 2 - 0.01 || Math.abs(o.y - s.y) >= (o.s + s.s) / 2 - 0.01;
+            assert.ok(apart, `slots overlap (${n}, ${wide})`);
+          }
+        });
+        // the first half of the spread on its first page, in order
+        assert.equal(L.slots.filter((s) => s.page === 0).length, Math.ceil((L.to - L.from) / 2));
+      }
+      assert.deepEqual(seen, [...Array(n).keys()], 'every bird once, in order');
     }
   }
+  // the 28 birds: two spreads of 14, the stickers a good size on a wide screen
+  assert.equal(spreadCount(28), 2);
+  assert.equal(spreadOf(13, 28), 0);
+  assert.equal(spreadOf(14, 28), 1);
+  assert.equal(spreadCount(10), 1);
+  assert.ok(bookLayout(28, { x: 150, y: 285, w: 1300, h: 565 }, true, 1).slots[0].s > 130);
 });

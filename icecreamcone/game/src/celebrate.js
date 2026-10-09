@@ -5,7 +5,8 @@
 // Timing and layout are in reward.js; main.js runs it and handles the input.
 
 import { drawBird, paper, label, poly, ink, blob, PAL, INK } from './draw.js';
-import { STEPS, FLY_TIME, bookLayout, ease, pop } from './reward.js';
+import { STEPS, FLY_TIME, bookLayout, spreadOf, spreadCount, ease, pop } from './reward.js';
+import { pagePoint, drawOrder } from './stickerbook.js';
 
 const at = Object.fromEntries(STEPS.map((s) => [s.name, s.at]));
 const LAND = at.fly + FLY_TIME;
@@ -170,7 +171,13 @@ function roundRect(g, x, y, w, h, r) {
 const COVER = '#8f6f9a'; // a mauve cloth binding
 const tilt = (i) => ((hash(i * 5.3) - 0.5) * 0.16);
 
-function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t }) {
+// One open spread of the book. c: { birds, earned (Set of indices stuck
+// in), index (the new sticker's bird, drawn by its flight, or -1) };
+// o.pos: where the player has put stickers; o.skip: the id of one being
+// carried; o.bg: a picture behind the stickers, o.bgFull when it is one
+// painted for the book's spread (its halves on the two pages) rather than a
+// game's scene pasted in.
+export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, skip = null, bg = null, bgFull = false }) {
   const { pages, slots, spine } = L;
   const sides = wide ? ['r', 'l'] : ['b', 't'];
   const box = {
@@ -237,6 +244,7 @@ function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t }) {
     pagePath(g, p, side);
     ink(g, 2.2);
   });
+  if (bg) (bgFull ? drawSpreadPicture : drawBackdrop)(g, pages, sides, wide, bg);
   // the spine's fold
   g.beginPath();
   if (wide) {
@@ -248,13 +256,33 @@ function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t }) {
   }
   ink(g, 2.6);
 
-  // headings
-  const n = slots.length;
+  // headings, and the pages' numbers at their foot (with more than one
+  // spread, which pages of the guide these are)
+  const n = c.birds.length;
   const stuck = c.earned.size + (stuckNew ? 1 : 0);
   const hs = Math.min(pages[0].w, pages[0].h) * 0.068;
-  const head = (p, text, k) => label(g, text, p.x + p.w / 2, p.y + p.h * 0.065, { size: hs, color: k ? '#7a6656' : INK, weight: k ? 500 : 700 });
+  const head = (p, text, k) => {
+    if (bg) {
+      // over a picture, on a strip of paper
+      g.font = `700 ${hs}px Fraunces, Georgia, serif`;
+      const w = g.measureText(text).width + hs * 1.2;
+      roundRect(g, p.x + p.w / 2 - w / 2, p.y + p.h * 0.065 - hs * 0.75, w, hs * 1.5, hs * 0.3);
+      g.fillStyle = 'rgba(248,241,224,0.92)';
+      g.fill();
+    }
+    label(g, text, p.x + p.w / 2, p.y + p.h * 0.065, { size: hs, color: k ? '#7a6656' : INK, weight: k ? 500 : 700 });
+  };
   head(pages[0], 'My Field Guide', 0);
   head(pages[1], `${stuck} of ${n} spotted`, 1);
+  if (spreadCount(n) > 1) {
+    const onPage = (k) => slots.filter((sl) => sl.page === k);
+    pages.forEach((p, k) => {
+      const own = onPage(k);
+      if (!own.length) return;
+      const text = `— ${own[0].i + 1} to ${own.at(-1).i + 1} —`;
+      label(g, text, p.x + p.w / 2, p.y + p.h - Math.min(p.w, p.h) * 0.035, { size: hs * 0.48, color: 'rgba(59,43,32,0.45)', weight: 500 });
+    });
+  }
   // a hand-ruled line under each heading
   pages.forEach((p, k) => {
     poly(g, [[p.x + p.w * 0.3, p.y + p.h * 0.105], [p.x + p.w * 0.7, p.y + p.h * 0.108]], 40 + k, 1.2, false);
@@ -263,36 +291,147 @@ function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t }) {
     g.globalAlpha = 1;
   });
 
-  // the slots
-  slots.forEach((sl, i) => {
+  // the empty places: a pencilled outline and the page number of each bird
+  // not yet stuck in
+  for (const sl of slots) {
+    const i = sl.i;
     const b = c.birds[i];
-    const has = c.earned.has(i);
     const isNew = i === c.index;
+    if (c.earned.has(i) || (isNew && stuckNew)) continue;
     const box = sl.s * 0.86;
-    if (!has && !(isNew && stuckNew)) {
-      // an empty place: a pencilled outline and its page number
-      g.save();
-      g.setLineDash([7, 6]);
-      roundRect(g, sl.x - box / 2, sl.y - box / 2, box, box, box * 0.14);
-      g.lineWidth = 2;
-      g.strokeStyle = isNew ? 'rgba(192,64,122,0.6)' : 'rgba(59,43,32,0.28)';
-      g.stroke();
-      g.restore();
-      if (isNew) {
-        // the waiting place glows softly in the bird's colour
-        g.save();
-        g.globalAlpha = 0.18 + 0.08 * Math.sin(t * 5);
-        roundRect(g, sl.x - box / 2, sl.y - box / 2, box, box, box * 0.14);
-        g.fillStyle = b.color;
-        g.fill();
-        g.restore();
-      }
-      label(g, String(i + 1), sl.x, sl.y, { size: box * 0.32, color: isNew ? 'rgba(192,64,122,0.7)' : 'rgba(59,43,32,0.3)', weight: 500 });
-      return;
+    g.save();
+    g.setLineDash([7, 6]);
+    roundRect(g, sl.x - box / 2, sl.y - box / 2, box, box, box * 0.14);
+    if (bg) {
+      g.fillStyle = 'rgba(251,246,232,0.55)';
+      g.fill();
     }
-    if (isNew) return; // drawn by the flight, on top of everything
-    drawSticker(g, b.id, sl.x, sl.y - sl.s * 0.06, sl.s * 0.78, { rot: tilt(i), lift: 0.12, px });
-    fitLabel(g, shortName(b.name), sl.x, sl.y + sl.s * 0.43, sl.s * 1.08, { size: Math.max(11, sl.s * 0.1), color: '#5a4636', weight: 500 });
+    g.lineWidth = 2;
+    g.strokeStyle = isNew ? 'rgba(192,64,122,0.6)' : bg ? 'rgba(59,43,32,0.45)' : 'rgba(59,43,32,0.28)';
+    g.stroke();
+    g.restore();
+    if (isNew) {
+      // the waiting place glows softly in the bird's colour
+      g.save();
+      g.globalAlpha = 0.18 + 0.08 * Math.sin(t * 5);
+      roundRect(g, sl.x - box / 2, sl.y - box / 2, box, box, box * 0.14);
+      g.fillStyle = b.color;
+      g.fill();
+      g.restore();
+    }
+    label(g, String(i + 1), sl.x, sl.y, { size: box * 0.32, color: isNew ? 'rgba(192,64,122,0.7)' : bg ? 'rgba(59,43,32,0.5)' : 'rgba(59,43,32,0.3)', weight: 500 });
+  }
+  // the stickers, in their own places or wherever the player put them, the
+  // pile from the bottom up (the new one is drawn by its flight, and one
+  // being carried by the hand)
+  const ids = slots.filter((sl) => c.earned.has(sl.i) && sl.i !== c.index && c.birds[sl.i].id !== skip).map((sl) => c.birds[sl.i].id);
+  for (const id of drawOrder(ids, pos)) {
+    const i = c.birds.findIndex((b) => b.id === id);
+    const at = stickerSpot(L, i, pos[id]);
+    drawPlaced(g, c.birds[i], i, at, { px, bg });
+  }
+}
+
+// Where bird i's sticker sits on this spread: { x, y, s }, the centre of
+// its place and the place's size; `p` is where the player put it, if moved.
+export function stickerSpot(L, i, p) {
+  const sl = L.slots.find((s) => s.i === i);
+  if (!sl) return null;
+  if (!p) return { x: sl.x, y: sl.y, s: sl.s };
+  const at = pagePoint(L.pages, p);
+  return { x: at.x, y: at.y, s: sl.s };
+}
+
+// A sticker stuck in at a spot, with its name under it.
+export function drawPlaced(g, b, i, at, { px = 1, lift = 0.12, scale = 1, bg = null, alpha = 1 } = {}) {
+  g.save();
+  g.globalAlpha *= alpha;
+  drawSticker(g, b.id, at.x, at.y - at.s * 0.06, at.s * 0.78 * scale, { rot: tilt(i), lift, px });
+  const ly = at.y + at.s * 0.43 * scale;
+  const size = Math.max(11, at.s * 0.1);
+  if (bg) {
+    // on a picture, the name on a little paper label
+    g.font = `500 ${size}px Fraunces, Georgia, serif`;
+    const w = Math.min(at.s * 1.08, g.measureText(shortName(b.name)).width) + size;
+    roundRect(g, at.x - w / 2, ly - size * 0.75, w, size * 1.5, size * 0.4);
+    g.fillStyle = 'rgba(251,246,232,0.85)';
+    g.fill();
+  }
+  fitLabel(g, shortName(b.name), at.x, ly, at.s * 1.08, { size, color: '#5a4636', weight: 500 });
+  g.restore();
+}
+
+// A picture painted for the book (2:1, a fold down the middle): its left
+// half fills the first page (left, or top on an upright screen), its right
+// half the second, to the edges, with the gutter's shade over the fold.
+function drawSpreadPicture(g, pages, sides, wide, img) {
+  const hw = img.width / 2;
+  pages.forEach((p, n) => {
+    const k = Math.max(p.w / hw, p.h / img.height);
+    const sw = p.w / k;
+    const sh = p.h / k;
+    // each half anchored at the fold side when wide, centred when stacked
+    const sx = n * hw + (wide ? (n === 0 ? hw - sw : 0) : (hw - sw) / 2);
+    g.save();
+    pagePath(g, p, sides[n]);
+    g.clip();
+    g.drawImage(img, sx, (img.height - sh) / 2, sw, sh, p.x, p.y, p.w, p.h);
+    gutterShade(g, p, sides[n], wide);
+    g.restore();
+    pagePath(g, p, sides[n]);
+    ink(g, 2.2);
+  });
+}
+
+function gutterShade(g, p, side, wide) {
+  const span = (wide ? p.w : p.h) * 0.16;
+  const gx0 = side === 'r' ? p.x + p.w : p.x;
+  const gy0 = side === 'b' ? p.y + p.h : p.y;
+  const grd = wide
+    ? g.createLinearGradient(gx0, 0, gx0 + (side === 'r' ? -span : span), 0)
+    : g.createLinearGradient(0, gy0, 0, gy0 + (side === 'b' ? -span : span));
+  grd.addColorStop(0, 'rgba(90,60,40,0.28)');
+  grd.addColorStop(1, 'rgba(90,60,40,0)');
+  g.fillStyle = grd;
+  g.fillRect(p.x, p.y, p.w, p.h);
+}
+
+// The picture behind the stickers: one of the minigames' scenes, pasted in
+// across the spread under the headings, its edges fading into the paper.
+function drawBackdrop(g, pages, sides, wide, img) {
+  const head = Math.min(pages[0].w, pages[0].h) * 0.14;
+  const box = wide
+    ? { x: pages[0].x, y: pages[0].y + head, w: pages[1].x + pages[1].w - pages[0].x, h: pages[0].h - head * 1.15 }
+    : { x: pages[0].x, y: pages[0].y + head, w: pages[0].w, h: pages[1].y + pages[1].h - pages[0].y - head * 1.15 };
+  const m = Math.min(box.w, box.h) * 0.04;
+  const r = { x: box.x + m, y: box.y, w: box.w - m * 2, h: box.h - m * 0.5 };
+  // cover the box, centred
+  const k = Math.max(r.w / img.width, r.h / img.height);
+  const sw = r.w / k;
+  const sh = r.h / k;
+  pages.forEach((p, n) => {
+    g.save();
+    pagePath(g, p, sides[n]);
+    g.clip();
+    g.globalAlpha = 0.92;
+    g.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, r.x, r.y, r.w, r.h);
+    g.globalAlpha = 1;
+    // the edges fade into the paper
+    const f = Math.min(r.w, r.h) * 0.09;
+    const fade = (x0, y0, x1, y1, x, y, w, h) => {
+      const grd = g.createLinearGradient(x0, y0, x1, y1);
+      grd.addColorStop(0, 'rgba(244,236,216,1)');
+      grd.addColorStop(1, 'rgba(244,236,216,0)');
+      g.fillStyle = grd;
+      g.fillRect(x, y, w, h);
+    };
+    fade(r.x, 0, r.x + f, 0, r.x - 1, r.y - 1, f + 1, r.h + 2);
+    fade(r.x + r.w, 0, r.x + r.w - f, 0, r.x + r.w - f, r.y - 1, f + 1, r.h + 2);
+    fade(0, r.y, 0, r.y + f, r.x - 1, r.y - 1, r.w + 2, f + 1);
+    fade(0, r.y + r.h, 0, r.y + r.h - f, r.x - 1, r.y + r.h - f, r.w + 2, f + 1);
+    // and the gutter's shade lies over it
+    gutterShade(g, p, sides[n], wide);
+    g.restore();
   });
 }
 
@@ -419,21 +558,26 @@ function puff(g, x, y, s, color, k) {
   g.restore();
 }
 
-// Where things go on a wide (1600 x 900) or an upright (900 x 1600) stage.
-export function celebrationLayout(n, wide) {
+// Where things go on a wide (1600 x 900) or an upright (900 x 1600) stage;
+// the book open at the spread of bird i.
+export function celebrationLayout(n, wide, i = 0) {
+  const sp = spreadOf(i, n);
   return wide
-    ? { pop: [800, 410, 430], hover: [800, 160, 230], head: 82, name: 690, sub: 748, book: bookLayout(n, { x: 210, y: 300, w: 1180, h: 515 }, true), lift: 520 }
-    : { pop: [450, 700, 520], hover: [450, 300, 290], head: 210, name: 1040, sub: 1104, book: bookLayout(n, { x: 80, y: 520, w: 740, h: 1010 }, false), lift: 900 };
+    ? { pop: [800, 410, 430], hover: [800, 150, 220], head: 82, name: 690, sub: 748, book: bookLayout(n, { x: 150, y: 285, w: 1300, h: 565 }, true, sp), lift: 520 }
+    : { pop: [450, 700, 520], hover: [450, 300, 290], head: 210, name: 1040, sub: 1104, book: bookLayout(n, { x: 80, y: 520, w: 740, h: 1010 }, false, sp), lift: 900 };
 }
 
 // The whole scene at time t. c: { index, birds, earned (Set of indices
-// already stuck), next (the page that opens, or null) }; o: { lw, lh, px,
-// reduce, wide }.
+// already stuck), next (the page that opens, or null), pos (where the player
+// has put stickers in the sticker book), bg (its picture, { img, full }, or
+// null) };
+// o: { lw, lh, px, reduce, wide }.
 export function drawCelebration(g, c, t, o) {
   const { lw, lh, px, reduce, wide } = o;
   const b = c.birds[c.index];
-  const L = celebrationLayout(c.birds.length, wide);
-  const slot = L.book.slots[c.index];
+  const L = celebrationLayout(c.birds.length, wide, c.index);
+  // its own place, or where the player put it before (?debug replays)
+  const slot = stickerSpot(L.book, c.index, c.pos?.[b.id]);
   paper(g, lw, lh);
 
   // 1. the sticker alone, with rays and confetti
@@ -464,7 +608,7 @@ export function drawCelebration(g, c, t, o) {
     g.save();
     g.globalAlpha = reduce ? bookIn : Math.min(1, bookIn * 1.6);
     if (!reduce) g.translate(0, (1 - ease(bookIn)) * L.lift * 0.35);
-    drawBook(g, L.book, wide, c, { stuckNew: t >= land, lw, lh, px, t });
+    drawBook(g, L.book, wide, c, { stuckNew: t >= land, lw, lh, px, t, pos: c.pos || {}, bg: c.bg?.img || null, bgFull: !!c.bg?.full });
     g.restore();
   }
 
@@ -522,4 +666,64 @@ export function drawCelebration(g, c, t, o) {
       g.restore();
     }
   }
+}
+
+// ---------- the sticker book, opened from the guide ----------
+
+// The book alone on the stage, open at `spread`, as large as it goes with
+// room for the words and buttons above and below it.
+export function stickerBookLayout(n, wide, spread = 0) {
+  return wide ? bookLayout(n, { x: 120, y: 150, w: 1360, h: 640 }, true, spread) : bookLayout(n, { x: 60, y: 250, w: 780, h: 1150 }, false, spread);
+}
+
+// The sticker book screen. sb: { birds, earned (Set), book ({ pos, bg,
+// spread }), held (null or { id, x, y }: a sticker being carried, its centre
+// in stage units), hand (null or { x, y }: the controller's or keyboard's
+// hand), bg (the picture behind the stickers, { img, full }, or null) }; o: { lw, lh, px,
+// wide, t, reduce }.
+export function drawStickerBook(g, sb, o) {
+  const { lw, lh, px, wide, t, reduce } = o;
+  paper(g, lw, lh);
+  const L = stickerBookLayout(sb.birds.length, wide, sb.book.spread);
+  drawBook(g, L, wide, { birds: sb.birds, earned: sb.earned, index: -1 }, { stuckNew: false, lw, lh, px, t, pos: sb.book.pos, skip: sb.held?.id, bg: sb.bg?.img || null, bgFull: !!sb.bg?.full });
+  if (sb.held) {
+    const i = sb.birds.findIndex((b) => b.id === sb.held.id);
+    const sl = L.slots.find((s) => s.i === i);
+    const bob = reduce ? 0 : Math.sin(t * 3) * 3;
+    drawPlaced(g, sb.birds[i], i, { x: sb.held.x, y: sb.held.y + bob, s: sl.s }, { px, lift: 1, scale: 1.15, bg: sb.bg?.img });
+  }
+  if (sb.hand) drawHand(g, sb.hand.x, sb.hand.y, !!sb.held, wide ? 1 : 1.25);
+}
+
+// The hand the stick moves: a pointing finger in ink, a pink ring where it
+// points (closed round a sticker while carrying one).
+function drawHand(g, x, y, holding, k) {
+  g.save();
+  g.translate(x, y);
+  g.scale(k, k);
+  g.beginPath();
+  g.arc(0, 0, holding ? 10 : 16, 0, Math.PI * 2);
+  g.lineWidth = 4;
+  g.strokeStyle = 'rgba(192,64,122,0.85)';
+  g.stroke();
+  // the hand, below and to the right of the point
+  g.translate(6, 8);
+  g.rotate(-0.45);
+  g.beginPath();
+  g.moveTo(-6, 0);
+  g.lineTo(-6, 34);
+  g.quadraticCurveTo(-8, 52, 6, 60);
+  g.lineTo(28, 60);
+  g.quadraticCurveTo(38, 50, 36, 30);
+  g.lineTo(36, 20);
+  g.quadraticCurveTo(30, 14, 24, 20);
+  g.quadraticCurveTo(18, 12, 12, 18);
+  g.quadraticCurveTo(8, 12, 6, 18);
+  g.lineTo(6, 0);
+  g.quadraticCurveTo(0, -8, -6, 0);
+  g.closePath();
+  g.fillStyle = '#fffbf1';
+  g.fill();
+  ink(g, 2.4);
+  g.restore();
 }

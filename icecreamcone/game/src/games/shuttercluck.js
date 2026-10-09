@@ -1,7 +1,8 @@
 // Shuttercluck: Say Cheese.
 //
-// You are the Shuttercluck's one glass eye. Rare birds (the book's others,
-// not the ones you play as) peek out of six hiding
+// You are the Shuttercluck's one glass eye. Rare birds not yet discovered
+// (ten of our own, and the book's birds whose field-guide pages are still
+// closed: `env.subjects`, chosen by the shell) peek out of six hiding
 // places in a meadow (a bush, a stone wall, a knothole in the old tree, the
 // gate pillar, the hedge and the tall grass) for a moment, then duck back.
 // A hiding place rustles just before a bird appears. Move the viewfinder and
@@ -20,8 +21,7 @@ const FH = 250;
 const COOLDOWN = 0.45; // the lens re-opening between shots
 const STRIP_Y = 790; // the photos along the bottom
 
-// The birds it photographs are the book's other birds, the ones with no page
-// of their own in the field guide (see ../subjects.js): their drawing box in
+// The birds it can photograph (see ../subjects.js): their drawing box in
 // drawBird's 400-unit space (feet at the origin) and where the head is, for
 // peeking out of the knothole.
 const BOX = Object.fromEntries(SUBJECT_IDS.map((id) => {
@@ -29,12 +29,13 @@ const BOX = Object.fromEntries(SUBJECT_IDS.map((id) => {
   return [id, { ...box, hx: head[0], hy: head[1] }];
 }));
 
-// Rarer birds are worth more and peek for less time.
+// Rarer birds are worth more and peek for less time. What a round scores
+// depends on these, not on how many birds there are to find.
 const TIERS = [
   { name: 'common', value: 60, up: [1.5, 2.0], rustle: 0.6 },
   { name: 'uncommon', value: 100, up: [1.0, 1.4], rustle: 0.5 },
   { name: 'rare', value: 180, up: [0.6, 0.9], rustle: 0.4 },
-].map((T, i) => ({ ...T, ids: SUBJECT_IDS.filter((id) => SUBJECTS[id].tier === i) }));
+];
 
 const NAMES = Object.fromEntries(SUBJECT_IDS.map((id) => [id, SUBJECTS[id].name]));
 
@@ -66,6 +67,10 @@ const S = () => (painted() ? ART_SPOTS : SPOTS);
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
+  // The undiscovered birds this round (every one when the shell names none).
+  const pool = (env.subjects || SUBJECT_IDS).filter((id) => SUBJECTS[id]);
+  const ids = pool.length ? pool : SUBJECT_IDS;
+  const byTier = TIERS.map((_, i) => ids.filter((id) => SUBJECTS[id].tier === i));
   const g = {
     score: 0,
     done: false,
@@ -165,9 +170,11 @@ export default function create(env) {
     const sp = S()[spot];
     const d = diff();
     const roll = rng();
-    const tier = roll < 0.1 + d * 0.12 ? 2 : roll < 0.45 + d * 0.1 ? 1 : 0;
+    let tier = roll < 0.1 + d * 0.12 ? 2 : roll < 0.45 + d * 0.1 ? 1 : 0;
+    // (a tier with nobody left in it: the nearest one that has someone)
+    if (!byTier[tier].length) tier = [tier, 1, 0, 2].find((k) => byTier[k].length);
     const T = TIERS[tier];
-    const id = T.ids[Math.floor(rng() * T.ids.length)];
+    const id = byTier[tier][Math.floor(rng() * byTier[tier].length)];
     const s = sp.size / 400;
     const b = {
       id, tier, spot, x: 0,

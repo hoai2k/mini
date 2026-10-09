@@ -1,8 +1,11 @@
-// The field guide: one entry per bird, in the order of the book's pages.
+// The field guide: one entry per bird, 28 in all. The first ten are here;
+// the book's other 18 follow them, each in its own module in ./more/.
 // The rhymes are the game's own, not the book's verses.
 // `pass` is the score in the bird's minigame that opens the next page.
 
-export const BIRDS = [
+import { MORE } from './more/index.js';
+
+const FIRST = [
   {
     id: 'coot',
     name: 'The Ice-Cream Cone Coot',
@@ -134,6 +137,8 @@ export const BIRDS = [
     color: '#5e7a5a',
   },
 ];
+
+export const BIRDS = [...FIRST, ...MORE];
 
 export const birdById = (id) => BIRDS.find((b) => b.id === id);
 

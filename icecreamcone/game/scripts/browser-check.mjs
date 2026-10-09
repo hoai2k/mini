@@ -1,6 +1,6 @@
 // Browser check (Chromium through Playwright), run from icecreamcone/game:
 //
-//   node scripts/browser-check.mjs [--shots <dir>] [--bird <id>]
+//   node scripts/browser-check.mjs [--shots <dir>] [--bird <id>] [--no-games]
 //
 // It serves the game itself (the invite gate is off on localhost) and drives it
 // with a simulated Xbox controller (navigator.getGamepads is replaced before
@@ -24,8 +24,17 @@
 //     every card is open again; B and a long press skip it all.
 //  5. Keyboard: Enter through the title, guide and page; Space steps
 //     through a celebration.
-//  6. Every minigame that exists, the book's other birds' too (or only
-//     --bird), is started with ?all&more, played
+//  6. The guide's 28 cards with ?all: the D-pad moves down a row (not to the
+//     buttons below) and on past the end of a row, the chosen card is
+//     scrolled into view, the last row leads down to the buttons, and a
+//     new bird's page shows its goal, controls and tips.
+//  6b. The sticker book (with a few birds passed): Y on the guide opens it;
+//     the mouse drags a sticker to the other page; the controller's hand
+//     picks one up with A, carries it and puts it down with A (on top of the
+//     pile), and B puts a carried one back; RB / LB change the picture; B
+//     closes it, and reopening, and reloading the page, keep every place, the
+//     pile's order, the picture and the spread.
+//  7. Every minigame (all 28, or only --bird) is started with ?all, played
 //     for a while with random input, and must run without errors, draw, and
 //     reach its end (the result card, or with luck a celebration).
 //
@@ -46,6 +55,7 @@ const arg = (name) => {
 };
 const shots = arg('--shots');
 const only = arg('--bird');
+const noGames = process.argv.includes('--no-games'); // skip step 7
 
 async function playwright() {
   const tries = [process.env.PLAYWRIGHT_MODULE && pathToFileURL(process.env.PLAYWRIGHT_MODULE).href, 'playwright', '/opt/node-tools/node_modules/playwright/index.mjs'].filter(Boolean);
@@ -368,18 +378,163 @@ const MENU = 9;
   await page.close();
 }
 
-// ---------- 6: every minigame ----------
-// The ten, then the book's other birds whose games are built (with ?more).
-const { BUILT_IDS, MORE_IDS } = await import(pathToFileURL(join(root, 'src/more/index.js')).href);
-// --bird can name one still being built (not yet in BUILT).
-const ids = ['coot', 'cupadee', 'shuttercluck', 'gullfinch', 'plume', 'bobolinks', 'peeper', 'piffle', 'dodo', 'crow', ...(only && MORE_IDS.includes(only) ? [only] : BUILT_IDS)];
-for (const id of ids) {
+// ---------- 6: the guide's 28 cards ----------
+if (!only) {
+  const { page, errors } = await newPage('&all');
+  await page.evaluate(() => window.__pad(0, {}));
+  await press(page, A); // title → guide
+  await wait(page, 300);
+  const info = await page.evaluate(() => ({ cards: document.querySelectorAll('#cards .card').length, count: document.querySelector('#guide-count').textContent }));
+  info.cards === 28 && /of 28 birds/.test(info.count) ? ok(`the guide has 28 cards (${info.count})`) : fail(`guide: ${JSON.stringify(info)}`);
+  const cols = await page.evaluate(() => getComputedStyle(document.querySelector('#cards')).gridTemplateColumns.split(' ').length);
+  const inView = () =>
+    page.evaluate(() => {
+      const el = document.activeElement;
+      const r = el.getBoundingClientRect();
+      const v = document.querySelector('#cards').getBoundingClientRect();
+      return { bird: el.dataset.bird !== undefined ? Number(el.dataset.bird) : el.textContent.trim(), visible: r.top >= v.top - 2 && r.bottom <= v.bottom + 2 };
+    });
+  await press(page, 13); // D-pad down
+  await wait(page, 400);
+  let f = await inView();
+  f.bird === cols ? ok(`down moves a row (${cols} to a row)`) : fail(`down from the first card: ${JSON.stringify(f)}`);
+  for (let i = 0; i < cols - 1; i++) await press(page, 15); // right, to the end of the row
+  await press(page, 15); // and on, to the next row
+  await wait(page, 400);
+  f = await inView();
+  f.bird === cols * 2 ? ok('right past the end of a row goes on to the next') : fail(`right past the row: ${JSON.stringify(f)}`);
+  for (let i = 0; i < 6; i++) await press(page, 13);
+  await wait(page, 700);
+  f = await inView();
+  f.bird >= 28 - cols && f.visible ? ok(`down to the last row, card ${f.bird} kept in view`) : fail(`the last row: ${JSON.stringify(f)}`);
+  await shot(page, '15-guide-end');
+  await page.evaluate(() => document.querySelector('#cards .card[data-bird="27"]').focus());
+  await press(page, 13);
+  f = await inView();
+  typeof f.bird === 'string' ? ok(`down from the last row goes to the buttons (${f.bird})`) : fail(`below the last row: ${JSON.stringify(f)}`);
+  await page.evaluate(() => document.querySelector('#cards .card[data-bird="16"]').focus());
+  await press(page, A);
+  await wait(page, 400);
+  const pg = await page.evaluate(() => ({ screen: window.__coot.S.screen, name: document.querySelector('#page-name').textContent, number: document.querySelector('#page-number').textContent, goal: document.querySelector('#page-goal').textContent, controls: document.querySelectorAll('#page-controls li').length, tips: document.querySelectorAll('#page-tips li').length }));
+  pg.screen === 'page' && pg.number === 'Page 17 of 28' && pg.goal && pg.controls && pg.tips ? ok(`a new bird's page: ${pg.name}, ${pg.number}, ${pg.controls} controls, ${pg.tips} tips`) : fail(`new page: ${JSON.stringify(pg)}`);
+  await shot(page, '16-new-page');
+  errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors in the guide round');
+  await page.close();
+}
+
+// ---------- 6b: the sticker book ----------
+if (!only) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => m.type() === 'error' && !/fonts\.g/.test(m.text()) && errors.push(m.text()));
+  await page.addInitScript(FAKE_PADS);
+  await page.addInitScript(() => {
+    const p = {};
+    for (const id of ['coot', 'cupadee', 'shuttercluck', 'gullfinch', 'plume']) p[id] = { best: 99999, plays: 1 };
+    localStorage.setItem('icecreamcone.progress.v1', JSON.stringify(p));
+  });
+  const load = async () => {
+    await page.goto(url + '?dt=0.05');
+    await page.waitForFunction(() => window.__coot && window.__coot.S.screen === 'title');
+    await page.evaluate(() => window.__pad(0, {}));
+    await wait(page, 100);
+  };
+  await load();
+  await press(page, A); // title → guide
+  await press(page, 3); // Y
+  let s = await state(page);
+  s.screen === 'stickers' ? ok('Y on the guide opens the sticker book') : fail(`Y on the guide: ${JSON.stringify(s)}`);
+  await shot(page, '17-sticker-book');
+  // stage units → screen pixels
+  const toScreen = (x, y) => page.evaluate(([x, y]) => { const v = window.__coot.stage(); return [v.ox + x * v.s, v.oy + y * v.s]; }, [x, y]);
+  const L = await page.evaluate(() => window.__coot.stickerLayout());
+  // the mouse drags the Coot onto the other page
+  const from = await toScreen(L.slots[0].x, L.slots[0].y);
+  const to = await toScreen(L.pages[1].x + L.pages[1].w * 0.5, L.pages[1].y + L.pages[1].h * 0.5);
+  await page.mouse.move(...from);
+  await page.mouse.down();
+  for (let k = 1; k <= 8; k++) {
+    await page.mouse.move(from[0] + ((to[0] - from[0]) * k) / 8, from[1] + ((to[1] - from[1]) * k) / 8);
+    await wait(page, 40);
+  }
+  await page.mouse.up();
+  await wait(page, 100);
+  let book = await page.evaluate(() => window.__coot.book);
+  const c = book.pos.coot;
+  c && c.page === 1 && Math.abs(c.u - 0.5) < 0.03 && Math.abs(c.v - 0.5) < 0.03 ? ok('the mouse drags a sticker onto the other page') : fail(`mouse drag: ${JSON.stringify(book)}`);
+  // the controller's hand: to the Cupadee, A, across, A
+  const steer = async (tx, ty) => {
+    for (let k = 0; k < 120; k++) {
+      const h = await page.evaluate(() => window.__coot.S.sb.hand);
+      const dx = tx - h.x;
+      const dy = ty - h.y;
+      if (Math.hypot(dx, dy) < 12) break;
+      const ax = Math.max(-1, Math.min(1, dx / 120));
+      const ay = Math.max(-1, Math.min(1, dy / 120));
+      await page.evaluate(([x, y]) => window.__pad(0, { axes: [x, y, 0, 0] }), [Math.abs(ax) < 0.25 ? Math.sign(ax) * 0.25 : ax, Math.abs(ay) < 0.25 ? Math.sign(ay) * 0.25 : ay]);
+      await wait(page, 40);
+    }
+    await page.evaluate(() => window.__pad(0, { axes: [0, 0, 0, 0] }));
+    await wait(page, 60);
+  };
+  await press(page, 13); // wakes the controller (the hand shows)
+  await steer(L.slots[1].x, L.slots[1].y);
+  await press(page, A);
+  const held = await page.evaluate(() => window.__coot.S.sb.held?.id);
+  held === 'cupadee' ? ok('A picks up the sticker under the hand') : fail(`hand pick: ${held}`);
+  await steer(L.pages[1].x + L.pages[1].w * 0.5, L.pages[1].y + L.pages[1].h * 0.5);
+  await shot(page, '18-sticker-carried');
+  await press(page, A);
+  book = await page.evaluate(() => window.__coot.book);
+  book.pos.cupadee?.page === 1 && book.pos.cupadee.z > book.pos.coot.z ? ok('A puts it down, on top of the pile') : fail(`hand drop: ${JSON.stringify(book)}`);
+  // B puts a carried one back
+  await steer(L.slots[2].x, L.slots[2].y);
+  await press(page, A);
+  await steer(L.slots[2].x + 200, L.slots[2].y + 100);
+  await press(page, B);
+  book = await page.evaluate(() => window.__coot.book);
+  const after = await page.evaluate(() => ({ screen: window.__coot.S.screen, held: window.__coot.S.sb?.held }));
+  !book.pos.shuttercluck && after.screen === 'stickers' && !after.held ? ok('B puts a carried sticker back') : fail(`B while carrying: ${JSON.stringify({ book, after })}`);
+  // the pictures: RB, RB, LB → the Coot's seaside
+  await press(page, 5);
+  await press(page, 5);
+  await press(page, 4);
+  book = await page.evaluate(() => window.__coot.book);
+  book.bg === 'coot' ? ok('RB and LB change the picture') : fail(`pictures: ${book.bg}`);
+  await shot(page, '19-sticker-picture');
+  await press(page, 7); // RT: the second spread
+  book = await page.evaluate(() => window.__coot.book);
+  book.spread === 1 ? ok('RT turns to the second spread') : fail(`spread: ${book.spread}`);
+  await press(page, 6); // LT: back
+  await press(page, B);
+  s = await state(page);
+  s.screen === 'guide' ? ok('B closes the sticker book') : fail(`B in the book: ${JSON.stringify(s)}`);
+  await press(page, 3);
+  await press(page, 7);
+  const again = await page.evaluate(() => window.__coot.book);
+  again.pos.coot && again.pos.cupadee && again.bg === 'coot' && again.spread === 1 ? ok('reopened, the stickers are where they were') : fail(`reopened: ${JSON.stringify(again)}`);
+  // the reload: everything kept
+  const before = await page.evaluate(() => JSON.stringify(window.__coot.book));
+  await load();
+  const reloaded = await page.evaluate(() => JSON.stringify(window.__coot.book));
+  reloaded === before ? ok('after a reload the places, the pile, the picture and the spread are kept') : fail(`reload: ${before} → ${reloaded}`);
+  await page.evaluate(() => window.__coot.act('stickers'));
+  await wait(page, 200);
+  await shot(page, '20-sticker-reloaded');
+  errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors in the sticker book');
+  await page.close();
+}
+
+// ---------- 7: every minigame ----------
+const { BIRDS } = await import(pathToFileURL(join(root, 'src/birds.js')).href);
+for (const id of noGames ? [] : BIRDS.map((b) => b.id)) {
   if (only && id !== only) continue;
   if (!existsSync(join(root, 'src/games', id + '.js'))) {
-    console.log(`skip: ${id} (not built yet)`);
+    fail(`${id}: no game`);
     continue;
   }
-  const { page, errors } = await newPage('&all&more=' + id);
+  const { page, errors } = await newPage('&all');
   await page.evaluate((id) => window.__coot.startBird(window.__coot.BIRDS.findIndex((b) => b.id === id)), id);
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   let k = 0;

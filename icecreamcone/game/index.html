@@ -57,9 +57,10 @@
         <p class="muted" id="guide-count"></p>
         <p class="sr-only" id="guide-live" role="status" aria-live="polite"></p>
       </header>
-      <div id="cards" class="cards"></div>
+      <div id="cards" class="cards" data-nav-group></div>
       <footer class="screen-foot">
         <button class="text-btn" data-nav data-action="title">Back</button>
+        <button class="text-btn" data-nav data-action="stickers" id="stickers-btn"><span class="xb xb-y pad-only" aria-hidden="true">Y</span> Sticker Book</button>
         <button class="text-btn" data-nav data-action="gathering" id="gathering-btn" hidden>All the birds together</button>
         <button class="text-btn" data-nav data-open="settings">Settings</button>
       </footer>
@@ -140,6 +141,25 @@
     <section id="celebrate" class="screen" hidden aria-label="A new sticker">
       <p class="sr-only" id="celebrate-live" role="status" aria-live="polite"></p>
       <p class="hint celebrate-hint" id="celebrate-hint"></p>
+    </section>
+
+    <!-- The sticker book (drawn on the stage; this layer holds its words and
+         buttons, and lets drags through to the stage) -->
+    <section id="stickers" class="screen" hidden aria-labelledby="sb-title">
+      <header class="sb-head">
+        <h2 id="sb-title">Sticker Book</h2>
+        <p class="muted sb-pages" id="sb-pages"></p>
+        <div class="sb-bg">
+          <button class="sb-arrow" data-action="bg-prev" tabindex="-1" aria-label="The picture before (LB or Q)" title="The picture before (LB or Q)">‹</button>
+          <span id="sb-bg-name"></span>
+          <button class="sb-arrow" data-action="bg-next" tabindex="-1" aria-label="The next picture (RB or E)" title="The next picture (RB or E)">›</button>
+        </div>
+      </header>
+      <button class="close-x screen-x" data-action="back" tabindex="-1" aria-label="Close the sticker book" title="Close the sticker book (B or Esc)">×</button>
+      <button class="sb-turn" id="sb-prev" data-action="spread-prev" tabindex="-1" aria-label="Turn back (LT or Page Up)" title="Turn back (LT or Page Up)">◀</button>
+      <button class="sb-turn" id="sb-next" data-action="spread-next" tabindex="-1" aria-label="Turn over (RT or Page Down)" title="Turn over (RT or Page Down)">▶</button>
+      <p class="hint sb-hint" id="sb-hint"></p>
+      <p class="sr-only" id="sb-live" role="status" aria-live="polite"></p>
     </section>
 
     <section id="gathering" class="screen" hidden aria-labelledby="gathering-title">

@@ -67,11 +67,24 @@ export function pop(x) {
   return 1 + (c + 1) * y * y * y + c * y * y;
 }
 
-// The book: two facing pages inside `rect` ({ x, y, w, h }), side by side on
-// a wide screen or one above the other on an upright one, and a slot for each
-// of `n` stickers, in order, the first half on the first page. Each slot is
-// { x, y, s, page } (its centre and size).
-export function bookLayout(n, rect, wide = true) {
+// The sticker book holds every bird of the guide, at most PER_SPREAD to an
+// open spread (two facing pages): the 28 birds take two spreads of 14, and
+// the book opens at the spread with the new sticker's place.
+export const PER_SPREAD = 14;
+export const spreadCount = (n) => Math.max(1, Math.ceil(n / PER_SPREAD));
+// Spreads share the birds evenly, in order.
+const perSpread = (n) => Math.ceil(n / spreadCount(n));
+export const spreadOf = (i, n) => Math.floor(i / perSpread(n));
+
+// One spread of the book: two facing pages inside `rect` ({ x, y, w, h }),
+// side by side on a wide screen or one above the other on an upright one,
+// and a slot for each of the spread's stickers, in order, the first half on
+// the first page. Each slot is { i, x, y, s, page } (the bird's index in the
+// guide, its centre and size); `from` and `to` are the spread's first bird
+// and the one after its last.
+export function bookLayout(n, rect, wide = true, spread = 0) {
+  const from = Math.min(n, spread * perSpread(n));
+  const to = Math.min(n, from + perSpread(n));
   const gap = wide ? rect.w * 0.035 : rect.h * 0.035; // the spine
   const pages = wide
     ? [
@@ -82,10 +95,10 @@ export function bookLayout(n, rect, wide = true) {
         { x: rect.x, y: rect.y, w: rect.w, h: (rect.h - gap) / 2 },
         { x: rect.x, y: rect.y + (rect.h + gap) / 2, w: rect.w, h: (rect.h - gap) / 2 },
       ];
-  const first = Math.ceil(n / 2);
+  const first = Math.ceil((to - from) / 2);
   const slots = [];
   pages.forEach((p, k) => {
-    const count = k === 0 ? first : n - first;
+    const count = k === 0 ? first : to - from - first;
     if (!count) return;
     // inside the page's margins, under its heading
     const m = Math.min(p.w, p.h) * 0.07;
@@ -100,18 +113,24 @@ export function bookLayout(n, rect, wide = true) {
       const s = Math.min(iw / cols, ih / rows);
       if (!best || s > best.s + 0.5) best = { cols, rows, s };
     }
-    const { cols, rows, s } = best;
-    for (let j = 0; j < count; j++) {
-      const r = Math.floor(j / cols);
-      const inRow = r === rows - 1 ? count - r * cols : cols;
-      const c = j - r * cols;
-      slots.push({
-        x: ix + iw / 2 + (c - (inRow - 1) / 2) * s,
-        y: iy + ih / 2 + (r - (rows - 1) / 2) * s,
-        s: s * 0.9,
-        page: k,
-      });
-    }
+    const { rows, s } = best;
+    // the stickers shared evenly between the rows, the fuller ones in the
+    // middle (7 go 2, 3, 2), so no row is left with one or two strays
+    const per = Array(rows).fill(Math.floor(count / rows));
+    const mid = (rows - 1) / 2;
+    [...per.keys()].sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid) || a - b).slice(0, count % rows).forEach((r) => per[r]++);
+    let j = 0;
+    per.forEach((inRow, r) => {
+      for (let c = 0; c < inRow; c++, j++) {
+        slots.push({
+          i: from + (k === 0 ? 0 : first) + j,
+          x: ix + iw / 2 + (c - (inRow - 1) / 2) * s,
+          y: iy + ih / 2 + (r - (rows - 1) / 2) * s,
+          s: s * 0.9,
+          page: k,
+        });
+      }
+    });
   });
-  return { pages, slots, spine: wide ? { x: rect.x + rect.w / 2, y: rect.y, w: gap, h: rect.h } : { x: rect.x, y: rect.y + rect.h / 2, w: rect.w, h: gap } };
+  return { from, to, pages, slots, spine: wide ? { x: rect.x + rect.w / 2, y: rect.y, w: gap, h: rect.h } : { x: rect.x, y: rect.y + rect.h / 2, w: rect.w, h: gap } };
 }

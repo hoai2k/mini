@@ -81,3 +81,38 @@ test('shuttercluck: a centred, whole bird is a perfect shot', () => {
   assert.ok(game.score >= 90, `score ${game.score}`);
   assert.ok(game.shots[0].perfect);
 });
+
+// Once every page of the guide is open, only our own pocket birds are left
+// to discover: the round is just as winnable, and mashing still is not.
+test('shuttercluck: with only the pocket birds left, a good photographer still passes and mashing does not', async () => {
+  const { SUBJECTS, SUBJECT_IDS } = await import('../src/subjects.js');
+  const pocket = SUBJECT_IDS.filter((id) => SUBJECTS[id].pocket);
+  assert.equal(pocket.length, 10);
+  const only = (e) => create({ ...e, subjects: pocket });
+  const scores = [1, 2, 3, 4, 5].map((seed) => run(only, { seed, bot: photographer() }).game.score);
+  assert.ok(Math.min(...scores) >= pass, `photographer ${scores}`);
+  for (const seed of [1, 2]) {
+    let r = seed;
+    const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
+    const mash = run(only, { seed, bot: () => ({ x: rnd() * 2 - 1, y: rnd() * 2 - 1, action: rnd() < 0.5 }) });
+    assert.ok(mash.game.score < pass, `mashing ${mash.game.score}`);
+  }
+  // and every bird it shows is one of them
+  const game = only({ W: 1600, H: 900, rng: () => 0.3, sfx: () => {}, vibrate: () => {} });
+  const seen = new Set();
+  for (let i = 0; i < 3000 && !game.done; i++) {
+    game.update(1 / 60, blank());
+    for (const b of game.birds) seen.add(b.id);
+  }
+  assert.ok(seen.size > 0 && [...seen].every((id) => pocket.includes(id)), [...seen].join());
+});
+
+test('shuttercluck: a pool with a tier missing still finds birds', () => {
+  const game = create({ ...env(2), subjects: ['spectaclesnipe'] });
+  let peeked = false;
+  for (let i = 0; i < 4000 && !game.done; i++) {
+    game.update(1 / 60, blank());
+    peeked ||= game.birds.some((b) => b.id === 'spectaclesnipe');
+  }
+  assert.ok(game.done && peeked);
+});

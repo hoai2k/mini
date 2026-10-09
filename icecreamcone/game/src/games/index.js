@@ -10,6 +10,8 @@
 //     sfx(name, opts?)        a sound from audio.js (no-op in tests)
 //     vibrate(ms)             a short rumble when supported and allowed
 //     reduceMotion: boolean   keep shakes and flashes small when true
+//     subjects?: string[]     Shuttercluck only: the ids (in subjects.js) of
+//                             the birds not yet discovered, to photograph
 //   }
 //
 //   game = {

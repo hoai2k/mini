@@ -1,48 +1,34 @@
-// The book's other birds, on their way into the field guide. Each one that
-// has its minigame built has a module here, src/more/<id>.js, default-
-// exporting its field-guide entry in the same shape as the entries in
-// ../birds.js (id, name, object, rhyme, game, goal, tips, score, pass, tune,
-// color), and its game in ../games/<id>.js. Its bird is drawn by
-// ../subjects.js until it has a portrait.
-//
-// They are not in the guide yet: they join it once the art their games need
-// has been delivered. Until then `?more` on the URL adds every one that is
-// built (listed in BUILT below) after the ten, to try them.
+// The book's other 18 birds, in the field guide after the first ten (see
+// ../birds.js). Each has its field-guide entry here, src/more/<id>.js,
+// default-exporting it in the same shape as the entries in ../birds.js (id,
+// name, object, rhyme, game, goal, tips, controls, score, pass, tune, color),
+// and its game in ../games/<id>.js. Its bird is drawn by ../subjects.js, from
+// its painting.
 
-export const MORE_IDS = [
-  'milkmidge', 'waterglassgoose', 'niffy', 'broomwhisk', 'buttonbeaks', 'keycrane',
-  'snippit', 'garbagecanary', 'steampressersparrow', 'wetweatherwren', 'glovedove', 'titthrush',
-  'plugsocketswift', 'saltshakershrike', 'ladlelark', 'drippet', 'sawbird', 'radiobird',
+import milkmidge from './milkmidge.js';
+import waterglassgoose from './waterglassgoose.js';
+import niffy from './niffy.js';
+import broomwhisk from './broomwhisk.js';
+import buttonbeaks from './buttonbeaks.js';
+import keycrane from './keycrane.js';
+import snippit from './snippit.js';
+import garbagecanary from './garbagecanary.js';
+import steampressersparrow from './steampressersparrow.js';
+import wetweatherwren from './wetweatherwren.js';
+import glovedove from './glovedove.js';
+import titthrush from './titthrush.js';
+import plugsocketswift from './plugsocketswift.js';
+import saltshakershrike from './saltshakershrike.js';
+import ladlelark from './ladlelark.js';
+import drippet from './drippet.js';
+import sawbird from './sawbird.js';
+import radiobird from './radiobird.js';
+
+// In the guide's order: pages 11 to 28.
+export const MORE = [
+  milkmidge, waterglassgoose, niffy, broomwhisk, buttonbeaks, keycrane,
+  snippit, garbagecanary, steampressersparrow, wetweatherwren, glovedove, titthrush,
+  plugsocketswift, saltshakershrike, ladlelark, drippet, sawbird, radiobird,
 ];
 
-// The birds whose games are built, one per line (in any order: they are
-// shown in MORE_IDS order).
-const BUILT = [
-  'snippit',
-  'buttonbeaks',
-  'broomwhisk',
-  'wetweatherwren',
-  'glovedove',
-  'titthrush',
-  'drippet',
-  'sawbird',
-  'radiobird',
-  'keycrane',
-  'garbagecanary',
-  'steampressersparrow',
-  'milkmidge',
-  'waterglassgoose',
-  'niffy',
-  'plugsocketswift',
-  'saltshakershrike',
-  'ladlelark',
-];
-
-// Their field-guide entries, in MORE_IDS order; `also` adds birds being
-// built that aren't listed yet (?more=<id>,<id>).
-export async function loadMoreBirds(also = []) {
-  const ids = MORE_IDS.filter((id) => BUILT.includes(id) || also.includes(id));
-  return Promise.all(ids.map((id) => import(`./${id}.js`).then((m) => m.default)));
-}
-
-export const BUILT_IDS = MORE_IDS.filter((id) => BUILT.includes(id));
+export const MORE_IDS = MORE.map((b) => b.id);

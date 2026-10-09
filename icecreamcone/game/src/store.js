@@ -3,6 +3,7 @@
 
 const SETTINGS_KEY = 'icecreamcone.settings.v1';
 const PROGRESS_KEY = 'icecreamcone.progress.v1';
+const STICKERS_KEY = 'icecreamcone.stickers.v1';
 
 export const DEFAULTS = {
   volume: 80,
@@ -54,4 +55,21 @@ export function recordScore(progress, id, score) {
 
 export function resetProgress() {
   write(PROGRESS_KEY, {});
+}
+
+// The sticker book: where the player has put each sticker, the picture
+// behind them and the spread it is open at (see stickerbook.js, which checks
+// what comes back). Raw here; null when nothing is saved.
+export function loadStickers() {
+  return read(STICKERS_KEY);
+}
+export function saveStickers(book) {
+  write(STICKERS_KEY, book);
+}
+export function resetStickers() {
+  try {
+    localStorage.removeItem(STICKERS_KEY);
+  } catch {
+    /* storage unavailable */
+  }
 }

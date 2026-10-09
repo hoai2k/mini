@@ -149,20 +149,37 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .screen-head { text-align: center; margin-bottom: 10px; }
 .screen-head h2 { font-size: clamp(1.6rem, 3.6vw, 2.6rem); }
 .screen-foot { display: flex; justify-content: center; gap: 12px; margin-top: auto; padding-top: 10px; flex-wrap: wrap; }
+/* The 28 cards: four rows of seven that scroll (two or three rows show at
+   once), the chosen card kept in view. The edges fade, like the paper
+   running on, so it's plain there are more above or below. */
 .cards {
+  --cols: 7;
   flex: 1 1 0;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 14px;
-  max-width: 1200px;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  align-content: start;
+  gap: 16px 14px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+  padding: 18px 16px 30px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 43, 32, 0.35) transparent;
+  -webkit-mask-image: linear-gradient(transparent, #000 14px, #000 calc(100% - 26px), transparent);
+  mask-image: linear-gradient(transparent, #000 14px, #000 calc(100% - 26px), transparent);
 }
+body.reduce-motion .cards { scroll-behavior: auto; }
+@media (max-width: 1000px) { .cards { --cols: 5; } }
 @media (max-width: 760px), (max-aspect-ratio: 1/1) {
-  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow-y: auto; grid-auto-rows: 210px; }
+  .cards { --cols: 3; gap: 12px 10px; padding: 14px 10px 26px; }
 }
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) { .cards { --cols: 7; } }
 .card {
   position: relative;
   display: flex;
@@ -171,12 +188,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
   padding: 6px 6px 8px;
   background: #fbf6e8;
   box-shadow: 2px 3px 0 rgba(59, 43, 32, 0.25);
-  min-height: 0;
+  aspect-ratio: 5 / 6;
+  align-self: start;
+  scroll-margin: 18px 0 30px;
 }
 .card:hover { transform: translateY(-3px) rotate(-0.4deg); }
 .card canvas { flex: 1; min-height: 0; width: 100%; }
-.card .card-name { font-family: var(--serif); font-weight: 600; font-size: clamp(0.8rem, 1.4vw, 1rem); line-height: 1.15; text-align: center; }
-.card .card-sub { font-size: 0.75rem; color: var(--muted); }
+.card .card-name { font-family: var(--serif); font-weight: 600; font-size: clamp(0.78rem, 1.25vw, 0.98rem); line-height: 1.12; text-align: center; }
+.card .card-sub { font-size: 0.75rem; color: var(--muted); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card.locked { background: var(--paper-2); }
 .card.locked .card-name { color: var(--muted); }
 /* The chosen card stands out from across the room: lifted, ringed in pink,
@@ -364,15 +383,51 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .press-start { animation: none; }
-  }
-body.reduce-motion .press-start, body.reduce-motion 
+}
+body.reduce-motion .press-start { animation: none; }
 .menu-btn:disabled, .text-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------- the sticker book ---------- */
+
+/* The book is drawn on the stage; drags go through this layer to it, and
+   only its buttons take clicks. */
+#stickers { pointer-events: none; align-items: center; }
+#stickers button { pointer-events: auto; }
+.sb-head { text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 18px; max-width: calc(100% - 100px); }
+.sb-head h2 { font-size: clamp(1.4rem, 3vw, 2.1rem); }
+.sb-pages { display: none; }
+.sb-bg { display: flex; align-items: center; gap: 8px; background: rgba(250, 244, 228, 0.85); border: 2px solid var(--ink); border-radius: 999px; padding: 2px 6px; font-family: var(--serif); font-weight: 600; font-size: 0.95rem; }
+.sb-bg #sb-bg-name { min-width: 9em; text-align: center; }
+.sb-arrow { width: 34px; height: 34px; border: none; background: none; font: 800 1.6rem/1 var(--serif); border-radius: 50%; }
+.sb-arrow:hover:not(:disabled) { background: #fff8e8; }
+.sb-arrow:disabled, .sb-turn:disabled { opacity: 0.25; cursor: default; }
+.sb-turn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 46px; height: 64px; border: 2px solid var(--ink); border-radius: 14px;
+  background: rgba(250, 244, 228, 0.9); font: 700 1.3rem/1 var(--serif); color: var(--ink);
+}
+/* upright, they sit under the book, either side of the hint */
+@media (max-aspect-ratio: 1/1) {
+  .sb-turn { top: auto; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 40px); transform: none; }
+  .sb-bg { font-size: 0.85rem; }
+  .sb-hint { max-width: calc(100% - 150px); font-size: 0.78rem; border-radius: 14px; }
+}
+#sb-prev { left: max(8px, env(safe-area-inset-left)); }
+#sb-next { right: max(8px, env(safe-area-inset-right)); }
+.sb-hint { position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); text-align: center; background: rgba(250, 244, 228, 0.85); padding: 2px 12px; border-radius: 999px; }
+/* The controller's button for the sticker book, shown while a controller is in use. */
+.pad-only { display: none; }
+body.pad .pad-only { display: inline-grid; }
 
 /* ---------- phones ---------- */
 
 /* Short screens (a phone held sideways): everything tighter so pages and
    cards fit without being cut off; anything still too tall scrolls. */
 @media (max-height: 520px) {
+  .sb-head h2, .sb-pages { display: none; }
+  .sb-bg { font-size: 0.8rem; }
+  .sb-arrow { width: 28px; height: 28px; font-size: 1.3rem; }
+  .sb-hint { font-size: 0.72rem; bottom: 2px; padding: 0 10px; }
   .screen-head { margin-bottom: 4px; }
   .screen-head h2 { font-size: 1.35rem; }
   .screen-head p { margin: 0; font-size: 0.8rem; }
@@ -403,8 +458,14 @@ body.reduce-motion .press-start, body.reduce-motion
 }
 
 /* Narrow screens (a phone held upright): the HUD's three pieces share the
-   width instead of overlapping. */
+   width instead of overlapping; the guide's heading and cards tighten. */
 @media (max-width: 560px) {
+  .screen-head h2 { font-size: 1.45rem; }
+  .screen-head p { margin: 4px 0 0; font-size: 0.9rem; }
+  .card { padding: 4px 3px 6px; }
+  .card .card-name { font-size: 0.78rem; }
+  .card .card-sub { font-size: 0.68rem; }
+  #guide .screen-foot .text-btn { padding: 6px 14px; font-size: 0.95rem; }
   .hud-left { max-width: calc(100% - 190px); }
   #hud-game { font-size: 0.75rem; }
   #hud-status { font-size: 0.95rem; }

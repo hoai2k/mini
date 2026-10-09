@@ -3,16 +3,20 @@
 A field guide of rare birds from Arnold Lobel's *The Ice-Cream Cone Coot and
 Other Rare Birds* (1971), with a Mario Party-style minigame for each bird:
 catch scoops as the Ice-Cream Cone Coot, pour tea into the Cupadee, take
-pictures as the Shuttercluck, and so on through ten birds. Each game lasts 30
+pictures as the Shuttercluck, and so on through all 28 of the book's birds. Each game lasts 30
 to 60 seconds and keeps your best score ("New World Record!" when you beat
-it, or "Personal Best!" while it's still short of opening the next page); reaching a set score opens the next page of the guide.
+it, or "Personal Best!" while it's still short of opening the next page); reaching a set score opens the next page of the guide
+and earns the bird's sticker for the sticker book, where the stickers can be
+put anywhere on its pages over a plain page or a picture of each bird passed
+(its own book painting, IC-B01..B28, or its game's scene until that arrives).
 
 Play it at https://hoai2k.github.io/mini/icecreamcone/. It sits behind the
 shared invite gate (`game/src/gate/gate.js`, a byte-identical copy of the one
 in the `hoai2k.github.io` repository), which is off on localhost.
 
-- [`design/design.md`](design/design.md): the flow, the controls and the ten
-  minigames.
+- [`design/design.md`](design/design.md): the flow, the guide, the sticker
+  book, the controls and the first ten minigames; the other 18 are in
+  [`design/more/`](design/more/).
 - [`design/image-requests.md`](design/image-requests.md): the open image requests
   (finished ones move to [`design/image-requests-history.md`](design/image-requests-history.md)),
   generated from [`design/source/build_requests.py`](design/source/build_requests.py),
@@ -36,15 +40,17 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 | File | What it is |
 | --- | --- |
 | `game/src/main.js` | Screens, menus and navigation, the guide, bird pages, running a minigame (count-in, HUD, pause, results, best scores) |
-| `game/src/reward.js` | After a round: celebration or brief result, the celebration's steps and timing, the sticker book's layout |
-| `game/src/celebrate.js` | The sticker celebration, drawn on the stage: die-cut stickers from the portraits, the sticker book, the flight |
-| `game/src/birds.js` | The ten birds: names, rhymes, goals, tips, the score that opens the next page |
-| `game/src/subjects.js` | The undiscovered birds Shuttercluck photographs (the book's other 18 and ten of our own): names, rarity, their stand-in drawings and where each painting goes |
+| `game/src/reward.js` | After a round: celebration or brief result, the celebration's steps and timing, the sticker book's layout (two spreads of 14) |
+| `game/src/celebrate.js` | The sticker celebration and the sticker book screen, drawn on the stage: die-cut stickers from the portraits, the book and its pictures, the flight, the hand |
+| `game/src/stickerbook.js` | The sticker book's rules: where a dropped sticker goes, the pile's order, the pictures unlocked, what is saved |
+| `game/src/birds.js` | The field guide's 28 birds in order: names, rhymes, goals, tips, the score that opens the next page (the first ten here) |
+| `game/src/more/*.js` | The book's other 18 birds' guide entries (pages 11 to 28), with their controls; `more/index.js` puts them in order |
+| `game/src/subjects.js` | The birds Shuttercluck can photograph (the 18 above and ten of our own): names, rarity, their stand-in drawings and where each painting goes; a round uses our ten and whichever of the 18 are still locked |
 | `game/src/games/*.js` | One minigame per bird; `games/index.js` documents the contract they share |
 | `game/src/draw.js` | Ink-and-wash drawing: the stand-in birds, how each delivered portrait is placed, and what is drawn over it (lamps, growth, blinks) |
 | `game/src/input.js` | Controllers, keyboard, mouse and touch, as one small set of actions |
 | `game/src/audio.js` | Synthesised sound effects and music-box tunes |
-| `game/src/store.js` | Saved settings and best scores |
+| `game/src/store.js` | Saved settings, best scores and the sticker book (`icecreamcone.stickers.v1`) |
 
 ## Controls
 
@@ -55,18 +61,26 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 | Left / right step (Bobolinks) | LB / RB or D-pad ◀ ▶ | ← / → | Tap the left or right half |
 | Wind the spring (Gullfinch) | Spin the left stick | Tap Space or ← → between notes | Drag in circles |
 | Pause | Menu or View | Esc or P | The pause button |
+| Sticker book: open (from the guide) | Y | Arrows to the Sticker Book button, Enter | The Sticker Book button |
+| Sticker book: pick up / put down | Stick moves the hand, A | Arrows move the hand, Space | Drag |
+| Sticker book: picture / turn the page | LB RB / LT RT | Q E / Page Up, Page Down | The arrows |
+| Sticker book: put back / close | B | Esc | The × |
 
 ## Run and check
 
 ```sh
 cd icecreamcone/game
 python3 -m http.server 8125        # then open http://localhost:8125/
-                                   # ?debug opens every page, and every round that reaches
-                                   # its score plays the sticker celebration (?all: pages only)
-node --test test/*.test.mjs        # birds, every minigame idle and mashed, a bot per game
+                                   # ?debug opens every page (and every sticker and picture in
+                                   # the sticker book), and every round that reaches its score
+                                   # plays the sticker celebration (?all: pages only)
+node --test test/*.test.mjs        # birds, every minigame idle and mashed, a bot per game,
+                                   # the sticker book's layout and rules
 node scripts/browser-check.mjs     # in Chromium: title → guide → page → play → pause → result → guide,
                                    # first pass → sticker celebration → next card opening, repeat → result,
-                                   # ?debug, keyboard round, then every minigame to its end
+                                   # ?debug, keyboard round, the 28-card guide, the sticker book
+                                   # (mouse, controller, pictures, kept over a reload), then all
+                                   # 28 minigames to their end (--no-games skips those)
 python3 ../design/source/build_requests.py --check
 ```
 
