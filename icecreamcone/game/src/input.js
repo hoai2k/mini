@@ -33,6 +33,7 @@ export function createInput(target) {
   const pointer = { x: 0, y: 0, down: false, pressed: false, released: false, active: false, side: 0 };
   let mapPointer = (cx, cy) => [cx, cy];
   let stickAngle = null;
+  let navStickHeld = false; // the stick, held through lockHeld(), is ignored by nav() until centred
   let spin = 0;
 
   const setKind = (k) => {
@@ -157,6 +158,10 @@ export function createInput(target) {
     // Everything currently held is stale until released (after a screen change).
     lockHeld() {
       for (const p of pads.values()) p.now.forEach((v, i) => v > 0.5 && p.held.add(i));
+      // A stick pushed out (stirring, steering) doesn't steer the new menu
+      // until it has been let back to the middle.
+      const [sx, sy] = api.stick();
+      navStickHeld = Math.hypot(sx, sy) > 0.3;
       pressed.clear();
       pointer.pressed = false;
     },
@@ -186,7 +191,9 @@ export function createInput(target) {
     // Fresh presses for menus.
     nav() {
       const pad = (b) => api.padPressed(b);
-      const [sx, sy] = api.stick();
+      let [sx, sy] = api.stick();
+      if (navStickHeld && Math.hypot(sx, sy) < 0.3) navStickHeld = false;
+      if (navStickHeld) sx = sy = 0;
       const n = {
         up: any(KEYS.up, pressed) || pad(BTN.UP),
         down: any(KEYS.down, pressed) || pad(BTN.DOWN),
