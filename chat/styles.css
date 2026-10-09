@@ -504,3 +504,19 @@ body:not(.in-call) .field.in-call { display: none; }
 .name-show { align-self: flex-start; padding: 8px 14px; border-radius: 12px; border: 1px dashed var(--line); background: rgba(255, 255, 255, 0.06); color: #fff; font-weight: 800; font-size: 1rem; }
 .badge-host { position: relative; }
 .btn.danger { background: #d93a4e; color: #fff; }
+
+/* ---------- levels of bottom UI (dragged down and up, see setUiLevel) ---------- */
+.controls, .strip-wrap { transition: transform 0.28s ease, bottom 0.28s ease, width 0.25s ease; }
+.controls.dragging, .strip-wrap.dragging { transition: none; }
+/* Level 1: the row tucks away and the strip drops to the bottom edge. */
+#call[data-ui="1"], #call[data-ui="0"] { --bottom-ui: calc(var(--safe-b) + 10px); }
+#call[data-ui="1"] .controls, #call[data-ui="0"] .controls { transform: translateY(calc(100% + var(--safe-b) + 30px)); pointer-events: none; }
+/* Level 0: the strip goes too; only the grip is left. */
+#call[data-ui="0"] .strip-wrap { transform: translateY(calc(100% + var(--safe-b) + 40px)); pointer-events: none; }
+.ui-grip {
+  position: fixed; left: 50%; margin-left: -60px; bottom: calc(var(--safe-b) + 4px); z-index: 21;
+  width: 120px; height: 34px; border: 0; background: none; display: grid; place-items: center; touch-action: none;
+}
+.ui-grip[hidden] { display: none; }
+.ui-grip span { width: 54px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.75); box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5); }
+.ui-grip.dragging { transition: none; }

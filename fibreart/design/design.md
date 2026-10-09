@@ -207,13 +207,18 @@ anchor to the middle or to its partner, tap it to sew, then hold or drag it.
 The hint and Controls Found name the gesture (drag, hold, tap) instead of the
 input for a hand player.
 
-**Full screen.** The fullscreen button shows only where the browser can do it
-(the standard API or Safari's webkit one); Safari on iPhone has none for a
-page, so there the button hides, as it does when the game is opened from the
-home screen. On a phone or tablet turned on its side the game goes full screen
-by itself at the first touch (browsers allow it only inside one). Where there
-is no fullscreen, the page is made a pixel taller than the screen on its side
-and scrolled by that pixel, so Safari folds its bars away.
+**Full screen** (Bronze Drum's approach, `src/chrome.js`). The fullscreen
+button shows only where the browser can do it (the standard API or Safari's
+webkit one), and not when opened from the home screen. On a phone or tablet
+on its side, the first touch asks for fullscreen (browsers allow it only
+inside one) and locks landscape where it can. Safari on iPhone has no
+fullscreen for a page, but tucks its bars away on its side when a finger
+scrolls the page, so there the page is made taller than the screen; while
+the bars show outside play, a stitched pill at the top says "Swipe up".
+During play the page cannot scroll, so the hand keeps every gesture. The game
+is fitted to the visible viewport (Safari's 100vh ignores its bars), and
+`manifest.webmanifest` installs it from the home screen as a full-screen,
+landscape app.
 
 **Players.** One to four controllers, each with its own thread colour (red,
 saffron, teal, violet) and its own bindings, dealt from targets the others
