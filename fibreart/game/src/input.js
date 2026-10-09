@@ -109,6 +109,11 @@ export function createInput() {
       for (const p of pads.values()) if (padPressed(p, b)) return true;
       return false;
     },
+    // Held down now (and not left over from before a screen change).
+    padHeld(b) {
+      for (const p of pads.values()) if (p.now[b] > 0.5 && !p.held.has(b)) return true;
+      return false;
+    },
     keyPressed(code) { return pressed.has(code); },
     leftStick() {
       let x = 0;

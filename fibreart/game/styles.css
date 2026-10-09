@@ -37,6 +37,20 @@ html, body {
 .screen { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 
 #loading { color: var(--cloth); font-family: 'Caveat', cursive; font-size: 2rem; background: var(--night); }
+/* Loading: a row of pale tacking stitches, sewn over in red as the picture arrives. */
+.stitch-bar {
+  position: relative;
+  width: min(18rem, 70vw);
+  height: 0.5rem;
+  background: repeating-linear-gradient(90deg, rgba(255, 246, 228, 0.28) 0 0.7rem, transparent 0.7rem 1.1rem) center / 100% 3px no-repeat;
+}
+.stitch-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: repeating-linear-gradient(90deg, var(--thread) 0 0.7rem, transparent 0.7rem 1.1rem) left center / 18rem 4px no-repeat;
+  transition: width 0.25s ease-out;
+}
 
 /* Title: the live picture behind, the stitched title over it. */
 #title { background: radial-gradient(ellipse at 50% 45%, rgba(22, 13, 46, 0.15), rgba(22, 13, 46, 0.65)); }
@@ -107,6 +121,13 @@ html, body {
   transition: opacity 0.15s;
 }
 .icon-btn:hover .btn-label, .icon-btn:focus-visible .btn-label, .icon-btn.focused .btn-label { opacity: 1; }
+/* The title's corner buttons are badges like the pause menu's, a little
+   smaller, with their names shown above them. */
+.corner-buttons { gap: 0.8rem; }
+.corner-buttons .pic-btn { width: 4.2rem; height: 4.2rem; }
+.corner-buttons .pic-btn .btn-label { top: auto; bottom: calc(100% + 0.4rem); }
+/* A drawn stand-in (fullscreen, until HK-U07) matches the badges' cloth circle. */
+.corner-buttons .pic-btn:not(:has(img.badge)) { width: 3.4rem; height: 3.4rem; margin: 0.4rem; }
 
 /* In play */
 #hud { position: absolute; inset: 0; pointer-events: none; }
@@ -359,7 +380,7 @@ html, body {
 /* The pause menu: pictures to choose between, no words. Each one's name is
    its accessible name, shown small on hover or focus. */
 .pause-panel { width: auto; padding: 1.6rem 1.8rem; }
-.pause-grid { display: grid; grid-template-columns: repeat(4, auto); gap: 1.1rem 1.3rem; justify-content: center; }
+.pause-grid { display: grid; grid-template-columns: repeat(3, auto); gap: 1.1rem 1.3rem; justify-content: center; }
 .pic-btn {
   position: relative;
   width: 5.2rem;
@@ -397,6 +418,7 @@ html, body {
   transition: opacity 0.15s;
   z-index: 1;
 }
+.pic-btn:hover, .pic-btn:focus-visible, .pic-btn.focused { z-index: 2; }
 .pic-btn:hover .btn-label, .pic-btn:focus-visible .btn-label, .pic-btn.focused .btn-label { opacity: 1; }
 #pause-reason:empty { display: none; }
 #pause-reason { max-width: 20rem; margin: 0 auto 0.8rem; text-align: center; }
@@ -405,9 +427,6 @@ html, body {
 .pic-btn img.badge { width: 100%; height: 100%; object-fit: contain; }
 .pic-btn:has(img.badge) { border: none; background: transparent; box-shadow: none; outline-color: transparent; }
 .pic-btn:has(img.badge):focus-visible, .pic-btn.focused:has(img.badge) { outline: 5px solid var(--focus); }
-.close-x img.badge { width: 2.9rem; height: 2.9rem; }
-.close-x:has(img.badge) { width: 2.9rem; height: 2.9rem; top: 0.5rem; right: 0.5rem; }
-.close-x:has(img.badge) { border: none; background: transparent; }
 
 /* The hint: the control, the piece, what wakes it, and one short line. */
 .hint-row { display: flex; align-items: center; gap: 0.9rem; padding: 0.6rem 0; border-bottom: 1px dashed #cdbb98; flex-wrap: wrap; }

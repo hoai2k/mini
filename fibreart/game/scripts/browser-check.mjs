@@ -197,7 +197,7 @@ async function main() {
   await pressUntil(1, () => !window.fibreart.ui.paused, 20000).catch(() => {});
   console.log('  after B:', await state());
   check(await G(() => !window.fibreart.ui.paused), 'after reconnecting, B resumes');
-  if (await G(() => window.fibreart.ui.paused)) await page.click('#pause [data-action="resume"]');
+  if (await G(() => window.fibreart.ui.paused)) await page.mouse.click(8, 8);
 
   // Keyboard plays too.
   await page.keyboard.down('KeyD');

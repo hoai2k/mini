@@ -221,18 +221,23 @@ export function createRenderer(canvas, base = 'web/') {
     return t;
   }
 
+  // How many images have been asked for and how many have arrived (the loading bar).
+  const progress = { asked: 0, done: 0 };
   function load(file, repeat = false) {
     if (textures.has(file)) return textures.get(file).ready;
     const entry = { tex: null, ready: null };
+    progress.asked++;
     entry.ready = new Promise((resolve) => {
       const img = new Image();
       img.decoding = 'async';
       img.onload = () => {
         entry.tex = upload(img, repeat);
+        progress.done++;
         resolve(entry);
       };
       img.onerror = () => {
         console.warn('missing image', file);
+        progress.done++;
         resolve(entry);
       };
       img.src = base + file;
@@ -420,5 +425,5 @@ export function createRenderer(canvas, base = 'web/') {
     }
   }
 
-  return { gl, load, loadScene, render, resize, centre, get frame() { return frame; }, BACKING };
+  return { gl, load, loadScene, render, resize, centre, progress, get frame() { return frame; }, BACKING };
 }
