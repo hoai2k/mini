@@ -831,10 +831,6 @@ function toggleTray(which, force) {
   openTab = next;
   for (const sel of new Set(Object.values(trays))) $(sel).hidden = !next || trays[next] !== sel;
   for (const k of TABS) $(`#btn-${k}`).setAttribute('aria-expanded', String(k === next));
-  const ctrls = $('#controls');
-  if (TABS.includes(next)) ctrls.dataset.tab = next;
-  else delete ctrls.dataset.tab;
-  $('#ctrl-info').hidden = !TABS.includes(next);
   for (const [k, g] of Object.entries(grids)) if (g.on && (next !== k && !(k === 'effects' && KINDS.includes(next)))) setGrid(k, false);
   if (KINDS.includes(next)) {
     if (prev !== next && grids.effects.on) setGrid('effects', false);
@@ -995,8 +991,21 @@ function initControls() {
 
 // What the space beside the picked button says: the effect that's on (with
 // its thumbs, ⓘ and share) or a line about the tab.
+// The row stays whole (with the picked button lit) until something is on:
+// only then does the button slide left and the others fold away to make room
+// for its name and controls; picking "no effect" brings the row back.
 function renderInfo() {
-  if (!openTab || openTab === 'chat') return;
+  const ctrls = $('#controls');
+  const compact = (() => {
+    const fx = studio?.effect;
+    if (!fx) return false;
+    if (KINDS.includes(openTab)) return fx.kind === openTab;
+    return openTab === 'favs' && votes?.mine(`fx-${fx.id}`) === 1;
+  })();
+  if (compact) ctrls.dataset.tab = openTab;
+  else delete ctrls.dataset.tab;
+  $('#ctrl-info').hidden = !compact;
+  if (!compact) return;
   const fx = studio?.effect;
   const name = $('#info-name'), sub = $('#info-sub');
   let showFx = false;
