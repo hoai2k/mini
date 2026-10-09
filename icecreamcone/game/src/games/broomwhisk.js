@@ -12,7 +12,7 @@
 // every eight sweepings, the leaves fall faster, and the gusts come more
 // often as time goes on. A golden leaf is worth three. Score: points.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -53,6 +53,29 @@ const KINDS = {
   gold: { r: 20, fric: 2.4, gust: 340, pts: 3 },
 };
 const LEAF_COLS = [PAL.olive, PAL.mustard, PAL.brick, PAL.sage];
+
+// Measured on the delivered pose sheets (IC-M06d, e), in each cell's pixels:
+// the middle of the feet and their lowest point. The poses were painted at
+// about 0.79 of the portrait's size, so they are drawn 1.27 times larger.
+const POSE_CELLS = {
+  'sprites.broomwhiskSweep': [{ fx: 551, feet: 921 }, { fx: 632, feet: 927 }],
+  'sprites.broomwhiskPoses': [{ fx: 510, feet: 911 }, { fx: 578, feet: 911 }, { fx: 516, feet: 928 }],
+};
+// A painted pose, its feet on (x, y), facing left unless flipped.
+function drawPose(c, key, i, x, y, s, flip, rot) {
+  const sp = spriteCell(key, i);
+  if (!sp) return false;
+  const m = POSE_CELLS[key][i];
+  const k = ((SIZE * s) / 400) * (420 / 1024) * 1.27;
+  const cl = sp.cell;
+  c.save();
+  c.translate(x, y);
+  if (rot) c.rotate(rot);
+  if (flip) c.scale(-1, 1);
+  c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, -m.fx * k, -m.feet * k, cl.w * k, cl.h * k);
+  c.restore();
+  return true;
+}
 
 // Floor depth: things further back are drawn smaller.
 export const depth = (y) => 0.68 + 0.4 * clamp((y - FLOOR_T) / (FLOOR_B - FLOOR_T), 0, 1);
@@ -369,7 +392,7 @@ export default function create(env) {
       c.restore();
     }
     const cell = it.kind === 'dust' ? 4 : it.kind === 'gold' ? 6 : it.look === 'feather' ? 5 : it.look === 'wrapper' ? 7 : Math.max(0, LEAF_COLS.indexOf(it.col));
-    if (drawSprite(c, 'sprites.sweepings', cell, it.x, y, { h: (it.kind === 'dust' ? 64 : 70) * s, anchor: 'center', rot: it.kind === 'dust' ? 0 : it.rot })) return;
+    if (drawSprite(c, 'sprites.sweepings', cell, it.x, y, { w: 84 * s, anchor: 'center', rot: it.kind === 'dust' ? 0 : it.rot })) return;
     c.save();
     c.translate(it.x, y);
     c.scale(s * 1.45, s * 1.45);
@@ -430,12 +453,17 @@ export default function create(env) {
     c.save();
     c.translate(p.x, p.y);
     if (side && p.dx < 0) c.scale(-1, 1);
-    if (drawSprite(c, 'sprites.dustpan', side ? 0 : 1, 0, 6, { h: (side ? 190 : 160) * s })) {
-      c.restore();
-      return;
-    }
-    c.scale(s * 1.4, s * 1.4);
-    if (side) {
+    const sp = spriteCell('sprites.dustpan', side ? 0 : 1);
+    if (sp) {
+      // the painted pan, its mouth's lip where the game's mouth is: from the
+      // side, the scoop's tip (959, 823 in the cell) just past the pan's
+      // point; from the front, the bottom of the mouth (510, 831) on it
+      const m = side ? { x: 959, y: 823, w: 876, at: [50, 12] } : { x: 510, y: 831, w: 827, at: [0, 26] };
+      const k = (230 * s) / m.w;
+      const cl = sp.cell;
+      c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, m.at[0] - m.x * k, m.at[1] - m.y * k, cl.w * k, cl.h * k);
+    } else if (side) {
+      c.scale(s * 1.4, s * 1.4);
       // seen from the side: a flat scoop with its mouth to the right, a handle up the wall
       poly(c, [[-70, -80], [30, -10], [34, 6], [-70, 6]], 3, 1);
       wash(c, '#8aa0a8');
@@ -448,6 +476,7 @@ export default function create(env) {
       ink(c, 9, '#6a7c84');
       ink(c, 1.6);
     } else {
+      c.scale(s * 1.4, s * 1.4);
       // seen from the front: the wide mouth facing us
       poly(c, [[-100, -60], [100, -60], [110, 8], [-110, 8]], 4, 1);
       wash(c, '#8aa0a8');
@@ -522,7 +551,7 @@ export default function create(env) {
       : Math.abs(b.vx) > 120 ? ['sprites.broomwhiskSweep', 0, flip]
       : Math.abs(b.vy) > 80 ? ['sprites.broomwhiskPoses', 0, flip]
       : g.proudT > 0 ? ['sprites.broomwhiskPoses', 2, flip] : null;
-    if (pose && drawSprite(c, pose[0], pose[1], b.x, b.y + 6, { h: SIZE * s, flip: pose[2], rot: lean * 0.5 })) return;
+    if (pose && drawPose(c, pose[0], pose[1], b.x, b.y + 6, s, pose[2], lean * 0.5)) return;
     c.save();
     c.translate(b.x, b.y + 6 - g.proudT * 20 * s);
     c.rotate(lean + (braced && !env.reduceMotion ? g.gust.dir * -0.12 + Math.sin(t * 30) * 0.02 : 0));

@@ -75,3 +75,17 @@ Buttonbeaks stand on the lawn just behind it (feet at y 748), so the held
 button and their tosses start higher too. A touch below y 712 counts as a
 tap on the bowls. The coats, buttons, bowls and the pair's poses (IC-M05b
 to f) are still drawn in code or from the portrait until they arrive.
+
+The buttons, coats, bowl and both pose sheets (IC-M05b to f) arrived next.
+Each painted coat hangs with its shoulders just under the pegs and its
+plain centre strip on the line of buttonholes (strip and shoulders measured
+per coat; the holes moved up a little, to 80, 155 and 228 below the line,
+so the lowest stays above every hem). Each bowl is drawn 150 wide, set in
+the tin with its heap of buttons inside its rim. The poses are drawn at a
+fixed scale per sheet (the pose sheet was painted smaller than the
+portrait) with their claws on the lawn line and the pair's feet centred
+where the portrait's are, so nothing jumps between poses; the pecking pose
+is short, as painted, rather than stretched. While they hold a button they
+show the holding pose, and the button sits just above their touching beak
+tips, so the code-drawn thread is gone; tosses start from there. During
+the quick peck the button isn't shown until it's picked up.

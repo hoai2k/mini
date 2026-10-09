@@ -11,7 +11,7 @@
 // line runs faster as time goes on, coats come with more holes, and two more
 // bowls of look-alike buttons join the tin. Score: buttons sewn on.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 import { subjectShape } from '../subjects.js';
 
@@ -32,7 +32,7 @@ const HOOK_R = 1502;
 const SAG = 26;
 const COAT_W = 230;
 const COAT_H = 290;
-const HOLE_DY = [84, 166, 248]; // the buttonholes, below the line
+const HOLE_DY = [80, 155, 228]; // the buttonholes, below the line: on each painted coat's centre strip
 const GROUND = 748; // the Buttonbeaks' feet, on the lawn just behind the tin
 const SIZE = 280;
 const K = SIZE / 400;
@@ -40,10 +40,41 @@ const K = SIZE / 400;
 // it sits between their two heads, above the pink one's beak (372 units
 // up, 26 right), and the taller bird's head is 362 up; in the stand-in, 205 and 230.
 const painted = () => !!subjectShape('buttonbeaks').feet;
-const holdY = () => GROUND - (painted() ? 372 : 205) * K;
-const holdDX = () => (painted() ? 26 * K : 0); // clear of the yellow one's eye
+// Measured on the delivered pose sheets, in each cell's pixels: where the
+// claws stand (the middle of the feet and their lowest point), and each
+// sheet's scale against the portrait (the poses were painted smaller). The
+// portrait's feet are centred 33 px right of its middle, at 1024 x 1024.
+const KP = (SIZE / 400) * (420 / 1024); // screen px per portrait px
+const POSES = {
+  'sprites.buttonbeaksToss': { k: KP * 1.04, cells: [{ fx: 530, feet: 988 }, { fx: 493, feet: 946 }] },
+  'sprites.buttonbeaksPoses': { k: KP * 1.19, cells: [{ fx: 545, feet: 923 }, { fx: 498, feet: 912 }, { fx: 547, feet: 924 }, { fx: 583, feet: 920 }] },
+};
+// In the holding pose (IC-M05e, cell 0) their beak tips meet at (543, 184):
+// the button sits just above them.
+const HOLD_CELL = { x: 543, y: 150 };
+const holdingPainted = () => !!art('sprites.buttonbeaksToss');
+const holdY = () => (holdingPainted() ? GROUND - (POSES['sprites.buttonbeaksToss'].cells[0].feet - HOLD_CELL.y) * POSES['sprites.buttonbeaksToss'].k : GROUND - (painted() ? 372 : 205) * K);
+const holdDX = () => (holdingPainted() ? 33 * KP + (HOLD_CELL.x - POSES['sprites.buttonbeaksToss'].cells[0].fx) * POSES['sprites.buttonbeaksToss'].k : painted() ? 26 * K : 0);
+// A painted pose, its feet on (x, y).
+function drawPose(c, key, i, x, y, rot = 0) {
+  const sp = spriteCell(key, i);
+  if (!sp) return false;
+  const P = POSES[key];
+  const m = P.cells[i];
+  const cl = sp.cell;
+  c.save();
+  c.translate(x + 33 * KP, y);
+  if (rot) c.rotate(rot);
+  c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, -m.fx * P.k, -m.feet * P.k, cl.w * P.k, cl.h * P.k);
+  c.restore();
+  return true;
+}
 const TALL = () => (painted() ? 362 : 230) * K;
 const BOWL_Y = 756; // the bowls' rims, set into the tin
+// Measured on the delivered coats (IC-M05c), in each cell's pixels: the
+// centre strip's x and the shoulders' y (drawn at the line), and the scale.
+const COAT_CELLS = [{ x: 246, top: 292 }, { x: 250, top: 294 }, { x: 246, top: 306 }, { x: 244, top: 304 }];
+const COAT_K = 0.72;
 const BOWL_GAP = 176;
 const REACH = 80; // how near a bowl they must be to pick from it
 const DAZE = 1;
@@ -330,7 +361,14 @@ export default function create(env) {
     c.save();
     c.translate(coat.x, top);
     c.rotate(sw + Math.sin(t * 1.4 + coat.ph) * 0.012);
-    if (!drawSprite(c, 'sprites.coats', coat.style, 0, COAT_H, { h: COAT_H + 10 })) {
+    const sp = spriteCell('sprites.coats', coat.style);
+    if (sp) {
+      // the painted garment: its centre strip on the line of holes, its
+      // shoulders just under the pegs
+      const m = COAT_CELLS[coat.style];
+      const cl = sp.cell;
+      c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, -m.x * COAT_K, -m.top * COAT_K, cl.w * COAT_K, cl.h * COAT_K);
+    } else {
       const w = COAT_W / 2;
       const sleeve = coat.style !== 2; // the waistcoat has none
       const len = coat.style === 1 ? COAT_H - 10 : coat.style === 2 ? COAT_H - 16 : COAT_H;
@@ -412,7 +450,7 @@ export default function create(env) {
       ink(c, 3, PAL.magenta);
       c.restore();
     }
-    if (!drawSprite(c, 'sprites.buttonBowl', 0, x, BOWL_Y + 34, { h: 70 })) {
+    if (!drawSprite(c, 'sprites.buttonBowl', 0, x, BOWL_Y + 42, { w: 150 })) {
       c.beginPath();
       c.moveTo(x - 72, BOWL_Y - 8);
       c.quadraticCurveTo(x - 66, BOWL_Y + 36, x, BOWL_Y + 38);
@@ -435,7 +473,7 @@ export default function create(env) {
     const walk = g.moving ? Math.abs(Math.sin(t * 12)) * 8 : 0;
     const toss = g.tossT > 0 ? g.tossT / 0.3 : 0;
     // The painted poses: tossing, pecking, dazed, cheering, holding a button
-    // up, striding; otherwise the portrait.
+    // up, striding; otherwise the portrait. Each stands on its own claws.
     const stride = g.moving && Math.floor(t * 7) % 2;
     const pose = toss > 0 ? ['sprites.buttonbeaksToss', 1]
       : g.pickT > 0 ? ['sprites.buttonbeaksPoses', 1]
@@ -443,7 +481,7 @@ export default function create(env) {
       : g.cheerT > 0 && g.holding === null ? ['sprites.buttonbeaksPoses', 3]
       : g.holding !== null ? ['sprites.buttonbeaksToss', 0]
       : stride ? ['sprites.buttonbeaksPoses', 0] : null;
-    const drawn = pose && drawSprite(c, pose[0], pose[1], g.x, GROUND - walk, { h: TALL(), rot: daze });
+    const drawn = pose && drawPose(c, pose[0], pose[1], g.x, GROUND - (pose[0] === 'sprites.buttonbeaksToss' && pose[1] === 0 ? walk : 0), daze);
     if (!drawn) {
       c.save();
       c.translate(g.x, GROUND - walk - g.cheerT * 30);
@@ -451,24 +489,26 @@ export default function create(env) {
       drawBird(c, 'buttonbeaks', { x: 0, y: 0, size: SIZE, t, squash: toss * -0.08 });
       c.restore();
     }
-    if (g.holding !== null) {
-      // the button held up between them, on a loop of thread
-      c.beginPath();
-      const hy = holdY() - walk + Math.sin(t * 4) * 3;
-      if (painted()) {
-        // a thread from each bird's beak: the yellow one's tip and the pink one's
-        c.moveTo(g.x - 150 * K, GROUND - 300 * K - walk);
-        c.quadraticCurveTo(g.x - 60 * K, hy - 30, g.x + holdDX(), hy);
-        c.quadraticCurveTo(g.x + 10 * K, hy + 40, g.x - 9 * K, GROUND - 252 * K - walk);
-      } else {
-        c.moveTo(g.x - 40, hy + 60);
-        c.quadraticCurveTo(g.x, hy - 10, g.x + 40, hy + 60);
+    if (g.holding !== null && g.pickT <= 0) {
+      const hy = holdY() - walk + Math.sin(t * 4) * 2;
+      if (!holdingPainted()) {
+        // a thread from the beaks up to the button
+        c.beginPath();
+        if (painted()) {
+          c.moveTo(g.x - 150 * K, GROUND - 300 * K - walk);
+          c.quadraticCurveTo(g.x - 60 * K, hy - 30, g.x + holdDX(), hy);
+          c.quadraticCurveTo(g.x + 10 * K, hy + 40, g.x - 9 * K, GROUND - 252 * K - walk);
+        } else {
+          c.moveTo(g.x - 40, hy + 60);
+          c.quadraticCurveTo(g.x, hy - 10, g.x + 40, hy + 60);
+        }
+        ink(c, 1.6, '#b8506e');
       }
-      ink(c, 1.6, '#b8506e');
-      drawButton(c, g.holding, g.x + holdDX(), hy, 30);
+      drawButton(c, g.holding, g.x + holdDX(), hy, 28);
     }
     if (g.daze > 0) label(c, '✶  ✶', g.x, GROUND - TALL() - 24, { size: 30, color: PAL.ochre, weight: 800 });
   }
+
 
   g.draw = (c, t) => {
     scene(c, 'buttonbeaks', W, H, (c) => {

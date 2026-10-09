@@ -88,3 +88,14 @@ overhangs the top left where the leaves fall from, and the floor is clear.
 Nothing changed. The leaves, dust, dustpan and the Broomwhisk's poses
 (IC-M06b to e) are still drawn in code or from the portrait until they
 arrive.
+
+The leaves and dust, the dustpan and both pose sheets (IC-M06b to e)
+arrived next. Leaves, feathers, wrappers and dust are drawn 84 wide at
+the front of the floor, smaller further back. The painted dustpan is placed
+by its mouth: from the side, the scoop's tip sits just past the pan's
+point (mirrored for the right wall); from the front, the bottom of the
+mouth sits on it, so the game's mouth and funnel line up with the painted
+opening, and the dotted ring stays in front of it. The poses were painted
+at about 0.79 of the portrait's size, so they are drawn 1.27 times larger,
+each with its own feet (measured per cell) on the floor point and mirrored
+when it faces right.
