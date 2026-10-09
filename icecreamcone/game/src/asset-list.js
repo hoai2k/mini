@@ -430,6 +430,18 @@ export const ASSETS = {
     "file": "assets/sprites/wren-walk.png",
     "delivered": true
   },
+  "sprites.wrenWalkCycle": {
+    "file": "assets/sprites/wren-walk-cycle.png",
+    "delivered": false
+  },
+  "sprites.wrenHop": {
+    "file": "assets/sprites/wren-hop.png",
+    "delivered": false
+  },
+  "sprites.wrenFly": {
+    "file": "assets/sprites/wren-fly.png",
+    "delivered": false
+  },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",
     "delivered": true
