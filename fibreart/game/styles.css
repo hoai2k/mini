@@ -405,7 +405,8 @@ html, body {
 .pic-btn img.badge { width: 100%; height: 100%; object-fit: contain; }
 .pic-btn:has(img.badge) { border: none; background: transparent; box-shadow: none; outline-color: transparent; }
 .pic-btn:has(img.badge):focus-visible, .pic-btn.focused:has(img.badge) { outline: 5px solid var(--focus); }
-.close-x img.badge { width: 2.4rem; height: 2.4rem; }
+.close-x img.badge { width: 2.9rem; height: 2.9rem; }
+.close-x:has(img.badge) { width: 2.9rem; height: 2.9rem; top: 0.5rem; right: 0.5rem; }
 .close-x:has(img.badge) { border: none; background: transparent; }
 
 /* The hint: the control, the piece, what wakes it, and one short line. */

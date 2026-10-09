@@ -164,8 +164,14 @@ badges in a 4 x 2 grid (up and down move a row). Each badge's name is its
 accessible name and shows small on hover or focus. Panels close with an X in
 the top right. The instructions are three sentences, the controller diagram,
 a short table and one line for mouse and touch. The badges are drawn in code
-until the appliqué set (HK-U06) arrives, which `build_web.py` cuts and the game
-swaps in.
+from the appliqué set (HK-U06), cut by `build_web.py` and swapped in by the game.
+Seven read well at menu size; the eighth, crossed pins for close, fades to a
+faint cross at the size of a close button, so it is being regenerated as a bold
+cloth X (HK-U07) and the close button is drawn a little larger with a badge.
+In menus the controller's stick steps like a key: once when pushed, then after
+a pause at a steady pace while held, resetting when let go; a stick already
+held when a menu opens waits to be let go. (Before, it stepped every frame
+while held sideways, so focus raced round the pause menu.)
 
 **Hint.** The eye in the pause menu opens a card for each player's big control:
 a drawing of the control, the piece it is centred on (cut from the picture),
