@@ -139,28 +139,49 @@ function activate(el) {
 // ---- Actions -------------------------------------------------------------
 
 // Fullscreen, through whichever form of the API the browser has (Safari on
-// iPad and older Safari only have the webkit one). Safari on iPhone has none
-// for a page: there the button explains Add to Home Screen, which opens the
-// game without the browser around it.
+// iPad and older Safari only have the webkit one). The button shows only
+// where it can work: Safari on iPhone has no fullscreen for a page, so there
+// it hides. On a phone or tablet turned on its side the game goes full screen
+// by itself, at the first touch (browsers allow it only inside one); where
+// there is no fullscreen, it scrolls the page by a pixel instead, which lets
+// Safari fold its bars away.
 const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+const canFullscreen = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+const standalone = () => matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
+const landscape = matchMedia('(orientation: landscape)');
+const handheld = matchMedia('(pointer: coarse)').matches;
 
 function requestFullscreen() {
-  if (fsElement()) return true;
+  if (fsElement() || !canFullscreen) return;
   const el = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen;
-  if (!req) return false;
   try {
     const r = req.call(el, { navigationUI: 'hide' });
     if (r?.catch) r.catch(() => { /* refused: carry on in the window */ });
-  } catch { return false; }
-  return true;
+  } catch { /* refused */ }
 }
 
 function toggleFullscreen() {
   if (fsElement()) {
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
     exit?.call(document)?.catch?.(() => {});
-  } else if (!requestFullscreen()) openModal('home-screen');
+  } else requestFullscreen();
+}
+
+function setupFullscreen() {
+  document.documentElement.classList.toggle('no-fullscreen', !canFullscreen || standalone());
+  if (!handheld || standalone()) return;
+  // The page is a pixel taller than the screen only on its side without fullscreen.
+  const fold = () => document.documentElement.classList.toggle('fold-bars', !canFullscreen && landscape.matches);
+  fold();
+  landscape.addEventListener?.('change', fold);
+  const onTouch = () => {
+    if (!landscape.matches) return;
+    if (canFullscreen) requestFullscreen();
+    else window.scrollTo(0, 1);
+  };
+  addEventListener('touchend', onTouch, { passive: true });
+  addEventListener('pointerup', (e) => { if (e.pointerType === 'touch') onTouch(); });
 }
 
 function start() {
@@ -988,6 +1009,7 @@ async function boot() {
     return;
   }
   setupPointer();
+  setupFullscreen();
   show('title');
   hint();
   window.fibreart = { game: () => game, frame: () => renderer.frame, ui, input, start, shift: (how) => shift(game, how), W, H, radius, audio };
