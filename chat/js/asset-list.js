@@ -807,6 +807,14 @@ export const ASSET_LIST = {
     "file": "assets/icons/fx-fatter.png",
     "status": "delivered"
   },
+  "fx-baby": {
+    "file": "assets/icons/fx-baby.png",
+    "status": "requested"
+  },
+  "fx2-baby": {
+    "file": "assets/icons2/fx2-baby.png",
+    "status": "requested"
+  },
   "fx2-bubble": {
     "file": "assets/icons2/fx2-bubble.png",
     "status": "delivered"

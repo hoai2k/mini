@@ -566,6 +566,8 @@ MORE_EFFECT_ICONS = [
     ("womanface", "Woman", "a woman's face with long lashes, rosy cheeks and red lips"),
     ("thinner", "Thinner", "a tall skinny face squeezed between two inward arrows"),
     ("fatter", "Fatter", "a wide round face stretched between two outward arrows"),
+    # Baby replaced Kid; the Kid icon (CH-I91) is kept as history.
+    ("baby", "Baby", "a chubby-cheeked baby's face with big round eyes, a tiny nose and a few wisps of hair"),
 ]
 for i, (gid, name, subject) in enumerate(EFFECT_ICONS, 1):
     req("icons", f"CH-I{i:02d}", f"fx-{gid}", f"{name} icon", "256 x 256",
@@ -684,6 +686,15 @@ V2_GAMES = [
     ("trivia", "Trivia", "a quiz-show buzzer being slammed with four coloured answer panels behind it"),
     ("wordblitz", "Word Blitz", "a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word"),
 ]
+# Added after the set was numbered, so it goes at the end: Baby replaced Kid
+# (the Kid icon, CH-K72, is kept as history).
+V2_LATE = [
+    ("baby", "Baby", "a split face: left half a teen, right half the same person as a baby, with a big round head, fat cheeks, large eyes, a tiny button nose and smooth skin"),
+]
+for i, (gid, name, subject) in enumerate(V2_LATE, len(V2_FX) + len(V2_GAMES) + 1):
+    req("icons2", f"CH-K{i:02d}", f"fx2-{gid}", f"{name} icon (second set)", "256 x 256",
+        f"The {name} button on the effect strips, replacing the first-set icon.", f"Icon: {subject}.",
+        "The first-set icon, or the emoji.")
 for i, (gid, name, subject) in enumerate(V2_FX + V2_GAMES, 1):
     kind = "fx" if i <= len(V2_FX) else "game"
     where = "button on the effect strips" if kind == "fx" else "card in the game picker"
