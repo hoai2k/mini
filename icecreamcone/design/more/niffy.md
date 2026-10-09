@@ -17,18 +17,24 @@ bobs.
 
 - **Scoring.** A snip scores 1, a price tag 2. A child's balloon string is
   not for snipping: the balloon floats away (−1). A swoop at nothing makes
-  the people within 170 px hold a hand over their things for 1.8 s, with a
-  "!" over them and a "Hmph!"; swooping again at someone holding on pops
-  "They're holding on!".
+  the people within 240 px hold a hand over their things for 1.8 s (another
+  snap adds 1.8 s more, up to 3.6 s), with a "!" in a bubble over them and
+  a "Hmph!"; swooping at someone holding on pops "They're holding on!".
+  They relax three times as fast while the Niffy is up in the top quarter
+  of its range (blade tip above y 209), and their "!" shrinks and fades as
+  they do, so climbing away after a miss resets them sooner.
 - **The Keeper.** He watches the pond with his back turned; now and then he
-  turns (a red "!") and then looks up (his eye). While he looks, his
-  noticing fills an ink ring round the eye (shown over him and beside the
-  Niffy, the eye opening wider as it fills): slowly for a Niffy cruising
-  high and still (a whole watch is safe up there), fast for one low down
-  (about a second), faster still while it swoops. Full, and he whistles:
-  "Peep! Caught!" and the Niffy is dazed for 1.6 s; no points lost. It
-  drains while he looks away. High is safe but slow; low is quick but
-  noticed quickly. Pass: 10 snips.
+  turns (a red "!") and then looks up (his eye). While he looks he notices
+  only movement, and his noticing fills an ink ring round the eye (over
+  him, and beside the Niffy; the eye opens wider as it fills):
+  - keeping still (under 40 px/s across plus up and down; the hovering bob
+    doesn't count): nothing at any height, and the ring drains 0.15/s;
+  - flying about: up to 1.6/s at the low line, scaled by lowness squared,
+    so high up it is close to nothing;
+  - swooping: 1.8/s at any height (a swoop from high is longer, so costs
+    more).
+  Full, and he whistles: "Peep! Caught!" and a 1.6 s daze, no points lost.
+  It drains 0.5/s while he looks away. Pass: 12 snips.
 - **Ramp.** For the first 8 s the Keeper never looks round, the walkers are
   slow and there are no balloons. Walkers speed up (90 to 165 px/s), come a
   little more often, and people walking the same way keep at least 420 px
@@ -42,12 +48,16 @@ bobs.
   you tapped (up to 300 px aside). On a phone the view follows the Niffy,
   and the Keeper's "!", eye and meter show beside it.
 - **Bots (tests).** A beginner (lines up within ±55 px, stays at its
-  starting height, careless one swoop in seven) scores 13–17 over six
-  seeds; a careful snipper that flies low while the Keeper's back is turned
-  and climbs as he turns scores 15–23; swooping non-stop while sweeping the
-  sky scores 0–4 at either height; idling 0. With the Keeper watching,
-  a Niffy high and still is never caught in 4 s, one low is caught in about
-  1.1 s, one swooping low in 0.7 s.
+  starting height and flies about freely, careless one swoop in seven)
+  scores 14–22 over six seeds (14–23 over sixteen); a careful snipper that
+  cruises low, keeps still under the Keeper's eye (risking one quick low
+  swoop when something walks into its ring and he has hardly noticed it),
+  darts while his back is turned and climbs after a miss scores 18–24
+  (17–28 over sixteen); sweeping the sky while mashing scores 0–2 at either
+  height; mashing from one spot as people walk under scores 1–11 (11 at
+  most over sixteen seeds); idling 0. Over 1 s of the Keeper watching:
+  still, high or low, 0; flying to and fro high, under 0.01; low, caught;
+  swooping, caught.
 
 ## Images (IC-M03)
 
@@ -173,4 +183,28 @@ lower, with low quicker but riskier.
    it, the stick sets the height and low swoops are quicker, the meter fills
    slowest high and fastest swooping, and being caught costs no points and
    the meter drains.
+
+## Changes after playtesting, round 2 (noticed by movement, relax by climbing)
+
+The user was spotted while keeping still low down, and meant something
+else: misses make people hold on, and flying up should reset them sooner;
+high up you can move about, low down you must keep still.
+
+1. **Noticed only when moving.** The meter no longer rises from height
+   alone: keeping still fills nothing anywhere (and drains slowly); flying
+   about fills it by lowness squared (nothing high up, fast low down);
+   swooping fills it fast at any height.
+2. **Relax by climbing.** People holding on relax three times as fast while
+   the Niffy is in the top quarter of its range; their "!" shrinks and
+   fades as they relax. A snap at nothing now reaches people within 240 px
+   (was 170), and snapping again keeps them holding on longer (up to
+   3.6 s), so swooping over and over from one spot doesn't pay.
+3. **Text and balance.** New hint ("keep still when he looks"), tips and
+   this note. The warning beside the Niffy moves below it near the top of
+   the sky, clear of the clock. Pass rose from 10 to 12: over sixteen seeds
+   the beginner bot's lowest is 14 and the best degenerate run (mashing
+   from one spot, low) 11. New tests: still is safe at any height, moving
+   high hardly counts, moving low and swooping are noticed fast; people
+   relax three times as fast while the Niffy is high; mashing from one spot
+   stays under the pass mark.
 
