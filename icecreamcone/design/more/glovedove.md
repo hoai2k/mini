@@ -64,3 +64,6 @@ screen the view follows the bird across the sink.
   and shrunk by the game as they are scrubbed.
 - **IC-M11d, the Glove Dove scrubbing** (`sprites.glovedoveScrub`, 2 x 1):
   two frames swapped while it rubs; until it arrives the portrait jiggles.
+- **IC-M11e, the Glove Dove cheering and swamped** (`sprites.glovedovePoses`,
+  2 x 1): cheering while a clean dish goes up on the rack, and buried in foam
+  while the sink is mopped; until it arrives the portrait hops or squashes.

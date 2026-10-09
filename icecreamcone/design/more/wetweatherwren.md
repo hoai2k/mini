@@ -72,3 +72,6 @@ ahead of it in view.
   awnings (the game draws their poles).
 - The little birds reuse Safe Crossing's delivered `sprites.chicks` (standing,
   and flying off).
+- **IC-M10d, the Wren drenched** (`sprites.wrenSplash`): standing in the
+  puddle, dripping, for the moment after a splash; until it arrives the
+  stand-in sags.

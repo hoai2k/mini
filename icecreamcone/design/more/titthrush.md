@@ -62,3 +62,6 @@ keeps the watch face and the town clock's call in view.
   town hall and cuckoo clocks without hands, each dial centred at a fixed size.
 - **IC-M12d, the Trush singing** (`sprites.titthrushSing`): shown for a moment
   after each clock is set; until then the portrait hops.
+- **IC-M12e, the Trush flustered** (`sprites.titthrushFluster`): after a wrong
+  setting (while the crown is jammed) or when a clock gives up; until it
+  arrives the portrait shakes.
