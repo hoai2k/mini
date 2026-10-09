@@ -98,3 +98,29 @@ scene request (IC-M18a) now says the speaker slides under the dial.
 - **Still stand-ins:** the station emblems (IC-M18b), the listeners
   (IC-M18c), the dial panel (IC-M18d) and the poses (IC-M18e). They are
   still requested, with no change.
+- **Sprites (delivered):** the stations (IC-M18b), the listeners (IC-M18c),
+  the dial panel (IC-M18d) and the listening, singing and startled poses
+  (IC-M18e). No stand-in drawing is left for any of them.
+  - *Dial.* The dial geometry is measured from the panel, drawn 1000 px
+    wide: its bezel spans about y 125 to 250 and its cream face y 146 to
+    227. The needle, the pencil marks (smaller now, at the top of the face)
+    and the stand-in panel all keep to the face. The knob sits clear of the
+    bezel at the left.
+  - *Stations.* Each emblem is fitted inside a square box (the trumpet is
+    wide, the cuckoo clock tall).
+  - *Listeners.* They are drawn as whole cells at one scale (195 px per
+    512 px cell) with their feet on the cushions, so the singing row (whose
+    cells include a note) doesn't shrink the birds.
+  - *Poses.* They are drawn at one measured scale (the startled bird stands
+    810 px tall in its cell to the portrait's 868), with their feet on the
+    rug.
+- The opening hint has a paper-coloured outline and stays inside the view.
+- **New request IC-M18f, speaker cabinet and tuning knob**
+  (`sprites.radioParts`, 2 x 1): the speaker that rides under the needle is
+  still a plain box drawn in code, and the knob a ticked disc. The cabinet
+  is requested at the speaker's exact size (230 x 210) with a transparent
+  round grille opening where the speaker's picture shows (centre 60% across
+  and 53% down, 62% of its width across). The game already draws both once
+  they arrive, the knob turning with the dial.
+- **Still drawn in code (game information):** the needle, the pencil marks,
+  the static flecks, the song ring, the want tag's bubble and the pops.

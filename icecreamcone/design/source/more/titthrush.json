@@ -53,5 +53,15 @@
     "standin": "The portrait shaking.",
     "prompt": "{STYLE} {VARIANT} The Ten O'clock Tit Trush (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ): a round gold pocket watch as its body, its cream face showing ten o'clock with black numerals and blue steel hands, the hinged gold lid open at its front, a small gold head on top with a big round eye and a long thin gold beak, the winding crown and ring bow on top of the head, a pink plume crest behind the head, a pink feathered wing at the back, a gold chain curling out behind as its tail, and pink scaly legs with dark claws, flustered: leaning back on its heels, its pink crest and wing ruffled and standing on end, its beak open in an indignant squawk, the lid flapping half shut, the chain tail swinging, little ink shake lines round its case. Its face still shows ten o'clock. Facing left, at the same scale and framing as the portrait. {ALPHA}",
     "status": "delivered"
+  },
+  {
+    "id": "IC-M12f",
+    "name": "Watch crown and bow",
+    "key": "sprites.watchCrown",
+    "file": "assets/sprites/watch-crown.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Set the Clocks: the winding crown and ring bow on top of the big watch face (IC-M12b), which has none; the game sets it on the top of the gold case and glows it red while it is jammed.",
+    "standin": "A ribbed gold box drawn in code.",
+    "prompt": "{STYLE} {SHEET} One object only, centred, seen straight on, matching the gold of the delivered watch face (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/sprites/watch-face.png ) and the crown on the Ten O'clock Tit Trush's head (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ): a pocket watch's winding crown, a short ribbed gold knob on a little collar stem, with a round gold ring bow through it on top, upright, about 40% of the image wide and 85% of its height, the bottom of the stem flat and level at the bottom of the painted area (it sits on the top of the watch case). No watch, no chain."
   }
 ]

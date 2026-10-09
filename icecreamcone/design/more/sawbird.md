@@ -99,3 +99,23 @@ below the teeth, and the proud pose tips the saw-head up like a salute.
   bottom-right corner. Nothing else needed moving.
 - **Still stand-ins:** the planks (IC-M17b), the sawhorse (IC-M17c) and the
   poses (IC-M17d, IC-M17e). They are still requested, with no change.
+- **Sprites (delivered):** the planks (IC-M17b), the sawhorse (IC-M17c), the
+  sawing pose (IC-M17d) and the snag and proud poses (IC-M17e). No stand-in
+  drawing is left for any of them.
+  - *Sawing pose.* It is drawn from measurements: in its 1024 px picture
+    the blade's tip is at x 11, the teeth run along y 845 and the blade is
+    about 590 px long. It is drawn with the blade about 195 px long, tip
+    leading and teeth on the cut, tipped to steer.
+  - *Snag pose.* The bowed blade (tip x 104, teeth about y 830, blade about
+    455 px) is drawn at the same blade length in the same place.
+  - *Proud pose.* It stands 250 px tall beside the plank.
+  - *Sawhorses.* There are two, 200 px tall, at x 640 and 960, their beams
+    tucked under the plank's near edge.
+  - *Planks.* Each painted plank is stretched to the plank's length, and
+    splits along the cut as before.
+- **New request IC-M17f, knots** (`sprites.knots`, 3 x 1): the knots on the
+  line are still ink ovals drawn in code over the painted planks. The game
+  already draws the painted knot once it arrives, sized to the knot plus its
+  ring of grain.
+- **Still drawn in code (game information):** the chalk line, the cut, the
+  stroke gauge and rhythm dots, the sawdust and the pops.

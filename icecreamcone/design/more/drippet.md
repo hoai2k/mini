@@ -94,3 +94,25 @@ collar, grey-blue wing, pink tail, ochre legs).
   pass mark is 13.
 - **Still stand-ins:** the thirsty things (IC-M16b), the puddles (IC-M16c)
   and the poses (IC-M16d, IC-M16e). They are still requested, with no change.
+- **Sprites (delivered):** the thirsty things (IC-M16b), the puddles
+  (IC-M16c), the hop and skid poses (IC-M16d) and the run and pour poses
+  (IC-M16e). No stand-in drawing is left for any of them.
+  - *Things.* Each is drawn as a whole 512 px cell, 222 px tall at depth
+    scale 1, with its painted base (about 52 px above the cell's foot) on
+    the floor, so the bowl stays small beside the fern. While filling, the
+    watered picture fades in over the dry one.
+  - *Puddles.* Each is fitted to its oval (2r wide by about r tall, slightly
+    taller than painted, to match where it is slippery). A fresh puddle is
+    faint and an old, slippery one full strength.
+  - *Poses.* They are painted a little smaller in their cells than the
+    portrait, so they are scaled up by the measured width of the cross
+    handle (361 px hopping and skidding, 399 px running and pouring, 445 px
+    in the portrait). Each stands on its lowest painted point; running
+    alternates the stride with the portrait.
+  - *Pouring.* The pose paints its own stream, so the game stops dropping
+    code drips while it pours.
+- The opening hint moved to the foot of the floor, with a paper-coloured
+  outline so it reads over the tiles.
+- **Still drawn in code (game information, not stand-ins):** the dashed
+  ring under each thirsty thing with its fill arc, the little drop-clock of
+  its patience, the falling drips and splash dots, and the pops.

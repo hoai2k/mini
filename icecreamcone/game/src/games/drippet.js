@@ -12,7 +12,7 @@
 // bigger and last longer as time goes on, and later two things are thirsty
 // at once. Score: drinks.
 
-import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -249,7 +249,8 @@ export default function create(env) {
       g.dripT += dripEvery() * (0.85 + rng() * 0.3);
       const s = g.spout();
       const spot = dripSpot();
-      g.drops.push({ x: s.x, y: s.y, gx: spot.x, gy: spot.y, vy: 0, vx: g.vx * 0.6 });
+      // (while it pours, the painted pose shows the stream itself)
+      if (!(g.pouring > 0 && art('sprites.drippetMore'))) g.drops.push({ x: s.x, y: s.y, gx: spot.x, gy: spot.y, vy: 0, vx: g.vx * 0.6 });
     }
     for (const d of g.drops) {
       d.vy += 2200 * dt;
@@ -432,7 +433,15 @@ export default function create(env) {
     const slick = g.slippery(p);
     c.save();
     c.globalAlpha = a * 0.85;
-    if (!drawSprite(c, 'sprites.puddles', p.shape, p.x, p.y, { w: p.r * 2.3, anchor: 'center' })) {
+    const pd = spriteCell('sprites.puddles', p.shape);
+    if (pd) {
+      // The painted puddle, fitted to the puddle's oval (2r by about r: a
+      // little taller than painted, to match where it is slippery). A fresh
+      // one is faint, an old one full strength.
+      const tr = pd.trim;
+      c.globalAlpha = a * (slick ? 0.95 : 0.5);
+      c.drawImage(pd.img, tr.x, tr.y, tr.w, tr.h, p.x - p.r * 1.05, p.y - p.r * 0.46, p.r * 2.1, p.r * 0.92);
+    } else {
       blob(c, p.x, p.y, p.r, p.r * 0.48, p.seed, 0.08, 20);
       c.globalAlpha = a * (slick ? 0.62 : 0.32);
       c.fillStyle = '#6f9cc4';
@@ -474,7 +483,18 @@ export default function create(env) {
       }
     }
     const cell = KINDS.indexOf(t.kind) + (perk > 0.5 ? 4 : 0);
-    if (!drawSprite(c, 'sprites.drippetThings', cell, t.x, t.y, { h: 150 * k })) {
+    // The painted things share one scale: each whole 512 px cell is drawn
+    // 222 px tall (at depth scale 1), its painted base (about 52 px above the
+    // cell's foot) on the floor. While filling, the watered one fades in.
+    const pc = spriteCell('sprites.drippetThings', cell);
+    if (pc) {
+      const ch = 222 * k;
+      const base = t.y + (52 / 512) * ch;
+      const dry = KINDS.indexOf(t.kind);
+      const f = t.over ? (perk > 0.5 ? 1 : 0) : clamp(t.fill, 0, 1);
+      if (f < 1) drawSprite(c, 'sprites.drippetThings', dry, t.x, base, { h: ch, whole: true, alpha: 1 - f });
+      if (f > 0) drawSprite(c, 'sprites.drippetThings', dry + 4, t.x, base, { h: ch, whole: true, alpha: f });
+    } else {
       c.translate(t.x, t.y);
       c.scale(k * 1.3, k * 1.3);
       drawThingStandin(c, t.kind, perk, Math.min(1, t.fill), tm);
@@ -566,6 +586,19 @@ export default function create(env) {
     }
   }
 
+  // One painted pose cell, its painted part standing on (0, 0), centred as
+  // its cell is; `k` is screen pixels per image pixel.
+  function drawPose(c, key, i, k, flip) {
+    const sp = spriteCell(key, i);
+    if (!sp) return false;
+    const { cell, trim } = sp;
+    c.save();
+    if (flip) c.scale(-1, 1);
+    c.drawImage(sp.img, trim.x, trim.y, trim.w, trim.h, (trim.x - cell.x - cell.w / 2) * k, -trim.h * k, trim.w * k, trim.h * k);
+    c.restore();
+    return true;
+  }
+
   function drawDrippet(c, t) {
     const k = scaleAt(g.y);
     const size = g.size();
@@ -594,7 +627,12 @@ export default function create(env) {
     if (g.slip > 0 && !env.reduceMotion) c.rotate(Math.sin(g.spinA) * 0.45);
     else if (moving) c.rotate(Math.sin(g.walk * 2.2) * 0.05);
     else if (g.pouring > 0 && !art(sheet)) c.rotate(g.face * 0.12);
-    if (!sheet || !drawSprite(c, sheet, cell, 0, 0, { h: size * 0.9, flip })) {
+    // The painted poses are at a little less than the portrait's scale in
+    // their cells (measured by the cross handle's width: 361 px hopping and
+    // skidding, 399 px running and pouring, 445 px in the portrait), so they
+    // are scaled up to match; their lowest point stands on the ground.
+    const pk = (size / 400) * (420 / 1024) * (sheet === 'sprites.drippetPoses' ? 445 / 361 : 445 / 399);
+    if (!sheet || !drawPose(c, sheet, cell, pk, flip)) {
       drawBird(c, 'drippet', { x: 0, y: 0, size, t, flip });
     }
     c.restore();
@@ -646,7 +684,13 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Run to the thirsty things · hop over old puddles', W / 2, 600, { size: 34, weight: 600 });
+      c.lineWidth = 7;
+      c.strokeStyle = 'rgba(250,244,228,0.9)';
+      c.font = '600 34px Fraunces, Georgia, serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.strokeText('Run to the thirsty things · hop over old puddles', W / 2, 872);
+      label(c, 'Run to the thirsty things · hop over old puddles', W / 2, 872, { size: 34, weight: 600 });
       c.restore();
     }
   };

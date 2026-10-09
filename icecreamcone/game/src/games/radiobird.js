@@ -14,7 +14,7 @@
 // a moment, are pencilled on the dial, but the stations drift, more and more
 // as time goes on, and get narrower too. Score: points.
 
-import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -22,6 +22,7 @@ Object.assign(SHEETS, {
   'sprites.listeners': [3, 2], // three little birds: waiting (top row), delighted (bottom row)
   'sprites.dialPanel': [1, 1], // the long tuning-dial window
   'sprites.radiobirdPoses': [3, 1], // listening through the static, singing, startled
+  'sprites.radioParts': [2, 1], // the speaker cabinet (its round grille left open), the tuning knob
 });
 
 const DURATION = 50;
@@ -34,7 +35,10 @@ const STATIONS = [
   { name: 'weather', color: PAL.slate, tune: [0, 2, 3, 2, 0, -2, 0, 3] },
 ];
 // The dial window, and where the needle's frequency 0..1 sits in it.
-const DIAL = { x0: 560, x1: 1500, y0: 112, y1: 262 };
+// (measured on the painted dial panel, drawn 1000 px wide: its brass bezel
+// spans about x 530..1530, y 125..250, its cream face y 146..227)
+const DIAL = { x0: 560, x1: 1500, y0: 125, y1: 250 };
+const FACE = { y0: 146, y1: 227 };
 const fx = (f) => lerp(DIAL.x0 + 30, DIAL.x1 - 30, f);
 const xf = (x) => (x - DIAL.x0 - 30) / (DIAL.x1 - DIAL.x0 - 60);
 const SONG = 1.8; // seconds of clear signal for a song
@@ -331,7 +335,11 @@ export default function create(env) {
   function drawStationIcon(c, i, x, y, s = 1, alpha = 1) {
     c.save();
     c.globalAlpha *= alpha;
-    if (drawSprite(c, 'sprites.stations', i, x, y, { h: 90 * s, anchor: 'center' })) {
+    // the painted emblem, fitted inside a 90 x 90 box (times s)
+    const sp = spriteCell('sprites.stations', i);
+    if (sp) {
+      const fit = (90 * s) / Math.max(sp.trim.w, sp.trim.h);
+      drawSprite(c, 'sprites.stations', i, x, y, { w: sp.trim.w * fit, anchor: 'center' });
       c.restore();
       return;
     }
@@ -416,18 +424,18 @@ export default function create(env) {
 
   function drawDial(c, t) {
     const { x0, x1, y0, y1 } = DIAL;
-    if (!drawSprite(c, 'sprites.dialPanel', 0, (x0 + x1) / 2, (y0 + y1) / 2, { w: x1 - x0 + 40, anchor: 'center' })) {
-      poly(c, [[x0 - 20, y0 - 20], [x1 + 20, y0 - 20], [x1 + 20, y1 + 20], [x0 - 20, y1 + 20]], 1, 1);
+    if (!drawSprite(c, 'sprites.dialPanel', 0, (x0 + x1) / 2, (y0 + y1) / 2, { w: 1000, anchor: 'center' })) {
+      poly(c, [[x0 - 30, y0], [x1 + 30, y0], [x1 + 30, y1], [x0 - 30, y1]], 1, 1);
       wash(c, '#c9a24a');
       ink(c, 2.4);
-      poly(c, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], 2, 0.8);
+      poly(c, [[x0 - 8, FACE.y0], [x1 + 8, FACE.y0], [x1 + 8, FACE.y1], [x0 - 8, FACE.y1]], 2, 0.8);
       wash(c, '#f3e6c4');
       ink(c, 2);
       c.beginPath();
       for (let i = 0; i <= 40; i++) {
         const x = fx(i / 40);
-        c.moveTo(x, y1 - 14);
-        c.lineTo(x, y1 - (i % 5 ? 30 : 48));
+        c.moveTo(x, FACE.y1 - 4);
+        c.lineTo(x, FACE.y1 - (i % 5 ? 18 : 32));
       }
       ink(c, 1.6);
     }
@@ -436,22 +444,27 @@ export default function create(env) {
       const x = fx(f);
       c.save();
       c.globalAlpha = 0.75;
-      drawStationIcon(c, +k, x, y0 + 40, 0.5);
+      drawStationIcon(c, +k, x, FACE.y0 + 20, 0.38);
       c.beginPath();
-      c.moveTo(x, y0 + 64);
-      c.lineTo(x, y0 + 78);
+      c.moveTo(x, FACE.y0 + 38);
+      c.lineTo(x, FACE.y0 + 46);
       ink(c, 1.4, '#6a6a6a');
       c.restore();
     }
     // the needle
     const nx = fx(g.n);
     c.beginPath();
-    c.moveTo(nx, y0 + 6);
-    c.lineTo(nx, y1 - 6);
+    c.moveTo(nx, FACE.y0 + 2);
+    c.lineTo(nx, FACE.y1 - 2);
     ink(c, 5, '#c0302a');
     // the knob
     c.save();
-    c.translate(x0 - 62, (y0 + y1) / 2); // the knob, at the left end (the painted lamp stands at the right)
+    c.translate(x0 - 82, (y0 + y1) / 2); // the knob, at the left end (the painted lamp stands at the right)
+    if (spriteCell('sprites.radioParts', 1)) {
+      drawSprite(c, 'sprites.radioParts', 1, 0, 0, { h: 92, anchor: 'center', rot: g.knob });
+      c.restore();
+      return;
+    }
     c.beginPath();
     c.arc(0, 0, 44, 0, Math.PI * 2);
     c.fillStyle = '#7a5a3a';
@@ -484,9 +497,12 @@ export default function create(env) {
     c.moveTo(nx, DIAL.y1 + 4);
     c.lineTo(x, y - CARD.h / 2);
     ink(c, 3, '#c0302a');
-    poly(c, [[x - CARD.w / 2, y - CARD.h / 2], [x + CARD.w / 2, y - CARD.h / 2], [x + CARD.w / 2, y + CARD.h / 2], [x - CARD.w / 2, y + CARD.h / 2]], 4, 1);
-    wash(c, '#c7a86a');
-    ink(c, 2.4);
+    const cab = spriteCell('sprites.radioParts', 0);
+    if (!cab) {
+      poly(c, [[x - CARD.w / 2, y - CARD.h / 2], [x + CARD.w / 2, y - CARD.h / 2], [x + CARD.w / 2, y + CARD.h / 2], [x - CARD.w / 2, y + CARD.h / 2]], 4, 1);
+      wash(c, '#c7a86a');
+      ink(c, 2.4);
+    }
     const sx = x + 22;
     const sy = y + 6;
     c.beginPath();
@@ -511,6 +527,10 @@ export default function create(env) {
       c.fillRect(sx - 64 + a * 128, sy - 64 + b * 128, 4, 4);
     }
     c.restore();
+    // the painted cabinet goes over the speaker's contents: its round grille
+    // opening (requested centred 60% across and 53% down, 62% of its width
+    // across, the cabinet 230 x 210) frames them
+    if (cab) drawSprite(c, 'sprites.radioParts', 0, x, y + CARD.h / 2, { w: CARD.w, h: CARD.h });
     if (g.locked || g.song > 0) {
       c.beginPath();
       c.arc(sx, sy, 80, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * g.song);
@@ -537,7 +557,10 @@ export default function create(env) {
     c.save();
     c.translate(x, y);
     c.rotate(sway + lean);
-    if (!drawSprite(c, 'sprites.listeners', i + (happy ? 3 : 0), 0, 0, { h: 130 })) {
+    // The painted listeners share one scale: each whole 512 px cell drawn
+    // 195 px tall, its painted feet (about 52 px above the cell's foot) on
+    // the cushion, so the singing row's notes don't shrink the birds.
+    if (!drawSprite(c, 'sprites.listeners', i + (happy ? 3 : 0), 0, (52 / 512) * 195, { h: 195, whole: true })) {
       const cols = [PAL.lemon, PAL.sage, PAL.strawberry];
       blob(c, 0, -50, 44, 48, i + 2, 0.05);
       wash(c, cols[i]);
@@ -606,7 +629,16 @@ export default function create(env) {
     c.save();
     c.translate(RADIO.x, RADIO.y);
     c.rotate(bob);
-    if (cell < 0 || !drawSprite(c, 'sprites.radiobirdPoses', cell, 0, 0, { h: RADIO.size * 0.92 })) {
+    // The painted poses are a little smaller in their cells than the portrait
+    // (the startled bird stands 810 px tall to the portrait's 868), so they
+    // are all drawn at one scale, 0.57 screen px per image px at this size,
+    // their feet on the rug and centred as in their cells.
+    const ps = cell >= 0 && spriteCell('sprites.radiobirdPoses', cell);
+    if (ps) {
+      const k = (RADIO.size / 400) * (420 / 1024) * (868 / 810);
+      const { cell: cl, trim } = ps;
+      c.drawImage(ps.img, trim.x, trim.y, trim.w, trim.h, (trim.x - cl.x - cl.w / 2) * k, -trim.h * k, trim.w * k, trim.h * k);
+    } else {
       // the stand-in: a lean for listening, a jolt back when startled
       if (cell === 0) c.rotate(-0.05);
       if (cell === 2 && !env.reduceMotion) c.translate(Math.sin(t * 40) * 3, 0);
@@ -637,7 +669,14 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      label(c, g.pointerUser ? 'Drag the needle to their station · let go on it' : 'Turn the dial to their station · press to play it', g.cardX(), 575, { size: 30, weight: 600 });
+      const hint = g.pointerUser ? 'Drag the needle to their station · let go on it' : 'Turn the dial to their station · press to play it';
+      c.lineWidth = 7;
+      c.strokeStyle = 'rgba(250,244,228,0.9)';
+      c.font = '600 30px Fraunces, Georgia, serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.strokeText(hint, clamp(g.cardX(), 380, W - 380), 575);
+      label(c, hint, clamp(g.cardX(), 380, W - 380), 575, { size: 30, weight: 600 });
       c.restore();
     }
   };

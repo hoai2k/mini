@@ -18,6 +18,7 @@ import { clamp, lerp, approach } from './index.js';
 Object.assign(SHEETS, {
   'sprites.planks': [1, 3], // three long planks seen from above at a slant: pale pine, honey oak, reddish cedar
   'sprites.sawhorse': [1, 1],
+  'sprites.knots': [3, 1], // three knots in the wood, seen from above
   'sprites.sawbirdSawing': [1, 1], // the Saw Bird with its blade level, teeth down, legs tucked
   'sprites.sawbirdPoses': [2, 1], // snagged (blade bowed, same framing as sawing), standing proud
 });
@@ -307,7 +308,9 @@ export default function create(env) {
   }
 
   function sawhorse(c, x) {
-    if (drawSprite(c, 'sprites.sawhorse', 0, x, 760, { h: 160 })) return;
+    // the painted sawhorse: its beam's top tucked just under the plank's
+    // near edge, its feet on the yard
+    if (drawSprite(c, 'sprites.sawhorse', 0, x, 790, { h: 200 })) return;
     poly(c, [[x - 110, PLANK_BOT - 10], [x + 110, PLANK_BOT - 10], [x + 110, PLANK_BOT + 14], [x - 110, PLANK_BOT + 14]], x, 1);
     wash(c, '#a77a4a');
     ink(c, 2);
@@ -349,6 +352,8 @@ export default function create(env) {
     }
     for (const k of p.knots) {
       const ky = p.lineY + k.dy;
+      // the painted knot, sized to the knot's oval plus its ring of grain
+      if (drawSprite(c, 'sprites.knots', Math.floor(k.x) % 3, k.x, ky, { w: (k.rx + 12) * 2, anchor: 'center' })) continue;
       blob(c, k.x, ky, k.rx * 0.6, k.ry * 0.6, k.x, 0.12);
       wash(c, '#6a3a1c', 0.9);
       ink(c, 1.6);
@@ -416,7 +421,7 @@ export default function create(env) {
     if (g.proud > 0) {
       // After a straight cut it hops down and stands proud beside the plank.
       const hop = Math.abs(Math.sin(g.proud * 6)) * 14;
-      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1370, 770 - hop, { h: SAW_SIZE * 0.8 })) {
+      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1370, 770 - hop, { h: 250 })) {
         drawBird(c, 'sawbird', { x: 1370, y: 770 - hop, size: SAW_SIZE, t });
       }
       return;
@@ -425,16 +430,21 @@ export default function create(env) {
     const rot = g.tilt * 0.12 + shake;
     const tipX = (p.slide > 0 ? p.right + 40 : p.cutX) - 55 + g.s * STROKE; // the blade's tip
     const lineY = p.slide > 0 ? p.lineY - 60 * p.slide : g.cutY();
-    // A painted sawing pose: its toothed edge is the bottom of the picture,
-    // its tip at the left.
-    const [sheet, cell] = g.snag > 0 && art('sprites.sawbirdPoses') ? ['sprites.sawbirdPoses', 0] : ['sprites.sawbirdSawing', 0];
-    const sp = spriteCell(sheet, cell);
+    // A painted sawing pose (or, snagged, the bowed blade), measured on the
+    // sheets: in the sawing picture the tip is at x 11 and the teeth along
+    // y 845 of its 1024 px, the blade about 590 px long; in the snag cell the
+    // tip is at x 104, the teeth about y 830, the blade about 455 px. Both
+    // are drawn so the blade is about 195 px long, tip leading, teeth on
+    // the cut.
+    const snag = g.snag > 0 && spriteCell('sprites.sawbirdPoses', 0);
+    const sp = snag || spriteCell('sprites.sawbirdSawing', 0);
     if (sp) {
-      const w = 300 * K;
+      const [tx, ty, k] = snag ? [104, 830, 0.43] : [11, 845, 0.33];
+      const { cell } = sp;
       c.save();
-      c.translate(tipX + w / 2, lineY + 4);
+      c.translate(tipX + 100, lineY);
       c.rotate(rot);
-      drawSprite(c, sheet, cell, 0, 0, { w });
+      c.drawImage(sp.img, cell.x, cell.y, cell.w, cell.h, -100 - tx * k, -ty * k, cell.w * k, cell.h * k);
       c.restore();
       return;
     }
@@ -458,8 +468,8 @@ export default function create(env) {
 
   g.draw = (c, t) => {
     scene(c, 'sawbird', W, H, drawYard);
-    sawhorse(c, 600);
-    sawhorse(c, 1000);
+    sawhorse(c, 640);
+    sawhorse(c, 960);
     drawPlank(c, g.plank, t);
     for (const f of g.falling) drawHalf(c, f);
     drawSaw(c, t);

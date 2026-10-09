@@ -434,6 +434,10 @@ export const ASSETS = {
     "file": "assets/sprites/glovedove-toss.png",
     "delivered": true
   },
+  "sprites.dishShards": {
+    "file": "assets/sprites/dish-shards.png",
+    "delivered": false
+  },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
     "delivered": true
@@ -453,6 +457,10 @@ export const ASSETS = {
   "sprites.titthrushFluster": {
     "file": "assets/sprites/titthrush-fluster.png",
     "delivered": true
+  },
+  "sprites.watchCrown": {
+    "file": "assets/sprites/watch-crown.png",
+    "delivered": false
   },
   "scene.plugsocketswift": {
     "file": "assets/scenes/plugsocketswift.webp",
@@ -546,6 +554,10 @@ export const ASSETS = {
     "file": "assets/sprites/sawbird-poses.png",
     "delivered": true
   },
+  "sprites.knots": {
+    "file": "assets/sprites/knots.png",
+    "delivered": false
+  },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
     "delivered": true
@@ -565,6 +577,10 @@ export const ASSETS = {
   "sprites.radiobirdPoses": {
     "file": "assets/sprites/radiobird-poses.png",
     "delivered": true
+  },
+  "sprites.radioParts": {
+    "file": "assets/sprites/radio-parts.png",
+    "delivered": false
   },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
