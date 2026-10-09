@@ -4,7 +4,7 @@ Every image request that has been delivered (or delivered and later retired), wi
 
 ## Status
 
-0 requested, 216 delivered, 1 retired, 217 in total.
+3 requested, 216 delivered, 1 retired, 220 in total.
 
 ## Sticker book backgrounds
 

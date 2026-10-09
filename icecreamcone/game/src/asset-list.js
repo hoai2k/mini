@@ -382,6 +382,18 @@ export const ASSETS = {
     "file": "assets/sprites/garbagecanary-call.png",
     "delivered": true
   },
+  "sprites.garbagecanaryNeck": {
+    "file": "assets/sprites/garbagecanary-neck.png",
+    "delivered": false
+  },
+  "sprites.garbagecanaryLidOnly": {
+    "file": "assets/sprites/garbagecanary-lid-only.png",
+    "delivered": false
+  },
+  "sprites.garbagecanaryWalk": {
+    "file": "assets/sprites/garbagecanary-walk.png",
+    "delivered": false
+  },
   "scene.steampressersparrow": {
     "file": "assets/scenes/steampressersparrow.webp",
     "delivered": true
