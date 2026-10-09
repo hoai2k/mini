@@ -286,13 +286,22 @@ under the drum. When the rhythm is cleared, its dots tumble away.
 
 | Command | Tier I | Tier II | Tier III | Effect | Unlocked |
 | --- | --- | --- | --- | --- | --- |
-| Tiến · March | `L L L R` | `L L LR R` | `L RRR L R` | advance, stopping at the enemy line | ch. 1 |
+| Tiến · March | `L L L R` | `L L LR R` | `L RRR L R` | advance, stopping at the enemy line; tiers II and III crash into it on arrival | ch. 1 |
 | Đánh · Strike | `R R L R` | `R RR L R` | `R RRR L R` | spears hit the front enemy; archers shoot | ch. 1 |
 
 In the patterns, L is tùng and R is cắc. Spaces separate the four beats, and
 letters written together share a beat. Chapter 1 allows tiers I and II, and the
 later chapters allow all three. The first stroke says what kind of order it
 is: movement (march) starts on tùng, attacks (strike) on cắc.
+
+**A stronger march crashes in.** A march advances 2 × its power each beat and
+stops at the enemy line, so a tier II or III march used to lose the ground it
+had left once it reached the line. Now, on the beat a stronger march arrives
+at the line, that leftover ground becomes a hit on the front enemy: 2 × the
+ground left × the march's power (flourishes included), so arriving early in a
+march hits hardest, at most about half a spear blow (`MARCH_HIT` in
+`battle.js`). It happens once, on arrival: a march begun at the line does not
+hit, and a tier I march never does.
 
 **Two families.** There are only march and strike. Rally (healing) was removed:
 the shield now does the defensive work. The elephant charge (Voi) is no longer

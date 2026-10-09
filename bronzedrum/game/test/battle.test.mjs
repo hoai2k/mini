@@ -11,8 +11,8 @@ import { COMMANDS, TIER_POWER } from '../src/rhythm.js';
 const stage = (id) => STAGES.find((s) => s.id === id);
 
 /** One four-beat order at u seconds per beat, starting at the battle's clock. */
-function order(state, command, power = 1, u = 0.6) {
-  issueOrder(state, command, power, u);
+function order(state, command, power = 1, u = 0.6, tier = 1) {
+  issueOrder(state, command, power, u, tier);
   const t0 = state.time;
   const events = [];
   for (let k = 0; k < 4; k++) events.push(...stepArmy(state, t0 + k * u));
@@ -37,6 +37,29 @@ test('march advances but never through the nearest enemy', () => {
   assert.equal(b.army.x, 4);
   order(b, 'march');
   assert.equal(b.army.x, 9 - 1.5);
+});
+
+test('a stronger march crashes into the line with the ground it had left, once, as it arrives', () => {
+  const first = (b) => blocker(b);
+  // Tier II from 6 units short of the line (the first target at 9, the line at 7.5).
+  const strong = createBattle(stage('garden'));
+  strong.army.x = 1.5;
+  const hp = first(strong).hp;
+  const ev = order(strong, 'march', TIER_POWER[1], 0.6, 2);
+  assert.equal(strong.army.x, 9 - 1.5, 'at the line');
+  const hits = ev.filter((e) => e.type === 'marchHit');
+  assert.equal(hits.length, 1, 'one hit, on arrival');
+  const dealt = hp - first(strong).hp;
+  assert.ok(dealt > 0 && dealt < 12 * TIER_POWER[1], `a small hit (${dealt}), less than a spear blow`);
+  // A plain march arriving the same way does no harm.
+  const plain = createBattle(stage('garden'));
+  plain.army.x = 3.5;
+  const evPlain = order(plain, 'march', 1, 0.6, 1);
+  assert.equal(plain.army.x, 9 - 1.5);
+  assert.ok(!evPlain.some((e) => e.type === 'marchHit' || e.type === 'damage'));
+  // Already at the line: nothing to crash with.
+  const again = order(strong, 'march', TIER_POWER[1], 0.6, 2);
+  assert.ok(!again.some((e) => e.type === 'marchHit'));
 });
 
 test('stronger tiers and the waking drum raise power', () => {

@@ -159,7 +159,7 @@ export const T = {
   // The screen asking for a phone held upright to be turned sideways.
   rotate: {
     title: 'Turn your device sideways',
-    text: 'The drum runs along the bottom and the battle above it, so Bronze Drum needs the width. The game is waiting and carries on as soon as you turn it.',
+    text: 'The drum and the battle above work best in landscape.',
     menu: 'Menu',
   },
 
@@ -184,7 +184,7 @@ export const T = {
       sticks: 'Drumsticks',
     },
     tips: {
-      style: 'Shadow puppets: backlit cut-paper figures. Water puppets: lacquered wooden puppets wading in a village pond, as in Vietnamese water puppetry (múa rối nước).',
+      style: 'Shadow puppets: backlit cut-paper figures. Water puppets: lacquered wooden puppets wading in a village pond (múa rối nước).',
       difficulty: 'Easy: plain beats and pairs, no triplets. Medium: as designed. Hard: rests, inside pairs and triplets too. Takes effect when a chapter starts.',
       beats: 'How long every command and call is: four by default. Fewer is easier to remember, more is harder. Takes effect when a chapter starts.',
       sticks: 'The sisters’ sticks seen close up over the drum, in the battle chapters and in Drum Practice. Carved: a carved beater and a slim stick. Folk: a pestle-like pole and a bamboo stick. Ceremonial: a lacquered beater and a horn-tipped stick.',
@@ -204,11 +204,11 @@ export const T = {
       { role: 'Principal Game Designer', who: 'Hoai Nguyen' },
       {
         role: 'Music',
-        who: 'Emulated traditional Vietnamese folk by Hoai Nguyen, made using Suno',
+        who: 'Emulated Vietnamese folk by Hoai Nguyen, made using Suno',
       },
-      { role: 'Sound effects and ambience', who: 'Made with ElevenLabs' },
+      { role: 'Sound effects', who: 'Made with ElevenLabs' },
       { role: 'Artwork', who: 'Made with ChatGPT ImageGen' },
-      { role: 'Code', who: 'Written with Claude Code' },
+      { role: 'Coding Agent', who: 'Claude Code' },
       {
         role: 'Fonts',
         who: 'Cormorant Garamond by Christian Thalmann; Be Vietnam Pro by Lâm Bảo, Tony Le and Việt Anh Nguyễn. Both under the SIL Open Font License.',
@@ -230,7 +230,7 @@ export const T = {
       tier3: 'III · ×1.96',
     },
     commandEffects: {
-      march: 'Advance (stops at the enemy line).',
+      march: 'Advance (toward the enemy line). Tiers II and III march further, and on reaching the line they crash into it: the ground they had left hits the front enemy.',
       strike: 'Spears hit the front enemy; archers shoot. At Luy Lâu, with the drum awake, the war elephant charges instead: it tramples everything near it and spends the drum’s spirit.',
     },
     title: 'How to drum',
@@ -351,6 +351,7 @@ export const T = {
     commandEven: 'Even!  {command} · {pace}',
     commandGood: 'Good  {command} · {pace}',
     defended: 'Defended',
+    marchHit: 'Into the line!',
   },
 
   // The answering chapters (a caller plays, the player answers).
