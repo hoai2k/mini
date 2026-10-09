@@ -366,6 +366,7 @@ body.reduce-motion .cards { scroll-behavior: auto; }
 .row.check { grid-template-columns: 1fr auto; }
 .row input[type='range'] { accent-color: var(--accent); width: 100%; }
 .row input[type='checkbox'] { accent-color: var(--accent); width: 24px; height: 24px; }
+.setting-note { margin: -4px 0 4px; font-size: 0.85rem; }
 
 .gathering-head { margin-top: 0; }
 .toast {

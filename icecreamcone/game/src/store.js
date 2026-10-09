@@ -7,10 +7,15 @@ const STICKERS_KEY = 'icecreamcone.stickers.v1';
 
 export const DEFAULTS = {
   volume: 80,
+  vibration: true,
+  unlockAll: false,
+};
+
+// Not settings the player changes: music and effects keep a fixed balance
+// under the one volume, and motion follows the device's own preference.
+const FIXED = {
   music: 50,
   sfx: 80,
-  readAloud: false,
-  vibration: true,
   reduceMotion: typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches,
 };
 
@@ -49,10 +54,12 @@ function write(key, value, { session = false } = {}) {
 }
 
 export function loadSettings() {
-  return { ...DEFAULTS, ...(read(SETTINGS_KEY) || {}) };
+  const saved = read(SETTINGS_KEY) || {};
+  const own = Object.fromEntries(Object.keys(DEFAULTS).filter((k) => k in saved).map((k) => [k, saved[k]]));
+  return { ...DEFAULTS, ...own, ...FIXED };
 }
 export function saveSettings(s) {
-  write(SETTINGS_KEY, s);
+  write(SETTINGS_KEY, Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, s[k]])));
 }
 
 // { [birdId]: { best: number, plays: number } }
@@ -72,8 +79,48 @@ export function recordScore(progress, id, score) {
   return isBest;
 }
 
+// Forgetting the scores keeps them aside (the best of everything ever
+// forgotten), so Restore can bring them back.
+const BACKUP_KEY = 'icecreamcone.progress.backup.v1';
+const STICKERS_BACKUP_KEY = 'icecreamcone.stickers.backup.v1';
+
+// The higher best (and the larger number of plays) for every bird in either.
+export function mergeProgress(a = {}, b = {}) {
+  const out = {};
+  for (const id of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const x = a[id] || { best: 0, plays: 0 };
+    const y = b[id] || { best: 0, plays: 0 };
+    out[id] = { best: Math.max(x.best || 0, y.best || 0), plays: Math.max(x.plays || 0, y.plays || 0) };
+  }
+  return out;
+}
+
 export function resetProgress() {
+  const now = loadProgress();
+  if (Object.keys(now).length) write(BACKUP_KEY, mergeProgress(loadBackup(), now), { session: true });
+  const book = loadStickers();
+  if (book) write(STICKERS_BACKUP_KEY, book, { session: true });
   write(PROGRESS_KEY, {}, { session: true });
+}
+
+export function loadBackup() {
+  const b = read(BACKUP_KEY, { session: true });
+  return b && typeof b === 'object' ? b : {};
+}
+
+// True when the kept scores hold a best higher than today's for some bird.
+export function canRestore(progress) {
+  return Object.entries(loadBackup()).some(([id, e]) => (e?.best || 0) > (progress[id]?.best || 0));
+}
+
+// Brings back the kept scores, merged with today's; the sticker book comes
+// back too if it has been left empty since.
+export function restoreProgress(progress) {
+  const merged = mergeProgress(progress, loadBackup());
+  write(PROGRESS_KEY, merged, { session: true });
+  const kept = read(STICKERS_BACKUP_KEY, { session: true });
+  if (kept && !loadStickers()) write(STICKERS_KEY, kept, { session: true });
+  return merged;
 }
 
 // The sticker book: where the player has put each sticker, the picture

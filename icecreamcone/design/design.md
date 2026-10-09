@@ -14,8 +14,11 @@ says "New World Record!" and nothing more specific.
 
 ## Flow
 
-1. **Title.** The logo, Press Start, and the Controls, Settings and
-   Fullscreen buttons (see `GAME_GUIDELINES.md`).
+1. **Title.** The logo and Press Start together in the sky at the top, clear
+   of the birds walking the lane below; the Coot stands in the picture where
+   there is room (by the wall, or on the riverbank on narrower screens). The
+   Controls, Settings and Fullscreen buttons sit in the corner (see
+   `GAME_GUIDELINES.md`).
 2. **The field guide.** A card for each of the book's 28 birds, in order:
    the ten below first, then the other 18 (the Milkbottle Midge to the Radio
    Bird; their games are in [`more/`](more/)). A bird you haven't met yet
@@ -37,7 +40,7 @@ says "New World Record!" and nothing more specific.
    short rhyme in the game's own words (not the book's verses), and how its
    game plays: the goal, the controls for the device you are using, a few
    tips, and the score that opens the next page (until you've reached it) or
-   your best. The rhyme is read aloud when that setting is on. One button,
+   your best. One button,
    Play, starts the game; B, Esc or the × in the corner goes back to the
    guide.
 4. **Play.** A 3-2-1 count, the game, then "Time!".
@@ -94,6 +97,17 @@ says "New World Record!" and nothing more specific.
    game and leaving it untouched; settings are still saved.
 7. **The gathering.** When every bird has been spotted, a final page shows them all
    together, like the book's endpapers. Any bird can be replayed at any time.
+
+**Settings** are only Volume (one slider; music and effects keep a fixed
+balance under it), Vibration, and Unlock all, which opens every page so any
+game can be played without first passing the ones before it (the first-pass
+celebration still plays, without a card to unlock). Motion follows the
+device's reduced-motion preference. Forget my scores asks first (No is the
+default) and keeps the forgotten scores aside, merged with anything forgotten
+before (`icecreamcone.progress.backup.v1`, with the sticker book in
+`icecreamcone.stickers.backup.v1`); while they hold a better score than
+today's, Restore my scores appears and brings back the best of then and now
+for every bird, and the sticker book too if it has been left empty since.
 
 **The pause menu** has only buttons that do something: How to play, Settings,
 and, small at the foot, Restart and Exit to Field Guide. There is no Resume
