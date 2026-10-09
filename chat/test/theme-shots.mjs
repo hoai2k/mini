@@ -19,7 +19,7 @@ let fails = 0;
 for (const theme of ['teen', 'kid', 'art', 'classic']) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['camera', 'microphone'] });
   await ctx.addInitScript(([KEY, t, c]) => {
-    try { localStorage.setItem(KEY, JSON.stringify(c ? { theme: t, color: c } : { theme: t })); } catch {}
+    try { localStorage.setItem(KEY, JSON.stringify({ theme: t, themePicked: true, ...(c ? { color: c } : {}) })); } catch {}
   }, [KEY, theme, color]);
   const p = await ctx.newPage();
   const errors = [];

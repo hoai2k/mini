@@ -72,8 +72,8 @@ so the picture stays clear:
   shrink to bubbles in the top bar; games marked `fullBleed` (Hoops) draw
   under the bars too.
 
-Themes: Settings > Theme picks the look. Teen (the default) is dark and
-sleek with the teen icon set; Kid is the original candy look with the first
+Themes: Settings > Theme picks the look. Kid (the default) is the original
+candy look with the first icon set; Teen is dark and sleek with the teen
 icon set; Art borrows mid-century French New Wave cinema posters (paper,
 black outlines, offset shadows, red, Jost); Classical is 18th-century French
 Rococo (ivory, double gold borders, gilt buttons, Garamond). `themes.css`

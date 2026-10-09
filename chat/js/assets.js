@@ -23,7 +23,7 @@ export function assetUrl(name) {
 //   kid      first set (fx-*) only
 //   art      art-fx-*, then teen, then the first
 //   classic  classic-fx-*, then teen, then the first
-let theme = 'teen';
+let theme = 'kid';
 export function setIconTheme(t) {
   theme = t;
 }
