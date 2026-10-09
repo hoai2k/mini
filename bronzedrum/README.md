@@ -46,6 +46,16 @@ up to hide the bars, or add the game to the home screen).
   `node workbench/make-scenes.mjs` recaptures the chapter scenes shown beside
   the sounds (`workbench/scenes/`).
 
+## Text
+
+Every word the game shows is in [`game/src/text_config.js`](game/src/text_config.js):
+menus, settings and their tips, credits, instructions, chapter titles, stories
+and endings, hints, lessons, on-screen labels, Drum Practice and Training. Keys
+say where the text appears; `{name}` marks a value the game fills in. The page
+(`index.html`) holds no words of its own: its elements carry `data-text` keys
+and are filled from the file when the game starts. (It is plain JavaScript,
+not TypeScript, because the game runs without a build step.)
+
 ## Run and check
 
 ```sh

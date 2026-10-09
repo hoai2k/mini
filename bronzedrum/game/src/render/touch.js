@@ -1,3 +1,4 @@
+import { T as TEXT } from '../text_config.js';
 import { PALETTE as P } from '../palette.js';
 import { W, GROUND, FIELD_TOP, TOUCH, star } from './common.js';
 
@@ -47,9 +48,9 @@ export const touch = {
     g.shadowColor = 'rgba(0,0,0,0.9)';
     g.shadowBlur = 4;
     g.fillStyle = 'rgba(242,232,213,0.9)';
-    g.fillText('cắc', cx - mid, cy - 18);
-    g.fillText('cắc', cx + mid, cy - 18);
-    g.fillText('tùng', cx, cy - R * 0.32);
+    g.fillText(TEXT.touch.rim, cx - mid, cy - 18);
+    g.fillText(TEXT.touch.rim, cx + mid, cy - 18);
+    g.fillText(TEXT.touch.centre, cx, cy - R * 0.32);
     // The edge of the centre zone.
     g.setLineDash([4, 6]);
     g.strokeStyle = 'rgba(242,232,213,0.45)';
@@ -331,7 +332,7 @@ export const touch = {
         g.globalAlpha = alpha;
         g.shadowColor = 'rgba(0,0,0,0.9)';
         g.shadowBlur = 4;
-        g.fillText(id === 'guard' ? 'Shield' : 'Reset', pos.x, pos.y - pos.r - 10);
+        g.fillText(id === 'guard' ? TEXT.touch.shield : TEXT.touch.reset, pos.x, pos.y - pos.r - 10);
         g.restore();
       }
     }
