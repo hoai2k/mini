@@ -369,6 +369,15 @@ body.reduce-motion .cards { scroll-behavior: auto; }
 .setting-note { margin: -4px 0 4px; font-size: 0.85rem; }
 
 .gathering-head { margin-top: 0; }
+/* The finale's words sit on a paper label over the painting, so they read
+   against it while hiding little of it; the painting under them takes the
+   pointer (the bird under it shows its name). */
+#gathering { pointer-events: none; }
+#gathering button { pointer-events: auto; }
+.gathering-head { align-self: center; background: rgba(251, 246, 232, 0.94); border: 2px solid var(--ink); border-radius: 16px; padding: 4px 18px 6px; box-shadow: 0 3px 10px rgba(59, 43, 32, 0.25); max-width: calc(100% - 24px); }
+.gathering-head h2 { font-size: clamp(1.15rem, 2.6vw, 1.9rem); }
+.gathering-head p { margin: 2px 0 0; color: #5a4636; font-size: clamp(0.8rem, 1.6vw, 1rem); }
+#gathering .screen-foot .text-btn { background: rgba(251, 246, 232, 0.94); }
 .toast {
   position: absolute;
   left: 50%;
@@ -399,6 +408,8 @@ body.reduce-motion .press-start { animation: none; }
 .sb-head { text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 18px; max-width: calc(100% - 100px); }
 .sb-head h2 { font-size: clamp(1.4rem, 3vw, 2.1rem); }
 .sb-pages { display: none; }
+/* on all the birds together, how many are in the picture */
+#stickers.gather .sb-pages { display: block; margin: 0; font-family: var(--serif); }
 .sb-bg { display: flex; align-items: center; gap: 8px; background: rgba(250, 244, 228, 0.85); border: 2px solid var(--ink); border-radius: 999px; padding: 2px 6px; font-family: var(--serif); font-weight: 600; font-size: 0.95rem; }
 .sb-bg #sb-bg-name { min-width: 9em; text-align: center; }
 .sb-arrow { width: 34px; height: 34px; border: none; background: none; font: 800 1.6rem/1 var(--serif); border-radius: 50%; }
@@ -428,6 +439,8 @@ body.pad .pad-only { display: inline-grid; }
    cards fit without being cut off; anything still too tall scrolls. */
 @media (max-height: 520px) {
   .sb-head h2, .sb-pages { display: none; }
+/* on all the birds together, how many are in the picture */
+#stickers.gather .sb-pages { display: block; margin: 0; font-family: var(--serif); }
   .sb-bg { font-size: 0.8rem; }
   .sb-arrow { width: 28px; height: 28px; font-size: 1.3rem; }
   .sb-hint { font-size: 0.72rem; bottom: 2px; padding: 0 10px; }

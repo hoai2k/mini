@@ -686,7 +686,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/book/gathering.webp`
 - **Size:** 2048 x 1024, opaque
-- **Used for:** A trial default page for the sticker book: each bird's painted spot is greyed out until the player snaps that bird's sticker into it. Also a possible finale picture.
+- **Used for:** The sticker book's first picture (on trial as its default), with assets/book/gathering.atlas.json: each bird's painted spot is greyed out until the player snaps that bird's sticker into it. Also the finale on upright screens, its halves stacked.
 - **Stand-in until delivered:** The sticker book's plain page.
 - **Reference:** [`reference/endpapers-all-birds.jpg`](../reference/endpapers-all-birds.jpg)
 - **Status:** delivered

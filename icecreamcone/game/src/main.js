@@ -8,9 +8,9 @@ import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
-import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, RESULT_TIME, RESULT_GUARD, spreadCount } from './reward.js';
-import { drawCelebration, sticker, drawStickerBook, stickerBookLayout, stickerSpot } from './celebrate.js';
-import { normalizeBook, emptyBook, backgrounds, cycle, shownBackground, placeOnSpread, moveSticker, drawOrder, PLAIN } from './stickerbook.js';
+import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, RESULT_TIME, RESULT_GUARD, spreadCount, sheetCells } from './reward.js';
+import { drawCelebration, sticker, drawStickerBook, stickerBookLayout, stickerSize, stickerSpot, regionRect, regionSize, SNAP_TIME, snapGrey } from './celebrate.js';
+import { normalizeBook, emptyBook, backgrounds, cycle, shownBackground, placeOnSpread, moveSticker, drawOrder, pagePoint, PLAIN, GATHERING, regionsFromAtlas, toPicture, dropOnPicture, regionAt, snapSticker, placeFree, toSheet, gatherState, clampCam, bookToStage, stageToBook, edgePush } from './stickerbook.js';
 import { SUBJECTS, SUBJECT_IDS } from './subjects.js';
 
 const W = 1600;
@@ -87,7 +87,21 @@ async function loadArt() {
     ),
   );
   setArt(map);
+  // the gathering painting's atlas: where each bird is in it
+  const atlas = async (file) => {
+    try {
+      const r = await fetch(file);
+      return r.ok ? regionsFromAtlas(await r.json()) : null;
+    } catch {
+      return null;
+    }
+  };
+  [ATLAS, UI_ATLAS] = await Promise.all([atlas('assets/book/gathering.atlas.json'), atlas('assets/ui/gathering.atlas.json')]);
 }
+// Where each bird is in the gathering's two paintings: the book's (2:1, two
+// pages) and the finale's (16:9); null until loaded, or if missing.
+let ATLAS = null;
+let UI_ATLAS = null;
 
 // ---------- canvas sizing ----------
 
@@ -731,6 +745,13 @@ function celebrate(i) {
   const earned = new Set(BIRDS.map((_, j) => j).filter((j) => j !== i && passed(j)));
   const n = nextPage(i, BIRDS.length);
   S.cele = { index: i, birds: BIRDS, earned, next: n >= 0 ? BIRDS[n] : null, t: 0, hold: 0, fired: new Set(), pos: book.pos, bg: bookPicture() };
+  // With the book at all the birds together, the new sticker snaps into its
+  // own spot in the painting, and stays there.
+  if (isGather() && hasGathering()) {
+    S.cele.gather = { img: art('book.gathering'), atlas: ATLAS, snapped: new Set(book.snap), gpos: { ...book.gpos } };
+    snapSticker(book, BIRDS[i].id);
+    saveBook();
+  }
   // the stickers are cut out now, not in the middle of the show
   for (const b of BIRDS) sticker(b.id);
   show('celebrate');
@@ -813,16 +834,25 @@ function celebrationInput(dt) {
 // a picture to put behind them (LB / RB, Q / E, or the arrows by its name),
 // and its two spreads to turn between (LT / RT, Page Up / Page Down, or the
 // arrows at the sides). Everything about it is saved.
+//
+// Its first picture, all the birds together, is one spread with every bird
+// in one painting: each bird's spot greyed until its sticker is snapped in
+// (dropped on or near it), the stickers not yet placed waiting on a sticker
+// sheet beside the book. On a small screen its pages are drawn larger than
+// the room for them, and the view pans: drag the picture, or carry a sticker
+// (or the hand) near the window's edge.
 
 // With every page open (?debug, ?all) every sticker and picture is too.
 const earnedSet = () => new Set(BIRDS.map((_, i) => i).filter((i) => ALL_OPEN || passed(i)));
-const pictures = () => backgrounds(BIRD_IDS, (i) => ALL_OPEN || passed(i));
+const hasGathering = () => !!ATLAS && !!art('book.gathering');
+const pictures = () => backgrounds(BIRD_IDS, (i) => ALL_OPEN || passed(i), { gathering: hasGathering() });
+const isGather = () => shownBackground(pictures(), book.bg) === GATHERING;
 // The picture behind the stickers: the bird's own painting for the book
 // (IC-SB01..SB28, drawn across both pages) once delivered, its game's scene
 // (pasted in) until then.
 const bookPicture = () => {
   const bg = shownBackground(pictures(), book.bg);
-  if (bg === PLAIN) return null;
+  if (bg === PLAIN || bg === GATHERING) return null;
   const own = ASSETS['book.' + bg]?.delivered && art('book.' + bg);
   if (own) return { img: own, full: true };
   const scene = art('scene.' + bg);
@@ -830,11 +860,12 @@ const bookPicture = () => {
 };
 const saveBook = () => saveStickers(book);
 const isWide = () => view.cw >= view.ch * 0.95;
-const sbLayout = () => stickerBookLayout(BIRDS.length, isWide(), book.spread);
+const sbLayout = () => stickerBookLayout(BIRDS.length, isWide(), book.spread, isGather());
+const normalSize = () => stickerSize(BIRDS.length, isWide());
 
 function openStickerBook() {
   const wide = isWide();
-  S.sb = { held: null, hand: wide ? { x: 800, y: 470 } : { x: 450, y: 820 } };
+  S.sb = { held: null, hand: wide ? { x: 800, y: 470 } : { x: 450, y: 820 }, cam: null, fx: [], pan: null };
   document.activeElement?.blur?.();
   fillStickerBook();
   if (!earnedSet().size) toast('Reach a bird’s score to earn its sticker.');
@@ -847,14 +878,18 @@ function closeStickerBook() {
 
 // The words around the book: which pages, which picture, how to use it.
 function fillStickerBook() {
-  const from = sbLayout().from;
-  const to = sbLayout().to;
-  $('#sb-pages').textContent = SPREADS > 1 ? `Pages ${from + 1} to ${to} · ${book.spread + 1} of ${SPREADS}` : '';
+  const gather = isGather();
+  const L = sbLayout();
+  const earned = earnedSet();
+  const placed = book.snap.filter((id) => earned.has(BIRD_IDS.indexOf(id))).length;
+  $('#sb-pages').textContent = gather ? `${placed} of ${BIRDS.length} in the picture` : SPREADS > 1 ? `Pages ${L.from + 1} to ${L.to} · ${book.spread + 1} of ${SPREADS}` : '';
+  $('#stickers').classList.toggle('gather', gather);
   const bg = shownBackground(pictures(), book.bg);
   const b = BIRDS.find((x) => x.id === bg);
-  $('#sb-bg-name').textContent = b ? b.name : 'Plain page';
+  $('#sb-bg-name').textContent = b ? b.name : gather ? 'All the birds together' : 'Plain page';
   const n = pictures().length;
   for (const el of document.querySelectorAll('.sb-bg .sb-arrow')) el.disabled = n < 2;
+  $('#sb-prev').hidden = $('#sb-next').hidden = gather;
   $('#sb-prev').disabled = book.spread <= 0;
   $('#sb-next').disabled = book.spread >= SPREADS - 1;
   stickerHint();
@@ -862,11 +897,12 @@ function fillStickerBook() {
 
 function stickerHint() {
   const holding = !!S.sb?.held;
+  const gather = isGather();
   const text = pad()
-    ? holding ? 'A: put it down · B: put it back' : 'Stick: move the hand · A: pick up · LB RB: picture · LT RT: turn the page · B: close'
+    ? holding ? (gather ? 'A: put it down (on its own bird, it fits in) · B: put it back' : 'A: put it down · B: put it back') : gather ? 'Stick: move the hand · A: pick up · LB RB: picture · B: close' : 'Stick: move the hand · A: pick up · LB RB: picture · LT RT: turn the page · B: close'
     : input.kind === 'keyboard'
-      ? holding ? 'Space: put it down · Esc: put it back' : 'Arrows: move the hand · Space: pick up · Q E: picture · Page Up / Down: turn the page · Esc: close'
-      : 'Drag a sticker to put it anywhere on the pages';
+      ? holding ? (gather ? 'Space: put it down (on its own bird, it fits in) · Esc: put it back' : 'Space: put it down · Esc: put it back') : gather ? 'Arrows: move the hand · Space: pick up · Q E: picture · Esc: close' : 'Arrows: move the hand · Space: pick up · Q E: picture · Page Up / Down: turn the page · Esc: close'
+      : gather ? (S.sb?.cam?.z > 1 ? 'Drag a sticker onto its own bird · drag the picture to look around' : 'Drag a sticker onto its own bird in the picture, or anywhere') : 'Drag a sticker to put it anywhere on the pages';
   const h = $('#sb-hint');
   if (h.textContent !== text) h.textContent = text;
 }
@@ -877,14 +913,23 @@ function turnPicture(d) {
     toast('Pass a bird’s game to have its picture for the book.');
     return;
   }
+  if (S.sb?.held) putBack();
   book.bg = cycle(list, shownBackground(list, book.bg), d);
   saveBook();
+  if (S.sb) {
+    S.sb.cam = null;
+    S.sb.fx = [];
+  }
   audio.sfx('page');
   fillStickerBook();
   $('#sb-live').textContent = `Picture: ${$('#sb-bg-name').textContent}`;
 }
 
 function turnSpread(d) {
+  if (isGather()) {
+    toast(`All ${BIRDS.length} birds share this one picture.`);
+    return;
+  }
   const to = Math.max(0, Math.min(SPREADS - 1, book.spread + d));
   if (to === book.spread) return;
   if (S.sb?.held) putBack();
@@ -909,12 +954,17 @@ function stickerAt(L, x, y) {
 }
 
 function pickUp(hit, x, y, by) {
-  S.sb.held = { id: hit.id, i: hit.i, x: hit.at.x, y: hit.at.y, dx: hit.at.x - x, dy: hit.at.y - y, by };
+  S.sb.held = { id: hit.id, i: hit.i, x: hit.at.x, y: hit.at.y, dx: hit.at.x - x, dy: hit.at.y - y, by, from: hit.from || 'spread', s0: hit.at.s, age: 0 };
+  if (hit.from === 'snap') S.sb.fx.push({ kind: 'unsnap', id: hit.id, t: 0, dur: settings.reduceMotion ? 0.15 : 0.3 });
   audio.sfx('catch', { pitch: 5 });
   stickerHint();
 }
 
 function putDown() {
+  if (isGather()) {
+    putDownGather();
+    return;
+  }
   const h = S.sb.held;
   const L = sbLayout();
   const sl = L.slots.find((s) => s.i === h.i);
@@ -927,15 +977,164 @@ function putDown() {
 }
 
 function putBack() {
+  const h = S.sb.held;
   S.sb.held = null;
+  // one taken out of its spot goes back into it
+  if (h && h.from === 'snap' && isGather()) startSnap(h, gatherRegion(h.id));
   audio.sfx('back');
   stickerHint();
+}
+
+// ---------- the gathering ----------
+
+const gatherRegion = (id) => ATLAS.regions.find((r) => r.id === id);
+const inBox = (b, p) => p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
+// The size a carried sticker is drawn at (drawPlaced's s), and a page's
+// least size on screen, in CSS pixels, before the view zooms in.
+const HELD_SCALE = 1.15;
+const MIN_PAGE_PX = 420;
+
+// The view of the gathering: zoomed in on a small screen, never past the
+// book's edges, easing toward where it is asked to look.
+function gatherCam(L, dt = 0) {
+  const sb = S.sb;
+  const wide = isWide();
+  const s = Math.min(view.cw / (wide ? W : H), view.ch / (wide ? H : W)) || 1;
+  // big enough to see; upright, the page fills the window's width (the view
+  // then scrolls up and down, a page at a time)
+  const z = Math.max(1, Math.min(2.2, MIN_PAGE_PX / (L.pages[0].w * s)), wide ? 1 : L.win.w / L.pages[0].w);
+  if (!sb.cam || Math.abs(sb.cam.z - z) > 1e-3) {
+    const c = clampCam(L.box, { z, x: L.box.x + L.box.w / 2, y: L.box.y }, L.win);
+    sb.cam = { z, x: c.x, y: c.y, tx: c.x, ty: c.y };
+  }
+  const cam = sb.cam;
+  const t = clampCam(L.box, { z, x: cam.tx, y: cam.ty }, L.win);
+  cam.tx = t.x;
+  cam.ty = t.y;
+  const k = settings.reduceMotion ? 1 : 1 - Math.exp(-dt * 10);
+  cam.x += (cam.tx - cam.x) * k;
+  cam.y += (cam.ty - cam.y) * k;
+  return cam;
+}
+
+// Scrolls the view toward the window's edge a point is near.
+function pushCam(L, p, dt) {
+  const cam = S.sb.cam;
+  if (!cam || cam.z <= 1) return;
+  const e = edgePush(L.win, p, Math.min(L.win.w, L.win.h) * 0.14);
+  const speed = 900 / cam.z;
+  cam.tx += e.x * speed * dt;
+  cam.ty += e.y * speed * dt;
+}
+
+// The spot of bird `id` on the stage (its region's centre and size), at the
+// view as it is.
+function spotOnStage(L, id) {
+  const cam = S.sb.cam;
+  const rr = regionRect(L, gatherRegion(id));
+  const c = bookToStage(L.win, cam, { x: rr.cx, y: rr.cy });
+  return { x: c.x, y: c.y, size: regionSize(rr) * cam.z };
+}
+
+// A point of the stage as a point of the painting (on the nearer page, so
+// off its edge it is outside 0..1), and of the book.
+function stageToPicture(L, p) {
+  const q = stageToBook(L.win, S.sb.cam, p);
+  const k = placeOnSpread(L.pages, q.x, q.y, 0).page;
+  const pg = L.pages[k];
+  return { pic: toPicture({ page: k, u: (q.x - pg.x) / pg.w, v: (q.y - pg.y) / pg.h }), book: q };
+}
+// The stickers waiting on the sheet (the one in hand keeps its cell).
+const gatherCells = (L) => sheetCells(L, BIRDS.map((_, i) => i).filter((i) => earnedSet().has(i) && gatherState(book, BIRD_IDS[i]) === 'sheet'));
+
+// What is under (x, y) on the gathering: a loose sticker (the top one), a
+// bird snapped into the painting, or one waiting on the sheet.
+function gatherHit(L, x, y) {
+  const earned = earnedSet();
+  const sb = S.sb;
+  const size = normalSize();
+  const p = { x, y };
+  if (inBox(L.win, p)) {
+    const loose = Object.keys(book.gpos).filter((id) => earned.has(BIRD_IDS.indexOf(id)));
+    for (const id of drawOrder(loose, book.gpos).reverse()) {
+      const at = bookToStage(L.win, sb.cam, pagePoint(L.pages, book.gpos[id]));
+      const half = size * 0.42;
+      if (Math.abs(x - at.x) <= half && Math.abs(y - (at.y - size * 0.02)) <= half * 1.08) return { id, i: BIRD_IDS.indexOf(id), at: { x: at.x, y: at.y, s: size }, from: 'free' };
+    }
+    const q = stageToPicture(L, p);
+    const r = q && regionAt(ATLAS, q.pic, (r) => book.snap.includes(r.id) && earned.has(BIRD_IDS.indexOf(r.id)));
+    if (r) {
+      const at = spotOnStage(L, r.id);
+      return { id: r.id, i: BIRD_IDS.indexOf(r.id), at: { x: at.x, y: at.y, s: at.size / (0.78 * HELD_SCALE) }, from: 'snap' };
+    }
+    return null;
+  }
+  for (const sl of gatherCells(L)) {
+    const id = BIRD_IDS[sl.i];
+    if (Math.abs(x - sl.x) <= sl.s / 2 && Math.abs(y - sl.y) <= sl.s / 2) return { id, i: sl.i, at: { x: sl.x, y: sl.y, s: (sl.s * 0.84) / (0.78 * HELD_SCALE) }, from: 'sheet' };
+  }
+  return null;
+}
+
+// A sticker begins to snap into its spot, from where it is in hand.
+function startSnap(h, r) {
+  const size = (h.s ?? normalSize()) * 0.78 * HELD_SCALE;
+  S.sb.fx = S.sb.fx.filter((f) => f.id !== h.id);
+  S.sb.fx.push({ kind: 'snap', id: h.id, t: 0, dur: settings.reduceMotion ? 0.35 : SNAP_TIME, from: { x: h.x, y: h.y, size } });
+  snapSticker(book, r.id);
+}
+
+// Put down on the gathering: into its own spot (it snaps in), on another
+// bird's spot (a little shake: it stays loose), anywhere else on the pages
+// (loose), or off them (back on the sheet).
+function putDownGather() {
+  const sb = S.sb;
+  const h = sb.held;
+  const L = sbLayout();
+  sb.held = null;
+  const q = inBox(L.win, h) ? stageToPicture(L, h) : null;
+  if (!q) {
+    toSheet(book, h.id);
+    audio.sfx('back');
+    $('#sb-live').textContent = `${BIRDS[h.i].name}: back on the sticker sheet`;
+  } else {
+    const res = dropOnPicture(ATLAS, h.id, q.pic);
+    if (res.kind === 'snap') {
+      startSnap(h, gatherRegion(h.id));
+      audio.sfx('plop');
+      audio.sfx('bloom');
+      vibrate(40);
+      $('#sb-live').textContent = `${BIRDS[h.i].name} fits into the picture`;
+    } else {
+      placeFree(book, h.id, placeOnSpread(L.pages, q.book.x, q.book.y, normalSize() / sb.cam.z));
+      if (res.kind === 'wrong') {
+        if (!settings.reduceMotion) sb.fx.push({ kind: 'shake', id: h.id, t: 0, dur: 0.45 });
+        audio.sfx('bonk');
+        $('#sb-live').textContent = `That is the ${BIRDS[BIRD_IDS.indexOf(res.id)].name.replace(/^The /, '')}’s spot`;
+      } else audio.sfx('plop');
+    }
+  }
+  saveBook();
+  fillStickerBook();
+}
+
+// How greyed bird `id`'s spot is now (1 greyed, 0 in colour).
+function greyOf(id, earned) {
+  const sb = S.sb;
+  for (const f of sb.fx) {
+    if (f.id !== id) continue;
+    if (f.kind === 'snap') return snapGrey(f.t / f.dur, settings.reduceMotion);
+    if (f.kind === 'unsnap') return Math.min(1, f.t / f.dur);
+  }
+  if (sb.held?.id === id) return 1;
+  return book.snap.includes(id) && earned.has(BIRD_IDS.indexOf(id)) ? 0 : 1;
 }
 
 function stickerInput(dt) {
   const sb = S.sb;
   const n = input.nav();
   const st = input.state();
+  const gather = isGather() && hasGathering();
   const L = sbLayout();
   stickerHint();
   if (n.back) {
@@ -946,18 +1145,45 @@ function stickerInput(dt) {
   if (input.padPressed(BTN.RB) || input.keyPressed('KeyE', 'BracketRight')) turnPicture(1);
   if (input.padPressed(BTN.LT) || input.keyPressed('PageUp')) turnSpread(-1);
   if (input.padPressed(BTN.RT) || input.keyPressed('PageDown')) turnSpread(1);
+  const hitAt = (x, y) => (gather ? gatherHit(L, x, y) : stickerAt(L, x, y));
+  if (gather) {
+    gatherCam(L, dt);
+    for (const f of sb.fx) f.t += dt;
+    sb.fx = sb.fx.filter((f) => f.t < f.dur);
+    if (sb.held) {
+      sb.held.age += dt;
+      const grow = settings.reduceMotion ? 1 : Math.min(1, sb.held.age / 0.25);
+      sb.held.s = sb.held.s0 + (normalSize() - sb.held.s0) * (grow * grow * (3 - 2 * grow));
+    }
+  }
 
-  // the mouse or a finger: drag
+  // the mouse or a finger: drag (on the gathering, dragging the picture
+  // itself looks around it when it is bigger than its window)
   const p = st.pointer;
   if (input.kind === 'pointer') {
     sb.hand = null;
     if (p.pressed && !sb.held) {
-      const hit = stickerAt(L, p.x, p.y);
+      const hit = hitAt(p.x, p.y);
       if (hit) pickUp(hit, p.x, p.y, 'pointer');
+      else if (gather && sb.cam.z > 1 && inBox(L.win, p)) sb.pan = { x: p.x, y: p.y, cx: sb.cam.x, cy: sb.cam.y };
+    }
+    if (sb.pan) {
+      if (p.down) {
+        sb.cam.tx = sb.cam.x = sb.pan.cx - (p.x - sb.pan.x) / sb.cam.z;
+        sb.cam.ty = sb.cam.y = sb.pan.cy - (p.y - sb.pan.y) / sb.cam.z;
+        const c = clampCam(L.box, sb.cam, L.win);
+        sb.cam.x = sb.cam.tx = c.x;
+        sb.cam.y = sb.cam.ty = c.y;
+      } else sb.pan = null;
     }
     if (sb.held?.by === 'pointer') {
+      // a sticker picked off the sheet or out of its spot comes to the finger
+      const pull = sb.held.from === 'sheet' || sb.held.from === 'snap' ? Math.max(0, 1 - sb.held.age / 0.2) : 1;
+      sb.held.dx *= pull;
+      sb.held.dy *= pull;
       sb.held.x = p.x + sb.held.dx;
       sb.held.y = p.y + sb.held.dy;
+      if (gather) pushCam(L, sb.held, dt);
       if (!p.down) putDown();
     }
     return;
@@ -970,6 +1196,7 @@ function stickerInput(dt) {
   const speed = 900;
   sb.hand.x = Math.max(0, Math.min(lw, sb.hand.x + st.x * speed * dt));
   sb.hand.y = Math.max(0, Math.min(lh, sb.hand.y + st.y * speed * dt));
+  if (gather && (st.x || st.y)) pushCam(L, sb.hand, dt);
   if (sb.held) {
     sb.held.by = 'hand';
     sb.held.x = sb.hand.x;
@@ -978,7 +1205,7 @@ function stickerInput(dt) {
   if (n.confirm) {
     if (sb.held) putDown();
     else {
-      const hit = stickerAt(L, sb.hand.x, sb.hand.y);
+      const hit = hitAt(sb.hand.x, sb.hand.y);
       if (hit) {
         pickUp(hit, sb.hand.x, sb.hand.y, 'hand');
         sb.held.x = sb.hand.x;
@@ -1409,11 +1636,14 @@ function render(dt = 0) {
     renderStickerBook(t);
     return;
   }
+  if (S.screen === 'gathering') {
+    renderGathering(t);
+    return;
+  }
   fitView();
   logical();
   if (S.screen === 'title') renderTitle(t);
   else if (S.screen === 'page') renderPage(t);
-  else if (S.screen === 'gathering') renderGathering(t);
   else if (S.screen === 'guide') drawCards(t);
 }
 
@@ -1442,7 +1672,33 @@ function bookStage() {
 function renderStickerBook(t) {
   const { lw, lh, px, wide } = bookStage();
   const sb = S.sb;
-  drawStickerBook(g, { birds: BIRDS, earned: earnedSet(), book, held: sb.held, hand: input.kind === 'pointer' ? null : sb.hand, bg: bookPicture() }, { lw, lh, px, wide, t, reduce: settings.reduceMotion });
+  const earned = earnedSet();
+  let gather = null;
+  if (isGather() && hasGathering()) {
+    const L = sbLayout();
+    const cam = gatherCam(L, 0);
+    const shake = sb.fx.find((f) => f.kind === 'shake');
+    gather = {
+      L,
+      birds: BIRDS,
+      earned,
+      img: art('book.gathering'),
+      atlas: ATLAS,
+      grey: (id) => greyOf(id, earned),
+      glow: sb.held?.id || null,
+      gpos: book.gpos,
+      cells: gatherCells(L),
+      shake: shake && { id: shake.id, dx: Math.sin(shake.t * 45) * 12 * (1 - shake.t / shake.dur) },
+      size: normalSize(),
+      skip: sb.held?.id || null,
+      cam: { z: cam.z, x: cam.x, y: cam.y },
+      snaps: sb.fx.filter((f) => f.kind === 'snap').map((f) => {
+        const i = BIRD_IDS.indexOf(f.id);
+        return { b: BIRDS[i], i, from: f.from, to: spotOnStage(L, f.id), k: f.t / f.dur };
+      }),
+    };
+  }
+  drawStickerBook(g, { birds: BIRDS, earned, book, held: sb.held, hand: input.kind === 'pointer' ? null : sb.hand, bg: bookPicture(), gather }, { lw, lh, px, wide, t, reduce: settings.reduceMotion });
 }
 
 function updateHud() {
@@ -1524,10 +1780,36 @@ function renderPage(t) {
   drawBird(g, b.id, { x: cx + size * 0.06, y: cy + 352 + (fit < 1 ? 20 : 0), size, t, pose });
 }
 
+// The finale: all the birds together. On a wide screen the 16:9 painting
+// fills the stage; upright, the book's 2:1 painting instead, its left half
+// above its right, across the screen's width, so the birds stay big. The
+// bird under the mouse (or a finger) shows its name.
 function renderGathering(t) {
+  const upright = view.cw < view.ch * 0.95;
+  const book2 = art('book.gathering');
+  if (upright && book2) {
+    // logical units: the painting's own pixels, its halves stacked
+    const hw = book2.width / 2;
+    const s = Math.min(view.cw / hw, view.ch / (book2.height * 2));
+    view = { ...view, s, ox: (view.cw - hw * s) / 2, oy: (view.ch - book2.height * 2 * s) / 2 };
+    g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+    paper(g, view.cw, view.ch);
+    g.setTransform(view.dpr * s, 0, 0, view.dpr * s, view.dpr * view.ox, view.dpr * view.oy);
+    g.drawImage(book2, 0, 0, hw, book2.height, 0, 0, hw, book2.height);
+    g.drawImage(book2, hw, 0, hw, book2.height, 0, book2.height, hw, book2.height);
+    if (ATLAS) {
+      const toPic = (x, y) => (y < book2.height ? { x: x / book2.width, y: y / book2.height } : { x: 0.5 + x / book2.width, y: y / book2.height - 1 });
+      const toUnits = (r) => ({ x: (r.cx - r.page * 0.5) * book2.width, y: (r.y + r.page) * book2.height, s: hw });
+      gatheringName(ATLAS, toPic, toUnits, 1 / s);
+    }
+    return;
+  }
+  fitView();
+  logical();
   const img = art('gathering');
   if (img) {
     g.drawImage(img, 0, 0, W, H);
+    if (UI_ATLAS) gatheringName(UI_ATLAS, (x, y) => ({ x: x / W, y: y / H }), (r) => ({ x: r.cx * W, y: r.y * H, s: W }), 1 / view.s);
     return;
   }
   g.fillStyle = 'rgba(239,217,106,0.45)';
@@ -1541,7 +1823,37 @@ function renderGathering(t) {
       drawBird(g, b.id, { x, y, size: r ? 330 : 280, t: t + i * 0.7 + r, pose: { growth: 1, light: 'green', fill: 0.7, sing: 0.6 } });
     });
   });
-  label(g, '', W / 2, 60);
+}
+
+// The name of the bird under the pointer, on a paper label above it.
+// toPic: logical units → painting shares; toUnits: a region → the point
+// above its top in logical units, and the width there is room for; k:
+// logical units per CSS pixel.
+function gatheringName(atlas, toPic, toUnits, k) {
+  const p = input.state().pointer;
+  if (!p.active) return;
+  const r = regionAt(atlas, toPic(p.x, p.y));
+  if (!r) return;
+  const b = BIRDS.find((x) => x.id === r.id);
+  if (!b) return;
+  const at = toUnits(r);
+  const size = 17 * k;
+  g.font = `600 ${size}px Fraunces, Georgia, serif`;
+  const w = g.measureText(b.name).width + size * 1.4;
+  const x = Math.max(w / 2 + 4 * k, Math.min(at.s - w / 2 - 4 * k, at.x));
+  const y = Math.max(size * 1.2, at.y - size * 0.4);
+  g.save();
+  g.shadowColor = 'rgba(59,43,32,0.3)';
+  g.shadowBlur = 6;
+  g.beginPath();
+  g.roundRect(x - w / 2, y - size * 0.85, w, size * 1.7, size * 0.5);
+  g.fillStyle = 'rgba(251,246,232,0.96)';
+  g.fill();
+  g.restore();
+  g.lineWidth = 1.6 * k;
+  g.strokeStyle = INK;
+  g.stroke();
+  label(g, b.name, x, y, { size, weight: 600 });
 }
 
 // ---------- pausing on focus loss and controller loss ----------
@@ -1577,7 +1889,9 @@ requestAnimationFrame((n) => {
   frame(n);
 });
 // For automated checks.
-globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progress() { return progress; }, get book() { return book; }, stickerLayout: () => stickerBookLayout(BIRDS.length, isWide(), book.spread), stage: () => ({ ...view }) };
+globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progress() { return progress; }, get book() { return book; }, stickerLayout: () => sbLayout(), stage: () => ({ ...view }),
+  // the gathering, for the checks: a bird's spot and its cell on the sheet on the stage, the view
+  gather: () => S.sb && isGather() ? { cam: { ...S.sb.cam }, box: sbLayout().box, win: sbLayout().win, size: normalSize(), spots: Object.fromEntries(BIRD_IDS.map((id) => [id, spotOnStage(sbLayout(), id)])), sheet: Object.fromEntries(gatherCells(sbLayout()).map((sl) => [BIRD_IDS[sl.i], { x: sl.x, y: sl.y }])) } : null };
 
 await loadArt();
 $('#loading').remove();

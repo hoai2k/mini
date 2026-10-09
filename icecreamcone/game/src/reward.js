@@ -134,3 +134,78 @@ export function bookLayout(n, rect, wide = true, spread = 0) {
   });
   return { from, to, pages, slots, spine: wide ? { x: rect.x + rect.w / 2, y: rect.y, w: gap, h: rect.h } : { x: rect.x, y: rect.y + rect.h / 2, w: rect.w, h: gap } };
 }
+
+// The book open at "All the birds together": one spread of two square pages
+// (each half of the 2:1 painting shown whole, so no bird is cut off), side
+// by side on a wide screen or one above the other on an upright one, and
+// (with `sheet`) room for the sticker sheet where earned stickers wait: a
+// column either side of the book when wide (the first page's birds to the
+// left), a strip under it when upright. `box` is the two pages' outline;
+// `win`, the window they are seen through (the box itself when wide; when
+// upright, the whole width above the strip, the pages then shown larger
+// than they are laid out and scrolled: see stickerbook.js); `zones`, the
+// sheet's rectangles (sheetCells puts the waiting stickers in them).
+export function gatherLayout(n, area, wide = true, { sheet = true } = {}) {
+  let win;
+  let zones = [];
+  let P;
+  if (wide) {
+    const sheetW = sheet ? area.w * 0.1 : 0;
+    const gapS = sheet ? area.w * 0.015 : 0;
+    P = Math.min(area.h, (area.w - 2 * (sheetW + gapS)) / 2.07);
+    const bw = P * 2.07;
+    win = { x: area.x + (area.w - bw) / 2, y: area.y + (area.h - P) / 2, w: bw, h: P };
+    if (sheet) {
+      const pad = P * 0.035; // the cover round the pages
+      const zw = win.x - pad - gapS * 0.5 - area.x;
+      zones = [
+        { x: area.x, y: win.y, w: zw, h: P },
+        { x: win.x + bw + pad + gapS * 0.5, y: win.y, w: zw, h: P },
+      ];
+    }
+  } else {
+    const stripH = sheet ? Math.min(area.h * 0.17, 220) : 0;
+    const gapS = sheet ? area.h * 0.02 : 0;
+    win = { x: area.x, y: area.y, w: area.w, h: area.h - stripH - gapS };
+    P = Math.min(win.w, win.h / 2.07);
+    if (sheet) zones = [{ x: area.x, y: area.y + area.h - stripH, w: area.w, h: stripH }];
+  }
+  const gap = P * (wide ? 0.07 : 0.045);
+  const bw = wide ? P * 2 + gap : P;
+  const bh = wide ? P : P * 2 + gap;
+  const x0 = win.x + (win.w - bw) / 2;
+  const y0 = win.y + (win.h - bh) / 2;
+  const pages = wide
+    ? [{ x: x0, y: y0, w: P, h: P }, { x: x0 + P + gap, y: y0, w: P, h: P }]
+    : [{ x: x0, y: y0, w: P, h: P }, { x: x0, y: y0 + P + gap, w: P, h: P }];
+  const spine = wide ? { x: x0 + bw / 2, y: y0, w: gap, h: P } : { x: x0, y: y0 + bh / 2, w: P, h: gap };
+  return { gather: true, wide, from: 0, to: n, pages, spine, slots: [], zones, box: { x: x0, y: y0, w: bw, h: bh }, win };
+}
+
+// The waiting stickers (`list`, birds' indices in the guide's order) laid
+// out on the sheet's zones as large as they fit (up to `max`): shared
+// between the two columns when wide (the earlier birds on the left), in
+// rows along the strip when upright. Each cell is { i, x, y, s, zone }.
+export function sheetCells(L, list, max = 150) {
+  const cells = [];
+  const parts = L.zones.length === 2 ? [list.slice(0, Math.ceil(list.length / 2)), list.slice(Math.ceil(list.length / 2))] : [list];
+  parts.forEach((part, z) => {
+    const r = L.zones[z];
+    if (!r || !part.length) return;
+    let best = null;
+    for (let cols = 1; cols <= part.length; cols++) {
+      const rows = Math.ceil(part.length / cols);
+      const s = Math.min(r.w / cols, r.h / rows, max);
+      if (!best || s > best.s + 0.5) best = { cols, rows, s };
+    }
+    const { cols, rows, s } = best;
+    part.forEach((i, j) => {
+      const c = j % cols;
+      const row = Math.floor(j / cols);
+      // centred in its zone, the last row centred too
+      const inRow = row === rows - 1 ? part.length - row * cols : cols;
+      cells.push({ i, x: r.x + r.w / 2 + (c - (inRow - 1) / 2) * s, y: r.y + r.h / 2 + (row - (rows - 1) / 2) * s, s: s * 0.96, zone: z });
+    });
+  });
+  return cells;
+}

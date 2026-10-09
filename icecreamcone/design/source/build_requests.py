@@ -946,8 +946,9 @@ REQUESTS.append({
 REQUESTS.append({
     "id": "IC-U08", "section": "book", "name": "Sticker book: all 28 birds together", "key": "book.gathering",
     "file": "assets/book/gathering.webp", "size": "2048 x 1024, opaque",
-    "used": "A trial default page for the sticker book: each bird's painted spot is greyed out until the "
-    "player snaps that bird's sticker into it. Also a possible finale picture.",
+    "used": "The sticker book's first picture (on trial as its default), with "
+    "assets/book/gathering.atlas.json: each bird's painted spot is greyed out until the player snaps "
+    "that bird's sticker into it. Also the finale on upright screens, its halves stacked.",
     "standin": "The sticker book's plain page.",
     "ref": "endpapers-all-birds.jpg",
     "status": "delivered",
