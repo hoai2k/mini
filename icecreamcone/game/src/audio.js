@@ -216,9 +216,21 @@ function fadeOut(r) {
   }, FADE * 1000 + 50);
 }
 
-function playTrack(name) {
+function playTrack(name, after) {
   const track = TRACKS[name];
-  if (rec && rec.name === name) return;
+  if (rec && rec.name === name) {
+    // Asked for again: it plays on (and loops again, if it was to give way).
+    rec.el.loop = true;
+    rec.next = null;
+    return;
+  }
+  if (rec && after && rec.name === after) {
+    // Let it play to its end (or from its start, if the browser hasn't let it
+    // begin yet), then start this one.
+    rec.el.loop = false;
+    rec.next = name;
+    return;
+  }
   if (rec) fadeOut(rec);
   const el = new Audio(`assets/music/${track.file}.mp3`);
   el.loop = true;
@@ -234,8 +246,14 @@ function playTrack(name) {
     playTune(track.tune);
     return;
   }
-  const r = { name, el, gain };
+  const r = { name, el, gain, next: null };
   rec = r;
+  el.addEventListener('ended', () => {
+    if (rec !== r || !r.next) return;
+    const next = r.next;
+    rec = null;
+    playTrack(next);
+  });
   // If the recording can't be played, its tune stands in.
   el.addEventListener('error', () => {
     if (rec !== r) return;
@@ -247,12 +265,14 @@ function playTrack(name) {
 }
 
 // Music for a screen or kind of game, by name ('none' for silence). The same
-// name again carries on where it is.
-export function playMusic(name) {
+// name again carries on where it is. With `after`, a playing track of that
+// name finishes first and this one follows it (the title theme runs on into
+// the field guide).
+export function playMusic(name, { after = null } = {}) {
   if (!ensure()) return;
   if (TRACKS[name]) {
     stopTune();
-    playTrack(name);
+    playTrack(name, after);
     return;
   }
   if (rec) fadeOut(rec);

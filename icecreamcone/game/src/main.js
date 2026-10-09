@@ -177,16 +177,16 @@ function show(screen) {
     audio.playMusic('title');
   } else if (screen === 'guide') {
     buildGuide();
-    audio.playMusic('guide');
+    audio.playMusic('guide', { after: 'title' });
   } else if (screen === 'page') {
     fillPage();
-    audio.playMusic('guide');
+    audio.playMusic('guide', { after: 'title' });
   } else if (screen === 'celebrate') {
     // The game's music carries on under the fanfare.
     document.activeElement?.blur?.();
   } else if (screen === 'stickers') {
     openStickerBook();
-    audio.playMusic('guide');
+    audio.playMusic('guide', { after: 'title' });
   } else if (screen === 'gathering') {
     $('#gathering-count').textContent = `Every one of the ${BIRDS.length} rare birds, spotted.`;
     audio.playMusic('carousel');

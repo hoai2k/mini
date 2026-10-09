@@ -200,18 +200,17 @@ body.reduce-motion .cards { scroll-behavior: auto; }
 .card .card-sub { font-size: 0.75rem; color: var(--muted); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card.locked { background: var(--paper-2); }
 .card.locked .card-name { color: var(--muted); }
-/* The chosen card stands out from across the room: lifted, ringed in pink,
-   with its name on a pink tab, while the others step back a little. */
+/* The chosen card is lifted a little and ringed in a thin pink line, its
+   name inked pink; the others step back only slightly. */
 .card:focus {
-  transform: translateY(-6px) scale(1.07);
-  background: #fff4f8;
-  box-shadow: 0 0 0 5px var(--focus), 4px 10px 0 rgba(59, 43, 32, 0.3);
+  transform: translateY(-4px) scale(1.035);
+  box-shadow: 0 0 0 2.5px rgba(192, 64, 122, 0.85), 3px 7px 0 rgba(59, 43, 32, 0.22);
   outline: none !important;
   z-index: 2;
 }
-.card:focus .card-name { background: var(--focus); color: #fff8ef; border-radius: 8px; padding: 1px 8px; }
+.card:focus .card-name { color: var(--focus); }
 .card:focus .card-sub { color: var(--ink); }
-.cards:focus-within .card:not(:focus) { opacity: 0.72; filter: saturate(0.7); }
+.cards:focus-within .card:not(:focus) { opacity: 0.9; }
 
 /* ---------- page ---------- */
 
