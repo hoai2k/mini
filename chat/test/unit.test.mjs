@@ -33,37 +33,48 @@ test('expressions come through from blendshapes', () => {
   assert.ok(f.wink > 0.5);
 });
 
-test('Hoops throws go where they are thrown: no helping', () => {
+test('Hoops is 2D and read faithfully: speed sets height, direction sets aim', () => {
   const run = (up, targetX, from = hoops.REST, hoop = hoops.SPOTS[0]) => {
-    const b = hoops.newBall(from, hoops.throwVelocity(from, up, targetX, hoop.z), hoop);
-    let crossX = null;
+    const b = hoops.newBall(from, hoops.throwVelocity(from, up, targetX, hoop), hoop);
+    let crossX = null, maxZ = 0;
     while (!b.done) {
       const z0 = b.z;
       hoops.stepBall(b);
+      maxZ = Math.max(maxZ, b.z);
       if (crossX === null && z0 < hoop.z && b.z >= hoop.z) crossX = b.x;
     }
-    return { scored: b.scored, crossX };
+    return { scored: b.scored, crossX, maxZ };
   };
+  for (const hoop of hoops.SPOTS) {
+    // Nothing goes past the hoop: every throw stops at the backboard's plane.
+    for (const up of [0.9, 1.5, 2.4, 4, 8]) assert.ok(run(up, hoop.x, hoops.REST, hoop).maxZ < hoop.z + 0.38, `past the hoop at ${up}`);
+    // The middle speed scores; well short and well long don't.
+    assert.equal(run(hoops.U0, hoop.x, hoops.REST, hoop).scored, true);
+    assert.equal(run(hoops.U0 * 0.55, hoop.x, hoops.REST, hoop).scored, false);
+    assert.equal(run(hoops.U0 * 2.2, hoop.x, hoops.REST, hoop).scored, false);
+  }
+  // The scoring speeds sit around U0 in one window: wide enough to feel,
+  // narrow enough to need judging.
   const hoop = hoops.SPOTS[0];
-  // Somewhere in between too soft and too hard there is a right speed...
-  const speeds = [];
-  for (let up = 1.2; up <= 5; up += 0.02) if (run(up, hoop.x).scored) speeds.push(up);
-  assert.ok(speeds.length > 0, 'some throw speed scores');
-  assert.equal(run(speeds[0] * 0.8, hoop.x).scored, false, 'too soft misses');
-  assert.equal(run(speeds[speeds.length - 1] * 1.2, hoop.x).scored, false, 'too hard misses');
-  // ...and the window is narrow: skill, not a funnel.
-  assert.ok(speeds[speeds.length - 1] - speeds[0] < 0.8, `speed window ${speeds[0]}..${speeds[speeds.length - 1]}`);
-  // A good speed aimed off to the side misses, and the ball arrives where aimed.
-  const good = speeds[Math.floor(speeds.length / 2)];
-  assert.equal(run(good, hoop.x + 0.45).scored, false);
-  assert.equal(run(good, hoop.x - 0.45).scored, false);
-  const off = run(good, hoop.x + 0.45);
+  // (Bank shots off the board can also go in at higher speeds; this is the
+  // unbroken window of clean shots around U0.)
+  let lo = hoops.U0, hi = hoops.U0;
+  while (run(lo - 0.02, hoop.x).scored) lo -= 0.02;
+  while (run(hi + 0.02, hoop.x).scored) hi += 0.02;
+  assert.ok(lo > hoops.U0 * 0.7 && lo < hoops.U0 * 0.9, `slowest ${lo}`);
+  assert.ok(hi > hoops.U0 * 1.1 && hi < hoops.U0 * 1.4, `fastest ${hi}`);
+  // Speeds near U0 change the height little; far ones a lot.
+  const vy = u => hoops.throwVelocity(hoops.REST, u, 0, hoop)[1];
+  assert.ok(vy(hoops.U0 * 1.1) - vy(hoops.U0) < vy(hoops.U0 * 2) - vy(hoops.U0 * 1.9));
+  // Aimed off to the side: arrives where aimed, and misses.
+  const off = run(hoops.U0, hoop.x + 0.45);
+  assert.equal(off.scored, false);
   assert.ok(Math.abs(off.crossX - (hoop.x + 0.45)) < 0.02, `arrives at ${off.crossX}`);
 });
 
 test('Hoops physics is deterministic, so ghosts replay exactly', () => {
   const from = { x: 0.2, y: 2.1, z: 0 }, hoop = hoops.SPOTS[2];
-  const v = hoops.throwVelocity(from, 4.1, 0.1, hoop.z);
+  const v = hoops.throwVelocity(from, 2.6, 0.1, hoop);
   const a = hoops.newBall(from, v, hoop), b = hoops.newBall(from, v, hoop);
   while (!a.done) hoops.stepBall(a);
   while (!b.done) hoops.stepBall(b);

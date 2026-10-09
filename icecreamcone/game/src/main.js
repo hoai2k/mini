@@ -3,7 +3,7 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, loadStickers, saveStickers, resetStickers } from './store.js';
+import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, canRestore, restoreProgress, loadStickers, saveStickers, resetStickers } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
@@ -319,7 +319,7 @@ const best = (id) => progress[id]?.best || 0;
 const passed = (i) => passes(BIRDS[i], best(BIRDS[i].id));
 // The card opening after a celebration shows locked until it flips, even in
 // ?debug.
-const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || i === 0 || passed(i - 1));
+const unlocked = (i) => (S.unlock?.i === i && !S.unlock.revealed ? false : ALL_OPEN || settings.unlockAll || i === 0 || passed(i - 1));
 
 function buildGuide() {
   const wrap = $('#cards');
@@ -534,7 +534,6 @@ function fillPage() {
   S.pageKind = input.kind;
   $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
   focusFirst();
-  if (settings.readAloud) readAloud();
 }
 
 function fillList(ul, lines) {
@@ -546,18 +545,6 @@ function fillList(ul, lines) {
   }
 }
 
-function readAloud() {
-  const b = BIRDS[S.bird];
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(`${b.name}. ${b.rhyme.join(' ')}`);
-    u.rate = 0.9;
-    speechSynthesis.speak(u);
-  } catch {
-    toast('Reading aloud is not available in this browser.');
-  }
-}
-
 function turnPage(d) {
   let i = S.bird + d;
   if (i < 0 || i >= BIRDS.length) return;
@@ -566,7 +553,6 @@ function turnPage(d) {
     return;
   }
   S.bird = i;
-  try { speechSynthesis.cancel(); } catch { /* no speech */ }
   audio.sfx('page');
   fillPage();
 }
@@ -787,7 +773,8 @@ function endCelebration(skipped) {
   if (!c) return;
   const n = nextPage(c.index, BIRDS.length);
   const sel = selectAfter(c.index, BIRDS.length, 'celebrate');
-  if (skipped || n < 0) {
+  // With every page open already (Unlock all), there's nothing to unlock.
+  if (skipped || n < 0 || (settings.unlockAll && !DEBUG)) {
     toGuide(sel);
     if (n < 0) toast(`Every one of the ${BIRDS.length} rare birds, spotted!`);
   } else toGuide(sel, n);
@@ -1027,7 +1014,6 @@ function act(action, el) {
       show('title');
       break;
     case 'guide':
-      try { speechSynthesis.cancel(); } catch { /* no speech */ }
       show('guide');
       break;
     case 'stickers':
@@ -1045,7 +1031,6 @@ function act(action, el) {
       show('gathering');
       break;
     case 'play':
-      try { speechSynthesis.cancel(); } catch { /* no speech */ }
       startBird(S.bird);
       break;
     case 'pause':
@@ -1071,14 +1056,23 @@ function act(action, el) {
       break;
     }
     case 'reset-progress':
-      confirm('Forget all scores?', 'Every bird’s best score is cleared, only the first page stays open, and the sticker book is emptied.', () => {
+      confirm('Forget all scores?', 'Every bird’s best score is cleared, only the first page stays open, and the sticker book is emptied. (They are kept aside: Restore my scores brings them back.)', () => {
         resetProgress();
         progress = loadProgress();
         resetStickers();
         book = emptyBook();
         if (S.screen === 'guide') buildGuide();
+        syncSettingsUi();
         toast('Scores forgotten.');
       });
+      break;
+    case 'restore-progress':
+      progress = restoreProgress(progress);
+      book = normalizeBook(loadStickers(), BIRD_IDS, SPREADS);
+      if (S.screen === 'guide') buildGuide();
+      syncSettingsUi();
+      focusFirst(true);
+      toast('Scores restored: the best of then and now.');
       break;
   }
 }
@@ -1170,6 +1164,7 @@ function toggleFullscreen() {
 // ---------- settings ----------
 
 function syncSettingsUi() {
+  $('#restore-btn').hidden = !canRestore(progress);
   for (const el of document.querySelectorAll('[data-setting]')) {
     const k = el.dataset.setting;
     if (el.type === 'checkbox') el.checked = !!settings[k];
@@ -1193,6 +1188,7 @@ document.addEventListener('input', (e) => {
   saveSettings(settings);
   applySettings();
   syncSettingsUi();
+  if (k === 'unlockAll') buildGuide();
 });
 
 // ---------- toast ----------
@@ -1415,7 +1411,7 @@ function render(dt = 0) {
   }
   fitView();
   logical();
-  if (S.screen === 'title') renderTitle();
+  if (S.screen === 'title') renderTitle(t);
   else if (S.screen === 'page') renderPage(t);
   else if (S.screen === 'gathering') renderGathering(t);
   else if (S.screen === 'guide') drawCards(t);
@@ -1461,12 +1457,26 @@ function updateHud() {
   } else tm.hidden = true;
 }
 
-function renderTitle() {
+// Where the Coot stands on the title picture, in its 1920 x 1080 pixels: by
+// the stone wall on the right, above the newspaper, the emptiest place; or,
+// when a narrower screen crops that away, farther off on the riverbank by the
+// sun, between the camera and the traffic light.
+const TITLE_COOT = [{ x: 1735, y: 655, size: 300 }, { x: 1195, y: 742, size: 260 }];
+
+function renderTitle(t) {
   const bg = art('titleBg');
   if (!bg) return;
   g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   const s = Math.max(view.cw / bg.width, view.ch / bg.height);
-  g.drawImage(bg, (view.cw - bg.width * s) / 2, (view.ch - bg.height * s) / 2, bg.width * s, bg.height * s);
+  const ox = (view.cw - bg.width * s) / 2;
+  const oy = (view.ch - bg.height * s) / 2;
+  g.drawImage(bg, ox, oy, bg.width * s, bg.height * s);
+  const k = bg.width / 1920;
+  const spot = TITLE_COOT.find((c) => ox + (c.x + 120) * k * s <= view.cw) || TITLE_COOT[1];
+  const size = spot.size * k * s;
+  // Kept whole on screen when the picture is cropped at the sides.
+  const x = Math.min(ox + spot.x * k * s, view.cw - size * 0.42);
+  drawBird(g, 'coot', { x, y: oy + spot.y * k * s, size, t, pose: pagePose(t) });
 }
 
 // A bird on its own page, gently doing its thing.
@@ -1542,7 +1552,6 @@ function renderGathering(t) {
 function away() {
   pause('The game paused while you were away.');
   audio.suspend(true);
-  try { speechSynthesis.cancel(); } catch { /* no speech */ }
 }
 function returned() {
   if (!document.hidden && document.hasFocus()) audio.suspend(false);

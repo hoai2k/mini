@@ -2,9 +2,10 @@
 // basketball game: a big hoop near the top, the ball near the bottom and a
 // long lens, so the ball only shrinks a little on its way up. The ball follows
 // your finger while you hold it and flies from wherever you let go, with the
-// speed and direction of your toss and nothing nudging it in: the up speed
-// sets how high (and, at a fixed throwing angle, how far) it goes, and the
-// direction of the swipe on screen is where it heads. Every five shots the
+// speed and direction of your toss and nothing nudging it in. It is
+// essentially 2D: every ball reaches the hoop's distance and never goes past
+// it; the swipe's speed sets how high it is when it gets there and its
+// direction on screen where it is sideways. Every five shots the
 // hoop moves somewhere else.
 //
 // Every basket adds to your all-time total, kept on this device, and baskets
@@ -35,12 +36,19 @@ const HOLD = { x0: -0.6, x1: 0.6, y0: 1.45, y1: 2.7 };
 const EYE = { x: 0, y: 2.3, z: -6 };
 const STEP = 1 / 240;
 const SHOT_TIME = 3.2;
-// The throw: the ball leaves at THROW_GAIN times the finger's speed (both in
-// metres per second at the ball), and goes forward DEPTH metres for every
-// metre it rises, a fixed throwing angle (a swipe on a screen can't say how
-// far). Slower than MIN_SPEED isn't a throw: the ball is just put down.
-const THROW_GAIN = 2.4;
-const DEPTH = 0.43;
+// The throw is essentially 2D. Every ball travels towards the hoop at the
+// same FORWARD speed (a swipe on a screen can't say how far), so it always
+// arrives at the hoop's distance after the same time and can never sail past
+// it: the backboard's plane is a wall. What the swipe controls is how high
+// the ball is by then (its upward speed) and where it is sideways (its
+// direction). Finger speed maps to upward speed on an S-curve in log space,
+// centred on U0: around U0 the ball's height changes slowly, so most of the
+// range of a finger's speeds is spent near a good throw, and far from it the
+// change speeds up, out to throws that drop well short or slam the board.
+// Slower than MIN_SPEED isn't a throw: the ball is just put down.
+const FORWARD = 2.5;     // m/s towards the hoop
+const U0 = 2.4;          // finger speed (m/s at the ball) for the middle of the rim
+const CURVE = 0.8;       // how sharply speeds away from U0 spread out
 const MIN_SPEED = 0.8;
 const CHARGE_MAX = 6;    // top of the Space / controller meter (finger m/s)
 
@@ -52,14 +60,21 @@ function boardOf(hoop) {
 
 // --- physics -------------------------------------------------------------
 
-// The ball's starting velocity for a toss: `up` is the upward speed of the
-// throw (m/s at the ball), `targetX` where the swipe was heading, sideways,
-// at the hoop's distance `hoopZ`. Nothing else is adjusted.
-function throwVelocity(from, up, targetX, hoopZ) {
-  const vy = up * THROW_GAIN;
-  const vz = vy * DEPTH;
-  const t = Math.max(0.05, (hoopZ - from.z) / vz);
-  return [(targetX - from.x) / t, vy, vz];
+// The upward speed that puts the ball just above the rim's middle at the
+// moment it reaches the hoop's distance.
+function idealVy(from, hoop) {
+  const t = Math.max(0.05, (hoop.z - from.z) / FORWARD);
+  return (hoop.y + 0.02 - from.y + 0.5 * G * t * t) / t;
+}
+
+// The ball's starting velocity for a toss: `up` is the finger's upward speed
+// (m/s at the ball) and `targetX` where the swipe was heading, sideways, at
+// the hoop's distance.
+function throwVelocity(from, up, targetX, hoop) {
+  const t = Math.max(0.05, (hoop.z - from.z) / FORWARD);
+  const x = Math.log(Math.max(1e-3, up) / U0);
+  const vy = idealVy(from, hoop) * Math.exp(Math.sign(x) * CURVE * x * x);
+  return [(targetX - from.x) / t, vy, FORWARD];
 }
 
 function newBall(from, v, hoop) {
@@ -82,13 +97,19 @@ function stepBall(b) {
   b.t += STEP;
   b.spin += STEP * 8;
 
-  // Backboard.
-  if (b.vz > 0 && b.z + BALL_R > B.z && b.z - BALL_R < B.z && b.x > B.x0 && b.x < B.x1 && b.y > B.y0 && b.y < B.y1) {
+  // The backboard bounces the ball back; anywhere else on its plane the
+  // ball just stops going forward and drops (nothing gets past the hoop).
+  if (b.vz > 0 && b.z + BALL_R > B.z) {
     b.z = B.z - BALL_R;
-    b.vz = -b.vz * 0.55;
-    b.vx *= 0.85;
-    b.vy *= 0.9;
-    event = 'board';
+    if (b.x > B.x0 && b.x < B.x1 && b.y > B.y0 && b.y < B.y1) {
+      b.vz = -b.vz * 0.55;
+      b.vx *= 0.85;
+      b.vy *= 0.9;
+      event = 'board';
+    } else {
+      b.vz = 0;
+      b.vx *= 0.5;
+    }
   }
 
   // Rim: a thin ring; push the ball off the nearest point on it.
@@ -302,7 +323,7 @@ export default {
       const p = project(cam, from.x, from.y, from.z), q = project(cam, hoop.x, hoop.y, hoop.z);
       const sx = p.x + ratio * (p.y - q.y);
       const targetX = EYE.x + ((sx - cam.cx) * (hoop.z - EYE.z)) / cam.f;
-      const v = throwVelocity(from, up, targetX, hoop.z);
+      const v = throwVelocity(from, up, targetX, hoop);
       ball = newBall(from, v, hoop);
       shotsTaken++;
       sessionShots++;
@@ -723,4 +744,4 @@ export default {
 };
 
 // Exposed for tests.
-export const _physics = { throwVelocity, newBall, stepBall, SPOTS, REST, THROW_GAIN, DEPTH };
+export const _physics = { throwVelocity, idealVy, newBall, stepBall, SPOTS, REST, U0, FORWARD };

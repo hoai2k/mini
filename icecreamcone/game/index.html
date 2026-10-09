@@ -30,7 +30,7 @@
     <!-- Title -->
     <section id="title" class="screen" hidden aria-label="The Ice-Cream Cone Coot and Other Rare Birds">
       <div class="title-block">
-        <h1><img id="logo-img" src="assets/ui/logo.png" alt="The Ice-Cream Cone Coot and Other Rare Birds"></h1>
+        <h1><img id="logo-img" src="assets/ui/logo-text.png" alt="The Ice-Cream Cone Coot and Other Rare Birds"></h1>
         <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
         <p class="hint" id="title-hint">Move left stick for options</p>
       </div>
@@ -195,12 +195,11 @@
         <h2 id="set-title">Settings</h2>
         <div class="scroll settings-list">
           <label class="row">Volume <input type="range" min="0" max="100" step="5" data-nav data-setting="volume"><output></output></label>
-          <label class="row">Music <input type="range" min="0" max="100" step="5" data-nav data-setting="music"><output></output></label>
-          <label class="row">Sound effects <input type="range" min="0" max="100" step="5" data-nav data-setting="sfx"><output></output></label>
-          <label class="row check">Read each page aloud <input type="checkbox" data-nav data-setting="readAloud"></label>
           <label class="row check">Vibration <input type="checkbox" data-nav data-setting="vibration"></label>
-          <label class="row check">Reduce motion <input type="checkbox" data-nav data-setting="reduceMotion"></label>
+          <label class="row check">Unlock all <input type="checkbox" data-nav data-setting="unlockAll"></label>
+          <p class="muted setting-note">Every game can be played without first scoring well on the ones before it.</p>
           <button class="menu-btn" data-nav data-action="reset-progress">Forget my scores…</button>
+          <button class="menu-btn" id="restore-btn" data-nav data-action="restore-progress" hidden>Restore my scores</button>
         </div>
 
       </div>
@@ -210,8 +209,9 @@
       <div class="panel">
         <h2 id="confirm-title">Are you sure?</h2>
         <p id="confirm-text" class="muted"></p>
-        <button class="menu-btn" data-nav data-action="confirm-yes">Yes</button>
+        <!-- No comes first, so it is the one chosen when the dialog opens. -->
         <button class="menu-btn" data-nav data-action="close">No</button>
+        <button class="menu-btn" data-nav data-action="confirm-yes">Yes</button>
       </div>
     </section>
 

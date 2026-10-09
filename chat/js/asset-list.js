@@ -807,6 +807,14 @@ export const ASSET_LIST = {
     "file": "assets/icons/fx-fatter.png",
     "status": "delivered"
   },
+  "fx-baby": {
+    "file": "assets/icons/fx-baby.png",
+    "status": "delivered"
+  },
+  "fx2-baby": {
+    "file": "assets/icons2/fx2-baby.png",
+    "status": "delivered"
+  },
   "fx2-bubble": {
     "file": "assets/icons2/fx2-bubble.png",
     "status": "delivered"
@@ -972,7 +980,7 @@ export const ASSET_LIST = {
     "status": "delivered"
   },
   "fx2-blurbg": {
-    "file": "assets/icons2/fx2-blurbg-v2.png",
+    "file": "assets/icons2/fx2-blurbg-v3.png",
     "status": "delivered"
   },
   "fx2-colorpop": {
