@@ -17,7 +17,7 @@ const params = new URLSearchParams(location.search);
 const FIXED_DT = Number(params.get('dt')) || 0; // for automated checks
 const ALL_OPEN = params.has('all');
 // Preview: the book's other birds whose games are built but not yet in the guide.
-if (params.has('more')) BIRDS.push(...(await loadMoreBirds()));
+if (params.has('more')) BIRDS.push(...(await loadMoreBirds((params.get('more') || '').split(',').filter(Boolean))));
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#stage');

@@ -214,15 +214,16 @@ const MENU = 9;
 
 // ---------- 4: every minigame ----------
 // The ten, then the book's other birds whose games are built (with ?more).
-const { BUILT_IDS } = await import(pathToFileURL(join(root, 'src/more/index.js')).href);
-const ids = ['coot', 'cupadee', 'shuttercluck', 'gullfinch', 'plume', 'bobolinks', 'peeper', 'piffle', 'dodo', 'crow', ...BUILT_IDS];
+const { BUILT_IDS, MORE_IDS } = await import(pathToFileURL(join(root, 'src/more/index.js')).href);
+// --bird can name one still being built (not yet in BUILT).
+const ids = ['coot', 'cupadee', 'shuttercluck', 'gullfinch', 'plume', 'bobolinks', 'peeper', 'piffle', 'dodo', 'crow', ...(only && MORE_IDS.includes(only) ? [only] : BUILT_IDS)];
 for (const id of ids) {
   if (only && id !== only) continue;
   if (!existsSync(join(root, 'src/games', id + '.js'))) {
     console.log(`skip: ${id} (not built yet)`);
     continue;
   }
-  const { page, errors } = await newPage('&all&more');
+  const { page, errors } = await newPage('&all&more=' + id);
   await page.evaluate((id) => window.__coot.startBird(window.__coot.BIRDS.findIndex((b) => b.id === id)), id);
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   let k = 0;

@@ -20,9 +20,10 @@ export const MORE_IDS = [
 const BUILT = [
 ];
 
-// Their field-guide entries, in MORE_IDS order.
-export async function loadMoreBirds() {
-  const ids = MORE_IDS.filter((id) => BUILT.includes(id));
+// Their field-guide entries, in MORE_IDS order; `also` adds birds being
+// built that aren't listed yet (?more=<id>,<id>).
+export async function loadMoreBirds(also = []) {
+  const ids = MORE_IDS.filter((id) => BUILT.includes(id) || also.includes(id));
   return Promise.all(ids.map((id) => import(`./${id}.js`).then((m) => m.default)));
 }
 
