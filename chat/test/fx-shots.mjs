@@ -14,10 +14,11 @@ await mkdir(outDir, { recursive: true });
 const { EFFECT_IDS } = await import('../effects/index.js');
 const named = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const ids = named.length ? named : EFFECT_IDS;
-const ALL = { neutral: '', smile: '&smile=1', open: '&mouthOpen=1', pucker: '&pucker=1&held=1', brows: '&browUp=1', frown: '&frown=1', tilt: '&roll=0.35&smile=0.6', move: '&move=1', look: '&yaw=1.2&pitch=0.25', blink: '&blinkL=1&blinkR=1' };
-// --only=neutral,move picks which expressions to shoot.
+const ALL = { neutral: '', beard: '&beard=1', bearded: '&beard=1&none=1', smile: '&smile=1', open: '&mouthOpen=1', pucker: '&pucker=1&held=1', brows: '&browUp=1', frown: '&frown=1', tilt: '&roll=0.35&smile=0.6', move: '&move=1', look: '&yaw=1.2&pitch=0.25', blink: '&blinkL=1&blinkR=1' };
+// --only=neutral,move picks which expressions to shoot; beard draws the test
+// face with a beard (for beard removal), bearded the same with no effect.
 const only = process.argv.find(a => a.startsWith('--only='))?.slice(7).split(',');
-const EXPRESSIONS = Object.fromEntries(Object.entries(ALL).filter(([k]) => (only ? only.includes(k) : !['move', 'look', 'blink'].includes(k))));
+const EXPRESSIONS = Object.fromEntries(Object.entries(ALL).filter(([k]) => (only ? only.includes(k) : !['move', 'look', 'blink', 'beard', 'bearded'].includes(k))));
 
 const server = await serve(chatDir);
 const browser = await launch();

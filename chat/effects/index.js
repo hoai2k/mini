@@ -75,7 +75,7 @@ export const EFFECT_IDS = [
   'moneyrain',
   'fireworks',
   // Third batch: face and body reshaping.
-  'kid',
+  'baby',
   'manface',
   'womanface',
   'thinner',
