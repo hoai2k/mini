@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-450 delivered, 1 requested, 451 in total.
+450 delivered, 20 requested, 470 in total.
 
 ## Brand
 
@@ -698,6 +698,186 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 
 ```text
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A classic six-panel beach ball in red, yellow, blue, white, green and orange, centred. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G25 · Go Fish card: Anomalocaris
+
+- **File:** `chat/assets/games/gofish-anomalocaris.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Anomalocaris card (Cambrian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Anomalocaris, the big Cambrian hunter, in side view swimming: a long flat segmented body in warm red and coral, a fan of overlapping swimming flaps down each side, a tail fan of three pairs of blades, big stalked eyes on top of the head, and two curled spiky grabbing arms in front of a round mouth. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G26 · Go Fish card: Opabinia
+
+- **File:** `chat/assets/games/gofish-opabinia.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Opabinia card (Cambrian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Opabinia in side view: a small soft segmented body in bright blues, a row of swimming flaps along each side, a fan tail, FIVE mushroom-like stalked eyes on its head, and one long flexible nozzle reaching forward with a little grabbing claw at its tip. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G27 · Go Fish card: Hallucigenia
+
+- **File:** `chat/assets/games/gofish-hallucigenia.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Hallucigenia card (Cambrian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Hallucigenia walking on the sea floor in side view: a thin tube-shaped worm body in orange, seven pairs of long stilt-like tentacle legs underneath, two rows of tall pointed spines along its back, and a small round head with tiny eyes. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G28 · Go Fish card: Pikaia
+
+- **File:** `chat/assets/games/gofish-pikaia.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Pikaia card (Cambrian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Pikaia, a small early chordate, swimming in side view: a slim leaf-shaped ribbon body in mint green with faint zigzag muscle bands, a tiny head with two little tentacles, and a soft fin along the tail; cute and wriggly. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G29 · Go Fish card: Burgessomedusa
+
+- **File:** `chat/assets/games/gofish-burgessomedusa.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Burgessomedusa card (Cambrian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Burgessomedusa, an ancient jellyfish: a tall translucent pink bell with a gentle glow, about ninety short fine tentacles trailing from the rim like a fringe, swimming upwards. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G30 · Go Fish card: Trilobite
+
+- **File:** `chat/assets/games/gofish-trilobite.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Trilobite card (Cambrian to Permian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A trilobite seen from above at a slight angle: an oval armoured body split into three lobes lengthwise and many segments across, a half-moon head shield with two crescent compound eyes, short spines at the corners, in ochre and warm brown with glossy plates. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G31 · Go Fish card: Nautilus
+
+- **File:** `chat/assets/games/gofish-nautilus.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Nautilus card (living fossil).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A nautilus swimming in side view: a smooth coiled shell in cream with bold red-brown tiger stripes, a soft hood, one big round eye and a bunch of many short tentacles below. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G32 · Go Fish card: Dunkleosteus
+
+- **File:** `chat/assets/games/gofish-dunkleosteus.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Dunkleosteus card (Devonian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Dunkleosteus, the armoured Devonian giant fish, in side view with its jaws wide open: a heavy head and shoulder covered in slate-blue bony armour plates, sharp bony blades instead of teeth, a small round eye in the armour, and a sleek shark-like tail behind. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G33 · Go Fish card: Tiktaalik
+
+- **File:** `chat/assets/games/gofish-tiktaalik.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Tiktaalik card (Devonian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Tiktaalik in side view propping itself up in shallow water: a flat crocodile-like head with eyes on top, a real neck, scaly lime-green body with darker spots, and sturdy fleshy front fins pushing up like arms. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G34 · Go Fish card: Helicoprion
+
+- **File:** `chat/assets/games/gofish-helicoprion.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Helicoprion card (Permian).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Helicoprion, the buzz-saw shark, in side view: a sleek teal shark-like fish whose lower jaw holds a coiled spiral whorl of triangular teeth, like a round saw blade, clearly visible. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G35 · Go Fish card: Ichthyosaur
+
+- **File:** `chat/assets/games/gofish-ichthyosaur.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Ichthyosaur card (Triassic to Cretaceous).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. An ichthyosaur leaping in side view: a dolphin-shaped sea reptile in golden yellow with a long toothy snout, a HUGE round eye with a bony ring, a tall half-moon tail fin and a back fin. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G36 · Go Fish card: Plesiosaur
+
+- **File:** `chat/assets/games/gofish-plesiosaur.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Plesiosaur card (Jurassic).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A plesiosaur swimming in side view: a round body in purple, a very long curving neck with a small smiling toothy head, four big paddle flippers and a short tail. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G37 · Go Fish card: Mosasaur
+
+- **File:** `chat/assets/games/gofish-mosasaur.png`
+- **Size:** 512 x 512, transparent
+- **Used for:** Go Fish: the picture on the Mosasaur card (Cretaceous).
+- **Stand-in until delivered:** A canvas drawing of the creature.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. A mosasaur in side view: a huge dark green sea lizard with a long crocodile-like toothy head, a long body with paddle flippers, and a shark-like tail fin bending down. A fun, friendly, colourful take for a children's card game, scientifically recognisable, one creature only, centred and filling the frame, no background scenery. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G38 · Go Fish card back
+
+- **File:** `chat/assets/games/gofish-back.png`
+- **Size:** 512 x 704, transparent
+- **Used for:** Go Fish: the face-down cards in the pond and in other players' hands.
+- **Stand-in until delivered:** A CSS wave pattern.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. The back of a playing card with rounded corners: deep turquoise water with gentle wave bands, a few ammonite and trilobite silhouettes in a lighter tint, a small fishing hook emblem in the middle, symmetrical. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### CH-G39 · Go Fish pond
+
+- **File:** `chat/assets/games/gofish-pond.webp`
+- **Size:** 1600 x 1000, opaque
+- **Used for:** Go Fish: the pond players cast into, seen from above, with fish shadows drawn on top by the game.
+- **Stand-in until delivered:** A canvas-drawn pond.
+- **Status:** requested
+
+```text
+Bright glossy cartoon illustration for a playful video-chat app. Clean shapes, soft outlines, saturated candy colours, gentle cel shading, friendly and silly. No text, no watermark, no photorealism. A calm pond seen straight from above: clear teal-green water getting deeper towards the middle, soft caustic light ripples, a few lily pads and reeds around the edges and a little wooden jetty poking in from the bottom edge. No fish, no animals, no people.
 ```
 
 ## 360° worlds
@@ -1956,6 +2136,18 @@ Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thic
 Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a chubby-cheeked baby's face with big round eyes, a tiny nose and a few wisps of hair. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Actual transparent alpha outside the tile, no magenta. Output canvas 256 x 256.
 ```
 
+### CH-I97 · Go Fish icon
+
+- **File:** `chat/assets/icons/game-gofish.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Go Fish card in the game picker.
+- **Stand-in until delivered:** An emoji.
+- **Status:** requested
+
+```text
+Glossy cartoon sticker art for a playful video-chat app. Bold clean shapes, thick soft outlines in a darker shade of each fill colour, bright saturated candy colours, a single soft highlight on each shape, gentle cel shading. Friendly and silly, readable at small sizes. No text, no watermark, no photorealism. Icon of a fishing line pulling a playing card with a bright red Anomalocaris on it out of a pond. App icon tile: the subject centred on a rounded-square badge in a bright gradient, filling about 80% of the 256 x 256 frame, readable at 48 px. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ## Theme title screens
 
 A title background and logo for each theme you can pick in Settings > Theme: Teen (the default), Art (mid-century French New Wave cinema posters) and Classical (18th-century French Rococo). The Kid theme keeps the original title art.
@@ -3176,6 +3368,18 @@ Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvell
 Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Actual transparent alpha outside paper tile, not magenta. No added cigarettes or extraneous app interface.
 ```
 
+### CH-N96 · Go Fish icon (Art theme)
+
+- **File:** `chat/assets/icons-art/art-game-gofish.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Go Fish card in the game picker in the Art theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film posters and title sequences: bold flat shapes that look cut from coloured paper, a limited palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on warm off-white paper, visible paper grain and a slight print misregistration, confident brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no photorealism. No text, no watermark. Icon: a person on a jetty casting a fishing line into a pond, a playing card with a red Anomalocaris flying up out of the water on the hook. Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
+```
+
 ## Effect and game icons, Classical theme
 
 The Classical theme's icon for every effect and game: 18th-century French Rococo painting in a gilt frame, each showing what the effect or game does. Until one arrives the theme shows the Teen icon.
@@ -4318,6 +4522,18 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
+```
+
+### CH-R96 · Go Fish icon (Classical theme)
+
+- **File:** `chat/assets/icons-classic/classic-game-gofish.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Go Fish card in the game picker in the Classical theme.
+- **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
+- **Status:** requested
+
+```text
+Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person on a jetty casting a fishing line into a pond, a playing card with a red Anomalocaris flying up out of the water on the hook. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
 ```
 
 ## Effect and game icons, second set (teen style)
@@ -5474,4 +5690,16 @@ Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illu
 
 ```text
 Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a 4x4 grid of letter tiles with a glowing path swiped through them spelling a word. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile. Genuinely transparent exterior, not magenta.
+```
+
+### CH-K97 · Go Fish icon (second set)
+
+- **File:** `chat/assets/icons2/game2-gofish.png`
+- **Size:** 256 x 256, transparent
+- **Used for:** The Go Fish card in the game picker, replacing the first-set icon.
+- **Stand-in until delivered:** The first-set icon, or the emoji.
+- **Status:** requested
+
+```text
+Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen on a jetty casting a fishing line into a glowing pond, a playing card with a red Anomalocaris flying up out of the water on the hook. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.
 ```
