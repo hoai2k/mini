@@ -207,11 +207,13 @@ anchor to the middle or to its partner, tap it to sew, then hold or drag it.
 The hint and Controls Found name the gesture (drag, hold, tap) instead of the
 input for a hand player.
 
-**Full screen on iPhone.** Safari on iPhone has no full screen for a page, only
-for video, so the button there opens a small panel: Share, then Add to Home
-Screen (drawn, with one line). Opened from the home screen the game has no
-browser around it, and the fullscreen button hides. Elsewhere the button uses
-the standard API or Safari's webkit one, inside the tap.
+**Full screen.** The fullscreen button shows only where the browser can do it
+(the standard API or Safari's webkit one); Safari on iPhone has none for a
+page, so there the button hides, as it does when the game is opened from the
+home screen. On a phone or tablet turned on its side the game goes full screen
+by itself at the first touch (browsers allow it only inside one). Where there
+is no fullscreen, the page is made a pixel taller than the screen on its side
+and scrolled by that pixel, so Safari folds its bars away.
 
 **Players.** One to four controllers, each with its own thread colour (red,
 saffron, teal, violet) and its own bindings, dealt from targets the others
