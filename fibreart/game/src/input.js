@@ -28,8 +28,6 @@ export const KEYMAP = {
   Y: 'KeyI',
   LB: 'KeyZ',
   RB: 'KeyC',
-  prev: 'BracketLeft',
-  next: 'BracketRight',
 };
 
 export function createInput() {
@@ -156,7 +154,6 @@ export function createInput() {
           LT: trig(BTN.LT),
           RT: trig(BTN.RT),
           pressed: fresh,
-          dpad: padPressed(p, BTN.LEFT) || padPressed(p, BTN.UP) ? -1 : padPressed(p, BTN.RIGHT) || padPressed(p, BTN.DOWN) ? 1 : 0,
         });
       }
       const k = (c) => (keys.has(c) ? 1 : 0);
@@ -174,9 +171,8 @@ export function createInput() {
         LT: Math.max(k(KEYMAP.LT), tp.LT),
         RT: Math.max(k(KEYMAP.RT), tp.RT),
         pressed: new Set(PLAY_BUTTONS.filter((n) => pressed.has(KEYMAP[n]) || tp.pressed.has(n))),
-        dpad: pressed.has(KEYMAP.prev) ? -1 : pressed.has(KEYMAP.next) ? 1 : 0,
       };
-      const used = kb.LS[0] || kb.LS[1] || kb.RS[0] || kb.RS[1] || kb.LT || kb.RT || kb.pressed.size || kb.dpad;
+      const used = kb.LS[0] || kb.LS[1] || kb.RS[0] || kb.RS[1] || kb.LT || kb.RT || kb.pressed.size;
       if (used || tp.active) keyboardUsed = true;
       if (keyboardUsed) out.set('kb', kb);
       return out;
