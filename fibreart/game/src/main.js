@@ -54,8 +54,6 @@ const ui = {
   captionTimer: 0,
 };
 
-const coarse = matchMedia('(pointer: coarse)').matches;
-
 const KEY_NAMES = { LS: 'W A S D', RS: 'Arrows', LT: 'Q', RT: 'E', A: 'K', B: 'L', X: 'J', Y: 'I', LB: 'Z', RB: 'C' };
 
 // ---- Screens, dialogs and focus ----------------------------------------
@@ -140,15 +138,29 @@ function activate(el) {
 
 // ---- Actions -------------------------------------------------------------
 
-async function requestFullscreen() {
+// Fullscreen, through whichever form of the API the browser has (Safari on
+// iPad and older Safari only have the webkit one). Safari on iPhone has none
+// for a page: there the button explains Add to Home Screen, which opens the
+// game without the browser around it.
+const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+
+function requestFullscreen() {
+  if (fsElement()) return true;
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req) return false;
   try {
-    if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
-  } catch { /* refused: carry on in the window */ }
+    const r = req.call(el, { navigationUI: 'hide' });
+    if (r?.catch) r.catch(() => { /* refused: carry on in the window */ });
+  } catch { return false; }
+  return true;
 }
 
 function toggleFullscreen() {
-  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-  else requestFullscreen();
+  if (fsElement()) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    exit?.call(document)?.catch?.(() => {});
+  } else if (!requestFullscreen()) openModal('home-screen');
 }
 
 function start() {
@@ -160,9 +172,6 @@ function start() {
   input.lockHeld();
   syncPlayers(true);
   if (!game.players.length) addPlayer(game, 'kb');
-  // On a touch screen with no controller, start with the on-screen controls.
-  if (ui.touchPad === undefined) ui.touchPad = coarse && !input.pads().length;
-  showTouchPad(ui.touchPad);
   audio.scene(game.index);
   caption();
   hint();
@@ -224,12 +233,12 @@ function hint() {
     : k === 'keyboard'
       ? 'W A S D, arrows, Q E, I J K L, Z C · Tab: controls found · Esc: pause'
       : k === 'touch'
-        ? 'Drag the pieces · double-tap one to make it bloom · pinch one to stretch it'
-        : 'Drag the pieces · double-click one to make it bloom · wheel to stretch it';
+        ? 'Drag, hold, tap and fling the pieces and the cloth · pinch one to stretch it'
+        : 'Drag, hold, click and fling the pieces and the cloth · wheel to stretch one';
 }
 
-// The pause and on-screen controls switches stay out of sight while playing
-// and come up for a moment when the mouse moves or the screen is touched.
+// The pause button stays out of sight while playing and comes up for a
+// moment when the mouse moves or the screen is touched.
 function revealHud() {
   if (ui.screen !== 'play' || ui.modals.length) return;
   const hud = $('#hud');
@@ -243,7 +252,7 @@ function revealHud() {
 }
 
 function playerLabel(pl) {
-  if (pl.id === 'kb') return input.kind === 'touch' || ui.touchPad ? 'You' : 'Keyboard';
+  if (pl.id === 'kb') return input.kind === 'keyboard' ? 'Keyboard' : 'You';
   return `Player ${Number(pl.id.slice(3)) + 1}`;
 }
 
@@ -270,6 +279,10 @@ const SETUP_PICTURE = {
   meet: '<svg viewBox="0 0 64 40" aria-hidden="true"><circle cx="16" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="48" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M27 20h10M33 16l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
+// A player using the hand (touch or the mouse) is told the gesture, not the input.
+const byHand = (pl) => pl.id === 'kb' && input.hand.active && input.kind !== 'keyboard';
+const gesture = (inp) => ({ stick: 'drag', trigger: 'hold', button: input.kind === 'touch' ? 'tap' : 'click' })[inputKind(inp)];
+
 function fillHint() {
   const body = $('#hint-body');
   body.innerHTML = '';
@@ -277,7 +290,8 @@ function fillHint() {
   const drawing = (name) => lines.find((l) => l.name === name)?.file;
   const pieceFile = (p) => (p.stage >= 0 ? game.chains[p.chain]?.[p.stage]?.file : null) || p.file;
   for (const pl of game.players) {
-    const key = (inp) => (pl.id === 'kb' && !ui.touchPad ? KEY_NAMES[inp] : inp);
+    const hand = byHand(pl);
+    const key = (inp) => (hand ? gesture(inp) : pl.id === 'kb' ? KEY_NAMES[inp] : inp);
     for (const b of Object.values(pl.bindings)) {
       if (b.scale !== 'large' || !b.setup) continue;
       const anchor = game.pieces[b.setup.anchor];
@@ -290,15 +304,17 @@ function fillHint() {
       const goal = b.setup.type === 'centre' ? `Bring ${what} to the middle`
         : b.setup.type === 'link' ? `Sew ${b.setup.need} pieces to ${what}`
           : `Bring ${what} to ${pieceName(game.pieces[b.setup.other])}`;
-      const text = awake ? `Ready: ${lean} ${key(b.input)}.`
-        : `${goal}${helper ? ` (${key(helper.input)})` : ''}, then ${lean} ${key(b.input)}.`;
+      const text = hand
+        ? (awake ? `Ready: ${key(b.input)} ${what}.` : `${goal}${helper ? ` (${key(helper.input)} it)` : ''}, then ${key(b.input)} it.`)
+        : awake ? `Ready: ${lean} ${key(b.input)}.`
+          : `${goal}${helper ? ` (${key(helper.input)})` : ''}, then ${lean} ${key(b.input)}.`;
       const other = b.setup.type === 'meet' ? game.pieces[b.setup.other] : null;
       const row = document.createElement('div');
       row.className = 'hint-row';
       row.style.setProperty('--c', pl.colour);
       row.innerHTML = `
         <span class="hint-dot" aria-hidden="true"></span>
-        <figure class="hint-pic"><img src="web/${drawing(CONTROL_DRAWING[kind]) || ''}" alt=""><figcaption>${key(b.input)}</figcaption></figure>
+        <figure class="hint-pic">${hand ? '' : `<img src="web/${drawing(CONTROL_DRAWING[kind]) || ''}" alt="">`}<figcaption>${key(b.input)}</figcaption></figure>
         <img class="hint-piece" src="web/${pieceFile(anchor)}" alt="">
         <span class="hint-setup">${awake ? '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 21l8 8 16-18" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : SETUP_PICTURE[b.setup.type]}</span>
         ${other ? `<img class="hint-piece" src="web/${pieceFile(other)}" alt="">` : ''}
@@ -306,7 +322,7 @@ function fillHint() {
       body.append(row);
     }
   }
-  if (!body.children.length) body.innerHTML = '<p class="hint-text">Try every stick, trigger and button.</p>';
+  if (!body.children.length) body.innerHTML = `<p class="hint-text">${input.hand.active && input.kind !== 'keyboard' ? 'Drag, hold and tap every piece.' : 'Try every stick, trigger and button.'}</p>`;
 }
 
 function fillCard() {
@@ -316,10 +332,15 @@ function fillCard() {
     const sec = document.createElement('section');
     sec.className = 'card-player';
     sec.style.setProperty('--c', pl.colour);
-    const items = INPUTS.map((inp) => {
+    const hand = byHand(pl);
+    const items = [];
+    for (const inp of INPUTS) {
       const b = pl.bindings[inp];
-      const key = pl.id === 'kb' && !ui.touchPad ? KEY_NAMES[inp] : inp;
-      if (!b?.found) return `<li class="unfound"><kbd>${key}</kbd> not found yet</li>`;
+      const key = hand ? gesture(inp) : pl.id === 'kb' ? KEY_NAMES[inp] : inp;
+      if (!b?.found) {
+        if (!hand) items.push(`<li class="unfound"><kbd>${key}</kbd> not found yet</li>`);
+        continue;
+      }
       const big = b.scale === 'large';
       let text = describe(game, b);
       if (big && b.setup) {
@@ -327,8 +348,11 @@ function fillCard() {
         const how = b.setup.type === 'centre' ? 'bring it to the middle' : b.setup.type === 'link' ? `sew ${b.setup.need} pieces to it` : 'bring it to its partner';
         text += pw >= AWAKE ? ' — awake' : ` — to wake it, ${how}`;
       }
-      return `<li class="${big ? 'large' : ''}"><kbd>${key}</kbd> ${text}</li>`;
-    });
+      items.push(`<li class="${big ? 'large' : ''}"><kbd>${key}</kbd> ${text}</li>`);
+    }
+    // By hand the controls are found on the pieces, so only the count is left.
+    const left = INPUTS.filter((inp) => !pl.bindings[inp]?.found).length;
+    if (hand && left) items.push(`<li class="unfound">${left} more to find</li>`);
     sec.innerHTML = `<h3><span class="chip" style="--c:${pl.colour}"><i></i>${playerLabel(pl)}</span></h3><ul>${items.join('')}</ul>`;
     body.append(sec);
   }
@@ -407,12 +431,88 @@ function pieceAt(pt) {
   return null;
 }
 
-// One finger on a piece drags it; a second finger pinches it (stretch) and
-// twists it (turn). A finger on the cloth around the pieces pans the view when
-// the picture is larger than the screen.
+// The hand: a finger (or the mouse) grabs a piece and drags it, and lets go
+// to throw it on. Whatever the touch player's controls are bound to that piece
+// answer the hand too, so the hand plays every control without a pad:
+//
+//   drag a piece          its sticks, in the direction and speed of the drag
+//   hold a piece still    its triggers, pressing in the longer it is held
+//   tap a piece           its buttons, one after another, a tap each
+//
+// The same on the bare cloth plays the controls bound to that panel of the
+// picture. A second finger pinches a held piece (stretch) and twists it
+// (turn). When the picture is larger than the screen, dragging the cloth also
+// pans the view.
+const HOLD_AFTER = 0.35; // seconds still before a hold presses the triggers
+const TAP_TIME = 280; // ms
+const DRAG_FULL = 520; // CSS px a second for a stick pushed all the way
+
+function panelAt(pt) {
+  if (pt.x < 0 || pt.y < 0 || pt.x > W || pt.y > H) return null;
+  return Math.min(2, Math.floor(pt.x / (W / 3))) + 3 * Math.min(1, Math.floor(pt.y / (H / 2)));
+}
+
+// The touch player's bindings that a hand on `hand.p` (or its panel) reaches.
+function handBindings(hand) {
+  const pl = game.players.find((q) => q.id === 'kb');
+  if (!pl) return [];
+  return Object.values(pl.bindings).filter((b) => (hand.p ? b.target === hand.p.i : b.target === 1000 + hand.panel));
+}
+
+function releaseHand() {
+  const h = input.hand;
+  h.LS = [0, 0];
+  h.RS = [0, 0];
+  h.LT = 0;
+  h.RT = 0;
+  ui.hand = null;
+  ui.drag = null;
+  ui.pan = null;
+}
+
+// Each frame: the held hand as stick and trigger values.
+function handFrame(now) {
+  const h = input.hand;
+  h.LS = [0, 0];
+  h.RS = [0, 0];
+  h.LT = 0;
+  h.RT = 0;
+  const g = ui.hand;
+  if (!g || (g.p === null && g.panel === null)) return;
+  // The finger's speed: it fades once the finger stops moving.
+  const fresh = now - g.t < 90;
+  const vx = fresh ? g.vx : 0;
+  const vy = fresh ? g.vy : 0;
+  const speed = Math.hypot(vx, vy);
+  if (speed > 60) g.stillAt = now;
+  const still = (now - g.stillAt) / 1000;
+  for (const b of handBindings(g)) {
+    const kind = inputKind(b.input);
+    if (kind === 'stick' && speed > 60) {
+      const m = Math.min(1, speed / DRAG_FULL);
+      h[b.input] = [(vx / speed) * m, (vy / speed) * m];
+    } else if (kind === 'trigger' && still > HOLD_AFTER) {
+      h[b.input] = Math.min(1, (still - HOLD_AFTER) / 0.5);
+    }
+  }
+}
+
+// A tap: the next of the piece's buttons (or the panel's), in turn.
+function handTap(g) {
+  const buttons = handBindings(g).filter((b) => inputKind(b.input) === 'button');
+  if (!buttons.length) {
+    if (g.p) g.p.vbloom += 1.2;
+    return;
+  }
+  const key = g.p ? `p${g.p.i}` : `c${g.panel}`;
+  ui.taps = ui.taps || new Map();
+  const n = ui.taps.get(key) || 0;
+  ui.taps.set(key, n + 1);
+  input.hand.pressed.add(buttons[n % buttons.length].input);
+}
+
 function setupPointer() {
   const cv = $('#overlay');
-  let lastTap = 0;
   const touches = new Map(); // pointerId -> { x, y } in CSS pixels
   const spread = () => {
     const [a, b] = [...touches.values()];
@@ -431,24 +531,39 @@ function setupPointer() {
       return;
     }
     if (touches.size > 1) return;
+    // The hand plays as the keyboard player: join if not yet in.
+    input.hand.active = true;
+    if (!game.players.some((q) => q.id === 'kb')) {
+      addPlayer(game, 'kb');
+      chips();
+    }
+    const now = performance.now();
     const pt = toWorld(e);
     const p = pieceAt(pt);
+    ui.hand = { id: e.pointerId, p, panel: p ? null : panelAt(pt), x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, at: now, t: now, stillAt: now, vx: 0, vy: 0, moved: false };
     if (!p) {
       ui.pan = { id: e.pointerId, x: e.clientX, y: e.clientY };
       return;
     }
     ui.drag = { p, id: e.pointerId, cx: e.clientX, cy: e.clientY, ox: pt.x - p.x, oy: pt.y - p.y };
-    const now = performance.now();
-    if (now - lastTap < 320) {
-      p.vbloom += 2.6;
-      audio.pluck(p.i + 2, 1);
-    }
-    lastTap = now;
   });
   cv.addEventListener('pointermove', (e) => {
     if (!touches.has(e.pointerId)) return;
     touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const g = ui.hand;
+    if (g && g.id === e.pointerId) {
+      const now = performance.now();
+      const dt = Math.max(8, now - g.t) / 1000;
+      const k = 0.45;
+      g.vx += ((e.clientX - g.x) / dt - g.vx) * k;
+      g.vy += ((e.clientY - g.y) / dt - g.vy) * k;
+      g.x = e.clientX;
+      g.y = e.clientY;
+      g.t = now;
+      if (Math.hypot(g.x - g.x0, g.y - g.y0) > 12) g.moved = true;
+    }
     if (ui.pan && ui.pan.id === e.pointerId) {
+      if (!renderer.frame.pans) return;
       const s = renderer.frame.scale;
       renderer.centre.x -= (e.clientX - ui.pan.x) / s;
       renderer.centre.y -= (e.clientY - ui.pan.y) / s;
@@ -472,6 +587,17 @@ function setupPointer() {
   });
   const up = (e) => {
     touches.delete(e.pointerId);
+    const g = ui.hand;
+    if (g && g.id === e.pointerId) {
+      if (e.type === 'pointerup' && !g.moved && performance.now() - g.at < TAP_TIME) handTap(g);
+      // Let go: a piece flung keeps the finger's speed and glides on.
+      if (g.p && performance.now() - g.t < 90) {
+        const s = renderer.frame.scale;
+        g.p.vx = (g.vx / s) * 1.15;
+        g.p.vy = (g.vy / s) * 1.15;
+      }
+      ui.hand = null;
+    }
     if (ui.pan && ui.pan.id === e.pointerId) ui.pan = null;
     if (!ui.drag) return;
     if (ui.drag.id === e.pointerId) ui.drag = null;
@@ -523,78 +649,6 @@ function followView(dt) {
   c.y += (wy / wsum - c.y) * k;
 }
 
-// ---- On-screen controls (touch) ------------------------------------------
-
-function showTouchPad(on) {
-  ui.touchPad = on;
-  $('#touchpad').hidden = !on;
-  $('#hud').classList.toggle('pad-on', on);
-  $('.hud-pad').setAttribute('aria-pressed', String(on));
-  if (!on) releaseTouchPad();
-}
-
-function releaseTouchPad() {
-  const tp = input.touchPad;
-  tp.LS = [0, 0];
-  tp.RS = [0, 0];
-  tp.LT = 0;
-  tp.RT = 0;
-  for (const el of $$('#touchpad .down')) el.classList.remove('down');
-  for (const k of $$('#touchpad .tp-stick i')) k.style.transform = '';
-}
-
-function setupTouchPad() {
-  const tp = input.touchPad;
-  for (const el of $$('#touchpad .tp-stick')) {
-    const name = el.dataset.stick;
-    const knob = el.querySelector('i');
-    let id = null;
-    const move = (e) => {
-      const r = el.getBoundingClientRect();
-      const rad = r.width / 2;
-      let x = (e.clientX - r.left - rad) / rad;
-      let y = (e.clientY - r.top - rad) / rad;
-      const m = Math.hypot(x, y);
-      if (m > 1) { x /= m; y /= m; }
-      tp[name] = [x, y];
-      knob.style.transform = `translate(${x * rad * 0.6}px, ${y * rad * 0.6}px)`;
-    };
-    el.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      audio.unlock();
-      id = e.pointerId;
-      try { el.setPointerCapture(id); } catch { /* fine */ }
-      move(e);
-    });
-    el.addEventListener('pointermove', (e) => { if (e.pointerId === id) move(e); });
-    const up = (e) => {
-      if (e.pointerId !== id) return;
-      id = null;
-      tp[name] = [0, 0];
-      knob.style.transform = '';
-    };
-    el.addEventListener('pointerup', up);
-    el.addEventListener('pointercancel', up);
-  }
-  for (const el of $$('#touchpad [data-tp]')) {
-    const name = el.dataset.tp;
-    el.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      audio.unlock();
-      try { el.setPointerCapture(e.pointerId); } catch { /* fine */ }
-      el.classList.add('down');
-      if (name === 'LT' || name === 'RT') tp[name] = 1;
-      else tp.pressed.add(name);
-    });
-    const up = () => {
-      el.classList.remove('down');
-      if (name === 'LT' || name === 'RT') tp[name] = 0;
-    };
-    el.addEventListener('pointerup', up);
-    el.addEventListener('pointercancel', up);
-  }
-}
-
 // ---- The frame -------------------------------------------------------------
 
 let last = performance.now();
@@ -615,6 +669,7 @@ function frame(now) {
     game.field.ripple = settings.reduceMotion ? 0 : 0.25;
   } else if (ui.screen === 'play' && !ui.paused && !ui.modals.length) {
     syncPlayers();
+    handFrame(now);
     const inputs = input.players();
     if (inputs.has('kb') && !game.players.some((p) => p.id === 'kb')) {
       addPlayer(game, 'kb');
@@ -831,7 +886,6 @@ function wire() {
       case 'start': return start();
       case 'fullscreen': return toggleFullscreen();
       case 'pause': return pause();
-      case 'touchpad': return showTouchPad(!ui.touchPad);
       case 'resume': return closeAllAndResume();
       case 'close': return closeModal();
       case 'card': return openModal('card');
@@ -875,7 +929,7 @@ function wire() {
   addEventListener('blur', () => {
     pause('Paused while the window was in the background.');
     audio.setActive(false);
-    releaseTouchPad();
+    releaseHand();
   });
   addEventListener('focus', () => audio.setActive(!document.hidden));
   addEventListener('pageshow', syncAudio);
@@ -934,7 +988,6 @@ async function boot() {
     return;
   }
   setupPointer();
-  setupTouchPad();
   show('title');
   hint();
   window.fibreart = { game: () => game, frame: () => renderer.frame, ui, input, start, shift: (how) => shift(game, how), W, H, radius, audio };
