@@ -398,6 +398,46 @@ export const ASSETS = {
     "file": "assets/sprites/titthrush-sing.png",
     "delivered": false
   },
+  "scene.plugsocketswift": {
+    "file": "assets/scenes/plugsocketswift.webp",
+    "delivered": false
+  },
+  "sprites.swiftHouse": {
+    "file": "assets/sprites/swift-house.png",
+    "delivered": false
+  },
+  "sprites.swiftFly": {
+    "file": "assets/sprites/swift-fly.png",
+    "delivered": false
+  },
+  "scene.saltshakershrike": {
+    "file": "assets/scenes/saltshakershrike.webp",
+    "delivered": false
+  },
+  "sprites.shrikePlates": {
+    "file": "assets/sprites/shrike-plates.png",
+    "delivered": false
+  },
+  "sprites.shrikeDiners": {
+    "file": "assets/sprites/shrike-diners.png",
+    "delivered": false
+  },
+  "scene.ladlelark": {
+    "file": "assets/scenes/ladlelark.webp",
+    "delivered": false
+  },
+  "sprites.larkPot": {
+    "file": "assets/sprites/lark-pot.png",
+    "delivered": false
+  },
+  "sprites.larkBits": {
+    "file": "assets/sprites/lark-bits.png",
+    "delivered": false
+  },
+  "sprites.larkQueue": {
+    "file": "assets/sprites/lark-queue.png",
+    "delivered": false
+  },
   "scene.drippet": {
     "file": "assets/scenes/drippet.webp",
     "delivered": false
