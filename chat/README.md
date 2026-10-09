@@ -49,8 +49,10 @@ so the picture stays clear:
   tap the small video to swap the two, drag it to another corner. When your
   friend is big and has an effect on, a download button puts it on you too.
 - **Bottom row:** Favorites, Effects, Accessories, Backgrounds and Games.
-  Picking one slides it to the left (the others fold away; tap it again for
-  the whole row) and the space to its right shows what's on: its name,
+  Picking one lights it up and opens its strip; once something from it is
+  on, the button slides to the left (the others fold away; tap it again,
+  or pick "no effect", for the whole row) and the space to its right shows
+  what's on: its name,
   thumbs, ⓘ (how it works) and share (offers it to everyone, who get a Try
   it button). Effects, Accessories and Backgrounds are strips of lenses:
   swipe one and whichever stops in the ring is put on. Favorites is a strip

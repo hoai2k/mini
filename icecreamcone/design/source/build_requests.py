@@ -904,6 +904,41 @@ for n, (bid, name, scene) in enumerate(BOOK, 1):
     })
 
 
+# The gathering painted again with all 28 birds once the field guide grew.
+MORE_OBJECTS = [
+    ("milkmidge", "Milkbottle Midge", "a milk bottle"), ("waterglassgoose", "Waterglass Goose", "a drinking glass"),
+    ("niffy", "Jackknife Niffy", "a pocketknife"), ("broomwhisk", "Broomwhisk", "a straw broom"),
+    ("buttonbeaks", "Buttonbeaks", "a pair of buttons"), ("keycrane", "Key Crane", "an old brass key"),
+    ("snippit", "Cutitup Snippit", "a pair of scissors"), ("garbagecanary", "Garbage Canary", "a dustbin"),
+    ("steampressersparrow", "Steampresser Sparrow", "an old steam iron"), ("wetweatherwren", "Wetweather Wren", "an umbrella"),
+    ("glovedove", "Glove Dove", "a rubber glove"), ("titthrush", "Ten O’clock Tit Trush", "a pocket watch"),
+    ("plugsocketswift", "Plugsocket Swift", "a plug socket with a light-bulb head"), ("saltshakershrike", "Saltshaker Shrike", "a salt shaker"),
+    ("ladlelark", "Soupladle Lark", "a soup ladle"), ("drippet", "Drippet", "a water tap"),
+    ("sawbird", "Saw Bird", "a handsaw"), ("radiobird", "Radio Bird", "a transistor radio"),
+]
+GATHER_REFS = ", ".join(
+    [f"{b['name']}: {GAME_URL}assets/birds/{b['id']}.png" for b in BIRDS]
+    + [f"The {n}: {GAME_URL}assets/subjects/{i}.png" for i, n, _ in MORE_OBJECTS]
+)
+ALL_28 = ALL_BIRDS + "; " + "; ".join(f"{n} ({o})" for _, n, o in MORE_OBJECTS)
+REQUESTS.append({
+    "id": "IC-U05b", "section": "ui", "name": "All 28 birds together", "key": "redo.gathering",
+    "file": "assets/ui/gathering.webp", "size": "1920 x 1080, opaque",
+    "used": "Replaces the gathering of the first ten birds: the last page of the field guide, shown once "
+    "all 28 birds have been spotted.",
+    "standin": "The delivered gathering of the first ten birds.",
+    "ref": "endpapers-all-birds.jpg",
+    "status": "requested",
+    "prompt": STYLE + " " + BIRD + " A crowded, happy gathering of all 28 rare birds of the field guide "
+    "together for a group portrait on a gentle grassy hillside under a pale lemon-yellow sky, packed and "
+    "lively like the book's endpapers (" + REF_URL + "endpapers-all-birds.jpg ). Every one of the 28 is "
+    "there exactly once and clearly recognisable: " + ALL_28 + ". Paint each one as it is painted in its "
+    "portrait (" + GATHER_REFS + "), same shapes and colours, all at a similar size so none is lost, in "
+    "loose rows rising up the hill (the nearer birds a little larger), every bird whole and standing a "
+    "little apart from its neighbours with no bird overlapping or hiding another, so each could be picked "
+    "out on its own. Their eyes look about in all directions; some sing. Full-bleed 16:9, no text.",
+})
+
 def asset_list() -> str:
     data = {
         r["key"]: {"file": r["file"], "delivered": r["status"] == "delivered"} for r in REQUESTS

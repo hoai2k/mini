@@ -861,5 +861,9 @@ export const ASSETS = {
   "bookredo.radiobird": {
     "file": "assets/book/radiobird.webp",
     "delivered": true
+  },
+  "redo.gathering": {
+    "file": "assets/ui/gathering.webp",
+    "delivered": false
   }
 };

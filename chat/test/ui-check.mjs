@@ -60,6 +60,21 @@ for (const touch of [false, true]) {
     await p.evaluate(() => { window.__chat.toggleTray(null); window.__chat.setUiLevel(2); });
     await p.waitForTimeout(350);
   }
+  if (!touch) {
+    // The row stays whole until an effect of the open tab is on; then the
+    // button slides left with the info beside it; "no effect" restores it.
+    const row = () => p.evaluate(() => [...document.querySelectorAll('#controls .ctrl')].filter(b => b.getBoundingClientRect().width > 20).length + (document.querySelector('#ctrl-info').hidden ? '' : 'i'));
+    await p.click('#btn-effects'); await p.waitForTimeout(400);
+    const seen = [await row()];
+    await p.evaluate(() => window.__chat.selectEffect('swirl')); await p.waitForTimeout(500);
+    seen.push(await row());
+    await p.evaluate(() => window.__chat.selectEffect(null)); await p.waitForTimeout(500);
+    seen.push(await row());
+    const ok = seen.join(',') === '5,1i,5';
+    if (!ok) fails++;
+    console.log(`${ok ? 'ok  ' : 'FAIL'} the row folds only while an effect is on: ${seen.join(' → ')} (want 5 → 1i → 5)`);
+    await p.evaluate(() => window.__chat.toggleTray(null)); await p.waitForTimeout(300);
+  }
   {
     // The levels: drag the strip down (row tucks away), down again (strip
     // goes, grip shows), the grip up, the strip up (row back), up again (grid),
