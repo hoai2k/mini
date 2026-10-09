@@ -96,7 +96,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
    birds walking along the lane below (the Coot is drawn on the picture). */
 #title { align-items: center; justify-content: flex-start; text-align: center; }
 .title-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: max(16px, 3.5vh); }
-#logo-img { width: min(80vw, 70vh, 820px); height: auto; filter: drop-shadow(0 4px 6px rgba(60, 40, 20, 0.2)); }
+#logo-img { width: min(94vw, 98vh, 1120px); height: auto; filter: drop-shadow(0 4px 6px rgba(60, 40, 20, 0.2)); }
 /* The loading bar, while the pictures load. */
 #loading { align-items: center; justify-content: center; }
 .loading-bar { width: min(60vw, 420px); height: 14px; border: 2px solid var(--ink); border-radius: 9px; overflow: hidden; background: var(--paper); }

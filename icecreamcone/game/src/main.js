@@ -1717,7 +1717,9 @@ function updateHud() {
 // the stone wall on the right, above the newspaper, the emptiest place; or,
 // when a narrower screen crops that away, farther off on the riverbank by the
 // sun, between the camera and the traffic light.
-const TITLE_COOT = [{ x: 1735, y: 655, size: 300 }, { x: 1195, y: 742, size: 260 }];
+const TITLE_COOT = [{ x: 1735, y: 655, size: 300 }, { x: 1210, y: 800, size: 240 }];
+// An upright phone shows only the middle of the picture: higher up the bank there.
+const TITLE_COOT_UPRIGHT = { x: 1195, y: 730, size: 260 };
 
 function renderTitle(t) {
   const bg = art('titleBg');
@@ -1728,7 +1730,7 @@ function renderTitle(t) {
   const oy = (view.ch - bg.height * s) / 2;
   g.drawImage(bg, ox, oy, bg.width * s, bg.height * s);
   const k = bg.width / 1920;
-  const spot = TITLE_COOT.find((c) => ox + (c.x + 120) * k * s <= view.cw) || TITLE_COOT[1];
+  const spot = view.cw < view.ch ? TITLE_COOT_UPRIGHT : TITLE_COOT.find((c) => ox + (c.x + 120) * k * s <= view.cw) || TITLE_COOT[1];
   const size = spot.size * k * s;
   // Kept whole on screen when the picture is cropped at the sides.
   const x = Math.min(ox + spot.x * k * s, view.cw - size * 0.42);
