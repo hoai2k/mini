@@ -51,10 +51,52 @@ for (const touch of [false, true]) {
     await openIt(btn); await p.waitForTimeout(400);
     const small = await drag(sel, 0.2);
     const big = await drag(sel, 0.6);
-    const ok = small.mid.includes('translateY') && !small.hidden && big.hidden;
+    // Strips step the UI down a level (the row tucks away); sheets close.
+    const strip = sel === '#tray-effects';
+    const level = await p.evaluate(() => window.__chat.uiLevel);
+    const ok = small.mid.includes('translateY') && !small.hidden && (strip ? !big.hidden && level === 1 : big.hidden);
     if (!ok) fails++;
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${touch ? 'touch' : 'mouse'} ${sel}: peek ${small.mid} snaps back=${!small.hidden}, long pull closes=${big.hidden}`);
-    if (!big.hidden) await p.evaluate(() => window.__chat.toggleTray(null));
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${touch ? 'touch' : 'mouse'} ${sel}: peek ${small.mid} snaps back=${!small.hidden}, long pull ${strip ? `tucks the row away (level ${level})` : `closes=${big.hidden}`}`);
+    await p.evaluate(() => { window.__chat.toggleTray(null); window.__chat.setUiLevel(2); });
+    await p.waitForTimeout(350);
+  }
+  {
+    // The levels: drag the strip down (row tucks away), down again (strip
+    // goes, grip shows), the grip up, the strip up (row back), up again (grid),
+    // down (grid closes), and the row itself down.
+    await p.click('#btn-effects');
+    await p.waitForTimeout(400);
+    const pull = async (sel, dy) => {
+      const bb = await p.locator(sel).boundingBox();
+      const x = bb.x + bb.width / 2, y = bb.y + Math.min(bb.height / 2, 14);
+      if (!touch) {
+        await p.mouse.move(x, y); await p.mouse.down();
+        for (let i = 1; i <= 10; i++) { await p.mouse.move(x, y + (dy * i) / 10); await p.waitForTimeout(25); }
+        await p.waitForTimeout(80); await p.mouse.up();
+      } else {
+        const pt = yy => [{ x, y: yy }];
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pt(y) });
+        for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: pt(y + (dy * i) / 10) }); await p.waitForTimeout(25); }
+        await p.waitForTimeout(80); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      }
+      await p.waitForTimeout(450);
+      return p.evaluate(() => `${window.__chat.uiLevel}${document.querySelector('#tray-effects').classList.contains('grid') ? 'g' : ''}`);
+    };
+    const steps = [
+      await pull('#tray-effects .sheet-grip', 120),
+      await pull('#tray-effects .sheet-grip', 120),
+      await pull('#ui-grip', -120),
+      await pull('#tray-effects .sheet-grip', -120),
+      await pull('#tray-effects .sheet-grip', -120),
+      await pull('#tray-effects .sheet-grip', 120),
+      await pull('#controls', 90),
+    ];
+    const want = ['1', '0', '1', '2', '2g', '2', '1'];
+    const ok = JSON.stringify(steps) === JSON.stringify(want);
+    if (!ok) fails++;
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${touch ? 'touch' : 'mouse'}: UI levels by dragging ${steps.join(' → ')} (want ${want.join(' → ')})`);
+    await p.evaluate(() => { window.__chat.toggleTray(null); window.__chat.setUiLevel(2); });
+    await p.waitForTimeout(350);
   }
   {
     // Drag the effects strip up into the grid, scroll it, pick an effect,

@@ -57,8 +57,12 @@ so the picture stays clear:
   of everything you gave a thumbs up (effects and games); tap one to use it.
   Drag a strip up (or tap its grip) for a grid that scrolls up and down;
   pull the grid down to go back to the strip. Games and Messages are bottom
-  sheets. Everything can be pulled down to peek at the video and closed by
-  pulling further or flicking.
+  sheets that can be pulled down to peek at the video and closed by pulling
+  further or flicking.
+- **Making room:** drag the bottom UI down to step it out of the way: first
+  the row tucks away (an open strip drops to the bottom edge), then the
+  strip goes too, leaving a small grip. Drag up (or tap the grip) to bring
+  each level back; dragging an open strip up once more opens its grid.
 - An open game takes the whole screen between the two bars, and the videos
   shrink to bubbles in the top bar; games marked `fullBleed` (Hoops) draw
   under the bars too.
@@ -77,7 +81,13 @@ where): **Effects** (warps, colour, time tricks, drawn particles),
 **Accessories** (things in front of you: hats, ears, horns, masks, hearts,
 the rainbow, tears, snow and bubbles)
 and **Backgrounds** (new backdrops and the 360 worlds). Bright backgrounds
-and worlds lift a dim camera image to match them. Sound effects play at half
+and worlds lift a dim camera image to match them.
+
+**Auto light** (on by default; Settings can turn it off) does the same for
+everyone, like most video-chat apps: a few times a second the brightness of
+your face (or the middle of the picture before a face is found) is measured,
+and a dark picture is lifted up to 2.8 times with a curve that brightens
+shadows most and leaves highlights alone. It never darkens. Sound effects play at half
 the level the slider sets, so they sit under the conversation. Many react to the face; with no face tracked, hold Space, hold your
 own video, or hold RT instead.
 
@@ -262,7 +272,11 @@ with its state (see `js/gamehost.js`).
   than about four people strains uploads. An SFU (Cloudflare Realtime) would
   lift that.
 - Scores and records live on each device, not in a shared leaderboard.
-- Artwork: all 158 image requests are delivered. The approved blue/green/purple
+- Artwork: a second, teen-styled icon set is requested (CH-K01 to CH-K95 in
+  `design/image-requests.md`, files in `assets/icons2/`): each icon shows
+  what its effect or game does. The app uses each one as it arrives
+  (`iconUrl` in `js/assets.js`) and the first-set icon until then.
+- Artwork (first set): all 158 earlier image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
   records current files and built-in imagegen prompts. `generation-history.json`
