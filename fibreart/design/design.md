@@ -81,8 +81,9 @@ the *hearts* (medium), and so on.
 - **Triggers** are continuous one-way amounts: how far to swirl, fade or pour.
 - **Face buttons and bumpers** are events: bloom, morph a step, dissolve,
   stitch, swap two pieces.
-- **D-pad** steps through targets of the same kind (the next moon, the next
-  face) without changing the verb.
+- **D-pad** is for the menus only (moving between choices, scrolling text).
+  It once stepped a control to the next piece of the same kind, but that read
+  as confusing, so in play it does nothing.
 - **Menu** pauses; **View** shows the bindings found so far as a card.
 
 ### Finding the big controls

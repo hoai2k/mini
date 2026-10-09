@@ -9,8 +9,8 @@ import { createGame, addPlayer, step, setupPower, AWAKE, INPUTS, inputKind, link
 const data = JSON.parse(readFileSync(new URL('../web/scenes.json', import.meta.url)));
 const fresh = (seed = 7, scene = 0) => createGame(data.scenes, { chains: data.chains, seed, scene });
 const idle = () => new Map();
-const press = (id, ...buttons) => new Map([[id, { LS: [0, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set(buttons), dpad: 0 }]]);
-const hold = (id, name, value) => new Map([[id, { LS: [0, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set(), dpad: 0, [name]: value }]]);
+const press = (id, ...buttons) => new Map([[id, { LS: [0, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set(buttons) }]]);
+const hold = (id, name, value) => new Map([[id, { LS: [0, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set(), [name]: value }]]);
 
 test('every scene has pieces with homes inside the picture and an image', () => {
   assert.equal(data.scenes.length, 10);
@@ -149,21 +149,10 @@ test('a big swirl that has woken rearranges the homes and deals again', () => {
   Object.assign(g.pieces[0], { x: W / 2, y: H / 2 });
   g.pieces[0].home = { x: W / 2, y: H / 2, rot: 0 };
   const homes = g.pieces.map((p) => ({ ...p.home }));
-  const spin = new Map([['pad0', { LS: [1, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set(), dpad: 0 }]]);
+  const spin = new Map([['pad0', { LS: [1, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set() }]]);
   for (let i = 0; i < 60 * 3 && !g.rearranged; i++) step(g, 1 / 60, spin);
   assert.ok(g.rearranged > 0, 'rearranged');
   assert.ok(g.pieces.some((p, i) => Math.hypot(p.home.x - homes[i].x, p.home.y - homes[i].y) > 0.3), 'homes moved');
-});
-
-test('the D-pad moves a small control to the next piece of the same kind', () => {
-  const g = fresh(19, 8); // the crowd: many faces
-  const pl = addPlayer(g, 'pad0');
-  const face = g.pieces.find((p) => p.kind === 'face');
-  pl.bindings.A = { input: 'A', scale: 'small', verb: 'hop', target: face.i, found: true, use: 1 };
-  pl.last = 'A';
-  step(g, 1 / 60, new Map([['pad0', { LS: [0, 0], RS: [0, 0], LT: 0, RT: 0, pressed: new Set(), dpad: 1 }]]));
-  assert.notEqual(pl.bindings.A.target, face.i);
-  assert.equal(g.pieces[pl.bindings.A.target].kind, 'face');
 });
 
 test('input kinds', () => {
