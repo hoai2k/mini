@@ -356,15 +356,15 @@ export const ASSETS = {
   },
   "sprites.keycranePrizes": {
     "file": "assets/sprites/keycrane-prizes.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.keycraneHang": {
     "file": "assets/sprites/keycrane-hang.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.keycraneStartle": {
     "file": "assets/sprites/keycrane-startle.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.garbagecanary": {
     "file": "assets/scenes/garbagecanary.webp",
@@ -372,15 +372,15 @@ export const ASSETS = {
   },
   "sprites.garbageItems": {
     "file": "assets/sprites/garbage-items.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.garbagecanaryLid": {
     "file": "assets/sprites/garbagecanary-lid.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.garbagecanaryCall": {
     "file": "assets/sprites/garbagecanary-call.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.steampressersparrow": {
     "file": "assets/scenes/steampressersparrow.webp",
@@ -388,15 +388,15 @@ export const ASSETS = {
   },
   "sprites.pressGarments": {
     "file": "assets/sprites/press-garments.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.sparrowPress": {
     "file": "assets/sprites/sparrow-press.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.sparrowScorch": {
     "file": "assets/sprites/sparrow-scorch.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.wetweatherwren": {
     "file": "assets/scenes/wetweatherwren.webp",
