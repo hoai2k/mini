@@ -103,9 +103,36 @@ are the source for the portrait prompts.
   top, small side spikes and an orange tail tuft. It sits on a long black pole
   neck above very long black stilt legs with pink claws.
 
-Other birds named in the book or seen on the endpapers, for later: the
-Waterglass Goose, the Milkbottle Midge, the Soupladle Lark, the Wetweather
-Wren, the Key Crane, the Jackknife Niffy, the Broomwhisk and a bird called
-the Plugsock. The endpapers also show birds made from scissors, a broom, a
-dustbin, a tap, a pocket watch, a ladle, a key, a saw, a light bulb, a
-rubber glove and a portable radio.
+## Every bird in the book
+
+The book has 28 birds (the count its reviews give for the endpapers). Ten have
+field-guide pages. The other 18, put together from the book's descriptions and
+its reviews and matched to the endpapers where we can, are requested as
+paintings for Shuttercluck's Say Cheese (IC-R01 to IC-R18 in
+`design/image-requests.md`):
+
+| Bird | What it is | Where we see it |
+| --- | --- | --- |
+| Milkbottle Midge | a milk bottle | endpapers, middle of the left page |
+| Waterglass Goose | a drinking glass with a goose's neck | the page facing the Newspaper Peeper (`newspaper-peeper.jpg`) |
+| Jackknife Niffy | a red pocketknife; it threatens to snip off your nose | endpapers, top left |
+| Cutitup Snippit | scissors, its eye the hinge | endpapers, upper left |
+| Buttonbeaks | buttons | not found in the photos |
+| Broomwhisk | a broom | endpapers, bottom left |
+| Key Crane | a key | endpapers, top right |
+| Garbage Canary | a dustbin | endpapers, left |
+| Steampresser Sparrow | a steam iron (from its name) | not found in the photos |
+| Wetweather Wren | rain (from its name and a review) | not found in the photos |
+| Glove Dove | a long rubber glove | endpapers, middle right |
+| Ten O'clock Tit Trush | a pocket watch | endpapers, middle left |
+| Plugsocket Swift | a plug socket, with a light bulb for a head | endpapers, upper right |
+| Saltshaker Shrike | a salt shaker | not found in the photos |
+| Soupladle Lark | a soup ladle | endpapers, middle left |
+| Drippet | leaves puddles as it runs: most likely the tap | endpapers, bottom left |
+| (name not found) | a handsaw | endpapers, middle right |
+| (name not found) | a portable radio | endpapers, bottom right |
+
+Sources: the publisher's description, Goodreads reviews and two blog posts
+about the book; the names are as they quote them. Checking the book itself
+(the Internet Archive has a lending copy, `icecreamconecoot0000lobe`) would
+confirm the spellings, the Drippet, and the saw's and radio's names.

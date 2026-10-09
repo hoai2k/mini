@@ -106,6 +106,118 @@ export const ASSETS = {
     "file": "assets/scenes/coot-wide.webp",
     "delivered": true
   },
+  "subject.milkmidge": {
+    "file": "assets/subjects/milkmidge.png",
+    "delivered": false
+  },
+  "subject.waterglassgoose": {
+    "file": "assets/subjects/waterglassgoose.png",
+    "delivered": false
+  },
+  "subject.niffy": {
+    "file": "assets/subjects/niffy.png",
+    "delivered": false
+  },
+  "subject.snippit": {
+    "file": "assets/subjects/snippit.png",
+    "delivered": false
+  },
+  "subject.buttonbeaks": {
+    "file": "assets/subjects/buttonbeaks.png",
+    "delivered": false
+  },
+  "subject.broomwhisk": {
+    "file": "assets/subjects/broomwhisk.png",
+    "delivered": false
+  },
+  "subject.keycrane": {
+    "file": "assets/subjects/keycrane.png",
+    "delivered": false
+  },
+  "subject.garbagecanary": {
+    "file": "assets/subjects/garbagecanary.png",
+    "delivered": false
+  },
+  "subject.steampressersparrow": {
+    "file": "assets/subjects/steampressersparrow.png",
+    "delivered": false
+  },
+  "subject.wetweatherwren": {
+    "file": "assets/subjects/wetweatherwren.png",
+    "delivered": false
+  },
+  "subject.glovedove": {
+    "file": "assets/subjects/glovedove.png",
+    "delivered": false
+  },
+  "subject.titthrush": {
+    "file": "assets/subjects/titthrush.png",
+    "delivered": false
+  },
+  "subject.plugsocketswift": {
+    "file": "assets/subjects/plugsocketswift.png",
+    "delivered": false
+  },
+  "subject.saltshakershrike": {
+    "file": "assets/subjects/saltshakershrike.png",
+    "delivered": false
+  },
+  "subject.ladlelark": {
+    "file": "assets/subjects/ladlelark.png",
+    "delivered": false
+  },
+  "subject.drippet": {
+    "file": "assets/subjects/drippet.png",
+    "delivered": false
+  },
+  "subject.sawbird": {
+    "file": "assets/subjects/sawbird.png",
+    "delivered": false
+  },
+  "subject.radiobird": {
+    "file": "assets/subjects/radiobird.png",
+    "delivered": false
+  },
+  "pocket.hourglassheron": {
+    "file": "assets/pocket/hourglassheron.png",
+    "delivered": false
+  },
+  "pocket.spectaclesnipe": {
+    "file": "assets/pocket/spectaclesnipe.png",
+    "delivered": false
+  },
+  "pocket.bellowsbittern": {
+    "file": "assets/pocket/bellowsbittern.png",
+    "delivered": false
+  },
+  "pocket.lampshadeloon": {
+    "file": "assets/pocket/lampshadeloon.png",
+    "delivered": false
+  },
+  "pocket.concertinacurlew": {
+    "file": "assets/pocket/concertinacurlew.png",
+    "delivered": false
+  },
+  "pocket.weathervanewarbler": {
+    "file": "assets/pocket/weathervanewarbler.png",
+    "delivered": false
+  },
+  "pocket.mousetrapmagpie": {
+    "file": "assets/pocket/mousetrapmagpie.png",
+    "delivered": false
+  },
+  "pocket.hatboxhoopoe": {
+    "file": "assets/pocket/hatboxhoopoe.png",
+    "delivered": false
+  },
+  "pocket.candlestickkiwi": {
+    "file": "assets/pocket/candlestickkiwi.png",
+    "delivered": false
+  },
+  "pocket.rollingpinrail": {
+    "file": "assets/pocket/rollingpinrail.png",
+    "delivered": false
+  },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
     "delivered": true

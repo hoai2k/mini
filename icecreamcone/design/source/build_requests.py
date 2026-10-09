@@ -88,6 +88,25 @@ SECTIONS = {
         "One background per minigame. The game draws the birds and everything that moves on top, "
         "so each scene leaves the play area quiet, as its prompt says.",
     ),
+    "subject": (
+        "Shuttercluck's subjects: the book's other birds",
+        "Say Cheese photographs creatures you don't play as, so these are the rest of Lobel's "
+        "birds: the 18 of the book's 28 that the field guide doesn't have a page for, so that "
+        "every bird in the book has a painting. The names come from the book as quoted in its "
+        "descriptions and reviews; most birds are matched to the crowded yellow endpapers "
+        "(reference/endpapers-all-birds.jpg), where each prompt says where to look. Four are named "
+        "but not found in our photos, so they are drawn from their names; two endpaper birds (the "
+        "saw and the radio) are in the pictures but their names were not found, so they have plain "
+        "names for now. The Drippet as the tap is a likely match, not a certain one. Each is drawn "
+        "like the field-guide portraits, at the same framing, because the game raises them over "
+        "hedges, walls and the knothole the same way.",
+    ),
+    "pocket": (
+        "In our pocket: ten new rare birds",
+        "Not used yet and not shown anywhere: a second flock in Lobel's manner, invented here, "
+        "for when the field guide grows beyond the book's own birds. Each note says what its "
+        "game might be. Same framing as the portraits, so any of them can become a page later.",
+    ),
     "sprite": (
         "Sprites and variants",
         "What the minigames need beyond one still portrait per bird, found while building them "
@@ -442,6 +461,156 @@ REQUESTS.append({
     "Wide 16:9.",
 })
 
+
+# The book's birds the field guide doesn't have, for Shuttercluck to photograph.
+# (id, name, where the reference shows it, description). `where` None: only
+# named in the book's text, so drawn from the name.
+ENDPAPERS = "endpapers-all-birds.jpg"
+SUBJECTS = [
+    ("milkmidge", "The Milkbottle Midge", "the white bottle bird near the middle of the left-hand page",
+     "A small glass milk bottle full of white milk with a foil cap for a crest, tiny wings, one "
+     "eye and a short beak, standing on two little legs."),
+    ("waterglassgoose", "The Waterglass Goose", "the white tumbler bird on the page facing the Newspaper Peeper",
+     "A plain white drinking glass (a tumbler) tipped on its side as the body, a long pale goose "
+     "neck and small head rising from it, dark tail feathers, on long thin legs."),
+    ("niffy", "The Jackknife Niffy", "top left of the left-hand page, flying",
+     "A red folding pocketknife with its blades half open like wings and a sharp blade for a beak, "
+     "a small round eye on the handle's end. A little menacing, as in the book."),
+    ("snippit", "The Cutitup Snippit", "the pink scissors bird, upper left of the left-hand page",
+     "A pair of pink-handled dressmaker's scissors: the long blades are the beak, the hinge screw "
+     "its one eye, the finger loops its body, with fluttery pink tail feathers and thin legs."),
+    ("buttonbeaks", "The Buttonbeaks", None,
+     "Named in the book but not found in the photos, so drawn from its name: a pair of small "
+     "round birds whose beaks and eyes are big sewing buttons with thread holes, plump bodies of "
+     "button-sized feathers, on thin legs, standing side by side."),
+    ("broomwhisk", "The Broomwhisk", "bottom left of the left-hand page, standing on its bristles",
+     "A tall straw broom standing on its bundled bristles, which splay out like a skirt of tail "
+     "feathers, with a slim bird's head and neck where the handle ends."),
+    ("keycrane", "The Key Crane", "top right of the right-hand page",
+     "A long old brass door key laid flat as the body, its ring bow as a round head with one eye, "
+     "the bit's teeth as a little tail, with a dark crest like a top hat and long thin legs."),
+    ("garbagecanary", "The Garbage Canary", "the dented dustbin bird, left of the left-hand page",
+     "A dented grey galvanised dustbin with its lid tipped up like a cap, a yellow canary's head "
+     "peering out from under the lid, scraps of paper for tail feathers, on thin legs."),
+    ("steampressersparrow", "The Steampresser Sparrow", None,
+     "Named in the book but not found in the photos, so drawn from its name: an old cast-iron "
+     "steam iron as the body, puffs of steam from its sole like ruffled feathers, the handle "
+     "arching over its back like folded wings, a sparrow's brown head and beak at the point."),
+    ("wetweatherwren", "The Wetweather Wren", None,
+     "Named in the book but not found in the photos (a review says its picture shows rain), so "
+     "drawn from its name: a small round furled black umbrella with a crook handle for a tail, a "
+     "tiny wren's head with one bright eye at the tip, rain falling on it, thin legs in a puddle."),
+    ("glovedove", "The Glove Dove", "the long pink glove bird, middle of the right-hand page",
+     "A long pink rubber washing-up glove, fingers splayed back as a crest of tail feathers, the "
+     "cuff as a long neck ending in a head with one eye and a long beak, over a scalloped grey-blue "
+     "feathered body, on two thin legs."),
+    ("titthrush", "The Ten O'clock Tit Trush", "the yellow pocket watch bird, middle of the left-hand page",
+     "A round gold pocket watch with its lid open, its face showing ten o'clock as a big round "
+     "body, the winding crown as a little head and beak, a short chain for a tail, pink plumes."),
+    ("plugsocketswift", "The Plugsocket Swift", "the light bulb bird, upper middle of the right-hand page",
+     "A high-voltage bird: its head is an old clear light bulb with a glowing filament and one eye, "
+     "on a brass screw cap neck, its body an old round wall plug socket, with swept-back swift's "
+     "wings and a trailing flex for a tail."),
+    ("saltshakershrike", "The Saltshaker Shrike", None,
+     "Named in the book but not found in the photos, so drawn from its name: a glass salt shaker "
+     "with a domed perforated silver cap as the head, a shrike's hooked beak and black eye mask, "
+     "a few grains of salt falling, on thin legs."),
+    ("ladlelark", "The Soupladle Lark", "the grey ladle bird, middle left of the left-hand page",
+     "A grey enamel soup ladle: the round bowl is the body, the long hooked handle a curving neck "
+     "with a small head and beak at its end, on two thin legs."),
+    ("drippet", "The Drippet", "most likely the blue tap bird, bottom left of the left-hand page",
+     "A blue-painted brass water tap: the spout is the beak with a drip at its tip, the cross "
+     "handle on top a crest, one round eye on the body, leaving a little puddle wherever it runs."),
+    ("sawbird", "The Saw Bird (name not found)", "the handsaw across the middle of the right-hand page",
+     "A long carpenter's handsaw: the toothed blade is a long serrated beak, the wooden handle "
+     "the head and body with one eye, with a few feathers and thin legs."),
+    ("radiobird", "The Radio Bird (name not found)", "the portable radio bird, bottom of the right-hand page",
+     "A small 1960s portable transistor radio with a carrying handle and a speaker grille as the "
+     "body, a long curving striped neck with a crested head, and long thin legs."),
+]
+# Which subjects have been delivered (filled in on integration).
+DELIVERED_SUBJECTS: set[str] = set()
+
+for n, (sid, name, where, look) in enumerate(SUBJECTS, 1):
+    ref = "newspaper-peeper.jpg" if sid == "waterglassgoose" else ENDPAPERS
+    refnote = (
+        f"Match this bird as the book shows it in the reference photo {REF_URL}{ref} ({where}), "
+        "keeping its shapes and colours, but as a clean new full-colour painting of the bird alone "
+        "(no book, page, hands or other birds)."
+        if where else
+        f"For the drawing style and palette, look at the book's birds in {REF_URL}{ENDPAPERS} ."
+    )
+    REQUESTS.append({
+        "id": f"IC-R{n:02d}",
+        "section": "subject",
+        "name": name,
+        "key": f"subject.{sid}",
+        "file": f"assets/subjects/{sid}.png",
+        "size": "1024 x 1024, transparent",
+        "used": "Say Cheese (the Shuttercluck): it peeks out of a hiding place to be photographed.",
+        "standin": "The object drawn in code in ink and wash, with an eye, a beak and legs.",
+        "status": "delivered" if sid in DELIVERED_SUBJECTS else "requested",
+        "ref": ref,
+        "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " " + refnote,
+    })
+
+# Ten new birds in Lobel's manner, kept for later (not loaded by the game).
+POCKET = [
+    ("hourglassheron", "The Hourglass Heron",
+     "A tall wooden-framed hourglass as the body, pale sand trickling from the top bulb to the "
+     "bottom, a long heron's neck and dagger beak rising from the top of the frame, on very long legs.",
+     "Turn it over at the right moment to keep the sand running."),
+    ("spectaclesnipe", "The Spectacle Snipe",
+     "A pair of round wire-rimmed spectacles: the two lenses are its two big round eyes, the "
+     "bridge between them its long thin snipe's beak, the folded arms its tail, on wiry legs.",
+     "Spot the differences through its lenses."),
+    ("bellowsbittern", "The Bellows Bittern",
+     "A pair of leather-and-wood fireside bellows as the body, the brass nozzle its beak, the "
+     "pleated leather puffing in and out as it breathes, two handles as stubby wings.",
+     "Puff a feather or the embers along at the right strength."),
+    ("lampshadeloon", "The Lampshade Loon",
+     "A fringed, pleated parchment lampshade as a bell-shaped body glowing softly from inside, "
+     "the fringe as tail feathers, a loon's dark sleek head and neck on top, on thin legs.",
+     "Light up the moths that come to it, not the bats."),
+    ("concertinacurlew", "The Concertina Curlew",
+     "A small hexagonal concertina squeezebox with patterned ends and pleated bellows as the "
+     "body, a curlew's long down-curved beak from one end, buttons like a row of tiny feathers.",
+     "Squeeze and stretch in time to play its tune."),
+    ("weathervanewarbler", "The Weathervane Warbler",
+     "A green-copper rooftop weathervane: the arrow is the body and beak, the swallow-tailed vane "
+     "its tail, the N-E-S-W cross below like perched feet on a little roof ridge.",
+     "Turn into the wind as it changes."),
+    ("mousetrapmagpie", "The Mousetrap Magpie",
+     "A wooden spring mousetrap as a flat body with the snapping bar as a crest, a magpie's black "
+     "and white head and long tail, a bit of cheese it is very proud of.",
+     "Grab the shiny things without setting itself off."),
+    ("hatboxhoopoe", "The Hatbox Hoopoe",
+     "A round striped hatbox with its lid lifting like a crest of hoopoe feathers, a long thin "
+     "curved beak, a ribbon bow, on thin legs.",
+     "Catch the hats that blow off people's heads."),
+    ("candlestickkiwi", "The Candlestick Kiwi",
+     "A brass candlestick with a dripping white candle whose small flame is its crest, a round "
+     "kiwi body in the saucer at the bottom, a long thin kiwi beak, short sturdy legs.",
+     "Shelter its flame from the draughts."),
+    ("rollingpinrail", "The Rollingpin Rail",
+     "A floury wooden rolling pin laid flat as the body, the handles as a stubby tail and a neck "
+     "with a small rail's head and beak, on quick little legs.",
+     "Roll out the pastry evenly before it tears."),
+]
+for n, (pid, name, look, game) in enumerate(POCKET, 1):
+    REQUESTS.append({
+        "id": f"IC-N{n:02d}",
+        "section": "pocket",
+        "name": name,
+        "key": f"pocket.{pid}",
+        "file": f"assets/pocket/{pid}.png",
+        "size": "1024 x 1024, transparent",
+        "used": "Nothing yet: kept for a later page of the field guide. A game idea: " + game,
+        "standin": "None; not shown.",
+        "status": "requested",
+        "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " For the drawing style and "
+        "the way the object becomes a bird, look at the book's birds in " + REF_URL + ENDPAPERS + " .",
+    })
 
 SPRITES = [
     ("IC-P01", "Scoop Stack props", "sprites.scoops", "assets/sprites/scoops.png", "2048 x 1024, transparent",
