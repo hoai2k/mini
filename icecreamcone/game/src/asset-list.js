@@ -474,6 +474,10 @@ export const ASSETS = {
     "file": "assets/sprites/shrike-poses.png",
     "delivered": false
   },
+  "sprites.shrikeTable": {
+    "file": "assets/sprites/shrike-table.png",
+    "delivered": false
+  },
   "scene.ladlelark": {
     "file": "assets/scenes/ladlelark.webp",
     "delivered": false

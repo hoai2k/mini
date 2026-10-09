@@ -52,7 +52,7 @@ function operator({ speed = 1, settle = 0.5, care = 0.45, pick = 'near' } = {}) 
 const masher = () => (game, t) => ({ x: Math.sin(t * 1.3) * 0.8, action: Math.floor(t * 8) % 2 === 0 });
 
 test('keycrane: a beginner opens the next page, a good operator more; mashing and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: operator({ speed: 0.6, settle: 0.4, care: 0.25 }) }).game.score);
+  const beginner = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: operator({ speed: 0.6, settle: 0.4, care: 0.25 }) }).game.score);
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: operator({ speed: 1, settle: 1.8, care: 0.3, pick: 'gold' }) }).game.score);
   const mash = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: masher() }).game.score);
   const idle = run(create, { seed: 1 }).game.score;

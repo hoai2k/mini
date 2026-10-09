@@ -25,7 +25,7 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const RAIL_Y = 118;
+const RAIL_Y = 150; // low enough that the trolley clears the HUD clock
 const PIVOT_Y = RAIL_Y + 26; // where the string leaves the trolley
 const FLOOR = 812; // the cabinet's floor, where the prizes stand
 const X_MIN = 150;
@@ -88,7 +88,7 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const ringNow = () => lerp(32, 17, progress());
+  const ringNow = () => lerp(32, 20, progress());
   g.foot = () => [g.x + g.L * Math.sin(g.th), PIVOT_Y + g.L * Math.cos(g.th)];
   g.ring = (p) => [p.x, p.y - KINDS[p.kind].h - p.ringR * 0.75];
   g.tolerance = (p) => p.ringR * 0.85 + 4;
@@ -161,6 +161,7 @@ export default function create(env) {
       return;
     }
     g.stateT += dt;
+    g.view = approach(g.view, g.carry ? Math.max(760, g.x - CHUTE_X0 + 260) : 760, 3, dt);
     g.startle = Math.max(0, (g.startle || 0) - dt);
 
     // The trolley: free at the top, held still while the Crane is down.
@@ -681,8 +682,11 @@ export default function create(env) {
     }
   };
 
-  g.focus = () => clamp(g.x, 380, W - 380);
-  g.span = 760;
+  // On a narrow screen the view follows the trolley; while a prize is being
+  // carried it widens smoothly to keep the chute in sight too.
+  g.view = 760;
+  g.focus = () => (g.carry ? clamp((CHUTE_X0 - 20 + g.x + 120) / 2, 380, W - 380) : clamp(g.x, 380, W - 380));
+  Object.defineProperty(g, 'span', { get: () => g.view });
 
   return g;
 }

@@ -33,16 +33,16 @@ const alwaysOpen = () => () => ({ action: true });
 const masher = () => (game, t) => ({ action: Math.floor(t * 5) % 2 === 0 });
 
 test('garbagecanary: a beginner opens the next page, a sharp minder more; holding the lid open, mashing and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: minder({ lead: 0.45, delay: 0.25, wobble: 0.18, seed }) }).game.score);
+  const beginner = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: minder({ lead: 0.5, delay: 0.3, wobble: 0.2, seed }) }).game.score);
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: minder({ lead: 0.2, delay: 0.05, wobble: 0.03, seed }) }).game.score);
-  const open = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: alwaysOpen() }).game.score);
+  const open = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: alwaysOpen() }).game.score);
   const mash = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: masher() }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
   console.log('garbagecanary beginner', beginner, 'good', good, 'open', open, 'mash', mash, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
   assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
   const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(beginner), `good ${good}`);
+  assert.ok(avg(good) > avg(beginner) * 1.3, `good ${good}`);
   assert.ok(Math.max(...open) < pass, `holding it open must not open the next page: ${open}`);
   assert.ok(Math.max(...mash) < pass, `mashing must not open the next page: ${mash}`);
 });
@@ -61,12 +61,33 @@ test('garbagecanary: rubbish that finds the lid up goes in', () => {
   assert.equal(game.score, 1);
 });
 
-test('garbagecanary: something that is not rubbish gets spat out and costs two', () => {
+test('garbagecanary: something that is not rubbish is spat out, costs one, and jams the lid shut a moment', () => {
   const game = oneComing('cat');
   game.score = 5;
-  for (let i = 0; i < 90; i++) game.update(1 / 60, blank({ action: true }));
+  let jammed = false;
+  for (let i = 0; i < 90; i++) {
+    game.update(1 / 60, blank({ action: true }));
+    if (game.swallowed && game.jam > 0.3) jammed = game.open < 0.55;
+  }
   assert.equal(game.swallowed, 1);
-  assert.equal(game.score, 3);
+  assert.equal(game.score, 4);
+  assert.ok(jammed, 'the lid stays shut while the Canary splutters');
+});
+
+test('garbagecanary: things never arrive less than half a second apart', () => {
+  for (const seed of [1, 2, 3]) {
+    const game = create(env(seed));
+    const arrivals = [];
+    const seen = new Set();
+    for (let i = 0; i < 45 * 60; i++) {
+      game.update(1 / 60, blank());
+      for (const it of game.items) if (it.state !== 'come' && !seen.has(it)) {
+        seen.add(it);
+        arrivals.push(game.elapsed);
+      }
+    }
+    for (let i = 1; i < arrivals.length; i++) assert.ok(arrivals[i] - arrivals[i - 1] > 0.45, `seed ${seed}: ${arrivals[i] - arrivals[i - 1]}`);
+  }
 });
 
 test('garbagecanary: with the lid shut, a hat goes over the top and rubbish is lost', () => {
