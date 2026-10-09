@@ -472,19 +472,19 @@ export const ASSETS = {
   },
   "sprites.shrikePlates": {
     "file": "assets/sprites/shrike-plates.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.shrikeDiners": {
     "file": "assets/sprites/shrike-diners.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.shrikePoses": {
     "file": "assets/sprites/shrike-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.shrikeTable": {
     "file": "assets/sprites/shrike-table.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.ladlelark": {
     "file": "assets/scenes/ladlelark.webp",
@@ -492,19 +492,19 @@ export const ASSETS = {
   },
   "sprites.larkPot": {
     "file": "assets/sprites/lark-pot.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.larkBits": {
     "file": "assets/sprites/lark-bits.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.larkQueue": {
     "file": "assets/sprites/lark-queue.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.larkPoses": {
     "file": "assets/sprites/lark-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.drippet": {
     "file": "assets/scenes/drippet.webp",

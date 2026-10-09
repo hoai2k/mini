@@ -13,7 +13,7 @@ Artwork still wanted for the Ice-Cream Cone Coot game in `icecreamcone/`. Only o
 
 ## Status
 
-22 requested, 132 delivered, 1 retired, 155 in total.
+14 requested, 140 delivered, 1 retired, 155 in total.
 
 ## New minigames: the book's other birds
 
@@ -41,102 +41,6 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 2 x 2 grid of four clocks, each in its own 1024 x 1024 cell, seen straight on. In every cell the clock's round dial is exactly centred in the cell and is half the cell's width across, with numbers and minute ticks but NO HANDS (the game draws them); its surround fits round it inside the cell: 1) a church tower clock, a stone tower top with a little pointed roof round a cream dial with Roman numerals; 2) a round railway station clock with a thick black rim on an iron bracket from above, plain black numbers; 3) a town hall clock, a gilded rim with laurel scrolls round a cream dial with Roman numerals; 4) a cuckoo clock, a carved brown wooden house with a pitched roof, a little closed door above the dial, and carved leaves.
-```
-
-### IC-M14b · Plates of food
-
-- **File:** `icecreamcone/game/assets/sprites/shrike-plates.png`
-- **Size:** 2048 x 1024, transparent
-- **Used for:** Just a Pinch: the plates that slide along the counter; the first six want salt, the last two are puddings that want none.
-- **Stand-in until delivered:** A white plate and simple foods drawn in code.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 4 x 2 grid of eight dishes, each served on the same plain white china plate seen from the side and slightly above, the plate about 420 px wide with its foot on the bottom of the picture, row by row: 1, a fried egg with a bright yolk; 2, a heap of golden chips; 3, a baked potato split open with a pat of butter; 4, a buttery cob of sweetcorn; 5, a white bowl of tomato soup on the plate; 6, a big brown pretzel; 7, a slice of strawberry layer cake with a cherry on top; 8, an ice-cream sundae in a tall glass, strawberry and vanilla with chocolate sauce. The food sits in the middle of each plate, no cutlery.
-```
-
-### IC-M14c · Diners
-
-- **File:** `icecreamcone/game/assets/sprites/shrike-diners.png`
-- **Size:** 2048 x 1024, transparent
-- **Used for:** Just a Pinch: the diner at the end of the counter who tastes each plate; pleased (and bouncing) when it's right, pulling a face when it isn't.
-- **Stand-in until delivered:** Round grey, brown and green creatures with a napkin and a fork, drawn in code.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 4 x 2 grid of four small animal diners in Lobel's gentle manner, each seen from the front, from the waist up as if sitting behind a counter (the bottom of each figure cut straight across), about 380 px tall, with a white napkin tucked under its chin and a fork held upright: row 1, waiting happily: a velvety dark-grey mole with tiny round spectacles, a grey mouse, a green frog, a black-and-white badger; row 2, the same four in the same order pulling a face at their food: eyes screwed shut, mouth turned down, tongue out.
-```
-
-### IC-M14d · Saltshaker Shrike hanging upside down
-
-- **File:** `icecreamcone/game/assets/sprites/shrike-poses.png`
-- **Size:** 4096 x 1024, transparent
-- **Used for:** Just a Pinch: the Shrike hangs head down from the brass rail all game (pose 1), shakes out a pinch (pose 2), squawks pleased at a plate that's just right (pose 3) and flinches at a frown (pose 4). The game mirrors it to face the plates.
-- **Stand-in until delivered:** The portrait (or its stand-in) turned upside down in code; it jiggles when shaking, bounces when pleased and shivers when flinching.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Saltshaker Shrike (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/saltshakershrike.png), exactly as painted there: a fluted clear-glass salt shaker full of white salt for its body; its head is the domed, perforated silver cap with a black shrike's eye mask, one round pale eye and a dark hooked beak; mauve and olive-brown wings and tail; thin olive legs with black claws. Four poses side by side, each in its own square quarter of the sheet, all at the same scale, facing left, each hanging UPSIDE DOWN by its claws from an unseen horizontal rail at the very top of the square, like a bat: its legs go straight up from the body to the claws, which grip a point at the top centre of the square; the glass body hangs below them and the domed cap points straight down, its holes about 75% of the way down the square and centred, the hooked beak turned to the left. Lit from the upper left as a real object hanging upside down would be. 1, hanging still, calm; 2, shaking: swung slightly to one side, a little puff of white salt grains spilling from the cap's holes; 3, pleased: beak wide open in a cheerful squawk, wings flared a little; 4, flinching: body pulled up tight towards the rail, wings clamped, eye squeezed half shut. No rail drawn. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
-```
-
-### IC-M14e · The revolving table
-
-- **File:** `icecreamcone/game/assets/sprites/shrike-table.png`
-- **Size:** 2048 x 1024, transparent
-- **Used for:** Just a Pinch: the big round lazy Susan the plates ride round on, from the cook's hatch on the right, round the near side, to the diner on the left. The game draws the plates on its rim and turning knots on its top.
-- **Stand-in until delivered:** A wooden oval with an edge, a pedestal and a round foot, drawn in code.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. One object filling the sheet: a big round wooden revolving café table (a lazy Susan on a pedestal), seen from the front and a little above, so its round top is a wide flat oval 4.6 times as wide as it is tall; the top's outer edge touches the left and right sides of the painted area and its back edge is the very top of the painted area. Plain honey-coloured wood with a faint inner ring and a few knots, nothing on it, a thick darker edge below the top, a stout turned central pedestal and a round foot on the floor. About 1900 px wide.
-```
-
-### IC-M15b · Soup pot and bowl
-
-- **File:** `icecreamcone/game/assets/sprites/lark-pot.png`
-- **Size:** 2048 x 1024, transparent
-- **Used for:** Soup's On: the big pot the Lark dips into (the game fits its broth oval to the swirling vegetables), and the bowl on the counter that fills.
-- **Stand-in until delivered:** A copper pot, a golden broth oval and a wooden bowl drawn in code.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 2 x 1 pair: left, a huge old copper soup pot, about 900 px wide, seen from the front and above at about 25 degrees, two loop handles on its sides, dents and crosshatched shine; its open mouth is a wide oval of clear golden broth with nothing floating in it, ringed by the rolled rim, and the rim's outer oval is exactly as wide as the pot and three-eighths as tall as it is wide, its top edge at the very top of the painted pot. Right, a plain round wooden soup bowl, about 400 px wide, seen the same way, holding a shallow oval of the same golden broth with nothing in it.
-```
-
-### IC-M15c · What's in the soup
-
-- **File:** `icecreamcone/game/assets/sprites/lark-bits.png`
-- **Size:** 2560 x 512, transparent
-- **Used for:** Soup's On: the bits that swirl round the pot, sit in the order bubble and fly into the bowl.
-- **Stand-in until delivered:** An orange carrot coin, a green pea, a cream dumpling, a brown mushroom and a dark boot drawn in code.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 5 x 1 row of five things floating in soup, each seen from above at a slant and each about 300 px across, in a square cell: 1, a round coin of carrot with its pale rings; 2, a single round green pea (smaller, about 160 px); 3, a plump pleated white dumpling; 4, a halved brown mushroom; 5, a battered old brown leather boot with a loose lace, lying on its side (about 400 px long). Wet and glistening, a few drops of broth.
-```
-
-### IC-M15d · The hungry queue
-
-- **File:** `icecreamcone/game/assets/sprites/lark-queue.png`
-- **Size:** 2048 x 1024, transparent
-- **Used for:** Soup's On: the creatures queueing at the counter; the one at the front bounces when served and pulls a face at a bad bowl.
-- **Stand-in until delivered:** A hedgehog, a rabbit, a bear cub and a frog drawn in code, each with a spoon.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 4 x 2 grid of four small hungry creatures in Lobel's gentle manner, each standing upright, full length, in a three-quarter view facing left, about 440 px tall, holding a big spoon: row 1, hopeful and waiting: a hedgehog, a white rabbit, a brown bear cub, a green frog; row 2, the same four in the same order pulling a face: eyes screwed shut, tongue out, the spoon held away.
-```
-
-### IC-M15e · Soupladle Lark hovering, dipping and rising
-
-- **File:** `icecreamcone/game/assets/sprites/lark-poses.png`
-- **Size:** 3072 x 1024, transparent
-- **Used for:** Soup's On: the Lark hovers over the pot (pose 1), plunges its bowl into the soup to dip (pose 2) and rises with a full bowl (pose 3), always over the ring the player aims.
-- **Stand-in until delivered:** The portrait (or its stand-in) with ink-and-wash wings in code: beating while it hovers, swept up and tilted forward as it dips, a golden brim drawn on the bowl as it rises.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Soupladle Lark (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/ladlelark.png), exactly as painted there: one speckled grey enamel soup ladle in a single piece, its deep round bowl the body (open at the top, behind the neck), its long handle rising as a slender neck to a small head with one round pale eye and a long tan beak, and the handle's hooked end curling up and back from the top of the head as a crest; small feathery grey-blue wings and tail; thin ochre legs with dark claws. Three poses side by side, each in its own square third of the sheet, all at the same scale, facing left, the ladle's bowl at the exact centre of each square: 1, hovering in the air: wings beating either side of the bowl, legs tucked up, the neck curved with the head looking down; 2, dipping: tipped forward bowl first, the bowl's open top turned down to the lower left as if scooping, wings swept up, the neck bent down; 3, rising: level again, wings pushing down, the bowl brimming with golden soup with a carrot coin and a pea showing, drops of broth falling from its rim. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### IC-M16b · Drip Drop Dash: thirsty things
