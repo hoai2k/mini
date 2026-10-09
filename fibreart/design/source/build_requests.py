@@ -644,6 +644,29 @@ REQUESTS.append({
     "pieces": ["resume", "controls", "hint", "howto", "settings", "next", "title", "close"],
 })
 
+# Regeneration: HK-U06's eighth badge (two crossed pins) reads well on the
+# sheet but not at the size of a close button (about 40 px), where the thin
+# grey pins fade into a faint cross. A bold cloth X replaces it.
+REQUESTS.append({
+    "id": "HK-U07",
+    "section": "ui",
+    "name": "Close badge (regenerated)",
+    "key": "closeBadge",
+    "file": "assets/ui/close-badge.png",
+    "size": "512 x 512, transparent",
+    "used": "The close button in the top right of every panel, in place of HK-U06's crossed pins.",
+    "standin": "HK-U06's crossed pins badge.",
+    "ref": ["fibre/fibercollage-moons-and-hearts.jpg"],
+    "note": "Attach HK-U06 (assets/ui/pause-icons.png) and match its badges exactly: the same cream linen, the same dashed red running stitch border, the same size and light.",
+    "prompt": STYLE + " One round appliqué badge, matching the attached set of pause menu badges "
+    "exactly (the same circle of cream linen, the same dashed red running stitch round its edge, the "
+    "same size, lighting and style), for a game's close button. On it, a bold X made of two short, "
+    "wide strips of deep red cotton cut with slightly frayed ends, crossed at the centre and sewn down "
+    "with visible white running stitches along each strip. The X fills about 60% of the badge and must "
+    "read plainly as close even at 40 px: thick strips, strong contrast against the cream. No pins, no "
+    "words, no letters. Centred, nothing else on the badge. " + ALPHA,
+})
+
 # Asked for after the first play: the pin beside a found control borrowed a
 # hand, a spool and a needle; these say plainly which kind of control it was.
 REQUESTS.append({
