@@ -14,7 +14,7 @@ Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from `sou
 
 ## Status
 
-72 requested, 39 delivered, 1 retired, 112 in total.
+85 requested, 39 delivered, 1 retired, 125 in total.
 
 ## Brand
 
@@ -742,6 +742,162 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 ## New minigames: the book's other birds
 
 Scenes, sprites and variants for the minigames of the book's 18 birds that are joining the field guide (their portraits are the IC-R requests above). Each bird's requests are kept in design/source/more/<bird>.json beside this script. The birds join the guide once these are delivered; until then their games draw stand-ins (try them with ?more).
+
+### IC-M01a · Milk Round: the street at dawn
+
+- **File:** `icecreamcone/game/assets/scenes/milkmidge.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Milk Round (the Milkbottle Midge): the background behind the scrolling houses, the milk float and the flying bottles.
+- **Stand-in until delivered:** A dawn sky, a line of distant rooftops, a green haze of back gardens, the pavement and the road, painted in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). A quiet suburban street at dawn, seen straight from the side, as one long even strip that could carry on to the left and right. Top 35%: a pale early-morning sky, lemon and dusty pink near the horizon, with a low sun just risen on the right (about 78% across, 25% down). From about 20% to 40% down: a soft, faded line of distant rooftops and chimney pots, far away and pale. From 40% to 74% down: a plain, quiet haze of back gardens and hedges in soft sage green, with no houses, gates or paths in it, because the game draws the near houses, their front gardens and their fences over this band. From 74% to 81% down: a plain pale grey pavement, empty. At 81% a stone kerb. From 81% to the bottom: an empty grey road with faint pale centre dashes at about 89% down. No milk float, no houses close up, no people, no animals, no cars.
+```
+
+### IC-M01b · Milk Round: house fronts
+
+- **File:** `icecreamcone/game/assets/sprites/milk-houses.png`
+- **Size:** 2048 x 1536, transparent
+- **Used for:** Milk Round: the houses the float passes, set back at different depths behind their gardens; the game picks one per house and scales it smaller the further back it stands.
+- **Stand-in until delivered:** Plain coloured boxes with a roof, two windows and a door, drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six small, different terraced and cottage house fronts seen straight on, each about 420 px wide and 520 px tall including its roof and chimney, each in a different soft colour (dusty pink, lemon, sage, mauve, ochre, cream brick), each with two windows and one front door in the middle of the bottom edge, and a plain flat stone doorstep across the very bottom in the centre, in front of the door. The house stops at the doorstep: no garden, path, fence, ground, people or bottles. Nothing written on the doors.
+```
+
+### IC-M01c · Milk Round: bottles, dogs and cards
+
+- **File:** `icecreamcone/game/assets/sprites/milk-props.png`
+- **Size:** 1536 x 1024, transparent
+- **Used for:** Milk Round: the pint bottle in flight and on the doorsteps, a smashed bottle, the sleeping and barking dogs, the card that says no milk today, and the doormat that marks a house waiting for its pint.
+- **Stand-in until delivered:** A bottle, a milk splash, a curled-up dog, a standing dog, a white card reading NO MILK and a yellow mat, drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six objects, each about 380 px at its longest. Top row, left to right: one full glass pint milk bottle standing upright, white milk inside, a silver foil cap; a small splash of spilt milk on the ground with a few broken glass shards and a crumpled silver cap, seen from the side and slightly above, flat and wide; a scruffy brown terrier curled up asleep with its eyes shut, facing left. Bottom row: the same terrier standing on all four legs, wide awake, barking with its mouth open and its ears up, facing left; a small white card hanging from a loop of string, with a simple picture on it of a milk bottle crossed out with a red line (a picture only, no letters or words); a small plain doormat, seen from the side and slightly above, flat and wide, in mustard yellow.
+```
+
+### IC-M01d · Milk Round: the milk float
+
+- **File:** `icecreamcone/game/assets/sprites/milk-float.png`
+- **Size:** 1536 x 1024, transparent
+- **Used for:** Milk Round: the electric milk float the Midge rides on, shown at the bottom left of the screen (the game turns it to drive right).
+- **Stand-in until delivered:** A flatbed with three crates of bottles and a little green cab, drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A small old-fashioned electric milk float seen exactly from the side, facing left: a small rounded cab with a windscreen at the left end, a long low open flatbed behind it carrying three wooden crates full of white milk bottles with silver caps, four small black wheels, painted sage green and cream. The crates at the back (right) end make a flat place to stand on. Filling about 90% of the frame width, centred, wheels near the bottom. No driver, no lettering, no number plate. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M01e · Milk Round: the Midge throwing
+
+- **File:** `icecreamcone/game/assets/sprites/midge-throw.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Milk Round: the Midge winds up while the action is held, then flings the bottle when it is let go (the game turns it to face right).
+- **Stand-in until delivered:** The portrait, leaning back and squashing a little as it winds up.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Milkbottle Midge (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/milkmidge.png) in two poses side by side on one sheet, each in its own half, both facing left: left, winding up, leaning back with one little wing raised behind its head holding a full pint milk bottle with a silver cap, ready to throw; right, the follow-through, leaning forward with the wing swept forward and empty, as if it has just lobbed the bottle up and away. Feet in the same place in both. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M02a · Glass Harp: the table by the window
+
+- **File:** `icecreamcone/game/assets/scenes/waterglassgoose.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Glass Harp (the Waterglass Goose): the background, a table where the glasses stand.
+- **Stand-in until delivered:** A warm wall, a window with a moon, a lamp's glow and a wooden table, painted in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). A cosy old-fashioned room in the evening, seen straight on. A plain warm cream wall with faded patterned wallpaper fills the top three quarters. On the right, a small window (about 74% to 92% across, 10% to 47% down) shows a dusky blue evening sky with a pale moon. On the left, the soft yellow glow of a lamp just out of the picture warms the wall. Across the whole width, a long polished wooden table: its far edge at about 74% down, its top surface a band from 74% to 81% down with a long white lace runner along it, and its plain front panel from 81% to the bottom. The table top is completely bare and the wall above it, between 15% and 78% across, is quiet and plain, because the game stands a row of glasses and the bird there. No glasses, cups, people or animals.
+```
+
+### IC-M02b · Glass Harp: a tumbler, whole and cracked
+
+- **File:** `icecreamcone/game/assets/sprites/harp-glass.png`
+- **Size:** 1024 x 1024, transparent
+- **Used for:** Glass Harp: each glass on the table; the game paints the coloured water inside it, at a different level for each note, and swaps to the cracked one after a wrong tap.
+- **Stand-in until delivered:** A clear glass outline with a rim ellipse and a glint, drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 2 x 1 grid of two tall, plain, straight-sided drinking tumblers seen from the side at eye level, very slightly wider at the rim than at the base, each about 260 px wide and 500 px tall: left, the empty glass whole; right, the same empty glass with a jagged crack running down from the rim. Drawn as clear glass: only the outline, the rim ellipse, the thick base and a few white highlights and soft grey reflections; the inside of the glass must be fully transparent (no tint, no fill, no water) so the game can paint water inside it. Same size and position in both cells.
+```
+
+### IC-M02c · Glass Harp: the Goose tapping and honking
+
+- **File:** `icecreamcone/game/assets/sprites/goose-tap.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Glass Harp: the Goose taps a glass with its beak as it plays the tune (and as you tap), and honks with pride when a tune is played back right.
+- **Stand-in until delivered:** The portrait, leaning towards the glass.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Waterglass Goose (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/waterglassgoose.png) in two poses side by side on one sheet, each in its own half, both facing left: left, its long neck bent forward and down so the tip of its beak reaches out to the left at about the height of its own glass body's rim, as if tapping a glass that stands just in front of it; right, its neck stretched straight up, beak open to the sky, honking happily. Body and feet in the same place in both. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M03a · Snip Snap: the park promenade
+
+- **File:** `icecreamcone/game/assets/scenes/niffy.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Snip Snap (the Jackknife Niffy): the background; people walk along the promenade at the bottom, the Niffy flies in the sky above, and the Park Keeper stands on the right.
+- **Stand-in until delivered:** Sky, a row of round trees, a pond, gravel, iron railings and the promenade, painted in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). A town park on a fresh spring morning, seen straight from the side. The top half is a wide, pale, open sky with a few soft clouds, kept quiet because the bird flies there. A bare-ish branch reaches in from the top-left corner (from the left edge at about 23% down, rising to about 17% down at 13% across), as a perch for a nest. From about 26% to 62% down, a row of round, gentle park trees on thin trunks along the back. From 58% to 66% a strip of a calm pond, then a band of pale gravel from 66% to 78%, and a low black iron railing along it at about 71% to 78% down. From 78% to the bottom: a wide, plain, empty paved promenade where people will walk, with faint paving lines. On the right (around 85% to 95% across) the gravel behind the railing is open and plain, where the park keeper stands. No people, birds, dogs, benches in front or signs.
+```
+
+### IC-M03b · Snip Snap: the passers-by
+
+- **File:** `icecreamcone/game/assets/sprites/niffy-walkers.png`
+- **Size:** 2048 x 1536, transparent
+- **Used for:** Snip Snap: the people strolling along the promenade; the game hangs the feathers, flowers, threads, tags and balloons on them and bobs them as they walk (turned round for those walking right).
+- **Stand-in until delivered:** Coated figures with a round head and a hat, drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six townsfolk out for a stroll, in Arnold Lobel's gentle, slightly old-fashioned 1970s picture-book manner, each a full figure walking mid-stride, facing left, about 560 px tall (the child about 380 px): a tall gentleman in a long grey coat and a bowler hat; a lady in a mauve coat and a wide round hat; a stout man in a mustard overcoat and a flat cap; an old lady with a handbag and a small felt hat; a young man in a brick-red jacket and a trilby; and (bottom right) a small child in a blue coat with one hand held up, empty, as if holding a balloon string. Plain clothes with nothing pinned or hanging on them: no feathers, flowers, badges, tags or balloons (the game adds those). Kind, calm faces in profile.
+```
+
+### IC-M03c · Snip Snap: things to snip, and the nest
+
+- **File:** `icecreamcone/game/assets/sprites/niffy-props.png`
+- **Size:** 1536 x 1024, transparent
+- **Used for:** Snip Snap: what the people carry (and the Niffy snips), a child's balloon, and the Niffy's nest where its snippings go.
+- **Stand-in until delivered:** A pink feather, a pink flower, a yellow thread, a white tag, a red balloon and a brown nest, drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six objects. Top row, left to right: a long curling magenta hat feather (about 300 px long); a small pink buttonhole flower with a short stem; a loose yellow thread dangling in a wavy line with a little loop at the end. Bottom row: a small white paper price tag on a loop of thin string, blank (no writing or numbers); a round red toy balloon with a little knot at the bottom and no string; a small round bird's nest of twigs, seen from the side, holding a few bright snippings (a feather, a flower, a thread).
+```
+
+### IC-M03d · Snip Snap: the Park Keeper
+
+- **File:** `icecreamcone/game/assets/sprites/park-keeper.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Snip Snap: the Park Keeper, who watches the pond with his back turned, then glances over his shoulder (the warning), then turns to look up at the sky.
+- **Stand-in until delivered:** A stout figure in a green coat and peaked cap, drawn in code with a big eye above him while he looks.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 1 grid of the same stout, kindly park keeper in a long bottle-green coat with brass buttons and a peaked cap, a whistle on a chain, about 900 px tall, standing in the same place in each cell: left, seen from behind with his back to us and his hands behind his back, looking away at a pond; middle, still with his back to us but his head turned over his shoulder, one eyebrow raised, suspicious; right, facing us, looking up at the sky, eyebrows raised, whistle in his mouth, one finger pointing up. A storybook grown-up, stern but not frightening.
+```
+
+### IC-M03e · Snip Snap: the Niffy swooping
+
+- **File:** `icecreamcone/game/assets/sprites/niffy-dive.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Snip Snap: the Niffy on the way down with its blade open, and on the way back up with it snapped shut (the game tilts it nose-down into the swoop).
+- **Stand-in until delivered:** The portrait, tilted nose-down.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Jackknife Niffy (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/niffy.png) in two poses side by side on one sheet, each in its own half, both flying level and facing left, legs tucked back: left, its little wings swept back and its knife blade (its beak) open wide, pointing ahead; right, the blade snapped shut like a closed pocketknife, wings beating up. Same size in both. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
 
 ### IC-M04a · Snip the String: the fairground fence
 

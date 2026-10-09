@@ -30,6 +30,9 @@ const BUILT = [
   'keycrane',
   'garbagecanary',
   'steampressersparrow',
+  'milkmidge',
+  'waterglassgoose',
+  'niffy',
 ];
 
 // Their field-guide entries, in MORE_IDS order; `also` adds birds being

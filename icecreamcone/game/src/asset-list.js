@@ -218,6 +218,58 @@ export const ASSETS = {
     "file": "assets/pocket/rollingpinrail.png",
     "delivered": false
   },
+  "scene.milkmidge": {
+    "file": "assets/scenes/milkmidge.webp",
+    "delivered": false
+  },
+  "sprites.milkHouses": {
+    "file": "assets/sprites/milk-houses.png",
+    "delivered": false
+  },
+  "sprites.milkProps": {
+    "file": "assets/sprites/milk-props.png",
+    "delivered": false
+  },
+  "sprites.milkFloat": {
+    "file": "assets/sprites/milk-float.png",
+    "delivered": false
+  },
+  "sprites.midgeThrow": {
+    "file": "assets/sprites/midge-throw.png",
+    "delivered": false
+  },
+  "scene.waterglassgoose": {
+    "file": "assets/scenes/waterglassgoose.webp",
+    "delivered": false
+  },
+  "sprites.harpGlass": {
+    "file": "assets/sprites/harp-glass.png",
+    "delivered": false
+  },
+  "sprites.gooseTap": {
+    "file": "assets/sprites/goose-tap.png",
+    "delivered": false
+  },
+  "scene.niffy": {
+    "file": "assets/scenes/niffy.webp",
+    "delivered": false
+  },
+  "sprites.niffyWalkers": {
+    "file": "assets/sprites/niffy-walkers.png",
+    "delivered": false
+  },
+  "sprites.niffyProps": {
+    "file": "assets/sprites/niffy-props.png",
+    "delivered": false
+  },
+  "sprites.parkKeeper": {
+    "file": "assets/sprites/park-keeper.png",
+    "delivered": false
+  },
+  "sprites.niffyDive": {
+    "file": "assets/sprites/niffy-dive.png",
+    "delivered": false
+  },
   "scene.snippit": {
     "file": "assets/scenes/snippit.webp",
     "delivered": false
