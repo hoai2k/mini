@@ -21,6 +21,8 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 - [`design/design.md`](design/design.md): the flow, the guide, the sticker
   book, the controls and the first ten minigames; the other 18 are in
   [`design/more/`](design/more/).
+- [`design/music.md`](design/music.md): the music, which track plays where, and
+  tracks that could be added later.
 - [`design/image-requests.md`](design/image-requests.md): the open image requests
   (finished ones move to [`design/image-requests-history.md`](design/image-requests-history.md)),
   generated from [`design/source/build_requests.py`](design/source/build_requests.py),
@@ -53,7 +55,7 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 | `game/src/games/*.js` | One minigame per bird; `games/index.js` documents the contract they share |
 | `game/src/draw.js` | Ink-and-wash drawing: the stand-in birds, how each delivered portrait is placed, and what is drawn over it (lamps, growth, blinks) |
 | `game/src/input.js` | Controllers, keyboard, mouse and touch, as one small set of actions |
-| `game/src/audio.js` | Synthesised sound effects and music-box tunes |
+| `game/src/audio.js` | Synthesised sound effects; the recorded music and celebration fanfare (`game/assets/music/`, `game/assets/sfx/`), with music-box tunes standing in |
 | `game/src/store.js` | Saved settings, best scores and the sticker book (`icecreamcone.stickers.v1`) |
 | `game/assets/*/gathering.atlas.json` | Where each bird is in the two gathering paintings (the book's 2:1 one and the finale's 16:9 one) |
 

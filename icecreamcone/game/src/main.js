@@ -174,22 +174,22 @@ function show(screen) {
     S.titleUtil = false;
     $('#title-hint').hidden = false;
     focusFirst();
-    audio.playMusic('menu');
+    audio.playMusic('title');
   } else if (screen === 'guide') {
     buildGuide();
-    audio.playMusic('menu');
+    audio.playMusic('guide');
   } else if (screen === 'page') {
     fillPage();
-    audio.playMusic(BIRDS[S.bird].tune === 'night' ? 'night' : 'menu');
+    audio.playMusic('guide');
   } else if (screen === 'celebrate') {
-    audio.playMusic('menu');
+    // The game's music carries on under the fanfare.
     document.activeElement?.blur?.();
   } else if (screen === 'stickers') {
     openStickerBook();
-    audio.playMusic('menu');
+    audio.playMusic('guide');
   } else if (screen === 'gathering') {
     $('#gathering-count').textContent = `Every one of the ${BIRDS.length} rare birds, spotted.`;
-    audio.playMusic('menu');
+    audio.playMusic('carousel');
     focusFirst();
   }
 }
@@ -604,6 +604,19 @@ function controlLines(b) {
   return lines[b.id] || [];
 }
 
+// Each game's music, by its feel (see design/music.md). Games that make their
+// own music (the gramophone, the glass harp, the radio) play none under it.
+const GAME_MUSIC = {
+  coot: 'carousel', keycrane: 'carousel', snippit: 'carousel',
+  shuttercluck: 'bouncy', bobolinks: 'bouncy', peeper: 'bouncy', milkmidge: 'bouncy',
+  niffy: 'bouncy', buttonbeaks: 'bouncy', wetweatherwren: 'bouncy', glovedove: 'bouncy',
+  crow: 'busy', broomwhisk: 'busy', garbagecanary: 'busy', steampressersparrow: 'busy',
+  plugsocketswift: 'busy', drippet: 'busy',
+  cupadee: 'gentle', plume: 'gentle', ladlelark: 'gentle', piffle: 'gentle',
+  dodo: 'clockwork', titthrush: 'clockwork', saltshakershrike: 'clockwork', sawbird: 'clockwork',
+  gullfinch: 'none', waterglassgoose: 'none', radiobird: 'none',
+};
+
 async function startBird(i) {
   S.bird = i;
   const b = BIRDS[i];
@@ -618,7 +631,7 @@ async function startBird(i) {
   S.factory = factory;
   newGame();
   begin();
-  audio.playMusic(b.tune || 'play');
+  audio.playMusic(GAME_MUSIC[b.id] || 'bouncy');
 }
 
 // The birds Shuttercluck photographs, decided as each round starts: our own
@@ -768,8 +781,8 @@ function celebrateHint() {
 
 // Sounds at their moments, unless a press jumped well past them.
 const CELE_SOUNDS = [
-  [0.05, () => audio.sfx('medal', { level: 2 })],
-  [0.4, () => audio.sfx('bloom')],
+  [0.05, () => audio.playSting() || audio.sfx('medal', { level: 2 })],
+  [0.4, () => audio.stingPlaying() || audio.sfx('bloom')],
   [1.6, () => audio.sfx('page')],
   [3.5, () => { audio.sfx('plop'); audio.sfx('catch', { pitch: 7 }); vibrate(60); }],
   [3.55, () => audio.sfx('right')],
