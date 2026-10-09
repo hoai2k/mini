@@ -89,3 +89,13 @@ knots, notch, tag and pops.
 ## Second audit (2026-10-09)
 
 Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.
+
+## Cutting toward the tip (2026-10-09)
+
+The blades now cut out toward their tip rather than at the hinge: the aim
+point is 104 px left of the eye (the painted point is 112 to 132 px out), and
+a knot anywhere along the open blades, from 34 px beyond the tip back to the
+hinge, can be cut. When a bunch of knots sit between the blades, the one
+nearest the tip is the one cut. The dotted line and the pink notch on the rail
+mark the tip, and with the mouse or a finger it's the tip that follows the
+pointer.

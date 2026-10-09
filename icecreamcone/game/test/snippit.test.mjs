@@ -29,7 +29,7 @@ function snipper(skill = 1, seed = 1) {
       const others = game.balloons.filter((b) => b !== want);
       target = right || !others.length ? want : others[Math.floor(rnd() * others.length)];
     }
-    const d = target.px - game.x;
+    const d = target.px - game.cutX();
     if (Math.abs(d) < 14 && game.jam <= 0 && !pressed) {
       pressed = true;
       return { action: true };
@@ -68,7 +68,7 @@ test('snippit: snipping the asked-for string scores and lets it go', () => {
   const game = create(env(2));
   game.update(1 / 60, blank());
   const want = game.want;
-  game.x = want.px;
+  game.x = want.px + game.tip;
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   assert.equal(game.right, 1);
   assert.equal(game.score, 15, 'right and quick');
@@ -83,14 +83,14 @@ test('snippit: a wrong string costs points and jams the blades', () => {
   game.score = 30;
   const other = game.balloons.find((b) => b !== game.want);
   const want = game.want;
-  game.x = other.px;
+  game.x = other.px + game.tip;
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   assert.equal(game.wrong, 1);
   assert.equal(game.score, 25);
   assert.ok(game.jam > 0);
   assert.equal(game.want, want, 'the same one is still wanted');
   // jammed: a second snip does nothing
-  game.x = want.px;
+  game.x = want.px + game.tip;
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   assert.equal(game.right, 0);
 });
@@ -114,4 +114,24 @@ test('snippit: a snip away from every knot does nothing', () => {
   game.x = 250; // left of every knot (the first is at 400)
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   assert.equal(game.right + game.wrong, 0);
+});
+
+test('snippit: the blades cut toward the tip, and the knot nearest the tip is the one cut', () => {
+  const game = create(env(3));
+  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
+  const knots = [...game.balloons].sort((a, b) => a.px - b.px);
+  const [a, b2] = knots;
+  // the tip just past the first knot catches it, though the hinge is far off
+  // (the blades run left from the hinge to the tip)
+  assert.equal(game.under(a.px + game.tip + 20), a, 'just beyond the tip');
+  assert.equal(game.under(a.px + game.tip - 60), a, 'further back along the blades');
+  assert.equal(game.under(a.px - 10), null, 'behind the hinge');
+  assert.equal(game.under(a.px + game.tip + 60), null, 'well beyond the tip');
+  // with two knots between the blades, the one nearer the tip is cut
+  a.px = 600;
+  b2.px = 650;
+  const at = (x) => game.under(x + game.tip);
+  assert.equal(at(610), a, 'the left knot is nearer the tip');
+  assert.equal(at(640), b2, 'the right knot is nearer the tip');
+  assert.equal(at(560), a, 'only the left one is reached, beyond the tip');
 });

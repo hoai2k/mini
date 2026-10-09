@@ -28,7 +28,14 @@ const GROUND = 894; // the Snippit's feet
 const SKY_Y = 300; // the middle of the bunch
 const X0 = 400; // the outermost knots
 const X1 = 1200;
-const REACH = 72; // how far from a knot the blades still find it
+// The blades cut out toward their tip, which points left of the hinge (the
+// Snippit always faces left): measured on the poses, the point is 112 to 132
+// px left of the eye. A knot anywhere along the open blades, from just past
+// the tip back to the hinge, can be cut; with several there, the one nearest
+// the tip is.
+const TIP = 104; // the aim point, a little inside the very point
+const PAST_TIP = 34; // how far beyond it a knot is still caught
+const TO_HINGE = 96; // and back toward the hinge
 // The stand-in's hinge (its eye) is at (-30, -220) from its feet: the snip point.
 // The snip point is the hinge (its eye), held just above the knots: the bird
 // is sized so its eye is there. In the painting the eye is 322 units above
@@ -200,10 +207,18 @@ export default function create(env) {
     ];
   };
 
-  // The tied balloon whose knot is under the blades, if any.
+  // Where the blades aim, toward the tip, for a hinge at x.
+  g.tip = TIP;
+  g.cutX = (x = g.x) => x - TIP;
+  // The tied balloon whose knot is between the blades, if any: the nearest to
+  // the tip.
   g.under = (x = g.x) => {
+    const at = g.cutX(x);
     let best = null;
-    for (const b of g.balloons) if (b.grow > 0.5 && Math.abs(b.px - x) < REACH && (!best || Math.abs(b.px - x) < Math.abs(best.px - x))) best = b;
+    for (const b of g.balloons) {
+      if (b.grow <= 0.5 || b.px < at - PAST_TIP || b.px > at + TO_HINGE) continue;
+      if (!best || Math.abs(b.px - at) < Math.abs(best.px - at)) best = b;
+    }
     return best;
   };
 
@@ -257,7 +272,8 @@ export default function create(env) {
 
     // Walk along the fence: follow the pointer, or run with the stick.
     const was = g.x;
-    if (input.pointer.active) g.x = approach(g.x, input.pointer.x, 12, dt);
+    // (With the pointer it's the blades' tip that follows the finger.)
+    if (input.pointer.active) g.x = approach(g.x, input.pointer.x + TIP, 12, dt);
     else {
       g.vx = approach(g.vx, input.x * 1000, 14, dt);
       g.x += g.vx * dt;
@@ -267,7 +283,7 @@ export default function create(env) {
     if (Math.abs(g.x - was) > 0.5) g.face = g.x > was ? 1 : -1;
 
     if (input.actionPressed && g.jam <= 0) {
-      if (input.pointer.active) g.x = clamp(input.pointer.x, 240, W - 240);
+      if (input.pointer.active) g.x = clamp(input.pointer.x + TIP, 240, W - 240);
       snip(g.x);
     }
 
@@ -571,17 +587,18 @@ export default function create(env) {
     }
 
     drawTag(c, t);
-    // A dotted mark from the blades to the rail: where a snip will land.
+    // A dotted mark from the blades' tip to the rail: where a snip will land.
+    const cx = g.cutX();
     c.save();
     c.setLineDash([4, 8]);
     c.beginPath();
-    c.moveTo(g.x, PEG_Y - 34);
-    c.lineTo(g.x, PEG_Y + 30);
+    c.moveTo(cx, PEG_Y - 34);
+    c.lineTo(cx, PEG_Y + 30);
     ink(c, 2, under ? PAL.magenta : 'rgba(59,43,32,0.4)');
     c.restore();
     drawSnippit(c, t);
-    // the snip point: a little pink notch on the rail, pointing up at the hinge
-    poly(c, [[g.x - 11, PEG_Y + 30], [g.x + 11, PEG_Y + 30], [g.x, PEG_Y + 12]], 1, 0.4);
+    // the snip point: a little pink notch on the rail, under the blades' tip
+    poly(c, [[cx - 11, PEG_Y + 30], [cx + 11, PEG_Y + 30], [cx, PEG_Y + 12]], 1, 0.4);
     wash(c, under ? PAL.magenta : PAL.strawberry, 0.95);
     ink(c, 1.6);
     if (g.jam > 0) label(c, 'Jammed!', g.x, HINGE_Y - 110, { size: 32, color: PAL.brick, weight: 800 });
