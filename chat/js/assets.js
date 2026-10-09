@@ -4,6 +4,7 @@
 //   img('puppy')      // image or positioned template canvas once loaded, else null
 //   icon('fx-puppy')  // same, for icons
 //   assetUrl('logo')  // URL of a delivered asset, else null
+//   iconUrl('fx', 'puppy')  // the newest delivered icon: second set, then first
 
 import { ASSET_LIST } from './asset-list.js';
 
@@ -14,6 +15,12 @@ export function assetUrl(name) {
   const entry = ASSET_LIST[name];
   if (!entry || entry.status !== 'delivered') return null;
   return new URL(entry.file, base).href;
+}
+
+// Effect and game icons come in two sets; the second (teen) set replaces the
+// first one icon at a time as it is delivered.
+export function iconUrl(kind, id) {
+  return assetUrl(`${kind}2-${id}`) ?? assetUrl(`${kind}-${id}`);
 }
 
 export function img(name) {

@@ -73,7 +73,8 @@ cd icecreamcone/game
 python3 -m http.server 8125        # then open http://localhost:8125/
                                    # ?debug opens every page (and every sticker and picture in
                                    # the sticker book), and every round that reaches its score
-                                   # plays the sticker celebration (?all: pages only)
+                                   # plays the sticker celebration (?all: pages only); in ?debug
+                                   # scores, stickers and resets last only for the tab's session
 node --test test/*.test.mjs        # birds, every minigame idle and mashed, a bot per game,
                                    # the sticker book's layout and rules
 node scripts/browser-check.mjs     # in Chromium: title → guide → page → play → pause → result → guide,

@@ -12,7 +12,7 @@ import { loadEffects } from '../effects/index.js';
 import { loadGames } from '../games/index.js';
 import { load, save, randomId } from './store.js';
 import { sfx, unlockAudio, setVolume, setSfxMuted, sfxMuted } from './audio.js';
-import { assetUrl } from './assets.js';
+import { assetUrl, iconUrl } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
 import { createVotes, voteButtons } from './votes.js';
@@ -25,6 +25,7 @@ const settings = {
   color: COLORS[Math.floor(Math.random() * COLORS.length)],
   volume: 0.6,
   reduceMotion: false,
+  autoLight: true,
   ...load('settings', {}),
 };
 const saveSettings = () => save('settings', settings);
@@ -218,6 +219,7 @@ async function start() {
   document.body.classList.add('in-call');
 
   studio = createStudio();
+  studio.setAutoLight(settings.autoLight !== false);
   studio.setAvatar(me.name, me.color);
   addSelfTile();
   layout();
@@ -846,7 +848,34 @@ function toggleTray(which, force) {
   } else if (next === 'games') {
     $('#tray-games').querySelector('button')?.focus({ preventScroll: true });
   }
+  // Picking from the row means the row is showing; closing a strip while the
+  // row is away leaves nothing at level 1.
+  if (next && TABS.includes(next) && next !== prev) setUiLevel(2);
+  else setUiLevel(uiLevel);
   renderInfo();
+}
+
+// How much of the bottom UI shows, stepped by dragging it down and up:
+//   2  the bottom row (and the open strip above it)
+//   1  just the strip, sitting at the bottom (only while a strip is open)
+//   0  nothing but a small grip to pull it all back up
+// Dragging an open strip up past level 2 turns it into a grid.
+let uiLevel = 2;
+const stripOpen = () => openTab === 'favs' || KINDS.includes(openTab);
+const stripKey = () => (openTab === 'favs' ? 'favs' : 'effects');
+function setUiLevel(n) {
+  uiLevel = n === 1 && !stripOpen() ? 0 : Math.max(0, Math.min(2, n));
+  $('#call').dataset.ui = String(uiLevel);
+  $('#ui-grip').hidden = uiLevel !== 0;
+}
+function lowerUi() {
+  if (uiLevel === 2) setUiLevel(stripOpen() ? 1 : 0);
+  else setUiLevel(0);
+}
+function raiseUi() {
+  if (uiLevel === 0) setUiLevel(stripOpen() ? 1 : 2);
+  else if (uiLevel === 1) setUiLevel(2);
+  else if (stripOpen()) setGrid(stripKey(), true);
 }
 
 // A strip that can be dragged up into a grid (and pulled back down).
@@ -871,19 +900,26 @@ const effectGrid = () => grids.effects.on;
 function initSheets() {
   for (const key of Object.keys(grids)) {
     const g = grids[key];
+    // Up: bring back the row, then open the grid. Down: close the grid,
+    // then tuck the row away, then the strip.
     makeSheet($(g.tray), {
       onDismiss: () => toggleTray(null),
       scroller: g.list,
-      onExpand: () => setGrid(key, true),
+      onExpand: () => (uiLevel < 2 ? raiseUi() : setGrid(key, true)),
       // A short favourites list has nothing more to show in a grid.
-      canExpand: () => !g.on && (key !== 'favs' || $(g.list).scrollWidth > $(g.list).clientWidth + 8),
-      collapsible: () => g.on,
-      onCollapse: () => setGrid(key, false),
+      canExpand: () => !g.on && (uiLevel < 2 || key !== 'favs' || $(g.list).scrollWidth > $(g.list).clientWidth + 8),
+      collapsible: () => true,
+      onCollapse: () => (g.on ? setGrid(key, false) : lowerUi()),
     });
     $(`${g.tray} .sheet-grip`).addEventListener('click', () => {
       if (g.on || key !== 'favs' || $(g.list).scrollWidth > $(g.list).clientWidth + 8) setGrid(key, !g.on);
     });
   }
+  // The row itself: drag it down to tuck it away (with the strip above it
+  // following), up to open the grid; the grip brings everything back.
+  makeSheet($('#controls'), { collapsible: () => true, onCollapse: lowerUi, onExpand: raiseUi });
+  makeSheet($('#ui-grip'), { onExpand: raiseUi });
+  $('#ui-grip').addEventListener('click', raiseUi);
   makeSheet($('#tray-games'), { onDismiss: () => toggleTray(null), scroller: '.sheet-body' });
   makeSheet($('#chat-box'), { onDismiss: () => toggleTray(null), scroller: '.chat-log' });
 }
@@ -1043,7 +1079,7 @@ async function initEffects() {
   const list = $('#effect-list');
   const none = { id: null, name: 'No effect', emoji: '🚫' };
   for (const fx of [none, ...effects]) {
-    const b = effectButton({ ...fx, icon: fx.id && assetUrl(`fx-${fx.id}`) }, () => {
+    const b = effectButton({ ...fx, icon: fx.id && iconUrl('fx', fx.id) }, () => {
       if (effectGrid()) selectEffect(effects.find(e => e.id === b.dataset.fx) || null);
       else centerEffect(b.dataset.fx, true);
     });
@@ -1256,7 +1292,7 @@ function renderFavorites() {
     list.textContent = '';
     for (const it of items) {
       const src = it.fx || it.game;
-      const b = effectButton({ name: src.name, emoji: src.emoji, icon: assetUrl(it.fx ? `fx-${src.id}` : `game-${src.id}`) }, () => {
+      const b = effectButton({ name: src.name, emoji: src.emoji, icon: iconUrl(it.fx ? 'fx' : 'game', src.id) }, () => {
         if (it.fx) selectEffect(studio.effect?.id === it.fx.id ? null : it.fx);
         else {
           sfx('click');
@@ -1341,10 +1377,10 @@ async function initGames() {
     b.className = 'game-card';
     const ico = document.createElement('span');
     ico.className = 'ico';
-    const iconUrl = assetUrl(`game-${g.id}`);
-    if (iconUrl) {
+    const gameIcon = iconUrl('game', g.id);
+    if (gameIcon) {
       const im = document.createElement('img');
-      im.src = iconUrl;
+      im.src = gameIcon;
       im.alt = '';
       ico.append(im);
     } else {
@@ -1539,6 +1575,12 @@ function initSettings() {
   const name = $('#set-name');
   const vol = $('#set-volume');
   const motion = $('#set-motion');
+  const light = $('#set-light');
+  light.addEventListener('change', () => {
+    settings.autoLight = light.checked;
+    studio?.setAutoLight(light.checked);
+    saveSettings();
+  });
   $('#settings').addEventListener('close', () => {
     const v = name.value.trim().slice(0, 20);
     if (v && v !== settings.name) {
@@ -1577,6 +1619,7 @@ function initSettings() {
     $('#set-name-text').textContent = settings.name || 'Pick a name';
     vol.value = settings.volume;
     motion.checked = !!settings.reduceMotion;
+    light.checked = settings.autoLight !== false;
     colorPicker($('#set-colors'), c => {
       colorPicker($('#color-picker'));
       if (started) {
@@ -1658,5 +1701,7 @@ window.__chat = {
   me,
   selectEffect: id => selectEffect(effects.find(e => e.id === id) || null),
   toggleTray: (k, force) => toggleTray(k, force),
+  get uiLevel() { return uiLevel; },
+  setUiLevel: n => setUiLevel(n),
   sfxMuted,
 };

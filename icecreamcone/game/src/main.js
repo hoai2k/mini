@@ -3,7 +3,7 @@
 
 import { createInput, BTN } from './input.js';
 import * as audio from './audio.js';
-import { loadSettings, saveSettings, loadProgress, recordScore, resetProgress, loadStickers, saveStickers, resetStickers } from './store.js';
+import { keepForSessionOnly, loadSettings, saveSettings, loadProgress, recordScore, resetProgress, loadStickers, saveStickers, resetStickers } from './store.js';
 import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
@@ -21,6 +21,7 @@ const FIXED_DT = Number(params.get('dt')) || 0; // for automated checks
 // that reaches its score plays the whole celebration, as if for the first time.
 const DEBUG = params.has('debug');
 const ALL_OPEN = DEBUG || params.has('all');
+if (DEBUG) keepForSessionOnly();
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#stage');

@@ -52,9 +52,9 @@ uniform float u_browUp;
 uniform float u_yaw;
 uniform float u_pitch;
 uniform float u_gain;
-// The camera image at canvas position uv (mirrored like a selfie). For
-// effects marked brighten, a dim image is lifted (u_gain > 1) with a curve
-// that leaves white white.
+// The camera image at canvas position uv (mirrored like a selfie). A dim
+// image is lifted (u_gain > 1, auto light) with a curve that leaves white
+// white.
 vec4 cam(vec2 uv) {
   vec4 c = texture2D(u_tex, vec2(1.0 - uv.x, uv.y));
   c.rgb = c.rgb * u_gain / (1.0 + (u_gain - 1.0) * c.rgb);
@@ -90,6 +90,9 @@ vec2 bulge(vec2 px, vec2 c, float r, float amount) {
   return c + d * (1.0 - amount * k * k);
 }
 `;
+
+// The plain camera through the shader, so auto light can lift it.
+const PASS = { id: '__pass', shader: 'vec4 effect(vec2 uv) { return cam(uv); }' };
 
 const FACE_UNIFORMS = ['u_eyeL', 'u_eyeR', 'u_nose', 'u_mouth', 'u_center'];
 
@@ -178,20 +181,49 @@ export function createStudio() {
   lumaCanvas.width = 24;
   lumaCanvas.height = 18;
   const lumaCtx = lumaCanvas.getContext('2d', { willReadFrequently: true });
+  // Auto light (on by default, like most video-chat apps): the brightness of
+  // my face (or the middle of the picture before a face is found) sets how
+  // much a dim picture is lifted, up to 2.8 times; effects marked brighten
+  // aim a little higher to match their bright scenes. Never darkens.
+  let autoLight = true;
   function measureGain() {
-    if (!effect?.brighten || !camLive() || video.readyState < 2 || frameNo - gainFrame < 8) return;
+    const want = autoLight || effect?.brighten;
+    if (!want || !camLive() || video.readyState < 2) {
+      gain = 1;
+      return;
+    }
+    if (frameNo - gainFrame < 8) return;
     gainFrame = frameNo;
     try {
       lumaCtx.drawImage(video, 0, 0, 24, 18);
-      const d = lumaCtx.getImageData(5, 3, 14, 12).data;
+      // The face box in the (unmirrored) 24 x 18 copy, or the middle.
+      let x0 = 5, y0 = 3, x1 = 19, y1 = 15;
+      if (face?.box && canvas.width) {
+        const cx = (1 - face.center.x / canvas.width) * 24, cy = (face.center.y / canvas.height) * 18;
+        const hw = Math.max(1, (face.box.w / canvas.width) * 12 * 0.8), hh = Math.max(1, (face.box.h / canvas.height) * 9 * 0.8);
+        x0 = Math.max(0, Math.floor(cx - hw)); x1 = Math.min(24, Math.ceil(cx + hw));
+        y0 = Math.max(0, Math.floor(cy - hh)); y1 = Math.min(18, Math.ceil(cy + hh));
+      }
+      const d = lumaCtx.getImageData(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0)).data;
       let sum = 0;
       for (let i = 0; i < d.length; i += 4) sum += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
       const mean = sum / (d.length / 4) / 255;
-      // Solve the curve for the gain that takes the mean to 0.45.
-      const target = 0.45;
-      const want = mean > 0.01 ? (target * (1 - mean)) / (mean * (1 - target)) : 2.4;
-      gain += (Math.max(1, Math.min(2.4, want)) - gain) * 0.3;
+      // Solve the curve for the gain that takes the face's mean to the target.
+      const target = effect?.brighten ? 0.47 : 0.42;
+      const max = effect?.brighten ? 3 : 2.8;
+      const g = mean > 0.01 ? (target * (1 - mean)) / (mean * (1 - target)) : max;
+      gain += (Math.max(1, Math.min(max, g)) - gain) * 0.25;
     } catch {}
+  }
+  // A camera image drawn without a shader gets the same lift: screening the
+  // image over itself brightens darks most, close to the shader's curve.
+  function lift(c, w, h) {
+    if (gain <= 1.03) return;
+    c.save();
+    c.globalCompositeOperation = 'screen';
+    c.globalAlpha = Math.min(1, gain - 1);
+    c.drawImage(c.canvas, 0, 0, w, h);
+    c.restore();
   }
 
   function on(type, cb) {
@@ -412,7 +444,7 @@ export function createStudio() {
 
     uniform(prog, 'u_res', [w, h]);
     uniform(prog, 'u_time', frame.t);
-    uniform(prog, 'u_gain', fx.brighten ? gain : 1);
+    uniform(prog, 'u_gain', gain);
     uniform(prog, 'u_hasMask', mask && fx.needs?.segmentation ? 1 : 0);
     uniform(prog, 'u_yaw', frame.view?.yaw ?? 0);
     uniform(prog, 'u_pitch', frame.view?.pitch ?? 0);
@@ -521,6 +553,7 @@ export function createStudio() {
       camCtx.scale(-1, 1);
       camCtx.drawImage(video, 0, 0, w, h);
       camCtx.restore();
+      lift(camCtx, w, h);
     } else {
       camCtx.drawImage(canvas, 0, 0, w, h);
     }
@@ -652,13 +685,14 @@ export function createStudio() {
     const showCam = camLive() || (fakeFace && !away);
     if (!showCam) {
       drawAvatar(w, h);
-    } else if (!(effect?.shader && camLive() && gl && runShader(effect, fr))) {
+    } else if (!(camLive() && gl && (effect?.shader || gain > 1.03) && runShader(effect?.shader ? effect : PASS, fr))) {
       if (camLive()) {
         ctx.save();
         ctx.translate(w, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(video, 0, 0, w, h);
         ctx.restore();
+        lift(ctx, w, h);
       } else {
         drawAvatar(w, h);
       }
@@ -695,6 +729,11 @@ export function createStudio() {
     get face() { return face; },
     get faceStatus() { return faceStatus; },
     get perf() { return perf; },
+    get gain() { return gain; },
+    // Auto light on or off (Settings).
+    setAutoLight(on) {
+      autoLight = !!on;
+    },
     get camOn() { return camOn; },
     get micOn() { return micOn; },
     get hasCamera() { return !!camStream; },

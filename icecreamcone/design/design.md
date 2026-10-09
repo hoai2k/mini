@@ -88,7 +88,10 @@ says "New World Record!" and nothing more specific.
    other), the pile's order, the picture and the spread are saved
    (`icecreamcone.stickers.v1`) and kept from visit to visit; forgetting the
    scores in Settings empties the book too. In ?debug and ?all every sticker
-   and picture is there.
+   and picture is there. In ?debug nothing a round or the book changes is
+   saved: scores, sticker places, the picture and even forgetting the scores
+   last only for the tab's session (sessionStorage), starting from the saved
+   game and leaving it untouched; settings are still saved.
 7. **The gathering.** When every bird has been spotted, a final page shows them all
    together, like the book's endpapers. Any bird can be replayed at any time.
 
