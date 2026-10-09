@@ -1,0 +1,42 @@
+[
+  {
+    "id": "IC-M10a",
+    "name": "Wetweather Wren scene",
+    "key": "scene.wetweatherwren",
+    "file": "assets/scenes/wetweatherwren.webp",
+    "size": "1920 x 1080, opaque",
+    "used": "Behind Puddle Hop (the Wetweather Wren): the rainy street the Wren walks along while the game scrolls puddles, market awnings and little birds past it.",
+    "standin": "A row of tall narrow houses and a grey pavement painted in code, with moving paving joints.",
+    "prompt": "{STYLE} {SCENE}A quiet old town street on a soft grey rainy day, seen straight from the side like a stage. Across the street, filling the middle of the picture from about 20% to 67% of the height, a row of tall, narrow, gabled houses in faded pink, sage, ochre and mauve, with lit yellow windows and a few chimneys, their fronts flat to the viewer; above them a low pale grey sky with soft wash clouds. Below the houses, a strip of wet road (67% to 76% of the height), a kerb, and then the near pavement filling the bottom quarter: plain, even, wet grey flagstones with a faint sheen, the same all the way from left to right. The near pavement and the air above it are where the game plays (the Wren walks along the pavement at about 84% of the height and hops up to the middle of the picture, and the game draws the puddles, striped market awnings and little birds on top, scrolling them past), so keep it completely empty: no puddles, lamp posts, awnings, benches, people or birds on the near side of the street, and nothing tall in front of the houses. Do not paint falling rain streaks (the game draws its own rain); a damp, dripping, misty mood is enough. The picture stays still while the street things scroll, so keep it evenly busy from left to right with no strong feature in one place."
+  },
+  {
+    "id": "IC-M10b",
+    "name": "Wetweather Wren, umbrella open",
+    "key": "sprites.wrenPoses",
+    "file": "assets/sprites/wren-poses.png",
+    "size": "3072 x 1024, transparent",
+    "used": "Puddle Hop: the Wren with its umbrella popped open, floating over a puddle and walking with it open, and blown inside out (after snagging an awning or snapping it open and shut too often). The game flips it to face the way it walks.",
+    "standin": "A black canopy drawn in code above the furled stand-in.",
+    "prompt": "{STYLE} {VARIANT} The Wetweather Wren (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/wetweatherwren.png ), the furled black umbrella with a wren's head, in three poses in a 3 x 1 row, one per 1024 x 1024 cell, all at the same scale, each facing left with its feet at the bottom of its cell and the top of the canopy near the top, about 85% of the cell high: 1) umbrella popped wide open as a round black canopy with its ribs and scalloped edge, the shaft upright, the wren's head with its round eye and long beak peeking out at the very top of the canopy as the tip, the crook handle hanging below as a tail, the thin legs dangling and toes pointed, floating; 2) the same, open, but standing on the ground mid-stride, one leg forward; 3) the canopy blown inside out into a cup shape, ribs bent and showing, a rib or two sprung loose, the wren's eye wide and legs splayed in surprise. Same black cloth, same wren's head and colours as the portrait. {ALPHA}"
+  },
+  {
+    "id": "IC-M10c",
+    "name": "Puddles and market awnings",
+    "key": "sprites.rainStreet",
+    "file": "assets/sprites/rain-street.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Puddle Hop: the puddles the Wren hops (the game stretches them to each puddle's width) and the striped market-stall awnings it must walk under with its umbrella shut (the game draws their poles and stretches each to its length).",
+    "standin": "Blue-grey puddle blobs and striped scalloped awnings drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 2 x 2 grid of four street things, each centred in its own 1024 x 512 cell and filling about 85% of the cell's width, seen from the side at a low angle: top left, a small round rain puddle on flagstones, a flat ellipse about five times as wide as it is tall, grey-blue water with a pale reflection of the sky and a ring of ripples; top right, a long rain puddle, a flat irregular ellipse about nine times as wide as it is tall, the same water; bottom left, a market stall's canvas awning seen from the front, a straight top edge and a scalloped hanging lower edge, striped strawberry pink and cream, about four times as wide as it is tall, wet and dripping; bottom right, the same awning striped sage green and cream. No poles, frames, stalls or ground under the awnings (the game draws its own poles), and no ground round the puddles beyond their wet edge."
+  },
+  {
+    "id": "IC-M10d",
+    "name": "Wetweather Wren, drenched",
+    "key": "sprites.wrenSplash",
+    "file": "assets/sprites/wren-splash.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Puddle Hop: the Wren for the moment after it lands in a puddle and splashes, before it walks on (the game flips it to face the way it walks).",
+    "standin": "The furled stand-in squashed down, with drops falling off it.",
+    "prompt": "{STYLE} {VARIANT} The Wetweather Wren (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/wetweatherwren.png ), the furled black umbrella with a wren's head, just after landing in a puddle: still furled, standing ankle-deep in a small splash of grey-blue puddle water, drenched, its cloth sagging and dripping, water drops flying off its beak and crook handle, its head shaken to one side and eye squeezed half shut, its legs knock-kneed. Facing left, feet at the bottom, at the same scale and framing as the portrait. {ALPHA}"
+  }
+]

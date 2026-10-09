@@ -18,6 +18,24 @@ export const MORE_IDS = [
 // The birds whose games are built, one per line (in any order: they are
 // shown in MORE_IDS order).
 const BUILT = [
+  'snippit',
+  'buttonbeaks',
+  'broomwhisk',
+  'wetweatherwren',
+  'glovedove',
+  'titthrush',
+  'drippet',
+  'sawbird',
+  'radiobird',
+  'keycrane',
+  'garbagecanary',
+  'steampressersparrow',
+  'milkmidge',
+  'waterglassgoose',
+  'niffy',
+  'plugsocketswift',
+  'saltshakershrike',
+  'ladlelark',
 ];
 
 // Their field-guide entries, in MORE_IDS order; `also` adds birds being

@@ -434,6 +434,11 @@ function controlLines(b) {
     dodo: [`Choose a hat: ${C('move')}`, `Pick it: ${C('action')}`],
     crow: [`Switch the light: ${C('action')}`],
   };
+  // A bird entry can list its own: [label, input] pairs (input one of the
+  // keys above, or plain text), with an optional third item for touch.
+  if (!lines[b.id] && b.controls) {
+    return b.controls.map(([label, key, touch]) => (k === 'pointer' && touch ? touch : `${label}: ${by[key] ? C(key) : key}`));
+  }
   return lines[b.id] || [];
 }
 
@@ -512,6 +517,9 @@ function resume() {
   input.lockHeld();
 }
 
+// A score word for one: blooms, dishes, glasses → bloom, dish, glass.
+const one = (word) => word.replace(/(ches|shes|sses|xes)$/, (m) => m.slice(0, -2)).replace(/s$/, '');
+
 function finish() {
   const b = BIRDS[S.bird];
   const score = Math.round(S.game.score);
@@ -521,7 +529,7 @@ function finish() {
   S.phase = 'result';
   // A best that still falls short of the next page is only a personal one.
   $('#result-title').textContent = !record ? 'Time!' : passes(b, score) ? 'New World Record!' : 'Personal Best!';
-  $('#result-score').textContent = `${score} ${b.score}`;
+  $('#result-score').textContent = `${score} ${score === 1 ? one(b.score) : b.score}`;
   $('#result-best').textContent = [record ? '' : `Best: ${best(b.id)}.`, now ? '' : goalLine(b) + '.'].filter(Boolean).join(' ');
   const extra = $('#result-extra');
   extra.textContent = '';

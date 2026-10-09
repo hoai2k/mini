@@ -218,6 +218,310 @@ export const ASSETS = {
     "file": "assets/pocket/rollingpinrail.png",
     "delivered": true
   },
+  "scene.milkmidge": {
+    "file": "assets/scenes/milkmidge.webp",
+    "delivered": false
+  },
+  "sprites.milkHouses": {
+    "file": "assets/sprites/milk-houses.png",
+    "delivered": false
+  },
+  "sprites.milkProps": {
+    "file": "assets/sprites/milk-props.png",
+    "delivered": false
+  },
+  "sprites.milkFloat": {
+    "file": "assets/sprites/milk-float.png",
+    "delivered": false
+  },
+  "sprites.midgeThrow": {
+    "file": "assets/sprites/midge-throw.png",
+    "delivered": false
+  },
+  "sprites.midgeMoods": {
+    "file": "assets/sprites/midge-moods.png",
+    "delivered": false
+  },
+  "scene.waterglassgoose": {
+    "file": "assets/scenes/waterglassgoose.webp",
+    "delivered": false
+  },
+  "sprites.harpGlass": {
+    "file": "assets/sprites/harp-glass.png",
+    "delivered": false
+  },
+  "sprites.gooseTap": {
+    "file": "assets/sprites/goose-tap.png",
+    "delivered": false
+  },
+  "sprites.gooseMoves": {
+    "file": "assets/sprites/goose-moves.png",
+    "delivered": false
+  },
+  "scene.niffy": {
+    "file": "assets/scenes/niffy.webp",
+    "delivered": false
+  },
+  "sprites.niffyWalkers": {
+    "file": "assets/sprites/niffy-walkers.png",
+    "delivered": false
+  },
+  "sprites.niffyProps": {
+    "file": "assets/sprites/niffy-props.png",
+    "delivered": false
+  },
+  "sprites.parkKeeper": {
+    "file": "assets/sprites/park-keeper.png",
+    "delivered": false
+  },
+  "sprites.niffyDive": {
+    "file": "assets/sprites/niffy-dive.png",
+    "delivered": false
+  },
+  "sprites.niffyFly": {
+    "file": "assets/sprites/niffy-fly.png",
+    "delivered": false
+  },
+  "scene.snippit": {
+    "file": "assets/scenes/snippit.webp",
+    "delivered": false
+  },
+  "sprites.balloons": {
+    "file": "assets/sprites/balloons.png",
+    "delivered": false
+  },
+  "sprites.snippitSnip": {
+    "file": "assets/sprites/snippit-snip.png",
+    "delivered": false
+  },
+  "scene.buttonbeaks": {
+    "file": "assets/scenes/buttonbeaks.webp",
+    "delivered": false
+  },
+  "sprites.buttons": {
+    "file": "assets/sprites/buttons.png",
+    "delivered": false
+  },
+  "sprites.coats": {
+    "file": "assets/sprites/coats.png",
+    "delivered": false
+  },
+  "sprites.buttonBowl": {
+    "file": "assets/sprites/button-bowl.png",
+    "delivered": false
+  },
+  "sprites.buttonbeaksToss": {
+    "file": "assets/sprites/buttonbeaks-toss.png",
+    "delivered": false
+  },
+  "scene.broomwhisk": {
+    "file": "assets/scenes/broomwhisk.webp",
+    "delivered": false
+  },
+  "sprites.sweepings": {
+    "file": "assets/sprites/sweepings.png",
+    "delivered": false
+  },
+  "sprites.dustpan": {
+    "file": "assets/sprites/dustpan.png",
+    "delivered": false
+  },
+  "sprites.broomwhiskSweep": {
+    "file": "assets/sprites/broomwhisk-sweep.png",
+    "delivered": false
+  },
+  "scene.keycrane": {
+    "file": "assets/scenes/keycrane.webp",
+    "delivered": false
+  },
+  "sprites.keycranePrizes": {
+    "file": "assets/sprites/keycrane-prizes.png",
+    "delivered": false
+  },
+  "sprites.keycraneHang": {
+    "file": "assets/sprites/keycrane-hang.png",
+    "delivered": false
+  },
+  "sprites.keycraneStartle": {
+    "file": "assets/sprites/keycrane-startle.png",
+    "delivered": false
+  },
+  "scene.garbagecanary": {
+    "file": "assets/scenes/garbagecanary.webp",
+    "delivered": false
+  },
+  "sprites.garbageItems": {
+    "file": "assets/sprites/garbage-items.png",
+    "delivered": false
+  },
+  "sprites.garbagecanaryLid": {
+    "file": "assets/sprites/garbagecanary-lid.png",
+    "delivered": false
+  },
+  "sprites.garbagecanaryCall": {
+    "file": "assets/sprites/garbagecanary-call.png",
+    "delivered": false
+  },
+  "scene.steampressersparrow": {
+    "file": "assets/scenes/steampressersparrow.webp",
+    "delivered": false
+  },
+  "sprites.pressGarments": {
+    "file": "assets/sprites/press-garments.png",
+    "delivered": false
+  },
+  "sprites.sparrowPress": {
+    "file": "assets/sprites/sparrow-press.png",
+    "delivered": false
+  },
+  "sprites.sparrowScorch": {
+    "file": "assets/sprites/sparrow-scorch.png",
+    "delivered": false
+  },
+  "scene.wetweatherwren": {
+    "file": "assets/scenes/wetweatherwren.webp",
+    "delivered": false
+  },
+  "sprites.wrenPoses": {
+    "file": "assets/sprites/wren-poses.png",
+    "delivered": false
+  },
+  "sprites.rainStreet": {
+    "file": "assets/sprites/rain-street.png",
+    "delivered": false
+  },
+  "sprites.wrenSplash": {
+    "file": "assets/sprites/wren-splash.png",
+    "delivered": false
+  },
+  "scene.glovedove": {
+    "file": "assets/scenes/glovedove.webp",
+    "delivered": false
+  },
+  "sprites.dishes": {
+    "file": "assets/sprites/dishes.png",
+    "delivered": false
+  },
+  "sprites.grime": {
+    "file": "assets/sprites/grime.png",
+    "delivered": false
+  },
+  "sprites.glovedoveScrub": {
+    "file": "assets/sprites/glovedove-scrub.png",
+    "delivered": false
+  },
+  "sprites.glovedovePoses": {
+    "file": "assets/sprites/glovedove-poses.png",
+    "delivered": false
+  },
+  "scene.titthrush": {
+    "file": "assets/scenes/titthrush.webp",
+    "delivered": false
+  },
+  "sprites.watchFace": {
+    "file": "assets/sprites/watch-face.png",
+    "delivered": false
+  },
+  "sprites.townClocks": {
+    "file": "assets/sprites/town-clocks.png",
+    "delivered": false
+  },
+  "sprites.titthrushSing": {
+    "file": "assets/sprites/titthrush-sing.png",
+    "delivered": false
+  },
+  "sprites.titthrushFluster": {
+    "file": "assets/sprites/titthrush-fluster.png",
+    "delivered": false
+  },
+  "scene.plugsocketswift": {
+    "file": "assets/scenes/plugsocketswift.webp",
+    "delivered": false
+  },
+  "sprites.swiftHouse": {
+    "file": "assets/sprites/swift-house.png",
+    "delivered": false
+  },
+  "sprites.swiftFly": {
+    "file": "assets/sprites/swift-fly.png",
+    "delivered": false
+  },
+  "scene.saltshakershrike": {
+    "file": "assets/scenes/saltshakershrike.webp",
+    "delivered": false
+  },
+  "sprites.shrikePlates": {
+    "file": "assets/sprites/shrike-plates.png",
+    "delivered": false
+  },
+  "sprites.shrikeDiners": {
+    "file": "assets/sprites/shrike-diners.png",
+    "delivered": false
+  },
+  "scene.ladlelark": {
+    "file": "assets/scenes/ladlelark.webp",
+    "delivered": false
+  },
+  "sprites.larkPot": {
+    "file": "assets/sprites/lark-pot.png",
+    "delivered": false
+  },
+  "sprites.larkBits": {
+    "file": "assets/sprites/lark-bits.png",
+    "delivered": false
+  },
+  "sprites.larkQueue": {
+    "file": "assets/sprites/lark-queue.png",
+    "delivered": false
+  },
+  "scene.drippet": {
+    "file": "assets/scenes/drippet.webp",
+    "delivered": false
+  },
+  "sprites.drippetThings": {
+    "file": "assets/sprites/drippet-things.png",
+    "delivered": false
+  },
+  "sprites.puddles": {
+    "file": "assets/sprites/puddles.png",
+    "delivered": false
+  },
+  "sprites.drippetPoses": {
+    "file": "assets/sprites/drippet-poses.png",
+    "delivered": false
+  },
+  "scene.sawbird": {
+    "file": "assets/scenes/sawbird.webp",
+    "delivered": false
+  },
+  "sprites.planks": {
+    "file": "assets/sprites/planks.png",
+    "delivered": false
+  },
+  "sprites.sawhorse": {
+    "file": "assets/sprites/sawhorse.png",
+    "delivered": false
+  },
+  "sprites.sawbirdSawing": {
+    "file": "assets/sprites/sawbird-sawing.png",
+    "delivered": false
+  },
+  "scene.radiobird": {
+    "file": "assets/scenes/radiobird.webp",
+    "delivered": false
+  },
+  "sprites.stations": {
+    "file": "assets/sprites/stations.png",
+    "delivered": false
+  },
+  "sprites.listeners": {
+    "file": "assets/sprites/listeners.png",
+    "delivered": false
+  },
+  "sprites.dialPanel": {
+    "file": "assets/sprites/dial-panel.png",
+    "delivered": false
+  },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
     "delivered": true
