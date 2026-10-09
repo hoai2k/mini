@@ -248,7 +248,7 @@ export const ASSETS = {
   },
   "sprites.milkGarden": {
     "file": "assets/sprites/milk-garden.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.waterglassgoose": {
     "file": "assets/scenes/waterglassgoose.webp",
@@ -444,7 +444,7 @@ export const ASSETS = {
   },
   "sprites.townClocks": {
     "file": "assets/sprites/town-clocks.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.titthrushSing": {
     "file": "assets/sprites/titthrush-sing.png",
@@ -512,19 +512,19 @@ export const ASSETS = {
   },
   "sprites.drippetThings": {
     "file": "assets/sprites/drippet-things.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.puddles": {
     "file": "assets/sprites/puddles.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.drippetPoses": {
     "file": "assets/sprites/drippet-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.drippetMore": {
     "file": "assets/sprites/drippet-more.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.sawbird": {
     "file": "assets/scenes/sawbird.webp",
@@ -532,19 +532,19 @@ export const ASSETS = {
   },
   "sprites.planks": {
     "file": "assets/sprites/planks.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.sawhorse": {
     "file": "assets/sprites/sawhorse.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.sawbirdSawing": {
     "file": "assets/sprites/sawbird-sawing.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.sawbirdPoses": {
     "file": "assets/sprites/sawbird-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
@@ -552,19 +552,19 @@ export const ASSETS = {
   },
   "sprites.stations": {
     "file": "assets/sprites/stations.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.listeners": {
     "file": "assets/sprites/listeners.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.dialPanel": {
     "file": "assets/sprites/dial-panel.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.radiobirdPoses": {
     "file": "assets/sprites/radiobird-poses.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
