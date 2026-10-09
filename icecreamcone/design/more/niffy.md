@@ -100,3 +100,30 @@ point to stay where it is in the portrait.
   change needed.
 - **Still stand-in:** the passers-by, the Keeper, the things to snip, the
   nest and the Niffy's flying and swooping poses (IC-M03b–f, requested).
+
+## Matched to the delivered art (walkers, props, Keeper, poses)
+
+- **Where things hang.** `PAINTED_SPOT` gives, for each of the six painted
+  walkers, where the feather (back of the hat band), price tag (front of the
+  brim), flower (lapel) and loose thread (back of the hem) go, measured on
+  the sheet from the middle of each figure's outline and up from its feet.
+  The child's balloon string starts at its raised fist and is snipped just
+  above it. The stand-in `SPOT` is kept for when the sheet is missing.
+- **Spacing.** The painted people are wider than the stand-ins, so people
+  walking the same way now keep 420 px apart (was 330). Bots after the
+  change: beginner 11–17, careful 15–19, non-stop swooping 1–7, idle 0;
+  pass stays 9.
+- **Niffy's poses.** The flying, dazed and swooping cells are not framed
+  like the portrait (they float in their cells), so each is placed by its
+  own measured blade tip (`POSE_TIP`, in 1024 px cells, drawn at the
+  portrait's scale): the open blades' point stays on the snipping point,
+  and the swoop still pivots there.
+- **Keeper.** The three painted Keepers stand 340 tall on the promenade's
+  back edge (y 735) in front of the railing, as placed for the scene; the
+  red warning sits above his cap.
+- **Props and nest.** The painted feather, flower, thread, tag, balloon
+  and nest replace the stand-ins in place. "Hey!" is now brick red and
+  bolder so it reads against the trees.
+- **Still drawn in code:** the balloon string, the hand held over a thing
+  when someone is wary, the aim ring, the warning and the pops. No new
+  requests.
