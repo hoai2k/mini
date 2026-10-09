@@ -28,5 +28,15 @@
     "used": "Glass Harp: the Goose taps a glass with its beak as it plays the tune (and as you tap), and honks with pride when a tune is played back right.",
     "standin": "The portrait, leaning towards the glass.",
     "prompt": "{STYLE} {VARIANT} The Waterglass Goose (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/waterglassgoose.png) in two poses side by side on one sheet, each in its own half, both facing left: left, its long neck bent forward and down so the tip of its beak reaches out to the left at about the height of its own glass body's rim, as if tapping a glass that stands just in front of it; right, its neck stretched straight up, beak open to the sky, honking happily. Body and feet in the same place in both. {ALPHA}"
+  },
+  {
+    "id": "IC-M02d",
+    "name": "Glass Harp: the Goose walking and recoiling",
+    "key": "sprites.gooseMoves",
+    "file": "assets/sprites/goose-moves.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Glass Harp: the Goose stepping along the table from glass to glass, and jerking back when a glass cracks or it is too slow.",
+    "standin": "The portrait, bobbing as it slides along, and shaking and leaning back on a crack.",
+    "prompt": "{STYLE} {VARIANT} The Waterglass Goose (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/waterglassgoose.png) in two poses side by side on one sheet, each in its own half, both facing left: left, walking mid-stride, one long leg lifted and reaching forward, neck held level, the water in its glass body tilting a little; right, recoiling in dismay, neck pulled back in an S, beak open, wings flung up, its water sloshing up the side of the glass. Body at the same height in both. {ALPHA}"
   }
 ]

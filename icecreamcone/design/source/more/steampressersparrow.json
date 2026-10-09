@@ -28,5 +28,15 @@
     "used": "Pressing Business: the Sparrow gliding over the cloth with its sole flat on it, dry and with a puff of steam. It replaces the portrait during the game, whose legs would stand it off the board.",
     "standin": "The Sparrow's stand-in with its legs hidden below the sole line, and code-drawn steam puffs.",
     "prompt": "{STYLE} {VARIANT} The Steampresser Sparrow (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/steampressersparrow.png) in two poses side by side on one sheet, each in its own half, facing left, in side view: its legs folded away out of sight underneath, so the cast-iron body sits with its flat sole level and resting on the bottom of the picture, as an iron does on cloth; head forward at the pointed toe. Left: dry, calm. Right: the same, with soft white steam billowing up around its sides and back from the holes in its sole, and the sparrow's beak a little open; no steam below the sole line. The sole at exactly the same height in both halves. {ALPHA}"
+  },
+  {
+    "id": "IC-M09d",
+    "name": "Steampresser Sparrow scorched",
+    "key": "sprites.sparrowScorch",
+    "file": "assets/sprites/sparrow-scorch.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Pressing Business: for a moment after a scorch, the Sparrow jerks up off the cloth in alarm. Drawn standing on the same sole line as IC-M09c.",
+    "standin": "The pressing stand-in hopping up off the board.",
+    "prompt": "{STYLE} {VARIANT} The Steampresser Sparrow (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/steampressersparrow.png) in side view facing left, as in its pressing pose (IC-M09c) with its legs folded away out of sight and at the same scale, but jerked up in alarm: the pointed toe of the iron tipped up off the cloth, the heel of the sole still at the bottom of the picture, the sparrow's eye wide and beak open in a squawk, a thin wisp of brown smoke curling up from under the sole. {ALPHA}"
   }
 ]

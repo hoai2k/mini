@@ -48,5 +48,15 @@
     "used": "Milk Round: the Midge winds up while the action is held, then flings the bottle when it is let go (the game turns it to face right).",
     "standin": "The portrait, leaning back and squashing a little as it winds up.",
     "prompt": "{STYLE} {VARIANT} The Milkbottle Midge (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/milkmidge.png) in two poses side by side on one sheet, each in its own half, both facing left: left, winding up, leaning back with one little wing raised behind its head holding a full pint milk bottle with a silver cap, ready to throw; right, the follow-through, leaning forward with the wing swept forward and empty, as if it has just lobbed the bottle up and away. Feet in the same place in both. {ALPHA}"
+  },
+  {
+    "id": "IC-M01f",
+    "name": "Milk Round: the Midge pleased and startled",
+    "key": "sprites.midgeMoods",
+    "file": "assets/sprites/midge-moods.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Milk Round: the Midge for a moment after each bottle lands: pleased when a pint reaches its step, startled when a bottle smashes, a dog wakes or a bottle comes back (the game turns it to face right).",
+    "standin": "The portrait, hopping when pleased and shivering when startled.",
+    "prompt": "{STYLE} {VARIANT} The Milkbottle Midge (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/milkmidge.png) in two poses side by side on one sheet, each in its own half, both facing left with empty wings and its feet in the same place: left, pleased, standing tall and proud on tiptoe, both little wings raised, beak lifted, its milky body brimming; right, startled, flinching back with its wings up by its foil-capped head, eye wide, knees bent, a few drops of milk sloshing out of its neck. {ALPHA}"
   }
 ]

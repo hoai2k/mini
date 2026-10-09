@@ -28,5 +28,15 @@
     "used": "Lucky Dip: the Key Crane as it hangs from the trolley on its string and swings, its claws open while it is lowered and closed once it has hooked a ring. The game draws the string down to the middle of its shaft and rotates the whole figure as it swings.",
     "standin": "The Key Crane's stand-in hanging from its shaft, with two ink claws that open and close.",
     "prompt": "{STYLE} {VARIANT} The Key Crane (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/keycrane.png) in two poses side by side on one sheet, each in its own half, hanging in the air as if from a string tied round the middle of its key shaft (do not draw the string): the key's shaft level and horizontal, its ring head on the left with the eye looking down, its long thin legs hanging straight down below it. The middle of the shaft is exactly above the feet and about a third of the way down from the top of the figure. Left: its spiky claws spread wide open, reaching. Right: its claws curled tightly shut, as if gripping a ring. Same height and position in both halves. {ALPHA}"
+  },
+  {
+    "id": "IC-M07d",
+    "name": "Key Crane startled",
+    "key": "sprites.keycraneStartle",
+    "file": "assets/sprites/keycrane-startle.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Lucky Dip: for a moment when a carried prize slips off, or the claws close on nothing, the hanging Key Crane starts in surprise. Drawn and swung on the string like IC-M07c.",
+    "standin": "The hanging Key Crane jolting on its string.",
+    "prompt": "{STYLE} {VARIANT} The Key Crane (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/keycrane.png) hanging in the air exactly as in its hanging pose (IC-M07c): as if from a string tied round the middle of its key shaft (do not draw the string), the shaft level and horizontal, the ring head on the left, the middle of the shaft directly above the feet and about a third of the way down from the top of the figure, at the same scale. Startled: its eye wide and staring, its beak open, its crest feathers flicked up, and its long thin legs kicked out apart in a jerky splay with the claws spread empty. {ALPHA}"
   }
 ]

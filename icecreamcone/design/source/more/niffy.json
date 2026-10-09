@@ -48,5 +48,15 @@
     "used": "Snip Snap: the Niffy on the way down with its blade open, and on the way back up with it snapped shut (the game tilts it nose-down into the swoop).",
     "standin": "The portrait, tilted nose-down.",
     "prompt": "{STYLE} {VARIANT} The Jackknife Niffy (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/niffy.png) in two poses side by side on one sheet, each in its own half, both flying level and facing left, legs tucked back: left, its little wings swept back and its knife blade (its beak) open wide, pointing ahead; right, the blade snapped shut like a closed pocketknife, wings beating up. Same size in both. {ALPHA}"
+  },
+  {
+    "id": "IC-M03f",
+    "name": "Snip Snap: the Niffy hovering and dazed",
+    "key": "sprites.niffyFly",
+    "file": "assets/sprites/niffy-fly.png",
+    "size": "3072 x 1024, transparent",
+    "used": "Snip Snap: the Niffy hovering over the promenade between swoops (two frames, flapping), and dazed after the Keeper whistles at it.",
+    "standin": "The standing portrait, bobbing in the sky, and wobbling when dazed.",
+    "prompt": "{STYLE} {VARIANT} The Jackknife Niffy (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/niffy.png) in three poses side by side on one sheet, each in its own third, all in the air facing left with the legs tucked up under the red body and the knife blade (its beak) half open: left, hovering with its little wings raised high; middle, the same with its wings pressed down (the other half of a flap); right, dazed and tumbling, tipped over sideways, wings askew, the blade folded shut, its eye a dizzy spiral. Same size in all three. {ALPHA}"
   }
 ]

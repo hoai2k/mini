@@ -38,5 +38,15 @@
     "used": "Set the Clocks: the Tit Trush sings for a moment each time a clock is set right.",
     "standin": "The portrait, hopping.",
     "prompt": "{STYLE} {VARIANT} The Ten O'clock Tit Trush (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ), the gold pocket watch bird, singing: its head tipped back and its beak wide open, its pink plumes lifted, standing on both feet, at the same scale and framing as the portrait. Its face still shows ten o'clock. {ALPHA}"
+  },
+  {
+    "id": "IC-M12e",
+    "name": "Tit Trush flustered",
+    "key": "sprites.titthrushFluster",
+    "file": "assets/sprites/titthrush-fluster.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Set the Clocks: the Tit Trush when the wrong time is set (the crown jams) or a town clock gives up waiting.",
+    "standin": "The portrait shaking.",
+    "prompt": "{STYLE} {VARIANT} The Ten O'clock Tit Trush (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ), the gold pocket watch bird, flustered: leaning back on its heels, its pink plumes ruffled and standing on end, its beak open in an indignant squawk, little ink shake lines round its case. Its face still shows ten o'clock. Facing left, at the same scale and framing as the portrait. {ALPHA}"
   }
 ]

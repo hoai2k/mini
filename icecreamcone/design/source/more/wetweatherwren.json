@@ -28,5 +28,15 @@
     "used": "Puddle Hop: the puddles the Wren hops (the game stretches them to each puddle's width) and the striped market-stall awnings it must walk under with its umbrella shut (the game draws their poles and stretches each to its length).",
     "standin": "Blue-grey puddle blobs and striped scalloped awnings drawn in code.",
     "prompt": "{STYLE} {SHEET} A 2 x 2 grid of four street things, each centred in its own 1024 x 512 cell and filling about 85% of the cell's width, seen from the side at a low angle: top left, a small round rain puddle on flagstones, a flat ellipse about five times as wide as it is tall, grey-blue water with a pale reflection of the sky and a ring of ripples; top right, a long rain puddle, a flat irregular ellipse about nine times as wide as it is tall, the same water; bottom left, a market stall's canvas awning seen from the front, a straight top edge and a scalloped hanging lower edge, striped strawberry pink and cream, about four times as wide as it is tall, wet and dripping; bottom right, the same awning striped sage green and cream. No poles, frames, stalls or ground under the awnings (the game draws its own poles), and no ground round the puddles beyond their wet edge."
+  },
+  {
+    "id": "IC-M10d",
+    "name": "Wetweather Wren, drenched",
+    "key": "sprites.wrenSplash",
+    "file": "assets/sprites/wren-splash.png",
+    "size": "1024 x 1024, transparent",
+    "used": "Puddle Hop: the Wren for the moment after it lands in a puddle and splashes, before it walks on (the game flips it to face the way it walks).",
+    "standin": "The furled stand-in squashed down, with drops falling off it.",
+    "prompt": "{STYLE} {VARIANT} The Wetweather Wren (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/wetweatherwren.png ), the furled black umbrella with a wren's head, just after landing in a puddle: still furled, standing ankle-deep in a small splash of grey-blue puddle water, drenched, its cloth sagging and dripping, water drops flying off its beak and crook handle, its head shaken to one side and eye squeezed half shut, its legs knock-kneed. Facing left, feet at the bottom, at the same scale and framing as the portrait. {ALPHA}"
   }
 ]

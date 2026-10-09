@@ -238,6 +238,10 @@ export const ASSETS = {
     "file": "assets/sprites/midge-throw.png",
     "delivered": false
   },
+  "sprites.midgeMoods": {
+    "file": "assets/sprites/midge-moods.png",
+    "delivered": false
+  },
   "scene.waterglassgoose": {
     "file": "assets/scenes/waterglassgoose.webp",
     "delivered": false
@@ -248,6 +252,10 @@ export const ASSETS = {
   },
   "sprites.gooseTap": {
     "file": "assets/sprites/goose-tap.png",
+    "delivered": false
+  },
+  "sprites.gooseMoves": {
+    "file": "assets/sprites/goose-moves.png",
     "delivered": false
   },
   "scene.niffy": {
@@ -268,6 +276,10 @@ export const ASSETS = {
   },
   "sprites.niffyDive": {
     "file": "assets/sprites/niffy-dive.png",
+    "delivered": false
+  },
+  "sprites.niffyFly": {
+    "file": "assets/sprites/niffy-fly.png",
     "delivered": false
   },
   "scene.snippit": {
@@ -330,6 +342,10 @@ export const ASSETS = {
     "file": "assets/sprites/keycrane-hang.png",
     "delivered": false
   },
+  "sprites.keycraneStartle": {
+    "file": "assets/sprites/keycrane-startle.png",
+    "delivered": false
+  },
   "scene.garbagecanary": {
     "file": "assets/scenes/garbagecanary.webp",
     "delivered": false
@@ -340,6 +356,10 @@ export const ASSETS = {
   },
   "sprites.garbagecanaryLid": {
     "file": "assets/sprites/garbagecanary-lid.png",
+    "delivered": false
+  },
+  "sprites.garbagecanaryCall": {
+    "file": "assets/sprites/garbagecanary-call.png",
     "delivered": false
   },
   "scene.steampressersparrow": {
@@ -354,6 +374,10 @@ export const ASSETS = {
     "file": "assets/sprites/sparrow-press.png",
     "delivered": false
   },
+  "sprites.sparrowScorch": {
+    "file": "assets/sprites/sparrow-scorch.png",
+    "delivered": false
+  },
   "scene.wetweatherwren": {
     "file": "assets/scenes/wetweatherwren.webp",
     "delivered": false
@@ -364,6 +388,10 @@ export const ASSETS = {
   },
   "sprites.rainStreet": {
     "file": "assets/sprites/rain-street.png",
+    "delivered": false
+  },
+  "sprites.wrenSplash": {
+    "file": "assets/sprites/wren-splash.png",
     "delivered": false
   },
   "scene.glovedove": {
@@ -382,6 +410,10 @@ export const ASSETS = {
     "file": "assets/sprites/glovedove-scrub.png",
     "delivered": false
   },
+  "sprites.glovedovePoses": {
+    "file": "assets/sprites/glovedove-poses.png",
+    "delivered": false
+  },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
     "delivered": false
@@ -396,6 +428,10 @@ export const ASSETS = {
   },
   "sprites.titthrushSing": {
     "file": "assets/sprites/titthrush-sing.png",
+    "delivered": false
+  },
+  "sprites.titthrushFluster": {
+    "file": "assets/sprites/titthrush-fluster.png",
     "delivered": false
   },
   "scene.plugsocketswift": {

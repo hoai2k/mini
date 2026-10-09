@@ -38,5 +38,15 @@
     "used": "Squeaky Clean: the Glove Dove scrubbing with its feet on the sponge, two frames swapped while it rubs.",
     "standin": "The portrait, jiggling.",
     "prompt": "{STYLE} {VARIANT} The Glove Dove (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/glovedove.png ), the long pink rubber glove with a dove's head, in two frames side by side, each in its own half and at the same scale, facing left, feet at the bottom: scrubbing the floor with its feet like a dance, its body leaning forward and its head lowered to look down; left, the left foot scrubbing forward and the right back; right, the other way about. A small heap of white soap suds and bubbles round its feet. No sponge (the game draws it). {ALPHA}"
+  },
+  {
+    "id": "IC-M11e",
+    "name": "Glove Dove cheering and swamped",
+    "key": "sprites.glovedovePoses",
+    "file": "assets/sprites/glovedove-poses.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Squeaky Clean: the Glove Dove cheering while a clean dish goes up on the rack, and swamped when the sink foams over (while it mops up).",
+    "standin": "The portrait hopping, or squashed down into the foam.",
+    "prompt": "{STYLE} {VARIANT} The Glove Dove (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/glovedove.png ), the long pink rubber glove with a dove's head, in two poses side by side, each in its own half and at the same scale, facing left, feet at the bottom: left, cheering, head and long cuff neck stretched up, beak open, the glove's fingers (its tail crest) fanned wide like a hand waving, one foot lifted in a little jump; right, swamped in a heap of white soap foam up to its body, only its head, neck and fingers sticking out, eye wide in alarm, a few bubbles on its beak. No sponge. {ALPHA}"
   }
 ]
