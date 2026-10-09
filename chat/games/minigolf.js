@@ -1014,7 +1014,7 @@ export default {
           ctx.roundRect(bx + 2, by + 2, Math.max(8, (bw - 4) * power), 10, 5);
           ctx.fill();
         } else if (canPutt() && strokes === 0 && holeIdx === 0) {
-          label('Drag back from anywhere, let go to putt (or arrows + hold Space)', w / 2, by + 11, '#fff', 12, 'center');
+          label('Pull back to aim: the arrow follows your finger. Let go to putt', w / 2, by + 11, '#fff', 12, 'center');
         } else if (now < startedAt) {
           label('Get ready…', w / 2, by + 11, '#fff', 14, 'center');
         }
@@ -1064,31 +1064,48 @@ export default {
         ctx.stroke();
       }
 
-      // Aim guide.
+      // Aim guide: an arrow from behind the ball pointing at it, like a cue.
+      // Its tail is where the finger has pulled to (it follows the finger,
+      // capped at full power) and its length is the power; the ball goes the
+      // way it points. Before a pull it shows the aim, short and faint.
       const showAim = canPutt() && !ball.moving;
       if (showAim) {
         const d = dragVector();
         const ang = d ? d.angle : aim;
         const pw = charge ? charge.p : d ? d.power : null;
-        const len = pw == null ? 14 : 8 + pw * 52;
+        const cx = Math.cos(ang), cy = Math.sin(ang);
+        const head = 3.2;                      // stop just short of the ball
+        // The tail sits exactly as far behind the ball as the finger has pulled.
+        const back = Math.max(head + 6, pw == null ? 15 : pw * MAX_PULL);
+        const tx = ball.x - cx * back, ty = ball.y - cy * back;
+        const hx = ball.x - cx * head, hy = ball.y - cy * head;
+        const col = pw == null ? 'rgba(255,255,255,0.5)' : '#fff';
         ctx.save();
-        ctx.setLineDash([1.4, 2.2]);
         ctx.lineCap = 'round';
-        ctx.strokeStyle = pw == null ? 'rgba(255,255,255,0.45)' : '#fff';
-        ctx.lineWidth = 1.2;
+        // Shaft, thicker and warmer the harder the putt.
+        ctx.strokeStyle = pw == null ? col : `hsl(${50 - pw * 50}, 100%, ${70 - pw * 15}%)`;
+        ctx.lineWidth = pw == null ? 1.2 : 1.4 + pw * 1.4;
         ctx.beginPath();
-        ctx.moveTo(ball.x + Math.cos(ang) * 4, ball.y + Math.sin(ang) * 4);
-        ctx.lineTo(ball.x + Math.cos(ang) * (4 + len), ball.y + Math.sin(ang) * (4 + len));
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(hx - cx * 2.5, hy - cy * 2.5);
         ctx.stroke();
-        ctx.restore();
-        const ex = ball.x + Math.cos(ang) * (4 + len), ey = ball.y + Math.sin(ang) * (4 + len);
-        ctx.fillStyle = pw == null ? 'rgba(255,255,255,0.55)' : '#fff';
+        // Head, touching the ball.
+        ctx.fillStyle = ctx.strokeStyle;
         ctx.beginPath();
-        ctx.moveTo(ex + Math.cos(ang) * 3, ey + Math.sin(ang) * 3);
-        ctx.lineTo(ex + Math.cos(ang + 2.5) * 3, ey + Math.sin(ang + 2.5) * 3);
-        ctx.lineTo(ex + Math.cos(ang - 2.5) * 3, ey + Math.sin(ang - 2.5) * 3);
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(hx - cx * 4 + -cy * 2.6, hy - cy * 4 + cx * 2.6);
+        ctx.lineTo(hx - cx * 4 - -cy * 2.6, hy - cy * 4 - cx * 2.6);
         ctx.closePath();
         ctx.fill();
+        // A short, faint dotted line on from the ball shows where it will go.
+        ctx.setLineDash([1.2, 2.4]);
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(ball.x + cx * 4, ball.y + cy * 4);
+        ctx.lineTo(ball.x + cx * 16, ball.y + cy * 16);
+        ctx.stroke();
+        ctx.restore();
       }
 
       // Ghosts.
