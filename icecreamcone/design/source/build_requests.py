@@ -537,7 +537,26 @@ SUBJECTS = [
      "body, a long curving striped neck with a crested head, and long thin legs."),
 ]
 # Which subjects have been delivered (filled in on integration).
-DELIVERED_SUBJECTS: set[str] = set()
+DELIVERED_SUBJECTS: set[str] = {
+    'milkmidge',
+    'waterglassgoose',
+    'niffy',
+    'snippit',
+    'buttonbeaks',
+    'broomwhisk',
+    'keycrane',
+    'garbagecanary',
+    'steampressersparrow',
+    'wetweatherwren',
+    'glovedove',
+    'titthrush',
+    'plugsocketswift',
+    'saltshakershrike',
+    'ladlelark',
+    'drippet',
+    'sawbird',
+    'radiobird',
+}
 
 for n, (sid, name, where, look) in enumerate(SUBJECTS, 1):
     ref = "newspaper-peeper.jpg" if sid == "waterglassgoose" else ENDPAPERS
@@ -589,8 +608,13 @@ POCKET = [
      "its tail, the N-E-S-W cross below like perched feet on a little roof ridge.",
      "Turn into the wind as it changes."),
     ("mousetrapmagpie", "The Mousetrap Magpie",
-     "A wooden spring mousetrap as a flat body with the snapping bar as a crest, a magpie's black "
-     "and white head and long tail, a bit of cheese it is very proud of.",
+     "The mousetrap itself is the whole torso: a flat honey-brown wooden plank with a coiled "
+     "spring and snapping metal bar built into it. A yellow cheese wedge forms its head and "
+     "left-pointing beak, with round cheese holes and one round staring eye set in its side. "
+     "The spring bar rises as its crest. Two thin bird legs grow from the wood below, small "
+     "black-and-white wing tufts from its sides, and a long blue-black magpie tail from the "
+     "rear. No feathered torso or conventional magpie head beneath the trap, and no separate "
+     "cheese accessory sitting on top.",
      "Grab the shiny things without setting itself off."),
     ("hatboxhoopoe", "The Hatbox Hoopoe",
      "A round striped hatbox with its lid lifting like a crest of hoopoe feathers, a long thin "
@@ -605,6 +629,19 @@ POCKET = [
      "with a small rail's head and beak, on quick little legs.",
      "Roll out the pastry evenly before it tears."),
 ]
+DELIVERED_POCKET: set[str] = {
+    'hourglassheron',
+    'spectaclesnipe',
+    'bellowsbittern',
+    'lampshadeloon',
+    'concertinacurlew',
+    'weathervanewarbler',
+    'mousetrapmagpie',
+    'hatboxhoopoe',
+    'candlestickkiwi',
+    'rollingpinrail',
+}
+
 for n, (pid, name, look, game) in enumerate(POCKET, 1):
     REQUESTS.append({
         "id": f"IC-N{n:02d}",
@@ -616,7 +653,7 @@ for n, (pid, name, look, game) in enumerate(POCKET, 1):
         "used": "Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; "
         "later, a page of its own. A game idea: " + game,
         "standin": "The object drawn in code in ink and wash, with an eye, a beak and legs.",
-        "status": "requested",
+        "status": "delivered" if pid in DELIVERED_POCKET else "requested",
         "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " For the drawing style and "
         "the way the object becomes a bird, look at the book's birds in " + REF_URL + ENDPAPERS + " .",
     })
@@ -628,7 +665,10 @@ for n, (pid, name, look, game) in enumerate(POCKET, 1):
 MORE_DIR = Path(__file__).resolve().parent / "more"
 SHARED = {"STYLE": STYLE, "BIRD": BIRD, "SHEET": SHEET, "VARIANT": VARIANT, "SCENE": SCENE,
           "ALPHA": ALPHA, "REF_URL": REF_URL}
-MORE = sorted((r for f in MORE_DIR.glob("*.json") for r in json.loads(f.read_text())), key=lambda r: r["id"])
+MORE = sorted(
+    (r for f in MORE_DIR.glob("*.json") if not f.name.startswith("._") for r in json.loads(f.read_text())),
+    key=lambda r: r["id"],
+)
 for r in MORE:
     prompt = r["prompt"]
     for k, v in SHARED.items():

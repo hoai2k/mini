@@ -12,17 +12,17 @@
 // commands. music lists beds in order of preference: the first one whose
 // file exists plays.
 
+import { T } from './text_config.js';
+
 export const STAGES = [
   {
     id: 'garden',
     // Its own bed if delivered; else the sisters' theme that used to play on the chapter select.
     music: ['mu-bed-garden', 'mu-select', 'mu-bed-battle'],
-    title: 'The Garden at Mê Linh',
-    subtitle: 'Training years',
-    story:
-      'Mê Linh, in the years before the war. In their father’s garden Trưng Trắc and Trưng Nhị learn the language of the bronze drum, and the women of the village drill to its call among the straw targets.',
-    goal:
-      'Trắc keeps the deep centre, Nhị the rim. Teach the women to march and strike, then cut down the straw targets.',
+    title: T.chapters.garden.title,
+    subtitle: T.chapters.garden.subtitle,
+    story: T.chapters.garden.story,
+    goal: T.chapters.garden.goal,
     bpm: 92,
     lessons: true, // teaches as it goes (main.js LESSONS), with the children's stones
     unlocked: ['march', 'strike'],
@@ -41,12 +41,10 @@ export const STAGES = [
     id: 'oath',
     music: ['mu-bed-oath', 'mu-bed-story'], // its own bed if delivered, else the shared one
     mode: 'echo',
-    title: 'The Oath',
-    subtitle: 'The father’s funeral',
-    story:
-      'The Han governor has put the sisters’ father to death for defying him. At his funeral the mourning drum sounds through the dusk, and the sisters answer it beat for beat, vowing to drive the Han from their land.',
-    goal:
-      'Answer each call of the mourning drum evenly; with each answer an incense stick is lit for him.',
+    title: T.chapters.oath.title,
+    subtitle: T.chapters.oath.subtitle,
+    story: T.chapters.oath.story,
+    goal: T.chapters.oath.goal,
     caller: 'mourning',
     calls: [
       { text: 'L R L R', bpm: 56 },
@@ -69,12 +67,10 @@ export const STAGES = [
     id: 'casting',
     music: ['mu-bed-foundry', 'mu-bed-story'], // its own bed if delivered, else the shared one
     mode: 'casting',
-    title: 'Casting the Drums',
-    subtitle: 'The foundry of Nhật Nam',
-    story:
-      'A rising needs a voice that carries from valley to valley. In the foundries of Nhật Nam the smiths pour bronze for new war drums, and every hammer stroke must keep the bellows’ pace.',
-    goal:
-      'Drum the hammer rhythm with the bellows, round after round without stopping. Keep in time and the bronze rises, drum by drum; rush, drag or stumble and it spills back to the last drum cast.',
+    title: T.chapters.casting.title,
+    subtitle: T.chapters.casting.subtitle,
+    story: T.chapters.casting.story,
+    goal: T.chapters.casting.goal,
     rhythm: 'L RR L RR',
     bpm: 76, // the bellows' pace: heard as the guide rhythm, never shown as a number
     drums: 3,
@@ -90,20 +86,18 @@ export const STAGES = [
     // Its own bed if delivered; else the old title theme, quan ho (call-and-response singing) like the chapter.
     music: ['mu-bed-villages', 'mu-title', 'mu-bed-story'],
     mode: 'echo',
-    title: 'The Villages Answer',
-    subtitle: 'A call along the river',
-    story:
-      'Night falls on the Red River. The sisters’ drum calls from village to village, and in each one a drummer steps out with a rhythm of their own, waiting to hear whether the call is true.',
-    goal:
-      'Echo each village drummer’s rhythm back evenly, at about their speed, and the village lights its lanterns and joins you.',
+    title: T.chapters.villages.title,
+    subtitle: T.chapters.villages.subtitle,
+    story: T.chapters.villages.story,
+    goal: T.chapters.villages.goal,
     caller: 'village',
     calls: [
-      { text: 'L R L R', bpm: 84, label: 'Phong Châu' },
-      { text: 'R R L R', bpm: 90, label: 'Chu Diên' },
-      { text: 'L RR L R', bpm: 92, label: 'Cửu Chân' },
-      { text: 'RR L R L', bpm: 96, label: 'Hợp Phố' },
-      { text: 'L R RRR L', bpm: 100, label: 'Nhật Nam' },
-      { text: 'RRR L RR L', bpm: 104, label: 'Giao Chỉ' },
+      { text: 'L R L R', bpm: 84, label: T.chapters.villages.callers[0] },
+      { text: 'R R L R', bpm: 90, label: T.chapters.villages.callers[1] },
+      { text: 'L RR L R', bpm: 92, label: T.chapters.villages.callers[2] },
+      { text: 'RR L R L', bpm: 96, label: T.chapters.villages.callers[3] },
+      { text: 'L R RRR L', bpm: 100, label: T.chapters.villages.callers[4] },
+      { text: 'RRR L RR L', bpm: 104, label: T.chapters.villages.callers[5] },
     ],
     matchTempo: true,
     tolerance: 0.3,
@@ -117,12 +111,10 @@ export const STAGES = [
   {
     id: 'outpost',
     music: ['mu-bed-river', 'mu-bed-battle'], // its own bed if delivered, else the shared one
-    title: 'The Outpost on the Hát River',
-    subtitle: 'The drums answer',
-    story:
-      'The rising begins at the Hát River, where a Han outpost guards the ford. For the first time the sisters’ army marches to the drum, straight at the crossbows on the palisade.',
-    goal:
-      'Break the Han outpost that guards the ford. When a crossbow takes aim, guard just before the bolts land.',
+    title: T.chapters.outpost.title,
+    subtitle: T.chapters.outpost.subtitle,
+    story: T.chapters.outpost.story,
+    goal: T.chapters.outpost.goal,
     bpm: 96,
     unlocked: ['march', 'strike'],
     maxTier: 3,
@@ -142,12 +134,10 @@ export const STAGES = [
   {
     id: 'luylau',
     music: ['mu-bed-luylau', 'mu-bed-battle'], // its own bed if delivered, else the shared one
-    title: 'The Citadel at Luy Lâu',
-    subtitle: 'Gold armour, war elephants',
-    story:
-      'Word of the victory runs ahead of the army to Luy Lâu, the Han governor’s seat, where soldiers in gold armour man the walls. The sisters ride into battle on a war elephant, the great drum on its back.',
-    goal:
-      'Wake the drum, then strike: the elephant charges.',
+    title: T.chapters.luylau.title,
+    subtitle: T.chapters.luylau.subtitle,
+    story: T.chapters.luylau.story,
+    goal: T.chapters.luylau.goal,
     bpm: 100,
     unlocked: ['march', 'strike'],
     maxTier: 3,
@@ -171,12 +161,10 @@ export const STAGES = [
     id: 'coronation',
     music: ['mu-bed-coronation', 'mu-bed-story'], // its own bed if delivered, else the shared one
     mode: 'echo',
-    title: 'The Coronation at Mê Linh',
-    subtitle: 'Two queens',
-    story:
-      'The governor has fled north, and sixty-five citadels have opened their gates. At Mê Linh the people proclaim Trưng Trắc and Trưng Nhị their queens, and the festival drummers play into the night.',
-    goal:
-      'The festival drummers call ever richer rhythms: answer them, as evenly as you can, for the crowd.',
+    title: T.chapters.coronation.title,
+    subtitle: T.chapters.coronation.subtitle,
+    story: T.chapters.coronation.story,
+    goal: T.chapters.coronation.goal,
     caller: 'festival',
     calls: [
       { text: 'L R L R', bpm: 112 },
@@ -196,12 +184,10 @@ export const STAGES = [
   {
     id: 'mavien',
     music: ['mu-bed-mavien', 'mu-bed-battle'], // its own bed if delivered, else the shared one
-    title: 'Mã Viện Returns',
-    subtitle: 'Hold the ford',
-    story:
-      'Three years on, the Han emperor sends his general Mã Viện south with a great army. At the ford the last of the sisters’ soldiers must hold the line while Mê Linh empties behind them.',
-    goal:
-      'Hold the ford for ninety seconds: strike the columns, and raise the shields against every volley.',
+    title: T.chapters.mavien.title,
+    subtitle: T.chapters.mavien.subtitle,
+    story: T.chapters.mavien.story,
+    goal: T.chapters.mavien.goal,
     bpm: 100,
     unlocked: ['march', 'strike'],
     maxTier: 3,
@@ -229,12 +215,10 @@ export const STAGES = [
     id: 'elegy',
     music: ['mu-bed-elegy', 'mu-ending'], // its own bed if delivered, else the shared one
     mode: 'echo',
-    title: 'The Drums Are Melted',
-    subtitle: 'Epilogue',
-    story:
-      'Mã Viện gathers the bronze drums of the Lạc Việt to melt them down, so their voices can never again call the people to rise. Before the fire takes them, the last drummers play them one final time.',
-    goal:
-      'Answer each drum’s rhythm one last time: each one you answer falls silent, until none are left.',
+    title: T.chapters.elegy.title,
+    subtitle: T.chapters.elegy.subtitle,
+    story: T.chapters.elegy.story,
+    goal: T.chapters.elegy.goal,
     caller: 'elegy',
     calls: [
       { text: 'L R L R', bpm: 50 },

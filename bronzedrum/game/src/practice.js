@@ -14,6 +14,7 @@
 //        straight back on the next beat with a new call.
 
 import { TEMPO } from './rhythm.js';
+import { T } from './text_config.js';
 
 // The length of a rhythm, in beats (a beat holds one, two or three strokes, or none).
 export const BEATS = { min: 2, max: 12 };
@@ -22,26 +23,26 @@ export const BEATS = { min: 2, max: 12 };
 // and a high one (R). Sample ids are in assets/audio.json; `synth` says how
 // the stand-in sounds when a sample is missing (audio.js).
 export const KITS = [
-  { id: 'bronze', name: 'Bronze drum', vn: 'Trống đồng', L: 'drum-tung', R: 'drum-cac' },
-  { id: 'temple', name: 'Barrel drum and mõ', vn: 'Trống chầu · mõ', L: 'drum-chau', R: 'drum-mo' },
-  { id: 'rice', name: 'Rice drum', vn: 'Trống cơm', L: 'kit-com-low', R: 'kit-com-high' },
-  { id: 'gongs', name: 'Gongs', vn: 'Cồng chiêng', L: 'kit-gong-low', R: 'kit-gong-high' },
-  { id: 'bamboo', name: 'Bamboo', vn: 'Đàn t’rưng', L: 'kit-bamboo-low', R: 'kit-bamboo-high' },
-  { id: 'lion', name: 'Lion-dance drum', vn: 'Trống lân · chũm chọe', L: 'kit-lan-drum', R: 'kit-lan-cymbal' },
+  { id: 'bronze', name: T.practice.kits.bronze.name, vn: T.practice.kits.bronze.vn, L: 'drum-tung', R: 'drum-cac' },
+  { id: 'temple', name: T.practice.kits.temple.name, vn: T.practice.kits.temple.vn, L: 'drum-chau', R: 'drum-mo' },
+  { id: 'rice', name: T.practice.kits.rice.name, vn: T.practice.kits.rice.vn, L: 'kit-com-low', R: 'kit-com-high' },
+  { id: 'gongs', name: T.practice.kits.gongs.name, vn: T.practice.kits.gongs.vn, L: 'kit-gong-low', R: 'kit-gong-high' },
+  { id: 'bamboo', name: T.practice.kits.bamboo.name, vn: T.practice.kits.bamboo.vn, L: 'kit-bamboo-low', R: 'kit-bamboo-high' },
+  { id: 'lion', name: T.practice.kits.lion.name, vn: T.practice.kits.lion.vn, L: 'kit-lan-drum', R: 'kit-lan-cymbal' },
 ];
 
 // The secondary drum (Y): one voice at a time, struck alongside the bronze
 // drum and part of the rhythm (drum 'S'); LB and RB choose it. face: the kit
 // face drawn for it (Renderer.kitFace).
 export const SECONDS = [
-  { id: 'chau', name: 'Barrel drum', vn: 'Trống chầu', sample: 'drum-chau', face: 'temple' },
-  { id: 'mo', name: 'Slit drum', vn: 'Mõ', sample: 'drum-mo', face: 'temple' },
-  { id: 'com', name: 'Rice drum', vn: 'Trống cơm', sample: 'kit-com-low', face: 'rice' },
-  { id: 'gong', name: 'Low gong', vn: 'Cồng', sample: 'kit-gong-low', face: 'gongs' },
-  { id: 'chieng', name: 'High gong', vn: 'Chiêng', sample: 'kit-gong-high', face: 'gongs' },
-  { id: 'bamboo', name: 'Bamboo', vn: 'Đàn t’rưng', sample: 'kit-bamboo-low', face: 'bamboo' },
-  { id: 'lan', name: 'Lion-dance drum', vn: 'Trống lân', sample: 'kit-lan-drum', face: 'lion' },
-  { id: 'choe', name: 'Cymbals', vn: 'Chũm chọe', sample: 'kit-lan-cymbal', face: 'lion' },
+  { id: 'chau', name: T.practice.secondDrums.chau.name, vn: T.practice.secondDrums.chau.vn, sample: 'drum-chau', face: 'temple' },
+  { id: 'mo', name: T.practice.secondDrums.mo.name, vn: T.practice.secondDrums.mo.vn, sample: 'drum-mo', face: 'temple' },
+  { id: 'com', name: T.practice.secondDrums.com.name, vn: T.practice.secondDrums.com.vn, sample: 'kit-com-low', face: 'rice' },
+  { id: 'gong', name: T.practice.secondDrums.gong.name, vn: T.practice.secondDrums.gong.vn, sample: 'kit-gong-low', face: 'gongs' },
+  { id: 'chieng', name: T.practice.secondDrums.chieng.name, vn: T.practice.secondDrums.chieng.vn, sample: 'kit-gong-high', face: 'gongs' },
+  { id: 'bamboo', name: T.practice.secondDrums.bamboo.name, vn: T.practice.secondDrums.bamboo.vn, sample: 'kit-bamboo-low', face: 'bamboo' },
+  { id: 'lan', name: T.practice.secondDrums.lan.name, vn: T.practice.secondDrums.lan.vn, sample: 'kit-lan-drum', face: 'lion' },
+  { id: 'choe', name: T.practice.secondDrums.choe.name, vn: T.practice.secondDrums.choe.vn, sample: 'kit-lan-cymbal', face: 'lion' },
 ];
 
 // Reading free strokes as a rhythm (transcribe). The strokes are laid on a
@@ -224,9 +225,68 @@ export class PracticeSession {
     this.loops = 0; // rhythms completed (free) or answers given (call)
   }
 
-  /** The rhythm drummed so far, read (for the dots), or null. */
+  /** The rhythm drummed so far, read afresh (it may still regroup), or null. */
   get partial() {
     return this.phrase.length ? transcribe(this.phrase, { open: true, ...this.readOptions() }) : null;
+  }
+
+  /**
+   * What the dots show while the rhythm is drummed: only the beats that are
+   * settled, so nothing shown changes. A beat settles once strokes have
+   * landed two beats past it and two readings in a row (stroke after stroke)
+   * agree on it, on everything before it and on the tempo; until three strokes
+   * have set a tempo nothing is shown. The rest appears when the rhythm is
+   * complete. Kept on the phrase, so it starts afresh with it.
+   * { beats, strokes, text } like a reading, or null.
+   */
+  get shown() {
+    const ph = this.phrase;
+    if (!ph.length) return null;
+    if (!ph.settled) ph.settled = { beats: [], prev: null, n: 0 };
+    const st = ph.settled;
+    if (st.n !== ph.length) {
+      st.n = ph.length;
+      // Read with the beats set in mind: strokes so far cannot already run past them.
+      const span = ph[ph.length - 1].t - ph[0].t;
+      const opts = this.readOptions();
+      const floor = this.beats > 1 && span > 0 ? { uMin: Math.max(opts.uMin ?? 0, span / (this.beats - 0.15)) } : {};
+      const r = ph.length >= 3 ? transcribe(ph, { open: true, ...opts, ...floor }) || transcribe(ph, { open: true, ...opts }) : null;
+      if (r) {
+        const texts = r.text.split(' ');
+        const lastBeat = Math.floor(r.strokes[r.strokes.length - 1].pos);
+        const prev = st.prev;
+        // Agreeing with the last reading on the tempo too (within 8%).
+        const steady = prev && Math.abs(Math.log(r.u / prev.u)) < 0.08;
+        // A beat settles only with strokes two beats past it: a few quick strokes
+        // read as well as a pair at one tempo as a triplet at another, until more come.
+        for (let b = st.beats.length; steady && b < lastBeat - 1 && b < this.beats; b++) {
+          if (texts[b] !== prev.texts[b] || texts.slice(0, b).join(' ') !== st.beats.join(' ')) break;
+          st.beats.push(texts[b]);
+        }
+        st.prev = { u: r.u, texts };
+      }
+    }
+    return st.beats.length ? practicePattern(st.beats.join(' ')) : null;
+  }
+
+  /** The beats shown so far (shown), to keep the final reading in line with them. */
+  get settledBeats() {
+    return (this.phrase.settled && this.phrase.settled.beats) || [];
+  }
+
+  /**
+   * The tempos the beats set allow: the first stroke opens the first beat and
+   * the last falls in the last beat, so a rhythm of n beats spans a little
+   * under n - 1 to n beats. This pins the tempo to the one the player drummed
+   * (pairs cannot be read as beats, nor beats as pairs). Within any range the
+   * options already set.
+   */
+  pinned(strokes, opts = {}) {
+    const span = strokes[strokes.length - 1].t - strokes[0].t;
+    if (span <= 0 || this.beats < 2) return opts;
+    const uMin = Math.max(opts.uMin ?? 0, span / (this.beats - 0.15));
+    const uMax = Math.min(opts.uMax ?? Infinity, span / Math.max(0.5, this.beats - 1.25));
+    return uMin < uMax ? { ...opts, uMin, uMax } : opts;
   }
 
   /** The tempo already in the air: the loop's, or the partner's. */
@@ -252,7 +312,7 @@ export class PracticeSession {
     // Every beat already struck (read as a finished rhythm without rests, at
     // the tempo it was drummed): complete on time. Otherwise the last beat is
     // still to come, a little late perhaps: wait almost half a beat more.
-    const done = transcribe(this.phrase, { ...opts, beats: this.beats });
+    const done = transcribe(this.phrase, { ...this.pinned(this.phrase, opts), beats: this.beats });
     if (done && done.beats === this.beats && done.cost < 0.06) return this.phrase[0].t + (this.beats - 0.12) * Math.max(r.u, done.u);
     return end + 0.45 * r.u;
   }
@@ -282,7 +342,13 @@ export class PracticeSession {
     return events;
   }
 
-  /** How to read the player's strokes: the tempo in the air is preferred. */
+  /**
+   * How to read the player's strokes: the tempo already in the air (the loop
+   * just cleared, or the partner's) is preferred, though only among readings
+   * the strokes themselves allow; with the tempo pinned by the beats set
+   * (pinned) it breaks ties, as when a rhythm opens with a pair, and never
+   * moves the playback off the speed drummed.
+   */
   readOptions() {
     return { prior: this.prior };
   }
@@ -299,10 +365,16 @@ export class PracticeSession {
   lockIn() {
     const opts = this.readOptions();
     let best = null;
+    const shown = this.settledBeats;
     for (let k = 0; k <= 2 && this.phrase.length - k >= 2; k++) {
-      const r = transcribe(this.phrase.slice(k), { ...opts, beats: this.beats });
+      const strokes = this.phrase.slice(k);
+      // At the tempo the beats set (pinned), or any tempo if that reads nothing.
+      const r = transcribe(strokes, { ...this.pinned(strokes, opts), beats: this.beats }) || transcribe(strokes, { ...opts, beats: this.beats });
       if (!r) continue;
-      const score = r.cost + 0.2 * k + 0.08 * Math.max(0, r.beats - this.beats);
+      // What the dots already show stands unless the strokes plainly say otherwise.
+      const texts = r.text.split(' ');
+      const differs = shown.some((b, i) => texts[i] !== b) ? 0.3 : 0;
+      const score = r.cost + 0.4 * k + 0.08 * Math.max(0, r.beats - this.beats) + differs;
       if (!best || score < best.score) best = { r, k, score };
     }
     if (!best) return null;

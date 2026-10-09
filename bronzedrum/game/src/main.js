@@ -10,6 +10,7 @@ import { Sound } from './audio.js';
 import { Input, PAD } from './input.js';
 import { Renderer } from './render.js';
 import { Art, STYLES } from './art.js';
+import { T, txt, applyPageText } from './text_config.js';
 import { PALETTE as P } from './palette.js';
 import { createFit } from './fit.js';
 import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, canFullscreen } from './chrome.js';
@@ -36,13 +37,16 @@ function save(key, value) {
   }
 }
 
+// The page's own words (index.html) come from text_config.js.
+applyPageText();
+
 const settings = load('settings', { volume: 80, echo: 60, music: 60, ambience: 60, offset: 0, hints: true, vibration: true, reduceMotion: false, difficulty: 1, beats: 4, sticks: 0, style: 0 });
 // Difficulty: 0 easy, 1 medium, 2 hard (rhythm.js). It takes effect when a chapter starts.
-const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'];
+const DIFFICULTY_NAMES = T.settings.difficultyChoices;
 // The sisters' close-up sticks over the drum (render/hud.js STICK_SETS).
-const STICK_NAMES = ['Carved', 'Folk', 'Ceremonial'];
+const STICK_NAMES = T.settings.drumsticksChoices;
 // The look (art.js STYLES): the shadow puppets, or the water puppets.
-const STYLE_NAMES = ['Shadow puppets', 'Water puppets'];
+const STYLE_NAMES = T.settings.styleChoices;
 const SETTING_NAMES = { difficulty: DIFFICULTY_NAMES, sticks: STICK_NAMES, style: STYLE_NAMES };
 function applyDifficulty() {
   setDifficulty(DIFFICULTIES[settings.difficulty] || 'medium');
@@ -264,7 +268,7 @@ async function toggleFullscreen() {
     h.classList.add('flash');
     return;
   }
-  if (!canFullscreen()) return toast('Fullscreen is not available here');
+  if (!canFullscreen()) return toast(T.messages.fullscreenUnavailable);
   if (fullscreenElement()) await exitFullscreen();
   else await requestFullscreen();
 }
@@ -287,13 +291,13 @@ function buildCards() {
     b.dataset.nav = '';
     b.disabled = i >= progress.unlocked;
     const img = art.get(`card-${s.id}`);
-    b.innerHTML = `<span class="card-art${img ? '' : ' plain'}" aria-hidden="true"></span><span class="num">Chapter ${i + 1}</span><span class="name"></span><span class="sub"></span>`;
+    b.innerHTML = `<span class="card-art${img ? '' : ' plain'}" aria-hidden="true"></span><span class="num">${txt('chapterSelect.chapterNumber', { n: i + 1 })}</span><span class="name"></span><span class="sub"></span>`;
     if (img) b.querySelector('.card-art').style.backgroundImage = `url(${img.src})`;
     b.querySelector('.name').textContent = s.title;
     b.querySelector('.sub').textContent = s.subtitle;
     b.setAttribute('aria-description', `${s.story} ${s.goal}`);
     const describe = () => {
-      intro.textContent = i < progress.unlocked ? `${s.story} ${s.goal}` : 'Win the chapter before to unlock.';
+      intro.textContent = i < progress.unlocked ? `${s.story} ${s.goal}` : T.chapterSelect.locked;
     };
     b.addEventListener('focus', describe);
     b.addEventListener('mouseenter', describe);
@@ -305,10 +309,10 @@ function buildCards() {
 
 function buildCommandTable() {
   const t = $('#cmd-table');
-  t.innerHTML = '<tr><th>Command</th><th>I</th><th>II · ×1.4</th><th>III · ×1.96</th></tr>';
+  t.innerHTML = `<tr><th>${T.instructions.commandTable.command}</th><th>${T.instructions.commandTable.tier1}</th><th>${T.instructions.commandTable.tier2}</th><th>${T.instructions.commandTable.tier3}</th></tr>`;
   const effects = {
-    march: 'Advance (stops at the enemy line).',
-    strike: 'Spears hit the front enemy; archers shoot. At Luy Lâu, with the drum awake, the war elephant charges instead: it tramples everything near it and spends the drum’s spirit.',
+    march: T.instructions.commandEffects.march,
+    strike: T.instructions.commandEffects.strike,
   };
   const cell = (text) =>
     text
@@ -412,7 +416,7 @@ function startStage(i, custom = null, { opening = true } = {}) {
 function showOpening() {
   const g = game;
   g.opening = true;
-  $('#opening-num').textContent = `Chapter ${g.index + 1}`;
+  $('#opening-num').textContent = txt('opening.chapterNumber', { n: g.index + 1 });
   $('#opening-title').textContent = g.stage.title;
   $('#opening-story').textContent = g.stage.story;
   $('#opening-goal').textContent = g.stage.goal;
@@ -719,11 +723,11 @@ function handleRhythm(ev) {
     if (order === 'charge') g.reader.combo = 0;
     const power = commandPower(ev.accuracy, ev.spirit, TIER_POWER[ev.tier - 1]) * tempoFactor(ev.u);
     startCycle({ command: order, pattern: ev.pattern, tier: ev.tier, u: ev.u, start: ev.start, power, index: 0, spirit: ev.spirit });
-    const name = order === 'charge' ? 'Voi! The elephant charges' : `${c.name} ${['', 'I', 'II', 'III'][ev.tier]}`;
-    const pace = ev.u < 0.45 ? 'quick' : ev.u < 0.8 ? 'steady' : 'slow';
-    feedback(`${ev.even ? 'Even!' : 'Good'}  ${name} · ${pace}`, ev.even ? P.bronzeLight : P.paper);
+    const name = order === 'charge' ? T.battle.elephantCharges : `${c.name} ${['', 'I', 'II', 'III'][ev.tier]}`;
+    const pace = ev.u < 0.45 ? T.battle.paceQuick : ev.u < 0.8 ? T.battle.paceSteady : T.battle.paceSlow;
+    feedback(txt(ev.even ? 'battle.commandEven' : 'battle.commandGood', { command: name, pace }), ev.even ? P.bronzeLight : P.paper);
     if (ev.spirit && ev.combo === SPIRIT_COMBO) {
-      toast('Trống thức — the drum wakes!');
+      toast(T.battle.drumWakes);
       sound.play('drum-wake');
       renderer.wake(songTime());
       sound.play('cmd-rally', sound.now + 0.3, 0.7);
@@ -731,14 +735,14 @@ function handleRhythm(ev) {
     }
     g.commandsDone += 1;
     g.tiersUsed.add(ev.tier);
-    if (ev.command === 'march') lessonDone('march', 'The women march!');
-    if (ev.command === 'march' && ev.tier >= 2) lessonDone('march2', 'Two quick strokes in one beat: a stronger march!');
-    if (ev.command === 'strike') lessonDone('strike', 'A strike! Spears and arrows fly.');
+    if (ev.command === 'march') lessonDone('march', T.lessons.praise.march);
+    if (ev.command === 'march' && ev.tier >= 2) lessonDone('march2', T.lessons.praise.march2);
+    if (ev.command === 'strike') lessonDone('strike', T.lessons.praise.strike);
   } else if (ev.type === 'flourish') {
     addFlourish(g.battle);
-    feedback(`Nhị’s flourish ×${ev.count}`, P.lacquer);
+    feedback(txt('battle.flourish', { count: ev.count }), P.lacquer);
     g.flourishTaught = true;
-    lessonDone('flourish', 'Nhị’s flourish: the answer hits harder!');
+    lessonDone('flourish', T.lessons.praise.flourish);
   } else if (ev.type === 'reset') {
     // Three uneven tries in a row at a rhythm: play it again for them.
     if ((ev.reason === 'uneven' || ev.reason === 'timeout') && ev.strokes >= 2) {
@@ -748,16 +752,16 @@ function handleRhythm(ev) {
         g.wantAgain = g.lastTry;
       }
     }
-    if (ev.reason === 'manual' && !g.quietClear) confirm('Cleared', P.paperShade);
+    if (ev.reason === 'manual' && !g.quietClear) confirm(T.battle.cleared, P.paperShade);
     if (ev.reason === 'no-pattern') sound.miss();
     // Training: a try that does not make the rhythm is told plainly.
     if (g.training && ev.reason !== 'manual' && (ev.strokes || 0) >= 1 && g.session.call) {
       trainingTally(g.session.call.n, false);
-      const why = { uneven: 'uneven', timeout: 'too slow to finish', 'no-pattern': 'not this rhythm' }[ev.reason] || 'not quite';
-      confirm(`Not quite (${why}) — try again`, P.lacquer);
+      const why = T.training.missReasons[ev.reason] || T.training.missReasons.other;
+      confirm(txt('training.miss', { why }), P.lacquer);
     }
   } else if (ev.type === 'comboLost') {
-    if (ev.combo > 1 && g.mode === 'battle') feedback('Chain broken', P.paperShade);
+    if (ev.combo > 1 && g.mode === 'battle') feedback(T.battle.chainBroken, P.paperShade);
   }
 }
 
@@ -775,18 +779,18 @@ function handleMode(e) {
       const voice = { mourning: 0.72, village: 1.08, festival: 1.18, elegy: 0.8 }[stage.caller] || 1;
       // Kept so an early answer can silence the rest of the call.
       g.callSources = e.call.strokes.map((s) => ({ at: g.clockStart + s.t, src: sound.echo(s.drum, g.clockStart + s.t, 0.75, voice) }));
-      if (e.call.label) feedback(`${e.call.label} calls`, P.paperShade);
-      if (g.training) feedback(`Rhythm ${e.call.n} — listen`, P.paperShade);
+      if (e.call.label) feedback(txt('answering.callerCalls', { caller: e.call.label }), P.paperShade);
+      if (g.training) feedback(txt('training.listen', { n: e.call.n }), P.paperShade);
       break;
     }
     case 'yourTurn':
-      feedback('Your turn', P.paper);
+      feedback(T.answering.yourTurn, P.paper);
       break;
     case 'repeat':
-      feedback('Again — listen', P.paperShade);
+      feedback(T.answering.again, P.paperShade);
       break;
     case 'offTempo':
-      feedback(e.faster ? 'Too fast — match their speed' : 'Too slow — match their speed', P.lacquer);
+      feedback(e.faster ? T.answering.tooFast : T.answering.tooSlow, P.lacquer);
       g.reader.action = null;
       g.reader.shown = null;
       break;
@@ -805,12 +809,12 @@ function handleMode(e) {
       }
       if (g.training) {
         trainingTally(e.call.n, true);
-        confirm(`Rhythm ${e.call.n}: well played · ${Math.round(e.accuracy * 100)}% even`, P.bronzeLight);
+        confirm(txt('training.wellPlayed', { n: e.call.n, even: Math.round(e.accuracy * 100) }), P.bronzeLight);
         sound.play('lantern', sound.now + 0.1, 0.6);
         break;
       }
-      const words = { mourning: 'An incense stick is lit', village: `${e.call.label || 'The village'} answers`, festival: 'The crowd roars', elegy: 'A drum falls silent' };
-      confirm(words[stage.caller] || 'Answered', P.bronzeLight);
+      const words = { mourning: T.answering.answered.mourning, village: txt('answering.answered.village', { caller: e.call.label || T.answering.theVillage }), festival: T.answering.answered.festival, elegy: T.answering.answered.elegy };
+      confirm(words[stage.caller] || T.answering.answered.other, P.bronzeLight);
       if (stage.caller === 'festival') sound.play('crowd-cheer', sound.now + 0.2, 0.8);
       else if (stage.caller === 'village') {
         // The village comes to life: its gong and voices over the water, its house ablaze.
@@ -821,13 +825,13 @@ function handleMode(e) {
       break;
     }
     case 'crack':
-      confirm(e.faster ? 'Rushing — some bronze spills' : e.slower ? 'Dragging — the bronze cools' : 'A little bronze spills', P.lacquer);
+      confirm(e.faster ? T.casting.rushing : e.slower ? T.casting.dragging : T.casting.spills, P.lacquer);
       sound.play('crack');
       g.crackAt = t;
       break;
     case 'cast':
-      toast(`Drum ${e.drum + 1} is cast`);
-      confirm(`Drum ${e.drum + 1} cast!`, P.bronzeLight);
+      toast(txt('casting.drumIsCast', { n: e.drum + 1 }));
+      confirm(txt('casting.drumCast', { n: e.drum + 1 }), P.bronzeLight);
       sound.play('pour', sound.now, 0.8);
       g.castAt = { ...(g.castAt || {}), [e.drum]: t };
       sound.play('drum-wake', sound.now + 0.3, 0.6);
@@ -836,7 +840,7 @@ function handleMode(e) {
     case 'complete':
       if (g.training) {
         // The end of the level: round again from its first rhythm.
-        toast(`Level ${g.training.level} · ${LEVELS[g.training.level - 1].name}: every rhythm played. Again from the top.`);
+        toast(txt('training.levelDone', { level: g.training.level, name: LEVELS[g.training.level - 1].name }));
         trainingSelect(g.training.level, 0, 1.6);
         break;
       }
@@ -886,7 +890,7 @@ const seenDemos = new Set((() => {
 function startDemo(item, { again = false, u = 0.55 } = {}) {
   const g = game;
   const strokes = parsePattern(item.text);
-  const prefix = again ? `Listen again — ${item.label}: ` : `Listen — ${item.label}: `;
+  const prefix = txt(again ? 'demonstration.listenAgain' : 'demonstration.listen', { rhythm: item.label });
   g.demo = { text: prefix + rhythmTokens(item.text), tokenStart: 0, strokes, u, start: songTime() + 0.5, reps: DEMO_REPS, key: item.key, sources: [], beats: beatsOf(item.text) };
   // Every stroke is scheduled on the audio clock now, so a slow frame cannot
   // delay one: the pointer follows the same clock (heardTime) and stays on it.
@@ -968,46 +972,46 @@ function hint(view) {
   const near = front && front.x - b.army.x <= 4.6;
   if (g.mode === 'echo') {
     const sess = g.session;
-    if (sess.phase === 'calling' && sess.index === 0) return 'Listen to the call — answer as soon as you know it';
+    if (sess.phase === 'calling' && sess.index === 0) return T.hints.listenToCall;
     if (sess.phase === 'answer' && sess.index === 0) {
-      return touch ? 'Now answer it: the same rhythm, evenly (● centre = tùng, ○ rim = cắc)' : `Now answer it: the same rhythm, evenly (${keys.L} = tùng, ${keys.R} = cắc)`;
+      return touch ? T.hints.answerTouch : txt('hints.answerKeys', { deepKey: keys.L, rimKey: keys.R });
     }
     return null;
   }
   if (g.mode === 'casting') {
     const sess = g.session;
     if (sess.cast === 0 && sess.level === 0) {
-      g.mentioned = [{ key: `cast:${g.rhythm}`, text: g.rhythm, label: 'The hammer rhythm' }];
-      return `Drum with the bellows, at their pace: ${rhythmTokens(g.rhythm)}`;
+      g.mentioned = [{ key: `cast:${g.rhythm}`, text: g.rhythm, label: T.casting.hammerRhythm }];
+      return txt('hints.drumWithBellows', { rhythm: rhythmTokens(g.rhythm) });
     }
-    return 'Keep the bellows’ pace — every phrase in time with them';
+    return T.hints.keepBellowsPace;
   }
-  if (g.stage.id === 'mavien' && view.songTime < 20) return 'Hold the ford — strike the columns, shield every volley';
+  if (g.stage.id === 'mavien' && view.songTime < 20) return T.hints.holdTheFord;
   if (g.lessons) {
     // The garden's lessons, one at a time (lessonNow).
-    const guardKey = { keyboard: 'Space', gamepad: '⟨A⟩', pointer: 'click the drum', touch: 'the Shield button' }[input.device] || 'Space';
+    const guardKey = T.hints.guardKeyLessons[input.device] || T.hints.guardKeyLessons.keyboard;
     switch (lessonNow()) {
       case 'march':
-        return touch ? `Tap the drum evenly (● centre, ○ rim) — ${say('march')}` : `Drum evenly, at any speed — ${say('march')}`;
+        return txt(touch ? 'lessons.hints.marchTouch' : 'lessons.hints.march', { rhythm: say('march') });
       case 'block':
-        return `Stones! Block with ${guardKey} while a stone is in the air`;
+        return txt('lessons.hints.block', { key: guardKey });
       case 'march2':
-        return `Stronger: two quick strokes share a beat — ${say('march', 2)}`;
+        return txt('lessons.hints.march2', { rhythm: say('march', 2) });
       case 'strike':
-        return near ? `In reach — ${say('strike')}` : `March on to the targets — ${say('march')}`;
+        return near ? txt('hints.inReach', { rhythm: say('strike') }) : txt('lessons.hints.marchToTargets', { rhythm: say('march') });
       case 'flourish':
-        return `While they answer, tap ${touch ? 'the rim' : keys.R} between their beats for Nhị’s flourish`;
+        return txt('lessons.hints.flourish', { rim: touch ? T.lessons.hints.theRim : keys.R });
       default:
-        return near ? (g.tiersUsed.has(2) ? `In reach — ${say('strike')}  or  ${say('strike', 2)}` : `In reach — ${say('strike')}`) : `March on to the next target — ${say('march')}`;
+        return near ? (g.tiersUsed.has(2) ? txt('hints.inReachOr', { rhythm: say('strike'), stronger: say('strike', 2) }) : txt('hints.inReach', { rhythm: say('strike') })) : txt('lessons.hints.marchToNextTarget', { rhythm: say('march') });
     }
   }
-  const guardKey = { keyboard: 'Space', gamepad: '⟨A⟩', pointer: 'tap the drum', touch: 'the Shield button' }[input.device] || 'Space';
-  if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return `Attack coming — shield (${guardKey}) while it is in the air`;
+  const guardKey = T.hints.guardKey[input.device] || T.hints.guardKey.keyboard;
+  if (g.index > 0 && (view.threats.length || view.incoming) && g.blocks < 3 && !view.shieldsUp) return txt('hints.attackComing', { key: guardKey });
   if (g.stage.id === 'outpost' && b.enemies.some((e) => e.alive && e.type === 'crossbow' && e.x - b.army.x <= 14) && g.commandsDone < 12) {
-    return `The third tier hits hardest — ${say('strike', 3)}`;
+    return txt('hints.thirdTier', { rhythm: say('strike', 3) });
   }
-  if (g.stage.id === 'luylau' && near && g.reader.spirit) return `The drum is awake — strike and the elephant charges: ${say('strike')}`;
-  if (g.stage.id === 'luylau' && !g.reader.spirit && g.commandsDone < 6) return 'Chain four commands to wake the drum — then a strike becomes the elephant charge';
+  if (g.stage.id === 'luylau' && near && g.reader.spirit) return txt('hints.drumAwakeCharge', { rhythm: say('strike') });
+  if (g.stage.id === 'luylau' && !g.reader.spirit && g.commandsDone < 6) return T.hints.chainToWake;
   return null;
 }
 
@@ -1042,10 +1046,10 @@ function updatePlay(dt) {
   // The garden's last lesson: with the targets down, the children come
   // throwing stones (the chapter is held open until they have run off).
   if (g.lessons && !g.lessons.kids && g.battle.enemies.filter((e) => e.goal).every((e) => !e.alive)) {
-    lessonDone('targets', 'The targets are down!');
+    lessonDone('targets', T.lessons.praise.targets);
     g.lessons.kids = true;
     spawnChildren(g.battle, 16, 6.5);
-    feedback('Village children come running…', P.paperShade);
+    feedback(T.lessons.childrenCome, P.paperShade);
   }
   // Hold the line: new columns arrive.
   if (g.stage.waves) {
@@ -1085,16 +1089,16 @@ function updatePlay(dt) {
       // The lesson in blocking: two stones blocked and the children give up.
       g.lessons.blocked += 1;
       if (g.lessons.blocked >= 2) {
-        lessonDone('block', 'Blocked! The children run off, laughing.');
+        lessonDone('block', T.lessons.praise.block);
         dismissChildren(g.battle);
-      } else confirm('Blocked! Once more', P.bronzeLight);
+      } else confirm(T.lessons.blockedOnceMore, P.bronzeLight);
     } else if (ev.type === 'deflect') {
       g.blocks += 1;
-      confirm('Defended', P.bronzeLight);
+      confirm(T.battle.defended, P.bronzeLight);
     }
     if (ev.type === 'wound' && ev.source !== undefined && g.battle.enemies.find((e) => e.id === ev.source)?.type === 'children') {
       g.coverUntil = t + 0.7; // the women throw up their arms against it
-      feedback('Ouch! Block the stones while they fly', P.lacquer);
+      feedback(T.lessons.stoneHit, P.lacquer);
     }
     // Both children gone off screen: the chapter can end.
     if (ev.type === 'childrenGone' && g.lessons && passed('block') && !g.battle.enemies.some((e) => e.type === 'children' && e.alive)) g.battle.hold = false;
@@ -1238,7 +1242,7 @@ function view() {
     g.wantAgain = null;
     const c = commandById(p.command);
     const echoU = g.mode === 'echo' && g.session.call ? g.session.call.u : null;
-    startDemo({ key: `again:${p.text}`, text: p.text, label: c ? `${c.name}${p.tier > 1 ? ' ' + ['', 'I', 'II', 'III'][p.tier] : ''}` : 'The rhythm' }, { again: true, u: echoU || 0.55 });
+    startDemo({ key: `again:${p.text}`, text: p.text, label: c ? `${c.name}${p.tier > 1 ? ' ' + ['', 'I', 'II', 'III'][p.tier] : ''}` : T.demonstration.theRhythm }, { again: true, u: echoU || 0.55 });
     v.hint = hint(v);
   } else if (free && settings.hints && g.mentioned && !r.action) {
     const item = g.mentioned.find((m) => !seenDemos.has(m.key));
@@ -1276,19 +1280,6 @@ function view() {
   return v;
 }
 
-/** The success moment's title for each chapter. */
-const SUCCESS = {
-  garden: 'The targets fall',
-  oath: 'The oath is sworn',
-  casting: 'Three drums, cast true',
-  villages: 'The river is lit',
-  outpost: 'The ford is ours',
-  luylau: 'Luy Lâu is free',
-  coronation: 'Two queens',
-  mavien: 'The line held',
-  elegy: 'The drums remember',
-};
-
 /** Go on from the success moment: the next chapter, or the list after the last. */
 function continueOn() {
   if (!game || !game.success) return;
@@ -1309,17 +1300,6 @@ function focusSuccess() {
   if (input.device === 'gamepad') b.classList.add('nav-focus');
 }
 
-const RESULTS = {
-  garden: 'The straw targets are down. The women know the drum.',
-  oath: 'The incense burns for your father. The sisters swear to drive out the Han.',
-  casting: 'Three bronze drums, cast true. They will carry across the delta.',
-  villages: 'Lanterns burn along the river from Phong Châu to Giao Chỉ. The villages will fight.',
-  outpost: 'The drum carries across the water. The ford is yours.',
-  luylau: 'Luy Lâu falls and the governor flees north. Sixty-five citadels are free.',
-  coronation: 'Trưng Trắc and Trưng Nhị are queens of the Lạc Việt.',
-  mavien: 'The ford held until Mê Linh was empty. The sisters’ army withdraws, still unbroken.',
-  elegy: 'The last drum falls silent. They will be cast into a bronze horse — but the rhythm is remembered.',
-};
 
 function finish(outcome) {
   game.ended = true;
@@ -1340,10 +1320,10 @@ function finish(outcome) {
       sound.play('drum-wake', sound.now, 0.7);
       game.success = { t: songTime() };
       renderer.celebrate(game.stage, songTime());
-      const even = game.evenness !== undefined ? ` Evenness ${Math.round(game.evenness * 100)}%.` : '';
-      $('#success-title').textContent = SUCCESS[game.stage.id] || 'Chapter complete';
-      $('#success-text').textContent = RESULTS[game.stage.id] + even;
-      $('#success-next').querySelector('.label').textContent = game.index >= STAGES.length - 1 ? 'Chapters' : 'Continue';
+      const even = game.evenness !== undefined ? txt('results.evenness', { even: Math.round(game.evenness * 100) }) : '';
+      $('#success-title').textContent = T.chapters[game.stage.id].successTitle || T.results.chapterComplete;
+      $('#success-text').textContent = T.chapters[game.stage.id].resultText + even;
+      $('#success-next').querySelector('.label').textContent = game.index >= STAGES.length - 1 ? T.results.chapters : T.results.continue;
       $('#success').hidden = false;
       requestAnimationFrame(() => $('#success').classList.add('show'));
       focusSuccess();
@@ -1354,11 +1334,11 @@ function finish(outcome) {
     if (!game || screen !== 'play') return;
     const peaceful = game.mode !== 'battle';
     sound.playMusic(!won ? 'mu-defeat' : game.stage.id === 'elegy' ? 'mu-ending' : peaceful ? 'mu-complete' : 'mu-victory', { fade: 0.3 });
-    $('#result-title').textContent = won ? (peaceful ? 'Chapter complete' : 'Victory') : 'The line breaks';
-    const even = game.evenness !== undefined ? ` Evenness: ${Math.round(game.evenness * 100)}%.` : '';
+    $('#result-title').textContent = won ? (peaceful ? T.results.chapterComplete : T.results.victory) : T.results.defeat;
+    const even = game.evenness !== undefined ? txt('results.evenness', { even: Math.round(game.evenness * 100) }) : '';
     $('#result-text').textContent = won
-      ? RESULTS[game.stage.id] + even
-      : 'The women fall back to regroup. Raise the shields while the bolts are in the air.';
+      ? T.chapters[game.stage.id].resultText + even
+      : T.results.defeatText;
     $('#result-next').hidden = !won || game.index >= STAGES.length - 1;
     show('result');
   }, 1600);
@@ -1370,11 +1350,11 @@ function pause(reason = '') {
   sound.pauseMusic(true);
   $('#pause-reason').textContent = reason;
   $('#pause-chapter').innerHTML = '<span class="num"></span><span class="name"></span>';
-  $('#pause-chapter .num').textContent = game.practice ? 'Drum Practice' : `Chapter ${game.index + 1}`;
+  $('#pause-chapter .num').textContent = game.practice ? T.pause.drumPractice : txt('pause.chapterNumber', { n: game.index + 1 });
   $('#pause-chapter .name').textContent = game.stage.title;
   // In practice the chapter buttons lead back to the practice modes instead.
-  $('#pause [data-action="restart"]').textContent = game.practice ? 'Start over' : 'Restart chapter';
-  $('#pause [data-action="select"]').textContent = game.practice ? 'Practice modes' : 'Chapters';
+  $('#pause [data-action="restart"]').textContent = game.practice ? T.pause.startOver : T.pause.restartChapter;
+  $('#pause [data-action="select"]').textContent = game.practice ? T.pause.practiceModes : T.pause.chapters;
   show('pause');
 }
 
@@ -1403,12 +1383,12 @@ function resume() {
 // throw stones until two are blocked; then they run off.
 
 const LESSONS = [
-  { id: 'march', name: 'March' },
-  { id: 'march2', name: 'A stronger march' },
-  { id: 'strike', name: 'Strike' },
-  { id: 'flourish', name: 'Nhị’s flourish' },
-  { id: 'targets', name: 'Cut down the targets' },
-  { id: 'block', name: 'Block the stones' },
+  { id: 'march', name: T.lessons.names.march },
+  { id: 'march2', name: T.lessons.names.march2 },
+  { id: 'strike', name: T.lessons.names.strike },
+  { id: 'flourish', name: T.lessons.names.flourish },
+  { id: 'targets', name: T.lessons.names.targets },
+  { id: 'block', name: T.lessons.names.block },
 ];
 
 /** The lesson to teach now: the block while the children are here, else the first not yet done. */
@@ -1445,9 +1425,9 @@ function lessonDone(id, praise) {
 const TRAINING_STAGE = {
   id: 'training',
   mode: 'echo',
-  title: 'Training',
-  subtitle: 'The chapters’ rhythms, level by level',
-  goal: 'Play each rhythm back after your partner. The levels run from plain beats to triplet runs.',
+  title: T.training.title,
+  subtitle: T.training.subtitle,
+  goal: T.training.goal,
   caller: 'training',
   calls: [],
   asDesigned: true,
@@ -1536,10 +1516,10 @@ function trainingAct(action) {
 /** How Training's controls are shown for the device in use, as rich-text tokens. */
 function trainingKeys() {
   return {
-    gamepad: '⟨k:◀⟩ ⟨k:▶⟩ level · ⟨k:▲⟩ ⟨k:▼⟩ rhythm · ⟨A⟩ hear it again',
-    touch: 'Tap a level or a rhythm · swipe the drum to hear it again',
-    pointer: 'Click a level or a rhythm · Space: hear it again',
-  }[input.device] || '⟨k:←⟩ ⟨k:→⟩ level · ⟨k:↑⟩ ⟨k:↓⟩ rhythm · Space: hear it again';
+    gamepad: T.training.controls.gamepad,
+    touch: T.training.controls.touch,
+    pointer: T.training.controls.pointer,
+  }[input.device] || T.training.controls.keyboard;
 }
 
 /** Count a success or a miss at a rhythm, for its row in the list. */
@@ -1714,7 +1694,7 @@ input.on('padButton', (i) => {
   // The d-pad moves between Press Start and Drum Practice; any other button starts.
   if (i >= PAD.UP && i <= PAD.RIGHT) {
     titleNav = true;
-    $('#title-hint').innerHTML = '<span class="xb xb-a">A</span> select · Menu start';
+    $('#title-hint').innerHTML = T.title.hintController;
     return;
   }
   pressStart();
@@ -1722,12 +1702,12 @@ input.on('padButton', (i) => {
 input.on('stick', () => {
   if (screen === 'title' && !titleNav && !dialogs.length) {
     titleNav = true;
-    $('#title-hint').innerHTML = '<span class="xb xb-a">A</span> select · Menu start';
+    $('#title-hint').innerHTML = T.title.hintController;
   }
 });
 input.on('device', (d) => {
-  if (d.type === 'disconnected' && screen === 'play') pause('Controller disconnected — reconnect it or use the keyboard.');
-  if (d.type === 'connected') toast('Controller connected');
+  if (d.type === 'disconnected' && screen === 'play') pause(T.messages.controllerDisconnected);
+  if (d.type === 'connected') toast(T.messages.controllerConnected);
   if (d.type === 'switch') {
     const f = document.activeElement;
     if (d.device === 'gamepad' && f && f !== document.body) f.classList.add('nav-focus');
@@ -1791,8 +1771,8 @@ async function boot() {
   applySettings();
   if (coarsePointer.matches) {
     $('#title-hint').textContent = chrome.scrollTrick || window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
-      ? 'Best played with the device sideways'
-      : 'Best played sideways · tip: Add to Home Screen to play full screen';
+      ? T.title.hintSideways
+      : T.title.hintSidewaysAddToHome;
   }
   buildCommandTable();
   // The title is usable at once: on a slow connection the player may press
@@ -1803,7 +1783,7 @@ async function boot() {
   const logo = art.get('logo');
   if (logo) {
     $('#logo-img').src = logo.src;
-    $('#logo-img').alt = 'Bronze Drum';
+    $('#logo-img').alt = T.game.name;
     $('#logo-img').hidden = false;
     $('#logo-text').classList.add('visually-hidden');
   }

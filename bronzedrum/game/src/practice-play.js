@@ -4,6 +4,7 @@
 // renderer, input, art), settings and storage, the clocks, the screen and
 // feedback helpers, and the current game as ctx.game (read and replaced).
 
+import { T, txt } from './text_config.js';
 import { createBattle } from './battle.js';
 import { PALETTE as P } from './palette.js';
 import { PracticeSession, CallSession, KITS, SECONDS, loopPosition } from './practice.js';
@@ -17,21 +18,21 @@ export function createPractice(ctx) {
   const PRACTICE = {
     free: {
       id: 'practice-free',
-      title: 'Free drumming',
-      subtitle: 'Drum anything; the crew plays it back',
-      intro: 'Drum any rhythm of four beats (or as many as you set), one, two or three strokes a beat. The drum crew plays it back again and again, and dancers gather at the fire. Drum along with it as long as you like; it keeps going until you clear it with A (Space, or a swipe), and then the next rhythm you drum takes its place. Pairs, triplets, pauses: anything goes.',
+      title: T.practice.modes.free.title,
+      subtitle: T.practice.modes.free.subtitle,
+      intro: T.practice.modes.free.intro,
     },
     call: {
       id: 'practice-call',
-      title: 'Call and answer',
-      subtitle: 'Trade rhythms with a partner',
-      intro: 'Your partner drums a call and you answer with any rhythm of the same number of beats. The call and your answer then play together, again and again, and you can drum along. Clear it with A (Space, or a swipe) and it is your turn to call: your partner answers with a riff on your rhythm. Each clear hands the call to the other side.',
+      title: T.practice.modes.call.title,
+      subtitle: T.practice.modes.call.subtitle,
+      intro: T.practice.modes.call.intro,
     },
     training: {
       id: 'practice-training',
-      title: 'Training',
-      subtitle: 'The chapters’ rhythms, level by level',
-      intro: 'Every rhythm the chapters ask for, numbered and sorted into five levels, from plain beats to triplet runs. Choose a level (◀ ▶) and a rhythm (▲ ▼); your partner plays it and you play it back, judged as in the game. Each rhythm you play well leads on to the next.',
+      title: T.practice.modes.training.title,
+      subtitle: T.practice.modes.training.subtitle,
+      intro: T.practice.modes.training.intro,
     },
   };
   for (const st of Object.values(PRACTICE)) Object.assign(st, { mode: 'practice', sky: 'dusk', ambience: 'amb-practice', troops: 0, elephant: false, enemies: [] });
@@ -56,7 +57,7 @@ export function createPractice(ctx) {
       b.className = 'card';
       b.dataset.nav = '';
       const img = art.get(`card-${st.id}`);
-      b.innerHTML = `<span class="card-art${img ? '' : ' plain'}" aria-hidden="true"></span><span class="num">Drum Practice</span><span class="name"></span><span class="sub"></span>`;
+      b.innerHTML = `<span class="card-art${img ? '' : ' plain'}" aria-hidden="true"></span><span class="num">${T.practice.cardLabel}</span><span class="name"></span><span class="sub"></span>`;
       if (img) b.querySelector('.card-art').style.backgroundImage = `url(${img.src})`;
       b.querySelector('.name').textContent = st.title;
       b.querySelector('.sub').textContent = st.subtitle;
@@ -207,7 +208,7 @@ export function createPractice(ctx) {
         g.loopBus = sound.bus(level);
         g.loopNext = 0;
         g.doneAt = songTime();
-        confirm('Again and again', P.bronzeLight);
+        confirm(T.practice.againAndAgain, P.bronzeLight);
         break;
       }
       case 'clear':
@@ -260,7 +261,7 @@ export function createPractice(ctx) {
         if (g.loopBus) g.loopBus.disconnect();
         g.loopBus = sound.bus(level);
         g.loopNext = 0;
-        confirm('Again and again', P.bronzeLight);
+        confirm(T.practice.againAndAgain, P.bronzeLight);
         break;
       }
       case 'turn':
@@ -318,7 +319,6 @@ export function createPractice(ctx) {
     const played = (strokes, end = Infinity) => strokes.filter((st) => st.t <= Math.min(t, end)).length;
     const asPattern = (r) => ({ strokes: r.strokes, beats: r.beats, text: r.text });
     const drumming = s.phrase.length ? { entering: true } : null;
-    const beatOf = () => `beat ${Math.min(s.beats, s.partial ? s.partial.beats : 1)} of ${s.beats}`;
     if (s.phase === 'loop' && s.exchange && s.loop) {
       const L = s.loop;
       const n = s.beats;
@@ -332,7 +332,7 @@ export function createPractice(ctx) {
           played: sounding ? strokes.filter((st) => st.pos <= k).length : strokes.length,
           glow: sounding,
           dim: !sounding,
-          label: half.who === 'partner' ? 'Partner' : 'You',
+          label: half.who === 'partner' ? T.practice.partner : T.practice.you,
         };
       };
       const { first, second } = s.exchange;
@@ -342,7 +342,7 @@ export function createPractice(ctx) {
       return {
         top: partner,
         bottom: you,
-        heading: first.who === 'partner' ? 'Call and answer, again and again' : 'Your call and its answer, again and again',
+        heading: first.who === 'partner' ? T.practice.exchangeLoopsPartner : T.practice.exchangeLoopsYou,
         headingColor: P.bronzeLight,
       };
     }
@@ -350,16 +350,16 @@ export function createPractice(ctx) {
       return {
         top: null,
         bottom: drumming,
-        heading: drumming ? `Your call: ${beatOf()}` : `Your turn: call any ${s.beats} beats`,
+        heading: drumming ? T.practice.yourCall : txt('practice.yourTurnToCall', { beats: s.beats }),
         headingColor: drumming ? P.paper : P.bronzeLight,
       };
     }
     const call = s.call;
     const calling = !!call && s.phase === 'call' && t >= call.start - 0.05 && t < call.end && !s.phrase.length;
     return {
-      top: call && s.phase !== 'wait' ? { pattern: asPattern(call), played: played(call.strokes, call.end), glow: calling, label: 'Partner' } : null,
+      top: call && s.phase !== 'wait' ? { pattern: asPattern(call), played: played(call.strokes, call.end), glow: calling, label: T.practice.partner } : null,
       bottom: drumming,
-      heading: calling ? 'Listen…' : drumming ? `Your answer: ${beatOf()}` : call && s.phase !== 'wait' ? `Answer with any ${s.beats} beats` : 'Your partner is about to call…',
+      heading: calling ? T.practice.listen : drumming ? T.practice.yourAnswer : call && s.phase !== 'wait' ? txt('practice.answerWith', { beats: s.beats }) : T.practice.partnerAboutToCall,
     };
   }
 
@@ -383,8 +383,8 @@ export function createPractice(ctx) {
     let hint = null;
     if (settings.hints && t < 14 && !s.loops) {
       hint = s.mode === 'free'
-        ? `Drum any ${s.beats} beats — ${keys.L} tùng, ${keys.R} cắc, one to three strokes a beat — and the crew plays them back`
-        : `Listen to your partner, then answer with any ${s.beats} beats`;
+        ? txt('practice.hintFree', { beats: s.beats, deepKey: keys.L, rimKey: keys.R })
+        : txt('practice.hintCall', { beats: s.beats });
     }
     const v = {
       battle: g.battle,
@@ -423,7 +423,8 @@ export function createPractice(ctx) {
         kit: practiceKit(),
         second: secondDrum(),
         entered: s.phrase.length,
-        partial: s.partial,
+        // The settled beats only (PracticeSession.shown): what is shown never regroups.
+        partial: s.shown,
         loop: s.loop,
         loopPos: lp,
         call,
