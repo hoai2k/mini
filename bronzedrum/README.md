@@ -156,8 +156,8 @@ were regenerated as rounded carved wooden puppets, and BD-WP11 now includes
 the water pavilion. The water sisters use independently measured crop boxes;
 shadow art and rigs are retained. Replacement provenance and native/export sizes
 are recorded in `design/image-regenerations-water-puppets.json`.
-BD-WC15 now faces left, but its running frames still need more distinct opposite
-leg poses, so that request remains marked `regenerate`.
+BD-WC15 faces left and has distinct stride and tucked-leg running poses.
+All 19 water-puppet regeneration requests are delivered.
 
 All 152 requests have generated artwork, including BD-C14, the wider drum
 palanquin with standing places for the sisters, and the five Drum Practice assets

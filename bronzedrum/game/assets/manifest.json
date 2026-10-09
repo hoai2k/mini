@@ -866,7 +866,7 @@
       "id": "wp-children-sheet",
       "request": "BD-WC15",
       "file": "art/wp-children-sheet.png",
-      "status": "regenerate",
+      "status": "delivered",
       "section": "water",
       "runtime": true,
       "base": "children-sheet",
