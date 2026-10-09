@@ -64,3 +64,12 @@ the closing-blade strokes and "Jammed!" sit on the blades and above the
 head. The pose sheets are drawn at the painting's framing. IC-M04c and
 IC-M04d now describe the painting (pink scissors, grey blades pointing up
 and to the left, eye at the hinge, finger loops as head and body, pink tail).
+
+## Matched to the delivered art
+
+The fairground scene (IC-M04a) puts the fence's top rail higher than the
+stand-in did: its top edge is at y 674 (measured on the painting), so the
+knots, the notch and the strings now tie on there (was 706), and the
+Snippit is sized from it, its eye just above the rail (about 286 px tall).
+The balloons, kites and the Snippit's poses (IC-M04b to d) are still
+drawn in code or from the portrait until their sheets arrive.

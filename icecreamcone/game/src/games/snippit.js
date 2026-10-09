@@ -21,8 +21,9 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const PEG_Y = 706; // where the strings are tied, on top of the rail
-const RAIL_Y = 714;
+// Measured on the delivered scene (IC-M04a): the top rail's top edge.
+const PEG_Y = 674; // where the strings are tied, on top of the rail
+const RAIL_Y = PEG_Y + 8;
 const GROUND = 894; // the Snippit's feet
 const SKY_Y = 300; // the middle of the bunch
 const X0 = 400; // the outermost knots
