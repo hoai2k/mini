@@ -15,6 +15,7 @@ import { createFit } from './fit.js';
 import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement, canFullscreen } from './chrome.js';
 
 const $ = (s) => document.querySelector(s);
+// The key the saves have always been kept under (changing it would lose them).
 const STORE = 'bronzedrum.prototype';
 
 // ---------------------------------------------------------------- storage
@@ -48,7 +49,7 @@ function applyDifficulty() {
   setBeatCount(settings.beats);
   buildCommandTable();
 }
-// The prototype opens every chapter for review; winning still records progress.
+// Every chapter is open from the start; winning still records progress.
 const progress = load('progress', { unlocked: STAGES.length });
 // Drum Practice remembers the last number of strokes and kit.
 const practiceSettings = load('practice', { beats: 4, kit: 'bronze' });
@@ -1317,7 +1318,7 @@ const RESULTS = {
   luylau: 'Luy Lâu falls and the governor flees north. Sixty-five citadels are free.',
   coronation: 'Trưng Trắc and Trưng Nhị are queens of the Lạc Việt.',
   mavien: 'The ford held until Mê Linh was empty. The sisters’ army withdraws, still unbroken.',
-  elegy: 'The last drum falls silent. They will be cast into a bronze horse — but the rhythm is remembered. (End of the prototype.)',
+  elegy: 'The last drum falls silent. They will be cast into a bronze horse — but the rhythm is remembered.',
 };
 
 function finish(outcome) {

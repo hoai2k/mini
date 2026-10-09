@@ -14,7 +14,7 @@ Statuses:
     stand-in   the game draws a procedural paper-cut stand-in and loads the
                file from game/assets/art/ once the status is flipped to
                "delivered"
-    planned    requested for a later build; the prototype does not load it
+    planned    requested for a later build; the game does not load it yet
     reference  inspiration and direction only; lives in design/references/
     delivered  the file is in the repository and the game loads it
     regenerate delivered, but a new take is wanted (the request says why and
@@ -93,7 +93,7 @@ SECTIONS = {
         "army marching on a Han palisade at dusk, the sisters and the drum behind it) under "
         "three different treatments of the paper, so the treatment can be judged on its own. "
         "Pick one, or a mix, and the palette and the prompts below are tuned to it before the "
-        "full set is generated. The prototype's stand-in currently sits closest to S02; "
+        "full set is generated. The game's first stand-ins sat closest to S02; "
         "screenshots of it are in `design/screens/`.",
     ),
     "mood": (
@@ -179,7 +179,7 @@ req("style", "BD-S01", None, "Style frame A: white paper and lamplight",
     "and shadow. Only accents of colour: the bronze drum and a thin lacquer-red sash on each "
     "woman. Hand-cut paper art, no painterly rendering, no text.")
 req("style", "BD-S02", None, "Style frame B: coloured papers, lit from behind",
-    "The prototype's direction: each depth a different coloured sheet, night indigo to rice "
+    "The game's direction: each depth a different coloured sheet, night indigo to rice "
     "cream, with bronze and lacquer-red accents.",
     "3840x2160, opaque", "delivered", None, "references/s02-coloured-papers.png",
     f"{STYLE} {SCENE}")
@@ -1086,7 +1086,7 @@ for base_id in WATER_BASES:
 # ------------------------------------------------------------------ output
 
 STATUS_TEXT = {
-    "stand-in": "stand-in in the prototype",
+    "stand-in": "stand-in in the game",
     "planned": "planned, not loaded yet",
     "reference": "reference only",
     "delivered": "delivered",
@@ -1098,7 +1098,7 @@ def build_doc() -> str:
     out = []
     out.append("# Bronze Drum: image requests\n")
     out.append(
-        "Artwork for the Bronze Drum prototype in `bronzedrum/game/`, plus direction pieces for the "
+        "Artwork for the Bronze Drum game in `bronzedrum/game/`, plus direction pieces for the "
         "look and atmosphere. Generated from `source/build_requests.py`; edit the data there and "
         "rerun it, which also rewrites `game/assets/manifest.json`.\n")
     out.append("## How to use this list\n")

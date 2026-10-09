@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Copy the Bronze Drum prototype into a GitHub Pages output directory, so it
+# Copy the Bronze Drum game into a GitHub Pages output directory, so it
 # is published at <site>/bronzedrum/. The game is static (no build step);
 # tests, scripts, package.json and the PNG art masters stay out of the deploy.
 # Usage: bronzedrum/publish.sh local/pages/bronzedrum

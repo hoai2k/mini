@@ -136,7 +136,7 @@ async function open(throttle = 1, scale = 2) {
 // 2. Demonstration timing under a slow CPU.
 {
   const { ctx, page } = await open();
-  await page.evaluate(() => localStorage.removeItem('bronzedrum.prototype.demos'));
+  await page.evaluate(() => localStorage.removeItem('bronzedrum.prototype.demos') /* the game's save key (main.js STORE) */);
   await page.reload();
   await page.waitForFunction(() => !document.querySelector('#title').hidden);
   await page.click('#press-start');
