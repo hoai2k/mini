@@ -34,6 +34,11 @@
       "close"
     ]
   },
+  "closeBadge": {
+    "id": "HK-U07",
+    "file": "assets/ui/close-badge.png",
+    "delivered": false
+  },
   "controlDrawings": {
     "id": "HK-U05",
     "file": "assets/ui/control-drawings.png",
