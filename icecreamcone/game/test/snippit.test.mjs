@@ -29,13 +29,23 @@ function snipper(skill = 1, seed = 1) {
       const others = game.balloons.filter((b) => b !== want);
       target = right || !others.length ? want : others[Math.floor(rnd() * others.length)];
     }
+    // Face the knot (turning around rather than walking past it), walk until
+    // the tip is near it, and snip.
+    const f = target.px >= game.x ? 1 : -1;
+    const sp = 0.5 + 0.5 * skill;
+    if (game.face !== f) return { x: f * 0.3 }; // a tap the other way turns it
     const d = target.px - game.cutX();
-    if (Math.abs(d) < 14 && game.jam <= 0 && !pressed) {
-      pressed = true;
-      return { action: true };
+    if (Math.abs(d) < 14 || (d * f < 0 && game.under() === target)) {
+      if (game.jam <= 0 && !pressed) {
+        pressed = true;
+        return { action: true };
+      }
+      pressed = false;
+      return {};
     }
     pressed = false;
-    return { x: Math.max(-1, Math.min(1, d / 60)) * (0.5 + 0.5 * skill) };
+    // beyond the tip: walk on; between the blades but not reachable: walk past
+    return { x: (d * f > 0 ? Math.max(-1, Math.min(1, d / 60)) : f * 0.5) * sp };
   };
 }
 
@@ -134,4 +144,77 @@ test('snippit: the blades cut toward the tip, and the knot nearest the tip is th
   assert.equal(at(610), a, 'the left knot is nearer the tip');
   assert.equal(at(640), b2, 'the right knot is nearer the tip');
   assert.equal(at(560), a, 'only the left one is reached, beyond the tip');
+});
+
+test('snippit: facing right, the blades cut to the right of the eye', () => {
+  const game = create(env(3));
+  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
+  assert.equal(game.face, -1, 'it starts facing left, as painted');
+  const a = [...game.balloons].sort((p, q) => p.px - q.px)[0];
+  // the bird stands just left of the knot: facing left it can't reach it
+  game.x = a.px - 60;
+  game.vx = 0;
+  assert.equal(game.under(), null, 'behind its back while it faces left');
+  game.update(1 / 60, blank({ x: 1 }));
+  assert.equal(game.face, 1, 'pushing right turns it right');
+  assert.equal(game.cutX(), game.x + game.tip, 'the tip is right of the eye');
+  assert.equal(game.under(), a, 'the knot just right of it is between the blades');
+  game.vx = 0;
+  game.x = a.px - 60;
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  assert.equal(game.right + game.wrong, 1, 'and is cut');
+  assert.ok(!game.balloons.includes(a));
+});
+
+test('snippit: facing right mirrors the reach and the nearest-the-tip rule', () => {
+  const game = create(env(3));
+  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
+  const [a, b2] = [...game.balloons].sort((p, q) => p.px - q.px);
+  const R = 1;
+  assert.equal(game.under(a.px - game.tip - 20, R), a, 'just beyond the tip');
+  assert.equal(game.under(a.px - game.tip + 60, R), a, 'further back along the blades');
+  assert.equal(game.under(a.px + 10, R), null, 'behind the hinge');
+  assert.equal(game.under(a.px - game.tip - 60, R), null, 'well beyond the tip');
+  a.px = 600;
+  b2.px = 650;
+  const at = (x) => game.under(x - game.tip, R);
+  assert.equal(at(610), a, 'the left knot is nearer the tip');
+  assert.equal(at(640), b2, 'the right knot is nearer the tip');
+  assert.equal(at(690), b2, 'only the right one is reached, beyond the tip');
+});
+
+test('snippit: turning keeps the hinge in place, and the flip is quick', () => {
+  const game = create(env(5));
+  game.update(1 / 60, blank());
+  game.x = 800;
+  game.vx = 0;
+  game.update(1 / 60, blank({ x: 1 }));
+  assert.equal(game.face, 1);
+  game.update(1 / 60, blank({ x: -1 }));
+  assert.equal(game.face, -1);
+  // a single tap each way barely moves the eye
+  assert.ok(Math.abs(game.x - 800) < 5, `hinge moved to ${game.x}`);
+  // the cut point jumps across the eye; the eye itself does not move
+  const x = game.x;
+  assert.equal(game.cutX(x, 1) - x, x - game.cutX(x, -1));
+  // the drawn flip: mirrored within a fifth of a second, never zero-width
+  game.vx = 0;
+  game.update(1 / 60, blank({ x: 1 }));
+  for (let i = 0; i < 12; i++) {
+    game.vx = 0;
+    game.update(1 / 60, blank());
+    assert.ok(Math.abs(game.flip()) >= 0.15);
+  }
+  assert.equal(game.flip(), -1, 'drawn mirrored, at full size');
+  assert.equal(game.face, 1);
+});
+
+test('snippit: a pointer behind the eye turns it, and the tip follows the finger', () => {
+  const game = create(env(6));
+  game.update(1 / 60, blank());
+  game.x = 800;
+  const p = { active: true, x: 900, y: 600, down: false, pressed: false, released: false };
+  for (let i = 0; i < 120; i++) game.update(1 / 60, blank({ pointer: p }));
+  assert.equal(game.face, 1);
+  assert.ok(Math.abs(game.cutX() - 900) < 2, `tip at ${game.cutX()}`);
 });

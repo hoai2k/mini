@@ -28,11 +28,12 @@ const GROUND = 894; // the Snippit's feet
 const SKY_Y = 300; // the middle of the bunch
 const X0 = 400; // the outermost knots
 const X1 = 1200;
-// The blades cut out toward their tip, which points left of the hinge (the
-// Snippit always faces left): measured on the poses, the point is 112 to 132
-// px left of the eye. A knot anywhere along the open blades, from just past
-// the tip back to the hinge, can be cut; with several there, the one nearest
-// the tip is.
+// The blades cut out toward their tip, which points away from the hinge the
+// way the Snippit faces (the paintings face left; facing right they are
+// mirrored about the eye): measured on the poses, the point is 112 to 132 px
+// out from the eye. A knot anywhere along the open blades, from just past the
+// tip back to the hinge, can be cut; with several there, the one nearest the
+// tip is.
 const TIP = 104; // the aim point, a little inside the very point
 const PAST_TIP = 34; // how far beyond it a knot is still caught
 const TO_HINGE = 96; // and back toward the hinge
@@ -59,6 +60,7 @@ const QUICK = 5;
 const QUICK_T = 3;
 const WRONG = 5;
 const JAM = 0.8;
+const TURN = 0.12; // seconds for the flip from one way to the other
 
 export const COLORS = [
   { name: 'pink', c: PAL.strawberry, d: '#c0607a' },
@@ -83,7 +85,8 @@ export default function create(env) {
     elapsed: 0,
     x: 800, // the snip point (the Snippit's hinge)
     vx: 0,
-    face: 1,
+    face: -1, // -1 faces left (the way the paintings face), 1 right
+    turn: -1, // the drawn facing, flipping toward face
     balloons: [], // tied: { color, kite, pegK, skyK, px, bx, by, w1, w2, ph, grow }
     loose: [], // floating away
     stubs: [], // cut ends falling from the knots
@@ -207,16 +210,17 @@ export default function create(env) {
     ];
   };
 
-  // Where the blades aim, toward the tip, for a hinge at x.
+  // Where the blades aim, toward the tip, for a hinge at x facing f.
   g.tip = TIP;
-  g.cutX = (x = g.x) => x - TIP;
+  g.cutX = (x = g.x, f = g.face) => x + f * TIP;
   // The tied balloon whose knot is between the blades, if any: the nearest to
   // the tip.
-  g.under = (x = g.x) => {
-    const at = g.cutX(x);
+  g.under = (x = g.x, f = g.face) => {
+    const at = g.cutX(x, f);
     let best = null;
     for (const b of g.balloons) {
-      if (b.grow <= 0.5 || b.px < at - PAST_TIP || b.px > at + TO_HINGE) continue;
+      const out = (b.px - at) * f; // how far beyond the tip, outward
+      if (b.grow <= 0.5 || out > PAST_TIP || out < -TO_HINGE) continue;
       if (!best || Math.abs(b.px - at) < Math.abs(best.px - at)) best = b;
     }
     return best;
@@ -272,18 +276,25 @@ export default function create(env) {
 
     // Walk along the fence: follow the pointer, or run with the stick.
     const was = g.x;
-    // (With the pointer it's the blades' tip that follows the finger.)
-    if (input.pointer.active) g.x = approach(g.x, input.pointer.x + TIP, 12, dt);
-    else {
+    // (With the pointer it's the blades' tip that follows the finger: the
+    // Snippit turns to face a finger behind its eye.)
+    const p = input.pointer;
+    if (p.active) {
+      if ((p.x - g.x) * g.face < 0) g.face = -g.face;
+      g.x = approach(g.x, p.x - g.face * TIP, 12, dt);
+    } else {
+      // pushing either way turns it to face that way, at once
+      if (Math.abs(input.x) > 0.2) g.face = input.x > 0 ? 1 : -1;
       g.vx = approach(g.vx, input.x * 1000, 14, dt);
       g.x += g.vx * dt;
     }
     g.x = clamp(g.x, 240, W - 240);
     g.moving = Math.abs(g.x - was) > 40 * dt;
-    if (Math.abs(g.x - was) > 0.5) g.face = g.x > was ? 1 : -1;
+    // the drawn flip catches up quickly (at once with reduced motion)
+    g.turn = env.reduceMotion ? g.face : g.turn + clamp(g.face - g.turn, (-2 * dt) / TURN, (2 * dt) / TURN);
 
     if (input.actionPressed && g.jam <= 0) {
-      if (input.pointer.active) g.x = clamp(input.pointer.x + TIP, 240, W - 240);
+      if (p.active) g.x = clamp(p.x - g.face * TIP, 240, W - 240);
       snip(g.x);
     }
 
@@ -414,7 +425,25 @@ export default function create(env) {
     ink(c, width, color);
   }
 
+  // The drawn mirror: 1 as painted (facing left), -1 facing right, passing
+  // quickly through a narrow edge-on Snippit as it turns about its eye.
+  g.flip = () => {
+    const f = -g.turn;
+    return (f < 0 ? -1 : 1) * Math.max(0.15, Math.abs(f));
+  };
+
   function drawSnippit(c, t) {
+    c.save();
+    // mirrored about the eye (the hinge), which stays on the snip point
+    c.translate(g.x, HINGE_Y);
+    c.scale(g.flip(), 1);
+    c.translate(-g.x, -HINGE_Y);
+    drawSnippitLeft(c, t);
+    c.restore();
+  }
+
+  // The Snippit facing left, as painted.
+  function drawSnippitLeft(c, t) {
     const s = g.snipT > 0 ? g.snipT / 0.25 : 0;
     const jam = g.jam > 0 && !env.reduceMotion ? Math.sin(g.jam * 50) * 0.05 : 0;
     const walk = g.moving ? Math.sin(t * 14) * 0.04 : 0;

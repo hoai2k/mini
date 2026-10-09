@@ -23,7 +23,7 @@ more than once. From 22 s the wind jostles the bunch: every 4.5 s (3 s
 after 34 s) two neighbours drift past each other, re-crossing their
 strings while you look.
 
-**Controls.** Controller: left stick or D-pad walks, A snips. Keyboard:
+**Controls.** Controller: left stick or D-pad walks and turns, A snips. Keyboard:
 arrows or A/D walk, Space snips. Mouse or touch: the Snippit follows the
 pointer; a click or tap snips at the knot under it straight away. On a
 narrow screen the view keeps the whole tangle (1000 wide) in sight.
@@ -99,3 +99,19 @@ hinge, can be cut. When a bunch of knots sit between the blades, the one
 nearest the tip is the one cut. The dotted line and the pink notch on the rail
 mark the tip, and with the mouse or a finger it's the tip that follows the
 pointer.
+
+## Facing both ways (2026-10-09)
+
+The Snippit now turns around. Pushing left or right turns it to face that
+way at once, so a knot just behind it is a tap away rather than a walk to the
+far side. The paintings face left; facing right, every pose is mirrored about
+the eye, which stays on the snip point, so the hinge never moves and the
+sprite keeps its size. The flip is drawn as a quick turn (0.12 s, through a
+narrow edge-on Snippit; instant with reduced motion). The cutting rule is
+mirrored: the tip is 104 px out from the eye on the side it faces, a knot from
+34 px beyond the tip back to the hinge is caught, and the one nearest the tip
+is cut. The dotted aim line, the pink notch, the pink glint and the shut-blade
+strokes all follow. With the mouse or a finger the tip still follows the
+pointer, and a pointer behind the eye turns the Snippit to face it. The test
+snipper now turns to face its knot rather than walking past it: beginner
+160–210, good 490–645, mashing 5–30, standing still 0, idle 0 (pass 120).
