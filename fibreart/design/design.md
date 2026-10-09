@@ -188,9 +188,30 @@ partner, or a tick when it is ready), and one line, such as "Bring a tree to
 the middle (LS), then hold RT." It names the small control that moves the
 piece, so it says plainly how to carry the picture on.
 
-The pause and on-screen controls switches are out of sight while playing and
-come up for a moment when the mouse moves or the screen is touched, so a
-player with only a mouse or a touch screen can still reach the pause menu.
+The pause button is out of sight while playing and comes up for a moment when
+the mouse moves or the screen is touched, so a player with only a mouse or a
+touch screen can still reach the pause menu. On a touch screen the pause menu
+shows every badge's name under it, since there is no hover.
+
+**The hand (touch and mouse).** There is no on-screen controller: the owner
+found it got in the way of the picture. Instead the pieces are the controls.
+The hand plays as the keyboard player, and whatever that player's controls are
+bound to the piece under the finger answer it: dragging a piece plays its
+sticks (direction and speed of the drag), holding it still plays its triggers
+(pressing in after about a third of a second), and tapping it plays its
+buttons, one after another, a tap each. The bare cloth does the same for the
+controls bound to that panel of the picture. Every piece can also be grabbed,
+dragged and flung (it keeps the finger's speed and glides home), pinched and
+twisted. So a big control is woken by hand the way the hint says: drag the
+anchor to the middle or to its partner, tap it to sew, then hold or drag it.
+The hint and Controls Found name the gesture (drag, hold, tap) instead of the
+input for a hand player.
+
+**Full screen on iPhone.** Safari on iPhone has no full screen for a page, only
+for video, so the button there opens a small panel: Share, then Add to Home
+Screen (drawn, with one line). Opened from the home screen the game has no
+browser around it, and the fullscreen button hides. Elsewhere the button uses
+the standard API or Safari's webkit one, inside the tap.
 
 **Players.** One to four controllers, each with its own thread colour (red,
 saffron, teal, violet) and its own bindings, dealt from targets the others

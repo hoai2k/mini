@@ -163,7 +163,7 @@ html, body {
 }
 .chip i { width: 0.9rem; height: 0.9rem; border-radius: 50%; background: var(--c); }
 .chip b { font-weight: 700; }
-.hud-pause, .hud-pad {
+.hud-pause {
   position: absolute;
   top: max(0.8rem, env(safe-area-inset-top));
   right: max(1rem, env(safe-area-inset-right));
@@ -174,19 +174,14 @@ html, body {
   pointer-events: none;
   transition: opacity 0.5s;
 }
-/* Nothing shows over the picture while playing. The pause and on-screen
-   controls switches appear only for a moment when the mouse moves or the
-   screen is tapped, for players with no Menu or Esc to reach the pause menu. */
-#hud.reveal .hud-pause, #hud.reveal .hud-pad { opacity: 0.85; pointer-events: auto; }
-#hud.reveal .hud-pad[aria-pressed='true'] { opacity: 1; }
+/* Nothing shows over the picture while playing. The pause button appears
+   only for a moment when the mouse moves or the screen is tapped, for players
+   with no Menu or Esc to reach the pause menu. */
+#hud.reveal .hud-pause { opacity: 0.85; pointer-events: auto; }
 /* Hints while playing (captions, player chips, the controls line) only when
    the player has turned them on in Settings. */
 #hud:not(.hints) .caption, #hud:not(.hints) .players, #hud:not(.hints) .play-hint { display: none; }
 /* The on-screen controls' switch: only on touch screens. */
-.hud-pad { right: calc(max(1rem, env(safe-area-inset-right)) + 3.5rem); display: none; }
-.hud-pad[aria-pressed='true'] { background: #fff8e8; }
-@media (pointer: coarse) { .hud-pad { display: grid; } }
-#hud.touch .hud-pad { display: grid; }
 .play-hint {
   position: absolute;
   right: max(1rem, env(safe-area-inset-right));
@@ -279,71 +274,12 @@ html, body {
 }
 .toast.show { opacity: 1; }
 
-/* The on-screen controls for touch: a stick in each lower corner, the buttons
-   laid out as on the controller beside the right one. Over the picture, light. */
-.touchpad {
-  position: absolute;
-  left: max(0.8rem, env(safe-area-inset-left));
-  right: max(0.8rem, env(safe-area-inset-right));
-  bottom: max(0.8rem, env(safe-area-inset-bottom));
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  pointer-events: none;
-}
-.tp-right { display: flex; align-items: flex-end; gap: 0.6rem; }
-.tp-stick {
-  pointer-events: auto;
-  position: relative;
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  border: 2px dashed rgba(246, 238, 220, 0.75);
-  background: rgba(22, 13, 46, 0.28);
-  touch-action: none;
-}
-.tp-stick i {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
-  border-radius: 50%;
-  background: rgba(246, 238, 220, 0.8);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-.tp-buttons { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
-.tp-buttons button {
-  pointer-events: auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px dashed rgba(246, 238, 220, 0.75);
-  background: rgba(22, 13, 46, 0.4);
-  color: var(--cloth);
-  font: 700 0.8rem 'Questrial', sans-serif;
-  touch-action: none;
-  padding: 0;
-}
-.tp-buttons button.xb-y { color: #1b1430; }
-.tp-buttons button.xb-a { background: rgba(76, 175, 80, 0.8); }
-.tp-buttons button.xb-b { background: rgba(217, 68, 61, 0.8); }
-.tp-buttons button.xb-x { background: rgba(61, 123, 217, 0.8); }
-.tp-buttons button.xb-y { background: rgba(232, 184, 48, 0.85); }
-.tp-buttons button[class^='xb-'] { border-style: solid; }
-.tp-buttons button.down { filter: brightness(1.4); transform: scale(0.94); }
-#hud.pad-on .play-hint { display: none; }
-#pause-reason:empty { display: none; }
-#hud.pad-on .caption { bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 150px); }
 
 /* Short screens (a phone on its side): tighter panels, the pause menu in two columns. */
 @media (max-height: 500px) {
   .panel { padding: 0.8rem 1.2rem; gap: 0.4rem; }
   .panel h2 { font-size: 1.7rem; margin: 0; }
   .settings-list { gap: 0; }
-  #pause .panel { width: min(92vw, 560px); display: grid; grid-template-columns: 1fr 1fr; }
-  #pause .panel h2, #pause .panel p { grid-column: 1 / -1; }
   .title-block { padding: 0.5rem; gap: 0.3rem; }
   #logo-img { width: min(78vw, 100vh); }
   .press-start { margin-top: 0.3rem; }
@@ -421,6 +357,12 @@ html, body {
 }
 .pic-btn:hover, .pic-btn:focus-visible, .pic-btn.focused { z-index: 2; }
 .pic-btn:hover .btn-label, .pic-btn:focus-visible .btn-label, .pic-btn.focused .btn-label { opacity: 1; }
+/* On a touch screen there is no hover: the pause menu shows every name, under
+   its badge, with room for it between the rows. */
+@media (hover: none) {
+  #pause .pause-grid { row-gap: 2.1rem; padding-bottom: 1.4rem; }
+  #pause .pic-btn .btn-label { opacity: 1; background: none; color: var(--ink); padding: 0; font-size: 0.8rem; }
+}
 #pause-reason:empty { display: none; }
 #pause-reason { max-width: 20rem; margin: 0 auto 0.8rem; text-align: center; }
 
@@ -440,3 +382,11 @@ html, body {
 .hint-setup { width: 4rem; color: var(--thread); display: grid; place-items: center; }
 .hint-setup svg { width: 100%; height: auto; }
 .hint-text { flex: 1 1 14rem; margin: 0; font-size: 1.05rem; }
+
+/* Full screen on iPhone: Share, then Add to Home Screen. */
+.home-panel { width: min(92vw, 340px); text-align: center; padding-top: 2.2rem; }
+.home-steps { display: flex; align-items: center; justify-content: center; gap: 0.8rem; color: var(--thread); }
+.home-steps svg { width: 3rem; height: 3rem; }
+.home-arrow { font-size: 1.6rem; color: var(--ink); }
+/* Opened from the home screen the game is already full screen. */
+@media (display-mode: standalone), (display-mode: fullscreen) { [data-action="fullscreen"] { display: none; } }

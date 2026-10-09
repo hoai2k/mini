@@ -14,9 +14,10 @@ picture or carry it into the next scene, and the controls are dealt again.
 Nothing to win or lose; left alone, the pieces drift home. The pictures are
 never quite still: wind gusts bend the trees and blow leaves across, and the
 people breathe and tilt their heads. One to four controllers, plus keyboard and
-mouse, or touch: on a phone, on-screen sticks and buttons stand in for a
-controller, a piece can be dragged, pinched and twisted, and the view pans
-across the picture when it is larger than the screen.
+mouse, or touch: on a phone the pieces themselves are the controls (drag one,
+hold it still, tap it, fling it, and the controls bound to it answer), a piece
+can be pinched and twisted, and the view pans across the picture when it is
+larger than the screen.
 
 ## Layout
 
