@@ -809,83 +809,83 @@ export const ASSET_LIST = {
   },
   "fx2-bubble": {
     "file": "assets/icons2/fx2-bubble.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-puppy": {
-    "file": "assets/icons2/fx2-puppy.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-puppy-v2.png",
+    "status": "delivered"
   },
   "fx2-hearteyes": {
     "file": "assets/icons2/fx2-hearteyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-dragon": {
     "file": "assets/icons2/fx2-dragon.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-rainbow": {
     "file": "assets/icons2/fx2-rainbow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-bigeyes": {
-    "file": "assets/icons2/fx2-bigeyes.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-bigeyes-v2.png",
+    "status": "delivered"
   },
   "fx2-bobblehead": {
     "file": "assets/icons2/fx2-bobblehead.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-alien": {
-    "file": "assets/icons2/fx2-alien.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-alien-v2.png",
+    "status": "delivered"
   },
   "fx2-dealwithit": {
     "file": "assets/icons2/fx2-dealwithit.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-crown": {
     "file": "assets/icons2/fx2-crown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-fancy": {
     "file": "assets/icons2/fx2-fancy.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-clown": {
-    "file": "assets/icons2/fx2-clown.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-clown-v2.png",
+    "status": "delivered"
   },
   "fx2-storm": {
     "file": "assets/icons2/fx2-storm.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-noodle": {
-    "file": "assets/icons2/fx2-noodle.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-noodle-v2.png",
+    "status": "delivered"
   },
   "fx2-swirl": {
-    "file": "assets/icons2/fx2-swirl.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-swirl-v2.png",
+    "status": "delivered"
   },
   "fx2-space": {
-    "file": "assets/icons2/fx2-space.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-space-v2.png",
+    "status": "delivered"
   },
   "fx2-underwater": {
-    "file": "assets/icons2/fx2-underwater.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-underwater-v2.png",
+    "status": "delivered"
   },
   "fx2-pixel": {
-    "file": "assets/icons2/fx2-pixel.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-pixel-v2.png",
+    "status": "delivered"
   },
   "fx2-comic": {
-    "file": "assets/icons2/fx2-comic.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-comic-v2.png",
+    "status": "delivered"
   },
   "fx2-thermal": {
-    "file": "assets/icons2/fx2-thermal.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-thermal-v2.png",
+    "status": "delivered"
   },
   "fx2-flowercrown": {
     "file": "assets/icons2/fx2-flowercrown.png",
