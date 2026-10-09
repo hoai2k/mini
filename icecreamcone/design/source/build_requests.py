@@ -7,7 +7,8 @@ Edit the data in this file, then run:
     python3 icecreamcone/design/source/build_requests.py --check  # verify up to date
 
 Outputs:
-    icecreamcone/design/image-requests.md   the request document
+    icecreamcone/design/image-requests.md          the open requests (status requested)
+    icecreamcone/design/image-requests-history.md  the finished ones (delivered or retired)
     icecreamcone/game/src/asset-list.js     what the game loads
 
 Statuses:
@@ -26,6 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / "design" / "image-requests.md"
+HISTORY = ROOT / "design" / "image-requests-history.md"
 ASSET_LIST = ROOT / "game" / "src" / "asset-list.js"
 
 # The look every image shares: an old picture book, ink and watercolour.
@@ -829,40 +831,14 @@ def asset_list() -> str:
     )
 
 
-def document() -> str:
-    delivered = sum(r["status"] == "delivered" for r in REQUESTS)
-    retired = sum(r["status"] == "retired" for r in REQUESTS)
-    out = [
-        "# The Ice-Cream Cone Coot: image requests",
-        "",
-        "Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from "
-        "`source/build_requests.py`; edit the data there and rerun it, which also rewrites "
-        "`icecreamcone/game/src/asset-list.js`.",
-        "",
-        "## How to use this list",
-        "",
-        "1. Each prompt is complete on its own: paste it as it stands. The shared style text is already in every prompt.",
-        "2. Save each image under the file name in its **File** line and drop it in `icecreamcone/intake/`. On integration "
-        "it moves to that path under `icecreamcone/game/`, its status flips to `delivered` and the game loads it in place "
-        "of its stand-in.",
-        "3. The logo, icon and bird portraits need transparency. If the generator cannot produce alpha, use a flat "
-        "pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.",
-        "4. Opaque images are listed as `.webp`; PNG or JPEG is fine too, they are converted on integration.",
-        "5. Nothing here blocks the game: every image has a stand-in drawn in code until it arrives.",
-        "6. Each request names a reference photo of the book in `icecreamcone/reference/`, and its "
-        "prompt links to it. Give that photo to the image generator along with the prompt where "
-        "it can take an image; the prompt's link works once the photo is on `main`.",
-        "7. The bird portraits matter most, since each one is both the bird's page and the bird in its "
-        "game. If you only make some, start there.",
-        "",
-        "## Status",
-        "",
-        f"{len(REQUESTS) - delivered - retired} requested, {delivered} delivered, {retired} retired, {len(REQUESTS)} in total.",
-        "",
-    ]
+def entries(rs) -> list[str]:
+    out = []
     for key, (title, blurb) in SECTIONS.items():
+        section = [r for r in rs if r["section"] == key]
+        if not section:
+            continue
         out += [f"## {title}", "", blurb, ""]
-        for r in (r for r in REQUESTS if r["section"] == key):
+        for r in section:
             out += [
                 f"### {r['id']} · {r['name']}",
                 "",
@@ -878,11 +854,71 @@ def document() -> str:
                 "```",
                 "",
             ]
+    return out
+
+
+def status_line() -> str:
+    delivered = sum(r["status"] == "delivered" for r in REQUESTS)
+    retired = sum(r["status"] == "retired" for r in REQUESTS)
+    return f"{len(REQUESTS) - delivered - retired} requested, {delivered} delivered, {retired} retired, {len(REQUESTS)} in total."
+
+
+def document() -> str:
+    open_ = [r for r in REQUESTS if r["status"] == "requested"]
+    out = [
+        "# The Ice-Cream Cone Coot: image requests",
+        "",
+        "Artwork still wanted for the Ice-Cream Cone Coot game in `icecreamcone/`. Only open "
+        "requests are listed here; delivered and retired ones move to "
+        "[`image-requests-history.md`](image-requests-history.md). Generated from "
+        "`source/build_requests.py`; edit the data there and rerun it, which also rewrites the "
+        "history and `icecreamcone/game/src/asset-list.js`.",
+        "",
+        "## How to use this list",
+        "",
+        "1. Each prompt is complete on its own: paste it as it stands. The shared style text is already in every prompt.",
+        "2. Save each image under the file name in its **File** line and drop it in `icecreamcone/intake/`. On integration "
+        "it moves to that path under `icecreamcone/game/`, its status flips to `delivered`, the game loads it in place "
+        "of its stand-in and the request moves to the history.",
+        "3. Images that need transparency say so in their prompts. If the generator cannot produce alpha, use a flat "
+        "pure magenta `#FF00FF` background as the prompts say; it is keyed out on integration.",
+        "4. Opaque images are listed as `.webp`; PNG or JPEG is fine too, they are converted on integration.",
+        "5. Nothing here blocks the game: every image has a stand-in drawn in code until it arrives.",
+        "6. Prompts that name a reference photo of the book in `icecreamcone/reference/`, or an earlier "
+        "painting, link to it. Give that image to the image generator along with the prompt where "
+        "it can take an image.",
+        "",
+        "## Status",
+        "",
+        status_line(),
+        "",
+    ]
+    if not open_:
+        out += ["Nothing is waiting: every request has been delivered.", ""]
+    out += entries(open_)
+    return "\n".join(out).rstrip() + "\n"
+
+
+def history() -> str:
+    done = [r for r in REQUESTS if r["status"] != "requested"]
+    out = [
+        "# The Ice-Cream Cone Coot: finished image requests",
+        "",
+        "Every image request that has been delivered (or delivered and later retired), with the "
+        "prompt it was made from. The open requests are in "
+        "[`image-requests.md`](image-requests.md). Generated from `source/build_requests.py`.",
+        "",
+        "## Status",
+        "",
+        status_line(),
+        "",
+    ]
+    out += entries(done)
     return "\n".join(out).rstrip() + "\n"
 
 
 def main() -> int:
-    outputs = {DOC: document(), ASSET_LIST: asset_list()}
+    outputs = {DOC: document(), HISTORY: history(), ASSET_LIST: asset_list()}
     if "--check" in sys.argv:
         stale = [p for p, text in outputs.items() if not p.exists() or p.read_text() != text]
         for p in stale:

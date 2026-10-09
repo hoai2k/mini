@@ -13,7 +13,8 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 
 - [`design/design.md`](design/design.md): the flow, the controls and the ten
   minigames.
-- [`design/image-requests.md`](design/image-requests.md): the image requests,
+- [`design/image-requests.md`](design/image-requests.md): the open image requests
+  (finished ones move to [`design/image-requests-history.md`](design/image-requests-history.md)),
   generated from [`design/source/build_requests.py`](design/source/build_requests.py),
   which also writes `game/src/asset-list.js`. Edit the data there and rerun it.
   Delivered images live in [`game/assets/`](game/assets/); the request list tracks remaining work. The first
