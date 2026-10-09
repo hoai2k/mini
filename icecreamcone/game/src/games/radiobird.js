@@ -4,15 +4,17 @@
 // station: the fiddle tunes, the trumpet, the drum band, the bells, the
 // cuckoo clock or the weather. Turn the Radio Bird's dial through the static
 // (tilt the stick or hold the arrows to sweep, spin the stick for fine
-// tuning, or drag the needle along the dial) and watch the signal meter:
-// it stirs as a station comes near, and the station's picture shows in the
-// speaker once it is tuned in. Find the one they asked for and hold the
-// needle on it while its song plays; drift off and the song fades and starts
-// to slip back. Each station found is pencilled on the dial, but the stations
-// drift about more and more as time goes on, and get narrower too. Holding
-// the action turns the dial slowly, for a steady hand. Score: songs.
+// tuning, or drag the needle along the dial). The speaker rides along under
+// the needle: it crackles with static, and as a station comes near its
+// picture fades in through the crackle, and the listeners lean forward when
+// it's getting near the one they want. Press the action on the right one to
+// play it (with a pointer, let go of the needle on it): the needle settles on
+// the station by itself and the song plays for a moment. A song scores 10,
+// and up to 10 more for finding it quickly. Stations you play, or rest on for
+// a moment, are pencilled on the dial, but the stations drift, more and more
+// as time goes on, and get narrower too. Score: points.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -35,12 +37,13 @@ const STATIONS = [
 const DIAL = { x0: 560, x1: 1500, y0: 112, y1: 262 };
 const fx = (f) => lerp(DIAL.x0 + 30, DIAL.x1 - 30, f);
 const xf = (x) => (x - DIAL.x0 - 30) / (DIAL.x1 - DIAL.x0 - 60);
-const SONG = 3.2; // seconds of clear signal for a song
+const SONG = 1.8; // seconds of clear signal for a song
+const SNAP = 3; // how fast the needle settles on a station near it
 const SWEEP = 0.5; // dial widths per second at full tilt
 const RADIO = { x: 300, y: 800, size: 520 };
-const METER = { x: 700, y: 430 };
+const CARD = { y: 395, w: 230, h: 210 }; // the speaker that rides under the needle
 const SOFA = { x: 1180, y: 760 };
-const BUBBLE = { x: 1180, y: 430 };
+const BUBBLE = { x: 1270, y: 560 }; // the middle listener's speech bubble
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -66,6 +69,14 @@ export default function create(env) {
     notes: [], // floating music notes
     found: 0,
     listenT: 0,
+    locked: false, // a song is playing
+    lostT: 0,
+    grumble: 0, // the listeners grumbling at a wrong station
+    findT: 0, // seconds since they asked
+    restT: 0, // seconds resting on the same station, to pencil it
+    restOn: -1,
+    lastFind: 0,
+    songs: 0,
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
@@ -79,7 +90,7 @@ export default function create(env) {
   });
   g.freq = (i) => {
     const s = g.stations[i];
-    const amp = lerp(0.004, 0.024, progress());
+    const amp = lerp(0.012, 0.03, progress());
     return clamp(s.base + amp * Math.sin(g.elapsed * s.rate * lerp(0.5, 1, progress()) + s.phase), 0.02, 0.98);
   };
   // How clearly station i comes in at the needle: 1 dead on, 0 off it.
@@ -112,6 +123,30 @@ export default function create(env) {
     return b.q > 0.45 ? b.i : -1;
   };
 
+  // How near the needle is to station i, 0 (far) .. 1 (on it), over a wider
+  // range than `clarity`: the picture fades in, the listeners lean.
+  g.near = (i) => clamp(1 - Math.abs(g.n - g.freq(i)) / (width() * 4), 0, 1);
+  // The station nearest the needle.
+  g.nearest = () => {
+    let bi = 0;
+    g.stations.forEach((_, i) => {
+      if (Math.abs(g.freq(i) - g.n) < Math.abs(g.freq(bi) - g.n)) bi = i;
+    });
+    return bi;
+  };
+  function mark(i) {
+    if (g.marks[i] === undefined) g.found++;
+    g.marks[i] = g.freq(i);
+  }
+
+  // The speaker grille on the Radio Bird's body, where its music comes out:
+  // measured on the painting (the stand-in's own until it loads).
+  const grille = () => {
+    const [ux, uy] = art('subject.radiobird') ? [24, -166] : [-20, -175];
+    const u = RADIO.size / 400;
+    return [RADIO.x + ux * u, RADIO.y + uy * u];
+  };
+
   function pop(text, x, y, color = INK, size = 42) {
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
@@ -127,6 +162,8 @@ export default function create(env) {
     g.want = k;
     g.asked++;
     g.song = 0;
+    g.locked = false;
+    g.findT = 0;
     g.wrongSaid = -1;
   }
   ask();
@@ -140,64 +177,105 @@ export default function create(env) {
       return;
     }
 
-    // Turning the dial.
-    const slow = input.action ? 0.25 : 1;
+    g.findT += dt;
+    g.pointerUser = !!(input.pointer && input.pointer.active);
+    g.grumble = Math.max(0, g.grumble - dt);
+
+    // Turning the dial: the stick or arrows sweep it, a spin turns it finely,
+    // a pointer drags it. Left alone near a station, it settles on it.
     const before = g.n;
     const p = input.pointer;
-    if (p && p.active && p.down && p.y > DIAL.y0 - 60 && p.y < DIAL.y1 + 260) {
-      g.n = approach(g.n, clamp(xf(p.x), 0, 1), 14 * slow, dt);
+    let touched = false;
+    if (p && p.active && p.down) {
+      g.n = approach(g.n, clamp(xf(p.x), 0, 1), 14, dt);
+      touched = true;
     } else {
       const x = input.x || 0;
-      g.n += x * Math.abs(x) * SWEEP * slow * dt;
+      g.n += x * Math.abs(x) * SWEEP * dt;
       g.n += (input.spin || 0) * 0.018;
+      touched = Math.abs(x) > 0.15 || Math.abs(input.spin || 0) > 0.01;
+    }
+    if (!touched) {
+      const k = g.nearest();
+      if (Math.abs(g.freq(k) - g.n) < width() * 1.4) g.n = approach(g.n, g.freq(k), SNAP, dt);
     }
     g.n = clamp(g.n, 0, 1);
     g.knob += (g.n - before) * 40;
 
-    // What comes through.
     const tuned = g.tuned();
-    const q = tuned >= 0 ? g.clarity(tuned) : 0;
-    if (tuned === g.want) {
-      g.song = Math.min(1, g.song + (dt / SONG) * clamp((q - 0.3) / 0.5, 0.3, 1));
-      g.wrongT = 0;
-      g.noteT -= dt;
-      if (g.noteT <= 0) {
-        const st = STATIONS[g.want];
-        g.noteT = 0.38;
-        sfx('note', { freq: 392 * Math.pow(2, st.tune[g.noteI % st.tune.length] / 12), dur: 0.3 });
-        g.noteI++;
-        g.notes.push({ x: RADIO.x + 40 + rng() * 60, y: RADIO.y - 330, vx: 60 + rng() * 60, vy: -50 - rng() * 30, life: 1.6, color: st.color });
-      }
-      if (!g.marks[g.want]) {
-        g.marks[g.want] = g.n;
-        g.found++;
-      }
-      if (g.song >= 1) {
-        g.score++;
-        g.cheer = 1.4;
-        pop('Hooray!', BUBBLE.x, BUBBLE.y - 110, PAL.magenta, 52);
-        sfx('right');
-        env.vibrate?.(30);
-        ask();
-      }
+    // Resting on a station for a moment pencils it on the dial.
+    if (tuned >= 0 && tuned === g.restOn) {
+      g.restT += dt;
+      if (g.restT > 1) mark(tuned);
     } else {
-      g.song = Math.max(0, g.song - dt * 0.35);
-      if (tuned >= 0) {
-        if (!g.marks[tuned]) g.marks[tuned] = g.n;
-        g.wrongT += dt;
-        if (g.wrongT > 0.8 && g.wrongSaid !== tuned) {
-          g.wrongSaid = tuned;
-          pop('Not that one!', BUBBLE.x, BUBBLE.y - 110, PAL.brick, 38);
-          sfx('wrong');
+      g.restOn = tuned;
+      g.restT = 0;
+    }
+
+    // Choosing a station: the action, or letting go of the needle.
+    const pointing = p && p.active;
+    const choose = pointing ? input.actionReleased : input.actionPressed;
+    if (pointing && input.actionReleased) g.releaseT = 0.6;
+    g.releaseT = Math.max(0, (g.releaseT || 0) - dt);
+    // (let go just beside it, and it counts once the needle settles on it)
+    const settled = pointing && g.releaseT > 0 && !touched && tuned === g.want;
+    if ((choose || settled) && !g.locked && g.grumble <= 0) {
+      if (tuned === g.want) {
+        g.locked = true;
+        g.lostT = 0;
+        g.lastFind = g.findT;
+        mark(tuned);
+        sfx('ding', { pitch: 7 });
+      } else if (tuned >= 0) {
+        mark(tuned);
+        g.grumble = 0.7;
+                pop('Not that one!', clamp(fx(g.n), 300, W - 300), CARD.y + CARD.h / 2 + 40, PAL.brick, 34);
+        sfx('wrong');
+        env.vibrate?.(40);
+      } else sfx('tick');
+    }
+
+    if (g.locked) {
+      const q = tuned === g.want ? g.clarity(tuned) : 0;
+      if (q > 0) {
+        g.lostT = 0;
+        g.song = Math.min(1, g.song + dt / SONG);
+        g.noteT -= dt;
+        if (g.noteT <= 0) {
+          const st = STATIONS[g.want];
+          g.noteT = 0.3;
+          sfx('note', { freq: 392 * Math.pow(2, st.tune[g.noteI % st.tune.length] / 12), dur: 0.26 });
+          g.noteI++;
+          const [gx, gy] = grille();
+          g.notes.push({ x: gx + (rng() - 0.5) * 60, y: gy - 40, vx: 60 + rng() * 60, vy: -50 - rng() * 30, life: 1.6, color: st.color });
+        }
+        if (g.song >= 1) {
+          const quick = clamp(Math.round(10 - g.lastFind * 1.25), 0, 10);
+          g.score += 10 + quick;
+          g.songs++;
+          g.cheer = 1.2;
+          const where = clamp(fx(g.n), 300, W - 300);
+          pop(quick >= 7 ? 'Quick!' : 'Hooray!', BUBBLE.x, BUBBLE.y - 80, PAL.magenta, 48);
+          pop('+' + (10 + quick), where, CARD.y + CARD.h / 2 + 40, PAL.magenta, 44);
+          sfx('right');
+          env.vibrate?.(30);
+          ask();
         }
       } else {
-        g.wrongT = 0;
-        // static while the dial turns between stations
-        g.staticT -= Math.abs(g.n - before) * 40 + dt * 0.5;
-        if (g.staticT <= 0) {
-          sfx('pour');
-          g.staticT = 1;
+        g.lostT += dt;
+        if (g.lostT > 0.5) {
+          g.locked = false;
+          g.song = 0;
+          pop('Lost it!', clamp(fx(g.n), 300, W - 300), CARD.y + CARD.h / 2 + 40, PAL.brick, 34);
+          sfx('miss');
         }
+      }
+    } else if (tuned < 0) {
+      // static while the dial turns between stations
+      g.staticT -= Math.abs(g.n - before) * 40 + dt * 0.5;
+      if (g.staticT <= 0) {
+        sfx('pour');
+        g.staticT = 1;
       }
     }
     g.cheer = Math.max(0, g.cheer - dt);
@@ -217,9 +295,9 @@ export default function create(env) {
     g.pops = g.pops.filter((o) => o.life > 0);
   };
 
-  g.hud = () => `Songs ${g.score}`;
+  g.hud = () => `Points ${g.score}`;
   g.summary = () => [
-    `${g.score} song${g.score === 1 ? '' : 's'} played for the listeners.`,
+    `${g.songs} song${g.songs === 1 ? '' : 's'} played for the listeners.`,
     `${Object.keys(g.marks).length} of ${STATIONS.length} stations found on the dial.`,
   ];
 
@@ -392,62 +470,71 @@ export default function create(env) {
     c.restore();
   }
 
-  function drawMeter(c, t) {
-    const { x, y } = METER;
-    const s = g.signal();
-    // a round magic-eye meter: green wedge closes as the signal strengthens
+  // The speaker riding under the needle: static, the nearest station's
+  // picture fading in through it as the needle comes near, and the station
+  // they want in a little tag, so everything to watch stays by the needle.
+  g.cardX = () => clamp(fx(g.n), DIAL.x0 + CARD.w / 2 - 10, DIAL.x1 - CARD.w / 2 + 10);
+  function drawRider(c, t) {
+    const nx = fx(g.n);
+    const x = g.cardX();
+    const y = CARD.y;
     c.beginPath();
-    c.arc(x, y, 70, 0, Math.PI * 2);
-    c.fillStyle = '#2a2a24';
-    c.fill();
-    ink(c, 3, '#c9a24a');
-    const open = (1 - s) * Math.PI * 0.9 + 0.08;
-    c.beginPath();
-    c.moveTo(x, y);
-    c.arc(x, y, 60, -Math.PI / 2 + open / 2, -Math.PI / 2 - open / 2 + Math.PI * 2);
-    c.closePath();
-    c.fillStyle = s > 0.7 ? '#9cf080' : '#5fb060';
-    c.globalAlpha = 0.6 + 0.4 * s;
-    c.fill();
-    c.globalAlpha = 1;
-    c.beginPath();
-    c.arc(x, y, 16, 0, Math.PI * 2);
-    c.fillStyle = '#2a2a24';
-    c.fill();
-    label(c, 'signal', x, y + 98, { size: 24, weight: 600, color: '#5a4a3a' });
-    // the speaker: static, or the station's picture
-    const sx = x + 210;
-    c.beginPath();
-    c.arc(sx, y, 70, 0, Math.PI * 2);
-    c.fillStyle = '#d9c49a';
-    c.fill();
+    c.moveTo(nx, DIAL.y1 + 4);
+    c.lineTo(x, y - CARD.h / 2);
+    ink(c, 3, '#c0302a');
+    poly(c, [[x - CARD.w / 2, y - CARD.h / 2], [x + CARD.w / 2, y - CARD.h / 2], [x + CARD.w / 2, y + CARD.h / 2], [x - CARD.w / 2, y + CARD.h / 2]], 4, 1);
+    wash(c, '#c7a86a');
     ink(c, 2.4);
+    const sx = x + 22;
+    const sy = y + 6;
+    c.beginPath();
+    c.arc(sx, sy, 72, 0, Math.PI * 2);
+    c.fillStyle = '#e9dcb8';
+    c.fill();
+    ink(c, 2.2);
+    const k = g.nearest();
+    const near = g.near(k);
     c.save();
     c.beginPath();
-    c.arc(sx, y, 66, 0, Math.PI * 2);
+    c.arc(sx, sy, 68, 0, Math.PI * 2);
     c.clip();
-    hatch(c, sx - 70, y - 70, sx + 70, y + 70, 9, 0.3, 1);
-    const tuned = g.tuned();
-    if (tuned < 0) {
-      // static snow
-      c.fillStyle = 'rgba(60,50,40,0.5)';
-      for (let i = 0; i < 40; i++) {
-        const a = Math.sin(i * 12.9 + t * 37) * 0.5 + 0.5;
-        const b = Math.sin(i * 78.2 + t * 53) * 0.5 + 0.5;
-        c.fillRect(sx - 60 + a * 120, y - 60 + b * 120, 3, 3);
-      }
+    hatch(c, sx - 72, sy - 72, sx + 72, sy + 72, 9, 0.25, 1);
+    drawStationIcon(c, k, sx, sy, 1.15, near * near);
+    // static: thick far from a station, thinning as one comes in
+    const flecks = Math.round(70 * (1 - near));
+    c.fillStyle = 'rgba(60,50,40,0.6)';
+    for (let i = 0; i < flecks; i++) {
+      const a = Math.sin(i * 12.9 + t * 37) * 0.5 + 0.5;
+      const b = Math.sin(i * 78.2 + t * 53) * 0.5 + 0.5;
+      c.fillRect(sx - 64 + a * 128, sy - 64 + b * 128, 4, 4);
     }
     c.restore();
-    if (tuned >= 0) drawStationIcon(c, tuned, sx, y, 1.1, g.clarity(tuned));
-    label(c, 'playing', sx, y + 98, { size: 24, weight: 600, color: '#5a4a3a' });
+    if (g.locked || g.song > 0) {
+      c.beginPath();
+      c.arc(sx, sy, 80, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * g.song);
+      ink(c, 9, STATIONS[g.want].color);
+    }
+    // the tag: what they want
+    const tx = x - CARD.w / 2 + 6;
+    const ty = y - CARD.h / 2 + 6;
+    blob(c, tx, ty, 40, 36, 5, 0.05);
+    c.fillStyle = 'rgba(250,246,234,0.97)';
+    c.fill();
+    ink(c, 2);
+    drawStationIcon(c, g.want, tx, ty, 0.62);
+    // a hint: press to play, when the wanted station is in
+    if (!g.locked && g.tuned() === g.want && Math.sin(t * 8) > -0.3) {
+      label(c, g.pointerUser ? 'let go!' : 'press!', x, y + CARD.h / 2 + 30, { size: 30, weight: 800, color: PAL.magenta });
+    }
   }
 
   function listener(c, i, x, y, t) {
-    const happy = g.cheer > 0 || (g.tuned() === g.want && g.song > 0.1);
+    const happy = g.cheer > 0 || (g.locked && g.song > 0.05);
     const sway = happy ? Math.sin(t * 5 + i) * 0.12 : 0;
+    const lean = happy ? 0 : -0.35 * g.near(g.want);
     c.save();
     c.translate(x, y);
-    c.rotate(sway);
+    c.rotate(sway + lean);
     if (!drawSprite(c, 'sprites.listeners', i + (happy ? 3 : 0), 0, 0, { h: 130 })) {
       const cols = [PAL.lemon, PAL.sage, PAL.strawberry];
       blob(c, 0, -50, 44, 48, i + 2, 0.05);
@@ -492,31 +579,26 @@ export default function create(env) {
     // The request bubble, with the song's progress round it.
     const bx = BUBBLE.x;
     const by = BUBBLE.y;
-    blob(c, bx, by, 92, 80, 9, 0.04);
-    c.fillStyle = 'rgba(250,246,234,0.97)';
-    c.fill();
-    ink(c, 2.4);
-    poly(c, [[bx - 20, by + 74], [bx + 20, by + 74], [bx + 4, by + 160]], 3, 0.8);
+    poly(c, [[bx - 50, by + 20], [bx - 30, by + 40], [bx - 95, by + 75]], 3, 0.8);
     c.fillStyle = 'rgba(250,246,234,0.97)';
     c.fill();
     ink(c, 2);
-    drawStationIcon(c, g.want, bx, by, 1.1);
-    if (g.song > 0) {
-      c.beginPath();
-      c.arc(bx, by, 100, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * g.song);
-      ink(c, 10, STATIONS[g.want].color);
-    }
+    blob(c, bx, by, 66, 54, 9, 0.04);
+    c.fillStyle = 'rgba(250,246,234,0.97)';
+    c.fill();
+    ink(c, 2.4);
+    drawStationIcon(c, g.want, bx, by, 0.85);
 
     drawDial(c, t);
-    drawMeter(c, t);
+    drawRider(c, t);
 
     // The Radio Bird itself: it sings (and sways) when the right station
     // plays or the listeners cheer, starts back at a wrong station, cocks
     // its head to listen while the dial turns through the static, and
     // otherwise stands as in its portrait.
     const tuned = g.tuned();
-    const playing = tuned === g.want || g.cheer > 0;
-    const startled = tuned >= 0 && tuned !== g.want && g.wrongT > 0.3;
+    const playing = (g.locked && tuned === g.want) || g.cheer > 0;
+    const startled = g.grumble > 0;
     const cell = playing ? 1 : startled ? 2 : g.listenT > 0 ? 0 : -1;
     const bob = playing && !env.reduceMotion ? Math.sin(t * 8) * 0.03 : 0;
     c.save();
@@ -553,7 +635,7 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      label(c, 'Turn the dial to find their station · hold it there', fx(0.5), DIAL.y1 + 50, { size: 32, weight: 600 });
+      label(c, g.pointerUser ? 'Drag the needle to their station · let go on it' : 'Turn the dial to their station · press to play it', g.cardX(), 575, { size: 30, weight: 600 });
       c.restore();
     }
   };
