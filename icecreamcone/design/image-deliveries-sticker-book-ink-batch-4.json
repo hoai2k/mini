@@ -143,7 +143,7 @@
     "grid_gutters": true,
     "visual_review": "Dominant brown-black pen outlines, hatched/stippled shade and flat muted washes; original settings preserved.",
     "browser": "All 28 redraws loaded through the game registry after the loading screen completed; every image is 2048 x 1024. Actual sticker-book rendering inspected in landscape and portrait.",
-    "book_interactions": "Passed after waiting for asset loading: Y opens, mouse and controller move stickers, shoulder buttons switch backgrounds, triggers change spreads, B closes, and positions persist across reload.",
+    "book_interactions": "All 28 assets load at 2048 x 1024 after loading completes; landscape and portrait rendering verified without page errors. The isolated sticker-book interaction test passed once with longer controller timing but subsequent runs failed to record the first mouse-drag position. This interaction check is intermittent; no product interaction code was changed.",
     "publish_copy": true
   }
 }
