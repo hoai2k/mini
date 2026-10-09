@@ -88,3 +88,15 @@ the time ribbon runs just above its top edge. The opening hint is two short
 lines on a paper backing, centred on the view. Still stand-in: the garments
 (IC-M09b) and the pressing and scorched Sparrow (IC-M09c, IC-M09d), drawn
 from the portrait, levelled and cut at the sole, meanwhile.
+
+The sprites are in too (IC-M09b, IC-M09c, IC-M09d). Each garment now has
+its painted shape (handkerchief 500 x 326, shirt 880 x 328, pillowcase
+700 x 328, trousers 920 x 326, tablecloth 700 x 327, scarf 1000 x 180) for
+painted and stand-in alike, and creases are laid only where there is cloth
+(the shirt's body and sleeves, the trousers' legs, inside the borders, the
+scarf without its fringe). The pressing Sparrow is drawn from its measured
+sole: the middle of the underside (595, 816) over the footprint's middle,
+at a scale that makes the sole 170 px long; the scorched pose is put so its
+heel (871, 877) lands where the pressing pose's heel is, so it stays on the
+cloth as it tips up. The code-drawn steam puffs are left out once the
+painted steaming pose is in. Nothing is stand-in any more.

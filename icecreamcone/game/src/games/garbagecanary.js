@@ -40,12 +40,17 @@ const CROSS_X = BIN_X + 80; // where something meets the bin's front rim
 // little, higher at the front; measured on the 1024 px painting: front rim
 // (278, 245) px, back rim and hinge (725, 290) px.
 const RIM = {
-  painted: { front: [-140, -303], back: [140, -285], hinge: [87, -288] },
+  painted: { front: [-140, -303], back: [140, -285], hinge: [95, -276] }, // hinge: the lid piece's back corner, (745, 322) px
   standin: { front: [-140, -250], back: [140, -250], hinge: [92, -250] },
 };
 const OPEN_ANGLE = 1.15;
 const JAM = 0.9; // seconds the lid stays shut after swallowing something that isn't rubbish
 const BIG = 1.3; // things on the wind are drawn this much bigger than their base size
+// The painted things on the wind (IC-M08b), measured: each one's painted
+// width and height in its 512 px cell, and the length the game draws its
+// longer side at.
+const ITEM_BOX = [[281, 238], [400, 244], [306, 199], [183, 282], [404, 179], [255, 205], [299, 227], [405, 222], [273, 230], [330, 218]];
+const ITEM_LONG = { cat: 130, sparrow: 84, fishbone: 112, peel: 100, boot: 100, letter: 92 };
 
 // What blows down the street. `rub`: rubbish. `move`: how it travels.
 const KINDS = {
@@ -341,6 +346,10 @@ export default function create(env) {
     const flap = it.kind === 'sparrow' || it.kind === 'cat';
     if (!flap) c.rotate(rot);
     const h = (it.kind === 'cat' ? 92 : it.kind === 'sparrow' ? 56 : it.kind === 'letter' ? 52 : 64) * BIG;
+    // the painted things (IC-M08b) are sized by their longer side
+    const [bw, bh] = ITEM_BOX[k.i];
+    const L = ITEM_LONG[it.kind] || 92;
+    const fit = bw >= bh ? { w: L } : { h: L };
     if (!k.rub && it.state !== 'in') {
       // the shared cue for "not rubbish, keep the lid shut": a soft gold glow
       // and a twinkle
@@ -374,7 +383,7 @@ export default function create(env) {
       c.fill();
       c.restore();
     }
-    if (!drawSprite(c, 'sprites.garbageItems', k.i, 0, 0, { h, anchor: 'center' })) {
+    if (!drawSprite(c, 'sprites.garbageItems', k.i, 0, 0, { ...fit, anchor: 'center' })) {
       c.scale(BIG, BIG);
       drawItemStandin(c, it, k);
     }
@@ -572,7 +581,8 @@ export default function create(env) {
     const [hx, hy] = HINGE;
     const lidSheet = 'sprites.garbagecanaryLid';
     // the dark open mouth
-    if (g.open > 0.05) {
+    if (g.open > 0.05 && !art('sprites.garbagecanaryLid')) {
+      // (the painted bin has its own dark open top)
       c.save();
       c.beginPath();
       // along the rim, which slants on the painting

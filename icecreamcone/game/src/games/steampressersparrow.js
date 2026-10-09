@@ -63,15 +63,32 @@ const K = SIZE / 400;
 // 23 units right of centre and 140 units above the feet; drawn at this size
 // its sole is as long as the footprint the game presses with.
 const PAINTED = { size: 250, sole: [23, -140], tilt: 0.19 };
+// The pressing sprites (IC-M09c, IC-M09d), measured on their 1024 px cells:
+// the press sheet's sole runs from x 230 to 960 with its underside at 816,
+// so its middle (595, 816) goes over the footprint's middle; the scorched
+// pose is tipped up with its heel at (871, 877), which is put where the
+// press pose's heel is (365 px right of the middle), so the heel stays on
+// the cloth as it swaps in. At this scale the sole is 170 px long.
+const PRESS_SCALE = 170 / 730;
+const PRESS_CELLS = { press: [595, 816], scorch: [871 - 365, 877] };
 
+// Each garment's size is the painted one's (IC-M09b) shape, measured on its
+// 1024 x 512 cell, and `cloth` lists where creases may go, as fractions of
+// that painted box (inside the shirt's body and sleeves, the trousers' legs,
+// the scarf without its fringe, inside the borders).
 const GARMENTS = [
-  { kind: 'hanky', w: 520, h: 300, col: '#f4f0e4', i: 1 },
-  { kind: 'shirt', w: 860, h: 340, col: '#dfe8f0', i: 0 },
-  { kind: 'pillow', w: 760, h: 300, col: '#f2e8d8', i: 4 },
-  { kind: 'trousers', w: 940, h: 300, col: '#9aa0a8', i: 2 },
-  { kind: 'cloth', w: 1000, h: 340, col: '#f0e6dc', i: 5 },
-  { kind: 'scarf', w: 960, h: 200, col: '#eab0c4', i: 3, silk: true },
+  { kind: 'hanky', w: 500, h: 326, col: '#f4f0e4', i: 1, cloth: [[0.08, 0.1, 0.92, 0.9]] },
+  { kind: 'shirt', w: 880, h: 328, col: '#dfe8f0', i: 0, cloth: [[0.28, 0.08, 0.72, 0.94], [0.08, 0.3, 0.92, 0.5]] },
+  { kind: 'pillow', w: 700, h: 328, col: '#f2e8d8', i: 4, cloth: [[0.04, 0.07, 0.86, 0.93]] },
+  { kind: 'trousers', w: 920, h: 326, col: '#9aa0a8', i: 2, cloth: [[0.03, 0.1, 0.97, 0.42], [0.03, 0.58, 0.97, 0.9], [0.03, 0.1, 0.3, 0.9]] },
+  { kind: 'cloth', w: 700, h: 327, col: '#f0e6dc', i: 5, cloth: [[0.06, 0.1, 0.94, 0.9]] },
+  { kind: 'scarf', w: 1000, h: 180, col: '#eab0c4', i: 3, silk: true, cloth: [[0.1, 0.16, 0.9, 0.84]] },
 ];
+const onCloth = (G, cx, cy, x, y) => {
+  const u = (x - cx) / G.w + 0.5;
+  const v = (y - cy) / G.h + 0.5;
+  return G.cloth.some(([u0, v0, u1, v1]) => u > u0 && u < u1 && v > v0 && v < v1);
+};
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -119,12 +136,12 @@ export default function create(env) {
     const G = pool[Math.floor(rng() * pool.length)];
     const cx = 830;
     const cy = 545;
-    const n = Math.min(7, Math.round(lerp(2, 6, p) + (G.w > 800 ? 1 : 0) + (rng() < 0.4 ? 1 : 0)));
+    const n = Math.min(7, Math.round(lerp(2, 6, p) + (G.w > 850 ? 1 : 0) + (rng() < 0.4 ? 1 : 0)));
     const creases = [];
     for (let k = 0; k < n; k++) {
       let tries = 0;
       let c = null;
-      while (tries++ < 20) {
+      while (tries++ < 40) {
         const len = lerp(150, 290, rng()) * (0.8 + 0.4 * p);
         const a = (rng() - 0.5) * 2.2;
         const mx = cx + (rng() - 0.5) * (G.w - len * 0.8 - 60);
@@ -139,7 +156,7 @@ export default function create(env) {
           const off = Math.sin(u * Math.PI) * bend;
           pts.push({ x: x0 + Math.cos(a) * len * u - Math.sin(a) * off, y: y0 + Math.sin(a) * len * u + Math.cos(a) * off, flat: 0 });
         }
-        if (pts.every((q) => q.x > IX0 && q.x < IX1 && q.y > IY0 && q.y < IY1 && Math.abs(q.x - cx) < G.w / 2 - 20 && Math.abs(q.y - cy) < G.h / 2 - 16)) {
+        if (pts.every((q) => q.x > IX0 && q.x < IX1 && q.y > IY0 && q.y < IY1 && onCloth(G, cx, cy, q.x, q.y))) {
           if (!creases.some((o) => o.pts.some((q) => pts.some((r) => Math.hypot(q.x - r.x, q.y - r.y) < 40)))) {
             c = { pts, done: false, seed: rng() * 100 };
             break;
@@ -494,17 +511,16 @@ export default function create(env) {
     const shake = hot > 0.75 && !env.reduceMotion ? Math.sin(t * 50) * 2 : 0;
     const frame = steaming ? 1 : 0;
     // Everything is drawn from the middle of the sole, over the footprint's
-    // middle. The pressing sprites (IC-M09c, IC-M09d) are whole cells at the
-    // painting's scale with the sole's middle at the cell's centre line and
-    // its underside 80% down.
+    // middle (see PRESS_CELLS for the painted poses).
     const painted = !!art('subject.steampressersparrow');
     const size = painted ? PAINTED.size : SIZE;
-    const cell = 1.05 * size;
     c.save();
     c.translate(g.x - 10 + shake, g.y + 6);
     c.rotate(lean);
-    const yelp = g.scorchT > 0 && drawSprite(c, 'sprites.sparrowScorch', 0, 0, 0.2 * cell, { h: cell, whole: true });
-    if (!yelp && !drawSprite(c, 'sprites.sparrowPress', frame, 0, 0.2 * cell, { h: cell, whole: true })) {
+    // a 1024 px cell drawn so its point (px, py) lands here, at PRESS_SCALE
+    const at = (key, i, [px, py]) => drawSprite(c, key, i, (512 - px) * PRESS_SCALE, (1024 - py) * PRESS_SCALE, { h: 1024 * PRESS_SCALE, whole: true });
+    const yelp = g.scorchT > 0 && at('sprites.sparrowScorch', 0, PRESS_CELLS.scorch);
+    if (!yelp && !at('sprites.sparrowPress', frame, PRESS_CELLS.press)) {
       // the bird jumps off the cloth when it scorches
       if (g.scorchT > 0) c.translate(0, -30 * Math.sin((g.scorchT / 0.7) * Math.PI));
       // the painting's sole is tipped: level it on the cloth
@@ -602,7 +618,8 @@ export default function create(env) {
 
     drawIron(c, t);
 
-    for (const p of g.puffs) {
+    // the painted steaming pose has its own steam
+    for (const p of art('sprites.sparrowPress') ? [] : g.puffs) {
       c.save();
       c.globalAlpha = clamp(p.life, 0, 1) * 0.55;
       blob(c, p.x, p.y, p.r, p.r * 0.8, Math.floor(p.r), 0.15, 10);
