@@ -1,3 +1,4 @@
+import { bakedGlow } from './glow.js';
 import { PALETTE as P } from '../palette.js';
 import { drawRig } from '../rig.js';
 import { GROUND, rng, canvas, leaf, star } from './common.js';
@@ -419,17 +420,38 @@ export const figures = {
     const g = this.ctx;
     // Stand on the figure's feet, not on the bottom of its image (art.js measures the empty margin).
     y += (img.footMargin || 0) * h;
+    // Under the backlit glow, a copy with the glow baked in (render/glow.js).
+    const glow = bakedGlow(g, img, w, h);
+    let src = img;
+    let ox = -w / 2;
+    let oy = -h;
+    let dw = w;
+    let dh = h;
+    if (glow) {
+      src = glow.c;
+      ox -= glow.pad;
+      oy -= glow.pad;
+      dw = glow.c.width / glow.scale;
+      dh = glow.c.height / glow.scale;
+    }
     if (!pose.tilt && !pose.lean && pose.alpha === undefined) {
-      g.drawImage(img, x - w / 2, y - h - (pose.bob || 0), w, h);
+      if (glow) {
+        const blur = g.shadowBlur;
+        g.shadowBlur = 0;
+        g.drawImage(src, x + ox, y + oy - (pose.bob || 0), dw, dh);
+        g.shadowBlur = blur;
+      } else g.drawImage(img, x - w / 2, y - h - (pose.bob || 0), w, h);
       return;
     }
     g.save();
+    if (glow) g.shadowBlur = 0;
     if (pose.alpha !== undefined) g.globalAlpha *= pose.alpha;
     g.translate(x + (pose.lean || 0), y - (pose.bob || 0));
     g.rotate(pose.tilt || 0);
-    g.drawImage(img, -w / 2, -h, w, h);
+    g.drawImage(src, ox, oy, dw, dh);
     g.restore();
   },
+
 
   /** A prop: delivered art when there is some, else the stand-in callback. */
   prop(id, x, y, h, standIn, pose) {
@@ -448,6 +470,7 @@ export const figures = {
     if (this.style === 'water') return this.ripple(x, w);
     const g = this.ctx;
     g.save();
+    g.shadowColor = 'transparent'; // no glow behind a shadow
     g.fillStyle = 'rgba(0,0,0,0.35)';
     g.beginPath();
     // Just under the feet, so the figure stands on it rather than above it.
