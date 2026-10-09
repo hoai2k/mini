@@ -640,31 +640,31 @@ export const ASSETS = {
   },
   "book.coot": {
     "file": "assets/book/coot.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.cupadee": {
     "file": "assets/book/cupadee.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.shuttercluck": {
     "file": "assets/book/shuttercluck.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.gullfinch": {
     "file": "assets/book/gullfinch.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.plume": {
     "file": "assets/book/plume.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.bobolinks": {
     "file": "assets/book/bobolinks.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.peeper": {
     "file": "assets/book/peeper.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.piffle": {
     "file": "assets/book/piffle.webp",

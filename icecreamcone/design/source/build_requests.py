@@ -868,13 +868,14 @@ BOOK = [
     ("sawbird", "The Saw Bird", "A carpenter's workshop: a long workbench with planes and chisels, saws hanging on the wall, stacks of planks, curls of wood shavings on the floor, a half-built rocking chair, sunlight through a dusty window."),
     ("radiobird", "The Radio Bird", "A moonlit town rooftop: chimney pots, slate roofs and old radio aerials against a starry sky, a lit attic window, a church spire in the distance, a big round moon."),
 ]
+DELIVERED_BOOK = set(['bobolinks', 'coot', 'cupadee', 'gullfinch', 'peeper', 'plume', 'shuttercluck'])
 for n, (bid, name, scene) in enumerate(BOOK, 1):
     REQUESTS.append({
         "id": f"IC-B{n:02d}", "section": "book", "name": f"Sticker book: {name}", "key": f"book.{bid}",
         "file": f"assets/book/{bid}.webp", "size": "2048 x 1024, opaque",
         "used": f"A background for the sticker book's pages, unlocked by passing {name}.",
         "standin": f"{name}'s game scene.",
-        "status": "requested",
+        "status": "delivered" if bid in DELIVERED_BOOK else "requested",
         "prompt": STYLE + " " + BOOK_PLATE + scene,
     })
 

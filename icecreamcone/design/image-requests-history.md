@@ -4,7 +4,95 @@ Every image request that has been delivered (or delivered and later retired), wi
 
 ## Status
 
-28 requested, 158 delivered, 1 retired, 187 in total.
+21 requested, 165 delivered, 1 retired, 187 in total.
+
+## Sticker book backgrounds
+
+One picture per bird for the pages of the sticker book, unlocked when the player passes that bird. The player picks one with LB/RB and arranges the bird stickers on it. Until a picture arrives, the book offers that bird's game scene instead.
+
+### IC-B01 · Sticker book: The Ice-Cream Cone Coot
+
+- **File:** `icecreamcone/game/assets/book/coot.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** A background for the sticker book's pages, unlocked by passing The Ice-Cream Cone Coot.
+- **Stand-in until delivered:** The Ice-Cream Cone Coot's game scene.
+- **Status:** delivered
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, full bleed. The left half and the right half must each work as a complete picture on its own, because on a phone held upright the two halves are shown one above the other; a vertical strip about 6% wide down the exact middle is the book's fold and holds nothing important. It is a lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned there and let it gather richer around the edges and corners. A whole place rather than a game background: a wide view with depth, a clear time of day and small charming details to find. A seaside town on a summer afternoon: a curving sandy beach and a promenade with railings, a row of faded striped bathing huts, a striped ice-cream cart with its awning, a little pier with a lighthouse far off, a wide pale sky with soft clouds over a calm sea.
+```
+
+### IC-B02 · Sticker book: The Cupadee
+
+- **File:** `icecreamcone/game/assets/book/cupadee.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** A background for the sticker book's pages, unlocked by passing The Cupadee.
+- **Stand-in until delivered:** The Cupadee's game scene.
+- **Status:** delivered
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, full bleed. The left half and the right half must each work as a complete picture on its own, because on a phone held upright the two halves are shown one above the other; a vertical strip about 6% wide down the exact middle is the book's fold and holds nothing important. It is a lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned there and let it gather richer around the edges and corners. A whole place rather than a game background: a wide view with depth, a clear time of day and small charming details to find. A cottage garden at teatime: a tea table laid on the lawn under an old apple tree, with a lace cloth, a teapot, a cake stand and cups, bunting strung between the branches, the cottage's open kitchen door and windows behind, late golden light.
+```
+
+### IC-B03 · Sticker book: The Shuttercluck
+
+- **File:** `icecreamcone/game/assets/book/shuttercluck.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** A background for the sticker book's pages, unlocked by passing The Shuttercluck.
+- **Stand-in until delivered:** The Shuttercluck's game scene.
+- **Status:** delivered
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, full bleed. The left half and the right half must each work as a complete picture on its own, because on a phone held upright the two halves are shown one above the other; a vertical strip about 6% wide down the exact middle is the book's fold and holds nothing important. It is a lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned there and let it gather richer around the edges and corners. A whole place rather than a game background: a wide view with depth, a clear time of day and small charming details to find. Rolling countryside for spotting birds: a hedgerow with a wooden stile, a winding footpath, a pond with reeds, a windmill on a far hill, wildflowers in the long grass, a big sky with high clouds.
+```
+
+### IC-B04 · Sticker book: The Gramophone Gullfinch
+
+- **File:** `icecreamcone/game/assets/book/gullfinch.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** A background for the sticker book's pages, unlocked by passing The Gramophone Gullfinch.
+- **Stand-in until delivered:** The Gramophone Gullfinch's game scene.
+- **Status:** delivered
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, full bleed. The left half and the right half must each work as a complete picture on its own, because on a phone held upright the two halves are shown one above the other; a vertical strip about 6% wide down the exact middle is the book's fold and holds nothing important. It is a lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned there and let it gather richer around the edges and corners. A whole place rather than a game background: a wide view with depth, a clear time of day and small charming details to find. A park bandstand on a summer evening: an ornate painted bandstand with paper lanterns lit, deckchairs on the lawn around it, old trees, a path with lamp posts, a soft violet dusk sky.
+```
+
+### IC-B05 · Sticker book: The Flowerpot Plume
+
+- **File:** `icecreamcone/game/assets/book/plume.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** A background for the sticker book's pages, unlocked by passing The Flowerpot Plume.
+- **Stand-in until delivered:** The Flowerpot Plume's game scene.
+- **Status:** delivered
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, full bleed. The left half and the right half must each work as a complete picture on its own, because on a phone held upright the two halves are shown one above the other; a vertical strip about 6% wide down the exact middle is the book's fold and holds nothing important. It is a lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned there and let it gather richer around the edges and corners. A whole place rather than a game background: a wide view with depth, a clear time of day and small charming details to find. A walled flower garden in full bloom: an old glasshouse, a potting shed with stacked terracotta pots, beds of roses, foxgloves and hollyhocks, a brick wall with climbing roses, a watering can by a gravel path, bright morning.
+```
+
+### IC-B06 · Sticker book: The Highbutton Bobolinks
+
+- **File:** `icecreamcone/game/assets/book/bobolinks.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** A background for the sticker book's pages, unlocked by passing The Highbutton Bobolinks.
+- **Stand-in until delivered:** The Highbutton Bobolinks's game scene.
+- **Status:** delivered
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, full bleed. The left half and the right half must each work as a complete picture on its own, because on a phone held upright the two halves are shown one above the other; a vertical strip about 6% wide down the exact middle is the book's fold and holds nothing important. It is a lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned there and let it gather richer around the edges and corners. A whole place rather than a game background: a wide view with depth, a clear time of day and small charming details to find. A riverbank at night under a big full moon: willows leaning over the water, a little wooden jetty with a lantern, the moon's path on the river, a sleepy town with a few lit windows on the far bank, a deep blue starry sky.
+```
+
+### IC-B07 · Sticker book: The Newspaper Peeper
+
+- **File:** `icecreamcone/game/assets/book/peeper.webp`
+- **Size:** 2048 x 1024, opaque
+- **Used for:** A background for the sticker book's pages, unlocked by passing The Newspaper Peeper.
+- **Stand-in until delivered:** The Newspaper Peeper's game scene.
+- **Status:** delivered
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, full bleed. The left half and the right half must each work as a complete picture on its own, because on a phone held upright the two halves are shown one above the other; a vertical strip about 6% wide down the exact middle is the book's fold and holds nothing important. It is a lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned there and let it gather richer around the edges and corners. A whole place rather than a game background: a wide view with depth, a clear time of day and small charming details to find. A cobbled town square on an early morning: a newspaper kiosk with bundles of papers, an old printing house with tall windows, a clock tower, café tables not yet set out, pale morning sky.
+```
 
 ## Brand
 
