@@ -928,15 +928,17 @@ REQUESTS.append({
     "all 28 birds have been spotted.",
     "standin": "The delivered gathering of the first ten birds.",
     "ref": "endpapers-all-birds.jpg",
-    "status": "requested",
+    "status": "delivered",
     "prompt": STYLE + " " + BIRD + " A crowded, happy gathering of all 28 rare birds of the field guide "
-    "together for a group portrait on a gentle grassy hillside under a pale lemon-yellow sky, packed and "
-    "lively like the book's endpapers (" + REF_URL + "endpapers-all-birds.jpg ). Every one of the 28 is "
+    "in one continuous woodland-edge farmyard: apple trees and hollow trunks, a red barn, a rustic fence, "
+    "flowers and vegetable beds, stumps and a small pond under a pale lemon-yellow sky, lively like the "
+    "book's endpapers (" + REF_URL + "endpapers-all-birds.jpg ). Every one of the 28 is "
     "there exactly once and clearly recognisable: " + ALL_28 + ". Paint each one as it is painted in its "
-    "portrait (" + GATHER_REFS + "), same shapes and colours, all at a similar size so none is lost, in "
-    "loose rows rising up the hill (the nearer birds a little larger), every bird whole and standing a "
-    "little apart from its neighbours with no bird overlapping or hiding another, so each could be picked "
-    "out on its own. Their eyes look about in all directions; some sing. Full-bleed 16:9, no text.",
+    "portrait (" + GATHER_REFS + "), same shapes and colours, naturally varied sizes and depths. Scatter "
+    "them asymmetrically through the habitat, perched on branches or fences, near the pond, among flowers, "
+    "and peeking from foliage, a tree hollow or the barn. Some may be partly hidden by scenery, but every "
+    "distinctive object-bird remains recognisable. No grid, list, aligned rows or repeated strips. "
+    "Their eyes look about in all directions; some sing. Full-bleed 16:9, no text.",
 })
 
 # The same gathering laid out for the sticker book's two pages, to try as the
@@ -948,18 +950,21 @@ REQUESTS.append({
     "player snaps that bird's sticker into it. Also a possible finale picture.",
     "standin": "The sticker book's plain page.",
     "ref": "endpapers-all-birds.jpg",
-    "status": "requested",
+    "status": "delivered",
     "prompt": STYLE + " " + BIRD + " All 28 rare birds of the field guide gathered together, laid out for "
     "the two facing pages of an open sticker album, wide 2:1, full bleed. The left half and the right half "
     "are each a complete picture on its own (on a phone they are shown one above the other), with exactly 14 "
     "birds on each half, and a vertical strip about 6% wide down the exact middle (the book's fold) with no "
-    "bird on it or touching it. A gentle grassy hillside under a pale lemon-yellow sky, lively like the "
+    "bird on it or touching it. One continuous woodland-edge farmyard with apple trees, hollow trunks, "
+    "a red barn, a rustic fence, flowers and vegetable beds, stumps and a small pond beneath a pale "
+    "lemon-yellow sky, lively like the "
     "book's endpapers (" + REF_URL + "endpapers-all-birds.jpg ). Every one of the 28 is there exactly once "
     "and clearly recognisable: " + ALL_28 + ". Paint each one as it is painted in its portrait ("
-    + GATHER_REFS + "), same shapes and colours, all at a similar size, standing whole in loose rows, each "
-    "with clear space all round it: no bird overlapping, touching or hiding another, and none cut off by an "
-    "edge, so each can be picked out on its own. Keep the ground and sky behind and between them simple "
-    "and quiet. No text.",
+    + GATHER_REFS + "), same shapes and colours, scattered asymmetrically at varied depths and sizes, "
+    "perched on branches or fences, among flowers, near the pond, or peeking from foliage, a hollow or "
+    "the barn. Scenery may partly hide a bird, but every distinctive object-bird stays recognisable. "
+    "No grid, list, aligned rows or repeated strips; no bird crosses the centre fold or an outer edge. "
+    "Keep the spaces between them calm. No text.",
 })
 
 def asset_list() -> str:
