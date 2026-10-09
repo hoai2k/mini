@@ -38,3 +38,5 @@ is the six balloons and six kites in the six colours, drawn without
 strings (the game draws the strings from the knot or the kite's tail).
 IC-M04c is the Snippit with its blades open and snapped shut, for walking
 and snipping.
+IC-M04d is the Snippit mid-stride, jammed after a wrong snip, and looking up
+at a balloon it let go; standing still it uses IC-M04c's open blades.

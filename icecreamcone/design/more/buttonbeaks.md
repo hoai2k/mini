@@ -38,3 +38,5 @@ garments with a plain, buttonless placket down the exact middle, where the
 game puts the holes and buttons. IC-M05d is one bowl, drawn for each kind.
 IC-M05e is the pair holding something up between their beaks and tossing
 it.
+IC-M05f is the pair mid-stride, pecking into a bowl, dazed after a wrong
+button and hopping for joy when one is sewn on.
