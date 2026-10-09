@@ -14,7 +14,8 @@
 //     click outside the dialog. The result card shows a score and the
 //     progress is saved.
 //  3. Keyboard: Enter through the title, guide and page; Space starts.
-//  4. Every minigame that exists (or only --bird) is started with ?all, played
+//  4. Every minigame that exists, the book's other birds' too (or only
+//     --bird), is started with ?all&more, played
 //     for a while with random input, and must run without errors, draw, and
 //     reach its result card.
 //
@@ -212,15 +213,17 @@ const MENU = 9;
 }
 
 // ---------- 4: every minigame ----------
-const ids = ['coot', 'cupadee', 'shuttercluck', 'gullfinch', 'plume', 'bobolinks', 'peeper', 'piffle', 'dodo', 'crow'];
-for (const [i, id] of ids.entries()) {
+// The ten, then the book's other birds whose games are built (with ?more).
+const { BUILT_IDS } = await import(pathToFileURL(join(root, 'src/more/index.js')).href);
+const ids = ['coot', 'cupadee', 'shuttercluck', 'gullfinch', 'plume', 'bobolinks', 'peeper', 'piffle', 'dodo', 'crow', ...BUILT_IDS];
+for (const id of ids) {
   if (only && id !== only) continue;
   if (!existsSync(join(root, 'src/games', id + '.js'))) {
     console.log(`skip: ${id} (not built yet)`);
     continue;
   }
-  const { page, errors } = await newPage('&all');
-  await page.evaluate((i) => window.__coot.startBird(i), i);
+  const { page, errors } = await newPage('&all&more');
+  await page.evaluate((id) => window.__coot.startBird(window.__coot.BIRDS.findIndex((b) => b.id === id)), id);
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   let k = 0;
   const deadline = Date.now() + 90000;

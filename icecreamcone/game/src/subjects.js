@@ -1,6 +1,6 @@
-// The book's other birds: the 18 of its 28 that have no field-guide page.
-// Shuttercluck photographs these rather than the birds you play as (image
-// requests IC-R01..R18). Each is drawn from its painting once delivered and
+// The undiscovered birds: the book's 18 (of its 28) that have no field-guide
+// page yet, and ten new ones of our own. Shuttercluck photographs these rather
+// than the birds you play as (image requests IC-R01..R18 and IC-N01..N10). Each is drawn from its painting once delivered and
 // from a small ink-and-wash stand-in until then, in drawBird's space: 400
 // units tall at size 400, feet at the origin, facing left.
 //
@@ -8,7 +8,7 @@
 // is, for peeking out of the knothole; `tier` 0..2 is how rare it is (rarer
 // ones are worth more and peek for less time).
 
-import { art, blob, poly, wash, ink, hatch, eye, beak, leg, PAL, INK } from './draw.js';
+import { art, blob, poly, wash, ink, hatch, eye, beak, leg, drawOtherBirds, PAL, INK } from './draw.js';
 
 // The paintings share the field-guide portraits' framing: the bird fills
 // about 80% of a square, feet near the bottom.
@@ -389,20 +389,233 @@ export const SUBJECTS = {
       head(g, -100, -350, 18, '#e0b080', PAL.ochre, 36);
     },
   },
+
+  // Ten new rare birds of our own, in Lobel's manner (IC-N01..N10): not in
+  // the book, kept for later pages, and meanwhile something else to spot.
+  hourglassheron: {
+    name: 'the Hourglass Heron', tier: 1, pocket: true, box: { x0: -150, x1: 90, top: -420 }, head: [-80, -395],
+    draw(g, t) {
+      legs(g, 0, -150, 30);
+      for (const y of [-155, -300]) {
+        g.fillStyle = '#8a5a30';
+        g.fillRect(-60, y, 120, 14);
+        ink(g, 2);
+      }
+      poly(g, [[-45, -290], [45, -290], [8, -225], [45, -160], [-45, -160], [-8, -225]], 3);
+      wash(g, 'rgba(230,240,240,0.8)');
+      ink(g, 2);
+      poly(g, [[-35, -165], [35, -165], [0, -205]], 1);
+      wash(g, '#e0c080');
+      g.beginPath();
+      g.moveTo(0, -300);
+      g.quadraticCurveTo(-60, -340, -60, -390);
+      ink(g, 9, '#b8c4c8');
+      ink(g, 2);
+      head(g, -65, -395, 17, '#b8c4c8', PAL.ochre, 50);
+    },
+  },
+  spectaclesnipe: {
+    name: 'the Spectacle Snipe', tier: 0, pocket: true, box: { x0: -190, x1: 130, top: -270 }, head: [-40, -200],
+    draw(g) {
+      legs(g, 0, -150, 36);
+      for (const x of [-60, 50]) {
+        g.beginPath();
+        g.arc(x, -195, 42, 0, Math.PI * 2);
+        g.fillStyle = 'rgba(220,235,240,0.7)';
+        g.fill();
+        ink(g, 4, '#8a7040');
+        eye(g, x, -195, 12);
+      }
+      beak(g, -100, -190, 90, 6, '#8a7040');
+      g.beginPath();
+      g.moveTo(92, -200);
+      g.lineTo(130, -150);
+      ink(g, 3, '#8a7040');
+    },
+  },
+  bellowsbittern: {
+    name: 'the Bellows Bittern', tier: 1, pocket: true, box: { x0: -190, x1: 130, top: -280 }, head: [-110, -200],
+    draw(g, t) {
+      const puff = 1 + Math.sin(t * 3) * 0.08;
+      legs(g, 10, -130);
+      poly(g, [[-90, -195], [70, -260 * puff + 10], [120, -200], [70, -140 / puff - 10]], 5);
+      wash(g, '#a0683a');
+      ink(g, 2.4);
+      hatch(g, -80, -260, 120, -140, 12, 0.5, 2);
+      poly(g, [[-90, -205], [-185, -198], [-90, -188]], 2);
+      wash(g, '#c9a24a');
+      ink(g, 2);
+      eye(g, -40, -205, 11);
+    },
+  },
+  lampshadeloon: {
+    name: 'the Lampshade Loon', tier: 1, pocket: true, box: { x0: -130, x1: 120, top: -340 }, head: [-30, -310],
+    draw(g) {
+      legs(g, 0, -90);
+      poly(g, [[-45, -240], [45, -240], [100, -100], [-100, -100]], 3, 2);
+      wash(g, '#f2d890');
+      ink(g, 2.4);
+      for (let x = -95; x <= 95; x += 12) {
+        g.beginPath();
+        g.moveTo(x, -100);
+        g.lineTo(x, -85);
+        ink(g, 1.5, '#c9a24a');
+      }
+      blob(g, -10, -275, 30, 34, 4, 0.05);
+      wash(g, '#2c3030');
+      ink(g, 2);
+      eye(g, -22, -285, 10, '#e05040');
+      beak(g, -38, -272, 50, 8, '#3a3a3a');
+    },
+  },
+  concertinacurlew: {
+    name: 'the Concertina Curlew', tier: 2, pocket: true, box: { x0: -200, x1: 120, top: -270 }, head: [-80, -200],
+    draw(g, t) {
+      const sq = 1 + Math.sin(t * 2.5) * 0.15;
+      legs(g, 0, -130);
+      for (let i = 0; i < 5; i++) {
+        const x = (-60 + i * 30) * sq;
+        poly(g, [[x, -245], [x + 15 * sq, -230], [x + 15 * sq, -150], [x, -135]], i);
+        wash(g, i % 2 ? '#c9b8a0' : '#b0443a');
+        ink(g, 1.6);
+      }
+      for (const x of [-80 * sq, 90 * sq]) {
+        poly(g, [[x - 18, -255], [x + 18, -255], [x + 18, -125], [x - 18, -125]], 3);
+        wash(g, '#3a2a40');
+        ink(g, 2);
+      }
+      eye(g, -80 * sq, -205, 10);
+      g.beginPath();
+      g.moveTo(-98 * sq, -195);
+      g.quadraticCurveTo(-170, -190, -195, -130);
+      ink(g, 6, PAL.ochre);
+      ink(g, 1.5);
+    },
+  },
+  weathervanewarbler: {
+    name: 'the Weathervane Warbler', tier: 2, pocket: true, box: { x0: -170, x1: 150, top: -330 }, head: [-130, -280],
+    draw(g, t) {
+      g.save();
+      g.translate(0, -270);
+      g.rotate(Math.sin(t * 0.8) * 0.12);
+      poly(g, [[-150, 0], [-110, -18], [-110, -6], [110, -6], [140, -40], [150, 0], [140, 40], [110, 6], [-110, 6], [-110, 18]], 4);
+      wash(g, '#5a9a80');
+      ink(g, 2.2);
+      eye(g, -120, -2, 8);
+      g.restore();
+      g.beginPath();
+      g.moveTo(0, -264);
+      g.lineTo(0, -60);
+      ink(g, 5, '#3a6a58');
+      g.beginPath();
+      g.moveTo(-60, -130);
+      g.lineTo(60, -130);
+      ink(g, 3, '#3a6a58');
+      legs(g, 0, -60, 40, '#3a6a58');
+    },
+  },
+  mousetrapmagpie: {
+    name: 'the Mousetrap Magpie', tier: 0, pocket: true, box: { x0: -170, x1: 200, top: -250 }, head: [-110, -200],
+    draw(g) {
+      legs(g, 10, -100);
+      poly(g, [[-90, -150], [110, -150], [110, -110], [-90, -110]], 2, 1);
+      wash(g, '#d8b070');
+      ink(g, 2.4);
+      g.beginPath();
+      g.moveTo(-60, -150);
+      g.lineTo(-20, -210);
+      g.lineTo(60, -210);
+      g.lineTo(80, -150);
+      ink(g, 3, '#9aa0a8');
+      poly(g, [[100, -150], [200, -190], [200, -175], [100, -135]], 3);
+      wash(g, '#20242a');
+      ink(g, 1.5);
+      head(g, -110, -195, 24, '#20242a', '#20242a', 36);
+      poly(g, [[40, -160], [70, -175], [75, -150]], 1);
+      wash(g, '#f2d24a');
+      ink(g, 1.5);
+    },
+  },
+  hatboxhoopoe: {
+    name: 'the Hatbox Hoopoe', tier: 0, pocket: true, box: { x0: -170, x1: 110, top: -330 }, head: [-80, -270],
+    draw(g) {
+      legs(g, 0, -100);
+      poly(g, [[-85, -110], [85, -110], [85, -230], [-85, -230]], 2, 1);
+      wash(g, '#e8c8c0');
+      ink(g, 2.4);
+      for (let x = -70; x <= 70; x += 28) {
+        g.fillStyle = 'rgba(180,80,90,0.5)';
+        g.fillRect(x, -228, 12, 116);
+      }
+      poly(g, [[-95, -232], [95, -232], [92, -255], [-92, -255]], 3);
+      wash(g, '#c06070');
+      ink(g, 2);
+      for (let i = 0; i < 5; i++) {
+        blob(g, -60 + i * 14, -295 + Math.abs(i - 2) * 8, 8, 30, i, 0.1);
+        wash(g, i % 2 ? '#e8a040' : '#2a2a2a');
+      }
+      eye(g, -60, -215, 10);
+      g.beginPath();
+      g.moveTo(-82, -210);
+      g.quadraticCurveTo(-140, -205, -165, -170);
+      ink(g, 4, PAL.ochre);
+    },
+  },
+  candlestickkiwi: {
+    name: 'the Candlestick Kiwi', tier: 2, pocket: true, box: { x0: -190, x1: 110, top: -380 }, head: [-60, -130],
+    draw(g, t) {
+      legs(g, 0, -50, 40);
+      blob(g, 0, -100, 85, 55, 2, 0.05);
+      wash(g, '#8a6a4a');
+      ink(g, 2.4);
+      eye(g, -55, -115, 10);
+      g.beginPath();
+      g.moveTo(-80, -100);
+      g.quadraticCurveTo(-150, -95, -185, -50);
+      ink(g, 4, PAL.ochre);
+      g.fillStyle = '#c9a24a';
+      g.fillRect(-12, -260, 24, 110);
+      ink(g, 2);
+      g.fillStyle = '#f6f2e6';
+      g.fillRect(-14, -340, 28, 82);
+      blob(g, 0, -362 + Math.sin(t * 9) * 2, 9, 18, 3, 0.15);
+      wash(g, '#f0a030');
+    },
+  },
+  rollingpinrail: {
+    name: 'the Rollingpin Rail', tier: 1, pocket: true, box: { x0: -190, x1: 170, top: -260 }, head: [-140, -215],
+    draw(g) {
+      legs(g, 0, -140, 50);
+      blob(g, 0, -170, 120, 30, 3, 0.02);
+      wash(g, '#e0c08a');
+      ink(g, 2.4);
+      for (const x of [-140, 145]) {
+        blob(g, x, -170, 26, 12, x, 0.05);
+        wash(g, '#c8a070');
+        ink(g, 2);
+      }
+      head(g, -150, -210, 18, '#c8a070', PAL.ochre, 36);
+      g.fillStyle = 'rgba(255,255,255,0.6)';
+      g.fillRect(-60, -186, 70, 6);
+    },
+  },
 };
 
 export const SUBJECT_IDS = Object.keys(SUBJECTS);
 
 // Draw one of them, from its painting once delivered.
-export function drawSubject(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false } = {}) {
+export function drawSubject(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false, pose = {} } = {}) {
   const sub = SUBJECTS[id];
   if (!sub) return;
   g.save();
   g.translate(x, y);
   const s = size / 400;
   g.scale(flip ? -s : s, s * (1 + Math.sin(t * 2) * 0.012));
-  const img = art('subject.' + id);
+  const img = art((sub.pocket ? 'pocket.' : 'subject.') + id);
   if (img) g.drawImage(img, -FRAME.cx * FRAME.u, -FRAME.feet * FRAME.u, FRAME.u, FRAME.u);
-  else sub.draw(g, t);
+  else sub.draw(g, t, pose);
   g.restore();
 }
+
+// drawBird() draws these too, so a page or a game can use either.
+drawOtherBirds((g, id, opts) => drawSubject(g, id, opts));

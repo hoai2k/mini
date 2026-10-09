@@ -90,7 +90,7 @@ SECTIONS = {
     ),
     "subject": (
         "Shuttercluck's subjects: the book's other birds",
-        "Say Cheese photographs creatures you don't play as, so these are the rest of Lobel's "
+        "Say Cheese photographs the undiscovered birds, the ones you don't play as: these are the rest of Lobel's "
         "birds: the 18 of the book's 28 that the field guide doesn't have a page for, so that "
         "every bird in the book has a painting. The names come from the book as quoted in its "
         "descriptions and reviews; most birds are matched to the crowded yellow endpapers "
@@ -103,9 +103,17 @@ SECTIONS = {
     ),
     "pocket": (
         "In our pocket: ten new rare birds",
-        "Not used yet and not shown anywhere: a second flock in Lobel's manner, invented here, "
-        "for when the field guide grows beyond the book's own birds. Each note says what its "
-        "game might be. Same framing as the portraits, so any of them can become a page later.",
+        "A second flock in Lobel's manner, invented here, for when the field guide grows beyond "
+        "the book's own birds. Until then they have no page, but they are among the undiscovered "
+        "birds that Shuttercluck photographs in Say Cheese. Each note says what its game might "
+        "be. Same framing as the portraits, so any of them can become a page later.",
+    ),
+    "more": (
+        "New minigames: the book's other birds",
+        "Scenes, sprites and variants for the minigames of the book's 18 birds that are joining "
+        "the field guide (their portraits are the IC-R requests above). Each bird's requests are "
+        "kept in design/source/more/<bird>.json beside this script. The birds join the guide "
+        "once these are delivered; until then their games draw stand-ins (try them with ?more).",
     ),
     "sprite": (
         "Sprites and variants",
@@ -605,12 +613,27 @@ for n, (pid, name, look, game) in enumerate(POCKET, 1):
         "key": f"pocket.{pid}",
         "file": f"assets/pocket/{pid}.png",
         "size": "1024 x 1024, transparent",
-        "used": "Nothing yet: kept for a later page of the field guide. A game idea: " + game,
-        "standin": "None; not shown.",
+        "used": "Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; "
+        "later, a page of its own. A game idea: " + game,
+        "standin": "The object drawn in code in ink and wash, with an eye, a beak and legs.",
         "status": "requested",
         "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " For the drawing style and "
         "the way the object becomes a bird, look at the book's birds in " + REF_URL + ENDPAPERS + " .",
     })
+
+# The new minigames' requests, one JSON file per bird in more/: a list of
+# {id, name, key, file, size, used, standin, prompt, status?, ref?}. A prompt
+# may use {STYLE}, {BIRD}, {SHEET}, {VARIANT}, {SCENE}, {ALPHA} and {REF_URL}
+# for the shared texts above.
+MORE_DIR = Path(__file__).resolve().parent / "more"
+SHARED = {"STYLE": STYLE, "BIRD": BIRD, "SHEET": SHEET, "VARIANT": VARIANT, "SCENE": SCENE,
+          "ALPHA": ALPHA, "REF_URL": REF_URL}
+for f in sorted(MORE_DIR.glob("*.json")):
+    for r in json.loads(f.read_text()):
+        prompt = r["prompt"]
+        for k, v in SHARED.items():
+            prompt = prompt.replace("{" + k + "}", v)
+        REQUESTS.append({**r, "section": "more", "prompt": prompt, "status": r.get("status", "requested")})
 
 SPRITES = [
     ("IC-P01", "Scoop Stack props", "sprites.scoops", "assets/sprites/scoops.png", "2048 x 1024, transparent",

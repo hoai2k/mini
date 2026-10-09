@@ -761,7 +761,18 @@ const OVERLAY = {
   },
 };
 
+// Birds drawn elsewhere (the undiscovered birds in subjects.js, which
+// registers itself here): drawBird hands them over.
+let otherBirds = null;
+export function drawOtherBirds(fn) {
+  otherBirds = fn;
+}
+
 export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false, pose = {}, rot = 0, squash = 0 } = {}) {
+  if (!BIRD_DRAW[id] && !PORTRAIT[id] && otherBirds) {
+    otherBirds(g, id, { x, y, size, t, flip, pose });
+    return;
+  }
   g.save();
   g.translate(x, y);
   if (rot) g.rotate(rot);

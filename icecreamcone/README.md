@@ -32,7 +32,7 @@ in the `hoai2k.github.io` repository), which is off on localhost.
 | --- | --- |
 | `game/src/main.js` | Screens, menus and navigation, the guide, bird pages, running a minigame (count-in, HUD, pause, results, best scores) |
 | `game/src/birds.js` | The ten birds: names, rhymes, goals, tips, the score that opens the next page |
-| `game/src/subjects.js` | The book's other 18 birds, which Shuttercluck photographs: names, rarity, their stand-in drawings and where each painting goes |
+| `game/src/subjects.js` | The undiscovered birds Shuttercluck photographs (the book's other 18 and ten of our own): names, rarity, their stand-in drawings and where each painting goes |
 | `game/src/games/*.js` | One minigame per bird; `games/index.js` documents the contract they share |
 | `game/src/draw.js` | Ink-and-wash drawing: the stand-in birds, how each delivered portrait is placed, and what is drawn over it (lamps, growth, blinks) |
 | `game/src/input.js` | Controllers, keyboard, mouse and touch, as one small set of actions |
