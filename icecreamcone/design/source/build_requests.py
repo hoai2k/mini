@@ -90,7 +90,7 @@ SECTIONS = {
     ),
     "subject": (
         "Shuttercluck's subjects: the book's other birds",
-        "Say Cheese photographs creatures you don't play as, so these are the rest of Lobel's "
+        "Say Cheese photographs the undiscovered birds, the ones you don't play as: these are the rest of Lobel's "
         "birds: the 18 of the book's 28 that the field guide doesn't have a page for, so that "
         "every bird in the book has a painting. The names come from the book as quoted in its "
         "descriptions and reviews; most birds are matched to the crowded yellow endpapers "
@@ -103,9 +103,10 @@ SECTIONS = {
     ),
     "pocket": (
         "In our pocket: ten new rare birds",
-        "Not used yet and not shown anywhere: a second flock in Lobel's manner, invented here, "
-        "for when the field guide grows beyond the book's own birds. Each note says what its "
-        "game might be. Same framing as the portraits, so any of them can become a page later.",
+        "A second flock in Lobel's manner, invented here, for when the field guide grows beyond "
+        "the book's own birds. Until then they have no page, but they are among the undiscovered "
+        "birds that Shuttercluck photographs in Say Cheese. Each note says what its game might "
+        "be. Same framing as the portraits, so any of them can become a page later.",
     ),
     "sprite": (
         "Sprites and variants",
@@ -605,8 +606,9 @@ for n, (pid, name, look, game) in enumerate(POCKET, 1):
         "key": f"pocket.{pid}",
         "file": f"assets/pocket/{pid}.png",
         "size": "1024 x 1024, transparent",
-        "used": "Nothing yet: kept for a later page of the field guide. A game idea: " + game,
-        "standin": "None; not shown.",
+        "used": "Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; "
+        "later, a page of its own. A game idea: " + game,
+        "standin": "The object drawn in code in ink and wash, with an eye, a beak and legs.",
         "status": "requested",
         "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " For the drawing style and "
         "the way the object becomes a bird, look at the book's birds in " + REF_URL + ENDPAPERS + " .",

@@ -379,7 +379,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ## Shuttercluck's subjects: the book's other birds
 
-Say Cheese photographs creatures you don't play as, so these are the rest of Lobel's birds: the 18 of the book's 28 that the field guide doesn't have a page for, so that every bird in the book has a painting. The names come from the book as quoted in its descriptions and reviews; most birds are matched to the crowded yellow endpapers (reference/endpapers-all-birds.jpg), where each prompt says where to look. Four are named but not found in our photos, so they are drawn from their names; two endpaper birds (the saw and the radio) are in the pictures but their names were not found, so they have plain names for now. The Drippet as the tap is a likely match, not a certain one. Each is drawn like the field-guide portraits, at the same framing, because the game raises them over hedges, walls and the knothole the same way.
+Say Cheese photographs the undiscovered birds, the ones you don't play as: these are the rest of Lobel's birds: the 18 of the book's 28 that the field guide doesn't have a page for, so that every bird in the book has a painting. The names come from the book as quoted in its descriptions and reviews; most birds are matched to the crowded yellow endpapers (reference/endpapers-all-birds.jpg), where each prompt says where to look. Four are named but not found in our photos, so they are drawn from their names; two endpaper birds (the saw and the radio) are in the pictures but their names were not found, so they have plain names for now. The Drippet as the tap is a likely match, not a certain one. Each is drawn like the field-guide portraits, at the same framing, because the game raises them over hedges, walls and the knothole the same way.
 
 ### IC-R01 · The Milkbottle Midge
 
@@ -617,14 +617,14 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ## In our pocket: ten new rare birds
 
-Not used yet and not shown anywhere: a second flock in Lobel's manner, invented here, for when the field guide grows beyond the book's own birds. Each note says what its game might be. Same framing as the portraits, so any of them can become a page later.
+A second flock in Lobel's manner, invented here, for when the field guide grows beyond the book's own birds. Until then they have no page, but they are among the undiscovered birds that Shuttercluck photographs in Say Cheese. Each note says what its game might be. Same framing as the portraits, so any of them can become a page later.
 
 ### IC-N01 · The Hourglass Heron
 
 - **File:** `icecreamcone/game/assets/pocket/hourglassheron.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Turn it over at the right moment to keep the sand running.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Turn it over at the right moment to keep the sand running.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -635,8 +635,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/spectaclesnipe.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Spot the differences through its lenses.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Spot the differences through its lenses.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -647,8 +647,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/bellowsbittern.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Puff a feather or the embers along at the right strength.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Puff a feather or the embers along at the right strength.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -659,8 +659,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/lampshadeloon.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Light up the moths that come to it, not the bats.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Light up the moths that come to it, not the bats.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -671,8 +671,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/concertinacurlew.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Squeeze and stretch in time to play its tune.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Squeeze and stretch in time to play its tune.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -683,8 +683,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/weathervanewarbler.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Turn into the wind as it changes.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Turn into the wind as it changes.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -695,8 +695,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/mousetrapmagpie.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Grab the shiny things without setting itself off.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Grab the shiny things without setting itself off.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -707,8 +707,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/hatboxhoopoe.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Catch the hats that blow off people's heads.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Catch the hats that blow off people's heads.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -719,8 +719,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/candlestickkiwi.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Shelter its flame from the draughts.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Shelter its flame from the draughts.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
@@ -731,8 +731,8 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/pocket/rollingpinrail.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Nothing yet: kept for a later page of the field guide. A game idea: Roll out the pastry evenly before it tears.
-- **Stand-in until delivered:** None; not shown.
+- **Used for:** Say Cheese (the Shuttercluck), as one of the undiscovered birds it photographs; later, a page of its own. A game idea: Roll out the pastry evenly before it tears.
+- **Stand-in until delivered:** The object drawn in code in ink and wash, with an eye, a beak and legs.
 - **Status:** requested
 
 ```text
