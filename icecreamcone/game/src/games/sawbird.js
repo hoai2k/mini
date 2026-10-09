@@ -35,9 +35,9 @@ const DEAD = 0.35; // each stroke cuts only after it has travelled this far
 const BITE = 26; // pixels of cut per stroke-width travelled
 const TURN = 0.38; // how much the saw's tip steers the cut
 const GRADES = [
-  [6, 10, 'Dead straight!', PAL.magenta],
-  [14, 7, 'Straight!', PAL.green],
-  [26, 4, 'A bit crooked', PAL.ochre],
+  [4, 10, 'Dead straight!', PAL.magenta],
+  [10, 7, 'Straight!', PAL.green],
+  [20, 4, 'A bit crooked', PAL.ochre],
   [Infinity, 1, 'Crooked!', PAL.brick],
 ];
 const WOODS = ['#e2c48a', '#cf9f62', '#c27a58'];
@@ -63,6 +63,9 @@ export default function create(env) {
     dust: [],
     pops: [],
     ref: null, // pointer: where the drag started
+    pumped: false, // the action has been used to saw
+    knotT: 0,
+    knotsHit: 0,
     sawSound: 0,
   };
 
@@ -74,15 +77,16 @@ export default function create(env) {
 
   function newPlank() {
     const p = progress();
-    const len = lerp(640, 1000, p) * (0.95 + rng() * 0.1);
+    const len = lerp(640, 1000, p) * (0.85 + rng() * 0.3);
     const left = W / 2 - len / 2;
     const right = W / 2 + len / 2;
     const lineY = LINE_Y + (rng() - 0.5) * 30;
-    const grain = (rng() < 0.5 ? -1 : 1) * lerp(0.05, 0.14, p) * (0.8 + rng() * 0.4);
+    const grain = (rng() < 0.5 ? -1 : 1) * lerp(0.06, 0.14, p) * (0.7 + rng() * 0.6);
+    // Knots sit right on the line: saw round them, or grind slowly through.
     const knots = [];
-    if (g.planks >= 1) {
-      const n = g.planks >= 3 ? 2 : 1;
-      for (let i = 0; i < n; i++) knots.push({ x: lerp(left + 120, right - 160, (i + 0.3 + rng() * 0.4) / n), push: (rng() < 0.5 ? -1 : 1) * lerp(14, 22, p), hit: false });
+    const n = g.planks === 0 ? 0 : g.planks === 1 ? 1 : g.planks === 2 ? 2 : 2 + (rng() < 0.5 ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      knots.push({ x: lerp(left + 110, right - 150, (i + 0.25 + rng() * 0.5) / n), dy: (rng() - 0.5) * 14, rx: lerp(24, 32, rng()), ry: lerp(16, 22, rng()), hit: false });
     }
     g.plank = { left, right, len, lineY, grain, knots, cutX: right, drift: 0, path: [[right, lineY]], slide: 1, wood: g.planks % 3, seed: Math.floor(rng() * 100) };
   }
@@ -90,10 +94,22 @@ export default function create(env) {
   g.plank.slide = 0;
 
   g.cutY = () => g.plank.lineY + g.plank.drift;
+  // The knot the saw's teeth are in, if any.
+  g.inKnot = () => {
+    const p = g.plank;
+    return p.knots.find((k) => {
+      const dx = (p.cutX - 8 - k.x) / k.rx;
+      const dy = (g.cutY() - p.lineY - k.dy) / k.ry;
+      return dx * dx + dy * dy < 1;
+    });
+  };
 
   function finish() {
     const p = g.plank;
-    const offs = p.path.map(([, y]) => Math.abs(y - p.lineY));
+    // Going round a knot doesn't count against the cut: only the stretches
+    // away from the knots are measured.
+    const away = p.path.filter(([x]) => p.knots.every((k) => Math.abs(x - k.x) > k.rx + 90));
+    const offs = (away.length ? away : p.path).map(([, y]) => Math.abs(y - p.lineY));
     const mean = offs.reduce((a, b) => a + b, 0) / Math.max(1, offs.length);
     const [, pts, text, color] = GRADES.find(([lim]) => mean <= lim);
     g.score += pts;
@@ -121,6 +137,7 @@ export default function create(env) {
       return;
     }
     const p = g.plank;
+    g.kindNow = input.kind;
 
     // Where the hand wants the saw: along the stroke, and its tip's heading.
     let sT = g.s;
@@ -133,7 +150,13 @@ export default function create(env) {
         tT = clamp((ptr.y - g.cutY()) / 70, -1, 1);
       } else g.ref = null;
     } else {
-      sT = clamp(input.x || 0, -1, 1);
+      // The stick or ← → saw directly; or hold the action to push the saw
+      // and let go to pull it back (so on a controller the stick can just
+      // steer).
+      const x = input.x || 0;
+      if (input.action) g.pumped = true;
+      if (Math.abs(x) > (input.kind === 'controller' ? 0.4 : 0.05)) sT = clamp(x, -1, 1);
+      else if (g.pumped) sT = input.action ? -1 : 1;
       tT = clamp(input.y || 0, -1, 1);
     }
     g.tilt = approach(g.tilt, tT, 10, dt);
@@ -163,19 +186,25 @@ export default function create(env) {
     if (p.slide <= 0 && g.strokeLen > DEAD) {
       const bite = Math.abs(ds) * BITE * (1 + g.rhythm * 0.1);
       let adv = Math.min(bite, p.cutX - p.left);
-      for (const k of p.knots) if (Math.abs(p.cutX - k.x) < 30) adv *= 0.55;
+      const k = g.inKnot();
+      if (k) {
+        adv *= 0.12;
+        g.snag = 0.25;
+        g.knotT -= dt;
+        if (g.knotT <= 0) {
+          sfx('bonk');
+          g.knotT = 0.45;
+        }
+        if (!k.hit) {
+          k.hit = true;
+          g.knotsHit++;
+          pop('Knot! Steer round', k.x, PLANK_TOP - 30, PAL.brick, 34);
+          env.vibrate?.(40);
+        }
+      }
       if (adv > 0) {
         p.cutX -= adv;
         p.drift += (g.tilt * TURN + p.grain) * adv;
-        for (const k of p.knots) {
-          if (!k.hit && p.cutX < k.x) {
-            k.hit = true;
-            p.drift += k.push;
-            pop('Knot!', k.x, PLANK_TOP - 30, PAL.brick, 34);
-            g.snag = 0.5;
-            sfx('bonk');
-          }
-        }
         p.drift = clamp(p.drift, PLANK_TOP + 12 - p.lineY, PLANK_BOT - 12 - p.lineY);
         const last = p.path[p.path.length - 1];
         if (last[0] - p.cutX >= 6) p.path.push([p.cutX, g.cutY()]);
@@ -319,11 +348,15 @@ export default function create(env) {
       ink(c, 2.2);
     }
     for (const k of p.knots) {
-      blob(c, k.x, p.lineY + k.push * 1.6, 16, 10, k.x, 0.12);
-      wash(c, '#7a4a28', 0.8);
-      ink(c, 1.4);
-      blob(c, k.x, p.lineY + k.push * 1.6, 26, 16, k.x + 1, 0.1);
-      ink(c, 1, '#7a4a28');
+      const ky = p.lineY + k.dy;
+      blob(c, k.x, ky, k.rx * 0.6, k.ry * 0.6, k.x, 0.12);
+      wash(c, '#6a3a1c', 0.9);
+      ink(c, 1.6);
+      blob(c, k.x, ky, k.rx, k.ry, k.x + 1, 0.1);
+      wash(c, '#8a5a30', 0.35);
+      ink(c, 1.4, '#6a3a1c');
+      blob(c, k.x, ky, k.rx + 12, k.ry + 9, k.x + 2, 0.12);
+      ink(c, 1, 'rgba(106,58,28,0.6)');
     }
   }
 
@@ -383,25 +416,43 @@ export default function create(env) {
     if (g.proud > 0) {
       // After a straight cut it hops down and stands proud beside the plank.
       const hop = Math.abs(Math.sin(g.proud * 6)) * 14;
-      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1450, 770 - hop, { h: SAW_SIZE * 0.8 })) {
-        drawBird(c, 'sawbird', { x: 1450, y: 770 - hop, size: SAW_SIZE, t });
+      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1400, 770 - hop, { h: SAW_SIZE * 0.8 })) {
+        drawBird(c, 'sawbird', { x: 1400, y: 770 - hop, size: SAW_SIZE, t });
       }
       return;
     }
-    const x = (p.slide > 0 ? p.right + 40 : p.cutX) - 10 + g.s * STROKE + 150 * K;
-    const y = (p.slide > 0 ? p.lineY - 60 * p.slide : g.cutY()) - TEETH * K;
     const shake = g.snag > 0 && !env.reduceMotion ? Math.sin(g.snag * 60) * 0.05 : 0;
     const rot = g.tilt * 0.12 + shake;
-    c.save();
-    c.translate(x, y + TEETH * K);
-    c.rotate(rot);
-    c.translate(0, -TEETH * K);
-    // The painted sawing pose: its toothed edge is the bottom of the picture.
-    // Snagged on a knot (or after a crooked cut) it shows its bowed blade.
+    const tipX = (p.slide > 0 ? p.right + 40 : p.cutX) - 55 + g.s * STROKE; // the blade's tip
+    const lineY = p.slide > 0 ? p.lineY - 60 * p.slide : g.cutY();
+    // A painted sawing pose: its toothed edge is the bottom of the picture,
+    // its tip at the left.
     const [sheet, cell] = g.snag > 0 && art('sprites.sawbirdPoses') ? ['sprites.sawbirdPoses', 0] : ['sprites.sawbirdSawing', 0];
-    if (!drawSprite(c, sheet, cell, -45 * K, TEETH * K + 4, { w: 330 * K })) {
-      drawBird(c, 'sawbird', { x: 0, y: 0, size: SAW_SIZE, t });
+    const sp = spriteCell(sheet, cell);
+    if (sp) {
+      const w = 300 * K;
+      c.save();
+      c.translate(tipX + w / 2, lineY + 4);
+      c.rotate(rot);
+      drawSprite(c, sheet, cell, 0, 0, { w });
+      c.restore();
+      return;
     }
+    // Otherwise the bird itself, its saw levelled with the teeth on the cut
+    // and what hangs below the teeth (its body and legs) hidden in the cut.
+    // The painting's teeth run from (-185, -264) to (36, -218), about 0.2
+    // rad off level; the stand-in's are level at TEETH.
+    const pt = art('subject.sawbird');
+    const [mx, my, ang, half] = pt ? [-75, -241, 0.203, 122] : [-105, TEETH, 0, 105];
+    c.save();
+    c.translate(tipX + half * K, lineY);
+    c.rotate(rot);
+    c.beginPath();
+    c.rect(-400, -400, 800, 400 + 6);
+    c.clip();
+    c.rotate(-ang);
+    c.translate(-mx * K, -my * K);
+    drawBird(c, 'sawbird', { x: 0, y: 0, size: SAW_SIZE, t });
     c.restore();
   }
 
@@ -463,7 +514,7 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      label(c, 'Long strokes back and forth · steer up and down to stay on the line', W / 2, 395, { size: 32, weight: 600 });
+      label(c, g.kindNow === 'controller' ? 'Hold A to push, let go to pull · steer up and down round the knots' : g.kindNow === 'pointer' ? 'Drag back and forth · point where the cut should go' : 'Long strokes ← → (or hold Space and let go) · ↑ ↓ to steer', W / 2, 395, { size: 30, weight: 600 });
       c.restore();
     }
   };

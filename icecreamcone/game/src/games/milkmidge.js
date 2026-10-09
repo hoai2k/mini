@@ -1,16 +1,19 @@
 // Milkbottle Midge: Milk Round.
 //
 // Dawn, and the Midge rides the back of the milk float down a street of
-// houses, each set back behind its own front garden. Hold the action to wind
-// up a throw and let go to lob a bottle up the garden path: the longer the
-// hold, the further back it flies, and a dotted ring on the ground shows
-// where it will land. Past the farthest doorstep the wind-up swings back
-// down again, so holding on is no help. A bottle that lands on a doorstep is
-// a pint delivered; one that misses smashes (−1), and one that smashes near a
-// sleeping dog wakes it too (−2 more). A house with a "No milk today" card on
-// its door wants none: a bottle on that step comes back (−1). The float
-// speeds up, the steps narrow and spread from near to far, and the dogs and
-// cards come more often as the round goes on. Score: pints delivered.
+// houses, each set back behind its own front garden. A chalk lane runs up the
+// street from the Midge's hand, so the house to aim for is plain. Hold the
+// action to wind up a throw and let go to lob a bottle up the garden path:
+// the longer the hold, the further back it flies, and a ring on the ground
+// shows where it will land (green when it is on a step that wants a pint).
+// Past the farthest doorstep the wind-up swings back down again, so holding
+// on is no help. A pint on a doorstep scores 1, or 2 right in the middle, on
+// the mat. A bottle that misses smashes: no points lost, but the Midge needs
+// a moment to fetch another; one that smashes near a sleeping dog wakes it
+// (−1). A house with a "No milk today" card wants none: a bottle on that
+// step comes back (−1). The float speeds up, the steps spread from near to
+// far, and the dogs and cards come more often as the round goes on.
+// Score: points.
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
@@ -30,6 +33,7 @@ const HAND_Y = 600; // where the Midge lets go
 const FENCE = 668; // the garden fences along the pavement
 const NEAR = 690; // a bottle let go at once lands here, on the pavement
 const FAR = 290; // the farthest a full wind-up throws
+const RELOAD = 0.7; // after a smash, seconds before the Midge has another bottle in hand
 const STEP_MIN = 330; // the deepest doorstep
 const STEP_MAX = 600; // the nearest doorstep
 const HOUSE_COLS = ['#e8c9a0', '#d9a4a0', '#c9d0b0', '#e6d9a8', '#c4b4c8', '#d7b48a'];
@@ -51,6 +55,7 @@ export default function create(env) {
     charge: 0, // 0..1, where the wind-up has got to
     dir: 1, // the wind-up going out (1) or swinging back (-1)
     fling: 0, // the throwing arm's follow-through
+    reload: 0, // after a smash: fetching another bottle
     mood: null, // { kind: 'pleased' | 'startled', t } after a bottle lands
     houses: [],
     bottles: [], // in flight
@@ -58,6 +63,7 @@ export default function create(env) {
     puddles: [],
     pops: [],
     pints: 0,
+    perfects: 0,
     smashes: 0,
     woken: 0,
     refused: 0,
@@ -68,15 +74,21 @@ export default function create(env) {
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
   // How long a full wind-up takes, out to the farthest step.
-  g.windTime = () => lerp(1.25, 0.95, progress());
+  g.windTime = () => lerp(1.35, 1.15, progress());
   // Where a bottle let go at this charge lands, on screen.
   g.landY = (c = g.charge) => lerp(NEAR, FAR, c);
   // And the charge that lands on a step.
   g.chargeFor = (y) => (NEAR - y) / (NEAR - FAR);
   g.flightTime = (c) => 0.5 + 0.3 * c;
   g.sx = (x) => x - g.fx + FLOAT_SX; // street to screen
+  // The house in the throw lane (wanting milk), and whether the ring is on its step.
+  g.laneHouse = () => g.houses.find((h) => !h.note && h.got < h.wants && Math.abs(h.x - g.fx) <= h.half) || null;
+  g.onStep = () => {
+    const h = g.laneHouse();
+    return !!h && Math.abs(g.landY() - h.stepY) <= g.tol();
+  };
   // How far up or down the path a bottle may land and still be on the step.
-  g.tol = () => lerp(30, 20, progress());
+  g.tol = () => 30;
 
   function pop(text, x, y, color = INK, size = 40) {
     g.pops.push({ text, x, y, color, size, life: 1.2 });
@@ -142,10 +154,12 @@ export default function create(env) {
     if (h && h.got < h.wants) {
       h.got++;
       g.pints++;
-      add(1);
-      const perfect = Math.abs(b.x - h.x) < h.half * 0.4 && Math.abs(y - h.stepY) < g.tol() * 0.45;
+      // right on the mat, in the middle of the step: a bonus point
+      const perfect = Math.abs(b.x - h.x) < h.half * 0.4 && Math.abs(y - h.stepY) < g.tol() * 0.4;
+      if (perfect) g.perfects++;
+      add(perfect ? 2 : 1);
       g.mood = { kind: 'pleased', t: 0.8 };
-      pop(perfect ? 'Perfect!' : 'Clink!', g.sx(h.x), h.stepY - 150 * h.s, perfect ? PAL.magenta : PAL.slate, perfect ? 50 : 42);
+      pop(perfect ? 'On the mat! +2' : 'Clink! +1', g.sx(h.x), h.stepY - 150 * h.s, perfect ? PAL.magenta : PAL.slate, perfect ? 50 : 42);
       sfx('catch', { pitch: perfect ? 7 : 0 });
       if (perfect) sfx('ding', { pitch: 0 });
       env.vibrate?.(20);
@@ -154,7 +168,8 @@ export default function create(env) {
     // Missed: smash.
     g.smashes++;
     g.mood = { kind: 'startled', t: 0.8 };
-    let cost = 1;
+    let cost = 0;
+    g.reload = RELOAD; // a moment to fetch another bottle from the crate
     const sx = g.sx(b.x);
     for (let i = 0; i < 12; i++) {
       const a = -Math.PI * (0.1 + 0.8 * rng());
@@ -171,14 +186,14 @@ export default function create(env) {
         d.woke = true;
         d.awake = 2.2;
         g.woken++;
-        cost += 2;
+        cost += 1;
         pop('Woof! Woof!', g.sx(d.x), d.y - 90, PAL.brick, 46);
         sfx('squawk');
         env.vibrate?.(120);
       }
     }
     add(-cost);
-    pop(cost > 1 ? `Smash!  −${cost}` : 'Smash!  −1', sx, y - 50, '#8a5a3a', 36);
+    pop(cost ? `Smash!  −${cost}` : 'Smash!', sx, y - 50, '#8a5a3a', 36);
   }
 
   g.update = (dt, input) => {
@@ -192,7 +207,8 @@ export default function create(env) {
 
     // Wind up while held; let go to throw.
     if (g.time > 0) {
-      if (input.actionPressed) {
+      g.reload = Math.max(0, g.reload - dt);
+      if (input.actionPressed && g.reload <= 0) {
         g.holding = true;
         g.charge = 0;
         g.dir = 1;
@@ -254,9 +270,9 @@ export default function create(env) {
     if (g.time <= 0 && !g.bottles.length) g.done = true;
   };
 
-  g.hud = () => `Pints ${g.score}`;
+  g.hud = () => `Points ${g.score}`;
   g.summary = () => {
-    const lines = [`${g.pints} pint${g.pints === 1 ? '' : 's'} on the doorsteps.`];
+    const lines = [`${g.pints} pint${g.pints === 1 ? '' : 's'} on the doorsteps, ${g.perfects} right on the mat.`];
     const woes = [];
     if (g.smashes) woes.push(`${g.smashes} smashed`);
     if (g.woken) woes.push(`${g.woken} dog${g.woken === 1 ? '' : 's'} woken`);
@@ -336,18 +352,33 @@ export default function create(env) {
     c.translate(x, y);
     c.scale(s * (d.side > 0 ? -1 : 1), s);
     if (!awake) {
-      // curled up asleep
-      blob(c, 0, -22, 56, 26, 4, 0.05);
+      // curled up asleep: a tail curled round, the body, a head on its paws
+      c.beginPath();
+      c.moveTo(48, -20);
+      c.quadraticCurveTo(80, -50, 62, -64);
+      ink(c, 7, '#a07a5a');
+      ink(c, 1.4);
+      blob(c, 6, -24, 54, 24, 4, 0.05);
       wash(c, d.woke ? '#a07a5a' : '#c09a6a');
       ink(c, 2);
-      blob(c, -40, -26, 20, 16, 5, 0.05);
-      wash(c, '#a07a5a');
+      blob(c, -18, -6, 30, 7, 9, 0.05); // front paws
+      wash(c, '#c09a6a');
+      ink(c, 1.4);
+      blob(c, -46, -24, 22, 18, 5, 0.05); // head
+      wash(c, '#c09a6a');
       ink(c, 2);
+      blob(c, -66, -18, 10, 8, 6, 0.05); // muzzle
+      wash(c, '#d8b48a');
+      ink(c, 1.6);
       c.beginPath();
-      c.moveTo(-48, -28);
-      c.lineTo(-38, -26);
+      c.arc(-75, -21, 3.5, 0, Math.PI * 2);
+      c.fillStyle = INK;
+      c.fill();
+      c.beginPath(); // a shut eye
+      c.moveTo(-54, -30);
+      c.quadraticCurveTo(-49, -26, -44, -30);
       ink(c, 2);
-      poly(c, [[-48, -40], [-58, -54], [-36, -42]], 6, 0.6);
+      poly(c, [[-46, -40], [-30, -44], [-28, -20], [-36, -18]], 6, 0.6); // a floppy ear
       wash(c, '#7a5a3a');
       ink(c, 1.6);
       c.restore();
@@ -517,9 +548,9 @@ export default function create(env) {
     c.save();
     c.translate(x - 120, ROAD_Y - 118 + jolt + hop);
     c.rotate(lean + shiver);
-    const drawn = mood
-      ? drawSprite(c, 'sprites.midgeMoods', mood.kind === 'pleased' ? 0 : 1, 0, 0, { h: 270, flip: true })
-      : cell >= 0 && drawSprite(c, 'sprites.midgeThrow', cell, 0, 0, { h: 270, flip: true });
+    // variants are painted in square cells framed like the portrait (feet at 0.966)
+    const pose = (key, i) => drawSprite(c, key, i, 0, 0.034 * 270 * 1.05, { h: 270 * 1.05, whole: true, flip: true });
+    const drawn = mood ? pose('sprites.midgeMoods', mood.kind === 'pleased' ? 0 : 1) : cell >= 0 && pose('sprites.midgeThrow', cell);
     if (!drawn) {
       c.scale(1 + squash * 0.5 + (mood?.kind === 'startled' ? 0.04 : 0), 1 - squash);
       drawBird(c, 'milkmidge', { x: 0, y: 0, size: 270, t, flip: true });
@@ -561,25 +592,30 @@ export default function create(env) {
     // bottles sent back, on the pavement
     for (const h of g.houses) if (h.note && h.back) drawBottle(c, g.sx(h.x) + 50, FENCE + 26, 0.9);
 
-    // the landing ring while winding up
+    // the throw lane: a chalk line up the street from the Midge's hand, always
+    // there, so the house to aim for is plain before winding up
+    const lane = g.laneHouse();
+    c.save();
+    c.globalAlpha = 0.45;
+    c.setLineDash([6, 12]);
+    c.beginPath();
+    c.moveTo(FLOAT_SX, FENCE + 50);
+    c.lineTo(FLOAT_SX, FAR - 10);
+    ink(c, 3, lane ? PAL.green : '#fbf8ee');
+    c.restore();
+    // the landing ring while winding up: green when it would land on a step
+    // that wants a pint
     if (g.holding) {
       const y = g.landY();
       const s = depth(y);
+      const good = g.onStep();
       c.save();
-      c.setLineDash([8, 8]);
       c.beginPath();
-      c.ellipse(FLOAT_SX, y, 44 * s, 14 * s, 0, 0, Math.PI * 2);
-      c.fillStyle = 'rgba(239,217,106,0.45)';
+      c.ellipse(FLOAT_SX, y, 62 * s, 20 * s, 0, 0, Math.PI * 2);
+      c.fillStyle = good ? 'rgba(127,170,90,0.6)' : 'rgba(239,217,106,0.5)';
       c.fill();
-      ink(c, 3.5, PAL.brick);
-      c.restore();
-      c.save();
-      c.globalAlpha = 0.25;
-      c.setLineDash([4, 10]);
-      c.beginPath();
-      c.moveTo(FLOAT_SX, HAND_Y);
-      c.lineTo(FLOAT_SX, y);
-      ink(c, 2, PAL.slate);
+      c.setLineDash([10, 7]);
+      ink(c, 5, good ? '#3f7a3a' : PAL.brick);
       c.restore();
     }
 
@@ -641,7 +677,7 @@ export default function create(env) {
   };
 
   // On a narrow screen: keep the float and the houses coming up in view.
-  g.focus = () => FLOAT_SX + 260;
+  g.focus = () => FLOAT_SX + 150;
   g.span = 900;
 
   return g;

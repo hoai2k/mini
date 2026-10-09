@@ -32,10 +32,11 @@ The first plank is short with a gentle grain.
 mouse or touch: drag left and right, and point where the cut should go. On a
 narrow screen the view follows the cut.
 
-**Bots** (`game/test/sawbird.test.mjs`): a beginner sawyer (shorter strokes,
-pauses, a shaky and slow steering hand) scores 44; a good one 70; full
-strokes that never steer 15 to 22; fast jiggling 4; idling and random
-mashing 0.
+**Bots** (`game/test/sawbird.test.mjs`): a beginner sawyer (shorter
+strokes, pauses, sees knots late, a shaky and slow steering hand) scores 38
+to 44 over six seeds; holding A to push, the same beginner scores 44 to 54;
+a good sawyer 67 to 70. Full strokes that never steer score 7 to 10,
+fast jiggling 1, mashing A 0, and idling and random mashing 0.
 
 ## Images (IC-M17)
 
@@ -56,3 +57,35 @@ mashing 0.
 The Saw Bird's states: sawing (IC-M17d, slid back and forth and tipped to
 steer), between planks (the sawing pose, lifted), snagged (IC-M17e, shaken),
 proud (IC-M17e, hopping). The page uses the portrait.
+
+## Changes after the audit
+
+1. **A controller no longer needs a diagonal waggle.** Hold the action to
+   push the saw and let go to pull it back (Space too), so the stick only
+   steers. Stick strokes still work. Pressing A quickly gives short strokes,
+   which barely cut. The on-screen hint and the page's controls say so for
+   each device.
+2. **Steering of its own: knots to go round.** Knots no longer shove the
+   cut. They sit on the chalk line as obstacles, from none on the first
+   plank to one, two, then two or three. Sawing into one nearly stalls the
+   saw ("Knot! Steer round"). Going round costs nothing, because the
+   stretch of cut near a knot isn't counted in the grade, so the choice is
+   to swerve out and back, or grind slowly through. The grades are tighter
+   (within 4, 10, 20 px) and the grain pulls a little harder.
+3. **Seeds now vary.** Knot positions, sizes and counts, and plank lengths
+   (±15%), now change from seed to seed, so the bots' scores vary. The tests
+   use six seeds and assert the holding-A beginner too.
+
+## Matched to the painting
+
+The painting (`assets/subjects/sawbird.png`) carries the whole handsaw as its
+head, held out to the left with its tip a little up: the teeth run from
+(-185, -264) to (36, -218) in drawBird units, about 0.2 rad off level, with
+the feathered body and legs below the handle. While sawing, the game turns
+the painting so its teeth lie level on the cut, with the tip leading. It
+hides everything below the teeth (body and legs), as if sunk in the cut,
+until the sawing pose (IC-M17d) arrives. The proud pose falls back to the
+full painting standing beside the plank. IC-M17d and IC-M17e are rewritten
+for the painting's design: the saw is its head, so the sawing pose has the
+whole bird crouched forward and down with its saw-head level and nothing
+below the teeth, and the proud pose tips the saw-head up like a salute.

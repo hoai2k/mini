@@ -6,10 +6,12 @@ import { run, env, blank } from './harness.mjs';
 
 const pass = entry.pass;
 
-// A sawyer: strokes back and forth to `reach`, pausing a little at each end,
-// and steers the cut back towards the line. `skill` shortens its strokes,
-// adds pauses, makes it slow to notice the cut wandering and shakes its hand.
-function sawyer(skill = 1, seed = 1) {
+// A sawyer: strokes back and forth to `reach` (with the stick, or on a
+// controller by holding A to push and letting go to pull), pausing a little
+// at each end, and steers the cut back to the line and round the knots ahead.
+// `skill` shortens its strokes, adds pauses, makes it see knots later, slow to
+// notice the cut wandering, and shakes its hand.
+function sawyer(skill = 1, seed = 1, pump = false) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let side = -1;
@@ -18,15 +20,25 @@ function sawyer(skill = 1, seed = 1) {
   return (game) => {
     const reach = 0.75 + 0.25 * skill;
     if (wait > 0) wait -= 1 / 60;
-    else if (Math.abs(game.s - side * reach) < 0.08) {
+    else if (Math.abs(game.s - side * (pump ? 0.97 : reach)) < 0.08) {
       side = -side;
       wait = (1 - skill) * 0.25 * rnd();
     }
     const p = game.plank;
-    const off = p.drift;
+    // Where the cut should be: on the line, or beside a knot coming up.
+    let want = 0;
+    const look = 40 + 60 * skill;
+    const k = p.knots.find((k) => k.x < p.cutX + k.rx && k.x > p.cutX - look - k.rx);
+    if (k) {
+      const up = p.drift < k.dy;
+      want = k.dy + (up ? -1 : 1) * (k.ry + 12);
+    }
     if (rnd() < 0.05) shake = (rnd() - 0.5) * 2 * (1 - skill) * 0.8;
-    const steer = Math.max(-1, Math.min(1, -off / (14 + 20 * (1 - skill)) - p.grain / 0.38 * skill)) + shake;
-    return { x: wait > 0 ? game.s : side * reach, y: steer };
+    const lead = 18 + 30 * (1 - skill);
+    const steer = Math.max(-1, Math.min(1, ((want - p.drift) / lead - p.grain * skill) / 0.38)) + shake;
+    const stroke = wait > 0 ? (pump ? game.s : game.s) : side;
+    if (pump) return { kind: 'controller', action: wait > 0 ? game.s < 0 : side < 0, y: steer };
+    return { x: wait > 0 ? game.s : side * reach, y: steer + 0 * stroke };
   };
 }
 
@@ -34,18 +46,22 @@ function sawyer(skill = 1, seed = 1) {
 const jiggle = (period) => (game, t) => ({ x: Math.floor(t / period) % 2 ? 1 : -1 });
 
 test('sawbird: a beginner reaches the score, a good sawyer more; jiggling, unsteered strokes and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: sawyer(0.3, seed) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: sawyer(1, seed) }).game.score);
+  const beginner = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: sawyer(0.3, seed) }).game.score);
+  const good = [1, 2, 3, 4, 5, 6].map((seed) => run(create, { seed, bot: sawyer(1, seed) }).game.score);
   const jig = [1, 2].map((seed) => run(create, { seed, bot: jiggle(0.08) }).game.score);
   const blind = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: jiggle(0.45) }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('sawbird beginner', beginner, 'good', good, 'jiggle', jig, 'unsteered', blind, 'idle', idle, 'pass', pass);
+  const pumper = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: sawyer(0.3, seed, true) }).game.score);
+  const mashA = [1, 2].map((seed) => run(create, { seed, bot: (game, t) => ({ kind: 'controller', action: Math.floor(t * 20) % 2 === 0 }) }).game.score);
+  console.log('sawbird beginner', beginner, 'good', good, 'beginner holding A', pumper, 'mashing A', mashA, 'jiggle', jig, 'unsteered', blind, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
   assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
   const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
   assert.ok(avg(good) > avg(beginner), `good ${good}`);
   assert.ok(Math.max(...jig) < pass, `jiggle ${jig}`);
   assert.ok(Math.max(...blind) < pass, `unsteered ${blind}`);
+  assert.ok(Math.min(...pumper) >= pass, `holding A to push ${pumper}`);
+  assert.ok(Math.max(...mashA) < pass, `mashing A ${mashA}`);
 });
 
 test('sawbird: short strokes barely cut, long strokes do', () => {

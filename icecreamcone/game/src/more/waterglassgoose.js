@@ -8,13 +8,13 @@ export default {
   goal: 'Watch and listen as the Goose taps out a tune on the glasses, then tap the same glasses back in the same order.',
   tips: [
     'Each glass has its own colour and its own note: the fuller the glass, the lower the note.',
-    'Say the colours to yourself as the Goose plays them: “blue, pink, yellow”.',
-    'A wrong glass cracks it and ends that tune; three cracks and the concert is over.',
-    'A whole tune played back scores three extra.',
+    'Say the colours to yourself as the Goose plays them: blue, green, yellow, pink, orange.',
+    'Play each note straight after the last (within a moment) for one extra.',
+    'A whole tune played back scores three extra. A wrong glass cracks it and ends that tune; three cracks and the concert is over.',
   ],
   score: 'points',
   controls: [['Step along the glasses', 'move', 'Tap the glasses in the same order'], ['Tap a glass', 'action']],
-  pass: 22,
+  pass: 30,
   tune: 'menu',
   color: '#b7dcc0',
 };

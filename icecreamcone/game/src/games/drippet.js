@@ -30,10 +30,10 @@ const FLOOR_X0 = 110;
 const FLOOR_X1 = 1490;
 const SPEED = 430;
 const FRESH = 1.1; // a puddle is harmless this long after its first drip
-const SLIP = 1.0;
+const SLIP = 2.2;
 const HOP = 0.55;
-const HOP_REST = 0.22;
-const FILL = 0.5; // seconds over a thirsty thing to fill it
+const HOP_REST = 1; // no hopping again this soon after landing (and a stumble at first)
+const FILL = 0.7; // seconds over a thirsty thing to fill it
 const REACH = 64; // how near the tap must be
 const KINDS = ['fern', 'bowl', 'glass', 'daisies'];
 
@@ -71,7 +71,7 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const dripEvery = () => lerp(0.42, 0.22, progress());
+  const dripEvery = () => lerp(0.34, 0.2, progress());
   const puddleLife = () => lerp(5, 9.5, progress());
   const puddleMax = () => lerp(36, 56, progress());
   const patience = () => lerp(11, 7, progress());
@@ -82,13 +82,19 @@ export default function create(env) {
   }
 
   // Where the spout is, and where its drips land.
+  // The Drippet's size on screen, and where its spout's mouth is, in drawBird
+  // units: measured on the painting (the stand-in's own until it loads).
+  const painted = () => !!art('subject.drippet');
+  g.size = (y = g.y) => (painted() ? 250 : 300) * scaleAt(y);
+  const SPOUT = { painted: [163, -229], standin: [150, -135] };
   g.spout = () => {
-    const k = scaleAt(g.y);
-    return { x: g.x + g.face * 112 * k, y: g.y - 101 * k - g.hopH() };
+    const [sx, sy] = SPOUT[painted() ? 'painted' : 'standin'];
+    const u = g.size() / 400;
+    return { x: g.x + g.face * sx * u, y: g.y + sy * u - g.hopH() };
   };
   g.hopH = () => (g.hop > 0 ? Math.sin((1 - g.hop / HOP) * Math.PI) * 70 : 0);
   // The spot on the floor a drip from the spout lands on.
-  const dripSpot = () => ({ x: g.x + g.face * 112 * scaleAt(g.y), y: g.y + 4 });
+  const dripSpot = () => ({ x: g.spout().x, y: g.y + 4 });
 
   // A puddle is slippery once it has sat a moment.
   g.slippery = (p) => p.age > FRESH && p.r > 14;
@@ -141,7 +147,7 @@ export default function create(env) {
     g.slip = SLIP;
     g.slips++;
     const sp = Math.max(260, Math.hypot(dirx, diry));
-    const a = Math.atan2(diry, dirx || g.face);
+    const a = Math.atan2(diry, dirx || g.face) + (rng() < 0.5 ? -1 : 1) * (0.5 + rng() * 0.9); // skids off sideways
     g.vx = Math.cos(a) * sp;
     g.vy = Math.sin(a) * sp;
     g.hop = 0;
@@ -196,7 +202,7 @@ export default function create(env) {
           my /= m;
         }
       }
-      const boost = g.hop > 0 ? 0.8 : 1;
+      const boost = g.hop > 0 ? 0.8 : g.hopRest > HOP_REST - 0.25 ? 0.5 : 1;
       g.vx = approach(g.vx, mx * SPEED * boost, 14, dt);
       g.vy = approach(g.vy, my * SPEED * 0.8 * boost, 14, dt);
       if (Math.abs(g.vx) > 40) g.face = g.vx < 0 ? -1 : 1;
@@ -220,8 +226,15 @@ export default function create(env) {
         // Landing: a splash of water, and a skid if it lands in a puddle.
         g.hop = 0;
         g.hopRest = HOP_REST;
-        const p = g.puddleAt(g.x, g.y);
+        // (landing in any puddle skids, even a fresh one: it's a splash-down)
+        const p = g.puddles.find((q) => q.r > 14 && g.inPuddle(g.x, g.y, q));
         addWater(g.x - g.face * 20, g.y + 2, 3);
+        // and the jolt shakes a few more drips out round about
+        for (let i = 0; i < 3; i++) {
+          const ang = rng() * Math.PI * 2;
+          const r = 80 + rng() * 80;
+          addWater(clamp(g.x + Math.cos(ang) * r, FLOOR_X0, FLOOR_X1), clamp(g.y + Math.sin(ang) * r * 0.5, FLOOR_TOP, FLOOR_BOT));
+        }
         sfx('plop');
         if (p) startSlip(g.vx, g.vy);
       }
@@ -272,6 +285,21 @@ export default function create(env) {
       }
       t.born = Math.min(1, t.born + dt * 3);
       t.wait += dt;
+      // The cat doesn't like wet paws: it noses its bowl away from puddles.
+      if (t.kind === 'bowl') {
+        for (const q of g.puddles) {
+          if (!g.slippery(q)) continue;
+          const dx = t.x - q.x;
+          const dy = (t.y - q.y) * 2;
+          const d = Math.hypot(dx, dy);
+          if (d < q.r + 70 && d > 0.01) {
+            t.x = clamp(t.x + (dx / d) * 70 * dt, FLOOR_X0 + 60, FLOOR_X1 - 60);
+            t.y = clamp(t.y + (dy / d) * 35 * dt, FLOOR_TOP + 30, FLOOR_BOT - 20);
+            t.nudged = 0.3;
+          }
+        }
+        t.nudged = Math.max(0, (t.nudged || 0) - dt);
+      }
       const near = Math.hypot(spot.x - t.x, (spot.y - t.y) * 1.6) < REACH || Math.hypot(g.x - t.x, (g.y - t.y) * 1.6) < REACH * 0.9;
       if (near && g.hop <= 0 && g.slip <= 0) {
         g.pouring = 0.15;
@@ -540,7 +568,7 @@ export default function create(env) {
 
   function drawDrippet(c, t) {
     const k = scaleAt(g.y);
-    const size = 300 * k;
+    const size = g.size();
     const lift = g.hopH();
     // shadow
     c.save();
@@ -566,7 +594,7 @@ export default function create(env) {
     if (g.slip > 0 && !env.reduceMotion) c.rotate(Math.sin(g.spinA) * 0.45);
     else if (moving) c.rotate(Math.sin(g.walk * 2.2) * 0.05);
     else if (g.pouring > 0 && !art(sheet)) c.rotate(g.face * 0.12);
-    if (!sheet || !drawSprite(c, sheet, cell, 0, 0, { h: size * 0.85, flip })) {
+    if (!sheet || !drawSprite(c, sheet, cell, 0, 0, { h: size * 0.9, flip })) {
       drawBird(c, 'drippet', { x: 0, y: 0, size, t, flip });
     }
     c.restore();

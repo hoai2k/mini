@@ -10,8 +10,8 @@
 // built (listed in BUILT below) after the ten, to try them.
 
 export const MORE_IDS = [
-  'milkmidge', 'waterglassgoose', 'niffy', 'snippit', 'buttonbeaks', 'broomwhisk',
-  'keycrane', 'garbagecanary', 'steampressersparrow', 'wetweatherwren', 'glovedove', 'titthrush',
+  'milkmidge', 'waterglassgoose', 'niffy', 'broomwhisk', 'buttonbeaks', 'keycrane',
+  'snippit', 'garbagecanary', 'steampressersparrow', 'wetweatherwren', 'glovedove', 'titthrush',
   'plugsocketswift', 'saltshakershrike', 'ladlelark', 'drippet', 'sawbird', 'radiobird',
 ];
 

@@ -6,124 +6,155 @@ import { run, env, blank } from './harness.mjs';
 
 const pass = entry.pass;
 
-// A listener at the dial: sweeps through the static (or goes straight to the
-// pencil mark, if the station asked for is already marked) until a station
-// comes in; if it's the one asked for, it homes in and follows it as it
-// drifts, otherwise it sweeps on. `skill` slows the sweep, makes the hand
-// shakier and slower to correct, and lets it forget the pencil marks.
+// A listener at the dial: goes to the pencil mark if the station asked for
+// is marked (and it remembers), otherwise sweeps through the static; when a
+// station's picture comes in it lets go of the stick, and if it is the one
+// asked for, presses to play it once the needle has settled. `skill` slows
+// the sweep and the reactions, makes it overshoot, sometimes press on the
+// wrong station, and forget the marks.
 function tuner(skill = 1, seed = 1) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
   let dir = 1;
   let asked = -1;
   let remember = true;
-  let shake = 0;
+  let wait = 0; // reaction time before pressing
+  let coast = 0; // overshoot: keeps sweeping a moment after a station comes in
+  let pressed = false;
   return (game) => {
     if (game.asked !== asked) {
       asked = game.asked;
       remember = rnd() < 0.3 + 0.7 * skill;
+      wait = 0;
     }
-    if (rnd() < 0.05) shake = (rnd() - 0.5) * (1 - skill) * 0.6;
-    const want = game.want;
+    if (pressed) {
+      pressed = false;
+      return {};
+    }
+    if (game.locked) return {};
     const tuned = game.tuned();
-    const f = game.freq(want);
-    // On it (or nearly): follow it.
-    if (tuned === want || (tuned < 0 && Math.abs(f - game.n) < 0.03 && game.signal() > 0.4)) {
-      const d = f - game.n;
-      const x = Math.sign(d) * Math.min(1, Math.sqrt(Math.abs(d) * (4 + 12 * skill))) + shake;
-      return { x, action: Math.abs(d) < 0.01 * skill };
+    if (coast > 0) {
+      coast -= 1 / 60;
+      return { x: dir * (0.55 + 0.45 * skill) };
     }
-    const memo = game.marks[want];
-    if (remember && memo !== undefined) {
+    if (tuned >= 0 && game.near(tuned) > 0.6) {
+      if (tuned === game.want || rnd() < (1 - skill) * 0.01) {
+        if (wait <= 0) wait = 0.15 + (1 - skill) * 0.6 * rnd();
+        wait -= 1 / 60;
+        if (wait <= 0) {
+          pressed = true;
+          return { action: true };
+        }
+        return {};
+      }
+    }
+    const memo = game.marks[game.want];
+    if (remember && memo !== undefined && Math.abs(memo - game.n) > 0.01) {
       const d = memo - game.n;
-      dir = Math.sign(d) || dir;
+      dir = Math.sign(d);
       return { x: Math.sign(d) * Math.min(1, Math.sqrt(Math.abs(d) * 8)) };
     }
     if (game.n >= 0.995) dir = -1;
     if (game.n <= 0.005) dir = 1;
-    return { x: dir * (0.55 + 0.45 * skill) + shake };
+    // a beginner's hand sometimes runs on past a station
+    if (tuned < 0 && game.near(game.nearest()) > 0.5 && rnd() < (1 - skill) * 0.05) coast = 0.3;
+    return { x: dir * (0.55 + 0.45 * skill) };
   };
 }
 
-// Creeps along the dial very slowly, end to end, never stopping.
-const creeper = () => {
+const sweepWith = (speed, press) => {
   let dir = 1;
+  let n = 0;
   return (game) => {
     if (game.n >= 0.99) dir = -1;
     if (game.n <= 0.01) dir = 1;
-    return { x: dir * 0.5, action: true };
+    return { x: dir * speed, action: press && n++ % 2 === 0 };
   };
 };
 
-// Sweeps the dial end to end without stopping.
-const sweeper = () => {
+// Stops at every station it meets and presses, wanted or not.
+const presser = () => {
   let dir = 1;
+  let t = 0;
   return (game) => {
+    if (game.locked) return {};
     if (game.n >= 0.99) dir = -1;
     if (game.n <= 0.01) dir = 1;
+    if (game.tuned() >= 0 && game.near(game.tuned()) > 0.6) return { action: t++ % 2 === 0 };
     return { x: dir };
   };
 };
 
-test('radiobird: a beginner reaches the score, a good tuner more; sweeping and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tuner(0.3, seed) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: tuner(1, seed) }).game.score);
-  const sweep = [1, 2, 3].map((seed) => run(create, { seed, bot: sweeper() }).game.score);
+test('radiobird: a beginner reaches the score, a good tuner well beyond; sweeping, mashing and idling do not', () => {
+  const seeds = [1, 2, 3, 4, 5, 6];
+  const beginner = seeds.map((seed) => run(create, { seed, bot: tuner(0.3, seed) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: tuner(1, seed) }).game.score);
+  const sweep = [1, 2, 3].map((seed) => run(create, { seed, bot: sweepWith(1, false) }).game.score);
+  const sweepMash = [1, 2, 3].map((seed) => run(create, { seed, bot: sweepWith(1, true) }).game.score);
+  const creepMash = [1, 2, 3].map((seed) => run(create, { seed, bot: sweepWith(0.4, true) }).game.score);
+  const press = [1, 2, 3].map((seed) => run(create, { seed, bot: presser() }).game.score);
   const idle = [1, 2, 3].map((seed) => run(create, { seed }).game.score);
-  const creep = [1, 2, 3].map((seed) => run(create, { seed, bot: creeper() }).game.score);
-  console.log('radiobird beginner', beginner, 'good', good, 'sweep', sweep, 'creep', creep, 'idle', idle, 'pass', pass);
-  assert.ok(Math.max(...idle) < pass, `idle ${idle}`);
-  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
+  let rr = 5;
+  const rnd = () => ((rr = (rr * 16807) % 2147483647) / 2147483647);
+  const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: () => ({ x: rnd() * 2 - 1, action: rnd() < 0.5, spin: rnd() - 0.5 }) }).game.score);
+  console.log('radiobird beginner', beginner, 'good', good, 'sweep', sweep, 'sweep+mash', sweepMash, 'creep+mash', creepMash, 'press at every station', press, 'mash', mash, 'idle', idle, 'pass', pass);
   const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-  assert.ok(avg(good) > avg(beginner), `good ${good}`);
-  assert.equal(Math.max(...sweep), 0, `sweep ${sweep}`);
-  assert.ok(Math.max(...creep) < pass, `creep ${creep}`);
+  assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
+  assert.ok(avg(good) > avg(beginner) * 1.3, `good ${good}`);
+  for (const [name, xs] of Object.entries({ sweep, sweepMash, creepMash, mash, idle })) assert.ok(Math.max(...xs) < pass, `${name} ${xs}`);
+  assert.ok(avg(press) < avg(good), `press ${press}`);
 });
 
-test('radiobird: holding the asked-for station plays its song and scores', () => {
+test('radiobird: pressing on the asked-for station plays its song; a quick find scores more', () => {
   const game = create(env(1));
   const want = game.want;
-  for (let i = 0; i < 60 * 4; i++) {
-    game.n = game.freq(want);
-    game.update(1 / 60, blank());
-  }
-  assert.equal(game.score, 1);
+  game.n = game.freq(want);
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  assert.ok(game.locked);
+  for (let i = 0; i < 60 * 2.2; i++) game.update(1 / 60, blank());
+  assert.ok(game.score >= 19, `quick find ${game.score}`);
   assert.notEqual(game.want, want, 'they ask for another');
-  assert.equal(game.marks[want] !== undefined, true, 'the station is pencilled on the dial');
+  assert.ok(game.marks[want] !== undefined, 'the station is pencilled on the dial');
+  const slow = create(env(1));
+  for (let i = 0; i < 60 * 8; i++) slow.update(1 / 60, blank());
+  slow.n = slow.freq(slow.want);
+  slow.update(1 / 60, blank({ action: true, actionPressed: true }));
+  for (let i = 0; i < 60 * 2.2; i++) slow.update(1 / 60, blank());
+  assert.ok(slow.score >= 10 && slow.score < game.score, `slow find ${slow.score}`);
 });
 
-test('radiobird: the wrong station plays no song, and drifting off loses it', () => {
+test('radiobird: just tuning in plays nothing; a wrong station grumbles; turning away loses the song', () => {
   const game = create(env(2));
-  const wrong = (game.want + 1) % 6;
   for (let i = 0; i < 60 * 4; i++) {
-    game.n = game.freq(wrong);
+    game.n = game.freq(game.want);
     game.update(1 / 60, blank());
   }
-  assert.equal(game.score, 0);
-  const want = game.want;
-  for (let i = 0; i < 60 * 2; i++) {
-    game.n = game.freq(want);
-    game.update(1 / 60, blank());
-  }
-  const mid = game.song;
-  assert.ok(mid > 0.3);
-  for (let i = 0; i < 60; i++) {
-    game.n = Math.min(1, game.freq(want) + 0.2);
-    game.update(1 / 60, blank());
-  }
-  assert.ok(game.song < mid, 'the song slips back');
+  assert.equal(game.score, 0, 'no press, no song');
+  const wrong = (game.want + 1) % 6;
+  game.n = game.freq(wrong);
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  assert.ok(!game.locked && game.grumble > 0);
+  const g2 = create(env(2));
+  g2.n = g2.freq(g2.want);
+  g2.update(1 / 60, blank({ action: true, actionPressed: true }));
+  for (let i = 0; i < 60; i++) g2.update(1 / 60, blank({ x: 1 }));
+  assert.ok(!g2.locked && g2.score === 0, 'lost it');
 });
 
-test('radiobird: the dial turns with the stick, slower with the action, and with a spin', () => {
-  const a = create(env(1));
-  const b = create(env(1));
-  const c = create(env(1));
-  for (let i = 0; i < 30; i++) {
-    a.update(1 / 60, blank({ x: 1 }));
-    b.update(1 / 60, blank({ x: 1, action: true }));
-    c.update(1 / 60, blank({ spin: 0.3 }));
-  }
-  assert.ok(a.n - 0.5 > 0.2);
-  assert.ok(b.n - 0.5 < (a.n - 0.5) * 0.4);
-  assert.ok(c.n > 0.6);
+test('radiobird: left alone near a station, the needle settles on it', () => {
+  const game = create(env(1));
+  const f = game.freq(0);
+  game.n = f + 0.02;
+  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
+  assert.ok(Math.abs(game.n - game.freq(0)) < 0.006, `${game.n} vs ${game.freq(0)}`);
+});
+
+test('radiobird: with a pointer, letting go of the needle on the station plays it', () => {
+  const game = create(env(3));
+  const x = 590 + game.freq(game.want) * 880;
+  const ptr = (down, extra = {}) => blank({ kind: 'pointer', action: down, pointer: { active: true, x, y: 200, down, pressed: false, released: !down }, ...extra });
+  for (let i = 0; i < 40; i++) game.update(1 / 60, ptr(true));
+  game.update(1 / 60, ptr(false, { actionReleased: true }));
+  for (let i = 0; i < 20; i++) game.update(1 / 60, ptr(false));
+  assert.ok(game.locked || game.score > 0);
 });

@@ -63,8 +63,9 @@ function flinger(seed = 1) {
 }
 
 test('milkmidge: a beginner opens the next page, a good milkman more; idling and flinging do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: milkman({ aim: 26, lag: 1.1, careless: 0.25, seed }) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: milkman({ aim: 6, lag: 0.3, seed }) }).game.score);
+  const seeds = [1, 2, 3, 4, 5, 6];
+  const beginner = seeds.map((seed) => run(create, { seed, bot: milkman({ aim: 26, lag: 1.1, careless: 0.25, seed }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: milkman({ aim: 6, lag: 0.3, seed }) }).game.score);
   const mash = [1, 2].map((seed) => run(create, { seed, bot: masher }).game.score);
   const fling = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: flinger(seed) }).game.score);
   const idle = run(create, { seed: 1 }).game;
@@ -77,8 +78,8 @@ test('milkmidge: a beginner opens the next page, a good milkman more; idling and
 });
 
 // Holds for exactly the charge that lands on a step, in front of it.
-function throwAt(game, h) {
-  const goal = game.chargeFor(h.stepY);
+function throwAt(game, h, dy = 0) {
+  const goal = game.chargeFor(h.stepY + dy);
   const hold = goal * game.windTime();
   // fast-forward the street so it lets go right in front of the step
   game.fx = h.x - game.speed * hold;
@@ -88,22 +89,32 @@ function throwAt(game, h) {
   for (let i = 0; i < 90; i++) game.update(1 / 60, blank());
 }
 
-test('milkmidge: a bottle on a doorstep is a pint; one on a "No milk" step comes back', () => {
+test('milkmidge: a pint on the mat scores two; one on a "No milk" step comes back', () => {
   const game = create(env(3));
   const h = game.houses.find((h) => !h.note);
   throwAt(game, h);
   assert.equal(h.got, 1);
-  assert.equal(game.score, 1);
+  assert.equal(game.perfects, 1);
+  assert.equal(game.score, 2);
   const n = game.houses[game.houses.length - 1];
   n.note = true;
   n.wants = 0;
   n.dog = null;
   throwAt(game, n);
   assert.equal(game.refused, 1);
-  assert.equal(game.score, 0);
+  assert.equal(game.score, 1);
 });
 
-test('milkmidge: a smash near a sleeping dog wakes it and costs three', () => {
+test('milkmidge: a pint at the edge of the step scores one', () => {
+  const game = create(env(3));
+  const h = game.houses.find((h) => !h.note);
+  throwAt(game, h, game.tol() * 0.75); // lands near the step's front edge
+  assert.equal(h.got, 1);
+  assert.equal(game.perfects, 0);
+  assert.equal(game.score, 1);
+});
+
+test('milkmidge: a smash near a sleeping dog wakes it and costs one', () => {
   const game = create(env(4));
   const h = game.houses[2];
   h.dog = { side: 1, x: h.x + 120, y: (h.stepY + 668) / 2, awake: 0, woke: false };
@@ -115,14 +126,28 @@ test('milkmidge: a smash near a sleeping dog wakes it and costs three', () => {
   for (let i = 0; i < 90; i++) game.update(1 / 60, blank());
   assert.equal(game.smashes, 1);
   assert.equal(game.woken, 1);
-  assert.equal(game.score, 2);
+  assert.equal(game.score, 4);
+});
+
+test('milkmidge: a plain smash costs no points, only a moment to fetch another bottle', () => {
+  const game = create(env(6));
+  for (const h of game.houses) h.dog = null;
+  game.score = 3;
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  game.update(1 / 60, blank());
+  for (let i = 0; i < 40; i++) game.update(1 / 60, blank());
+  assert.equal(game.smashes, 1);
+  assert.equal(game.score, 3);
+  assert.ok(game.reload > 0);
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  assert.equal(game.holding, false);
 });
 
 test('milkmidge: holding past the farthest step swings the wind-up back down', () => {
   const game = create(env(1));
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   let top = 0;
-  for (let i = 0; i < 60 * 1.6; i++) {
+  for (let i = 0; i < 60 * 1.9; i++) {
     game.update(1 / 60, blank({ action: true }));
     top = Math.max(top, game.charge);
   }

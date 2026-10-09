@@ -16,7 +16,7 @@ floods the floor rather than saving time. Running fast spreads the drips out
 into a dotted trail you can slip between; dawdling makes one big puddle in
 front of you.
 
-**Score:** drinks (one per thing filled). The page opens at 10.
+**Score:** drinks (one per thing filled). The page opens at 11.
 
 **Getting harder:** the tap drips faster (every 0.42 s down to 0.22 s), the
 puddles spread wider and last longer (5 s up to 9.5 s), the thirsty things
@@ -27,10 +27,11 @@ once. The first thing appears at least a short run away on a dry floor.
 Enter hops. With a mouse or finger the Drippet runs towards the pointer, and
 a click or tap hops. On a narrow screen the view follows the Drippet.
 
-**Bots** (`game/test/drippet.test.mjs`): a beginner runner (slow stick,
-short look-ahead, sometimes forgets to hop) scores 12 to 17; a good one 19
-to 23; hopping all the way to every thing 14 to 16; running in circles and
-idling 0; random mashing 0.
+**Bots** (`game/test/drippet.test.mjs`): a beginner runner (shorter
+look-ahead, fewer ways round, sometimes forgets to hop) scores 11 to 17 over
+six seeds; a good one 17 to 22. Hopping all the way to every thing scores 7
+to 10, running straight at each thing without looking 5 to 10, and running
+in circles, idling and random mashing 0.
 
 ## Images (IC-M16)
 
@@ -50,3 +51,33 @@ idling 0; random mashing 0.
 The Drippet's states: standing (portrait), running (portrait and stride by
 turns, bobbing), hopping (IC-M16d), skidding (IC-M16d, spun), pouring
 (IC-M16e). Facing right is the same pictures flipped.
+
+## Changes after the audit
+
+1. **Hops cost more.** After landing the Drippet can't hop again for a
+   second, and it stumbles at half speed for the first quarter of it.
+   Landing in any puddle skids, even a fresh one, and the jolt shakes three
+   more drips out around it. Skids also last longer (2.2 s) and send it off
+   sideways. Hopping everywhere now scores 7 to 10, below the pass mark.
+   Puddles also come faster from the start (a drip every 0.34 s, down to
+   0.2 s), because running straight through them used to cost almost
+   nothing. The thirsty things take 0.7 s to fill instead of 0.5 s.
+2. **Test.** The test asserts that hopping everywhere and running straight
+   without looking both stay below the pass mark, over six seeds. It also
+   tests the landing skid, the hop rest and the cat's bowl. The runner bots
+   now steer round puddles, and only hop when there's no way round.
+3. **The cat's bowl moves.** It slides away from slippery puddles near it,
+   so dripping round the bowl chases it off. The pass mark is 11: a beginner
+   scores 11 to 17. Across ten seeds tried outside the test, one beginner
+   seed scored 11 and one hopping seed scored 15, so there is some overlap.
+
+## Matched to the painting
+
+The painting (`assets/subjects/drippet.png`) is a rusty blue tap whose spout
+is a long beak with a brass mouth, set lower and further forward than the
+stand-in's spout. Once the painting has loaded the game uses the measured
+spout mouth (163 units forward, 229 up), so drips fall from the painted
+spout. The bird is drawn at 250 instead of 300, because the painting stands
+taller than the stand-in. The pose sprites are drawn at 0.9 of that size.
+IC-M16d and IC-M16e now describe the painting's design (cross handle, brass
+collar, grey-blue wing, pink tail, ochre legs).
