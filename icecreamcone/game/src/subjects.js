@@ -25,7 +25,7 @@ const PAINTED = {
   garbagecanary: { feet: 0.969, box: { x0: -155, x1: 183, top: -387 }, head: [-29, -333] },
   glovedove: { feet: 0.974, box: { x0: -199, x1: 199, top: -392 }, head: [-132, -333] },
   keycrane: { feet: 0.970, box: { x0: -183, x1: 190, top: -391 }, head: [-63, -332] },
-  ladlelark: { feet: 0.971, box: { x0: -167, x1: 179, top: -390 }, head: [5, -339] },
+  ladlelark: { feet: 0.972, box: { x0: -174, x1: 180, top: -393 }, head: [-73, -346] },
   milkmidge: { feet: 0.966, box: { x0: -111, x1: 128, top: -389 }, head: [-13, -335] },
   niffy: { feet: 0.970, box: { x0: -190, x1: 188, top: -393 }, head: [45, -333] },
   plugsocketswift: { feet: 0.977, box: { x0: -194, x1: 191, top: -391 }, head: [-74, -341] },
