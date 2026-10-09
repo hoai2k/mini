@@ -7,7 +7,8 @@
     "size": "1920 x 1080, opaque",
     "used": "Soup's On (the Soupladle Lark): the whole background. The pot, the vegetables, the queue, the bowl and the Lark are drawn on top.",
     "standin": "A tiled wall with a window, an iron stove and a wooden serving counter, painted in code.",
-    "prompt": "{STYLE} {SCENE}A cosy old soup kitchen, seen straight on. The back wall is plain cream tiles down to 71% of the way down, then a worn stone-flagged floor. A small four-paned window high up on the left, between 10% and 29% across and 12% and 37% down. A black iron cooking range low in the middle, from 19% to 61% across, its top at 91% down, with a little orange glow from its fire door. On the right, a wooden serving counter from 69% across to the right edge, its top 82% down, with a clear stretch of wall behind it where a queue of creatures stands. Keep the whole area from 10% to 68% across and from 30% to 95% down plain (tiles, floor, range top), because the game puts a big soup pot there, and keep the wall above the counter clear. No pot, no food, no people or animals."
+    "prompt": "{STYLE} {SCENE}A cosy old soup kitchen, seen straight on. The back wall is plain cream tiles down to 71% of the way down, then a worn stone-flagged floor. A small four-paned window high up on the left, between 10% and 29% across and 12% and 37% down. A black iron cooking range low in the middle, from 19% to 61% across, its top at 91% down, with a little orange glow from its fire door. On the right, a wooden serving counter from 69% across to the right edge, its top 82% down, with a clear stretch of wall behind it where a queue of creatures stands. Keep the whole area from 10% to 68% across and from 30% to 95% down plain (tiles, floor, range top), because the game puts a big soup pot there, and keep the wall above the counter clear. No pot, no food, no people or animals.",
+    "status": "delivered"
   },
   {
     "id": "IC-M15b",

@@ -1,13 +1,14 @@
 [
   {
     "id": "IC-M14a",
-    "name": "Just a Pinch: the café counter",
+    "name": "Just a Pinch: the caf\u00e9 counter",
     "key": "scene.saltshakershrike",
     "file": "assets/scenes/saltshakershrike.webp",
     "size": "1920 x 1080, opaque",
     "used": "Just a Pinch (the Saltshaker Shrike): the whole background. The brass rail the Shrike hangs from, the plates, the diner, the salt and the Shrike are drawn on top.",
     "standin": "Striped wallpaper, a chalk menu board, a clock, the kitchen hatch and a long counter, painted in code.",
-    "prompt": "{STYLE} {SCENE}Inside a small old-fashioned café, seen straight on. A long counter runs across the whole width: its pale marble top is a straight horizontal band from 70% to 74% down (plates slide along it from right to left), and below it the counter's front is panelled wood painted dusty pink, down to the bottom edge. Above the counter, the back wall is papered in soft cream and sage-green stripes. Top left, a small chalk menu board with a few illegible scribbled lines (no readable words); top right, a plain round wall clock; at the far right edge, above the counter, the dark open hatch of the kitchen with a little steam, where the plates come out. Leave a clear stretch of counter and wall at the far left for a diner, and keep the wide band of wallpaper in the middle, from 10% to 68% down and from 20% to 85% across, plain and uncluttered, because salt falls through it. No people, animals, plates or food, and no rail along the top (the game draws its own)."
+    "prompt": "{STYLE} {SCENE}Inside a small old-fashioned caf\u00e9, seen straight on. A long counter runs across the whole width: its pale marble top is a straight horizontal band from 70% to 74% down (plates slide along it from right to left), and below it the counter's front is panelled wood painted dusty pink, down to the bottom edge. Above the counter, the back wall is papered in soft cream and sage-green stripes. Top left, a small chalk menu board with a few illegible scribbled lines (no readable words); top right, a plain round wall clock; at the far right edge, above the counter, the dark open hatch of the kitchen with a little steam, where the plates come out. Leave a clear stretch of counter and wall at the far left for a diner, and keep the wide band of wallpaper in the middle, from 10% to 68% down and from 20% to 85% across, plain and uncluttered, because salt falls through it. No people, animals, plates or food, and no rail along the top (the game draws its own).",
+    "status": "delivered"
   },
   {
     "id": "IC-M14b",

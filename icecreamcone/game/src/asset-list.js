@@ -220,7 +220,7 @@ export const ASSETS = {
   },
   "scene.milkmidge": {
     "file": "assets/scenes/milkmidge.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.milkHouses": {
     "file": "assets/sprites/milk-houses.png",
@@ -244,7 +244,7 @@ export const ASSETS = {
   },
   "scene.waterglassgoose": {
     "file": "assets/scenes/waterglassgoose.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.harpGlass": {
     "file": "assets/sprites/harp-glass.png",
@@ -260,7 +260,7 @@ export const ASSETS = {
   },
   "scene.niffy": {
     "file": "assets/scenes/niffy.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.niffyWalkers": {
     "file": "assets/sprites/niffy-walkers.png",
@@ -284,7 +284,7 @@ export const ASSETS = {
   },
   "scene.snippit": {
     "file": "assets/scenes/snippit.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.balloons": {
     "file": "assets/sprites/balloons.png",
@@ -300,7 +300,7 @@ export const ASSETS = {
   },
   "scene.buttonbeaks": {
     "file": "assets/scenes/buttonbeaks.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.buttons": {
     "file": "assets/sprites/buttons.png",
@@ -324,7 +324,7 @@ export const ASSETS = {
   },
   "scene.broomwhisk": {
     "file": "assets/scenes/broomwhisk.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.sweepings": {
     "file": "assets/sprites/sweepings.png",
@@ -344,7 +344,7 @@ export const ASSETS = {
   },
   "scene.keycrane": {
     "file": "assets/scenes/keycrane.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.keycranePrizes": {
     "file": "assets/sprites/keycrane-prizes.png",
@@ -360,7 +360,7 @@ export const ASSETS = {
   },
   "scene.garbagecanary": {
     "file": "assets/scenes/garbagecanary.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.garbageItems": {
     "file": "assets/sprites/garbage-items.png",
@@ -376,7 +376,7 @@ export const ASSETS = {
   },
   "scene.steampressersparrow": {
     "file": "assets/scenes/steampressersparrow.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.pressGarments": {
     "file": "assets/sprites/press-garments.png",
@@ -392,7 +392,7 @@ export const ASSETS = {
   },
   "scene.wetweatherwren": {
     "file": "assets/scenes/wetweatherwren.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.wrenPoses": {
     "file": "assets/sprites/wren-poses.png",
@@ -408,7 +408,7 @@ export const ASSETS = {
   },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.dishes": {
     "file": "assets/sprites/dishes.png",
@@ -428,7 +428,7 @@ export const ASSETS = {
   },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.watchFace": {
     "file": "assets/sprites/watch-face.png",
@@ -448,7 +448,7 @@ export const ASSETS = {
   },
   "scene.plugsocketswift": {
     "file": "assets/scenes/plugsocketswift.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.swiftHouse": {
     "file": "assets/sprites/swift-house.png",
@@ -460,7 +460,7 @@ export const ASSETS = {
   },
   "scene.saltshakershrike": {
     "file": "assets/scenes/saltshakershrike.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.shrikePlates": {
     "file": "assets/sprites/shrike-plates.png",
@@ -476,7 +476,7 @@ export const ASSETS = {
   },
   "scene.ladlelark": {
     "file": "assets/scenes/ladlelark.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.larkPot": {
     "file": "assets/sprites/lark-pot.png",
@@ -496,7 +496,7 @@ export const ASSETS = {
   },
   "scene.drippet": {
     "file": "assets/scenes/drippet.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.drippetThings": {
     "file": "assets/sprites/drippet-things.png",
@@ -516,7 +516,7 @@ export const ASSETS = {
   },
   "scene.sawbird": {
     "file": "assets/scenes/sawbird.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.planks": {
     "file": "assets/sprites/planks.png",
@@ -536,7 +536,7 @@ export const ASSETS = {
   },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.stations": {
     "file": "assets/sprites/stations.png",

@@ -7,7 +7,8 @@
     "size": "1920 x 1080, opaque",
     "used": "Button Up (the Buttonbeaks): the whole background. The washing line, the coats, the button tin and the birds are drawn on top.",
     "standin": "Sky, a hedge, two wooden posts and a grey-blue tin painted in code.",
-    "prompt": "{STYLE} {SCENE}A back garden on a fresh, breezy washing day, seen straight on. Two tall plain wooden clothes posts stand at the far left and far right edges, their tops about 16% of the way down, with nothing strung between them (the game draws the line). Behind, a low clipped hedge about 70% down, a soft lawn below it, and a pale sky with a few small clouds near the top corners. Across the bottom, from 12% to 88% of the width and from 90% down to the bottom edge, the long open lid-side of an old blue-grey tin sewing box, seen from the front, its top edge level. Keep the sky between the posts (from 18% to 55% down) completely clear, and the lawn above the tin quiet, because coats travel along the line there and the birds walk in front of the tin."
+    "prompt": "{STYLE} {SCENE}A back garden on a fresh, breezy washing day, seen straight on. Two tall plain wooden clothes posts stand at the far left and far right edges, their tops about 16% of the way down, with nothing strung between them (the game draws the line). Behind, a low clipped hedge about 70% down, a soft lawn below it, and a pale sky with a few small clouds near the top corners. Across the bottom, from 12% to 88% of the width and from 90% down to the bottom edge, the long open lid-side of an old blue-grey tin sewing box, seen from the front, its top edge level. Keep the sky between the posts (from 18% to 55% down) completely clear, and the lawn above the tin quiet, because coats travel along the line there and the birds walk in front of the tin.",
+    "status": "delivered"
   },
   {
     "id": "IC-M05b",
