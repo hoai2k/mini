@@ -490,6 +490,14 @@ export const ASSETS = {
     "file": "assets/sprites/watch-crown.png",
     "delivered": true
   },
+  "sprites.titthrushHop": {
+    "file": "assets/sprites/titthrush-hop.png",
+    "delivered": false
+  },
+  "sprites.clockHands": {
+    "file": "assets/sprites/clock-hands.png",
+    "delivered": false
+  },
   "scene.plugsocketswift": {
     "file": "assets/scenes/plugsocketswift.webp",
     "delivered": true
