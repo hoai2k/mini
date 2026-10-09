@@ -488,7 +488,9 @@ export default function create(env) {
       const fx = x - k.t * 260;
       const fy = GROUND - 30 - k.t * 340;
       if (fy < -60) return;
-      if (!drawSprite(c, 'sprites.chicks', 5, fx, fy, { h: 70, anchor: 'center' })) chickStandin(c, fx, fy + 30, k.color, true, t);
+      // one size with the standing chick: its outline is 429 px to the
+      // standing one's 372, and the chick is painted at 0.851 of its size
+      if (!drawSprite(c, 'sprites.chicks', 5, fx, fy, { h: (70 * 429) / 372 / 0.851, anchor: 'center' })) chickStandin(c, fx, fy + 30, k.color, true, t);
       return;
     }
     const shiver = k.state === 'wait' && !env.reduceMotion ? Math.sin(t * 40 + k.x) * 2 : 0;
