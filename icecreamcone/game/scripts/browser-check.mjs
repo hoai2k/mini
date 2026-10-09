@@ -192,6 +192,9 @@ const MENU = 9;
   }
   await page.evaluate(() => window.__pad(0, { axes: [0, 0, 0, 0] }));
   await shot(page, '05-play');
+  await press(page, B);
+  s = await state(page);
+  !s.paused && s.phase === 'play' ? ok('B does not pause a game') : fail(`B in play: ${JSON.stringify(s)}`);
   await press(page, MENU);
   s = await state(page);
   s.paused ? ok('Menu pauses') : fail('Menu did not pause');

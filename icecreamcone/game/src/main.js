@@ -592,7 +592,11 @@ function controlLines(b) {
     plume: [`Move the watering can: ${C('move')}`, `Water: hold ${C('action')}`],
     bobolinks: [`Step: ${C('steps')}`],
     peeper: [`Move: ${C('move')}`],
-    piffle: [`Steer: ${C('move')}`, k === 'pointer' ? 'Sew faster: hold high up the quilt' : `Sew faster: hold ${C('action')}`],
+    piffle: k === 'pointer'
+      ? [`Steer: ${C('move')}`, 'Sew faster: hold high up the quilt']
+      : k === 'controller'
+        ? [`Steer: ${C('move')}`, 'Sew faster: hold A', 'Slow down: hold B', 'Steer finely: hold LT or RT']
+        : [`Steer: ${C('move')}`, 'Sew faster: hold Space', 'Slow down: hold Shift'],
     dodo: [`Choose a hat: ${C('move')}`, `Pick it: ${C('action')}`],
     crow: [`Switch the light: ${C('action')}`],
   };
@@ -1592,9 +1596,10 @@ function frame(now) {
   }
   const live = S.screen === 'play' && ['count', 'play', 'over'].includes(S.phase);
   if (live && !S.paused && !S.modals.length) {
-    // In play only pause is read here; the game reads the rest.
+    // In play only pause is read here (Menu or View, Esc or P; not B, which
+    // a game may use); the game reads the rest.
     const n = input.nav();
-    if (n.pause || (n.back && input.kind !== 'keyboard')) pause();
+    if (n.pause) pause();
   } else if (S.screen === 'play' && S.phase === 'result' && !S.modals.length) {
     // The result card: gone after a moment, or at any press.
     S.resultT += dt;

@@ -274,8 +274,11 @@ longer as you go.
 ### 8. Pincushion Piffle: Stitch in Time (45 s)
 
 A dotted seam winds down the quilt as it scrolls. Steer the needle left and
-right to follow it; hold the action to stitch faster, at the risk of
-wandering off the seam. Score is the stitches sewn on the line.
+right to follow it; hold the action (A or Space) to stitch faster, at the
+risk of wandering off the seam. Hold B (or Shift) to slow the quilt and the
+needle a little for a tricky bend, or hold LT or RT to steer more finely
+without slowing the quilt (the further the trigger, the finer). Score is the
+stitches sewn on the line, so going slowly is safer but sews fewer.
 
 ### 9. Dollarbill Dodo: Spot the Dodo (8 rounds)
 

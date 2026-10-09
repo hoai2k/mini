@@ -53,3 +53,21 @@ test('piffle: holding the action sews faster', () => {
   }
   assert.ok(b.dist > a.dist * 1.4);
 });
+
+test('piffle: B slows the quilt and the needle; a trigger slows only the needle', () => {
+  const go = (over) => {
+    const game = create(env(1));
+    const x0 = game.x;
+    for (let i = 0; i < 30; i++) game.update(1 / 60, blank({ x: 1, ...over }));
+    return { dist: game.dist, moved: game.x - x0 };
+  };
+  const plain = go({});
+  const slow = go({ slow: true });
+  const fine = go({ trigger: 1 });
+  assert.ok(slow.dist < plain.dist * 0.7 && slow.moved < plain.moved * 0.8, `slow ${JSON.stringify(slow)} vs ${JSON.stringify(plain)}`);
+  assert.ok(Math.abs(fine.dist - plain.dist) < 1e-6, 'a trigger leaves the quilt at its pace');
+  assert.ok(fine.moved < plain.moved * 0.6, `fine ${JSON.stringify(fine)} vs ${JSON.stringify(plain)}`);
+  // RT steering finely doesn't also hurry: only A (actionA) does.
+  const rt = go({ trigger: 1, action: true, actionA: false });
+  assert.ok(Math.abs(rt.dist - plain.dist) < 1e-6, 'RT held is not the action here');
+});

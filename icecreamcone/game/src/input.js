@@ -212,7 +212,15 @@ export function createInput(target) {
       let actionReleased = any(KEYS.action, released);
       let left = pressed.has('ArrowLeft') || pressed.has('KeyA');
       let right = pressed.has('ArrowRight') || pressed.has('KeyD');
+      // Held for a careful pace: B (or Shift); a trigger's depth, 0 to 1; and
+      // the action button itself, A or Space, without RT.
+      let slow = keys.has('ShiftLeft') || keys.has('ShiftRight');
+      let trigger = 0;
+      let actionA = k('action') && !keys.has('Escape');
       for (const p of pads.values()) {
+        if (padDown(p, BTN.B)) slow = true;
+        trigger = Math.max(trigger, p.now[BTN.LT] || 0, p.now[BTN.RT] || 0);
+        if (padDown(p, BTN.A)) actionA = true;
         if (padDown(p, BTN.LEFT)) dpadX = -1;
         if (padDown(p, BTN.RIGHT)) dpadX = 1;
         if (padDown(p, BTN.UP)) dpadY = -1;
@@ -239,6 +247,9 @@ export function createInput(target) {
         actionReleased: actionReleased || pointer.released,
         left,
         right,
+        slow,
+        trigger,
+        actionA: actionA || pointer.down,
         pointer: { ...pointer, active: pointer.active && kind === 'pointer' },
         spin,
         kind,

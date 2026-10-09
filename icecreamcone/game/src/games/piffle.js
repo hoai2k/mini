@@ -20,6 +20,8 @@ const RUN_BONUS = 25; // every this many in a row...
 const BONUS = 5; // ...earns this many more
 const HURRY = 1.6; // speed while the action is held
 const STEER = 760; // the needle's top sideways speed, px/s
+const SLOW = 0.6; // everything, while B (or Shift) is held
+const FINE = 0.4; // sideways only, with a trigger held all the way
 const NEEDLE_Y = 610;
 const Q0 = 250; // the quilt's left and right edges
 const Q1 = 1350;
@@ -86,7 +88,7 @@ export default function create(env) {
   g.seamX = seamX;
   growSeam(2000);
 
-  const speed = () => lerp(170, 250, clamp(g.elapsed / DURATION, 0, 1)) * (g.hurry ? HURRY : 1);
+  const speed = () => lerp(170, 250, clamp(g.elapsed / DURATION, 0, 1)) * (g.hurry ? HURRY : 1) * (g.slow ? SLOW : 1);
   g.speed = speed;
 
   // ---------- events ----------
@@ -145,7 +147,11 @@ export default function create(env) {
     // well ahead of the needle, that hurries.
     const ptr = input.pointer && input.pointer.active;
     g.pointer = ptr;
-    g.hurry = ptr ? !!input.pointer.down && input.pointer.y < NEEDLE_Y - 160 : !!input.action;
+    // A or Space hurries (RT steers finely here instead); B or Shift slows the
+    // whole quilt down, and a trigger slows just the steering.
+    g.hurry = ptr ? !!input.pointer.down && input.pointer.y < NEEDLE_Y - 160 : !!(input.actionA ?? input.action);
+    g.slow = !ptr && !!input.slow;
+    const steer = STEER * (g.slow ? SLOW : 1) * lerp(1, FINE, clamp(input.trigger || 0, 0, 1));
     g.dist += speed() * dt;
     growSeam(g.dist + 1200);
 
@@ -156,7 +162,7 @@ export default function create(env) {
       g.x += clamp(want - g.x, -STEER * 1.2 * dt, STEER * 1.2 * dt);
       g.vx = (g.x - prev) / Math.max(dt, 1e-4);
     } else {
-      g.vx = approach(g.vx, (input.x || 0) * STEER, 16, dt);
+      g.vx = approach(g.vx, (input.x || 0) * steer, 16, dt);
       g.x += g.vx * dt;
     }
     g.x = clamp(g.x, Q0 + 40, Q1 - 40);
