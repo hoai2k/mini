@@ -102,3 +102,14 @@ pair without rain or puddle is requested (IC-M10e). The open, inside-out and
 drenched poses (IC-M10b, IC-M10d) now describe the painting's design: the head
 at the umbrella's tip, the canopy spreading below it, and the crook handle
 hanging as a tail.
+
+## Matched to the delivered art
+
+The street scene (IC-M10a) has the near pavement from its kerb (y 728) down;
+the Wren walks at y 760 on it, where the puddles, awnings' poles and little
+birds stand. The painting stays still, so the game now scrolls the painted
+near pavement itself with the street (two copies side by side, the second
+mirrored so the seam matches): the flagstones move under the Wren with the
+puddles. The kerb, road and houses stay still. Still drawn in code: the
+puddles and awnings (IC-M10c) and the Wren's open, walking and drenched poses
+(IC-M10b, IC-M10d, IC-M10e), all requested.

@@ -42,8 +42,10 @@ const SNAP = 3; // how fast the needle settles on a station near it
 const SWEEP = 0.5; // dial widths per second at full tilt
 const RADIO = { x: 300, y: 800, size: 520 };
 const CARD = { y: 395, w: 230, h: 210 }; // the speaker that rides under the needle
-const SOFA = { x: 1180, y: 760 };
-const BUBBLE = { x: 1270, y: 560 }; // the middle listener's speech bubble
+// The sofa, as painted in the scene: its middle, and its seat's front edge.
+const SOFA = { x: 1150, y: 680 };
+const SEATS = [-225, 8, 233]; // the three cushions, from the sofa's middle
+const BUBBLE = { x: 1290, y: 445 }; // the middle listener's speech bubble
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -447,9 +449,9 @@ export default function create(env) {
     c.moveTo(nx, y0 + 6);
     c.lineTo(nx, y1 - 6);
     ink(c, 5, '#c0302a');
-    // the knob, at the right end
+    // the knob
     c.save();
-    c.translate(x1 + 60, (y0 + y1) / 2);
+    c.translate(x0 - 62, (y0 + y1) / 2); // the knob, at the left end (the painted lamp stands at the right)
     c.beginPath();
     c.arc(0, 0, 44, 0, Math.PI * 2);
     c.fillStyle = '#7a5a3a';
@@ -567,14 +569,14 @@ export default function create(env) {
 
     // The sofa (painted in the scene once it arrives) and the listeners.
     if (!painted) {
-      poly(c, [[SOFA.x - 300, SOFA.y - 170], [SOFA.x + 300, SOFA.y - 170], [SOFA.x + 300, SOFA.y], [SOFA.x - 300, SOFA.y]], 7, 2);
+      poly(c, [[SOFA.x - 370, SOFA.y - 250], [SOFA.x + 370, SOFA.y - 250], [SOFA.x + 370, SOFA.y - 60], [SOFA.x - 370, SOFA.y - 60]], 7, 2);
       wash(c, PAL.sage, 0.85);
       ink(c, 2.4);
-      poly(c, [[SOFA.x - 330, SOFA.y - 80], [SOFA.x + 330, SOFA.y - 80], [SOFA.x + 330, SOFA.y + 20], [SOFA.x - 330, SOFA.y + 20]], 8, 2);
+      poly(c, [[SOFA.x - 400, SOFA.y - 80], [SOFA.x + 400, SOFA.y - 80], [SOFA.x + 400, SOFA.y], [SOFA.x - 400, SOFA.y]], 8, 2);
       wash(c, PAL.olive, 0.85);
       ink(c, 2.4);
     }
-    [-170, 0, 170].forEach((dx, i) => listener(c, i, SOFA.x + dx, SOFA.y - 78, t));
+    SEATS.forEach((dx, i) => listener(c, i, SOFA.x + dx, SOFA.y - 72, t));
 
     // The request bubble, with the song's progress round it.
     const bx = BUBBLE.x;

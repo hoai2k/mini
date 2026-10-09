@@ -47,7 +47,8 @@ const DAZE = 1.6;
 const TIP_PAINTED = [-190, -291];
 const TIP_STANDIN = [-170, -230];
 const FEET = 0.97; // the painting's (and its variants') feet line // seconds the Niffy is dazed after the Keeper's whistle
-const KEEPER_Y = 640;
+const KEEPER_Y = 735; // on the promenade's back edge, in front of the painted railing
+const NEST = [300, 122]; // the nest, sitting on the painted branch (top left)
 const PROMPTS = { feather: 1, flower: 1, thread: 1, tag: 2 };
 // Where each thing hangs on a walker, above the feet (and across, facing left).
 const SPOT = { feather: [38, 318], flower: [-14, 214], thread: [24, 112], tag: [-40, 278], balloon: [-36, 236] };
@@ -307,8 +308,8 @@ export default function create(env) {
     for (const f of g.flying) {
       f.t += dt / 0.9;
       const k = Math.min(1, f.t);
-      f.x = lerp(f.x0, 110, k);
-      f.y = lerp(f.y0, 170, k) - Math.sin(k * Math.PI) * 140;
+      f.x = lerp(f.x0, NEST[0], k);
+      f.y = lerp(f.y0, NEST[1] - 10, k) - Math.sin(k * Math.PI) * 140;
       if (k >= 1) {
         f.dead = true;
         g.nest++;
@@ -379,8 +380,8 @@ export default function create(env) {
     c.restore();
     // the Niffy's nest, in the corner of a branch
     c.beginPath();
-    c.moveTo(0, 210);
-    c.quadraticCurveTo(120, 190, 210, 150);
+    c.moveTo(0, 165);
+    c.quadraticCurveTo(200, 140, 420, 110);
     ink(c, 12, '#6a5040');
   }
 
@@ -686,16 +687,16 @@ export default function create(env) {
     }
 
     // the nest and its snippings
-    if (!drawSprite(c, 'sprites.niffyProps', 5, 110, 190, { h: 90 })) {
-      blob(c, 110, 172, 70, 26, 31, 0.12);
+    if (!drawSprite(c, 'sprites.niffyProps', 5, NEST[0], NEST[1] + 18, { h: 90 })) {
+      blob(c, NEST[0], NEST[1], 70, 26, 31, 0.12);
       wash(c, '#a07a4a');
       ink(c, 2);
-      blob(c, 110, 172, 70, 26, 31, 0.12);
-      hatch(c, 30, 140, 190, 200, 7, 0.4, -1);
+      blob(c, NEST[0], NEST[1], 70, 26, 31, 0.12);
+      hatch(c, NEST[0] - 80, NEST[1] - 32, NEST[0] + 80, NEST[1] + 28, 7, 0.4, -1);
     }
     for (let i = 0; i < Math.min(g.nest, 12); i++) {
       const kinds = ['feather', 'flower', 'thread', 'tag'];
-      drawItem(c, kinds[i % 4], 70 + ((i * 29) % 90), 152 - Math.floor(i / 4) * 10, 0.6, 0);
+      drawItem(c, kinds[i % 4], NEST[0] - 40 + ((i * 29) % 90), NEST[1] - 20 - Math.floor(i / 4) * 10, 0.6, 0);
     }
 
     drawKeeper(c, t);

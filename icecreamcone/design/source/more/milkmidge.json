@@ -64,5 +64,15 @@
     "standin": "The portrait, hopping when pleased and shivering when startled.",
     "prompt": "{STYLE} {VARIANT} The Milkbottle Midge (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/milkmidge.png). The Midge is a glass pint milk bottle, full of milk to just below its eye, with a red-and-white checked cloth cap tied over its neck, one round staring eye and a long yellow beak pointing left from the glass, ochre-yellow feathered wings on its sides and thin yellow legs. Two poses side by side on one 2 x 1 sheet, both facing left, wings empty, feet in the same place: left, pleased, standing tall on tiptoe with both ochre wings raised and its beak lifted, the milk inside it brimming happily; right, startled, flinching back with its wings up by its checked cloth cap, eye wide, knees bent, the milk inside sloshing up the glass. Each pose in its own square cell framed exactly like the portrait (the same scale, the feet on the same line near the bottom, the body in the same place), so the game can swap it for the portrait without a jump. {ALPHA}",
     "status": "delivered"
+  },
+  {
+    "id": "IC-M01g",
+    "name": "Milk Round: garden path and fence",
+    "key": "sprites.milkGarden",
+    "file": "assets/sprites/milk-garden.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Milk Round: in front of each house, the path from the pavement up to its doorstep (the game cuts it off at the step, so near houses show a short path and far ones a long one), and the low garden fence along the back of the pavement, repeated along the street with a gap where each path meets it.",
+    "standin": "A pale wash of a path with a few stepping stones, and an ink line of fence posts, drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 2 x 1 grid of two pieces, in the delivered street painting's soft dawn light. Left: a garden path of pale flagstones seen from the front and above, running straight away from the viewer: about 300 px wide at the bottom, narrowing to about 120 px at the top, about 900 px tall, with grass edges and a few tufts and daisies along its sides, ending at the top without a doorstep or house. Right: a straight length of low, weathered wooden picket fence seen exactly side-on, about 900 px long and 200 px tall, its posts evenly spaced and its two rails continuous, so that copies placed end to end join without a visible seam (the same post spacing at both ends), with a little grass at its foot. No gate, no people, no animals."
   }
 ]

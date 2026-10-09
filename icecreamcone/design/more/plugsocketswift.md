@@ -71,3 +71,10 @@ the code wings are left off because the painting has its own pink wings. The
 pose request IC-M13c now describes the painting: a clear bulb with an orange
 filament, a cream wall socket on a blue-green body, pink wings, and a flex
 tail ending in a plug.
+
+## Matched to the delivered art
+
+The painted garden at dusk (IC-M13a) is in.
+- The window rows moved down to y 320, 497 and 674, so the top row sits under the painted eaves (about y 230) and the bottom row clears the lawn (about y 790).
+- The fuse box moved to the blank patch on the painted garden wall, centred at (255, 600). Its "FUSE" name now sits on a little card so it reads against the wall and the hedge.
+- Still drawn in code until IC-M13b and IC-M13c arrive: the windows and their creatures, the fuse box, the cable, and the Swift's flight poses (it shows its portrait). The night deepening is a wash in code over the painting.

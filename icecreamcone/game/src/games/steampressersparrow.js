@@ -28,15 +28,17 @@ Object.assign(SHEETS, {
 
 const DURATION = 45;
 // The ironing board, seen from above.
+// The painted board (IC-M09a) runs from its point at x 95 to its square end
+// at 1470, its top from 362 down to 728 px.
 const BX0 = 150;
 const BX1 = 1450;
-const BY0 = 380;
-const BY1 = 790;
+const BY0 = 362;
+const BY1 = 728;
 // Where the iron can go (its sole's centre).
 const IX0 = 230;
 const IX1 = 1390;
-const IY0 = 410;
-const IY1 = 760;
+const IY0 = 395;
+const IY1 = 700;
 const CELL = 40;
 const COLS = Math.ceil((BX1 - BX0) / CELL);
 const ROWS = Math.ceil((BY1 - BY0) / CELL);
@@ -115,8 +117,8 @@ export default function create(env) {
     if (g.count === 1) pool = [GARMENTS[0]];
     else if (g.elapsed > 14 && rng() < lerp(0.15, 0.35, p)) pool = [GARMENTS[5]];
     const G = pool[Math.floor(rng() * pool.length)];
-    const cx = 810;
-    const cy = 585;
+    const cx = 830;
+    const cy = 545;
     const n = Math.min(7, Math.round(lerp(2, 6, p) + (G.w > 800 ? 1 : 0) + (rng() < 0.4 ? 1 : 0)));
     const creases = [];
     for (let k = 0; k < n; k++) {
@@ -625,7 +627,13 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      label(c, g.pointer ? 'Glide over the creases · tap the iron for steam · keep moving!' : 'Glide over the creases · press for steam · keep moving!', W / 2, 300, { size: 34, weight: 600 });
+      // two short lines, centred on what a narrow screen shows, on a soft
+      // paper backing so they read over the painting
+      const hx = clamp(g.focus(), 390, W - 390);
+      const hl = ['Glide over the creases · keep moving!', g.pointer ? 'Tap the iron for a puff of steam' : 'Press for a puff of steam'];
+      c.fillStyle = 'rgba(250,244,228,0.75)';
+      c.fillRect(hx - 370, 200 - 34, 740, 112);
+      hl.forEach((s, i) => label(c, s, hx, 200 + i * 44, { size: 34, weight: 600 }));
       c.restore();
     }
   };

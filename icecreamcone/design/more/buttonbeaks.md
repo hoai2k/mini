@@ -64,3 +64,14 @@ the aim line and the dizzy stars start from there, and the pose sheets are
 drawn at the painting's height. IC-M05e and IC-M05f now describe the
 painting (the taller yellow-headed bird on the left, the smaller pink one
 on the right, bodies of overlapping buttons).
+
+## Matched to the delivered art
+
+The washing line now hangs from the hooks painted on the two posts in the
+garden scene (IC-M05a): from (98, 116) to (1502, 116), sagging 26 in the
+middle, instead of running edge to edge lower down. The bowls sit in the
+painted open tin, their rims just behind its rim (y 756), and the
+Buttonbeaks stand on the lawn just behind it (feet at y 748), so the held
+button and their tosses start higher too. A touch below y 712 counts as a
+tap on the bowls. The coats, buttons, bowls and the pair's poses (IC-M05b
+to f) are still drawn in code or from the portrait until they arrive.

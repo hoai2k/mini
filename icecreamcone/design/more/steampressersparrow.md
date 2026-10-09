@@ -77,3 +77,14 @@ prompts now describe the painted sad iron (wooden handle on curled posts,
 the knob, the row of steam holes, the sparrow wing and head) and ask for a
 level sole, and for no steam at all in the dry pose, since the portrait is
 painted steaming.
+
+## Matched to the delivered art
+
+The laundry scene (IC-M09a) is in. Its ironing board runs from the point at
+x 95 to the square end at 1470, its top from 362 to 728 px, so the board's
+bounds, the heat grid, the iron's range (y 395 to 700) and the garments'
+centre (830, 545) now sit on the painted board, clear of its tapered point;
+the time ribbon runs just above its top edge. The opening hint is two short
+lines on a paper backing, centred on the view. Still stand-in: the garments
+(IC-M09b) and the pressing and scorched Sparrow (IC-M09c, IC-M09d), drawn
+from the portrait, levelled and cut at the sole, meanwhile.

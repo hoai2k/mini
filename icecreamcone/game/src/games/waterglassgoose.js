@@ -12,7 +12,7 @@
 // tunes: they start with two notes on three glasses and grow to seven notes
 // on five, played faster. Score: points.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -303,14 +303,17 @@ export default function create(env) {
       c.restore();
     }
     // the water inside (drawn first, so a painted glass sits over it)
-    const wy = TABLE - 10 - (GLASS_H - 24) * level;
+    // the painted tumbler has a thick glass foot (about 30 px at this size):
+    // the water starts above it
+    const base = art('sprites.harpGlass') ? TABLE - 30 : TABLE - 12;
+    const wy = base + 2 - (GLASS_H - 24 - (TABLE - 12 - base)) * level;
     const half = (y) => lerp(GLASS_W / 2 - inset - 6, GLASS_W / 2 - inset, (TABLE - y) / GLASS_H);
     const wob = gl.lit * Math.sin(t * 30) * 4;
     c.beginPath();
     c.moveTo(x - half(wy), wy + wob);
     c.quadraticCurveTo(x, wy - wob, x + half(wy), wy + wob);
-    c.lineTo(x + half(TABLE - 10), TABLE - 12);
-    c.lineTo(x - half(TABLE - 10), TABLE - 12);
+    c.lineTo(x + half(base), base);
+    c.lineTo(x - half(base), base);
     c.closePath();
     c.save();
     c.globalAlpha = 0.72 + gl.lit * 0.28;

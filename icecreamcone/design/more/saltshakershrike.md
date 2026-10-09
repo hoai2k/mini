@@ -76,3 +76,11 @@ a little smaller (size 229, not 320) and shifted so that its cap hangs where
 the salt falls from, at the same height. The pose request IC-M14d now
 describes the painting itself: a fluted glass body, a domed silver cap with
 an eye mask, mauve and olive wings.
+
+## Matched to the delivered art
+
+The repainted café (IC-M14a) is in: striped wall, menu board, shelves, clock, the kitchen hatch at the right and the checked floor from about y 616.
+- The plates are set down at the table's right-hand end (x 1460), in front of the painted hatch.
+- The diner stands at the left before the shelves.
+- Nothing needed moving.
+- Still drawn in code until their sprites arrive: the revolving table (IC-M14e), the plates and food (IC-M14b), the diners (IC-M14c) and the Shrike's hanging poses (IC-M14d; the portrait is shown turned upside down). The brass rail and the salt are always drawn in code.

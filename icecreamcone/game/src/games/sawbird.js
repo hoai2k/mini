@@ -416,8 +416,8 @@ export default function create(env) {
     if (g.proud > 0) {
       // After a straight cut it hops down and stands proud beside the plank.
       const hop = Math.abs(Math.sin(g.proud * 6)) * 14;
-      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1400, 770 - hop, { h: SAW_SIZE * 0.8 })) {
-        drawBird(c, 'sawbird', { x: 1400, y: 770 - hop, size: SAW_SIZE, t });
+      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1370, 770 - hop, { h: SAW_SIZE * 0.8 })) {
+        drawBird(c, 'sawbird', { x: 1370, y: 770 - hop, size: SAW_SIZE, t });
       }
       return;
     }

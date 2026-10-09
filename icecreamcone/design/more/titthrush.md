@@ -100,3 +100,14 @@ The singing notes rise from its painted head. The variant requests
 the painting: the hinged lid at the front, the crown and ring bow on its head,
 the pink crest and wing, the chain tail, and the cream face with black
 numerals.
+
+## Matched to the delivered art
+
+The town square scene (IC-M12a) keeps the middle quiet as asked: the big
+watch sits over the square on the left, the town clock and its bubble over
+the houses on the right, and the Trush stands on the cobbles at the bottom
+left among the painted leaves. Nothing needed moving. Still drawn in code:
+the big watch face (IC-M12b), the town clocks and their frames (IC-M12c, so
+the church tower and cuckoo house stand-ins float over the painted houses
+until it arrives), and the singing and flustered poses (IC-M12d, IC-M12e),
+all requested.

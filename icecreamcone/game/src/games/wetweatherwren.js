@@ -12,7 +12,7 @@
 // shut. Gusts of wind lift an open umbrella higher still.
 // Score: points (puddles hopped and birds kept dry).
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -35,6 +35,7 @@ const TOP_OPEN = 285; // and with its canopy open
 const AWN_H = 330; // an awning's lower edge, above the pavement
 const FOOT = 22; // how much of a puddle's rim is safe to stand on
 const CANOPY_R = 140;
+const PAVE_Y = 728; // the near pavement's kerb in the delivered scene (874 of 1080)
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -332,6 +333,28 @@ export default function create(env) {
     c.restore();
   }
 
+  // The painted near pavement (below its kerb, 725 down in game units),
+  // scrolled with the street, so the flagstones move under the Wren as the
+  // puddles do. Two copies side by side, the second mirrored so the seam
+  // between them matches.
+  function pavement(c) {
+    const img = art('scene.wetweatherwren');
+    const k = img.width / W;
+    const y0 = PAVE_Y;
+    const off = -(((g.d % (2 * W)) + 2 * W) % (2 * W));
+    for (let i = 0; i < 3; i++) {
+      const x = off + i * W;
+      if (x > W || x + W < 0) continue;
+      c.save();
+      if (i % 2) {
+        c.translate(x + W, 0);
+        c.scale(-1, 1);
+        c.drawImage(img, 0, y0 * k, img.width, (H - y0) * k, 0, y0, W, H - y0);
+      } else c.drawImage(img, 0, y0 * k, img.width, (H - y0) * k, x, y0, W, H - y0);
+      c.restore();
+    }
+  }
+
   function drawPuddle(c, p, t) {
     const x0 = sx(p.x0);
     const x1 = sx(p.x1);
@@ -604,6 +627,7 @@ export default function create(env) {
   g.draw = (c, t) => {
     const painted = scene(c, 'wetweatherwren', W, H, standinStreet);
     if (!painted) joints(c);
+    else pavement(c);
     for (const p of g.puddles) drawPuddle(c, p, t);
     for (const k of g.chicks) drawChick(c, k, t);
     drawWren(c, t);

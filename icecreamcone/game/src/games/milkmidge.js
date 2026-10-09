@@ -15,7 +15,7 @@
 // far, and the dogs and cards come more often as the round goes on.
 // Score: points.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
 
 Object.assign(SHEETS, {
@@ -23,6 +23,7 @@ Object.assign(SHEETS, {
   'sprites.milkProps': [3, 2], // bottle, spilt milk and glass, sleeping dog, barking dog, no-milk card, doormat
   'sprites.milkFloat': [1, 1], // the milk float, facing left
   'sprites.midgeThrow': [2, 1], // the Midge winding up, and flinging
+  'sprites.milkGarden': [2, 1], // a stone garden path running back to a doorstep, and a length of low garden fence
   'sprites.midgeMoods': [2, 1], // the Midge pleased (a pint on the step), and startled (a smash, a dog woken)
 });
 
@@ -30,12 +31,12 @@ const DURATION = 45;
 const FLOAT_SX = 430; // where the float sits on screen; the street scrolls past
 const ROAD_Y = 838; // the float's wheels
 const HAND_Y = 600; // where the Midge lets go
-const FENCE = 668; // the garden fences along the pavement
-const NEAR = 690; // a bottle let go at once lands here, on the pavement
+const FENCE = 615; // the garden fences, along the back of the painted pavement (738 of 1080 px)
+const NEAR = 650; // a bottle let go at once lands here, on the pavement
 const FAR = 290; // the farthest a full wind-up throws
 const RELOAD = 0.7; // after a smash, seconds before the Midge has another bottle in hand
 const STEP_MIN = 330; // the deepest doorstep
-const STEP_MAX = 600; // the nearest doorstep
+const STEP_MAX = 565; // the nearest doorstep
 const HOUSE_COLS = ['#e8c9a0', '#d9a4a0', '#c9d0b0', '#e6d9a8', '#c4b4c8', '#d7b48a'];
 const DOOR_COLS = [PAL.slate, PAL.brick, PAL.green, PAL.mustard, PAL.mauve, '#3f6a6a'];
 
@@ -102,8 +103,8 @@ export default function create(env) {
     const p = progress();
     const n = g.houseN++;
     const early = n < 4; // the first few: near, wide, no dogs, no cards
-    const lo = early ? 470 : lerp(420, STEP_MIN, p);
-    const hi = early ? 580 : STEP_MAX;
+    const lo = early ? 445 : lerp(410, STEP_MIN, p);
+    const hi = early ? 550 : STEP_MAX;
     const stepY = lo + rng() * (hi - lo);
     const s = depth(stepY);
     const note = !early && n > 0 && rng() < lerp(0.12, 0.24, p);
@@ -442,15 +443,24 @@ export default function create(env) {
     // the front garden and its path, down to the fence
     poly(c, [[x - wHouse / 2 - 20 * s, h.stepY], [x + wHouse / 2 + 20 * s, h.stepY], [x + wHouse / 2 + 30, FENCE], [x - wHouse / 2 - 30, FENCE]], h.x, 1);
     wash(c, PAL.green, 0.35);
-    poly(c, [[x - 20 * s, h.stepY], [x + 20 * s, h.stepY], [x + 34, FENCE], [x - 34, FENCE]], h.x + 1, 1);
-    wash(c, '#d9cfb0', 0.7);
-    // stepping stones up the path
-    const n = Math.max(2, Math.round((FENCE - h.stepY) / 46));
-    for (let i = 1; i < n; i++) {
-      const y = lerp(FENCE, h.stepY, i / n);
-      blob(c, x, y, lerp(26, 16 * s, i / n), lerp(8, 5 * s, i / n), h.x + i, 0.12);
-      wash(c, '#c8bfae', 0.9);
-      ink(c, 1);
+    // the painted path is one long path, cut off at the doorstep
+    c.save();
+    c.beginPath();
+    c.rect(x - 80, h.stepY, 160, FENCE - h.stepY + 6);
+    c.clip();
+    const painted = drawSprite(c, 'sprites.milkGarden', 0, x, FENCE + 6, { w: 100 });
+    c.restore();
+    if (!painted) {
+      poly(c, [[x - 20 * s, h.stepY], [x + 20 * s, h.stepY], [x + 34, FENCE], [x - 34, FENCE]], h.x + 1, 1);
+      wash(c, '#d9cfb0', 0.7);
+      // stepping stones up the path
+      const n = Math.max(2, Math.round((FENCE - h.stepY) / 46));
+      for (let i = 1; i < n; i++) {
+        const y = lerp(FENCE, h.stepY, i / n);
+        blob(c, x, y, lerp(26, 16 * s, i / n), lerp(8, 5 * s, i / n), h.x + i, 0.12);
+        wash(c, '#c8bfae', 0.9);
+        ink(c, 1);
+      }
     }
     // the house front
     if (!drawSprite(c, 'sprites.milkHouses', h.cell, x, h.stepY + 4 * s, { w: wHouse })) {
@@ -479,7 +489,7 @@ export default function create(env) {
     }
     if (h.got < h.wants && !h.note) {
       // a doormat on the step of each house waiting for its pint
-      if (!drawSprite(c, 'sprites.milkProps', 5, x, h.stepY - 2 * s, { w: h.half * 1.4, anchor: 'center' })) {
+      if (!drawSprite(c, 'sprites.milkProps', 5, x, h.stepY - 4 * s, { w: h.half * 0.95, anchor: 'center' })) {
         blob(c, x, h.stepY - 2 * s, h.half * 0.7, 7 * s, h.x + 12, 0.05);
         wash(c, PAL.lemon, 0.85);
         ink(c, 1.4);
@@ -557,7 +567,8 @@ export default function create(env) {
     }
     c.restore();
     // the bottle in its claw while winding up
-    if (g.holding) drawBottle(c, x - 40 - g.charge * 40, HAND_Y + 40 + g.charge * 20 + jolt, 0.9, -0.4 - g.charge);
+    // (the painted wind-up already has the bottle in the Midge's wing)
+    if (g.holding && !art('sprites.midgeThrow')) drawBottle(c, x - 40 - g.charge * 40, HAND_Y + 40 + g.charge * 20 + jolt, 0.9, -0.4 - g.charge);
   }
 
   g.draw = (c, t) => {
@@ -577,7 +588,25 @@ export default function create(env) {
     }
     const order = [...g.houses].sort((a, b) => a.stepY - b.stepY);
     for (const h of order) drawHouse(c, h, t);
-    // garden fences along the pavement, with a gate gap at each path
+    // garden fences along the pavement, with a gap at each path
+    const FW = 200; // one painted length of fence
+    if (art('sprites.milkGarden')) {
+      const off2 = -(g.fx % FW);
+      for (let x = off2 - FW; x < W + FW; x += FW) {
+        c.save();
+        c.beginPath();
+        c.rect(x - FW / 2, 0, FW, H);
+        for (const h of g.houses) {
+          const hx = g.sx(h.x);
+          const a = Math.max(hx - 46, x - FW / 2);
+          const b = Math.min(hx + 46, x + FW / 2);
+          if (b > a) c.rect(a, 0, b - a, H); // a gap for the path, inside this length only
+        }
+        c.clip('evenodd');
+        drawSprite(c, 'sprites.milkGarden', 1, x, FENCE + 6, { w: FW + 2 });
+        c.restore();
+      }
+    } else {
     c.beginPath();
     const off = -(g.fx % 40);
     for (let x = off; x < W + 40; x += 40) {
@@ -589,6 +618,7 @@ export default function create(env) {
     c.moveTo(0, FENCE - 24);
     c.lineTo(W, FENCE - 24);
     ink(c, 2.2, '#7a5a3a');
+    }
     // bottles sent back, on the pavement
     for (const h of g.houses) if (h.note && h.back) drawBottle(c, g.sx(h.x) + 50, FENCE + 26, 0.9);
 

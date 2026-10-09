@@ -79,3 +79,12 @@ In the painting the straw hangs like a skirt above its legs rather than
 reaching the floor, so IC-M06d and IC-M06e now describe the painting (a
 broomstick neck, bound straw body, crest and slate-blue beak) and ask for
 the straw to brush the floor in the sweeping poses.
+
+## Matched to the delivered art
+
+The courtyard scene (IC-M06a) fits the game as built: the wall meets the
+flagstones at y 470, where the floor's back edge already was, the fig tree
+overhangs the top left where the leaves fall from, and the floor is clear.
+Nothing changed. The leaves, dust, dustpan and the Broomwhisk's poses
+(IC-M06b to e) are still drawn in code or from the portrait until they
+arrive.

@@ -246,6 +246,10 @@ export const ASSETS = {
     "file": "assets/sprites/midge-moods.png",
     "delivered": true
   },
+  "sprites.milkGarden": {
+    "file": "assets/sprites/milk-garden.png",
+    "delivered": false
+  },
   "scene.waterglassgoose": {
     "file": "assets/scenes/waterglassgoose.webp",
     "delivered": true

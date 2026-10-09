@@ -67,3 +67,20 @@ IC-M02c and IC-M02d prompts now describe the painting (the empty tilted
 tumbler, the cream neck, the grey-green rooster tail, webbed feet) and the
 tapping pose is described to fit how the glasses stand in front of it.
 
+
+## Matched to the delivered art
+
+- **Scene.** The painted table's lace runner lies from y 680 to 742, so the
+  glasses (standing at y 690) sit on the lace; the tune's dots, "Listen…"
+  and the crack count sit on the plain wallpaper, clear of the lamp and the
+  window. No change needed.
+- **Glasses.** The painted tumbler has a thick glass foot, so the water now
+  starts 30 px above the table (was 12) and rests on the inside of the foot
+  instead of filling it. Its painted outline is the same width as the
+  stand-in's, so the yellow outline of the selected glass still fits.
+- **Goose.** The tapping, honking, walking and recoiling poses are drawn
+  as whole portrait-framed cells, behind the row of glasses, as set up when
+  the portrait arrived; they line up with the portrait without a jump.
+- **Still drawn in code:** only the coloured water, the glow and outline
+  when a glass rings or is chosen, the ripples and notes, and the counters.
+  No new requests.

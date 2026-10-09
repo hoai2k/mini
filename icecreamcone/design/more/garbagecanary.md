@@ -76,3 +76,14 @@ sprites (IC-M08c, IC-M08d) are placed at the portrait's own feet line (97%
 down), and their prompts now describe the painted bin: fluted, rusty and
 dented, with its ring handle, the canary's wing and paper-scrap tail, and
 the lid tipped up at the front.
+
+## Matched to the delivered art
+
+The street scene (IC-M08a) is in. Its pavement runs from the house fronts at
+582 px to the kerb at 705, so the Canary now stands at 690 (it stood at 770,
+on the kerb and road); the rim, the crossing height and the gutter where
+missed rubbish lands all follow from that, and the painted lamp-post replaces
+the stand-in's. The opening hint is two short lines on a paper backing,
+centred on the view, and now says to keep the lid shut for "anything that
+glows". Still stand-in: the things on the wind (IC-M08b) and the lid pieces
+and calls (IC-M08c, IC-M08d), which are cut from the portrait meanwhile.

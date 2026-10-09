@@ -24,12 +24,16 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const LINE_Y = 176; // the washing line, at its posts
+// Measured on the delivered scene (IC-M05a): the line's hooks on the two
+// posts, the open tin's rim.
+const LINE_Y = 116; // the washing line, at its hooks
+const HOOK_L = 98;
+const HOOK_R = 1502;
 const SAG = 26;
 const COAT_W = 230;
 const COAT_H = 290;
 const HOLE_DY = [84, 166, 248]; // the buttonholes, below the line
-const GROUND = 806; // the Buttonbeaks' feet, behind the tin
+const GROUND = 748; // the Buttonbeaks' feet, on the lawn just behind the tin
 const SIZE = 280;
 const K = SIZE / 400;
 // Where the held button sits, and how tall the pair stands: in the painting
@@ -39,7 +43,7 @@ const painted = () => !!subjectShape('buttonbeaks').feet;
 const holdY = () => GROUND - (painted() ? 372 : 205) * K;
 const holdDX = () => (painted() ? 26 * K : 0); // clear of the yellow one's eye
 const TALL = () => (painted() ? 362 : 230) * K;
-const BOWL_Y = 838;
+const BOWL_Y = 756; // the bowls' rims, set into the tin
 const BOWL_GAP = 176;
 const REACH = 80; // how near a bowl they must be to pick from it
 const DAZE = 1;
@@ -61,7 +65,7 @@ const speedAt = (t) => 80 + Math.min(1, t / DURATION) * 60;
 const gapAt = (t) => 320 - Math.min(1, t / DURATION) * 90;
 const holesAt = (t, r) => (t < 8 ? 1 : t < 22 ? 1 + (r < 0.6 ? 1 : 0) : 2 + (r < 0.45 ? 1 : 0));
 export const bowlX = (i, n) => 800 + (i - (n - 1) / 2) * BOWL_GAP;
-const lineY = (x) => LINE_Y + SAG * (1 - Math.pow((x - 800) / 800, 2));
+const lineY = (x) => LINE_Y + SAG * Math.max(0, 1 - Math.pow((x - 800) / ((HOOK_R - HOOK_L) / 2), 2));
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -204,7 +208,7 @@ export default function create(env) {
       if (input.pointer.active) {
         // touch: tap a bowl to pick from it, tap up by the coats to toss
         g.x = clamp(input.pointer.x, 140, W - 140);
-        if (input.pointer.y > 680) {
+        if (input.pointer.y > 712) {
           const i = g.overBowl();
           if (i >= 0) pick(i);
         } else if (g.holding !== null) toss();
@@ -480,24 +484,22 @@ export default function create(env) {
       band(c, 0, 640, W, H - 640, PAL.sage, 0.55, 3);
       band(c, 0, 760, W, H - 760, '#b8c49a', 0.45, 6);
       // the two posts and the line
-      for (const px of [40, W - 40]) {
-        poly(c, [[px - 14, LINE_Y - 30], [px + 14, LINE_Y - 30], [px + 16, 700], [px - 16, 700]], px, 1);
+      for (const px of [HOOK_L - 36, HOOK_R + 36]) {
+        poly(c, [[px - 14, LINE_Y - 30], [px + 14, LINE_Y - 30], [px + 16, 720], [px - 16, 720]], px, 1);
         wash(c, '#a87444');
         ink(c, 2.2);
       }
       // the button tin, open, the bowls set in it
-      poly(c, [[180, 812], [W - 180, 812], [W - 150, 892], [150, 892]], 8, 1.2);
+      poly(c, [[200, 740], [W - 200, 740], [W - 200, 900], [200, 900]], 8, 1.2);
       wash(c, '#9aa8b8');
       ink(c, 2.4);
-      poly(c, [[180, 812], [W - 180, 812], [W - 150, 892], [150, 892]], 8, 1.2);
-      hatch(c, 150, 810, W - 150, 895, 10, 0.18, 1);
+      poly(c, [[200, 740], [W - 200, 740], [W - 200, 900], [200, 900]], 8, 1.2);
+      hatch(c, 196, 736, W - 196, 904, 10, 0.18, 1);
     });
     // the line itself, drawn in code because the coats hang on it
     c.beginPath();
-    for (let x = 30; x <= W - 30; x += 40) {
-      if (x === 30) c.moveTo(x, lineY(x));
-      else c.lineTo(x, lineY(x));
-    }
+    c.moveTo(HOOK_L, lineY(HOOK_L));
+    for (let x = HOOK_L + 39; x <= HOOK_R; x += 39) c.lineTo(x, lineY(x));
     ink(c, 2.4);
 
     for (const coat of g.coats) drawCoat(c, coat, t);

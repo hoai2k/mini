@@ -85,3 +85,18 @@ The IC-M03e and IC-M03f prompts now describe the painting (the scissor-like
 beak blades, the blades as wings, the pink feathers) and ask for the beak's
 point to stay where it is in the portrait.
 
+
+## Matched to the delivered art (scene)
+
+- **Promenade.** The painted paving starts at y 733, so the walkers' feet
+  at 800 stand on it. The Park Keeper now stands at y 735 (was 640), on
+  the promenade's back edge in front of the painted railing, instead of
+  floating over the railing at the pond's edge.
+- **Nest.** The painted branch reaches in across the top left; the nest
+  (stand-in until `sprites.niffyProps` arrives) now sits on it at (300, 122)
+  instead of at the corner under the HUD, and snippings fly there. The
+  stand-in branch follows the same line.
+- **Sky.** The Niffy hovers at y 230 in the open sky above the trees; no
+  change needed.
+- **Still stand-in:** the passers-by, the Keeper, the things to snip, the
+  nest and the Niffy's flying and swooping poses (IC-M03b–f, requested).

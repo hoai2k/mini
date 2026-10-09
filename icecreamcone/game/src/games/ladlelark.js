@@ -24,7 +24,7 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 50;
-const CX = 640; // the broth's surface, an ellipse
+const CX = 665; // the broth's surface, an ellipse, over the painted range
 const CY = 560;
 const RX = 400;
 const RY = 150;
@@ -34,7 +34,8 @@ const SCOOP_AT = 0.16; // into the dip, when the ladle takes what's in the ring
 const BITS = 15;
 const KINDS = ['carrot', 'pea', 'dumpling', 'mushroom', 'boot'];
 const NAMES = { carrot: ['carrot', 'carrots'], pea: ['pea', 'peas'], dumpling: ['dumpling', 'dumplings'], mushroom: ['mushroom', 'mushrooms'] };
-const BOWL = { x: 1250, y: 700 };
+const BOWL = { x: 1250, y: 655 }; // on the painted counter's top
+const COUNTER_TOP = 648; // the queue stands behind the counter
 const QUEUE_X = [1390, 1510, 1590];
 const SIZE = 300;
 const BUBBLE_X = 900; // the order, over the pot so a narrow screen shows it
@@ -495,9 +496,9 @@ export default function create(env) {
       c.save();
       c.translate(sx, bottom);
       if (pose === 1) c.rotate(0.25); // tipping its bowl into the soup
-      // the bowl's bottom, in bird units from the feet: painting (42, -128)
-      // (measured on the PNG: 60%, 66.5% of the square, feet at 97.1%), stand-in (20, -90)
-      if (art('subject.ladlelark')) drawBird(c, 'ladlelark', { x: -42 * K, y: 128 * K, size: SIZE, t });
+      // the bowl's bottom, in bird units from the feet: painting (50, -131)
+      // (measured on the PNG: 62%, 66% of the square, feet at 97.2%), stand-in (20, -90)
+      if (art('subject.ladlelark')) drawBird(c, 'ladlelark', { x: -50 * K, y: 131 * K, size: SIZE, t });
       else drawBird(c, 'ladlelark', { x: -20 * K, y: 90 * K, size: SIZE, t });
       c.restore();
       if (pose === 2) {
@@ -525,8 +526,8 @@ export default function create(env) {
       const h = (sc.trim.h * w) / sc.trim.w;
       drawSprite(c, 'sprites.larkPot', 0, CX, CY - (RY + 10) + h, { w });
     } else {
-      // the stove's flames
-      for (let i = 0; i < 7; i++) {
+      // the stove's flames (the painted scene has its own range)
+      for (let i = 0; i < (art('scene.ladlelark') ? 0 : 7); i++) {
         const fx = CX - 240 + i * 80;
         blob(c, fx, 860 + Math.sin(t * 9 + i) * 4, 18, 30, i, 0.2);
         wash(c, i % 2 ? '#f0a040' : '#e07030', 0.8);
@@ -611,26 +612,36 @@ export default function create(env) {
       wash(c, '#4a4440');
       ink(c, 2.4);
       // the serving counter on the right
-      poly(c, [[1110, 740], [W, 740], [W, H], [1110, H]], 4, 1);
+      poly(c, [[1110, COUNTER_TOP], [W, COUNTER_TOP], [W, H], [1110, H]], 4, 1);
       wash(c, PAL.wafer);
       ink(c, 2.4);
-      poly(c, [[1110, 740], [W, 740], [W, H], [1110, H]], 4, 1);
-      hatch(c, 1110, 740, W, H, 16, 0.18, 1);
+      poly(c, [[1110, COUNTER_TOP], [W, COUNTER_TOP], [W, H], [1110, H]], 4, 1);
+      hatch(c, 1110, COUNTER_TOP, W, H, 16, 0.18, 1);
       band(c, 0, 640, 1110, H - 640, '#c8bca0', 0.6, 5);
     });
 
     // queue: the two behind, then the one at the front
+    // with the painted counter, the queue stands behind it: only what's above its top shows
+    const behind = !!art('scene.ladlelark');
+    const feet = behind ? 90 : 0;
+    c.save();
+    if (behind) {
+      c.beginPath();
+      c.rect(1060, 0, W - 1060, COUNTER_TOP);
+      c.clip();
+    }
     for (let i = 2; i >= 1; i--) {
-      if (g.queue[i - 1] !== undefined) creature(c, g.queue[i - 1], QUEUE_X[i], 740, 0.8 - i * 0.06, 0, t);
+      if (g.queue[i - 1] !== undefined) creature(c, g.queue[i - 1], QUEUE_X[i], 740 - feet, 0.8 - i * 0.06, 0, t);
     }
     const cu = g.cust;
     if (cu) {
       const slide = cu.leaving !== undefined ? (0.9 - cu.leaving) * 300 : cu.arrive * 240;
       c.save();
       if (cu.leaving !== undefined) c.globalAlpha = clamp(cu.leaving * 1.5, 0, 1);
-      creature(c, cu.who, QUEUE_X[0] + slide, 760, 0.9, cu.mood, t);
+      creature(c, cu.who, QUEUE_X[0] + slide, 760 - feet, 0.9, cu.mood, t);
       c.restore();
     }
+    c.restore();
 
     // the bowl on the counter, and what's in it
     if (!drawSprite(c, 'sprites.larkPot', 1, BOWL.x, BOWL.y + 46, { w: 190 })) {

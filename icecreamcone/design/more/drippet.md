@@ -81,3 +81,16 @@ spout. The bird is drawn at 250 instead of 300, because the painting stands
 taller than the stand-in. The pose sprites are drawn at 0.9 of that size.
 IC-M16d and IC-M16e now describe the painting's design (cross handle, brass
 collar, grey-blue wing, pink tail, ochre legs).
+
+## Matched to the delivered art
+
+- **Scene (IC-M16a, delivered):** the painted kitchen's tiled floor begins
+  just below the skirting board, at about 540 of 900. The Drippet's feet and
+  the thirsty things now keep below 560 (it was 500), so nothing stands on
+  the skirting or the cupboards. The opening hint moved down onto the floor.
+  With the smaller floor the puddles crowd more, so I re-tuned: over ten
+  seeds a beginner scores 14 to 19 and a good runner 16 to 26. Hopping
+  everywhere scores 6 to 12, never looking 9 to 11 (four seeds), and the
+  pass mark is 13.
+- **Still stand-ins:** the thirsty things (IC-M16b), the puddles (IC-M16c)
+  and the poses (IC-M16d, IC-M16e). They are still requested, with no change.
