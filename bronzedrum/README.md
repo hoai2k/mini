@@ -1,10 +1,10 @@
-# Bronze Drum (prototype)
+# Bronze Drum
 
 A drum-command rhythm game about the Trưng sisters, who raised an army of
 women against Han rule around 40 CE. It adapts Phong Nguyen's novel
 *Bronze Drum*, staged as a backlit paper-cut theatre.
 
-Play the prototype at https://hoai2k.github.io/mini/bronzedrum/. It has nine
+Play it at https://hoai2k.github.io/mini/bronzedrum/. It has nine
 chapters in story order: four battles, four call-and-answer chapters (echo
 the caller's rhythm), and one casting chapter (keep pace with the bellows).
 [`design/design.md`](design/design.md) lists them.
@@ -34,9 +34,9 @@ up to hide the bars, or add the game to the home screen).
   [`design/music-requests.md`](design/music-requests.md): the sound effects
   (generated with ElevenLabs) and the prompts for the score, both built from
   [`design/source/build_audio.py`](design/source/build_audio.py).
-- [`design/screens/`](design/screens/): screenshots of the prototype with the
+- [`design/screens/`](design/screens/): screenshots of the game with the
   delivered art.
-- [`game/`](game/): the prototype itself, static ES modules with no build step.
+- [`game/`](game/): the game itself, static ES modules with no build step.
 - [`workbench/`](workbench/): the sound workbench, published at
   https://hoai2k.github.io/mini/bronzedrum/workbench/. It plays each chapter's
   ambience next to its alternate takes (level-matched, with an optional drum
@@ -200,7 +200,7 @@ landed, and a rim tap on the left half brings Nhị's arm in from the left. The 
 Drumsticks (`STICK_SETS`); all six sticks share one layout, and the drawn
 stand-in remains for a missing image.
 
-The manifest's `runtime` flag distinguishes the 123 images used by the prototype
+The manifest's `runtime` flag distinguishes the 123 images used by the game
 from the 8 delivered sheets it does not use directly: six puppet part sheets
 (four of them cut into the sisters' rigs, two for each style) and the glyph
 and icon sheets. They remain available

@@ -17,7 +17,7 @@ Sources:
   [image-requests.md](image-requests.md) for the full art direction and the rule
   that prompts describe the qualities of her work and never name her.
 
-## Core loop (what the prototype tests)
+## Core loop
 
 | Action | Who | Controller | Keyboard | Mouse | Touch |
 | --- | --- | --- | --- | --- | --- |

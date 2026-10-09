@@ -1,6 +1,6 @@
 # Bronze Drum: image requests
 
-Artwork for the Bronze Drum prototype in `bronzedrum/game/`, plus direction pieces for the look and atmosphere. Generated from `source/build_requests.py`; edit the data there and rerun it, which also rewrites `game/assets/manifest.json`.
+Artwork for the Bronze Drum game in `bronzedrum/game/`, plus direction pieces for the look and atmosphere. Generated from `source/build_requests.py`; edit the data there and rerun it, which also rewrites `game/assets/manifest.json`.
 
 ## How to use this list
 
@@ -64,7 +64,7 @@ The second source is the **Dong Son bronze drum** (Lac Viet, before and around t
 
 ## Style frames: choose the direction first (3)
 
-Generate these three before anything else. They show the same moment (the army marching on a Han palisade at dusk, the sisters and the drum behind it) under three different treatments of the paper, so the treatment can be judged on its own. Pick one, or a mix, and the palette and the prompts below are tuned to it before the full set is generated. The prototype's stand-in currently sits closest to S02; screenshots of it are in `design/screens/`.
+Generate these three before anything else. They show the same moment (the army marching on a Han palisade at dusk, the sisters and the drum behind it) under three different treatments of the paper, so the treatment can be judged on its own. Pick one, or a mix, and the palette and the prompts below are tuned to it before the full set is generated. The game's first stand-ins sat closest to S02; screenshots of it are in `design/screens/`.
 
 ### BD-S01 · Style frame A: white paper and lamplight
 
@@ -77,7 +77,7 @@ The closest to hand-cut fibre panels in a gallery: almost no colour; depth and m
 
 ### BD-S02 · Style frame B: coloured papers, lit from behind
 
-The prototype's direction: each depth a different coloured sheet, night indigo to rice cream, with bronze and lacquer-red accents.
+The game's direction: each depth a different coloured sheet, night indigo to rice cream, with bronze and lacquer-red accents.
 
 - **Spec:** 3840x2160, opaque
 - **Status:** delivered
