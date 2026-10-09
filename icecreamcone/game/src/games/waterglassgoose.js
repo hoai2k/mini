@@ -17,6 +17,7 @@ import { clamp, lerp, approach } from './index.js';
 Object.assign(SHEETS, {
   'sprites.harpGlass': [2, 1], // an empty tumbler, and the same tumbler cracked
   'sprites.gooseTap': [2, 1], // the Goose tapping with its beak, and honking with its head up
+  'sprites.gooseMoves': [2, 1], // the Goose mid-stride, and recoiling from a cracked glass
 });
 
 // Each tune: how many glasses, how many notes, and the seconds between notes.
@@ -348,15 +349,21 @@ export default function create(env) {
 
   function drawGoose(c, t) {
     const x = g.gx;
-    const lean = g.tap > 0 ? -0.3 * g.tap : 0;
     const honk = g.phase === 'good';
+    const oops = g.phase === 'oops' && g.pt < 0.9;
+    const walking = Math.abs(g.gx - (g.glassX(g.sel) + 110)) > 12;
+    const lean = g.tap > 0 ? -0.3 * g.tap : oops ? 0.14 : 0;
+    const shake = oops && !env.reduceMotion ? Math.sin(g.pt * 50) * 3 : 0;
+    const bob = walking ? -Math.abs(Math.sin(t * 14)) * 6 : 0;
     c.save();
-    c.translate(x, TABLE - 6);
+    c.translate(x + shake, TABLE - 6 + bob);
     c.rotate(lean);
-    const cell = g.tap > 0.3 ? 0 : honk ? 1 : -1;
-    if (cell < 0 || !drawSprite(c, 'sprites.gooseTap', cell, 0, 0, { h: GOOSE * 0.9 })) {
-      drawBird(c, 'waterglassgoose', { x: 0, y: 0, size: GOOSE, t, pose: { tap: g.tap, honk } });
-    }
+    let drawn = false;
+    if (g.tap > 0.3) drawn = drawSprite(c, 'sprites.gooseTap', 0, 0, 0, { h: GOOSE * 0.9 });
+    else if (oops) drawn = drawSprite(c, 'sprites.gooseMoves', 1, 0, 0, { h: GOOSE * 0.9 });
+    else if (honk) drawn = drawSprite(c, 'sprites.gooseTap', 1, 0, 0, { h: GOOSE * 0.9 });
+    else if (walking) drawn = drawSprite(c, 'sprites.gooseMoves', 0, 0, 0, { h: GOOSE * 0.9 });
+    if (!drawn) drawBird(c, 'waterglassgoose', { x: 0, y: 0, size: GOOSE, t, pose: { tap: g.tap, honk, oops, walking } });
     c.restore();
   }
 

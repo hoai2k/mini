@@ -294,6 +294,10 @@ export const ASSETS = {
     "file": "assets/sprites/snippit-snip.png",
     "delivered": false
   },
+  "sprites.snippitPoses": {
+    "file": "assets/sprites/snippit-poses.png",
+    "delivered": false
+  },
   "scene.buttonbeaks": {
     "file": "assets/scenes/buttonbeaks.webp",
     "delivered": false
@@ -314,6 +318,10 @@ export const ASSETS = {
     "file": "assets/sprites/buttonbeaks-toss.png",
     "delivered": false
   },
+  "sprites.buttonbeaksPoses": {
+    "file": "assets/sprites/buttonbeaks-poses.png",
+    "delivered": false
+  },
   "scene.broomwhisk": {
     "file": "assets/scenes/broomwhisk.webp",
     "delivered": false
@@ -328,6 +336,10 @@ export const ASSETS = {
   },
   "sprites.broomwhiskSweep": {
     "file": "assets/sprites/broomwhisk-sweep.png",
+    "delivered": false
+  },
+  "sprites.broomwhiskPoses": {
+    "file": "assets/sprites/broomwhisk-poses.png",
     "delivered": false
   },
   "scene.keycrane": {
@@ -442,8 +454,8 @@ export const ASSETS = {
     "file": "assets/sprites/swift-house.png",
     "delivered": false
   },
-  "sprites.swiftFly": {
-    "file": "assets/sprites/swift-fly.png",
+  "sprites.swiftPoses": {
+    "file": "assets/sprites/swift-poses.png",
     "delivered": false
   },
   "scene.saltshakershrike": {
@@ -456,6 +468,10 @@ export const ASSETS = {
   },
   "sprites.shrikeDiners": {
     "file": "assets/sprites/shrike-diners.png",
+    "delivered": false
+  },
+  "sprites.shrikePoses": {
+    "file": "assets/sprites/shrike-poses.png",
     "delivered": false
   },
   "scene.ladlelark": {
@@ -474,6 +490,10 @@ export const ASSETS = {
     "file": "assets/sprites/lark-queue.png",
     "delivered": false
   },
+  "sprites.larkPoses": {
+    "file": "assets/sprites/lark-poses.png",
+    "delivered": false
+  },
   "scene.drippet": {
     "file": "assets/scenes/drippet.webp",
     "delivered": false
@@ -488,6 +508,10 @@ export const ASSETS = {
   },
   "sprites.drippetPoses": {
     "file": "assets/sprites/drippet-poses.png",
+    "delivered": false
+  },
+  "sprites.drippetMore": {
+    "file": "assets/sprites/drippet-more.png",
     "delivered": false
   },
   "scene.sawbird": {
@@ -506,6 +530,10 @@ export const ASSETS = {
     "file": "assets/sprites/sawbird-sawing.png",
     "delivered": false
   },
+  "sprites.sawbirdPoses": {
+    "file": "assets/sprites/sawbird-poses.png",
+    "delivered": false
+  },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
     "delivered": false
@@ -520,6 +548,10 @@ export const ASSETS = {
   },
   "sprites.dialPanel": {
     "file": "assets/sprites/dial-panel.png",
+    "delivered": false
+  },
+  "sprites.radiobirdPoses": {
+    "file": "assets/sprites/radiobird-poses.png",
     "delivered": false
   },
   "sprites.scoops": {

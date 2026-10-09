@@ -44,3 +44,5 @@ bits and bobs.
   round, looking up.
 - **e: the Niffy swooping** (`sprites.niffyDive`, 2 x 1): blade open, blade
   shut; the game tilts it into the swoop.
+- **f: the Niffy hovering and dazed** (`sprites.niffyFly`, 3 x 1): two flap
+  frames for hovering, and tumbling after the Keeper's whistle.
