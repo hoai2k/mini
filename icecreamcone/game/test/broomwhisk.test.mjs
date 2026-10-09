@@ -211,3 +211,34 @@ test('broomwhisk: the funnel draws a swept near miss in; gusts leave swept thing
   assert.ok(Math.abs(g2.items[0].x - 800) < 5, 'the swept leaf stays');
   assert.ok(g2.items[1].x > 830, 'the loose leaf blows');
 });
+
+// The Broomwhisk is one size whatever it does: standing (its portrait),
+// flicking, braced against a gust, sweeping across, pushing into the picture
+// and pleased, measured against how big each picture is painted
+// (design/source/pose-scales.json).
+test('broomwhisk: every painted pose shows the Broomwhisk the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const at = (o, b = {}) => (gm) => {
+      Object.assign(gm, { flickT: 0, proudT: 0, gust: null }, o);
+      Object.assign(gm.broom, { vx: 0, vy: 0, x: 800, y: 700 }, b);
+    };
+    const sizes = shownSizes(game, 'broomwhisk', {
+      standing: at({}),
+      flicking: at({ flickT: 0.2 }),
+      braced: at({ gust: { dir: 1, warn: 0, t: 1, ty: 0 } }),
+      sweeping: at({}, { vx: 300 }),
+      pushing: at({}, { vy: 200 }),
+      pleased: at({ proudT: 0.5 }),
+    }, ['subject.broomwhisk', 'sprites.broomwhiskSweep', 'sprites.broomwhiskPoses']);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('broomwhisk pose sizes', table);
+    assert.equal(Object.keys(table).length, 6, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

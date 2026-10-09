@@ -154,3 +154,29 @@ test('milkmidge: holding past the farthest step swings the wind-up back down', (
   assert.equal(top, 1);
   assert.ok(game.charge < 0.8 && game.dir < 0, `charge ${game.charge}`);
 });
+
+// The Midge is one size whatever it does: standing (its portrait), winding
+// up, flinging, pleased and startled, measured against how big each picture
+// is painted (design/source/pose-scales.json).
+test('milkmidge: every painted pose shows the Midge the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const at = (o) => (gm) => Object.assign(gm, { holding: false, fling: 0, mood: null, charge: 0 }, o);
+    const sizes = shownSizes(game, 'milkmidge', {
+      standing: at({}),
+      winding: at({ holding: true }),
+      flinging: at({ fling: 0.2 }),
+      pleased: at({ mood: { kind: 'pleased', t: Math.PI / 12 } }),
+      startled: at({ mood: { kind: 'startled', t: 0 } }),
+    }, ['subject.milkmidge', 'sprites.midgeThrow', 'sprites.midgeMoods']);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('milkmidge pose sizes', table);
+    assert.equal(Object.keys(table).length, 5, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

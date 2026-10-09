@@ -14,7 +14,7 @@
 // leaves. The soup swirls faster, the orders grow and patience shortens as
 // the queue goes on. Score: points.
 
-import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -421,7 +421,13 @@ export default function create(env) {
 
   function creature(c, who, x, y, s, mood, t) {
     const bounce = mood > 0 ? Math.abs(Math.sin(t * 14)) * 12 : 0;
-    if (drawSprite(c, 'sprites.larkQueue', who + (mood < 0 ? 4 : 0), x, y - bounce, { h: 300 * s })) return;
+    // Both pictures of a creature (waiting, and pulling a face) are painted
+    // at one size, so both are drawn at the scale that makes the waiting one
+    // 300 tall: fitting each picture's own outline to 300 would make the
+    // rabbit, whose ears drop as it pulls a face, jump bigger.
+    const wait = spriteCell('sprites.larkQueue', who);
+    const cell = who + (mood < 0 ? 4 : 0);
+    if (wait && drawSprite(c, 'sprites.larkQueue', cell, x, y - bounce, { h: (spriteCell('sprites.larkQueue', cell).trim.h * 300 * s) / wait.trim.h })) return;
     const fur = ['#9a7a5a', '#d8ccc0', '#8a6a4a', '#8aa860'][who];
     c.save();
     c.translate(x, y - bounce);

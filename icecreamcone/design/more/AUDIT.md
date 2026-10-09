@@ -909,3 +909,146 @@ change. The radio parts (IC-M18f) are already requested.
   reaches the result card". Anyone using it to judge scores should know the
   bots need 1/60 s steps.
 - No redesigns proposed: all eighteen are clear and playable with their art.
+
+## Third audit: sprite scale across poses
+
+On 2026-10-09, after the report that "the sprite sizes are not coordinated:
+the bird seems to shrink and grow as he crouches". Every game that swaps
+between painted pictures of the same character was checked: the bird, and
+recurring characters (the Crow's chicks, the soup queue, the diners, the
+listeners, the Park Keeper). Garbage Canary, Wetweather Wren, Glove Dove, Key
+Crane and Steampresser Sparrow were left to the agents fixing them; one
+finding for Puddle Hop is passed on below.
+
+### How it was measured
+
+The size a pose shows the character at is (the scale the game draws the cell
+at) x (the scale the character is painted at in that cell).
+
+- **Drawn scale.** For each cell: from the game's code, and in Chromium by
+  wrapping `drawImage` and recording the screen pixels per source pixel of
+  every sprite drawn during a bot round and a mashing round (scratchpad
+  `audit3/`). In the tests, the same comes from a mock canvas (below).
+- **Painted scale.** For each cell against the standing portrait: SIFT and
+  ORB keypoints matched between every pair of the character's cells, each
+  pair fitted with a similarity transform (RANSAC), and the scales solved
+  together by weighted least squares, the two detectors averaged. Where they
+  disagreed, or a family was weakly linked, a rigid part was checked:
+  - template matching of the head, the watch dial or the broom's binding
+    over scale and rotation;
+  - the area of the Saw Bird's wooden handle;
+  - the diameter of the chicks' eyes.
+
+  The script is `design/source/measure_pose_scales.py` (needs opencv-python).
+  The results, with the method for each, are in
+  `design/source/pose-scales.json`.
+- **Pose strips.** Every pose drawn at its in-game scale, side by side on
+  one baseline (scratchpad `audit3/strip-<game>.png`), looked at for each
+  changed game.
+
+Cross-checks on rigid parts, where a strong template match was possible:
+the Coot's cone and scoop body 0.93 and 0.91 (consensus 0.932, 0.909); the
+Gullfinch's gramophone 0.97 (0.965); the Trush's dial singing 1.01,
+flustered 0.95, perched 0.84 (0.995, 0.958, 0.831); the Midge's beak and eye
+when throwing 0.96 and 0.93 (0.962, 0.935); the Niffy's knife 0.97–1.03; the
+Saw Bird's handle 0.976, 0.775, 0.754 (ORB 0.957, 0.822, 0.782). In the
+browser after the fixes, every pose of every changed game shows its character
+at 1.000 of standing, except where the median mixes positions: depth
+(Broomwhisk, Drippet) or chicks of different sizes (Crow). The tests cover
+those games at one position.
+
+What made sizes jump:
+
+1. Poses fitted by a height that changes with the pose. The Snippit was
+   scaled by its eye-to-claws height, so a stooping pose was drawn bigger
+   and one looking up smaller. The soup queue was fitted by each picture's
+   outline, so the rabbit, ears down, grew.
+2. Pose sheets painted at a different scale from the portrait, drawn at the
+   portrait's framing. This affected the Goose, the Midge and the Coot, and
+   one sheet of Clock Hop against the other.
+3. One correction for a whole sheet whose cells are painted at different
+   scales (Button Up, Clean Sweep).
+4. A correction measured on a part that changes. The Drippet's cross handle
+   is foreshortened when it tips. The Saw Bird's snagged blade is bowed, so
+   its chord is short.
+
+### Per game
+
+Numbers are each pose's shown size against the standing (or default) pose,
+before → after. "Painted" is the measured painted scale against the portrait.
+
+| Game | Verdict | Before | After |
+| --- | --- | --- | --- |
+| Clock Hop (Tit Trush) | fixed | singing 0.88, flustered 0.85, flying 0.95 of perched | all 1.00 |
+| Snip the String (Snippit) | fixed | snipping 1.03, striding 1.07, jammed 1.06, watching 0.93 | all 1.00 |
+| Button Up (Buttonbeaks) | fixed | holding 0.94, tossing 0.94, striding 1.02, pecking 0.93, dazed 0.98, cheering 0.98 | all 1.00 |
+| Clean Sweep (Broomwhisk) | fixed, needs re-request | every pose 1.12–1.24 (head up to 1.31) | all 1.00 by the mean of head and broom; head 1.04–1.12, broom 0.89–0.96 |
+| Glass Harp (Goose) | fixed | every pose 0.96–0.97 | all 1.00 |
+| Milk Round (Midge) | fixed | flinging 0.94, others 0.96–1.00; feet up to 5 px off | all 1.00, each cell on its own foot line |
+| Drip Drop Dash (Drippet) | fixed | hopping 0.94, skidding 0.97, running 0.97, pouring 0.94 | all 1.00 |
+| Saw It Straight (Saw Bird) | fixed | snagged 1.09, proud 0.94 of sawing | all 1.00 |
+| Soup's On (Lark, queue) | fixed | Lark poses 0.98–0.99 (fine); queue: rabbit pulling a face 1.13, hedgehog 0.94, bear 1.03 | queue all 1.00 |
+| Safe Crossing (Crow's chicks) | fixed | flying chick 0.85; standing chicks 0.95–1.03, walking 0.97–1.00 | all 1.00 |
+| Scoop Stack (Coot) | fixed | striding 0.93, looking up 0.91; stride's feet 20 px high | all 1.00, feet on the line |
+| Wind and Sing (Gullfinch) | fixed | singing 0.965 | 1.00 |
+| Tea Time (Cupadee) | fixed | open 1.034 | 1.00 |
+| Snip Snap (Niffy) | OK | dive and flight 0.98–1.01 | unchanged; Park Keeper's three outlines match |
+| Lights On (Swift) | OK | 0.97–1.00 | unchanged |
+| Just a Pinch (Shrike) | OK | 0.97–1.00; diners' two pictures match | unchanged |
+| Tune In (Radio Bird) | OK | 0.99–1.04; each listener's two pictures painted alike, drawn whole-cell | unchanged |
+| Say Cheese, Bloom, Left Foot Right Foot, Hot off the Press, Stitch in Time, Spot the Dodo | OK | no pose sheets of one character (the boots are one pair, painted alike, 1.025) | unchanged |
+
+### Changes made
+
+- `game/src/draw.js`: the original ten's painted variants (the Coot's stride
+  and look-up, the Gullfinch singing, the Cupadee open) are drawn by their
+  painted scale and stand on their own foot line (`VARIANTS`).
+- `game/src/games/titthrush.js`: every pose is drawn at the perched pose's
+  size (`PAINTED`, `POSE_CELL`). Before, the singing and flustered poses
+  were drawn at the portrait's framing, so the Trush shrank by an eighth
+  every time it landed.
+- `game/src/games/snippit.js`: one scale for every pose (`SHOWN` over each
+  cell's `painted`); claws on the ground, eye over the snip point.
+- `game/src/games/buttonbeaks.js`: a painted scale per cell (`poseK`), not
+  per sheet; the held button follows.
+- `game/src/games/broomwhisk.js`: a painted scale per cell, replacing one
+  factor of 1.27 for all.
+- `game/src/games/waterglassgoose.js` (`POSE_PAINTED`),
+  `game/src/games/milkmidge.js` (`POSE_CELLS`, with foot lines),
+  `game/src/games/drippet.js` (`POSE_PAINTED`): a painted scale per cell.
+- `game/src/games/sawbird.js`: snagged and proud poses scaled to the sawing
+  one (`POSE_K`).
+- `game/src/games/ladlelark.js`: each creature in the queue is drawn at one
+  scale whether it waits or pulls a face; `spriteCell` was used there but not
+  imported, which the new test caught.
+- `game/src/games/crow.js`: a painted scale per chick cell
+  (`CHICK_PAINTED`).
+- Tests: `game/test/sprite-rig.mjs` (new) registers the delivered sheets at
+  their true size and alpha, so `spriteCell` trims as in a browser. It draws
+  a game into a recording canvas and multiplies each drawn scale by the
+  measured painted scale. Each changed game's test file has a test that
+  every pose shows the character within 5% of the standing size; the Coot,
+  Gullfinch and Cupadee tests also check the feet. Files: `waterglassgoose`,
+  `milkmidge`, `snippit`, `buttonbeaks`, `broomwhisk`, `drippet`,
+  `sawbird`, `titthrush`, `ladlelark`, `crow`, `coot`, `gullfinch` and
+  `cupadee` `.test.mjs`.
+- `design/source/measure_pose_scales.py` and `design/source/pose-scales.json`
+  (new): the measurement and its results.
+
+### Requests
+
+- **Re-request IC-M06d and IC-M06e (the Broomwhisk's pose sheets).** "Paint
+  the Broomwhisk at exactly the scale of its portrait painting in every
+  cell: the head (from the beak's tip to the back of the eye) and the broom
+  (the binding cord's width) both the same size as in the portrait. In the
+  delivered sheets the head is the portrait's size but the broom is about
+  12% smaller (the binding 0.80 to 0.93 of the portrait's), so the bird
+  cannot be drawn one size." Until they arrive, the game uses the mean of
+  the two.
+- **For the agent on Puddle Hop** (`wetweatherwren.js`, not touched): the
+  little birds' standing (`sprites.chicks` cell 0) and flying (cell 5)
+  pictures are both drawn at `h: 70` on their outlines, 372 and 429 px tall.
+  The flying chick is also painted smaller (0.851 of the standing one, by
+  its eye), so a chick shrinks to about three quarters as it flies off.
+  Drawing cell 5 at `h: 70 * 429 / 372 / 0.851` (about 95) would keep it one
+  size.

@@ -45,6 +45,9 @@ const LEVELS = [0.86, 0.72, 0.58, 0.42, 0.28];
 const TINTS = ['#7f93a8', '#a9b88a', '#efd96a', '#ea8fb0', '#e09a48'];
 const QUICK = 0.8; // a right note within this many seconds of the last scores one extra
 const GOOSE = 300;
+// The scale the Goose is painted at in each pose cell, against its portrait
+// (measured in design/source/pose-scales.json).
+const POSE_PAINTED = { 'sprites.gooseTap': [0.957, 0.966], 'sprites.gooseMoves': [0.966, 0.955] };
 // The Goose stands just behind the row, to the right of the glass it plays,
 // so that leaning in (0.3 rad about its feet) brings its beak tip down onto
 // the glass's rim, on the painting (beak tip at about (-165, -362) in bird
@@ -381,11 +384,16 @@ export default function create(env) {
     c.save();
     c.translate(x + shake, TABLE - BACK + bob);
     c.rotate(lean);
-    // variants are painted in square cells framed like the portrait; each is
+    // The variants are painted in square cells framed like the portrait, but
+    // the Goose in them is a little smaller (POSE_PAINTED), so each is drawn
+    // that much bigger and the Goose stays one size whatever it does. Each is
     // placed by its lowest painted point (the tapping cells' feet are at 0.99
-    // of the cell, the moving cells' at 0.93), so the feet stay on the floor
+    // of the cell, the moving cells' at 0.93), so the feet stay on the floor.
     const FEET = { 'sprites.gooseTap': 0.99, 'sprites.gooseMoves': 0.93 };
-    const pose = (key, i) => drawSprite(c, key, i, 0, (1 - FEET[key]) * GOOSE * 1.05, { h: GOOSE * 1.05, whole: true });
+    const pose = (key, i) => {
+      const h = (GOOSE * 1.05) / POSE_PAINTED[key][i];
+      return drawSprite(c, key, i, 0, (1 - FEET[key]) * h, { h, whole: true });
+    };
     let drawn = false;
     if (g.tap > 0.3) drawn = pose('sprites.gooseTap', 0);
     else if (oops) drawn = pose('sprites.gooseMoves', 1);

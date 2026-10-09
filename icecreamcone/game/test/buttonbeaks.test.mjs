@@ -129,3 +129,31 @@ test('buttonbeaks: more bowls, and coats with more holes, later on', () => {
   assert.equal(game.bowls, 6);
   assert.equal(most, 3);
 });
+
+// The pair are one size whatever they do: standing (their portrait), holding
+// a button up, tossing it, striding, pecking, dazed and cheering, measured
+// against how big each picture is painted (design/source/pose-scales.json).
+test('buttonbeaks: every painted pose shows the pair the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const at = (o) => (gm) => Object.assign(gm, { tossT: 0, pickT: 0, daze: 0, cheerT: 0, holding: null, moving: false }, o);
+    const sizes = shownSizes(game, 'buttonbeaks', {
+      standing: at({}),
+      holding: at({ holding: 0 }),
+      tossing: at({ tossT: 0.2 }),
+      striding: at({ moving: true }),
+      pecking: at({ pickT: 0.2 }),
+      dazed: at({ daze: 0.5 }),
+      cheering: at({ cheerT: 0.4 }),
+    }, ['subject.buttonbeaks', 'sprites.buttonbeaksToss', 'sprites.buttonbeaksPoses']);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('buttonbeaks pose sizes', table);
+    assert.equal(Object.keys(table).length, 7, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

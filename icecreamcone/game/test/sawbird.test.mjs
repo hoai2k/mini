@@ -100,3 +100,28 @@ test('sawbird: a straight cut through scores 10, a crooked one less', () => {
   g2.update(1 / 60, blank({ x: -1 }));
   assert.equal(g2.score, 1);
 });
+
+// The Saw Bird is one size whatever it does: sawing, snagged on a knot and
+// standing proud after a cut, measured against how big each picture is
+// painted (design/source/pose-scales.json).
+test('sawbird: every painted pose shows the Saw Bird the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    game.plank.slide = 0;
+    const at = (o) => (gm) => Object.assign(gm, { snag: 0, proud: 0 }, o);
+    const sizes = shownSizes(game, 'sawbird', {
+      sawing: at({}),
+      snagged: at({ snag: 0.3 }),
+      proud: at({ proud: Math.PI / 6 }),
+    }, ['sprites.sawbirdSawing', 'sprites.sawbirdPoses']);
+    const { fails, table } = sizeCheck(sizes, 'sawing');
+    console.log('sawbird pose sizes', table);
+    assert.equal(Object.keys(table).length, 3, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

@@ -54,9 +54,16 @@ const CATCH = 4; // how far outside the dial a passing Trush still grabs it
 const MISS_T = 1.6; // seconds on the cobbles before fluttering back
 const BACK_T = 0.45; // the flutter back
 const GOLD_LIFE = 6;
-// The singing and flustered poses are painted at the portrait's framing
-// (1024 px = 420 units at a 400-unit bird, standing on 0.98 of the image).
-const POSE_CELL = (420 * HOP_H) / 400;
+// Every painted pose is drawn so the Trush is the same size as when it is
+// perched (the pose seen most): each cell is drawn at the perched cell's
+// size times the scale the Trush is painted at in the perched cell over the
+// scale it is painted at in this one (measured against the portrait:
+// design/source/pose-scales.json). Before, the singing and flustered poses
+// were drawn at the portrait's framing and the Trush shrank by an eighth
+// each time it landed and sang.
+const HOP_CELL = HOP_H / 0.7; // the perched and flying cells' width
+const PAINTED = { hop: 0.831, fly: 0.789, sing: 0.995, fluster: 0.958 };
+const POSE_CELL = { hop: HOP_CELL, fly: (HOP_CELL * PAINTED.hop) / PAINTED.fly, sing: (HOP_CELL * PAINTED.hop) / PAINTED.sing, fluster: (HOP_CELL * PAINTED.hop) / PAINTED.fluster };
 
 const TAU = Math.PI * 2;
 const dirOf = (a) => [Math.sin(a), -Math.cos(a)]; // a: 0 = twelve o'clock, clockwise
@@ -688,10 +695,10 @@ export default function create(env) {
       c.save();
       c.translate(x + sh, y);
       if (g.sing > 0) {
-        if (!drawSprite(c, 'sprites.titthrushSing', 0, 0, (1 - 0.98) * POSE_CELL, { w: POSE_CELL, whole: true })) drawBird(c, 'titthrush', { x: 0, y: 0, size: HOP_H, t, squash: Math.sin(g.sing * 20) * 0.08 });
+        if (!drawSprite(c, 'sprites.titthrushSing', 0, 0, (1 - 0.98) * POSE_CELL.sing, { w: POSE_CELL.sing, whole: true })) drawBird(c, 'titthrush', { x: 0, y: 0, size: HOP_H, t, squash: Math.sin(g.sing * 20) * 0.08 });
       } else {
         // perched: the claws (0.5, 0.92 of the cell) on the tip
-        const cell = HOP_H / 0.7;
+        const cell = POSE_CELL.hop;
         if (!drawSprite(c, 'sprites.titthrushHop', 0, 0, 0.08 * cell, { w: cell, whole: true })) drawBird(c, 'titthrush', { x: 0, y: 0, size: HOP_H, t });
       }
       c.restore();
@@ -715,7 +722,7 @@ export default function create(env) {
       }
       c.save();
       c.translate(x, y);
-      const cell = HOP_H / 0.7;
+      const cell = POSE_CELL.fly;
       if (!drawSprite(c, 'sprites.titthrushHop', 1, 0, 0, { w: cell, anchor: 'center', whole: true, flip: right, rot: g.state === 'fly' ? rot : 0 })) {
         c.rotate(g.state === 'fly' ? rot * 0.6 : 0);
         drawBird(c, 'titthrush', { x: 0, y: HOP_H * 0.5, size: HOP_H, t, flip: right });
@@ -725,7 +732,7 @@ export default function create(env) {
       // tumbled on the cobbles
       c.save();
       c.translate(x, y);
-      if (!drawSprite(c, 'sprites.titthrushFluster', 0, 0, (1 - 0.979) * POSE_CELL, { w: POSE_CELL, whole: true })) {
+      if (!drawSprite(c, 'sprites.titthrushFluster', 0, 0, (1 - 0.979) * POSE_CELL.fluster, { w: POSE_CELL.fluster, whole: true })) {
         if (!env.reduceMotion) c.rotate(Math.sin(t * 40) * 0.08);
         drawBird(c, 'titthrush', { x: 0, y: 0, size: HOP_H, t });
       }

@@ -28,6 +28,13 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
+// The Midge's pose cells: the scale it is painted at against its portrait
+// (design/source/pose-scales.json), and its feet's lowest point, as a share
+// of the cell's height (the portrait's is 0.966).
+const POSE_CELLS = {
+  'sprites.midgeThrow': [{ painted: 0.962, feet: 0.967 }, { painted: 0.935, feet: 0.948 }],
+  'sprites.midgeMoods': [{ painted: 0.968, feet: 0.977 }, { painted: 0.997, feet: 0.976 }],
+};
 const FLOAT_SX = 430; // where the float sits on screen; the street scrolls past
 const ROAD_Y = 838; // the float's wheels
 const HAND_Y = 600; // where the Midge lets go
@@ -567,8 +574,14 @@ export default function create(env) {
     c.save();
     c.translate(x - 120, ROAD_Y - 118 + jolt + hop);
     c.rotate(lean + shiver);
-    // variants are painted in square cells framed like the portrait (feet at 0.966)
-    const pose = (key, i) => drawSprite(c, key, i, 0, 0.034 * 270 * 1.05, { h: 270 * 1.05, whole: true, flip: true });
+    // The variants are painted in square cells framed like the portrait, but
+    // at a slightly different scale and foot line each (POSE_CELLS): each is
+    // drawn so the Midge is the portrait's size, its feet on the crates.
+    const pose = (key, i) => {
+      const { painted, feet } = POSE_CELLS[key][i];
+      const h = (270 * 1.05) / painted;
+      return drawSprite(c, key, i, 0, (1 - feet) * h, { h, whole: true, flip: true });
+    };
     const drawn = mood ? pose('sprites.midgeMoods', mood.kind === 'pleased' ? 0 : 1) : cell >= 0 && pose('sprites.midgeThrow', cell);
     if (!drawn) {
       c.scale(1 + squash * 0.5 + (mood?.kind === 'startled' ? 0.04 : 0), 1 - squash);

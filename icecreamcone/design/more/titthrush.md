@@ -147,3 +147,7 @@ a bullseye, gold for the gold watch), the Trush sings with notes rising, and
 there's a short rumble. A fifth hop in a row plays a little fanfare. A miss
 bonks on the cobbles with a puff of dust and a wilting note. The music stays
 `clockwork`.
+
+## Third audit: pose sizes (2026-10-09)
+
+Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).

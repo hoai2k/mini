@@ -116,3 +116,31 @@ test('waterglassgoose: the pointer picks the glass under it, and the stick steps
   game.update(1 / 60, blank({ x: -1 }));
   assert.equal(game.sel, 1); // held: waits before repeating
 });
+
+// The Goose is one size whatever it does: standing (its portrait), tapping,
+// honking, walking and recoiling, measured against how big each picture is
+// painted (design/source/pose-scales.json).
+test('waterglassgoose: every painted pose shows the Goose the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const at = (o) => (gm) => {
+      Object.assign(gm, { tap: 0, phase: 'play', pt: 2, gx: gm.glassX(gm.sel) + 170 }, o);
+    };
+    const sizes = shownSizes(game, 'waterglassgoose', {
+      standing: at({}),
+      tapping: at({ tap: 1 }),
+      honking: at({ phase: 'good' }),
+      walking: at({ gx: game.glassX(game.sel) + 400 }),
+      recoiling: at({ phase: 'oops', pt: 0.2 }),
+    }, ['subject.waterglassgoose', 'sprites.gooseTap', 'sprites.gooseMoves']);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('waterglassgoose pose sizes', table);
+    assert.equal(Object.keys(table).length, 5, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

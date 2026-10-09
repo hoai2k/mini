@@ -44,12 +44,20 @@ const TO_HINGE = 96; // and back toward the hinge
 const HINGE_Y = PEG_Y - 10;
 const hinge = () => (subjectShape('snippit').feet ? { dx: -29, up: 321 } : { dx: -30, up: 220 });
 // Measured on the delivered pose sheets, in each cell's pixels: the eye (the
-// hinge) and the claws' lowest point. Each pose is drawn with its eye on the
-// snip point and its claws on the ground.
+// hinge) and the claws' lowest point; and the scale the Snippit is painted
+// at in the cell, against its portrait (design/source/pose-scales.json).
+// Every pose is drawn so the Snippit is one size: its claws on the ground
+// and its eye over the snip point. (Scaling each pose to fit its eye-to-claws
+// height between the two, as before, drew a stooping pose bigger and one
+// looking up smaller.)
 const POSE_CELLS = {
-  'sprites.snippitSnip': [{ ex: 422, ey: 226, feet: 973 }, { ex: 383, ey: 231, feet: 971 }],
-  'sprites.snippitPoses': [{ ex: 432, ey: 321, feet: 985 }, { ex: 443, ey: 302, feet: 980 }, { ex: 410, ey: 308, feet: 1007 }],
+  'sprites.snippitSnip': [{ ex: 422, ey: 226, feet: 973, painted: 0.975 }, { ex: 383, ey: 231, feet: 971, painted: 0.997 }],
+  'sprites.snippitPoses': [{ ex: 432, ey: 321, feet: 985, painted: 0.928 }, { ex: 443, ey: 302, feet: 980, painted: 0.939 }, { ex: 410, ey: 308, feet: 1007, painted: 0.851 }],
 };
+// The standing pose (blades open) fits its eye-to-claws height between the
+// snip point and the ground; that sets the Snippit's size for every pose.
+const STAND = POSE_CELLS['sprites.snippitSnip'][0];
+const SHOWN = ((GROUND - HINGE_Y) / (STAND.feet - STAND.ey)) * STAND.painted;
 // And on the balloon sheet: where the string ties on (a balloon's knot, a
 // kite's bottom point, above its tail), and how big each is drawn.
 const BALLOON_CELLS = [292, 274, 263, 244, 235, 216].map((ax) => ({ ax, ay: 466, k: 140 / 422 }))
@@ -459,10 +467,12 @@ export default function create(env) {
       const sp = spriteCell(key, i);
       if (!sp) return false;
       const m = POSE_CELLS[key][i];
-      const kk = (GROUND - HINGE_Y) / (m.feet - m.ey);
+      const kk = SHOWN / m.painted;
       const cl = sp.cell;
       c.save();
-      c.translate(g.x, HINGE_Y);
+      // claws on the ground, eye over the snip point; it turns about its eye
+      const eyeY = GROUND - (m.feet - m.ey) * kk;
+      c.translate(g.x, eyeY);
       c.rotate(jam + (g.moving ? walk * 0.5 : 0));
       c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, -m.ex * kk, -m.ey * kk, cl.w * kk, cl.h * kk);
       c.restore();

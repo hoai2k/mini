@@ -183,3 +183,30 @@ test('titthrush: it gets harder, and the clocks stay where a narrow screen can s
   assert.equal(game.span, 1060);
   assert.ok(BOX.x1 - BOX.x0 + 2 * 100 * 1.2 <= game.span + 100);
 });
+
+// The Trush is one size whatever it does: perched on a hand, singing as it
+// lands, flying and flustered on the cobbles, measured against how big each
+// picture is painted (design/source/pose-scales.json). It used to shrink by
+// an eighth every time it landed and sang.
+test('titthrush: every painted pose shows the Trush the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    game.update(1 / 60, blank());
+    const at = (o) => (gm) => Object.assign(gm, { state: 'ride', sing: 0, shake: 0, vx: 600, vy: -200, bx: 800, by: 400 }, o);
+    const sizes = shownSizes(game, 'titthrush', {
+      perched: at({}),
+      singing: at({ sing: 0.3 }),
+      flying: at({ state: 'fly' }),
+      flustered: at({ state: 'fall' }),
+    }, ['sprites.titthrushHop', 'sprites.titthrushSing', 'sprites.titthrushFluster']);
+    const { fails, table } = sizeCheck(sizes, 'perched');
+    console.log('titthrush pose sizes', table);
+    assert.equal(Object.keys(table).length, 4, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

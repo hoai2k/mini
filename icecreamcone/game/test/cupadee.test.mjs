@@ -56,3 +56,22 @@ test('cupadee: a fill right on the line is Perfect', () => {
   assert.equal(game.score, 100);
   assert.ok(Number.isInteger(game.score));
 });
+
+// The Cupadee is one size in every painted pose (standing, beak open), and stands on the
+// same line: measured against how big each picture is painted
+// (design/source/pose-scales.json).
+test('cupadee: every painted pose shows the Cupadee the same size, on the same feet', async () => {
+  const { withArt, birdSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  const undo = withArt();
+  try {
+    const feet = { 'bird.cupadee#0': 0.964, 'sprites.cupadeeOpen#0': 0.962 };
+    const sizes = await birdSizes('cupadee', { standing: {}, open: { open: true } }, feet);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('cupadee pose sizes', table);
+    assert.deepEqual(fails, []);
+    const y0 = sizes.standing[0].feetY;
+    for (const [name, [d]] of Object.entries(sizes)) assert.ok(Math.abs(d.feetY - y0) < 4, `${name}: feet at ${d.feetY.toFixed(1)}, standing at ${y0.toFixed(1)}`);
+  } finally {
+    undo();
+  }
+});

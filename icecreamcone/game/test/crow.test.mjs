@@ -76,3 +76,32 @@ test('crow: cars stop at the line on red and cross on green', () => {
   for (let i = 0; i < 60 * 3; i++) game.update(1 / 60, blank());
   assert.ok(game.carsAcross > before, 'cars cross on green');
 });
+
+// A chick is one size whatever it does: standing (each of the three standing
+// chicks), walking (both steps) and flying off, measured against how big each
+// picture is painted (design/source/pose-scales.json).
+test('crow: every painted chick is drawn the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const chick = (o) => (gm) => {
+      gm.cars = [];
+      gm.birds = [{ side: 0, x: 600, y: 620, tx: 600, ty: 760, sx: 0, state: 'wait', wait: 0, patience: 9, color: '#fff', face: -1, hop: 0, size: 1, fly: 0, ...o }];
+    };
+    const sizes = shownSizes(game, 'crow', {
+      standing: chick({ sx: 0 }),
+      standing2: chick({ sx: 1 }),
+      standing3: chick({ sx: 2 }),
+      stepping: chick({ state: 'cross', hop: 1 }),
+      stepping2: chick({ state: 'cross', hop: -1 }),
+      flying: chick({ state: 'leave' }),
+    }, ['sprites.chicks']);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('crow chick sizes', table);
+    assert.equal(Object.keys(table).length, 6, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

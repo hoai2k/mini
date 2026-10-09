@@ -66,3 +66,22 @@ test('gullfinch: the song ends, and runs slower with the spring run down', () =>
   assert.ok(full > 35 && full < 60, `song length ${full}`);
   assert.ok(idle > full, `${idle} > ${full}`);
 });
+
+// The Gramophone Gullfinch is one size in every painted pose (standing, singing), and stands on the
+// same line: measured against how big each picture is painted
+// (design/source/pose-scales.json).
+test('gullfinch: every painted pose shows the Gramophone Gullfinch the same size, on the same feet', async () => {
+  const { withArt, birdSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  const undo = withArt();
+  try {
+    const feet = { 'bird.gullfinch#0': 0.987, 'sprites.gullfinchSing#0': 0.986 };
+    const sizes = await birdSizes('gullfinch', { standing: {}, singing: { sing: 1 } }, feet);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('gullfinch pose sizes', table);
+    assert.deepEqual(fails, []);
+    const y0 = sizes.standing[0].feetY;
+    for (const [name, [d]] of Object.entries(sizes)) assert.ok(Math.abs(d.feetY - y0) < 4, `${name}: feet at ${d.feetY.toFixed(1)}, standing at ${y0.toFixed(1)}`);
+  } finally {
+    undo();
+  }
+});

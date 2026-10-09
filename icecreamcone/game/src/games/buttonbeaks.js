@@ -41,31 +41,35 @@ const K = SIZE / 400;
 // up, 26 right), and the taller bird's head is 362 up; in the stand-in, 205 and 230.
 const painted = () => !!subjectShape('buttonbeaks').feet;
 // Measured on the delivered pose sheets, in each cell's pixels: where the
-// claws stand (the middle of the feet and their lowest point), and each
-// sheet's scale against the portrait (the poses were painted smaller). The
-// portrait's feet are centred 33 px right of its middle, at 1024 x 1024.
+// claws stand (the middle of the feet and their lowest point), and the scale
+// the pair is painted at in that cell against the portrait (they were painted
+// smaller, and not all alike: design/source/pose-scales.json). Each cell is
+// drawn that much bigger, so the pair stay one size. The portrait's feet are
+// centred 33 px right of its middle, at 1024 x 1024.
 const KP = (SIZE / 400) * (420 / 1024); // screen px per portrait px
 const POSES = {
-  'sprites.buttonbeaksToss': { k: KP * 1.04, cells: [{ fx: 530, feet: 988 }, { fx: 493, feet: 946 }] },
-  'sprites.buttonbeaksPoses': { k: KP * 1.19, cells: [{ fx: 545, feet: 923 }, { fx: 498, feet: 912 }, { fx: 547, feet: 924 }, { fx: 583, feet: 920 }] },
+  'sprites.buttonbeaksToss': { cells: [{ fx: 530, feet: 988, painted: 0.905 }, { fx: 493, feet: 946, painted: 0.899 }] },
+  'sprites.buttonbeaksPoses': { cells: [{ fx: 545, feet: 923, painted: 0.857 }, { fx: 498, feet: 912, painted: 0.784 }, { fx: 547, feet: 924, painted: 0.82 }, { fx: 583, feet: 920, painted: 0.819 }] },
 };
+// Screen px per pixel of a pose cell.
+const poseK = (key, i) => KP / POSES[key].cells[i].painted;
 // In the holding pose (IC-M05e, cell 0) their beak tips meet at (543, 184):
 // the button sits just above them.
 const HOLD_CELL = { x: 543, y: 150 };
 const holdingPainted = () => !!art('sprites.buttonbeaksToss');
-const holdY = () => (holdingPainted() ? GROUND - (POSES['sprites.buttonbeaksToss'].cells[0].feet - HOLD_CELL.y) * POSES['sprites.buttonbeaksToss'].k : GROUND - (painted() ? 372 : 205) * K);
-const holdDX = () => (holdingPainted() ? 33 * KP + (HOLD_CELL.x - POSES['sprites.buttonbeaksToss'].cells[0].fx) * POSES['sprites.buttonbeaksToss'].k : painted() ? 26 * K : 0);
+const holdY = () => (holdingPainted() ? GROUND - (POSES['sprites.buttonbeaksToss'].cells[0].feet - HOLD_CELL.y) * poseK('sprites.buttonbeaksToss', 0) : GROUND - (painted() ? 372 : 205) * K);
+const holdDX = () => (holdingPainted() ? 33 * KP + (HOLD_CELL.x - POSES['sprites.buttonbeaksToss'].cells[0].fx) * poseK('sprites.buttonbeaksToss', 0) : painted() ? 26 * K : 0);
 // A painted pose, its feet on (x, y).
 function drawPose(c, key, i, x, y, rot = 0) {
   const sp = spriteCell(key, i);
   if (!sp) return false;
-  const P = POSES[key];
-  const m = P.cells[i];
+  const m = POSES[key].cells[i];
+  const k = poseK(key, i);
   const cl = sp.cell;
   c.save();
   c.translate(x + 33 * KP, y);
   if (rot) c.rotate(rot);
-  c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, -m.fx * P.k, -m.feet * P.k, cl.w * P.k, cl.h * P.k);
+  c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, -m.fx * k, -m.feet * k, cl.w * k, cl.h * k);
   c.restore();
   return true;
 }

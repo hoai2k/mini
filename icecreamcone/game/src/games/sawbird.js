@@ -24,6 +24,13 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 50;
+// Screen px per cell px for each painted pose, so the Saw Bird is one size:
+// the sawing pose is drawn 0.33 (its blade about 195 px long), and each other
+// pose by the scale it is painted at against the sawing one (measured on the
+// whole bird and the wooden handle: design/source/pose-scales.json; the
+// snagged blade is bowed, so its length is no guide).
+const PAINTED = { sawing: 0.96, snag: 0.8, proud: 0.765 };
+const POSE_K = { sawing: 0.33, snag: (0.33 * PAINTED.sawing) / PAINTED.snag, proud: (0.33 * PAINTED.sawing) / PAINTED.proud };
 const PLANK_TOP = 430; // the plank's far edge
 const PLANK_BOT = 610; // its near edge
 const LINE_Y = 520; // the chalk line, give or take
@@ -423,7 +430,9 @@ export default function create(env) {
     if (g.proud > 0) {
       // After a straight cut it hops down and stands proud beside the plank.
       const hop = Math.abs(Math.sin(g.proud * 6)) * 14;
-      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1370, 770 - hop, { h: 250 })) {
+      // drawn the Saw Bird's sawing size (see POSE_K), standing on its claws
+      const sp = spriteCell('sprites.sawbirdPoses', 1);
+      if (!sp || !drawSprite(c, 'sprites.sawbirdPoses', 1, 1370, 770 - hop, { h: sp.trim.h * POSE_K.proud })) {
         drawBird(c, 'sawbird', { x: 1370, y: 770 - hop, size: SAW_SIZE, t });
       }
       return;
@@ -434,14 +443,13 @@ export default function create(env) {
     const lineY = p.slide > 0 ? p.lineY - 60 * p.slide : g.cutY();
     // A painted sawing pose (or, snagged, the bowed blade), measured on the
     // sheets: in the sawing picture the tip is at x 11 and the teeth along
-    // y 845 of its 1024 px, the blade about 590 px long; in the snag cell the
-    // tip is at x 104, the teeth about y 830, the blade about 455 px. Both
-    // are drawn so the blade is about 195 px long, tip leading, teeth on
-    // the cut.
+    // y 845 of its 1024 px; in the snag cell the tip is at x 104, the teeth
+    // about y 830. Tip leading, teeth on the cut, both at the same size (see
+    // POSE_K).
     const snag = g.snag > 0 && spriteCell('sprites.sawbirdPoses', 0);
     const sp = snag || spriteCell('sprites.sawbirdSawing', 0);
     if (sp) {
-      const [tx, ty, k] = snag ? [104, 830, 0.43] : [11, 845, 0.33];
+      const [tx, ty, k] = snag ? [104, 830, POSE_K.snag] : [11, 845, POSE_K.sawing];
       const { cell } = sp;
       c.save();
       c.translate(tipX + 100, lineY);

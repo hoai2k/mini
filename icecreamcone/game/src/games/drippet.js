@@ -23,6 +23,10 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
+// The scale the Drippet is painted at in each pose cell, against its portrait
+// (design/source/pose-scales.json; matched over the whole bird, since the
+// cross handle, measured before, is foreshortened when the tap tips).
+const POSE_PAINTED = { 'sprites.drippetPoses': [0.766, 0.784], 'sprites.drippetMore': [0.868, 0.846] };
 // The floor, as painted in the scene: the Drippet's feet stay inside it.
 const FLOOR_TOP = 560; // just below the painted skirting board
 const FLOOR_BOT = 860;
@@ -637,10 +641,9 @@ export default function create(env) {
     else if (moving) c.rotate(Math.sin(g.walk * 2.2) * 0.05);
     else if (g.pouring > 0 && !art(sheet)) c.rotate(g.face * 0.12);
     // The painted poses are at a little less than the portrait's scale in
-    // their cells (measured by the cross handle's width: 361 px hopping and
-    // skidding, 399 px running and pouring, 445 px in the portrait), so they
-    // are scaled up to match; their lowest point stands on the ground.
-    const pk = (size / 400) * (420 / 1024) * (sheet === 'sprites.drippetPoses' ? 445 / 361 : 445 / 399);
+    // their cells, each its own (POSE_PAINTED), so they are scaled up to
+    // match; their lowest point stands on the ground.
+    const pk = sheet ? ((size / 400) * (420 / 1024)) / POSE_PAINTED[sheet][cell] : 0;
     if (!sheet || !drawPose(c, sheet, cell, pk, flip)) {
       drawBird(c, 'drippet', { x: 0, y: 0, size, t, flip });
     }

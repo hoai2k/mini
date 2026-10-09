@@ -115,3 +115,7 @@ strokes all follow. With the mouse or a finger the tip still follows the
 pointer, and a pointer behind the eye turns the Snippit to face it. The test
 snipper now turns to face its knot rather than walking past it: beginner
 160–210, good 490–645, mashing 5–30, standing still 0, idle 0 (pass 120).
+
+## Third audit: pose sizes (2026-10-09)
+
+Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).

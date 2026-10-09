@@ -13,6 +13,10 @@
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
 
+// The scale each chick cell is painted at, against the first (standing x3,
+// walking x2, flying): design/source/pose-scales.json.
+const CHICK_PAINTED = [1, 1.032, 0.952, 0.999, 0.966, 0.851];
+
 const DURATION = 45;
 // The road, pavements and zebra crossing as painted in the scene.
 const ROAD_TOP = 445;
@@ -449,7 +453,10 @@ export default function create(env) {
       // painted chick: faces left, so flip when heading right
       const walking = b.state === 'cross' || b.state === 'gone';
       const cell = flying ? 5 : walking ? 3 + (Math.sin(b.hop * 0.8) > 0 ? 1 : 0) : Math.abs(Math.floor(b.sx)) % 3;
-      const k = 0.1 * s;
+      // each cell by the scale its chick is painted at, so a chick stays one
+      // size as it stands, walks and flies off (the flying chick is painted
+      // smallest: design/source/pose-scales.json)
+      const k = (0.1 * s) / CHICK_PAINTED[cell];
       const h = spriteCell('sprites.chicks', cell).trim.h * k;
       const rot = b.state === 'leave' ? 0.1 * b.face : 0;
       if (flying) drawSprite(c, 'sprites.chicks', cell, b.x, b.y - 20 * s + Math.sin(t * 30 + b.hop) * 2, { h, anchor: 'center', flip: b.face > 0, rot });

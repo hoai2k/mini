@@ -119,3 +119,7 @@ below the teeth, and the proud pose tips the saw-head up like a salute.
   ring of grain.
 - **Still drawn in code (game information):** the chalk line, the cut, the
   stroke gauge and rhythm dots, the sawdust and the pops.
+
+## Third audit: pose sizes (2026-10-09)
+
+Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).

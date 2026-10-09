@@ -802,8 +802,13 @@ export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false,
       boot(1, 70, -10, pose.lift > 0);
       boot(0, -45, 0, pose.lift < 0);
     } else if (v) {
+      // Drawn so the bird is the portrait's size (the variant is painted at
+      // v[2].painted of the portrait's scale) and its feet land where the
+      // portrait's do (the portrait's feet are at v[2].pfeet of its height,
+      // the variant's at v[2].feet of the cell).
       const c = spriteCell(v[0], v[1]).cell;
-      g.drawImage(art(v[0]), c.x, c.y, c.w, c.h, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
+      const u = p.u / v[2].painted;
+      g.drawImage(art(v[0]), c.x, c.y, c.w, c.h, -p.cx * u, (v[2].pfeet - p.feet) * p.u - v[2].feet * u, u, u);
     } else if (id === 'plume' && art('sprites.plumeGrowth')) plantedPlume(g, img, p, t, pose);
     else g.drawImage(img, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
     OVERLAY[id]?.(g, t, pose);
@@ -862,12 +867,21 @@ function plantedPlume(g, img, p, t, pose) {
   });
 }
 
-// A painted variant of the portrait for this pose, as [sheet, cell], or null.
-// The variants are painted at the portrait's own scale and framing.
+// A painted variant of the portrait for this pose, as [sheet, cell, fit], or
+// null. The variants are framed like the portrait, but the bird in them is
+// painted at a slightly different scale (`painted`, against the portrait:
+// design/source/pose-scales.json) and stands on a different line (`feet`, a
+// share of the cell's height; `pfeet`, the portrait's own).
+const VARIANTS = {
+  'sprites.cootPoses': [{ painted: 0.932, feet: 0.96, pfeet: 0.979 }, { painted: 0.909, feet: 0.982, pfeet: 0.979 }],
+  'sprites.gullfinchSing': [{ painted: 0.965, feet: 0.986, pfeet: 0.987 }],
+  'sprites.cupadeeOpen': [{ painted: 1.034, feet: 0.962, pfeet: 0.964 }],
+};
 function variant(id, pose) {
-  if (id === 'coot' && pose.frame && art('sprites.cootPoses')) return ['sprites.cootPoses', pose.frame === 'lookup' ? 1 : 0];
-  if (id === 'gullfinch' && (pose.sing || 0) > 0.5 && art('sprites.gullfinchSing')) return ['sprites.gullfinchSing', 0];
-  if (id === 'cupadee' && pose.open && art('sprites.cupadeeOpen')) return ['sprites.cupadeeOpen', 0];
+  const v = (key, i) => (art(key) ? [key, i, VARIANTS[key][i]] : null);
+  if (id === 'coot' && pose.frame) return v('sprites.cootPoses', pose.frame === 'lookup' ? 1 : 0);
+  if (id === 'gullfinch' && (pose.sing || 0) > 0.5) return v('sprites.gullfinchSing', 0);
+  if (id === 'cupadee' && pose.open) return v('sprites.cupadeeOpen', 0);
   return null;
 }
 

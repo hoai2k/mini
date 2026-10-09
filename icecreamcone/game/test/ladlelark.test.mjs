@@ -288,3 +288,30 @@ test('input: state() gives the right stick (rx, ry), Q / E for its up and down, 
     if (saved.nav) Object.defineProperty(globalThis, 'navigator', saved.nav);
   }
 });
+
+// A creature in the queue is one size whether it waits or pulls a face: both
+// pictures are painted at one size, so both are drawn at one scale (fitting
+// each picture's own outline would make the rabbit, its ears down, jump bigger).
+test('ladlelark: a creature keeps its size when it pulls a face', async () => {
+  const { withArt, recorder } = await import('./sprite-rig.mjs');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    game.update(1 / 60, blank());
+    for (let who = 0; who < 4; who++) {
+      const ks = [];
+      for (const mood of [0, -1]) {
+        Object.assign(game.cust, { who, mood, arrive: 0, leaving: undefined });
+        game.queue = []; // only the creature at the front
+        const rec = recorder();
+        game.draw(rec.ctx, 1);
+        const d = rec.draws.find((e) => e.key === 'sprites.larkQueue' && e.cell === who + (mood < 0 ? 4 : 0));
+        assert.ok(d, `creature ${who} drawn ${mood < 0 ? 'pulling a face' : 'waiting'}`);
+        ks.push(d.k);
+      }
+      assert.ok(Math.abs(ks[1] / ks[0] - 1) < 0.01, `creature ${who}: ${ks[0].toFixed(4)} waiting, ${ks[1].toFixed(4)} pulling a face`);
+    }
+  } finally {
+    undo();
+  }
+});

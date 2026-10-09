@@ -132,3 +132,7 @@ Sprites delivered (IC-M15b pot and bowl, IC-M15c bits, IC-M15d queue, IC-M15e po
 
   Before the change (centre inside the ring, the usual size): beginner
   46–58, good 44–104, nearest bit 24–58, mashing 0–6, on the spot 0–8.
+
+## Third audit: pose sizes (2026-10-09)
+
+Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).

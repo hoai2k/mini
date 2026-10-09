@@ -57,16 +57,21 @@ const LEAF_COLS = [PAL.olive, PAL.mustard, PAL.brick, PAL.sage];
 // Measured on the delivered pose sheets (IC-M06d, e), in each cell's pixels:
 // the middle of the feet and their lowest point. The poses were painted at
 // about 0.79 of the portrait's size, so they are drawn 1.27 times larger.
+// `painted`: the scale the Broomwhisk is painted at in the cell against its
+// portrait (design/source/pose-scales.json). The pose sheets have a
+// portrait-sized head on a smaller broom, so this is the geometric mean of
+// the two (a re-request asks for them to match the portrait); each cell is
+// drawn that much bigger, so the bird stays one size.
 const POSE_CELLS = {
-  'sprites.broomwhiskSweep': [{ fx: 551, feet: 921 }, { fx: 632, feet: 927 }],
-  'sprites.broomwhiskPoses': [{ fx: 510, feet: 911 }, { fx: 578, feet: 911 }, { fx: 516, feet: 928 }],
+  'sprites.broomwhiskSweep': [{ fx: 551, feet: 921, painted: 0.934 }, { fx: 632, feet: 927, painted: 0.979 }],
+  'sprites.broomwhiskPoses': [{ fx: 510, feet: 911, painted: 0.923 }, { fx: 578, feet: 911, painted: 0.899 }, { fx: 516, feet: 928, painted: 0.885 }],
 };
 // A painted pose, its feet on (x, y), facing left unless flipped.
 function drawPose(c, key, i, x, y, s, flip, rot) {
   const sp = spriteCell(key, i);
   if (!sp) return false;
   const m = POSE_CELLS[key][i];
-  const k = ((SIZE * s) / 400) * (420 / 1024) * 1.27;
+  const k = (((SIZE * s) / 400) * (420 / 1024)) / m.painted;
   const cl = sp.cell;
   c.save();
   c.translate(x, y);

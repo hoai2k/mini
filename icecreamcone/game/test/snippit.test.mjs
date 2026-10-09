@@ -218,3 +218,31 @@ test('snippit: a pointer behind the eye turns it, and the tip follows the finger
   assert.equal(game.face, 1);
   assert.ok(Math.abs(game.cutX() - 900) < 2, `tip at ${game.cutX()}`);
 });
+
+// The Snippit is one size whatever it does: standing, snipping, jammed,
+// watching a balloon go and striding, measured against how big each picture
+// is painted (design/source/pose-scales.json).
+test('snippit: every painted pose shows the Snippit the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const at = (o) => (gm) => Object.assign(gm, { snipT: 0, jam: 0, happyT: 0, moving: false }, o);
+    const keys = ['sprites.snippitSnip', 'sprites.snippitPoses'];
+    const states = {
+      standing: at({}),
+      snipping: at({ snipT: 0.2 }),
+      jammed: at({ jam: 0.5 }),
+      watching: at({ happyT: 0.5 }),
+      striding: at({ moving: true }),
+    };
+    const sizes = shownSizes(game, 'snippit', states, keys);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('snippit pose sizes', table);
+    assert.equal(Object.keys(table).length, 5, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

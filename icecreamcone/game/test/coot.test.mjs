@@ -170,3 +170,22 @@ test('coot: the bottom scoop settles into the head', () => {
   const gap = headTop - col[1].y; // from the top of the head up to the bottom scoop's centre
   assert.ok(gap < 25, `resting on the head, not floating above it (${gap.toFixed(1)} px)`);
 });
+
+// The Coot is one size in every painted pose (standing, striding, looking up), and stands on the
+// same line: measured against how big each picture is painted
+// (design/source/pose-scales.json).
+test('coot: every painted pose shows the Coot the same size, on the same feet', async () => {
+  const { withArt, birdSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  const undo = withArt();
+  try {
+    const feet = { 'bird.coot#0': 0.979, 'sprites.cootPoses#0': 0.96, 'sprites.cootPoses#1': 0.982 };
+    const sizes = await birdSizes('coot', { standing: {}, striding: { frame: 'stride' }, 'looking up': { frame: 'lookup' } }, feet);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('coot pose sizes', table);
+    assert.deepEqual(fails, []);
+    const y0 = sizes.standing[0].feetY;
+    for (const [name, [d]] of Object.entries(sizes)) assert.ok(Math.abs(d.feetY - y0) < 4, `${name}: feet at ${d.feetY.toFixed(1)}, standing at ${y0.toFixed(1)}`);
+  } finally {
+    undo();
+  }
+});

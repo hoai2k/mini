@@ -99,3 +99,9 @@ opening, and the dotted ring stays in front of it. The poses were painted
 at about 0.79 of the portrait's size, so they are drawn 1.27 times larger,
 each with its own feet (measured per cell) on the floor point and mirrored
 when it faces right.
+
+## Third audit: pose sizes (2026-10-09)
+
+Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).
+
+The Broomwhisk pose sheets (IC-M06d, e) have a portrait-sized head on a smaller broom; a re-request is in the third audit in [`AUDIT.md`](AUDIT.md).

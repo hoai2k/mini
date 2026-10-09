@@ -171,3 +171,29 @@ test('drippet: the cat noses its bowl away from a slippery puddle', () => {
   for (let i = 0; i < 30; i++) game.update(1 / 60, blank());
   assert.ok(bowl.x > 815, `bowl at ${bowl.x}`);
 });
+
+// The Drippet is one size whatever it does: standing (its portrait), running,
+// hopping, skidding and pouring, measured against how big each picture is
+// painted (design/source/pose-scales.json).
+test('drippet: every painted pose shows the Drippet the same size', async () => {
+  const { withArt, shownSizes, sizeCheck } = await import('./sprite-rig.mjs');
+  await import('../src/subjects.js');
+  const undo = withArt();
+  try {
+    const game = create(env(1));
+    const at = (o) => (gm) => Object.assign(gm, { x: 800, y: 700, vx: 0, vy: 0, hop: 0, slip: 0, pouring: 0, pourOn: null, walk: 0.5, things: [] }, o);
+    const sizes = shownSizes(game, 'drippet', {
+      standing: at({}),
+      running: at({ vx: 300 }),
+      hopping: at({ hop: 0.01 }),
+      skidding: at({ slip: 0.5 }),
+      pouring: at({ pouring: 0.1 }),
+    }, ['subject.drippet', 'sprites.drippetPoses', 'sprites.drippetMore']);
+    const { fails, table } = sizeCheck(sizes, 'standing');
+    console.log('drippet pose sizes', table);
+    assert.equal(Object.keys(table).length, 5, 'each pose drew one picture');
+    assert.deepEqual(fails, []);
+  } finally {
+    undo();
+  }
+});

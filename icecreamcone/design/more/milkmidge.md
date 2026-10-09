@@ -111,3 +111,7 @@ wings) and ask for the portrait's framing.
 ## Second audit (2026-10-09)
 
 Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.
+
+## Third audit: pose sizes (2026-10-09)
+
+Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).

@@ -89,3 +89,7 @@ is short, as painted, rather than stretched. While they hold a button they
 show the holding pose, and the button sits just above their touching beak
 tips, so the code-drawn thread is gone; tosses start from there. During
 the quick peck the button isn't shown until it's picked up.
+
+## Third audit: pose sizes (2026-10-09)
+
+Every painted pose is drawn so the character is one size, by the scale each cell is painted at (`design/source/pose-scales.json`); a test checks it. See the third audit in [`AUDIT.md`](AUDIT.md).
