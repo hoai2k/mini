@@ -1362,14 +1362,13 @@
    }
   ],
   "pause": {
-   "resume": "ui/pause-1.webp",
    "controls": "ui/pause-2.webp",
    "hint": "ui/pause-3.webp",
    "howto": "ui/pause-4.webp",
    "settings": "ui/pause-5.webp",
    "next": "ui/pause-6.webp",
    "title": "ui/pause-7.webp",
-   "close": "ui/pause-8.webp"
+   "fullscreen": "ui/fullscreen-1.webp"
   }
  },
  "drift": [

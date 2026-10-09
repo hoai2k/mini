@@ -155,23 +155,31 @@ its reach and tightens as its setup nears waking; player chips count what each
 player has found; the scene's name shows as it begins; and short messages
 mark a big find or a rearrangement.
 
-**Text is kept to a minimum** (the owner's ask). The title screen has the title,
-its one-line byline and Press Start, with no hint line under it (so the
-guidelines' "Move left stick for options" is left out; the stick still opens
-the corner buttons). The pause menu is pictures, not words: resume, controls
-found, hint, how to play, settings, next picture, back to the title, as round
-badges in a 4 x 2 grid (up and down move a row). Each badge's name is its
-accessible name and shows small on hover or focus. Panels close with an X in
-the top right. The instructions are three sentences, the controller diagram,
-a short table and one line for mouse and touch. The badges are drawn in code
-from the appliqué set (HK-U06), cut by `build_web.py` and swapped in by the game.
-Seven read well at menu size; the eighth, crossed pins for close, fades to a
-faint cross at the size of a close button, so it is being regenerated as a bold
-cloth X (HK-U07) and the close button is drawn a little larger with a badge.
+**Text is kept to a minimum** (the owner's ask). Loading shows no words, only a
+row of pale tacking stitches sewn over in red as the first picture's images
+arrive. The title screen has the title, its one-line byline and Press Start,
+with no hint line under it (so the guidelines' "Move left stick for options"
+is left out; the stick still opens the corner buttons). The pause menu is
+pictures, not words: controls found, hint, how to play, settings, next
+picture, back to the title, as round badges in a 3 x 2 grid (up and down move
+a row). There is no resume badge: a click outside a panel closes it, as do B
+and Menu. Each badge's name is its accessible name and shows small on hover
+or focus, in front of the badges below. The title's three corner buttons are
+badges too (how to play and settings from the same set, fullscreen drawn until
+its own badge, HK-U07, arrives). Panels close with a plain drawn X in the top
+right: the set's eighth badge, crossed pins, faded to a faint cross at that
+size, and the owner preferred a simple X to a cloth one. The instructions are
+three sentences, the controller diagram, a short table and one line for mouse
+and touch. The badges come from the appliqué set (HK-U06), cut by
+`build_web.py` and swapped in by the game.
+
 In menus the controller's stick steps like a key: once when pushed, then after
 a pause at a steady pace while held, resetting when let go; a stick already
 held when a menu opens waits to be let go. (Before, it stepped every frame
-while held sideways, so focus raced round the pause menu.)
+while held sideways, so focus raced round the pause menu.) Closing a panel
+returns to the choice that opened it. A panel that is only text to read (how
+to play, the hint, the controls found) scrolls with up and down on the d-pad
+or either stick, so a controller player can read all of it.
 
 **Hint.** The eye in the pause menu opens a card for each player's big control:
 a drawing of the control, the piece it is centred on (cut from the picture),

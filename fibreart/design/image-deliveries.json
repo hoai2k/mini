@@ -1445,6 +1445,31 @@
       "sha256": "3e79cb4b886100b08702060f80e4b9232db54bfa5cf85b85430720a49ecbb1d7",
       "deliveryDate": "2026-10-08",
       "processing": "Resized to requested canvas with Lanczos; generated alpha preserved. Eight badges reviewed in row-major order."
+    },
+    {
+      "id": "HK-U07",
+      "file": "fibreart/game/assets/ui/fullscreen-badge.png",
+      "status": "delivered",
+      "prompt": "Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. One round appliqu\u00e9 badge, matching the attached set of pause menu badges exactly (the same circle of cream linen, the same dashed red running stitch round its edge, the same size, lighting and style), for a game's fullscreen button. On it, a small rectangle of patterned cotton (a little picture, like a window) with four bold corner brackets of deep red felt sewn just outside its corners, each bracket an L pointing outward, as if the picture is growing to fill the frame. It must read plainly as fullscreen even at 48 px: bold shapes, strong contrast against the cream. No words, no letters. Centred, nothing else on the badge. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+      "toolPrompt": "Create one new fullscreen-button appliqu\u00e9 badge as a transparent PNG, square 512 x 512 intended canvas. Attached image 1 is a reference set of existing menu badges: match its cream linen circle, dashed red running-stitch border, fabric texture, scale, frontal angle and lighting. Image 2 is supporting palette/textile reference. The badge contains a small rectangle of patterned indigo cotton, like a little picture or window, with FOUR BOLD DEEP RED FELT CORNER BRACKETS just outside its corners. Each bracket forms an L facing outward to suggest expansion/fullscreen. Exactly four brackets, clear geometric silhouettes, not arrows. Strong contrast, plainly readable at 48px. Rectangle and brackets collectively occupy about two thirds of circle. All are fabric appliqu\u00e9 with visible stitching and softly frayed edges. Circle fills about 88% of square, comfortably centred with transparent margins. Contemporary dreamlike fibre-art, warm cream, indigo and deep red. No text, letters, watermark, extra motifs, cast shadows, extra border outside badge, interface mockup or background. Genuine alpha transparency outside circle. Use case: stylized-concept. Reference images are not edit targets.",
+      "referenceImages": [
+        "fibreart/game/assets/ui/pause-icons.png",
+        "fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg"
+      ],
+      "requestedSize": "512 x 512, transparent",
+      "generator": "built-in image_gen",
+      "size": [
+        512,
+        512
+      ],
+      "nativeSize": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "af506f136ff8e7a8fd7d732013679c085c889824e54d4b49443eb9c69dbd5196",
+      "deliveryDate": "2026-10-08",
+      "processing": "Lanczos resize to requested size, generated alpha preserved."
     }
   ]
 }

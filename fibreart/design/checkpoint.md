@@ -82,3 +82,19 @@ unavailable in this shell; existing animation encodings were preserved.
 The installed-Chrome browser check passed after integration, including the
 pause/resume flow, controller and keyboard input, music and all ten scenes,
 with no browser errors. The pause screenshot was visually reviewed.
+
+
+## Follow-up: fullscreen badge — 2026-10-08
+
+Delivered HK-U07 at game/assets/ui/fullscreen-badge.png (512 × 512, RGBA).
+Built-in image_gen used the pause badge sheet and Moons and hearts reference.
+The exact prompt, dimensions and hash are in design/image-deliveries.json.
+All 62 requests are delivered. The builder now maps this request to the
+fullscreen icon; the title button loads it via data-icon. Only UI outputs were
+rebuilt; existing art and music were preserved. Generated-data checks and a
+focused installed-Chrome check passed. The title screenshot was reviewed:
+the new badge loads, fits the button, and produces no browser errors.
+
+Incoming main changes removed the resume and close picture badges and switched
+the title buttons to the pause-badge style. The merge preserves these UI changes
+and integrates fullscreen into their builder.

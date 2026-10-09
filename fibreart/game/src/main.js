@@ -45,6 +45,8 @@ const ui = {
   titleNav: false,
   focus: 0,
   stick: null, // the stick's menu direction and when it next repeats
+  returnFocus: {}, // where the focus was in each panel (or the title) beneath an open one
+  menuAt: 0,
   paused: false,
   missingPads: [],
   drag: null,
@@ -74,6 +76,8 @@ function openModal(id) {
   if (id === 'hint') fillHint();
   if (id === 'settings') fillSettings();
   if (id === 'pause') $('#pause-reason').textContent = ui.pauseReason || '';
+  // Remember the choice beneath, to come back to it when this panel closes.
+  if (ui.modals.at(-1) !== id) ui.returnFocus[ui.modals.at(-1) || ui.screen] = ui.focus;
   el.hidden = false;
   ui.modals = ui.modals.filter((m) => m !== id);
   ui.modals.push(id);
@@ -90,7 +94,10 @@ function openModal(id) {
 function closeModal() {
   const id = ui.modals.pop();
   if (id) document.getElementById(id).hidden = true;
-  ui.focus = 0;
+  // Back on the choice that opened it.
+  const below = ui.modals.at(-1) || ui.screen;
+  ui.focus = ui.returnFocus[below] ?? 0;
+  delete ui.returnFocus[below];
   input.lockHeld();
   if (!ui.modals.length && ui.screen === 'play') resume();
   refreshFocus(true);
@@ -367,7 +374,7 @@ function syncPlayers(quiet = false) {
   for (const pl of game.players) {
     if (pl.id.startsWith('pad') && !pads.includes(Number(pl.id.slice(3))) && !ui.missingPads.includes(Number(pl.id.slice(3)))) {
       ui.missingPads.push(Number(pl.id.slice(3)));
-      pause(`${playerLabel(pl)}'s controller was disconnected. Reconnect it, or resume to play on without it.`);
+      pause(`${playerLabel(pl)}'s controller was disconnected. Reconnect it, or close this to play on without it.`);
     }
   }
   // A reconnected pad is no longer missing.
@@ -753,11 +760,29 @@ function handleMenus(nav, now) {
     return;
   }
   if (!items.length && !top) return;
+  // A long text with nothing to choose in it (how to play, the hint, the
+  // controls found) reads by scrolling: up and down, on the pad or the stick,
+  // move the text rather than the focus.
+  const dt = Math.min(0.1, Math.max(0, (now - ui.menuAt) / 1000));
+  ui.menuAt = now;
+  const scroller = top && document.getElementById(top).querySelector('.scroll');
+  const reads = scroller && !scroller.querySelector('[data-nav]') && scroller.scrollHeight > scroller.clientHeight + 2;
+  const [sx, sy] = nav.stick;
+  if (reads) {
+    let ry = Math.abs(sy) > 0.25 ? sy : 0;
+    for (const g of navigator.getGamepads?.() || []) if (g && Math.abs(g.axes[3] || 0) > 0.25) ry = g.axes[3];
+    // The d-pad: a press scrolls a step; held, the text runs on.
+    const pad = input.padHeld(BTN.UP) ? -1 : input.padHeld(BTN.DOWN) ? 1 : 0;
+    if (!pad) ui.padSince = null;
+    else if (ui.padSince === null || ui.padSince === undefined) ui.padSince = now;
+    if (pad && now - ui.padSince > 350) ry = pad;
+    if (ry) scroller.scrollTop += ry * 700 * dt;
+    else if (nav.up || nav.down) scroller.scrollTop += (nav.up ? -1 : 1) * 120;
+  }
   // Directional focus. The stick steps like a key: once when pushed, then,
   // held, again after a pause and at a steady pace; it resets when let go.
-  const [sx, sy] = nav.stick;
   const stickStep = stickRepeat(sx, sy, now);
-  const want = (d) => nav[d] || stickStep === d;
+  const want = (d) => (reads && (d === 'up' || d === 'down') ? false : nav[d] || stickStep === d);
   // In a grid of pictures (the pause menu), up and down move a whole row.
   const cur = items[ui.focus];
   const grid = cur?.closest('[data-cols]');
@@ -774,13 +799,11 @@ function handleMenus(nav, now) {
     ui.focus = (ui.focus + dir + items.length) % items.length;
     refreshFocus(true);
   }
-  // Scroll long dialogs with the right stick or with the left stick's vertical.
-  const scroller = top && document.getElementById(top).querySelector('.scroll');
-  if (scroller) {
-    const gp = navigator.getGamepads?.() || [];
+  // Lists that hold choices (settings) still scroll with the right stick.
+  if (scroller && !reads) {
     let ry = 0;
-    for (const g of gp) if (g && Math.abs(g.axes[3] || 0) > 0.2) ry = g.axes[3];
-    if (ry) scroller.scrollTop += ry * 14;
+    for (const g of navigator.getGamepads?.() || []) if (g && Math.abs(g.axes[3] || 0) > 0.2) ry = g.axes[3];
+    if (ry) scroller.scrollTop += ry * 700 * dt;
   }
   if (nav.confirm && input.kind === 'controller') activate(items[ui.focus]);
   if (nav.back || (top === 'pause' && nav.pause) || (top === 'card' && nav.view)) {
@@ -798,6 +821,8 @@ const isRange = (el) => el?.matches?.('input[type="range"]');
 
 function wire() {
   document.addEventListener('click', (e) => {
+    // A click outside the open panel, on the dimmed picture, closes it.
+    if (e.target.matches?.('.modal') && e.target.id === ui.modals.at(-1)) return closeModal();
     const el = e.target.closest('[data-action], [data-open]');
     if (!el) return;
     audio.unlock();
@@ -891,10 +916,20 @@ async function boot() {
     }
     if (data.music) audio.setSong(`web/${data.music.file}`, data.music.root);
     applySettings();
-    await renderer.loadScene(game.scene, data.chains, data.drift);
+    // The loading bar: a running stitch sewn across as the first picture arrives.
+    const bar = $('.stitch-bar');
+    const sew = setInterval(() => {
+      const { asked, done } = renderer.progress;
+      const pct = asked ? Math.round((100 * done) / asked) : 0;
+      bar.firstElementChild.style.width = `${pct}%`;
+      bar.setAttribute('aria-valuenow', pct);
+    }, 100);
+    await renderer.loadScene(game.scene, data.chains, data.drift).finally(() => clearInterval(sew));
     renderer.loadScene(data.scenes[(game.index + 1) % data.scenes.length], data.chains, data.drift);
   } catch (err) {
     console.error(err);
+    $('.stitch-bar').hidden = true;
+    $('.loading-text').hidden = false;
     $('.loading-text').textContent = 'This browser cannot show the collage: it needs WebGL 2.';
     return;
   }
