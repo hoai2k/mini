@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" href="web/icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="web/icons/icon-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>Fibre Art</title>
   <meta name="description" content="A shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: reach into her pictures with a controller and move, stretch, swirl and dissolve their parts.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -58,6 +59,8 @@
       </button>
       <p id="play-hint" class="play-hint"></p>
     </div>
+
+    <div id="bars-hint" hidden><span class="arrow" aria-hidden="true">↑</span> Swipe up</div>
 
     <section id="card" class="screen modal" hidden aria-labelledby="card-title">
       <div class="panel wide">

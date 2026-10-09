@@ -386,7 +386,31 @@ html, body {
 /* The fullscreen button only where fullscreen works (not Safari on iPhone,
    not opened from the home screen, where it is full screen already). */
 .no-fullscreen [data-action="fullscreen"] { display: none; }
-/* On its side without fullscreen: a page a pixel taller than the screen,
-   scrolled by that pixel, so Safari folds its bars away. */
-html.fold-bars, html.fold-bars body { overflow: visible; height: auto; }
-html.fold-bars body { min-height: calc(100vh + 1px); }
+/* Safari on iPhone: the page is taller than the screen so a swipe up tucks
+   Safari's bars away (src/chrome.js). During play the hand owns every
+   gesture, so nothing scrolls. */
+html.ios-scroll, html.ios-scroll body { height: auto; overflow-x: hidden; overflow-y: auto; touch-action: pan-y; }
+html.ios-scroll body { position: relative; }
+/* The game is fixed and takes no height: a spacer makes the page taller than
+   the screen (100lvh: as tall as the screen with the bars hidden). */
+html.ios-scroll body::after { content: ""; display: block; height: calc(100lvh + 160px); }
+html.ios-scroll.ios-scroll-play, html.ios-scroll.ios-scroll-play body { overflow: hidden; touch-action: none; }
+#bars-hint {
+  position: fixed;
+  left: 50%;
+  top: max(0.5rem, env(safe-area-inset-top));
+  transform: translateX(-50%);
+  z-index: 40;
+  background: var(--cloth);
+  color: var(--ink);
+  border: 2px dashed var(--thread);
+  border-radius: 999px;
+  padding: 0.3rem 1rem;
+  font: 700 1.3rem 'Caveat', cursive;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+}
+#bars-hint .arrow { display: inline-block; color: var(--thread); animation: swipe-nudge 1.4s ease-in-out infinite; }
+@keyframes swipe-nudge { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { #bars-hint .arrow { animation: none; } }

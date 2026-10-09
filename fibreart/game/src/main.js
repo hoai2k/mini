@@ -9,6 +9,7 @@ import { createOverlay } from './overlay.js';
 import { createInput, BTN, KEYMAP } from './input.js';
 import { createAudio } from './audio.js';
 import { updateLife } from './life.js';
+import { createChrome, requestFullscreen, exitFullscreen, fullscreenElement } from './chrome.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
@@ -38,6 +39,7 @@ let renderer;
 let overlay;
 let data;
 let game;
+let chrome = null;
 
 const ui = {
   screen: 'loading', // 'loading' | 'title' | 'play'
@@ -65,6 +67,7 @@ function show(screen) {
   $('#hud').hidden = screen !== 'play';
   ui.focus = 0;
   refreshFocus();
+  chrome?.update();
 }
 
 function openModal(id) {
@@ -87,6 +90,7 @@ function openModal(id) {
   const [hx, hy] = input.leftStick();
   ui.stick = Math.hypot(hx, hy) > 0.35 ? { dir: stickDirection(hx, hy), next: Infinity } : null;
   refreshFocus(true);
+  chrome?.update();
 }
 
 function closeModal() {
@@ -99,6 +103,7 @@ function closeModal() {
   input.lockHeld();
   if (!ui.modals.length && ui.screen === 'play') resume();
   refreshFocus(true);
+  chrome?.update();
 }
 
 function container() {
@@ -138,50 +143,9 @@ function activate(el) {
 
 // ---- Actions -------------------------------------------------------------
 
-// Fullscreen, through whichever form of the API the browser has (Safari on
-// iPad and older Safari only have the webkit one). The button shows only
-// where it can work: Safari on iPhone has no fullscreen for a page, so there
-// it hides. On a phone or tablet turned on its side the game goes full screen
-// by itself, at the first touch (browsers allow it only inside one); where
-// there is no fullscreen, it scrolls the page by a pixel instead, which lets
-// Safari fold its bars away.
-const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
-const canFullscreen = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
-const standalone = () => matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone === true;
-const landscape = matchMedia('(orientation: landscape)');
-const handheld = matchMedia('(pointer: coarse)').matches;
-
-function requestFullscreen() {
-  if (fsElement() || !canFullscreen) return;
-  const el = document.documentElement;
-  const req = el.requestFullscreen || el.webkitRequestFullscreen;
-  try {
-    const r = req.call(el, { navigationUI: 'hide' });
-    if (r?.catch) r.catch(() => { /* refused: carry on in the window */ });
-  } catch { /* refused */ }
-}
-
 function toggleFullscreen() {
-  if (fsElement()) {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen;
-    exit?.call(document)?.catch?.(() => {});
-  } else requestFullscreen();
-}
-
-function setupFullscreen() {
-  document.documentElement.classList.toggle('no-fullscreen', !canFullscreen || standalone());
-  if (!handheld || standalone()) return;
-  // The page is a pixel taller than the screen only on its side without fullscreen.
-  const fold = () => document.documentElement.classList.toggle('fold-bars', !canFullscreen && landscape.matches);
-  fold();
-  landscape.addEventListener?.('change', fold);
-  const onTouch = () => {
-    if (!landscape.matches) return;
-    if (canFullscreen) requestFullscreen();
-    else window.scrollTo(0, 1);
-  };
-  addEventListener('touchend', onTouch, { passive: true });
-  addEventListener('pointerup', (e) => { if (e.pointerType === 'touch') onTouch(); });
+  if (fullscreenElement()) exitFullscreen();
+  else requestFullscreen();
 }
 
 function start() {
@@ -215,6 +179,7 @@ function resume() {
   for (const id of [...ui.modals]) document.getElementById(id).hidden = true;
   ui.modals = [];
   chips();
+  chrome?.update();
 }
 
 function quitToTitle() {
@@ -434,7 +399,8 @@ function syncPlayers(quiet = false) {
 
 function toWorld(e) {
   const f = renderer.frame;
-  return { x: (e.clientX - f.x) / f.scale, y: (e.clientY - f.y) / f.scale };
+  const r = $('#overlay').getBoundingClientRect();
+  return { x: (e.clientX - r.left - f.x) / f.scale, y: (e.clientY - r.top - f.y) / f.scale };
 }
 
 function pieceAt(pt) {
@@ -969,6 +935,8 @@ function closeAllAndResume() {
 
 async function boot() {
   wire();
+  // Browser bars: see src/chrome.js.
+  chrome = createChrome({ app: $('#app'), isPlaying: () => ui.screen === 'play' && !ui.modals.length, hintEl: $('#bars-hint') });
   try {
     data = await (await fetch('web/scenes.json')).json();
     renderer = createRenderer($('#gl'));
@@ -1009,7 +977,6 @@ async function boot() {
     return;
   }
   setupPointer();
-  setupFullscreen();
   show('title');
   hint();
   window.fibreart = { game: () => game, frame: () => renderer.frame, ui, input, start, shift: (how) => shift(game, how), W, H, radius, audio };
