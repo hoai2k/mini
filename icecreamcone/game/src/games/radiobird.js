@@ -19,6 +19,7 @@ Object.assign(SHEETS, {
   'sprites.stations': [3, 2], // fiddle, trumpet, drum, bells, cuckoo clock, rain cloud
   'sprites.listeners': [3, 2], // three little birds: waiting (top row), delighted (bottom row)
   'sprites.dialPanel': [1, 1], // the long tuning-dial window
+  'sprites.radiobirdPoses': [3, 1], // listening through the static, singing, startled
 });
 
 const DURATION = 50;
@@ -64,6 +65,7 @@ export default function create(env) {
     pops: [],
     notes: [], // floating music notes
     found: 0,
+    listenT: 0,
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
@@ -199,6 +201,8 @@ export default function create(env) {
       }
     }
     g.cheer = Math.max(0, g.cheer - dt);
+    // Turning through the static, the Radio Bird cocks its head to listen.
+    g.listenT = tuned < 0 && Math.abs(g.n - before) > 0.0003 ? 0.6 : Math.max(0, g.listenT - dt);
 
     for (const n of g.notes) {
       n.x += n.vx * dt;
@@ -506,13 +510,24 @@ export default function create(env) {
     drawDial(c, t);
     drawMeter(c, t);
 
-    // The Radio Bird itself, swaying with the music.
-    const playing = g.tuned() === g.want;
+    // The Radio Bird itself: it sings (and sways) when the right station
+    // plays or the listeners cheer, starts back at a wrong station, cocks
+    // its head to listen while the dial turns through the static, and
+    // otherwise stands as in its portrait.
+    const tuned = g.tuned();
+    const playing = tuned === g.want || g.cheer > 0;
+    const startled = tuned >= 0 && tuned !== g.want && g.wrongT > 0.3;
+    const cell = playing ? 1 : startled ? 2 : g.listenT > 0 ? 0 : -1;
     const bob = playing && !env.reduceMotion ? Math.sin(t * 8) * 0.03 : 0;
     c.save();
     c.translate(RADIO.x, RADIO.y);
     c.rotate(bob);
-    drawBird(c, 'radiobird', { x: 0, y: 0, size: RADIO.size, t });
+    if (cell < 0 || !drawSprite(c, 'sprites.radiobirdPoses', cell, 0, 0, { h: RADIO.size * 0.92 })) {
+      // the stand-in: a lean for listening, a jolt back when startled
+      if (cell === 0) c.rotate(-0.05);
+      if (cell === 2 && !env.reduceMotion) c.translate(Math.sin(t * 40) * 3, 0);
+      drawBird(c, 'radiobird', { x: 0, y: 0, size: RADIO.size, t });
+    }
     c.restore();
 
     for (const n of g.notes) {
