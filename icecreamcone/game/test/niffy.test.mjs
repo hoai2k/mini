@@ -95,14 +95,33 @@ test('niffy: a swoop snips the thing right below; a price tag is worth two', () 
   assert.equal(game.score, 3);
 });
 
-test('niffy: snipping a balloon string costs two', () => {
+test('niffy: a snap at the air makes the people nearby hold on to their things', () => {
+  const game = create(env(6));
+  game.spawnT = 99;
+  const w = walkerUnder(game, 'flower');
+  w.x += 80; // just out of reach
+  swoop(game);
+  assert.ok(w.wary > 0);
+  assert.equal(game.targets().length, 0);
+  w.x -= 80;
+  swoop(game);
+  assert.equal(game.score, 0); // still holding on
+  for (let i = 0; i < 60 * 3; i++) game.update(1 / 60, blank());
+  w.x = game.x;
+  const [x] = game.spot(w, w.items[0]);
+  w.x += game.x - x;
+  swoop(game);
+  assert.equal(game.score, 1);
+});
+
+test('niffy: snipping a balloon string costs one', () => {
   const game = create(env(3));
   game.spawnT = 99;
   game.score = 4;
   walkerUnder(game, 'balloon');
   swoop(game);
   assert.equal(game.popped, 1);
-  assert.equal(game.score, 2);
+  assert.equal(game.score, 3);
 });
 
 test('niffy: swooping while the Keeper watches gets the Niffy caught', () => {
@@ -113,7 +132,8 @@ test('niffy: swooping while the Keeper watches gets the Niffy caught', () => {
   game.keeper.t = 5;
   swoop(game);
   assert.equal(game.caught, 1);
-  assert.equal(game.score, 3);
+  assert.equal(game.score, 5); // no points lost: the daze is the cost
+  assert.equal(game.state, 'dazed');
   assert.notEqual(game.state, 'down');
 });
 

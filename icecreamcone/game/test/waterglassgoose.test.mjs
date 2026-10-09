@@ -39,7 +39,7 @@ const masher = (game, t) => ({ x: Math.sin(t * 3), action: Math.floor(t * 60) % 
 test('waterglassgoose: a beginner opens the next page, a good ear more; idling and mashing do not', () => {
   const seeds = [1, 2, 3, 4, 5, 6];
   const beginner = seeds.map((seed) => run(create, { seed, bot: listener({ slip: 0.035, react: 0.6, seed }) }).game.score);
-  const good = seeds.map((seed) => run(create, { seed, bot: listener({ slip: 0.008, seed }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: listener({ slip: 0.008, react: 0.4, seed }) }).game.score);
   const perfect = run(create, { seed: 1, bot: listener() }).game;
   const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: masher }).game.score);
   const idle = run(create, { seed: 1 }).game;
@@ -68,7 +68,9 @@ test('waterglassgoose: the right glasses in order score a point each and a bonus
   toPlay(game);
   const tune = [...game.tune];
   for (const k of tune) tapAt(game, k);
-  assert.equal(game.score, tune.length + 3);
+  // each note after the first follows straight on: one extra each
+  assert.equal(game.score, tune.length + (tune.length - 1) + 3);
+  assert.equal(game.quick, tune.length - 1);
   assert.equal(game.tunes, 1);
   assert.equal(game.phase, 'good');
 });
@@ -84,6 +86,16 @@ test('waterglassgoose: a wrong glass cracks it and ends the tune; three cracks e
   for (let i = 0; i < 60 * 4; i++) game.update(1 / 60, blank());
   assert.ok(game.done);
   assert.equal(game.score, 0);
+});
+
+test('waterglassgoose: a right note after a pause scores no quick bonus', () => {
+  const game = create(env(7));
+  toPlay(game);
+  tapAt(game, game.tune[0]);
+  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
+  tapAt(game, game.tune[1]);
+  assert.equal(game.quick, 0);
+  assert.ok(game.score >= 2);
 });
 
 test('waterglassgoose: waiting too long counts as a crack', () => {

@@ -5,8 +5,9 @@
 // The Goose plays a little tune on them, tapping each glass with its beak;
 // then it's your turn to play the same tune back. Move along the glasses
 // (stick, D-pad or arrows, or point at one) and press the action to tap the
-// glass the Goose stands at. Each right note scores one, and a whole tune
-// played back three more. A wrong glass, or waiting too long, cracks a
+// glass the Goose stands at. Each right note scores one (two if it follows
+// the last within 0.8 s, so a quick, sure player always has more to win),
+// and a whole tune played back three more. A wrong glass, or waiting too long, cracks a
 // glass and ends that tune: three cracks and the concert is over. Eight
 // tunes: they start with two notes on three glasses and grow to seven notes
 // on five, played faster. Score: points.
@@ -40,8 +41,17 @@ const GLASS_W = 120;
 // Five glasses, low to high: C D E G A (no wrong-sounding pair among them).
 const NOTES = [523.25, 587.33, 659.25, 783.99, 880];
 const LEVELS = [0.86, 0.72, 0.58, 0.42, 0.28];
-const TINTS = ['#7f93a8', '#a9b88a', '#efd96a', '#ea8fb0', '#b98aa3'];
+// blue, green, yellow, pink, orange: no two a child could mix up
+const TINTS = ['#7f93a8', '#a9b88a', '#efd96a', '#ea8fb0', '#e09a48'];
+const QUICK = 0.8; // a right note within this many seconds of the last scores one extra
 const GOOSE = 300;
+// The Goose stands just behind the row, to the right of the glass it plays,
+// so that leaning in (0.3 rad about its feet) brings its beak tip down onto
+// the glass's rim, on the painting (beak tip at about (-165, -362) in bird
+// units) and the stand-in alike. It is drawn before the glasses, so they
+// stand in front of it.
+const STAND = 170;
+const BACK = 20;
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -57,6 +67,7 @@ export default function create(env) {
     gx: 800, // the Goose, drawn
     glasses: [],
     cracks: 0,
+    quick: 0, // notes played quickly, straight after the last
     notes: 0, // right notes
     tunes: 0, // whole tunes played back
     tap: 0, // the Goose's beak tap, 1 → 0
@@ -137,7 +148,7 @@ export default function create(env) {
 
   setGlasses(ROUNDS[0].n);
   g.sel = 1;
-  g.gx = g.glassX(1) + 110;
+  g.gx = g.glassX(1) + STAND;
 
   g.update = (dt, input) => {
     if (g.done) return;
@@ -191,12 +202,19 @@ export default function create(env) {
       }
       g.idle += dt;
       if (input.actionPressed) {
+        const quick = g.pos > 0 && g.idle <= QUICK;
         g.idle = 0;
         ring(g.sel);
         if (g.sel === g.tune[g.pos]) {
           g.pos++;
           g.notes++;
           g.score++;
+          if (quick) {
+            // played straight on, without a pause: one extra
+            g.score++;
+            g.quick++;
+            pop('Quick! +1', g.glassX(g.sel), TABLE - GLASS_H - 70, PAL.orange, 34);
+          }
           if (g.pos >= g.tune.length) {
             g.tunes++;
             g.score += BONUS;
@@ -214,7 +232,7 @@ export default function create(env) {
       if (g.pt > 0.8) g.done = true;
     }
 
-    g.gx = approach(g.gx, g.glassX(g.sel) + 110, 12, dt);
+    g.gx = approach(g.gx, g.glassX(g.sel) + STAND, 12, dt);
     for (const r of g.rings) r.life -= dt * 0.9;
     g.rings = g.rings.filter((r) => r.life > 0);
     for (const p of g.pops) {
@@ -226,7 +244,7 @@ export default function create(env) {
 
   g.hud = () => `Tune ${clamp(g.round + 1, 1, ROUNDS.length)}/${ROUNDS.length} · ${g.score}`;
   g.summary = () => [
-    `${g.tunes} of ${ROUNDS.length} tunes played back just right, ${g.notes} right note${g.notes === 1 ? '' : 's'}.`,
+    `${g.tunes} of ${ROUNDS.length} tunes played back just right, ${g.notes} right note${g.notes === 1 ? '' : 's'} (${g.quick} quick).`,
     g.cracks ? `${g.cracks} cracked glass${g.cracks === 1 ? '' : 'es'}.` : 'Not a single crack!',
   ];
 
@@ -351,18 +369,20 @@ export default function create(env) {
     const x = g.gx;
     const honk = g.phase === 'good';
     const oops = g.phase === 'oops' && g.pt < 0.9;
-    const walking = Math.abs(g.gx - (g.glassX(g.sel) + 110)) > 12;
+    const walking = Math.abs(g.gx - (g.glassX(g.sel) + STAND)) > 12;
     const lean = g.tap > 0 ? -0.3 * g.tap : oops ? 0.14 : 0;
     const shake = oops && !env.reduceMotion ? Math.sin(g.pt * 50) * 3 : 0;
     const bob = walking ? -Math.abs(Math.sin(t * 14)) * 6 : 0;
     c.save();
-    c.translate(x + shake, TABLE - 6 + bob);
+    c.translate(x + shake, TABLE - BACK + bob);
     c.rotate(lean);
+    // variants are painted in square cells framed like the portrait (feet at 0.98)
+    const pose = (key, i) => drawSprite(c, key, i, 0, 0.02 * GOOSE * 1.05, { h: GOOSE * 1.05, whole: true });
     let drawn = false;
-    if (g.tap > 0.3) drawn = drawSprite(c, 'sprites.gooseTap', 0, 0, 0, { h: GOOSE * 0.9 });
-    else if (oops) drawn = drawSprite(c, 'sprites.gooseMoves', 1, 0, 0, { h: GOOSE * 0.9 });
-    else if (honk) drawn = drawSprite(c, 'sprites.gooseTap', 1, 0, 0, { h: GOOSE * 0.9 });
-    else if (walking) drawn = drawSprite(c, 'sprites.gooseMoves', 0, 0, 0, { h: GOOSE * 0.9 });
+    if (g.tap > 0.3) drawn = pose('sprites.gooseTap', 0);
+    else if (oops) drawn = pose('sprites.gooseMoves', 1);
+    else if (honk) drawn = pose('sprites.gooseTap', 1);
+    else if (walking) drawn = pose('sprites.gooseMoves', 0);
     if (!drawn) drawBird(c, 'waterglassgoose', { x: 0, y: 0, size: GOOSE, t, pose: { tap: g.tap, honk, oops, walking } });
     c.restore();
   }
@@ -386,24 +406,47 @@ export default function create(env) {
         ink(c, 2);
       }
     }
-    // cracks so far, as three little glasses under the pause button
+    // cracks so far, as three little glasses under the dots (in the phone view)
     for (let k = 0; k < MAX_CRACKS; k++) {
-      const x = 1440 + k * 46;
-      poly(c, [[x - 15, 130], [x + 15, 130], [x + 12, 170], [x - 12, 170]], k + 40, 0.5);
+      const x = 754 + k * 46;
+      const y0 = 200;
+      poly(c, [[x - 15, y0], [x + 15, y0], [x + 12, y0 + 40], [x - 12, y0 + 40]], k + 40, 0.5);
       c.fillStyle = k < g.cracks ? 'rgba(184,98,74,0.5)' : 'rgba(201,217,224,0.7)';
       c.fill();
       ink(c, 1.8);
       if (k < g.cracks) {
         c.beginPath();
-        c.moveTo(x + 4, 130);
-        c.lineTo(x - 4, 148);
-        c.lineTo(x + 6, 168);
+        c.moveTo(x + 4, y0);
+        c.lineTo(x - 4, y0 + 18);
+        c.lineTo(x + 6, y0 + 38);
         ink(c, 1.6);
       }
     }
 
+    drawGoose(c, t);
     for (let i = 0; i < g.glasses.length; i++) drawShine(c, i);
-    for (let i = 0; i < g.glasses.length; i++) drawGlass(c, i, t);
+    for (let i = 0; i < g.glasses.length; i++) {
+      // in your turn, the glass the Goose is at lifts a little, ringed in yellow
+      const lift = g.phase === 'play' && i === g.sel;
+      if (lift) {
+        const x = g.glassX(i);
+        c.save();
+        c.globalAlpha = 0.2;
+        c.beginPath();
+        c.ellipse(x, TABLE + 2, GLASS_W / 2, 9, 0, 0, Math.PI * 2);
+        c.fillStyle = INK;
+        c.fill();
+        c.globalAlpha = 0.75 + 0.25 * Math.sin(t * 6);
+        poly(c, [[x - GLASS_W / 2 - 12, TABLE - GLASS_H - 24], [x + GLASS_W / 2 + 12, TABLE - GLASS_H - 24], [x + GLASS_W / 2 + 4, TABLE - 6], [x - GLASS_W / 2 - 4, TABLE - 6]], 70, 0.5);
+        ink(c, 8, PAL.lemon);
+        ink(c, 2, PAL.mustard);
+        c.restore();
+        c.save();
+        c.translate(0, -14);
+      }
+      drawGlass(c, i, t);
+      if (lift) c.restore();
+    }
     // a marker under the glass the Goose is at, in your turn
     if (g.phase === 'play') {
       const x = g.glassX(g.sel);
@@ -414,7 +457,6 @@ export default function create(env) {
       ink(c, 2);
       c.restore();
     }
-    drawGoose(c, t);
 
     for (const q of g.rings) {
       c.save();
