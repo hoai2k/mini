@@ -608,8 +608,13 @@ POCKET = [
      "its tail, the N-E-S-W cross below like perched feet on a little roof ridge.",
      "Turn into the wind as it changes."),
     ("mousetrapmagpie", "The Mousetrap Magpie",
-     "A wooden spring mousetrap as a flat body with the snapping bar as a crest, a magpie's black "
-     "and white head and long tail, a bit of cheese it is very proud of.",
+     "The mousetrap itself is the whole torso: a flat honey-brown wooden plank with a coiled "
+     "spring and snapping metal bar built into it. A yellow cheese wedge forms its head and "
+     "left-pointing beak, with round cheese holes and one round staring eye set in its side. "
+     "The spring bar rises as its crest. Two thin bird legs grow from the wood below, small "
+     "black-and-white wing tufts from its sides, and a long blue-black magpie tail from the "
+     "rear. No feathered torso or conventional magpie head beneath the trap, and no separate "
+     "cheese accessory sitting on top.",
      "Grab the shiny things without setting itself off."),
     ("hatboxhoopoe", "The Hatbox Hoopoe",
      "A round striped hatbox with its lid lifting like a crest of hoopoe feathers, a long thin "
