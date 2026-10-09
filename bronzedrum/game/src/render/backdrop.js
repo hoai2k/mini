@@ -375,6 +375,31 @@ export const backdrop = {
       g.fillStyle = this.sky[tint];
       g.fillRect(0, 0, c.width, c.height);
     }
+    // The empty band above the strip's silhouette (most of a strip is sky):
+    // measured once, and left out when the strip is drawn, every frame.
+    c.top = 0;
+    c.bottom = c.height;
+    try {
+      const sw = 256;
+      const sh = Math.max(1, Math.round((sw / img.width) * img.height));
+      const probe = canvas(sw, sh);
+      const pg = probe.getContext('2d', { willReadFrequently: true });
+      pg.drawImage(img, 0, 0, sw, sh);
+      const d = pg.getImageData(0, 0, sw, sh).data;
+      const rowHas = (y) => {
+        for (let x = 0; x < sw; x++) if (d[(y * sw + x) * 4 + 3] > 4) return true;
+        return false;
+      };
+      let top = 0;
+      while (top < sh && !rowHas(top)) top++;
+      let bottom = sh;
+      while (bottom > top && !rowHas(bottom - 1)) bottom--;
+      // A row or two of margin either way, for the scaled image's soft edge.
+      c.top = Math.max(0, Math.floor(((top - 2) / sh) * c.height));
+      c.bottom = Math.min(c.height, Math.ceil(((bottom + 2) / sh) * c.height));
+    } catch {
+      /* unreadable: draw it whole */
+    }
     this.lit.set(key, c);
     return c;
   },
@@ -460,7 +485,13 @@ export const backdrop = {
       const w = img.width / this.pixel;
       const g = this.ctx;
       const off = (((this.cam * factor) % w) + w) % w;
-      for (let x = -off; x < W; x += w) g.drawImage(img, x, 0, w, H);
+      // Only the band with something in it (litLayer measured it).
+      const sy = img.top || 0;
+      const sh = (img.bottom || img.height) - sy;
+      if (sh <= 0) return;
+      const y = sy / this.pixel;
+      const h = sh / this.pixel;
+      for (let x = -off; x < W; x += w) g.drawImage(img, 0, sy, img.width, sh, x, y, w, h);
     } else this.strip(fallback, factor);
   },
 };
