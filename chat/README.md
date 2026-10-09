@@ -48,6 +48,8 @@ so the picture stays clear:
   With two people your friend fills the screen and you float in a corner:
   tap the small video to swap the two, drag it to another corner. When your
   friend is big and has an effect on, a download button puts it on you too.
+- **During a game** the bottom row and strips go away so the game gets the
+  screen; close the game with the ✕ beside its name to get them back.
 - **Bottom row:** Favorites, Effects, Accessories, Backgrounds and Games.
   Picking one lights it up and opens its strip; once something from it is
   on, the button slides to the left (the others fold away; tap it again,
@@ -119,9 +121,10 @@ own video, or hold RT instead.
 
 Hoops (laid out like Messenger's: a big hoop and the ball at the bottom; pick
 the ball up, carry it and toss it, or just flick it straight off its spot; it
-moves with your finger and flies on from where you let go, and any toss
-roughly at the hoop goes in;
-the hoop moves every five shots), Flappy Face (your face is the bird; tap to
+moves with your finger and flies on from where you let go at the speed and in
+the direction you threw it, with no help: too soft falls short, too hard goes
+long, and it heads for wherever on screen your swipe was pointing; the hoop
+moves every five shots), Flappy Face (your face is the bird; tap to
 flap), Air Hockey (your paddle keeps its distance from your finger, so you
 can drag from below it), Connect Four, Quick Draw, Staring Contest,
 Copy Cat, Rock Paper Scissors, Doodle Guess, Memory Match, Mini Golf (nine
@@ -165,12 +168,10 @@ itself to HTTPS.
   players side by side (`test/game.html`)
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
-- `node chat/test/hoops-play.mjs`: on a phone-sized Hoops, picks the ball up
-  (it must follow the pointer), carries it and tosses it seven ways that must
-  all score, flicks straight from the ball (it must ride under the finger and
-  fly on from the release point), checks the hoop moves after five shots, a
-  wild toss misses and
-  letting go without a toss puts the ball back
+- `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
+  the pointer, letting go without a flick puts it down, flicks aimed beside
+  the hoop arrive exactly where aimed, soft and hard flicks miss, and a
+  straight flick of the right speed scores
 - `chat/publish.sh local/pages/chat && node chat/test/conn-check.mjs`: a
   working call turns the pill green with signal bars and a route in the
   Connection panel; calls that can't connect (`?rtcdrop=1&rtcfast=0.2`) go

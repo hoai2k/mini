@@ -1340,6 +1340,18 @@ function onEffectEvent({ type, data }) {
 
 // --- games -----------------------------------------------------------------
 
+// The height of the phone's home-bar area (0 on most screens).
+function safeBottom() {
+  let probe = $('#safe-probe');
+  if (!probe) {
+    probe = document.createElement('div');
+    probe.id = 'safe-probe';
+    probe.style.cssText = 'position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none';
+    document.body.append(probe);
+  }
+  return Math.ceil(probe.getBoundingClientRect().height);
+}
+
 async function initGames() {
   games = createGameHost({
     net,
@@ -1348,7 +1360,8 @@ async function initGames() {
     // How much of a full-bleed game the floating bars cover, in pixels.
     insets: () => ({
       top: Math.ceil($('#topbar').getBoundingClientRect().bottom),
-      bottom: Math.ceil(innerHeight - $('#controls').getBoundingClientRect().top),
+      // No bottom bar while a game is on, just the phone's home-bar area.
+      bottom: safeBottom() + 8,
     }),
     toast,
     onOpen: c => {
