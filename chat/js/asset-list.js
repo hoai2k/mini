@@ -889,83 +889,83 @@ export const ASSET_LIST = {
   },
   "fx2-flowercrown": {
     "file": "assets/icons2/fx2-flowercrown.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-kitty": {
     "file": "assets/icons2/fx2-kitty.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-bunny": {
     "file": "assets/icons2/fx2-bunny.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-hotdog": {
     "file": "assets/icons2/fx2-hotdog.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-lasereyes": {
     "file": "assets/icons2/fx2-lasereyes.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-crying": {
     "file": "assets/icons2/fx2-crying.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-devil": {
     "file": "assets/icons2/fx2-devil.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-angel": {
     "file": "assets/icons2/fx2-angel.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-pirate": {
     "file": "assets/icons2/fx2-pirate.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-viking": {
     "file": "assets/icons2/fx2-viking.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-wizard": {
     "file": "assets/icons2/fx2-wizard.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-butterflies": {
     "file": "assets/icons2/fx2-butterflies.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-makeup": {
     "file": "assets/icons2/fx2-makeup.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-beach360": {
     "file": "assets/icons2/fx2-beach360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-space360": {
     "file": "assets/icons2/fx2-space360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-reef360": {
     "file": "assets/icons2/fx2-reef360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-forest360": {
     "file": "assets/icons2/fx2-forest360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-city360": {
     "file": "assets/icons2/fx2-city360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-snow360": {
     "file": "assets/icons2/fx2-snow360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-candy360": {
     "file": "assets/icons2/fx2-candy360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-volcano360": {
     "file": "assets/icons2/fx2-volcano360.png",

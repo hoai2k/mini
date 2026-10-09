@@ -2634,5 +2634,265 @@
     ],
     "accepted": true,
     "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K21",
+    "file": "assets/icons2/fx2-flowercrown.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen wearing a crown of pink peonies, white daisies and green leaves, soft petals drifting. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K22",
+    "file": "assets/icons2/fx2-kitty.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen with pointed cat ears, a small pink cat nose and thin white whiskers, mouth open mid-meow. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K23",
+    "file": "assets/icons2/fx2-bunny.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen with tall white rabbit ears, one ear flopped over, and a little pink bunny nose. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K24",
+    "file": "assets/icons2/fx2-hotdog.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a person dressed in a full hotdog costume, face showing through the bun, jumping in the air. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K25",
+    "file": "assets/icons2/fx2-lasereyes.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen with raised eyebrows firing two straight red laser beams from the eyes towards the viewer, glowing hot. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K26",
+    "file": "assets/icons2/fx2-crying.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's face crying two exaggerated arcing fountains of tears from the corners of the eyes, splashing below. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K27",
+    "file": "assets/icons2/fx2-devil.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen with a sly smile and two small glossy red devil horns, a faint red glow and a few embers behind. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K28",
+    "file": "assets/icons2/fx2-angel.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen with a golden halo floating above the head and soft white feathered wings behind the shoulders. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K29",
+    "file": "assets/icons2/fx2-pirate.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen in a black tricorn pirate hat with a skull emblem and a black eyepatch, mid-shout. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K30",
+    "file": "assets/icons2/fx2-viking.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen in a horned steel Viking helmet with a braided orange beard. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K31",
+    "file": "assets/icons2/fx2-wizard.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen in a tall starry midnight-blue wizard hat, eyebrows raised, purple magic sparks bursting around the head. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K32",
+    "file": "assets/icons2/fx2-butterflies.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's head with a ring of blue and pink butterflies circling it, two flying off. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K33",
+    "file": "assets/icons2/fx2-makeup.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen's face with bold winged eyeliner, glossy red lips and contoured cheeks, a sparkle on the cheekbone. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K34",
+    "file": "assets/icons2/fx2-beach360.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen cut out in front of a tropical beach with palm trees and turquoise sea, a circular 360-degree arrow around the scene. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K35",
+    "file": "assets/icons2/fx2-space360.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen cut out in front of a space-station window looking down at Earth, a circular 360-degree arrow around the scene. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K36",
+    "file": "assets/icons2/fx2-reef360.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen cut out in front of a coral reef with a sea turtle, a circular 360-degree arrow around the scene. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K37",
+    "file": "assets/icons2/fx2-forest360.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen cut out in front of a misty fantasy forest with a waterfall and glowing mushrooms, a circular 360-degree arrow. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K38",
+    "file": "assets/icons2/fx2-city360.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen cut out on a rooftop in front of neon skyscrapers at night, a circular 360-degree arrow around the scene. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K39",
+    "file": "assets/icons2/fx2-snow360.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen cut out in front of snowy mountain peaks and a wooden cabin, a circular 360-degree arrow. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
+  },
+  {
+    "id": "CH-K40",
+    "file": "assets/icons2/fx2-candy360.png",
+    "size": "256 x 256",
+    "prompt": "Rendering requirement: this must be visibly DRAWN 2D vector-style editorial illustration with large clean colour planes, crisp shapes, simplified hair, smooth stylised skin and subtle neon edge glow. Absolutely no photographs, skin pores, realistic individual hair strands, photographic textures or 3D renders. Natural older-teen proportions except the specific requested distortion. No added video-camera glyphs, buttons or app controls. Keep the effect clear at 48 pixels. Sleek modern app-icon illustration for a video-chat app used by teenagers and young adults, in the confident graphic style of a polished social or music app: crisp vector shapes, subtle gradients and a soft glow, rich deep colours with one or two neon accents, clean thin outlines or none. Fun, with a little attitude and humour, but nothing babyish: no chibi proportions, no giant baby eyes, no cutesy blush, no candy-sticker gloss. People are stylish older-teen characters with natural proportions and varied looks. The picture must show what the effect or game actually does, so someone can tell what they will get before tapping it. No text, no watermark, no photorealism. Icon: a teen cut out in front of a candy land with lollipop trees and a gingerbread house, a circular 360-degree arrow. Square icon: the scene fills about 85% of the 256 x 256 frame on a dark charcoal-to-indigo rounded-square tile (corner radius about 22%), the same backing for every icon in the set, with one accent colour picked for the subject. Readable at 48 px: one clear idea, big shapes, no tiny detail. Transparent outside the rounded tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the tile.",
+    "tool": "built-in image_gen",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "accepted": true,
+    "review": "Verified effect, drawn graphic style, 256x256 size and transparent exterior."
   }
 ]
