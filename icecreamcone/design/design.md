@@ -107,8 +107,11 @@ bird squawk. Later cups are smaller, walk faster or bob up and down.
 
 ### 3. Shuttercluck: Say Cheese (10 photos)
 
-You are the Shuttercluck's eye. Birds from the book peek out of bushes, the
-wall, the tree and the gate for a moment. Move the viewfinder and press the
+You are the Shuttercluck's eye. The book's other birds, the 18 of its 28
+that you don't play as (the Milkbottle Midge, the Key Crane, the Glove Dove,
+the Jackknife Niffy and the rest; see `game/src/subjects.js`), peek out of
+bushes, the wall, the tree and the gate for a moment. Each is drawn as a
+simple stand-in until its painting (IC-R01 to IC-R18) arrives. Move the viewfinder and press the
 action to take a picture. A bird in the middle of the frame scores most;
 rarer birds score more. You have ten shots. The results show your photos.
 

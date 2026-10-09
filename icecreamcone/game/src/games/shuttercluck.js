@@ -1,6 +1,7 @@
 // Shuttercluck: Say Cheese.
 //
-// You are the Shuttercluck's one glass eye. Rare birds peek out of six hiding
+// You are the Shuttercluck's one glass eye. Rare birds (the book's others,
+// not the ones you play as) peek out of six hiding
 // places in a meadow (a bush, a stone wall, a knothole in the old tree, the
 // gate pillar, the hedge and the tall grass) for a moment, then duck back.
 // A hiding place rustles just before a bird appears. Move the viewfinder and
@@ -10,6 +11,7 @@
 
 import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK, PAPER } from '../draw.js';
 import { clamp, approach } from './index.js';
+import { SUBJECTS, SUBJECT_IDS, drawSubject } from '../subjects.js';
 
 const SHOTS = 10;
 const SAFETY = 60; // the film's light runs out after this, shots or not
@@ -18,31 +20,23 @@ const FH = 250;
 const COOLDOWN = 0.45; // the lens re-opening between shots
 const STRIP_Y = 790; // the photos along the bottom
 
-// Each bird's drawing box in drawBird's 400-unit space (feet at the origin):
-// left, right, top; and where its head is, for peeking out of the knothole.
-const BOX = {
-  coot: { x0: -220, x1: 160, top: -420, hx: -115, hy: -340 },
-  cupadee: { x0: -170, x1: 140, top: -300, hx: -45, hy: -230 },
-  gullfinch: { x0: -110, x1: 150, top: -420, hx: -70, hy: -315 },
-  plume: { x0: -100, x1: 90, top: -310, hx: -50, hy: -180 },
-  bobolinks: { x0: -115, x1: 90, top: -320, hx: -40, hy: -200 },
-  peeper: { x0: -200, x1: 100, top: -400, hx: -110, hy: -305 },
-  piffle: { x0: -170, x1: 175, top: -340, hx: -92, hy: -178 },
-  dodo: { x0: -225, x1: 205, top: -240, hx: -128, hy: -152 },
-  crow: { x0: -55, x1: 60, top: -455, hx: -10, hy: -380 },
-};
+// The birds it photographs are the book's other birds, the ones with no page
+// of their own in the field guide (see ../subjects.js): their drawing box in
+// drawBird's 400-unit space (feet at the origin) and where the head is, for
+// peeking out of the knothole.
+const BOX = Object.fromEntries(SUBJECT_IDS.map((id) => {
+  const { box, head } = SUBJECTS[id];
+  return [id, { ...box, hx: head[0], hy: head[1] }];
+}));
 
 // Rarer birds are worth more and peek for less time.
 const TIERS = [
-  { name: 'common', value: 60, ids: ['coot', 'cupadee', 'plume'], up: [1.5, 2.0], rustle: 0.6 },
-  { name: 'uncommon', value: 100, ids: ['gullfinch', 'bobolinks', 'piffle', 'peeper'], up: [1.0, 1.4], rustle: 0.5 },
-  { name: 'rare', value: 180, ids: ['dodo', 'crow'], up: [0.6, 0.9], rustle: 0.4 },
-];
+  { name: 'common', value: 60, up: [1.5, 2.0], rustle: 0.6 },
+  { name: 'uncommon', value: 100, up: [1.0, 1.4], rustle: 0.5 },
+  { name: 'rare', value: 180, up: [0.6, 0.9], rustle: 0.4 },
+].map((T, i) => ({ ...T, ids: SUBJECT_IDS.filter((id) => SUBJECTS[id].tier === i) }));
 
-const NAMES = {
-  coot: 'the Ice-Cream Cone Coot', cupadee: 'the Cupadee', plume: 'the Flowerpot Plume', gullfinch: 'the Gramophone Gullfinch',
-  bobolinks: 'the Highbutton Bobolinks', piffle: 'the Pincushion Piffle', peeper: 'the Newspaper Peeper', dodo: 'the Dollarbill Dodo', crow: 'the Safecrossing Crow',
-};
+const NAMES = Object.fromEntries(SUBJECT_IDS.map((id) => [id, SUBJECTS[id].name]));
 
 // The hiding places. `line` is the top edge a bird rises over; `clip` is the
 // region where a bird there can be seen.
@@ -388,7 +382,7 @@ export default function create(env) {
       }
       c.clip();
       const jump = b.state === 'startle' ? Math.sin((0.35 - b.t) * 30) * 6 : 0;
-      drawBird(c, b.id, { x: f.x, y: f.y + jump, size: sp.size, t: t + b.spot, flip: b.flip });
+      drawSubject(c, b.id, { x: f.x, y: f.y + jump, size: sp.size, t: t + b.spot, flip: b.flip });
       c.restore();
       if (b.tier === 2 && b.e > 0.6 && !b.snapped) {
         const r = subject(b);
