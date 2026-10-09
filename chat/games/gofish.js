@@ -72,7 +72,7 @@ const CSS = `
   box-shadow: 0 0 0 2px #fff inset, 0 3px 0 rgba(0,0,0,0.35); transition: transform 0.15s; }
 .gf-card.n2 { box-shadow: 0 0 0 2px #fff inset, 4px -4px 0 -1px #fff, 4px -4px 0 1px var(--c), 0 3px 0 rgba(0,0,0,0.35); }
 .gf-card.n3 { box-shadow: 0 0 0 2px #fff inset, 4px -4px 0 -1px #fff, 4px -4px 0 1px var(--c), 8px -8px 0 -1px #fff, 8px -8px 0 1px var(--c), 0 3px 0 rgba(0,0,0,0.35); }
-.gf-card .pd { position: absolute; top: 4px; left: 0; right: 0; text-align: center; font-size: calc(var(--w) * 0.12); font-weight: 800; opacity: 0.9; }
+.gf-card .pd { position: absolute; top: 4px; left: 3px; right: 3px; text-align: center; white-space: nowrap; font-size: calc(var(--w) * 0.12 * var(--fit, 1)); font-weight: 800; opacity: 0.9; }
 .gf-card img { position: absolute; left: 6%; right: 6%; top: 16%; width: 88%; height: 58%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3)); }
 .gf-card .nm { position: absolute; left: 2px; right: 2px; bottom: 5px; text-align: center; font-size: calc(var(--w) * 0.145 * var(--fit, 1)); font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gf-card .x { position: absolute; top: -7px; right: -7px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: var(--sun); color: #2b1f4a; font-size: 0.8rem; font-weight: 900; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
@@ -656,6 +656,7 @@ export default {
       const pd = document.createElement('span');
       pd.className = 'pd';
       pd.textContent = RANKS[rank].period;
+      pd.style.setProperty('--fit', Math.min(1, 10 / RANKS[rank].period.length).toFixed(2));
       const im = document.createElement('img');
       im.src = srcFor(rank);
       im.alt = '';
@@ -896,8 +897,8 @@ export default {
       ctx.translate(x, y);
       ctx.rotate(heading);
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = '#062a2c';
-      ctx.filter = 'blur(2px)';
+      ctx.fillStyle = '#03191b';
+      ctx.filter = 'blur(1.5px)';
       ctx.beginPath();
       ctx.ellipse(0, 0, s, s * 0.36, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -912,13 +913,17 @@ export default {
       ctx.restore();
     }
 
+    // Draws the pond and returns where the angler stands: on the painted
+    // jetty (middle of the bottom edge) once the pond art is in, else on the
+    // drawn one at the bottom left.
     function drawWater(W, H, t) {
       const bg = api.img('gofish-pond');
       if (bg) {
         const sw = bg.naturalWidth || bg.width, sh = bg.naturalHeight || bg.height;
         const k = Math.max(W / sw, H / sh);
-        ctx.drawImage(bg, (W - sw * k) / 2, (H - sh * k) / 2, sw * k, sh * k);
-        return;
+        const ox = (W - sw * k) / 2, oy = (H - sh * k) / 2;
+        ctx.drawImage(bg, ox, oy, sw * k, sh * k);
+        return { x: ox + sw * k * 0.5, y: Math.min(H * 0.86, oy + sh * k * 0.86) };
       }
       const g = ctx.createRadialGradient(W * 0.55, H * 0.45, 10, W * 0.5, H * 0.5, Math.max(W, H) * 0.7);
       g.addColorStop(0, '#1d7f86');
@@ -949,6 +954,7 @@ export default {
       ctx.strokeStyle = '#6b4225';
       ctx.lineWidth = 2;
       for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(W * 0.08, H * (0.8 + i * 0.05)); ctx.lineTo(W * 0.34, H * (0.8 + i * 0.05)); ctx.stroke(); }
+      return { x: W * 0.2, y: H * 0.78 };
     }
 
     function drawCardAt(x, y, w, rank, faceUp, flip) {
@@ -1069,7 +1075,8 @@ export default {
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const t = performance.now() / 1000;
-      drawWater(W, H, t);
+      const stand = drawWater(W, H, t);
+      const painted = !!api.img('gofish-pond');
       if (!s) return;
 
       const now = performance.now();
@@ -1085,14 +1092,14 @@ export default {
         let { x, y, a } = fishPos(f, t, W, H);
         const dx = -Math.sin(a) * f.rx, dy = Math.cos(a * 2) * f.ry * 1.2;
         let heading = Math.atan2(dy * H, dx * W);
-        let alpha = 0.32;
+        let alpha = painted ? 0.5 : 0.32;
         if (anim && i === shown - 1 && ct < 1.35) {
           const k = ease((ct - 0.5) / 0.75);
           const tx = anim.bx - Math.cos(heading) * unit * 0.6, ty = anim.by_;
           heading = k > 0 ? Math.atan2(ty - y, tx - x) : heading;
           x += (tx - x) * k;
           y += (ty - y) * k;
-          alpha = 0.32 + 0.15 * k;
+          alpha += 0.15 * k;
         }
         drawShadow(x, y, heading, f.size * unit, alpha, t + i);
       }
@@ -1101,7 +1108,7 @@ export default {
       const who = anim ? anim.by : s.phase === 'over' ? null : s.turn;
       if (!who) return;
       const r = Math.min(W, H) * 0.085;
-      const ax = W * 0.2, ay = H * 0.78;
+      const ax = stand.x, ay = stand.y - r * 0.9;
       let rod = -1.0 + Math.sin(t * 1.3) * 0.04;
       if (anim) {
         if (ct < 0.25) rod = -1.0 - 1.1 * ease(ct / 0.25);          // swing back
