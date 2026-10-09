@@ -71,3 +71,13 @@ at (20, −90)). The bowl is now placed over the ring by that point, and the
 code wings are left off because the painting has its own. The pose request
 IC-M15e now describes the painting: speckled grey enamel, its curled hook
 floating above its back, grey-blue wings, ochre legs.
+
+## Matched to the delivered art
+
+The soup kitchen (IC-M15a) and the repainted Lark are in. The new painting is one piece, with the hook curling up from the head as a crest.
+- The Lark is placed by its new bowl bottom, at (50, −131) in bird units.
+- The pot moved right to x 665 to sit over the painted range, and the code flames are left off when the scene is there.
+- The serving bowl sits on the painted counter's top (y 655).
+- The queue now stands behind the counter: only what is above its top (y 648) shows.
+- The pose request IC-M15e now describes the one-piece ladle with its crest.
+- Still drawn in code until their sprites arrive: the pot and the bowl (IC-M15b), the bits (IC-M15c), the queue (IC-M15d) and the Lark's flying and dipping poses (IC-M15e; the portrait is shown).

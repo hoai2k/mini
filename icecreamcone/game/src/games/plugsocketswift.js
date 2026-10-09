@@ -24,11 +24,11 @@ Object.assign(SHEETS, {
 
 const DURATION = 45;
 const COLS = [530, 710, 890, 1070];
-const ROWS = [300, 480, 660];
+const ROWS = [320, 497, 674]; // under the painted eaves (y 230) and above the lawn (790)
 const WIN_W = 124;
 const WIN_H = 132;
 const GROUND = 800;
-const FUSE = { x: 230, y: 500 };
+const FUSE = { x: 255, y: 600 }; // on the blank patch of the painted garden wall
 const SAFE = 3; // lamps the fuse carries without warming
 const SIZE = 190; // the Swift
 const CREATURES = ['#c9a080', '#a9b0b8', '#d9b0a0', '#b8a070']; // mouse, rabbit, hedgehog, mole: their fur in the dark
@@ -496,7 +496,11 @@ export default function create(env) {
     c.fillStyle = g.heat > 0.66 ? '#d04a30' : g.heat > 0.33 ? '#e09a48' : '#c9b060';
     c.fillRect(x - 66, y - 48, 132 * g.heat, 20);
     ink(c, 1.6);
-    label(c, 'FUSE', x, y - 136, { size: 26, weight: 800, color: '#3a3028' });
+    // its name on a little card, readable against the painted wall and hedge
+    poly(c, [[x - 46, y - 154], [x + 46, y - 154], [x + 46, y - 120], [x - 46, y - 120]], 12, 0.6);
+    wash(c, '#f2ead6', 0.95);
+    ink(c, 1.6);
+    label(c, 'FUSE', x, y - 137, { size: 26, weight: 800, color: '#3a3028' });
     if (g.blown && Math.sin(t * 8) > -0.3) label(c, 'Flip me!', x, y + 150, { size: 34, weight: 800, color: PAL.brick });
     else if (!g.blown && g.load() > SAFE && Math.sin(t * 10) > 0) label(c, 'Too many lamps!', x + 20, y + 150, { size: 30, weight: 800, color: PAL.brick });
   }
