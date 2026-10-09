@@ -81,7 +81,7 @@ test('glovedove: a beginner opens the next page, a good juggler more; mashing, b
 
 // A dish falling straight onto the Dove's fingers.
 function dropOn(game, off = 30) {
-  game.dishes = [{ kind: 0, x: game.catchX() + off, y: 300, vx: 0, vy: 0, spin: 0, a: 0, flicks: 0 }];
+  game.dishes = [{ kind: 0, x: game.catchX() + off, y: 120, vx: 0, vy: 0, spin: 0, a: 0, flicks: 0 }];
   game.spawnT = 99;
   return game.dishes[0];
 }
@@ -119,7 +119,7 @@ test('glovedove: a dish into the rack is put away; one on the counter smashes, w
   game.update(1 / 60, blank());
   game.spawnT = 99;
   game.score = 5;
-  game.dishes = [{ kind: 0, x: 1400, y: 500, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }, { kind: 1, x: 800, y: 600, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }];
+  game.dishes = [{ kind: 0, x: 1400, y: 300, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }, { kind: 1, x: 800, y: 450, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }];
   game.x = 400;
   for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
   assert.equal(game.put, 1);
@@ -130,7 +130,7 @@ test('glovedove: a dish into the rack is put away; one on the counter smashes, w
 test('glovedove: a dish that drops back into the sink pops up again', () => {
   const game = create(env(1));
   game.update(1 / 60, blank());
-  game.dishes = [{ kind: 0, x: 200, y: 500, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }];
+  game.dishes = [{ kind: 0, x: 200, y: 380, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }];
   game.spawnT = 5;
   for (let i = 0; i < 30; i++) game.update(1 / 60, blank());
   assert.equal(game.dishes.length, 0);

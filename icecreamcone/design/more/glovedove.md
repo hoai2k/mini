@@ -102,3 +102,17 @@ flick tips the whole painting back from the feet, so the glove swings up.
 The pose requests (IC-M11e, IC-M11f) describe the painting's design: fingers
 as a crest on the head, the long studded cuff behind it, and the scalloped
 blue-grey body.
+
+## Matched to the delivered art
+
+The kitchen scene (IC-M11a) shows the counter top from a little above, so the
+play space is lower than the stand-in's: the Dove now stands near the front
+edge of the counter top (y 540; the edge is at 554), the sink's suds are at
+y 390 and its rim at x 360, and a dish is put away when it drops through the
+tops of the painted rack's wires (y 360, x 1250 to 1560); the dishes put away
+stand on the painted tray. To fit the lower space the dishes fly on a smaller
+scale (gravity and launches cut to 0.6, the same times in the air), so the
+bots' scores hardly moved (beginner 51 to 68, good 76 to 87, mashing 4 to 27,
+pass still 35). The hint sits on the tiles under the window. Still drawn in
+code: the dishes (IC-M11b) and the Dove's catch, flick, cheer and dismay
+poses (IC-M11e, IC-M11f), all requested.

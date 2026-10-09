@@ -24,7 +24,11 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const COUNTER = 730; // the counter top the Dove runs along
+// Measured on the delivered scene (1920 x 1080, drawn at 1600 x 900): the
+// counter top's front edge is at 554, the sink (suds at 375 to 533) takes
+// the left 367, the wire rack stands on its tray from 1221 to 1579 with its
+// wires' tops at about 304 to 380.
+const COUNTER = 540; // where the Dove's feet stand, near the front of the counter top
 const SIZE = 290;
 // From the painting (subjects.js PAINTED.glovedove): the long glove is the
 // Dove's neck, held level behind its head, its top about 355 units above the
@@ -34,18 +38,20 @@ const SIZE = 290;
 const K_SIZE = SIZE / 400;
 const HANDS = COUNTER - Math.round(355 * K_SIZE); // where a falling dish meets the glove
 const ARM_C = Math.round(78 * K_SIZE); // the middle of the glove, behind the Dove's feet
-const SINK_X1 = 330; // the sink, left of here
-const SINK_Y = 600; // its suds
-const RACK_X0 = 1255; // the plate rack
-const RACK_X1 = 1535;
-const RACK_Y = 600; // a dish falling through here into the rack is put away
+const SINK_X1 = 360; // the sink, left of here
+const SINK_Y = 390; // its suds
+const RACK_X0 = 1250; // the plate rack
+const RACK_X1 = 1560;
+const RACK_Y = 360; // a dish falling through here (the wires' tops) into the rack is put away
 const RACK_MID = (RACK_X0 + RACK_X1) / 2;
 const HUP_REACH = 520; // the fastest a "Hup!" sends a dish along
-const DOVE_MIN = 340;
+const DOVE_MIN = 390;
 const DOVE_MAX = 1150;
 const SPEED = 1000;
 const REACH = 88; // how far from the glove's middle a dish can be flicked
-const GRAV = 1900;
+// The space above the counter is low, so everything flies on a smaller
+// scale: lower gravity and launches, the same times in the air.
+const GRAV = 1140;
 const GRIP = 0.18; // a press keeps the fingers ready this long
 const PERFECT = 0.09; // pressed no earlier than this before the dish lands: Hup!
 const REST = 0.45; // after a press, before the next one
@@ -102,7 +108,7 @@ export default function create(env) {
     const n = g.put + g.smashed;
     const r = rng();
     const kind = n < 2 ? 0 : g.elapsed < 15 ? Math.floor(r * 3) : r < 0.35 + 0.25 * progress() ? 3 + Math.floor(rng() * 3) : Math.floor(rng() * 3);
-    g.dishes.push({ kind, x: 200 + rng() * 60, y: SINK_Y, vx: 250 + rng() * 90, vy: -(1080 + rng() * 170), spin: (rng() - 0.5) * 6, a: 0, flicks: 0 });
+    g.dishes.push({ kind, x: 170 + rng() * 80, y: SINK_Y, vx: 250 + rng() * 90, vy: -(650 + rng() * 100), spin: (rng() - 0.5) * 6, a: 0, flicks: 0 });
     sfx('plop');
   }
 
@@ -137,7 +143,7 @@ export default function create(env) {
     const off = clamp(d.x - g.catchX(), -REACH, REACH);
     if (g.grip > 0) {
       const hup = g.gripAge <= PERFECT;
-      d.vy = -(hup ? 1250 : 980) * K.lift;
+      d.vy = -(hup ? 750 : 590) * K.lift;
       if (hup) {
         // a good flick heads for the rack: as far as it needs, up to a limit
         const air = flight(d.vy, RACK_Y - HANDS);
@@ -162,7 +168,7 @@ export default function create(env) {
     } else if (d.bounced) {
       // a second time without a flick: too slippery, it slides off the glove
       d.slipped = true;
-      d.vy = 200;
+      d.vy = 120;
       d.vx = off >= 0 ? 260 : -260;
       sfx('miss');
       pop('Slippery!', d.x, HANDS - 80, PAL.slate, 34);
@@ -170,7 +176,7 @@ export default function create(env) {
     } else {
       // no flick: it bounces off the rubber once, low and short
       d.bounced = true;
-      d.vy = -520;
+      d.vy = -312;
       d.vx = d.vx * 0.3 + off * 1.2;
       g.bounces++;
       sfx('bonk');
@@ -534,8 +540,8 @@ export default function create(env) {
       c.strokeStyle = 'rgba(250,244,228,0.9)';
       c.font = '600 34px Fraunces, Georgia, serif';
       c.textAlign = 'center';
-      c.strokeText(msg, W / 2, 330);
-      label(c, msg, W / 2, 330, { size: 34, weight: 600 });
+      c.strokeText(msg, W / 2, 232);
+      label(c, msg, W / 2, 232, { size: 34, weight: 600 });
       c.restore();
     }
   };
