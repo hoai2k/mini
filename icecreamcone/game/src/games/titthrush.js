@@ -5,9 +5,10 @@
 // church, the station, the town hall, the cuckoo clock) calls out the time
 // it shows; turn the hands of the big watch face to match and press the
 // action to set it. Spin the stick (one turn of the stick is one hour round
-// the face), drag the minute hand round with the mouse or a finger, or hold
-// ← / → (or push the stick and hold it) to turn the hands, ↑ / ↓ for a whole
-// hour. The hour hand follows the minute hand like a real clock's. Setting
+// the face), drag the long hand round with the mouse or a finger (grab the
+// short hand to turn whole hours), or hold ← / → (or push the stick and hold
+// it) to turn the hands; ↑ / ↓ (keys, D-pad, or a flick of the stick) jump a
+// whole hour. The hour hand follows the minute hand like a real clock's. Setting
 // the wrong time jams the crown for a moment; a clock left waiting too long
 // gives up and the next one calls. The times get harder: o'clock, then half
 // past, quarter past and to, five-minute times, then any minute; and every
@@ -31,7 +32,7 @@ const DR = 280;
 const TX = 1180; // the town clock
 const TY = 330;
 const TR = 130;
-const BIRD_X = 170;
+const BIRD_X = 180;
 const BIRD_Y = 840;
 const JAM = 1; // seconds the crown sticks after a wrong setting
 const MIN_PER_RAD = 60 / (Math.PI * 2); // one turn of the stick is an hour
@@ -105,6 +106,7 @@ export default function create(env) {
     notes: [],
     nextT: 0, // the pause after a clock is set
     fluster: 0, // seconds left looking flustered after a clock gave up
+    dragHour: false, // the pointer is dragging the short hand
     dragged: 0, // how far the pointer has dragged the hands this press
     downT: 0,
     lastDownT: 0,
@@ -121,13 +123,13 @@ export default function create(env) {
     const r = g.round;
     g.clock = r % CLOCKS.length;
     let t;
-    if (r > 0 && r % 5 === 4 && Math.abs(diff(g.m, 600)) > 40) {
+    if (r > 0 && r % 5 === 4 && Math.abs(diff(g.m, 600)) > 40 && Math.abs(diff(g.m, 600)) <= 180) {
       t = 600;
       g.isTen = true;
     } else {
       g.isTen = false;
-      const step = r < 3 ? 60 : r < 6 ? 30 : r < 9 ? 15 : r < 13 ? 5 : 1;
-      const far = lerp(150, 330, Math.min(1, r / 12));
+      const step = r < 3 ? 60 : r < 6 ? 30 : r < 9 ? 15 : r < 15 ? 5 : 1; // any minute only from the sixteenth clock
+      const far = lerp(110, 140, Math.min(1, r / 12)); // never more than three hours round
       for (let k = 0; k < 20; k++) {
         const off = (rng() < 0.5 ? -1 : 1) * (40 + rng() * far);
         t = wrap(Math.round((g.m + off) / step) * step);
@@ -136,9 +138,10 @@ export default function create(env) {
       if (step === 30 && t % 60 === 0) t = wrap(t + 30);
     }
     g.target = wrap(t);
-    g.tol = g.round >= 13 ? 1 : 2;
+    g.tol = g.round >= 15 ? 1 : 2;
     g.wait = 0;
-    g.patience = lerp(12, 8, progress());
+    // patience: a base, and a second more for every hour the hands must travel
+    g.patience = lerp(9, 6, progress()) + Math.abs(diff(g.m, g.target)) / 60;
     g.callT = 0.4;
     sfx('ding', { pitch: -5 + g.clock * 2 });
   }
@@ -170,7 +173,7 @@ export default function create(env) {
       env.vibrate?.(30);
       const quick = g.wait < 3;
       pop(g.isTen ? 'Ten o’clock! Tit-trush! +2' : quick ? 'Right on time!' : 'Set!', DX, DY - DR - 50, PAL.magenta, 50);
-      for (let i = 0; i < 5; i++) g.notes.push({ x: BIRD_X - 40, y: BIRD_Y - 300, vx: -60 + i * 40, vy: -120 - i * 20, life: 1.2 });
+      for (let i = 0; i < 5; i++) g.notes.push({ x: BIRD_X - 10, y: BIRD_Y - 290, vx: -60 + i * 40, vy: -120 - i * 20, life: 1.2 });
       g.round++;
       g.nextT = 0.7;
     } else {
@@ -185,6 +188,7 @@ export default function create(env) {
 
   g.update = (dt, input) => {
     if (g.done) return;
+    g.kind = input.kind;
     g.elapsed += dt;
     g.time = Math.max(0, DURATION - g.elapsed);
     if (g.time <= 0) {
@@ -218,11 +222,18 @@ export default function create(env) {
         const dx = p.x - DX;
         const dy = p.y - DY;
         const a = Math.atan2(dx, -dy);
+        if (g.dragA === null) {
+          // grabbing near the short hand turns the hours; anywhere else, the minutes
+          const ha = (wrap(g.m) / 720) * Math.PI * 2;
+          let off = a - ha;
+          off = Math.atan2(Math.sin(off), Math.cos(off));
+          g.dragHour = Math.abs(off) < 0.45 && Math.hypot(dx, dy) < DR * 0.62;
+        }
         if (g.dragA !== null && Math.hypot(dx, dy) > 40) {
           let d = a - g.dragA;
           if (d > Math.PI) d -= Math.PI * 2;
           if (d < -Math.PI) d += Math.PI * 2;
-          turn(d * MIN_PER_RAD);
+          turn(d * (g.dragHour ? 720 / (Math.PI * 2) : MIN_PER_RAD));
           g.dragged += Math.abs(d) * Math.hypot(dx, dy);
         } else if (g.dragA === null) g.dragged = 0;
         g.dragA = a;
@@ -246,9 +257,11 @@ export default function create(env) {
           g.holdDir = 0;
           g.holdT = 0;
         }
-        // ↑ / ↓: a whole hour (keyboard only: a spun stick passes through them)
+        // ↑ / ↓ (keys, D-pad, or a quick flick of the stick): a whole hour.
+        // A spun stick sweeps through up and down smoothly, so only a jump
+        // from the middle counts.
         const y = input.y || 0;
-        if (input.kind === 'keyboard' && Math.abs(y) > 0.85 && Math.abs(g.prevY) < 0.5) turn(y < 0 ? 60 : -60);
+        if (Math.abs(y) > 0.85 && Math.abs(g.prevY) < 0.5 && Math.abs(x) < 0.45 && Math.abs(input.spin || 0) < 0.01) turn(y < 0 ? 60 : -60);
         g.prevY = y;
       }
       // Resting hands settle on the nearest whole minute.
@@ -511,11 +524,12 @@ export default function create(env) {
     c.scale(1 + sq, 1 - sq);
     const flustered = g.sing <= 0 && (g.jam > 0 || g.fluster > 0);
     let drawn = false;
-    if (g.sing > 0) drawn = drawSprite(c, 'sprites.titthrushSing', 0, 0, 0, { h: 300, flip: true });
-    else if (flustered) drawn = drawSprite(c, 'sprites.titthrushFluster', 0, 0, 0, { h: 300, flip: true });
+    if (g.sing > 0) drawn = drawSprite(c, 'sprites.titthrushSing', 0, 0, 0, { h: 300 });
+    else if (flustered) drawn = drawSprite(c, 'sprites.titthrushFluster', 0, 0, 0, { h: 300 });
     if (!drawn) {
       if (flustered && !env.reduceMotion) c.rotate(Math.sin(t * 40) * 0.05); // the stand-in shakes
-      drawBird(c, 'titthrush', { x: 0, y: 0, size: 340, t, flip: true });
+      // never flipped: a mirrored watch face would read backwards
+      drawBird(c, 'titthrush', { x: 0, y: 0, size: 340, t });
     }
     c.restore();
     for (const n of g.notes) {
@@ -564,7 +578,7 @@ export default function create(env) {
       c.strokeStyle = 'rgba(250,244,228,0.9)';
       c.font = '600 34px Fraunces, Georgia, serif';
       c.textAlign = 'center';
-      const msg = 'Turn the hands to match the town clock · press to set';
+      const msg = g.kind === 'pointer' ? 'Drag the hands to match the town clock · tap to set' : g.kind === 'controller' ? 'Spin the stick · flick ↑ ↓ for hours · A to set' : 'Hold ← → to turn · ↑ ↓ for hours · Space to set';
       c.strokeText(msg, W / 2, 866);
       label(c, msg, W / 2, 866, { size: 34, weight: 600 });
       c.restore();

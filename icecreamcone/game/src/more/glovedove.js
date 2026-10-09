@@ -1,15 +1,14 @@
-// The Glove Dove: Squeaky Clean. Its game is ../games/glovedove.js.
+// The Glove Dove: Slippery Dishes. Its game is ../games/glovedove.js.
 export default {
   id: 'glovedove',
   name: 'The Glove Dove',
   object: 'a rubber glove',
-  rhyme: ['A long pink glove with a dove’s pink head', 'Will do the dishes, but first it said:', '“Some soap, some suds, a rub-a-dub,', 'And all of the plates go scrub, scrub, scrub!”'],
-  game: 'Squeaky Clean',
-  goal: 'Stand the Glove Dove on each spot and rub it away. A clean dish goes up on the rack.',
-  tips: ['Rub back and forth, or round and round: spin the stick or drag in circles.', 'Press for a squirt of soap: it scrubs twice as fast for a moment.', 'Too much soap and the sink foams over: watch the gauge.', 'Burnt-on crust is tough. Later dishes turn as they float.'],
-  score: 'dishes',
-  controls: [['Scrub', 'move', 'Rub over the dish to scrub; tap the bottle for soap'], ['Soap', 'action']],
-  pass: 7,
+  rhyme: ['A long pink glove with a dove’s pink head', 'Has washed the plates and the cups, it said.', 'But wet things slip! So, quick as a wink,', 'It flicks them up from the soapy sink.'],
+  game: 'Slippery Dishes',
+  goal: 'Run under the slippery dishes and flick each one up and along into the plate rack.',
+  tips: ['Watch the ring on the counter: that is where the dish comes down.', 'Press just as the dish lands on the glove for a “Hup!”: high, long, and off to the rack.', 'Press too soon and it only hops; don’t press and it bounces once, then slips off.', 'Heavy pans fly lower. A dish that falls back in the sink pops up again.'],
+  score: 'points',
+  pass: 35,
   tune: 'play',
   color: '#e8a0b0',
 };

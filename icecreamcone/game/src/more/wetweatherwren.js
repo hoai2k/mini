@@ -6,10 +6,10 @@ export default {
   rhyme: ['When grey clouds gather, out it goes,', 'A furled black brolly on its toes.', 'Pop! It opens, up it floats,', 'Over the puddles, dry as boats.'],
   game: 'Puddle Hop',
   goal: 'Pop the umbrella open to hop each puddle, and float over the little birds to keep them dry.',
-  tips: ['Press to pop open and hop; hold to float down slowly; let go to drop.', 'Land in a puddle and you splash and stop for a moment.', 'Keep it shut under the shop awnings: an open umbrella catches. A quick tap is a low hop.', 'Snap it open and shut too often and it blows inside out.'],
+  tips: ['Press to pop open and hop; hold to float down slowly; let go to drop.', 'Land in a puddle and you splash and stop for a moment.', 'Keep it shut under the shop awnings: an open umbrella catches on them.', 'Float over a little bird with the umbrella open to keep it dry.'],
   score: 'points',
   controls: [['Open the umbrella, hold to float', 'action']],
-  pass: 13,
+  pass: 15,
   tune: 'menu',
   color: '#7f93a8',
 };

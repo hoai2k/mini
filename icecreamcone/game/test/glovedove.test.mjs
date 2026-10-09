@@ -5,128 +5,156 @@ import entry from '../src/more/glovedove.js';
 import { run, env, blank } from './harness.mjs';
 
 const pass = entry.pass;
+const RACK_X0 = 1255;
 
-// A scrubber: goes to the nearest dirty spot and rubs back and forth over it.
-// `speed` is how hard it pushes the stick; `rub` how many frames each stroke
-// lasts; it squirts soap on tough grime while the foam is low (`soapy`).
-function scrubber({ speed = 1, rub = 5, soapy = 0.5, seed = 1 } = {}) {
+// The dish to deal with next: the one that comes down onto the glove's
+// height soonest, unless it is already on its way into the rack.
+function next(game) {
+  let best = null;
+  for (const d of game.dishes) {
+    const l = game.landing(d);
+    if (!l || l.x > RACK_X0 - 30 || l.x < 300) continue;
+    if (!best || l.t < best.l.t) best = { d, l };
+  }
+  return best;
+}
+
+// A juggler: runs under the next dish (standing `aim` to its left, so the
+// dish lands on its far side and flies further), and presses `lead` seconds
+// before it lands (give or take `slop`). `speed` is how hard it pushes.
+function juggler({ speed = 1, aim = 40, lead = 0.04, slop = 0, seed = 1 } = {}) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-  let k = 0;
+  let want = lead;
+  let target = null;
   let pressed = false;
   return (game) => {
-    k++;
-    if (game.phase !== 'wash') return {};
-    const spots = game.dirty();
-    if (!spots.length) return {};
-    const at = spots.map((s) => ({ s, ...game.spotAt(s) })).sort((a, b) => Math.hypot(a.x - game.x, a.y - game.y) - Math.hypot(b.x - game.x, b.y - game.y))[0];
-    const dx = at.x - game.x;
-    const dy = at.y - game.y;
-    const d = Math.hypot(dx, dy);
-    let action = false;
-    if (soapy && !pressed && game.soap <= 0 && game.foam < soapy && at.s.grime === 4 && rnd() < 0.2) action = true;
+    const n = next(game);
+    if (!n) {
+      pressed = false;
+      return {};
+    }
+    if (n.d !== target || n.d.flicks !== target.flicks0) {
+      target = n.d;
+      target.flicks0 = n.d.flicks;
+      want = Math.max(0, lead + (rnd() - 0.5) * 2 * slop);
+    }
+    const dx = n.l.x - aim - game.catchX();
+    const x = Math.max(-1, Math.min(1, dx / 30)) * speed;
+    const action = n.l.t <= want && Math.abs(n.l.x - game.catchX()) < 80 && !pressed;
     pressed = action;
-    if (d > 26) return { x: (dx / d) * speed, y: (dy / d) * speed, action };
-    const dir = Math.floor(k / rub) % 2 ? 1 : -1;
-    return { x: dir * speed, y: (dy / 40) * speed, action };
+    return { x, action };
   };
 }
 
-// No aiming: the stick pushed about at random.
-const wiggler = (seed = 1, mash = 0) => {
-  let r = seed * 48271;
-  const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
-  let x = 0;
-  let y = 0;
+// Runs under the next dish and mashes the button.
+const masher = (every = 4) => {
   let k = 0;
-  return () => {
-    if (k++ % 15 === 0) {
-      x = rnd() * 2 - 1;
-      y = rnd() * 2 - 1;
-    }
-    return { x, y, action: mash ? k % mash < mash / 2 : false };
+  return (game) => {
+    const n = next(game);
+    const dx = n ? n.l.x - 40 - game.catchX() : 0;
+    return { x: Math.max(-1, Math.min(1, dx / 30)), action: k++ % every < every / 2 };
   };
 };
-// Spinning the stick round and round without steering.
-const spinner = () => {
-  let k = 0;
-  return () => {
-    k++;
-    return { x: Math.cos(k * 0.2), y: Math.sin(k * 0.2), spin: 0.2 };
-  };
+// Runs under the next dish and never presses: the dishes only bounce.
+const bouncer = () => (game) => {
+  const n = next(game);
+  const dx = n ? n.l.x - 40 - game.catchX() : 0;
+  return { x: Math.max(-1, Math.min(1, dx / 30)) };
 };
 
 const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+const seeds = [1, 2, 3, 4, 5, 6];
 
-test('glovedove: a beginner opens the next page, a good scrubber more; wiggling, spinning and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: scrubber({ speed: 0.55, rub: 9, soapy: 0, seed }) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: scrubber({ speed: 1, rub: 8, soapy: 0.55, seed }) }).game.score);
-  const wiggle = [1, 2, 3].map((seed) => run(create, { seed, bot: wiggler(seed) }).game.score);
-  const mash = [1, 2, 3].map((seed) => run(create, { seed, bot: wiggler(seed, 8) }).game.score);
-  const spin = run(create, { seed: 1, bot: spinner() }).game.score;
+test('glovedove: a beginner opens the next page, a good juggler more; mashing, bouncing and idling do not', () => {
+  const beginner = seeds.map((seed) => run(create, { seed, bot: juggler({ speed: 0.65, aim: 20, lead: 0.07, slop: 0.08, seed }) }).game.score);
+  const good = seeds.map((seed) => run(create, { seed, bot: juggler({ speed: 1, aim: 45, lead: 0.04, slop: 0.02, seed }) }).game.score);
+  const mash = [2, 4, 8, 16].flatMap((every) => [1, 2].map((seed) => run(create, { seed, bot: masher(every) }).game.score));
+  const bounce = [1, 2].map((seed) => run(create, { seed, bot: bouncer() }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('glovedove beginner', beginner, 'good', good, 'wiggle', wiggle, 'mash', mash, 'spin', spin, 'idle', idle, 'pass', pass);
+  console.log('glovedove beginner', beginner, 'good', good, 'mash', mash, 'bounce', bounce, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
   assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
-  assert.ok(mean(good) > mean(beginner) + 1.5, `good ${good}`);
-  assert.ok(Math.max(...wiggle, ...mash, spin) < pass, `aimless play must not open the next page: ${wiggle} ${mash} ${spin}`);
+  assert.ok(mean(good) > mean(beginner) + 8, `good ${good}`);
+  assert.ok(Math.max(...mash, ...bounce) < pass, `mashing and bouncing must not open the next page: ${mash} ${bounce}`);
 });
 
-test('glovedove: rubbing over a spot wears it away; standing still does not', () => {
-  const game = create(env(1));
-  for (let i = 0; i < 40; i++) game.update(1 / 60, blank());
-  assert.equal(game.phase, 'wash');
-  const s = game.dish.spots[0];
-  const at = game.spotAt(s);
-  game.x = at.x;
-  game.y = at.y;
-  for (let i = 0; i < 30; i++) game.update(1 / 60, blank());
-  assert.equal(s.dirt, 1, 'still');
-  for (let i = 0; i < 20; i++) game.update(1 / 60, blank({ x: i % 6 < 3 ? 1 : -1 }));
-  assert.ok(s.dirt < 1 && s.dirt >= 0, `dirt ${s.dirt}`);
-});
+// A dish falling straight onto the Dove's fingers.
+function dropOn(game, off = 30) {
+  game.dishes = [{ kind: 0, x: game.catchX() + off, y: 300, vx: 0, vy: 0, spin: 0, a: 0, flicks: 0 }];
+  game.spawnT = 99;
+  return game.dishes[0];
+}
+const until = (game, d, input = () => blank()) => {
+  for (let i = 0; i < 120 && d.vy >= 0 && game.dishes.includes(d); i++) game.update(1 / 60, input(game.landing(d)));
+};
 
-test('glovedove: a clean dish goes up on the rack and scores', () => {
-  const game = create(env(1));
-  for (let i = 0; i < 40; i++) game.update(1 / 60, blank());
-  for (const s of game.dish.spots) s.dirt = 0;
-  game.update(1 / 60, blank());
-  assert.equal(game.score, 1);
-  assert.equal(game.phase, 'rack');
-  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
-  assert.equal(game.phase, 'wash');
-  assert.ok(game.dirty().length >= 2);
-});
-
-test('glovedove: soap scrubs twice as fast; too much foams over and stops the scrubbing', () => {
-  const rubFor = (soap) => {
-    const game = create(env(2));
-    for (let i = 0; i < 40; i++) game.update(1 / 60, blank());
-    const s = game.dish.spots[0];
-    s.r = 40;
-    s.grime = 4;
-    if (soap) game.update(1 / 60, blank({ action: true, actionPressed: true }));
-    const at = game.spotAt(s);
-    game.x = at.x;
-    game.y = at.y;
-    for (let i = 0; i < 30; i++) game.update(1 / 60, blank({ x: i % 6 < 3 ? 1 : -1 }));
-    return 1 - s.dirt;
+test('glovedove: pressed just as it lands, a dish flies high and long (Hup!); too soon, feebly; not at all, it bounces', () => {
+  const flick = (lead) => {
+    const game = create(env(1));
+    game.update(1 / 60, blank());
+    const d = dropOn(game);
+    let done = false;
+    until(game, d, (l) => {
+      const press = !done && l && l.t <= lead;
+      if (press) done = true;
+      return blank({ action: press, actionPressed: press });
+    });
+    return { game, d };
   };
-  const plain = rubFor(false);
-  const soapy = rubFor(true);
-  assert.ok(soapy > plain * 1.8, `plain ${plain} soapy ${soapy}`);
-  const game = create(env(1));
-  for (let i = 0; i < 3; i++) game.update(1 / 60, blank({ action: true, actionPressed: true }));
-  assert.equal(game.overflows, 1);
-  assert.ok(game.mop > 0);
+  const hup = flick(0.03);
+  assert.equal(hup.game.hups, 1);
+  assert.equal(hup.game.score, 1);
+  const soon = flick(0.15);
+  assert.equal(soon.game.hups, 0);
+  assert.ok(-soon.d.vy < -hup.d.vy && soon.d.vx < hup.d.vx, 'a feeble flick');
+  const none = flick(-1);
+  assert.equal(none.game.flicks, 0);
+  assert.equal(none.game.bounces, 1);
+  assert.ok(-none.d.vy < -soon.d.vy);
 });
 
-test('glovedove: with a finger, only a tap on the bottle squirts soap', () => {
+test('glovedove: a dish into the rack is put away; one on the counter smashes, with no points lost', () => {
   const game = create(env(1));
-  const touch = (x, y) => blank({ kind: 'pointer', action: true, actionPressed: true, pointer: { active: true, x, y, down: true, pressed: true } });
-  game.update(1 / 60, touch(800, 500));
-  assert.equal(game.squirts, 0);
   game.update(1 / 60, blank());
-  game.update(1 / 60, touch(360, 250));
-  assert.equal(game.squirts, 1);
+  game.spawnT = 99;
+  game.score = 5;
+  game.dishes = [{ kind: 0, x: 1400, y: 500, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }, { kind: 1, x: 800, y: 600, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }];
+  game.x = 400;
+  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
+  assert.equal(game.put, 1);
+  assert.equal(game.smashed, 1);
+  assert.equal(game.score, 8);
+});
+
+test('glovedove: a dish that drops back into the sink pops up again', () => {
+  const game = create(env(1));
+  game.update(1 / 60, blank());
+  game.dishes = [{ kind: 0, x: 200, y: 500, vx: 0, vy: 100, spin: 0, a: 0, flicks: 0 }];
+  game.spawnT = 5;
+  for (let i = 0; i < 30; i++) game.update(1 / 60, blank());
+  assert.equal(game.dishes.length, 0);
+  assert.equal(game.smashed, 0);
+  for (let i = 0; i < 60; i++) game.update(1 / 60, blank());
+  assert.equal(game.dishes.length, 1);
+});
+
+test('glovedove: unflicked, a dish bounces once and then slips off; a press that catches nothing fumbles', () => {
+  const game = create(env(1));
+  game.update(1 / 60, blank());
+  const d = dropOn(game, 0);
+  for (let i = 0; i < 200 && !d.slipped; i++) {
+    game.x += d.x - game.catchX(); // keep under it
+    game.update(1 / 60, blank());
+  }
+  assert.equal(game.bounces, 1);
+  assert.ok(d.slipped);
+  for (let i = 0; i < 90; i++) game.update(1 / 60, blank());
+  assert.equal(game.smashed, 1);
+  // a press with no dish coming: the fingers fumble a while
+  game.dishes = [];
+  game.update(1 / 60, blank({ action: true, actionPressed: true }));
+  for (let i = 0; i < 15; i++) game.update(1 / 60, blank());
+  assert.equal(game.fumbles, 1);
+  assert.ok(game.rest > 0.6);
 });
