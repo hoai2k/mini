@@ -14,12 +14,13 @@
 // up again later. More dishes come, faster, and heavy pans join in.
 // Score: points (3 for each dish put away, 1 for each "Hup!").
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
   'sprites.dishes': [3, 2], // plate, bowl, cup, saucepan, frying pan, pie dish: side views, handles to the right
   'sprites.glovedoveToss': [2, 1], // ready to catch (fingers up), flicking a dish up
+  'sprites.dishShards': [3, 2], // each dish smashed, in the dishes' order (requested, IC-M11g)
   'sprites.glovedovePoses': [2, 1], // cheering (a dish put away), dismayed (a dish smashed)
 });
 
@@ -30,14 +31,27 @@ const DURATION = 45;
 // wires' tops at about 304 to 380.
 const COUNTER = 540; // where the Dove's feet stand, near the front of the counter top
 const SIZE = 290;
-// From the painting (subjects.js PAINTED.glovedove): the long glove is the
-// Dove's neck, held level behind its head, its top about 355 units above the
-// feet, running from 34 units in front of the feet to 190 behind. Dishes
-// bounce off the top of it. The Dove always faces left, towards the sink,
-// with the glove reaching back towards the rack.
+// From the art: the long glove is the Dove's neck, held level behind its head
+// (the portrait, subjects/glovedove.png), and bracing to catch it lowers the
+// glove to a level tray (sprites.glovedoveToss, cell 0) whose top is 252
+// units above the feet, its middle 84 units behind them (measured on the
+// sheet: glove top at 0.38 of the cell, feet at 0.979, middle at x 0.7). The
+// Dove braces whenever a dish is about to come down on it, so dishes meet the
+// glove at the braced height. It always faces left, towards the sink, with
+// the glove reaching back towards the rack. The pose sheets are painted at the
+// portrait's framing (1024 px = 420 units, feet centred): they are drawn whole
+// at the portrait's scale, standing on their measured feet.
 const K_SIZE = SIZE / 400;
-const HANDS = COUNTER - Math.round(355 * K_SIZE); // where a falling dish meets the glove
-const ARM_C = Math.round(78 * K_SIZE); // the middle of the glove, behind the Dove's feet
+const HANDS = COUNTER - Math.round(252 * K_SIZE); // where a falling dish meets the glove
+const ARM_C = Math.round(84 * K_SIZE); // the middle of the glove, behind the Dove's feet
+const CELL = 420 * K_SIZE; // a pose cell, drawn at the portrait's scale
+// [sheet, cell, feet down the cell, feet across the cell]
+const POSE = {
+  brace: ['sprites.glovedoveToss', 0, 0.979, 0.51],
+  flick: ['sprites.glovedoveToss', 1, 0.979, 0.495],
+  cheer: ['sprites.glovedovePoses', 0, 1.0, 0.46],
+  dismay: ['sprites.glovedovePoses', 1, 1.0, 0.51],
+};
 const SINK_X1 = 360; // the sink, left of here
 const SINK_Y = 390; // its suds
 const RACK_X0 = 1250; // the plate rack
@@ -86,6 +100,7 @@ export default function create(env) {
     dishes: [], // in the air: { kind, x, y, vx, vy, spin, a, flicks }
     racked: [], // kinds put away, for the picture
     shards: [],
+    heaps: [], // smashed dishes lying on the counter for a moment
     pops: [],
     spawnT: 0.8,
     queue: 0, // dishes that fell back into the sink, to pop up again
@@ -114,6 +129,13 @@ export default function create(env) {
 
   // When (seconds) and where (x) a falling dish next reaches the fingers, or null.
   g.catchX = () => g.x + ARM_C;
+  // A dish is about to come down on the glove: brace for it.
+  g.bracing = () =>
+    g.dishes.some((d) => {
+      if (d.slipped || d.vy < 0) return false;
+      const l = g.landing(d);
+      return l && l.t < 0.3 && Math.abs(l.x - g.catchX()) < REACH + KINDS[d.kind].half * 0.4;
+    });
   g.landing = (d) => {
     const dy = HANDS - d.y;
     const disc = d.vy * d.vy + 2 * GRAV * dy;
@@ -131,6 +153,7 @@ export default function create(env) {
     env.vibrate?.(70);
     pop('Crash!', x, y - 70, PAL.brick, 46);
     const K = KINDS[d.kind];
+    g.heaps.push({ x, y, kind: d.kind, life: 1.4 });
     for (let i = 0; i < 9; i++) g.shards.push({ x, y: y - 6, vx: (rng() - 0.5) * 520, vy: -200 - rng() * 380, a: rng() * 6, va: (rng() - 0.5) * 16, life: 1 + rng() * 0.5, color: i % 2 ? K.face : K.rim });
   }
 
@@ -282,6 +305,8 @@ export default function create(env) {
       s.life -= dt;
     }
     g.shards = g.shards.filter((s) => s.life > 0);
+    for (const h of g.heaps) h.life -= dt;
+    g.heaps = g.heaps.filter((h) => h.life > 0);
     for (const p of g.pops) {
       p.life -= dt;
       p.y -= 40 * dt;
@@ -453,28 +478,20 @@ export default function create(env) {
     c.save();
     c.translate(x, COUNTER - run);
     c.rotate(clamp(g.vx / 9000, -0.1, 0.1));
+    const pose = g.dismay > 0 ? 'dismay' : g.cheer > 0 ? 'cheer' : g.flick > 0 ? 'flick' : g.grip > 0 || g.bracing() ? 'brace' : null;
     let drawn = false;
-    if (g.dismay > 0) drawn = drawSprite(c, 'sprites.glovedovePoses', 1, 0, 0, { h: SIZE * 0.95, flip });
-    else if (g.cheer > 0) drawn = drawSprite(c, 'sprites.glovedovePoses', 0, 0, 0, { h: SIZE * 0.95, flip });
-    else if (g.flick > 0 || g.grip > 0) drawn = drawSprite(c, 'sprites.glovedoveToss', g.flick > 0 ? 1 : 0, 0, 0, { h: SIZE, flip });
+    if (pose) {
+      const [key, i, fy, fx] = POSE[pose];
+      drawn = drawSprite(c, key, i, (0.5 - fx) * CELL, (1 - fy) * CELL, { w: CELL, whole: true, flip });
+    }
     if (!drawn) {
       // the portrait tips its glove up to flick, braces to catch, hops to
       // cheer, droops in dismay
       if (g.flick > 0) c.rotate(-0.14 * (g.flick / 0.25));
-      else if (g.grip > 0) c.scale(1.03, 0.97);
+      else if (pose === 'brace') c.scale(1.03, 0.97);
       if (g.cheer > 0 && !env.reduceMotion) c.translate(0, -Math.abs(Math.sin(g.cheer * 12)) * 22);
       if (g.dismay > 0) c.scale(1.06, 0.9);
       drawBird(c, 'glovedove', { x: 0, y: 0, size: SIZE, t, flip });
-      // the glove ready: little pink marks springing up off its top
-      if (g.grip > 0) {
-        for (const dx of [-40, 0, 40]) {
-          c.beginPath();
-          c.moveTo(ARM_C + dx, -(COUNTER - HANDS) - 12);
-          c.lineTo(ARM_C + dx * 1.3, -(COUNTER - HANDS) - 40);
-          ink(c, 4, PAL.magenta);
-          c.stroke();
-        }
-      }
     }
     c.restore();
   }
@@ -485,6 +502,8 @@ export default function create(env) {
     for (let i = Math.max(0, n - slots); i < n; i++) {
       const K = KINDS[g.racked[i]];
       const x = RACK_X0 + 14 + (i % slots) * ((RACK_X1 - RACK_X0 - 28) / (slots - 1));
+      // a dish stood on its edge in the rack: its side view, turned upright
+      if (drawSprite(c, 'sprites.dishes', g.racked[i], x, COUNTER - 16 - K.half, { w: K.half * 2, anchor: 'center', rot: -Math.PI / 2 })) continue;
       const h = K.half * 1.5;
       c.save();
       c.translate(x, COUNTER - 16);
@@ -507,7 +526,13 @@ export default function create(env) {
       dishShape(c, d.kind);
       c.restore();
     }
-    for (const s of g.shards) {
+    // a smashed dish: its painted heap, or (until that arrives) flying bits
+    const painted = !!spriteCell('sprites.dishShards', 0);
+    for (const h of g.heaps) {
+      if (!painted) break;
+      drawSprite(c, 'sprites.dishShards', h.kind, h.x, h.y + 6, { w: KINDS[h.kind].half * 2.4, alpha: clamp(h.life * 1.5, 0, 1) });
+    }
+    for (const s of painted ? [] : g.shards) {
       c.save();
       c.globalAlpha = clamp(s.life * 2, 0, 1);
       c.translate(s.x, s.y);

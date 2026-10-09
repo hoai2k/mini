@@ -142,9 +142,9 @@ test('titthrush: with a finger, dragging round the face turns the hands and a ta
   const R = 200;
   for (let i = 0; i <= 30; i++) {
     const a = (i / 30) * (Math.PI / 2);
-    game.update(1 / 60, touch(640 + Math.sin(a) * R, 470 - Math.cos(a) * R, true, i === 0));
+    game.update(1 / 60, touch(660 + Math.sin(a) * R, 470 - Math.cos(a) * R, true, i === 0));
   }
-  game.update(1 / 60, touch(640 + R, 470, false, false, true));
+  game.update(1 / 60, touch(660 + R, 470, false, false, true));
   const turned = (((game.m - m0) % 720) + 720) % 720;
   assert.ok(Math.abs(turned - 15) < 1.5, `turned ${turned}`);
   assert.equal(game.wrong, 0, 'a drag does not set');
@@ -168,7 +168,7 @@ test('titthrush: an hour at a time on every device', () => {
   game.m = 600;
   m0 = game.m;
   const touch = (a, down, pressed = false, released = false) =>
-    blank({ kind: 'pointer', action: down, actionPressed: pressed, actionReleased: released, pointer: { active: true, x: 640 + Math.sin(a) * 120, y: 470 - Math.cos(a) * 120, down, pressed, released } });
+    blank({ kind: 'pointer', action: down, actionPressed: pressed, actionReleased: released, pointer: { active: true, x: 660 + Math.sin(a) * 120, y: 470 - Math.cos(a) * 120, down, pressed, released } });
   const from = (10 / 12) * Math.PI * 2;
   for (let i = 0; i <= 20; i++) game.update(1 / 60, touch(from + (i / 20) * (Math.PI / 6), true, i === 0));
   game.update(1 / 60, touch(from + Math.PI / 6, false, false, true));

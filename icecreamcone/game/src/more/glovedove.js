@@ -9,7 +9,7 @@ export default {
   tips: ['Watch the ring on the counter: that is where the dish comes down.', 'Press just as the dish lands on the glove for a “Hup!”: high, long, and off to the rack.', 'Press too soon and it only hops; don’t press and it bounces once, then slips off.', 'Heavy pans fly lower. A dish that falls back in the sink pops up again.'],
   score: 'points',
   controls: [['Run along the counter', 'move', 'Drag to run under the dishes; tap as one lands to flick it'], ['Flick a dish up (Hup!)', 'action']],
-  pass: 35,
+  pass: 30,
   tune: 'play',
   color: '#e8a0b0',
 };

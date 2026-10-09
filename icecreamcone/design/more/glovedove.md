@@ -116,3 +116,21 @@ bots' scores hardly moved (beginner 51 to 68, good 76 to 87, mashing 4 to 27,
 pass still 35). The hint sits on the tiles under the window. Still drawn in
 code: the dishes (IC-M11b) and the Dove's catch, flick, cheer and dismay
 poses (IC-M11e, IC-M11f), all requested.
+
+The Dove's sheets and the dishes have arrived (IC-M11b, IC-M11e, IC-M11f).
+The pose sheets are painted at the portrait's framing, so each is drawn whole
+at the portrait's scale and stood on its measured feet (brace and flick 0.979
+of the cell down, cheer and dismay at the cell's foot; the cheer's feet sit at
+0.46 across). The braced pose lowers the glove to a level tray 252 painting
+units above the feet with its middle 84 units behind them, measured on the
+sheet, so dishes now meet the glove there (y 357; the portrait's glove was
+346 units up) and the Dove braces automatically whenever a dish is about to
+come down on its glove, then flicks, cheers or droops. The code's pink "ready"
+marks and the portrait's tilts are gone. The dishes fly as painted, and stand
+up in the painted rack as their side views turned upright. With the glove
+lower the beginner bot scores 37 to 70 and the good one 66 to 79; mashing
+stays at most 20, so the pass mark is now 30 (it was 35).
+
+Requested (IC-M11g, `sprites.dishShards`): a smashed heap for each dish, left
+on the counter for a moment after a crash. Until it arrives the game throws
+little triangles of the dish's colours, the only thing still drawn in code.

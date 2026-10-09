@@ -22,17 +22,30 @@ Object.assign(SHEETS, {
   'sprites.watchFace': [1, 1], // the big gold watch face, no hands
   'sprites.townClocks': [2, 2], // church tower clock, station clock, town hall clock, cuckoo clock: faces without hands
   'sprites.titthrushSing': [1, 1], // the Tit Trush with its beak open, singing
+  'sprites.watchCrown': [1, 1], // the watch's winding crown and ring bow, on top of the big face
   'sprites.titthrushFluster': [1, 1], // flustered: a wrong setting, or a clock gave up
 });
 
 const DURATION = 50;
-const DX = 640; // the big watch face
+const DX = 660; // the big watch face
 const DY = 470;
-const DR = 280;
+const DR = 250; // the watch face's radius (to the outer edge of its ring of minute ticks)
+// The delivered watch face (sprites.watchFace, 1024 px): the face's tick ring
+// is a circle of radius 0.36 of the image round (0.5, 0.495); the gold case
+// reaches 0.464 of the image round the middle.
+const FACE_W = DR / 0.36; // how wide to draw the whole image
+const FACE_DY = (0.5 - 0.495) * FACE_W; // the image's middle sits this far below the face's
+const CASE_R = 0.464 * FACE_W;
+const CASE_TOP = DY + FACE_DY - FACE_W / 2 + 0.028 * FACE_W; // the top of the gold case
 const TX = 1180; // the town clock
 const TY = 330;
 const TR = 130;
 const BIRD_X = 180;
+const BIRD_SIZE = 340;
+// The singing and flustered variants are painted at the portrait's framing
+// (1024 px = 420 units, the bird centred): drawn whole at the portrait's
+// scale, standing on their feet (measured: 0.98 and 0.979 of the image down).
+const BIRD_CELL = (420 * BIRD_SIZE) / 400;
 const BIRD_Y = 840;
 const JAM = 1; // seconds the crown sticks after a wrong setting
 const MIN_PER_RAD = 60 / (Math.PI * 2); // one turn of the stick is an hour
@@ -172,7 +185,7 @@ export default function create(env) {
       sfx('right');
       env.vibrate?.(30);
       const quick = g.wait < 3;
-      pop(g.isTen ? 'Ten o’clock! Tit-trush! +2' : quick ? 'Right on time!' : 'Set!', DX, DY - DR - 50, PAL.magenta, 50);
+      pop(g.isTen ? 'Ten o’clock! Tit-trush! +2' : quick ? 'Right on time!' : 'Set!', DX, CASE_TOP - 100, PAL.magenta, 50);
       for (let i = 0; i < 5; i++) g.notes.push({ x: BIRD_X - 10, y: BIRD_Y - 290, vx: -60 + i * 40, vy: -120 - i * 20, life: 1.2 });
       g.round++;
       g.nextT = 0.7;
@@ -182,7 +195,7 @@ export default function create(env) {
       g.shake = 0.4;
       sfx('wrong');
       env.vibrate?.(60);
-      pop(off > 60 ? 'Wrong hour!' : 'Not quite!', DX, DY + DR + 40, PAL.brick, 44);
+      pop(off > 60 ? 'Wrong hour!' : 'Not quite!', DX, DY + CASE_R + 30, PAL.brick, 44);
     }
   }
 
@@ -393,20 +406,23 @@ export default function create(env) {
   function drawWatch(c, t) {
     const sh = g.shake > 0 && !env.reduceMotion ? Math.sin(g.shake * 60) * 6 : 0;
     const x = DX + sh;
-    // the chain and the crown on top
-    c.beginPath();
-    for (let i = 0; i < 9; i++) {
-      c.moveTo(x + 18 + i * 22, DY - DR - 50 - Math.sin(i * 0.5) * 30 + 8);
-      c.ellipse(x + 10 + i * 22, DY - DR - 50 - Math.sin(i * 0.5) * 30, 11, 7, i * 0.4, 0, Math.PI * 2);
+    // the crown on top of the case (it glows brick red while jammed)
+    if (!drawSprite(c, 'sprites.watchCrown', 0, x, CASE_TOP + 12, { h: 96 })) {
+      poly(c, [[x - 26, CASE_TOP - 62], [x + 26, CASE_TOP - 62], [x + 26, CASE_TOP + 8], [x - 26, CASE_TOP + 8]], 3, 1);
+      wash(c, '#d8b040');
+      ink(c, 2.2);
+      hatch(c, x - 26, CASE_TOP - 62, x + 26, CASE_TOP + 8, 6, 0.4, 0);
     }
-    ink(c, 3, '#a88a30');
-    c.stroke();
-    poly(c, [[x - 26, DY - DR - 60], [x + 26, DY - DR - 60], [x + 26, DY - DR + 6], [x - 26, DY - DR + 6]], 3, 1);
-    wash(c, g.jam > 0 ? PAL.brick : '#d8b040');
-    ink(c, 2.2);
-    hatch(c, x - 26, DY - DR - 60, x + 26, DY - DR + 6, 6, 0.4, 0);
-    // (the white face is centred in the image, 80% of its width)
-    if (!drawSprite(c, 'sprites.watchFace', 0, x, DY, { w: (DR * 2) / 0.8, anchor: 'center', whole: true })) {
+    if (g.jam > 0) {
+      c.save();
+      c.globalAlpha = 0.45 * Math.min(1, g.jam * 2);
+      c.fillStyle = PAL.brick;
+      c.beginPath();
+      c.arc(x, CASE_TOP - 28, 40, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+    }
+    if (!drawSprite(c, 'sprites.watchFace', 0, x, DY + FACE_DY, { w: FACE_W, anchor: 'center', whole: true })) {
       c.beginPath();
       c.arc(x, DY, DR + 20, 0, Math.PI * 2);
       c.fillStyle = '#d8b040';
@@ -524,12 +540,12 @@ export default function create(env) {
     c.scale(1 + sq, 1 - sq);
     const flustered = g.sing <= 0 && (g.jam > 0 || g.fluster > 0);
     let drawn = false;
-    if (g.sing > 0) drawn = drawSprite(c, 'sprites.titthrushSing', 0, 0, 0, { h: 300 });
-    else if (flustered) drawn = drawSprite(c, 'sprites.titthrushFluster', 0, 0, 0, { h: 300 });
+    if (g.sing > 0) drawn = drawSprite(c, 'sprites.titthrushSing', 0, 0, (1 - 0.98) * BIRD_CELL, { w: BIRD_CELL, whole: true });
+    else if (flustered) drawn = drawSprite(c, 'sprites.titthrushFluster', 0, 0, (1 - 0.979) * BIRD_CELL, { w: BIRD_CELL, whole: true });
     if (!drawn) {
       if (flustered && !env.reduceMotion) c.rotate(Math.sin(t * 40) * 0.05); // the stand-in shakes
       // never flipped: a mirrored watch face would read backwards
-      drawBird(c, 'titthrush', { x: 0, y: 0, size: 340, t });
+      drawBird(c, 'titthrush', { x: 0, y: 0, size: BIRD_SIZE, t });
     }
     c.restore();
     for (const n of g.notes) {

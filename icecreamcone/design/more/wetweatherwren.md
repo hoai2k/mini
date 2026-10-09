@@ -113,3 +113,20 @@ mirrored so the seam matches): the flagstones move under the Wren with the
 puddles. The kerb, road and houses stay still. Still drawn in code: the
 puddles and awnings (IC-M10c) and the Wren's open, walking and drenched poses
 (IC-M10b, IC-M10d, IC-M10e), all requested.
+
+All the Wren's sheets have now arrived (IC-M10b open poses, IC-M10c puddles
+and awnings, IC-M10d drenched, IC-M10e walking). They are painted at the
+portrait's framing, so each cell is drawn whole at the portrait's scale and
+stood on its measured feet (floating 0.951 of the cell down, walking open
+0.985, inside out 0.938, walking 0.936, drenched 0.93, flipped to face the
+way it walks); no code canopy or clipped portrait is drawn any more. The game
+now uses the art's measurements: the open Wren is 225 px tall with a canopy
+106 px wide each side (it was 285 and 140 for the code canopy), and the rain
+stops at the painted canopy's dome. Because the open canopy is now no taller
+than the furled bird, an open umbrella snags on an awning whatever its height
+(as the rules always said), and a furled one only if it hops too high. The
+code drips stop while the drenched painting (which has its own) shows. The
+puddles and awnings are drawn from IC-M10c, the awnings over the poles the
+game draws. Bots unchanged: beginner 18 to 29, good 23 to 30, mashing at
+most 12, pass 15. Nothing the Wren shows is drawn in code any more apart from
+the rain, gusts, ripples and splash drops, which are effects.

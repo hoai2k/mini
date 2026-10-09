@@ -111,3 +111,20 @@ the big watch face (IC-M12b), the town clocks and their frames (IC-M12c, so
 the church tower and cuckoo house stand-ins float over the painted houses
 until it arrives), and the singing and flustered poses (IC-M12d, IC-M12e),
 all requested.
+
+The watch face, the town clocks and the Trush's singing and flustered poses
+have arrived (IC-M12b to IC-M12e). Measured on the art: the watch face's tick
+ring is a circle of radius 0.36 of the image round (0.5, 0.495) and its gold
+case reaches 0.464 (its top at 0.028), so the face is drawn 694 px wide with
+the game's hands (radius 250, the ring) exactly over its numbers; the watch
+moved to x 660 so the case clears the Trush. The four town clocks' dials are
+each centred in their cells (centre dot at 0.5, 0.5) with a radius of 0.25 of
+the cell, which is how the game already drew them. The singing and flustered
+poses are drawn whole at the portrait's scale on their measured feet (0.98 and
+0.979 of the image down), unflipped like the portrait. The code-drawn chain
+loops are gone (the Trush has its own chain).
+
+Requested (IC-M12f, `sprites.watchCrown`): the winding crown and ring bow
+that sit on top of the big watch's case, which the face painting leaves off.
+Until it arrives the game draws a ribbed gold box there, the only part of the
+watch still drawn in code.

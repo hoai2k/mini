@@ -31,10 +31,23 @@ const G_OPEN = 1500;
 const G_SHUT = 3400;
 const FALL_OPEN = 170; // floating down under the canopy
 const TOP_SHUT = Math.round((383 * SIZE) / 400); // how tall the Wren stands, furled (the painting's top)
-const TOP_OPEN = 285; // and with its canopy open
+// The pose sheets (wren-poses, wren-walk, wren-splash) are painted at the
+// portrait's framing (1024 px = 420 units): each cell is drawn whole at the
+// portrait's scale, standing on its feet, measured on the sheets as
+// [feet down the cell, feet (or shaft) across it].
+const CELL = (420 * SIZE) / 400;
+const FEET = {
+  float: [0.951, 0.49],
+  openWalk: [0.985, 0.47],
+  insideOut: [0.938, 0.49],
+  walk: [0.936, 0.5],
+  splash: [0.93, 0.53],
+};
+const TOP_OPEN = Math.round((0.951 - 0.02) * CELL); // and with its canopy open (the head on top)
 const AWN_H = 330; // an awning's lower edge, above the pavement
 const FOOT = 22; // how much of a puddle's rim is safe to stand on
-const CANOPY_R = 140;
+const CANOPY_R = Math.round(0.44 * CELL); // the open canopy's half-width on the sheet
+const CANOPY_TOP = Math.round((0.951 - 0.2) * CELL); // its dome, above the feet
 const PAVE_Y = 728; // the near pavement's kerb in the delivered scene (874 of 1080)
 
 export default function create(env) {
@@ -235,7 +248,8 @@ export default function create(env) {
     for (const a of g.awnings) {
       if (a.hit) continue;
       const reach = g.open ? CANOPY_R * 0.8 : 30;
-      if (g.d + reach > a.x0 && g.d - reach < a.x1 && top() > AWN_H) snag(a);
+      // an open canopy is too wide to pass under one; a furled hop too high bumps it
+      if (g.d + reach > a.x0 && g.d - reach < a.x1 && (g.open || top() > AWN_H)) snag(a);
     }
     // Little birds: the Wren's open canopy passing over keeps one dry.
     for (const c of g.chicks) {
@@ -546,9 +560,11 @@ export default function create(env) {
     c.rotate(g.tilt);
     let drawn = false;
     const soaked = g.wet > 1.2 && g.grounded && pose < 0; // just splashed: standing in the puddle, drenched
-    if (pose >= 0) drawn = drawSprite(c, 'sprites.wrenPoses', pose, 0, 0, { h: TOP_OPEN, flip: true });
-    else if (soaked) drawn = drawSprite(c, 'sprites.wrenSplash', 0, 0, 0, { h: TOP_SHUT, flip: true });
-    else drawn = drawSprite(c, 'sprites.wrenWalk', Math.floor(g.d / 90) % 2, 0, 0, { h: TOP_SHUT, flip: true });
+    // (flipped to face the way it walks, so the feet's offset is mirrored)
+    const cell = (key, i, [fy, fx]) => drawSprite(c, key, i, (fx - 0.5) * CELL, (1 - fy) * CELL, { w: CELL, whole: true, flip: true });
+    if (pose >= 0) drawn = cell('sprites.wrenPoses', pose, [FEET.float, FEET.openWalk, FEET.insideOut][pose]);
+    else if (soaked) drawn = cell('sprites.wrenSplash', 0, FEET.splash);
+    else drawn = cell('sprites.wrenWalk', g.grounded ? Math.floor(g.d / 90) % 2 : 1, FEET.walk);
     if (!drawn && soaked) c.scale(1.08, 0.9); // the stand-in sags
     if (!drawn) {
       if (g.open) {
@@ -572,8 +588,8 @@ export default function create(env) {
       if (!g.grounded) c.restore();
     }
     c.restore();
-    // dripping wet after a splash
-    if (g.wet > 0) {
+    // dripping wet after a splash (the drenched painting has its own drops)
+    if (g.wet > 0 && !(soaked && drawn)) {
       c.fillStyle = '#4a7ab0';
       for (let i = 0; i < 4; i++) {
         const ph = (t * 1.6 + i * 0.25) % 1;
@@ -587,7 +603,7 @@ export default function create(env) {
   // Rain: streaks slanting down, stopped by the open canopy.
   function rain(c, t) {
     const lean = g.gust > 0 ? 0.55 : 0.22;
-    const shelter = g.open ? { x0: WREN_X - CANOPY_R, x1: WREN_X + CANOPY_R, y: GROUND - g.h - TOP_OPEN + 20 } : null;
+    const shelter = g.open ? { x0: WREN_X - CANOPY_R, x1: WREN_X + CANOPY_R, y: GROUND - g.h - CANOPY_TOP } : null;
     c.save();
     c.strokeStyle = 'rgba(70,100,130,0.45)';
     c.lineWidth = 2;
