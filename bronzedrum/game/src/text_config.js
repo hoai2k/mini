@@ -230,7 +230,7 @@ export const T = {
       tier3: 'III · ×1.96',
     },
     commandEffects: {
-      march: 'Advance (toward the enemy line).',
+      march: 'Advance (toward the enemy line). Tiers II and III march further, and on reaching the line they crash into it: the ground they had left hits the front enemy.',
       strike: 'Spears hit the front enemy; archers shoot. At Luy Lâu, with the drum awake, the war elephant charges instead: it tramples everything near it and spends the drum’s spirit.',
     },
     title: 'How to drum',
@@ -351,6 +351,7 @@ export const T = {
     commandEven: 'Even!  {command} · {pace}',
     commandGood: 'Good  {command} · {pace}',
     defended: 'Defended',
+    marchHit: 'Into the line!',
   },
 
   // The answering chapters (a caller plays, the player answers).
