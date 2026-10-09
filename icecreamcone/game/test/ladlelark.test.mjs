@@ -15,8 +15,7 @@ function scoopAt(game, u, v, ahead, margin) {
   let got = 0;
   let bad = 0;
   for (const b of game.bits) {
-    const [bu, bv] = game.where(b, ahead);
-    if (Math.hypot(bu - u, bv - v) < game.ring + margin) {
+    if (game.inRing(b, u, v, ahead, game.ring + margin)) {
       if (b.kind === 'boot') bad += 9;
       else if (!need[b.kind]) bad++;
       else {
@@ -211,4 +210,81 @@ test('ladlelark: an empty dip does nothing, and a creature kept waiting leaves',
   game.cust.patience = game.cust.t + 0.1;
   for (let i = 0; i < 20; i++) game.update(1 / 60, blank());
   assert.equal(game.walked, 1);
+});
+
+test('ladlelark: a bit on the ring\'s line comes up; one only touching it stays', () => {
+  // A pea's footprint is about 0.06 of the surface across its radius (its
+  // painted body, 26 px or so at the pot's scale, over the surface's 360 px).
+  const near = pot({ pea: 1 }, [['pea', 0, 0.5]]);
+  dipAt(near, 0.5 - near.ring - 0.015, 0); // its centre just over the line, its body across it
+  assert.equal(near.score, 4, 'a bit on the line counts');
+  const far = pot({ pea: 1 }, [['pea', 0, 0.5]]);
+  dipAt(far, 0.5 - far.ring - 0.05, 0); // only its edge in the ring
+  assert.equal(far.cust.bowl.length, 0, 'mostly outside stays in the pot');
+  assert.equal(far.bits.length, 1);
+});
+
+test('ladlelark: the right stick (Q / E, the wheel) makes the ring smaller or bigger, within limits', () => {
+  const game = pot({ pea: 1 }, [['pea', Math.PI, 0.5]]);
+  const r0 = game.ring;
+  const [lo, hi] = game.sizes;
+  for (let i = 0; i < 15; i++) game.update(1 / 60, blank({ ry: -1 })); // up: smaller
+  assert.ok(game.ring < r0 && game.size > lo, `shrinks smoothly: ${game.size}`);
+  const held = game.ring;
+  for (let i = 0; i < 30; i++) game.update(1 / 60, blank());
+  assert.equal(game.ring, held, 'keeps its size when let go');
+  for (let i = 0; i < 200; i++) game.update(1 / 60, blank({ ry: -1 }));
+  assert.equal(game.size, lo);
+  for (let i = 0; i < 400; i++) game.update(1 / 60, blank({ ry: 1 })); // down: bigger
+  assert.equal(game.size, hi);
+  assert.ok(lo >= 0.7 && hi <= 1.35, 'not too much either way');
+  const wheel = pot({ pea: 1 }, [['pea', Math.PI, 0.5]]);
+  wheel.update(1 / 60, blank({ wheel: 2 })); // two notches toward you
+  assert.ok(wheel.size > 1.1, `the wheel grows it: ${wheel.size}`);
+  wheel.update(1 / 60, blank({ wheel: -4 }));
+  assert.ok(wheel.size < 1, `and shrinks it: ${wheel.size}`);
+  // a bigger ring reaches a pea a smaller one can't
+  const big = pot({ pea: 1 }, [['pea', 0, 0.5]]);
+  big.setSize(hi);
+  dipAt(big, 0.5 - 0.23, 0);
+  assert.equal(big.score, 4);
+  const small = pot({ pea: 1 }, [['pea', 0, 0.5]]);
+  small.setSize(lo);
+  dipAt(small, 0.5 - 0.23, 0);
+  assert.equal(small.cust.bowl.length, 0);
+});
+
+test('input: state() gives the right stick (rx, ry), Q / E for its up and down, and wheel notches', async () => {
+  const on = {};
+  const targetOn = {};
+  const saved = { add: globalThis.addEventListener, nav: Object.getOwnPropertyDescriptor(globalThis, 'navigator') };
+  const pad = { index: 0, connected: true, buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), axes: [0, 0, 0, 0] };
+  globalThis.addEventListener = (t, fn) => (on[t] = fn);
+  Object.defineProperty(globalThis, 'navigator', { value: { getGamepads: () => [pad] }, configurable: true });
+  try {
+    const { createInput } = await import('../src/input.js');
+    const input = createInput({ addEventListener: (t, fn) => (targetOn[t] = fn) });
+    input.poll();
+    assert.deepEqual([input.state().rx, input.state().ry], [0, 0]);
+    pad.axes = [0, 0, 0.1, -1];
+    input.poll();
+    assert.equal(input.state().rx, 0, 'the same deadzone as the left stick');
+    assert.equal(input.state().ry, -1, 'right stick up');
+    pad.axes = [0, 0, 0, 0];
+    input.poll();
+    on.keydown({ code: 'KeyE', repeat: false });
+    assert.equal(input.state().ry, 1, 'E is the stick down');
+    on.keyup({ code: 'KeyE' });
+    on.keydown({ code: 'KeyQ', repeat: false });
+    assert.equal(input.state().ry, -1, 'Q is the stick up');
+    on.keyup({ code: 'KeyQ' });
+    input.endFrame();
+    targetOn.wheel({ deltaY: 200, deltaMode: 0 });
+    assert.equal(input.state().wheel, 2, 'two notches toward you');
+    input.endFrame();
+    assert.equal(input.state().wheel, 0, 'counted once');
+  } finally {
+    globalThis.addEventListener = saved.add;
+    if (saved.nav) Object.defineProperty(globalThis, 'navigator', saved.nav);
+  }
 });

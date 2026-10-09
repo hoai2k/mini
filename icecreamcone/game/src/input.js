@@ -4,7 +4,8 @@
 // Menus read `nav` (fresh presses of up/down/left/right/confirm/back/pause).
 // Minigames read `state()`, the same small set of actions on every device:
 // a move direction, one action button, left/right steps, the pointer and the
-// stick's spin (for winding the Gullfinch). See design/design.md, Controls.
+// stick's spin (for winding the Gullfinch), the right stick (rx, ry; Q and E
+// stand in for its up and down) and the mouse wheel's notches. See design/design.md, Controls.
 
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 
@@ -35,6 +36,7 @@ export function createInput(target) {
   let stickAngle = null;
   let navStickHeld = false; // the stick, held through lockHeld(), is ignored by nav() until centred
   let spin = 0;
+  let wheel = 0; // mouse-wheel notches since the last frame (+ toward you)
 
   const setKind = (k) => {
     if (k === kind) return;
@@ -84,6 +86,9 @@ export function createInput(target) {
       if (pointer.down) pointer.released = true;
       pointer.down = false;
     };
+    target.addEventListener('wheel', (e) => {
+      wheel += e.deltaY / (e.deltaMode === 1 ? 3 : e.deltaMode === 2 ? 0.1 : 100);
+    }, { passive: true });
     target.addEventListener('pointerup', up);
     target.addEventListener('pointercancel', up);
   }
@@ -154,6 +159,7 @@ export function createInput(target) {
       released.clear();
       pointer.pressed = false;
       pointer.released = false;
+      wheel = 0;
     },
     // Everything currently held is stale until released (after a screen change).
     lockHeld() {
@@ -183,6 +189,18 @@ export function createInput(target) {
       for (const p of pads.values()) {
         const ax = dz(p.axes[0] || 0);
         const ay = dz(p.axes[1] || 0);
+        if (Math.abs(ax) > Math.abs(x)) x = ax;
+        if (Math.abs(ay) > Math.abs(y)) y = ay;
+      }
+      return [x, y];
+    },
+    // The right stick (axes 2 and 3), with the same deadzone.
+    rightStick() {
+      let x = 0;
+      let y = 0;
+      for (const p of pads.values()) {
+        const ax = dz(p.axes[2] || 0);
+        const ay = dz(p.axes[3] || 0);
         if (Math.abs(ax) > Math.abs(x)) x = ax;
         if (Math.abs(ay) > Math.abs(y)) y = ay;
       }
@@ -242,6 +260,10 @@ export function createInput(target) {
       const ky = (k('down') ? 1 : 0) - (k('up') ? 1 : 0);
       if (kx || dpadX) x = kx || dpadX;
       if (ky || dpadY) y = ky || dpadY;
+      // The right stick; Q and E stand in for it up and down.
+      let [rx, ry] = api.rightStick();
+      const kq = (keys.has('KeyE') ? 1 : 0) - (keys.has('KeyQ') ? 1 : 0);
+      if (kq) ry = kq;
       if (pointer.pressed) {
         if (pointer.side < 0) left = true;
         else right = true;
@@ -249,6 +271,9 @@ export function createInput(target) {
       return {
         x,
         y,
+        rx,
+        ry,
+        wheel,
         action: action || pointer.down,
         actionPressed: actionPressed || pointer.pressed,
         actionReleased: actionReleased || pointer.released,

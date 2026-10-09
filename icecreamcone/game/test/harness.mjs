@@ -11,7 +11,7 @@ export function env(seed = 1, extra = {}) {
 
 export function blank(over = {}) {
   return {
-    x: 0, y: 0, action: false, actionPressed: false, actionReleased: false,
+    x: 0, y: 0, rx: 0, ry: 0, wheel: 0, action: false, actionPressed: false, actionReleased: false,
     left: false, right: false, spin: 0, kind: 'keyboard',
     pointer: { active: false, x: 0, y: 0, down: false, pressed: false, released: false },
     ...over,

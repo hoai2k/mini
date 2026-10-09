@@ -4,8 +4,9 @@
 // mushrooms going round and round in it, and a queue of hungry creatures
 // waits at the hatch. The one at the front says what it wants (two carrots
 // and a pea, say). The Lark is a ladle: move it over the pot and press the
-// action to dip. Whatever floats inside the ring is scooped into the
-// creature's bowl. When the bowl holds just what was asked, it's served:
+// action to dip. Whatever floats mostly inside the ring is scooped into the
+// creature's bowl. The right stick (Q / E, the mouse wheel) makes the ring
+// smaller or bigger (a big ring takes the unwanted bits round them too). When the bowl holds just what was asked, it's served:
 // three points (four if it was quick: before the patience bar turns
 // yellow), or one if a single unwanted bit came along too. A second
 // unwanted bit, or the old boot that sometimes bobs up, and the creature
@@ -32,9 +33,29 @@ const CY = 490;
 const RX = 360;
 const RY = 88;
 const POT_K = RX / 305;
-const CATCH = 0.2; // the ring's radius, in units of the surface
+const CATCH = 0.2; // the ring's radius at its usual size, in units of the surface
 const DIP = 0.42; // seconds a dip takes
 const SCOOP_AT = 0.16; // into the dip, when the ladle takes what's in the ring
+// The ring's size, times CATCH: right stick up (or Q, the wheel away) for
+// smaller, down (E, the wheel toward you) for bigger. Bigger is not better:
+// the soup is crowded, so a big ring brings up the unwanted bits round what
+// you want (two of those, or the boot, is "Yuck!"). It pays only to take two
+// wanted bits lying close together; a small ring picks one out of a crowd.
+const SIZE_MIN = 0.8;
+const SIZE_MAX = 1.3;
+const SIZE_RATE = 0.8; // per second, at full stick
+const SIZE_NOTCH = 0.06; // per wheel notch
+// A bit counts when its centre is inside the ring grown by this much of its
+// footprint's radius (the painted body's half-width): one lying across the
+// ring's line comes up, one only touching it with its edge stays.
+const MOSTLY = 0.45;
+// The painted bodies' widths, without their broth drops, as a share of their
+// trimmed (drawn) height: measured on lark-bits.png.
+const BODY = { carrot: 1.0, pea: 0.88, dumpling: 1.05, mushroom: 0.95, boot: 1.1 };
+// The painted pea's trim takes in a broth drop well off to its right, so its
+// body sits left of the trim's middle: drawn this much (of its height) to the
+// right, the pea is where it floats (and where the ring catches it).
+const BODY_DX = { pea: 0.44 };
 const BITS = 15;
 const KINDS = ['carrot', 'pea', 'dumpling', 'mushroom', 'boot'];
 const BIT_H = { carrot: 34, pea: 34, dumpling: 36, mushroom: 34, boot: 60 };
@@ -95,8 +116,27 @@ export default function create(env) {
     return [Math.cos(a) * b.r, Math.sin(a) * b.r];
   };
   const toScreen = (u, v) => [CX + u * RX, CY + v * RY];
+  g.size = 1;
   g.ring = CATCH;
   g.scoopIn = SCOOP_AT;
+  const setSize = (k) => {
+    g.size = clamp(k, SIZE_MIN, SIZE_MAX);
+    g.ring = CATCH * g.size;
+  };
+  g.setSize = setSize;
+  g.sizes = [SIZE_MIN, SIZE_MAX];
+  // How big a bit is drawn at depth v (nearer is a little bigger), and the
+  // half-size of its painted body on screen.
+  const bitScale = (v) => 1.25 + 0.35 * (v + 1) * 0.5;
+  const bodyHalf = (b, v) => (BIT_H[b.kind] * bitScale(v) * BODY[b.kind]) / 2;
+  // Whether bit b is mostly inside a ring at (u, v), `ahead` seconds from now.
+  // The ring lies on the soup's surface (a circle seen at a slant), and so
+  // does each bit's footprint: a circle as wide as its painted body. The bit
+  // counts when its centre is inside the ring grown by MOSTLY of that radius.
+  g.inRing = (b, u = g.u, v = g.v, ahead = 0, ring = g.ring) => {
+    const [bu, bv] = g.where(b, ahead);
+    return Math.hypot(bu - u, bv - v) < ring + (MOSTLY * bodyHalf(b, bv)) / RX;
+  };
 
   function makeBit(kind, r = Math.sqrt(rng()) * 0.9, a = rng() * Math.PI * 2) {
     return { kind, r: Math.max(0.12, r), a, w: 1.25 - 0.6 * r, ph: rng() * 6, drift: rng() * 6, born: 0 };
@@ -177,10 +217,7 @@ export default function create(env) {
 
   // What the ladle brings up goes into the bowl.
   function scoop() {
-    const caught = g.bits.filter((b) => {
-      const [u, v] = g.where(b);
-      return Math.hypot(u - g.u, v - g.v) < CATCH;
-    });
+    const caught = g.bits.filter((b) => g.inRing(b));
     const [sx, sy] = toScreen(g.u, g.v);
     g.splashes.push({ x: sx, y: sy, life: 0.5 });
     if (!caught.length) {
@@ -246,6 +283,13 @@ export default function create(env) {
     if (d > 0.95) {
       g.u *= 0.95 / d;
       g.v *= 0.95 / d;
+    }
+
+    // The ring's size (kept while a dip is under way).
+    if (g.dipT <= 0) {
+      const ry = input.ry || 0;
+      const wheel = input.wheel || 0;
+      if (ry || wheel) setSize(g.size + ry * SIZE_RATE * dt + wheel * SIZE_NOTCH);
     }
 
     // Dip.
@@ -316,7 +360,7 @@ export default function create(env) {
   function bit(c, kind, x, y, s = 1, rot = 0) {
     // painted bits (their trims include a few drops of broth): sized so the
     // pea is about 26 px, and only rocked, since they're painted at a slant
-    if (drawSprite(c, 'sprites.larkBits', KINDS.indexOf(kind), x, y, { h: BIT_H[kind] * s, anchor: 'center', rot: Math.sin(rot) * 0.25 })) return;
+    if (drawSprite(c, 'sprites.larkBits', KINDS.indexOf(kind), x + (BODY_DX[kind] || 0) * BIT_H[kind] * s, y, { h: BIT_H[kind] * s, anchor: 'center', rot: Math.sin(rot) * 0.25 })) return;
     c.save();
     c.translate(x, y);
     c.rotate(rot);
@@ -532,7 +576,7 @@ export default function create(env) {
     if (p > 0.05) {
       // a ring of ripples where the bowl went in
       c.beginPath();
-      c.ellipse(sx, sy + 4, 60 + p * 30, 14 + p * 8, 0, 0, Math.PI * 2);
+      c.ellipse(sx, sy + 4, (60 + p * 30) * g.size, (14 + p * 8) * g.size, 0, 0, Math.PI * 2);
       ink(c, 3, 'rgba(255,244,192,0.9)');
     }
   }
@@ -686,7 +730,7 @@ export default function create(env) {
     for (const b of sorted) {
       const [u, v] = g.where(b);
       const [x, y] = toScreen(u, v);
-      const s = 1.25 + 0.35 * (v + 1) * 0.5; // nearer is a little bigger
+      const s = bitScale(v); // nearer is a little bigger
       bit(c, b.kind, x, y + Math.sin(t * 2 + b.ph) * 2 + (1 - b.born) * -40, s * (0.4 + 0.6 * b.born), b.a * 0.5);
     }
     c.restore();
@@ -696,7 +740,7 @@ export default function create(env) {
     c.save();
     c.setLineDash([10, 8]);
     c.beginPath();
-    c.ellipse(rx, ry, RX * CATCH, RY * CATCH, 0, 0, Math.PI * 2);
+    c.ellipse(rx, ry, RX * g.ring, RY * g.ring, 0, 0, Math.PI * 2);
     ink(c, 3, g.dipT > 0 ? '#ffffff' : 'rgba(59,43,32,0.75)');
     c.restore();
     for (const s of g.splashes) {

@@ -5,8 +5,8 @@ mushrooms going round and round in it (the middle turns faster than the
 edge). A queue of hungry creatures waits at the counter, and the one at
 the front says what it wants in a bubble over the pot: two carrots and a
 pea, say, with a patience bar. The Lark is the ladle: move the dotted ring
-over the soup and press the action to dip. Everything inside the ring
-comes up and flies into the creature's bowl, and the bubble ticks off what
+over the soup and press the action to dip. Whatever lies across the
+ring comes up and flies into the creature's bowl, and the bubble ticks off what
 was wanted. The mechanic is picking an exact set out of a moving crowd:
 choose a moment when only wanted bits are in the ring (or two of them at
 once), rather than catching (Scoop Stack) or framing one target (Say
@@ -26,9 +26,11 @@ Dumplings join after 7 s, mushrooms after 20 s, the boot after 12 s.
 Patience runs from 13 s down to 8 s, plus 1.5 s per item. The cook drops in
 more of anything the pot is short of, so every order can be made.
 
-**Controls.** Controller: left stick or D-pad moves the ring, A dips.
-Keyboard: arrows or WASD, Space. Mouse or touch: the ring follows the
-pointer over the pot; click or tap to dip. On a narrow screen the view
+**Controls.** Controller: left stick or D-pad moves the ring, A or RT
+dips, the right stick up / down makes the ring smaller / bigger.
+Keyboard: arrows or WASD, Space, Q / E for the ring's size. Mouse or
+touch: the ring follows the pointer over the pot; click or tap to dip; the
+mouse wheel sizes the ring. On a narrow screen the view
 stays on the pot and the order bubble, 920 wide (the queue is off to the
 right).
 
@@ -89,3 +91,44 @@ Sprites delivered (IC-M15b pot and bowl, IC-M15c bits, IC-M15d queue, IC-M15e po
 - **Queue:** the four creatures stand behind the counter, feet hidden, with the yuck row for a "Yuck!" or a walk-out.
 - **Lark poses:** hovering, dipping and rising, each placed by the bowl's lowest point ((88, 172), (100, 200), (94, 158) from each cell's centre; 0.41 scale). Hovering is drawn at 60% as before. The code wings and brimming soup are no longer drawn.
 - **Still drawn in code:** the ring, ripples and splashes, the order bubble and patience bar, and the flying bits. No pose is missing.
+
+## The ring: lenient, and sized by the player
+
+- **What comes up.** A bit counts when it lies across the ring's line, not
+  only when its centre is inside. Each bit's footprint on the soup is a
+  circle as wide as its painted body (measured on lark-bits.png: the carrot
+  1.0 of its drawn height, the pea 0.88, the dumpling 1.05, the mushroom
+  0.95, the boot 1.1), and a bit comes up when its centre is within the
+  ring's radius plus 0.45 of that footprint's radius (about 10 px more on
+  screen for a pea). One that only touches the ring with its edge stays.
+  Two unwanted bits or the boot are still "Yuck!", so a sweep that takes
+  everything still fails.
+- **The pea is drawn where it floats.** Its painted trim takes in a broth
+  drop well off to its right, so the pea used to be drawn about 20 px left
+  of where the ring caught it. It is now drawn 0.44 of its height to the
+  right, its body on its place.
+- **Ring size.** Right stick up makes the ring smaller and down makes it
+  bigger, smoothly while held, and it keeps its size when let go (it holds
+  still during a dip). Q / E do the same on the keyboard, and the mouse
+  wheel steps it (away from you smaller, toward you bigger). The range is
+  0.8 to 1.3 of the usual ring (58 by 14 px to 94 by 23 px on screen). RT,
+  A, Space and a click still dip. On a touch screen it stays at its usual
+  size.
+- **Balance.** Bigger is not better: the soup is crowded, so a big ring
+  brings up the unwanted bits round what you want. It pays only for two
+  wanted bits lying close together. A small ring picks one bit out of a
+  crowd but has to be put right on it. No other cost was needed: an extra
+  dip time for the big ladle barely changed the bots' scores, since the
+  crowd already costs it more.
+- Pass stays 36. Bots over seeds 1–6, at a fixed size:
+
+  | Bot | 0.8 | 1 (usual) | 1.3 |
+  | --- | --- | --- | --- |
+  | Beginner | 53–70 | 46–57 | 28–54 |
+  | Good cook | 62–100 | 51–79 | 22–90 |
+  | Nearest wanted bit | 30–45 | 33–53 | 0–42 |
+  | Mashing | 0–3 | 0–13 | 0–5 |
+  | Dipping on the spot | 0–8 | 0–8 | 0–8 |
+
+  Before the change (centre inside the ring, the usual size): beginner
+  46–58, good 44–104, nearest bit 24–58, mashing 0–6, on the spot 0–8.
