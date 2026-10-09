@@ -800,9 +800,19 @@ def themed_subject(subject):
     return (subject.replace("a teen's", "a person's").replace("teen's", "person's")
             .replace("a teen", "a person").replace("same teen", "same person").replace("teen", "person"))
 
+# Subjects re-requested for one theme after its delivery failed the app check.
+THEMED_REDO = {
+    ("art", "tinyface"): (
+        "a person's big round head with a comically small face bunched in the very middle: two bold "
+        "black dot eyes with short brows, a small nose line and small red lips, all squeezed close "
+        "together and filling about a third of the face so they still read clearly at 48 px; lots "
+        "of empty off-white cheek and forehead around them. The face must never look blank"),
+}
+
 for prefix, section, idp in (("art", "icons-art", "CH-N"), ("classic", "icons-classic", "CH-R")):
     themed = [e for e in V2_FX + V2_LATE if e[0] != "kid"] + V2_GAMES
     for i, (gid, name, subject) in enumerate(themed, 1):
+        subject = THEMED_REDO.get((prefix, gid), subject)
         kind = "game" if (gid, name, subject) in V2_GAMES else "fx"
         where = "button on the effect strips" if kind == "fx" else "card in the game picker"
         theme = "Art" if prefix == "art" else "Classical"
