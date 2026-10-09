@@ -26,7 +26,7 @@ body {
   font: 16px/1.45 var(--font);
   -webkit-tap-highlight-color: transparent;
 }
-button, input { font: inherit; color: inherit; }
+button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 [hidden] { display: none !important; }
@@ -62,6 +62,12 @@ button { cursor: pointer; }
 .field input:not([type]), .field input[type="text"] , #name-input, #set-name {
   padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: rgba(0, 0, 0, 0.25); font-size: 1.1rem;
 }
+.field select {
+  padding: 11px 40px 11px 14px; border-radius: 12px; border: 2px solid var(--line); font-size: 1.05rem; font-weight: 600;
+  -webkit-appearance: none; appearance: none; background: rgba(0, 0, 0, 0.25) no-repeat right 14px center / 12px 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23999' stroke-width='2'/%3E%3C/svg%3E");
+}
+.field select option { color: #111; background: #fff; }
 .field.check { flex-direction: row; align-items: center; gap: 10px; font-weight: 600; }
 .field.check input { width: 22px; height: 22px; }
 .colors { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
