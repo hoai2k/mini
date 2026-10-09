@@ -969,83 +969,83 @@ export const ASSET_LIST = {
   },
   "fx2-volcano360": {
     "file": "assets/icons2/fx2-volcano360.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-blurbg": {
-    "file": "assets/icons2/fx2-blurbg.png",
-    "status": "requested"
+    "file": "assets/icons2/fx2-blurbg-v2.png",
+    "status": "delivered"
   },
   "fx2-colorpop": {
     "file": "assets/icons2/fx2-colorpop.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-neonaura": {
     "file": "assets/icons2/fx2-neonaura.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-disco": {
     "file": "assets/icons2/fx2-disco.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-matrix": {
     "file": "assets/icons2/fx2-matrix.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-sunset": {
     "file": "assets/icons2/fx2-sunset.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-echo": {
     "file": "assets/icons2/fx2-echo.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-delayghost": {
     "file": "assets/icons2/fx2-delayghost.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-timewarp": {
     "file": "assets/icons2/fx2-timewarp.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-timewarpside": {
     "file": "assets/icons2/fx2-timewarpside.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-slitscan": {
     "file": "assets/icons2/fx2-slitscan.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-strobe": {
     "file": "assets/icons2/fx2-strobe.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-clones": {
     "file": "assets/icons2/fx2-clones.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-motionglow": {
     "file": "assets/icons2/fx2-motionglow.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-tinyface": {
     "file": "assets/icons2/fx2-tinyface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-chubby": {
     "file": "assets/icons2/fx2-chubby.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-babyface": {
     "file": "assets/icons2/fx2-babyface.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-symmetry": {
     "file": "assets/icons2/fx2-symmetry.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-cyclops": {
     "file": "assets/icons2/fx2-cyclops.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "fx2-bigmouth": {
     "file": "assets/icons2/fx2-bigmouth.png",
