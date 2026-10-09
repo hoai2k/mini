@@ -939,6 +939,29 @@ REQUESTS.append({
     "out on its own. Their eyes look about in all directions; some sing. Full-bleed 16:9, no text.",
 })
 
+# The same gathering laid out for the sticker book's two pages, to try as the
+# book's default page with a greyed spot per bird that its sticker snaps into.
+REQUESTS.append({
+    "id": "IC-U08", "section": "book", "name": "Sticker book: all 28 birds together", "key": "book.gathering",
+    "file": "assets/book/gathering.webp", "size": "2048 x 1024, opaque",
+    "used": "A trial default page for the sticker book: each bird's painted spot is greyed out until the "
+    "player snaps that bird's sticker into it. Also a possible finale picture.",
+    "standin": "The sticker book's plain page.",
+    "ref": "endpapers-all-birds.jpg",
+    "status": "requested",
+    "prompt": STYLE + " " + BIRD + " All 28 rare birds of the field guide gathered together, laid out for "
+    "the two facing pages of an open sticker album, wide 2:1, full bleed. The left half and the right half "
+    "are each a complete picture on its own (on a phone they are shown one above the other), with exactly 14 "
+    "birds on each half, and a vertical strip about 6% wide down the exact middle (the book's fold) with no "
+    "bird on it or touching it. A gentle grassy hillside under a pale lemon-yellow sky, lively like the "
+    "book's endpapers (" + REF_URL + "endpapers-all-birds.jpg ). Every one of the 28 is there exactly once "
+    "and clearly recognisable: " + ALL_28 + ". Paint each one as it is painted in its portrait ("
+    + GATHER_REFS + "), same shapes and colours, all at a similar size, standing whole in loose rows, each "
+    "with clear space all round it: no bird overlapping, touching or hiding another, and none cut off by an "
+    "edge, so each can be picked out on its own. Keep the ground and sky behind and between them simple "
+    "and quiet. No text.",
+})
+
 def asset_list() -> str:
     data = {
         r["key"]: {"file": r["file"], "delivered": r["status"] == "delivered"} for r in REQUESTS

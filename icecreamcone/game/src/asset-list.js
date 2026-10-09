@@ -865,5 +865,9 @@ export const ASSETS = {
   "redo.gathering": {
     "file": "assets/ui/gathering.webp",
     "delivered": false
+  },
+  "book.gathering": {
+    "file": "assets/book/gathering.webp",
+    "delivered": false
   }
 };
