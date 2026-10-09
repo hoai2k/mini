@@ -752,6 +752,24 @@ function finish() {
   document.activeElement?.blur?.();
 }
 
+// Exit to Field Guide from the pause menu: the round so far counts. If that
+// passes the bird for the first time, the guide opens the next page as it
+// comes back (no celebration); otherwise it just goes back, the bird chosen.
+function quitToGuide() {
+  const i = S.bird;
+  const b = BIRDS[i];
+  const score = Math.round(S.game?.score || 0);
+  const before = passed(i);
+  if (score > 0) recordScore(progress, b.id, score, passes(b, score));
+  const n = nextPage(i, BIRDS.length);
+  if (!before && passed(i) && n >= 0) {
+    // the page after it opens on the way back, unless every page is open already
+    toGuide(n, settings.unlockAll && !DEBUG ? -1 : n);
+    return;
+  }
+  toGuide(i);
+}
+
 // From the result card back to the guide, the bird just played chosen.
 function leaveResult() {
   if (S.phase !== 'result') return;
@@ -1289,7 +1307,7 @@ function act(action, el) {
       restart();
       break;
     case 'quit-guide':
-      confirm('Leave this game?', 'Your score in this round will not count.', () => show('guide'));
+      quitToGuide();
       break;
     case 'close':
       closeModal();

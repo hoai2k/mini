@@ -162,7 +162,10 @@ for every bird, and the sticker book too if it has been left empty since.
 **The pause menu** has only buttons that do something: How to play, Settings,
 and, small at the foot, Restart and Exit to Field Guide. There is no Resume
 or Back button: B (or Esc, or the Menu button again), the × in the corner, or
-a click or tap outside the dialog returns to the game. How to play shows the
+a click or tap outside the dialog returns to the game. Exit to Field Guide
+asks nothing: the round so far counts as if it had ended (a new best is kept),
+and if that score passes the bird for the first time the guide opens the next
+page as it comes back. How to play shows the
 bird's card again, with a Controls button for the simple controls page. These
 two pages have nothing else to choose, so A goes straight back to the game
 and B steps back one page; nothing is focused until the stick moves.

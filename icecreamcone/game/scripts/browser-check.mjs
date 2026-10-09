@@ -399,6 +399,32 @@ const MENU = 9;
   await page.close();
 }
 
+// ---------- 5b: Exit to Field Guide counts the round ----------
+if (!only) {
+  const { page, errors } = await newPage('');
+  const playUntil = async (score) => {
+    await page.evaluate(() => window.__coot.startBird(0));
+    await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
+    await page.evaluate((sc) => { window.__coot.S.game.score = sc; }, score);
+    await page.evaluate(() => window.__coot.act('pause'));
+    await wait(page, 200);
+    await page.evaluate(() => document.querySelector('[data-action="quit-guide"]').click());
+    await wait(page, 600);
+    return page.evaluate(() => ({ screen: window.__coot.S.screen, confirm: !document.querySelector('#confirm').hidden, best: window.__coot.progress.coot?.best || 0, focus: Number(document.activeElement?.dataset?.bird ?? -1), unlock: window.__coot.S.unlock?.i ?? null, locked: [...document.querySelectorAll('#cards .card.locked')].map((c) => Number(c.dataset.bird)) }));
+  };
+  const pass = await page.evaluate(() => window.__coot.BIRDS[0].pass);
+  let r = await playUntil(Math.max(1, pass - 3));
+  r.screen === 'guide' && !r.confirm && r.best === Math.max(1, pass - 3) && r.locked.includes(1)
+    ? ok('Exit to Field Guide asks nothing and keeps the round as a best, the next page still shut')
+    : fail(`exit short of the mark: ${JSON.stringify(r)}`);
+  r = await playUntil(pass + 2);
+  r.screen === 'guide' && r.best === pass + 2 && r.unlock === 1
+    ? ok('Exit with a passing score opens the next page on the way back')
+    : fail(`exit with a pass: ${JSON.stringify(r)}`);
+  errors.length ? fail('exit: page errors: ' + errors.join(' | ')) : ok('exit: no page errors');
+  await page.close();
+}
+
 // ---------- 6: the guide's 28 cards ----------
 if (!only) {
   const { page, errors } = await newPage('&all');
