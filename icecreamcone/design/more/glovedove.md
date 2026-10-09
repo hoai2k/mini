@@ -8,18 +8,26 @@ entry: `game/src/more/glovedove.js`; tests: `game/test/glovedove.test.mjs`.
 
 The washing-up is done, but every dish is wet, soapy and slippery. One at a
 time they pop up out of the suds in the sink on the left and come down over
-the counter. The Glove Dove runs along the counter beneath them and flicks
-each one back up with its rubber fingers, keepy-uppy, until it drops into the
-plate rack on the right.
+the counter. The Glove Dove runs along the counter beneath them, catches each
+on its long glove neck and bumps it up and away to the right, until it drops
+into the plate rack.
 
 - **Where.** A ring on the counter shows where each falling dish will come
-  down; it turns pink when the Dove is under it.
-- **When.** Press the action just as the dish lands on the glove for a
-  **"Hup!"**: a high, long flick aimed at the rack (from near the sink it
-  takes two). Press too soon and the fingers flick it only a short, low hop.
-  Don't press and it bounces off the rubber once, low and short; the second
-  time it slips off ("Slippery!"). A press that catches nothing leaves the
-  fingers fumbling for almost a second, so mashing doesn't work.
+  down; it turns pink when the glove is under it.
+- **Crouch (hold the action).** The Dove sinks, its glove neck held level
+  like a tray, and a dish that comes down on it settles there. While crouched
+  it shuffles along more slowly, carrying the dish with it. A row of five
+  pink dots over the glove fills as the crouch winds up (0.45 s).
+- **Bump (let go).** The Dove springs up and bumps the dish. Wound right up
+  (all the dots full), it is a **"Hup!"**: high and long and aimed at the
+  rack (from near the sink it may take two, or carry it closer first). Let go
+  sooner and it is only a hop along to the right. Letting go just as a dish
+  lands bumps it at once. The head turns to the right to aim once a dish has
+  settled or the crouch is full, and swings back to the left after the bump;
+  the body always faces left.
+- **Standing up**, a dish bounces off the rubber once, low and short; the
+  second time it slips off ("Slippery!"). Holding the action all the time
+  catches one dish and never puts it away; mashing gives only short hops.
 - **Into the rack:** "Put away!". A dish that hits the counter or the floor
   smashes ("Crash!": no points lost, but it is gone). One that drops back into
   the sink just pops up again later.
@@ -27,27 +35,30 @@ plate rack on the right.
 ## Scoring
 
 Three points for each dish put away and one for each "Hup!". The page opens
-at 35.
+at 30.
 
 ## Getting harder
 
 At first one or two plates come up every three seconds. From 15 s cups and
 bowls and then heavy pans and pie dishes join them (pans fly lower, so they
-need more flicks), and dishes come faster (every 1.1 s by the end) with up to
-six in the air at once.
+need more bumps), and dishes come faster (every 1.1 s by the end) with up to
+six in the air at once, so a dish carried too long lets others fall.
 
 Bots (`node --test test/glovedove.test.mjs`, six seeds): a beginner (slow on
-the stick, pressing up to 0.15 s early or late) scores 54 to 73; a good
-juggler 75 to 92. Running under every dish and mashing at four rhythms scores
-8 to 29; running under every dish without pressing scores 0; idling 0.
+the stick, crouching 0.4 s before a dish lands, letting go anywhere from 0.6
+to 1.8 full crouches) scores 44 to 63; a clumsy one (slower still, and
+forgetting one dish in five) 34 to 52; a good player (carries a dish to
+the middle of the counter before a full "Hup!") 85 to 89. Running under every
+dish and mashing at five rhythms scores 3 to 21; holding all the time,
+standing without pressing and idling score 0.
 
 ## Controls
 
-| Device | Run | Flick |
+| Device | Run | Crouch / bump |
 | --- | --- | --- |
-| Controller | left stick or D-pad | A |
-| Keyboard | ← / → or A / D | Space or Enter |
-| Mouse / touch | the Dove runs to the pointer (or where you tap) | click or tap |
+| Controller | left stick or D-pad | hold A, let go |
+| Keyboard | ← / → or A / D | hold Space or Enter, let go |
+| Mouse / touch | the Dove runs to the pointer | hold the button or a finger down to crouch (dragging moves it), lift to bump |
 
 On a narrow screen the view follows the Dove, leaning towards the rack.
 
@@ -65,6 +76,19 @@ On a narrow screen the view follows the Dove, leaning towards the rack.
   2 x 1): the long glove neck held level like a tray while a press is live,
   and snapping up for the flick. Until it arrives the portrait braces, then
   tips back, with little pink marks over the glove while a catch is ready.
+  Now the stand-ins for the crouch and bump until IC-M11h arrives.
+- **IC-M11h, the crouch, bump and look back** (`sprites.glovedoveBump`, 3 x 2,
+  requested): six full-figure frames, the body always facing left: sinking
+  (first 0.1 s of a hold), deep crouch with the glove level (held, no dish),
+  head turning (0.12 s once a dish has settled or the crouch is full), head
+  turned right and aiming (held after that), the bump (0.25 s after letting
+  go), and looking back (0.3 s). Full figures rather than a separate head
+  and body, because the head and long glove neck are one object growing out
+  of the feather ruff, and a separately painted neck would leave a seam and
+  a pivot the painter can't register. Registered by the feet (baseline y
+  1002 of 1024, midway at x 512), with the crouched glove's top a level line
+  at y 640 for the dish to rest on. Until it arrives: the braced pose
+  squashed down for the crouch, the flick pose for the bump, no head turn.
 
 ## Changes after the audit
 
@@ -134,3 +158,12 @@ stays at most 20, so the pass mark is now 30 (it was 35).
 Requested (IC-M11g, `sprites.dishShards`): a smashed heap for each dish, left
 on the counter for a moment after a crash. Until it arrives the game throws
 little triangles of the dish's colours, the only thing still drawn in code.
+
+## Hold to crouch, let go to bump
+
+At the owner's request the control changed from a timed press to hold to
+crouch and let go to bump, with the head turning right to aim and back after.
+The timed "Hup!" press, its fumble and the automatic brace are gone; a dish
+now settles on the crouched glove and can be carried, and how long the
+crouch was held (not the timing of a press) decides between a "Hup!" and a
+hop. Pass 30 kept (beginners 44 to 63, clumsy 34 to 52, mashing at most 21).

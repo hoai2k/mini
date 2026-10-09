@@ -4,7 +4,7 @@ Every image request that has been delivered (or delivered and later retired), wi
 
 ## Status
 
-7 requested, 216 delivered, 1 retired, 224 in total.
+9 requested, 216 delivered, 1 retired, 226 in total.
 
 ## Sticker book backgrounds
 
@@ -2099,7 +2099,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/scenes/titthrush.webp`
 - **Size:** 1920 x 1080, opaque
-- **Used for:** Behind Set the Clocks (the Ten O'clock Tit Trush): the town square where the town's clocks call out the time.
+- **Used for:** Behind Clock Hop (the Ten O'clock Tit Trush): the town square, over which the town's clocks hang in the air and the Trush hops from one to the next.
 - **Stand-in until delivered:** Gabled houses and cobbles drawn in code.
 - **Status:** delivered
 
@@ -2111,7 +2111,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/sprites/watch-face.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Set the Clocks: the Tit Trush's watch face, large, whose hands the player turns (the game draws the hands, the crown and the chain).
+- **Used for:** Clock Hop: the face of the gold ten o'clock watch, the bonus clock that shows up now and then (worth three); the game draws its hands and sets the crown (IC-M12f) on top.
 - **Stand-in until delivered:** A gold ring and a cream face with numbers drawn in code.
 - **Status:** delivered
 
@@ -2123,7 +2123,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/sprites/town-clocks.png`
 - **Size:** 2048 x 2048, transparent
-- **Used for:** Set the Clocks: the four town clocks that take turns calling out the time to set (the game draws their hands).
+- **Used for:** Clock Hop: four of the clocks the Trush hops between (church, station, town hall, cuckoo), drawn at different sizes; the game draws the hands it rides.
 - **Stand-in until delivered:** A stone tower, a hanging clock, a gold clock and a wooden cuckoo house drawn in code round plain faces.
 - **Status:** delivered
 
@@ -2135,7 +2135,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/sprites/titthrush-sing.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Set the Clocks: the Tit Trush sings for a moment each time a clock is set right.
+- **Used for:** Clock Hop: the Trush sings for a moment each time it lands on a clock (drawn at the hand's tip, at the hop size).
 - **Stand-in until delivered:** The portrait, hopping.
 - **Status:** delivered
 
@@ -2147,7 +2147,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/sprites/titthrush-fluster.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Set the Clocks: the Tit Trush when the wrong time is set (the crown jams) or a town clock gives up waiting.
+- **Used for:** Clock Hop: the Trush tumbling on the cobbles after a hop that missed every clock, until it flutters back.
 - **Stand-in until delivered:** The portrait shaking.
 - **Status:** delivered
 
@@ -2159,7 +2159,7 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/sprites/watch-crown.png`
 - **Size:** 1024 x 1024, transparent
-- **Used for:** Set the Clocks: the winding crown and ring bow on top of the big watch face (IC-M12b), which has none; the game sets it on the top of the gold case and glows it red while it is jammed.
+- **Used for:** Clock Hop: the winding crown and ring bow on top of the gold ten o'clock watch (IC-M12b), which has none.
 - **Stand-in until delivered:** A ribbed gold box drawn in code.
 - **Status:** delivered
 
