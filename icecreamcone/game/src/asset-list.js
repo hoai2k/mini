@@ -696,31 +696,31 @@ export const ASSETS = {
   },
   "book.buttonbeaks": {
     "file": "assets/book/buttonbeaks.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.keycrane": {
     "file": "assets/book/keycrane.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.snippit": {
     "file": "assets/book/snippit.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.garbagecanary": {
     "file": "assets/book/garbagecanary.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.steampressersparrow": {
     "file": "assets/book/steampressersparrow.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.wetweatherwren": {
     "file": "assets/book/wetweatherwren.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.glovedove": {
     "file": "assets/book/glovedove.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.titthrush": {
     "file": "assets/book/titthrush.webp",
