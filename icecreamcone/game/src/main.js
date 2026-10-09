@@ -1415,7 +1415,7 @@ function render(dt = 0) {
   }
   fitView();
   logical();
-  if (S.screen === 'title') renderTitle();
+  if (S.screen === 'title') renderTitle(t);
   else if (S.screen === 'page') renderPage(t);
   else if (S.screen === 'gathering') renderGathering(t);
   else if (S.screen === 'guide') drawCards(t);
@@ -1461,12 +1461,26 @@ function updateHud() {
   } else tm.hidden = true;
 }
 
-function renderTitle() {
+// Where the Coot stands on the title picture, in its 1920 x 1080 pixels: by
+// the stone wall on the right, above the newspaper, the emptiest place; or,
+// when a narrower screen crops that away, farther off on the riverbank by the
+// sun, between the camera and the traffic light.
+const TITLE_COOT = [{ x: 1735, y: 655, size: 300 }, { x: 1195, y: 742, size: 260 }];
+
+function renderTitle(t) {
   const bg = art('titleBg');
   if (!bg) return;
   g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   const s = Math.max(view.cw / bg.width, view.ch / bg.height);
-  g.drawImage(bg, (view.cw - bg.width * s) / 2, (view.ch - bg.height * s) / 2, bg.width * s, bg.height * s);
+  const ox = (view.cw - bg.width * s) / 2;
+  const oy = (view.ch - bg.height * s) / 2;
+  g.drawImage(bg, ox, oy, bg.width * s, bg.height * s);
+  const k = bg.width / 1920;
+  const spot = TITLE_COOT.find((c) => ox + (c.x + 120) * k * s <= view.cw) || TITLE_COOT[1];
+  const size = spot.size * k * s;
+  // Kept whole on screen when the picture is cropped at the sides.
+  const x = Math.min(ox + spot.x * k * s, view.cw - size * 0.42);
+  drawBird(g, 'coot', { x, y: oy + spot.y * k * s, size, t, pose: pagePose(t) });
 }
 
 // A bird on its own page, gently doing its thing.
