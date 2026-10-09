@@ -84,6 +84,20 @@ What recurs:
    signal meter, the dustpan), it falls off the narrow view. Either bring it
    near the focus or draw a small copy at the view's edge.
 
+### Changes made
+
+- **Item 1 (done).** `test/core.test.mjs` now loads every built new bird
+  (`loadMoreBirds()`) and holds it to the same checks as the ten: the entry's
+  fields, a four-line rhyme, a whole-number `pass`, a list of controls, and the
+  game running to its end idle and mashed. It also now asserts that random
+  mashing stays below `pass`, for all 28 games.
+- **Found by that check: Left Foot, Right Foot (one of the original ten).**
+  Random mashing scored 57 against a pass of 45, because a wrong step only
+  cost 0.6 s. Now a wrong press within 1.5 s of the last one stumbles longer
+  (up to 3.4 times as long), so mashing scores 20–33; a careful beginner bot
+  still scores 44–57, and the pass is now 40 (it was 45, which the beginner
+  bot only just reached on one seed).
+
 ## Milkbottle Midge: Milk Round
 
 Hold to wind up, let go to lob a pint up a garden path onto the doorstep.

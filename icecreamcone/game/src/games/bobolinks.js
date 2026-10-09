@@ -16,6 +16,7 @@ import { birdById } from '../birds.js';
 
 const DURATION = 40;
 const STUMBLE = 0.6; // seconds the boots wobble after a splash
+const FLUSTER = 1.5; // a splash this soon after the last one stumbles longer (mashing doesn't pay)
 const BOTH = 0.15; // seconds to land the second foot of a double
 const BOTH_POINTER = 0.3; // more time for touch, where two taps can't be at once
 const AHEAD = 9; // stones kept queued
@@ -51,6 +52,9 @@ export default function create(env) {
     streak: 0,
     best: 0,
     wrong: 0,
+    clock: 0,
+    lastSplash: -99,
+    flustered: 0, // splashes in quick succession
     sunk: 0,
     bootX: OV.x,
     sing: 0,
@@ -123,7 +127,11 @@ export default function create(env) {
   }
 
   function splash(why) {
-    g.stumble = STUMBLE;
+    // a wrong press soon after the last one rattles the boots for longer
+    const pressed = why !== 'Too slow!';
+    g.flustered = pressed && g.clock - g.lastSplash < FLUSTER ? Math.min(3, g.flustered + 1) : 0;
+    if (pressed) g.lastSplash = g.clock;
+    g.stumble = STUMBLE * (1 + g.flustered * 0.8);
     g.pending = null;
     if (g.streak >= 5) pop('Streak lost', OV.x, HORIZON - 70, PAL.strawberry, 34, 'streak');
     g.streak = 0;
@@ -159,6 +167,7 @@ export default function create(env) {
     if (L) g.padFlash[-1] = 1;
     if (R) g.padFlash[1] = 1;
 
+    g.clock += dt;
     if (g.stumble > 0) {
       g.stumble -= dt;
       L = R = false;
