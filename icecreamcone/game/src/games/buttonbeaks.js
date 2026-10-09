@@ -372,6 +372,13 @@ export default function create(env) {
         ink(c, 1.4);
         c.restore();
         drawButton(c, h.kind, 0, h.dy, 26, { ghost: true });
+        if (g.holding === h.kind) {
+          // the button they hold fits here: a pulsing ring says where to run
+          const k = 0.5 + 0.5 * Math.sin(t * 8);
+          c.beginPath();
+          c.arc(0, h.dy, 44 + k * 8, 0, Math.PI * 2);
+          ink(c, 4, `rgba(192,64,122,${0.55 + 0.45 * k})`);
+        }
         c.beginPath();
         c.moveTo(-14, h.dy + 46);
         c.lineTo(14, h.dy + 46);

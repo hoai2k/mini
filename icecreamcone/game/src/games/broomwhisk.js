@@ -36,6 +36,8 @@ const I_T = FLOOR_T + 42;
 const I_B = FLOOR_B - 12; // the bristles' reach, in floor units (y counts double: the floor is foreshortened)
 const SIZE = 300;
 const FLICK = 0.45;
+const MOUTH = 110; // half the pan's mouth, in floor units
+const FUNNEL = 130; // how near the mouth a swept thing is drawn in
 const PER_PAN = 8; // sweepings before the pan moves
 const SWEPT = 3; // seconds a touched thing still counts as swept
 // The dustpan's places: against the left wall, the right wall, the back wall.
@@ -46,16 +48,16 @@ const PANS = [
   { x: 800, y: FLOOR_T + 34, dx: 0, dy: 1 },
 ];
 const KINDS = {
-  leaf: { r: 20, fric: 2.4, gust: 560, pts: 1 },
-  dust: { r: 24, fric: 3.6, gust: 300, pts: 1 },
-  gold: { r: 20, fric: 2.4, gust: 520, pts: 3 },
+  leaf: { r: 20, fric: 2.4, gust: 360, pts: 1 },
+  dust: { r: 24, fric: 3.6, gust: 200, pts: 1 },
+  gold: { r: 20, fric: 2.4, gust: 340, pts: 3 },
 };
 const LEAF_COLS = [PAL.olive, PAL.mustard, PAL.brick, PAL.sage];
 
 // Floor depth: things further back are drawn smaller.
 export const depth = (y) => 0.68 + 0.4 * clamp((y - FLOOR_T) / (FLOOR_B - FLOOR_T), 0, 1);
 const leafEvery = (t) => 2.2 - Math.min(1, t / DURATION) * 1.1;
-const gustEvery = (t) => 9 - Math.min(1, t / DURATION) * 4;
+const gustEvery = (t) => 12 - Math.min(1, t / DURATION) * 4;
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -235,7 +237,8 @@ export default function create(env) {
         it.rot += dt * 2;
         continue;
       }
-      if (blowing) {
+      // Gusts blow only what lies loose: a swept thing is on its way to the pan.
+      if (blowing && it.swept <= 0) {
         it.vx += g.gust.dir * K.gust * dt;
         it.vy += g.gust.ty * K.gust * 0.5 * dt;
         it.spin += g.gust.dir * dt * 6;
@@ -272,6 +275,17 @@ export default function create(env) {
         it.vx = vmx;
         it.vy = vmy / 2;
       }
+      // The pan's funnel: a swept thing sliding near the mouth is drawn in.
+      if (it.swept > 0 && g.panMove <= 0) {
+        const p = panLocal(it.x, it.y);
+        if (p.along < FUNNEL && p.along > -110 && p.side < FUNNEL) {
+          const mx = g.pan.x + g.pan.dx * 10 - it.x;
+          const my = (g.pan.y + (g.pan.dy * 10) / 2 - it.y) * 2;
+          const md = Math.hypot(mx, my) || 1;
+          it.vx += (mx / md) * 1100 * dt;
+          it.vy += ((my / md) * 1100 * dt) / 2;
+        }
+      }
       const f = Math.exp(-K.fric * dt);
       it.vx *= f;
       it.vy *= f;
@@ -293,7 +307,7 @@ export default function create(env) {
       // the dustpan
       if (g.panMove <= 0) {
         const p = panLocal(it.x, it.y);
-        if (p.side < 84 && p.along < 34 && p.along > -90) {
+        if (p.side < MOUTH && p.along < 48 && p.along > -110) {
           if (it.swept > 0) collect(it);
           else if (!it.bumped) {
             // not swept: it bumps off the lip
@@ -344,6 +358,16 @@ export default function create(env) {
       c.fill();
       c.restore();
     }
+    // a pink glow under anything swept: it counts, and the wind leaves it be
+    if (it.swept > 0 && it.z <= 0) {
+      c.save();
+      c.globalAlpha = 0.25 + 0.35 * (it.swept / SWEPT);
+      c.fillStyle = PAL.strawberry;
+      c.beginPath();
+      c.ellipse(it.x, it.y, 40 * s, 16 * s, 0, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+    }
     const cell = it.kind === 'dust' ? 4 : it.kind === 'gold' ? 6 : it.look === 'feather' ? 5 : it.look === 'wrapper' ? 7 : Math.max(0, LEAF_COLS.indexOf(it.col));
     if (drawSprite(c, 'sprites.sweepings', cell, it.x, y, { h: (it.kind === 'dust' ? 64 : 70) * s, anchor: 'center', rot: it.kind === 'dust' ? 0 : it.rot })) return;
     c.save();
@@ -351,15 +375,15 @@ export default function create(env) {
     c.scale(s * 1.45, s * 1.45);
     if (it.kind === 'dust') {
       blob(c, 0, -6, 26, 18, 7 + Math.floor(it.ph), 0.18, 14);
-      wash(c, '#b8b0a2', 0.85);
-      ink(c, 1.4, '#7a7066');
+      wash(c, '#7a7068', 0.95);
+      ink(c, 1.8, '#3b2f28');
       c.beginPath();
       for (let i = 0; i < 6; i++) {
         const a = it.ph + i;
         c.moveTo(Math.cos(a) * 14, -6 + Math.sin(a) * 9);
         c.lineTo(Math.cos(a) * 30, -6 + Math.sin(a) * 18);
       }
-      ink(c, 1, '#7a7066');
+      ink(c, 1.2, '#3b2f28');
     } else if (it.look === 'wrapper') {
       c.rotate(it.rot);
       poly(c, [[-22, -10], [-8, -16], [6, -8], [22, -14], [18, 6], [4, 12], [-12, 8], [-20, 14]], 5, 2);
@@ -380,11 +404,11 @@ export default function create(env) {
       ink(c, 1.2, '#6a6660');
     } else {
       c.rotate(it.rot);
-      c.scale(1, 0.62); // lying on the floor
+      c.scale(1.1, 0.8); // lying on the floor
       c.beginPath();
       c.moveTo(-26, 0);
-      c.quadraticCurveTo(-4, -18, 26, 0);
-      c.quadraticCurveTo(-4, 18, -26, 0);
+      c.quadraticCurveTo(-4, -28, 26, 0);
+      c.quadraticCurveTo(-4, 28, -26, 0);
       wash(c, it.kind === 'gold' ? '#e8c040' : it.col);
       ink(c, 1.6);
       c.beginPath();
@@ -451,6 +475,34 @@ export default function create(env) {
   function drawBroom(c, t) {
     const b = g.broom;
     const s = depth(b.y);
+    // where pushed things will slide: a dotted line ahead of the moving broom
+    const sp = Math.hypot(b.vx, b.vy * 2);
+    if (sp > 120) {
+      const len = Math.min(320, sp * 0.4);
+      c.save();
+      c.globalAlpha = Math.min(0.8, (sp - 120) / 300);
+      c.setLineDash([6, 10]);
+      c.beginPath();
+      c.moveTo(b.x + b.fx * R * 1.1, b.y + (b.fy * R * 1.1) / 2);
+      c.lineTo(b.x + b.fx * (R + len), b.y + (b.fy * (R + len)) / 2);
+      ink(c, 3, PAL.magenta);
+      c.restore();
+    }
+    // the way to the pan, when it is far off to the side (off a phone's view)
+    const pdx = g.pan.x - b.x;
+    if (Math.abs(pdx) > 420) {
+      const dir = Math.sign(pdx);
+      const ax = b.x + dir * 130;
+      const ay = b.y - 150 * s;
+      c.save();
+      c.translate(ax + Math.sin(t * 6) * 6 * dir, ay);
+      c.scale(dir, 1);
+      poly(c, [[-26, -12], [6, -12], [6, -24], [32, 0], [6, 24], [6, 12], [-26, 12]], 2, 0.5);
+      wash(c, PAL.strawberry, 0.85);
+      ink(c, 2);
+      c.restore();
+      label(c, 'pan', ax, ay + 40, { size: 24, color: PAL.magenta, weight: 800 });
+    }
     const flip = b.fx > 0.2;
     const lean = clamp(b.vx / 900, -1, 1) * -0.22 + (g.flickT > 0 ? (flip ? 1 : -1) * 0.25 * (g.flickT / 0.25) : 0);
     // its shadow on the flagstones
@@ -593,8 +645,15 @@ export default function create(env) {
     }
   };
 
-  g.focus = () => g.broom.x;
+  // On a narrow screen: keep the broom in view, and as much of the way to
+  // the pan as fits.
   g.span = 1000;
+  g.focus = () => {
+    const bx = g.broom.x;
+    const px = g.pan.x;
+    if (Math.abs(px - bx) < g.span - 260) return (bx + px) / 2;
+    return bx + Math.sign(px - bx) * (g.span / 2 - 150);
+  };
 
   return g;
 }

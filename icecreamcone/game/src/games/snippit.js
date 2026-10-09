@@ -5,7 +5,7 @@
 // clock shows the one to let go. Follow its string down with your eye, walk
 // the Snippit to the knot where it is tied, and snip. The right string lets
 // that balloon float away (10 points, 5 more if you were quick); a wrong one
-// loses a balloon nobody asked for, costs 10 points and jams the blades for a
+// loses a balloon nobody asked for, costs 5 points and jams the blades for a
 // moment. Every snipped balloon is replaced by a new one. More balloons join
 // the bunch as time goes on, their strings curl more, and later they jostle
 // in the wind and drift past each other while you look. Score: points.
@@ -24,8 +24,8 @@ const PEG_Y = 706; // where the strings are tied, on top of the rail
 const RAIL_Y = 714;
 const GROUND = 880; // the Snippit's feet
 const SKY_Y = 300; // the middle of the bunch
-const X0 = 330; // the outermost knots
-const X1 = 1270;
+const X0 = 400; // the outermost knots
+const X1 = 1200;
 const REACH = 72; // how far from a knot the blades still find it
 const SIZE = 320;
 const K = SIZE / 400;
@@ -35,7 +35,7 @@ const HINGE_Y = GROUND - 220 * K;
 const RIGHT = 10;
 const QUICK = 5;
 const QUICK_T = 3;
-const WRONG = 10;
+const WRONG = 5;
 const JAM = 0.8;
 
 export const COLORS = [
@@ -535,6 +535,10 @@ export default function create(env) {
     ink(c, 2, under ? PAL.magenta : 'rgba(59,43,32,0.4)');
     c.restore();
     drawSnippit(c, t);
+    // the snip point: a little pink notch just above the knots, under the hinge
+    poly(c, [[g.x - 11, PEG_Y - 30], [g.x + 11, PEG_Y - 30], [g.x, PEG_Y - 12]], 1, 0.4);
+    wash(c, under ? PAL.magenta : PAL.strawberry, 0.95);
+    ink(c, 1.6);
     if (g.jam > 0) label(c, 'Jammed!', g.x, HINGE_Y - 150, { size: 32, color: PAL.brick, weight: 800 });
 
     for (const p of g.pops) {
@@ -563,7 +567,7 @@ export default function create(env) {
 
   // The whole tangle has to stay in view on a narrow screen.
   g.focus = () => W / 2;
-  g.span = 1180;
+  g.span = 1000;
 
   return g;
 }
