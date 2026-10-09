@@ -311,5 +311,5 @@
       "prompt_log": "design/image-deliveries-sticker-book-ink-batch-4.json"
     }
   ],
-  "verification": "All 28 redraws visually inspected, decoded and loaded by the game; sticker book inspected in landscape and portrait. Interaction and persistence checks passed after waiting for asset loading."
+  "verification": "All 28 assets load at 2048 x 1024 after loading completes; landscape and portrait rendering verified without page errors. The isolated sticker-book interaction test passed once with longer controller timing but subsequent runs failed to record the first mouse-drag position. This interaction check is intermittent; no product interaction code was changed."
 }
