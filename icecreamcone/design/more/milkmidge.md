@@ -108,3 +108,6 @@ wings) and ask for the portrait's framing.
 - **Still drawn in code:** the faint green wash of each front garden, and
   the chalk lane, ring, pops and glass bits as game feedback. No new
   requests.
+## Second audit (2026-10-09)
+
+Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.

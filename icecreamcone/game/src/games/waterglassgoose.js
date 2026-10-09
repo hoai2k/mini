@@ -12,7 +12,7 @@
 // tunes: they start with two notes on three glasses and grow to seven notes
 // on five, played faster. Score: points.
 
-import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -83,6 +83,8 @@ export default function create(env) {
   g.glassX = (i, n = g.glasses.length) => 800 + (i - (n - 1) / 2) * (n > 4 ? 250 : n > 3 ? 290 : 330);
 
   function pop(text, x, y, color = INK, size = 44) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
 
@@ -379,8 +381,11 @@ export default function create(env) {
     c.save();
     c.translate(x + shake, TABLE - BACK + bob);
     c.rotate(lean);
-    // variants are painted in square cells framed like the portrait (feet at 0.98)
-    const pose = (key, i) => drawSprite(c, key, i, 0, 0.02 * GOOSE * 1.05, { h: GOOSE * 1.05, whole: true });
+    // variants are painted in square cells framed like the portrait; each is
+    // placed by its lowest painted point (the tapping cells' feet are at 0.99
+    // of the cell, the moving cells' at 0.93), so the feet stay on the floor
+    const FEET = { 'sprites.gooseTap': 0.99, 'sprites.gooseMoves': 0.93 };
+    const pose = (key, i) => drawSprite(c, key, i, 0, (1 - FEET[key]) * GOOSE * 1.05, { h: GOOSE * 1.05, whole: true });
     let drawn = false;
     if (g.tap > 0.3) drawn = pose('sprites.gooseTap', 0);
     else if (oops) drawn = pose('sprites.gooseMoves', 1);
@@ -394,8 +399,8 @@ export default function create(env) {
     scene(c, 'waterglassgoose', W, H, standinScene);
 
     // whose turn
-    if (g.phase === 'show') label(c, 'Listen…', 800, 110, { size: 50, color: PAL.slate, weight: 700 });
-    else if (g.phase === 'play') label(c, 'Your turn!', 800, 110, { size: 50, color: PAL.magenta, weight: 800 });
+    if (g.phase === 'show') label(c, 'Listen…', 800, 110, { size: 50, color: PAL.slate, weight: 700, halo: true });
+    else if (g.phase === 'play') label(c, 'Your turn!', 800, 110, { size: 50, color: PAL.magenta, weight: 800, halo: true });
     // the tune as a row of dots: filled as you play them back
     if (g.phase === 'show' || g.phase === 'play' || g.phase === 'good' || g.phase === 'oops') {
       const n = g.tune.length;
@@ -483,7 +488,7 @@ export default function create(env) {
       c.restore();
     }
     if (g.round <= 0 && (g.phase === 'intro' || g.phase === 'show' || g.phase === 'play')) {
-      label(c, g.phase === 'play' ? 'Move to a glass · press to tap it' : 'Watch the Goose play, then play it back', 800, 830, { size: 34, weight: 600, color: '#fbf8ee' });
+      hint(c, g.phase === 'play' ? 'Move to a glass · press to tap it' : 'Watch the Goose play, then play it back', 800, 830, { focus: g.focus(), span: g.span, size: 34, weight: 600 });
     }
   };
 

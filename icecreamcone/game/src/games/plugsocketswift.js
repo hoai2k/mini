@@ -14,7 +14,7 @@
 // waiting too long gives up too. Requests come faster, and the books get
 // longer, as dusk turns to night. Score: rooms lit.
 
-import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -68,6 +68,8 @@ export default function create(env) {
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
   function pop(text, x, y, color = INK, size = 34) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
   // Lamps on: readers and sleepers.
@@ -731,7 +733,7 @@ export default function create(env) {
       c.font = '700 36px Fraunces, Georgia, serif';
       c.textAlign = 'center';
       c.strokeText('Fly to a window that asks · press to plug in', W / 2, 860);
-      label(c, 'Fly to a window that asks · press to plug in', W / 2, 860, { size: 36, weight: 700 });
+      hint(c, 'Fly to a window that asks · press to plug in', W / 2, 860, { focus: g.focus(), span: g.span, size: 36, weight: 700 });
       c.restore();
     }
   };

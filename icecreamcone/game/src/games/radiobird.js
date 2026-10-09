@@ -14,7 +14,7 @@
 // a moment, are pencilled on the dial, but the stations drift, more and more
 // as time goes on, and get narrower too. Score: points.
 
-import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint as showHint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -154,6 +154,8 @@ export default function create(env) {
   };
 
   function pop(text, x, y, color = INK, size = 42) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
 
@@ -669,14 +671,8 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      const hint = g.pointerUser ? 'Drag the needle to their station · let go on it' : 'Turn the dial to their station · press to play it';
-      c.lineWidth = 7;
-      c.strokeStyle = 'rgba(250,244,228,0.9)';
-      c.font = '600 30px Fraunces, Georgia, serif';
-      c.textAlign = 'center';
-      c.textBaseline = 'middle';
-      c.strokeText(hint, clamp(g.cardX(), 380, W - 380), 575);
-      label(c, hint, clamp(g.cardX(), 380, W - 380), 575, { size: 30, weight: 600 });
+      const msg = g.pointerUser ? 'Drag the needle to their station · let go on it' : 'Turn the dial to their station · press to play it';
+      showHint(c, msg, clamp(g.cardX(), 380, W - 380), 575, { focus: g.focus(), span: g.span, size: 30 });
       c.restore();
     }
   };

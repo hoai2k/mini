@@ -1033,10 +1033,36 @@ export function band(g, x, y, w, h, color, alpha = 0.6, seed = 0) {
 }
 
 // Shared text style on the canvas.
-export function label(g, text, x, y, { size = 40, align = 'center', color = INK, font = 'Fraunces, Georgia, serif', weight = 600, baseline = 'middle' } = {}) {
+// The opening hint of a minigame: a line over the painting, haloed. On a
+// narrow screen the view shows only `span` of the width around `focus`, so a
+// line too wide for that is split at its " · " into lines, and each is kept
+// inside the view.
+export function hint(g, text, x, y, { focus = x, span = 760, size = 34, color = INK, weight = 600 } = {}) {
+  g.font = `${weight} ${size}px Fraunces, Georgia, serif`;
+  const lines = g.measureText(text).width > span - 80 ? text.split(' · ') : [text];
+  // centred on y, but never off the bottom of the 900-high scene
+  const y0 = Math.min(y - ((lines.length - 1) * size * 1.2) / 2, 900 - size * 0.75 - (lines.length - 1) * size * 1.2);
+  lines.forEach((line, i) => {
+    const half = g.measureText(line).width / 2 + 24;
+    const lx = Math.min(Math.max(x, focus - span / 2 + half), focus + span / 2 - half);
+    label(g, line, lx, y0 + i * size * 1.2, { size, color, weight, halo: true });
+  });
+}
+
+// `halo` rings the letters in cream paper first, so a line stays readable over
+// a busy painting.
+export function label(g, text, x, y, { size = 40, align = 'center', color = INK, font = 'Fraunces, Georgia, serif', weight = 600, baseline = 'middle', halo = false } = {}) {
   g.font = `${weight} ${size}px ${font}`;
   g.textAlign = align;
   g.textBaseline = baseline;
+  if (halo) {
+    g.save();
+    g.lineJoin = 'round';
+    g.lineWidth = Math.max(4, size * 0.2);
+    g.strokeStyle = 'rgba(250,244,228,0.92)';
+    g.strokeText(text, x, y);
+    g.restore();
+  }
   g.fillStyle = color;
   g.fillText(text, x, y);
 }

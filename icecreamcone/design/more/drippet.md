@@ -116,3 +116,7 @@ collar, grey-blue wing, pink tail, ochre legs).
 - **Still drawn in code (game information, not stand-ins):** the dashed
   ring under each thirsty thing with its fill arc, the little drop-clock of
   its patience, the falling drips and splash dots, and the pops.
+
+## Second audit (2026-10-09)
+
+Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.

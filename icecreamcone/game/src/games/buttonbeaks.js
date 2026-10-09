@@ -11,7 +11,7 @@
 // line runs faster as time goes on, coats come with more holes, and two more
 // bowls of look-alike buttons join the tin. Score: buttons sewn on.
 
-import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 import { subjectShape } from '../subjects.js';
 
@@ -125,6 +125,8 @@ export default function create(env) {
   };
 
   function pop(text, x, y, color = INK, size = 44) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
 
@@ -576,7 +578,7 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Pick the button it needs · toss it up under the coat', W / 2, 560, { size: 34, weight: 600 });
+      hint(c, 'Pick the button it needs · toss it up under the coat', W / 2, 560, { focus: g.focus(), span: g.span, size: 34, weight: 600 });
       c.restore();
     }
   };

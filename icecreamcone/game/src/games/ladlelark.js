@@ -13,7 +13,7 @@
 // leaves. The soup swirls faster, the orders grow and patience shortens as
 // the queue goes on. Score: points.
 
-import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -85,6 +85,8 @@ export default function create(env) {
   const progress = () => Math.min(1, g.elapsed / DURATION);
   const kinds = () => (g.elapsed < 7 ? 2 : g.elapsed < 20 ? 3 : 4);
   function pop(text, x, y, color = INK, size = 34) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
   // Where a bit is (in surface units), now or `ahead` seconds from now.
@@ -742,7 +744,7 @@ export default function create(env) {
       c.font = '700 34px Fraunces, Georgia, serif';
       c.textAlign = 'center';
       c.strokeText('Put the ring round what they asked for · press to dip', CX, 360);
-      label(c, 'Put the ring round what they asked for · press to dip', CX, 360, { size: 34, weight: 700 });
+      hint(c, 'Put the ring round what they asked for · press to dip', CX, 360, { focus: g.focus(), span: g.span, size: 34, weight: 700 });
       c.restore();
     }
   };

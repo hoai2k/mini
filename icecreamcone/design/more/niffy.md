@@ -127,3 +127,7 @@ point to stay where it is in the portrait.
 - **Still drawn in code:** the balloon string, the hand held over a thing
   when someone is wary, the aim ring, the warning and the pops. No new
   requests.
+
+## Second audit (2026-10-09)
+
+Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.

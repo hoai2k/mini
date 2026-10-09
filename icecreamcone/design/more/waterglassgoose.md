@@ -84,3 +84,7 @@ tapping pose is described to fit how the glasses stand in front of it.
 - **Still drawn in code:** only the coloured water, the glow and outline
   when a glass rings or is chosen, the ripples and notes, and the counters.
   No new requests.
+
+## Second audit (2026-10-09)
+
+Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.

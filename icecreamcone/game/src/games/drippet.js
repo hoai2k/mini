@@ -12,7 +12,7 @@
 // bigger and last longer as time goes on, and later two things are thirsty
 // at once. Score: drinks.
 
-import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -78,6 +78,8 @@ export default function create(env) {
   const wanted = () => (g.elapsed > 15 ? 2 : 1);
 
   function pop(text, x, y, color = INK, size = 44) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
 
@@ -304,6 +306,7 @@ export default function create(env) {
       const near = Math.hypot(spot.x - t.x, (spot.y - t.y) * 1.6) < REACH || Math.hypot(g.x - t.x, (g.y - t.y) * 1.6) < REACH * 0.9;
       if (near && g.hop <= 0 && g.slip <= 0) {
         g.pouring = 0.15;
+        g.pourOn = t;
         t.fill += dt / FILL;
         if (Math.floor(t.fill * 6) !== Math.floor((t.fill - dt / FILL) * 6)) sfx('pour');
         if (t.fill >= 1) {
@@ -607,7 +610,7 @@ export default function create(env) {
     c.save();
     c.globalAlpha = 0.2;
     c.beginPath();
-    c.ellipse(g.x, g.y + 3, 52 * k * (1 - lift / 200), 12 * k, 0, 0, Math.PI * 2);
+    c.ellipse(g.x + (g.drawOx || 0), g.y + 3, 52 * k * (1 - lift / 200), 12 * k, 0, 0, Math.PI * 2);
     c.fillStyle = INK;
     c.fill();
     c.restore();
@@ -622,8 +625,14 @@ export default function create(env) {
     else if (g.hop > 0) [sheet, cell] = ['sprites.drippetPoses', 0];
     else if (g.pouring > 0) [sheet, cell] = ['sprites.drippetMore', 1];
     else if (moving && Math.sin(g.walk * 2.2) > 0) [sheet, cell] = ['sprites.drippetMore', 0];
+    // Pouring, it leans over so its stream falls into the thing it fills
+    // rather than standing on top of it (drawn only: where it is stays put).
+    const want = g.pouring > 0 && g.pourOn ? clamp(g.pourOn.x - g.spout().x, -90, 90) : 0;
+    const step = Math.min(0.1, Math.max(0, t - (g.drawT ?? t)));
+    g.drawT = t;
+    g.drawOx = (g.drawOx || 0) + (want - (g.drawOx || 0)) * (1 - Math.exp(-14 * step));
     c.save();
-    c.translate(g.x, g.y - lift - bob);
+    c.translate(g.x + g.drawOx, g.y - lift - bob);
     if (g.slip > 0 && !env.reduceMotion) c.rotate(Math.sin(g.spinA) * 0.45);
     else if (moving) c.rotate(Math.sin(g.walk * 2.2) * 0.05);
     else if (g.pouring > 0 && !art(sheet)) c.rotate(g.face * 0.12);
@@ -690,7 +699,7 @@ export default function create(env) {
       c.textAlign = 'center';
       c.textBaseline = 'middle';
       c.strokeText('Run to the thirsty things · hop over old puddles', W / 2, 872);
-      label(c, 'Run to the thirsty things · hop over old puddles', W / 2, 872, { size: 34, weight: 600 });
+      hint(c, 'Run to the thirsty things · hop over old puddles', W / 2, 872, { focus: g.focus(), span: g.span, size: 34, weight: 600 });
       c.restore();
     }
   };

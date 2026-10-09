@@ -15,7 +15,7 @@
 // far, and the dogs and cards come more often as the round goes on.
 // Score: points.
 
-import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp } from './index.js';
 
 Object.assign(SHEETS, {
@@ -92,6 +92,8 @@ export default function create(env) {
   g.tol = () => 30;
 
   function pop(text, x, y, color = INK, size = 40) {
+    // Don't stack on a fresh pop at the same spot: rise above it.
+    for (const q of g.pops) if (q.life > 0.7 && Math.abs(q.x - x) < 160 && Math.abs(q.y - y) < size) y = q.y - size * 1.1;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
   const add = (n) => {
@@ -700,15 +702,18 @@ export default function create(env) {
       c.font = `800 ${p.size}px Fraunces, Georgia, serif`;
       c.textAlign = 'center';
       c.textBaseline = 'middle';
-      c.strokeText(p.text, p.x, p.y);
-      label(c, p.text, p.x, p.y, { size: p.size, color: p.color, weight: 800 });
+      // Kept whole on screen as the street carries it off to the left.
+      const half = c.measureText(p.text).width / 2 + 12;
+      const px = clamp(p.x, half, W - half);
+      c.strokeText(p.text, px, p.y);
+      label(c, p.text, px, p.y, { size: p.size, color: p.color, weight: 800 });
       c.restore();
     }
 
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Hold to wind up · let go to throw onto the doorstep', W / 2, 130, { size: 36, weight: 600 });
+      hint(c, 'Hold to wind up · let go to throw onto the doorstep', W / 2, 140, { focus: g.focus(), span: g.span, size: 36 });
       c.restore();
     }
   };

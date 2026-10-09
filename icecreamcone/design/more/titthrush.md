@@ -128,3 +128,7 @@ Requested (IC-M12f, `sprites.watchCrown`): the winding crown and ring bow
 that sit on top of the big watch's case, which the face painting leaves off.
 Until it arrives the game draws a ribbed gold box there, the only part of the
 watch still drawn in code.
+
+## Second audit (2026-10-09)
+
+Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.

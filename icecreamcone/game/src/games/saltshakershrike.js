@@ -14,7 +14,7 @@
 // faster and the plates want more salt as the lunch rush builds. Score:
 // points.
 
-import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, hint, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -99,6 +99,8 @@ export default function create(env) {
     g.score = Math.max(0, g.score + n);
   };
   function pop(text, x, y, color = INK, size = 34) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
 
@@ -664,7 +666,7 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'One press, one pinch · shake as many as the flag shows', W / 2, 866, { size: 36, weight: 700, color: INK });
+      hint(c, 'One press, one pinch · shake as many as the flag shows', W / 2, 866, { focus: g.focus(), span: g.span, size: 36, weight: 700, color: INK });
       c.restore();
     }
   };

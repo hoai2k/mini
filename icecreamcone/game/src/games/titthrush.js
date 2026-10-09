@@ -15,7 +15,7 @@
 // so often a clock strikes ten, the Tit Trush's own hour, worth double.
 // Score: clocks set.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -127,6 +127,8 @@ export default function create(env) {
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
   function pop(text, x, y, color = INK, size = 44) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
 
@@ -185,7 +187,7 @@ export default function create(env) {
       sfx('right');
       env.vibrate?.(30);
       const quick = g.wait < 3;
-      pop(g.isTen ? 'Ten o’clock! Tit-trush! +2' : quick ? 'Right on time!' : 'Set!', DX, CASE_TOP - 100, PAL.magenta, 50);
+      pop(g.isTen ? 'Ten o’clock! Tit-trush! +2' : quick ? 'Right on time!' : 'Set!', DX, DY - DR * 0.32, PAL.magenta, 50); // on the face, clear of the clock above
       for (let i = 0; i < 5; i++) g.notes.push({ x: BIRD_X - 10, y: BIRD_Y - 290, vx: -60 + i * 40, vy: -120 - i * 20, life: 1.2 });
       g.round++;
       g.nextT = 0.7;
@@ -195,7 +197,7 @@ export default function create(env) {
       g.shake = 0.4;
       sfx('wrong');
       env.vibrate?.(60);
-      pop(off > 60 ? 'Wrong hour!' : 'Not quite!', DX, DY + CASE_R + 30, PAL.brick, 44);
+      pop(off > 60 ? 'Wrong hour!' : 'Not quite!', DX, DY - DR * 0.32, PAL.brick, 44);
     }
   }
 
@@ -450,9 +452,14 @@ export default function create(env) {
       c.restore();
     }
     hands(c, x, DY, DR, g.m, '#2c2c34', 1.6);
-    // the time, written small under the hands
-    label(c, digits(g.m), x, DY + DR * 0.42, { size: 34, color: '#7a6a50', weight: 600 });
-    if (g.jam > 0) label(c, 'Jammed!', x, DY + DR * 0.62, { size: 30, color: PAL.brick, weight: 800 });
+    // the time, on a little card under the case, where the hands never cover it
+    const ty = DY + CASE_R + 36;
+    poly(c, [[x - 66, ty - 24], [x + 66, ty - 24], [x + 66, ty + 24], [x - 66, ty + 24]], 9, 0.6);
+    c.fillStyle = 'rgba(250,244,228,0.95)';
+    c.fill();
+    ink(c, 2);
+    label(c, digits(g.m), x, ty + 2, { size: 34, color: INK, weight: 700 });
+    if (g.jam > 0) label(c, 'Jammed!', x, DY + DR * 0.42, { size: 34, color: PAL.brick, weight: 800, halo: true });
   }
 
   function drawTownClock(c, t) {
@@ -590,13 +597,8 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      c.lineWidth = 7;
-      c.strokeStyle = 'rgba(250,244,228,0.9)';
-      c.font = '600 34px Fraunces, Georgia, serif';
-      c.textAlign = 'center';
       const msg = g.kind === 'pointer' ? 'Drag the hands to match the town clock · tap to set' : g.kind === 'controller' ? 'Spin the stick · flick ↑ ↓ for hours · A to set' : 'Hold ← → to turn · ↑ ↓ for hours · Space to set';
-      c.strokeText(msg, W / 2, 866);
-      label(c, msg, W / 2, 866, { size: 34, weight: 600 });
+      hint(c, msg, W / 2, 878, { focus: g.focus(), span: g.span, size: 30 });
       c.restore();
     }
   };

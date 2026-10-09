@@ -12,7 +12,7 @@
 // every eight sweepings, the leaves fall faster, and the gusts come more
 // often as time goes on. A golden leaf is worth three. Score: points.
 
-import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -110,6 +110,8 @@ export default function create(env) {
   g.pan = { ...PANS[0] };
 
   function pop(text, x, y, color = INK, size = 44) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
 
@@ -669,7 +671,7 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Push the leaves into the dustpan · press to flick', W / 2, 440, { size: 34, weight: 600 });
+      hint(c, 'Push the leaves into the dustpan · press to flick', W / 2, 440, { focus: g.focus(), span: g.span, size: 34, weight: 600 });
       c.restore();
     }
   };

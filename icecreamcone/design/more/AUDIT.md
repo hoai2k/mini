@@ -746,3 +746,166 @@ Done (31b7f8e); the game is largely rebuilt, details in `radiobird.md`.
 4. A plays the station (or letting go of the needle with a pointer); a wrong one costs a 0.7 s grumble, no points. The needle settles on a nearby station when left alone.
 5. The speaker and a tag for the wanted station ride under the needle, which the phone view follows.
 Pass 75. Bots: beginner 85–207, good 251–317, sweeping, creeping, mashing and idle all below 75 (asserted).
+
+## Second audit: with the delivered art
+
+On 2026-10-09, after the art for all eighteen was delivered and fitted
+(f719a7e, 2c6339b, 88966a2, af2078c, 404878d and the earlier sprite fits),
+each game was played again in Chromium at 1280 x 720 (controller) and
+390 x 844 (touch). Its own test bots drove it: the good bot all round, then
+random mashing, then the phone. Screenshots were taken every 0.45 s from the
+bird's page to the end (in the session scratchpad, `audit2/<id>/`). I looked
+for feet on the ground line, poses that jump when they swap, held things
+lining up (beak and glass, claws and ring, iron and cloth, bowl and soup, saw
+and plank, lid and bin), z-order, clipping by the HUD and screen edges,
+leftover stand-in shapes, stretching, and text over the paintings. I also
+measured every delivered pose sheet's painted box per cell, to look for size
+or foot-line jumps between poses.
+
+`node --test test/*.test.mjs` passes (184 tests). `node scripts/browser-check.mjs --bird <id>` passes for all eighteen.
+
+**Finding about the checks themselves.** The browser checks step the game at
+`?dt=0.05`, a third as often as the 60-a-second steps the bots were tuned at.
+At that step the timing bots fall apart. Bin Day's good bot scored 3–6
+instead of 41–44, and Set the Clocks' scored 11–12 instead of 25–27. Run
+three 1/60 s sub-steps per frame and the browser scores match the tests
+(Bin Day 41, Set the Clocks 24). This is an artefact of the test step, not a
+bug in the games: in real play the shell's steps are at most 0.05 s and
+usually 1/60. A game whose timing windows are shorter than 0.05 s would
+still be at risk on a slow phone.
+
+### What was right everywhere
+
+No leftover stand-in shapes show beside the paintings in any of the
+eighteen, and nothing is stretched. Feet stand on their ground lines: the
+Goose behind the glasses, the Midge on its crates, the walkers and the
+Keeper on the promenade, the Buttonbeaks behind the tin, the Wren on the
+pavement, the Dove on the counter, the Drippet on the tiles, the Radio Bird
+on its rug. Every pose swap keeps its anchor: the Shrike's claws stay on the
+rail in all four poses, and the Lark's bowl point is the same in all three
+(checked against the sheet). The Key Crane's claws close on the ring. The
+iron's sole sits on the cloth and the saw's teeth sit in the cut. The canary
+lid swings on its hinge with its head under it.
+
+### Shared changes
+
+- `game/src/draw.js`: `label()` takes a `halo` option, which rings the
+  letters in cream paper so they read over a busy painting. A new `hint()`
+  draws a game's opening hint haloed. On a narrow screen it splits the line
+  at " · " when it is wider than the game's `span`, and keeps each line
+  inside the view around `focus` and above the bottom edge. This is the only
+  file outside the eighteen that I touched; it is not on the other agent's
+  list.
+- Every game's `pop()` now steps a new pop clear of one still showing
+  nearby, instead of printing on top of it (Bin Day already did). Seen in
+  Milk Round ("Clink!" over "Smash!"), Snip the String and Tune In. Files:
+  every `game/src/games/<id>.js` of the eighteen except `garbagecanary.js`.
+- The opening hints of Milk Round, Glass Harp, Snip Snap, Clean Sweep,
+  Button Up, Snip the String, Puddle Hop, Lights On, Just a Pinch, Soup's On,
+  Drip Drop Dash, Saw It Straight, Set the Clocks and Tune In now use
+  `hint()`. On a phone they used to run off both sides (Tune In, Soup's On,
+  Milk Round, Snip Snap); now they are whole, and haloed over the painting.
+
+### Per game
+
+**Milk Round: fixed.** Checked the float, the Midge's throw and mood poses,
+houses, path and fence, the dog, and the bottle arc; all aligned. Pops moved
+with the street and were cut off at the left edge, and stacked when a
+"Clink!" and a "Smash!" came together. They now stay whole on screen and
+step clear of each other. The hint went over the clock and off the phone
+view; it now sits under the clock as two lines over the float. File:
+`games/milkmidge.js`.
+
+**Glass Harp: fixed.** The tapping beak reaches the rim. The poses were all
+placed as if their feet were at 0.98 of the cell, but the walking and
+recoiling cells have them at 0.93. So the Goose floated about 16 px above
+the table while it stepped between glasses or recoiled from a crack, and
+dropped back when it stood. Each sheet is now placed by its own foot line
+(0.99 tapping, 0.93 moving). "Listen…" and "Your turn!" were faint over the
+wallpaper; they are now haloed. File: `games/waterglassgoose.js`.
+
+**Snip Snap: fixed.** Walkers, the Keeper's three poses, the swoop and flap
+poses and the nest all fit. The hint sat over the HUD clock at the top;
+it is now under the Niffy, haloed, and whole on a phone. File:
+`games/niffy.js`.
+
+**Snip the String: fixed.** Balloons and kites hang from their strings, and
+the Snippit's hinge is on the knot line. The "Let go of" tag sat under the
+clock's lower edge, and "Quick! +15" pops rose into it. The tag moved down
+14 px, pops stay below y 300 and inside x 220–1380, and "Wrong string!"
+sits above "Jammed!". A painted kite can still pass behind the tag when the
+bunch drifts high; that is acceptable. File: `games/snippit.js`.
+
+**Button Up: meets the bar.** Coats hang from the line, buttons sew into the
+ghost holes, and the bowls sit on the tin. Pops now step apart.
+
+**Clean Sweep: meets the bar.** The broom poses, dustpan sides and sweepings
+all fit; the slide line and glow read well.
+
+**Lucky Dip: meets the bar.** The claws meet the ring, the prizes stand on
+the velvet, and the startle pose keeps the string's anchor.
+
+**Bin Day: meets the bar.** The lid, head, call poses and things all fit
+(see the strip of the lid opening). Gold rings make "keep" things obvious.
+The bots only looked broken in the browser because of the step size (above).
+
+**Pressing Business: meets the bar.** The sole is on the cloth and the
+creases are clear on the delivered garments. The silk label and scorch marks
+read well.
+
+**Puddle Hop: meets the bar.** The Wren walks and floats on the pavement
+line; the splash pose stands in its puddle; the chicks and awnings fit.
+
+**Slippery Dishes: meets the bar.** The dish lands level on the glove's neck
+(checked frame by frame), and the catch and flick poses keep their feet.
+Fun: the clearest of the rebuilt games; a child sees the "Hup!" at once.
+
+**Set the Clocks: fixed.** The watch face, town clocks, hands and the
+singing and fluster poses all fit. Three things fought with the hands or the
+clock:
+1. The digital time was written under the hands' pivot, where the long hand
+   covered it half the time ("4:30" under the 6). It is now on a small
+   cream card under the case.
+2. "Right on time!" and "Set!" popped above the case, behind the HUD clock.
+   They and "Not quite!" now pop on the face, haloed.
+3. The control hint ran off a phone's view; it now uses `hint()` at the
+   foot.
+"Jammed!" is haloed. File: `games/titthrush.js`.
+
+**Lights On: meets the bar.** Windows, the fuse box and the three Swift
+poses fit; the plug-in dive meets the socket.
+
+**Just a Pinch: meets the bar.** All four hanging poses keep the claws on the
+rail and the cap over the salt line (checked at full size); the plates sit on
+the revolving table.
+
+**Soup's On: meets the bar.** The bowl point stays put through hover, dip and
+rise (checked on the sheet), and the dip clips under the soup. Hint fixed by
+the shared change.
+
+**Drip Drop Dash: fixed.** While pouring, the Drippet stood on top of the fern
+pot, hiding it, with its stream falling beside it. It now leans its drawing
+(and shadow) over so the spout is above what it fills, easing back when done.
+Only the drawing moves; where it stands, and so the tests and bots, are
+unchanged. File: `games/drippet.js`.
+
+**Saw It Straight: meets the bar.** The teeth sit in the cut, the planks lie
+on the sawhorses, and knots are drawn on the line. The knot art is still to
+come (IC-M17f, already requested); until then the code-drawn knots read
+clearly.
+
+**Tune In: meets the bar.** The dial, needle, speaker card, listeners and the
+three Radio Bird poses fit. The hint ran off a phone; fixed by the shared
+change. The radio parts (IC-M18f) are already requested.
+
+### Requests for the lead
+
+- No new image requests: nothing found needs new art. The three still
+  outstanding (IC-M17f knots, IC-M18f radio parts, the dish shards and watch
+  crown sheets that `src/games/glovedove.js` and `titthrush.js` list) are
+  already in the request documents.
+- `scripts/browser-check.mjs` (the other agent's file): its "every minigame"
+  round plays with random input at `?dt=0.05`, which is fine for "no errors,
+  reaches the result card". Anyone using it to judge scores should know the
+  bots need 1/60 s steps.
+- No redesigns proposed: all eighteen are clear and playable with their art.

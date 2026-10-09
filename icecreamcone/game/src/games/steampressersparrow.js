@@ -119,6 +119,8 @@ export default function create(env) {
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
   function pop(text, x, y, color = INK, size = 42) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
   const add = (n) => {

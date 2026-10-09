@@ -12,7 +12,7 @@
 // shut. Gusts of wind lift an open umbrella higher still.
 // Score: points (puddles hopped and birds kept dry).
 
-import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -90,6 +90,8 @@ export default function create(env) {
   const top = () => g.h + (g.open ? TOP_OPEN : TOP_SHUT);
 
   function pop(text, x, y, color = INK, size = 44) {
+    // Stack above a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
   const sx = (wx) => wx - g.d + WREN_X; // world to screen
@@ -679,7 +681,7 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Press to pop open and hop · hold to float', W / 2, 150, { size: 38, weight: 600 });
+      hint(c, 'Press to pop open and hop · hold to float', W / 2, 150, { focus: g.focus(), span: g.span, size: 38, weight: 600 });
       c.restore();
     } else if (g.elapsed > 13 && g.elapsed < 16.5) {
       c.save();

@@ -10,7 +10,7 @@
 // the bunch as time goes on, their strings curl more, and later they jostle
 // in the wind and drift past each other while you look. Score: points.
 
-import { drawBird, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { drawBird, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, hint, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 import { subjectShape } from '../subjects.js';
 
@@ -96,6 +96,11 @@ export default function create(env) {
   };
 
   function pop(text, x, y, color = INK, size = 46) {
+    // Never over the tag at the top, nor clipped at the sides.
+    y = Math.max(y, 300); // it rises 50 px as it fades: stays under the tag
+    x = clamp(x, 220, W - 220);
+    // Stack below a pop still showing nearby rather than on top of it.
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y += size;
     g.pops.push({ text, x, y, color, size, life: 1.3 });
   }
 
@@ -231,7 +236,7 @@ export default function create(env) {
       g.wrong++;
       g.score = Math.max(0, g.score - WRONG);
       g.jam = JAM;
-      pop('Wrong string!', b.px, PEG_Y - 120, PAL.brick, 44);
+      pop('Wrong string!', b.px, PEG_Y - 190, PAL.brick, 44); // above the "Jammed!" at the blades
       sfx('wrong');
       env.vibrate?.(80);
     }
@@ -446,7 +451,7 @@ export default function create(env) {
   function drawTag(c, t) {
     const b = g.want;
     const x = 800;
-    const y = 140;
+    const y = 154; // just clear of the clock above it
     c.save();
     c.translate(x, y + Math.sin(t * 2) * 2);
     poly(c, [[-170, -46], [150, -46], [182, 0], [150, 46], [-170, 46]], 5, 1.2);
@@ -600,7 +605,7 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'Follow its string down · snip at the knot', W / 2, 560, { size: 34, weight: 600 });
+      hint(c, 'Follow its string down · snip at the knot', W / 2, 560, { focus: g.focus(), span: g.span, size: 34, weight: 600 });
       c.restore();
     }
   };

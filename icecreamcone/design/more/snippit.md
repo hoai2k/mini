@@ -85,3 +85,7 @@ jamming turns about the eye. The jammed pose came out milder than asked
 eye was re-measured too: 321 units up and 29 to the left of its feet.
 Nothing of the Snippit's game is drawn in code now apart from the strings,
 knots, notch, tag and pops.
+
+## Second audit (2026-10-09)
+
+Checked against the delivered art; see the second audit in [`AUDIT.md`](AUDIT.md) for what was changed.
