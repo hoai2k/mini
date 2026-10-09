@@ -15,7 +15,7 @@ Artwork for Fibre Art, the shifting collage in `fibreart/` (see [`design.md`](de
 
 ## Status
 
-0 requested, 60 delivered, 60 in total.
+1 requested, 60 delivered, 61 in total.
 
 ## Brand and interface
 
@@ -72,6 +72,20 @@ A sheet of small line drawings in the style of Hanneke de Neve's pen drawings: e
 
 ```text
 A sheet of real sewing thread and stitches photographed flat, for a game that cuts each one out and bends it along a path. Each item lies in a perfectly straight horizontal line across almost the full width of the sheet, one above the other with wide gaps, nothing touching. In order from top to bottom: 1. A running stitch in white cotton thread, even dashes as if sewn through cloth that is not there. 2. A running stitch in bright blue thread. 3. A machine zigzag stitch in orange thread. 4. A couched gold thread, a thick gold cord held down by tiny cross stitches. 5. A loose length of red embroidery thread, lying straight, slightly twisted. 6. A length of white thread with a frayed end on the right. 7. A narrow ribbon of rose silk, lying straight and flat. 8. A narrow ribbon of turquoise satin, lying straight and flat. Even soft light, no shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### HK-U06 · Pause menu pictures
+
+- **File:** `fibreart/game/assets/ui/pause-icons.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** The pause menu's buttons, which are pictures with no words, and the close button of every panel.
+- **Stand-in until delivered:** Simple line icons drawn in code.
+- **Reference:** [`fibercollage-moons-and-hearts.jpg`](../reference/fibre/fibercollage-moons-and-hearts.jpg), [`tapestry-man-and-woman.jpg`](../reference/fibre/tapestry-man-and-woman.jpg)
+- **Note:** Attach HK-U02 (assets/ui/icon.png) and HK-U03 (assets/ui/line-drawings.png) so the badges match the icon and the line.
+- **Status:** requested
+
+```text
+Original artwork in the style of Hanneke de Neve, a Dutch-born New Jersey artist who makes fibercollages, quilts, tapestries and paintings: figurative and dreamlike, built from cut and pieced fabric and loose paint. Flat shapes cut from cloth with slightly irregular, softly frayed edges; visible hand stitching (running stitch, couched thread, machine zigzag); batik, paisley, damask, satin, lace and netting side by side; figures and faces with oval heads, long necks and almond eyes, often closed, drawn in one fluid dark contour over washes of colour that spill past the line. Deep indigo, black and teal grounds with hot accents of red, orange, saffron and pale gold, and acid yellow-green light. Calm, warm, a little melancholy, full of love for people. Rich, saturated colour, as in a fresh photograph of the real cloth, not faded. No text, no lettering, no signature, no watermark, no picture frame, no UI. A sheet of eight round appliqué badges for a game's pause menu, each one a circle of cream linen with a dashed red running stitch round its edge, and on it one simple motif cut from cloth and sewn on, bold and readable at 80 px, centred, filling about two thirds of the badge. All eight the same size, the same cream linen and the same stitched border, so they read as one set. Lay them out in a grid of 4 columns and 2 rows, in the order listed, from left to right and top to bottom, one per cell and centred in it, with plenty of clear background around each one. Nothing touches anything else or the edge of its cell. No numbers, labels, guide lines, outlines around the cells or shadows. The motifs, in order: 1. A play triangle pointing right, cut from saffron silk (resume). 2. An open hand of pale yellow cloth, palm up, with short loose threads running from its fingertips (the controls you have found). 3. A single wide-open eye of cream and blue cloth, its lashes stitched in dark thread (a hint: look closely). 4. An open book whose pages are pieces of cloth, with lines of running stitch for writing (how to play). 5. A wooden spool wound with red thread, a needle stuck through it (settings). 6. A small square quilt block in indigo and red with a stitched arrow pointing right (the next picture). 7. A little peaked house of patchwork with a red roof (back to the title). 8. Two dressmaker's pins crossed in an X (close). No words or letters anywhere. For the style, materials and palette, look at her work in these reference photos: https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/fibercollage-moons-and-hearts.jpg , https://raw.githubusercontent.com/hoai2k/mini/main/fibreart/reference/fibre/tapestry-man-and-woman.jpg . Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### HK-U05 · Line drawings of the controls

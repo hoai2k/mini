@@ -19,6 +19,21 @@
     "file": "assets/ui/threads.png",
     "delivered": true
   },
+  "pauseIcons": {
+    "id": "HK-U06",
+    "file": "assets/ui/pause-icons.png",
+    "delivered": false,
+    "pieces": [
+      "resume",
+      "controls",
+      "hint",
+      "howto",
+      "settings",
+      "next",
+      "title",
+      "close"
+    ]
+  },
   "controlDrawings": {
     "id": "HK-U05",
     "file": "assets/ui/control-drawings.png",

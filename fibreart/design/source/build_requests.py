@@ -614,6 +614,36 @@ REQUESTS: list[dict] = [
     },
 ]
 
+# The pause menu is pictures to choose between, not words (the owner's ask).
+REQUESTS.append({
+    "id": "HK-U06",
+    "section": "ui",
+    "name": "Pause menu pictures",
+    "key": "pauseIcons",
+    "file": "assets/ui/pause-icons.png",
+    "size": "2048 x 1024, transparent",
+    "used": "The pause menu's buttons, which are pictures with no words, and the close button of every panel.",
+    "standin": "Simple line icons drawn in code.",
+    "ref": ["fibre/fibercollage-moons-and-hearts.jpg", "fibre/tapestry-man-and-woman.jpg"],
+    "note": "Attach HK-U02 (assets/ui/icon.png) and HK-U03 (assets/ui/line-drawings.png) so the badges match the icon and the line.",
+    "prompt": STYLE + " A sheet of eight round appliqué badges for a game's pause menu, each one a "
+    "circle of cream linen with a dashed red running stitch round its edge, and on it one simple "
+    "motif cut from cloth and sewn on, bold and readable at 80 px, centred, filling about two thirds "
+    "of the badge. All eight the same size, the same cream linen and the same stitched border, so "
+    "they read as one set. " + GRID.format(4, 2) + "The motifs, in order: " + numbered([
+        "a play triangle pointing right, cut from saffron silk (resume)",
+        "an open hand of pale yellow cloth, palm up, with short loose threads running from its fingertips (the controls you have found)",
+        "a single wide-open eye of cream and blue cloth, its lashes stitched in dark thread (a hint: look closely)",
+        "an open book whose pages are pieces of cloth, with lines of running stitch for writing (how to play)",
+        "a wooden spool wound with red thread, a needle stuck through it (settings)",
+        "a small square quilt block in indigo and red with a stitched arrow pointing right (the next picture)",
+        "a little peaked house of patchwork with a red roof (back to the title)",
+        "two dressmaker's pins crossed in an X (close)",
+    ]) + " No words or letters anywhere. " + LOOK.format(links(["fibre/fibercollage-moons-and-hearts.jpg", "fibre/tapestry-man-and-woman.jpg"]))
+    + " " + ALPHA,
+    "pieces": ["resume", "controls", "hint", "howto", "settings", "next", "title", "close"],
+})
+
 # Asked for after the first play: the pin beside a found control borrowed a
 # hand, a spool and a needle; these say plainly which kind of control it was.
 REQUESTS.append({
