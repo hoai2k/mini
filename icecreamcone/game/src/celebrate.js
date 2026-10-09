@@ -49,8 +49,13 @@ export function sticker(id) {
   const pad = BORDER + 8;
   const w = x1 - x0 + 1 + pad * 2;
   const h = y1 - y0 + 1 + pad * 2;
-  const ox = pad - x0;
-  const oy = pad - y0;
+  // The bird alone, cut to the sticker's own box on a plain canvas: the
+  // margin below is grown from that small picture, not from 56 copies of
+  // the whole 760-pixel one read back from the CPU (seconds for the set).
+  const cut = document.createElement('canvas');
+  cut.width = w;
+  cut.height = h;
+  cut.getContext('2d').drawImage(bird, pad - x0, pad - y0);
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
@@ -66,7 +71,9 @@ export function sticker(id) {
     for (const rr of [r, r * 0.6]) {
       for (let i = 0; i < 28; i++) {
         const a = (i / 28) * Math.PI * 2;
-        tg.drawImage(bird, ox + Math.cos(a) * rr, oy + Math.sin(a) * rr);
+        // (on whole pixels: a copy at a fraction of a pixel is filtered, and
+        // many times slower, for no difference that shows in the margin)
+        tg.drawImage(cut, Math.round(Math.cos(a) * rr), Math.round(Math.sin(a) * rr));
       }
     }
     tg.globalCompositeOperation = 'source-in';
@@ -84,10 +91,89 @@ export function sticker(id) {
     g.fillRect(hash(i * 3.1) * w, hash(i * 7.7) * h, 2, 2);
   }
   g.restore();
-  g.drawImage(bird, ox, oy);
+  g.drawImage(cut, 0, 0);
   const s = { canvas: c, w, h };
   stickers.set(id, s);
   return s;
+}
+
+// Cuts out the stickers (and the gathering's greyed spots) a few at a time
+// while the browser is idle, so opening the book or a celebration finds
+// them ready instead of making them all at once (a second or more). Only
+// while `ok()` (not in the middle of a game, where one would be a hitch).
+export function prepareWhenIdle(ids, gathering = null, ok = () => true) {
+  const jobs = ids.map((id) => () => sticker(id));
+  if (gathering?.img && gathering.atlas) for (const r of gathering.atlas.regions) jobs.push(() => greyPatch(gathering.img, r));
+  const idle = globalThis.requestIdleCallback || ((fn) => setTimeout(() => fn({ timeRemaining: () => 8 }), 50));
+  const step = (deadline) => {
+    if (!ok()) {
+      setTimeout(() => idle(step), 500);
+      return;
+    }
+    do jobs.shift()?.();
+    while (jobs.length && deadline.timeRemaining() > 6);
+    if (jobs.length) idle(step);
+  };
+  idle(step);
+}
+
+// ---------- layers ----------
+
+// What holds still from frame to frame (the book, its picture, the stickers
+// lying in it, the sheet) is drawn once into a layer the size of the canvas
+// and copied in whole each frame, drawn again only when `key` changes:
+// redrawing it all every frame (the painting, the cloth, every sticker's
+// soft shadow) cost far more than a frame has. `opaque`: the layer starts
+// from what is on the canvas already (the paper round the stage); otherwise
+// it is clear and drawn over the scene, `dy` stage units lower.
+const layers = new Map();
+let fontsSeen = 0; // the labels are drawn again once the book's font arrives
+globalThis.document?.fonts?.addEventListener?.('loadingdone', () => fontsSeen++);
+// A layer not drawn for a few seconds (the book closed) gives its memory back.
+const LET_GO = 4000;
+const letGo = (L) => {
+  clearTimeout(L.idle);
+  L.idle = setTimeout(() => {
+    L.canvas.width = L.canvas.height = 0;
+    L.key = null;
+  }, LET_GO);
+};
+const imgIds = new WeakMap();
+let imgCount = 0;
+const imgKey = (img) => {
+  if (!img) return 0;
+  if (!imgIds.has(img)) imgIds.set(img, ++imgCount);
+  return imgIds.get(img);
+};
+function layer(g, name, key, draw, { opaque = true, dy = 0 } = {}) {
+  const cv = g.canvas;
+  const m = g.getTransform();
+  const full = `${key}|${fontsSeen}|${opaque}|${cv.width}x${cv.height}|${m.a},${m.b},${m.c},${m.d},${m.e},${m.f}`;
+  let L = layers.get(name);
+  if (!L) layers.set(name, (L = { canvas: document.createElement('canvas'), key: null }));
+  const c = L.canvas;
+  if (L.key !== full) {
+    if (c.width !== cv.width || c.height !== cv.height) {
+      c.width = cv.width;
+      c.height = cv.height;
+    }
+    const lg = c.getContext('2d');
+    lg.setTransform(1, 0, 0, 1, 0, 0);
+    lg.globalAlpha = 1;
+    lg.clearRect(0, 0, c.width, c.height);
+    if (opaque) lg.drawImage(cv, 0, 0);
+    lg.setTransform(m);
+    lg.save();
+    draw(lg);
+    lg.restore();
+    L.key = full;
+  }
+  letGo(L);
+  g.save();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  // on whole pixels, so the copy is not filtered
+  g.drawImage(c, 0, Math.round(dy * m.d));
+  g.restore();
 }
 
 let scratch = null;
@@ -127,7 +213,7 @@ export function drawSticker(g, id, x, y, size, { rot = 0, sx = 1, sy = 1, lift =
   if (rot) g.rotate(rot);
   g.scale(k * sx, k * sy);
   g.globalAlpha *= alpha;
-  if (lift > 0) {
+  if (lift > 0 && k > 0 && Number.isFinite(k)) {
     g.shadowColor = `rgba(59,43,32,${0.18 + 0.2 * Math.min(1, lift)})`;
     g.shadowBlur = (4 + 26 * lift) * px;
     g.shadowOffsetX = 3 * lift * px;
@@ -258,7 +344,7 @@ function drawFrame(g, pages, spine, wide, { lw, lh, px, bg = null, bgFull = fals
 // carried; o.bg: a picture behind the stickers, o.bgFull when it is one
 // painted for the book's spread (its halves on the two pages) rather than a
 // game's scene pasted in.
-export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, skip = null, bg = null, bgFull = false }) {
+export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, skip = null, bg = null, bgFull = false, pulse = true }) {
   const { pages, slots, spine } = L;
   drawFrame(g, pages, spine, wide, { lw, lh, px, bg, bgFull });
 
@@ -316,15 +402,7 @@ export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, ski
     g.strokeStyle = isNew ? 'rgba(192,64,122,0.6)' : bg ? 'rgba(59,43,32,0.45)' : 'rgba(59,43,32,0.28)';
     g.stroke();
     g.restore();
-    if (isNew) {
-      // the waiting place glows softly in the bird's colour
-      g.save();
-      g.globalAlpha = 0.18 + 0.08 * Math.sin(t * 5);
-      roundRect(g, sl.x - box / 2, sl.y - box / 2, box, box, box * 0.14);
-      g.fillStyle = b.color;
-      g.fill();
-      g.restore();
-    }
+    if (isNew && pulse) newPlaceGlow(g, sl, b, t);
     label(g, String(i + 1), sl.x, sl.y, { size: box * 0.32, color: isNew ? 'rgba(192,64,122,0.7)' : bg ? 'rgba(59,43,32,0.5)' : 'rgba(59,43,32,0.3)', weight: 500 });
   }
   // the stickers, in their own places or wherever the player put them, the
@@ -336,6 +414,18 @@ export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, ski
     const at = stickerSpot(L, i, pos[id]);
     drawPlaced(g, c.birds[i], i, at, { px, bg });
   }
+}
+
+// The new sticker's waiting place glows softly in the bird's colour (drawn
+// on its own over a book kept in a layer, as it changes every frame).
+function newPlaceGlow(g, sl, b, t) {
+  const box = sl.s * 0.86;
+  g.save();
+  g.globalAlpha *= 0.18 + 0.08 * Math.sin(t * 5);
+  roundRect(g, sl.x - box / 2, sl.y - box / 2, box, box, box * 0.14);
+  g.fillStyle = b.color;
+  g.fill();
+  g.restore();
 }
 
 // Where bird i's sticker sits on this spread: { x, y, s }, the centre of
@@ -628,17 +718,18 @@ export function drawCelebration(g, c, t, o) {
   // (with less motion the sticker fades from above the book into its place)
   const land = reduce ? at.fly : LAND;
 
-  // 2. the book, rising into place under the sticker
+  // 2. the book, rising into place under the sticker (all of it that holds
+  // still kept in a layer, only the new bird's place drawn every frame)
   if (t >= at.book) {
     g.save();
     g.globalAlpha = reduce ? bookIn : Math.min(1, bookIn * 1.6);
-    if (!reduce) g.translate(0, (1 - ease(bookIn)) * L.lift * 0.35);
+    const dy = reduce ? 0 : (1 - ease(bookIn)) * L.lift * 0.35;
     if (G) {
       const earned = new Set(c.earned);
       earned.add(c.index);
       const gpos = { ...G.gpos };
       delete gpos[b.id];
-      drawGatherBook(g, L.book, wide, {
+      const gc = {
         birds: c.birds,
         earned,
         img: G.img,
@@ -649,8 +740,21 @@ export function drawCelebration(g, c, t, o) {
         size: L.size,
         skip: b.id,
         cam,
-      }, { lw, lh, px, t });
-    } else drawBook(g, L.book, wide, c, { stuckNew: t >= land, lw, lh, px, t, pos: c.pos || {}, bg: c.bg?.img || null, bgFull: !!c.bg?.full });
+        live: new Set([b.id]),
+      };
+      layer(g, 'book', 'cele' + gatherKey(L.book, gc), (lg) => drawGatherBook(lg, L.book, wide, gc, { lw, lh, px, t, part: 'base' }), { opaque: false, dy });
+      g.translate(0, dy);
+      drawGatherBook(g, L.book, wide, gc, { lw, lh, px, t, part: 'live' });
+    } else {
+      const stuckNew = t >= land;
+      const key = JSON.stringify(['cele', L.book.pages, c.index, [...c.earned].sort((x, y) => x - y), c.pos || {}, stuckNew, imgKey(c.bg?.img), !!c.bg?.full]);
+      layer(g, 'book', key, (lg) => drawBook(lg, L.book, wide, c, { stuckNew, lw, lh, px, t, pos: c.pos || {}, bg: c.bg?.img || null, bgFull: !!c.bg?.full, pulse: false }), { opaque: false, dy });
+      const sl = L.book.slots.find((x) => x.i === c.index);
+      if (sl && !stuckNew && !c.earned.has(c.index)) {
+        g.translate(0, dy);
+        newPlaceGlow(g, sl, b, t);
+      }
+    }
     g.restore();
   }
 
@@ -761,15 +865,28 @@ export const stickerSize = (n, wide) => stickerBookLayout(n, wide, 0).slots[0].s
 // to, k }]) }; o: { lw, lh, px, wide, t, reduce }.
 export function drawStickerBook(g, sb, o) {
   const { lw, lh, px, wide, t, reduce } = o;
-  paper(g, lw, lh);
   let size;
   if (sb.gather) {
-    drawGatherBook(g, sb.gather.L, wide, sb.gather, { lw, lh, px, t });
-    for (const a of sb.gather.snaps) drawSnap(g, a.b, a.i, a.from, a.to, a.k, { reduce, px, t });
+    // the birds whose spots or loose stickers move this frame are drawn
+    // over the rest, which is kept in a layer
+    const G = sb.gather;
+    const live = new Set([G.glow, G.shake?.id, ...G.snaps.map((a) => a.b.id)].filter(Boolean));
+    const c = { ...G, live };
+    layer(g, 'book', 'gather' + gatherKey(G.L, c), (lg) => {
+      paper(lg, lw, lh);
+      drawGatherBook(lg, G.L, wide, c, { lw, lh, px, t, part: 'base' });
+    });
+    if (live.size) drawGatherBook(g, G.L, wide, c, { lw, lh, px, t, part: 'live' });
+    for (const a of G.snaps) drawSnap(g, a.b, a.i, a.from, a.to, a.k, { reduce, px, t });
     size = sb.held?.s;
   } else {
     const L = stickerBookLayout(sb.birds.length, wide, sb.book.spread);
-    drawBook(g, L, wide, { birds: sb.birds, earned: sb.earned, index: -1 }, { stuckNew: false, lw, lh, px, t, pos: sb.book.pos, skip: sb.held?.id, bg: sb.bg?.img || null, bgFull: !!sb.bg?.full });
+    const skip = sb.held?.id || null;
+    const key = JSON.stringify(['spread', L.pages, sb.book.spread, [...sb.earned].sort((a, b) => a - b), sb.book.pos, skip, imgKey(sb.bg?.img), !!sb.bg?.full]);
+    layer(g, 'book', key, (lg) => {
+      paper(lg, lw, lh);
+      drawBook(lg, L, wide, { birds: sb.birds, earned: sb.earned, index: -1 }, { stuckNew: false, lw, lh, px, t, pos: sb.book.pos, skip, bg: sb.bg?.img || null, bgFull: !!sb.bg?.full });
+    });
     if (sb.held) size = L.slots.find((s) => s.i === sb.birds.findIndex((b) => b.id === sb.held.id)).s;
   }
   if (sb.held) {
@@ -888,12 +1005,17 @@ const smooth = (x) => x * x * (3 - 2 * x);
 // greyed its spot is), glow (the id of the sticker carried: its spot
 // glows), gpos (stickers left loose on the page), cells (the stickers
 // waiting on the sheet, from sheetCells), shake ({ id, dx }), size (a sticker's
-// size), cam ({ z, x, y }, or null) }; o: { lw, lh, px, t }.
-export function drawGatherBook(g, L, wide, c, { lw, lh, px, t }) {
+// size), cam ({ z, x, y }, or null), live (a Set of ids, or null) }; o: { lw,
+// lh, px, t, part }. With `part`, only some of it: 'base' all but the birds
+// in c.live (their spots and loose stickers), which change from frame to
+// frame, and 'live' only those, to be drawn over the base kept in a layer.
+export function drawGatherBook(g, L, wide, c, { lw, lh, px, t, part = 'all' }) {
   const { pages, spine, box, win } = L;
   const cam = c.cam || { z: 1, x: box.x + box.w / 2, y: box.y + box.h / 2 };
   const toStage = (p) => ({ x: win.x + win.w / 2 + (p.x - cam.x) * cam.z, y: win.y + win.h / 2 + (p.y - cam.y) * cam.z });
-  if (L.zones.length) drawSheet(g, L, c);
+  const base = part !== 'live';
+  const which = (id) => part === 'all' || (part === 'base') !== !!c.live?.has(id);
+  if (base && L.zones.length) drawSheet(g, L, c);
   // the pages, seen through their window (all of them, unless zoomed in)
   const zoomed = cam.z > 1.001;
   g.save();
@@ -906,72 +1028,79 @@ export function drawGatherBook(g, L, wide, c, { lw, lh, px, t }) {
   g.translate(win.x + win.w / 2, win.y + win.h / 2);
   g.scale(cam.z, cam.z);
   g.translate(-cam.x, -cam.y);
-  drawFrame(g, pages, spine, wide, { lw, lh, px: px * cam.z, bg: c.img, bgFull: true });
-  // the greyed spots, then their outlines and numbers on top
-  const sides = wide ? ['r', 'l'] : ['b', 't'];
-  for (const r of c.atlas.regions) {
-    const k = c.grey(r.id);
-    if (k <= 0.001) continue;
-    const pt = greyPatch(c.img, r);
-    const rr = regionRect(L, { ...r, x: pt.x, y: pt.y, w: pt.w, h: pt.h });
-    g.save();
-    pagePath(g, pages[r.page], sides[r.page]);
-    g.clip();
-    g.globalAlpha = k;
-    g.drawImage(pt.canvas, rr.x, rr.y, rr.w, rr.h);
-    g.restore();
-  }
-  for (const r of c.atlas.regions) {
-    const k = c.grey(r.id);
-    const glow = c.glow === r.id;
-    if (k <= 0.02 && !glow) continue;
-    const i = c.birds.findIndex((b) => b.id === r.id);
-    const rr = regionRect(L, r);
-    const earned = c.earned.has(i);
-    const rx = rr.w * SHAPE * 0.92;
-    const ry = rr.h * SHAPE * 0.92;
-    g.save();
-    if (glow) {
-      // the carried sticker's own spot: a soft wash of its colour, breathing
-      g.globalAlpha = 0.28 + 0.12 * Math.sin(t * 5);
-      g.fillStyle = c.birds[i].color;
-      roundRect(g, rr.cx - rx, rr.cy - ry, rx * 2, ry * 2, Math.min(rx, ry) * 0.6);
-      g.fill();
-      g.globalAlpha = 1;
+  // (the base of a zoomed view keeps its pages in a layer of their own, the
+  // size of the whole zoomed book, so scrolling only moves it)
+  const pagesBody = (g) => {
+    if (base) drawFrame(g, pages, spine, wide, { lw, lh, px: px * cam.z, bg: c.img, bgFull: true });
+    // the greyed spots, then their outlines and numbers on top
+    const sides = wide ? ['r', 'l'] : ['b', 't'];
+    const regions = c.atlas.regions.filter((r) => which(r.id));
+    for (const r of regions) {
+      const k = c.grey(r.id);
+      if (k <= 0.001) continue;
+      const pt = greyPatch(c.img, r);
+      const rr = regionRect(L, { ...r, x: pt.x, y: pt.y, w: pt.w, h: pt.h });
+      g.save();
+      pagePath(g, pages[r.page], sides[r.page]);
+      g.clip();
+      g.globalAlpha *= k;
+      g.drawImage(pt.canvas, rr.x, rr.y, rr.w, rr.h);
+      g.restore();
     }
-    g.globalAlpha = Math.max(k, glow ? 1 : 0);
-    g.setLineDash([9 / cam.z + 3, 7 / cam.z + 3]);
-    g.lineDashOffset = glow ? -t * 30 : 0;
-    roundRect(g, rr.cx - rx, rr.cy - ry, rx * 2, ry * 2, Math.min(rx, ry) * 0.6);
-    g.lineWidth = glow ? 3 : 1.6;
-    g.strokeStyle = glow ? 'rgba(192,64,122,0.85)' : earned ? 'rgba(122,74,96,0.55)' : 'rgba(59,43,32,0.3)';
-    g.stroke();
-    g.setLineDash([]);
-    // its number on a little paper tag at the foot of the oval: faint until
-    // its sticker is earned, then inked in the book's pink, waiting
-    const ts = Math.max(13, Math.min(rr.w, rr.h) * 0.15);
-    const tx = rr.cx;
-    const ty = Math.min(rr.cy + ry, pages[r.page].y + pages[r.page].h - ts);
-    g.beginPath();
-    g.arc(tx, ty, ts * 0.78, 0, Math.PI * 2);
-    g.fillStyle = earned ? 'rgba(255,251,241,0.95)' : 'rgba(250,244,228,0.7)';
-    g.fill();
-    g.lineWidth = earned ? 1.8 : 1.2;
-    g.strokeStyle = earned ? 'rgba(192,64,122,0.75)' : 'rgba(59,43,32,0.3)';
-    g.stroke();
-    label(g, String(i + 1), tx, ty + ts * 0.04, { size: ts, weight: earned ? 700 : 500, color: earned ? 'rgba(160,48,100,0.95)' : 'rgba(59,43,32,0.45)' });
-    g.restore();
-  }
+    for (const r of regions) {
+      const k = c.grey(r.id);
+      const glow = c.glow === r.id;
+      if (k <= 0.02 && !glow) continue;
+      const i = c.birds.findIndex((b) => b.id === r.id);
+      const rr = regionRect(L, r);
+      const earned = c.earned.has(i);
+      const rx = rr.w * SHAPE * 0.92;
+      const ry = rr.h * SHAPE * 0.92;
+      g.save();
+      const a0 = g.globalAlpha;
+      if (glow) {
+        // the carried sticker's own spot: a soft wash of its colour, breathing
+        g.globalAlpha = a0 * (0.28 + 0.12 * Math.sin(t * 5));
+        g.fillStyle = c.birds[i].color;
+        roundRect(g, rr.cx - rx, rr.cy - ry, rx * 2, ry * 2, Math.min(rx, ry) * 0.6);
+        g.fill();
+      }
+      g.globalAlpha = a0 * Math.max(k, glow ? 1 : 0);
+      g.setLineDash([9 / cam.z + 3, 7 / cam.z + 3]);
+      g.lineDashOffset = glow ? -t * 30 : 0;
+      roundRect(g, rr.cx - rx, rr.cy - ry, rx * 2, ry * 2, Math.min(rx, ry) * 0.6);
+      g.lineWidth = glow ? 3 : 1.6;
+      g.strokeStyle = glow ? 'rgba(192,64,122,0.85)' : earned ? 'rgba(122,74,96,0.55)' : 'rgba(59,43,32,0.3)';
+      g.stroke();
+      g.setLineDash([]);
+      // its number on a little paper tag at the foot of the oval: faint until
+      // its sticker is earned, then inked in the book's pink, waiting
+      const ts = Math.max(13, Math.min(rr.w, rr.h) * 0.15);
+      const tx = rr.cx;
+      const ty = Math.min(rr.cy + ry, pages[r.page].y + pages[r.page].h - ts);
+      g.beginPath();
+      g.arc(tx, ty, ts * 0.78, 0, Math.PI * 2);
+      g.fillStyle = earned ? 'rgba(255,251,241,0.95)' : 'rgba(250,244,228,0.7)';
+      g.fill();
+      g.lineWidth = earned ? 1.8 : 1.2;
+      g.strokeStyle = earned ? 'rgba(192,64,122,0.75)' : 'rgba(59,43,32,0.3)';
+      g.stroke();
+      label(g, String(i + 1), tx, ty + ts * 0.04, { size: ts, weight: earned ? 700 : 500, color: earned ? 'rgba(160,48,100,0.95)' : 'rgba(59,43,32,0.45)' });
+      g.restore();
+    }
+  };
+  if (part !== 'base' || !pagesLayer(g, L, c, cam, px, pagesBody)) pagesBody(g);
   g.restore();
-  if (zoomed) {
+  if (zoomed && base) {
     // the window's edge, a thin ink line
     roundRect(g, win.x, win.y, win.w, win.h, 10);
-    g.globalAlpha = 0.6;
+    g.save();
+    g.globalAlpha *= 0.6;
     ink(g, 2);
-    g.globalAlpha = 1;
+    g.restore();
   }
   // the loose stickers, at their full size whatever the zoom
-  const ids = Object.keys(c.gpos).filter((id) => id !== c.skip && c.earned.has(c.birds.findIndex((b) => b.id === id)));
+  const ids = Object.keys(c.gpos).filter((id) => id !== c.skip && which(id) && c.earned.has(c.birds.findIndex((b) => b.id === id)));
   for (const id of drawOrder(ids, c.gpos)) {
     const i = c.birds.findIndex((b) => b.id === id);
     const at = toStage(pagePoint(pages, c.gpos[id]));
@@ -979,6 +1108,60 @@ export function drawGatherBook(g, L, wide, c, { lw, lh, px, t }) {
     drawPlaced(g, c.birds[i], i, { x: at.x + dx, y: at.y, s: c.size }, { px, bg: true });
   }
   g.restore();
+}
+
+// The gathering's pages (drawGatherBook's part 'base', in the book's own
+// units under the camera) from a layer of their own at the zoom's size,
+// drawn again only when they change, not when the view scrolls. False when
+// it would be too large a canvas (then they are drawn directly).
+let pagesCache = null;
+function pagesLayer(g, L, c, cam, px, draw) {
+  if (cam.z <= 1.001) return false; // unzoomed, the base layer itself holds still
+  const { box } = L;
+  const m0 = g.getTransform();
+  const unit = Math.hypot(m0.a, m0.b); // device pixels per book unit
+  const M = Math.min(box.w, box.h) * 0.12 + 40; // the cover and its shadow, round the pages
+  const w = Math.ceil((box.w + M * 2) * unit);
+  const h = Math.ceil((box.h + M * 2) * unit);
+  if (!(unit > 0) || w > 4096 || h > 4096) return false;
+  const r3 = (x) => Math.round(x * 1000) / 1000;
+  const regions = c.atlas.regions.filter((r) => !c.live?.has(r.id));
+  const key = JSON.stringify([box, r3(unit), r3(px * cam.z), imgKey(c.img), [...c.earned].sort((a, b) => a - b), regions.map((r) => r3(c.grey(r.id))), [...(c.live || [])].sort(), fontsSeen]);
+  if (!pagesCache) pagesCache = { canvas: document.createElement('canvas'), key: null };
+  const pc = pagesCache.canvas;
+  if (pagesCache.key !== key) {
+    if (pc.width !== w || pc.height !== h) {
+      pc.width = w;
+      pc.height = h;
+    }
+    const pg = pc.getContext('2d');
+    pg.setTransform(1, 0, 0, 1, 0, 0);
+    pg.clearRect(0, 0, w, h);
+    pg.setTransform(unit, 0, 0, unit, -(box.x - M) * unit, -(box.y - M) * unit);
+    pg.save();
+    draw(pg);
+    pg.restore();
+    pagesCache.key = key;
+  }
+  letGo(pagesCache);
+  // copied in on whole pixels, so it is not filtered
+  const at = m0.transformPoint(new DOMPoint(box.x - M, box.y - M));
+  g.save();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.drawImage(pc, Math.round(at.x), Math.round(at.y));
+  g.restore();
+  return true;
+}
+
+// What a layer of the gathering's base depends on (drawGatherBook's c,
+// part 'base'): when this changes, the layer is drawn again.
+function gatherKey(L, c) {
+  const r3 = (x) => Math.round(x * 1000) / 1000;
+  const cam = c.cam ? [r3(c.cam.z), r3(c.cam.x), r3(c.cam.y)] : null;
+  const grey = c.atlas.regions.filter((r) => !c.live?.has(r.id)).map((r) => r3(c.grey(r.id)));
+  const gpos = Object.keys(c.gpos).filter((id) => !c.live?.has(id)).sort().map((id) => [id, c.gpos[id]]);
+  const cells = (c.cells || []).map((sl) => [sl.i, r3(sl.x), r3(sl.y), r3(sl.s)]);
+  return JSON.stringify([L.box, L.win, imgKey(c.img), [...c.earned].sort((a, b) => a - b), grey, [...(c.live || [])].sort(), gpos, cells, c.skip || null, c.size, cam, c.waitingNote]);
 }
 
 // The sticker sheet beside (or under) the book: a backing paper in each of

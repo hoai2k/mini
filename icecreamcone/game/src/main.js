@@ -10,6 +10,7 @@ import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL
 import { ASSETS } from './asset-list.js';
 import { roundOutcome, nextPage, selectAfter, skipFrom, stepAt, END, HOLD_TO_SKIP, UNLOCK, UNLOCK_TIME, RESULT_TIME, RESULT_GUARD, spreadCount, sheetCells } from './reward.js';
 import { drawCelebration, sticker, drawStickerBook, stickerBookLayout, stickerSize, stickerSpot, regionRect, regionSize, SNAP_TIME, snapGrey } from './celebrate.js';
+import { prepareWhenIdle } from './celebrate.js';
 import { normalizeBook, emptyBook, backgrounds, cycle, shownBackground, placeOnSpread, moveSticker, drawOrder, pagePoint, PLAIN, GATHERING, regionsFromAtlas, toPicture, dropOnPicture, regionAt, snapSticker, placeFree, toSheet, gatherState, clampCam, bookToStage, stageToBook, edgePush } from './stickerbook.js';
 import { SUBJECTS, SUBJECT_IDS } from './subjects.js';
 
@@ -1199,9 +1200,11 @@ function stickerInput(dt) {
   if (input.kind === 'pointer') {
     sb.hand = null;
     if (p.pressed && !sb.held) {
-      const hit = hitAt(p.x, p.y);
-      if (hit) pickUp(hit, p.x, p.y, 'pointer');
-      else if (gather && sb.cam.z > 1 && inBox(L.win, p)) sb.pan = { x: p.x, y: p.y, cx: sb.cam.x, cy: sb.cam.y };
+      // where it went down (it may have moved on since, within this frame)
+      const at = { x: p.downX, y: p.downY };
+      const hit = hitAt(at.x, at.y);
+      if (hit) pickUp(hit, at.x, at.y, 'pointer');
+      else if (gather && sb.cam.z > 1 && inBox(L.win, at)) sb.pan = { x: at.x, y: at.y, cx: sb.cam.x, cy: sb.cam.y };
     }
     if (sb.pan) {
       if (p.down) {
@@ -1948,3 +1951,5 @@ globalThis.__coot = { S, act, BIRDS, startBird, show, stepAt, DEBUG, get progres
 await loadArt();
 $('#loading').remove();
 show('title');
+// the stickers and the gathering's greyed spots, cut out while nothing else is happening
+prepareWhenIdle(BIRD_IDS, { img: art('book.gathering'), atlas: ATLAS }, () => S.screen !== 'play');

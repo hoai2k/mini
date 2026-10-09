@@ -31,7 +31,9 @@ export function createInput(target) {
   const listeners = [];
 
   // Pointer, in the canvas's logical coordinates (set by `mapPointer`).
-  const pointer = { x: 0, y: 0, down: false, pressed: false, released: false, active: false, side: 0 };
+  // (downX, downY: where it last went down, which a frame may see only
+  // after it has already moved on)
+  const pointer = { x: 0, y: 0, downX: 0, downY: 0, down: false, pressed: false, released: false, active: false, side: 0 };
   let mapPointer = (cx, cy) => [cx, cy];
   let stickAngle = null;
   let navStickHeld = false; // the stick, held through lockHeld(), is ignored by nav() until centred
@@ -67,6 +69,8 @@ export function createInput(target) {
     };
     target.addEventListener('pointerdown', (e) => {
       toLogical(e);
+      pointer.downX = pointer.x;
+      pointer.downY = pointer.y;
       pointer.down = true;
       pointer.pressed = true;
       pointer.active = true;
