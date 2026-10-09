@@ -18,8 +18,12 @@
         "game/assets/subjects/titthrush.png",
         "game/assets/sprites/titthrush-sing.png"
       ],
-      "exportOperation": "resample to requested canvas",
-      "sha256": "696b8d59d69a6a594327d6a7800be21e6d20c97ecdb5db9e493b40d4910dd0d1"
+      "exportOperation": "uniform pose scaling and registration: perch claws(512,942), flight case centre(512,512)",
+      "sha256": "6a0381432b9d97743acee0dd943a8e5746ac87f4899f480994397fd01988d74b",
+      "flightRevision": {
+        "prompt": "Ice-Cream Cone Coot game's Ten O'clock Tit Trush, FLYING POSE ONLY, from attached portrait design exactly. Ink crosshatching and soft watercolour, golden pocketwatch body, pink feathers and legs, gold head round black dot eye,longthinbeak pointing LEFT, golden winding crown and ring, openpinkwing flying, legs tucked back, watchlid SHUT with NO numerals. One full bird only on transparent square1024x1024. CRITICAL REGISTRATION: the CENTER OF THE ROUND GOLD WATCH CASE is exactly x512 y512, NOT the centre of the full bird silhouette. Watchcase diameter approximately300px. Head/beak fit on left and above, full wings above and right. Chain streams RIGHT but is only300px long so its full tip fits inside rightcanvas edge x970. Empty alpha margin around all sides. Match reference design and proportions, ONLY pose and lidstate change. No labels, no scenery, no ground.",
+        "source": "/workspace/generated_images/exec-7438c0b8-ccfe-4ed0-bec0-d9790fa43500.png"
+      }
     },
     {
       "id": "IC-M12h",
