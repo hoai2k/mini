@@ -79,6 +79,12 @@ SCENE = (
 )
 
 SECTIONS = {
+    "book": (
+        "Sticker book backgrounds",
+        "One picture per bird for the pages of the sticker book, unlocked when the player passes that "
+        "bird. The player picks one with LB/RB and arranges the bird stickers on it. Until a picture "
+        "arrives, the book offers that bird's game scene instead.",
+    ),
     "ui": ("Brand", "The title screen, the browser tab, the game library card and the book's paper."),
     "bird": (
         "Bird portraits",
@@ -816,6 +822,60 @@ for sid, name, key, file, size, used, standin, prompt in SPRITES:
         "file": file, "size": size, "used": used, "standin": standin,
         "status": "retired" if sid in RETIRED else "delivered" if sid in DELIVERED_SPRITES else "requested",
         "prompt": prompt,
+    })
+
+
+# Sticker book backgrounds: a whole-place picture per bird, shaped for the
+# open book's two pages, unlocked when the bird is passed.
+BOOK_PLATE = (
+    "A full-colour picture for the two facing pages of an open children's sticker album, wide 2:1, "
+    "full bleed. The left half and the right half must each work as a complete picture on its own, "
+    "because on a phone held upright the two halves are shown one above the other; a vertical strip "
+    "about 6% wide down the exact middle is the book's fold and holds nothing important. It is a "
+    "lovely, calm, lived-in place for arranging bird stickers on, so it is empty of birds, people and "
+    "animals, with plenty of open, softly painted space spread across both halves (sky, grass, floor, "
+    "water, wall) where stickers can sit and still stand out: keep the detail light and mid-toned "
+    "there and let it gather richer around the edges and corners. A whole place rather than a game "
+    "background: a wide view with depth, a clear time of day and small charming details to find. "
+)
+BOOK = [
+    ("coot", "The Ice-Cream Cone Coot", "A seaside town on a summer afternoon: a curving sandy beach and a promenade with railings, a row of faded striped bathing huts, a striped ice-cream cart with its awning, a little pier with a lighthouse far off, a wide pale sky with soft clouds over a calm sea."),
+    ("cupadee", "The Cupadee", "A cottage garden at teatime: a tea table laid on the lawn under an old apple tree, with a lace cloth, a teapot, a cake stand and cups, bunting strung between the branches, the cottage's open kitchen door and windows behind, late golden light."),
+    ("shuttercluck", "The Shuttercluck", "Rolling countryside for spotting birds: a hedgerow with a wooden stile, a winding footpath, a pond with reeds, a windmill on a far hill, wildflowers in the long grass, a big sky with high clouds."),
+    ("gullfinch", "The Gramophone Gullfinch", "A park bandstand on a summer evening: an ornate painted bandstand with paper lanterns lit, deckchairs on the lawn around it, old trees, a path with lamp posts, a soft violet dusk sky."),
+    ("plume", "The Flowerpot Plume", "A walled flower garden in full bloom: an old glasshouse, a potting shed with stacked terracotta pots, beds of roses, foxgloves and hollyhocks, a brick wall with climbing roses, a watering can by a gravel path, bright morning."),
+    ("bobolinks", "The Highbutton Bobolinks", "A riverbank at night under a big full moon: willows leaning over the water, a little wooden jetty with a lantern, the moon's path on the river, a sleepy town with a few lit windows on the far bank, a deep blue starry sky."),
+    ("peeper", "The Newspaper Peeper", "A cobbled town square on an early morning: a newspaper kiosk with bundles of papers, an old printing house with tall windows, a clock tower, café tables not yet set out, pale morning sky."),
+    ("piffle", "The Pincushion Piffle", "A haberdashery shop interior: shelves of bolts of cloth, drawers of buttons, spools of thread in every colour, ribbons on reels, a dressmaker's dummy, a long counter with scissors and a tape measure, warm lamplight."),
+    ("dodo", "The Dollarbill Dodo", "A busy old market street: a general store with awnings, a little bank with columns, a greengrocer's with crates, a post box, shop signs without words, cobbles, a sunny day."),
+    ("crow", "The Safecrossing Crow", "A little town crossroads after school: a zebra crossing, a lollipop crossing sign, a small schoolhouse with a bell, a corner sweet shop, trees and a low wall around a playground, afternoon light."),
+    ("milkmidge", "The Milkbottle Midge", "A dairy farm lane at dawn: pastures with a wooden gate, a red barn, a milk stand with churns by the lane, a village with chimney smoke beyond, a pink and gold sunrise sky."),
+    ("waterglassgoose", "The Waterglass Goose", "A glass conservatory at evening: tall arched glass panes, potted palms and ferns, a long table set with crystal glasses and candles, the garden in blue dusk outside."),
+    ("niffy", "The Jackknife Niffy", "A formal topiary garden: clipped hedges shaped into balls, spirals and peacocks, a gravel walk, a stone fountain, a wheelbarrow with garden shears, a sunny summer day."),
+    ("broomwhisk", "The Broomwhisk", "A sunny old courtyard: whitewashed walls with blue shutters, a stone well, steps up to a door with pots of geraniums, a broom leaning by the door, swept flagstones, a fig tree, warm midday light."),
+    ("buttonbeaks", "The Buttonbeaks", "A tailor's shop window and street: a bow window full of coats, waistcoats and a dummy, a big button-shaped shop sign without words, a bench outside, a washing line in a back garden over the wall, breezy day."),
+    ("keycrane", "The Key Crane", "An old seaside amusement arcade at evening: rows of wooden prize-crane cabinets with glowing glass fronts, a carousel through the open doors, strings of lights, a patterned carpet, the sea and sunset beyond."),
+    ("snippit", "The Cutitup Snippit", "A country fair: striped tents, bunting, a coconut shy, a big wheel on the hill, a hoopla stall with prizes on strings, a fence of wooden posts, a bright breezy afternoon."),
+    ("garbagecanary", "The Garbage Canary", "A town back lane on bin day: a row of back gates and yards, chimney pots, a rag-and-bone cart, dustbins with lids, washing lines, leaves blowing, a fresh grey-blue morning."),
+    ("steampressersparrow", "The Steampresser Sparrow", "An old laundry yard: sheets and shirts drying on long lines, a wash house with a steaming copper, a mangle, wicker baskets, sunlight through the linen."),
+    ("wetweatherwren", "The Wetweather Wren", "A rainy market street: shop awnings dripping, puddles reflecting lit shop windows, an umbrella stand by a door, cobbles shining, soft grey rain over tall narrow houses."),
+    ("glovedove", "The Glove Dove", "A big old farmhouse scullery: a deep sink by a window, a wooden plate rack full of dishes, copper pans hanging, a dresser with jugs, a tiled floor, morning sun."),
+    ("titthrush", "The Ten O’clock Tit Trush", "A clockmaker's shop: walls covered in clocks of every shape, a grandfather clock, a workbench with tiny tools and a magnifying lamp, pocket watches on a velvet tray, a bay window to the street."),
+    ("plugsocketswift", "The Plugsocket Swift", "A town street at night: tall houses with warmly lit windows, lamp posts glowing, wires strung between the roofs, a crescent moon and stars, a cat-free quiet pavement."),
+    ("saltshakershrike", "The Saltshaker Shrike", "An old café bistro: little round tables with checked cloths and salt and pepper shakers, a long counter with a coffee urn, a chalkboard without words, big windows onto the street, lunchtime bustle without the people."),
+    ("ladlelark", "The Soupladle Lark", "A farmhouse kitchen at suppertime: a big black range with a soup pot steaming, ladles and spoons hanging on hooks, a long wooden table with bowls set out, strings of onions, a window with evening light."),
+    ("drippet", "The Drippet", "A rainy-day garden: an old iron water pump, a water butt, watering cans of all sizes, a greenhouse with rain on its panes, a vegetable patch, puddles on the path, soft grey sky."),
+    ("sawbird", "The Saw Bird", "A carpenter's workshop: a long workbench with planes and chisels, saws hanging on the wall, stacks of planks, curls of wood shavings on the floor, a half-built rocking chair, sunlight through a dusty window."),
+    ("radiobird", "The Radio Bird", "A moonlit town rooftop: chimney pots, slate roofs and old radio aerials against a starry sky, a lit attic window, a church spire in the distance, a big round moon."),
+]
+for n, (bid, name, scene) in enumerate(BOOK, 1):
+    REQUESTS.append({
+        "id": f"IC-B{n:02d}", "section": "book", "name": f"Sticker book: {name}", "key": f"book.{bid}",
+        "file": f"assets/book/{bid}.webp", "size": "2048 x 1024, opaque",
+        "used": f"A background for the sticker book's pages, unlocked by passing {name}.",
+        "standin": f"{name}'s game scene.",
+        "status": "requested",
+        "prompt": STYLE + " " + BOOK_PLATE + scene,
     })
 
 
