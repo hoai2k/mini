@@ -4,7 +4,7 @@ Every image request that has been delivered (or delivered and later retired), wi
 
 ## Status
 
-4 requested, 154 delivered, 1 retired, 159 in total.
+32 requested, 154 delivered, 1 retired, 187 in total.
 
 ## Brand
 

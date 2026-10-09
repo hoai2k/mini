@@ -637,5 +637,117 @@ export const ASSETS = {
   "medals": {
     "file": "assets/ui/medals.png",
     "delivered": false
+  },
+  "book.coot": {
+    "file": "assets/book/coot.webp",
+    "delivered": false
+  },
+  "book.cupadee": {
+    "file": "assets/book/cupadee.webp",
+    "delivered": false
+  },
+  "book.shuttercluck": {
+    "file": "assets/book/shuttercluck.webp",
+    "delivered": false
+  },
+  "book.gullfinch": {
+    "file": "assets/book/gullfinch.webp",
+    "delivered": false
+  },
+  "book.plume": {
+    "file": "assets/book/plume.webp",
+    "delivered": false
+  },
+  "book.bobolinks": {
+    "file": "assets/book/bobolinks.webp",
+    "delivered": false
+  },
+  "book.peeper": {
+    "file": "assets/book/peeper.webp",
+    "delivered": false
+  },
+  "book.piffle": {
+    "file": "assets/book/piffle.webp",
+    "delivered": false
+  },
+  "book.dodo": {
+    "file": "assets/book/dodo.webp",
+    "delivered": false
+  },
+  "book.crow": {
+    "file": "assets/book/crow.webp",
+    "delivered": false
+  },
+  "book.milkmidge": {
+    "file": "assets/book/milkmidge.webp",
+    "delivered": false
+  },
+  "book.waterglassgoose": {
+    "file": "assets/book/waterglassgoose.webp",
+    "delivered": false
+  },
+  "book.niffy": {
+    "file": "assets/book/niffy.webp",
+    "delivered": false
+  },
+  "book.broomwhisk": {
+    "file": "assets/book/broomwhisk.webp",
+    "delivered": false
+  },
+  "book.buttonbeaks": {
+    "file": "assets/book/buttonbeaks.webp",
+    "delivered": false
+  },
+  "book.keycrane": {
+    "file": "assets/book/keycrane.webp",
+    "delivered": false
+  },
+  "book.snippit": {
+    "file": "assets/book/snippit.webp",
+    "delivered": false
+  },
+  "book.garbagecanary": {
+    "file": "assets/book/garbagecanary.webp",
+    "delivered": false
+  },
+  "book.steampressersparrow": {
+    "file": "assets/book/steampressersparrow.webp",
+    "delivered": false
+  },
+  "book.wetweatherwren": {
+    "file": "assets/book/wetweatherwren.webp",
+    "delivered": false
+  },
+  "book.glovedove": {
+    "file": "assets/book/glovedove.webp",
+    "delivered": false
+  },
+  "book.titthrush": {
+    "file": "assets/book/titthrush.webp",
+    "delivered": false
+  },
+  "book.plugsocketswift": {
+    "file": "assets/book/plugsocketswift.webp",
+    "delivered": false
+  },
+  "book.saltshakershrike": {
+    "file": "assets/book/saltshakershrike.webp",
+    "delivered": false
+  },
+  "book.ladlelark": {
+    "file": "assets/book/ladlelark.webp",
+    "delivered": false
+  },
+  "book.drippet": {
+    "file": "assets/book/drippet.webp",
+    "delivered": false
+  },
+  "book.sawbird": {
+    "file": "assets/book/sawbird.webp",
+    "delivered": false
+  },
+  "book.radiobird": {
+    "file": "assets/book/radiobird.webp",
+    "delivered": false
   }
 };
