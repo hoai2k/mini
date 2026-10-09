@@ -29,12 +29,27 @@ const WIN_W = 124;
 const WIN_H = 132;
 const GROUND = 800;
 const FUSE = { x: 255, y: 600 }; // on the blank patch of the painted garden wall
+const FUSE_HIT = { x0: FUSE.x - 110, x1: FUSE.x + 110, y0: FUSE.y - 170, y1: FUSE.y + 190 };
 const SAFE = 3; // lamps the fuse carries without warming
 const SIZE = 190; // the Swift
 // In the pose sheet (three 1024 px cells: flying, plugging in, singed): the
 // socket's offset from each cell's centre, and the bulb's from the socket.
 const POSE_SOCKET = [[-135, 144], [-4, 116], [-32, 116]];
 const POSE_BULB = [[-56, -237], [-232, -42], [-84, -223]];
+const PK = (SIZE * 1.5) / 1024; // the poses are drawn at this scale
+// The beak's tip in each cell, measured on the PNG's alpha (the farthest
+// opaque pixel of the beak): flying (107, 442), plugging in (195, 784),
+// singed (191, 464). As an offset from the socket, in screen px, facing left.
+const POSE_BEAK_PX = [[107, 442], [195, 784], [191, 464]];
+export const POSE_BEAK = POSE_BEAK_PX.map(([bx, by], i) => [(bx - 512 - POSE_SOCKET[i][0]) * PK, (by - 512 - POSE_SOCKET[i][1]) * PK]);
+// What the beak (or the socket, or the pointer) can touch. A window: its
+// pane with a margin. Its request bubble, while it asks: a circle over the
+// drawn bubble and timer ring (radius 34, ring 6 wide) with a margin. The
+// fuse box: everything drawn for it, the FUSE card at the top (y - 154) to
+// the box's foot (y + 175), with a margin, so its switch counts.
+const WIN_HIT = { x: WIN_W / 2 + 28, y: WIN_H / 2 + 26 };
+const BUBBLE_UP = WIN_H / 2 + 34; // the bubble's centre above the window's
+const BUBBLE_R = 52;
 const CREATURES = ['#c9a080', '#a9b0b8', '#d9b0a0', '#b8a070']; // mouse, rabbit, hedgehog, mole: their fur in the dark
 
 export default function create(env) {
@@ -78,23 +93,51 @@ export default function create(env) {
   g.sleepers = () => g.rooms.filter((r) => r.state === 'sleep');
   g.fuse = FUSE;
 
-  // What a point (the Swift, or the pointer) is over: a window or the fuse box.
+  // What a point (the beak, the socket, or the pointer) is over: a window
+  // (its pane, or its request bubble while it asks) or the fuse box.
   function targetAt(px, py) {
-    if (Math.abs(px - FUSE.x) < 110 && Math.abs(py - FUSE.y) < 130) return 'fuse';
+    if (px > FUSE_HIT.x0 && px < FUSE_HIT.x1 && py > FUSE_HIT.y0 && py < FUSE_HIT.y1) return 'fuse';
     let best = null;
     let bd = Infinity;
     for (const r of g.rooms) {
       const dx = Math.abs(px - r.x);
       const dy = Math.abs(py - r.y);
-      if (dx < WIN_W / 2 + 28 && dy < WIN_H / 2 + 26 && dx + dy < bd) {
+      if (dx < WIN_HIT.x && dy < WIN_HIT.y && dx + dy < bd) {
         best = r;
         bd = dx + dy;
+      }
+      if (r.state === 'ask') {
+        const d = Math.hypot(px - r.x, py - (r.y - BUBBLE_UP));
+        if (d < BUBBLE_R && d < bd) {
+          best = r;
+          bd = d;
+        }
       }
     }
     return best;
   }
   g.targetAt = targetAt;
   const where = (tg) => (tg === 'fuse' ? FUSE : tg);
+  // The pose being drawn, and the tip of its beak on screen.
+  g.pose = () => (g.blown ? 2 : g.flash > 0 ? 1 : 0);
+  g.beak = () => {
+    const [bx, by] = POSE_BEAK[g.pose()];
+    return { x: g.x + (g.face > 0 ? -bx : bx), y: g.y + by };
+  };
+  // Whether pressing now would do something at this target.
+  const useful = (tg) => (tg === 'fuse' ? g.blown : !!tg && tg.state !== 'dark');
+  // What the Swift is touching: the beak's target first, then the socket's
+  // (the body), preferring whichever a press would act on.
+  function reach() {
+    const b = g.beak();
+    const hits = [targetAt(b.x, b.y), targetAt(g.x, g.y)].filter(Boolean);
+    return hits.find(useful) || hits[0] || null;
+  }
+  g.reach = reach;
+  const touching = (tg) => {
+    const b = g.beak();
+    return targetAt(b.x, b.y) === tg || targetAt(g.x, g.y) === tg || Math.hypot(where(tg).x - g.x, where(tg).y - g.y) < 60;
+  };
 
   function giveUp(r, text = 'Too dark!') {
     r.state = 'dark';
@@ -190,7 +233,7 @@ export default function create(env) {
       g.y += g.vy * dt;
     }
     g.x = clamp(g.x, 90, W - 90);
-    g.y = clamp(g.y, 150, GROUND - 40);
+    g.y = clamp(g.y, 150, GROUND - 4); // low enough for the beak to reach the fuse switch
     const mvx = (g.x - ox) / Math.max(dt, 1e-6);
     if (Math.abs(mvx) > 40) g.face = mvx > 0 ? 1 : -1;
     g.speed = Math.hypot(g.x - ox, g.y - oy) / Math.max(dt, 1e-6);
@@ -211,20 +254,22 @@ export default function create(env) {
       }
     }
 
-    // The action: at the Swift, or where the pointer pressed (the Swift
-    // zips there and plugs in when it arrives).
+    // The action: whatever the Swift's beak (or body) touches, or where the
+    // pointer pressed away from the Swift (it zips there and plugs in when
+    // its beak or body arrives).
     if (input.actionPressed) {
-      const p = input.pointer.active ? input.pointer : g;
-      const tg = targetAt(p.x, p.y);
-      if (tg) {
-        const w = where(tg);
-        if (!input.pointer.active || Math.hypot(w.x - g.x, w.y - g.y) < 60) act(tg);
-        else g.pending = tg;
+      const here = reach();
+      const p = input.pointer;
+      const there = input.pointer.active ? targetAt(p.x, p.y) : null;
+      const near = !input.pointer.active || Math.hypot(p.x - g.x, p.y - g.y) < 130;
+      if (here && (near || there === here) && (useful(here) || !there)) act(here);
+      else if (there) {
+        if (touching(there)) act(there);
+        else g.pending = there;
       }
     }
     if (g.pending) {
-      const w = where(g.pending);
-      if (Math.hypot(w.x - g.x, w.y - g.y) < 60) {
+      if (touching(g.pending)) {
         act(g.pending);
         g.pending = null;
       } else if (input.pointer.active && targetAt(input.pointer.x, input.pointer.y) !== g.pending) g.pending = null;
@@ -539,7 +584,6 @@ export default function create(env) {
     // the painted poses are framed like the portrait, the body at the cell's centre
     // the painted poses, placed by their socket (measured in each 1024 px cell)
     const [sdx, sdy] = POSE_SOCKET[pose];
-    const PK = (SIZE * 1.5) / 1024;
     const sprite = drawSprite(c, 'sprites.swiftPoses', pose, x - (flip ? -sdx : sdx) * PK, y - sdy * PK, { h: 1024 * PK, anchor: 'center', flip, whole: true });
     if (!sprite) {
       // wings: beating, swept back for the plug-in dive, drooping when singed
@@ -680,8 +724,8 @@ export default function create(env) {
     drawFuse(c, t);
     for (const r of g.rooms) drawWindow(c, r, t);
 
-    // which window the Swift is at
-    const tg = targetAt(g.x, g.y);
+    // which window the Swift's beak (or body) is at
+    const tg = reach();
     if (tg && tg !== 'fuse') {
       c.save();
       c.globalAlpha = 0.6 + Math.sin(t * 8) * 0.2;

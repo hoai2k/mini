@@ -85,3 +85,38 @@ Sprites delivered (IC-M13b windows and fuse box, IC-M13c poses). Every anchor wa
 - **Poses:** flying, plugging in (head down, bulb blazing) and singed. Each is placed by its socket (offset from its cell's centre: (−135, 144), (−4, 116), (−32, 116); drawn at 0.278 scale), so the hitbox (the socket) doesn't jump between poses. The bulb glow follows each pose's painted bulb. The code wings and smoke are no longer drawn.
 - **Still drawn in code:** the cable from the box to the house, the bubbles and timer rings, the reading bars, the lamp count card, the night wash and the frown on a window that gave up. No pose is missing: the portrait is shown on the page, and the three poses cover play.
 - **Pass:** lowered to 11. The fuse box moved, so the beginner bot's lowest score is now 12 (beginner 12–14, good 19–20, greedy 5–8, mashing 2–9).
+
+## The beak touches things
+
+A player pressed the Swift's beak to the fuse switch and to the request
+bubbles, and nothing happened. Only the socket (the body) was tested, so
+anything the beak touched while the body was off the target didn't count.
+- The fuse's blown switch is painted at about y 747. The body couldn't fly
+  below y 760, and the old fuse hit area stopped at y 730. So the beak
+  could never get the switch to count.
+- A request bubble sits above its window. Its upper half was outside every
+  hit area, so a tap on it did nothing, and so did a beak touching it while
+  the body was beside the window.
+
+What changed:
+- **The beak tip is measured, per pose.** These are the farthest opaque pixel
+  of the beak in each 1024 px cell: flying (107, 442), plugging in
+  (195, 784), singed (191, 464). From the socket at the drawn scale (0.278)
+  that gives (−75, −60), (−87, 43) and (−80, −46), mirrored when the Swift
+  faces right. The tip uses whichever pose is drawn.
+- **Hit areas match what's drawn.** A window is its pane plus a margin of
+  about 27 px. An asking window also takes a circle of radius 52 on its
+  bubble (the bubble is 34 across and has a 6 px ring). The fuse box covers
+  everything drawn for it, from the FUSE card (y − 170) to just below the
+  box's foot (y + 190), and 110 px either side. That includes the switch.
+- **A press acts on what the beak touches, or on what the body touches.**
+  If both touch something, it acts on the one where a press does something.
+  The outline shows that window. With the pointer, a click near the Swift
+  works the same way. A click away from it still sends the Swift over, and
+  it acts once the beak or the body reaches that target. A tap on a bubble
+  now counts as a tap on its window.
+- The Swift can fly down to y 796, low enough for the beak to reach the
+  fuse switch.
+
+The bots score as before: beginner 12–14, good 19–20, greedy 5–8,
+mashing 2–6, idle 0. The pass stays at 11.

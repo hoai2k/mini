@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import create from '../src/games/plugsocketswift.js';
+import create, { POSE_BEAK } from '../src/games/plugsocketswift.js';
 import bird from '../src/more/plugsocketswift.js';
 import { run, env, blank } from './harness.mjs';
 
@@ -174,4 +174,115 @@ test('plugsocketswift: a window left asking gives up', () => {
   for (let i = 0; i < 70; i++) game.update(1 / 60, blank());
   assert.equal(r.state, 'dark');
   assert.equal(game.gaveUp, 1);
+});
+
+// ---------- the beak ----------
+
+// Puts the tip of the Swift's drawn beak on a point (facing -1 left, 1
+// right) and presses the action once, with the stick or with the pointer
+// held on the Swift.
+function beakAt(game, px, py, face = -1) {
+  const [bx, by] = POSE_BEAK[game.pose()];
+  game.face = face;
+  game.x = px - (face > 0 ? -bx : bx);
+  game.y = py - by;
+  const b = game.beak();
+  assert.ok(Math.abs(b.x - px) < 1e-6 && Math.abs(b.y - py) < 1e-6, 'beak placed');
+}
+function peck(game, px, py, face = -1, pointer = false) {
+  beakAt(game, px, py, face);
+  const p = pointer ? { pointer: { active: true, x: game.x, y: game.y, down: true, pressed: true, released: false } } : {};
+  game.update(1 / 60, blank({ action: true, actionPressed: true, ...p }));
+  game.update(1 / 60, blank({ actionReleased: true, ...p }));
+}
+const asking = (r) => Object.assign(r, { state: 'ask', t: 0, patience: 99, readT: 99 });
+
+test('plugsocketswift: the beak tip offsets are the pose sheet as measured, mirrored when facing right', () => {
+  // flying, plugging in, singed: beak tip from the socket, at the drawn scale
+  const want = [[-75.1, -59.6], [-87.1, 43.4], [-80.4, -45.6]];
+  POSE_BEAK.forEach(([x, y], i) => {
+    assert.ok(Math.abs(x - want[i][0]) < 0.1 && Math.abs(y - want[i][1]) < 0.1, `pose ${i}: ${x}, ${y}`);
+  });
+  const game = create(env(1));
+  game.x = 800;
+  game.y = 500;
+  game.face = 1;
+  assert.ok(Math.abs(game.beak().x - (800 + 75.146)) < 0.01);
+  game.face = -1;
+  assert.ok(Math.abs(game.beak().x - (800 - 75.146)) < 0.01);
+});
+
+test('plugsocketswift: the beak on a request bubble plugs the lamp in; just outside it does not', () => {
+  for (const pointer of [false, true]) {
+    const game = create(env(1));
+    game.spawnT = 99;
+    const r = asking(game.rooms[2]); // top row, (890, 320); its bubble at (890, 220)
+    // the bubble's upper right edge, with the body clear of this window
+    peck(game, r.x + 35, r.y - 100 - 30, -1, pointer);
+    assert.notEqual(game.targetAt(game.x, game.y), r, 'the socket is not at this window');
+    assert.equal(r.state, 'lit', `beak on the bubble (pointer ${pointer})`);
+
+    const game2 = create(env(1));
+    game2.spawnT = 99;
+    const r2 = asking(game2.rooms[2]);
+    peck(game2, r2.x + 43, r2.y - 100 - 43, -1, pointer); // 61 from its centre
+    assert.equal(r2.state, 'ask', `beak just off the bubble (pointer ${pointer})`);
+  }
+});
+
+test('plugsocketswift: the beak on a window pane unplugs a sleeper; just outside it does not', () => {
+  const game = create(env(1));
+  game.spawnT = 99;
+  const r = game.rooms[0]; // (530, 320)
+  r.state = 'sleep';
+  peck(game, r.x - 85, r.y, 1); // the pane's left edge, flying in from the left
+  assert.equal(game.targetAt(game.x, game.y), null, 'the socket touches nothing');
+  assert.equal(r.state, 'dark');
+
+  const game2 = create(env(1));
+  game2.spawnT = 99;
+  const r2 = game2.rooms[0];
+  r2.state = 'sleep';
+  peck(game2, r2.x - 100, r2.y, 1);
+  assert.equal(r2.state, 'sleep');
+});
+
+test('plugsocketswift: the beak on the fuse switch flips it back; just beside the box it does not', () => {
+  for (const pointer of [false, true]) {
+    const game = create(env(1));
+    game.spawnT = 99;
+    game.blown = true;
+    game.blownT = 1;
+    // the blown switch's handle as painted: (250, 375) in its cell, so
+    // (255 + 52 * 0.475, 600 + 91 + 119 * 0.475) on screen
+    peck(game, 280, 747, -1, pointer);
+    assert.equal(game.targetAt(game.x, game.y), null, 'the socket is below the box');
+    assert.equal(game.blown, false, `beak on the switch (pointer ${pointer})`);
+
+    const game2 = create(env(1));
+    game2.spawnT = 99;
+    game2.blown = true;
+    game2.blownT = 1;
+    peck(game2, game2.fuse.x + 125, game2.fuse.y, -1, pointer);
+    assert.equal(game2.blown, true, `beak beside the box (pointer ${pointer})`);
+  }
+  // the top of the box, the FUSE card, counts too
+  const game3 = create(env(1));
+  game3.blown = true;
+  game3.blownT = 1;
+  peck(game3, 255, 450, 1);
+  assert.equal(game3.blown, false);
+});
+
+test('plugsocketswift: a tap on a far request bubble sends the Swift there to plug it in', () => {
+  const game = create(env(1));
+  game.spawnT = 99;
+  const r = asking(game.rooms[11]); // (1070, 674), bubble at (1070, 574)
+  game.x = 600;
+  game.y = 300;
+  const p = { active: true, x: r.x, y: r.y - 100, down: true, pressed: true, released: false };
+  game.update(1 / 60, blank({ action: true, actionPressed: true, pointer: p }));
+  assert.equal(game.pending, r);
+  for (let i = 0; i < 120 && r.state === 'ask'; i++) game.update(1 / 60, blank({ pointer: { ...p, pressed: false } }));
+  assert.equal(r.state, 'lit');
 });
