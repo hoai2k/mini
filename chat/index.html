@@ -109,6 +109,9 @@
     </form>
   </aside>
 
+  <!-- Shown when the bottom UI is tucked away: drag up or tap to bring it back. -->
+  <button id="ui-grip" class="ui-grip" type="button" aria-label="Show the controls" title="Drag up to show the controls" hidden><span></span></button>
+
   <!-- The bottom row. Picking one slides it to the left (tap it again for the
        full row back) and the space to its right shows what is on. -->
   <nav id="controls" class="controls" aria-label="Call controls">
@@ -193,7 +196,7 @@
       <h3>Games</h3>
       <p>Open <b>Games</b> and start one. Friends get a <b>Join</b> button. Scores and records are kept on this device.</p>
       <h3>Sheets and your video</h3>
-      <p>Drag a strip up to see all of it in a grid; pull the grid down to go back to the strip. Pull the strip, the Games list or Messages down to peek at the video behind them; pull further, or flick, to close. With two people, tap the small video to swap it with the big one, and drag it to any corner. The microphone, camera and settings are at the top right; Messages, this help and Leave are in Settings.</p>
+      <p>Drag a strip up to see all of it in a grid; pull the grid down to go back to the strip. Drag the bottom controls down to make room: first the button row tucks away, then the strip; drag up (or tap the little grip) to bring them back. Pull the strip, the Games list or Messages down to peek at the video behind them; pull further, or flick, to close. With two people, tap the small video to swap it with the big one, and drag it to any corner. The microphone, camera and settings are at the top right; Messages, this help and Leave are in Settings.</p>
       <h3>Controls</h3>
       <table class="keys">
         <tr><th>Action</th><th>Keyboard / pointer</th><th>Xbox controller</th></tr>
@@ -231,6 +234,7 @@
       <div class="field"><span>Your name</span><button id="set-name-show" class="name-show" type="button" title="Change your name"><span id="set-name-text"></span> <span aria-hidden="true">✎</span></button><input id="set-name" maxlength="20" aria-label="Your name" hidden></div>
       <div class="field"><span>Your colour</span><div class="colors" id="set-colors" role="radiogroup" aria-label="Your colour"></div></div>
       <label class="field range"><span>Sound effects</span><input id="set-volume" type="range" min="0" max="1" step="0.05"></label>
+      <label class="field check"><input id="set-light" type="checkbox"><span>Auto light: brighten my picture when it's dark</span></label>
       <label class="field check"><input id="set-motion" type="checkbox"><span>Reduce motion</span></label>
       <div class="field"><span>Ratings</span><button id="open-ratings" class="btn ghost" type="button">See everyone's thumbs up and down</button></div>
       <div class="field"><span>Help</span><button class="btn ghost" type="button" data-open="instructions">How to play</button></div>
