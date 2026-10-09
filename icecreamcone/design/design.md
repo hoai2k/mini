@@ -14,27 +14,36 @@ says "New World Record!" and nothing more specific.
 
 ## Flow
 
-1. **Title.** The logo, Press Start, and the Instructions, Settings and
+1. **Title.** The logo, Press Start, and the Controls, Settings and
    Fullscreen buttons (see `GAME_GUIDELINES.md`).
 2. **The field guide.** A spread of pages, one per bird. A bird you haven't
    met yet shows as an ink silhouette marked "Not yet spotted". The first
    bird is open from the start; reaching a bird's score opens the next page.
    Each tab shows your best score.
 3. **The bird's page.** The bird large on cream paper, gently alive (it
-   breathes, blinks, shuffles, does its thing now and then), with its name and
-   a short rhyme in the game's own words (not the book's verses). "Read to
-   me" speaks the rhyme. "Play" goes to the game.
-4. **How to play.** A card with the goal, the controls for the device you are
-   using, the score that opens the next page (until you've reached it) and
-   your best. Any button starts.
-5. **Play.** A 3-2-1 count, the game, then "Time!".
-6. **Result.** Your score, under "New World Record!" when it beats your best
+   breathes, blinks, shuffles, does its thing now and then), with its name, a
+   short rhyme in the game's own words (not the book's verses), and how its
+   game plays: the goal, the controls for the device you are using, a few
+   tips, and the score that opens the next page (until you've reached it) or
+   your best. The rhyme is read aloud when that setting is on. One button,
+   Play, starts the game; B, Esc or the × in the corner goes back to the
+   guide.
+4. **Play.** A 3-2-1 count, the game, then "Time!".
+5. **Result.** Your score, under "New World Record!" when it beats your best
    and reaches the score that opens the next page ("Personal Best!" when it
    beats your best but falls short; otherwise "Time!" and your best), and the score that opens the next page
    if you haven't reached it yet. Options: Play again, Next bird, Back to the
    guide.
-7. **The gathering.** When every bird has been spotted, a final page shows them all
+6. **The gathering.** When every bird has been spotted, a final page shows them all
    together, like the book's endpapers. Any bird can be replayed at any time.
+
+**The pause menu** has only buttons that do something: How to play, Settings,
+and, small at the foot, Restart and Exit to Field Guide. There is no Resume
+or Back button: B (or Esc, or the Menu button again), the × in the corner, or
+a click or tap outside the dialog returns to the game. How to play shows the
+bird's card again, with a Controls button for the simple controls page. These
+two pages have nothing else to choose, so A goes straight back to the game
+and B steps back one page; nothing is focused until the stick moves.
 
 The score to reach is the same for everyone and fairly gentle; beating your
 own best is the long game.

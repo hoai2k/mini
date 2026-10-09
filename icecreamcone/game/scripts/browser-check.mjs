@@ -7,9 +7,12 @@
 // the page loads) and with the keyboard:
 //
 //  1. Title: no errors; any controller button starts and opens the guide.
-//  2. Guide → the first bird's page → Play → how-to card → count-in → play,
-//     with stick and A input; Menu pauses, B resumes; the result card shows a
-//     score and the progress is saved.
+//  2. Guide → the first bird's page (its controls and tips on it) → Play →
+//     count-in → play, with stick and A input. The pause menu: A on How to
+//     play opens it, its Controls button opens the controls, B steps back, A
+//     on a leaf page goes straight back to the game; B resumes, and so does a
+//     click outside the dialog. The result card shows a score and the
+//     progress is saved.
 //  3. Keyboard: Enter through the title, guide and page; Space starts.
 //  4. Every minigame that exists (or only --bird) is started with ?all, played
 //     for a while with random input, and must run without errors, draw, and
@@ -105,7 +108,7 @@ const press = async (page, b) => {
   await page.evaluate((b) => window.__pad(0, { buttons: { [b]: false } }), b);
   await wait(page, 80);
 };
-const state = (page) => page.evaluate(() => ({ screen: window.__coot.S.screen, phase: window.__coot.S.phase, paused: window.__coot.S.paused }));
+const state = (page) => page.evaluate(() => ({ screen: window.__coot.S.screen, phase: window.__coot.S.phase, paused: window.__coot.S.paused, modals: [...window.__coot.S.modals] }));
 const A = 0;
 const B = 1;
 const MENU = 9;
@@ -126,12 +129,14 @@ const MENU = 9;
   s.screen === 'page' ? ok('A on the first card opens its page') : fail(`after A on card: ${JSON.stringify(s)}`);
   await wait(page, 400);
   await shot(page, '03-page');
-  await press(page, A); // Play (the primary button)
-  await page.waitForFunction(() => window.__coot.S.phase === 'howto', null, { timeout: 5000 }).catch(() => {});
-  s = await state(page);
-  s.phase === 'howto' ? ok('Play shows the how-to card') : fail(`after Play: ${JSON.stringify(s)}`);
-  await shot(page, '04-howto');
-  await press(page, A);
+  const pageInfo = await page.evaluate(() => ({
+    buttons: [...document.querySelectorAll('#page [data-nav]')].map((b) => b.textContent.trim()),
+    controls: document.querySelectorAll('#page-controls li').length,
+  }));
+  pageInfo.buttons.join() === 'Play' && pageInfo.controls > 0
+    ? ok('the page has only Play, with the controls on it')
+    : fail(`page: ${JSON.stringify(pageInfo)}`);
+  await press(page, A); // Play
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   s = await state(page);
   s.phase === 'play' ? ok('count-in leads to play') : fail(`after start: ${JSON.stringify(s)}`);
@@ -145,6 +150,35 @@ const MENU = 9;
   s = await state(page);
   s.paused ? ok('Menu pauses') : fail('Menu did not pause');
   await shot(page, '06-pause');
+  const pauseButtons = await page.evaluate(() => [...document.querySelectorAll('#pause [data-nav]')].map((b) => b.textContent.trim()));
+  pauseButtons.join() === 'How to play,Settings,Restart,Exit to Field Guide'
+    ? ok('the pause menu: How to play, Settings, then Restart and Exit')
+    : fail(`pause buttons: ${pauseButtons}`);
+  await press(page, A); // How to play
+  s = await state(page);
+  s.modals.join() === 'howto' ? ok('A opens How to play') : fail(`how to play: ${JSON.stringify(s)}`);
+  await shot(page, '06b-howto');
+  await press(page, B);
+  s = await state(page);
+  s.paused && !s.modals.length ? ok('B steps back to the pause menu') : fail(`B from how to play: ${JSON.stringify(s)}`);
+  await press(page, A);
+  await page.evaluate(() => window.__pad(0, { axes: [0, 1, 0, 0] }));
+  await wait(page, 150);
+  await page.evaluate(() => window.__pad(0, { axes: [0, 0, 0, 0] }));
+  await wait(page, 100);
+  await press(page, A); // Controls
+  s = await state(page);
+  s.modals.join() === 'howto,instructions' ? ok('Controls opens from How to play') : fail(`controls: ${JSON.stringify(s)}`);
+  await shot(page, '06c-controls');
+  await press(page, A);
+  s = await state(page);
+  !s.paused && !s.modals.length ? ok('A on the controls goes straight back to the game') : fail(`A on controls: ${JSON.stringify(s)}`);
+  await press(page, MENU);
+  await page.mouse.click(8, 200); // outside the dialog
+  await wait(page, 100);
+  s = await state(page);
+  !s.paused ? ok('a click outside the pause menu resumes') : fail(`click outside: ${JSON.stringify(s)}`);
+  await press(page, MENU);
   await press(page, B);
   s = await state(page);
   !s.paused ? ok('B resumes') : fail('B did not resume');
@@ -187,9 +221,6 @@ for (const [i, id] of ids.entries()) {
   }
   const { page, errors } = await newPage('&all');
   await page.evaluate((i) => window.__coot.startBird(i), i);
-  await page.waitForFunction(() => window.__coot.S.phase === 'howto', null, { timeout: 5000 }).catch(() => {});
-  await shot(page, `game-${id}-0-howto`);
-  await page.keyboard.press('Space');
   await page.waitForFunction(() => window.__coot.S.phase === 'play', null, { timeout: 8000 }).catch(() => {});
   let k = 0;
   const deadline = Date.now() + 90000;

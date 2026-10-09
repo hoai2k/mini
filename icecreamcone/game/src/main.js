@@ -29,7 +29,7 @@ const S = {
   bird: 0, // index into BIRDS
   game: null,
   gameId: null,
-  phase: 'idle', // 'howto' | 'count' | 'play' | 'over' | 'result'
+  phase: 'idle', // 'loading' | 'count' | 'play' | 'over' | 'result'
   count: 0,
   overT: 0,
   paused: false,
@@ -124,7 +124,8 @@ function show(screen) {
   for (const id of SCREENS) $('#' + id).hidden = id !== screen;
   $('#hud').hidden = screen !== 'play';
   if (screen !== 'play') {
-    for (const m of ['howto', 'pause', 'result']) $('#' + m).hidden = true;
+    closeAll();
+    for (const m of ['pause', 'result']) $('#' + m).hidden = true;
     S.phase = 'idle';
     S.game = null;
   }
@@ -147,6 +148,12 @@ function show(screen) {
   }
 }
 
+// Only the dialog on top shows; what it was opened from steps out of sight.
+function underTop() {
+  const top = S.modals.at(-1);
+  for (const el of document.querySelectorAll('.modal')) el.classList.toggle('under', !!top && el.id !== top);
+}
+
 function openModal(id) {
   S.modals.push(id);
   const el = $('#' + id);
@@ -154,6 +161,9 @@ function openModal(id) {
   el.dataset.returnFocus = document.activeElement?.id || '';
   el._returnTo = document.activeElement;
   if (id === 'settings') syncSettingsUi();
+  if (id === 'howto') fillHowto();
+  el.querySelector('.leaf-hint')?.replaceChildren(leafHint());
+  underTop();
   input.lockHeld();
   focusFirst();
 }
@@ -163,16 +173,39 @@ function closeModal() {
   if (!id) return;
   const el = $('#' + id);
   el.hidden = true;
+  underTop();
   input.lockHeld();
   const back = el._returnTo;
   if (back && document.contains(back) && !back.closest('[hidden]')) back.focus();
   else focusFirst();
 }
 
+// Close every dialog at once (leaving play, or straight back to the game).
+function closeAll() {
+  for (const id of S.modals.splice(0)) $('#' + id).hidden = true;
+  underTop();
+}
+
+// A leaf page (How to play, Controls) has nothing to choose but its one
+// button: A goes straight back to the game, B one step back.
+function leafHint() {
+  const inGame = S.screen === 'play';
+  if (pad()) return inGame ? 'A: back to the game · B: back' : 'A or B: close';
+  if (input.kind === 'keyboard') return inGame ? 'Enter: back to the game · Esc: back' : 'Enter or Esc: close';
+  return inGame ? 'Tap outside to go back to the game' : 'Tap outside to close';
+}
+
+// Straight back to the game from anywhere in the pause menu.
+function toGame() {
+  closeAll();
+  if (S.screen === 'play' && S.paused && $('#result').hidden) resume();
+  else focusFirst();
+}
+
 function layer() {
   if (S.modals.length) return $('#' + S.modals[S.modals.length - 1]);
   if (S.screen === 'play') {
-    for (const m of ['result', 'pause', 'howto']) if (!$('#' + m).hidden) return $('#' + m);
+    for (const m of ['result', 'pause']) if (!$('#' + m).hidden) return $('#' + m);
     return null;
   }
   return $('#' + S.screen);
@@ -184,10 +217,15 @@ function navItems() {
   return [...l.querySelectorAll('[data-nav]')].filter((e) => !e.closest('[hidden]') && !e.disabled && e.offsetParent !== null);
 }
 
-function focusFirst() {
+function focusFirst(force = false) {
+  // On a leaf page nothing is chosen until the stick moves, so A goes back.
+  if (!force && layer()?.hasAttribute('data-leaf')) {
+    document.activeElement?.blur?.();
+    return;
+  }
   const items = navItems();
   const primary = items.find((e) => e.classList.contains('primary')) || items[0];
-  if (primary) primary.focus({ preventScroll: false });
+  if (primary) primary.focus({ preventScroll: S.screen === 'page' });
 }
 
 function moveFocus(dx, dy) {
@@ -195,7 +233,7 @@ function moveFocus(dx, dy) {
   if (!items.length) return;
   const cur = document.activeElement;
   if (!items.includes(cur)) {
-    focusFirst();
+    focusFirst(true);
     return;
   }
   const r0 = cur.getBoundingClientRect();
@@ -319,9 +357,21 @@ function fillPage() {
   }
   $('#page-game').textContent = b.game;
   $('#page-goal').textContent = b.goal;
+  fillList($('#page-controls'), controlLines(b));
+  fillList($('#page-tips'), b.tips);
+  S.pageKind = input.kind;
   $('#page-best').textContent = [best(b.id) ? `Best: ${best(b.id)} ${b.score}` : '', passed(S.bird) ? '' : goalLine(b)].filter(Boolean).join(' · ');
   focusFirst();
   if (settings.readAloud) readAloud();
+}
+
+function fillList(ul, lines) {
+  ul.textContent = '';
+  for (const l of lines) {
+    const li = document.createElement('li');
+    li.textContent = l;
+    ul.append(li);
+  }
 }
 
 function readAloud() {
@@ -390,7 +440,7 @@ async function startBird(i) {
   }
   S.factory = factory;
   newGame();
-  showHowto();
+  begin();
   audio.playMusic(b.tune || 'play');
 }
 
@@ -408,36 +458,17 @@ function newGame() {
   S.gameId = b.id;
 }
 
-function showHowto() {
+// How to play, from the pause menu: the same card as the bird's page.
+function fillHowto() {
   const b = BIRDS[S.bird];
-  S.phase = 'howto';
   $('#howto-title').textContent = b.game;
   $('#howto-goal').textContent = b.goal;
-  const ul = $('#howto-controls');
-  ul.textContent = '';
-  for (const l of controlLines(b)) {
-    const li = document.createElement('li');
-    li.textContent = l;
-    ul.append(li);
-  }
-  const tips = $('#howto-tips');
-  tips.textContent = '';
-  for (const l of b.tips) {
-    const li = document.createElement('li');
-    li.textContent = l;
-    tips.append(li);
-  }
+  fillList($('#howto-controls'), controlLines(b));
+  fillList($('#howto-tips'), b.tips);
   $('#howto-score').textContent = [passed(S.bird) ? '' : goalLine(b), best(b.id) ? `Your best: ${best(b.id)}` : ''].filter(Boolean).join(' · ');
-  $('#howto-go').textContent = pad() ? 'Start (A)' : input.kind === 'pointer' ? 'Start' : 'Start (Space)';
-  $('#howto').hidden = false;
-  $('#pause').hidden = true;
-  $('#result').hidden = true;
-  input.lockHeld();
-  focusFirst();
 }
 
 function begin() {
-  $('#howto').hidden = true;
   $('#hud-game').textContent = BIRDS[S.bird].game;
   S.phase = 'count';
   S.count = 3.2;
@@ -448,6 +479,7 @@ function begin() {
 
 function restart() {
   if (!S.factory) return;
+  closeAll();
   $('#pause').hidden = true;
   $('#result').hidden = true;
   newGame();
@@ -464,7 +496,7 @@ function pause(reason = '') {
 }
 
 function resume() {
-  if (S.modals.length) return;
+  if (S.modals.length || !S.paused) return;
   S.paused = false;
   $('#pause').hidden = true;
   input.lockHeld();
@@ -544,34 +576,17 @@ function act(action, el) {
       try { speechSynthesis.cancel(); } catch { /* no speech */ }
       startBird(S.bird);
       break;
-    case 'read':
-      readAloud();
-      break;
-    case 'begin':
-      begin();
-      break;
-    case 'page':
-      show('page');
-      break;
     case 'pause':
       pause();
       break;
-    case 'resume':
-      resume();
-      break;
-    case 'howto':
-      S.paused = true;
-      $('#pause').hidden = true;
-      showHowto();
+    case 'back':
+      back();
       break;
     case 'restart':
       restart();
       break;
-    case 'quit-page':
-      confirm('Leave this game?', 'Your score in this round will not count.', () => show('page'));
-      break;
-    case 'quit-title':
-      confirm('Return to the title?', 'Your score in this round will not count.', () => show('title'));
+    case 'quit-guide':
+      confirm('Leave this game?', 'Your score in this round will not count.', () => show('guide'));
       break;
     case 'next':
       if (S.bird + 1 < BIRDS.length) startBird(S.bird + 1);
@@ -606,6 +621,14 @@ function confirm(title, text, fn) {
 }
 
 document.addEventListener('click', (e) => {
+  // A click on the dim backdrop outside a dialog: back to the game (or, for
+  // a question, No).
+  if (e.target.classList?.contains('modal') && e.target.id !== 'result') {
+    audio.sfx('back');
+    if (S.modals.at(-1) === 'confirm') closeModal();
+    else toGame();
+    return;
+  }
   const el = e.target.closest('[data-action], [data-open]');
   if (!el || el.disabled) return;
   if (el.dataset.open) {
@@ -628,7 +651,6 @@ function back() {
   if (S.screen === 'play') {
     if (!$('#result').hidden) act('guide');
     else if (!$('#pause').hidden) resume();
-    else if (!$('#howto').hidden) show('page');
     else pause();
     return;
   }
@@ -782,13 +804,15 @@ function menuInput(dt) {
     if (!(el?.type === 'range' && dx && !pad())) moveFocus(dx, dy);
   }
 
+  const chosen = navItems().includes(document.activeElement);
+  const leaf = l.hasAttribute('data-leaf');
   if (input.padPressed(BTN.A)) {
-    const f = document.activeElement;
-    if (navItems().includes(f)) f.click();
+    if (chosen) document.activeElement.click();
+    else if (leaf) toGame();
     else focusFirst();
-  }
+  } else if (n.confirm && leaf && !chosen) toGame(); // Enter or Space; a focused button clicks itself
   if (n.back) back();
-  else if (n.pause && S.screen === 'play' && !S.modals.length && !$('#pause').hidden) resume();
+  else if (n.pause && S.screen === 'play' && S.paused) toGame();
 }
 
 function frame(now) {
@@ -837,6 +861,10 @@ function frame(now) {
     const n = input.nav();
     if (n.pause || (n.back && input.kind !== 'keyboard')) pause();
   } else menuInput(dt);
+  if (S.screen === 'page' && S.pageKind !== input.kind) {
+    S.pageKind = input.kind;
+    fillList($('#page-controls'), controlLines(BIRDS[S.bird]));
+  }
 
   render(dt);
   input.endFrame();
