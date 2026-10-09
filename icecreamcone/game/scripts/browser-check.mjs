@@ -399,8 +399,13 @@ const MENU = 9;
 // ---------- 6: the guide's 28 cards ----------
 if (!only) {
   const { page, errors } = await newPage('&all');
+  // The title must be up, and the pad connected a moment before its first
+  // press (a press held as the pad connects is ignored), before A opens the guide.
+  await page.waitForFunction(() => window.__coot.S.screen === 'title', null, { timeout: 15000 }).catch(() => {});
   await page.evaluate(() => window.__pad(0, {}));
+  await wait(page, 200);
   await press(page, A); // title → guide
+  await page.waitForFunction(() => window.__coot.S.screen === 'guide' && document.querySelectorAll('#cards .card').length, null, { timeout: 5000 }).catch(() => {});
   await wait(page, 300);
   const info = await page.evaluate(() => ({ cards: document.querySelectorAll('#cards .card').length, count: document.querySelector('#guide-count').textContent }));
   info.cards === 28 && /of 28 birds/.test(info.count) ? ok(`the guide has 28 cards (${info.count})`) : fail(`guide: ${JSON.stringify(info)}`);
