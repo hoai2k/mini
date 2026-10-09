@@ -26,7 +26,7 @@ Face stickers share one 1024 x 1024 template, as the viewer sees the face:
 
 ## Status
 
-341 delivered, 110 requested, 451 in total.
+381 delivered, 70 requested, 451 in total.
 
 ## Brand
 
@@ -3186,7 +3186,7 @@ The Classical theme's icon for every effect and game: 18th-century French Rococo
 - **Size:** 256 x 256, transparent
 - **Used for:** The Bubble Blow button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in profile with pursed lips blowing a big shimmering soap bubble that drifts away towards the edge, a second small bubble popping with a burst of droplets. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3198,7 +3198,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Puppy button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face wearing realistic-looking floppy brown dog ears and a black dog nose, mouth open with a long pink dog tongue hanging out. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3210,7 +3210,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Heart Eyes button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's grinning face with glowing red heart shapes in place of the eyes, three small hearts floating up from the head. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3222,7 +3222,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Dragon button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with small curved dragon horns and scaly cheeks, mouth wide open blasting a jet of orange fire sideways. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3234,7 +3234,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Rainbow Mouth button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with mouth wide open and a thick bright rainbow pouring out of it and curving down out of frame. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3246,7 +3246,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Big Eyes button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with eyes magnified huge like a bulging lens, the rest of the face normal, a subtle warp ring around each eye. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3258,7 +3258,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Bobblehead button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person drawn with a giant head on a small body, the head tilted mid-wobble with two motion arcs. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3270,7 +3270,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Alien button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face tinted lime green with large glossy black almond eyes and two antennae with glowing tips. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3282,7 +3282,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Deal With It button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: pixel-art black sunglasses dropping down onto a smirking person's face, motion lines above them. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3294,7 +3294,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Royalty button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a confident person wearing a heavy gold jewelled crown slightly tilted, a few gold sparkles. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3306,7 +3306,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Fancy button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with raised eyebrows, a curled handlebar mustache and a gold monocle on a chain falling from one eye. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3318,7 +3318,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Clown button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a round red clown nose and a huge rainbow curly afro wig, mouth open in a honk. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3330,7 +3330,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Storm Cloud button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a small dark rain cloud hovering over a person's frowning head, rain falling on them and a lightning bolt striking. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3342,7 +3342,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Noodle Face button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face stretched long and wavy like in a funhouse mirror, eyes and mouth pulled into a tall S-curve. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3354,7 +3354,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Swirl button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face twisted into a spiral around the nose, as if being pulled down a whirlpool. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3366,7 +3366,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Outer Space button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head and shoulders cut out against a deep starfield with a ringed planet and a nebula behind them. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3378,7 +3378,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Under the Sea button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head and shoulders in blue-green water light, rippling caustics on the face, bubbles rising and a small tropical fish passing. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3390,7 +3390,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The 8-Bit button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face rendered in big chunky square pixels with a limited retro console palette, half the face still smooth to show the change. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3402,7 +3402,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Comic Book button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face in comic-book style with halftone dots and bold ink lines, mouth open and a jagged POW burst shape beside it. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3414,7 +3414,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Heat Vision button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face as a thermal camera image, hot yellow and red cheeks fading to purple and blue at the edges. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3426,7 +3426,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Flower Crown button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person wearing a crown of pink peonies, white daisies and green leaves, soft petals drifting. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3438,7 +3438,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Kitty button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with pointed cat ears, a small pink cat nose and thin white whiskers, mouth open mid-meow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3450,7 +3450,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Bunny button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with tall white rabbit ears, one ear flopped over, and a little pink bunny nose. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3462,7 +3462,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Hotdog button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person dressed in a full hotdog costume, face showing through the bun, jumping in the air. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3474,7 +3474,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Laser Eyes button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with raised eyebrows firing two straight red laser beams from the eyes towards the viewer, glowing hot. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3486,7 +3486,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Waterworks button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face crying two exaggerated arcing fountains of tears from the corners of the eyes, splashing below. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3498,7 +3498,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Devil button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a sly smile and two small glossy red devil horns, a faint red glow and a few embers behind. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3510,7 +3510,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Angel button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person with a golden halo floating above the head and soft white feathered wings behind the shoulders. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3522,7 +3522,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Pirate button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in a black tricorn pirate hat with a skull emblem and a black eyepatch, mid-shout. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3534,7 +3534,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Viking button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in a horned steel Viking helmet with a braided orange beard. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3546,7 +3546,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Wizard button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person in a tall starry midnight-blue wizard hat, eyebrows raised, purple magic sparks bursting around the head. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3558,7 +3558,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Butterflies button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's head with a ring of blue and pink butterflies circling it, two flying off. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3570,7 +3570,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Glam button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person's face with bold winged eyeliner, glossy red lips and contoured cheeks, a sparkle on the cheekbone. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3582,7 +3582,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Beach 360 button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a tropical beach with palm trees and turquoise sea, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3594,7 +3594,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Space 360 button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a space-station window looking down at Earth, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3606,7 +3606,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Reef 360 button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a coral reef with a sea turtle, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3618,7 +3618,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Forest 360 button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a misty fantasy forest with a waterfall and glowing mushrooms, a circular 360-degree arrow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3630,7 +3630,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The City 360 button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out on a rooftop in front of neon skyscrapers at night, a circular 360-degree arrow around the scene. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3642,7 +3642,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Snow 360 button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of snowy mountain peaks and a wooden cabin, a circular 360-degree arrow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
@@ -3654,7 +3654,7 @@ Lavish 18th-century French Rococo painting in the manner of Fragonard and Bouche
 - **Size:** 256 x 256, transparent
 - **Used for:** The Candy 360 button on the effect strips in the Classical theme.
 - **Stand-in until delivered:** The Teen icon, then the Kid icon, then the emoji.
-- **Status:** requested
+- **Status:** delivered
 
 ```text
 Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they fit, opulent but light-hearted and playful. Painted, not photographic. No text, no watermark. Icon: a person cut out in front of a candy land with lollipop trees and a gingerbread house, a circular 360-degree arrow. Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta #FF00FF outside the frame.
