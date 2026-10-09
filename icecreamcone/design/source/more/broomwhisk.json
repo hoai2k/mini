@@ -38,5 +38,15 @@
     "used": "Clean Sweep: the Broomwhisk as it sweeps across the floor and as it flicks its bristles.",
     "standin": "Its stand-in, leaning into the sweep, with an ink swish for the flick.",
     "prompt": "{STYLE} {VARIANT} The Broomwhisk (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/broomwhisk.png) in two poses side by side on one sheet, each in its own half, facing left: left, mid-sweep, the handle leaning back and the straw bristles bent and dragged back to the right along the floor; right, flicking, the bristles fanned out and swept hard forward to the left with a few bits of straw flying. The bristles touch the bottom of each cell. {ALPHA}"
+  },
+  {
+    "id": "IC-M06e",
+    "name": "Broomwhisk pushing, braced and pleased",
+    "key": "sprites.broomwhiskPoses",
+    "file": "assets/sprites/broomwhisk-poses.png",
+    "size": "3072 x 1024, transparent",
+    "used": "Clean Sweep: the Broomwhisk sweeping into or out of the picture, bracing against a gust (mirrored to face the wind), and pleased when something lands in the pan.",
+    "standin": "Its stand-in, leaning into the wind and hopping when something goes in the pan.",
+    "prompt": "{STYLE} {VARIANT} The Broomwhisk (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/broomwhisk.png) in three poses in a row on one sheet, each in its own third, facing left: left, pushing straight ahead, the straw bristles squashed and splayed out wide on both sides along the floor; middle, braced against a strong wind blowing from the left, leaning into it, its head crest and the loose straws of its bristles streaming back to the right; right, pleased, standing tall and straight with its bristles fluffed out full and its head held high. The bristles touch the bottom of each cell. {ALPHA}"
   }
 ]

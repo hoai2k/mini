@@ -14,7 +14,7 @@ Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from `sou
 
 ## Status
 
-76 requested, 67 delivered, 1 retired, 144 in total.
+84 requested, 67 delivered, 1 retired, 152 in total.
 
 ## Brand
 
@@ -971,6 +971,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Cutitup Snippit (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/snippit.png) in two poses side by side on one sheet, each in its own half, standing on its legs and facing left: left, the scissor blades (its beak) held wide open, ready to cut; right, the blades snapped shut, with the bird leaning a little forward as it snips. The hinge, its eye, at the same height in both. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
+### IC-M04d · Cutitup Snippit walking, jammed and watching
+
+- **File:** `icecreamcone/game/assets/sprites/snippit-poses.png`
+- **Size:** 3072 x 1024, transparent
+- **Used for:** Snip the String: the Snippit striding along the fence (alternating with its open-bladed stand from IC-M04c), stuck after a wrong snip, and watching the right balloon float away.
+- **Stand-in until delivered:** Its stand-in, rocking as it walks, shaking when jammed and tipping back when a balloon goes.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Cutitup Snippit (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/snippit.png) in three poses in a row on one sheet, each in its own third, facing left, blades open in all three: left, mid-stride, one long leg reaching forward and the other pushing off behind; middle, jammed, the blades stuck half open and twisted askew, its eye wide, legs braced apart; right, standing tall with its head and open blades tipped back to look straight up at the sky, watching something float away. The hinge, its eye, at about the same height in all three. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ### IC-M05a · Button Up: the washing line
 
 - **File:** `icecreamcone/game/assets/scenes/buttonbeaks.webp`
@@ -1031,6 +1043,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Buttonbeaks (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/buttonbeaks.png), the pair together, in two poses side by side on one sheet, each in its own half, facing left: left, standing close together with their beaks raised and touching at the tips, as if holding something small up between them; right, both springing up on their toes with their beaks flung up towards the sky, having just tossed it. Nothing held in the beaks (the game draws the button). Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
+### IC-M05f · Buttonbeaks walking, pecking, dazed and cheering
+
+- **File:** `icecreamcone/game/assets/sprites/buttonbeaks-poses.png`
+- **Size:** 4096 x 1024, transparent
+- **Used for:** Button Up: the pair walking empty-beaked (alternating with the portrait), pecking a button out of a bowl, dizzy after a wrong button, and hopping for joy when one is sewn on.
+- **Stand-in until delivered:** Their stand-in, bobbing as they walk, shaking when dazed and jumping when a button is sewn on.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Buttonbeaks (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/buttonbeaks.png), the pair together, in four poses in a row on one sheet, each in its own quarter, facing left, nothing in their beaks: 1, walking side by side mid-stride, each with one leg reaching forward; 2, both bending down low, beaks pointing down to peck at something on the ground in front of them; 3, dizzy, both reeling and leaning against each other, heads tilted, legs wobbly, eyes wide; 4, both hopping up off the ground together for joy, beaks open and pointing up, little tail plumes raised. The same size in each, feet at the bottom of the cell. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ### IC-M06a · Clean Sweep: the courtyard
 
 - **File:** `icecreamcone/game/assets/scenes/broomwhisk.webp`
@@ -1077,6 +1101,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Broomwhisk (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/broomwhisk.png) in two poses side by side on one sheet, each in its own half, facing left: left, mid-sweep, the handle leaning back and the straw bristles bent and dragged back to the right along the floor; right, flicking, the bristles fanned out and swept hard forward to the left with a few bits of straw flying. The bristles touch the bottom of each cell. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M06e · Broomwhisk pushing, braced and pleased
+
+- **File:** `icecreamcone/game/assets/sprites/broomwhisk-poses.png`
+- **Size:** 3072 x 1024, transparent
+- **Used for:** Clean Sweep: the Broomwhisk sweeping into or out of the picture, bracing against a gust (mirrored to face the wind), and pleased when something lands in the pan.
+- **Stand-in until delivered:** Its stand-in, leaning into the wind and hopping when something goes in the pan.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Broomwhisk (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/broomwhisk.png) in three poses in a row on one sheet, each in its own third, facing left: left, pushing straight ahead, the straw bristles squashed and splayed out wide on both sides along the floor; middle, braced against a strong wind blowing from the left, leaning into it, its head crest and the loose straws of its bristles streaming back to the right; right, pleased, standing tall and straight with its bristles fluffed out full and its head held high. The bristles touch the bottom of each cell. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### IC-M07a · Lucky Dip: inside the crane cabinet
@@ -1415,16 +1451,16 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six pictures, each in its own square cell, all four windows exactly the same size and framing (about 400 px wide and 430 px tall, seen straight on), row by row: 1, a square old sash window at night, dark blue-black glass, dusty-pink curtains drawn back at the sides, a wooden sill, nobody inside; 2, the same dark window with a small brown mouse in a striped nightshirt standing inside, one paw raised waving, holding a closed book; 3, the same window glowing warm yellow from inside, a little table lamp with a pleated pink shade lit on the right, the mouse sitting reading an open book in its light; 4, the same lit window, the lamp still on, the mouse asleep in a small bed under a patchwork blanket with its book fallen open on the floor; 5, an old grey-painted metal fuse box with a little door, a round dial and a big switch lever pointing up, about 300 x 400 px; 6, the same fuse box blown: its lever snapped down, a black scorch mark and a puff of grey smoke with a few yellow sparks. The windows' wooden frames and sills fill each window picture edge to edge so they line up on the house wall.
 ```
 
-### IC-M13c · Plugsocket Swift in flight
+### IC-M13c · Plugsocket Swift: flying, plugging in, singed
 
-- **File:** `icecreamcone/game/assets/sprites/swift-fly.png`
-- **Size:** 1024 x 1024, transparent
-- **Used for:** Lights On: the Swift zips from window to window (the game mirrors it to fly right and draws the bulb's glow).
-- **Stand-in until delivered:** The portrait (or its stand-in) with two flapping ink-and-wash wings drawn behind it.
+- **File:** `icecreamcone/game/assets/sprites/swift-poses.png`
+- **Size:** 3072 x 1024, transparent
+- **Used for:** Lights On: the Swift flies from window to window (pose 1), dives at a socket as it plugs a lamp in (pose 2), and hangs singed while the fuse is blown (pose 3). The game mirrors it to fly right and draws the bulb's glow.
+- **Stand-in until delivered:** The portrait (or its stand-in) with ink-and-wash wings drawn in code: beating, swept back and tilted for the dive, drooping with grey smoke when singed.
 - **Status:** requested
 
 ```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Plugsocket Swift (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/plugsocketswift.png) in flight, seen from the side, facing left: its long sickle-shaped swift's wings spread wide and swept back, its trailing flex tail streaming out behind, its legs tucked up under the plug-socket body, its light-bulb head stretched forward with the filament glowing. Centred in the square, filling about 80% of its width. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Plugsocket Swift (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/plugsocketswift.png) in three poses side by side, each in its own square third of the sheet, the plug-socket body at the exact centre of each square and the bird filling about 80% of the square's width, all at the same scale, facing left, seen from the side: 1, in flight, its long sickle-shaped swift's wings spread wide and swept back, its trailing flex tail streaming out behind, legs tucked up under the body, the bulb head stretched forward with its filament glowing; 2, diving head first and down to the left to plug in, wings swept right back, legs reaching forward, the bulb blazing bright with little rays; 3, singed: hovering limply, wings drooping, a few feathers ruffled and sooty, the bulb dark and grey with a thin crack, a small wisp of smoke rising from the screw cap. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### IC-M14a · Just a Pinch: the café counter
@@ -1461,6 +1497,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 4 x 2 grid of four small animal diners in Lobel's gentle manner, each seen from the front, from the waist up as if sitting behind a counter (the bottom of each figure cut straight across), about 380 px tall, with a white napkin tucked under its chin and a fork held upright: row 1, waiting happily: a velvety dark-grey mole with tiny round spectacles, a grey mouse, a green frog, a black-and-white badger; row 2, the same four in the same order pulling a face at their food: eyes screwed shut, mouth turned down, tongue out.
+```
+
+### IC-M14d · Saltshaker Shrike hanging upside down
+
+- **File:** `icecreamcone/game/assets/sprites/shrike-poses.png`
+- **Size:** 4096 x 1024, transparent
+- **Used for:** Just a Pinch: the Shrike hangs head down from the brass rail all game (pose 1), shakes out a pinch (pose 2), squawks pleased at a plate that's just right (pose 3) and flinches at a frown (pose 4). The game mirrors it to face the plates.
+- **Stand-in until delivered:** The portrait (or its stand-in) turned upside down in code; it jiggles when shaking, bounces when pleased and shivers when flinching.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Saltshaker Shrike (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/saltshakershrike.png) in four poses side by side, each in its own square quarter of the sheet, all at the same scale, facing left, each hanging UPSIDE DOWN by its claws from an unseen horizontal rail at the very top of the square, like a bat: its thin legs go straight up from the body to the claws, which grip a point at the top centre of the square; the glass body hangs below them and the domed perforated silver cap (its head) points straight down, the cap's holes about 75% of the way down the square, centred, the hooked beak and black eye mask on the cap. Lit from the upper left as a real object hanging upside down would be. 1, hanging still, calm; 2, shaking: swung slightly to one side, a little puff of white salt grains spilling from the holes; 3, pleased: beak wide open in a cheerful squawk, little wings flared; 4, flinching: body pulled up tight towards the rail, wings clamped, eye squeezed half shut. No rail drawn. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### IC-M15a · Soup's On: the soup kitchen
@@ -1511,6 +1559,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 4 x 2 grid of four small hungry creatures in Lobel's gentle manner, each standing upright, full length, in a three-quarter view facing left, about 440 px tall, holding a big spoon: row 1, hopeful and waiting: a hedgehog, a white rabbit, a brown bear cub, a green frog; row 2, the same four in the same order pulling a face: eyes screwed shut, tongue out, the spoon held away.
 ```
 
+### IC-M15e · Soupladle Lark hovering, dipping and rising
+
+- **File:** `icecreamcone/game/assets/sprites/lark-poses.png`
+- **Size:** 3072 x 1024, transparent
+- **Used for:** Soup's On: the Lark hovers over the pot (pose 1), plunges its bowl into the soup to dip (pose 2) and rises with a full bowl (pose 3), always over the ring the player aims.
+- **Stand-in until delivered:** The portrait (or its stand-in) with ink-and-wash wings in code: beating while it hovers, swept up and tilted forward as it dips, a golden brim drawn on the bowl as it rises.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Soupladle Lark (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/ladlelark.png) in three poses side by side, each in its own square third of the sheet, all at the same scale, facing left, the round bowl of the ladle (its body) at the exact centre of each square: 1, hovering in the air: little grey wings beating either side of the bowl, legs tucked up, the long handle-neck curved up with the head looking down; 2, dipping: tipped forward bowl first, the bowl's open side turned down to the lower left as if scooping, wings swept up, the neck bent down; 3, rising: level again, wings pushing down, the bowl brimming with golden soup, a carrot coin and a pea showing, drops of broth falling from its rim. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ### IC-M16a · Drip Drop Dash: the kitchen
 
 - **File:** `icecreamcone/game/assets/scenes/drippet.webp`
@@ -1557,6 +1617,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described. The Drippet (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/drippet.png ) in two poses side by side on one sheet, each in its own half, facing left: left half, in mid-hop, legs tucked up under its body and claws curled, a few water drops flung from its spout; right half, skidding, leaning far back with both legs shot forward and splayed, its eye wide, water sloshing out of its spout. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M16e · The Drippet running and pouring
+
+- **File:** `icecreamcone/game/assets/sprites/drippet-more.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Drip Drop Dash: the Drippet's run (this stride and the portrait by turns) and its pose while it fills a thirsty thing.
+- **Stand-in until delivered:** The portrait (or its stand-in) bobbing and tilting as it runs, and tipped forward while it pours.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described. The Drippet (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/drippet.png ) in two poses side by side on one sheet, each in its own half, facing left, at the portrait's scale with its feet on the same ground line: left half, running mid-stride, one long leg reaching forward and the other pushing off behind, body tipped slightly forward; right half, standing with its body tipped forward and down so its spout points at the floor just in front of its feet, a thin steady stream of water running from the spout, its eye looking down. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### IC-M17a · Saw It Straight: the carpenter's yard
@@ -1607,6 +1679,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described. The Saw Bird (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/sawbird.png ) at work, facing left: its long blade held perfectly level, pointing left, with the toothed edge straight along the bottom, and its legs folded up tight under its handle-body so that nothing hangs below the line of the teeth: the teeth are the lowest part of the picture. Eye narrowed in concentration, a few curls of sawdust at the teeth. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
+### IC-M17e · The Saw Bird snagged and proud
+
+- **File:** `icecreamcone/game/assets/sprites/sawbird-poses.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Saw It Straight: the Saw Bird caught on a knot (or after a crooked cut), and standing proud beside the plank after a straight one.
+- **Stand-in until delivered:** The sawing pose shaken for a snag; the portrait hopping beside the plank for pride.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described. The Saw Bird (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/sawbird.png ) in two poses side by side on one sheet, each in its own half, facing left: left half, snagged, framed exactly like its sawing pose (blade level and pointing left, toothed edge along the bottom, legs folded tight under its handle-body so the teeth are the lowest part), but with the blade bowed and twanging (a few small ink wobble lines beside it) and its eye wide in alarm; right half, proud, standing upright on its two thin legs at the portrait's scale, blade raised high at an angle like a salute, chest out, a few curls of sawdust at its feet. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
 ### IC-M18a · Tune In: the sitting room
 
 - **File:** `icecreamcone/game/assets/scenes/radiobird.webp`
@@ -1653,6 +1737,18 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A long 1960s radio tuning-dial window, seen straight on, filling the image's whole width and about 70% of its height: a narrow brass bezel around a pale cream face with a single row of evenly spaced tick marks along its bottom edge (a longer tick every fifth), and faint warm light glowing from behind. No numbers, no lettering, no needle, no knob. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M18e · The Radio Bird listening, singing and startled
+
+- **File:** `icecreamcone/game/assets/sprites/radiobird-poses.png`
+- **Size:** 3072 x 1024, transparent
+- **Used for:** Tune In: the Radio Bird listening while the dial turns through the static, singing while the asked-for station plays (and when the listeners cheer), and startled by a wrong station.
+- **Stand-in until delivered:** The portrait (or its stand-in) leaning a little to listen, swaying to sing, and jittering when startled.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described. The Radio Bird (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/radiobird.png ) in three poses in a row on one sheet, each in its own third, facing left, at the portrait's scale with its feet on the same ground line: 1) listening, its long neck bent down and round so its head is cocked close to its own speaker grille, eye narrowed, a few faint fuzzy static marks around the grille; 2) singing, head thrown back on its long neck, beak wide open, crest flared, a few small ink music notes coming from the grille and the beak; 3) startled, neck jerked back into an S, crest standing straight up, eye wide, one foot lifted. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ## Sprites and variants

@@ -39,4 +39,6 @@ idle 0.
 its top kept plain for the garments. IC-M09b is the six garments laid flat
 and smooth (the game draws the creases and scorches on them). IC-M09c is
 the Sparrow pressing, legs tucked away and sole flat on the cloth, dry and
-steaming, since the standing portrait would put it on stilts.
+steaming, since the standing portrait would put it on stilts. IC-M09d is the Sparrow
+jerking its toe up off the cloth in alarm, shown for a moment after a
+scorch.

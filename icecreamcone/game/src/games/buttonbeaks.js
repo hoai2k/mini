@@ -19,6 +19,7 @@ Object.assign(SHEETS, {
   'sprites.coats': [4, 1], // coat, cardigan, waistcoat, jacket, each hung from two pegs
   'sprites.buttonBowl': [1, 1],
   'sprites.buttonbeaksToss': [2, 1], // holding a button up between them, tossing it
+  'sprites.buttonbeaksPoses': [4, 1], // walking mid-stride, pecking into a bowl, dazed, cheering
 });
 
 const DURATION = 45;
@@ -68,6 +69,9 @@ export default function create(env) {
     flying: [], // tossed buttons: { kind, x, y, vy, state }
     bowls: 4,
     daze: 0,
+    pickT: 0, // pecking a button out of a bowl
+    cheerT: 0, // a button sewn on
+    moving: false,
     tossT: 0,
     nextCoat: 0,
     sewn: 0,
@@ -111,6 +115,7 @@ export default function create(env) {
 
   function pick(i) {
     g.holding = i;
+    g.pickT = 0.25;
     sfx('catch', { pitch: i });
     pop('Got it', bowlX(i, g.bowls), BOWL_Y - 70, INK, 30);
   }
@@ -134,6 +139,7 @@ export default function create(env) {
       b.state = 'gone';
       g.score++;
       g.sewn++;
+      g.cheerT = 0.6;
       coat.swing = 0.6;
       sfx('ding', { pitch: (g.sewn % 5) * 2 });
       env.vibrate?.(25);
@@ -166,6 +172,9 @@ export default function create(env) {
     }
     g.daze = Math.max(0, g.daze - dt);
     g.tossT = Math.max(0, g.tossT - dt);
+    g.pickT = Math.max(0, g.pickT - dt);
+    g.cheerT = Math.max(0, g.cheerT - dt);
+    const was = g.x;
     const nb = bowlsAt(g.elapsed);
     if (nb !== g.bowls) {
       g.bowls = nb;
@@ -181,6 +190,7 @@ export default function create(env) {
       g.x += g.vx * dt;
     }
     g.x = clamp(g.x, 140, W - 140);
+    g.moving = Math.abs(g.x - was) > 40 * dt;
 
     if (input.actionPressed && g.daze <= 0) {
       if (input.pointer.active) {
@@ -403,13 +413,21 @@ export default function create(env) {
 
   function drawBeaks(c, t) {
     const daze = g.daze > 0 && !env.reduceMotion ? Math.sin(g.daze * 40) * 0.06 : 0;
-    const walk = Math.abs(g.vx) > 40 ? Math.abs(Math.sin(t * 12)) * 8 : 0;
+    const walk = g.moving ? Math.abs(Math.sin(t * 12)) * 8 : 0;
     const toss = g.tossT > 0 ? g.tossT / 0.3 : 0;
-    const frame = toss > 0 ? 1 : 0;
-    const drawn = (g.holding !== null || toss > 0) && drawSprite(c, 'sprites.buttonbeaksToss', frame, g.x, GROUND - walk, { h: SIZE * 0.62, rot: daze });
+    // The painted poses: tossing, pecking, dazed, cheering, holding a button
+    // up, striding; otherwise the portrait.
+    const stride = g.moving && Math.floor(t * 7) % 2;
+    const pose = toss > 0 ? ['sprites.buttonbeaksToss', 1]
+      : g.pickT > 0 ? ['sprites.buttonbeaksPoses', 1]
+      : g.daze > 0 ? ['sprites.buttonbeaksPoses', 2]
+      : g.cheerT > 0 && g.holding === null ? ['sprites.buttonbeaksPoses', 3]
+      : g.holding !== null ? ['sprites.buttonbeaksToss', 0]
+      : stride ? ['sprites.buttonbeaksPoses', 0] : null;
+    const drawn = pose && drawSprite(c, pose[0], pose[1], g.x, GROUND - walk, { h: SIZE * 0.62, rot: daze });
     if (!drawn) {
       c.save();
-      c.translate(g.x, GROUND - walk);
+      c.translate(g.x, GROUND - walk - g.cheerT * 30);
       c.rotate(daze);
       drawBird(c, 'buttonbeaks', { x: 0, y: 0, size: SIZE, t, squash: toss * -0.08 });
       c.restore();

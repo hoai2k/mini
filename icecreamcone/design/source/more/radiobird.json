@@ -38,5 +38,15 @@
   "used": "Tune In: the long tuning dial across the top of the screen; the game draws the red needle, the station marks and the knob on it.",
   "standin": "A cream panel with tick marks in a brass frame drawn in code.",
   "prompt": "{STYLE} A long 1960s radio tuning-dial window, seen straight on, filling the image's whole width and about 70% of its height: a narrow brass bezel around a pale cream face with a single row of evenly spaced tick marks along its bottom edge (a longer tick every fifth), and faint warm light glowing from behind. No numbers, no lettering, no needle, no knob. {ALPHA}"
+ },
+ {
+  "id": "IC-M18e",
+  "name": "The Radio Bird listening, singing and startled",
+  "key": "sprites.radiobirdPoses",
+  "file": "assets/sprites/radiobird-poses.png",
+  "size": "3072 x 1024, transparent",
+  "used": "Tune In: the Radio Bird listening while the dial turns through the static, singing while the asked-for station plays (and when the listeners cheer), and startled by a wrong station.",
+  "standin": "The portrait (or its stand-in) leaning a little to listen, swaying to sing, and jittering when startled.",
+  "prompt": "{STYLE} {VARIANT}The Radio Bird (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/radiobird.png ) in three poses in a row on one sheet, each in its own third, facing left, at the portrait's scale with its feet on the same ground line: 1) listening, its long neck bent down and round so its head is cocked close to its own speaker grille, eye narrowed, a few faint fuzzy static marks around the grille; 2) singing, head thrown back on its long neck, beak wide open, crest flared, a few small ink music notes coming from the grille and the beak; 3) startled, neck jerked back into an S, crest standing straight up, eye wide, one foot lifted. {ALPHA}"
  }
 ]

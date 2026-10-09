@@ -318,7 +318,6 @@ export function createPractice(ctx) {
     const played = (strokes, end = Infinity) => strokes.filter((st) => st.t <= Math.min(t, end)).length;
     const asPattern = (r) => ({ strokes: r.strokes, beats: r.beats, text: r.text });
     const drumming = s.phrase.length ? { entering: true } : null;
-    const beatOf = () => `beat ${Math.min(s.beats, s.partial ? s.partial.beats : 1)} of ${s.beats}`;
     if (s.phase === 'loop' && s.exchange && s.loop) {
       const L = s.loop;
       const n = s.beats;
@@ -350,7 +349,7 @@ export function createPractice(ctx) {
       return {
         top: null,
         bottom: drumming,
-        heading: drumming ? `Your call: ${beatOf()}` : `Your turn: call any ${s.beats} beats`,
+        heading: drumming ? 'Your call…' : `Your turn: call any ${s.beats} beats`,
         headingColor: drumming ? P.paper : P.bronzeLight,
       };
     }
@@ -359,7 +358,7 @@ export function createPractice(ctx) {
     return {
       top: call && s.phase !== 'wait' ? { pattern: asPattern(call), played: played(call.strokes, call.end), glow: calling, label: 'Partner' } : null,
       bottom: drumming,
-      heading: calling ? 'Listen…' : drumming ? `Your answer: ${beatOf()}` : call && s.phase !== 'wait' ? `Answer with any ${s.beats} beats` : 'Your partner is about to call…',
+      heading: calling ? 'Listen…' : drumming ? 'Your answer…' : call && s.phase !== 'wait' ? `Answer with any ${s.beats} beats` : 'Your partner is about to call…',
     };
   }
 
@@ -423,7 +422,8 @@ export function createPractice(ctx) {
         kit: practiceKit(),
         second: secondDrum(),
         entered: s.phrase.length,
-        partial: s.partial,
+        // The settled beats only (PracticeSession.shown): what is shown never regroups.
+        partial: s.shown,
         loop: s.loop,
         loopPos: lp,
         call,

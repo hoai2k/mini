@@ -28,5 +28,15 @@
     "used": "Just a Pinch: the diner at the end of the counter who tastes each plate; pleased (and bouncing) when it's right, pulling a face when it isn't.",
     "standin": "Round grey, brown and green creatures with a napkin and a fork, drawn in code.",
     "prompt": "{STYLE} {SHEET} A 4 x 2 grid of four small animal diners in Lobel's gentle manner, each seen from the front, from the waist up as if sitting behind a counter (the bottom of each figure cut straight across), about 380 px tall, with a white napkin tucked under its chin and a fork held upright: row 1, waiting happily: a velvety dark-grey mole with tiny round spectacles, a grey mouse, a green frog, a black-and-white badger; row 2, the same four in the same order pulling a face at their food: eyes screwed shut, mouth turned down, tongue out."
+  },
+  {
+    "id": "IC-M14d",
+    "name": "Saltshaker Shrike hanging upside down",
+    "key": "sprites.shrikePoses",
+    "file": "assets/sprites/shrike-poses.png",
+    "size": "4096 x 1024, transparent",
+    "used": "Just a Pinch: the Shrike hangs head down from the brass rail all game (pose 1), shakes out a pinch (pose 2), squawks pleased at a plate that's just right (pose 3) and flinches at a frown (pose 4). The game mirrors it to face the plates.",
+    "standin": "The portrait (or its stand-in) turned upside down in code; it jiggles when shaking, bounces when pleased and shivers when flinching.",
+    "prompt": "{STYLE} {VARIANT} The Saltshaker Shrike (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/saltshakershrike.png) in four poses side by side, each in its own square quarter of the sheet, all at the same scale, facing left, each hanging UPSIDE DOWN by its claws from an unseen horizontal rail at the very top of the square, like a bat: its thin legs go straight up from the body to the claws, which grip a point at the top centre of the square; the glass body hangs below them and the domed perforated silver cap (its head) points straight down, the cap's holes about 75% of the way down the square, centred, the hooked beak and black eye mask on the cap. Lit from the upper left as a real object hanging upside down would be. 1, hanging still, calm; 2, shaking: swung slightly to one side, a little puff of white salt grains spilling from the holes; 3, pleased: beak wide open in a cheerful squawk, little wings flared; 4, flinching: body pulled up tight towards the rail, wings clamped, eye squeezed half shut. No rail drawn. {ALPHA}"
   }
 ]

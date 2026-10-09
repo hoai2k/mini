@@ -20,6 +20,7 @@ Object.assign(SHEETS, {
   'sprites.milkProps': [3, 2], // bottle, spilt milk and glass, sleeping dog, barking dog, no-milk card, doormat
   'sprites.milkFloat': [1, 1], // the milk float, facing left
   'sprites.midgeThrow': [2, 1], // the Midge winding up, and flinging
+  'sprites.midgeMoods': [2, 1], // the Midge pleased (a pint on the step), and startled (a smash, a dog woken)
 });
 
 const DURATION = 45;
@@ -50,6 +51,7 @@ export default function create(env) {
     charge: 0, // 0..1, where the wind-up has got to
     dir: 1, // the wind-up going out (1) or swinging back (-1)
     fling: 0, // the throwing arm's follow-through
+    mood: null, // { kind: 'pleased' | 'startled', t } after a bottle lands
     houses: [],
     bottles: [], // in flight
     bits: [], // glass and milk
@@ -132,6 +134,7 @@ export default function create(env) {
       g.refused++;
       add(-1);
       h.back = 1; // the bottle is set back out on the pavement
+      g.mood = { kind: 'startled', t: 0.8 };
       pop('No milk today!  −1', g.sx(h.x), h.stepY - 130 * h.s, PAL.brick, 38);
       sfx('wrong');
       return;
@@ -141,6 +144,7 @@ export default function create(env) {
       g.pints++;
       add(1);
       const perfect = Math.abs(b.x - h.x) < h.half * 0.4 && Math.abs(y - h.stepY) < g.tol() * 0.45;
+      g.mood = { kind: 'pleased', t: 0.8 };
       pop(perfect ? 'Perfect!' : 'Clink!', g.sx(h.x), h.stepY - 150 * h.s, perfect ? PAL.magenta : PAL.slate, perfect ? 50 : 42);
       sfx('catch', { pitch: perfect ? 7 : 0 });
       if (perfect) sfx('ding', { pitch: 0 });
@@ -149,6 +153,7 @@ export default function create(env) {
     }
     // Missed: smash.
     g.smashes++;
+    g.mood = { kind: 'startled', t: 0.8 };
     let cost = 1;
     const sx = g.sx(b.x);
     for (let i = 0; i < 12; i++) {
@@ -237,6 +242,7 @@ export default function create(env) {
     for (const p of g.puddles) p.life -= dt;
     g.puddles = g.puddles.filter((p) => p.life > 0 && g.sx(p.x) > -100);
     g.fling = Math.max(0, g.fling - dt);
+    if (g.mood && (g.mood.t -= dt) <= 0) g.mood = null;
     for (const p of g.pops) {
       p.life -= dt;
       p.y -= 40 * dt;
@@ -504,11 +510,18 @@ export default function create(env) {
     const lean = g.holding ? -0.12 - g.charge * 0.2 : g.fling > 0 ? 0.25 * (g.fling / 0.35) : 0;
     const squash = g.holding ? g.charge * 0.08 : 0;
     const cell = g.holding ? 0 : g.fling > 0 ? 1 : -1;
+    // after a bottle lands: pleased (a little hop) or startled (a shiver)
+    const mood = cell < 0 && g.mood ? g.mood : null;
+    const hop = mood?.kind === 'pleased' ? -Math.abs(Math.sin(mood.t * 12)) * 14 : 0;
+    const shiver = mood?.kind === 'startled' && !env.reduceMotion ? Math.sin(mood.t * 60) * 0.05 : 0;
     c.save();
-    c.translate(x - 120, ROAD_Y - 118 + jolt);
-    c.rotate(lean);
-    if (cell < 0 || !drawSprite(c, 'sprites.midgeThrow', cell, 0, 0, { h: 270, flip: true })) {
-      c.scale(1 + squash * 0.5, 1 - squash);
+    c.translate(x - 120, ROAD_Y - 118 + jolt + hop);
+    c.rotate(lean + shiver);
+    const drawn = mood
+      ? drawSprite(c, 'sprites.midgeMoods', mood.kind === 'pleased' ? 0 : 1, 0, 0, { h: 270, flip: true })
+      : cell >= 0 && drawSprite(c, 'sprites.midgeThrow', cell, 0, 0, { h: 270, flip: true });
+    if (!drawn) {
+      c.scale(1 + squash * 0.5 + (mood?.kind === 'startled' ? 0.04 : 0), 1 - squash);
       drawBird(c, 'milkmidge', { x: 0, y: 0, size: 270, t, flip: true });
     }
     c.restore();

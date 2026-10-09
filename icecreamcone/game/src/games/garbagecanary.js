@@ -22,6 +22,8 @@ Object.assign(SHEETS, {
   'sprites.garbageItems': [5, 2],
   // the bin without its lid; the lid with the canary's head under it (same placement)
   'sprites.garbagecanaryLid': [2, 1],
+  // the lid piece again, the canary squawking (spitting something out); singing (a run)
+  'sprites.garbagecanaryCall': [2, 1],
 });
 
 const DURATION = 45;
@@ -159,6 +161,7 @@ export default function create(env) {
         const b = g.streak / 5;
         add(b);
         sfx('bloom');
+        g.sing = 0.8;
         pop(`${g.streak} in a row!  +${b}`, BIN_X + 60, RIM_Y - 180, PAL.magenta, 46);
       }
     } else if (open) {
@@ -208,6 +211,7 @@ export default function create(env) {
     g.open = clamp(g.open + (g.holding ? 9 : -12) * dt, 0, 1);
     g.gulp = Math.max(0, g.gulp - dt);
     g.spit = Math.max(0, g.spit - dt);
+    g.sing = Math.max(0, (g.sing || 0) - dt);
 
     g.spawnT -= dt;
     if (g.spawnT <= 0) spawn();
@@ -459,7 +463,10 @@ export default function create(env) {
       c.translate(hx, hy);
       c.rotate(-a);
       c.translate(-hx, -hy);
-      if (!drawSprite(c, lidSheet, 1, BIN_X + shake, PAVE + 0.074 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true })) {
+      const at = [BIN_X + shake, PAVE + 0.074 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true }];
+      const call = g.spit > 0 ? 0 : g.sing > 0 ? 1 : -1;
+      const drawn = (call >= 0 && drawSprite(c, 'sprites.garbagecanaryCall', call, ...at)) || drawSprite(c, lidSheet, 1, ...at);
+      if (!drawn) {
         c.beginPath();
         c.rect(BIN_X - 200, RIM_Y - 300, 400, 300);
         c.clip();

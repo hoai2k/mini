@@ -42,3 +42,6 @@ farthest step the wind-up swings back down, so holding on is no help.
 - **d: the milk float** (`sprites.milkFloat`), facing left; the game flips it.
 - **e: the Midge throwing** (`sprites.midgeThrow`, 2 x 1): winding up and
   the follow-through.
+- **f: the Midge pleased and startled** (`sprites.midgeMoods`, 2 x 1): shown
+  for a moment after a pint lands, or after a smash, a woken dog or a
+  bottle sent back.

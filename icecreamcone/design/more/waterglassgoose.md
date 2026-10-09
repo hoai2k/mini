@@ -31,3 +31,5 @@ are five of a pentatonic scale (C D E G A), so any order sounds pleasant.
   whole and cracked, with a transparent inside so the game paints the
   coloured water.
 - **c: the Goose tapping and honking** (`sprites.gooseTap`, 2 x 1).
+- **d: the Goose walking and recoiling** (`sprites.gooseMoves`, 2 x 1):
+  stepping between glasses, and jerking back from a crack.

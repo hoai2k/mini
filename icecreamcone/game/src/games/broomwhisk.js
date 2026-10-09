@@ -19,6 +19,7 @@ Object.assign(SHEETS, {
   'sprites.sweepings': [4, 2], // four leaves (olive, mustard, brick, sage), a dust ball, a feather, a golden leaf, a sweet wrapper
   'sprites.dustpan': [2, 1], // seen from the side (opening to the right), seen from the front
   'sprites.broomwhiskSweep': [2, 1], // bristles swept back, bristles flicked forward
+  'sprites.broomwhiskPoses': [3, 1], // pushing straight ahead (bristles splayed), braced against a gust, pleased
 });
 
 const DURATION = 45;
@@ -72,6 +73,7 @@ export default function create(env) {
     gustT: 13, // the first gust comes after the easy start
     leafT: 1.5,
     flickT: 0,
+    proudT: 0, // something just went in the pan
     flickCool: 0,
     swept: 0,
     golds: 0,
@@ -110,6 +112,7 @@ export default function create(env) {
     g.score += pts;
     g.swept++;
     g.inPan++;
+    g.proudT = 0.6;
     if (it.kind === 'gold') g.golds++;
     pop(it.kind === 'gold' ? 'Golden! +3' : '+' + pts, g.pan.x, g.pan.y - 90, PAL.magenta, it.kind === 'gold' ? 52 : 44);
     sfx(it.kind === 'gold' ? 'right' : 'plop');
@@ -135,6 +138,7 @@ export default function create(env) {
       return;
     }
     const b = g.broom;
+    g.proudT = Math.max(0, g.proudT - dt);
 
     // Steer the broom. It has some weight: it speeds up and slows down.
     let tvx, tvy;
@@ -457,11 +461,19 @@ export default function create(env) {
     c.ellipse(b.x, b.y + 4, R * s * 1.1, 16 * s, 0, 0, Math.PI * 2);
     c.fill();
     c.restore();
-    const frame = g.flickT > 0 ? 1 : Math.abs(b.vx) > 120 ? 0 : -1;
-    if (frame >= 0 && drawSprite(c, 'sprites.broomwhiskSweep', frame, b.x, b.y + 6, { h: SIZE * 0.95 * s, flip, rot: lean * 0.5 })) return;
+    // The painted poses: flicking, braced against a gust (facing into it),
+    // sweeping across, pushing into or out of the picture, pleased; otherwise
+    // the portrait.
+    const braced = g.gust && g.gust.warn <= 0;
+    const pose = g.flickT > 0 ? ['sprites.broomwhiskSweep', 1, flip]
+      : braced ? ['sprites.broomwhiskPoses', 1, g.gust.dir < 0]
+      : Math.abs(b.vx) > 120 ? ['sprites.broomwhiskSweep', 0, flip]
+      : Math.abs(b.vy) > 80 ? ['sprites.broomwhiskPoses', 0, flip]
+      : g.proudT > 0 ? ['sprites.broomwhiskPoses', 2, flip] : null;
+    if (pose && drawSprite(c, pose[0], pose[1], b.x, b.y + 6, { h: SIZE * 0.95 * s, flip: pose[2], rot: lean * 0.5 })) return;
     c.save();
-    c.translate(b.x, b.y + 6);
-    c.rotate(lean);
+    c.translate(b.x, b.y + 6 - g.proudT * 20 * s);
+    c.rotate(lean + (braced && !env.reduceMotion ? g.gust.dir * -0.12 + Math.sin(t * 30) * 0.02 : 0));
     drawBird(c, 'broomwhisk', { x: 0, y: 0, size: SIZE * s, t, flip });
     c.restore();
     if (g.flickT > 0) {

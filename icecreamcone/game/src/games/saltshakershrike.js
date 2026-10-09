@@ -17,6 +17,7 @@ import { clamp, lerp, approach } from './index.js';
 Object.assign(SHEETS, {
   'sprites.shrikePlates': [4, 2], // fried egg, chips, baked potato, corn cob, tomato soup, pretzel; cake slice, sundae (no salt)
   'sprites.shrikeDiners': [4, 2], // mole, mouse, frog, badger waiting; the same four pulling a face
+  'sprites.shrikePoses': [4, 1], // hanging upside down from the rail; shaking; pleased; flinching
 });
 
 const DURATION = 45;
@@ -34,6 +35,7 @@ const SALT_V = 250; // the pinch leaves the cap downward at this speed
 const SALT_G = 1800;
 const FALL_T = (-SALT_V + Math.sqrt(SALT_V * SALT_V + 2 * SALT_G * (FOOD_Y - CAP_Y))) / SALT_G;
 const COOL = 0.2; // between shakes
+const CELL = (CAP_Y - RAIL_Y) / 0.75; // a painted pose: claws at the top, cap 75% down
 const DESSERTS = [6, 7];
 
 export default function create(env) {
@@ -61,6 +63,8 @@ export default function create(env) {
     puddings: 0,
     spilt: 0,
     fallT: FALL_T,
+    mood: 0, // the Shrike's own: > 0 pleased, < 0 flinching, counting down
+    moodKind: 0,
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
@@ -114,6 +118,10 @@ export default function create(env) {
     }
     add(pts);
     g.diner = { who: p.who, mood, t: 1.1 };
+    if (mood > 0.5 || mood < 0) {
+      g.mood = 0.8;
+      g.moodKind = mood > 0.5 ? 1 : -1;
+    }
     pop(text, DINER_X + 90, COUNTER_Y - 290, mood > 0.5 ? PAL.green : mood > 0 ? PAL.ochre : PAL.brick, 36);
     if (pts) pop(pts > 0 ? `+${pts}` : `${pts}`, DINER_X + 90, COUNTER_Y - 345, pts > 0 ? PAL.magenta : PAL.brick, 42);
     sfx(mood > 0.5 ? 'right' : mood > 0 ? 'catch' : 'squawk');
@@ -189,6 +197,7 @@ export default function create(env) {
     }
 
     g.diner.t = Math.max(0, g.diner.t - dt);
+    g.mood = Math.max(0, g.mood - dt);
     for (const s of g.grains) {
       s.vy += 900 * dt;
       s.x += s.vx * dt - (s.on ? v * dt : 0);
@@ -399,12 +408,22 @@ export default function create(env) {
 
   function shrike(c, t) {
     const jig = g.shakeT > 0 ? Math.sin(g.shakeT * 70) * (env.reduceMotion ? 4 : 12) : 0;
+    const pleased = g.mood > 0 && g.moodKind > 0;
+    const flinch = g.mood > 0 && g.moodKind < 0;
+    const pose = g.shakeT > 0 ? 1 : pleased ? 2 : flinch ? 3 : 0;
+    const bounce = pleased && !env.reduceMotion ? Math.abs(Math.sin(g.mood * 18)) * 8 : 0;
+    const shiver = flinch && !env.reduceMotion ? Math.sin(g.mood * 60) * 4 : 0;
     c.save();
-    c.translate(g.x, RAIL_Y);
+    c.translate(g.x + shiver, RAIL_Y);
     c.rotate(-(g.lean || 0));
-    c.translate(0, jig);
-    c.scale(1, -1); // hanging upside down from the rail by its feet
-    drawBird(c, 'saltshakershrike', { x: 0, y: 0, size: SIZE, t, flip: true });
+    c.translate(0, jig - bounce);
+    // The painted poses already hang head down, claws on the rail at the top of
+    // the cell; the portrait (or stand-in) is turned upside down instead.
+    if (!drawSprite(c, 'sprites.shrikePoses', pose, 0, CELL / 2, { h: CELL, anchor: 'center', flip: true, whole: true })) {
+      c.scale(1, -1);
+      if (flinch) c.scale(1, 0.94);
+      drawBird(c, 'saltshakershrike', { x: 0, y: 0, size: SIZE, t, flip: true });
+    }
     c.restore();
     // where the salt will land
     c.save();

@@ -48,3 +48,11 @@ mashing 0.
 - **IC-M17d, the Saw Bird sawing** (`sprites.sawbirdSawing`): blade level,
   teeth down and legs tucked, so its teeth sit in the cut; it slides back and
   forth and tips a little as it steers.
+- **IC-M17e, snagged and proud** (`sprites.sawbirdPoses`, 2 x 1): the
+  bowed blade shown for a moment when the saw hits a knot or a cut comes out
+  crooked, and the Saw Bird standing proud beside the plank after a
+  straight or dead-straight cut, while the next plank slides in.
+
+The Saw Bird's states: sawing (IC-M17d, slid back and forth and tipped to
+steer), between planks (the sawing pose, lifted), snagged (IC-M17e, shaken),
+proud (IC-M17e, hopping). The page uses the portrait.

@@ -38,4 +38,5 @@ with the band where things blow kept plain. IC-M08b is the ten things on
 the wind, rubbish and not, which must read at a glance at about 70 px.
 IC-M08c is the Canary in two pieces, the bin without its lid and the lid
 with the canary's head, drawn in place, so the game can swing the lid up on
-its hinge.
+its hinge. IC-M08d is the lid piece again with the canary squawking (as it
+spits something out) and singing (when a run earns a bonus).

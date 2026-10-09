@@ -22,6 +22,7 @@ Object.assign(SHEETS, {
   'sprites.niffyProps': [3, 2], // feather, flower, loose thread, price tag, balloon on its string, nest of snippings
   'sprites.parkKeeper': [3, 1], // back turned, glancing over his shoulder, facing front with his whistle
   'sprites.niffyDive': [2, 1], // swooping with its blade open, and snapping it shut
+  'sprites.niffyFly': [3, 1], // hovering with wings up, wings down (a flap), and dazed, tumbling
 });
 
 const DURATION = 45;
@@ -576,8 +577,10 @@ export default function create(env) {
     c.save();
     c.translate(g.x, g.y);
     c.rotate(-rot * -f); // nose down towards the snip
-    const cell = g.state === 'down' ? 0 : g.state === 'up' ? 1 : -1;
-    if (cell < 0 || !drawSprite(c, 'sprites.niffyDive', cell, 170 * k * -f, 230 * k, { h: SIZE * 0.75, flip: f > 0 })) {
+    // swooping: the dive sheet; hovering: a two-frame flap; dazed: tumbling
+    const sheet = g.state === 'down' || g.state === 'up' ? 'sprites.niffyDive' : 'sprites.niffyFly';
+    const cell = g.state === 'down' ? 0 : g.state === 'up' ? 1 : g.state === 'dazed' ? 2 : Math.floor(t * 8) % 2;
+    if (!drawSprite(c, sheet, cell, 170 * k * -f, 230 * k, { h: SIZE * 0.75, flip: f > 0 })) {
       // the blade tip is at (x, y); the bird is drawn from its feet
       drawBird(c, 'niffy', { x: 170 * k * -f, y: 230 * k, size: SIZE, t, flip: f > 0 });
     }

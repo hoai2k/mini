@@ -16,6 +16,7 @@ import { clamp, approach } from './index.js';
 Object.assign(SHEETS, {
   'sprites.balloons': [6, 2], // round balloons in the six colours, then diamond kites in the same six
   'sprites.snippitSnip': [2, 1], // blades open, blades shut
+  'sprites.snippitPoses': [3, 1], // mid-stride, jammed, looking up after a balloon it let go
 });
 
 const DURATION = 45;
@@ -70,6 +71,8 @@ export default function create(env) {
     pendT: 0,
     jam: 0,
     snipT: 0,
+    happyT: 0, // watching a balloon it let go float off
+    moving: false,
     swapT: 6,
     right: 0,
     wrong: 0,
@@ -197,6 +200,7 @@ export default function create(env) {
     g.pendT = Math.max(g.pendT, 0.6);
     if (b === g.want) {
       g.right++;
+      g.happyT = 0.7;
       let pts = RIGHT;
       if (g.wantT < QUICK_T) {
         pts += QUICK;
@@ -228,6 +232,7 @@ export default function create(env) {
     }
     g.jam = Math.max(0, g.jam - dt);
     g.snipT = Math.max(0, g.snipT - dt);
+    g.happyT = Math.max(0, g.happyT - dt);
     g.wantT += dt;
 
     // Walk along the fence: follow the pointer, or run with the stick.
@@ -238,6 +243,7 @@ export default function create(env) {
       g.x += g.vx * dt;
     }
     g.x = clamp(g.x, 240, W - 240);
+    g.moving = Math.abs(g.x - was) > 40 * dt;
     if (Math.abs(g.x - was) > 0.5) g.face = g.x > was ? 1 : -1;
 
     if (input.actionPressed && g.jam <= 0) {
@@ -368,12 +374,17 @@ export default function create(env) {
   function drawSnippit(c, t) {
     const s = g.snipT > 0 ? g.snipT / 0.25 : 0;
     const jam = g.jam > 0 && !env.reduceMotion ? Math.sin(g.jam * 50) * 0.05 : 0;
-    const walk = Math.abs(g.vx) > 40 ? Math.sin(t * 14) * 0.04 : 0;
+    const walk = g.moving ? Math.sin(t * 14) * 0.04 : 0;
     const fx = g.x - HINGE_DX;
-    if (drawSprite(c, 'sprites.snippitSnip', s > 0.2 ? 1 : 0, fx, GROUND, { h: SIZE * 0.8, rot: jam + walk })) return;
+    // The painted poses: snipping, jammed, watching a balloon go, striding;
+    // otherwise standing with its blades open.
+    const o = { h: SIZE * 0.8, rot: jam + (g.moving ? walk * 0.5 : 0) };
+    const pose = s > 0.2 ? ['sprites.snippitSnip', 1] : g.jam > 0 ? ['sprites.snippitPoses', 1] : g.happyT > 0 ? ['sprites.snippitPoses', 2] : g.moving && Math.floor(t * 7) % 2 ? ['sprites.snippitPoses', 0] : null;
+    if (pose && drawSprite(c, pose[0], pose[1], fx, GROUND, o)) return;
+    if (drawSprite(c, 'sprites.snippitSnip', 0, fx, GROUND, o)) return;
     c.save();
     c.translate(g.x, HINGE_Y);
-    c.rotate(jam + walk - s * 0.12);
+    c.rotate(jam + walk - s * 0.12 + g.happyT * 0.12);
     c.scale(1 + s * 0.06, 1 - s * 0.08);
     c.translate(-g.x, -HINGE_Y);
     drawBird(c, 'snippit', { x: fx, y: GROUND, size: SIZE, t });

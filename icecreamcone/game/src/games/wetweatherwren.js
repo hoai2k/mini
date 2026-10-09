@@ -18,6 +18,7 @@ import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
   'sprites.wrenPoses': [3, 1], // umbrella open (floating), umbrella open and walking, snagged inside-out
+  'sprites.wrenSplash': [1, 1], // furled, standing in a puddle, drenched and dripping
   'sprites.rainStreet': [2, 2], // small puddle, long puddle, pink striped awning, green striped awning
 });
 
@@ -561,7 +562,10 @@ export default function create(env) {
     c.translate(WREN_X + shake, feetY - walk);
     c.rotate(g.tilt);
     let drawn = false;
+    const soaked = g.wet > 1.2 && g.grounded && pose < 0; // just splashed: standing in the puddle, drenched
     if (pose >= 0) drawn = drawSprite(c, 'sprites.wrenPoses', pose, 0, 0, { h: TOP_OPEN, flip: true });
+    else if (soaked) drawn = drawSprite(c, 'sprites.wrenSplash', 0, 0, 0, { h: TOP_SHUT, flip: true });
+    if (!drawn && soaked) c.scale(1.08, 0.9); // the stand-in sags
     if (!drawn) {
       if (g.open) {
         c.beginPath();

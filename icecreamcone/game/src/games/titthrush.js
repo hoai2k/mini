@@ -21,6 +21,7 @@ Object.assign(SHEETS, {
   'sprites.watchFace': [1, 1], // the big gold watch face, no hands
   'sprites.townClocks': [2, 2], // church tower clock, station clock, town hall clock, cuckoo clock: faces without hands
   'sprites.titthrushSing': [1, 1], // the Tit Trush with its beak open, singing
+  'sprites.titthrushFluster': [1, 1], // flustered: a wrong setting, or a clock gave up
 });
 
 const DURATION = 50;
@@ -103,6 +104,7 @@ export default function create(env) {
     pops: [],
     notes: [],
     nextT: 0, // the pause after a clock is set
+    fluster: 0, // seconds left looking flustered after a clock gave up
     dragged: 0, // how far the pointer has dragged the hands this press
     downT: 0,
     lastDownT: 0,
@@ -194,6 +196,7 @@ export default function create(env) {
       call();
     }
     g.jam = Math.max(0, g.jam - dt);
+    g.fluster = Math.max(0, g.fluster - dt);
     g.shake = Math.max(0, g.shake - dt);
     g.sing = Math.max(0, g.sing - dt);
     g.ring = Math.max(0, g.ring - dt * 1.5);
@@ -264,6 +267,7 @@ export default function create(env) {
       g.wait += dt;
       if (g.nextT <= 0 && g.wait > g.patience) {
         g.gaveUp++;
+        g.fluster = 1;
         sfx('wilt');
         pop('Too slow! The next clock calls', TX - 60, TY + TR + 80, PAL.brick, 34);
         g.round++;
@@ -505,7 +509,14 @@ export default function create(env) {
     c.save();
     c.translate(BIRD_X, BIRD_Y - hop);
     c.scale(1 + sq, 1 - sq);
-    if (!(g.sing > 0 && drawSprite(c, 'sprites.titthrushSing', 0, 0, 0, { h: 300, flip: true }))) drawBird(c, 'titthrush', { x: 0, y: 0, size: 340, t, flip: true });
+    const flustered = g.sing <= 0 && (g.jam > 0 || g.fluster > 0);
+    let drawn = false;
+    if (g.sing > 0) drawn = drawSprite(c, 'sprites.titthrushSing', 0, 0, 0, { h: 300, flip: true });
+    else if (flustered) drawn = drawSprite(c, 'sprites.titthrushFluster', 0, 0, 0, { h: 300, flip: true });
+    if (!drawn) {
+      if (flustered && !env.reduceMotion) c.rotate(Math.sin(t * 40) * 0.05); // the stand-in shakes
+      drawBird(c, 'titthrush', { x: 0, y: 0, size: 340, t, flip: true });
+    }
     c.restore();
     for (const n of g.notes) {
       c.save();

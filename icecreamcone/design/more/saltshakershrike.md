@@ -38,5 +38,8 @@ shaking all the way 0–9; idle 0.
 **Images.** IC-M14a is the café with its long counter top 70% down and
 the wall above kept plain for the falling salt (the game draws its own
 brass rail). IC-M14b is the eight dishes on their plates: six savoury, two
-puddings. IC-M14c is the four diners, waiting and pulling a face. The
-Shrike needs no variant: the game hangs its portrait upside down.
+puddings. IC-M14c is the four diners, waiting and pulling a face.
+IC-M14d is the Shrike painted hanging upside down by its claws (a flipped
+portrait would be lit from below): still, shaking out a pinch, squawking
+pleased at a plate that's just right, and flinching at a frown. Until it
+arrives the game turns the portrait upside down.

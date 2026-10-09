@@ -48,5 +48,15 @@
     "used": "Button Up: the Buttonbeaks carry a button between them and toss it up into a coat (the game draws the button).",
     "standin": "Their stand-in, hopping, with the button drawn above them on a loop of thread.",
     "prompt": "{STYLE} {VARIANT} The Buttonbeaks (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/buttonbeaks.png), the pair together, in two poses side by side on one sheet, each in its own half, facing left: left, standing close together with their beaks raised and touching at the tips, as if holding something small up between them; right, both springing up on their toes with their beaks flung up towards the sky, having just tossed it. Nothing held in the beaks (the game draws the button). {ALPHA}"
+  },
+  {
+    "id": "IC-M05f",
+    "name": "Buttonbeaks walking, pecking, dazed and cheering",
+    "key": "sprites.buttonbeaksPoses",
+    "file": "assets/sprites/buttonbeaks-poses.png",
+    "size": "4096 x 1024, transparent",
+    "used": "Button Up: the pair walking empty-beaked (alternating with the portrait), pecking a button out of a bowl, dizzy after a wrong button, and hopping for joy when one is sewn on.",
+    "standin": "Their stand-in, bobbing as they walk, shaking when dazed and jumping when a button is sewn on.",
+    "prompt": "{STYLE} {VARIANT} The Buttonbeaks (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/buttonbeaks.png), the pair together, in four poses in a row on one sheet, each in its own quarter, facing left, nothing in their beaks: 1, walking side by side mid-stride, each with one leg reaching forward; 2, both bending down low, beaks pointing down to peck at something on the ground in front of them; 3, dizzy, both reeling and leaning against each other, heads tilted, legs wobbly, eyes wide; 4, both hopping up off the ground together for joy, beaks open and pointing up, little tail plumes raised. The same size in each, feet at the bottom of the cell. {ALPHA}"
   }
 ]

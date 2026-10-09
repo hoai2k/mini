@@ -12,13 +12,14 @@
 // bigger and last longer as time goes on, and later two things are thirsty
 // at once. Score: drinks.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
   'sprites.drippetThings': [4, 2], // fern, cat bowl, glass, daisies: thirsty (top row), refreshed (bottom row)
   'sprites.puddles': [3, 1], // three watercolour puddle shapes, seen from above at a slant
   'sprites.drippetPoses': [2, 1], // mid-hop, skidding
+  'sprites.drippetMore': [2, 1], // running mid-stride, leaning over to pour
 });
 
 const DURATION = 45;
@@ -261,6 +262,7 @@ export default function create(env) {
     g.puddles = g.puddles.filter((p) => p.r > 4);
 
     // Filling: stand still enough over a thirsty thing.
+    g.pouring = Math.max(0, (g.pouring || 0) - dt);
     const spot = dripSpot();
     for (const t of g.things) {
       if (t.over) {
@@ -272,6 +274,7 @@ export default function create(env) {
       t.wait += dt;
       const near = Math.hypot(spot.x - t.x, (spot.y - t.y) * 1.6) < REACH || Math.hypot(g.x - t.x, (g.y - t.y) * 1.6) < REACH * 0.9;
       if (near && g.hop <= 0 && g.slip <= 0) {
+        g.pouring = 0.15;
         t.fill += dt / FILL;
         if (Math.floor(t.fill * 6) !== Math.floor((t.fill - dt / FILL) * 6)) sfx('pour');
         if (t.fill >= 1) {
@@ -549,13 +552,21 @@ export default function create(env) {
     c.restore();
     const moving = Math.hypot(g.vx, g.vy) > 60 && g.slip <= 0 && g.hop <= 0;
     const bob = moving ? Math.abs(Math.sin(g.walk * 2.2)) * 8 : 0;
-    const pose = g.slip > 0 ? 1 : g.hop > 0 ? 0 : -1;
+    // Skidding and hopping, then pouring, then a two-step run (the portrait
+    // and the mid-stride pose by turns); standing still is the portrait.
     const flip = g.face > 0;
+    let sheet = null;
+    let cell = 0;
+    if (g.slip > 0) [sheet, cell] = ['sprites.drippetPoses', 1];
+    else if (g.hop > 0) [sheet, cell] = ['sprites.drippetPoses', 0];
+    else if (g.pouring > 0) [sheet, cell] = ['sprites.drippetMore', 1];
+    else if (moving && Math.sin(g.walk * 2.2) > 0) [sheet, cell] = ['sprites.drippetMore', 0];
     c.save();
     c.translate(g.x, g.y - lift - bob);
     if (g.slip > 0 && !env.reduceMotion) c.rotate(Math.sin(g.spinA) * 0.45);
     else if (moving) c.rotate(Math.sin(g.walk * 2.2) * 0.05);
-    if (pose < 0 || !drawSprite(c, 'sprites.drippetPoses', pose, 0, 0, { h: size * 0.85, flip })) {
+    else if (g.pouring > 0 && !art(sheet)) c.rotate(g.face * 0.12);
+    if (!sheet || !drawSprite(c, sheet, cell, 0, 0, { h: size * 0.85, flip })) {
       drawBird(c, 'drippet', { x: 0, y: 0, size, t, flip });
     }
     c.restore();

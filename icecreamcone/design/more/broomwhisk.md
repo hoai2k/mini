@@ -39,3 +39,6 @@ leaf and a sweet wrapper: about one leaf in ten falls as a feather and one
 in twelve blows in as a wrapper, for variety. IC-M06c is the dustpan from the side and from the front, for the
 side walls and the back wall. IC-M06d is the Broomwhisk mid-sweep and
 flicking.
+IC-M06e is the Broomwhisk pushing into or out of the picture with its
+bristles splayed, braced against a gust (mirrored to face the wind), and
+pleased when something lands in the pan.

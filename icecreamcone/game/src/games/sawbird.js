@@ -12,13 +12,14 @@
 // straight, straight, a bit crooked or crooked. Planks get longer, the grain
 // pulls harder and knots appear as time goes on. Score: points.
 
-import { drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
   'sprites.planks': [1, 3], // three long planks seen from above at a slant: pale pine, honey oak, reddish cedar
   'sprites.sawhorse': [1, 1],
   'sprites.sawbirdSawing': [1, 1], // the Saw Bird with its blade level, teeth down, legs tucked
+  'sprites.sawbirdPoses': [2, 1], // snagged (blade bowed, same framing as sawing), standing proud
 });
 
 const DURATION = 50;
@@ -101,6 +102,8 @@ export default function create(env) {
     pop(text, (p.left + p.right) / 2, PLANK_TOP - 70, color, 54);
     pop('+' + pts, (p.left + p.right) / 2, PLANK_TOP - 130, color, 42);
     sfx(pts >= 7 ? 'right' : 'plop');
+    if (pts >= 7) g.proud = 1.1;
+    else g.snag = 0.6;
     env.vibrate?.(40);
     g.falling = [
       { plank: p, half: 'top', y: 0, vy: -40, rot: 0, vr: -0.05 },
@@ -169,6 +172,7 @@ export default function create(env) {
             k.hit = true;
             p.drift += k.push;
             pop('Knot!', k.x, PLANK_TOP - 30, PAL.brick, 34);
+            g.snag = 0.5;
             sfx('bonk');
           }
         }
@@ -185,6 +189,8 @@ export default function create(env) {
       }
     }
 
+    g.snag = Math.max(0, (g.snag || 0) - dt);
+    g.proud = Math.max(0, (g.proud || 0) - dt);
     // A new plank slides in from the right.
     if (g.plank.slide > 0) g.plank.slide = Math.max(0, g.plank.slide - dt / 0.9);
 
@@ -374,15 +380,26 @@ export default function create(env) {
 
   function drawSaw(c, t) {
     const p = g.plank;
+    if (g.proud > 0) {
+      // After a straight cut it hops down and stands proud beside the plank.
+      const hop = Math.abs(Math.sin(g.proud * 6)) * 14;
+      if (!drawSprite(c, 'sprites.sawbirdPoses', 1, 1450, 770 - hop, { h: SAW_SIZE * 0.8 })) {
+        drawBird(c, 'sawbird', { x: 1450, y: 770 - hop, size: SAW_SIZE, t });
+      }
+      return;
+    }
     const x = (p.slide > 0 ? p.right + 40 : p.cutX) - 10 + g.s * STROKE + 150 * K;
     const y = (p.slide > 0 ? p.lineY - 60 * p.slide : g.cutY()) - TEETH * K;
-    const rot = g.tilt * 0.12;
+    const shake = g.snag > 0 && !env.reduceMotion ? Math.sin(g.snag * 60) * 0.05 : 0;
+    const rot = g.tilt * 0.12 + shake;
     c.save();
     c.translate(x, y + TEETH * K);
     c.rotate(rot);
     c.translate(0, -TEETH * K);
     // The painted sawing pose: its toothed edge is the bottom of the picture.
-    if (!drawSprite(c, 'sprites.sawbirdSawing', 0, -45 * K, TEETH * K + 4, { w: 330 * K })) {
+    // Snagged on a knot (or after a crooked cut) it shows its bowed blade.
+    const [sheet, cell] = g.snag > 0 && art('sprites.sawbirdPoses') ? ['sprites.sawbirdPoses', 0] : ['sprites.sawbirdSawing', 0];
+    if (!drawSprite(c, sheet, cell, -45 * K, TEETH * K + 4, { w: 330 * K })) {
       drawBird(c, 'sawbird', { x: 0, y: 0, size: SAW_SIZE, t });
     }
     c.restore();

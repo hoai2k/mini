@@ -38,5 +38,15 @@
   "used": "Drip Drop Dash: the Drippet in the air when it hops a puddle, and skidding when it runs into one.",
   "standin": "The portrait (or its stand-in), lifted for a hop and rocked from side to side for a skid.",
   "prompt": "{STYLE} {VARIANT}The Drippet (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/drippet.png ) in two poses side by side on one sheet, each in its own half, facing left: left half, in mid-hop, legs tucked up under its body and claws curled, a few water drops flung from its spout; right half, skidding, leaning far back with both legs shot forward and splayed, its eye wide, water sloshing out of its spout. {ALPHA}"
+ },
+ {
+  "id": "IC-M16e",
+  "name": "The Drippet running and pouring",
+  "key": "sprites.drippetMore",
+  "file": "assets/sprites/drippet-more.png",
+  "size": "2048 x 1024, transparent",
+  "used": "Drip Drop Dash: the Drippet's run (this stride and the portrait by turns) and its pose while it fills a thirsty thing.",
+  "standin": "The portrait (or its stand-in) bobbing and tilting as it runs, and tipped forward while it pours.",
+  "prompt": "{STYLE} {VARIANT}The Drippet (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/drippet.png ) in two poses side by side on one sheet, each in its own half, facing left, at the portrait's scale with its feet on the same ground line: left half, running mid-stride, one long leg reaching forward and the other pushing off behind, body tipped slightly forward; right half, standing with its body tipped forward and down so its spout points at the floor just in front of its feet, a thin steady stream of water running from the spout, its eye looking down. {ALPHA}"
  }
 ]

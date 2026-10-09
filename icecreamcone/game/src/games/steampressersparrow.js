@@ -21,6 +21,8 @@ Object.assign(SHEETS, {
   'sprites.pressGarments': [3, 2],
   // the Sparrow pressing, legs tucked under; the same with steam billowing from its sole
   'sprites.sparrowPress': [2, 1],
+  // scorched: jerked up off the cloth in alarm, beak open, a wisp of smoke
+  'sprites.sparrowScorch': [1, 1],
 });
 
 const DURATION = 45;
@@ -213,6 +215,7 @@ export default function create(env) {
       } else sfx('tick');
     }
     g.steam = Math.max(0, g.steam - dt);
+    g.scorchT = Math.max(0, (g.scorchT || 0) - dt);
     g.tank = Math.min(TANK, g.tank + dt / REFILL);
     const steaming = g.steam > 0;
     if (steaming && Math.random() < 0.6) g.puffs.push({ x: g.x + (Math.random() - 0.5) * 120, y: g.y + 10, vx: (Math.random() - 0.5) * 60, vy: -80 - Math.random() * 80, life: 0.9, r: 12 + Math.random() * 10 });
@@ -271,6 +274,7 @@ export default function create(env) {
         add(-2);
         G.marks.push({ x: g.x, y: g.y, rot: (rng() - 0.5) * 0.2 });
         g.scorchCool = 1;
+        g.scorchT = 0.7;
         for (let k = 0; k < g.heat.length; k++) g.heat[k] = Math.min(g.heat[k], 0.3);
         pop('Scorched!  −2', g.x, g.y - 120, PAL.brick, 46);
         sfx('wrong');
@@ -445,7 +449,10 @@ export default function create(env) {
     c.save();
     c.translate(g.x + shake, g.y + 6);
     c.rotate(lean);
-    if (!drawSprite(c, 'sprites.sparrowPress', frame, 0, 0, { h: SIZE * 0.62 })) {
+    const yelp = g.scorchT > 0 && drawSprite(c, 'sprites.sparrowScorch', 0, 0, 0, { h: SIZE * 0.7 });
+    if (!yelp && !drawSprite(c, 'sprites.sparrowPress', frame, 0, 0, { h: SIZE * 0.62 })) {
+      // the stand-in jumps off the cloth when it scorches
+      if (g.scorchT > 0) c.translate(0, -30 * Math.sin((g.scorchT / 0.7) * Math.PI));
       c.beginPath();
       c.rect(-SIZE, -SIZE * 1.2, SIZE * 2, SIZE * 1.2);
       c.clip();

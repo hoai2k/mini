@@ -28,5 +28,15 @@
     "used": "Snip the String: the Snippit walks along the fence with its blades open and shuts them on the string it snips.",
     "standin": "The Snippit's stand-in, tipping as it snips, with ink strokes for the closing blades.",
     "prompt": "{STYLE} {VARIANT} The Cutitup Snippit (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/snippit.png) in two poses side by side on one sheet, each in its own half, standing on its legs and facing left: left, the scissor blades (its beak) held wide open, ready to cut; right, the blades snapped shut, with the bird leaning a little forward as it snips. The hinge, its eye, at the same height in both. {ALPHA}"
+  },
+  {
+    "id": "IC-M04d",
+    "name": "Cutitup Snippit walking, jammed and watching",
+    "key": "sprites.snippitPoses",
+    "file": "assets/sprites/snippit-poses.png",
+    "size": "3072 x 1024, transparent",
+    "used": "Snip the String: the Snippit striding along the fence (alternating with its open-bladed stand from IC-M04c), stuck after a wrong snip, and watching the right balloon float away.",
+    "standin": "Its stand-in, rocking as it walks, shaking when jammed and tipping back when a balloon goes.",
+    "prompt": "{STYLE} {VARIANT} The Cutitup Snippit (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/snippit.png) in three poses in a row on one sheet, each in its own third, facing left, blades open in all three: left, mid-stride, one long leg reaching forward and the other pushing off behind; middle, jammed, the blades stuck half open and twisted askew, its eye wide, legs braced apart; right, standing tall with its head and open blades tipped back to look straight up at the sky, watching something float away. The hinge, its eye, at about the same height in all three. {ALPHA}"
   }
 ]

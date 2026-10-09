@@ -44,3 +44,8 @@ sweeping end to end, creeping slowly along, idling and random mashing all 0.
   waiting, and delighted while their song plays.
 - **IC-M18d, the tuning dial** (`sprites.dialPanel`): the dial window; the
   needle, marks and knob are drawn on it.
+- **IC-M18e, listening, singing and startled** (`sprites.radiobirdPoses`,
+  3 x 1): the Radio Bird cocks its head to its own speaker while the dial
+  turns through static, sings (swaying) while the asked-for station plays
+  and while the listeners cheer, and starts back at a wrong station; at
+  rest it is its portrait.

@@ -19,6 +19,7 @@ Object.assign(SHEETS, {
   'sprites.dishes': [3, 2], // dinner plate, soup bowl, mug, saucepan, frying pan, pie dish: clean, seen from above
   'sprites.grime': [3, 2], // jam, fried egg, gravy, spaghetti, burnt-on crust, coffee ring
   'sprites.glovedoveScrub': [2, 1], // the Glove Dove on its sponge, scrubbing: two frames
+  'sprites.glovedovePoses': [2, 1], // cheering over a clean dish, swamped in foam
 });
 
 const DURATION = 45;
@@ -516,7 +517,15 @@ export default function create(env) {
     c.translate(x, y - 10);
     c.rotate(jig + clamp(g.vx / 6000, -0.15, 0.15));
     const flip = g.vx > 50;
-    if (!(g.rubbing > 0.3 && drawSprite(c, 'sprites.glovedoveScrub', frame, 0, 0, { h: SIZE * 0.85, flip }))) {
+    // cheering while the clean dish goes up on the rack; swamped while mopping
+    const pose = g.mop > 0 ? 1 : g.phase === 'rack' ? 0 : -1;
+    let drawn = false;
+    if (pose >= 0) drawn = drawSprite(c, 'sprites.glovedovePoses', pose, 0, 0, { h: SIZE * 0.85, flip });
+    else if (g.rubbing > 0.3) drawn = drawSprite(c, 'sprites.glovedoveScrub', frame, 0, 0, { h: SIZE * 0.85, flip });
+    if (!drawn) {
+      // the stand-in hops for joy, or sinks into the foam
+      if (pose === 0 && !env.reduceMotion) c.translate(0, -Math.abs(Math.sin(t * 14)) * 24);
+      if (pose === 1) c.scale(1.1, 0.82);
       drawBird(c, 'glovedove', { x: 0, y: 0, size: SIZE, t, flip });
     }
     c.restore();

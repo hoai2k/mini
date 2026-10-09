@@ -44,4 +44,7 @@ pot and the counter on the right clear for the queue. IC-M15b is the pot,
 its broth oval as wide as the pot and three-eighths as tall so the game can
 fit the swirl to it, and the serving bowl. IC-M15c is the carrot, pea,
 dumpling, mushroom and boot. IC-M15d is the four creatures in the queue,
-waiting and pulling a face.
+waiting and pulling a face. IC-M15e is the Lark in the air over the pot:
+hovering with its wings beating, dipping bowl first, and rising with a
+brimming bowl, its bowl at the centre of each picture so it sits over the
+ring.

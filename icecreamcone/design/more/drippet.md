@@ -43,3 +43,10 @@ idling 0; random mashing 0.
   scaled to each puddle as it spreads and dries.
 - **IC-M16d, hopping and skidding** (`sprites.drippetPoses`, 2 x 1): the
   Drippet's two moving poses; standing and running use its portrait.
+- **IC-M16e, running and pouring** (`sprites.drippetMore`, 2 x 1): a
+  mid-stride pose, shown by turns with the portrait as it runs, and the
+  Drippet tipped forward pouring while it fills a thirsty thing.
+
+The Drippet's states: standing (portrait), running (portrait and stride by
+turns, bobbing), hopping (IC-M16d), skidding (IC-M16d, spun), pouring
+(IC-M16e). Facing right is the same pictures flipped.
