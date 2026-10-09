@@ -97,7 +97,7 @@ test('every listed effect and game has a file', () => {
   for (const id of GAME_IDS) assert.ok(games.includes(`${id}.js`), `games/${id}.js`);
   assert.equal(EFFECT_IDS.length, 75);
   assert.equal(new Set(EFFECT_IDS).size, 75);
-  assert.equal(GAME_IDS.length, 20);
+  assert.equal(GAME_IDS.length, 21);
 });
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -142,4 +142,18 @@ test('each theme has its own shade of every colour name', async () => {
   assert.equal(colorName('#4DABF7'), 'blue');
   assert.equal(themedColor('#4dabf7', 'art'), PALETTES.art[5]);
   assert.equal(themedColor('#123456', 'art'), '#123456');
+});
+
+test('Go Fish deals thirteen creatures, four of each, and books sets of four', async () => {
+  const { newDeck, takeBooks, dealSize } = await import('../games/gofish.js');
+  const deck = newDeck();
+  assert.equal(deck.length, 52);
+  for (let r = 0; r < 13; r++) assert.equal(deck.filter(c => c === r).length, 4);
+  assert.equal(dealSize(2), 7);
+  assert.equal(dealSize(3), 7);
+  assert.equal(dealSize(4), 5);
+  const t = takeBooks([3, 1, 3, 3, 5, 3, 1]);
+  assert.deepEqual(t.books, [3]);
+  assert.deepEqual(t.hand, [1, 5, 1]);
+  assert.deepEqual(takeBooks([2, 2, 2]).books, []);
 });

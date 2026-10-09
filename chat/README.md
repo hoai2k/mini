@@ -161,7 +161,13 @@ arrow sits behind the ball, following your finger, pointing the way it will go),
 a ball between faces by nodding), Burger Stack (catch ingredients by moving
 your head), Asteroid Dodge (steer with your head or by tilting the phone),
 Don't Smile, Snake, Battleship, Trivia (384 questions in 12 categories, pitched for 12-year-olds and up; a question closes as soon as everyone has answered) and
-Word Blitz (a Boggle-style word race on a 20,000-word dictionary). Starting
+Word Blitz (a Boggle-style word race on a 20,000-word dictionary) and Go Fish
+(thirteen creatures from the ancient oceans, from Anomalocaris and Opabinia to
+Dunkleosteus and the Mosasaur, four cards each. Ask someone for a creature you
+hold; if they say Go Fish, press Go Fish and your angler, with your face, casts
+into the pond and reels up a card. Fish shadows swim there, one per card left
+once fewer than four remain. Two to five players gather in a lobby and anyone
+deals; alone you play Robo-Fisher). Starting
 one shows friends an invite with a Join button. Records are kept per device.
 
 ## Thumbs up and down
@@ -199,6 +205,10 @@ itself to HTTPS.
   players side by side (`test/game.html`)
 - `node chat/test/trivia-check.mjs`: two players answer and the question
   closes straight away rather than waiting out its clock
+- `node chat/test/gofish-play.mjs [--n=2]`: plays whole games of Go Fish for
+  every seat (`--n=1` against Robo-Fisher), checking all 52 cards stay
+  accounted for and every book gets made; screenshots of a cast, a low pond,
+  the Go Fish bubbles and the end in `local/chat-shots/`
 - `node chat/test/hoops-play.mjs`: on a phone-sized Hoops: the ball follows
   the pointer, letting go without a flick puts it down, flicks aimed beside
   the hoop arrive exactly where aimed, soft and hard flicks miss, and a
@@ -314,12 +324,14 @@ with its state (see `js/gamehost.js`).
   in `js/assets.js`. The first set remains available. The 255 original requests are delivered, including both Baby icons and
   the revised Blur icon with a sharp person against a heavy bokeh blur.
   Additional theme artwork is tracked in `design/image-requests.md`.
-- Artwork (themes): all six title assets, all 95 Classical icons
-  (CH-R01–CH-R95) and 94 of the 95 Art icons are delivered and checked in
-  the effects strip, grid and games sheet (`theme-shots.mjs`). Art's Tiny
-  Face (CH-N56) is re-requested: at icon size its tiny features vanished
-  and the face read as blank. Until it arrives, Art shows the Teen icon
-  there.
+- Artwork (themes): all six title assets and all 95 Art and 95 Classical
+  icons are delivered and checked in the effects strip, grid and games sheet
+  (`theme-shots.mjs`); Art's Tiny Face was redone once (CH-N56) because its
+  first features vanished at icon size.
+- Artwork (Go Fish): the thirteen creature cards (CH-G25 to CH-G37), the card
+  back (CH-G38), the pond (CH-G39) and the Go Fish icon in each set (CH-I97,
+  CH-K97, CH-N96, CH-R96) are requested. Until they arrive the game draws
+  each creature itself, a wave-pattern back and a painted pond.
 - Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`
