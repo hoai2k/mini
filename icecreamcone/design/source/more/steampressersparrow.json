@@ -1,0 +1,32 @@
+[
+  {
+    "id": "IC-M09a",
+    "name": "Pressing Business: the laundry",
+    "key": "scene.steampressersparrow",
+    "file": "assets/scenes/steampressersparrow.webp",
+    "size": "1920 x 1080, opaque",
+    "used": "Pressing Business (the Steampresser Sparrow): the whole background, with the ironing board. The garments, their creases, the steam and the Sparrow are drawn on top.",
+    "standin": "A tiled wall, a wooden floor, a folded pile, a washing basket and a long padded ironing board painted in code.",
+    "prompt": "{STYLE} {SCENE}An old-fashioned laundry room seen from above at a steep angle, as if standing over the ironing board. The top 38% is a wall of pale sage-green square tiles. Below it, a warm wooden floor. Across the middle and lower part lies a long padded ironing board seen from above: a plain cream cover with a faint pattern of tiny slate-blue dots, pointed and rounded at its left end, square at its right end, stretching from about 7% to 92% across and from about 42% to 88% down. At the top left, against the wall, a neat stack of four folded garments; at the top right, a round wicker basket heaped with crumpled washing in pale blue, pink, cream and grey. Keep the whole top of the ironing board plain, empty and evenly lit, with nothing lying on it, because the game slides the garments onto it and irons them there."
+  },
+  {
+    "id": "IC-M09b",
+    "name": "Pressing Business garments",
+    "key": "sprites.pressGarments",
+    "file": "assets/sprites/press-garments.png",
+    "size": "3072 x 1024, transparent",
+    "used": "Pressing Business: the garments that slide onto the ironing board, one at a time. The game draws the creases and scorch marks on them.",
+    "standin": "A shirt, a handkerchief, trousers, a silk scarf, a pillowcase and a checked tablecloth drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 3 x 2 grid of six pieces of washing, each laid out perfectly flat and smooth (no creases at all) and seen from directly above, each filling most of its cell's width, with these width-to-height shapes. Top row, left to right: a pale-blue man's shirt laid face down with its sleeves spread out to the sides, its collar at the top (about 2.5 : 1); a white cotton handkerchief with a slate-blue border (about 1.7 : 1); a pair of grey flannel trousers laid sideways with the legs pointing right (about 3 : 1). Bottom row: a long pink silk scarf with a scattered magenta flower print, very fine and shiny (about 5 : 1); a cream pillowcase with a mauve hem stripe at its right end (about 2.5 : 1); a red-and-white gingham checked tablecloth (about 3 : 1)."
+  },
+  {
+    "id": "IC-M09c",
+    "name": "Steampresser Sparrow pressing",
+    "key": "sprites.sparrowPress",
+    "file": "assets/sprites/sparrow-press.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Pressing Business: the Sparrow gliding over the cloth with its sole flat on it, dry and with a puff of steam. It replaces the portrait during the game, whose legs would stand it off the board.",
+    "standin": "The Sparrow's stand-in with its legs hidden below the sole line, and code-drawn steam puffs.",
+    "prompt": "{STYLE} {VARIANT} The Steampresser Sparrow (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/steampressersparrow.png) in two poses side by side on one sheet, each in its own half, facing left, in side view: its legs folded away out of sight underneath, so the cast-iron body sits with its flat sole level and resting on the bottom of the picture, as an iron does on cloth; head forward at the pointed toe. Left: dry, calm. Right: the same, with soft white steam billowing up around its sides and back from the holes in its sole, and the sparrow's beak a little open; no steam below the sole line. The sole at exactly the same height in both halves. {ALPHA}"
+  }
+]

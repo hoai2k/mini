@@ -266,6 +266,42 @@ export const ASSETS = {
     "file": "assets/sprites/broomwhisk-sweep.png",
     "delivered": false
   },
+  "scene.keycrane": {
+    "file": "assets/scenes/keycrane.webp",
+    "delivered": false
+  },
+  "sprites.keycranePrizes": {
+    "file": "assets/sprites/keycrane-prizes.png",
+    "delivered": false
+  },
+  "sprites.keycraneHang": {
+    "file": "assets/sprites/keycrane-hang.png",
+    "delivered": false
+  },
+  "scene.garbagecanary": {
+    "file": "assets/scenes/garbagecanary.webp",
+    "delivered": false
+  },
+  "sprites.garbageItems": {
+    "file": "assets/sprites/garbage-items.png",
+    "delivered": false
+  },
+  "sprites.garbagecanaryLid": {
+    "file": "assets/sprites/garbagecanary-lid.png",
+    "delivered": false
+  },
+  "scene.steampressersparrow": {
+    "file": "assets/scenes/steampressersparrow.webp",
+    "delivered": false
+  },
+  "sprites.pressGarments": {
+    "file": "assets/sprites/press-garments.png",
+    "delivered": false
+  },
+  "sprites.sparrowPress": {
+    "file": "assets/sprites/sparrow-press.png",
+    "delivered": false
+  },
   "scene.wetweatherwren": {
     "file": "assets/scenes/wetweatherwren.webp",
     "delivered": false

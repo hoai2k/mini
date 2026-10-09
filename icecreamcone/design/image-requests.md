@@ -14,7 +14,7 @@ Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from `sou
 
 ## Status
 
-63 requested, 39 delivered, 1 retired, 103 in total.
+72 requested, 39 delivered, 1 retired, 112 in total.
 
 ## Brand
 
@@ -885,6 +885,114 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 ```text
 Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Broomwhisk (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/broomwhisk.png) in two poses side by side on one sheet, each in its own half, facing left: left, mid-sweep, the handle leaning back and the straw bristles bent and dragged back to the right along the floor; right, flicking, the bristles fanned out and swept hard forward to the left with a few bits of straw flying. The bristles touch the bottom of each cell. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M07a · Lucky Dip: inside the crane cabinet
+
+- **File:** `icecreamcone/game/assets/scenes/keycrane.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Lucky Dip (the Key Crane): the whole background. The trolley, the string, the Key Crane and every prize are drawn on top.
+- **Stand-in until delivered:** A wooden cabinet frame, faded wallpaper behind glass, a brass rail, a velvet floor and a wooden chute painted in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). Looking straight into an old wooden penny-arcade prize-crane cabinet, as if through its glass front, filling the whole picture. A dark carved wooden frame about 3% thick runs round all four edges. Across the top, about 9% of the way down, a single plain level brass rail runs from the left side of the cabinet to the right, polished and slightly worn. The back wall behind the glass is faded cream wallpaper with a sparse pattern of small mauve sprigs. The floor is worn dusty-rose velvet, a level strip from about 90% of the way down to the bottom frame. At the bottom left, a square-ish wooden prize chute rises from the floor: a box with a dark round hole in its top, its left edge against the frame, about 18% of the picture wide, its top at about 58% of the way down, with a small faded yellow painted arrow pointing down at the hole on the wall above it. Everything else is empty: keep the whole space between the rail and the floor, from 15% to 88% down and from the chute to the right edge, plain and quiet (just the wallpaper), because the game hangs the crane from the rail there and piles the prizes on the velvet floor.
+```
+
+### IC-M07b · Lucky Dip prizes
+
+- **File:** `icecreamcone/game/assets/sprites/keycrane-prizes.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Lucky Dip: the lost-property trinkets in the jumble that the Key Crane hooks and carries to the chute. The game draws a wire ring on top of each, at its own size (the rings shrink as the game goes on).
+- **Stand-in until delivered:** A lantern, a birdcage, a pocket watch, a handbag, a basket, a bell, a kettle and an alarm clock drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 4 x 2 grid of eight old-fashioned lost-property trinkets, each standing upright on its base in side view, each about 280 px tall, all to the same scale. Top row, left to right: a small brass carriage lantern with a lit candle inside; a domed wire birdcage with a wooden base, empty; a shining golden pocket watch with a white face standing on its edge, clearly the most precious thing on the sheet; a mauve lady's handbag with a gold clasp. Bottom row: a woven wicker shopping basket; a brass hand bell; a slate-blue enamel kettle with a spout to the left; a strawberry-pink twin-bell alarm clock. Each has a plain flat top centre with NO handle, loop, ring or chain on top (the game adds a ring there).
+```
+
+### IC-M07c · Key Crane hanging on its string
+
+- **File:** `icecreamcone/game/assets/sprites/keycrane-hang.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Lucky Dip: the Key Crane as it hangs from the trolley on its string and swings, its claws open while it is lowered and closed once it has hooked a ring. The game draws the string down to the middle of its shaft and rotates the whole figure as it swings.
+- **Stand-in until delivered:** The Key Crane's stand-in hanging from its shaft, with two ink claws that open and close.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Key Crane (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/keycrane.png) in two poses side by side on one sheet, each in its own half, hanging in the air as if from a string tied round the middle of its key shaft (do not draw the string): the key's shaft level and horizontal, its ring head on the left with the eye looking down, its long thin legs hanging straight down below it. The middle of the shaft is exactly above the feet and about a third of the way down from the top of the figure. Left: its spiky claws spread wide open, reaching. Right: its claws curled tightly shut, as if gripping a ring. Same height and position in both halves. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M08a · Bin Day: the windy street
+
+- **File:** `icecreamcone/game/assets/scenes/garbagecanary.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Bin Day (the Garbage Canary): the whole background. The Canary, everything blowing down the street and the litter are drawn on top.
+- **Stand-in until delivered:** A row of tall houses, a pavement, a kerb, the road and a lamp-post painted in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). A quiet little town street on a blustery grey-blue morning, seen straight on from across the road. A row of narrow old terraced houses in faded pink, sage, cream and mauve stands along the back, their doors and windows plain, their roofs reaching about 10% to 20% of the way down. In front of them runs a wide pale paving-stone pavement, its back edge about 69% of the way down and its front edge, a long grey kerb, about 90% down; below the kerb a strip of grey cobbled road fills the bottom. One thin dark-green iron lamp-post stands on the pavement at about 77% across. A few wind-tossed leaves at the very top corners only. Keep the pavement clear from 20% to 75% across, and keep the band from 45% to 75% down across the whole width plain and uncluttered (no shop signs, no washing lines, no trees in front), because the game stands the dustbin bird at the left of the pavement and blows things down the street through that band from right to left.
+```
+
+### IC-M08b · Bin Day things on the wind
+
+- **File:** `icecreamcone/game/assets/sprites/garbage-items.png`
+- **Size:** 2560 x 1024, transparent
+- **Used for:** Bin Day: everything the wind blows towards the bin. The top row is rubbish to let in; the bottom row (hat, letter, cat, sparrow) must be kept out, and the old boot is rubbish again. They must read at a glance at about 70 px.
+- **Stand-in until delivered:** A paper ball, a banana peel, a tin, an apple core, fish bones, a bowler hat, a letter, a ginger cat, a sparrow and a boot drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 5 x 2 grid of ten things, each about 300 px across, all moving to the left. Top row, rubbish, left to right: a crumpled ball of old newspaper; a brown-spotted empty banana peel; a dented empty tin can with a torn red label; a nibbled apple core; the bones of a fish with its head and tail. Bottom row, left to right: a gentleman's black bowler hat with a mauve band, tumbling; a sealed cream envelope with a pink stamp and a red wax seal, clearly a letter someone wants; a ginger tabby cat in mid-leap facing left, front paws reaching; a small brown sparrow flying to the left, wings up; and, last, a battered old brown boot with a hole in the toe and its laces trailing (rubbish).
+```
+
+### IC-M08c · Garbage Canary: bin and lid apart
+
+- **File:** `icecreamcone/game/assets/sprites/garbagecanary-lid.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Bin Day: the Canary lifts its lid to swallow rubbish. The game draws the two pieces one over the other and swings the lid up on its hinge at the back rim, so the canary's head rises with it.
+- **Stand-in until delivered:** The Canary's stand-in cut at the rim, the top half (lid and head) swung up.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Garbage Canary (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/garbagecanary.png), facing left, cut into two pieces shown side by side on one sheet, each half framed exactly like the portrait (the bird filling about 80% of the height, feet near the bottom), each piece drawn exactly where it sits on the whole bird so that laying the two halves over each other rebuilds the portrait. Left half: the dustbin body with its legs, WITHOUT its lid, its round open top showing a dark inside. Right half: ONLY the lid, closed and level, with the yellow canary's head peering out from under its front edge, nothing else. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M09a · Pressing Business: the laundry
+
+- **File:** `icecreamcone/game/assets/scenes/steampressersparrow.webp`
+- **Size:** 1920 x 1080, opaque
+- **Used for:** Pressing Business (the Steampresser Sparrow): the whole background, with the ironing board. The garments, their creases, the steam and the Sparrow are drawn on top.
+- **Stand-in until delivered:** A tiled wall, a wooden floor, a folded pile, a washing basket and a long padded ironing board painted in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). An old-fashioned laundry room seen from above at a steep angle, as if standing over the ironing board. The top 38% is a wall of pale sage-green square tiles. Below it, a warm wooden floor. Across the middle and lower part lies a long padded ironing board seen from above: a plain cream cover with a faint pattern of tiny slate-blue dots, pointed and rounded at its left end, square at its right end, stretching from about 7% to 92% across and from about 42% to 88% down. At the top left, against the wall, a neat stack of four folded garments; at the top right, a round wicker basket heaped with crumpled washing in pale blue, pink, cream and grey. Keep the whole top of the ironing board plain, empty and evenly lit, with nothing lying on it, because the game slides the garments onto it and irons them there.
+```
+
+### IC-M09b · Pressing Business garments
+
+- **File:** `icecreamcone/game/assets/sprites/press-garments.png`
+- **Size:** 3072 x 1024, transparent
+- **Used for:** Pressing Business: the garments that slide onto the ironing board, one at a time. The game draws the creases and scorch marks on them.
+- **Stand-in until delivered:** A shirt, a handkerchief, trousers, a silk scarf, a pillowcase and a checked tablecloth drawn in code.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six pieces of washing, each laid out perfectly flat and smooth (no creases at all) and seen from directly above, each filling most of its cell's width, with these width-to-height shapes. Top row, left to right: a pale-blue man's shirt laid face down with its sleeves spread out to the sides, its collar at the top (about 2.5 : 1); a white cotton handkerchief with a slate-blue border (about 1.7 : 1); a pair of grey flannel trousers laid sideways with the legs pointing right (about 3 : 1). Bottom row: a long pink silk scarf with a scattered magenta flower print, very fine and shiny (about 5 : 1); a cream pillowcase with a mauve hem stripe at its right end (about 2.5 : 1); a red-and-white gingham checked tablecloth (about 3 : 1).
+```
+
+### IC-M09c · Steampresser Sparrow pressing
+
+- **File:** `icecreamcone/game/assets/sprites/sparrow-press.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Pressing Business: the Sparrow gliding over the cloth with its sole flat on it, dry and with a puff of steam. It replaces the portrait during the game, whose legs would stand it off the board.
+- **Stand-in until delivered:** The Sparrow's stand-in with its legs hidden below the sole line, and code-drawn steam puffs.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Steampresser Sparrow (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/steampressersparrow.png) in two poses side by side on one sheet, each in its own half, facing left, in side view: its legs folded away out of sight underneath, so the cast-iron body sits with its flat sole level and resting on the bottom of the picture, as an iron does on cloth; head forward at the pointed toe. Left: dry, calm. Right: the same, with soft white steam billowing up around its sides and back from the holes in its sole, and the sparrow's beak a little open; no steam below the sole line. The sole at exactly the same height in both halves. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### IC-M10a · Wetweather Wren scene

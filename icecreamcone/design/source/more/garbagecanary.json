@@ -1,0 +1,32 @@
+[
+  {
+    "id": "IC-M08a",
+    "name": "Bin Day: the windy street",
+    "key": "scene.garbagecanary",
+    "file": "assets/scenes/garbagecanary.webp",
+    "size": "1920 x 1080, opaque",
+    "used": "Bin Day (the Garbage Canary): the whole background. The Canary, everything blowing down the street and the litter are drawn on top.",
+    "standin": "A row of tall houses, a pavement, a kerb, the road and a lamp-post painted in code.",
+    "prompt": "{STYLE} {SCENE}A quiet little town street on a blustery grey-blue morning, seen straight on from across the road. A row of narrow old terraced houses in faded pink, sage, cream and mauve stands along the back, their doors and windows plain, their roofs reaching about 10% to 20% of the way down. In front of them runs a wide pale paving-stone pavement, its back edge about 69% of the way down and its front edge, a long grey kerb, about 90% down; below the kerb a strip of grey cobbled road fills the bottom. One thin dark-green iron lamp-post stands on the pavement at about 77% across. A few wind-tossed leaves at the very top corners only. Keep the pavement clear from 20% to 75% across, and keep the band from 45% to 75% down across the whole width plain and uncluttered (no shop signs, no washing lines, no trees in front), because the game stands the dustbin bird at the left of the pavement and blows things down the street through that band from right to left."
+  },
+  {
+    "id": "IC-M08b",
+    "name": "Bin Day things on the wind",
+    "key": "sprites.garbageItems",
+    "file": "assets/sprites/garbage-items.png",
+    "size": "2560 x 1024, transparent",
+    "used": "Bin Day: everything the wind blows towards the bin. The top row is rubbish to let in; the bottom row (hat, letter, cat, sparrow) must be kept out, and the old boot is rubbish again. They must read at a glance at about 70 px.",
+    "standin": "A paper ball, a banana peel, a tin, an apple core, fish bones, a bowler hat, a letter, a ginger cat, a sparrow and a boot drawn in code.",
+    "prompt": "{STYLE} {SHEET} A 5 x 2 grid of ten things, each about 300 px across, all moving to the left. Top row, rubbish, left to right: a crumpled ball of old newspaper; a brown-spotted empty banana peel; a dented empty tin can with a torn red label; a nibbled apple core; the bones of a fish with its head and tail. Bottom row, left to right: a gentleman's black bowler hat with a mauve band, tumbling; a sealed cream envelope with a pink stamp and a red wax seal, clearly a letter someone wants; a ginger tabby cat in mid-leap facing left, front paws reaching; a small brown sparrow flying to the left, wings up; and, last, a battered old brown boot with a hole in the toe and its laces trailing (rubbish)."
+  },
+  {
+    "id": "IC-M08c",
+    "name": "Garbage Canary: bin and lid apart",
+    "key": "sprites.garbagecanaryLid",
+    "file": "assets/sprites/garbagecanary-lid.png",
+    "size": "2048 x 1024, transparent",
+    "used": "Bin Day: the Canary lifts its lid to swallow rubbish. The game draws the two pieces one over the other and swings the lid up on its hinge at the back rim, so the canary's head rises with it.",
+    "standin": "The Canary's stand-in cut at the rim, the top half (lid and head) swung up.",
+    "prompt": "{STYLE} {VARIANT} The Garbage Canary (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/garbagecanary.png), facing left, cut into two pieces shown side by side on one sheet, each half framed exactly like the portrait (the bird filling about 80% of the height, feet near the bottom), each piece drawn exactly where it sits on the whole bird so that laying the two halves over each other rebuilds the portrait. Left half: the dustbin body with its legs, WITHOUT its lid, its round open top showing a dark inside. Right half: ONLY the lid, closed and level, with the yellow canary's head peering out from under its front edge, nothing else. {ALPHA}"
+  }
+]

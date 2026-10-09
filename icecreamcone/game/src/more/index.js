@@ -27,6 +27,9 @@ const BUILT = [
   'drippet',
   'sawbird',
   'radiobird',
+  'keycrane',
+  'garbagecanary',
+  'steampressersparrow',
 ];
 
 // Their field-guide entries, in MORE_IDS order; `also` adds birds being
