@@ -7,13 +7,14 @@
 // each crease pressed out scores one. Press the action for a puff of steam,
 // which presses much faster for a moment (three puffs in the tank, refilling
 // as you go). But an iron left lingering heats the cloth, and steam heats
-// it faster: let it get too hot and it scorches (−2). Keep it moving. Press
+// it faster: let it get too hot and it scorches (−1, and the garment's
+// bonus is lost). Keep it moving. Press
 // out every crease of a garment without a scorch for a bonus of two. The
 // next garment comes when this one is done or its time runs out; later ones
 // have more creases, less time, and some are delicate silk that scorches
 // sooner. Score: points.
 
-import { drawBird, drawSprite, scene, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, scene, art, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -55,6 +56,11 @@ const STILL = 400; // at or above this speed, the cloth doesn't heat
 const SPEED = 640;
 const SIZE = 290;
 const K = SIZE / 400;
+// The painting, measured on its 1024 px square: the sole runs from the toe
+// (240, 566) px down to the heel (895, 694) px, tipped 0.19 rad, its middle
+// 23 units right of centre and 140 units above the feet; drawn at this size
+// its sole is as long as the footprint the game presses with.
+const PAINTED = { size: 250, sole: [23, -140], tilt: 0.19 };
 
 const GARMENTS = [
   { kind: 'hanky', w: 520, h: 300, col: '#f4f0e4', i: 1 },
@@ -196,8 +202,10 @@ export default function create(env) {
       g.x = approach(g.x, input.pointer.x, 10, dt);
       g.y = approach(g.y, input.pointer.y, 10, dt);
     } else {
-      g.vx = approach(g.vx, clamp(input.x, -1, 1) * SPEED, 12, dt);
-      g.vy = approach(g.vy, clamp(input.y, -1, 1) * SPEED, 12, dt);
+      // keys ease the iron in, so a short tap nudges it; a stick is direct
+      const rate = input.kind === 'keyboard' ? 4 : 12;
+      g.vx = approach(g.vx, clamp(input.x, -1, 1) * SPEED, rate, dt);
+      g.vy = approach(g.vy, clamp(input.y, -1, 1) * SPEED, rate, dt);
       g.x += g.vx * dt;
       g.y += g.vy * dt;
     }
@@ -207,7 +215,11 @@ export default function create(env) {
     g.speed = approach(g.speed, v, 10, dt);
 
     // Steam: a puff on each press, while the tank has some.
-    if (input.actionPressed) {
+    // With a pointer, every finger-down is a press: only a tap on the iron
+    // itself puffs steam, so putting a finger on the board just moves it.
+    g.pointer = !!input.pointer.active;
+    const onIron = !g.pointer || Math.hypot(input.pointer.x - g.x, input.pointer.y - (g.y - 50)) < 130;
+    if (input.actionPressed && onIron) {
       if (g.tank >= 1) {
         g.tank -= 1;
         g.steam = PUFF;
@@ -218,7 +230,7 @@ export default function create(env) {
     g.scorchT = Math.max(0, (g.scorchT || 0) - dt);
     g.tank = Math.min(TANK, g.tank + dt / REFILL);
     const steaming = g.steam > 0;
-    if (steaming && Math.random() < 0.6) g.puffs.push({ x: g.x + (Math.random() - 0.5) * 120, y: g.y + 10, vx: (Math.random() - 0.5) * 60, vy: -80 - Math.random() * 80, life: 0.9, r: 12 + Math.random() * 10 });
+    if (steaming && Math.random() < 0.6) g.puffs.push({ x: g.x - 10 + (Math.random() - 0.5) * 140, y: g.y - 18, vx: (Math.random() - 0.5) * 60, vy: -80 - Math.random() * 80, life: 0.9, r: 12 + Math.random() * 10 });
 
     const G = g.garment;
     G.slide = Math.max(0, G.slide - dt * 4);
@@ -271,12 +283,12 @@ export default function create(env) {
         // Scorched! An iron-shaped mark is left on the cloth.
         g.scorches++;
         G.scorched++;
-        add(-2);
+        add(-1);
         G.marks.push({ x: g.x, y: g.y, rot: (rng() - 0.5) * 0.2 });
         g.scorchCool = 1;
         g.scorchT = 0.7;
         for (let k = 0; k < g.heat.length; k++) g.heat[k] = Math.min(g.heat[k], 0.3);
-        pop('Scorched!  −2', g.x, g.y - 120, PAL.brick, 46);
+        pop('Scorched!  −1', g.x, g.y - 120, PAL.brick, 46);
         sfx('wrong');
         env.vibrate?.(140);
       }
@@ -334,10 +346,21 @@ export default function create(env) {
       garmentShape(c, G, x, y);
       c.clip();
       if (G.kind === 'cloth') {
-        c.globalAlpha = 0.18;
+        // plain in the middle, a checked band round the edge only
+        c.globalAlpha = 0.22;
         c.fillStyle = PAL.brick;
-        for (let i = 0; i < G.w; i += 60) c.fillRect(x - G.w / 2 + i, y - G.h / 2, 26, G.h);
-        for (let j = 0; j < G.h; j += 60) c.fillRect(x - G.w / 2, y - G.h / 2 + j, G.w, 26);
+        const L = x - G.w / 2;
+        const T = y - G.h / 2;
+        for (let i = 0; i < G.w; i += 28) {
+          if ((i / 28) % 2) continue;
+          c.fillRect(L + i, T, 14, 14);
+          c.fillRect(L + i, T + G.h - 14, 14, 14);
+        }
+        for (let j = 0; j < G.h; j += 28) {
+          if ((j / 28) % 2) continue;
+          c.fillRect(L, T + j, 14, 14);
+          c.fillRect(L + G.w - 14, T + j, 14, 14);
+        }
       } else if (G.kind === 'hanky') {
         c.strokeStyle = PAL.slate;
         c.lineWidth = 6;
@@ -347,11 +370,23 @@ export default function create(env) {
         c.lineWidth = 10;
         c.strokeRect(x + G.w / 2 - 90, y - G.h / 2, 40, G.h);
       } else if (G.kind === 'scarf') {
-        c.globalAlpha = 0.3;
-        for (let i = 0; i < 9; i++) {
-          blob(c, x - G.w / 2 + 60 + i * 105, y + Math.sin(i) * 40, 30, 22, i + 40, 0.2);
-          c.fillStyle = PAL.magenta;
-          c.fill();
+        // plain silk with a sheen, a narrow border and fringed ends
+        c.globalAlpha = 0.35;
+        c.fillStyle = '#fff';
+        c.fillRect(x - G.w / 2, y - G.h * 0.22, G.w, 10);
+        c.globalAlpha = 0.6;
+        c.strokeStyle = PAL.magenta;
+        c.lineWidth = 4;
+        c.strokeRect(x - G.w / 2 + 12, y - G.h / 2 + 10, G.w - 24, G.h - 20);
+        c.globalAlpha = 1;
+        for (const e of [-1, 1]) {
+          for (let k = 0; k < 12; k++) {
+            c.beginPath();
+            c.moveTo(x + e * G.w / 2, y - G.h / 2 + 10 + k * ((G.h - 20) / 11));
+            c.lineTo(x + e * (G.w / 2 + 16), y - G.h / 2 + 10 + k * ((G.h - 20) / 11));
+            ink(c, 1.6, PAL.magenta);
+            c.stroke();
+          }
         }
       } else if (G.kind === 'shirt') {
         c.beginPath();
@@ -387,8 +422,18 @@ export default function create(env) {
       c.quadraticCurveTo(-SOLE_RX * 0.3, -SOLE_RY, SOLE_RX * 0.8, -SOLE_RY * 0.9);
       c.lineTo(SOLE_RX * 0.8, SOLE_RY * 0.9);
       c.quadraticCurveTo(-SOLE_RX * 0.3, SOLE_RY, -SOLE_RX - 12, 0);
-      c.fillStyle = 'rgba(120,70,30,0.55)';
+      c.closePath();
+      c.fillStyle = 'rgba(120,64,24,0.8)';
       c.fill();
+      ink(c, 2.2, '#5a3010');
+      c.stroke();
+      // the steam holes, pale
+      c.fillStyle = 'rgba(240,220,190,0.6)';
+      for (let k = 0; k < 6; k++) {
+        c.beginPath();
+        c.arc(-SOLE_RX * 0.3 + (k % 3) * 26, (k < 3 ? -1 : 1) * 12, 4, 0, Math.PI * 2);
+        c.fill();
+      }
       c.restore();
     }
     // the creases: dark folds that fade as they're pressed
@@ -446,17 +491,28 @@ export default function create(env) {
     const lean = clamp(g.vx / SPEED, -1, 1) * 0.06;
     const shake = hot > 0.75 && !env.reduceMotion ? Math.sin(t * 50) * 2 : 0;
     const frame = steaming ? 1 : 0;
+    // Everything is drawn from the middle of the sole, over the footprint's
+    // middle. The pressing sprites (IC-M09c, IC-M09d) are whole cells at the
+    // painting's scale with the sole's middle at the cell's centre line and
+    // its underside 80% down.
+    const painted = !!art('subject.steampressersparrow');
+    const size = painted ? PAINTED.size : SIZE;
+    const cell = 1.05 * size;
     c.save();
-    c.translate(g.x + shake, g.y + 6);
+    c.translate(g.x - 10 + shake, g.y + 6);
     c.rotate(lean);
-    const yelp = g.scorchT > 0 && drawSprite(c, 'sprites.sparrowScorch', 0, 0, 0, { h: SIZE * 0.7 });
-    if (!yelp && !drawSprite(c, 'sprites.sparrowPress', frame, 0, 0, { h: SIZE * 0.62 })) {
-      // the stand-in jumps off the cloth when it scorches
+    const yelp = g.scorchT > 0 && drawSprite(c, 'sprites.sparrowScorch', 0, 0, 0.2 * cell, { h: cell, whole: true });
+    if (!yelp && !drawSprite(c, 'sprites.sparrowPress', frame, 0, 0.2 * cell, { h: cell, whole: true })) {
+      // the bird jumps off the cloth when it scorches
       if (g.scorchT > 0) c.translate(0, -30 * Math.sin((g.scorchT / 0.7) * Math.PI));
+      // the painting's sole is tipped: level it on the cloth
+      if (painted) c.rotate(-PAINTED.tilt);
       c.beginPath();
-      c.rect(-SIZE, -SIZE * 1.2, SIZE * 2, SIZE * 1.2);
+      c.rect(-size, -size * 1.2, size * 2, size * 1.2);
       c.clip();
-      drawBird(c, 'steampressersparrow', { x: 0, y: 130 * K, size: SIZE, t });
+      const k = size / 400;
+      if (painted) drawBird(c, 'steampressersparrow', { x: -PAINTED.sole[0] * k, y: -PAINTED.sole[1] * k, size, t });
+      else drawBird(c, 'steampressersparrow', { x: 10, y: 130 * k, size, t });
     }
     c.restore();
   }
@@ -569,7 +625,7 @@ export default function create(env) {
     if (g.elapsed < 4.5) {
       c.save();
       c.globalAlpha = Math.min(1, 4.5 - g.elapsed);
-      label(c, 'Glide over the creases · press for steam · keep moving!', W / 2, 300, { size: 34, weight: 600 });
+      label(c, g.pointer ? 'Glide over the creases · tap the iron for steam · keep moving!' : 'Glide over the creases · press for steam · keep moving!', W / 2, 300, { size: 34, weight: 600 });
       c.restore();
     }
   };

@@ -77,7 +77,7 @@ export const BIRDS = [
     goal: 'Step on each stone with the matching foot to cross the stream.',
     tips: ['Left stone: left foot. Right stone: right foot.', 'A wrong step splashes and costs a moment.', 'Double stones need both feet at once.', 'The stone you’re about to step on sinks if you wait too long.'],
     score: 'stones',
-    pass: 45,
+    pass: 40,
     tune: 'night',
     color: '#b88aa0',
   },

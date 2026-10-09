@@ -1,4 +1,4 @@
-# Glove Dove: Squeaky Clean (45 s)
+# Glove Dove: Slippery Dishes (45 s)
 
 Bird 11 of the book's other birds. The Glove Dove is a long pink rubber
 washing-up glove with a dove's head. Code: `game/src/games/glovedove.js`;
@@ -6,64 +6,99 @@ entry: `game/src/more/glovedove.js`; tests: `game/test/glovedove.test.mjs`.
 
 ## Rules
 
-A dirty dish lies in the sink, splashed with jam, egg, gravy, spaghetti,
-burnt-on crust or a coffee ring. The Glove Dove stands on a sponge and
-scrubs with its feet. Move it onto a spot and rub: back and forth, or round
-and round. Every bit of rubbing over a spot wears it away (it fades and
-shrinks); standing still does nothing. When the last spot is gone the dish
-squeaks ("Squeaky clean!"), goes up on the rack on the draining board, and
-the next one slides in.
+The washing-up is done, but every dish is wet, soapy and slippery. One at a
+time they pop up out of the suds in the sink on the left and come down over
+the counter. The Glove Dove runs along the counter beneath them and flicks
+each one back up with its rubber fingers, keepy-uppy, until it drops into the
+plate rack on the right.
 
-**Soap.** Press the action for a squirt of washing-up liquid: for about three
-seconds the suds scrub twice as fast. Each squirt also raises the foam in the
-sink (the gauge beside it, under the bottle), which drains away slowly. Three
-squirts close together and the sink foams over: "Mop up!", and nothing can be
-scrubbed for a moment and a half.
+- **Where.** A ring on the counter shows where each falling dish will come
+  down; it turns pink when the Dove is under it.
+- **When.** Press the action just as the dish lands on the glove for a
+  **"Hup!"**: a high, long flick aimed at the rack (from near the sink it
+  takes two). Press too soon and the fingers flick it only a short, low hop.
+  Don't press and it bounces off the rubber once, low and short; the second
+  time it slips off ("Slippery!"). A press that catches nothing leaves the
+  fingers fumbling for almost a second, so mashing doesn't work.
+- **Into the rack:** "Put away!". A dish that hits the counter or the floor
+  smashes ("Crash!": no points lost, but it is gone). One that drops back into
+  the sink just pops up again later.
 
 ## Scoring
 
-One point per dish washed. The page opens at 7. The results card also shows
-the spots scrubbed and the fastest dish.
+Three points for each dish put away and one for each "Hup!". The page opens
+at 35.
 
 ## Getting harder
 
-The first two dishes are plates with two or three easy spots. Then bowls and
-mugs, then saucepans, frying pans and pie dishes; each dish has more spots (up
-to seven) and tougher grime (burnt-on crust takes two and a half times as
-much rubbing as jam). From the seventh dish the dishes float and slowly turn
-in the water, faster later on, so the spots move under the bird.
+At first one or two plates come up every three seconds. From 15 s cups and
+bowls and then heavy pans and pie dishes join them (pans fly lower, so they
+need more flicks), and dishes come faster (every 1.1 s by the end) with up to
+six in the air at once.
 
-Bots (`node --test test/glovedove.test.mjs`): a slow beginner who rubs in
-long lazy strokes and never uses soap washes 7 to 8 dishes; a good scrubber
-who uses soap on crust washes 11 to 13. Pushing the stick about at random
-(with or without mashing), spinning it without steering, and idling wash 0
-to 2.
+Bots (`node --test test/glovedove.test.mjs`, six seeds): a beginner (slow on
+the stick, pressing up to 0.15 s early or late) scores 54 to 73; a good
+juggler 75 to 92. Running under every dish and mashing at four rhythms scores
+8 to 29; running under every dish without pressing scores 0; idling 0.
 
 ## Controls
 
-| Device | Move the bird | Scrub | Soap |
-| --- | --- | --- | --- |
-| Controller | left stick | rub back and forth, or spin the stick in circles over a spot | A |
-| Keyboard | arrows / WASD | tap back and forth over a spot | Space or Enter |
-| Mouse / touch | the bird follows the pointer | rub or drag in circles | click or tap |
+| Device | Run | Flick |
+| --- | --- | --- |
+| Controller | left stick or D-pad | A |
+| Keyboard | ← / → or A / D | Space or Enter |
+| Mouse / touch | the Dove runs to the pointer (or where you tap) | click or tap |
 
-Only real movement counts, and no more than a set amount each frame, so
-flinging the pointer about is no faster than a steady rub. On a narrow
-screen the view follows the bird across the sink.
+On a narrow screen the view follows the Dove, leaning towards the rack.
 
 ## Images
 
-- **IC-M11a, the scene** (`scene.glovedove`): the kitchen sink seen from
-  above, its water left plain for the dishes, a bare counter on the left for
-  the soap bottle and foam gauge, and the draining board with an empty plate
-  rack on the right.
-- **IC-M11b, dishes** (`sprites.dishes`, 3 x 2): six clean dishes from above,
-  each centred in its cell at a fixed size so the game can scale and turn
-  them by their round body.
-- **IC-M11c, grime** (`sprites.grime`, 3 x 2): the six kinds of spot, faded
-  and shrunk by the game as they are scrubbed.
-- **IC-M11d, the Glove Dove scrubbing** (`sprites.glovedoveScrub`, 2 x 1):
-  two frames swapped while it rubs; until it arrives the portrait jiggles.
-- **IC-M11e, the Glove Dove cheering and swamped** (`sprites.glovedovePoses`,
-  2 x 1): cheering while a clean dish goes up on the rack, and buried in foam
-  while the sink is mopped; until it arrives the portrait hops or squashes.
+- **IC-M11a, the scene** (`scene.glovedove`): the kitchen from the side, the
+  sink of suds on the left, an empty plate rack on the right, and a bare
+  counter and wall between for play.
+- **IC-M11b, dishes** (`sprites.dishes`, 3 x 2): six wet dishes seen from the
+  side, spun in the air and stood in the rack.
+- **IC-M11e, the Glove Dove cheering and dismayed** (`sprites.glovedovePoses`,
+  2 x 1): when a dish is put away, and when one smashes. Until it arrives the
+  portrait hops or squashes.
+- **IC-M11f, the Glove Dove catching and flicking** (`sprites.glovedoveToss`,
+  2 x 1): the long glove neck held level like a tray while a press is live,
+  and snapping up for the flick. Until it arrives the portrait braces, then
+  tips back, with little pink marks over the glove while a catch is ready.
+
+## Changes after the audit
+
+1. **Reworked the core.** Squeaky Clean (move over spots and rub them away,
+   soap as a booster that foams over) played like Pressing Business. Slippery
+   Dishes is a timing-and-positioning keepy-uppy: run under a falling dish and
+   flick it on contact, the quality of the flick set by the timing, to carry
+   it through the air into the rack. It shares no mechanic with Pressing
+   Business (no wearing away, no booster) or with Scoop Stack (dishes are
+   flicked on, not caught and stacked). The title, goal, tips and rhyme are
+   new.
+2. Not needed: there is no rubbing any more. The action is a single, timed
+   press, the same on every device.
+3. Scores grow steadily: one point per "Hup!" and three per dish put away,
+   so a round is worth 35 to 80 rather than 7 to 13 dishes.
+
+Images: the scene (IC-M11a) and the dishes (IC-M11b) are kept with new
+prompts (side view instead of from above). The grime (IC-M11c) and the
+scrubbing pose (IC-M11d) are no longer needed and are removed. IC-M11e is
+kept but now asks for cheering and dismayed (it was cheering and swamped in
+foam). The catching and flicking poses are new, as IC-M11f.
+
+## Matched to the painting
+
+The game was designed around the painting, which arrived during the rework.
+The Glove Dove's long pink glove is its neck, held level behind its head with
+the cuff open at the back. So the dishes land on top of the glove, not on the
+head: the catch height (473 px, 355 painting units above the feet) and the
+catch centre (57 px behind the feet, the middle of the glove) are measured
+from the painting. The landing ring turns pink when the glove, not the
+feet, is under a dish, and the pointer steers the glove to where you touch.
+The Dove always faces left, towards the sink, so the glove always reaches
+back towards the rack and the catch point never jumps when it turns. The
+flick tips the whole painting back from the feet, so the glove swings up.
+The pose requests (IC-M11e, IC-M11f) describe the painting's design: fingers
+as a crest on the head, the long studded cuff behind it, and the scalloped
+blue-grey body.

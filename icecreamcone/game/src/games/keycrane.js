@@ -12,7 +12,7 @@
 // carrying and the prize slips off. Rings get smaller as time goes on.
 // Score: prizes in the chute; a golden pocket watch counts as three.
 
-import { drawBird, drawSprite, scene, SHEETS, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, scene, art, SHEETS, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -25,7 +25,7 @@ Object.assign(SHEETS, {
 });
 
 const DURATION = 45;
-const RAIL_Y = 118;
+const RAIL_Y = 150; // low enough that the trolley clears the HUD clock
 const PIVOT_Y = RAIL_Y + 26; // where the string leaves the trolley
 const FLOOR = 812; // the cabinet's floor, where the prizes stand
 const X_MIN = 150;
@@ -36,7 +36,16 @@ const CHUTE_Y = 520;
 const PILE_X0 = 430; // the prizes lie between here and X_MAX
 const SLOTS = [470, 600, 730, 860, 990, 1120, 1250, 1380];
 const BIRD = 220; // the Crane's drawn size
-const HANG = 0.6 * BIRD; // from where the string ties on to its claws
+// From where the string ties on (the middle of the key's shaft) down to its
+// claws. Measured on the painting: the shaft's middle above the feet is 246
+// of its 400 units up, and the feet's middle is 36 units right of the
+// painting's centre line, so the painting is drawn that much to the left.
+const HANG = 0.615 * BIRD;
+const FEET_X = 36;
+// The hanging sprites (IC-M07c, IC-M07d) are whole cells at the portrait's
+// scale, the tie point 35% down and the claw tips 93% down.
+const CELL = 1.05 * BIRD;
+const CELL_FOOT = HANG + 0.07 * CELL;
 const L_TOP = 230; // string + bird at rest, pivot to claws
 const L_MAX = FLOOR - PIVOT_Y - 4;
 const GRAV = 1800; // px/s², for the swing
@@ -88,7 +97,7 @@ export default function create(env) {
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  const ringNow = () => lerp(32, 17, progress());
+  const ringNow = () => lerp(32, 20, progress());
   g.foot = () => [g.x + g.L * Math.sin(g.th), PIVOT_Y + g.L * Math.cos(g.th)];
   g.ring = (p) => [p.x, p.y - KINDS[p.kind].h - p.ringR * 0.75];
   g.tolerance = (p) => p.ringR * 0.85 + 4;
@@ -161,6 +170,7 @@ export default function create(env) {
       return;
     }
     g.stateT += dt;
+    g.view = approach(g.view, g.carry ? Math.max(760, g.x - CHUTE_X0 + 260) : 760, 3, dt);
     g.startle = Math.max(0, (g.startle || 0) - dt);
 
     // The trolley: free at the top, held still while the Crane is down.
@@ -524,13 +534,14 @@ export default function create(env) {
     c.save();
     c.translate(ax, ay);
     c.rotate(-g.th);
-    const startled = g.startle > 0 && drawSprite(c, 'sprites.keycraneStartle', 0, 0, HANG, { h: BIRD * 0.95 });
-    if (!startled && !drawSprite(c, 'sprites.keycraneHang', g.claw > 0.5 ? 1 : 0, 0, HANG, { h: BIRD * 0.95 })) {
+    const startled = g.startle > 0 && drawSprite(c, 'sprites.keycraneStartle', 0, 0, CELL_FOOT, { h: CELL, whole: true });
+    if (!startled && !drawSprite(c, 'sprites.keycraneHang', g.claw > 0.5 ? 1 : 0, 0, CELL_FOOT, { h: CELL, whole: true })) {
       // the stand-in startles with a jolt
       if (g.startle > 0 && !env.reduceMotion) c.rotate(Math.sin(g.startle * 40) * 0.08);
-      drawBird(c, 'keycrane', { x: 0, y: HANG, size: BIRD, t, pose: { claw: g.claw } });
-      // the claws, opening and closing
-      for (const s of [-1, 1]) {
+      const painted = !!art('subject.keycrane');
+      drawBird(c, 'keycrane', { x: painted ? (-FEET_X * BIRD) / 400 : 0, y: HANG, size: BIRD, t, pose: { claw: g.claw } });
+      // the stand-in's claws, opening and closing (the painting has its own)
+      for (const s of painted ? [] : [-1, 1]) {
         c.beginPath();
         c.moveTo(s * 6, HANG - 4);
         c.quadraticCurveTo(s * (20 - 10 * g.claw), HANG + 8, s * (8 - 6 * g.claw), HANG + 20);
@@ -681,8 +692,11 @@ export default function create(env) {
     }
   };
 
-  g.focus = () => clamp(g.x, 380, W - 380);
-  g.span = 760;
+  // On a narrow screen the view follows the trolley; while a prize is being
+  // carried it widens smoothly to keep the chute in sight too.
+  g.view = 760;
+  g.focus = () => (g.carry ? clamp((CHUTE_X0 - 20 + g.x + 120) / 2, 380, W - 380) : clamp(g.x, 380, W - 380));
+  Object.defineProperty(g, 'span', { get: () => g.view });
 
   return g;
 }

@@ -9,7 +9,7 @@ export default {
   tips: ['Get behind a leaf, then sweep it towards the pan: it slides on after the broom.', 'Press to flick the bristles: everything in front of the broom skids away.', 'When the tree rustles a gust is coming. Only what you sweep goes in the pan.', 'The pan moves after every eight. A golden leaf is worth three.'],
   score: 'points',
   controls: [['Sweep', 'move'], ['Flick', 'action']],
-  pass: 14,
+  pass: 15,
   tune: 'play',
   color: '#d9c08a',
 };

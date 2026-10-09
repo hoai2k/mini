@@ -1,3 +1,4 @@
+import { T, txt } from '../text_config.js';
 import { PALETTE as P } from '../palette.js';
 import { COMMANDS, parsePattern } from '../rhythm.js';
 import { ROMAN, W, H, TOUCH, spanOf, leaf, star } from './common.js';
@@ -168,7 +169,7 @@ export const hud = {
     g.font = '700 12px "Be Vietnam Pro", system-ui, sans-serif';
     g.textAlign = 'left';
     g.fillStyle = P.paperShade;
-    g.fillText('LESSONS', 0, 12);
+    g.fillText(T.lessons.panelTitle, 0, 12);
     L.list.forEach((l, i) => {
       const y = 32 + i * rowH;
       g.font = `${l.current ? 700 : 500} 14px "Be Vietnam Pro", system-ui, sans-serif`;
@@ -377,15 +378,15 @@ export const hud = {
     let labelColor = P.paper;
     if (view.miss) {
       // The X over the dots says it; no words needed.
-    } else if (ph && ph.caller) label = 'Listen…';
-    else if (ph && !ph.done && view.mode === 'echo' && !ph.filled) label = 'Your turn — answer it';
-    else if (ph && ph.done && view.mode !== 'battle') label = view.mode === 'casting' ? 'Pouring…' : 'Answered';
+    } else if (ph && ph.caller) label = T.hud.listen;
+    else if (ph && !ph.done && view.mode === 'echo' && !ph.filled) label = T.hud.yourTurnAnswer;
+    else if (ph && ph.done && view.mode !== 'battle') label = view.mode === 'casting' ? T.hud.pouring : T.hud.answered;
     else if (ph && ph.done) {
       const c = COMMANDS.find((k) => k.id === ph.pattern.command);
       const charging = view.cycle && view.cycle.command === 'charge';
-      label = charging ? 'Voi! — the elephant charges' : `${c.name} ${ROMAN[ph.pattern.tier]}! — ${c.gloss}`;
+      label = charging ? T.hud.elephantCharges : txt('hud.commandPlayed', { command: c.name, tier: ROMAN[ph.pattern.tier], meaning: c.gloss });
     } else if (!ph && view.sustaining) {
-      label = touch ? 'The army keeps your rhythm' : 'The army keeps your rhythm — drum the next command';
+      label = touch ? T.hud.armyKeepsRhythmTouch : T.hud.armyKeepsRhythm;
       labelColor = P.paperShade;
     }
     g.font = font(600, label === null || labelColor === P.paper ? 15 : 14);
@@ -495,7 +496,7 @@ export const hud = {
       g.save();
       g.shadowColor = 'rgba(0,0,0,0.8)';
       g.shadowBlur = touch ? 6 : 0;
-      g.fillText(view.spirit ? `Trống thức — the drum wakes ×${view.combo}` : `Chain ×${view.combo}`, touch ? 24 : cx + R + 22, touch ? 22 + 60 * k : cy + 8);
+      g.fillText(txt(view.spirit ? 'hud.drumAwake' : 'hud.chain', { count: view.combo }), touch ? 24 : cx + R + 22, touch ? 22 + 60 * k : cy + 8);
       g.restore();
     }
 
@@ -522,7 +523,7 @@ export const hud = {
         const active = ph && ph.done && ph.pattern.command === c.id;
         g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
         g.fillStyle = active ? P.bronzeLight : P.paper;
-        g.fillText(`${c.name} · ${c.gloss.replace('Elephant charge', 'Charge')}`, px, py);
+        g.fillText(txt('hud.commandRow', { command: c.name, meaning: c.short || c.gloss }), px, py);
         c.tiers.slice(0, view.maxTier).forEach((text, i) => {
           const x0 = px + i * tierW;
           const lit = active && ph.pattern.tier === i + 1;
@@ -552,7 +553,7 @@ export const hud = {
         const active = ph && ph.done && ph.pattern.command === c.id;
         g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
         g.fillStyle = active ? P.bronzeLight : P.paper;
-        g.fillText(`${c.name} · ${c.gloss.replace('Elephant charge', 'Charge')}`, px, py);
+        g.fillText(txt('hud.commandRow', { command: c.name, meaning: c.short || c.gloss }), px, py);
         c.tiers.slice(0, view.maxTier).forEach((text, i) => {
           const x0 = px + 116 + i * colW;
           const lit = active && ph.pattern.tier === i + 1;
@@ -574,24 +575,24 @@ export const hud = {
     } else if (view.training) {
       this.trainingPanel(view);
     } else if (view.mode === 'echo') {
-      const words = { mourning: 'Incense lit', village: 'Villages answering', festival: 'Rhythms answered', elegy: 'Drums silent' };
-      scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, sess.index / sess.calls.length, `${words[view.stage.caller] || 'Answered'} · ${sess.index} of ${sess.calls.length}`, P.bronzeLight));
+      const words = T.hud.progress;
+      scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, sess.index / sess.calls.length, txt('hud.progressCount', { what: words[view.stage.caller] || words.other, done: sess.index, total: sess.calls.length }), P.bronzeLight));
     } else if (view.mode === 'casting') {
       scaled(W - 24, 22, () => this.pourLine(W - 304, 22, 280, sess, t));
       if (sess.u !== null) {
         g.font = font(600, 15);
         g.textAlign = 'left';
         g.fillStyle = P.paper;
-        g.fillText('Keep the bellows’ pace', 24, H - 18);
+        g.fillText(T.hud.keepBellowsPace, 24, H - 18);
       }
     } else {
-      scaled(24, 22, () => this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, 'Nghĩa quân · the army', P.lacquer));
+      scaled(24, 22, () => this.bar(24, 22, 280, b.army.troops / b.army.maxTroops, T.hud.armyBar, P.lacquer));
       if (b.survive) {
-        scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, Math.min(1, b.time / b.survive), `Hold the ford · ${Math.max(0, Math.ceil(b.survive - b.time))} s`, P.verdigris));
+        scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, Math.min(1, b.time / b.survive), txt('hud.holdTheFord', { seconds: Math.max(0, Math.ceil(b.survive - b.time)) }), P.verdigris));
       } else {
         const goals = b.enemies.filter((e) => e.goal);
         const goalHp = goals.reduce((s2, e) => s2 + Math.max(0, e.hp), 0) / goals.reduce((s2, e) => s2 + e.maxHp, 0);
-        scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, goalHp, goals[0].type === 'fort' ? 'Han fort' : 'Straw targets', P.iron));
+        scaled(W - 24, 22, () => this.bar(W - 304, 22, 280, goalHp, goals[0].type === 'fort' ? T.hud.hanFort : T.hud.strawTargets, P.iron));
       }
     }
 
@@ -1007,7 +1008,7 @@ export const hud = {
     g.font = '600 14px "Be Vietnam Pro", system-ui, sans-serif';
     g.textAlign = 'left';
     g.fillStyle = P.paper;
-    g.fillText(`Drums cast · ${sess.cast} of ${sess.drums}`, x, y + 12);
+    g.fillText(txt('hud.drumsCast', { done: sess.cast, total: sess.drums }), x, y + 12);
     const by = y + 20;
     g.fillStyle = 'rgba(22,21,26,0.6)';
     g.fillRect(x, by, w, 12);

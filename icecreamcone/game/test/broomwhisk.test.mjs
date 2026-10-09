@@ -93,6 +93,8 @@ function flailer(seed = 1) {
     return { ...dir, action: Math.floor(t * 4) % 2 === 0 };
   };
 }
+// Wandering in smooth loops, pushing whatever happens to be in the way.
+const wander = (seed = 1) => (game, t) => ({ x: Math.sin(t * 0.9 + seed), y: Math.sin(t * 1.3 + seed * 2), action: Math.floor(t * 2 + seed) % 5 === 0 });
 // Sweeping straight back and forth along the floor.
 const zigzag = () => {
   let d = 1;
@@ -105,20 +107,21 @@ const zigzag = () => {
 
 test('broomwhisk: a beginner opens the next page, a good sweeper more; flailing and idling do not', () => {
   // Sweeping is physical, so single runs vary: eight of each.
-  const seeds = [1, 2, 3, 4, 5, 6, 7, 8];
+  const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const beginner = seeds.map((seed) => run(create, { seed, bot: sweeper(0.3, { flick: false }) }).game.score);
   const good = seeds.map((seed) => run(create, { seed, bot: sweeper(1, { flick: false }) }).game.score);
   const flicker = seeds.map((seed) => run(create, { seed, bot: sweeper(1) }).game.score);
   const flail = [1, 2, 3].map((seed) => run(create, { seed, bot: flailer(seed) }).game.score);
   const zig = [1, 2].map((seed) => run(create, { seed, bot: zigzag() }).game.score);
+  const wan = [1, 2, 3].map((seed) => run(create, { seed, bot: wander(seed) }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
-  console.log('broomwhisk beginner', beginner, 'good', good, 'flicking', flicker, 'flail', flail, 'zigzag', zig, 'idle', idle, 'pass', pass);
+  console.log('broomwhisk beginner', beginner, 'good', good, 'flicking', flicker, 'flail', flail, 'zigzag', zig, 'wander', wan, 'idle', idle, 'pass', pass);
   assert.equal(idle, 0);
   assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
   const avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
   assert.ok(avg(good) > avg(beginner) * 1.15, `good ${good}`);
   assert.ok(Math.min(...flicker) >= pass, `flicking ${flicker}`);
-  assert.ok(Math.max(...flail, ...zig) < pass, `flailing must not open the next page: ${flail} ${zig}`);
+  assert.ok(Math.max(...flail, ...zig, ...wan) < pass, `flailing must not open the next page: ${flail} ${zig}`);
 });
 
 test('broomwhisk: the broom pushes a leaf on with its own speed, and it slides on', () => {
@@ -183,4 +186,28 @@ test('broomwhisk: a gust blows the loose leaves, and the pan moves after eight',
   g2.update(1 / 60, blank());
   for (let i = 0; i < 60; i++) g2.update(1 / 60, blank());
   assert.ok(g2.pan.x !== p0.x || g2.pan.y !== p0.y, 'the pan moved');
+});
+
+test('broomwhisk: the funnel draws a swept near miss in; gusts leave swept things alone', () => {
+  const game = create(env(1));
+  game.gustT = 99;
+  game.leafT = 99;
+  game.items = [];
+  const p = game.pan; // the left wall, facing right
+  game.broom.x = 1300;
+  // a near miss: just past the mouth's side, sliding slowly
+  game.items.push({ kind: 'leaf', x: p.x + 80, y: p.y + 58, z: 0, vx: -60, vy: 0, vz: 0, rot: 0, spin: 0, col: '#999', swept: 3, ph: 0 });
+  for (let i = 0; i < 90 && game.items.length; i++) game.update(1 / 60, blank());
+  assert.equal(game.score, 1, 'it slid in');
+  const g2 = create(env(2));
+  g2.leafT = 99;
+  g2.items = [];
+  g2.items.push({ kind: 'leaf', x: 800, y: 700, z: 0, vx: 0, vy: 0, vz: 0, rot: 0, spin: 0, col: '#999', swept: 3, ph: 0 });
+  g2.items.push({ kind: 'leaf', x: 800, y: 820, z: 0, vx: 0, vy: 0, vz: 0, rot: 0, spin: 0, col: '#999', swept: 0, ph: 0 });
+  g2.broom.x = 200;
+  g2.broom.y = 520;
+  g2.gust = { dir: 1, warn: 0, t: 1, ty: 0 };
+  for (let i = 0; i < 30; i++) g2.update(1 / 60, blank());
+  assert.ok(Math.abs(g2.items[0].x - 800) < 5, 'the swept leaf stays');
+  assert.ok(g2.items[1].x > 830, 'the loose leaf blows');
 });

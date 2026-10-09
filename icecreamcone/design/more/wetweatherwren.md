@@ -20,32 +20,29 @@ drops. A press in the air opens it again to stretch a glide.
   kept dry and flies off: one point.
 - **Market awnings** hang over the pavement from a quarter of the way in. An
   open umbrella (or a hop that is too high) catches on one: "Snagged!", and
-  the Wren stops and can't open for a moment. Walk under with it shut, or tap
-  the action for a quick, low, furled hop.
-- **Inside out.** After landing the Wren needs a moment before it can hop
-  again (a press held through that moment hops when it is up), and an
-  umbrella snapped open and shut more than three times in quick succession
-  blows inside out and stops it. So mashing does not pay; timing does.
+  the Wren stops and can't open for a moment. Walk under with it shut.
+
+Mashing does not pay: the puddles are wider than a short tap-hop carries,
+and an umbrella popped open under an awning snags.
 
 ## Scoring
 
 One point per puddle hopped and per little bird kept dry, and every fifth
 puddle in a row without a splash or a snag adds two more ("5 dry in a row!
-+3"). The page opens at 13.
++2"). The page opens at 15.
 
 ## Getting harder
 
 The first seconds are only small puddles with long dry stretches. Little
 birds join at 5 s, awnings at 13 s (with a reminder on screen), gusts of wind
 at 17 s (they lift an open umbrella, which stretches a glide and makes an
-awning riskier), two puddles close together at 20 s, and a narrow puddle under
-an awning (only a quick furled hop clears it) at 27 s. The dry stretches
+awning riskier), and two puddles close together at 20 s. The dry stretches
 shorten, the puddles widen and the street speeds up throughout.
 
 Bots (`node --test test/wetweatherwren.test.mjs`): a sloppy
-beginner (presses early or late, forgets one puddle in seven) scores 13 to
-26, a good walker 22 to 31; holding the button, idling and every mashing
-rhythm stay under the pass mark (mashing scores 0 to 8).
+beginner (presses early or late, forgets one puddle in seven) scores 18 to
+29 over eight seeds, a good walker 23 to 30; holding the button and idling
+score 0, and eight mashing rhythms over three seeds score 3 to 12.
 
 ## Controls
 
@@ -65,13 +62,43 @@ ahead of it in view.
   puddles, awnings and birds past. No painted rain (the game draws its own,
   which the open canopy shelters).
 - **IC-M10b, the Wren's umbrella poses** (`sprites.wrenPoses`, 3 x 1):
-  floating open, walking open, and blown inside out. Until it arrives a black
+  floating open, walking open, and snagged inside out on an awning. Until it arrives a black
   canopy is drawn in code above the furled stand-in.
 - **IC-M10c, puddles and awnings** (`sprites.rainStreet`, 2 x 2): a small and
   a long puddle, stretched to each puddle's width, and two striped market
   awnings (the game draws their poles).
+- **IC-M10e, the Wren walking** (`sprites.wrenWalk`, 2 x 1): two furled
+  strides without the portrait's painted rain and puddle.
 - The little birds reuse Safe Crossing's delivered `sprites.chicks` (standing,
   and flying off).
 - **IC-M10d, the Wren drenched** (`sprites.wrenSplash`): standing in the
   puddle, dripping, for the moment after a splash; until it arrives the
   stand-in sags.
+
+## Changes after the audit
+
+1. Dropped the inside-out rule and the 0.3 s settle after landing: a press
+   on the ground now always hops at once. Mashing is held back instead by
+   wider puddles (250 to 460 px, wider than a short tap-hop carries) and by
+   the awnings; the test now asserts eight mashing rhythms on three seeds stay
+   under the pass mark.
+2. Dropped the narrow puddle under an awning, so there are only two kinds of
+   press: a hop, and a hop held to float.
+3. The streak pop now says what it adds: "5 dry in a row! +2".
+4. Re-tuned: pass 13 → 15. The beginner bot scores 18 to 29 over eight
+   seeds, the good bot 23 to 30 (mean 27.5 against the beginner's 22 on the
+   first four), mashing at most 12. The tips no longer mention the tap-hop or
+   the inside-out rule.
+
+## Matched to the painting
+
+The portrait (a furled umbrella body with a feathered wing, the wren's head
+and beak at the front, the wooden crook handle rising behind) stands in a
+painted puddle in painted rain. In the game it faces right, the way it walks.
+How tall it stands for the awnings now comes from the painting (220 px, it
+was 175 for the stand-in), and in the air the painted puddle and the claws'
+tips are clipped away so it doesn't carry a puddle into the sky. A walking
+pair without rain or puddle is requested (IC-M10e). The open, inside-out and
+drenched poses (IC-M10b, IC-M10d) now describe the painting's design: the head
+at the umbrella's tip, the canopy spreading below it, and the crook handle
+hanging as a tail.

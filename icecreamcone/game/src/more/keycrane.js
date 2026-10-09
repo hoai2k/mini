@@ -9,7 +9,7 @@ export default {
   tips: ['Moving sets the Crane swinging: stop over a ring and let it settle before you drop.', 'Swing too hard on the way back and the prize slips off.', 'Rings get smaller as you go. A golden watch counts as three.'],
   score: 'prizes',
   controls: [['Drive the trolley', 'move', 'Drag to aim; let go to drop'], ['Drop the Crane', 'action']],
-  pass: 6,
+  pass: 5,
   tune: 'play',
   color: '#c9a24a',
 };

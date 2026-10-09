@@ -16,6 +16,8 @@
 //
 // Everything here is pure (times in seconds), so it runs under node --test.
 
+import { T } from './text_config.js';
+
 export const TUNG = 'L';
 export const CAC = 'R';
 
@@ -131,8 +133,8 @@ export function getDifficulty() {
 }
 
 export const COMMANDS = [
-  { id: 'march', name: 'Tiến', gloss: 'March', kind: 'move', get tiers() { return TIERS.march[difficulty].map((t) => fitBeats(t)); } },
-  { id: 'strike', name: 'Đánh', gloss: 'Strike', kind: 'attack', get tiers() { return TIERS.strike[difficulty].map((t) => fitBeats(t)); } },
+  { id: 'march', name: T.commands.march.name, gloss: T.commands.march.meaning, kind: 'move', get tiers() { return TIERS.march[difficulty].map((t) => fitBeats(t)); } },
+  { id: 'strike', name: T.commands.strike.name, gloss: T.commands.strike.meaning, kind: 'attack', get tiers() { return TIERS.strike[difficulty].map((t) => fitBeats(t)); } },
 ];
 
 /**

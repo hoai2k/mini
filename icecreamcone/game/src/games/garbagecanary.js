@@ -6,7 +6,8 @@
 // the lid: rubbish that reaches the bin while the lid is up goes in (+1).
 // But not everything is rubbish: a cat, a gentleman's hat, a letter, a
 // sparrow. Anything that isn't must find the lid shut, so it bumps over the
-// top and goes on its way; swallow one and the Canary spits it out (−2).
+// top and goes on its way; swallow one and the Canary splutters it out (−1)
+// and can't open its lid for a moment.
 // Rubbish that finds the lid shut blows past and is lost. Every five in a row
 // without a slip earns a bonus that grows with the run (+1 at five, +2 at
 // ten, ...). Things come faster and closer together as time goes on, more
@@ -14,7 +15,7 @@
 // some along.
 // Score: points.
 
-import { drawBird, drawSprite, scene, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { drawBird, drawSprite, scene, art, SHEETS, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -31,11 +32,18 @@ const PAVE = 770; // the pavement, where the bin's feet stand
 const BIN_X = 470;
 const SIZE = 330;
 const K = SIZE / 400;
-const RIM_Y = PAVE - 250 * K; // the bin's open top
-const MOUTH_Y = RIM_Y - 18; // the height things cross at
 const CROSS_X = BIN_X + 80; // where something meets the bin's front rim
-const HINGE = [BIN_X - 92 * K, RIM_Y]; // the lid hinges at the back
+// The bin's rim and the lid's hinge, in bird units (feet at 0, facing left
+// as drawn; the game flips it to face the wind). The painting's rim slants a
+// little, higher at the front; measured on the 1024 px painting: front rim
+// (278, 245) px, back rim and hinge (725, 290) px.
+const RIM = {
+  painted: { front: [-140, -303], back: [140, -285], hinge: [87, -288] },
+  standin: { front: [-140, -250], back: [140, -250], hinge: [92, -250] },
+};
 const OPEN_ANGLE = 1.15;
+const JAM = 0.9; // seconds the lid stays shut after swallowing something that isn't rubbish
+const BIG = 1.3; // things on the wind are drawn this much bigger than their base size
 
 // What blows down the street. `rub`: rubbish. `move`: how it travels.
 const KINDS = {
@@ -55,6 +63,32 @@ const KEEP = ['hat', 'letter', 'cat', 'sparrow'];
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
+  const rim = art('subject.garbagecanary') ? RIM.painted : RIM.standin;
+  const RIM_Y = PAVE + ((rim.front[1] + rim.back[1]) / 2) * K; // the bin's open top
+  const MOUTH_Y = RIM_Y - 18; // the height things cross at
+  const HINGE = [BIN_X - rim.hinge[0] * K, PAVE + rim.hinge[1] * K]; // the lid hinges at the back
+  // The rim as a line across the bird, in the canvas (flipped), for cutting
+  // the drawing into the bin and its lid.
+  const rimCut = (c, above) => {
+    const [fx, fy] = [BIN_X - rim.front[0] * K, PAVE + rim.front[1] * K];
+    const [bx, by] = [BIN_X - rim.back[0] * K, PAVE + rim.back[1] * K];
+    const ext = 120;
+    const sl = (fy - by) / (fx - bx);
+    const y0 = by - sl * ext;
+    const y1 = fy + sl * ext;
+    c.beginPath();
+    c.moveTo(bx - ext, y0);
+    c.lineTo(fx + ext, y1);
+    if (above) {
+      c.lineTo(fx + ext, y1 - 400);
+      c.lineTo(bx - ext, y0 - 400);
+    } else {
+      c.lineTo(fx + ext, PAVE + 60);
+      c.lineTo(bx - ext, PAVE + 60);
+    }
+    c.closePath();
+    c.clip();
+  };
   const g = {
     time: DURATION,
     score: 0,
@@ -79,6 +113,8 @@ export default function create(env) {
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
   function pop(text, x, y, color = INK, size = 44) {
+    // stack above any pop still showing nearby, rather than on top of it
+    while (g.pops.some((p) => p.life > 0.5 && Math.abs(p.x - x) < 160 && Math.abs(p.y - y) < size)) y -= size;
     g.pops.push({ text, x, y, color, size, life: 1.2 });
   }
   const add = (n) => {
@@ -95,7 +131,14 @@ export default function create(env) {
     g.lastKeep = keep;
     const kind = keep ? KEEP[Math.floor(rng() * KEEP.length)] : RUBBISH[Math.floor(rng() * RUBBISH.length)];
     const k = KINDS[kind];
-    const speed = lerp(330, 560, p) * (0.9 + rng() * 0.2) * (kind === 'cat' ? 0.85 : 1);
+    let speed = lerp(330, 560, p) * (0.9 + rng() * 0.2) * (kind === 'cat' ? 0.85 : 1);
+    // never catch up with the one in front: arrive at least half a second after it
+    const prev = g.coming().pop();
+    if (prev) {
+      const dist = W + 80 - CROSS_X;
+      const after = g.eta(prev) + 0.5;
+      if (dist / speed < after) speed = dist / after;
+    }
     // later, a gust may hurry it along part of the way
     const gust = g.elapsed > 14 && rng() < lerp(0.1, 0.4, p) ? 1100 - rng() * 300 : null;
     g.items.push({
@@ -119,10 +162,10 @@ export default function create(env) {
     let gap = lerp(1.5, 0.6, p) * (0.75 + rng() * 0.5);
     // later, something that isn't rubbish often follows hard on rubbish's heels
     if (!keep && g.elapsed > 10 && rng() < lerp(0.2, 0.5, p)) {
-      gap = lerp(0.55, 0.36, p);
+      gap = lerp(0.65, 0.5, p);
       g.forceKeep = true;
     }
-    g.spawnT = Math.max(0.34, gap);
+    g.spawnT = Math.max(0.5, gap);
   }
 
   // Where it is on its way to the bin: its height at x.
@@ -173,11 +216,12 @@ export default function create(env) {
       it.y = RIM_Y - 10;
       g.swallowed++;
       g.streak = 0;
-      add(-2);
+      add(-1);
       g.spit = 0.5;
+      g.jam = JAM;
       sfx('squawk');
       env.vibrate?.(120);
-      pop(`Not rubbish!  −2`, BIN_X + 40, RIM_Y - 150, PAL.brick, 46);
+      pop(`Not rubbish!  −1`, BIN_X + 40, RIM_Y - 150, PAL.brick, 46);
     } else {
       // the lid's shut: over the top it goes
       it.state = 'over';
@@ -208,7 +252,9 @@ export default function create(env) {
     const was = g.holding;
     g.holding = !!input.action;
     if (g.holding && !was) sfx('switch');
-    g.open = clamp(g.open + (g.holding ? 9 : -12) * dt, 0, 1);
+    // spluttering after a swallow, the lid stays shut for a moment
+    g.jam = Math.max(0, (g.jam || 0) - dt);
+    g.open = clamp(g.open + (g.holding && g.jam <= 0 ? 9 : -12) * dt, 0, 1);
     g.gulp = Math.max(0, g.gulp - dt);
     g.spit = Math.max(0, g.spit - dt);
     g.sing = Math.max(0, (g.sing || 0) - dt);
@@ -222,7 +268,14 @@ export default function create(env) {
       if (it.state === 'come') {
         if (it.gust && !it.gusted && it.x < it.gust) {
           it.gusted = true;
-          it.vx *= 1.55;
+          // a gust hurries it, but never to within half a second of the one ahead
+          const ahead = g.items.filter((o) => o !== it && o.state === 'come' && o.x < it.x).sort((p, q) => q.x - p.x)[0];
+          let vx = it.vx * 1.55;
+          if (ahead) {
+            const soonest = g.eta(ahead) + 0.5;
+            if ((it.x - CROSS_X) / -vx < soonest) vx = Math.max(vx, -(it.x - CROSS_X) / soonest);
+          }
+          it.vx = Math.min(it.vx, vx);
           for (let i = 0; i < 3; i++) g.wind.push({ x: it.x + 40 + i * 30, y: it.y - 40 + i * 30, life: 0.6 });
         }
         const px = it.x;
@@ -285,8 +338,44 @@ export default function create(env) {
     c.translate(x, y);
     const flap = it.kind === 'sparrow' || it.kind === 'cat';
     if (!flap) c.rotate(rot);
-    const h = it.kind === 'cat' ? 92 : it.kind === 'sparrow' ? 56 : it.kind === 'letter' ? 52 : 64;
-    if (!drawSprite(c, 'sprites.garbageItems', k.i, 0, 0, { h, anchor: 'center' })) drawItemStandin(c, it, k);
+    const h = (it.kind === 'cat' ? 92 : it.kind === 'sparrow' ? 56 : it.kind === 'letter' ? 52 : 64) * BIG;
+    if (!k.rub && it.state !== 'in') {
+      // the shared cue for "not rubbish, keep the lid shut": a soft gold glow
+      // and a twinkle
+      const r = h * 0.85;
+      const grd = c.createRadialGradient(0, 0, r * 0.3, 0, 0, r);
+      grd.addColorStop(0, 'rgba(255,226,120,0.55)');
+      grd.addColorStop(1, 'rgba(255,226,120,0)');
+      c.fillStyle = grd;
+      c.beginPath();
+      c.arc(0, 0, r, 0, Math.PI * 2);
+      c.fill();
+      c.beginPath();
+      c.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+      ink(c, 3, 'rgba(201,150,42,0.7)');
+      c.stroke();
+      const tw = 0.6 + 0.4 * Math.sin((it.t || 0) * 9);
+      c.save();
+      c.translate(r * 0.62, -r * 0.62);
+      c.scale(tw, tw);
+      c.beginPath();
+      c.moveTo(0, -12);
+      c.lineTo(3, -3);
+      c.lineTo(12, 0);
+      c.lineTo(3, 3);
+      c.lineTo(0, 12);
+      c.lineTo(-3, 3);
+      c.lineTo(-12, 0);
+      c.lineTo(-3, -3);
+      c.closePath();
+      c.fillStyle = '#e8b830';
+      c.fill();
+      c.restore();
+    }
+    if (!drawSprite(c, 'sprites.garbageItems', k.i, 0, 0, { h, anchor: 'center' })) {
+      c.scale(BIG, BIG);
+      drawItemStandin(c, it, k);
+    }
     c.restore();
   }
 
@@ -432,6 +521,47 @@ export default function create(env) {
     }
   }
 
+  // The stand-in canary's head, larger than the stand-in drawing's, peeping
+  // out under the lid's front edge and watching whatever comes next.
+  function drawHead(c, shake) {
+    const x = BIN_X + 58 * K + shake;
+    const y = RIM_Y - 30;
+    const next = g.coming()[0];
+    const tx = next ? next.x : W;
+    const ty = next ? next.y : MOUTH_Y;
+    const a = Math.atan2(ty - y, tx - x);
+    blob(c, x, y, 40, 34, 7, 0.05);
+    wash(c, '#f2d24a');
+    ink(c, 2.4);
+    hatch(c, x - 40, y - 34, x + 40, y + 34, 10, 0.15, 2);
+    // the beak points into the wind, open while squawking or singing
+    const open = g.spit > 0 || g.sing > 0 ? 9 : 2;
+    poly(c, [[x + 30, y - 4 - open], [x + 74, y + 2], [x + 30, y + 8 + open]], 3, 0.6);
+    wash(c, PAL.ochre);
+    ink(c, 2);
+    // a round staring eye, its pupil following the next thing on the wind
+    const ex = x + 12;
+    const ey = y - 10;
+    c.beginPath();
+    c.arc(ex, ey, 13, 0, Math.PI * 2);
+    c.fillStyle = '#fff';
+    c.fill();
+    ink(c, 2);
+    c.stroke();
+    c.beginPath();
+    c.arc(ex + Math.cos(a) * 6, ey + Math.sin(a) * 6, 5, 0, Math.PI * 2);
+    c.fillStyle = INK;
+    c.fill();
+    // a little crest
+    for (let i = 0; i < 3; i++) {
+      c.beginPath();
+      c.moveTo(x - 10 + i * 8, y - 32);
+      c.quadraticCurveTo(x - 22 + i * 6, y - 56, x - 34 + i * 8, y - 52);
+      ink(c, 2.4, '#c9a42a');
+      c.stroke();
+    }
+  }
+
   // The Canary: the bin's body, then its lid (with the canary's head under
   // it) hinged up at the back. Faces right, into the wind.
   function drawCanary(c, t) {
@@ -443,17 +573,17 @@ export default function create(env) {
     if (g.open > 0.05) {
       c.save();
       c.beginPath();
-      c.ellipse(BIN_X, RIM_Y + 4, 92 * K, 18 * g.open + 4, 0, 0, Math.PI * 2);
+      // along the rim, which slants on the painting
+      const tilt = Math.atan2(rim.back[1] - rim.front[1], rim.front[0] - rim.back[0]);
+      c.ellipse(BIN_X, RIM_Y + 4, 94 * K, 18 * g.open + 4, tilt, 0, Math.PI * 2);
       c.fillStyle = '#2a2420';
       c.fill();
       c.restore();
     }
     const body = () => {
-      if (!drawSprite(c, lidSheet, 0, BIN_X + shake, PAVE + 0.074 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true })) {
+      if (!drawSprite(c, lidSheet, 0, BIN_X + shake, PAVE + 0.033 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true })) {
         c.save();
-        c.beginPath();
-        c.rect(BIN_X - 200, RIM_Y, 400, PAVE - RIM_Y + 40);
-        c.clip();
+        rimCut(c, false);
         drawBird(c, 'garbagecanary', { x: BIN_X + shake, y: PAVE, size: SIZE, t, flip: true });
         c.restore();
       }
@@ -463,14 +593,13 @@ export default function create(env) {
       c.translate(hx, hy);
       c.rotate(-a);
       c.translate(-hx, -hy);
-      const at = [BIN_X + shake, PAVE + 0.074 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true }];
+      const at = [BIN_X + shake, PAVE + 0.033 * SIZE, { h: 1.05 * SIZE, whole: true, flip: true }];
       const call = g.spit > 0 ? 0 : g.sing > 0 ? 1 : -1;
       const drawn = (call >= 0 && drawSprite(c, 'sprites.garbagecanaryCall', call, ...at)) || drawSprite(c, lidSheet, 1, ...at);
       if (!drawn) {
-        c.beginPath();
-        c.rect(BIN_X - 200, RIM_Y - 300, 400, 300);
-        c.clip();
+        rimCut(c, true);
         drawBird(c, 'garbagecanary', { x: BIN_X + shake, y: PAVE, size: SIZE, t, flip: true });
+        if (!art('subject.garbagecanary')) drawHead(c, shake);
       }
       c.restore();
     };

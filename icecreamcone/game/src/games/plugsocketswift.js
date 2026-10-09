@@ -14,7 +14,7 @@
 // waiting too long gives up too. Requests come faster, and the books get
 // longer, as dusk turns to night. Score: rooms lit.
 
-import { drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -481,7 +481,8 @@ export default function create(env) {
       const by = y - 86;
       c.beginPath();
       c.arc(bx, by, 10, 0, Math.PI * 2);
-      c.fillStyle = i < load ? (i < SAFE ? '#ffe070' : i === SAFE ? '#f0a040' : '#e05030') : '#5a5450';
+      // three safe places in green, the rest in red: lit when a lamp is on
+      c.fillStyle = i < load ? (i < SAFE ? '#6ccf5a' : i === SAFE ? '#f0a040' : '#e05030') : i < SAFE ? '#c4dcb8' : '#e8b4a4';
       c.fill();
       ink(c, 1.4);
     }
@@ -508,11 +509,16 @@ export default function create(env) {
     const x = g.x;
     const y = g.y + bob;
     const pose = singed ? 2 : plugging ? 1 : 0;
+    // the body (the socket) is held at (g.x, g.y): painting's socket at (-46, -192)
+    // in bird units from the feet (39%, 52% of the PNG, feet at 97.7%), stand-in (0, -160)
+    const painted = !!art('subject.plugsocketswift');
+    const body = painted ? 192 : 160;
     // the painted poses are framed like the portrait, the body at the cell's centre
     if (!drawSprite(c, 'sprites.swiftPoses', pose, x, y, { h: SIZE * 1.5, anchor: 'center', flip, whole: true })) {
       // wings: beating, swept back for the plug-in dive, drooping when singed
       const flap = singed ? 0.9 : plugging ? -0.5 : Math.sin(t * 22) * 0.6;
-      for (const d of [-1, 1]) {
+      // (the portrait has its own wings; the stand-in gets these)
+      for (const d of art('subject.plugsocketswift') ? [] : [-1, 1]) {
         c.save();
         c.translate(x + d * 10, y - 20);
         c.rotate(d * (0.5 + flap));
@@ -524,14 +530,15 @@ export default function create(env) {
       c.save();
       c.translate(x, y);
       if (plugging) c.rotate((flip ? 1 : -1) * 0.35); // diving head first at the socket
-      drawBird(c, 'plugsocketswift', { x: 0, y: 160 * (SIZE / 400), size: SIZE, t, flip });
+      const bodyX = painted ? 46 * (flip ? -1 : 1) * (SIZE / 400) : 0; // put the socket on (g.x, g.y)
+      drawBird(c, 'plugsocketswift', { x: bodyX, y: body * (SIZE / 400), size: SIZE, t, flip });
       c.restore();
       if (singed) {
         for (let i = 0; i < 3; i++) {
           const k = (t * 0.7 + i / 3) % 1;
           c.save();
           c.globalAlpha = 0.5 * (1 - k);
-          blob(c, x + (flip ? 10 : -10) + Math.sin(i * 2 + t) * 8, y - 60 - k * 70, 10 + k * 14, 8 + k * 10, i, 0.15);
+          blob(c, x + (painted ? 0 : flip ? 10 : -10) + Math.sin(i * 2 + t) * 8, y - (painted ? 95 : 60) - k * 70, 10 + k * 14, 8 + k * 10, i, 0.15);
           wash(c, '#8a8480');
           c.restore();
         }
@@ -540,14 +547,49 @@ export default function create(env) {
     // the bulb glows, brightest just after a lamp goes in, and is dark while the fuse is out
     if (singed) return;
     const s = SIZE / 400;
-    const hx = x + (flip ? 10 : -10) * s;
-    const hy = y + 160 * s - 290 * s;
+    // the bulb, in bird units across from the socket and up from the feet:
+    // painting (0, -326) (bulb at 39%, 20% of the PNG), stand-in (-10, -290)
+    const [bx, by] = painted ? [0, -326] : [-10, -290];
+    const hx = x + (flip ? -bx : bx) * s;
+    const hy = y + body * s + by * s;
     const glow = 0.35 + g.flash * 2.5;
     const grd = c.createRadialGradient(hx, hy, 6, hx, hy, 90);
     grd.addColorStop(0, `rgba(255,240,160,${Math.min(0.9, glow)})`);
     grd.addColorStop(1, 'rgba(255,240,160,0)');
     c.fillStyle = grd;
     c.fillRect(hx - 90, hy - 90, 180, 180);
+  }
+
+  // On a narrow screen the fuse box can be out of view: when it's heating
+  // or blown, a small copy of its gauge rides at the view's left edge.
+  function fuseBadge(c, t) {
+    const cv = c.canvas;
+    if (!cv || cv.width / cv.height > (W / H) * 0.8) return; // a wide screen shows the whole house
+    const left = g.x - g.span / 2;
+    if (FUSE.x + 90 > left) return; // the box itself is in view
+    const load = g.blown ? 0 : g.load();
+    if (!g.blown && load <= SAFE && g.heat < 0.15) return;
+    const x = left + 110;
+    const y = GROUND + 48; // on the lawn, clear of the windows
+    poly(c, [[x - 90, y - 50], [x + 90, y - 50], [x + 90, y + 50], [x - 90, y + 50]], 9, 0.8);
+    wash(c, '#f2ead6', 0.95);
+    ink(c, 2.4, g.blown || g.heat > 0.5 ? PAL.brick : INK);
+    label(c, g.blown ? '◀ Flip the fuse!' : '◀ FUSE', x, y - 26, { size: 22, weight: 800, color: g.blown ? PAL.brick : '#3a3028' });
+    for (let i = 0; i < 6; i++) {
+      c.beginPath();
+      c.arc(x - 62 + i * 25, y + 2, 8, 0, Math.PI * 2);
+      c.fillStyle = i < load ? (i < SAFE ? '#6ccf5a' : i === SAFE ? '#f0a040' : '#e05030') : i < SAFE ? '#c4dcb8' : '#e8b4a4';
+      c.fill();
+      ink(c, 1.2);
+    }
+    c.fillStyle = g.heat > 0.66 ? '#d04a30' : g.heat > 0.33 ? '#e09a48' : '#c9b060';
+    c.fillRect(x - 70, y + 20, 140 * g.heat, 12);
+    poly(c, [[x - 70, y + 20], [x + 70, y + 20], [x + 70, y + 32], [x - 70, y + 32]], 3, 0.3);
+    ink(c, 1.2);
+    if (g.heat > 0.5 && Math.sin(t * 10) > 0) {
+      poly(c, [[x - 90, y - 50], [x + 90, y - 50], [x + 90, y + 50], [x - 90, y + 50]], 9, 0.8);
+      ink(c, 4, PAL.brick);
+    }
   }
 
   g.draw = (c, t) => {
@@ -631,6 +673,7 @@ export default function create(env) {
     }
 
     drawSwift(c, t);
+    fuseBadge(c, t);
 
     for (const p of g.pops) {
       const k = Math.min(1, (1.2 - p.life) * 8);

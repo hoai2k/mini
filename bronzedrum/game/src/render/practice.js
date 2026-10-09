@@ -1,3 +1,4 @@
+import { T, txt } from '../text_config.js';
 import { PALETTE as P } from '../palette.js';
 import { H, GROUND, TOUCH, leaf } from './common.js';
 
@@ -430,7 +431,7 @@ export const practice = {
           this.pattern(rowX(p.loop.beats, c), upperY, p.loop, dotR * 0.62, c, p.loopPos ? p.loopPos.played : 0, false, false, 0.45);
         }
         entering(rowY);
-        label('Listening…', cx, (p.loop ? upperY : rowY) - dotR - 14 * k, P.paperShade);
+        label(T.practice.listening, cx, (p.loop ? upperY : rowY) - dotR - 14 * k, P.paperShade);
       } else if (p.loop) {
         // The rhythm repeating: each stroke lights as it sounds.
         const x0 = rowX(p.loop.beats);
@@ -455,10 +456,10 @@ export const practice = {
             g.restore();
           }
         }
-        label('Your rhythm, again and again', cx, rowY - dotR - 14 * k, P.bronzeLight);
+        label(T.practice.yourRhythmLoops, cx, rowY - dotR - 14 * k, P.bronzeLight);
       } else {
         rings(rowX(p.beats), rowY, 0, p.beats, dotR, cell, 0.45 + 0.25 * Math.sin(t * 4));
-        label(`Drum any ${p.beats} beats`, cx, rowY - dotR - 14 * k);
+        label(txt('practice.drumAny', { beats: p.beats }), cx, rowY - dotR - 14 * k);
       }
       return;
     }
@@ -482,9 +483,9 @@ export const practice = {
     const top = p.rows.top;
     const bottom = p.rows.bottom;
     const topBeats = row(top, upperY, 0.3);
-    label(top && top.label ? top.label : 'Partner', rowX(topBeats) - 12, upperY + 5, P.paperShade, 'right');
+    label(top && top.label ? top.label : T.practice.partner, rowX(topBeats) - 12, upperY + 5, P.paperShade, 'right');
     const youBeats = row(bottom, rowY, 0.45 + 0.25 * Math.sin(t * 4));
-    label(bottom && bottom.label ? bottom.label : 'You', rowX(youBeats) - 12, rowY + 5, P.paper, 'right');
+    label(bottom && bottom.label ? bottom.label : T.practice.you, rowX(youBeats) - 12, rowY + 5, P.paper, 'right');
     label(p.rows.heading, cx, upperY - dotR - 14 * k, p.rows.headingColor || P.paper);
   },
 
@@ -493,9 +494,9 @@ export const practice = {
     const g = this.ctx;
     const p = view.practice;
     const lines = [
-      `${p.keys.fewer} fewer · ${p.beats} beats · more ${p.keys.more}`,
-      `${p.keys.second} ${p.second.vn} · ${p.keys.choose} another`,
-      `${p.keys.clear} ${p.kind === 'free' ? 'clear and stop the loop' : 'clear'}`,
+      txt('practice.controls.beats', { fewerKey: p.keys.fewer, beats: p.beats, moreKey: p.keys.more }),
+      txt('practice.controls.secondDrum', { strikeKey: p.keys.second, drum: p.second.vn, chooseKey: p.keys.choose }),
+      txt(p.kind === 'free' ? 'practice.controls.clearFree' : 'practice.controls.clear', { key: p.keys.clear }),
     ];
     this.secondDrum(view, 768, H - 92, 30);
     const by = Math.min(k, 1.4);

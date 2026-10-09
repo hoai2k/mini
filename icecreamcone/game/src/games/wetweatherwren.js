@@ -8,9 +8,8 @@
 // (one point each): land in one and it splashes and stops for a moment.
 // Little birds wait in the rain: float over one with the umbrella open to
 // keep it dry (a point). From a quarter of the way in, shop awnings hang over
-// the pavement: an open umbrella catches on them, so walk or tap a low,
-// furled hop beneath; later a puddle lies under an awning, and only a quick
-// tap hop clears it. Gusts of wind lift an open umbrella higher still.
+// the pavement: an open umbrella catches on them, so walk beneath with it
+// shut. Gusts of wind lift an open umbrella higher still.
 // Score: points (puddles hopped and birds kept dry).
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
@@ -18,6 +17,7 @@ import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
   'sprites.wrenPoses': [3, 1], // umbrella open (floating), umbrella open and walking, snagged inside-out
+  'sprites.wrenWalk': [2, 1], // furled, walking: two strides, without the portrait's rain and puddle
   'sprites.wrenSplash': [1, 1], // furled, standing in a puddle, drenched and dripping
   'sprites.rainStreet': [2, 2], // small puddle, long puddle, pink striped awning, green striped awning
 });
@@ -30,14 +30,11 @@ const HOP = 760; // the gust under a freshly opened umbrella
 const G_OPEN = 1500;
 const G_SHUT = 3400;
 const FALL_OPEN = 170; // floating down under the canopy
-const TOP_SHUT = 175; // how tall the Wren stands, furled
+const TOP_SHUT = Math.round((383 * SIZE) / 400); // how tall the Wren stands, furled (the painting's top)
 const TOP_OPEN = 285; // and with its canopy open
 const AWN_H = 330; // an awning's lower edge, above the pavement
 const FOOT = 22; // how much of a puddle's rim is safe to stand on
 const CANOPY_R = 140;
-const FLAP_MAX = 3; // opened this many times in quick succession, it turns inside out
-const FLAP_DECAY = 1.4;
-const SETTLE = 0.3; // after landing, a moment before it can hop again
 
 export default function create(env) {
   const { W, H, rng, sfx } = env;
@@ -51,10 +48,6 @@ export default function create(env) {
     h: 0, // the Wren's feet above the pavement
     vy: 0, // upwards is positive
     grounded: true,
-    landed: 9, // seconds since it last landed
-    wantHop: false,
-    flap: 0, // how flustered the umbrella is by quick opening and shutting
-    flips: 0,
     open: false,
     noOpen: 0, // a snagged umbrella can't open for a moment
     stun: 0,
@@ -94,7 +87,7 @@ export default function create(env) {
     const dry = lerp(600, 260, p) * (0.8 + rng() * 0.5);
     let x = g.nextX + dry;
     const r = rng();
-    const widthNow = () => lerp(210, 280, p) + rng() * lerp(60, 200, p);
+    const widthNow = () => lerp(250, 300, p) + rng() * lerp(60, 160, p);
     if (t > 5 && r < 0.22) {
       g.chicks.push({ x, state: 'wait', t: 0, color: [PAL.lemon, PAL.strawberry, PAL.mint, PAL.ochre][Math.floor(rng() * 4)] });
       // a little bird often sits just before a puddle: shelter it on the way over
@@ -109,22 +102,16 @@ export default function create(env) {
     if (t > 13 && r < 0.48) {
       const len = 340 + rng() * 200;
       g.awnings.push({ x0: x, x1: x + len, color: rng() < 0.5 ? 0 : 1 });
-      if (t > 27 && rng() < 0.55) {
-        // a narrow puddle under it: a quick furled hop only
-        const w = 150 + rng() * 30;
-        const c = x + len / 2;
-        g.puddles.push({ x0: c - w / 2, x1: c + w / 2, under: true });
-      }
       g.nextX = x + len;
       return;
     }
-    const w = t < 6 ? 200 + rng() * 40 : widthNow();
+    const w = t < 6 ? 230 + rng() * 40 : widthNow();
     g.puddles.push({ x0: x, x1: x + w });
     g.nextX = x + w;
     if (t > 20 && rng() < 0.35) {
       // a second one close behind: land and hop again, or float over both
       const gap = 170 + rng() * 60;
-      const w2 = 190 + rng() * 80;
+      const w2 = 230 + rng() * 80;
       g.puddles.push({ x0: g.nextX + gap, x1: g.nextX + gap + w2 });
       g.nextX += gap + w2;
     }
@@ -146,21 +133,6 @@ export default function create(env) {
       const v = 260 + rng() * 420;
       g.bits.push({ kind: 'drop', x: WREN_X + (rng() - 0.5) * 60, y: GROUND, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.6 + rng() * 0.4 });
     }
-  }
-
-  function insideOut() {
-    g.flap = 0;
-    g.flips++;
-    g.streak = 0;
-    g.open = false;
-    g.wantHop = false;
-    g.noOpen = 0.9;
-    g.snagT = 0.9;
-    g.stun = 0.5;
-    g.speed = 0;
-    sfx('squawk');
-    env.vibrate?.(60);
-    pop('Inside out!', WREN_X, GROUND - 330, PAL.brick, 46);
   }
 
   function snag(a) {
@@ -200,26 +172,16 @@ export default function create(env) {
 
     // The umbrella: press to pop it open (a hop from the ground), hold to
     // keep it open, let go to furl it.
-    g.landed += dt;
-    g.flap = Math.max(0, g.flap - FLAP_DECAY * dt);
     if (input.actionPressed && g.noOpen <= 0 && g.stun <= 0) {
       g.open = true;
-      g.wantHop = g.grounded;
       sfx('switch');
-      // snapped open and shut too often, it blows inside out
-      g.flap += 1;
-      if (g.flap > FLAP_MAX) insideOut();
+      if (g.grounded) {
+        g.grounded = false;
+        g.vy = HOP;
+        sfx('pour');
+      }
     }
     if (!input.action || g.noOpen > 0) g.open = false;
-    if (!g.open) g.wantHop = false;
-    // It hops once it has stood a moment since the last landing (a press
-    // just after landing hops when that moment is up, if still held).
-    if (g.wantHop && g.grounded && g.landed >= SETTLE) {
-      g.wantHop = false;
-      g.grounded = false;
-      g.vy = HOP;
-      sfx('pour');
-    }
 
     // Gusts, from a little way in: they lift an open umbrella.
     if (g.elapsed > 17) {
@@ -244,7 +206,6 @@ export default function create(env) {
         g.h = 0;
         g.vy = 0;
         g.grounded = true;
-        g.landed = 0;
         sfx('plop');
       }
     }
@@ -265,7 +226,7 @@ export default function create(env) {
           g.score += 2;
           g.bonus += 2;
           sfx('right');
-          pop(`${g.streak} dry in a row! +3`, WREN_X + 60, GROUND - top() - 40, PAL.magenta, 44);
+          pop(`${g.streak} dry in a row! +2`, WREN_X + 60, GROUND - top() - 40, PAL.magenta, 44);
         } else pop('+1', WREN_X + 40, GROUND - top() - 30, PAL.magenta, 40);
       }
     }
@@ -319,7 +280,6 @@ export default function create(env) {
     if (g.splashes) woes.push(`${g.splashes} splash${g.splashes === 1 ? '' : 'es'}`);
     if (g.bonus) lines.push(`Best run: ${g.bestStreak} dry in a row (+${g.bonus} bonus).`);
     if (g.snags) woes.push(`${g.snags} snag${g.snags === 1 ? '' : 's'} on an awning`);
-    if (g.flips) woes.push(`blown inside out ${g.flips} time${g.flips === 1 ? '' : 's'}`);
     lines.push(woes.length ? `Along the way: ${woes.join(', ')}.` : 'Not a drop on your feet!');
     return lines;
   };
@@ -565,6 +525,7 @@ export default function create(env) {
     const soaked = g.wet > 1.2 && g.grounded && pose < 0; // just splashed: standing in the puddle, drenched
     if (pose >= 0) drawn = drawSprite(c, 'sprites.wrenPoses', pose, 0, 0, { h: TOP_OPEN, flip: true });
     else if (soaked) drawn = drawSprite(c, 'sprites.wrenSplash', 0, 0, 0, { h: TOP_SHUT, flip: true });
+    else drawn = drawSprite(c, 'sprites.wrenWalk', Math.floor(g.d / 90) % 2, 0, 0, { h: TOP_SHUT, flip: true });
     if (!drawn && soaked) c.scale(1.08, 0.9); // the stand-in sags
     if (!drawn) {
       if (g.open) {
@@ -576,7 +537,16 @@ export default function create(env) {
         canopy(c, 0, -TOP_OPEN + 52, CANOPY_R, false);
       }
       if (g.snagT > 0) canopy(c, 0, -TOP_SHUT - 20, CANOPY_R * 0.7, true);
+      // The portrait stands in a painted puddle: in the air, leave it (and
+      // the claws' tips) behind.
+      if (!g.grounded) {
+        c.save();
+        c.beginPath();
+        c.rect(-SIZE, -SIZE * 2, SIZE * 2, SIZE * 2 - (52 * SIZE) / 400);
+        c.clip();
+      }
       drawBird(c, 'wetweatherwren', { x: 0, y: 0, size: SIZE, t, flip: true });
+      if (!g.grounded) c.restore();
     }
     c.restore();
     // dripping wet after a splash

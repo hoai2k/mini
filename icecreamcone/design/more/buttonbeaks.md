@@ -27,7 +27,7 @@ Keyboard: arrows or A/D walk, Space picks up or tosses. Mouse or touch:
 they follow the pointer; tap a bowl to pick from it, tap up by the coats
 to toss from there. On a narrow screen the view follows them, 1000 wide.
 
-**Pass.** 12 buttons. Bots (seeds 1–4): a beginner (slower, a moment to
+**Pass.** 10 buttons. Bots (seeds 1–4): a beginner (slower, a moment to
 look, now and then a look-alike by mistake) 12–14; a good tailor 25–26;
 walking up and down pressing all the time 4–5; idle 0.
 
@@ -40,3 +40,27 @@ IC-M05e is the pair holding something up between their beaks and tossing
 it.
 IC-M05f is the pair mid-stride, pecking into a bowl, dazed after a wrong
 button and hopping for joy when one is sewn on.
+
+## Changes after the audit
+
+1. **Pass lowered to 10** (from 12), so a beginner (12–14 with the bots)
+   clears it within a try or two. Mashing scores 4–5.
+2. **Matching holes pulse.** While the Buttonbeaks hold a button, every open
+   hole on the line that it fits gets a pulsing pink ring, so the child sees
+   where to run. The tips say so.
+
+Not changed: the shared "things pass by" shape (the audit's point 3 across
+all games). Button Up already differs by being fetch-and-deliver (two
+trips, reading a button's colour, shape and holes) rather than timing one
+press; its place in the guide order is for the lead to keep apart from
+Snip Snap and Just a Pinch. There were no point penalties to drop.
+
+## Matched to the painting
+
+The painted pair stands taller than the stand-in (362 units against 230),
+so the held button now sits between their two heads, above the pink one's
+beak and clear of the yellow one's eye, with a thread to each beak; tosses,
+the aim line and the dizzy stars start from there, and the pose sheets are
+drawn at the painting's height. IC-M05e and IC-M05f now describe the
+painting (the taller yellow-headed bird on the left, the smaller pink one
+on the right, bodies of overlapping buttons).

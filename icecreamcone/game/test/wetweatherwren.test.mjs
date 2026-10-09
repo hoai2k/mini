@@ -9,8 +9,8 @@ const FOOT = 22;
 
 // A walker who watches the next puddle and hops it. `lead` is how early it
 // presses (jittered by `slop`); it floats over the puddle and lets go once
-// past; it keeps the umbrella shut near awnings and taps a low hop for a
-// puddle beneath one; it opens over a little bird when it remembers to.
+// past; it keeps the umbrella shut near awnings (a quick tap hop for a
+// puddle near one); it opens over a little bird when it remembers to.
 function walker({ lead = 70, slop = 0, kind = 0.9, miss = 0, seed = 1 } = {}) {
   let r = seed * 7919;
   const rnd = () => ((r = (r * 16807) % 2147483647) / 2147483647);
@@ -56,9 +56,9 @@ const masher = (every = 6) => {
 };
 
 test('wetweatherwren: a beginner opens the next page, a good walker more; idling, holding and mashing do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: walker({ lead: 90, slop: 70, kind: 0.4, miss: 0.15, seed }) }).game.score);
+  const beginner = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: walker({ lead: 90, slop: 70, kind: 0.4, miss: 0.15, seed }) }).game.score);
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: walker({ lead: 60, slop: 10, kind: 1, seed }) }).game.score);
-  const mash = [2, 4, 6, 10, 20, 40].map((every, i) => run(create, { seed: i + 1, bot: masher(every) }).game.score);
+  const mash = [2, 4, 6, 10, 20, 30, 40, 60].flatMap((every) => [1, 2, 3].map((seed) => run(create, { seed, bot: masher(every) }).game.score));
   const hold = run(create, { seed: 1, bot: () => ({ action: true }) }).game.score;
   const idle = run(create, { seed: 1 }).game.score;
   console.log('wetweatherwren beginner', beginner, 'good', good, 'mash', mash, 'hold', hold, 'idle', idle, 'pass', pass);

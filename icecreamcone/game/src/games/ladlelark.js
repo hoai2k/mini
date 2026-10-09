@@ -9,11 +9,11 @@
 // three points (four if it was quick: before the patience bar turns
 // yellow), or one if a single unwanted bit came along too. A second
 // unwanted bit, or the old boot that sometimes bobs up, and the creature
-// says "Yuck!" and leaves. So does one kept waiting too long. The soup
-// swirls faster, the orders grow and patience shortens as the queue goes on.
-// Score: points.
+// says "Yuck!" and leaves, costing a point; one kept waiting too long just
+// leaves. The soup swirls faster, the orders grow and patience shortens as
+// the queue goes on. Score: points.
 
-import { drawBird, drawSprite, spriteCell, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
@@ -38,7 +38,7 @@ const BOWL = { x: 1250, y: 700 };
 const QUEUE_X = [1390, 1510, 1590];
 const SIZE = 300;
 const BUBBLE_X = 900; // the order, over the pot so a narrow screen shows it
-const SAY = [900, 340]; // where the creature's words pop up
+const SAY = [900, 390]; // where the creature's words pop up
 const K = SIZE / 400;
 
 export default function create(env) {
@@ -186,7 +186,7 @@ export default function create(env) {
       c.bowl.push(b.kind);
       if (b.kind === 'boot') {
         g.yucks++;
-        leave('A boot? Yuck!', PAL.brick, 2);
+        leave('A boot? Yuck!', PAL.brick, 1);
         return;
       }
       if ((c.order[b.kind] || 0) > (c.got[b.kind] || 0)) c.got[b.kind] = (c.got[b.kind] || 0) + 1;
@@ -194,7 +194,7 @@ export default function create(env) {
         c.extras++;
         if (c.extras >= 2) {
           g.yucks++;
-          leave('Yuck!', PAL.brick, 2);
+          leave('Yuck!', PAL.brick, 1);
           return;
         }
         pop(`No ${NAMES[b.kind][1]}!`, SAY[0], SAY[1] + 50, PAL.brick, 30);
@@ -299,7 +299,7 @@ export default function create(env) {
   // ---------- drawing ----------
 
   function bit(c, kind, x, y, s = 1, rot = 0) {
-    if (drawSprite(c, 'sprites.larkBits', KINDS.indexOf(kind), x, y, { h: (kind === 'pea' ? 20 : kind === 'boot' ? 52 : 34) * s, anchor: 'center', rot })) return;
+    if (drawSprite(c, 'sprites.larkBits', KINDS.indexOf(kind), x, y, { h: (kind === 'pea' ? 26 : kind === 'boot' ? 52 : 34) * s, anchor: 'center', rot })) return;
     c.save();
     c.translate(x, y);
     c.rotate(rot);
@@ -317,7 +317,7 @@ export default function create(env) {
         break;
       case 'pea':
         c.beginPath();
-        c.arc(0, 0, 10, 0, Math.PI * 2);
+        c.arc(0, 0, 13, 0, Math.PI * 2);
         c.fillStyle = '#7ab048';
         c.fill();
         ink(c, 1.6);
@@ -467,14 +467,23 @@ export default function create(env) {
     // how far down the bowl is: hovering, then into the soup and out
     const k = g.dipT > 0 ? (DIP - g.dipT) / DIP : 0;
     const p = g.dipT > 0 ? Math.sin(k * Math.PI) : 0;
-    const hover = 80 + Math.sin(t * 3) * 6;
+    // it hovers well above the ring so the ring's inside stays in view
+    const hover = 150 + Math.sin(t * 3) * 6;
     const bottom = sy - hover + p * (hover + 16);
     const pose = g.dipT > 0 ? (k < 0.45 ? 1 : 2) : 0;
+    c.save();
+    if (!pose) c.globalAlpha = 0.6; // and is see-through while it only hovers
+    else if (p > 0.05) {
+      // dipping: whatever is below the soup's surface at the ring is hidden
+      c.beginPath();
+      c.rect(0, 0, W, sy + 4);
+      c.clip();
+    }
     // the painted poses have the ladle's bowl at the centre of the cell
     if (!drawSprite(c, 'sprites.larkPoses', pose, sx, bottom - 40 * K, { h: SIZE * 1.4, anchor: 'center', whole: true })) {
-      // wings: beating while it hovers, swept up as it dips
+      // wings: beating while it hovers, swept up as it dips (the portrait has its own)
       const flap = pose ? -0.8 : Math.sin(t * 16) * 0.5;
-      for (const d of [-1, 1]) {
+      for (const d of art('subject.ladlelark') ? [] : [-1, 1]) {
         c.save();
         c.translate(sx + d * 30, bottom - 70 * K);
         c.rotate(d * (0.6 + flap));
@@ -486,7 +495,10 @@ export default function create(env) {
       c.save();
       c.translate(sx, bottom);
       if (pose === 1) c.rotate(0.25); // tipping its bowl into the soup
-      drawBird(c, 'ladlelark', { x: -20 * K, y: 90 * K, size: SIZE, t });
+      // the bowl's bottom, in bird units from the feet: painting (42, -128)
+      // (measured on the PNG: 60%, 66.5% of the square, feet at 97.1%), stand-in (20, -90)
+      if (art('subject.ladlelark')) drawBird(c, 'ladlelark', { x: -42 * K, y: 128 * K, size: SIZE, t });
+      else drawBird(c, 'ladlelark', { x: -20 * K, y: 90 * K, size: SIZE, t });
       c.restore();
       if (pose === 2) {
         // a full bowl, brimming
@@ -497,18 +509,12 @@ export default function create(env) {
         ink(c, 1.4);
       }
     }
+    c.restore();
     if (p > 0.05) {
-      // the soup closes over the dipped bowl
-      c.save();
+      // a ring of ripples where the bowl went in
       c.beginPath();
-      c.ellipse(CX, CY, RX, RY, 0, 0, Math.PI * 2);
-      c.clip();
-      c.beginPath();
-      c.ellipse(sx, sy + 40, 120, 54, 0, 0, Math.PI * 2);
-      c.rect(sx - 130, sy + 20, 260, 140);
-      c.fillStyle = 'rgba(214,170,70,0.9)';
-      c.fill();
-      c.restore();
+      c.ellipse(sx, sy + 4, 60 + p * 30, 14 + p * 8, 0, 0, Math.PI * 2);
+      ink(c, 3, 'rgba(255,244,192,0.9)');
     }
   }
 

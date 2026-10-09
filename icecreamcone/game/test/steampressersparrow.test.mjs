@@ -9,7 +9,7 @@ const pass = entry.pass;
 // A presser: goes to the nearest crease and runs the iron along it, end to
 // end and back, until it's flat, then on to the next. `speed` is how hard it
 // pushes the stick; with `steam` it puffs at the start of each stroke.
-function presser({ speed = 0.6, steam = false } = {}) {
+function presser({ speed = 0.6, steam = false, kind = 'keyboard' } = {}) {
   let crease = null;
   let idx = 0;
   let dir = 1;
@@ -46,7 +46,7 @@ function presser({ speed = 0.6, steam = false } = {}) {
     const dx = q.x - game.x;
     const dy = q.y - game.y;
     const l = Math.hypot(dx, dy) || 1;
-    return { x: (dx / l) * speed, y: (dy / l) * speed, action: press };
+    return { x: (dx / l) * speed, y: (dy / l) * speed, action: press, kind };
   };
 }
 
@@ -68,8 +68,8 @@ const sweeper = () => {
 };
 
 test('steampressersparrow: a beginner opens the next page, a good presser more; camping, sweeping and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: presser({ speed: 0.45 }) }).game.score);
-  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: presser({ speed: 0.75, steam: true }) }).game.score);
+  const beginner = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: presser({ speed: 0.45 }) }).game.score);
+  const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: presser({ speed: 0.75, steam: true, kind: 'controller' }) }).game.score);
   const camp = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: camper() }).game.score);
   const sweep = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: sweeper() }).game.score);
   const idle = run(create, { seed: 1 }).game.score;
@@ -104,7 +104,7 @@ test('steampressersparrow: lingering with steam scorches the cloth', () => {
   game.score = 10;
   for (let i = 0; i < 180 && !game.scorches; i++) game.update(1 / 60, blank({ action: i % 30 === 0, actionPressed: i % 30 === 0 }));
   assert.equal(game.scorches, 1);
-  assert.equal(game.score, 8);
+  assert.equal(game.score, 9);
 });
 
 test('steampressersparrow: dry, it takes much longer to scorch; steam presses faster', () => {
@@ -138,4 +138,24 @@ test('steampressersparrow: the next garment comes when its time runs out, and la
   assert.notEqual(game.garment, first);
   assert.ok(game.count >= 3);
   assert.ok(game.garment.creases.length >= n0, `${game.garment.creases.length} >= ${n0}`);
+});
+
+test('steampressersparrow: with a pointer, only a tap on the iron puffs steam', () => {
+  const game = create(env(1));
+  const ptr = (x, y, press) => blank({ kind: 'pointer', action: press, actionPressed: press, pointer: { active: true, x, y, down: press, pressed: press } });
+  game.update(1 / 60, ptr(game.x + 500, game.y, true)); // a finger down far from the iron: it moves, no steam
+  assert.equal(game.steam, 0);
+  assert.equal(game.tank, 3);
+  for (let i = 0; i < 10; i++) game.update(1 / 60, ptr(game.x, game.y, false));
+  game.update(1 / 60, ptr(game.x, game.y - 40, true)); // a tap on the iron
+  assert.ok(game.steam > 0);
+});
+
+test('steampressersparrow: with the keyboard a short tap only nudges the iron', () => {
+  const game = create(env(1));
+  const x0 = game.x;
+  for (let i = 0; i < 6; i++) game.update(1 / 60, blank({ x: 1, kind: 'keyboard' }));
+  for (let i = 0; i < 30; i++) game.update(1 / 60, blank({ kind: 'keyboard' }));
+  const moved = game.x - x0;
+  assert.ok(moved > 5 && moved < 90, `moved ${moved}`);
 });

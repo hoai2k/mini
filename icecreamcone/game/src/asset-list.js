@@ -344,7 +344,7 @@ export const ASSETS = {
   },
   "scene.keycrane": {
     "file": "assets/scenes/keycrane.webp",
-    "delivered": true
+    "delivered": false
   },
   "sprites.keycranePrizes": {
     "file": "assets/sprites/keycrane-prizes.png",
@@ -406,24 +406,24 @@ export const ASSETS = {
     "file": "assets/sprites/wren-splash.png",
     "delivered": false
   },
+  "sprites.wrenWalk": {
+    "file": "assets/sprites/wren-walk.png",
+    "delivered": false
+  },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",
-    "delivered": true
+    "delivered": false
   },
   "sprites.dishes": {
     "file": "assets/sprites/dishes.png",
     "delivered": false
   },
-  "sprites.grime": {
-    "file": "assets/sprites/grime.png",
-    "delivered": false
-  },
-  "sprites.glovedoveScrub": {
-    "file": "assets/sprites/glovedove-scrub.png",
-    "delivered": false
-  },
   "sprites.glovedovePoses": {
     "file": "assets/sprites/glovedove-poses.png",
+    "delivered": false
+  },
+  "sprites.glovedoveToss": {
+    "file": "assets/sprites/glovedove-toss.png",
     "delivered": false
   },
   "scene.titthrush": {
@@ -460,7 +460,7 @@ export const ASSETS = {
   },
   "scene.saltshakershrike": {
     "file": "assets/scenes/saltshakershrike.webp",
-    "delivered": true
+    "delivered": false
   },
   "sprites.shrikePlates": {
     "file": "assets/sprites/shrike-plates.png",
@@ -472,6 +472,10 @@ export const ASSETS = {
   },
   "sprites.shrikePoses": {
     "file": "assets/sprites/shrike-poses.png",
+    "delivered": false
+  },
+  "sprites.shrikeTable": {
+    "file": "assets/sprites/shrike-table.png",
     "delivered": false
   },
   "scene.ladlelark": {
@@ -536,7 +540,7 @@ export const ASSETS = {
   },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
-    "delivered": true
+    "delivered": false
   },
   "sprites.stations": {
     "file": "assets/sprites/stations.png",

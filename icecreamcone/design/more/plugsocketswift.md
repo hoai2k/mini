@@ -49,3 +49,25 @@ game draws the lamp count and heat gauge above the box. IC-M13c is the
 Swift's three poses, mirrored to fly right: in flight, diving at a socket
 as it plugs a lamp in, and singed (bulb out, smoking) while the fuse is
 blown. Its page portrait is the Swift standing still.
+
+## Changes after the audit
+
+1. **"Three is safe" is visible.** The fuse box's six lamp places are pale
+   green for the first three and pale red for the rest; they light up green,
+   then amber for the fourth, then red.
+2. **A fuse warning on a phone.** On a narrow screen, when the fuse box is
+   out of view and the fuse is heating or blown, a small copy of the lamp
+   count and heat gauge rides at the view's left edge, on the lawn ("◀ FUSE",
+   or "◀ Flip the fuse!"), and flashes red when the fuse is hot.
+
+The scores and pass are unchanged (pass 12; beginner 13–16, good 19–20).
+
+## Matched to the painting
+
+The painting's socket (the body) is at (−46, −192) in bird units, and its
+bulb is straight above it at (−46, −326). The Swift's position is now the
+socket. The bulb's glow and the singed smoke sit on the painted bulb, and
+the code wings are left off because the painting has its own pink wings. The
+pose request IC-M13c now describes the painting: a clear bulb with an orange
+filament, a cream wall socket on a blue-green body, pink wings, and a flex
+tail ending in a plug.

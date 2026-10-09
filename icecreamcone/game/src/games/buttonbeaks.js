@@ -13,6 +13,7 @@
 
 import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
+import { subjectShape } from '../subjects.js';
 
 Object.assign(SHEETS, {
   'sprites.buttons': [3, 2], // the six buttons, in KINDS order
@@ -30,7 +31,14 @@ const COAT_H = 290;
 const HOLE_DY = [84, 166, 248]; // the buttonholes, below the line
 const GROUND = 806; // the Buttonbeaks' feet, behind the tin
 const SIZE = 280;
-const HOLD_Y = GROUND - 205; // the button they hold up
+const K = SIZE / 400;
+// Where the held button sits, and how tall the pair stands: in the painting
+// it sits between their two heads, above the pink one's beak (372 units
+// up, 26 right), and the taller bird's head is 362 up; in the stand-in, 205 and 230.
+const painted = () => !!subjectShape('buttonbeaks').feet;
+const holdY = () => GROUND - (painted() ? 372 : 205) * K;
+const holdDX = () => (painted() ? 26 * K : 0); // clear of the yellow one's eye
+const TALL = () => (painted() ? 362 : 230) * K;
 const BOWL_Y = 838;
 const BOWL_GAP = 176;
 const REACH = 80; // how near a bowl they must be to pick from it
@@ -121,7 +129,7 @@ export default function create(env) {
   }
 
   function toss() {
-    g.flying.push({ kind: g.holding, x: g.x, y: HOLD_Y, vy: -1500, vx: 0, state: 'up', spin: 0 });
+    g.flying.push({ kind: g.holding, x: g.x + holdDX(), y: holdY(), vy: -1500, vx: 0, state: 'up', spin: 0 });
     g.holding = null;
     g.tossT = 0.3;
     sfx('pour');
@@ -196,7 +204,7 @@ export default function create(env) {
       if (input.pointer.active) {
         // touch: tap a bowl to pick from it, tap up by the coats to toss
         g.x = clamp(input.pointer.x, 140, W - 140);
-        if (input.pointer.y > HOLD_Y + 60) {
+        if (input.pointer.y > 680) {
           const i = g.overBowl();
           if (i >= 0) pick(i);
         } else if (g.holding !== null) toss();
@@ -372,6 +380,13 @@ export default function create(env) {
         ink(c, 1.4);
         c.restore();
         drawButton(c, h.kind, 0, h.dy, 26, { ghost: true });
+        if (g.holding === h.kind) {
+          // the button they hold fits here: a pulsing ring says where to run
+          const k = 0.5 + 0.5 * Math.sin(t * 8);
+          c.beginPath();
+          c.arc(0, h.dy, 44 + k * 8, 0, Math.PI * 2);
+          ink(c, 4, `rgba(192,64,122,${0.55 + 0.45 * k})`);
+        }
         c.beginPath();
         c.moveTo(-14, h.dy + 46);
         c.lineTo(14, h.dy + 46);
@@ -424,7 +439,7 @@ export default function create(env) {
       : g.cheerT > 0 && g.holding === null ? ['sprites.buttonbeaksPoses', 3]
       : g.holding !== null ? ['sprites.buttonbeaksToss', 0]
       : stride ? ['sprites.buttonbeaksPoses', 0] : null;
-    const drawn = pose && drawSprite(c, pose[0], pose[1], g.x, GROUND - walk, { h: SIZE * 0.62, rot: daze });
+    const drawn = pose && drawSprite(c, pose[0], pose[1], g.x, GROUND - walk, { h: TALL(), rot: daze });
     if (!drawn) {
       c.save();
       c.translate(g.x, GROUND - walk - g.cheerT * 30);
@@ -435,12 +450,20 @@ export default function create(env) {
     if (g.holding !== null) {
       // the button held up between them, on a loop of thread
       c.beginPath();
-      c.moveTo(g.x - 40, HOLD_Y + 60 - walk);
-      c.quadraticCurveTo(g.x, HOLD_Y - 10 - walk, g.x + 40, HOLD_Y + 60 - walk);
+      const hy = holdY() - walk + Math.sin(t * 4) * 3;
+      if (painted()) {
+        // a thread from each bird's beak: the yellow one's tip and the pink one's
+        c.moveTo(g.x - 150 * K, GROUND - 300 * K - walk);
+        c.quadraticCurveTo(g.x - 60 * K, hy - 30, g.x + holdDX(), hy);
+        c.quadraticCurveTo(g.x + 10 * K, hy + 40, g.x - 9 * K, GROUND - 252 * K - walk);
+      } else {
+        c.moveTo(g.x - 40, hy + 60);
+        c.quadraticCurveTo(g.x, hy - 10, g.x + 40, hy + 60);
+      }
       ink(c, 1.6, '#b8506e');
-      drawButton(c, g.holding, g.x, HOLD_Y - walk + Math.sin(t * 4) * 3, 30);
+      drawButton(c, g.holding, g.x + holdDX(), hy, 30);
     }
-    if (g.daze > 0) label(c, '✶  ✶', g.x, GROUND - 230, { size: 30, color: PAL.ochre, weight: 800 });
+    if (g.daze > 0) label(c, '✶  ✶', g.x, GROUND - TALL() - 24, { size: 30, color: PAL.ochre, weight: 800 });
   }
 
   g.draw = (c, t) => {
@@ -479,12 +502,12 @@ export default function create(env) {
 
     for (const coat of g.coats) drawCoat(c, coat, t);
     // where a toss would go
-    const above = g.holding !== null ? g.coatAbove() : null;
+    const above = g.holding !== null ? g.coatAbove(g.x + holdDX()) : null;
     c.save();
     c.setLineDash([4, 10]);
     c.beginPath();
-    c.moveTo(g.x, HOLD_Y - 40);
-    c.lineTo(g.x, above ? g.coatTop(above) + COAT_H : HOLD_Y - 140);
+    c.moveTo(g.x + holdDX(), holdY() - 40);
+    c.lineTo(g.x + holdDX(), above ? g.coatTop(above) + COAT_H : holdY() - 140);
     ink(c, 2, g.holding === null ? 'rgba(59,43,32,0)' : above ? PAL.magenta : 'rgba(59,43,32,0.35)');
     c.restore();
 

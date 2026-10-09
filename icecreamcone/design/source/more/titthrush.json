@@ -18,7 +18,7 @@
     "size": "1024 x 1024, transparent",
     "used": "Set the Clocks: the Tit Trush's watch face, large, whose hands the player turns (the game draws the hands, the crown and the chain).",
     "standin": "A gold ring and a cream face with numbers drawn in code.",
-    "prompt": "{STYLE} The face of an old gold pocket watch seen straight on, filling the image: a round, slightly worn gold case with a little engraved and crosshatched edge, and inside it a cream enamel face exactly centred in the image whose diameter is 80% of the image's width, with bold black numbers 1 to 12 in an old-fashioned serif, a ring of minute ticks (longer every five minutes) round its edge, and a little gold sunburst at the centre. No hands at all, and no crown, bow or chain (the game draws them). Like the Ten O'clock Tit Trush's own face (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ). {ALPHA}"
+    "prompt": "{STYLE} The face of the Ten O'clock Tit Trush's gold pocket watch (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ) seen straight on and filling the image, in the same gold and cream: a round, slightly worn gold case with a little engraved and crosshatched edge, and inside it a cream face exactly centred in the image whose diameter is 80% of the image's width, with black old-fashioned serif numbers 1 to 12 and a ring of fine minute ticks round its edge, like the painting's face. No hands at all, and no lid, crown, bow or chain (the game draws them). {ALPHA}"
   },
   {
     "id": "IC-M12c",
@@ -38,7 +38,7 @@
     "size": "1024 x 1024, transparent",
     "used": "Set the Clocks: the Tit Trush sings for a moment each time a clock is set right.",
     "standin": "The portrait, hopping.",
-    "prompt": "{STYLE} {VARIANT} The Ten O'clock Tit Trush (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ), the gold pocket watch bird, singing: its head tipped back and its beak wide open, its pink plumes lifted, standing on both feet, at the same scale and framing as the portrait. Its face still shows ten o'clock. {ALPHA}"
+    "prompt": "{STYLE} {VARIANT} The Ten O'clock Tit Trush (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ): a round gold pocket watch as its body, its cream face showing ten o'clock with black numerals and blue steel hands, the hinged gold lid open at its front, a small gold head on top with a big round eye and a long thin gold beak, the winding crown and ring bow on top of the head, a pink plume crest behind the head, a pink feathered wing at the back, a gold chain curling out behind as its tail, and pink scaly legs with dark claws, singing: its head tipped back and its long beak wide open, the pink crest and wing lifted, the lid swung a little wider, standing on both feet, at the same scale and framing as the portrait, facing left. Its face still shows ten o'clock. {ALPHA}"
   },
   {
     "id": "IC-M12e",
@@ -48,6 +48,6 @@
     "size": "1024 x 1024, transparent",
     "used": "Set the Clocks: the Tit Trush when the wrong time is set (the crown jams) or a town clock gives up waiting.",
     "standin": "The portrait shaking.",
-    "prompt": "{STYLE} {VARIANT} The Ten O'clock Tit Trush (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ), the gold pocket watch bird, flustered: leaning back on its heels, its pink plumes ruffled and standing on end, its beak open in an indignant squawk, little ink shake lines round its case. Its face still shows ten o'clock. Facing left, at the same scale and framing as the portrait. {ALPHA}"
+    "prompt": "{STYLE} {VARIANT} The Ten O'clock Tit Trush (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ): a round gold pocket watch as its body, its cream face showing ten o'clock with black numerals and blue steel hands, the hinged gold lid open at its front, a small gold head on top with a big round eye and a long thin gold beak, the winding crown and ring bow on top of the head, a pink plume crest behind the head, a pink feathered wing at the back, a gold chain curling out behind as its tail, and pink scaly legs with dark claws, flustered: leaning back on its heels, its pink crest and wing ruffled and standing on end, its beak open in an indignant squawk, the lid flapping half shut, the chain tail swinging, little ink shake lines round its case. Its face still shows ten o'clock. Facing left, at the same scale and framing as the portrait. {ALPHA}"
   }
 ]

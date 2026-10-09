@@ -11,8 +11,50 @@
 import { art, blob, poly, wash, ink, hatch, eye, beak, leg, drawOtherBirds, PAL, INK } from './draw.js';
 
 // The paintings share the field-guide portraits' framing: the bird fills
-// about 80% of a square, feet near the bottom.
-const FRAME = { cx: 0.5, feet: 0.93, u: 420 };
+// about 80% of a square, centred, drawn 420 units wide.
+const FRAME = { cx: 0.5, u: 420 };
+
+// Measured on each delivered painting: where its claws touch the ground (a
+// share of the image's height), the solid extent of the bird and where its
+// head is, in drawBird units (feet at the origin). The games and Shuttercluck
+// use these once the painting has loaded, the stand-in's own otherwise.
+const PAINTED = {
+  broomwhisk: { feet: 0.980, box: { x0: -123, x1: 144, top: -402 }, head: [-42, -368] },
+  buttonbeaks: { feet: 0.942, box: { x0: -189, x1: 199, top: -362 }, head: [-72, -307] },
+  drippet: { feet: 0.976, box: { x0: -185, x1: 194, top: -395 }, head: [20, -348] },
+  garbagecanary: { feet: 0.969, box: { x0: -155, x1: 183, top: -387 }, head: [-29, -333] },
+  glovedove: { feet: 0.974, box: { x0: -199, x1: 199, top: -392 }, head: [-132, -333] },
+  keycrane: { feet: 0.970, box: { x0: -183, x1: 190, top: -391 }, head: [-63, -332] },
+  ladlelark: { feet: 0.971, box: { x0: -167, x1: 179, top: -390 }, head: [5, -339] },
+  milkmidge: { feet: 0.966, box: { x0: -111, x1: 128, top: -389 }, head: [-13, -335] },
+  niffy: { feet: 0.970, box: { x0: -190, x1: 188, top: -393 }, head: [45, -333] },
+  plugsocketswift: { feet: 0.977, box: { x0: -194, x1: 191, top: -391 }, head: [-74, -341] },
+  radiobird: { feet: 0.932, box: { x0: -142, x1: 156, top: -356 }, head: [-68, -299] },
+  saltshakershrike: { feet: 0.976, box: { x0: -160, x1: 173, top: -394 }, head: [-71, -338] },
+  sawbird: { feet: 0.911, box: { x0: -201, x1: 202, top: -334 }, head: [-8, -274] },
+  snippit: { feet: 0.966, box: { x0: -200, x1: 202, top: -386 }, head: [-19, -334] },
+  steampressersparrow: { feet: 0.967, box: { x0: -198, x1: 202, top: -386 }, head: [10, -330] },
+  titthrush: { feet: 0.978, box: { x0: -175, x1: 189, top: -400 }, head: [-9, -342] },
+  waterglassgoose: { feet: 0.980, box: { x0: -165, x1: 171, top: -402 }, head: [-66, -356] },
+  wetweatherwren: { feet: 0.969, box: { x0: -193, x1: 201, top: -383 }, head: [-143, -292] },
+  bellowsbittern: { feet: 0.949, box: { x0: -183, x1: 192, top: -373 }, head: [53, -314] },
+  candlestickkiwi: { feet: 0.980, box: { x0: -173, x1: 174, top: -403 }, head: [36, -340] },
+  concertinacurlew: { feet: 0.954, box: { x0: -198, x1: 200, top: -375 }, head: [32, -311] },
+  hatboxhoopoe: { feet: 0.987, box: { x0: -161, x1: 165, top: -410 }, head: [37, -350] },
+  hourglassheron: { feet: 0.988, box: { x0: -160, x1: 152, top: -406 }, head: [-24, -362] },
+  lampshadeloon: { feet: 0.978, box: { x0: -173, x1: 186, top: -397 }, head: [-46, -347] },
+  mousetrapmagpie: { feet: 0.919, box: { x0: -200, x1: 201, top: -346 }, head: [-79, -288] },
+  rollingpinrail: { feet: 0.887, box: { x0: -203, x1: 202, top: -298 }, head: [-46, -249] },
+  spectaclesnipe: { feet: 0.962, box: { x0: -200, x1: 201, top: -383 }, head: [-32, -320] },
+  weathervanewarbler: { feet: 0.981, box: { x0: -191, x1: 199, top: -399 }, head: [-64, -340] },
+};
+
+// The box and head of the bird as it is drawn now.
+export function subjectShape(id) {
+  const sub = SUBJECTS[id];
+  const p = PAINTED[id];
+  return p && art((sub.pocket ? 'pocket.' : 'subject.') + id) ? p : sub;
+}
 
 // Two thin legs from the body down to the feet.
 function legs(g, x, hip, gap = 34, color = INK) {
@@ -612,7 +654,7 @@ export function drawSubject(g, id, { x = 0, y = 0, size = 300, t = 0, flip = fal
   const s = size / 400;
   g.scale(flip ? -s : s, s * (1 + Math.sin(t * 2) * 0.012));
   const img = art((sub.pocket ? 'pocket.' : 'subject.') + id);
-  if (img) g.drawImage(img, -FRAME.cx * FRAME.u, -FRAME.feet * FRAME.u, FRAME.u, FRAME.u);
+  if (img) g.drawImage(img, -FRAME.cx * FRAME.u, -(PAINTED[id]?.feet ?? 0.93) * FRAME.u, FRAME.u, FRAME.u);
   else sub.draw(g, t, pose);
   g.restore();
 }

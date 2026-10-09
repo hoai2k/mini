@@ -5,10 +5,10 @@
     "key": "scene.radiobird",
     "file": "assets/scenes/radiobird.webp",
     "size": "1920 x 1080, opaque",
-    "used": "Tune In: the background. The dial, the signal meter, the speaker, the listeners and the Radio Bird are drawn on top.",
+    "used": "Tune In: the background. The dial, the speaker under the needle, the listeners and the Radio Bird are drawn on top.",
     "standin": "Striped wallpaper, a lamp's glow, a rug and a sage sofa drawn in code.",
-    "prompt": "{STYLE} {SCENE}A cosy 1960s sitting room in the evening: softly striped cream-and-mauve wallpaper, the warm glow of a standard lamp at the far right edge, a wooden floor across the bottom third with a dusty-pink oval rug on the left. On the right an empty low sage-green sofa, its back top at about 65% of the height, its seat front at about 87%, spanning from 55% to 93% of the width, with nothing on it (the game seats three little birds there). Keep the whole upper wall plain, from the top down to 55% of the height and across the full width, with no pictures, shelves or windows, because the game draws a long tuning dial across the top and a signal meter and speaker below it. Keep the left third of the room, where the Radio Bird stands on the rug, plain as well.",
-    "status": "delivered"
+    "prompt": "{STYLE} {SCENE}A cosy 1960s sitting room in the evening: softly striped cream-and-mauve wallpaper, the warm glow of a standard lamp at the far right edge, a wooden floor across the bottom third with a dusty-pink oval rug on the left. On the right an empty low sage-green sofa, its back top at about 65% of the height, its seat front at about 87%, spanning from 55% to 93% of the width, with nothing on it (the game seats three little birds there). Keep the whole upper wall plain, from the top down to 55% of the height and across the full width, with no pictures, shelves or windows, because the game draws a long tuning dial across the top and a speaker that slides along under its needle. Keep the left third of the room, where the Radio Bird stands on the rug, plain as well.",
+    "status": "requested"
   },
   {
     "id": "IC-M18b",
@@ -48,6 +48,6 @@
     "size": "3072 x 1024, transparent",
     "used": "Tune In: the Radio Bird listening while the dial turns through the static, singing while the asked-for station plays (and when the listeners cheer), and startled by a wrong station.",
     "standin": "The portrait (or its stand-in) leaning a little to listen, swaying to sing, and jittering when startled.",
-    "prompt": "{STYLE} {VARIANT}The Radio Bird (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/radiobird.png ) in three poses in a row on one sheet, each in its own third, facing left, at the portrait's scale with its feet on the same ground line: 1) listening, its long neck bent down and round so its head is cocked close to its own speaker grille, eye narrowed, a few faint fuzzy static marks around the grille; 2) singing, head thrown back on its long neck, beak wide open, crest flared, a few small ink music notes coming from the grille and the beak; 3) startled, neck jerked back into an S, crest standing straight up, eye wide, one foot lifted. {ALPHA}"
+    "prompt": "{STYLE} {VARIANT}The Radio Bird (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/radiobird.png ): a mustard-yellow 1960s portable transistor radio with a carrying handle on top, a red knob and a silver dial on its front and a green speaker grille, a long neck striped mustard and sage, a small head with a big round eye, a long pink beak and a pink crest, a teal-blue wing, a plume of pink tail feathers and long pink legs, in three poses in a row on one sheet, each in its own third, facing left, at the portrait's scale with its feet on the same ground line: 1) listening, its long striped neck curved down and round so its head is cocked close to its own green speaker grille, eye narrowed, a few faint fuzzy static marks around the grille; 2) singing, head thrown back on its long neck, beak wide open, crest flared, a few small ink music notes coming from the grille; 3) startled, neck jerked back into an S, crest standing straight up, eye wide, one foot lifted. {ALPHA}"
   }
 ]

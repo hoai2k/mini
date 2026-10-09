@@ -86,7 +86,7 @@ test('snippit: a wrong string costs points and jams the blades', () => {
   game.x = other.px;
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   assert.equal(game.wrong, 1);
-  assert.equal(game.score, 20);
+  assert.equal(game.score, 25);
   assert.ok(game.jam > 0);
   assert.equal(game.want, want, 'the same one is still wanted');
   // jammed: a second snip does nothing
@@ -111,7 +111,7 @@ test('snippit: the tangle is never straight at the start, and grows over time', 
 test('snippit: a snip away from every knot does nothing', () => {
   const game = create(env(4));
   game.update(1 / 60, blank());
-  game.x = 250; // left of every knot (the first is at 330)
+  game.x = 250; // left of every knot (the first is at 400)
   game.update(1 / 60, blank({ action: true, actionPressed: true }));
   assert.equal(game.right + game.wrong, 0);
 });

@@ -76,7 +76,7 @@ const whirl = (every = 6) => {
 const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
 
 test('titthrush: a beginner opens the next page, a good player more; whirling, mashing and idling do not', () => {
-  const beginner = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: spinner({ max: 0.1, delay: 1.6, slip: 0.3, seed }) }).game.score);
+  const beginner = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => run(create, { seed, bot: spinner({ max: 0.1, delay: 1.6, slip: 0.3, seed }) }).game.score);
   const good = [1, 2, 3, 4].map((seed) => run(create, { seed, bot: spinner({ max: 0.3, delay: 0.6, seed }) }).game.score);
   const keyboard = [1, 2].map((seed) => run(create, { seed, bot: keys() }).game.score);
   const whirls = [2, 6, 20].map((every, i) => run(create, { seed: i + 1, bot: whirl(every) }).game.score);
@@ -152,4 +152,40 @@ test('titthrush: with a finger, dragging round the face turns the hands and a ta
   game.update(1 / 60, touch(900, 800, true, true));
   game.update(1 / 60, touch(900, 800, false, false, true));
   assert.equal(game.score, 1);
+});
+
+test('titthrush: an hour at a time on every device', () => {
+  // the controller: a flick of the stick up from the middle
+  let game = create(env(1));
+  game.update(1 / 60, blank({ kind: 'controller' }));
+  let m0 = game.m;
+  game.update(1 / 60, blank({ kind: 'controller', y: -1 }));
+  game.update(1 / 60, blank({ kind: 'controller', y: 0 }));
+  assert.equal(Math.round((((game.m - m0) % 720) + 720) % 720), 60);
+  // touch: grab the short hand (at ten o'clock, pointing to the 10) and drag it to the 11
+  game = create(env(1));
+  game.update(1 / 60, blank());
+  game.m = 600;
+  m0 = game.m;
+  const touch = (a, down, pressed = false, released = false) =>
+    blank({ kind: 'pointer', action: down, actionPressed: pressed, actionReleased: released, pointer: { active: true, x: 640 + Math.sin(a) * 120, y: 470 - Math.cos(a) * 120, down, pressed, released } });
+  const from = (10 / 12) * Math.PI * 2;
+  for (let i = 0; i <= 20; i++) game.update(1 / 60, touch(from + (i / 20) * (Math.PI / 6), true, i === 0));
+  game.update(1 / 60, touch(from + Math.PI / 6, false, false, true));
+  const turned = (((game.m - m0) % 720) + 720) % 720;
+  assert.ok(Math.abs(turned - 60) < 2, `turned ${turned}`);
+});
+
+test('titthrush: targets stay within three hours, and patience grows with the distance', () => {
+  const game = create(env(3));
+  game.update(1 / 60, blank());
+  for (let k = 0; k < 14; k++) {
+    let d = (((game.target - game.m) % 720) + 720) % 720;
+    if (d > 360) d -= 720;
+    assert.ok(Math.abs(d) <= 181, `target ${Math.abs(d)} minutes away`);
+    assert.ok(Math.abs(game.patience - (9 * (1 - game.elapsed / 50) + 6 * (game.elapsed / 50) + Math.abs(d) / 60)) < 0.05);
+    game.m = game.target;
+    game.update(1 / 60, blank({ action: true, actionPressed: true }));
+    for (let i = 0; i < 50; i++) game.update(1 / 60, blank());
+  }
 });
