@@ -100,3 +100,8 @@ at a scale that makes the sole 170 px long; the scorched pose is put so its
 heel (871, 877) lands where the pressing pose's heel is, so it stays on the
 cloth as it tips up. The code-drawn steam puffs are left out once the
 painted steaming pose is in. Nothing is stand-in any more.
+
+Scale check (owner's report that sprite birds shrink and grow): the pressing,
+steaming and scorched poses all draw at one scale and measure the same: the
+wooden handle is 415, 415 and 412 px along the iron (the scorched pose is
+tipped up, so its eyes look bigger but the iron is not); a test checks it.

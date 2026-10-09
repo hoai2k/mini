@@ -47,7 +47,7 @@ test('garbagecanary: a clumsy beginner opens the next page on most rounds, a beg
   const seeds16 = Array.from({ length: 16 }, (_, i) => i + 1);
   const clumsy = seeds8.map((seed) => run(create, { seed, bot: minder({ speed: 0.6, lead: 0.9, delay: 0.3, wobble: 0.2, seed }) }).game.score);
   const beginner = seeds8.map((seed) => run(create, { seed, bot: minder({ speed: 0.8, lead: 0.9, delay: 0.2, wobble: 0.15, seed }) }).game.score);
-  const good = seeds8.map((seed) => run(create, { seed, bot: minder({ speed: 1, lead: 0.7, delay: 0.05, wobble: 0.03, seed }) }).game.score);
+  const good = seeds8.map((seed) => run(create, { seed, bot: minder({ speed: 1, lead: 0.6, delay: 0.05, wobble: 0.03, seed }) }).game.score);
   const hold = seeds16.map((seed) => run(create, { seed, bot: holdWander() }).game.score);
   const flap = seeds16.map((seed) => run(create, { seed, bot: flapWander(2) }).game.score);
   const flapSlow = seeds16.map((seed) => run(create, { seed, bot: flapWander(0.75) }).game.score);
@@ -159,10 +159,14 @@ test('garbagecanary: lifting the lid knocks back something just above it', () =>
 test('garbagecanary: catching something that is not rubbish costs one and jams the lid', () => {
   const { game } = setup('hat', 380);
   game.score = 5;
-  step(game, 120, { action: true });
+  let stuck = false;
+  for (let i = 0; i < 120; i++) {
+    game.update(1 / 60, blank({ action: true }));
+    if (game.swallowed && game.jam > 0.2) stuck = stuck || game.open < 0.5;
+  }
   assert.equal(game.swallowed, 1);
   assert.equal(game.score, 4);
-  assert.ok(game.jam > 0 || game.open < 0.5);
+  assert.ok(stuck, 'the lid sticks while the canary splutters');
 });
 
 test('garbagecanary: with the lid shut, a thing in the lane bumps over it; one in another lane goes by', () => {
@@ -233,4 +237,19 @@ test('garbagecanary: a lid left gaping bores the canary back in, and then the wi
   step(game, 60 * 1.5, { action: true });
   assert.ok(game.score < 5, `whisked: ${game.score}`);
   assert.ok(game.whisked >= 1);
+});
+
+test('garbagecanary: every painted piece is drawn at one scale (rim, lid and eye within 4% across all frames and poses)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { REG } = await import('../src/games/garbagecanary.js');
+  const M = JSON.parse(readFileSync(new URL('../../design/source/sprite-measures.json', import.meta.url))).garbagecanary;
+  const near = (a, b, what) => assert.ok(Math.abs(a / b - 1) <= 0.04, `${what}: ${a.toFixed(1)} against ${b.toFixed(1)}`);
+  // the bin's rim, walking, against the standing bin
+  M.rim.walk.forEach((r, i) => near(r.width * REG.walk[i].s, M.rim.sheet.width, `walk frame ${i} rim`));
+  // each lid's length, against the shut lid with the head
+  const len = (l) => Math.hypot(l.back[0] - l.front[0], l.back[1] - l.front[1]);
+  near(len(M.lid.only) * REG.lidOnly.s, len(M.lid.sheet), 'lid alone');
+  M.lid.call.forEach((l, i) => near(len(l) * REG.call[i].s, len(M.lid.sheet), `calling lid ${i}`));
+  // the canary's eye in every pose, against the head under the shut lid
+  M.eye.neck.forEach((d, i) => near(d * REG.neck[i].s, M.eye.sheet, `neck pose ${i} eye`));
 });

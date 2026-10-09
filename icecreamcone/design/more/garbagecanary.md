@@ -167,3 +167,42 @@ open mouth only takes what comes down into it, not what passes above;
 things come 300 px off the edge with an arrow showing them, slower for the
 first 15 s; and three in ten bits of rubbish keep coming near the bin. The
 pass mark is 15 (the table above).
+
+## Registered to the delivered pieces
+
+The canary-out-of-the-bin, lid-alone and walk sheets (IC-M08e, f, g) came
+back without the requested registration, and the game had trusted it: the
+head floated, the bin shrank when it walked, the lid came away from the bin.
+Each piece is now registered by measurement (design/source/measure_sprites.py
+writes design/source/sprite-measures.json, and a test checks every frame and
+pose stays within 4%):
+
+- **Scale from a feature that never changes size**, never a cell's height:
+  the bin's rim width (482 px on the standing bin; 390–396 on the walk
+  frames, so they are drawn 1.22–1.24 times as big), each lid's length from
+  front tip to back corner (594 px on the shut lid; 548 on the lid alone,
+  drawn 1.084 times; 644 and 636 on the calling lids, drawn 0.92 and 0.93
+  times), and the canary's eye across its ink ring (57.5 px under the shut
+  lid; 41–44 on the head-and-neck poses, drawn 1.31–1.40 times).
+- **Placed on a landmark**: the walk frames by their rim's top middle, the
+  lids by their front tips (the lid alone sits exactly where the shut lid
+  does and swings up about the same back corner), the canary by its eye
+  (where the game keeps its head), with each pose's neck base and beak tip
+  measured; the bin's mouth is the rim's middle, 15 units in front of the
+  feet. The walk frames' legs are painted a little shorter, so while walking
+  the feet sit about 3% of the bin's height higher.
+- **The head never disappears**: with the lid up and the canary inside
+  (just opening, or bored), its head peeks over the rim instead of nothing.
+
+Catching now follows what the player sees. A playtest with a scripted
+player that lines up exactly found most "misses" were the lid stuck shut
+for 2.2 s after a swallow; the splutter is now 0.6 s. The lane is wider
+(60 px of depth, which the darkened shadow and bold arrow show), anything
+that passes through or just above the open mouth while the canary is keen
+falls in, and the canary grips with its beak's reach, not its eye's. Lined
+up, a player now catches nearly everything that isn't lost to a swallow.
+
+Balance after the fixes (seeds 1–16, pass 15): clumsy beginner 12–24
+(average 18.5; all of seeds 1–8 pass), beginner 19–32 (26.0), sharp minder
+(lid up 0.6 s early) 18–43, wandering with the lid up 0, flapping it twice a
+second 0–7, slowly 0–9, standing with it up 0, idle 0.

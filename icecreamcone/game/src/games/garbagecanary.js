@@ -65,16 +65,17 @@ const depthScale = (y) => lerp(0.88, 1.12, (y - DEPTH0) / (DEPTH1 - DEPTH0));
 // little, higher at the front; measured on the 1024 px painting: front rim
 // (278, 245) px, back rim and hinge (725, 290) px.
 const RIM = {
-  painted: { front: [-140, -303], back: [140, -285], hinge: [95, -276] }, // hinge: the lid piece's back corner, (745, 322) px
-  standin: { front: [-140, -250], back: [140, -250], hinge: [92, -250] },
+  // the mouth (the rim's middle) is at (476, 285) px in the bin piece's cell, 15 units in front of the centre line
+  painted: { front: [-140, -303], back: [140, -285], hinge: [104, -276], mouth: [-15, -290] }, // hinge: the lid's back corner, (766, 319) px
+  standin: { front: [-140, -250], back: [140, -250], hinge: [92, -250], mouth: [0, -250] },
 };
 const OPEN_ANGLE = 1.15;
-const JAM = 2.2; // seconds the lid stays shut after swallowing something that isn't rubbish
-const LANE = 40; // how close in depth something must pass to be in the bin's lane
+const JAM = 0.6; // seconds the lid stays shut after swallowing something that isn't rubbish
+const LANE = 60; // how close in depth something must pass to be in the bin's lane
 const CURIOUS = 200; // px/s: how fast cats and sparrows turn towards an open bin
 // The canary's reach, in bird units: its head sits NECK_UP above the mouth
 // when ready and can stretch NECK_REACH towards something.
-const NECK_UP = 80;
+const NECK_UP = 50;
 const NECK_REACH = 130;
 const HEAD_SPEED = 1900; // px/s, reaching
 const RISE_SPEED = 280; // px/s, climbing out of the bin
@@ -90,7 +91,41 @@ const LEAD_IN = 300; // things start this far off the right edge, shown by an ar
 const MOUTH_R = 95; // bird units: anything passing this close to the mouth's middle falls in
 // The canary neck sheet (IC-M08e): each cell's neck base on its centre line
 // 88% down.
-const NECK_BASE = 0.88;
+const NECK_BASE = 0.88; // (as requested; the delivered sheet is registered by REG below)
+// How the delivered pieces register: every piece is drawn at the scale of
+// the bin-and-lid sheet (IC-M08c, the portrait's framing), worked out from a
+// feature that never changes size, measured on every cell by
+// design/source/measure_sprites.py (sprite-measures.json; the test checks
+// them): the bin's rim width, each lid's length from front tip to back
+// corner, the canary's eye. Never from a cell's or a painting's height.
+//  - Walk frames (IC-M08g): painted smaller (rim 390-396 px against 482) and
+//    lower, each a little shifted; each frame's rim top-middle goes on the
+//    sheet's (476.5, 269).
+//  - The lid alone (IC-M08f): longer (548 against 594) and placed elsewhere;
+//    its front tip goes on the shut lid's.
+//  - The calling lids (IC-M08d): bigger (644 and 636 against 594), likewise.
+//  - The canary's head and neck (IC-M08e): smaller (eye 41-44 px against
+//    57.5); each pose is placed by its eye, which is where the game's head
+//    is, with its neck's base and beak tip as measured.
+const SHEET_RIM = { x: 476.5, top: 269, width: 482 };
+const LID = { front: [207, 118.5], back: [766, 319] };
+const EYE = 57.5;
+const lidLen = (l) => Math.hypot(l.back[0] - l.front[0], l.back[1] - l.front[1]);
+const onLid = (l) => ({ from: l.front, to: LID.front, s: lidLen(LID) / lidLen(l) });
+const WALK_RIMS = [[274, 663, 447], [244, 639, 439], [245, 635, 447], [245, 640, 439]]; // x0, x1, top
+export const REG = {
+  walk: WALK_RIMS.map(([x0, x1, top]) => ({ from: [(x0 + x1) / 2, top], to: [SHEET_RIM.x, SHEET_RIM.top], s: SHEET_RIM.width / (x1 - x0 + 1) })),
+  lidOnly: onLid({ front: [242, 165], back: [758, 349.5] }),
+  call: [onLid({ front: [160, 122], back: [767, 338.5] }), onLid({ front: [167, 125], back: [767, 337] })],
+  neck: [
+    { eye: [441, 765], base: [498, 906], tip: [290, 772], eyeD: 44 }, // ready
+    { eye: [433, 630], base: [508, 902], tip: [296, 635], eyeD: 41 }, // reaching
+    { eye: [442, 653], base: [515, 902], tip: [314, 632], eyeD: 41 }, // gripping
+    { eye: [403, 817], base: [507, 902], tip: [284, 879], eyeD: 41 }, // pulling in
+    { eye: [441, 745], base: [469, 902], tip: [284, 703], eyeD: 41 }, // squawking
+    { eye: [459, 748], base: [478, 902], tip: [296, 703], eyeD: 41 }, // singing
+  ].map((n) => ({ ...n, s: EYE / n.eyeD })),
+};
 const BIG = 1.3; // things on the wind are drawn this much bigger than their base size
 // The painted things on the wind (IC-M08b), measured: each one's painted
 // width and height in its 512 px cell, and the length the game draws its
@@ -118,7 +153,8 @@ const KEEP = ['hat', 'letter', 'cat', 'sparrow'];
 export default function create(env) {
   const { W, H, rng, sfx } = env;
   const rim = art('subject.garbagecanary') ? RIM.painted : RIM.standin;
-  const RIM_U = (rim.front[1] + rim.back[1]) / 2; // the mouth's height, bird units (negative)
+  const RIM_U = rim.mouth[1]; // the mouth's height, bird units (negative)
+  const MOUTH_DX = -rim.mouth[0]; // and how far in front of the feet (the bin faces right)
   const g = {
     time: DURATION,
     score: 0,
@@ -169,7 +205,7 @@ export default function create(env) {
   // The bin's geometry, for its current place (also for the tests and bots).
   g.scale = () => depthScale(g.by);
   g.ks = () => (SIZE * g.scale()) / 400; // px per bird unit
-  g.mouth = () => [g.bx, g.by + RIM_U * g.ks()];
+  g.mouth = () => [g.bx + MOUTH_DX * g.ks(), g.by + RIM_U * g.ks()];
   g.inLane = (it) => Math.abs(it.lane - g.by) < LANE;
   const itemR = (it) => ITEM_R * depthScale(it.lane);
 
@@ -440,7 +476,7 @@ export default function create(env) {
           ry *= max / d;
         }
         toward([rx, ry], HEAD_SPEED);
-        if (Math.hypot(it.x - mx - g.head[0], it.y - my - g.head[1]) < itemR(it) + 26 * ks) {
+        if (Math.hypot(it.x - mx - g.head[0] - 40 * ks, it.y - my - g.head[1]) < itemR(it) + 50 * ks) {
           g.held = it;
           g.aim = null;
           it.state = 'held';
@@ -467,8 +503,9 @@ export default function create(env) {
     }
     if (g.held) {
       // in the beak, which points into the wind
-      g.held.x = mx + g.head[0] + 70 * ks;
-      g.held.y = my + g.head[1] + 22 * ks;
+      // at the beak's tip (the gripping pose's, about 70 units in front of the eye)
+      g.held.x = mx + g.head[0] + 66 * ks;
+      g.held.y = my + g.head[1] - 6 * ks;
       g.held.lane = g.by;
     }
 
@@ -502,7 +539,7 @@ export default function create(env) {
         // straight through the open mouth: in it falls
         // (only what comes down into it: something passing above the rim
         // needs the canary)
-        if (g.open > 0.55 && g.jam <= 0 && it.y > my - 4 * ks && Math.hypot(it.x - mx, it.y - my) < MOUTH_R * ks + r * 0.6) {
+        if (g.open > 0.55 && g.jam <= 0 && (g.gape || 0) <= FRESH && Math.abs(it.x - mx) < MOUTH_R * ks + r * 0.5 && it.y > my - 60 * ks && it.y < my + 30 * ks) {
           stow(it);
           continue;
         }
@@ -846,6 +883,14 @@ export default function create(env) {
     c.clip();
   }
   const cellAt = (P) => [P.x, P.y + 0.033 * P.S, { h: 1.05 * P.S, whole: true, flip: true }];
+  // Draw a cell so that its point `from` (cell px) lands on the bin piece's
+  // point `to` (cell px, the portrait framing), `s` times the size.
+  const cellMapped = (P, { from, to, s }) => {
+    const u = (1.05 * P.S) / 1024;
+    const wx = P.x - (to[0] - 512) * u; // flipped: the bin faces right
+    const wy = P.y + 0.033 * P.S - (1024 - to[1]) * u;
+    return [wx + (from[0] - 512) * u * s, wy + (1024 - from[1]) * u * s, { h: 1024 * u * s, whole: true, flip: true }];
+  };
 
   function drawBody(c, t, P) {
     // the bin's shadow on the ground
@@ -858,7 +903,7 @@ export default function create(env) {
     c.restore();
     const walking = g.moving > 0.4;
     const frame = Math.floor(g.walkT * 2) % 4;
-    if (walking && drawSprite(c, 'sprites.garbagecanaryWalk', frame, ...cellAt(P))) return;
+    if (walking && drawSprite(c, 'sprites.garbagecanaryWalk', frame, ...cellMapped(P, REG.walk[frame]))) return;
     if (drawSprite(c, 'sprites.garbagecanaryLid', 0, ...cellAt(P))) return;
     c.save();
     rimCut(c, P, false);
@@ -866,7 +911,7 @@ export default function create(env) {
     c.restore();
     if (!art('subject.garbagecanary') || g.open > 0.05) {
       // the dark open mouth (the painted bin piece has its own)
-      const [mx, my] = [P.x, P.y + RIM_U * P.ks];
+      const [mx, my] = [P.x + MOUTH_DX * P.ks, P.y + RIM_U * P.ks];
       c.save();
       c.beginPath();
       const tilt = Math.atan2(rim.back[1] - rim.front[1], rim.front[0] - rim.back[0]);
@@ -884,7 +929,7 @@ export default function create(env) {
     c.rotate(-angle);
     c.translate(-P.hinge[0], -P.hinge[1]);
     const call = g.spit > 0 ? 0 : g.sing > 0 ? 1 : -1;
-    const drawn = (call >= 0 && drawSprite(c, 'sprites.garbagecanaryCall', call, ...cellAt(P))) || drawSprite(c, 'sprites.garbagecanaryLid', 1, ...cellAt(P));
+    const drawn = (call >= 0 && drawSprite(c, 'sprites.garbagecanaryCall', call, ...cellMapped(P, REG.call[call]))) || drawSprite(c, 'sprites.garbagecanaryLid', 1, ...cellAt(P));
     if (!drawn) {
       rimCut(c, P, true);
       drawBird(c, 'garbagecanary', { x: P.x, y: P.y, size: P.S, t, flip: true });
@@ -898,7 +943,7 @@ export default function create(env) {
     c.translate(P.hinge[0], P.hinge[1]);
     c.rotate(-angle);
     c.translate(-P.hinge[0], -P.hinge[1]);
-    if (!drawSprite(c, 'sprites.garbagecanaryLidOnly', 0, ...cellAt(P))) {
+    if (!drawSprite(c, 'sprites.garbagecanaryLidOnly', 0, ...cellMapped(P, REG.lidOnly))) {
       // stand-in: a dented galvanised lid with a handle on top
       const ks = P.ks;
       const cx = P.x + 8 * ks;
@@ -929,19 +974,28 @@ export default function create(env) {
   // hides it.
   function drawCanaryOut(c, t, P) {
     const ks = P.ks;
-    const [mx, my] = [P.x, P.y + RIM_U * ks];
-    const [hx, hy] = [mx + g.head[0], my + g.head[1]];
+    const [mx, my] = [P.x + MOUTH_DX * ks, P.y + RIM_U * ks];
+    const head = g.can === 'in' ? [0, 6 * ks] : g.head; // inside, it peeks over the rim
+    const [hx, hy] = [mx + head[0], my + head[1]];
     c.save();
     c.beginPath();
     c.rect(mx - 600 * ks, my - 700 * ks, 1200 * ks, 700 * ks + 6 * ks);
     c.clip();
-    const pose = g.spit > 0 ? 4 : g.sing > 0 ? 5 : g.can === 'reach' ? 1 : g.can === 'pull' ? (g.head[1] < -30 * ks ? 2 : 3) : 0;
-    const ang = Math.atan2(g.head[0], -g.head[1]);
-    const cellH = 1.05 * P.S;
+    const pose = g.spit > 0 ? 4 : g.sing > 0 ? 5 : g.can === 'reach' ? 1 : g.can === 'pull' ? (head[1] < -30 * ks ? 2 : 3) : 0;
+    // the painted pose, its eye on the head's place; reaching, it turns so
+    // its neck runs back to the mouth
+    const R = REG.neck[pose];
+    const u = (1.05 * P.S) / 1024;
+    let rot = 0;
+    if (pose === 1 || pose === 2) {
+      const want = Math.atan2(-head[1], -head[0]); // from the head back down to the mouth
+      const has = Math.atan2(R.base[1] - R.eye[1], -(R.base[0] - R.eye[0])); // eye to base, flipped
+      rot = clamp(want - has, -1.1, 1.1);
+    }
     c.save();
-    c.translate(mx, my);
-    c.rotate(ang);
-    const painted = drawSprite(c, 'sprites.garbagecanaryNeck', pose, 0, (1 - NECK_BASE) * cellH, { h: cellH, whole: true, flip: true });
+    c.translate(hx, hy);
+    c.rotate(rot);
+    const painted = drawSprite(c, 'sprites.garbagecanaryNeck', pose, (R.eye[0] - 512) * u * R.s, (1024 - R.eye[1]) * u * R.s, { h: 1024 * u * R.s, whole: true, flip: true });
     c.restore();
     if (!painted) {
       // stand-in: a feathery yellow neck and the canary's head
@@ -1010,7 +1064,9 @@ export default function create(env) {
     drawBody(c, t, P);
     const out = g.can !== 'in' && !(g.can === 'pop' && g.open < 0.5);
     if (!out && g.can === 'in' && g.open > 0.05) {
-      // up, with the canary down inside (bored, or not yet risen)
+      // up, with the canary down inside (bored, or not yet risen): its head
+      // just shows over the rim
+      drawCanaryOut(c, t, P);
       drawLidOnly(c, P, angle);
     } else if (out) {
       drawCanaryOut(c, t, P);

@@ -94,3 +94,8 @@ below it. The gripping pose shows only with a prize in the claws, since it
 is painted holding a ring (the prize's own ring is drawn behind it); a miss
 shows the startled pose instead, drawn as painted with its shaft tipped
 about 10 degrees, a jolt. Nothing is stand-in any more.
+
+Scale check (owner's report that sprite birds shrink and grow): the hanging,
+gripping and startled poses all draw at one scale, and measure the same: the
+key from the eye's middle to its far knob is 693, 697 and 700 px in the
+three cells (within 1%); a test checks it.

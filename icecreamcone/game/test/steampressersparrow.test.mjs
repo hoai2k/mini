@@ -159,3 +159,11 @@ test('steampressersparrow: with the keyboard a short tap only nudges the iron', 
   const moved = game.x - x0;
   assert.ok(moved > 5 && moved < 90, `moved ${moved}`);
 });
+
+test('steampressersparrow: the pressing and scorched Sparrow are drawn at one scale (the handle within 4%)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const M = JSON.parse(readFileSync(new URL('../../design/source/sprite-measures.json', import.meta.url))).steampressersparrow;
+  // both sheets are drawn with the same PRESS_SCALE, so the iron's handle must measure the same in each cell
+  const all = [...M.press, ...M.scorch];
+  for (const v of all) assert.ok(Math.abs(v / all[0] - 1) <= 0.04, `${all}`);
+});

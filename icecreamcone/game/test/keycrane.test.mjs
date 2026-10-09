@@ -118,3 +118,11 @@ test('keycrane: rings get smaller as time goes on', () => {
   const late = game.prizes[game.prizes.length - 1];
   assert.ok(late.ringR < early, `${late.ringR} < ${early}`);
 });
+
+test('keycrane: the hanging and startled Crane are drawn at one scale (the key within 4%)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const M = JSON.parse(readFileSync(new URL('../../design/source/sprite-measures.json', import.meta.url))).keycrane;
+  // all three poses are drawn with the same HANG_SCALE, so the key must measure the same in each cell
+  const all = [...M.hang, ...M.startle];
+  for (const v of all) assert.ok(Math.abs(v / all[0] - 1) <= 0.04, `${all}`);
+});
