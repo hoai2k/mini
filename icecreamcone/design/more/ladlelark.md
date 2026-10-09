@@ -16,7 +16,7 @@ Cheese).
 patience bar is still green ("Quick and delicious!"). One unwanted bit is
 forgiven ("No peas!"): the bowl then scores 1. A second unwanted bit, or
 the old boot that bobs up now and then, is "Yuck!": the creature leaves
-and it costs 2. A creature kept waiting too long leaves ("Hmph!"). An empty
+and it costs 1. A creature kept waiting too long leaves ("Hmph!"). An empty
 dip is just a splash.
 
 **Getting harder.** The soup swirls from 0.45 to 1 turn-rate as time goes
@@ -48,3 +48,26 @@ waiting and pulling a face. IC-M15e is the Lark in the air over the pot:
 hovering with its wings beating, dipping bowl first, and rising with a
 brimming bowl, its bowl at the centre of each picture so it sits over the
 ring.
+
+## Changes after the audit
+
+1. **The Lark no longer covers the ring.** It hovers higher (its bowl about
+   150 above the ring, not 80, so its feet clear the ring) and is drawn at 60%
+   opacity while it only hovers; it comes down at full strength only to dip.
+   While dipping, everything of it below the soup's surface is hidden and a
+   ring of ripples spreads, instead of a broth-coloured patch that hid the
+   bits.
+2. **Peas are bigger:** 26 px across, not 20 (and up to about 40 px with
+   the pot's own scale).
+- Shared guidance: a "Yuck!" now costs 1, not 2 (the creature leaving is
+  already the cost). Pass stays 36. Bots over seeds 1–6: beginner 44–55,
+  good 55–82, dipping at the nearest wanted bit without looking round it
+  34–52, mashing 0–13, dipping on the spot 0–8, idle 0.
+
+## Matched to the painting
+
+The painting's bowl bottom is at (42, −128) in bird units (the stand-in's was
+at (20, −90)). The bowl is now placed over the ring by that point, and the
+code wings are left off because the painting has its own. The pose request
+IC-M15e now describes the painting: speckled grey enamel, its curled hook
+floating above its back, grey-blue wings, ochre legs.

@@ -194,7 +194,7 @@ test('ladlelark: one unwanted bit is forgiven (one point); a second is "Yuck!"',
   two.score = 5;
   dipAt(two, 0.5, 0.02);
   assert.equal(two.yucks, 1);
-  assert.equal(two.score, 3, 'a "Yuck!" costs two');
+  assert.equal(two.score, 4, 'a "Yuck!" costs one');
 });
 
 test('ladlelark: the old boot is always "Yuck!"', () => {

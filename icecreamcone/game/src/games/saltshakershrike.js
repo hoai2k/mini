@@ -1,23 +1,27 @@
 // Saltshaker Shrike: Just a Pinch.
 //
-// The Shrike hangs upside down from the brass rail over the café counter,
-// its perforated cap pointing down. Plates slide along the counter from the
-// kitchen hatch to the diner waiting at the far end, each with a little flag
-// that shows how many pinches of salt it wants. Move along the rail and press
-// the action to shake one pinch. Salt takes a moment to fall, so shake a
-// little ahead of a moving plate. At the end of the counter the diner tastes
-// it: just right scores three, one pinch out scores one, and more than that
-// gets a frown and nothing. Puddings (a flag with the shaker crossed out)
-// want no salt at all: salting one costs two. The plates come faster and
-// want more salt as the lunch rush builds. Score: points.
+// The Shrike hangs upside down from the brass rail over a big round
+// revolving table, a lazy Susan, its perforated cap pointing down. The cook
+// sets each plate down on the table's right-hand edge; the table turns it
+// round the near side to the diner waiting at the left. Each plate has a
+// little flag that shows how many pinches of salt it wants. Move along the
+// rail and press the action to shake one pinch. Salt takes a moment to fall,
+// and a plate on a turning table creeps at the ends and swings fast across
+// the middle, so shake ahead of it, or catch it at the ends. At the left the
+// diner tastes it: just right scores three, one pinch out scores one, and
+// more than that gets a frown and nothing. Puddings (a flag with the shaker
+// crossed out) want no salt at all: salting one costs one. The table turns
+// faster and the plates want more salt as the lunch rush builds. Score:
+// points.
 
-import { drawBird, drawSprite, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
+import { art, drawBird, drawSprite, spriteCell, SHEETS, scene, band, blob, poly, wash, ink, hatch, label, PAL, INK } from '../draw.js';
 import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
   'sprites.shrikePlates': [4, 2], // fried egg, chips, baked potato, corn cob, tomato soup, pretzel; cake slice, sundae (no salt)
   'sprites.shrikeDiners': [4, 2], // mole, mouse, frog, badger waiting; the same four pulling a face
   'sprites.shrikePoses': [4, 1], // hanging upside down from the rail; shaking; pleased; flinching
+  'sprites.shrikeTable': [1, 1], // the round revolving table, in perspective
 });
 
 const DURATION = 45;
@@ -25,16 +29,29 @@ const RAIL_Y = 108;
 const SIZE = 320;
 const S = SIZE / 400;
 const CAP_Y = RAIL_Y + 268 * S; // where the salt comes out (the Shrike hangs head down)
-const COUNTER_Y = 640; // the plates' feet
-const FOOD_Y = 598; // where salt lands on the food
-const FOOD_HALF = 64; // how wide a plate catches salt
-const END_X = 300; // the diner takes the plate here
-const START_X = 1690;
+// The table: plates ride its rim, an ellipse, from angle 0 (right) round the
+// near side to PI (left), where the diner takes them.
+const TX = 860;
+const TY = 560;
+const TRX = 600;
+const TRY = 95;
+const FOOD_UP = 42; // salt lands this far above a plate's foot
+const FOOD_HALF = 50; // how wide a plate catches salt
 const DINER_X = 150;
+const DINER_Y = 610;
+const WALL_Y = 470; // where the wall meets the floor
 const SALT_V = 250; // the pinch leaves the cap downward at this speed
 const SALT_G = 1800;
-const FALL_T = (-SALT_V + Math.sqrt(SALT_V * SALT_V + 2 * SALT_G * (FOOD_Y - CAP_Y))) / SALT_G;
+const fallTime = (y) => (-SALT_V + Math.sqrt(SALT_V * SALT_V + 2 * SALT_G * (y - CAP_Y))) / SALT_G;
+const rimX = (a) => TX + TRX * Math.cos(a);
+const rimY = (a) => TY + TRY * Math.sin(a);
 const COOL = 0.2; // between shakes
+// The painting's domed cap, where the salt comes out, is high and forward of
+// its feet: at (-83, -375) in bird units (measured on the PNG: 30%, 7% of the
+// square, feet at 97.6%). It is drawn a little smaller than the stand-in so
+// its cap hangs at the same height, and shifted so the cap is over the salt's line.
+const PORTRAIT_SIZE = Math.round((268 * SIZE) / 375);
+const PORTRAIT_CAP_DX = (83 * PORTRAIT_SIZE) / 400;
 const CELL = (CAP_Y - RAIL_Y) / 0.75; // a painted pose: claws at the top, cap 75% down
 const DESSERTS = [6, 7];
 
@@ -62,13 +79,19 @@ export default function create(env) {
     frowns: 0,
     puddings: 0,
     spilt: 0,
-    fallT: FALL_T,
+    turn: 0, // the table's own angle, for drawing
     mood: 0, // the Shrike's own: > 0 pleased, < 0 flinching, counting down
     moodKind: 0,
   };
 
   const progress = () => Math.min(1, g.elapsed / DURATION);
-  g.speed = () => lerp(150, 290, progress());
+  g.omega = () => lerp(0.4, 0.65, progress()); // the table's turn, radians per second
+  // Where a plate is `ahead` seconds from now: x, its foot's y, the food's y.
+  g.at = (p, ahead = 0) => {
+    const a = Math.min(Math.PI, p.a + g.omega() * ahead);
+    return { x: rimX(a), y: rimY(a), food: rimY(a) - FOOD_UP };
+  };
+  g.fall = fallTime;
   const add = (n) => {
     g.score = Math.max(0, g.score + n);
   };
@@ -79,10 +102,12 @@ export default function create(env) {
   function spawn() {
     const k = progress();
     const dessert = g.elapsed > 8 && rng() < 0.2;
-    const max = k < 0.2 ? 3 : k < 0.55 ? 4 : 5;
-    const n = dessert ? 0 : 1 + Math.floor(rng() * max);
+    // one to three pinches at first, then two to four, then two to five
+    const lo = k < 0.2 ? 1 : 2;
+    const hi = k < 0.2 ? 3 : k < 0.55 ? 4 : 5;
+    const n = dessert ? 0 : lo + Math.floor(rng() * (hi - lo + 1));
     const kind = dessert ? DESSERTS[Math.floor(rng() * 2)] : Math.floor(rng() * 6);
-    g.plates.push({ id: g.nextId++, x: START_X, n, got: 0, kind, dessert, who: Math.floor(rng() * 4), wob: 0 });
+    g.plates.push({ id: g.nextId++, a: 0, x: rimX(0), y: rimY(0), n, got: 0, kind, dessert, who: Math.floor(rng() * 4), wob: 0, set: 0.3 });
   }
 
   function judge(p) {
@@ -92,7 +117,7 @@ export default function create(env) {
     let mood;
     if (p.dessert) {
       if (p.got) {
-        pts = -2;
+        pts = -1;
         text = 'Salty pudding!';
         mood = -1;
         g.frowns++;
@@ -122,8 +147,8 @@ export default function create(env) {
       g.mood = 0.8;
       g.moodKind = mood > 0.5 ? 1 : -1;
     }
-    pop(text, DINER_X + 90, COUNTER_Y - 290, mood > 0.5 ? PAL.green : mood > 0 ? PAL.ochre : PAL.brick, 36);
-    if (pts) pop(pts > 0 ? `+${pts}` : `${pts}`, DINER_X + 90, COUNTER_Y - 345, pts > 0 ? PAL.magenta : PAL.brick, 42);
+    pop(text, DINER_X + 90, DINER_Y - 300, mood > 0.5 ? PAL.green : mood > 0 ? PAL.ochre : PAL.brick, 36);
+    if (pts) pop(pts > 0 ? `+${pts}` : `${pts}`, DINER_X + 90, DINER_Y - 355, pts > 0 ? PAL.magenta : PAL.brick, 42);
     sfx(mood > 0.5 ? 'right' : mood > 0 ? 'catch' : 'squawk');
     if (mood < 0) env.vibrate?.(60);
   }
@@ -158,32 +183,42 @@ export default function create(env) {
       sfx('shuffle');
     }
     for (const f of g.puffs) {
+      const py = f.y;
       f.vy += SALT_G * dt;
       f.y += f.vy * dt;
-      if (f.y >= FOOD_Y) {
+      // it lands on the first plate whose food it falls past
+      const p = g.plates.find((p) => Math.abs(p.x - f.x) < FOOD_HALF && py < p.y - FOOD_UP && f.y >= p.y - FOOD_UP);
+      const floor = TY + TRY * Math.sqrt(Math.max(0, 1 - ((f.x - TX) / (TRX + 60)) ** 2)) + 20;
+      if (p || f.y >= floor) {
         f.dead = true;
-        const p = g.plates.find((p) => Math.abs(p.x - f.x) < FOOD_HALF);
-        for (let i = 0; i < 8; i++) g.grains.push({ x: f.x + (rng() - 0.5) * 50, y: FOOD_Y - rng() * 10, vx: (rng() - 0.5) * 120, vy: -60 - rng() * 120, life: 0.4 + rng() * 0.2, on: p });
+        const ly = p ? p.y - FOOD_UP : floor;
+        for (let i = 0; i < 8; i++) g.grains.push({ x: f.x + (rng() - 0.5) * 50, y: ly - rng() * 10, floor: ly + 12, vx: (rng() - 0.5) * 120, vy: -60 - rng() * 120, life: 0.4 + rng() * 0.2, on: p });
         if (p) {
           p.got++;
           p.wob = 0.25;
           sfx('tick');
-          if (!p.dessert && p.got === p.n) pop('✓', p.x, FOOD_Y - 120, PAL.green, 40);
+          if (!p.dessert && p.got === p.n) pop('✓', p.x, p.y - 160, PAL.green, 40);
           if (p.dessert || p.got > p.n) sfx('miss');
         } else {
           g.spilt++;
-          g.heaps.push({ x: f.x, life: 2.5 });
+          g.heaps.push({ x: f.x, y: floor - 16, life: 2.5 });
         }
       }
     }
     g.puffs = g.puffs.filter((f) => !f.dead);
 
-    // Plates along the counter.
-    const v = g.speed();
+    // Plates round the table.
+    const w = g.omega();
+    g.turn += w * dt;
     for (const p of g.plates) {
-      p.x -= v * dt;
+      const ox = p.x;
+      p.a = Math.min(Math.PI, p.a + w * dt);
+      p.x = rimX(p.a);
+      p.y = rimY(p.a);
+      p.vx = (p.x - ox) / Math.max(dt, 1e-6);
       p.wob = Math.max(0, p.wob - dt);
-      if (p.x <= END_X && !p.done) {
+      p.set = Math.max(0, p.set - dt);
+      if (p.a >= Math.PI && !p.done) {
         p.done = true;
         judge(p);
       }
@@ -191,7 +226,7 @@ export default function create(env) {
     g.plates = g.plates.filter((p) => !p.done);
     g.spawnT -= dt;
     const last = g.plates[g.plates.length - 1];
-    if (g.spawnT <= 0 && (!last || last.x < START_X - 200)) {
+    if (g.spawnT <= 0 && (!last || last.a > 0.6)) {
       spawn();
       g.spawnT = lerp(2.8, 1.35, k) * (0.85 + rng() * 0.3);
     }
@@ -200,8 +235,8 @@ export default function create(env) {
     g.mood = Math.max(0, g.mood - dt);
     for (const s of g.grains) {
       s.vy += 900 * dt;
-      s.x += s.vx * dt - (s.on ? v * dt : 0);
-      s.y = Math.min(FOOD_Y + 12, s.y + s.vy * dt);
+      s.x += s.vx * dt + (s.on ? s.on.vx * dt : 0);
+      s.y = Math.min(s.floor, s.y + s.vy * dt);
       s.life -= dt;
     }
     g.grains = g.grains.filter((s) => s.life > 0);
@@ -219,7 +254,7 @@ export default function create(env) {
     const lines = [`${g.perfect} plate${g.perfect === 1 ? '' : 's'} just right, ${g.near} nearly.`];
     const woes = [];
     if (g.frowns) woes.push(`${g.frowns} frown${g.frowns === 1 ? '' : 's'}`);
-    if (g.spilt) woes.push(`${g.spilt} pinch${g.spilt === 1 ? '' : 'es'} on the counter`);
+    if (g.spilt) woes.push(`${g.spilt} pinch${g.spilt === 1 ? '' : 'es'} on the table`);
     lines.push(woes.length ? `Along the way: ${woes.join(', ')}.` : 'Not one frown, and not a grain spilt!');
     return lines;
   };
@@ -319,9 +354,9 @@ export default function create(env) {
 
   function flag(c, p, t) {
     const x = p.x - 40;
-    const y = FOOD_Y - 70;
+    const y = p.y - FOOD_UP - 70;
     c.beginPath();
-    c.moveTo(x, FOOD_Y - 10);
+    c.moveTo(x, p.y - FOOD_UP - 10);
     c.lineTo(x, y - 40);
     ink(c, 2.2, '#a08050');
     const w = p.dessert ? 56 : Math.max(56, Math.max(p.n, p.got) * 22 + 14);
@@ -364,7 +399,7 @@ export default function create(env) {
     const mood = d.t > 0 ? d.mood : 0;
     const frown = mood < 0;
     const x = DINER_X;
-    const y = COUNTER_Y - 10;
+    const y = DINER_Y;
     const bounce = mood > 0.5 && d.t > 0 ? Math.abs(Math.sin(t * 14)) * 10 : 0;
     if (drawSprite(c, 'sprites.shrikeDiners', who + (frown ? 4 : 0), x, y - bounce, { h: 300 })) return;
     const fur = ['#6a5a50', '#b0a8a0', '#8aa860', '#8a8478'][who];
@@ -406,6 +441,52 @@ export default function create(env) {
     c.restore();
   }
 
+  // The revolving table, its top an ellipse round the plates' rim.
+  function drawTable(c, t) {
+    const sc = spriteCell('sprites.shrikeTable', 0);
+    if (sc) {
+      // painted with its top's outer oval spanning the full width, its top edge at the top
+      const w = 2 * (TRX + 90);
+      drawSprite(c, 'sprites.shrikeTable', 0, TX, TY - (TRY + 55) + (sc.trim.h * w) / sc.trim.w, { w });
+      return;
+    }
+    // the pedestal and its foot
+    poly(c, [[TX - 40, TY + 80], [TX + 40, TY + 80], [TX + 50, H - 70], [TX - 50, H - 70]], 3, 1);
+    wash(c, '#8a5a34');
+    ink(c, 2.2);
+    c.beginPath();
+    c.ellipse(TX, H - 60, 170, 26, 0, 0, Math.PI * 2);
+    c.fillStyle = '#7a4a2a';
+    c.fill();
+    ink(c, 2.2);
+    // the edge, then the top
+    c.beginPath();
+    c.ellipse(TX, TY + 22, TRX + 90, TRY + 55, 0, 0, Math.PI);
+    c.lineTo(TX - TRX - 90, TY);
+    c.ellipse(TX, TY, TRX + 90, TRY + 55, 0, Math.PI, 0, true);
+    c.closePath();
+    c.fillStyle = '#9a6a3e';
+    c.fill();
+    ink(c, 2.4);
+    c.beginPath();
+    c.ellipse(TX, TY, TRX + 90, TRY + 55, 0, 0, Math.PI * 2);
+    c.fillStyle = '#d4a46a';
+    c.fill();
+    ink(c, 2.4);
+    c.beginPath();
+    c.ellipse(TX, TY, TRX - 110, TRY - 20, 0, 0, Math.PI * 2);
+    ink(c, 1.4, 'rgba(59,43,32,0.35)');
+    // knots in the wood go round with it, to show it turning
+    for (let i = 0; i < 10; i++) {
+      const a = g.turn + (i / 10) * Math.PI * 2;
+      const r = i % 2 ? 0.45 : 0.8;
+      c.beginPath();
+      c.ellipse(TX + Math.cos(a) * TRX * r, TY + Math.sin(a) * TRY * r, 14, 4, 0, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(110,70,40,0.45)';
+      c.fill();
+    }
+  }
+
   function shrike(c, t) {
     const jig = g.shakeT > 0 ? Math.sin(g.shakeT * 70) * (env.reduceMotion ? 4 : 12) : 0;
     const pleased = g.mood > 0 && g.moodKind > 0;
@@ -422,7 +503,9 @@ export default function create(env) {
     if (!drawSprite(c, 'sprites.shrikePoses', pose, 0, CELL / 2, { h: CELL, anchor: 'center', flip: true, whole: true })) {
       c.scale(1, -1);
       if (flinch) c.scale(1, 0.94);
-      drawBird(c, 'saltshakershrike', { x: 0, y: 0, size: SIZE, t, flip: true });
+      if (art('subject.saltshakershrike')) {
+        drawBird(c, 'saltshakershrike', { x: -PORTRAIT_CAP_DX, y: 0, size: PORTRAIT_SIZE, t, flip: true });
+      } else drawBird(c, 'saltshakershrike', { x: 0, y: 0, size: SIZE, t, flip: true });
     }
     c.restore();
     // where the salt will land
@@ -431,27 +514,26 @@ export default function create(env) {
     c.setLineDash([6, 10]);
     c.beginPath();
     c.moveTo(g.x, CAP_Y + 24);
-    c.lineTo(g.x, FOOD_Y - 20);
+    c.lineTo(g.x, TY + TRY);
     ink(c, 2, '#6a7080');
     c.restore();
   }
 
   g.draw = (c, t) => {
     scene(c, 'saltshakershrike', W, H, (c) => {
-      // a little café: striped wallpaper, a shelf, the kitchen hatch, the counter
+      // a little café: striped wallpaper, a menu board, a clock, the kitchen hatch, a tiled floor
       c.save();
       c.globalAlpha = 0.35;
       for (let x = 0; x < W; x += 80) {
         c.fillStyle = (x / 80) % 2 ? PAL.sage : '#e8e4c8';
-        c.fillRect(x, 0, 80, COUNTER_Y);
+        c.fillRect(x, 0, 80, WALL_Y);
       }
       c.restore();
-      poly(c, [[1460, 300], [1600, 300], [1600, COUNTER_Y - 20], [1460, COUNTER_Y - 20]], 2, 1);
+      poly(c, [[1420, 300], [1600, 300], [1600, 520], [1420, 520]], 2, 1);
       wash(c, '#5a4a40', 0.85);
       ink(c, 2.4);
-      blob(c, 1530, 380, 40, 30, 3, 0.15);
+      blob(c, 1510, 380, 40, 30, 3, 0.15);
       wash(c, '#f0f0e8', 0.5); // steam from the kitchen
-      // a menu board and a clock
       poly(c, [[60, 150], [330, 150], [330, 330], [60, 330]], 4, 1);
       wash(c, '#3a4038');
       ink(c, 2.4);
@@ -472,17 +554,18 @@ export default function create(env) {
       c.moveTo(1340, 220);
       c.lineTo(1362, 228);
       ink(c, 2.4);
-      // the counter
-      poly(c, [[0, COUNTER_Y - 6], [W, COUNTER_Y - 4], [W, COUNTER_Y + 30], [0, COUNTER_Y + 28]], 6, 1);
-      wash(c, '#e8e0d0');
-      ink(c, 2.4);
-      poly(c, [[0, COUNTER_Y + 28], [W, COUNTER_Y + 30], [W, H], [0, H]], 7, 1);
-      wash(c, PAL.dusty);
+      // the floor
+      poly(c, [[0, WALL_Y], [W, WALL_Y], [W, H], [0, H]], 7, 1);
+      wash(c, '#e6dcc8');
       ink(c, 2);
-      poly(c, [[0, COUNTER_Y + 28], [W, COUNTER_Y + 30], [W, H], [0, H]], 7, 1);
-      hatch(c, 0, COUNTER_Y + 28, W, H, 18, 0.15, 0);
-      band(c, 0, COUNTER_Y + 130, W, 30, PAL.brick, 0.35, 8);
+      c.save();
+      c.globalAlpha = 0.18;
+      c.fillStyle = PAL.slate;
+      for (let y = WALL_Y, r = 0; y < H; y += 46, r++) for (let x = (r % 2) * 46; x < W; x += 92) c.fillRect(x, y, 46, 46);
+      c.restore();
     });
+
+    drawTable(c, t);
 
     // the brass rail
     c.beginPath();
@@ -506,25 +589,29 @@ export default function create(env) {
     for (const h of g.heaps) {
       c.save();
       c.globalAlpha = Math.min(1, h.life);
-      blob(c, h.x, COUNTER_Y - 4, 18, 5, 3, 0.2);
+      blob(c, h.x, h.y, 18, 5, 3, 0.2);
       wash(c, '#ffffff');
       ink(c, 0.8, '#8a9098');
       c.restore();
     }
 
-    for (const p of g.plates) {
+    for (const p of [...g.plates].sort((a, b) => a.y - b.y)) {
       const wob = p.wob > 0 ? Math.sin(p.wob * 60) * 2 : 0;
-      if (!drawSprite(c, 'sprites.shrikePlates', p.kind, p.x + wob, COUNTER_Y + 6, { w: 200 })) {
-        plate(c, p.x, COUNTER_Y);
-        food(c, p.kind, p.x + wob, COUNTER_Y);
+      const drop = p.set * 120; // the cook sets it down
+      c.save();
+      if (p.set > 0) c.globalAlpha = 1 - p.set * 2;
+      if (!drawSprite(c, 'sprites.shrikePlates', p.kind, p.x + wob, p.y + 6 - drop, { w: 200 })) {
+        plate(c, p.x, p.y - drop);
+        food(c, p.kind, p.x + wob, p.y - drop);
       }
+      c.restore();
       // the salt on it
       if (p.got) {
         c.fillStyle = '#ffffff';
         for (let i = 0; i < p.got * 7; i++) {
           const a = i * 2.39;
           const rr = 6 + (i % 7) * 6;
-          c.fillRect(p.x + Math.cos(a) * rr * 1.3 - 2, FOOD_Y - 6 + Math.sin(a) * rr * 0.35, 4, 4);
+          c.fillRect(p.x + Math.cos(a) * rr * 1.3 - 2, p.y - FOOD_UP - 6 + Math.sin(a) * rr * 0.35, 4, 4);
         }
       }
       flag(c, p, t);
@@ -572,7 +659,7 @@ export default function create(env) {
     if (g.elapsed < 4) {
       c.save();
       c.globalAlpha = Math.min(1, 4 - g.elapsed);
-      label(c, 'One press, one pinch · shake as many as the flag shows', W / 2, 800, { size: 36, weight: 700, color: INK });
+      label(c, 'One press, one pinch · shake as many as the flag shows', W / 2, 866, { size: 36, weight: 700, color: INK });
       c.restore();
     }
   };
