@@ -108,6 +108,13 @@ SECTIONS = {
         "birds that Shuttercluck photographs in Say Cheese. Each note says what its game might "
         "be. Same framing as the portraits, so any of them can become a page later.",
     ),
+    "more": (
+        "New minigames: the book's other birds",
+        "Scenes, sprites and variants for the minigames of the book's 18 birds that are joining "
+        "the field guide (their portraits are the IC-R requests above). Each bird's requests are "
+        "kept in design/source/more/<bird>.json beside this script. The birds join the guide "
+        "once these are delivered; until then their games draw stand-ins (try them with ?more).",
+    ),
     "sprite": (
         "Sprites and variants",
         "What the minigames need beyond one still portrait per bird, found while building them "
@@ -613,6 +620,20 @@ for n, (pid, name, look, game) in enumerate(POCKET, 1):
         "prompt": STYLE + " " + BIRD + " " + look + " " + PORTRAIT + " For the drawing style and "
         "the way the object becomes a bird, look at the book's birds in " + REF_URL + ENDPAPERS + " .",
     })
+
+# The new minigames' requests, one JSON file per bird in more/: a list of
+# {id, name, key, file, size, used, standin, prompt, status?, ref?}. A prompt
+# may use {STYLE}, {BIRD}, {SHEET}, {VARIANT}, {SCENE}, {ALPHA} and {REF_URL}
+# for the shared texts above.
+MORE_DIR = Path(__file__).resolve().parent / "more"
+SHARED = {"STYLE": STYLE, "BIRD": BIRD, "SHEET": SHEET, "VARIANT": VARIANT, "SCENE": SCENE,
+          "ALPHA": ALPHA, "REF_URL": REF_URL}
+for f in sorted(MORE_DIR.glob("*.json")):
+    for r in json.loads(f.read_text()):
+        prompt = r["prompt"]
+        for k, v in SHARED.items():
+            prompt = prompt.replace("{" + k + "}", v)
+        REQUESTS.append({**r, "section": "more", "prompt": prompt, "status": r.get("status", "requested")})
 
 SPRITES = [
     ("IC-P01", "Scoop Stack props", "sprites.scoops", "assets/sprites/scoops.png", "2048 x 1024, transparent",

@@ -43,7 +43,9 @@
 // pointer's x (and y where it makes sense) instead of the stick.
 //
 // Draw with the helpers in draw.js: drawBird() for the birds (it uses the
-// delivered portrait once it arrives), scene() for the background.
+// delivered portrait once it arrives; the undiscovered birds in subjects.js
+// work too), scene() for the background. A game not listed below is loaded
+// from ./<birdId>.js.
 
 const loaders = {
   coot: () => import('./coot.js'),
@@ -60,7 +62,7 @@ const loaders = {
 
 export async function loadGame(id) {
   try {
-    const m = await loaders[id]();
+    const m = await (loaders[id] || (() => import(`./${id}.js`)))();
     return m.default;
   } catch (e) {
     console.warn('[games] could not load', id, e);

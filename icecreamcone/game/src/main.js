@@ -8,12 +8,16 @@ import { BIRDS, passes } from './birds.js';
 import { loadGame, makeRng } from './games/index.js';
 import { drawBird, drawSilhouette, paper, band, label, setArt, setBoil, art, PAL, INK } from './draw.js';
 import { ASSETS } from './asset-list.js';
+import './subjects.js';
+import { loadMoreBirds } from './more/index.js';
 
 const W = 1600;
 const H = 900;
 const params = new URLSearchParams(location.search);
 const FIXED_DT = Number(params.get('dt')) || 0; // for automated checks
 const ALL_OPEN = params.has('all');
+// Preview: the book's other birds whose games are built but not yet in the guide.
+if (params.has('more')) BIRDS.push(...(await loadMoreBirds()));
 
 const $ = (s) => document.querySelector(s);
 const canvas = $('#stage');

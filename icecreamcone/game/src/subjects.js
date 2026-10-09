@@ -8,7 +8,7 @@
 // is, for peeking out of the knothole; `tier` 0..2 is how rare it is (rarer
 // ones are worth more and peek for less time).
 
-import { art, blob, poly, wash, ink, hatch, eye, beak, leg, PAL, INK } from './draw.js';
+import { art, blob, poly, wash, ink, hatch, eye, beak, leg, drawOtherBirds, PAL, INK } from './draw.js';
 
 // The paintings share the field-guide portraits' framing: the bird fills
 // about 80% of a square, feet near the bottom.
@@ -604,7 +604,7 @@ export const SUBJECTS = {
 export const SUBJECT_IDS = Object.keys(SUBJECTS);
 
 // Draw one of them, from its painting once delivered.
-export function drawSubject(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false } = {}) {
+export function drawSubject(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false, pose = {} } = {}) {
   const sub = SUBJECTS[id];
   if (!sub) return;
   g.save();
@@ -613,6 +613,9 @@ export function drawSubject(g, id, { x = 0, y = 0, size = 300, t = 0, flip = fal
   g.scale(flip ? -s : s, s * (1 + Math.sin(t * 2) * 0.012));
   const img = art((sub.pocket ? 'pocket.' : 'subject.') + id);
   if (img) g.drawImage(img, -FRAME.cx * FRAME.u, -FRAME.feet * FRAME.u, FRAME.u, FRAME.u);
-  else sub.draw(g, t);
+  else sub.draw(g, t, pose);
   g.restore();
 }
+
+// drawBird() draws these too, so a page or a game can use either.
+drawOtherBirds((g, id, opts) => drawSubject(g, id, opts));
