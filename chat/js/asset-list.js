@@ -1981,78 +1981,78 @@ export const ASSET_LIST = {
   },
   "gofish-anomalocaris": {
     "file": "assets/games/gofish-anomalocaris.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-opabinia": {
     "file": "assets/games/gofish-opabinia.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-hallucigenia": {
     "file": "assets/games/gofish-hallucigenia.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-pikaia": {
     "file": "assets/games/gofish-pikaia.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-burgessomedusa": {
     "file": "assets/games/gofish-burgessomedusa.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-trilobite": {
     "file": "assets/games/gofish-trilobite.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-nautilus": {
     "file": "assets/games/gofish-nautilus.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-dunkleosteus": {
     "file": "assets/games/gofish-dunkleosteus.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-tiktaalik": {
     "file": "assets/games/gofish-tiktaalik.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-helicoprion": {
     "file": "assets/games/gofish-helicoprion.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-ichthyosaur": {
     "file": "assets/games/gofish-ichthyosaur.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-plesiosaur": {
     "file": "assets/games/gofish-plesiosaur.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-mosasaur": {
     "file": "assets/games/gofish-mosasaur.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-back": {
     "file": "assets/games/gofish-back.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "gofish-pond": {
     "file": "assets/games/gofish-pond.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "game-gofish": {
     "file": "assets/icons/game-gofish.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-gofish": {
     "file": "assets/icons2/game2-gofish.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "art-game-gofish": {
     "file": "assets/icons-art/art-game-gofish.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "classic-game-gofish": {
     "file": "assets/icons-classic/classic-game-gofish.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };
