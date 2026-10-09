@@ -492,11 +492,11 @@ export const ASSETS = {
   },
   "sprites.titthrushHop": {
     "file": "assets/sprites/titthrush-hop.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.clockHands": {
     "file": "assets/sprites/clock-hands.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.plugsocketswift": {
     "file": "assets/scenes/plugsocketswift.webp",

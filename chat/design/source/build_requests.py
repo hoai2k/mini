@@ -827,6 +827,93 @@ for i, (gid, name, subject) in enumerate(V2_FX + V2_GAMES, 1):
         f"The {name} {where}, replacing the first-set icon.", f"Icon: {subject}.",
         "The first-set icon, or the emoji.")
 
+# --- Go Fish: ancient-ocean creature cards ------------------------------
+# Thirteen creatures, four cards of each. The card frame, name and colour band
+# are drawn by the game; each picture is the creature alone on transparency.
+GOFISH = [
+    ("anomalocaris", "Anomalocaris", "Cambrian",
+     "Anomalocaris, the big Cambrian hunter, in side view swimming: a long flat segmented body in "
+     "warm red and coral, a fan of overlapping swimming flaps down each side, a tail fan of three "
+     "pairs of blades, big stalked eyes on top of the head, and two curled spiky grabbing arms in "
+     "front of a round mouth"),
+    ("opabinia", "Opabinia", "Cambrian",
+     "Opabinia in side view: a small soft segmented body in bright blues, a row of swimming flaps "
+     "along each side, a fan tail, FIVE mushroom-like stalked eyes on its head, and one long "
+     "flexible nozzle reaching forward with a little grabbing claw at its tip"),
+    ("hallucigenia", "Hallucigenia", "Cambrian",
+     "Hallucigenia walking on the sea floor in side view: a thin tube-shaped worm body in orange, "
+     "seven pairs of long stilt-like tentacle legs underneath, two rows of tall pointed spines "
+     "along its back, and a small round head with tiny eyes"),
+    ("pikaia", "Pikaia", "Cambrian",
+     "Pikaia, a small early chordate, swimming in side view: a slim leaf-shaped ribbon body in "
+     "mint green with faint zigzag muscle bands, a tiny head with two little tentacles, and a "
+     "soft fin along the tail; cute and wriggly"),
+    ("burgessomedusa", "Burgessomedusa", "Cambrian",
+     "Burgessomedusa, an ancient jellyfish: a tall translucent pink bell with a gentle glow, about "
+     "ninety short fine tentacles trailing from the rim like a fringe, swimming upwards"),
+    ("trilobite", "Trilobite", "Cambrian to Permian",
+     "A trilobite seen from above at a slight angle: an oval armoured body split into three lobes "
+     "lengthwise and many segments across, a half-moon head shield with two crescent compound "
+     "eyes, short spines at the corners, in ochre and warm brown with glossy plates"),
+    ("nautilus", "Nautilus", "living fossil",
+     "A nautilus swimming in side view: a smooth coiled shell in cream with bold red-brown tiger "
+     "stripes, a soft hood, one big round eye and a bunch of many short tentacles below"),
+    ("dunkleosteus", "Dunkleosteus", "Devonian",
+     "Dunkleosteus, the armoured Devonian giant fish, in side view with its jaws wide open: a "
+     "heavy head and shoulder covered in slate-blue bony armour plates, sharp bony blades instead "
+     "of teeth, a small round eye in the armour, and a sleek shark-like tail behind"),
+    ("tiktaalik", "Tiktaalik", "Devonian",
+     "Tiktaalik in side view propping itself up in shallow water: a flat crocodile-like head with "
+     "eyes on top, a real neck, scaly lime-green body with darker spots, and sturdy fleshy front "
+     "fins pushing up like arms"),
+    ("helicoprion", "Helicoprion", "Permian",
+     "Helicoprion, the buzz-saw shark, in side view: a sleek teal shark-like fish whose lower jaw "
+     "holds a coiled spiral whorl of triangular teeth, like a round saw blade, clearly visible"),
+    ("ichthyosaur", "Ichthyosaur", "Triassic to Cretaceous",
+     "An ichthyosaur leaping in side view: a dolphin-shaped sea reptile in golden yellow with a long "
+     "toothy snout, a HUGE round eye with a bony ring, a tall half-moon tail fin and a back fin"),
+    ("plesiosaur", "Plesiosaur", "Jurassic",
+     "A plesiosaur swimming in side view: a round body in purple, a very long curving neck with a "
+     "small smiling toothy head, four big paddle flippers and a short tail"),
+    ("mosasaur", "Mosasaur", "Cretaceous",
+     "A mosasaur in side view: a huge dark green sea lizard with a long crocodile-like toothy head, "
+     "a long body with paddle flippers, and a shark-like tail fin bending down"),
+]
+for i, (cid, name, period, desc) in enumerate(GOFISH, 25):
+    req("games", f"CH-G{i:02d}", f"gofish-{cid}", f"Go Fish card: {name}", "512 x 512",
+        f"Go Fish: the picture on the {name} card ({period}).",
+        f"{desc}. A fun, friendly, colourful take for a children's card game, scientifically "
+        "recognisable, one creature only, centred and filling the frame, no background scenery.",
+        "A canvas drawing of the creature.")
+req("games", "CH-G38", "gofish-back", "Go Fish card back", "512 x 704",
+    "Go Fish: the face-down cards in the pond and in other players' hands.",
+    "The back of a playing card with rounded corners: deep turquoise water with gentle wave "
+    "bands, a few ammonite and trilobite silhouettes in a lighter tint, a small fishing hook "
+    "emblem in the middle, symmetrical.",
+    "A CSS wave pattern.")
+req("games", "CH-G39", "gofish-pond", "Go Fish pond", "1600 x 1000",
+    "Go Fish: the pond players cast into, seen from above, with fish shadows drawn on top by the game.",
+    "A calm pond seen straight from above: clear teal-green water getting deeper towards the "
+    "middle, soft caustic light ripples, a few lily pads and reeds around the edges and a little "
+    "wooden jetty poking in from the bottom edge. No fish, no animals, no people.",
+    "A canvas-drawn pond.", alpha=False)
+# Its icon in each set (numbered after each set's last request).
+GOFISH_ICON = "a fishing line pulling a playing card with a bright red Anomalocaris on it out of a pond"
+req("icons", "CH-I97", "game-gofish", "Go Fish icon", "256 x 256",
+    "The Go Fish card in the game picker.", f"Icon of {GOFISH_ICON}.", "An emoji.")
+req("icons2", "CH-K97", "game2-gofish", "Go Fish icon (second set)", "256 x 256",
+    "The Go Fish card in the game picker, replacing the first-set icon.",
+    "Icon: a teen on a jetty casting a fishing line into a glowing pond, a playing card with a red "
+    "Anomalocaris flying up out of the water on the hook.", "The first-set icon, or the emoji.")
+req("icons-art", "CH-N96", "art-game-gofish", "Go Fish icon (Art theme)", "256 x 256",
+    "The Go Fish card in the game picker in the Art theme.",
+    "Icon: a person on a jetty casting a fishing line into a pond, a playing card with a red "
+    "Anomalocaris flying up out of the water on the hook.", "The Teen icon, then the Kid icon, then the emoji.")
+req("icons-classic", "CH-R96", "classic-game-gofish", "Go Fish icon (Classical theme)", "256 x 256",
+    "The Go Fish card in the game picker in the Classical theme.",
+    "Icon: a person on a jetty casting a fishing line into a pond, a playing card with a red "
+    "Anomalocaris flying up out of the water on the hook.", "The Teen icon, then the Kid icon, then the emoji.")
+
 
 def render_doc() -> str:
     lines = [

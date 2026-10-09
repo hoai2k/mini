@@ -1003,6 +1003,14 @@ REDO = {rid: TRACED for rid in (
     "BD-C17", "BD-C07", "BD-C08", "BD-P02", "BD-P03", "BD-P10", "BD-C13", "BD-R01", "BD-R02")}
 REDO["BD-P11"] = "The first take is the communal house alone, recoloured: the water pavilion in the pond in front of it, which the prompt asks for, is missing."
 
+# Accepted replacements retain the revised direction and prompt, but no longer
+# appear as open regeneration requests. The delivery record preserves provenance.
+REGENERATIONS_FILE = ROOT / "design" / "image-regenerations-water-puppets.json"
+WATER_REGENERATED = {
+    r["id"] for r in json.loads(REGENERATIONS_FILE.read_text()).get("images", [])
+    if r.get("accepted")
+} if REGENERATIONS_FILE.exists() else set()
+
 PUPPET = (
     "Match the puppets of the water-puppet style frame BD-W01 "
     "(bronzedrum/design/references/w01-water-puppet-frame.png; give it to the generator as the "
@@ -1078,9 +1086,9 @@ for base_id in WATER_BASES:
     req(WT, rid, asset, f"Water puppets: {title}",
         f"The water-puppet version of {base_id}, shown in its place when Settings, Style is "
         f"Water puppets. {purpose}",
-        spec, "regenerate" if redo else "delivered", b["standin"] and f"{b['asset']} (the shadow-puppet image)", f"art/{asset}.png", prompt)
+        spec, "regenerate" if redo and rid not in WATER_REGENERATED else "delivered", b["standin"] and f"{b['asset']} (the shadow-puppet image)", f"art/{asset}.png", prompt)
     REQUESTS[-1]["base"] = b["asset"]
-    if redo:
+    if redo and rid not in WATER_REGENERATED:
         REQUESTS[-1]["redo"] = redo
 
 # ------------------------------------------------------------------ output
