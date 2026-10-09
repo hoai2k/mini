@@ -462,6 +462,10 @@ export const ASSETS = {
     "file": "assets/sprites/dish-shards.png",
     "delivered": true
   },
+  "sprites.glovedoveBump": {
+    "file": "assets/sprites/glovedove-bump.png",
+    "delivered": false
+  },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
     "delivered": true
