@@ -5,8 +5,8 @@
 // Timing and layout are in reward.js; main.js runs it and handles the input.
 
 import { drawBird, paper, label, poly, ink, blob, PAL, INK } from './draw.js';
-import { STEPS, FLY_TIME, bookLayout, spreadOf, spreadCount, ease, pop } from './reward.js';
-import { pagePoint, drawOrder } from './stickerbook.js';
+import { STEPS, FLY_TIME, bookLayout, gatherLayout, spreadOf, spreadCount, ease, pop } from './reward.js';
+import { pagePoint, drawOrder, clampCam, bookToStage } from './stickerbook.js';
 
 const at = Object.fromEntries(STEPS.map((s) => [s.name, s.at]));
 const LAND = at.fly + FLY_TIME;
@@ -171,14 +171,9 @@ function roundRect(g, x, y, w, h, r) {
 const COVER = '#8f6f9a'; // a mauve cloth binding
 const tilt = (i) => ((hash(i * 5.3) - 0.5) * 0.16);
 
-// One open spread of the book. c: { birds, earned (Set of indices stuck
-// in), index (the new sticker's bird, drawn by its flight, or -1) };
-// o.pos: where the player has put stickers; o.skip: the id of one being
-// carried; o.bg: a picture behind the stickers, o.bgFull when it is one
-// painted for the book's spread (its halves on the two pages) rather than a
-// game's scene pasted in.
-export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, skip = null, bg = null, bgFull = false }) {
-  const { pages, slots, spine } = L;
+// The open book: its cloth cover, the leaves' edges, the two pages (with
+// a picture on them, if any) and the fold between them.
+function drawFrame(g, pages, spine, wide, { lw, lh, px, bg = null, bgFull = false }) {
   const sides = wide ? ['r', 'l'] : ['b', 't'];
   const box = {
     x: Math.min(pages[0].x, pages[1].x),
@@ -255,6 +250,17 @@ export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, ski
     g.lineTo(spine.x + spine.w - 4, spine.y);
   }
   ink(g, 2.6);
+}
+
+// One open spread of the book. c: { birds, earned (Set of indices stuck
+// in), index (the new sticker's bird, drawn by its flight, or -1) };
+// o.pos: where the player has put stickers; o.skip: the id of one being
+// carried; o.bg: a picture behind the stickers, o.bgFull when it is one
+// painted for the book's spread (its halves on the two pages) rather than a
+// game's scene pasted in.
+export function drawBook(g, L, wide, c, { stuckNew, lw, lh, px, t, pos = {}, skip = null, bg = null, bgFull = false }) {
+  const { pages, slots, spine } = L;
+  drawFrame(g, pages, spine, wide, { lw, lh, px, bg, bgFull });
 
   // headings, and the pages' numbers at their foot (with more than one
   // spread, which pages of the guide these are)
@@ -560,11 +566,19 @@ function puff(g, x, y, s, color, k) {
 
 // Where things go on a wide (1600 x 900) or an upright (900 x 1600) stage;
 // the book open at the spread of bird i.
-export function celebrationLayout(n, wide, i = 0) {
+// With `gather`, the book is open at all the birds together (one spread,
+// no sticker sheet); `size` is a sticker's size in the book either way.
+export function celebrationLayout(n, wide, i = 0, gather = false) {
   const sp = spreadOf(i, n);
+  const rect = wide ? { x: 150, y: 285, w: 1300, h: 565 } : { x: 80, y: 520, w: 740, h: 1010 };
+  const spread = bookLayout(n, rect, wide, sp);
+  // upright, the gathering's two pages would be small one above the other:
+  // the view is zoomed onto the new bird's page instead, across the width
+  const book = gather ? gatherLayout(n, wide ? rect : { x: 30, y: 470, w: 840, h: 1000 }, wide, { sheet: false }) : spread;
+  const size = spread.slots[0]?.s || 100;
   return wide
-    ? { pop: [800, 410, 430], hover: [800, 150, 220], head: 82, name: 690, sub: 748, book: bookLayout(n, { x: 150, y: 285, w: 1300, h: 565 }, true, sp), lift: 520 }
-    : { pop: [450, 700, 520], hover: [450, 300, 290], head: 210, name: 1040, sub: 1104, book: bookLayout(n, { x: 80, y: 520, w: 740, h: 1010 }, false, sp), lift: 900 };
+    ? { pop: [800, 410, 430], hover: [800, 150, 220], head: 82, name: 690, sub: 748, book, size, lift: 520 }
+    : { pop: [450, 700, 520], hover: [450, 300, 290], head: 210, name: 1040, sub: 1104, book, size, lift: 900 };
 }
 
 // The whole scene at time t. c: { index, birds, earned (Set of indices
@@ -575,9 +589,20 @@ export function celebrationLayout(n, wide, i = 0) {
 export function drawCelebration(g, c, t, o) {
   const { lw, lh, px, reduce, wide } = o;
   const b = c.birds[c.index];
-  const L = celebrationLayout(c.birds.length, wide, c.index);
-  // its own place, or where the player put it before (?debug replays)
-  const slot = stickerSpot(L.book, c.index, c.pos?.[b.id]);
+  const G = c.gather || null;
+  const L = celebrationLayout(c.birds.length, wide, c.index, !!G);
+  // its own place, or where the player put it before (?debug replays); on
+  // the gathering, its own spot in the painting
+  const region = G && G.atlas.regions.find((r) => r.id === b.id);
+  let cam = null;
+  if (G && !wide) {
+    const { box, win, pages } = L.book;
+    const z = win.w / pages[0].w;
+    const pg = pages[region?.page || 0];
+    cam = clampCam(box, { z, x: box.x + box.w / 2, y: pg.y + pg.h / 2 }, win);
+  }
+  const rr = region && camRect(L.book, cam, regionRect(L.book, region));
+  const slot = rr ? { x: rr.cx, y: rr.cy + (regionSize(rr) / 0.78) * 0.06, s: regionSize(rr) / 0.78 } : stickerSpot(L.book, c.index, c.pos?.[b.id]);
   paper(g, lw, lh);
 
   // 1. the sticker alone, with rays and confetti
@@ -608,7 +633,24 @@ export function drawCelebration(g, c, t, o) {
     g.save();
     g.globalAlpha = reduce ? bookIn : Math.min(1, bookIn * 1.6);
     if (!reduce) g.translate(0, (1 - ease(bookIn)) * L.lift * 0.35);
-    drawBook(g, L.book, wide, c, { stuckNew: t >= land, lw, lh, px, t, pos: c.pos || {}, bg: c.bg?.img || null, bgFull: !!c.bg?.full });
+    if (G) {
+      const earned = new Set(c.earned);
+      earned.add(c.index);
+      const gpos = { ...G.gpos };
+      delete gpos[b.id];
+      drawGatherBook(g, L.book, wide, {
+        birds: c.birds,
+        earned,
+        img: G.img,
+        atlas: G.atlas,
+        grey: (id) => (id === b.id ? (t < land ? 1 : snapGrey(dissolveK(t - land, reduce), reduce)) : G.snapped.has(id) && earned.has(c.birds.findIndex((x) => x.id === id)) ? 0 : 1),
+        glow: t >= at.fly - 0.3 && t < land ? b.id : null,
+        gpos,
+        size: L.size,
+        skip: b.id,
+        cam,
+      }, { lw, lh, px, t });
+    } else drawBook(g, L.book, wide, c, { stuckNew: t >= land, lw, lh, px, t, pos: c.pos || {}, bg: c.bg?.img || null, bgFull: !!c.bg?.full });
     g.restore();
   }
 
@@ -640,7 +682,30 @@ export function drawCelebration(g, c, t, o) {
     const turn = Math.sin(Math.PI * flyK) * 0.5;
     drawSticker(g, b.id, x, y, size, { rot: lerp(0, tilt(c.index), e) - turn * 0.6, sx: 1 - 0.35 * Math.sin(Math.PI * flyK), lift: 0.85 + 0.4 * Math.sin(Math.PI * flyK) - 0.6 * e, px });
   }
-  if (t >= land) {
+  if (t >= land && G) {
+    // on the gathering: it melts into its spot and the bird there takes its colour
+    const k = t - land;
+    drawSnap(g, b, c.index, { x: slot.x, y: slotY, size: slotSize }, { x: slot.x, y: slotY, size: slotSize }, dissolveK(k, reduce), { reduce, px, t });
+    if (!reduce) glints(g, rr.cx, rr.cy, slotSize * 0.7, t, clamp01(1 - (k - 0.6) / 0.6), 7);
+    const a = clamp01((k - 0.3) / 0.4);
+    if (a > 0) {
+      g.save();
+      g.globalAlpha = a;
+      const size = Math.max(16, L.size * 0.13);
+      const ly = Math.min(rr.y + rr.h + size * 0.9, L.book.win.y + L.book.win.h - size);
+      g.font = `600 ${size}px Fraunces, Georgia, serif`;
+      const w = g.measureText(shortName(b.name)).width + size * 1.2;
+      const win = L.book.win;
+      const lx = Math.max(win.x + w / 2 + 8, Math.min(win.x + win.w - w / 2 - 8, slot.x));
+      roundRect(g, lx - w / 2, ly - size * 0.8, w, size * 1.6, size * 0.45);
+      g.fillStyle = 'rgba(251,246,232,0.94)';
+      g.fill();
+      ink(g, 1.4);
+      label(g, shortName(b.name), lx, ly, { size, color: '#5a4636', weight: 600 });
+      g.restore();
+    }
+    nextLine(g, c, t, lw, wide);
+  } else if (t >= land) {
     // stuck: a slap (a squash that settles), a puff, then still
     const k = t - land;
     const sq = reduce ? 0 : Math.exp(-k * 9) * Math.cos(k * 32) * 0.16;
@@ -654,43 +719,63 @@ export function drawCelebration(g, c, t, o) {
       puff(g, slot.x, slotY, slot.s, b.color, k / 0.6);
       glints(g, slot.x, slotY, slot.s * 0.55, t, clamp01(1 - (k - 0.4) / 0.6), 7);
     }
-    // what it opened
-    if (t >= at.stuck - 0.05) {
-      const a = clamp01((t - at.stuck + 0.05) / 0.4);
-      g.save();
-      g.globalAlpha = a;
-      const line = c.next ? `A new page is open: ${c.next.name}!` : `Every one of the ${c.birds.length} rare birds, spotted!`;
-      const y0 = wide ? 170 : 330;
-      fitLabel(g, line, lw / 2 + 3, y0 + 3, lw - 60, { size: wide ? 46 : 44, weight: 700, color: PAL.strawberry });
-      fitLabel(g, line, lw / 2, y0, lw - 60, { size: wide ? 46 : 44, weight: 700 });
-      g.restore();
-    }
+    nextLine(g, c, t, lw, wide);
   }
 }
+
+// After the sticker is stuck: what it opened.
+function nextLine(g, c, t, lw, wide) {
+  if (t < at.stuck - 0.05) return;
+  const a = clamp01((t - at.stuck + 0.05) / 0.4);
+  g.save();
+  g.globalAlpha = a;
+  const line = c.next ? `A new page is open: ${c.next.name}!` : `Every one of the ${c.birds.length} rare birds, spotted!`;
+  const y0 = wide ? 170 : 330;
+  fitLabel(g, line, lw / 2 + 3, y0 + 3, lw - 60, { size: wide ? 46 : 44, weight: 700, color: PAL.strawberry });
+  fitLabel(g, line, lw / 2, y0, lw - 60, { size: wide ? 46 : 44, weight: 700 });
+  g.restore();
+}
+
+// How far a sticker landed on the gathering is through its snap (only the
+// melting part: the flight brought it there).
+const dissolveK = (k, reduce) => (reduce ? clamp01(k / 0.4) : SNAP_MOVE + (1 - SNAP_MOVE) * clamp01(k / 0.7));
 
 // ---------- the sticker book, opened from the guide ----------
 
 // The book alone on the stage, open at `spread`, as large as it goes with
-// room for the words and buttons above and below it.
-export function stickerBookLayout(n, wide, spread = 0) {
+// room for the words and buttons above and below it; with `gather`, open at
+// all the birds together, with the sticker sheet beside it.
+export function stickerBookLayout(n, wide, spread = 0, gather = false) {
+  if (gather) return gatherLayout(n, wide ? { x: 24, y: 140, w: 1552, h: 660 } : { x: 16, y: 240, w: 868, h: 1290 }, wide);
   return wide ? bookLayout(n, { x: 120, y: 150, w: 1360, h: 640 }, true, spread) : bookLayout(n, { x: 60, y: 250, w: 780, h: 1150 }, false, spread);
 }
+// A sticker's own size in the book (its place on a spread).
+export const stickerSize = (n, wide) => stickerBookLayout(n, wide, 0).slots[0].s;
 
 // The sticker book screen. sb: { birds, earned (Set), book ({ pos, bg,
-// spread }), held (null or { id, x, y }: a sticker being carried, its centre
-// in stage units), hand (null or { x, y }: the controller's or keyboard's
-// hand), bg (the picture behind the stickers, { img, full }, or null) }; o: { lw, lh, px,
-// wide, t, reduce }.
+// spread }), held (null or { id, x, y, s }: a sticker being carried, its
+// centre in stage units and, on the gathering, its size), hand (null or
+// { x, y }: the controller's or keyboard's hand), bg (the picture behind the
+// stickers, { img, full }, or null), gather (on the gathering: drawGatherBook's
+// c, plus L, its layout, and snaps, the stickers snapping in: [{ b, i, from,
+// to, k }]) }; o: { lw, lh, px, wide, t, reduce }.
 export function drawStickerBook(g, sb, o) {
   const { lw, lh, px, wide, t, reduce } = o;
   paper(g, lw, lh);
-  const L = stickerBookLayout(sb.birds.length, wide, sb.book.spread);
-  drawBook(g, L, wide, { birds: sb.birds, earned: sb.earned, index: -1 }, { stuckNew: false, lw, lh, px, t, pos: sb.book.pos, skip: sb.held?.id, bg: sb.bg?.img || null, bgFull: !!sb.bg?.full });
+  let size;
+  if (sb.gather) {
+    drawGatherBook(g, sb.gather.L, wide, sb.gather, { lw, lh, px, t });
+    for (const a of sb.gather.snaps) drawSnap(g, a.b, a.i, a.from, a.to, a.k, { reduce, px, t });
+    size = sb.held?.s;
+  } else {
+    const L = stickerBookLayout(sb.birds.length, wide, sb.book.spread);
+    drawBook(g, L, wide, { birds: sb.birds, earned: sb.earned, index: -1 }, { stuckNew: false, lw, lh, px, t, pos: sb.book.pos, skip: sb.held?.id, bg: sb.bg?.img || null, bgFull: !!sb.bg?.full });
+    if (sb.held) size = L.slots.find((s) => s.i === sb.birds.findIndex((b) => b.id === sb.held.id)).s;
+  }
   if (sb.held) {
     const i = sb.birds.findIndex((b) => b.id === sb.held.id);
-    const sl = L.slots.find((s) => s.i === i);
     const bob = reduce ? 0 : Math.sin(t * 3) * 3;
-    drawPlaced(g, sb.birds[i], i, { x: sb.held.x, y: sb.held.y + bob, s: sl.s }, { px, lift: 1, scale: 1.15, bg: sb.bg?.img });
+    drawPlaced(g, sb.birds[i], i, { x: sb.held.x, y: sb.held.y + bob, s: size }, { px, lift: 1, scale: 1.15, bg: sb.bg?.img || sb.gather });
   }
   if (sb.hand) drawHand(g, sb.hand.x, sb.hand.y, !!sb.held, wide ? 1 : 1.25);
 }
@@ -726,4 +811,248 @@ function drawHand(g, x, y, holding, k) {
   g.fill();
   ink(g, 2.4);
   g.restore();
+}
+
+// ---------- all the birds together ----------
+
+// The gathering painting's spots: each bird's region of the painting
+// (painting shares, from the atlas) on this layout's pages, in stage units.
+export function regionRect(L, r) {
+  const p = L.pages[r.page];
+  return { x: p.x + (r.x * 2 - r.page) * p.w, y: p.y + r.y * p.h, w: r.w * 2 * p.w, h: r.h * p.h, cx: p.x + (r.cx * 2 - r.page) * p.w, cy: p.y + r.cy * p.h };
+}
+// A rectangle of the book ({ x, y, w, h, cx, cy }) as seen through a camera
+// (unchanged without one).
+export function camRect(L, cam, r) {
+  if (!cam) return r;
+  const a = bookToStage(L.win, cam, { x: r.x, y: r.y });
+  const c = bookToStage(L.win, cam, { x: r.cx, y: r.cy });
+  return { x: a.x, y: a.y, w: r.w * cam.z, h: r.h * cam.z, cx: c.x, cy: c.y };
+}
+// The size a sticker is drawn at to fill a region (drawSticker's `size`).
+export const regionSize = (rr) => Math.min(rr.h, rr.w / 1.12) * 1.05;
+
+// A greyed spot: the painting inside the bird's region washed out toward
+// the paper, as if only pencilled in (its dark lines kept faint, its colour
+// gone), fading softly into the painting round a rounded square fitted to
+// the region (a superellipse, so the box's corners are covered without
+// greying much round its sides). Built once per bird from the painting.
+const OVAL = 1.3; // the patch's size, against the region's box
+const SHAPE = 0.6; // the shape's half size, against the box (it fades out from 0.8 to 1.08 of it)
+const patches = new Map();
+function greyPatch(img, r) {
+  const key = r.id;
+  if (patches.has(key) && patches.get(key).img === img) return patches.get(key);
+  const W = img.width;
+  const H = img.height;
+  const pw = r.w * W * OVAL;
+  const ph = r.h * H * OVAL;
+  const sx = Math.max(0, Math.floor(r.cx * W - pw / 2));
+  const sy = Math.max(0, Math.floor(r.cy * H - ph / 2));
+  const sw = Math.min(W - sx, Math.ceil(pw));
+  const sh = Math.min(H - sy, Math.ceil(ph));
+  const c = document.createElement('canvas');
+  c.width = sw;
+  c.height = sh;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  const data = x.getImageData(0, 0, sw, sh);
+  const d = data.data;
+  const ocx = r.cx * W - sx;
+  const ocy = r.cy * H - sy;
+  for (let j = 0; j < sh; j++) {
+    for (let i = 0; i < sw; i++) {
+      const o = (j * sw + i) * 4;
+      const lum = (0.3 * d[o] + 0.59 * d[o + 1] + 0.11 * d[o + 2]) / 255;
+      // the paper, darkened where the painting is dark: its ink lines show
+      const k = 0.5 + 0.5 * Math.pow(lum, 0.75);
+      d[o] = 247 * k;
+      d[o + 1] = 240 * k;
+      d[o + 2] = 224 * k;
+      const ex = Math.abs(i - ocx) / (r.w * W * SHAPE);
+      const ey = Math.abs(j - ocy) / (r.h * H * SHAPE);
+      const e = Math.sqrt(Math.sqrt(ex ** 4 + ey ** 4));
+      const a = e <= 0.8 ? 1 : e >= 1.08 ? 0 : 1 - smooth((e - 0.8) / 0.28);
+      d[o + 3] = 255 * a;
+    }
+  }
+  x.putImageData(data, 0, 0);
+  const patch = { img, canvas: c, x: sx / W, y: sy / H, w: sw / W, h: sh / H };
+  patches.set(key, patch);
+  return patch;
+}
+const smooth = (x) => x * x * (3 - 2 * x);
+
+// The open book at the gathering. c: { birds, earned (Set of indices),
+// img (the painting), atlas (regionsFromAtlas), grey (id → 0..1, how
+// greyed its spot is), glow (the id of the sticker carried: its spot
+// glows), gpos (stickers left loose on the page), cells (the stickers
+// waiting on the sheet, from sheetCells), shake ({ id, dx }), size (a sticker's
+// size), cam ({ z, x, y }, or null) }; o: { lw, lh, px, t }.
+export function drawGatherBook(g, L, wide, c, { lw, lh, px, t }) {
+  const { pages, spine, box, win } = L;
+  const cam = c.cam || { z: 1, x: box.x + box.w / 2, y: box.y + box.h / 2 };
+  const toStage = (p) => ({ x: win.x + win.w / 2 + (p.x - cam.x) * cam.z, y: win.y + win.h / 2 + (p.y - cam.y) * cam.z });
+  if (L.zones.length) drawSheet(g, L, c);
+  // the pages, seen through their window (all of them, unless zoomed in)
+  const zoomed = cam.z > 1.001;
+  g.save();
+  if (zoomed) {
+    g.beginPath();
+    roundRect(g, win.x, win.y, win.w, win.h, 10);
+    g.clip();
+  }
+  g.save();
+  g.translate(win.x + win.w / 2, win.y + win.h / 2);
+  g.scale(cam.z, cam.z);
+  g.translate(-cam.x, -cam.y);
+  drawFrame(g, pages, spine, wide, { lw, lh, px: px * cam.z, bg: c.img, bgFull: true });
+  // the greyed spots, then their outlines and numbers on top
+  const sides = wide ? ['r', 'l'] : ['b', 't'];
+  for (const r of c.atlas.regions) {
+    const k = c.grey(r.id);
+    if (k <= 0.001) continue;
+    const pt = greyPatch(c.img, r);
+    const rr = regionRect(L, { ...r, x: pt.x, y: pt.y, w: pt.w, h: pt.h });
+    g.save();
+    pagePath(g, pages[r.page], sides[r.page]);
+    g.clip();
+    g.globalAlpha = k;
+    g.drawImage(pt.canvas, rr.x, rr.y, rr.w, rr.h);
+    g.restore();
+  }
+  for (const r of c.atlas.regions) {
+    const k = c.grey(r.id);
+    const glow = c.glow === r.id;
+    if (k <= 0.02 && !glow) continue;
+    const i = c.birds.findIndex((b) => b.id === r.id);
+    const rr = regionRect(L, r);
+    const earned = c.earned.has(i);
+    const rx = rr.w * SHAPE * 0.92;
+    const ry = rr.h * SHAPE * 0.92;
+    g.save();
+    if (glow) {
+      // the carried sticker's own spot: a soft wash of its colour, breathing
+      g.globalAlpha = 0.28 + 0.12 * Math.sin(t * 5);
+      g.fillStyle = c.birds[i].color;
+      roundRect(g, rr.cx - rx, rr.cy - ry, rx * 2, ry * 2, Math.min(rx, ry) * 0.6);
+      g.fill();
+      g.globalAlpha = 1;
+    }
+    g.globalAlpha = Math.max(k, glow ? 1 : 0);
+    g.setLineDash([9 / cam.z + 3, 7 / cam.z + 3]);
+    g.lineDashOffset = glow ? -t * 30 : 0;
+    roundRect(g, rr.cx - rx, rr.cy - ry, rx * 2, ry * 2, Math.min(rx, ry) * 0.6);
+    g.lineWidth = glow ? 3 : 1.6;
+    g.strokeStyle = glow ? 'rgba(192,64,122,0.85)' : earned ? 'rgba(122,74,96,0.55)' : 'rgba(59,43,32,0.3)';
+    g.stroke();
+    g.setLineDash([]);
+    // its number on a little paper tag at the foot of the oval: faint until
+    // its sticker is earned, then inked in the book's pink, waiting
+    const ts = Math.max(13, Math.min(rr.w, rr.h) * 0.15);
+    const tx = rr.cx;
+    const ty = Math.min(rr.cy + ry, pages[r.page].y + pages[r.page].h - ts);
+    g.beginPath();
+    g.arc(tx, ty, ts * 0.78, 0, Math.PI * 2);
+    g.fillStyle = earned ? 'rgba(255,251,241,0.95)' : 'rgba(250,244,228,0.7)';
+    g.fill();
+    g.lineWidth = earned ? 1.8 : 1.2;
+    g.strokeStyle = earned ? 'rgba(192,64,122,0.75)' : 'rgba(59,43,32,0.3)';
+    g.stroke();
+    label(g, String(i + 1), tx, ty + ts * 0.04, { size: ts, weight: earned ? 700 : 500, color: earned ? 'rgba(160,48,100,0.95)' : 'rgba(59,43,32,0.45)' });
+    g.restore();
+  }
+  g.restore();
+  if (zoomed) {
+    // the window's edge, a thin ink line
+    roundRect(g, win.x, win.y, win.w, win.h, 10);
+    g.globalAlpha = 0.6;
+    ink(g, 2);
+    g.globalAlpha = 1;
+  }
+  // the loose stickers, at their full size whatever the zoom
+  const ids = Object.keys(c.gpos).filter((id) => id !== c.skip && c.earned.has(c.birds.findIndex((b) => b.id === id)));
+  for (const id of drawOrder(ids, c.gpos)) {
+    const i = c.birds.findIndex((b) => b.id === id);
+    const at = toStage(pagePoint(pages, c.gpos[id]));
+    const dx = c.shake?.id === id ? c.shake.dx : 0;
+    drawPlaced(g, c.birds[i], i, { x: at.x + dx, y: at.y, s: c.size }, { px, bg: true });
+  }
+  g.restore();
+}
+
+// The sticker sheet beside (or under) the book: a backing paper in each of
+// its zones, with the stickers waiting there (c.cells: not yet snapped into
+// the picture or left on the page), or a faint note when none are.
+function drawSheet(g, L, c) {
+  const cells = (c.cells || []).filter((sl) => c.birds[sl.i]?.id !== c.skip);
+  L.zones.forEach((z, k) => {
+    const own = cells.filter((sl) => sl.zone === k);
+    const m = Math.min(z.w, z.h) * 0.04;
+    g.save();
+    g.shadowColor = 'rgba(59,43,32,0.16)';
+    g.shadowBlur = 8;
+    g.shadowOffsetY = 3;
+    roundRect(g, z.x + m, z.y + m, z.w - m * 2, z.h - m * 2, 14);
+    g.fillStyle = 'rgba(251,246,232,0.9)';
+    g.fill();
+    g.restore();
+    g.save();
+    g.setLineDash([6, 5]);
+    roundRect(g, z.x + m * 2, z.y + m * 2, z.w - m * 4, z.h - m * 4, 10);
+    g.lineWidth = 1.2;
+    g.strokeStyle = 'rgba(59,43,32,0.22)';
+    g.stroke();
+    g.restore();
+    roundRect(g, z.x + m, z.y + m, z.w - m * 2, z.h - m * 2, 14);
+    g.globalAlpha = 0.45;
+    ink(g, 1.4);
+    g.globalAlpha = 1;
+    if (!own.length && k === 0) {
+      const text = cells.length || c.waitingNote === false ? '' : 'Stickers wait here';
+      if (text) {
+        if (L.zones.length === 2) {
+          g.save();
+          g.translate(z.x + z.w / 2, z.y + z.h / 2);
+          g.rotate(-Math.PI / 2);
+          label(g, text, 0, 0, { size: Math.min(26, z.w * 0.2), weight: 500, color: 'rgba(59,43,32,0.4)' });
+          g.restore();
+        } else label(g, text, z.x + z.w / 2, z.y + z.h / 2, { size: Math.min(30, z.h * 0.2), weight: 500, color: 'rgba(59,43,32,0.4)' });
+      }
+    }
+  });
+  for (const sl of cells) drawSticker(g, c.birds[sl.i].id, sl.x, sl.y, sl.s * 0.84, { rot: tilt(sl.i) * 0.7, lift: 0.1 });
+}
+
+// A sticker snapping into its spot, k from 0 to 1: it shrinks and moves to
+// the spot (the first SNAP_MOVE of the time), then melts into the painting
+// with a bloom of its colour, while the spot's grey lifts (snapGrey).
+// from / to: { x, y, size } in stage units.
+export const SNAP_TIME = 0.85;
+const SNAP_MOVE = 0.4;
+export const snapGrey = (k, reduce = false) => (reduce ? 1 - clamp01(k) : 1 - ease(clamp01((k - SNAP_MOVE) / (1 - SNAP_MOVE))));
+export function drawSnap(g, b, i, from, to, k, { reduce = false, px = 1, t = 0 } = {}) {
+  if (k >= 1) return;
+  if (reduce) {
+    // with less motion: no flight, the sticker simply fades into its spot
+    drawSticker(g, b.id, to.x, to.y, to.size, { rot: tilt(i), lift: 0, alpha: 1 - clamp01(k), px });
+    return;
+  }
+  const m = ease(clamp01(k / SNAP_MOVE));
+  const d = clamp01((k - SNAP_MOVE) / (1 - SNAP_MOVE));
+  const x = lerp(from.x, to.x, m);
+  const y = lerp(from.y, to.y, m) - Math.sin(Math.PI * m) * 30;
+  const size = lerp(from.size, to.size, m);
+  if (d > 0) {
+    // a bloom of its colour soaking out into the paper
+    g.save();
+    g.globalAlpha = (1 - d) * 0.45;
+    g.fillStyle = b.color;
+    blob(g, to.x, to.y, to.size * (0.45 + 0.4 * d), to.size * (0.4 + 0.36 * d), i, 0.12, 16);
+    g.fill();
+    g.restore();
+  }
+  const sq = d > 0 ? Math.exp(-d * 6) * Math.sin(d * 18) * 0.08 : 0;
+  drawSticker(g, b.id, x, y, size, { rot: lerp(tilt(i), 0, m), sx: 1 + sq, sy: 1 - sq, lift: lerp(0.9, 0, m), alpha: 1 - ease(d), shine: d > 0 ? d * 1.2 : -1, px });
+  if (d > 0) glints(g, to.x, to.y, to.size * 0.6, t, 1 - d, i);
 }

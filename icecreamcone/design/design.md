@@ -52,7 +52,12 @@ says "New World Record!" and nothing more specific.
    other), the stickers already earned stuck in theirs (or wherever the
    player has put them, over the picture chosen for the book) and the rest
    pencilled outlines with their page numbers; the new sticker flies to its
-   place and sticks with a slap and a puff ("A new page is open: ..."). Then the guide comes
+   place and sticks with a slap and a puff ("A new page is open: ..."). When
+   the book is open at all the birds together (below) it opens at that one
+   spread instead (upright, zoomed onto the bird's page), and the new
+   sticker flies to its own greyed spot in the painting, shrinks to fit it
+   and melts in with a bloom of its colour: the grey lifts and the bird is
+   there in full colour, snapped in (and saved so) for good. Then the guide comes
    back, the next card still locked; it turns over to show its bird, with a
    New tab, and is chosen, ready to play (after the last bird, the bird
    itself is chosen). Any press (A, Enter, Space, a click or tap) jumps to
@@ -75,9 +80,10 @@ says "New World Record!" and nothing more specific.
    one put down goes on top of the pile; stickers may overlap; one let go off
    the pages is kept just inside the nearer page. B (Esc) puts a carried
    sticker back where it was, and otherwise closes the book. LB / RB (Q / E,
-   or the arrows by its name) change the picture behind the stickers: the
-   plain page, then a picture for each bird passed, in the guide's order,
-   named by the bird. Each bird has its own painting for the book (IC-B01 to
+   or the arrows by its name) change the picture behind the stickers: all
+   the birds together (the book's first picture, below), the plain page,
+   then a picture for each bird passed, in the guide's order, named by the
+   bird. Each bird has its own painting for the book (IC-B01 to
    IC-B28, `book.<id>`: 2:1, a fold down the middle), drawn to the edges of
    both pages, its left half on the left (or upper) page and its right half
    on the other; until it arrives, the bird's game scene stands in, pasted in
@@ -92,8 +98,52 @@ says "New World Record!" and nothing more specific.
    saved: scores, sticker places, the picture and even forgetting the scores
    last only for the tab's session (sessionStorage), starting from the saved
    game and leaving it untouched; settings are still saved.
+
+   **All the birds together** is the book's first picture, and where it
+   opens: one painting of all 28 birds in a woodland-edge farmyard (IC-U08,
+   `book.gathering`, 2:1, with `assets/book/gathering.atlas.json` giving
+   each bird's region), the first spread's 14 on its left half and the
+   second's on its right. All 28 share it, so the book shows it as a
+   single spread of two square pages (each half whole, nothing cut off),
+   and LT / RT do not turn (the arrows at the sides go away). Every bird's
+   spot starts greyed: the painting in a soft rounded patch over its region
+   washed out toward the paper, only its ink lines left faint, with a faint
+   dashed outline and its number on a little tag (faint until its sticker
+   is earned, then inked in pink: waiting). Earned stickers not yet placed
+   wait on a sticker sheet beside the book (a column either side when wide,
+   the first page's birds on the left; a strip under it when upright), as
+   large as there is room for. A sticker is carried at its own size, and
+   its own spot glows while it is. Dropped with its centre on or near its
+   own bird (and not on the fold) it snaps in: it shrinks and moves onto
+   the spot, then melts into the painting, which takes its colour. Dropped
+   on another bird's spot it gives a little shake and stays loose there;
+   anywhere else on the pages it stays loose at full size, as on the other
+   pictures; off the pages it goes back on the sheet. A filled spot can be
+   picked up again (dragged, or the hand and A): the sticker pops back out
+   to full size in hand and the spot greys again; B puts it back in. The
+   spots snapped in and the stickers left loose on this picture are saved
+   with the book (`snap` and `gpos` in `icecreamcone.stickers.v1`, which is
+   now `{ v: 2, pos, bg, spread, gpos, snap }`; an older save still loads,
+   with nothing snapped, and its picture, if it was the plain page, the old
+   default, becomes the gathering). With reduced motion the snap is a
+   short fade and nothing shakes.
+
+   On a small screen the painting's pages are drawn larger than the room
+   for them and the view scrolls over them rather than shrinking the birds:
+   upright, the page fills the screen's width and scrolls up and down (one
+   page at a time, the birds about twice as big as both pages stacked);
+   held sideways, it is zoomed until a page is about 420 pixels and scrolls
+   both ways. Drag an empty part of the picture to look around; carrying a
+   sticker (or moving the hand) near the window's edge scrolls that way, so
+   any spot can be reached. The sheet stays put, and every place is kept
+   in the painting's own coordinates, right at any zoom or scroll.
 7. **The gathering.** When every bird has been spotted, a final page shows them all
-   together, like the book's endpapers. Any bird can be replayed at any time.
+   together, like the book's endpapers (IC-U05b, `ui/gathering.webp`, 16:9,
+   filling a wide screen; upright, the sticker book's 2:1 painting instead,
+   its left half above its right across the screen's width, so the birds
+   stay big). Its heading sits on a paper label over the painting, and the
+   bird under the mouse or a finger shows its name on a little label (from
+   the paintings' atlases). Any bird can be replayed at any time.
 
 **The pause menu** has only buttons that do something: How to play, Settings,
 and, small at the foot, Restart and Exit to Field Guide. There is no Resume
@@ -245,5 +295,6 @@ near-miss that costs points.
 - Two to four players, Mario Party style: everyone plays the same minigame
   together on one screen or takes turns, with the gathering page as the
   scoreboard.
-- The gathering page's painting shows the first ten birds; a gathering of
-  all 28 would need a new one.
+- All the birds together is on trial as the sticker book's first picture
+  (snapping stickers into the painting); the plain page and the birds'
+  own pictures remain one press away if it does not win out.

@@ -28,12 +28,21 @@
 //     buttons below) and on past the end of a row, the chosen card is
 //     scrolled into view, the last row leads down to the buttons, and a
 //     new bird's page shows its goal, controls and tips.
-//  6b. The sticker book (with a few birds passed): Y on the guide opens it;
-//     the mouse drags a sticker to the other page; the controller's hand
+//  6b. The sticker book (with a few birds passed): Y on the guide opens it,
+//     at all the birds together: the mouse drags a sticker from the sheet into
+//     its own bird's spot (it snaps in), another onto the wrong bird (it
+//     stays loose, shaking), and pulls the first out again; the controller's
+//     hand carries one from the sheet into its spot with A, takes it out
+//     with A and puts it back with B; a reload keeps it all. Then on the
+//     plain page: the mouse drags a sticker to the other page; the controller's hand
 //     picks one up with A, carries it and puts it down with A (on top of the
 //     pile), and B puts a carried one back; RB / LB change the picture; B
 //     closes it, and reopening, and reloading the page, keep every place, the
 //     pile's order, the picture and the spread.
+//  6c. On an upright phone (390 x 844): the gathering is zoomed in; dragging
+//     the picture scrolls it, and carrying a sticker to the window's foot
+//     scrolls it down until the second page's bird can be reached and
+//     snapped into; and on a phone held sideways (844 x 390) too.
 //  7. Every minigame (all 28, or only --bird) is started with ?all, played
 //     for a while with random input, and must run without errors, draw, and
 //     reach its end (the result card, or with luck a celebration).
@@ -252,6 +261,14 @@ const MENU = 9;
   s.screen === 'celebrate' ? ok('the first pass celebrates instead of showing the result card') : fail(`first pass: ${JSON.stringify(s)}`);
   const resultHidden = await page.evaluate(() => document.querySelector('#result').hidden);
   resultHidden ? ok('no result card with the celebration') : fail('the result card showed with the celebration');
+  // the book opens at all the birds together: the Coot snaps into its spot
+  const cg = await page.evaluate(() => ({ gather: !!window.__coot.S.cele?.gather, snap: window.__coot.book.snap }));
+  cg.gather && cg.snap.includes('coot') ? ok('on all the birds together, the new sticker snaps into its own spot (and is saved there)') : fail(`celebration snap: ${JSON.stringify(cg)}`);
+  if (shots) {
+    await page.evaluate(() => { window.__coot.S.cele.t = 3.62; });
+    await shot(page, '11b-celebration-snapping');
+    await page.evaluate(() => { window.__coot.S.cele.t = 0.2; });
+  }
   // (read at once: the celebration moves on while we wait, and a
   // screenshot takes long enough to miss a step)
   const steps = [];
@@ -447,9 +464,100 @@ if (!only) {
   await press(page, 3); // Y
   let s = await state(page);
   s.screen === 'stickers' ? ok('Y on the guide opens the sticker book') : fail(`Y on the guide: ${JSON.stringify(s)}`);
-  await shot(page, '17-sticker-book');
   // stage units → screen pixels
   const toScreen = (x, y) => page.evaluate(([x, y]) => { const v = window.__coot.stage(); return [v.ox + x * v.s, v.oy + y * v.s]; }, [x, y]);
+  const gi = () => page.evaluate(() => window.__coot.gather());
+  const getBook = () => page.evaluate(() => window.__coot.book);
+  const mouseDrag = async (from, to, { steps = 8, mid = null } = {}) => {
+    await page.mouse.move(...from);
+    await page.mouse.down();
+    for (let k = 1; k <= steps; k++) {
+      await page.mouse.move(from[0] + ((to[0] - from[0]) * k) / steps, from[1] + ((to[1] - from[1]) * k) / steps);
+      await wait(page, 40);
+    }
+    if (mid) await mid();
+    await page.mouse.up();
+    await wait(page, 100);
+  };
+  // the book opens at all the birds together, each spot greyed
+  let G = await gi();
+  let book = await getBook();
+  book.bg === 'gathering' && G && Object.keys(G.sheet).join() === 'coot,cupadee,shuttercluck,gullfinch,plume'
+    ? ok('the book opens at all the birds together, the five stickers earned waiting on the sheet')
+    : fail(`gathering default: ${JSON.stringify({ bg: book.bg, G })}`);
+  await shot(page, '17-sticker-book-gathering');
+  // the mouse: the Coot from the sheet into its own spot
+  await mouseDrag(await toScreen(G.sheet.coot.x, G.sheet.coot.y), await toScreen(G.spots.coot.x, G.spots.coot.y), {
+    mid: async () => {
+      const glow = await page.evaluate(() => window.__coot.S.sb.held?.id);
+      glow === 'coot' ? ok('a sticker in hand, its own spot glows') : fail(`carrying: ${glow}`);
+      await shot(page, '17b-gathering-carrying');
+    },
+  });
+  await shot(page, '17c-gathering-snapping');
+  book = await getBook();
+  book.snap.includes('coot') && !book.gpos.coot ? ok('dropped on its own bird, the sticker snaps into the painting') : fail(`mouse snap: ${JSON.stringify(book)}`);
+  // the Cupadee onto the Shuttercluck's spot: no snap, a little shake, loose there
+  G = await gi();
+  await mouseDrag(await toScreen(G.sheet.cupadee.x, G.sheet.cupadee.y), await toScreen(G.spots.shuttercluck.x, G.spots.shuttercluck.y));
+  book = await getBook();
+  const shook = await page.evaluate(() => window.__coot.S.sb.fx.some((f) => f.kind === 'shake' && f.id === 'cupadee'));
+  !book.snap.includes('cupadee') && book.gpos.cupadee && shook ? ok('dropped on the wrong bird, it shakes and stays loose') : fail(`wrong spot: ${JSON.stringify({ book, shook })}`);
+  // the Coot pulled out again, put down on the page loose
+  await wait(page, 600);
+  G = await gi();
+  const away = [G.box.x + G.box.w * 0.25, G.box.y + G.box.h * 0.92];
+  await mouseDrag(await toScreen(G.spots.coot.x, G.spots.coot.y), await toScreen(...away));
+  book = await getBook();
+  !book.snap.includes('coot') && book.gpos.coot ? ok('pulled out of its spot, it is a loose sticker again') : fail(`pull out: ${JSON.stringify(book)}`);
+  // the controller's hand: the Gullfinch from the sheet into its spot
+  const steerTo = async (tx, ty) => {
+    for (let k = 0; k < 140; k++) {
+      const h = await page.evaluate(() => window.__coot.S.sb.hand);
+      const dx = tx - h.x;
+      const dy = ty - h.y;
+      if (Math.hypot(dx, dy) < 10) break;
+      const ax = Math.max(-1, Math.min(1, dx / 120));
+      const ay = Math.max(-1, Math.min(1, dy / 120));
+      await page.evaluate(([x, y]) => window.__pad(0, { axes: [x, y, 0, 0] }), [Math.abs(ax) < 0.25 ? Math.sign(ax) * 0.25 : ax, Math.abs(ay) < 0.25 ? Math.sign(ay) * 0.25 : ay]);
+      await wait(page, 40);
+    }
+    await page.evaluate(() => window.__pad(0, { axes: [0, 0, 0, 0] }));
+    await wait(page, 60);
+  };
+  await press(page, 13); // wakes the controller (the hand shows)
+  G = await gi();
+  await steerTo(G.sheet.gullfinch.x, G.sheet.gullfinch.y);
+  await press(page, A);
+  let held = await page.evaluate(() => window.__coot.S.sb.held?.id);
+  held === 'gullfinch' ? ok('the hand picks a sticker off the sheet with A') : fail(`hand pick off the sheet: ${held}`);
+  await steerTo(G.spots.gullfinch.x, G.spots.gullfinch.y);
+  await press(page, A);
+  book = await getBook();
+  book.snap.includes('gullfinch') ? ok('and A on its bird snaps it in') : fail(`hand snap: ${JSON.stringify(book)}`);
+  await wait(page, 900);
+  await press(page, A); // the hand is still on the Gullfinch: out it comes
+  held = await page.evaluate(() => ({ id: window.__coot.S.sb.held?.id, from: window.__coot.S.sb.held?.from }));
+  held.id === 'gullfinch' && held.from === 'snap' ? ok('A on a filled spot takes its sticker out again') : fail(`hand unsnap: ${JSON.stringify(held)}`);
+  await steerTo(G.spots.gullfinch.x + 150, G.spots.gullfinch.y + 120);
+  await press(page, B);
+  book = await getBook();
+  const after1 = await page.evaluate(() => ({ screen: window.__coot.S.screen, held: window.__coot.S.sb?.held }));
+  book.snap.includes('gullfinch') && !after1.held && after1.screen === 'stickers' ? ok('B puts it back into its spot') : fail(`B back to the spot: ${JSON.stringify({ book, after1 })}`);
+  await wait(page, 900);
+  await shot(page, '17d-gathering-partly');
+  // a reload keeps what is snapped in and what is loose
+  const gBefore = JSON.stringify(await getBook());
+  await load();
+  const gAfter = JSON.stringify(await getBook());
+  const kept = JSON.parse(gAfter);
+  gAfter === gBefore && kept.snap.includes('gullfinch') && kept.gpos.coot && kept.gpos.cupadee ? ok('after a reload the snapped and loose stickers are kept') : fail(`gathering reload: ${gBefore} → ${gAfter}`);
+  await press(page, A); // title → guide
+  await press(page, 3); // Y
+  await press(page, 5); // RB: the plain page, for the spreads
+  book = await getBook();
+  book.bg === 'plain' ? ok('RB turns from all the birds together to the plain page') : fail(`to plain: ${book.bg}`);
+  await shot(page, '17e-sticker-book-plain');
   const L = await page.evaluate(() => window.__coot.stickerLayout());
   // the mouse drags the Coot onto the other page
   const from = await toScreen(L.slots[0].x, L.slots[0].y);
@@ -462,7 +570,7 @@ if (!only) {
   }
   await page.mouse.up();
   await wait(page, 100);
-  let book = await page.evaluate(() => window.__coot.book);
+  book = await page.evaluate(() => window.__coot.book);
   const c = book.pos.coot;
   c && c.page === 1 && Math.abs(c.u - 0.5) < 0.03 && Math.abs(c.v - 0.5) < 0.03 ? ok('the mouse drags a sticker onto the other page') : fail(`mouse drag: ${JSON.stringify(book)}`);
   // the controller's hand: to the Cupadee, A, across, A
@@ -483,7 +591,7 @@ if (!only) {
   await press(page, 13); // wakes the controller (the hand shows)
   await steer(L.slots[1].x, L.slots[1].y);
   await press(page, A);
-  const held = await page.evaluate(() => window.__coot.S.sb.held?.id);
+  held = await page.evaluate(() => window.__coot.S.sb.held?.id);
   held === 'cupadee' ? ok('A picks up the sticker under the hand') : fail(`hand pick: ${held}`);
   await steer(L.pages[1].x + L.pages[1].w * 0.5, L.pages[1].y + L.pages[1].h * 0.5);
   await shot(page, '18-sticker-carried');
@@ -525,6 +633,83 @@ if (!only) {
   await wait(page, 200);
   await shot(page, '20-sticker-reloaded');
   errors.length ? fail('page errors: ' + errors.join(' | ')) : ok('no page errors in the sticker book');
+  await page.close();
+}
+
+// ---------- 6c: the gathering on phones ----------
+for (const [vw, vh] of only ? [] : [[390, 844], [844, 390]]) {
+  const page = await browser.newPage({ viewport: { width: vw, height: vh } });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => m.type() === 'error' && !/fonts\.g/.test(m.text()) && errors.push(m.text()));
+  await page.addInitScript(FAKE_PADS);
+  await page.goto(url + '?dt=0.05&debug');
+  await page.waitForFunction(() => window.__coot && window.__coot.S.screen === 'title');
+  await page.waitForSelector('#loading', { state: 'detached', timeout: 60000 });
+  await page.evaluate(() => window.__coot.act('stickers'));
+  await wait(page, 300);
+  const toScreen = (x, y) => page.evaluate(([x, y]) => { const v = window.__coot.stage(); return [v.ox + x * v.s, v.oy + y * v.s]; }, [x, y]);
+  const gi = () => page.evaluate(() => window.__coot.gather());
+  let G = await gi();
+  G.cam.z > 1.3 ? ok(`${vw}x${vh}: the gathering is zoomed in (x${G.cam.z.toFixed(2)})`) : fail(`${vw}x${vh}: zoom ${JSON.stringify(G.cam)}`);
+  await shot(page, `21-gathering-${vw}x${vh}`);
+  // dragging the picture scrolls it
+  const c0 = G.cam;
+  const upright = vh > vw;
+  const mid = await toScreen(G.win.x + G.win.w * 0.5, G.win.y + G.win.h * 0.5);
+  // (an empty bit of the picture: away from every spot)
+  await page.mouse.move(...mid);
+  await page.mouse.down();
+  for (let k = 1; k <= 6; k++) {
+    await page.mouse.move(mid[0] - (upright ? 0 : 20 * k), mid[1] - (upright ? 20 * k : 8 * k));
+    await wait(page, 40);
+  }
+  await page.mouse.up();
+  await wait(page, 100);
+  G = await gi();
+  const panned = upright ? G.cam.y > c0.y + 10 : G.cam.x > c0.x + 10;
+  const grabbed = await page.evaluate(() => window.__coot.book.snap.length + Object.keys(window.__coot.book.gpos).length);
+  panned && !grabbed ? ok(`${vw}x${vh}: dragging the picture scrolls it`) : fail(`${vw}x${vh}: pan ${JSON.stringify([c0, G.cam, grabbed])}`);
+  // carry the last bird (on the second page) to the window's far edge until
+  // its spot comes into view, then onto it
+  const id = 'radiobird';
+  const from = await toScreen(G.sheet[id].x, G.sheet[id].y);
+  const edge = upright ? [G.win.x + G.win.w * 0.7, G.win.y + G.win.h - 12] : [G.win.x + G.win.w - 12, G.win.y + G.win.h - 12];
+  await page.mouse.move(...from);
+  await page.mouse.down();
+  const e = await toScreen(...edge);
+  for (let k = 1; k <= 8; k++) {
+    await page.mouse.move(from[0] + ((e[0] - from[0]) * k) / 8, from[1] + ((e[1] - from[1]) * k) / 8);
+    await wait(page, 40);
+  }
+  const camBefore = (await gi()).cam;
+  for (let k = 0; k < 80; k++) {
+    await wait(page, 60);
+    G = await gi();
+    const sp = G.spots[id];
+    if (sp.x > G.win.x + 60 && sp.x < G.win.x + G.win.w - 60 && sp.y > G.win.y + 60 && sp.y < G.win.y + G.win.h - 60) break;
+  }
+  const moved = Math.hypot(G.cam.x - camBefore.x, G.cam.y - camBefore.y);
+  moved > 20 ? ok(`${vw}x${vh}: carrying a sticker to the window's edge scrolls the picture`) : fail(`${vw}x${vh}: no auto-scroll ${JSON.stringify([camBefore, G.cam])}`);
+  await shot(page, `22-gathering-scrolled-${vw}x${vh}`);
+  // onto its spot, away from the edge (where the view would keep scrolling)
+  G = await gi();
+  const target = await toScreen(G.spots[id].x, G.spots[id].y);
+  for (let k = 1; k <= 6; k++) {
+    await page.mouse.move(e[0] + ((target[0] - e[0]) * k) / 6, e[1] + ((target[1] - e[1]) * k) / 6);
+    await wait(page, 30);
+  }
+  await wait(page, 300);
+  G = await gi();
+  await page.mouse.move(...(await toScreen(G.spots[id].x, G.spots[id].y)));
+  await wait(page, 60);
+  await page.mouse.up();
+  await wait(page, 150);
+  const book = await page.evaluate(() => window.__coot.book);
+  book.snap.includes(id) ? ok(`${vw}x${vh}: and the sticker snaps into its bird on the second page`) : fail(`${vw}x${vh}: no snap after scrolling ${JSON.stringify(book)}`);
+  await wait(page, 900);
+  await shot(page, `23-gathering-snapped-${vw}x${vh}`);
+  errors.length ? fail(`${vw}x${vh}: page errors: ` + errors.join(' | ')) : ok(`${vw}x${vh}: no page errors on the gathering`);
   await page.close();
 }
 
