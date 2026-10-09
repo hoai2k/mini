@@ -12,7 +12,7 @@ import { loadEffects } from '../effects/index.js';
 import { loadGames } from '../games/index.js';
 import { load, save, randomId } from './store.js';
 import { sfx, unlockAudio, setVolume, setSfxMuted, sfxMuted } from './audio.js';
-import { assetUrl, iconUrl } from './assets.js';
+import { assetUrl, iconUrl, setIconTheme } from './assets.js';
 import { applyIcons, ICONS } from './icons.js';
 import { makeSheet } from './sheet.js';
 import { createVotes, voteButtons } from './votes.js';
@@ -26,6 +26,7 @@ const settings = {
   volume: 0.6,
   reduceMotion: false,
   autoLight: true,
+  theme: 'teen',
   ...load('settings', {}),
 };
 const saveSettings = () => save('settings', settings);
@@ -41,6 +42,17 @@ function applyAccent(color) {
   root.setProperty('--on-accent', lum > 0.62 ? '#1d1533' : '#fff');
 }
 applyAccent(settings.color);
+
+// The theme (Settings > Theme): the look of the whole UI (themes.css), the
+// icon set and the title art.
+const THEMES = ['teen', 'kid', 'art', 'classic'];
+function applyTheme(t) {
+  const theme = THEMES.includes(t) ? t : 'teen';
+  document.documentElement.dataset.theme = theme;
+  setIconTheme(theme);
+  updateTitleArt(theme);
+  refreshIcons();
+}
 setVolume(settings.volume);
 document.body.classList.toggle('reduce-motion', !!settings.reduceMotion);
 
@@ -136,20 +148,51 @@ document.addEventListener('webkitfullscreenchange', markFullscreen);
 
 // --- title screen ----------------------------------------------------------
 
+// The title logo and background for a theme: its own art when delivered.
+// Kid and Teen fall back to the original art; Art and Classical draw a
+// styled text logo on a CSS background until theirs arrive.
+function updateTitleArt(theme) {
+  const own = n => assetUrl(`${n}-${theme}`);
+  const original = theme === 'kid' || theme === 'teen';
+  const logo = theme === 'kid' ? assetUrl('logo') : own('logo') ?? (original ? assetUrl('logo') : null);
+  $('#logo-img').hidden = !logo;
+  if (logo) $('#logo-img').src = logo;
+  $('#logo').classList.toggle('has-img', !!logo);
+  const bg = theme === 'kid' ? assetUrl('title-bg') : own('title-bg') ?? (original ? assetUrl('title-bg') : null);
+  $('#title').style.backgroundImage = bg ? `url("${bg}")` : '';
+  $('#title').classList.toggle('has-bg', !!bg);
+}
+
+// Swaps every effect and game icon for the current theme's.
+function refreshIcons() {
+  document.querySelectorAll('#effect-list .fx-item[data-fx]').forEach(b => {
+    const fx = effects.find(e => e.id === b.dataset.fx);
+    if (fx) setButtonIcon(b, iconUrl('fx', fx.id), fx.emoji);
+  });
+  document.querySelectorAll('.game-card[data-game]').forEach(b => {
+    const g = games?.games.get(b.dataset.game);
+    if (!g) return;
+    const ico = b.querySelector('.ico');
+    const url = iconUrl('game', g.id);
+    ico.textContent = '';
+    if (url) {
+      const im = document.createElement('img');
+      im.src = url;
+      im.alt = '';
+      ico.append(im);
+    } else ico.textContent = g.emoji;
+  });
+  const fav = $('#fav-list');
+  if (fav) {
+    delete fav.dataset.sig;
+    if (openTab === 'favs') renderFavorites();
+  }
+}
+
 function initTitle() {
   const favicon = assetUrl('icon');
   if (favicon) $('#favicon').href = favicon;
-  const logo = assetUrl('logo');
-  if (logo) {
-    $('#logo-img').src = logo;
-    $('#logo-img').hidden = false;
-    $('#logo').classList.add('has-img');
-  }
-  const bg = assetUrl('title-bg');
-  if (bg) {
-    $('#title').style.backgroundImage = `url("${bg}")`;
-    $('#title').classList.add('has-bg');
-  }
+  applyTheme(settings.theme);
   $('#name-input').value = settings.name;
   colorPicker($('#color-picker'));
   $('#join-form').addEventListener('submit', e => {
@@ -1060,27 +1103,34 @@ function showKind(kind) {
   centerEffect(fx?.kind === kind ? fx.id : '', false, false);
 }
 
+// Puts an icon (or the emoji) on a lens button, keeping its label.
+function setButtonIcon(b, url, emoji) {
+  const label = b.querySelector('.fx-label');
+  b.textContent = '';
+  if (url) {
+    const im = document.createElement('img');
+    im.src = url;
+    im.alt = '';
+    b.append(im);
+  } else {
+    b.append(document.createTextNode(emoji));
+  }
+  // Themed icons (all but the first set) bring their own tile: show it whole and big.
+  b.classList.toggle('tile-icon', !!url && !/\/assets\/icons\//.test(url));
+  if (label) b.append(label);
+}
+
 function effectButton(fx, onClick) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'fx-item';
   b.setAttribute('aria-label', fx.name);
   b.title = fx.name;
-  const iconUrl = fx.icon;
-  if (iconUrl) {
-    const im = document.createElement('img');
-    im.src = iconUrl;
-    im.alt = '';
-    b.append(im);
-    // Second-set icons bring their own rounded tile: show it whole and big.
-    if (/\/icons2\//.test(iconUrl)) b.classList.add('tile-icon');
-  } else {
-    b.textContent = fx.emoji;
-  }
   const label = document.createElement('span');
   label.className = 'fx-label';
   label.textContent = fx.name;
   b.append(label);
+  setButtonIcon(b, fx.icon, fx.emoji);
   b.addEventListener('click', onClick);
   return b;
 }
@@ -1399,6 +1449,7 @@ async function initGames() {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'game-card';
+    b.dataset.game = g.id;
     const ico = document.createElement('span');
     ico.className = 'ico';
     const gameIcon = iconUrl('game', g.id);
@@ -1599,6 +1650,12 @@ function initSettings() {
   const name = $('#set-name');
   const vol = $('#set-volume');
   const motion = $('#set-motion');
+  const themeSel = $('#set-theme');
+  themeSel.addEventListener('change', () => {
+    settings.theme = themeSel.value;
+    applyTheme(settings.theme);
+    saveSettings();
+  });
   const light = $('#set-light');
   light.addEventListener('change', () => {
     settings.autoLight = light.checked;
@@ -1643,6 +1700,7 @@ function initSettings() {
     $('#set-name-text').textContent = settings.name || 'Pick a name';
     vol.value = settings.volume;
     motion.checked = !!settings.reduceMotion;
+    themeSel.value = settings.theme || 'teen';
     light.checked = settings.autoLight !== false;
     colorPicker($('#set-colors'), c => {
       colorPicker($('#color-picker'));

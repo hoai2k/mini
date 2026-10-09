@@ -12,6 +12,7 @@ Play it at https://hoai2k.github.io/mini/chat/.
 | Path | What it is |
 | --- | --- |
 | `index.html`, `styles.css` | The page: title screen, call screen, trays, dialogs |
+| `themes.css` | The Teen, Art and Classical themes (Kid is `styles.css` as it stands) |
 | `js/main.js` | Wires everything together: tiles, controls, trays, invites, chat, settings |
 | `js/net.js` | The shared room on the mini-rooms relay: join or host, reconnect, presence, topics |
 | `js/rtc.js` | Mesh WebRTC calls, negotiated over the relay |
@@ -70,6 +71,18 @@ so the picture stays clear:
 - An open game takes the whole screen between the two bars, and the videos
   shrink to bubbles in the top bar; games marked `fullBleed` (Hoops) draw
   under the bars too.
+
+Themes: Settings > Theme picks the look. Teen (the default) is dark and
+sleek with the teen icon set; Kid is the original candy look with the first
+icon set; Art borrows mid-century French New Wave cinema posters (paper,
+black outlines, offset shadows, red, Jost); Classical is 18th-century French
+Rococo (ivory, double gold borders, gilt buttons, Garamond). `themes.css`
+restyles the page through `html[data-theme]`; text over the video keeps a
+dark backing in every theme, and the game area keeps its dark palette.
+Icons fall back through the theme's own set, then the teen set, then the
+first set (`themedIconName` in `js/assets.js`); the title logo and
+background do the same, with a styled text logo until Art and Classical get
+theirs.
 
 Full screen: Start and the top-right button ask for full screen with
 whichever API the browser has (the prefixed one too, which iPhone Safari
@@ -196,6 +209,9 @@ itself to HTTPS.
   browsers against a local relay: video both ways, a bubble flying and
   popping, chat, joining a game from an invite, and a background tab pausing
   the camera and mic (needs `npm ci` in `multiplayer/server`)
+- `chat/publish.sh local/pages/chat && node chat/test/theme-shots.mjs`:
+  title, call, effects, settings and games in every theme, screenshots in
+  `local/chat-shots/themes/`
 
 `test/fx.html?fx=<id>` and `test/game.html?game=<id>&n=2` are also handy by
 hand.
@@ -293,6 +309,10 @@ with its state (see `js/gamehost.js`).
   fifteen game icons are still requested. The app uses each as it arrives
   (`iconUrl` in `js/assets.js`), shown as a full-size rounded tile, and the
   first-set icon until then.
+- Artwork (themes): Art and Classical icon sets (CH-N01 to CH-N95 in
+  `assets/icons-art/`, CH-R01 to CH-R95 in `assets/icons-classic/`) and a
+  title background and logo for Teen, Art and Classical (CH-T01 to CH-T06)
+  are requested; until they arrive those themes show the teen icons.
 - Artwork (first set): all 158 earlier image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
   `assets/ui/logo.png` and `assets/ui/logo-v2.png`. `design/generated/deliveries.json`

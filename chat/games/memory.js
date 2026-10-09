@@ -5,13 +5,15 @@
 // including the time the cards flip back (flipBackAt), so a new owner simply
 // finishes the turn. Everyone else sends 'flip' and draws from shared().
 
+import { themedIconName } from '../js/assets.js';
+
 const PAIRS = 10;
 const CARDS = PAIRS * 2;
 const MAX_PLAYERS = 4;
 const SHOW_MISS = 1000;   // ms a mismatched pair stays face up
 
-// The second-set icon when delivered, else the first.
-const faceArtOf = (api, sym) => api.img(FACES[sym].img.replace(/^fx-/, 'fx2-')) || api.img(FACES[sym].img);
+// The current theme's icon when delivered, else the first set's.
+const faceArtOf = (api, sym) => api.img(themedIconName(FACES[sym].img)) || api.img(FACES[sym].img);
 
 // Card faces, in order: the face-effect emoji and the delivered icon name.
 const FACES = [

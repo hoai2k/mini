@@ -17,10 +17,29 @@ export function assetUrl(name) {
   return new URL(entry.file, base).href;
 }
 
-// Effect and game icons come in two sets; the second (teen) set replaces the
-// first one icon at a time as it is delivered.
+// Effect and game icons come in a set per theme (Settings > Theme). Each
+// theme falls back, icon by icon, to the next set that has one:
+//   teen     second set (fx2-*), then the first
+//   kid      first set (fx-*) only
+//   art      art-fx-*, then teen, then the first
+//   classic  classic-fx-*, then teen, then the first
+let theme = 'teen';
+export function setIconTheme(t) {
+  theme = t;
+}
+// The asset name to use for an icon named in the first set ('fx-puppy').
+export function themedIconName(name) {
+  const [kind, ...rest] = name.split('-');
+  const id = rest.join('-');
+  const order = {
+    kid: [name],
+    art: [`art-${kind}-${id}`, `${kind}2-${id}`, name],
+    classic: [`classic-${kind}-${id}`, `${kind}2-${id}`, name],
+  }[theme] ?? [`${kind}2-${id}`, name];
+  return order.find(n => assetUrl(n)) ?? name;
+}
 export function iconUrl(kind, id) {
-  return assetUrl(`${kind}2-${id}`) ?? assetUrl(`${kind}-${id}`);
+  return assetUrl(themedIconName(`${kind}-${id}`));
 }
 
 export function img(name) {
