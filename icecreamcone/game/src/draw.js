@@ -738,14 +738,7 @@ const OVERLAY = {
     const growth = pose.growth ?? 0;
     const [sx, sy] = at('plume', 0.518, 0.293);
     if (art('sprites.plumeGrowth')) {
-      // The painted stages share one scale: the whole cell is drawn, its soil
-      // mound (3% above the cell's foot) on the pot's soil.
-      const stage = (pose.wilt || 0) > 0.5 ? 3 : growth < 0.35 ? 0 : growth < 0.75 ? 1 : 2;
-      g.save();
-      g.translate(sx, sy);
-      g.rotate(Math.sin(t * 1.5) * 0.02);
-      drawSprite(g, 'sprites.plumeGrowth', stage, 0, 0.033 * 420, { h: 420, whole: true });
-      g.restore();
+      // planted by plantedPlume()
     } else if (growth > 0.2) {
       const [x, y] = [sx, sy];
       g.save();
@@ -800,7 +793,8 @@ export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false,
     } else if (v) {
       const c = spriteCell(v[0], v[1]).cell;
       g.drawImage(art(v[0]), c.x, c.y, c.w, c.h, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
-    } else g.drawImage(img, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
+    } else if (id === 'plume' && art('sprites.plumeGrowth')) plantedPlume(g, img, p, t, pose);
+    else g.drawImage(img, -p.cx * p.u, -p.feet * p.u, p.u, p.u);
     OVERLAY[id]?.(g, t, pose);
   } else {
     seedBase = BOIL ? Math.floor(t * 5) % 3 * 0.37 : 0;
@@ -808,6 +802,53 @@ export function drawBird(g, id, { x = 0, y = 0, size = 300, t = 0, flip = false,
     seedBase = 0;
   }
   g.restore();
+}
+
+// The Flowerpot Plume with its plant growing in it. The portrait's own
+// painted sprout is left out (only the pot below its back rim is drawn), the
+// growth stage's soil mound is set down into the pot's soil, and the pot's
+// front lip is drawn again over the mound's foot, so the plant sits in the
+// pot rather than on top of it. Measured on the 1024 px portrait: the soil
+// opening is an ellipse about (535, 305), 200 by 20 px; the back rim's top is
+// at y 288.
+const PLUME_POT = { cx: 535 / 1024, cy: 305 / 1024, rx: 200 / 1024, ry: 20 / 1024, rim: 288 / 1024, foot: 340 / 1024 };
+function plantedPlume(g, img, p, t, pose) {
+  const P = PLUME_POT;
+  const x0 = -p.cx * p.u;
+  const y0 = -p.feet * p.u;
+  const U = p.u;
+  const portrait = (clip) => {
+    g.save();
+    g.beginPath();
+    clip();
+    g.clip();
+    g.drawImage(img, x0, y0, U, U);
+    g.restore();
+  };
+  // 1. The pot, from its back rim down.
+  portrait(() => g.rect(x0, y0 + P.rim * U, U, U));
+  // 2. The plant, its mound's foot below the soil line.
+  const growth = pose.growth ?? 0;
+  const stage = (pose.wilt || 0) > 0.5 ? 3 : growth < 0.35 ? 0 : growth < 0.75 ? 1 : 2;
+  const [sx, sy] = at('plume', P.cx, P.foot);
+  g.save();
+  g.translate(sx, sy);
+  g.rotate(Math.sin(t * 1.5) * 0.02);
+  drawSprite(g, 'sprites.plumeGrowth', stage, 0, 0.033 * 420, { h: 420, whole: true });
+  g.restore();
+  // 3. The front lip again, over the mound's foot: everything below the near
+  // half of the soil opening.
+  portrait(() => {
+    const cx = x0 + P.cx * U;
+    const cy = y0 + P.cy * U;
+    g.moveTo(x0, cy);
+    g.lineTo(cx - P.rx * U, cy);
+    g.ellipse(cx, cy, P.rx * U, P.ry * U, 0, Math.PI, 0, true);
+    g.lineTo(x0 + U, cy);
+    g.lineTo(x0 + U, y0 + U);
+    g.lineTo(x0, y0 + U);
+    g.closePath();
+  });
 }
 
 // A painted variant of the portrait for this pose, as [sheet, cell], or null.

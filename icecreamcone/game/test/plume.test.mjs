@@ -49,6 +49,7 @@ test('plume: a beginner opens the next page, a good gardener more; sweeping and 
   assert.ok(Math.min(...beginner) >= pass, `beginner ${beginner}`);
   assert.ok(Math.min(...good) > Math.max(...beginner) - 1, `good ${good}`);
   assert.ok(Math.max(...sweep) < Math.min(...good), `sweep ${sweep}`);
+  assert.ok(Math.max(...sweep) < pass, `sweeping must not open the next page: ${sweep}`);
 });
 
 test('plume: watering one Plume too long makes it soggy', () => {

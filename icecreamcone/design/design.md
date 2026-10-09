@@ -19,7 +19,9 @@ says "New World Record!" and nothing more specific.
 2. **The field guide.** A spread of pages, one per bird. A bird you haven't
    met yet shows as an ink silhouette marked "Not yet spotted". The first
    bird is open from the start; reaching a bird's score opens the next page.
-   Each tab shows your best score.
+   Each tab shows your best score. The chosen card is unmistakable from the
+   sofa: it lifts and grows, ringed in pink with its name on a pink tab, its
+   bird comes alive, and the other cards fade back a little.
 3. **The bird's page.** The bird large on cream paper, gently alive (it
    breathes, blinks, shuffles, does its thing now and then), with its name, a
    short rhyme in the game's own words (not the book's verses), and how its
@@ -32,8 +34,10 @@ says "New World Record!" and nothing more specific.
 5. **Result.** Your score, under "New World Record!" when it beats your best
    and reaches the score that opens the next page ("Personal Best!" when it
    beats your best but falls short; otherwise "Time!" and your best), and the score that opens the next page
-   if you haven't reached it yet. Options: Play again, Next bird, Back to the
-   guide.
+   if you haven't reached it yet. Two buttons: Next Bird (or, after the last
+   bird, All the Birds Together) when the round reached the score, Play Again
+   when it didn't, and Back to Field Guide. The first is coloured and chosen
+   by default.
 6. **The gathering.** When every bird has been spotted, a final page shows them all
    together, like the book's endpapers. Any bird can be replayed at any time.
 

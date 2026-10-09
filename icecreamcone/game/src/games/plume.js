@@ -26,7 +26,7 @@ const SLOTS = [224, 512, 800, 1088, 1376];
 const PANELS = ['#efd96a', '#f3e2a0', '#ea8fb0', '#a9b88a', '#d9a4a0'];
 
 const GROW = 0.3; // growth per second while watered (a bloom takes about 3 s)
-const SOAK = 0.27; // soak per second of watering; soggy at 1
+const SOAK = 0.22; // soak per second of watering; soggy at 1
 const SOGGY = 2;
 const DROPS = 100; // drops per second; each one is 1 / DROPS seconds' worth of water
 const DRINK = 2.5; // how fast watering takes the dryness away
@@ -63,7 +63,7 @@ export default function create(env) {
     soundT: 0,
   };
 
-  const dryRate = () => 0.12 + 0.17 * Math.min(1, g.elapsed / DURATION);
+  const dryRate = () => 0.09 + 0.13 * Math.min(1, g.elapsed / DURATION);
   // The Plume under the rose, if any.
   g.under = () => g.plants.find((p) => Math.abs(p.x - g.x) < POT_HALF) || null;
 

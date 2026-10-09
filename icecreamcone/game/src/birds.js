@@ -64,7 +64,7 @@ export const BIRDS = [
     goal: 'Move the watering can and hold to water. Bring each Plume to full bloom.',
     tips: ['Each full bloom scores, then the Plume starts again.', 'A dry Plume wilts and loses its growth.', 'Too much water and it gets soggy and stops for a moment.', 'Rain that misses the pots is wasted: keep the can over a Plume.'],
     score: 'blooms',
-    pass: 7,
+    pass: 6,
     tune: 'menu',
     color: '#d99a8a',
   },

@@ -329,7 +329,7 @@ function drawCards(t) {
     c.clearRect(0, 0, cv.width, cv.height);
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const size = Math.min(h * 0.92, w * 1.0);
-    const opts = { x: w / 2 + size * 0.08, y: h * 0.96, size, t: card === document.activeElement ? t : 0, pose: { growth: 0.9, light: 'green', fill: 0.6 } };
+    const opts = { x: w / 2 + size * 0.08, y: h * 0.96, size, t: card === document.activeElement ? t : 0, pose: { growth: 0.2, light: 'green', fill: 0.6 } }; // the Plume as a sprout, so it fits its card
     if (unlocked(i)) drawBird(c, BIRDS[i].id, opts);
     else drawSilhouette(c, BIRDS[i].id, opts);
   }
@@ -525,15 +525,12 @@ function finish() {
     p.innerHTML = `<strong>A new page is open: ${BIRDS[S.bird + 1].name}!</strong>`;
     extra.append(p);
   }
-  const nextBtn = $('#result-next');
-  const allDone = BIRDS.every((_, i) => passed(i));
-  if (S.bird + 1 < BIRDS.length) {
-    nextBtn.textContent = 'Next bird';
-    nextBtn.disabled = !unlocked(S.bird + 1);
-  } else {
-    nextBtn.textContent = allDone ? 'All the birds together' : 'Next bird';
-    nextBtn.disabled = !allDone;
-  }
+  // Two choices: on to the next bird after a round that reaches the score,
+  // or another go after one that doesn't; the first is the default.
+  const go = $('#result-go');
+  const won = passes(b, score);
+  go.dataset.action = won ? 'next' : 'restart';
+  go.textContent = !won ? 'Play Again' : S.bird + 1 < BIRDS.length ? 'Next Bird' : 'All the Birds Together';
   $('#result').hidden = false;
   audio.sfx('medal', { level: record ? 2 : now ? 1 : 0 });
   input.lockHeld();
@@ -936,15 +933,20 @@ function pagePose(t) {
   return { growth: (Math.sin(t * 0.5) + 1) / 2, light: ['green', 'amber', 'red'][Math.floor(t / 1.6) % 3], fill: (Math.sin(t * 0.8) + 1) / 2, sing: Math.abs(Math.sin(t * 2)), click: (t % 3) < 0.2 ? (t % 3) : 0, lift: Math.sin(t * 2) > 0.6 ? -1 : Math.sin(t * 2) < -0.6 ? 1 : 0, wind: 1 };
 }
 
+// Birds that grow taller than their portrait (the Plume's bloom) are drawn a
+// little smaller on their page, so the whole of them fits.
+const PAGE_FIT = { plume: 0.78 };
+
 function renderPage(t) {
   const b = BIRDS[S.bird];
+  const fit = PAGE_FIT[b.id] || 1;
   const portrait = view.cw < view.ch;
   if (portrait) {
     // Upright phone: the text fills the lower part of the page, so the bird
     // is drawn at a good size in the space above it, in screen pixels.
     const top = $('.page-text').getBoundingClientRect().top;
     const area = Math.max(80, top - 16);
-    const size = Math.min(area * 0.92, view.cw * 0.9);
+    const size = Math.min(area * 0.92, view.cw * 0.9) * fit;
     g.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     g.save();
     g.globalAlpha = 0.35;
@@ -966,9 +968,9 @@ function renderPage(t) {
   g.ellipse(cx, cy, portrait ? 420 : 380, portrait ? 300 : 360, 0, 0, Math.PI * 2);
   g.fill();
   g.restore();
-  const size = portrait ? 520 : 640;
+  const size = (portrait ? 520 : 640) * fit;
   const pose = pagePose(t);
-  drawBird(g, b.id, { x: cx + size * 0.06, y: cy + size * 0.55, size, t, pose });
+  drawBird(g, b.id, { x: cx + size * 0.06, y: cy + 352 + (fit < 1 ? 20 : 0), size, t, pose });
 }
 
 function renderGathering(t) {

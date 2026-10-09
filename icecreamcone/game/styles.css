@@ -89,6 +89,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .text-btn { padding: 8px 18px; font-family: var(--serif); font-weight: 600; }
 .row-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .row-buttons .menu-btn { width: auto; flex: 1 1 160px; margin: 0; }
+#result .row-buttons .menu-btn { white-space: nowrap; padding-left: 12px; padding-right: 12px; }
 
 /* ---------- title ---------- */
 
@@ -191,6 +192,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .card .card-sub { font-size: 0.75rem; color: var(--muted); }
 .card.locked { background: var(--paper-2); }
 .card.locked .card-name { color: var(--muted); }
+/* The chosen card stands out from across the room: lifted, ringed in pink,
+   with its name on a pink tab, while the others step back a little. */
+.card:focus {
+  transform: translateY(-6px) scale(1.07);
+  background: #fff4f8;
+  box-shadow: 0 0 0 5px var(--focus), 4px 10px 0 rgba(59, 43, 32, 0.3);
+  outline: none !important;
+  z-index: 2;
+}
+.card:focus .card-name { background: var(--focus); color: #fff8ef; border-radius: 8px; padding: 1px 8px; }
+.card:focus .card-sub { color: var(--ink); }
+.cards:focus-within .card:not(:focus) { opacity: 0.72; filter: saturate(0.7); }
 
 /* ---------- page ---------- */
 
