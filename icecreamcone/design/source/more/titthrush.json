@@ -62,6 +62,7 @@
     "size": "1024 x 1024, transparent",
     "used": "Set the Clocks: the winding crown and ring bow on top of the big watch face (IC-M12b), which has none; the game sets it on the top of the gold case and glows it red while it is jammed.",
     "standin": "A ribbed gold box drawn in code.",
-    "prompt": "{STYLE} {SHEET} One object only, centred, seen straight on, matching the gold of the delivered watch face (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/sprites/watch-face.png ) and the crown on the Ten O'clock Tit Trush's head (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ): a pocket watch's winding crown, a short ribbed gold knob on a little collar stem, with a round gold ring bow through it on top, upright, about 40% of the image wide and 85% of its height, the bottom of the stem flat and level at the bottom of the painted area (it sits on the top of the watch case). No watch, no chain."
+    "prompt": "{STYLE} {SHEET} One object only, centred, seen straight on, matching the gold of the delivered watch face (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/sprites/watch-face.png ) and the crown on the Ten O'clock Tit Trush's head (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/titthrush.png ): a pocket watch's winding crown, a short ribbed gold knob on a little collar stem, with a round gold ring bow through it on top, upright, about 40% of the image wide and 85% of its height, the bottom of the stem flat and level at the bottom of the painted area (it sits on the top of the watch case). No watch, no chain.",
+    "status": "delivered"
   }
 ]

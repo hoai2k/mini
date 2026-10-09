@@ -305,6 +305,16 @@ waves run out. A crossbow attack looses a volley of eight bolts (the fort
 ten), and the women's archers twelve arrows. Only the look changed: units,
 strength and damage are as before.
 
+**Keeping the crowd cheap.** The backlit glow (a canvas shadow blur) was the
+costliest thing on the field, paid again for every sprite and every rig piece
+each frame. `render/glow.js` now bakes each image's glow once per size, scale
+and colour and draws the baked copy; only the squad's lead soldier and the
+front figures carry it, and the back rank and the host use cached haze-toned
+copies with no glow. The parallax strips draw only their opaque band, not the
+transparent sky above. Measured on the Outpost (shadow style), a battle frame
+fell from about 25 ms with the host and the old glow to about 14 ms, a little
+under the 14.4–15.3 ms it took before the host was added (water style 16 ms).
+
 **A stronger march crashes in.** A march advances 2 × its power each beat and
 stops at the enemy line, so a tier II or III march used to lose the ground it
 had left once it reached the line. Now, on the beat a stronger march arrives

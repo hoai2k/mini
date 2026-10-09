@@ -3,6 +3,8 @@
 // parent's pin, like a shadow puppet; a pose is a map of piece -> angle in
 // radians (clockwise), and a missing piece angle is 0, the rest pose.
 
+import { drawGlowing } from './render/glow.js';
+
 export async function loadRig(base, name) {
   try {
     const meta = await (await fetch(`${base}rigs/${name}.json`)).json();
@@ -54,7 +56,7 @@ export function drawRig(g, rig, x, y, height, pose = {}) {
   }
   for (const p of rig.byZ) {
     g.setTransform(base.multiply(frames.get(p.id)));
-    g.drawImage(p.img, -p.pivot[0], -p.pivot[1], p.w, p.h);
+    drawGlowing(g, p.img, -p.pivot[0], -p.pivot[1], p.w, p.h); // the backlit glow baked in (render/glow.js)
   }
   g.setTransform(base);
 }

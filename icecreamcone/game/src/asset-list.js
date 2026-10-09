@@ -436,7 +436,7 @@ export const ASSETS = {
   },
   "sprites.dishShards": {
     "file": "assets/sprites/dish-shards.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.titthrush": {
     "file": "assets/scenes/titthrush.webp",
@@ -460,7 +460,7 @@ export const ASSETS = {
   },
   "sprites.watchCrown": {
     "file": "assets/sprites/watch-crown.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.plugsocketswift": {
     "file": "assets/scenes/plugsocketswift.webp",
@@ -556,7 +556,7 @@ export const ASSETS = {
   },
   "sprites.knots": {
     "file": "assets/sprites/knots.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
@@ -580,7 +580,7 @@ export const ASSETS = {
   },
   "sprites.radioParts": {
     "file": "assets/sprites/radio-parts.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.scoops": {
     "file": "assets/sprites/scoops.png",
@@ -640,114 +640,114 @@ export const ASSETS = {
   },
   "book.coot": {
     "file": "assets/book/coot.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.cupadee": {
     "file": "assets/book/cupadee.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.shuttercluck": {
     "file": "assets/book/shuttercluck.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.gullfinch": {
     "file": "assets/book/gullfinch.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.plume": {
     "file": "assets/book/plume.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.bobolinks": {
     "file": "assets/book/bobolinks.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.peeper": {
     "file": "assets/book/peeper.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.piffle": {
     "file": "assets/book/piffle.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.dodo": {
     "file": "assets/book/dodo.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.crow": {
     "file": "assets/book/crow.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.milkmidge": {
     "file": "assets/book/milkmidge.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.waterglassgoose": {
     "file": "assets/book/waterglassgoose.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.niffy": {
     "file": "assets/book/niffy.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.broomwhisk": {
     "file": "assets/book/broomwhisk.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.buttonbeaks": {
     "file": "assets/book/buttonbeaks.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.keycrane": {
     "file": "assets/book/keycrane.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.snippit": {
     "file": "assets/book/snippit.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.garbagecanary": {
     "file": "assets/book/garbagecanary.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.steampressersparrow": {
     "file": "assets/book/steampressersparrow.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.wetweatherwren": {
     "file": "assets/book/wetweatherwren.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.glovedove": {
     "file": "assets/book/glovedove.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.titthrush": {
     "file": "assets/book/titthrush.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.plugsocketswift": {
     "file": "assets/book/plugsocketswift.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.saltshakershrike": {
     "file": "assets/book/saltshakershrike.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.ladlelark": {
     "file": "assets/book/ladlelark.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.drippet": {
     "file": "assets/book/drippet.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.sawbird": {
     "file": "assets/book/sawbird.webp",
-    "delivered": false
+    "delivered": true
   },
   "book.radiobird": {
     "file": "assets/book/radiobird.webp",
-    "delivered": false
+    "delivered": true
   }
 };
