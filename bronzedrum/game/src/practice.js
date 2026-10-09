@@ -14,6 +14,7 @@
 //        straight back on the next beat with a new call.
 
 import { TEMPO } from './rhythm.js';
+import { T } from './text_config.js';
 
 // The length of a rhythm, in beats (a beat holds one, two or three strokes, or none).
 export const BEATS = { min: 2, max: 12 };
@@ -22,26 +23,26 @@ export const BEATS = { min: 2, max: 12 };
 // and a high one (R). Sample ids are in assets/audio.json; `synth` says how
 // the stand-in sounds when a sample is missing (audio.js).
 export const KITS = [
-  { id: 'bronze', name: 'Bronze drum', vn: 'Trống đồng', L: 'drum-tung', R: 'drum-cac' },
-  { id: 'temple', name: 'Barrel drum and mõ', vn: 'Trống chầu · mõ', L: 'drum-chau', R: 'drum-mo' },
-  { id: 'rice', name: 'Rice drum', vn: 'Trống cơm', L: 'kit-com-low', R: 'kit-com-high' },
-  { id: 'gongs', name: 'Gongs', vn: 'Cồng chiêng', L: 'kit-gong-low', R: 'kit-gong-high' },
-  { id: 'bamboo', name: 'Bamboo', vn: 'Đàn t’rưng', L: 'kit-bamboo-low', R: 'kit-bamboo-high' },
-  { id: 'lion', name: 'Lion-dance drum', vn: 'Trống lân · chũm chọe', L: 'kit-lan-drum', R: 'kit-lan-cymbal' },
+  { id: 'bronze', name: T.practice.kits.bronze.name, vn: T.practice.kits.bronze.vn, L: 'drum-tung', R: 'drum-cac' },
+  { id: 'temple', name: T.practice.kits.temple.name, vn: T.practice.kits.temple.vn, L: 'drum-chau', R: 'drum-mo' },
+  { id: 'rice', name: T.practice.kits.rice.name, vn: T.practice.kits.rice.vn, L: 'kit-com-low', R: 'kit-com-high' },
+  { id: 'gongs', name: T.practice.kits.gongs.name, vn: T.practice.kits.gongs.vn, L: 'kit-gong-low', R: 'kit-gong-high' },
+  { id: 'bamboo', name: T.practice.kits.bamboo.name, vn: T.practice.kits.bamboo.vn, L: 'kit-bamboo-low', R: 'kit-bamboo-high' },
+  { id: 'lion', name: T.practice.kits.lion.name, vn: T.practice.kits.lion.vn, L: 'kit-lan-drum', R: 'kit-lan-cymbal' },
 ];
 
 // The secondary drum (Y): one voice at a time, struck alongside the bronze
 // drum and part of the rhythm (drum 'S'); LB and RB choose it. face: the kit
 // face drawn for it (Renderer.kitFace).
 export const SECONDS = [
-  { id: 'chau', name: 'Barrel drum', vn: 'Trống chầu', sample: 'drum-chau', face: 'temple' },
-  { id: 'mo', name: 'Slit drum', vn: 'Mõ', sample: 'drum-mo', face: 'temple' },
-  { id: 'com', name: 'Rice drum', vn: 'Trống cơm', sample: 'kit-com-low', face: 'rice' },
-  { id: 'gong', name: 'Low gong', vn: 'Cồng', sample: 'kit-gong-low', face: 'gongs' },
-  { id: 'chieng', name: 'High gong', vn: 'Chiêng', sample: 'kit-gong-high', face: 'gongs' },
-  { id: 'bamboo', name: 'Bamboo', vn: 'Đàn t’rưng', sample: 'kit-bamboo-low', face: 'bamboo' },
-  { id: 'lan', name: 'Lion-dance drum', vn: 'Trống lân', sample: 'kit-lan-drum', face: 'lion' },
-  { id: 'choe', name: 'Cymbals', vn: 'Chũm chọe', sample: 'kit-lan-cymbal', face: 'lion' },
+  { id: 'chau', name: T.practice.secondDrums.chau.name, vn: T.practice.secondDrums.chau.vn, sample: 'drum-chau', face: 'temple' },
+  { id: 'mo', name: T.practice.secondDrums.mo.name, vn: T.practice.secondDrums.mo.vn, sample: 'drum-mo', face: 'temple' },
+  { id: 'com', name: T.practice.secondDrums.com.name, vn: T.practice.secondDrums.com.vn, sample: 'kit-com-low', face: 'rice' },
+  { id: 'gong', name: T.practice.secondDrums.gong.name, vn: T.practice.secondDrums.gong.vn, sample: 'kit-gong-low', face: 'gongs' },
+  { id: 'chieng', name: T.practice.secondDrums.chieng.name, vn: T.practice.secondDrums.chieng.vn, sample: 'kit-gong-high', face: 'gongs' },
+  { id: 'bamboo', name: T.practice.secondDrums.bamboo.name, vn: T.practice.secondDrums.bamboo.vn, sample: 'kit-bamboo-low', face: 'bamboo' },
+  { id: 'lan', name: T.practice.secondDrums.lan.name, vn: T.practice.secondDrums.lan.vn, sample: 'kit-lan-drum', face: 'lion' },
+  { id: 'choe', name: T.practice.secondDrums.choe.name, vn: T.practice.secondDrums.choe.vn, sample: 'kit-lan-cymbal', face: 'lion' },
 ];
 
 // Reading free strokes as a rhythm (transcribe). The strokes are laid on a

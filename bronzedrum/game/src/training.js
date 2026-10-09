@@ -10,23 +10,14 @@
 // Difficulty and Number of beats settings (which reshape the rhythms in play).
 
 import { STAGES } from './stages.js';
+import { T, txt } from './text_config.js';
 import { COMMANDS, designedTiers } from './rhythm.js';
 
 // Nine levels. A "group" is a pair or a triplet (a beat split in two or
 // three); a group is mixed when it switches drums inside (LR, LRR: the deep
 // stroke can only open one). A switch beside a group is a change of drum
 // between the group and the stroke just before it or just after it.
-export const LEVELS = [
-  { name: 'Steady', about: 'one stroke on every beat' },
-  { name: 'A pair', about: 'one pair, everything on one drum' },
-  { name: 'Switching', about: 'one pair on one drum; the drums switch between beats' },
-  { name: 'Turns', about: 'one triplet on one drum, or one pair that switches drums inside; no switch just before or after it' },
-  { name: 'Around', about: 'one triplet, or a pair that switches inside, with a switch beside it; or two pairs or more' },
-  { name: 'Runs', about: 'two triplets or more, or pairs back to back (not together)' },
-  { name: 'Mixed triplets', about: 'a triplet that switches drums inside' },
-  { name: 'Pairs and triplets', about: 'pairs and triplets together, each on one drum' },
-  { name: 'Everything', about: 'pairs and triplets together, switching drums inside them' },
-];
+export const LEVELS = T.training.levels;
 
 /**
  * Levels set by hand, rhythm number -> level (1 to 9), over the one worked out
@@ -109,7 +100,7 @@ export function catalogue() {
     for (const call of st.calls || []) add(call.text, { ch, what: call.label ? `${call.label}’s call` : 'Call' }, call.bpm);
     if (st.rhythm) add(st.rhythm, { ch, what: 'Casting' }, st.bpm);
   });
-  for (const text of TRAINING_ONLY) add(text, { ch: null, what: 'Training only' });
+  for (const text of TRAINING_ONLY) add(text, { ch: null, what: T.training.trainingOnly });
   for (const e of out) {
     e.level = LEVEL_OVERRIDES[e.n] || levelOf(e.text);
     e.bpm = e.bpm || TRAINING_BPM;
@@ -137,7 +128,7 @@ export function usesText(e) {
     if (!chs.includes(u.ch)) chs.push(u.ch);
     by.set(u.what, chs);
   }
-  return [...by].map(([what, chs]) => (chs.length ? `${what} · ch ${chs.join(', ')}` : what)).join(' — ');
+  return [...by].map(([what, chs]) => (chs.length ? txt('training.usedIn', { what, chapters: chs.join(', ') }) : what)).join(' — ');
 }
 
 /** The earliest chapter that asks for a rhythm (Infinity for Training's own). */

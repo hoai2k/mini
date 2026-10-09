@@ -1,3 +1,4 @@
+import { T, txt } from '../text_config.js';
 import { PALETTE as P } from '../palette.js';
 import { parsePattern } from '../rhythm.js';
 import { usesText } from '../training.js';
@@ -76,7 +77,7 @@ export const training = {
     g.textAlign = 'left';
     g.font = '700 15px "Be Vietnam Pro", system-ui, sans-serif';
     g.fillStyle = P.paper;
-    g.fillText(`Level ${tr.level} · ${lv.name}`, LIST.x + 14, LIST.y + 22);
+    g.fillText(txt('training.levelHeading', { level: tr.level, name: lv.name }), LIST.x + 14, LIST.y + 22);
     // What the level holds, on up to two lines.
     g.font = '500 12px "Be Vietnam Pro", system-ui, sans-serif';
     g.fillStyle = P.paperShade;
@@ -135,7 +136,7 @@ export const training = {
     g.font = '500 12px "Be Vietnam Pro", system-ui, sans-serif';
     g.textAlign = 'center';
     g.fillStyle = 'rgba(242,232,213,0.6)';
-    g.fillText('As designed: Medium, four beats, whatever the settings', LIST.x + LIST.w / 2, LIST.y + h - 10);
+    g.fillText(T.training.asDesigned, LIST.x + LIST.w / 2, LIST.y + h - 10);
     g.restore();
   },
 };
