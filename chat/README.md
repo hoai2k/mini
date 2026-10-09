@@ -110,9 +110,15 @@ own video, or hold RT instead.
   Motion, Clones, Motion Glow.
 - **Warps:** Big Eyes, Bobblehead, Noodle Face, Swirl, Tiny Face, Chubby
   Cheeks, Baby Face, Mirror Face, Cyclops, Big Mouth, Fisheye.
-- **Reshaping:** Kid, Man, Woman (younger, squarer and stubbly, or slimmer
-  with lashes and lips), Thinner and Fatter (you squeezed or stretched
-  sideways from head to toe).
+- **Reshaping:** Baby (a bigger, rounder head with the features gathered
+  lower, larger eyes, a tiny nose and mouth, fat cheeks, faint brows, smooth
+  skin), Man (a broader jaw and longer chin, a stronger nose, a lower heavier
+  brow, contour shadows and only light stubble) and Woman (a softer, narrower
+  jaw, a smaller nose, lifted finer brows, fuller lips, light on the
+  cheekbones and a touch of colour). They lean on proportion and shading
+  (`effects/lib/faceshade.js`); Baby and Woman also take a beard away
+  (inside the face's outline, and below the chin using the person cut-out).
+  Thinner and Fatter squeeze or stretch you sideways from head to toe.
 - **Filters:** 8-Bit, Comic Book, Heat Vision, Film Noir, VHS, Pop Art,
   Kaleidoscope.
 - **Particles:** Storm Cloud, Snowfall, Confetti, Make It Rain, Fireworks.
@@ -165,7 +171,9 @@ itself to HTTPS.
   room layer on an in-memory relay (also run by the Pages workflow)
 - `python3 chat/design/source/build_requests.py --check`: request documents
   are up to date
-- `node chat/test/fx-shots.mjs [ids]`: every effect on a drawn test face
+- `node chat/test/fx-shots.mjs [ids] [--only=neutral,beard,bearded,...]`:
+  every effect on a drawn test face (`beard` gives the face a beard, to check
+  beard removal; `bearded` is the same face with no effect)
   through Chromium's fake camera, screenshots in `local/chat-shots/`
 - `node chat/test/game-check.mjs [ids] [--n=3]`: each game with simulated
   players side by side (`test/game.html`)
