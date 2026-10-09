@@ -19,7 +19,7 @@ import { clamp, lerp, approach } from './index.js';
 
 Object.assign(SHEETS, {
   'sprites.swiftHouse': [3, 2], // dark window, asking, reading by a lamp, asleep with the lamp on, fuse box, fuse box blown
-  'sprites.swiftFly': [1, 1], // the Swift in flight, wings spread
+  'sprites.swiftPoses': [3, 1], // in flight; plugging in (diving, bulb blazing); singed (bulb out, feathers ruffled)
 });
 
 const DURATION = 45;
@@ -145,7 +145,7 @@ export default function create(env) {
       r.prog = 0;
       r.t = 0;
       r.mood = 1;
-      g.flash = 0.25;
+      g.flash = 0.35;
       sfx('switch');
       sfx('ding', { pitch: (r.i % 4) * 2 });
       env.vibrate?.(20);
@@ -502,24 +502,43 @@ export default function create(env) {
 
   function drawSwift(c, t) {
     const flip = g.face > 0;
-    const bob = Math.sin(t * 9) * 5;
+    const plugging = g.flash > 0;
+    const singed = g.blown;
+    const bob = singed ? Math.sin(t * 3) * 3 : Math.sin(t * 9) * 5;
     const x = g.x;
     const y = g.y + bob;
-    if (!drawSprite(c, 'sprites.swiftFly', 0, x, y, { h: 210, anchor: 'center', flip })) {
-      // wings, beating
-      const flap = Math.sin(t * 22) * 0.6;
+    const pose = singed ? 2 : plugging ? 1 : 0;
+    // the painted poses are framed like the portrait, the body at the cell's centre
+    if (!drawSprite(c, 'sprites.swiftPoses', pose, x, y, { h: SIZE * 1.5, anchor: 'center', flip, whole: true })) {
+      // wings: beating, swept back for the plug-in dive, drooping when singed
+      const flap = singed ? 0.9 : plugging ? -0.5 : Math.sin(t * 22) * 0.6;
       for (const d of [-1, 1]) {
         c.save();
         c.translate(x + d * 10, y - 20);
         c.rotate(d * (0.5 + flap));
         poly(c, [[0, 0], [d * 120, -40], [d * 150, -20], [d * 40, 20]], d + 3, 1);
-        wash(c, '#6a7080');
+        wash(c, singed ? '#4a4c54' : '#6a7080');
         ink(c, 1.8);
         c.restore();
       }
-      drawBird(c, 'plugsocketswift', { x, y: y + 160 * (SIZE / 400), size: SIZE, t, flip });
+      c.save();
+      c.translate(x, y);
+      if (plugging) c.rotate((flip ? 1 : -1) * 0.35); // diving head first at the socket
+      drawBird(c, 'plugsocketswift', { x: 0, y: 160 * (SIZE / 400), size: SIZE, t, flip });
+      c.restore();
+      if (singed) {
+        for (let i = 0; i < 3; i++) {
+          const k = (t * 0.7 + i / 3) % 1;
+          c.save();
+          c.globalAlpha = 0.5 * (1 - k);
+          blob(c, x + (flip ? 10 : -10) + Math.sin(i * 2 + t) * 8, y - 60 - k * 70, 10 + k * 14, 8 + k * 10, i, 0.15);
+          wash(c, '#8a8480');
+          c.restore();
+        }
+      }
     }
-    // the bulb glows, brightest just after a lamp goes in
+    // the bulb glows, brightest just after a lamp goes in, and is dark while the fuse is out
+    if (singed) return;
     const s = SIZE / 400;
     const hx = x + (flip ? 10 : -10) * s;
     const hy = y + 160 * s - 290 * s;

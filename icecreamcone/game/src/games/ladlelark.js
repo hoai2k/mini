@@ -20,6 +20,7 @@ Object.assign(SHEETS, {
   'sprites.larkBits': [5, 1], // carrot slice, pea, dumpling, mushroom, old boot
   'sprites.larkQueue': [4, 2], // hedgehog, rabbit, bear cub, frog waiting; the same four pulling a face
   'sprites.larkPot': [2, 1], // the soup pot, a serving bowl
+  'sprites.larkPoses': [3, 1], // hovering, wings beating; dipping bowl first; rising with a full bowl
 });
 
 const DURATION = 50;
@@ -464,12 +465,38 @@ export default function create(env) {
   function lark(c, t) {
     const [sx, sy] = toScreen(g.u, g.v);
     // how far down the bowl is: hovering, then into the soup and out
-    const p = g.dipT > 0 ? Math.sin(((DIP - g.dipT) / DIP) * Math.PI) : 0;
+    const k = g.dipT > 0 ? (DIP - g.dipT) / DIP : 0;
+    const p = g.dipT > 0 ? Math.sin(k * Math.PI) : 0;
     const hover = 80 + Math.sin(t * 3) * 6;
     const bottom = sy - hover + p * (hover + 16);
-    const fx = sx - 20 * K;
-    const fy = bottom + 90 * K;
-    drawBird(c, 'ladlelark', { x: fx, y: fy, size: SIZE, t });
+    const pose = g.dipT > 0 ? (k < 0.45 ? 1 : 2) : 0;
+    // the painted poses have the ladle's bowl at the centre of the cell
+    if (!drawSprite(c, 'sprites.larkPoses', pose, sx, bottom - 40 * K, { h: SIZE * 1.4, anchor: 'center', whole: true })) {
+      // wings: beating while it hovers, swept up as it dips
+      const flap = pose ? -0.8 : Math.sin(t * 16) * 0.5;
+      for (const d of [-1, 1]) {
+        c.save();
+        c.translate(sx + d * 30, bottom - 70 * K);
+        c.rotate(d * (0.6 + flap));
+        poly(c, [[0, 0], [d * 90, -30], [d * 110, -10], [d * 30, 14]], d + 7, 1);
+        wash(c, '#9aa0a8');
+        ink(c, 1.6);
+        c.restore();
+      }
+      c.save();
+      c.translate(sx, bottom);
+      if (pose === 1) c.rotate(0.25); // tipping its bowl into the soup
+      drawBird(c, 'ladlelark', { x: -20 * K, y: 90 * K, size: SIZE, t });
+      c.restore();
+      if (pose === 2) {
+        // a full bowl, brimming
+        c.beginPath();
+        c.ellipse(sx, bottom - 80 * K, 70 * K, 12 * K, 0, 0, Math.PI * 2);
+        c.fillStyle = '#e2b450';
+        c.fill();
+        ink(c, 1.4);
+      }
+    }
     if (p > 0.05) {
       // the soup closes over the dipped bowl
       c.save();

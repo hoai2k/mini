@@ -46,4 +46,6 @@ wall left blank for the game's windows and a clear patch on the garden wall
 for the fuse box. IC-M13b is the window in its four states (dark, asking,
 reading, asleep with the lamp on) and the fuse box whole and blown; the
 game draws the lamp count and heat gauge above the box. IC-M13c is the
-Swift in flight with its wings spread, mirrored to fly right.
+Swift's three poses, mirrored to fly right: in flight, diving at a socket
+as it plugs a lamp in, and singed (bulb out, smoking) while the fuse is
+blown. Its page portrait is the Swift standing still.
