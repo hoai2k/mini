@@ -14,7 +14,7 @@ Artwork for the Ice-Cream Cone Coot game in `icecreamcone/`. Generated from `sou
 
 ## Status
 
-85 requested, 67 delivered, 1 retired, 153 in total.
+84 requested, 67 delivered, 1 retired, 152 in total.
 
 ## Brand
 
@@ -1311,60 +1311,48 @@ Children's picture-book illustration in the style of Arnold Lobel's 1971 book Th
 
 - **File:** `icecreamcone/game/assets/scenes/glovedove.webp`
 - **Size:** 1920 x 1080, opaque
-- **Used for:** Behind Squeaky Clean (the Glove Dove): the kitchen sink where each dirty dish lies to be scrubbed, with the draining board and its rack on the right.
-- **Stand-in until delivered:** A sink, counter, taps and plate rack drawn in code, seen from above.
+- **Used for:** Behind Slippery Dishes (the Glove Dove): the kitchen counter the Dove runs along, the sink the wet dishes pop out of on the left, and the plate rack they are flicked into on the right.
+- **Stand-in until delivered:** A tiled wall, a window, a counter, a sink of suds and a wire plate rack drawn in code, from the side.
 - **Status:** requested
 
 ```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). An old-fashioned kitchen seen from high above and in front, looking down into a deep white ceramic sink. Along the top 20% of the picture, a tiled wall with a small window showing grey rain and two old chrome taps at the middle of the sink's back edge. The sink's basin fills the middle of the picture, from about 29% to 71% of the width and 22% to 89% of the height, full of still, soapy, pale grey-blue water with its flat bottom seen through it; this is where the game lays each dish and the bird scrubs it, so the water must be a plain, quiet, even area with no dishes, cloths, bubbles or reflections in it. On the left, a plain wooden counter top with nothing on it (the game stands a bottle of washing-up liquid and a foam gauge there, at 20% to 27% of the width). On the right, from 75% to 98% of the width, a wooden draining board with an empty wire plate rack, its thin upright wires in a row across the middle of the height (the game stands the washed dishes in it). Cosy, a little steamy.
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Background painting for a children's minigame, wide 16:9, full bleed. The scene is empty of birds, people and animals (the game draws them on top). An old-fashioned kitchen seen straight from the side, like a stage. A long wooden counter top runs right across the picture at about 81% of the height, with plain cupboard doors below it to the bottom edge. On the left, from 2% to 21% of the width, a deep white ceramic sink set into the counter, heaped with soap suds (its rim at about 65% of the height), with an old curved chrome tap above it. On the right, from 77% to 97% of the width, an empty wire plate rack standing on a drip tray on the counter, its thin upright wires rising to about 66% of the height, ready for plates. Behind, a pale tiled wall with a small window showing grey rain at the top middle. The counter between the sink and the rack, and all the air above it, are where the game plays (the bird runs along the counter and flicks dishes up through the air into the rack), so keep the wall there plain and quiet, and nothing at all on the counter: no dishes, cloths, bottles or jars anywhere.
 ```
 
-### IC-M11b · Dishes from above
+### IC-M11b · Dishes from the side
 
 - **File:** `icecreamcone/game/assets/sprites/dishes.png`
 - **Size:** 3072 x 2048, transparent
-- **Used for:** Squeaky Clean: the clean dishes lying in the sink (the game paints the grime on them and turns them as they float).
-- **Stand-in until delivered:** Round dishes drawn in code.
+- **Used for:** Slippery Dishes: the wet dishes flying through the air (the game spins them) and standing in the rack.
+- **Stand-in until delivered:** Plates, a bowl, a cup and pans drawn in code from the side.
 - **Status:** requested
 
 ```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six clean dishes, each in its own 1024 x 1024 cell, all seen from directly above. Each dish's round body is exactly centred in its cell and is 55% of the cell's width across (a handle, where there is one, sticks out to the right of it, still inside the cell): 1) a white dinner plate with a slate-blue dashed band round its rim; 2) a cream soup bowl with a mustard rim, its hollow shaded; 3) a mauve-rimmed tea mug seen from above, a round opening with its handle out to the right; 4) a steel saucepan with a straight handle out to the right; 5) a black iron frying pan with a long dark handle out to the right; 6) a glazed ochre pie dish with a fluted rim. All clean and shining, empty, with no food on them.
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six clean, wet, shiny dishes, each centred in its own 1024 x 1024 cell, all seen from the side at eye level (a plate shows as a flat, slightly tilted ellipse), each about 70% of the cell wide, with a few drops of water and a soap bubble or two on them: 1) a white dinner plate with a slate-blue band round its rim; 2) a cream soup bowl with a mustard rim; 3) a tea cup with a mauve rim and its handle on the right; 4) a steel saucepan with its straight handle out to the right; 5) a black iron frying pan with its long handle out to the right; 6) a glazed ochre pie dish with a fluted rim.
 ```
 
-### IC-M11c · Grime
-
-- **File:** `icecreamcone/game/assets/sprites/grime.png`
-- **Size:** 2048 x 1024, transparent
-- **Used for:** Squeaky Clean: the spots on each dish that the Glove Dove rubs away (the game fades and shrinks each as it is scrubbed).
-- **Stand-in until delivered:** Coloured blobs, a ring and squiggles drawn in code.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. A sprite sheet of separate objects on one transparent background, evenly spaced in the grid the prompt gives, each object centred in its cell with clear empty space all round it (no object touching another or the edge), all lit the same way from the upper left, no cast shadows. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. A 3 x 2 grid of six splotches of food on a plate, seen from directly above, each a roughly round, flat splotch about 280 px across, centred in its cell: 1) a smear of strawberry jam, glossy red-pink; 2) a runny fried egg yolk, yellow with a darker orange middle; 3) a brown gravy splash; 4) a tangle of a few strands of tomato-orange spaghetti; 5) a burnt-on, blackened, crusty brown patch, crosshatched; 6) a brown coffee ring (just the ring, clear in the middle). Messy but cheerful, not disgusting.
-```
-
-### IC-M11d · Glove Dove scrubbing
-
-- **File:** `icecreamcone/game/assets/sprites/glovedove-scrub.png`
-- **Size:** 2048 x 1024, transparent
-- **Used for:** Squeaky Clean: the Glove Dove scrubbing with its feet on the sponge, two frames swapped while it rubs.
-- **Stand-in until delivered:** The portrait, jiggling.
-- **Status:** requested
-
-```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Glove Dove (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/glovedove.png ), the long pink rubber glove with a dove's head, in two frames side by side, each in its own half and at the same scale, facing left, feet at the bottom: scrubbing the floor with its feet like a dance, its body leaning forward and its head lowered to look down; left, the left foot scrubbing forward and the right back; right, the other way about. A small heap of white soap suds and bubbles round its feet. No sponge (the game draws it). Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
-```
-
-### IC-M11e · Glove Dove cheering and swamped
+### IC-M11e · Glove Dove cheering and dismayed
 
 - **File:** `icecreamcone/game/assets/sprites/glovedove-poses.png`
 - **Size:** 2048 x 1024, transparent
-- **Used for:** Squeaky Clean: the Glove Dove cheering while a clean dish goes up on the rack, and swamped when the sink foams over (while it mops up).
-- **Stand-in until delivered:** The portrait hopping, or squashed down into the foam.
+- **Used for:** Slippery Dishes: the Glove Dove cheering when a dish lands in the rack, and dismayed when one smashes.
+- **Stand-in until delivered:** The portrait hopping, or squashed down.
 - **Status:** requested
 
 ```text
-Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Glove Dove (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/glovedove.png ), the long pink rubber glove with a dove's head, in two poses side by side, each in its own half and at the same scale, facing left, feet at the bottom: left, cheering, head and long cuff neck stretched up, beak open, the glove's fingers (its tail crest) fanned wide like a hand waving, one foot lifted in a little jump; right, swamped in a heap of white soap foam up to its body, only its head, neck and fingers sticking out, eye wide in alarm, a few bubbles on its beak. No sponge. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Glove Dove (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/glovedove.png ), the long pink rubber glove with a dove's head, in two poses side by side, each in its own half and at the same scale, facing left, feet at the bottom: left, cheering, head and long cuff neck stretched up, beak open, the glove's fingers (its tail crest) fanned wide like a hand waving, one foot lifted in a little jump; right, dismayed, looking down at the floor, neck drooping, the fingers curled in, its eye wide, as if it has just dropped a plate. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### IC-M11f · Glove Dove catching and flicking
+
+- **File:** `icecreamcone/game/assets/sprites/glovedove-toss.png`
+- **Size:** 2048 x 1024, transparent
+- **Used for:** Slippery Dishes: the Glove Dove with its fingers ready to catch a falling dish, and flicking it up into the air (the game draws the dish).
+- **Stand-in until delivered:** The portrait stretched up, with a pink cup of fingers drawn over its head.
+- **Status:** requested
+
+```text
+Children's picture-book illustration in the style of Arnold Lobel's 1971 book The Ice-Cream Cone Coot and Other Rare Birds: fine brown-black pen-and-ink line with delicate crosshatching and stippling, soft transparent watercolour washes in a slightly faded early-1970s print palette (lemon and mustard yellow, olive and sage green, dusty pink and mauve, strawberry pink, ochre, slate blue, warm grey), on cream paper with visible grain. Whimsical, gentle and slightly eerie, dreamlike mood. No text, no lettering, no watermark, no border, no UI. Exactly the same bird as in its delivered portrait (same design, proportions, colours, line and texture; use that portrait image as the reference), at the same scale, facing left, with only the change described.  The Glove Dove (https://raw.githubusercontent.com/hoai2k/mini/main/icecreamcone/game/assets/subjects/glovedove.png ), the long pink rubber glove with a dove's head, in two poses side by side, each in its own half and at the same scale, facing left, feet at the bottom: left, ready to catch, its long cuff neck and head tipped back to look straight up, the five rubber fingers of the glove raised above it and spread open like a cupped hand waiting for something to fall into it; right, flicking, stretched up tall on tiptoe, the fingers snapping upward together as if tossing a plate into the air, a few soap drops flying off them. No dish (the game draws it). Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### IC-M12a · Tit Trush scene

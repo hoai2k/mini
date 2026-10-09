@@ -414,16 +414,12 @@ export const ASSETS = {
     "file": "assets/sprites/dishes.png",
     "delivered": false
   },
-  "sprites.grime": {
-    "file": "assets/sprites/grime.png",
-    "delivered": false
-  },
-  "sprites.glovedoveScrub": {
-    "file": "assets/sprites/glovedove-scrub.png",
-    "delivered": false
-  },
   "sprites.glovedovePoses": {
     "file": "assets/sprites/glovedove-poses.png",
+    "delivered": false
+  },
+  "sprites.glovedoveToss": {
+    "file": "assets/sprites/glovedove-toss.png",
     "delivered": false
   },
   "scene.titthrush": {
