@@ -58,6 +58,14 @@
       c.strokeStyle = '#3b2a20'; c.lineWidth = 12;
       const lift = (currentExpr.browUp ?? 0) * 40 - (currentExpr.frown ?? 0) * 20;
       for (const x of [392, 632]) { c.beginPath(); c.moveTo(x - 60, 455 - lift); c.lineTo(x + 60, 455 - lift); c.stroke(); }
+      // ?beard=1: a short dark beard and moustache, to check beard removal.
+      if (q.get('beard') === '1') {
+        c.fillStyle = 'rgba(48,32,22,0.82)';
+        c.beginPath(); c.ellipse(512, 800, 215, 175, 0, 0.05 * Math.PI, 0.95 * Math.PI); c.fill();
+        c.beginPath(); c.ellipse(512, 700, 120, 34, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = 'rgba(30,20,14,0.5)';
+        for (let i = 0; i < 260; i++) { const a = Math.random() * Math.PI, r = 150 + Math.random() * 80; c.fillRect(512 + Math.cos(a) * r * 1.2, 700 + Math.sin(a) * r * 0.9, 5, 5); }
+      }
       c.strokeStyle = '#c98b6a'; c.lineWidth = 8;
       c.beginPath(); c.moveTo(512, 560); c.lineTo(490, 640); c.lineTo(530, 640); c.stroke();
       const open = currentExpr.mouthOpen ?? 0, pucker = currentExpr.pucker ?? 0, smile = currentExpr.smile ?? 0;
@@ -120,7 +128,7 @@
   if (q.has('yaw') || q.has('pitch')) studio.setFakeView({ yaw: num('yaw'), pitch: num('pitch') });
   const effects = await loadEffects();
   const fx = effects.find(e => e.id === q.get('fx'));
-  studio.setEffect(fx || null);
+  studio.setEffect(q.get('none') === '1' ? null : fx || null);
   const events = [];
   studio.on('fx-event', e => events.push(e));
   window.fxEvents = events;

@@ -81,6 +81,45 @@ ICON2 = (
     "possible, flat pure magenta #FF00FF outside the tile."
 )
 
+# Themes (Settings > Theme): Teen (the second icon set), Kid (the first),
+# Art and Classical. Art and Classical each get their own icon set, title
+# background and logo; Teen gets its own title background and logo.
+ART_STYLE = (
+    "Mid-century French New Wave cinema poster art, like late-1950s and 1960s Nouvelle Vague film "
+    "posters and title sequences: bold flat shapes that look cut from coloured paper, a limited "
+    "palette of two or three strong inks (vermilion red, ink black, mustard yellow, teal) on "
+    "warm off-white paper, visible paper grain and a slight print misregistration, confident "
+    "brush-and-scissors silhouettes, chic, graphic and a little moody and witty. People are "
+    "stylish, drawn with a few elegant lines. Not cubist, not Picasso, not cartoon, no "
+    "photorealism. No text, no watermark."
+)
+ART_TILE = (
+    "Square icon: the image fills about 85% of the 256 x 256 frame on an off-white paper "
+    "rounded-square tile (corner radius about 22%) with a thin black keyline, the same backing "
+    "for every icon in the set. Readable at 48 px: one clear idea, big flat shapes. Transparent "
+    "outside the tile (PNG with alpha); if that is not possible, flat pure magenta #FF00FF "
+    "outside the tile."
+)
+CLASSIC_STYLE = (
+    "Lavish 18th-century French Rococo painting in the manner of Fragonard and Boucher: a soft "
+    "pastel palette of powder blue, rose, cream and mint with burnished gold, delicate brushwork "
+    "and glowing glazed light, powdered wigs, silks, lace, ribbons and the odd cherub where they "
+    "fit, opulent but light-hearted and playful. Painted, not photographic. No text, no "
+    "watermark."
+)
+CLASSIC_TILE = (
+    "Square icon: the painting fills a rounded-square tile (corner radius about 22%) edged by a "
+    "slim ornate carved gilt frame, the scene filling about 85% of the 256 x 256 frame, the same "
+    "frame for every icon in the set. Readable at 48 px: one clear idea, not too much detail. "
+    "Transparent outside the frame (PNG with alpha); if that is not possible, flat pure magenta "
+    "#FF00FF outside the frame."
+)
+THEME_STYLES = {
+    "teen": (ICON2_STYLE, ICON2),
+    "art": (ART_STYLE, ART_TILE),
+    "classic": (CLASSIC_STYLE, CLASSIC_TILE),
+}
+
 LOGO_STYLE = STYLE.replace("No text, no watermark", "No other text, no watermark")
 
 ALPHA = (
@@ -119,6 +158,24 @@ SECTIONS = {
         "picker. Memory Match also uses the effect icons as its card faces. Until they arrive "
         "the app shows an emoji.",
     ),
+    "themes": (
+        "Theme title screens",
+        "A title background and logo for each theme you can pick in Settings > Theme: Teen (the "
+        "default), Art (mid-century French New Wave cinema posters) and Classical (18th-century "
+        "French Rococo). The Kid theme keeps the original title art.",
+    ),
+    "icons-art": (
+        "Effect and game icons, Art theme",
+        "The Art theme's icon for every effect and game: mid-century French New Wave cinema "
+        "poster art, each showing what the effect or game does. Until one arrives the theme shows "
+        "the Teen icon.",
+    ),
+    "icons-classic": (
+        "Effect and game icons, Classical theme",
+        "The Classical theme's icon for every effect and game: 18th-century French Rococo "
+        "painting in a gilt frame, each showing what the effect or game does. Until one arrives "
+        "the theme shows the Teen icon.",
+    ),
     "icons2": (
         "Effect and game icons, second set (teen style)",
         "A new icon for every effect and game, replacing the first set as each one arrives (the "
@@ -138,20 +195,32 @@ REQUESTS: list[dict] = []
 def req(section, rid, asset, title, size, purpose, prompt, standin, alpha=True, face=False,
         status="requested"):
     ext = "png" if alpha else "webp"
-    folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "icons2": "icons2", "worlds": "worlds"}[section]
+    folder = {"ui": "ui", "fx": "fx", "games": "games", "icons": "icons", "icons2": "icons2", "worlds": "worlds",
+              "themes": "themes", "icons-art": "icons-art", "icons-classic": "icons-classic"}[section]
     file = f"assets/{folder}/{asset}.{ext}"
     style = STYLE if alpha else BG_STYLE
     if rid == "CH-U01":
         style = LOGO_STYLE
+    tail = None
     if section == "icons2":
-        style = ICON2_STYLE
+        style, tail = THEME_STYLES["teen"]
+    elif section == "icons-art":
+        style, tail = THEME_STYLES["art"]
+    elif section == "icons-classic":
+        style, tail = THEME_STYLES["classic"]
+    elif section == "themes":
+        style = THEME_STYLES[asset.rsplit("-", 1)[1]][0]
+        if asset.startswith("logo-"):
+            style = style.replace("No text, no watermark", "No other text, no watermark")
     parts = [style, prompt]
     if face:
         parts.append(FACE_TEXT)
     if section == "icons":
         parts.append(ICON)
-    elif section == "icons2":
-        parts.append(ICON2)
+    elif tail:
+        parts.append(tail)
+    elif section == "themes":
+        parts.append(ALPHA if alpha else "")
     elif alpha:
         parts.append(ALPHA)
     delivery = DELIVERIES.get(rid)
@@ -695,6 +764,52 @@ for i, (gid, name, subject) in enumerate(V2_LATE, len(V2_FX) + len(V2_GAMES) + 1
     req("icons2", f"CH-K{i:02d}", f"fx2-{gid}", f"{name} icon (second set)", "256 x 256",
         f"The {name} button on the effect strips, replacing the first-set icon.", f"Icon: {subject}.",
         "The first-set icon, or the emoji.")
+# Theme title screens.
+THEME_UI = [
+    ("teen", "Teen", "a deep indigo night city scene seen from a rooftop, neon signs and city lights "
+     "softly out of focus, a few glowing phone screens and speech-bubble shapes drifting like "
+     "lanterns",
+     "a sleek logo: \"GAMES\" in a bold modern sans serif with a soft neon glow over \"CHAT\" set "
+     "inside a rounded speech bubble outline, white and electric violet with one hot-pink accent"),
+    ("art", "Art", "a Nouvelle Vague film-poster composition: two stylised faces in profile facing "
+     "each other across a café table, cut-paper shapes in vermilion, black and mustard, a big "
+     "abstract sun and the Eiffel Tower as a tiny black silhouette",
+     "a film-title logo: \"Games Chat\" in a hand-cut condensed display face like a 1960s Nouvelle "
+     "Vague title card, red and black on off-white paper, with a small cut-paper speech bubble"),
+    ("classic", "Classical", "a Rococo garden party at Versailles: powdered aristocrats in silks "
+     "chatting on a swing and around a fountain, cherubs, roses, ribbons and pastel clouds, "
+     "framed by gilt scrollwork",
+     "an ornate Rococo cartouche logo: \"Games Chat\" in elegant engraved copperplate script with "
+     "gold leaf, inside a gilded scrolling frame with ribbons and a small cherub"),
+]
+for i, (tid, tname, bg, logo) in enumerate(THEME_UI):
+    req("themes", f"CH-T{i * 2 + 1:02d}", f"title-bg-{tid}", f"{tname} theme: title background",
+        "1920 x 1080", f"Behind the title screen and join form in the {tname} theme.",
+        f"Full-bleed background: {bg}. Keep the middle third calm and uncluttered for the logo and "
+        "the join form. No border.",
+        "The Kid theme's title background.", alpha=False)
+    req("themes", f"CH-T{i * 2 + 2:02d}", f"logo-{tid}", f"{tname} theme: logo", "1600 x 800",
+        f"The title screen logo in the {tname} theme.",
+        f"{logo[0].upper()}{logo[1:]}. Spell it exactly: Games Chat. Centred, wide landscape "
+        "composition with even margins. Apart from the words Games Chat, no text.",
+        "The Kid theme's logo.")
+
+# Art and Classical icon sets: the same subjects as the second set, without
+# the teen framing.
+def themed_subject(subject):
+    return (subject.replace("a teen's", "a person's").replace("teen's", "person's")
+            .replace("a teen", "a person").replace("same teen", "same person").replace("teen", "person"))
+
+for prefix, section, idp in (("art", "icons-art", "CH-N"), ("classic", "icons-classic", "CH-R")):
+    themed = [e for e in V2_FX + V2_LATE if e[0] != "kid"] + V2_GAMES
+    for i, (gid, name, subject) in enumerate(themed, 1):
+        kind = "game" if (gid, name, subject) in V2_GAMES else "fx"
+        where = "button on the effect strips" if kind == "fx" else "card in the game picker"
+        theme = "Art" if prefix == "art" else "Classical"
+        req(section, f"{idp}{i:02d}", f"{prefix}-{kind}-{gid}", f"{name} icon ({theme} theme)", "256 x 256",
+            f"The {name} {where} in the {theme} theme.", f"Icon: {themed_subject(subject)}.",
+            "The Teen icon, then the Kid icon, then the emoji.")
+
 for i, (gid, name, subject) in enumerate(V2_FX + V2_GAMES, 1):
     kind = "fx" if i <= len(V2_FX) else "game"
     where = "button on the effect strips" if kind == "fx" else "card in the game picker"
