@@ -972,8 +972,8 @@ export const ASSET_LIST = {
     "status": "delivered"
   },
   "fx2-blurbg": {
-    "file": "assets/icons2/fx2-blurbg-v2.png",
-    "status": "delivered"
+    "file": "assets/icons2/fx2-blurbg.png",
+    "status": "requested"
   },
   "fx2-colorpop": {
     "file": "assets/icons2/fx2-colorpop.png",
