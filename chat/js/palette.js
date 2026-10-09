@@ -11,8 +11,8 @@ export const PALETTES = {
 };
 export const COLORS = PALETTES.kid;
 
-let theme = 'teen';
-export function setColorTheme(t) { theme = PALETTES[t] ? t : 'teen'; }
+let theme = 'kid';
+export function setColorTheme(t) { theme = PALETTES[t] ? t : 'kid'; }
 export function colorName(c) { return COLOR_NAMES[COLORS.indexOf(String(c).toLowerCase())]; }
 export function themedColor(c, t = theme) {
   const i = COLORS.indexOf(String(c ?? '').toLowerCase());

@@ -26,9 +26,12 @@ const settings = {
   volume: 0.6,
   reduceMotion: false,
   autoLight: true,
-  theme: 'teen',
+  theme: 'kid',
   ...load('settings', {}),
 };
+// Teen was briefly the default and got saved with everyone's settings; only
+// a theme someone picked in Settings sticks.
+if (!settings.themePicked) settings.theme = 'kid';
 const saveSettings = () => save('settings', settings);
 
 // The player's colour accents the whole interface. Text on it is dark or
@@ -50,7 +53,7 @@ applyAccent(settings.color);
 // icon set and the title art.
 const THEMES = ['teen', 'kid', 'art', 'classic'];
 function applyTheme(t) {
-  const theme = THEMES.includes(t) ? t : 'teen';
+  const theme = THEMES.includes(t) ? t : 'kid';
   document.documentElement.dataset.theme = theme;
   setIconTheme(theme);
   setColorTheme(theme);
@@ -1664,6 +1667,7 @@ function initSettings() {
   const themeSel = $('#set-theme');
   themeSel.addEventListener('change', () => {
     settings.theme = themeSel.value;
+    settings.themePicked = true;
     applyTheme(settings.theme);
     saveSettings();
   });
@@ -1711,7 +1715,7 @@ function initSettings() {
     $('#set-name-text').textContent = settings.name || 'Pick a name';
     vol.value = settings.volume;
     motion.checked = !!settings.reduceMotion;
-    themeSel.value = settings.theme || 'teen';
+    themeSel.value = settings.theme || 'kid';
     light.checked = settings.autoLight !== false;
     colorPicker($('#set-colors'), c => {
       colorPicker($('#color-picker'));
