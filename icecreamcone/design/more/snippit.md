@@ -73,3 +73,15 @@ knots, the notch and the strings now tie on there (was 706), and the
 Snippit is sized from it, its eye just above the rail (about 286 px tall).
 The balloons, kites and the Snippit's poses (IC-M04b to d) are still
 drawn in code or from the portrait until their sheets arrive.
+
+The balloon and kite sheet (IC-M04b) and both pose sheets (IC-M04c, d)
+arrived next. Each string now ties on where the painting puts it: a
+balloon's knot, or a kite's bottom point just above its bowed tail, measured
+per cell (the sheet's pictures are not centred in their cells). Each pose is
+drawn with its painted eye on the snip point and its claws on the ground,
+from the eye and claw positions measured in each cell, and the shake on
+jamming turns about the eye. The jammed pose came out milder than asked
+(blades half open rather than twisted), so the shake stays. The portrait's
+eye was re-measured too: 321 units up and 29 to the left of its feet.
+Nothing of the Snippit's game is drawn in code now apart from the strings,
+knots, notch, tag and pops.

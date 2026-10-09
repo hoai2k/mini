@@ -10,7 +10,7 @@
 // the bunch as time goes on, their strings curl more, and later they jostle
 // in the wind and drift past each other while you look. Score: points.
 
-import { drawBird, drawSprite, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
+import { drawBird, spriteCell, scene, band, blob, poly, wash, ink, hatch, label, SHEETS, PAL, INK } from '../draw.js';
 import { clamp, approach } from './index.js';
 import { subjectShape } from '../subjects.js';
 
@@ -34,7 +34,19 @@ const REACH = 72; // how far from a knot the blades still find it
 // is sized so its eye is there. In the painting the eye is 322 units above
 // its feet and 25 to the left of them; in the stand-in, 220 and 30.
 const HINGE_Y = PEG_Y - 10;
-const hinge = () => (subjectShape('snippit').feet ? { dx: -25, up: 322 } : { dx: -30, up: 220 });
+const hinge = () => (subjectShape('snippit').feet ? { dx: -29, up: 321 } : { dx: -30, up: 220 });
+// Measured on the delivered pose sheets, in each cell's pixels: the eye (the
+// hinge) and the claws' lowest point. Each pose is drawn with its eye on the
+// snip point and its claws on the ground.
+const POSE_CELLS = {
+  'sprites.snippitSnip': [{ ex: 422, ey: 226, feet: 973 }, { ex: 383, ey: 231, feet: 971 }],
+  'sprites.snippitPoses': [{ ex: 432, ey: 321, feet: 985 }, { ex: 443, ey: 302, feet: 980 }, { ex: 410, ey: 308, feet: 1007 }],
+};
+// And on the balloon sheet: where the string ties on (a balloon's knot, a
+// kite's bottom point, above its tail), and how big each is drawn.
+const BALLOON_CELLS = [292, 274, 263, 244, 235, 216].map((ax) => ({ ax, ay: 466, k: 140 / 422 }))
+  .concat([286, 280, 264, 252, 240, 231].map((ax, i) => ({ ax, ay: [300, 314, 316, 301, 318, 299][i], k: 124 / 295 })));
+const ATTACH = (kite) => (kite ? 62 : 70); // string tie below the balloon's middle
 const RIGHT = 10;
 const QUICK = 5;
 const QUICK_T = 3;
@@ -165,7 +177,7 @@ export default function create(env) {
   g.top = (b) => ({ x: b.bx, y: (b.byNow ?? b.by) + Math.sin(g.elapsed * 1.3 + b.ph) * 8 });
   function stringPts(b, t = g.elapsed) {
     const top = g.top(b);
-    const ty = top.y + (b.kite ? 62 : 70);
+    const ty = top.y + ATTACH(b.kite);
     const sway = Math.sin(t * 0.9 + b.ph) * 14;
     return [
       [b.px, PEG_Y],
@@ -323,7 +335,14 @@ export default function create(env) {
     const col = COLORS[b.color];
     c.save();
     c.globalAlpha *= alpha;
-    if (drawSprite(c, 'sprites.balloons', (b.kite ? 6 : 0) + b.color, x, y, { h: (b.kite ? 130 : 140) * s, anchor: 'center' })) {
+    const i = (b.kite ? 6 : 0) + b.color;
+    const sp = spriteCell('sprites.balloons', i);
+    if (sp) {
+      // the painted one, its knot (or the kite's point) where the string ties
+      const m = BALLOON_CELLS[i];
+      const k = m.k * s;
+      const cl = sp.cell;
+      c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, x - m.ax * k, y + ATTACH(b.kite) * s - m.ay * k, cl.w * k, cl.h * k);
       c.restore();
       return;
     }
@@ -382,13 +401,24 @@ export default function create(env) {
     const size = ((GROUND - HINGE_Y) / hg.up) * 400;
     const k = size / 400;
     const fx = g.x - hg.dx * k;
-    // The painted poses (same framing as the painting, about 386 units tall):
-    // snipping, jammed, watching a balloon go, striding; otherwise standing
-    // with its blades open.
-    const o = { h: 386 * k, rot: jam + (g.moving ? walk * 0.5 : 0) };
-    const pose = s > 0.2 ? ['sprites.snippitSnip', 1] : g.jam > 0 ? ['sprites.snippitPoses', 1] : g.happyT > 0 ? ['sprites.snippitPoses', 2] : g.moving && Math.floor(t * 7) % 2 ? ['sprites.snippitPoses', 0] : null;
-    if (pose && drawSprite(c, pose[0], pose[1], fx, GROUND, o)) return;
-    if (drawSprite(c, 'sprites.snippitSnip', 0, fx, GROUND, o)) return;
+    // The painted poses: snipping, jammed (shaking), watching a balloon go,
+    // striding; otherwise standing with its blades open. Each turns about its
+    // eye, which stays on the snip point.
+    const pose = s > 0.2 ? ['sprites.snippitSnip', 1] : g.jam > 0 ? ['sprites.snippitPoses', 1] : g.happyT > 0 ? ['sprites.snippitPoses', 2] : g.moving && Math.floor(t * 7) % 2 ? ['sprites.snippitPoses', 0] : ['sprites.snippitSnip', 0];
+    const drawPose = (key, i) => {
+      const sp = spriteCell(key, i);
+      if (!sp) return false;
+      const m = POSE_CELLS[key][i];
+      const kk = (GROUND - HINGE_Y) / (m.feet - m.ey);
+      const cl = sp.cell;
+      c.save();
+      c.translate(g.x, HINGE_Y);
+      c.rotate(jam + (g.moving ? walk * 0.5 : 0));
+      c.drawImage(sp.img, cl.x, cl.y, cl.w, cl.h, -m.ex * kk, -m.ey * kk, cl.w * kk, cl.h * kk);
+      c.restore();
+      return true;
+    };
+    if (drawPose(pose[0], pose[1]) || drawPose('sprites.snippitSnip', 0)) return;
     c.save();
     c.translate(g.x, HINGE_Y);
     c.rotate(jam + walk - s * 0.12 + g.happyT * 0.12);

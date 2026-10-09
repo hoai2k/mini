@@ -36,22 +36,39 @@ const REACH = 38; // how close the blade must be, across, to snip
 const DEPTH = 46; // and up and down
 const SIZE = 210;
 const KEEPER_X = 1420;
-const GAP = 330; // the least room between two people walking the same way
+const GAP = 420; // the least room between two people walking the same way
 const WARY = 2.5; // seconds people hold on to their things after a snap at the air nearby
 const WARY_R = 170;
-const DAZE = 1.6;
+const DAZE = 1.6; // seconds the Niffy is dazed after the Keeper's whistle
 // Where the blade's tip is, from the feet, in bird units (400 = the bird's
 // size): on the painting (the open blades' point, measured on the 1024 px
 // PNG at about (50, 285), feet line 0.970 of a 420-unit frame), or on the
 // stand-in. The Niffy is drawn so its tip is at (g.x, g.y).
 const TIP_PAINTED = [-190, -291];
 const TIP_STANDIN = [-170, -230];
-const FEET = 0.97; // the painting's (and its variants') feet line // seconds the Niffy is dazed after the Keeper's whistle
 const KEEPER_Y = 735; // on the promenade's back edge, in front of the painted railing
 const NEST = [300, 122]; // the nest, sitting on the painted branch (top left)
 const PROMPTS = { feather: 1, flower: 1, thread: 1, tag: 2 };
 // Where each thing hangs on a walker, above the feet (and across, facing left).
 const SPOT = { feather: [38, 318], flower: [-14, 214], thread: [24, 112], tag: [-40, 278], balloon: [-36, 236] };
+// Where things hang on each painted walker (sprites.niffyWalkers, cells 0-5),
+// measured on the 2048 x 1536 sheet: across from the middle of the figure's
+// painted outline (positive = towards its back) and up from its feet, in
+// the units SPOT uses (the figure drawn 340 tall at size 1). Feather in the
+// hat band at the back, price tag on the front of the brim, flower on the
+// lapel, loose thread at the back of the coat's hem; the child (cell 5) holds
+// up an empty fist, where the balloon string starts (hand), and is snipped a
+// little above it.
+const PAINTED_SPOT = [
+  { feather: [60, 304], tag: [4, 297], flower: [3, 215], thread: [74, 67] }, // bowler, grey coat
+  { feather: [40, 319], tag: [-61, 298], flower: [-21, 228], thread: [65, 51] }, // wide hat, pink coat
+  { feather: [32, 326], tag: [-48, 321], flower: [-32, 220], thread: [80, 76] }, // flat cap, mustard coat
+  { feather: [28, 323], tag: [-29, 313], flower: [-19, 235], thread: [86, 72] }, // old lady, felt hat
+  { feather: [46, 321], tag: [-15, 312], flower: [2, 239], thread: [53, 142] }, // trilby, red jacket
+  { balloon: [-87, 370], hand: [-87, 310] }, // the child
+];
+// The blade tip in each painted pose cell (1024 px cells, at the portrait's scale).
+const POSE_TIP = { 'sprites.niffyFly': [[33, 282], [55, 299], [99, 250]], 'sprites.niffyDive': [[58, 381], [37, 445]] };
 const COATS = [PAL.slate, PAL.olive, PAL.mauve, PAL.brick, PAL.mustard, '#5a6a7a', PAL.sage];
 const ITEM_COLS = { feather: PAL.magenta, flower: PAL.strawberry, thread: PAL.lemon, tag: '#fbf8ee', balloon: '#d04a3a' };
 
@@ -130,7 +147,7 @@ export default function create(env) {
 
   // Where a walker's thing is now.
   g.spot = (w, it) => {
-    const [ax, ay] = SPOT[it.kind];
+    const [ax, ay] = (art('sprites.niffyWalkers') && PAINTED_SPOT[w.cell]?.[it.kind]) || SPOT[it.kind];
     const f = w.vx < 0 ? 1 : -1; // drawn facing left; mirrored walking right
     return [w.x + ax * f * w.size, GROUND - ay * w.size];
   };
@@ -509,7 +526,11 @@ export default function create(env) {
     for (const it of w.items) {
       if (it.snipped) continue;
       const [x, y] = g.spot(w, it);
-      if (it.kind === 'balloon') drawItem(c, 'balloon', x, y, s * 1.4, t + w.phase, [w.x - 24 * f * s, GROUND - 160 * s]);
+      if (it.kind === 'balloon') {
+        const hand = art('sprites.niffyWalkers') && PAINTED_SPOT[w.cell]?.hand;
+        const from = hand ? [w.x + hand[0] * f * s, GROUND - hand[1] * s] : [w.x - 24 * f * s, GROUND - 160 * s];
+        drawItem(c, 'balloon', x, y, s * 1.4, t + w.phase, from);
+      }
       else drawItem(c, it.kind, x, y, s, t + w.phase);
       if (w.wary > 0) {
         // holding on to it: a hand over it
@@ -521,7 +542,7 @@ export default function create(env) {
     if (w.huh > 0) {
       c.save();
       c.globalAlpha = Math.min(1, w.huh * 2);
-      label(c, w.wary > 0 ? 'Hey!' : 'Hm?', w.x, GROUND - 400 * s, { size: 30, color: PAL.slate, weight: 700 });
+      label(c, w.wary > 0 ? 'Hey!' : 'Hm?', w.x, GROUND - 400 * s, { size: 34, color: w.wary > 0 ? PAL.brick : INK, weight: 800 });
       c.restore();
     }
   }
@@ -655,8 +676,11 @@ export default function create(env) {
     const tip = art('subject.niffy') ? TIP_PAINTED : TIP_STANDIN;
     const fx = tip[0] * k * f; // the feet, from the tip
     const fy = -tip[1] * k;
-    // variants are painted in square cells framed like the portrait
-    if (!drawSprite(c, sheet, cell, fx, fy + (1 - FEET) * SIZE * 1.05, { h: SIZE * 1.05, whole: true, flip: f > 0 })) {
+    // the painted poses: each whole cell at the portrait's scale, placed by
+    // its own measured blade tip so the tip stays on the snip point
+    const pk = (SIZE * 1.05) / 1024;
+    const [tx, ty] = POSE_TIP[sheet][cell];
+    if (!drawSprite(c, sheet, cell, (512 - tx) * pk * -f, (512 - ty) * pk, { h: 1024 * pk, whole: true, anchor: 'center', flip: f > 0 })) {
       // the blade tip is at (x, y); the bird is drawn from its feet
       drawBird(c, 'niffy', { x: fx, y: fy, size: SIZE, t, flip: f > 0 });
     }
