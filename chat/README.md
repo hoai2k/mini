@@ -315,8 +315,8 @@ with its state (see `js/gamehost.js`).
   the revised Blur icon with a sharp person against a heavy bokeh blur.
   Additional theme artwork is tracked in `design/image-requests.md`.
 - Artwork (themes): all six title assets, Art icons CH-N01–CH-N60,
-  and Classical icons CH-R01–CH-R20 are delivered. The remaining 35 Art and
-  75 Classical icons are tracked in `design/image-requests.md`. Themes use
+  and Classical icons CH-R01–CH-R40 are delivered. The remaining 35 Art and
+  55 Classical icons are tracked in `design/image-requests.md`. Themes use
   Teen fallbacks for pending icons.
 - Artwork (first set): all 159 first-set image requests are delivered. The approved blue/green/purple
   logo is `assets/ui/logo-v3.png`; the original and second version remain at
