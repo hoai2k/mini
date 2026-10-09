@@ -593,6 +593,7 @@ REDOS = [
      "end of the handle curls back from the top of the head as a crest, part of the same handle. "
      "Nothing floats apart from the bird."),
 ]
+DELIVERED_REDOS = {"ladlelark"}
 for sid, name, fix in REDOS:
     REQUESTS.append({
         "id": "IC-R" + str([s[0] for s in SUBJECTS].index(sid) + 1).zfill(2) + "b",
@@ -603,7 +604,7 @@ for sid, name, fix in REDOS:
         "size": "1024 x 1024, transparent",
         "used": "Replaces the delivered painting of the same name in the same file.",
         "standin": "The delivered painting, as it is.",
-        "status": "requested",
+        "status": "delivered" if sid in DELIVERED_REDOS else "requested",
         "prompt": STYLE + " " + BIRD + " " + fix + " " + PORTRAIT,
     })
 

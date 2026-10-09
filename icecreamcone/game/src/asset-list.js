@@ -180,7 +180,7 @@ export const ASSETS = {
   },
   "redo.ladlelark": {
     "file": "assets/subjects/ladlelark.png",
-    "delivered": false
+    "delivered": true
   },
   "pocket.hourglassheron": {
     "file": "assets/pocket/hourglassheron.png",
@@ -228,23 +228,23 @@ export const ASSETS = {
   },
   "sprites.milkHouses": {
     "file": "assets/sprites/milk-houses.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.milkProps": {
     "file": "assets/sprites/milk-props.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.milkFloat": {
     "file": "assets/sprites/milk-float.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.midgeThrow": {
     "file": "assets/sprites/midge-throw.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.midgeMoods": {
     "file": "assets/sprites/midge-moods.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.waterglassgoose": {
     "file": "assets/scenes/waterglassgoose.webp",
@@ -252,15 +252,15 @@ export const ASSETS = {
   },
   "sprites.harpGlass": {
     "file": "assets/sprites/harp-glass.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.gooseTap": {
     "file": "assets/sprites/goose-tap.png",
-    "delivered": false
+    "delivered": true
   },
   "sprites.gooseMoves": {
     "file": "assets/sprites/goose-moves.png",
-    "delivered": false
+    "delivered": true
   },
   "scene.niffy": {
     "file": "assets/scenes/niffy.webp",
@@ -348,7 +348,7 @@ export const ASSETS = {
   },
   "scene.keycrane": {
     "file": "assets/scenes/keycrane.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.keycranePrizes": {
     "file": "assets/sprites/keycrane-prizes.png",
@@ -416,7 +416,7 @@ export const ASSETS = {
   },
   "scene.glovedove": {
     "file": "assets/scenes/glovedove.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.dishes": {
     "file": "assets/sprites/dishes.png",
@@ -464,7 +464,7 @@ export const ASSETS = {
   },
   "scene.saltshakershrike": {
     "file": "assets/scenes/saltshakershrike.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.shrikePlates": {
     "file": "assets/sprites/shrike-plates.png",
@@ -544,7 +544,7 @@ export const ASSETS = {
   },
   "scene.radiobird": {
     "file": "assets/scenes/radiobird.webp",
-    "delivered": false
+    "delivered": true
   },
   "sprites.stations": {
     "file": "assets/sprites/stations.png",
