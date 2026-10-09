@@ -1129,62 +1129,62 @@ export const ASSET_LIST = {
   },
   "game2-stare": {
     "file": "assets/icons2/game2-stare.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-copycat": {
     "file": "assets/icons2/game2-copycat.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-rps": {
     "file": "assets/icons2/game2-rps.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-doodle": {
     "file": "assets/icons2/game2-doodle.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-memory": {
     "file": "assets/icons2/game2-memory.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-minigolf": {
     "file": "assets/icons2/game2-minigolf.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-bowling": {
     "file": "assets/icons2/game2-bowling.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-beachbump": {
     "file": "assets/icons2/game2-beachbump.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-burger": {
     "file": "assets/icons2/game2-burger.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-asteroids": {
     "file": "assets/icons2/game2-asteroids.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-dontsmile": {
     "file": "assets/icons2/game2-dontsmile.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-snake": {
     "file": "assets/icons2/game2-snake.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-battleship": {
     "file": "assets/icons2/game2-battleship.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-trivia": {
     "file": "assets/icons2/game2-trivia.png",
-    "status": "requested"
+    "status": "delivered"
   },
   "game2-wordblitz": {
     "file": "assets/icons2/game2-wordblitz.png",
-    "status": "requested"
+    "status": "delivered"
   }
 };
